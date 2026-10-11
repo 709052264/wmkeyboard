@@ -806,6 +806,14 @@
 
     <!-- Media control tool. -->
     <string name="tooldetail_mediactl_group">Media control</string>
+    <string name="tooldetail_find_history_title">Remember searches</string>
+    <string name="tooldetail_find_history_subtitle">Offer your last ten searches when the Find field is empty. Never kept in incognito or from a password field</string>
+    <string name="tooldetail_find_history_clear_title">Search history</string>
+    <string name="tooldetail_find_history_clear_action">Clear</string>
+    <plurals name="tooldetail_find_history_count">
+        <item quantity="one">%d search remembered</item>
+        <item quantity="other">%d searches remembered</item>
+    </plurals>
     <string name="tooldetail_mediactl_pin_title">Pin while music plays</string>
     <string name="tooldetail_mediactl_pin_subtitle">Put the media tool on the toolbar on its own while a music app is playing</string>
     <string name="tooldetail_mediactl_pin_info">The pin is temporary. It goes on the end of the toolbar, it never moves the tools you pinned yourself, and it disappears when the player does. If you have already pinned the media tool, nothing changes.</string>

@@ -514,7 +514,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - One flat row in the user's own order — A reorderable list in settings decides the sequence; the row is filtered to what the selection allows and Undo is pinned first, so the row seen is shorter than the list
     - Ladders only where an action is a pick — Format's case options, the Fancy styles, a colour's other spellings and the time zones replace the row with choices; every pick converts from the selection as it stood when the ladder opened, so picking again replaces the last choice
     - Undo per selection session — Every rewrite is stacked (twenty deep) while the selection stays live; the chip checks the field still reads as the last rewrite before putting the original back, and the stack ends with the selection, a new field or a move onto other text
-    - Find and Replace — Find jumps to the next occurrence and wraps; Replace opens a panel with two buffers of the keyboard's own, Aa/whole word/regex toggles, previous/next, replace one and replace all as one undo entry, a count, and a matcher under a time budget enforced through a clock-watching CharSequence
+    - Find and Replace — Find jumps to the next occurrence and wraps; Replace opens the Find & replace tool's panel (#627) with two buffers of the keyboard's own, Aa/whole word/regex toggles, previous/next, replace one and replace all as one undo entry, a count, and a matcher under a time budget enforced through a clock-watching CharSequence
     - Line tools — Sort (natural order, digits as numbers, again for descending), Unique, Number and Bullets as toggles that convert into each other
     - Programmer's cases — camelCase, snake_case, kebab-case and CONSTANT_CASE inside the Format ladder, each reading any convention in
     - Chat markup per app — Bold, italic, strike and mono in the host app's own markers from a package table (WhatsApp, Telegram, Discord, Slack, Messenger, Google Chat and more), toggling off on a second tap, hidden in any app not in the table
@@ -1566,7 +1566,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 ## Toolbar and the tool set
 
-- **Toolbar & toolbox mechanics** `uncommon` — 77 tools in ToolbarTool enum; 3 pinned by default (Emoji, Clipboard, Settings)
+- **Toolbar & toolbox mechanics** `uncommon` — 78 tools in ToolbarTool enum; 3 pinned by default (Emoji, Clipboard, Settings)
   - Pinned bar vs toolbox — A tool is on the bar or in the toolbox grid, never both
     - Default pinned row — Emoji, Clipboard, Settings (DefaultToolbarTools)
     - Tablet-aware default pin set — 5 pinned on small tablets, 7 on large, applied only if user never rearranged
@@ -1622,7 +1622,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Per-tool colour override — toolColorOverrides map, reset-all button when any override exists
     - Two-colour gradient icons — toolIconGradients off by default, with its own end-colour override map
     - Icon-pack glyph substitution — IconSlots.forTool resolves an installed icon pack's glyph
-  - Direct-boot tool filter `RARE` — 47 of 77 tools work before the first unlock after reboot
+  - Direct-boot tool filter `RARE` — 48 of 78 tools work before the first unlock after reboot
     - Rule is what the tool reads — Arithmetic, sensors and keyboard-own state stay; disk, credentials, providers, activities go
     - All 14 cursor tools stay usable — They only touch the input connection
     - Not a user toggle — isDirectBootSafeTool is automatic and only applies pre-first-unlock
@@ -1868,6 +1868,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Per-row Edit, Show in text, Never suggest, Ignore — Edit types into the panel's own buffer with glide blocked; Ignore lasts one scan
     - Add as by hand — Same path as Add word: out of the waiting room, off the blacklist, mirrored to Android when that is on
     - Word pairs chip — Teaches the text's pairs, triples and skip-grams once each, only between known words, never across a sentence end or line break, not while learning is off or paused
+  - Find & replace `RARE` — The selection bar's Find and replace panel as a tool of its own, no selection needed (#627)
+    - Ctrl+F seeding — A short one-line selection becomes the query; otherwise it opens empty; a second tap closes it; password fields refused
+    - Match line — The current match drawn in its line at the bottom of the panel, cut at line breaks with an ellipsis, since the keys often cover that part of the field
+    - Recent searches — Last ten, newest first, as chips while the query is empty, plus Clear; recorded on stepping or replacing, never per keystroke; never in incognito, a no-learning field or a password field; credential-protected file, empty before first unlock; switch and Clear on the tool's page
   - Typing speed test `RARE` — Scored typing test on the real keys
     - Three modes — Timed (15/30/60/120s), word count (10/25/50/100), quote
     - 200 most common English words — Plus 14 public-domain quotations for quote mode
@@ -2030,8 +2034,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Clipboard source-app attribution | needs Usage Access; best-effort foreground-app guess |
 | Voice typing | needs microphone permission; audio may reach the OS recognizer service unless the on-device language model is installed |
 | Clipboard link previews and QR link details and dictionary auto-lookup | network, and force-disabled by power saving's background-network toggle |
-| 30 tools of 77 are unavailable before the first unlock after reboot | direct-boot filter; the other 47 (arithmetic, sensors, keyboard-own state, all 14 cursor tools) stay usable |
-| Lite edition tool count | 72 of 77 tools; the 5 ML Kit / Harper tools are compiled out, not just hidden |
+| 30 tools of 78 are unavailable before the first unlock after reboot | direct-boot filter; the other 48 (arithmetic, sensors, keyboard-own state, all 14 cursor tools) stay usable |
+| Lite edition tool count | 73 of 78 tools; the 5 ML Kit / Harper tools are compiled out, not just hidden |
 
 ## Clipboard, snippets, text expansion
 

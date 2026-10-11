@@ -617,6 +617,9 @@ object ScriptRegistry {
             composer = ComposerType.NONE,
             fontHint = FontHint.GENERIC,
             unicodeRange = 0x4E00..0x9FFF,
+            // Chinese ends a sentence with 。 too: a Pinyin or Stroke board whose
+            // key beside the spacebar says "." typed it into Chinese text (#610).
+            fullStop = "。",
         ),
         // IPA is uncased (a shift key would be inert) and composes 1:1 — each key
         // commits its phonetic symbol directly, combining diacritics included. It

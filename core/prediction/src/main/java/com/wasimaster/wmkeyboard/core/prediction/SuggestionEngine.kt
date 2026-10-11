@@ -1240,9 +1240,10 @@ class SuggestionEngine(
         // stands for are what the rest of this — the blacklist, the reranker,
         // the caller — should ever see.
         val words = if (romanization.isEmpty) decoded else romanization.resolve(decoded)
-        val kept = shiftGlideScores(words.filterNot { suppressed(it.word) })
-        if (kept.isEmpty()) return kept
-        return rerankGlide(kept, previousWord, previousWord2, previousWord3, recentWords)
+        val filtered = words.filterNot { suppressed(it.word) }
+        if (filtered.isEmpty()) return filtered
+        val reranked = rerankGlide(filtered, previousWord, previousWord2, previousWord3, recentWords)
+        return shiftGlideScores(reranked)
             // One word per spelling, whatever source it came from (#172). The
             // decoder keys its results on each trie's own spelling, and the
             // platform dictionary stores "boston" where a word list may store
@@ -3593,11 +3594,25 @@ class SuggestionEngine(
      * backspace still takes it back, and the undo is remembered against the
      * pair like any other. A spelling the user has pinned or keeps their own
      * way in the personal dictionary is theirs.
+     *
+     * Theirs both ways (#620). A capital the user wrote into a dialog — a
+     * spelling pinned in the personal dictionary, or a row in Android's — is
+     * asked for as surely as a list's, so it commits the same way, provided
+     * no list writes the word in small letters: adding the name "Will" must
+     * not capitalize every "will". A list that agrees ("I") is no objection.
+     * Adding "I" by hand used to pin it, and a pinned word was skipped, so the
+     * one fix offered for a lower-case "i" was the thing that kept it there.
      */
     private fun dictionaryCapital(lower: String): CorrectionDecision? {
-        val spelling = listSpelling(lower) ?: return null
-        if (userLexicon.isCasePinned(lower)) return null
-        if (userLexicon.displayOf(lower)?.let { it != spelling } == true) return null
+        val listed = listSpelling(lower)
+        val own = userLexicon.displayOf(lower)
+        fun asked(spelling: String?): String? =
+            spelling?.takeIf { it == listed || !inDictionaries(lower, includePlatform = false) }
+        val spelling = when {
+            userLexicon.isCasePinned(lower) -> asked(own)
+            own != null -> own.takeIf { it == listed }
+            else -> listed ?: asked(systemWordCases[lower])
+        }?.takeIf { it != lower } ?: return null
         if (suppressed(lower)) return null
         if (correctionStats.penalty(lower, spelling) != CorrectionStats.Penalty.NONE) return null
         return CorrectionDecision(apply = spelling, certainty = 1.0)
@@ -4501,7 +4516,7 @@ class SuggestionEngine(
      * every candidate would capitalize ordinary words that happen to be
      * somebody's name or an app's ("Will", "Photos", "Files").
      */
-    private fun displayForm(word: String): String {
+    fun displayOf(word: String): String {
         if (word.isEmpty()) return word
         val key = word.lowercase()
         if (key != word) return word
@@ -4512,6 +4527,8 @@ class SuggestionEngine(
         return userLexicon.displayOf(key) ?: systemWordCases[key]
             ?: listSpelling(key)?.takeUnless { userLexicon.isCasePinned(key) } ?: word
     }
+
+    private fun displayForm(word: String): String = displayOf(word)
 
     /**
      * Applies the typed word's capitalization pattern to a suggestion. Letters
