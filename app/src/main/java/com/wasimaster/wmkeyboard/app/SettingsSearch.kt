@@ -878,6 +878,7 @@ private fun SearchStrings.layoutOnehandedRows(): List<SettingsSearchEntry> {
         row(R.string.layout_floating_handle_title, R.string.layout_floating_handle_subtitle),
         row(R.string.layout_floating_width_title, R.string.layout_floating_width_subtitle),
         row(R.string.layout_persistent_title, R.string.layout_persistent_subtitle, weight = EntryWeight.PRIMARY),
+        row(R.string.layout_summon_button_title, R.string.layout_summon_button_subtitle, weight = EntryWeight.PRIMARY),
     )
 }
 
@@ -1845,6 +1846,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             R.string.privacy_permissions_notifications_subtitle,
         ),
         permission(R.string.privacy_permissions_usage_title, R.string.privacy_permissions_usage_subtitle),
+        permission(R.string.privacy_permissions_overlay_title, R.string.privacy_permissions_overlay_subtitle),
         permission(
             R.string.privacy_permissions_accessibility_title,
             R.string.privacy_permissions_accessibility_subtitle,

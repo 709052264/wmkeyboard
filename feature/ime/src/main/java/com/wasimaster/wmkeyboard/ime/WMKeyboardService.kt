@@ -264,6 +264,7 @@ import com.wasimaster.wmkeyboard.core.tools.PhotoBackgroundManager
 import com.wasimaster.wmkeyboard.core.settings.AutomationPermission
 import com.wasimaster.wmkeyboard.core.settings.KeyboardAlignment
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings
 import com.wasimaster.wmkeyboard.core.theme.BackgroundBitmapCache
 import com.wasimaster.wmkeyboard.core.settings.ModeField
 import com.wasimaster.wmkeyboard.core.settings.OctopusDuringGlide
@@ -3477,6 +3478,7 @@ open class WMKeyboardService : InputMethodService() {
             var userScreenshotsEnabled: Boolean? = null
             var otpCaptureEnabled: Boolean? = null
             var keyboardControlsPinned: Boolean? = null
+            var summonButtonSeen: SummonButtonSettings? = null
             var voiceBarPersisted: Pair<Boolean, Boolean>? = null
             // Recompute the hidden-emoji set only when the toggle or the font
             // behind it actually changes, not on every unrelated settings save.
@@ -3638,6 +3640,12 @@ open class WMKeyboardService : InputMethodService() {
                 if (keyboardControlsPinned != settings.persistentKeyboard) {
                     keyboardControlsPinned = settings.persistentKeyboard
                     updateKeyboardControls(settings.persistentKeyboard)
+                }
+                // The floating keyboard button follows its switch, and a drag
+                // writes its new resting place back through here too.
+                if (summonButtonSeen != settings.summonButton) {
+                    summonButtonSeen = settings.summonButton
+                    syncSummonButton(settings.summonButton)
                 }
                 // Turning previews off throws away what was already fetched, so
                 // the panel stops showing metadata the user opted out of.
@@ -5184,22 +5192,23 @@ open class WMKeyboardService : InputMethodService() {
      * What the notification's buttons do, which is what the toolbar's own
      * controls already do.
      *
-     * "Show" goes through the same posted [requestShowSelf] a pinned keyboard
-     * uses rather than [showWindow]: it is an explicit show request, so the
-     * framework's own bookkeeping stays right, and it clears the suspension a
-     * user-initiated hide left behind — pressing "Show" is that user changing
-     * their mind.
+     * "Show" is a summon ([summonKeyboard]): a show request through the
+     * framework rather than [showWindow], so its own bookkeeping stays right,
+     * that keeps the keyboard up over a window with no field until the user
+     * puts it away. It clears the suspension a user-initiated hide left
+     * behind — pressing "Show" is that user changing their mind.
      */
     private val keyboardControlHost = object : KeyboardControls.Host {
-        override fun showKeyboard() {
-            pinSuspended = false
-            pinReshowStreak = 0
-            requestShowSelf(0)
-        }
+        override fun showKeyboard() = summonKeyboard()
 
         override fun setPinned(pinned: Boolean) {
             onPersistentChange(pinned)
         }
+
+        override fun repostControls() =
+            updateKeyboardControls(_uiState.value.settings.persistentKeyboard)
+
+        override fun syncSummonButton() = this@WMKeyboardService.syncSummonButton()
     }
 
     /** Whether a layout switch is announced to other apps; see [KeyboardAutomation.EVENT_LAYOUT_CHANGED]. */
@@ -5282,7 +5291,159 @@ open class WMKeyboardService : InputMethodService() {
 
     /** The keyboard should be up whether or not any field wants it. */
     private fun pinnedNow(): Boolean =
-        _uiState.value.settings.persistentKeyboard && !pinSuspended
+        (_uiState.value.settings.persistentKeyboard || summonedNow()) && !pinSuspended
+
+    /**
+     * When the keyboard was last summoned (issue #374) — the shade's "Show",
+     * the floating button, an automation intent — in uptime millis, or 0 for
+     * no summon in force. A summon is a one-off pin: the keyboard comes up
+     * whether or not a field wants it, and stays up over this app's fieldless
+     * windows until the user puts it away.
+     */
+    private var summonedAt = 0L
+
+    /** The summon got the keyboard on screen; it now lasts until a hide. */
+    private var summonHeld = false
+
+    /** The app a held summon belongs to; switching to another one ends it. */
+    private var summonPackage: String? = null
+
+    /** The show requests a summon is still making; see [summonKeyboard]. */
+    private var summonJob: Job? = null
+
+    /**
+     * A summon is in force: either it has the keyboard on screen, or it is
+     * still within the few hundred milliseconds it takes the window it was
+     * aimed at to get the focus back.
+     */
+    private fun summonedNow(): Boolean =
+        summonHeld || (summonedAt != 0L && summonPending())
+
+    private fun summonPending(): Boolean =
+        summonedAt != 0L && SystemClock.uptimeMillis() - summonedAt < SUMMON_PENDING_MS
+
+    /**
+     * Brings the keyboard up whether or not anything on screen wants text
+     * (issue #374), the way Hacker's Keyboard's notification does.
+     *
+     * The request is `SHOW_FORCED`, and that is most of the fix. Pressing the
+     * shade's button moves the focus to the system UI and back again, and a
+     * window regaining the focus with no text field in it gets the keyboard
+     * hidden by Android with a "not always" hide, which a plain show loses to
+     * and a forced one survives. The rest is timing: the first request can
+     * land while the shade still has the focus, so it is repeated a few times
+     * over [SUMMON_PENDING_MS] until the keyboard is up, and the pin machinery
+     * ([pinnedNow], [reshowPinned]) puts it back if an app takes it down. The
+     * floating button ([SummonButton]) never moves the focus, so its first
+     * request is normally the one that lands.
+     *
+     * Never over the lock screen, the same rule pinning keeps.
+     */
+    private fun summonKeyboard() {
+        if (isDeviceLocked()) return
+        pinSuspended = false
+        pinReshowStreak = 0
+        summonedAt = SystemClock.uptimeMillis()
+        summonHeld = false
+        summonPackage = null
+        summonJob?.cancel()
+        summonJob = serviceScope.launch {
+            for (wait in SUMMON_RETRY_DELAYS_MS) {
+                delay(wait)
+                if (!summonedNow() || summonHeld || isInputViewShown) return@launch
+                forcedShowUp = true
+                requestShowSelf(summonShowFlags())
+            }
+        }
+    }
+
+    /**
+     * Show flags for a request a summon makes. Forced, so the "hide not
+     * always" Android sends a window with no field leaves it alone; see
+     * [summonKeyboard]. The flag is deprecated from API 33 for the reason it
+     * is wanted here: it keeps the keyboard up after the window that asked
+     * for it has stopped wanting it.
+     */
+    @Suppress("DEPRECATION")
+    private fun summonShowFlags(): Int = InputMethodManager.SHOW_FORCED
+
+    /**
+     * A forced show of ours is what keeps the window up. Android holds on to
+     * "forced" until something hides the keyboard outright, so it can outlive
+     * the summon that asked for it; see [dropStaleForcedShow]. Cleared when the
+     * window goes.
+     */
+    private var forcedShowUp = false
+
+    /**
+     * Takes down a keyboard that is only still up because a summon forced it,
+     * now that the summon is over and the window in front has no field. Without
+     * this, leaving the summoned app for another fieldless screen (the home
+     * screen, a game) would carry the keyboard along: the "not always" hide
+     * Android sends there is exactly the one a forced show ignores. Posted, so
+     * it judges the state after the focus change has settled, and through the
+     * base class so it is not taken for the user's own hide.
+     */
+    private fun dropStaleForcedShow(attribute: EditorInfo?) {
+        if (!forcedShowUp || pinnedNow() || !attribute.isNullClass()) return
+        serviceScope.launch {
+            delay(PIN_RESHOW_DELAY_MS)
+            if (forcedShowUp && !pinnedNow() && isInputViewShown && isNullField()) {
+                hideWithoutSuspending()
+            }
+        }
+    }
+
+    private fun hideWithoutSuspending() = super.requestHideSelf(0)
+
+    /** Ends a summon: the user put the keyboard away, or a field took it over. */
+    private fun clearSummon() {
+        summonedAt = 0L
+        summonHeld = false
+        summonPackage = null
+        summonJob?.cancel()
+        summonJob = null
+    }
+
+    /**
+     * The floating keyboard button, created the first time it is wanted. The
+     * delegate is kept so [onDestroy] can tell whether there is one to take
+     * down without making one.
+     */
+    private val summonButtonDelegate = lazy {
+        SummonButton(
+            context = this,
+            onTap = ::summonKeyboard,
+            onMoved = { x, y ->
+                serviceScope.launch { settingsRepository.setSummonButtonPosition(x, y) }
+            },
+            onDismiss = {
+                summonButtonDismissed = true
+                syncSummonButton()
+                Toast.makeText(this, R.string.ime_summon_button_hidden_toast, Toast.LENGTH_SHORT).show()
+            },
+        )
+    }
+    private val summonButton by summonButtonDelegate
+
+    /** A long press put the floating button away until the keyboard next opens. */
+    private var summonButtonDismissed = false
+
+    /**
+     * Puts the floating keyboard button (issue #374) on screen or takes it
+     * off: on while its switch is on, the overlay grant is held and the
+     * keyboard is closed; off while the keyboard is open, since then it is
+     * the one thing the button cannot do anything about. The lock screen needs
+     * no check of its own — Android draws it over every app overlay.
+     */
+    private fun syncSummonButton(setting: SummonButtonSettings = _uiState.value.settings.summonButton) {
+        val wanted = setting.enabled && !windowOnScreen && !summonButtonDismissed &&
+            Settings.canDrawOverlays(this)
+        when {
+            wanted -> summonButton.show(setting.xFraction, setting.yFraction)
+            summonButtonDelegate.isInitialized() -> summonButton.hide()
+        }
+    }
 
     /**
      * Every hide the keyboard asks for itself is the user's: the hide tool,
@@ -5292,6 +5453,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     override fun requestHideSelf(flags: Int) {
         if (_uiState.value.settings.persistentKeyboard) pinSuspended = true
+        clearSummon()
         super.requestHideSelf(flags)
     }
 
@@ -5316,7 +5478,12 @@ open class WMKeyboardService : InputMethodService() {
             pinReshowQueued = false
             if (!pinnedNow() || isInputViewShown || isDeviceLocked()) return@launch
             pinReshowStreak++
-            requestShowSelf(0)
+            if (summonedNow()) {
+                forcedShowUp = true
+                requestShowSelf(summonShowFlags())
+            } else {
+                requestShowSelf(0)
+            }
         }
     }
 
@@ -5361,6 +5528,8 @@ open class WMKeyboardService : InputMethodService() {
             floatingPanelBounds = null
             window?.window?.decorView?.requestLayout()
         }
+        // A rotation or a fold changes the room the floating button has.
+        if (summonButtonDelegate.isInitialized()) summonButton.relayout()
     }
 
     /** Push the current hardware-keyboard presence into the UI state. */
@@ -5502,7 +5671,21 @@ open class WMKeyboardService : InputMethodService() {
             stopPlugins()
             // A new field gets its own re-show budget (see reshowPinned).
             pinReshowStreak = 0
+            // A summon belongs to the app it was made in. While it is still
+            // settling the focus is moving between the shade and that app, so
+            // the latest start is the app; once it holds the keyboard, a start
+            // in another app is the user leaving, and the keyboard goes back
+            // to coming up for fields only.
+            val pkg = attribute?.packageName
+            if (summonHeld && !summonPending()) {
+                if (pkg != null && summonPackage != null && pkg != summonPackage) clearSummon()
+            } else if (summonedAt != 0L) {
+                summonPackage = pkg
+            }
         }
+        // A forced show that outlived its summon does not get to follow the
+        // user onto a screen with no field.
+        dropStaleForcedShow(attribute)
         // Runs for windows with no editor too, which is where a pinned
         // keyboard most needs putting back: the system never shows it there
         // on its own.
@@ -5520,6 +5703,9 @@ open class WMKeyboardService : InputMethodService() {
         // The keyboard is up, by the system's hand or ours; a hide that
         // suspended pinning has run its course.
         pinSuspended = false
+        // A real text field has the keyboard now, and the ordinary rules for
+        // fields apply to it again: a summon was for windows without one.
+        if (summonedAt != 0L && !info.isNullClass()) clearSummon()
         // Set before the lifecycle is resumed: a panel that reacts to ON_RESUME
         // (the media one re-checks notification access there) would otherwise
         // ask about a keyboard this flag still calls hidden.
@@ -6503,6 +6689,15 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun onScreenAgain() {
         windowOnScreen = true
+        // The floating button steps aside while the keyboard is up, and a
+        // long press that put it away lasted until exactly now.
+        summonButtonDismissed = false
+        syncSummonButton()
+        // The summon that asked for this got what it wanted.
+        if (summonedNow()) {
+            summonHeld = true
+            if (summonPackage == null) summonPackage = currentInputEditorInfo?.packageName
+        }
         _shownState.value = _uiState.value
         // Ask for the window's insets afresh (#463): the navigation bar the
         // keyboard pads itself clear of is read from them, and a window coming
@@ -6533,8 +6728,10 @@ open class WMKeyboardService : InputMethodService() {
         // Nothing to draw from here until the window comes back, so the
         // composition stops being handed new state — see [_shownState].
         windowOnScreen = false
+        forcedShowUp = false
         lifecycleOwner.onStop()
         jankMonitor.stop()
+        syncSummonButton()
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
@@ -6692,6 +6889,10 @@ open class WMKeyboardService : InputMethodService() {
         KeyboardControls.host = null
         KeyboardControls.clear(this)
         KeyboardAutomation.host = null
+        // So is the floating button: it is the keyboard's, and another one is
+        // in charge now.
+        if (summonButtonDelegate.isInitialized()) summonButton.hide()
+        summonJob?.cancel()
         pluginRuntime?.shutdown()
         pluginRuntime = null
         vocabSpeaker?.shutdown()
@@ -36593,6 +36794,15 @@ open class WMKeyboardService : InputMethodService() {
          */
         private const val PIN_RESHOW_DELAY_MS = 250L
         private const val PIN_RESHOW_LIMIT = 4
+
+        /**
+         * See [summonKeyboard]: how long a summon waits for the keyboard to
+         * come up before giving up, and when it asks again meanwhile — at
+         * once, then past the shade's collapse animation, then past a slow
+         * one. Each wait is counted from the one before.
+         */
+        private const val SUMMON_PENDING_MS = 2_000L
+        private val SUMMON_RETRY_DELAYS_MS = longArrayOf(0L, 350L, 450L, 700L)
 
         /**
          * How many silent recognizer sessions in a row wind an open microphone
