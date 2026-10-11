@@ -1518,6 +1518,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Signal pack import `RARE` — A signal.art / sgnl:// pack link fetches the manifest and stickers from Signal's CDN, decrypts them under the pack key, previews, then adopts them as a pack (#291).
     - No directory of packs — signalstickers.org opens in the browser; its "Add to Signal" comes back through the chooser
     - APNG becomes animated WebP — Frame for frame, with the emoji per sticker kept as a keyword
+  - Telegram set import `RARE` — A t.me/addstickers, t.me/addemoji or tg:// link fetches the set through the Bot API with the user's own @BotFather token, previews it, then adopts it as a pack.
+    - User's bot token, none built in — getStickerSet + getFile; the token is a secret setting, shown as {token} in the network log
+    - .tgs becomes animated WebP — Lottie draws each frame at up to 30 fps; plays in the preview
+    - .webm keeps its transparency — Own Matroska reader pulls the VP9 alpha stream out of BlockAdditional; two platform decoders, recombined per frame
   - WhatsApp sticker import `RARE` — Three ways in, none of them WhatsApp's own API, which no other app may read (#368).
     - .wastickers files — The Sticker Maker export (title.txt, author.txt, tray PNG, WebP stickers): opened from a file manager, the share sheet or the Import row; the tray is dropped by name or as the lone PNG among WebPs
     - WhatsApp's saved-sticker folder — Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Stickers picked with the folder picker (it carries a .nomedia, so the photo picker never sees it); every WebP becomes one pack, newest 200
@@ -2849,7 +2853,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Build-time guard — NetworkCallSitesTest fails when a file opens a connection, client or socket without the log.
     - Honest about the gaps — ML Kit, Play services fonts, Play Store libraries and the system speech recognizer are named as outside it.
   - Address without what was typed `RARE` — Host plus a route the call site names; no query strings, headers, bodies or error messages.
-    - Placeholders for secrets in paths — KLIPY's key and Signal's pack id show as {key} and {pack}; dictionary and Wikipedia routes stop before the word.
+    - Placeholders for secrets in paths — KLIPY's key, Signal's pack id and Telegram's bot token show as {key}, {pack} and {token}; dictionary and Wikipedia routes stop before the word.
     - Real byte counts — Counted off the streams, not Content-Length.
   - Burst merging `RARE` — Identical requests within 60 s become one row with a count, summed bytes and a mean duration.
   - Totals kept apart from rows `uncommon` — 2,000 rows or 30 days; per-day totals by feature, server and hour survive the row cap.

@@ -371,6 +371,7 @@ private fun SearchStrings.typingAutopilotRows(): List<SettingsSearchEntry> {
         row(R.string.typing_autopilot_show_title, R.string.typing_autopilot_show_subtitle),
         row(R.string.typing_autopilot_size_title, R.string.typing_autopilot_size_subtitle),
         row(R.string.typing_autopilot_outline_title, R.string.typing_autopilot_outline_subtitle),
+        row(R.string.typing_autopilot_animate_title, R.string.typing_autopilot_animate_subtitle),
     )
 }
 
@@ -903,6 +904,7 @@ private fun SearchStrings.languageRows(): List<SettingsSearchEntry> {
         row(R.string.langemoji_lang_add_title),
         row(R.string.langemoji_lang_per_app_toggle_title, R.string.langemoji_lang_per_app_toggle_subtitle),
         row(R.string.langemoji_lang_os_switcher_title, R.string.langemoji_lang_os_switcher_subtitle),
+        row(R.string.langemoji_lang_carry_word_title, R.string.langemoji_lang_carry_word_subtitle),
         row(R.string.langemoji_lang_app_name_first_title, R.string.langemoji_lang_app_name_first_subtitle),
         row(R.string.langemoji_lang_subtype_enabler_title, R.string.langemoji_lang_subtype_enabler_subtitle),
         entry(
@@ -933,6 +935,7 @@ private fun SearchStrings.languageRows(): List<SettingsSearchEntry> {
         row(R.string.languages_emoji_keywords_title),
         row(R.string.languages_word_pairs_title),
         row(R.string.languages_cjk_traditional_title, R.string.languages_cjk_traditional_subtitle),
+        row(R.string.languages_cjk_flex_import_title, R.string.languages_cjk_flex_import_subtitle),
         row(R.string.languages_cjk_lazy_title, R.string.languages_cjk_lazy_subtitle),
         row(R.string.languages_cjk_loose_marks_title, R.string.languages_cjk_loose_marks_subtitle),
         row(R.string.languages_cjk_full_width_space_title, R.string.languages_cjk_full_width_space_subtitle),
@@ -1785,6 +1788,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         stickerPack(R.string.import_signal_row_title, R.string.import_signal_row_subtitle),
         stickerPack(R.string.import_whatsapp_row_title, R.string.import_whatsapp_row_subtitle),
         // Lands on the pack list: the editor itself cannot open without an
+        stickerPack(R.string.import_telegram_row_title, R.string.import_telegram_row_subtitle),
         // image to edit, so there is nothing to deep-link to.
         stickerPack(R.string.import_sticker_editor_title, R.string.import_sticker_editor_subtitle),
         plugin(R.string.plugins_allow_title, R.string.plugins_allow_subtitle),
@@ -1929,6 +1933,10 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         access(R.string.accessibility_keyboard_font_title, R.string.accessibility_keyboard_font_subtitle),
         access(R.string.accessibility_reduce_motion_title, R.string.accessibility_reduce_motion_subtitle),
         access(R.string.accessibility_classic_popup_title, R.string.accessibility_classic_popup_subtitle),
+        access(R.string.accessibility_panel_motion_title, R.string.accessibility_panel_motion_subtitle),
+        access(R.string.accessibility_selection_motion_title, R.string.accessibility_selection_motion_subtitle),
+        access(R.string.accessibility_language_switch_motion_title, R.string.accessibility_language_switch_motion_subtitle),
+        access(R.string.accessibility_tool_result_motion_title, R.string.accessibility_tool_result_motion_subtitle),
         access(R.string.accessibility_row_icons_title, R.string.accessibility_row_icons_subtitle),
         access(R.string.accessibility_screen_transitions_title, R.string.accessibility_screen_transitions_subtitle),
         access(R.string.accessibility_keyboard_preview_title, R.string.accessibility_keyboard_preview_subtitle),

@@ -195,6 +195,12 @@ Tapping a candidate (in the strip or the grid) resolves by its position in the r
 
 If a reading has no dictionary match at all, it always falls back to committing what you typed as-is (raw pinyin letters, kana, or a stroke code) rather than trapping you in an empty buffer.
 
+### English words and emoji
+
+Pinyin, romaji and Jyutping are typed on the same letters as English, so with **English** turned on under the language's [Also suggest from](/languages/overview/#each-language-has-its-own-screen), the strip offers English words for those letters too. Type `hello` and *hello* sits right behind 和. When the top candidate already covers everything you typed, as 很 does for `hen`, the English waits behind the first three candidates instead. Space still commits the top candidate, never the English. Tapping an English word puts it in exactly as shown, in place of the whole reading, with no space after it. Only words that start with what you typed are offered, never corrections, since the letters are a reading first. T9, Zhuyin, Cangjie and Stroke layouts don't offer English, because their keys aren't the alphabet.
+
+Emoji come up the way they do on any other layout: the top candidate is looked up in the language's emoji keywords, so `xiao` showing 笑 brings 😄 alongside, and an English word brings its own. They need the language's emoji keyword pack, and they follow [Emoji suggestions](/emoji/customization/#emoji-suggestions-while-typing) and the strip's own switches, since these are suggestions rather than the input method. Tapping one with **Keep word** as the insert mode commits the candidates first and the emoji right after (笑😄); **Replace word** puts the emoji in place of the reading. A long press does the other one, as it does everywhere.
+
 ### Picking with space, the arrows and Enter
 
 <SettingsPath path="Languages & layouts / (a CJK language) / (language) options / Space steps through candidates" />
@@ -252,13 +258,13 @@ CJK picks live in a file of their own, but the **Delete the learned words** butt
 
 ### Conversion dictionaries are downloads, not bundled data
 
-None of the conversion dictionaries ship in the app. Until you download the matching pack, a Chinese or Cantonese layout still composes and shows the buffer, but the candidate list stays empty. Japanese is the exception: its plain hiragana, katakana and half-width katakana forms are appended to every ranking, so they're on offer with no pack at all.
+None of the conversion dictionaries ship in the app. Until you download the matching pack, or [import a list of your own](#your-own-word-lists), a Chinese or Cantonese layout still composes and shows the buffer, but the candidate list stays empty. Japanese is the exception: its plain hiragana, katakana and half-width katakana forms are appended to every ranking, so they're on offer with no pack at all.
 
 You don't have to know that in advance. The first time you type a reading on a keyboard whose pack isn't on the device, a chip appears on the strip naming the pack you need — "Download the Chinese Pinyin dictionary to type characters" — and tapping it opens that language's page, where the pack's row is. The chip asks once per pack, and the ✕ dismisses it. It never appears in a password field.
 
 | Language | Pack | Approx. size | Coverage |
 |---|---|---|---|
-| Chinese | Pinyin (also covers Zhuyin & T9 Pinyin) | ~2.5 MB | ~120k entries, CC-CEDICT-derived |
+| Chinese | Pinyin (also covers Zhuyin & T9 Pinyin) | ~2.6 MB | ~121k entries, CC-CEDICT-derived |
 | Chinese | Stroke | ~450 KB | Stroke-order table |
 | Chinese | Cangjie (also covers Cangjie Quick) | ~350 KB | ~29k characters |
 | Chinese, Cantonese | Traditional characters phrase table (optional, for [Traditional output](#traditional-characters-and-regional-wording)) | ~1 MB | ~50k phrases, OpenCC |
@@ -268,6 +274,23 @@ You don't have to know that in advance. The first time you type a reading on a k
 The two shape-based tables have a second source. **Import from FlorisBoard**, in the same group, reads a FlorisBoard language pack (`.flex`) and fills the Cangjie or Stroke pack from the SQLite table inside it, with no download at all. Only those two land, since Wubi, Zhengma and the rest have no composer here; the app names whatever else it found back to you. See [Importing other keyboards](/reference/importing-other-keyboards/).
 
 Each download is checksum-verified before it's used and, once on disk, needs no further network access. See [Network policy](/privacy/network/) for what the keyboard contacts and when, and [Downloadable dictionaries](/languages/dictionaries/) for how the separate word-list system (which does have entries for plain Japanese and Korean word suggestions, just not for the conversion dictionaries here) works.
+
+### Your own word lists
+
+<SettingsPath path="Languages & layouts / (a CJK language) / Dictionaries / Custom dictionaries" />
+
+A list you import for Chinese, Cantonese or Japanese goes into the candidates, next to the pack. It only needs a reading on each line, and the formats people already have all carry one:
+
+- **CC-CEDICT** and **CC-Canto** (`關係 关系 [guan1 xi4] /relation/`). Chinese takes the Simplified form, the one the Pinyin pack lists, and **Traditional characters** turns it into the other; Cantonese takes the Traditional form and the Jyutping in braces.
+- **Rime** dictionaries (`.dict.yaml`), such as Luna Pinyin: `word`, the spaced reading, then a count or a percentage. The YAML header is skipped.
+- **Mozc and Google Japanese Input** user dictionaries: `reading`, `word`, part of speech. A katakana reading is read as hiragana.
+- The packs' own format, `reading`, `word`, `frequency`, one tab between each.
+
+Tone numbers and tone marks are dropped and ü is spelt `v`, the same as in the packs. A line with no reading, such as a plain column of characters, is skipped, and the count on the Custom dictionaries screen is the number of lines that do have one.
+
+A word your list adds appears under its reading. A word the pack already has keeps its place in the pack's ranking, unless your list gives counts of its own (Rime's do), in which case it can move up but never down. Your [picks](#learning-from-your-picks) reorder both the same way. A list works on its own too: with no pack downloaded, the candidates come from your lists, and the missing-pack chip stops asking. **Use only my word lists** leaves the pack out once you have imported a list with something in it; with nothing imported it has no effect here, so it can't leave the language unable to type a character.
+
+A list goes live the next time you open a text field, and only the table for its own language is reloaded.
 
 ## Details & edge cases
 

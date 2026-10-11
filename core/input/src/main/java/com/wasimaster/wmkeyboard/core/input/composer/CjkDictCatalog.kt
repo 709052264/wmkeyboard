@@ -62,8 +62,8 @@ object CjkDictCatalog {
             displayNameRes = R.string.core_input_cjk_pack_pinyin_title,
             descriptionRes = R.string.core_input_cjk_pack_pinyin_subtitle,
             path = "cjk/pinyin.tsv",
-            sizeBytes = 2_489_699L,
-            sha256 = "8baab4c758499272e36dba4bda4253317a4f93bb88bcf386ea86196c50d73715",
+            sizeBytes = 2_586_937L,
+            sha256 = "0c572b5f5699378beb0eab5ec81cf79bb277e0f100d3c944d8969b7445b1a0c9",
             fileName = "pinyin.tsv",
         ),
         CjkDictPack(

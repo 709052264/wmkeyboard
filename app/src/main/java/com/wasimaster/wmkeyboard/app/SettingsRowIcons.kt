@@ -399,6 +399,10 @@ internal object SettingsRowIcons {
         put(R.string.accessibility_keyboard_font_title) { Icons.Outlined.TextFields }
         put(R.string.accessibility_reduce_motion_title) { Icons.Outlined.MotionPhotosOff }
         put(R.string.accessibility_classic_popup_title) { Icons.Outlined.Keyboard }
+        put(R.string.accessibility_panel_motion_title) { Icons.Outlined.Animation }
+        put(R.string.accessibility_selection_motion_title) { Icons.Outlined.SelectAll }
+        put(R.string.accessibility_language_switch_motion_title) { Icons.Outlined.Flip }
+        put(R.string.accessibility_tool_result_motion_title) { Icons.Outlined.Spellcheck }
         put(R.string.accessibility_row_icons_title) { Icons.Outlined.Interests }
         put(R.string.accessibility_screen_transitions_title) { Icons.Outlined.Animation }
         put(R.string.accessibility_keyboard_preview_title) { Icons.Outlined.Keyboard }
@@ -910,6 +914,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_autopilot_show_title) { Icons.Outlined.Visibility }
         put(R.string.typing_autopilot_size_title) { Icons.Outlined.ZoomOutMap }
         put(R.string.typing_autopilot_outline_title) { Icons.Outlined.CropFree }
+        put(R.string.typing_autopilot_animate_title) { Icons.Outlined.Animation }
         put(R.string.typing_group_octopus_title) { Icons.Outlined.Keyboard }
         put(R.string.typing_octopus_enabled_title) { Icons.Outlined.Keyboard }
         put(R.string.typing_octopus_placement_title) { Icons.Outlined.PictureInPicture }
@@ -1532,6 +1537,7 @@ internal object SettingsRowIcons {
         // ---- Layout editor ----
         put(R.string.layout_editor_name_title) { Icons.Outlined.DriveFileRenameOutline }
         put(R.string.layout_editor_language_title) { Icons.Outlined.Language }
+        put(R.string.import_telegram_added_title) { Icons.Outlined.CheckCircle }
         put(R.string.layout_editor_font_title) { Icons.Outlined.TextFields }
         put(R.string.layout_editor_font_scale_label) { Icons.Outlined.FormatSize }
         put(R.string.layout_editor_layer_theme_title) { Icons.Outlined.Palette }

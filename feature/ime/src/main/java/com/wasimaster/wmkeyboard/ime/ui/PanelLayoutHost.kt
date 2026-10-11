@@ -216,7 +216,38 @@ internal fun EmojiPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCallba
     val session = rememberEmojiPanelSession(state)
     // Toggling the open panel closes it — back to the keys.
     val onClose = { callbacks.onPanelChange(PanelMode.EMOJI) }
-    if (state.emojiSearchActive) {
+    // The search and the layout cross-fade as they trade places; the layout's
+    // cells stagger back in on their own clock (see [PanelLayoutGrid]). The
+    // page on its way out takes no taps while it fades.
+    val searching = state.emojiSearchActive
+    MotionCrossfade(searching, LocalKbTheme.current.motion.any, label = "emojiPanelPage") { search ->
+        Box(modifier = Modifier.blockTouches(search != searching)) {
+            EmojiPanelPage(state, session, callbacks, onClose, search)
+        }
+    }
+    // A Popup overlay, so opening it never reflows the fixed-height panel.
+    if (session.reorderOpen) {
+        FavouritesReorderPopup(
+            favourites = state.emojiFavourites,
+            onConfirm = {
+                session.reorderOpen = false
+                callbacks.emoji.onFavouritesReorder(it)
+            },
+            onDismiss = { session.reorderOpen = false },
+        )
+    }
+}
+
+/** One page of the emoji panel: its search, or the layout the user laid out. */
+@Composable
+private fun EmojiPanelPage(
+    state: KeyboardUiState,
+    session: EmojiPanelSession,
+    callbacks: PanelLayoutCallbacks,
+    onClose: () -> Unit,
+    search: Boolean,
+) {
+    if (search) {
         EmojiSearchPanel(state, session, callbacks.emoji, onClose)
     } else {
         val spec = state.panelLayout(PanelKind.EMOJI)
@@ -278,17 +309,6 @@ internal fun EmojiPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCallba
             }
         }
     }
-    // A Popup overlay, so opening it never reflows the fixed-height panel.
-    if (session.reorderOpen) {
-        FavouritesReorderPopup(
-            favourites = state.emojiFavourites,
-            onConfirm = {
-                session.reorderOpen = false
-                callbacks.emoji.onFavouritesReorder(it)
-            },
-            onDismiss = { session.reorderOpen = false },
-        )
-    }
 }
 
 /**
@@ -314,26 +334,59 @@ internal fun ClipboardPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCa
         )
         return
     }
-    if (state.clipboardSearchActive) {
-        // The panel shrinks to its search field plus a couple of result rows,
-        // and the bar on top drags it taller over the keys (#615). The toolbar
-        // row is hidden too (see KeyboardBody), so the panel absorbs its
-        // height the way the emoji panel's search mode does, less the row the
-        // query's own suggestion strip takes below the panel (#161).
-        val size = panelOverKeysSize(
-            state,
-            wanted = ClipboardSearchHeight + topBarHeight(state.settings) - captureStripHeight(state),
-            floor = FullBleedHeaderHeight,
-        )
-        Column(modifier = size.probe.fillMaxWidth().height(size.height)) {
-            size.bar?.invoke()
-            ClipboardSearchPanel(
-                state, session, callbacks.clipboard,
-                modifier = Modifier.fillMaxWidth().weight(1f),
-            )
+    // The search and the history cross-fade as they trade places, the way the
+    // emoji panel's do; the page on its way out takes no taps while it fades.
+    // The editor above stays instant: it captures the keys, and a second one
+    // fading out would be a second editor composed.
+    val searching = state.clipboardSearchActive
+    MotionCrossfade(searching, LocalKbTheme.current.motion.any, label = "clipboardPanelPage") { search ->
+        Box(modifier = Modifier.blockTouches(search != searching)) {
+            if (search) {
+                ClipboardSearchPage(state, session, callbacks)
+            } else {
+                ClipboardHistoryPage(state, session, callbacks, onClose)
+            }
         }
-        return
     }
+}
+
+/**
+ * The clipboard's search page: the field and a couple of result rows, the
+ * keys back underneath for typing the query.
+ */
+@Composable
+private fun ClipboardSearchPage(
+    state: KeyboardUiState,
+    session: ClipboardPanelSession,
+    callbacks: PanelLayoutCallbacks,
+) {
+    // The panel shrinks to its search field plus a couple of result rows,
+    // and the bar on top drags it taller over the keys (#615). The toolbar
+    // row is hidden too (see KeyboardBody), so the panel absorbs its
+    // height the way the emoji panel's search mode does, less the row the
+    // query's own suggestion strip takes below the panel (#161).
+    val size = panelOverKeysSize(
+        state,
+        wanted = ClipboardSearchHeight + topBarHeight(state.settings) - captureStripHeight(state),
+        floor = FullBleedHeaderHeight,
+    )
+    Column(modifier = size.probe.fillMaxWidth().height(size.height)) {
+        size.bar?.invoke()
+        ClipboardSearchPanel(
+            state, session, callbacks.clipboard,
+            modifier = Modifier.fillMaxWidth().weight(1f),
+        )
+    }
+}
+
+/** The clipboard's history page: the layout, filling the key area or stacked over the keys. */
+@Composable
+private fun ClipboardHistoryPage(
+    state: KeyboardUiState,
+    session: ClipboardPanelSession,
+    callbacks: PanelLayoutCallbacks,
+    onClose: () -> Unit,
+) {
     // Stacked over the keys (#414): a short panel, the keys under it, and the
     // height bar of every panel over the keys rather than the clipboard's own.
     val stacked = clipboardStacked(state)

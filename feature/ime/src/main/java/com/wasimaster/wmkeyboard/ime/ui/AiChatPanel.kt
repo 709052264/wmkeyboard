@@ -609,6 +609,7 @@ private fun ToolUses(
         // Only a running call ever asks, so a stored answer's record never
         // shows the buttons.
         onApproval = { onChat(AiChatAction.ToolApproval(it)) },
+        animate = LocalKbTheme.current.motion.any,
     )
 }
 

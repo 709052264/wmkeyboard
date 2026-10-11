@@ -1052,6 +1052,7 @@ private fun PanelToolUses(
         modifier = modifier,
         fontSize = 11.sp,
         onApproval = onApproval,
+        animate = kb.motion.any,
     )
 }
 

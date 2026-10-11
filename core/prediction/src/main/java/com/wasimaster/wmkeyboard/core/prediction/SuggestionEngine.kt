@@ -3140,6 +3140,32 @@ class SuggestionEngine(
     }
 
     /**
+     * English words that begin with [roman], for a conversion layout's
+     * candidate strip (#633): pinyin and romaji are typed on the same letters
+     * as English, so with English among the language's secondaries the strip
+     * can offer `hello` beside what the reading converts to.
+     *
+     * Completions only, from the English list alone. The letters are a reading
+     * first, so a correction of them into English would be a guess about a
+     * word nobody was spelling. Best first, the word itself ahead of longer
+     * ones; empty unless English is mixed in on this language.
+     */
+    fun englishCompletions(roman: String, limit: Int): List<String> {
+        if (!phoneticMixing || limit <= 0) return emptyList()
+        if (roman.length < 2 || !roman.all { it in 'a'..'z' || it in 'A'..'Z' }) return emptyList()
+        val lower = roman.lowercase()
+        val found = beam.search(dictionarySources(EN), lower, proximity, limit, beamWorkspace.get(), maxEdits = 0)
+            .asSequence()
+            .filter { it.edits == 0 && !suppressed(it.word) }
+            .map { it.word }
+            .toMutableList()
+        // The word as typed is the likeliest reading of an English word, and
+        // the walk ranks it by frequency like any other.
+        if (found.remove(lower)) found.add(0, lower)
+        return found.take(limit).map { displayForm(it) }
+    }
+
+    /**
      * The user took [script] for [spelling] where the verdict had chosen the
      * other one: the chip, or the backspace that flips a commit. Remembered
      * per spelling, so the same word is not got wrong the same way twice.

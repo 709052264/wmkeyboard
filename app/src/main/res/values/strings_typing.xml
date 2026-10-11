@@ -296,7 +296,7 @@
 
     <string name="typing_autopilot_strength_title">Strength</string>
     <string name="typing_autopilot_strength_subtitle">How far a likely letter reaches over the key next to it</string>
-    <string name="typing_autopilot_strength_info">At 1 the keyboard changes a press only at the exact edge between two keys. At 10 a likely letter claims most of the space between itself and a letter that the word list does not expect. A letter never reaches more than one key width away, whatever you set here. 5 is the value the keyboard started with.</string>
+    <string name="typing_autopilot_strength_info">At 1 the keyboard changes a press only at the exact edge between two keys. At 10 a likely letter claims most of the space between itself and a letter that the word list does not expect. From 11 to 20 it pushes further still, until it reaches the limit. A letter never reaches more than about one key width away, whatever you set here. 5 is the value the keyboard started with.</string>
 
     <string name="typing_autopilot_show_title">Show the effect</string>
     <string name="typing_autopilot_show_subtitle">Draw a favoured letter at the size its touch area has grown to</string>
@@ -308,6 +308,9 @@
 
     <string name="typing_autopilot_outline_title">Outline the touch areas</string>
     <string name="typing_autopilot_outline_subtitle">Draw the boundary each expected letter has claimed</string>
+    <string name="typing_autopilot_animate_title">Animate the touch areas</string>
+    <string name="typing_autopilot_animate_subtitle">Ease the enlarged letters and outlines to their new size instead of jumping</string>
+    <string name="typing_autopilot_animate_info">With Show the effect or Outline the touch areas on, each expected letter normally jumps to its new size on every keystroke. Turn this on and the areas grow and shrink smoothly, and fade in and out as letters gain or lose favour. It only changes the drawing. The touch areas you type against change at once, as before. Reduce motion turns this off.</string>
     <string name="typing_autopilot_outline_info">A thin line marks the edge each expected letter has grown to. Use it to tune Strength. The line traces the same edge that Show the effect draws, so the two always agree. The line is a tuning aid, so turn it off again when you are done.</string>
 
     <string name="typing_personal_dictionary_title">Personal dictionary</string>

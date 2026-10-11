@@ -1,6 +1,19 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
 import android.os.SystemClock
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterExitState
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +30,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -98,7 +113,14 @@ internal fun rememberVoiceMicNotice(state: KeyboardUiState): String? {
     return stringResource(R.string.ime_voice_mic_using, voiceMicName(state.voice, state.settings.voiceBar.mic))
 }
 
-/** The switch itself. [size] is the touch target; the outline sits inside it. */
+/**
+ * The switch itself. [size] is the touch target; the outline sits inside it.
+ *
+ * A press turns the old microphone's icon away and the next one in after it,
+ * clockwise when the press moved forward through [voiceMicChoices] (wrapping
+ * round included) and back the other way otherwise, while the fill eases in or
+ * out with the pick. Under reduce motion the icon and the fill just change.
+ */
 @Composable
 internal fun VoiceMicSwitch(
     state: KeyboardUiState,
@@ -107,6 +129,7 @@ internal fun VoiceMicSwitch(
     size: Dp = 40.dp,
 ) {
     val kb = LocalKbTheme.current
+    val animate = kb.motion.any
     val feedback = LocalKeyPressFeedback.current
     val picked = state.settings.voiceBar.mic
     // Filled while a microphone the user picked is the one listening, as
@@ -115,6 +138,16 @@ internal fun VoiceMicSwitch(
     val shape = kb.toolShape()
     val description = stringResource(R.string.ime_voice_mic_desc, voiceMicName(state.voice, picked))
     val switchLabel = stringResource(R.string.ime_voice_mic_switch)
+    val fill by animateColorAsState(
+        targetValue = if (active) kb.toolCircleActive else Color.Transparent,
+        animationSpec = if (animate) tween(MIC_SWAP_MS) else snap(),
+        label = "voiceMicFill",
+    )
+    val tint by animateColorAsState(
+        targetValue = if (active) kb.toolCircleActiveIcon else kb.toolbarIcon,
+        animationSpec = if (animate) tween(MIC_SWAP_MS) else snap(),
+        label = "voiceMicTint",
+    )
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
@@ -131,21 +164,62 @@ internal fun VoiceMicSwitch(
             modifier = Modifier
                 .size(size - 8.dp)
                 .clip(shape)
-                .then(
-                    if (active) {
-                        Modifier.background(kb.toolCircleActive)
-                    } else {
-                        Modifier.border(1.5.dp, kb.toolCircleActive, shape)
-                    },
-                ),
+                .background(fill)
+                .then(if (active) Modifier else Modifier.border(1.5.dp, kb.toolCircleActive, shape)),
         ) {
-            Icon(
-                voiceMicIcon(state.shownMicKind()),
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-                tint = if (active) kb.toolCircleActiveIcon else kb.toolbarIcon,
-            )
+            val kind = state.shownMicKind()
+            if (!animate) {
+                MicIcon(kind, tint)
+            } else {
+                val choices = state.voiceMicChoices()
+                MicIconSwap(kind, choices, tint)
+            }
         }
+    }
+}
+
+@Composable
+private fun MicIcon(kind: String, tint: Color, modifier: Modifier = Modifier) {
+    Icon(voiceMicIcon(kind), contentDescription = null, modifier = modifier.size(18.dp), tint = tint)
+}
+
+/**
+ * The icon turning over to [kind]: the old one rotates and shrinks out, the
+ * new one rotates in from the other side and grows to size. Which way is read
+ * off [choices], so cycling forward always turns the same way.
+ */
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun MicIconSwap(kind: String, choices: List<String>, tint: Color) {
+    // The kind shown before this one, read once per change: 1 turns
+    // clockwise, -1 back.
+    val before = remember { MicSeen(kind) }
+    val turn = remember(kind) {
+        val way = micTurn(choices, from = before.kind, to = kind)
+        before.kind = kind
+        way
+    }
+    AnimatedContent(
+        targetState = kind,
+        transitionSpec = {
+            fadeIn(tween(MIC_SWAP_MS, delayMillis = MIC_IN_DELAY_MS)) +
+                scaleIn(tween(MIC_SWAP_MS, easing = FastOutSlowInEasing), MIC_SWAP_SCALE) togetherWith
+                fadeOut(tween(MIC_OUT_MS)) + scaleOut(tween(MIC_OUT_MS), MIC_SWAP_SCALE) using null
+        },
+        contentAlignment = Alignment.Center,
+        label = "voiceMicIcon",
+    ) { shown ->
+        val angle by transition.animateFloat(
+            transitionSpec = { tween(MIC_SWAP_MS, easing = FastOutSlowInEasing) },
+            label = "voiceMicTurn",
+        ) { phase ->
+            when (phase) {
+                EnterExitState.PreEnter -> -MIC_TURN_DEGREES * turn
+                EnterExitState.Visible -> 0f
+                EnterExitState.PostExit -> MIC_TURN_DEGREES * turn
+            }
+        }
+        MicIcon(shown, tint, Modifier.graphicsLayer { rotationZ = angle })
     }
 }
 
@@ -166,5 +240,27 @@ internal fun voiceMicIcon(kind: String): ImageVector = when (kind) {
     else -> Icons.Outlined.Mic
 }
 
+/** The kind the switch last showed; a plain field, read and written once per change. */
+private class MicSeen(var kind: String)
+
+/**
+ * 1 for a move forward through [choices], wrapping from the last back to the
+ * first included, -1 for one back, and 1 when either end is not among them.
+ */
+private fun micTurn(choices: List<String>, from: String, to: String): Float {
+    val a = choices.indexOf(from)
+    val b = choices.indexOf(to)
+    if (a < 0 || b < 0) return 1f
+    val forward = b > a || (b == 0 && a == choices.lastIndex)
+    return if (forward) 1f else -1f
+}
+
 /** How long a surface says which microphone is in use; FUTO's toast stays 2.5 s. */
 private const val VOICE_MIC_NOTICE_MS = 2500L
+
+/** The icon turning over: the new one in, the old one out a little faster, and how far each turns. */
+private const val MIC_SWAP_MS = 200
+private const val MIC_OUT_MS = 140
+private const val MIC_IN_DELAY_MS = 40
+private const val MIC_SWAP_SCALE = 0.5f
+private const val MIC_TURN_DEGREES = 90f

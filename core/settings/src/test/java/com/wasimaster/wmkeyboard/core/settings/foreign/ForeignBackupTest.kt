@@ -303,6 +303,22 @@ class ForeignBackupTest {
         assertTrue(backup.settings.any { it.kind == ForeignSettingKind.AUTO_CAPITALIZE && it.value == false })
     }
 
+    @Test
+    fun cleverKeysCustomLayoutsComeAcross() {
+        // The `layouts` list holds a built-in grid by name, then a custom one
+        // as its XML with the language the user bound it to.
+        val text = """
+            {"metadata":{"app_version":"1.2.0"},"preferences":{"vibrate_custom":true,
+            "layouts":["latn_qwerty_us",{"kind":"custom","language":"de",
+            "xml":"<keyboard name=\"Mine\"><row><key c=\"a\" ne=\"1\"/><key c=\"b\"/></row></keyboard>"}]}}
+        """.trimIndent()
+        val backup = ForeignBackups.readText(text)
+        assertNotNull(backup)
+        val layout = backup!!.layouts.single()
+        assertEquals("Mine", layout.converted.layout.name)
+        assertEquals("de", layout.langId)
+    }
+
     /**
      * Real backups, when there are some to hand: every file in the folder
      * named by `FOREIGN_BACKUPS` must read, and offer something. Skips when the

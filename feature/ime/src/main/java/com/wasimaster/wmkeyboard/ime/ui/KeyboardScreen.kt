@@ -1588,6 +1588,9 @@ fun KeyboardScreen(
         LocalOctopusPick provides onOctopusPick,
         LocalPossessiveFlick provides onPossessiveFlick,
         LocalOctopusOccupancy provides remember { OctopusOccupancy() },
+        // Where the last panel opener was pressed, for the panel it opens to
+        // grow out of (see [PanelMotionSlot]).
+        LocalPanelOrigins provides remember { PanelOrigins() },
         LocalSelectionHold provides toolHold.onSelectionHold,
         LocalCanDelete provides canDelete,
         LocalCanDeleteField provides canDeleteField,
@@ -4262,15 +4265,18 @@ private fun TopBar(
                         // and onToolTap would drop the gear's press without a word.
                         canOpen = smart.tool in state.settings.enabledTools &&
                             isSupportedTool(smart.tool) && isUsableTool(smart.tool, state.settings),
-                        modifier = if (keywordInSlot) {
-                            Modifier.weight(1f).padding(horizontal = 4.dp)
-                        } else if (keywordChip) {
-                            Modifier.padding(start = 4.dp)
-                        } else {
-                            Modifier
-                                .weight(1f)
-                                .padding(horizontal = 4.dp)
-                        },
+                        // The tool it opens grows out of the chip.
+                        modifier = Modifier.panelOrigin().then(
+                            if (keywordInSlot) {
+                                Modifier.weight(1f).padding(horizontal = 4.dp)
+                            } else if (keywordChip) {
+                                Modifier.padding(start = 4.dp)
+                            } else {
+                                Modifier
+                                    .weight(1f)
+                                    .padding(horizontal = 4.dp)
+                            },
+                        ),
                         // A wide chip with nothing to type (the weather answer)
                         // opens its tool instead: the whole face is one door.
                         onAccept = {
@@ -4297,7 +4303,7 @@ private fun TopBar(
                     VocabDailyChip(
                         word = daily.word,
                         hourly = state.settings.vocabulary.wordInterval != com.wasimaster.wmkeyboard.core.vocab.VocabWordInterval.DAILY,
-                        modifier = Modifier.padding(start = 4.dp),
+                        modifier = Modifier.padding(start = 4.dp).panelOrigin(),
                         onOpen = {
                             vocab.onDailyOpen()
                             onToolTap(ToolbarTool.VOCABULARY)
@@ -4442,8 +4448,11 @@ private fun TopBar(
                 // the slots the count asks for rather than a chip after them,
                 // so the strip never shows more than that number. The words
                 // give up one slot and the emoji takes it at the same width.
+                // Never beside a conversion's candidates: those scroll in a row
+                // weighted to the whole strip, and a weighted emoji slot would
+                // take half of it (#633).
                 val emojiInSlot = (state.settings.suggestionStrip.emojiTakesSlot || fixedStrip) &&
-                    shownEmojiSuggestions.isNotEmpty() && !shownInlineEmoji && !glideStripOnly
+                    shownEmojiSuggestions.isNotEmpty() && !shownInlineEmoji && !glideStripOnly && !held.conversion
                 // The marks and the emoji never show together (the service
                 // leaves one list empty), so they share the one last slot.
                 val punctuationInSlot = fixedStrip && !emojiInSlot && shownPunctuation.isNotEmpty()
@@ -4596,14 +4605,15 @@ private fun TopBar(
                     // strip that opens it. It steps aside while its own spelling
                     // editor is up (#138): that window covers the keys the
                     // respelling is typed on.
-                    state.wordCard?.takeIf { state.wordSpell == null }?.let { card ->
-                        WordCardPopup(card = card, onAction = suggestionHold.onCard)
-                    }
+                    // Composed with a null value too, so the popup can play its
+                    // way out after the service has closed it.
+                    WordCardPopup(
+                        card = state.wordCard?.takeIf { state.wordSpell == null },
+                        onAction = suggestionHold.onCard,
+                    )
                     // The synonyms a held word asked for (#321), a window over the
                     // keyboard like the card.
-                    state.synonyms?.let { sheet ->
-                        SynonymsPopup(sheet = sheet, onAction = suggestionHold.onSynonyms)
-                    }
+                    SynonymsPopup(sheet = state.synonyms, onAction = suggestionHold.onSynonyms)
                 }
                 // Emoji candidates ride along after the words: typing "birthday"
                 // puts 🎂 🎉 🥳 🎁 one tap away. Held set, so they fade out with
@@ -8671,12 +8681,15 @@ internal fun ToolCircle(
     }
     var showLabel by remember { mutableStateOf(false) }
     val feedback = LocalKeyPressFeedback.current
+    // Every live button is a possible panel opener: the panel a tap opens
+    // grows out of the button (see [PanelMotionSlot]). Not the inert ones — the
+    // cell around those owns the press, and records itself with its name.
     val click = if (!interactive) {
         Modifier
     } else if (longPressLabel == null && onLongPress == null) {
-        Modifier.clickable(onClick = onClick)
+        Modifier.panelOrigin().clickable(onClick = onClick)
     } else {
-        Modifier.pointerInput(longPressLabel, onLongPress != null) {
+        Modifier.panelOrigin().pointerInput(longPressLabel, onLongPress != null) {
             detectTapGestures(
                 onTap = { onClick() },
                 onLongPress = {
@@ -9173,6 +9186,10 @@ private fun RowScope.ToolbarRow(
                             // across that swap instead of tracking only
                             // its own node.
                             modifier = dragModifier
+                                // The cell owns the press (interactive = false
+                                // below), so it is the cell that marks itself
+                                // as the opener a panel grows out of.
+                                .panelOrigin()
                                 .then(
                                     if (dpadRing) {
                                         Modifier.dpadTarget(tool) { onToolTap(tool) }
@@ -9830,6 +9847,9 @@ private fun ToolboxGrid(
             // each, and lands with no animation, which is right — the drag has
             // already shown the move.
             key(tool?.let { "$it@$orderKey" } ?: "box-ghost-${pageStart + slot}") {
+                // Where this cell's tool name is drawn: a panel opened from
+                // the cell grows out of it and lifts that name into its header.
+                val nameAnchor = remember { PanelLabelAnchor() }
                 Box(
                     modifier = Modifier
                         .toolboxCellWidth(columns)
@@ -9840,7 +9860,9 @@ private fun ToolboxGrid(
                         // label's fixed line count. Anything put in a cell that
                         // can change its height breaks hit testing for every
                         // row below it.
-                        .onGloballyPositioned { drag.toolboxCellSize = it.size.toSize() },
+                        .onGloballyPositioned { drag.toolboxCellSize = it.size.toSize() }
+                        // Watches the press only; the grid's loop still owns it.
+                        .panelOrigin(nameAnchor),
                     contentAlignment = Alignment.Center,
                 ) {
                     // Pure visuals — the grid's own pointerInput owns the
@@ -9883,6 +9905,7 @@ private fun ToolboxGrid(
                             modifier = placement
                                 .padding(horizontal = 3.dp, vertical = 3.dp)
                                 .focusRing(focused, RoundedCornerShape(pillRadius())),
+                            labelAnchor = nameAnchor,
                         )
                         return@Box
                     }
@@ -9928,9 +9951,11 @@ private fun ToolboxGrid(
                             minLines = 2,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
+                            onTextLayout = nameAnchor::onTextLayout,
                             modifier = Modifier
                                 .padding(top = 4.dp, start = 2.dp, end = 2.dp)
-                                .fillMaxWidth(),
+                                .fillMaxWidth()
+                                .panelOriginLabel(nameAnchor),
                         )
                     }
                 }
@@ -10036,6 +10061,8 @@ private fun ToolPill(
     modifier: Modifier = Modifier,
     /** The physical key that opens this tool; see [ToolCircle]'s own `hint`. */
     hint: String? = null,
+    /** Told where the tool's name is, for the panel it opens to lift it into its header. */
+    labelAnchor: PanelLabelAnchor? = null,
 ) {
     val kb = LocalKbTheme.current
     val shape = RoundedCornerShape(pillRadius())
@@ -10096,9 +10123,11 @@ private fun ToolPill(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             color = content.copy(alpha = if (ghost) 0.5f else 1f),
+            onTextLayout = { labelAnchor?.onTextLayout(it) },
             modifier = Modifier
                 .weight(1f)
-                .padding(start = 8.dp),
+                .padding(start = 8.dp)
+                .then(if (labelAnchor != null) Modifier.panelOriginLabel(labelAnchor) else Modifier),
         )
         // A pill is a row, so its badge sits at the end beside the chevron
         // rather than under an icon. Same footprint either way.
@@ -10332,7 +10361,11 @@ internal fun FullBleedTool(
                         color = kb.secondaryText,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(start = 8.dp),
+                        // Opened from the tool's name, the name travels here
+                        // from where it was tapped (see [rememberPanelTitleMorph]).
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .then(rememberPanelTitleMorph()),
                     )
                 }
                 if (headerActions != null) {
@@ -11005,12 +11038,13 @@ private fun KeyboardBody(
             // every key-row branch at the bottom of this column.
             val barOrder = state.settings.barOrder
             for (row in barRowsAboveKeys(barOrder)) BarRowSlot(row)
-            // The panel swap below fades a panel in, and only a panel: see
-            // [PanelEnterFade]. A fade over this whole subtree was tried first
-            // and reverted — it covered the key rows too, so every panel close
-            // briefly rendered a translucent keyboard with the app's own text
-            // field showing through it, and its alpha landed a frame after the
-            // new content was already on screen, flashing it at full strength.
+            // The panel swap below grows a panel out of its opener and folds
+            // it back: see [PanelMotionSlot]. A fade over this whole subtree was
+            // tried first and reverted — it covered the key rows too, so every
+            // panel close briefly rendered a translucent keyboard with the app's
+            // own text field showing through it, and its alpha landed a frame
+            // after the new content was already on screen, flashing it at full
+            // strength. The slot never puts an alpha on the keys themselves.
         // A panel that has left the composition must stop claiming the focus
         // ring: its counts and its activate lambdas outlive it by a frame
         // otherwise, and the service would act on an item nothing is drawing.
@@ -11072,7 +11106,12 @@ private fun KeyboardBody(
             )
         }
         val shownPanel = if (lockHidden && state.panel == PanelMode.CLIPBOARD) PanelMode.NONE else state.panel
-        PanelEnterFade(shownPanel, state.settings.reduceMotion, roomBelow = panelRoomBelow(state, shownPanel)) {
+        val roomBelow = panelRoomBelow(state, shownPanel)
+        PanelMotionSlot(
+            panel = shownPanel,
+            animate = LocalKbTheme.current.motion.panels,
+            modifier = if (shownPanel == PanelMode.NONE) Modifier else Modifier.leaveRoomBelow(roomBelow),
+        ) {
         when (shownPanel) {
                 PanelMode.EMOJI -> EmojiPanelHost(state, panelCallbacks)
                 PanelMode.CLIPBOARD -> ClipboardPanelHost(state, panelCallbacks)
@@ -11890,52 +11929,6 @@ private fun KeyboardBody(
 }
 
 /**
- * The body's panel slot: [panel]'s content, faded in over the board when a panel
- * opens or one panel gives way to another.
- *
- * Only a panel fades. The keys ([PanelMode.NONE]) come back at full strength the
- * instant a panel closes, because an alpha on them is exactly what was reverted
- * before: a see-through keyboard with the app's text showing through it. And the
- * fade starts from nothing in the very composition that brings the panel in
- * (the value is born with it, keyed on the panel), so its first frame is never
- * drawn at full strength and dimmed a frame later.
- *
- * A Column, so every panel keeps the ColumnScope it was written against and its
- * rows still stack exactly as they did straight in the body's own Column (none
- * of them takes a weight there). ModulateAlpha applies the fade to what is drawn
- * rather than through an offscreen buffer the size of the slot, which would clip
- * anything a panel draws past its own edge for the length of the fade.
- */
-@Composable
-private fun PanelEnterFade(
-    panel: PanelMode,
-    reduceMotion: Boolean,
-    roomBelow: Dp = 0.dp,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    key(panel) {
-        val fades = panel != PanelMode.NONE && !reduceMotion
-        val fade = remember { Animatable(if (fades) 0f else 1f) }
-        LaunchedEffect(fade) {
-            fade.animateTo(1f, tween(PanelEnterMs, easing = LinearOutSlowInEasing))
-        }
-        Column(
-            modifier = if (panel == PanelMode.NONE) {
-                Modifier
-            } else {
-                Modifier
-                    .leaveRoomBelow(roomBelow)
-                    .graphicsLayer {
-                        alpha = fade.value
-                        compositingStrategy = CompositingStrategy.ModulateAlpha
-                    }
-            },
-            content = content,
-        )
-    }
-}
-
-/**
  * What the key rows under an open panel need below it: the rows, and the
  * strip over them. Zero when the panel has no keys under it.
  */
@@ -11987,9 +11980,6 @@ private fun selectionTools(state: KeyboardUiState, onAiChat: (AiChatAction) -> U
     val askAi = !state.deviceLocked && ToolbarTool.AI in usableTools(state.settings)
     return remember(onAiChat, askAi) { SelectionTools(onAiChat, askAi) }
 }
-
-/** How long a panel takes to fade in over the board. */
-private const val PanelEnterMs = 140
 
 /** Gap the drag-scope pill keeps from the toolbar and from the keyboard's edge. */
 private val DragScopeGap = 4.dp
@@ -15295,7 +15285,10 @@ private fun KeyRows(
                             inside = octopusRects.wordAt(change.position, bounds) === tapped
                             if (!change.pressed) break
                         }
-                        if (inside) octopusPick(tapped.word, OctopusSource.TAP)
+                        if (inside) {
+                            octopusRects.markTaken(tapped.word)
+                            octopusPick(tapped.word, OctopusSource.TAP)
+                        }
                         return@awaitEachGesture
                     }
                     if (!octopusFlickHere) return@awaitEachGesture
@@ -15353,6 +15346,7 @@ private fun KeyRows(
                         // and cancels its press, which is exactly right. A miss
                         // consumed nothing, so the key types its letter.
                         last.consume()
+                        octopusRects.markTaken(word.word)
                         octopusPick(word.word, OctopusSource.FLICK)
                     }
                 }
@@ -17581,10 +17575,17 @@ private fun KeyCell(
     // one it answers touches in: glide, autopilot and the touch model all read
     // these rects as where the key *is*, and the gap must not move its centre.
     val extended = edgeStart > 0f || edgeEnd > 0f
+    // A language or layout switch flips the keys whose label it changed (see
+    // [languageFlip]). Off, the key carries no extra node at all.
+    val flip = if (LocalKbTheme.current.motion.languageSwitch) {
+        Modifier.languageFlip(visual.label + "\u0000" + visual.spaceText, layoutId)
+    } else {
+        Modifier
+    }
     KeyButton(
         visual = visual,
         settings = settings,
-        modifier = if (extended) sizeModifier else sizeModifier.then(reportPosition),
+        modifier = (if (extended) sizeModifier else sizeModifier.then(reportPosition)).then(flip),
         faceModifier = if (extended) {
             Modifier.edgeInset(edgeStart, edgeEnd).then(reportPosition)
         } else {
@@ -17928,10 +17929,11 @@ private fun apostropheCenter(
 
 /**
  * How hard a likely next letter pulls a boundary tap, for the autopilot
- * strength the user set (1..10). Higher = wider steal. 5 is what the feature
- * shipped at, and lands on the 0.5 it was a constant for.
+ * strength the user set (1..20). Higher = wider steal. 5 is what the feature
+ * shipped at, and lands on the 0.5 it was a constant for. Past 10 the reach
+ * cap ([SMART_HIT_MAX_REACH]) is what stops a letter, not this number.
  */
-internal fun smartHitStrength(setting: Int): Float = setting.coerceIn(1, 10) * 0.1f
+internal fun smartHitStrength(setting: Int): Float = setting.coerceIn(1, 20) * 0.1f
 
 /** A favoured letter never claims a tap more than this many key-widths away. */
 private const val SMART_HIT_MAX_REACH = 1.3f

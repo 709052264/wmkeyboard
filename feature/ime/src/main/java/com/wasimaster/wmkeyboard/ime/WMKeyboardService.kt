@@ -608,6 +608,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.T9Pinyin
 import com.wasimaster.wmkeyboard.core.input.composer.ZhuyinSyllables
 import com.wasimaster.wmkeyboard.core.input.composer.CodeTableDictionary
 import com.wasimaster.wmkeyboard.core.input.composer.ConversionDictionary
+import com.wasimaster.wmkeyboard.core.input.composer.ConversionWordLists
 import com.wasimaster.wmkeyboard.core.input.composer.VietnameseConfig
 import com.wasimaster.wmkeyboard.core.input.composer.VietnameseTelexComposer
 import com.wasimaster.wmkeyboard.core.input.composer.VietnameseVniComposer
@@ -679,6 +680,7 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 import java.util.Calendar
 import java.util.EnumMap
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -5943,10 +5945,11 @@ open class WMKeyboardService : InputMethodService() {
             if (!restarting) maybeOfferWordOfTheDay()
         }
         // A CJK dictionary pack finished (or was deleted) in Settings since the
-        // tables were last parsed: reload so it goes live on this focus. The
-        // token compare is two file-existence checks — cheap enough per focus,
-        // and the re-parse only runs when a pack actually changed.
-        if (loadedCjkPackToken != CjkDictStore.stateToken(filesDir)) {
+        // tables were last parsed, or a list was imported for a language that
+        // converts: reload so it goes live on this focus. The token compare is
+        // a few file checks — cheap enough per focus, and the re-parse only
+        // runs for a table whose sources actually changed.
+        if (loadedCjkPackToken != cjkTablesToken()) {
             serviceScope.launch { loadCjkConversionTables() }
         }
         // Likewise an input method imported in Settings, or a layout bound to
@@ -15278,48 +15281,118 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch(Dispatchers.Default) { ImportedInputMethods.load(filesDir, wanted) }
     }
 
-    /** Pack-state token the conversion tables were last loaded from; see [CjkDictStore.stateToken]. */
+    /** State token the conversion tables were last loaded from; see [cjkTablesToken]. */
     @Volatile
     private var loadedCjkPackToken = Int.MIN_VALUE
 
+    /** What each table was last built from, by pack id, so a change rebuilds that table alone. */
+    private val loadedCjkTables = ConcurrentHashMap<String, Int>()
+
+    /**
+     * Everything the conversion tables are built from, as one number: which
+     * packs are on disk ([CjkDictStore.stateToken]) and, for each language
+     * whose imported lists join its table, [conversionListsToken]. Asked on
+     * every field focus, so it stays a few file checks and one directory
+     * listing per converting language.
+     */
+    private fun cjkTablesToken(): Int {
+        var token = CjkDictStore.stateToken(filesDir)
+        for (langId in ConversionWordLists.languages) token = token * 31 + conversionListsToken(langId)
+        return token
+    }
+
+    /**
+     * The imported lists [langId]'s conversion table reads, and whether it
+     * reads its pack beside them: a list imported, switched, edited or
+     * deleted, or "Use only my word lists" flipped, changes it.
+     */
+    private fun conversionListsToken(langId: String): Int {
+        if (!userUnlocked) return 0
+        var h = if (shippedDictionaryEnabled(langId)) 1 else 2
+        for (list in CustomDictionaries.lists(filesDir, langId)) {
+            h = h * 31 + list.name.hashCode()
+            h = h * 31 + list.length().toInt()
+            h = h * 31 + list.lastModified().toInt()
+        }
+        return h
+    }
+
+    /**
+     * [packId]'s table with what the user imported for [langId] merged in
+     * (#633). The lists used to reach only the Latin strip's word tries, which
+     * a conversion IME never reads, so a Chinese list changed nothing — and
+     * without the pack Chinese could not convert at all, whatever was
+     * imported. Only lines that carry a reading join ([ConversionWordLists]);
+     * a pack word they repeat keeps the pack's frequency.
+     *
+     * "Use only my word lists" (#28) drops the pack, the way it drops a
+     * downloaded list everywhere else, but only once a list has something to
+     * convert with: with nothing imported it would leave the language unable to
+     * type a single character, which is not what anyone switching it on meant.
+     */
+    private fun conversionTable(packId: String, langId: String): ConversionDictionary {
+        val pack = CjkDictStore.downloadedFileFor(filesDir, packId)
+            ?.let { file -> runCatching { file.bufferedReader().useLines(ConversionDictionary::parse) }.getOrNull() }
+            ?: ConversionDictionary.EMPTY
+        val reading = ConversionWordLists.readingFor(langId)
+        // Direct boot: the imported lists are behind the user's credential.
+        if (reading == null || !userUnlocked) return pack
+        val scale = ConversionWordLists.Scale.of(pack)
+        val rows = CustomDictionaries.lists(filesDir, langId).flatMap { list ->
+            runCatching { list.bufferedReader().useLines { ConversionWordLists.rows(it, reading, scale) } }
+                .getOrDefault(emptyList())
+        }
+        if (rows.isEmpty()) return pack
+        val base = if (shippedDictionaryEnabled(langId)) pack else ConversionDictionary.EMPTY
+        return base.plus(rows)
+    }
+
     /**
      * (Re)loads the Chinese/Japanese conversion tables from their downloaded
-     * [CjkDictCatalog] packs. The tables are large and useful to a minority, so
-     * they are not bundled — with no pack on disk the composer types the raw
-     * reading with no candidates, and deleting a pack resets it to empty. Records
-     * the pack-state token so [onStartInputView] re-parses only when a pack
-     * actually changes. All parsing runs off the main thread.
+     * [CjkDictCatalog] packs and the lists imported for their languages. The
+     * packs are large and useful to a minority, so they are not bundled — with
+     * neither a pack nor a list on disk the composer types the raw reading with
+     * no candidates, and deleting a pack resets it to empty. Records the state
+     * token so [onStartInputView] re-parses only when something actually
+     * changed, and then only the tables it changed for. All parsing runs off
+     * the main thread.
      */
     private suspend fun loadCjkConversionTables() {
         withContext(Dispatchers.Default) {
-            val token = CjkDictStore.stateToken(filesDir)
-            CjkDictionaries.pinyin = CjkDictStore.downloadedFileFor(filesDir, "pinyin")
-                ?.let { file -> runCatching { file.bufferedReader().useLines(ConversionDictionary::parse) }.getOrNull() }
-                ?: ConversionDictionary.EMPTY
-            CjkDictionaries.japanese = CjkDictStore.downloadedFileFor(filesDir, "ja_kana")
-                ?.let { file -> runCatching { file.bufferedReader().useLines(ConversionDictionary::parse) }.getOrNull() }
-                ?: ConversionDictionary.EMPTY
-            CjkDictionaries.stroke = CjkDictStore.downloadedFileFor(filesDir, "stroke")
-                ?.let { file ->
-                    runCatching {
-                        file.bufferedReader().useLines {
-                            CodeTableDictionary.parse(it, CodeTableDictionary.STROKE_CODE)
-                        }
-                    }.getOrNull()
-                }
-                ?: CodeTableDictionary.EMPTY
-            CjkDictionaries.jyutping = CjkDictStore.downloadedFileFor(filesDir, "jyutping")
-                ?.let { file -> runCatching { file.bufferedReader().useLines(ConversionDictionary::parse) }.getOrNull() }
-                ?: ConversionDictionary.EMPTY
-            CjkDictionaries.cangjie = CjkDictStore.downloadedFileFor(filesDir, "cangjie")
-                ?.let { file ->
-                    runCatching {
-                        file.bufferedReader().useLines {
-                            CodeTableDictionary.parse(it, CodeTableDictionary.CANGJIE_CODE)
-                        }
-                    }.getOrNull()
-                }
-                ?: CodeTableDictionary.EMPTY
+            val token = cjkTablesToken()
+            // Per table: a Chinese list imported has no business re-reading the
+            // million-row Japanese pack.
+            fun stale(packId: String, langId: String?): Boolean {
+                val file = CjkDictStore.downloadedFileFor(filesDir, packId)
+                var t = file?.let { it.length().toInt() * 31 + it.lastModified().toInt() } ?: 0
+                if (langId != null) t = t * 31 + conversionListsToken(langId)
+                return loadedCjkTables.put(packId, t) != t
+            }
+            if (stale("pinyin", "zh")) CjkDictionaries.pinyin = conversionTable("pinyin", "zh")
+            if (stale("ja_kana", "ja")) CjkDictionaries.japanese = conversionTable("ja_kana", "ja")
+            if (stale("stroke", null)) {
+                CjkDictionaries.stroke = CjkDictStore.downloadedFileFor(filesDir, "stroke")
+                    ?.let { file ->
+                        runCatching {
+                            file.bufferedReader().useLines {
+                                CodeTableDictionary.parse(it, CodeTableDictionary.STROKE_CODE)
+                            }
+                        }.getOrNull()
+                    }
+                    ?: CodeTableDictionary.EMPTY
+            }
+            if (stale("jyutping", "yue")) CjkDictionaries.jyutping = conversionTable("jyutping", "yue")
+            if (stale("cangjie", null)) {
+                CjkDictionaries.cangjie = CjkDictStore.downloadedFileFor(filesDir, "cangjie")
+                    ?.let { file ->
+                        runCatching {
+                            file.bufferedReader().useLines {
+                                CodeTableDictionary.parse(it, CodeTableDictionary.CANGJIE_CODE)
+                            }
+                        }.getOrNull()
+                    }
+                    ?: CodeTableDictionary.EMPTY
+            }
             // A pack change can be the phrase pack arriving or going. Only read
             // once Traditional output has asked for its tables; until then
             // [loadHanVariantTables] picks it up itself.
@@ -18103,30 +18176,127 @@ open class WMKeyboardService : InputMethodService() {
         // (see [onCandidateTapped]). The composers keep their last decode, so
         // the space that follows this reads it back rather than decoding again.
         suggestionJob = serviceScope.launch {
-            val (cands, expanded, readings) = withContext(suggestionDispatcher) {
+            // The T9 pad's syllable column (#635), worked out on the same pass.
+            var readings = emptyList<String>()
+            val (cands, expanded, found) = withContext(suggestionDispatcher) {
+                val cands = composer.candidates(typed)
+                readings = composer.readings(typed)
                 // The grid is a widening of the same ranking, so it only costs
                 // anything while it is actually open.
-                Triple(
-                    composer.candidates(typed),
-                    if (gridOpen) composer.candidates(typed, CANDIDATE_GRID_LIMIT) else emptyList(),
-                    composer.readings(typed),
-                )
+                val grid = if (gridOpen) composer.candidates(typed, CANDIDATE_GRID_LIMIT) else emptyList()
+                val english = conversionEnglish(state, typed)
+                val emoji = conversionEmoji(state, cands.firstOrNull(), english.firstOrNull())
+                Triple(cands, grid, ConversionFound(english, englishAt(composer, typed, cands, english), emoji))
             }
             // Committed or replaced while this ran: the list is for text that
             // is no longer being composed.
             if (composing.toString() != typed || _uiState.value.composer !== composer) return@launch
+            // Drop what the font cannot draw, then apply the default skin
+            // tone, the same tail the Latin strip's emoji take.
+            val hidden = _uiState.value.hiddenEmoji
+            val emoji = found.emoji
+                .filterNot { (e, _) -> e in hidden }
+                .map { (e, fromEnglish) -> applyEmojiTone(e) to fromEnglish }
+            val extras = ConversionExtras(
+                typed = typed,
+                english = found.english,
+                at = found.at,
+                englishEmoji = emoji.filter { it.second }.mapTo(HashSet()) { it.first },
+            )
+            conversionExtras = extras
             _uiState.update {
                 it.copy(
-                    suggestions = cands,
+                    suggestions = extras.into(cands),
                     conversionReadings = readings,
                     autocorrectWord = null,
-                    expandedCandidates = expanded,
-                    emojiSuggestions = emptyList(),
+                    expandedCandidates = extras.into(expanded),
+                    emojiSuggestions = emoji.map { e -> e.first },
                     punctuationSuggestions = emptyList(),
                     inlineEmoji = false,
                 )
             }
         }
+    }
+
+    /** What a conversion pass found beyond the composer's own list, before the main thread shapes it. */
+    private class ConversionFound(val english: List<String>, val at: Int, val emoji: List<Pair<String, Boolean>>)
+
+    /**
+     * What the conversion strip shows beyond the composer's own candidates
+     * (#633): English words for the letters typed, sitting at [at] among the
+     * conversions, and which of the emoji chips came from the first of them
+     * rather than from the conversion. Kept for the reading it was built for,
+     * so a tap can tell an English chip from a conversion and a strip
+     * position from the composer's own.
+     */
+    private class ConversionExtras(
+        val typed: String,
+        val english: List<String>,
+        val at: Int,
+        val englishEmoji: Set<String>,
+    ) {
+        /** [candidates] with the English words in their place. */
+        fun into(candidates: List<String>): List<String> {
+            if (english.isEmpty()) return candidates
+            val cut = at.coerceAtMost(candidates.size)
+            return candidates.take(cut) + english + candidates.drop(cut)
+        }
+
+        /** The composer's own index for strip position [index]; -1 for an English chip. */
+        fun composerIndex(index: Int): Int = when {
+            english.isEmpty() || index < at -> index
+            index < at + english.size -> -1
+            else -> index - english.size
+        }
+    }
+
+    /** The extras of the last conversion pass; see [ConversionExtras]. */
+    private var conversionExtras: ConversionExtras? = null
+
+    /**
+     * English words for a conversion reading (#633). Pinyin, romaji and
+     * Jyutping are typed on the same letters as English, so with English among
+     * the language's secondaries the strip offers `hello` beside what the
+     * reading converts to, the way Gboard and Sogou do. Under the strip's own
+     * gates: unlike the conversions, these are suggestions.
+     */
+    private fun conversionEnglish(state: KeyboardUiState, typed: String): List<String> {
+        if (!state.composer.readsLatinLetters || !state.allowsTypingIntelligence) return emptyList()
+        if (!state.settings.suggestions || state.fieldNoSuggestions) return emptyList()
+        val words = suggestionEngine?.englishCompletions(typed, CONVERSION_ENGLISH_WORDS).orEmpty()
+        // The reading carries no case of its own, but a shifted first letter
+        // is a capital the English word should keep.
+        if (typed.firstOrNull()?.isUpperCase() != true) return words
+        return words.map { word -> word.replaceFirstChar { it.uppercase() } }
+    }
+
+    /**
+     * Where [english] goes among [cands]. Never first: the head is what the
+     * space bar commits, and that stays the conversion. Second when the top
+     * conversion covers only part of the buffer — `hello` is 和 and a tail of
+     * letters, and the English is the likelier reading — and behind the first
+     * few otherwise, where `hen` is 很 and the hen is a fallback.
+     */
+    private fun englishAt(composer: Composer, typed: String, cands: List<String>, english: List<String>): Int = when {
+        english.isEmpty() || cands.isEmpty() -> 0
+        composer.consumedForIndex(typed, 0) < typed.length -> 1
+        else -> minOf(CONVERSION_ENGLISH_AFTER, cands.size)
+    }
+
+    /**
+     * The emoji for a conversion reading: what the top conversion names in the
+     * language's emoji keywords (笑 → 😄), then what the first English word
+     * names. Each paired with whether it came from the English word, which an
+     * appending tap needs to know what to write before it.
+     */
+    private fun conversionEmoji(state: KeyboardUiState, top: String?, english: String?): List<Pair<String, Boolean>> {
+        if (!state.settings.emojiPrediction || !state.settings.suggestions) return emptyList()
+        if (!state.allowsTypingIntelligence || state.fieldNoSuggestions) return emptyList()
+        val suggester = emojiSuggester ?: return emptyList()
+        val found = LinkedHashMap<String, Boolean>()
+        top?.let { word -> suggester.suggest(word).forEach { found.putIfAbsent(it, false) } }
+        english?.let { word -> suggester.suggest(word).forEach { found.putIfAbsent(it, true) } }
+        return found.toList()
     }
 
     /**
@@ -18825,6 +18995,12 @@ open class WMKeyboardService : InputMethodService() {
      */
     private val CANDIDATE_GRID_LIMIT = 100
 
+    /** English words offered beside a conversion reading's candidates (#633). */
+    private val CONVERSION_ENGLISH_WORDS = 2
+
+    /** How many conversions keep their places ahead of the English words, at most. */
+    private val CONVERSION_ENGLISH_AFTER = 3
+
     /**
      * The buffer the last suggestion pass ran for, and every word it ranked,
      * deepest first-to-last: what a swipe down on the strip shows (#385).
@@ -18882,8 +19058,18 @@ open class WMKeyboardService : InputMethodService() {
         // from, so it is trusted while the buffer's own ranking still has this
         // candidate there, and the tap falls back to matching by text when it
         // does not.
-        val current = composer.candidates(composing.toString(), CANDIDATE_GRID_LIMIT).getOrNull(index)
-        commitConversionPrefix(ic, candidate, if (current == candidate) index else -1)
+        // English words sit among the conversions (#633), so a strip position
+        // is the composer's own only once they are counted out. An English chip
+        // was spelled by the whole reading, which is what a pick with no
+        // position in the composer's list consumes.
+        val extras = conversionExtras?.takeIf { it.typed == composing.toString() }
+        val composerIndex = extras?.composerIndex(index) ?: index
+        if (extras != null && candidate in extras.english && (composerIndex < 0 || index < 0)) {
+            commitConversionPrefix(ic, candidate)
+            return
+        }
+        val current = composer.candidates(composing.toString(), CANDIDATE_GRID_LIMIT).getOrNull(composerIndex)
+        commitConversionPrefix(ic, candidate, if (current == candidate) composerIndex else -1)
     }
 
     /** The candidate strip's chevron: opens the overflow grid, or closes it. */
@@ -18894,10 +19080,14 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         if (!state.composer.isConversion || composing.isEmpty()) return
+        val typed = composing.toString()
+        val grid = state.composer.candidates(typed, CANDIDATE_GRID_LIMIT)
         _uiState.update {
             it.copy(
                 panel = PanelMode.CANDIDATES,
-                expandedCandidates = state.composer.candidates(composing.toString(), CANDIDATE_GRID_LIMIT),
+                // The same positions as the strip, English words and all, so a
+                // pick from either resolves the same way.
+                expandedCandidates = conversionExtras?.takeIf { e -> e.typed == typed }?.into(grid) ?: grid,
             )
         }
     }
@@ -34742,7 +34932,23 @@ open class WMKeyboardService : InputMethodService() {
         lastGestureWord = null
         val word = composing.toString()
         val append = (_uiState.value.settings.emojiInsertMode == EmojiInsertMode.APPEND) != held
-        if (append && word.isNotEmpty()) {
+        if (word.isNotEmpty() && _uiState.value.composer.isConversion) {
+            // A conversion reading (#633). Finishing the composition would
+            // leave the bare pinyin in the field, so keeping the word means
+            // committing what the emoji was offered for: the conversions the
+            // reading ranks first, or the English word it came from. Replacing
+            // it is the emoji in the reading's place. No space either way —
+            // Chinese and Japanese run their words together.
+            if (append) {
+                val extras = conversionExtras?.takeIf { it.typed == word }
+                val english = extras?.english?.firstOrNull()?.takeIf { emoji in extras.englishEmoji }
+                if (english != null) commitConversionPrefix(ic, english) else flushConversion(ic)
+                ic.commitText(emoji, 1)
+            } else {
+                ic.commitText(emoji, 1)
+                afterConversionFlushed()
+            }
+        } else if (append && word.isNotEmpty()) {
             ic.finishComposingText()
             ic.commitText(" $emoji", 1)
             learn(word, caseTrusted = composingCaseTrusted)
@@ -37158,7 +37364,15 @@ open class WMKeyboardService : InputMethodService() {
      * imported trie alone is also recorded in [imported], for [importedLists].
      */
     private fun loadCustomDictionary(langId: String, imported: MutableMap<String, WordSource>): WordSource {
-        val lists = CustomDictionaries.trie(filesDir, langId)
+        // A converting language's lists are read into its conversion table
+        // instead ([conversionTable], #633). Their lines are readings and
+        // characters, not words any strip offers, and read as words they only
+        // filled a trie with whole CC-CEDICT lines.
+        val lists = if (ConversionWordLists.readingFor(langId) != null) {
+            PackedTrie.EMPTY
+        } else {
+            CustomDictionaries.trie(filesDir, langId)
+        }
         imported[langId] = lists
         // Dropped for a language set to read imported lists alone (#28) —
         // that is the whole of the setting for every language but English

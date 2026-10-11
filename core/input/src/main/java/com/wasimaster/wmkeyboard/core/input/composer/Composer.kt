@@ -195,6 +195,18 @@ interface Composer {
     val isConversion: Boolean get() = false
 
     /**
+     * Whether this conversion composer reads its readings straight off the
+     * Latin letter keys — full pinyin, romaji, Jyutping — so that the keys
+     * spelling a reading could just as well be spelling an English word.
+     *
+     * What lets the candidate strip put English words beside the conversions
+     * when English is one of the language's secondaries (#633). False for
+     * every pad whose keys are not the alphabet: T9's digits, Zhuyin's
+     * bopomofo, Cangjie's radicals and the strokes.
+     */
+    val readsLatinLetters: Boolean get() = false
+
+    /**
      * The [CjkDictCatalog] pack this composer converts with, when that pack is
      * not loaded — else null, which is also the answer for every composer that
      * needs no pack at all.

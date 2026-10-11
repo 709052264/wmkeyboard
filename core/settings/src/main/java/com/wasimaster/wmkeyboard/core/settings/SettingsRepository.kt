@@ -1616,6 +1616,34 @@ data class AccessibilitySettings(
      * it drops the unintended second contact of a bouncing tap.
      */
     val keyDebounceMs: Int = 0,
+    /**
+     * Panels open and close with motion: the panel grows out of the toolbar
+     * icon or tool name that opened it and folds back into it on close. On by
+     * default and kept short (under 200 ms). [KeyboardSettings.reduceMotion]
+     * still turns it off whatever this says.
+     */
+    val panelMotion: Boolean = true,
+    /**
+     * The text selection overlay and the selection bar animate: handles and
+     * highlight ease to the new range, chips arrive in a short stagger. On by
+     * default; [KeyboardSettings.reduceMotion] still wins.
+     */
+    val selectionMotion: Boolean = true,
+    /**
+     * Switching language animates the board: keys whose label changes flip
+     * to the new one, keys that stay the same hold still. Off by default,
+     * because a language switch is something people do mid-sentence and the
+     * plain swap is the fastest. Only an explicit switch animates, never a
+     * per-key layer change.
+     */
+    val languageSwitchMotion: Boolean = false,
+    /**
+     * Grammar and translate results animate: an applied fix strikes the old
+     * text and slides the replacement in, the changed part of a translation
+     * fades in. Off by default, because these are tools people use to get
+     * text out fast. [KeyboardSettings.reduceMotion] still wins.
+     */
+    val toolResultMotion: Boolean = false,
 )
 
 /**
@@ -2702,6 +2730,12 @@ data class GifSettings(
     /**
      * Holding a sticker in the offer's tray shows it large above the keyboard,
      * and sliding along the tray shows the next ones the same way (#404).
+    /**
+     * The user's own Telegram bot token, which is what lets the app ask the
+     * Bot API for a sticker set (`getStickerSet`). Blank until they make a
+     * bot with @BotFather; there is no built-in one.
+     */
+    val telegramBotToken: String = "",
      * Off, a hold does nothing and a slide scrolls the tray.
      */
     val stickerSuggestMagnify: Boolean = true,
@@ -7174,8 +7208,9 @@ data class LayoutBehaviorSettings(
     val smartHitDetection: Boolean = true,
     /**
      * How hard autopilot ([smartHitDetection]) pulls a boundary tap toward a
-     * likely letter, from 1 (barely) to 10 (as far as the reach cap allows).
-     * 5 is the strength the feature shipped with.
+     * likely letter, from 1 (barely) to 20. Above 10 a letter keeps claiming
+     * more of its neighbours' ground until the reach cap stops it. 5 is the
+     * strength the feature shipped with.
      */
     val autopilotStrength: Int = 5,
     /**
@@ -7201,6 +7236,14 @@ data class LayoutBehaviorSettings(
      * [autopilotStrength]. Off by default.
      */
     val autopilotOutline: Boolean = false,
+    /**
+     * Animate what [autopilotShowEffect] and [autopilotOutline] draw: a
+     * favoured letter's area eases to its new size and fades in or out
+     * instead of jumping on every keystroke. Off by default, since the
+     * overlay is a tuning aid and motion under the finger is a distraction.
+     * [KeyboardSettings.reduceMotion] still wins.
+     */
+    val autopilotAnimate: Boolean = false,
     /**
      * Which digit glyphs the number row and numpad draw, and (per
      * [numeralCommitScope]) type — chosen per language, keyed by
@@ -8570,6 +8613,10 @@ class SettingsRepository(private val context: Context) {
         private val REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
         private val SCREEN_READER_MODE = stringPreferencesKey("screen_reader_mode")
         private val KEY_DEBOUNCE_MS = intPreferencesKey("key_debounce_ms")
+        private val PANEL_MOTION = booleanPreferencesKey("panel_motion")
+        private val SELECTION_MOTION = booleanPreferencesKey("selection_motion")
+        private val LANGUAGE_SWITCH_MOTION = booleanPreferencesKey("language_switch_motion")
+        private val TOOL_RESULT_MOTION = booleanPreferencesKey("tool_result_motion")
         private val NUMBER_ROW = booleanPreferencesKey("number_row")
         private val AUTOCORRECT = booleanPreferencesKey("autocorrect")
         private val AUTOCORRECT_CONFIDENCE = floatPreferencesKey("autocorrect_confidence")
@@ -8820,6 +8867,7 @@ class SettingsRepository(private val context: Context) {
         private val AUTOPILOT_STRENGTH = intPreferencesKey("autopilot_strength")
         private val AUTOPILOT_SHOW_EFFECT = booleanPreferencesKey("autopilot_show_effect")
         private val AUTOPILOT_OUTLINE = booleanPreferencesKey("autopilot_outline")
+        private val AUTOPILOT_ANIMATE = booleanPreferencesKey("autopilot_animate")
         private val OCTOPUS_ENABLED = booleanPreferencesKey("octopus_enabled")
         private val OCTOPUS_PLACEMENT = stringPreferencesKey("octopus_placement")
         private val OCTOPUS_DENSITY = intPreferencesKey("octopus_density")
@@ -9475,6 +9523,7 @@ class SettingsRepository(private val context: Context) {
         private val MODE_TOOL_ORDER_HINT = booleanPreferencesKey("mode_tool_order_hint")
         private val MODES_ENABLED = booleanPreferencesKey("modes_enabled")
         private val KEYBOARD_MODES = stringPreferencesKey("keyboard_modes")
+        private val TELEGRAM_BOT_TOKEN = stringPreferencesKey("telegram_bot_token")
         private val MODE_SEED_VERSION = intPreferencesKey("mode_seed_version")
         private val LAUNCHER_SORT = stringPreferencesKey("launcher_sort")
         private val LAUNCHER_SHOW_LABELS = booleanPreferencesKey("launcher_show_labels")
@@ -10243,6 +10292,11 @@ class SettingsRepository(private val context: Context) {
                 ?.let { runCatching { ScreenReaderMode.valueOf(it) }.getOrNull() }
                 ?: defaults.accessibility.screenReader,
             keyDebounceMs = p[KEY_DEBOUNCE_MS] ?: defaults.accessibility.keyDebounceMs,
+            panelMotion = p[PANEL_MOTION] ?: defaults.accessibility.panelMotion,
+            selectionMotion = p[SELECTION_MOTION] ?: defaults.accessibility.selectionMotion,
+            languageSwitchMotion = p[LANGUAGE_SWITCH_MOTION]
+                ?: defaults.accessibility.languageSwitchMotion,
+            toolResultMotion = p[TOOL_RESULT_MOTION] ?: defaults.accessibility.toolResultMotion,
         )
 
     private fun readCorrection(p: Preferences, defaults: KeyboardSettings) =
@@ -10921,6 +10975,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.layoutBehavior.autopilotShowEffect,
             autopilotOutline = p[AUTOPILOT_OUTLINE]
                 ?: defaults.layoutBehavior.autopilotOutline,
+            autopilotAnimate = p[AUTOPILOT_ANIMATE]
+                ?: defaults.layoutBehavior.autopilotAnimate,
             autopilotVisualScale = p[AUTOPILOT_VISUAL_SCALE]
                 ?: defaults.layoutBehavior.autopilotVisualScale,
             spacebarDisplay = p[SPACEBAR_DISPLAY]
@@ -11270,6 +11326,7 @@ class SettingsRepository(private val context: Context) {
             selectionModeHold = p[SELECTION_MODE_HOLD]
                 ?: defaults.textEditing.selectionModeHold,
             selectionModeMultiTap = p[SELECTION_MODE_MULTI_TAP]
+            telegramBotToken = p[TELEGRAM_BOT_TOKEN] ?: defaults.gif.telegramBotToken,
                 ?: defaults.textEditing.selectionModeMultiTap,
             wrapSelectionWithPair =
                 p[WRAP_SELECTION_WITH_PAIR] ?: defaults.textEditing.wrapSelectionWithPair,
@@ -15243,6 +15300,22 @@ class SettingsRepository(private val context: Context) {
     suspend fun setKeyDebounceMs(value: Int) =
         editPrefs { it[KEY_DEBOUNCE_MS] = value.coerceIn(0, 500) }
 
+    /** See [AccessibilitySettings.panelMotion]. */
+    suspend fun setPanelMotion(value: Boolean) =
+        editPrefs { it[PANEL_MOTION] = value }
+
+    /** See [AccessibilitySettings.selectionMotion]. */
+    suspend fun setSelectionMotion(value: Boolean) =
+        editPrefs { it[SELECTION_MOTION] = value }
+
+    /** See [AccessibilitySettings.languageSwitchMotion]. */
+    suspend fun setLanguageSwitchMotion(value: Boolean) =
+        editPrefs { it[LANGUAGE_SWITCH_MOTION] = value }
+
+    /** See [AccessibilitySettings.toolResultMotion]. */
+    suspend fun setToolResultMotion(value: Boolean) =
+        editPrefs { it[TOOL_RESULT_MOTION] = value }
+
     suspend fun setNumberRow(value: Boolean) =
         editPrefs { it[NUMBER_ROW] = value }
 
@@ -16200,13 +16273,17 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[OCTOPUS_WORDS_PER_KEY] = value.coerceIn(OctopusSettings.WORDS_PER_KEY_RANGE) }
 
     suspend fun setAutopilotStrength(value: Int) =
-        editPrefs { it[AUTOPILOT_STRENGTH] = value.coerceIn(1, 10) }
+        editPrefs { it[AUTOPILOT_STRENGTH] = value.coerceIn(1, 20) }
 
     suspend fun setAutopilotShowEffect(value: Boolean) =
         editPrefs { it[AUTOPILOT_SHOW_EFFECT] = value }
 
     suspend fun setAutopilotOutline(value: Boolean) =
         editPrefs { it[AUTOPILOT_OUTLINE] = value }
+
+    /** See [LayoutBehaviorSettings.autopilotAnimate]. */
+    suspend fun setAutopilotAnimate(value: Boolean) =
+        editPrefs { it[AUTOPILOT_ANIMATE] = value }
 
     suspend fun setAutopilotVisualScale(value: Float) =
         editPrefs { it[AUTOPILOT_VISUAL_SCALE] = value.coerceIn(1f, 3f) }
@@ -17460,6 +17537,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setWikiLanguage(value: String) =
         editPrefs { it[WIKI_LANGUAGE] = value.trim().lowercase() }
+    suspend fun setTelegramBotToken(value: String) =
+        editPrefs { it[TELEGRAM_BOT_TOKEN] = value.trim() }
+
 
     suspend fun setWikiLinksMarkdown(value: Boolean) =
         editPrefs { it[WIKI_LINKS_MARKDOWN] = value }

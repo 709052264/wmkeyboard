@@ -82,6 +82,22 @@ enum class ForeignSource {
      * keys, so its symbols and AltGr pages come across too.
      */
     MULTILING,
+
+    /**
+     * An Unexpected Keyboard layout, the XML that CleverKeys reads and shares
+     * too. Read by [UnexpectedLayouts]. Its keys' corner swipes come across as
+     * this keyboard's flick arms.
+     */
+    UNEXPECTED,
+
+    /** A Windows layout's MSKLC source, `.klc`. Read by [DesktopLayouts]. */
+    WINDOWS_KLC,
+
+    /** A macOS `.keylayout`, as Ukelele writes it. Read by [DesktopLayouts]. */
+    MAC_KEYLAYOUT,
+
+    /** A Linux XKB `symbols` file, one layout per variant. Read by [DesktopLayouts]. */
+    XKB_SYMBOLS,
 }
 
 /** A foreign layout after conversion, with everything that was lost on the way. */
@@ -1078,6 +1094,16 @@ internal class Report(
     var shiftedPagesUnmerged: Int = 0,
     /** The file's own extra pages (AltGr, 123, Edit) became pages of the layout. */
     var pagesKept: Boolean = false,
+    /** A desktop layout's AltGr characters went on press and hold. */
+    var altGrOnHold: Boolean = false,
+    /** Desktop dead keys whose accented letters went on press and hold. */
+    var deadKeysSpread: Int = 0,
+    /** Characters from desktop keys with no letters, put on the full stop's hold. */
+    var symbolsOnPeriod: Int = 0,
+    /** XKB keysym names this build cannot put a character to. */
+    val unknownSymbols: MutableList<String> = mutableListOf(),
+    /** Other XKB files a variant builds on, which one file cannot bring along. */
+    val missingIncludes: MutableList<String> = mutableListOf(),
 ) {
     fun notes(scaled: Boolean): List<LayoutMessage> = buildList {
         if (droppedLabels.isNotEmpty()) {
@@ -1171,6 +1197,43 @@ internal class Report(
             )
         }
         if (pagesKept) add(LayoutMessage(stringRes = R.string.core_lang_foreign_pages_kept))
+        if (missingIncludes.isNotEmpty()) {
+            add(
+                LayoutMessage(
+                    pluralsRes = R.plurals.core_lang_foreign_desktop_includes_missing,
+                    quantity = missingIncludes.size,
+                    args = listOf(missingIncludes.size, missingIncludes.distinct().joinToString(", ")),
+                ),
+            )
+        }
+        if (unknownSymbols.isNotEmpty()) {
+            add(
+                LayoutMessage(
+                    pluralsRes = R.plurals.core_lang_foreign_desktop_unknown_symbols,
+                    quantity = unknownSymbols.size,
+                    args = listOf(unknownSymbols.size, unknownSymbols.distinct().joinToString(", ")),
+                ),
+            )
+        }
+        if (altGrOnHold) add(LayoutMessage(stringRes = R.string.core_lang_foreign_desktop_altgr_on_hold))
+        if (deadKeysSpread > 0) {
+            add(
+                LayoutMessage(
+                    pluralsRes = R.plurals.core_lang_foreign_desktop_dead_keys,
+                    quantity = deadKeysSpread,
+                    args = listOf(deadKeysSpread),
+                ),
+            )
+        }
+        if (symbolsOnPeriod > 0) {
+            add(
+                LayoutMessage(
+                    pluralsRes = R.plurals.core_lang_foreign_desktop_symbols_on_period,
+                    quantity = symbolsOnPeriod,
+                    args = listOf(symbolsOnPeriod),
+                ),
+            )
+        }
         if (numberRowDropped) {
             add(LayoutMessage(stringRes = R.string.core_lang_foreign_number_row_dropped))
         }

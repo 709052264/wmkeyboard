@@ -397,6 +397,7 @@ internal fun WritingCanvas(
     // Palm rejection: after stylus ink, finger touches are ignored briefly
     // so a knuckle or palm resting on the screen never draws.
     var lastStylusTime by remember { mutableLongStateOf(0L) }
+    val dissolve = rememberInkDissolve(hw)
 
     Box(
         modifier = Modifier
@@ -455,6 +456,7 @@ internal fun WritingCanvas(
                 join = StrokeJoin.Round,
             )
             val inkColor = if (hw.recognizing) kb.accent.copy(alpha = 0.45f) else kb.accent
+            drawDissolvingInk(dissolve, kb.accent.copy(alpha = 0.45f), strokeStyle)
             for (stroke in hw.strokes) {
                 drawPath(pathOf(stroke.points), color = inkColor, style = strokeStyle)
             }
