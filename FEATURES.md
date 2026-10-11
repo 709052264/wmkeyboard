@@ -944,10 +944,13 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Kana-variant key — 小゛゜ cycles the last kana through dakuten/handakuten/small forms (か to が, は to ば to ぱ, つ to っ to づ)
     - Always usable as a bare kana keyboard — With no pack downloaded the reading still commits as hiragana, katakana or half-width katakana
     - Tap resolved by index, not text — ja_kana lists 行 under い, いき, ゆき and こう, so matching by string would eat a mora the user never chose
-  - Simplified to Traditional with regional wording `RARE` — Character map plus Taiwan phrase table and TW/HK character preferences
+  - Simplified to Traditional with regional wording `RARE` — OpenCC's s2t / s2twp / s2hk chains over bundled, pinned OpenCC 1.4.2 tables (#609)
+    - Word decides the character — 50k-entry phrase table: 頭髮 / 發展, 皇后 / 後來, 乾淨 / 幹部; a character in no phrase takes its most common form
+    - OpenCC matching — Longest-phrase segmentation, then short-circuit table groups per segment, so stitched candidates convert too
     - Applied inside each composer — Converting a finished candidate list would break prefix-commit's string matching
-    - Three regions — Standard, Taiwan (出租車 to 計程車), Hong Kong (character preferences only)
+    - Three regions — Standard, Taiwan (出租車 to 計程車, plus 為/裡), Hong Kong (character preferences only)
     - Order is load-bearing — Regional tables are keyed to Traditional text, so the character pass must run first
+    - Loaded on first use — The megabyte phrase table is parsed only once the toggle is on
   - Learning from candidate picks `uncommon` — Per-reading history reorders candidates; namespaced by reading space, not by language
     - Five reading spaces — pinyin, pinyin_t9, zhuyin, jyutping, ja_kana each keep their own history; Cangjie and Stroke deliberately do not learn
     - Separate from the Latin user lexicon — That store drops one-character keys, is keyed by surface word, and feeds the gesture decoder where Hanzi is pollution

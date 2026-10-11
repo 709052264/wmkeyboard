@@ -2544,8 +2544,6 @@
     <string name="languages_cjk_region_info">علاقائی الفاظ۔ تائیوان اور ہانگ کانگ اکثر ایک ہی چیز کے لیے مختلف الفاظ استعمال کرتے ہیں، نہ صرف مختلف حروف۔</string>
     <string name="languages_cjk_region_taiwan_title">تائیوان (臺灣)</string>
     <string name="languages_cjk_region_title">علاقائی الفاظ</string>
-    <string name="languages_cjk_traditional_info">کی بورڈ ہر امیدوار کو دکھانے سے پہلے آسان (简体) سے روایتی (繁體) میں تبدیل کرتا ہے۔ تبدیلی ایک وقت میں ایک حرف پڑھتی ہے۔ کچھ آسان حروف کی ایک سے زیادہ روایتی شکلیں ہوتی ہیں، اور کی بورڈ ہمیشہ زیادہ عام شکل لکھتا ہے۔ 发 بن جاتا ہے 發، جو 發展 میں درست ہے لیکن 頭髮 میں غلط ہے۔ ان الفاظ کو ہاتھ سے درست کریں۔</string>
-    <string name="languages_cjk_traditional_subtitle">کی بورڈ امیدواروں کو روایتی (繁體) میں تبدیل کرتا ہے۔ یہ ایک وقت میں ایک حرف کو تبدیل کرتا ہے، لہذا سیاق و سباق پر منحصر کچھ شکلیں غلط ہو سکتی ہیں (发 → 發 / 髮)۔</string>
     <string name="languages_cjk_traditional_title">روایتی حروف</string>
     <string name="languages_clusters_title">کلسٹرز</string>
     <string name="languages_conjunct_backspace_info">بیک اسپیس عام طور پر ایک وقت میں ایک کوڈ پوائنٹ کو حذف کرتا ہے۔ یہ کبھی کبھی اسکرین پر آدھے بنے ہوئے کلسٹرز چھوڑ دیتا ہے۔ اس سیٹنگ کے آن ہونے پر، ایک بار دبانے سے %1$s ٹائپ کرتے وقت پورا کلسٹر حذف ہو جاتا ہے۔ دوسری زبانیں اپنی سیٹنگ برقرار رکھتی ہیں۔</string>

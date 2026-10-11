@@ -2544,8 +2544,6 @@
     <string name="languages_cjk_region_info">Taiwan a Hongkong často používajú pre tú istú vec iné slová, nielen iné znaky.</string>
     <string name="languages_cjk_region_taiwan_title">Taiwan (臺灣)</string>
     <string name="languages_cjk_region_title">Regionálne znenie</string>
-    <string name="languages_cjk_traditional_info">Klávesnica konvertuje každý kandidát zo zjednodušenej (简体) na tradičnú (繁體) čínštinu predtým, než ho zobrazí. Konverzia prebieha po jednom znaku. Niektoré zjednodušené znaky majú viac ako jednu tradičnú formu a klávesnica vždy píše tú bežnejšiu. 发 sa zmení na 發, čo je správne v 發展, ale nesprávne v 頭髮. Tieto slová opravte ručne.</string>
-    <string name="languages_cjk_traditional_subtitle">Klávesnica prevádza kandidátov na tradičné znaky (繁體). Prevádza vždy jeden znak, takže niektoré tvary závislé od kontextu môžu byť nesprávne (发 → 發 / 髮).</string>
     <string name="languages_cjk_traditional_title">Tradičné znaky</string>
     <string name="languages_clusters_title">Zhluky</string>
     <string name="languages_conjunct_backspace_info">Backspace zvyčajne vymaže jeden znak naraz. To niekedy zanecháva na obrazovke neúplné zhluky. S týmto zapnutým nastavením jedno stlačenie vymaže celý zhluk počas písania %1$s. Ostatné jazyky si zachovávajú vlastné nastavenie.</string>

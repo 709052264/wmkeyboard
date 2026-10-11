@@ -2539,8 +2539,6 @@
     <string name="languages_cjk_region_info">Tajvan és Hongkong gyakran különböző szavakat használ ugyanarra a dologra, nemcsak a karakterek térnek el.</string>
     <string name="languages_cjk_region_taiwan_title">Tajvan (臺灣)</string>
     <string name="languages_cjk_region_title">Regionális megfogalmazás</string>
-    <string name="languages_cjk_traditional_info">A billentyűzet minden jelöltet egyszerűsített (简体) formáról hagyományosra (繁體) konvertál, mielőtt megjelenítené. Az átalakítás karakterenként történik. Néhány egyszerűsített karakternek több hagyományos formája is van, és a billentyűzet mindig a gyakoribbat írja. A 发 karakterből 發 lesz, ami helyes a 發展 szóban, de helytelen a 頭髮 szóban. Javítsa ezeket a szavakat kézzel.</string>
-    <string name="languages_cjk_traditional_subtitle">A billentyűzet a jelölteket hagyományosra (繁體) konvertálja. Egyszerre egy karaktert konvertál, így néhány, a környezettől függő forma helytelen lehet (发 → 發 / 髮).</string>
     <string name="languages_cjk_traditional_title">Hagyományos karakterek</string>
     <string name="languages_clusters_title">Fürtök</string>
     <string name="languages_conjunct_backspace_info">A Backspace általában egyszerre egy kódpontot töröl. Ez néha félig formált klasztereket hagy a képernyőn. Ha ez a beállítás be van kapcsolva, egyetlen megnyomás az egész klasztert törli, miközben %1$s nyelven gépel. Más nyelvek megtartják a saját beállításukat.</string>

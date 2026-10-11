@@ -2542,8 +2542,6 @@
     <string name="languages_cjk_region_info">Tchaj-wan a Hongkong často používají pro stejnou věc různá slova, nejen různé znaky.</string>
     <string name="languages_cjk_region_taiwan_title">Tchaj-wan (臺灣)</string>
     <string name="languages_cjk_region_title">Regionální formulace</string>
-    <string name="languages_cjk_traditional_info">Klávesnice převede každý kandidát ze zjednodušené čínštiny (简体) na tradiční (繁體) předtím, než jej zobrazí. Převod probíhá po jednotlivých znacích. Některé zjednodušené znaky mají více než jednu tradiční formu a klávesnice vždy vypíše tu běžnější. 发 se změní na 發, což je správně ve slově 發展, ale špatně ve slově 頭髮. Tato slova opravte ručně.</string>
-    <string name="languages_cjk_traditional_subtitle">Klávesnice převádí kandidáty na tradiční čínštinu (繁體). Převádí vždy jeden znak, takže některé tvary závislé na kontextu mohou být nesprávné (发 → 發 / 髮).</string>
     <string name="languages_cjk_traditional_title">Tradiční znaky</string>
     <string name="languages_clusters_title">Shluky</string>
     <string name="languages_conjunct_backspace_info">Backspace obvykle maže jeden znak po druhém. To někdy na obrazovce zanechává neúplné shluky znaků. S tímto zapnutým nastavením jedno stisknutí smaže celý shluk, zatímco píšete %1$s. Ostatní jazyky si zachovávají vlastní nastavení.</string>

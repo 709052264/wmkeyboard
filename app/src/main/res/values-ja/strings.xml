@@ -2540,8 +2540,6 @@
     <string name="languages_cjk_region_info">地域別の表現。台湾や香港では、文字だけでなく、同じ意味でも異なる単語が使われることがよくあります。</string>
     <string name="languages_cjk_region_taiwan_title">台湾 (Taiwan)</string>
     <string name="languages_cjk_region_title">地域別の言い回し</string>
-    <string name="languages_cjk_traditional_info">キーボードは、候補を表示する前に各候補を簡体字から繁体字に変換します。変換は1文字ずつ行われます。一部の簡体字には複数の繁体字形式があり、キーボードは常に一般的な形式を使用します。「发」は「發」になりますが、これは「發展」では正しいものの「頭髮」では誤りです。これらの単語は手動で修正してください。</string>
-    <string name="languages_cjk_traditional_subtitle">キーボードは候補を繁体字（繁體）に変換します。一度に1文字ずつ変換するため、文脈に依存する一部の形式は正しく変換されない場合があります（发 → 發 / 髮）。</string>
     <string name="languages_cjk_traditional_title">繁体字</string>
     <string name="languages_clusters_title">クラスター</string>
     <string name="languages_conjunct_backspace_info">バックスペースは通常、一度に1つのコードポイントを削除します。これにより、画面上に不完全な文字クラスターが残ることがあります。この設定をオンにすると、%1$s の入力中に1回押すだけでクラスター全体が削除されます。他の言語は独自の設定を保持します。</string>

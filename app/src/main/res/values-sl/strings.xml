@@ -2550,8 +2550,6 @@
     <string name="languages_cjk_region_info">Tajvan in Hongkong pogosto uporabljata različne besede za isto stvar, ne le različne znake.</string>
     <string name="languages_cjk_region_taiwan_title">Tajvan (臺灣)</string>
     <string name="languages_cjk_region_title">Regionalno besedišče</string>
-    <string name="languages_cjk_traditional_info">Tipkovnica pretvori vsak kandidat iz poenostavljene (简体) v tradicionalno (繁體) kitajščino, preden ga prikaže. Pretvorba poteka znak po znak. Nekaj poenostavljenih znakov ima več kot eno tradicionalno obliko, tipkovnica pa vedno zapiše pogostejšo. 发 postane 發, kar je pravilno v 發展, vendar napačno v 頭髮. Te besede popravite ročno.</string>
-    <string name="languages_cjk_traditional_subtitle">Tipkovnica pretvori kandidate v tradicionalno pisavo (繁體). Pretvori en znak naenkrat, zato so nekatere oblike, ki so odvisne od konteksta, napačne (发 → 發 / 髮).</string>
     <string name="languages_cjk_traditional_title">Tradicionalni znaki</string>
     <string name="languages_clusters_title">Gruče</string>
     <string name="languages_conjunct_backspace_info">Vračalka običajno izbriše eno kodno točko naenkrat. To včasih na zaslonu pusti nepopolne sklope. Če je ta nastavitev vklopljena, en pritisk izbriše celoten sklop, medtem ko tipkate %1$s. Drugi jeziki ohranijo svojo nastavitev.</string>

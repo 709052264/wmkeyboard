@@ -2539,8 +2539,6 @@
     <string name="languages_cjk_region_info">Cách dùng từ theo vùng. Đài Loan và Hồng Kông thường sử dụng các từ khác nhau cho cùng một sự vật, không chỉ là các ký tự khác nhau.</string>
     <string name="languages_cjk_region_taiwan_title">Đài Loan (臺灣)</string>
     <string name="languages_cjk_region_title">Cách diễn đạt theo vùng</string>
-    <string name="languages_cjk_traditional_info">Bàn phím chuyển đổi từng ứng viên từ Giản thể (简体) sang Phồn thể (繁體) trước khi hiển thị. Quá trình chuyển đổi đọc từng ký tự một. Một số ký tự Giản thể có nhiều hơn một dạng Phồn thể, và bàn phím luôn viết dạng phổ biến hơn. 发 trở thành 發, điều này đúng trong 發展 nhưng sai trong 頭髮. Hãy sửa các từ đó theo cách thủ công.</string>
-    <string name="languages_cjk_traditional_subtitle">Bàn phím chuyển đổi các ứng viên sang Chữ Hán phồn thể (繁體). Nó chuyển đổi từng ký tự một, vì vậy một số dạng phụ thuộc vào ngữ cảnh có thể bị sai (发 → 發 / 髮).</string>
     <string name="languages_cjk_traditional_title">Chữ Hán phồn thể</string>
     <string name="languages_clusters_title">Cụm</string>
     <string name="languages_conjunct_backspace_info">Phím xóa lùi thường xóa từng điểm mã một. Điều này đôi khi để lại các cụm ký tự chưa hoàn chỉnh trên màn hình. Khi bật cài đặt này, một lần nhấn sẽ xóa toàn bộ cụm ký tự trong khi bạn nhập %1$s. Các ngôn ngữ khác vẫn giữ cài đặt riêng của chúng.</string>

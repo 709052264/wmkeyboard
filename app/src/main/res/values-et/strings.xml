@@ -2548,8 +2548,6 @@
     <string name="languages_cjk_region_info">Taiwan ja Hongkong kasutavad sageli sama asja jaoks erinevaid sõnu, mitte ainult erinevaid märke.</string>
     <string name="languages_cjk_region_taiwan_title">Taiwan (臺灣)</string>
     <string name="languages_cjk_region_title">Piirkondlik sõnastus</string>
-    <string name="languages_cjk_traditional_info">Klaviatuur teisendab iga kandidaadi lihtsustatud hiina keelest (简体) traditsioonilisse (繁體) enne selle kuvamist. Teisendamine loeb ühte märki korraga. Mõnel lihtsustatud märgil on rohkem kui üks traditsiooniline vorm ja klaviatuur kirjutab alati levinuma. 发 muutub 發-ks, mis on õige sõnas 發展, kuid vale sõnas 頭髮. Parandage need sõnad käsitsi.</string>
-    <string name="languages_cjk_traditional_subtitle">Klaviatuur teisendab kandidaadid traditsioonilisteks (繁體). See teisendab ühe märgi korraga, seega on mõned kontekstist sõltuvad vormid valed (发 → 發 / 髮).</string>
     <string name="languages_cjk_traditional_title">Traditsioonilised märgid</string>
     <string name="languages_clusters_title">Klastrid</string>
     <string name="languages_conjunct_backspace_info">Backspace kustutab tavaliselt ühe koodipunkti korraga. See jätab mõnikord ekraanile poolikud klastrid. Kui see säte on sisse lülitatud, kustutab üks vajutus kogu klastri, kui sisestate %1$s. Teised keeled säilitavad oma sätte.</string>

@@ -2538,8 +2538,6 @@
     <string name="languages_cjk_region_info">Terminologia regionale. Taiwan e Hong Kong usano spesso parole diverse per la stessa cosa, non solo caratteri diversi.</string>
     <string name="languages_cjk_region_taiwan_title">Taiwan (臺灣)</string>
     <string name="languages_cjk_region_title">Terminologia regionale</string>
-    <string name="languages_cjk_traditional_info">La tastiera converte ogni candidato da Semplificato (简体) a Tradizionale (繁體) prima di mostrarlo. La conversione legge un carattere alla volta. Alcuni caratteri semplificati hanno più di una forma tradizionale e la tastiera scrive sempre quella più comune. 发 diventa 發, che è corretto in 發展 ma errato in 頭髮. Correggi queste parole a mano.</string>
-    <string name="languages_cjk_traditional_subtitle">La tastiera converte i candidati in Tradizionale (繁體). Converte un carattere alla volta, quindi alcune forme che dipendono dal contesto sono errate (发 → 發 / 髮).</string>
     <string name="languages_cjk_traditional_title">Caratteri tradizionali</string>
     <string name="languages_clusters_title">Cluster</string>
     <string name="languages_conjunct_backspace_info">Il tasto backspace solitamente elimina un punto di codice alla volta. Questo a volte lascia cluster formati a metà sullo schermo. Con questa impostazione attiva, una pressione elimina l\'intero cluster mentre digiti %1$s. Altre lingue mantengono la propria impostazione.</string>

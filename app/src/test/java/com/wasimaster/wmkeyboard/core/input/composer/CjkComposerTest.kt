@@ -40,7 +40,7 @@ class CjkComposerTest {
         CjkConfig.doublePinyin = DoublePinyinScheme.OFF
         CjkConfig.traditionalOutput = false
         CjkConfig.looseKanaMarks = false
-        HanVariant.s2t = emptyMap()
+        HanVariant.s2t = HanPhraseTable.EMPTY
     }
 
     @Test
@@ -878,7 +878,7 @@ class CjkComposerTest {
     // one, so the conversion is exercised without a Hanzi table.
 
     private fun loadS2t() {
-        HanVariant.s2t = HanVariant.parse(sequenceOf("S\tT", "X\tY"))
+        HanVariant.s2t = HanPhraseTable.parse(sequenceOf("S\tT", "X\tY"))
     }
 
     @Test
@@ -887,7 +887,7 @@ class CjkComposerTest {
         // Loaded but toggled off.
         assertEquals("S", HanVariant.toTraditional("S"))
         // Toggled on but no map.
-        HanVariant.s2t = emptyMap()
+        HanVariant.s2t = HanPhraseTable.EMPTY
         CjkConfig.traditionalOutput = true
         assertEquals("S", HanVariant.toTraditional("S"))
         // Both: converts, and leaves unmapped characters alone.
@@ -898,11 +898,18 @@ class CjkComposerTest {
     }
 
     @Test
-    fun `traditional parse skips identity and multi-character rows`() {
-        val map = HanVariant.parse(
-            sequenceOf("S\tT", "A\tA", "AB\tCD", "# comment", "bad-line"),
+    fun `traditional parse keeps phrases, identity rows and the first value`() {
+        val table = HanPhraseTable.parse(
+            sequenceOf("S\tT", "A\tA", "AB\tCD", "Q\tR P", "# comment", "bad-line"),
         )
-        assertEquals(mapOf('S' to 'T'), map)
+        assertEquals("T", table["S"])
+        // Identity rows are phrase rules (皇后 → 皇后), not noise.
+        assertEquals("A", table["A"])
+        assertEquals("CD", table["AB"])
+        // OpenCC lists alternatives after the first; the first is the conversion.
+        assertEquals("R", table["Q"])
+        assertEquals(null, table["bad-line"])
+        assertEquals(4, table.size)
     }
 
     @Test

@@ -591,6 +591,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.KhiproComposer
 import com.wasimaster.wmkeyboard.core.input.composer.CjkConfig
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictionaries
+import com.wasimaster.wmkeyboard.core.input.composer.HanPhraseTable
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.input.composer.Kana
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictStore
@@ -3979,6 +3980,7 @@ open class WMKeyboardService : InputMethodService() {
                 CjkConfig.customDoublePinyin = settings.cjk.pinyinDoublePinyinCustom
                 CjkConfig.doublePinyin = settings.cjk.pinyinDoublePinyin
                 CjkConfig.traditionalOutput = settings.cjk.traditionalOutput
+                if (settings.cjk.traditionalOutput) loadHanVariantTables()
                 CjkConfig.lazyJyutping = settings.cjk.jyutpingLazy
                 CjkConfig.looseKanaMarks = settings.cjk.kanaLooseMarks
                 HanVariant.region = settings.cjk.hanRegion
@@ -15127,6 +15129,40 @@ open class WMKeyboardService : InputMethodService() {
         return true
     }
 
+    /** Set once the Traditional conversion tables have been asked for; they never change after. */
+    @Volatile
+    private var hanVariantTablesRequested = false
+
+    /**
+     * Loads the bundled OpenCC tables behind Traditional output (#609), the first
+     * time the toggle is seen on. The phrase table is a megabyte of text that
+     * nobody writing Simplified needs, so it is not parsed at startup; until it
+     * lands, [HanVariant] is the identity and candidates stay Simplified for a
+     * moment rather than come out half converted. Each table is independently
+     * optional — a missing one just leaves its layer inert — and each assignment
+     * invalidates the candidate caches.
+     */
+    private fun loadHanVariantTables() {
+        if (hanVariantTablesRequested) return
+        hanVariantTablesRequested = true
+        serviceScope.launch(Dispatchers.Default) {
+            fun table(name: String): HanPhraseTable = runCatching {
+                assets.open("dictionaries/$name").bufferedReader().useLines(HanPhraseTable::parse)
+            }.getOrDefault(HanPhraseTable.EMPTY)
+            // Regional tables first: the standard pair is what switches conversion
+            // on, and the region must already be there when it does.
+            HanVariant.twPhrases = table("tw_phrases.txt")
+            HanVariant.twVariantsPhrases = table("tw_variants_phrases.txt")
+            HanVariant.twVariants = table("tw_variants.txt")
+            HanVariant.hkVariantsPhrases = table("hk_variants_phrases.txt")
+            HanVariant.hkVariants = table("hk_variants.txt")
+            // Phrases before characters, so there is no window where 頭发 is
+            // converted letter by letter.
+            HanVariant.s2tPhrases = table("s2t_phrases.txt")
+            HanVariant.s2t = table("s2t.txt")
+        }
+    }
+
     /** Pack-state token the conversion tables were last loaded from; see [CjkDictStore.stateToken]. */
     @Volatile
     private var loadedCjkPackToken = Int.MIN_VALUE
@@ -15180,32 +15216,6 @@ open class WMKeyboardService : InputMethodService() {
             // T9's digit-code index and Zhuyin's bopomofo table are both derived
             // from that inventory rather than loaded — the 9-key pad, the 注音 pad
             // and the full keyboard share one syllable set and one conversion pack.
-            // Simplified→Traditional map for the output toggle; optional, and the
-            // conversion is the identity until it loads.
-            runCatching {
-                assets.open("dictionaries/s2t.txt").bufferedReader().useLines {
-                    HanVariant.s2t = HanVariant.parse(it)
-                }
-            }
-            // Regional vocabulary on top of it: Taipei writes 計程車 where the
-            // mainland writes 出租車, and no character map can reach that. All
-            // three are small enough to bundle, and each is independently
-            // optional — a missing one just leaves that layer inert.
-            runCatching {
-                assets.open("dictionaries/tw_phrases.txt").bufferedReader().useLines {
-                    HanVariant.twPhrases = HanVariant.parsePhrases(it)
-                }
-            }
-            runCatching {
-                assets.open("dictionaries/tw_variants.txt").bufferedReader().useLines {
-                    HanVariant.twVariants = HanVariant.parse(it)
-                }
-            }
-            runCatching {
-                assets.open("dictionaries/hk_variants.txt").bufferedReader().useLines {
-                    HanVariant.hkVariants = HanVariant.parse(it)
-                }
-            }
             // Cantonese has its own inventory: the readings share no syllable set
             // with Mandarin, so it cannot be derived like the two above. Optional —
             // absent, Jyutping segments nothing and commits the raw roman letters.

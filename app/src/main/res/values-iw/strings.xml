@@ -2545,8 +2545,6 @@
     <string name="languages_cjk_region_info">טאיוואן והונג קונג משתמשות לעיתים קרובות במילים שונות לאותו דבר, ולא רק בתווים שונים.</string>
     <string name="languages_cjk_region_taiwan_title">טאיוואן (臺灣)</string>
     <string name="languages_cjk_region_title">ניסוח אזורי</string>
-    <string name="languages_cjk_traditional_info">המקלדת ממירה כל מועמד מסינית מפושטת (简体) למסורתית (繁體) לפני הצגתו. ההמרה מתבצעת תו תו. למספר תווים מפושטים יש יותר מצורה מסורתית אחת, והמקלדת תמיד כותבת את הנפוצה שבהן. 发 הופך ל-發, שזה נכון ב-發展 אך שגוי ב-頭髮. תקן מילים אלו ידנית.</string>
-    <string name="languages_cjk_traditional_subtitle">המקלדת ממירה מועמדים לסינית מסורתית (繁體). היא ממירה תו אחד בכל פעם, לכן צורות מסוימות התלויות בהקשר עלולות להיות שגויות (发 → 發 / 髮).</string>
     <string name="languages_cjk_traditional_title">תווים מסורתיים</string>
     <string name="languages_clusters_title">אשכולות</string>
     <string name="languages_conjunct_backspace_info">מקש ה-Backspace מוחק בדרך כלל נקודת קוד אחת בכל פעם. זה משאיר לעיתים צברים חלקיים על המסך. כאשר הגדרה זו מופעלת, לחיצה אחת מוחקת את כל הצבר בזמן ההקלדה ב-%1$s. שפות אחרות שומרות על ההגדרה שלהן.</string>

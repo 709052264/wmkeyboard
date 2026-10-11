@@ -2547,8 +2547,6 @@
     <string name="languages_cjk_region_info">صياغة إقليمية. غالباً ما تستخدم تايوان وهونغ كونغ كلمات مختلفة لنفس الشيء، وليس فقط أحرفاً مختلفة.</string>
     <string name="languages_cjk_region_taiwan_title">تايوان (臺灣)</string>
     <string name="languages_cjk_region_title">الصياغة الإقليمية</string>
-    <string name="languages_cjk_traditional_info">تقوم لوحة المفاتيح بتحويل كل مرشح من الصينية المبسطة (简体) إلى التقليدية (繁體) قبل عرضه. يتم التحويل حرفًا بحرف. بعض الأحرف المبسطة لها أكثر من شكل تقليدي، وتكتب لوحة المفاتيح دائمًا الشكل الأكثر شيوعًا. تتحول 发 إلى 發، وهو صحيح في 發展 ولكنه خاطئ في 頭髮. قم بتصحيح هذه الكلمات يدويًا.</string>
-    <string name="languages_cjk_traditional_subtitle">تقوم لوحة المفاتيح بتحويل المرشحات إلى التقليدية (繁體). وهي تحول حرفاً واحداً في كل مرة، لذا فإن بعض النماذج التي تعتمد على السياق تكون خاطئة (发 → 發 / 髮).</string>
     <string name="languages_cjk_traditional_title">الحروف التقليدية</string>
     <string name="languages_clusters_title">المجموعات</string>
     <string name="languages_conjunct_backspace_info">عادةً ما يحذف مفتاح المسافة الخلفية نقطة رمز واحدة في كل مرة. يؤدي هذا أحياناً إلى ترك مجموعات غير مكتملة على الشاشة. مع تفعيل هذا الإعداد، تؤدي ضغطة واحدة إلى حذف المجموعة بأكملها أثناء الكتابة بـ %1$s. اللغات الأخرى تحتفظ بإعداداتها الخاصة.</string>
