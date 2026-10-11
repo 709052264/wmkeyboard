@@ -1231,7 +1231,10 @@ private fun ClipBody(item: ClipItem, maxLines: Int) {
     }
 }
 
-/** The pin and delete circles, in that order. */
+/**
+ * The pin and delete circles, in that order, with the edited mark between them
+ * on a clip that was edited (#576), to the right of the pin.
+ */
 @Composable
 private fun ClipActions(item: ClipItem, callbacks: ClipboardFieldCallbacks) {
     ClipActionCircle(
@@ -1240,11 +1243,30 @@ private fun ClipActions(item: ClipItem, callbacks: ClipboardFieldCallbacks) {
         tint = if (item.pinned) MaterialTheme.colorScheme.primary
         else MaterialTheme.colorScheme.onSurfaceVariant,
     ) { callbacks.onPin(item) }
+    if (item.editedAt != null) ClipEditedMark()
     ClipActionCircle(
         icon = Icons.Outlined.Delete,
         description = stringResource(CommonR.string.common_delete),
         tint = MaterialTheme.colorScheme.onSurfaceVariant,
     ) { callbacks.onDelete(item) }
+}
+
+/**
+ * The mark on a clip whose text was edited (#576): the edit glyph alone, with
+ * no circle under it, so it does not read as one more button. Nothing happens
+ * on a press; when the edit was is in the clip's details.
+ */
+@Composable
+private fun ClipEditedMark() {
+    val description = stringResource(R.string.ime_clip_info_edited)
+    Icon(
+        Icons.Outlined.Edit,
+        contentDescription = null,
+        modifier = Modifier
+            .size(15.dp)
+            .clearAndSetSemantics { contentDescription = description },
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 /**
@@ -1275,8 +1297,8 @@ private fun ClipNumberBadge(number: Int, modifier: Modifier = Modifier) {
 }
 
 /**
- * One history card: body by kind, then the number, the pin and the delete
- * circle along the bottom. The number rides the row the circles already
+ * One history card: body by kind, then the number, the pin, the edited mark
+ * (#576) and the delete circle along the bottom. The number rides the row the circles already
  * take, so turning numbering on never makes a card taller. With [buttons] off
  * (#414) the row goes too, on any card it would have left empty.
  */
@@ -1309,7 +1331,8 @@ private fun ClipCard(
         val tag = item.kind == ClipKind.HTML && hold.typeTag
         // Per card: one clip may still have a number or a time to show while
         // the next, pinned and unnumbered, has nothing left for the row.
-        val footer = buttons || number != null || time != null || tag || icons
+        val edited = item.editedAt != null
+        val footer = buttons || number != null || time != null || tag || icons || edited
         if (footer) Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1331,7 +1354,8 @@ private fun ClipCard(
             if (time != null) ClipTimeText(time, Modifier.weight(1f, fill = false))
             Spacer(Modifier.weight(1f))
             if (icons) ClipEntityIcons(hold.entities, callbacks)
-            if (buttons) ClipActions(item, callbacks)
+            // Without the buttons there is no pin to sit beside; the mark stays.
+            if (buttons) ClipActions(item, callbacks) else if (edited) ClipEditedMark()
         }
     }
 }
@@ -1531,10 +1555,14 @@ private fun ClipRow(
             }
         }
         val icons = hold.icons && hold.entities.isNotEmpty()
-        if (buttons || icons) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        val edited = item.editedAt != null
+        if (buttons || icons || edited) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 if (icons) ClipEntityIcons(hold.entities, callbacks)
-                if (buttons) ClipActions(item, callbacks)
+                if (buttons) ClipActions(item, callbacks) else if (edited) ClipEditedMark()
             }
         }
     }

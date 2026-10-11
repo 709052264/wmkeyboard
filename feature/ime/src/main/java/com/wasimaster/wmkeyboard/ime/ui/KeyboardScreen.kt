@@ -25598,8 +25598,8 @@ internal fun ClipActionCircle(
 
 /**
  * Press-and-hold details for a clip: when it was copied (relative + exact),
- * which app it came from (when source tracking is on), its type, and a size or
- * length. Anchored above the card; dismissed by tapping elsewhere.
+ * when it was last edited if it was (#576), which app it came from (when
+ * source tracking is on), its type, and a size or length. Anchored above the card; dismissed by tapping elsewhere.
  */
 @Composable
 internal fun ClipInfoPopup(
@@ -25628,9 +25628,12 @@ internal fun ClipInfoPopup(
     val relative = android.text.format.DateUtils.getRelativeTimeSpanString(
         item.timestamp, now, android.text.format.DateUtils.MINUTE_IN_MILLIS,
     ).toString()
-    val exact = remember(item.timestamp) {
-        java.text.SimpleDateFormat("MMM d, yyyy · h:mm a", java.util.Locale.getDefault())
-            .format(java.util.Date(item.timestamp))
+    val exact = remember(item.timestamp) { clipExactTime(item.timestamp) }
+    val edited = item.editedAt?.let { at ->
+        val relativeEdit = android.text.format.DateUtils.getRelativeTimeSpanString(
+            at, now, android.text.format.DateUtils.MINUTE_IN_MILLIS,
+        ).toString()
+        "$relativeEdit\n${clipExactTime(at)}"
     }
     val typeLabel = stringResource(
         when (item.kind) {
@@ -25677,6 +25680,9 @@ internal fun ClipInfoPopup(
                     "$relative\n$exact",
                     kb.popupText,
                 )
+                edited?.let {
+                    ClipInfoRow(stringResource(R.string.ime_clip_info_edited), it, kb.popupText)
+                }
                 item.sourceApp?.let {
                     ClipInfoRow(stringResource(R.string.ime_clip_info_from), it, kb.popupText)
                 }
@@ -25791,6 +25797,11 @@ internal fun ClipInfoPopup(
         }
     }
 }
+
+/** [millis] as the clip details show a date: "Oct 11, 2026 · 4:05 PM". */
+private fun clipExactTime(millis: Long): String =
+    java.text.SimpleDateFormat("MMM d, yyyy · h:mm a", java.util.Locale.getDefault())
+        .format(java.util.Date(millis))
 
 /** One "Label: value" line in the clipboard info popup. */
 @Composable

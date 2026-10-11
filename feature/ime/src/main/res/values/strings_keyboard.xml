@@ -734,6 +734,7 @@
     </plurals>
     <!-- Labels in the press-and-hold details popup for one clip. -->
     <string name="ime_clip_info_copied">Copied</string>
+    <string name="ime_clip_info_edited">Edited</string>
     <string name="ime_clip_info_from">From</string>
     <string name="ime_clip_info_type">Type</string>
     <string name="ime_clip_info_size">Size</string>
