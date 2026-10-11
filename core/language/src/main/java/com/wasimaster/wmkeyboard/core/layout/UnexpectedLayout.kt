@@ -113,7 +113,6 @@ object UnexpectedLayouts {
         val attrs: Map<String, String>,
         val rows: List<RawRow>,
         val shiftMap: List<Pair<String, String>>,
-        val otherMaps: List<String>,
     )
 
     private class RawRow(val attrs: Map<String, String>, val keys: List<Map<String, String>>)
@@ -122,7 +121,6 @@ object UnexpectedLayouts {
         var keyboard: Map<String, String>? = null
         val rows = mutableListOf<RawRow>()
         val shiftMap = mutableListOf<Pair<String, String>>()
-        val otherMaps = mutableListOf<String>()
         var row: Pair<Map<String, String>, MutableList<Map<String, String>>>? = null
         var inModmap = false
         for (tag in scanTags(text)) {
@@ -146,17 +144,18 @@ object UnexpectedLayouts {
                 }
                 name == "key" && !tag.closing -> row?.second?.add(tag.attrs)
                 name == "modmap" -> inModmap = !tag.closing && !tag.selfClosing
-                inModmap && !tag.closing -> {
+                // Only Shift has a place here. The Fn and Ctrl mappings change
+                // what a key does under modifiers this keyboard applies its own
+                // way, and are left out without a note: they are not keys.
+                inModmap && name == "shift" && !tag.closing -> {
                     val a = tag.attrs["a"]
                     val b = tag.attrs["b"]
-                    if (a != null && b != null) {
-                        if (name == "shift") shiftMap += a to b else otherMaps += "<$name a=\"$a\" b=\"$b\">"
-                    }
+                    if (a != null && b != null) shiftMap += a to b
                 }
             }
         }
         val attrs = keyboard ?: return null
-        return Document(attrs, rows, shiftMap, otherMaps)
+        return Document(attrs, rows, shiftMap)
     }
 
     // ---- building the grid ----
@@ -167,10 +166,9 @@ object UnexpectedLayouts {
         val report = Report()
         val shifted = doc.shiftMap.mapNotNull { (a, b) ->
             val from = (parseValue(a, Report()) as? Value.Text)?.output ?: return@mapNotNull null
-            val to = (parseValue(b, Report()) as? Value.Text)?.output ?: return@mapNotNull null
-            from to to
+            val target = (parseValue(b, Report()) as? Value.Text)?.output ?: return@mapNotNull null
+            from to target
         }.toMap()
-        report.droppedLabels += doc.otherMaps
 
         val built = doc.rows.map { buildRow(it, shifted, report) }.filter { it.keys.isNotEmpty() }
         if (built.isEmpty() || built.all { row -> row.keys.all { it.action == KeyAction.None } }) return null
@@ -179,8 +177,10 @@ object UnexpectedLayouts {
         var rows = built.map { row -> alignedLeft(row, widest) }
         var heights = built.map { it.height }
 
-        val numberRow = if (doc.attrs.bool("embedded_number_row") == true) {
-            rows.firstOrNull()?.takeIf { it.isDigitRow() }
+        // The attribute says the layout has a number row, not which row it is:
+        // the first, when it is digits and there is a grid left under it.
+        val numberRow = if (doc.attrs.bool("embedded_number_row") == true && rows.size > 1) {
+            rows.first().takeIf { it.isDigitRow() }
         } else {
             null
         }
@@ -248,8 +248,9 @@ object UnexpectedLayouts {
     private fun List<Key>.totalWidth(): Float = sumOf { it.width.toDouble() }.toFloat()
 
     private fun List<Key>.isDigitRow(): Boolean {
-        val typed = filter { it.action == KeyAction.Text }
-        return typed.isNotEmpty() && typed.all { key -> (key.output ?: key.label).all { it.isDigit() } }
+        val keys = filter { it.action != KeyAction.None }
+        return keys.isNotEmpty() &&
+            keys.all { key -> key.action == KeyAction.Text && (key.output ?: key.label).all { it.isDigit() } }
     }
 
     /**

@@ -266,7 +266,7 @@ Unexpected Keyboard has no layout editor of its own: a custom layout is a block 
 - **The bottom row** is this app's, as [above](#it-adds-the-shift-key-and-the-bottom-row), unless the file says `bottom_row="false"` and has its own space bar and delete key. Such a grid is kept as laid out, the way a Keys Cafe layout is.
 - **The number row** is this app's, unless the file says `embedded_number_row="true"`. Then its row of digits becomes this layout's own number row.
 - **Gaps and widths follow the file.** A key's `shift` becomes a gap to its left, and a row that starts with one stays aligned to the left, as it was. Row heights come across too.
-- **`<shift a="i" b="İ"/>`** in the `modmap` becomes that key's shifted form. The Fn and Ctrl mappings have no place here and are named.
+- **`<shift a="i" b="İ"/>`** in the `modmap` becomes that key's shifted form. The Fn and Ctrl mappings have no place here and are left out.
 - **The language** is the one a CleverKeys layout names in its `language` attribute, or in a backup the one you set for it there. Otherwise the picker starts from the letters on the keys.
 
 ### Letters are rewritten to one spelling
