@@ -578,6 +578,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -1115,7 +1116,7 @@ fun KeyboardScreen(
     onGesturePreview: (List<GesturePoint>, List<KeyCenter>, Float, GlideCase) -> Unit = { _, _, _, _ -> },
     onGestureWords: (List<List<GesturePoint>>, List<KeyCenter>, Float, GlideVerdict) -> Unit =
         { _, _, _, _ -> },
-    onKeyTouch: (Float, Float) -> Unit = { _, _ -> },
+    onKeyTouch: (Float, Float, Long) -> Unit = { _, _, _ -> },
     onTouchKeys: (List<KeyCenter>) -> Unit = {},
     onCursorMove: (Int) -> Unit = {},
     onCursorMoveVertical: (Int) -> Unit = {},
@@ -10483,7 +10484,7 @@ private fun KeyboardBody(
     onGesture: (List<GesturePoint>, List<KeyCenter>, Float, GlideVerdict) -> Unit,
     onGesturePreview: (List<GesturePoint>, List<KeyCenter>, Float, GlideCase) -> Unit,
     onGestureWords: (List<List<GesturePoint>>, List<KeyCenter>, Float, GlideVerdict) -> Unit,
-    onKeyTouch: (Float, Float) -> Unit = { _, _ -> },
+    onKeyTouch: (Float, Float, Long) -> Unit = { _, _, _ -> },
     onTouchKeys: (List<KeyCenter>) -> Unit = {},
     onCursorMove: (Int) -> Unit,
     onLayoutSelect: (String) -> Unit,
@@ -14485,7 +14486,7 @@ private fun KeyRows(
     onHandwritingDownload: () -> Unit = {},
     /** Down position of the tap that committed a letter, in key-width units
      * (keyboard space). Fired just before the matching onKey. */
-    onKeyTouch: (Float, Float) -> Unit = { _, _ -> },
+    onKeyTouch: (Float, Float, Long) -> Unit = { _, _, _ -> },
     /** Letter-key centres of the live layout in key-width units, for the
      * engine's touch-likelihood model. */
     onTouchKeys: (List<KeyCenter>) -> Unit = {},
@@ -14665,6 +14666,9 @@ private fun KeyRows(
     // key's Main-pass handler reads after the observer has seen the up) —
     // the map is pruned wholesale instead, and ids never repeat within it.
     val downPositions = remember { HashMap<PointerId, Offset>() }
+    // ...and when it went down, which places a tap among the other thumb's
+    // gestures in a two-thumb word (#638). Kept and pruned with the positions.
+    val downTimes = remember { HashMap<PointerId, Long>() }
     val onKeyTouchNow = rememberUpdatedState(onKeyTouch)
     // Current-layer letter keys by lowercase char, so a remap resolves to the
     // correctly-cased Key to commit. Keyed on layout: rebuilt when it changes.
@@ -14688,7 +14692,7 @@ private fun KeyRows(
         { key: Key, id: PointerId ->
             downPositions[id]?.let { down ->
                 val kw = keyWidth.value
-                if (kw > 0f) onKeyTouchNow.value(down.x / kw, down.y / kw)
+                if (kw > 0f) onKeyTouchNow.value(down.x / kw, down.y / kw, downTimes[id] ?: 0L)
             }
             val target = hitRemap[id]
             val own = key.label.singleOrNull()
@@ -14725,6 +14729,10 @@ private fun KeyRows(
     // gone once smartHit is false).
     LaunchedEffect(smartHit, layout) { hitRemap.clear() }
     val trail = remember { GlideTrail() }
+    // The other thumb's, under two-thumb typing (#638): two strokes can be
+    // drawn at once. Idle, and never visible, otherwise.
+    val trail2 = remember { GlideTrail() }
+    val duetScope = rememberCoroutineScope()
     // The quad the trail is filled through, rewound per segment and kept across
     // frames: the draw below builds one per sample, and a 120 Hz stroke would
     // otherwise allocate a Path per sample per frame for the whole gesture.
@@ -14848,6 +14856,9 @@ private fun KeyRows(
     // stands the multi-word split down for as long as that choice holds.
     val spaceGlide = gesture.spaceGlideMultiWord &&
         gesture.apostropheKey != GlideApostropheKey.SPACE
+    // Two-thumb typing (#638) runs its own pointer loop. Only on the app's
+    // field: a test run and the keyboard's own boxes keep the one-finger glide.
+    val twoThumbOn = gesture.twoThumbGlide && state.panel == PanelMode.NONE && !state.typingTestActive
     // Drawing through the shift key capitalizes the word the stroke is writing
     // (#115). Read live for the same reason the apostrophe key is: the stroke's
     // loop outlives this composition.
@@ -14917,6 +14928,11 @@ private fun KeyRows(
             withFrameMillis { now -> trail.tick(now, trailMs) }
         }
     }
+    LaunchedEffect(trail2.visible) {
+        while (trail2.visible) {
+            withFrameMillis { now -> trail2.tick(now, trailMs) }
+        }
+    }
     // A trail outlives the thing that drew it otherwise: switching the feature
     // off or changing the layout leaves the last stroke painted over the new
     // grid, because the pointer loop that would have released it is gone.
@@ -14928,7 +14944,10 @@ private fun KeyRows(
     // peek's own gesture releases the trail, so nothing is left behind.
     DisposableEffect(gestureEnabled, layout) {
         val drawnForPeek = peeked != null
-        onDispose { if (!drawnForPeek && layerPeek.mode == null) trail.clear() }
+        onDispose {
+            if (!drawnForPeek && layerPeek.mode == null) trail.clear()
+            trail2.clear()
+        }
     }
 
     Box(
@@ -15261,9 +15280,45 @@ private fun KeyRows(
             }
             .pointerInput(
                 gestureEnabled, spaceGlide, startSlop, cooldownMs, trailMs,
-                possessiveChar,
+                possessiveChar, twoThumbOn,
             ) {
                 if (!gestureEnabled) return@pointerInput
+                // Two-thumb typing (#638): every finger is followed on its own,
+                // so a second one can swipe while the first is still down.
+                if (twoThumbOn) {
+                    twoThumbGlide(
+                        trails = arrayOf(trail, trail2),
+                        keyWidth = keyWidth,
+                        slopPx = viewConfiguration.touchSlop * startSlop,
+                        trailMs = trailMs,
+                        scope = duetScope,
+                        ownsStroke = { at ->
+                            val key = liveRects.value.keyAt(at + boxOrigin)
+                            key.ownsDrag() || key.startsPossessiveSwipe(possessiveChar) ||
+                                key.startsGlobeDrag(globeDragLive.value) ||
+                                key.ownsDeleteStroke() || key.ownsSpaceStroke()
+                        },
+                        nearLetter = { at -> nearLetterKey(at, liveCenters.value, keyWidth.value) },
+                        grid = {
+                            liveLayouts.value.glideKeys(
+                                apostropheCenter = apostropheCenter(
+                                    apostropheKey.value,
+                                    liveCenters.value,
+                                    liveSpace.value.value,
+                                    boxOrigin,
+                                ),
+                                extraCenters = liveGlideKeys.value.mapNotNull { codePoint ->
+                                    liveCenters.value[codePoint]?.let { codePoint to (it.x to it.y) }
+                                },
+                            ) { codePoint ->
+                                liveCenters.value[codePoint]?.let { it.x to it.y }
+                            }
+                        },
+                        onGesture = onGesture,
+                        onGesturePreview = onGesturePreview,
+                    )
+                    return@pointerInput
+                }
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
                     // A drag off a modifier key is a chord (issue #67) and one
@@ -16008,8 +16063,12 @@ private fun KeyRows(
                                 // Ids increase monotonically, so entries are
                                 // never overwritten — prune wholesale instead
                                 // of on lift (see downPositions above).
-                                if (downPositions.size > 32) downPositions.clear()
+                                if (downPositions.size > 32) {
+                                    downPositions.clear()
+                                    downTimes.clear()
+                                }
                                 downPositions[change.id] = change.position
+                                downTimes[change.id] = change.uptimeMillis
                             }
                         }
                     }
@@ -16297,7 +16356,7 @@ private fun KeyRows(
             hitStrength = hitStrength.value,
             keyWidth = keyWidth.value,
             boxSize = boxSize,
-            glideActive = trail.visible,
+            glideActive = trail.visible || trail2.visible,
             lastKeyPressTime = lastKeyPressTime,
             letterKeys = letterKeys,
             palette = palette,
@@ -16323,13 +16382,15 @@ private fun KeyRows(
         // `visible` flips twice a stroke, so this composes and decomposes once
         // per glide. Everything that changes per sample is read inside the draw
         // lambda below, where it invalidates the draw alone.
-        if (trail.visible) {
+        // Two of them under two-thumb typing (#638), one per thumb.
+        for (stroke in arrayOf(trail, trail2)) {
+            if (!stroke.visible) continue
             Canvas(modifier = Modifier.matchParentSize()) {
                 // Comet-style trail: each segment fades and thins with age,
                 // so the tail dissolves behind the finger instead of leaving
                 // the whole path on screen. Head width, life span and peak
                 // opacity all come from the gesture settings.
-                val count = trail.sampleCount(trail.revision)
+                val count = stroke.sampleCount(stroke.revision)
                 val headWidth = trailHeadWidth.dp.toPx()
                 val tailWidth = headWidth * 0.3f
                 // A modifier chord drag is a rubber band, not a comet: one
@@ -16343,8 +16404,8 @@ private fun KeyRows(
                 // finger actually is, because the gesture is judged inside a
                 // cone and a line that leaned with the finger would promise a
                 // precision the test never asks for (discussion #102).
-                if (trail.straight || trail.flick) {
-                    drawTrailBand(trail, trailColor, trailOpacity, headWidth, trailMs)
+                if (stroke.straight || stroke.flick) {
+                    drawTrailBand(stroke, trailColor, trailOpacity, headWidth, trailMs)
                     return@Canvas
                 }
                 // The comet is *filled* as a ribbon rather than stroked as a
@@ -16371,21 +16432,21 @@ private fun KeyRows(
                 // the age fade is per sample, and one path can carry only one
                 // opacity. The cost is a drawPath per sample where the old one
                 // cost a drawLine.
-                fun edgeAt(i: Int): Offset = trail.sampleEdge(
+                fun edgeAt(i: Int): Offset = stroke.sampleEdge(
                     i,
                     count,
-                    trail.sampleHalfWidth(i, trailMs, headWidth, tailWidth),
+                    stroke.sampleHalfWidth(i, trailMs, headWidth, tailWidth),
                 )
                 var prevEdge = edgeAt(0)
                 var edge = prevEdge
                 for (i in 0 until count) {
                     val nextEdge = if (i + 1 < count) edgeAt(i + 1) else edge
-                    val life = trail.sampleLife(i, trailMs)
+                    val life = stroke.sampleLife(i, trailMs)
                     if (life > 0f) {
-                        val here = Offset(trail.x(i), trail.y(i))
-                        val back = if (i > 0) Offset(trail.x(i - 1), trail.y(i - 1)) else here
+                        val here = Offset(stroke.x(i), stroke.y(i))
+                        val back = if (i > 0) Offset(stroke.x(i - 1), stroke.y(i - 1)) else here
                         val ahead =
-                            if (i + 1 < count) Offset(trail.x(i + 1), trail.y(i + 1)) else here
+                            if (i + 1 < count) Offset(stroke.x(i + 1), stroke.y(i + 1)) else here
                         // The tail end and the head end have no neighbour to
                         // meet halfway, so they take the sample itself and the
                         // ribbon simply stops there.
@@ -17560,6 +17621,114 @@ private fun nearLetterKey(
 ): Boolean = centers.any { (codePoint, center) ->
     codePoint !in GlidePunctuationCodePoints &&
         (center - position).getDistance() < keyWidth
+}
+
+/** One finger under two-thumb typing: a tap until it travels, then a swipe. */
+private class ThumbStroke(val down: Offset, val owned: Boolean) {
+    var swiping = false
+    var slot = -1
+    var keys: List<KeyCenter>? = null
+    var lastPreviewMs = 0L
+    var previewed = false
+    val points = ArrayList<GesturePoint>()
+}
+
+/**
+ * The glide loop for two-thumb typing (issue #638).
+ *
+ * The ordinary loop follows the first finger down and nothing else, and it
+ * cannot start again until every finger is up, so a second thumb could only
+ * ever tap. This one follows every finger on its own. A finger that travels
+ * past the slop near a letter becomes a swipe: its moves are consumed (so the
+ * key under it drops its press, the way it does for any glide), it draws in one
+ * of [trails], previews, and reaches the service through [onGesture] when it
+ * lifts. A finger that never travels is left alone and types its key, so taps
+ * from the other thumb land exactly as they always do. The service puts the
+ * gestures together into one word.
+ *
+ * When the last finger lifts, an empty preview is the signal: the word end
+ * that waits for all thumbs up (`TwoThumbWordEnd.ALL_UP`) listens for it, and
+ * it is posted on [scope] so it arrives after the key's own lift has typed.
+ *
+ * Left out, against the one-finger loop: the ambiguity picker, spacebar word
+ * chains, shift-crossing capitals and the flicks off a key. Each of them reads
+ * one stroke as the whole of a word, which a two-thumb stroke never is.
+ */
+@Suppress("LongParameterList", "CyclomaticComplexMethod", "NestedBlockDepth", "LongMethod")
+private suspend fun PointerInputScope.twoThumbGlide(
+    trails: Array<GlideTrail>,
+    keyWidth: State<Float>,
+    slopPx: Float,
+    trailMs: Long,
+    scope: CoroutineScope,
+    ownsStroke: (Offset) -> Boolean,
+    nearLetter: (Offset) -> Boolean,
+    grid: () -> List<KeyCenter>,
+    onGesture: (List<GesturePoint>, List<KeyCenter>, Float, GlideVerdict) -> Unit,
+    onGesturePreview: (List<GesturePoint>, List<KeyCenter>, Float, GlideCase) -> Unit,
+) {
+    val strokes = HashMap<PointerId, ThumbStroke>()
+    awaitPointerEventScope {
+        while (true) {
+            val event = awaitPointerEvent(PointerEventPass.Initial)
+            var lifted = false
+            for (change in event.changes) {
+                if (change.changedToDownIgnoreConsumed()) {
+                    strokes[change.id] = ThumbStroke(change.position, ownsStroke(change.position))
+                    continue
+                }
+                val stroke = strokes[change.id] ?: continue
+                if (!change.pressed) {
+                    strokes.remove(change.id)
+                    lifted = true
+                    if (!stroke.swiping) continue
+                    change.consume()
+                    stroke.points.add(GesturePoint(change.position.x, change.position.y, change.uptimeMillis))
+                    if (stroke.slot >= 0) trails[stroke.slot].release()
+                    val keys = stroke.keys ?: continue
+                    when {
+                        stroke.points.size >= COMMIT_MIN_POINTS ->
+                            onGesture(stroke.points, keys, keyWidth.value, GlideVerdict.Leader())
+                        // Too short to read, but it showed a preview: retire it.
+                        stroke.previewed ->
+                            onGesture(stroke.points, keys, keyWidth.value, GlideVerdict.Cancel)
+                    }
+                    continue
+                }
+                if (stroke.owned) continue
+                if (!stroke.swiping) {
+                    val kw = keyWidth.value
+                    if (kw <= 0f || (change.position - stroke.down).getDistance() <= slopPx) continue
+                    if (!nearLetter(stroke.down)) continue
+                    stroke.swiping = true
+                    stroke.keys = grid()
+                    stroke.points.add(GesturePoint(stroke.down.x, stroke.down.y, change.previousUptimeMillis))
+                    // A trail per thumb; a third finger swipes undrawn.
+                    val busy = strokes.values.mapTo(HashSet()) { it.slot }
+                    stroke.slot = trails.indices.firstOrNull { it !in busy } ?: -1
+                    if (stroke.slot >= 0) trails[stroke.slot].begin()
+                }
+                change.consume()
+                val point = GesturePoint(change.position.x, change.position.y, change.uptimeMillis)
+                stroke.points.add(point)
+                if (stroke.slot >= 0) {
+                    trails[stroke.slot].add(change.position.x, change.position.y, change.uptimeMillis, trailMs)
+                }
+                val keys = stroke.keys
+                if (keys != null && change.uptimeMillis - stroke.lastPreviewMs >= PREVIEW_INTERVAL_MS &&
+                    stroke.points.size >= PREVIEW_MIN_POINTS
+                ) {
+                    stroke.lastPreviewMs = change.uptimeMillis
+                    stroke.previewed = true
+                    onGesturePreview(ArrayList(stroke.points), keys, keyWidth.value, GlideCase.None)
+                }
+            }
+            if (lifted && strokes.isEmpty()) {
+                // After this event's dispatch, so a tap's own lift has typed first.
+                scope.launch { onGesturePreview(emptyList(), emptyList(), 0f, GlideCase.None) }
+            }
+        }
+    }
 }
 
 /**

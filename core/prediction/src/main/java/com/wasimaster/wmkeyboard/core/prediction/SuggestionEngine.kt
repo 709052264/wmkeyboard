@@ -1,9 +1,12 @@
 package com.wasimaster.wmkeyboard.core.prediction
 
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCapitals
+import com.wasimaster.wmkeyboard.core.gesture.DuetBeam
+import com.wasimaster.wmkeyboard.core.gesture.DuetWorkspace
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.GlideBeam
 import com.wasimaster.wmkeyboard.core.gesture.GlideShapeSource
+import com.wasimaster.wmkeyboard.core.gesture.GlideToken
 import com.wasimaster.wmkeyboard.core.gesture.GlideCoverage
 import com.wasimaster.wmkeyboard.core.gesture.GlideKeyMap
 import com.wasimaster.wmkeyboard.core.gesture.GlideWorkspace
@@ -976,6 +979,14 @@ class SuggestionEngine(
     private var deepGlideBeam = GlideBeam(glideTuning.copy(vocabularyRank = 0))
 
     /**
+     * The two-thumb decoder (issue #638), on the same stroke weights as
+     * [glideBeam] so a setting that moves a radius moves both.
+     */
+    @Volatile
+    private var duetBeam = DuetBeam(glideTuning)
+    private val duetWorkspace = ThreadLocal.withInitial { DuetWorkspace() }
+
+    /**
      * Point both decoders at [next], rebuilding them only when something
      * actually moved.
      *
@@ -990,6 +1001,7 @@ class SuggestionEngine(
         glideTuning = next
         glideBeam = GlideBeam(next)
         deepGlideBeam = GlideBeam(next.copy(vocabularyRank = 0))
+        duetBeam = DuetBeam(next)
     }
 
     /**
@@ -1167,6 +1179,63 @@ class SuggestionEngine(
             // that pipeline needs its own design, not this one bolted on.
             lookAhead = if (romanization.isEmpty) lookAhead else 0,
         )
+        return finishGlide(
+            decoded, romanization, limit, previousWord, previousWord2, previousWord3, recentWords,
+        )
+    }
+
+    /**
+     * Decodes a word built from several gestures — taps and swipes from both
+     * thumbs, overlapping in time (issue #638), or typed letters a swipe
+     * finished (#595) — against the same sources and through the same
+     * blacklist, rank shifts, context rerank and casing as [glide].
+     *
+     * The caller routes: a lone swipe belongs to [glide], which reads its
+     * pauses and loops too, and taps alone are typing. See
+     * [DuetBeam.needsDuet].
+     */
+    @Suppress("LongParameterList")
+    fun glideTokens(
+        tokens: List<GlideToken>,
+        keys: GlideKeyMap,
+        keyWidth: Float,
+        limit: Int = 4,
+        previousWord: String? = null,
+        previousWord2: String? = null,
+        previousWord3: String? = null,
+        recentWords: List<String> = emptyList(),
+    ): List<GlideBeam.Candidate> {
+        val romanization = glideRomanization
+        val sources = if (romanization.isEmpty) {
+            walkSources() + glideTriggerSources() + glideContractionSources()
+        } else {
+            romanization.walkSources()
+        }
+        if (sources.isEmpty()) return emptyList()
+        val decoded = duetBeam.decode(
+            tokens = tokens,
+            keys = keys,
+            keyWidth = keyWidth,
+            sources = sources,
+            ws = duetWorkspace.get(),
+            limit = maxOf(limit, GLIDE_RERANK_POOL),
+        )
+        return finishGlide(
+            decoded, romanization, limit, previousWord, previousWord2, previousWord3, recentWords,
+        )
+    }
+
+    /** What [glide] and [glideTokens] do with a decoder's raw readings. */
+    @Suppress("LongParameterList")
+    private fun finishGlide(
+        decoded: List<GlideBeam.Candidate>,
+        romanization: RomanizedIndex,
+        limit: Int,
+        previousWord: String?,
+        previousWord2: String?,
+        previousWord3: String?,
+        recentWords: List<String>,
+    ): List<GlideBeam.Candidate> {
         // On a phonetic layout the stroke spelled a romanization; the words it
         // stands for are what the rest of this — the blacklist, the reranker,
         // the caller — should ever see.

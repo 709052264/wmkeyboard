@@ -148,6 +148,7 @@ import com.wasimaster.wmkeyboard.core.feedback.KeySoundPlayer
 import com.wasimaster.wmkeyboard.core.feedback.KeySoundTarget
 import com.wasimaster.wmkeyboard.core.feedback.SoundPackStore
 import com.wasimaster.wmkeyboard.core.feedback.SoundStore
+import com.wasimaster.wmkeyboard.core.gesture.DuetBeam
 import com.wasimaster.wmkeyboard.core.gesture.GlideBeam
 import com.wasimaster.wmkeyboard.core.gesture.GlideCoverage
 import com.wasimaster.wmkeyboard.core.gesture.RomanizedIndex
@@ -160,6 +161,7 @@ import com.wasimaster.wmkeyboard.core.gesture.KhiproGlideSpellings
 import com.wasimaster.wmkeyboard.core.gesture.KeyOffsets
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.GlideCase
+import com.wasimaster.wmkeyboard.core.gesture.GlideToken
 import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModelSizes
@@ -333,6 +335,7 @@ import com.wasimaster.wmkeyboard.core.settings.GLIDE_OUTCOMES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SHAPES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SANDBOX_FILE
 import com.wasimaster.wmkeyboard.core.settings.GestureSettings
+import com.wasimaster.wmkeyboard.core.settings.TwoThumbWordEnd
 import com.wasimaster.wmkeyboard.core.settings.glideTuning
 import com.wasimaster.wmkeyboard.core.settings.GlideCommitColor
 import com.wasimaster.wmkeyboard.core.settings.GlideCommitColorScope
@@ -1211,6 +1214,22 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * The gestures behind the composing word while a swipe is part of it:
+     * two-thumb typing (issue #638), or typed letters a swipe finished (#595).
+     * The buffer holds the word they were last read as.
+     */
+    private val duetWord = DuetWord()
+
+    /** Set while [composing] takes a new reading of [duetWord], so the setter keeps it. */
+    private var keepDuet = false
+
+    /** Bumped by every change to [duetWord], so a decode of an older version lands nowhere. */
+    private var duetGeneration = 0
+
+    /** How the word [duetWord] builds is cased: the shift it started under. */
+    private var duetShift = ShiftState.OFF
+
     private var composing = StringBuilder()
         set(value) {
             // A word the user came back to and edited in the buffer ends here,
@@ -1235,6 +1254,9 @@ open class WMKeyboardService : InputMethodService() {
             )
             revisionFragment = ""
             field = value
+            // A word replaced wholesale (committed, picked, re-armed) is no
+            // longer the one those gestures spelled.
+            if (!keepDuet) duetWord.clear()
             // Any wholesale replacement (commit, field change, re-arm from the
             // field) invalidates the per-character tap positions: a re-armed
             // word was never tapped in this session, so it degrades to the
@@ -1371,9 +1393,13 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
 
-    /** KeyboardScreen: the down position of the tap committing a letter. */
-    private fun onKeyTouch(x: Float, y: Float) {
-        pendingTouch = TouchPoint(x, y)
+    /**
+     * KeyboardScreen: the down position of the tap committing a letter, and
+     * when it went down (uptime ms), which places it among the other thumb's
+     * gestures in a two-thumb word (#638).
+     */
+    private fun onKeyTouch(x: Float, y: Float, downAt: Long) {
+        pendingTouch = TouchPoint(x, y, downAt)
         recordHeatTap(x, y)
     }
 
@@ -9242,7 +9268,9 @@ open class WMKeyboardService : InputMethodService() {
         val elisionBreak = composing.isNotEmpty() && text.length == 1 &&
             WordContext.isApostrophe(text[0]) &&
             Elisions.rulesFor(state.language.id)?.isPrefix(composing) == true
-        if (isWordChar && composingMode && !elisionBreak) {
+        if (isWordChar && composingMode && !elisionBreak && duetTap(text)) {
+            consumeShift()
+        } else if (isWordChar && composingMode && !elisionBreak) {
             appendComposing(text)
             updateComposingText(ic)
             refreshSuggestions()
@@ -10187,6 +10215,8 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
         }
+        // A two-thumb word takes back its latest tap or swipe (#638).
+        if (composing.isNotEmpty() && duetBackspace(ic)) return
         if (composing.isNotEmpty()) {
             // The buffer is the field's own text, so a backspace has to take the
             // same thing off it that the branch below would take off the field —
@@ -11315,6 +11345,7 @@ open class WMKeyboardService : InputMethodService() {
         // A word in progress lives in the composing buffer, not the field.
         if (composing.isNotEmpty()) {
             composing.setLength(0)
+            duetWord.clear()
             composingTouch.clear()
             composingKeys.clear()
             composingHints.clear()
@@ -13119,6 +13150,13 @@ open class WMKeyboardService : InputMethodService() {
          */
         expandPatterns: Boolean = false,
     ): Boolean {
+        // A word read off gestures is already the decoder's answer, chosen from
+        // the dictionary with every tap and swipe as evidence; correcting it
+        // again as if its letters had been typed one by one would second-guess
+        // the better reading with a worse one (#638).
+        if (autocorrect && duetWord.active) {
+            return commitComposing(ic, autocorrect = false, fixApostrophes = fixApostrophes, expandPatterns = expandPatterns)
+        }
         // Spent by whichever key ended this word; a commit that does not park
         // the caret must not leave a stale one behind for the next.
         swallowTerminatorAfterCommit = false
@@ -19978,10 +20016,19 @@ open class WMKeyboardService : InputMethodService() {
     ) {
         val state = _uiState.value
         if (!glideAllowed(state)) return
+        // The two-thumb loop's signal that the last finger lifted (#638): no
+        // stroke, so nothing to preview.
+        if (points.isEmpty()) {
+            onAllThumbsUp()
+            return
+        }
         if (keys.isEmpty()) return
         syncGlideTriggers(state)
         gesturePreviews.trySend(
-            GesturePreviewRequest(points, keys, keyWidthPx, case, gestureGeneration.get()),
+            GesturePreviewRequest(
+                points, keys, keyWidthPx, case, gestureGeneration.get(),
+                tokens = duetPreviewTokens(state, points, keys, keyWidthPx),
+            ),
         )
     }
 
@@ -19998,7 +20045,8 @@ open class WMKeyboardService : InputMethodService() {
                 val reading = withContext(Dispatchers.Default) {
                     // Same sources as the final decode, so the previewed word
                     // never differs from the one that commits on finger-up.
-                    glideDecode(request.points, request.keys, request.keyWidthPx)
+                    request.tokens?.let { duetReading(it, request.points, request.keys, request.keyWidthPx) }
+                        ?: glideDecode(request.points, request.keys, request.keyWidthPx)
                 }
                 if (reading.words.isEmpty()) continue
                 // Re-checked after the decode: the finger may have lifted and
@@ -20186,6 +20234,256 @@ open class WMKeyboardService : InputMethodService() {
         refreshSuggestions()
     }
 
+    // ---- words built from several gestures (#638 two thumbs, #595 typed + swipe) ----
+
+    /**
+     * Whether a swipe lifting now joins the word in progress rather than being
+     * a word of its own: always under two-thumb typing, and under the #595
+     * switch whenever letters are already typed. Never on a board whose buffer
+     * is not the word itself (a transliterator, a conversion IME, a keypad).
+     */
+    private fun swipeJoinsWord(state: KeyboardUiState): Boolean {
+        if (state.composer.isTransliterating || state.composer.isConversion) return false
+        if (state.layouts.ambiguousKeys) return false
+        val gesture = state.settings.gesture
+        return gesture.twoThumbGlide || (gesture.swipeContinuesTyped && composing.isNotEmpty())
+    }
+
+    /**
+     * A lifted swipe that joins the word in progress: added to its gestures and
+     * the whole word read again. False when the swipe does not join one, and
+     * the caller decodes it as a word of its own.
+     */
+    private fun duetSwipe(
+        state: KeyboardUiState,
+        points: List<GesturePoint>,
+        keys: List<KeyCenter>,
+        keyWidthPx: Float,
+        shift: ShiftState,
+    ): Boolean {
+        if (!swipeJoinsWord(state)) return false
+        if (!duetWord.active) {
+            if (composing.isNotEmpty()) {
+                if (!duetWord.seed(composing, composingTouchFrame(), keys, keyWidthPx)) return false
+                // The typed letters already carry the word's case.
+                duetShift = when {
+                    composing.length > 1 && composing.all { !it.isLetter() || it.isUpperCase() } ->
+                        ShiftState.CAPS_LOCK
+                    composing.first().isUpperCase() -> ShiftState.ON
+                    else -> ShiftState.OFF
+                }
+            } else {
+                duetWord.clear()
+                duetShift = shift
+                consumeShift()
+            }
+        }
+        duetWord.addSwipe(points, keys, keyWidthPx)
+        // Ordinary glide with #595 types the word at the lift, as any glide
+        // does; two-thumb typing keeps it open until the word end it uses.
+        redecodeDuet(commit = !state.settings.gesture.twoThumbGlide)
+        return true
+    }
+
+    /**
+     * A letter tapped while a two-thumb word is open: one more gesture in it,
+     * and the word read again. False when no such word is open, and the letter
+     * is typed the ordinary way.
+     */
+    private fun duetTap(text: String): Boolean {
+        if (!duetWord.active) return false
+        if (text.length != 1 || !text[0].isLetter() || !duetWord.addTap(text, pendingTouch)) {
+            // Something the gestures cannot hold — a digit, a mark, a letter
+            // off this grid. The word on screen goes on as typed text.
+            duetWord.clear()
+            return false
+        }
+        pendingTouch = null
+        pendingKeyLetters = null
+        pendingKeyHint = null
+        redecodeDuet(commit = false)
+        return true
+    }
+
+    /**
+     * Backspace on a two-thumb word takes back its latest tap or swipe. When
+     * no swipe is left, what remains is the letters as they were typed.
+     */
+    private fun duetBackspace(ic: InputConnection): Boolean {
+        if (!duetWord.active) return false
+        duetWord.removeLast()
+        if (duetWord.active) {
+            redecodeDuet(commit = false)
+            return true
+        }
+        duetGeneration++
+        gestureJob?.cancel()
+        composing = StringBuilder(duetWord.typedText().orEmpty())
+        updateComposingText(ic)
+        refreshSuggestions()
+        return true
+    }
+
+    /** The two-thumb loop saw the last finger lift: under [TwoThumbWordEnd.ALL_UP], the word is typed. */
+    private fun onAllThumbsUp() {
+        val gesture = _uiState.value.settings.gesture
+        if (!gesture.twoThumbGlide || gesture.twoThumbWordEnd != TwoThumbWordEnd.ALL_UP) return
+        serviceScope.launch {
+            // The lift that sent this may still be decoding, and a newer
+            // decode may have replaced it meanwhile: wait for whichever is last.
+            while (true) {
+                val job = gestureJob ?: break
+                if (!job.isActive) break
+                job.join()
+            }
+            if (!duetWord.active) return@launch
+            val ic = currentInputConnection ?: return@launch
+            commitDuet(ic)
+        }
+    }
+
+    /** Types the two-thumb word on screen and its space, the way a glided word is. */
+    private fun commitDuet(ic: InputConnection) {
+        val state = _uiState.value
+        commitComposing(ic, autocorrect = false, fixApostrophes = state.settings.autoText.apostrophe)
+        commitGestureSpace(ic, state)
+        refreshSuggestions()
+    }
+
+    /**
+     * Reads the word's gestures again, off the main thread, and puts the best
+     * reading in the composing region with the rest on the strip. [commit]
+     * then types it at once, for #595 in ordinary glide.
+     */
+    private fun redecodeDuet(commit: Boolean) {
+        val tokens = duetWord.snapshot()
+        val keys = duetWord.keys
+        val keyWidthPx = duetWord.keyWidthPx
+        val lone = duetWord.loneSwipe()
+        val generation = ++duetGeneration
+        gestureGeneration.incrementAndGet()
+        suggestionJob?.cancel()
+        gestureJob?.cancel()
+        clearGlidePreview()
+        gestureJob = serviceScope.launch {
+            val reading = withContext(Dispatchers.Default) {
+                if (lone != null) {
+                    glideDecode(lone, keys, keyWidthPx, guessAhead = false)
+                } else {
+                    duetReading(tokens, null, keys, keyWidthPx)
+                }
+            }
+            if (generation != duetGeneration) return@launch
+            val ic = currentInputConnection ?: return@launch
+            val best = reading.words.firstOrNull()
+            if (best == null) {
+                // Nothing spells it. A swipe that reads as nothing types
+                // nothing, as an ordinary glide's does; a tap still shows,
+                // after the word it was added to, so no keystroke vanishes.
+                val last = tokens.lastOrNull()
+                val tapText = duetWord.lastTapText()
+                duetWord.removeLast()
+                if (last is GlideToken.Swipe && !duetWord.active && composing.isNotEmpty()) {
+                    // Typed letters and the swipe after them spell no word
+                    // together, so they are two words after all: the letters
+                    // as typed, then the swipe read on its own, which is what
+                    // ordinary glide would have done with them.
+                    duetWord.clear()
+                    commitComposing(ic, autocorrect = false)
+                    commitGestureLeadingSpace(ic, _uiState.value)
+                    duetShift = _uiState.value.shiftState
+                    duetWord.addSwipe(last.points, keys, keyWidthPx)
+                    redecodeDuet(commit)
+                    return@launch
+                }
+                if (last is GlideToken.Tap && composing.isNotEmpty()) {
+                    duetWord.clear()
+                    val typed = composing.toString() + tapText.orEmpty()
+                    composing = StringBuilder(typed)
+                    updateComposingText(ic)
+                    refreshSuggestions()
+                }
+                return@launch
+            }
+            val word = when (duetShift) {
+                ShiftState.CAPS_LOCK -> best.uppercase()
+                ShiftState.ON -> best.replaceFirstChar { it.uppercase() }
+                ShiftState.OFF -> best
+            }
+            keepDuet = true
+            try {
+                composing = StringBuilder(word)
+            } finally {
+                keepDuet = false
+            }
+            composingCaseTrusted = duetShift == ShiftState.OFF
+            updateComposingText(ic)
+            if (commit) {
+                commitDuet(ic)
+            } else {
+                _uiState.update { it.copy(suggestions = reading.words) }
+            }
+        }
+    }
+
+    /**
+     * The word's gestures with [points] as one more swipe, for a preview of a
+     * stroke still being drawn — or null when the stroke does not join a word,
+     * and is previewed as one of its own.
+     */
+    private fun duetPreviewTokens(
+        state: KeyboardUiState,
+        points: List<GesturePoint>,
+        keys: List<KeyCenter>,
+        keyWidthPx: Float,
+    ): List<GlideToken>? {
+        if (!swipeJoinsWord(state)) return null
+        val word = when {
+            duetWord.active -> duetWord.copy()
+            composing.isNotEmpty() ->
+                DuetWord().takeIf { it.seed(composing, composingTouchFrame(), keys, keyWidthPx) } ?: return null
+            else -> return null
+        }
+        word.addSwipe(points, keys, keyWidthPx)
+        return word.snapshot()
+    }
+
+    /**
+     * A word built from several gestures, read like a stroke: the same sources,
+     * blacklist, rerank and casing. A lone swipe in [tokens] is read by the
+     * stroke decoder, which also reads its pauses and loops; [points] is that
+     * swipe where the caller has it to hand.
+     */
+    private fun duetReading(
+        tokens: List<GlideToken>,
+        points: List<GesturePoint>?,
+        keys: List<KeyCenter>,
+        keyWidthPx: Float,
+    ): GlideReading {
+        if (!DuetBeam.needsDuet(tokens)) {
+            val stroke = points ?: (tokens.singleOrNull() as? GlideToken.Swipe)?.points
+                ?: return GlideReading.NONE
+            return glideDecode(stroke, keys, keyWidthPx)
+        }
+        val engine = suggestionEngine ?: return GlideReading.NONE
+        val decoded = engine.glideTokens(
+            tokens = tokens,
+            keys = keyMapFor(keys, keyWidthPx),
+            keyWidth = keyWidthPx,
+            limit = glideCandidateLimit(),
+            previousWord = previousWord,
+            previousWord2 = previousWord2,
+            previousWord3 = previousWord3,
+            recentWords = recentWords.toList(),
+        )
+        if (decoded.isEmpty()) return GlideReading.NONE
+        return GlideReading(
+            words = decoded.map { restoreApostrophe(it.word) ?: it.word },
+            closeCall = false,
+            scores = decoded.map { it.score },
+        )
+    }
+
     /**
      * Decodes a swipe drawn over the letter keys and commits the best word.
      * Alternates go to the suggestion bar; tapping one replaces the word.
@@ -20250,6 +20548,9 @@ open class WMKeyboardService : InputMethodService() {
         // Only when the picker did not answer. A frozen stroke was the user
         // choosing, and what they chose is not a key's word.
         if (verdict is GlideVerdict.Leader && octopusFlickPick(state, points, keys, keyWidthPx)) return
+        // Two-thumb typing, or a swipe finishing typed letters: the stroke
+        // joins the word in progress instead of being one (#638, #595).
+        if (duetSwipe(state, points, keys, keyWidthPx, shiftAtGesture)) return
         gestureJob = serviceScope.launch {
             val reading = withContext(Dispatchers.Default) {
                 glideDecode(points, keys, keyWidthPx)
@@ -36902,6 +37203,11 @@ private class GesturePreviewRequest(
     /** What the shift crossings so far asked for; see [WMKeyboardService.onGesturePreview]. */
     val case: GlideCase,
     val generation: Int,
+    /**
+     * The whole word's gestures, this stroke last, when the stroke joins a
+     * word in progress (#638, #595); null for a stroke that is its own word.
+     */
+    val tokens: List<GlideToken>? = null,
 )
 
 /**

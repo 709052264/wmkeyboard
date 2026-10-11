@@ -76,6 +76,7 @@ import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import com.wasimaster.wmkeyboard.core.settings.GlideApostropheKey
 import com.wasimaster.wmkeyboard.core.settings.ShiftGlideMode
+import com.wasimaster.wmkeyboard.core.settings.TwoThumbWordEnd
 import com.wasimaster.wmkeyboard.core.settings.GlidePickerChoicesRange
 import com.wasimaster.wmkeyboard.core.settings.GlideRadiusRange
 import com.wasimaster.wmkeyboard.core.settings.LanguageEchoMsRange
@@ -1714,6 +1715,7 @@ internal fun TypingGesturesSettings(
     val glideOn = settings.watch { it.gestureTyping }
     val swipeAction = settings.watch { it.letterSwipeAction }
     val shiftCapitals = settings.watch { it.gesture.shiftGlideCapitals }
+    val twoThumb = settings.watch { it.gesture.twoThumbGlide }
     val pickerOn = settings.watch { it.gesture.ambiguityPicker }
     val pickerAsksAtEveryPause =
         settings.watch { it.gesture.pickerSensitivity == GlidePickerSensitivity.EVERY_PAUSE }
@@ -1779,6 +1781,43 @@ internal fun TypingGesturesSettings(
                         info = stringResource(R.string.typing_space_glide_multiword_info),
                         default = SettingsDefaults.gesture.spaceGlideMultiWord,
                     ) { scope.launch { repository.setGestureSpaceMultiWord(it) } }
+                }
+                // Two-thumb typing (#638), and its word-end choice only while
+                // it is on. The typed-letters switch (#595) is what two-thumb
+                // typing already does, so it shows only while that is off.
+                item {
+                    ToggleSetting(
+                        R.string.typing_two_thumb_title,
+                        stringResource(R.string.typing_two_thumb_subtitle),
+                        twoThumb,
+                        info = stringResource(R.string.typing_two_thumb_info),
+                        default = SettingsDefaults.gesture.twoThumbGlide,
+                    ) { scope.launch { repository.setGestureTwoThumb(it) } }
+                }
+                item(visible = twoThumb) {
+                    ChoiceSetting(
+                        title = R.string.typing_two_thumb_word_end_title,
+                        subtitle = stringResource(R.string.typing_two_thumb_word_end_subtitle),
+                        info = stringResource(R.string.typing_two_thumb_word_end_info),
+                        options = listOf(
+                            TwoThumbWordEnd.SPACE to
+                                stringResource(R.string.typing_two_thumb_word_end_space_label),
+                            TwoThumbWordEnd.ALL_UP to
+                                stringResource(R.string.typing_two_thumb_word_end_all_up_label),
+                        ),
+                        selected = settings.watch { it.gesture.twoThumbWordEnd },
+                        onChange = { scope.launch { repository.setGestureTwoThumbWordEnd(it) } },
+                        default = SettingsDefaults.gesture.twoThumbWordEnd,
+                    )
+                }
+                item(visible = !twoThumb) {
+                    ToggleSetting(
+                        R.string.typing_swipe_continues_typed_title,
+                        stringResource(R.string.typing_swipe_continues_typed_subtitle),
+                        settings.watch { it.gesture.swipeContinuesTyped },
+                        info = stringResource(R.string.typing_swipe_continues_typed_info),
+                        default = SettingsDefaults.gesture.swipeContinuesTyped,
+                    ) { scope.launch { repository.setGestureSwipeContinuesTyped(it) } }
                 }
                 item {
                     ToggleSetting(
