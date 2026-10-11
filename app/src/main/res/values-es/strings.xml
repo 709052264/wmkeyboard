@@ -2238,9 +2238,6 @@
     <string name="keypress_haptics_title">Respuesta háptica al pulsar teclas</string>
     <string name="keypress_hold_action_copy_label">Copiar</string>
     <string name="keypress_hold_action_cut_label">Cortar</string>
-    <string name="keypress_hold_action_first_info">La acción generalmente se encuentra al final de la ventana emergente, por lo que una pulsación larga simple te da el primer acento. Con esto activado, se mueve al frente, y una pulsación larga en una de las teclas de acceso directo ejecuta la acción de inmediato. Los acentos siguen ahí: mantén el dedo presionado y deslízate hacia el que quieras. Esto requiere Mantener para seleccionar, bajo Teclas alternativas.</string>
-    <string name="keypress_hold_action_first_subtitle">Mantener presionado ejecuta la acción en lugar de mostrar los acentos</string>
-    <string name="keypress_hold_action_first_title">Acción primero</string>
     <string name="keypress_hold_action_paste_label">Pegar</string>
     <string name="keypress_hold_action_redo_label">Rehacer</string>
     <string name="keypress_hold_action_select_all_label">Seleccionar todo</string>

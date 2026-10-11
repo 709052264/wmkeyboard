@@ -2236,9 +2236,6 @@
     <string name="keypress_haptics_title">விசை அழுத்த அதிர்வுகள்</string>
     <string name="keypress_hold_action_copy_label">நகலெடு</string>
     <string name="keypress_hold_action_cut_label">வெட்டு</string>
-    <string name="keypress_hold_action_first_info">செயல் பொதுவாக பாப்-அப்பின் முடிவில் இருக்கும், எனவே ஒரு சாதாரண அழுத்தம் மற்றும் பிடிப்பு உங்களுக்கு முதல் உச்சரிப்பைத் தரும். இது ஆன் செய்யப்பட்டால், அது முன்பக்கத்திற்கு நகரும், மேலும் குறுக்குவழி விசைகளில் ஒன்றை அழுத்திப் பிடித்தால் அந்தச் செயல் உடனடியாக இயங்கும். உச்சரிப்புகள் இன்னும் உள்ளன: உங்கள் விரலை கீழே வைத்து, உங்களுக்குத் தேவையான ஒன்றின் மீது ஸ்லைடு செய்யவும். இதற்கு மாற்று விசைகளின் கீழ் \'தேர்ந்தெடுக்கப் பிடி\' (Hold to select) தேவை.</string>
-    <string name="keypress_hold_action_first_subtitle">அழுத்திப் பிடித்தால் உச்சரிப்புகளைக் காட்டுவதற்குப் பதிலாக அந்தச் செயல் நடைபெறும்</string>
-    <string name="keypress_hold_action_first_title">செயல் முதலில்</string>
     <string name="keypress_hold_action_paste_label">ஒட்டு</string>
     <string name="keypress_hold_action_redo_label">மீண்டும் செய்</string>
     <string name="keypress_hold_action_select_all_label">அனைத்தையும் தேர்ந்தெடு</string>

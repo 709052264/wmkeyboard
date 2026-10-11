@@ -1674,6 +1674,12 @@ sealed interface AiChatAction {
      * than the whole.
      */
     data class AskAbout(val text: String, val label: String, val fromSelection: Boolean) : AiChatAction
+
+    /**
+     * The user's answer to an MCP call that asked first (#573), from the
+     * chat or from the AI panel's actions: both ride this one callback.
+     */
+    data class ToolApproval(val choice: com.wasimaster.wmkeyboard.core.tools.AiToolApproval) : AiChatAction
 }
 
 /** The KDE Connect panel's tabs, in rail order. */

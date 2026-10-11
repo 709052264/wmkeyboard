@@ -141,6 +141,7 @@ object SettingsBackup {
         "ai_deepseek_key",
         "ai_brave_key",
         "ai_compatible_key",
+        "ai_mcp_headers",
         "voice_server_key",
         "voice_server_key_by_lang",
         "hf_token",

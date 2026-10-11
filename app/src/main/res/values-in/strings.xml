@@ -2232,9 +2232,6 @@
     <string name="keypress_haptics_title">Haptik tekan tombol</string>
     <string name="keypress_hold_action_copy_label">Salin</string>
     <string name="keypress_hold_action_cut_label">Potong</string>
-    <string name="keypress_hold_action_first_info">Tindakan biasanya berada di akhir popup, jadi tekan dan tahan biasa memberikan aksen pertama. Dengan fitur ini aktif, tindakan berpindah ke depan, dan tekan serta tahan pada salah satu tombol pintas akan langsung menjalankan tindakan tersebut. Aksen tetap ada: tahan jari Anda dan geser ke aksen yang diinginkan. Ini memerlukan Tahan untuk memilih, di bawah tombol Alternatif.</string>
-    <string name="keypress_hold_action_first_subtitle">Tekan dan tahan menjalankan tindakan alih-alih menampilkan aksen</string>
-    <string name="keypress_hold_action_first_title">Tindakan pertama</string>
     <string name="keypress_hold_action_paste_label">Tempel</string>
     <string name="keypress_hold_action_redo_label">Ulangi</string>
     <string name="keypress_hold_action_select_all_label">Pilih semua</string>

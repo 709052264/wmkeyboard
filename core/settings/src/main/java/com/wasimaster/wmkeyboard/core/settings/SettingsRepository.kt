@@ -97,6 +97,10 @@ import com.wasimaster.wmkeyboard.core.theme.withEmbeddedImages
 import com.wasimaster.wmkeyboard.core.theme.withExtractedImages
 import com.wasimaster.wmkeyboard.core.aihistory.AiHistoryStore
 import com.wasimaster.wmkeyboard.core.tools.AiActionCodec
+import com.wasimaster.wmkeyboard.core.tools.McpHeader
+import com.wasimaster.wmkeyboard.core.tools.McpServerCodec
+import com.wasimaster.wmkeyboard.core.tools.McpServerSpec
+import com.wasimaster.wmkeyboard.core.tools.McpToolPolicy
 import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
 import com.wasimaster.wmkeyboard.core.tools.BuiltInAiActions
 import com.wasimaster.wmkeyboard.core.tools.BuiltInSymbolSets
@@ -1215,6 +1219,17 @@ enum class GlideApostropheKey { OFF, COMMA, PERIOD, SPACE, APOSTROPHE }
  */
 enum class ShiftGlideMode { WORD, LETTER }
 
+/**
+ * What finishes a word typed with both thumbs (issue #638), while
+ * [GestureSettings.twoThumbGlide] is on.
+ *
+ * [SPACE] is Nintype's model: every tap and swipe joins the word in progress,
+ * which is re-read after each one, until space or punctuation. [ALL_UP] keeps
+ * the feel of ordinary glide: the word is typed, with its space, the moment
+ * no finger is down any more, so the thumbs have to overlap to share a word.
+ */
+enum class TwoThumbWordEnd { SPACE, ALL_UP }
+
 /** The character each [GlideApostropheKey] borrows, or null for [GlideApostropheKey.OFF]/SPACE. */
 val GlideApostropheKey.sourceChar: Char?
     get() = when (this) {
@@ -2159,18 +2174,27 @@ data class LongPressLetterActions(
      */
     val letters: String = DEFAULT_LONG_PRESS_LETTERS,
     /**
-     * Puts the action at the *front* of that key's popup instead of the end, so
-     * a plain hold-and-release runs it and the accents move one along.
+     * Where the action goes in that key's popup: the index of its entry among
+     * the characters, so 0 is the front and 1 is after the first accent, or
+     * [ACTION_POSITION_LAST] for after all of them (issue #570).
      *
-     * The trade the note above says there is no longer any need to make, offered
-     * back to the person who does want it: someone who holds `c` to copy far
-     * more often than to type ç is, with the default order, sliding past the
-     * accents every time. Off by default, because on it changes what a hold has
-     * always committed. Only meaningful with
-     * [KeyPopupSettings.alternatesHoldToSelect] on, which is where "the first
-     * entry is what a plain hold commits" comes from.
+     * The front is the trade the note above says there is no longer any need to
+     * make, offered back to the person who does want it: someone who holds `c`
+     * to copy far more often than to type ç. A plain hold-and-release then runs
+     * the action and the accents move one along. One along is the middle way the
+     * issue asked for: the hold still types the accent the corner hint shows,
+     * and the action is a short slide away instead of past every accent.
+     *
+     * Last by default, because anything else changes what a hold has always
+     * committed or where the finger has always slid. Anything but last needs
+     * [KeyPopupSettings.alternatesHoldToSelect] on to matter much, which is
+     * where "the first entry is what a plain hold commits" comes from. A key
+     * whose layout set its own position keeps that one.
+     *
+     * Was a boolean, `actionFirst`, until positions between the two ends were
+     * asked for; a stored `true` reads as 0.
      */
-    val actionFirst: Boolean = false,
+    val actionPosition: Int = ACTION_POSITION_LAST,
     /**
      * Press 🌐 and slide onto one of the six [letters] to run its action on
      * release: onto `c` copies, onto `v` pastes, and so on. The same six
@@ -2205,6 +2229,12 @@ data class LongPressLetterActions(
 
 /** Select-all, copy, paste, cut, undo, redo, on the keys a QWERTY user expects. */
 const val DEFAULT_LONG_PRESS_LETTERS = "acvxzy"
+
+/** [LongPressLetterActions.actionPosition] for "after every character". */
+const val ACTION_POSITION_LAST = -1
+
+/** The furthest from the front [LongPressLetterActions.actionPosition] can name, counting from 0. */
+const val ACTION_POSITION_MAX = 7
 
 /**
  * Whether the keyboard replaces a word it thinks is wrong, and how sure it has
@@ -2795,6 +2825,12 @@ data class KeyboardSettings(
      * whether the window stays, not where it sits.
      */
     val persistentKeyboard: Boolean = false,
+    /**
+     * The floating keyboard button over other apps (issue #374), which
+     * brings the keyboard up with or without a text field. See
+     * [SummonButtonSettings].
+     */
+    val summonButton: SummonButtonSettings = SummonButtonSettings(),
     val keyboardWidthPercent: Int = 100,
     val keyboardAlignment: KeyboardAlignment = KeyboardAlignment.CENTER,
     /**
@@ -4233,6 +4269,17 @@ data class AiSettings(
      * a curious model can cost.
      */
     val toolMaxRounds: Int = 3,
+    /**
+     * MCP servers whose tools a model may call (#573). Each tool has its own
+     * Allow / Ask / Off policy inside its server; see `McpServerSpec`.
+     */
+    val mcpServers: List<McpServerSpec> = emptyList(),
+    /**
+     * Headers sent to each server, by server id. Kept apart from
+     * [mcpServers] because they usually carry a token: their preference is in
+     * `SettingsBackup.SECRET_KEYS`, the server list's is not.
+     */
+    val mcpHeaders: Map<String, List<McpHeader>> = emptyMap(),
 )
 
 /**
@@ -6321,6 +6368,22 @@ data class GestureSettings(
      */
     val spaceGlideMultiWord: Boolean = true,
     /**
+     * Two-thumb typing (issue #638): both thumbs may tap or swipe at once, and
+     * every gesture joins one word instead of each swipe being a word of its
+     * own. Off by default because it changes what a lift does: a swipe no
+     * longer types its word straight away (see [twoThumbWordEnd]).
+     */
+    val twoThumbGlide: Boolean = false,
+    /** What finishes a two-thumb word. See [TwoThumbWordEnd]. */
+    val twoThumbWordEnd: TwoThumbWordEnd = TwoThumbWordEnd.SPACE,
+    /**
+     * A swipe right after typed letters finishes them as one word, so "to"
+     * typed and "gether" swiped give "together" (issue #595). Two-thumb
+     * typing always does this; this switch is for ordinary glide, where the
+     * typed letters are otherwise a word of their own.
+     */
+    val swipeContinuesTyped: Boolean = false,
+    /**
      * Passing over the shift key mid-glide capitalizes the word, so a proper
      * noun can be swiped without stopping to tap shift first (#115).
      *
@@ -8258,6 +8321,9 @@ class SettingsRepository(private val context: Context) {
         private val FLOATING_X = floatPreferencesKey("floating_x")
         private val FLOATING_Y = floatPreferencesKey("floating_y")
         private val PERSISTENT_KEYBOARD = booleanPreferencesKey("persistent_keyboard")
+        private val SUMMON_BUTTON = booleanPreferencesKey("summon_button")
+        private val SUMMON_BUTTON_X = floatPreferencesKey("summon_button_x")
+        private val SUMMON_BUTTON_Y = floatPreferencesKey("summon_button_y")
         private val KEYBOARD_WIDTH_PERCENT = intPreferencesKey("keyboard_width_percent")
         private val KEYBOARD_ALIGNMENT = stringPreferencesKey("keyboard_alignment")
         private val KEY_CORNER_RADIUS = intPreferencesKey("key_corner_radius")
@@ -8505,6 +8571,9 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_SPACE_MULTI_WORD = booleanPreferencesKey("gesture_space_multi_word")
         private val GESTURE_SHIFT_CAPITALS = booleanPreferencesKey("gesture_shift_capitals")
         private val GESTURE_SHIFT_MODE = stringPreferencesKey("gesture_shift_glide_mode")
+        private val GESTURE_TWO_THUMB = booleanPreferencesKey("gesture_two_thumb")
+        private val GESTURE_TWO_THUMB_WORD_END = stringPreferencesKey("gesture_two_thumb_word_end")
+        private val GESTURE_SWIPE_CONTINUES_TYPED = booleanPreferencesKey("gesture_swipe_continues_typed")
         private val GESTURE_AMBIGUITY_PICKER = booleanPreferencesKey("gesture_ambiguity_picker")
         private val GESTURE_PICKER_DWELL_MS = intPreferencesKey("gesture_picker_dwell_ms")
         private val GESTURE_PICKER_SENSITIVITY = stringPreferencesKey("gesture_picker_sensitivity")
@@ -8916,6 +8985,8 @@ class SettingsRepository(private val context: Context) {
         private val LONG_PRESS_LETTERS = stringPreferencesKey("long_press_letters")
         private val LONG_PRESS_ACTION_FIRST =
             booleanPreferencesKey("long_press_action_first")
+        private val LONG_PRESS_ACTION_POSITION =
+            intPreferencesKey("long_press_action_position")
         private val EMOJI_TOOLBAR = booleanPreferencesKey("emoji_toolbar")
         private val COLORED_TOOL_ICONS = booleanPreferencesKey("colored_tool_icons")
         private val TOOL_COLOR_OVERRIDES = stringPreferencesKey("tool_color_overrides")
@@ -9409,6 +9480,8 @@ class SettingsRepository(private val context: Context) {
         private val AI_TOOL_WEB_SEARCH = booleanPreferencesKey("ai_tool_web_search")
         private val AI_TOOL_WEB_FETCH = booleanPreferencesKey("ai_tool_web_fetch")
         private val AI_TOOL_MAX_ROUNDS = intPreferencesKey("ai_tool_max_rounds")
+        private val AI_MCP_SERVERS = stringPreferencesKey("ai_mcp_servers")
+        private val AI_MCP_HEADERS = stringPreferencesKey("ai_mcp_headers")
         private val AI_DIFF_OPENS_FIRST = booleanPreferencesKey("ai_diff_opens_first")
         private val AI_CUSTOM_ACTIONS = stringPreferencesKey("ai_custom_actions")
         private val AI_ACTION_ORDER = stringPreferencesKey("ai_action_order")
@@ -9638,6 +9711,11 @@ class SettingsRepository(private val context: Context) {
             floatingXFraction = p[FLOATING_X] ?: defaults.floatingXFraction,
             floatingYFraction = p[FLOATING_Y] ?: defaults.floatingYFraction,
             persistentKeyboard = p[PERSISTENT_KEYBOARD] ?: defaults.persistentKeyboard,
+            summonButton = SummonButtonSettings(
+                enabled = p[SUMMON_BUTTON] ?: defaults.summonButton.enabled,
+                xFraction = p[SUMMON_BUTTON_X] ?: defaults.summonButton.xFraction,
+                yFraction = p[SUMMON_BUTTON_Y] ?: defaults.summonButton.yFraction,
+            ),
             keyboardWidthPercent = p[KEYBOARD_WIDTH_PERCENT] ?: defaults.keyboardWidthPercent,
             keyboardAlignment = p[KEYBOARD_ALIGNMENT]
                 ?.let { runCatching { KeyboardAlignment.valueOf(it) }.getOrNull() }
@@ -10083,6 +10161,11 @@ class SettingsRepository(private val context: Context) {
             shiftGlideMode = p[GESTURE_SHIFT_MODE]
                 ?.let { runCatching { ShiftGlideMode.valueOf(it) }.getOrNull() }
                 ?: defaults.gesture.shiftGlideMode,
+            twoThumbGlide = p[GESTURE_TWO_THUMB] ?: defaults.gesture.twoThumbGlide,
+            twoThumbWordEnd = p[GESTURE_TWO_THUMB_WORD_END]
+                ?.let { runCatching { TwoThumbWordEnd.valueOf(it) }.getOrNull() }
+                ?: defaults.gesture.twoThumbWordEnd,
+            swipeContinuesTyped = p[GESTURE_SWIPE_CONTINUES_TYPED] ?: defaults.gesture.swipeContinuesTyped,
             ambiguityPicker = p[GESTURE_AMBIGUITY_PICKER] ?: defaults.gesture.ambiguityPicker,
             // Coerced on the way in as well as on the way out: a value
             // restored from an edited backup must never index past the
@@ -10756,8 +10839,10 @@ class SettingsRepository(private val context: Context) {
             undo = p[LONG_PRESS_Z_UNDO] ?: defaults.longPressLetterActions.undo,
             redo = p[LONG_PRESS_Y_REDO] ?: defaults.longPressLetterActions.redo,
             letters = p[LONG_PRESS_LETTERS] ?: defaults.longPressLetterActions.letters,
-            actionFirst = p[LONG_PRESS_ACTION_FIRST]
-                ?: defaults.longPressLetterActions.actionFirst,
+            // The boolean this replaced still answers for an install that set
+            // it and has not touched the position since.
+            actionPosition = p[LONG_PRESS_ACTION_POSITION]
+                ?: if (p[LONG_PRESS_ACTION_FIRST] == true) 0 else defaults.longPressLetterActions.actionPosition,
             globeDrag = p[GLOBE_DRAG_SHORTCUTS] ?: defaults.longPressLetterActions.globeDrag,
         )
 
@@ -11340,6 +11425,8 @@ class SettingsRepository(private val context: Context) {
             toolWebSearch = p[AI_TOOL_WEB_SEARCH] ?: defaults.ai.toolWebSearch,
             toolWebFetch = p[AI_TOOL_WEB_FETCH] ?: defaults.ai.toolWebFetch,
             toolMaxRounds = p[AI_TOOL_MAX_ROUNDS] ?: defaults.ai.toolMaxRounds,
+            mcpServers = McpServerCodec.decodeServers(p[AI_MCP_SERVERS].orEmpty()),
+            mcpHeaders = McpServerCodec.decodeHeaders(p[AI_MCP_HEADERS].orEmpty()),
         )
 
     private fun readLauncher(p: Preferences, defaults: KeyboardSettings) =
@@ -13314,6 +13401,16 @@ class SettingsRepository(private val context: Context) {
     suspend fun setPersistentKeyboard(value: Boolean) =
         editPrefs { it[PERSISTENT_KEYBOARD] = value }
 
+    suspend fun setSummonButton(value: Boolean) =
+        editPrefs { it[SUMMON_BUTTON] = value }
+
+    /** Where a drag of the floating keyboard button left it; see [SummonButtonSettings]. */
+    suspend fun setSummonButtonPosition(x: Float, y: Float) =
+        editPrefs {
+            it[SUMMON_BUTTON_X] = x.coerceIn(0f, 1f)
+            it[SUMMON_BUTTON_Y] = y.coerceIn(0f, 1f)
+        }
+
     suspend fun setFloatingWidthDp(value: Int) =
         editPrefs { it[FLOATING_WIDTH] = value.coerceIn(240, 500) }
 
@@ -15240,6 +15337,52 @@ class SettingsRepository(private val context: Context) {
     suspend fun setAiToolMaxRounds(value: Int) =
         editPrefs { it[AI_TOOL_MAX_ROUNDS] = value.coerceIn(AiToolRoundsRange) }
 
+    /**
+     * Saves one MCP server (#573), replacing the one with the same id, and its
+     * headers when [headers] is given. A new server goes at the end.
+     */
+    suspend fun upsertMcpServer(server: McpServerSpec, headers: List<McpHeader>? = null) =
+        editPrefs { prefs ->
+            val current = McpServerCodec.decodeServers(prefs[AI_MCP_SERVERS].orEmpty())
+            val at = current.indexOfFirst { it.id == server.id }
+            val next = if (at < 0) current + server else current.toMutableList().also { it[at] = server }
+            prefs[AI_MCP_SERVERS] = McpServerCodec.encodeServers(next)
+            if (headers != null) writeMcpHeaders(prefs, server.id, headers)
+        }
+
+    /** Drops one MCP server and the headers that went with it. */
+    suspend fun deleteMcpServer(id: String) =
+        editPrefs { prefs ->
+            val current = McpServerCodec.decodeServers(prefs[AI_MCP_SERVERS].orEmpty())
+            prefs[AI_MCP_SERVERS] = McpServerCodec.encodeServers(current.filter { it.id != id })
+            writeMcpHeaders(prefs, id, emptyList())
+        }
+
+    suspend fun setMcpServerEnabled(id: String, enabled: Boolean) =
+        editMcpServer(id) { it.copy(enabled = enabled) }
+
+    /** Sets what a model may do with one tool of one server. */
+    suspend fun setMcpToolPolicy(id: String, tool: String, policy: McpToolPolicy) =
+        editMcpServer(id) { it.copy(toolPolicies = it.toolPolicies + (tool to policy)) }
+
+    suspend fun setMcpHeaders(id: String, headers: List<McpHeader>) =
+        editPrefs { prefs -> writeMcpHeaders(prefs, id, headers) }
+
+    private suspend fun editMcpServer(id: String, change: (McpServerSpec) -> McpServerSpec) =
+        editPrefs { prefs ->
+            val current = McpServerCodec.decodeServers(prefs[AI_MCP_SERVERS].orEmpty())
+            if (current.none { it.id == id }) return@editPrefs
+            prefs[AI_MCP_SERVERS] = McpServerCodec.encodeServers(current.map { if (it.id == id) change(it) else it })
+        }
+
+    private fun writeMcpHeaders(prefs: MutablePreferences, id: String, headers: List<McpHeader>) {
+        val kept = headers.filter { it.name.isNotBlank() }
+            .map { McpHeader(it.name.trim(), it.value.trim()) }
+        val all = McpServerCodec.decodeHeaders(prefs[AI_MCP_HEADERS].orEmpty()) - id
+        val next = if (kept.isEmpty()) all else all + (id to kept)
+        if (next.isEmpty()) prefs.remove(AI_MCP_HEADERS) else prefs[AI_MCP_HEADERS] = McpServerCodec.encodeHeaders(next)
+    }
+
     suspend fun setShiftCapsLockMs(value: Int) =
         editPrefs { it[SHIFT_CAPS_LOCK_MS] = value.coerceIn(ShiftCapsLockMsRange.first, ShiftCapsLockMsRange.last) }
 
@@ -15458,6 +15601,15 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGestureShiftGlideMode(value: ShiftGlideMode) =
         editPrefs { it[GESTURE_SHIFT_MODE] = value.name }
+
+    suspend fun setGestureTwoThumb(value: Boolean) =
+        editPrefs { it[GESTURE_TWO_THUMB] = value }
+
+    suspend fun setGestureTwoThumbWordEnd(value: TwoThumbWordEnd) =
+        editPrefs { it[GESTURE_TWO_THUMB_WORD_END] = value.name }
+
+    suspend fun setGestureSwipeContinuesTyped(value: Boolean) =
+        editPrefs { it[GESTURE_SWIPE_CONTINUES_TYPED] = value }
 
     suspend fun setGestureAmbiguityPicker(value: Boolean) =
         editPrefs { it[GESTURE_AMBIGUITY_PICKER] = value }
@@ -16787,8 +16939,12 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[LONG_PRESS_LETTERS] = value }
     }
 
-    suspend fun setLongPressActionFirst(value: Boolean) =
-        editPrefs { it[LONG_PRESS_ACTION_FIRST] = value }
+    /** Clamped onto [ACTION_POSITION_LAST] and 0..[ACTION_POSITION_MAX]. */
+    suspend fun setLongPressActionPosition(value: Int) = editPrefs {
+        it[LONG_PRESS_ACTION_POSITION] = if (value < 0) ACTION_POSITION_LAST else value.coerceAtMost(ACTION_POSITION_MAX)
+        // The old switch would answer again if this key were ever cleared.
+        it.remove(LONG_PRESS_ACTION_FIRST)
+    }
 
     suspend fun setEmojiToolbar(value: Boolean) =
         editPrefs { it[EMOJI_TOOLBAR] = value }

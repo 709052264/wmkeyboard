@@ -92,13 +92,13 @@ class CurrentLayoutTest {
     }
 
     /**
-     * `actionFirst` is the trade the other way: the action moves to entry 0, so
-     * a plain hold-and-release copies, and the accents move one along rather
-     * than being taken away.
+     * An `actionPosition` of 0 is the trade the other way: the action moves to
+     * entry 0, so a plain hold-and-release copies, and the accents move one
+     * along rather than being taken away.
      */
     @Test
-    fun `actionFirst puts the hold shortcut at entry zero`() {
-        val actions = copyOnC().copy(actionFirst = true)
+    fun `actionPosition 0 puts the hold shortcut at entry zero`() {
+        val actions = copyOnC().copy(actionPosition = 0)
         val s = state(settings = plain().copy(longPressLetterActions = actions))
         val entries = cKeyOf(s).alternateEntries()
         assertEquals(
@@ -108,6 +108,19 @@ class CurrentLayoutTest {
         // The accents are still reachable, and in their own order.
         val characters = entries.drop(1).map { (it as AlternateEntry.Character).text }
         assertEquals(cKeyOf(s).longPress, characters)
+    }
+
+    /**
+     * Issue #570's middle way: one along, a plain hold still types the accent
+     * the corner hint shows, and copy is the next entry.
+     */
+    @Test
+    fun `actionPosition 1 puts the hold shortcut after the first accent`() {
+        val s = state(settings = plain().copy(longPressLetterActions = copyOnC().copy(actionPosition = 1)))
+        val key = cKeyOf(s)
+        val entries = key.alternateEntries()
+        assertEquals(key.longPress.first(), (entries[0] as AlternateEntry.Character).text)
+        assertEquals(KeyAction.Edit(TextEditAction.COPY), (entries[1] as AlternateEntry.Action).alternate.action)
     }
 
     /** Copy on `c`, every other hold shortcut off. */

@@ -104,6 +104,14 @@
          rather than on launch. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- "Display over other apps", for one optional feature: the floating
+         keyboard button (issue #374), a small button drawn over other apps
+         while the keyboard is closed that brings it up, text field or not.
+         The button is the only window drawn with it; nothing on screen is
+         read. A special grant on a system Settings screen, asked for only
+         when the user turns the button on, after a disclosure. -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.front" android:required="false" />
     <uses-feature android:name="android.hardware.camera.flash" android:required="false" />

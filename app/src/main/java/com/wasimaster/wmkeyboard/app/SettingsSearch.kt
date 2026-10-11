@@ -462,6 +462,9 @@ private fun SearchStrings.typingGesturesRows(): List<SettingsSearchEntry> {
         row(R.string.typing_glide_swipe_style_title, R.string.typing_glide_swipe_style_subtitle),
         row(R.string.typing_glide_swipe_style_forget),
         row(R.string.typing_space_glide_multiword_title, R.string.typing_space_glide_multiword_subtitle),
+        row(R.string.typing_two_thumb_title, R.string.typing_two_thumb_subtitle),
+        row(R.string.typing_two_thumb_word_end_title, R.string.typing_two_thumb_word_end_subtitle),
+        row(R.string.typing_swipe_continues_typed_title, R.string.typing_swipe_continues_typed_subtitle),
         row(R.string.typing_shift_glide_capitals_title, R.string.typing_shift_glide_capitals_subtitle),
         row(R.string.typing_shift_glide_mode_title, R.string.typing_shift_glide_mode_subtitle),
         row(R.string.typing_space_after_glide_title, R.string.typing_space_after_glide_subtitle),
@@ -660,7 +663,7 @@ private fun SearchStrings.keypressShortcutsRows(): List<SettingsSearchEntry> {
         row(R.string.keypress_currency_keys_title),
         row(R.string.keypress_ctrl_raw_title, R.string.keypress_ctrl_raw_subtitle),
         row(R.string.keypress_hold_actions_title, R.string.keypress_hold_actions_subtitle),
-        row(R.string.keypress_hold_action_first_title, R.string.keypress_hold_action_first_subtitle),
+        row(R.string.keypress_hold_action_position_title, R.string.keypress_hold_action_position_subtitle),
         row(R.string.keypress_globe_drag_title, R.string.keypress_globe_drag_subtitle),
     )
 }
@@ -878,6 +881,7 @@ private fun SearchStrings.layoutOnehandedRows(): List<SettingsSearchEntry> {
         row(R.string.layout_floating_handle_title, R.string.layout_floating_handle_subtitle),
         row(R.string.layout_floating_width_title, R.string.layout_floating_width_subtitle),
         row(R.string.layout_persistent_title, R.string.layout_persistent_subtitle, weight = EntryWeight.PRIMARY),
+        row(R.string.layout_summon_button_title, R.string.layout_summon_button_subtitle, weight = EntryWeight.PRIMARY),
     )
 }
 
@@ -1586,7 +1590,17 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_diff_first_title, R.string.toolai_ai_diff_first_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_tool_search_title, R.string.toolai_ai_tool_search_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_tool_fetch_title, R.string.toolai_ai_tool_fetch_subtitle),
+    toolEntry(ToolbarTool.AI, R.string.toolai_ai_mcp_title, R.string.toolai_ai_mcp_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_tool_rounds_title, R.string.toolai_ai_tool_rounds_subtitle),
+    // The MCP server list's own row. Indexed on that screen: the tool page
+    // only draws the NavRow that opens it (above).
+    entry(
+        R.string.toolai_ai_mcp_import_title,
+        R.string.toolai_ai_mcp_import_subtitle,
+        R.string.toolai_ai_mcp_screen_title,
+        "ai_mcp",
+        screenParent = R.string.home_tools_title,
+    ),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_chat_nav_title, R.string.toolai_ai_chat_nav_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_chat_enter_sends_title, R.string.toolai_chat_enter_sends_subtitle),
     // The AI history screen's own heading. Indexed on that screen, not on the
@@ -1835,6 +1849,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             R.string.privacy_permissions_notifications_subtitle,
         ),
         permission(R.string.privacy_permissions_usage_title, R.string.privacy_permissions_usage_subtitle),
+        permission(R.string.privacy_permissions_overlay_title, R.string.privacy_permissions_overlay_subtitle),
         permission(
             R.string.privacy_permissions_accessibility_title,
             R.string.privacy_permissions_accessibility_subtitle,

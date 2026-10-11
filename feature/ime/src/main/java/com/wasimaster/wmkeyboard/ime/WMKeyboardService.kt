@@ -149,6 +149,7 @@ import com.wasimaster.wmkeyboard.core.feedback.KeySoundPlayer
 import com.wasimaster.wmkeyboard.core.feedback.KeySoundTarget
 import com.wasimaster.wmkeyboard.core.feedback.SoundPackStore
 import com.wasimaster.wmkeyboard.core.feedback.SoundStore
+import com.wasimaster.wmkeyboard.core.gesture.DuetBeam
 import com.wasimaster.wmkeyboard.core.gesture.GlideBeam
 import com.wasimaster.wmkeyboard.core.gesture.GlideCoverage
 import com.wasimaster.wmkeyboard.core.gesture.RomanizedIndex
@@ -161,6 +162,7 @@ import com.wasimaster.wmkeyboard.core.gesture.KhiproGlideSpellings
 import com.wasimaster.wmkeyboard.core.gesture.KeyOffsets
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.GlideCase
+import com.wasimaster.wmkeyboard.core.gesture.GlideToken
 import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModelSizes
@@ -264,6 +266,7 @@ import com.wasimaster.wmkeyboard.core.tools.PhotoBackgroundManager
 import com.wasimaster.wmkeyboard.core.settings.AutomationPermission
 import com.wasimaster.wmkeyboard.core.settings.KeyboardAlignment
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings
 import com.wasimaster.wmkeyboard.core.theme.BackgroundBitmapCache
 import com.wasimaster.wmkeyboard.core.settings.ModeField
 import com.wasimaster.wmkeyboard.core.settings.OctopusDuringGlide
@@ -334,6 +337,7 @@ import com.wasimaster.wmkeyboard.core.settings.GLIDE_OUTCOMES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SHAPES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SANDBOX_FILE
 import com.wasimaster.wmkeyboard.core.settings.GestureSettings
+import com.wasimaster.wmkeyboard.core.settings.TwoThumbWordEnd
 import com.wasimaster.wmkeyboard.core.settings.glideTuning
 import com.wasimaster.wmkeyboard.core.settings.floatingFor
 import com.wasimaster.wmkeyboard.core.settings.GlideCommitColor
@@ -451,6 +455,9 @@ import com.wasimaster.wmkeyboard.core.tools.AiPrompts
 import com.wasimaster.wmkeyboard.core.tools.AiToolActivity
 import com.wasimaster.wmkeyboard.core.tools.AiToolLoop
 import com.wasimaster.wmkeyboard.core.tools.AiToolRunner
+import com.wasimaster.wmkeyboard.core.tools.AiToolApproval
+import com.wasimaster.wmkeyboard.core.tools.AiToolApprovalGate
+import com.wasimaster.wmkeyboard.core.tools.AiToolApprover
 import com.wasimaster.wmkeyboard.core.tools.AiToolSpec
 import com.wasimaster.wmkeyboard.core.tools.AiMarkdown
 import com.wasimaster.wmkeyboard.core.tools.AiPhase
@@ -1214,6 +1221,22 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * The gestures behind the composing word while a swipe is part of it:
+     * two-thumb typing (issue #638), or typed letters a swipe finished (#595).
+     * The buffer holds the word they were last read as.
+     */
+    private val duetWord = DuetWord()
+
+    /** Set while [composing] takes a new reading of [duetWord], so the setter keeps it. */
+    private var keepDuet = false
+
+    /** Bumped by every change to [duetWord], so a decode of an older version lands nowhere. */
+    private var duetGeneration = 0
+
+    /** How the word [duetWord] builds is cased: the shift it started under. */
+    private var duetShift = ShiftState.OFF
+
     private var composing = StringBuilder()
         set(value) {
             // A word the user came back to and edited in the buffer ends here,
@@ -1238,6 +1261,9 @@ open class WMKeyboardService : InputMethodService() {
             )
             revisionFragment = ""
             field = value
+            // A word replaced wholesale (committed, picked, re-armed) is no
+            // longer the one those gestures spelled.
+            if (!keepDuet) duetWord.clear()
             // Any wholesale replacement (commit, field change, re-arm from the
             // field) invalidates the per-character tap positions: a re-armed
             // word was never tapped in this session, so it degrades to the
@@ -1374,9 +1400,13 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
 
-    /** KeyboardScreen: the down position of the tap committing a letter. */
-    private fun onKeyTouch(x: Float, y: Float) {
-        pendingTouch = TouchPoint(x, y)
+    /**
+     * KeyboardScreen: the down position of the tap committing a letter, and
+     * when it went down (uptime ms), which places it among the other thumb's
+     * gestures in a two-thumb word (#638).
+     */
+    private fun onKeyTouch(x: Float, y: Float, downAt: Long) {
+        pendingTouch = TouchPoint(x, y, downAt)
         recordHeatTap(x, y)
     }
 
@@ -3474,6 +3504,7 @@ open class WMKeyboardService : InputMethodService() {
             var userScreenshotsEnabled: Boolean? = null
             var otpCaptureEnabled: Boolean? = null
             var keyboardControlsPinned: Boolean? = null
+            var summonButtonSeen: SummonButtonSettings? = null
             var voiceBarPersisted: Pair<Boolean, Boolean>? = null
             // Recompute the hidden-emoji set only when the toggle or the font
             // behind it actually changes, not on every unrelated settings save.
@@ -3635,6 +3666,12 @@ open class WMKeyboardService : InputMethodService() {
                 if (keyboardControlsPinned != settings.persistentKeyboard) {
                     keyboardControlsPinned = settings.persistentKeyboard
                     updateKeyboardControls(settings.persistentKeyboard)
+                }
+                // The floating keyboard button follows its switch, and a drag
+                // writes its new resting place back through here too.
+                if (summonButtonSeen != settings.summonButton) {
+                    summonButtonSeen = settings.summonButton
+                    syncSummonButton(settings.summonButton)
                 }
                 // Turning previews off throws away what was already fetched, so
                 // the panel stops showing metadata the user opted out of.
@@ -5181,22 +5218,23 @@ open class WMKeyboardService : InputMethodService() {
      * What the notification's buttons do, which is what the toolbar's own
      * controls already do.
      *
-     * "Show" goes through the same posted [requestShowSelf] a pinned keyboard
-     * uses rather than [showWindow]: it is an explicit show request, so the
-     * framework's own bookkeeping stays right, and it clears the suspension a
-     * user-initiated hide left behind — pressing "Show" is that user changing
-     * their mind.
+     * "Show" is a summon ([summonKeyboard]): a show request through the
+     * framework rather than [showWindow], so its own bookkeeping stays right,
+     * that keeps the keyboard up over a window with no field until the user
+     * puts it away. It clears the suspension a user-initiated hide left
+     * behind — pressing "Show" is that user changing their mind.
      */
     private val keyboardControlHost = object : KeyboardControls.Host {
-        override fun showKeyboard() {
-            pinSuspended = false
-            pinReshowStreak = 0
-            requestShowSelf(0)
-        }
+        override fun showKeyboard() = summonKeyboard()
 
         override fun setPinned(pinned: Boolean) {
             onPersistentChange(pinned)
         }
+
+        override fun repostControls() =
+            updateKeyboardControls(_uiState.value.settings.persistentKeyboard)
+
+        override fun syncSummonButton() = this@WMKeyboardService.syncSummonButton()
     }
 
     /** Whether a layout switch is announced to other apps; see [KeyboardAutomation.EVENT_LAYOUT_CHANGED]. */
@@ -5279,7 +5317,159 @@ open class WMKeyboardService : InputMethodService() {
 
     /** The keyboard should be up whether or not any field wants it. */
     private fun pinnedNow(): Boolean =
-        _uiState.value.settings.persistentKeyboard && !pinSuspended
+        (_uiState.value.settings.persistentKeyboard || summonedNow()) && !pinSuspended
+
+    /**
+     * When the keyboard was last summoned (issue #374) — the shade's "Show",
+     * the floating button, an automation intent — in uptime millis, or 0 for
+     * no summon in force. A summon is a one-off pin: the keyboard comes up
+     * whether or not a field wants it, and stays up over this app's fieldless
+     * windows until the user puts it away.
+     */
+    private var summonedAt = 0L
+
+    /** The summon got the keyboard on screen; it now lasts until a hide. */
+    private var summonHeld = false
+
+    /** The app a held summon belongs to; switching to another one ends it. */
+    private var summonPackage: String? = null
+
+    /** The show requests a summon is still making; see [summonKeyboard]. */
+    private var summonJob: Job? = null
+
+    /**
+     * A summon is in force: either it has the keyboard on screen, or it is
+     * still within the few hundred milliseconds it takes the window it was
+     * aimed at to get the focus back.
+     */
+    private fun summonedNow(): Boolean =
+        summonHeld || (summonedAt != 0L && summonPending())
+
+    private fun summonPending(): Boolean =
+        summonedAt != 0L && SystemClock.uptimeMillis() - summonedAt < SUMMON_PENDING_MS
+
+    /**
+     * Brings the keyboard up whether or not anything on screen wants text
+     * (issue #374), the way Hacker's Keyboard's notification does.
+     *
+     * The request is `SHOW_FORCED`, and that is most of the fix. Pressing the
+     * shade's button moves the focus to the system UI and back again, and a
+     * window regaining the focus with no text field in it gets the keyboard
+     * hidden by Android with a "not always" hide, which a plain show loses to
+     * and a forced one survives. The rest is timing: the first request can
+     * land while the shade still has the focus, so it is repeated a few times
+     * over [SUMMON_PENDING_MS] until the keyboard is up, and the pin machinery
+     * ([pinnedNow], [reshowPinned]) puts it back if an app takes it down. The
+     * floating button ([SummonButton]) never moves the focus, so its first
+     * request is normally the one that lands.
+     *
+     * Never over the lock screen, the same rule pinning keeps.
+     */
+    private fun summonKeyboard() {
+        if (isDeviceLocked()) return
+        pinSuspended = false
+        pinReshowStreak = 0
+        summonedAt = SystemClock.uptimeMillis()
+        summonHeld = false
+        summonPackage = null
+        summonJob?.cancel()
+        summonJob = serviceScope.launch {
+            for (wait in SUMMON_RETRY_DELAYS_MS) {
+                delay(wait)
+                if (!summonedNow() || summonHeld || isInputViewShown) return@launch
+                forcedShowUp = true
+                requestShowSelf(summonShowFlags())
+            }
+        }
+    }
+
+    /**
+     * Show flags for a request a summon makes. Forced, so the "hide not
+     * always" Android sends a window with no field leaves it alone; see
+     * [summonKeyboard]. The flag is deprecated from API 33 for the reason it
+     * is wanted here: it keeps the keyboard up after the window that asked
+     * for it has stopped wanting it.
+     */
+    @Suppress("DEPRECATION")
+    private fun summonShowFlags(): Int = InputMethodManager.SHOW_FORCED
+
+    /**
+     * A forced show of ours is what keeps the window up. Android holds on to
+     * "forced" until something hides the keyboard outright, so it can outlive
+     * the summon that asked for it; see [dropStaleForcedShow]. Cleared when the
+     * window goes.
+     */
+    private var forcedShowUp = false
+
+    /**
+     * Takes down a keyboard that is only still up because a summon forced it,
+     * now that the summon is over and the window in front has no field. Without
+     * this, leaving the summoned app for another fieldless screen (the home
+     * screen, a game) would carry the keyboard along: the "not always" hide
+     * Android sends there is exactly the one a forced show ignores. Posted, so
+     * it judges the state after the focus change has settled, and through the
+     * base class so it is not taken for the user's own hide.
+     */
+    private fun dropStaleForcedShow(attribute: EditorInfo?) {
+        if (!forcedShowUp || pinnedNow() || !attribute.isNullClass()) return
+        serviceScope.launch {
+            delay(PIN_RESHOW_DELAY_MS)
+            if (forcedShowUp && !pinnedNow() && isInputViewShown && isNullField()) {
+                hideWithoutSuspending()
+            }
+        }
+    }
+
+    private fun hideWithoutSuspending() = super.requestHideSelf(0)
+
+    /** Ends a summon: the user put the keyboard away, or a field took it over. */
+    private fun clearSummon() {
+        summonedAt = 0L
+        summonHeld = false
+        summonPackage = null
+        summonJob?.cancel()
+        summonJob = null
+    }
+
+    /**
+     * The floating keyboard button, created the first time it is wanted. The
+     * delegate is kept so [onDestroy] can tell whether there is one to take
+     * down without making one.
+     */
+    private val summonButtonDelegate = lazy {
+        SummonButton(
+            context = this,
+            onTap = ::summonKeyboard,
+            onMoved = { x, y ->
+                serviceScope.launch { settingsRepository.setSummonButtonPosition(x, y) }
+            },
+            onDismiss = {
+                summonButtonDismissed = true
+                syncSummonButton()
+                Toast.makeText(this, R.string.ime_summon_button_hidden_toast, Toast.LENGTH_SHORT).show()
+            },
+        )
+    }
+    private val summonButton by summonButtonDelegate
+
+    /** A long press put the floating button away until the keyboard next opens. */
+    private var summonButtonDismissed = false
+
+    /**
+     * Puts the floating keyboard button (issue #374) on screen or takes it
+     * off: on while its switch is on, the overlay grant is held and the
+     * keyboard is closed; off while the keyboard is open, since then it is
+     * the one thing the button cannot do anything about. The lock screen needs
+     * no check of its own — Android draws it over every app overlay.
+     */
+    private fun syncSummonButton(setting: SummonButtonSettings = _uiState.value.settings.summonButton) {
+        val wanted = setting.enabled && !windowOnScreen && !summonButtonDismissed &&
+            Settings.canDrawOverlays(this)
+        when {
+            wanted -> summonButton.show(setting.xFraction, setting.yFraction)
+            summonButtonDelegate.isInitialized() -> summonButton.hide()
+        }
+    }
 
     /**
      * Every hide the keyboard asks for itself is the user's: the hide tool,
@@ -5289,6 +5479,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     override fun requestHideSelf(flags: Int) {
         if (_uiState.value.settings.persistentKeyboard) pinSuspended = true
+        clearSummon()
         super.requestHideSelf(flags)
     }
 
@@ -5313,7 +5504,12 @@ open class WMKeyboardService : InputMethodService() {
             pinReshowQueued = false
             if (!pinnedNow() || isInputViewShown || isDeviceLocked()) return@launch
             pinReshowStreak++
-            requestShowSelf(0)
+            if (summonedNow()) {
+                forcedShowUp = true
+                requestShowSelf(summonShowFlags())
+            } else {
+                requestShowSelf(0)
+            }
         }
     }
 
@@ -5358,6 +5554,8 @@ open class WMKeyboardService : InputMethodService() {
             floatingPanelBounds = null
             window?.window?.decorView?.requestLayout()
         }
+        // A rotation or a fold changes the room the floating button has.
+        if (summonButtonDelegate.isInitialized()) summonButton.relayout()
     }
 
     /** Push the current hardware-keyboard presence into the UI state. */
@@ -5499,7 +5697,21 @@ open class WMKeyboardService : InputMethodService() {
             stopPlugins()
             // A new field gets its own re-show budget (see reshowPinned).
             pinReshowStreak = 0
+            // A summon belongs to the app it was made in. While it is still
+            // settling the focus is moving between the shade and that app, so
+            // the latest start is the app; once it holds the keyboard, a start
+            // in another app is the user leaving, and the keyboard goes back
+            // to coming up for fields only.
+            val pkg = attribute?.packageName
+            if (summonHeld && !summonPending()) {
+                if (pkg != null && summonPackage != null && pkg != summonPackage) clearSummon()
+            } else if (summonedAt != 0L) {
+                summonPackage = pkg
+            }
         }
+        // A forced show that outlived its summon does not get to follow the
+        // user onto a screen with no field.
+        dropStaleForcedShow(attribute)
         // Runs for windows with no editor too, which is where a pinned
         // keyboard most needs putting back: the system never shows it there
         // on its own.
@@ -5517,6 +5729,9 @@ open class WMKeyboardService : InputMethodService() {
         // The keyboard is up, by the system's hand or ours; a hide that
         // suspended pinning has run its course.
         pinSuspended = false
+        // A real text field has the keyboard now, and the ordinary rules for
+        // fields apply to it again: a summon was for windows without one.
+        if (summonedAt != 0L && !info.isNullClass()) clearSummon()
         // Set before the lifecycle is resumed: a panel that reacts to ON_RESUME
         // (the media one re-checks notification access there) would otherwise
         // ask about a keyboard this flag still calls hidden.
@@ -6500,6 +6715,15 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun onScreenAgain() {
         windowOnScreen = true
+        // The floating button steps aside while the keyboard is up, and a
+        // long press that put it away lasted until exactly now.
+        summonButtonDismissed = false
+        syncSummonButton()
+        // The summon that asked for this got what it wanted.
+        if (summonedNow()) {
+            summonHeld = true
+            if (summonPackage == null) summonPackage = currentInputEditorInfo?.packageName
+        }
         _shownState.value = _uiState.value
         // Ask for the window's insets afresh (#463): the navigation bar the
         // keyboard pads itself clear of is read from them, and a window coming
@@ -6530,8 +6754,10 @@ open class WMKeyboardService : InputMethodService() {
         // Nothing to draw from here until the window comes back, so the
         // composition stops being handed new state — see [_shownState].
         windowOnScreen = false
+        forcedShowUp = false
         lifecycleOwner.onStop()
         jankMonitor.stop()
+        syncSummonButton()
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
@@ -6689,6 +6915,10 @@ open class WMKeyboardService : InputMethodService() {
         KeyboardControls.host = null
         KeyboardControls.clear(this)
         KeyboardAutomation.host = null
+        // So is the floating button: it is the keyboard's, and another one is
+        // in charge now.
+        if (summonButtonDelegate.isInitialized()) summonButton.hide()
+        summonJob?.cancel()
         pluginRuntime?.shutdown()
         pluginRuntime = null
         vocabSpeaker?.shutdown()
@@ -9311,7 +9541,9 @@ open class WMKeyboardService : InputMethodService() {
         val elisionBreak = composing.isNotEmpty() && text.length == 1 &&
             WordContext.isApostrophe(text[0]) &&
             Elisions.rulesFor(state.language.id)?.isPrefix(composing) == true
-        if (isWordChar && composingMode && !elisionBreak) {
+        if (isWordChar && composingMode && !elisionBreak && duetTap(text)) {
+            consumeShift()
+        } else if (isWordChar && composingMode && !elisionBreak) {
             appendComposing(text)
             updateComposingText(ic)
             refreshSuggestions()
@@ -10263,6 +10495,8 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
         }
+        // A two-thumb word takes back its latest tap or swipe (#638).
+        if (composing.isNotEmpty() && duetBackspace(ic)) return
         if (composing.isNotEmpty()) {
             // The buffer is the field's own text, so a backspace has to take the
             // same thing off it that the branch below would take off the field —
@@ -11402,6 +11636,7 @@ open class WMKeyboardService : InputMethodService() {
         // A word in progress lives in the composing buffer, not the field.
         if (composing.isNotEmpty()) {
             composing.setLength(0)
+            duetWord.clear()
             composingTouch.clear()
             composingKeys.clear()
             composingHints.clear()
@@ -13206,6 +13441,13 @@ open class WMKeyboardService : InputMethodService() {
          */
         expandPatterns: Boolean = false,
     ): Boolean {
+        // A word read off gestures is already the decoder's answer, chosen from
+        // the dictionary with every tap and swipe as evidence; correcting it
+        // again as if its letters had been typed one by one would second-guess
+        // the better reading with a worse one (#638).
+        if (autocorrect && duetWord.active) {
+            return commitComposing(ic, autocorrect = false, fixApostrophes = fixApostrophes, expandPatterns = expandPatterns)
+        }
         // Spent by whichever key ended this word; a commit that does not park
         // the caret must not leave a stale one behind for the next.
         swallowTerminatorAfterCommit = false
@@ -20110,10 +20352,19 @@ open class WMKeyboardService : InputMethodService() {
     ) {
         val state = _uiState.value
         if (!glideAllowed(state)) return
+        // The two-thumb loop's signal that the last finger lifted (#638): no
+        // stroke, so nothing to preview.
+        if (points.isEmpty()) {
+            onAllThumbsUp()
+            return
+        }
         if (keys.isEmpty()) return
         syncGlideTriggers(state)
         gesturePreviews.trySend(
-            GesturePreviewRequest(points, keys, keyWidthPx, case, gestureGeneration.get()),
+            GesturePreviewRequest(
+                points, keys, keyWidthPx, case, gestureGeneration.get(),
+                tokens = duetPreviewTokens(state, points, keys, keyWidthPx),
+            ),
         )
     }
 
@@ -20130,7 +20381,8 @@ open class WMKeyboardService : InputMethodService() {
                 val reading = withContext(Dispatchers.Default) {
                     // Same sources as the final decode, so the previewed word
                     // never differs from the one that commits on finger-up.
-                    glideDecode(request.points, request.keys, request.keyWidthPx)
+                    request.tokens?.let { duetReading(it, request.points, request.keys, request.keyWidthPx) }
+                        ?: glideDecode(request.points, request.keys, request.keyWidthPx)
                 }
                 if (reading.words.isEmpty()) continue
                 // Re-checked after the decode: the finger may have lifted and
@@ -20318,6 +20570,256 @@ open class WMKeyboardService : InputMethodService() {
         refreshSuggestions()
     }
 
+    // ---- words built from several gestures (#638 two thumbs, #595 typed + swipe) ----
+
+    /**
+     * Whether a swipe lifting now joins the word in progress rather than being
+     * a word of its own: always under two-thumb typing, and under the #595
+     * switch whenever letters are already typed. Never on a board whose buffer
+     * is not the word itself (a transliterator, a conversion IME, a keypad).
+     */
+    private fun swipeJoinsWord(state: KeyboardUiState): Boolean {
+        if (state.composer.isTransliterating || state.composer.isConversion) return false
+        if (state.layouts.ambiguousKeys) return false
+        val gesture = state.settings.gesture
+        return gesture.twoThumbGlide || (gesture.swipeContinuesTyped && composing.isNotEmpty())
+    }
+
+    /**
+     * A lifted swipe that joins the word in progress: added to its gestures and
+     * the whole word read again. False when the swipe does not join one, and
+     * the caller decodes it as a word of its own.
+     */
+    private fun duetSwipe(
+        state: KeyboardUiState,
+        points: List<GesturePoint>,
+        keys: List<KeyCenter>,
+        keyWidthPx: Float,
+        shift: ShiftState,
+    ): Boolean {
+        if (!swipeJoinsWord(state)) return false
+        if (!duetWord.active) {
+            if (composing.isNotEmpty()) {
+                if (!duetWord.seed(composing, composingTouchFrame(), keys, keyWidthPx)) return false
+                // The typed letters already carry the word's case.
+                duetShift = when {
+                    composing.length > 1 && composing.all { !it.isLetter() || it.isUpperCase() } ->
+                        ShiftState.CAPS_LOCK
+                    composing.first().isUpperCase() -> ShiftState.ON
+                    else -> ShiftState.OFF
+                }
+            } else {
+                duetWord.clear()
+                duetShift = shift
+                consumeShift()
+            }
+        }
+        duetWord.addSwipe(points, keys, keyWidthPx)
+        // Ordinary glide with #595 types the word at the lift, as any glide
+        // does; two-thumb typing keeps it open until the word end it uses.
+        redecodeDuet(commit = !state.settings.gesture.twoThumbGlide)
+        return true
+    }
+
+    /**
+     * A letter tapped while a two-thumb word is open: one more gesture in it,
+     * and the word read again. False when no such word is open, and the letter
+     * is typed the ordinary way.
+     */
+    private fun duetTap(text: String): Boolean {
+        if (!duetWord.active) return false
+        if (text.length != 1 || !text[0].isLetter() || !duetWord.addTap(text, pendingTouch)) {
+            // Something the gestures cannot hold — a digit, a mark, a letter
+            // off this grid. The word on screen goes on as typed text.
+            duetWord.clear()
+            return false
+        }
+        pendingTouch = null
+        pendingKeyLetters = null
+        pendingKeyHint = null
+        redecodeDuet(commit = false)
+        return true
+    }
+
+    /**
+     * Backspace on a two-thumb word takes back its latest tap or swipe. When
+     * no swipe is left, what remains is the letters as they were typed.
+     */
+    private fun duetBackspace(ic: InputConnection): Boolean {
+        if (!duetWord.active) return false
+        duetWord.removeLast()
+        if (duetWord.active) {
+            redecodeDuet(commit = false)
+            return true
+        }
+        duetGeneration++
+        gestureJob?.cancel()
+        composing = StringBuilder(duetWord.typedText().orEmpty())
+        updateComposingText(ic)
+        refreshSuggestions()
+        return true
+    }
+
+    /** The two-thumb loop saw the last finger lift: under [TwoThumbWordEnd.ALL_UP], the word is typed. */
+    private fun onAllThumbsUp() {
+        val gesture = _uiState.value.settings.gesture
+        if (!gesture.twoThumbGlide || gesture.twoThumbWordEnd != TwoThumbWordEnd.ALL_UP) return
+        serviceScope.launch {
+            // The lift that sent this may still be decoding, and a newer
+            // decode may have replaced it meanwhile: wait for whichever is last.
+            while (true) {
+                val job = gestureJob ?: break
+                if (!job.isActive) break
+                job.join()
+            }
+            if (!duetWord.active) return@launch
+            val ic = currentInputConnection ?: return@launch
+            commitDuet(ic)
+        }
+    }
+
+    /** Types the two-thumb word on screen and its space, the way a glided word is. */
+    private fun commitDuet(ic: InputConnection) {
+        val state = _uiState.value
+        commitComposing(ic, autocorrect = false, fixApostrophes = state.settings.autoText.apostrophe)
+        commitGestureSpace(ic, state)
+        refreshSuggestions()
+    }
+
+    /**
+     * Reads the word's gestures again, off the main thread, and puts the best
+     * reading in the composing region with the rest on the strip. [commit]
+     * then types it at once, for #595 in ordinary glide.
+     */
+    private fun redecodeDuet(commit: Boolean) {
+        val tokens = duetWord.snapshot()
+        val keys = duetWord.keys
+        val keyWidthPx = duetWord.keyWidthPx
+        val lone = duetWord.loneSwipe()
+        val generation = ++duetGeneration
+        gestureGeneration.incrementAndGet()
+        suggestionJob?.cancel()
+        gestureJob?.cancel()
+        clearGlidePreview()
+        gestureJob = serviceScope.launch {
+            val reading = withContext(Dispatchers.Default) {
+                if (lone != null) {
+                    glideDecode(lone, keys, keyWidthPx, guessAhead = false)
+                } else {
+                    duetReading(tokens, null, keys, keyWidthPx)
+                }
+            }
+            if (generation != duetGeneration) return@launch
+            val ic = currentInputConnection ?: return@launch
+            val best = reading.words.firstOrNull()
+            if (best == null) {
+                // Nothing spells it. A swipe that reads as nothing types
+                // nothing, as an ordinary glide's does; a tap still shows,
+                // after the word it was added to, so no keystroke vanishes.
+                val last = tokens.lastOrNull()
+                val tapText = duetWord.lastTapText()
+                duetWord.removeLast()
+                if (last is GlideToken.Swipe && !duetWord.active && composing.isNotEmpty()) {
+                    // Typed letters and the swipe after them spell no word
+                    // together, so they are two words after all: the letters
+                    // as typed, then the swipe read on its own, which is what
+                    // ordinary glide would have done with them.
+                    duetWord.clear()
+                    commitComposing(ic, autocorrect = false)
+                    commitGestureLeadingSpace(ic, _uiState.value)
+                    duetShift = _uiState.value.shiftState
+                    duetWord.addSwipe(last.points, keys, keyWidthPx)
+                    redecodeDuet(commit)
+                    return@launch
+                }
+                if (last is GlideToken.Tap && composing.isNotEmpty()) {
+                    duetWord.clear()
+                    val typed = composing.toString() + tapText.orEmpty()
+                    composing = StringBuilder(typed)
+                    updateComposingText(ic)
+                    refreshSuggestions()
+                }
+                return@launch
+            }
+            val word = when (duetShift) {
+                ShiftState.CAPS_LOCK -> best.uppercase()
+                ShiftState.ON -> best.replaceFirstChar { it.uppercase() }
+                ShiftState.OFF -> best
+            }
+            keepDuet = true
+            try {
+                composing = StringBuilder(word)
+            } finally {
+                keepDuet = false
+            }
+            composingCaseTrusted = duetShift == ShiftState.OFF
+            updateComposingText(ic)
+            if (commit) {
+                commitDuet(ic)
+            } else {
+                _uiState.update { it.copy(suggestions = reading.words) }
+            }
+        }
+    }
+
+    /**
+     * The word's gestures with [points] as one more swipe, for a preview of a
+     * stroke still being drawn — or null when the stroke does not join a word,
+     * and is previewed as one of its own.
+     */
+    private fun duetPreviewTokens(
+        state: KeyboardUiState,
+        points: List<GesturePoint>,
+        keys: List<KeyCenter>,
+        keyWidthPx: Float,
+    ): List<GlideToken>? {
+        if (!swipeJoinsWord(state)) return null
+        val word = when {
+            duetWord.active -> duetWord.copy()
+            composing.isNotEmpty() ->
+                DuetWord().takeIf { it.seed(composing, composingTouchFrame(), keys, keyWidthPx) } ?: return null
+            else -> return null
+        }
+        word.addSwipe(points, keys, keyWidthPx)
+        return word.snapshot()
+    }
+
+    /**
+     * A word built from several gestures, read like a stroke: the same sources,
+     * blacklist, rerank and casing. A lone swipe in [tokens] is read by the
+     * stroke decoder, which also reads its pauses and loops; [points] is that
+     * swipe where the caller has it to hand.
+     */
+    private fun duetReading(
+        tokens: List<GlideToken>,
+        points: List<GesturePoint>?,
+        keys: List<KeyCenter>,
+        keyWidthPx: Float,
+    ): GlideReading {
+        if (!DuetBeam.needsDuet(tokens)) {
+            val stroke = points ?: (tokens.singleOrNull() as? GlideToken.Swipe)?.points
+                ?: return GlideReading.NONE
+            return glideDecode(stroke, keys, keyWidthPx)
+        }
+        val engine = suggestionEngine ?: return GlideReading.NONE
+        val decoded = engine.glideTokens(
+            tokens = tokens,
+            keys = keyMapFor(keys, keyWidthPx),
+            keyWidth = keyWidthPx,
+            limit = glideCandidateLimit(),
+            previousWord = previousWord,
+            previousWord2 = previousWord2,
+            previousWord3 = previousWord3,
+            recentWords = recentWords.toList(),
+        )
+        if (decoded.isEmpty()) return GlideReading.NONE
+        return GlideReading(
+            words = decoded.map { restoreApostrophe(it.word) ?: it.word },
+            closeCall = false,
+            scores = decoded.map { it.score },
+        )
+    }
+
     /**
      * Decodes a swipe drawn over the letter keys and commits the best word.
      * Alternates go to the suggestion bar; tapping one replaces the word.
@@ -20382,6 +20884,9 @@ open class WMKeyboardService : InputMethodService() {
         // Only when the picker did not answer. A frozen stroke was the user
         // choosing, and what they chose is not a key's word.
         if (verdict is GlideVerdict.Leader && octopusFlickPick(state, points, keys, keyWidthPx)) return
+        // Two-thumb typing, or a swipe finishing typed letters: the stroke
+        // joins the word in progress instead of being one (#638, #595).
+        if (duetSwipe(state, points, keys, keyWidthPx, shiftAtGesture)) return
         gestureJob = serviceScope.launch {
             val reading = withContext(Dispatchers.Default) {
                 glideDecode(points, keys, keyWidthPx)
@@ -26251,6 +26756,12 @@ open class WMKeyboardService : InputMethodService() {
     private var aiRunSeq = 0
 
     /**
+     * Where an AI action's MCP call waits while the panel asks the user to
+     * allow it (#573). The chat has its own, in `AiChatController`.
+     */
+    private val aiToolGate = AiToolApprovalGate()
+
+    /**
      * The last instruction each ask-each-run action was given, so reopening its
      * input box starts from what the user typed last time.
      *
@@ -26533,6 +27044,12 @@ open class WMKeyboardService : InputMethodService() {
         // and neither needs the chat; Ask AI checks for itself.
         when (action) {
             is AiChatAction.AskAbout -> { askAiAbout(action); return }
+            // The AI panel's actions ask through here as well as the chat.
+            is AiChatAction.ToolApproval -> {
+                vibrate()
+                answerAiTool(action.choice)
+                return
+            }
             is AiChatAction.Copy, is AiChatAction.Insert -> Unit
             else -> if (!chat.available) return
         }
@@ -26633,7 +27150,7 @@ open class WMKeyboardService : InputMethodService() {
                     if (action.list || chat.conversationId < 0) "ai_chat" else "ai_chat/${chat.conversationId}",
                 )
             is AiChatAction.Report -> aiChatReport(action.index)
-            is AiChatAction.AskAbout -> Unit
+            is AiChatAction.AskAbout, is AiChatAction.ToolApproval -> Unit
         }
     }
 
@@ -26807,8 +27324,9 @@ open class WMKeyboardService : InputMethodService() {
             // Tools reach the network on their own account (#470), so a user
             // who is holding web search back on mobile data is holding the
             // model's searches back with it — the run itself still goes.
+            val runner = AiToolRunner(applicationContext, settings, aiToolApprover(seq))
             val tools = if (dataSaverStatus.decide(MeteredFeature.WEB_SEARCH) == MeteredDecision.ALLOWED) {
-                AiToolRunner.enabled(settings)
+                runner.tools()
             } else {
                 emptyList()
             }
@@ -26826,11 +27344,11 @@ open class WMKeyboardService : InputMethodService() {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
                     if (config.provider == AiProvider.ON_DEVICE || offlineFirst) {
-                        runAiOnDevice(seq, action, source, system, settings, generated, fromSelection, tools)
+                        runAiOnDevice(seq, action, source, system, settings, generated, fromSelection, tools, runner)
                     } else {
                         runAiRemote(
                             seq, action, source, system, settings, config,
-                            startedAt, generated, fromSelection, tools,
+                            startedAt, generated, fromSelection, tools, runner,
                         )
                     }
                 }.recoverCatching { e ->
@@ -26838,7 +27356,7 @@ open class WMKeyboardService : InputMethodService() {
                     // run on the device was not already the one that failed.
                     if (!localStandIn || fellBack || seq != aiRunSeq || !ToolHttp.isUnreachable(e)) throw e
                     fellBack = true
-                    runAiOnDevice(seq, action, source, system, settings, generated, fromSelection, tools)
+                    runAiOnDevice(seq, action, source, system, settings, generated, fromSelection, tools, runner)
                 }
             }
             // A superseded or cancelled run never gets past here, so it is
@@ -26989,6 +27507,7 @@ open class WMKeyboardService : InputMethodService() {
         generated: Boolean,
         fromSelection: Boolean = false,
         tools: List<AiToolSpec> = emptyList(),
+        runner: AiToolRunner = AiToolRunner(applicationContext, settings),
     ): AiClient.Completion {
         val modelId = effectiveLocalModelId(settings)
         val modelFile = effectiveLocalModelFile(settings)
@@ -26996,7 +27515,6 @@ open class WMKeyboardService : InputMethodService() {
         val implicitThink = isReasoningModel(modelId)
         val startedAt = SystemClock.uptimeMillis()
         var lastPartialAt = 0L
-        val runner = AiToolRunner(applicationContext, settings)
         val text = AiToolLoop.run(
             system = system,
             turns = listOf(AiClient.ChatTurn(AiClient.ChatRole.USER, source)),
@@ -27017,7 +27535,7 @@ open class WMKeyboardService : InputMethodService() {
                     )
                 }
             },
-            onToolCall = { call -> applyAiTools(seq) { it + AiToolActivity.started(call) } },
+            onToolCall = { call -> applyAiTools(seq) { it + runner.activityFor(call) } },
             onToolResult = { result -> applyAiTools(seq) { AiToolActivity.record(it, result) } },
             isActive = { seq == aiRunSeq },
         ) { roundSystem, roundTurns, _, roundPartial ->
@@ -27072,6 +27590,25 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * Asks the user, on the panel, before an MCP call whose tool says so
+     * (#573). The question sits on the running call's line until
+     * [answerAiTool] or a newer run.
+     */
+    private fun aiToolApprover(seq: Int): AiToolApprover = aiToolGate.approver(
+        isActive = { seq == aiRunSeq },
+        show = { ask -> applyAiTools(seq) { AiToolActivity.replaceRunning(it, ask) } },
+        shown = { done -> applyAiTools(seq) { AiToolActivity.replaceRunning(it, done) } },
+    )
+
+    /**
+     * The user's answer to a call that asked first, from the AI panel or the
+     * keyboard's chat. Only one of the two can be asking at a time.
+     */
+    private fun answerAiTool(choice: AiToolApproval) {
+        if (!aiToolGate.answer(choice)) AiChatController.answerTool(choice)
+    }
+
     /** The tool record of the run on screen, to carry into the state that replaces it. */
     private fun aiToolsOf(ai: AiUi): List<AiToolActivity> = when (ai) {
         is AiUi.Loading -> ai.tools
@@ -27095,6 +27632,7 @@ open class WMKeyboardService : InputMethodService() {
         generated: Boolean,
         fromSelection: Boolean = false,
         tools: List<AiToolSpec> = emptyList(),
+        runner: AiToolRunner = AiToolRunner(applicationContext, settings),
     ): AiClient.Completion {
         var lastPartialAt = 0L
         return AiClient.completeWithTools(
@@ -27103,7 +27641,7 @@ open class WMKeyboardService : InputMethodService() {
             turns = listOf(AiClient.ChatTurn(AiClient.ChatRole.USER, source)),
             maxTokens = AiClient.effectiveMaxTokens(settings.ai),
             tools = tools,
-            executor = AiToolRunner(applicationContext, settings)::run,
+            executor = runner::run,
             maxRounds = settings.ai.toolMaxRounds,
             onPhase = { phase -> applyAiPhase(seq, phase) },
             onPartial = { raw ->
@@ -27118,7 +27656,7 @@ open class WMKeyboardService : InputMethodService() {
                     )
                 }
             },
-            onToolCall = { call -> applyAiTools(seq) { it + AiToolActivity.started(call) } },
+            onToolCall = { call -> applyAiTools(seq) { it + runner.activityFor(call) } },
             onToolResult = { result -> applyAiTools(seq) { AiToolActivity.record(it, result) } },
             // A superseded or closed run stops reading here rather than holding
             // the socket — and paying for tokens — until the model finishes.
@@ -36559,6 +37097,15 @@ open class WMKeyboardService : InputMethodService() {
         private const val PIN_RESHOW_LIMIT = 4
 
         /**
+         * See [summonKeyboard]: how long a summon waits for the keyboard to
+         * come up before giving up, and when it asks again meanwhile — at
+         * once, then past the shade's collapse animation, then past a slow
+         * one. Each wait is counted from the one before.
+         */
+        private const val SUMMON_PENDING_MS = 2_000L
+        private val SUMMON_RETRY_DELAYS_MS = longArrayOf(0L, 350L, 450L, 700L)
+
+        /**
          * How many silent recognizer sessions in a row wind an open microphone
          * down. Block voice typing takes the low count: silence there means
          * the user has stopped and walked away.
@@ -37249,6 +37796,11 @@ private class GesturePreviewRequest(
     /** What the shift crossings so far asked for; see [WMKeyboardService.onGesturePreview]. */
     val case: GlideCase,
     val generation: Int,
+    /**
+     * The whole word's gestures, this stroke last, when the stroke joins a
+     * word in progress (#638, #595); null for a stroke that is its own word.
+     */
+    val tokens: List<GlideToken>? = null,
 )
 
 /**

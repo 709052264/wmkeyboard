@@ -98,9 +98,15 @@ object LayoutJsonDocs {
             "Press and hold entries that run an action instead of typing, such as Tab or a tool. They come after the longPress " +
             "characters.",
         "Key.actionAlternatesFirst" to
-            "The keyboard sets this from the settings. Do not write it. It puts the action entries before the characters.",
+            "An older way to write actionAlternatesAt 0. Use actionAlternatesAt instead.",
+        "Key.actionAlternatesAt" to
+            "Where the actionAlternates go among the longPress characters: 0 puts them first, 1 after the first " +
+            "character, and so on. Leave it out to put them after all the characters.",
         "Key.alternateColumns" to "How many columns this key's hold popup uses. 0 follows the setting.",
         "Key.clipboardAction" to "A clipboard shortcut that a press and hold runs instead of opening the popup.",
+        "Key.holdAction" to
+            "An action that a press and hold runs at once, with no popup. A delete or a cursor move repeats while you " +
+            "hold. It spends the press and hold, so the key's alternates stop opening.",
         "Key.role" to "Which punctuation slot this key fills, so an email or web address field can change it to @ or /.",
         "Key.icon" to "The name of an icon to draw in place of the label. The label still names the key for a screen reader.",
         "Key.iconHint" to "The name of an icon to draw as the corner hint, in place of the first alternate.",

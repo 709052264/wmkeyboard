@@ -2235,9 +2235,6 @@
     <string name="keypress_haptics_title">કી પ્રેસ હેપ્ટિક્સ</string>
     <string name="keypress_hold_action_copy_label">કોપી કરો</string>
     <string name="keypress_hold_action_cut_label">કટ કરો</string>
-    <string name="keypress_hold_action_first_info">ક્રિયા સામાન્ય રીતે પોપઅપના અંતે હોય છે, તેથી સાદા દબાવી રાખવાથી તમને પ્રથમ ઉચ્ચાર મળે છે. આ ચાલુ હોવાથી તે આગળ વધે છે, અને શોર્ટકટ કીમાંથી એક પર દબાવી રાખવાથી ક્રિયા તરત જ ચાલે છે. ઉચ્ચારો હજુ પણ ત્યાં છે: તમારી આંગળી નીચે રાખો અને તમને જોઈતા ઉચ્ચાર પર સ્લાઇડ કરો. આ માટે વૈકલ્પિક કી હેઠળ પસંદ કરવા માટે હોલ્ડની જરૂર છે.</string>
-    <string name="keypress_hold_action_first_subtitle">દબાવી રાખવાથી એક્સેન્ટ્સ બતાવવાને બદલે ક્રિયા થાય છે</string>
-    <string name="keypress_hold_action_first_title">પહેલા ક્રિયા</string>
     <string name="keypress_hold_action_paste_label">પેસ્ટ કરો</string>
     <string name="keypress_hold_action_redo_label">ફરીથી કરો</string>
     <string name="keypress_hold_action_select_all_label">બધું પસંદ કરો</string>

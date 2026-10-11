@@ -335,6 +335,15 @@
     <string name="layout_editor_action_alternates_hint">Extra entries in the same popup that do something instead of typing: Tab, voice typing, the editing pad. Tap one to change it.</string>
     <string name="layout_editor_action_alternate_add_action">Add an action</string>
     <string name="layout_editor_action_alternate_remove_desc">Remove this action</string>
+    <string name="layout_editor_action_position_title">Where the actions go</string>
+    <string name="layout_editor_action_position_subtitle">Their place among the alternates in the popup</string>
+    <string name="layout_editor_action_position_info">The actions usually go after all the alternates. Put them after a character and they are a short slide from the key, while a plain press and hold still types the first alternate. Put them first and a plain press and hold runs the first action. The actions stay together, in their own order. This needs Choose without lifting, under Key press, Alternate keys.</string>
+    <!-- %1$s is one alternate character of the key, for example ç. -->
+    <string name="layout_editor_action_position_after">After %1$s</string>
+    <string name="layout_editor_hold_action_label">Action on press and hold</string>
+    <string name="layout_editor_hold_action_hint">Runs as soon as you hold the key, with no popup. A delete or a cursor move repeats while you hold.</string>
+    <string name="layout_editor_hold_action_add">Choose an action</string>
+    <string name="layout_editor_hold_action_alternates_notice">A press and hold on this key now runs its action, so its alternates cannot open any more. Remove the action to get them back.</string>
 
     <!-- Controls the small hint in the corner of this one key. -->
     <string name="layout_editor_hint_title">Corner hint</string>

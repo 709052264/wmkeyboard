@@ -2236,9 +2236,6 @@
     <string name="keypress_haptics_title">کلید دبانے پر ہیپٹکس</string>
     <string name="keypress_hold_action_copy_label">کاپی کریں</string>
     <string name="keypress_hold_action_cut_label">کٹ کریں</string>
-    <string name="keypress_hold_action_first_info">یہ عمل عام طور پر پاپ اپ کے آخر میں ہوتا ہے، لہذا ایک سادہ پریس اور ہولڈ آپ کو پہلا لہجہ دیتا ہے۔ اس کے آن ہونے پر یہ سامنے آ جاتا ہے، اور شارٹ کٹ کیز میں سے کسی ایک پر پریس اور ہولڈ کرنے سے عمل فوراً چل جاتا ہے۔ لہجے اب بھی موجود ہیں: اپنی انگلی نیچے رکھیں اور اس پر سلائیڈ کریں جسے آپ چاہتے ہیں۔ اس کے لیے \'متبادل کیز\' کے تحت \'منتخب کرنے کے لیے ہولڈ کریں\' کی ضرورت ہے۔</string>
-    <string name="keypress_hold_action_first_subtitle">دبائے رکھنے پر ایکسنٹ دکھانے کے بجائے ایکشن چلتا ہے</string>
-    <string name="keypress_hold_action_first_title">پہلے عمل</string>
     <string name="keypress_hold_action_paste_label">پیسٹ کریں</string>
     <string name="keypress_hold_action_redo_label">دوبارہ کریں</string>
     <string name="keypress_hold_action_select_all_label">سب منتخب کریں</string>

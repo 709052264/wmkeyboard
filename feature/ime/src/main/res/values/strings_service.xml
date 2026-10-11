@@ -235,4 +235,9 @@
     <string name="ime_controls_unpin">Unpin</string>
     <string name="ime_controls_switch">Switch keyboard</string>
 
+    <!-- The floating keyboard button over other apps (issue #374). The label
+         is what a screen reader says for the button. -->
+    <string name="ime_summon_button_label">Show keyboard</string>
+    <string name="ime_summon_button_hidden_toast">Keyboard button hidden until the keyboard next opens</string>
+
 </resources>
