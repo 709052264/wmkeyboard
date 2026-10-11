@@ -64,6 +64,7 @@ import com.wasimaster.wmkeyboard.app.lock.AppLockTargets
 import com.wasimaster.wmkeyboard.app.lock.LocalAppLock
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteForever
@@ -188,7 +189,7 @@ internal fun rememberLockedNoteOpener(onOpen: (Note) -> Unit, onError: (Int) -> 
     val appLock = LocalAppLock.current
     val config by appLock.config.collectAsStateWithLifecycle()
     val status by appLock.status.collectAsStateWithLifecycle()
-    val screenGuarded = config?.let { it.enabled && AppLockTargets["screen_notes"]?.id in it.lockedTargets } == true &&
+    val screenGuarded = config?.let { it.enabled && "screen_notes" in it.lockedTargets } == true &&
         status == AppLockStatus.READY
     return { note ->
         when {
@@ -322,7 +323,7 @@ internal fun NotesListScreen(
                         for (option in NoteSort.entries) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(option.labelRes())) },
-                                trailingIcon = if (option == sort) ({ Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(0.dp)) }) else null,
+                                trailingIcon = if (option == sort) ({ Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(18.dp)) }) else null,
                                 onClick = {
                                     sortMenu = false
                                     scope.launch { repository.setNotesSort(option) }
@@ -761,7 +762,6 @@ internal fun NoteTagsScreen(settings: LiveSettings) {
                                 }),
                             contentAlignment = Alignment.Center,
                         ) {
-                            if (chosen) Icon(Icons.Outlined.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(0.dp))
                             if (chosen) Box(Modifier.size(12.dp).clip(CircleShape).background(Color.White))
                         }
                     }

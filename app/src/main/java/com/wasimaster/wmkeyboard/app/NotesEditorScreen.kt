@@ -70,7 +70,6 @@ import com.wasimaster.wmkeyboard.core.notes.SuggestedNoteTag
 import com.wasimaster.wmkeyboard.ime.ui.ChatMarkdown
 import com.wasimaster.wmkeyboard.ime.ui.ChatMarkdownColors
 import java.io.File
-import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -138,7 +137,7 @@ private fun LockedNoteGate(onUnlocked: () -> Unit, onCancel: () -> Unit) {
     }
 }
 
-private enum class EditorMode { EDIT, PREVIEW }
+private enum class NoteEditorMode { EDIT, PREVIEW }
 
 /**
  * The fields, once the store behind them has loaded. Split from
@@ -160,7 +159,7 @@ private fun NoteEditorForm(settings: LiveSettings, state: NotesScreenState, init
     var body by rememberSaveable { mutableStateOf(initial?.body.orEmpty()) }
     var tags by rememberSaveable { mutableStateOf(initial?.tags.orEmpty()) }
     var tagDraft by rememberSaveable { mutableStateOf("") }
-    var mode by rememberSaveable { mutableStateOf(EditorMode.EDIT) }
+    var mode by rememberSaveable { mutableStateOf(NoteEditorMode.EDIT) }
     var menu by remember { mutableStateOf(false) }
     var lockInfo by remember { mutableStateOf(false) }
     var savedAt by remember { mutableLongStateOf(0L) }
@@ -213,13 +212,13 @@ private fun NoteEditorForm(settings: LiveSettings, state: NotesScreenState, init
             if (renderMarkdown) {
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.weight(1f)) {
                     SegmentedButton(
-                        selected = mode == EditorMode.EDIT,
-                        onClick = { mode = EditorMode.EDIT },
+                        selected = mode == NoteEditorMode.EDIT,
+                        onClick = { mode = NoteEditorMode.EDIT },
                         shape = SegmentedButtonDefaults.itemShape(0, 2),
                     ) { Text(stringResource(R.string.notes_mode_edit)) }
                     SegmentedButton(
-                        selected = mode == EditorMode.PREVIEW,
-                        onClick = { mode = EditorMode.PREVIEW },
+                        selected = mode == NoteEditorMode.PREVIEW,
+                        onClick = { mode = NoteEditorMode.PREVIEW },
                         shape = SegmentedButtonDefaults.itemShape(1, 2),
                     ) { Text(stringResource(R.string.notes_mode_preview)) }
                 }
@@ -286,7 +285,7 @@ private fun NoteEditorForm(settings: LiveSettings, state: NotesScreenState, init
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
         )
         Spacer(Modifier.height(8.dp))
-        if (mode == EditorMode.PREVIEW && renderMarkdown) {
+        if (mode == NoteEditorMode.PREVIEW && renderMarkdown) {
             Surface(tonalElevation = 1.dp, shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
                 Box(Modifier.padding(12.dp)) {
                     if (body.isBlank()) {
@@ -458,6 +457,3 @@ private fun shareNote(context: Context, title: String, body: String, tags: List<
 }
 
 private const val AUTOSAVE_MS = 600L
-
-@Suppress("unused")
-private fun Locale.unused() = Unit

@@ -66,9 +66,13 @@ data class Note(
      * line of the body with its Markdown taken off (`# `, a bullet, a task box,
      * `**bold**`), cut to [DISPLAY_TITLE_CHARS]. "" for an empty note, which the
      * UI names "Untitled" in the user's language.
+     *
+     * A locked note never derives its name from its body: the first line of a
+     * note the user asked to hide is the one line a list would otherwise print.
      */
     fun displayTitle(): String {
         if (title.isNotBlank()) return title
+        if (locked) return ""
         val line = firstContentLine() ?: return ""
         return cleanTitleLine(line)
     }

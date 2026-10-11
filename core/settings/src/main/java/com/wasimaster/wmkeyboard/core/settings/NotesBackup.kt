@@ -5,7 +5,6 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -68,7 +67,4 @@ object NotesBackup {
 
     private fun JsonElement.id(): Long? =
         runCatching { (jsonObject[ID] as? JsonPrimitive)?.content?.toLongOrNull() }.getOrNull()
-
-    @Suppress("unused")
-    private fun JsonElement.notesOrEmpty(): JsonArray = runCatching { jsonObject[NOTES]!!.jsonArray }.getOrDefault(JsonArray(emptyList()))
 }

@@ -397,6 +397,7 @@ private class NotesFilterChip(val filter: NotesFilter, val label: String, val co
 
 @Composable
 private fun filterChips(notes: NotesPanelUi): List<NotesFilterChip> {
+    @Composable
     fun counted(labelRes: Int, count: Int): String {
         val label = stringResource(labelRes)
         return if (count > 0) stringResource(R.string.ime_notes_filter_count, label, count) else label

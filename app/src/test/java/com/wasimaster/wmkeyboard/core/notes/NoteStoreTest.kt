@@ -34,7 +34,8 @@ class NoteStoreTest {
 
         store.trash(note.id, now = t0 + 2)
         assertTrue(store.items().isEmpty())
-        assertEquals(1, store.items(NoteFilter(NoteShelf.TRASH)).size)
+        // Listing the trash purges by age against the clock it is given.
+        assertEquals(1, store.items(NoteFilter(NoteShelf.TRASH), now = t0 + 3).size)
         store.restore(note.id)
         assertEquals("Buy milk and eggs", store.items().single().body)
         assertNull(store.items().single().deletedAt)
@@ -178,8 +179,10 @@ class NoteStoreTest {
         assertEquals(1, store.items(NoteFilter(includeLocked = false)).size)
         assertEquals(1, store.search("plan").size)
         assertEquals(2, store.search("plan", searchLockedBodies = true).size)
-        // The title and the tags of a locked note still match.
+        // The title and the tags of a locked note still match; its body never names it.
         assertEquals(1, store.search("diary").size)
+        assertEquals("", Note(1, "first line\nmore", locked = true).displayTitle())
+        assertEquals("Mine", Note(1, "first line", title = "Mine", locked = true).displayTitle())
     }
 
     @Test

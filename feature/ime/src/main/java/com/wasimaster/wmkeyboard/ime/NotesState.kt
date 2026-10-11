@@ -182,7 +182,7 @@ object NotesLogic {
         val lineStart = base.text.lastIndexOf('\n', caret - 1) + 1
         val lineEnd = base.text.indexOf('\n', caret).let { if (it < 0) base.text.length else it }
         val line = base.text.substring(lineStart, lineEnd)
-        val marker = LIST_MARKER.matchEntire(line)
+        val marker = LIST_MARKER.find(line)
         if (marker == null || caret < lineStart + marker.groupValues[0].length) return base.typed("\n")
         val whole = marker.groupValues[0]
         val content = line.substring(whole.length)

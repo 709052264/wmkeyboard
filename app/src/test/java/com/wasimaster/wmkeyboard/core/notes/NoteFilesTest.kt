@@ -46,7 +46,8 @@ class NoteFilesTest {
     fun `file names are slugs, deduped, with the id as a fallback`() {
         val taken = HashSet<String>()
         assertEquals("Buy-milk-eggs.md", NoteFiles.fileName(Note(1, "Buy milk & eggs!"), NoteFiles.Format.MARKDOWN, taken))
-        assertEquals("Buy-milk-eggs-2.md", NoteFiles.fileName(Note(2, "buy milk & eggs"), NoteFiles.Format.MARKDOWN, taken))
+        // The same words in another case still collide: the taken set ignores case.
+        assertEquals("buy-milk-eggs-2.md", NoteFiles.fileName(Note(2, "buy milk & eggs"), NoteFiles.Format.MARKDOWN, taken))
         assertEquals("note-3.txt", NoteFiles.fileName(Note(3, "   "), NoteFiles.Format.TEXT, taken))
         assertEquals(60, NoteFiles.slug("w".repeat(90)).length)
     }

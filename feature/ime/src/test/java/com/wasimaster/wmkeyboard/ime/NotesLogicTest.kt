@@ -69,7 +69,7 @@ class NotesLogicTest {
 
     @Test
     fun `line markdown toggles a prefix on every line the selection touches`() {
-        val bullets = NotesLogic.applyMarkdown(caret("a\nb\nc", at = 4, anchor = 0), NoteMarkdownAction.BULLET)
+        val bullets = NotesLogic.applyMarkdown(caret("a\nb\nc", at = 5, anchor = 0), NoteMarkdownAction.BULLET)
         assertEquals("- a\n- b\n- c", bullets.text)
         assertEquals("- a\n- b\n- c", bullets.selectedText)
         assertEquals("a\nb\nc", NotesLogic.applyMarkdown(bullets, NoteMarkdownAction.BULLET).text)
