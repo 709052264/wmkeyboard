@@ -76,6 +76,8 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsBackup
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.foreign.ForeignBackup
 import com.wasimaster.wmkeyboard.core.settings.foreign.ForeignBackups
+import com.wasimaster.wmkeyboard.core.prediction.UserLexicon
+import com.wasimaster.wmkeyboard.core.snippets.GboardDictionary
 import com.wasimaster.wmkeyboard.core.snippets.ImportedSnippets
 import com.wasimaster.wmkeyboard.core.snippets.SnippetFile
 import com.wasimaster.wmkeyboard.core.snippets.SnippetPayload
@@ -233,15 +235,23 @@ object WMFileTypes {
         ) : Opened
 
         /**
-         * An Espanso match file: somebody else's text expander, read into
-         * snippets of ours.
+         * Somebody else's snippets, read into snippets of ours: an Espanso
+         * match file, or a table of them from another text expander or a
+         * spreadsheet. [SnippetPayload.Parsed.source] says which.
          *
          * Carries the whole [SnippetPayload.Parsed] rather than the snippets
          * alone, because the notes are the point of the dialog — an Espanso file
          * can say things this app has no equivalent for, and finding that out
          * after the import is worse than being told and deciding.
          */
-        data class EspansoSnippets(val parsed: SnippetPayload.Parsed) : Opened
+        data class ForeignSnippets(val parsed: SnippetPayload.Parsed) : Opened
+
+        /**
+         * Gboard's personal dictionary export. Its own case rather than a
+         * [ForeignSnippets], because only half of it is snippets: the words
+         * with no shortcut go to the personal dictionary.
+         */
+        data class GboardDictionaryFile(val contents: GboardDictionary.Contents) : Opened
 
         /**
          * Another keyboard's whole backup: HeliBoard, LeanType, FUTO,
@@ -437,6 +447,9 @@ object WMFileTypes {
         LayoutFile.decode(text)?.let { return Opened.Layout(it) }
         SnippetFile.decode(text)?.let { return Opened.Snippets(it) }
         VocabPackFile.decode(text)?.let { return Opened.Vocabulary(it) }
+        // Not ours, but its first line is as good as a tag: no other format
+        // can start with Gboard's own header comment.
+        GboardDictionary.read(text)?.let { return Opened.GboardDictionaryFile(it) }
         // A theme has no tag and every field has a default, so decoding any JSON
         // object at all succeeds and yields an all-defaults theme. The file name
         // is the only evidence there is that this one was meant to be a theme.
@@ -481,14 +494,16 @@ object WMFileTypes {
         if (FutoLayouts.looksLikeFutoLayout(text)) {
             FutoLayouts.convert(text, name)?.let { return Opened.FutoLayout(it) }
         }
-        // Espanso's half of SnippetPayload. The native half of it already
-        // answered above, so an Espanso file is all that can still come back —
-        // and asking the shared reader rather than repeating its sniff here is
-        // what keeps this screen and the Text Expander screen from disagreeing
-        // about what a snippet file is.
+        // The foreign half of SnippetPayload: Espanso, then a table. The native
+        // half and Gboard's dictionary already answered above, so only those
+        // two can still come back — and asking the shared reader rather than
+        // repeating its sniff here is what keeps this screen and the Text
+        // Expander screen from disagreeing about what a snippet file is. A
+        // table is last of everything: it needs a header naming a text column,
+        // or a `.csv` name, and almost any text has a comma in it.
         SnippetPayload.readText(text, name)
-            ?.takeIf { it.isEspanso }
-            ?.let { return Opened.EspansoSnippets(it) }
+            ?.takeIf { it.isForeign }
+            ?.let { return Opened.ForeignSnippets(it) }
         return Opened.Unrecognized
     }
 
@@ -588,6 +603,14 @@ object WMFileTypes {
                 context.contentResolver.requireInputStream(uri).use { ForeignBackups.read(it) }
             }.getOrNull()
             return if (backup != null) Opened.ForeignBackupFile(backup) else Opened.Unrecognized
+        }
+        // Gboard's personal dictionary export: one `dictionary.txt`, which the
+        // read then has to find Gboard's header in.
+        if (GboardDictionary.looksLikeGboardZip(names)) {
+            val contents = runCatching {
+                context.contentResolver.requireInputStream(uri).use { GboardDictionary.readZip(it.buffered()) }
+            }.getOrNull()
+            if (contents != null) return Opened.GboardDictionaryFile(contents)
         }
         if (!WaStickersFile.looksLikeWaStickers(names)) return Opened.Unrecognized
         val header = runCatching {
@@ -1237,7 +1260,9 @@ private fun rememberProposal(
             body = "",
         )
 
-        is WMFileTypes.Opened.EspansoSnippets -> espansoProposal(state.parsed, context)
+        is WMFileTypes.Opened.ForeignSnippets -> foreignSnippetsProposal(state.parsed, context)
+
+        is WMFileTypes.Opened.GboardDictionaryFile -> gboardDictionaryProposal(state.contents, repository, context)
 
         is WMFileTypes.Opened.Config -> {
             val counts = repository.describeConfig(state.parsed)
@@ -1592,7 +1617,7 @@ private fun whatsAppStickersProposal(
 }
 
 /**
- * The confirmation for an Espanso match file.
+ * The confirmation for an Espanso match file or a table of snippets.
  *
  * Worded as a conversion, like the FlorisBoard one below and unlike the app's
  * own snippet file: Espanso can say things this app has no equivalent for, and
@@ -1602,15 +1627,16 @@ private fun whatsAppStickersProposal(
  * imported pack a single off switch — the same rule the Text Expander screen's
  * own Espanso import follows.
  */
-private fun espansoProposal(
+private fun foreignSnippetsProposal(
     parsed: SnippetPayload.Parsed,
     context: android.content.Context,
 ): ImportProposal {
+    val table = parsed.source == SnippetPayload.Source.CSV
     val folderName = parsed.suggestedName.trim()
     if (parsed.snippets.isEmpty()) {
         return ImportProposal(
             titleRes = R.string.import_espanso_title,
-            body = context.getString(R.string.import_espanso_none),
+            body = context.getString(if (table) R.string.import_csv_none else R.string.import_espanso_none),
             repairs = parsed.notes.map { it.resolve(context) },
             apply = null,
         )
@@ -1619,8 +1645,10 @@ private fun espansoProposal(
         titlePluralRes = R.plurals.import_snippets_title,
         titleQuantity = parsed.snippets.size,
         body = context.getString(
-            R.string.import_espanso_body,
-            folderName.ifEmpty { context.getString(R.string.import_espanso_folder_fallback) },
+            if (table) R.string.import_csv_body else R.string.import_espanso_body,
+            folderName.ifEmpty {
+                context.getString(if (table) R.string.import_csv_folder_fallback else R.string.import_espanso_folder_fallback)
+            },
         ),
         repairs = parsed.notes.map { it.resolve(context) },
         apply = {
@@ -1641,6 +1669,81 @@ private fun espansoProposal(
                 parsed.snippets.size,
                 parsed.snippets.size,
             )
+        },
+    )
+}
+
+/**
+ * The confirmation for Gboard's personal dictionary export.
+ *
+ * Both halves go in on one press, because both are what the file is: the words
+ * with no shortcut join the personal dictionary as words added by hand, and the
+ * shortcuts become snippets in a folder of their own, which gives the set one
+ * off switch. Each half is counted in the body, so a file that holds only one
+ * of them says so.
+ */
+private fun gboardDictionaryProposal(
+    contents: GboardDictionary.Contents,
+    repository: SettingsRepository,
+    context: android.content.Context,
+): ImportProposal {
+    val words = contents.words
+    val converted = GboardDictionary.toSnippets(contents)
+    val snippets = converted.snippets
+    if (words.isEmpty() && snippets.isEmpty()) {
+        return ImportProposal(
+            titleRes = R.string.import_gboard_dictionary_title,
+            body = context.getString(R.string.import_gboard_dictionary_empty),
+        )
+    }
+    val res = context.resources
+    return ImportProposal(
+        titleRes = R.string.import_gboard_dictionary_title,
+        body = buildString {
+            if (words.isNotEmpty()) {
+                append(res.getQuantityString(R.plurals.import_gboard_dictionary_words, words.size, words.size))
+            }
+            if (snippets.isNotEmpty()) {
+                if (isNotEmpty()) append("\n\n")
+                append(
+                    res.getQuantityString(
+                        R.plurals.import_gboard_dictionary_shortcuts,
+                        snippets.size,
+                        snippets.size,
+                        GboardDictionary.FOLDER_NAME,
+                    ),
+                )
+            }
+        },
+        repairs = converted.notes.map { it.resolve(context) },
+        apply = {
+            if (words.isNotEmpty()) {
+                withContext(Dispatchers.IO) {
+                    val lexicon = UserLexicon(File(context.filesDir, "learning/user_lexicon.json"))
+                    // Added by hand there, so added by hand here, and a capital
+                    // the user wrote is kept, as Android's own import does.
+                    for (word in words) lexicon.addWord(word, caseEvidence = word != word.lowercase())
+                    lexicon.save()
+                }
+                repository.bumpLexiconVersion()
+            }
+            if (snippets.isNotEmpty()) {
+                withContext(Dispatchers.IO) {
+                    val store = SnippetStore(File(context.filesDir, "snippets/snippets.json"))
+                    val folder = store.addFolder(GboardDictionary.FOLDER_NAME).id
+                    store.addAll(snippets, fallbackFolderId = folder)
+                    store.save()
+                }
+            }
+            buildString {
+                if (words.isNotEmpty()) {
+                    append(res.getQuantityString(R.plurals.import_gboard_dictionary_words_done, words.size, words.size))
+                }
+                if (snippets.isNotEmpty()) {
+                    if (isNotEmpty()) append("\n\n")
+                    append(res.getQuantityString(R.plurals.import_snippets_done, snippets.size, snippets.size))
+                }
+            }
         },
     )
 }

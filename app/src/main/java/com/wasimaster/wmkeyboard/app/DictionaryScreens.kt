@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -127,6 +129,15 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     // The row being edited (#47): its spelling and weight, as they are now.
     var editing by remember { mutableStateOf<Pair<String, Int>?>(null) }
     var androidPicker by remember { mutableStateOf<AndroidWordPicker?>(null) }
+    // A Gboard dictionary picked from the row below, shown in the same import
+    // dialog a file manager opens. Bumping [loads] re-reads the words after it,
+    // so the list shows what came in and a later edit here does not save the
+    // copy from before over it.
+    var gboardFile by remember { mutableStateOf<android.net.Uri?>(null) }
+    var loads by remember { mutableIntStateOf(0) }
+    val gboardLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        gboardFile = uri
+    }
 
     fun pinnedIn(lex: UserLexicon, all: List<Pair<String, Int>>): Set<String> =
         all.mapNotNullTo(HashSet()) { (word, _) -> word.takeIf { lex.isCasePinned(it) } }
@@ -135,7 +146,7 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     fun bornIn(lex: UserLexicon, all: List<Pair<String, Int>>): Map<String, Long> =
         all.mapNotNull { (word, _) -> lex.addedGeneration(word)?.let { word to it } }.toMap()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(loads) {
         val lex = withContext(Dispatchers.IO) { UserLexicon(file) }
         val all = lex.allWords()
         words = all
@@ -249,6 +260,14 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
                 subtitle = stringResource(R.string.backup_android_export_subtitle),
                 icon = Icons.Outlined.Upload,
                 onClick = { openAndroidPicker(export = true) },
+            )
+        }
+        item {
+            WmRow(
+                title = stringResource(R.string.backup_gboard_import_title),
+                subtitle = stringResource(R.string.backup_gboard_import_subtitle),
+                icon = Icons.Outlined.Download,
+                onClick = { gboardLauncher.launch(arrayOf("application/zip", "text/plain", "application/octet-stream")) },
             )
         }
     }
@@ -466,6 +485,17 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
 
     if (showTidy) {
         AlertDialog(
+    gboardFile?.let { uri ->
+        ImportFileDialog(
+            repository = repository,
+            uri = uri,
+            onClose = {
+                gboardFile = null
+                loads++
+            },
+        )
+    }
+
             onDismissRequest = { showTidy = false },
             title = { Text(stringResource(R.string.backup_tidy_words_title)) },
             text = {

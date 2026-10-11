@@ -51,6 +51,9 @@
     <string name="backup_android_import_subtitle">Add the words saved in Android\'s personal dictionary</string>
     <string name="backup_android_export_title">Export to Android\'s dictionary</string>
     <string name="backup_android_export_subtitle">Copy your words to Android\'s personal dictionary, for other keyboards and the spell checker</string>
+    <!-- Gboard is Google's keyboard; do not translate the name. -->
+    <string name="backup_gboard_import_title">Import a Gboard dictionary</string>
+    <string name="backup_gboard_import_subtitle">The PersonalDictionary.zip from Gboard\'s Export. Its words come here, and its shortcuts become snippets</string>
     <string name="backup_android_import_dialog_title">Words from Android</string>
     <string name="backup_android_export_dialog_title">Words to copy to Android</string>
     <string name="backup_android_nothing_to_import_body">Every word in Android\'s dictionary is already in your personal dictionary.</string>

@@ -125,6 +125,40 @@
     <string name="import_espanso_title">Nothing to import</string>
     <string name="import_espanso_none">This is an Espanso file, but the app could read no snippets from it.</string>
 
+    <!-- ==== Snippet tables: a CSV or TSV file with a trigger column and a
+         text column, from another text expander or a spreadsheet. ==== -->
+
+    <!-- %1$s is the name of the folder the snippets land in. -->
+    <string name="import_csv_body">This is a table of snippets. The app adds them to yours, in a folder called <xliff:g id="folder_name" example="Replies">%1$s</xliff:g>, so you can turn all of them off at once.</string>
+    <!-- Stands in for the folder name when the file has no name to use. It
+         goes into import_csv_body. -->
+    <string name="import_csv_folder_fallback">Imported</string>
+    <string name="import_csv_none">This is a table, but no row has text for a snippet.</string>
+
+    <!-- ==== Gboard dictionary files. Gboard is Google's keyboard; do not
+         translate the name. Its personal dictionary export holds words, and
+         shortcuts that each offer a word. ==== -->
+
+    <string name="import_gboard_dictionary_title">Import Gboard dictionary?</string>
+    <string name="import_gboard_dictionary_empty">This is a Gboard dictionary, but it has no words in it.</string>
+    <!-- %1$d is how many words go into the personal dictionary. -->
+    <plurals name="import_gboard_dictionary_words">
+        <item quantity="one">The app adds %1$d word to your personal dictionary.</item>
+        <item quantity="other">The app adds %1$d words to your personal dictionary.</item>
+    </plurals>
+    <!-- %1$d is how many shortcuts become snippets. %2$s is the name of the
+         folder they land in. A snippet made from a shortcut does not type
+         itself: the keyboard shows it as a suggestion, as Gboard does. -->
+    <plurals name="import_gboard_dictionary_shortcuts">
+        <item quantity="one">The app makes %1$d shortcut into a snippet, in a folder called <xliff:g id="folder_name" example="Gboard">%2$s</xliff:g>. When you type the shortcut, the keyboard shows the word as a suggestion, as Gboard does.</item>
+        <item quantity="other">The app makes %1$d shortcuts into snippets, in a folder called <xliff:g id="folder_name" example="Gboard">%2$s</xliff:g>. When you type a shortcut, the keyboard shows its word as a suggestion, as Gboard does.</item>
+    </plurals>
+    <!-- %1$d is how many words the app added. -->
+    <plurals name="import_gboard_dictionary_words_done">
+        <item quantity="one">The app added %1$d word to your personal dictionary.</item>
+        <item quantity="other">The app added %1$d words to your personal dictionary.</item>
+    </plurals>
+
     <!-- ==== Sticker pack files. ==== -->
 
     <string name="import_stickers_title">Import sticker pack?</string>

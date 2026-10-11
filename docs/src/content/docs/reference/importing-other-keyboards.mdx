@@ -32,6 +32,7 @@ Conversion is honest about being lossy. A layout import always ends on a confirm
 | `.kmp` package | Keyman | A custom layout **and** its typing rules |
 | `.combined` word list | HeliBoard, LeanType, FUTO, any AOSP keyboard | A custom dictionary |
 | `.dict` dictionary | HeliBoard, LeanType, FUTO, OpenBoard, GApps | A custom dictionary |
+| `PersonalDictionary.zip`, or the `dictionary.txt` inside it | Gboard | Words in your personal dictionary, and shortcuts as snippets: see [Gboard's personal dictionary](#gboards-personal-dictionary) |
 | Backup `.zip` | HeliBoard, LeanType, FlorisBoard, CleverKeys | A list of everything inside to pick from: see [Whole backups](#whole-backups) |
 | Backup `.backup` | FUTO Keyboard | The same list |
 | `AnySoftKeyboardPrefs.xml`, or a CleverKeys settings `.json` | AnySoftKeyboard, CleverKeys | The same list, settings only |
@@ -293,6 +294,19 @@ A user history keeps counts rather than frequencies, so a word you typed often t
 Only one shape is refused: revision 402 of version 4, which no current keyboard writes.
 
 See [Dictionaries & words](/reference/settings/dictionaries/) for the screen itself.
+
+### Gboard's personal dictionary
+
+<SettingsPath path="Typing / Suggestions / Personal dictionary / Import a Gboard dictionary" />
+
+In Gboard, open **Settings**, then **Dictionary**, then **Personal dictionary**, and choose **Export** from the menu. You get a `PersonalDictionary.zip`. Open it from the row above, from a file manager, or share it to WM Keyboard. The file can also be the `dictionary.txt` inside the zip, which is the shape community packs of LaTeX symbols and emoji codes ship in.
+
+Each entry in the file is a word, a shortcut for it, or both, and the two go to different places:
+
+- **A word with no shortcut** goes into your [personal dictionary](/smart/personal-dictionary/) as a word you added by hand, capitals kept. A phrase such as "New York City" comes in as its separate words, the way an entry from Android's dictionary does.
+- **A shortcut** becomes a [snippet](/tools/snippets/) in a folder called **Gboard**, so you can switch the whole set off at once. Gboard never types a shortcut out by itself: it shows the word as a suggestion. The snippet does the same, because each one is set to ask first. A shortcut Gboard maps to several words becomes one snippet that offers all of them.
+
+The dialog counts both halves before anything is written. The locale Gboard saved with each entry is not used, since the personal dictionary here is shared by every language. Picking the same file from the Text expansion import adds the shortcuts only, and says how many words it left for this screen.
 
 ## Chinese code tables
 

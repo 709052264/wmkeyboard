@@ -35,6 +35,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.addons.AddonPreviewContent
 import com.wasimaster.wmkeyboard.core.addons.AddonPreviewReader
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
+import com.wasimaster.wmkeyboard.core.snippets.GboardDictionary
 import com.wasimaster.wmkeyboard.core.snippets.Snippet
 import com.wasimaster.wmkeyboard.core.theme.FlexResult
 import com.wasimaster.wmkeyboard.core.theme.GboardResult
@@ -105,7 +106,9 @@ internal fun ImportFilePreview(state: WMFileTypes.Opened, uri: Uri) {
 
         is WMFileTypes.Opened.Snippets -> SnippetsFilePreview(state.snippets.snippets)
 
-        is WMFileTypes.Opened.EspansoSnippets -> SnippetsFilePreview(state.parsed.snippets)
+        is WMFileTypes.Opened.ForeignSnippets -> SnippetsFilePreview(state.parsed.snippets)
+
+        is WMFileTypes.Opened.GboardDictionaryFile -> GboardDictionaryPreview(state.contents)
 
         is WMFileTypes.Opened.Vocabulary -> VocabularyFilePreview(state.pack)
 
@@ -189,6 +192,26 @@ private fun SnippetsFilePreview(snippets: List<Snippet>) {
             )
         }
         MoreLine(snippets.size - shown.size)
+    }
+}
+
+/**
+ * The first few entries of a Gboard dictionary: a shortcut over the word it
+ * offers, or a plain word on its own.
+ */
+@Composable
+private fun GboardDictionaryPreview(contents: GboardDictionary.Contents) {
+    val shown = contents.entries.take(MAX_ROWS)
+    if (shown.isEmpty()) return
+    Column(Modifier.fillMaxWidth().padding(bottom = PREVIEW_GAP)) {
+        for (entry in shown) {
+            if (entry.shortcut.isEmpty()) {
+                PreviewLine(title = entry.word, detail = "")
+            } else {
+                PreviewLine(title = entry.shortcut, detail = entry.word)
+            }
+        }
+        MoreLine(contents.entries.size - shown.size)
     }
 }
 

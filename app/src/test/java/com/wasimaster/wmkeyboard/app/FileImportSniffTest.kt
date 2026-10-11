@@ -104,10 +104,28 @@ class FileImportSniffTest {
     fun `an Espanso match file is snippets`() {
         val yaml = "matches:\n  - trigger: \":sig\"\n    replace: \"Wasi Master\""
         val opened = WMFileTypes.textKindFor(yaml, "base.yml")
-        assertTrue("an Espanso file was not recognised", opened is WMFileTypes.Opened.EspansoSnippets)
-        val parsed = (opened as WMFileTypes.Opened.EspansoSnippets).parsed
+        assertTrue("an Espanso file was not recognised", opened is WMFileTypes.Opened.ForeignSnippets)
+        val parsed = (opened as WMFileTypes.Opened.ForeignSnippets).parsed
         assertEquals(1, parsed.snippets.size)
         assertTrue("an Espanso file was read as one of ours", parsed.isEspanso)
+    }
+
+    @Test
+    fun `a Gboard dictionary is its own kind, not snippets`() {
+        val text = "# Gboard Dictionary version:1\nomw\ton my way\ten-US\n\tWasimaster\t\n"
+        val opened = WMFileTypes.textKindFor(text, "dictionary.txt")
+        assertTrue("a Gboard dictionary was not recognised", opened is WMFileTypes.Opened.GboardDictionaryFile)
+        assertEquals(listOf("Wasimaster"), (opened as WMFileTypes.Opened.GboardDictionaryFile).contents.words)
+    }
+
+    @Test
+    fun `a snippet table needs a header or a csv name`() {
+        val headed = WMFileTypes.textKindFor("trigger,text\nomw,on my way\n", "export")
+        assertTrue("a headed table was not recognised", headed is WMFileTypes.Opened.ForeignSnippets)
+        val named = WMFileTypes.textKindFor("omw,on my way\n", "replies.csv")
+        assertTrue("a .csv was not recognised", named is WMFileTypes.Opened.ForeignSnippets)
+        assertEquals(WMFileTypes.Opened.Unrecognized, WMFileTypes.textKindFor("omw,on my way\n", "notes.txt"))
+        assertEquals(WMFileTypes.Opened.Unrecognized, WMFileTypes.textKindFor("Name,Phone\nAda,555\n", "people.csv"))
     }
 
     @Test
