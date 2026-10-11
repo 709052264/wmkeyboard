@@ -668,6 +668,11 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Hacker's Keyboard mechanism, no overlay permission — onEvaluateInputViewShown says yes while pinned; a posted requestShowSelf puts it back after any hide the user did not ask for
     - User hides suspend it — The hide tool, toolbar swipe and Back all go through requestHideSelf, which parks the pin until the system next shows the keyboard on its own
     - Bounded re-shows — At most 4 per field, 250 ms apart, so an app that force-hides on every show gets a few flashes and then wins; never re-shown over the lock screen
+  - Floating keyboard button `RARE` — A small round button over every app while the keyboard is closed; tap it and the keyboard opens with or without a text field (issue #374)
+    - Never takes the focus — A FLAG_NOT_FOCUSABLE overlay, so the show request lands on the window the user was looking at instead of losing to the focus shuffle the notification shade causes
+    - Summon semantics — A one-off pin with SHOW_FORCED: survives the "hide not always" Android sends fieldless windows, stays up on that app's screens until the user hides it, ends when the user moves to another app
+    - Drag to move, hold to hide — Settles against the nearer side and remembers it; a long press hides it until the keyboard next opens
+    - Needs "Display over other apps" — Asked for only when the button is turned on, after a disclosure; listed on the Permissions screen
     - Fieldless windows get key events — Letters commit through the framework's fallback connection as key events; backspace sends KEYCODE_DEL on TYPE_NULL, Enter and modifier chords already did
   - Inline resize tool `uncommon` — Gboard-style drag mode over the docked keyboard
     - Three drags — Top handle scales key heights (keeping the number-row ratio), bottom handle and a centre move button ride the bottom padding
@@ -2958,6 +2963,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - No Install button in the shade `RARE` — Installing restarts the process the keyboard runs in, so the shade tap opens the app where the warning is; only Cancel is safe to press from a notification.
   - Automatic backup failures `RARE` — The one failure with nowhere else to appear: the job runs with no screen, and a revoked folder grant otherwise stops every backup silently.
   - Keyboard controls in the shade `RARE` — Hacker's Keyboard's answer to a pinned keyboard that has gone down over a window with no text field: Show, Unpin and Switch keyboard, off by default.
+    - Show is a summon — Forced and retried past the shade's collapse, so the keyboard opens over the app even when nothing in it has a text field (issue #374).
+    - Comes back when swiped away — Android 14 lets a swipe clear ongoing notifications; the delete intent posts the controls again, and the Notifications switch is how they go.
   - Quick Settings tile `RARE` — "Keep keyboard on screen", the same setting as the pin tool, needing no permission at all.
   - Asked for at the first useful moment `uncommon` — The permission request comes with the first download or the first shade control, never on launch, and never twice.
 - **Form factors: tablets and foldables** `RARE` — Two independent screen questions — device form (size) and screen variant (posture).

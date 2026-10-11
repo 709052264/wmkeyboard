@@ -43,29 +43,30 @@ The keyboard notices when that happens. Tap the button, Android answers "denied"
 
 The keyboard always asks first and only sends you to Settings once Android has refused on its own, because nothing it can check beforehand tells those two cases apart. That's what keeps **Ask every time** working. Set the camera or the microphone to it in Android's settings, and the grant button on the camera or voice panel brings up the system prompt with its **Only this time** choice. Android takes that grant back soon after you stop using the keyboard, and the panel asks again next time. This is standard Android 11 behaviour, so custom ROMs built on it work the same way.
 
-## The three that aren't permissions
+## The ones that aren't permissions
 
-Notification access, usage access and the accessibility service aren't permissions Android will prompt for. Each is a switch on a system Settings screen, and all the app can do is take you there. The keyboard shows the same kind of explanation first, for the same reason. All three stay off until you turn them on yourself.
+Notification access, usage access, display over other apps and the accessibility service aren't permissions Android will prompt for. Each is a switch on a system Settings screen, and all the app can do is take you there. The keyboard shows the same kind of explanation first, for the same reason. All of them stay off until you turn them on yourself.
 
-The system screens for all three carry broad, alarming warnings, because the *categories* are genuinely powerful. What this app uses is much narrower:
+The system screens for all of them carry broad, alarming warnings, because the *categories* are genuinely powerful. What this app uses is much narrower:
 
 | Access | Feature | What the keyboard uses it for |
 |---|---|---|
 | Notification access | [Media controls](/tools/media/) and the [one-time code chip](/smart/one-time-codes/) | Android only hands the play/pause/skip controls of the current media session to apps holding this. For media the listener reads nothing at all: no notification, title, sender or content. It exists purely so the platform will surface the session. The code chip is the one thing that ever reads notification text, only while you've turned it on, and only to find a verification code. Nothing is stored and nothing leaves the phone either way. |
+| Display over other apps | The [floating keyboard button](/typing/size-position/#opening-the-keyboard-without-a-text-field) | Draws one small button over other apps while the keyboard is closed, which opens the keyboard when tapped. That button is the only window it draws, and it can't see or read anything on screen. |
 | Usage access | "Show source app" on clipboard entries | Reads which app was in front at the moment you copied something, so the clip can show where it came from. Not your history, not time spent anywhere. Kept with the clip, on this device. |
-| Accessibility service | Keyboard gestures under a screen reader | Marks the key grid as bypassing TalkBack's touch handling, which is the only way an app can keep its own gestures there. It subscribes to no accessibility events, can't read window content, and covers nothing outside the keys. See [Screen readers](/reference/settings/accessibility/). The Play Store build doesn't contain the service, so there it's two, not three. |
+| Accessibility service | Keyboard gestures under a screen reader | Marks the key grid as bypassing TalkBack's touch handling, which is the only way an app can keep its own gestures there. It subscribes to no accessibility events, can't read window content, and covers nothing outside the keys. See [Screen readers](/reference/settings/accessibility/). The Play Store build doesn't contain the service, so there it's one fewer. |
 
-All three are revoked the same way they were granted, from the relevant system Settings screen, and the features fall back cleanly: media controls show their "needs access" panel, clips are saved with no source app, and the gestures mode behaves like Explore by touch.
+All of them are revoked the same way they were granted, from the relevant system Settings screen, and the features fall back cleanly: media controls show their "needs access" panel, clips are saved with no source app, the floating keyboard button stops appearing, and the gestures mode behaves like Explore by touch.
 
 ## Options
 
 <SettingsPath path="Privacy / Permissions" />
 
-The app has a permissions screen of its own, at the top of **Privacy**. It's an inventory rather than a funnel. Every permission that does something you can turn on or off appears there in three groups: the ones Android prompts for, the three special-access grants, and the four install-time ones the app declares for itself. Each row shows **Granted**, **Not granted** or **Automatic** on the right. What the screen leaves out is the handful of manifest entries with no control behind them, listed under [Details & edge cases](#details--edge-cases) below.
+The app has a permissions screen of its own, at the top of **Privacy**. It's an inventory rather than a funnel. Every permission that does something you can turn on or off appears there in three groups: the ones Android prompts for, the special-access grants, and the four install-time ones the app declares for itself. Each row shows **Granted**, **Not granted** or **Automatic** on the right. What the screen leaves out is the handful of manifest entries with no control behind them, listed under [Details & edge cases](#details--edge-cases) below.
 
 Tap a row you haven't granted and you get the same explanation-then-prompt flow the feature itself would run, so this is the one place you can grant something ahead of the feature that wants it. Tap a row that's already granted and the app's own page in Android's Settings opens, because that's the only place a grant can be taken back. Field by field, it's on [Permissions settings](/reference/settings/permissions/).
 
-Nothing stops you going to Android's page directly instead: **Settings → Apps → WM Keyboard → Permissions**. Notification access, usage access and accessibility each sit on their own system screen rather than in that list, which is why the in-app screen keeps them in a group of their own.
+Nothing stops you going to Android's page directly instead: **Settings → Apps → WM Keyboard → Permissions**. Notification access, usage access, display over other apps and accessibility each sit on their own system screen rather than in that list, which is why the in-app screen keeps them in a group of their own.
 
 ## Details & edge cases
 

@@ -2795,6 +2795,12 @@ data class KeyboardSettings(
      * whether the window stays, not where it sits.
      */
     val persistentKeyboard: Boolean = false,
+    /**
+     * The floating keyboard button over other apps (issue #374), which
+     * brings the keyboard up with or without a text field. See
+     * [SummonButtonSettings].
+     */
+    val summonButton: SummonButtonSettings = SummonButtonSettings(),
     val keyboardWidthPercent: Int = 100,
     val keyboardAlignment: KeyboardAlignment = KeyboardAlignment.CENTER,
     /**
@@ -8258,6 +8264,9 @@ class SettingsRepository(private val context: Context) {
         private val FLOATING_X = floatPreferencesKey("floating_x")
         private val FLOATING_Y = floatPreferencesKey("floating_y")
         private val PERSISTENT_KEYBOARD = booleanPreferencesKey("persistent_keyboard")
+        private val SUMMON_BUTTON = booleanPreferencesKey("summon_button")
+        private val SUMMON_BUTTON_X = floatPreferencesKey("summon_button_x")
+        private val SUMMON_BUTTON_Y = floatPreferencesKey("summon_button_y")
         private val KEYBOARD_WIDTH_PERCENT = intPreferencesKey("keyboard_width_percent")
         private val KEYBOARD_ALIGNMENT = stringPreferencesKey("keyboard_alignment")
         private val KEY_CORNER_RADIUS = intPreferencesKey("key_corner_radius")
@@ -9638,6 +9647,11 @@ class SettingsRepository(private val context: Context) {
             floatingXFraction = p[FLOATING_X] ?: defaults.floatingXFraction,
             floatingYFraction = p[FLOATING_Y] ?: defaults.floatingYFraction,
             persistentKeyboard = p[PERSISTENT_KEYBOARD] ?: defaults.persistentKeyboard,
+            summonButton = SummonButtonSettings(
+                enabled = p[SUMMON_BUTTON] ?: defaults.summonButton.enabled,
+                xFraction = p[SUMMON_BUTTON_X] ?: defaults.summonButton.xFraction,
+                yFraction = p[SUMMON_BUTTON_Y] ?: defaults.summonButton.yFraction,
+            ),
             keyboardWidthPercent = p[KEYBOARD_WIDTH_PERCENT] ?: defaults.keyboardWidthPercent,
             keyboardAlignment = p[KEYBOARD_ALIGNMENT]
                 ?.let { runCatching { KeyboardAlignment.valueOf(it) }.getOrNull() }
@@ -13313,6 +13327,16 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPersistentKeyboard(value: Boolean) =
         editPrefs { it[PERSISTENT_KEYBOARD] = value }
+
+    suspend fun setSummonButton(value: Boolean) =
+        editPrefs { it[SUMMON_BUTTON] = value }
+
+    /** Where a drag of the floating keyboard button left it; see [SummonButtonSettings]. */
+    suspend fun setSummonButtonPosition(x: Float, y: Float) =
+        editPrefs {
+            it[SUMMON_BUTTON_X] = x.coerceIn(0f, 1f)
+            it[SUMMON_BUTTON_Y] = y.coerceIn(0f, 1f)
+        }
 
     suspend fun setFloatingWidthDp(value: Int) =
         editPrefs { it[FLOATING_WIDTH] = value.coerceIn(240, 500) }
