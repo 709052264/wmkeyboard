@@ -3478,6 +3478,19 @@ data class KeyboardUiState(
         get() = !secureField && (fieldKind == FieldKind.TEXT || fieldKind == FieldKind.URI)
 
     /**
+     * Whether an opening bracket may type its closer behind the caret, and the
+     * two presses that go with it (stepping over a closer, a backspace taking
+     * an empty pair). Wider than [allowsTypingIntelligence] by the URL field,
+     * for the reason [allowsGestureTyping] is: a browser's address bar is a
+     * search box as often as an address box, and "(" typed there is somebody
+     * opening a bracket (#617). Nothing in the pair is a guess about a word, so
+     * nothing here second-guesses an address. Email fields, passwords, keypads
+     * and terminals stay out.
+     */
+    val allowsBracketPairs: Boolean
+        get() = !secureField && !nullField && (fieldKind == FieldKind.TEXT || fieldKind == FieldKind.URI)
+
+    /**
      * Whether the letters typed here are gathered into a word for the strip to
      * complete. Plain text fields, and a URL bar once "Suggestions in every
      * field" has put the strip on it (#98): a browser's address bar is typed

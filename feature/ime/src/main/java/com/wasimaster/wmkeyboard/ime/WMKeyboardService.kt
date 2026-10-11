@@ -9680,6 +9680,9 @@ open class WMKeyboardService : InputMethodService() {
             // rule below, because nothing is being typed: the caret moves and
             // the field is left exactly as it stands.
             if (typeOverCloser(ic, text, state)) {
+                // Stepping over ")" closes the bracket as surely as typing it
+                // does, so the space after punctuation follows it the same way.
+                if (shouldAutoSpaceAfterPunctuation(ic, state, text)) insertPunctuationSpace(ic)
                 consumeShift()
                 return
             }
@@ -9793,7 +9796,8 @@ open class WMKeyboardService : InputMethodService() {
      * a digit is part of the number ("5,000", "5:00") and gets no space
      * (#206, [markContinuesNumber]), and a full stop inside an email address
      * typed into a plain text field is the address's own dot ([markContinuesAddress]);
-     * the field is read last, and only for a mark.
+     * the field is read last, and only for a mark. A closing [SPACED_CLOSER] is
+     * spaced too, but only where it ends the text it closes ([closerTakesSpace]).
      */
     private fun shouldAutoSpaceAfterPunctuation(
         ic: InputConnection,
@@ -9803,9 +9807,16 @@ open class WMKeyboardService : InputMethodService() {
         state.settings.autoText.spaceAfterPunctuation &&
             state.allowsTypingIntelligence &&
             !state.composer.isConversion &&
-            text.length == 1 && text[0] in AUTO_SPACE_PUNCTUATION &&
-            (ic.getTextBeforeCursor(ADDRESS_LOOKBACK, 0) ?: "").let { before ->
-                !markContinuesNumber(before) && !markContinuesAddress(before, text[0])
+            text.length == 1 &&
+            if (text[0] == SPACED_CLOSER) {
+                // No number test: "(page 5)" ends on a digit and is still a
+                // closed bracket, not part of the number.
+                closerTakesSpace(ic.getTextAfterCursor(1, 0))
+            } else {
+                text[0] in AUTO_SPACE_PUNCTUATION &&
+                    (ic.getTextBeforeCursor(ADDRESS_LOOKBACK, 0) ?: "").let { before ->
+                        !markContinuesNumber(before) && !markContinuesAddress(before, text[0])
+                    }
             }
 
     /**
@@ -9930,14 +9941,41 @@ open class WMKeyboardService : InputMethodService() {
      * password is a character, not a pair.
      */
     private fun autoCloseBracket(ic: InputConnection, text: String, state: KeyboardUiState) {
-        if (!state.settings.textEditing.autoCloseBrackets || !state.allowsTypingIntelligence) return
+        if (!state.settings.textEditing.autoCloseBrackets || !state.allowsBracketPairs) return
         if (text.length != 1 || text[0] !in AUTO_CLOSE_PAIRS) return
         val closer = autoCloseCloserFor(text[0], ic.getTextAfterCursor(1, 0)) ?: return
-        // A commit with newCursorPosition 0 leaves the caret at the *start* of
-        // what it inserted, which is the whole feature: the closer goes in
-        // front of the caret rather than taking it along.
-        ic.commitText(closer, 0)
+        // The closer goes in like any typed character and the caret is then put
+        // back where it stood, between the two halves. A commit with
+        // newCursorPosition 0 says the same thing in one call, but only a plain
+        // EditText honours it: a web editor (notes.futo.tech, any page that
+        // runs its own beforeinput handler) and the custom inputs of apps like
+        // Discord insert the text themselves and leave the caret after it, so
+        // the pair came out with the caret outside (#617). Where the field will
+        // not say where its caret is, that one call is still the best on offer.
+        val caret = caretOffset(ic)
+        if (caret == null) {
+            ic.commitText(closer, 0)
+        } else {
+            ic.beginBatchEdit()
+            ic.commitText(closer, 1)
+            ic.setSelection(caret, caret)
+            ic.endBatchEdit()
+        }
         invalidateExpectedSelection()
+    }
+
+    /**
+     * Where the collapsed caret is, as an offset into the whole text, or null
+     * when the editor will not say. Asked of the editor rather than of
+     * expectedSel*, which is a mirror any edit this keystroke made has
+     * already invalidated. [ExtractedText.selectionEnd] counts from
+     * [ExtractedText.startOffset], which a field that extracts only part of a
+     * long text puts somewhere past 0.
+     */
+    private fun caretOffset(ic: InputConnection): Int? {
+        val extracted = ic.getExtractedText(ExtractedTextRequest(), 0) ?: return null
+        if (extracted.selectionEnd < 0) return null
+        return extracted.startOffset + extracted.selectionEnd
     }
 
     /**
@@ -9954,7 +9992,7 @@ open class WMKeyboardService : InputMethodService() {
         before: CharSequence,
         state: KeyboardUiState,
     ): Boolean {
-        if (!state.settings.textEditing.autoCloseBrackets || !state.allowsTypingIntelligence) {
+        if (!state.settings.textEditing.autoCloseBrackets || !state.allowsBracketPairs) {
             return false
         }
         val opener = before.lastOrNull() ?: return false
@@ -9972,14 +10010,12 @@ open class WMKeyboardService : InputMethodService() {
      * the early return at the call site.
      */
     private fun typeOverCloser(ic: InputConnection, text: String, state: KeyboardUiState): Boolean {
-        if (!state.settings.textEditing.autoCloseBrackets || !state.allowsTypingIntelligence) {
+        if (!state.settings.textEditing.autoCloseBrackets || !state.allowsBracketPairs) {
             return false
         }
         if (text.length != 1 || text[0] !in AUTO_CLOSE_CLOSERS) return false
         if (!typesOverCloser(text[0], ic.getTextAfterCursor(1, 0))) return false
-        // The caret's own position, which only the editor knows: expectedSel*
-        // is a mirror that any edit above may have invalidated.
-        val end = ic.getExtractedText(ExtractedTextRequest(), 0)?.selectionEnd ?: return false
+        val end = caretOffset(ic) ?: return false
         invalidateExpectedSelection()
         ic.setSelection(end + 1, end + 1)
         return true

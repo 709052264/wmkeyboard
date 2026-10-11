@@ -499,7 +499,9 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - 18 pairs — ( [ { （ ［ ｛ 〈 《 ⟨ ⟦ 「 『 ｢ 【 〔 〖 〘 〚 — brackets only; quotes and < are left alone, an apostrophe and a less-than sign being the commoner reading of those keys
     - Types over its own closer — Pressing the closer when it is already the next character steps the caret past it instead of doubling it
     - Backspace takes the pair — One press on an empty pair removes both halves; a pair with text in it deletes a character at a time
-    - Stands down in front of a word — A bracket typed immediately before a letter or digit is being put around it by hand; structured and secure fields are excluded like every other typing rule
+    - Stands down in front of a word — A bracket typed immediately before a letter or digit is being put around it by hand; secure, email and number fields are excluded, but URL bars are not (#617)
+    - Works in self-handling editors — The closer commits like a typed character and the caret is set back between the halves, so web editors and custom app inputs that ignore a commit's cursor position still leave it inside the pair (#617)
+    - Space after `)` — Under Auto-space after punctuation, a typed or stepped-over `)` with only a blank or the line end after it gets a space; `]` and `}` don't (Markdown links)
   - Selection-aware key behaviour `RARE` — What a key does changes when text is selected
     - Shift re-cases the selection — lower → Title → UPPER → lower, keeping the text selected so presses walk the cycle; mixed case normalises to lower
     - Brackets and quotes wrap — 11 pairs — ( [ { < " ' ` “ ‘ « ｢ — wrap the selection and leave the inner text selected for another pass
