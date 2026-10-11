@@ -434,7 +434,8 @@
         <!--
              Where an opened .wmtheme.json / .wmlayout.json / .wmsettings.json /
              .wmconfig.json / .wmsnippets.json / .wmstickers / .wmicons lands, and
-             the foreign ones (.flex, .kmp, .wastickers, .kcf) beside them:
+             the foreign ones (.flex, .kmp, .wastickers, .kcf, .klc, .keylayout)
+             beside them:
              one confirm dialog, the import, a result. Deliberately not
              MainActivity — tapping a theme in a file manager should not drop
              anyone into the settings app.
@@ -533,6 +534,14 @@
                 <data android:pathPattern=".*\\..*\\.kcf" />
                 <data android:pathPattern=".*\\..*\\..*\\.kcf" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\.kcf" />
+                <data android:pathPattern=".*\\.klc" />
+                <data android:pathPattern=".*\\..*\\.klc" />
+                <data android:pathPattern=".*\\..*\\..*\\.klc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.klc" />
+                <data android:pathPattern=".*\\.keylayout" />
+                <data android:pathPattern=".*\\..*\\.keylayout" />
+                <data android:pathPattern=".*\\..*\\..*\\.keylayout" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.keylayout" />
             </intent-filter>
 
             <intent-filter android:label="@string/import_file_label">
@@ -600,6 +609,14 @@
                 <data android:pathPattern=".*\\..*\\.kcf" />
                 <data android:pathPattern=".*\\..*\\..*\\.kcf" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\.kcf" />
+                <data android:pathPattern=".*\\.klc" />
+                <data android:pathPattern=".*\\..*\\.klc" />
+                <data android:pathPattern=".*\\..*\\..*\\.klc" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.klc" />
+                <data android:pathPattern=".*\\.keylayout" />
+                <data android:pathPattern=".*\\..*\\.keylayout" />
+                <data android:pathPattern=".*\\..*\\..*\\.keylayout" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.keylayout" />
             </intent-filter>
 
             <!--

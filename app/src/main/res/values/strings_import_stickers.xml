@@ -52,6 +52,15 @@
     <string name="import_multiling_theme_done">The app saved the theme. Open Themes to use it.</string>
     <string name="import_keyscafe_body">This is a Samsung Keyboard layout made in Keys Cafe. The app adds it as a layout of yours, laid out as it was there, bottom row included; the symbol keys stay the ones you have. The layout stays off. To type with it, turn it on in Languages.</string>
     <!-- Unexpected Keyboard and CleverKeys are the names of other keyboard apps; leave them as they are. -->
+    <!-- A layout made for a computer keyboard: Windows, Mac or Linux.
+         Languages is the name of a screen in the settings app. -->
+    <string name="import_desktop_layout_body">This is a layout for a computer keyboard. The app adds its letter keys as a layout of yours, in their places, with the AltGr and accented letters on press and hold; the symbol keys stay the ones you have. The layout stays off. To type with it, turn it on in Languages.</string>
+    <string name="import_desktop_title">From a computer layout</string>
+    <!-- A Linux layout file can hold several layouts, called variants. -->
+    <plurals name="import_desktop_layouts_body">
+        <item quantity="one">The file has %1$d layout. The app adds it as a layout of yours, in the language its letters suggest. It stays off. To type with it, turn it on in Languages.</item>
+        <item quantity="other">The file has %1$d layouts. The app adds them as layouts of yours, each in the language its letters suggest. They stay off. To type with one, turn it on in Languages.</item>
+    </plurals>
     <string name="import_unexpected_body">This is an Unexpected Keyboard or CleverKeys layout. The app adds it as a layout of yours. The swipes to the corners of each key stay swipes; the symbol keys stay the ones you have. The layout stays off. To type with it, turn it on in Languages.</string>
 
     <!-- ==== Backup files. ==== -->

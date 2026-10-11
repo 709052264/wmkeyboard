@@ -94,7 +94,6 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
 import com.wasimaster.wmkeyboard.core.layout.ConvertedLayout
 import com.wasimaster.wmkeyboard.core.keyman.KeymanImport
 import com.wasimaster.wmkeyboard.core.layout.DesktopLayouts
-import com.wasimaster.wmkeyboard.core.layout.DesktopLayouts
 import com.wasimaster.wmkeyboard.core.layout.ForeignLayouts
 import com.wasimaster.wmkeyboard.core.layout.FutoLayouts
 import com.wasimaster.wmkeyboard.core.layout.ForeignSource
@@ -609,13 +608,6 @@ internal fun KeyLayoutsScreen(
                         if (DesktopLayouts.looksLikeDesktopLayout(text)) {
                             return@runCatching DesktopLayouts.convertAll(text, name)
                         }
-                        // A computer keyboard's layout (.klc, .keylayout, XKB),
-                        // before the Unexpected Keyboard reader below, whose
-                        // XML test a .keylayout passes too. An XKB file holds
-                        // a layout per variant.
-                        if (DesktopLayouts.looksLikeDesktopLayout(text)) {
-                            return@runCatching DesktopLayouts.convertAll(text, name)
-                        }
                         // Keys Cafe before everything: its file is base64 text,
                         // which none of the readers below could take for theirs.
                         // The sniff can pass a HeliBoard text layout of plain
@@ -1100,9 +1092,6 @@ internal fun KeyLayoutsScreen(
                                 ForeignSource.KEYS_CAFE -> R.string.layout_editor_foreign_from_keyscafe
                                 ForeignSource.MULTILING -> R.string.layout_editor_foreign_from_multiling
                                 ForeignSource.UNEXPECTED -> R.string.layout_editor_foreign_from_unexpected
-                                ForeignSource.WINDOWS_KLC -> R.string.layout_editor_foreign_from_klc
-                                ForeignSource.MAC_KEYLAYOUT -> R.string.layout_editor_foreign_from_keylayout
-                                ForeignSource.XKB_SYMBOLS -> R.string.layout_editor_foreign_from_xkb
                                 ForeignSource.WINDOWS_KLC -> R.string.layout_editor_foreign_from_klc
                                 ForeignSource.MAC_KEYLAYOUT -> R.string.layout_editor_foreign_from_keylayout
                                 ForeignSource.XKB_SYMBOLS -> R.string.layout_editor_foreign_from_xkb

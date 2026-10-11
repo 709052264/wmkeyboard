@@ -175,6 +175,45 @@ class FileImportSniffTest {
         assertTrue(WMFileTypes.isEditableText(blob))
     }
 
+    // ---- Desktop layouts ----
+
+    @Test
+    fun `an XKB symbols file is a desktop layout, told by its contents`() {
+        val xkb = """
+            |default partial alphanumeric_keys
+            |xkb_symbols "basic" {
+            |    include "us(basic)"
+            |    name[Group1] = "Mine";
+            |    key <AC10> { [ odiaeresis, Odiaeresis ] };
+            |};
+        """.trimMargin()
+        // No extension at all, as XKB files have none.
+        val opened = WMFileTypes.textKindFor(xkb, "mine")
+        assertTrue("an XKB file was not recognised", opened is WMFileTypes.Opened.DesktopLayoutFile)
+        assertEquals("Mine", (opened as WMFileTypes.Opened.DesktopLayoutFile).layouts.single().layout.name)
+    }
+
+    @Test
+    fun `a keylayout is a desktop layout, not an Unexpected Keyboard one`() {
+        // Both are XML with a <keyboard> and <key>s; the desktop reader goes first.
+        val keys = "qwertyuiopasdfghjklzxcvbnm".mapIndexed { i, c ->
+            val code = listOf(12, 13, 14, 15, 17, 16, 32, 34, 31, 35, 0, 1, 2, 3, 5, 4, 38, 40, 37, 6, 7, 8, 9, 11, 45, 46)[i]
+            """<key code="$code" output="$c"/>"""
+        }.joinToString("\n")
+        val xml = """<?xml version="1.1" encoding="UTF-8"?>
+            |<keyboard group="126" id="-5" name="Mac Mine" maxout="1">
+            |<layouts><layout first="0" last="17" mapSet="m" modifiers="f"/></layouts>
+            |<modifierMap id="f" defaultIndex="0"><keyMapSelect mapIndex="0"><modifier keys=""/></keyMapSelect></modifierMap>
+            |<keyMapSet id="m"><keyMap index="0">
+            |$keys
+            |</keyMap></keyMapSet>
+            |</keyboard>
+        """.trimMargin()
+        val opened = WMFileTypes.textKindFor(xml, "mine.keylayout")
+        assertTrue("a keylayout was not recognised", opened is WMFileTypes.Opened.DesktopLayoutFile)
+        assertEquals("Mac Mine", (opened as WMFileTypes.Opened.DesktopLayoutFile).layouts.single().layout.name)
+    }
+
     // ---- Multiling O ----
 
     @Test

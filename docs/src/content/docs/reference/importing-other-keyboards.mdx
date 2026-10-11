@@ -1,6 +1,6 @@
 ---
 title: "Importing from other keyboards"
-description: "Bring layouts, themes, dictionaries and whole settings backups over from FlorisBoard, HeliBoard, LeanType, FUTO, CleverKeys, Unexpected Keyboard, AnySoftKeyboard, Samsung Keyboard (Keys Cafe), Multiling O and Gboard: what converts, what doesn't, and why."
+description: "Bring layouts, themes, dictionaries and whole settings backups over from FlorisBoard, HeliBoard, LeanType, FUTO, CleverKeys, Unexpected Keyboard, AnySoftKeyboard, Samsung Keyboard (Keys Cafe), Multiling O and Gboard, plus layouts made for Windows, macOS and Linux: what converts, what doesn't, and why."
 sidebar:
   order: 6
 ---
@@ -8,7 +8,7 @@ sidebar:
 import SettingsPath from '@components/SettingsPath.astro';
 import KeyCap from '@components/KeyCap.astro';
 
-Switching keyboards usually means leaving your layouts, themes and dictionaries behind. WM Keyboard reads FlorisBoard, HeliBoard, LeanType, FUTO, Unexpected Keyboard, CleverKeys, Samsung Keyboard (Keys Cafe) and Multiling O files directly and converts them into its own, so the grid you built, the theme you picked and the word list you collected come with you.
+Switching keyboards usually means leaving your layouts, themes and dictionaries behind. WM Keyboard reads FlorisBoard, HeliBoard, LeanType, FUTO, Unexpected Keyboard, CleverKeys, Samsung Keyboard (Keys Cafe) and Multiling O files directly and converts them into its own, so the grid you built, the theme you picked and the word list you collected come with you. It also reads the layout files people make for computers (Windows `.klc`, macOS `.keylayout` and Linux XKB), which is where a lot of layouts for smaller languages live.
 
 Conversion is honest about being lossy. A layout import always ends on a confirm dialog that lists what changed and what could not be carried, and nothing is written until you accept it. A `.flex` theme opened from a file manager gets the same treatment. The **FlorisBoard** button inside Settings is the one route without a confirm step: it saves the theme straight away and then tells you what it saved. Saved is not switched on, so you still get to look first.
 
@@ -22,6 +22,9 @@ Conversion is honest about being lossy. A layout import always ends on a confirm
 | `.kcf` layout | Samsung Keyboard, shared from Keys Cafe | A custom layout, kept exactly as it was laid out |
 | DIY or DIY+ layout text, or a settings export | Multiling O Keyboard | A custom layout with its symbols and AltGr pages, or every layout in the export |
 | `.xml` layout | Unexpected Keyboard, CleverKeys | A custom layout that keeps the swipes to each key's corners |
+| `.klc` layout | Windows, made in Microsoft Keyboard Layout Creator | A custom layout, with AltGr and dead-key letters on press and hold |
+| `.keylayout` layout | macOS, made in Ukelele | A custom layout, with Option and dead-key letters on press and hold |
+| XKB `symbols` file | Linux | A custom layout for each variant in the file |
 | `.flex` theme | FlorisBoard 0.4 and later | One theme, one look per theme in the file |
 | `.zip` theme | FUTO Keyboard | One theme, with its background picture and font |
 | `.flex` language pack | FlorisBoard | A Cangjie or stroke table for Chinese |
@@ -268,6 +271,30 @@ Unexpected Keyboard has no layout editor of its own: a custom layout is a block 
 - **Gaps and widths follow the file.** A key's `shift` becomes a gap to its left, and a row that starts with one stays aligned to the left, as it was. Row heights come across too.
 - **`<shift a="i" b="İ"/>`** in the `modmap` becomes that key's shifted form. The Fn and Ctrl mappings have no place here and are left out.
 - **The language** is the one a CleverKeys layout names in its `language` attribute, or in a backup the one you set for it there. Otherwise the picker starts from the letters on the keys.
+
+### Layouts made for a computer (Windows, macOS, Linux)
+
+Plenty of keyboard layouts for smaller languages were only ever made for a computer. Someone built one in Microsoft's Keyboard Layout Creator or in Ukelele, or wrote an XKB file for Linux, and put it on a university page or a forum. WM Keyboard reads all three. Pick the file with the same **Import from another keyboard** button, or open it from a file manager.
+
+| File | Made with | How the app knows it |
+|---|---|---|
+| `.klc` | Microsoft Keyboard Layout Creator (MSKLC), Windows | The extension, and its `KBD`, `SHIFTSTATE` and `LAYOUT` sections. MSKLC saves these files as UTF-16, and the app reads them that way |
+| `.keylayout` | Ukelele, or by hand, macOS | The extension, and its `<keyMapSet>` |
+| XKB `symbols` file | Linux, the files under `/usr/share/X11/xkb/symbols/` | Its `xkb_symbols "name" {` blocks. These files have no extension, so only the contents count |
+
+A computer keyboard has about 48 keys that type something, with four levels on each: plain, Shift, AltGr (Option on a Mac), and Shift with AltGr. A phone grid has room for about 30 keys and two levels, so the layout gets folded down:
+
+- **The 26 letter keys stay where they are**, whatever they type. The keys around them come across too when they type a letter, at the end of their row: Danish æ ø å, a Dvorak s where QWERTY has its semicolon. Keys that type only punctuation are left to this app's symbol pages.
+- **The number row** becomes a row of the grid only when five or more of its keys type letters, the way the Czech, Slovak and Lithuanian layouts are built. With fewer, each letter goes on press and hold of the letter it is built on (é on e, which is where AZERTY users reach it on a phone anyway), or onto the end of the shortest row when it is not built on one (German ß).
+- **Shift** comes across as each key's shifted form, where that is more than the capital letter.
+- **AltGr goes on press and hold** of the same key, first, so the corner hint shows what the key's AltGr level was.
+- **Dead keys go on press and hold too.** Every letter on the grid gets the accented letters the file's dead keys make of it, so a dead acute puts á on a and é on e. A dead key that sits on one of the letter keys keeps its place and works as a dead key here.
+- **Nothing is dropped without a word.** Characters on the left-out keys that are not plain ASCII or digits, such as Armenian ՝ or Ethiopic ።, go on press and hold of the full stop. The dialog says how many.
+- **Shift, delete and the bottom row** are this app's, as [above](#it-adds-the-shift-key-and-the-bottom-row).
+
+A `.klc` names its language (`LOCALENAME`), and the picker starts from it. The other two do not, so the app guesses from the letters as usual.
+
+An XKB file usually holds several variants. The import offers each one that is a whole layout, the default first, and adds them all at once; parts that only set up modifier keys are skipped. A variant often builds on another with `include "us(basic)"`. An include of a variant in the same file is followed, and so are the plain US and Latin bases, which are built in. An include of any other file cannot be, since you opened only the one file, so the dialog names it and you know which keys may be missing. Includes that only set up modifiers, such as `level3(ralt_switch)`, carry no characters and are not mentioned. An XKB dead key (`dead_acute`) puts its accent on a letter the way Unicode composes them, because the real tables live in your Linux system's Compose file, not in the layout.
 
 ### Letters are rewritten to one spelling
 

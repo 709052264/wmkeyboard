@@ -58,6 +58,7 @@ import com.wasimaster.wmkeyboard.core.layout.KeymanBinding
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.keyman.KeymanPackage
 import com.wasimaster.wmkeyboard.core.layout.ConvertedLayout
+import com.wasimaster.wmkeyboard.core.layout.DesktopLayouts
 import com.wasimaster.wmkeyboard.core.layout.FutoLayouts
 import com.wasimaster.wmkeyboard.core.layout.ImportedLayout
 import com.wasimaster.wmkeyboard.core.layout.KeysCafeLayouts
@@ -185,6 +186,14 @@ object WMFileTypes {
         // reason again: the file is somebody's own arrangement, and opening it
         // is how they bring it over. Keys Cafe keeps its own filter.
         KeysCafeLayouts.FILE_EXTENSION,
+        // A Windows layout's MSKLC source and a macOS layout from Ukelele,
+        // claimed for the same reason again: for a language nobody ships a
+        // phone layout for, the desktop file is often the only one there is.
+        // Neither extension means anything else, and the desktop tools that
+        // own them have no Android app to compete with. XKB files have no
+        // extension at all, so they are recognised by their contents alone.
+        DesktopLayouts.KLC_EXTENSION,
+        DesktopLayouts.KEYLAYOUT_EXTENSION,
     )
 
     /**
@@ -230,6 +239,14 @@ object WMFileTypes {
          * settle, and the body says the corner swipes came across.
          */
         data class UnexpectedLayout(val converted: ConvertedLayout) : Opened
+
+        /**
+         * A computer keyboard's layout, already converted: a Windows `.klc`,
+         * a macOS `.keylayout`, or an XKB `symbols` file, which holds one
+         * layout per variant. Its own case for the reason [FutoLayout] is, and
+         * a list because of the XKB variants.
+         */
+        data class DesktopLayoutFile(val layouts: List<ConvertedLayout>) : Opened
 
         /**
          * Text from Multiling O Keyboard, already converted: one layout, or a
@@ -400,7 +417,8 @@ object WMFileTypes {
                 // Capped on what comes *out*: a few megabytes of gzip inflate
                 // to far more, and this is the one read where the file's own
                 // size says nothing about what it costs to hold.
-                input.readCapped()?.decodeToString()
+                // UTF-16 is read as such: MSKLC saves every `.klc` that way.
+                input.readCapped()?.let(DesktopLayouts::decodeText)
             }
         }.getOrNull() ?: return Opened.Unreadable
 
@@ -483,6 +501,16 @@ object WMFileTypes {
             val layouts = MultilingLayouts.convertAll(text, name)
             val theme = MultilingTheme.read(text) as? MultilingThemeResult.Converted
             if (layouts.isNotEmpty() || theme != null) return Opened.MultilingFile(layouts, theme)
+        }
+
+        // A computer keyboard's layout. A `.klc` is told by its section
+        // words, a `.keylayout` by its `<keyMapSet>`, an XKB file by its
+        // `xkb_symbols "name" {` blocks; no other format here has any of them.
+        // Ahead of the Unexpected Keyboard branch below, whose `<keyboard>`
+        // and `<key>` test a `.keylayout` passes as well.
+        if (DesktopLayouts.looksLikeDesktopLayout(text)) {
+            val layouts = DesktopLayouts.convertAll(text, name)
+            if (layouts.isNotEmpty()) return Opened.DesktopLayoutFile(layouts)
         }
 
         // An Unexpected Keyboard or CleverKeys layout: XML with a `<keyboard>`
@@ -1171,6 +1199,55 @@ private fun multilingProposal(
 }
 
 /**
+ * What a computer keyboard's layout file offers.
+ *
+ * One layout goes through the language step, like every other foreign layout:
+ * only a `.klc` states a language, and the picker starts from it. An XKB file
+ * with several variants adds them all at once, each with the language its
+ * letters suggest, the way a Multiling settings export does. Nothing is turned
+ * on.
+ */
+private fun desktopProposal(
+    layouts: List<ConvertedLayout>,
+    repository: SettingsRepository,
+    context: android.content.Context,
+): ImportProposal {
+    val single = layouts.singleOrNull()
+    if (single != null) {
+        return ImportProposal(
+            titleRes = R.string.import_name_title,
+            titleArg = single.layout.name,
+            body = context.getString(R.string.import_desktop_layout_body),
+            repairs = single.notes.map { it.format(context.resources) },
+            language = single.guessedLangId,
+            applyWithLanguage = { langId ->
+                repository.upsertCustomLayout(
+                    single.withLanguage(langId).copy(id = "custom_${System.currentTimeMillis()}"),
+                )
+                context.getString(R.string.import_done_name, single.layout.name)
+            },
+        )
+    }
+    val count = layouts.size
+    return ImportProposal(
+        titleRes = R.string.import_desktop_title,
+        body = context.resources.getQuantityString(R.plurals.import_desktop_layouts_body, count, count) +
+            layouts.joinToString(separator = "\n", prefix = "\n\n") { "• ${it.layout.name}" },
+        apply = {
+            // One stamp for the batch with the position after it, as for a
+            // Multiling export: the loop is faster than the clock.
+            val stamp = System.currentTimeMillis()
+            layouts.forEachIndexed { index, converted ->
+                repository.upsertCustomLayout(
+                    converted.withLanguage(converted.guessedLangId).copy(id = "custom_${stamp}_$index"),
+                )
+            }
+            context.resources.getQuantityString(R.plurals.import_multiling_layouts_done, count, count)
+        },
+    )
+}
+
+/**
  * Turns a read file into what the dialog should say and do. Every branch mirrors
  * the equivalent in-app import so an opened file and a picked file behave the
  * same — including reading first and asking before anything is written.
@@ -1282,6 +1359,8 @@ private fun rememberProposal(
         )
 
         is WMFileTypes.Opened.MultilingFile -> multilingProposal(state, repository, context)
+
+        is WMFileTypes.Opened.DesktopLayoutFile -> desktopProposal(state.layouts, repository, context)
 
         // Drawn by ForeignBackupDialog before this is reached; here only so the
         // list stays exhaustive.
