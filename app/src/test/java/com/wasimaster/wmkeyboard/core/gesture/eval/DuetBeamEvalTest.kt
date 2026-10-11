@@ -12,7 +12,7 @@ import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
 import com.wasimaster.wmkeyboard.core.prediction.Trie
 import java.io.File
 import java.util.Locale
-import org.junit.Ignore
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 /**
@@ -20,15 +20,16 @@ import org.junit.Test
  * [DuetBeam] on the bundled English list, top-1 and top-3 per noise level,
  * with decode latency.
  *
- * `@Ignore` until it has been run once and its numbers written down as floors
- * the way [GestureEvalBaseline] holds the stroke decoder's — a floor guessed
- * before the first measurement would be a number someone liked. Run by name:
+ * Skipped unless `WM_DUET_EVAL` is set, until it has been run once and its
+ * numbers written down as floors the way [GestureEvalBaseline] holds the
+ * stroke decoder's — a floor guessed before the first measurement would be a
+ * number someone liked. An environment variable rather than `@Ignore`, which
+ * JUnit 4 honours even for a test picked by name (issue #640):
  *
  * ```
- * ./gradlew :app:testFullIntlDebugUnitTest --tests "*DuetBeamEvalTest"
+ * WM_DUET_EVAL=1 ./gradlew :app:testFullIntlDebugUnitTest --tests "*DuetBeamEvalTest"
  * ```
  */
-@Ignore("measurement; run by name, then record its numbers as floors")
 class DuetBeamEvalTest {
 
     private companion object {
@@ -47,6 +48,7 @@ class DuetBeamEvalTest {
 
     @Test
     fun measure() {
+        assumeTrue("set WM_DUET_EVAL to run this measurement", !System.getenv("WM_DUET_EVAL").isNullOrBlank())
         val entries = realEntries()
         val trie = Trie().apply { entries.forEach { (word, frequency) -> insert(word, frequency) } }
         val sources = trie.walkers().map {

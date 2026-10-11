@@ -17657,8 +17657,18 @@ private fun nearLetterKey(
         (center - position).getDistance() < keyWidth
 }
 
-/** One finger under two-thumb typing: a tap until it travels, then a swipe. */
-private class ThumbStroke(val down: Offset, val owned: Boolean) {
+/**
+ * One finger under two-thumb typing: a tap until it travels, then a swipe.
+ *
+ * [downAt] is when the finger landed, kept with where (issue #640). A swipe's
+ * first point has to carry it: a thumb can rest on a key for a while before it
+ * moves, the other thumb can tap meanwhile, and a swipe that seemed to start
+ * when it moved would come *after* that tap and lose the letter it began on.
+ */
+internal class ThumbStroke(val down: Offset, val downAt: Long, val owned: Boolean) {
+    /** Where and when the swipe began: the landing, not the first move past the slop. */
+    fun firstPoint(): GesturePoint = GesturePoint(down.x, down.y, downAt)
+
     var swiping = false
     var slot = -1
     var keys: List<KeyCenter>? = null
@@ -17708,7 +17718,7 @@ private suspend fun PointerInputScope.twoThumbGlide(
             var lifted = false
             for (change in event.changes) {
                 if (change.changedToDownIgnoreConsumed()) {
-                    strokes[change.id] = ThumbStroke(change.position, ownsStroke(change.position))
+                    strokes[change.id] = ThumbStroke(change.position, change.uptimeMillis, ownsStroke(change.position))
                     continue
                 }
                 val stroke = strokes[change.id] ?: continue
@@ -17736,7 +17746,7 @@ private suspend fun PointerInputScope.twoThumbGlide(
                     if (!nearLetter(stroke.down)) continue
                     stroke.swiping = true
                     stroke.keys = grid()
-                    stroke.points.add(GesturePoint(stroke.down.x, stroke.down.y, change.previousUptimeMillis))
+                    stroke.points.add(stroke.firstPoint())
                     // A trail per thumb; a third finger swipes undrawn.
                     val busy = strokes.values.mapTo(HashSet()) { it.slot }
                     stroke.slot = trails.indices.firstOrNull { it !in busy } ?: -1

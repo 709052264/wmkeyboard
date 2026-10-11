@@ -91,6 +91,12 @@ class DuetBeam(
      * than [DuetWorkspace.MAX_TOKENS] tokens, or no word explains them.
      *
      * Tokens with no clock (every time 0) are taken in list order.
+     *
+     * [partial] reads the gestures as the *start* of a word instead: every
+     * result is a spelling some dictionary word begins with, scored by the
+     * commonest word under it. That is what a word still being built shows
+     * while its gestures so far finish no word (issue #640) — `s` tapped and
+     * `o→m` swiped are "som", on the way to "something".
      */
     @Suppress("LongParameterList", "ReturnCount")
     fun decode(
@@ -100,6 +106,7 @@ class DuetBeam(
         sources: List<FuzzyBeamSearch.WalkSource>,
         ws: DuetWorkspace,
         limit: Int = 4,
+        partial: Boolean = false,
     ): List<GlideBeam.Candidate> {
         if (tokens.isEmpty() || tokens.size > DuetWorkspace.MAX_TOKENS) return emptyList()
         if (keyWidth <= 0f || keys.keyCount == 0 || sources.isEmpty() || limit <= 0) return emptyList()
@@ -114,7 +121,7 @@ class DuetBeam(
         for (src in ordered) {
             val rootBound = src.logWeight + ln1p(src.walker.maxSubtree(src.walker.root))
             if (rootBound < floor - EPS) continue
-            floor = searchOne(src, keys, ws, k, results, floor)
+            floor = searchOne(src, keys, ws, k, results, floor, partial)
         }
         return results.values
             .sortedWith(compareByDescending<GlideBeam.Candidate> { it.score }.thenBy { it.word })
@@ -345,6 +352,7 @@ class DuetBeam(
         k: Int,
         results: HashMap<String, GlideBeam.Candidate>,
         floorIn: Double,
+        partial: Boolean,
     ): Double {
         var floor = floorIn
         val walker = src.walker
@@ -385,13 +393,21 @@ class DuetBeam(
                 if (tok >= 0) openMask = openMask or (1 shl tok) else if (freeSlot < 0) freeSlot = slot
             }
 
-            if (openMask == 0 && done == allDone && length >= MIN_WORD_LENGTH &&
-                walker.isWord(node) && walker.frequency(node) >= minFrequency
-            ) {
-                val score = src.logWeight + ln1p(walker.frequency(node)) - weight * settled
+            // A prefix counts by the commonest word under it; a word by its own
+            // frequency. Either way only once every gesture has given its letters.
+            val emits = openMask == 0 && done == allDone && if (partial) {
+                length >= 1 && walker.maxSubtree(node) >= maxOf(1, minFrequency)
+            } else {
+                length >= MIN_WORD_LENGTH && walker.isWord(node) && walker.frequency(node) >= minFrequency
+            }
+            if (emits) {
+                val frequency = if (partial) walker.maxSubtree(node) else walker.frequency(node)
+                val score = src.logWeight + ln1p(frequency) - weight * settled
                 if (score > floor - EPS || results.size < k) {
                     val word = ws.materialize(s)
-                    if (!(src.tier == FuzzyBeamSearch.Tier.DICTIONARY && GlideJoiners.isNonWord(word))) {
+                    if (partial ||
+                        !(src.tier == FuzzyBeamSearch.Tier.DICTIONARY && GlideJoiners.isNonWord(word))
+                    ) {
                         emit(word, score, settled.toDouble(), src.tier, results)
                         if (results.size >= k) floor = kthBest(results, k, ws)
                     }

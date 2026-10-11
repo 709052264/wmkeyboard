@@ -126,6 +126,17 @@ class DuetBeamTest {
     }
 
     @Test
+    fun `gestures that finish no word yet still read as the start of one`() {
+        // Issue #640: s + o→m is on its way to "something" and is no word
+        // itself. The word reading is empty, and the partial one is what the
+        // field shows meanwhile, so nothing the user did is dropped.
+        val tokens = listOf(tap('s', 0L), swipe("om", 40L))
+        assertTrue(beam.decode(tokens, grid, keyWidth, sources, workspace).isEmpty())
+        val started = beam.decode(tokens, grid, keyWidth, sources, workspace, partial = true).map { it.word }
+        assertEquals("som", started.firstOrNull())
+    }
+
+    @Test
     fun `routing sends a lone swipe and taps alone elsewhere`() {
         assertFalse(DuetBeam.needsDuet(listOf(swipe("helo", 0L))))
         assertFalse(DuetBeam.needsDuet(listOf(tap('a', 0L), tap('b', 100L))))

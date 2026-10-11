@@ -107,8 +107,32 @@ internal class DuetWord {
         return true
     }
 
-    /** What the latest gesture typed, when it was a tap. */
-    fun lastTapText(): String? = letters.lastOrNull()
+    /**
+     * The word spelled straight off the keys: each tap's letter, and for each
+     * swipe the keys it started and ended on. What a word still being built
+     * shows when nothing in the dictionary even starts that way (issue #640),
+     * so its gestures stay on screen, and in the buffer, until a later one
+     * makes a word of them or a space types what is there.
+     */
+    fun literal(): String {
+        val out = StringBuilder()
+        tokens.forEachIndexed { i, token ->
+            when (token) {
+                is GlideToken.Tap -> out.append(letters[i].orEmpty())
+                is GlideToken.Swipe -> {
+                    val first = nearestKey(token.points.first())
+                    val last = nearestKey(token.points.last())
+                    first?.let { out.appendCodePoint(it) }
+                    if (last != null && last != first) out.appendCodePoint(last)
+                }
+            }
+        }
+        return out.toString()
+    }
+
+    private fun nearestKey(point: GesturePoint): Int? =
+        keys.minByOrNull { (it.x - point.x) * (it.x - point.x) + (it.y - point.y) * (it.y - point.y) }
+            ?.codePoint?.let { Character.toLowerCase(it) }
 
     /** A separate copy, for a preview to add a stroke still being drawn without touching this one. */
     fun copy(): DuetWord = DuetWord().also { other ->

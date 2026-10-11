@@ -1193,6 +1193,10 @@ class SuggestionEngine(
      * The caller routes: a lone swipe belongs to [glide], which reads its
      * pauses and loops too, and taps alone are typing. See
      * [DuetBeam.needsDuet].
+     *
+     * [partial] asks instead for the spellings the gestures *begin*, for a word
+     * still being built that finishes no word yet (#640). Those are not words,
+     * so they skip the blacklist, the rerank and the casing; best first.
      */
     @Suppress("LongParameterList")
     fun glideTokens(
@@ -1204,6 +1208,7 @@ class SuggestionEngine(
         previousWord2: String? = null,
         previousWord3: String? = null,
         recentWords: List<String> = emptyList(),
+        partial: Boolean = false,
     ): List<GlideBeam.Candidate> {
         val romanization = glideRomanization
         val sources = if (romanization.isEmpty) {
@@ -1219,7 +1224,9 @@ class SuggestionEngine(
             sources = sources,
             ws = duetWorkspace.get(),
             limit = maxOf(limit, GLIDE_RERANK_POOL),
+            partial = partial,
         )
+        if (partial) return decoded.take(limit)
         return finishGlide(
             decoded, romanization, limit, previousWord, previousWord2, previousWord3, recentWords,
         )
