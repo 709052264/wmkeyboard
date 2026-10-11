@@ -161,6 +161,8 @@ internal fun CustomDictionarySettings(
         CustomDictionaries.Refusal.TooLarge -> context.getString(R.string.customdict_import_too_large_error)
         CustomDictionaries.Refusal.MissingBody -> context.getString(R.string.customdict_import_missing_body_error)
         CustomDictionaries.Refusal.MissingHeader -> context.getString(R.string.customdict_import_missing_header_error)
+        CustomDictionaries.Refusal.MissingAff -> context.getString(R.string.customdict_import_missing_aff_error)
+        CustomDictionaries.Refusal.MissingDic -> context.getString(R.string.customdict_import_missing_dic_error)
         is CustomDictionaries.Refusal.UnsupportedVersion ->
             context.getString(R.string.customdict_import_unsupported_error, reason.version)
     }
