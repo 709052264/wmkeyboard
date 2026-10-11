@@ -25,16 +25,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Backspace
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bluetooth
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Cloud
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardDoubleArrowDown
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileDownload
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HeadsetMic
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Smartphone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SpaceBar
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Usb
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -58,6 +62,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -76,6 +82,7 @@ import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
 import com.wasimaster.wmkeyboard.core.settings.dictationLanguages
+import com.wasimaster.wmkeyboard.core.voice.VoiceMics
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.VoiceBarAction
 import com.wasimaster.wmkeyboard.ime.VoiceModelState
@@ -149,6 +156,14 @@ internal fun VoicePanel(
         voice.status != VoiceStatus.TRANSCRIBING
     val micUsable = !state.secureField && voice.status != VoiceStatus.UNAVAILABLE
     val collapseVisible = !state.secureField
+    // The microphone chip (#581): there whenever there is a microphone to
+    // switch to, or a pick already made that the user may want to undo.
+    val micPicked = state.settings.voiceBar.mic
+    val micChoices = VoiceMics.choices(
+        voice.mics,
+        ownCapture = voice.clipBased || state.settings.whisper.engine != "system",
+    )
+    val micChipVisible = micUsable && hasPermission && (micChoices.size > 1 || micPicked != VoiceMics.AUTO)
     fun collapseToBar() = onRailKey(
         VoiceBarAction.SwitchSurface(VoiceBarSettings.MODE_BAR),
     )
@@ -159,6 +174,7 @@ internal fun VoicePanel(
         if (undoVisible) add { feedback(); onUndo() }
         if (languageChipVisible) add { feedback(); languageMenuOpen = true }
         if (collapseVisible) add { feedback(); collapseToBar() }
+        if (micChipVisible) add { feedback(); onRailKey(VoiceBarAction.CycleMic) }
     }
     PanelFocusTarget(
         panel = PanelMode.VOICE,
@@ -170,6 +186,7 @@ internal fun VoicePanel(
     val undoRingIndex = if (micUsable) 1 else 0
     val languageRingIndex = undoRingIndex + (if (undoVisible) 1 else 0)
     val collapseRingIndex = languageRingIndex + (if (languageChipVisible) 1 else 0)
+    val micRingIndex = collapseRingIndex + (if (collapseVisible) 1 else 0)
 
     // While the mic is open, this whole side of the panel is the stop button,
     // not only the 64dp circle in the middle of it (#283). The stop press is
@@ -320,6 +337,51 @@ internal fun VoicePanel(
                             },
                         )
                     }
+                }
+            }
+
+            // Which microphone dictation listens through (#581). A tap moves to
+            // the next one plugged in and keeps it for later sessions; the
+            // label is the indication of which one is in use. A pick whose
+            // microphone is not plugged in is drawn faint: automatic stands
+            // in for it until it is back.
+            if (micChipVisible) {
+                val inUse = micPicked == VoiceMics.AUTO || micPicked in voice.mics
+                val label = stringResource(voiceMicLabelRes(micPicked))
+                val description = stringResource(R.string.ime_voice_mic_desc, label)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(4.dp)
+                        .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
+                        .background(kb.chip)
+                        .focusRing(
+                            focusedAction == micRingIndex,
+                            RoundedCornerShape(kb.toolRadiusDp.dp),
+                        )
+                        .clickable(onClickLabel = stringResource(R.string.ime_voice_mic_switch)) {
+                            feedback()
+                            onRailKey(VoiceBarAction.CycleMic)
+                        }
+                        .semantics(mergeDescendants = true) { contentDescription = description }
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                ) {
+                    val tint = if (inUse && micPicked != VoiceMics.AUTO) kb.toolbarIcon else kb.secondaryText
+                    Icon(
+                        voiceMicIcon(micPicked),
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = tint,
+                    )
+                    Text(
+                        label,
+                        color = tint,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        modifier = Modifier.padding(start = 4.dp),
+                    )
                 }
             }
 
@@ -728,6 +790,23 @@ internal fun VoiceLanguageMenu(
 internal fun voiceLanguagesLabel(ids: List<String>): String {
     val codes = ids.map { LanguageRegistry.byId(it).localeTag.substringBefore('-').uppercase() }.distinct()
     return if (codes.size <= 2) codes.joinToString("+") else "${codes.first()}+${codes.size - 1}"
+}
+
+/** The microphone chip's wording for a [VoiceMics] kind. */
+internal fun voiceMicLabelRes(kind: String): Int = when (kind) {
+    VoiceMics.PHONE -> R.string.ime_voice_mic_phone
+    VoiceMics.WIRED -> R.string.ime_voice_mic_wired
+    VoiceMics.USB -> R.string.ime_voice_mic_usb
+    VoiceMics.BLUETOOTH -> R.string.ime_voice_mic_bluetooth
+    else -> R.string.ime_voice_mic_auto
+}
+
+private fun voiceMicIcon(kind: String): ImageVector = when (kind) {
+    VoiceMics.PHONE -> Icons.Outlined.Smartphone
+    VoiceMics.WIRED -> Icons.Outlined.HeadsetMic
+    VoiceMics.USB -> Icons.Outlined.Usb
+    VoiceMics.BLUETOOTH -> Icons.Outlined.Bluetooth
+    else -> Icons.Outlined.Mic
 }
 
 /** One tappable chip under the mic, with a leading icon. */

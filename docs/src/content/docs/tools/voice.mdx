@@ -208,6 +208,16 @@ On Android 13 and up, a chip offers to download a model that's available for you
 {/* shot: tools/voice-offline-model-chip */}
 </PhoneFrame>
 
+## Choosing the microphone
+
+<SettingsPath path="Voice typing / Microphone" />
+
+By default voice typing listens through whichever microphone Android picks, which is a wired or USB headset when one is plugged in and the phone's own microphone otherwise. Android does not switch dictation to a Bluetooth headset on its own. **Microphone** changes that: choose **Bluetooth headset**, **Wired headset**, **USB microphone** or **Phone microphone**, and voice typing uses that kind whenever one is connected. When none is, it goes back to the automatic choice, so a headset left at home doesn't leave you with a dead mic.
+
+When more than one microphone is connected, a chip in the bottom right corner of the voice panel shows the one in use, **Auto**, **Phone**, **Wired**, **USB** or **Bluetooth**. Tap it to move to the next connected one. The pick is saved as the **Microphone** setting, and a session that's listening starts again on the new microphone. A pick whose microphone isn't connected right now is drawn faint, and automatic is used until it's back.
+
+How far the choice reaches depends on the engine. [Offline Whisper](/tools/whisper/) and the [transcription server](/tools/transcription-server/) record with the keyboard's own capture, so every kind works for them. The system recognizer records the audio itself, and the only way to move it is to route the phone's call audio to a Bluetooth headset, so with it the chip offers **Auto** and **Bluetooth** only. A Bluetooth headset's microphone works over the same link a phone call uses, so while it's in use music on that headset drops to call quality. The keyboard gives the link back about a second after dictation stops.
+
 ## Options
 
 <SettingsPath path="Voice typing" />
@@ -221,6 +231,7 @@ Everything below lives on the Voice typing screen, under Features on the setting
 | Voice typing mode | One block at a time | Another choice of three: whether the keys work while the mic is open. **One block at a time**, **Type while you speak**, or **Type while you speak, plain text**. See [Typing while you dictate](#typing-while-you-dictate). |
 | Hold the tool to pick a mode | On | A press and hold on the toolbar's Voice tool opens a menu of the three modes; picking one makes it the mode and starts dictation. Off gives the hold back to the toolbar's own press-and-hold action. |
 | Pause media during voice typing | Off | The keyboard takes the audio focus while the microphone listens, so music, podcasts and video pause. They resume about a second after dictation ends, which keeps a continuous session from restarting the music between sentences. An app that ignores the request keeps playing. |
+| Microphone | Automatic | Which microphone voice typing listens through: **Automatic**, **Bluetooth headset**, **Wired headset**, **USB microphone** or **Phone microphone**. A pick is preferred whenever one of its kind is connected, and automatic stands in when none is. See [Choosing the microphone](#choosing-the-microphone). |
 | Hold to talk | 600&nbsp;ms | How long you hold the microphone before a tap becomes a press-and-hold, from 200 to 1500&nbsp;ms. Raise it if a slow press keeps stopping your dictation. Lower it if you mean to hold and it keeps latching on. |
 | Keep listening | On | Starts the next sentence automatically after each one commits. |
 | Spoken punctuation | On | Saying "comma", "question mark" or "দাঁড়ি" types the mark. |

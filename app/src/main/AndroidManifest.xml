@@ -41,6 +41,11 @@
     <!-- Only used by the optional voice input tool; audio goes to the
          device's speech recognizer while dictating, never stored. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Voice typing through a Bluetooth headset (#581): the headset's
+         microphone only opens while the keyboard holds its voice link, and
+         taking that link (startBluetoothSco before Android 12) is checked
+         against this. A normal permission, granted at install. -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <!-- Only used by the optional contact-name suggestions setting; names
          are read into memory for the suggestion strip, never stored. -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />

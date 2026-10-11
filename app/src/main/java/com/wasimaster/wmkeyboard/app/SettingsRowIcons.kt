@@ -162,6 +162,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mosque
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MotionPhotosOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mouse
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MusicNote
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HeadsetMic
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notifications
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.NotificationsOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Numbers
@@ -1284,6 +1285,7 @@ internal object SettingsRowIcons {
         put(R.string.voice_typing_title) { Icons.Outlined.RecordVoiceOver }
         put(R.string.voice_hold_picks_title) { Icons.Outlined.TouchApp }
         put(R.string.voice_pause_media_title) { Icons.Outlined.MusicNote }
+        put(R.string.voice_mic_title) { Icons.Outlined.HeadsetMic }
         put(R.string.voice_ai_tidy_title) { Icons.Outlined.AutoAwesome }
         put(R.string.voice_continuous_title) { Icons.Outlined.MicNone }
         put(R.string.voice_silence_stop_title) { Icons.Outlined.Timer }

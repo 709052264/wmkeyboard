@@ -112,6 +112,13 @@
     <!-- Collapse button on the voice panel and the compact bar: switch
          dictation to the small pill and make that the new default. -->
     <string name="ime_voice_collapse_desc">Collapse to the small bar</string>
+    <string name="ime_voice_mic_auto">Auto</string>
+    <string name="ime_voice_mic_phone">Phone</string>
+    <string name="ime_voice_mic_wired">Wired</string>
+    <string name="ime_voice_mic_usb">USB</string>
+    <string name="ime_voice_mic_bluetooth">Bluetooth</string>
+    <string name="ime_voice_mic_desc">Microphone: %1$s</string>
+    <string name="ime_voice_mic_switch">Switch microphone</string>
     <!-- The bar's expand button: go back to the surface it replaced. -->
     <string name="ime_voice_bar_expand_panel_desc">Open the voice panel</string>
     <string name="ime_voice_bar_expand_strip_desc">Open the bar over the keys</string>

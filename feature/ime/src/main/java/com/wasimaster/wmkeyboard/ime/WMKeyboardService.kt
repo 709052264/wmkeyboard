@@ -531,6 +531,7 @@ import com.wasimaster.wmkeyboard.core.voice.MicBlockWatcher
 import com.wasimaster.wmkeyboard.core.voice.VoiceBias
 import com.wasimaster.wmkeyboard.core.voice.VoiceBiasRequest
 import com.wasimaster.wmkeyboard.core.voice.VoiceInputEngine
+import com.wasimaster.wmkeyboard.core.voice.VoiceMics
 import com.wasimaster.wmkeyboard.core.voice.VoiceClipGate
 import com.wasimaster.wmkeyboard.core.voice.VoicePunctuation
 import com.wasimaster.wmkeyboard.core.voice.VoiceCasing
@@ -2586,6 +2587,16 @@ open class WMKeyboardService : InputMethodService() {
     private var voiceBiasJob: Job? = null
     /** Ends a session Android is feeding silence (Quick Settings mic tile, #193). */
     private val micBlockWatcher = MicBlockWatcher(this)
+
+    /** The Bluetooth voice link a dictation through a headset holds (#581). */
+    private val voiceMicRoute by lazy { VoiceMics.Route(this) }
+
+    /** Keeps [VoiceUi.mics] in step with what is plugged in, for the panel's microphone chip. */
+    private val voiceMicWatcher by lazy {
+        VoiceMics.Watcher(this) { kinds ->
+            _uiState.update { if (it.voice.mics == kinds) it else it.copy(voice = it.voice.copy(mics = kinds)) }
+        }
+    }
     /**
      * The model and language [whisperRecorder] was started against. Recording
      * can run for up to 30 seconds, during which the user can switch the
@@ -3229,6 +3240,22 @@ open class WMKeyboardService : InputMethodService() {
                     holdMediaFocus(listening)
                 }
         }
+        // A headset's voice link is what a call uses, and music on the headset
+        // drops to call quality while it is up (#581). [startVoice] takes it;
+        // it goes back once the microphone has been shut for the same moment
+        // the audio focus waits, so a continuous session keeps it between
+        // phrases instead of reconnecting the headset for each one.
+        serviceScope.launch {
+            _uiState.map { voiceActive() }
+                .distinctUntilChanged()
+                .collectLatest { active ->
+                    if (!active) {
+                        delay(VOICE_MEDIA_RESUME_MS)
+                        voiceMicRoute.release()
+                    }
+                }
+        }
+        voiceMicWatcher.start()
         // Marks the network activity log's rows made while incognito is on,
         // whether the switch or the field turned it on.
         serviceScope.launch {
@@ -6666,6 +6693,8 @@ open class WMKeyboardService : InputMethodService() {
         micBlockWatcher.stop()
         voiceEngine.cancel()
         whisperRecorder?.let { rec -> whisperRecorder = null; runCatching { rec.stop() } }
+        voiceMicRoute.release()
+        voiceMicWatcher.stop()
         mediaController.stop()
         hwRecognizer.close()
         releaseTranslateEngine()
@@ -22196,8 +22225,13 @@ open class WMKeyboardService : InputMethodService() {
                 ),
             )
         }
+        // The microphone picked on the panel or in settings (#581), when it is
+        // plugged in. Taken before either engine opens the microphone, so the
+        // first words already come through the headset.
+        val mic = voiceMicKind()
+        voiceMicRoute.hold(mic)
         if (whisperModel != null || server) {
-            startWhisperCapture(whisperModel, generation)
+            startWhisperCapture(whisperModel, generation, mic)
             return
         }
         if (!modelKnown) refreshVoiceModelState(tag)
@@ -22512,7 +22546,7 @@ open class WMKeyboardService : InputMethodService() {
      * A null [model] records the clip for the transcription server instead:
      * the capture is the same, only [finishWhisper] sends it somewhere else.
      */
-    private fun startWhisperCapture(model: WhisperModel?, generation: Int) {
+    private fun startWhisperCapture(model: WhisperModel?, generation: Int, mic: String) {
         val languages = voiceLanguageIds()
         val languageId = languages.first()
         whisperCapture = model?.let { it to languageId }
@@ -22542,6 +22576,7 @@ open class WMKeyboardService : InputMethodService() {
             // session, which is the hands-free stop the setting is for.
             silenceStopMs = _uiState.value.settings.voiceBar.silenceStopMs,
             onSilence = { finishWhisper(userStopped = false) },
+            preferredDevice = VoiceMics.deviceFor(this, mic),
         )
         if (!recorder.start()) {
             _uiState.update {
@@ -23111,8 +23146,49 @@ open class WMKeyboardService : InputMethodService() {
             VoiceBarAction.CloseStrip -> closeVoiceStrip()
             is VoiceBarAction.Bounds -> onVoiceBarBounds(action)
             is VoiceBarAction.PickLanguages -> onVoiceLanguagePick(action.ids)
+            VoiceBarAction.CycleMic -> cycleVoiceMic()
         }
     }
+
+    /**
+     * The microphone this session listens through (#581): the stored pick
+     * while one of its kind is plugged in, else automatic. A headset that
+     * dropped out does not leave dictation pointed at nothing.
+     */
+    private fun voiceMicKind(): String {
+        val picked = _uiState.value.settings.voiceBar.mic
+        return if (picked != VoiceMics.AUTO && picked in VoiceMics.available(this)) picked else VoiceMics.AUTO
+    }
+
+    /**
+     * The voice panel's microphone chip (#581): the next of the microphones
+     * plugged in, stored as the pick so it holds for every session after this
+     * one. Mirrored into the state ahead of the write, as the typing mode is,
+     * so a session restarted for it already uses it. A microphone that is
+     * listening restarts on the new one; a phrase being transcribed was
+     * already heard and finishes as it is.
+     */
+    private fun cycleVoiceMic() {
+        val state = _uiState.value
+        val next = VoiceMics.next(state.settings.voiceBar.mic, VoiceMics.choices(state.voice.mics, voiceOwnCapture()))
+        _uiState.update {
+            it.copy(settings = it.settings.copy(voiceBar = it.settings.voiceBar.copy(mic = next)))
+        }
+        serviceScope.launch { settingsRepository.setVoiceMic(next) }
+        if (state.voice.status == VoiceStatus.LISTENING) {
+            voiceSilentRetries = 0
+            startVoice()
+        }
+    }
+
+    /**
+     * Dictation records with the keyboard's own microphone capture (Whisper
+     * or the server), which can be pointed at any microphone. The system
+     * recognizer records in its own process and can only be moved to a
+     * Bluetooth headset.
+     */
+    private fun voiceOwnCapture(): Boolean =
+        _uiState.value.voice.clipBased || _uiState.value.settings.whisper.engine != "system"
 
     private fun onVoiceSurfaceKey(key: Key) {
         if (_uiState.value.voice.partial.isNotEmpty()) {

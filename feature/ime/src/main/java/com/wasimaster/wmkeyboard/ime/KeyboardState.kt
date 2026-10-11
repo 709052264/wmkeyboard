@@ -1065,6 +1065,12 @@ data class VoiceUi(
      * error has somewhere to be said.
      */
     val field: String? = null,
+    /**
+     * The kinds of microphone plugged in now (#581), as
+     * [com.wasimaster.wmkeyboard.core.voice.VoiceMics] names them, for the
+     * panel's microphone chip. Kept current by the service's device watcher.
+     */
+    val mics: List<String> = emptyList(),
 )
 
 /** The session records a whole clip and transcribes it after the stop tap. */
@@ -1194,6 +1200,9 @@ sealed interface VoiceBarAction {
      * dictation listens for, in order, or none to follow the keyboard.
      */
     data class PickLanguages(val ids: List<String>) : VoiceBarAction
+
+    /** The voice panel's microphone chip (#581): listen through the next microphone plugged in. */
+    data object CycleMic : VoiceBarAction
 }
 
 /**

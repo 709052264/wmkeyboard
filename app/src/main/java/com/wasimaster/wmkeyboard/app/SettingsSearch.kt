@@ -993,6 +993,7 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
         row(R.string.voice_typing_title, R.string.voice_typing_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.voice_hold_picks_title, R.string.voice_hold_picks_subtitle),
         row(R.string.voice_pause_media_title, R.string.voice_pause_media_subtitle),
+        row(R.string.voice_mic_title, R.string.voice_mic_subtitle),
         row(R.string.voice_hold_title, R.string.voice_hold_subtitle),
         row(R.string.voice_continuous_title, R.string.voice_continuous_subtitle),
         row(R.string.voice_silence_stop_title, R.string.voice_silence_stop_subtitle),

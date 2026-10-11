@@ -4860,6 +4860,14 @@ data class VoiceBarSettings(
      */
     val pauseMedia: Boolean = false,
     /**
+     * Which microphone dictation listens through (#581): [MIC_AUTO], the one
+     * Android picks, or a kind to prefer whenever one is connected —
+     * [MIC_PHONE], [MIC_WIRED], [MIC_USB] or [MIC_BLUETOOTH]. A kind that is
+     * not connected falls back to automatic. The voice panel's microphone chip
+     * cycles through what is connected and stores the pick here.
+     */
+    val mic: String = MIC_AUTO,
+    /**
      * Each dictated phrase is tidied by the AI tool's provider after it lands
      * (#499): filler words, false starts and spoken self-corrections taken out,
      * the way Gboard's "Rambler" does it on Google's servers. Off by default:
@@ -4888,6 +4896,13 @@ data class VoiceBarSettings(
         const val SNAP_LEFT = 0
         const val SNAP_CENTER = 1
         const val SNAP_RIGHT = 2
+
+        const val MIC_AUTO = "auto"
+        const val MIC_PHONE = "phone"
+        const val MIC_WIRED = "wired"
+        const val MIC_USB = "usb"
+        const val MIC_BLUETOOTH = "bluetooth"
+        val MICS = listOf(MIC_AUTO, MIC_PHONE, MIC_WIRED, MIC_USB, MIC_BLUETOOTH)
 
         /**
          * One block of speech at a time, the way voice typing has always
@@ -8983,6 +8998,7 @@ class SettingsRepository(private val context: Context) {
         private val VOICE_HOLD_TO_TALK_MS = intPreferencesKey("voice_hold_to_talk_ms")
         private val VOICE_HOLD_PICKS_MODE = booleanPreferencesKey("voice_hold_picks_mode")
         private val VOICE_PAUSE_MEDIA = booleanPreferencesKey("voice_pause_media")
+        private val VOICE_MIC = stringPreferencesKey("voice_mic")
         private val VOICE_AI_TIDY = booleanPreferencesKey("voice_ai_tidy")
         private val VOICE_UI_RETURN_MODE = stringPreferencesKey("voice_ui_return_mode")
         private val VOICE_BAR_INLINE = booleanPreferencesKey("voice_bar_inline")
@@ -10853,6 +10869,7 @@ class SettingsRepository(private val context: Context) {
             silenceStopMs = p[VOICE_SILENCE_STOP_MS] ?: defaults.voiceBar.silenceStopMs,
             holdPicksTypingMode = p[VOICE_HOLD_PICKS_MODE] ?: defaults.voiceBar.holdPicksTypingMode,
             pauseMedia = p[VOICE_PAUSE_MEDIA] ?: defaults.voiceBar.pauseMedia,
+            mic = p[VOICE_MIC]?.takeIf { it in VoiceBarSettings.MICS } ?: defaults.voiceBar.mic,
             aiTidy = p[VOICE_AI_TIDY] ?: defaults.voiceBar.aiTidy,
             returnMode = p[VOICE_UI_RETURN_MODE] ?: defaults.voiceBar.returnMode,
             inline = p[VOICE_BAR_INLINE] ?: defaults.voiceBar.inline,
@@ -11881,6 +11898,11 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setVoicePauseMedia(value: Boolean) =
         editPrefs { it[VOICE_PAUSE_MEDIA] = value }
+
+    suspend fun setVoiceMic(value: String) {
+        if (value !in VoiceBarSettings.MICS) return
+        editPrefs { it[VOICE_MIC] = value }
+    }
 
     suspend fun setVoiceAiTidy(value: Boolean) =
         editPrefs { it[VOICE_AI_TIDY] = value }
