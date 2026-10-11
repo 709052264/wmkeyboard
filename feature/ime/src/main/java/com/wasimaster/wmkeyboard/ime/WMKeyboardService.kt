@@ -12129,7 +12129,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * Whether the panel on screen is a panel layout whose grid asked to stay
-     * open across a change of field (issue #60). Only the four panels that
+     * open across a change of field (issue #60). Only the panels that
      * *are* layouts can; every other panel is chrome the field owns.
      */
     private fun panelLayoutPersists(state: KeyboardUiState): Boolean {

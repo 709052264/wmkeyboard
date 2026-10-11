@@ -1536,6 +1536,7 @@ internal object SettingsRowIcons {
         put(R.string.panel_name_text_edit) { Icons.Outlined.EditNote }
         put(R.string.panel_name_trackpad) { SymbolIcons.TrackpadInput }
         put(R.string.panel_name_numpad) { Icons.Outlined.Dialpad }
+        put(R.string.panel_name_handwriting) { Icons.Outlined.Draw }
 
         // ---- Layout & size: per screen and per orientation ----
         put(SettingsR.string.core_settings_screen_variant_landscape_label) { Icons.Outlined.StayCurrentLandscape }

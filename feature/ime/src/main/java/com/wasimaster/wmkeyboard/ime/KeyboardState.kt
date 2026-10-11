@@ -743,6 +743,7 @@ val PanelMode.layoutKind: PanelKind?
         PanelMode.TEXT_EDIT -> PanelKind.TEXT_EDIT
         PanelMode.TRACKPAD -> PanelKind.TRACKPAD
         PanelMode.NUMPAD -> PanelKind.NUMPAD
+        PanelMode.HANDWRITING -> PanelKind.HANDWRITING
         else -> null
     }
 

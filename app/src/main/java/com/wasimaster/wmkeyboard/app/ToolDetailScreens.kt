@@ -1775,6 +1775,22 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.handwritingCommitDelayMs.toFloat(),
                     ) { scope.launch { repository.setHandwritingCommitDelayMs(it.roundToInt()) } }
                 }
+                // The canvas and the keys around it are a panel layout (#568),
+                // edited where the trackpad's are.
+                item {
+                    val customPanels by repository.customPanelLayouts.collectAsStateWithLifecycle(emptyList())
+                    NavRow(
+                        title = R.string.panel_layout_row_title,
+                        subtitle = stringResource(R.string.panel_layout_row_subtitle),
+                        value = stringResource(
+                            if (customPanels.none { it.panel == PanelKind.HANDWRITING }) {
+                                R.string.panel_layout_value_default
+                            } else {
+                                R.string.panel_layout_value_custom
+                            },
+                        ),
+                    ) { onNavigate(panelEditRoute(PanelKind.HANDWRITING)) }
+                }
                 // Issue #386. Automatic rides on Android's own stylus
                 // handwriting, which only exists from Android 14; below that
                 // the row would offer a choice of one.

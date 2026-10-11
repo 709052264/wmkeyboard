@@ -781,6 +781,12 @@ enum class PanelFieldKind(val panel: PanelKind) {
     @SerialName("gif_browser") GIF_BROWSER(PanelKind.GIF),
     /** The sticker panel's body, as [GIF_BROWSER] is the GIF panel's. */
     @SerialName("sticker_browser") STICKER_BROWSER(PanelKind.STICKER),
+    /**
+     * The handwriting panel's writing area (#568), with what sits on the ink:
+     * the language chip, undo and the full-screen button, and the download
+     * offer while the model is missing.
+     */
+    @SerialName("handwriting_canvas") HANDWRITING_CANVAS(PanelKind.HANDWRITING),
     @SerialName("unknown") UNKNOWN(PanelKind.EMOJI),
     ;
 
@@ -801,7 +807,7 @@ enum class PanelFieldKind(val panel: PanelKind) {
      */
     val fills: Boolean
         get() = this == EMOJI_GRID || this == CLIPBOARD_LIST || this == TRACKPAD ||
-            this == GIF_BROWSER || this == STICKER_BROWSER
+            this == GIF_BROWSER || this == STICKER_BROWSER || this == HANDWRITING_CANVAS
 }
 
 /**

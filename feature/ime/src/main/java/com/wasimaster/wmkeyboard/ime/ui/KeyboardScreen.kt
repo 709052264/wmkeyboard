@@ -11137,14 +11137,11 @@ private fun KeyboardBody(
                 PanelMode.NUMPAD -> NumpadPanelHost(state, panelCallbacks)
                 PanelMode.CANDIDATES -> CandidateGridPanel(state, onCandidate)
                 PanelMode.HANDWRITING -> if (BuildConfig.ENABLE_ML_KIT_HANDWRITING) {
-                    HandwritingPanel(
-                        state = state,
+                    HandwritingPanelHost(
+                        state, panelCallbacks,
                         onStroke = onHandwritingStroke,
                         onUndoStroke = onHandwritingUndo,
                         onDownloadModel = onHandwritingDownload,
-                        onKey = onKey,
-                        onLayoutSelect = onLayoutSelect,
-                        onClose = { onPanelChange(PanelMode.HANDWRITING) },
                     )
                 } else {
                     onPanelChange(PanelMode.SNIPPETS)

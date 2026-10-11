@@ -17,7 +17,9 @@ import androidx.compose.ui.platform.LocalDensity
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.wasimaster.wmkeyboard.core.handwriting.HwStroke
 import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
 import com.wasimaster.wmkeyboard.core.layout.BuiltInPanelLayouts
 import com.wasimaster.wmkeyboard.core.layout.Key
@@ -505,6 +507,38 @@ internal fun TrackpadPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCal
             state, state.panelLayout(PanelKind.TRACKPAD), callbacks, onClose,
             fields = { kind ->
                 if (kind == PanelFieldKind.TRACKPAD) TrackpadField(state.settings.trackpad, callbacks.trackpad)
+            },
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
+}
+
+/**
+ * The handwriting panel (#568): the writing canvas and whatever keys the
+ * layout puts around it, filling the key area. The ink callbacks come straight
+ * from the panel's call site rather than through [PanelLayoutCallbacks], which
+ * every other panel would have to carry for this one.
+ */
+@Composable
+internal fun HandwritingPanelHost(
+    state: KeyboardUiState,
+    callbacks: PanelLayoutCallbacks,
+    onStroke: (HwStroke, IntSize) -> Unit,
+    onUndoStroke: () -> Unit,
+    onDownloadModel: () -> Unit,
+) {
+    val onClose = { callbacks.onPanelChange(PanelMode.HANDWRITING) }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(keyRowsHeight(state)),
+    ) {
+        PanelLayoutGrid(
+            state, state.panelLayout(PanelKind.HANDWRITING), callbacks, onClose,
+            fields = { kind ->
+                if (kind == PanelFieldKind.HANDWRITING_CANVAS) {
+                    HandwritingCanvasField(state, onStroke, onUndoStroke, onDownloadModel, callbacks.onLayoutSelect)
+                }
             },
             modifier = Modifier.fillMaxSize(),
         )
