@@ -91,6 +91,19 @@ object CjkDictCatalog {
             sha256 = "77a5a4c054019e3a3ea875e86a37cb08b71ce29392b6680208bb0c5749feb25d",
             fileName = "cangjie.tsv",
         ),
+        // Not a reading table: the OpenCC phrases that let Traditional output
+        // pick 頭髮 over 頭發 (#609). Optional — without it the bundled character
+        // table still converts, one character at a time. See [HanVariant].
+        CjkDictPack(
+            id = "s2t_phrases",
+            langId = "zh",
+            displayNameRes = R.string.core_input_cjk_pack_s2t_phrases_title,
+            descriptionRes = R.string.core_input_cjk_pack_s2t_phrases_subtitle,
+            path = "cjk/s2t_phrases.txt",
+            sizeBytes = 1_021_797L,
+            sha256 = "a8c1ff12191edfc8dc435d23736e2bf097357650ea195f51767d397c5b70908c",
+            fileName = "s2t_phrases.txt",
+        ),
         CjkDictPack(
             id = "jyutping",
             langId = "yue",

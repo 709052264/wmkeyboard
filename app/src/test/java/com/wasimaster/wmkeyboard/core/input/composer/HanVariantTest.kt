@@ -35,16 +35,29 @@ class HanVariantTest {
 
     private fun table(name: String) = HanPhraseTable.parse(asset(name))
 
+    /**
+     * Rows of the downloadable `s2t_phrases` pack, verbatim. The pack lives in
+     * the data repository, not the APK, so the tests carry the rows they need.
+     */
+    private val phrasePack = sequenceOf(
+        "头发\t頭髮",
+        "发展\t發展",
+        "皇后\t皇后",
+        "后来\t後來",
+        "干净\t乾淨",
+        "干部\t幹部",
+        "出租车\t出租車",
+    )
+
     private fun loadShipped() {
         HanVariant.s2t = table("s2t.txt")
-        HanVariant.s2tPhrases = table("s2t_phrases.txt")
+        HanVariant.s2tPhrases = HanPhraseTable.parse(phrasePack)
         HanVariant.twPhrases = table("tw_phrases.txt")
         HanVariant.twVariantsPhrases = table("tw_variants_phrases.txt")
         HanVariant.twVariants = table("tw_variants.txt")
         HanVariant.hkVariantsPhrases = table("hk_variants_phrases.txt")
         HanVariant.hkVariants = table("hk_variants.txt")
         assertTrue("s2t missing", HanVariant.s2t.size > 3000)
-        assertTrue("s2t phrases missing", HanVariant.s2tPhrases.size > 40_000)
         assertTrue("tw phrases missing", HanVariant.twPhrases.size > 500)
         assertTrue("tw variants missing", !HanVariant.twVariants.isEmpty())
         assertTrue("hk variants missing", !HanVariant.hkVariants.isEmpty())
@@ -77,6 +90,16 @@ class HanVariantTest {
             assertEquals("$region", "乾淨", HanVariant.toTraditional("干净"))
             assertEquals("$region", "幹部", HanVariant.toTraditional("干部"))
         }
+    }
+
+    @Test
+    fun `without the phrase pack it converts one character at a time`() {
+        loadShipped()
+        HanVariant.s2tPhrases = HanPhraseTable.EMPTY
+        CjkConfig.traditionalOutput = true
+        // The bundled character table alone: the most common form, right or not.
+        assertEquals("發展", HanVariant.toTraditional("发展"))
+        assertEquals("頭發", HanVariant.toTraditional("头发"))
     }
 
     @Test

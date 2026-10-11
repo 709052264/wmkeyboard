@@ -4,6 +4,11 @@
     scripts/update-opencc.py              # the pinned tag below
     scripts/update-opencc.py ver.1.4.3    # move the pin
 
+The small character and regional tables are bundled in the APK. The phrase
+table is a megabyte, so it is a downloadable CJK pack instead: it is written
+to the sibling wmkeyboard-data checkout (cjk/s2t_phrases.txt, or $WMKB_DATA/cjk),
+and the size and SHA-256 printed for it go into CjkDictCatalog.kt.
+
 HanVariant.kt runs OpenCC's own s2t / s2twp / s2hk conversion chains over these
 files, so they are copied verbatim rather than flattened: every row keeps all of
 its values (the converter takes the first, as OpenCC does), and identity rows
@@ -22,13 +27,17 @@ The files are fetched here and committed, not at build time: F-Droid builds
 offline from a fixed source tree.
 """
 
+import hashlib
+import os
 import sys
 import urllib.request
 from pathlib import Path
 
 TAG = sys.argv[1] if len(sys.argv) > 1 else "ver.1.4.2"
 RAW = f"https://raw.githubusercontent.com/BYVoid/OpenCC/{TAG}/data/dictionary"
-OUT = Path(__file__).resolve().parent.parent / "app/src/main/assets/dictionaries"
+ROOT = Path(__file__).resolve().parent.parent
+OUT = ROOT / "app/src/main/assets/dictionaries"
+DATA = Path(os.environ.get("WMKB_DATA", ROOT.parent / "wmkeyboard-data")) / "cjk"
 
 # Bundled asset name -> OpenCC dictionary it is a copy of.
 COPIES = {
@@ -81,15 +90,17 @@ def max_match(text: str, group: list[dict[str, str]], longest: int) -> str:
     return "".join(out)
 
 
-def write(name: str, source: str, rows: list[tuple[str, str]]) -> None:
+def write(name: str, source: str, rows: list[tuple[str, str]], out: Path = OUT) -> Path:
     header = (
         f"# OpenCC {source}, {TAG} (https://github.com/BYVoid/OpenCC), Apache-2.0\n"
         "# Format: key<TAB>value(s), values separated by spaces; the first is used\n"
         "# Regenerate with scripts/update-opencc.py; do not edit by hand.\n"
     )
     body = "".join(f"{key}\t{values}\n" for key, values in rows)
-    (OUT / name).write_text(header + body, encoding="utf-8")
-    print(f"{len(rows):>6}  {name}")
+    path = out / name
+    path.write_text(header + body, encoding="utf-8")
+    print(f"{len(rows):>6}  {path}")
+    return path
 
 
 def main() -> int:
@@ -117,11 +128,14 @@ def main() -> int:
     st_phrases = fetch("STPhrases")
     seen = {key for key, _ in st_phrases}
     generated = [(key, keys[0]) for key, keys in projections.items() if key not in seen]
-    write(
+    pack = write(
         "s2t_phrases.txt",
         "STPhrases + STPhrases_GeneratedFromRegionalPhrases",
         sorted(st_phrases + generated),
+        DATA,
     )
+    data = pack.read_bytes()
+    print(f"        sizeBytes = {len(data)}, sha256 = {hashlib.sha256(data).hexdigest()}")
     return 0
 
 

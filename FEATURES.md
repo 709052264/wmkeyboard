@@ -945,18 +945,18 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Kana-variant key — 小゛゜ cycles the last kana through dakuten/handakuten/small forms (か to が, は to ば to ぱ, つ to っ to づ)
     - Always usable as a bare kana keyboard — With no pack downloaded the reading still commits as hiragana, katakana or half-width katakana
     - Tap resolved by index, not text — ja_kana lists 行 under い, いき, ゆき and こう, so matching by string would eat a mora the user never chose
-  - Simplified to Traditional with regional wording `RARE` — OpenCC's s2t / s2twp / s2hk chains over bundled, pinned OpenCC 1.4.2 tables (#609)
+  - Simplified to Traditional with regional wording `RARE` — OpenCC's s2t / s2twp / s2hk chains over pinned OpenCC 1.4.2 tables (#609): character and regional tables bundled, phrase table a downloadable pack
     - Word decides the character — 50k-entry phrase table: 頭髮 / 發展, 皇后 / 後來, 乾淨 / 幹部; a character in no phrase takes its most common form
     - OpenCC matching — Longest-phrase segmentation, then short-circuit table groups per segment, so stitched candidates convert too
     - Applied inside each composer — Converting a finished candidate list would break prefix-commit's string matching
     - Three regions — Standard, Taiwan (出租車 to 計程車, plus 為/裡), Hong Kong (character preferences only)
     - Order is load-bearing — Regional tables are keyed to Traditional text, so the character pass must run first
-    - Loaded on first use — The megabyte phrase table is parsed only once the toggle is on
+    - Loaded on first use — Tables are parsed only once the toggle is on; without the s2t_phrases pack it degrades to one character at a time
   - Learning from candidate picks `uncommon` — Per-reading history reorders candidates; namespaced by reading space, not by language
     - Five reading spaces — pinyin, pinyin_t9, zhuyin, jyutping, ja_kana each keep their own history; Cangjie and Stroke deliberately do not learn
     - Separate from the Latin user lexicon — That store drops one-character keys, is keyed by surface word, and feeds the gesture decoder where Hanzi is pollution
     - Governed by the on-device learning setting — Incognito and no-learning fields stop new picks being recorded
-  - Conversion dictionary packs `uncommon` — 5 downloadable packs, none bundled: pinyin 2.5 MB, ja_kana 41.5 MB, jyutping 3.4 MB, stroke 446 KB, cangjie 351 KB
+  - Conversion dictionary packs `uncommon` — 6 downloadable packs, none bundled: pinyin 2.5 MB, ja_kana 41.5 MB, jyutping 3.4 MB, stroke 446 KB, cangjie 351 KB, s2t_phrases 1 MB (OpenCC, Traditional output)
     - SHA-256 verified before going live — A corrupt conversion table would silently mistranslate
     - Resumable — .part file plus HTTP Range, with a preflight free-space check
     - Presence means valid — Atomic rename after verification, so a final file only exists if the download completed
@@ -1043,7 +1043,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Feature | Needs |
 |---|---|
-| CJK conversion dictionary packs (pinyin, ja_kana, jyutping, stroke, cangjie) | network download required - none are bundled; until downloaded the composer shows the buffer but no candidates. Both flavours. |
+| CJK conversion dictionary packs (pinyin, ja_kana, jyutping, stroke, cangjie, s2t_phrases) | network download required - none are bundled; until downloaded the composer shows the buffer but no candidates. Both flavours. |
 | Downloadable word lists, emoji keyword packs and n-gram packs per language | network download; prompted once when adding a language |
 | Region-based language suggestions | reads TelephonyManager SIM/network country - no permission needed, but absent on Wi-Fi-only devices (falls back to time zone, then locale) |
 | Per-script pinned fonts and per-script font pickers (Noto Music, Noto Sans Symbols 2, Noto Sans <script>) | fetched through the Google Play Services downloadable-fonts provider; on a GMS-free or offline device the async font falls back to the platform default |

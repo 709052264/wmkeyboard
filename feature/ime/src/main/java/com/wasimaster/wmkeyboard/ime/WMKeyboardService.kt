@@ -15173,13 +15173,15 @@ open class WMKeyboardService : InputMethodService() {
     private var hanVariantTablesRequested = false
 
     /**
-     * Loads the bundled OpenCC tables behind Traditional output (#609), the first
-     * time the toggle is seen on. The phrase table is a megabyte of text that
-     * nobody writing Simplified needs, so it is not parsed at startup; until it
-     * lands, [HanVariant] is the identity and candidates stay Simplified for a
-     * moment rather than come out half converted. Each table is independently
-     * optional — a missing one just leaves its layer inert — and each assignment
-     * invalidates the candidate caches.
+     * Loads the OpenCC tables behind Traditional output (#609), the first time the
+     * toggle is seen on, so nobody writing Simplified pays to parse them. The
+     * character and regional tables are bundled; the phrase table is the
+     * downloadable `s2t_phrases` pack, re-read by [loadHanPhrases] whenever the
+     * packs change. Until the tables land, [HanVariant] is the identity and
+     * candidates stay Simplified for a moment. Each table is independently
+     * optional — a missing one just leaves its layer inert, and without the
+     * phrase pack the conversion is character by character — and each
+     * assignment invalidates the candidate caches.
      */
     private fun loadHanVariantTables() {
         if (hanVariantTablesRequested) return
@@ -15195,11 +15197,18 @@ open class WMKeyboardService : InputMethodService() {
             HanVariant.twVariants = table("tw_variants.txt")
             HanVariant.hkVariantsPhrases = table("hk_variants_phrases.txt")
             HanVariant.hkVariants = table("hk_variants.txt")
-            // Phrases before characters, so there is no window where 頭发 is
+            // Phrases before characters, so there is no window where 头发 is
             // converted letter by letter.
-            HanVariant.s2tPhrases = table("s2t_phrases.txt")
+            loadHanPhrases()
             HanVariant.s2t = table("s2t.txt")
         }
+    }
+
+    /** The downloaded OpenCC phrase pack into [HanVariant]; empty when it is not on disk. */
+    private fun loadHanPhrases() {
+        HanVariant.s2tPhrases = CjkDictStore.downloadedFileFor(filesDir, "s2t_phrases")
+            ?.let { file -> runCatching { file.bufferedReader().useLines(HanPhraseTable::parse) }.getOrNull() }
+            ?: HanPhraseTable.EMPTY
     }
 
     /** Pack-state token the conversion tables were last loaded from; see [CjkDictStore.stateToken]. */
@@ -15244,6 +15253,10 @@ open class WMKeyboardService : InputMethodService() {
                     }.getOrNull()
                 }
                 ?: CodeTableDictionary.EMPTY
+            // A pack change can be the phrase pack arriving or going. Only read
+            // once Traditional output has asked for its tables; until then
+            // [loadHanVariantTables] picks it up itself.
+            if (hanVariantTablesRequested) loadHanPhrases()
             // The pinyin syllable inventory is tiny static reference data (~1.8 KB),
             // the only bundled CJK asset — segmentation is ready without a download,
             // though candidates still need the pinyin pack above.

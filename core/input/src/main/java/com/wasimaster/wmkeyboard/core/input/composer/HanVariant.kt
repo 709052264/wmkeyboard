@@ -40,10 +40,12 @@ package com.wasimaster.wmkeyboard.core.input.composer
  * Every table group is short-circuit, as in OpenCC: the first table that has
  * *any* match at a position wins, even over a longer match in a later table.
  *
- * The tables are loaded only once the toggle is on (the phrase table is a
- * megabyte of text nobody writing Simplified needs); until then each is empty
- * and [toTraditional] is the identity, so the toggle is inert rather than
- * destructive. Every assignment invalidates the candidate caches.
+ * The character and regional tables are bundled; the phrase table is the
+ * downloadable `s2t_phrases` pack ([CjkDictCatalog]), since it is a megabyte
+ * nobody writing Simplified needs. Without it, conversion still works, one
+ * character at a time. Tables load only once the toggle is on; until then each
+ * is empty and [toTraditional] is the identity, so the toggle is inert rather
+ * than destructive. Every assignment invalidates the candidate caches.
  */
 object HanVariant {
 
@@ -55,7 +57,7 @@ object HanVariant {
     var s2t: HanPhraseTable = HanPhraseTable.EMPTY
         set(value) { field = value; CjkDictionaries.invalidate() }
 
-    /** OpenCC STPhrases, with the Simplified spellings of the regional phrase keys. */
+    /** OpenCC STPhrases, with the Simplified spellings of the regional phrase keys; the `s2t_phrases` pack. */
     @Volatile
     var s2tPhrases: HanPhraseTable = HanPhraseTable.EMPTY
         set(value) { field = value; CjkDictionaries.invalidate() }
