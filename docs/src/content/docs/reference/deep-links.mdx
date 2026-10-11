@@ -174,7 +174,7 @@ short.
 
 ### Every route
 
-113 screens. Five more exist and are deliberately not addressable. Three have
+124 screens. Five more exist and are deliberately not addressable. Three have
 nowhere to land: the first-run wizard (`onboarding`), the sticker editor
 (`sticker_editor`), and a single photo's page (`photo_detail`). Each of those
 three draws from something the screen before it handed over, so opened cold it
@@ -229,6 +229,7 @@ your bot token as it opens, and is kept behind the same kind of link.
 | `appearance/toolbox` | Toolbox. |
 | `themes` | Keyboard themes. |
 | `theme_edit/{themeId}` | The theme editor for one of your themes. |
+| `theme_assets/{themeId}` | Image sizes and templates for one of your themes. |
 | `fonts` | Keyboard font. |
 | `fonts/{script}` | The font picker for one script, named in capitals: `fonts/LATIN`, `fonts/BENGALI`. |
 | `icons` | Icons. |
@@ -258,6 +259,7 @@ your bot token as it opens, and is kept behind the same kind of link.
 |---|---|
 | `languages` | Languages and layouts. |
 | `add_language` | Add language. |
+| `double_pinyin_custom` | Your own Double Pinyin scheme. |
 | `language/{langId}` | One language's page, for example `language/en` or `language/bn`. |
 | `language/{langId}/more` | The full layout catalogue for that language. |
 
@@ -275,6 +277,7 @@ your bot token as it opens, and is kept behind the same kind of link.
 | `sticker_packs` | Sticker packs. |
 | `signal_stickers` | Signal sticker packs. |
 | `telegram_stickers` | Telegram sticker sets, and the bot token they need. |
+| `whatsapp_stickers` | WhatsApp stickers. |
 | `sticker_pack/{packId}` | One of your sticker packs. |
 | `sticker_pack/{packId}/add` | One of your sticker packs, with the photo picker open to add stickers. |
 
@@ -290,16 +293,23 @@ your bot token as it opens, and is kept behind the same kind of link.
 | `vocab/review` | Review. |
 | `vocab/browse` | Browse words. |
 | `vocab/word/{packId}/{word}` | One word's page in the vocabulary browser. |
+| `notes` | Notes. |
+| `notes/edit/{noteId}` | One note, open in the editor. `notes/edit/0` opens an empty new one. |
+| `notes/tags` | Note tags. |
+| `notes/trash` | Notes trash. |
 | `voice` | Voice typing. |
 | `expander` | Text expansion. |
 | `expander/folder/{folderId}` | One snippet folder. |
 | `expander/folder/{folderId}/new` | A new snippet inside that folder. |
 | `expander/edit/{snippetId}` | One snippet. `expander/edit/0` opens an empty new one. |
 | `musicapps` | Music players. |
+| `launchercombos` | Split screen pairs, for the app launcher. |
 | `kdeconnect/devices` | KDE Connect: paired computers and the ones nearby. |
 | `ai_actions` | AI actions. |
 | `ai_action_edit/{actionId}` | One AI action. |
 | `ai_history` | AI history. |
+| `ai_mcp` | MCP servers for AI chat. |
+| `ai_mcp_edit/{serverId}` | One MCP server. |
 | `ai_chat` | AI chat. |
 | `ai_chat/{conversationId}` | One saved conversation. |
 | `symbol_set_edit/{setId}` | One symbol set. |
