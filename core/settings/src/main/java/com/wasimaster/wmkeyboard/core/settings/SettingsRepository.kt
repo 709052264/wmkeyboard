@@ -2159,18 +2159,27 @@ data class LongPressLetterActions(
      */
     val letters: String = DEFAULT_LONG_PRESS_LETTERS,
     /**
-     * Puts the action at the *front* of that key's popup instead of the end, so
-     * a plain hold-and-release runs it and the accents move one along.
+     * Where the action goes in that key's popup: the index of its entry among
+     * the characters, so 0 is the front and 1 is after the first accent, or
+     * [ACTION_POSITION_LAST] for after all of them (issue #570).
      *
-     * The trade the note above says there is no longer any need to make, offered
-     * back to the person who does want it: someone who holds `c` to copy far
-     * more often than to type ç is, with the default order, sliding past the
-     * accents every time. Off by default, because on it changes what a hold has
-     * always committed. Only meaningful with
-     * [KeyPopupSettings.alternatesHoldToSelect] on, which is where "the first
-     * entry is what a plain hold commits" comes from.
+     * The front is the trade the note above says there is no longer any need to
+     * make, offered back to the person who does want it: someone who holds `c`
+     * to copy far more often than to type ç. A plain hold-and-release then runs
+     * the action and the accents move one along. One along is the middle way the
+     * issue asked for: the hold still types the accent the corner hint shows,
+     * and the action is a short slide away instead of past every accent.
+     *
+     * Last by default, because anything else changes what a hold has always
+     * committed or where the finger has always slid. Anything but last needs
+     * [KeyPopupSettings.alternatesHoldToSelect] on to matter much, which is
+     * where "the first entry is what a plain hold commits" comes from. A key
+     * whose layout set its own position keeps that one.
+     *
+     * Was a boolean, `actionFirst`, until positions between the two ends were
+     * asked for; a stored `true` reads as 0.
      */
-    val actionFirst: Boolean = false,
+    val actionPosition: Int = ACTION_POSITION_LAST,
     /**
      * Press 🌐 and slide onto one of the six [letters] to run its action on
      * release: onto `c` copies, onto `v` pastes, and so on. The same six
@@ -2205,6 +2214,12 @@ data class LongPressLetterActions(
 
 /** Select-all, copy, paste, cut, undo, redo, on the keys a QWERTY user expects. */
 const val DEFAULT_LONG_PRESS_LETTERS = "acvxzy"
+
+/** [LongPressLetterActions.actionPosition] for "after every character". */
+const val ACTION_POSITION_LAST = -1
+
+/** The furthest from the front [LongPressLetterActions.actionPosition] can name, counting from 0. */
+const val ACTION_POSITION_MAX = 7
 
 /**
  * Whether the keyboard replaces a word it thinks is wrong, and how sure it has
@@ -8916,6 +8931,8 @@ class SettingsRepository(private val context: Context) {
         private val LONG_PRESS_LETTERS = stringPreferencesKey("long_press_letters")
         private val LONG_PRESS_ACTION_FIRST =
             booleanPreferencesKey("long_press_action_first")
+        private val LONG_PRESS_ACTION_POSITION =
+            intPreferencesKey("long_press_action_position")
         private val EMOJI_TOOLBAR = booleanPreferencesKey("emoji_toolbar")
         private val COLORED_TOOL_ICONS = booleanPreferencesKey("colored_tool_icons")
         private val TOOL_COLOR_OVERRIDES = stringPreferencesKey("tool_color_overrides")
@@ -10756,8 +10773,10 @@ class SettingsRepository(private val context: Context) {
             undo = p[LONG_PRESS_Z_UNDO] ?: defaults.longPressLetterActions.undo,
             redo = p[LONG_PRESS_Y_REDO] ?: defaults.longPressLetterActions.redo,
             letters = p[LONG_PRESS_LETTERS] ?: defaults.longPressLetterActions.letters,
-            actionFirst = p[LONG_PRESS_ACTION_FIRST]
-                ?: defaults.longPressLetterActions.actionFirst,
+            // The boolean this replaced still answers for an install that set
+            // it and has not touched the position since.
+            actionPosition = p[LONG_PRESS_ACTION_POSITION]
+                ?: if (p[LONG_PRESS_ACTION_FIRST] == true) 0 else defaults.longPressLetterActions.actionPosition,
             globeDrag = p[GLOBE_DRAG_SHORTCUTS] ?: defaults.longPressLetterActions.globeDrag,
         )
 
@@ -16787,8 +16806,12 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[LONG_PRESS_LETTERS] = value }
     }
 
-    suspend fun setLongPressActionFirst(value: Boolean) =
-        editPrefs { it[LONG_PRESS_ACTION_FIRST] = value }
+    /** Clamped onto [ACTION_POSITION_LAST] and 0..[ACTION_POSITION_MAX]. */
+    suspend fun setLongPressActionPosition(value: Int) = editPrefs {
+        it[LONG_PRESS_ACTION_POSITION] = if (value < 0) ACTION_POSITION_LAST else value.coerceAtMost(ACTION_POSITION_MAX)
+        // The old switch would answer again if this key were ever cleared.
+        it.remove(LONG_PRESS_ACTION_FIRST)
+    }
 
     suspend fun setEmojiToolbar(value: Boolean) =
         editPrefs { it[EMOJI_TOOLBAR] = value }

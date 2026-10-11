@@ -2235,9 +2235,6 @@
     <string name="keypress_haptics_title">Hàptica de premsada de tecla</string>
     <string name="keypress_hold_action_copy_label">Copia</string>
     <string name="keypress_hold_action_cut_label">Retalla</string>
-    <string name="keypress_hold_action_first_info">L\'acció sol aparèixer al final del menú emergent, de manera que prémer i mantenir premut us proporciona el primer accent. Si activeu aquesta opció, passa al davant i, en prémer i mantenir premuda una de les tecles de drecera, l\'acció s\'executa immediatament. Els accents encara hi són: mantingueu el dit premut i llisqueu-lo sobre el que vulgueu. Això requereix l\'opció Mantenir premut per seleccionar, dins de Tecles alternatives.</string>
-    <string name="keypress_hold_action_first_subtitle">Mantenir premut executa l\'acció en lloc de mostrar els accents</string>
-    <string name="keypress_hold_action_first_title">Acció primer</string>
     <string name="keypress_hold_action_paste_label">Enganxa</string>
     <string name="keypress_hold_action_redo_label">Refer</string>
     <string name="keypress_hold_action_select_all_label">Seleccionar tot</string>

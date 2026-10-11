@@ -2238,9 +2238,6 @@
     <string name="keypress_haptics_title">కీ ప్రెస్ హ్యాప్టిక్స్</string>
     <string name="keypress_hold_action_copy_label">కాపీ చేయి</string>
     <string name="keypress_hold_action_cut_label">కట్ చేయి</string>
-    <string name="keypress_hold_action_first_info">ఈ చర్య సాధారణంగా పాపప్ చివరలో ఉంటుంది, కాబట్టి సాధారణ ప్రెస్ మరియు హోల్డ్ మీకు మొదటి యాసను ఇస్తుంది. ఇది ఆన్‌లో ఉన్నప్పుడు అది ముందు భాగానికి కదులుతుంది, మరియు షార్ట్‌కట్ కీలలో ఒకదానిపై ప్రెస్ మరియు హోల్డ్ చేయడం ద్వారా చర్య వెంటనే రన్ అవుతుంది. యాసలు ఇంకా అక్కడే ఉన్నాయి: మీ వేలిని కింద ఉంచి, మీకు కావలసిన దానిపైకి జారండి. దీనికి ప్రత్యామ్నాయ కీలలో \'ఎంచుకోవడానికి పట్టుకోండి\' అవసరం.</string>
-    <string name="keypress_hold_action_first_subtitle">నొక్కి పట్టుకోవడం వల్ల యాసలను (accents) చూపించడానికి బదులుగా చర్య రన్ అవుతుంది</string>
-    <string name="keypress_hold_action_first_title">మొదటి చర్య</string>
     <string name="keypress_hold_action_paste_label">పేస్ట్ చేయి</string>
     <string name="keypress_hold_action_redo_label">తిరిగి చేయి</string>
     <string name="keypress_hold_action_select_all_label">అన్నీ ఎంచుకోండి</string>

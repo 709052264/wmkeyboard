@@ -660,7 +660,7 @@ private fun SearchStrings.keypressShortcutsRows(): List<SettingsSearchEntry> {
         row(R.string.keypress_currency_keys_title),
         row(R.string.keypress_ctrl_raw_title, R.string.keypress_ctrl_raw_subtitle),
         row(R.string.keypress_hold_actions_title, R.string.keypress_hold_actions_subtitle),
-        row(R.string.keypress_hold_action_first_title, R.string.keypress_hold_action_first_subtitle),
+        row(R.string.keypress_hold_action_position_title, R.string.keypress_hold_action_position_subtitle),
         row(R.string.keypress_globe_drag_title, R.string.keypress_globe_drag_subtitle),
     )
 }

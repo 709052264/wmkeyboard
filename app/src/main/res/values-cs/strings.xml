@@ -2236,9 +2236,6 @@
     <string name="keypress_haptics_title">Haptická odezva při stisku kláves</string>
     <string name="keypress_hold_action_copy_label">Kopírovat</string>
     <string name="keypress_hold_action_cut_label">Vyjmout</string>
-    <string name="keypress_hold_action_first_info">Akce se obvykle nachází na konci vyskakovacího okna, takže běžné dlouhé stisknutí vám dá první akcent. S tímto nastavením se přesune na začátek a dlouhé stisknutí jedné ze zkratkových kláves akci okamžitě spustí. Akcenty tam stále jsou: držte prst stisknutý a přejeďte na ten, který chcete. Toto vyžaduje „Podržet pro výběr“ v části Alternativní klávesy.</string>
-    <string name="keypress_hold_action_first_subtitle">Stisknutí a podržení provede akci namísto zobrazení diakritiky</string>
-    <string name="keypress_hold_action_first_title">Nejprve akce</string>
     <string name="keypress_hold_action_paste_label">Vložit</string>
     <string name="keypress_hold_action_redo_label">Znovu</string>
     <string name="keypress_hold_action_select_all_label">Vybrat vše</string>

@@ -2232,9 +2232,6 @@
     <string name="keypress_haptics_title">Phản hồi rung khi nhấn phím</string>
     <string name="keypress_hold_action_copy_label">Sao chép</string>
     <string name="keypress_hold_action_cut_label">Cắt</string>
-    <string name="keypress_hold_action_first_info">Thao tác thường nằm ở cuối cửa sổ bật lên, vì vậy nhấn và giữ thông thường sẽ cho bạn dấu phụ đầu tiên. Khi bật tính năng này, nó sẽ di chuyển lên phía trước và nhấn giữ một trong các phím tắt sẽ chạy thao tác ngay lập tức. Các dấu phụ vẫn ở đó: giữ ngón tay của bạn và trượt vào dấu bạn muốn. Tính năng này cần bật Giữ để chọn, trong phần Phím thay thế.</string>
-    <string name="keypress_hold_action_first_subtitle">Nhấn và giữ để thực hiện hành động thay vì hiển thị các dấu</string>
-    <string name="keypress_hold_action_first_title">Hành động trước</string>
     <string name="keypress_hold_action_paste_label">Dán</string>
     <string name="keypress_hold_action_redo_label">Làm lại</string>
     <string name="keypress_hold_action_select_all_label">Chọn tất cả</string>

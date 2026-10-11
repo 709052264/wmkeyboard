@@ -2237,9 +2237,6 @@
     <string name="keypress_haptics_title">Haptická odozva stlačenia klávesy</string>
     <string name="keypress_hold_action_copy_label">Kopírovať</string>
     <string name="keypress_hold_action_cut_label">Vystrihnúť</string>
-    <string name="keypress_hold_action_first_info">Akcia sa zvyčajne nachádza na konci kontextového okna, takže jednoduché stlačenie a podržanie vám poskytne prvý prízvuk. Keď je toto zapnuté, presunie sa na začiatok a stlačenie a podržanie jednej z klávesových skratiek spustí akciu okamžite. Prízvuky sú stále k dispozícii: podržte prst a posuňte ho na ten, ktorý chcete. Vyžaduje to možnosť Podržať pre výber v časti Alternatívne klávesy.</string>
-    <string name="keypress_hold_action_first_subtitle">Stlačenie a podržanie spustí akciu namiesto zobrazenia diakritiky</string>
-    <string name="keypress_hold_action_first_title">Najprv akcia</string>
     <string name="keypress_hold_action_paste_label">Prilepiť</string>
     <string name="keypress_hold_action_redo_label">Znova</string>
     <string name="keypress_hold_action_select_all_label">Vybrať všetko</string>

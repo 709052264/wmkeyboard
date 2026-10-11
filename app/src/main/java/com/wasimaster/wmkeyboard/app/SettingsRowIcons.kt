@@ -571,7 +571,7 @@ internal object SettingsRowIcons {
         put(R.string.keypress_enter_emoji_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.keypress_ctrl_raw_title) { Icons.Outlined.Terminal }
         put(R.string.keypress_hold_actions_title) { Icons.Outlined.SelectAll }
-        put(R.string.keypress_hold_action_first_title) { Icons.Outlined.Bolt }
+        put(R.string.keypress_hold_action_position_title) { Icons.Outlined.Bolt }
         put(R.string.keypress_globe_drag_title) { Icons.Outlined.Gesture }
 
         // ---- Emoji ----
@@ -1530,6 +1530,8 @@ internal object SettingsRowIcons {
         put(R.string.layout_editor_icon_beside_label_title) { Icons.AutoMirrored.Outlined.Label }
         put(R.string.layout_editor_kana_variant_title) { Icons.Outlined.Spellcheck }
         put(R.string.layout_editor_repeat_hold_title) { Icons.Outlined.Repeat }
+        put(R.string.layout_editor_hold_action_label) { Icons.Outlined.TouchApp }
+        put(R.string.layout_editor_action_position_title) { Icons.Outlined.SwapVert }
         put(R.string.panel_name_emoji) { Icons.Outlined.EmojiEmotions }
         put(R.string.panel_name_gif) { SymbolIcons.GifBox }
         put(R.string.panel_name_sticker) { SymbolIcons.Sticker }

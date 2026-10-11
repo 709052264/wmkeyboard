@@ -526,6 +526,8 @@ import com.wasimaster.wmkeyboard.core.layout.PAD_SPACE_LABEL
 import com.wasimaster.wmkeyboard.core.layout.FlickArm
 import com.wasimaster.wmkeyboard.core.layout.flickArm
 import com.wasimaster.wmkeyboard.core.layout.flickArmRepeats
+import com.wasimaster.wmkeyboard.core.layout.hasHoldAction
+import com.wasimaster.wmkeyboard.core.layout.holdActionKey
 import com.wasimaster.wmkeyboard.core.layout.hasFlicks
 import com.wasimaster.wmkeyboard.core.layout.takesFlickActions
 import com.wasimaster.wmkeyboard.core.layout.arrangedBy
@@ -17995,10 +17997,11 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
         } else {
             emptyMap()
         }
-    // Whether those shortcuts sit at the front of their key's popup, where a
-    // plain hold commits them, instead of after the accents. Read once here
-    // rather than per key: it is one setting for the whole board.
-    val clipboardActionFirst = state.settings.longPressLetterActions.actionFirst
+    // Where those shortcuts sit in their key's popup: null after the accents,
+    // 0 at the front where a plain hold commits them, or a slide in between
+    // (issue #570). Read once here rather than per key: it is one setting for
+    // the whole board.
+    val clipboardActionAt = state.settings.longPressLetterActions.actionPosition.takeIf { it >= 0 }
     // A field that declares Send/Go/Search takes the enter key over, and the
     // line break it displaces has nowhere else to go — so it moves to the key's
     // long press, the way Gboard offers it. Only where the key is actually
@@ -18184,16 +18187,19 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
             // first entry is the one a plain hold-and-release commits. An edit
             // action landing there would take a as select-all instead of as à.
             //
-            // `actionFirst` is the user asking for exactly that trade, because
-            // they hold c to copy far more often than to type ç. It moves the
-            // whole action block in front of the characters rather than only
-            // this entry — see [Key.actionAlternatesFirst] — so a key that
-            // already carried authored actions keeps them in their own order.
-            if (mapped.action == KeyAction.Text && mapped.clipboardAction == null) {
+            // `actionPosition` is the user asking for that trade, or for half of
+            // it: the action one accent along is a short slide, while the hold
+            // still types what the corner hint shows. It moves the whole action
+            // block rather than only this entry — see [Key.actionAlternatesAt] —
+            // so a key that already carried authored actions keeps them in
+            // their own order, and a key whose author placed them keeps that.
+            //
+            // A key whose hold runs an action of its own has no popup to join.
+            if (mapped.action == KeyAction.Text && mapped.clipboardAction == null && !mapped.hasHoldAction()) {
                 clipboardKeys[mapped.output ?: mapped.label]?.let {
                     mapped = mapped.copy(
                         actionAlternates = mapped.actionAlternates + clipboardAlternate(it),
-                        actionAlternatesFirst = clipboardActionFirst,
+                        actionAlternatesAt = mapped.actionAlternatesAt ?: clipboardActionAt,
                     )
                 }
             }
@@ -23599,6 +23605,43 @@ private fun Modifier.pointerInputKey(
                                         // on this key; the action fires immediately.
                                         if (hapticOnLongPress) onKeyPress()
                                         key.clipboardAction?.let(onClipboardKey)
+                                    } else if (key.hasHoldAction()) {
+                                        // The hold runs one action outright, no
+                                        // popup in between. A move or a delete
+                                        // keeps going while the finger stays
+                                        // down, after the same pause a held key
+                                        // takes before it repeats; the lift
+                                        // cancels this job and so stops it.
+                                        if (hapticOnLongPress) onKeyPress()
+                                        key.holdActionKey()?.let { held ->
+                                            if (!held.flickArmRepeats()) {
+                                                onKey(held)
+                                                return@launch
+                                            }
+                                            val deletesBack = held.action.deletesBackward()
+                                            val deletesFwd = held.action.deletesForward()
+                                            val intervalMs = if (deletesBack || deletesFwd) {
+                                                keyRepeat.deleteMs
+                                            } else {
+                                                textEditing.repeatMs
+                                            }.toLong()
+                                            onKeyRepeat(held)
+                                            delay(keyRepeat.startDelayMs.toLong())
+                                            while (
+                                                when {
+                                                    deletesBack -> canDelete()
+                                                    deletesFwd -> canForwardDelete()
+                                                    else -> true
+                                                }
+                                            ) {
+                                                repeatFeedback(
+                                                    vibrateOnRepeat, soundOnRepeat,
+                                                    onKeyPress, onKeySound, onKeyHaptic,
+                                                )
+                                                onKeyRepeat(held)
+                                                delay(intervalMs)
+                                            }
+                                        }
                                     } else if (key.opensAlternatesPopup()) {
                                         p.holdsAlternates = alternates != null
                                         // Characters, actions, or both: any key with

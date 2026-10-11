@@ -2232,9 +2232,6 @@
     <string name="keypress_haptics_title">การสั่นเมื่อกดปุ่ม</string>
     <string name="keypress_hold_action_copy_label">คัดลอก</string>
     <string name="keypress_hold_action_cut_label">ตัด</string>
-    <string name="keypress_hold_action_first_info">โดยปกติการดำเนินการจะอยู่ที่ส่วนท้ายของป๊อปอัป ดังนั้นการกดค้างแบบปกติจะทำให้คุณได้ตัวอักษรพิเศษตัวแรก เมื่อเปิดตัวเลือกนี้ การดำเนินการจะย้ายไปไว้ด้านหน้า และการกดค้างที่คีย์ทางลัดตัวใดตัวหนึ่งจะเรียกใช้การดำเนินการทันที ตัวอักษรพิเศษยังคงอยู่: เพียงกดนิ้วค้างไว้แล้วเลื่อนไปยังตัวที่คุณต้องการ ตัวเลือกนี้จำเป็นต้องใช้การกดค้างเพื่อเลือก ภายใต้คีย์สำรอง</string>
-    <string name="keypress_hold_action_first_subtitle">การกดค้างไว้จะเป็นการเรียกใช้คำสั่งแทนการแสดงตัวอักษรพิเศษ</string>
-    <string name="keypress_hold_action_first_title">ดำเนินการก่อน</string>
     <string name="keypress_hold_action_paste_label">วาง</string>
     <string name="keypress_hold_action_redo_label">ทำซ้ำ</string>
     <string name="keypress_hold_action_select_all_label">เลือกทั้งหมด</string>

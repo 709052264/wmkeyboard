@@ -53,6 +53,7 @@ import com.wasimaster.wmkeyboard.core.layout.LayoutCodec
 import com.wasimaster.wmkeyboard.core.layout.repair
 import com.wasimaster.wmkeyboard.core.layout.repairAsLayer
 import com.wasimaster.wmkeyboard.core.layout.tabletGridWidth
+import com.wasimaster.wmkeyboard.core.settings.ACTION_POSITION_LAST
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -184,6 +185,7 @@ import com.wasimaster.wmkeyboard.core.layout.MaxKeyWidth
 import com.wasimaster.wmkeyboard.core.layout.MaxRowHeightScale
 import com.wasimaster.wmkeyboard.core.layout.MinRowHeightScale
 import com.wasimaster.wmkeyboard.core.layout.canHoldAlternates
+import com.wasimaster.wmkeyboard.core.layout.canHoldAction
 import com.wasimaster.wmkeyboard.core.layout.canRepeatOnHold
 import com.wasimaster.wmkeyboard.core.layout.isAmbiguous
 import com.wasimaster.wmkeyboard.core.layout.withLetters
@@ -4312,6 +4314,25 @@ internal fun KeyEditSheet(
                 }
             }
 
+            // One action the hold runs outright, with no popup: the "direct"
+            // version of the action alternates below. Above them for the reason
+            // the repeat switch is: setting it is what takes them away.
+            if (key.canHoldAction()) {
+                ActionAlternatesRows(
+                    alternates = listOfNotNull(key.holdAction),
+                    secondaryLayouts = secondaryLayouts,
+                    title = R.string.layout_editor_hold_action_label,
+                    subtitle = stringResource(R.string.layout_editor_hold_action_hint),
+                    addLabel = R.string.layout_editor_hold_action_add,
+                    limit = 1,
+                ) { picked -> onChange { it.copy(holdAction = picked.firstOrNull()) } }
+                if (key.holdAction != null &&
+                    (key.longPress.isNotEmpty() || key.actionAlternates.isNotEmpty())
+                ) {
+                    CaptionText(stringResource(R.string.layout_editor_hold_action_alternates_notice))
+                }
+            }
+
             // Not only text keys: every key whose press and hold is free can
             // carry alternates, which is what the enter key was missing (issue
             // #22). The ones left out are the ones that hold to repeat or chord,
@@ -4336,8 +4357,20 @@ internal fun KeyEditSheet(
                 }
                 AlternatePreview(parseAlternates(alternates))
 
-                ActionAlternatesRows(key.actionAlternates, secondaryLayouts) { alternatesList ->
+                ActionAlternatesRows(
+                    alternates = key.actionAlternates,
+                    secondaryLayouts = secondaryLayouts,
+                    title = R.string.layout_editor_action_alternates_label,
+                    subtitle = stringResource(R.string.layout_editor_action_alternates_hint),
+                    addLabel = R.string.layout_editor_action_alternate_add_action,
+                ) { alternatesList ->
                     onChange { it.copy(actionAlternates = alternatesList) }
+                }
+
+                // Issue #570: where the actions sit among the characters. Only
+                // where there are both, since that is all it orders.
+                if (key.longPress.isNotEmpty() && key.actionAlternates.isNotEmpty()) {
+                    ActionPositionRow(key) { at -> onChange { it.copy(actionAlternatesAt = at) } }
                 }
 
                 // Only once the key has a popup to shape. A column count on a
@@ -5156,12 +5189,19 @@ private fun AlternatePreview(alternates: List<String>) {
  * text" is what the characters field above already is, and a popup entry with no
  * action is a button that does nothing — `repair` drops both on sight, so
  * offering them would be offering an author a chip that disappears.
+ *
+ * Also the [Key.holdAction] row, which is the same picking with [limit] 1: a
+ * hold runs one action, so the add button goes once there is one.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ActionAlternatesRows(
     alternates: List<KeyAlternate>,
     secondaryLayouts: List<LayoutSpec>,
+    @StringRes title: Int,
+    subtitle: String,
+    @StringRes addLabel: Int,
+    limit: Int = Int.MAX_VALUE,
     onChange: (List<KeyAlternate>) -> Unit,
 ) {
     // The chip whose action is being picked; [AddingAlternate] for a new one.
@@ -5171,10 +5211,7 @@ private fun ActionAlternatesRows(
     // Same for a secondary layout.
     var pickingLayoutAt by remember { mutableStateOf<Int?>(null) }
 
-    ControlSetting(
-        R.string.layout_editor_action_alternates_label,
-        subtitle = stringResource(R.string.layout_editor_action_alternates_hint),
-    ) {
+    ControlSetting(title, subtitle = subtitle) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 4.dp)) {
             alternates.forEachIndexed { index, alternate ->
                 InputChip(
@@ -5196,10 +5233,12 @@ private fun ActionAlternatesRows(
                     },
                 )
             }
-            TextButton(onClick = { editing = AddingAlternate }) {
-                Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(4.dp))
-                Text(stringResource(R.string.layout_editor_action_alternate_add_action))
+            if (alternates.size < limit) {
+                TextButton(onClick = { editing = AddingAlternate }) {
+                    Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text(stringResource(addLabel))
+                }
             }
         }
     }
@@ -5450,6 +5489,42 @@ private fun AlternateColumnsRow(columns: Int, onChange: (Int) -> Unit) {
         default = 0,
         onChange = onChange,
     )
+}
+
+/**
+ * Where this key's action alternates sit among its characters (issue #570):
+ * first, after one of the characters, or last.
+ *
+ * Each step after the first names the character the actions follow, which says
+ * more than a number would: "After ç" is the popup the author will see. The
+ * last step is the absence of a position, stored as null, so a key that never
+ * touched the row reads exactly as it did. A stored index past the characters
+ * means the same thing and shows as last.
+ */
+@Composable
+private fun ActionPositionRow(key: Key, onChange: (Int?) -> Unit) {
+    val characters = key.longPress
+    val value = key.actionAlternatesAt?.takeIf { it in characters.indices } ?: ACTION_POSITION_LAST
+    // Read out here rather than inside `display`: that is a plain lambda, and
+    // stringResource needs a composition.
+    val first = stringResource(R.string.keypress_hold_action_position_first)
+    val last = stringResource(R.string.keypress_hold_action_position_last)
+    val afterTemplate = stringResource(R.string.layout_editor_action_position_after)
+    StepperSetting(
+        title = R.string.layout_editor_action_position_title,
+        subtitle = stringResource(R.string.layout_editor_action_position_subtitle),
+        value = value,
+        range = characters.indices.toList() + ACTION_POSITION_LAST,
+        display = { at ->
+            when (at) {
+                ACTION_POSITION_LAST -> last
+                0 -> first
+                else -> afterTemplate.format(characters[at - 1])
+            }
+        },
+        info = stringResource(R.string.layout_editor_action_position_info),
+        default = ACTION_POSITION_LAST,
+    ) { at -> onChange(at.takeIf { it >= 0 }) }
 }
 
 /** Which slot this key fills for field adaptation, or none. */
