@@ -132,6 +132,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.wasimaster.wmkeyboard.core.settings.HoldRepeatCursorTools
+import com.wasimaster.wmkeyboard.core.settings.DefaultToolHoldActions
+import com.wasimaster.wmkeyboard.core.settings.holdActionOf
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.core.script.FancyStyles
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
@@ -167,9 +169,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
  * way to give any other tool a hold, and nobody looked under Appearance for it
  * anyway (#31). The bound tool runs whether or not it is itself on the toolbar.
  *
- * A tool with nothing bound keeps the original behaviour and opens its own
- * settings page, which the row says in as many words — an explicit "settings"
- * entry in the picker made the default look like a choice the user had made.
+ * A tool with nothing bound does its default ([holdActionOf]): HeliBoard's
+ * pairing where it has one (#639), its own settings page where it has none.
+ * The picker's first row is that default, named; a tool with a pairing also
+ * gets a "settings page" row, since there the page has become a choice.
  * The caret tools and Selection mode say their reason instead of hiding the
  * row: their hold is already spent, on a repeat or on arming the mode, and
  * someone looking for the row here should find out why.
@@ -187,6 +190,8 @@ private fun ToolHoldRow(
     val tracks = settings.watch { tool == ToolbarTool.TRACKPAD && it.trackpad.holdToOpen }
     val picksVoiceMode = settings.watch { tool == ToolbarTool.VOICE && it.voiceBar.holdPicksTypingMode }
     val bound = settings.watch { it.toolbarBehavior.holdActions[tool] }
+    val resolved = settings.watch { it.toolbarBehavior.holdActionOf(tool) }
+    val pairing = DefaultToolHoldActions[tool]
     if (repeats || selects || tracks || picksVoiceMode) {
         // Reads rather than opens: this tool's hold has none to give.
         WmRow(
@@ -206,10 +211,10 @@ private fun ToolHoldRow(
     NavRow(
         title = R.string.tooldetail_hold_title,
         subtitle = stringResource(R.string.tooldetail_hold_subtitle),
-        value = when (bound) {
-            null -> stringResource(R.string.tooldetail_hold_settings_value)
+        value = when (resolved) {
+            ToolHoldAction.OpenSettings -> stringResource(R.string.tooldetail_hold_settings_value)
             ToolHoldAction.None -> stringResource(R.string.tooldetail_hold_nothing_value)
-            is ToolHoldAction.Run -> stringResource(toolTitle(bound.tool))
+            is ToolHoldAction.Run -> stringResource(toolTitle(resolved.tool))
         },
     ) { editing = true }
     if (editing) {
@@ -218,10 +223,23 @@ private fun ToolHoldRow(
             current = (bound as? ToolHoldAction.Run)?.tool,
             // Every tool but this one: holding a tool to run itself is a slow tap.
             options = ToolbarTool.entries.filter { isSupportedTool(it) && it != tool },
-            noneSubtitle = stringResource(R.string.tooldetail_hold_settings_value),
+            // The default row says what the default is: the pairing (#639),
+            // or the settings page for a tool without one.
+            noneTitle = stringResource(R.string.tooldetail_hold_default_title),
+            noneSubtitle = pairing?.let {
+                stringResource(R.string.tooldetail_hold_default_pairing_subtitle, stringResource(toolTitle(it)))
+            } ?: stringResource(R.string.tooldetail_hold_settings_value),
             // The third answer (#136): a hold that does nothing at all.
             nothingSubtitle = stringResource(R.string.tooldetail_hold_nothing_subtitle),
             nothingSelected = bound == ToolHoldAction.None,
+            // Only where the default is a pairing: elsewhere the page is
+            // already what the default row gives.
+            settingsSubtitle = pairing?.let { stringResource(R.string.tooldetail_hold_settings_subtitle) },
+            settingsSelected = bound == ToolHoldAction.OpenSettings,
+            onPickSettings = {
+                editing = false
+                scope.launch { repository.setToolHoldAction(tool, ToolHoldAction.OpenSettings) }
+            },
             onDismiss = { editing = false },
             onPick = { picked ->
                 editing = false
@@ -246,6 +264,9 @@ private fun ToolHoldRow(
  * only the hold picker has a use for: a key that does nothing is a blank, a
  * hold that does nothing is a choice. [nothingSelected] says whether it is the
  * standing one, since the row is not a tool and [current] cannot name it.
+ * [settingsSubtitle] is a third such row, "Settings page", for the hold picker
+ * of a tool whose default is a pairing (#639); [noneTitle] renames the "None"
+ * row, which the hold picker calls "Default".
  */
 @Composable
 internal fun ToolPickerDialog(
@@ -258,6 +279,10 @@ internal fun ToolPickerDialog(
     nothingSubtitle: String? = null,
     nothingSelected: Boolean = false,
     onPickNothing: () -> Unit = {},
+    noneTitle: String? = null,
+    settingsSubtitle: String? = null,
+    settingsSelected: Boolean = false,
+    onPickSettings: () -> Unit = {},
 ) {
     val list = rememberLazyListState()
     val rail = rememberScrollRailState(list)
@@ -269,11 +294,11 @@ internal fun ToolPickerDialog(
                 LazyColumn(state = list, modifier = rows) {
                     if (noneSubtitle != null) item {
                         WmRow(
-                            title = stringResource(CommonR.string.common_none),
+                            title = noneTitle ?: stringResource(CommonR.string.common_none),
                             supporting = { CaptionText(noneSubtitle) },
                             trailing = {
                                 RadioButton(
-                                    selected = current == null && !nothingSelected,
+                                    selected = current == null && !nothingSelected && !settingsSelected,
                                     onClick = { onPick(null) },
                                 )
                             },
@@ -288,6 +313,16 @@ internal fun ToolPickerDialog(
                                 RadioButton(selected = nothingSelected, onClick = onPickNothing)
                             },
                             onClick = onPickNothing,
+                        )
+                    }
+                    if (settingsSubtitle != null) item {
+                        WmRow(
+                            title = stringResource(R.string.tooldetail_hold_settings_title),
+                            supporting = { CaptionText(settingsSubtitle) },
+                            trailing = {
+                                RadioButton(selected = settingsSelected, onClick = onPickSettings)
+                            },
+                            onClick = onPickSettings,
                         )
                     }
                     items(options, key = { it.name }) { tool ->

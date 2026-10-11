@@ -3,6 +3,10 @@ package com.wasimaster.wmkeyboard.core.settings.foreign
 import com.wasimaster.wmkeyboard.core.settings.SettingsBackup
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.ThemeMode
+import com.wasimaster.wmkeyboard.core.settings.DefaultToolHoldActions
+import com.wasimaster.wmkeyboard.core.settings.ToolHoldAction
+import com.wasimaster.wmkeyboard.core.settings.ToolHoldActions
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -46,6 +50,8 @@ enum class ForeignSettingKind(
     KEY_HEIGHT("key_height", "int"),
     SPLIT_KEYBOARD("split_keyboard", "boolean"),
     THEME_MODE("theme_mode", "string"),
+    /** What a press and hold on each toolbar tool runs, as the [ToolHoldActions] CSV. */
+    TOOL_HOLD_ACTIONS("toolbar_hold_actions", "string"),
 }
 
 /**
@@ -231,6 +237,9 @@ object ForeignSettingsMap {
             futoSplit(prefs)?.let { out[ForeignSettingKind.SPLIT_KEYBOARD] = it }
         }
         themeMode(keyboard, prefs)?.let { out[ForeignSettingKind.THEME_MODE] = it }
+        if (keyboard == ForeignKeyboard.HELIBOARD || keyboard == ForeignKeyboard.LEANTYPE) {
+            heliToolHolds(prefs)?.let { out[ForeignSettingKind.TOOL_HOLD_ACTIONS] = it }
+        }
         return ForeignSettingKind.entries.mapNotNull { out[it] }
     }
 
@@ -287,5 +296,114 @@ object ForeignSettingsMap {
         return mode?.let { (value, key) -> MappedSetting(ForeignSettingKind.THEME_MODE, value.name, key) }
     }
 
+    /**
+     * The toolbar long presses a HeliBoard user changed (issue #639), as hold
+     * bindings here.
+     *
+     * HeliBoard keeps them in `toolbar_custom_key_codes`, one
+     * `KEY,tapCode,longPressCode` entry per customised key, `;`-separated, with
+     * `null` for a code left alone (see its `readCustomKeyCodes`). Only the
+     * long-press half has a home here: a tool's tap is the tool. A key nobody
+     * customised holds to HeliBoard's built-in pairing, and those are the
+     * pairings [DefaultToolHoldActions] already gives, so they need nothing
+     * written.
+     *
+     * A code with no tool here (clear clipboard history, page start, the
+     * gesture-data toggle) is left out, and so is HeliBoard's "repeat the key",
+     * which here is the caret tools' own repeat setting rather than a binding.
+     */
+    internal fun heliToolHolds(prefs: Map<String, Any>): MappedSetting? {
+        val text = prefs[HELI_TOOLBAR_CODES] as? String ?: return null
+        val holds = LinkedHashMap<ToolbarTool, ToolHoldAction>()
+        for (entry in text.split(';')) {
+            val parts = entry.split(',')
+            if (parts.size < 3) continue
+            val tool = HELI_TOOLBAR_KEYS[parts[0].trim()] ?: continue
+            val code = parts[2].trim().toIntOrNull() ?: continue
+            val action = when (code) {
+                HELI_UNSPECIFIED -> ToolHoldAction.None
+                else -> HELI_KEY_CODES[code]?.let(ToolHoldAction::Run) ?: continue
+            }
+            // A tool holding to itself is a slow tap, and the pairing it
+            // already has here needs no entry.
+            if (action is ToolHoldAction.Run && (action.tool == tool || DefaultToolHoldActions[tool] == action.tool)) {
+                continue
+            }
+            holds[tool] = action
+        }
+        if (holds.isEmpty()) return null
+        return MappedSetting(ForeignSettingKind.TOOL_HOLD_ACTIONS, ToolHoldActions.encode(holds), HELI_TOOLBAR_CODES)
+    }
+
     private const val FUTO_SIZING = "keyboard_settings_portrait"
+
+    private const val HELI_TOOLBAR_CODES = "toolbar_custom_key_codes"
+
+    /** HeliBoard's `KeyCode.UNSPECIFIED`: a long press that does nothing. */
+    private const val HELI_UNSPECIFIED = 0
+
+    /** HeliBoard's `ToolbarKey` names that have a tool here. */
+    private val HELI_TOOLBAR_KEYS: Map<String, ToolbarTool> = mapOf(
+        "VOICE" to ToolbarTool.VOICE,
+        "CLIPBOARD" to ToolbarTool.CLIPBOARD,
+        "NUMPAD" to ToolbarTool.NUMPAD,
+        "DPAD" to ToolbarTool.TEXT_EDIT,
+        "UNDO" to ToolbarTool.UNDO,
+        "REDO" to ToolbarTool.REDO,
+        "SETTINGS" to ToolbarTool.SETTINGS,
+        "SELECT_ALL" to ToolbarTool.SELECT_ALL,
+        "SELECT_WORD" to ToolbarTool.SELECT_WORD,
+        "COPY" to ToolbarTool.COPY,
+        "CUT" to ToolbarTool.CUT,
+        "PASTE" to ToolbarTool.PASTE,
+        "ONE_HANDED" to ToolbarTool.ONE_HANDED,
+        "FLOATING" to ToolbarTool.FLOATING,
+        "SPLIT" to ToolbarTool.SPLIT,
+        "INCOGNITO" to ToolbarTool.INCOGNITO,
+        "AUTOCORRECT" to ToolbarTool.AUTOCORRECT,
+        "EMOJI" to ToolbarTool.EMOJI,
+        "LEFT" to ToolbarTool.CURSOR_LEFT,
+        "RIGHT" to ToolbarTool.CURSOR_RIGHT,
+        "UP" to ToolbarTool.CURSOR_UP,
+        "DOWN" to ToolbarTool.CURSOR_DOWN,
+        "WORD_LEFT" to ToolbarTool.CURSOR_WORD_LEFT,
+        "WORD_RIGHT" to ToolbarTool.CURSOR_WORD_RIGHT,
+        "PAGE_UP" to ToolbarTool.PAGE_UP,
+        "PAGE_DOWN" to ToolbarTool.PAGE_DOWN,
+        "FULL_LEFT" to ToolbarTool.CURSOR_HOME,
+        "FULL_RIGHT" to ToolbarTool.CURSOR_END,
+    )
+
+    /** HeliBoard's `KeyCode` values a hold can name that have a tool here. */
+    private val HELI_KEY_CODES: Map<Int, ToolbarTool> = mapOf(
+        -233 to ToolbarTool.VOICE,
+        -213 to ToolbarTool.CLIPBOARD,
+        -205 to ToolbarTool.NUMPAD,
+        -10054 to ToolbarTool.TEXT_EDIT,
+        -131 to ToolbarTool.UNDO,
+        -132 to ToolbarTool.REDO,
+        -301 to ToolbarTool.SETTINGS,
+        -35 to ToolbarTool.SELECT_ALL,
+        -34 to ToolbarTool.SELECT_WORD,
+        -31 to ToolbarTool.COPY,
+        -32 to ToolbarTool.CUT,
+        -33 to ToolbarTool.PASTE,
+        -10002 to ToolbarTool.ONE_HANDED,
+        -109 to ToolbarTool.FLOATING,
+        -113 to ToolbarTool.SPLIT,
+        -244 to ToolbarTool.INCOGNITO,
+        -245 to ToolbarTool.AUTOCORRECT,
+        -212 to ToolbarTool.EMOJI,
+        -232 to ToolbarTool.HIDE_KEYBOARD,
+        -21 to ToolbarTool.CURSOR_LEFT,
+        -22 to ToolbarTool.CURSOR_RIGHT,
+        -23 to ToolbarTool.CURSOR_UP,
+        -24 to ToolbarTool.CURSOR_DOWN,
+        -10015 to ToolbarTool.CURSOR_WORD_LEFT,
+        -10016 to ToolbarTool.CURSOR_WORD_RIGHT,
+        -10010 to ToolbarTool.PAGE_UP,
+        -10011 to ToolbarTool.PAGE_DOWN,
+        -27 to ToolbarTool.CURSOR_HOME,
+        -28 to ToolbarTool.CURSOR_END,
+    )
 }

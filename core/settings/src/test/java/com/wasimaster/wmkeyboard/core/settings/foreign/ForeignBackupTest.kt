@@ -153,6 +153,29 @@ class ForeignBackupTest {
 
     // ---- whole backups ----
 
+    /**
+     * HeliBoard's customised toolbar long presses come across as hold bindings
+     * (issue #639). The tap half is left behind, as is a long press that only
+     * restates the pairing this app already gives, or one with no tool here.
+     */
+    @Test
+    fun `heliboard toolbar long presses map to hold bindings`() {
+        val codes = "UNDO,null,-32;COPY,null,-32;CLIPBOARD,-213,0;LEFT,null,-11000;PAGE_UP,null,-25;REDO,-131,null"
+        val mapped = ForeignSettingsMap.map(ForeignKeyboard.HELIBOARD, mapOf("toolbar_custom_key_codes" to codes))
+            .single { it.kind == ForeignSettingKind.TOOL_HOLD_ACTIONS }
+        // UNDO holds to cut; COPY's cut is the pairing already; CLIPBOARD's 0
+        // is a hold that does nothing; the repeat, page start and a tap-only
+        // entry have nothing to bind.
+        assertEquals("UNDO=CUT,CLIPBOARD=NONE", mapped.value)
+        assertEquals("toolbar_hold_actions", mapped.entry.key)
+    }
+
+    @Test
+    fun `an untouched heliboard toolbar imports no hold bindings`() {
+        val mapped = ForeignSettingsMap.map(ForeignKeyboard.HELIBOARD, mapOf("toolbar_custom_key_codes" to ""))
+        assertTrue(mapped.none { it.kind == ForeignSettingKind.TOOL_HOLD_ACTIONS })
+    }
+
     @Test
     fun heliBoardBackupOffersEachPart() {
         val layoutName = "My layout"

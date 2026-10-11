@@ -71,11 +71,14 @@
     <string name="foreign_setting_key_height">Key height</string>
     <string name="foreign_setting_split_keyboard">Split keyboard</string>
     <string name="foreign_setting_theme_mode">Light or dark</string>
+    <string name="foreign_setting_tool_holds">Press and hold on toolbar keys</string>
 
     <!-- The value a setting will get. -->
     <string name="foreign_value_on">On</string>
     <string name="foreign_value_off">Off</string>
     <string name="foreign_value_ms" tools:ignore="PluralsCandidate"><xliff:g id="ms">%1$d</xliff:g> ms</string>
+    <!-- One toolbar key and what its press and hold runs. %1$s and %2$s are tool names, for example Undo and Redo. -->
+    <string name="foreign_value_tool_hold"><xliff:g id="tool" example="Undo">%1$s</xliff:g>: <xliff:g id="action" example="Redo">%2$s</xliff:g></string>
     <string name="foreign_value_dp" tools:ignore="PluralsCandidate"><xliff:g id="dp">%1$d</xliff:g> dp</string>
     <string name="foreign_value_percent"><xliff:g id="percent">%1$d</xliff:g>%%</string>
     <string name="foreign_value_mode_system">Same as the phone</string>

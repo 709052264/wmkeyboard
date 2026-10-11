@@ -1002,4 +1002,9 @@
     <string name="tooldetail_media_wiki_hint">https://commons.wikimedia.org</string>
     <string name="tooldetail_hold_nothing_value">Does nothing</string>
     <string name="tooldetail_hold_nothing_subtitle">The hold only vibrates. Nothing opens and nothing runs.</string>
+    <string name="tooldetail_hold_default_title">Default</string>
+    <!-- %1$s is the name of a tool, for example Redo. -->
+    <string name="tooldetail_hold_default_pairing_subtitle">Runs <xliff:g id="tool" example="Redo">%1$s</xliff:g>, the same pair as HeliBoard</string>
+    <string name="tooldetail_hold_settings_title">Settings page</string>
+    <string name="tooldetail_hold_settings_subtitle">Opens the settings of this tool, as the hold did before</string>
 </resources>

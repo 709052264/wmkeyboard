@@ -439,6 +439,7 @@ import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
 import com.wasimaster.wmkeyboard.core.settings.SuggestionOverflow
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPlacement
 import com.wasimaster.wmkeyboard.core.settings.ToolHoldAction
+import com.wasimaster.wmkeyboard.core.settings.holdActionOf
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.isOwnRow
 import com.wasimaster.wmkeyboard.core.settings.stripHidden
@@ -7947,8 +7948,10 @@ private fun holdRepeatMs(tool: ToolbarTool, state: KeyboardUiState): Long? =
     }
 
 /**
- * The tool a press and hold on [tool] runs instead of opening its settings page,
- * or null when the hold keeps its original job.
+ * What a press and hold on [tool] does on the toolbar — the user's binding, else
+ * HeliBoard's pairing (issue #639), else the settings page; see
+ * [holdActionOf] — or null when the hold has another job here and the toolbar
+ * opens the settings page as it always did.
  *
  * Toolbar only, and never for a tool whose hold already repeats — that hold is
  * spoken for, and the tools it covers are the caret moves, where a repeat is the
@@ -7967,7 +7970,7 @@ private fun holdActionFor(
 ) {
     null
 } else {
-    state.settings.toolbarBehavior.holdActions[tool]
+    state.settings.toolbarBehavior.holdActionOf(tool)
 }
 
 /**
@@ -8247,7 +8250,7 @@ private fun DraggableTool(
                             else -> {
                                 drag.cancel()
                                 when (val bound = holdAction) {
-                                    null -> drag.onOpenSettings(tool)
+                                    null, ToolHoldAction.OpenSettings -> drag.onOpenSettings(tool)
                                     ToolHoldAction.None -> Unit
                                     is ToolHoldAction.Run -> drag.onHoldAction(bound.tool)
                                 }

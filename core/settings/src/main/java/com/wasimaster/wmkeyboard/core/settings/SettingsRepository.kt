@@ -1728,12 +1728,14 @@ data class ToolbarBehavior(
     val showStrip: Boolean = true,
     /**
      * What a press and hold on a pinned tool does, per tool, as tool name →
-     * action token (see [ToolHoldActions]).
+     * action token (see [ToolHoldActions]). Read through [holdActionOf].
      *
-     * Empty by default, which is the behaviour the toolbar has always had: a
-     * hold opens that tool's settings page. Naming a tool here spends the hold
-     * on a second action instead — hold Undo to redo, hold a cursor key to jump
-     * to the end of the line, hold the text-editing tool to open the clipboard.
+     * Empty by default. A tool with nothing here does what
+     * [DefaultToolHoldActions] says, HeliBoard's pairings (issue #639): hold
+     * Undo to redo, hold Copy to cut, hold the clipboard to paste. A tool with
+     * no pairing opens its settings page, which is what every hold did before
+     * the pairings. Naming a tool here spends the hold on any other tool's tap,
+     * or on [ToolHoldAction.OpenSettings] to get the settings page back.
      * The settings page a tool gives up is still a hold away in the toolbox and
      * still on the Tools screen, exactly as it is for the cursor tools that
      * repeat on hold.
@@ -1759,11 +1761,18 @@ data class ToolbarBehavior(
 /**
  * What a press and hold on a pinned tool does once the user has changed it
  * from the default. Absent from [ToolbarBehavior.holdActions] means the
- * default: the tool's settings page opens.
+ * default; see [holdActionOf].
  */
 sealed interface ToolHoldAction {
     /** The hold does nothing: no page, no action, only the buzz (#136). */
     data object None : ToolHoldAction
+
+    /**
+     * The hold opens the tool's own settings page. The only default before
+     * the pairings (#639); now the default for a tool without one, and a
+     * choice for a tool with one.
+     */
+    data object OpenSettings : ToolHoldAction
 
     /** The hold runs [tool]'s tap. */
     data class Run(val tool: ToolbarTool) : ToolHoldAction
@@ -1819,6 +1828,44 @@ val ToolbarBehavior.stripHidden: Boolean
     get() = enabled && placement == ToolbarPlacement.ALWAYS_ROW && !showStrip
 
 /**
+ * What a hold runs on a tool the user has not bound, after HeliBoard's toolbar
+ * (issue #639): each tool's hold is the action you reach for next to it, so one
+ * button covers two.
+ *
+ * The caret moves are here too, from HeliBoard's documented table, but their
+ * hold repeats the move while [TextEditingSettings.cursorToolsRepeatOnHold] is
+ * on (the default, and what HeliBoard itself does now), so these only answer
+ * once that is turned off. Page up and down have no pairing: HeliBoard holds
+ * them to the start and end of the page, which no tool here does.
+ */
+val DefaultToolHoldActions: Map<ToolbarTool, ToolbarTool> = mapOf(
+    ToolbarTool.CLIPBOARD to ToolbarTool.PASTE,
+    ToolbarTool.PASTE to ToolbarTool.CLIPBOARD,
+    ToolbarTool.COPY to ToolbarTool.CUT,
+    ToolbarTool.UNDO to ToolbarTool.REDO,
+    ToolbarTool.REDO to ToolbarTool.UNDO,
+    ToolbarTool.SELECT_WORD to ToolbarTool.SELECT_ALL,
+    ToolbarTool.SELECT_ALL to ToolbarTool.SELECT_WORD,
+    ToolbarTool.CURSOR_LEFT to ToolbarTool.CURSOR_WORD_LEFT,
+    ToolbarTool.CURSOR_RIGHT to ToolbarTool.CURSOR_WORD_RIGHT,
+    ToolbarTool.CURSOR_UP to ToolbarTool.PAGE_UP,
+    ToolbarTool.CURSOR_DOWN to ToolbarTool.PAGE_DOWN,
+    ToolbarTool.CURSOR_WORD_LEFT to ToolbarTool.CURSOR_HOME,
+    ToolbarTool.CURSOR_WORD_RIGHT to ToolbarTool.CURSOR_END,
+)
+
+/**
+ * What a press and hold on [tool] does: the user's binding, else the pairing
+ * in [DefaultToolHoldActions], else the tool's settings page. The one answer
+ * the toolbar and the tool's page both read, so the page never names an action
+ * the hold does not run.
+ */
+fun ToolbarBehavior.holdActionOf(tool: ToolbarTool): ToolHoldAction =
+    holdActions[tool]
+        ?: DefaultToolHoldActions[tool]?.let(ToolHoldAction::Run)
+        ?: ToolHoldAction.OpenSettings
+
+/**
  * The `tool=action` CSV behind [ToolbarBehavior.holdActions].
  *
  * A tool this build does not have is dropped on both sides rather than
@@ -1834,6 +1881,9 @@ object ToolHoldActions {
      */
     const val NONE_TOKEN = "NONE"
 
+    /** The action token for [ToolHoldAction.OpenSettings]; not a tool name either. */
+    const val SETTINGS_TOKEN = "PAGE"
+
     fun decode(csv: String?): Map<ToolbarTool, ToolHoldAction> =
         csv?.split(',')?.mapNotNull { entry ->
             val separator = entry.indexOf('=')
@@ -1841,6 +1891,7 @@ object ToolHoldActions {
             val tool = toolOrNull(entry.substring(0, separator)) ?: return@mapNotNull null
             val token = entry.substring(separator + 1)
             if (token == NONE_TOKEN) return@mapNotNull tool to ToolHoldAction.None
+            if (token == SETTINGS_TOKEN) return@mapNotNull tool to ToolHoldAction.OpenSettings
             val action = toolOrNull(token) ?: return@mapNotNull null
             // A tool holding to itself is a tap done slowly; drop it rather than
             // firing the same action twice for one gesture.
@@ -1851,6 +1902,7 @@ object ToolHoldActions {
         map.entries.joinToString(",") { (tool, action) ->
             val token = when (action) {
                 ToolHoldAction.None -> NONE_TOKEN
+                ToolHoldAction.OpenSettings -> SETTINGS_TOKEN
                 is ToolHoldAction.Run -> action.tool.name
             }
             "${tool.name}=$token"
@@ -12703,8 +12755,8 @@ class SettingsRepository(private val context: Context) {
 
     /**
      * Sets or clears one tool's press-and-hold action. Null puts that tool back
-     * to opening its own settings page; [ToolHoldAction.None] makes the hold do
-     * nothing at all.
+     * to its default ([holdActionOf]); [ToolHoldAction.None] makes the hold do
+     * nothing at all, and [ToolHoldAction.OpenSettings] opens the tool's page.
      */
     suspend fun setToolHoldAction(tool: ToolbarTool, action: ToolHoldAction?) =
         editPrefs { prefs ->

@@ -60,6 +60,8 @@ import com.wasimaster.wmkeyboard.core.settings.ThemeMode
 import com.wasimaster.wmkeyboard.core.settings.foreign.ForeignBackup
 import com.wasimaster.wmkeyboard.core.settings.foreign.ForeignKeyboard
 import com.wasimaster.wmkeyboard.core.settings.foreign.ForeignSettingKind
+import com.wasimaster.wmkeyboard.core.settings.ToolHoldAction
+import com.wasimaster.wmkeyboard.core.settings.ToolHoldActions
 import com.wasimaster.wmkeyboard.core.settings.foreign.ForeignTheme
 import com.wasimaster.wmkeyboard.core.settings.foreign.LeftBehind
 import com.wasimaster.wmkeyboard.core.settings.foreign.MappedSetting
@@ -387,6 +389,7 @@ private fun settingLabelRes(kind: ForeignSettingKind): Int = when (kind) {
     ForeignSettingKind.KEY_HEIGHT -> R.string.foreign_setting_key_height
     ForeignSettingKind.SPLIT_KEYBOARD -> R.string.foreign_setting_split_keyboard
     ForeignSettingKind.THEME_MODE -> R.string.foreign_setting_theme_mode
+    ForeignSettingKind.TOOL_HOLD_ACTIONS -> R.string.foreign_setting_tool_holds
 }
 
 private fun settingValueText(context: Context, setting: MappedSetting): String = when (val value = setting.value) {
@@ -396,15 +399,33 @@ private fun settingValueText(context: Context, setting: MappedSetting): String =
         ForeignSettingKind.KEY_HEIGHT -> context.getString(R.string.foreign_value_dp, value)
         else -> context.getString(R.string.foreign_value_ms, value)
     }
-    is String -> when (runCatching { ThemeMode.valueOf(value) }.getOrNull()) {
-        ThemeMode.SYSTEM -> context.getString(R.string.foreign_value_mode_system)
-        ThemeMode.LIGHT -> context.getString(R.string.foreign_value_mode_light)
-        ThemeMode.DARK -> context.getString(R.string.foreign_value_mode_dark)
-        ThemeMode.AMOLED -> context.getString(R.string.foreign_value_mode_amoled)
-        null -> value
+    is String -> if (setting.kind == ForeignSettingKind.TOOL_HOLD_ACTIONS) {
+        toolHoldsText(context, value)
+    } else {
+        when (runCatching { ThemeMode.valueOf(value) }.getOrNull()) {
+            ThemeMode.SYSTEM -> context.getString(R.string.foreign_value_mode_system)
+            ThemeMode.LIGHT -> context.getString(R.string.foreign_value_mode_light)
+            ThemeMode.DARK -> context.getString(R.string.foreign_value_mode_dark)
+            ThemeMode.AMOLED -> context.getString(R.string.foreign_value_mode_amoled)
+            null -> value
+        }
     }
     else -> value.toString()
 }
+
+/** Each bound tool and what its hold runs, in the toolbar's own words. */
+private fun toolHoldsText(context: Context, csv: String): String =
+    ToolHoldActions.decode(csv).entries.joinToString(", ") { (tool, action) ->
+        context.getString(
+            R.string.foreign_value_tool_hold,
+            context.getString(toolTitle(tool)),
+            when (action) {
+                ToolHoldAction.None -> context.getString(R.string.tooldetail_hold_nothing_value)
+                ToolHoldAction.OpenSettings -> context.getString(R.string.tooldetail_hold_settings_title)
+                is ToolHoldAction.Run -> context.getString(toolTitle(action.tool))
+            },
+        )
+    }
 
 private fun leftBehindRes(kind: LeftBehind.Kind): Int = when (kind) {
     LeftBehind.Kind.CLIPBOARD -> R.string.foreign_backup_left_clipboard

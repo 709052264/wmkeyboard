@@ -1604,6 +1604,9 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Repeat tools excluded — A caret tool's hold is already spent repeating the move; its row says so rather than hiding
     - Self-binding refused — Encoder drops tool=itself, which is a tap done slowly
     - "Does nothing" is a third answer (#136) — ToolHoldAction.None, stored as `TOOL=NONE`; the hold buzzes and nothing opens or runs
+    - HeliBoard's pairs by default (#639) — DefaultToolHoldActions: Clipboard↔Paste, Copy→Cut, Undo↔Redo, Select word↔Select all, plus the caret pairs that answer only with hold-to-repeat off; holdActionOf resolves binding → pair → settings page
+    - Settings page is a choice — ToolHoldAction.OpenSettings, stored as `TOOL=PAGE`, for a tool whose default became a pair
+    - Imported from HeliBoard and LeanType — toolbar_custom_key_codes long presses map to bindings; ones that restate a pair, repeat, or name no tool here are skipped
     - Voice hold picks a mode `uncommon` — voiceBar.holdPicksTypingMode (default on, #173): a hold on the pinned Voice tool opens a menu of the three typing modes; a pick persists the mode and starts dictation at once (onVoiceModePick, optimistic state update ahead of the DataStore write). Its own flag, like trackpad.holdToOpen, since holdActions can only name a tool; off hands the hold back to the map
   - Toolbar chrome options `uncommon` — ToolbarBehavior + height/label/shape fields
     - Master strip switch — toolbarBehavior.enabled off reclaims the height for keys
