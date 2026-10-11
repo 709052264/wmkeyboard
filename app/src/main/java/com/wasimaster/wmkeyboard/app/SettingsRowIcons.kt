@@ -208,6 +208,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Schedule
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.School
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Science
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ScreenRotation
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DragHandle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Screenshot
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
@@ -670,6 +671,8 @@ internal object SettingsRowIcons {
         put(R.string.layout_split_spacebar_title) { Icons.Outlined.SpaceBar }
         put(R.string.layout_split_large_only_title) { Icons.Outlined.TabletAndroid }
         put(R.string.layout_floating_title) { Icons.Outlined.PictureInPicture }
+        put(R.string.layout_floating_landscape_title) { Icons.Outlined.ScreenRotation }
+        put(R.string.layout_floating_handle_title) { Icons.Outlined.DragHandle }
         put(R.string.layout_floating_width_title) { Icons.Outlined.Straighten }
         put(R.string.layout_floating_height_title) { Icons.Outlined.Height }
         put(R.string.layout_floating_reset_title) { Icons.Outlined.Restore }

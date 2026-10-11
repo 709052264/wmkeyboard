@@ -39,6 +39,8 @@ import com.wasimaster.wmkeyboard.ime.ui.arrowRowKey
 import com.wasimaster.wmkeyboard.ime.ui.gestureBarAtBottom
 import com.wasimaster.wmkeyboard.core.settings.autoBottomPaddingDp
 import com.wasimaster.wmkeyboard.core.settings.KeyboardAlignment
+import com.wasimaster.wmkeyboard.core.settings.FloatingHandlePosition
+import com.wasimaster.wmkeyboard.core.settings.floatingFor
 import com.wasimaster.wmkeyboard.core.script.NumeralCommitScope
 import com.wasimaster.wmkeyboard.core.settings.DefaultToolbarTools
 import com.wasimaster.wmkeyboard.core.settings.KeyFontScaleRange
@@ -1536,7 +1538,8 @@ internal fun LayoutOneHandedSettings(
     // What decides which rows the group holds; each row reads its own value.
     val oneHanded = settings.watch { it.oneHandedMode != OneHandedMode.OFF }
     val split = settings.watch { it.splitKeyboard }
-    val floating = settings.watch { it.floatingKeyboard }
+    // Either orientation floating (#584) shows the panel's own rows.
+    val floating = settings.watch { it.floatingFor(false) || it.floatingFor(true) }
     SettingsGroup(
         stringResource(R.string.layout_one_handed_group_title),
         info = stringResource(R.string.layout_one_handed_caption),
@@ -1659,14 +1662,38 @@ internal fun LayoutOneHandedSettings(
                 default = SettingsDefaults.layoutBehavior.splitSpacebar,
             ) { scope.launch { repository.setSplitSpacebar(it) } }
         }
+        // One switch per orientation (#584): each remembers its own, as the
+        // toolbar tool and the dock button do for the one the phone is in.
         item {
             ToggleSetting(
                 R.string.layout_floating_title,
                 stringResource(R.string.layout_floating_subtitle),
-                floating,
+                settings.watch { it.floatingFor(false) },
                 info = stringResource(R.string.layout_floating_info),
                 default = SettingsDefaults.floatingKeyboard,
-            ) { scope.launch { repository.setFloatingKeyboard(it) } }
+            ) { scope.launch { repository.setFloatingKeyboard(false, it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.layout_floating_landscape_title,
+                stringResource(R.string.layout_floating_landscape_subtitle),
+                settings.watch { it.floatingFor(true) },
+                info = stringResource(R.string.layout_floating_landscape_info),
+                default = SettingsDefaults.floatingFor(true),
+            ) { scope.launch { repository.setFloatingKeyboard(true, it) } }
+        }
+        item(visible = floating) {
+            ChoiceSetting(
+                title = R.string.layout_floating_handle_title,
+                subtitle = stringResource(R.string.layout_floating_handle_subtitle),
+                options = listOf(
+                    FloatingHandlePosition.BOTTOM to stringResource(R.string.layout_floating_handle_bottom_label),
+                    FloatingHandlePosition.TOP to stringResource(R.string.layout_floating_handle_top_label),
+                ),
+                selected = settings.watch { it.floatingHandle },
+                default = SettingsDefaults.floatingHandle,
+                info = stringResource(R.string.layout_floating_handle_info),
+            ) { scope.launch { repository.setFloatingHandle(it) } }
         }
         item(visible = floating) {
             SliderSetting(

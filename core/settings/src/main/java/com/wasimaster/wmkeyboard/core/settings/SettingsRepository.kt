@@ -568,6 +568,21 @@ data class OneHandedSettings(
 fun KeyboardSettings.oneHandedModeFor(landscape: Boolean): OneHandedMode =
     if (landscape && oneHanded.portraitOnly) OneHandedMode.OFF else oneHandedMode
 
+/**
+ * Whether the keyboard floats on a screen held [landscape] or upright (#584).
+ * Each orientation remembers its own answer, so a panel floated sideways
+ * docks again when the phone is turned back, as Gboard does. Every reader
+ * that draws or toggles the board goes through this.
+ */
+fun KeyboardSettings.floatingFor(landscape: Boolean): Boolean =
+    if (landscape) floatingKeyboardLandscape ?: floatingKeyboard else floatingKeyboard
+
+/**
+ * Where the floating panel's handle bar sits. Bottom by default (#584): the
+ * thumb is already at the bottom of the panel, so that is where it moves it.
+ */
+enum class FloatingHandlePosition { TOP, BOTTOM }
+
 /** Where a width-reduced keyboard sits horizontally. */
 enum class KeyboardAlignment { LEFT, CENTER, RIGHT }
 
@@ -2753,7 +2768,19 @@ data class KeyboardSettings(
     val bottomPaddingDp: Int? = null,
     val splitKeyboard: Boolean = false,
     val splitGapPercent: Int = 12,
+    /**
+     * Floating in portrait. Landscape keeps its own switch,
+     * [floatingKeyboardLandscape]; read the one in force through [floatingFor].
+     */
     val floatingKeyboard: Boolean = false,
+    /**
+     * Floating in landscape (#584), or null to follow [floatingKeyboard]: the
+     * state from before the two were apart, which existing installs keep until
+     * either orientation is changed.
+     */
+    val floatingKeyboardLandscape: Boolean? = null,
+    /** Which edge of the floating panel carries the drag bar and resize grip. */
+    val floatingHandle: FloatingHandlePosition = FloatingHandlePosition.BOTTOM,
     val floatingWidthDp: Int = 320,
     /** Multiplier on key height while floating, set by the resize grip. */
     val floatingHeightScale: Float = 1f,
@@ -8212,6 +8239,8 @@ class SettingsRepository(private val context: Context) {
         private val SPLIT_KEYBOARD = booleanPreferencesKey("split_keyboard")
         private val SPLIT_GAP_PERCENT = intPreferencesKey("split_gap_percent")
         private val FLOATING_KEYBOARD = booleanPreferencesKey("floating_keyboard")
+        private val FLOATING_KEYBOARD_LANDSCAPE = booleanPreferencesKey("floating_keyboard_landscape")
+        private val FLOATING_HANDLE = stringPreferencesKey("floating_handle_position")
         private val FLOATING_WIDTH = intPreferencesKey("floating_width")
         private val FLOATING_HEIGHT_SCALE = floatPreferencesKey("floating_height_scale")
         private val FLOATING_X = floatPreferencesKey("floating_x")
@@ -9587,6 +9616,10 @@ class SettingsRepository(private val context: Context) {
             splitKeyboard = p[SPLIT_KEYBOARD] ?: defaults.splitKeyboard,
             splitGapPercent = p[SPLIT_GAP_PERCENT] ?: defaults.splitGapPercent,
             floatingKeyboard = p[FLOATING_KEYBOARD] ?: defaults.floatingKeyboard,
+            floatingKeyboardLandscape = p[FLOATING_KEYBOARD_LANDSCAPE] ?: defaults.floatingKeyboardLandscape,
+            floatingHandle = p[FLOATING_HANDLE]
+                ?.let { runCatching { FloatingHandlePosition.valueOf(it) }.getOrNull() }
+                ?: defaults.floatingHandle,
             floatingWidthDp = p[FLOATING_WIDTH] ?: defaults.floatingWidthDp,
             floatingHeightScale = p[FLOATING_HEIGHT_SCALE] ?: defaults.floatingHeightScale,
             floatingXFraction = p[FLOATING_X] ?: defaults.floatingXFraction,
@@ -13237,8 +13270,26 @@ class SettingsRepository(private val context: Context) {
     suspend fun setSplitGapPercent(value: Int) =
         editPrefs { it[SPLIT_GAP_PERCENT] = value.coerceIn(5, 40) }
 
-    suspend fun setFloatingKeyboard(value: Boolean) =
-        editPrefs { it[FLOATING_KEYBOARD] = value }
+    /**
+     * Floating on or off for one orientation (#584). Landscape follows
+     * portrait until it has a value of its own, so the first portrait write
+     * pins landscape at what it was showing: docking upright must not dock
+     * sideways too through the fallback.
+     */
+    suspend fun setFloatingKeyboard(landscape: Boolean, value: Boolean) =
+        editPrefs {
+            if (landscape) {
+                it[FLOATING_KEYBOARD_LANDSCAPE] = value
+            } else {
+                if (it[FLOATING_KEYBOARD_LANDSCAPE] == null) {
+                    it[FLOATING_KEYBOARD_LANDSCAPE] = it[FLOATING_KEYBOARD] ?: SettingsDefaults.floatingKeyboard
+                }
+                it[FLOATING_KEYBOARD] = value
+            }
+        }
+
+    suspend fun setFloatingHandle(value: FloatingHandlePosition) =
+        editPrefs { it[FLOATING_HANDLE] = value.name }
 
     suspend fun setPersistentKeyboard(value: Boolean) =
         editPrefs { it[PERSISTENT_KEYBOARD] = value }
