@@ -97,6 +97,7 @@ internal val SettingsSearchKeywords: Map<Int, Int> = buildMap {
     put(ImeR.string.ime_tool_kde_connect, R.string.search_kw_ime_tool_kde_connect)
     put(ImeR.string.ime_tool_translate, R.string.search_kw_ime_tool_translate)
     put(ImeR.string.ime_tool_vocabulary, R.string.search_kw_ime_tool_vocabulary)
+    put(ImeR.string.ime_tool_notes, R.string.search_kw_ime_tool_notes)
     put(ImeR.string.ime_tool_weather, R.string.search_kw_ime_tool_weather)
     put(ImeR.string.ime_tool_wikipedia, R.string.search_kw_ime_tool_wikipedia)
     put(R.string.keypress_all_accents_title, R.string.search_kw_keypress_all_accents)

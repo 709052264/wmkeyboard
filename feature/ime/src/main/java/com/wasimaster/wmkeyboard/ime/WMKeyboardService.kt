@@ -327,6 +327,10 @@ import com.wasimaster.wmkeyboard.core.snippets.SnippetCandidate
 import com.wasimaster.wmkeyboard.core.snippets.SnippetMatch
 import com.wasimaster.wmkeyboard.core.snippets.SnippetMatcher
 import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
+import com.wasimaster.wmkeyboard.core.notes.Note
+import com.wasimaster.wmkeyboard.core.notes.NoteChecklist
+import com.wasimaster.wmkeyboard.core.notes.NoteStore
+import com.wasimaster.wmkeyboard.core.settings.NotesPanelStart
 import com.wasimaster.wmkeyboard.core.stickers.StickerAddResult
 import com.wasimaster.wmkeyboard.core.support.Support
 import com.wasimaster.wmkeyboard.core.stickers.StickerImage
@@ -1023,6 +1027,12 @@ open class WMKeyboardService : InputMethodService() {
     private var otpSuggestionJob: Job? = null
     /** How long the clipboard panel's Undo bar stays up (see [onClipboardDelete]). */
     private var clipUndoJob: Job? = null
+
+    // ---- Notes tool (#560): the store and its timers; the handlers sit further down ----
+    private var noteStore = NoteStore(null)
+    private var notesAutosaveJob: Job? = null
+    private var notesUndoJob: Job? = null
+    private var notesConfirmJob: Job? = null
     /**
      * The text clip a panel delete took off the system clipboard (#442), kept
      * while the Undo bar is up so Undo can put it back there too.
@@ -3494,6 +3504,7 @@ open class WMKeyboardService : InputMethodService() {
             var correctionsVersion = -1
             var swipeStyleVersion = -1
             var statsVersion = -1
+            var notesVersion = -1
             var customDictVersion = -1
             var emojiPackVersion = -1
             var emojiUsageVersion = -1
@@ -3796,6 +3807,14 @@ open class WMKeyboardService : InputMethodService() {
                     withContext(persistDispatcher) { typingStats.reload() }
                 }
                 statsVersion = settings.statsVersion
+                // And for the notes: a restore or a sync rewrote the file
+                // under the panel, which must not save its list back over it.
+                if (notesVersion != -1 && settings.notes.version != notesVersion) {
+                    withContext(persistDispatcher) { noteStore.reload() }
+                    publishNotes()
+                }
+                notesVersion = settings.notes.version
+                noteStore.trashRetentionMillis = settings.notes.trashDays * DAY_MS
                 // Leaving Automatic starts its ladder over (#316). The settings
                 // app deletes the file for a keyboard that is not running; this
                 // drops the copy of one that is, so it cannot save it back.
@@ -4196,6 +4215,12 @@ open class WMKeyboardService : InputMethodService() {
         // A store swapped in after that emission carries the user's limits
         // across; one created before it waits for [clipboardLimitsKnown].
         if (clipboardLimitsKnown || !userUnlocked) configureClipboardStore(_uiState.value.settings)
+        // The notes share the file with the settings app the way snippets
+        // do; the panel re-reads it on open (see [openNotesPanel]).
+        noteStore = NoteStore(store(NoteStore.FILE_PATH)).also {
+            it.trashRetentionMillis = _uiState.value.settings.notes.trashDays * DAY_MS
+        }
+        publishNotes()
         snippetsFile = store("snippets/snippets.json")
         snippetStore = SnippetStore(snippetsFile)
         snippetsStamp = snippetsFile?.lastModified() ?: 0L
@@ -6812,6 +6837,9 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.aiChat.composing) {
             _uiState.update { it.copy(aiChat = it.aiChat.copy(composing = false)) }
         }
+        // The note editor gives the keys back with the window too (#560); its
+        // draft is written first, so nothing typed is lost.
+        if (_uiState.value.notes.editing != null) notesFlushEdit(leaveEditor = true)
         // A word still composing settles into the field as typed. Leaving the
         // editor's region active while our mirror is wiped on the next
         // onStartInputView meant the first keystroke after a hide→reshow
@@ -8709,6 +8737,18 @@ open class WMKeyboardService : InputMethodService() {
                     runMediaSearch()
                 }
             CaptureTarget.EMOJI_SEARCH, CaptureTarget.CLIPBOARD_SEARCH, CaptureTarget.SNIPPET_SEARCH -> Unit
+            // Searching notes filters as you type; Enter has nothing to run.
+            CaptureTarget.NOTE_SEARCH -> Unit
+            // A title is one line: Enter moves on to the body.
+            CaptureTarget.NOTE_TITLE -> onNoteEditFocus(NoteEditField.BODY, caret = null)
+            // A note is free text, so Enter is a line break, and inside a list
+            // it carries the list on (see NotesLogic.enter).
+            CaptureTarget.NOTE_BODY -> {
+                val before = state.captureCaretText()
+                if (before != null) captureWrite(CaptureTarget.NOTE_BODY, before, NotesLogic.enter(before))
+            }
+            // Enter finishes a new tag's name.
+            CaptureTarget.NOTE_TAG -> onNoteTagCommit()
             // A clip is free text, so Enter is a line break in it; saving is
             // the editor's own button.
             CaptureTarget.CLIP_EDIT -> captureTyped("\n")
@@ -8929,6 +8969,13 @@ open class WMKeyboardService : InputMethodService() {
                 CaptureTarget.CLIPBOARD_SEARCH -> updateQuery { it.copy(clipboardQuery = after.text) }
                 CaptureTarget.CLIP_EDIT -> clipEditDraft { after.text }
                 CaptureTarget.SNIPPET_SEARCH -> updateQuery { it.copy(snippetQuery = after.text) }
+                // The search filters as it is typed; the drafts are written to
+                // the store a moment after the typing pauses (see noteEditDraft).
+                CaptureTarget.NOTE_SEARCH -> publishNotes { it.copy(query = after.text, held = null) }
+                CaptureTarget.NOTE_TITLE ->
+                    noteEditDraft { it.copy(titleDraft = after.text.replace("\n", " ").take(NoteStore.MAX_TITLE_LENGTH)) }
+                CaptureTarget.NOTE_BODY -> noteEditDraft { it.copy(bodyDraft = after.text.take(NoteEdit.EDITOR_MAX_LENGTH)) }
+                CaptureTarget.NOTE_TAG -> noteEditDraft { it.copy(tagDraft = after.text.trimStart().take(NoteStore.MAX_TAG_LENGTH)) }
             }
         }
         val written = _uiState.value.captureBuffer()
@@ -21653,6 +21700,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.STATISTICS -> openRoute(STATISTICS_ROUTE)
             ToolbarTool.LEARN_FROM_TEXT -> onPanelChange(PanelMode.LEARN_FROM_TEXT)
             ToolbarTool.FIND_REPLACE -> openFindReplaceTool()
+            ToolbarTool.NOTES -> onPanelChange(PanelMode.NOTES)
             ToolbarTool.MEDIA_CONTROL -> onPanelChange(PanelMode.MEDIA_CONTROL)
             ToolbarTool.KDE_CONNECT -> onPanelChange(PanelMode.KDE_CONNECT)
             ToolbarTool.PLUGINS -> onPanelChange(PanelMode.PLUGINS)
@@ -21740,6 +21788,9 @@ open class WMKeyboardService : InputMethodService() {
             clipboardStore.reload()
             fetchLinkPreviews()
         }
+        // Leaving the Notes panel, by closing it or opening another: the draft
+        // is saved and the editor, the search and the Undo bar go (#560).
+        if (_uiState.value.panel == PanelMode.NOTES) notesLeavePanel()
         // Whatever the GIF/sticker panel was showing survives it closing.
         stashMediaSearch(_uiState.value)
         _uiState.update {
@@ -21763,6 +21814,12 @@ open class WMKeyboardService : InputMethodService() {
                 // The find fields exist exactly while their panel does (see
                 // findReplaceTypingActive); a fresh open starts them empty.
                 findReplace = if (next == PanelMode.FIND_REPLACE) FindReplaceUi() else null,
+                // The filter and the open note survive; the rest is per visit.
+                notes = if (next == PanelMode.NOTES) {
+                    it.notes.copy(searchActive = false, query = "", editing = null, held = null, confirm = null, undo = null)
+                } else {
+                    it.notes
+                },
                 // A fresh open reads the text again (see [scanForLearning]).
                 learnFromText = if (next == PanelMode.LEARN_FROM_TEXT) LearnFromTextUi() else null,
                 textEditSelecting = false,
@@ -21945,6 +22002,7 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.FIND_REPLACE -> {
                 currentInputConnection?.let { commitComposing(it, autocorrect = false) }
             }
+            PanelMode.NOTES -> openNotesPanel()
             PanelMode.LEARN_FROM_TEXT -> {
                 // The half-typed word is part of the text being read.
                 currentInputConnection?.let { commitComposing(it, autocorrect = false) }
@@ -30576,6 +30634,7 @@ open class WMKeyboardService : InputMethodService() {
                 onFilter = ::onDictionaryFilterSelect,
             ),
             vocab = vocabCallbacks(),
+            notes = notesCallbacks(),
             stickerOffer = com.wasimaster.wmkeyboard.ime.ui.StickerOfferCallbacks(
                 onPick = ::onStickerOfferPick,
                 onExpand = ::onStickerOfferExpand,
@@ -30617,6 +30676,608 @@ open class WMKeyboardService : InputMethodService() {
                 onShow = ::onLearnShow,
             ),
         )
+    }
+
+    // ---- Notes tool (#560) ----
+
+    private fun notesCallbacks() = com.wasimaster.wmkeyboard.ime.ui.NotesCallbacks(
+        onFilter = ::onNotesFilter,
+        onSearchToggle = ::onNotesSearchToggle,
+        onSearchClear = ::onNotesSearchClear,
+        onOpen = ::onNoteOpen,
+        onBack = ::onNotesBack,
+        onReadExpand = ::onNotesReadExpand,
+        onNew = ::onNotesNew,
+        onEditStart = ::onNoteEditStart,
+        onEditFocus = ::onNoteEditFocus,
+        onEditDone = ::onNoteEditDone,
+        onEditCancel = ::onNoteEditCancel,
+        onMarkdown = ::onNoteMarkdown,
+        onTagToggle = ::onNoteTagToggle,
+        onTagPickerToggle = ::onNoteTagPickerToggle,
+        onTagTypeStart = ::onNoteTagTypeStart,
+        onTagCommit = ::onNoteTagCommit,
+        onTagTypeCancel = ::onNoteTagTypeCancel,
+        onInsert = ::onNoteInsert,
+        onCopy = ::onNoteCopy,
+        onShare = ::onNoteShare,
+        onPin = ::onNotePin,
+        onArchive = ::onNoteArchive,
+        onLock = ::onNoteLock,
+        onTrash = ::onNoteTrash,
+        onRestore = ::onNoteRestore,
+        onDeleteForever = ::onNoteDeleteForever,
+        onEmptyTrash = ::onNotesEmptyTrash,
+        onConfirmDismiss = ::onNotesConfirmDismiss,
+        onTaskToggle = ::onNoteTaskToggle,
+        onHold = ::onNoteHold,
+        onUndo = ::onNotesUndo,
+        onUndoDismiss = ::onNotesUndoDismiss,
+    )
+
+    /**
+     * Recomputes what the panel lists from the store, after [transform] has
+     * changed the rest of its state. Everything the list is a function of —
+     * the filter, the query, the sort, whether the device is locked — is read
+     * here, so no handler has to remember to refresh the rows itself.
+     */
+    private fun publishNotes(transform: (NotesPanelUi) -> NotesPanelUi = { it }) {
+        _uiState.update { state ->
+            val notes = transform(state.notes)
+            val deviceLocked = state.deviceLocked
+            // An open note that was deleted for good, in the app or by the
+            // trash's timer, has nothing left to show.
+            val open = notes.open?.takeIf { noteStore.item(it) != null }
+            state.copy(
+                notes = notes.copy(
+                    available = userUnlocked,
+                    items = NotesLogic.visible(noteStore, notes.filter, notes.query, state.settings.notes.sort, deviceLocked),
+                    tags = noteStore.tags(),
+                    counts = NotesLogic.counts(noteStore, deviceLocked),
+                    open = open,
+                    editing = notes.editing?.takeIf { open != null || it.isNew },
+                ),
+            )
+        }
+    }
+
+    /** Writes the notes file on [persistDispatcher]; the store encodes outside its lock. */
+    private fun saveNotesSoon() {
+        serviceScope.launch(persistDispatcher) { noteStore.save() }
+    }
+
+    /**
+     * Re-reads the file when the settings app wrote it since this process
+     * last did, and lets an open edit meet the change (see
+     * [NotesLogic.resolveConflict]).
+     */
+    private fun reloadNotesIfChanged() {
+        if (!noteStore.reloadIfChanged()) return
+        val edit = _uiState.value.notes.editing ?: return
+        val resolved = NotesLogic.resolveConflict(edit, noteStore.item(edit.id))
+        _uiState.update { it.copy(notes = it.notes.copy(editing = resolved)) }
+    }
+
+    /** The panel just opened: the file is read again, and the setting says where it lands. */
+    private fun openNotesPanel() {
+        reloadNotesIfChanged()
+        publishNotes { notes ->
+            val start = notes.open
+                ?: if (_uiState.value.settings.notes.panelOpensOn == NotesPanelStart.LAST_NOTE) noteStore.lastEdited()?.id else null
+            notes.copy(open = start, readExpanded = false)
+        }
+    }
+
+    /** Leaving the panel: the draft is written, and the editor, search, confirmation and Undo bar go. */
+    private fun notesLeavePanel() {
+        notesFlushEdit(leaveEditor = true)
+        notesUndoJob?.cancel()
+        notesUndoJob = null
+        notesConfirmJob?.cancel()
+        notesConfirmJob = null
+        _uiState.update {
+            it.copy(notes = it.notes.copy(searchActive = false, query = "", held = null, confirm = null, undo = null))
+        }
+    }
+
+    /** An edit to one of the editor's drafts; the store is written once the typing pauses. */
+    private fun noteEditDraft(transform: (NoteEdit) -> NoteEdit) {
+        _uiState.update { state ->
+            val edit = state.notes.editing ?: return@update state
+            state.copy(notes = state.notes.copy(editing = transform(edit)))
+        }
+        notesAutosaveJob?.cancel()
+        notesAutosaveJob = serviceScope.launch {
+            delay(NOTES_AUTOSAVE_MS)
+            notesAutosaveJob = null
+            notesFlushEdit()
+        }
+    }
+
+    /**
+     * Writes the editor's drafts to the store. With [leaveEditor] the editor
+     * closes as well, and a new note left blank is thrown away rather than
+     * kept as an empty row. A note deleted for good while it was open is
+     * added back from the draft: the words are the user's.
+     */
+    private fun notesFlushEdit(leaveEditor: Boolean = false) {
+        notesAutosaveJob?.cancel()
+        notesAutosaveJob = null
+        val edit = _uiState.value.notes.editing ?: return
+        var current = edit
+        if (edit.dirty) {
+            val stored = noteStore.item(edit.id)
+            val draft = (stored ?: edit.original).copy(title = edit.titleDraft, body = edit.bodyDraft, tags = edit.tags)
+            val saved = noteStore.update(draft) ?: noteStore.add(draft.copy(deletedAt = null))
+            current = edit.copy(id = saved.id, original = saved, tags = saved.tags)
+            saveNotesSoon()
+        }
+        if (leaveEditor && current.isNew && current.blank) {
+            noteStore.deleteForever(current.id)
+            saveNotesSoon()
+            publishNotes { it.copy(editing = null, open = null) }
+            return
+        }
+        publishNotes { notes ->
+            notes.copy(
+                editing = if (leaveEditor) null else current,
+                open = if (notes.open == edit.id) current.id else notes.open,
+            )
+        }
+    }
+
+    fun onNotesFilter(filter: NotesFilter) {
+        vibrate()
+        publishNotes { it.copy(filter = filter, held = null, confirm = null) }
+        _uiState.update { it.copy(panelFocus = null) }
+    }
+
+    /** The search pill tapped: it takes the keys, or gives them back and forgets the query. */
+    fun onNotesSearchToggle() {
+        vibrate()
+        if (_uiState.value.notes.editing != null) notesFlushEdit(leaveEditor = true)
+        publishNotes {
+            if (it.searchActive) it.copy(searchActive = false, query = "") else it.copy(searchActive = true, held = null, confirm = null)
+        }
+        _uiState.update { it.copy(panelFocus = null) }
+    }
+
+    fun onNotesSearchClear() {
+        vibrate()
+        publishNotes { it.copy(query = "") }
+    }
+
+    fun onNoteOpen(id: Long) {
+        vibrate()
+        if (noteStore.item(id) == null) return
+        publishNotes { it.copy(open = id, readExpanded = false, held = null, confirm = null) }
+        _uiState.update { it.copy(panelFocus = null) }
+    }
+
+    /** The header's back: out of the editor, then out of the note, then out of the panel. */
+    fun onNotesBack() {
+        val notes = _uiState.value.notes
+        when {
+            notes.editing != null -> onNoteEditDone()
+            notes.open != null -> {
+                vibrate()
+                publishNotes { it.copy(open = null, readExpanded = false, confirm = null) }
+                _uiState.update { it.copy(panelFocus = null) }
+            }
+            else -> onPanelChange(PanelMode.NOTES)
+        }
+    }
+
+    fun onNotesReadExpand() {
+        vibrate()
+        _uiState.update { it.copy(notes = it.notes.copy(readExpanded = !it.notes.readExpanded)) }
+    }
+
+    /** New note, optionally born with [tag]: made in the store at once, so it has an id to autosave under. */
+    fun onNotesNew(tag: String?) {
+        if (!userUnlocked) {
+            toast(R.string.ime_notes_unlock_toast)
+            return
+        }
+        vibrate()
+        notesFlushEdit(leaveEditor = true)
+        currentInputConnection?.let { commitComposing(it, autocorrect = false) }
+        val note = noteStore.add("", tags = listOfNotNull(tag))
+        saveNotesSoon()
+        publishNotes {
+            it.copy(
+                open = note.id,
+                editing = NoteEdit(note.id, isNew = true, original = note, focused = NoteEditField.TITLE, startedAt = System.currentTimeMillis()),
+                searchActive = false,
+                query = "",
+                held = null,
+                confirm = null,
+                readExpanded = false,
+            )
+        }
+        _uiState.update { it.copy(panelFocus = null) }
+    }
+
+    /**
+     * Edit the open note, the caret at the start of [line] when a block was
+     * tapped. Locked notes and notes past the editor's size are refused; the
+     * panel's Edit chip already says where they can be edited.
+     */
+    fun onNoteEditStart(id: Long, line: Int?) {
+        val note = noteStore.item(id) ?: return
+        if (note.locked) {
+            toast(R.string.ime_notes_locked_toast)
+            return
+        }
+        if (note.body.length > NoteEdit.EDITOR_MAX_LENGTH) {
+            toast(R.string.ime_notes_too_long_info)
+            return
+        }
+        vibrate()
+        currentInputConnection?.let { commitComposing(it, autocorrect = false) }
+        val at = if (line != null) NotesLogic.lineStartOffset(note.body, line) else note.body.length
+        publishNotes {
+            it.copy(
+                open = id,
+                editing = NoteEdit(id, isNew = false, original = note, focused = NoteEditField.BODY, startedAt = System.currentTimeMillis()),
+                searchActive = false,
+                query = "",
+                held = null,
+                confirm = null,
+            )
+        }
+        _uiState.update {
+            it.copy(panelFocus = null, captureCaret = CaptureCaret(CaptureTarget.NOTE_BODY.name, at, note.body))
+        }
+    }
+
+    /** A tap on the title or the body: that field takes the keys, the caret where the finger landed. */
+    fun onNoteEditFocus(field: NoteEditField, caret: Int?) {
+        val edit = _uiState.value.notes.editing ?: return
+        if (edit.focused == NoteEditField.TAG && field != NoteEditField.TAG) onNoteTagCommit()
+        _uiState.update { state ->
+            val current = state.notes.editing ?: return@update state
+            val next = current.copy(focused = field)
+            val text = when (field) {
+                NoteEditField.TITLE -> next.titleDraft
+                NoteEditField.BODY -> next.bodyDraft
+                NoteEditField.TAG -> next.tagDraft
+            }
+            val target = when (field) {
+                NoteEditField.TITLE -> CaptureTarget.NOTE_TITLE
+                NoteEditField.BODY -> CaptureTarget.NOTE_BODY
+                NoteEditField.TAG -> CaptureTarget.NOTE_TAG
+            }
+            state.copy(
+                notes = state.notes.copy(editing = next),
+                captureCaret = CaptureCaret(target.name, (caret ?: text.length).coerceIn(0, text.length), text),
+            )
+        }
+    }
+
+    /** Done: the draft is kept and the editor closes onto the note. */
+    fun onNoteEditDone() {
+        if (_uiState.value.notes.editing == null) return
+        vibrate()
+        if (_uiState.value.notes.editing?.focused == NoteEditField.TAG) onNoteTagCommit()
+        val edit = _uiState.value.notes.editing
+        notesFlushEdit(leaveEditor = true)
+        if (edit != null && edit.isNew && edit.blank) toast(R.string.ime_notes_empty_discarded)
+        _uiState.update { it.copy(panelFocus = null) }
+    }
+
+    /** Cancel: the note goes back to how it was when the editor opened; a new one goes away. */
+    fun onNoteEditCancel() {
+        val edit = _uiState.value.notes.editing ?: return
+        vibrate()
+        notesAutosaveJob?.cancel()
+        notesAutosaveJob = null
+        if (edit.isNew) {
+            noteStore.deleteForever(edit.id)
+        } else {
+            noteStore.update(edit.original)
+        }
+        saveNotesSoon()
+        publishNotes { it.copy(editing = null, open = if (edit.isNew) null else it.open) }
+        _uiState.update { it.copy(panelFocus = null) }
+    }
+
+    /** One of the editor's helper chips: the Markdown goes in at the caret or round the selection. */
+    fun onNoteMarkdown(action: NoteMarkdownAction) {
+        val state = _uiState.value
+        if (state.captureTarget() != CaptureTarget.NOTE_BODY) {
+            onNoteEditFocus(NoteEditField.BODY, caret = null)
+        }
+        val before = _uiState.value.captureCaretText() ?: return
+        vibrate()
+        captureWrite(CaptureTarget.NOTE_BODY, before, NotesLogic.applyMarkdown(before, action))
+    }
+
+    /**
+     * A tag chip on a note: on or off. [colour] is the palette index a
+     * suggested tag is born with; an existing tag keeps its own.
+     */
+    fun onNoteTagToggle(id: Long, name: String, colour: Int) {
+        vibrate()
+        val edit = _uiState.value.notes.editing
+        val canonical = noteStore.addTag(name, colour)?.name ?: return
+        if (edit != null && edit.id == id) {
+            noteEditDraft { e ->
+                val has = e.tags.any { it.equals(canonical, ignoreCase = true) }
+                e.copy(tags = if (has) e.tags.filterNot { it.equals(canonical, ignoreCase = true) } else e.tags + canonical)
+            }
+            publishNotes()
+            return
+        }
+        val note = noteStore.item(id) ?: return
+        val tags = if (note.hasTag(canonical)) note.tags.filterNot { it.equals(canonical, ignoreCase = true) } else note.tags + canonical
+        noteStore.setTags(id, tags)
+        saveNotesSoon()
+        publishNotes()
+    }
+
+    fun onNoteTagPickerToggle() {
+        vibrate()
+        if (_uiState.value.notes.editing?.focused == NoteEditField.TAG) onNoteTagTypeCancel()
+        _uiState.update { s ->
+            val e = s.notes.editing ?: return@update s
+            s.copy(notes = s.notes.copy(editing = e.copy(tagPickerOpen = !e.tagPickerOpen)))
+        }
+    }
+
+    /** "New…" in the tag row: a pill takes the keys for the tag's name. */
+    fun onNoteTagTypeStart() {
+        vibrate()
+        _uiState.update { s ->
+            val e = s.notes.editing ?: return@update s
+            s.copy(
+                notes = s.notes.copy(editing = e.copy(focused = NoteEditField.TAG, tagDraft = "", tagPickerOpen = true)),
+                captureCaret = CaptureCaret(CaptureTarget.NOTE_TAG.name, 0, ""),
+            )
+        }
+    }
+
+    /** Enter in the tag pill: the name becomes a tag on the note, and the keys go back to the body. */
+    fun onNoteTagCommit() {
+        val edit = _uiState.value.notes.editing ?: return
+        val name = edit.tagDraft.trim()
+        if (name.isEmpty()) {
+            onNoteTagTypeCancel()
+            return
+        }
+        val canonical = noteStore.addTag(name)?.name
+        noteEditDraft { e ->
+            e.copy(
+                tags = if (canonical != null && e.tags.none { it.equals(canonical, ignoreCase = true) }) e.tags + canonical else e.tags,
+                tagDraft = "",
+                focused = NoteEditField.BODY,
+            )
+        }
+        _uiState.update { it.copy(captureCaret = null) }
+        publishNotes()
+    }
+
+    fun onNoteTagTypeCancel() {
+        _uiState.update { s ->
+            val e = s.notes.editing ?: return@update s
+            if (e.focused != NoteEditField.TAG) return@update s
+            s.copy(notes = s.notes.copy(editing = e.copy(tagDraft = "", focused = NoteEditField.BODY)), captureCaret = null)
+        }
+    }
+
+    /** The note's text into the field, as typed. A locked note never leaves the panel this way. */
+    fun onNoteInsert(id: Long) {
+        val note = noteStore.item(id) ?: return
+        if (note.locked) {
+            toast(R.string.ime_notes_locked_toast)
+            return
+        }
+        vibrate()
+        val ic = currentInputConnection ?: return
+        commitComposing(ic, autocorrect = false)
+        ic.commitText(note.body.ifBlank { note.title }, 1)
+    }
+
+    fun onNoteCopy(id: Long) {
+        val note = noteStore.item(id) ?: return
+        if (note.locked) {
+            toast(R.string.ime_notes_locked_toast)
+            return
+        }
+        vibrate()
+        KeyboardClipboard.copy(this, note.body.ifBlank { note.title })
+        toast(R.string.ime_notes_copied_toast)
+    }
+
+    fun onNoteShare(id: Long) {
+        val note = noteStore.item(id) ?: return
+        if (note.locked) {
+            toast(R.string.ime_notes_locked_toast)
+            return
+        }
+        vibrate()
+        startMacroActivity(
+            Intent(Intent.ACTION_SEND)
+                .setType("text/plain")
+                .putExtra(Intent.EXTRA_SUBJECT, note.displayTitle())
+                .putExtra(Intent.EXTRA_TEXT, note.body.ifBlank { note.title }),
+            chooser = true,
+        )
+    }
+
+    fun onNotePin(id: Long, pinned: Boolean) {
+        vibrate()
+        noteStore.setPinned(id, pinned) ?: return
+        saveNotesSoon()
+        publishNotes { it.copy(held = null) }
+    }
+
+    /** Archiving offers an Undo; an archived note that was open closes onto the list. */
+    fun onNoteArchive(id: Long, archived: Boolean) {
+        vibrate()
+        if (_uiState.value.notes.editing?.id == id) notesFlushEdit(leaveEditor = true)
+        noteStore.setArchived(id, archived) ?: return
+        saveNotesSoon()
+        publishNotes { it.copy(held = null, open = if (archived && it.open == id) null else it.open) }
+        if (archived) offerNotesUndo(NotesUndoKind.ARCHIVED, id)
+    }
+
+    /**
+     * Lock a note from the keyboard. One way only: unlocking asks for the
+     * fingerprint, which an input method cannot raise, so that is the
+     * settings app's.
+     */
+    fun onNoteLock(id: Long) {
+        vibrate()
+        if (_uiState.value.notes.editing?.id == id) notesFlushEdit(leaveEditor = true)
+        noteStore.setLocked(id, true) ?: return
+        saveNotesSoon()
+        publishNotes { it.copy(held = null) }
+    }
+
+    /** To the trash, with an Undo bar; the trash itself is the longer undo. */
+    fun onNoteTrash(id: Long) {
+        vibrate()
+        if (_uiState.value.notes.editing?.id == id) {
+            notesAutosaveJob?.cancel()
+            notesAutosaveJob = null
+            _uiState.update { it.copy(notes = it.notes.copy(editing = null)) }
+        }
+        noteStore.trash(id) ?: return
+        saveNotesSoon()
+        publishNotes { it.copy(held = null, open = if (it.open == id) null else it.open, confirm = null) }
+        _uiState.update { it.copy(panelFocus = null) }
+        offerNotesUndo(NotesUndoKind.TRASHED, id)
+    }
+
+    fun onNoteRestore(id: Long) {
+        vibrate()
+        noteStore.restore(id) ?: return
+        saveNotesSoon()
+        publishNotes { it.copy(held = null, confirm = null) }
+    }
+
+    /** Two taps: the first arms the chip, the second within a few seconds deletes. */
+    fun onNoteDeleteForever(id: Long) {
+        vibrate()
+        val confirm = _uiState.value.notes.confirm
+        if (confirm is NotesConfirm.DeleteForever && confirm.id == id) {
+            notesConfirmJob?.cancel()
+            notesConfirmJob = null
+            noteStore.deleteForever(id)
+            saveNotesSoon()
+            publishNotes { it.copy(confirm = null, held = null, open = if (it.open == id) null else it.open) }
+            return
+        }
+        armNotesConfirm(NotesConfirm.DeleteForever(id))
+    }
+
+    fun onNotesEmptyTrash() {
+        vibrate()
+        if (_uiState.value.notes.confirm == NotesConfirm.EmptyTrash) {
+            notesConfirmJob?.cancel()
+            notesConfirmJob = null
+            noteStore.emptyTrash()
+            saveNotesSoon()
+            publishNotes { it.copy(confirm = null, held = null, open = null) }
+            return
+        }
+        armNotesConfirm(NotesConfirm.EmptyTrash)
+    }
+
+    private fun armNotesConfirm(confirm: NotesConfirm) {
+        _uiState.update { it.copy(notes = it.notes.copy(confirm = confirm)) }
+        notesConfirmJob?.cancel()
+        notesConfirmJob = serviceScope.launch {
+            delay(NOTES_CONFIRM_MS)
+            notesConfirmJob = null
+            _uiState.update { it.copy(notes = it.notes.copy(confirm = null)) }
+        }
+    }
+
+    fun onNotesConfirmDismiss() {
+        notesConfirmJob?.cancel()
+        notesConfirmJob = null
+        _uiState.update { it.copy(notes = it.notes.copy(confirm = null)) }
+    }
+
+    /** A task box tapped in the reading view, or in the editor's own note. */
+    fun onNoteTaskToggle(id: Long, line: Int) {
+        val edit = _uiState.value.notes.editing
+        if (edit != null && edit.id == id) {
+            val body = NoteChecklist.toggleTask(edit.bodyDraft, line) ?: return
+            vibrate()
+            noteEditDraft { it.copy(bodyDraft = body) }
+            return
+        }
+        val note = noteStore.item(id) ?: return
+        if (note.locked) return
+        val body = NoteChecklist.toggleTask(note.body, line) ?: return
+        vibrate()
+        noteStore.update(note.copy(body = body))
+        saveNotesSoon()
+        publishNotes()
+    }
+
+    /** A long press on a row shows its action chips; null puts them away. */
+    fun onNoteHold(id: Long?) {
+        if (id != null) vibrate()
+        _uiState.update { it.copy(notes = it.notes.copy(held = id, confirm = null)) }
+    }
+
+    private fun offerNotesUndo(kind: NotesUndoKind, id: Long) {
+        _uiState.update { state ->
+            val previous = state.notes.undo?.takeIf { it.kind == kind }
+            state.copy(notes = state.notes.copy(undo = NotesUndo(kind, previous?.ids.orEmpty() + id)))
+        }
+        notesUndoJob?.cancel()
+        notesUndoJob = serviceScope.launch {
+            delay(clipUndoTimeoutMillis())
+            notesUndoJob = null
+            _uiState.update { it.copy(notes = it.notes.copy(undo = null)) }
+        }
+    }
+
+    /** The Undo bar's button: every note it names goes back where it was. */
+    fun onNotesUndo() {
+        val undo = _uiState.value.notes.undo ?: return
+        notesUndoJob?.cancel()
+        notesUndoJob = null
+        vibrate()
+        for (id in undo.ids) {
+            when (undo.kind) {
+                NotesUndoKind.TRASHED -> noteStore.restore(id)
+                NotesUndoKind.ARCHIVED -> noteStore.setArchived(id, false)
+            }
+        }
+        saveNotesSoon()
+        publishNotes { it.copy(undo = null) }
+    }
+
+    fun onNotesUndoDismiss() {
+        notesUndoJob?.cancel()
+        notesUndoJob = null
+        _uiState.update { it.copy(notes = it.notes.copy(undo = null)) }
+    }
+
+    /**
+     * The selection bar's Save as note: the selection becomes a new note, or
+     * the end of the last note edited when the setting says so. Nothing from a
+     * password field, and nothing before the first unlock, where there is no
+     * file to write to.
+     */
+    private fun saveSelectionAsNote(text: String) {
+        if (!userUnlocked) {
+            toast(R.string.ime_notes_unlock_toast)
+            return
+        }
+        if (_uiState.value.secureField || text.isBlank()) return
+        reloadNotesIfChanged()
+        val last = if (_uiState.value.settings.notes.saveSelectionAppends) noteStore.lastEdited() else null
+        if (last != null) noteStore.append(last.id, text) else noteStore.add(body = text)
+        saveNotesSoon()
+        publishNotes()
+        toast(if (last != null) R.string.ime_notes_appended_toast else R.string.ime_notes_saved_toast)
     }
 
     // ---- Learn from text (#174) ----
@@ -31258,6 +31919,7 @@ open class WMKeyboardService : InputMethodService() {
         SelectionMacro.TRANSLATE -> ToolbarTool.TRANSLATE in settings.enabledTools
         SelectionMacro.GRAMMAR_FIX -> ToolbarTool.GRAMMAR in settings.enabledTools
         SelectionMacro.AI -> ToolbarTool.AI in settings.enabledTools
+        SelectionMacro.SAVE_NOTE -> ToolbarTool.NOTES in settings.enabledTools
         else -> true
     }
 
@@ -31327,6 +31989,7 @@ open class WMKeyboardService : InputMethodService() {
                 Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text),
                 chooser = true,
             )
+            SelectionMacro.SAVE_NOTE -> saveSelectionAsNote(text)
             SelectionMacro.FORMAT -> SelectionMacros.format(text, offer.kind, masks)?.let(::rewriteSelection)
             SelectionMacro.CASE_LOWER, SelectionMacro.CASE_TITLE, SelectionMacro.CASE_UPPER, SelectionMacro.CASE_SENTENCE,
             SelectionMacro.CASE_CAMEL, SelectionMacro.CASE_SNAKE, SelectionMacro.CASE_KEBAB, SelectionMacro.CASE_CONSTANT ->
@@ -35006,6 +35669,16 @@ open class WMKeyboardService : InputMethodService() {
                 ({ onSnippetFolderOpen(null) })
             // The spelling editor closes before the Learn from text panel under it.
             state.learnEditActive -> ::onLearnEditCancel
+            // The Notes panel's layers, innermost first (#560): a tag being
+            // typed, the editor (Back keeps what was typed; Cancel is the
+            // chip), a two-tap confirmation, the search, a held row's action
+            // chips, then the open note back to the list.
+            state.notesEditActive && state.notes.editing?.focused == NoteEditField.TAG -> ::onNoteTagTypeCancel
+            state.notesEditActive -> ::onNoteEditDone
+            state.panel == PanelMode.NOTES && state.notes.confirm != null -> ::onNotesConfirmDismiss
+            state.panel == PanelMode.NOTES && state.notes.searchActive -> ::onNotesSearchToggle
+            state.panel == PanelMode.NOTES && state.notes.held != null -> ({ onNoteHold(null) })
+            state.panel == PanelMode.NOTES && state.notes.open != null -> ::onNotesBack
             // And the clip editor before the clipboard panel it opened over.
             state.clipEditActive -> ::onClipEditCancel
             // The one layer Back leaves alone: a panel layout whose author
@@ -37448,6 +38121,14 @@ open class WMKeyboardService : InputMethodService() {
 
         /** The clipboard panel's Undo bar, before accessibility asks for longer. */
         private const val CLIP_UNDO_TIMEOUT_MS = 5_000
+
+        /** How long the note editor waits after a keystroke before writing the draft to the store (#560). */
+        private const val NOTES_AUTOSAVE_MS = 600L
+
+        /** How long a two-tap confirmation in the Notes panel stays armed. */
+        private const val NOTES_CONFIRM_MS = 4_000L
+
+        private const val DAY_MS = 24L * 60 * 60 * 1000
         /**
          * Gap between the characters of a code typed into the field (see
          * [commitCodeToField]). Long enough for a form to move the focus to its

@@ -1492,6 +1492,32 @@ private fun SettingsNavGraph(
                 VocabWordScreen(packId, word, settings) { route -> navController.navigate(route) }
             }
         }
+        composable("notes") {
+            SettingsScreen(stringResource(R.string.notes_title), { navController.popBackStack() }, route = "notes") {
+                NotesListScreen(repository, settings) { route -> navController.navigate(route) }
+            }
+        }
+        composable("notes/edit/{noteId}") { backStackEntry ->
+            // 0 is "a note that does not exist yet", which the Add button opens.
+            val noteId = backStackEntry.arguments?.getString("noteId")?.toLongOrNull() ?: 0L
+            SettingsScreen(
+                stringResource(if (noteId == 0L) R.string.notes_new_title else R.string.notes_edit_title),
+                { navController.popBackStack() },
+                route = noteEditRoute(noteId),
+            ) {
+                NoteEditorScreen(settings, noteId) { navController.popBackStack() }
+            }
+        }
+        composable("notes/tags") {
+            SettingsScreen(stringResource(R.string.notes_tags_title), { navController.popBackStack() }, route = "notes/tags") {
+                NoteTagsScreen(settings)
+            }
+        }
+        composable("notes/trash") {
+            SettingsScreen(stringResource(R.string.notes_trash_title), { navController.popBackStack() }, route = "notes/trash") {
+                NotesTrashScreen(settings)
+            }
+        }
         composable("sticker_packs") {
             SettingsScreen(
                 stringResource(R.string.home_screen_sticker_packs_title),

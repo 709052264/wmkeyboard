@@ -508,6 +508,10 @@ internal fun RowScope.MediaHeaderSearchBar(
     focused: Boolean = false,
     // Shown while there is a query: starts a new search. Null hides it.
     onClear: (() -> Unit)? = null,
+    // The buffer the bar draws. The media query by default; a panel with a
+    // search box of its own (the Notes panel, #560) passes its own pair.
+    query: String = state.mediaQuery,
+    active: Boolean = state.mediaSearchActive,
 ) {
     val kb = LocalKbTheme.current
     val activeHint = activePlaceholder ?: stringResource(R.string.ime_media_search_active_hint)
@@ -532,9 +536,9 @@ internal fun RowScope.MediaHeaderSearchBar(
         )
         Spacer(Modifier.width(8.dp))
         SearchQueryText(
-            query = state.mediaQuery,
-            placeholder = if (state.mediaSearchActive) activeHint else placeholder,
-            active = state.mediaSearchActive,
+            query = query,
+            placeholder = if (active) activeHint else placeholder,
+            active = active,
             textColor = kb.suggestionText,
             placeholderColor = kb.secondaryText,
             fontSize = 13.sp,
@@ -548,7 +552,7 @@ internal fun RowScope.MediaHeaderSearchBar(
                 modifier = Modifier.padding(start = 6.dp),
             )
         }
-        if (onClear != null && state.mediaQuery.isNotEmpty()) {
+        if (onClear != null && query.isNotEmpty()) {
             Icon(
                 Icons.Outlined.Close,
                 contentDescription = stringResource(R.string.ime_clipboard_search_clear_desc),

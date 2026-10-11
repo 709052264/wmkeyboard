@@ -403,6 +403,7 @@
     <string name="ime_tool_vocabulary">Vocabulary</string>
     <string name="ime_tool_learn_from_text">Learn from text</string>
     <string name="ime_tool_find_replace">Find &amp; replace</string>
+    <string name="ime_tool_notes">Notes</string>
     <!-- Learn from text (#174): the panel that lists words the keyboard does not know yet. -->
     <string name="ime_learn_select_all_action">Select all</string>
     <string name="ime_learn_select_none_action">Select none</string>

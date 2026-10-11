@@ -151,6 +151,8 @@ import com.wasimaster.wmkeyboard.settings.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.thesaurus.SynonymSourceChoice
 import com.wasimaster.wmkeyboard.core.thesaurus.SynonymSources
+import com.wasimaster.wmkeyboard.core.notes.NoteSort
+import com.wasimaster.wmkeyboard.core.notes.NoteStore
 import com.wasimaster.wmkeyboard.core.vocab.VocabAccent
 import com.wasimaster.wmkeyboard.core.vocab.VocabAudioSource
 import com.wasimaster.wmkeyboard.core.vocab.VocabChipTap
@@ -3271,6 +3273,8 @@ data class KeyboardSettings(
     val trackpad: TrackpadSettings = TrackpadSettings(),
     /** The vocabulary tool: nudges, cards, flashcards, audio (see [VocabularySettings]). */
     val vocabulary: VocabularySettings = VocabularySettings(),
+    /** The Notes tool (#560): sort, trash retention, what Save as note does (see [NotesSettings]). */
+    val notes: NotesSettings = NotesSettings(),
     /**
      * Which features are given up to save battery, and what switches that on
      * (see [PowerSavingSettings]). Read the *config*; what is actually in force
@@ -3860,6 +3864,9 @@ data class AutoBackupSettings(
             ConfigBackup.Section.EMOJI.id,
             ConfigBackup.Section.STATISTICS.id,
             ConfigBackup.Section.VOCAB.id,
+            // Written on purpose like snippets, and nothing re-downloads a
+            // note. Locked notes stay out until secrets are included.
+            ConfigBackup.Section.NOTES.id,
         )
     }
 }
@@ -3936,6 +3943,9 @@ data class SyncSettings(
             ConfigBackup.Section.SETTINGS.id,
             ConfigBackup.Section.THEMES.id,
             ConfigBackup.Section.SNIPPETS.id,
+            // A notebook on two phones is the obvious wish. Notes merge one
+            // by one through their ids; the tag list merges as one value.
+            ConfigBackup.Section.NOTES.id,
         )
     }
 }
@@ -9199,6 +9209,13 @@ class SettingsRepository(private val context: Context) {
         private val VOCAB_TTS_PITCH = floatPreferencesKey("vocab_tts_pitch")
         private val VOCAB_CARD_FIELDS = stringPreferencesKey("vocab_card_fields")
         private val VOCAB_TRANSLATION_LANGS = stringPreferencesKey("vocab_translation_langs")
+        private val NOTES_SORT = stringPreferencesKey("notes_sort")
+        private val NOTES_PREVIEW_LINES = intPreferencesKey("notes_preview_lines")
+        private val NOTES_RENDER_MARKDOWN = booleanPreferencesKey("notes_render_markdown")
+        private val NOTES_PANEL_START = stringPreferencesKey("notes_panel_start")
+        private val NOTES_SAVE_SELECTION_APPENDS = booleanPreferencesKey("notes_save_selection_appends")
+        private val NOTES_TRASH_DAYS = intPreferencesKey("notes_trash_days")
+        private val NOTES_VERSION = intPreferencesKey("notes_version")
         private val DOUBLE_SPACE_WINDOW_MS = intPreferencesKey("double_space_window_ms")
         private val SPACE_CURSOR_STEP_DP = intPreferencesKey("space_cursor_step_dp")
         private val SPACE_CURSOR_MAGNIFIER = booleanPreferencesKey("space_cursor_magnifier")
@@ -9888,6 +9905,7 @@ class SettingsRepository(private val context: Context) {
             textEditing = readTextEditing(p, defaults),
             trackpad = readTrackpad(p, defaults),
             vocabulary = readVocabulary(p, defaults),
+            notes = readNotes(p, defaults),
             powerSaving = readPowerSaving(p, defaults),
             dataSaver = dataSaverFromPrefs(p, defaults),
             numpadCalculatorLayout = p[NUMPAD_CALCULATOR_LAYOUT]
@@ -11182,6 +11200,19 @@ class SettingsRepository(private val context: Context) {
             magnifier = p[TRACKPAD_MAGNIFIER] ?: defaults.trackpad.magnifier,
         )
 
+    private fun readNotes(p: Preferences, defaults: KeyboardSettings) =
+        NotesSettings(
+            sort = p[NOTES_SORT]?.let { runCatching { NoteSort.valueOf(it) }.getOrNull() } ?: defaults.notes.sort,
+            previewLines = p[NOTES_PREVIEW_LINES]?.coerceIn(NotesSettings.MIN_PREVIEW_LINES, NotesSettings.MAX_PREVIEW_LINES)
+                ?: defaults.notes.previewLines,
+            renderMarkdown = p[NOTES_RENDER_MARKDOWN] ?: defaults.notes.renderMarkdown,
+            panelOpensOn = p[NOTES_PANEL_START]?.let { runCatching { NotesPanelStart.valueOf(it) }.getOrNull() }
+                ?: defaults.notes.panelOpensOn,
+            saveSelectionAppends = p[NOTES_SAVE_SELECTION_APPENDS] ?: defaults.notes.saveSelectionAppends,
+            trashDays = p[NOTES_TRASH_DAYS]?.coerceIn(0, NotesSettings.MAX_TRASH_DAYS) ?: defaults.notes.trashDays,
+            version = p[NOTES_VERSION] ?: defaults.notes.version,
+        )
+
     private fun readVocabulary(p: Preferences, defaults: KeyboardSettings) =
         VocabularySettings(
             nudges = p[VOCAB_NUDGES] ?: defaults.vocabulary.nudges,
@@ -12352,6 +12383,29 @@ class SettingsRepository(private val context: Context) {
     suspend fun setVocabCardFields(value: String) = editPrefs { it[VOCAB_CARD_FIELDS] = value }
 
     suspend fun setVocabTranslationLangs(value: String) = editPrefs { it[VOCAB_TRANSLATION_LANGS] = value }
+
+    suspend fun setNotesSort(value: NoteSort) = editPrefs { it[NOTES_SORT] = value.name }
+
+    suspend fun setNotesPreviewLines(value: Int) =
+        editPrefs { it[NOTES_PREVIEW_LINES] = value.coerceIn(NotesSettings.MIN_PREVIEW_LINES, NotesSettings.MAX_PREVIEW_LINES) }
+
+    suspend fun setNotesRenderMarkdown(value: Boolean) = editPrefs { it[NOTES_RENDER_MARKDOWN] = value }
+
+    suspend fun setNotesPanelOpensOn(value: NotesPanelStart) = editPrefs { it[NOTES_PANEL_START] = value.name }
+
+    suspend fun setNotesSaveSelectionAppends(value: Boolean) = editPrefs { it[NOTES_SAVE_SELECTION_APPENDS] = value }
+
+    /** Days a trashed note waits; 0 keeps it until the user deletes it. */
+    suspend fun setNotesTrashDays(value: Int) =
+        editPrefs { it[NOTES_TRASH_DAYS] = value.coerceIn(0, NotesSettings.MAX_TRASH_DAYS) }
+
+    /**
+     * Tells the running keyboard that notes.json was rewritten under it (a
+     * restore, a sync), so it re-reads the file instead of saving its own
+     * copy over the new one: the `bumpStatsVersion` contract.
+     */
+    suspend fun bumpNotesVersion() =
+        editPrefs { it[NOTES_VERSION] = (it[NOTES_VERSION] ?: 0) + 1 }
 
     suspend fun setNumpadCalculatorLayout(value: Boolean) =
         editPrefs {
@@ -14473,6 +14527,11 @@ class SettingsRepository(private val context: Context) {
         if (ConfigBackup.Section.SWIPE in sections) {
             swipeSection()?.let { out[ConfigBackup.Section.SWIPE] = it }
         }
+        if (ConfigBackup.Section.NOTES in sections) {
+            // Locked notes travel only with the secrets: the same switch, for
+            // the same reason — this file is easy to send somewhere.
+            readStore(NoteStore.FILE_PATH)?.let { out[ConfigBackup.Section.NOTES] = NotesBackup.portable(it, includeSecrets) }
+        }
         return ConfigBackup.encode(appVersion, appVersionName, out)
     }
 
@@ -14505,6 +14564,8 @@ class SettingsRepository(private val context: Context) {
                     // corrected readings ride along uncounted: neither is a
                     // number a user would recognise.
                     ConfigBackup.Section.SWIPE -> swipeSectionWordCount(element)
+                    // Notes outside the trash; the tags ride along uncounted.
+                    ConfigBackup.Section.NOTES -> NotesBackup.count(element)
                 }
             }.getOrDefault(0)
             counts[section] = count
@@ -14514,6 +14575,8 @@ class SettingsRepository(private val context: Context) {
 
     /** True when a decoded bundle's settings section carries any API key. */
     fun configContainsSecrets(parsed: ConfigBackup.Parsed): Boolean {
+        // A locked note is a secret the user named as one (#560).
+        if (parsed.sections[ConfigBackup.Section.NOTES]?.let(NotesBackup::hasLocked) == true) return true
         val settings = parsed.sections[ConfigBackup.Section.SETTINGS]?.let { it as? JsonObject } ?: return false
         return settings.keys.any { it in SettingsBackup.SECRET_KEYS }
     }
@@ -14635,6 +14698,17 @@ class SettingsRepository(private val context: Context) {
             if (restoreSwipeStyle(obj)) {
                 restored.add(ConfigBackup.Section.SWIPE)
                 bumpSwipeStyleVersion()
+            }
+        }
+        (parsed.sections[ConfigBackup.Section.NOTES] as? JsonObject)?.let { obj ->
+            // A bundle made without secrets left this phone's locked notes
+            // out; restoring it must not delete them.
+            val merged = NotesBackup.keepingLocalLocked(obj, readStore(NoteStore.FILE_PATH) as? JsonObject)
+            if (writeStore(NoteStore.FILE_PATH, merged)) {
+                restored.add(ConfigBackup.Section.NOTES)
+                // The keyboard holds the notes in memory; without this it
+                // saves its own list over the one just restored.
+                bumpNotesVersion()
             }
         }
         return ConfigImportResult.Applied(restored, settingsFailed)

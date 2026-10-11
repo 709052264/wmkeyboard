@@ -398,6 +398,10 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "vocab/lists" to Color(0xFF8E24AA),
     "vocab/review" to Color(0xFF8E24AA),
     "vocab/browse" to Color(0xFF8E24AA),
+    // The Notes tool's own yellow, see ToolColors.
+    "notes" to Color(0xFFFBC02D),
+    "notes/tags" to Color(0xFFFBC02D),
+    "notes/trash" to Color(0xFFFBC02D),
     // The editor is opened from a pack, so it keeps the pack screens' pink.
     "sticker_editor" to Color(0xFFF06292),
     "plugins" to Color(0xFF06B6D4),

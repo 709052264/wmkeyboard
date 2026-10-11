@@ -263,6 +263,7 @@ internal fun panelForTool(tool: ToolbarTool): PanelMode? = when (tool) {
     ToolbarTool.VOCABULARY -> PanelMode.VOCABULARY
     ToolbarTool.LEARN_FROM_TEXT -> PanelMode.LEARN_FROM_TEXT
     ToolbarTool.FIND_REPLACE -> PanelMode.FIND_REPLACE
+    ToolbarTool.NOTES -> PanelMode.NOTES
     ToolbarTool.TRANSLATE -> PanelMode.TRANSLATE
     ToolbarTool.GIF -> PanelMode.GIF
     ToolbarTool.STICKER -> PanelMode.STICKER

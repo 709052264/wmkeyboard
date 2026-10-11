@@ -397,6 +397,12 @@ val Icons.Outlined.Check: ImageVector
         .also { _check = it }
 private var _check: ImageVector? = null
 
+/** Material Symbols `check_box`. */
+val Icons.Outlined.CheckBox: ImageVector
+    get() = _checkBox ?: symbolVector("Outlined.CheckBox", """m424-424-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-424ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z""", autoMirror = false)
+        .also { _checkBox = it }
+private var _checkBox: ImageVector? = null
+
 /** Material Symbols `check_box_outline_blank`. */
 val Icons.Outlined.CheckBoxOutlineBlank: ImageVector
     get() = _checkBoxOutlineBlank ?: symbolVector("Outlined.CheckBoxOutlineBlank", """M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Z""", autoMirror = false)
@@ -2232,6 +2238,12 @@ val Icons.Outlined.StayCurrentPortrait: ImageVector
     get() = _stayCurrentPortrait ?: symbolVector("Outlined.StayCurrentPortrait", """M280-40q-33 0-56.5-23.5T200-120v-720q0-33 23.5-56.5T280-920h400q33 0 56.5 23.5T760-840v124q18 7 29 22t11 34v80q0 19-11 34t-29 22v404q0 33-23.5 56.5T680-40H280Zm0-80h400v-720H280v720Zm0 0v-720 720Zm228.5-611.5Q520-743 520-760t-11.5-28.5Q497-800 480-800t-28.5 11.5Q440-777 440-760t11.5 28.5Q463-720 480-720t28.5-11.5Z""", autoMirror = false)
         .also { _stayCurrentPortrait = it }
 private var _stayCurrentPortrait: ImageVector? = null
+
+/** Material Symbols `sticky_note_2`. */
+val Icons.Outlined.StickyNote2: ImageVector
+    get() = _stickyNote2 ?: symbolVector("Outlined.StickyNote2", """M200-200h360v-160q0-17 11.5-28.5T600-400h160v-360H200v560Zm0 80q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v367q0 16-6 30.5T817-337L623-143q-11 11-25.5 17t-30.5 6H200Zm240-280H320q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480h120q17 0 28.5 11.5T480-440q0 17-11.5 28.5T440-400Zm200-160H320q-17 0-28.5-11.5T280-600q0-17 11.5-28.5T320-640h320q17 0 28.5 11.5T680-600q0 17-11.5 28.5T640-560ZM200-200v-560 560Z""", autoMirror = false)
+        .also { _stickyNote2 = it }
+private var _stickyNote2: ImageVector? = null
 
 /** Material Symbols `stop`. */
 val Icons.Outlined.Stop: ImageVector

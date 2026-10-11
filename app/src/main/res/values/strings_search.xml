@@ -96,6 +96,7 @@
     <string name="search_kw_ime_tool_trackpad">touchpad mouse pad joystick</string>
     <string name="search_kw_ime_tool_translate">translator interpreter deepl</string>
     <string name="search_kw_ime_tool_vocabulary">spaced repetition anki srs</string>
+    <string name="search_kw_ime_tool_notes">notebook memo jot scratchpad keep diary</string>
     <string name="search_kw_ime_tool_weather">forecast temperature rain</string>
     <string name="search_kw_ime_tool_wikipedia">encyclopedia wiki article</string>
     <string name="search_kw_keypress_all_accents">diacritics umlaut tilde cedilla circumflex</string>

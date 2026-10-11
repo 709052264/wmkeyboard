@@ -191,6 +191,15 @@ export const ROUTES: RouteSpec[] = [
 			{ name: 'word', hint: 'The word itself' },
 		],
 	},
+	{ pattern: 'notes', label: 'Notes', group: 'Tools' },
+	{
+		pattern: 'notes/edit/{noteId}',
+		label: 'One note, open in the editor',
+		group: 'Tools',
+		args: [{ name: 'noteId', hint: 'A note id, or 0 for a new note' }],
+	},
+	{ pattern: 'notes/tags', label: 'Note tags', group: 'Tools' },
+	{ pattern: 'notes/trash', label: 'Notes trash', group: 'Tools' },
 	{ pattern: 'voice', label: 'Voice typing', group: 'Tools' },
 	{ pattern: 'expander', label: 'Text expansion', group: 'Tools' },
 	{
@@ -323,7 +332,7 @@ export const TOOL_NAMES = [
 	'CURSOR_RIGHT', 'CURSOR_UP', 'CURSOR_DOWN', 'CURSOR_HOME', 'CURSOR_END', 'PAGE_UP', 'PAGE_DOWN',
 	'CURSOR_WORD_LEFT', 'CURSOR_WORD_RIGHT', 'SELECT_WORD', 'SELECT_LINE', 'SELECT_ALL', 'SELECT_MODE', 'COPY',
 	'CUT', 'PASTE', 'HIDE_KEYBOARD', 'PERSISTENT', 'SELECTION_ACTIONS', 'LEARN_FROM_TEXT',
-	'PHONETIC_ENGLISH', 'KDE_CONNECT',
+	'PHONETIC_ENGLISH', 'KDE_CONNECT', 'STATISTICS', 'FIND_REPLACE', 'NOTES',
 ];
 
 /**

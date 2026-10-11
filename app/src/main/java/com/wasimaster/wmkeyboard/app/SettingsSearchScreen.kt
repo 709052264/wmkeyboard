@@ -26,6 +26,9 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Devices
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Dns
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notifications
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoStories
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteSweep
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Label
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StickyNote2
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Article
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Chat
@@ -522,6 +525,9 @@ internal object SettingsRouteIcons {
         "vocab/lists" to { Icons.Outlined.AutoStories },
         "vocab/review" to { Icons.Outlined.AutoStories },
         "vocab/browse" to { Icons.Outlined.AutoStories },
+        "notes" to { Icons.Outlined.StickyNote2 },
+        "notes/tags" to { Icons.Outlined.Label },
+        "notes/trash" to { Icons.Outlined.DeleteSweep },
         "plugins" to { Icons.Outlined.Extension },
         "addons" to { Icons.Outlined.Extension },
         "accessibility" to { Icons.Outlined.Accessibility },

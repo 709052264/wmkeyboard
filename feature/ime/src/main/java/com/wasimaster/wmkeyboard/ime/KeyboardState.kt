@@ -725,6 +725,13 @@ enum class PanelMode {
      * keyboard does not know yet, to add in one go. See [LearnFromTextUi].
      */
     LEARN_FROM_TEXT,
+
+    /**
+     * The Notes tool (#560): a list of the user's notes, one open to read, or
+     * one being written. See [NotesPanelUi]; its fields take the keys through
+     * the `NOTE_*` capture targets.
+     */
+    NOTES,
 }
 
 /**
@@ -888,6 +895,9 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     PanelMode.FIND_REPLACE -> listOf(FocusRegion.SEARCH, FocusRegion.CHIPS, FocusRegion.ACTIONS)
     // The header chips, then the word rows.
     PanelMode.LEARN_FROM_TEXT -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS)
+    // The search pill, the filter chips, the note rows (or the read view's
+    // tag chips), then the action row under an open note or the editor.
+    PanelMode.NOTES -> listOf(FocusRegion.SEARCH, FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     PanelMode.PASSWORD_GEN ->
         listOf(FocusRegion.CHIPS, FocusRegion.ACTIONS, FocusRegion.RESULTS)
     // The dialect and Fix-all chips, then the lint cards. Seed-only (see
@@ -3208,6 +3218,8 @@ data class KeyboardUiState(
     val enterActionLabel: String? = null,
     /** Torch state, mirrored from CameraManager for the flashlight tool. */
     val torchOn: Boolean = false,
+    /** The Notes panel (#560); survives the panel closing like [vocab]. */
+    val notes: NotesPanelUi = NotesPanelUi(),
     val weather: WeatherUi = WeatherUi.NoLocation,
     val dictionary: DictionaryUi = DictionaryUi.Idle,
     /** Word in the dictionary panel's search field. */
@@ -3597,6 +3609,21 @@ data class KeyboardUiState(
         get() = wordSpell != null
 
     /**
+     * Whether keystrokes belong to the Notes panel's editor (#560). Panel
+     * *and* an open edit, like [clipEditActive], so an edit left behind by a
+     * panel that closed some other way cannot keep the keys.
+     */
+    val notesEditActive: Boolean
+        get() = panel == PanelMode.NOTES && notes.editing != null
+
+    /**
+     * Whether one of the Notes panel's fields has the keys: the editor, or the
+     * search pill. The same contract as [notesEditActive].
+     */
+    val notesTypingActive: Boolean
+        get() = panel == PanelMode.NOTES && (notes.editing != null || notes.searchActive)
+
+    /**
      * Whether keystrokes belong to the clipboard panel's clip editor. Panel
      * *and* an open edit, like [learnEditActive], so an edit left behind by a
      * panel that closed some other way cannot keep the keys.
@@ -3655,6 +3682,12 @@ data class KeyboardUiState(
                 CaptureTarget.FIND_QUERY
             }
         learnEditActive -> CaptureTarget.LEARN_EDIT
+        notesTypingActive -> when (notes.editing?.focused) {
+            NoteEditField.TITLE -> CaptureTarget.NOTE_TITLE
+            NoteEditField.BODY -> CaptureTarget.NOTE_BODY
+            NoteEditField.TAG -> CaptureTarget.NOTE_TAG
+            null -> CaptureTarget.NOTE_SEARCH
+        }
         calcTypingActive -> CaptureTarget.CALC
         converterTypingActive -> CaptureTarget.CONVERTER
         wordSpellActive -> CaptureTarget.WORD_SPELL
@@ -3699,6 +3732,10 @@ data class KeyboardUiState(
         CaptureTarget.CLIPBOARD_SEARCH -> clipboardQuery
         CaptureTarget.CLIP_EDIT -> clipEdit?.draft.orEmpty()
         CaptureTarget.SNIPPET_SEARCH -> snippetQuery
+        CaptureTarget.NOTE_SEARCH -> notes.query
+        CaptureTarget.NOTE_TITLE -> notes.editing?.titleDraft.orEmpty()
+        CaptureTarget.NOTE_BODY -> notes.editing?.bodyDraft.orEmpty()
+        CaptureTarget.NOTE_TAG -> notes.editing?.tagDraft.orEmpty()
     }
 
     /**

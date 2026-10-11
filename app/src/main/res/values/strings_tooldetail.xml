@@ -812,6 +812,39 @@
     <!-- %1$s is the name of a tool, for example "Undo". -->
     <string name="tooldetail_hold_pick_title">Press and hold <xliff:g id="tool" example="Undo">%1$s</xliff:g></string>
 
+    <!-- Notes tool (#560). -->
+    <string name="tooldetail_notes_group">Notes</string>
+    <string name="tooldetail_notes_open_title">Your notes</string>
+    <plurals name="tooldetail_notes_open_subtitle">
+        <item quantity="one">%1$d note</item>
+        <item quantity="other">%1$d notes</item>
+    </plurals>
+    <string name="tooldetail_notes_open_none_subtitle">Nothing saved yet</string>
+    <string name="tooldetail_notes_tags_subtitle">Rename, recolour or remove the tags on your notes</string>
+    <string name="tooldetail_notes_trash_subtitle">Notes you deleted, until they are gone for good</string>
+    <string name="tooldetail_notes_sort_title">Sort notes by</string>
+    <string name="tooldetail_notes_sort_updated_label">Last edited</string>
+    <string name="tooldetail_notes_sort_created_label">Date created</string>
+    <string name="tooldetail_notes_sort_title_label">Title</string>
+    <string name="tooldetail_notes_markdown_title">Format Markdown</string>
+    <string name="tooldetail_notes_markdown_subtitle">Show headings, lists and checklists formatted in the keyboard and in previews. Off, every note is plain text.</string>
+    <string name="tooldetail_notes_panel_start_title">The keyboard panel opens on</string>
+    <string name="tooldetail_notes_panel_start_subtitle">What you see when you tap the tool</string>
+    <string name="tooldetail_notes_panel_start_list_label">The list of notes</string>
+    <string name="tooldetail_notes_panel_start_last_label">The note you edited last</string>
+    <string name="tooldetail_notes_trash_days_title">Keep trashed notes for</string>
+    <string name="tooldetail_notes_trash_7_label">7 days</string>
+    <string name="tooldetail_notes_trash_30_label">30 days</string>
+    <string name="tooldetail_notes_trash_90_label">90 days</string>
+    <string name="tooldetail_notes_trash_never_label">Until I delete them</string>
+    <string name="tooldetail_notes_save_selection_title">Save as note from a selection</string>
+    <string name="tooldetail_notes_save_selection_subtitle">What the selection bar\'s Save as note does</string>
+    <string name="tooldetail_notes_save_new_label">Make a new note each time</string>
+    <string name="tooldetail_notes_save_append_label">Add to the note I edited last</string>
+    <string name="tooldetail_notes_clear_title">Delete all notes</string>
+    <string name="tooldetail_notes_clear_subtitle">Every note, every tag and the trash</string>
+    <string name="tooldetail_notes_clear_confirm">Delete every note? This cannot be undone. A backup that holds the Notes section can bring them back.</string>
+
     <!-- Media control tool. -->
     <string name="tooldetail_mediactl_group">Media control</string>
     <string name="tooldetail_find_history_title">Remember searches</string>

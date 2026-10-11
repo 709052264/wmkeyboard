@@ -1571,7 +1571,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 ## Toolbar and the tool set
 
-- **Toolbar & toolbox mechanics** `uncommon` — 78 tools in ToolbarTool enum; 3 pinned by default (Emoji, Clipboard, Settings)
+- **Toolbar & toolbox mechanics** `uncommon` — 79 tools in ToolbarTool enum; 3 pinned by default (Emoji, Clipboard, Settings)
   - Pinned bar vs toolbox — A tool is on the bar or in the toolbox grid, never both
     - Default pinned row — Emoji, Clipboard, Settings (DefaultToolbarTools)
     - Tablet-aware default pin set — 5 pinned on small tablets, 7 on large, applied only if user never rearranged
@@ -1627,7 +1627,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Per-tool colour override — toolColorOverrides map, reset-all button when any override exists
     - Two-colour gradient icons — toolIconGradients off by default, with its own end-colour override map
     - Icon-pack glyph substitution — IconSlots.forTool resolves an installed icon pack's glyph
-  - Direct-boot tool filter `RARE` — 48 of 78 tools work before the first unlock after reboot
+  - Direct-boot tool filter `RARE` — 48 of 79 tools work before the first unlock after reboot
     - Rule is what the tool reads — Arithmetic, sensors and keyboard-own state stay; disk, credentials, providers, activities go
     - All 14 cursor tools stay usable — They only touch the input connection
     - Not a user toggle — isDirectBootSafeTool is automatic and only applies pre-first-unlock
@@ -1877,6 +1877,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Ctrl+F seeding — A short one-line selection becomes the query; otherwise it opens empty; a second tap closes it; password fields refused
     - Match line — The current match drawn in its line at the bottom of the panel, cut at line breaks with an ellipsis, since the keys often cover that part of the field
     - Recent searches — Last ten, newest first, as chips while the query is empty, plus Clear; recorded on stepping or replacing, never per keystroke; never in incognito, a no-learning field or a password field; credential-protected file, empty before first unlock; switch and Clear on the tool's page
+  - Notes `uncommon` — A notebook in the keyboard and the settings app (#560): optional title and a Markdown body, tags with a palette colour, pin, archive, per-note lock, trash with a retention window; one JSON file (`notes/notes.json`, SnapshotFile atomic writes) shared by both processes and re-read on open by an mtime stamp
+    - Keyboard panel — Full-bleed list with All / Pinned / tag / Archived / Trash chips, a search pill, long-press action chips, a reading view that renders Markdown with tappable task boxes and opens the editor at the tapped block, and an editor with the key rows beneath (title pill, body, tag row with suggested starters, Markdown helper chips, word count); four capture targets (NOTE_SEARCH/TITLE/BODY/TAG); Enter continues lists and numbers; autosave 600 ms after typing and on every exit; Undo bar for trash and archive; two-tap Delete forever and Empty trash
+    - App screens — Tools › Notes: search, filter chips, sort, long-press bulk select (pin/archive/tag/lock/trash with undo), autosaving editor with Markdown preview and tickable checklists, tag manager (rename merges on a collision, nine-swatch colour, remove), trash with restore and delete forever, export all as a zip of Markdown, import .txt/.md
+    - Locked notes — Body masked everywhere on the keyboard and never inserted, copied, shared or body-searched; the app asks the fingerprint lock's bare prompt before opening one (skipped when the Notes screen is itself locked); left out of backups unless secrets are included, and a restore keeps the locked notes the file left out
+    - Save as note — SelectionMacro.SAVE_NOTE on the selection bar: a new note per selection, or appended to the last note edited (setting); refused in a password field and before the first unlock
+    - Settings — NotesSettings nested in KeyboardSettings: sort, preview lines, Markdown on/off, panel opens on list or last note, append mode, trash retention 7/30/90/never; `notesVersion` reload signal after a restore or sync
   - Typing speed test `RARE` — Scored typing test on the real keys
     - Three modes — Timed (15/30/60/120s), word count (10/25/50/100), quote
     - 200 most common English words — Plus 14 public-domain quotations for quote mode
@@ -2040,7 +2046,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Voice typing | needs microphone permission; audio may reach the OS recognizer service unless the on-device language model is installed |
 | Clipboard link previews and QR link details and dictionary auto-lookup | network, and force-disabled by power saving's background-network toggle |
 | 30 tools of 78 are unavailable before the first unlock after reboot | direct-boot filter; the other 48 (arithmetic, sensors, keyboard-own state, all 14 cursor tools) stay usable |
-| Lite edition tool count | 73 of 78 tools; the 5 ML Kit / Harper tools are compiled out, not just hidden |
+| Lite edition tool count | 74 of 79 tools; the 5 ML Kit / Harper tools are compiled out, not just hidden |
 
 ## Clipboard, snippets, text expansion
 
@@ -2606,7 +2612,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 ## Privacy, backup, storage, statistics
 
 - **Fingerprint lock** — Optional BiometricPrompt in front of the settings screens and destructive buttons the user picks.
-  - Curated target registry — 17 lockable items (9 screens, 8 actions) in one file; a screen costs one entry, an action that entry plus a `lock =` argument.
+  - Curated target registry — 22 lockable items (11 screens, 11 actions) in one file; a screen costs one entry, an action that entry plus a `lock =` argument.
     - Labels borrow the guarded row's own string — Configurator reads in the same words as the thing it protects and inherits its glyph.
     - Source-reading drift test — AppLockTargetsTest fails on a route with no destination or an action with no call site.
   - Self-locking configurator — The `applock` route resolves to AppLockTargets.SELF, so the screen holding the off switch is behind the prompt.
@@ -2678,8 +2684,9 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - OTP chip disabled — The lock screen redacts notification content; a chip would print it anyway.
   - Personal stores never mirrored `RARE` — Learned words, clipboard, snippets and emoji history stay behind entirely.
   - Device-protected crash log and dictionary `RARE` — debug/ and a bundled dict copy live in DE storage so a locked boot still works.
-- **Config backup file** `uncommon` — One `.wmconfig.json` bundle of 11 independently toggleable sections.
-  - 11 backup sections `RARE` — settings, themes, dictionary, clipboard, snippets, stickers, icons, wordlists, emoji, addons, statistics.
+- **Config backup file** `uncommon` — One `.wmconfig.json` bundle of 14 independently toggleable sections.
+  - 14 backup sections `RARE` — settings, themes, dictionary, clipboard, snippets, stickers, icons, wordlists, emoji, addons, statistics, vocab, swipe, notes.
+    - Notes section — Every note, tag and trashed note; locked notes only with Include API keys, and a restore keeps the locked notes a secrets-free file left out.
     - Emoji history section — Recents, use counts, favourites and the per-emoji skin tone.
     - Statistics section — Daily typing counts and lifetime totals; counts only, never text.
     - Addons section is the repo list — Repository addresses only; installed addons ride in Themes/Icons.

@@ -7514,6 +7514,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.KDE_CONNECT -> R.string.ime_tool_kde_connect
     ToolbarTool.STATISTICS -> R.string.ime_tool_statistics
     ToolbarTool.FIND_REPLACE -> R.string.ime_tool_find_replace
+    ToolbarTool.NOTES -> R.string.ime_tool_notes
     ToolbarTool.PLUGINS -> R.string.ime_tool_plugins
     ToolbarTool.APP_LAUNCHER -> R.string.ime_tool_app_launcher
     ToolbarTool.AI -> R.string.ime_tool_ai
@@ -7603,6 +7604,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     // Opens the settings app, like Settings: nothing on the keyboard to stay lit for.
     ToolbarTool.STATISTICS -> false
     ToolbarTool.FIND_REPLACE -> state.panel == PanelMode.FIND_REPLACE
+    ToolbarTool.NOTES -> state.panel == PanelMode.NOTES
     ToolbarTool.VOICE -> state.panel == PanelMode.VOICE || state.voice.strip || state.voice.bar
     ToolbarTool.GRAMMAR -> state.panel == PanelMode.GRAMMAR
     ToolbarTool.WIKIPEDIA -> state.panel == PanelMode.WIKIPEDIA
@@ -10142,7 +10144,7 @@ private val FullBleedPanels = setOf(
     PanelMode.UNIT_CONVERT, PanelMode.CALENDAR, PanelMode.AI,
     PanelMode.TRANSLATE, PanelMode.WEB_SEARCH, PanelMode.IMAGE_SEARCH,
     PanelMode.DICTIONARY, PanelMode.SYMBOLS, PanelMode.MEDIA_CONTROL, PanelMode.KDE_CONNECT,
-    PanelMode.VOCABULARY, PanelMode.LEARN_FROM_TEXT,
+    PanelMode.VOCABULARY, PanelMode.LEARN_FROM_TEXT, PanelMode.NOTES,
     PanelMode.APP_LAUNCHER, PanelMode.THEMES, PanelMode.SNIPPETS, PanelMode.WIKIPEDIA,
 )
 
@@ -11465,6 +11467,7 @@ private fun KeyboardBody(
                 }
                 PanelMode.QR_GEN -> QrGeneratorPanel(state, onQrSend)
                 PanelMode.FIND_REPLACE -> FindReplacePanel(state, toolHold.findReplace)
+                PanelMode.NOTES -> NotesPanelHost(state, toolHold.notes, onPanelChange, onOpenRoute)
                 PanelMode.LEARN_FROM_TEXT -> LearnFromTextPanel(
                     state = state,
                     callbacks = toolHold.learnFromText,
@@ -25024,6 +25027,8 @@ data class ToolHoldCallbacks(
     val findReplace: FindReplaceCallbacks = FindReplaceCallbacks(),
     /** The Learn from text panel's callbacks (#174); here for the same reason as [dictionaryBar]. */
     val learnFromText: LearnFromTextCallbacks = LearnFromTextCallbacks(),
+    /** The Notes panel's callbacks (#560); here for the same reason as [dictionaryBar]. */
+    val notes: NotesCallbacks = NotesCallbacks(),
     /** The clipboard panel's editor and view switch; here for the same reason as [dictionaryBar]. */
     val clipboard: ClipboardPanelActions = ClipboardPanelActions(),
     /** The caret magnifier (discussion #303); here for the same reason as [dictionaryBar]. */

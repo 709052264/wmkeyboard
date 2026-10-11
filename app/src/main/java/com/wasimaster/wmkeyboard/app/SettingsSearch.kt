@@ -1248,6 +1248,13 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
     ),
     toolEntry(ToolbarTool.NUMPAD, R.string.tooldetail_numpad_calc_title, R.string.tooldetail_numpad_calc_subtitle),
     toolEntry(ToolbarTool.FIND_REPLACE, R.string.tooldetail_find_history_title, R.string.tooldetail_find_history_subtitle),
+    toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_open_title),
+    toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_sort_title),
+    toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_markdown_title, R.string.tooldetail_notes_markdown_subtitle),
+    toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_panel_start_title, R.string.tooldetail_notes_panel_start_subtitle),
+    toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_trash_days_title),
+    toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_save_selection_title, R.string.tooldetail_notes_save_selection_subtitle),
+    toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_clear_title, R.string.tooldetail_notes_clear_subtitle),
     toolEntry(ToolbarTool.INCOGNITO, R.string.tooldetail_incognito_learning_title, R.string.tooldetail_incognito_learning_subtitle),
     toolEntry(ToolbarTool.INCOGNITO, R.string.tooldetail_incognito_clipboard_title, R.string.tooldetail_incognito_clipboard_subtitle),
     toolEntry(
@@ -2289,6 +2296,20 @@ private fun SearchStrings.vocabRows(): List<SettingsSearchEntry> {
     )
 }
 
+private fun SearchStrings.notesRows(): List<SettingsSearchEntry> {
+    fun notes(@StringRes title: Int, @StringRes subtitle: Int, @StringRes screen: Int, route: String) = entry(
+        title, subtitle, screen, route,
+        screenParent = toolTitle(ToolbarTool.NOTES), screenRoot = R.string.home_tools_title,
+    )
+    return listOf(
+        notes(R.string.notes_search_hint, 0, R.string.notes_title, "notes"),
+        notes(R.string.notes_export_all_action, R.string.notes_export_all_subtitle, R.string.notes_title, "notes"),
+        notes(R.string.notes_import_action, R.string.notes_import_subtitle, R.string.notes_title, "notes"),
+        notes(R.string.notes_tag_add_action, 0, R.string.notes_tags_title, "notes/tags"),
+        notes(R.string.notes_empty_trash_action, 0, R.string.notes_trash_title, "notes/trash"),
+    )
+}
+
 private fun SearchStrings.storageRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int) =
         entry(title, subtitle, R.string.about_storage_title, "storage", screenParent = R.string.home_about_title)
@@ -2359,7 +2380,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         layoutSizeRows() +
         layoutOnehandedRows() + languageRows() + emojiRows() +
         emojiPanelRows() +
-        voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + vocabRows() + storageRows() + otherRows()
+        voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + vocabRows() + notesRows() + storageRows() + otherRows()
     all.filterNot { it.route in unsupported }.distinctBy { it.key }
 }
 

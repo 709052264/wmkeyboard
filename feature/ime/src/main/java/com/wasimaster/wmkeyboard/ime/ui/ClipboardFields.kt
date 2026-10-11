@@ -630,11 +630,8 @@ private fun ClipClearQuestion(
 }
 
 /**
- * "Clip deleted · Undo", in the keyboard's popup style. A snackbar in all but
- * name: Compose's own needs a Scaffold, and a keyboard panel has none.
- *
- * It keeps the count it last showed while it slides away, so the text does
- * not blank out under the exit animation once the service clears the state.
+ * "Clip deleted · Undo", in the keyboard's popup style: [PanelUndoBar] with
+ * the clipboard's words on it.
  */
 @Composable
 private fun ClipUndoBar(
@@ -645,23 +642,51 @@ private fun ClipUndoBar(
     modifier: Modifier = Modifier,
 ) {
     var lastCount by remember { mutableIntStateOf(1) }
-    // The bar last shown, kept while it slides away, so the swipe below starts
-    // afresh for each new delete but not for its own exit animation.
-    var shown by remember { mutableStateOf(undo) }
-    if (undo != null) {
-        lastCount = undo.items.size
-        shown = undo
-    }
+    if (undo != null) lastCount = undo.items.size
+    PanelUndoBar(
+        text = pluralStringResource(R.plurals.ime_clip_deleted, lastCount, lastCount),
+        visible = undo != null,
+        key = undo,
+        reduceMotion = reduceMotion,
+        onUndo = onUndo,
+        onDismiss = onDismiss,
+        modifier = modifier,
+    )
+}
+
+/**
+ * "Something happened · Undo", in the keyboard's popup style. A snackbar in
+ * all but name: Compose's own needs a Scaffold, and a keyboard panel has none.
+ * The clipboard's delete and the Notes panel's trash and archive (#560) draw it.
+ *
+ * [text] should be what the caller last had to say even once [visible] has
+ * gone false, so the bar does not blank out under its exit animation; [key]
+ * changing restarts the swipe gesture for a fresh offer.
+ */
+@Composable
+internal fun PanelUndoBar(
+    text: String,
+    visible: Boolean,
+    key: Any?,
+    reduceMotion: Boolean,
+    onUndo: () -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    // The offer last shown, kept while it slides away, so the swipe below
+    // starts afresh for each new offer but not for its own exit animation.
+    var shown by remember { mutableStateOf(key) }
+    if (visible) shown = key
     val dismissLabel = stringResource(R.string.ime_clip_undo_dismiss)
     AnimatedVisibility(
-        visible = undo != null,
+        visible = visible,
         modifier = modifier,
         enter = if (reduceMotion) fadeIn(tween(0)) else slideInVertically(tween(180)) { it } + fadeIn(tween(180)),
         exit = if (reduceMotion) fadeOut(tween(0)) else slideOutVertically(tween(160)) { it } + fadeOut(tween(160)),
     ) {
         val kb = LocalKbTheme.current
         // A sideways swipe puts the bar away and ends the Undo there and then
-        // (#371), the way a snackbar goes; the clips it held are gone for good.
+        // (#371), the way a snackbar goes.
         key(shown) {
             SwipeToDeleteCard(onDelete = onDismiss) {
                 Surface(
@@ -681,7 +706,7 @@ private fun ClipUndoBar(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            pluralStringResource(R.plurals.ime_clip_deleted, lastCount, lastCount),
+                            text,
                             fontSize = 13.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -1626,7 +1651,7 @@ private const val MinuteMs = 60_000L
 private const val ClipTimeTickMs = 30_000L
 
 /** The history's bottom padding while the Undo bar covers its last few dp. */
-private val UndoBarClearance = 64.dp
+internal val UndoBarClearance = 64.dp
 
 /** How big a picture is drawn in a list row. */
 private val ListThumbnailWidth = 96.dp

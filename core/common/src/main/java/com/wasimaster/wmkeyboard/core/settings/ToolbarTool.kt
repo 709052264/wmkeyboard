@@ -98,6 +98,11 @@ enum class ToolbarTool {
     // Find and replace over the field (#627): the panel the selection bar's
     // Replace chip opens, reachable with nothing selected first.
     FIND_REPLACE,
+    // A notebook inside the keyboard (#560): notes with Markdown, tags,
+    // checklists, pin, archive and trash, kept in the app's files and shared
+    // with the settings app's Notes screen. Reads filesDir, so not available
+    // before the first unlock.
+    NOTES,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -259,7 +264,7 @@ val RecommendedTools: Set<ToolbarTool> = MinimalTools + setOf(
  * their converters and their calendar already on.
  */
 val PowerTools: Set<ToolbarTool> = RecommendedTools + setOf(
-    ToolbarTool.WIKIPEDIA, ToolbarTool.VOCABULARY, ToolbarTool.POWER_SAVING, ToolbarTool.MODES,
+    ToolbarTool.WIKIPEDIA, ToolbarTool.VOCABULARY, ToolbarTool.NOTES, ToolbarTool.POWER_SAVING, ToolbarTool.MODES,
     ToolbarTool.NUMPAD,
     ToolbarTool.SYMBOLS, ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.CURRENCY,
     ToolbarTool.PASSWORD_GEN, ToolbarTool.CALENDAR, ToolbarTool.WEATHER,

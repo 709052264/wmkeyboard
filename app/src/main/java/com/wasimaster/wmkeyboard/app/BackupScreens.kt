@@ -130,6 +130,7 @@ internal fun sectionLabelRes(section: ConfigBackup.Section): Int = when (section
     ConfigBackup.Section.STATISTICS -> R.string.backup_section_statistics_label
     ConfigBackup.Section.VOCAB -> R.string.backup_section_vocab_label
     ConfigBackup.Section.SWIPE -> R.string.backup_section_swipe_label
+    ConfigBackup.Section.NOTES -> R.string.backup_section_notes_label
 }
 internal fun sectionLabel(context: Context, section: ConfigBackup.Section): String =
     context.getString(sectionLabelRes(section))
@@ -154,6 +155,7 @@ internal fun sectionLabelLowercase(context: Context, section: ConfigBackup.Secti
             ConfigBackup.Section.STATISTICS -> R.string.backup_section_statistics_label_lowercase
             ConfigBackup.Section.VOCAB -> R.string.backup_section_vocab_label_lowercase
             ConfigBackup.Section.SWIPE -> R.string.backup_section_swipe_label_lowercase
+            ConfigBackup.Section.NOTES -> R.string.backup_section_notes_label_lowercase
         },
     )
 @PluralsRes
@@ -171,6 +173,7 @@ private fun sectionCountPlural(section: ConfigBackup.Section): Int = when (secti
     ConfigBackup.Section.STATISTICS -> R.plurals.backup_section_statistics_count
     ConfigBackup.Section.VOCAB -> R.plurals.backup_section_vocab_count
     ConfigBackup.Section.SWIPE -> R.plurals.backup_section_swipe_count
+    ConfigBackup.Section.NOTES -> R.plurals.backup_section_notes_count
 }
 /** "3 themes", "1 snippet": the count line shown per section on import. */
 internal fun sectionSummary(context: Context, section: ConfigBackup.Section, count: Int): String =
@@ -589,10 +592,11 @@ private val SECTION_ROWS = listOf(
     SectionRow(ConfigBackup.Section.STATISTICS, R.string.backup_include_statistics_subtitle),
     SectionRow(ConfigBackup.Section.VOCAB, R.string.backup_include_vocab_subtitle),
     SectionRow(ConfigBackup.Section.SWIPE, R.string.backup_include_swipe_subtitle),
+    SectionRow(ConfigBackup.Section.NOTES, R.string.backup_include_notes_subtitle, R.string.backup_include_notes_info),
 )
 
 /**
- * The same thirteen switches for the three lists that pick sections: the
+ * The same fourteen switches for the three lists that pick sections: the
  * export, the automatic backup and sync. [sections] picks the list's sections
  * out of the settings, which each row reads for itself. [secrets] adds the
  * API-key switch under Settings where the list has one, shown while
@@ -1002,7 +1006,11 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
     val locations = settings.watch { it.autoBackup.locations }
     val encryptOn = settings.watch { it.autoBackup.encrypt }
     val encrypted = settings.watch { it.autoBackup.encrypt && it.autoBackup.passphrase.isNotEmpty() }
-    val settingsIncluded = settings.watch { ConfigBackup.Section.SETTINGS in it.autoBackup.sectionSet }
+    // Locked notes ride on the same switch as the keys, so the row has to be
+    // there whenever either section is.
+    val settingsIncluded = settings.watch {
+        ConfigBackup.Section.SETTINGS in it.autoBackup.sectionSet || ConfigBackup.Section.NOTES in it.autoBackup.sectionSet
+    }
     val setKeys = rememberKeysSwitch(encrypted) { on -> scope.launch { repository.setBackupIncludeSecrets(on) } }
     val personal = settings.watch { s ->
         ConfigBackup.Section.DICTIONARY.id in s.autoBackup.sections ||
@@ -1394,7 +1402,10 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
 internal fun BackupContentsSettings(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     // Decides whether the key switch is among the rows.
-    val settingsIncluded = settings.watch { ConfigBackup.Section.SETTINGS in it.autoBackup.exportSectionSet }
+    val settingsIncluded = settings.watch {
+        ConfigBackup.Section.SETTINGS in it.autoBackup.exportSectionSet ||
+            ConfigBackup.Section.NOTES in it.autoBackup.exportSectionSet
+    }
     SettingsGroup {
         sectionRows(
             settings = settings,
