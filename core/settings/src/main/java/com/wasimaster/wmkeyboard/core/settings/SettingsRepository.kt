@@ -5328,6 +5328,18 @@ data class TextEditingSettings(
      * one has said what they want from the other.
      */
     val forwardDeleteSwipe: Boolean = true,
+    /**
+     * In a web page's text field, backspace goes out as a key press instead of
+     * a direct delete (issue #494).
+     *
+     * A code editor in a page (CodeMirror, as in Violentmonkey's script editor)
+     * listens for the key, and a delete made straight on its text is one it
+     * puts back. The browser then decides how much one press removes, so a
+     * language set to delete whole conjuncts keeps the direct delete. A switch
+     * because a page that does something odd with the key is a page that
+     * worked before.
+     */
+    val webBackspaceKeyEvents: Boolean = true,
 )
 
 /**
@@ -9119,6 +9131,7 @@ class SettingsRepository(private val context: Context) {
         private val BACKSPACE_CHAR_STEP_DP = intPreferencesKey("backspace_char_step_dp")
         private val DELETE_HOLD_DELETES_WORDS = booleanPreferencesKey("delete_hold_deletes_words")
         private val FORWARD_DELETE_SWIPE = booleanPreferencesKey("forward_delete_swipe")
+        private val WEB_BACKSPACE_KEY_EVENTS = booleanPreferencesKey("web_backspace_key_events")
         private val PUNCTUATION_CHIPS = stringPreferencesKey("punctuation_chips")
         private val SUGGESTION_SLOT_COUNT = intPreferencesKey("suggestion_slot_count")
         private val SUGGESTION_SCROLLABLE = booleanPreferencesKey("suggestion_scrollable")
@@ -11054,6 +11067,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.textEditing.deleteHoldDeletesWords,
             forwardDeleteSwipe = p[FORWARD_DELETE_SWIPE]
                 ?: defaults.textEditing.forwardDeleteSwipe,
+            webBackspaceKeyEvents = p[WEB_BACKSPACE_KEY_EVENTS]
+                ?: defaults.textEditing.webBackspaceKeyEvents,
         )
 
     private fun readTrackpad(p: Preferences, defaults: KeyboardSettings) =
@@ -12163,6 +12178,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setForwardDeleteSwipe(value: Boolean) =
         editPrefs { it[FORWARD_DELETE_SWIPE] = value }
+
+    suspend fun setWebBackspaceKeyEvents(value: Boolean) =
+        editPrefs { it[WEB_BACKSPACE_KEY_EVENTS] = value }
 
     suspend fun setBackspaceCharStepDp(value: Int) =
         editPrefs { it[BACKSPACE_CHAR_STEP_DP] = value.coerceIn(8, 48) }

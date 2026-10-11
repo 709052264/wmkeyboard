@@ -15,6 +15,7 @@ import android.content.IntentFilter
 import android.content.res.Configuration
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
+import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -2592,6 +2593,12 @@ open class WMKeyboardService : InputMethodService() {
     /** The Bluetooth voice link a dictation through a headset holds (#581). */
     private val voiceMicRoute by lazy { VoiceMics.Route(this) }
 
+    /** The microphone last announced on the voice surfaces, as "kind|name"; null shows the next one. */
+    private var lastMicNotice: String? = null
+
+    /** The chip was pressed: the next session says its microphone even if it is the same one. */
+    private var forceMicNotice = false
+
     /** Keeps [VoiceUi.mics] in step with what is plugged in, for the panel's microphone chip. */
     private val voiceMicWatcher by lazy {
         VoiceMics.Watcher(this) { kinds ->
@@ -5119,6 +5126,17 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun isNullField(): Boolean = currentInputEditorInfo.isNullClass()
 
+    /**
+     * A text field in a web page, Chrome's or a WebView's: Chromium declares
+     * every one of them, textarea and contenteditable included, as the web
+     * edit-text variation.
+     */
+    private fun isWebEditField(): Boolean {
+        val inputType = currentInputEditorInfo?.inputType ?: return false
+        return inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_CLASS_TEXT &&
+            inputType and InputType.TYPE_MASK_VARIATION == InputType.TYPE_TEXT_VARIATION_WEB_EDIT_TEXT
+    }
+
     /** A physical keyboard is attached and not folded away. */
     private fun hasHardwareKeyboard(): Boolean {
         val config = resources.configuration
@@ -6523,6 +6541,8 @@ open class WMKeyboardService : InputMethodService() {
         rememberTypedNumber()
         super.onFinishInputView(finishingInput)
         keyboardVisible = false
+        // The next keyboard says which microphone its first dictation uses.
+        lastMicNotice = null
         // The drag that put it up cannot finish with the keyboard gone.
         caretMagnifier.stop()
         // The ring belongs to the board that is going away: a new session gets
@@ -10338,7 +10358,18 @@ open class WMKeyboardService : InputMethodService() {
             if (expectedSelStart >= 0) {
                 noteDeletedForLearning(expectedSelStart - deleteLength, expectedSelStart)
             }
-            ic.deleteSurroundingText(deleteLength, 0)
+            // A code editor in a page (CodeMirror, issue #494) acts on the key
+            // and puts back a delete made straight on its text. The browser
+            // then picks how much goes, which is one grapheme, the same as
+            // deleteLength unless this language deletes whole conjuncts; those
+            // keep the direct delete so the setting still means what it says.
+            if (state.settings.textEditing.webBackspaceKeyEvents && isWebEditField() &&
+                state.language.id !in state.settings.conjunctBackspaceLanguages
+            ) {
+                sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL)
+            } else {
+                ic.deleteSurroundingText(deleteLength, 0)
+            }
             // Backspacing through committed text is the one way the word
             // behind the cursor changes without passing through learn(), so
             // the strip used to keep predicting from a word the user had
@@ -22253,6 +22284,7 @@ open class WMKeyboardService : InputMethodService() {
             startWhisperCapture(whisperModel, generation, mic)
             return
         }
+        noteVoiceMic(VoiceMics.deviceFor(this, mic) ?: VoiceMics.autoDevice(this))
         if (!modelKnown) refreshVoiceModelState(tag)
         voiceEngine.start(
             tag,
@@ -22609,6 +22641,7 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         whisperRecorder = recorder
+        noteVoiceMic(recorder.routedDevice ?: VoiceMics.deviceFor(this, mic) ?: VoiceMics.autoDevice(this))
         // A blocked mic records zeros, and Whisper turns a silent clip into
         // confident filler text, so catch it before anything is transcribed.
         micBlockWatcher.start(recorder.audioSessionId) { onMicBlocked(generation) }
@@ -23194,9 +23227,38 @@ open class WMKeyboardService : InputMethodService() {
             it.copy(settings = it.settings.copy(voiceBar = it.settings.voiceBar.copy(mic = next)))
         }
         serviceScope.launch { settingsRepository.setVoiceMic(next) }
+        forceMicNotice = true
         if (state.voice.status == VoiceStatus.LISTENING) {
             voiceSilentRetries = 0
             startVoice()
+        } else {
+            // Nothing is recording, so say what the next session will use.
+            noteVoiceMic(VoiceMics.deviceFor(this, voiceMicKind()) ?: VoiceMics.autoDevice(this))
+        }
+    }
+
+    /**
+     * Publishes the microphone a session listens through, and asks the
+     * surfaces to say so ("Using Bluetooth mic (X7)") when it is news: a
+     * different microphone, a press of the chip, or the first session since
+     * the keyboard came up. Continuous dictation restarts for every phrase,
+     * and saying the same thing each time would be noise.
+     */
+    private fun noteVoiceMic(device: AudioDeviceInfo?) {
+        val kind = device?.let(VoiceMics::kindOf).orEmpty()
+        val name = device?.productName?.toString().orEmpty()
+        val key = "$kind|$name"
+        val show = forceMicNotice || key != lastMicNotice
+        forceMicNotice = false
+        lastMicNotice = key
+        _uiState.update {
+            it.copy(
+                voice = it.voice.copy(
+                    micKind = kind,
+                    micName = name,
+                    micNoticeAt = if (show) SystemClock.uptimeMillis() else it.voice.micNoticeAt,
+                ),
+            )
         }
     }
 

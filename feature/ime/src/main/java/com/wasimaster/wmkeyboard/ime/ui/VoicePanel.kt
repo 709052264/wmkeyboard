@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.ime.ui
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -25,20 +26,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Backspace
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bluetooth
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Cloud
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardDoubleArrowDown
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileDownload
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HeadsetMic
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Smartphone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SpaceBar
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Usb
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -57,13 +54,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -82,7 +78,6 @@ import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
 import com.wasimaster.wmkeyboard.core.settings.dictationLanguages
-import com.wasimaster.wmkeyboard.core.voice.VoiceMics
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.VoiceBarAction
 import com.wasimaster.wmkeyboard.ime.VoiceModelState
@@ -156,14 +151,9 @@ internal fun VoicePanel(
         voice.status != VoiceStatus.TRANSCRIBING
     val micUsable = !state.secureField && voice.status != VoiceStatus.UNAVAILABLE
     val collapseVisible = !state.secureField
-    // The microphone chip (#581): there whenever there is a microphone to
+    // The microphone switch (#581): there whenever there is a microphone to
     // switch to, or a pick already made that the user may want to undo.
-    val micPicked = state.settings.voiceBar.mic
-    val micChoices = VoiceMics.choices(
-        voice.mics,
-        ownCapture = voice.clipBased || state.settings.whisper.engine != "system",
-    )
-    val micChipVisible = micUsable && hasPermission && (micChoices.size > 1 || micPicked != VoiceMics.AUTO)
+    val micChipVisible = micUsable && hasPermission && state.voiceMicSwitchVisible()
     fun collapseToBar() = onRailKey(
         VoiceBarAction.SwitchSurface(VoiceBarSettings.MODE_BAR),
     )
@@ -340,49 +330,44 @@ internal fun VoicePanel(
                 }
             }
 
-            // Which microphone dictation listens through (#581). A tap moves to
-            // the next one plugged in and keeps it for later sessions; the
-            // label is the indication of which one is in use. A pick whose
-            // microphone is not plugged in is drawn faint: automatic stands
-            // in for it until it is back.
+            // Which microphone dictation listens through (#581), in FUTO's
+            // place for it: a switch in the bottom right corner, and a toast
+            // over the bottom edge saying "Using Bluetooth mic (X7)" when a
+            // session starts on a microphone the panel has not named yet.
             if (micChipVisible) {
-                val inUse = micPicked == VoiceMics.AUTO || micPicked in voice.mics
-                val label = stringResource(voiceMicLabelRes(micPicked))
-                val description = stringResource(R.string.ime_voice_mic_desc, label)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                VoiceMicSwitch(
+                    state = state,
+                    onCycle = { onRailKey(VoiceBarAction.CycleMic) },
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(4.dp)
-                        .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
+                        .focusRing(micRingIndex == focusedAction, RoundedCornerShape(kb.toolRadiusDp.dp)),
+                )
+            }
+            val micNotice = rememberVoiceMicNotice(state)
+            val noticeAlpha by animateFloatAsState(
+                targetValue = if (micNotice != null) 0.92f else 0f,
+                animationSpec = if (kb.reduceMotion) snap() else tween(200),
+                label = "voiceMicNotice",
+            )
+            // Kept composed through the fade-out with the last text it showed.
+            var lastNotice by remember { mutableStateOf("") }
+            if (micNotice != null) lastNotice = micNotice
+            if (noticeAlpha > 0f) {
+                Text(
+                    lastNotice,
+                    color = kb.toolbarIcon,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 8.dp, start = 48.dp, end = 48.dp)
+                        .graphicsLayer { alpha = noticeAlpha }
+                        .clip(CircleShape)
                         .background(kb.chip)
-                        .focusRing(
-                            focusedAction == micRingIndex,
-                            RoundedCornerShape(kb.toolRadiusDp.dp),
-                        )
-                        .clickable(onClickLabel = stringResource(R.string.ime_voice_mic_switch)) {
-                            feedback()
-                            onRailKey(VoiceBarAction.CycleMic)
-                        }
-                        .semantics(mergeDescendants = true) { contentDescription = description }
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                ) {
-                    val tint = if (inUse && micPicked != VoiceMics.AUTO) kb.toolbarIcon else kb.secondaryText
-                    Icon(
-                        voiceMicIcon(micPicked),
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = tint,
-                    )
-                    Text(
-                        label,
-                        color = tint,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        modifier = Modifier.padding(start = 4.dp),
-                    )
-                }
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                )
             }
 
             // Undo the last dictated utterance (whole, in one tap).
@@ -792,23 +777,6 @@ internal fun voiceLanguagesLabel(ids: List<String>): String {
     return if (codes.size <= 2) codes.joinToString("+") else "${codes.first()}+${codes.size - 1}"
 }
 
-/** The microphone chip's wording for a [VoiceMics] kind. */
-internal fun voiceMicLabelRes(kind: String): Int = when (kind) {
-    VoiceMics.PHONE -> R.string.ime_voice_mic_phone
-    VoiceMics.WIRED -> R.string.ime_voice_mic_wired
-    VoiceMics.USB -> R.string.ime_voice_mic_usb
-    VoiceMics.BLUETOOTH -> R.string.ime_voice_mic_bluetooth
-    else -> R.string.ime_voice_mic_auto
-}
-
-private fun voiceMicIcon(kind: String): ImageVector = when (kind) {
-    VoiceMics.PHONE -> Icons.Outlined.Smartphone
-    VoiceMics.WIRED -> Icons.Outlined.HeadsetMic
-    VoiceMics.USB -> Icons.Outlined.Usb
-    VoiceMics.BLUETOOTH -> Icons.Outlined.Bluetooth
-    else -> Icons.Outlined.Mic
-}
-
 /** One tappable chip under the mic, with a leading icon. */
 @Composable
 private fun VoiceChipAction(text: String, icon: ImageVector, onClick: () -> Unit) {
@@ -869,6 +837,8 @@ internal fun VoiceStripBar(
     onCollapse: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    /** The microphone switch (#581). */
+    onCycleMic: () -> Unit = {},
 ) {
     val kb = LocalKbTheme.current
     val voice = state.voice
@@ -943,6 +913,9 @@ internal fun VoiceStripBar(
         }
         // Read outside the when: ifEmpty takes a plain lambda, not a composable one.
         val listeningLabel = stringResource(R.string.ime_voice_status_listening)
+        // No room for the panel's toast on one line: the line itself says
+        // which microphone is in use (#581), until the first words arrive.
+        val micNotice = rememberVoiceMicNotice(state)
         val statusText = when {
             state.secureField -> stringResource(R.string.ime_voice_strip_secure_field)
             voice.status == VoiceStatus.NEED_PERMISSION ->
@@ -953,6 +926,7 @@ internal fun VoiceStripBar(
                 stringResource(R.string.ime_voice_strip_mic_blocked)
             voice.whisperNeedsModel -> stringResource(R.string.ime_voice_strip_no_model)
             voice.serverNeedsSetup -> stringResource(R.string.ime_voice_strip_no_server)
+            micNotice != null && voice.partial.isEmpty() && voice.status != VoiceStatus.ERROR -> micNotice
             listening && voice.clipBased && voice.secondsLeft > 0 ->
                 pluralStringResource(R.plurals.ime_voice_status_stops_in, voice.secondsLeft, voice.secondsLeft)
             listening && voice.clipBased -> stringResource(R.string.ime_voice_strip_listening_hint)
@@ -1013,6 +987,13 @@ internal fun VoiceStripBar(
                     }
                     .padding(6.dp)
                     .size(20.dp),
+            )
+        }
+        if (state.voiceMicSwitchVisible()) {
+            VoiceMicSwitch(
+                state = state,
+                onCycle = onCycleMic,
+                size = 32.dp,
             )
         }
         // Collapse to the bar: same session, small pill instead of the strip;
