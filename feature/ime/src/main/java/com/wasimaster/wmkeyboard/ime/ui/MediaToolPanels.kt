@@ -102,6 +102,7 @@ import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.tools.GifItem
 import com.wasimaster.wmkeyboard.core.tools.GifSource
 import com.wasimaster.wmkeyboard.core.tools.GifSources
+import com.wasimaster.wmkeyboard.core.tools.MediaCategories
 import com.wasimaster.wmkeyboard.core.tools.MediaCategory
 import com.wasimaster.wmkeyboard.core.tools.SearchBackend
 import com.wasimaster.wmkeyboard.core.tools.ToolApiKeys
@@ -815,6 +816,7 @@ internal fun RowScope.GifHeaderSearchBar(
  * @param onLongPress a result was long-pressed.
  * @param onPackFilter the sticker-pack filter changed, or was cleared.
  * @param onSaveToPack a result should be saved into a local pack.
+ * @param onFavouriteToggle a GIF should go into the favourites, or come out (#597).
  * @param onCopy a result should be copied to the clipboard.
  * @param onReport a result should be reported.
  * @param onDismissAction the open long-press action sheet should close.
@@ -839,6 +841,7 @@ internal fun GifPanel(
     onLongPress: (GifItem) -> Unit = {},
     onPackFilter: (String?) -> Unit = {},
     onSaveToPack: (GifItem, String?) -> Unit = { _, _ -> },
+    onFavouriteToggle: (GifItem) -> Unit = {},
     onCopy: (GifItem) -> Unit = {},
     onReport: (GifItem) -> Unit = {},
     onDismissAction: () -> Unit = {},
@@ -933,8 +936,9 @@ internal fun GifPanel(
                 if (showMediaCategories(state, localGrid, fullBleed, state.acceptsRichMedia, available)) {
                     // Trending first, so there is always a way back out of a
                     // category — and somewhere for the focus ring to sit when no
-                    // category is on.
-                    val entries = listOf(
+                    // category is on. The GIF panel's own lists lead it (#597):
+                    // favourites once there are any, recent when turned on.
+                    val entries = gifCollectionChips(state, stickers) + listOf(
                         MediaCategory(term = "", labelRes = R.string.ime_media_category_trending_label),
                     ) + state.mediaCategories
                     PanelFocusTarget(
@@ -989,6 +993,7 @@ internal fun GifPanel(
                     is MediaUi.Ready -> {
                         if (ui.items.isEmpty()) {
                             LocalStickerEmptyNotice(
+                                category = state.mediaCategory,
                                 localGrid = localGrid,
                                 state = state,
                                 query = ui.query,
@@ -1036,7 +1041,9 @@ internal fun GifPanel(
                 item = action,
                 stickers = stickers,
                 packs = state.stickerPacks,
+                favourite = action.id in state.gifFavouriteIds,
                 onSaveToPack = onSaveToPack,
+                onFavouriteToggle = onFavouriteToggle,
                 onCopy = onCopy,
                 onReport = onReport,
                 onOpenRoute = onOpenRoute,
@@ -1046,9 +1053,28 @@ internal fun GifPanel(
     }
 }
 
-/** The empty grid: local packs have their own way of being empty. */
+/**
+ * The chips for the GIF panel's own lists (#597), ahead of Trending.
+ * Favourites waits for the first one, so a user who never stars a GIF never
+ * sees an empty chip; it stays while it is the one selected, so taking the
+ * last one out does not pull the chip out from under the finger.
+ */
+internal fun gifCollectionChips(state: KeyboardUiState, stickers: Boolean): List<MediaCategory> {
+    if (stickers) return emptyList()
+    val chips = ArrayList<MediaCategory>(2)
+    if (state.gifFavouriteIds.isNotEmpty() || state.mediaCategory == MediaCategories.FAVOURITES) {
+        chips += MediaCategory(term = MediaCategories.FAVOURITES, labelRes = R.string.ime_gif_favourites_label)
+    }
+    if (state.settings.gif.recentGifs) {
+        chips += MediaCategory(term = MediaCategories.RECENT, labelRes = R.string.ime_gif_recent_label)
+    }
+    return chips
+}
+
+/** The empty grid: local packs have their own way of being empty, and so do favourites and recent GIFs. */
 @Composable
 private fun LocalStickerEmptyNotice(
+    category: String?,
     localGrid: Boolean,
     state: KeyboardUiState,
     query: String,
@@ -1056,6 +1082,10 @@ private fun LocalStickerEmptyNotice(
     onOpenRoute: (String) -> Unit,
 ) {
     when {
+        !stickers && category == MediaCategories.FAVOURITES ->
+            PanelNotice(stringResource(R.string.ime_gif_favourites_empty))
+        !stickers && category == MediaCategories.RECENT ->
+            PanelNotice(stringResource(R.string.ime_gif_recent_empty))
         !localGrid -> PanelNotice(
             when {
                 query.isBlank() -> stringResource(R.string.ime_media_trending_empty)
@@ -1281,7 +1311,10 @@ private fun MediaActionSheet(
     item: GifItem,
     stickers: Boolean,
     packs: List<com.wasimaster.wmkeyboard.core.stickers.StickerPack>,
+    /** The GIF is one of the favourites already, so the row takes it out. */
+    favourite: Boolean,
     onSaveToPack: (GifItem, String?) -> Unit,
+    onFavouriteToggle: (GifItem) -> Unit,
     onCopy: (GifItem) -> Unit,
     onReport: (GifItem) -> Unit,
     onOpenRoute: (String) -> Unit,
@@ -1343,6 +1376,13 @@ private fun MediaActionSheet(
                         MediaActionRow(label) { onSaveToPack(item, pack.id) }
                     }
                 }
+            } else {
+                // The GIF panel's counterpart of saving to a pack (#597).
+                MediaActionRow(
+                    stringResource(
+                        if (favourite) R.string.ime_gif_favourite_remove_action else R.string.ime_gif_favourite_add_action,
+                    ),
+                ) { onFavouriteToggle(item) }
             }
             MediaActionRow(stringResource(CommonR.string.common_copy)) { onCopy(item) }
             // Reporting goes to the provider; an imported pack has none.

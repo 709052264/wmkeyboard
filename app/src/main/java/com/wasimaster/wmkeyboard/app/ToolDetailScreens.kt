@@ -2173,7 +2173,52 @@ internal fun ToolDetailSettings(
                     ) { onNavigate(panelEditRoute(panel)) }
                 }
             }
-            if (tool == ToolbarTool.GIF) OfflineGifPacksGroup()
+            if (tool == ToolbarTool.GIF) {
+                // The GIF panel's favourites and recent GIFs (#597).
+                val context = LocalContext.current
+                SettingsGroup(
+                    stringResource(R.string.tooldetail_gif_collections_group),
+                    info = stringResource(R.string.tooldetail_gif_collections_info),
+                ) {
+                    item {
+                        ToggleSetting(
+                            R.string.tooldetail_gif_recent_title,
+                            stringResource(R.string.tooldetail_gif_recent_subtitle),
+                            settings.watch { it.gif.recentGifs },
+                            info = stringResource(R.string.tooldetail_gif_recent_info),
+                            default = SettingsDefaults.gif.recentGifs,
+                        ) { on ->
+                            scope.launch {
+                                repository.setRecentGifs(on)
+                                if (!on) {
+                                    withContext(Dispatchers.IO) {
+                                        com.wasimaster.wmkeyboard.core.tools.GifCollections.get(context).clearRecents()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    item {
+                        ToggleSetting(
+                            R.string.tooldetail_gif_favourites_offline_title,
+                            stringResource(R.string.tooldetail_gif_favourites_offline_subtitle),
+                            settings.watch { it.gif.favouritesOffline },
+                            info = stringResource(R.string.tooldetail_gif_favourites_offline_info),
+                            default = SettingsDefaults.gif.favouritesOffline,
+                        ) { on ->
+                            scope.launch {
+                                repository.setGifFavouritesOffline(on)
+                                if (!on) {
+                                    withContext(Dispatchers.IO) {
+                                        com.wasimaster.wmkeyboard.core.tools.GifCollections.get(context).dropCopies()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                OfflineGifPacksGroup()
+            }
             SettingsGroup(
                 stringResource(R.string.tooldetail_media_keys_group),
                 info = stringResource(R.string.tooldetail_media_info),

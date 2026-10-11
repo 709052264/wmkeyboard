@@ -453,6 +453,14 @@
     <string name="tooldetail_media_spacing_value" tools:ignore="PluralsCandidate">%1$d dp</string>
     <string name="tooldetail_media_hide_header_title">Hide the search when you scroll</string>
     <string name="tooldetail_media_hide_header_subtitle">Scroll down to fold the search box and the chips away, and scroll up to bring them back</string>
+    <string name="tooldetail_gif_collections_group">Favourites and recent</string>
+    <string name="tooldetail_gif_collections_info">Long-press a GIF and choose Add to favourites. A Favourites chip then leads the category chips. Long-press it again to remove it.</string>
+    <string name="tooldetail_gif_recent_title">Recent GIFs</string>
+    <string name="tooldetail_gif_recent_subtitle">Show a Recent chip with the GIFs you sent last</string>
+    <string name="tooldetail_gif_recent_info">The list keeps the last 48 GIFs and stays on the phone. Incognito does not add to it. Turn this off to delete the list.</string>
+    <string name="tooldetail_gif_favourites_offline_title">Keep favourites on the phone</string>
+    <string name="tooldetail_gif_favourites_offline_subtitle">Save a copy of each favourite, so it shows and sends without a connection</string>
+    <string name="tooldetail_gif_favourites_offline_info">The copies download when you add a favourite or open Favourites, and only on a connection that data saving allows. Turn this off to delete the copies. Your favourites stay.</string>
     <string name="tooldetail_media_hide_header_info">The results get the room that the search box, the source chips and the category chips take. When you are at the top of the results, pull down to bring them back. While you type a search, the search box always shows. This applies to both tools.</string>
     <string name="tooldetail_media_keys_group">Sources and API keys</string>
     <string name="tooldetail_media_klipy_label">Klipy API key</string>

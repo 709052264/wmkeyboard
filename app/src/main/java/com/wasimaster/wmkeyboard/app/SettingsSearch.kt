@@ -1454,6 +1454,8 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.STICKER, R.string.langemoji_panel_height_title, R.string.langemoji_panel_height_subtitle),
     toolEntry(ToolbarTool.GIF, R.string.tooldetail_media_hide_header_title, R.string.tooldetail_media_hide_header_subtitle),
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_media_hide_header_title, R.string.tooldetail_media_hide_header_subtitle),
+    toolEntry(ToolbarTool.GIF, R.string.tooldetail_gif_recent_title, R.string.tooldetail_gif_recent_subtitle),
+    toolEntry(ToolbarTool.GIF, R.string.tooldetail_gif_favourites_offline_title, R.string.tooldetail_gif_favourites_offline_subtitle),
     toolEntry(ToolbarTool.GIF, R.string.tooldetail_media_klipy_label, R.string.tooldetail_media_klipy_hint),
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_media_klipy_label, R.string.tooldetail_media_klipy_hint),
     toolEntry(ToolbarTool.GIF, R.string.tooldetail_media_giphy_label, R.string.tooldetail_media_giphy_hint),

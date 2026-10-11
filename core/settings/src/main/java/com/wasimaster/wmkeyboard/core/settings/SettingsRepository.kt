@@ -2668,6 +2668,17 @@ data class GifSettings(
      * back. Off by default: they stay put, as they always have.
      */
     val hideHeaderOnScroll: Boolean = false,
+    /**
+     * A Recent chip on the GIF panel, listing the GIFs sent last (#597). Off
+     * by default: it keeps a record of what was sent, which nobody asked for
+     * until they turn it on.
+     */
+    val recentGifs: Boolean = false,
+    /**
+     * Keep a copy of each favourite GIF on the phone (#597), so favourites
+     * show and send with no connection and survive a provider dropping them.
+     */
+    val favouritesOffline: Boolean = false,
 )
 
 /** Bounds for [GifSettings.gifPerRow] and [GifSettings.stickerPerRow]; the settings sliders share them. */
@@ -9313,6 +9324,8 @@ class SettingsRepository(private val context: Context) {
         private val STICKER_PER_ROW = intPreferencesKey("sticker_per_row")
         private val MEDIA_GRID_SPACING = intPreferencesKey("media_grid_spacing")
         private val MEDIA_HIDE_HEADER_ON_SCROLL = booleanPreferencesKey("media_hide_header_on_scroll")
+        private val GIF_RECENT = booleanPreferencesKey("gif_recent")
+        private val GIF_FAVOURITES_OFFLINE = booleanPreferencesKey("gif_favourites_offline")
         private val SEARCH_SAFE = booleanPreferencesKey("search_safe")
         private val SEARCH_RESULT_COUNT = intPreferencesKey("search_result_count")
         private val SEARCH_SHOW_ANSWER = booleanPreferencesKey("search_show_answer")
@@ -11102,6 +11115,8 @@ class SettingsRepository(private val context: Context) {
             stickerPerRow = p[STICKER_PER_ROW]?.coerceIn(MediaPerRowRange) ?: defaults.gif.stickerPerRow,
             gridSpacing = p[MEDIA_GRID_SPACING]?.coerceIn(MediaGridSpacingRange) ?: defaults.gif.gridSpacing,
             hideHeaderOnScroll = p[MEDIA_HIDE_HEADER_ON_SCROLL] ?: defaults.gif.hideHeaderOnScroll,
+            recentGifs = p[GIF_RECENT] ?: defaults.gif.recentGifs,
+            favouritesOffline = p[GIF_FAVOURITES_OFFLINE] ?: defaults.gif.favouritesOffline,
         )
 
     private fun readTextEditing(p: Preferences, defaults: KeyboardSettings) =
@@ -17174,6 +17189,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setMediaHideHeaderOnScroll(value: Boolean) =
         editPrefs { it[MEDIA_HIDE_HEADER_ON_SCROLL] = value }
+
+    suspend fun setRecentGifs(value: Boolean) =
+        editPrefs { it[GIF_RECENT] = value }
+
+    suspend fun setGifFavouritesOffline(value: Boolean) =
+        editPrefs { it[GIF_FAVOURITES_OFFLINE] = value }
 
     suspend fun setGifContentFilter(value: GifContentFilter) =
         editPrefs { it[GIF_CONTENT_FILTER] = value.name }

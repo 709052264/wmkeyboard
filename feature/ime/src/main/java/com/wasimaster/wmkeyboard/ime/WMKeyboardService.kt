@@ -1058,6 +1058,8 @@ open class WMKeyboardService : InputMethodService() {
     private lateinit var snippetStore: SnippetStore
     private lateinit var aiHistoryStore: AiHistoryStore
     private lateinit var stickerPackStore: com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
+    /** The GIF panel's favourites and recent GIFs (#597). */
+    private lateinit var gifCollections: com.wasimaster.wmkeyboard.core.tools.GifCollections
 
     /**
      * How the open panel reports what the hardware focus ring can move over.
@@ -4211,6 +4213,7 @@ open class WMKeyboardService : InputMethodService() {
         com.wasimaster.wmkeyboard.core.feedback.SoundPackStore.attach(this)
         com.wasimaster.wmkeyboard.core.addons.AddonStore.attach(this)
         stickerPackStore = com.wasimaster.wmkeyboard.core.stickers.StickerPackStore.get(this)
+        gifCollections = com.wasimaster.wmkeyboard.core.tools.GifCollections.get(this)
         com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks.attach(filesDir)
     }
 
@@ -4852,6 +4855,7 @@ open class WMKeyboardService : InputMethodService() {
                 onMediaLongPress = ::onMediaLongPress,
                 onStickerPackFilter = ::onStickerPackFilter,
                 onStickerSaveToPack = ::onStickerSaveToPack,
+                onGifFavouriteToggle = ::onGifFavouriteToggle,
                 onMediaCopy = ::onMediaCopy,
                 onMediaReport = ::onMediaReport,
                 onMediaActionDismiss = ::onMediaActionDismiss,
@@ -21810,6 +21814,7 @@ open class WMKeyboardService : InputMethodService() {
                 mediaDownloadProgress = null,
                 stickerPacks = stickerPackStore.packs(),
                 stickerPackId = null,
+                gifFavouriteIds = if (next == PanelMode.GIF) gifCollections.favouriteIds() else it.gifFavouriteIds,
                 // The service owns these buffers now, so the seed happens here:
                 // the calculator consumes its chip prefill outright, while the
                 // converters take only the amount — the panel still reads the
@@ -28697,6 +28702,19 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update { if (sticker) it.copy(sticker = ui) else it.copy(gif = ui) }
         }
         val settings = state.settings
+        // The favourites and recent chips (#597) are the panel's own lists:
+        // no provider, no key and no network to ask. A typed query ends them
+        // (see updateQuery), so a blank one is the only one they see here.
+        val collection = state.mediaCategory?.takeIf { !sticker && MediaCategories.isCollection(it) }
+        if (collection != null) {
+            if (collection == MediaCategories.RECENT && !settings.gif.recentGifs) {
+                // Turned off since the panel last showed it: back to trending.
+                _uiState.update { it.copy(mediaCategory = null) }
+            } else {
+                showGifCollection(collection)
+                return
+            }
+        }
         // Stickers add the user's own packs, which need no key — so only the
         // GIF tool can end up with nothing to ask.
         val sources = if (sticker) ToolApiKeys.stickerSources(settings) else ToolApiKeys.gifSources(settings)
@@ -28878,14 +28896,92 @@ open class WMKeyboardService : InputMethodService() {
             it.copy(
                 mediaCategory = next,
                 // The search pill reads back what the grid is showing, so a
-                // category shows as the search that it is.
-                mediaQuery = next.orEmpty(),
+                // category shows as the search that it is. Favourites and
+                // recent are no search, so the box stays empty for them.
+                mediaQuery = next?.takeUnless(MediaCategories::isCollection).orEmpty(),
                 mediaSearchActive = false,
                 mediaAction = null,
                 panelFocus = null,
             )
         }
-        refreshMedia(next.orEmpty())
+        refreshMedia(next?.takeUnless(MediaCategories::isCollection).orEmpty())
+    }
+
+    /**
+     * Fills the GIF grid from the panel's own favourites or recent GIFs (#597).
+     * A file read, so no spinner; the favourites then fetch any copies the
+     * setting wants kept and do not have yet.
+     */
+    private fun showGifCollection(term: String) {
+        mediaFetchJob?.cancel()
+        val panel = _uiState.value.panel
+        mediaFetchJob = serviceScope.launch {
+            val items = withContext(Dispatchers.IO) {
+                if (term == MediaCategories.FAVOURITES) gifCollections.favourites() else gifCollections.recents()
+            }
+            if (_uiState.value.panel != panel || _uiState.value.mediaCategory != term) return@launch
+            _uiState.update { it.copy(gif = MediaUi.Ready(items, "")) }
+            if (term == MediaCategories.FAVOURITES) saveFavouriteCopies()
+        }
+    }
+
+    /** The one run of [saveFavouriteCopies] at a time. */
+    private var gifCopyJob: Job? = null
+
+    /**
+     * Downloads a copy of each favourite that the setting wants on the phone
+     * and that has none yet (#597). Quietly: no cell spins, and a failure
+     * leaves that favourite on the provider's address until the next try.
+     * Data saving decides as it does for the search, and an answer of "ask"
+     * waits for the search's own prompt rather than raising a second one.
+     */
+    private fun saveFavouriteCopies() {
+        if (!_uiState.value.settings.gif.favouritesOffline) return
+        if (gifCopyJob?.isActive == true) return
+        if (dataSaverStatus.decide(MeteredFeature.MEDIA_SEARCH) != MeteredDecision.ALLOWED) return
+        gifCopyJob = serviceScope.launch {
+            val saved = withContext(Dispatchers.IO) {
+                var any = false
+                for (item in gifCollections.missingCopies()) {
+                    val file = downloadMediaFile(item.fullUrl, item.mime) ?: continue
+                    if (gifCollections.keepCopy(item.id, file)) any = true
+                }
+                any
+            }
+            // Point the grid at the copies, unless it has moved on.
+            val state = _uiState.value
+            if (saved && state.panel == PanelMode.GIF && state.mediaCategory == MediaCategories.FAVOURITES) {
+                val items = withContext(Dispatchers.IO) { gifCollections.favourites() }
+                _uiState.update { it.copy(gif = MediaUi.Ready(items, "")) }
+            }
+        }
+    }
+
+    /**
+     * "Add to favourites" or "Remove from favourites" on a GIF's long-press
+     * menu (#597). Taking one out while the favourites are showing takes it
+     * off the grid there and then.
+     */
+    fun onGifFavouriteToggle(item: GifItem) {
+        vibrate()
+        _uiState.update { it.copy(mediaAction = null) }
+        serviceScope.launch {
+            val added = withContext(Dispatchers.IO) { gifCollections.toggleFavourite(item) }
+            val ids = withContext(Dispatchers.IO) { gifCollections.favouriteIds() }
+            _uiState.update { it.copy(gifFavouriteIds = ids) }
+            Toast.makeText(
+                this@WMKeyboardService,
+                getString(if (added) R.string.ime_service_gif_favourite_added_toast else R.string.ime_service_gif_favourite_removed_toast),
+                Toast.LENGTH_SHORT,
+            ).show()
+            val state = _uiState.value
+            if (state.panel != PanelMode.GIF) return@launch
+            if (state.mediaCategory == MediaCategories.FAVOURITES) {
+                showGifCollection(MediaCategories.FAVOURITES)
+            } else if (added) {
+                saveFavouriteCopies()
+            }
+        }
     }
 
     private fun runWebSearch(query: String) {
@@ -29035,7 +29131,19 @@ open class WMKeyboardService : InputMethodService() {
             insertLocalSticker(item, sendMode)
             return
         }
+        recordRecentGif(item)
         insertDownloadedImage(item.id, item.fullUrl, item.mime, sendMode)
+    }
+
+    /**
+     * Puts a GIF sent from the GIF panel at the front of its Recent chip (#597),
+     * when that is on. Incognito keeps no record of it, as with the emoji history.
+     */
+    private fun recordRecentGif(item: GifItem) {
+        val state = _uiState.value
+        if (state.panel != PanelMode.GIF || !state.settings.gif.recentGifs) return
+        if (state.incognitoOn && state.settings.incognitoPausesLearning) return
+        serviceScope.launch(Dispatchers.IO) { gifCollections.recordSent(item) }
     }
 
     /**

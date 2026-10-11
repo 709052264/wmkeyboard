@@ -3274,8 +3274,14 @@ data class KeyboardUiState(
     val mediaAction: com.wasimaster.wmkeyboard.core.tools.GifItem? = null,
     /** Categories to browse in the GIF/sticker default view; empty hides the row. */
     val mediaCategories: List<com.wasimaster.wmkeyboard.core.tools.MediaCategory> = emptyList(),
-    /** The category chip in effect, or null for trending and for a typed query. */
+    /**
+     * The category chip in effect, or null for trending and for a typed query.
+     * Also the GIF panel's favourites and recent chips (#597), as
+     * [com.wasimaster.wmkeyboard.core.tools.MediaCategories.FAVOURITES] and `RECENT`.
+     */
     val mediaCategory: String? = null,
+    /** Ids of the GIF favourites, for the long-press menu's star and the favourites chip (#597). */
+    val gifFavouriteIds: Set<String> = emptySet(),
     /** What the Plugins panel is showing: the list, a running plugin, or a failure. */
     val plugins: PluginPanelUi = PluginPanelUi.List(emptyList()),
     /**
