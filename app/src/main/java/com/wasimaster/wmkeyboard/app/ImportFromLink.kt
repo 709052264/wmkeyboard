@@ -368,7 +368,7 @@ internal fun ImportLinkFlow(
 
         // From here the link is a file like any other, and the dialog that
         // knows every format takes over.
-        is LinkStage.Ready -> ImportFileDialog(repository, current.uri, onClose)
+        is LinkStage.Ready -> ImportFileDialog(repository, current.uri, onClose = onClose)
     }
 }
 

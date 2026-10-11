@@ -67,6 +67,7 @@
 		"backup_blacklist_scope_title": "0.5.9",
 		"backup_files_export_title": "0.5.12",
 		"backup_files_import_title": "0.5.12",
+		"backup_foreign_import_title": "0.5.15",
 		"backup_locations_title": "0.5.12",
 		"backup_sync_contents_title": "0.5.12",
 		"backup_sync_enabled_title": "0.5.12",

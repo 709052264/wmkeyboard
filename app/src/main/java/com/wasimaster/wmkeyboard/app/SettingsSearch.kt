@@ -1740,6 +1740,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         backupHub(R.string.backup_auto_dest_onedrive, R.string.backup_auto_dest_onedrive_desc),
         backupHub(R.string.backup_files_export_title, R.string.backup_files_export_subtitle),
         backupHub(R.string.backup_files_import_title, R.string.backup_files_import_subtitle),
+        backupHub(R.string.backup_foreign_import_title, R.string.backup_foreign_import_subtitle),
         backupAuto(R.string.backup_auto_enabled_title, R.string.backup_auto_enabled_subtitle),
         backupAuto(R.string.backup_auto_interval_title, R.string.backup_auto_enabled_subtitle),
         backupAuto(R.string.backup_auto_keep_title, R.string.backup_auto_keep_subtitle),

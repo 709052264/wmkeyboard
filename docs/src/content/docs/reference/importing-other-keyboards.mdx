@@ -1,6 +1,6 @@
 ---
 title: "Importing from other keyboards"
-description: "Bring layouts, themes and dictionaries over from FlorisBoard, HeliBoard, LeanType, FUTO, Samsung Keyboard (Keys Cafe), Multiling O and Gboard: what converts, what doesn't, and why."
+description: "Bring layouts, themes, dictionaries and whole settings backups over from FlorisBoard, HeliBoard, LeanType, FUTO, CleverKeys, AnySoftKeyboard, Samsung Keyboard (Keys Cafe), Multiling O and Gboard: what converts, what doesn't, and why."
 sidebar:
   order: 6
 ---
@@ -31,10 +31,87 @@ Conversion is honest about being lossy. A layout import always ends on a confirm
 | `.kmp` package | Keyman | A custom layout **and** its typing rules |
 | `.combined` word list | HeliBoard, LeanType, FUTO, any AOSP keyboard | A custom dictionary |
 | `.dict` dictionary | HeliBoard, LeanType, FUTO, OpenBoard, GApps | A custom dictionary |
+| Backup `.zip` | HeliBoard, LeanType, FlorisBoard, CleverKeys | A list of everything inside to pick from: see [Whole backups](#whole-backups) |
+| Backup `.backup` | FUTO Keyboard | The same list |
+| `AnySoftKeyboardPrefs.xml`, or a CleverKeys settings `.json` | AnySoftKeyboard, CleverKeys | The same list, settings only |
 
 HeliBoard's JSON layouts use FlorisBoard's format, so one reader handles both. LeanType is a HeliBoard fork, so its layouts and themes are HeliBoard's.
 
 **Keyman is a different story.** 862 Keyman key grids are already built into the app, so for most of them there's nothing to import. You can still open a `.keyman-touch-layout` file or a full `.kmp` package yourself, which is how you'd add a keyboard that isn't bundled or one you're writing. A `.kmp` brings its typing rules with it; a touch layout file does not. See [Keyman layouts](/languages/keyman/).
+
+## Whole backups
+
+Most keyboards can save everything to one file: their settings, your layouts, your themes and the words they learned. WM Keyboard reads that file whole and shows you what is in it, one row per item, before anything is written. Every row starts ticked. Untick what you don't want, then tap **Import**.
+
+Open the file from <SettingsPath path="Data / Backup & restore / Import from another keyboard" />, from a file manager, or from **Restore a backup** on the first page of the [setup wizard](/start/setup/#running-the-setup-wizard), where it also skips the rest of the wizard.
+
+To make the file on the other keyboard:
+
+| Keyboard | What to look for |
+|---|---|
+| HeliBoard, LeanType | **Backup and restore** in its settings, under Advanced. You get a `.zip` |
+| FUTO Keyboard | **Export settings** in its settings. You get a `.backup` file, which is a ZIP |
+| FlorisBoard | **Backup & Restore** in its settings, under Advanced. You get a `.zip` |
+| CleverKeys | Its backup screen. A full backup `.zip` or a settings `.json` both work |
+| AnySoftKeyboard | Its backup screen. You get `AnySoftKeyboardPrefs.xml` |
+
+Menu names differ between versions of each keyboard; look for "backup" or "export" in its settings.
+
+### What comes across
+
+| Part | HeliBoard, LeanType | FUTO | FlorisBoard | CleverKeys, AnySoftKeyboard |
+|---|---|---|---|---|
+| Your own letter layouts | Yes | Yes | Yes | No |
+| Your colour themes | Yes, and the one in use is switched on | No | Yes, and the one in use is switched on | No |
+| Your languages | Yes, each with the closest built-in layout, or with your own layout when it is imported too | Yes | Yes | No |
+| Dictionaries you added | Yes | Yes | None in the backup | No |
+| Words learned from your typing | Yes, as a word list | Yes, as a word list | None in the backup | No |
+| Words you added by hand | None in the backup, see the note below | Yes, as words you added here | None in the backup | No |
+| Words never suggested | Yes | Yes | No | No |
+| Settings | Yes | Yes | Yes | Yes |
+
+Languages are added in front of the ones you already have, and the first becomes the one you type in. The app downloads each new language's word list and prediction data in the background, the same way the setup wizard does.
+
+A layout keeps its name. HeliBoard stores the name it was given in its file name, and that is what you see. A layout made for one language is filed under that language; a layout made for a whole script (HeliBoard's "Latin" layouts) is filed under the language its letters suggest. You can change it later in the layout editor.
+
+Learned words arrive as their own list under [Custom dictionaries](/reference/settings/dictionaries/), not mixed into this keyboard's learning, so you can switch them off or delete them in one place.
+
+### Which settings come across
+
+Only settings that mean exactly the same thing in both keyboards are offered. Each one is a row of its own, with the value it will get here.
+
+| Setting here | What the other keyboard calls it |
+|---|---|
+| Number row | Number row |
+| Key popup | Popup on key press |
+| Vibrate on key press, Vibration length | Vibration, and its length in milliseconds |
+| Sound on key press, Key sound volume | Sound, and its volume |
+| Autocorrect | Autocorrection |
+| Automatic capitals | Auto-capitalization |
+| Double space types a period | Double-space period |
+| Suggestions, Emoji suggestions | Show suggestions, emoji suggestions |
+| Glide typing | Gesture or glide input |
+| Long press delay | Long press timeout |
+| Key height | Keyboard height, from its scale (1.25 times is 60 dp here) |
+| Split keyboard | Split keyboard |
+| Light or dark | The light, dark or black colour set, or following the system |
+
+Values are kept inside this app's own limits: a vibration of 100 ms becomes 60 ms, the most this app allows. A value that only means "use the system's", like HeliBoard's default vibration length, is left out, because this app already does that when nothing is set. Settings that look alike but measure something else, like each keyboard's autocorrect strength, are left out rather than guessed at.
+
+Settings are written the way a restore of this app's own backup is: the keyboard reads its settings back afterwards, and puts everything back as it was if they no longer read.
+
+### What does not come across
+
+The list ends with what the backup holds that has nowhere to go here, so nothing disappears without a word:
+
+- **Clipboard history.** Never imported. It belongs to the other keyboard and is often private.
+- **Symbol and number layouts.** This app draws those from its own.
+- **FUTO theme files**, a format this app does not read.
+- **Custom fonts and background pictures** from HeliBoard.
+- **Language models and voice data** from FUTO, which are that keyboard's own engines.
+- **Shortcuts on FUTO's added words.** The words come across; the shortcuts on them do not.
+
+HeliBoard keeps the words you add by hand in Android's own personal dictionary, not in its backup. Bring those across from <SettingsPath path="Typing / Suggestions / Personal dictionary" /> with its import from Android.
 
 ## Layouts
 
@@ -377,6 +454,7 @@ They also travel with the theme rather than with the keyboard. Switch theme and 
 - **Opening a `.flex` from a file manager** works because the app registers that extension. If FlorisBoard is installed too, Android asks which app should open it.
 - **A Gboard `.zip` opens from a file manager by what is inside it.** `.zip` is far too common to claim by name, but the app is offered for ZIP files by type, and one with a Gboard `metadata.json` or an Rboard `pack.meta` at its root is recognised. A pack opened that way has no list to pick from, so Import adds every theme in it.
 - **Size caps.** A theme or pack is read up to 48 MB inflated, 4 MB per picture, 128 themes per pack; a downloaded Rboard pack is refused past 32 MB. Entry names are only ever looked up, never used as paths.
+- **A whole backup opens from a file manager by what is inside it.** HeliBoard, LeanType, FlorisBoard and CleverKeys backups are `.zip` files and FUTO's is a ZIP named `.backup`. Neither extension is claimed, but a ZIP holding one of their settings files is recognised however it is named. Each part is read up to 32 MB, and a backup is refused past 128 MB of the parts the app keeps; FUTO's language models are counted and skipped, never read into memory.
 - **Foreign layout files are not auto-detected from a file manager.** They carry no marker that identifies them, so they go through <SettingsPath path="Layout & size / Key layouts / Import from another keyboard" />, where you have already said what the file is. This app's own `.wmlayout.json` files do open from a file manager, because they carry a format tag.
 - **A foreign layout over 4 MB is refused.** The whole file is decoded as one string, so there is a cap, and the cap is 4 MB. Past it you get the same "The app cannot read that file as a layout" message a genuinely unreadable file gets, with nothing to say the size was the problem. No real grid is anywhere near it, so in practice this only catches a file that is not a layout at all.
 - **Add-on repositories stay native.** Repository payloads are always WM Keyboard's own formats; conversion applies to files you pick yourself.

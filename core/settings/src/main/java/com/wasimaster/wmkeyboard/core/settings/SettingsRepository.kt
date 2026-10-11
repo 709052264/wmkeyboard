@@ -13828,8 +13828,20 @@ class SettingsRepository(private val context: Context) {
      */
     suspend fun importSettings(text: String): ImportResult {
         val parsed = SettingsBackup.decode(text) ?: return ImportResult.NotABackup
+        return mergeVerified(parsed.entries, parsed.skipped)
+    }
+
+    /**
+     * Merges settings translated from another keyboard's backup, with the same
+     * read-back and rollback as [importSettings]: the values were converted
+     * here, but from a file nobody here wrote.
+     */
+    suspend fun importForeignSettings(entries: List<SettingsBackup.Entry>): ImportResult =
+        if (entries.isEmpty()) ImportResult.Applied(0, 0) else mergeVerified(entries, 0)
+
+    private suspend fun mergeVerified(entries: List<SettingsBackup.Entry>, skipped: Int): ImportResult {
         val snapshot = context.dataStore.data.first()
-        editPrefs { prefs -> parsed.entries.forEach { prefs.put(it) } }
+        editPrefs { prefs -> entries.forEach { prefs.put(it) } }
         val readable = runCancellable { settings.first() }.isSuccess
         if (!readable) {
             editPrefs { prefs ->
@@ -13841,7 +13853,7 @@ class SettingsRepository(private val context: Context) {
             }
             return ImportResult.RolledBack
         }
-        return ImportResult.Applied(parsed.entries.size, parsed.skipped)
+        return ImportResult.Applied(entries.size, skipped)
     }
 
     // ---- full-config bundle ----
@@ -15562,6 +15574,13 @@ class SettingsRepository(private val context: Context) {
         if (normalized.isEmpty()) return
         val key = languageId?.let(::blacklistLanguageKey) ?: SUGGESTION_BLACKLIST
         editPrefs { it[key] = (it[key].orEmpty() + normalized) }
+    }
+
+    /** [addSuggestionBlacklistWord] for a whole list at once, in one write. */
+    suspend fun addSuggestionBlacklistWords(words: Collection<String>) {
+        val normalized = words.map { it.trim().lowercase() }.filter { it.isNotEmpty() }
+        if (normalized.isEmpty()) return
+        editPrefs { it[SUGGESTION_BLACKLIST] = it[SUGGESTION_BLACKLIST].orEmpty() + normalized }
     }
 
     /**

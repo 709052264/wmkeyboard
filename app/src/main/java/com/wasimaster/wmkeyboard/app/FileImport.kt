@@ -74,6 +74,8 @@ import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsBackup
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.foreign.ForeignBackup
+import com.wasimaster.wmkeyboard.core.settings.foreign.ForeignBackups
 import com.wasimaster.wmkeyboard.core.snippets.ImportedSnippets
 import com.wasimaster.wmkeyboard.core.snippets.SnippetFile
 import com.wasimaster.wmkeyboard.core.snippets.SnippetPayload
@@ -237,6 +239,15 @@ object WMFileTypes {
          * after the import is worse than being told and deciding.
          */
         data class EspansoSnippets(val parsed: SnippetPayload.Parsed) : Opened
+
+        /**
+         * Another keyboard's whole backup: HeliBoard, LeanType, FUTO,
+         * FlorisBoard, CleverKeys or AnySoftKeyboard, already read and
+         * converted. Not a [Config]: nothing in it is ours, and the dialog for
+         * it is a list of everything inside to tick or leave rather than one
+         * question.
+         */
+        data class ForeignBackupFile(val backup: ForeignBackup) : Opened
 
         /** The older standalone `wmsettings.json`. */
         data class Settings(val text: String, val parsed: SettingsBackup.Parsed) : Opened
@@ -443,6 +454,11 @@ object WMFileTypes {
             if (layouts.isNotEmpty() || theme != null) return Opened.MultilingFile(layouts, theme)
         }
 
+        // Another keyboard's settings as one text file: a CleverKeys export,
+        // told by its `metadata` and `preferences` objects together, or
+        // AnySoftKeyboard's XML, which no other format here is.
+        ForeignBackups.readText(text)?.let { return Opened.ForeignBackupFile(it) }
+
         // The two YAML formats, which are the two that can follow the branch
         // above safely. Both are somebody else's and neither carries a tag of
         // ours, but each is recognised by a key at the start of a line — `rows:`
@@ -546,6 +562,14 @@ object WMFileTypes {
      * because a ZIP of pictures with no such file is any ZIP of pictures.
      */
     private fun identifyManifestless(context: android.content.Context, uri: Uri, names: List<String>): Opened {
+        // Another keyboard's backup, told by the file each one always writes
+        // first: its settings, or its export's version stamp.
+        if (ForeignBackups.looksLikeBackup(names)) {
+            val backup = runCatching {
+                context.contentResolver.requireInputStream(uri).use { ForeignBackups.read(it) }
+            }.getOrNull()
+            return if (backup != null) Opened.ForeignBackupFile(backup) else Opened.Unrecognized
+        }
         if (!WaStickersFile.looksLikeWaStickers(names)) return Opened.Unrecognized
         val header = runCatching {
             context.contentResolver.requireInputStream(uri).use { WaStickersFile.peek(it) }
@@ -764,6 +788,12 @@ private fun proposalTitle(proposal: ImportProposal): String {
 internal fun ImportFileDialog(
     repository: SettingsRepository,
     uri: Uri,
+    /**
+     * Called once a backup has been restored: one of ours, or another
+     * keyboard's. The setup wizard listens for it, because a restored phone
+     * has nothing left to be asked.
+     */
+    onImported: () -> Unit = {},
     onClose: () -> Unit,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -809,7 +839,22 @@ internal fun ImportFileDialog(
         return
     }
 
-    val proposal = rememberProposal(state, repository, context, uri)
+    // A whole backup from another keyboard is a list to choose from, not one
+    // question, so it has a dialog of its own.
+    if (state is WMFileTypes.Opened.ForeignBackupFile) {
+        ForeignBackupDialog(
+            backup = state.backup,
+            repository = repository,
+            onDone = { result ->
+                message = result
+                onImported()
+            },
+            onDismiss = onClose,
+        )
+        return
+    }
+
+    val proposal = rememberProposal(state, repository, context, uri, onImported)
     var passphrase by remember { mutableStateOf("") }
     var language by remember(proposal) { mutableStateOf(proposal.language.orEmpty()) }
     var pickingLanguage by remember { mutableStateOf(false) }
@@ -1079,6 +1124,7 @@ private fun rememberProposal(
     repository: SettingsRepository,
     context: android.content.Context,
     uri: Uri,
+    onImported: () -> Unit,
 ): ImportProposal = remember(state) {
     when (state) {
         is WMFileTypes.Opened.Theme -> {
@@ -1163,6 +1209,13 @@ private fun rememberProposal(
 
         is WMFileTypes.Opened.MultilingFile -> multilingProposal(state, repository, context)
 
+        // Drawn by ForeignBackupDialog before this is reached; here only so the
+        // list stays exhaustive.
+        is WMFileTypes.Opened.ForeignBackupFile -> ImportProposal(
+            titleRes = R.string.foreign_backup_title_generic,
+            body = "",
+        )
+
         is WMFileTypes.Opened.EspansoSnippets -> espansoProposal(state.parsed, context)
 
         is WMFileTypes.Opened.Config -> {
@@ -1191,6 +1244,7 @@ private fun rememberProposal(
                 apply = {
                     when (val result = repository.importConfig(state.text)) {
                         is SettingsRepository.ConfigImportResult.Applied -> buildString {
+                            if (result.restored.isNotEmpty() && !result.settingsFailed) onImported()
                             if (result.restored.isEmpty()) {
                                 append(context.getString(R.string.import_backup_nothing))
                             } else {
@@ -1239,6 +1293,7 @@ private fun rememberProposal(
                                 if (result.restored.isEmpty()) {
                                     context.getString(R.string.import_backup_nothing)
                                 } else {
+                                    if (!result.settingsFailed) onImported()
                                     context.getString(
                                         R.string.import_backup_restored,
                                         result.restored.joinToString {
@@ -1283,12 +1338,14 @@ private fun rememberProposal(
             },
             apply = {
                 when (val result = repository.importSettings(state.text)) {
-                    is SettingsRepository.ImportResult.Applied ->
+                    is SettingsRepository.ImportResult.Applied -> {
+                        onImported()
                         context.resources.getQuantityString(
                             R.plurals.import_settings_restored,
                             result.settings,
                             result.settings,
                         )
+                    }
                     SettingsRepository.ImportResult.RolledBack ->
                         context.getString(R.string.import_settings_rolled_back)
                     SettingsRepository.ImportResult.NotABackup ->
