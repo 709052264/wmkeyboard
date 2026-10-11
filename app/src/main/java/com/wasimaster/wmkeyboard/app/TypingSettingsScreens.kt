@@ -1724,7 +1724,8 @@ internal fun TypingGesturesSettings(
     val wiggleDouble = settings.watch { it.gesture.wiggleDouble }
     val wordPreview = settings.watch { it.gesture.wordPreview }
     val spaceCursor = settings.watch {
-        it.spaceShortSwipe == SpaceSwipeAction.CURSOR || it.spaceLongSwipe == SpaceSwipeAction.CURSOR
+        it.spaceShortSwipe == SpaceSwipeAction.CURSOR || it.spaceLongSwipe == SpaceSwipeAction.CURSOR ||
+            it.textEditing.spaceSwipeUpTouchpad
     }
     val spaceLanguage = settings.watch {
         it.spaceShortSwipe == SpaceSwipeAction.LANGUAGE || it.spaceLongSwipe == SpaceSwipeAction.LANGUAGE
@@ -2222,6 +2223,16 @@ internal fun TypingGesturesSettings(
                 value = settings.watch { it.spaceLongSwipe },
                 default = SettingsDefaults.spaceLongSwipe,
             ) { scope.launch { repository.setSpaceLongSwipe(it) } }
+        }
+        // Issue #444: a swipe up is the touchpad, beside the sideways slots.
+        item {
+            ToggleSetting(
+                R.string.typing_space_swipe_up_touchpad_title,
+                stringResource(R.string.typing_space_swipe_up_touchpad_subtitle),
+                settings.watch { it.textEditing.spaceSwipeUpTouchpad },
+                info = stringResource(R.string.typing_space_swipe_up_touchpad_info),
+                default = SettingsDefaults.textEditing.spaceSwipeUpTouchpad,
+            ) { scope.launch { repository.setSpaceSwipeUpTouchpad(it) } }
         }
         // 2-D cursor pad only makes sense once a slide is set to cursor control.
         if (spaceCursor) {

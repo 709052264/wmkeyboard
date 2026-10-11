@@ -12734,6 +12734,18 @@ private val ChordPreviewToken = Any()
 private const val SpaceCursorEdgeRepeatMs = 125L
 
 /**
+ * The same for lines, with the whole keyboard as a 2-D pad (#444): five a
+ * second, slower than characters because each one jumps the eye a line.
+ */
+private const val SpaceCursorEdgeLineRepeatMs = 200L
+
+/**
+ * How far up a spacebar swipe goes before it opens the 2-D touchpad (#444):
+ * twice the swipe slop, the debounce that keeps a tap rolling upward a space.
+ */
+private const val SpaceSwipeUpTouchpadDp = 24
+
+/**
  * How long a cursor drag must rest, held away from where it began, before the
  * caret starts moving on by itself (#505). Long enough that settling the finger
  * on the right spot before lifting does not set it off.
@@ -22836,7 +22848,7 @@ private fun Modifier.pointerInputKey(
 ): Modifier = this.then(
     if (key.action == KeyAction.Space &&
         (spaceShortSwipe != SpaceSwipeAction.NONE || spaceLongSwipe != SpaceSwipeAction.NONE ||
-            spaceSwipeDownHide)
+            spaceSwipeDownHide || textEditing.spaceSwipeUpTouchpad)
     ) {
         Modifier.pointerInput(
             key, spaceShortSwipe, spaceLongSwipe, enabledLayoutIds, currentLayoutId, longPressDelayMs,
@@ -22866,6 +22878,9 @@ private fun Modifier.pointerInputKey(
             // A swipe-down must clear this before it dismisses the keyboard —
             // well past the slop so a diagonal cursor drag never trips it.
             val hideThresholdPx = 40.dp.toPx()
+            // A swipe up must clear this before it opens the touchpad (#444):
+            // twice the slop, so a tap that rolls upward still types a space.
+            val swipeUpPx = SpaceSwipeUpTouchpadDp.dp.toPx()
             // Extra travel demanded before the language list wraps around at
             // either end — the boundary acts like a detent, not a wall.
             val langWrapPx = langStepPx * 2.5f
@@ -22894,6 +22909,10 @@ private fun Modifier.pointerInputKey(
                     var accumulatedY = 0f
                     var lastY = down.position.y
                     var hidden = false
+                    // Whether this drag's cursor moves up and down too: the
+                    // 2-D pad's switch, or a swipe up that opened the pad
+                    // for this drag alone (#444).
+                    var padVertical = spaceCursor2d
                     var langIndex = enabledLayoutIds.indexOf(currentLayoutId).coerceAtLeast(0)
                     // With exactly two languages a swipe direction means "the
                     // other language", so a single run of travel toggles at most
@@ -23020,9 +23039,18 @@ private fun Modifier.pointerInputKey(
                     // finger that trembles in place (and keeps sending events)
                     // still gets its steps.
                     var nextRepeatAt = 0L
+                    // The same for lines (#444): with the whole keyboard as a
+                    // 2-D pad, a finger at its top or bottom keeps the caret
+                    // going up or down, on a deadline of its own.
+                    var edgeDirY = 0
+                    var nextRepeatYAt = 0L
                     while (true) {
-                        val event = if (edgeDir != 0) {
-                            val wait = (nextRepeatAt - SystemClock.uptimeMillis()).coerceAtLeast(1L)
+                        val event = if (edgeDir != 0 || edgeDirY != 0) {
+                            val due = minOf(
+                                if (edgeDir != 0) nextRepeatAt else Long.MAX_VALUE,
+                                if (edgeDirY != 0) nextRepeatYAt else Long.MAX_VALUE,
+                            )
+                            val wait = (due - SystemClock.uptimeMillis()).coerceAtLeast(1L)
                             withTimeoutOrNull(wait) { awaitPointerEvent() }
                         } else {
                             awaitPointerEvent()
@@ -23030,6 +23058,10 @@ private fun Modifier.pointerInputKey(
                         if (edgeDir != 0 && SystemClock.uptimeMillis() >= nextRepeatAt) {
                             onCursorMove(edgeDir)
                             nextRepeatAt = SystemClock.uptimeMillis() + SpaceCursorEdgeRepeatMs
+                        }
+                        if (edgeDirY != 0 && SystemClock.uptimeMillis() >= nextRepeatYAt) {
+                            onCursorMoveVertical(edgeDirY)
+                            nextRepeatYAt = SystemClock.uptimeMillis() + SpaceCursorEdgeLineRepeatMs
                         }
                         if (event == null) continue
                         val change = event.changes.firstOrNull { it.id == down.id } ?: break
@@ -23096,9 +23128,8 @@ private fun Modifier.pointerInputKey(
                         } else {
                             spaceLongSwipe
                         }
-                        val cursorOwnsVertical = spaceCursor2d &&
-                            (action == SpaceSwipeAction.CURSOR ||
-                                (action == null && candidate == SpaceSwipeAction.CURSOR))
+                        val cursorOwnsVertical = (padVertical && action == SpaceSwipeAction.CURSOR) ||
+                            (spaceCursor2d && action == null && candidate == SpaceSwipeAction.CURSOR)
                         // Swipe straight down to dismiss the keyboard — unless the
                         // 2-D pad is claiming vertical for cursor movement.
                         if (spaceSwipeDownHide && !cursorOwnsVertical) {
@@ -23120,6 +23151,33 @@ private fun Modifier.pointerInputKey(
                             // horizontal slop, which keeps their flick direction sane.
                             val vertForCursor = spaceCursor2d &&
                                 candidate == SpaceSwipeAction.CURSOR && abs(totalDy) > slopPx
+                            // Issue #444: a swipe mostly up opens the 2-D
+                            // touchpad for this drag, whatever either slot
+                            // says, so a sideways swipe keeps switching the
+                            // language. While the finger goes more up than
+                            // sideways nothing else resolves, and the pad
+                            // waits for swipeUpPx of it: the debounce that
+                            // keeps a rolled tap a space.
+                            if (textEditing.spaceSwipeUpTouchpad && -totalDy > abs(totalDx)) {
+                                if (-totalDy > swipeUpPx) {
+                                    action = SpaceSwipeAction.CURSOR
+                                    padVertical = true
+                                    if (holdPreviewShown) {
+                                        holdPreviewShown = false
+                                        setLanguagePreview(null)
+                                    }
+                                    onKeyHaptic()
+                                    onCaretDrag(true)
+                                    caretDragOpen = true
+                                    spaceTouchpad?.active = true
+                                    lastX = change.position.x
+                                    lastY = change.position.y
+                                    accumulated = 0f
+                                    accumulatedY = 0f
+                                    change.consume()
+                                }
+                                continue
+                            }
                             if (abs(totalDx) > slopPx || vertForCursor) {
                                 // Short vs long is decided by hold time, not travel
                                 // distance — a fast flick covers more ground than a
@@ -23189,7 +23247,7 @@ private fun Modifier.pointerInputKey(
                         // 2-D touchpad: while sliding the cursor, a vertical drag
                         // steps the caret up and down as well. Runs alongside the
                         // horizontal step below, so a diagonal drag moves both axes.
-                        if (spaceCursor2d && action == SpaceSwipeAction.CURSOR) {
+                        if (padVertical && action == SpaceSwipeAction.CURSOR) {
                             val dy = change.position.y - lastY
                             // A sideways drag drifts up and down a little all
                             // the way along, and that drift added up into line
@@ -23216,6 +23274,29 @@ private fun Modifier.pointerInputKey(
                                 onCursorMoveVertical(-1); accumulatedY += stepYPx; movedV = true
                             }
                             if (movedV) change.consume()
+                            // Keep moving while held, up and down (#444): only
+                            // against the whole keyboard's top and bottom, as
+                            // a drag off the spacebar is above it at once. A
+                            // band the drag began in does not count, so a
+                            // spacebar in the bottom band never sets it off.
+                            val grid = spaceTouchpad?.gridBounds
+                            val dirY = if (textEditing.spaceCursorEdgeRepeat && grid != null && grid.height > 0f) {
+                                val origin = keyBounds().top
+                                val topEdge = grid.top - origin + touchpadEdgePx
+                                val bottomEdge = grid.bottom - origin - touchpadEdgePx
+                                val y = change.position.y
+                                when {
+                                    y < topEdge && down.position.y >= topEdge -> -1
+                                    y > bottomEdge && down.position.y <= bottomEdge -> 1
+                                    else -> 0
+                                }
+                            } else {
+                                0
+                            }
+                            if (dirY != 0 && (movedV || dirY != edgeDirY)) {
+                                nextRepeatYAt = SystemClock.uptimeMillis() + SpaceCursorEdgeLineRepeatMs
+                            }
+                            edgeDirY = dirY
                         }
                         val dx = change.position.x - lastX
                         accumulated += dx
