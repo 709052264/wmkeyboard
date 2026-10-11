@@ -4442,8 +4442,11 @@ private fun TopBar(
                 // the slots the count asks for rather than a chip after them,
                 // so the strip never shows more than that number. The words
                 // give up one slot and the emoji takes it at the same width.
+                // Never beside a conversion's candidates: those scroll in a row
+                // weighted to the whole strip, and a weighted emoji slot would
+                // take half of it (#633).
                 val emojiInSlot = (state.settings.suggestionStrip.emojiTakesSlot || fixedStrip) &&
-                    shownEmojiSuggestions.isNotEmpty() && !shownInlineEmoji && !glideStripOnly
+                    shownEmojiSuggestions.isNotEmpty() && !shownInlineEmoji && !glideStripOnly && !held.conversion
                 // The marks and the emoji never show together (the service
                 // leaves one list empty), so they share the one last slot.
                 val punctuationInSlot = fixedStrip && !emojiInSlot && shownPunctuation.isNotEmpty()

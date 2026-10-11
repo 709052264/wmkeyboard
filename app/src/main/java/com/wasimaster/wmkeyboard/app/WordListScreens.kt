@@ -62,6 +62,7 @@ import com.wasimaster.wmkeyboard.core.emoji.EmojiDictStore
 import com.wasimaster.wmkeyboard.core.emoji.EmojiKeywordPack
 import com.wasimaster.wmkeyboard.core.emoji.EmojiKeywordPacks
 import com.wasimaster.wmkeyboard.core.emoji.EmojiSearchExamples
+import com.wasimaster.wmkeyboard.core.input.composer.ConversionWordLists
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import kotlinx.coroutines.launch
 
@@ -112,10 +113,18 @@ internal fun CustomDictionarySettings(
             ids.associateWith { langId ->
                 // allLists, not lists: a switched-off list still has to be
                 // shown, or there is no way to switch it back on.
+                // A converting language counts the lines that carry a reading,
+                // since only those reach its candidates (#633).
+                val reading = ConversionWordLists.readingFor(langId)
                 CustomDictionaries.allLists(context.filesDir, langId).map { file ->
                     WordListEntry(
                         file,
-                        CustomDictionaries.wordsOf(file).size,
+                        if (reading == null) {
+                            CustomDictionaries.wordsOf(file).size
+                        } else {
+                            runCatching { file.bufferedReader().useLines { ConversionWordLists.count(it, reading) } }
+                                .getOrDefault(0)
+                        },
                         CustomDictionaries.pairCount(file),
                         CustomDictionaries.shortcutCount(file),
                     )
