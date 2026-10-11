@@ -5370,6 +5370,15 @@ data class TextEditingSettings(
      */
     val spaceCursorWholeKeyboard: Boolean = false,
     /**
+     * A swipe up from the spacebar opens the 2-D cursor touchpad for that
+     * drag (#444), whatever the two swipe slots hold and whether
+     * [LayoutBehaviorSettings.spaceCursor2d] is on, so a sideways swipe keeps
+     * switching the language and no hold is needed first. Off by default: a
+     * swipe up on the spacebar has done nothing until now, and a flick that
+     * lands on the row above should not start moving the caret unasked.
+     */
+    val spaceSwipeUpTouchpad: Boolean = false,
+    /**
      * A magnifier over the caret while a spacebar cursor swipe moves it
      * (discussion #303): the line around the caret, enlarged, in a bubble over
      * the text. The trackpad has its own switch, [TrackpadSettings.magnifier].
@@ -9324,6 +9333,7 @@ class SettingsRepository(private val context: Context) {
         private val SPACE_CURSOR_DIRECT = booleanPreferencesKey("space_cursor_direct")
         private val SPACE_CURSOR_EDGE_REPEAT = booleanPreferencesKey("space_cursor_edge_repeat")
         private val SPACE_CURSOR_WHOLE_KEYBOARD = booleanPreferencesKey("space_cursor_whole_keyboard")
+        private val SPACE_SWIPE_UP_TOUCHPAD = booleanPreferencesKey("space_swipe_up_touchpad")
         private val SPACE_CURSOR_TOP_SPEED = intPreferencesKey("space_cursor_top_speed")
         private val BACKSPACE_WORD_STEP_DP = intPreferencesKey("backspace_word_step_dp")
         private val BACKSPACE_SWIPE_UNIT = stringPreferencesKey("backspace_swipe_unit")
@@ -11279,6 +11289,8 @@ class SettingsRepository(private val context: Context) {
             spaceCursorEdgeRepeat = p[SPACE_CURSOR_EDGE_REPEAT] ?: defaults.textEditing.spaceCursorEdgeRepeat,
             spaceCursorWholeKeyboard = p[SPACE_CURSOR_WHOLE_KEYBOARD]
                 ?: defaults.textEditing.spaceCursorWholeKeyboard,
+            spaceSwipeUpTouchpad = p[SPACE_SWIPE_UP_TOUCHPAD]
+                ?: defaults.textEditing.spaceSwipeUpTouchpad,
             spaceCursorTopSpeed = p[SPACE_CURSOR_TOP_SPEED]
                 ?: defaults.textEditing.spaceCursorTopSpeed,
             backspaceWordStepDp = p[BACKSPACE_WORD_STEP_DP]
@@ -12402,6 +12414,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSpaceCursorWholeKeyboard(value: Boolean) =
         editPrefs { it[SPACE_CURSOR_WHOLE_KEYBOARD] = value }
+
+    suspend fun setSpaceSwipeUpTouchpad(value: Boolean) =
+        editPrefs { it[SPACE_SWIPE_UP_TOUCHPAD] = value }
 
     suspend fun setSpaceCursorTopSpeed(value: Int) =
         editPrefs { it[SPACE_CURSOR_TOP_SPEED] = value.coerceIn(2, 8) }
