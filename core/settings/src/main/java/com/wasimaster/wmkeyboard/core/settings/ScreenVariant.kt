@@ -43,6 +43,9 @@ enum class ScreenVariant(val suffix: String, @StringRes val labelRes: Int) {
      */
     val wantsLandscapePhoneSizing: Boolean get() = this == LANDSCAPE
 
+    /** Held sideways, folded or not. */
+    val isLandscape: Boolean get() = this == LANDSCAPE || this == LANDSCAPE_UNFOLDED
+
     companion object {
         /** Width in dp at or above which a device counts as unfolded. */
         const val UNFOLDED_MIN_DP = 600
@@ -208,9 +211,16 @@ fun KeyboardSettings.resolvedFor(variant: ScreenVariant): KeyboardSettings {
     // enough to honour it. Portrait on a folded phone is the one that is not.
     val splitHere = splitKeyboard &&
         (!layoutBehavior.splitOnlyOnLargeScreens || variant != ScreenVariant.PORTRAIT)
+    // Floating is remembered per orientation (#584): the field downstream reads
+    // is set to the answer for this one, so the frame never learns there are two.
+    val floatingHere = floatingFor(variant.isLandscape)
     val override = sizingOverrides[variant]
     if (override == null || override.isEmpty) {
-        return if (splitHere == splitKeyboard) this else copy(splitKeyboard = splitHere)
+        return if (splitHere == splitKeyboard && floatingHere == floatingKeyboard) {
+            this
+        } else {
+            copy(splitKeyboard = splitHere, floatingKeyboard = floatingHere)
+        }
     }
     // The scale rides on the resolved heights, so every `settings.keyHeightDp`
     // downstream is already scaled and no render code learns it exists.
@@ -239,6 +249,7 @@ fun KeyboardSettings.resolvedFor(variant: ScreenVariant): KeyboardSettings {
         },
         keyGapScale = override.keyGapScale ?: keyGapScale,
         splitKeyboard = splitHere,
+        floatingKeyboard = floatingHere,
     )
 }
 

@@ -879,6 +879,15 @@ internal fun KeyPressSettings(
                 default = SettingsDefaults.textEditing.forwardDeleteSwipe,
             ) { scope.launch { repository.setForwardDeleteSwipe(it) } }
         }
+        item {
+            ToggleSetting(
+                R.string.typing_web_backspace_key_title,
+                stringResource(R.string.typing_web_backspace_key_subtitle),
+                settings.watch { it.textEditing.webBackspaceKeyEvents },
+                info = stringResource(R.string.typing_web_backspace_key_info),
+                default = SettingsDefaults.textEditing.webBackspaceKeyEvents,
+            ) { scope.launch { repository.setWebBackspaceKeyEvents(it) } }
+        }
     }
 
     // The alternates ("more keys") get their own group rather than joining the

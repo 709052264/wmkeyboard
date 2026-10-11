@@ -241,6 +241,28 @@ object BuiltInPanelLayouts {
         )
     }
 
+    /**
+     * The handwriting panel (#568): the canvas over a row of abc / space /
+     * backspace / enter. The panel used to stack those four down a rail on the
+     * right; a bottom row gives the canvas the full width and matches the
+     * trackpad and emoji panels.
+     */
+    val HANDWRITING: PanelLayoutSpec = PanelLayoutSpec(
+        panel = PanelKind.HANDWRITING,
+        grid = LayerSpec(
+            rows = listOf(
+                listOf(field(PanelFieldKind.HANDWRITING_CANVAS, 10f)),
+                listOf(
+                    Key("ABC", action = KeyAction.Letters, width = 1.5f),
+                    Key(" ", action = KeyAction.Space, width = 5.5f),
+                    Key("⌫", action = KeyAction.Delete, width = 1.5f),
+                    Key("⏎", action = KeyAction.Enter, width = 1.5f),
+                ),
+            ),
+            rowHeights = listOf(3f, 1f),
+        ),
+    )
+
     val byKind: Map<PanelKind, PanelLayoutSpec> = mapOf(
         PanelKind.EMOJI to EMOJI,
         PanelKind.GIF to GIF,
@@ -249,6 +271,7 @@ object BuiltInPanelLayouts {
         PanelKind.TEXT_EDIT to TEXT_EDIT,
         PanelKind.TRACKPAD to TRACKPAD,
         PanelKind.NUMPAD to NUMPAD,
+        PanelKind.HANDWRITING to HANDWRITING,
     )
 
     fun default(kind: PanelKind): PanelLayoutSpec = byKind.getValue(kind)

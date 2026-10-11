@@ -735,6 +735,9 @@
 
     <string name="typing_forward_delete_swipe_title">Swipe on forward delete</string>
     <string name="typing_forward_delete_swipe_subtitle">Swipe right on the forward delete key to clear the text ahead</string>
+    <string name="typing_web_backspace_key_title">Backspace as a key press on web pages</string>
+    <string name="typing_web_backspace_key_subtitle">Lets code editors and other page editors see backspace</string>
+    <string name="typing_web_backspace_key_info">In a text box on a web page, or in an app that shows one, backspace is sent the way a physical keyboard sends it. Some page editors, like the code editor in Violentmonkey, only delete when they see that key press. Other keyboards delete the text directly, and these editors put it back. The browser then decides how much one press deletes. If you set your language to delete a whole conjunct at once, backspace keeps deleting directly. Turn this off if backspace does something unexpected on a website.</string>
     <string name="typing_forward_delete_swipe_info">Press the forward delete key and swipe right. Each step of the swipe deletes one more word, or one more character, ahead of the cursor. It is the backspace swipe pointed the other way, and it follows the same three settings above: what one step takes off, whether you see it first, and how far you drag for one step.\n\nThe forward delete key is not on the standard keyboard. Add it to a row, or to a key you press and hold, in the layout editor.</string>
 
     <!-- ==== Typing settings: enter key ==== -->

@@ -194,4 +194,26 @@ class ScreenVariantTest {
         assertEquals(0.9f, landscape.fontScale, 0.001f)
         assertEquals(KeyboardAlignment.RIGHT, landscape.keyboardAlignment)
     }
+
+    /** #584: landscape follows portrait until it has a value of its own. */
+    @Test fun landscapeFloatingFollowsPortraitUntilSet() {
+        val legacy = KeyboardSettings(floatingKeyboard = true)
+        assertTrue(legacy.floatingFor(landscape = false))
+        assertTrue(legacy.floatingFor(landscape = true))
+        val apart = KeyboardSettings(floatingKeyboard = false, floatingKeyboardLandscape = true)
+        assertFalse(apart.floatingFor(landscape = false))
+        assertTrue(apart.floatingFor(landscape = true))
+    }
+
+    /** The frame reads `floatingKeyboard` and never learns there are two. */
+    @Test fun resolvingFoldsInTheOrientationsFloating() {
+        val settings = KeyboardSettings(floatingKeyboard = false, floatingKeyboardLandscape = true)
+        assertTrue(settings.resolvedFor(ScreenVariant.LANDSCAPE).floatingKeyboard)
+        assertTrue(settings.resolvedFor(ScreenVariant.LANDSCAPE_UNFOLDED).floatingKeyboard)
+        assertFalse(settings.resolvedFor(ScreenVariant.PORTRAIT).floatingKeyboard)
+        assertSame(settings, settings.resolvedFor(ScreenVariant.PORTRAIT))
+        val docked = KeyboardSettings(floatingKeyboard = true, floatingKeyboardLandscape = false)
+        assertFalse(docked.resolvedFor(ScreenVariant.LANDSCAPE).floatingKeyboard)
+        assertTrue(docked.resolvedFor(ScreenVariant.PORTRAIT_UNFOLDED).floatingKeyboard)
+    }
 }

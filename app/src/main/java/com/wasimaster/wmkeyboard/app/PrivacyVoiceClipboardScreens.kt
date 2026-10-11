@@ -362,6 +362,27 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.voiceBar.pauseMedia,
             ) { scope.launch { repository.setVoicePauseMedia(it) } }
         }
+        item {
+            ChoiceSetting(
+                R.string.voice_mic_title,
+                subtitle = stringResource(R.string.voice_mic_subtitle),
+                info = stringResource(R.string.voice_mic_info),
+                options = listOf(
+                    com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.MIC_AUTO to
+                        stringResource(R.string.voice_mic_auto),
+                    com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.MIC_BLUETOOTH to
+                        stringResource(R.string.voice_mic_bluetooth),
+                    com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.MIC_WIRED to
+                        stringResource(R.string.voice_mic_wired),
+                    com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.MIC_USB to
+                        stringResource(R.string.voice_mic_usb),
+                    com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.MIC_PHONE to
+                        stringResource(R.string.voice_mic_phone),
+                ),
+                selected = settings.watch { it.voiceBar.mic },
+                default = SettingsDefaults.voiceBar.mic,
+            ) { scope.launch { repository.setVoiceMic(it) } }
+        }
         // Only the panel's mic reads a hold: the strip and collapsed-bar mics
         // are plain taps, and the panel is never opened in those modes.
         if (voiceUiMode == com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.MODE_PANEL) item {

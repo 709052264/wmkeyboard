@@ -162,6 +162,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mosque
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MotionPhotosOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mouse
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MusicNote
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HeadsetMic
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notifications
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.NotificationsOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Numbers
@@ -207,6 +208,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Schedule
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.School
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Science
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ScreenRotation
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DragHandle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Screenshot
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
@@ -669,6 +671,8 @@ internal object SettingsRowIcons {
         put(R.string.layout_split_spacebar_title) { Icons.Outlined.SpaceBar }
         put(R.string.layout_split_large_only_title) { Icons.Outlined.TabletAndroid }
         put(R.string.layout_floating_title) { Icons.Outlined.PictureInPicture }
+        put(R.string.layout_floating_landscape_title) { Icons.Outlined.ScreenRotation }
+        put(R.string.layout_floating_handle_title) { Icons.Outlined.DragHandle }
         put(R.string.layout_floating_width_title) { Icons.Outlined.Straighten }
         put(R.string.layout_floating_height_title) { Icons.Outlined.Height }
         put(R.string.layout_floating_reset_title) { Icons.Outlined.Restore }
@@ -1005,6 +1009,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_backspace_unit_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.typing_backspace_preview_title) { Icons.Outlined.Visibility }
         put(R.string.typing_forward_delete_swipe_title) { Icons.Outlined.KeyboardTab }
+        put(R.string.typing_web_backspace_key_title) { Icons.Outlined.Public }
         put(R.string.typing_backspace_step_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.typing_backspace_char_step_title) { Icons.Outlined.Speed }
         put(R.string.typing_shift_enter_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
@@ -1284,6 +1289,7 @@ internal object SettingsRowIcons {
         put(R.string.voice_typing_title) { Icons.Outlined.RecordVoiceOver }
         put(R.string.voice_hold_picks_title) { Icons.Outlined.TouchApp }
         put(R.string.voice_pause_media_title) { Icons.Outlined.MusicNote }
+        put(R.string.voice_mic_title) { Icons.Outlined.HeadsetMic }
         put(R.string.voice_ai_tidy_title) { Icons.Outlined.AutoAwesome }
         put(R.string.voice_continuous_title) { Icons.Outlined.MicNone }
         put(R.string.voice_silence_stop_title) { Icons.Outlined.Timer }
@@ -1532,6 +1538,7 @@ internal object SettingsRowIcons {
         put(R.string.panel_name_text_edit) { Icons.Outlined.EditNote }
         put(R.string.panel_name_trackpad) { SymbolIcons.TrackpadInput }
         put(R.string.panel_name_numpad) { Icons.Outlined.Dialpad }
+        put(R.string.panel_name_handwriting) { Icons.Outlined.Draw }
 
         // ---- Layout & size: per screen and per orientation ----
         put(SettingsR.string.core_settings_screen_variant_landscape_label) { Icons.Outlined.StayCurrentLandscape }

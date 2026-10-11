@@ -572,6 +572,21 @@ data class OneHandedSettings(
 fun KeyboardSettings.oneHandedModeFor(landscape: Boolean): OneHandedMode =
     if (landscape && oneHanded.portraitOnly) OneHandedMode.OFF else oneHandedMode
 
+/**
+ * Whether the keyboard floats on a screen held [landscape] or upright (#584).
+ * Each orientation remembers its own answer, so a panel floated sideways
+ * docks again when the phone is turned back, as Gboard does. Every reader
+ * that draws or toggles the board goes through this.
+ */
+fun KeyboardSettings.floatingFor(landscape: Boolean): Boolean =
+    if (landscape) floatingKeyboardLandscape ?: floatingKeyboard else floatingKeyboard
+
+/**
+ * Where the floating panel's handle bar sits. Bottom by default (#584): the
+ * thumb is already at the bottom of the panel, so that is where it moves it.
+ */
+enum class FloatingHandlePosition { TOP, BOTTOM }
+
 /** Where a width-reduced keyboard sits horizontally. */
 enum class KeyboardAlignment { LEFT, CENTER, RIGHT }
 
@@ -2757,7 +2772,19 @@ data class KeyboardSettings(
     val bottomPaddingDp: Int? = null,
     val splitKeyboard: Boolean = false,
     val splitGapPercent: Int = 12,
+    /**
+     * Floating in portrait. Landscape keeps its own switch,
+     * [floatingKeyboardLandscape]; read the one in force through [floatingFor].
+     */
     val floatingKeyboard: Boolean = false,
+    /**
+     * Floating in landscape (#584), or null to follow [floatingKeyboard]: the
+     * state from before the two were apart, which existing installs keep until
+     * either orientation is changed.
+     */
+    val floatingKeyboardLandscape: Boolean? = null,
+    /** Which edge of the floating panel carries the drag bar and resize grip. */
+    val floatingHandle: FloatingHandlePosition = FloatingHandlePosition.BOTTOM,
     val floatingWidthDp: Int = 320,
     /** Multiplier on key height while floating, set by the resize grip. */
     val floatingHeightScale: Float = 1f,
@@ -4875,6 +4902,14 @@ data class VoiceBarSettings(
      */
     val pauseMedia: Boolean = false,
     /**
+     * Which microphone dictation listens through (#581): [MIC_AUTO], the one
+     * Android picks, or a kind to prefer whenever one is connected —
+     * [MIC_PHONE], [MIC_WIRED], [MIC_USB] or [MIC_BLUETOOTH]. A kind that is
+     * not connected falls back to automatic. The voice panel's microphone chip
+     * cycles through what is connected and stores the pick here.
+     */
+    val mic: String = MIC_AUTO,
+    /**
      * Each dictated phrase is tidied by the AI tool's provider after it lands
      * (#499): filler words, false starts and spoken self-corrections taken out,
      * the way Gboard's "Rambler" does it on Google's servers. Off by default:
@@ -4903,6 +4938,13 @@ data class VoiceBarSettings(
         const val SNAP_LEFT = 0
         const val SNAP_CENTER = 1
         const val SNAP_RIGHT = 2
+
+        const val MIC_AUTO = "auto"
+        const val MIC_PHONE = "phone"
+        const val MIC_WIRED = "wired"
+        const val MIC_USB = "usb"
+        const val MIC_BLUETOOTH = "bluetooth"
+        val MICS = listOf(MIC_AUTO, MIC_PHONE, MIC_WIRED, MIC_USB, MIC_BLUETOOTH)
 
         /**
          * One block of speech at a time, the way voice typing has always
@@ -5301,6 +5343,18 @@ data class TextEditingSettings(
      * one has said what they want from the other.
      */
     val forwardDeleteSwipe: Boolean = true,
+    /**
+     * In a web page's text field, backspace goes out as a key press instead of
+     * a direct delete (issue #494).
+     *
+     * A code editor in a page (CodeMirror, as in Violentmonkey's script editor)
+     * listens for the key, and a delete made straight on its text is one it
+     * puts back. The browser then decides how much one press removes, so a
+     * language set to delete whole conjuncts keeps the direct delete. A switch
+     * because a page that does something odd with the key is a page that
+     * worked before.
+     */
+    val webBackspaceKeyEvents: Boolean = true,
 )
 
 /**
@@ -8212,6 +8266,8 @@ class SettingsRepository(private val context: Context) {
         private val SPLIT_KEYBOARD = booleanPreferencesKey("split_keyboard")
         private val SPLIT_GAP_PERCENT = intPreferencesKey("split_gap_percent")
         private val FLOATING_KEYBOARD = booleanPreferencesKey("floating_keyboard")
+        private val FLOATING_KEYBOARD_LANDSCAPE = booleanPreferencesKey("floating_keyboard_landscape")
+        private val FLOATING_HANDLE = stringPreferencesKey("floating_handle_position")
         private val FLOATING_WIDTH = intPreferencesKey("floating_width")
         private val FLOATING_HEIGHT_SCALE = floatPreferencesKey("floating_height_scale")
         private val FLOATING_X = floatPreferencesKey("floating_x")
@@ -8998,6 +9054,7 @@ class SettingsRepository(private val context: Context) {
         private val VOICE_HOLD_TO_TALK_MS = intPreferencesKey("voice_hold_to_talk_ms")
         private val VOICE_HOLD_PICKS_MODE = booleanPreferencesKey("voice_hold_picks_mode")
         private val VOICE_PAUSE_MEDIA = booleanPreferencesKey("voice_pause_media")
+        private val VOICE_MIC = stringPreferencesKey("voice_mic")
         private val VOICE_AI_TIDY = booleanPreferencesKey("voice_ai_tidy")
         private val VOICE_UI_RETURN_MODE = stringPreferencesKey("voice_ui_return_mode")
         private val VOICE_BAR_INLINE = booleanPreferencesKey("voice_bar_inline")
@@ -9089,6 +9146,7 @@ class SettingsRepository(private val context: Context) {
         private val BACKSPACE_CHAR_STEP_DP = intPreferencesKey("backspace_char_step_dp")
         private val DELETE_HOLD_DELETES_WORDS = booleanPreferencesKey("delete_hold_deletes_words")
         private val FORWARD_DELETE_SWIPE = booleanPreferencesKey("forward_delete_swipe")
+        private val WEB_BACKSPACE_KEY_EVENTS = booleanPreferencesKey("web_backspace_key_events")
         private val PUNCTUATION_CHIPS = stringPreferencesKey("punctuation_chips")
         private val SUGGESTION_SLOT_COUNT = intPreferencesKey("suggestion_slot_count")
         private val SUGGESTION_SCROLLABLE = booleanPreferencesKey("suggestion_scrollable")
@@ -9588,6 +9646,10 @@ class SettingsRepository(private val context: Context) {
             splitKeyboard = p[SPLIT_KEYBOARD] ?: defaults.splitKeyboard,
             splitGapPercent = p[SPLIT_GAP_PERCENT] ?: defaults.splitGapPercent,
             floatingKeyboard = p[FLOATING_KEYBOARD] ?: defaults.floatingKeyboard,
+            floatingKeyboardLandscape = p[FLOATING_KEYBOARD_LANDSCAPE] ?: defaults.floatingKeyboardLandscape,
+            floatingHandle = p[FLOATING_HANDLE]
+                ?.let { runCatching { FloatingHandlePosition.valueOf(it) }.getOrNull() }
+                ?: defaults.floatingHandle,
             floatingWidthDp = p[FLOATING_WIDTH] ?: defaults.floatingWidthDp,
             floatingHeightScale = p[FLOATING_HEIGHT_SCALE] ?: defaults.floatingHeightScale,
             floatingXFraction = p[FLOATING_X] ?: defaults.floatingXFraction,
@@ -10870,6 +10932,7 @@ class SettingsRepository(private val context: Context) {
             silenceStopMs = p[VOICE_SILENCE_STOP_MS] ?: defaults.voiceBar.silenceStopMs,
             holdPicksTypingMode = p[VOICE_HOLD_PICKS_MODE] ?: defaults.voiceBar.holdPicksTypingMode,
             pauseMedia = p[VOICE_PAUSE_MEDIA] ?: defaults.voiceBar.pauseMedia,
+            mic = p[VOICE_MIC]?.takeIf { it in VoiceBarSettings.MICS } ?: defaults.voiceBar.mic,
             aiTidy = p[VOICE_AI_TIDY] ?: defaults.voiceBar.aiTidy,
             returnMode = p[VOICE_UI_RETURN_MODE] ?: defaults.voiceBar.returnMode,
             inline = p[VOICE_BAR_INLINE] ?: defaults.voiceBar.inline,
@@ -11021,6 +11084,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.textEditing.deleteHoldDeletesWords,
             forwardDeleteSwipe = p[FORWARD_DELETE_SWIPE]
                 ?: defaults.textEditing.forwardDeleteSwipe,
+            webBackspaceKeyEvents = p[WEB_BACKSPACE_KEY_EVENTS]
+                ?: defaults.textEditing.webBackspaceKeyEvents,
         )
 
     private fun readTrackpad(p: Preferences, defaults: KeyboardSettings) =
@@ -11901,6 +11966,11 @@ class SettingsRepository(private val context: Context) {
     suspend fun setVoicePauseMedia(value: Boolean) =
         editPrefs { it[VOICE_PAUSE_MEDIA] = value }
 
+    suspend fun setVoiceMic(value: String) {
+        if (value !in VoiceBarSettings.MICS) return
+        editPrefs { it[VOICE_MIC] = value }
+    }
+
     suspend fun setVoiceAiTidy(value: Boolean) =
         editPrefs { it[VOICE_AI_TIDY] = value }
 
@@ -12127,6 +12197,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setForwardDeleteSwipe(value: Boolean) =
         editPrefs { it[FORWARD_DELETE_SWIPE] = value }
+
+    suspend fun setWebBackspaceKeyEvents(value: Boolean) =
+        editPrefs { it[WEB_BACKSPACE_KEY_EVENTS] = value }
 
     suspend fun setBackspaceCharStepDp(value: Int) =
         editPrefs { it[BACKSPACE_CHAR_STEP_DP] = value.coerceIn(8, 48) }
@@ -13218,7 +13291,9 @@ class SettingsRepository(private val context: Context) {
         when (kind) {
             PanelKind.TEXT_EDIT -> prefs.remove(TEXT_EDIT_LAYOUT)
             PanelKind.CLIPBOARD -> prefs.remove(CLIPBOARD_BOTTOM_ROW)
-            PanelKind.EMOJI, PanelKind.GIF, PanelKind.STICKER, PanelKind.TRACKPAD, PanelKind.NUMPAD -> Unit
+            PanelKind.EMOJI, PanelKind.GIF, PanelKind.STICKER, PanelKind.TRACKPAD, PanelKind.NUMPAD,
+            PanelKind.HANDWRITING,
+            -> Unit
         }
     }
 
@@ -13234,8 +13309,26 @@ class SettingsRepository(private val context: Context) {
     suspend fun setSplitGapPercent(value: Int) =
         editPrefs { it[SPLIT_GAP_PERCENT] = value.coerceIn(5, 40) }
 
-    suspend fun setFloatingKeyboard(value: Boolean) =
-        editPrefs { it[FLOATING_KEYBOARD] = value }
+    /**
+     * Floating on or off for one orientation (#584). Landscape follows
+     * portrait until it has a value of its own, so the first portrait write
+     * pins landscape at what it was showing: docking upright must not dock
+     * sideways too through the fallback.
+     */
+    suspend fun setFloatingKeyboard(landscape: Boolean, value: Boolean) =
+        editPrefs {
+            if (landscape) {
+                it[FLOATING_KEYBOARD_LANDSCAPE] = value
+            } else {
+                if (it[FLOATING_KEYBOARD_LANDSCAPE] == null) {
+                    it[FLOATING_KEYBOARD_LANDSCAPE] = it[FLOATING_KEYBOARD] ?: SettingsDefaults.floatingKeyboard
+                }
+                it[FLOATING_KEYBOARD] = value
+            }
+        }
+
+    suspend fun setFloatingHandle(value: FloatingHandlePosition) =
+        editPrefs { it[FLOATING_HANDLE] = value.name }
 
     suspend fun setPersistentKeyboard(value: Boolean) =
         editPrefs { it[PERSISTENT_KEYBOARD] = value }

@@ -743,6 +743,7 @@ val PanelMode.layoutKind: PanelKind?
         PanelMode.TEXT_EDIT -> PanelKind.TEXT_EDIT
         PanelMode.TRACKPAD -> PanelKind.TRACKPAD
         PanelMode.NUMPAD -> PanelKind.NUMPAD
+        PanelMode.HANDWRITING -> PanelKind.HANDWRITING
         else -> null
     }
 
@@ -1065,6 +1066,28 @@ data class VoiceUi(
      * error has somewhere to be said.
      */
     val field: String? = null,
+    /**
+     * The kinds of microphone plugged in now (#581), as
+     * [com.wasimaster.wmkeyboard.core.voice.VoiceMics] names them, for the
+     * panel's microphone chip. Kept current by the service's device watcher.
+     */
+    val mics: List<String> = emptyList(),
+    /**
+     * The microphone the last session listened through (#581): its
+     * [com.wasimaster.wmkeyboard.core.voice.VoiceMics] kind, never auto, and
+     * the name the device gives (the headset's, or the phone model). Empty
+     * until a session has started.
+     */
+    val micKind: String = "",
+    val micName: String = "",
+    /**
+     * When the surfaces were last asked to say which microphone is in use, in
+     * `SystemClock.uptimeMillis`: when it changes, when the switch is
+     * pressed, and on the first session after the keyboard comes up, not on
+     * every chained phrase. A time rather than a count, so a surface that
+     * mounts a frame after the session started still shows the rest of it.
+     */
+    val micNoticeAt: Long = 0L,
 )
 
 /** The session records a whole clip and transcribes it after the stop tap. */
@@ -1194,6 +1217,9 @@ sealed interface VoiceBarAction {
      * dictation listens for, in order, or none to follow the keyboard.
      */
     data class PickLanguages(val ids: List<String>) : VoiceBarAction
+
+    /** The voice panel's microphone chip (#581): listen through the next microphone plugged in. */
+    data object CycleMic : VoiceBarAction
 }
 
 /**

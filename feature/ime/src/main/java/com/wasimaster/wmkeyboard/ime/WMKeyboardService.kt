@@ -15,6 +15,7 @@ import android.content.IntentFilter
 import android.content.res.Configuration
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
+import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -334,6 +335,7 @@ import com.wasimaster.wmkeyboard.core.settings.GLIDE_SHAPES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SANDBOX_FILE
 import com.wasimaster.wmkeyboard.core.settings.GestureSettings
 import com.wasimaster.wmkeyboard.core.settings.glideTuning
+import com.wasimaster.wmkeyboard.core.settings.floatingFor
 import com.wasimaster.wmkeyboard.core.settings.GlideCommitColor
 import com.wasimaster.wmkeyboard.core.settings.GlideCommitColorScope
 import com.wasimaster.wmkeyboard.core.settings.GlideLookAhead
@@ -534,6 +536,7 @@ import com.wasimaster.wmkeyboard.core.voice.MicBlockWatcher
 import com.wasimaster.wmkeyboard.core.voice.VoiceBias
 import com.wasimaster.wmkeyboard.core.voice.VoiceBiasRequest
 import com.wasimaster.wmkeyboard.core.voice.VoiceInputEngine
+import com.wasimaster.wmkeyboard.core.voice.VoiceMics
 import com.wasimaster.wmkeyboard.core.voice.VoiceClipGate
 import com.wasimaster.wmkeyboard.core.voice.VoicePunctuation
 import com.wasimaster.wmkeyboard.core.voice.VoiceCasing
@@ -2589,6 +2592,22 @@ open class WMKeyboardService : InputMethodService() {
     private var voiceBiasJob: Job? = null
     /** Ends a session Android is feeding silence (Quick Settings mic tile, #193). */
     private val micBlockWatcher = MicBlockWatcher(this)
+
+    /** The Bluetooth voice link a dictation through a headset holds (#581). */
+    private val voiceMicRoute by lazy { VoiceMics.Route(this) }
+
+    /** The microphone last announced on the voice surfaces, as "kind|name"; null shows the next one. */
+    private var lastMicNotice: String? = null
+
+    /** The chip was pressed: the next session says its microphone even if it is the same one. */
+    private var forceMicNotice = false
+
+    /** Keeps [VoiceUi.mics] in step with what is plugged in, for the panel's microphone chip. */
+    private val voiceMicWatcher by lazy {
+        VoiceMics.Watcher(this) { kinds ->
+            _uiState.update { if (it.voice.mics == kinds) it else it.copy(voice = it.voice.copy(mics = kinds)) }
+        }
+    }
     /**
      * The model and language [whisperRecorder] was started against. Recording
      * can run for up to 30 seconds, during which the user can switch the
@@ -3232,6 +3251,22 @@ open class WMKeyboardService : InputMethodService() {
                     holdMediaFocus(listening)
                 }
         }
+        // A headset's voice link is what a call uses, and music on the headset
+        // drops to call quality while it is up (#581). [startVoice] takes it;
+        // it goes back once the microphone has been shut for the same moment
+        // the audio focus waits, so a continuous session keeps it between
+        // phrases instead of reconnecting the headset for each one.
+        serviceScope.launch {
+            _uiState.map { voiceActive() }
+                .distinctUntilChanged()
+                .collectLatest { active ->
+                    if (!active) {
+                        delay(VOICE_MEDIA_RESUME_MS)
+                        voiceMicRoute.release()
+                    }
+                }
+        }
+        voiceMicWatcher.start()
         // Marks the network activity log's rows made while incognito is on,
         // whether the switch or the field turned it on.
         serviceScope.launch {
@@ -3617,7 +3652,7 @@ open class WMKeyboardService : InputMethodService() {
                     userScreenshotsEnabled = settings.clipboard.userScreenshots
                     updateScreenshotObserver(settings.clipboard.userScreenshots)
                 }
-                if (!settings.floatingKeyboard) floatingPanelBounds = null
+                if (!settings.floatingFor(landscapeNow())) floatingPanelBounds = null
                 if (settings.suggestionSources.contacts != contactsEnabled) {
                     contactsEnabled = settings.suggestionSources.contacts
                     if (settings.suggestionSources.contacts) {
@@ -4918,11 +4953,23 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * Floats or docks the keyboard in the orientation it is held in: each
+     * remembers its own (#584), so the toolbar tool and the dock button never
+     * reach the other one.
+     */
     fun onFloatingChange(enabled: Boolean) {
         vibrate()
         if (!enabled) floatingPanelBounds = null
-        serviceScope.launch { settingsRepository.setFloatingKeyboard(enabled) }
+        val landscape = landscapeNow()
+        serviceScope.launch { settingsRepository.setFloatingKeyboard(landscape, enabled) }
     }
+
+    private fun landscapeNow(): Boolean =
+        resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    /** The keyboard floats in the orientation it is held in right now. */
+    private fun floatingNow(): Boolean = _uiState.value.settings.floatingFor(landscapeNow())
 
     /**
      * The keep-on-screen tool; the Layout screen's row writes the same
@@ -5024,7 +5071,7 @@ open class WMKeyboardService : InputMethodService() {
             }
             return
         }
-        if (!_uiState.value.settings.floatingKeyboard) {
+        if (!floatingNow()) {
             // Docked: the frame's held bands are transparent window over the
             // app, not keyboard. Both insets, so the app resizes to the board
             // and a tap in a band reaches it — the touchable inset follows
@@ -5065,7 +5112,7 @@ open class WMKeyboardService : InputMethodService() {
      * this before that flow has caught up with an unfold.
      */
     override fun onEvaluateFullscreenMode(): Boolean =
-        if (_uiState.value.settings.floatingKeyboard || voiceBarShowing() ||
+        if (floatingNow() || voiceBarShowing() ||
             handwritingFullScreen(_uiState.value) ||
             (pinnedNow() && isNullField()) ||
             DeviceForm.of(resources.configuration.smallestScreenWidthDp).isTablet
@@ -5081,6 +5128,17 @@ open class WMKeyboardService : InputMethodService() {
      * it. Where a pinned keyboard (issue #58) sits most of the time.
      */
     private fun isNullField(): Boolean = currentInputEditorInfo.isNullClass()
+
+    /**
+     * A text field in a web page, Chrome's or a WebView's: Chromium declares
+     * every one of them, textarea and contenteditable included, as the web
+     * edit-text variation.
+     */
+    private fun isWebEditField(): Boolean {
+        val inputType = currentInputEditorInfo?.inputType ?: return false
+        return inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_CLASS_TEXT &&
+            inputType and InputType.TYPE_MASK_VARIATION == InputType.TYPE_TEXT_VARIATION_WEB_EDIT_TEXT
+    }
 
     /** A physical keyboard is attached and not folded away. */
     private fun hasHardwareKeyboard(): Boolean {
@@ -5296,6 +5354,12 @@ open class WMKeyboardService : InputMethodService() {
         // wrong variant. Drop the session; nothing was persisted.
         if (_uiState.value.resize) {
             _uiState.update { it.copy(resize = false) }
+        }
+        // Floating is per orientation (#584): turning into a docked one leaves
+        // the old panel's rectangle as the touchable region until it is dropped.
+        if (!floatingNow() && floatingPanelBounds != null) {
+            floatingPanelBounds = null
+            window?.window?.decorView?.requestLayout()
         }
     }
 
@@ -6480,6 +6544,8 @@ open class WMKeyboardService : InputMethodService() {
         rememberTypedNumber()
         super.onFinishInputView(finishingInput)
         keyboardVisible = false
+        // The next keyboard says which microphone its first dictation uses.
+        lastMicNotice = null
         // The drag that put it up cannot finish with the keyboard gone.
         caretMagnifier.stop()
         // The ring belongs to the board that is going away: a new session gets
@@ -6669,6 +6735,8 @@ open class WMKeyboardService : InputMethodService() {
         micBlockWatcher.stop()
         voiceEngine.cancel()
         whisperRecorder?.let { rec -> whisperRecorder = null; runCatching { rec.stop() } }
+        voiceMicRoute.release()
+        voiceMicWatcher.stop()
         mediaController.stop()
         hwRecognizer.close()
         releaseTranslateEngine()
@@ -10293,7 +10361,18 @@ open class WMKeyboardService : InputMethodService() {
             if (expectedSelStart >= 0) {
                 noteDeletedForLearning(expectedSelStart - deleteLength, expectedSelStart)
             }
-            ic.deleteSurroundingText(deleteLength, 0)
+            // A code editor in a page (CodeMirror, issue #494) acts on the key
+            // and puts back a delete made straight on its text. The browser
+            // then picks how much goes, which is one grapheme, the same as
+            // deleteLength unless this language deletes whole conjuncts; those
+            // keep the direct delete so the setting still means what it says.
+            if (state.settings.textEditing.webBackspaceKeyEvents && isWebEditField() &&
+                state.language.id !in state.settings.conjunctBackspaceLanguages
+            ) {
+                sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL)
+            } else {
+                ic.deleteSurroundingText(deleteLength, 0)
+            }
             // Backspacing through committed text is the one way the word
             // behind the cursor changes without passing through learn(), so
             // the strip used to keep predicting from a word the user had
@@ -12084,7 +12163,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * Whether the panel on screen is a panel layout whose grid asked to stay
-     * open across a change of field (issue #60). Only the four panels that
+     * open across a change of field (issue #60). Only the panels that
      * *are* layouts can; every other panel is chrome the field owns.
      */
     private fun panelLayoutPersists(state: KeyboardUiState): Boolean {
@@ -21015,7 +21094,7 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
             ToolbarTool.SPLIT -> onToggleSplit()
-            ToolbarTool.FLOATING -> onFloatingChange(!settings.floatingKeyboard)
+            ToolbarTool.FLOATING -> onFloatingChange(!settings.floatingFor(landscapeNow()))
             ToolbarTool.PERSISTENT -> onPersistentChange(!settings.persistentKeyboard)
             ToolbarTool.RESIZE -> onResizeToggle()
             ToolbarTool.FLASHLIGHT -> onFlashlightToggle()
@@ -22199,10 +22278,16 @@ open class WMKeyboardService : InputMethodService() {
                 ),
             )
         }
+        // The microphone picked on the panel or in settings (#581), when it is
+        // plugged in. Taken before either engine opens the microphone, so the
+        // first words already come through the headset.
+        val mic = voiceMicKind()
+        voiceMicRoute.hold(mic)
         if (whisperModel != null || server) {
-            startWhisperCapture(whisperModel, generation)
+            startWhisperCapture(whisperModel, generation, mic)
             return
         }
+        noteVoiceMic(VoiceMics.deviceFor(this, mic) ?: VoiceMics.autoDevice(this))
         if (!modelKnown) refreshVoiceModelState(tag)
         voiceEngine.start(
             tag,
@@ -22515,7 +22600,7 @@ open class WMKeyboardService : InputMethodService() {
      * A null [model] records the clip for the transcription server instead:
      * the capture is the same, only [finishWhisper] sends it somewhere else.
      */
-    private fun startWhisperCapture(model: WhisperModel?, generation: Int) {
+    private fun startWhisperCapture(model: WhisperModel?, generation: Int, mic: String) {
         val languages = voiceLanguageIds()
         val languageId = languages.first()
         whisperCapture = model?.let { it to languageId }
@@ -22545,6 +22630,7 @@ open class WMKeyboardService : InputMethodService() {
             // session, which is the hands-free stop the setting is for.
             silenceStopMs = _uiState.value.settings.voiceBar.silenceStopMs,
             onSilence = { finishWhisper(userStopped = false) },
+            preferredDevice = VoiceMics.deviceFor(this, mic),
         )
         if (!recorder.start()) {
             _uiState.update {
@@ -22558,6 +22644,7 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         whisperRecorder = recorder
+        noteVoiceMic(recorder.routedDevice ?: VoiceMics.deviceFor(this, mic) ?: VoiceMics.autoDevice(this))
         // A blocked mic records zeros, and Whisper turns a silent clip into
         // confident filler text, so catch it before anything is transcribed.
         micBlockWatcher.start(recorder.audioSessionId) { onMicBlocked(generation) }
@@ -23114,8 +23201,78 @@ open class WMKeyboardService : InputMethodService() {
             VoiceBarAction.CloseStrip -> closeVoiceStrip()
             is VoiceBarAction.Bounds -> onVoiceBarBounds(action)
             is VoiceBarAction.PickLanguages -> onVoiceLanguagePick(action.ids)
+            VoiceBarAction.CycleMic -> cycleVoiceMic()
         }
     }
+
+    /**
+     * The microphone this session listens through (#581): the stored pick
+     * while one of its kind is plugged in, else automatic. A headset that
+     * dropped out does not leave dictation pointed at nothing.
+     */
+    private fun voiceMicKind(): String {
+        val picked = _uiState.value.settings.voiceBar.mic
+        return if (picked != VoiceMics.AUTO && picked in VoiceMics.available(this)) picked else VoiceMics.AUTO
+    }
+
+    /**
+     * The voice panel's microphone chip (#581): the next of the microphones
+     * plugged in, stored as the pick so it holds for every session after this
+     * one. Mirrored into the state ahead of the write, as the typing mode is,
+     * so a session restarted for it already uses it. A microphone that is
+     * listening restarts on the new one; a phrase being transcribed was
+     * already heard and finishes as it is.
+     */
+    private fun cycleVoiceMic() {
+        val state = _uiState.value
+        val next = VoiceMics.next(state.settings.voiceBar.mic, VoiceMics.choices(state.voice.mics, voiceOwnCapture()))
+        _uiState.update {
+            it.copy(settings = it.settings.copy(voiceBar = it.settings.voiceBar.copy(mic = next)))
+        }
+        serviceScope.launch { settingsRepository.setVoiceMic(next) }
+        forceMicNotice = true
+        if (state.voice.status == VoiceStatus.LISTENING) {
+            voiceSilentRetries = 0
+            startVoice()
+        } else {
+            // Nothing is recording, so say what the next session will use.
+            noteVoiceMic(VoiceMics.deviceFor(this, voiceMicKind()) ?: VoiceMics.autoDevice(this))
+        }
+    }
+
+    /**
+     * Publishes the microphone a session listens through, and asks the
+     * surfaces to say so ("Using Bluetooth mic (X7)") when it is news: a
+     * different microphone, a press of the chip, or the first session since
+     * the keyboard came up. Continuous dictation restarts for every phrase,
+     * and saying the same thing each time would be noise.
+     */
+    private fun noteVoiceMic(device: AudioDeviceInfo?) {
+        val kind = device?.let(VoiceMics::kindOf).orEmpty()
+        val name = device?.productName?.toString().orEmpty()
+        val key = "$kind|$name"
+        val show = forceMicNotice || key != lastMicNotice
+        forceMicNotice = false
+        lastMicNotice = key
+        _uiState.update {
+            it.copy(
+                voice = it.voice.copy(
+                    micKind = kind,
+                    micName = name,
+                    micNoticeAt = if (show) SystemClock.uptimeMillis() else it.voice.micNoticeAt,
+                ),
+            )
+        }
+    }
+
+    /**
+     * Dictation records with the keyboard's own microphone capture (Whisper
+     * or the server), which can be pointed at any microphone. The system
+     * recognizer records in its own process and can only be moved to a
+     * Bluetooth headset.
+     */
+    private fun voiceOwnCapture(): Boolean =
+        _uiState.value.voice.clipBased || _uiState.value.settings.whisper.engine != "system"
 
     private fun onVoiceSurfaceKey(key: Key) {
         if (_uiState.value.voice.partial.isNotEmpty()) {
@@ -24409,7 +24566,7 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val settings = _uiState.value.settings
-        if (settings.floatingKeyboard) {
+        if (floatingNow()) {
             // Floating has its own drag-to-resize grip; the inline handles are
             // laid out against the docked frame and mean nothing here.
             Toast.makeText(

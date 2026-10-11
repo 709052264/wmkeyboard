@@ -574,6 +574,7 @@ private fun SearchStrings.keyPressRows(): List<SettingsSearchEntry> {
         row(R.string.typing_backspace_step_title, R.string.typing_backspace_step_subtitle),
         row(R.string.typing_backspace_char_step_title, R.string.typing_backspace_char_step_subtitle),
         row(R.string.typing_forward_delete_swipe_title, R.string.typing_forward_delete_swipe_subtitle),
+        row(R.string.typing_web_backspace_key_title, R.string.typing_web_backspace_key_subtitle),
         row(R.string.keypress_alternates_size_title, R.string.keypress_alternates_size_subtitle),
         row(
             R.string.keypress_alternates_padding_title,
@@ -873,6 +874,8 @@ private fun SearchStrings.layoutOnehandedRows(): List<SettingsSearchEntry> {
         row(R.string.layout_split_gap_title, R.string.layout_split_gap_subtitle),
         row(R.string.layout_split_spacebar_title, R.string.layout_split_spacebar_subtitle),
         row(R.string.layout_floating_title, R.string.layout_floating_subtitle, weight = EntryWeight.PRIMARY),
+        row(R.string.layout_floating_landscape_title, R.string.layout_floating_landscape_subtitle),
+        row(R.string.layout_floating_handle_title, R.string.layout_floating_handle_subtitle),
         row(R.string.layout_floating_width_title, R.string.layout_floating_width_subtitle),
         row(R.string.layout_persistent_title, R.string.layout_persistent_subtitle, weight = EntryWeight.PRIMARY),
     )
@@ -993,6 +996,7 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
         row(R.string.voice_typing_title, R.string.voice_typing_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.voice_hold_picks_title, R.string.voice_hold_picks_subtitle),
         row(R.string.voice_pause_media_title, R.string.voice_pause_media_subtitle),
+        row(R.string.voice_mic_title, R.string.voice_mic_subtitle),
         row(R.string.voice_hold_title, R.string.voice_hold_subtitle),
         row(R.string.voice_continuous_title, R.string.voice_continuous_subtitle),
         row(R.string.voice_silence_stop_title, R.string.voice_silence_stop_subtitle),
@@ -1379,6 +1383,7 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
         R.string.tooldetail_handwriting_auto_space_subtitle,
     ),
     toolEntry(ToolbarTool.HANDWRITING, R.string.tooldetail_handwriting_pause_title, R.string.tooldetail_handwriting_pause_subtitle),
+    toolEntry(ToolbarTool.HANDWRITING, R.string.panel_layout_row_title, R.string.panel_layout_row_subtitle),
     toolEntry(
         ToolbarTool.HANDWRITING,
         R.string.tooldetail_handwriting_full_screen_title,
