@@ -76,6 +76,8 @@
     <string name="layout_editor_foreign_from_keyscafe">The app read this file as a Samsung Keyboard layout made in Keys Cafe. The whole arrangement comes across as it was laid out, the bottom row included. Its row of numbers becomes this layout\'s number row.</string>
     <!-- Multiling O Keyboard is the name of another keyboard app; leave it as it is. -->
     <string name="layout_editor_foreign_from_multiling">The app read this as a Multiling O Keyboard layout. Its symbol pages and its AltGr page come across with it, and a key that types one thing on a tap and others on a swipe keeps its swipes.</string>
+    <!-- Unexpected Keyboard and CleverKeys are the names of other keyboard apps; leave them as they are. -->
+    <string name="layout_editor_foreign_from_unexpected">The app read this as an Unexpected Keyboard or CleverKeys layout. The swipes to the corners of each key come across as swipes, and you can also hold the key to get them. The app adds its own bottom row unless the layout has its own.</string>
     <!-- The language a converted layout types in. The file does not say, so the
          app makes a guess from the letters on the keys. -->
     <string name="layout_editor_foreign_language_title">Language</string>

@@ -77,6 +77,7 @@ import com.wasimaster.wmkeyboard.core.layout.FutoLayouts
 import com.wasimaster.wmkeyboard.core.layout.ForeignSource
 import com.wasimaster.wmkeyboard.core.layout.KeysCafeLayouts
 import com.wasimaster.wmkeyboard.core.layout.MultilingLayouts
+import com.wasimaster.wmkeyboard.core.layout.UnexpectedLayouts
 import com.wasimaster.wmkeyboard.core.layout.ImportedLayout
 import com.wasimaster.wmkeyboard.core.layout.LayoutFile
 import com.wasimaster.wmkeyboard.core.layout.LayoutMessage
@@ -288,6 +289,9 @@ private val FOREIGN_LAYOUT_MIME_TYPES = arrayOf(
     "application/yaml",
     "text/yaml",
     "text/x-yaml",
+    // Unexpected Keyboard and CleverKeys layouts are XML.
+    "text/xml",
+    "application/xml",
 )
 
 /** Largest foreign layout worth reading. The whole file is decoded as one string. */
@@ -575,6 +579,10 @@ internal fun KeyLayoutsScreen(
                         // The sniff can pass a HeliBoard text layout of plain
                         // letters by accident, so a refusal falls through.
                         val single = KeysCafeLayouts.takeIf { it.looksLikeKcf(text) }?.convert(text, name) ?: when {
+                            // Unexpected Keyboard and CleverKeys write XML,
+                            // which none of the readers below would take.
+                            UnexpectedLayouts.looksLikeUnexpected(text) ->
+                                UnexpectedLayouts.convert(text, name)
                             KeymanImport.looksLikeTouchLayout(text) ->
                                 KeymanImport.convert(text, name)
                             // FUTO before the JSON reader for the same reason:
@@ -1039,6 +1047,7 @@ internal fun KeyLayoutsScreen(
                                     R.string.layout_editor_foreign_from_keyman
                                 ForeignSource.KEYS_CAFE -> R.string.layout_editor_foreign_from_keyscafe
                                 ForeignSource.MULTILING -> R.string.layout_editor_foreign_from_multiling
+                                ForeignSource.UNEXPECTED -> R.string.layout_editor_foreign_from_unexpected
                             },
                         ),
                     )

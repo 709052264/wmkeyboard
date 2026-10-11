@@ -82,6 +82,13 @@ enum class ForeignSource {
      * keys, so its symbols and AltGr pages come across too.
      */
     MULTILING,
+
+    /**
+     * An Unexpected Keyboard layout, the XML that CleverKeys reads and shares
+     * too. Read by [UnexpectedLayouts]. Its keys' corner swipes come across as
+     * this keyboard's flick arms.
+     */
+    UNEXPECTED,
 }
 
 /** A foreign layout after conversion, with everything that was lost on the way. */

@@ -93,6 +93,7 @@ internal fun ImportFilePreview(state: WMFileTypes.Opened, uri: Uri) {
         is WMFileTypes.Opened.FutoLayout -> LayoutFilePreview(state.converted.layout)
 
         is WMFileTypes.Opened.KeysCafeLayout -> LayoutFilePreview(state.converted.layout)
+        is WMFileTypes.Opened.UnexpectedLayout -> LayoutFilePreview(state.converted.layout)
 
         // The first layout, or the theme when the text holds no layout: a
         // settings export's dialog already says how many of each it holds.

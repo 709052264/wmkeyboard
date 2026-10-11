@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.settings.foreign
 import com.wasimaster.wmkeyboard.core.layout.ConvertedLayout
 import com.wasimaster.wmkeyboard.core.layout.ForeignLayouts
 import com.wasimaster.wmkeyboard.core.layout.FutoLayouts
+import com.wasimaster.wmkeyboard.core.layout.UnexpectedLayouts
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.theme.FlexResult
@@ -193,6 +194,7 @@ object ForeignBackups {
         val prefs = ForeignPrefs.cleverKeys(text) ?: return null
         return ForeignBackup(
             keyboard = ForeignKeyboard.CLEVERKEYS,
+            layouts = cleverKeysLayouts(text),
             settings = ForeignSettingsMap.map(ForeignKeyboard.CLEVERKEYS, prefs),
         ).takeUnless { it.isEmpty }
     }
@@ -613,15 +615,45 @@ object ForeignBackups {
     private fun cleverKeysArchive(archive: Archive): ForeignBackup? {
         val manifest = archive.text(CLEVER_MANIFEST) ?: return null
         if (!manifest.contains("cleverkeys")) return null
-        val prefs = archive.text(CLEVER_CONFIG)?.let(ForeignPrefs::cleverKeys) ?: return null
+        val config = archive.text(CLEVER_CONFIG) ?: return null
+        val prefs = ForeignPrefs.cleverKeys(config) ?: return null
         val left = buildList {
             leftCount(archive.names, LeftBehind.Kind.CLIPBOARD) { it.startsWith("clipboard") }?.let(this::add)
         }
         return ForeignBackup(
             keyboard = ForeignKeyboard.CLEVERKEYS,
+            layouts = cleverKeysLayouts(config),
             settings = ForeignSettingsMap.map(ForeignKeyboard.CLEVERKEYS, prefs),
             leftBehind = left,
         )
+    }
+
+    /**
+     * The custom layouts in a CleverKeys settings export. They sit in the
+     * `layouts` preference, a list whose custom entries are
+     * `{"kind":"custom","xml":"<keyboard …>","language":"fa"}`: an Unexpected
+     * Keyboard layout, with the language the user bound it to, if any. The
+     * export writes the list as JSON; an older one wrote it as a string of
+     * JSON, and both are read. The built-in layouts in the same list name
+     * CleverKeys' own grids and are not layouts to bring over.
+     */
+    private fun cleverKeysLayouts(config: String): List<ForeignLayout> {
+        val root = runCatching { json.parseToJsonElement(config) }.getOrNull() as? JsonObject ?: return emptyList()
+        val list = when (val stored = (root["preferences"] as? JsonObject)?.get(CLEVER_LAYOUTS)) {
+            is JsonArray -> stored
+            is JsonPrimitive -> stored.contentOrNull
+                ?.let { runCatching { json.parseToJsonElement(it) }.getOrNull() as? JsonArray }
+            else -> null
+        } ?: return emptyList()
+        return list.mapIndexedNotNull { index, entry ->
+            val obj = entry as? JsonObject ?: return@mapIndexedNotNull null
+            if ((obj["kind"] as? JsonPrimitive)?.contentOrNull != "custom") return@mapIndexedNotNull null
+            val xml = (obj["xml"] as? JsonPrimitive)?.contentOrNull ?: return@mapIndexedNotNull null
+            val bound = (obj["language"] as? JsonPrimitive)?.contentOrNull
+            val converted = UnexpectedLayouts.convert(xml, "CleverKeys ${index + 1}", bound)
+                ?: return@mapIndexedNotNull null
+            ForeignLayout("custom$index", converted, converted.guessedLangId)
+        }
     }
 
     // ---- shared ----
@@ -725,6 +757,7 @@ object ForeignBackups {
 
     private const val CLEVER_MANIFEST = "manifest.json"
     private const val CLEVER_CONFIG = "config.json"
+    private const val CLEVER_LAYOUTS = "layouts"
 
     private val WANTED_NAMES = setOf(
         HELI_PREFS, HELI_PROTECTED, LEAN_FLOATING,

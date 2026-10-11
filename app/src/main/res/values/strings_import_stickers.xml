@@ -51,6 +51,8 @@
     </plurals>
     <string name="import_multiling_theme_done">The app saved the theme. Open Themes to use it.</string>
     <string name="import_keyscafe_body">This is a Samsung Keyboard layout made in Keys Cafe. The app adds it as a layout of yours, laid out as it was there, bottom row included; the symbol keys stay the ones you have. The layout stays off. To type with it, turn it on in Languages.</string>
+    <!-- Unexpected Keyboard and CleverKeys are the names of other keyboard apps; leave them as they are. -->
+    <string name="import_unexpected_body">This is an Unexpected Keyboard or CleverKeys layout. The app adds it as a layout of yours. The swipes to the corners of each key stay swipes; the symbol keys stay the ones you have. The layout stays off. To type with it, turn it on in Languages.</string>
 
     <!-- ==== Backup files. ==== -->
 

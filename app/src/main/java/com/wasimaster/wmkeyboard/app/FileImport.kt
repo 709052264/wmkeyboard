@@ -63,6 +63,7 @@ import com.wasimaster.wmkeyboard.core.layout.ImportedLayout
 import com.wasimaster.wmkeyboard.core.layout.KeysCafeLayouts
 import com.wasimaster.wmkeyboard.core.layout.LayoutFile
 import com.wasimaster.wmkeyboard.core.layout.MultilingLayouts
+import com.wasimaster.wmkeyboard.core.layout.UnexpectedLayouts
 import com.wasimaster.wmkeyboard.core.plugins.PluginFile
 import com.wasimaster.wmkeyboard.core.plugins.PluginImportResult
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifestResult
@@ -222,6 +223,13 @@ object WMFileTypes {
          * settle, and the body has to say that this one keeps its whole frame.
          */
         data class KeysCafeLayout(val converted: ConvertedLayout) : Opened
+
+        /**
+         * An Unexpected Keyboard or CleverKeys layout, already converted. Its
+         * own case for the reason [FutoLayout] is: the language is a guess to
+         * settle, and the body says the corner swipes came across.
+         */
+        data class UnexpectedLayout(val converted: ConvertedLayout) : Opened
 
         /**
          * Text from Multiling O Keyboard, already converted: one layout, or a
@@ -475,6 +483,13 @@ object WMFileTypes {
             val layouts = MultilingLayouts.convertAll(text, name)
             val theme = MultilingTheme.read(text) as? MultilingThemeResult.Converted
             if (layouts.isNotEmpty() || theme != null) return Opened.MultilingFile(layouts, theme)
+        }
+
+        // An Unexpected Keyboard or CleverKeys layout: XML with a `<keyboard>`
+        // and its `<key>`s, which no other format here is. AnySoftKeyboard's
+        // XML, read just below, has neither element.
+        if (UnexpectedLayouts.looksLikeUnexpected(text)) {
+            UnexpectedLayouts.convert(text, name)?.let { return Opened.UnexpectedLayout(it) }
         }
 
         // Another keyboard's settings as one text file: a CleverKeys export,
@@ -1240,6 +1255,21 @@ private fun rememberProposal(
             titleRes = R.string.import_name_title,
             titleArg = state.converted.layout.name,
             body = context.getString(R.string.import_keyscafe_body),
+            repairs = state.converted.notes.map { it.format(context.resources) },
+            language = state.converted.guessedLangId,
+            applyWithLanguage = { langId ->
+                repository.upsertCustomLayout(
+                    state.converted.withLanguage(langId)
+                        .copy(id = "custom_${System.currentTimeMillis()}"),
+                )
+                context.getString(R.string.import_done_name, state.converted.layout.name)
+            },
+        )
+
+        is WMFileTypes.Opened.UnexpectedLayout -> ImportProposal(
+            titleRes = R.string.import_name_title,
+            titleArg = state.converted.layout.name,
+            body = context.getString(R.string.import_unexpected_body),
             repairs = state.converted.notes.map { it.format(context.resources) },
             language = state.converted.guessedLangId,
             applyWithLanguage = { langId ->
