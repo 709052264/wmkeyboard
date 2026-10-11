@@ -375,6 +375,7 @@ private fun composerLabel(type: ComposerType): String = stringResource(
         ComposerType.CANGJIE_QUICK -> R.string.layout_editor_composer_cangjie_quick
         ComposerType.JYUTPING -> R.string.layout_editor_composer_jyutping
         ComposerType.KHIPRO -> R.string.layout_editor_composer_khipro
+        ComposerType.KHIPRO_DARK -> R.string.layout_editor_composer_khipro_dark
         ComposerType.CHEONJIIN -> R.string.layout_editor_composer_cheonjiin
     },
 )
@@ -402,6 +403,7 @@ private fun composerDescRes(type: ComposerType?): Int = when (type) {
     ComposerType.CANGJIE_QUICK -> R.string.layout_editor_composer_cangjie_quick_desc
     ComposerType.JYUTPING -> R.string.layout_editor_composer_jyutping_desc
     ComposerType.KHIPRO -> R.string.layout_editor_composer_khipro_desc
+    ComposerType.KHIPRO_DARK -> R.string.layout_editor_composer_khipro_dark_desc
     ComposerType.CHEONJIIN -> R.string.layout_editor_composer_cheonjiin_desc
 }
 
@@ -1732,6 +1734,7 @@ internal fun KeyLayoutEditorScreen(
     }
 
     val hasOwnLayer = edited.watch { it.layer(layer) != null }
+    val layerHasFlicks = edited.watch { it.layer(layer)?.rows.orEmpty().any { row -> row.any { k -> k.hasFlicks() } } }
     val compiled = edited.watch { spec ->
         val inheritable = spec.layer(layer) != null || BuiltInLayouts.default.layer(layer) != null
         if (inheritable) {
@@ -2326,7 +2329,7 @@ internal fun KeyLayoutEditorScreen(
         }
         // Issue #588: this layer's flick arms, over the keyboard-wide switch.
         // Only on a layer that has flick keys to draw them on.
-        item(visible = edited.watch { it.layer(layer)?.rows.orEmpty().any { row -> row.any { k -> k.hasFlicks() } } }) {
+        item(visible = layerHasFlicks) {
             val global = settings.watch { it.layoutBehavior.flickHints }
             ToggleSetting(
                 R.string.layout_editor_flick_hints_title,

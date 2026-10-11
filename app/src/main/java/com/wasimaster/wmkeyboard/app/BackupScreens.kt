@@ -91,6 +91,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudQueue
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileDownload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileUpload
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardAlt
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
@@ -755,6 +756,12 @@ internal fun BackupSettings(
             }
         }
     }
+    // Another keyboard's backup goes through the same dialog an opened file
+    // does, which reads it and lists what is inside before anything is written.
+    var foreignUri by remember { mutableStateOf<Uri?>(null) }
+    val foreignLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri -> foreignUri = uri }
     val exportGuarded = rememberLockGuard(AppLockTargets["action_export_settings"]) {
         // Datestamped, Locale.US: see the automatic backup's names.
         val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
@@ -839,8 +846,18 @@ internal fun BackupSettings(
                 onClick = { importLauncher.launch(arrayOf("*/*")) },
             )
         }
+        item {
+            WmRow(
+                title = stringResource(R.string.backup_foreign_import_title),
+                subtitle = stringResource(R.string.backup_foreign_import_subtitle),
+                icon = Icons.Outlined.KeyboardAlt,
+                onClick = { foreignLauncher.launch(arrayOf("*/*")) },
+            )
+        }
     }
     Spacer(Modifier.height(16.dp))
+
+    foreignUri?.let { uri -> ImportFileDialog(repository, uri) { foreignUri = null } }
 
     when (val pending = confirmImport) {
         is PendingImport.Config -> {

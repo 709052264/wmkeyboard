@@ -3311,6 +3311,12 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch {
             _uiState.map { it.incognitoOn }.distinctUntilChanged().collect { NetLog.incognito = it }
         }
+        // The system's own bar under the keyboard, on or off as asked (#582).
+        serviceScope.launch {
+            _uiState.map { it.settings.layoutBehavior.hideSystemKeyboardBar }
+                .distinctUntilChanged()
+                .collect { hide -> showSystemKeyboardBar(!hide) }
+        }
         // Whether the keyboard's copies stay inside it (#392). Off again the
         // moment incognito is, which also forgets the private clip.
         serviceScope.launch {
@@ -3482,7 +3488,7 @@ open class WMKeyboardService : InputMethodService() {
         // glide is set up again, from the table or, failing it, on the device.
         serviceScope.launch {
             KhiproGlideDownloads.completions.collect {
-                if (_uiState.value.composer is KhiproComposer) ensureKhiproGlide()
+                if (_uiState.value.composer === KhiproComposer.CLASSIC) ensureKhiproGlide()
             }
         }
 
@@ -4317,11 +4323,9 @@ open class WMKeyboardService : InputMethodService() {
                 // a Khipro layout that is switched on pays for that here
                 // rather than on its first keystroke.
                 val enabled = _uiState.value.settings
-                val khipro = enabled.enabledLayoutIds.any { id ->
-                    val spec = resolveLayout(enabled.customLayouts, id)
-                    spec.resolvedComposer() === KhiproComposer
-                }
-                if (khipro) Khipro.Variant.entries.forEach(Khipro::warm)
+                enabled.enabledLayoutIds.mapNotNullTo(HashSet()) { id ->
+                    resolveLayout(enabled.customLayouts, id).resolvedComposer() as? KhiproComposer
+                }.forEach(KhiproComposer::warm)
                 // Older installs inflated the bundled lists into
                 // credential-encrypted storage; they live in the
                 // device-protected area now (see [openLanguageDictionary]).
@@ -4766,6 +4770,29 @@ open class WMKeyboardService : InputMethodService() {
         // hide-keyboard chevron and the language-switch glyph, which the system
         // draws, not us.
         controller.isAppearanceLightNavigationBars = navigationBarWantsDarkIcons(color)
+    }
+
+    /**
+     * Shows or takes away the bar Android draws under the keyboard in gesture
+     * navigation, with its hide-keyboard and switch-keyboard buttons (#582).
+     *
+     * From Android 16 the system draws that bar inside the keyboard's own
+     * window and reports it as a caption bar; a keyboard that hides the
+     * caption bar through its window's insets controller takes the bar and
+     * its buttons away (`NavigationBarController` hides its frame when the
+     * caption bar is not visible). Before 16 there is nothing a keyboard can
+     * ask for, so this does nothing there. The keys still pad by whatever
+     * navigation-bar inset the window reports afterwards.
+     *
+     * The system then asks the keyboard for a switch-keyboard button of its
+     * own through `onCustomImeSwitcherButtonRequestedVisible`. The 🌐 key and
+     * its picker already are that, so the request is left to the default.
+     */
+    private fun showSystemKeyboardBar(show: Boolean) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.BAKLAVA) return
+        val controller = window?.window?.insetsController ?: return
+        val captionBar = android.view.WindowInsets.Type.captionBar()
+        if (show) controller.show(captionBar) else controller.hide(captionBar)
     }
 
     @androidx.compose.runtime.Composable
@@ -6754,6 +6781,9 @@ open class WMKeyboardService : InputMethodService() {
             if (summonPackage == null) summonPackage = currentInputEditorInfo?.packageName
         }
         _shownState.value = _uiState.value
+        // Asked again on every showing, early enough to beat the first frame:
+        // a window that went away may come back with the bar requested again.
+        showSystemKeyboardBar(!_uiState.value.settings.layoutBehavior.hideSystemKeyboardBar)
         // Ask for the window's insets afresh (#463): the navigation bar the
         // keyboard pads itself clear of is read from them, and a window coming
         // back from another keyboard must not keep the ones it left with.
@@ -9316,9 +9346,8 @@ open class WMKeyboardService : InputMethodService() {
         // spec (1 is ১, . is ।), one typed on the keys against the touchscreen
         // one. Chosen by the key that starts the word and kept to its end, so
         // one word never reads half one way and half the other.
-        if (state.composer === KhiproComposer && composing.isEmpty()) {
-            KhiproComposer.variant = if (hardwareKeyTyping) Khipro.Variant.DESKTOP else Khipro.Variant.TOUCHSCREEN
-        }
+        val khipro = state.composer
+        if (khipro is KhiproComposer && composing.isEmpty()) khipro.startWord(hardwareKeyboard = hardwareKeyTyping)
         // One-shot, spent by this keystroke whatever it turns out to be: a mark
         // takes the keyboard's own space back, and anything else simply types
         // past it. Both kinds of space count — the one that ended a word (glide
@@ -20314,7 +20343,9 @@ open class WMKeyboardService : InputMethodService() {
                     languageId = state.language.id,
                     converts = state.composer.isTransliterating || state.composer.isConversion,
                     phonetic = state.composer.phoneticLanguage
-                        ?: KHIPRO_GLIDE.takeIf { state.composer is KhiproComposer },
+                        // Classic only: the glide spellings are Classic's,
+                        // which join consonants that Dark leaves apart.
+                        ?: KHIPRO_GLIDE.takeIf { state.composer === KhiproComposer.CLASSIC },
                     alphabet = state.layouts.letterAlphabet + state.composer.glideKeys +
                         // The glide grid puts the apostrophe on the `'` key for
                         // these (see KeyboardScreen), so their words count as

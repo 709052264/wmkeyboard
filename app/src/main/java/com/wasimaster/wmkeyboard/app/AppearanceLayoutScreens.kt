@@ -1285,6 +1285,24 @@ internal fun LayoutSizeSettings(
             ) { scope.launch { repository.setBottomPaddingDp(it.toInt()) } }
         }
         item {
+            // Android has no way for a keyboard to ask for this before 16 (#582).
+            val supported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.BAKLAVA
+            ToggleSetting(
+                R.string.layout_hide_system_keyboard_bar_title,
+                stringResource(
+                    if (supported) {
+                        R.string.layout_hide_system_keyboard_bar_subtitle
+                    } else {
+                        R.string.layout_hide_system_keyboard_bar_unsupported
+                    },
+                ),
+                settings.watch { it.layoutBehavior.hideSystemKeyboardBar },
+                info = stringResource(R.string.layout_hide_system_keyboard_bar_info),
+                enabled = supported,
+                default = SettingsDefaults.layoutBehavior.hideSystemKeyboardBar,
+            ) { scope.launch { repository.setHideSystemKeyboardBar(it) } }
+        }
+        item {
             val square = stringResource(R.string.layout_board_corner_square)
             SliderSetting(
                 R.string.layout_board_corner_top_title,

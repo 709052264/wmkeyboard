@@ -92,6 +92,10 @@
     <string name="layout_extend_edge_keys_info">Some rows are shorter than the keyboard, for example the A to L row of QWERTY. They have blank space at the left and right ends. With this setting on, a tap in that space types the key at that end of the row, so a tap to the left of A types A. The keys do not change size or position. Only the area that you can tap gets larger. This setting is on by default.</string>
     <string name="layout_bottom_padding_title">Bottom padding</string>
     <string name="layout_bottom_padding_subtitle">More space below the keys, above the navigation bar</string>
+    <string name="layout_hide_system_keyboard_bar_title">Hide the system keyboard bar</string>
+    <string name="layout_hide_system_keyboard_bar_subtitle">Remove the bar with the hide and switch keyboard buttons below the keys</string>
+    <string name="layout_hide_system_keyboard_bar_unsupported">Needs Android 16 or later</string>
+    <string name="layout_hide_system_keyboard_bar_info">With gesture navigation, Android puts a bar below the keyboard. It has a button that hides the keyboard and a button that changes to a different keyboard. With this setting on, the keyboard asks Android to remove that bar. If the keys still sit higher than you want, make Bottom padding smaller. To hide the keyboard, use Back. To change to a different keyboard, use the 🌐 key. Only Android 16 and later lets a keyboard remove the bar. On older versions, this setting is not available. Some phones may keep the bar anyway. This setting is off by default.</string>
     <string name="layout_bottom_padding_info">The whole keyboard moves up, away from the bottom edge and the gesture navigation bar. Increase it if the bottom row is too near the edge of the screen, or if you start the system navigation by mistake.</string>
     <string name="layout_board_corner_top_title">Round top corners</string>
     <string name="layout_board_corner_top_subtitle">Cut round corners into the top of the keyboard</string>

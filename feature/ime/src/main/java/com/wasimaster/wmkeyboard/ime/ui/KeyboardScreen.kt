@@ -17992,10 +17992,19 @@ private fun KeyboardLayout.questionMarkToLift(mark: String): String? {
     val keys = rows.asSequence().flatten()
     if (mark == "?" && keys.none { mark in it.longPress }) return null
     val toHand = keys.any { key ->
-        (key.action == KeyAction.Text && (key.output ?: key.label) == mark) ||
+        (key.action == KeyAction.Text && typesQuestionMark(key, mark)) ||
             key.longPress.firstOrNull() == mark
     }
     return mark.takeUnless { toHand }
+}
+
+/**
+ * Whether [key] types [mark] once `currentLayout` is done with it: a key that
+ * types it already, or an ASCII "?" key that the issue #605 swap turns into it.
+ */
+private fun typesQuestionMark(key: Key, mark: String): Boolean {
+    val text = key.output ?: key.label
+    return text == mark || (text == "?" && key.role != KeyRole.Plain)
 }
 
 internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
@@ -18096,6 +18105,12 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // Issue #408: the question mark at the front of the period key's popup,
     // on a letters grid that offers none within one hold.
     val questionMark = if (lettersLayer) base.questionMarkToLift(state.script.questionMark) else null
+    // Issue #605: a script with a question mark of its own types it from every
+    // key that would type "?", on every layer, the symbols pages included.
+    // ASCII "?" leads that key's hold, for URLs and code.
+    val questionSwap = state.script.questionMark.takeIf { it != "?" }
+    // Issue #606: the Arabic harakat at the end of the period key's hold.
+    val periodAlternates = if (lettersLayer) state.script.periodAlternates else emptyList()
     // Both emoji-key preferences exist because a phone's bottom row has no spare
     // slot, so one of the keys already there has to give it up. An expanded
     // tablet grid has a real emoji key of its own, and applying either here would
@@ -18200,7 +18215,8 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
         currencyKeys.isEmpty() && !allAccents && !shiftedKeys && fullStop == null &&
         !newlineAlternate && !emojiAlternate && spaceHoldKeys.isEmpty() &&
         punctuationAlternates.isEmpty() && !kanaVariantKeys && nativeLetters.isEmpty() &&
-        questionMark == null && !reorderAlternates && !numpadOnHold
+        questionMark == null && questionSwap == null && periodAlternates.isEmpty() &&
+        !reorderAlternates && !numpadOnHold
     ) {
         return base
     }
@@ -18210,6 +18226,20 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     val rewritten = base.rows.mapIndexed { rowIndex, row ->
         row.map { rowKey ->
             val role = rowKey.roleIn(rowIndex, bottom)
+            // Issue #605: see questionSwap. First, so the passes below see the
+            // key as it now types.
+            val asked = if (
+                questionSwap != null && rowKey.action == KeyAction.Text &&
+                role != KeyRole.Plain && (rowKey.output ?: rowKey.label) == "?"
+            ) {
+                rowKey.copy(
+                    label = questionSwap,
+                    output = null,
+                    longPress = listOf("?") + rowKey.longPress.filterNot { it == questionSwap || it == "?" },
+                )
+            } else {
+                rowKey
+            }
             // Ahead of the field/emoji rewrites below, which may replace the
             // period key outright or hang domain endings off it — the script's
             // own mark and the "." it displaces travel together either way. A
@@ -18227,19 +18257,19 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
             // mean it" on a script whose sentences end some other way (#529).
             val stopped = if (
                 fullStop != null && role == KeyRole.Period &&
-                (rowKey.output ?: rowKey.label) == "."
+                (asked.output ?: asked.label) == "."
             ) {
                 if (lettersLayer) {
-                    rowKey.copy(
+                    asked.copy(
                         label = fullStop,
                         output = null,
-                        longPress = listOf(".") + rowKey.longPress.filterNot { it == fullStop },
+                        longPress = listOf(".") + asked.longPress.filterNot { it == fullStop },
                     )
                 } else {
-                    rowKey.copy(longPress = listOf(fullStop) + rowKey.longPress.filterNot { it == fullStop })
+                    asked.copy(longPress = listOf(fullStop) + asked.longPress.filterNot { it == fullStop })
                 }
             } else {
-                rowKey
+                asked
             }
             // Ahead of the "." the swap above moved there too: a question is
             // asked far more often than a decimal or a file name is typed.
@@ -18304,6 +18334,11 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                 punctuationAlternates[mapped.output ?: mapped.label]?.let { extra ->
                     mapped = mapped.copy(longPress = (mapped.longPress + extra).distinct())
                 }
+            }
+            // Issue #606: appended, so a layout that already lists the harakat
+            // keeps its own order and the question mark stays the plain hold.
+            if (periodAlternates.isNotEmpty() && role == KeyRole.Period && mapped.action == KeyAction.Text) {
+                mapped = mapped.copy(longPress = (mapped.longPress + periodAlternates).distinct())
             }
             // A43: merge the full accent variant set for this Latin letter,
             // on top of whatever the layout already lists. Lowercase glyphs,
@@ -20508,13 +20543,23 @@ private fun AlternatesPopup(
 /**
  * What a popup entry draws: the entry itself, or a name for a character that
  * has no glyph of its own. A joiner typed into a popup would otherwise be an
- * empty cell nobody could tell from a gap (issue #489).
+ * empty cell nobody could tell from a gap (issue #489). A combining mark with
+ * no letter under it sits on a dotted circle, the way a dead key's label does,
+ * or the Arabic harakat (issue #606) float over nothing and an Indic vowel
+ * sign draws wherever the font puts a broken cluster.
  */
-internal fun visibleAlternate(text: String): String = when (text) {
-    "\u200D" -> "ZWJ"
-    "\u200C" -> "ZWNJ"
+internal fun visibleAlternate(text: String): String = when {
+    text == "\u200D" -> "ZWJ"
+    text == "\u200C" -> "ZWNJ"
+    text.isNotEmpty() && text.all { it.category in SPELLING_MARK_CATEGORIES } -> "\u25CC$text"
     else -> text
 }
+
+private val SPELLING_MARK_CATEGORIES = setOf(
+    CharCategory.NON_SPACING_MARK,
+    CharCategory.COMBINING_SPACING_MARK,
+    CharCategory.ENCLOSING_MARK,
+)
 
 /** The size the alternates popup opens at, as a share of its own. */
 private const val AlternatesGrowFrom = 0.6f
@@ -21499,7 +21544,9 @@ internal fun layoutSwitchLabel(
         // grid. "Avro phonetic" is both the name they picked it by and the
         // answer to "why are these keys Latin".
         mode == SpacebarDisplay.LANGUAGE &&
-            spec.composerType().let { it == ComposerType.TRANSLITERATE || it == ComposerType.KHIPRO } ->
+            spec.composerType().let {
+                it == ComposerType.TRANSLITERATE || it == ComposerType.KHIPRO || it == ComposerType.KHIPRO_DARK
+            } ->
             layout
         // A layout named after its language ("Banglish (Banglish)") collapses.
         (mode == SpacebarDisplay.BOTH || sameLangCount > 1) && layout != lang -> "$lang ($layout)"

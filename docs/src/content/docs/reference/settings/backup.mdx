@@ -184,6 +184,8 @@ Settings import is rollback-safe. After writing, the keyboard re-reads its own s
 
 Opening a `.wmconfig.json` or `.wmsettings.json` file from a file manager routes through this same read-then-confirm flow rather than importing silently.
 
+**Import from another keyboard**, the row under it, takes a whole backup from HeliBoard, LeanType, FUTO Keyboard, FlorisBoard, CleverKeys or AnySoftKeyboard. It reads the file and lists everything inside, grouped as Layouts, Themes, Languages, Dictionaries and words, and Settings, each item with its own check box and every box ticked to start. A section heading's box ticks or clears the whole section. **Import** writes only the ticked items and then says what landed, for example "The app imported 2 layouts, 1 theme, 12 settings." Settings get the same read-back and rollback as a restore of this app's own backup. What each keyboard's backup holds, and what never comes across, is on [Importing from other keyboards](/reference/importing-other-keyboards/#whole-backups).
+
 ## Details & edge cases
 
 - **An emoji-history import lands live.** The keyboard holds its emoji history in memory while it runs and writes it out when a field closes, so a restore could have been overwritten seconds later. Importing bumps a counter the running keyboard watches, which makes it drop its copy and re-read the file. The panel's Recent and Favourites tabs refresh on the spot, with nothing to restart.
