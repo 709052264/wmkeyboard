@@ -2137,6 +2137,25 @@ private fun SettingsNavGraph(
                 AiActionEditor(repository, settings, actionId) { navController.popBackStack() }
             }
         }
+        composable("ai_mcp") {
+            SettingsScreen(
+                stringResource(R.string.toolai_ai_mcp_screen_title),
+                { navController.popBackStack() },
+                route = "ai_mcp",
+            ) {
+                AiMcpSettings(repository, settings) { navController.navigate(it) }
+            }
+        }
+        composable("ai_mcp_edit/{serverId}") { backStackEntry ->
+            val serverId = backStackEntry.arguments?.getString("serverId").orEmpty()
+            SettingsScreen(
+                stringResource(R.string.toolai_ai_mcp_edit_screen_title),
+                { navController.popBackStack() },
+                route = aiMcpEditRoute(serverId),
+            ) {
+                AiMcpEditor(repository, settings, serverId) { navController.popBackStack() }
+            }
+        }
         composable("symbol_set_edit/{setId}") { backStackEntry ->
             val setId = backStackEntry.arguments?.getString("setId").orEmpty()
             SettingsScreen(

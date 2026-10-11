@@ -129,6 +129,27 @@ A crossing has to reach the middle of the spacebar. Dip past its midline and com
 
 Only the final word of a multi-word glide gets alternates in the suggestion strip and the backspace-whole-word undo. The earlier words in the phrase have already committed and moved on. This behavior has its own toggle, **Glide across spacebar**: turn it off and a swipe that crosses the spacebar is read as a single word instead (see [Options](#options)).
 
+## Typing with both thumbs
+
+**Two-thumb typing** (<SettingsPath path="Typing / Gestures" />, off by default) lets both thumbs work on the same word at once, the way Nintype did. Each thumb can tap or swipe, at the same time as the other, and every tap and swipe adds to one word instead of each swipe being a word of its own.
+
+Say you want "something". Tap <KeyCap>s</KeyCap> with your left thumb, swipe from <KeyCap>o</KeyCap> to <KeyCap>m</KeyCap> with your right, tap <KeyCap>e</KeyCap> with your left, then swipe <KeyCap>t</KeyCap> <KeyCap>h</KeyCap> <KeyCap>i</KeyCap> <KeyCap>n</KeyCap> <KeyCap>g</KeyCap> with your right. The thumbs can overlap: the next one can start before the last one has lifted. The keyboard keeps each thumb's letters in the order that thumb made them, works out how the two thumbs' letters fit together from when each one happened, and picks the word from the dictionary that fits best.
+
+A tap that lands while the other thumb is still swiping goes into the word at that point of the swipe. Swipe over <KeyCap>h</KeyCap> <KeyCap>e</KeyCap> <KeyCap>l</KeyCap> <KeyCap>o</KeyCap> and tap <KeyCap>l</KeyCap> with the other thumb just after the swipe passes the l, and you get "hello". One tap can also stand for a doubled letter, so <KeyCap>k</KeyCap> <KeyCap>e</KeyCap> <KeyCap>p</KeyCap> tapped can give "keep".
+
+The word is read again after every tap and swipe, so the word in the text field and the alternates on the suggestion strip change as you go. Backspace takes back your last tap or swipe, not the last letter, and the word is read again without it. When no swipe is left, what remains is the letters you tapped, as typed.
+
+**Finish a two-thumb word** decides what types the word:
+
+- **Space** (the default). The word stays open while you tap and swipe. Tap space or punctuation to type it. Ordinary one-thumb glides work the same way in this mode: a swiped word waits for the space instead of getting one automatically.
+- **All thumbs up.** The word is typed, with its space, as soon as no thumb touches the keyboard, like ordinary glide typing. Your thumbs then have to overlap to share a word. Tapped letters alone still type the ordinary way, so this only ends words that have a swipe in them.
+
+Some glide features read one stroke as a whole word, so they are off while two-thumb typing is on: [gliding across the spacebar](#gliding-a-whole-phrase), [glide over Shift to capitalize](#capitalizing-without-leaving-the-stroke), [the picker for a toss-up](#when-a-swipe-is-a-genuine-toss-up) and the flicks off a key. [Pause, loop and wiggle marks](#marking-a-letter-as-you-glide) still count in a word that is one swipe and nothing else, but not in a swipe that is part of a bigger word. Two-thumb typing works in the app you are typing in. The typing test and the keyboard's own search boxes keep one-finger glide. Phonetic layouts such as Avro, and keypads that guess, read every swipe as a word of its own.
+
+### Finishing typed letters with a swipe
+
+You can also do this with one thumb. **Swipe finishes typed letters** (<SettingsPath path="Typing / Gestures" />, off by default) makes a swipe right after typed letters finish them as one word: type <KeyCap>t</KeyCap> <KeyCap>o</KeyCap>, then swipe <KeyCap>g</KeyCap> <KeyCap>e</KeyCap> <KeyCap>t</KeyCap> <KeyCap>h</KeyCap> <KeyCap>e</KeyCap> <KeyCap>r</KeyCap>, and "together" is typed with a space, as a glided word is. With the setting off, the typed letters are a word of their own and the swipe types the next one. Two-thumb typing always works this way, so the setting is only shown while two-thumb typing is off.
+
 ## How it picks a word
 
 The decoder scores every dictionary word that could plausibly match your stroke and returns the best one, weighing three things:
@@ -217,6 +238,9 @@ This is also the one way a swipe can teach a capital. A capital the *keyboard* c
 |---|---|---|
 | Glide typing | On | Master switch for glide typing. |
 | Glide across the spacebar | On | Only shown while glide typing (not handwriting) is the active swipe mode. A crossing has to reach the bar's midline; clipping its top edge doesn't count. Turn off to treat a spacebar-crossing swipe as one word. |
+| Two-thumb typing | Off | Only shown while glide typing is the active swipe mode. Both thumbs can tap and swipe at once, and every tap and swipe adds to one word. See [Typing with both thumbs](#typing-with-both-thumbs). |
+| Finish a two-thumb word | Space | Only shown while Two-thumb typing is on. Space: the word stays open until space or punctuation. All thumbs up: the word is typed with its space when no thumb touches the keyboard. |
+| Swipe finishes typed letters | Off | Only shown while Two-thumb typing is off. A swipe right after typed letters finishes them as one word. See [Finishing typed letters with a swipe](#finishing-typed-letters-with-a-swipe). |
 | Glide over Shift to capitalize | On | Only shown while glide typing is the active swipe mode. Draw through the Shift key mid-swipe for a capital, twice for all capitals. See [Capitalizing without leaving the stroke](#capitalizing-without-leaving-the-stroke). |
 | What a pass over Shift capitalizes | Whole word | Only shown while Glide over Shift to capitalize is on. Whole word: one pass for a capital, two for all capitals. One letter: each pass capitalizes the letter the finger came from, and ending the stroke on Shift makes the whole word capitals. |
 | Ask when a glide is unclear | On | Only shown while glide typing is the active swipe mode. When a stroke's best word barely beats its runner-up, hold still without lifting to pick between them. See [When a swipe is a genuine toss-up](#when-a-swipe-is-a-genuine-toss-up). |

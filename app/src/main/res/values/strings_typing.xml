@@ -410,6 +410,17 @@
 
     <string name="typing_space_glide_multiword_title">Glide across the spacebar</string>
     <string name="typing_space_glide_multiword_subtitle">Swipe over the spacebar to continue with the next word</string>
+    <string name="typing_two_thumb_title">Two-thumb typing</string>
+    <string name="typing_two_thumb_subtitle">Tap and swipe with both thumbs at once to build one word</string>
+    <string name="typing_two_thumb_info">Use both thumbs together. Each thumb can tap or swipe, at the same time as the other, and every tap and swipe adds to the same word. For example, tap S with the left thumb, swipe O to M with the right, tap E with the left, then swipe T H I N G with the right, and you get "something". A tap that lands while the other thumb is still swiping goes into the word at that point, so a swipe over H E L O and a tap on L give "hello". Backspace removes the last tap or swipe from the word.</string>
+    <string name="typing_two_thumb_word_end_title">Finish a two-thumb word</string>
+    <string name="typing_two_thumb_word_end_subtitle">What types the word you are building</string>
+    <string name="typing_two_thumb_word_end_info">With space, the word stays open while you tap and swipe, and the keyboard reads it again after each one. Tap space or punctuation to type it. With all thumbs up, the word is typed with a space as soon as no thumb touches the keyboard, like ordinary glide, so your thumbs have to overlap to share a word.</string>
+    <string name="typing_two_thumb_word_end_space_label">Space</string>
+    <string name="typing_two_thumb_word_end_all_up_label">All thumbs up</string>
+    <string name="typing_swipe_continues_typed_title">Swipe finishes typed letters</string>
+    <string name="typing_swipe_continues_typed_subtitle">Typed letters and the swipe after them make one word</string>
+    <string name="typing_swipe_continues_typed_info">Type the start of a word, then swipe the rest without a space. For example, type T O and swipe G E T H E R to get "together". When this setting is off, the typed letters are a word of their own and the swipe types the next word. Two-thumb typing always works this way.</string>
     <string name="typing_space_glide_multiword_info">Keep your finger down. Glide a word, swipe across the spacebar, then glide the next word. Each crossing types the word and a space, so one stroke gives a full phrase. When this setting is off, a swipe across the spacebar makes one word.</string>
     <string name="typing_shift_glide_capitals_title">Glide over Shift to capitalize</string>
     <string name="typing_shift_glide_capitals_subtitle">Draw through the Shift key mid-swipe for a capital letter</string>
