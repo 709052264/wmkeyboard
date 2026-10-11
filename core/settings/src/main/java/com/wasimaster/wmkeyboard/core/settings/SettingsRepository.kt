@@ -7022,9 +7022,9 @@ data class LayoutBehaviorSettings(
     val spaceHoldKeys: List<String> = emptyList(),
     /**
      * Languages that stay switched on without a stop of their own in the
-     * language switcher (#473). For a romanized language that is only there
-     * to lend its words to another keyboard: Banglish suggested on the
-     * English layout, with one swipe between that and Bangla instead of two.
+     * language switcher (#473, #618). For a language that is only there to
+     * lend its words to another keyboard: Banglish suggested on the English
+     * layout, or English on the Swedish one, with one stop fewer to swipe past.
      * See [switchLayoutIds].
      */
     val pickerHiddenLanguages: Set<String> = emptySet(),
