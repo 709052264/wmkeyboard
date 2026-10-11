@@ -232,6 +232,17 @@
         <item quantity="one">%1$d key has different press-and-hold letters while shift is down in the other keyboard. The app kept the unshifted ones.</item>
         <item quantity="other">%1$d keys have different press-and-hold letters while shift is down in the other keyboard. The app kept the unshifted ones.</item>
     </plurals>
+    <!-- A Multiling O key can do one thing on a tap and others on a swipe.
+         Here a delete key and a space bar use their swipes for other jobs. -->
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d swipe on a key has no place here, because this keyboard uses that swipe for another job. The app removed it.</item>
+        <item quantity="other">%1$d swipes on keys have no place here, because this keyboard uses those swipes for other jobs. The app removed them.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d shifted page in the file has its keys in other places than the page it shifts. The app uses capital letters there instead.</item>
+        <item quantity="other">%1$d shifted pages in the file have their keys in other places than the pages they shift. The app uses capital letters there instead.</item>
+    </plurals>
+    <string name="core_lang_foreign_pages_kept">The file\'s extra pages, such as AltGr, are pages of this layout. Swipe from the key that opened them in the other keyboard to open them here.</string>
 
     <!-- ================================================================== -->
     <!-- Numerals. Settings > Languages > a language > Numerals picks which  -->

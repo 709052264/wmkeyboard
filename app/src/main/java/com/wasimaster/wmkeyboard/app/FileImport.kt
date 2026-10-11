@@ -62,6 +62,7 @@ import com.wasimaster.wmkeyboard.core.layout.FutoLayouts
 import com.wasimaster.wmkeyboard.core.layout.ImportedLayout
 import com.wasimaster.wmkeyboard.core.layout.KeysCafeLayouts
 import com.wasimaster.wmkeyboard.core.layout.LayoutFile
+import com.wasimaster.wmkeyboard.core.layout.MultilingLayouts
 import com.wasimaster.wmkeyboard.core.plugins.PluginFile
 import com.wasimaster.wmkeyboard.core.plugins.PluginImportResult
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifestResult
@@ -93,12 +94,16 @@ import com.wasimaster.wmkeyboard.core.theme.FlexUnsupported
 import com.wasimaster.wmkeyboard.core.theme.GboardResult
 import com.wasimaster.wmkeyboard.core.theme.GboardTheme
 import com.wasimaster.wmkeyboard.core.theme.HeliUnsupported
+import com.wasimaster.wmkeyboard.core.theme.MultilingTheme
+import com.wasimaster.wmkeyboard.core.theme.MultilingThemeResult
+import com.wasimaster.wmkeyboard.core.theme.MultilingUnsupported
 import com.wasimaster.wmkeyboard.core.theme.ThemeCodec
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.groupAsFamily
 import com.wasimaster.wmkeyboard.core.theme.themeFamilyName
 import com.wasimaster.wmkeyboard.core.theme.withExtractedImages
 import com.wasimaster.wmkeyboard.core.theme.withFreshIds
+import com.wasimaster.wmkeyboard.core.util.MultilingExport
 import com.wasimaster.wmkeyboard.core.util.firstJsonDocument
 import com.wasimaster.wmkeyboard.core.util.readCapped
 import com.wasimaster.wmkeyboard.core.util.requireInputStream
@@ -210,6 +215,17 @@ object WMFileTypes {
          * settle, and the body has to say that this one keeps its whole frame.
          */
         data class KeysCafeLayout(val converted: ConvertedLayout) : Opened
+
+        /**
+         * Text from Multiling O Keyboard, already converted: one layout, or a
+         * settings export holding every layout its user made and the colours
+         * of their theme. [theme] is null when the text has no colours, which
+         * is every layout shared on its own.
+         */
+        data class MultilingFile(
+            val layouts: List<ConvertedLayout>,
+            val theme: MultilingThemeResult.Converted?,
+        ) : Opened
 
         /**
          * An Espanso match file: somebody else's text expander, read into
@@ -415,6 +431,16 @@ object WMFileTypes {
         // conversion then has to decrypt to a grid or the file falls through.
         if (KeysCafeLayouts.looksLikeKcf(text)) {
             KeysCafeLayouts.convert(text, name)?.let { return Opened.KeysCafeLayout(it) }
+        }
+
+        // Multiling O shares text: a settings block or a DIY+ layout behind a
+        // marker no other file has, or a DIY layout whose JSON is told by its
+        // `onScreen` object, a key no other layout format writes. That key is
+        // the evidence the theme branch above needs a file name for.
+        if (MultilingLayouts.looksLikeMultiling(text) || text.contains(MultilingExport.SETTINGS_BEGIN)) {
+            val layouts = MultilingLayouts.convertAll(text, name)
+            val theme = MultilingTheme.read(text) as? MultilingThemeResult.Converted
+            if (layouts.isNotEmpty() || theme != null) return Opened.MultilingFile(layouts, theme)
         }
 
         // The two YAML formats, which are the two that can follow the branch
@@ -973,6 +999,76 @@ private fun keymanProposal(
 }
 
 /**
+ * What text from Multiling O Keyboard offers.
+ *
+ * One layout on its own goes through the language step, like every other
+ * foreign layout: nothing in a shared layout says what language it is for. A
+ * settings export says it for each layout, so all of them are added at once,
+ * each with the language it was filed under, or the one its letters suggest
+ * where this app does not have that language. Its colours are saved as a theme
+ * beside them. Nothing is turned on: a converted layout and a converted theme
+ * are both things to look at first.
+ */
+private fun multilingProposal(
+    state: WMFileTypes.Opened.MultilingFile,
+    repository: SettingsRepository,
+    context: android.content.Context,
+): ImportProposal {
+    val single = state.layouts.singleOrNull()
+    if (single != null && state.theme == null) {
+        return ImportProposal(
+            titleRes = R.string.import_name_title,
+            titleArg = single.layout.name,
+            body = context.getString(R.string.import_multiling_layout_body),
+            repairs = single.notes.map { it.format(context.resources) },
+            language = single.guessedLangId,
+            applyWithLanguage = { langId ->
+                repository.upsertCustomLayout(
+                    single.withLanguage(langId).copy(id = "custom_${System.currentTimeMillis()}"),
+                )
+                context.getString(R.string.import_done_name, single.layout.name)
+            },
+        )
+    }
+    val count = state.layouts.size
+    return ImportProposal(
+        titleRes = R.string.import_multiling_title,
+        body = buildString {
+            if (count > 0) {
+                append(context.resources.getQuantityString(R.plurals.import_multiling_layouts_body, count, count))
+            }
+            if (state.theme != null) {
+                if (isNotEmpty()) append("\n\n")
+                append(context.getString(R.string.import_multiling_theme_line))
+            }
+        },
+        apply = {
+            val stamp = System.currentTimeMillis()
+            state.layouts.forEachIndexed { index, converted ->
+                // One stamp for the whole batch, with the position after it:
+                // a loop is faster than the clock, and two layouts saved under
+                // one id would leave only the second.
+                repository.upsertCustomLayout(
+                    converted.withLanguage(converted.guessedLangId).copy(id = "custom_${stamp}_$index"),
+                )
+            }
+            state.theme?.let { result ->
+                repository.upsertCustomTheme(result.theme.copy(id = "custom_${stamp}_theme"))
+            }
+            buildString {
+                if (count > 0) {
+                    append(context.resources.getQuantityString(R.plurals.import_multiling_layouts_done, count, count))
+                }
+                if (state.theme != null) {
+                    if (isNotEmpty()) append("\n\n")
+                    append(context.getString(R.string.import_multiling_theme_done))
+                }
+            }
+        },
+    )
+}
+
+/**
  * Turns a read file into what the dialog should say and do. Every branch mirrors
  * the equivalent in-app import so an opened file and a picked file behave the
  * same — including reading first and asking before anything is written.
@@ -1064,6 +1160,8 @@ private fun rememberProposal(
                 context.getString(R.string.import_done_name, state.converted.layout.name)
             },
         )
+
+        is WMFileTypes.Opened.MultilingFile -> multilingProposal(state, repository, context)
 
         is WMFileTypes.Opened.EspansoSnippets -> espansoProposal(state.parsed, context)
 
@@ -1715,6 +1813,16 @@ internal fun heliDroppedLine(context: android.content.Context, dropped: HeliUnsu
             HeliUnsupported.DERIVED_COLOURS -> R.string.import_heli_dropped_derived
             HeliUnsupported.UNUSED_COLOURS -> R.string.import_heli_dropped_unused
             HeliUnsupported.LOW_CONTRAST_FALLBACK -> R.string.import_floris_dropped_contrast
+        },
+    )
+
+/** One line of the "what the app changed" list of a Multiling O theme import. */
+internal fun multilingDroppedLine(context: android.content.Context, dropped: MultilingUnsupported): String =
+    context.getString(
+        when (dropped) {
+            MultilingUnsupported.TEXT_SHADOWS -> R.string.import_multiling_dropped_text_shadows
+            MultilingUnsupported.WALLPAPER -> R.string.import_multiling_dropped_wallpaper
+            MultilingUnsupported.UNUSED_COLOURS -> R.string.import_multiling_dropped_unused
         },
     )
 

@@ -74,6 +74,14 @@ enum class ForeignSource {
      * the one that does not get this app's put round it.
      */
     KEYS_CAFE,
+
+    /**
+     * A Multiling O Keyboard layout: a DIY layout's JSON, a DIY+ layout's
+     * `OK_Layout_Begin` text, or the layouts inside its settings export. Read by
+     * [MultilingLayouts]. The only format that carries more than one page of
+     * keys, so its symbols and AltGr pages come across too.
+     */
+    MULTILING,
 }
 
 /** A foreign layout after conversion, with everything that was lost on the way. */
@@ -232,6 +240,13 @@ object ForeignLayouts {
      * laid it out — no shift, delete or bottom row added or moved — and marks
      * the layer so the Bottom-row settings leave it alone too. Only a format
      * that carries its whole frame may say so; see [KeysCafeLayouts].
+     *
+     * [extraLayers] are the pages beyond the letters, keyed like
+     * [LayoutSpec.layers], for the one format that has them ([MultilingLayouts]).
+     * They are repaired with the rest. [bottomRowAsLaidOut] is for a reader that
+     * puts the house frame on itself before handing the grid over, and so
+     * passes [houseFrame] false while still wanting the Bottom-row settings to
+     * apply.
      */
     internal fun assemble(
         rows: List<List<Key>>,
@@ -241,7 +256,10 @@ object ForeignLayouts {
         langId: String? = null,
         numberRow: List<Key>? = null,
         houseFrame: Boolean = true,
-    ): ConvertedLayout? = finish(rows, name, source, report, langId, numberRow, houseFrame)
+        extraLayers: Map<String, LayerSpec> = emptyMap(),
+        bottomRowAsLaidOut: Boolean = !houseFrame,
+    ): ConvertedLayout? =
+        finish(rows, name, source, report, langId, numberRow, houseFrame, extraLayers, bottomRowAsLaidOut)
 
     private fun finish(
         rows: List<List<Key>>,
@@ -251,6 +269,8 @@ object ForeignLayouts {
         declaredLangId: String? = null,
         numberRow: List<Key>? = null,
         houseFrame: Boolean = true,
+        extraLayers: Map<String, LayerSpec> = emptyMap(),
+        bottomRowAsLaidOut: Boolean = !houseFrame,
     ): ConvertedLayout? {
         val kept = rows.filter { it.isNotEmpty() }
         if (kept.isEmpty()) return null
@@ -268,9 +288,9 @@ object ForeignLayouts {
                     // A grid kept as laid out stays that way on screen as well:
                     // the Bottom-row settings would otherwise move its 🌐 and
                     // comma about (issue #420).
-                    bottomRowAsLaidOut = !houseFrame,
+                    bottomRowAsLaidOut = bottomRowAsLaidOut,
                 ),
-            ),
+            ) + extraLayers,
         )
         val repaired = layout.repair()
         return ConvertedLayout(
@@ -1049,6 +1069,15 @@ internal class Report(
      * of the unshifted ones. This keyboard holds one list per key.
      */
     var shiftedPopups: Int = 0,
+    /**
+     * Swipe directions on a key whose tap is something a swipe cannot share
+     * here: a delete key's word swipe, a space bar's cursor swipe.
+     */
+    var gesturesDropped: Int = 0,
+    /** Shifted pages laid out differently from the page they shift. */
+    var shiftedPagesUnmerged: Int = 0,
+    /** The file's own extra pages (AltGr, 123, Edit) became pages of the layout. */
+    var pagesKept: Boolean = false,
 ) {
     fun notes(scaled: Boolean): List<LayoutMessage> = buildList {
         if (droppedLabels.isNotEmpty()) {
@@ -1123,6 +1152,25 @@ internal class Report(
                 ),
             )
         }
+        if (gesturesDropped > 0) {
+            add(
+                LayoutMessage(
+                    pluralsRes = R.plurals.core_lang_foreign_gestures_dropped,
+                    quantity = gesturesDropped,
+                    args = listOf(gesturesDropped),
+                ),
+            )
+        }
+        if (shiftedPagesUnmerged > 0) {
+            add(
+                LayoutMessage(
+                    pluralsRes = R.plurals.core_lang_foreign_shifted_pages_dropped,
+                    quantity = shiftedPagesUnmerged,
+                    args = listOf(shiftedPagesUnmerged),
+                ),
+            )
+        }
+        if (pagesKept) add(LayoutMessage(stringRes = R.string.core_lang_foreign_pages_kept))
         if (numberRowDropped) {
             add(LayoutMessage(stringRes = R.string.core_lang_foreign_number_row_dropped))
         }

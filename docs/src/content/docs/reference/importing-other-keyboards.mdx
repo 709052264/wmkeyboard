@@ -1,6 +1,6 @@
 ---
 title: "Importing from other keyboards"
-description: "Bring layouts, themes and dictionaries over from FlorisBoard, HeliBoard, LeanType, FUTO, Samsung Keyboard (Keys Cafe) and Gboard: what converts, what doesn't, and why."
+description: "Bring layouts, themes and dictionaries over from FlorisBoard, HeliBoard, LeanType, FUTO, Samsung Keyboard (Keys Cafe), Multiling O and Gboard: what converts, what doesn't, and why."
 sidebar:
   order: 6
 ---
@@ -8,7 +8,7 @@ sidebar:
 import SettingsPath from '@components/SettingsPath.astro';
 import KeyCap from '@components/KeyCap.astro';
 
-Switching keyboards usually means leaving your layouts, themes and dictionaries behind. WM Keyboard reads FlorisBoard, HeliBoard, LeanType, FUTO and Samsung Keyboard (Keys Cafe) files directly and converts them into its own, so the grid you built, the theme you picked and the word list you collected come with you.
+Switching keyboards usually means leaving your layouts, themes and dictionaries behind. WM Keyboard reads FlorisBoard, HeliBoard, LeanType, FUTO, Samsung Keyboard (Keys Cafe) and Multiling O files directly and converts them into its own, so the grid you built, the theme you picked and the word list you collected come with you.
 
 Conversion is honest about being lossy. A layout import always ends on a confirm dialog that lists what changed and what could not be carried, and nothing is written until you accept it. A `.flex` theme opened from a file manager gets the same treatment. The **FlorisBoard** button inside Settings is the one route without a confirm step: it saves the theme straight away and then tells you what it saved. Saved is not switched on, so you still get to look first.
 
@@ -20,9 +20,11 @@ Conversion is honest about being lossy. A layout import always ends on a confirm
 | `.txt` layout | HeliBoard | A custom layout |
 | `.yaml` layout | FUTO Keyboard | A custom layout |
 | `.kcf` layout | Samsung Keyboard, shared from Keys Cafe | A custom layout, kept exactly as it was laid out |
+| DIY or DIY+ layout text, or a settings export | Multiling O Keyboard | A custom layout with its symbols and AltGr pages, or every layout in the export |
 | `.flex` theme | FlorisBoard 0.4 and later | One theme, one look per theme in the file |
 | `.flex` language pack | FlorisBoard | A Cangjie or stroke table for Chinese |
 | Colour theme text | HeliBoard, LeanType | One theme, from a file or from the clipboard |
+| `OK_Settings_Begin` theme text or a theme link | Multiling O Keyboard | One theme, from a file or from the clipboard |
 | `.zip` theme | Gboard, the Rboard community | One theme, with a look each for key borders on and off |
 | `.zip` or `.pack` theme pack | Rboard | Any or all of the themes inside, each its own theme |
 | `.keyman-touch-layout` | Keyman | A custom layout, without the keyboard's rules |
@@ -148,6 +150,27 @@ This is the one format that carries the whole frame. Keys Cafe writes the shift 
 - **The language is a fact, not a guess.** The file states a language and a country, and the picker starts from it.
 - **Widths follow the file.** A plain key is one unit, a wider shift or space bar keeps its proportion.
 - **A function key this app does not know is removed and named** by its code, the same as a HeliBoard key would be. One real export has been read, so the known codes are the delete, shift and symbols keys, space and enter. If the dialog names a code and you know what that key was, say so in an issue and it is one line to add.
+
+### Multiling O Keyboard layouts
+
+Multiling O builds its layouts out of text, and its users share them as text: in forum posts, gists and READMEs, for scripts few other keyboards ship. Copy the text into a `.txt` file and pick it with the same **Import from another keyboard** button, or open the file from a file manager. Three forms are read:
+
+- **A DIY layout**, a JSON object with a `title` and an `onScreen` object holding the rows of each page (`main`, `sym`, `altGr` and the rest). It is the whole keyboard, bottom row included, so it is kept as laid out, the way a Keys Cafe layout is. A layout copied out of a share link, with `%0A` and `%22` in it, reads the same.
+- **A DIY+ layout**, the block from `OK_Layout_Begin` to `OK_Layout_End`. Its rows come in blocks of four: the letters with a row of digits on top, the same rows shifted, then the symbols, the AltGr page, the shifted AltGr page and the shifted symbols. It has no shift, delete or bottom row of its own, so it gets this app's, as [above](#it-adds-the-shift-key-and-the-bottom-row). The row of digits becomes this layout's number row.
+- **A settings export**, the block from `OK_Settings_Begin` to `OK_Settings_End` that Multiling writes under **Misc → Import | Export**. It holds every layout you made, each filed under the language it was made for. The dialog lists them all and adds them all in one step, each with that language, or with the one its letters suggest where this app does not have the language. The colours in the export are saved as a theme beside them. Landscape copies of a layout are skipped: this app sizes one grid for both.
+
+A row is a string of keys, and each part comes across like this:
+
+- **A character is a key, and a space is a gap.** `[]` straight after a key makes it one key wider, as `[SPACE][][]` does.
+- **Named keys** (`[SHIFT]`, `[DEL]`, `[ENTER]`, the arrows, copy and paste, F1 to F12 and the rest) become the same keys here. `[WDEL]` is a plain delete key, because swiping left on delete removes whole words here.
+- **`[4D:…]`, `[1+4:…]` and `[3+2:…]`**, the swipe keys, keep their swipes. The first character is the tap and the rest are the eight directions, the way a MessagEase pad has them. A swipe that runs a key (a cursor move, copy, a page switch) keeps doing that. A swipe on a key whose own swipe is already taken here, such as the delete key or the space bar, is removed and counted.
+- **`[XK:…]`** types its first character, with the rest on its press and hold.
+- **`[MT:…]`** cycles through its characters on repeated taps.
+- **`[MC:…]`** types more than one character, under its own label when it gives one. A shortcut such as `[MC:[CTRL]z:undo]` becomes that key press. Multiling's date and time macros are removed and named.
+- **`[U+0915]`** is the character with that code.
+- **`[SYM:.]`, `[ALTGR:,]` and `[123:…]`** type their character on a tap and open their page when you swipe from them in any direction. The page is on their press and hold too.
+
+The pages come across with the layout. `sym` and `symShifted` become this layout's two symbols pages. AltGr, 123 and Edit become pages of the layout, opened from the same keys as before; on a DIY+ layout, swipe from the comma key or hold it to open AltGr. A shifted page laid out key for key like the page it shifts becomes the shifted forms of those keys. Multiling's tool key opens a menu that this app keeps on its toolbar, so it becomes <KeyCap>?123</KeyCap> on a letters page that has no other way to the symbols, and <KeyCap>ABC</KeyCap> on a page that has no other way back. A key this app has nothing for, such as `[INFO]` or `[PREDICT]`, is removed and named in the dialog.
 
 ### Letters are rewritten to one spelling
 
@@ -276,6 +299,29 @@ The emoji board's own colours land too. That keyboard's *all colours* mode state
 The result message counts what landed: *"The app saved Midnight and used 19 of its 19 colours."* That count is the roles that actually reached a field, not the roles the app recognises — two of its roles may answer the same question here, and only the first one present is read. Under the count is the same list of what did not come across that the other two imports show: colours the file left for the keyboard to work out, colours stated for parts this keyboard has not got, and text that had to be replaced to stay readable.
 
 A theme is saved rather than switched on, the same as a FlorisBoard one, so you get to look at it first. Day or night is decided from the board colour, since neither shape records it.
+
+### Multiling O themes
+
+<SettingsPath path="Appearance / Keyboard themes / Multiling O" />
+
+Multiling O has no theme file either. A theme is the colours part of its settings export, a block of lines from `OK_Settings_Begin` to `OK_Settings_End`, and themes are shared as that block or as a link to a page with the block in it. The **Multiling O** button asks where yours is: **Paste** takes the block or the link off the clipboard, **Open a file** reads a text file you saved it in. A whole settings export works too, and so does opening it from a file manager.
+
+The nineteen colours on Multiling's **Color** screen land like this:
+
+| Multiling | Here |
+|---|---|
+| Background | The board |
+| Key1, Text1 | The letter keys and their labels |
+| Key2, Text2 | The other keys (punctuation, shift, delete) and enter |
+| Highlight | A pressed key |
+| Key1 shadow | The key shadow colour, with a small lift |
+| Popup, Popup text | The key popup |
+| Suggestion bar, Suggestion bar text | The suggestion strip |
+| Sub-text1 (or Sub-text2) | The corner hint |
+| Space bar, Space bar text | The space bar's own style |
+| Suggestion highlight | The accent |
+
+A colour of `0` is how that screen says "none", so it stays unset here and this app works it out. The key corner radius, the label size and bold labels come across too. A shadow behind the key labels has no place here, and a wallpaper is only a switch in the text, never the picture; the result message says so when a theme has either.
 
 ### FlorisBoard 0.4 themes
 

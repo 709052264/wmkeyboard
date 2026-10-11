@@ -75,6 +75,7 @@ import com.wasimaster.wmkeyboard.core.layout.ForeignLayouts
 import com.wasimaster.wmkeyboard.core.layout.FutoLayouts
 import com.wasimaster.wmkeyboard.core.layout.ForeignSource
 import com.wasimaster.wmkeyboard.core.layout.KeysCafeLayouts
+import com.wasimaster.wmkeyboard.core.layout.MultilingLayouts
 import com.wasimaster.wmkeyboard.core.layout.ImportedLayout
 import com.wasimaster.wmkeyboard.core.layout.LayoutFile
 import com.wasimaster.wmkeyboard.core.layout.LayoutMessage
@@ -475,6 +476,9 @@ internal fun KeyLayoutsScreen(
     // without one is silently read back as English — with an English dictionary
     // and Latin shift behaviour on, say, a Georgian grid.
     var confirmForeign by remember { mutableStateOf<ConvertedLayout?>(null) }
+    // A Multiling O settings export: every layout its user made, each filed
+    // under the language it was made for, so there is no language to ask.
+    var confirmMultiling by remember { mutableStateOf<List<ConvertedLayout>?>(null) }
     var foreignLangId by remember { mutableStateOf("") }
     var pickingLanguage by remember { mutableStateOf(false) }
 
@@ -548,17 +552,23 @@ internal fun KeyLayoutsScreen(
                         input.readBytes(MAX_FOREIGN_LAYOUT_BYTES + 1)
                     }
                     if (bytes.size > MAX_FOREIGN_LAYOUT_BYTES) {
-                        null
+                        emptyList<ConvertedLayout>()
                     } else {
                         // Keyman first: its files are JSON too, and the
                         // FlorisBoard reader would take one and return null
                         // rather than deferring, so order is the dispatch.
                         val text = bytes.decodeToString()
+                        // Multiling O first: its markers and its `onScreen`
+                        // object are its own, and a settings export can hold
+                        // a dozen layouts where every other format holds one.
+                        if (MultilingLayouts.looksLikeMultiling(text)) {
+                            return@runCatching MultilingLayouts.convertAll(text, name)
+                        }
                         // Keys Cafe before everything: its file is base64 text,
                         // which none of the readers below could take for theirs.
                         // The sniff can pass a HeliBoard text layout of plain
                         // letters by accident, so a refusal falls through.
-                        KeysCafeLayouts.takeIf { it.looksLikeKcf(text) }?.convert(text, name) ?: when {
+                        val single = KeysCafeLayouts.takeIf { it.looksLikeKcf(text) }?.convert(text, name) ?: when {
                             KeymanImport.looksLikeTouchLayout(text) ->
                                 KeymanImport.convert(text, name)
                             // FUTO before the JSON reader for the same reason:
@@ -570,15 +580,20 @@ internal fun KeyLayoutsScreen(
                                 FutoLayouts.convert(text, name)
                             else -> ForeignLayouts.convert(text, name)
                         }
+                        listOfNotNull(single)
                     }
-                }.getOrNull()
+                }.getOrNull().orEmpty()
             }
-            if (converted == null) {
+            if (converted.isEmpty()) {
                 message = context.getString(R.string.layout_editor_foreign_wrong_file_error)
                 return@launch
             }
-            foreignLangId = converted.guessedLangId
-            confirmForeign = converted
+            if (converted.size > 1) {
+                confirmMultiling = converted
+                return@launch
+            }
+            foreignLangId = converted.single().guessedLangId
+            confirmForeign = converted.single()
         }
     }
 
@@ -958,6 +973,48 @@ internal fun KeyLayoutsScreen(
         )
     }
 
+    confirmMultiling?.let { layouts ->
+        AlertDialog(
+            onDismissRequest = { confirmMultiling = null },
+            title = { Text(stringResource(R.string.import_multiling_title)) },
+            text = {
+                Column {
+                    Text(pluralStringResource(R.plurals.import_multiling_layouts_body, layouts.size, layouts.size))
+                    Spacer(Modifier.height(8.dp))
+                    for (layout in layouts) {
+                        Text("• ${layout.layout.name} (${LanguageRegistry.byId(layout.guessedLangId).displayName})")
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    scope.launch {
+                        // One stamp for the batch with the position after it: a
+                        // loop is faster than the clock, and two layouts saved
+                        // under one id would leave only the second.
+                        val stamp = System.currentTimeMillis()
+                        layouts.forEachIndexed { index, converted ->
+                            repository.upsertCustomLayout(
+                                converted.withLanguage(converted.guessedLangId).copy(id = "custom_${stamp}_$index"),
+                            )
+                        }
+                        message = context.resources.getQuantityString(
+                            R.plurals.import_multiling_layouts_done,
+                            layouts.size,
+                            layouts.size,
+                        )
+                    }
+                    confirmMultiling = null
+                }) { Text(stringResource(CommonR.string.common_import)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmMultiling = null }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
+    }
+
     confirmForeign?.let { converted ->
         AlertDialog(
             onDismissRequest = { confirmForeign = null },
@@ -975,6 +1032,7 @@ internal fun KeyLayoutsScreen(
                                 ForeignSource.KEYMAN_TOUCH_LAYOUT ->
                                     R.string.layout_editor_foreign_from_keyman
                                 ForeignSource.KEYS_CAFE -> R.string.layout_editor_foreign_from_keyscafe
+                                ForeignSource.MULTILING -> R.string.layout_editor_foreign_from_multiling
                             },
                         ),
                     )

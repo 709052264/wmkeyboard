@@ -157,6 +157,34 @@ class FileImportSniffTest {
         assertTrue(WMFileTypes.isEditableText(blob))
     }
 
+    // ---- Multiling O ----
+
+    @Test
+    fun `a Multiling O DIY layout is told by its onScreen object`() {
+        val diy = """{"title":"Pad","onScreen":{"main":["qwe","[SHIFT]asd[DEL]","[SYM:.][SPACE][ENTER]"]}}"""
+        val opened = WMFileTypes.textKindFor(diy, "pad.json")
+        assertTrue("a DIY layout was not recognised", opened is WMFileTypes.Opened.MultilingFile)
+        opened as WMFileTypes.Opened.MultilingFile
+        assertEquals("Pad", opened.layouts.single().layout.name)
+        assertEquals(null, opened.theme)
+    }
+
+    @Test
+    fun `a Multiling O theme alone is a theme with no layouts`() {
+        val theme = "OK_Settings_Begin\n__V.co0::ff000000::X\n__V.co1::ff333333::X\nOK_Settings_End"
+        val opened = WMFileTypes.textKindFor(theme, "theme.txt")
+        assertTrue(opened is WMFileTypes.Opened.MultilingFile)
+        opened as WMFileTypes.Opened.MultilingFile
+        assertTrue(opened.layouts.isEmpty())
+        assertEquals(0xFF000000, opened.theme?.theme?.boardBackground)
+    }
+
+    @Test
+    fun `a page that only mentions the Multiling markers is not claimed`() {
+        val prose = "Copy the text from OK_Layout_Begin to OK_Layout_End and paste it."
+        assertEquals(WMFileTypes.Opened.Unrecognized, WMFileTypes.textKindFor(prose, "notes.txt"))
+    }
+
     // ---- archives ----
 
     @Test

@@ -91,6 +91,13 @@ internal fun ImportFilePreview(state: WMFileTypes.Opened, uri: Uri) {
 
         is WMFileTypes.Opened.KeysCafeLayout -> LayoutFilePreview(state.converted.layout)
 
+        // The first layout, or the theme when the text holds no layout: a
+        // settings export's dialog already says how many of each it holds.
+        is WMFileTypes.Opened.MultilingFile -> {
+            val first = state.layouts.firstOrNull()
+            if (first != null) LayoutFilePreview(first.layout) else state.theme?.let { ThemeFilePreview(it.theme) }
+        }
+
         is WMFileTypes.Opened.KeymanPackageFile ->
             keymanLayoutOf(state.contents)?.let { LayoutFilePreview(it.layout) }
 
