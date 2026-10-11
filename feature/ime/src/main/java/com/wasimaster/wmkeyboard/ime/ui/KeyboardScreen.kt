@@ -3648,6 +3648,7 @@ private fun TopBar(
                     // the phrase (#283), and this button is the way to drop it.
                     onClose = { onVoiceAction(VoiceBarAction.CloseStrip) },
                     modifier = Modifier.weight(1f),
+                    onCycleMic = { onVoiceAction(VoiceBarAction.CycleMic) },
                 )
                 return@Row
             }

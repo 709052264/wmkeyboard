@@ -1071,6 +1071,22 @@ data class VoiceUi(
      * panel's microphone chip. Kept current by the service's device watcher.
      */
     val mics: List<String> = emptyList(),
+    /**
+     * The microphone the last session listened through (#581): its
+     * [com.wasimaster.wmkeyboard.core.voice.VoiceMics] kind, never auto, and
+     * the name the device gives (the headset's, or the phone model). Empty
+     * until a session has started.
+     */
+    val micKind: String = "",
+    val micName: String = "",
+    /**
+     * When the surfaces were last asked to say which microphone is in use, in
+     * `SystemClock.uptimeMillis`: when it changes, when the switch is
+     * pressed, and on the first session after the keyboard comes up, not on
+     * every chained phrase. A time rather than a count, so a surface that
+     * mounts a frame after the session started still shows the rest of it.
+     */
+    val micNoticeAt: Long = 0L,
 )
 
 /** The session records a whole clip and transcribes it after the stop tap. */

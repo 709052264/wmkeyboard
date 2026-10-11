@@ -15,6 +15,7 @@ import android.content.IntentFilter
 import android.content.res.Configuration
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
+import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -2591,6 +2592,12 @@ open class WMKeyboardService : InputMethodService() {
 
     /** The Bluetooth voice link a dictation through a headset holds (#581). */
     private val voiceMicRoute by lazy { VoiceMics.Route(this) }
+
+    /** The microphone last announced on the voice surfaces, as "kind|name"; null shows the next one. */
+    private var lastMicNotice: String? = null
+
+    /** The chip was pressed: the next session says its microphone even if it is the same one. */
+    private var forceMicNotice = false
 
     /** Keeps [VoiceUi.mics] in step with what is plugged in, for the panel's microphone chip. */
     private val voiceMicWatcher by lazy {
@@ -6534,6 +6541,8 @@ open class WMKeyboardService : InputMethodService() {
         rememberTypedNumber()
         super.onFinishInputView(finishingInput)
         keyboardVisible = false
+        // The next keyboard says which microphone its first dictation uses.
+        lastMicNotice = null
         // The drag that put it up cannot finish with the keyboard gone.
         caretMagnifier.stop()
         // The ring belongs to the board that is going away: a new session gets
@@ -22275,6 +22284,7 @@ open class WMKeyboardService : InputMethodService() {
             startWhisperCapture(whisperModel, generation, mic)
             return
         }
+        noteVoiceMic(VoiceMics.deviceFor(this, mic) ?: VoiceMics.autoDevice(this))
         if (!modelKnown) refreshVoiceModelState(tag)
         voiceEngine.start(
             tag,
@@ -22631,6 +22641,7 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         whisperRecorder = recorder
+        noteVoiceMic(recorder.routedDevice ?: VoiceMics.deviceFor(this, mic) ?: VoiceMics.autoDevice(this))
         // A blocked mic records zeros, and Whisper turns a silent clip into
         // confident filler text, so catch it before anything is transcribed.
         micBlockWatcher.start(recorder.audioSessionId) { onMicBlocked(generation) }
@@ -23216,9 +23227,38 @@ open class WMKeyboardService : InputMethodService() {
             it.copy(settings = it.settings.copy(voiceBar = it.settings.voiceBar.copy(mic = next)))
         }
         serviceScope.launch { settingsRepository.setVoiceMic(next) }
+        forceMicNotice = true
         if (state.voice.status == VoiceStatus.LISTENING) {
             voiceSilentRetries = 0
             startVoice()
+        } else {
+            // Nothing is recording, so say what the next session will use.
+            noteVoiceMic(VoiceMics.deviceFor(this, voiceMicKind()) ?: VoiceMics.autoDevice(this))
+        }
+    }
+
+    /**
+     * Publishes the microphone a session listens through, and asks the
+     * surfaces to say so ("Using Bluetooth mic (X7)") when it is news: a
+     * different microphone, a press of the chip, or the first session since
+     * the keyboard came up. Continuous dictation restarts for every phrase,
+     * and saying the same thing each time would be noise.
+     */
+    private fun noteVoiceMic(device: AudioDeviceInfo?) {
+        val kind = device?.let(VoiceMics::kindOf).orEmpty()
+        val name = device?.productName?.toString().orEmpty()
+        val key = "$kind|$name"
+        val show = forceMicNotice || key != lastMicNotice
+        forceMicNotice = false
+        lastMicNotice = key
+        _uiState.update {
+            it.copy(
+                voice = it.voice.copy(
+                    micKind = kind,
+                    micName = name,
+                    micNoticeAt = if (show) SystemClock.uptimeMillis() else it.voice.micNoticeAt,
+                ),
+            )
         }
     }
 

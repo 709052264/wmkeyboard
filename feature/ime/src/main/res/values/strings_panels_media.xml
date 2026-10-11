@@ -112,11 +112,14 @@
     <!-- Collapse button on the voice panel and the compact bar: switch
          dictation to the small pill and make that the new default. -->
     <string name="ime_voice_collapse_desc">Collapse to the small bar</string>
-    <string name="ime_voice_mic_auto">Auto</string>
-    <string name="ime_voice_mic_phone">Phone</string>
-    <string name="ime_voice_mic_wired">Wired</string>
-    <string name="ime_voice_mic_usb">USB</string>
-    <string name="ime_voice_mic_bluetooth">Bluetooth</string>
+    <string name="ime_voice_mic_auto">Automatic mic</string>
+    <string name="ime_voice_mic_phone">Built-in mic</string>
+    <string name="ime_voice_mic_wired">Wired mic</string>
+    <string name="ime_voice_mic_usb">USB mic</string>
+    <string name="ime_voice_mic_bluetooth">Bluetooth mic</string>
+    <!-- "Bluetooth mic (X7)": the kind of microphone, then the name the device gives itself. -->
+    <string name="ime_voice_mic_named">%1$s (%2$s)</string>
+    <string name="ime_voice_mic_using">Using %1$s</string>
     <string name="ime_voice_mic_desc">Microphone: %1$s</string>
     <string name="ime_voice_mic_switch">Switch microphone</string>
     <!-- The bar's expand button: go back to the surface it replaced. -->

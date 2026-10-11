@@ -56,6 +56,9 @@ class WhisperRecorder(
     /** The capture's audio session, for [MicBlockWatcher]; 0 when not recording. */
     val audioSessionId: Int get() = record?.audioSessionId ?: 0
 
+    /** The microphone the capture is actually coming from, once it has started; null before or if Android won't say. */
+    val routedDevice: AudioDeviceInfo? get() = runCatching { record?.routedDevice }.getOrNull()
+
     /** How much has been captured so far, in samples. */
     val sampleCount: Int get() = count
 

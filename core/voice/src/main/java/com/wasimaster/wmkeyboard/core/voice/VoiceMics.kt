@@ -16,11 +16,14 @@ import android.os.Looper
  *
  * Two engines, two reaches. Whisper and the transcription server record with
  * the keyboard's own `AudioRecord`, which takes a preferred device, so every
- * kind works for them. The system recognizer records in its own process and
- * cannot be pointed at a device; what does reach it is a Bluetooth headset
- * made the communication device, since Android then routes voice-recognition
- * capture to the headset's microphone. So for the system engine only
- * Bluetooth is a real choice, and [choices] says so.
+ * kind works for them. For Bluetooth the headset is also made the
+ * communication device: FUTO's keyboard moves its own VOICE_RECOGNITION
+ * capture to a headset exactly that way (AudioRecognizer.setCommunicationDevice,
+ * no preferred device, no extra permission), which is the evidence it works.
+ * The system recognizer records in its own process and cannot be handed a
+ * device; the communication device is the one lever that might reach it, so
+ * for that engine only Bluetooth is offered ([choices]). That reach is not
+ * device-verified: FUTO has no system-recognizer engine to show it.
  */
 object VoiceMics {
     const val AUTO = "auto"
@@ -83,6 +86,17 @@ object VoiceMics {
         // A Bluetooth headset can be there twice, as a classic SCO link and as
         // LE Audio; the classic one is what every headset speaks.
         return matches.firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO } ?: matches.firstOrNull()
+    }
+
+    /**
+     * The microphone Android records from when nobody asks for one: a wired
+     * or USB headset before the phone's own, never Bluetooth. A guess for the
+     * system recognizer, which records out of sight; the keyboard's own
+     * capture asks its recorder instead.
+     */
+    fun autoDevice(context: Context): AudioDeviceInfo? {
+        val all = inputs(context)
+        return listOf(WIRED, USB, PHONE).firstNotNullOfOrNull { kind -> all.firstOrNull { kindOf(it) == kind } }
     }
 
     /**
