@@ -861,6 +861,8 @@ private fun SearchStrings.layoutSizeRows(): List<SettingsSearchEntry> {
         row(R.string.layout_keyboard_position_title, R.string.layout_keyboard_position_info),
         row(R.string.layout_variant_follows_portrait_label),
         row(R.string.layout_font_size_title),
+        row(R.string.layout_variant_allow_one_handed_title, R.string.layout_variant_allow_one_handed_subtitle),
+        row(R.string.layout_variant_allow_split_title, R.string.layout_variant_allow_split_subtitle),
         row(R.string.layout_follow_portrait_title),
     )
 }

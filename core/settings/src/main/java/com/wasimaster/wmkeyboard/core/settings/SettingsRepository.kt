@@ -8475,6 +8475,10 @@ class SettingsRepository(private val context: Context) {
             intPreferencesKey(variantKey("bottom_row_height", v))
         private fun variantNumberRowKey(v: ScreenVariant) =
             booleanPreferencesKey(variantKey("number_row", v))
+        private fun allowOneHandedKey(v: ScreenVariant) =
+            booleanPreferencesKey(variantKey("allow_one_handed", v))
+        private fun allowSplitKey(v: ScreenVariant) =
+            booleanPreferencesKey(variantKey("allow_split", v))
         private val KEY_GAP_SCALE = floatPreferencesKey("key_gap_scale")
         private val KEY_FONT_ID = stringPreferencesKey("key_font_id")
         private val CUSTOM_FONT_NAME = stringPreferencesKey("custom_font_name")
@@ -10169,6 +10173,8 @@ class SettingsRepository(private val context: Context) {
                     sidePadRightScale = p[sidePadRightScaleKey(v)] ?: p[sidePadScaleKey(v)],
                     bottomRowHeightDp = p[bottomRowHeightKey(v)],
                     numberRow = p[variantNumberRowKey(v)],
+                    allowOneHanded = p[allowOneHandedKey(v)],
+                    allowSplit = p[allowSplitKey(v)],
                 )
             }
             .filterValues { !it.isEmpty }
@@ -13713,6 +13719,8 @@ class SettingsRepository(private val context: Context) {
             it.remove(sidePadRightScaleKey(variant))
             it.remove(bottomRowHeightKey(variant))
             it.remove(variantNumberRowKey(variant))
+            it.remove(allowOneHandedKey(variant))
+            it.remove(allowSplitKey(variant))
         }
     }
 
@@ -13743,6 +13751,14 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setVariantNumberRow(variant: ScreenVariant, value: Boolean?) =
         editVariantOnly(variant, variantNumberRowKey(variant), value)
+
+    /** Lets one-handed mode show on [variant] or holds it back there (#611). */
+    suspend fun setVariantAllowOneHanded(variant: ScreenVariant, value: Boolean?) =
+        editVariantOnly(variant, allowOneHandedKey(variant), value)
+
+    /** Lets the split keyboard show on [variant] or holds it back there (#611). */
+    suspend fun setVariantAllowSplit(variant: ScreenVariant, value: Boolean?) =
+        editVariantOnly(variant, allowSplitKey(variant), value)
 
     private suspend fun <T : Any> editVariantOnly(
         variant: ScreenVariant,

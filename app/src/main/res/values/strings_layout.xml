@@ -129,6 +129,11 @@
     <string name="layout_keyboard_scale_title">Keyboard scale</string>
     <string name="layout_keyboard_scale_subtitle">Make the whole keyboard smaller or larger on this screen</string>
     <string name="layout_font_size_title">Font size</string>
+    <!-- Per-screen gates on one-handed and split mode (#611). -->
+    <string name="layout_variant_allow_one_handed_title">One-handed mode on this screen</string>
+    <string name="layout_variant_allow_one_handed_subtitle">When off, the keyboard stays full width here, even with one-handed mode on</string>
+    <string name="layout_variant_allow_split_title">Split keyboard on this screen</string>
+    <string name="layout_variant_allow_split_subtitle">When off, the keyboard stays in one piece here, even with split keyboard on</string>
     <string name="layout_follow_portrait_title">Follow portrait again</string>
     <!-- %1$s is the name of a screen shape, such as Landscape. -->
     <string name="layout_follow_portrait_subtitle">Delete the sizes that you set for <xliff:g id="screen" example="Landscape">%1$s</xliff:g></string>

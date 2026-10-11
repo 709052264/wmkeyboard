@@ -664,6 +664,8 @@ internal object SettingsRowIcons {
         put(R.string.layout_keyboard_position_title) { Icons.Outlined.OpenWith }
         put(R.string.layout_font_size_title) { Icons.Outlined.FormatSize }
         put(R.string.layout_follow_portrait_title) { Icons.Outlined.ScreenRotation }
+        put(R.string.layout_variant_allow_one_handed_title) { SymbolIcons.MobileHandLeft }
+        put(R.string.layout_variant_allow_split_title) { Icons.Outlined.VerticalSplit }
         put(R.string.layout_variant_follows_portrait_label) { Icons.Outlined.ScreenRotation }
         put(R.string.layout_one_handed_title) { SymbolIcons.MobileHandLeft }
         put(R.string.layout_one_handed_portrait_only_title) { Icons.Outlined.ScreenRotation }

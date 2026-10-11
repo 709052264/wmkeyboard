@@ -52,6 +52,8 @@ import com.wasimaster.wmkeyboard.core.settings.OneHandedSide
 import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.sizingValuesFor
+import com.wasimaster.wmkeyboard.core.settings.oneHandedAllowedOn
+import com.wasimaster.wmkeyboard.core.settings.splitAllowedOn
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPlacement
 import com.wasimaster.wmkeyboard.core.settings.ToolboxLayout
 import com.wasimaster.wmkeyboard.core.settings.ToolboxPageSizeRange
@@ -1519,6 +1521,24 @@ internal fun LayoutSizeSettings(
                         null,
                         shapeNumberRow,
                     ) { scope.launch { repository.setVariantNumberRow(variant, it) } }
+                }
+                // Gates on the two shared switches (#611), not switches of
+                // their own: the mode stays one setting, and this says whether
+                // the shape honours it. Unset, they show the shared rules
+                // ("Portrait only", "Split only on wide screens").
+                item {
+                    ToggleSetting(
+                        R.string.layout_variant_allow_one_handed_title,
+                        stringResource(R.string.layout_variant_allow_one_handed_subtitle),
+                        settings.watch { it.oneHandedAllowedOn(variant) },
+                    ) { scope.launch { repository.setVariantAllowOneHanded(variant, it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.layout_variant_allow_split_title,
+                        stringResource(R.string.layout_variant_allow_split_subtitle),
+                        settings.watch { it.splitAllowedOn(variant) },
+                    ) { scope.launch { repository.setVariantAllowSplit(variant, it) } }
                 }
                 item(visible = shapeNarrowed) {
                     ChoiceSetting(

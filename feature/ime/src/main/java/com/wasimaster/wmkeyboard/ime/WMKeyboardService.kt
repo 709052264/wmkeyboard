@@ -280,6 +280,7 @@ import com.wasimaster.wmkeyboard.core.plugins.RenderedUi
 import com.wasimaster.wmkeyboard.core.plugins.inputIds
 import com.wasimaster.wmkeyboard.core.plugins.resolve
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupScheduler
+import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.core.settings.ThemeSelectionTarget
@@ -344,6 +345,7 @@ import com.wasimaster.wmkeyboard.core.settings.GestureSettings
 import com.wasimaster.wmkeyboard.core.settings.TwoThumbWordEnd
 import com.wasimaster.wmkeyboard.core.settings.glideTuning
 import com.wasimaster.wmkeyboard.core.settings.floatingFor
+import com.wasimaster.wmkeyboard.core.settings.oneHandedAllowedOn
 import com.wasimaster.wmkeyboard.core.settings.GlideCommitColor
 import com.wasimaster.wmkeyboard.core.settings.GlideCommitColorScope
 import com.wasimaster.wmkeyboard.core.settings.GlideLookAhead
@@ -21804,12 +21806,23 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.ONE_HANDED -> {
                 val landscape =
                     resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-                if (landscape && settings.oneHanded.portraitOnly) {
-                    // The setting holds the mode off sideways (#503), so a press
-                    // here would change nothing visible: say why instead.
+                val variant = ScreenVariant.of(
+                    landscape = landscape,
+                    unfolded = resources.configuration.smallestScreenWidthDp >= ScreenVariant.UNFOLDED_MIN_DP,
+                )
+                if (!settings.oneHandedAllowedOn(variant)) {
+                    // "Portrait only" (#503) or this screen shape's own gate
+                    // (#611) holds the mode off here, so a press would change
+                    // nothing visible: say why instead.
                     Toast.makeText(
                         this,
-                        getString(R.string.ime_service_one_handed_portrait_only_toast),
+                        getString(
+                            if (settings.sizingOverrides[variant]?.allowOneHanded == false) {
+                                R.string.ime_service_one_handed_screen_off_toast
+                            } else {
+                                R.string.ime_service_one_handed_portrait_only_toast
+                            },
+                        ),
                         Toast.LENGTH_SHORT,
                     ).show()
                 } else {
