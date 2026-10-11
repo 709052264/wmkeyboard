@@ -1219,6 +1219,17 @@ enum class GlideApostropheKey { OFF, COMMA, PERIOD, SPACE, APOSTROPHE }
  */
 enum class ShiftGlideMode { WORD, LETTER }
 
+/**
+ * What finishes a word typed with both thumbs (issue #638), while
+ * [GestureSettings.twoThumbGlide] is on.
+ *
+ * [SPACE] is Nintype's model: every tap and swipe joins the word in progress,
+ * which is re-read after each one, until space or punctuation. [ALL_UP] keeps
+ * the feel of ordinary glide: the word is typed, with its space, the moment
+ * no finger is down any more, so the thumbs have to overlap to share a word.
+ */
+enum class TwoThumbWordEnd { SPACE, ALL_UP }
+
 /** The character each [GlideApostropheKey] borrows, or null for [GlideApostropheKey.OFF]/SPACE. */
 val GlideApostropheKey.sourceChar: Char?
     get() = when (this) {
@@ -6342,6 +6353,22 @@ data class GestureSettings(
      */
     val spaceGlideMultiWord: Boolean = true,
     /**
+     * Two-thumb typing (issue #638): both thumbs may tap or swipe at once, and
+     * every gesture joins one word instead of each swipe being a word of its
+     * own. Off by default because it changes what a lift does: a swipe no
+     * longer types its word straight away (see [twoThumbWordEnd]).
+     */
+    val twoThumbGlide: Boolean = false,
+    /** What finishes a two-thumb word. See [TwoThumbWordEnd]. */
+    val twoThumbWordEnd: TwoThumbWordEnd = TwoThumbWordEnd.SPACE,
+    /**
+     * A swipe right after typed letters finishes them as one word, so "to"
+     * typed and "gether" swiped give "together" (issue #595). Two-thumb
+     * typing always does this; this switch is for ordinary glide, where the
+     * typed letters are otherwise a word of their own.
+     */
+    val swipeContinuesTyped: Boolean = false,
+    /**
      * Passing over the shift key mid-glide capitalizes the word, so a proper
      * noun can be swiped without stopping to tap shift first (#115).
      *
@@ -8529,6 +8556,9 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_SPACE_MULTI_WORD = booleanPreferencesKey("gesture_space_multi_word")
         private val GESTURE_SHIFT_CAPITALS = booleanPreferencesKey("gesture_shift_capitals")
         private val GESTURE_SHIFT_MODE = stringPreferencesKey("gesture_shift_glide_mode")
+        private val GESTURE_TWO_THUMB = booleanPreferencesKey("gesture_two_thumb")
+        private val GESTURE_TWO_THUMB_WORD_END = stringPreferencesKey("gesture_two_thumb_word_end")
+        private val GESTURE_SWIPE_CONTINUES_TYPED = booleanPreferencesKey("gesture_swipe_continues_typed")
         private val GESTURE_AMBIGUITY_PICKER = booleanPreferencesKey("gesture_ambiguity_picker")
         private val GESTURE_PICKER_DWELL_MS = intPreferencesKey("gesture_picker_dwell_ms")
         private val GESTURE_PICKER_SENSITIVITY = stringPreferencesKey("gesture_picker_sensitivity")
@@ -10114,6 +10144,11 @@ class SettingsRepository(private val context: Context) {
             shiftGlideMode = p[GESTURE_SHIFT_MODE]
                 ?.let { runCatching { ShiftGlideMode.valueOf(it) }.getOrNull() }
                 ?: defaults.gesture.shiftGlideMode,
+            twoThumbGlide = p[GESTURE_TWO_THUMB] ?: defaults.gesture.twoThumbGlide,
+            twoThumbWordEnd = p[GESTURE_TWO_THUMB_WORD_END]
+                ?.let { runCatching { TwoThumbWordEnd.valueOf(it) }.getOrNull() }
+                ?: defaults.gesture.twoThumbWordEnd,
+            swipeContinuesTyped = p[GESTURE_SWIPE_CONTINUES_TYPED] ?: defaults.gesture.swipeContinuesTyped,
             ambiguityPicker = p[GESTURE_AMBIGUITY_PICKER] ?: defaults.gesture.ambiguityPicker,
             // Coerced on the way in as well as on the way out: a value
             // restored from an edited backup must never index past the
@@ -15547,6 +15582,15 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGestureShiftGlideMode(value: ShiftGlideMode) =
         editPrefs { it[GESTURE_SHIFT_MODE] = value.name }
+
+    suspend fun setGestureTwoThumb(value: Boolean) =
+        editPrefs { it[GESTURE_TWO_THUMB] = value }
+
+    suspend fun setGestureTwoThumbWordEnd(value: TwoThumbWordEnd) =
+        editPrefs { it[GESTURE_TWO_THUMB_WORD_END] = value.name }
+
+    suspend fun setGestureSwipeContinuesTyped(value: Boolean) =
+        editPrefs { it[GESTURE_SWIPE_CONTINUES_TYPED] = value }
 
     suspend fun setGestureAmbiguityPicker(value: Boolean) =
         editPrefs { it[GESTURE_AMBIGUITY_PICKER] = value }
