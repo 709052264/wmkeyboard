@@ -5119,6 +5119,17 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun isNullField(): Boolean = currentInputEditorInfo.isNullClass()
 
+    /**
+     * A text field in a web page, Chrome's or a WebView's: Chromium declares
+     * every one of them, textarea and contenteditable included, as the web
+     * edit-text variation.
+     */
+    private fun isWebEditField(): Boolean {
+        val inputType = currentInputEditorInfo?.inputType ?: return false
+        return inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_CLASS_TEXT &&
+            inputType and InputType.TYPE_MASK_VARIATION == InputType.TYPE_TEXT_VARIATION_WEB_EDIT_TEXT
+    }
+
     /** A physical keyboard is attached and not folded away. */
     private fun hasHardwareKeyboard(): Boolean {
         val config = resources.configuration
@@ -10338,7 +10349,18 @@ open class WMKeyboardService : InputMethodService() {
             if (expectedSelStart >= 0) {
                 noteDeletedForLearning(expectedSelStart - deleteLength, expectedSelStart)
             }
-            ic.deleteSurroundingText(deleteLength, 0)
+            // A code editor in a page (CodeMirror, issue #494) acts on the key
+            // and puts back a delete made straight on its text. The browser
+            // then picks how much goes, which is one grapheme, the same as
+            // deleteLength unless this language deletes whole conjuncts; those
+            // keep the direct delete so the setting still means what it says.
+            if (state.settings.textEditing.webBackspaceKeyEvents && isWebEditField() &&
+                state.language.id !in state.settings.conjunctBackspaceLanguages
+            ) {
+                sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL)
+            } else {
+                ic.deleteSurroundingText(deleteLength, 0)
+            }
             // Backspacing through committed text is the one way the word
             // behind the cursor changes without passing through learn(), so
             // the strip used to keep predicting from a word the user had
