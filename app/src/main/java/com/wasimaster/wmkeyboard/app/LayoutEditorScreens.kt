@@ -375,6 +375,7 @@ private fun composerLabel(type: ComposerType): String = stringResource(
         ComposerType.CANGJIE_QUICK -> R.string.layout_editor_composer_cangjie_quick
         ComposerType.JYUTPING -> R.string.layout_editor_composer_jyutping
         ComposerType.KHIPRO -> R.string.layout_editor_composer_khipro
+        ComposerType.KHIPRO_DARK -> R.string.layout_editor_composer_khipro_dark
         ComposerType.CHEONJIIN -> R.string.layout_editor_composer_cheonjiin
     },
 )
@@ -402,6 +403,7 @@ private fun composerDescRes(type: ComposerType?): Int = when (type) {
     ComposerType.CANGJIE_QUICK -> R.string.layout_editor_composer_cangjie_quick_desc
     ComposerType.JYUTPING -> R.string.layout_editor_composer_jyutping_desc
     ComposerType.KHIPRO -> R.string.layout_editor_composer_khipro_desc
+    ComposerType.KHIPRO_DARK -> R.string.layout_editor_composer_khipro_dark_desc
     ComposerType.CHEONJIIN -> R.string.layout_editor_composer_cheonjiin_desc
 }
 

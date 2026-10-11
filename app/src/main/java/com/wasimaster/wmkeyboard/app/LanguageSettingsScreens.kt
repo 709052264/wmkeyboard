@@ -1131,7 +1131,7 @@ internal fun LanguageDetailScreen(
         }
     }
     val phonetic = ComposerType.TRANSLITERATE in composers
-    val transliterating = phonetic || ComposerType.KHIPRO in composers
+    val transliterating = phonetic || ComposerType.KHIPRO in composers || ComposerType.KHIPRO_DARK in composers
     if (transliterating) {
         SettingsGroup(stringResource(R.string.languages_translit_hints_title)) {
             item {

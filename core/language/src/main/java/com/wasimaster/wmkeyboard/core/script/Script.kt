@@ -263,6 +263,12 @@ enum class ComposerType {
      * no dictionary reading to rank: the keys spell exactly one word.
      */
     KHIPRO,
+
+    /**
+     * Bengali: Khipro Dark (issue #631). Khipro, except that consonants stay
+     * apart until `/` joins them, one press per extra consonant.
+     */
+    KHIPRO_DARK,
 }
 
 /**

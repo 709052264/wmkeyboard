@@ -3472,7 +3472,7 @@ open class WMKeyboardService : InputMethodService() {
         // glide is set up again, from the table or, failing it, on the device.
         serviceScope.launch {
             KhiproGlideDownloads.completions.collect {
-                if (_uiState.value.composer is KhiproComposer) ensureKhiproGlide()
+                if (_uiState.value.composer === KhiproComposer.CLASSIC) ensureKhiproGlide()
             }
         }
 
@@ -4292,11 +4292,9 @@ open class WMKeyboardService : InputMethodService() {
                 // a Khipro layout that is switched on pays for that here
                 // rather than on its first keystroke.
                 val enabled = _uiState.value.settings
-                val khipro = enabled.enabledLayoutIds.any { id ->
-                    val spec = resolveLayout(enabled.customLayouts, id)
-                    spec.resolvedComposer() === KhiproComposer
-                }
-                if (khipro) Khipro.Variant.entries.forEach(Khipro::warm)
+                enabled.enabledLayoutIds.mapNotNullTo(HashSet()) { id ->
+                    resolveLayout(enabled.customLayouts, id).resolvedComposer() as? KhiproComposer
+                }.forEach(KhiproComposer::warm)
                 // Older installs inflated the bundled lists into
                 // credential-encrypted storage; they live in the
                 // device-protected area now (see [openLanguageDictionary]).
@@ -9269,9 +9267,8 @@ open class WMKeyboardService : InputMethodService() {
         // spec (1 is ১, . is ।), one typed on the keys against the touchscreen
         // one. Chosen by the key that starts the word and kept to its end, so
         // one word never reads half one way and half the other.
-        if (state.composer === KhiproComposer && composing.isEmpty()) {
-            KhiproComposer.variant = if (hardwareKeyTyping) Khipro.Variant.DESKTOP else Khipro.Variant.TOUCHSCREEN
-        }
+        val khipro = state.composer
+        if (khipro is KhiproComposer && composing.isEmpty()) khipro.startWord(hardwareKeyboard = hardwareKeyTyping)
         // One-shot, spent by this keystroke whatever it turns out to be: a mark
         // takes the keyboard's own space back, and anything else simply types
         // past it. Both kinds of space count — the one that ended a word (glide
@@ -20267,7 +20264,9 @@ open class WMKeyboardService : InputMethodService() {
                     languageId = state.language.id,
                     converts = state.composer.isTransliterating || state.composer.isConversion,
                     phonetic = state.composer.phoneticLanguage
-                        ?: KHIPRO_GLIDE.takeIf { state.composer is KhiproComposer },
+                        // Classic only: the glide spellings are Classic's,
+                        // which join consonants that Dark leaves apart.
+                        ?: KHIPRO_GLIDE.takeIf { state.composer === KhiproComposer.CLASSIC },
                     alphabet = state.layouts.letterAlphabet + state.composer.glideKeys +
                         // The glide grid puts the apostrophe on the `'` key for
                         // these (see KeyboardScreen), so their words count as

@@ -858,11 +858,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Ridmik spellings accepted alongside Avro's — qq/cb for ঁ, HH for ঃ, hs for hasant (only after a consonant, so "ahsan" is safe)
     - Stray capitals read as lowercase — "Bangla" still types বাংলা instead of dropping a Latin B into the buffer
     - Digits and currency — 0-9 map to ০-৯, $ to ৳, single dot to ।, double dot to a literal period
-  - Bengali Khipro `RARE` — Compositional ক্ষিপ্র layout (#400): the Khipro team's own m17n spec (v36.5.0, MIT) run by a small interpreter, passing their conformance cases
+  - Bengali Khipro `RARE` — Compositional ক্ষিপ্র layout (#400): the Khipro team's own m17n spec (Classic, refreshed October 2026, MIT) run by a small interpreter, passing their conformance cases
     - Deterministic — space commits exactly the composed text; no spelling map, no phonetic fold, no autocorrect
     - Completion strip — composed word first, then bundled/downloaded Bangla words and learned words that start with it
     - Touch grid per the Khipro guideline — / slicer where shift sits, ; separator beside the spacebar, danda key kept
     - Hardware keyboard uses the desktop spec — digits to ০-৯, . to ।, $ to ৳, chosen per word by the key that starts it
+    - Khipro Dark (#631) — second layout on the same grid running the Dark specs; consonants join only on /, one press per extra consonant (ntrz/// → ন্ত্র্য); interpreter gained m17n markers, comparisons and macros for it; no glide yet
   - Lenient Banglish matching `RARE` — Both input and every dictionary word fold to a phonetic key where confusable sounds collapse
     - Aspiration kept as a parallel mask — Typing the h and not getting it is penalised 20x; leaving it out is penalised 2x; only ক/খ, গ/ঘ, ত/থ, ট/ঠ, দ/ধ, ড/ঢ count
     - ch and ph excluded on purpose — They are ordinary English-influenced spellings, not aspiration claims
