@@ -33,6 +33,11 @@ data class CjkDictPack(
     val sha256: String,
     /** On-disk file name for the downloaded pack. */
     val fileName: String,
+    /**
+     * Other languages whose detail screen also lists the pack. Still one pack,
+     * downloaded once: the row on either screen shows the same file.
+     */
+    val alsoLangIds: Set<String> = emptySet(),
 ) {
     /** Where the pack is fetched from: the data repository, wherever [ServiceRepo.DATA] points. */
     val url: String get() = ServiceEndpoints.repo(ServiceRepo.DATA).rawUrl(path)
@@ -94,6 +99,8 @@ object CjkDictCatalog {
         // Not a reading table: the OpenCC phrases that let Traditional output
         // pick 頭髮 over 頭發 (#609). Optional — without it the bundled character
         // table still converts, one character at a time. See [HanVariant].
+        // Cantonese lists it too: Jyutping candidates go through the same
+        // conversion when Traditional output is on.
         CjkDictPack(
             id = "s2t_phrases",
             langId = "zh",
@@ -103,6 +110,7 @@ object CjkDictCatalog {
             sizeBytes = 1_021_797L,
             sha256 = "a8c1ff12191edfc8dc435d23736e2bf097357650ea195f51767d397c5b70908c",
             fileName = "s2t_phrases.txt",
+            alsoLangIds = setOf("yue"),
         ),
         CjkDictPack(
             id = "jyutping",
@@ -126,7 +134,8 @@ object CjkDictCatalog {
     fun byFileName(name: String): CjkDictPack? =
         packs.firstOrNull { it.available && it.path.substringAfterLast('/') == name }
 
-    fun forLang(langId: String): List<CjkDictPack> = packs.filter { it.langId == langId }
+    fun forLang(langId: String): List<CjkDictPack> =
+        packs.filter { it.langId == langId || langId in it.alsoLangIds }
 }
 
 /**

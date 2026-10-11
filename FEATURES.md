@@ -956,7 +956,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Five reading spaces — pinyin, pinyin_t9, zhuyin, jyutping, ja_kana each keep their own history; Cangjie and Stroke deliberately do not learn
     - Separate from the Latin user lexicon — That store drops one-character keys, is keyed by surface word, and feeds the gesture decoder where Hanzi is pollution
     - Governed by the on-device learning setting — Incognito and no-learning fields stop new picks being recorded
-  - Conversion dictionary packs `uncommon` — 6 downloadable packs, none bundled: pinyin 2.5 MB, ja_kana 41.5 MB, jyutping 3.4 MB, stroke 446 KB, cangjie 351 KB, s2t_phrases 1 MB (OpenCC, Traditional output)
+  - Conversion dictionary packs `uncommon` — 6 downloadable packs, none bundled: pinyin 2.5 MB, ja_kana 41.5 MB, jyutping 3.4 MB, stroke 446 KB, cangjie 351 KB, s2t_phrases 1 MB (OpenCC, Traditional output; listed under Chinese and Cantonese)
     - SHA-256 verified before going live — A corrupt conversion table would silently mistranslate
     - Resumable — .part file plus HTTP Range, with a preflight free-space check
     - Presence means valid — Atomic rename after verification, so a final file only exists if the download completed

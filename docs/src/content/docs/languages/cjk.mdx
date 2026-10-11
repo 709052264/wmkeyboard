@@ -131,7 +131,7 @@ Fuzzy Pinyin is off by default and lazy pronunciation is on, and they change ran
 
 A single toggle switches candidate output from Simplified to Traditional Han, applied as each composer builds its candidate list (not as a find-and-replace afterward, which would break prefix-commit matching). Many Simplified characters have more than one Traditional form, and only the word tells which: 发 is 發 in 發展 but 髮 in 頭髮, 后 is 後 in 後來 but stays 后 in 皇后, 干 is 幹 in 幹部 but 乾 in 乾淨. The keyboard converts word by word with the [OpenCC](https://github.com/BYVoid/OpenCC) phrase and character tables (release 1.4.2), using OpenCC's own matching: the candidate is split into the longest phrases it contains, each phrase converts as a unit, and only a character that is in no phrase falls back to its most common form. A candidate the keyboard stitched from several words is split the same way, so 头发干净 comes out as 頭髮乾淨.
 
-The character tables ship with the app. The phrase table is the **Traditional characters phrase table** pack, about 1 MB, which you download from the Chinese options page like the other tables below. Without it, Traditional output still works, but one character at a time: each character takes its most common form, so 头发 comes out as 頭發. Conversion itself never goes online. The tables load the first time you turn the toggle on, so for a moment after that the candidates can still show in Simplified.
+The character tables ship with the app. The phrase table is the **Traditional characters phrase table** pack, about 1 MB, which you download from the Chinese or Cantonese options page like the other tables below. It is one download: the row on either page is the same file. Without it, Traditional output still works, but one character at a time: each character takes its most common form, so 头发 comes out as 頭發. Conversion itself never goes online. The tables load the first time you turn the toggle on, so for a moment after that the candidates can still show in Simplified.
 
 With Traditional on, a second control appears: a region picker (Standard / Taiwan / Hong Kong). **Taiwan** follows OpenCC's `s2twp`: it swaps regional vocabulary, Taiwan's 計程車 instead of the mainland's 出租車 for "taxi," for instance, and then applies Taiwan's character preferences (為, 裡, 著). Vocabulary is matched inside a candidate too, so 出租车光盘 becomes 計程車光碟. **Hong Kong** follows OpenCC's `s2hk`: the standard wording with Hong Kong's character preferences (説, 衞, 温). The Hong Kong choices come straight from OpenCC's tables and have not been reviewed by a Hong Kong writer yet; a wrong one is worth reporting.
 
@@ -259,7 +259,7 @@ You don't have to know that in advance. The first time you type a reading on a k
 | Chinese | Pinyin (also covers Zhuyin & T9 Pinyin) | ~2.5 MB | ~120k entries, CC-CEDICT-derived |
 | Chinese | Stroke | ~450 KB | Stroke-order table |
 | Chinese | Cangjie (also covers Cangjie Quick) | ~350 KB | ~29k characters |
-| Chinese | Traditional characters phrase table (optional, for [Traditional output](#traditional-characters-and-regional-wording)) | ~1 MB | ~50k phrases, OpenCC |
+| Chinese, Cantonese | Traditional characters phrase table (optional, for [Traditional output](#traditional-characters-and-regional-wording)) | ~1 MB | ~50k phrases, OpenCC |
 | Cantonese | Jyutping | ~3.4 MB | ~163k entries |
 | Japanese | Kana → kanji | ~42 MB | ~1.08M entries, Mozc-derived |
 
