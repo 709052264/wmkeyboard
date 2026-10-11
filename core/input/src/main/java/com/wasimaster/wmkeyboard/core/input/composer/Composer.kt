@@ -265,6 +265,22 @@ interface Composer {
         // Nothing to learn: the default composer has no candidate list to reorder.
     }
 
+    /**
+     * The readings the next undecided part of [buffer] could be, best first, for
+     * a keypad whose keys each stand for several letters: a 九宫格 pinyin `9426`
+     * could be xiao, zhan, xi, yi… (issue #635). The keyboard lists them beside
+     * the keys, and a pick goes through [pickReading]. Empty for every composer
+     * whose keys already say which reading they spell.
+     */
+    fun readings(buffer: String): List<String> = emptyList()
+
+    /**
+     * [buffer] with its next undecided part settled as [reading], one of
+     * [readings] — still a buffer, so the candidates re-convert from it and the
+     * list moves on to the part after. Null when [reading] does not fit there.
+     */
+    fun pickReading(buffer: String, reading: String): String? = null
+
     /** A transliterator's buffer (roman, or jamo) rendered as script text. */
     fun composeBuffer(buffer: String): String = buffer
 

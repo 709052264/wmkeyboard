@@ -260,6 +260,17 @@ class LayoutCodecTest {
     }
 
     @Test
+    fun `round trips the reading column under its file name`() {
+        // Issue #635: the T9 pinyin pad's left column, two rows tall here.
+        val original = spec(
+            listOf(Key("拼音", action = KeyAction.ReadingColumn, rowSpan = 2, longPress = listOf("，", "。"))),
+        )
+        val encoded = LayoutCodec.encode(original)
+        assertTrue(encoded.contains("\"reading_column\""))
+        assertEquals(original, LayoutCodec.decode(encoded))
+    }
+
+    @Test
     fun `round trips the corner flick arms under their snake-case names`() {
         // Issue #410: the diagonals are spelled up_left and so on in the file.
         val original = spec(

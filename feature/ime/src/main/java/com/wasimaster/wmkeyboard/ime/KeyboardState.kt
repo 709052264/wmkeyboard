@@ -2670,6 +2670,12 @@ data class KeyboardUiState(
     val expandedCandidates: List<String> = emptyList(),
     val suggestions: List<String> = emptyList(),
     /**
+     * What the next undecided syllable of a conversion reading could be, for a
+     * reading column to offer (`Composer.readings`, issue #635). Empty for every
+     * composer but T9 pinyin, and once every syllable is settled.
+     */
+    val conversionReadings: List<String> = emptyList(),
+    /**
      * Desktop Avro's candidate list for the word being typed, for the row
      * above the strip; empty unless the phonetic language is set to show it
      * there (`SuggestionStripSettings.phoneticCandidateLists`).

@@ -7514,6 +7514,8 @@ open class WMKeyboardService : InputMethodService() {
                 HangulStrokes.addStroke(buffer, vowelPairs = composer === NaratgeulComposer)
             }
             KeyAction.DoubleConsonant -> rewriteLastJamo { buffer, _ -> HangulStrokes.doubleConsonant(buffer) }
+            // A syllable picked from a 九宫格 pad's reading column (#635).
+            KeyAction.ReadingColumn -> pickConversionReading(key.output.orEmpty())
             KeyAction.Fn -> onFn()
             is KeyAction.BrailleDot -> onBrailleDot(key.action as KeyAction.BrailleDot)
             KeyAction.MorseDot -> onMorseSignal(dash = false)
@@ -8566,7 +8568,8 @@ open class WMKeyboardService : InputMethodService() {
         // the last key rather than the whole syllable it helped build (#454).
         val run = if (composesInCapture(state.composer)) liveCaptureComposition(state, before) else null
         if (run != null) {
-            rewriteCaptureComposition(state, target, before, run, run.keys.dropLast(1))
+            val keys = if (state.composer.isConversion) state.composer.backspaceBuffer(run.keys) else run.keys.dropLast(1)
+            rewriteCaptureComposition(state, target, before, run, keys)
             return true
         }
         val length = charDeleteLength(before.text.substring(0, before.at))
@@ -9142,18 +9145,20 @@ open class WMKeyboardService : InputMethodService() {
         if (!composer.isConversion || !composesInCapture(composer)) return false
         val reading = captureCompositionIfLive(state, caret)?.keys?.takeIf { it.isNotEmpty() }
         if (reading == null) {
-            if (state.captureSuggestions.isNotEmpty()) {
-                _uiState.update { it.copy(captureSuggestions = emptyList()) }
+            if (state.captureSuggestions.isNotEmpty() || state.conversionReadings.isNotEmpty()) {
+                _uiState.update { it.copy(captureSuggestions = emptyList(), conversionReadings = emptyList()) }
             }
             return true
         }
         val slots = state.settings.suggestionStrip.slotCount
         val key = state.captureKey()
         captureSuggestJob = serviceScope.launch {
-            val words = withContext(Dispatchers.Default) { composer.candidates(reading, slots) }
+            val (words, readings) = withContext(Dispatchers.Default) {
+                composer.candidates(reading, slots) to composer.readings(reading)
+            }
             _uiState.update { s ->
                 if (s.captureKey() != key || s.captureCaretText() != caret) s
-                else s.copy(captureSuggestions = words)
+                else s.copy(captureSuggestions = words, conversionReadings = readings)
             }
         }
         return true
@@ -10662,8 +10667,11 @@ open class WMKeyboardService : InputMethodService() {
             // — one press for `hướng` where the keys would cost two. Which keys
             // that is the composer works out ([Composer.backspaceBuffer]); a
             // tone key goes only when the letter it marks is the one going.
+            // A conversion composer decides too: a syllable picked on a 九宫格
+            // pad goes back to its digits whole rather than losing a letter
+            // and reading as another syllable (#635).
             val before = composing.toString()
-            val after = if (isVietnameseTransliterator(state)) {
+            val after = if (isVietnameseTransliterator(state) || state.composer.isConversion) {
                 state.composer.backspaceBuffer(before)
             } else {
                 val length = if (
@@ -15040,6 +15048,7 @@ open class WMKeyboardService : InputMethodService() {
             it.copy(
                 composingPreview = "",
                 suggestions = nextWords,
+                conversionReadings = emptyList(),
                 emojiSuggestions = nextEmojis,
                 autocorrectWord = null,
                 candidateCursor = -1,
@@ -15082,6 +15091,7 @@ open class WMKeyboardService : InputMethodService() {
                 it.copy(
                     composingPreview = "",
                     suggestions = nextWords,
+                    conversionReadings = emptyList(),
                     emojiSuggestions = nextEmojis,
                     autocorrectWord = null,
                     // The reading is fully committed, so there is nothing left to
@@ -15163,6 +15173,40 @@ open class WMKeyboardService : InputMethodService() {
         if (composing.isEmpty()) return
         val edited = edit(composing.toString(), state.composer) ?: return
         composing.replace(0, composing.length, edited)
+        ambiguousReading = null
+        updateComposingText(ic)
+        refreshSuggestions()
+    }
+
+    /**
+     * A reading picked from the reading column (#635): the composer settles the
+     * next undecided syllable of the buffer as [reading], and the candidates
+     * re-convert from what it gives back, so the strip offers only characters
+     * read that way and the column moves on to the syllable after. Nothing is
+     * committed. Ignored when the buffer has moved on since the column was drawn
+     * and [reading] no longer fits it.
+     */
+    private fun pickConversionReading(reading: String) {
+        if (reading.isEmpty()) return
+        val state = _uiState.value
+        val target = state.captureTarget()
+        if (target != null) {
+            if (!composesInCapture(state.composer)) return
+            val before = state.captureCaretText() ?: return
+            val run = liveCaptureComposition(state, before) ?: return
+            val picked = state.composer.pickReading(run.keys, reading) ?: return
+            rewriteCaptureComposition(state, target, before, run, picked)
+            return
+        }
+        val ic = currentInputConnection ?: return
+        if (composing.isEmpty()) return
+        val picked = state.composer.pickReading(composing.toString(), reading) ?: return
+        // A different length, so the per-key twins no longer line up with the
+        // buffer; they go the way they go for any re-spelled buffer.
+        composing.replace(0, composing.length, picked)
+        composingTouch.clear()
+        composingKeys.clear()
+        composingHints.clear()
         ambiguousReading = null
         updateComposingText(ic)
         refreshSuggestions()
@@ -18036,11 +18080,14 @@ open class WMKeyboardService : InputMethodService() {
         // (see [onCandidateTapped]). The composers keep their last decode, so
         // the space that follows this reads it back rather than decoding again.
         suggestionJob = serviceScope.launch {
-            val (cands, expanded) = withContext(suggestionDispatcher) {
+            val (cands, expanded, readings) = withContext(suggestionDispatcher) {
                 // The grid is a widening of the same ranking, so it only costs
                 // anything while it is actually open.
-                composer.candidates(typed) to
-                    if (gridOpen) composer.candidates(typed, CANDIDATE_GRID_LIMIT) else emptyList()
+                Triple(
+                    composer.candidates(typed),
+                    if (gridOpen) composer.candidates(typed, CANDIDATE_GRID_LIMIT) else emptyList(),
+                    composer.readings(typed),
+                )
             }
             // Committed or replaced while this ran: the list is for text that
             // is no longer being composed.
@@ -18048,6 +18095,7 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update {
                 it.copy(
                     suggestions = cands,
+                    conversionReadings = readings,
                     autocorrectWord = null,
                     expandedCandidates = expanded,
                     emojiSuggestions = emptyList(),

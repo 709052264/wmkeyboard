@@ -142,6 +142,11 @@ class AssetLayoutsTest {
         // Every letter group 2-9 is present exactly once.
         val digits = keys.mapNotNull { it.output }.filter { it.length == 1 && it[0].isDigit() }
         assertEquals(listOf("2", "3", "4", "5", "6", "7", "8", "9"), digits.sorted())
+        // The left column lists syllables while typing and punctuation otherwise
+        // (#635), three rows tall like a 九宫格 pad's.
+        val column = keys.single { it.action == KeyAction.ReadingColumn }
+        assertEquals(3, column.rowSpan)
+        assertTrue("，" in column.longPress && "。" in column.longPress)
     }
 
     @Test

@@ -754,8 +754,11 @@ class CjkComposerTest {
         assertEquals(5, T9PinyinComposer.consumedFor("64426", "NH"))
         assertEquals(2, T9PinyinComposer.consumedFor("64426", "N1"))
         assertEquals(5, T9PinyinComposer.consumedFor("64426", "??"))
-        // The composing region reads back the pinyin of the best candidate.
-        assertEquals("nihao", T9PinyinComposer.composeBuffer("64426"))
+        // The composing region reads back the pinyin of the best candidate, a
+        // mark between syllables so the split the decoder chose shows (#635).
+        assertEquals("ni'hao", T9PinyinComposer.composeBuffer("64426"))
+        // Enter writes the letters, without the marks.
+        assertEquals("nihao", T9PinyinComposer.typedReading("64426"))
     }
 
     @Test
@@ -783,6 +786,73 @@ class CjkComposerTest {
         assertTrue("N1" in cands)
         assertTrue("M1" in cands)
         assertEquals(2, T9PinyinComposer.consumedFor("64", "M1"))
+    }
+
+    /** xian/zhan share 9426, xi/yi/zi share 94, an/ao share 26 (issue #635). */
+    private fun loadT9Readings() {
+        PinyinSyllables.valid = setOf("xi", "yi", "zi", "xian", "zhan", "an", "ao")
+        T9Pinyin.index = T9Pinyin.buildIndex(PinyinSyllables.valid)
+        CjkDictionaries.pinyin = ConversionDictionary.parse(
+            sequenceOf(
+                "xian\t现\t500",
+                "zhan\t站\t100",
+                "xi\t西\t300",
+                "yi\t一\t900",
+                "an\t安\t200",
+                "xian\t西安\t50",
+            ),
+        )
+    }
+
+    @Test
+    fun `t9 lists the readings of the next code, longest first, the decoder's own leading`() {
+        loadT9Readings()
+        // The decoder reads 9426 as xian (现), so xian leads; then the rest of
+        // the four-key syllables, then the two-key ones by their commonest
+        // character: 一 900, 西 300, and zi with none.
+        assertEquals(listOf("xian", "zhan", "yi", "xi", "zi"), T9PinyinComposer.readings("9426"))
+        // Nothing composing, nothing to list.
+        assertEquals(emptyList<String>(), T9PinyinComposer.readings(""))
+    }
+
+    @Test
+    fun `t9 picking a reading settles that syllable and moves on to the next`() {
+        loadT9Readings()
+        // xi for the first two keys: its letters replace its digits.
+        assertEquals("xi26", T9PinyinComposer.pickReading("9426", "xi"))
+        // The rest still converts, now only as xi + an/ao, so 西安 — which 9426
+        // as one syllable ranked below 现 — leads, and 现 cannot be read from
+        // two syllables at all.
+        val cands = T9PinyinComposer.candidates("xi26")
+        assertEquals("西安", cands.first())
+        assertTrue("现" !in cands)
+        assertEquals(4, T9PinyinComposer.consumedFor("xi26", "西安"))
+        assertEquals("xi'an", T9PinyinComposer.composeBuffer("xi26"))
+        assertEquals("xian", T9PinyinComposer.typedReading("xi26"))
+        // The list has moved on to 26.
+        assertEquals(listOf("an", "ao"), T9PinyinComposer.readings("xi26"))
+        // A second pick is set off from the first, so it never reads as xian.
+        assertEquals("xi'an", T9PinyinComposer.pickReading("xi26", "an"))
+        assertEquals(emptyList<String>(), T9PinyinComposer.readings("xi'an"))
+        assertEquals("西安", T9PinyinComposer.candidates("xi'an").first())
+        assertEquals(5, T9PinyinComposer.consumedFor("xi'an", "西安"))
+    }
+
+    @Test
+    fun `t9 refuses a reading that does not spell the next keys`() {
+        loadT9Readings()
+        assertNull(T9PinyinComposer.pickReading("9426", "an"))
+        assertNull(T9PinyinComposer.pickReading("xi'an", "an"))
+    }
+
+    @Test
+    fun `t9 backspace takes back a key, then a whole pick`() {
+        loadT9Readings()
+        assertEquals("xi2", T9PinyinComposer.backspaceBuffer("xi26"))
+        // Only picks left: the last goes back to its digits, never half a syllable.
+        assertEquals("xi26", T9PinyinComposer.backspaceBuffer("xi'an"))
+        assertEquals("94", T9PinyinComposer.backspaceBuffer("xi"))
+        assertEquals("942", T9PinyinComposer.backspaceBuffer("9426"))
     }
 
     @Test

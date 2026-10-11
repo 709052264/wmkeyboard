@@ -353,6 +353,11 @@ class LayoutEditOpsTest {
     }
 
     @Test
+    fun `the action picker offers the pinyin syllable column`() {
+        assertTrue(KeyActionCatalog.any { it.matches(KeyAction.ReadingColumn) })
+    }
+
+    @Test
     fun `a key that becomes the kana-mark key survives the JSON round trip`() {
         val key = Key("🌐", action = KeyAction.LanguageSwitch, kanaVariantWhileComposing = true)
         val spec = mine().withLayerRows(listOf(listOf(key)))

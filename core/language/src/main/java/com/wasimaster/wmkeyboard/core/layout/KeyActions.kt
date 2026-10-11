@@ -297,6 +297,19 @@ sealed interface KeyAction {
     @Serializable @SerialName("double_consonant") data object DoubleConsonant : KeyAction
 
     /**
+     * A column of choices in place of a key face, the way a 九宫格 pinyin pad's
+     * left column works (issue #635). While a conversion reading is composing it
+     * lists what the next undecided syllable could be (`Composer.readings`), and
+     * a tap settles it; the rest of the time it lists the key's own
+     * [Key.longPress] entries — punctuation, on the shipped pad — and a tap types
+     * one. Usually given a [Key.rowSpan] so the list has room to scroll.
+     *
+     * The keyboard dispatches a pick as this action with the reading in
+     * [Key.output]; a key of it never fires as a whole.
+     */
+    @Serializable @SerialName("reading_column") data object ReadingColumn : KeyAction
+
+    /**
      * Fires an Android broadcast with [action] as its intent action, so a key
      * can trigger an automation app (Tasker et al.) or any app with a matching
      * receiver — the keyboard equivalent of a physical macro key. Types no text
@@ -498,6 +511,9 @@ fun KeyAction.fallbackLabel(): String = when (this) {
     KeyAction.KanaVariant -> "小"
     KeyAction.AddStroke -> "획추가"
     KeyAction.DoubleConsonant -> "쌍자음"
+    // The board draws its list, never a label; this is what the editor's
+    // preview shows for one left unlabelled.
+    KeyAction.ReadingColumn -> "≡"
     KeyAction.MorseDot -> "·"
     KeyAction.MorseDash -> "–"
     // Drawn from the enter icon slot on the board, so the key itself never
@@ -703,6 +719,8 @@ fun KeyAction.canRepeatOnHold(): Boolean = when (this) {
     is KeyAction.Mod, is KeyAction.Layout, is KeyAction.Tool -> false
     is KeyAction.LayerSwitch -> false
     is KeyAction.Unknown -> false
+    // A list, not a key: nothing presses it as a whole.
+    KeyAction.ReadingColumn -> false
     else -> !holdIsSpokenFor()
 }
 

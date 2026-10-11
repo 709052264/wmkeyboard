@@ -703,6 +703,15 @@ internal val LocalOctopusWords =
     staticCompositionLocalOf<State<OctopusBoard>> { mutableStateOf(emptyMap()) }
 
 /**
+ * What a reading column key lists while a conversion reading is composing
+ * (`KeyboardUiState.conversionReadings`, issue #635). A [State] for the reason
+ * [LocalOctopusWords] is one: it changes on every keystroke, and only the one
+ * key that shows it should recompose for that, not the grid it sits in.
+ */
+internal val LocalConversionReadings =
+    staticCompositionLocalOf<State<List<String>>> { mutableStateOf(emptyList()) }
+
+/**
  * A Select key in a panel layout held down (true) and let go (false) — the
  * text-edit pad's half of the Selection mode tool's hold (issue #41).
  *
@@ -1376,6 +1385,15 @@ fun KeyboardScreen(
             ),
             LocalSelectionTools provides selectionTools(bodyState, capture.onAiChat),
             LocalOctopusWords provides rememberUpdatedState(bodyState.octopus),
+            // Only while something is composing, so a list the service has not
+            // cleared yet never outlives the reading it was for.
+            LocalConversionReadings provides rememberUpdatedState(
+                if (bodyState.composingPreview.isEmpty() && bodyState.captureSuggestions.isEmpty()) {
+                    emptyList()
+                } else {
+                    bodyState.conversionReadings
+                },
+            ),
             LocalTransliterationPreview provides rememberTransliterationPreview(bodyState),
             // Whether a D-pad ring can land on the toolbar and the strip. The
             // keys read the same setting through the grid itself; these two
@@ -17541,6 +17559,12 @@ private fun KeyCell(
         // which needs its whole rect rather than a centre.
         if (key.action == KeyAction.Space) onSpacePositioned(coords)
     }
+    // A list rather than a key: it scrolls and takes taps per entry, so none of
+    // a key's press handling applies (issue #635).
+    if (key.action == KeyAction.ReadingColumn) {
+        ReadingColumnKey(visual, settings, sizeModifier.then(reportPosition), keyHeightDp, onKey)
+        return
+    }
     // A key stretched into a side gap reports the cell it is drawn in, not the
     // one it answers touches in: glide, autopilot and the touch model all read
     // these rects as where the key *is*, and the gap must not move its centre.
@@ -17565,6 +17589,78 @@ private fun KeyCell(
         smartResolve = smartResolve,
         onBurst = onBurst,
     )
+}
+
+/**
+ * A [KeyAction.ReadingColumn] key: a scrolling list in the key's place, the
+ * left column of a 九宫格 pinyin pad (issue #635).
+ *
+ * While a reading is composing it lists the syllables the next undecided keys
+ * could spell ([LocalConversionReadings]), and a tap settles that one — sent as
+ * this key with the syllable for its output, which the service hands to the
+ * composer. Otherwise it lists the key's own alternates, punctuation on the
+ * shipped pad, and a tap types one as an ordinary key would. Both lists open at
+ * their top whenever they change, so the decoder's own guess is always in view.
+ *
+ * Painted as a key face so it sits in the grid like one, and taller than one
+ * row as a rule ([Key.rowSpan]); each entry is three quarters of a row, so a
+ * three-row column shows four and says by the cut-off fifth that there are more.
+ */
+@Composable
+private fun ReadingColumnKey(
+    visual: KeyVisual,
+    settings: KeyboardSettings,
+    modifier: Modifier,
+    keyHeightDp: Int,
+    onKey: (Key) -> Unit,
+) {
+    val key = visual.key
+    val readings = LocalConversionReadings.current.value
+    val picking = readings.isNotEmpty()
+    val entries = if (picking) readings else key.longPress
+    val kb = LocalKbTheme.current
+    val keyShape = kb.keyShape(bleedDp = keyGapH(settings).value, kind = visual.shapeKind)
+    val onPress = LocalKeyRoleFeedback.current
+    val listState = rememberLazyListState()
+    LaunchedEffect(entries) { listState.scrollToItem(0) }
+    val fontSize = (16 * settings.fontScale * visual.fontScale).sp
+    Box(
+        modifier = modifier
+            .height(keyHeightDp.dp + keyGapV(settings) * 2)
+            .padding(horizontal = keyGapH(settings), vertical = keyGapV(settings))
+            .clip(keyShape)
+            .background(visual.background),
+    ) {
+        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+            itemsIndexed(entries) { index, entry ->
+                if (index > 0) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        color = visual.contentColor.copy(alpha = 0.15f),
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = (keyHeightDp * 3 / 4).dp)
+                        .clickable {
+                            onPress(KeySoundTarget.DEFAULT)
+                            onKey(if (picking) key.copy(output = entry) else Key(label = entry, output = entry))
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = entry,
+                        color = visual.contentColor,
+                        fontSize = fontSize,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Clip,
+                    )
+                }
+            }
+        }
+    }
 }
 
 /**

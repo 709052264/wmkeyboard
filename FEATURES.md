@@ -922,6 +922,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Prefix commit — Pinyin/T9/Zhuyin/Jyutping/Japanese: tapping 你 for `nihao` consumes only `ni` and re-converts the tail
     - Lattice decoding — Viterbi over syllable boundaries with n-gram scoring, capped at 24 units before falling back to prefix lookup
     - Zhuyin and T9 need no dictionary of their own — Both derive their tables from the pinyin inventory and translate each segment to pinyin for lookup
+    - T9 syllable column (#635) — The 九宫格 pad's left column lists what the next undecided keys could spell (`9426` → xiao, xian, zhao, zhan, then xia, zha, then xi, yi, zi), longest first with the decoder's own guess on top; a tap pins that syllable into the buffer as letters, the strip re-converts from it and the column moves on. Punctuation when idle. The composing text marks syllables with `'`; backspace on a pinned syllable puts its digits back. `reading_column` key action, also in the layout editor
     - Cangjie radical glyphs on the keys — a-y printed as 日月金木水...; the composing region shows glyphs, and hardware letters are accepted too
     - Stroke with a wildcard — Five stroke classes 一丨丿丶乙 (also h/s/p/n/z or 1-5) plus * ? ＊ as an uncertain stroke
     - Code-table methods cap at 24 candidates — Cangjie and Stroke look up a fixed table rather than ranking a lattice

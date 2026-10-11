@@ -3942,6 +3942,13 @@ internal val KeyActionCatalog: List<KeyActionOption> = listOf(
         R.string.layout_editor_action_double_consonant_detail,
         { KeyAction.DoubleConsonant }, { it == KeyAction.DoubleConsonant },
     ),
+    // The 九宫格 pinyin pad's left column (issue #635).
+    KeyActionOption(
+        R.string.layout_editor_action_reading_column_title,
+        R.string.layout_editor_action_group_typing,
+        R.string.layout_editor_action_reading_column_detail,
+        { KeyAction.ReadingColumn }, { it == KeyAction.ReadingColumn },
+    ),
     KeyActionOption(
         R.string.layout_editor_action_symbols_title,
         R.string.layout_editor_action_group_layers,
