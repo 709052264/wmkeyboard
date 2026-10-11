@@ -1082,6 +1082,8 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_keep_rich_text_title) { Icons.Outlined.FormatBold }
         put(R.string.clipboard_swipe_right_pins_title) { Icons.Outlined.SwipeRight }
         put(R.string.clipboard_panel_height_title) { Icons.Outlined.Height }
+        put(R.string.clipboard_over_keys_height_title) { Icons.Outlined.UnfoldMore }
+        put(R.string.clipboard_key_row_title) { Icons.Outlined.SpaceBar }
         put(R.string.clipboard_password_paste_title) { Icons.Outlined.Password }
         put(R.string.clipboard_link_previews_title) { Icons.Outlined.Link }
         put(R.string.clipboard_entities_title) { Icons.Outlined.Tag }

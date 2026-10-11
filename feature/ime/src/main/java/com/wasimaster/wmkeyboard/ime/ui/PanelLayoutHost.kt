@@ -111,6 +111,9 @@ internal fun KeyboardUiState.panelLayout(kind: PanelKind): PanelLayoutSpec {
     if (kind == PanelKind.GIF || kind == PanelKind.STICKER) {
         return mediaPanelLayout(kind, panelLayout(PanelKind.EMOJI), mediaSwitcherPlacement(settings))
     }
+    // The shipped clipboard with the abc / space / enter row its setting adds
+    // (#615), the way the emoji panel takes its switch placement.
+    if (kind == PanelKind.CLIPBOARD) return BuiltInPanelLayouts.clipboard(keyRow = settings.clipboard.keyRow)
     return shared ?: BuiltInPanelLayouts.default(kind)
 }
 
@@ -331,13 +334,17 @@ internal fun ClipboardPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCa
         }
         return
     }
-    val spec = state.panelLayout(PanelKind.CLIPBOARD)
-    val fields: @Composable (PanelFieldKind) -> Unit = { kind ->
-        ClipboardField(kind, state, session, callbacks.clipboard)
-    }
     // Stacked over the keys (#414): a short panel, the keys under it, and the
     // height bar of every panel over the keys rather than the clipboard's own.
     val stacked = clipboardStacked(state)
+    // The key row setting's abc / space / enter stand down while stacked: the
+    // real keys are right under the panel, and the row was history's room.
+    val spec = state.panelLayout(PanelKind.CLIPBOARD).let { spec ->
+        if (stacked && spec == BuiltInPanelLayouts.clipboard(keyRow = true)) BuiltInPanelLayouts.CLIPBOARD else spec
+    }
+    val fields: @Composable (PanelFieldKind) -> Unit = { kind ->
+        ClipboardField(kind, state, session, callbacks.clipboard)
+    }
     // The strips only exist when they have something to show, as before: a
     // row holding nothing but an empty strip takes no height.
     val collapsed = buildSet {

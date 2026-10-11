@@ -6024,6 +6024,15 @@ data class ClipboardSettings(
      */
     val fullBleed: Boolean = true,
     /**
+     * An abc / space / enter row along the bottom of the clipboard panel
+     * (#615), the way the emoji panel ends: paste a link and press Go, or
+     * paste several clips with a space or a line between them, without going
+     * back to the keys each time. Like the emoji panel's switch placement it
+     * reaches only the shipped panel; one the user laid out is drawn as laid
+     * out. Off by default, since it takes a row from the history.
+     */
+    val keyRow: Boolean = false,
+    /**
      * Cards in two columns, or one clip per row. The panel's own toggle
      * writes this too, so the choice survives the panel closing.
      */
@@ -8990,6 +8999,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_ENTITY_TO_CLIPBOARD = booleanPreferencesKey("clipboard_entity_to_clipboard")
         private val CLIPBOARD_PHONE_FORMATS = stringSetPreferencesKey("clipboard_phone_formats")
         private val CLIPBOARD_FULL_BLEED = booleanPreferencesKey("clipboard_full_bleed")
+        private val CLIPBOARD_KEY_ROW = booleanPreferencesKey("clipboard_key_row")
         private val CLIPBOARD_VIEW = stringPreferencesKey("clipboard_view")
         private val CLIPBOARD_SHOW_NUMBERS = booleanPreferencesKey("clipboard_show_numbers")
         private val CLIPBOARD_UNDO_DELETE = booleanPreferencesKey("clipboard_undo_delete")
@@ -10529,6 +10539,7 @@ class SettingsRepository(private val context: Context) {
             entityToClipboard = p[CLIPBOARD_ENTITY_TO_CLIPBOARD] ?: defaults.clipboard.entityToClipboard,
             phoneFormats = p[CLIPBOARD_PHONE_FORMATS] ?: seededPhoneFormats(),
             fullBleed = p[CLIPBOARD_FULL_BLEED] ?: defaults.clipboard.fullBleed,
+            keyRow = p[CLIPBOARD_KEY_ROW] ?: defaults.clipboard.keyRow,
             view = p[CLIPBOARD_VIEW]
                 ?.let { runCatching { ClipboardView.valueOf(it) }.getOrNull() }
                 ?: defaults.clipboard.view,
@@ -16755,6 +16766,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardFullBleed(value: Boolean) =
         editPrefs { it[CLIPBOARD_FULL_BLEED] = value }
+
+    /** See [ClipboardSettings.keyRow]. */
+    suspend fun setClipboardKeyRow(value: Boolean) =
+        editPrefs { it[CLIPBOARD_KEY_ROW] = value }
 
     suspend fun setClipboardView(value: ClipboardView) =
         editPrefs { it[CLIPBOARD_VIEW] = value.name }

@@ -37,6 +37,7 @@ import com.wasimaster.wmkeyboard.core.settings.ClipGridColumnsRange
 import com.wasimaster.wmkeyboard.core.settings.ClipMaxItemsSteps
 import com.wasimaster.wmkeyboard.core.settings.ClipMaxTextCharsSteps
 import com.wasimaster.wmkeyboard.core.settings.ClipPanelExtraHeightRange
+import com.wasimaster.wmkeyboard.core.settings.PanelOverKeysExtraHeightRange
 import com.wasimaster.wmkeyboard.core.settings.ClipPreviewLinesRange
 import com.wasimaster.wmkeyboard.core.settings.ClipTimeLabel
 import com.wasimaster.wmkeyboard.core.settings.CopiedCodeChip
@@ -928,6 +929,33 @@ internal fun ClipboardSettings(
                 info = stringResource(R.string.clipboard_panel_height_info),
                 default = SettingsDefaults.clipboard.panelExtraHeightDp.toFloat(),
             ) { scope.launch { repository.setClipboardPanelExtraHeightDp(it.roundToInt()) } }
+        }
+        item {
+            // Also set by dragging the bar on a panel over the keys (#615), and
+            // shared by every such panel, not the clipboard's alone.
+            val none = stringResource(R.string.clipboard_over_keys_height_none)
+            val taller = stringResource(R.string.clipboard_panel_height_value)
+            SliderSetting(
+                R.string.clipboard_over_keys_height_title,
+                subtitle = stringResource(R.string.clipboard_over_keys_height_subtitle),
+                value = settings.watch { it.layoutBehavior.panelOverKeysExtraHeightDp }.toFloat(),
+                range = PanelOverKeysExtraHeightRange.first.toFloat()..PanelOverKeysExtraHeightRange.last.toFloat(),
+                display = {
+                    val dp = it.roundToInt()
+                    if (dp == 0) none else taller.format(dp)
+                },
+                info = stringResource(R.string.clipboard_over_keys_height_info),
+                default = SettingsDefaults.layoutBehavior.panelOverKeysExtraHeightDp.toFloat(),
+            ) { scope.launch { repository.setPanelOverKeysExtraHeightDp(it.roundToInt()) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.clipboard_key_row_title,
+                stringResource(R.string.clipboard_key_row_subtitle),
+                settings.watch { it.clipboard.keyRow },
+                info = stringResource(R.string.clipboard_key_row_info),
+                default = SettingsDefaults.clipboard.keyRow,
+            ) { scope.launch { repository.setClipboardKeyRow(it) } }
         }
         item {
             ChoiceSetting(
