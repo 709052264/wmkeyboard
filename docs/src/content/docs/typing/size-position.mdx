@@ -46,7 +46,7 @@ Two sliders rather than one so the margins don't have to match. Set them equal f
 
 Each padding is claimed at its own edge before **Keyboard position** gets a say, so a margin you asked for is there whichever edge the keyboard hugs. Position then distributes whatever space the width slider left over on top of it. On Centre, equal paddings give exactly the even margin they always did.
 
-**Bottom padding** raises the whole keyboard away from the bottom edge and the gesture navigation bar, from 0dp to 160dp. Until you move it, the keyboard picks the amount itself: **32dp** on Android 15 and up with gesture navigation, where the keyboard reaches down to the thin gesture handle, and **8dp** with three-button navigation or on older versions, where the bar below is already tall enough to keep your thumb off the edge. Raise it if the bottom row feels cramped against the screen edge, or if you keep triggering system navigation by mistake. The slider runs so high because the inline **Resize** tool moves the same value, and that can push the keyboard a long way up the screen.
+**Bottom padding** raises the whole keyboard away from the bottom edge and the gesture navigation bar, from 0dp to 160dp. Until you move it, the keyboard picks the amount itself: **32dp** on Android 15 and up with gesture navigation, where the keyboard reaches down to the thin gesture handle, and **8dp** with three-button navigation or on older versions, where the bar below is already tall enough to keep your thumb off the edge. The padding is counted from the top of the navigation bar, which the keyboard always keeps clear of on its own, so 0dp puts the space bar right on the bar, never under it or a row above it. Raise it if the bottom row feels cramped against the screen edge, or if you keep triggering system navigation by mistake. The slider runs so high because the inline **Resize** tool moves the same value, and that can push the keyboard a long way up the screen.
 
 **Round top corners** and **Round bottom corners** cut rounded corners out of the docked keyboard, from square (the default) up to 40dp, and the app shows through the cut. The top and bottom are set apart, and **Which corners**, shown once either one is round, picks which of the four corners they apply to. All four by default, so rounding only the top two means leaving the bottom at Square. Round bottom corners suit gesture navigation and a phone whose screen corners are round too. With the older three-button navigation bar, the bar sits below the keyboard and the bottom corners open onto the app above it. The floating keyboard and the television card have round corners of their own and ignore these.
 
@@ -105,9 +105,10 @@ On either tablet size the letter rows gain a column on each side. That fills the
 - <KeyCap>Tab</KeyCap> and <KeyCap>\\</KeyCap> flank the top letter row;
 - <KeyCap>Caps</KeyCap> and <KeyCap>Enter</KeyCap> flank the home row, so Enter is under your right little finger rather than at the bottom corner;
 - the number row gains a <KeyCap>`</KeyCap> and takes over <KeyCap>Backspace</KeyCap>, which frees the shift row's right end for a second <KeyCap>Shift</KeyCap>;
-- the comma moves up beside the letters, and a real emoji key appears next to <KeyCap>?123</KeyCap>.
+- the comma moves up beside the letters, and a real emoji key appears next to <KeyCap>?123</KeyCap>;
+- <KeyCap>←</KeyCap> and <KeyCap>→</KeyCap> join the bottom row.
 
-A large tablet gets three more. <KeyCap>←</KeyCap> and <KeyCap>→</KeyCap> sit next to the spacebar, a second <KeyCap>?123</KeyCap> lands at the right end so you don't have to reach back across ten inches for it, and the period joins the comma up on the letter rows. A small tablet keeps the period on the bottom row, because a 7-inch tablet is still held and still thumb-typed.
+A large tablet goes further. The arrows sit right next to the spacebar, a second <KeyCap>?123</KeyCap> lands at the right end so you don't have to reach back across ten inches for it, and the period joins the comma up on the letter rows. A small tablet keeps the period on the bottom row beside the spacebar, with the arrows after it, because a 7-inch tablet is still held and still thumb-typed.
 
 Two settings also start from different defaults on a tablet, and only until you touch them:
 

@@ -22,61 +22,59 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Devices
-import androidx.compose.material.icons.outlined.Dns
-import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.AutoStories
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.Article
-import androidx.compose.material.icons.automirrored.outlined.Chat
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.automirrored.outlined.StickyNote2
-import androidx.compose.material.icons.automirrored.outlined.TextSnippet
-import androidx.compose.material.icons.outlined.AdsClick
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Autorenew
-import androidx.compose.material.icons.outlined.HighlightAlt
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.Collections
-import androidx.compose.material.icons.outlined.Phone
-import androidx.compose.material.icons.outlined.PhotoLibrary
-import androidx.compose.material.icons.outlined.PieChart
-import androidx.compose.material.icons.outlined.QueryStats
-import androidx.compose.material.icons.outlined.Wallpaper
-import androidx.compose.material.icons.outlined.Accessibility
-import androidx.compose.material.icons.outlined.AspectRatio
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.ContentPaste
-import androidx.compose.material.icons.outlined.EmojiEmotions
-import androidx.compose.material.icons.outlined.Extension
-import androidx.compose.material.icons.outlined.Gavel
-import androidx.compose.material.icons.outlined.GridOn
-import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Key
-import androidx.compose.material.icons.outlined.NetworkCheck
-import androidx.compose.material.icons.outlined.Keyboard
-import androidx.compose.material.icons.outlined.Language
-import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.DataSaverOn
-import androidx.compose.material.icons.outlined.Save
-import androidx.compose.material.icons.outlined.Checklist
-import androidx.compose.material.icons.outlined.Public
-import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.outlined.Sync
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Fingerprint
-import androidx.compose.material.icons.outlined.Mic
-import androidx.compose.material.icons.outlined.Security
-import androidx.compose.material.icons.outlined.TextFields
-import androidx.compose.material.icons.outlined.TouchApp
-import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material.icons.outlined.ViewAgenda
-import androidx.compose.material.icons.outlined.Tag
-import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material.icons.outlined.Widgets
-import androidx.compose.material.icons.outlined.MusicNote
-import androidx.compose.material.icons.outlined.VerticalSplit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Devices
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Dns
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notifications
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoStories
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Article
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Chat
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.TextSnippet
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AdsClick
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Autorenew
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HighlightAlt
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Collections
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Phone
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PieChart
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QueryStats
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Wallpaper
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Accessibility
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AspectRatio
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiEmotions
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Gavel
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridOn
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Info
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Key
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.NetworkCheck
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Language
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Palette
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DataSaverOn
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Save
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Checklist
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Schedule
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sync
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Fingerprint
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Security
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TouchApp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewAgenda
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tag
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Widgets
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MusicNote
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalSplit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -96,7 +94,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import kotlin.math.min
 import androidx.compose.runtime.Composable
+import androidx.compose.animation.EnterExitState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -117,24 +117,24 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
+import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
 import com.wasimaster.wmkeyboard.core.ui.toolAccentPaint
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import androidx.compose.material.icons.outlined.Gesture
-import androidx.compose.material.icons.outlined.Password
-import androidx.compose.material.icons.outlined.Lightbulb
-import androidx.compose.material.icons.outlined.Sort
-import androidx.compose.material.icons.outlined.Spellcheck
-import androidx.compose.material.icons.outlined.Shortcut
-import androidx.compose.material.icons.outlined.Preview
-import androidx.compose.material.icons.outlined.Vibration
-import androidx.compose.material.icons.outlined.ViewDay
-import androidx.compose.material.icons.outlined.PanTool
-import androidx.compose.material.icons.outlined.FormatSize
-import androidx.compose.material.icons.outlined.GridView
-import androidx.compose.material.icons.outlined.Apps
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Gesture
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Password
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lightbulb
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sort
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Spellcheck
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Shortcut
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Preview
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Vibration
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewDay
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatSize
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Apps
 import androidx.compose.foundation.lazy.rememberLazyListState
 import com.wasimaster.wmkeyboard.core.ui.RailBucket
 import com.wasimaster.wmkeyboard.core.ui.ScrollRailBox
@@ -481,7 +481,7 @@ internal object SettingsRouteIcons {
         "typing/chips" to { Icons.Outlined.AutoAwesome },
         "typing/codes" to { Icons.Outlined.Password },
         "typing/gestures" to { Icons.Outlined.Gesture },
-        "typing/hardware" to { Icons.Outlined.Keyboard },
+        "typing/hardware" to { SymbolIcons.KeyboardExternalInput },
         "keypress" to { Icons.Outlined.TouchApp },
         "keypress/haptics" to { Icons.Outlined.Vibration },
         "keypress/popup" to { Icons.Outlined.Preview },
@@ -499,7 +499,7 @@ internal object SettingsRouteIcons {
         "icons" to { Icons.Outlined.Image },
         "layout" to { Icons.Outlined.AspectRatio },
         "layout/size" to { Icons.Outlined.FormatSize },
-        "layout/onehanded" to { Icons.Outlined.PanTool },
+        "layout/onehanded" to { SymbolIcons.MobileHandLeft },
         "keymaps" to { Icons.Outlined.GridOn },
         "rows" to { Icons.Outlined.ViewAgenda },
         "rows/symbol" to { Icons.Outlined.Tag },
@@ -515,7 +515,7 @@ internal object SettingsRouteIcons {
         "voice" to { Icons.Outlined.Mic },
         "expander" to { Icons.AutoMirrored.Outlined.TextSnippet },
         "tools" to { Icons.Outlined.Widgets },
-        "sticker_packs" to { Icons.AutoMirrored.Outlined.StickyNote2 },
+        "sticker_packs" to { SymbolIcons.Sticker },
         "vocab/packs" to { Icons.Outlined.AutoStories },
         "vocab/lists" to { Icons.Outlined.AutoStories },
         "vocab/review" to { Icons.Outlined.AutoStories },
@@ -545,12 +545,12 @@ internal object SettingsRouteIcons {
         "statistics" to { Icons.Outlined.QueryStats },
         "licenses" to { Icons.Outlined.Gavel },
         "debug_log" to { Icons.AutoMirrored.Outlined.Article },
-        "dictionary" to { Icons.AutoMirrored.Outlined.MenuBook },
-        "customdictionaries" to { Icons.AutoMirrored.Outlined.MenuBook },
+        "dictionary" to { SymbolIcons.Dictionary },
+        "customdictionaries" to { SymbolIcons.Dictionary },
         "blacklist" to { Icons.Outlined.VisibilityOff },
         "learnedcorrections" to { Icons.Outlined.Spellcheck },
         "phoneformats" to { Icons.Outlined.Phone },
-        "hwshortcuts" to { Icons.Outlined.Keyboard },
+        "hwshortcuts" to { SymbolIcons.KeyboardExternalInput },
         "musicapps" to { Icons.Outlined.MusicNote },
         "launchercombos" to { Icons.Outlined.VerticalSplit },
         "kdeconnect/devices" to { Icons.Outlined.Devices },
@@ -570,6 +570,40 @@ private class SettingsSearchCorpus(
     /** The entries by [SettingsSearchEntry.key], for the picks the history remembers. */
     val byKey: Map<String, SettingsSearchEntry> = index.associateBy { it.key }
 }
+
+/**
+ * The last corpus built, kept for the life of the process and keyed by the
+ * locales its strings were read in.
+ *
+ * Coming back from a result used to rebuild it, which left the screen without
+ * results for the frame or two the build takes: the list behind the page
+ * being popped was placeholders, the result's icon had no row to fly back to,
+ * and the rows then arrived late under a stage change. Kept, the results are
+ * there on the very first frame of the way back.
+ */
+private object SearchCorpusCache {
+    @Volatile
+    private var held: Pair<String, SettingsSearchCorpus>? = null
+
+    fun get(locales: String): SettingsSearchCorpus? = held?.takeIf { it.first == locales }?.second
+
+    fun put(locales: String, corpus: SettingsSearchCorpus) {
+        held = locales to corpus
+    }
+}
+
+/**
+ * The flight origin a result takes off under: the search screen plus the
+ * result's own key.
+ *
+ * Several results routinely open the same screen — every row on Corrections
+ * opens Corrections — and keyed on the screen alone they all carried the same
+ * flight key. The heading then matched all of them at once: on the way out the
+ * icons of rows nobody tapped were swallowed into it, and on the way back one
+ * icon flew home to whichever of them registered first while the rest blinked
+ * in at the end. Naming the row makes the tapped one the only match.
+ */
+private fun searchFlightOrigin(entry: SettingsSearchEntry): String = "search#${entry.key}"
 
 /** How many of the rows opened before are offered under an empty search field. */
 private const val RECENT_PICKS_SHOWN = 6
@@ -591,25 +625,38 @@ internal fun SettingsSearchScreen(
     // animation. Results are empty for the frame or two the build takes,
     // which is less time than reaching for the first key.
     val context = LocalContext.current
-    val corpus by produceState<SettingsSearchCorpus?>(null, context) {
-        value = withContext(Dispatchers.Default) {
+    val locales = context.resources.configuration.locales.toLanguageTags()
+    val corpus by produceState(SearchCorpusCache.get(locales), context, locales) {
+        value = SearchCorpusCache.get(locales) ?: withContext(Dispatchers.Default) {
             val strings = ResourceSearchStrings(context.resources)
             SettingsSearchCorpus(settingsSearchIndex(strings), settingsSearchVocabulary(strings))
+                .also { SearchCorpusCache.put(locales, it) }
         }
     }
     val picks = remember(context) { SearchPicks(context) }
-    // Bumped on every pick and on clear, so the ranking and the recent list
-    // see the new history without the store having to be Compose state.
-    var historyVersion by remember { mutableIntStateOf(0) }
-    val results = remember(query, corpus, historyVersion) {
-        corpus?.let { rankSettings(query, it.index, it.vocabulary, picks.history) } ?: SearchResults.EMPTY
+    // The history this visit ranks by: read when the screen is first opened
+    // and held, saved with the screen, through every trip out to a result and
+    // back. A pick is still written to disk the moment it is made, but it only
+    // reorders the next search. Applied at once it moved the tapped row up the
+    // list while the page was leaving — its icon took off from a row in motion
+    // — and the user came back to a list in a different order from the one
+    // they left (#92 is about coming back to the *same* results).
+    var historyText by rememberSaveable { mutableStateOf(picks.history.encode()) }
+    val history = remember(historyText) { SearchHistory.decode(historyText) }
+    val results = remember(query, corpus, history) {
+        corpus?.let { rankSettings(query, it.index, it.vocabulary, history) } ?: SearchResults.EMPTY
     }
     val tokens = remember(query, corpus) {
         corpus?.let { searchTokens(query, it.vocabulary) }.orEmpty()
     }
-    val recent = remember(corpus, historyVersion) {
-        corpus?.let { c -> picks.history.recent(RECENT_PICKS_SHOWN).mapNotNull(c.byKey::get) }.orEmpty()
+    val recent = remember(corpus, history) {
+        corpus?.let { c -> history.recent(RECENT_PICKS_SHOWN).mapNotNull(c.byKey::get) }.orEmpty()
     }
+    // Whether this is the screen being come back to from a result rather than
+    // opened. A plain array rather than state: it is read once, here, and its
+    // only job is to be `true` in the bundle the screen is saved into.
+    val visits = rememberSaveable { BooleanArray(1) }
+    val returned = remember { visits[0].also { visits[0] = true } }
     val focusRequester = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
     val reduceMotion = settings.watch { it.reduceMotion }
@@ -629,7 +676,6 @@ internal fun SettingsSearchScreen(
     fun open(entry: SettingsSearchEntry) {
         keyboard?.hide()
         picks.record(query, entry.key)
-        historyVersion++
         corpus?.let { trail?.seed(settingsCrumbSeed(entry, it.index, homeTitle)) }
         onOpen(entry)
     }
@@ -707,15 +753,22 @@ internal fun SettingsSearchScreen(
             label = "searchStage",
             modifier = Modifier.padding(padding).fillMaxSize(),
         ) { shown ->
+            // The wave is for a list being put on screen. The page shown as
+            // the screen is come back to is the list the reader left, standing
+            // where they left it, with a result's icon flying home into it —
+            // replaying the wave faded and lifted every row under that icon.
+            // A stage entered later, by typing, still arrives.
+            val arrive = remember { !returned || transition.currentState != EnterExitState.Visible }
             when (shown) {
                 SearchStage.PICKS -> RecentPicks(
                     recent = recent,
                     settings = settings,
                     reduceMotion = reduceMotion,
+                    arrive = arrive,
                     onOpen = ::open,
                     onClear = {
                         picks.clear()
-                        historyVersion++
+                        historyText = picks.history.encode()
                     },
                 )
                 SearchStage.LOADING -> GroupSkeleton(
@@ -728,6 +781,7 @@ internal fun SettingsSearchScreen(
                     settings = settings,
                     tokens = tokens,
                     reduceMotion = reduceMotion,
+                    arrive = arrive,
                     onOpen = ::open,
                 )
             }
@@ -753,11 +807,28 @@ private fun ResultList(
     settings: LiveSettings,
     tokens: List<String>,
     reduceMotion: Boolean,
+    arrive: Boolean,
     onOpen: (SettingsSearchEntry) -> Unit,
 ) {
     val list = rememberLazyListState()
     val rail = rememberScrollRailState(list)
-    val reveal = rememberSearchReveal(reduceMotion)
+    val reveal = rememberSearchReveal(reduceMotion || !arrive)
+    // Back to the top whenever the query changes the results. A keyed lazy
+    // list otherwise holds on to its first visible row through a change in the
+    // data: delete a letter, the wider search ranks three new rows above the
+    // one that was first, and the list keeps that row at the top of the window
+    // with the three new ones scrolled out of sight above it. Requested rather
+    // than scrolled, so it lands in the same pass that lays the new rows out,
+    // and at the top already it moves nothing and the rows still glide.
+    // Not on the first composition: coming back from a result, the list is
+    // meant to stand where the reader left it.
+    val shownResults = remember { arrayOf(results) }
+    SideEffect {
+        if (shownResults[0] !== results) {
+            shownResults[0] = results
+            list.requestScrollToItem(0)
+        }
+    }
     // Two stops rather than an alphabet: the hits are ranked, and
     // what a long result list hides is that a second, weaker set
     // of matches starts somewhere below.
@@ -838,11 +909,12 @@ private fun RecentPicks(
     recent: List<SettingsSearchEntry>,
     settings: LiveSettings,
     reduceMotion: Boolean,
+    arrive: Boolean,
     onOpen: (SettingsSearchEntry) -> Unit,
     onClear: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val reveal = rememberSearchReveal(reduceMotion)
+    val reveal = rememberSearchReveal(reduceMotion || !arrive)
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -895,7 +967,11 @@ private fun ResultRow(
     // the same accent — so it flies into that screen's heading instead of the
     // page appearing from nowhere. The row's own title is a setting's name and
     // stays where it is: the heading is the screen's name, not the setting's.
-    val open = takeOffClick(onClick)
+    val origin = searchFlightOrigin(entry)
+    val open = {
+        FlightOrigin.leaving(origin)
+        onClick()
+    }
     androidx.compose.material3.Surface(
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
@@ -911,7 +987,7 @@ private fun ResultRow(
                     ResultIcon(
                         entry,
                         settings,
-                        modifier = Modifier.wmSharedElement(takeOffKey("icon", entry.route)),
+                        modifier = Modifier.wmSharedElement(takeOffKey("icon", entry.route, origin)),
                     )
                 }
             },

@@ -1,6 +1,6 @@
 ---
 title: "Languages overview"
-description: "867 languages, each enabled independently with its own layouts, numerals, and dictionary."
+description: "826 languages, each enabled independently with its own layouts, numerals, and dictionary."
 sidebar:
   label: "Overview"
   order: 1
@@ -13,7 +13,7 @@ import LayoutExplorer from '@components/LayoutExplorer.astro';
 import cherokee from '../../../../../app/src/main/assets/layouts/chr_cherokee.wmlayout.json';
 import Shot from '@components/Shot.astro';
 
-WM Keyboard's language catalogue holds 867 entries. Alongside the languages you'd expect are InScript variants, minority Cyrillic alphabets, and a dozen constructed languages. Every one you enable becomes a full input mode with its own layout, dictionary, and settings, and you move between them without leaving the keyboard.
+WM Keyboard's language catalogue holds 826 entries. Alongside the languages you'd expect are InScript variants, minority Cyrillic alphabets, and a dozen constructed languages. Every one you enable becomes a full input mode with its own layout, dictionary, and settings, and you move between them without leaving the keyboard.
 
 <PhoneFrame caption="The Languages screen: your enabled languages and Add language to search the full catalogue.">
   <Shot id="languages/list-overview" alt="The Languages screen: your enabled languages, plus Add language to search the full catalogue." />
@@ -63,6 +63,7 @@ Tap any enabled language to reach its screen. **Layouts** and **Dictionaries** a
 </PhoneFrame>
 
 - **Layouts**: a row of cards, one per layout the language ships. Each card is the keyboard itself drawn small, with your theme, fonts, key height, number row and toolbar, so you see what typing on that layout looks like before you pick it. The first time a card comes into view it shows a grey outline of keys while its keyboard is drawn, one card at a time, and only once the row stops moving, so scrolling stays smooth. After that the drawing is kept, even across restarts, so the row opens straight onto the finished cards. Change your theme, fonts or key size and the cards keep their old picture until the new one is ready. A long layout name wraps onto a second line under the card rather than being cut off. A tick and a tinted card mark the layouts that are on. Tap a card to turn its layout on or off, and scroll the row sideways for the rest. Where a language has more layouts from the Keyman project, the row ends on a **More layouts** card that opens them, as the same kind of cards, with a search box and the download for each one's typing rules. See [Keyman layouts](/languages/keyman/). A card shows its layout as it looks once it is on, so the spacebar already names it if another layout of the same language is on too. At least one layout has to stay enabled somewhere across your whole set, so tapping the last one says so and leaves it on.
+- **Use a layout from another language**: under the cards. It lists the layouts of every other language that uses the same letters, with a search box that takes a layout name or a language name, so QWERTZ, AZERTY or Colemak can be the layout you type English on. Pick one and it's copied to a layout of your own in this language, named with the language it came from ("QWERTZ (German)"), and turned on. The copy uses this language's dictionary, autocorrect and spelling rules, sits on the Layouts shelf with the rest, and is yours to edit. Picking the same layout again turns the existing copy back on rather than making a second one. Keyman layouts and phonetic boards aren't offered, because what their keys type depends on their own language.
 - **Numerals**: which digits the number row and keypad show while this language is active. Two options: the language's own digits (the default) or plain `0-9`. This is set per language, so Arabic can show `٠-٩` while English next to it stays on `0-9`. Languages that already use `0-9` don't get the group at all, and no language offers another language's digits, since nobody writes Bangla with Persian numerals.
 - **Also suggest from**: appears once you have more than one language enabled. Toggle other enabled languages on to blend their words into suggestions while you type this one. Words pulled in this way are never autocorrected away.
 - **Dictionaries**: the language's word list, emoji keywords and word pairs, one row each. A row on the device has a checkbox and a delete button, a row that is not has a Download button, and a **Download all** button sits in the heading while anything is missing. [Downloadable dictionaries](/languages/dictionaries/) covers it in full.
@@ -142,7 +143,7 @@ Neither script has capitals, so <KeyCap>Shift</KeyCap> opens a second set of key
 
 ## What ships
 
-WM Keyboard ships 1,710 layouts in total, in three groups. On a television every one of them is drawn as an even grid for the remote — see [Android TV and Google TV](/typing/television/).
+WM Keyboard ships 1,715 layouts in total, in three groups. On a television every one of them is drawn as an even grid for the remote — see [Android TV and Google TV](/typing/television/).
 
 34 are built into the app: QWERTY, AZERTY, Dvorak, Colemak, Workman, Halmak, Avro, Khipro, Probhat, Jatiya, dedicated layouts for French, German, Spanish, Korean, Russian, Arabic, Greek, Hebrew, and Hindi, and the phonetic grids for Hindi, Urdu, Marathi, Gujarati, Punjabi, Odia, Assamese, Tamil, Telugu, Kannada, Malayalam, Persian and Arabic. Two more boards put more than one letter on a key: T9 and Compact QWERTY. See [Ambiguous layouts](/languages/ambiguous/) for how those two work. T9 also ships as a layout file for 315 more languages.
 
@@ -172,11 +173,21 @@ Past the languages most keyboards cover, the catalogue reaches into territory mo
 - **Minority Cyrillic** alphabets: Tatar, Bashkir, Chuvash, Chechen, Ossetian, Yakut, Udmurt, Komi, Kalmyk, Tuvan, Buryat, Erzya, Mari, Adyghe, Kabardian, Abkhaz, Avar, Lezgian, and more.
 - **Ethiopic** script for Amharic, Tigrinya, and Tigre; **Syriac**, **Polytonic Greek**, and classical **Sanskrit** and **Latin** for liturgical and historical typing; **Thaana** (Dhivehi), **Tifinagh** (Tamazight, Tachelhit), and **N'Ko**. Tachelhit also has a Latin entry of its own, since most of what is written in it online uses the Latin alphabet.
 - **Syllabaries**: Cherokee has its own script, and Inuktitut types in Canadian Aboriginal Syllabics.
-- **Constructed languages** (twelve of them): the auxiliary-language family Esperanto, Interlingua, Ido, Interlingue, Novial, Lingua Franca Nova, Kotava, and Volapük, alongside Lojban, Klingon, Tolkien's Quenya, and Toki Pona.
+- **Constructed languages** (twelve of them): the auxiliary-language family Esperanto, Interlingua, Ido, Interlingue, Novial, Lingua Franca Nova, Kotava, and Volapük, alongside Lojban, Klingon, Tolkien's Quenya, and Toki Pona. Klingon and Lojban have extras of their own, below.
 
 <PhoneFrame caption={`The Cherokee syllabary (${cherokee.layout?.name ?? cherokee.name}) rendered from its real layout file.`}>
   <LayoutExplorer layout={cherokee} />
 </PhoneFrame>
+
+### Klingon and Lojban
+
+In Klingon a capital is a different letter: `q` and `Q` are two consonants, and `D`, `H`, `I` and `S` are only ever written as capitals. Lojban is written in lower case, and a capital there marks stress. So for both languages the keyboard never changes case on its own. Auto-capitalize leaves the start of a sentence alone, a capital is not carried over from the language you switched from, and a suggestion is never re-cased to follow what you typed.
+
+- **Layouts.** Klingon's QWERTY types `D`, `H`, `I`, `S` and `Q` without Shift, and puts `ch`, `gh`, `ng` and `tlh` on keys of their own where English has letters Klingon never uses. Hold `q` for `Q` and `t` for `tlh`. Klingon also has a **pIqaD** layout in its own alphabet, with its digits on the top row's holds. pIqaD lives in Unicode's Private Use Area, which no phone font covers, so the first time the layout is shown the keyboard downloads a font for it (Klingon pIqaD HaSta, about 100 KB, SIL Open Font License) and draws the keys in it from then on. pIqaD has its own row at <SettingsPath path="Appearance / Keyboard font / Klingon pIqaD font" />, apart from English, so you can draw it in any pIqaD font you import without changing the font of your Latin keys. The app you type into needs a pIqaD font of its own to show what you write.
+- **Word list.** Klingon's downloadable word list keeps every word's capitals, and the strip keeps words apart that differ only in case: typing `qa` offers `qaH` (sir), typing `Qa` offers `QaH` (help). A word typed with the right letters in the wrong case, such as `qapla'`, is fixed to `Qapla'` when you press space. A Klingon list downloaded before this update was all lower case, so download it again to get its capitals.
+- **Endings.** Once what you have typed is a whole Klingon word, the strip also offers its likeliest endings, so `jatlh` offers `jatlhpu'` and `jatlhbe'`. Whether a word takes noun or verb endings is read from the forms the word list already has.
+- **Numbers.** Type digits and the strip offers the number in Klingon words: `42` becomes `loSmaH cha'`.
+- **Glide.** The apostrophe is a letter in both languages, so a swipe draws it through the `'` key without the **Apostrophe in a glide** setting having to name one, and a swipe through the `ch` key writes the `c` of `ch`.
 
 The registry also carries a handful of entries that aren't spoken languages at all but behave like one in every setting on this page: IPA, musical notation, chorded Braille, and Morse code, plus a Unicode "fancy text" keyboard with 31 switchable styles. These get their own pages, [Music, braille & Morse](/languages/notation/) and [Fancy text](/languages/fancy-text/), because typing on them works differently enough to need separate walkthroughs.
 
@@ -213,7 +224,7 @@ click a heading to sort.
 <FilterTable
 	columns={[{ label: 'Id' }, { label: 'Name' }, { label: 'English name' }, { label: 'Script' }]}
 	rows={languages.map((l) => [l.id, l.name, l.english, l.script])}
-	placeholder="Filter 867 languages…"
+	placeholder="Filter 826 languages…"
 	caption="Generated from the app's language registry."
 />
 {/* keep it */}

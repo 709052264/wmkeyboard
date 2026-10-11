@@ -402,6 +402,7 @@
     <string name="ime_tool_dictionary">Dictionary</string>
     <string name="ime_tool_vocabulary">Vocabulary</string>
     <string name="ime_tool_learn_from_text">Learn from text</string>
+    <string name="ime_tool_find_replace">Find &amp; replace</string>
     <!-- Learn from text (#174): the panel that lists words the keyboard does not know yet. -->
     <string name="ime_learn_select_all_action">Select all</string>
     <string name="ime_learn_select_none_action">Select none</string>
@@ -677,6 +678,7 @@
     <string name="ime_clipboard_height_desc">Clipboard panel height. Drag up or down</string>
     <string name="ime_clipboard_height_taller">Make the panel taller</string>
     <string name="ime_clipboard_height_shorter">Make the panel shorter</string>
+    <string name="ime_media_height_desc">Emoji, GIF and sticker panel height. Drag up or down</string>
     <!-- The bin beside the clipboard search bar, for a screen reader. -->
     <string name="ime_clipboard_clear_desc">Delete all unpinned clips</string>
     <!-- The question the bin asks before it deletes. %1$d is how many clips it deletes. -->
@@ -804,6 +806,10 @@
     <string name="ime_selection_macro_hindi_unavailable_toast">Hindi phonetic is not loaded</string>
     <string name="ime_selection_macro_no_app_toast">No app can open this</string>
     <string name="ime_find_not_addressable">This field cannot be searched</string>
+    <string name="ime_find_secure_field">Password fields cannot be searched</string>
+    <!-- The chip after the recent searches in the Find and replace panel that forgets them. -->
+    <string name="ime_find_history_clear">Clear</string>
+    <string name="ime_find_history_desc">Recent search</string>
     <!-- The Find and replace panel. -->
     <string name="ime_find_hint">Find</string>
     <string name="ime_replace_hint">Replace with</string>

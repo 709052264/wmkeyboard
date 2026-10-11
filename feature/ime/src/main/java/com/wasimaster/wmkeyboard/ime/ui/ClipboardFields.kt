@@ -41,16 +41,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.OpenInNew
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.outlined.ContentCut
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.DeleteSweep
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.GridView
-import androidx.compose.material.icons.outlined.PushPin
-import androidx.compose.material.icons.outlined.ViewAgenda
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenInNew
+import com.wasimaster.wmkeyboard.core.icons.symbols.filled.PushPin
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCut
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Info
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteSweep
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PushPin
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewAgenda
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -109,17 +109,17 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.outlined.Password
-import androidx.compose.material.icons.outlined.Phone
-import androidx.compose.material.icons.outlined.Link
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Password
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Phone
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
 import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
 import com.wasimaster.wmkeyboard.core.clipboard.ClipKind
 import com.wasimaster.wmkeyboard.core.clipboard.ClipLinks
 import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
 import com.wasimaster.wmkeyboard.core.clipboard.clipEditable
 import com.wasimaster.wmkeyboard.core.clipboard.clipPreviewText
+import com.wasimaster.wmkeyboard.core.clipboard.clipQueryMatcher
 import com.wasimaster.wmkeyboard.core.clipboard.expiresAt
-import com.wasimaster.wmkeyboard.core.clipboard.matchesQuery
 import com.wasimaster.wmkeyboard.core.layout.PanelFieldKind
 import com.wasimaster.wmkeyboard.core.settings.ClipGridColumnsRange
 import com.wasimaster.wmkeyboard.core.settings.ClipTimeLabel
@@ -252,7 +252,9 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     } else {
         state.clipboardItems
     }
-    val shownItems = if (query.isEmpty()) inTab else inTab.filter { it.matchesQuery(query) }
+    val regexSearch = state.settings.clipboard.searchRegex
+    val matcher = remember(query, regexSearch) { clipQueryMatcher(query, regexSearch) }
+    val shownItems = if (query.isEmpty()) inTab else inTab.filter(matcher)
     val showClear = state.settings.clipboard.clearButton && unpinnedCount > 0
     val clearAsking = remember { mutableStateOf(false) }
     // A question left standing while there was nothing to clear would pop

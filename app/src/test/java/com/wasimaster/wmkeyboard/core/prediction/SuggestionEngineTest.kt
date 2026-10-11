@@ -4,6 +4,7 @@ import com.wasimaster.wmkeyboard.core.transliteration.AvroPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.BengaliPhoneticIndex
 import com.wasimaster.wmkeyboard.core.transliteration.HindiPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.HindiPhoneticIndex
+import com.wasimaster.wmkeyboard.core.transliteration.UrduPhoneticIndex
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -574,7 +575,7 @@ class SuggestionEngineTest {
     }
 
     @Test fun `a split correction is never obvious`() {
-        val e = engine().apply { autocorrectSplits = true }
+        val e = splitEngine()
         val decision = e.decideCorrection("theworld")
         assertEquals("the world", decision.apply)
         // It changes how many words the sentence has. Nobody's finger did that.
@@ -709,6 +710,69 @@ class SuggestionEngineTest {
         val suggestions = hindiEngine(emptyList()).suggest("pyar", null, phoneticLanguage = "hi")
         assertEquals(HindiPhonetic.transliterate("pyar"), suggestions.first())
         assertTrue("प्यार" in suggestions)
+    }
+
+    private fun urduEngine(
+        lexicon: UserLexicon = UserLexicon(null),
+        spellings: SpellingMap = SpellingMap.EMPTY,
+    ): SuggestionEngine = engine(lexicon).also {
+        it.extraPhonetic = mapOf(
+            "ur" to PhoneticBackend(
+                PhoneticSchemes.URDU,
+                UrduPhoneticIndex(listOf("\u06A9\u0645" to 500, "\u06A9\u0627\u0645" to 400)),
+                spellings,
+            ),
+        )
+    }
+
+    private val kam = "\u06A9\u0645" // کم, "less"
+    private val kaam = "\u06A9\u0627\u0645" // کام, "work"
+    private val mera = "\u0645\u06CC\u0631\u0627" // میرا
+
+    @Test fun phoneticReadingsFollowTheWordBefore() {
+        // Alone, "kam" is the commoner کم…
+        val plain = urduEngine()
+        assertEquals(kam, plain.suggest("kam", null, phoneticLanguage = "ur").first())
+        assertEquals(kam, plain.phoneticCommit("ur", "kam")?.output)
+        // …but after a "میرا کام" the user has typed before, it is کام, on the
+        // strip and on the space bar alike.
+        val lexicon = UserLexicon(null).also { it.learnBigram(mera, kaam) }
+        val e = urduEngine(lexicon)
+        assertEquals(kaam, e.suggest("kam", mera, phoneticLanguage = "ur").first())
+        assertEquals(kaam, e.phoneticCommit("ur", "kam", mera)?.output)
+        // A different word before leaves it alone.
+        assertEquals(kam, e.suggest("kam", "\u0628\u06C1\u062A", phoneticLanguage = "ur").first())
+    }
+
+    @Test fun phoneticContextCanBeSwitchedOff() {
+        val lexicon = UserLexicon(null).also { it.learnBigram(mera, kaam) }
+        val e = urduEngine(lexicon).also { it.phoneticContextOff = setOf("ur") }
+        assertEquals(kam, e.suggest("kam", mera, phoneticLanguage = "ur").first())
+        assertEquals(kam, e.phoneticCommit("ur", "kam", mera)?.output)
+    }
+
+    @Test fun contextReordersAKnownSpellingsFormsAndThePreviewFollows() {
+        val kal = "\u06A9\u0644" // کل
+        val kaal = "\u06A9\u0627\u0644" // کال
+        val aaj = "\u0622\u062C" // آج
+        val map = SpellingMap.load("kal\t$kal\nkal\t$kaal\n".byteInputStream(Charsets.UTF_8))
+        val lexicon = UserLexicon(null).also { it.learnBigram(aaj, kaal) }
+        val e = urduEngine(lexicon, map)
+        assertEquals(kal, e.phoneticSpelling("ur", "kal"))
+        // The composing preview and the space bar agree after the word before.
+        assertEquals(kaal, e.phoneticSpelling("ur", "kal", aaj))
+        assertEquals(kaal, e.suggest("kal", aaj, phoneticLanguage = "ur").first())
+    }
+
+    @Test fun contextNeverLiftsADictionaryWordOverAKnownSpelling() {
+        // The map says "kam" is کم; a habit of کام after میرا moves it up the
+        // strip but not past the listed spelling, which the preview showed.
+        val map = SpellingMap.load("kam\t$kam\n".byteInputStream(Charsets.UTF_8))
+        val lexicon = UserLexicon(null).also { it.learnBigram(mera, kaam) }
+        val e = urduEngine(lexicon, map)
+        val strip = e.suggest("kam", mera, phoneticLanguage = "ur")
+        assertEquals(kam, strip.first())
+        assertTrue(kaam in strip)
     }
 
     @Test fun aPhoneticLayoutNeverAnswersInLatin() {
@@ -942,11 +1006,37 @@ class SuggestionEngineTest {
         assertNull(engine().shouldAutocorrect("theworld"))
     }
 
+    /** Split autocorrect on, with "the world" typed often enough to vouch for itself. */
+    private fun splitEngine(lexicon: UserLexicon = UserLexicon(null)): SuggestionEngine =
+        engine(lexicon.apply { repeat(2) { learnBigram("the", "world") } })
+            .apply { autocorrectSplits = true }
+
     @Test fun `split autocorrect inserts the missed space`() {
-        val e = engine().apply { autocorrectSplits = true }
+        val e = splitEngine()
         assertEquals("the world", e.shouldAutocorrect("theworld"))
         // Typed capitalization carries over to the split.
         assertEquals("The world", e.shouldAutocorrect("Theworld"))
+    }
+
+    @Test fun `an exact split needs a phrase the keyboard has seen`() {
+        // Both halves listed is not enough: nearly any unlisted word breaks
+        // into two listed fragments somewhere ("config" -> "con fig").
+        val lexicon = UserLexicon(null)
+        val e = engine(lexicon).apply { autocorrectSplits = true }
+        assertNull(e.shouldAutocorrect("theworld"))
+        assertTrue("the world" in e.suggest("theworld", previousWord = null))
+        // One sighting is what an applied-and-kept split leaves behind.
+        lexicon.learnBigram("the", "world")
+        assertNull(e.shouldAutocorrect("theworld"))
+        lexicon.learnBigram("the", "world")
+        assertEquals("the world", e.shouldAutocorrect("theworld"))
+    }
+
+    @Test fun `a word in the personal dictionary is never split`() {
+        val lexicon = UserLexicon(null)
+        val e = splitEngine(lexicon)
+        lexicon.learnWord("theworld")
+        assertNull(e.shouldAutocorrect("theworld"))
     }
 
     // ---- the fat-fingered spacebar ----
@@ -963,7 +1053,7 @@ class SuggestionEngineTest {
         List(9) { i -> if (i == 3) TouchPoint(5f, 3f + bDrop) else null }
 
     @Test fun `split autocorrect drops a fat-fingered space letter`() {
-        val lexicon = UserLexicon(null).apply { learnBigram("the", "world") }
+        val lexicon = UserLexicon(null).apply { repeat(2) { learnBigram("the", "world") } }
         val e = bottomRowEngine(lexicon)
         val low = thebworldTaps(bDrop = 0.4f)
         assertEquals("the world", e.decideCorrection("thebworld", touch = low).apply)
@@ -990,13 +1080,13 @@ class SuggestionEngineTest {
         // Never typed "the world": the strip may offer it, the field is not rewritten.
         assertNull(e.decideCorrection("thebworld", touch = low).apply)
         assertTrue("the world" in e.suggest("thebworld", null, touch = low))
-        lexicon.learnBigram("the", "world")
+        repeat(2) { lexicon.learnBigram("the", "world") }
         assertEquals("the world", e.decideCorrection("thebworld", touch = low).apply)
     }
 
     @Test fun `a word learned once does not anchor a split`() {
         val lexicon = UserLexicon(null).apply {
-            learnBigram("the", "wprld")
+            repeat(2) { learnBigram("the", "wprld") }
             learnWord("wprld")
         }
         val e = bottomRowEngine(lexicon).apply { learnedWordMinCount = 3 }
@@ -1017,7 +1107,7 @@ class SuggestionEngineTest {
     }
 
     @Test fun `reverted split never fires again`() {
-        val e = engine().apply { autocorrectSplits = true }
+        val e = splitEngine()
         assertEquals("the world", e.shouldAutocorrect("theworld"))
         e.rejectCorrection("theworld", "the world")
         assertNull(e.shouldAutocorrect("theworld"))

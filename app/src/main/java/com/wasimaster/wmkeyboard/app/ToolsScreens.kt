@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Tune
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -145,6 +145,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.MEDIA_CONTROL -> R.string.fonts_tool_media_control_title
     ToolbarTool.KDE_CONNECT -> ImeR.string.ime_tool_kde_connect
     ToolbarTool.STATISTICS -> ImeR.string.ime_tool_statistics
+    ToolbarTool.FIND_REPLACE -> ImeR.string.ime_tool_find_replace
     ToolbarTool.PLUGINS -> ImeR.string.ime_tool_plugins
     ToolbarTool.APP_LAUNCHER -> R.string.fonts_tool_app_launcher_title
     ToolbarTool.AI -> R.string.fonts_tool_ai_title
@@ -226,6 +227,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.MEDIA_CONTROL -> R.string.fonts_tool_media_control_desc
     ToolbarTool.KDE_CONNECT -> R.string.fonts_tool_kde_connect_desc
     ToolbarTool.STATISTICS -> R.string.fonts_tool_statistics_desc
+    ToolbarTool.FIND_REPLACE -> R.string.fonts_tool_find_replace_desc
     ToolbarTool.PLUGINS -> R.string.fonts_tool_plugins_desc
     ToolbarTool.APP_LAUNCHER -> R.string.fonts_tool_app_launcher_desc
     ToolbarTool.AI -> R.string.fonts_tool_ai_desc
@@ -482,6 +484,7 @@ private fun ToolRow(
             ToolBlocker.NEEDS_SEARCH_KEY -> stringResource(R.string.tools_needs_key_subtitle)
             ToolBlocker.NEEDS_SEARCH_INSTANCE -> stringResource(R.string.tools_needs_instance_subtitle)
             ToolBlocker.NEEDS_SECONDARY_LAYOUT -> stringResource(R.string.tools_needs_layout_subtitle)
+            ToolBlocker.VOICE_OFF -> stringResource(R.string.tools_voice_off_subtitle)
         },
         leading = {
             SlotIcon(
@@ -535,7 +538,7 @@ internal val ToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildList {
             ToolbarTool.EMOJI, ToolbarTool.CLIPBOARD, ToolbarTool.SNIPPETS,
             ToolbarTool.TEXT_EDIT, ToolbarTool.TRACKPAD, ToolbarTool.NUMPAD, ToolbarTool.HANDWRITING,
             ToolbarTool.VOICE, ToolbarTool.CAMERA, ToolbarTool.DICTIONARY, ToolbarTool.VOCABULARY,
-            ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.GRAMMAR, ToolbarTool.APP_LAUNCHER, ToolbarTool.MEDIA_CONTROL,
+            ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.GRAMMAR, ToolbarTool.APP_LAUNCHER, ToolbarTool.MEDIA_CONTROL,
             ToolbarTool.KDE_CONNECT,
         ),
     )

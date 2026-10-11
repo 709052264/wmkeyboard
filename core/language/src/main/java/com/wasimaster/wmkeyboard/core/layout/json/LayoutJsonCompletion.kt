@@ -316,7 +316,7 @@ private class Context(
         shape.values.forEachIndexed { index, value ->
             if (shape.typeName == FIELD_KIND) {
                 if (value == UNKNOWN) return@forEachIndexed
-                if (panel != null && fieldKindOf(value)?.panel != panel) return@forEachIndexed
+                if (panel != null && fieldKindOf(value)?.isOn(panel) != true) return@forEachIndexed
             }
             val label = values.enumLabel(shape.typeName, value)
             val item = JsonCompletionItem(value, JsonCompletionKind.ENUM, quote(value), detail = label)
@@ -579,7 +579,12 @@ private class Context(
             Snippet("{send_key: Tab}", "tab send_key", "{\"label\": \"⇥\", \"action\": {\"type\": \"send_key\", \"keyCode\": 61}}|"),
             Snippet("{mod: CTRL}", "ctrl mod", "{\"label\": \"Ctrl\", \"action\": {\"type\": \"mod\", \"key\": \"CTRL\"}}|"),
             Snippet("{edit: LEFT}", "arrow edit", "{\"label\": \"\", \"action\": {\"type\": \"edit\", \"op\": \"|\"}}", reopen = true),
-            Snippet("{flick}", "flick", "{\"label\": \"|\", \"flick\": {\"left\": \"\", \"up\": \"\", \"right\": \"\", \"down\": \"\"}}"),
+            Snippet(
+                "{flick}",
+                "flick",
+                "{\"label\": \"|\", \"flick\": {\"left\": \"\", \"up\": \"\", \"right\": \"\", \"down\": \"\", " +
+                    "\"up_left\": \"\", \"up_right\": \"\", \"down_left\": \"\", \"down_right\": \"\"}}",
+            ),
             Snippet("{none}", "none gap", "{\"label\": \"\", \"action\": {\"type\": \"none\"}}|"),
         )
         val PANEL_KEY_SNIPPETS = listOf(

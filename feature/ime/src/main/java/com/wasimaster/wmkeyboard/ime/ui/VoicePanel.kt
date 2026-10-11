@@ -23,18 +23,22 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Backspace
-import androidx.compose.material.icons.automirrored.outlined.Undo
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Cloud
-import androidx.compose.material.icons.outlined.KeyboardDoubleArrowDown
-import androidx.compose.material.icons.outlined.FileDownload
-import androidx.compose.material.icons.outlined.Keyboard
-import androidx.compose.material.icons.outlined.Mic
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.SpaceBar
-import androidx.compose.material.icons.outlined.Translate
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Backspace
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Cloud
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardDoubleArrowDown
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileDownload
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SpaceBar
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -71,6 +75,7 @@ import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
+import com.wasimaster.wmkeyboard.core.settings.dictationLanguages
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.VoiceBarAction
 import com.wasimaster.wmkeyboard.ime.VoiceModelState
@@ -82,6 +87,13 @@ import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+/**
+ * What every surface says while the words are on their way with the mic shut:
+ * a clip being transcribed, or a phrase with the AI tool being tidied (#499).
+ */
+internal fun VoiceUi.transcribingLabelRes(): Int =
+    if (tidying) R.string.ime_voice_status_tidying else R.string.ime_voice_status_transcribing
 
 /**
  * Voice input panel: a large mic button with a level-driven pulse ring and
@@ -101,7 +113,6 @@ internal fun VoicePanel(
     onOpenVoiceSettings: () -> Unit,
     onUseSystemEngine: () -> Unit,
     onRailKey: (VoiceBarAction) -> Unit,
-    onLayoutSelect: (String) -> Unit,
     onClose: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
@@ -126,23 +137,17 @@ internal fun VoicePanel(
     // button), then the conditional Undo and language chips. The side rail
     // stays out — its four keys are ones a physical keyboard already sends.
     // Enter on the mic is the tap semantic (toggle), never hold-to-talk.
-    val languages = state.settings.enabledLanguages.ifEmpty { listOf(LanguageRegistry.byId("en")) }
-    val english = state.voice.languageTag.startsWith("en")
-    val languageChipVisible = languages.any { it.isEnglish } && languages.any { !it.isEnglish }
+    // The languages dictation listens for (#416). The chip is there whenever
+    // there is a choice to make: two keyboard languages, or a choice already
+    // made that the user may want to undo.
+    val chosenLanguages = state.settings.whisper.languages
+    val enabledLanguageIds = state.settings.enabledLanguages.map { it.id }
+    val languageChipVisible = enabledLanguageIds.size > 1 || chosenLanguages.isNotEmpty()
+    var languageMenuOpen by remember { mutableStateOf(false) }
     val undoVisible = voice.canUndo && hasPermission && !state.secureField &&
         voice.status != VoiceStatus.LISTENING && voice.status != VoiceStatus.FINISHING &&
         voice.status != VoiceStatus.TRANSCRIBING
     val micUsable = !state.secureField && voice.status != VoiceStatus.UNAVAILABLE
-    fun switchVoiceLanguage() {
-        val other = if (english) {
-            languages.first { !it.isEnglish }
-        } else {
-            languages.firstOrNull { it.isEnglish } ?: LanguageRegistry.byId("en")
-        }
-        val layoutId = other.layoutIds.firstOrNull { it in state.settings.enabledLayoutIds }
-            ?: other.layoutIds.firstOrNull()
-        if (layoutId != null) onLayoutSelect(layoutId)
-    }
     val collapseVisible = !state.secureField
     fun collapseToBar() = onRailKey(
         VoiceBarAction.SwitchSurface(VoiceBarSettings.MODE_BAR),
@@ -152,7 +157,7 @@ internal fun VoicePanel(
             if (hasPermission) add(onToggle) else add(onRequestPermission)
         }
         if (undoVisible) add { feedback(); onUndo() }
-        if (languageChipVisible) add { feedback(); switchVoiceLanguage() }
+        if (languageChipVisible) add { feedback(); languageMenuOpen = true }
         if (collapseVisible) add { feedback(); collapseToBar() }
     }
     PanelFocusTarget(
@@ -270,30 +275,52 @@ internal fun VoicePanel(
                 )
             }
 
-            // Language chip: shows the active recognition language, tap
-            // switches between English and Bengali (the enabled input
-            // modes decide what is available).
+            // Language chip (#416): the language dictation listens for, or
+            // the languages when it listens for several. A tap opens the
+            // choice: follow the keyboard, one language whatever the layout,
+            // or all the keyboard's languages at once.
             if (languageChipVisible) {
-                Text(
-                    text = if (english) "EN" else "বাং",
-                    color = kb.secondaryText,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(4.dp)
-                        .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
-                        .background(kb.chip)
-                        .focusRing(
-                            focusedAction == languageRingIndex,
-                            RoundedCornerShape(kb.toolRadiusDp.dp),
+                val heardLanguages = state.settings.whisper.dictationLanguages(state.language.id)
+                val pickDescription = stringResource(R.string.ime_voice_language_menu_title)
+                Box(modifier = Modifier.align(Alignment.TopStart)) {
+                    Text(
+                        text = voiceLanguagesLabel(heardLanguages),
+                        color = if (chosenLanguages.isEmpty()) kb.secondaryText else kb.toolbarIcon,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
+                            .background(kb.chip)
+                            .focusRing(
+                                focusedAction == languageRingIndex,
+                                RoundedCornerShape(kb.toolRadiusDp.dp),
+                            )
+                            .clickable(onClickLabel = pickDescription) {
+                                feedback()
+                                languageMenuOpen = true
+                            }
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                    )
+                    if (languageMenuOpen) {
+                        StripMenuScrim(onDismiss = { languageMenuOpen = false })
+                        VoiceLanguageMenu(
+                            chosen = chosenLanguages,
+                            enabled = enabledLanguageIds,
+                            onDismiss = { languageMenuOpen = false },
+                            onPick = { ids ->
+                                languageMenuOpen = false
+                                onRailKey(VoiceBarAction.PickLanguages(ids))
+                            },
+                            onMore = {
+                                languageMenuOpen = false
+                                feedback()
+                                onOpenVoiceSettings()
+                            },
                         )
-                        .clickable {
-                            feedback()
-                            switchVoiceLanguage()
-                        }
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                )
+                    }
+                }
             }
 
             // Undo the last dictated utterance (whole, in one tap).
@@ -495,7 +522,7 @@ private fun MicContent(
                 pluralStringResource(R.plurals.ime_voice_status_stops_in, voice.secondsLeft, voice.secondsLeft)
             listening && voice.clipBased -> stringResource(R.string.ime_voice_status_listening_hint)
             listening -> voice.partial.ifEmpty { listeningLabel }
-            transcribing -> stringResource(R.string.ime_voice_status_transcribing)
+            transcribing -> stringResource(voice.transcribingLabelRes())
             finishing -> "…"
             voice.status == VoiceStatus.ERROR ->
                 voice.errorMessage ?: stringResource(R.string.ime_voice_status_error)
@@ -632,6 +659,75 @@ private fun MicContent(
             else -> {}
         }
     }
+}
+
+/**
+ * The voice panel's language choice (#416), hung off its language chip in the
+ * shape of the Voice tool's typing-mode menu: the choice in force is ticked.
+ * [chosen] is the stored choice, empty while dictation follows the keyboard;
+ * [enabled] the keyboard's languages, which are what the menu offers one tap
+ * away. Any other choice, made on the Voice typing screen, is listed too so
+ * it stays reachable, and the last entry opens that screen.
+ */
+@Composable
+internal fun VoiceLanguageMenu(
+    chosen: List<String>,
+    enabled: List<String>,
+    onDismiss: () -> Unit,
+    onPick: (List<String>) -> Unit,
+    onMore: () -> Unit,
+) {
+    val entries = buildList {
+        add(emptyList<String>() to stringResource(R.string.ime_voice_language_follow))
+        for (id in enabled) add(listOf(id) to LanguageRegistry.byId(id).displayName)
+        if (enabled.size > 1) add(enabled to stringResource(R.string.ime_voice_language_all))
+    }
+    val shown = if (entries.none { it.first.toSet() == chosen.toSet() }) {
+        entries + (chosen to chosen.joinToString(" + ") { LanguageRegistry.byId(it).displayName })
+    } else {
+        entries
+    }
+    DropdownMenu(
+        expanded = true,
+        onDismissRequest = onDismiss,
+        properties = MenuPopupProperties,
+    ) {
+        Text(
+            text = stringResource(R.string.ime_voice_language_menu_title),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        )
+        for ((ids, label) in shown) {
+            DropdownMenuItem(
+                text = { Text(label) },
+                leadingIcon = {
+                    // Order does not make a different choice: the keyboard's
+                    // language goes first whichever way the set was picked.
+                    if (ids.toSet() == chosen.toSet()) {
+                        Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                    } else {
+                        Box(Modifier.size(18.dp))
+                    }
+                },
+                onClick = { onPick(ids) },
+            )
+        }
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.ime_voice_language_more)) },
+            leadingIcon = { Icon(Icons.Outlined.Settings, contentDescription = null, modifier = Modifier.size(18.dp)) },
+            onClick = onMore,
+        )
+    }
+}
+
+/**
+ * The language chip's text: each language's short code, "EN" or "EN+BN", and
+ * a count past two so the chip stays a chip.
+ */
+internal fun voiceLanguagesLabel(ids: List<String>): String {
+    val codes = ids.map { LanguageRegistry.byId(it).localeTag.substringBefore('-').uppercase() }.distinct()
+    return if (codes.size <= 2) codes.joinToString("+") else "${codes.first()}+${codes.size - 1}"
 }
 
 /** One tappable chip under the mic, with a leading icon. */
@@ -782,7 +878,7 @@ internal fun VoiceStripBar(
                 pluralStringResource(R.plurals.ime_voice_status_stops_in, voice.secondsLeft, voice.secondsLeft)
             listening && voice.clipBased -> stringResource(R.string.ime_voice_strip_listening_hint)
             listening -> voice.partial.ifEmpty { listeningLabel }
-            transcribing -> stringResource(R.string.ime_voice_status_transcribing)
+            transcribing -> stringResource(voice.transcribingLabelRes())
             finishing -> "…"
             voice.status == VoiceStatus.ERROR ->
                 voice.errorMessage ?: stringResource(R.string.ime_voice_status_error)
@@ -1037,7 +1133,7 @@ internal fun RowScope.FieldVoiceStatus(voice: VoiceUi, onAction: (CaptureVoiceAc
             pluralStringResource(R.plurals.ime_voice_status_stops_in, voice.secondsLeft, voice.secondsLeft)
         listening && voice.clipBased -> stringResource(R.string.ime_voice_strip_listening_hint)
         listening -> voice.partial.ifEmpty { listeningLabel }
-        voice.status == VoiceStatus.TRANSCRIBING -> stringResource(R.string.ime_voice_status_transcribing)
+        voice.status == VoiceStatus.TRANSCRIBING -> stringResource(voice.transcribingLabelRes())
         voice.status == VoiceStatus.FINISHING -> voice.partial.ifEmpty { "…" }
         voice.status == VoiceStatus.ERROR -> voice.errorMessage ?: stringResource(R.string.ime_voice_status_error)
         else -> ""

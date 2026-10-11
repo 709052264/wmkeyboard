@@ -88,6 +88,10 @@ It deliberately leaves in place any feedback that tells you something: the key-p
 
 The keyboard also follows the device's own **Remove animations** (Android's Accessibility screen, or `Animator duration scale` in developer options). While that is on, the keyboard behaves as if Reduce motion were on, and it writes nothing to this switch. Turn the system setting back off and your own choice returns untouched.
 
+<SettingsPath path="Accessibility / Motion / Classic press-and-hold popup" />
+
+**Classic press-and-hold popup** (off by default) brings back the alternates popup as it used to be. It opens where the key is rather than with its first alternate over the key, the highlight sits on whatever alternate is under your finger, nothing grows as you aim, and the highlight jumps from one alternate to the next instead of sliding. Choosing works the same: slide to an alternate and lift.
+
 ## Plain settings rows
 
 <SettingsPath path="Accessibility / Settings app / Icons in settings" />
@@ -105,6 +109,12 @@ This changes only the settings app. The keyboard, its toolbar and the Tools list
 When you open a setting, its icon and name move up into the heading of the screen it opens. That motion costs more than it looks: while it's on, every settings screen is laid out twice each time anything on it changes, and a slower phone can show that as a stutter when a screen opens or scrolls. Turn off **Screen transitions** and screens open with the plain sideways slide instead, laid out once.
 
 It's on by default, and a phone that runs the settings smoothly has no reason to turn it off. **Reduce motion** already turns these transitions off, so with that on this switch changes nothing. The keyboard itself isn't affected either way.
+
+## Keyboard test button
+
+<SettingsPath path="Accessibility / Settings app / Keyboard test button" />
+
+Every settings screen has a small keyboard button in its bottom corner, above the screen's own button if it has one. It opens a text field with the real keyboard under it, so you can try a change without leaving the screen. If the button gets in your way, turn off **Keyboard test button** and it's gone from every screen. See [Trying a change](/reference/settings/#trying-a-change) for how the field behaves.
 
 ## Touch accommodations
 

@@ -7,6 +7,10 @@
 -->
 <resources>
 
+    <!-- The switch at the top of the screen. Off hides every other row on it. -->
+    <string name="voice_enabled_title">Use voice typing</string>
+    <string name="voice_enabled_subtitle">Off removes the microphone from the whole keyboard</string>
+    <string name="voice_enabled_info">When this is off, the keyboard never opens the microphone. The Voice tool goes from the toolbar, the toolbox and the shortcuts, the boxes of the keyboard itself lose their microphone button, and the collapsed bar does not show. The recognition engines and the Whisper models are not loaded, so voice typing uses no memory. Your voice settings stay as they are for when you turn it on again.</string>
     <string name="voice_engine_group">Engine</string>
     <string name="voice_engine_title">Recognition engine</string>
     <string name="voice_engine_subtitle">How the keyboard turns speech into text</string>
@@ -106,6 +110,10 @@
     <string name="voice_pause_media_title">Pause media during voice typing</string>
     <string name="voice_pause_media_subtitle">Pause music and video while the microphone listens</string>
     <string name="voice_pause_media_info">When voice typing starts, the keyboard asks other apps to pause their sound. Music, podcasts and video stop while the microphone listens. They continue a moment after voice typing stops. An app that ignores the request continues to play.</string>
+    <!-- #499: each dictated phrase is cleaned up by the model of the AI tool. -->
+    <string name="voice_ai_tidy_title">Tidy dictation with AI</string>
+    <string name="voice_ai_tidy_subtitle">Remove filler words, repeats and spoken corrections from each phrase</string>
+    <string name="voice_ai_tidy_info">After each phrase goes into the field, the keyboard sends it to the model of the AI tool. The model removes filler words such as um and uh, false starts, repeated words and the parts that you corrected aloud: \"at three, no, four\" becomes \"at four\". Your words, language and tone stay the same. The phrase stays as you said it if the answer is slow or fails, or if you change the text first. The next phrase starts when the answer arrives. Each phrase goes to the AI provider that you set for the AI tool. Plain text mode, password fields and the boxes of the keyboard itself are not tidied.</string>
     <string name="voice_hold_picks_title">Hold the tool to pick a mode</string>
     <string name="voice_hold_picks_subtitle">Press and hold the Voice tool on the toolbar to choose a voice typing mode and start at once</string>
     <string name="voice_hold_picks_info">A press and hold on the toolbar\'s Voice tool opens a menu of the three voice typing modes. Picking one makes it the mode and starts dictation straight away, so switching between one block at a time and typing while you speak is one hold rather than a trip through settings. Tap the tool to stop. Turn this off to give the hold back to the toolbar: it then runs the tool you bound to it, or opens this screen.</string>
@@ -113,4 +121,11 @@
     <string name="voice_hold_subtitle">How long you hold the microphone before it becomes press-and-hold</string>
     <string name="voice_hold_info">A short tap on the microphone starts dictation and leaves it running until you tap again. Holding it instead dictates only while you hold, like a walkie-talkie. This is the line between the two. Raise it if a slow press keeps stopping your dictation, lower it if you mean to hold and it keeps latching on.</string>
 
+    <!-- #416: the languages dictation listens for, apart from the keyboard's. -->
+    <string name="voice_languages_title">Voice typing language</string>
+    <string name="voice_languages_subtitle">The language dictation listens for, or several at once</string>
+    <string name="voice_languages_follow">Follow the keyboard</string>
+    <string name="voice_languages_keyboard_group">Your keyboard languages</string>
+    <string name="voice_languages_other_group">Other languages</string>
+    <string name="voice_languages_dialog_body">Following the keyboard, dictation listens for the language of the layout you are typing on. Tick one language to keep dictation in it whatever the layout. Tick several to speak any of them. The system recognizer tells them apart on Android 14 and later, where the recognizer supports it. Offline Whisper and the transcription server work out the language themselves, so give Whisper a model that covers all of them. Elsewhere the first language is the one heard: the keyboard\'s language when it is ticked.</string>
 </resources>

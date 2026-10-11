@@ -457,7 +457,12 @@ private fun repairOneLayer(
         return fixed.spec.grid
     }
 
-    var rows = layerSpec.rows.map { row -> row.mapNotNull { it.repairKey(key, repairs) } }
+    val keypad = LayoutLayer.entries.any { it.key == key && it != LayoutLayer.LETTERS && !it.isCycled }
+    var rows = layerSpec.rows
+        .map { row ->
+            row.mapNotNull { it.repairKey(key, repairs) }
+                .map { if (keypad) it.withPadSpaceLegend() else it }
+        }
         .filter { it.isNotEmpty() }
 
     if (rows.size > MaxRowsPerLayer) {
@@ -483,6 +488,16 @@ private fun repairOneLayer(
     val heights = layerSpec.rowHeights?.takeIf { rows.size == layerSpec.rows.size }
     return layerSpec.copy(rows = rows, rowHeights = heights)
 }
+
+/**
+ * A keypad's space key with the blank label every shipped pad gave it before
+ * 0.5.13, which drew nothing at all (#459), wearing [PAD_SPACE_LABEL] instead.
+ * A layout edited or duplicated on an older build stored the blank one, and
+ * would otherwise keep it however the shipped pads change. Silent, like the
+ * relabel it is: there is nothing for the user to act on.
+ */
+private fun Key.withPadSpaceLegend(): Key =
+    if (action == KeyAction.Space && label.isEmpty()) copy(label = PAD_SPACE_LABEL) else this
 
 /**
  * One layer through the repair pass, for a grid that arrives on its own: the
@@ -692,6 +707,14 @@ internal fun Key.repairKey(
     // so a blank one commits nothing.
     if (fixed.actionAlternates.any { !it.isUsable() }) {
         fixed = fixed.copy(actionAlternates = fixed.actionAlternates.filter { it.isUsable() })
+    }
+    // A flick arm is a popup entry by another gesture (issue #549), and a dead
+    // one is dead in the same way. Typing text is what [Key.flick] is for, so
+    // an action arm that only types goes too rather than shadowing it.
+    if (fixed.flickActions.values.any { !it.isUsable() || it.action == KeyAction.Text }) {
+        fixed = fixed.copy(
+            flickActions = fixed.flickActions.filterValues { it.isUsable() && it.action != KeyAction.Text },
+        )
     }
     // Quietly again: a repeat on a key that cannot use one is not a broken
     // layout, it is a flag nothing reads — the hold on a ?123 key would

@@ -53,6 +53,8 @@ internal class PanelLayoutCallbacks(
     val emoji: EmojiFieldCallbacks,
     val clipboard: ClipboardFieldCallbacks,
     val trackpad: TrackpadFieldCallbacks,
+    /** The GIF and sticker panels' height bar let go: dp over the keyboard's, for the three media panels (#537). */
+    val onMediaPanelHeight: (Int) -> Unit = {},
 )
 
 /**
@@ -93,7 +95,7 @@ internal fun KeyboardUiState.panelLayout(kind: PanelKind): PanelLayoutSpec {
         layouts.number?.let { number ->
             return PanelLayoutSpec(
                 PanelKind.NUMPAD,
-                LayerSpec(rows = number.rows, rowHeights = number.rowHeights),
+                LayerSpec(rows = number.rows, rowHeights = number.rowHeights, flickHints = number.flickHints),
                 appearance = number.appearance,
             )
         }
@@ -102,6 +104,11 @@ internal fun KeyboardUiState.panelLayout(kind: PanelKind): PanelLayoutSpec {
     // The shipped emoji panel with the switch to GIFs and stickers where the
     // setting puts it (issue #366), or left out while there is nowhere to switch.
     if (kind == PanelKind.EMOJI) return BuiltInPanelLayouts.emoji(mediaSwitcherPlacement(settings))
+    // GIFs and stickers the user never laid out end the way the emoji panel
+    // does, whatever shape that is (#538).
+    if (kind == PanelKind.GIF || kind == PanelKind.STICKER) {
+        return mediaPanelLayout(kind, panelLayout(PanelKind.EMOJI), mediaSwitcherPlacement(settings))
+    }
     return shared ?: BuiltInPanelLayouts.default(kind)
 }
 
@@ -228,6 +235,7 @@ internal fun EmojiPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCallba
                 val rest = spec.withoutLeadingRow()
                 FullBleedTool(
                     state, title = "", onClose = onClose,
+                    extraHeight = mediaPanelExtraHeight(state),
                     headerActions = {
                         for (key in strip) {
                             Box(
@@ -242,7 +250,12 @@ internal fun EmojiPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCallba
                     PanelLayoutGrid(state, rest, callbacks, onClose, fields, Modifier.fillMaxSize())
                 }
             } else {
-                FullBleedTool(state, stringResource(R.string.ime_tool_emoji), onClose = onClose) {
+                FullBleedTool(
+                    state,
+                    stringResource(R.string.ime_tool_emoji),
+                    onClose = onClose,
+                    extraHeight = mediaPanelExtraHeight(state),
+                ) {
                     PanelLayoutGrid(state, spec, callbacks, onClose, fields, Modifier.fillMaxSize())
                 }
             }
@@ -254,7 +267,7 @@ internal fun EmojiPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCallba
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(keyRowsHeight(state) + barCompensation),
+                    .height(mediaPanelHeight(state, keyRowsHeight(state) + barCompensation)),
             ) {
                 PanelLayoutGrid(state, spec, callbacks, onClose, fields, Modifier.fillMaxSize())
             }
@@ -496,6 +509,28 @@ internal fun TrackpadPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCal
             modifier = Modifier.fillMaxSize(),
         )
     }
+}
+
+/**
+ * How much taller than the keyboard the emoji, GIF and sticker panels open
+ * (#537): the setting, which the three share so a switch between them never
+ * moves the keyboard's top edge. A full-bleed panel fits it to the screen
+ * itself; [mediaPanelHeight] does that for the others.
+ */
+internal fun mediaPanelExtraHeight(state: KeyboardUiState): Dp =
+    state.settings.emoji.panelExtraHeightDp.coerceAtLeast(0).dp
+
+/**
+ * The height of an emoji, GIF or sticker panel that is not full-bleed: the
+ * [base] it has always had, plus [mediaPanelExtraHeight], fitted to the
+ * screen the way every taller tool panel is (#333), and never shorter than
+ * [base], so the setting can only ever add room.
+ */
+@Composable
+internal fun mediaPanelHeight(state: KeyboardUiState, base: Dp): Dp {
+    val extra = mediaPanelExtraHeight(state)
+    if (extra <= 0.dp) return base
+    return toolPanelHeight(state, wanted = base + extra, floor = base)
 }
 
 /** The clipboard's view switch in a full-bleed header: its square plus a little air. */

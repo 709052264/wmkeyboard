@@ -22,7 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Check
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.app.media.MusicApps
 import com.wasimaster.wmkeyboard.app.launcher.LauncherCombos
 import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
@@ -37,13 +37,14 @@ import com.wasimaster.wmkeyboard.core.settings.LauncherIconShape
 import com.wasimaster.wmkeyboard.core.settings.PhotoSearchEngine
 import com.wasimaster.wmkeyboard.core.settings.PhotoSearchTarget
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
+import com.wasimaster.wmkeyboard.core.settings.HandwritingFullScreenMode
 import com.wasimaster.wmkeyboard.core.tools.CryptoCatalog
 import com.wasimaster.wmkeyboard.core.tools.CurrencyClient
 import com.wasimaster.wmkeyboard.core.tools.CurrencyLabel
-import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Settings
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -97,6 +98,9 @@ import com.wasimaster.wmkeyboard.core.settings.GifSourceMode
 import com.wasimaster.wmkeyboard.core.settings.GrammarCategory
 import com.wasimaster.wmkeyboard.core.settings.GrammarDialect
 import com.wasimaster.wmkeyboard.core.settings.GrammarLintKind
+import com.wasimaster.wmkeyboard.core.settings.MediaGridSpacingRange
+import com.wasimaster.wmkeyboard.core.settings.MediaPanelExtraHeightRange
+import com.wasimaster.wmkeyboard.core.settings.MediaPerRowRange
 import com.wasimaster.wmkeyboard.core.settings.MediaSendMode
 import com.wasimaster.wmkeyboard.core.settings.QrEccLevel
 import com.wasimaster.wmkeyboard.core.settings.StickerSuggestStyle
@@ -143,14 +147,14 @@ import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.ToolHoldAction
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
-import androidx.compose.material.icons.outlined.AltRoute
-import androidx.compose.material.icons.outlined.Keyboard
-import androidx.compose.material.icons.outlined.Timer10
-import androidx.compose.material.icons.outlined.Timer3
-import androidx.compose.material.icons.outlined.TimerOff
-import androidx.compose.material.icons.outlined.PhotoSizeSelectActual
-import androidx.compose.material.icons.outlined.PhotoSizeSelectLarge
-import androidx.compose.material.icons.outlined.PhotoSizeSelectSmall
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AltRoute
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Timer10
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Timer3
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TimerOff
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoSizeSelectActual
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoSizeSelectLarge
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoSizeSelectSmall
 import com.wasimaster.wmkeyboard.core.ui.ScrollRailBox
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -346,6 +350,8 @@ internal fun ToolDetailSettings(
                         stringResource(R.string.tooldetail_enabled_needs_instance_subtitle)
                     ToolBlocker.NEEDS_SECONDARY_LAYOUT ->
                         stringResource(R.string.tooldetail_enabled_needs_layout_subtitle)
+                    ToolBlocker.VOICE_OFF ->
+                        stringResource(R.string.tooldetail_enabled_voice_off_subtitle)
                 },
                 usable && toolOn,
                 switchKey = landingKey("switch"),
@@ -406,6 +412,39 @@ internal fun ToolDetailSettings(
                     stringResource(R.string.statistics_subtitle),
                     route = "statistics",
                 ) { onNavigate("statistics") }
+            }
+        }
+        // The search history lives in its own file, not in the settings (see
+        // FindHistoryPrefs), so this page reads and writes that file directly.
+        ToolbarTool.FIND_REPLACE -> {
+            val historyContext = LocalContext.current
+            val history = remember { com.wasimaster.wmkeyboard.ime.FindHistoryPrefs(historyContext) }
+            var remembering by remember { mutableStateOf(history.enabled) }
+            var count by remember { mutableStateOf(history.entries().size) }
+            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_find_history_title,
+                        stringResource(R.string.tooldetail_find_history_subtitle),
+                        remembering,
+                        default = true,
+                    ) {
+                        history.enabled = it
+                        remembering = it
+                        count = history.entries().size
+                    }
+                }
+                item(visible = remembering) {
+                    ActionRow(
+                        R.string.tooldetail_find_history_clear_title,
+                        subtitle = pluralStringResource(R.plurals.tooldetail_find_history_count, count, count),
+                        action = stringResource(R.string.tooldetail_find_history_clear_action),
+                        enabled = count > 0,
+                    ) {
+                        history.clear()
+                        count = 0
+                    }
+                }
             }
         }
         ToolbarTool.MEDIA_CONTROL -> {
@@ -1736,6 +1775,36 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.handwritingCommitDelayMs.toFloat(),
                     ) { scope.launch { repository.setHandwritingCommitDelayMs(it.roundToInt()) } }
                 }
+                // Issue #386. Automatic rides on Android's own stylus
+                // handwriting, which only exists from Android 14; below that
+                // the row would offer a choice of one.
+                item(visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    ChoiceSetting(
+                        title = R.string.tooldetail_handwriting_full_screen_title,
+                        subtitle = stringResource(R.string.tooldetail_handwriting_full_screen_subtitle),
+                        info = stringResource(R.string.tooldetail_handwriting_full_screen_info),
+                        options = listOf(
+                            HandwritingFullScreenMode.MANUAL to
+                                stringResource(R.string.tooldetail_handwriting_full_screen_manual_label),
+                            HandwritingFullScreenMode.AUTOMATIC to
+                                stringResource(R.string.tooldetail_handwriting_full_screen_automatic_label),
+                        ),
+                        selected = settings.watch { it.handwritingFullScreenMode },
+                        onChange = { scope.launch { repository.setHandwritingFullScreenMode(it) } },
+                        default = SettingsDefaults.handwritingFullScreenMode,
+                        detail = { mode ->
+                            ChoiceDetail(
+                                stringResource(
+                                    if (mode == HandwritingFullScreenMode.AUTOMATIC) {
+                                        R.string.tooldetail_handwriting_full_screen_automatic_desc
+                                    } else {
+                                        R.string.tooldetail_handwriting_full_screen_manual_desc
+                                    },
+                                ),
+                            )
+                        },
+                    )
+                }
             }
             SectionHeader(
                 stringResource(R.string.tooldetail_handwriting_models_header),
@@ -2007,6 +2076,85 @@ internal fun ToolDetailSettings(
                         info = stringResource(R.string.tooldetail_media_full_bleed_info),
                         default = SettingsDefaults.mediaFullBleed,
                     ) { scope.launch { repository.setMediaFullBleed(it) } }
+                }
+                item {
+                    // The grid's own size, the way the emoji panel has one:
+                    // how many to a row, each tool its own.
+                    val stickers = tool == ToolbarTool.STICKER
+                    SliderSetting(
+                        if (stickers) R.string.tooldetail_media_sticker_per_row_title else R.string.tooldetail_media_gif_per_row_title,
+                        subtitle = stringResource(
+                            if (stickers) {
+                                R.string.tooldetail_media_sticker_per_row_subtitle
+                            } else {
+                                R.string.tooldetail_media_gif_per_row_subtitle
+                            },
+                        ),
+                        value = settings.watch { if (stickers) it.gif.stickerPerRow else it.gif.gifPerRow }.toFloat(),
+                        range = MediaPerRowRange.first.toFloat()..MediaPerRowRange.last.toFloat(),
+                        display = { numberFormat.format(it.roundToInt()) },
+                        info = stringResource(R.string.tooldetail_media_per_row_info),
+                        default = (if (stickers) SettingsDefaults.gif.stickerPerRow else SettingsDefaults.gif.gifPerRow).toFloat(),
+                    ) {
+                        scope.launch {
+                            if (stickers) repository.setStickerPerRow(it.roundToInt()) else repository.setGifPerRow(it.roundToInt())
+                        }
+                    }
+                }
+                item {
+                    val spacing = stringResource(R.string.tooldetail_media_spacing_value)
+                    SliderSetting(
+                        R.string.tooldetail_media_spacing_title,
+                        subtitle = stringResource(R.string.tooldetail_media_spacing_subtitle),
+                        value = settings.watch { it.gif.gridSpacing }.toFloat(),
+                        range = MediaGridSpacingRange.first.toFloat()..MediaGridSpacingRange.last.toFloat(),
+                        display = { spacing.format(it.roundToInt()) },
+                        default = SettingsDefaults.gif.gridSpacing.toFloat(),
+                    ) { scope.launch { repository.setMediaGridSpacing(it.roundToInt()) } }
+                }
+                item {
+                    // The emoji panel's own setting (#537), here too because
+                    // the bar on top of these panels drags the same value.
+                    val none = stringResource(R.string.langemoji_panel_height_none)
+                    val taller = stringResource(R.string.langemoji_panel_height_value)
+                    SliderSetting(
+                        R.string.langemoji_panel_height_title,
+                        subtitle = stringResource(R.string.langemoji_panel_height_subtitle),
+                        value = settings.watch { it.emoji.panelExtraHeightDp }.toFloat(),
+                        range = MediaPanelExtraHeightRange.first.toFloat()..MediaPanelExtraHeightRange.last.toFloat(),
+                        display = {
+                            val dp = it.roundToInt()
+                            if (dp == 0) none else taller.format(dp)
+                        },
+                        info = stringResource(R.string.langemoji_panel_height_info),
+                        default = SettingsDefaults.emoji.panelExtraHeightDp.toFloat(),
+                    ) { scope.launch { repository.setMediaPanelExtraHeightDp(it.roundToInt()) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_media_hide_header_title,
+                        stringResource(R.string.tooldetail_media_hide_header_subtitle),
+                        settings.watch { it.gif.hideHeaderOnScroll },
+                        info = stringResource(R.string.tooldetail_media_hide_header_info),
+                        default = SettingsDefaults.gif.hideHeaderOnScroll,
+                    ) { scope.launch { repository.setMediaHideHeaderOnScroll(it) } }
+                }
+                item {
+                    // A panel layout like the emoji panel's (#538): the keys
+                    // under the results, and where the switch sits.
+                    val panel = if (tool == ToolbarTool.STICKER) PanelKind.STICKER else PanelKind.GIF
+                    val customPanels by repository.customPanelLayouts.collectAsStateWithLifecycle(emptyList())
+                    NavRow(
+                        title = R.string.panel_layout_row_title,
+                        subtitle = stringResource(R.string.panel_layout_row_subtitle),
+                        value = stringResource(
+                            if (customPanels.none { it.panel == panel }) {
+                                R.string.panel_layout_value_default
+                            } else {
+                                R.string.panel_layout_value_custom
+                            },
+                        ),
+                    ) { onNavigate(panelEditRoute(panel)) }
                 }
             }
             if (tool == ToolbarTool.GIF) OfflineGifPacksGroup()

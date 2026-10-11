@@ -207,7 +207,7 @@ A model answers from what it was trained on, which is a fixed moment in the past
 - **Let the model read a web page** — off by default. The model gives one address and gets the text of that page back. It needs no search service, so it works on its own: paste a link, ask "what does this say?", and the model fetches it.
 - **Lookups per answer** — 1 to 5, default **3**. How many times the model may go and look something up before it has to answer with what it has. Each round is another request carrying everything found so far, so this is the setting that decides what a curious model costs you.
 
-Both tools work in the panel's actions and in [AI chat](/tools/ai-chat/). While one runs, the progress readout says **Using a tool**.
+Both tools work in the panel's actions and in [AI chat](/tools/ai-chat/). While one runs, the progress readout says what it's doing and on what: **Searching the web for "…"** with the model's own query, or **Reading example.com…** with the site it opened.
 
 ### Why page reading is the one that's off
 
@@ -222,11 +222,25 @@ Most providers do tool calling properly, as part of their API: Claude, OpenAI, G
 - **Brave** takes a single message with no system prompt and has no tool field at all.
 - **On-device models** have no tool API in the local runtime.
 
-For those two the keyboard falls back to explaining the tools to the model in words and watching its answer for a reply in the agreed format. It genuinely works, and a capable local model will use it — but a small one often ignores the format, or describes it instead of using it. The settings group says so when you're on one of those providers. If lookups matter to you, a provider with real tool support is far more reliable.
+For those two the keyboard falls back to explaining the tools to the model in words and watching its answer for a reply in the agreed format. The reader is deliberately forgiving about that format, because local models mangle it: `tool_call` is a special token in several chat templates, so the template rewrites the very thing the keyboard asked for, and a marker can come back with its brackets moved, doubled, or missing altogether. All of those are read, and anything that looks like one is hidden from the answer whether or not it turns out to be a call — machinery the model wrote for the keyboard is never yours to read.
+
+It genuinely works, and a capable local model will use it — but a small one still ignores the format sometimes, or asks you to narrow a request it could have searched as written. The settings group says so when you're on one of those providers. If lookups matter to you, a provider with real tool support is far more reliable.
 
 ### Seeing what it looked up
 
-Every search and every page fetch is a row in the [network activity log](/privacy/network-activity/), filed under **AI tool use** rather than **Web search** — you didn't run that search, the model did, and the log should say which.
+An answer that used a tool says so. A line sits over the result, in the panel and in every chat answer: **Searched the web for "…"** or **Read example.com** for a single lookup, or **Used tools 3 times** when there were several. No line means the model answered from what it already knew.
+
+Tap the line to unfold it. Each lookup is listed with what came back:
+
+- **A search** shows the query and every result the model was handed, by title and site. **No results** if the search came back empty.
+- **A page read** shows the page's title and its full address, so you can check it's the page you think it is.
+- **A lookup that failed** is marked as failed, with the reason: **Web search is not set up**, a network error, the model asking for something that isn't a web address, and so on. The model is told too, and usually says it couldn't check.
+
+Tap a result to open it in your browser, or press and hold to copy its address. Only `http://` and `https://` addresses ever open. Anything else the model wrote can be copied but not opened. The lines aren't part of what **Replace** or **Insert** puts in your field.
+
+In [AI chat](/tools/ai-chat/) the record is saved with the answer, so reopening a conversation later still shows what each answer was built on. The panel's actions keep it only while the result is on screen.
+
+Every search and every page fetch is also a row in the [network activity log](/privacy/network-activity/), filed under **AI tool use** rather than **Web search** — you didn't run that search, the model did, and the log should say which.
 
 ## Chatting instead of transforming
 
@@ -308,6 +322,7 @@ The panel itself sends nothing until you actually tap an action chip: opening th
 
 - **On-device**: the text you run an action on never leaves the phone. Response length is bounded by the local model's own context window instead of a server-side limit.
 - **Any other provider** (cloud or self-hosted): the text you run an action on is sent to that provider, only at the moment you tap the action. API keys and server addresses are stored on the device, not in any WM Keyboard service. See [Privacy at a glance](/privacy/overview/) for how this fits the keyboard's broader per-tool approach to anything that leaves the device.
+- **Dictation, when [Tidy dictation with AI](/tools/voice/#tidying-dictation-with-ai) is on**: each phrase you dictate goes to the same provider as soon as it lands, with no tap, to have its filler words taken out. Its text only, never the audio. Off by default, and an on-device model keeps it on the phone like any other action.
 - **Report**: builds a draft in your mail app and hands it over. The app has no reporting server and sends nothing itself, so a report only exists if you send the mail. API keys are never part of it.
 - **History**: goes nowhere. It's a file in the app's private storage, off unless you turn it on, never written from a password field or in incognito, and deleted when you turn it off. It's deliberately left out of the backup file too, so it can't ride along in something you export and mail to yourself. There's no section for it to travel in, unlike the learned dictionary, which is a section of its own that you tick or leave alone. See [Your data](/privacy/data/).
 - **A lookup the model asked for**: goes to the service that answers it, and only when the model actually asks. A search carries the query the model wrote — not your field text — to whichever search backend you set up. A page fetch carries nothing but the request for that page. Both show in the [network activity log](/privacy/network-activity/) under **AI tool use**, and both are off entirely while [Data saver](/privacy/data-saver/) is holding web search back.

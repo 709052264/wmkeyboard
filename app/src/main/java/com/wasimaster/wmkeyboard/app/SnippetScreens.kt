@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import com.wasimaster.wmkeyboard.core.addons.AddonType
@@ -25,14 +25,14 @@ import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Folder
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.KeyboardArrowDown
-import androidx.compose.material.icons.outlined.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.Notes
-import androidx.compose.material.icons.outlined.Star
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardArrowDown
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardArrowUp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notes
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Star
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.imePadding
@@ -107,11 +107,11 @@ import com.wasimaster.wmkeyboard.core.snippets.espanso.EspansoHub
 import com.wasimaster.wmkeyboard.core.snippets.espanso.EspansoManifest
 import com.wasimaster.wmkeyboard.core.snippets.espanso.EspansoWriter
 import kotlinx.coroutines.launch
-import androidx.compose.material.icons.outlined.Check
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.material.icons.outlined.Code
-import androidx.compose.material.icons.outlined.TextFields
-import androidx.compose.material.icons.outlined.Block
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Code
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Block
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
 
@@ -456,6 +456,15 @@ internal fun SnippetSettings(
                 info = stringResource(R.string.expander_grid_columns_info),
                 default = SettingsDefaults.suggestionStrip.snippetGridColumns.toFloat(),
             ) { scope.launch { repository.setSnippetGridColumns(it.toInt()) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.expander_secure_fields_title,
+                stringResource(R.string.expander_secure_fields_subtitle),
+                settings.watch { it.suggestionStrip.snippetsInSecureFields },
+                info = stringResource(R.string.expander_secure_fields_info),
+                default = SettingsDefaults.suggestionStrip.snippetsInSecureFields,
+            ) { scope.launch { repository.setSnippetsInSecureFields(it) } }
         }
     }
     Spacer(Modifier.height(12.dp))
@@ -1612,6 +1621,8 @@ private fun SnippetEditorForm(
         )
     }
 
+    // It pads itself by the keyboard, so the window must not pan as well.
+    ResizeForKeyboard()
     Column(modifier = Modifier.imePadding()) {
         SettingsGroup {
             item {

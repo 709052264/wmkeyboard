@@ -55,6 +55,8 @@ object KhiproComposer : Composer {
 
     override val completionLanguage: String get() = "bn"
 
+    override val glideKeys: Set<Int> = setOf('/'.code)
+
     /** The desktop spec turns digits into Bengali ones, so they belong to the word there. */
     override val bufferDigits: Boolean get() = variant == Khipro.Variant.DESKTOP
 

@@ -153,10 +153,12 @@ sealed interface KeyAction {
     @Serializable @SerialName("emoji") data object Emoji : KeyAction
 
     /**
-     * Opens the numeric keypad panel over the current field. Produced only at
-     * runtime by a long-press on the ?123 / symbols key (opt-in via
-     * `LayoutBehaviorSettings.symbolsLongPressNumpad`) — no built-in or custom
-     * layout binds it, so it is never written to a serialized layout.
+     * Opens the numeric keypad panel over the current field. Produced at
+     * runtime by a long-press on the ?123 / symbols key or the popup entry it
+     * adds to one with alternates
+     * (`LayoutBehaviorSettings.symbolsLongPressNumpad`), and by the symbols
+     * pages' 1234 key (`LayoutBehaviorSettings.symbolsNumpadKey`, issue #423).
+     * Imported FlorisBoard and FUTO layouts also bind it to their own keys.
      */
     @Serializable @SerialName("numpad") data object Numpad : KeyAction
 
@@ -432,6 +434,23 @@ sealed interface KeyAction {
      */
     @Serializable @SerialName("unknown") data class Unknown(val tag: String) : KeyAction
 }
+
+/**
+ * Whether a shift or caps-lock key draws its [label] instead of the arrow
+ * (issue #559).
+ *
+ * Those keys draw from an icon slot, and every label used to be thrown away
+ * for it: a key the author worded "A" or "ABC", or a syllabics board's
+ * "ᐃ ᐊ", still came out as the arrow. A blank label and the arrow glyphs the
+ * shipped layouts and importers write ("⇧", "⇪") keep the slot, so an icon
+ * pack still redresses them; anything else is the author's own face for the
+ * key, the same rule a tool key follows.
+ */
+fun shiftLabelReplacesIcon(label: String): Boolean =
+    label.isNotBlank() && label.trim() !in ShiftArrowGlyphs
+
+/** The labels that only spell a shift key's arrow; see [shiftLabelReplacesIcon]. */
+private val ShiftArrowGlyphs = setOf("⇧", "⇪", "⬆", "⇑", "↑", "⇮", "⇯")
 
 /**
  * What to draw on a key of this action that carries no label of its own.
@@ -743,9 +762,10 @@ enum class PanelFieldKind(val panel: PanelKind) {
     @SerialName("emoji_search") EMOJI_SEARCH(PanelKind.EMOJI),
     @SerialName("emoji_grid") EMOJI_GRID(PanelKind.EMOJI),
     /**
-     * The emoji / GIF / sticker switch (issue #366). An emoji panel component
-     * because that panel is the one with a layout; the GIF and sticker panels
-     * draw the row it sits in, so the switch is in the same place in all three.
+     * The emoji / GIF / sticker switch (issue #366). Filed under the emoji
+     * panel, but each of the three may carry it ([isOn]): the GIF and sticker
+     * panels borrow the emoji panel's row it sits in until the user lays them
+     * out (#538), so the switch is in the same place in all three.
      */
     @SerialName("media_tabs") MEDIA_TABS(PanelKind.EMOJI),
     @SerialName("clipboard_search") CLIPBOARD_SEARCH(PanelKind.CLIPBOARD),
@@ -754,8 +774,22 @@ enum class PanelFieldKind(val panel: PanelKind) {
     /** The grid / list switch for the clipboard history. */
     @SerialName("clipboard_view") CLIPBOARD_VIEW(PanelKind.CLIPBOARD),
     @SerialName("trackpad") TRACKPAD(PanelKind.TRACKPAD),
+    /**
+     * The GIF panel's body (#538): its search box, source and category chips
+     * and the results, as one cell. The panel lays out the keys around it.
+     */
+    @SerialName("gif_browser") GIF_BROWSER(PanelKind.GIF),
+    /** The sticker panel's body, as [GIF_BROWSER] is the GIF panel's. */
+    @SerialName("sticker_browser") STICKER_BROWSER(PanelKind.STICKER),
     @SerialName("unknown") UNKNOWN(PanelKind.EMOJI),
     ;
+
+    /**
+     * Whether a layout of [kind] may carry this component: its own panel's,
+     * plus the emoji / GIF / sticker switch on any of those three panels.
+     */
+    fun isOn(kind: PanelKind): Boolean =
+        panel == kind || (this == MEDIA_TABS && (kind == PanelKind.GIF || kind == PanelKind.STICKER))
 
     /** Whether the editor may offer this kind; [UNKNOWN] is a decode artefact. */
     val isReal: Boolean get() = this != UNKNOWN
@@ -766,7 +800,8 @@ enum class PanelFieldKind(val panel: PanelKind) {
      * (tabs, search, the fragment chips) are a row tall, like a row of keys.
      */
     val fills: Boolean
-        get() = this == EMOJI_GRID || this == CLIPBOARD_LIST || this == TRACKPAD
+        get() = this == EMOJI_GRID || this == CLIPBOARD_LIST || this == TRACKPAD ||
+            this == GIF_BROWSER || this == STICKER_BROWSER
 }
 
 /**

@@ -1,107 +1,107 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AutoStories
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.ArrowForward
-import androidx.compose.material.icons.automirrored.outlined.Backspace
-import androidx.compose.material.icons.automirrored.outlined.FactCheck
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.outlined.KeyboardReturn
-import androidx.compose.material.icons.automirrored.outlined.KeyboardTab
-import androidx.compose.material.icons.automirrored.outlined.LastPage
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.automirrored.outlined.Redo
-import androidx.compose.material.icons.automirrored.outlined.Send
-import androidx.compose.material.icons.automirrored.outlined.StickyNote2
-import androidx.compose.material.icons.automirrored.outlined.TextSnippet
-import androidx.compose.material.icons.automirrored.outlined.Undo
-import androidx.compose.material.icons.outlined.Apps
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.outlined.BatterySaver
-import androidx.compose.material.icons.outlined.Calculate
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.ChevronLeft
-import androidx.compose.material.icons.outlined.ChevronRight
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.ContentCopy
-import androidx.compose.material.icons.outlined.ContentCut
-import androidx.compose.material.icons.outlined.ContentPaste
-import androidx.compose.material.icons.outlined.CurrencyExchange
-import androidx.compose.material.icons.outlined.DarkMode
-import androidx.compose.material.icons.outlined.Dialpad
-import androidx.compose.material.icons.outlined.DirectionsCar
-import androidx.compose.material.icons.outlined.DocumentScanner
-import androidx.compose.material.icons.outlined.Draw
-import androidx.compose.material.icons.outlined.EditNote
-import androidx.compose.material.icons.outlined.FormatShapes
-import androidx.compose.material.icons.outlined.OpenWith
-import androidx.compose.material.icons.outlined.EmojiEmotions
-import androidx.compose.material.icons.outlined.Extension
-import androidx.compose.material.icons.outlined.EmojiFlags
-import androidx.compose.material.icons.outlined.EmojiNature
-import androidx.compose.material.icons.outlined.EmojiObjects
-import androidx.compose.material.icons.outlined.EmojiPeople
-import androidx.compose.material.icons.outlined.EmojiSymbols
-import androidx.compose.material.icons.outlined.Explore
-import androidx.compose.material.icons.outlined.Fastfood
-import androidx.compose.material.icons.outlined.FirstPage
-import androidx.compose.material.icons.outlined.FlashlightOn
-import androidx.compose.material.icons.outlined.Functions
-import androidx.compose.material.icons.outlined.GifBox
-import androidx.compose.material.icons.outlined.GridView
-import androidx.compose.material.icons.outlined.HighlightAlt
-import androidx.compose.material.icons.outlined.ImageSearch
-import androidx.compose.material.icons.outlined.Keyboard
-import androidx.compose.material.icons.outlined.KeyboardArrowDown
-import androidx.compose.material.icons.outlined.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.KeyboardDoubleArrowDown
-import androidx.compose.material.icons.outlined.KeyboardDoubleArrowLeft
-import androidx.compose.material.icons.outlined.KeyboardDoubleArrowRight
-import androidx.compose.material.icons.outlined.KeyboardDoubleArrowUp
-import androidx.compose.material.icons.outlined.KeyboardHide
-import androidx.compose.material.icons.outlined.Language
-import androidx.compose.material.icons.outlined.Mic
-import androidx.compose.material.icons.outlined.MusicNote
-import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.Password
-import androidx.compose.material.icons.outlined.Pets
-import androidx.compose.material.icons.outlined.Phonelink
-import androidx.compose.material.icons.outlined.PhotoCamera
-import androidx.compose.material.icons.outlined.AspectRatio
-import androidx.compose.material.icons.outlined.PictureInPictureAlt
-import androidx.compose.material.icons.outlined.Public
-import androidx.compose.material.icons.outlined.PushPin
-import androidx.compose.material.icons.outlined.QrCode2
-import androidx.compose.material.icons.outlined.QueryStats
-import androidx.compose.material.icons.outlined.QrCodeScanner
-import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.outlined.School
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.SelectAll
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Smartphone
-import androidx.compose.material.icons.outlined.Speed
-import androidx.compose.material.icons.outlined.SmartButton
-import androidx.compose.material.icons.outlined.Spellcheck
-import androidx.compose.material.icons.outlined.SportsSoccer
-import androidx.compose.material.icons.outlined.Straighten
-import androidx.compose.material.icons.outlined.SwapHoriz
-import androidx.compose.material.icons.outlined.TextFields
-import androidx.compose.material.icons.outlined.TextFormat
-import androidx.compose.material.icons.outlined.Translate
-import androidx.compose.material.icons.outlined.TravelExplore
-import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material.icons.outlined.VerticalSplit
-import androidx.compose.material.icons.outlined.Vibration
-import androidx.compose.material.icons.outlined.ViewHeadline
-import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material.icons.outlined.WbSunny
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoStories
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowForward
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Assignment
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Backspace
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.FactCheck
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowLeft
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowRight
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardReturn
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardTab
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.LastPage
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Redo
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.TextSnippet
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.VolumeUp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Apps
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BarChart
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BatterySaver
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Brush
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Calculate
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CalendarMonth
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronLeft
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronRight
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCut
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CurrencyExchange
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DarkMode
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Dialpad
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DirectionsCar
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DocumentScanner
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Draw
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EditNote
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatShapes
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiEmotions
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiFlags
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiNature
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiObjects
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiPeople
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiSymbols
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Explore
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Fastfood
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FirstPage
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashlightOn
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Functions
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GraphicEq
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HighlightAlt
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ImageSearch
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardArrowDown
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardArrowUp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardCapslock
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardDoubleArrowDown
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardDoubleArrowLeft
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardDoubleArrowRight
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardDoubleArrowUp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardHide
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Language
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MusicNote
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Palette
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Password
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Pets
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Phonelink
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoCamera
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AspectRatio
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PictureInPictureAlt
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PushPin
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCode2
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QueryStats
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FindReplace
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCodeScanner
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Schedule
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.School
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SentimentSatisfied
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Speed
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SmartButton
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Spellcheck
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SportsSoccer
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFormat
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TravelExplore
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalSplit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Vibration
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewHeadline
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
+import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.ime.EnterAction
 
@@ -123,11 +123,14 @@ object IconDefaults {
 
     fun forTool(tool: ToolbarTool): ImageVector = when (tool) {
         ToolbarTool.EMOJI -> Icons.Outlined.EmojiEmotions
-        ToolbarTool.CLIPBOARD -> Icons.Outlined.ContentPaste
+        // The clipboard with lines on it, not the empty one Paste draws: the
+        // two sit side by side on a toolbar often enough that sharing a
+        // glyph left only their position to tell them apart (#414).
+        ToolbarTool.CLIPBOARD -> Icons.AutoMirrored.Outlined.Assignment
         ToolbarTool.SNIPPETS -> Icons.AutoMirrored.Outlined.TextSnippet
         ToolbarTool.TEXT_EDIT -> Icons.Outlined.EditNote
-        ToolbarTool.TRACKPAD -> Icons.Outlined.OpenWith
-        ToolbarTool.ONE_HANDED -> Icons.Outlined.Smartphone
+        ToolbarTool.TRACKPAD -> SymbolIcons.TrackpadInput
+        ToolbarTool.ONE_HANDED -> SymbolIcons.MobileHandLeft
         ToolbarTool.SPLIT -> Icons.Outlined.VerticalSplit
         ToolbarTool.FLOATING -> Icons.Outlined.PictureInPictureAlt
         ToolbarTool.PERSISTENT -> Icons.Outlined.PushPin
@@ -135,14 +138,18 @@ object IconDefaults {
         ToolbarTool.SETTINGS -> Icons.Outlined.Settings
         ToolbarTool.FLASHLIGHT -> Icons.Outlined.FlashlightOn
         ToolbarTool.COMPASS -> Icons.Outlined.Explore
-        ToolbarTool.LEVEL -> Icons.Outlined.Straighten
+        ToolbarTool.LEVEL -> SymbolIcons.ToolsLevel
         ToolbarTool.UNDO -> Icons.AutoMirrored.Outlined.Undo
         ToolbarTool.REDO -> Icons.AutoMirrored.Outlined.Redo
         ToolbarTool.MOON_PHASE -> Icons.Outlined.DarkMode
-        ToolbarTool.WEATHER -> Icons.Outlined.WbSunny
+        ToolbarTool.WEATHER -> SymbolIcons.PartlyCloudyDay
         ToolbarTool.CALENDAR -> Icons.Outlined.CalendarMonth
         ToolbarTool.INCOGNITO -> Icons.Outlined.VisibilityOff
         ToolbarTool.SELECTION_ACTIONS -> Icons.Outlined.SmartButton
+        // The plain translate glyph, which Translate wears too. On an Indic
+        // phonetic layout the keyboard draws SymbolIcons.TranslateIndic in its
+        // place, so the two stop looking alike where both are offered (see
+        // [LocalPhoneticIndic]).
         ToolbarTool.PHONETIC_ENGLISH -> Icons.Outlined.Translate
         ToolbarTool.POWER_SAVING -> Icons.Outlined.BatterySaver
         ToolbarTool.THEMES -> Icons.Outlined.Palette
@@ -151,15 +158,15 @@ object IconDefaults {
         ToolbarTool.NUMPAD -> Icons.Outlined.Dialpad
         ToolbarTool.HANDWRITING -> Icons.Outlined.Draw
         ToolbarTool.CAMERA -> Icons.Outlined.PhotoCamera
-        ToolbarTool.DICTIONARY -> Icons.AutoMirrored.Outlined.MenuBook
+        ToolbarTool.DICTIONARY -> SymbolIcons.Dictionary
         ToolbarTool.VOCABULARY -> Icons.Outlined.AutoStories
         ToolbarTool.LEARN_FROM_TEXT -> Icons.Outlined.School
         ToolbarTool.TRANSLATE -> Icons.Outlined.Translate
-        ToolbarTool.GIF -> Icons.Outlined.GifBox
-        ToolbarTool.STICKER -> Icons.AutoMirrored.Outlined.StickyNote2
+        ToolbarTool.GIF -> SymbolIcons.GifBox
+        ToolbarTool.STICKER -> SymbolIcons.Sticker
         ToolbarTool.WEB_SEARCH -> Icons.Outlined.TravelExplore
         ToolbarTool.IMAGE_SEARCH -> Icons.Outlined.ImageSearch
-        ToolbarTool.OCR -> Icons.Outlined.TextFields
+        ToolbarTool.OCR -> SymbolIcons.ConvertToText
         ToolbarTool.QR_SCAN -> Icons.Outlined.QrCodeScanner
         ToolbarTool.DOC_SCAN -> Icons.Outlined.DocumentScanner
         ToolbarTool.VOICE -> Icons.Outlined.Mic
@@ -175,6 +182,7 @@ object IconDefaults {
         // The settings app's own Statistics glyph, so the tool and the row it
         // opens look like the same thing.
         ToolbarTool.STATISTICS -> Icons.Outlined.QueryStats
+        ToolbarTool.FIND_REPLACE -> Icons.Outlined.FindReplace
         ToolbarTool.MEDIA_CONTROL -> Icons.Outlined.MusicNote
         ToolbarTool.KDE_CONNECT -> Icons.Outlined.Phonelink
         ToolbarTool.PLUGINS -> Icons.Outlined.Extension
@@ -266,9 +274,12 @@ object IconDefaults {
     private fun buildDefaults(): Map<String, ImageVector> = buildMap {
         for (tool in ToolbarTool.entries) put(IconSlots.forTool(tool), forTool(tool))
 
-        put(IconSlots.KEY_SHIFT, KeyboardIcons.Shift)
-        put(IconSlots.KEY_SHIFT_ON, KeyboardIcons.ShiftFilled)
-        put(IconSlots.KEY_SHIFT_LOCK, KeyboardIcons.ShiftLock)
+        // Outline when off, filled when armed, filled over a bar when locked:
+        // Gboard's three faces, drawn from Material Symbols.
+        put(IconSlots.KEY_SHIFT, SymbolIcons.Shift)
+        put(IconSlots.KEY_SHIFT_ON, SymbolIcons.ShiftFilled)
+        put(IconSlots.KEY_SHIFT_LOCK, SymbolIcons.ShiftLockFilled)
+        put(IconSlots.KEY_CAPS_LOCK, Icons.Outlined.KeyboardCapslock)
         put(IconSlots.KEY_BACKSPACE, Icons.AutoMirrored.Outlined.Backspace)
         put(IconSlots.KEY_FORWARD_DELETE, KeyboardIcons.ForwardDelete)
         put(IconSlots.KEY_GLOBE, Icons.Outlined.Language)
@@ -279,6 +290,7 @@ object IconDefaults {
         put(IconSlots.KEY_ARROW_UP, Icons.Outlined.KeyboardArrowUp)
         put(IconSlots.KEY_ARROW_DOWN, Icons.Outlined.KeyboardArrowDown)
         put(IconSlots.KEY_ARROW_RIGHT, Icons.AutoMirrored.Outlined.KeyboardArrowRight)
+        put(IconSlots.KEY_TAB, Icons.AutoMirrored.Outlined.KeyboardTab)
         for (action in EnterAction.entries) {
             val slot = enterActionSlot(action) ?: continue
             put(slot, forEnterAction(action))
@@ -307,4 +319,86 @@ object IconDefaults {
      */
     fun forSlot(slot: String): ImageVector? =
         bySlot[slot] ?: if (slot.startsWith("emoji_tab.")) Icons.Outlined.EmojiEmotions else null
+
+    /**
+     * The app's own alternative looks for a slot, picked per slot from the
+     * Icons screen and stored as a `v:<name>` override (see
+     * `IconOverrides.VARIANT_PREFIX`).
+     *
+     * Only where Material Symbols has a real second drawing of the same idea —
+     * the GIF tool's lettering without its box, a filled gear, a waveform for
+     * voice — not a different idea that happens to fit. A slot with nothing
+     * here offers no variants, and the picker hides the row for it.
+     *
+     * The names are part of the stored setting and of the pack format (a pack's
+     * `tool.gif@text` is offered under the same name), so they never change
+     * once shipped. Lambdas, so building the table builds no vectors: only the
+     * picker and a slot actually set to a variant ever draw one.
+     */
+    private val variants: Map<String, Map<String, () -> ImageVector>> by lazy {
+        val emoji: Map<String, () -> ImageVector> = linkedMapOf(
+            VARIANT_SIMPLE to { Icons.Outlined.SentimentSatisfied },
+        )
+        mapOf(
+            IconSlots.forTool(ToolbarTool.GIF) to linkedMapOf(
+                // gif_2: the lettering at full width, the look most keyboards use.
+                VARIANT_TEXT to { SymbolIcons.Gif2 },
+                // gif: the box's own letters with the box taken away.
+                VARIANT_TEXT_SMALL to { SymbolIcons.Gif },
+            ),
+            IconSlots.forTool(ToolbarTool.EMOJI) to emoji,
+            IconSlots.KEY_EMOJI to emoji,
+            IconSlots.CHROME_EMOJI_SHORTCUT to emoji,
+            // The bare clipboard, which Paste also wears — see forTool for why
+            // that is not the default.
+            IconSlots.forTool(ToolbarTool.CLIPBOARD) to linkedMapOf(
+                VARIANT_PLAIN to { Icons.Outlined.ContentPaste },
+            ),
+            IconSlots.forTool(ToolbarTool.SETTINGS) to linkedMapOf(
+                VARIANT_FILLED to { SymbolIcons.SettingsFilled },
+            ),
+            IconSlots.forTool(ToolbarTool.VOICE) to linkedMapOf(
+                VARIANT_FILLED to { SymbolIcons.MicFilled },
+                VARIANT_WAVE to { Icons.Outlined.GraphicEq },
+            ),
+            IconSlots.forTool(ToolbarTool.WEB_SEARCH) to linkedMapOf(
+                VARIANT_MAGNIFIER to { Icons.Outlined.Search },
+            ),
+            IconSlots.forTool(ToolbarTool.THEMES) to linkedMapOf(
+                VARIANT_BRUSH to { Icons.Outlined.Brush },
+            ),
+            IconSlots.forTool(ToolbarTool.SOUND_HAPTICS) to linkedMapOf(
+                VARIANT_SPEAKER to { Icons.AutoMirrored.Outlined.VolumeUp },
+            ),
+            IconSlots.forTool(ToolbarTool.AI) to linkedMapOf(
+                VARIANT_ROBOT to { SymbolIcons.SmartToy },
+            ),
+            IconSlots.forTool(ToolbarTool.HIDE_KEYBOARD) to linkedMapOf(
+                VARIANT_CHEVRON to { Icons.Outlined.KeyboardArrowDown },
+            ),
+            // The hat and glasses the toolbar's incognito badge already wears.
+            IconSlots.forTool(ToolbarTool.INCOGNITO) to linkedMapOf(
+                VARIANT_MASK to { KeyboardIcons.Incognito },
+            ),
+        )
+    }
+
+    /** The names of [slot]'s built-in variants, in the order the picker shows them. */
+    fun variantNames(slot: String): List<String> = variants[slot]?.keys?.toList().orEmpty()
+
+    /** [slot]'s built-in variant called [name], or null when it has none by that name. */
+    fun variant(slot: String, name: String): ImageVector? = variants[slot]?.get(name)?.invoke()
+
+    const val VARIANT_TEXT = "text"
+    const val VARIANT_TEXT_SMALL = "text_small"
+    const val VARIANT_SIMPLE = "simple"
+    const val VARIANT_PLAIN = "plain"
+    const val VARIANT_FILLED = "filled"
+    const val VARIANT_WAVE = "wave"
+    const val VARIANT_MAGNIFIER = "magnifier"
+    const val VARIANT_BRUSH = "brush"
+    const val VARIANT_SPEAKER = "speaker"
+    const val VARIANT_ROBOT = "robot"
+    const val VARIANT_CHEVRON = "chevron"
+    const val VARIANT_MASK = "mask"
 }

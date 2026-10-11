@@ -9,12 +9,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.KeyboardDoubleArrowDown
-import androidx.compose.material.icons.outlined.KeyboardDoubleArrowUp
-import androidx.compose.material.icons.outlined.SwapVert
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Download
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardDoubleArrowDown
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardDoubleArrowUp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
@@ -760,7 +760,7 @@ private fun WordListDownloadDialog(
  * region where that source has more than one. "AOSP, Brazil"; "Frequency".
  */
 @Composable
-private fun entryLabel(entry: DictionaryEntry): String {
+internal fun entryLabel(entry: DictionaryEntry): String {
     val source = stringResource(entry.source.labelRes)
     val variant = entry.variantRes
         ?.takeIf { DictionaryCatalog.forLanguage(entry.languageId).count { it.source == entry.source } > 1 }

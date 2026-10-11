@@ -28,16 +28,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.Backspace
-import androidx.compose.material.icons.automirrored.outlined.Undo
-import androidx.compose.material.icons.outlined.Keyboard
-import androidx.compose.material.icons.outlined.KeyboardDoubleArrowUp
-import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material.icons.outlined.Mic
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.SwapHoriz
-import androidx.compose.material.icons.outlined.SwapVert
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Backspace
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardDoubleArrowUp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Menu
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapVert
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -78,7 +78,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
-import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
+import com.wasimaster.wmkeyboard.core.settings.dictationLanguages
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
@@ -113,7 +113,6 @@ internal fun VoiceBarLayer(
     onOpenVoiceSettings: () -> Unit,
     onRestoreKeyboard: () -> Unit,
     onAction: (VoiceBarAction) -> Unit,
-    onLayoutSelect: (String) -> Unit,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -261,7 +260,6 @@ internal fun VoiceBarLayer(
                         onRestoreKeyboard = onRestoreKeyboard,
                         onAction = onAction,
                         onUndo = onUndo,
-                        onLayoutSelect = onLayoutSelect,
                     )
                 } else {
                     HorizontalBarContent(
@@ -273,7 +271,6 @@ internal fun VoiceBarLayer(
                         onOpenVoiceSettings = onOpenVoiceSettings,
                         onRestoreKeyboard = onRestoreKeyboard,
                         onAction = onAction,
-                        onLayoutSelect = onLayoutSelect,
                     )
                 }
             }
@@ -395,7 +392,6 @@ private fun HorizontalBarContent(
     onOpenVoiceSettings: () -> Unit,
     onRestoreKeyboard: () -> Unit,
     onAction: (VoiceBarAction) -> Unit,
-    onLayoutSelect: (String) -> Unit,
 ) {
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
@@ -433,7 +429,7 @@ private fun HorizontalBarContent(
                 onUndo = onUndo,
                 onVertical = { onAction(VoiceBarAction.SetVertical(true)) },
                 onOpenVoiceSettings = onOpenVoiceSettings,
-                onLayoutSelect = onLayoutSelect,
+                onAction = onAction,
                 closeMenu = { menuOpen = false },
             )
         } else {
@@ -484,7 +480,7 @@ private fun RowScope.HorizontalMenuPage(
     onUndo: () -> Unit,
     onVertical: () -> Unit,
     onOpenVoiceSettings: () -> Unit,
-    onLayoutSelect: (String) -> Unit,
+    onAction: (VoiceBarAction) -> Unit,
     closeMenu: () -> Unit,
 ) {
     val feedback = LocalKeyPressFeedback.current
@@ -509,7 +505,7 @@ private fun RowScope.HorizontalMenuPage(
             onUndo()
             closeMenu()
         }
-        VoiceBarLanguageChip(state, onLayoutSelect, closeMenu)
+        VoiceBarLanguageChip(state, onAction, onOpenVoiceSettings, closeMenu)
         VoiceBarIconButton(
             icon = Icons.Outlined.SwapVert,
             description = stringResource(R.string.ime_voice_bar_vertical_desc),
@@ -537,7 +533,6 @@ private fun VerticalBarContent(
     onRestoreKeyboard: () -> Unit,
     onAction: (VoiceBarAction) -> Unit,
     onUndo: () -> Unit,
-    onLayoutSelect: (String) -> Unit,
 ) {
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
@@ -582,7 +577,7 @@ private fun VerticalBarContent(
                 onUndo()
                 menuOpen = false
             }
-            VoiceBarLanguageChip(state, onLayoutSelect) { menuOpen = false }
+            VoiceBarLanguageChip(state, onAction, onOpenVoiceSettings) { menuOpen = false }
             VoiceBarIconButton(
                 icon = Icons.Outlined.SwapHoriz,
                 description = stringResource(R.string.ime_voice_bar_horizontal_desc),
@@ -707,7 +702,7 @@ private fun VoiceBarStatus(
         12 -> pluralStringResource(R.plurals.ime_voice_status_stops_in, voice.secondsLeft, voice.secondsLeft)
         4 -> stringResource(R.string.ime_voice_strip_listening_hint)
         5 -> voice.partial.ifEmpty { speakNow }
-        6 -> stringResource(R.string.ime_voice_status_transcribing)
+        6 -> stringResource(voice.transcribingLabelRes())
         7 -> "…"
         8 -> voice.errorMessage ?: stringResource(R.string.ime_voice_status_error)
         else -> stringResource(R.string.ime_voice_bar_paused)
@@ -877,44 +872,59 @@ private fun VoiceBarDeleteButton(onAction: (VoiceBarAction) -> Unit) {
     }
 }
 
-/** EN ⇄ bn chip, only when both an English and a non-English language are on. */
+/**
+ * The language dictation listens for (#416), the panel chip's twin: shown
+ * while there is a choice to make, and a tap opens the same menu of them.
+ */
 @Composable
 private fun VoiceBarLanguageChip(
     state: KeyboardUiState,
-    onLayoutSelect: (String) -> Unit,
+    onAction: (VoiceBarAction) -> Unit,
+    onOpenVoiceSettings: () -> Unit,
     closeMenu: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
-    val languages = state.settings.enabledLanguages.ifEmpty {
-        listOf(LanguageRegistry.byId("en"))
-    }
-    if (!(languages.any { it.isEnglish } && languages.any { !it.isEnglish })) return
-    val english = state.voice.languageTag.startsWith("en")
-    Text(
-        text = if (english) "EN" else "বাং",
-        color = kb.secondaryText,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier
-            .clip(kb.chipShape())
-            .background(kb.chip)
-            .chipBorder(kb, kb.chipShape())
-            .clickable {
-                feedback()
-                val other = if (english) {
-                    languages.first { !it.isEnglish }
-                } else {
-                    languages.firstOrNull { it.isEnglish } ?: LanguageRegistry.byId("en")
+    val chosen = state.settings.whisper.languages
+    val enabled = state.settings.enabledLanguages.map { it.id }
+    if (enabled.size < 2 && chosen.isEmpty()) return
+    var menuOpen by remember { mutableStateOf(false) }
+    Box {
+        Text(
+            text = voiceLanguagesLabel(state.settings.whisper.dictationLanguages(state.language.id)),
+            color = if (chosen.isEmpty()) kb.secondaryText else kb.toolbarIcon,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            modifier = Modifier
+                .clip(kb.chipShape())
+                .background(kb.chip)
+                .chipBorder(kb, kb.chipShape())
+                .clickable(onClickLabel = stringResource(R.string.ime_voice_language_menu_title)) {
+                    feedback()
+                    menuOpen = true
                 }
-                val layoutId = other.layoutIds.firstOrNull {
-                    it in state.settings.enabledLayoutIds
-                } ?: other.layoutIds.firstOrNull()
-                if (layoutId != null) onLayoutSelect(layoutId)
-                closeMenu()
-            }
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-    )
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+        )
+        if (menuOpen) {
+            StripMenuScrim(onDismiss = { menuOpen = false })
+            VoiceLanguageMenu(
+                chosen = chosen,
+                enabled = enabled,
+                onDismiss = { menuOpen = false },
+                onPick = { ids ->
+                    menuOpen = false
+                    onAction(VoiceBarAction.PickLanguages(ids))
+                    closeMenu()
+                },
+                onMore = {
+                    menuOpen = false
+                    feedback()
+                    onOpenVoiceSettings()
+                },
+            )
+        }
+    }
 }
 
 /** One round bar button. Disabled draws at reduced alpha and swallows taps. */

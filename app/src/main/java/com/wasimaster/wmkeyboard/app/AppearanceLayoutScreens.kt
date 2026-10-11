@@ -54,9 +54,9 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.SwapHoriz
-import androidx.compose.material.icons.outlined.ViewColumn
-import androidx.compose.material.icons.outlined.ViewWeek
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewColumn
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewWeek
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
@@ -1025,6 +1025,16 @@ internal fun LayoutSettings(
                 info = stringResource(R.string.keypress_enter_emoji_info),
                 default = SettingsDefaults.layoutBehavior.enterLongPressEmoji,
             ) { scope.launch { repository.setEnterLongPressEmoji(it) } }
+        }
+        item {
+            // Issue #423: Gboard's 1234 key on the symbols pages.
+            ToggleSetting(
+                R.string.layout_symbols_numpad_key_title,
+                stringResource(R.string.layout_symbols_numpad_key_subtitle),
+                settings.watch { it.layoutBehavior.symbolsNumpadKey },
+                info = stringResource(R.string.layout_symbols_numpad_key_info),
+                default = SettingsDefaults.layoutBehavior.symbolsNumpadKey,
+            ) { scope.launch { repository.setSymbolsNumpadKey(it) } }
         }
         item {
             ToggleSetting(

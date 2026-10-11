@@ -54,6 +54,17 @@
     <string name="languages_layout_keep_one">At least one layout must stay on.</string>
 
     <!--
+      Issue #464: a layout of another language, such as QWERTZ for English.
+      %1$s is the English name of the language whose screen this is.
+    -->
+    <string name="languages_borrow_layout_title">Use a layout from another language</string>
+    <string name="languages_borrow_layout_subtitle">Type <xliff:g id="language" example="English">%1$s</xliff:g> on QWERTZ, AZERTY or another layout</string>
+    <string name="languages_borrow_layout_body">The layout gets the dictionary, autocorrect and spelling rules of <xliff:g id="language" example="English">%1$s</xliff:g>. It is added to your layouts and turned on.</string>
+    <string name="languages_borrow_layout_none">No other language that uses the same letters as <xliff:g id="language" example="English">%1$s</xliff:g> has a layout to offer.</string>
+    <!-- Toast. %1$s is the layout name, for example "QWERTZ (German)". -->
+    <string name="languages_borrow_layout_done"><xliff:g id="layout" example="QWERTZ (German)">%1$s</xliff:g> is on.</string>
+
+    <!--
       The Keyman rules row. "Rules" is the word the Keyman project uses for the
       part that decides what a key types, so someone who knows the keyboard
       recognises it, and someone who does not gets told what it means in the
@@ -126,6 +137,9 @@
     <string name="languages_phonetic_siblings_row_title">Correct to dictionary words</string>
     <string name="languages_phonetic_siblings_row_subtitle">Type "asi" to get আছি instead of আসি</string>
     <string name="languages_phonetic_siblings_info">Romanized typing is loose, so when you press space the keyboard can replace what you typed with a dictionary word that sounds the same. "asi" becomes আছি, the word people usually mean. This happens even with autocorrect off, because it is part of how <xliff:g id="language" example="Bengali">%1$s</xliff:g> is typed. Turn it off to always get exactly what the typing rules spell. The dictionary words still show in the suggestion strip, so you can tap one. Known spellings have their own setting above.</string>
+    <string name="languages_phonetic_context_row_title">Use the words before</string>
+    <string name="languages_phonetic_context_row_subtitle">Pick the reading that fits the words you already typed</string>
+    <string name="languages_phonetic_context_info">One romanized spelling can stand for several <xliff:g id="language" example="Bengali">%1$s</xliff:g> words. With this on, the keyboard looks at the one or two words you typed just before and moves up the reading that usually follows them, both in the suggestion strip and for what the space bar writes. It learns from what you type, and from the downloaded word-pair data where your language has it. A known spelling only trades places with another known spelling of the same word, so what you see while typing is still what space writes. Turn this off if the keyboard picks a different word than you expect after certain words.</string>
 
     <!-- Phonetic layouts (Avro): the corner hints that show what each roman key types. -->
     <string name="languages_translit_hints_title">Key hints</string>
@@ -211,6 +225,9 @@
     <string name="languages_phonetic_candidates_title">Avro candidate list</string>
     <string name="languages_phonetic_candidates_subtitle">The words desktop Avro shows under the word you type</string>
     <!-- %1$s is the English name of the language, for example "Bengali". -->
+    <string name="languages_avro_dictionary_title">Desktop Avro\'s dictionary</string>
+    <string name="languages_avro_dictionary_download">The words only desktop Avro knows, <xliff:g id="size" example="580 KB">%1$s</xliff:g> to download. Tap to download.</string>
+    <string name="languages_avro_dictionary_downloaded">The words only desktop Avro knows, <xliff:g id="size" example="580 KB">%1$s</xliff:g></string>
     <string name="languages_phonetic_candidates_info">Desktop Avro shows a short list under the word you type. The list is built the same way here. First comes the known spelling for what you typed, if there is one. Next come the <xliff:g id="language" example="Bengali">%1$s</xliff:g> dictionary words that sound like it, and the words made by adding an ending to one of them, such as বন্ধু + দের. The words closest to the letter-for-letter reading come first. Last is the letter-for-letter reading itself.\n\nIn the suggestion strip: the word that the space bar will write stays first, and the list follows it. Bar above the strip: the whole list goes in a row of its own above the strip, and you can scroll through it. The row stays while the layout is on, so the keyboard does not change height between words.\n\nThe space bar writes the same word with all three choices.</string>
     <string name="languages_phonetic_candidates_off_label">Off</string>
     <string name="languages_phonetic_candidates_strip_label">In the strip</string>
@@ -400,6 +417,9 @@
          as it is. -->
     <string name="languages_cjk_full_width_space_subtitle">The space bar types a full-width space [　]</string>
     <string name="languages_cjk_full_width_space_info">Japanese and Chinese text is spaced with the ideographic space (U+3000), which is as wide as one character. With this on, the space bar types it instead of the narrow space used between words in other languages. A space pressed while you are still typing a reading picks a candidate as before, and only a press with nothing waiting to convert types a space.</string>
+    <string name="languages_cjk_space_steps_title">Space steps through candidates</string>
+    <string name="languages_cjk_space_steps_subtitle">Space highlights the next candidate, and Enter types it</string>
+    <string name="languages_cjk_space_steps_info">Off, the space bar types the first candidate straight away. On, the first press highlights it and each press after moves to the next one, the way Japanese input methods work. Enter types the highlighted candidate, typing on keeps it and starts a new reading, and backspace goes back to the reading. With a physical keyboard, the arrow keys move the highlight either way, Enter or space types it, and once something is highlighted the keys 1 to 9 pick a candidate and Escape goes back to the reading.</string>
     <!-- Jianpin (简拼) is the standard name for abbreviated Pinyin, where a
          syllable is typed as its first letter only. Keep the Chinese in the
          title. The examples in the subtitle are Pinyin and stay as they are. -->
@@ -418,6 +438,34 @@
     <string name="languages_cjk_pinyin_group_title">Pinyin</string>
     <string name="languages_cjk_double_pinyin_title">Double Pinyin scheme</string>
     <string name="languages_cjk_double_pinyin_info">Double Pinyin: type each syllable with exactly two keys. It needs the Pinyin dictionary above.</string>
+    <!-- Row, and the title of its editor screen, for a Double Pinyin scheme the
+         user writes themselves. -->
+    <string name="languages_cjk_double_pinyin_custom_title">Custom Double Pinyin scheme</string>
+    <!-- fcitx is the name of a Linux input method and stays as it is. -->
+    <string name="languages_cjk_double_pinyin_custom_subtitle">Set your own keys. Copy, paste, import or export the scheme, in the same format as fcitx</string>
+    <!-- Menu item and dialog title: replace the editor's text with the key table
+         of one of the built-in schemes, to edit from there. -->
+    <string name="double_pinyin_editor_start_from">Start from a scheme</string>
+    <string name="double_pinyin_editor_start_from_body">This replaces the text in the editor with that scheme\'s keys. Nothing is saved until you press Save.</string>
+    <string name="double_pinyin_editor_saved">Saved. The keyboard now types with this scheme.</string>
+    <string name="double_pinyin_editor_read_in">File read in. Press Save to type with it.</string>
+    <string name="double_pinyin_editor_read_failed">That file could not be read</string>
+    <string name="double_pinyin_editor_exported">Scheme exported</string>
+    <string name="double_pinyin_editor_export_failed">The file could not be written</string>
+    <!-- Status line under the editor. -->
+    <string name="double_pinyin_status_empty">No scheme yet. Write one, paste one, or start from a built-in scheme in the menu. While this is empty, you type full Pinyin.</string>
+    <!-- %1$s lists Pinyin initials and finals, such as "zh, iong". -->
+    <string name="double_pinyin_status_unmapped">No key types: <xliff:g id="pinyin" example="zh, iong">%1$s</xliff:g></string>
+    <string name="double_pinyin_status_complete">Every initial and final has a key</string>
+    <!-- %1$d lines of the scheme were skipped; %2$d is the number of the first
+         one, and %3$s says what is wrong with it. Tapping the line selects it. -->
+    <plurals name="double_pinyin_status_problems">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> line skipped. Line <xliff:g id="line" example="12">%2$d</xliff:g>: <xliff:g id="reason" example="not a Pinyin initial, final or syllable">%3$s</xliff:g></item>
+        <item quantity="other"><xliff:g id="count" example="3">%1$d</xliff:g> lines skipped. First, line <xliff:g id="line" example="12">%2$d</xliff:g>: <xliff:g id="reason" example="not a Pinyin initial, final or syllable">%3$s</xliff:g></item>
+    </plurals>
+    <string name="double_pinyin_problem_not_pinyin">before the = is not a Pinyin initial, final or syllable</string>
+    <string name="double_pinyin_problem_not_a_letter">keys must be the letters a to z</string>
+    <string name="double_pinyin_problem_not_a_mapping">not in the form pinyin=key</string>
 
     <!-- Button that takes a language off the list. %1$s is its English name. -->
     <string name="languages_remove_action">Remove <xliff:g id="language" example="Bengali">%1$s</xliff:g></string>

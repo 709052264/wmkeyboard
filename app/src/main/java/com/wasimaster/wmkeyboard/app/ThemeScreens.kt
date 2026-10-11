@@ -53,17 +53,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.core.net.toUri
-import androidx.compose.material.icons.outlined.Collections
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.PhotoLibrary
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.PushPin
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.FileDownload
-import androidx.compose.material.icons.outlined.FileUpload
-import androidx.compose.material.icons.outlined.Image
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Collections
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PushPin
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileDownload
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileUpload
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Checkbox
@@ -178,6 +178,7 @@ import com.wasimaster.wmkeyboard.core.theme.keyEffectColorMode
 import com.wasimaster.wmkeyboard.core.theme.keyEffectKindOrNull
 import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
 import com.wasimaster.wmkeyboard.core.theme.MAX_DECALS
+import com.wasimaster.wmkeyboard.core.theme.SECONDARY_SUGGESTION_SCALE_RANGE
 import com.wasimaster.wmkeyboard.core.theme.MAX_EFFECT_IMAGES
 import com.wasimaster.wmkeyboard.core.theme.MAX_THEME_VARIANTS
 import com.wasimaster.wmkeyboard.core.theme.withSidePad
@@ -216,7 +217,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.max
 import kotlin.math.roundToInt
-import androidx.compose.material.icons.outlined.SwapHoriz
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
 import com.wasimaster.wmkeyboard.core.theme.FlexResult
 import com.wasimaster.wmkeyboard.core.theme.FlexTheme
 import com.wasimaster.wmkeyboard.core.theme.dynamicSnyggPalette
@@ -224,15 +225,15 @@ import com.wasimaster.wmkeyboard.core.theme.GboardResult
 import com.wasimaster.wmkeyboard.core.theme.GboardTheme
 import com.wasimaster.wmkeyboard.core.theme.HeliResult
 import com.wasimaster.wmkeyboard.core.theme.HeliTheme
-import androidx.compose.material.icons.outlined.Crop169
-import androidx.compose.material.icons.outlined.CropFree
-import androidx.compose.material.icons.outlined.CropSquare
-import androidx.compose.material.icons.outlined.Layers
-import androidx.compose.material.icons.outlined.Shuffle
-import androidx.compose.material.icons.outlined.Keyboard
-import androidx.compose.material.icons.outlined.KeyboardHide
-import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.Tune
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Crop169
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CropFree
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CropSquare
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Layers
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Shuffle
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardHide
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Palette
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
 
 // ---- shared helpers ----
 
@@ -2178,6 +2179,7 @@ fun ThemeEditorScreen(
     val landscapePhotoCredit = look.watch { it.backgroundPhotoLandscape }
     val hasOneHandedFill = look.watch { it.oneHandedPanelBackground != null }
     val hasKeyBorder = look.watch { it.keyBorderColor != null }
+    val hasKeyShadow = look.watch { it.keyElevationDp > 0f }
     val texturedSlots = look.watch { t -> KeyTextureSlot.entries.filter { it.pathIn(t) != null }.toSet() }
     val overrideIds = look.watch { it.keyOverrides.keys.sorted() }
     val decals = look.watch { it.decals }
@@ -2935,7 +2937,13 @@ fun ThemeEditorScreen(
             )
         }
         item {
-            ColorRow(R.string.theme_enter_key_title, look.watch { it.enterKeyBackground }) {
+            // Alpha like the other two key faces: a see-through enter key is
+            // half of a see-through keyboard (#504).
+            ColorRow(
+                R.string.theme_enter_key_title,
+                look.watch { it.enterKeyBackground },
+                supportsAlpha = true,
+            ) {
                 update { t -> t.copy(enterKeyBackground = it) }
             }
         }
@@ -2979,6 +2987,17 @@ fun ThemeEditorScreen(
                 display = { "%.1f dp".format(it) },
                 info = stringResource(R.string.theme_key_elevation_body),
             ) { update { t -> t.copy(keyElevationDp = (it * 10).toInt() / 10f) } }
+        }
+        item(visible = hasKeyShadow) {
+            // Unset is the platform's own black. Alpha counts: a soft coloured
+            // glow is most of what the themes that set one are after.
+            NullableColorRow(
+                R.string.theme_key_shadow_color_title,
+                look.watch { it.keyShadowColor }, fallback = 0xFF000000,
+                supportsAlpha = true,
+                info = stringResource(R.string.theme_key_shadow_color_body),
+                onChange = { update { t -> t.copy(keyShadowColor = it) } },
+            )
         }
     }
 
@@ -3397,6 +3416,19 @@ fun ThemeEditorScreen(
 
     SettingsGroup(stringResource(R.string.theme_toolbar_section_title), foldKey = "theme/toolbar") {
         item {
+            // The fill behind the tools, its own row or the strip while the
+            // tools hold it. Auto follows the suggestion strip's fill, which
+            // itself follows the board, so the fallback swatch walks that chain.
+            NullableColorRow(
+                R.string.theme_toolbar_background_title,
+                look.watch { it.toolbarBackground },
+                fallback = look.watch { it.suggestionBarBackground ?: it.boardBackground },
+                supportsAlpha = true,
+                info = stringResource(R.string.theme_toolbar_background_body),
+                onChange = { update { t -> t.copy(toolbarBackground = it) } },
+            )
+        }
+        item {
             val toolShape = look.watchWith { s, t -> keyShapeKindOrNull(t.toolShape) ?: s.toolShape }
             WmRow(
                 title = stringResource(R.string.theme_tool_shape_title),
@@ -3494,6 +3526,32 @@ fun ThemeEditorScreen(
                 look.watch { it.suggestionText }, fallback = look.watch { it.keyText },
                 onChange = { update { t -> t.copy(suggestionText = it) } },
             )
+        }
+        item {
+            // The suggestions beside the primary one: their own colour, and
+            // their size as a share of the primary's (#504). Auto is the
+            // strip's text colour at full size, which is what they always were.
+            NullableColorRow(
+                R.string.theme_other_suggestions_title,
+                look.watch { it.secondarySuggestionText },
+                fallback = look.watch { it.suggestionText ?: it.keyText },
+                info = stringResource(R.string.theme_other_suggestions_body),
+                onChange = { update { t -> t.copy(secondarySuggestionText = it) } },
+            )
+        }
+        item {
+            SliderRow(
+                R.string.theme_other_suggestions_size_title,
+                value = look.watch { it.secondarySuggestionScale ?: 1f },
+                range = SECONDARY_SUGGESTION_SCALE_RANGE,
+                display = { "${(it * 100).roundToInt()}%" },
+                info = stringResource(R.string.theme_other_suggestions_size_body),
+            ) {
+                // Stored in 5% steps, and the resting value stays null so a
+                // theme that never touched the slider stays "same size".
+                val stepped = (it * 20).roundToInt() / 20f
+                update { t -> t.copy(secondarySuggestionScale = stepped.takeIf { s -> s != 1f }) }
+            }
         }
         item {
             // The quieter line beside the main one, and the hairlines between

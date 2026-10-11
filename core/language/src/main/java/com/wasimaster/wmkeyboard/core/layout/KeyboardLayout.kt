@@ -7,20 +7,53 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * The four flick directions a 12-key kana pad reads off a key. The centre
- * (a plain tap) commits the key's own [Key.output]/[Key.label]; a directional
- * flick commits the matching entry of [Key.flick]. Serialised lowercase so a
- * hand-authored layout reads `"flick": { "left": "い", "up": "う", … }`.
+ * The eight flick directions a key reads off a swipe: the four edges a 12-key
+ * kana pad uses and the four corners a MessagEase-style board adds (issue
+ * #410). The centre (a plain tap) commits the key's own [Key.output]/[Key.label];
+ * a directional flick commits the matching entry of [Key.flick]. Serialised
+ * lowercase so a hand-authored layout reads `"flick": { "left": "い", "up": "う",
+ * "up_right": "x", … }`.
  */
 @Serializable
-enum class FlickDirection {
-    @SerialName("left") LEFT,
+enum class FlickDirection(
+    /** Where this arm points, as a compass bearing: up is 0°, clockwise. */
+    val compassDegrees: Float,
+) {
+    @SerialName("left") LEFT(270f),
 
-    @SerialName("up") UP,
+    @SerialName("up") UP(0f),
 
-    @SerialName("right") RIGHT,
+    @SerialName("right") RIGHT(90f),
 
-    @SerialName("down") DOWN,
+    @SerialName("down") DOWN(180f),
+
+    // The diagonals came later (issue #410), so they sit after the four a file
+    // written before them could name: a pad's JSON keeps the order it was
+    // written in.
+    @SerialName("up_left") UP_LEFT(315f),
+
+    @SerialName("up_right") UP_RIGHT(45f),
+
+    @SerialName("down_left") DOWN_LEFT(225f),
+
+    @SerialName("down_right") DOWN_RIGHT(135f),
+    ;
+
+    /** A corner arm rather than an edge one. */
+    val isDiagonal: Boolean get() = compassDegrees % 90f != 0f
+
+    companion object {
+        /**
+         * The eight arms in reading order around a 3×3 pad, with `null` for
+         * the centre: what the flick cross, the key face and the editor's pad
+         * all lay out, so none of them can put an arm on a different cell.
+         */
+        val gridOrder: List<FlickDirection?> = listOf(
+            UP_LEFT, UP, UP_RIGHT,
+            LEFT, null, RIGHT,
+            DOWN_LEFT, DOWN, DOWN_RIGHT,
+        )
+    }
 }
 
 /**
@@ -148,12 +181,36 @@ data class Key(
      */
     val forceHint: Boolean = false,
     /**
-     * Directional flick outputs for a 12-key kana pad: a flick left/up/right/down
-     * from this key commits the matching kana instead of the centre tap. Empty
-     * (the usual case) means the key has no flick behaviour and a drag off it just
-     * cancels the press, exactly as before.
+     * Directional flick outputs: a short swipe from this key in one of the
+     * eight compass directions commits that arm's text instead of the centre
+     * tap, the way a 12-key kana pad reaches い from あ and a MessagEase-style
+     * board (issue #410) keeps nine letters on one key. Empty (the usual case)
+     * means the key has no flick behaviour and a drag off it just cancels the
+     * press, exactly as before.
      */
     val flick: Map<FlickDirection, String> = emptyMap(),
+    /**
+     * What each [flick] arm types while Shift is on, the way [shiftLabel] does
+     * for the tap (issue #550). A kana pad with a Shift key can then put its
+     * katakana on the same keys as its hiragana, rather than on a second
+     * layout behind a key of its own.
+     *
+     * An arm with no entry here does what a key with no [shiftLabel] does:
+     * Shift makes a letter a capital and leaves everything else alone. An entry
+     * for an arm with no [flick] text does nothing, since there is nothing for
+     * it to be the shifted form of.
+     */
+    val flickShift: Map<FlickDirection, String> = emptyMap(),
+    /**
+     * Flick arms that run an action instead of typing (issue #549): a key whose
+     * tap selects a word and whose four flicks move the caret, say.
+     *
+     * An arm here beats the [flick] text for the same direction. Unlike the text
+     * arms these work on an action key too, which is the case they exist for;
+     * see [takesFlickActions] for the few keys whose own drag or hold leaves no
+     * room for them.
+     */
+    val flickActions: Map<FlickDirection, KeyAlternate> = emptyMap(),
     /**
      * How big this one key's label is drawn, as a multiple of an ordinary
      * letter's size — and null, the normal case, means the keyboard decides,
@@ -287,6 +344,8 @@ fun Key.asKanaVariantKey(): Key = copy(
     icon = null,
     iconHint = null,
     flick = emptyMap(),
+    flickShift = emptyMap(),
+    flickActions = emptyMap(),
     letters = null,
     repeatOnHold = false,
 )
@@ -416,7 +475,7 @@ fun Key.holdIsSpokenFor(): Boolean = repeatOnHold || action.holdIsSpokenFor()
  * nowhere to live inside it. That is a fact about the key rather than about
  * typing text, which is why it is here and not there.
  */
-fun Key.canRepeatOnHold(): Boolean = flick.isEmpty() && action.canRepeatOnHold()
+fun Key.canRepeatOnHold(): Boolean = flick.isEmpty() && flickActions.isEmpty() && action.canRepeatOnHold()
 
 /**
  * Whether a held finger on this key fires it over and over.
@@ -485,10 +544,19 @@ fun Key.alternateEntries(): List<AlternateEntry> {
  * this is a Keyman key that has one, else this key typing the flick's text.
  */
 fun Key.flickKey(direction: FlickDirection): Key? {
-    val text = flick[direction] ?: return null
-    val target = (action as? KeyAction.KeymanKey)?.flick?.get(direction)
-        ?: return copy(output = text)
-    return Key(label = text, output = target.text, action = target.toAction())
+    when (val arm = flickArm(direction)) {
+        null -> return null
+        // Pressed the way a popup's action entry is, so the arm does exactly
+        // what the same action does as an alternate.
+        is FlickArm.Action -> return Key(label = arm.alternate.label, action = arm.alternate.action)
+        is FlickArm.Text -> {
+            val target = (action as? KeyAction.KeymanKey)?.flick?.get(direction)
+            // The arm's own shift form, never the centre's: under Shift the
+            // flick used to type the tap's shiftLabel, whatever arm it took.
+                ?: return copy(output = arm.text, shiftLabel = flickShift[direction])
+            return Key(label = arm.text, output = target.text, action = target.toAction())
+        }
+    }
 }
 
 /**
@@ -573,6 +641,8 @@ data class KeyboardLayout(
      * on screen rather than re-deriving the layer-beats-layout rule.
      */
     val themeId: String? = null,
+    /** [LayerSpec.flickHints], carried onto the grid on screen; null follows the setting. */
+    val flickHints: Boolean? = null,
     /** [LayerSpec.keymanFrames], carried onto the grid on screen. */
     val keymanFrames: Map<String, KeymanTarget> = emptyMap(),
 )
@@ -793,3 +863,58 @@ const val MinRowHeightScale = 0.4f
 
 /** The tallest a per-row height multiplier is honoured at. */
 const val MaxRowHeightScale = 2.5f
+
+/**
+ * The flick arms this key actually types, which is [Key.flick] only on a key
+ * that commits text (issue #547). An action key — Undo, a tool, a layer
+ * switch — keeps whatever arms it had before its action was changed, since the
+ * file still says so, but no flick gesture is wired to it, so nothing may draw
+ * or reserve one either.
+ */
+val Key.activeFlick: Map<FlickDirection, String>
+    get() = if (action == KeyAction.Text || action is KeyAction.KeymanKey) flick else emptyMap()
+
+/** One arm of a key's flick cross: text it types, or an action it runs. */
+sealed interface FlickArm {
+    /** One of [Key.flick]. */
+    @JvmInline
+    value class Text(val text: String) : FlickArm
+
+    /** One of [Key.flickActions]. */
+    @JvmInline
+    value class Action(val alternate: KeyAlternate) : FlickArm
+}
+
+/**
+ * Whether [Key.flickActions] work on this key (issue #549).
+ *
+ * Every key but the ones whose drag or hold is already the gesture: the space
+ * bar's swipes and language picker, the delete keys' swipe and repeat, a braille
+ * dot's chord, a component's cell, and a key told to repeat while held. A flick
+ * arm on one of those would either never be reached or take away what the key
+ * is for, so the editor does not offer them and the keyboard does not read them.
+ */
+fun Key.takesFlickActions(): Boolean = action != KeyAction.Space && !holdIsSpokenFor()
+
+/**
+ * What a flick towards [direction] does: an action arm where the key has one
+ * it can use, else the text arm, else null for no arm that way. The one answer
+ * the gesture, the cross popup and the editor's preview all read, so none of
+ * them can show an arm another ignores.
+ */
+fun Key.flickArm(direction: FlickDirection): FlickArm? {
+    flickActions[direction]?.takeIf { takesFlickActions() }?.let { return FlickArm.Action(it) }
+    return activeFlick[direction]?.takeIf { it.isNotEmpty() }?.let { FlickArm.Text(it) }
+}
+
+/** Whether a flick off this key does anything at all; see [flickArm]. */
+fun Key.hasFlicks(): Boolean =
+    activeFlick.isNotEmpty() || (flickActions.isNotEmpty() && takesFlickActions())
+
+/**
+ * Whether a finger held on this flick arm runs it again and again: the arms
+ * that move the caret or delete, which repeat the same way the keys for them do.
+ * Asked of the key [flickKey] hands back.
+ */
+fun Key.flickArmRepeats(): Boolean =
+    action.deletesBackward() || action.deletesForward() || (action as? KeyAction.Edit)?.op?.repeats == true

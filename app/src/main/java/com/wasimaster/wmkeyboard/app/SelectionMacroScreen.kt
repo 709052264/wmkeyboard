@@ -2,8 +2,8 @@ package com.wasimaster.wmkeyboard.app
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Dashboard
-import androidx.compose.material.icons.outlined.ViewStream
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Dashboard
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewStream
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.stringResource
@@ -71,6 +71,18 @@ internal fun SelectionMacroSettingsScreen(
                     )
                 },
             ) { scope.launch { repository.setSelectionMacroPlacement(it) } }
+        }
+        // Reads as a second question about where the bar appears rather than
+        // as one about the actions: it decides whether there is a bar at all
+        // on the longest selections, not which chips go on it.
+        if (macrosOn) item {
+            ToggleSetting(
+                R.string.selection_macros_every_title,
+                stringResource(R.string.selection_macros_every_subtitle),
+                settings.watch { it.selectionMacros.inEverySelection },
+                info = stringResource(R.string.selection_macros_every_info),
+                default = SettingsDefaults.selectionMacros.inEverySelection,
+            ) { scope.launch { repository.setSelectionMacrosInEverySelection(it) } }
         }
     }
 

@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.ime.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,15 +11,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.ime.FindOption
@@ -26,6 +33,7 @@ import com.wasimaster.wmkeyboard.ime.FindReplaceField
 import com.wasimaster.wmkeyboard.ime.FindReplaceUi
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
+import com.wasimaster.wmkeyboard.ime.MatchPreview
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
 
@@ -38,18 +46,25 @@ data class FindReplaceCallbacks(
     val onReplace: () -> Unit = {},
     val onReplaceAll: () -> Unit = {},
     val onUndo: () -> Unit = {},
+    val onHistoryPick: (String) -> Unit = {},
+    val onHistoryClear: () -> Unit = {},
 )
 
-/** The panel's height: the same as a media panel with its search box open, so the window does not jump between them. */
-internal val FindReplacePanelHeight = 132.dp
+/**
+ * The panel's height: three rows of controls and the line under them that
+ * shows the current match, or the recent searches while there is no query.
+ */
+internal val FindReplacePanelHeight = 164.dp
 
 /**
  * Find and replace over the focused field.
  *
  * Two fake fields (the keys route into whichever is focused, so the platform
  * draws no caret of its own), the toggles, and the buttons. The current match
- * is kept selected in the field itself, which is where the user sees it; the
- * count line says which one of how many. Nothing here reads the field: the
+ * is kept selected in the field itself, and drawn again in its line at the
+ * bottom (#627), since the keyboard often covers the part of the field it is
+ * in; the count line says which one of how many. With no query that bottom
+ * line offers the recent searches instead. Nothing here reads the field: the
  * service extracts it, matches on a background thread and publishes the
  * ranges.
  */
@@ -174,6 +189,53 @@ internal fun FindReplacePanel(state: KeyboardUiState, callbacks: FindReplaceCall
                 modifier = Modifier.weight(1f),
             )
         }
+        when {
+            fr.query.isEmpty() && fr.history.isNotEmpty() -> HistoryRow(fr.history, callbacks)
+            else -> fr.preview?.let { MatchLine(it) }
+        }
+    }
+}
+
+/** The current match in its line, the match itself marked the way a selection is. */
+@Composable
+private fun MatchLine(preview: MatchPreview) {
+    val kb = LocalKbTheme.current
+    val text = remember(preview, kb.accent) {
+        buildAnnotatedString {
+            append(preview.text)
+            addStyle(
+                SpanStyle(background = kb.accent.copy(alpha = 0.3f), fontWeight = FontWeight.SemiBold),
+                preview.match.first,
+                preview.match.last + 1,
+            )
+        }
+    }
+    Text(
+        text = text,
+        color = kb.suggestionText,
+        fontSize = 12.sp,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+    )
+}
+
+/** Recent searches as chips, newest first, and one that forgets them. */
+@Composable
+private fun HistoryRow(history: List<String>, callbacks: FindReplaceCallbacks) {
+    val description = stringResource(R.string.ime_find_history_desc)
+    Row(
+        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        history.forEach { query ->
+            ToolPanelChip(
+                query,
+                modifier = Modifier.semantics { contentDescription = "$description: $query" },
+            ) { callbacks.onHistoryPick(query) }
+        }
+        ToolPanelChip(stringResource(R.string.ime_find_history_clear)) { callbacks.onHistoryClear() }
     }
 }
 

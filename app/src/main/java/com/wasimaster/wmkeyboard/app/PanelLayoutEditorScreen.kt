@@ -14,10 +14,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Redo
-import androidx.compose.material.icons.automirrored.outlined.Undo
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Refresh
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Redo
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -61,6 +61,7 @@ import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.PanelLayoutCodec
 import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.fitRowToGrid
+import com.wasimaster.wmkeyboard.core.layout.hasFlicks
 import com.wasimaster.wmkeyboard.core.layout.json.LayoutJsonRoot
 import com.wasimaster.wmkeyboard.core.layout.gridWeightOf
 import com.wasimaster.wmkeyboard.core.layout.isAllowedOnPanel
@@ -104,6 +105,8 @@ internal fun panelEditRoute(kind: PanelKind): String = "panel_edit/${kind.name}"
 @StringRes
 internal fun panelTitleRes(kind: PanelKind): Int = when (kind) {
     PanelKind.EMOJI -> R.string.panel_name_emoji
+    PanelKind.GIF -> R.string.panel_name_gif
+    PanelKind.STICKER -> R.string.panel_name_sticker
     PanelKind.CLIPBOARD -> R.string.panel_name_clipboard
     PanelKind.TEXT_EDIT -> R.string.panel_name_text_edit
     PanelKind.TRACKPAD -> R.string.panel_name_trackpad
@@ -122,6 +125,8 @@ internal fun fieldTitleRes(kind: PanelFieldKind): Int = when (kind) {
     PanelFieldKind.CLIPBOARD_LIST -> R.string.field_name_clipboard_list
     PanelFieldKind.CLIPBOARD_VIEW -> R.string.field_name_clipboard_view
     PanelFieldKind.TRACKPAD -> R.string.field_name_trackpad
+    PanelFieldKind.GIF_BROWSER -> R.string.field_name_gif_browser
+    PanelFieldKind.STICKER_BROWSER -> R.string.field_name_sticker_browser
     PanelFieldKind.UNKNOWN -> R.string.field_name_unknown
 }
 
@@ -156,7 +161,7 @@ internal fun textEditActionTitle(op: TextEditAction): Int = when (op) {
 
 /** The components a layout of [kind] may place; empty for the keys-only pad. */
 internal fun fieldKindsFor(kind: PanelKind): List<PanelFieldKind> =
-    PanelFieldKind.entries.filter { it.isReal && it.panel == kind }
+    PanelFieldKind.entries.filter { it.isReal && it.isOn(kind) }
 
 /**
  * The actions a panel key may take: the panel's own component first, then
@@ -597,6 +602,18 @@ internal fun PanelEditorBody(
                 grid.persistent,
                 info = stringResource(R.string.panel_layout_persist_info),
             ) { on -> editGrid { it.copy(persistent = on) } }
+        }
+        // Issue #588 on a panel: the Numpad's flick arms, over the setting.
+        if (rows.any { row -> row.any { k -> k.hasFlicks() } }) {
+            item {
+                val global = settings.watch { it.layoutBehavior.flickHints }
+                ToggleSetting(
+                    R.string.layout_editor_flick_hints_title,
+                    stringResource(R.string.layout_editor_flick_hints_subtitle),
+                    grid.flickHints ?: global,
+                    info = stringResource(R.string.layout_editor_flick_hints_info),
+                ) { on -> editGrid { it.copy(flickHints = on.takeIf { value -> value != global }) } }
+            }
         }
         item {
             // A theme of the panel's own (issue #61 on a panel): the board

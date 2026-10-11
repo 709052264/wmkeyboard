@@ -44,9 +44,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
-import androidx.compose.material.icons.outlined.Check
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.HelpOutline
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowRight
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.app.storage.StorageCategories
 import com.wasimaster.wmkeyboard.app.storage.StorageCategoryScreen
@@ -72,12 +72,12 @@ import com.wasimaster.wmkeyboard.app.updates.UpdateCard
 import com.wasimaster.wmkeyboard.app.updates.UpdatePromptDialog
 import com.wasimaster.wmkeyboard.app.updates.UpdatedCard
 import com.wasimaster.wmkeyboard.app.updates.rememberAppUpdater
-import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Remove
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Remove
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Info
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.AlertDialog
@@ -191,13 +191,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.outlined.ArrowDropDown
-import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowDropDown
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardArrowDown
 import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.draw.rotate
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material.icons.outlined.Warning
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Warning
 import androidx.compose.material3.BottomSheetDefaults
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
@@ -658,6 +658,12 @@ private fun SettingsNavHost(
     // before this is first composed, so the new activity starts on the right
     // side and does not flip again.
     val layoutShown = remember { layoutWanted }
+    // The keyboard test every screen carries (#412). One for the graph, so the
+    // field stays open, text and all, as the user moves between screens.
+    val preview = remember { KeyboardPreviewState() }
+    val previewWanted = settings.watch { it.appUi.keyboardPreviewButton }
+    LaunchedEffect(previewWanted) { if (!previewWanted) preview.open = false }
+    CloseOrphanedKeyboardPreview(preview)
     val context = LocalContext.current
     LaunchedEffect(layoutWanted) {
         if (layoutWanted != layoutShown) context.findActivity()?.recreate()
@@ -673,6 +679,7 @@ private fun SettingsNavHost(
             // motions deep in a row can be still without every row being
             // handed the settings.
             LocalReduceMotion provides reduceMotion,
+            LocalKeyboardPreview provides preview.takeIf { previewWanted },
             // "Icons in settings", animated once here for every row and
             // heading, so the screen the switch is on sees its tiles leave.
             LocalIconReveal provides rememberIconReveal(
@@ -683,22 +690,30 @@ private fun SettingsNavHost(
             if (twoPane) {
                 SettingsTwoPane(
                     list = {
-                        HomeScreen(
-                            settings = settings,
-                            selectedRoute = if (topRoute == HomeRoute) null else openedFrom,
-                            onNavigate = { route ->
-                                openedFrom = route
-                                // From the list pane the detail always replaces
-                                // what is in it rather than stacking on top:
-                                // the pane beside it *is* the step back, so a
-                                // stack of home rows would be one the user
-                                // never took.
-                                navController.navigate(route) {
-                                    popUpTo(HomeRoute)
-                                    launchSingleTop = true
-                                }
-                            },
-                        )
+                        // One keyboard test button on the window: the list's
+                        // while the pane beside it is only the welcome panel,
+                        // the open screen's once there is one.
+                        CompositionLocalProvider(
+                            LocalKeyboardPreview provides
+                                LocalKeyboardPreview.current?.takeIf { topRoute == HomeRoute },
+                        ) {
+                            HomeScreen(
+                                settings = settings,
+                                selectedRoute = if (topRoute == HomeRoute) null else openedFrom,
+                                onNavigate = { route ->
+                                    openedFrom = route
+                                    // From the list pane the detail always replaces
+                                    // what is in it rather than stacking on top:
+                                    // the pane beside it *is* the step back, so a
+                                    // stack of home rows would be one the user
+                                    // never took.
+                                    navController.navigate(route) {
+                                        popUpTo(HomeRoute)
+                                        launchSingleTop = true
+                                    }
+                                },
+                            )
+                        }
                     },
                     detail = {
                         SettingsNavGraph(
@@ -1750,6 +1765,11 @@ private fun SettingsNavGraph(
                     onRemoved = { navController.popBackStack() },
                 )
             }
+        }
+        // The custom Double Pinyin scheme (#502). Its own Scaffold, like the
+        // layout JSON editor: the scheme is a page of text and needs the height.
+        composable(DOUBLE_PINYIN_CUSTOM_ROUTE) {
+            DoublePinyinSchemeScreen(repository, settings) { navController.popBackStack() }
         }
         // One segment longer than "language/{langId}", so the two patterns
         // cannot match each other's URLs.

@@ -95,6 +95,9 @@ enum class ToolbarTool {
     // A shortcut to the settings app's Statistics screen: the level, the
     // achievements and the tap heatmap, one tap from the keys (issue #390).
     STATISTICS,
+    // Find and replace over the field (#627): the panel the selection bar's
+    // Replace chip opens, reachable with nothing selected first.
+    FIND_REPLACE,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -167,6 +170,9 @@ fun isDirectBootSafeTool(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.SELECTION_ACTIONS,
     // A switch over a setting too.
     ToolbarTool.PHONETIC_ENGLISH,
+    // Reads and edits only the field. Its search history is credential-
+    // protected and simply reads empty before the first unlock.
+    ToolbarTool.FIND_REPLACE,
     ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.PASSWORD_GEN, ToolbarTool.QR_GEN,
     ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
     // Copy and cut only touch the field the user is already typing in. Paste is
@@ -278,7 +284,7 @@ val ToolTopUps: Set<ToolbarTool> = setOf(ToolbarTool.WIKIPEDIA, ToolbarTool.POWE
  */
 private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH,
-    ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.TYPING_TEST, ToolbarTool.STATISTICS, ToolbarTool.PLUGINS,
+    ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.TYPING_TEST, ToolbarTool.STATISTICS, ToolbarTool.PLUGINS,
     ToolbarTool.CUSTOM_LAYOUT,
     ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,

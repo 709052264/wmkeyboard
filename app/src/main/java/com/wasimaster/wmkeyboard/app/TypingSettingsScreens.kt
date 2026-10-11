@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import android.view.KeyEvent
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Switch
@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
 import com.wasimaster.wmkeyboard.core.prediction.OctopusKind
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
+import com.wasimaster.wmkeyboard.core.settings.FlickDistanceRange
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
 import com.wasimaster.wmkeyboard.core.thesaurus.SynonymSource
@@ -114,9 +115,9 @@ import com.wasimaster.wmkeyboard.core.settings.SpacebarDisplay
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
-import androidx.compose.material.icons.outlined.Block
-import androidx.compose.material.icons.outlined.FiberManualRecord
-import androidx.compose.material.icons.outlined.KeyboardTab
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Block
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FiberManualRecord
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardTab
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /** One spacebar-swipe slot (quick or hold+swipe): nothing / language / cursor. */
@@ -427,6 +428,15 @@ internal fun TypingCorrectionsSettings(
                     info = stringResource(R.string.typing_autocorrect_on_enter_info),
                     default = SettingsDefaults.correction.onEnter,
                 ) { scope.launch { repository.setAutocorrectOnEnter(it) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.typing_autocorrect_on_punctuation_title,
+                    stringResource(R.string.typing_autocorrect_on_punctuation_subtitle),
+                    settings.watch { it.correction.onPunctuation },
+                    info = stringResource(R.string.typing_autocorrect_on_punctuation_info),
+                    default = SettingsDefaults.correction.onPunctuation,
+                ) { scope.launch { repository.setAutocorrectOnPunctuation(it) } }
             }
             item {
                 ToggleSetting(
@@ -912,6 +922,16 @@ internal fun TypingSuggestionsSettings(
                 info = stringResource(R.string.typing_typed_emails_info),
                 default = SettingsDefaults.suggestionSources.typedEmails,
             ) { scope.launch { repository.setTypedEmailSuggestions(it) } }
+        }
+        item {
+            // Issue #431: digits typed on their own, completed from their first ones.
+            ToggleSetting(
+                R.string.typing_typed_numbers_title,
+                stringResource(R.string.typing_typed_numbers_subtitle),
+                settings.watch { it.suggestionSources.typedNumbers },
+                info = stringResource(R.string.typing_typed_numbers_info),
+                default = SettingsDefaults.suggestionSources.typedNumbers,
+            ) { scope.launch { repository.setTypedNumberSuggestions(it) } }
         }
         item {
             ToggleSetting(
@@ -2286,6 +2306,37 @@ internal fun TypingGesturesSettings(
                 info = stringResource(R.string.typing_capital_flick_info),
                 default = SettingsDefaults.layoutBehavior.capitalFlick,
             ) { scope.launch { repository.setCapitalFlick(it) } }
+        }
+        item {
+            // Issue #410: keys with flick arms draw them on the face.
+            ToggleSetting(
+                R.string.typing_flick_hints_title,
+                stringResource(R.string.typing_flick_hints_subtitle),
+                settings.watch { it.layoutBehavior.flickHints },
+                info = stringResource(R.string.typing_flick_hints_info),
+                default = SettingsDefaults.layoutBehavior.flickHints,
+            ) { scope.launch { repository.setFlickHints(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.typing_flick_popup_title,
+                stringResource(R.string.typing_flick_popup_subtitle),
+                settings.watch { it.layoutBehavior.flickPopup },
+                info = stringResource(R.string.typing_flick_popup_info),
+                default = SettingsDefaults.layoutBehavior.flickPopup,
+            ) { scope.launch { repository.setFlickPopup(it) } }
+        }
+        item {
+            val dpFormat = stringResource(R.string.typing_value_dp)
+            SliderSetting(
+                R.string.typing_flick_distance_title,
+                subtitle = stringResource(R.string.typing_flick_distance_subtitle),
+                value = settings.watch { it.layoutBehavior.flickDistanceDp }.toFloat(),
+                range = FlickDistanceRange.first.toFloat()..FlickDistanceRange.last.toFloat(),
+                display = { dpFormat.format(it.roundToInt()) },
+                info = stringResource(R.string.typing_flick_distance_info),
+                default = SettingsDefaults.layoutBehavior.flickDistanceDp.toFloat(),
+            ) { scope.launch { repository.setFlickDistanceDp(it.roundToInt()) } }
         }
         item {
             // Issue #169: a short straight swipe from a punctuation key to s

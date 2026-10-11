@@ -4,6 +4,7 @@ import com.wasimaster.wmkeyboard.core.script.ComposerType
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.ScriptDef
+import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.script.ScriptRegistry
 import com.wasimaster.wmkeyboard.core.util.JsonPretty
 import com.wasimaster.wmkeyboard.core.util.firstJsonDocument
@@ -145,6 +146,15 @@ data class LayerSpec(
      */
     val themeId: String? = null,
     /**
+     * Whether this layer's flick keys draw their arms on the face, over the
+     * keyboard-wide setting (`LayoutBehaviorSettings.flickHints`, #588). Null,
+     * the normal case, follows the setting: a number pad can keep its arms
+     * while the kana pad, whose flicks the hands already know, goes without.
+     *
+     * Additive and defaulted, so no format-version bump.
+     */
+    val flickHints: Boolean? = null,
+    /**
      * A converted Keyman layer's own word on its space, backspace and enter
      * keys, by Keyman key id (`K_SPACE`, `K_BKSP`, `K_ENTER`): the modifiers
      * the rules see them pressed with, where the key's `layer` says something
@@ -280,6 +290,17 @@ data class LayoutSpec(
      */
     val appearance: LayoutAppearance? = null,
     /**
+     * The script this grid's keys write, when it is not its language's: Klingon
+     * is written in Latin letters, but its pIqaD layout types the pIqaD
+     * alphabet. Null, every other layout, takes the language's script.
+     *
+     * The script decides the face the keys draw in, among the rest, so this is
+     * what gives pIqaD a font choice of its own beside English's. An id this
+     * build does not know decodes as null, and the grid falls back to its
+     * language's script. Defaulted, so no format-version bump.
+     */
+    @SerialName("script") val ownScript: ScriptId? = null,
+    /**
      * A grid the user reaches by a key or the toolbar, not by picking a
      * language: a symbols page of their own, a macro pad, a calculator strip
      * (issue #62).
@@ -302,6 +323,19 @@ data class LayoutSpec(
      * [tabletExpand] gives.
      */
     val secondary: Boolean = false,
+    /**
+     * A writing canvas in place of the letter keys, the way Gboard offers
+     * handwriting as one of a language's layouts (issue #557). The canvas takes
+     * every reserved row above the [LayoutLayer.LETTERS] grid, so that grid is
+     * only the bottom row a writer still needs: ?123, the globe, space, delete,
+     * enter. The ink is recognised in this layout's language, through the same
+     * pipeline as the Handwriting tool, and the symbols layers are the ordinary
+     * ones.
+     *
+     * Additive and defaulted, so no format-version bump, for the reason
+     * [tabletExpand] gives.
+     */
+    val handwriting: Boolean = false,
     /**
      * A theme of this layout's own (a `ThemeSpec.id`), used while any of its
      * layers is on screen, in place of the theme the settings select and of an
@@ -337,8 +371,12 @@ fun secondaryLayouts(custom: List<LayoutSpec>): List<LayoutSpec> =
  */
 fun LayoutSpec.language(): LanguageDef = LanguageRegistry.byId(langId)
 
-/** The script [language] writes, carrying its direction, case and font behaviour. */
-fun LayoutSpec.script(): ScriptDef = ScriptRegistry[language().script]
+/**
+ * The script this layout writes, carrying its direction, case and font
+ * behaviour: its own [LayoutSpec.ownScript] when it names one, otherwise its
+ * [language]'s.
+ */
+fun LayoutSpec.script(): ScriptDef = ScriptRegistry[ownScript ?: language().script]
 
 /**
  * The composer that turns keystrokes into text: the layout's explicit

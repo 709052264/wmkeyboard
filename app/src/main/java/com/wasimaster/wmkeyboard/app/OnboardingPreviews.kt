@@ -21,20 +21,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Chat
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Calculate
-import androidx.compose.material.icons.outlined.Code
-import androidx.compose.material.icons.outlined.ContentPaste
-import androidx.compose.material.icons.outlined.Gif
-import androidx.compose.material.icons.outlined.Language
-import androidx.compose.material.icons.outlined.Mic
-import androidx.compose.material.icons.outlined.Mood
-import androidx.compose.material.icons.outlined.MoreHoriz
-import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.QrCode
-import androidx.compose.material.icons.outlined.Translate
-import androidx.compose.material.icons.outlined.Widgets
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Chat
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Calculate
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Code
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Language
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mood
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreHoriz
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Palette
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCode
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Widgets
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -55,6 +54,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
@@ -422,7 +422,7 @@ private val ToolboxSceneGlyphs: List<List<ImageVector>> = listOf(
     listOf(
         Icons.Outlined.Translate,
         Icons.Outlined.Calculate,
-        Icons.Outlined.Gif,
+        SymbolIcons.GifBox,
         Icons.Outlined.QrCode,
     ),
     listOf(

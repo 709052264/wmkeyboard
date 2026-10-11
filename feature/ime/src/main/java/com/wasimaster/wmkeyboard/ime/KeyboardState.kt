@@ -111,9 +111,13 @@ fun displayCaseForShift(word: String, shift: ShiftState): String {
  * as "no letters at all" and every replacement for it would be shouted — the
  * same trap `WordCase.kt` in :core:prediction was written for, mirrored here
  * because those helpers are internal to that module.
+ *
+ * [caseIsSpelling] is the language's [LanguageDef.letterCaseIsSpelling]: in
+ * Klingon a capital is a letter, so the shape of the word being replaced says
+ * nothing about the one replacing it, and `qaH` picked over `QaH` stays `qaH`.
  */
-fun caseLike(word: String, replaced: String?): String {
-    if (word.isEmpty() || replaced.isNullOrEmpty() || '@' in word) return word
+fun caseLike(word: String, replaced: String?, caseIsSpelling: Boolean = false): String {
+    if (caseIsSpelling || word.isEmpty() || replaced.isNullOrEmpty() || '@' in word) return word
     var at = 0
     var letters = 0
     var allUpper = true
@@ -363,6 +367,11 @@ data class LayoutSet(
      * otherwise lend it are not the keyboard's.
      */
     val keymanLayerKeys: Set<String>? = null,
+    /**
+     * Whether the letters layer is a handwriting canvas over [letters]' one
+     * row (`LayoutSpec.handwriting`, issue #557).
+     */
+    val handwriting: Boolean = false,
 ) {
     /**
      * Rows the key grid reserves.
@@ -401,6 +410,43 @@ data class LayoutSet(
         fn?.hasKanaVariantKeys() == true
 
     /**
+     * The letter each multi-letter key is anchored by on the glide grid, for
+     * the keys [glideAnchor] gives none: Klingon's `ch`, `gh`, `ng` and `tlh`
+     * keys each write a whole letter of its alphabet that Latin spells with two
+     * or three. Such a key stands for the first of its letters that no
+     * single-letter key on the board writes, so `ch` carries the `c` a Klingon
+     * board has nowhere else, while `gh`, whose g and h both have keys of their
+     * own, stays off the grid and a swipe takes those from their own keys.
+     * Without this, every word with a `ch` was out of a swipe's reach.
+     *
+     * Declared before [letterAlphabet], whose initializer reads it, and lazy so
+     * it stays out of equals/hashCode/copy.
+     */
+    val digraphAnchors: Map<Key, Int> by lazy {
+        val singles = HashSet<Int>()
+        for (row in letters.rows) {
+            for (key in row) {
+                if (key.action != KeyAction.Text) continue
+                key.glideAnchor()?.let(singles::add)
+                for (letter in key.letterSet()) singles.add(Character.toLowerCase(letter.code))
+            }
+        }
+        val out = HashMap<Key, Int>()
+        val claimed = HashSet<Int>()
+        for (row in letters.rows) {
+            for (key in row) {
+                if (key.action != KeyAction.Text || key.glideAnchor() != null) continue
+                val text = key.output ?: key.label
+                if (text.length !in 2..MAX_DIGRAPH_LETTERS || !text.all { it.isLetter() }) continue
+                val free = text.lowercase().firstOrNull { it.code !in singles && it.code !in claimed } ?: continue
+                claimed.add(free.code)
+                out[key] = free.code
+            }
+        }
+        out
+    }
+
+    /**
      * Every character the letter layer can produce: base labels, their shifted
      * forms, and whatever the long presses hold.
      *
@@ -429,6 +475,7 @@ data class LayoutSet(
                 // the board cannot write most of the alphabet. A set is a set,
                 // so the duplicate the anchor makes here costs nothing.
                 for (letter in key.letterSet()) add(Character.toLowerCase(letter.code))
+                digraphAnchors[key]?.let(::add)
                 take(key.output ?: key.label)
                 take(key.shiftLabel)
                 for (alternate in key.longPress) take(alternate)
@@ -478,7 +525,7 @@ data class LayoutSet(
             for (row in letters.rows) {
                 for (key in row) {
                     if (key.action != KeyAction.Text) continue
-                    val anchor = key.glideAnchor() ?: continue
+                    val anchor = key.glideAnchor() ?: digraphAnchors[key] ?: continue
                     when (pass) {
                         // An ambiguous key's whole set answers to its one
                         // anchor, so a word continuing with any letter of a T9
@@ -489,6 +536,7 @@ data class LayoutSet(
                             }
                         } else {
                             claim(key.output ?: key.label, anchor)
+                            digraphAnchors[key]?.let { out.putIfAbsent(it, anchor) }
                         }
                         SHIFT_PASS -> claim(key.shiftLabel, anchor)
                         else -> for (alternate in key.longPress) claim(alternate, anchor)
@@ -538,6 +586,8 @@ data class LayoutSet(
      */
     fun glideKeys(
         apostropheCenter: Pair<Float, Float>? = null,
+        /** Non-letter keys the composer spells through, by character, at their centres (Khipro's `/`). */
+        extraCenters: List<Pair<Int, Pair<Float, Float>>> = emptyList(),
         centerOf: (Int) -> Pair<Float, Float>?,
     ): List<KeyCenter> {
         val out = ArrayList<KeyCenter>(letters.rows.sumOf { it.size } * 2)
@@ -553,11 +603,12 @@ data class LayoutSet(
             out.add(KeyCenter('\'', x, y))
             out.add(KeyCenter('’', x, y))
         }
+        for ((codePoint, center) in extraCenters) out.add(KeyCenter(codePoint, center.first, center.second))
         for (pass in 0 until PASSES) {
             for (row in letters.rows) {
                 for (key in row) {
                     if (key.action != KeyAction.Text) continue
-                    val anchor = key.glideAnchor() ?: continue
+                    val anchor = key.glideAnchor() ?: digraphAnchors[key] ?: continue
                     val (x, y) = centerOf(anchor) ?: continue
                     when (pass) {
                         // An ambiguous key's whole letter set lands on its one
@@ -580,6 +631,7 @@ data class LayoutSet(
                             }
                         } else {
                             emit(key.output ?: key.label, x, y)
+                            digraphAnchors[key]?.let { out.add(KeyCenter(it, x, y)) }
                         }
                         SHIFT_PASS -> emit(key.shiftLabel, x, y)
                         else -> for (alternate in key.longPress) emit(alternate, x, y)
@@ -676,14 +728,17 @@ enum class PanelMode {
 }
 
 /**
- * The panel layout behind a panel mode, for the four panels that are layouts
- * (issue #63); null for every other panel and for none. Shared by the
+ * The panel layout behind a panel mode, for the panels that are layouts
+ * (issue #63, the GIF and sticker panels since #538); null for every other
+ * panel and for none. Shared by the
  * service's "keep this panel open" check and the theme resolution, so the two
  * cannot disagree about which panels have a grid of their own.
  */
 val PanelMode.layoutKind: PanelKind?
     get() = when (this) {
         PanelMode.EMOJI -> PanelKind.EMOJI
+        PanelMode.GIF -> PanelKind.GIF
+        PanelMode.STICKER -> PanelKind.STICKER
         PanelMode.CLIPBOARD -> PanelKind.CLIPBOARD
         PanelMode.TEXT_EDIT -> PanelKind.TEXT_EDIT
         PanelMode.TRACKPAD -> PanelKind.TRACKPAD
@@ -911,6 +966,17 @@ data class HandwritingUi(
     val download: com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress? = null,
     /** What this language's model installs to, or 0 when ML Kit lists no size. */
     val modelBytes: Long = 0,
+    /**
+     * The panel is blown up to a see-through canvas over the whole app with
+     * the keyboard shrunk to a small bar (issue #386). Kept across a status
+     * reset, so a language switch does not drop the user out of it.
+     */
+    val fullScreen: Boolean = false,
+    /**
+     * Pen-button mode only: the full-screen canvas is catching touches (true)
+     * or letting them through to the app (false).
+     */
+    val fullScreenInk: Boolean = true,
 )
 
 /**
@@ -961,6 +1027,12 @@ data class VoiceUi(
     val barInline: Boolean = false,
     /** A just-dictated utterance is still at the cursor; the undo chip shows. */
     val canUndo: Boolean = false,
+    /**
+     * The phrase just dictated is with the AI tool's model being tidied (#499).
+     * Rides [VoiceStatus.TRANSCRIBING], which already means "the words are
+     * coming, the mic is shut"; this only changes what the status line says.
+     */
+    val tidying: Boolean = false,
     /** Offline-model chip on the panel (download for offline dictation). */
     val modelState: VoiceModelState = VoiceModelState.UNKNOWN,
     /** Download percent while [modelState] is DOWNLOADING, -1 when unknown. */
@@ -998,8 +1070,12 @@ data class VoiceUi(
 /** The session records a whole clip and transcribes it after the stop tap. */
 val VoiceUi.clipBased: Boolean get() = whisper || remote
 
-/** The persisted settings say the collapsed voice bar should be up. */
-fun VoiceBarSettings.armed(): Boolean = mode == VoiceBarSettings.MODE_BAR && active
+/**
+ * The persisted settings say the collapsed voice bar should be up. Never while
+ * voice typing is switched off (#578); [active] is kept, so the bar comes back
+ * if it is switched on again.
+ */
+fun VoiceBarSettings.armed(): Boolean = enabled && mode == VoiceBarSettings.MODE_BAR && active
 
 /**
  * An interactive voice typing session can be run from one microphone button,
@@ -1112,6 +1188,12 @@ sealed interface VoiceBarAction {
      * service's touchable region, so touches beside the bar reach the app.
      */
     data class Bounds(val left: Int, val top: Int, val right: Int, val bottom: Int) : VoiceBarAction
+
+    /**
+     * A pick off the voice panel's language chip (#416): the languages
+     * dictation listens for, in order, or none to follow the keyboard.
+     */
+    data class PickLanguages(val ids: List<String>) : VoiceBarAction
 }
 
 /**
@@ -1410,6 +1492,11 @@ sealed interface AiUi {
          * readout, so a slow provider looks slow instead of broken.
          */
         val startedAtMs: Long = 0L,
+        /**
+         * The tools the model has called so far (#470); the newest may still
+         * be running, and the progress readout then says which and on what.
+         */
+        val tools: List<com.wasimaster.wmkeyboard.core.tools.AiToolActivity> = emptyList(),
     ) : AiUi
     data class Ready(
         val action: com.wasimaster.wmkeyboard.core.tools.AiActionSpec,
@@ -1461,6 +1548,11 @@ sealed interface AiUi {
          * service sets this.
          */
         val diffable: Boolean = true,
+        /**
+         * The searches and pages the answer was built on (#470), drawn over
+         * it. Carried over from [Loading] as the run streams.
+         */
+        val tools: List<com.wasimaster.wmkeyboard.core.tools.AiToolActivity> = emptyList(),
     ) : AiUi
     data class Error(
         val action: com.wasimaster.wmkeyboard.core.tools.AiActionSpec,
@@ -2406,6 +2498,18 @@ data class KeyboardUiState(
      * is on; updated from the service's configuration.
      */
     val hardwareKeyboardPresent: Boolean = false,
+    /**
+     * The input view is up only so a physical keyboard's conversion reading
+     * has somewhere to show its candidates (#419): the strip, never the keys.
+     */
+    val hardwareCandidateWindow: Boolean = false,
+    /**
+     * The conversion candidate the arrow keys (or a stepping space bar) have
+     * moved to, as an index into [suggestions]; -1 while nobody has moved, when
+     * the space bar's pick is simply the first one. What Enter and the space bar
+     * commit while it is set (#419). Reset whenever the candidates are redrawn.
+     */
+    val candidateCursor: Int = -1,
     /** The active layout's language — dictionary, dictation, script behaviour. */
     val language: LanguageDef = LanguageRegistry.byId("en"),
     /** The active language's script — direction, case, composer, font. */
@@ -2843,9 +2947,9 @@ data class KeyboardUiState(
      */
     val clipboardSuggestion: ClipItem? = null,
     /**
-     * The row of recent copies on the idle strip (#414) was put away with its
-     * ✕, for this field. Back for the next field, and the moment something new
-     * is copied.
+     * The row of recent copies on the idle strip (#414) was put away, by its
+     * ✕ or by pasting one of its clips. Back the moment something new is
+     * copied, and not before (#594).
      */
     val clipChipsDismissed: Boolean = false,
     /**
@@ -3828,3 +3932,6 @@ private fun searchComposed(label: String): Char? {
 
 /** A base character plus at most this many combining marks is still one key. */
 private const val MAX_KEY_SPELLING = 4
+
+/** The longest key [LayoutSet.digraphAnchors] reads as one letter: Klingon's `tlh`. */
+private const val MAX_DIGRAPH_LETTERS = 3

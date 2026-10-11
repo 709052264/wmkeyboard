@@ -69,6 +69,15 @@ import kotlin.math.abs
  * the gesture handle after switching keyboards and back. Nothing in the
  * keyboard animates with an inset, so it takes each one as it arrives.
  *
+ * It also keeps drawing for a few frames after its height changes (issue
+ * #424). On some phones the frame that follows an IME window resize is shown
+ * at the window's old position, top-aligned, and the new position only takes
+ * effect with the next frame drawn (the same capture as #217). A keyboard that
+ * is still after the resize never draws that next frame. The resize tool was
+ * the clearest case: it grows the window once on entry and then holds still,
+ * so its outline sat at the bottom of the screen with the keys below the edge
+ * until a touch redrew them.
+ *
  * And, when asked, it reads a swipe in from either side edge as Back (issue
  * #437). Android's own back gesture works over a keyboard, but some phones
  * block it there, which leaves it half a screen up. Being the parent of every
@@ -203,15 +212,42 @@ internal class StableMeasureFrame(
         return MeasureSpec.makeMeasureSpec(roomSize, MeasureSpec.AT_MOST)
     }
 
+    /** Frames still to draw after the last height change; see the class comment. */
+    private var settleFrames = 0
+
+    private val settleRedraw = object : Runnable {
+        override fun run() {
+            if (settleFrames <= 0) return
+            settleFrames--
+            invalidate()
+            if (settleFrames > 0) postOnAnimation(this)
+        }
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        // Not the first layout: there is no older frame on screen to replace.
+        if (oldh == 0 || h == oldh) return
+        val idle = settleFrames == 0
+        settleFrames = SETTLE_FRAMES
+        if (idle) postOnAnimation(settleRedraw)
+    }
+
+    override fun onDetachedFromWindow() {
+        removeCallbacks(settleRedraw)
+        settleFrames = 0
+        super.onDetachedFromWindow()
+    }
+
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
         freshTraversal = true
-        // The window's current insets, read rather than waited for: cached by
-        // the view root, so this costs a lookup, and an unchanged value
-        // invalidates nothing.
-        refreshNavigationBars()
     }
 
+    // Only the insets dispatched to this frame, never the window's raw
+    // rootWindowInsets: those are taken before anything above the keyboard
+    // has used them up, and reading them padded the keys a second time for a
+    // bar already padded for, a row-high gap below the space bar (#569).
     override fun dispatchApplyWindowInsets(insets: WindowInsets): WindowInsets {
         navigationBars?.update(insets, this)
         return super.dispatchApplyWindowInsets(insets)
@@ -219,12 +255,7 @@ internal class StableMeasureFrame(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        refreshNavigationBars()
-    }
-
-    /** Reads the navigation bar's insets off the window as it stands now. */
-    fun refreshNavigationBars() {
-        navigationBars?.update(rootWindowInsets, this)
+        requestApplyInsets()
     }
 
     // The four stages of an insets animation stop here rather than going on to
@@ -255,5 +286,13 @@ internal class StableMeasureFrame(
 
         /** How far inward it has to travel before it is taken from the keys. */
         const val EDGE_TRIGGER_DP = 40f
+
+        /**
+         * Frames drawn after a height change. The #217 capture showed two
+         * frames not composited, then the stale one, then the right one, so
+         * this covers that with some margin and still finishes in about
+         * 100ms at 60Hz.
+         */
+        const val SETTLE_FRAMES = 6
     }
 }

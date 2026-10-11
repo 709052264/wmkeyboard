@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.PlayArrow
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -88,6 +88,8 @@ internal fun ImportFilePreview(state: WMFileTypes.Opened, uri: Uri) {
         is WMFileTypes.Opened.Layout -> LayoutFilePreview(state.layout.layout)
 
         is WMFileTypes.Opened.FutoLayout -> LayoutFilePreview(state.converted.layout)
+
+        is WMFileTypes.Opened.KeysCafeLayout -> LayoutFilePreview(state.converted.layout)
 
         is WMFileTypes.Opened.KeymanPackageFile ->
             keymanLayoutOf(state.contents)?.let { LayoutFilePreview(it.layout) }

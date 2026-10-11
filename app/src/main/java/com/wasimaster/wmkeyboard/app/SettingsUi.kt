@@ -58,8 +58,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.Restore
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Restore
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -75,7 +75,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.rememberSwipeToDismissBoxState
-import androidx.compose.material.icons.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import kotlinx.coroutines.CoroutineScope
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -145,7 +145,7 @@ import androidx.compose.ui.util.lerp
 import com.wasimaster.wmkeyboard.core.ui.ToolPaint
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import kotlin.math.roundToInt
-import androidx.compose.material.icons.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
@@ -888,6 +888,15 @@ private fun flightKey(part: String, destination: String, from: String?): String 
 @Composable
 internal fun takeOffKey(part: String, destination: String): String =
     flightKey(part, destination, LocalScreenRoute.current)
+
+/**
+ * [takeOffKey] under an origin the row names itself, for a screen with several
+ * rows into one destination — search results — where the screen's own name
+ * would hang one key on all of them. The row must hand [from] to
+ * [FlightOrigin.leaving] as it navigates, so the destination lands on it.
+ */
+internal fun takeOffKey(part: String, destination: String, from: String): String =
+    flightKey(part, destination, from)
 
 /** The key this screen uses for the flight that opened it. */
 @Composable
@@ -2424,9 +2433,19 @@ internal fun WmScreen(
                 Spacer(Modifier.height(ScreenTopGap))
                 content()
                 // Room for a FAB to float over the last row rather than on it:
-                // the button, its margin, and a little air.
-                val hasFab = fab != null || LocalScreenSlots.current?.fab != null
-                Spacer(Modifier.height(if (hasFab) FAB_TAIL else 24.dp))
+                // the button, its margin, and a little air. The keyboard test
+                // button stacks above a screen's own, and needs its own room.
+                val hasFab = fab != null || slots?.fab != null
+                val hasPreview = LocalKeyboardPreview.current != null && slots?.dock == null
+                Spacer(
+                    Modifier.height(
+                        when {
+                            hasFab && hasPreview -> FAB_TAIL + PREVIEW_FAB_STEP
+                            hasFab || hasPreview -> FAB_TAIL
+                            else -> 24.dp
+                        },
+                    ),
+                )
             }
         }
     }
@@ -2434,6 +2453,12 @@ internal fun WmScreen(
 
 /** Height a scrolling body leaves free under a floating action button. */
 private val FAB_TAIL = 88.dp
+
+/** What the keyboard test button adds above a screen's own: its size and the gap. */
+private val PREVIEW_FAB_STEP = 56.dp
+
+/** Gap between the keyboard test button and the screen's own button under it. */
+private val PREVIEW_FAB_GAP = 16.dp
 
 /** Air between the bar (or the path strip under it) and a screen's first row. */
 private val ScreenTopGap = 12.dp
@@ -2513,8 +2538,10 @@ private fun WmScreenFrame(
     // is drawn outside the graph, and then there is no strip.
     val trail = LocalSettingsCrumbTrail.current
     val entry = currentCrumbEntry()
+    val crumbOpened = rememberCrumbOpened()
     RegisterSettingsCrumb(crumbTitle ?: title, route)
     val slots = remember { ScreenSlots() }
+    val preview = LocalKeyboardPreview.current?.takeIf { slots.dock == null }
     val scope = rememberCoroutineScope()
     // One per screen, published for everything it draws — see [SettingsSnackbar].
     val snackbarHost = remember { SnackbarHostState() }
@@ -2594,6 +2621,7 @@ private fun WmScreenFrame(
                                 entryId = entry.id,
                                 currentTitle = crumbTitle ?: title,
                                 currentRoute = route,
+                                opened = crumbOpened,
                                 onCurrent = toTop,
                                 // The heading's own colour, so the pill and the
                                 // tile above it are visibly the same section.
@@ -2608,9 +2636,28 @@ private fun WmScreenFrame(
                         (pinned ?: slots.pinned)?.invoke()
                     }
                 },
-                floatingActionButton = { (fab ?: slots.fab)?.invoke() },
+                floatingActionButton = {
+                    val own = fab ?: slots.fab
+                    // The keyboard test (#412) rides above the screen's own
+                    // button rather than in its place. Not on a screen that
+                    // docks a keyboard of its own: two keyboards, one of them
+                    // the real one, would be a test of nothing.
+                    if (preview != null) {
+                        Column(
+                            horizontalAlignment = Alignment.End,
+                            verticalArrangement = Arrangement.spacedBy(PREVIEW_FAB_GAP),
+                        ) {
+                            KeyboardPreviewFab(preview)
+                            own?.invoke()
+                        }
+                    } else {
+                        own?.invoke()
+                    }
+                },
                 snackbarHost = { SnackbarHost(snackbarHost) },
-                bottomBar = { slots.dock?.invoke() },
+                bottomBar = {
+                    if (preview != null && preview.open) KeyboardPreviewBar(preview) else slots.dock?.invoke()
+                },
                 content = { padding ->
                     // Always wrapped, whether or not the screen has a refresh: the
                     // slot is filled by the content composing, so branching on it

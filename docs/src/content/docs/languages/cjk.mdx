@@ -53,6 +53,38 @@ Cantonese is a separate language entry (not a Chinese sub-option) with one layou
 
 For Pinyin typists who want fewer keystrokes, Double Pinyin encodes every syllable as exactly two keys (one for the initial, one for the final), which the composer expands to full Pinyin before segmenting as usual. Five real schemes are available: Microsoft, Sogou (identical key table to Microsoft), Xiaohe (小鹤), Ziranma, and Pinyin++. Turning one on replaces the syllable-typing rules on the same Pinyin layout. It isn't a separate keyboard.
 
+### Your own scheme
+
+Pick **Custom** in the scheme list, or open **Custom Double Pinyin scheme** below it, to set every key yourself:
+
+<SettingsPath path="Languages & layouts / Chinese / Custom Double Pinyin scheme" />
+
+The first time you pick Custom, the editor opens on a copy of the scheme you were typing with (Xiaohe if you were on full Pinyin), so you change a working table rather than start from nothing. **Start from a scheme** in the menu swaps in another built-in table the same way. Nothing changes on the keyboard until you press **Save**, and saving also switches you to Custom. The editor always opens with three `#` comment lines that explain the format, and a scheme you paste or import without them gets them added on top. While the custom scheme has nothing but comments you type full Pinyin.
+
+The scheme is plain text in the same format as fcitx's `sp.dat`, so a scheme file written for fcitx works here unchanged, and one you export works in fcitx. The menu has **Copy** and **Paste** for sharing it as text, and **Import** and **Export** for files. One line per key:
+
+```
+方案名称=My scheme
+[声母]
+zh=v
+ch=i
+sh=u
+[韵母]
+iu=q
+ing=k
+uai=k
+[零声母]
+=aeo
+ang=ah
+```
+
+- `pinyin=K` puts an initial or a final on key K. Several finals can share a key, and the one that makes a real syllable wins. The one-letter initials (b, p, m and so on) stay on their own keys unless a line moves them, so you only have to say where zh, ch and sh go.
+- `=keys` lists the keys that start a syllable with no initial, followed by the final's key, so `oj` is *an* when `o` is listed. A `*` among them is fcitx's rule for schemes without such a key: a one-letter final is typed twice (`aa`), a two-letter one as itself (`ai`), and a longer one as its first letter and its own key (`ah`). With no `=` line, a, e and o are the lead keys, as in the built-in schemes.
+- `pinyin=KK`, with two keys, spells one whole syllable and wins over everything else.
+- `#` starts a comment, lines in square brackets are only headings, case doesn't matter, and `ü` can be written `v`.
+
+Under the text, a status line names the first line the scheme skips and why (tap it to select that line), or else every initial and final that no key types yet. Only the first scheme in a file is read: fcitx's own `sp.dat` holds several in a row, each opened by its `方案名称=` line, so delete the ones you don't want or let the first one stand.
+
 ## Jianpin (简拼): initials are enough
 
 Nobody types 中国人民 as `zhongguorenmin`. **Jianpin** lets a syllable be its first letter alone, so `zgrm` reaches the same word, `wm` finds 我们 and `bj` finds 北京. It's on by default, the way every desktop and phone Pinyin IME has it, and it's a switch on the Chinese screen if you'd rather not.
@@ -101,11 +133,15 @@ With Traditional on, a second control appears: a region picker (Standard / Taiwa
 
 Both the Traditional toggle and the region picker also appear on the Japanese language screen, but they have no effect there. Japanese candidates never pass through this conversion at all.
 
+## Handwriting layouts
+
+Chinese, Japanese and Korean each also ship a **Handwriting** layout, for the character you can't spell: a kanji whose reading you don't know, a name, a hanzi you only recognise by shape. Enable it like any other layout of the language, and the keys above the bottom row become a writing area. Write one or several characters, pause, and the best reading goes into your text while the others wait in the suggestion strip for a tap to swap them in. The bottom row keeps <KeyCap>?123</KeyCap>, the globe, <KeyCap>、</KeyCap> and <KeyCap>。</KeyCap> (Chinese: <KeyCap>，</KeyCap>), space, delete and enter, so you can switch back to your typing layout with one tap. Characters written one after another are never separated by a space. It is the same on-device recognition as the [Handwriting tool](/tools/handwriting/), so the language needs its model downloaded once; the writing area offers the download itself. Full edition only.
+
 ## Japanese input
 
-Japanese ships three layouts, all feeding the same composer:
+Japanese ships three typing layouts, all feeding the same composer, plus the handwriting one above:
 
-- **Romaji**: type romanized Japanese on a standard QWERTY layout. Keystrokes transduce to hiragana as you type, handling doubled consonants as っ, disambiguating ん, and recognizing yōon combinations like きゃ.
+- **Romaji**: type romanized Japanese on a standard QWERTY layout. Keystrokes transduce to hiragana as you type, handling doubled consonants as っ, disambiguating ん, and recognizing yōon combinations like きゃ. The long-vowel mark ー has its own key at the end of the middle row, as on other Japanese keyboards, and a hyphen typed inside a word reads as ー too, so `ka-do` converts to カード. Between words a hyphen stays a hyphen.
 - **Flick**: a 12-key pad with kana glyphs directly on the keys. Flick a key in a direction to reach its row-mates (あ flicks left/up/right/down to い/う/え/お).
 - **Kana JIS**: each key emits a kana glyph directly, matching the physical JIS Japanese keyboard layout.
 
@@ -113,7 +149,7 @@ Japanese ships three layouts, all feeding the same composer:
   <Shot id="languages/cjk-japanese-flick" alt="Japanese Flick: kana glyphs sit on the keys themselves, with directional flicks for the rest of the row." />
 </PhoneFrame>
 
-The Flick pad is an ordinary layout, so you can change it in the [layout editor](/languages/custom-layouts/). Each key's sheet has a field for every flick direction, and the editor's preview draws a key's flicks around its edges, so you can see and move every kana on the pad. Any key of a Japanese layout can also be told to **become 小゛゜ after a kana**: while the last kana you typed has a small, ゛ or ゜ form, that key shows 小゛゜ and changes it, and once the word is done it goes back to its own job. Give that job to the globe or emoji key and the separate <KeyCap>小゛゜</KeyCap> key can go, which is how phone kana pads save the space. Either key cycles katakana as readily as hiragana, so a pad built on アイウエオ keys reaches ェ from エ and バ or パ from ハ.
+The Flick pad is an ordinary layout, so you can change it in the [layout editor](/languages/custom-layouts/). Each key's sheet has a 3×3 pad with a cell for every flick direction, the four corners included, and a [Shift field for each](/languages/custom-layouts/#editing-a-key) so the same pad can type katakana while Shift is on. The editor's preview draws a key's flicks around its edges, so you can see and move every kana on the pad, and the keyboard draws them on the keys the same way unless [Show flick arms on keys](/typing/gestures/#flick-keys) is off. Any key of a Japanese layout can also be told to **become 小゛゜ after a kana**: while the last kana you typed has a small, ゛ or ゜ form, that key shows 小゛゜ and changes it, and once the word is done it goes back to its own job. Give that job to the globe or emoji key and the separate <KeyCap>小゛゜</KeyCap> key can go, which is how phone kana pads save the space. Either key cycles katakana as readily as hiragana, so a pad built on アイウエオ keys reaches ェ from エ and バ or パ from ハ.
 
 All three read the same kana or romaji into `JapaneseComposer`, which converts kana readings to kanji/word candidates using a Mozc-derived dictionary. If nothing in the dictionary matches (or before you've downloaded the pack at all), the reading still commits as plain hiragana, katakana, or half-width katakana, so every Japanese layout works as a bare kana keyboard with zero setup.
 
@@ -135,11 +171,19 @@ Japanese and Chinese text is spaced with the ideographic space (U+3000, 「　�
   <Shot id="languages/cjk-candidate-grid-expanded" alt="The expanded candidate grid: every ranked candidate, wrapped to fit, covering the key rows while it's open." />
 </PhoneFrame>
 
-Whenever a conversion composer has a non-empty buffer, the usual word-suggestion strip is replaced by a horizontally-scrolling row of ranked candidates. They're sized to their text and packed from the left rather than spaced evenly, so the best candidate stays in a consistent spot instead of jumping around as the list changes length. A chevron at the end opens an expanded view, and it sits outside the scrolling area so it never scrolls off. That expanded view is a wrapping grid, and it covers the key rows while it's open, the same way Sogou, Baidu, and QQ handle it. By then you're choosing a character rather than typing one. Neither view pages. Both scroll.
+Whenever a conversion composer has a non-empty buffer, the usual word-suggestion strip is replaced by a horizontally-scrolling row of ranked candidates. They're sized to their text and packed from the left rather than spaced evenly, so the best candidate stays in a consistent spot instead of jumping around as the list changes length. Each new reading opens the row back at its left edge, however far the last one was scrolled. A chevron at the end opens an expanded view, and it sits outside the scrolling area so it never scrolls off. That expanded view is a wrapping grid, and it covers the key rows while it's open, the same way Sogou, Baidu, and QQ handle it. By then you're choosing a character rather than typing one. Neither view pages. Both scroll.
 
 Tapping a candidate (in the strip or the grid) resolves by its position in the ranked list, not by its text, because the same word can legitimately appear twice at different reading lengths (a Japanese reading might list 行 for both い and いき). Only the part of your typed buffer that the candidate covers gets deleted. The rest re-converts. Space is the fast path: it commits the top-ranked candidate for the leading syllables and moves on, so repeated space presses walk a whole sentence through without ever opening the strip. No path here adds a trailing space, since Chinese and Japanese don't put spaces between words. <KeyCap>Enter</KeyCap> converts nothing: it confirms the reading exactly as typed and does nothing else, so no line break and no send. In Japanese that is the hiragana you see, which is how you keep a word in kana; in Chinese it is the letters you pressed, so with Double Pinyin on, `nihc` goes in as `nihc` and not as the `nihao` the composing line spells out. That makes Enter the quick way to drop a Latin word into a sentence without switching keyboards. Any other commit (punctuation, moving the cursor, switching layout, or leaving the field) instead flushes the whole buffer by repeatedly taking the top candidate until nothing's left, so you're never stuck holding an unconverted reading.
 
 If a reading has no dictionary match at all, it always falls back to committing what you typed as-is (raw pinyin letters, kana, or a stroke code) rather than trapping you in an empty buffer.
+
+### Picking with space, the arrows and Enter
+
+<SettingsPath path="Languages & layouts / (a CJK language) / (language) options / Space steps through candidates" />
+
+Out of the box the space bar types the first candidate straight away. Turn on **Space steps through candidates** and it works the way Japanese input methods do instead: the first press highlights the first candidate, each press after it moves the highlight one along (wrapping back to the start at the end), and <KeyCap>Enter</KeyCap> types the highlighted one. Keep typing and the highlighted candidate goes in before the next reading starts; <KeyCap>⌫</KeyCap> drops the highlight and leaves you editing the reading again. The strip scrolls to keep the highlight in view, and it draws the same outline the keyboard uses for anything picked with the keys. The setting is per language, and off by default, so you can have it for Japanese and keep the quick space for Chinese.
+
+On a physical keyboard the candidates come up even though the on-screen keys stay hidden: just the strip appears while a reading is waiting to convert, and goes again once it's done. The arrow keys move the highlight whether or not the setting is on (<KeyCap>→</KeyCap> or <KeyCap>↓</KeyCap> for the next candidate, <KeyCap>←</KeyCap> or <KeyCap>↑</KeyCap> for the one before), and <KeyCap>Space</KeyCap> or <KeyCap>Enter</KeyCap> types it. Once a candidate is highlighted, <KeyCap>1</KeyCap> to <KeyCap>9</KeyCap> pick one by its place on the strip and <KeyCap>Esc</KeyCap> goes back to the reading. Before that the number keys are left alone, because Jyutping's tones and the T9 pad type digits into the reading. Enter only stops confirming the reading as typed once you've moved the highlight, so it still works for dropping in a word as you typed it.
 
 ### The keyboard's own boxes
 
@@ -175,10 +219,12 @@ Opening a Chinese, Cantonese, or Japanese entry from the Languages screen shows 
 | Lazy pronunciation (懶音) | On | Cantonese only |
 | Match kana without marks | On | Japanese only, and only kana typed on Flick or Kana JIS |
 | Full-width space | Off | Chinese, Cantonese, and Japanese, each on its own |
+| Space steps through candidates | Off | Chinese, Cantonese, and Japanese, each on its own |
 | Jianpin (简拼) | On | Chinese only; ignored under a Double Pinyin scheme |
 | Fuzzy Pinyin | Off | Chinese only |
 | The eleven fuzzy pairs, one row each | All on | Chinese only, shown while Fuzzy Pinyin is on |
 | Double Pinyin scheme | Off (full Pinyin) | Chinese only |
+| Custom Double Pinyin scheme | Empty | Chinese only, used when the scheme above is Custom |
 
 To clear everything the keyboard has learned from your CJK picks:
 

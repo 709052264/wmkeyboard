@@ -204,6 +204,9 @@ object AssetLayouts {
     const val BI_QWERTY_ID = "asset_bi_qwerty"
     const val TET_QWERTY_ID = "asset_tet_qwerty"
     const val IA_QWERTY_ID = "asset_ia_qwerty"
+    const val JBO_QWERTY_ID = "asset_jbo_qwerty"
+    const val TLH_QWERTY_ID = "asset_tlh_qwerty"
+    const val TLH_PIQAD_ID = "asset_tlh_piqad"
     const val DV_THAANA_ID = "asset_dv_thaana"
     const val SE_QWERTY_ID = "asset_se_qwerty"
     const val SMN_QWERTY_ID = "asset_smn_qwerty"
@@ -271,6 +274,13 @@ object AssetLayouts {
     const val ZH_CANGJIE_QUICK_ID = "asset_zh_cangjie_quick"
     const val YUE_JYUTPING_ID = "asset_yue_jyutping"
     const val ZH_STROKE_ID = "asset_zh_stroke"
+
+    // --- Handwriting: a writing canvas over one bottom row (issue #557). The
+    // flag on the layout does the work; the grid is only ?123, globe, space,
+    // delete and enter. ---
+    const val JA_HANDWRITING_ID = "asset_ja_handwriting"
+    const val ZH_HANDWRITING_ID = "asset_zh_handwriting"
+    const val KO_HANDWRITING_ID = "asset_ko_handwriting"
 
     // --- Fancy Text: one plain QWERTY grid (the 𝔣𝔞𝔫𝔠𝔶 𝕦𝕟𝕚𝕔𝕠𝕕𝕖 trick). The
     // styled glyphs come from FancyStyles at draw and commit time, keyed by

@@ -417,7 +417,7 @@
         <!--
              Where an opened .wmtheme.json / .wmlayout.json / .wmsettings.json /
              .wmconfig.json / .wmsnippets.json / .wmstickers / .wmicons lands, and
-             the foreign ones (.flex, .kmp, .wastickers) beside them:
+             the foreign ones (.flex, .kmp, .wastickers, .kcf) beside them:
              one confirm dialog, the import, a result. Deliberately not
              MainActivity — tapping a theme in a file manager should not drop
              anyone into the settings app.
@@ -512,6 +512,10 @@
                 <data android:pathPattern=".*\\..*\\.wastickers" />
                 <data android:pathPattern=".*\\..*\\..*\\.wastickers" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\.wastickers" />
+                <data android:pathPattern=".*\\.kcf" />
+                <data android:pathPattern=".*\\..*\\.kcf" />
+                <data android:pathPattern=".*\\..*\\..*\\.kcf" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.kcf" />
             </intent-filter>
 
             <intent-filter android:label="@string/import_file_label">
@@ -575,6 +579,10 @@
                 <data android:pathPattern=".*\\..*\\.wastickers" />
                 <data android:pathPattern=".*\\..*\\..*\\.wastickers" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\.wastickers" />
+                <data android:pathPattern=".*\\.kcf" />
+                <data android:pathPattern=".*\\..*\\.kcf" />
+                <data android:pathPattern=".*\\..*\\..*\\.kcf" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.kcf" />
             </intent-filter>
 
             <!--
@@ -922,7 +930,9 @@
         <!--
              The keyboard's word lists as Android's spell checker (#511). Only
              runs once the user picks it under the system's spell checker
-             setting.
+             setting. Its metadata file must not be named spellchecker.xml:
+             the full flavour's Harper service owns that name, and a flavour
+             resource replaces main's by name.
         -->
         <service
             android:name="com.wasimaster.wmkeyboard.app.spell.WMSpellCheckerService"
@@ -934,7 +944,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.view.textservice.scs"
-                android:resource="@xml/spellchecker" />
+                android:resource="@xml/spellchecker_words" />
         </service>
 
         <!--
