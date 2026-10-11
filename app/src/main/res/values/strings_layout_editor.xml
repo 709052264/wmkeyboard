@@ -78,6 +78,12 @@
     <string name="layout_editor_foreign_from_multiling">The app read this as a Multiling O Keyboard layout. Its symbol pages and its AltGr page come across with it, and a key that types one thing on a tap and others on a swipe keeps its swipes.</string>
     <!-- The language a converted layout types in. The file does not say, so the
          app makes a guess from the letters on the keys. -->
+    <!-- ".cin", "Rime", "m17n" and ".mim" are the names of formats; do not translate them. -->
+    <string name="layout_editor_im_title">Import an input method</string>
+    <string name="layout_editor_im_subtitle">Read a .cin table, a Rime schema with its dictionaries, or an m17n .mim file. Pick all the files the method needs at the same time.</string>
+    <string name="layout_editor_im_busy">Reading the input method. A large Rime dictionary can take a minute.</string>
+    <string name="layout_editor_im_too_large">The files are too large to import.</string>
+    <string name="layout_editor_im_failed">The app could not save the input method. Make sure there is free space on the device.</string>
     <string name="layout_editor_foreign_language_title">Language</string>
     <string name="layout_editor_foreign_language_search">Search languages</string>
 

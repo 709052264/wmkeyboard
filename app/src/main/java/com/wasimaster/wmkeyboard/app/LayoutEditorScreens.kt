@@ -111,6 +111,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandLess
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -237,6 +238,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Block
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bolt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FiberManualRecord
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreHoriz
 import com.wasimaster.wmkeyboard.core.ui.ScrollRailBox
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
@@ -244,6 +246,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
 import com.wasimaster.wmkeyboard.core.ui.railSection
+import com.wasimaster.wmkeyboard.core.input.imported.Conversion
+import com.wasimaster.wmkeyboard.core.input.imported.ConvertedMethod
+import com.wasimaster.wmkeyboard.core.input.imported.ImportRefusal
+import com.wasimaster.wmkeyboard.core.input.imported.InputMethodImport
+import com.wasimaster.wmkeyboard.core.input.imported.SourceFile
 
 /**
  * One key layout's editor, as flights name it.
@@ -292,6 +299,25 @@ private val FOREIGN_LAYOUT_MIME_TYPES = arrayOf(
 
 /** Largest foreign layout worth reading. The whole file is decoded as one string. */
 private const val MAX_FOREIGN_LAYOUT_BYTES = 4 * 1024 * 1024
+
+/**
+ * The whole stream, or null once it runs past [max] bytes. Grows as it reads,
+ * unlike [readBytes], which sizes its buffer for the cap up front: the cap
+ * here is tens of megabytes and the usual file a few hundred kilobytes.
+ */
+private fun java.io.InputStream.readCapped(max: Int): ByteArray? {
+    val out = java.io.ByteArrayOutputStream()
+    val buffer = ByteArray(64 * 1024)
+    var total = 0L
+    while (true) {
+        val n = read(buffer)
+        if (n <= 0) break
+        total += n
+        if (total > max) return null
+        out.write(buffer, 0, n)
+    }
+    return out.toByteArray()
+}
 
 /**
  * Reads at most [max] bytes. A declared length is never trusted; the count comes
@@ -488,6 +514,14 @@ internal fun KeyLayoutsScreen(
     var foreignLangId by remember { mutableStateOf("") }
     var pickingLanguage by remember { mutableStateOf(false) }
 
+    // An input method read out of another IME's files (.cin, Rime, m17n),
+    // waiting on a language like a foreign layout does: it becomes a layout
+    // too, and a layout stored without a language is read back as English.
+    var confirmMethod by remember { mutableStateOf<ConvertedMethod?>(null) }
+    var methodLangId by remember { mutableStateOf("") }
+    var pickingMethodLanguage by remember { mutableStateOf(false) }
+    var methodBusy by remember { mutableStateOf(false) }
+
     // CreateDocument cannot carry a payload, so the layout waiting to be written
     // is parked here between launching the picker and its result.
     var pendingExport by remember { mutableStateOf<LayoutSpec?>(null) }
@@ -600,6 +634,40 @@ internal fun KeyLayoutsScreen(
             }
             foreignLangId = converted.single().guessedLangId
             confirmForeign = converted.single()
+        }
+    }
+
+    // Several files at once: a Rime schema names its dictionary, which names
+    // the tables it imports, and an m17n method may include another.
+    val methodLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenMultipleDocuments(),
+    ) { uris ->
+        if (uris.isEmpty()) return@rememberLauncherForActivityResult
+        methodBusy = true
+        scope.launch {
+            val conversion = withContext(Dispatchers.IO) {
+                runCatching {
+                    var total = 0L
+                    val files = uris.map { uri ->
+                        val bytes = context.contentResolver.requireInputStream(uri).use { input ->
+                            input.readCapped(InputMethodImport.MAX_FILE_BYTES)
+                        } ?: return@runCatching null
+                        total += bytes.size
+                        if (total > InputMethodImport.MAX_TOTAL_BYTES) return@runCatching null
+                        SourceFile(WMFileTypes.displayName(context, uri), bytes)
+                    }
+                    InputMethodImport.read(files)
+                }.getOrElse { Conversion.Refused(ImportRefusal.BROKEN, it.message.orEmpty()) }
+            }
+            methodBusy = false
+            when (conversion) {
+                null -> message = context.getString(R.string.layout_editor_im_too_large)
+                is Conversion.Refused -> message = InputMethodImport.refusal(conversion).format(context.resources)
+                is Conversion.Ready -> {
+                    methodLangId = InputMethodImport.guessLanguage(conversion.method)
+                    confirmMethod = conversion.method
+                }
+            }
         }
     }
 
@@ -870,6 +938,15 @@ internal fun KeyLayoutsScreen(
                 onClick = { foreignLauncher.launch(FOREIGN_LAYOUT_MIME_TYPES) },
             )
         }
+        item {
+            WmRow(
+                title = stringResource(R.string.layout_editor_im_title),
+                subtitle = stringResource(R.string.layout_editor_im_subtitle),
+                leading = { Icon(Icons.Outlined.KeyboardAlt, contentDescription = null) },
+                enabled = !methodBusy,
+                onClick = { methodLauncher.launch(InputMethodImport.MIME_TYPES) },
+            )
+        }
     }
 
     val builtIns = layouts.filter {
@@ -1092,6 +1169,115 @@ internal fun KeyLayoutsScreen(
         )
     }
 
+    confirmMethod?.let { method ->
+        AlertDialog(
+            onDismissRequest = { confirmMethod = null },
+            title = {
+                Text(stringResource(R.string.layout_editor_foreign_confirm_title, method.name))
+            },
+            text = {
+                Column {
+                    Text(InputMethodImport.summary(method).format(context.resources))
+                    Spacer(Modifier.height(8.dp))
+                    // As for a foreign layout: the language decides the
+                    // dictionary, the script rules and how shift behaves. An
+                    // m17n file names one; the others are guessed from the text.
+                    WmRow(
+                        title = stringResource(R.string.layout_editor_foreign_language_title),
+                        subtitle = LanguageRegistry.byId(methodLangId).displayName,
+                        onClick = { pickingMethodLanguage = true },
+                    )
+                    val notes = InputMethodImport.notes(method)
+                    if (notes.isNotEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            stringResource(R.string.layout_editor_import_changes_title),
+                            fontWeight = FontWeight.Medium,
+                        )
+                        for (note in notes) {
+                            Text(
+                                stringResource(
+                                    R.string.layout_editor_repair_note,
+                                    note.format(context.resources),
+                                ),
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                // The same two ways in as a layout file: added and left off, or
+                // added and switched on.
+                fun import(turnOn: Boolean) {
+                    val id = "custom_${System.currentTimeMillis()}"
+                    val langId = methodLangId
+                    confirmMethod = null
+                    methodBusy = true
+                    scope.launch {
+                        val layout = withContext(Dispatchers.IO) {
+                            InputMethodImport.install(context.filesDir, method, langId, id)
+                        }
+                        methodBusy = false
+                        if (layout == null) {
+                            message = context.getString(R.string.layout_editor_im_failed)
+                            return@launch
+                        }
+                        repository.upsertCustomLayout(layout)
+                        if (turnOn) {
+                            repository.setEnabledLayoutIds((settings.value.enabledLayoutIds + id).distinct())
+                        }
+                        message = context.getString(
+                            if (turnOn) R.string.layout_editor_import_done_on_message
+                            else R.string.layout_editor_import_done_message,
+                            layout.name,
+                        )
+                    }
+                }
+                Row {
+                    TextButton(onClick = { import(turnOn = false) }) {
+                        Text(stringResource(CommonR.string.common_import))
+                    }
+                    TextButton(onClick = { import(turnOn = true) }) {
+                        Text(stringResource(R.string.layout_editor_import_and_enable))
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmMethod = null }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
+    }
+
+    // A Rime dictionary with its vocabulary is half a million rows, which
+    // takes a while to read and to write; a row that only greys out would look
+    // like a press that did nothing.
+    if (methodBusy) {
+        AlertDialog(
+            onDismissRequest = {},
+            text = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(16.dp))
+                    Text(stringResource(R.string.layout_editor_im_busy))
+                }
+            },
+            confirmButton = {},
+        )
+    }
+
+    if (pickingMethodLanguage) {
+        ForeignLanguageDialog(
+            selected = methodLangId,
+            onPick = {
+                methodLangId = it
+                pickingMethodLanguage = false
+            },
+            onDismiss = { pickingMethodLanguage = false },
+        )
+    }
+
     if (pickingLanguage) {
         ForeignLanguageDialog(
             selected = foreignLangId,
@@ -1139,7 +1325,13 @@ internal fun KeyLayoutsScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    scope.launch { repository.deleteCustomLayout(layout.id) }
+                    val others = customLayouts
+                    scope.launch {
+                        repository.deleteCustomLayout(layout.id)
+                        // An imported input method's data goes with the last
+                        // layout that types it.
+                        withContext(Dispatchers.IO) { InputMethodImport.forget(context.filesDir, layout, others) }
+                    }
                     confirmDelete = null
                 }) {
                     Text(

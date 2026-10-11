@@ -73,6 +73,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.PinyinFuzzy
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
+import com.wasimaster.wmkeyboard.core.layout.InputMethodKind
 import com.wasimaster.wmkeyboard.core.layout.KeymanBinding
 import com.wasimaster.wmkeyboard.core.layout.composerType
 import com.wasimaster.wmkeyboard.core.layout.language
@@ -1129,7 +1130,16 @@ internal fun LanguageDetailScreen(
         }
     }
     val phonetic = ComposerType.TRANSLITERATE in composers
-    val transliterating = phonetic || ComposerType.KHIPRO in composers || ComposerType.KHIPRO_DARK in composers
+    // An imported m17n method (ITRANS, InScript, Tamil99) is a roman grid too,
+    // and the hints are how it says what its keys write. Only the hints: the
+    // key map and strip below are Avro's.
+    val rulesMethod = settings.watch { s ->
+        s.enabledLayoutIds.any { id ->
+            resolveLayout(s.customLayouts, id).let { it.langId == langId && it.inputMethod?.kind == InputMethodKind.RULES }
+        }
+    }
+    val transliterating = phonetic || rulesMethod ||
+        ComposerType.KHIPRO in composers || ComposerType.KHIPRO_DARK in composers
     if (transliterating) {
         SettingsGroup(stringResource(R.string.languages_translit_hints_title)) {
             item {

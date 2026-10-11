@@ -282,6 +282,16 @@ data class LayoutSpec(
      */
     val keyman: KeymanBinding? = null,
     /**
+     * The imported input method (a `.cin` table, a Rime schema, an m17n
+     * `.mim`) whose files decide what this layout's keys type. Null for every
+     * layout that types its own key caps or uses one of this app's composers.
+     *
+     * Like [keyman], only the binding travels: on a device without the
+     * method's files the grid types its own caps. Defaulted, so no
+     * format-version bump, for the reason [tabletExpand] gives.
+     */
+    val inputMethod: InputMethodBinding? = null,
+    /**
      * This layout's own key-label font and size, over the theme's and the
      * global settings'. Null — every shipped layout — draws exactly as before.
      *

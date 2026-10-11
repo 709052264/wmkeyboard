@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.input.composer
 
+import com.wasimaster.wmkeyboard.core.input.imported.ImportedInputMethods
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.composerType
 import com.wasimaster.wmkeyboard.core.layout.script
@@ -285,6 +286,14 @@ interface Composer {
     fun composeBuffer(buffer: String): String = buffer
 
     /**
+     * What a transliterator commits when the word ends, where that differs
+     * from what [composeBuffer] shows while it is being typed. An m17n ITRANS
+     * method shows क् for `k` (the next key may add a vowel) and drops that
+     * virama once a space closes the word. The default is [composeBuffer].
+     */
+    fun finishBuffer(buffer: String): String = composeBuffer(buffer)
+
+    /**
      * What Enter commits for a conversion reading: the reading itself,
      * converted to nothing (#514, #515). Japanese gives the kana the user sees,
      * which is how a kana IME confirms hiragana it is not asked to convert.
@@ -369,8 +378,10 @@ fun composerFor(script: ScriptDef, type: ComposerType, langId: String? = null): 
 }
 
 /**
- * The composer this layout types through: [composerFor] with the layout's own
- * script, composer override and language, so two languages that share a script
- * get their own phonetic rules.
+ * The composer this layout types through: an imported input method's when the
+ * layout is bound to one ([LayoutSpec.inputMethod]), otherwise [composerFor]
+ * with the layout's own script, composer override and language, so two
+ * languages that share a script get their own phonetic rules.
  */
-fun LayoutSpec.resolvedComposer(): Composer = composerFor(script(), composerType(), langId)
+fun LayoutSpec.resolvedComposer(): Composer =
+    inputMethod?.let(ImportedInputMethods::composer) ?: composerFor(script(), composerType(), langId)

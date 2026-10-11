@@ -9,6 +9,7 @@ import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.KeyAlternate
 import com.wasimaster.wmkeyboard.core.layout.KeyLabelScaleRange
+import com.wasimaster.wmkeyboard.core.layout.InputMethodBinding
 import com.wasimaster.wmkeyboard.core.layout.KeymanBinding
 import com.wasimaster.wmkeyboard.core.layout.LayerSpec
 import com.wasimaster.wmkeyboard.core.layout.LayoutAppearance
@@ -261,6 +262,10 @@ object LayoutJsonSchema {
         take("KeyAlternate", layoutJson.encodeToJsonElement(KeyAlternate.serializer(), KeyAlternate(KeyAction.Text)))
         take("LayoutAppearance", layoutJson.encodeToJsonElement(LayoutAppearance.serializer(), LayoutAppearance()))
         take("KeymanBinding", layoutJson.encodeToJsonElement(KeymanBinding.serializer(), KeymanBinding(keyboardId = "")))
+        take(
+            "InputMethodBinding",
+            layoutJson.encodeToJsonElement(InputMethodBinding.serializer(), InputMethodBinding(id = "")),
+        )
         take(
             "PanelLayoutSpec",
             layoutJson.encodeToJsonElement(PanelLayoutSpec.serializer(), PanelLayoutSpec(PanelKind.EMOJI, LayerSpec(emptyList()))),

@@ -611,6 +611,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.ConversionDictionary
 import com.wasimaster.wmkeyboard.core.input.composer.VietnameseConfig
 import com.wasimaster.wmkeyboard.core.input.composer.VietnameseTelexComposer
 import com.wasimaster.wmkeyboard.core.input.composer.VietnameseVniComposer
+import com.wasimaster.wmkeyboard.core.input.imported.ImportedInputMethods
 import com.wasimaster.wmkeyboard.core.script.FancyStyle
 import com.wasimaster.wmkeyboard.core.script.FancyStyles
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
@@ -4438,6 +4439,7 @@ open class WMKeyboardService : InputMethodService() {
             // assets are optional: an absent or unreadable file leaves the composer
             // typing the raw reading (pinyin letters, or kana) with no candidates.
             loadCjkConversionTables()
+            reloadImportedInputMethods()
             loadedDictToken = withContext(Dispatchers.Default) {
                 if (userUnlocked) DictionaryStore.stateToken(filesDir) else Int.MIN_VALUE
             }
@@ -5947,6 +5949,9 @@ open class WMKeyboardService : InputMethodService() {
         if (loadedCjkPackToken != CjkDictStore.stateToken(filesDir)) {
             serviceScope.launch { loadCjkConversionTables() }
         }
+        // Likewise an input method imported in Settings, or a layout bound to
+        // one switched on there.
+        reloadImportedInputMethods()
         hwJob?.cancel()
         hwGeneration++
         val secure = info.isSecureField()
@@ -13816,10 +13821,11 @@ open class WMKeyboardService : InputMethodService() {
             // Vietnamese pair commits the word its own list knows. The two
             // never both answer — `completionLanguage` is set on the layouts
             // that have no Vietnamese dictionary pass, and [vietnameseComposed]
-            // on the one that has no completion language.
+            // on the one that has no completion language. An imported m17n
+            // method commits what its rules leave once the word closes.
             state.composer.isTransliterating ->
                 completionLatin(state, typed) ?: vietnameseComposed
-                    ?: state.composer.composeBuffer(typed)
+                    ?: state.composer.finishBuffer(typed)
             // An ambiguous board commits its reading, always. There is no
             // confidence gate here and there should not be: the buffer holds
             // anchor letters, so "leave it as typed" is not a conservative
@@ -15253,6 +15259,23 @@ open class WMKeyboardService : InputMethodService() {
         HanVariant.s2tPhrases = CjkDictStore.downloadedFileFor(filesDir, "s2t_phrases")
             ?.let { file -> runCatching { file.bufferedReader().useLines(HanPhraseTable::parse) }.getOrNull() }
             ?: HanPhraseTable.EMPTY
+    }
+
+    /**
+     * Loads the imported input methods (`.cin` tables, Rime schemas, m17n
+     * files) the enabled layouts are bound to, off the main thread, and drops
+     * any no enabled layout names. A no-op when memory already matches the
+     * disk, which costs a file check per method, so it is asked on every focus.
+     */
+    private fun reloadImportedInputMethods() {
+        if (!userUnlocked) return
+        val settings = _uiState.value.settings
+        val enabled = settings.enabledLayoutIds.toHashSet()
+        val wanted = settings.customLayouts.mapNotNullTo(HashSet()) { spec ->
+            spec.inputMethod?.id?.takeIf { spec.id in enabled }
+        }
+        if (ImportedInputMethods.isCurrent(filesDir, wanted)) return
+        serviceScope.launch(Dispatchers.Default) { ImportedInputMethods.load(filesDir, wanted) }
     }
 
     /** Pack-state token the conversion tables were last loaded from; see [CjkDictStore.stateToken]. */

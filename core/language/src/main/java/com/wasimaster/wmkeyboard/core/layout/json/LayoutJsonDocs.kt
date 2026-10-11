@@ -56,6 +56,9 @@ object LayoutJsonDocs {
             "Whether a big screen may widen this grid with Tab, caps lock, arrows and the rest. Turn it off for a grid you already laid " +
             "out wide by hand.",
         "LayoutSpec.keyman" to "The Keyman keyboard whose rules decide what the keys type. Only a converted Keyman layout has one.",
+        "LayoutSpec.inputMethod" to
+            "The imported input method (a .cin table, a Rime schema or an m17n file) whose files decide what the keys " +
+            "type. Only a layout made by importing one has it.",
         "LayoutSpec.appearance" to "This layout's own label font and size, over the theme and the settings.",
         "LayoutSpec.script" to
             "The script the keys write, when it is not the language's, such as PIQAD for Klingon pIqaD. It decides the font the keys use.",
@@ -138,6 +141,11 @@ object LayoutJsonDocs {
 
         "KeymanBinding.keyboardId" to "The id of the Keyman keyboard.",
         "KeymanBinding.version" to "The version of the Keyman keyboard the layout came from.",
+
+        "InputMethodBinding.id" to "The folder the imported input method's files are kept in.",
+        "InputMethodBinding.kind" to
+            "How the method types: table offers the entries a code starts, reading converts syllables like pinyin, " +
+            "rules writes the text in place.",
 
         "PanelLayoutSpec.panel" to "Which panel this layout is for. Apply keeps the panel you are editing.",
         "PanelLayoutSpec.grid" to "The panel's grid: rows of keys and of component cells.",

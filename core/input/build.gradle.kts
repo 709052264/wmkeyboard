@@ -62,6 +62,9 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons)
+    // Rime schemas and dictionary headers are YAML, read with the same parser
+    // and the same safe settings as FUTO layouts in `:core:language`.
+    implementation(libs.snakeyaml)
 
     // This module's first test source set. The language-pack reader opens an
     // SQLite database, which is an Android API, so its test needs Robolectric
