@@ -1069,6 +1069,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_numbers_title) { Icons.Outlined.FormatListNumbered }
         put(R.string.clipboard_swipe_delete_title) { Icons.Outlined.Swipe }
         put(R.string.clipboard_undo_delete_title) { Icons.AutoMirrored.Outlined.Undo }
+        put(R.string.clipboard_confirm_pinned_delete_title) { Icons.Outlined.PushPin }
         put(R.string.clipboard_pinned_last_title) { Icons.Outlined.PushPin }
         put(R.string.clipboard_search_title) { Icons.Outlined.Search }
         put(R.string.clipboard_search_regex_title) { Icons.Outlined.DataObject }

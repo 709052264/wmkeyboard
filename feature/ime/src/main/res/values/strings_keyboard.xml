@@ -684,6 +684,8 @@
     <!-- The bin beside the clipboard search bar, for a screen reader. -->
     <string name="ime_clipboard_clear_desc">Delete all unpinned clips</string>
     <!-- The question the bin asks before it deletes. %1$d is how many clips it deletes. -->
+    <!-- Asked before a pinned clip is deleted, when that setting is on (#636). -->
+    <string name="ime_clip_delete_pinned_question">Delete this pinned clip?</string>
     <plurals name="ime_clip_clear_question">
         <item quantity="one">Delete %1$d unpinned clip? Pinned clips stay.</item>
         <item quantity="other">Delete %1$d unpinned clips? Pinned clips stay.</item>

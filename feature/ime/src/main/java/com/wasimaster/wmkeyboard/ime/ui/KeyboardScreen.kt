@@ -26160,6 +26160,11 @@ internal fun SwipeToDeleteCard(
      * since it is still there. Null keeps both directions deleting.
      */
     onSwipeRight: (() -> Unit)? = null,
+    /**
+     * [onDelete] only asks, so the card springs back to its slot after it
+     * rather than staying gone (#636); the list drops it if the answer is yes.
+     */
+    keepOnDelete: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     if (!enabled) {
@@ -26169,6 +26174,8 @@ internal fun SwipeToDeleteCard(
     val offset = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
     var width by remember { mutableIntStateOf(0) }
+    // Read at release, not captured by the gesture: a pin can change it meanwhile.
+    val keep by rememberUpdatedState(keepOnDelete)
     // A dismissed card stays off-screen and invisible until the grid drops it.
     // The delete only reaches the list a frame or two later, and the grid then
     // plays its fade-out on the card still in place — so putting the card back
@@ -26212,8 +26219,13 @@ internal fun SwipeToDeleteCard(
                                     if (offset.value > 0) width.toFloat() else -width.toFloat(),
                                     tween(120),
                                 )
-                                dismissed = true
-                                onDelete()
+                                if (keep) {
+                                    onDelete()
+                                    offset.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow))
+                                } else {
+                                    dismissed = true
+                                    onDelete()
+                                }
                             } else {
                                 offset.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow))
                             }
