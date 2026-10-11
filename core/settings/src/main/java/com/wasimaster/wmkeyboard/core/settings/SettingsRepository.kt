@@ -6043,6 +6043,12 @@ data class ClipboardSettings(
      */
     val undoDelete: Boolean = true,
     /**
+     * Deleting a pinned clip from the panel asks first (#636): a pin says the
+     * clip is meant to stay, so its delete gets the question the clear button
+     * already asks. Unpinned clips still go at once. On by default.
+     */
+    val confirmPinnedDelete: Boolean = true,
+    /**
      * Swiping a card sideways deletes it (#344). On by default. Off, a
      * sideways drag does nothing, and the press-and-hold popup gains a Delete
      * button in its place, for anyone who kept losing clips to a swipe made
@@ -8987,6 +8993,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_VIEW = stringPreferencesKey("clipboard_view")
         private val CLIPBOARD_SHOW_NUMBERS = booleanPreferencesKey("clipboard_show_numbers")
         private val CLIPBOARD_UNDO_DELETE = booleanPreferencesKey("clipboard_undo_delete")
+        private val CLIPBOARD_CONFIRM_PINNED_DELETE = booleanPreferencesKey("clipboard_confirm_pinned_delete")
         private val CLIPBOARD_SWIPE_TO_DELETE = booleanPreferencesKey("clipboard_swipe_to_delete")
         private val CLIPBOARD_PREVIEW_LINES = intPreferencesKey("clipboard_preview_lines")
         private val CLIPBOARD_GRID_COLUMNS = intPreferencesKey("clipboard_grid_columns")
@@ -10527,6 +10534,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.clipboard.view,
             showNumbers = p[CLIPBOARD_SHOW_NUMBERS] ?: defaults.clipboard.showNumbers,
             undoDelete = p[CLIPBOARD_UNDO_DELETE] ?: defaults.clipboard.undoDelete,
+            confirmPinnedDelete = p[CLIPBOARD_CONFIRM_PINNED_DELETE] ?: defaults.clipboard.confirmPinnedDelete,
             swipeToDelete = p[CLIPBOARD_SWIPE_TO_DELETE] ?: defaults.clipboard.swipeToDelete,
             previewLines = p[CLIPBOARD_PREVIEW_LINES]?.coerceIn(ClipPreviewLinesRange)
                 ?: defaults.clipboard.previewLines,
@@ -16756,6 +16764,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardUndoDelete(value: Boolean) =
         editPrefs { it[CLIPBOARD_UNDO_DELETE] = value }
+
+    suspend fun setClipboardConfirmPinnedDelete(value: Boolean) =
+        editPrefs { it[CLIPBOARD_CONFIRM_PINNED_DELETE] = value }
 
     suspend fun setClipboardSwipeToDelete(value: Boolean) =
         editPrefs { it[CLIPBOARD_SWIPE_TO_DELETE] = value }

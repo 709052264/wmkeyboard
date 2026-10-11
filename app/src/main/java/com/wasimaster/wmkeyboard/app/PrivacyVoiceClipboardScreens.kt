@@ -1064,6 +1064,15 @@ internal fun ClipboardSettings(
         }
         item {
             ToggleSetting(
+                R.string.clipboard_confirm_pinned_delete_title,
+                stringResource(R.string.clipboard_confirm_pinned_delete_subtitle),
+                settings.watch { it.clipboard.confirmPinnedDelete },
+                info = stringResource(R.string.clipboard_confirm_pinned_delete_info),
+                default = SettingsDefaults.clipboard.confirmPinnedDelete,
+            ) { scope.launch { repository.setClipboardConfirmPinnedDelete(it) } }
+        }
+        item {
+            ToggleSetting(
                 R.string.clipboard_search_title,
                 stringResource(R.string.clipboard_search_subtitle),
                 settings.watch { it.clipboard.search },

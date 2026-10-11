@@ -64,6 +64,9 @@
     <string name="clipboard_undo_delete_title">Undo a deleted clip</string>
     <string name="clipboard_undo_delete_subtitle">After you delete a clip, show an Undo button for a few seconds</string>
     <string name="clipboard_undo_delete_info">A swipe across a card deletes the clip with no question first, and a swipe is easy to make by accident while you scroll. With this setting on, a bar at the bottom of the panel offers the clip back. Delete more clips while the bar is up and one Undo brings them all back, each to the place it had. The bar stays for five seconds, or longer if you have set a longer time to take action in Android\'s accessibility settings. This setting is on by default.</string>
+    <string name="clipboard_confirm_pinned_delete_title">Ask before deleting a pinned clip</string>
+    <string name="clipboard_confirm_pinned_delete_subtitle">Deleting a pinned clip asks first; unpinned clips go at once</string>
+    <string name="clipboard_confirm_pinned_delete_info">You pin a clip to keep it, so losing one to a stray tap on its bin or a swipe made while scrolling costs more than losing any other clip. With this setting on, deleting a pinned clip from the panel shows a question first, and only Delete removes it. Unpinned clips are deleted straight away, as before. This setting is on by default.</string>
     <string name="clipboard_pinned_last_title">Pinned entries last</string>
     <string name="clipboard_clear_button_title">Clear button</string>
     <string name="clipboard_clear_button_subtitle">Show a bin beside the search bar that deletes all unpinned clips</string>

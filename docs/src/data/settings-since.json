@@ -102,6 +102,7 @@
 		"clipboard_type_out_title": "0.5.14",
 		"clipboard_type_tags_title": "0.5.14",
 		"clipboard_undo_delete_title": "0.5.12",
+		"clipboard_confirm_pinned_delete_title": "0.5.15",
 		"clipboard_view_title": "0.5.11",
 		"datasaver_offline_fallback_title": "0.5.13",
 		"datasaver_voice_title": "0.5.11",

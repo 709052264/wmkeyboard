@@ -5271,6 +5271,10 @@ private fun ActionAlternatesRows(
     var pickingToolAt by remember { mutableStateOf<Int?>(null) }
     // Same for a secondary layout.
     var pickingLayoutAt by remember { mutableStateOf<Int?>(null) }
+    // Same for a text-editing operation (#630): without it every one landed as Left.
+    var pickingEditAt by remember { mutableStateOf<Int?>(null) }
+    // Same for the keyboard a switch-keyboard action names.
+    var pickingImeAt by remember { mutableStateOf<Int?>(null) }
 
     ControlSetting(title, subtitle = subtitle) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 4.dp)) {
@@ -5321,6 +5325,8 @@ private fun ActionAlternatesRows(
                 // A tool action is only half an answer until it names its tool.
                 if (action is KeyAction.Tool) pickingToolAt = landsAt
                 if (action is KeyAction.Layout) pickingLayoutAt = landsAt
+                if (action is KeyAction.Edit) pickingEditAt = landsAt
+                if (action is KeyAction.SwitchInputMethod) pickingImeAt = landsAt
             },
             onDismiss = { editing = null },
         )
@@ -5337,6 +5343,38 @@ private fun ActionAlternatesRows(
                     alternates.mapIndexed { i, a ->
                         if (i == index) {
                             a.copy(action = KeyAction.Layout(picked.id), label = a.label.ifBlank { picked.name })
+                        } else {
+                            a
+                        }
+                    },
+                )
+            },
+        )
+    }
+
+    pickingEditAt?.let { index ->
+        TextEditActionPickerDialog(
+            current = (alternates.getOrNull(index)?.action as? KeyAction.Edit)?.op,
+            onDismiss = { pickingEditAt = null },
+            onPick = { op ->
+                pickingEditAt = null
+                onChange(
+                    alternates.mapIndexed { i, a -> if (i == index) a.copy(action = KeyAction.Edit(op)) else a },
+                )
+            },
+        )
+    }
+
+    pickingImeAt?.let { index ->
+        InputMethodPickerDialog(
+            current = (alternates.getOrNull(index)?.action as? KeyAction.SwitchInputMethod)?.id,
+            onDismiss = { pickingImeAt = null },
+            onPick = { picked, name ->
+                pickingImeAt = null
+                onChange(
+                    alternates.mapIndexed { i, a ->
+                        if (i == index) {
+                            a.copy(action = KeyAction.SwitchInputMethod(picked), label = a.label.ifBlank { name })
                         } else {
                             a
                         }
