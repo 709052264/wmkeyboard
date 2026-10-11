@@ -86,6 +86,7 @@ enum class NetSource(
     ADDONS("addons"),
     KEYMAN("keyman"),
     SIGNAL_STICKERS("signal_stickers", ToolbarTool.STICKER),
+    TELEGRAM_STICKERS("telegram_stickers", ToolbarTool.STICKER),
 
     /** The Rboard theme list and the packs picked from it, on the Themes screen. */
     RBOARD_THEMES("rboard_themes"),

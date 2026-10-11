@@ -732,6 +732,25 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="sgnl" android:host="addstickers" />
             </intent-filter>
+
+            <!--
+                 The same for a Telegram sticker set: tg://addstickers?set=…,
+                 and tg://addemoji?set=… for a set of custom emoji. It is what
+                 the "Open in Telegram" button on a t.me/addstickers page
+                 fires. Beside Telegram the system asks which app to use.
+
+                 Only these two hosts. The rest of tg:// (chats, logins,
+                 proxies, payments) is Telegram's. The https form on t.me is
+                 not claimed, for the reason given above for signal.art.
+            -->
+            <intent-filter android:label="@string/import_telegram_chooser_label">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tg" />
+                <data android:host="addstickers" />
+                <data android:host="addemoji" />
+            </intent-filter>
         </activity>
 
         <!--

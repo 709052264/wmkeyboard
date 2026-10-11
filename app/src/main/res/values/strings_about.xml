@@ -138,6 +138,7 @@
     <string name="about_bundled_bouncycastle_used">The cryptography for the SFTP and SMB backup locations that Android does not have</string>
     <!-- APNG is an image format. Keep it as it is. -->
     <string name="about_bundled_apng_used">Reads animated PNG stickers</string>
+    <string name="about_bundled_lottie_used">Draws animated Telegram stickers</string>
     <string name="about_bundled_zxing_used">Makes the QR codes</string>
     <string name="about_bundled_luaj_used">The Lua interpreter that runs the plugins in their sandbox</string>
     <string name="about_bundled_harper_used">Checks the grammar and the style offline (native library)</string>

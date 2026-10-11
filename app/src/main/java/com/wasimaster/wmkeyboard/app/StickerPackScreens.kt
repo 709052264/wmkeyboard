@@ -214,6 +214,16 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
         }
         item {
             WmRow(
+                title = stringResource(R.string.import_telegram_row_title),
+                subtitle = stringResource(R.string.import_telegram_row_subtitle),
+                icon = SymbolIcons.StickerAdd,
+                accent = routeAccent("sticker_packs"),
+                highlightKey = R.string.import_telegram_row_title,
+                onClick = { onNavigate(TELEGRAM_STICKERS_ROUTE) },
+            )
+        }
+        item {
+            WmRow(
                 title = stringResource(R.string.import_whatsapp_row_title),
                 subtitle = stringResource(R.string.import_whatsapp_row_subtitle),
                 icon = SymbolIcons.StickerAdd,

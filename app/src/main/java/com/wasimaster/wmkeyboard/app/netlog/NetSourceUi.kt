@@ -137,6 +137,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.ADDONS -> R.string.netlog_source_addons to R.string.netlog_sent_addons
     NetSource.KEYMAN -> R.string.netlog_source_keyman to R.string.netlog_sent_keyman
     NetSource.SIGNAL_STICKERS -> R.string.netlog_source_signal_stickers to R.string.netlog_sent_signal_stickers
+    NetSource.TELEGRAM_STICKERS -> R.string.netlog_source_telegram_stickers to R.string.netlog_sent_telegram_stickers
     NetSource.RBOARD_THEMES -> R.string.netlog_source_rboard_themes to R.string.netlog_sent_rboard_themes
     NetSource.LINK_IMPORT -> R.string.netlog_source_link_import to R.string.netlog_sent_link_import
     NetSource.BACKUP -> R.string.netlog_source_backup to R.string.netlog_sent_backup

@@ -32,6 +32,7 @@
 		"servers": "0.5.7",
 		"signal_stickers": "0.5.11",
 		"sticker_pack/{packId}/add": "0.5.11",
+		"telegram_stickers": "0.5.15",
 		"theme_assets/{themeId}": "0.5.13",
 		"typing/octopus": "0.5.4",
 		"whatsapp_stickers": "0.5.13"
@@ -123,6 +124,7 @@
 		"import_whatsapp_row_title": "0.5.13",
 		"kdeconnect_auto_connect_title": "0.5.11",
 		"kdeconnect_battery_title": "0.5.11",
+		"import_telegram_row_title": "0.5.15",
 		"kdeconnect_clipboard_receive_title": "0.5.11",
 		"kdeconnect_clipboard_send_title": "0.5.11",
 		"kdeconnect_devices_title": "0.5.11",

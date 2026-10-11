@@ -1536,6 +1536,30 @@ private fun SettingsNavGraph(
                 SignalStickersScreen { route -> navController.navigate(route) }
             }
         }
+        composable(TELEGRAM_STICKERS_ROUTE) {
+            SettingsScreen(
+                stringResource(R.string.import_telegram_row_title),
+                { navController.popBackStack() },
+                route = TELEGRAM_STICKERS_ROUTE,
+            ) {
+                TelegramStickersScreen(repository, settings) { route -> navController.navigate(route) }
+            }
+        }
+        composable("telegram_pack/{setName}") { backStackEntry ->
+            val setName = backStackEntry.arguments?.getString("setName").orEmpty()
+            SettingsScreen(
+                stringResource(R.string.import_telegram_pack_title),
+                { navController.popBackStack() },
+                route = telegramPackRoute(setName),
+            ) {
+                TelegramPackScreen(
+                    setName = setName,
+                    settings = settings,
+                    onNavigate = { route -> navController.navigate(route) },
+                    onBack = { navController.popBackStack() },
+                )
+            }
+        }
         composable(WHATSAPP_STICKERS_ROUTE) {
             SettingsScreen(
                 stringResource(R.string.import_whatsapp_row_title),

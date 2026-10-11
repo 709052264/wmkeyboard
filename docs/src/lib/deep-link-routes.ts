@@ -152,6 +152,7 @@ export const ROUTES: RouteSpec[] = [
 	{ pattern: 'phoneformats', label: 'Phone number formats', group: 'Emoji, clipboard and stickers' },
 	{ pattern: 'sticker_packs', label: 'Sticker packs', group: 'Emoji, clipboard and stickers' },
 	{ pattern: 'signal_stickers', label: 'Signal sticker packs', group: 'Emoji, clipboard and stickers' },
+	{ pattern: 'telegram_stickers', label: 'Telegram sticker sets', group: 'Emoji, clipboard and stickers' },
 	{
 		pattern: 'sticker_pack/{packId}',
 		label: 'One of your sticker packs',

@@ -2702,6 +2702,12 @@ data class GifSettings(
     /**
      * Holding a sticker in the offer's tray shows it large above the keyboard,
      * and sliding along the tray shows the next ones the same way (#404).
+    /**
+     * The user's own Telegram bot token, which is what lets the app ask the
+     * Bot API for a sticker set (`getStickerSet`). Blank until they make a
+     * bot with @BotFather; there is no built-in one.
+     */
+    val telegramBotToken: String = "",
      * Off, a hold does nothing and a slide scrolls the tray.
      */
     val stickerSuggestMagnify: Boolean = true,
@@ -9475,6 +9481,7 @@ class SettingsRepository(private val context: Context) {
         private val MODE_TOOL_ORDER_HINT = booleanPreferencesKey("mode_tool_order_hint")
         private val MODES_ENABLED = booleanPreferencesKey("modes_enabled")
         private val KEYBOARD_MODES = stringPreferencesKey("keyboard_modes")
+        private val TELEGRAM_BOT_TOKEN = stringPreferencesKey("telegram_bot_token")
         private val MODE_SEED_VERSION = intPreferencesKey("mode_seed_version")
         private val LAUNCHER_SORT = stringPreferencesKey("launcher_sort")
         private val LAUNCHER_SHOW_LABELS = booleanPreferencesKey("launcher_show_labels")
@@ -11270,6 +11277,7 @@ class SettingsRepository(private val context: Context) {
             selectionModeHold = p[SELECTION_MODE_HOLD]
                 ?: defaults.textEditing.selectionModeHold,
             selectionModeMultiTap = p[SELECTION_MODE_MULTI_TAP]
+            telegramBotToken = p[TELEGRAM_BOT_TOKEN] ?: defaults.gif.telegramBotToken,
                 ?: defaults.textEditing.selectionModeMultiTap,
             wrapSelectionWithPair =
                 p[WRAP_SELECTION_WITH_PAIR] ?: defaults.textEditing.wrapSelectionWithPair,
@@ -17460,6 +17468,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setWikiLanguage(value: String) =
         editPrefs { it[WIKI_LANGUAGE] = value.trim().lowercase() }
+    suspend fun setTelegramBotToken(value: String) =
+        editPrefs { it[TELEGRAM_BOT_TOKEN] = value.trim() }
+
 
     suspend fun setWikiLinksMarkdown(value: Boolean) =
         editPrefs { it[WIKI_LINKS_MARKDOWN] = value }

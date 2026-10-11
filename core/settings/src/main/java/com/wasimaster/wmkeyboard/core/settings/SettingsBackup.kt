@@ -134,6 +134,7 @@ object SettingsBackup {
         "tavily_api_key",
         "ocr_online_key",
         "giphy_api_key",
+        "telegram_bot_token",
         "ai_anthropic_key",
         "ai_openai_key",
         "ai_gemini_key",

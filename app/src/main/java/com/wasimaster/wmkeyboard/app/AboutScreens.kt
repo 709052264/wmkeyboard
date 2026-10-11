@@ -186,6 +186,15 @@ private val bundledAttributions: List<Attribution> = buildList {
     )
     add(
         Attribution(
+            "Lottie for Android",
+            R.string.about_bundled_lottie_used,
+            "Copyright Airbnb, Inc.",
+            "Apache-2.0", "apache-2.0.txt",
+            "https://github.com/airbnb/lottie-android",
+        ),
+    )
+    add(
+        Attribution(
             "ZXing",
             R.string.about_bundled_zxing_used,
             "Copyright ZXing authors",

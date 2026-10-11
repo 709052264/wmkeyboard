@@ -174,14 +174,16 @@ short.
 
 ### Every route
 
-112 screens. Four more exist and are deliberately not addressable. Three have
+113 screens. Five more exist and are deliberately not addressable. Three have
 nowhere to land: the first-run wizard (`onboarding`), the sticker editor
 (`sticker_editor`), and a single photo's page (`photo_detail`). Each of those
 three draws from something the screen before it handed over, so opened cold it
 would show nothing. The fourth is the preview of one Signal sticker pack
 (`signal_pack/{packId}/{packKey}`). It carries a pack key and asks Signal's
 servers for the pack as it opens, so it only opens from a pack link you pasted
-or shared into the app yourself.
+or shared into the app yourself. The fifth is the preview of one Telegram
+sticker set (`telegram_pack/{setName}`), which asks Telegram for the set with
+your bot token as it opens, and is kept behind the same kind of link.
 
 #### Getting in
 
@@ -272,6 +274,7 @@ or shared into the app yourself.
 | `phoneformats` | Phone number formats. |
 | `sticker_packs` | Sticker packs. |
 | `signal_stickers` | Signal sticker packs. |
+| `telegram_stickers` | Telegram sticker sets, and the bot token they need. |
 | `sticker_pack/{packId}` | One of your sticker packs. |
 | `sticker_pack/{packId}/add` | One of your sticker packs, with the photo picker open to add stickers. |
 
@@ -432,6 +435,14 @@ One link that isn't WM Keyboard's own is answered as well: `sgnl://addstickers?p
 Only the `addstickers` host of that scheme is claimed. The rest of `sgnl://` (chats, device linking, group invites) is Signal's and stays Signal's. The `https://signal.art/addstickers/` form of the same link is not claimed either, because that domain isn't this app's to verify. Paste or share that one instead, as described under [Signal sticker packs](/emoji/stickers/#signal-sticker-packs).
 
 Like every other link, this one only navigates. It opens a confirm naming the server the pack comes from, then a preview of the pack, and nothing is added until you press **Add this pack**.
+
+### Telegram sticker set links
+
+Telegram's own form of a set link is answered the same way: `tg://addstickers?set=<name>`, and `tg://addemoji?set=<name>` for a set of custom emoji. It is what **Open in Telegram** on a `t.me/addstickers` page fires. With Telegram installed, Android asks which app to use, and WM Keyboard is listed as "Add stickers to WM Keyboard".
+
+Only those two hosts of `tg://` are claimed. Chats, login codes, proxies and payments stay Telegram's. The `https://t.me/` form isn't claimed either, for the same reason as `signal.art`. Paste or share that one instead, as described under [Telegram sticker sets](/emoji/stickers/#telegram-sticker-sets).
+
+It only navigates too: a confirm naming the server, then the preview, and nothing is added until you press **Add this set**. The set comes through your own bot, so without a bot token the preview sends you to the screen where you add one.
 
 ## Opening files WM Keyboard made
 

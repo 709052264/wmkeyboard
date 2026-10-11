@@ -39,6 +39,7 @@ import com.wasimaster.wmkeyboard.core.addons.AddonStore
 import com.wasimaster.wmkeyboard.core.addons.ImportLink
 import com.wasimaster.wmkeyboard.core.addons.LinkImport
 import com.wasimaster.wmkeyboard.core.addons.SignalStickerDownloads
+import com.wasimaster.wmkeyboard.core.addons.TelegramStickerDownloads
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
@@ -274,14 +275,18 @@ internal fun ImportLinkFlow(
             target = current.target,
             hasToken = remember(store) { store.forgeToken().isNotBlank() },
             onConfirm = {
-                val pack = current.target as? ImportLink.Target.SignalStickers
-                if (pack == null) {
-                    start(::lookUp)
-                } else {
-                    // A pack is looked at before it is added, and the screen
-                    // that shows it asks about data saving itself.
-                    context.startActivity(signalPackIntent(context, pack.packId, pack.packKey))
-                    onClose()
+                // A pack is looked at before it is added, and the screen
+                // that shows it asks about data saving itself.
+                when (val target = current.target) {
+                    is ImportLink.Target.SignalStickers -> {
+                        context.startActivity(signalPackIntent(context, target.packId, target.packKey))
+                        onClose()
+                    }
+                    is ImportLink.Target.TelegramStickers -> {
+                        context.startActivity(telegramSetIntent(context, target.setName))
+                        onClose()
+                    }
+                    else -> start(::lookUp)
                 }
             },
             onDismiss = onClose,
@@ -402,6 +407,10 @@ private fun LinkConfirmDialog(
             R.string.import_link_confirm_signal,
             hostOf(SignalStickerDownloads.manifestUrl(target.packId)),
         )
+        is ImportLink.Target.TelegramStickers -> stringResource(
+            R.string.import_link_confirm_telegram,
+            hostOf(TelegramStickerDownloads.hostUrl()),
+        )
         else -> ""
     }
     // nightly.link is a service this app does not run, and an artifact cannot
@@ -433,10 +442,10 @@ private fun LinkConfirmDialog(
             TextButton(onClick = onConfirm) {
                 Text(
                     stringResource(
-                        if (target is ImportLink.Target.SignalStickers) {
-                            R.string.import_signal_open_pack
-                        } else {
-                            CommonR.string.common_download
+                        when (target) {
+                            is ImportLink.Target.SignalStickers -> R.string.import_signal_open_pack
+                            is ImportLink.Target.TelegramStickers -> R.string.import_telegram_open_set
+                            else -> CommonR.string.common_download
                         },
                     ),
                 )
@@ -498,6 +507,13 @@ internal fun signalPackIntent(context: android.content.Context, packId: String, 
     Intent(context, MainActivity::class.java)
         .setAction(Intent.ACTION_VIEW)
         .setData(Uri.parse(AddonDeepLink.signalPackLink(packId, packKey)))
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+/** Opens the preview of a Telegram set in the settings app. Nothing is fetched until it is on screen. */
+internal fun telegramSetIntent(context: android.content.Context, setName: String): Intent =
+    Intent(context, MainActivity::class.java)
+        .setAction(Intent.ACTION_VIEW)
+        .setData(Uri.parse(AddonDeepLink.telegramSetLink(setName)))
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
 /** The `wmkeyboard://repo` link that opens the add-repository dialog. */
