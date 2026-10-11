@@ -281,6 +281,22 @@ sealed interface KeyAction {
     @Serializable @SerialName("kana_variant") data object KanaVariant : KeyAction
 
     /**
+     * 획추가: one more stroke on the last jamo in the composing buffer, cycling
+     * back to the plain letter (ㄱ→ㅋ, ㄴ→ㄷ→ㅌ, ㅏ→ㅑ). With [DoubleConsonant],
+     * the key that makes the 나랏글 (Naratgeul) pad's twelve keys enough for
+     * every jamo (issue #599). A syllable already built changes with it: 롬 →
+     * 롭 → 롶. A no-op when nothing is composing or the letter takes no stroke.
+     */
+    @Serializable @SerialName("add_stroke") data object AddStroke : KeyAction
+
+    /**
+     * 쌍자음: the last consonant in the composing buffer to its tense twin and
+     * back (ㄱ↔ㄲ, ㄷ↔ㄸ, ㅂ↔ㅃ, ㅅ↔ㅆ, ㅈ↔ㅉ), so 각 becomes 갂 and 밥 becomes
+     * 바ㅃ. The 나랏글 pad's other letter key; see [AddStroke].
+     */
+    @Serializable @SerialName("double_consonant") data object DoubleConsonant : KeyAction
+
+    /**
      * Fires an Android broadcast with [action] as its intent action, so a key
      * can trigger an automation app (Tasker et al.) or any app with a matching
      * receiver — the keyboard equivalent of a physical macro key. Types no text
@@ -480,6 +496,8 @@ fun KeyAction.fallbackLabel(): String = when (this) {
     KeyAction.Numpad -> "123"
     KeyAction.Fn -> "Fn"
     KeyAction.KanaVariant -> "小"
+    KeyAction.AddStroke -> "획추가"
+    KeyAction.DoubleConsonant -> "쌍자음"
     KeyAction.MorseDot -> "·"
     KeyAction.MorseDash -> "–"
     // Drawn from the enter icon slot on the board, so the key itself never

@@ -189,6 +189,7 @@ object LanguageRegistry {
                 AssetLayouts.KO_SEBEOLSIK_390_ID,
                 AssetLayouts.KO_SEBEOLSIK_FINAL_ID,
                 AssetLayouts.KO_CHEONJIIN_ID,
+                AssetLayouts.KO_NARATGEUL_ID,
                 AssetLayouts.KO_PHONETIC_ID,
                 AssetLayouts.KO_DANMOEUM_ID,
                 AssetLayouts.KO_HANDWRITING_ID,

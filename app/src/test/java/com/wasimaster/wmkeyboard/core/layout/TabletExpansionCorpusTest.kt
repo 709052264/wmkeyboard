@@ -56,7 +56,7 @@ class TabletExpansionCorpusTest {
 
     @Test
     fun `the corpus is the whole shipped set`() {
-        assertEquals("built-ins plus hand-authored assets", 35 + 834, handAuthored.size)
+        assertEquals("built-ins plus hand-authored assets", 35 + 835, handAuthored.size)
         assertTrue(
             "converted Keyman grids are missing from the corpus",
             corpus.size - handAuthored.size > 800,
@@ -103,6 +103,8 @@ class TabletExpansionCorpusTest {
                 "zh_cangjie", "zh_cangjie_quick", "zh_pinyin_t9", "zh_zhuyin",
                 // The 천지인 pad (#372): a 12-key keypad with no shift key.
                 "ko_cheonjiin",
+                // The 나랏글 pad (#599), the same shape.
+                "ko_naratgeul",
                 // FUTO's ClearFlow and KASROZ: shift, delete and space are keys
                 // two rows tall, and the transform declines any grid with a span.
                 "en_clearflow", "en_kasroz",

@@ -258,6 +258,13 @@ enum class ComposerType {
     CHEONJIIN,
 
     /**
+     * Korean: 나랏글 (Naratgeul) keypad (issue #599). Two-set Hangul plus ㅐ ㅒ ㅔ ㅖ
+     * typed as their vowel and ㅣ; strokes and tense consonants come from the
+     * pad's 획추가 and 쌍자음 keys.
+     */
+    NARATGEUL,
+
+    /**
      * Bengali: ক্ষিপ্র Khipro, composed from lowercase keys with `f` and `/` as
      * modifiers (issue #400). Deterministic, so unlike [TRANSLITERATE] there is
      * no dictionary reading to rank: the keys spell exactly one word.

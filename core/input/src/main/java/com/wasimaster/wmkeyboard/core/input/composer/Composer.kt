@@ -337,6 +337,7 @@ fun composerFor(script: ScriptDef, type: ComposerType, langId: String? = null): 
     }
     ComposerType.HANGUL -> HangulComposer
     ComposerType.CHEONJIIN -> CheonjiinComposer
+    ComposerType.NARATGEUL -> NaratgeulComposer
     ComposerType.TELEX -> VietnameseTelexComposer
     ComposerType.VNI -> VietnameseVniComposer
     ComposerType.ROMAJI -> JapaneseComposer

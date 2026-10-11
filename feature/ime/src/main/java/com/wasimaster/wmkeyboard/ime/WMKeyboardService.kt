@@ -593,6 +593,8 @@ import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictionaries
 import com.wasimaster.wmkeyboard.core.input.composer.HanPhraseTable
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
+import com.wasimaster.wmkeyboard.core.input.composer.HangulStrokes
+import com.wasimaster.wmkeyboard.core.input.composer.NaratgeulComposer
 import com.wasimaster.wmkeyboard.core.input.composer.Kana
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictStore
 import com.wasimaster.wmkeyboard.core.input.composer.CjkLearning
@@ -7505,6 +7507,11 @@ open class WMKeyboardService : InputMethodService() {
             is KeyAction.LayerSwitch -> openNamedLayer((key.action as KeyAction.LayerSwitch).layer)
             is KeyAction.Mod -> onModifier((key.action as KeyAction.Mod).key)
             KeyAction.KanaVariant -> cycleKanaVariant()
+            // The 나랏글 pad's 획추가 and 쌍자음 keys (#599).
+            KeyAction.AddStroke -> rewriteLastJamo { buffer, composer ->
+                HangulStrokes.addStroke(buffer, vowelPairs = composer === NaratgeulComposer)
+            }
+            KeyAction.DoubleConsonant -> rewriteLastJamo { buffer, _ -> HangulStrokes.doubleConsonant(buffer) }
             KeyAction.Fn -> onFn()
             is KeyAction.BrailleDot -> onBrailleDot(key.action as KeyAction.BrailleDot)
             KeyAction.MorseDot -> onMorseSignal(dash = false)
@@ -15127,6 +15134,36 @@ open class WMKeyboardService : InputMethodService() {
         if (cycled == last) return true
         rewriteCaptureComposition(state, target, before, run, run.keys.dropLast(1) + cycled)
         return true
+    }
+
+    /**
+     * The 나랏글 (Naratgeul) pad's 획추가 and 쌍자음 keys (#599): [edit] gives the
+     * composing buffer back with one jamo changed, and the composer re-reads
+     * it, so 롬 becomes 롭 without anything being decomposed. The edit keeps
+     * the buffer's length, which is what keeps the touch, key and hint twins
+     * one entry per buffer character. A no-op when nothing is composing or the
+     * last letter has no other form, as the 小゛゜ key is.
+     */
+    private fun rewriteLastJamo(edit: (buffer: String, composer: Composer) -> String?) {
+        val state = _uiState.value
+        val target = state.captureTarget()
+        if (target != null) {
+            // A keyboard-owned field has the keys, so the press is spent there
+            // whether or not it changes anything (#527).
+            if (!composesInCapture(state.composer)) return
+            val before = state.captureCaretText() ?: return
+            val run = liveCaptureComposition(state, before) ?: return
+            val edited = edit(run.keys, state.composer) ?: return
+            rewriteCaptureComposition(state, target, before, run, edited)
+            return
+        }
+        val ic = currentInputConnection ?: return
+        if (composing.isEmpty()) return
+        val edited = edit(composing.toString(), state.composer) ?: return
+        composing.replace(0, composing.length, edited)
+        ambiguousReading = null
+        updateComposingText(ic)
+        refreshSuggestions()
     }
 
     /** Set once the Traditional conversion tables have been asked for; they never change after. */

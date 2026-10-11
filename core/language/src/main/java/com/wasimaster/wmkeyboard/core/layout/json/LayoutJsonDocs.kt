@@ -183,6 +183,8 @@ object LayoutJsonDocs {
         "action:send_key.meta" to "The modifiers held with the key, as Android meta flags. 4096 is Ctrl, 2 is Alt and 1 is Shift.",
         "action:fn" to "Shows the Fn layer for one key, then goes back. A quick second tap keeps it.",
         "action:kana_variant" to "Changes the last kana to its dakuten, handakuten and small forms, one after another.",
+        "action:add_stroke" to "Adds a stroke to the last Korean letter typed: ㄱ to ㅋ, ㄴ to ㄷ to ㅌ, ㅏ to ㅑ, and back.",
+        "action:double_consonant" to "Changes the last Korean consonant typed to its double form and back: ㄱ to ㄲ, ㅂ to ㅃ.",
         "action:broadcast" to "Sends an Android broadcast, for an automation app like Tasker. It types nothing.",
         "action:broadcast.action" to "The intent action of the broadcast. An app must listen for this exact text.",
         "action:braille_dot" to

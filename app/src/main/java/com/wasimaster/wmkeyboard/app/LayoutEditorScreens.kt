@@ -377,6 +377,7 @@ private fun composerLabel(type: ComposerType): String = stringResource(
         ComposerType.KHIPRO -> R.string.layout_editor_composer_khipro
         ComposerType.KHIPRO_DARK -> R.string.layout_editor_composer_khipro_dark
         ComposerType.CHEONJIIN -> R.string.layout_editor_composer_cheonjiin
+        ComposerType.NARATGEUL -> R.string.layout_editor_composer_naratgeul
     },
 )
 
@@ -405,6 +406,7 @@ private fun composerDescRes(type: ComposerType?): Int = when (type) {
     ComposerType.KHIPRO -> R.string.layout_editor_composer_khipro_desc
     ComposerType.KHIPRO_DARK -> R.string.layout_editor_composer_khipro_dark_desc
     ComposerType.CHEONJIIN -> R.string.layout_editor_composer_cheonjiin_desc
+    ComposerType.NARATGEUL -> R.string.layout_editor_composer_naratgeul_desc
 }
 
 /**
@@ -3926,6 +3928,19 @@ internal val KeyActionCatalog: List<KeyActionOption> = listOf(
         R.string.layout_editor_action_group_typing,
         R.string.layout_editor_action_kana_variant_detail,
         { KeyAction.KanaVariant }, { it == KeyAction.KanaVariant },
+    ),
+    // The 나랏글 pad's two letter-changing keys (issue #599).
+    KeyActionOption(
+        R.string.layout_editor_action_add_stroke_title,
+        R.string.layout_editor_action_group_typing,
+        R.string.layout_editor_action_add_stroke_detail,
+        { KeyAction.AddStroke }, { it == KeyAction.AddStroke },
+    ),
+    KeyActionOption(
+        R.string.layout_editor_action_double_consonant_title,
+        R.string.layout_editor_action_group_typing,
+        R.string.layout_editor_action_double_consonant_detail,
+        { KeyAction.DoubleConsonant }, { it == KeyAction.DoubleConsonant },
     ),
     KeyActionOption(
         R.string.layout_editor_action_symbols_title,
