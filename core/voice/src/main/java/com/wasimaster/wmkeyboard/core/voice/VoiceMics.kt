@@ -114,7 +114,8 @@ object VoiceMics {
         }
 
         fun start() {
-            if (registered || audio == null) return
+            val audio = audio ?: return
+            if (registered) return
             // Registering reports every device already connected as added,
             // which is the initial answer.
             runCatching { audio.registerAudioDeviceCallback(callback, Handler(Looper.getMainLooper())) }
@@ -145,7 +146,8 @@ object VoiceMics {
                 release()
                 return
             }
-            if (held || audio == null) return
+            val audio = audio ?: return
+            if (held) return
             held = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val headset = audio.availableCommunicationDevices.firstOrNull {
                     it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO || it.type == TYPE_BLE_HEADSET
@@ -162,7 +164,8 @@ object VoiceMics {
 
         /** Gives the headset's voice link back. Idempotent. */
         fun release() {
-            if (!held || audio == null) return
+            val audio = audio ?: return
+            if (!held) return
             held = false
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 runCatching { audio.clearCommunicationDevice() }
