@@ -11627,6 +11627,7 @@ private fun KeyboardBody(
                         onSetShowDiff = onAiSetShowDiff,
                         onReport = onAiReport,
                         onOpenToolSettings = onOpenToolSettings,
+                        onChat = capture.onAiChat,
                     )
                 }
                 PanelMode.MODES -> ModesPanel(

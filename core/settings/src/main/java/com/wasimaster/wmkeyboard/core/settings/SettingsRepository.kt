@@ -97,6 +97,10 @@ import com.wasimaster.wmkeyboard.core.theme.withEmbeddedImages
 import com.wasimaster.wmkeyboard.core.theme.withExtractedImages
 import com.wasimaster.wmkeyboard.core.aihistory.AiHistoryStore
 import com.wasimaster.wmkeyboard.core.tools.AiActionCodec
+import com.wasimaster.wmkeyboard.core.tools.McpHeader
+import com.wasimaster.wmkeyboard.core.tools.McpServerCodec
+import com.wasimaster.wmkeyboard.core.tools.McpServerSpec
+import com.wasimaster.wmkeyboard.core.tools.McpToolPolicy
 import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
 import com.wasimaster.wmkeyboard.core.tools.BuiltInAiActions
 import com.wasimaster.wmkeyboard.core.tools.BuiltInSymbolSets
@@ -4206,6 +4210,17 @@ data class AiSettings(
      * a curious model can cost.
      */
     val toolMaxRounds: Int = 3,
+    /**
+     * MCP servers whose tools a model may call (#573). Each tool has its own
+     * Allow / Ask / Off policy inside its server; see `McpServerSpec`.
+     */
+    val mcpServers: List<McpServerSpec> = emptyList(),
+    /**
+     * Headers sent to each server, by server id. Kept apart from
+     * [mcpServers] because they usually carry a token: their preference is in
+     * `SettingsBackup.SECRET_KEYS`, the server list's is not.
+     */
+    val mcpHeaders: Map<String, List<McpHeader>> = emptyMap(),
 )
 
 /**
@@ -9351,6 +9366,8 @@ class SettingsRepository(private val context: Context) {
         private val AI_TOOL_WEB_SEARCH = booleanPreferencesKey("ai_tool_web_search")
         private val AI_TOOL_WEB_FETCH = booleanPreferencesKey("ai_tool_web_fetch")
         private val AI_TOOL_MAX_ROUNDS = intPreferencesKey("ai_tool_max_rounds")
+        private val AI_MCP_SERVERS = stringPreferencesKey("ai_mcp_servers")
+        private val AI_MCP_HEADERS = stringPreferencesKey("ai_mcp_headers")
         private val AI_DIFF_OPENS_FIRST = booleanPreferencesKey("ai_diff_opens_first")
         private val AI_CUSTOM_ACTIONS = stringPreferencesKey("ai_custom_actions")
         private val AI_ACTION_ORDER = stringPreferencesKey("ai_action_order")
@@ -11275,6 +11292,8 @@ class SettingsRepository(private val context: Context) {
             toolWebSearch = p[AI_TOOL_WEB_SEARCH] ?: defaults.ai.toolWebSearch,
             toolWebFetch = p[AI_TOOL_WEB_FETCH] ?: defaults.ai.toolWebFetch,
             toolMaxRounds = p[AI_TOOL_MAX_ROUNDS] ?: defaults.ai.toolMaxRounds,
+            mcpServers = McpServerCodec.decodeServers(p[AI_MCP_SERVERS].orEmpty()),
+            mcpHeaders = McpServerCodec.decodeHeaders(p[AI_MCP_HEADERS].orEmpty()),
         )
 
     private fun readLauncher(p: Preferences, defaults: KeyboardSettings) =
@@ -15146,6 +15165,52 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiToolMaxRounds(value: Int) =
         editPrefs { it[AI_TOOL_MAX_ROUNDS] = value.coerceIn(AiToolRoundsRange) }
+
+    /**
+     * Saves one MCP server (#573), replacing the one with the same id, and its
+     * headers when [headers] is given. A new server goes at the end.
+     */
+    suspend fun upsertMcpServer(server: McpServerSpec, headers: List<McpHeader>? = null) =
+        editPrefs { prefs ->
+            val current = McpServerCodec.decodeServers(prefs[AI_MCP_SERVERS].orEmpty())
+            val at = current.indexOfFirst { it.id == server.id }
+            val next = if (at < 0) current + server else current.toMutableList().also { it[at] = server }
+            prefs[AI_MCP_SERVERS] = McpServerCodec.encodeServers(next)
+            if (headers != null) writeMcpHeaders(prefs, server.id, headers)
+        }
+
+    /** Drops one MCP server and the headers that went with it. */
+    suspend fun deleteMcpServer(id: String) =
+        editPrefs { prefs ->
+            val current = McpServerCodec.decodeServers(prefs[AI_MCP_SERVERS].orEmpty())
+            prefs[AI_MCP_SERVERS] = McpServerCodec.encodeServers(current.filter { it.id != id })
+            writeMcpHeaders(prefs, id, emptyList())
+        }
+
+    suspend fun setMcpServerEnabled(id: String, enabled: Boolean) =
+        editMcpServer(id) { it.copy(enabled = enabled) }
+
+    /** Sets what a model may do with one tool of one server. */
+    suspend fun setMcpToolPolicy(id: String, tool: String, policy: McpToolPolicy) =
+        editMcpServer(id) { it.copy(toolPolicies = it.toolPolicies + (tool to policy)) }
+
+    suspend fun setMcpHeaders(id: String, headers: List<McpHeader>) =
+        editPrefs { prefs -> writeMcpHeaders(prefs, id, headers) }
+
+    private suspend fun editMcpServer(id: String, change: (McpServerSpec) -> McpServerSpec) =
+        editPrefs { prefs ->
+            val current = McpServerCodec.decodeServers(prefs[AI_MCP_SERVERS].orEmpty())
+            if (current.none { it.id == id }) return@editPrefs
+            prefs[AI_MCP_SERVERS] = McpServerCodec.encodeServers(current.map { if (it.id == id) change(it) else it })
+        }
+
+    private fun writeMcpHeaders(prefs: MutablePreferences, id: String, headers: List<McpHeader>) {
+        val kept = headers.filter { it.name.isNotBlank() }
+            .map { McpHeader(it.name.trim(), it.value.trim()) }
+        val all = McpServerCodec.decodeHeaders(prefs[AI_MCP_HEADERS].orEmpty()) - id
+        val next = if (kept.isEmpty()) all else all + (id to kept)
+        if (next.isEmpty()) prefs.remove(AI_MCP_HEADERS) else prefs[AI_MCP_HEADERS] = McpServerCodec.encodeHeaders(next)
+    }
 
     suspend fun setShiftCapsLockMs(value: Int) =
         editPrefs { it[SHIFT_CAPS_LOCK_MS] = value.coerceIn(ShiftCapsLockMsRange.first, ShiftCapsLockMsRange.last) }

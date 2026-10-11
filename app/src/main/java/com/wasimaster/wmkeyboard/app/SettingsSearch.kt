@@ -1581,7 +1581,17 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_diff_first_title, R.string.toolai_ai_diff_first_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_tool_search_title, R.string.toolai_ai_tool_search_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_tool_fetch_title, R.string.toolai_ai_tool_fetch_subtitle),
+    toolEntry(ToolbarTool.AI, R.string.toolai_ai_mcp_title, R.string.toolai_ai_mcp_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_tool_rounds_title, R.string.toolai_ai_tool_rounds_subtitle),
+    // The MCP server list's own row. Indexed on that screen: the tool page
+    // only draws the NavRow that opens it (above).
+    entry(
+        R.string.toolai_ai_mcp_import_title,
+        R.string.toolai_ai_mcp_import_subtitle,
+        R.string.toolai_ai_mcp_screen_title,
+        "ai_mcp",
+        screenParent = R.string.home_tools_title,
+    ),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_chat_nav_title, R.string.toolai_ai_chat_nav_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_chat_enter_sends_title, R.string.toolai_chat_enter_sends_subtitle),
     // The AI history screen's own heading. Indexed on that screen, not on the

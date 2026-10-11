@@ -2338,6 +2338,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Searches reuse the search tool's backend — SearXNG > Tavily > Brave, 5 results, logged under its own AI tool use network source
     - Pages are read as text and cut — markup, scripts and styles stripped, ~6000 characters, http/https only so an invented file:// address is refused
     - A failed tool answers the model, not the user — no backend, a 404, a bad address: the model is told in a sentence and carries on
+  - MCP servers `RARE` — the model can call tools on Model Context Protocol servers the user adds, in the panel and in chat (#573)
+    - Remote servers only — http/https with Auto, Streamable HTTP or SSE transport; header rows carry tokens; no OAuth sign-in yet
+    - Paste a JSON config — Claude Desktop/Cursor `mcpServers` and VS Code `servers` shapes read; `command` servers listed as skipped with the reason
+    - Run / Ask / Off per tool — read-only tools start on Run, everything else on Ask; Ask pauses the answer on an approval card (Deny, Allow once, Always allow)
+    - Tool lists cached outside settings — Connect fetches them into a file, so tens of KB of schemas never ride the settings flow; a changed address marks the list stale
+    - Prompt-cost warning past 20 live tools — every tool not set to Off is described in every request
   - Streaming result view `uncommon` — answer renders as it forms for every provider including on-device
     - Replace and Insert commit — Replace appends instead of overwriting for append-mode actions
     - Markdown stripping checkbox — detects headings, bullets, quotes, fences, links, bold/italic; on by default when markdown is present, reformats the preview too

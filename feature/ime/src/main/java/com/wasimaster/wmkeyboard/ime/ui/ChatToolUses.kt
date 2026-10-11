@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
@@ -38,10 +41,12 @@ import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ErrorOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandLess
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Handyman
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Language
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.tools.AiPhase
 import com.wasimaster.wmkeyboard.core.tools.AiToolActivity
+import com.wasimaster.wmkeyboard.core.tools.AiToolApproval
 import com.wasimaster.wmkeyboard.core.tools.AiToolSource
 import com.wasimaster.wmkeyboard.core.tools.AiTools
 import com.wasimaster.wmkeyboard.ime.R
@@ -63,6 +68,12 @@ import com.wasimaster.wmkeyboard.ime.R
  * app has its own clipboard and URI handler. [onOpen] is only ever handed an
  * http or https address; anything else a model wrote can be copied, never
  * opened.
+ *
+ * A call to an MCP server's tool that has to ask first (#573) shows a card
+ * under the line, open whether or not the record is unfolded: what the tool
+ * is, where it runs, the values the model wrote for it, and Deny / Allow once
+ * / Always allow, which go out through [onApproval]. A surface that passes no
+ * [onApproval] shows the question without the buttons.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -74,10 +85,12 @@ fun ChatToolUses(
     onCopy: (String) -> Unit,
     modifier: Modifier = Modifier,
     fontSize: TextUnit = 12.sp,
+    onApproval: ((AiToolApproval) -> Unit)? = null,
 ) {
     if (uses.isEmpty()) return
     var expanded by remember { mutableStateOf(false) }
     val running = uses.lastOrNull { it.running }
+    val asking = running?.takeIf { it.awaitingApproval }
     val failed = uses.count { it.failed }
     val lineHeight = fontSize * LINE_HEIGHT
     val header = when {
@@ -114,7 +127,8 @@ fun ChatToolUses(
                 Icon(
                     when {
                         allFailed -> Icons.Outlined.ErrorOutline
-                        uses.all { it.tool == AiTools.WEB_FETCH } -> Icons.Outlined.Language
+                        uses.all { it.isMcp } -> Icons.Outlined.Handyman
+                        uses.all { it.tool == AiTools.WEB_FETCH && !it.isMcp } -> Icons.Outlined.Language
                         else -> Icons.Outlined.Search
                     },
                     contentDescription = null,
@@ -139,6 +153,9 @@ fun ChatToolUses(
                 tint = headerInk,
                 modifier = Modifier.size(15.dp),
             )
+        }
+        if (asking != null) {
+            ApprovalCard(asking, colors, fontSize, onApproval)
         }
         if (expanded) {
             Column(
@@ -193,6 +210,16 @@ private fun ToolUseDetail(
             lineHeight = small * LINE_HEIGHT,
         )
         use.running -> Unit
+        use.isMcp -> if (use.target.isNotEmpty()) {
+            Text(
+                use.target,
+                color = colors.dim,
+                fontSize = small,
+                lineHeight = small * LINE_HEIGHT,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
         use.tool == AiTools.WEB_SEARCH && use.sources.isEmpty() -> Text(
             stringResource(R.string.ime_ai_chat_tool_no_results),
             color = colors.dim,
@@ -265,6 +292,14 @@ private fun SourceLine(
  */
 @Composable
 internal fun toolLine(use: AiToolActivity): String {
+    if (use.isMcp) {
+        return when {
+            use.awaitingApproval -> stringResource(R.string.ime_ai_chat_tool_mcp_waiting, use.tool, use.server)
+            use.running -> stringResource(R.string.ime_ai_chat_tool_mcp_running, use.tool, use.server)
+            use.failed -> stringResource(R.string.ime_ai_chat_tool_mcp_failed, use.tool, use.server)
+            else -> stringResource(R.string.ime_ai_chat_tool_mcp_done, use.tool, use.server)
+        }
+    }
     val target = use.target
     val page = when {
         use.tool != AiTools.WEB_FETCH -> ""
@@ -303,6 +338,89 @@ internal fun toolLine(use: AiToolActivity): String {
 }
 
 /**
+ * The question an MCP call asks before it runs (#573): which tool, on which
+ * server, with which values, and the three answers. The values are shown in
+ * full, as the model wrote them, because they are what the user is agreeing
+ * to send.
+ */
+@Composable
+private fun ApprovalCard(
+    use: AiToolActivity,
+    colors: ChatMarkdownColors,
+    fontSize: TextUnit,
+    onApproval: ((AiToolApproval) -> Unit)?,
+) {
+    val small = fontSize * SMALL
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp, bottom = 4.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(colors.codeBackground)
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(
+            stringResource(R.string.ime_ai_chat_tool_mcp_ask, use.tool, use.server),
+            color = colors.text,
+            fontSize = fontSize,
+            lineHeight = fontSize * LINE_HEIGHT,
+            fontWeight = FontWeight.Medium,
+        )
+        Text(
+            use.details.ifEmpty { stringResource(R.string.ime_ai_chat_tool_mcp_ask_no_values) },
+            color = colors.dim,
+            fontSize = small,
+            lineHeight = small * LINE_HEIGHT,
+            fontFamily = if (use.details.isEmpty()) null else FontFamily.Monospace,
+            maxLines = APPROVAL_LINES,
+            overflow = TextOverflow.Ellipsis,
+        )
+        if (onApproval != null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                ApprovalButton(stringResource(R.string.ime_ai_chat_tool_mcp_deny), colors, small, strong = false) {
+                    onApproval(AiToolApproval.DENY)
+                }
+                ApprovalButton(stringResource(R.string.ime_ai_chat_tool_mcp_allow_once), colors, small, strong = true) {
+                    onApproval(AiToolApproval.ONCE)
+                }
+                ApprovalButton(stringResource(R.string.ime_ai_chat_tool_mcp_allow_always), colors, small, strong = false) {
+                    onApproval(AiToolApproval.ALWAYS)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * One answer on [ApprovalCard]. Drawn here rather than as a Material button:
+ * the card is shared by the keyboard, whose colours come from its theme, and
+ * the app, whose colours come from Material.
+ */
+@Composable
+private fun ApprovalButton(
+    label: String,
+    colors: ChatMarkdownColors,
+    fontSize: TextUnit,
+    strong: Boolean,
+    onClick: () -> Unit,
+) {
+    val shape = RoundedCornerShape(50)
+    Text(
+        label,
+        color = colors.text,
+        fontSize = fontSize,
+        fontWeight = if (strong) FontWeight.SemiBold else FontWeight.Normal,
+        maxLines = 1,
+        modifier = Modifier
+            .clip(shape)
+            .border(1.dp, colors.text.copy(alpha = if (strong) 0.7f else 0.3f), shape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+    )
+}
+
+/**
  * Opens one page from the keyboard, as the Wikipedia panel opens an article:
  * a new task, since an input method has none of its own. Only ever handed an
  * address [AiToolActivity.openableUrl] passed.
@@ -314,4 +432,7 @@ internal fun openToolLink(context: Context, url: String) {
 }
 
 private const val LINE_HEIGHT = 1.35f
+
+/** Lines of arguments the approval card shows before it cuts them. */
+private const val APPROVAL_LINES = 8
 private const val SMALL = 0.92f

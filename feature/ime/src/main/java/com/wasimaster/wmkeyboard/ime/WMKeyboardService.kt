@@ -449,6 +449,9 @@ import com.wasimaster.wmkeyboard.core.tools.AiPrompts
 import com.wasimaster.wmkeyboard.core.tools.AiToolActivity
 import com.wasimaster.wmkeyboard.core.tools.AiToolLoop
 import com.wasimaster.wmkeyboard.core.tools.AiToolRunner
+import com.wasimaster.wmkeyboard.core.tools.AiToolApproval
+import com.wasimaster.wmkeyboard.core.tools.AiToolApprovalGate
+import com.wasimaster.wmkeyboard.core.tools.AiToolApprover
 import com.wasimaster.wmkeyboard.core.tools.AiToolSpec
 import com.wasimaster.wmkeyboard.core.tools.AiMarkdown
 import com.wasimaster.wmkeyboard.core.tools.AiPhase
@@ -26094,6 +26097,12 @@ open class WMKeyboardService : InputMethodService() {
     private var aiRunSeq = 0
 
     /**
+     * Where an AI action's MCP call waits while the panel asks the user to
+     * allow it (#573). The chat has its own, in `AiChatController`.
+     */
+    private val aiToolGate = AiToolApprovalGate()
+
+    /**
      * The last instruction each ask-each-run action was given, so reopening its
      * input box starts from what the user typed last time.
      *
@@ -26376,6 +26385,12 @@ open class WMKeyboardService : InputMethodService() {
         // and neither needs the chat; Ask AI checks for itself.
         when (action) {
             is AiChatAction.AskAbout -> { askAiAbout(action); return }
+            // The AI panel's actions ask through here as well as the chat.
+            is AiChatAction.ToolApproval -> {
+                vibrate()
+                answerAiTool(action.choice)
+                return
+            }
             is AiChatAction.Copy, is AiChatAction.Insert -> Unit
             else -> if (!chat.available) return
         }
@@ -26476,7 +26491,7 @@ open class WMKeyboardService : InputMethodService() {
                     if (action.list || chat.conversationId < 0) "ai_chat" else "ai_chat/${chat.conversationId}",
                 )
             is AiChatAction.Report -> aiChatReport(action.index)
-            is AiChatAction.AskAbout -> Unit
+            is AiChatAction.AskAbout, is AiChatAction.ToolApproval -> Unit
         }
     }
 
@@ -26650,8 +26665,9 @@ open class WMKeyboardService : InputMethodService() {
             // Tools reach the network on their own account (#470), so a user
             // who is holding web search back on mobile data is holding the
             // model's searches back with it — the run itself still goes.
+            val runner = AiToolRunner(applicationContext, settings, aiToolApprover(seq))
             val tools = if (dataSaverStatus.decide(MeteredFeature.WEB_SEARCH) == MeteredDecision.ALLOWED) {
-                AiToolRunner.enabled(settings)
+                runner.tools()
             } else {
                 emptyList()
             }
@@ -26669,11 +26685,11 @@ open class WMKeyboardService : InputMethodService() {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
                     if (config.provider == AiProvider.ON_DEVICE || offlineFirst) {
-                        runAiOnDevice(seq, action, source, system, settings, generated, fromSelection, tools)
+                        runAiOnDevice(seq, action, source, system, settings, generated, fromSelection, tools, runner)
                     } else {
                         runAiRemote(
                             seq, action, source, system, settings, config,
-                            startedAt, generated, fromSelection, tools,
+                            startedAt, generated, fromSelection, tools, runner,
                         )
                     }
                 }.recoverCatching { e ->
@@ -26681,7 +26697,7 @@ open class WMKeyboardService : InputMethodService() {
                     // run on the device was not already the one that failed.
                     if (!localStandIn || fellBack || seq != aiRunSeq || !ToolHttp.isUnreachable(e)) throw e
                     fellBack = true
-                    runAiOnDevice(seq, action, source, system, settings, generated, fromSelection, tools)
+                    runAiOnDevice(seq, action, source, system, settings, generated, fromSelection, tools, runner)
                 }
             }
             // A superseded or cancelled run never gets past here, so it is
@@ -26832,6 +26848,7 @@ open class WMKeyboardService : InputMethodService() {
         generated: Boolean,
         fromSelection: Boolean = false,
         tools: List<AiToolSpec> = emptyList(),
+        runner: AiToolRunner = AiToolRunner(applicationContext, settings),
     ): AiClient.Completion {
         val modelId = effectiveLocalModelId(settings)
         val modelFile = effectiveLocalModelFile(settings)
@@ -26839,7 +26856,6 @@ open class WMKeyboardService : InputMethodService() {
         val implicitThink = isReasoningModel(modelId)
         val startedAt = SystemClock.uptimeMillis()
         var lastPartialAt = 0L
-        val runner = AiToolRunner(applicationContext, settings)
         val text = AiToolLoop.run(
             system = system,
             turns = listOf(AiClient.ChatTurn(AiClient.ChatRole.USER, source)),
@@ -26860,7 +26876,7 @@ open class WMKeyboardService : InputMethodService() {
                     )
                 }
             },
-            onToolCall = { call -> applyAiTools(seq) { it + AiToolActivity.started(call) } },
+            onToolCall = { call -> applyAiTools(seq) { it + runner.activityFor(call) } },
             onToolResult = { result -> applyAiTools(seq) { AiToolActivity.record(it, result) } },
             isActive = { seq == aiRunSeq },
         ) { roundSystem, roundTurns, _, roundPartial ->
@@ -26915,6 +26931,25 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * Asks the user, on the panel, before an MCP call whose tool says so
+     * (#573). The question sits on the running call's line until
+     * [answerAiTool] or a newer run.
+     */
+    private fun aiToolApprover(seq: Int): AiToolApprover = aiToolGate.approver(
+        isActive = { seq == aiRunSeq },
+        show = { ask -> applyAiTools(seq) { AiToolActivity.replaceRunning(it, ask) } },
+        shown = { done -> applyAiTools(seq) { AiToolActivity.replaceRunning(it, done) } },
+    )
+
+    /**
+     * The user's answer to a call that asked first, from the AI panel or the
+     * keyboard's chat. Only one of the two can be asking at a time.
+     */
+    private fun answerAiTool(choice: AiToolApproval) {
+        if (!aiToolGate.answer(choice)) AiChatController.answerTool(choice)
+    }
+
     /** The tool record of the run on screen, to carry into the state that replaces it. */
     private fun aiToolsOf(ai: AiUi): List<AiToolActivity> = when (ai) {
         is AiUi.Loading -> ai.tools
@@ -26938,6 +26973,7 @@ open class WMKeyboardService : InputMethodService() {
         generated: Boolean,
         fromSelection: Boolean = false,
         tools: List<AiToolSpec> = emptyList(),
+        runner: AiToolRunner = AiToolRunner(applicationContext, settings),
     ): AiClient.Completion {
         var lastPartialAt = 0L
         return AiClient.completeWithTools(
@@ -26946,7 +26982,7 @@ open class WMKeyboardService : InputMethodService() {
             turns = listOf(AiClient.ChatTurn(AiClient.ChatRole.USER, source)),
             maxTokens = AiClient.effectiveMaxTokens(settings.ai),
             tools = tools,
-            executor = AiToolRunner(applicationContext, settings)::run,
+            executor = runner::run,
             maxRounds = settings.ai.toolMaxRounds,
             onPhase = { phase -> applyAiPhase(seq, phase) },
             onPartial = { raw ->
@@ -26961,7 +26997,7 @@ open class WMKeyboardService : InputMethodService() {
                     )
                 }
             },
-            onToolCall = { call -> applyAiTools(seq) { it + AiToolActivity.started(call) } },
+            onToolCall = { call -> applyAiTools(seq) { it + runner.activityFor(call) } },
             onToolResult = { result -> applyAiTools(seq) { AiToolActivity.record(it, result) } },
             // A superseded or closed run stops reading here rather than holding
             // the socket — and paying for tokens — until the model finishes.
