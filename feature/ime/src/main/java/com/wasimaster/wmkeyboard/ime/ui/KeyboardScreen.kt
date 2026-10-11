@@ -424,6 +424,8 @@ import com.wasimaster.wmkeyboard.core.settings.OneHandedMode
 import com.wasimaster.wmkeyboard.core.settings.AlternateGroup
 import com.wasimaster.wmkeyboard.core.settings.DefaultAlternatesOrder
 import com.wasimaster.wmkeyboard.core.settings.oneHandedModeFor
+import com.wasimaster.wmkeyboard.core.settings.floatingFor
+import com.wasimaster.wmkeyboard.core.settings.FloatingHandlePosition
 import com.wasimaster.wmkeyboard.core.settings.BoardCorner
 import com.wasimaster.wmkeyboard.core.settings.BoardCornerRadiusRange
 import com.wasimaster.wmkeyboard.core.settings.LayoutBehaviorSettings
@@ -2453,6 +2455,9 @@ private fun voiceBarTakesWindow(state: KeyboardUiState): Boolean =
  * keyboard body, movable by its drag handle and resizable from the corner
  * handle. Position is kept as fractions of the free space so it survives
  * rotation; width in dp. Both persist via the callbacks on gesture end.
+ *
+ * The handle bar sits under the keys by default, where the thumb already is
+ * (#584), or above them with [KeyboardSettings.floatingHandle] set to top.
  */
 @Composable
 private fun FloatingKeyboardFrame(
@@ -2476,6 +2481,12 @@ private fun FloatingKeyboardFrame(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
+            // The window runs under the navigation bar. With the handle bar on
+            // the panel's bottom edge (#584) a panel parked at the bottom put
+            // the drag pill on the gesture strip, where a drag goes home
+            // instead; held clear of it, the bar and the bottom keys both stay
+            // the panel's.
+            .windowInsetsPadding(navigationBarInsets())
             .onGloballyPositioned {
                 frameOrigin = it.positionInRoot()
                 frameSize = it.size
@@ -2639,7 +2650,9 @@ private fun FloatingKeyboardFrame(
         ) {
             Box {
                 BoardBackground(LocalKbTheme.current)
-                Column {
+                val handleAtBottom = state.settings.floatingHandle == FloatingHandlePosition.BOTTOM
+                // One bar, placed above or below the keys; see the frame's KDoc.
+                val handleBar: @Composable () -> Unit = {
                     FloatingHandleBar(
                         onDock = onDock,
                         onDragStart = {
@@ -2709,10 +2722,13 @@ private fun FloatingKeyboardFrame(
                         onResizeBy = { delta ->
                             gesture.widthDp = (gesture.widthDp + with(density) { delta.x.toDp().value })
                                 .coerceIn(FLOATING_MIN_WIDTH_DP, maxWidthDp)
-                            // The grip sits on the panel's TOP bar, so dragging
-                            // up (negative y) grows the panel — hence the minus.
+                            // On the bottom bar the grip is the panel's bottom
+                            // edge, which the pinned top-left lets follow the
+                            // finger down. On the top bar dragging up (negative
+                            // y) grows the panel instead, hence the sign.
                             if (gesture.baseHeightPx > 0f) {
-                                gesture.heightScale = (gesture.heightScale - delta.y / gesture.baseHeightPx)
+                                val grow = if (handleAtBottom) delta.y else -delta.y
+                                gesture.heightScale = (gesture.heightScale + grow / gesture.baseHeightPx)
                                     .coerceIn(FLOATING_MIN_HEIGHT_SCALE, FLOATING_MAX_HEIGHT_SCALE)
                             }
                             // Snapped before it reaches layout. The finger
@@ -2738,7 +2754,11 @@ private fun FloatingKeyboardFrame(
                             persistPosition(end)
                         },
                     )
+                }
+                Column {
+                    if (!handleAtBottom) handleBar()
                     content(liveHeightScale)
+                    if (handleAtBottom) handleBar()
                 }
             }
         }
@@ -2795,7 +2815,8 @@ private const val FLOATING_WIDTH_STEP_DP = 4f
 private const val FLOATING_HEIGHT_STEP = 0.02f
 
 /**
- * Handle row on top of the floating panel: dock button, drag pill, resize grip.
+ * Handle row of the floating panel, under the keys or above them: dock button,
+ * drag pill, resize grip.
  *
  * The two corner buttons are drawn as tool circles — same shape from the theme's
  * tool radius, same [KbTheme.toolCircle] fill, same [KbTheme.toolbarIcon] glyph
@@ -7536,7 +7557,10 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
         LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE,
     ) != OneHandedMode.OFF
     ToolbarTool.SPLIT -> state.settings.splitKeyboard
-    ToolbarTool.FLOATING -> state.settings.floatingKeyboard
+    // Per orientation (#584), like one-handed above.
+    ToolbarTool.FLOATING -> state.settings.floatingFor(
+        LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE,
+    )
     ToolbarTool.PERSISTENT -> state.settings.persistentKeyboard
     ToolbarTool.RESIZE -> state.resize
     ToolbarTool.SETTINGS -> false

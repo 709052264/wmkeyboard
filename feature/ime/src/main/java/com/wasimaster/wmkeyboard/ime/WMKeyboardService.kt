@@ -334,6 +334,7 @@ import com.wasimaster.wmkeyboard.core.settings.GLIDE_SHAPES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SANDBOX_FILE
 import com.wasimaster.wmkeyboard.core.settings.GestureSettings
 import com.wasimaster.wmkeyboard.core.settings.glideTuning
+import com.wasimaster.wmkeyboard.core.settings.floatingFor
 import com.wasimaster.wmkeyboard.core.settings.GlideCommitColor
 import com.wasimaster.wmkeyboard.core.settings.GlideCommitColorScope
 import com.wasimaster.wmkeyboard.core.settings.GlideLookAhead
@@ -3614,7 +3615,7 @@ open class WMKeyboardService : InputMethodService() {
                     userScreenshotsEnabled = settings.clipboard.userScreenshots
                     updateScreenshotObserver(settings.clipboard.userScreenshots)
                 }
-                if (!settings.floatingKeyboard) floatingPanelBounds = null
+                if (!settings.floatingFor(landscapeNow())) floatingPanelBounds = null
                 if (settings.suggestionSources.contacts != contactsEnabled) {
                     contactsEnabled = settings.suggestionSources.contacts
                     if (settings.suggestionSources.contacts) {
@@ -4915,11 +4916,23 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * Floats or docks the keyboard in the orientation it is held in: each
+     * remembers its own (#584), so the toolbar tool and the dock button never
+     * reach the other one.
+     */
     fun onFloatingChange(enabled: Boolean) {
         vibrate()
         if (!enabled) floatingPanelBounds = null
-        serviceScope.launch { settingsRepository.setFloatingKeyboard(enabled) }
+        val landscape = landscapeNow()
+        serviceScope.launch { settingsRepository.setFloatingKeyboard(landscape, enabled) }
     }
+
+    private fun landscapeNow(): Boolean =
+        resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    /** The keyboard floats in the orientation it is held in right now. */
+    private fun floatingNow(): Boolean = _uiState.value.settings.floatingFor(landscapeNow())
 
     /**
      * The keep-on-screen tool; the Layout screen's row writes the same
@@ -5021,7 +5034,7 @@ open class WMKeyboardService : InputMethodService() {
             }
             return
         }
-        if (!_uiState.value.settings.floatingKeyboard) {
+        if (!floatingNow()) {
             // Docked: the frame's held bands are transparent window over the
             // app, not keyboard. Both insets, so the app resizes to the board
             // and a tap in a band reaches it — the touchable inset follows
@@ -5062,7 +5075,7 @@ open class WMKeyboardService : InputMethodService() {
      * this before that flow has caught up with an unfold.
      */
     override fun onEvaluateFullscreenMode(): Boolean =
-        if (_uiState.value.settings.floatingKeyboard || voiceBarShowing() ||
+        if (floatingNow() || voiceBarShowing() ||
             handwritingFullScreen(_uiState.value) ||
             (pinnedNow() && isNullField()) ||
             DeviceForm.of(resources.configuration.smallestScreenWidthDp).isTablet
@@ -5293,6 +5306,12 @@ open class WMKeyboardService : InputMethodService() {
         // wrong variant. Drop the session; nothing was persisted.
         if (_uiState.value.resize) {
             _uiState.update { it.copy(resize = false) }
+        }
+        // Floating is per orientation (#584): turning into a docked one leaves
+        // the old panel's rectangle as the touchable region until it is dropped.
+        if (!floatingNow() && floatingPanelBounds != null) {
+            floatingPanelBounds = null
+            window?.window?.decorView?.requestLayout()
         }
     }
 
@@ -21012,7 +21031,7 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
             ToolbarTool.SPLIT -> onToggleSplit()
-            ToolbarTool.FLOATING -> onFloatingChange(!settings.floatingKeyboard)
+            ToolbarTool.FLOATING -> onFloatingChange(!settings.floatingFor(landscapeNow()))
             ToolbarTool.PERSISTENT -> onPersistentChange(!settings.persistentKeyboard)
             ToolbarTool.RESIZE -> onResizeToggle()
             ToolbarTool.FLASHLIGHT -> onFlashlightToggle()
@@ -24406,7 +24425,7 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val settings = _uiState.value.settings
-        if (settings.floatingKeyboard) {
+        if (floatingNow()) {
             // Floating has its own drag-to-resize grip; the inline handles are
             // laid out against the docked frame and mean nothing here.
             Toast.makeText(
