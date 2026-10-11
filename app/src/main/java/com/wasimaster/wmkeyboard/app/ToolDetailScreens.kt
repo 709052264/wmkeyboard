@@ -414,6 +414,39 @@ internal fun ToolDetailSettings(
                 ) { onNavigate("statistics") }
             }
         }
+        // The search history lives in its own file, not in the settings (see
+        // FindHistoryPrefs), so this page reads and writes that file directly.
+        ToolbarTool.FIND_REPLACE -> {
+            val historyContext = LocalContext.current
+            val history = remember { com.wasimaster.wmkeyboard.ime.FindHistoryPrefs(historyContext) }
+            var remembering by remember { mutableStateOf(history.enabled) }
+            var count by remember { mutableStateOf(history.entries().size) }
+            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_find_history_title,
+                        stringResource(R.string.tooldetail_find_history_subtitle),
+                        remembering,
+                        default = true,
+                    ) {
+                        history.enabled = it
+                        remembering = it
+                        count = history.entries().size
+                    }
+                }
+                item(visible = remembering) {
+                    ActionRow(
+                        R.string.tooldetail_find_history_clear_title,
+                        subtitle = pluralStringResource(R.plurals.tooldetail_find_history_count, count, count),
+                        action = stringResource(R.string.tooldetail_find_history_clear_action),
+                        enabled = count > 0,
+                    ) {
+                        history.clear()
+                        count = 0
+                    }
+                }
+            }
+        }
         ToolbarTool.MEDIA_CONTROL -> {
             // Re-read whenever this screen comes back to the foreground: the
             // grant is made on a system screen, so the user leaves, ticks the

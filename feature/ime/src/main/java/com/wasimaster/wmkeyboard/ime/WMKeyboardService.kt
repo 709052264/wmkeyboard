@@ -2306,6 +2306,7 @@ open class WMKeyboardService : InputMethodService() {
      * not a nag, and a language kept without one is a choice.
      */
     private val glideWordListNoticed by lazy { WordListOfferPrefs(this) }
+    private val findHistory by lazy { FindHistoryPrefs(this) }
 
     /**
      * The languages whose word list is in the APK. A chip pointing at a
@@ -21005,6 +21006,7 @@ open class WMKeyboardService : InputMethodService() {
             // settings app's Statistics screen, and this is a shortcut to it (#390).
             ToolbarTool.STATISTICS -> openRoute(STATISTICS_ROUTE)
             ToolbarTool.LEARN_FROM_TEXT -> onPanelChange(PanelMode.LEARN_FROM_TEXT)
+            ToolbarTool.FIND_REPLACE -> openFindReplaceTool()
             ToolbarTool.MEDIA_CONTROL -> onPanelChange(PanelMode.MEDIA_CONTROL)
             ToolbarTool.KDE_CONNECT -> onPanelChange(PanelMode.KDE_CONNECT)
             ToolbarTool.PLUGINS -> onPanelChange(PanelMode.PLUGINS)
@@ -29731,6 +29733,8 @@ open class WMKeyboardService : InputMethodService() {
                 onReplace = ::onFindReplaceOne,
                 onReplaceAll = ::onFindReplaceAll,
                 onUndo = ::onFindReplaceUndo,
+                onHistoryPick = ::onFindHistoryPick,
+                onHistoryClear = ::onFindHistoryClear,
             ),
             clipboard = clipboardPanelActions(),
             onMediaPanelHeight = ::onMediaPanelHeight,
@@ -30408,7 +30412,7 @@ open class WMKeyboardService : InputMethodService() {
             SelectionMacro.CASE_CAMEL, SelectionMacro.CASE_SNAKE, SelectionMacro.CASE_KEBAB, SelectionMacro.CASE_CONSTANT ->
                 SelectionMacros.applyCase(text, macro)?.let(::rewriteSelection)
             SelectionMacro.FIND -> findNextOccurrence(offer)
-            SelectionMacro.REPLACE -> openFindReplace(offer)
+            SelectionMacro.REPLACE -> openFindReplace(offer.text)
             SelectionMacro.LINES_SORT -> LineEdits.sort(text)?.let(::rewriteSelection)
             SelectionMacro.LINES_DEDUPE -> LineEdits.dedupe(text)?.let(::rewriteSelection)
             SelectionMacro.LINES_NUMBER -> LineEdits.number(text)?.let(::rewriteSelection)
@@ -30605,13 +30609,75 @@ open class WMKeyboardService : InputMethodService() {
     private var findJob: Job? = null
     private var findSeq = 0
 
-    /** Opens the panel with the selection as the query and its first match selected. */
-    private fun openFindReplace(offer: SelectionMacroOffer) {
-        onPanelChange(PanelMode.FIND_REPLACE, haptic = false)
+    /** Opens the panel with [query] as the query and its first match selected. */
+    private fun openFindReplace(query: String, haptic: Boolean = false) {
+        onPanelChange(PanelMode.FIND_REPLACE, haptic = haptic)
         if (_uiState.value.panel != PanelMode.FIND_REPLACE) return
-        _uiState.update { it.copy(findReplace = FindReplaceUi(query = offer.text, undoDepth = macroUndo.size)) }
+        _uiState.update {
+            it.copy(findReplace = FindReplaceUi(query = query, undoDepth = macroUndo.size, history = findHistoryEntries()))
+        }
+        refreshFindMatches(reselect = query.isNotEmpty())
+    }
+
+    /**
+     * The toolbar tool (#627): the same panel with no selection needed. A
+     * short one-line selection becomes the query, the way an editor's Ctrl+F
+     * takes it; anything else opens it empty. A second tap closes it.
+     */
+    private fun openFindReplaceTool() {
+        if (_uiState.value.panel == PanelMode.FIND_REPLACE) {
+            onPanelChange(PanelMode.FIND_REPLACE)
+            return
+        }
+        if (currentInputEditorInfo.takeIf { currentInputStarted }.isSecureField()) {
+            toast(R.string.ime_find_secure_field)
+            return
+        }
+        val selected = if (expectedSelStart >= 0 && expectedSelEnd >= 0 && expectedSelStart != expectedSelEnd) {
+            runCatching { currentInputConnection?.getSelectedText(0)?.toString() }.getOrNull()
+        } else {
+            null
+        }
+        openFindReplace(selected?.takeIf { it.isNotBlank() && '\n' !in it && it.length <= FIND_MAX_QUERY }.orEmpty(), haptic = true)
+    }
+
+    /** What the panel offers as recent searches; nothing while nothing may be remembered. */
+    private fun findHistoryEntries(): List<String> = if (findHistoryPaused()) emptyList() else findHistory.entries()
+
+    /** Incognito, a field that asks not to be learnt from, or a password field: no history. */
+    private fun findHistoryPaused(): Boolean {
+        val field = currentInputEditorInfo?.takeIf { currentInputStarted }
+        val settings = _uiState.value.settings
+        return settings.incognito || (settings.autoIncognito && field.requestsNoPersonalizedLearning()) ||
+            field.isSecureField()
+    }
+
+    /** Remembers the query once it has been used for something, not on every keystroke. */
+    private fun recordFindQuery() {
+        val query = _uiState.value.findReplace?.query ?: return
+        if (findHistoryPaused()) return
+        val history = findHistory.record(query)
+        _uiState.update { it.copy(findReplace = it.findReplace?.copy(history = history)) }
+    }
+
+    /** A recent search tapped: it becomes the query, matched at once. */
+    fun onFindHistoryPick(query: String) {
+        vibrate()
+        _uiState.update {
+            it.copy(findReplace = it.findReplace?.copy(query = query, focused = FindReplaceField.FIND))
+        }
         refreshFindMatches(reselect = true)
     }
+
+    fun onFindHistoryClear() {
+        vibrate()
+        findHistory.clear()
+        _uiState.update { it.copy(findReplace = it.findReplace?.copy(history = emptyList())) }
+    }
+
+    /** The current match in its line, for the panel; null with none current. */
+    private fun findPreview(index: Int, matches: List<IntRange>): MatchPreview? =
+        matches.getOrNull(index)?.let { FindReplaceGlue.preview(findText, it) }
 
     /** Backspace and character edits to whichever field is focused. */
     private fun findReplaceEdit(transform: (String) -> String) {
@@ -30660,6 +30726,7 @@ open class WMKeyboardService : InputMethodService() {
         val origin = findOrigin ?: return
         if (fr.matches.isEmpty()) return
         vibrate()
+        recordFindQuery()
         val selStart = if (expectedSelStart < 0 || expectedSelEnd < 0) 0 else minOf(expectedSelStart, expectedSelEnd) - origin
         selectMatch(FindReplaceGlue.stepIndex(fr.matches, fr.current, selStart, delta))
     }
@@ -30687,6 +30754,7 @@ open class WMKeyboardService : InputMethodService() {
                         findReplace = it.findReplace?.copy(
                             matches = emptyList(), current = -1, truncated = false, error = null,
                             addressable = origin != null, searching = false, undoDepth = macroUndo.size,
+                            preview = null,
                         ),
                     )
                 }
@@ -30715,6 +30783,7 @@ open class WMKeyboardService : InputMethodService() {
                     findReplace = it.findReplace?.copy(
                         matches = matches, current = current, truncated = (result as? FindResult.Matches)?.truncated == true,
                         error = error, addressable = origin != null, searching = false, undoDepth = macroUndo.size,
+                        preview = findPreview(current, matches),
                     ),
                 )
             }
@@ -30732,7 +30801,7 @@ open class WMKeyboardService : InputMethodService() {
         ic.setSelection(origin + range.first, origin + range.last + 1)
         expectedSelStart = origin + range.first
         expectedSelEnd = origin + range.last + 1
-        _uiState.update { it.copy(findReplace = it.findReplace?.copy(current = index)) }
+        _uiState.update { it.copy(findReplace = it.findReplace?.copy(current = index, preview = findPreview(index, fr.matches))) }
     }
 
     /**
@@ -30752,12 +30821,13 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         vibrate()
+        recordFindQuery()
         val edit = FindReplace.replaceOne(findText, range, fr.replacement, fr.query, fr.options())
         rewriteSelection(edit.text, raw = true)
         findText = findText.replaceRange(edit.start, edit.end, edit.text)
         val remaining = FindReplaceGlue.shiftMatches(fr.matches, index, edit.text.length - (edit.end - edit.start))
         _uiState.update {
-            it.copy(findReplace = it.findReplace?.copy(matches = remaining, current = -1, undoDepth = macroUndo.size))
+            it.copy(findReplace = it.findReplace?.copy(matches = remaining, current = -1, undoDepth = macroUndo.size, preview = null))
         }
         // The match that followed now sits where the replaced one was.
         if (remaining.isNotEmpty()) selectMatch(index.coerceAtMost(remaining.lastIndex))
@@ -30780,6 +30850,7 @@ open class WMKeyboardService : InputMethodService() {
         val after = FindReplace.apply(before, edits)
         val anchor = fr.matches.getOrNull(fr.current) ?: fr.matches.first()
         vibrate()
+        recordFindQuery()
         if (origin != null) {
             if (!replaceFieldSpans(edits.map { GrammarEdit(it.start, it.end, it.text) })) return
         } else if (fieldTextComplete) {
@@ -30801,7 +30872,7 @@ open class WMKeyboardService : InputMethodService() {
             republishSelectionMacros(null)
         }
         _uiState.update {
-            it.copy(findReplace = it.findReplace?.copy(matches = emptyList(), current = -1, undoDepth = macroUndo.size))
+            it.copy(findReplace = it.findReplace?.copy(matches = emptyList(), current = -1, undoDepth = macroUndo.size, preview = null))
         }
         // A replacement that contains the query matches again; count it.
         refreshFindMatches(reselect = false)
