@@ -182,6 +182,15 @@ internal fun AccessibilitySettings(
                 default = SettingsDefaults.accessibility.languageSwitchMotion,
             ) { scope.launch { repository.setLanguageSwitchMotion(it) } }
         }
+        item {
+            ToggleSetting(
+                R.string.accessibility_tool_result_motion_title,
+                stringResource(R.string.accessibility_tool_result_motion_subtitle),
+                settings.watch { it.accessibility.toolResultMotion },
+                info = stringResource(R.string.accessibility_tool_result_motion_info),
+                default = SettingsDefaults.accessibility.toolResultMotion,
+            ) { scope.launch { repository.setToolResultMotion(it) } }
+        }
     }
 
     SettingsGroup(stringResource(R.string.accessibility_settings_app_title)) {

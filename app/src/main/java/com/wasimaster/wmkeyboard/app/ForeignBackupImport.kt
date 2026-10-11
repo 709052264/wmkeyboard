@@ -25,6 +25,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -68,6 +69,7 @@ import com.wasimaster.wmkeyboard.core.settings.foreign.MappedSetting
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.groupAsFamily
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -95,6 +97,10 @@ internal fun ForeignBackupDialog(
     val rows = remember(backup) { foreignRows(backup) }
     var selected by remember(backup) { mutableStateOf<Set<String>>(rows.mapTo(HashSet()) { it.id }) }
     var working by remember { mutableStateOf(false) }
+    // The button's glyph: a spinner while the items are stored, then the tick
+    // for a moment before the dialog gives way to what landed.
+    var phase by remember { mutableStateOf(RunPhase.IDLE) }
+    val reduceMotion = LocalReduceMotion.current
 
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
@@ -123,29 +129,36 @@ internal fun ForeignBackupDialog(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     )
+                    // Each heading and row a beat after the one above, counted
+                    // down the whole list; past the first few they arrive together.
+                    var arrival = 0
                     for (section in ForeignSection.entries) {
                         val inSection = rows.filter { it.section == section }
                         if (inSection.isEmpty()) continue
-                        ForeignSectionHeader(
-                            title = stringResource(section.titleRes),
-                            state = when (inSection.count { it.id in selected }) {
-                                0 -> ToggleableState.Off
-                                inSection.size -> ToggleableState.On
-                                else -> ToggleableState.Indeterminate
-                            },
-                            onToggle = { on ->
-                                val ids = inSection.map { it.id }.toSet()
-                                selected = if (on) selected + ids else selected - ids
-                            },
-                        )
-                        for (row in inSection) {
-                            ForeignItemRow(
-                                row = row,
-                                checked = row.id in selected,
-                                onChecked = { on ->
-                                    selected = if (on) selected + row.id else selected - row.id
+                        StaggerIn(arrival++) {
+                            ForeignSectionHeader(
+                                title = stringResource(section.titleRes),
+                                state = when (inSection.count { it.id in selected }) {
+                                    0 -> ToggleableState.Off
+                                    inSection.size -> ToggleableState.On
+                                    else -> ToggleableState.Indeterminate
+                                },
+                                onToggle = { on ->
+                                    val ids = inSection.map { it.id }.toSet()
+                                    selected = if (on) selected + ids else selected - ids
                                 },
                             )
+                        }
+                        for (row in inSection) {
+                            StaggerIn(arrival++) {
+                                ForeignItemRow(
+                                    row = row,
+                                    checked = row.id in selected,
+                                    onChecked = { on ->
+                                        selected = if (on) selected + row.id else selected - row.id
+                                    },
+                                )
+                            }
                         }
                         if (section == ForeignSection.LANGUAGES) {
                             CaptionText(stringResource(R.string.foreign_backup_languages_note))
@@ -177,15 +190,27 @@ internal fun ForeignBackupDialog(
                     Button(
                         enabled = !working && selected.isNotEmpty(),
                         onClick = {
+                            if (working) return@Button
                             working = true
+                            phase = RunPhase.RUNNING
                             scope.launch {
                                 val message = applyForeignBackup(context, repository, backup, selected, notify)
+                                phase = RunPhase.DONE
+                                if (!reduceMotion) delay(IMPORT_DONE_HOLD_MS)
                                 working = false
                                 onDone(message)
                             }
                         },
                     ) {
-                        Text(pluralStringResource(R.plurals.foreign_backup_import_count, selected.size, selected.size))
+                        RunGlyph(phase)
+                        // Ticks along as rows are ticked and unticked.
+                        CountingText(
+                            target = selected.size.toLong(),
+                            format = { n ->
+                                pluralStringResource(R.plurals.foreign_backup_import_count, n.toInt(), n.toInt())
+                            },
+                            style = LocalTextStyle.current,
+                        )
                     }
                 }
             }
@@ -568,4 +593,7 @@ internal suspend fun applyForeignBackup(
 
 /** How many words of a list the row's subtitle shows. */
 private const val SAMPLE_WORDS = 5
+
+/** How long the finished tick stays on the button before the result replaces the dialog. */
+private const val IMPORT_DONE_HOLD_MS = 600L
 private const val PERCENT = 100

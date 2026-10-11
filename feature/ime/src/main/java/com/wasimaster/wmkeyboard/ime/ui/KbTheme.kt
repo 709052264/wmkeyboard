@@ -295,6 +295,8 @@ data class KbMotion(
     val languageSwitch: Boolean = false,
     /** Autopilot's visual overlay eases between sizes. */
     val autopilot: Boolean = false,
+    /** Grammar fixes and translations animate into place. Opt-in. */
+    val toolResults: Boolean = false,
 ) {
     companion object {
         /** Everything still. */
@@ -304,6 +306,7 @@ data class KbMotion(
             selection = false,
             languageSwitch = false,
             autopilot = false,
+            toolResults = false,
         )
 
         /** The flags [settings] asks for, all off under reduce motion. */
@@ -317,6 +320,7 @@ data class KbMotion(
                     selection = settings.accessibility.selectionMotion,
                     languageSwitch = settings.accessibility.languageSwitchMotion,
                     autopilot = settings.layoutBehavior.autopilotAnimate,
+                    toolResults = settings.accessibility.toolResultMotion,
                 )
             }
     }

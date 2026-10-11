@@ -5,6 +5,10 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -295,26 +299,7 @@ internal fun ImportLinkFlow(
         is LinkStage.Working -> AlertDialog(
             onDismissRequest = {},
             title = { Text(stringResource(R.string.import_link_progress_title)) },
-            text = {
-                if (current.total > 0L) {
-                    Column {
-                        Text(
-                            stringResource(
-                                R.string.import_link_progress_bytes,
-                                formatBytes(current.bytes),
-                                formatBytes(current.total),
-                            ),
-                        )
-                        Spacer(Modifier.height(12.dp))
-                        LinearProgressIndicator(
-                            progress = { current.bytes.toFloat() / current.total.toFloat() },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                } else {
-                    CircularProgressIndicator()
-                }
-            },
+            text = { WorkingBody(current) },
             confirmButton = {},
         )
 
@@ -476,8 +461,10 @@ private fun PickDialog(
                     Spacer(Modifier.height(8.dp))
                 }
                 names.forEachIndexed { index, name ->
-                    TextButton(onClick = { onPick(index) }, modifier = Modifier.fillMaxWidth()) {
-                        Text(name)
+                    StaggerIn(index) {
+                        TextButton(onClick = { onPick(index) }, modifier = Modifier.fillMaxWidth()) {
+                            Text(name)
+                        }
                     }
                 }
             }
@@ -487,6 +474,50 @@ private fun PickDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
         },
     )
+}
+
+/**
+ * The wait while a link is looked up or fetched: a spinner until the transfer
+ * knows its size, then the bytes and a bar.
+ *
+ * The spinner hands over to the bar rather than being swapped out in a frame,
+ * and the bar glides between the download's reports instead of stepping. The
+ * box keeps the bigger of the two sizes until the swap is done: it is a
+ * dialog's, and resizing a window every frame costs more than one step.
+ */
+@Composable
+private fun WorkingBody(stage: LinkStage.Working) {
+    val reduceMotion = LocalReduceMotion.current
+    val fraction = if (stage.total > 0L) (stage.bytes.toFloat() / stage.total.toFloat()).coerceIn(0f, 1f) else 0f
+    val shown by animateFloatAsState(
+        targetValue = fraction,
+        animationSpec = if (reduceMotion) snap<Float>() else tween<Float>(durationMillis = LINK_PROGRESS_GLIDE_MS),
+        label = "linkProgress",
+    )
+    AnimatedContent(
+        targetState = stage.total > 0L,
+        transitionSpec = { stateSwapTransform(reduceMotion, animateSize = false) },
+        label = "linkWorking",
+    ) { sized ->
+        if (sized) {
+            Column {
+                Text(
+                    stringResource(
+                        R.string.import_link_progress_bytes,
+                        formatBytes(stage.bytes),
+                        formatBytes(stage.total),
+                    ),
+                )
+                Spacer(Modifier.height(12.dp))
+                LinearProgressIndicator(
+                    progress = { shown },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        } else {
+            CircularProgressIndicator()
+        }
+    }
 }
 
 @Composable
@@ -631,6 +662,7 @@ private fun extract(context: android.content.Context, archive: File, entry: Stri
 }
 
 private const val MAX_NAME_CHARS = 120
+private const val LINK_PROGRESS_GLIDE_MS = 200
 private const val MAX_ARCHIVE_ENTRIES = 2_000
 private const val BUFFER_BYTES = 64 * 1024
 

@@ -402,6 +402,7 @@ internal object SettingsRowIcons {
         put(R.string.accessibility_panel_motion_title) { Icons.Outlined.Animation }
         put(R.string.accessibility_selection_motion_title) { Icons.Outlined.SelectAll }
         put(R.string.accessibility_language_switch_motion_title) { Icons.Outlined.Flip }
+        put(R.string.accessibility_tool_result_motion_title) { Icons.Outlined.Spellcheck }
         put(R.string.accessibility_row_icons_title) { Icons.Outlined.Interests }
         put(R.string.accessibility_screen_transitions_title) { Icons.Outlined.Animation }
         put(R.string.accessibility_keyboard_preview_title) { Icons.Outlined.Keyboard }

@@ -1,5 +1,17 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,6 +61,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.pluralStringResource
@@ -86,6 +99,11 @@ import java.text.NumberFormat
  * actions apply at once; the service refreshes [card] after each, which is
  * how a deleted word's row disappears and a never-suggested word's button
  * turns into "suggest again".
+ *
+ * Inside the card, those refreshes move rather than jump: the sources cross-
+ * fade from "loading" into the list and the list eases to its new height, a
+ * stepper's value rolls up or down with the press, and the actions row eases
+ * as buttons come and go. The card's own arrival is [GrowingPopupHost]'s.
  */
 @Composable
 internal fun WordCardPopup(card: WordCard?, onAction: (WordCardAction) -> Unit) {
@@ -103,6 +121,7 @@ internal fun WordCardPopup(card: WordCard?, onAction: (WordCardAction) -> Unit) 
 @Composable
 private fun WordCardWindow(card: WordCard, growth: PopupGrowth, onAction: (WordCardAction) -> Unit) {
     val kb = LocalKbTheme.current
+    val animate = kb.motion.any
     // The working values of the rank control, reset when the service hands
     // over a refreshed card (a delete resets the weight to 0, say).
     var weight by remember(card.word, card.learnedCount) { mutableIntStateOf(card.learnedCount) }
@@ -162,9 +181,9 @@ private fun WordCardWindow(card: WordCard, growth: PopupGrowth, onAction: (WordC
                             .verticalScroll(rememberScrollState()),
                     ) {
                         SectionTitle(stringResource(R.string.ime_word_card_sources_title), kb.popupText)
-                        WordSources(card, kb.popupText)
+                        WordSources(card, kb.popupText, animate)
                         Spacer(Modifier.size(8.dp))
-                        Spelling(card, onAction, kb.popupText)
+                        Spelling(card, onAction, kb.popupText, animate)
                         if (showsWeight) {
                             SectionTitle(stringResource(R.string.ime_word_card_weight_title), kb.popupText)
                             Stepper(
@@ -173,6 +192,7 @@ private fun WordCardWindow(card: WordCard, growth: PopupGrowth, onAction: (WordC
                                 } else {
                                     NumberFormat.getIntegerInstance().format(weight)
                                 },
+                                level = weight,
                                 canLower = weight > 0,
                                 canRaise = weight < UserLexicon.MAX_COUNT,
                                 onLower = { weight = (weight - weightStep(weight - 1)).coerceAtLeast(0) },
@@ -180,6 +200,7 @@ private fun WordCardWindow(card: WordCard, growth: PopupGrowth, onAction: (WordC
                                     weight = (weight + weightStep(weight)).coerceAtMost(UserLexicon.MAX_COUNT)
                                 },
                                 color = kb.popupText,
+                                animate = animate,
                             )
                             Hint(stringResource(R.string.ime_word_card_weight_hint), kb.popupText)
                         }
@@ -191,16 +212,18 @@ private fun WordCardWindow(card: WordCard, growth: PopupGrowth, onAction: (WordC
                                 } else {
                                     stringResource(R.string.ime_word_card_offset_value, offset)
                                 },
+                                level = offset,
                                 canLower = offset > WordRanks.MIN_STEPS,
                                 canRaise = offset < WordRanks.MAX_STEPS,
                                 onLower = { offset-- },
                                 onRaise = { offset++ },
                                 color = kb.popupText,
+                                animate = animate,
                             )
                             Hint(stringResource(R.string.ime_word_card_offset_hint), kb.popupText)
                         }
                     }
-                    Actions(card, onAction, done)
+                    Actions(card, onAction, done, animate)
                 }
             }
         }
@@ -218,7 +241,7 @@ private fun WordCardWindow(card: WordCard, growth: PopupGrowth, onAction: (WordC
  * and pinning is what stops the vote putting it back.
  */
 @Composable
-private fun Spelling(card: WordCard, onAction: (WordCardAction) -> Unit, color: Color) {
+private fun Spelling(card: WordCard, onAction: (WordCardAction) -> Unit, color: Color, animate: Boolean) {
     SectionTitle(stringResource(R.string.ime_word_card_spelling_title), color)
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -235,12 +258,19 @@ private fun Spelling(card: WordCard, onAction: (WordCardAction) -> Unit, color: 
     // Only the personal dictionary keeps a spelling, so there is nothing to
     // pin on a word it has not learned; respelling one is what learns it.
     val pinnable = card.learnedCount > 0
+    val labelAlpha by animateFloatAsState(
+        targetValue = if (pinnable) 1f else 0.5f,
+        animationSpec = if (animate) tween(SECTION_MS) else snap(),
+        label = "wordCardPinnable",
+    )
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Text(
             text = stringResource(R.string.ime_word_card_keep_capitals),
             style = MaterialTheme.typography.bodyMedium,
-            color = color.copy(alpha = if (pinnable) 1f else 0.5f),
-            modifier = Modifier.weight(1f),
+            color = color,
+            modifier = Modifier
+                .weight(1f)
+                .graphicsLayer { alpha = labelAlpha },
         )
         Switch(
             checked = card.casePinned,
@@ -292,14 +322,34 @@ private fun Hint(text: String, color: Color) {
     )
 }
 
-/** The list of places the word was found, one row each; or why there are none. */
+/**
+ * The list of places the word was found, one row each; or why there are none.
+ * The look-up cross-fades from its "loading" row into the list, and the list
+ * eases to its new height when a refresh adds or drops a row.
+ */
 @Composable
-private fun WordSources(card: WordCard, color: Color) {
-    val facts = card.facts
-    if (facts == null) {
-        SourceRow(Icons.Outlined.HourglassEmpty, stringResource(R.string.ime_word_card_loading), color)
-        return
+private fun WordSources(card: WordCard, color: Color, animate: Boolean) {
+    MotionCrossfade(
+        target = card.facts != null,
+        animate = animate,
+        modifier = Modifier
+            .fillMaxWidth()
+            .easeSize(animate),
+        label = "wordCardSources",
+    ) { loaded ->
+        val facts = card.facts
+        Column {
+            if (!loaded || facts == null) {
+                SourceRow(Icons.Outlined.HourglassEmpty, stringResource(R.string.ime_word_card_loading), color)
+            } else {
+                WordSourceRows(card, facts, color)
+            }
+        }
     }
+}
+
+@Composable
+private fun WordSourceRows(card: WordCard, facts: WordFacts, color: Color) {
     val numbers = remember { NumberFormat.getIntegerInstance() }
     facts.learned?.let { learned ->
         val lines = mutableListOf(
@@ -376,52 +426,98 @@ private fun SourceRow(icon: ImageVector, text: String, color: Color) {
     }
 }
 
-/** A −/+ pair around the value they change. */
+/**
+ * A −/+ pair around the value they change. [level] is the number behind
+ * [value]: the value rolls up when it rises and down when it falls, and a
+ * button reaching its end dims rather than blinking off.
+ */
 @Composable
 private fun Stepper(
     value: String,
+    level: Int,
     canLower: Boolean,
     canRaise: Boolean,
     onLower: () -> Unit,
     onRaise: () -> Unit,
     color: Color,
+    animate: Boolean,
 ) {
+    val spec: AnimationSpec<Float> = if (animate) tween(SECTION_MS) else snap()
+    val lowerAlpha by animateFloatAsState(if (canLower) 1f else 0.35f, spec, label = "wordCardLower")
+    val raiseAlpha by animateFloatAsState(if (canRaise) 1f else 0.35f, spec, label = "wordCardRaise")
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         IconButton(onClick = onLower, enabled = canLower) {
             Icon(
                 Icons.Outlined.Remove,
                 contentDescription = stringResource(R.string.ime_word_card_step_down_desc),
-                tint = color.copy(alpha = if (canLower) 1f else 0.35f),
+                tint = color,
+                modifier = Modifier.graphicsLayer { alpha = lowerAlpha },
             )
         }
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Medium,
-            color = color,
-            modifier = Modifier.weight(1f),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-        )
+        StepperValue(value, level, color, animate, Modifier.weight(1f))
         IconButton(onClick = onRaise, enabled = canRaise) {
             Icon(
                 Icons.Outlined.Add,
                 contentDescription = stringResource(R.string.ime_word_card_step_up_desc),
-                tint = color.copy(alpha = if (canRaise) 1f else 0.35f),
+                tint = color,
+                modifier = Modifier.graphicsLayer { alpha = raiseAlpha },
             )
         }
     }
 }
 
-/** The menu's actions again, plus Done. Each applies at once except Done. */
+/** The stepper's value, rolling in from below as [level] rises and from above as it falls. */
 @Composable
-private fun Actions(card: WordCard, onAction: (WordCardAction) -> Unit, done: () -> Unit) {
+private fun StepperValue(value: String, level: Int, color: Color, animate: Boolean, modifier: Modifier) {
+    if (!animate) {
+        StepperText(value, color, modifier)
+        return
+    }
+    AnimatedContent(
+        targetState = level to value,
+        modifier = modifier,
+        transitionSpec = {
+            val up = if (targetState.first >= initialState.first) 1 else -1
+            slideInVertically(tween(SECTION_MS, easing = FastOutSlowInEasing)) { h -> up * h / 2 } +
+                fadeIn(tween(SECTION_MS)) togetherWith
+                slideOutVertically(tween(STEP_OUT_MS)) { h -> -up * h / 2 } + fadeOut(tween(STEP_OUT_MS)) using null
+        },
+        contentAlignment = Alignment.Center,
+        label = "wordCardStep",
+    ) { (_, shown) -> StepperText(shown, color, Modifier.fillMaxWidth()) }
+}
+
+@Composable
+private fun StepperText(value: String, color: Color, modifier: Modifier) {
+    Text(
+        text = value,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Medium,
+        color = color,
+        modifier = modifier,
+        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+    )
+}
+
+/**
+ * The menu's actions again, plus Done. Each applies at once except Done.
+ * The row eases to its new height as a refresh adds or drops a button, and
+ * "never suggest" cross-fades into "suggest again" and back.
+ */
+@Composable
+private fun Actions(card: WordCard, onAction: (WordCardAction) -> Unit, done: () -> Unit, animate: Boolean) {
     val facts = card.facts
     val deletable = facts != null &&
         (
             facts.learned != null || facts.system || facts.pendingSightings > 0 ||
                 facts.rankOffset != 0 || facts.importedList
             )
-    Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp)
+            .easeSize(animate),
+    ) {
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -441,15 +537,27 @@ private fun Actions(card: WordCard, onAction: (WordCardAction) -> Unit, done: ()
                     onAction(WordCardAction.ForgetShapes)
                 }
             }
-            if (card.blacklisted) {
-                ActionButton(Icons.Outlined.Visibility, stringResource(R.string.ime_word_menu_allow_again, card.word)) {
-                    onAction(WordCardAction.AllowAgain)
+            MotionCrossfade(
+                target = card.blacklisted,
+                animate = animate,
+                modifier = if (animate) Modifier.animateContentSize(tween(SECTION_MS)) else Modifier,
+                label = "wordCardBan",
+            ) { blacklisted ->
+                // The one fading out has been answered already: a tap on it
+                // would undo what was just done.
+                Box(Modifier.blockTouches(blacklisted != card.blacklisted)) {
+                    if (blacklisted) {
+                        ActionButton(
+                            Icons.Outlined.Visibility,
+                            stringResource(R.string.ime_word_menu_allow_again, card.word),
+                        ) { onAction(WordCardAction.AllowAgain) }
+                    } else {
+                        ActionButton(
+                            Icons.Outlined.VisibilityOff,
+                            stringResource(R.string.ime_suggestion_never_suggest, card.word),
+                        ) { onAction(WordCardAction.NeverSuggest) }
+                    }
                 }
-            } else {
-                ActionButton(
-                    Icons.Outlined.VisibilityOff,
-                    stringResource(R.string.ime_suggestion_never_suggest, card.word),
-                ) { onAction(WordCardAction.NeverSuggest) }
             }
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
@@ -467,5 +575,13 @@ private fun ActionButton(icon: ImageVector, label: String, onClick: () -> Unit) 
     }
 }
 
+/** A section easing to its new height when a refresh changes it; as it is under reduce motion. */
+private fun Modifier.easeSize(animate: Boolean): Modifier =
+    if (animate) animateContentSize(tween(SECTION_MS, easing = FastOutSlowInEasing)) else this
+
 /** [UserLexicon.addWord]'s default boost: at or past it, a word reads as added by hand. */
 private const val ADDED_BY_HAND_COUNT = 200
+
+/** A section easing to its new height, and a stepper's value rolling in; the old value leaves faster. */
+private const val SECTION_MS = 180
+private const val STEP_OUT_MS = 120

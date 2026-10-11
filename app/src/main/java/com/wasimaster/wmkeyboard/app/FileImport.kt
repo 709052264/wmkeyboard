@@ -907,17 +907,11 @@ internal fun ImportFileDialog(
     }
 
     val state = opened
-    if (state == null || working) {
-        // Reading a backup with sticker packs in it is not instant, and neither
-        // is writing one back out.
-        val progress = if (working) {
-            R.string.import_progress_importing
-        } else {
-            R.string.import_progress_reading
-        }
+    if (state == null) {
+        // Reading a backup with sticker packs in it is not instant.
         AlertDialog(
             onDismissRequest = {},
-            title = { Text(stringResource(progress)) },
+            title = { Text(stringResource(R.string.import_progress_reading)) },
             text = { CircularProgressIndicator() },
             confirmButton = {},
         )
@@ -944,9 +938,13 @@ internal fun ImportFileDialog(
     var language by remember(proposal) { mutableStateOf(proposal.language.orEmpty()) }
     var pickingLanguage by remember { mutableStateOf(false) }
     val needsPassphrase = proposal.applyWithPassphrase != null
+    // Writing it out is not instant either. The dialog stays, its title says
+    // so, and the spinner sits in the button that was pressed rather than the
+    // whole dialog being swapped for another one.
+    val phase = if (working) RunPhase.RUNNING else RunPhase.IDLE
     AlertDialog(
-        onDismissRequest = onClose,
-        title = { Text(proposalTitle(proposal)) },
+        onDismissRequest = { if (!working) onClose() },
+        title = { Text(if (working) stringResource(R.string.import_progress_importing) else proposalTitle(proposal)) },
         text = {
             // Scrolls: a preview, a long backup summary and a list of repairs
             // together are taller than a dialog on a short screen, and a
@@ -1002,22 +1000,36 @@ internal fun ImportFileDialog(
                 }) { Text(stringResource(proposal.confirmLabelRes)) }
 
                 applyWithLanguage != null -> TextButton(onClick = {
+                    // Left enabled while it works, so the spinner in it is
+                    // drawn in the button's colour rather than greyed out.
+                    if (working) return@TextButton
                     working = true
                     scope.launch { message = applyWithLanguage(language); working = false }
-                }) { Text(stringResource(proposal.confirmLabelRes)) }
+                }) {
+                    RunGlyph(phase)
+                    Text(stringResource(proposal.confirmLabelRes))
+                }
 
                 applyWithPassphrase != null -> TextButton(
                     enabled = passphrase.isNotEmpty(),
                     onClick = {
+                        if (working) return@TextButton
                         working = true
                         scope.launch { message = applyWithPassphrase(passphrase); working = false }
                     },
-                ) { Text(stringResource(proposal.confirmLabelRes)) }
+                ) {
+                    RunGlyph(phase)
+                    Text(stringResource(proposal.confirmLabelRes))
+                }
 
                 apply != null -> TextButton(onClick = {
+                    if (working) return@TextButton
                     working = true
                     scope.launch { message = apply(); working = false }
-                }) { Text(stringResource(proposal.confirmLabelRes)) }
+                }) {
+                    RunGlyph(phase)
+                    Text(stringResource(proposal.confirmLabelRes))
+                }
 
                 else -> TextButton(onClick = onClose) {
                     Text(stringResource(CommonR.string.common_ok))
@@ -1026,7 +1038,7 @@ internal fun ImportFileDialog(
         },
         dismissButton = {
             if (proposal.actionable) {
-                TextButton(onClick = onClose) { Text(stringResource(CommonR.string.common_cancel)) }
+                TextButton(onClick = onClose, enabled = !working) { Text(stringResource(CommonR.string.common_cancel)) }
             }
         },
     )

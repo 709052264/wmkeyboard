@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app
 
 import android.content.Context
 import android.net.Uri
+import androidx.annotation.PluralsRes
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -168,7 +169,8 @@ private fun FlorisFilePreview(converted: com.wasimaster.wmkeyboard.core.theme.Co
             runCatching { converted.stored("preview", previewCacheDir(context)) }.getOrNull()
         }
     }
-    shown?.let { PreviewFrame { ThemePreview(it, animatedBadge = false) } }
+    // Fades in once the images are out, rather than popping into the dialog.
+    shown?.let { StaggerIn(0) { PreviewFrame { ThemePreview(it, animatedBadge = false) } } }
 }
 
 /**
@@ -189,11 +191,13 @@ private fun SnippetsFilePreview(snippets: List<Snippet>) {
     val shown = snippets.take(MAX_ROWS)
     if (shown.isEmpty()) return
     Column(Modifier.fillMaxWidth().padding(bottom = PREVIEW_GAP)) {
-        for (snippet in shown) {
-            PreviewLine(
-                title = snippet.label.ifBlank { snippet.trigger.orEmpty() },
-                detail = snippet.text,
-            )
+        for ((index, snippet) in shown.withIndex()) {
+            StaggerIn(index) {
+                PreviewLine(
+                    title = snippet.label.ifBlank { snippet.trigger.orEmpty() },
+                    detail = snippet.text,
+                )
+            }
         }
         MoreLine(snippets.size - shown.size)
     }
@@ -208,11 +212,13 @@ private fun GboardDictionaryPreview(contents: GboardDictionary.Contents) {
     val shown = contents.entries.take(MAX_ROWS)
     if (shown.isEmpty()) return
     Column(Modifier.fillMaxWidth().padding(bottom = PREVIEW_GAP)) {
-        for (entry in shown) {
-            if (entry.shortcut.isEmpty()) {
-                PreviewLine(title = entry.word, detail = "")
-            } else {
-                PreviewLine(title = entry.shortcut, detail = entry.word)
+        for ((index, entry) in shown.withIndex()) {
+            StaggerIn(index) {
+                if (entry.shortcut.isEmpty()) {
+                    PreviewLine(title = entry.word, detail = "")
+                } else {
+                    PreviewLine(title = entry.shortcut, detail = entry.word)
+                }
             }
         }
         MoreLine(contents.entries.size - shown.size)
@@ -225,8 +231,8 @@ private fun VocabularyFilePreview(pack: VocabPack) {
     val shown = pack.words.take(MAX_ROWS)
     if (shown.isEmpty()) return
     Column(Modifier.fillMaxWidth().padding(bottom = PREVIEW_GAP)) {
-        for (word in shown) {
-            PreviewLine(title = word.word, detail = word.definition)
+        for ((index, word) in shown.withIndex()) {
+            StaggerIn(index) { PreviewLine(title = word.word, detail = word.definition) }
         }
         MoreLine(pack.words.size - shown.size)
     }
@@ -243,22 +249,18 @@ private fun StickersFilePreview(uri: Uri) {
             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            for (image in stickers.images.take(MAX_STICKERS)) {
-                AsyncImage(
-                    model = image,
-                    contentDescription = null,
-                    imageLoader = loader,
-                    modifier = Modifier.size(STICKER_SIZE).clip(RoundedCornerShape(8.dp)),
-                )
+            for ((index, image) in stickers.images.take(MAX_STICKERS).withIndex()) {
+                StaggerIn(index) {
+                    AsyncImage(
+                        model = image,
+                        contentDescription = null,
+                        imageLoader = loader,
+                        modifier = Modifier.size(STICKER_SIZE).clip(RoundedCornerShape(8.dp)),
+                    )
+                }
             }
         }
-        CountLine(
-            pluralStringResource(
-                R.plurals.addon_preview_sticker_count,
-                stickers.total,
-                stickers.total,
-            ),
-        )
+        CountingLine(stickers.total, R.plurals.addon_preview_sticker_count)
     }
 }
 
@@ -279,16 +281,10 @@ private fun SoundPackFilePreview(uri: Uri) {
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             for ((index, variant) in pack.variants.withIndex()) {
-                PlayChip(index + 1) { AddonSoundPreview.play(variant) }
+                StaggerIn(index) { PlayChip(index + 1) { AddonSoundPreview.play(variant) } }
             }
         }
-        CountLine(
-            pluralStringResource(
-                R.plurals.addon_preview_pack_variant_count,
-                pack.totalVariants,
-                pack.totalVariants,
-            ),
-        )
+        CountingLine(pack.totalVariants, R.plurals.addon_preview_pack_variant_count)
     }
 }
 
@@ -354,13 +350,15 @@ private fun PreviewLine(title: String, detail: String) {
 @Composable
 private fun MoreLine(remaining: Int) {
     if (remaining <= 0) return
-    CountLine(pluralStringResource(R.plurals.import_preview_more, remaining, remaining))
+    CountingLine(remaining, R.plurals.import_preview_more)
 }
 
+/** A line under a preview saying how many, the figure counting up to itself as it arrives. */
 @Composable
-private fun CountLine(text: String) {
-    Text(
-        text,
+private fun CountingLine(count: Int, @PluralsRes plural: Int) {
+    CountingText(
+        target = count.toLong(),
+        format = { shown -> pluralStringResource(plural, shown.toInt(), shown.toInt()) },
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(top = 4.dp),

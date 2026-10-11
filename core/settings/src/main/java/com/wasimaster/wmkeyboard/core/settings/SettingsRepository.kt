@@ -1637,6 +1637,13 @@ data class AccessibilitySettings(
      * per-key layer change.
      */
     val languageSwitchMotion: Boolean = false,
+    /**
+     * Grammar and translate results animate: an applied fix strikes the old
+     * text and slides the replacement in, the changed part of a translation
+     * fades in. Off by default, because these are tools people use to get
+     * text out fast. [KeyboardSettings.reduceMotion] still wins.
+     */
+    val toolResultMotion: Boolean = false,
 )
 
 /**
@@ -8609,6 +8616,7 @@ class SettingsRepository(private val context: Context) {
         private val PANEL_MOTION = booleanPreferencesKey("panel_motion")
         private val SELECTION_MOTION = booleanPreferencesKey("selection_motion")
         private val LANGUAGE_SWITCH_MOTION = booleanPreferencesKey("language_switch_motion")
+        private val TOOL_RESULT_MOTION = booleanPreferencesKey("tool_result_motion")
         private val NUMBER_ROW = booleanPreferencesKey("number_row")
         private val AUTOCORRECT = booleanPreferencesKey("autocorrect")
         private val AUTOCORRECT_CONFIDENCE = floatPreferencesKey("autocorrect_confidence")
@@ -10288,6 +10296,7 @@ class SettingsRepository(private val context: Context) {
             selectionMotion = p[SELECTION_MOTION] ?: defaults.accessibility.selectionMotion,
             languageSwitchMotion = p[LANGUAGE_SWITCH_MOTION]
                 ?: defaults.accessibility.languageSwitchMotion,
+            toolResultMotion = p[TOOL_RESULT_MOTION] ?: defaults.accessibility.toolResultMotion,
         )
 
     private fun readCorrection(p: Preferences, defaults: KeyboardSettings) =
@@ -15302,6 +15311,10 @@ class SettingsRepository(private val context: Context) {
     /** See [AccessibilitySettings.languageSwitchMotion]. */
     suspend fun setLanguageSwitchMotion(value: Boolean) =
         editPrefs { it[LANGUAGE_SWITCH_MOTION] = value }
+
+    /** See [AccessibilitySettings.toolResultMotion]. */
+    suspend fun setToolResultMotion(value: Boolean) =
+        editPrefs { it[TOOL_RESULT_MOTION] = value }
 
     suspend fun setNumberRow(value: Boolean) =
         editPrefs { it[NUMBER_ROW] = value }
