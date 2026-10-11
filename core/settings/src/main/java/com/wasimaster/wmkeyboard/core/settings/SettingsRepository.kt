@@ -6903,6 +6903,15 @@ data class LayoutBehaviorSettings(
      */
     val edgeSwipeBack: Boolean = false,
     /**
+     * Asks Android to take away the bar it draws under the keyboard in gesture
+     * navigation, with its hide-keyboard and switch-keyboard buttons (#582).
+     * The keyboard has its own 🌐 key and Back already hides it, so the bar
+     * only costs height. Android 16 and up: the platform has no way for a
+     * keyboard to do this before that. Off by default, as the buttons are the
+     * system's and some people use them.
+     */
+    val hideSystemKeyboardBar: Boolean = false,
+    /**
      * The keys at the ends of a row narrower than the board take the blank
      * space beside them (#530): a tap left of QWERTY's `a` or right of its `l`
      * types that letter instead of landing on nothing, the way Gboard does.
@@ -8644,6 +8653,7 @@ class SettingsRepository(private val context: Context) {
         private val ENTER_LONGPRESS_EMOJI = booleanPreferencesKey("enter_longpress_emoji")
         private val SPACE_SWIPE_DOWN_HIDE = booleanPreferencesKey("space_swipe_down_hide")
         private val EDGE_SWIPE_BACK = booleanPreferencesKey("edge_swipe_back")
+        private val HIDE_SYSTEM_KEYBOARD_BAR = booleanPreferencesKey("hide_system_keyboard_bar")
         private val EXTEND_EDGE_KEYS = booleanPreferencesKey("extend_edge_keys")
         private val GLOBE_IN_ONE_PLACE = booleanPreferencesKey("globe_in_one_place")
         private val HINT_FLICK = booleanPreferencesKey("hint_flick")
@@ -10732,6 +10742,8 @@ class SettingsRepository(private val context: Context) {
             spaceSwipeDownHide =
                 p[SPACE_SWIPE_DOWN_HIDE] ?: defaults.layoutBehavior.spaceSwipeDownHide,
             edgeSwipeBack = p[EDGE_SWIPE_BACK] ?: defaults.layoutBehavior.edgeSwipeBack,
+            hideSystemKeyboardBar =
+                p[HIDE_SYSTEM_KEYBOARD_BAR] ?: defaults.layoutBehavior.hideSystemKeyboardBar,
             extendEdgeKeys = p[EXTEND_EDGE_KEYS] ?: defaults.layoutBehavior.extendEdgeKeys,
             globeInOnePlace = p[GLOBE_IN_ONE_PLACE] ?: defaults.layoutBehavior.globeInOnePlace,
             hintFlick = p[HINT_FLICK] ?: defaults.layoutBehavior.hintFlick,
@@ -15862,6 +15874,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setEdgeSwipeBack(value: Boolean) =
         editPrefs { it[EDGE_SWIPE_BACK] = value }
+
+    suspend fun setHideSystemKeyboardBar(value: Boolean) =
+        editPrefs { it[HIDE_SYSTEM_KEYBOARD_BAR] = value }
 
     suspend fun setExtendEdgeKeys(value: Boolean) =
         editPrefs { it[EXTEND_EDGE_KEYS] = value }

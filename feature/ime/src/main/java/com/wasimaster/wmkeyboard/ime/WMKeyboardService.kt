@@ -3301,6 +3301,12 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch {
             _uiState.map { it.incognitoOn }.distinctUntilChanged().collect { NetLog.incognito = it }
         }
+        // The system's own bar under the keyboard, on or off as asked (#582).
+        serviceScope.launch {
+            _uiState.map { it.settings.layoutBehavior.hideSystemKeyboardBar }
+                .distinctUntilChanged()
+                .collect { hide -> showSystemKeyboardBar(!hide) }
+        }
         // Whether the keyboard's copies stay inside it (#392). Off again the
         // moment incognito is, which also forgets the private clip.
         serviceScope.launch {
@@ -4739,6 +4745,29 @@ open class WMKeyboardService : InputMethodService() {
         // hide-keyboard chevron and the language-switch glyph, which the system
         // draws, not us.
         controller.isAppearanceLightNavigationBars = navigationBarWantsDarkIcons(color)
+    }
+
+    /**
+     * Shows or takes away the bar Android draws under the keyboard in gesture
+     * navigation, with its hide-keyboard and switch-keyboard buttons (#582).
+     *
+     * From Android 16 the system draws that bar inside the keyboard's own
+     * window and reports it as a caption bar; a keyboard that hides the
+     * caption bar through its window's insets controller takes the bar and
+     * its buttons away (`NavigationBarController` hides its frame when the
+     * caption bar is not visible). Before 16 there is nothing a keyboard can
+     * ask for, so this does nothing there. The keys still pad by whatever
+     * navigation-bar inset the window reports afterwards.
+     *
+     * The system then asks the keyboard for a switch-keyboard button of its
+     * own through `onCustomImeSwitcherButtonRequestedVisible`. The 🌐 key and
+     * its picker already are that, so the request is left to the default.
+     */
+    private fun showSystemKeyboardBar(show: Boolean) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.BAKLAVA) return
+        val controller = window?.window?.insetsController ?: return
+        val captionBar = android.view.WindowInsets.Type.captionBar()
+        if (show) controller.show(captionBar) else controller.hide(captionBar)
     }
 
     @androidx.compose.runtime.Composable
@@ -6727,6 +6756,9 @@ open class WMKeyboardService : InputMethodService() {
             if (summonPackage == null) summonPackage = currentInputEditorInfo?.packageName
         }
         _shownState.value = _uiState.value
+        // Asked again on every showing, early enough to beat the first frame:
+        // a window that went away may come back with the bar requested again.
+        showSystemKeyboardBar(!_uiState.value.settings.layoutBehavior.hideSystemKeyboardBar)
         // Ask for the window's insets afresh (#463): the navigation bar the
         // keyboard pads itself clear of is read from them, and a window coming
         // back from another keyboard must not keep the ones it left with.

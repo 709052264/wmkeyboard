@@ -656,6 +656,7 @@ internal object SettingsRowIcons {
         put(R.string.layout_extend_edge_keys_title) { Icons.Outlined.TouchApp }
         put(R.string.layout_keyboard_scale_title) { Icons.Outlined.ZoomOutMap }
         put(R.string.layout_bottom_padding_title) { Icons.Outlined.Padding }
+        put(R.string.layout_hide_system_keyboard_bar_title) { Icons.Outlined.VisibilityOff }
         put(R.string.layout_board_corner_top_title) { Icons.Outlined.RoundedCorner }
         put(R.string.layout_board_corner_bottom_title) { Icons.Outlined.RoundedCorner }
         put(R.string.layout_board_corners_title) { Icons.Outlined.CropFree }

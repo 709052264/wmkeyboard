@@ -854,6 +854,7 @@ private fun SearchStrings.layoutSizeRows(): List<SettingsSearchEntry> {
         row(R.string.layout_extend_edge_keys_title, R.string.layout_extend_edge_keys_subtitle),
         row(R.string.layout_keyboard_scale_title, R.string.layout_keyboard_scale_subtitle),
         row(R.string.layout_bottom_padding_title, R.string.layout_bottom_padding_subtitle),
+        row(R.string.layout_hide_system_keyboard_bar_title, R.string.layout_hide_system_keyboard_bar_subtitle),
         row(R.string.layout_board_corner_top_title, R.string.layout_board_corner_top_subtitle),
         row(R.string.layout_board_corner_bottom_title, R.string.layout_board_corner_bottom_subtitle),
         row(R.string.layout_keyboard_width_title, R.string.layout_keyboard_width_subtitle),
