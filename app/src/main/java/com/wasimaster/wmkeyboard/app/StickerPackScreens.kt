@@ -182,7 +182,7 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
             }
         }
         for (pack in packs) {
-            item {
+            item(key = pack.id) {
                 HighlightableItem(pack.id) {
                     StickerPackRow(
                         pack = pack,

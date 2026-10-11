@@ -61,7 +61,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -243,10 +242,10 @@ internal fun SnippetSettings(
     // as it always has.
     var pendingImport by remember { mutableStateOf<SnippetPayload.Parsed?>(null) }
     var pendingExport by remember { mutableStateOf<List<ContentText>>(emptyList()) }
+    var importSource by remember { mutableStateOf(false) }
     // Whether the file being picked was asked for as a table, which lets one
     // with no header row through, read by position.
     var expectTable by remember { mutableStateOf(false) }
-    var importSource by remember { mutableStateOf(false) }
     var exportTarget by remember { mutableStateOf(false) }
     var urlPrompt by remember { mutableStateOf(false) }
     var packagePrompt by remember { mutableStateOf(false) }
@@ -531,7 +530,7 @@ internal fun SnippetSettings(
         }
         for (folder in folders) {
             if (editingFolders) break
-            item {
+            item(key = folder.id) {
                 val count = snippets.count { it.folderId == folder.id }
                 WmRow(
                     title = folder.name,
@@ -621,15 +620,15 @@ internal fun SnippetSettings(
             title = R.string.expander_import_source_title,
             options = listOf(
                 R.string.expander_source_native to R.string.expander_source_native_body,
+                R.string.expander_source_espanso to R.string.expander_source_espanso_body,
                 R.string.expander_source_csv to R.string.expander_source_csv_body,
                 R.string.expander_source_gboard to R.string.expander_source_gboard_body,
-                R.string.expander_source_espanso to R.string.expander_source_espanso_body,
                 R.string.expander_source_url to R.string.expander_source_url_body,
             ),
             onDismiss = { importSource = false },
             onPick = { index ->
-                expectTable = index == 2
                 importSource = false
+                expectTable = index == 2
                 when (index) {
                     0 -> importLauncher.launch(SnippetFile.IMPORT_MIME_TYPES)
                     1, 2, 3 -> importLauncher.launch(SnippetPayload.IMPORT_MIME_TYPES)
@@ -1194,19 +1193,18 @@ private fun SnippetGroup(
             return@SettingsGroup
         }
         for (snippet in snippets) {
-            item {
-                // Keyed on the snippet, not on its place in the list: the swipe
-                // state below is remembered per composition slot, and without
-                // this the row that slides up into a deleted row's place would
-                // inherit its dismissed state and disappear as well.
-                key(snippet.id) {
-                    SwipeToDelete(onDelete = { onDelete(snippet) }) {
-                        SnippetRow(
-                            snippet,
-                            onEdit = { onOpen(snippet) },
-                            onDelete = { onDelete(snippet) },
-                        )
-                    }
+            // Keyed on the snippet, not on its place in the list: the swipe
+            // state below is remembered per composition slot, and without
+            // this the row that slides up into a deleted row's place would
+            // inherit its dismissed state and disappear as well. The key also
+            // lets the group close a deleted row in place, and open a new one.
+            item(key = snippet.id) {
+                SwipeToDelete(onDelete = { onDelete(snippet) }) {
+                    SnippetRow(
+                        snippet,
+                        onEdit = { onOpen(snippet) },
+                        onDelete = { onDelete(snippet) },
+                    )
                 }
             }
         }
@@ -2218,6 +2216,7 @@ private fun SnippetPickerDialog(
 ) {
     var query by remember { mutableStateOf("") }
     val picked = remember { mutableStateListOf<Long>().also { it.addAll(selected) } }
+    val reduceMotion = LocalReduceMotion.current
     val shown = candidates.filter { snippet ->
         query.isBlank() ||
             snippet.label.contains(query, ignoreCase = true) ||
@@ -2243,6 +2242,8 @@ private fun SnippetPickerDialog(
                 LazyColumn(modifier = Modifier.heightIn(max = DialogScrollMaxHeight)) {
                     items(shown, key = { it.id }) { snippet ->
                         val on = snippet.id in picked
+                        // A search narrowing the list closes the gaps it leaves
+                        // by sliding the matches up, not by redrawing them there.
                         ListItem(
                             headlineContent = { Text(snippet.label) },
                             supportingContent = {
@@ -2259,7 +2260,7 @@ private fun SnippetPickerDialog(
                                     },
                                 )
                             },
-                            modifier = Modifier
+                            modifier = listItemMotion(reduceMotion)
                                 .fillMaxWidth()
                                 .clickable {
                                     if (on) picked.remove(snippet.id) else picked.add(snippet.id)

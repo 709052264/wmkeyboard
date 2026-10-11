@@ -369,7 +369,7 @@ internal fun NotesListScreen(
     } else {
         SettingsGroup {
             for (note in shown) {
-                item {
+                item(key = note.id) {
                     NoteListRow(
                         note = note,
                         tagColours = tagColours,
@@ -706,7 +706,9 @@ internal fun NoteTagsScreen(settings: LiveSettings) {
     } else {
         SettingsGroup {
             for (tag in state.tags) {
-                item {
+                // Keyed, so the open menu belongs to the tag rather than to
+                // its place, and a removed tag closes out of the list.
+                item(key = tag.name) {
                     var menu by remember { mutableStateOf(false) }
                     val count = counts[tag.name] ?: 0
                     WmRow(
@@ -839,7 +841,7 @@ internal fun NotesTrashScreen(settings: LiveSettings) {
     } else {
         SettingsGroup {
             for (note in state.trash) {
-                item {
+                item(key = note.id) {
                     WmRow(
                         title = note.displayTitle().ifEmpty { stringResource(R.string.notes_untitled) },
                         subtitle = stringResource(R.string.notes_trashed_ago, relativeTime(note.deletedAt ?: note.updatedAt)),

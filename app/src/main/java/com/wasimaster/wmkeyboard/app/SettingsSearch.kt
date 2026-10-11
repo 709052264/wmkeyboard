@@ -371,6 +371,7 @@ private fun SearchStrings.typingAutopilotRows(): List<SettingsSearchEntry> {
         row(R.string.typing_autopilot_show_title, R.string.typing_autopilot_show_subtitle),
         row(R.string.typing_autopilot_size_title, R.string.typing_autopilot_size_subtitle),
         row(R.string.typing_autopilot_outline_title, R.string.typing_autopilot_outline_subtitle),
+        row(R.string.typing_autopilot_animate_title, R.string.typing_autopilot_animate_subtitle),
     )
 }
 
@@ -1930,6 +1931,9 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         access(R.string.accessibility_keyboard_font_title, R.string.accessibility_keyboard_font_subtitle),
         access(R.string.accessibility_reduce_motion_title, R.string.accessibility_reduce_motion_subtitle),
         access(R.string.accessibility_classic_popup_title, R.string.accessibility_classic_popup_subtitle),
+        access(R.string.accessibility_panel_motion_title, R.string.accessibility_panel_motion_subtitle),
+        access(R.string.accessibility_selection_motion_title, R.string.accessibility_selection_motion_subtitle),
+        access(R.string.accessibility_language_switch_motion_title, R.string.accessibility_language_switch_motion_subtitle),
         access(R.string.accessibility_row_icons_title, R.string.accessibility_row_icons_subtitle),
         access(R.string.accessibility_screen_transitions_title, R.string.accessibility_screen_transitions_subtitle),
         access(R.string.accessibility_keyboard_preview_title, R.string.accessibility_keyboard_preview_subtitle),

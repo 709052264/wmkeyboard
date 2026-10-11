@@ -155,6 +155,33 @@ internal fun AccessibilitySettings(
                 default = SettingsDefaults.popup.alternatesClassic,
             ) { scope.launch { repository.setAlternatesClassic(it) } }
         }
+        item {
+            ToggleSetting(
+                R.string.accessibility_panel_motion_title,
+                stringResource(R.string.accessibility_panel_motion_subtitle),
+                settings.watch { it.accessibility.panelMotion },
+                info = stringResource(R.string.accessibility_panel_motion_info),
+                default = SettingsDefaults.accessibility.panelMotion,
+            ) { scope.launch { repository.setPanelMotion(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.accessibility_selection_motion_title,
+                stringResource(R.string.accessibility_selection_motion_subtitle),
+                settings.watch { it.accessibility.selectionMotion },
+                info = stringResource(R.string.accessibility_selection_motion_info),
+                default = SettingsDefaults.accessibility.selectionMotion,
+            ) { scope.launch { repository.setSelectionMotion(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.accessibility_language_switch_motion_title,
+                stringResource(R.string.accessibility_language_switch_motion_subtitle),
+                settings.watch { it.accessibility.languageSwitchMotion },
+                info = stringResource(R.string.accessibility_language_switch_motion_info),
+                default = SettingsDefaults.accessibility.languageSwitchMotion,
+            ) { scope.launch { repository.setLanguageSwitchMotion(it) } }
+        }
     }
 
     SettingsGroup(stringResource(R.string.accessibility_settings_app_title)) {

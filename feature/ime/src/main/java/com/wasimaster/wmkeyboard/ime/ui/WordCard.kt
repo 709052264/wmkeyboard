@@ -1,6 +1,5 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -89,7 +88,20 @@ import java.text.NumberFormat
  * turns into "suggest again".
  */
 @Composable
-internal fun WordCardPopup(card: WordCard, onAction: (WordCardAction) -> Unit) {
+internal fun WordCardPopup(card: WordCard?, onAction: (WordCardAction) -> Unit) {
+    GrowingPopupHost(card) { shown, growth ->
+        // On its way out the service has already closed the card; nothing on
+        // it answers any more.
+        WordCardWindow(shown, growth) { action -> if (!growth.leaving) onAction(action) }
+    }
+}
+
+/**
+ * The card's window. It grows in from the strip that opened it and folds back
+ * the same way ([growth]), its scrim fading with it.
+ */
+@Composable
+private fun WordCardWindow(card: WordCard, growth: PopupGrowth, onAction: (WordCardAction) -> Unit) {
     val kb = LocalKbTheme.current
     // The working values of the rank control, reset when the service hands
     // over a refreshed card (a delete resets the weight to 0, say).
@@ -110,7 +122,7 @@ internal fun WordCardPopup(card: WordCard, onAction: (WordCardAction) -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f))
+                .popupScrim(growth)
                 .pointerInput(Unit) { detectTapGestures { dismiss() } },
             contentAlignment = Alignment.Center,
         ) {
@@ -121,6 +133,7 @@ internal fun WordCardPopup(card: WordCard, onAction: (WordCardAction) -> Unit) {
                 shadowElevation = elevationFor(kb.menuShapeKind, 8.dp),
                 modifier = Modifier
                     .padding(12.dp)
+                    .popupGrow(growth)
                     .fillMaxWidth(0.94f)
                     .fillMaxHeight(0.94f)
                     // Taps inside the card must not reach the scrim.

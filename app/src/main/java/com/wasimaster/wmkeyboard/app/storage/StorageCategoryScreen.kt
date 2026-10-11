@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -64,6 +65,12 @@ internal fun StorageCategoryScreen(
     var busy by remember { mutableStateOf(false) }
     var confirmItem by remember { mutableStateOf<StorageItem?>(null) }
     var confirmAll by remember { mutableStateOf(false) }
+    // Items on their way out: hidden the moment the deletion is confirmed, so
+    // the row folds away while the files go rather than a beat later when the
+    // list is read again. Cleared on that read — an item that is still there
+    // (the deletion failed) comes back.
+    var leaving by remember(categoryId) { mutableStateOf(emptySet<String>()) }
+    val ledger = remember(categoryId) { RowLedger() }
 
     val items by produceState(emptyList<StorageItem>(), categoryId, revision) {
         value = withContext(Dispatchers.IO) {
@@ -71,6 +78,9 @@ internal fun StorageCategoryScreen(
                 .sortedByDescending { it.bytes }
         }
     }
+
+    LaunchedEffect(items) { leaving = emptySet() }
+    val rows = remember(items) { ledger.update(items) }
 
     fun perform(work: suspend (StorageEnv) -> Unit) {
         scope.launch {
@@ -99,14 +109,18 @@ internal fun StorageCategoryScreen(
         // rather than as two kinds of thing.
         val slotted = items.any { it.preview != null }
         SettingsGroup {
-            for (item in items) {
-                item {
+            for (row in rows) {
+                // A deleted item keeps its slot, hidden, so the group folds it
+                // away in place and the rows under it close the gap.
+                item(visible = row.present && row.item.id !in leaving) {
                     StorageItemRow(
-                        item = item,
+                        item = row.item,
                         accent = category.accent,
                         slotted = slotted,
-                        enabled = !busy,
-                    ) { confirmItem = item }
+                        // Also off while it folds away: the fading row still
+                        // takes a press.
+                        enabled = !busy && row.item.id !in leaving,
+                    ) { confirmItem = row.item }
                 }
             }
         }
@@ -147,6 +161,7 @@ internal fun StorageCategoryScreen(
             onDismiss = { confirmItem = null },
             onConfirm = {
                 confirmItem = null
+                leaving = leaving + item.id
                 perform { env -> category.delete(env, item) }
             },
         )
@@ -164,6 +179,39 @@ internal fun StorageCategoryScreen(
                 perform { env -> category.clear(env) }
             },
         )
+    }
+}
+
+/** One slot of the item list: the item, and whether it is still on disk. */
+private class ItemRow(val item: StorageItem, val present: Boolean)
+
+/**
+ * The item list as the screen shows it, across reloads.
+ *
+ * [SettingsGroup] lays its rows out by position, with no keys. Handed the
+ * fresh list after a deletion, every row under the deleted one would shift up
+ * a slot in a single frame. So while a reload only takes items away — which
+ * is all a deletion does — the deleted ones stay in their slots marked gone,
+ * and the group folds each one away where it was. Anything else (an item
+ * that is new, or a different order) starts the ledger again from the fresh
+ * list, which is drawn as it always was.
+ */
+private class RowLedger {
+    private var rows: List<ItemRow> = emptyList()
+
+    fun update(items: List<StorageItem>): List<ItemRow> {
+        val fresh = items.associateBy { it.id }
+        val known = rows.map { it.item.id }
+        val survivors = known.filter { it in fresh }
+        val onlyRemoved = rows.isNotEmpty() &&
+            fresh.keys.all { it in known } &&
+            survivors == items.map { it.id }
+        rows = if (onlyRemoved) {
+            rows.map { row -> fresh[row.item.id]?.let { ItemRow(it, present = true) } ?: ItemRow(row.item, present = false) }
+        } else {
+            items.map { ItemRow(it, present = true) }
+        }
+        return rows
     }
 }
 

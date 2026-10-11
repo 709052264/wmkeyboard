@@ -344,7 +344,9 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     var visible by remember(query, sort) { mutableIntStateOf(WORD_LIST_PAGE) }
     SettingsGroup {
         for ((word, count) in shown.take(visible)) {
-            item {
+            // Keyed on the spelling, so a word deleted or added opens and
+            // closes in place rather than every row under it jumping.
+            item(key = word) {
                 // Every row carries its count (#165); a word the user added
                 // says so in front of it rather than instead of it.
                 val seen = pluralStringResource(R.plurals.backup_dictionary_seen_count, count, count)
@@ -405,7 +407,7 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     if (rankEntries.isNotEmpty()) {
         SettingsGroup(title = stringResource(R.string.backup_rank_adjustments_title)) {
             for ((word, steps) in rankEntries) {
-                item {
+                item(key = word) {
                     WmRow(
                         title = word,
                         subtitle = stringResource(
@@ -483,8 +485,6 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
         )
     }
 
-    if (showTidy) {
-        AlertDialog(
     gboardFile?.let { uri ->
         ImportFileDialog(
             repository = repository,
@@ -496,6 +496,8 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
         )
     }
 
+    if (showTidy) {
+        AlertDialog(
             onDismissRequest = { showTidy = false },
             title = { Text(stringResource(R.string.backup_tidy_words_title)) },
             text = {
@@ -881,7 +883,7 @@ internal fun BlacklistSettings(repository: SettingsRepository, settings: LiveSet
     }
     SettingsGroup {
         for (entry in shown.take(visible)) {
-            item {
+            item(key = entry) {
                 val word = entry.word
                 WmRow(
                     title = word,
@@ -996,7 +998,7 @@ internal fun PhoneFormatSettings(repository: SettingsRepository, settings: LiveS
     }
     SettingsGroup {
         for (format in formats) {
-            item {
+            item(key = format) {
                 WmRow(
                     title = format,
                     icon = Icons.Outlined.Phone,
@@ -1207,7 +1209,7 @@ internal fun LearnedCorrectionsSettings(repository: SettingsRepository, settings
     } else if (shown.isNotEmpty()) {
         SettingsGroup(stringResource(R.string.typing_learned_corrections_pairs_title)) {
             for ((typed, taught) in shown.take(visible)) {
-                item {
+                item(key = typed) {
                     WmRow(
                         title = "$typed → ${taught.fixed}",
                         subtitle = pluralStringResource(

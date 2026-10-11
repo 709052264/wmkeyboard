@@ -1312,10 +1312,11 @@ internal val LocalSettingsSnackbar = compositionLocalOf<SettingsSnackbar?> { nul
  * row stays — a swipe is a shortcut for people who know it is there, never the
  * only way to reach something.
  *
- * Callers in a plain `Column` (which is what a settings group is) must wrap the
- * call in `key(id) { }`. Without it the state remembered here belongs to a
- * *position* in the list, and the row that slides up into a deleted row's place
- * inherits its dismissed state and vanishes too.
+ * Callers in a plain `Column` (which is what a settings group is) must key the
+ * row: `item(key = id) { }` in a group, which also closes the deleted row in
+ * place, or `key(id) { }` anywhere else. Without it the state remembered here
+ * belongs to a *position* in the list, and the row that slides up into a
+ * deleted row's place inherits its dismissed state and vanishes too.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

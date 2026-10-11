@@ -313,7 +313,10 @@ internal fun CustomDictionarySettings(
         val shipped = settings.watch { it.suggestionStrip.shippedDictionaryEnabledFor(langId) }
         SettingsGroup(if (languageOff) offHeader.format(header) else header) {
             for (entry in entries) {
-                item {
+                // Keyed on the name rather than the path: switching a list off
+                // renames its file, and a key that changed with it would close
+                // the row and open it again for a flick of the switch.
+                item(key = CustomDictionaries.displayName(entry.file)) {
                     // A downloaded word list is recorded by its path, which is
                     // what an addon's Use button hands over.
                     HighlightableItem(entry.file.absolutePath) {
@@ -851,7 +854,7 @@ internal fun EmojiKeywordSettings(
                 item { EmojiDictRow(dict) }
             }
             for (entry in entries) {
-                item {
+                item(key = entry.file.absolutePath) {
                     HighlightableItem(entry.file.absolutePath) {
                         WmRow(
                             title = entry.file.nameWithoutExtension,

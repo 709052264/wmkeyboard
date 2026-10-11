@@ -262,6 +262,12 @@ private fun PanelKeyGrid(
         }
     }
 
+    // A tile slides to where a reflow puts it — a strip folding away, a row
+    // changing — and every tile is a possible panel opener (an emoji panel's
+    // clipboard key, a media switch), so a panel it opens grows out of it.
+    val tile = Modifier
+        .reflowOnMove(kb.motion.any)
+        .panelOrigin()
     Layout(
         modifier = modifier,
         content = {
@@ -270,11 +276,12 @@ private fun PanelKeyGrid(
                 if (field != null) {
                     // Inset by the key gaps so the component's edges line up
                     // with the faces of the keys beside it.
-                    Box(Modifier.padding(horizontal = gapH, vertical = gapV)) { fields(field) }
+                    Box(tile.padding(horizontal = gapH, vertical = gapV)) { fields(field) }
                 } else {
                     KeyButton(
                         visual = panelSlot.visual!!,
                         settings = settings,
+                        modifier = tile,
                         onKey = onPanelKey,
                         onText = callbacks.onText,
                         onCursorMove = callbacks.onCursorMove,

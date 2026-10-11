@@ -1172,7 +1172,7 @@ internal fun TypingAutopilotSettings(
                     R.string.typing_autopilot_strength_title,
                     subtitle = stringResource(R.string.typing_autopilot_strength_subtitle),
                     value = settings.watch { it.layoutBehavior.autopilotStrength }.toFloat(),
-                    range = 1f..10f,
+                    range = 1f..20f,
                     display = { context.getString(R.string.values_number, it.toInt()) },
                     info = stringResource(R.string.typing_autopilot_strength_info),
                     default = SettingsDefaults.layoutBehavior.autopilotStrength.toFloat(),
@@ -1207,6 +1207,15 @@ internal fun TypingAutopilotSettings(
                     info = stringResource(R.string.typing_autopilot_outline_info),
                     default = SettingsDefaults.layoutBehavior.autopilotOutline,
                 ) { scope.launch { repository.setAutopilotOutline(it) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.typing_autopilot_animate_title,
+                    stringResource(R.string.typing_autopilot_animate_subtitle),
+                    settings.watch { it.layoutBehavior.autopilotAnimate },
+                    info = stringResource(R.string.typing_autopilot_animate_info),
+                    default = SettingsDefaults.layoutBehavior.autopilotAnimate,
+                ) { scope.launch { repository.setAutopilotAnimate(it) } }
             }
         }
     }
