@@ -15315,6 +15315,7 @@ open class WMKeyboardService : InputMethodService() {
             // landed in is real context.
             val byHand = added != null && WordKey.of(cleaned) == added
             val known = !blacklisted && isKnownWord(cleaned)
+            var queued = false
             if (known) {
                 // Counted only once the text it landed in settles — see
                 // [noteKnownWord]. The n-grams below are not deferred with it:
@@ -15322,7 +15323,7 @@ open class WMKeyboardService : InputMethodService() {
                 // the context they need is the run of words being committed
                 // right now, which the buffer does not keep.
                 if (!byHand) {
-                    noteKnownWord(
+                    queued = noteKnownWord(
                         cleaned, reinforcement, state, caseTrusted, origin,
                         replaces = replaces.takeIf { last },
                         typed = (typed ?: cleaned).takeIf { single } ?: cleaned,
@@ -15342,12 +15343,23 @@ open class WMKeyboardService : InputMethodService() {
                 // put it in the personal dictionary and then in the strip. The
                 // word still committed exactly as typed; it is only the
                 // remembering that stops here.
-                noteUnknownWord(
+                queued = noteUnknownWord(
                     cleaned, reinforcement, state, caseTrusted, origin,
                     replaces = replaces.takeIf { last },
                     typed = (typed ?: cleaned).takeIf { single } ?: cleaned,
                     taps = taps.takeIf { single },
                     keys = keys,
+                )
+            }
+            // The word pairs are learned from the run of words as it settles,
+            // so every word that landed has to be in that run, counted or not.
+            // An autocorrected "I", a word just added by hand, one on the
+            // never-suggest list: left out, the pair learned across the gap
+            // was between two words the user never wrote side by side, and the
+            // ones the word itself should have started were never learned.
+            if (!queued) {
+                settleLearned(
+                    learningBuffer.push(cleaned, learnLanguageId(cleaned, state), 0, known = known),
                 )
             }
             threeBack = beforePrevious
@@ -15399,11 +15411,11 @@ open class WMKeyboardService : InputMethodService() {
         typed: String,
         taps: List<TouchPoint?>?,
         keys: KeyTouchModel?,
-    ) {
+    ): Boolean {
         // An autocorrect target arrives at 0 and has nothing to teach the
-        // lexicon: [UserLexicon.learnWord] would refuse the count anyway, and
-        // queuing it would only take a slot from a word that means something.
-        if (reinforcement <= 0) return
+        // lexicon: [UserLexicon.learnWord] would refuse the count anyway. The
+        // caller queues it for its place in the run of words alone.
+        if (reinforcement <= 0) return false
         val queued = learningBuffer.push(
             word, learnLanguageId(word, state), reinforcement, caseTrusted, known = true,
             origin = origin, replaces = replaces, typed = typed, taps = taps, keys = keys,
@@ -15415,6 +15427,7 @@ open class WMKeyboardService : InputMethodService() {
         // left exactly that case teaching nothing (#213, #135).
         claimUndoneGlide(word)
         settleLearned(queued)
+        return true
     }
 
     /**
@@ -15441,15 +15454,15 @@ open class WMKeyboardService : InputMethodService() {
         typed: String,
         taps: List<TouchPoint?>?,
         keys: KeyTouchModel?,
-    ) {
+    ): Boolean {
         // An autocorrect target is a dictionary word by construction, so a
         // reinforcement of 0 here means the correction landed on something we
         // do not recognise — no evidence about the user's vocabulary at all.
-        if (reinforcement <= 0) return
-        if (pendingLearn.isDeclined(word)) return
+        if (reinforcement <= 0) return false
+        if (pendingLearn.isDeclined(word)) return false
         if (state.settings.suggestionStrip.askBeforeLearning) {
             offerToLearn(word, caseTrusted)
-            return
+            return false
         }
         val queued = learningBuffer.push(
             word, learnLanguageId(word, state), reinforcement, caseTrusted,
@@ -15460,6 +15473,7 @@ open class WMKeyboardService : InputMethodService() {
         // needs to be attached before the entry can settle (issue #213).
         claimUndoneGlide(word)
         settleLearned(queued)
+        return true
     }
 
     /**
@@ -15491,11 +15505,19 @@ open class WMKeyboardService : InputMethodService() {
         for (entry in entries) {
             // Blacklisted since the commit: the user has just taken this word
             // out of their dictionary, and the queue must not put it back (#48).
-            if (settings.suggestionSources.blacklisted(entry.word, languageId)) continue
+            // Nor join the words either side of it into a pair.
+            if (settings.suggestionSources.blacklisted(entry.word, languageId)) {
+                prevWord3 = null
+                prevWord2 = null
+                prevWord = null
+                continue
+            }
             val word = entry.word
             val known = isKnownWord(word)
 
-            if (entry.known) {
+            if (entry.contextOnly) {
+                // Here for its place in the run alone; see [learn].
+            } else if (entry.known) {
                 // Recognised when it was typed, and it has to still be
                 // recognised now: a language switched off while the word sat
                 // here would otherwise walk an unknown word into the lexicon
