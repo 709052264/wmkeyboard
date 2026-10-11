@@ -30750,6 +30750,7 @@ open class WMKeyboardService : InputMethodService() {
             ),
             clipboard = clipboardPanelActions(),
             onMediaPanelHeight = ::onMediaPanelHeight,
+            onPanelOverKeysHeight = ::onPanelOverKeysHeight,
             caretMagnifier = com.wasimaster.wmkeyboard.ime.ui.CaretMagnifierSeam(
                 onDrag = ::onCaretDrag,
                 state = caretMagnifier.state,
@@ -35437,6 +35438,15 @@ open class WMKeyboardService : InputMethodService() {
     fun onMediaPanelHeight(extraDp: Int) {
         if (extraDp == _uiState.value.settings.emoji.panelExtraHeightDp) return
         serviceScope.launch { settingsRepository.setMediaPanelExtraHeightDp(extraDp) }
+    }
+
+    /**
+     * The bar on a panel stacked over the keys let go (#615): [extraDp] is how
+     * much taller than its compact height every such panel opens from now on.
+     */
+    fun onPanelOverKeysHeight(extraDp: Int) {
+        if (extraDp == _uiState.value.settings.layoutBehavior.panelOverKeysExtraHeightDp) return
+        serviceScope.launch { settingsRepository.setPanelOverKeysExtraHeightDp(extraDp) }
     }
 
     /**

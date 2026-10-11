@@ -312,28 +312,40 @@ internal fun ClipboardPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCa
         return
     }
     if (state.clipboardSearchActive) {
-        // The panel shrinks to its search field plus a couple of result rows.
-        // The toolbar row is hidden too (see KeyboardBody), so the panel
-        // absorbs its height the way the emoji panel's search mode does.
-        ClipboardSearchPanel(
-            state, session, callbacks.clipboard,
-            modifier = Modifier
-                .fillMaxWidth()
-                // Less the row the query's own suggestion strip takes below
-                // the panel (#161), for the same reason.
-                .height(clipboardSearchPanelHeight(state)),
+        // The panel shrinks to its search field plus a couple of result rows,
+        // and the bar on top drags it taller over the keys (#615). The toolbar
+        // row is hidden too (see KeyboardBody), so the panel absorbs its
+        // height the way the emoji panel's search mode does, less the row the
+        // query's own suggestion strip takes below the panel (#161).
+        val size = panelOverKeysSize(
+            state,
+            wanted = ClipboardSearchHeight + topBarHeight(state.settings) - captureStripHeight(state),
+            floor = FullBleedHeaderHeight,
         )
+        Column(modifier = size.probe.fillMaxWidth().height(size.height)) {
+            size.bar?.invoke()
+            ClipboardSearchPanel(
+                state, session, callbacks.clipboard,
+                modifier = Modifier.fillMaxWidth().weight(1f),
+            )
+        }
         return
     }
     val spec = state.panelLayout(PanelKind.CLIPBOARD)
     val fields: @Composable (PanelFieldKind) -> Unit = { kind ->
         ClipboardField(kind, state, session, callbacks.clipboard)
     }
+    // Stacked over the keys (#414): a short panel, the keys under it, and the
+    // height bar of every panel over the keys rather than the clipboard's own.
+    val stacked = clipboardStacked(state)
     // The strips only exist when they have something to show, as before: a
     // row holding nothing but an empty strip takes no height.
     val collapsed = buildSet {
         if (!session.showSearch && !session.showClear) add(PanelFieldKind.CLIPBOARD_SEARCH)
-        if (session.entities.isEmpty()) add(PanelFieldKind.CLIPBOARD_ENTITIES)
+        // Nor does the fragment strip while stacked (#615): it took a third of
+        // the short panel, and with the tabs under it the history was down to
+        // a single line. The fragments are a tap on the keys toggle away.
+        if (session.entities.isEmpty() || stacked) add(PanelFieldKind.CLIPBOARD_ENTITIES)
         // Nothing to lay out either way until there is a clip.
         if (state.clipboardItems.isEmpty()) add(PanelFieldKind.CLIPBOARD_VIEW)
     }
@@ -352,9 +364,6 @@ internal fun ClipboardPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCa
     val bar: (@Composable () -> Unit)? = if (maxExtra < 1.dp) null else {
         { ClipPanelHeightBar(resize, extra, maxExtra, callbacks.clipboard.actions.onPanelHeight) }
     }
-    // Stacked over the keys (#414): a short panel, the keys under it, and no
-    // height bar, since the keys decide the height now.
-    val stacked = clipboardStacked(state)
     val keysToggle: @Composable () -> Unit = {
         ToolCircle(
             slot = IconSlots.KEY_INPUT_METHOD_PICKER,
@@ -447,10 +456,11 @@ internal fun ClipboardPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCa
 }
 
 /**
- * The clipboard's height while stacked over the keys (#414): its header and
- * about two rows of cards, which is what a paste between sentences needs.
+ * The clipboard's height while stacked over the keys (#414): its header, the
+ * Unpinned and Pinned tabs and about two rows of cards, which is what a paste
+ * between sentences needs. The bar on top adds to it (#615).
  */
-private val ClipStackedHeight = 190.dp
+private val ClipStackedHeight = 220.dp
 
 /** The text-editing pad: keys only, filling the key area. */
 @Composable
@@ -572,18 +582,6 @@ private val HeaderToggleWidth = 44.dp
 
 /** Panel height while the clipboard search bar is capturing the keys. */
 internal val ClipboardSearchHeight = 132.dp
-
-/**
- * The search's height: [ClipboardSearchHeight] plus the toolbar row it stands
- * in for, less the query's own strip below (#161), and fitted to the screen
- * with the keys underneath it (#333).
- */
-@Composable
-private fun clipboardSearchPanelHeight(state: KeyboardUiState): Dp = toolPanelHeight(
-    state,
-    wanted = ClipboardSearchHeight + topBarHeight(state.settings) - captureStripHeight(state),
-    floor = FullBleedHeaderHeight,
-)
 
 /**
  * The clip editor's height (#371): the key area the history filled plus the

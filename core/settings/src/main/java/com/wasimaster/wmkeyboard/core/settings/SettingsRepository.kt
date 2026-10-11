@@ -6297,6 +6297,13 @@ data class EmojiSettings(
 /** How much taller than the keyboard the emoji, GIF and sticker panels may be set, in dp (#537). */
 val MediaPanelExtraHeightRange = 0..400
 
+/**
+ * How much taller than its compact height a panel over the live keys may be
+ * dragged, in dp (#615). The panel is fitted to the screen on top of this, so
+ * the keys underneath always keep their room.
+ */
+val PanelOverKeysExtraHeightRange = 0..400
+
 /** Bounds for [EmojiSettings.barCount]; the settings slider shares them. */
 val EmojiBarCountRange = 3..16
 
@@ -7372,6 +7379,16 @@ data class LayoutBehaviorSettings(
      * already have it there, so they are left exactly as they were.
      */
     val globeInOnePlace: Boolean = true,
+    /**
+     * How much taller a panel stacked over the live keys opens, in dp (#615):
+     * the clipboard with its keys toggle on, a search that hands the keys back
+     * (clipboard, snippets, dictionary, GIFs and the rest), a tool whose box is
+     * being typed into. Set by dragging the bar on top of such a panel. One
+     * value for all of them, so the keys sit at the same place whichever is
+     * up. 0, the default, is each panel's own compact height. See
+     * [PanelOverKeysExtraHeightRange].
+     */
+    val panelOverKeysExtraHeightDp: Int = 0,
 ) {
     /** The characters that spring the symbols layer back, with the default applied. */
     fun symbolsReturnCharSet(): String =
@@ -8663,6 +8680,7 @@ class SettingsRepository(private val context: Context) {
         private val ENTER_LONGPRESS_EMOJI = booleanPreferencesKey("enter_longpress_emoji")
         private val SPACE_SWIPE_DOWN_HIDE = booleanPreferencesKey("space_swipe_down_hide")
         private val EDGE_SWIPE_BACK = booleanPreferencesKey("edge_swipe_back")
+        private val PANEL_OVER_KEYS_EXTRA_HEIGHT_DP = intPreferencesKey("panel_over_keys_extra_height_dp")
         private val HIDE_SYSTEM_KEYBOARD_BAR = booleanPreferencesKey("hide_system_keyboard_bar")
         private val EXTEND_EDGE_KEYS = booleanPreferencesKey("extend_edge_keys")
         private val GLOBE_IN_ONE_PLACE = booleanPreferencesKey("globe_in_one_place")
@@ -10764,6 +10782,8 @@ class SettingsRepository(private val context: Context) {
                 p[HIDE_SYSTEM_KEYBOARD_BAR] ?: defaults.layoutBehavior.hideSystemKeyboardBar,
             extendEdgeKeys = p[EXTEND_EDGE_KEYS] ?: defaults.layoutBehavior.extendEdgeKeys,
             globeInOnePlace = p[GLOBE_IN_ONE_PLACE] ?: defaults.layoutBehavior.globeInOnePlace,
+            panelOverKeysExtraHeightDp = p[PANEL_OVER_KEYS_EXTRA_HEIGHT_DP]?.coerceIn(PanelOverKeysExtraHeightRange)
+                ?: defaults.layoutBehavior.panelOverKeysExtraHeightDp,
             hintFlick = p[HINT_FLICK] ?: defaults.layoutBehavior.hintFlick,
             capitalFlick = p[CAPITAL_FLICK] ?: defaults.layoutBehavior.capitalFlick,
             globeTypingGuardMs = p[GLOBE_TYPING_GUARD_MS]?.coerceIn(GlobeTypingGuardMsRange)
@@ -15967,6 +15987,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setEdgeSwipeBack(value: Boolean) =
         editPrefs { it[EDGE_SWIPE_BACK] = value }
+
+    /** See [LayoutBehaviorSettings.panelOverKeysExtraHeightDp]. */
+    suspend fun setPanelOverKeysExtraHeightDp(value: Int) =
+        editPrefs { it[PANEL_OVER_KEYS_EXTRA_HEIGHT_DP] = value.coerceIn(PanelOverKeysExtraHeightRange) }
 
     suspend fun setHideSystemKeyboardBar(value: Boolean) =
         editPrefs { it[HIDE_SYSTEM_KEYBOARD_BAR] = value }

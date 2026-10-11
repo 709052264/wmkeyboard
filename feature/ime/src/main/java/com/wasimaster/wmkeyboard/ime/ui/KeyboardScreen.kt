@@ -1577,6 +1577,7 @@ fun KeyboardScreen(
         LocalCursorMoveVertical provides onCursorMoveVertical,
         LocalSpaceTouchpad provides remember { SpaceTouchpad() },
         LocalCaretDrag provides toolHold.caretMagnifier.onDrag,
+        LocalPanelOverKeysHeight provides toolHold.onPanelOverKeysHeight,
         LocalHideKeyboard provides onHideKeyboard,
         LocalLanguageSwitchEcho provides languageSwitchEcho,
         LocalTouchExploration provides rememberTouchExploration(),
@@ -10259,7 +10260,18 @@ internal fun FullBleedTool(
     content: @Composable () -> Unit,
 ) {
     val kb = LocalKbTheme.current
-    val height = if (compact) {
+    // Collapsed over the live keys, the panel wears a bar of its own that
+    // drags it taller (#615), the one height every such panel shares. Not a
+    // panel that only collapses to make way for the toolbar: no keys under it.
+    val overKeys = if (compact && keyRowsUnderPanel(state)) {
+        panelOverKeysSize(state, wanted = compactHeight - captureStripHeight(state), floor = FullBleedHeaderHeight)
+    } else {
+        null
+    }
+    val handle = overKeys?.bar ?: topHandle
+    val height = if (overKeys != null) {
+        overKeys.height
+    } else if (compact) {
         // A field of the keyboard's own draws a suggestion strip between this
         // panel and the keys (#161), and the row for it comes out of the
         // panel rather than out of the window: tapping a search box must not
@@ -10272,11 +10284,11 @@ internal fun FullBleedTool(
         toolPanelHeight(state, wanted = board + extraHeight, floor = board)
     }
     Column(
-        modifier = Modifier
+        modifier = (overKeys?.probe ?: Modifier)
             .fillMaxWidth()
             .height(height),
     ) {
-        topHandle?.invoke()
+        handle?.invoke()
         MediaHeaderReveal(collapsed = headerHidden) {
             Row(
                 modifier = Modifier
@@ -25096,6 +25108,12 @@ data class ToolHoldCallbacks(
      * reason as [dictionaryBar].
      */
     val onMediaPanelHeight: (Int) -> Unit = {},
+    /**
+     * The bar on a panel stacked over the keys let go (#615): how many dp
+     * taller than its compact height such a panel opens. Here for the same
+     * reason as [dictionaryBar].
+     */
+    val onPanelOverKeysHeight: (Int) -> Unit = {},
 )
 
 // ---- snippets panel ----
