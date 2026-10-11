@@ -22,6 +22,7 @@ Conversion is honest about being lossy. A layout import always ends on a confirm
 | `.kcf` layout | Samsung Keyboard, shared from Keys Cafe | A custom layout, kept exactly as it was laid out |
 | DIY or DIY+ layout text, or a settings export | Multiling O Keyboard | A custom layout with its symbols and AltGr pages, or every layout in the export |
 | `.flex` theme | FlorisBoard 0.4 and later | One theme, one look per theme in the file |
+| `.zip` theme | FUTO Keyboard | One theme, with its background picture and font |
 | `.flex` language pack | FlorisBoard | A Cangjie or stroke table for Chinese |
 | Colour theme text | HeliBoard, LeanType | One theme, from a file or from the clipboard |
 | `OK_Settings_Begin` theme text or a theme link | Multiling O Keyboard | One theme, from a file or from the clipboard |
@@ -62,7 +63,7 @@ Menu names differ between versions of each keyboard; look for "backup" or "expor
 | Part | HeliBoard, LeanType | FUTO | FlorisBoard | CleverKeys, AnySoftKeyboard |
 |---|---|---|---|---|
 | Your own letter layouts | Yes | Yes | Yes | No |
-| Your colour themes | Yes, and the one in use is switched on | No | Yes, and the one in use is switched on | No |
+| Your colour themes | Yes, and the one in use is switched on | Yes, and the one in use is switched on | Yes, and the one in use is switched on | No |
 | Your languages | Yes, each with the closest built-in layout, or with your own layout when it is imported too | Yes | Yes | No |
 | Dictionaries you added | Yes | Yes | None in the backup | No |
 | Words learned from your typing | Yes, as a word list | Yes, as a word list | None in the backup | No |
@@ -106,7 +107,7 @@ The list ends with what the backup holds that has nowhere to go here, so nothing
 
 - **Clipboard history.** Never imported. It belongs to the other keyboard and is often private.
 - **Symbol and number layouts.** This app draws those from its own.
-- **FUTO theme files**, a format this app does not read.
+- **Theme files the app cannot read**, such as a damaged one.
 - **Custom fonts and background pictures** from HeliBoard.
 - **Language models and voice data** from FUTO, which are that keyboard's own engines.
 - **Shortcuts on FUTO's added words.** The words come across; the shortcuts on them do not.
@@ -399,6 +400,36 @@ The nineteen colours on Multiling's **Color** screen land like this:
 | Suggestion highlight | The accent |
 
 A colour of `0` is how that screen says "none", so it stays unset here and this app works it out. The key corner radius, the label size and bold labels come across too. A shadow behind the key labels has no place here, and a wallpaper is only a switch in the text, never the picture; the result message says so when a theme has either.
+
+### FUTO Keyboard themes
+
+<SettingsPath path="Appearance / Keyboard themes / FUTO" />
+
+A FUTO theme is a `.zip`: a settings file and the pictures it names. Pick one with the **FUTO** button, open it from a file manager, or bring all of them at once with a FUTO backup (see [Whole backups](#whole-backups)). Both of FUTO's settings files are read: `theme.txt`, the hand-written format themes are shared in, and `config.json`, what FUTO's own theme editor saves.
+
+FUTO paints its keyboard from a handful of its colour roles, and those are the ones that come across:
+
+| FUTO role | Here |
+|---|---|
+| `keyboard_surface` | The board, and the suggestion strip |
+| `keyboard_container`, `on_keyboard_container` | The letter keys and their labels |
+| `keyboard_container_variant` | The other keys (shift, delete, symbols) |
+| `keyboard_container_pressed` | A pressed key |
+| `primary`, `on_primary` | The enter key, the accent and the swipe trail |
+| `keyboard_press` | The long-press popup |
+| `on_background` | The suggestion text |
+| `hintColor` (editor themes only) | The corner hint; otherwise the label colour at half strength, as FUTO draws it |
+| `navigationBarColor` (editor themes only) | The navigation bar |
+
+The other thirty-odd roles colour FUTO's own menus and have nothing to fill here. **Key borders off** becomes the **None** key shape, labels on the bare board. The key roundness becomes the corner radius (FUTO's 9 dp a step), and the label size and a heavy label weight come across from a `theme.txt`. A background picture comes across with its opacity, and a font in the file is installed and used.
+
+What does not come across, and the dialog lists whichever applies:
+
+- **Pictures drawn per key**, FUTO's `matchrules` key borders and icons. Those keys are drawn in the theme's colours instead.
+- **Colours from the wallpaper**, written as `system_…`. This app works out its own colours for those parts.
+- **An animated background shader.**
+
+Like the other converted themes, a FUTO theme is saved but not turned on.
 
 ### FlorisBoard 0.4 themes
 

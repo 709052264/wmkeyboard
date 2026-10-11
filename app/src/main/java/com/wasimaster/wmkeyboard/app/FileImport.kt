@@ -87,6 +87,9 @@ import com.wasimaster.wmkeyboard.core.stickers.whatsapp.WaStickersFile
 import com.wasimaster.wmkeyboard.core.theme.ConvertedTheme
 import com.wasimaster.wmkeyboard.core.theme.FlexResult
 import com.wasimaster.wmkeyboard.core.theme.FlexTheme
+import com.wasimaster.wmkeyboard.core.theme.FutoTheme
+import com.wasimaster.wmkeyboard.core.theme.FutoThemeResult
+import com.wasimaster.wmkeyboard.core.theme.FutoThemeUnsupported
 import com.wasimaster.wmkeyboard.core.theme.dynamicSnyggPalette
 import com.wasimaster.wmkeyboard.core.fonts.FontFile
 import com.wasimaster.wmkeyboard.core.fonts.FontImportResult
@@ -283,6 +286,13 @@ object WMFileTypes {
          * what did not. A converted theme must never be presented as one of ours.
          */
         data class FlorisTheme(val result: FlexResult) : Opened
+
+        /**
+         * A FUTO Keyboard custom theme ZIP, already converted. Its own case for
+         * the reason [FlorisTheme] is: the dialog has to say that it came from
+         * another keyboard and what did not come across.
+         */
+        data class FutoThemeFile(val result: FutoThemeResult.Converted) : Opened
 
         /**
          * A Gboard theme ZIP or an Rboard pack of them, already converted.
@@ -562,6 +572,15 @@ object WMFileTypes {
      * because a ZIP of pictures with no such file is any ZIP of pictures.
      */
     private fun identifyManifestless(context: android.content.Context, uri: Uri, names: List<String>): Opened {
+        // A FUTO theme: no manifest, only its settings file beside the
+        // pictures. `theme.txt` is a common name, so the read has to find
+        // FUTO's colours before the file counts as one.
+        if (FutoTheme.looksLikeFutoTheme(names)) {
+            val result = runCatching {
+                context.contentResolver.requireInputStream(uri).use { FutoTheme.read(it) }
+            }.getOrNull()
+            if (result is FutoThemeResult.Converted) return Opened.FutoThemeFile(result)
+        }
         // Another keyboard's backup, told by the file each one always writes
         // first: its settings, or its export's version stamp.
         if (ForeignBackups.looksLikeBackup(names)) {
@@ -1155,6 +1174,8 @@ private fun rememberProposal(
 
         is WMFileTypes.Opened.GboardThemeFile -> gboardProposal(state.result, repository, context)
 
+        is WMFileTypes.Opened.FutoThemeFile -> futoThemeProposal(state.result, repository, context)
+
         is WMFileTypes.Opened.KeymanPackageFile ->
             keymanProposal(state.contents, repository, context)
 
@@ -1708,6 +1729,64 @@ private fun florisProposal(
         apply = null,
     )
 }
+
+/**
+ * The confirmation for a FUTO Keyboard theme.
+ *
+ * Worded as a conversion, like the FlorisBoard one: what did not come across
+ * is listed, and the theme is saved but not switched on.
+ */
+private fun futoThemeProposal(
+    result: FutoThemeResult.Converted,
+    repository: SettingsRepository,
+    context: android.content.Context,
+): ImportProposal = ImportProposal(
+    titleRes = R.string.import_futo_theme_title,
+    body = buildString {
+        append(context.getString(R.string.import_futo_theme_body))
+        if (result.author.isNotBlank()) {
+            append("\n\n").append(context.getString(R.string.import_futo_theme_credit, result.author))
+        }
+    },
+    repairs = result.dropped.map { futoThemeDroppedLine(context, it) },
+    apply = { saveFutoTheme(context, repository, result) },
+)
+
+/**
+ * Stores a converted FUTO theme, its picture and its font, and says so. Shared
+ * by the file dialog and the button on the themes screen.
+ */
+internal suspend fun saveFutoTheme(
+    context: android.content.Context,
+    repository: SettingsRepository,
+    result: FutoThemeResult.Converted,
+): String {
+    val stored = withContext(Dispatchers.IO) {
+        result.converted.stored(
+            "custom_${System.currentTimeMillis()}",
+            File(context.filesDir, "theme_images").apply { mkdirs() },
+            FontStore.get(context),
+        )
+    }
+    repository.upsertCustomTheme(stored)
+    return buildString {
+        append(context.getString(R.string.import_futo_theme_done, stored.name))
+        if (result.dropped.isNotEmpty()) {
+            append("\n\n").append(context.getString(R.string.import_repairs_title))
+            for (line in result.dropped) append("\n• ").append(futoThemeDroppedLine(context, line))
+        }
+    }
+}
+
+/** One line of the "what the app changed" list of a FUTO theme import. */
+internal fun futoThemeDroppedLine(context: android.content.Context, dropped: FutoThemeUnsupported): String =
+    context.getString(
+        when (dropped) {
+            FutoThemeUnsupported.KEY_PICTURES -> R.string.import_futo_theme_dropped_pictures
+            FutoThemeUnsupported.WALLPAPER_COLOURS -> R.string.import_futo_theme_dropped_wallpaper
+            FutoThemeUnsupported.SHADER -> R.string.import_futo_theme_dropped_shader
+        },
+    )
 
 /**
  * The confirmation for a Gboard theme ZIP or an Rboard pack.

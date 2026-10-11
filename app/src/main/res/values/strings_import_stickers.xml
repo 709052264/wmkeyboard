@@ -170,6 +170,21 @@
     <string name="import_floris_done_family" tools:ignore="PluralsCandidate">The app saved <xliff:g id="theme_name" example="Dusk">%1$s</xliff:g> with <xliff:g id="count" example="2">%2$d</xliff:g> looks. Open Themes to look at it.</string>
     <string name="import_floris_unreadable_body">The app cannot read this FlorisBoard file. It may be damaged, or it may be a language pack or a keyboard extension instead of a theme.</string>
 
+    <!-- ==== FUTO Keyboard custom themes: a ZIP with theme.txt or
+         config.json in it. ==== -->
+
+    <string name="import_futo_theme_title">Theme from FUTO Keyboard</string>
+    <string name="import_futo_theme_body">The app converts the colours of this FUTO Keyboard theme, and its background picture and font if it has them. The app saves the theme but does not turn it on, so that you can look at it first.</string>
+    <!-- %1$s is who made the theme. -->
+    <string name="import_futo_theme_credit">Made by <xliff:g id="author" example="Someone">%1$s</xliff:g>.</string>
+    <!-- %1$s is the name of the theme. -->
+    <string name="import_futo_theme_done">The app saved <xliff:g id="theme_name" example="Midnight">%1$s</xliff:g>. Open Themes to look at it.</string>
+    <string name="import_futo_theme_unreadable_body">The app cannot read that as a FUTO Keyboard theme. Pick the theme\'s .zip file, the one with theme.txt or config.json in it.</string>
+    <!-- Lines in the "what the app changed" list of a FUTO theme import. -->
+    <string name="import_futo_theme_dropped_pictures">The theme draws some keys with pictures of their own. This app draws those keys in the theme\'s colours.</string>
+    <string name="import_futo_theme_dropped_wallpaper">The theme takes some colours from the wallpaper. This app cannot read those, so it works out its own colours for those parts.</string>
+    <string name="import_futo_theme_dropped_shader">The theme draws an animated pattern behind the keys, which this app does not draw.</string>
+
     <!-- ==== HeliBoard and LeanType colour themes. Those keyboards share a
          theme as a line of text rather than as a file, so the app takes it
          from a file or from the clipboard. ==== -->

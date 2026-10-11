@@ -304,6 +304,7 @@ internal fun foreignRows(backup: ForeignBackup): List<ForeignRow> = buildList {
 private fun themeSpecOf(theme: ForeignTheme): ThemeSpec? = when (theme) {
     is ForeignTheme.Colours -> theme.theme
     is ForeignTheme.Flex -> theme.result.themes.firstOrNull()?.theme
+    is ForeignTheme.Futo -> theme.result.converted.theme
 }
 
 @Composable
@@ -455,6 +456,9 @@ internal suspend fun applyForeignBackup(
         val base = "custom_${stamp}_t$i"
         val stored = when (theme) {
             is ForeignTheme.Colours -> theme.theme.copy(id = base)
+            is ForeignTheme.Futo -> withContext(Dispatchers.IO) {
+                theme.result.converted.stored(base, imageDir, FontStore.get(context))
+            }
             is ForeignTheme.Flex -> withContext(Dispatchers.IO) {
                 val variants = theme.result.themes.mapIndexed { index, converted ->
                     converted.stored(if (index == 0) base else "${base}_v$index", imageDir, FontStore.get(context))

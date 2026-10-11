@@ -215,6 +215,11 @@ class ForeignBackupTest {
             "vibration_duration" to intValue(20),
             "subtypes" to setValue("en_US:KeyboardLayoutSet=qwerty:"),
             "suggestionBlacklist" to setValue("nope"),
+            "activeThemeOption" to stringValue("custommidnight_"),
+        )
+        val theme = zip(
+            "theme.txt" to "name = \"Midnight\"\n[colors]\nkeyboard_surface = \"#101418\"\n" +
+                "keyboard_container = \"#2A2F3A\"\nprimary = \"#8AB4F8\"\n",
         )
         val zip = zip(
             "FUTOKeyboardSettings_CfgExportVersion" to "\u0001",
@@ -223,6 +228,7 @@ class ForeignBackupTest {
             "userdictionary.json" to """[{"word":"Wasi","frequency":250,"locale":"en_US","shortcut":"ws"}]""",
             "transformers/model.gguf" to "big",
             "themes/abc.zip" to "theme",
+            "themes/midnight.zip" to theme,
         )
         val backup = ForeignBackups.read(zip.inputStream())!!
         assertEquals(ForeignKeyboard.FUTO, backup.keyboard)
@@ -235,6 +241,8 @@ class ForeignBackupTest {
         val left = backup.leftBehind.associate { it.kind to it.count }
         assertEquals(1, left[LeftBehind.Kind.MODELS])
         assertEquals(1, left[LeftBehind.Kind.THEME_FILES])
+        assertEquals("Midnight", backup.themes.single().name)
+        assertEquals("midnight", backup.activeThemeRef)
         assertEquals(1, left[LeftBehind.Kind.SHORTCUTS])
     }
 

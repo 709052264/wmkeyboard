@@ -79,6 +79,8 @@ internal fun ImportFilePreview(state: WMFileTypes.Opened, uri: Uri) {
             converted?.themes?.firstOrNull()?.let { FlorisFilePreview(it) }
         }
 
+        is WMFileTypes.Opened.FutoThemeFile -> FlorisFilePreview(state.result.converted)
+
         // The first look of the first theme, drawn by the same miniature: a
         // pack's dialog already says how many themes it holds.
         is WMFileTypes.Opened.GboardThemeFile ->

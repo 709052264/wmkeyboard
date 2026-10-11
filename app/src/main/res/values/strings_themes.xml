@@ -108,6 +108,9 @@
     <!-- Button that reads a HeliBoard or LeanType colour theme. Keep it short:
          it sits beside Import and FlorisBoard. -->
     <string name="theme_import_heli_action">HeliBoard</string>
+    <!-- Button that reads a FUTO Keyboard theme file (.zip). Keep it short:
+         it sits beside Import, FlorisBoard and HeliBoard. -->
+    <string name="theme_import_futo_action" translatable="false">FUTO</string>
     <!-- Button that reads a Multiling O Keyboard theme. Keep it short: it sits
          beside Import, FlorisBoard and HeliBoard. -->
     <string name="theme_import_multiling_action">Multiling O</string>

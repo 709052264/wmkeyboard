@@ -188,6 +188,8 @@ import com.wasimaster.wmkeyboard.core.theme.SeedSwatches
 import com.wasimaster.wmkeyboard.core.theme.isAnimatedImageFile
 import com.wasimaster.wmkeyboard.core.theme.ThemeAnimation
 import com.wasimaster.wmkeyboard.core.theme.ThemeCodec
+import com.wasimaster.wmkeyboard.core.theme.FutoTheme
+import com.wasimaster.wmkeyboard.core.theme.FutoThemeResult
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.brush
 import com.wasimaster.wmkeyboard.core.theme.keyShapeFor
@@ -1048,6 +1050,24 @@ fun ThemesScreen(
             }
         }
     }
+    // A FUTO theme is a ZIP, read and saved the way the file dialog does it.
+    val futoLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.requireInputStream(uri).use { FutoTheme.read(it) }
+                }.getOrElse { FutoThemeResult.Unreadable }
+            }
+            message = if (result is FutoThemeResult.Converted) {
+                saveFutoTheme(context, repository, result)
+            } else {
+                context.getString(R.string.import_futo_theme_unreadable_body)
+            }
+        }
+    }
     // HeliBoard and LeanType have no theme file: a theme is a line of JSON,
     // copied out of their colour screen and pasted into a forum post. So this
     // import takes text from either source, and the button opens a two-way
@@ -1423,6 +1443,11 @@ fun ThemesScreen(
             Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))
             Text(stringResource(R.string.theme_import_heli_action))
+        }
+        OutlinedButton(onClick = { futoLauncher.launch(FutoTheme.IMPORT_MIME_TYPES) }) {
+            Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(stringResource(R.string.theme_import_futo_action))
         }
         OutlinedButton(onClick = { multilingChooser = true }) {
             Icon(Icons.Outlined.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))

@@ -7,6 +7,8 @@ import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.theme.FlexResult
 import com.wasimaster.wmkeyboard.core.theme.FlexTheme
+import com.wasimaster.wmkeyboard.core.theme.FutoTheme
+import com.wasimaster.wmkeyboard.core.theme.FutoThemeResult
 import com.wasimaster.wmkeyboard.core.theme.HeliResult
 import com.wasimaster.wmkeyboard.core.theme.HeliTheme
 import com.wasimaster.wmkeyboard.core.theme.HeliUnsupported
@@ -77,6 +79,13 @@ sealed interface ForeignTheme {
         val dropped: List<HeliUnsupported>,
     ) : ForeignTheme
 
+    /** A FUTO Keyboard custom theme, as the single-file import reads it. */
+    data class Futo(
+        override val ref: String,
+        override val name: String,
+        val result: FutoThemeResult.Converted,
+    ) : ForeignTheme
+
     /** A FlorisBoard theme extension, as the `.flex` import reads it. */
     data class Flex(
         override val ref: String,
@@ -111,7 +120,7 @@ data class LeftBehind(val kind: Kind, val count: Int) {
         /** Symbol, number and other non-letter layouts, which this app draws from its own. */
         OTHER_LAYOUTS,
 
-        /** FUTO's own theme files, a format this app does not read. */
+        /** Theme files this app could not read. */
         THEME_FILES,
 
         /** A custom font file. */
@@ -473,8 +482,23 @@ object ForeignBackups {
         val blacklist = (prefs[FUTO_BLACKLIST] as? Set<*>).orEmpty().filterIsInstance<String>()
             .map { it.trim() }.filter { it.isNotEmpty() }
 
+        // Custom themes travel as the ZIPs FUTO keeps them in, named by their
+        // id; the theme in use is `custom<id>`, with a trailing `_` when it
+        // follows the system's dark mode.
+        val themeFiles = archive.kept.filterKeys { it.startsWith(FUTO_THEMES) && it.endsWith(".zip") }
+        val themes = themeFiles.mapNotNull { (name, bytes) ->
+            val result = FutoTheme.read(bytes.inputStream()) as? FutoThemeResult.Converted ?: return@mapNotNull null
+            val ref = name.removePrefix(FUTO_THEMES).removeSuffix(".zip")
+            ForeignTheme.Futo(ref, result.converted.theme.name, result)
+        }
+        val active = (prefs[FUTO_ACTIVE_THEME] as? String)
+            ?.takeIf { it.startsWith(FUTO_CUSTOM_THEME) }
+            ?.removePrefix(FUTO_CUSTOM_THEME)?.trimEnd('_')
+            ?.takeIf { ref -> themes.any { it.ref == ref } }
+
         val left = buildList {
-            leftCount(archive.names, LeftBehind.Kind.THEME_FILES) { it.startsWith("themes/") }?.let(this::add)
+            (themeFiles.size - themes.size).takeIf { it > 0 }
+                ?.let { add(LeftBehind(LeftBehind.Kind.THEME_FILES, it)) }
             leftCount(archive.names, LeftBehind.Kind.CLIPBOARD) { it.startsWith("clipboard") }?.let(this::add)
             leftCount(archive.names, LeftBehind.Kind.MODELS) {
                 it.startsWith("transformers/") || it.startsWith("mozc/") || it.startsWith("rime/") ||
@@ -486,6 +510,8 @@ object ForeignBackups {
         return ForeignBackup(
             keyboard = ForeignKeyboard.FUTO,
             layouts = layouts,
+            themes = themes,
+            activeThemeRef = active,
             languages = languages,
             settings = ForeignSettingsMap.map(ForeignKeyboard.FUTO, prefs),
             dictionaries = dictionaries(archive) { it.startsWith(FUTO_EXT) || it.startsWith(FUTO_USERDICT) },
@@ -685,6 +711,9 @@ object ForeignBackups {
     private const val FUTO_USERDICT = "userdict/"
     private const val FUTO_LAYOUTS = "dev_customlayouts"
     private const val FUTO_BLACKLIST = "suggestionBlacklist"
+    private const val FUTO_THEMES = "themes/"
+    private const val FUTO_ACTIVE_THEME = "activeThemeOption"
+    private const val FUTO_CUSTOM_THEME = "custom"
 
     private const val FLORIS_METADATA = "backup_metadata.json"
     private const val FLORIS_PREFS = "jetpref_datastore/florisboard-app-prefs.jetpref"
@@ -705,7 +734,7 @@ object ForeignBackups {
     )
     private val WANTED_PREFIXES = listOf(
         "unprotected/layouts/", "layouts/", HELI_BLACKLISTS, HELI_DICTS,
-        FUTO_USERDICT, FLORIS_KEYBOARDS, FLORIS_THEMES,
+        FUTO_USERDICT, FUTO_THEMES, FLORIS_KEYBOARDS, FLORIS_THEMES,
     )
 
     private const val HEADER_SUFFIX = ".header"
