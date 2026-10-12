@@ -91,6 +91,7 @@ internal fun ToolPickerOverlay(
                     altSuggestionDigits =
                         config.suggestionHotkeys == SuggestionHotkeyMode.ALT_DIGIT,
                     languageSwitchChord = config.languageSwitchChord,
+                    keysToggle = hardwareKeysToggleable(state),
                 ),
                 leader = leader,
                 onClose = onClose,

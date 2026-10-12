@@ -292,6 +292,7 @@ internal fun AppearanceToolbarSettings(
     var toolShapePickerOpen by rememberSaveable { mutableStateOf(false) }
     // What decides which rows the group holds; each row reads its own value.
     val toolbarOn = settings.watch { it.toolbarBehavior.enabled }
+    val toolbarOnlyHw = settings.watch { it.toolbarBehavior.onlyWithHardwareKeyboard }
     val placement = settings.watch { it.toolbarBehavior.placement }
     val labelsOn = settings.watch { it.toolbarLabels }
     val toolCircleOn = settings.watch { it.toolCircleRadiusDp > 0 }
@@ -414,6 +415,17 @@ internal fun AppearanceToolbarSettings(
                 info = stringResource(R.string.appearance_toolbar_hardware_only_info),
                 default = SettingsDefaults.toolbarBehavior.onlyWithHardwareKeyboard,
             ) { scope.launch { repository.setToolbarOnlyWithHardwareKeyboard(it) } }
+        }
+        // The toolbar's show-keys button only exists in the toolbar-only view,
+        // and so does the question of when its keys go away again (#642).
+        if (toolbarOn && toolbarOnlyHw) item {
+            ToggleSetting(
+                R.string.appearance_toolbar_hardware_auto_hide_title,
+                stringResource(R.string.appearance_toolbar_hardware_auto_hide_subtitle),
+                settings.watch { it.toolbarBehavior.hardwareKeysAutoHide },
+                info = stringResource(R.string.appearance_toolbar_hardware_auto_hide_info),
+                default = SettingsDefaults.toolbarBehavior.hardwareKeysAutoHide,
+            ) { scope.launch { repository.setHardwareKeysAutoHide(it) } }
         }
         // Nothing here reaches the board while the toolbar is switched off:
         // the row and the top bar are both gated on it before these are read.

@@ -7791,6 +7791,9 @@ private class ToolDragController {
      */
     var onVoiceModePick: (String) -> Unit = {}
 
+    /** The show-keys button (#642). On the controller because the bar already takes it. */
+    var onHardwareKeysToggle: () -> Unit = {}
+
     // Toolbox geometry and data, registered by ToolboxPanel while it is
     // open (a drag can only happen with the toolbox open). The viewport is
     // the visible panel box; content coords are the scrolling grid column,
@@ -9461,6 +9464,28 @@ private fun RowScope.ToolbarRow(
             }
         }
     }
+    // Typing on a physical keyboard with only the toolbar showing: the keys
+    // are one tap away (#642). At the far end and never weighted, so it
+    // stays put whatever the tools do, and a greedy bar does not hand it half
+    // the width.
+    if (hardwareKeysToggleable(state)) {
+        val shown = state.settings.toolbarBehavior.hardwareKeysShown
+        val desc = stringResource(
+            if (shown) R.string.ime_hardware_keys_hide_desc else R.string.ime_hardware_keys_show_desc,
+        )
+        Box(Modifier.padding(horizontal = 3.dp), contentAlignment = Alignment.Center) {
+            ToolCircle(
+                slot = if (shown) IconSlots.CHROME_HIDE_KEYS else IconSlots.CHROME_SHOW_KEYS,
+                description = desc,
+                active = shown,
+                label = desc.takeIf { labels },
+                labelSizeSp = labelSize,
+                modifier = Modifier.graphicsLayer { alpha = contentAlpha() },
+                longPressLabel = desc.takeUnless { labels },
+                wide = true,
+            ) { drag.onHardwareKeysToggle() }
+        }
+    }
     if (state.incognitoOn) {
         SlotIcon(
             IconSlots.CHROME_INCOGNITO,
@@ -10901,6 +10926,7 @@ private fun KeyboardBody(
     drag.onSelectionHold = toolHold.onSelectionHold
     drag.onTrackpadHold = toolHold.onTrackpadHold
     drag.onVoiceModePick = toolHold.onVoiceModePick
+    drag.onHardwareKeysToggle = toolHold.onHardwareKeysToggle
     // A remapped hold runs the bound tool through the service's own dispatcher
     // rather than [onToolTap]: that one refuses any tool the toolbar does not
     // list, and the tool the user bound a hold to is very often one they never
@@ -11928,7 +11954,7 @@ private fun KeyboardBody(
                 // away while the physical keyboard does the typing. Same for a
                 // view that is only up to show a reading's candidates (#419).
                 PanelMode.NONE -> if (
-                    !(state.hardwareKeyboardPresent && state.settings.toolbarBehavior.onlyWithHardwareKeyboard) &&
+                    !hardwareKeysStepAside(state) &&
                     !state.hardwareCandidateWindow
                 ) {
                     KeyRows(
@@ -19522,6 +19548,23 @@ internal fun suggestionHintPlan(state: KeyboardUiState): HintPlan? {
 }
 
 /**
+ * Whether the toolbar-only view for a physical keyboard is up, which is where
+ * the show-keys button lives (#642). Read by the bar and by the service, so
+ * the button and the leader-then-Space shortcut agree on when they apply.
+ */
+internal fun hardwareKeysToggleable(state: KeyboardUiState): Boolean {
+    val toolbar = state.settings.toolbarBehavior
+    return toolbar.enabled && toolbar.onlyWithHardwareKeyboard &&
+        state.hardwareKeyboardPresent && !state.hardwareCandidateWindow
+}
+
+/** The keys step aside for the physical keyboard, unless the user called them back (#642). */
+internal fun hardwareKeysStepAside(state: KeyboardUiState): Boolean {
+    val toolbar = state.settings.toolbarBehavior
+    return state.hardwareKeyboardPresent && toolbar.onlyWithHardwareKeyboard && !toolbar.hardwareKeysShown
+}
+
+/**
  * Rows the key grid reserves right now: the layout set's span, or more while a
  * secondary layout taller than it is showing.
  *
@@ -25725,6 +25768,11 @@ data class ToolHoldCallbacks(
      * by the service in one move.
      */
     val onVoiceModePick: (String) -> Unit = {},
+    /**
+     * The toolbar's show-keys button over the toolbar-only view (#642). Not a
+     * hold; it rides here for the reason [dictionaryBar] does.
+     */
+    val onHardwareKeysToggle: () -> Unit = {},
     /**
      * The dictionary bar's two callbacks (issue #51). Not a hold at all; they
      * ride this bundle because it is the nearest one already on the call and

@@ -771,6 +771,7 @@ private fun SearchStrings.appearanceToolbarRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_toolbar_swipe_down_title, R.string.appearance_toolbar_swipe_down_subtitle),
         row(R.string.appearance_toolbar_drag_title, R.string.appearance_toolbar_drag_subtitle),
         row(R.string.appearance_toolbar_hardware_only_title, R.string.appearance_toolbar_hardware_only_subtitle),
+        row(R.string.appearance_toolbar_hardware_auto_hide_title, R.string.appearance_toolbar_hardware_auto_hide_subtitle),
         row(R.string.appearance_toolbar_rtl_title, R.string.appearance_toolbar_rtl_subtitle),
         row(R.string.appearance_toolbar_fit_title, R.string.appearance_toolbar_fit_subtitle),
         row(R.string.appearance_toolbar_padding_top_title, R.string.appearance_toolbar_padding_top_subtitle),

@@ -1695,6 +1695,20 @@ data class ToolbarBehavior(
      */
     val onlyWithHardwareKeyboard: Boolean = false,
     /**
+     * The keys called back up over the toolbar-only view (#642): the toolbar's
+     * show-keys button, or the leader then Space, sets it. Kept rather than
+     * reset per field, the way Gboard keeps it, so the next field opens the
+     * way the last one was left. Only read while [onlyWithHardwareKeyboard]
+     * is on and a physical keyboard is attached.
+     */
+    val hardwareKeysShown: Boolean = false,
+    /**
+     * Typing on the physical keyboard puts the called-up keys away again, as
+     * Gboard and SwiftKey both do. On by default: someone who reached for the
+     * screen and is now back on the keys wants the room back.
+     */
+    val hardwareKeysAutoHide: Boolean = true,
+    /**
      * Mirror the pinned tool order left-to-right when the active layout's
      * script runs right-to-left (Arabic, Hebrew …), so the bar reads with the
      * text. The toolbox grid is unaffected either way.
@@ -9304,6 +9318,10 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_ENABLED = booleanPreferencesKey("toolbar_enabled")
         private val TOOLBAR_SWIPE_DOWN_HIDE = booleanPreferencesKey("toolbar_swipe_down_hide")
         private val TOOLBAR_ONLY_HW_KEYBOARD = booleanPreferencesKey("toolbar_only_hw_keyboard")
+
+        // `hw_`, so sync leaves both on the device the keyboard is attached to.
+        private val HW_KEYS_SHOWN = booleanPreferencesKey("hw_keys_shown")
+        private val HW_KEYS_AUTO_HIDE = booleanPreferencesKey("hw_keys_auto_hide")
         private val REVERSE_TOOLBAR_RTL = booleanPreferencesKey("reverse_toolbar_rtl")
         private val TOOLBAR_HEIGHT = intPreferencesKey("toolbar_height")
         private val TOOLBAR_SCROLLABLE = booleanPreferencesKey("toolbar_scrollable")
@@ -11232,6 +11250,8 @@ class SettingsRepository(private val context: Context) {
             dragToRearrange = p[TOOLBAR_DRAG_REARRANGE] ?: defaults.toolbarBehavior.dragToRearrange,
             onlyWithHardwareKeyboard =
                 p[TOOLBAR_ONLY_HW_KEYBOARD] ?: defaults.toolbarBehavior.onlyWithHardwareKeyboard,
+            hardwareKeysShown = p[HW_KEYS_SHOWN] ?: defaults.toolbarBehavior.hardwareKeysShown,
+            hardwareKeysAutoHide = p[HW_KEYS_AUTO_HIDE] ?: defaults.toolbarBehavior.hardwareKeysAutoHide,
             reverseForRtl = p[REVERSE_TOOLBAR_RTL] ?: defaults.toolbarBehavior.reverseForRtl,
             greedy = p[TOOLBAR_GREEDY] ?: defaults.toolbarBehavior.greedy,
             scrollable = p[TOOLBAR_SCROLLABLE] ?: defaults.toolbarBehavior.scrollable,
@@ -12982,6 +13002,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setToolbarOnlyWithHardwareKeyboard(value: Boolean) =
         editPrefs { it[TOOLBAR_ONLY_HW_KEYBOARD] = value }
+
+    suspend fun setHardwareKeysShown(value: Boolean) =
+        editPrefs { it[HW_KEYS_SHOWN] = value }
+
+    suspend fun setHardwareKeysAutoHide(value: Boolean) =
+        editPrefs { it[HW_KEYS_AUTO_HIDE] = value }
 
     suspend fun setReverseToolbarForRtl(value: Boolean) =
         editPrefs { it[REVERSE_TOOLBAR_RTL] = value }
@@ -15809,6 +15835,8 @@ class SettingsRepository(private val context: Context) {
         it.remove(TOOLBAR_ENABLED)
         it.remove(TOOLBAR_SWIPE_DOWN_HIDE)
         it.remove(TOOLBAR_ONLY_HW_KEYBOARD)
+        it.remove(HW_KEYS_SHOWN)
+        it.remove(HW_KEYS_AUTO_HIDE)
         it.remove(REVERSE_TOOLBAR_RTL)
         it.remove(TOOLBAR_GREEDY)
         it.remove(TOOLBAR_HEIGHT)

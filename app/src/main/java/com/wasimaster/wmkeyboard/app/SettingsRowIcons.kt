@@ -143,6 +143,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.InstallMobile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Inventory2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Key
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardHide
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardCapslock
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardCommandKey
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardTab
@@ -459,6 +460,7 @@ internal object SettingsRowIcons {
         put(R.string.appearance_toolbar_swipe_down_title) { Icons.Outlined.SwipeDown }
         put(R.string.appearance_toolbar_drag_title) { Icons.Outlined.DragIndicator }
         put(R.string.appearance_toolbar_hardware_only_title) { SymbolIcons.KeyboardExternalInput }
+        put(R.string.appearance_toolbar_hardware_auto_hide_title) { Icons.Outlined.KeyboardHide }
         put(R.string.appearance_toolbar_lock_title) { Icons.Outlined.Lock }
         put(R.string.appearance_toolbar_rtl_title) { Icons.AutoMirrored.Outlined.FormatTextdirectionRToL }
         put(R.string.appearance_toolbar_fit_title) { Icons.Outlined.SpaceBar }

@@ -406,6 +406,7 @@ import com.wasimaster.wmkeyboard.ime.ui.keyboardHintPlan
 import com.wasimaster.wmkeyboard.ime.ui.suggestionDisplayOrder
 import com.wasimaster.wmkeyboard.ime.ui.visibleEmojiBarItems
 import com.wasimaster.wmkeyboard.ime.ui.visibleToolbarTools
+import com.wasimaster.wmkeyboard.ime.ui.hardwareKeysToggleable
 import com.wasimaster.wmkeyboard.core.tools.page
 import com.wasimaster.wmkeyboard.core.tools.step
 import com.wasimaster.wmkeyboard.core.util.PlayServices
@@ -31510,6 +31511,7 @@ open class WMKeyboardService : InputMethodService() {
             onSelectionHold = ::onSelectionHold,
             onTrackpadHold = ::onTrackpadHold,
             onVoiceModePick = ::onVoiceModePick,
+            onHardwareKeysToggle = { onHardwareKeysToggle() },
             dictionaryBar = com.wasimaster.wmkeyboard.ime.ui.DictionaryBarCallbacks(
                 onToggle = ::onDictionaryChipToggle,
                 onFilter = ::onDictionaryFilterSelect,
@@ -36789,8 +36791,66 @@ open class WMKeyboardService : InputMethodService() {
             onCursorMove(volumeCursorDelta(keyCode))
             return true
         }
+        // Last before typing, so a shortcut the handlers above consumed (a
+        // leader letter, Alt+1) never counts as going back to the keys.
+        autoHideHardwareKeys(event)
         if (handleHardwareKeyDown(event)) return true
         return super.onKeyDown(keyCode, event)
+    }
+
+    /**
+     * The toolbar's show-keys button, and the leader then Space (#642): the
+     * on-screen keys come up over the toolbar-only view, or go back down.
+     * False outside that view, where there is nothing to bring up.
+     */
+    fun onHardwareKeysToggle(): Boolean {
+        val state = _uiState.value
+        if (!hardwareKeysToggleable(state)) return false
+        vibrate()
+        setHardwareKeysShown(!state.settings.toolbarBehavior.hardwareKeysShown)
+        return true
+    }
+
+    /** The state moves ahead of the DataStore write, as in [onVoiceModePick], so the keys move this frame. */
+    private fun setHardwareKeysShown(shown: Boolean) {
+        _uiState.update {
+            it.copy(
+                settings = it.settings.copy(
+                    toolbarBehavior = it.settings.toolbarBehavior.copy(hardwareKeysShown = shown),
+                ),
+            )
+        }
+        serviceScope.launch { settingsRepository.setHardwareKeysShown(shown) }
+    }
+
+    /**
+     * Typing on the physical keyboard puts called-up keys away again (#642),
+     * the way Gboard does: the user has gone back to the keys in their lap.
+     *
+     * Only a key that types counts. Arrows, a bare modifier and app chords
+     * (`Ctrl`+C, `Meta`+anything) leave the keys up, and so does a key that
+     * arrives from a virtual device — a remote-control app, or a test
+     * harness — which is no sign the physical keyboard is back in use. Not
+     * while a panel is open either: the panel is drawn over the keys anyway,
+     * and its search field is where those letters are going.
+     */
+    private fun autoHideHardwareKeys(event: KeyEvent) {
+        val state = _uiState.value
+        val toolbar = state.settings.toolbarBehavior
+        if (!toolbar.hardwareKeysShown || !toolbar.hardwareKeysAutoHide) return
+        if (!hardwareKeysToggleable(state) || state.panel != PanelMode.NONE) return
+        if (event.repeatCount > 0) return
+        if (event.deviceId == KeyCharacterMap.VIRTUAL_KEYBOARD || event.device?.isVirtual == true) return
+        // The same shortcut rule typing uses: AltGr is Ctrl+Alt and types.
+        if (event.isMetaPressed || (event.isCtrlPressed && !event.isAltPressed)) return
+        val typing = event.isPrintingKey || when (event.keyCode) {
+            KeyEvent.KEYCODE_DEL, KeyEvent.KEYCODE_FORWARD_DEL,
+            KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER,
+            -> true
+
+            else -> false
+        }
+        if (typing) setHardwareKeysShown(false)
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
@@ -37159,6 +37219,13 @@ open class WMKeyboardService : InputMethodService() {
                 // Swallowed rather than passed on: an armed Enter must not submit
                 // the form the user was typing into.
                 disarmToolPicker()
+                return consumeHardwareKey(keyCode)
+            }
+            // The keys up or down over the toolbar-only view (#642). Space,
+            // because every letter is already a tool's.
+            KeyEvent.KEYCODE_SPACE -> {
+                disarmToolPicker()
+                if (!onHardwareKeysToggle()) vibrate()
                 return consumeHardwareKey(keyCode)
             }
         }

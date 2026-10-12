@@ -148,6 +148,8 @@
     <string name="core_tools_shortcut_cheat_all_tools">All tools</string>
     <string name="core_tools_shortcut_cheat_select_suggestion">Select a suggestion</string>
     <string name="core_tools_shortcut_cheat_language_switch">Change the language</string>
+    <!-- Brings the on-screen keys up over the toolbar-only view, or puts them away. -->
+    <string name="core_tools_shortcut_cheat_toggle_keys">Show or hide the keys</string>
     <!--
       Hold Shift with a key to reach the second tier: the symbol and emoji rows,
       or the tools in the toolbox that have no letter of their own.

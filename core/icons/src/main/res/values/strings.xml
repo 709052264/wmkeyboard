@@ -67,6 +67,8 @@
     <!-- The badge that marks the keyboard as incognito, so it learns nothing. -->
     <string name="core_icons_slot_incognito_label">Incognito badge</string>
     <string name="core_icons_slot_power_saving_label">Power saving badge</string>
+    <string name="core_icons_slot_show_keys_label">Show the keys (hardware keyboard)</string>
+    <string name="core_icons_slot_hide_keys_label">Hide the keys (hardware keyboard)</string>
 
     <!-- ================================================================== -->
     <!-- Emoji tab icons. One per tab in the emoji panel.                   -->

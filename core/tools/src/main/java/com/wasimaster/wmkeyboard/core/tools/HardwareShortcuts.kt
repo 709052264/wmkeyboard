@@ -544,6 +544,8 @@ data class CheatRow(
  *   rather than to a bare digit after the leader.
  * @param languageSwitchChord whether the language-switch row gets its own
  *   chord legend.
+ * @param keysToggle whether the toolbar-only view is up, so Space after the
+ *   leader brings the keys up or puts them away (#642).
  */
 fun cheatSheetRows(
     letters: Map<Char, ToolbarTool>,
@@ -552,6 +554,7 @@ fun cheatSheetRows(
     digitChord: Boolean = false,
     altSuggestionDigits: Boolean = false,
     languageSwitchChord: Boolean = false,
+    keysToggle: Boolean = false,
 ): List<CheatRow> = buildList {
     fun digit(slot: Int): String {
         val key = ToolbarHintDigits[slot].toString()
@@ -594,6 +597,15 @@ fun cheatSheetRows(
             CheatRow(
                 CtrlHintPrefix + "Space",
                 labelRes = R.string.core_tools_shortcut_cheat_language_switch,
+                group = CheatGroup.ACTIONS,
+            ),
+        )
+    }
+    if (keysToggle) {
+        add(
+            CheatRow(
+                "Space",
+                labelRes = R.string.core_tools_shortcut_cheat_toggle_keys,
                 group = CheatGroup.ACTIONS,
             ),
         )

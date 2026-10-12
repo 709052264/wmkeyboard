@@ -321,4 +321,12 @@ class HardwareShortcutsTest {
         assertTrue(off.none { it.trigger.endsWith("Space") })
         assertTrue(on.any { it.trigger.endsWith("Space") })
     }
+
+    @Test
+    fun `the keys toggle row appears only over the toolbar-only view`() {
+        val off = cheatSheetRows(DefaultToolLetters, enabled = setOf(ToolbarTool.EMOJI))
+        val on = cheatSheetRows(DefaultToolLetters, enabled = setOf(ToolbarTool.EMOJI), keysToggle = true)
+        assertTrue(off.none { it.trigger == "Space" })
+        assertTrue(on.any { it.trigger == "Space" && it.group == CheatGroup.ACTIONS })
+    }
 }
