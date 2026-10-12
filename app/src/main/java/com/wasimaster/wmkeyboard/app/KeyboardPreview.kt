@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app
 
 import android.content.Context
 import android.view.inputmethod.InputMethodManager
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -108,26 +109,32 @@ private const val OrphanGraceMs = 400L
 internal fun KeyboardPreviewFab(state: KeyboardPreviewState) {
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
-    SmallFloatingActionButton(
-        onClick = {
+    // Every screen draws its own, so without a shared key the button of the
+    // screen being left blinks out as the next one's appears. The key sits on
+    // a wrapper, not on the button: mid-flight sharedElement measures its
+    // child at exactly the bounds it recorded, and the button's recorded
+    // bounds are its 48dp touch target, so a fixed 48dp would stretch the
+    // 40dp surface to fill it until the flight lands. The Box hands the button
+    // loose constraints, so it keeps its own size the whole way.
+    Box(Modifier.wmSharedElement(PreviewFabKey)) {
+        SmallFloatingActionButton(
+            onClick = {
+                if (state.open) {
+                    // Put away first: taking the field out of the tree drops its
+                    // input session too, but not always the keyboard with it.
+                    keyboard?.hide()
+                    focus.clearFocus()
+                }
+                state.open = !state.open
+            },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        ) {
             if (state.open) {
-                // Put away first: taking the field out of the tree drops its
-                // input session too, but not always the keyboard with it.
-                keyboard?.hide()
-                focus.clearFocus()
+                Icon(Icons.Outlined.KeyboardHide, stringResource(R.string.keyboard_preview_close))
+            } else {
+                Icon(Icons.Outlined.Keyboard, stringResource(R.string.keyboard_preview_open))
             }
-            state.open = !state.open
-        },
-        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        // Every screen draws its own, so without a shared key the button of
-        // the screen being left blinks out as the next one's appears.
-        modifier = Modifier.wmSharedElement(PreviewFabKey),
-    ) {
-        if (state.open) {
-            Icon(Icons.Outlined.KeyboardHide, stringResource(R.string.keyboard_preview_close))
-        } else {
-            Icon(Icons.Outlined.Keyboard, stringResource(R.string.keyboard_preview_open))
         }
     }
 }
