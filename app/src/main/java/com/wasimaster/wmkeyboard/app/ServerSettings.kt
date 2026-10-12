@@ -290,6 +290,7 @@ private val ServiceGroup.titleRes: Int
         ServiceGroup.DICTIONARY -> R.string.servers_section_dictionary
         ServiceGroup.VOCABULARY -> R.string.servers_section_vocabulary
         ServiceGroup.WEATHER -> R.string.servers_section_weather
+        ServiceGroup.MAPS -> R.string.servers_section_maps
         ServiceGroup.CURRENCY -> R.string.servers_section_currency
         ServiceGroup.AI -> R.string.servers_section_ai
         ServiceGroup.UPDATES -> R.string.servers_section_updates

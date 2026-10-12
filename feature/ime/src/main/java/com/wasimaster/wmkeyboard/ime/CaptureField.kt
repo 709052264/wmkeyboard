@@ -319,6 +319,12 @@ enum class CaptureTarget(
     /** The AI panel's chat composer (#280): free text, newlines and all. */
     AI_CHAT(takesWords = true),
 
+    /**
+     * The reply panel's own message box (#234): what the other person said,
+     * typed or pasted in. Free text — a message runs to more than one line.
+     */
+    AI_REPLY(takesWords = true),
+
     /** The KDE Connect panel's "add by address" box: an IP address or a host name. */
     KDE_HOST(takesWords = false),
 

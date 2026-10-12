@@ -66,7 +66,11 @@ import com.wasimaster.wmkeyboard.core.layout.repair
 import com.wasimaster.wmkeyboard.core.layout.resolveLayoutSelection
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.layout.script
+import com.wasimaster.wmkeyboard.core.tools.AiPrompts
 import com.wasimaster.wmkeyboard.core.tools.AltCalendar
+import com.wasimaster.wmkeyboard.core.tools.ReplyEmoji
+import com.wasimaster.wmkeyboard.core.tools.ReplyImageMode
+import com.wasimaster.wmkeyboard.core.tools.ReplyLength
 import com.wasimaster.wmkeyboard.core.tools.CurrencyClient
 import com.wasimaster.wmkeyboard.core.tools.DictionarySourceChoice
 import com.wasimaster.wmkeyboard.core.tools.DictionarySources
@@ -156,6 +160,11 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.thesaurus.SynonymSourceChoice
 import com.wasimaster.wmkeyboard.core.thesaurus.SynonymSources
 import com.wasimaster.wmkeyboard.core.notes.NoteSort
+import com.wasimaster.wmkeyboard.core.location.LocationFormat
+import com.wasimaster.wmkeyboard.core.location.LocationPrecision
+import com.wasimaster.wmkeyboard.core.location.MapLink
+import com.wasimaster.wmkeyboard.core.location.SavedPlace
+import com.wasimaster.wmkeyboard.core.location.SavedPlaces
 import com.wasimaster.wmkeyboard.core.notes.NoteStore
 import com.wasimaster.wmkeyboard.core.vocab.VocabAccent
 import com.wasimaster.wmkeyboard.core.vocab.VocabAudioSource
@@ -3374,6 +3383,8 @@ data class KeyboardSettings(
     val redoUsesCtrlY: Boolean = false,
     /** Units and saved place for the weather tool (see [WeatherSettings]). */
     val weather: WeatherSettings = WeatherSettings(),
+    /** The Location tool (#350): format, map, precision, saved places (see [LocationSettings]). */
+    val location: LocationSettings = LocationSettings(),
     /** The network activity log's two switches (see [NetworkLogSettings]). */
     val networkLog: NetworkLogSettings = NetworkLogSettings(),
     /** Alternate calendars and the weekend, for the calendar tool (see [CalendarToolSettings]). */
@@ -4268,6 +4279,59 @@ val BackupDestination.signsIn: Boolean
         this == BackupDestination.ONEDRIVE
 
 /**
+ * The AI reply tool's own settings (#234), nested for the reason
+ * [KeyboardSettings.photoBackground] is: the flat list is a handful of fields
+ * from the JVM ceiling on `copy$default`, and this domain takes one slot once.
+ *
+ * The keys stay flat (`ai_reply_*`), so backup and the locked-settings handling
+ * need no change.
+ */
+data class AiReplySettings(
+    /**
+     * How many drafts one run asks for.
+     *
+     * Three on a server, which is where the choice is worth having. A small
+     * on-device model asked for three writes the same reply three times and
+     * often loses the one-per-line format doing it, so the service drops the
+     * ask to one there rather than this default pretending otherwise.
+     */
+    val count: Int = 3,
+    val length: ReplyLength = ReplyLength.MEDIUM,
+    val emoji: ReplyEmoji = ReplyEmoji.MATCH,
+    /**
+     * What the user wants the model to know about them, in their own words —
+     * the one thing that makes a drafted reply sound like a person rather than
+     * a form letter. Their own writing, so it goes into the prompt as a
+     * directive and never behind the transcript's guard.
+     */
+    val persona: String = "",
+    /** Characters of transcript one run sends, oldest messages dropped first. */
+    val contextChars: Int = 1_500,
+    /** Blank means the reply follows the conversation's own language. */
+    val language: String = "",
+    /** Whether a screenshot is sent as a picture or read on the device first. */
+    val imageMode: ReplyImageMode = ReplyImageMode.AUTO,
+    /**
+     * Clear away the clips and screenshots a reply was built from once it has
+     * been used.
+     *
+     * On, because the alternative is a clipboard history filling with halves of
+     * other people's conversations that were only ever copied to feed this
+     * tool. The panel carries the same switch for the run in hand, so a clip
+     * that was worth keeping can be kept without changing the default.
+     */
+    val tidyUp: Boolean = true,
+    /**
+     * Keep drafted replies in the AI history.
+     *
+     * Off even when the history itself is on: a record of an AI rewrite is the
+     * user's own writing, and a record of a reply is somebody else's message.
+     * Those are not the same thing to keep.
+     */
+    val keepHistory: Boolean = false,
+)
+
+/**
  * AI-tool settings, grouped rather than flat because [KeyboardSettings] sits against
  * the JVM's 255-slot method-argument limit: Kotlin's generated `copy$default` takes
  * every field plus its mask ints, so a flat class stops loading once the count creeps
@@ -4456,6 +4520,8 @@ data class AiSettings(
      * gateway's token often travels here too.
      */
     val providerHeaders: Map<String, List<McpHeader>> = emptyMap(),
+    /** The reply tool's own settings (#234). */
+    val reply: AiReplySettings = AiReplySettings(),
 )
 
 /**
@@ -5031,6 +5097,14 @@ data class CameraSettings(
     val searchCustomUrl: String = "",
     /** Form field the photo goes in, for [PhotoSearchEngine.CUSTOM]. */
     val searchCustomField: String = "image",
+    /**
+     * Burn the place into the photo (#350): a band along the bottom with the
+     * address, the coordinates, the time and the Plus code, at the Location
+     * tool's precision. In the pixels, so every chat app shows it.
+     */
+    val locationStamp: Boolean = false,
+    /** Put the place in the text box as well when a photo is sent (#350). */
+    val locationCaption: Boolean = false,
 )
 
 /**
@@ -9441,6 +9515,14 @@ class SettingsRepository(private val context: Context) {
         private val WEATHER_LON = floatPreferencesKey("weather_lon")
         private val WEATHER_PLACE = stringPreferencesKey("weather_place")
         private val WEATHER_AUTO_FETCH = booleanPreferencesKey("weather_auto_fetch")
+        private val LOCATION_FORMAT = stringPreferencesKey("location_format")
+        private val LOCATION_MAP_LINK = stringPreferencesKey("location_map_link")
+        private val LOCATION_PRECISION = stringPreferencesKey("location_precision")
+        private val LOCATION_LOOKUP_ADDRESS = booleanPreferencesKey("location_lookup_address")
+        private val LOCATION_LOCATE_ON_OPEN = booleanPreferencesKey("location_locate_on_open")
+        private val LOCATION_TEMPLATE = stringPreferencesKey("location_template")
+        private val LOCATION_PLACES = stringPreferencesKey("location_places")
+        private val LOCATION_TILE_URL = stringPreferencesKey("location_tile_url")
         // Superseded by CALENDAR_ALT_ONE/TWO, still read once to carry the old
         // Bengali/Hijri switches over to the new pair of picks.
         private val CALENDAR_SHOW_BENGALI = booleanPreferencesKey("calendar_show_bengali")
@@ -9505,6 +9587,8 @@ class SettingsRepository(private val context: Context) {
         private val CAMERA_SAVE_TO_GALLERY = booleanPreferencesKey("camera_save_to_gallery")
         private val CAMERA_FULL_FRAME = booleanPreferencesKey("camera_full_frame")
         private val CAMERA_SEARCH_BUTTON = booleanPreferencesKey("camera_search_button")
+        private val CAMERA_LOCATION_STAMP = booleanPreferencesKey("camera_location_stamp")
+        private val CAMERA_LOCATION_CAPTION = booleanPreferencesKey("camera_location_caption")
         private val CAMERA_SEARCH_WITH = stringPreferencesKey("camera_search_with")
         private val CAMERA_SEARCH_ENGINE = stringPreferencesKey("camera_search_engine")
         private val CAMERA_SEARCH_CUSTOM_URL = stringPreferencesKey("camera_search_custom_url")
@@ -9859,6 +9943,15 @@ class SettingsRepository(private val context: Context) {
         private val AI_ACTION_ORDER = stringPreferencesKey("ai_action_order")
         private val AI_ACTIONS_OFF = stringPreferencesKey("ai_actions_off")
         private val AI_TRANSLATE_TO = stringPreferencesKey("ai_translate_to")
+        private val AI_REPLY_COUNT = intPreferencesKey("ai_reply_count")
+        private val AI_REPLY_LENGTH = stringPreferencesKey("ai_reply_length")
+        private val AI_REPLY_EMOJI = stringPreferencesKey("ai_reply_emoji")
+        private val AI_REPLY_PERSONA = stringPreferencesKey("ai_reply_persona")
+        private val AI_REPLY_CONTEXT_CHARS = intPreferencesKey("ai_reply_context_chars")
+        private val AI_REPLY_LANGUAGE = stringPreferencesKey("ai_reply_language")
+        private val AI_REPLY_IMAGE_MODE = stringPreferencesKey("ai_reply_image_mode")
+        private val AI_REPLY_TIDY_UP = booleanPreferencesKey("ai_reply_tidy_up")
+        private val AI_REPLY_KEEP_HISTORY = booleanPreferencesKey("ai_reply_keep_history")
         // Where a per-action prompt override used to live, one key each. Read
         // only now, and folded into the action list on every read; see
         // [legacyAiPrompts]. Not deleted, because a settings backup taken
@@ -10224,6 +10317,7 @@ class SettingsRepository(private val context: Context) {
             redoUsesCtrlY = p[REDO_USES_CTRL_Y] ?: defaults.redoUsesCtrlY,
             networkLog = readNetworkLog(p, defaults),
             weather = readWeather(p, defaults),
+            location = readLocation(p, defaults),
             calendarTool = readCalendarTool(p, defaults),
             handwritingStylusOnly = p[HANDWRITING_STYLUS_ONLY] ?: defaults.handwritingStylusOnly,
             handwritingCommitDelayMs = p[HANDWRITING_COMMIT_DELAY]
@@ -11400,6 +11494,18 @@ class SettingsRepository(private val context: Context) {
             showOnKeyboard = p[NETWORK_LOG_ON_KEYBOARD] ?: defaults.networkLog.showOnKeyboard,
         )
 
+    private fun readLocation(p: Preferences, defaults: KeyboardSettings) =
+        LocationSettings(
+            format = LocationFormat.of(p[LOCATION_FORMAT]) ?: defaults.location.format,
+            mapLink = MapLink.of(p[LOCATION_MAP_LINK]) ?: defaults.location.mapLink,
+            precision = LocationPrecision.of(p[LOCATION_PRECISION]) ?: defaults.location.precision,
+            lookupAddress = p[LOCATION_LOOKUP_ADDRESS] ?: defaults.location.lookupAddress,
+            locateOnOpen = p[LOCATION_LOCATE_ON_OPEN] ?: defaults.location.locateOnOpen,
+            template = p[LOCATION_TEMPLATE] ?: defaults.location.template,
+            places = p[LOCATION_PLACES]?.let(SavedPlaces::decode) ?: defaults.location.places,
+            tileUrl = p[LOCATION_TILE_URL] ?: defaults.location.tileUrl,
+        )
+
     private fun readWeather(p: Preferences, defaults: KeyboardSettings) =
         WeatherSettings(
             fahrenheit = p[WEATHER_FAHRENHEIT] ?: defaults.weather.fahrenheit,
@@ -11488,6 +11594,8 @@ class SettingsRepository(private val context: Context) {
             searchCustomUrl = p[CAMERA_SEARCH_CUSTOM_URL] ?: defaults.camera.searchCustomUrl,
             searchCustomField = p[CAMERA_SEARCH_CUSTOM_FIELD]
                 ?.takeIf { it.isNotBlank() } ?: defaults.camera.searchCustomField,
+            locationStamp = p[CAMERA_LOCATION_STAMP] ?: defaults.camera.locationStamp,
+            locationCaption = p[CAMERA_LOCATION_CAPTION] ?: defaults.camera.locationCaption,
         )
 
     private fun readScanner(p: Preferences, defaults: KeyboardSettings) =
@@ -11885,6 +11993,23 @@ class SettingsRepository(private val context: Context) {
             mcpServers = McpServerCodec.decodeServers(p[AI_MCP_SERVERS].orEmpty()),
             mcpHeaders = McpServerCodec.decodeHeaders(p[AI_MCP_HEADERS].orEmpty()),
             providerHeaders = McpServerCodec.decodeHeaders(p[AI_PROVIDER_HEADERS].orEmpty()),
+            reply = AiReplySettings(
+                count = p[AI_REPLY_COUNT] ?: defaults.ai.reply.count,
+                length = p[AI_REPLY_LENGTH]
+                    ?.let { runCatching { ReplyLength.valueOf(it) }.getOrNull() }
+                    ?: defaults.ai.reply.length,
+                emoji = p[AI_REPLY_EMOJI]
+                    ?.let { runCatching { ReplyEmoji.valueOf(it) }.getOrNull() }
+                    ?: defaults.ai.reply.emoji,
+                persona = p[AI_REPLY_PERSONA] ?: defaults.ai.reply.persona,
+                contextChars = p[AI_REPLY_CONTEXT_CHARS] ?: defaults.ai.reply.contextChars,
+                language = p[AI_REPLY_LANGUAGE] ?: defaults.ai.reply.language,
+                imageMode = p[AI_REPLY_IMAGE_MODE]
+                    ?.let { runCatching { ReplyImageMode.valueOf(it) }.getOrNull() }
+                    ?: defaults.ai.reply.imageMode,
+                tidyUp = p[AI_REPLY_TIDY_UP] ?: defaults.ai.reply.tidyUp,
+                keepHistory = p[AI_REPLY_KEEP_HISTORY] ?: defaults.ai.reply.keepHistory,
+            ),
         )
 
     private fun readLauncher(p: Preferences, defaults: KeyboardSettings) =
@@ -12376,6 +12501,31 @@ class SettingsRepository(private val context: Context) {
     suspend fun setNetworkLogOnKeyboard(value: Boolean) =
         editPrefs { it[NETWORK_LOG_ON_KEYBOARD] = value }
 
+    suspend fun setLocationFormat(value: LocationFormat) = editPrefs { it[LOCATION_FORMAT] = value.id }
+
+    suspend fun setLocationMapLink(value: MapLink) = editPrefs { it[LOCATION_MAP_LINK] = value.id }
+
+    suspend fun setLocationPrecision(value: LocationPrecision) = editPrefs { it[LOCATION_PRECISION] = value.id }
+
+    suspend fun setLocationLookupAddress(value: Boolean) = editPrefs { it[LOCATION_LOOKUP_ADDRESS] = value }
+
+    suspend fun setLocationLocateOnOpen(value: Boolean) = editPrefs { it[LOCATION_LOCATE_ON_OPEN] = value }
+
+    suspend fun setLocationTemplate(value: String) = editPrefs { it[LOCATION_TEMPLATE] = value }
+
+    suspend fun setLocationTileUrl(value: String) = editPrefs { it[LOCATION_TILE_URL] = value.trim() }
+
+    /**
+     * Rewrites the saved places through [change], read and written in one
+     * edit so the keyboard and the settings app cannot drop each other's
+     * additions.
+     */
+    suspend fun updateLocationPlaces(change: (List<SavedPlace>) -> List<SavedPlace>) =
+        editPrefs { prefs ->
+            val next = change(SavedPlaces.decode(prefs[LOCATION_PLACES]))
+            if (next.isEmpty()) prefs.remove(LOCATION_PLACES) else prefs[LOCATION_PLACES] = SavedPlaces.encode(next)
+        }
+
     suspend fun setWeatherFahrenheit(value: Boolean) =
         editPrefs { it[WEATHER_FAHRENHEIT] = value }
 
@@ -12636,6 +12786,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setCameraSearchButton(value: Boolean) =
         editPrefs { it[CAMERA_SEARCH_BUTTON] = value }
+
+    suspend fun setCameraLocationStamp(value: Boolean) =
+        editPrefs { it[CAMERA_LOCATION_STAMP] = value }
+
+    suspend fun setCameraLocationCaption(value: Boolean) =
+        editPrefs { it[CAMERA_LOCATION_CAPTION] = value }
 
     suspend fun setCameraSearchWith(value: PhotoSearchTarget) =
         editPrefs { it[CAMERA_SEARCH_WITH] = value.name }
@@ -15924,6 +16080,32 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiBeforeCursorChars(value: Int) =
         editPrefs { it[AI_BEFORE_CURSOR_CHARS] = value.coerceIn(500, 32_000) }
+
+    suspend fun setAiReplyCount(value: Int) =
+        editPrefs { it[AI_REPLY_COUNT] = value.coerceIn(1, AiPrompts.MAX_REPLIES) }
+
+    suspend fun setAiReplyLength(value: ReplyLength) =
+        editPrefs { it[AI_REPLY_LENGTH] = value.name }
+
+    suspend fun setAiReplyEmoji(value: ReplyEmoji) =
+        editPrefs { it[AI_REPLY_EMOJI] = value.name }
+
+    suspend fun setAiReplyPersona(value: String) =
+        editPrefs { it[AI_REPLY_PERSONA] = value.take(600) }
+
+    suspend fun setAiReplyContextChars(value: Int) =
+        editPrefs { it[AI_REPLY_CONTEXT_CHARS] = value.coerceIn(300, 8_000) }
+
+    suspend fun setAiReplyLanguage(value: String) =
+        editPrefs { it[AI_REPLY_LANGUAGE] = value.take(60) }
+
+    suspend fun setAiReplyImageMode(value: ReplyImageMode) =
+        editPrefs { it[AI_REPLY_IMAGE_MODE] = value.name }
+
+    suspend fun setAiReplyTidyUp(value: Boolean) = editPrefs { it[AI_REPLY_TIDY_UP] = value }
+
+    suspend fun setAiReplyKeepHistory(value: Boolean) =
+        editPrefs { it[AI_REPLY_KEEP_HISTORY] = value }
 
     suspend fun setAiToolWebSearch(value: Boolean) =
         editPrefs { it[AI_TOOL_WEB_SEARCH] = value }

@@ -51,6 +51,16 @@ After the shutter fires, the frozen photo is drawn at the exact spot and size th
 
 If you took the photo with the front camera and [Mirror selfies](#options) is on, the saved file is flipped horizontally to match what you saw while framing. Camera sensors record selfies un-mirrored by default: text reads the right way round, but the shot looks flipped against the live preview. Shutter sound and haptic feedback on the controls, timer ticks, and shutter are each their own setting. See [Options](#options).
 
+## Putting the place on a photo
+
+With the [Location tool](/tools/location/) on, the viewfinder's control rail carries a pin next to the timer. Tap it and the photo is stamped: a band along the bottom with the place on one line and the coordinates, the time and the Plus code under it, white on a dark fade. A line over the viewfinder shows what the band will say before you shoot, or that the keyboard is still finding you. The stamp is in the picture itself, so every chat app shows it, and so do screenshots and forwards. The pin remembers whether it was on.
+
+The stamp follows the Location tool's settings: its [precision](/tools/location/#precision), so a city-level stamp says only the city, and its address lookup. The Location panel's camera button opens the camera with the stamp on for that one photo.
+
+The confirm step has **Add the place as text** above Retake and Send. On, Send types the place into the box first, in the Location tool's default format, and then sends the photo. Many chat apps take the text in the box as the photo's caption; others send it as a message of its own. That switch is remembered too.
+
+Either one asks Android for location access the first time, the same way the Location tool does. Nothing is read while both are off.
+
 ## Where the photo goes
 
 Tapping **Send** inserts the photo the same way clipboard images, GIFs, and stickers do: through Android's `commitContent` API, matched against whatever image types the field you're typing into says it accepts. If the field doesn't advertise support for any compatible image type, the photo is copied to the system clipboard instead, with a toast:
@@ -123,7 +133,7 @@ Under those sits the **Keyword shortcut** group, which every tool that ships a b
 - **Match capitals**: off by default, so "camera", "Camera" and "CAMERA" all match. Turn it on and only the exact spelling in the field above counts. That's worth doing for a short trigger word that's also ordinary text.
 - **Reset to defaults**: only appears once you've edited the trigger words, and puts them back to "camera". Its subtitle shows what you'd be going back to.
 
-The tool's own settings, split into two groups:
+The tool's own settings, split into three groups:
 
 **Options**
 - **Start with the selfie camera**: off by default. Opens the panel on the front camera instead of the back one.
@@ -132,6 +142,10 @@ The tool's own settings, split into two groups:
 - **Mirror selfies**: on by default. See [Confirm, retake, or send](#confirm-retake-or-send) above for what this does and why it exists.
 - **Send the whole photo**: off by default. It skips the crop described in [What you see is what you get](#what-you-see-is-what-you-get) and sends the full 4:3 frame, including the strips that ran off the top and bottom of the screen. The live viewfinder is unchanged, so this is the one case where the photo holds more than you framed. The confirm step fits the whole picture inside the panel so you can see what you're about to send.
 - **Save to the gallery**: off by default. Also copies every capture into `Pictures/WM Keyboard`, on top of sending it.
+
+**Location**
+- **Stamp the place on photos**: off by default. The same switch as the pin on the viewfinder. See [Putting the place on a photo](#putting-the-place-on-a-photo).
+- **Add the place as text**: off by default. The same switch as the one on the confirm step.
 
 <a id="search-by-photo-options"></a>**Search by photo**
 - **Search button**: off by default. Adds **Search** after Retake and Send on the confirm step. The camera button in image search offers Search whatever this says.

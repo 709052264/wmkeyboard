@@ -145,7 +145,6 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LibraryAdd
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Password
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PlayArrow
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Phone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.RemoveCircleOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
@@ -1329,6 +1328,8 @@ fun KeyboardScreen(
     converter: ConverterCallbacks = ConverterCallbacks(),
     /** The caret and the strip of whichever keyboard-owned field has the keys (#161). */
     capture: CaptureCallbacks = CaptureCallbacks(),
+    /** The AI reply tool's own controls (#234), bundled for the same reason. */
+    reply: ReplyCallbacks = ReplyCallbacks(),
     onPwSetting: (PwSettingAction) -> Unit = {},
     onTypingTestAction: (TypingTestAction) -> Unit = {},
     onQrSend: () -> Unit = {},
@@ -1479,6 +1480,7 @@ fun KeyboardScreen(
                 onOtpAccept = onOtpAccept,
                 onOtpDismiss = onOtpDismiss,
                 snippetPanel = snippetPanel,
+                reply = reply,
                 onToolTap = onToolTap,
                 onToolbarToolsChange = onToolbarToolsChange,
                 onToolboxOrderChange = onToolboxOrderChange,
@@ -3883,7 +3885,15 @@ private fun TopBar(
                             // Resting openers have their own flag: the override
                             // means "away from the candidates", and at rest the
                             // toolbar is already where the bar is.
-                            openersAtRest && !toolbarOverride -> openersShown = !openersShown
+                            //
+                            // Only while the openers are all that could hold the
+                            // strip. A paste chip, an offer or any other content
+                            // in [hasSuggestions] keeps the strip up on its own,
+                            // so flipping the openers flag there changed nothing
+                            // and the chevron looked dead; the override is what
+                            // takes the row from them.
+                            openersAtRest && !hasSuggestions && !toolbarOverride ->
+                                openersShown = !openersShown
                             else -> toolbarOverride = !toolbarOverride
                         }
                     },
@@ -7603,9 +7613,11 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.STATISTICS -> R.string.ime_tool_statistics
     ToolbarTool.FIND_REPLACE -> R.string.ime_tool_find_replace
     ToolbarTool.NOTES -> R.string.ime_tool_notes
+    ToolbarTool.LOCATION -> R.string.ime_tool_location
     ToolbarTool.PLUGINS -> R.string.ime_tool_plugins
     ToolbarTool.APP_LAUNCHER -> R.string.ime_tool_app_launcher
     ToolbarTool.AI -> R.string.ime_tool_ai
+    ToolbarTool.AI_REPLY -> R.string.ime_tool_ai_reply
     ToolbarTool.MODES -> R.string.ime_tool_modes
     ToolbarTool.FANCY -> R.string.ime_tool_fancy
     ToolbarTool.CUSTOM_LAYOUT -> R.string.ime_tool_custom_layout
@@ -7694,6 +7706,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.STATISTICS -> false
     ToolbarTool.FIND_REPLACE -> state.panel == PanelMode.FIND_REPLACE
     ToolbarTool.NOTES -> state.panel == PanelMode.NOTES
+    ToolbarTool.LOCATION -> state.panel == PanelMode.LOCATION
     ToolbarTool.VOICE -> state.panel == PanelMode.VOICE || state.voice.strip || state.voice.bar
     ToolbarTool.GRAMMAR -> state.panel == PanelMode.GRAMMAR
     ToolbarTool.WIKIPEDIA -> state.panel == PanelMode.WIKIPEDIA
@@ -7709,6 +7722,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.PLUGINS -> state.panel == PanelMode.PLUGINS
     ToolbarTool.APP_LAUNCHER -> state.panel == PanelMode.APP_LAUNCHER
     ToolbarTool.AI -> state.panel == PanelMode.AI
+    ToolbarTool.AI_REPLY -> state.panel == PanelMode.AI_REPLY
     ToolbarTool.MODES -> state.panel == PanelMode.MODES || state.activeModeId != null
     // Lit while the fancy layout is the one typing, however it got there:
     // the tool and the 🌐 key reach the same place.
@@ -10426,6 +10440,7 @@ private val FullBleedPanels = setOf(
     PanelMode.DICTIONARY, PanelMode.SYMBOLS, PanelMode.MEDIA_CONTROL, PanelMode.KDE_CONNECT,
     PanelMode.VOCABULARY, PanelMode.LEARN_FROM_TEXT, PanelMode.NOTES,
     PanelMode.APP_LAUNCHER, PanelMode.THEMES, PanelMode.SNIPPETS, PanelMode.WIKIPEDIA,
+    PanelMode.AI_REPLY, PanelMode.LOCATION,
 )
 
 /**
@@ -10865,6 +10880,8 @@ private fun KeyboardBody(
     onOtpDismiss: () -> Unit,
     onEmojiRowShown: () -> Unit,
     snippetPanel: SnippetPanelCallbacks,
+    /** The AI reply panel's controls, threaded down from [KeyboardScreen]. */
+    reply: ReplyCallbacks,
     onToolTap: (ToolbarTool) -> Unit,
     onToolbarToolsChange: (List<ToolbarTool>) -> Unit,
     onToolboxOrderChange: (List<ToolbarTool>) -> Unit,
@@ -11427,7 +11444,7 @@ private fun KeyboardBody(
                     Modifier
                         .fillMaxWidth()
                         .height(keyRowsHeight(state)),
-                ) { CompassPanel(state) }
+                ) { CompassPanel(state, location = toolHold.location) }
                 PanelMode.LEVEL -> Box(
                     Modifier
                         .fillMaxWidth()
@@ -11441,6 +11458,12 @@ private fun KeyboardBody(
                     // The prompt is about the weather location, so land on the
                     // weather tool's own page rather than the settings root.
                     onOpenSettings = { onOpenToolSettings(ToolbarTool.WEATHER) },
+                    onUseMyLocation = toolHold.location.onUseMyLocationForTools,
+                )
+                PanelMode.LOCATION -> LocationPanel(
+                    state = state,
+                    callbacks = toolHold.location,
+                    onClose = { onPanelChange(PanelMode.LOCATION) },
                 )
                 // The month grid and the selected day's event list are fighting
                 // over the same rows, so the calendar buys itself another band
@@ -11489,6 +11512,7 @@ private fun KeyboardBody(
                     onClose = {
                         onPanelChange(if (state.cameraSearchOnly) PanelMode.IMAGE_SEARCH else PanelMode.CAMERA)
                     },
+                    location = toolHold.location,
                 )
                 PanelMode.OCR -> if (BuildConfig.ENABLE_ML_KIT_SCANNERS) {
                     OcrPanel(
@@ -11987,6 +12011,28 @@ private fun KeyboardBody(
                         onChat = capture.onAiChat,
                     )
                 }
+                PanelMode.AI_REPLY -> FullBleedTool(
+                    state = state,
+                    title = stringResource(R.string.ime_tool_ai_reply),
+                    onClose = { onPanelChange(PanelMode.AI_REPLY) },
+                    // Taller than the keys: the panel stacks the gathered
+                    // messages, the tones and the drafts, and all three have to
+                    // be in view at once for the tool to be worth opening.
+                    extraHeight = 160.dp,
+                    // The message box types on the key rows, so the panel
+                    // collapses to leave room for them below — the pair rule
+                    // from the plugin panel: a compact without the KeyRows
+                    // clause below is a box with nothing to type into it.
+                    compact = state.aiReplyTypingActive,
+                    compactHeight = 150.dp,
+                    headerActions = {
+                        ToolCircle(
+                            slot = IconSlots.forTool(ToolbarTool.SETTINGS),
+                            description = stringResource(R.string.ime_reply_settings_desc),
+                            active = false,
+                        ) { onOpenToolSettings(ToolbarTool.AI_REPLY) }
+                    },
+                ) { AiReplyPanel(state, reply, onOpenToolSettings) }
                 PanelMode.MODES -> ModesPanel(
                     state, onModeSelect,
                     onOpenSettings = { onOpenToolSettings(ToolbarTool.MODES) },
@@ -26004,6 +26050,8 @@ data class ToolHoldCallbacks(
     val learnFromText: LearnFromTextCallbacks = LearnFromTextCallbacks(),
     /** The Notes panel's callbacks (#560); here for the same reason as [dictionaryBar]. */
     val notes: NotesCallbacks = NotesCallbacks(),
+    /** The Location panel's callbacks and state (#350); here for the same reason as [dictionaryBar]. */
+    val location: LocationCallbacks = LocationCallbacks(),
     /** The clipboard panel's editor and view switch; here for the same reason as [dictionaryBar]. */
     val clipboard: ClipboardPanelActions = ClipboardPanelActions(),
     /** The caret magnifier (discussion #303); here for the same reason as [dictionaryBar]. */
@@ -26745,11 +26793,7 @@ private fun ClipEntityChip(
             ClipEntitySourcePopup(entity, onDismiss = { showSource = false })
         }
         Icon(
-            when (entity.kind) {
-                ClipEntityKind.OTP -> Icons.Outlined.Password
-                ClipEntityKind.PHONE -> Icons.Outlined.Phone
-                ClipEntityKind.URL -> Icons.Outlined.Link
-            },
+            clipEntityIcon(entity.kind),
             contentDescription = stringResource(entity.kind.labelRes),
             modifier = Modifier.size(15.dp),
             tint = accent,

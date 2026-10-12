@@ -1,0 +1,137 @@
+---
+title: "Location"
+description: "Share where you are, or a place you saved, as a map link, an address, coordinates or a Plus code, without leaving the chat."
+sidebar:
+  order: 15.5
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+import KeyCap from '@components/KeyCap.astro';
+
+Most chat apps can send a location, each in its own way, and some can't at all. The **Location** tool does it from the keyboard, so it works the same in every app: a tap finds you, you pick how the place should read, and the text goes into the box you're typing in. It also keeps a list of places you name yourself, like Home or Work, which go in with one tap and never need location access at all.
+
+Open **Location** from the toolbox, or type `location` or `gps` and tap the chip that appears. Typing `I'm at` or `my location` offers it too, and keeps your words, so the place goes in right after them. The panel has two tabs, **Here** and **Places**, a precision chip, and a shortcut to the tool's settings.
+
+## Sharing where you are
+
+The first time, **Here** shows a **Locate me** button and nothing else. Tap it and the keyboard explains what it is about to ask for, then Android shows its own location dialog.
+
+- **Only this time** is a good answer. The keyboard reads your position once and is done with it, so the grant has nothing else to do. Next time you tap Locate me, Android asks again.
+- **Approximate** works too. Android then hands over a point snapped to a grid of a few kilometres, and the panel says **Approximate** with an **Allow precise** link beside it for the day you want the street.
+- **Don't allow** leaves the tool exactly as it was. Saved places still work.
+
+Once Android allows it, the panel finds you the moment it opens, unless you turn **Locate when the tool opens** off. A position Android already holds from the last minute shows up at once, then the keyboard asks every location source the phone has switched on (the satellite receiver, the network one, and Android's own combined source on Android 12 and later) and keeps the best answer. It stops as soon as one is within about 25 metres, or after 20 seconds with whatever it has. Nothing keeps listening after that, and nothing runs in the background.
+
+If location is switched off for the whole phone, the panel says so and offers **Turn it on**, which opens Android's location settings.
+
+## Reading the panel
+
+Instead of a map, **Here** shows a dial. A map would need pictures of the streets from a map server, and that server would learn roughly where you are every time the panel opened. The dial shows the two things you would check a map for, drawn to scale with north at the top:
+
+- **The ring** is how sure the reading is. A tight ring is a good fix; a wide one means the phone is guessing.
+- **The square** appears when you share at a coarser precision. It is the area that goes out, with a hollow dot at the point that is actually shared and the filled dot where you really are.
+
+If you'd like streets behind the dial anyway, name a tile server under **Map behind the dial** in settings. The keyboard then fetches the few tiles around you, and only from that server. None is built in, because the public OpenStreetMap servers don't allow apps to use them this way, and because every tile request says roughly where you are.
+
+Next to the dial: the address (when **Look up the address** is on), the coordinates, how accurate the reading is, how old it is, and its Plus code. **Open in maps** hands the point to your own maps app, which is the way to see it on a real map.
+
+Under that is a row of formats. Tap one and the box below shows exactly what will be typed, then **Insert** types it. Hold a format to make it the default; the default carries a small dot.
+
+| Format | What it types |
+|---|---|
+| **Message** (the default) | 📍 and the address on one line, the map link on the next. Without an address, the coordinates take its place. |
+| **Link** | Just the map link. |
+| **Coordinates** | `23.780600, 90.419300` |
+| **Degrees** | `23°46'50.2"N 90°25'09.5"E`, the way Google Maps writes them. |
+| **Address** | The short address, or the place's name. |
+| **Plus code** | `7MMGQCJ9+6P`, a grid reference any maps app can search for. |
+| **Custom** | Your own template, see [Options](#options). |
+
+Numbers always use a dot and Latin digits, whatever language the keyboard is in, because a map app reads `23,78` as two numbers.
+
+The buttons beside **Insert** save the place, open it in your maps app, make it the location the [weather and compass](/tools/instruments/) use, and find you again.
+
+## Precision
+
+The precision chip in the panel's header cycles through four settings, and the setting is remembered:
+
+| Precision | What a share gives away |
+|---|---|
+| **Exact** | The reading as it is. |
+| **About 100 m** | A point in a 100 metre square: the street, not the house. |
+| **About 1 km** | A point in a 1 kilometre square: the neighbourhood. |
+| **City** | A point in a 10 kilometre square, and only the city's name. |
+
+A coarser setting doesn't blur the point or add noise. It moves the point to the centre of a fixed square, and the squares are the same every time. That matters: ten noisy shares from one sofa can be averaged back to the sofa, but ten shares that all name the same square centre can't. Everything in a share uses the moved point, including the link, the Plus code and the address, and the address is looked up at a matching level, so a city share is answered with a city.
+
+## Saved places
+
+**Places** lists the places you saved. Tap one to insert it in the format that's selected; it needs no location access and no network. The distance beside each one appears once the panel has a reading. Its menu opens it in your maps app, makes it the weather location, or deletes it.
+
+Save a place from **Here** with the bookmark button. It takes the first part of its address as its name, which you can change in settings. In <SettingsPath path="Tools / Location" /> you can also add a place by searching for it, by using where you are, or by typing its coordinates.
+
+Saved places are ordinary settings: a backup carries them, and [sync](/reference/settings/backup/) brings them to your other phone.
+
+## Places somebody sent you
+
+The **Found** tab reads the places in the text box and in your ten most recent clips: map links from Google Maps, Apple Maps, OpenStreetMap, OsmAnd, Waze and Bing, `geo:` links, coordinates in decimals or in degrees, minutes and seconds, and full Plus codes. Copy the link a friend sent and it's there when you open the panel. Each place shows where it was found, and its distance and direction from you once the panel has a reading.
+
+Tap a place for what you can do with it:
+
+- **Insert** types it in the format that's selected, so a long Google link becomes an address, a Plus code, or an OpenStreetMap link for someone who doesn't use Google.
+- **Open in maps**, **Save this place**, and **Use for weather and compass**, as on the other tabs.
+- **Point the compass** opens the [compass](/tools/instruments/#compass-with-an-optional-qibla-bearing) with a 📍 marker on the rose pointing at the place, and the distance and direction under it. It measures from your current reading, or from the weather tool's saved place when there's none. **Stop pointing** under the rose takes the marker away.
+
+Reading is done on the phone, and nothing is looked up. A shortened link such as `maps.app.goo.gl/…` names no place until a server is asked, so it isn't listed. The text box is never read while it is a password field, and clips marked sensitive are skipped. Numbers that only look like coordinates are left alone: a pair needs at least three decimals on each side, and coordinates inside a link that isn't a map link don't count.
+
+## A link anyone can open
+
+**Map link** in settings also offers **A WM Keyboard page**. The link goes to a page on this website with the place after the `#`, which a browser never sends to the site, so nothing about the place reaches it. The page shows the name, the coordinates and the Plus code, with a button for each map: Google Maps, OpenStreetMap, Apple Maps, OsmAnd and Waze, plus the phone's own maps app on Android. A map view is one more press away, and it loads from OpenStreetMap only then. Use it when you don't know which maps app the reader has. Another WM Keyboard reads the link back, name and all, in its Found tab.
+
+## Sending a place to your computer
+
+With a computer paired through [KDE Connect](/tools/kde-connect/) and in reach, the **Here** tab has a computer button, and every place on **Places** and **Found** has **Send to** with the computer's name. The place goes as a map link, in the map you picked, which the computer opens in its browser. A `geo:` link has nothing to open it on most desktops, so with that choice the computer gets an OpenStreetMap link instead.
+
+## In snippets
+
+[Snippets](/tools/snippets/) can carry a place. `{location}` is where you are, in the default format, and `{location:link}` or any other format name picks one: `message`, `link`, `coordinates`, `dms`, `address`, `plus_code`, `custom`. `{place:Home}` is a saved place by name, and takes a format the same way, `{place:Home:address}`.
+
+A snippet never waits on the satellites. `{location}` uses the reading the panel has from the last 15 minutes, or the one Android already holds from the last 30, and the address only when it was already looked up for that point. With no reading at all it expands to nothing, says so, and starts one for next time. The precision you picked applies here too.
+
+## Photos with the place on them
+
+The [camera tool](/tools/camera/#putting-the-place-on-a-photo) can stamp the place onto a photo, and type it into the box as the photo's caption. The camera button on **Here** opens the camera with the stamp on for one photo. Both use this tool's precision, address lookup and default format.
+
+## Weather and compass
+
+The [weather and compass tools](/tools/instruments/) share one saved place. Both now offer **Use my location**: on the weather panel when no place is saved, on the compass when the qibla needs one, and in the place dialog under <SettingsPath path="Tools / Weather" />. It reads your position once, names it after the city when the address lookup is on, and saves it. Nothing updates it afterwards, so a forecast for home stays a forecast for home while you travel.
+
+## What leaves the phone
+
+The position itself never leaves the phone by the tool's hand. It goes where you send the text, and nowhere else, with one exception you control:
+
+- **The address lookup.** With **Look up the address** on, the keyboard sends the shared point, at the precision you chose, to an address server once per share. The default is [Nominatim](https://nominatim.org), the geocoder OpenStreetMap runs. The request names the keyboard, as Nominatim asks, and is limited to one a second. Answers are kept in memory, so changing the format doesn't ask again. In the F-Droid edition you can point it at your own Nominatim server under [Servers](/reference/settings/servers/). Turn the lookup off and nothing about your position goes anywhere until you send it yourself.
+
+The reading stays in memory for 15 minutes, so reopening the panel doesn't ask again, and is then forgotten. It is never written to storage unless you save a place. See [Network policy](/privacy/network/) and [Permissions](/privacy/permissions/).
+
+## Options
+
+<SettingsPath path="Tools / Location" />
+
+- **Default format**: Message. What **Insert** types. Holding a format in the panel sets this too.
+- **Map link**: Google Maps. Which map a link opens: Google Maps, OpenStreetMap, Apple Maps, OsmAnd, Waze, a `geo:` link, which opens the reader's own maps app but isn't a web address, or [a WM Keyboard page](#a-link-anyone-can-open) with a button for each.
+- **Precision**: Exact. See [Precision](#precision). The chip in the panel changes this same setting.
+- **Look up the address**: on. See [What leaves the phone](#what-leaves-the-phone).
+- **Locate when the tool opens**: on. Off, the panel waits for **Locate me** every time, even when Android already allows it.
+- **Custom format**: a template for the **Custom** chip. Words in braces are replaced: `{name}`, `{address}`, `{coords}`, `{lat}`, `{lon}`, `{dms}`, `{plus}`, `{link}` (in the map you picked), `{google}`, `{osm}`, `{apple}`, `{osmand}`, `{waze}`, `{geo}`, `{card}`, `{accuracy}` and `{time}`. A word with nothing to put in its place disappears, and a word in braces the tool doesn't know is left as you typed it. An example under the field shows the template filled in for the Eiffel Tower.
+- **Tile server**: blank. A `{z}/{x}/{y}` address, such as `https://tile.example.org/{z}/{x}/{y}.png`, for a map behind the dial. Use a server whose terms allow it; tiles are kept in memory only.
+- **Saved places**: each place, to rename, move or delete, and **Add a place**.
+- **Location access**: Precise, Approximate or Not granted. Tapping it asks Android, or, once precise is granted, opens the app's page in Android's settings, where it can be taken back.
+
+## Details & edge cases
+
+- **A build can leave location out entirely.** Building with `-Pwmkb.noLocation=true` removes both location permissions. The tool then keeps its saved places, and **Locate me** and **Use my location** disappear. See [Building](/development/building/#a-build-with-no-location-permission).
+- **It isn't available before your first unlock.** Like the other tools that read your settings and saved data, Location waits until you've unlocked the phone once after a restart.
+- **The compass now points at true north once a place is saved.** The phone's sensor finds magnetic north, which is up to twenty degrees off in parts of the world. With a saved place the compass knows the difference and corrects for it, so the qibla marker lands where it should.
+- **No live location.** A shared position is a snapshot. Following someone as they move needs a server between the two phones, and this keyboard has none.
+- **No hardware-keyboard letter by default.** Bind one under [shortcuts](/reference/shortcuts/) if you use it often, or reach it through the toolbox shortcut, double-tap <KeyCap>Ctrl</KeyCap> then <KeyCap>T</KeyCap>.

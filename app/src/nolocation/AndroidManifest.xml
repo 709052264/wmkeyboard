@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Builds made with `-Pwmkb.noLocation=true` only (#350). Added by
+   `channelManifests` in build.gradle.kts.
+
+   `tools:node="remove"` takes both permissions out of the merged manifest
+   whoever declared them. The app reads what it was given at run time
+   (LocationAccess.declared in :core:common), so the Location tool keeps its
+   saved places and drops Locate me, and "Use my location" disappears from
+   the weather and compass settings.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:node="remove" />
+
+</manifest>

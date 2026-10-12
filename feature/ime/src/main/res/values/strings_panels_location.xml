@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Location tool (#350). -->
+<resources>
+    <string name="ime_location_tab_here">Here</string>
+    <string name="ime_location_tab_places">Places</string>
+    <string name="ime_location_tab_places_count">Places (%1$d)</string>
+    <string name="ime_location_tab_found">Found</string>
+    <string name="ime_location_tab_found_count">Found (%1$d)</string>
+    <string name="ime_location_found_empty">Places that somebody sent you show up here. Copy a map link, coordinates or a Plus code, or have one in the text box.</string>
+    <string name="ime_location_found_in_field">In the text box: %1$s</string>
+    <string name="ime_location_found_in_clips">In your clips: %1$s</string>
+    <string name="ime_location_compass_action">Point the compass</string>
+    <string name="ime_location_compass_target">%1$s: %2$s, %3$d° %4$s</string>
+    <string name="ime_location_compass_needs_position">%1$s: the compass needs your position</string>
+    <string name="ime_location_compass_clear_action">Stop pointing</string>
+    <string name="ime_location_precision_desc">Precision: %1$s. Tap to change it.</string>
+    <string name="ime_location_settings_desc">Location settings</string>
+
+    <string name="ime_location_intro_title">Share where you are</string>
+    <string name="ime_location_intro_body">Android asks you first. The keyboard reads your position one time, only when you tap. It keeps nothing unless you save a place.</string>
+    <string name="ime_location_locate_action">Locate me</string>
+    <string name="ime_location_no_permission_build">This build of WM Keyboard cannot read your location. Your saved places still work.</string>
+    <string name="ime_location_no_permission_build_toast">This build cannot read your location</string>
+    <string name="ime_location_services_off">Location is off on this phone.</string>
+    <string name="ime_location_services_on_action">Turn it on</string>
+    <string name="ime_location_searching_progress">Finding you…</string>
+    <string name="ime_location_refining_progress">Making it more accurate…</string>
+    <string name="ime_location_failed_error">The keyboard could not find your location. Go near a window or turn on Wi-Fi, then try again.</string>
+    <string name="ime_location_address_looking">Looking up the address…</string>
+    <string name="ime_location_address_failed">No address here. The coordinates still work.</string>
+    <string name="ime_location_age_now">Now</string>
+    <plurals name="ime_location_age_minutes">
+        <item quantity="one">%d minute ago</item>
+        <item quantity="other">%d minutes ago</item>
+    </plurals>
+    <string name="ime_location_approximate_label">Approximate</string>
+    <string name="ime_location_allow_precise_action">Allow precise</string>
+    <string name="ime_location_dial_desc">Your position. The ring shows how accurate it is, and the square shows the area that you share.</string>
+
+    <string name="ime_location_format_hold_desc">Make this the default format</string>
+    <string name="ime_location_format_default_toast">%1$s is now the default format</string>
+    <string name="ime_location_insert_action">Insert</string>
+    <string name="ime_location_save_action">Save this place</string>
+    <string name="ime_location_saved_toast">Saved as %1$s. Rename it in settings.</string>
+    <string name="ime_location_map_action">Open in maps</string>
+    <string name="ime_location_no_maps_toast">No app on this phone can open a map</string>
+    <string name="ime_location_weather_action">Use for weather and compass</string>
+    <string name="ime_location_weather_saved_toast">Weather and compass now use this place</string>
+    <string name="ime_location_refresh_desc">Find me again</string>
+    <string name="ime_location_send_to_computer_desc">Send to %1$s</string>
+    <string name="ime_location_sent_to_computer_toast">Sent to %1$s</string>
+    <string name="ime_location_no_computer_toast">No computer is connected through KDE Connect</string>
+    <string name="ime_location_photo_desc">Take a photo with the place on it</string>
+    <string name="ime_location_stamp_desc">Location stamp</string>
+    <string name="ime_location_stamp_waiting">Finding you for the stamp…</string>
+    <string name="ime_location_caption_label">Add the place as text</string>
+
+    <string name="ime_location_places_empty">No saved places yet. Save where you are on Here, or add places in settings.</string>
+    <string name="ime_location_places_add_action">Add in settings</string>
+    <string name="ime_location_places_hint">Tap a place to insert it. No location access needed.</string>
+    <string name="ime_location_place_more_desc">More for %1$s</string>
+    <string name="ime_location_place_delete_action">Delete</string>
+    <string name="ime_location_place_deleted_toast">Deleted %1$s</string>
+    <string name="ime_location_place_default_name">Place %1$d</string>
+
+    <string name="ime_location_use_my_location_action">Use my location</string>
+    <string name="ime_location_snippet_no_reading_toast">No recent location for the snippet. Finding you for next time.</string>
+    <string name="ime_location_tools_finding_toast">Finding your location…</string>
+    <string name="ime_location_tools_failed_toast">The keyboard could not find your location</string>
+</resources>

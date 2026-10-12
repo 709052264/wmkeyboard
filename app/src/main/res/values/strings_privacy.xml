@@ -223,6 +223,8 @@
     <string name="privacy_permissions_contacts_title">Contacts</string>
     <string name="privacy_permissions_contacts_subtitle">Suggest the names and the email addresses of your contacts while you type</string>
 
+    <string name="privacy_permissions_location_title">Location</string>
+    <string name="privacy_permissions_location_subtitle">The location tool reads your position once when you tap, to share it or to set the weather location</string>
     <string name="privacy_permissions_calendar_title">Calendar</string>
     <string name="privacy_permissions_calendar_subtitle">The calendar tool lists the events of your day</string>
 

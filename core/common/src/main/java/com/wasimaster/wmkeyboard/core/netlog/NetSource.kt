@@ -61,6 +61,12 @@ enum class NetSource(
     /** Synonyms for a word held on the suggestion strip (#321). Its settings sit on the Suggestions page. */
     SYNONYMS("synonyms"),
     WEATHER("weather", ToolbarTool.WEATHER),
+
+    /**
+     * The address for a shared position (#350): the point at the share's
+     * precision, once per share, never in the background.
+     */
+    LOCATION("location", ToolbarTool.LOCATION),
     CURRENCY("currency", ToolbarTool.CURRENCY),
     /** Searching photos is asked for; refilling the rotation pool passes `background` itself. */
     PHOTOS("photos"),

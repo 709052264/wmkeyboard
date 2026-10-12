@@ -47,7 +47,11 @@ import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
 import com.wasimaster.wmkeyboard.core.settings.interactiveTyping
 import com.wasimaster.wmkeyboard.core.snippets.Snippet
 import com.wasimaster.wmkeyboard.core.snippets.SnippetFolder
+import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
 import com.wasimaster.wmkeyboard.core.tools.AiPhase
+import com.wasimaster.wmkeyboard.core.tools.ReplyContext
+import com.wasimaster.wmkeyboard.core.tools.ReplySource
+import com.wasimaster.wmkeyboard.core.tools.ReplyTurn
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
 import com.wasimaster.wmkeyboard.core.tools.ToolPrefill
 import com.wasimaster.wmkeyboard.core.tools.TypedWord
@@ -738,6 +742,20 @@ enum class PanelMode {
      * the `NOTE_*` capture targets.
      */
     NOTES,
+
+    /**
+     * The AI reply tool (#234): the other person's message, a tone, and the
+     * drafts to pick from. See [AiReplyUi]; its own box takes the keys through
+     * [CaptureTarget.AI_REPLY].
+     */
+    AI_REPLY,
+
+    /**
+     * The Location tool (#350): the phone's position or a saved place, to
+     * insert as a map link, an address, coordinates or a Plus code. Its state
+     * is the controller's, see `ime.location.LocationUi`.
+     */
+    LOCATION,
 }
 
 /**
@@ -904,6 +922,9 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     // The search pill, the filter chips, the note rows (or the read view's
     // tag chips), then the action row under an open note or the editor.
     PanelMode.NOTES -> listOf(FocusRegion.SEARCH, FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
+    // The format chips, the saved places, then Insert and its row (or the one
+    // button an empty state has).
+    PanelMode.LOCATION -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     PanelMode.PASSWORD_GEN ->
         listOf(FocusRegion.CHIPS, FocusRegion.ACTIONS, FocusRegion.RESULTS)
     // The dialect and Fix-all chips, then the lint cards. Seed-only (see
@@ -935,6 +956,10 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     // TRACKPAD is a pointing surface and nothing else.
     PanelMode.NONE, PanelMode.TEXT_EDIT, PanelMode.TRACKPAD, PanelMode.COMPASS, PanelMode.LEVEL,
     PanelMode.MOON_PHASE, PanelMode.NUMPAD, PanelMode.HANDWRITING, PanelMode.CUSTOM_LAYOUTS,
+    // AI reply publishes no ring yet (#234): its three bands are all touch
+    // targets and none of them has a [PanelFocusTarget], so a ring here would
+    // be an empty one. Add the regions with the targets, not before.
+    PanelMode.AI_REPLY,
     -> emptyList()
 }
 
@@ -1696,6 +1721,90 @@ sealed interface AiChatAction {
      * chat or from the AI panel's actions: both ride this one callback.
      */
     data class ToolApproval(val choice: com.wasimaster.wmkeyboard.core.tools.AiToolApproval) : AiChatAction
+}
+
+
+/**
+ * One message the user has added to a drafted reply's context (#234), and
+ * everything needed to put it back afterwards.
+ *
+ * The bookkeeping fields are not decoration. The whole point of the tool is to
+ * read somebody else's message, and the usual way to get one into the keyboard
+ * is to copy it or screenshot it — which leaves halves of other people's
+ * conversations lying in the clipboard and the gallery. [clipId], [shotUri] and
+ * [shotFile] are what lets the tidy-up take back exactly what this reply used,
+ * and nothing else.
+ */
+data class ReplyEntry(
+    val text: String,
+    /** Who said it. The one thing OCR and the clipboard cannot know; a tap flips it. */
+    val fromMe: Boolean = false,
+    val source: ReplySource,
+    /** The clipboard row this came from, or 0. */
+    val clipId: Long = 0L,
+    /** The gallery entry a screenshot came from, as a string so the state stays comparable. */
+    val shotUri: String? = null,
+    /** A copy of the screenshot the keyboard made, if it made one. */
+    val shotFile: String? = null,
+    /**
+     * The picture itself goes to the model, so [text] is a placeholder the
+     * panel draws rather than anything that is sent.
+     */
+    val image: Boolean = false,
+)
+
+/** A screenshot offered in the reply panel's picker. */
+data class ReplyShot(val uri: String, val name: String, val addedAt: Long)
+
+/**
+ * The AI reply tool (#234): what has been gathered to reply to, and what came
+ * back.
+ *
+ * The run itself lives on [KeyboardUiState.ai], the same [AiUi] the AI tool
+ * uses — only one panel is open at a time, and reusing it means the phases, the
+ * error wording, the metered notice and the stale-run guard are all the ones
+ * that already work. What is here is everything that is this tool's alone.
+ */
+data class AiReplyUi(
+    /** The conversation so far, oldest first. */
+    val entries: List<ReplyEntry> = emptyList(),
+    /** The panel's own text box, for a message typed or pasted by hand. */
+    val typed: String = "",
+    /** That box has the keys. */
+    val typing: Boolean = false,
+    /**
+     * Take the clips and screenshots this reply used back out afterwards. Seeded
+     * from the setting and changeable for the run in hand, because "this one is
+     * worth keeping" is a decision about one clip, not a preference.
+     */
+    val tidyUp: Boolean = true,
+    /** The screenshot picker is open over the panel. */
+    val picking: Boolean = false,
+    /** What the picker is showing; read when it opens, never on every frame. */
+    val recentShots: List<ReplyShot> = emptyList(),
+    /** A screenshot is being read on the device right now. */
+    val reading: Boolean = false,
+    /** The tone the drafts on screen were written in. */
+    val tone: AiActionSpec? = null,
+    /** The drafts themselves. */
+    val candidates: List<String> = emptyList(),
+    /** A one-line message under the header: nothing copied, no permission, nothing read. */
+    @androidx.annotation.StringRes val notice: Int? = null,
+) {
+    /** Something to reply to. */
+    val hasContext: Boolean get() = entries.any { it.text.isNotBlank() || it.image }
+
+    /** Pictures being sent as pictures. */
+    val images: List<ReplyEntry> get() = entries.filter { it.image }
+
+    /** The conversation as the prompt builder wants it. */
+    fun context(source: ReplySource = ReplySource.TYPED, app: String? = null): ReplyContext =
+        ReplyContext(
+            turns = entries.filter { !it.image && it.text.isNotBlank() }
+                .map { ReplyTurn(fromMe = it.fromMe, text = it.text) },
+            source = entries.firstOrNull()?.source ?: source,
+            app = app,
+        )
 }
 
 /** The KDE Connect panel's tabs, in rail order. */
@@ -3407,6 +3516,8 @@ data class KeyboardUiState(
      */
     val aiHasText: Boolean = false,
     val aiChat: AiChatUi = AiChatUi(),
+    /** The AI reply tool's own state (#234); the run itself is on [ai]. */
+    val aiReply: AiReplyUi = AiReplyUi(),
     val typingTest: TypingTestUi = TypingTestUi(),
     /** Launchable apps for the app-launcher panel; empty until first opened. */
     val launcherApps: List<LauncherApp> = emptyList(),
@@ -3632,6 +3743,13 @@ data class KeyboardUiState(
         get() = aiChatShown && aiChat.composing && !aiChat.showSessions
 
     /**
+     * Whether keystrokes belong to the reply panel's own message box (#234).
+     * Panel *and* a focused box, the [findReplaceTypingActive] contract.
+     */
+    val aiReplyTypingActive: Boolean
+        get() = panel == PanelMode.AI_REPLY && aiReply.typing
+
+    /**
      * Whether keystrokes belong to the KDE Connect panel's "add by address"
      * box. Panel *and* an open box, the [findReplaceTypingActive] contract.
      */
@@ -3754,6 +3872,7 @@ data class KeyboardUiState(
         typingTestActive -> CaptureTarget.TYPING_TEST
         aiCustomInputActive -> CaptureTarget.AI_CUSTOM
         aiChatComposing -> CaptureTarget.AI_CHAT
+        aiReplyTypingActive -> CaptureTarget.AI_REPLY
         kdeHostEntryActive -> CaptureTarget.KDE_HOST
         kdeTypingActive ->
             if (settings.kdeConnect.composeMode) CaptureTarget.KDE_COMPOSE else CaptureTarget.KDE_REMOTE
@@ -3805,6 +3924,7 @@ data class KeyboardUiState(
         CaptureTarget.TYPING_TEST -> typingTest.current
         CaptureTarget.AI_CUSTOM -> (ai as? AiUi.CustomInput)?.instruction.orEmpty()
         CaptureTarget.AI_CHAT -> aiChat.draft
+        CaptureTarget.AI_REPLY -> aiReply.typed
         CaptureTarget.KDE_HOST -> kde.hostDraft
         CaptureTarget.KDE_REMOTE, CaptureTarget.KDE_COMPOSE -> kde.line
         CaptureTarget.PLUGIN -> pluginFocusedInput?.let { pluginInputs[it] }.orEmpty()

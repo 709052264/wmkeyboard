@@ -30,6 +30,10 @@
     <!-- Tag drawn on the chip. The app prints it in capital letters. -->
     <string name="core_content_clip_entity_url_tag">LINK</string>
 
+    <string name="core_content_clip_entity_place_label">Place</string>
+    <!-- Tag drawn on the chip. The app prints it in capital letters. -->
+    <string name="core_content_clip_entity_place_tag">PLACE</string>
+
     <!-- ================================================================== -->
     <!-- Snippet variables.                                                 -->
     <!--                                                                    -->

@@ -6,7 +6,7 @@ import com.wasimaster.wmkeyboard.config.BuildConfig
  * The part of the settings a service belongs to, for grouping the fields on
  * the Servers screen. The labels live in `:app`.
  */
-enum class ServiceGroup { DOWNLOADS, TRANSLATE, SEARCH, MEDIA, PHOTOS, WIKIPEDIA, DICTIONARY, VOCABULARY, WEATHER, CURRENCY, AI, UPDATES }
+enum class ServiceGroup { DOWNLOADS, TRANSLATE, SEARCH, MEDIA, PHOTOS, WIKIPEDIA, DICTIONARY, VOCABULARY, WEATHER, MAPS, CURRENCY, AI, UPDATES }
 
 /**
  * Every network API the keyboard calls, and the base address it calls by
@@ -66,6 +66,12 @@ enum class ServiceEndpoint(
     WIKTIONARY("wiktionary", "https://en.wiktionary.org", ServiceGroup.VOCABULARY),
     OPEN_METEO("open_meteo", "https://api.open-meteo.com", ServiceGroup.WEATHER),
     OPEN_METEO_GEOCODING("open_meteo_geocoding", "https://geocoding-api.open-meteo.com", ServiceGroup.WEATHER),
+
+    /**
+     * The Location tool's address lookup (#350): any server that answers
+     * Nominatim's `/reverse`, which a self-hosted Nominatim does.
+     */
+    NOMINATIM("nominatim", "https://nominatim.openstreetmap.org", ServiceGroup.MAPS),
     CURRENCY_API("currency_api", "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest", ServiceGroup.CURRENCY),
     CURRENCY_API_MIRROR("currency_api_mirror", "https://latest.currency-api.pages.dev", ServiceGroup.CURRENCY),
     FRANKFURTER("frankfurter", "https://api.frankfurter.dev", ServiceGroup.CURRENCY),

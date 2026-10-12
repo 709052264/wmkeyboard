@@ -20,6 +20,7 @@ import androidx.core.net.toUri
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.updates.UpdateChannel
 import com.wasimaster.wmkeyboard.core.accessibility.KeyboardPassthrough
+import com.wasimaster.wmkeyboard.core.location.LocationAccess
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
 
 /**
@@ -42,6 +43,7 @@ internal fun PermissionsSettings() {
     // The screen opens on free-standing text, which brings no spacing of its
     // own the way a group's SectionHeader does.
     Spacer(Modifier.height(12.dp))
+    val locationDeclared = LocationAccess.declared(LocalContext.current)
 
     SettingsGroup(
         stringResource(R.string.privacy_permissions_runtime_group_title),
@@ -59,6 +61,14 @@ internal fun PermissionsSettings() {
                 R.string.privacy_permissions_camera_title,
                 R.string.privacy_permissions_camera_subtitle,
                 PermissionDisclosures.CAMERA,
+            )
+        }
+        // Not in a build made with -Pwmkb.noLocation=true.
+        item(visible = locationDeclared) {
+            RuntimePermissionRow(
+                R.string.privacy_permissions_location_title,
+                R.string.privacy_permissions_location_subtitle,
+                PermissionDisclosures.LOCATION,
             )
         }
         item {

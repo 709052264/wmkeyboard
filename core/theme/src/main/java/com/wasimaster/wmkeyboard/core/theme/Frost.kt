@@ -91,6 +91,14 @@ data class FrostSpec(
      * slider still applies when this is off.
      */
     val blurBoard: Boolean = true,
+    /**
+     * Whether a theme that follows the wallpaper by role draws its board in
+     * the wallpaper's accent (FrostKeys' saturated tint) or keeps the board's
+     * own lightness and takes only the wallpaper's hue (a quieter, near
+     * neutral tint). Only matters to a theme with wallpaper roles, Frost among
+     * them; see `followingWallpaper`.
+     */
+    val accentBoard: Boolean = true,
 ) {
     val glassStyle: FrostStyle
         get() = FrostStyle.entries.firstOrNull { it.name.equals(style, ignoreCase = true) } ?: FrostStyle.FROSTED
@@ -263,6 +271,7 @@ fun ThemeSpec.dressedForGlass(preset: FrostPreset): ThemeSpec {
             backdrop = current.backdrop,
             wallpaperBand = current.wallpaperBand,
             blurBoard = current.blurBoard,
+            accentBoard = current.accentBoard,
         ),
         keyBackground = keyBackground.atMost(preset.keyAlpha),
         modifierKeyBackground = modifierKeyBackground.atMost(preset.modifierAlpha),

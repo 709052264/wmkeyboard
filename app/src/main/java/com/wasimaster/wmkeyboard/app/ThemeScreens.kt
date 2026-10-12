@@ -3330,6 +3330,9 @@ fun ThemeEditorScreen(
     val frostOn = frostSpec?.enabled == true
     val frost = frostSpec ?: FrostSpec()
     val lookDark = look.watch { it.dark }
+    // The accent-board switch only means something to a theme that follows
+    // the wallpaper by role, as Frost does.
+    val followsByRole = look.watch { it.followWallpaper && it.wallpaperRoles.isNotEmpty() }
     fun updateFrost(transform: (FrostSpec) -> FrostSpec) =
         update { t -> t.copy(frost = transform(t.frost ?: FrostSpec())) }
     // What the glass would stand on in the editor's own preview, which has no
@@ -3496,6 +3499,13 @@ fun ThemeEditorScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
+        }
+        item(visible = followsByRole) {
+            ToggleSetting(
+                R.string.theme_glass_accent_board_title,
+                stringResource(R.string.theme_glass_accent_board_subtitle),
+                checked = frost.accentBoard,
+            ) { on -> updateFrost { it.copy(accentBoard = on) } }
         }
         item(visible = hasImage && frost.backdropSource != FrostBackdropSource.WALLPAPER &&
             frost.backdropSource != FrostBackdropSource.NONE

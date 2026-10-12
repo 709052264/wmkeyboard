@@ -18,7 +18,7 @@ import Shot from '@components/Shot.astro';
 
 Open any of the five from the toolbar if you've pinned it, or from the toolbox. None ships pinned by default, and none is in the onboarding wizard's Recommended set, so the first time you want one you'll probably find it in the toolbox. Weather is the one the "show me everything" answer does turn on, next to Calendar. The toolbox doesn't label a "Utilities" section the way Settings does, and it doesn't keep the five together either. Flashlight, Compass, Bubble level and Moon phase sit as a block near the end of the default ranking, after the scanners and the camera and just before the one-tap cursor moves. Weather is much earlier, right after Calendar in the everyday run.
 
-None of the five needs an Android runtime permission. The torch doesn't need the `CAMERA` permission (that's only for the separate [camera tool](/tools/camera/)), and Weather's location is typed or searched rather than read from the device's GPS. Neither edition is short-changed either: Full and Lite behave identically across all five.
+None of the five needs an Android runtime permission. The torch doesn't need the `CAMERA` permission (that's only for the separate [camera tool](/tools/camera/)). Weather's location is typed or searched, or read once from the phone when you tap **Use my location**, which asks for location access the first time; see [Location](/tools/location/#weather-and-compass). Neither edition is short-changed either: Full and Lite behave identically across all five.
 
 ## Flashlight: a one-tap torch
 
@@ -40,7 +40,11 @@ The toolbox tile mirrors the torch's real state. Flip the torch on from the syst
 
 **Compass** draws a live rose from the device's rotation-vector sensor, with a fixed needle at the top marking the way you're actually facing. The heading glides smoothly rather than jumping with every sensor sample. On a device with no orientation sensor at all, the panel says so instead of drawing an empty rose.
 
-Turn on **Show the qibla** and a 🕋 marker rides the rose, pointing toward the Kaaba. The compass has no location field of its own. It reuses whatever location you've already saved in the [Weather](#weather) tool's settings, and without one saved the panel prints "Qibla needs a saved location. Save one in the settings of the weather tool." instead of a bearing. Everything is calculated on-device from that saved latitude and longitude. The compass itself never touches the network.
+Turn on **Show the qibla** and a 🕋 marker rides the rose, pointing toward the Kaaba. The compass has no location field of its own. It reuses whatever location you've already saved in the [Weather](#weather) tool's settings, and without one saved the panel prints "Qibla needs a saved location. Save one in the settings of the weather tool." instead of a bearing, with a **Use my location** button under it that reads your position once and saves it as that location. Everything is calculated on-device from that saved latitude and longitude. The compass itself never touches the network.
+
+The [Location tool](/tools/location/#places-somebody-sent-you) can also point the compass at any place, a friend's pin, say. A 📍 marker rides the rose next to the 🕋 one, and a line under the rose gives its distance and direction, with **Stop pointing** beside it.
+
+Once a location is saved, the rose turns to true north rather than magnetic north. The phone's sensor finds magnetic north, which is a few degrees off true north in most places and up to twenty in some; Android's own model of the Earth's field gives the difference for the saved place, so the heading and the qibla marker are both measured from true north.
 
 <PhoneFrame caption="The compass panel: rotating rose, degree readout, and the qibla marker pointing toward Mecca.">
   <Shot id="tools/compass-panel-qibla" alt="The compass panel: rotating rose, degree readout, and the qibla marker pointing toward Mecca." />
@@ -85,9 +89,9 @@ The panel shows a painted lit/dark disc, one of eight phase names (New moon, Wax
 
 ## Weather
 
-**Weather** shows current conditions and a same-day high/low for one saved location, sourced from [Open-Meteo](https://open-meteo.com). No account and no API key are needed. You set the location yourself, either by searching a city or place name (which hits Open-Meteo's geocoding endpoint) or by typing latitude and longitude directly. The keyboard never requests device location access to fill this in for you.
+**Weather** shows current conditions and a same-day high/low for one saved location, sourced from [Open-Meteo](https://open-meteo.com). No account and no API key are needed. You set the location yourself: search a city or place name (which hits Open-Meteo's geocoding endpoint), type latitude and longitude directly, or tap **Use my location** to read the phone's position once. Only that last one asks for location access, and only the first time you use it. The saved place doesn't follow you afterwards; it stays put until you change it.
 
-A fetched result is reused for as long as **How often to check** says, 15 minutes out of the box, so reopening the panel is usually instant. A refresh button in the panel forces a new request. Until you save a location the panel shows a prompt with an **Open settings** shortcut instead of any weather data. If a fetch fails it shows a retry button rather than stale numbers.
+A fetched result is reused for as long as **How often to check** says, 15 minutes out of the box, so reopening the panel is usually instant. A refresh button in the panel forces a new request. Until you save a location the panel shows a prompt with an **Open settings** shortcut and a **Use my location** button instead of any weather data. If a fetch fails it shows a retry button rather than stale numbers.
 
 <PhoneFrame side caption="Weather: current conditions plus a stat grid of feels-like, humidity, wind, and whatever else Open-Meteo returns for that location.">
   <Shot id="tools/weather-panel-ready" alt="Weather: current conditions plus a stat grid — feels-like, humidity, wind, and whatever else Open-Meteo returns for that location." />
@@ -103,12 +107,12 @@ Once a location is set, the panel shows an emoji and short description for the c
   <Shot id="tools/weather-options-location" alt="Weather's settings: a location search or coordinate entry, and the Fahrenheit toggle." />
 </PhoneFrame>
 
-- **Location**: unset by default. It opens a dialog with a search field, backed by Open-Meteo's geocoding API, plus manual latitude and longitude fields if you'd rather skip the search.
+- **Location**: unset by default. It opens a dialog with **Use my location** at the top, a search field backed by Open-Meteo's geocoding API, and manual latitude and longitude fields if you'd rather skip both. The same dialog adds places in the [Location](/tools/location/#saved-places) tool.
 - **Fahrenheit**: off by default, so temperatures show in Celsius until you turn this on. It moves the current, feels-like, and day's high and low temperatures. **Wind speed follows this switch too**: km/h with Celsius, mph with Fahrenheit. Pressure stays in hPa, which has no second unit here.
 - **Fetch the forecast as you type**: on by default, off in the F-Droid edition. On, a weather chip fetches the forecast it needs as soon as you type a weather question. Off, the chip reads **Get the forecast** and fetches nothing until you tap it. The panel fetches when you open it either way.
 - **How often to check**: how long a reading is reused before the tool fetches again. 1 to 180 minutes, default 15. The panel's refresh button still forces a fetch whatever this says.
 
-Those four rows are the whole screen. The settings screen carries its own privacy note underneath: "The weather and the place search both use Open-Meteo, only when you use them. The keyboard makes no other network requests." Weather is the only one of the five instruments that reaches the network at all. See [network policy](/privacy/network/) for what every network-touching feature sends and when.
+Those four rows are the whole screen. The settings screen carries its own privacy note underneath: "The weather and the place search both use Open-Meteo, only when you use them. The keyboard makes no other network requests." Weather is the only one of the five instruments that reaches the network at all. The one exception to that note is **Use my location** with the Location tool's address lookup on, which asks the address server for the city's name once. See [network policy](/privacy/network/) for what every network-touching feature sends and when.
 
 ## Details & edge cases
 

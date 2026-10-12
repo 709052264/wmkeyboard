@@ -130,6 +130,7 @@ import androidx.compose.foundation.shape.CircleShape
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Password
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Phone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Place
 import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
 import com.wasimaster.wmkeyboard.core.clipboard.ClipKind
 import com.wasimaster.wmkeyboard.core.clipboard.ClipLinks
@@ -2116,6 +2117,7 @@ internal fun clipEntityIcon(kind: ClipEntityKind): ImageVector = when (kind) {
     ClipEntityKind.OTP -> Icons.Outlined.Password
     ClipEntityKind.PHONE -> Icons.Outlined.Phone
     ClipEntityKind.URL -> Icons.Outlined.Link
+    ClipEntityKind.PLACE -> Icons.Outlined.Place
 }
 
 /**
@@ -2146,7 +2148,7 @@ private fun ClipExtractPopup(entities: List<ClipEntity>, onPick: (ClipEntity) ->
             ) {
                 // Links first, then numbers, then codes: the order the request
                 // names them in, and the order they are looked at.
-                val sections = listOf(ClipEntityKind.URL, ClipEntityKind.PHONE, ClipEntityKind.OTP)
+                val sections = listOf(ClipEntityKind.URL, ClipEntityKind.PLACE, ClipEntityKind.PHONE, ClipEntityKind.OTP)
                     .mapNotNull { kind -> entities.filter { it.kind == kind }.takeIf { it.isNotEmpty() }?.let { kind to it } }
                 for ((kind, ofKind) in sections) {
                     item(key = "header-${kind.name}") {
@@ -2194,6 +2196,7 @@ private val ClipEntityKind.sectionRes: Int
         ClipEntityKind.URL -> R.string.ime_clip_extract_links
         ClipEntityKind.PHONE -> R.string.ime_clip_extract_phones
         ClipEntityKind.OTP -> R.string.ime_clip_extract_codes
+        ClipEntityKind.PLACE -> R.string.ime_clip_extract_places
     }
 
 /**

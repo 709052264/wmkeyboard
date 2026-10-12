@@ -68,6 +68,25 @@
     <string name="core_tools_ai_action_continue_label">Continue</string>
 
     <!-- ================================================================== -->
+    <!-- AI reply tool: the tone a drafted reply is written in. Renaming one -->
+    <!-- makes it the user's own text, exactly as with the actions above.    -->
+    <!-- ================================================================== -->
+
+    <string name="core_tools_reply_tone_friendly">Friendly</string>
+    <!-- A reply of a handful of words. -->
+    <string name="core_tools_reply_tone_short">Short</string>
+    <!-- Shows that you understood how the other person feels. -->
+    <string name="core_tools_reply_tone_warm">Caring</string>
+    <!-- Answers, then asks something back so the conversation continues. -->
+    <string name="core_tools_reply_tone_keep_going">Keep it going</string>
+    <string name="core_tools_reply_tone_polite">Polite</string>
+    <string name="core_tools_reply_tone_agree">Agree</string>
+    <!-- Declines without being cold about it. -->
+    <string name="core_tools_reply_tone_decline">Say no kindly</string>
+    <string name="core_tools_reply_tone_funny">Funny</string>
+    <string name="core_tools_reply_tone_flirty">Flirty</string>
+
+    <!-- ================================================================== -->
     <!-- GIF and sticker panel: the chips that select a source.             -->
     <!-- ================================================================== -->
 
@@ -263,4 +282,21 @@
     <string name="core_tools_dictionary_source_wiktionary_rest_desc">Online, from wiktionary.org. Definitions and examples only.</string>
     <string name="core_tools_dictionary_source_dictionary_api">Free Dictionary API</string>
     <string name="core_tools_dictionary_source_dictionary_api_desc">Online, from dictionaryapi.dev. This service is often down.</string>
+
+    <!-- The Location tool (#350): precision and format names, shared by the panel and the settings page. -->
+    <string name="core_tools_location_precision_exact">Exact</string>
+    <string name="core_tools_location_precision_street">Street, about 100 m</string>
+    <string name="core_tools_location_precision_area">Area, about 1 km</string>
+    <string name="core_tools_location_precision_city">City, about 10 km</string>
+    <string name="core_tools_location_precision_exact_short">Exact</string>
+    <string name="core_tools_location_precision_street_short">About 100 m</string>
+    <string name="core_tools_location_precision_area_short">About 1 km</string>
+    <string name="core_tools_location_precision_city_short">City</string>
+    <string name="core_tools_location_format_message">Message</string>
+    <string name="core_tools_location_format_link">Link</string>
+    <string name="core_tools_location_format_coordinates">Coordinates</string>
+    <string name="core_tools_location_format_dms">Degrees</string>
+    <string name="core_tools_location_format_address">Address</string>
+    <string name="core_tools_location_format_plus_code">Plus code</string>
+    <string name="core_tools_location_format_custom">Custom</string>
 </resources>

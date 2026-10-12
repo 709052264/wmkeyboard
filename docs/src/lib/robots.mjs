@@ -29,6 +29,8 @@ export const NOINDEX_PATHS = [
 	'/addons/new/',
 	'/addons/whats-new/',
 	'/open/',
+	// A shared place (#350): the position is in the fragment, so a crawler sees an empty card.
+	'/place/',
 ];
 
 /** Trailing slash either way, and query strings ignored. */

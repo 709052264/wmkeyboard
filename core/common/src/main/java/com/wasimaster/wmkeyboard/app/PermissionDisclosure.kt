@@ -69,7 +69,18 @@ data class PermissionDisclosure(
     @StringRes val titleRes: Int,
     /** What is read, why, where it goes, and that the feature is optional. */
     @StringRes val bodyRes: Int,
-)
+    /**
+     * Permissions Android must be asked for in the same request. Location is
+     * the case: from Android 12 a request for precise location alone is
+     * ignored, and the dialog that offers "Precise" or "Approximate" appears
+     * only when both are asked for together. Any one of them granted counts as
+     * a grant; the feature reads which it got.
+     */
+    val alsoRequests: List<String> = emptyList(),
+) {
+    /** Everything one request asks for, [permission] first. */
+    val requested: Array<String> get() = (listOf(permission) + alsoRequests).toTypedArray()
+}
 
 /** The disclosure copy for every runtime permission this app asks for. */
 object PermissionDisclosures {
@@ -84,6 +95,19 @@ object PermissionDisclosures {
         permission = Manifest.permission.CAMERA,
         titleRes = R.string.common_permission_camera_title,
         bodyRes = R.string.common_permission_camera_body,
+    )
+
+    /**
+     * The Location tool (#350), and "Use my location" for the weather and
+     * compass tools. Precise is the one asked for, with approximate alongside
+     * so Android 12 draws its choice between the two; a user who picks
+     * approximate still gets a working tool.
+     */
+    val LOCATION = PermissionDisclosure(
+        permission = Manifest.permission.ACCESS_FINE_LOCATION,
+        titleRes = R.string.common_permission_location_title,
+        bodyRes = R.string.common_permission_location_body,
+        alsoRequests = listOf(Manifest.permission.ACCESS_COARSE_LOCATION),
     )
 
     val CALENDAR = PermissionDisclosure(
@@ -289,8 +313,9 @@ fun rememberDisclosedPermissionRequest(
     // Only ever set by the answer to a request: see [PermissionProbe].
     var blocked by remember { mutableStateOf(false) }
     val launcher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted ->
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { results ->
+        val granted = results.values.any { it }
         val activity = context.findActivity()
         when {
             granted -> onGranted()
@@ -313,7 +338,7 @@ fun rememberDisclosedPermissionRequest(
                     runCatching { context.startActivity(appSettingsIntent(context)) }
                 } else {
                     probe.launched()
-                    launcher.launch(disclosure.permission)
+                    launcher.launch(disclosure.requested)
                 }
             },
             onDismiss = { showing = false },
@@ -361,7 +386,8 @@ abstract class PermissionRequestActivity : ComponentActivity() {
     private var blocked by mutableStateOf(false)
 
     private val request =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
+            val granted = results.values.any { it }
             val permission = disclosure?.permission
             if (!granted && permission != null && probe.silentlyRefused(this, permission)) {
                 // Android refused without drawing anything. The disclosure is
@@ -395,7 +421,7 @@ abstract class PermissionRequestActivity : ComponentActivity() {
                             finish()
                         } else {
                             probe.launched()
-                            request.launch(disclosure.permission)
+                            request.launch(disclosure.requested)
                         }
                     },
                     onDismiss = { finish() },

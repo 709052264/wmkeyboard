@@ -1115,6 +1115,14 @@ class SnippetStore(private val storageFile: File?) {
             val packageName: String? = null,
             /** Text currently selected in the field. */
             val selection: String? = null,
+            /**
+             * `{location}` and `{location:format}` (#350): where the phone is,
+             * in a Location tool format (`link`, `address`, `plus_code`…), or
+             * null when there is no reading.
+             */
+            val location: ((format: String?) -> String?)? = null,
+            /** `{place:Home}` and `{place:Home:format}`: a saved place, by name. */
+            val place: ((name: String, format: String?) -> String?)? = null,
         )
 
         /** Expanded text plus where the cursor should end up inside it. */
@@ -1128,6 +1136,12 @@ class SnippetStore(private val storageFile: File?) {
          * It is in seconds, which is the unit Espanso's `date` extension uses.
          */
         private val CUSTOM_DATE = Regex("""\{date([+-]\d{1,9})?(?::([^}\n]{1,40}))?\}""")
+
+        /** `{location}` or `{location:link}`. */
+        private val LOCATION = Regex("""\{location(?::([a-z_]{1,20}))?\}""")
+
+        /** `{place:Home}` or `{place:Home:address}`. */
+        private val PLACE = Regex("""\{place:([^}:\n]{1,60})(?::([a-z_]{1,20}))?\}""")
 
         /** `{random:one|two|three}`, one alternative picked per insertion. */
         private val RANDOM = Regex("""\{random:([^}\n]{1,400})\}""")
@@ -1175,6 +1189,12 @@ class SnippetStore(private val storageFile: File?) {
                 val shift = match.groupValues[1].toLongOrNull() ?: 0L
                 val pattern = match.groupValues[2].ifEmpty { DEFAULT_DATE }
                 format(pattern, now + shift * 1000L)
+            }
+            // The Location tool's places (#350). Before the plain tokens so an
+            // address can never be read as one.
+            out = LOCATION.replace(out) { match -> ctx.location?.invoke(match.groupValues[1].ifEmpty { null }).orEmpty() }
+            out = PLACE.replace(out) { match ->
+                ctx.place?.invoke(match.groupValues[1].trim(), match.groupValues[2].ifEmpty { null }).orEmpty()
             }
             val fmt: (String) -> String = { format(it, now) }
             for (variable in SnippetVariable.entries) {

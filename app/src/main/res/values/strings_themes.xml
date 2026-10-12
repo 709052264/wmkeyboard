@@ -427,6 +427,9 @@
     <string name="theme_glass_wallpaper_permission_subtitle">Allow storage access so the glass can show the wallpaper itself. Without it, the glass paints soft shapes in the wallpaper\'s colors</string>
     <string name="theme_glass_wallpaper_colours_body">Android 13 and later keep the wallpaper\'s picture private from apps, so the glass paints soft shapes in the wallpaper\'s own colors instead.</string>
     <string name="theme_glass_no_image_body">Backdrop blur, saturation and brightness need something behind the glass to blur. With nothing there, the glass is each surface\'s own see-through color, its rim and its grain.</string>
+    <!-- The board is tinted with the strong accent colour of the wallpaper. -->
+    <string name="theme_glass_accent_board_title">Accent-tinted board</string>
+    <string name="theme_glass_accent_board_subtitle">The board takes your wallpaper\'s accent colour, as FrostKeys does. Off keeps a darker, quieter tint in the wallpaper\'s hue</string>
     <string name="theme_glass_blur_board_title">Blur the background too</string>
     <string name="theme_glass_blur_board_subtitle">The background image is frosted between the keys as well, with the backdrop sliders below. Off keeps it as sharp as its own blur setting leaves it</string>
     <string name="theme_glass_backdrop_blur_title">Backdrop blur</string>

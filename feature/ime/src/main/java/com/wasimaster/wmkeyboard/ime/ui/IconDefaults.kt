@@ -81,6 +81,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCode2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QueryStats
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FindReplace
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StickyNote2
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LocationOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCodeScanner
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Schedule
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.School
@@ -104,6 +105,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Quickreply
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.ime.EnterAction
 
@@ -186,6 +188,7 @@ object IconDefaults {
         ToolbarTool.STATISTICS -> Icons.Outlined.QueryStats
         ToolbarTool.FIND_REPLACE -> Icons.Outlined.FindReplace
         ToolbarTool.NOTES -> Icons.Outlined.StickyNote2
+        ToolbarTool.LOCATION -> Icons.Outlined.LocationOn
         ToolbarTool.MEDIA_CONTROL -> Icons.Outlined.MusicNote
         ToolbarTool.KDE_CONNECT -> Icons.Outlined.Phonelink
         ToolbarTool.PLUGINS -> Icons.Outlined.Extension
@@ -216,6 +219,9 @@ object IconDefaults {
         ToolbarTool.CUT -> Icons.Outlined.ContentCut
         ToolbarTool.PASTE -> Icons.Outlined.ContentPaste
         ToolbarTool.RECENT_COPIES -> Icons.Outlined.History
+        // Material's own "quick reply": a speech bubble with a flash in it,
+        // which is exactly what this tool does.
+        ToolbarTool.AI_REPLY -> Icons.Outlined.Quickreply
     }
 
     /**

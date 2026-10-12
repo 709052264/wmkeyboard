@@ -171,6 +171,8 @@ A snippet's text can include any of these tokens. They're substituted the moment
 | `{uuid}` | A fresh random UUID, different every time it's used |
 | `{cursor}` | Not text; marks where the cursor lands after insertion |
 | `{random:a\|b\|c}` | One of the alternatives, picked fresh each insertion |
+| `{location}` | Where you are, from the [Location tool](/tools/location/#in-snippets), in its default format. `{location:link}`, `{location:address}`, `{location:coordinates}`, `{location:dms}`, `{location:plus_code}`, `{location:message}` or `{location:custom}` pick one |
+| `{place:Home}` | A place you saved in the Location tool, by its name in any case. A format can follow: `{place:Home:address}` |
 
 `{timezone}` is the one worth a second look. It writes the zone's long name, not an offset, so you get "Bangladesh Standard Time" or "Central European Summer Time" rather than GMT+06:00. An offset only shows up for a zone with no name of its own. The settings screen's reference card gives GMT+06:00 as its example, which is the fallback rather than the usual case, but the live preview next to it always shows what you'd actually get. If you want the offset itself, `{date:XXX}` or `{date:ZZZZ}` will give you one.
 

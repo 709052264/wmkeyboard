@@ -38,6 +38,10 @@ import com.wasimaster.wmkeyboard.core.settings.PhotoSearchEngine
 import com.wasimaster.wmkeyboard.core.settings.PhotoSearchTarget
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.HandwritingFullScreenMode
+import com.wasimaster.wmkeyboard.core.tools.AiPrompts
+import com.wasimaster.wmkeyboard.core.tools.ReplyEmoji
+import com.wasimaster.wmkeyboard.core.tools.ReplyImageMode
+import com.wasimaster.wmkeyboard.core.tools.ReplyLength
 import com.wasimaster.wmkeyboard.core.tools.CryptoCatalog
 import com.wasimaster.wmkeyboard.core.tools.CurrencyClient
 import com.wasimaster.wmkeyboard.core.tools.CurrencyLabel
@@ -83,7 +87,6 @@ import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.os.Build
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress
@@ -108,7 +111,6 @@ import com.wasimaster.wmkeyboard.core.settings.StickerTriggerAction
 import com.wasimaster.wmkeyboard.core.tools.AltCalendar
 import com.wasimaster.wmkeyboard.core.tools.Weekend
 import com.wasimaster.wmkeyboard.core.tools.isSouthernHemisphere
-import com.wasimaster.wmkeyboard.core.tools.GeoPlace
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
 import com.wasimaster.wmkeyboard.core.tools.MediaCategoryCache
 import com.wasimaster.wmkeyboard.core.tools.ToolApiKeys
@@ -127,7 +129,6 @@ import com.wasimaster.wmkeyboard.core.ocr.OcrPacks
 import androidx.compose.runtime.collectAsState
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
 import com.wasimaster.wmkeyboard.core.settings.DeepLWriteStyle
-import com.wasimaster.wmkeyboard.core.tools.WeatherClient
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -1043,6 +1044,28 @@ internal fun ToolDetailSettings(
                         info = stringResource(R.string.tooldetail_camera_gallery_info),
                         default = SettingsDefaults.camera.saveToGallery,
                     ) { scope.launch { repository.setCameraSaveToGallery(it) } }
+                }
+            }
+            SettingsGroup(
+                stringResource(R.string.location_camera_group),
+                info = stringResource(R.string.location_camera_info),
+            ) {
+                item {
+                    ToggleSetting(
+                        R.string.location_camera_stamp_title,
+                        stringResource(R.string.location_camera_stamp_subtitle),
+                        settings.watch { it.camera.locationStamp },
+                        default = SettingsDefaults.camera.locationStamp,
+                    ) { scope.launch { repository.setCameraLocationStamp(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.location_camera_caption_title,
+                        stringResource(R.string.location_camera_caption_subtitle),
+                        settings.watch { it.camera.locationCaption },
+                        info = stringResource(R.string.location_camera_caption_info),
+                        default = SettingsDefaults.camera.locationCaption,
+                    ) { scope.launch { repository.setCameraLocationCaption(it) } }
                 }
             }
             SettingsGroup(
@@ -3145,8 +3168,10 @@ internal fun ToolDetailSettings(
         }
         ToolbarTool.TYPING_TEST -> TypingTestToolSettings(repository, settings)
         ToolbarTool.AI -> AiToolSettings(repository, settings, onNavigate)
+        ToolbarTool.AI_REPLY -> AiReplyToolSettings(repository, settings, onNavigate)
         ToolbarTool.VOCABULARY -> VocabularyToolSettings(repository, settings, onNavigate)
         ToolbarTool.NOTES -> NotesToolSettings(repository, settings, onNavigate)
+        ToolbarTool.LOCATION -> LocationToolSettings(repository, settings)
         ToolbarTool.MODES -> SettingsGroup(stringResource(R.string.tooldetail_modes_group)) {
             item {
                 NavRow(
@@ -4317,148 +4342,31 @@ internal fun WeatherLocationSetting(repository: SettingsRepository, settings: Li
         subtitle = summary,
     ) { editing = true }
     if (!editing) return
-
-    var place by remember { mutableStateOf(savedPlace) }
-    var lat by remember { mutableStateOf(savedLatitude?.toString().orEmpty()) }
-    var lon by remember { mutableStateOf(savedLongitude?.toString().orEmpty()) }
-    var query by remember { mutableStateOf("") }
-    var results by remember { mutableStateOf<List<GeoPlace>>(emptyList()) }
-    var searching by remember { mutableStateOf(false) }
-    var searchFailed by remember { mutableStateOf(false) }
-    val parsedLat = lat.trim().toFloatOrNull()?.takeIf { it in -90f..90f }
-    val parsedLon = lon.trim().toFloatOrNull()?.takeIf { it in -180f..180f }
-
-    fun search() {
-        if (query.isBlank() || searching) return
-        searching = true
-        searchFailed = false
-        scope.launch {
-            val found = withContext(Dispatchers.IO) {
-                runCatching { WeatherClient.geocode(query) }.getOrNull()
-            }
-            searching = false
-            if (found == null) {
-                searchFailed = true
-            } else {
-                results = found
-                searchFailed = found.isEmpty()
-            }
-        }
-    }
-
-    AlertDialog(
-        onDismissRequest = { editing = false },
-        // Typing in the search/coordinate fields moves the dialog around the
-        // keyboard, so a tap can land on the scrim where the dialog just was
-        // and silently swallow the half-entered location. Explicit
-        // Cancel/Save only; back still dismisses.
-        properties = DialogProperties(dismissOnClickOutside = false),
-        title = { Text(stringResource(R.string.privacy_weather_dialog_title)) },
-        text = {
-            val unknownRegion = stringResource(R.string.privacy_weather_region_unknown)
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
-                        value = query,
-                        onValueChange = { query = it },
-                        label = { Text(stringResource(R.string.privacy_weather_search_hint)) },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Button(onClick = { search() }, enabled = query.isNotBlank() && !searching) {
-                        Text(if (searching) "…" else stringResource(CommonR.string.common_search))
-                    }
-                }
-                if (searchFailed) {
-                    Text(
-                        if (results.isEmpty() && !searching) {
-                            stringResource(R.string.privacy_weather_no_matches_error)
-                        } else {
-                            stringResource(R.string.privacy_weather_search_error)
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
-                for (result in results) {
-                    ListItem(
-                        headlineContent = { Text(result.name) },
-                        supportingContent = {
-                            Text(
-                                stringResource(
-                                    R.string.privacy_weather_result_summary,
-                                    result.region.ifBlank { unknownRegion },
-                                    result.latitude,
-                                    result.longitude,
-                                )
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                place = result.name
-                                lat = result.latitude.toString()
-                                lon = result.longitude.toString()
-                                results = emptyList()
-                            },
-                    )
-                }
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    stringResource(R.string.privacy_weather_manual_info),
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = place,
-                    onValueChange = { place = it },
-                    label = { Text(stringResource(R.string.privacy_weather_name_hint)) },
-                    singleLine = true,
-                )
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = lat,
-                    onValueChange = { lat = it },
-                    label = { Text(stringResource(R.string.privacy_weather_latitude_hint)) },
-                    singleLine = true,
-                    isError = lat.isNotBlank() && parsedLat == null,
-                )
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = lon,
-                    onValueChange = { lon = it },
-                    label = { Text(stringResource(R.string.privacy_weather_longitude_hint)) },
-                    singleLine = true,
-                    isError = lon.isNotBlank() && parsedLon == null,
-                )
-            }
+    val lookupNames = settings.watch { it.location.lookupAddress }
+    PlaceEditorDialog(
+        title = stringResource(R.string.privacy_weather_dialog_title),
+        initialName = savedPlace,
+        initialPoint = if (savedLatitude != null && savedLongitude != null) {
+            com.wasimaster.wmkeyboard.core.location.GeoPoint(savedLatitude.toDouble(), savedLongitude.toDouble())
+        } else {
+            null
         },
-        confirmButton = {
-            TextButton(
-                enabled = parsedLat != null && parsedLon != null,
-                onClick = {
-                    scope.launch {
-                        repository.setWeatherLocation(parsedLat, parsedLon, place.trim())
-                    }
-                    editing = false
-                },
-            ) { Text(stringResource(CommonR.string.common_save)) }
-        },
-        dismissButton = {
-            Row {
-                if (savedLatitude != null) {
-                    TextButton(onClick = {
-                        scope.launch { repository.setWeatherLocation(null, null, "") }
-                        editing = false
-                    }) { Text(stringResource(CommonR.string.common_clear)) }
-                }
-                TextButton(onClick = { editing = false }) {
-                    Text(stringResource(CommonR.string.common_cancel))
-                }
+        lookupNames = lookupNames,
+        onSave = { name, point ->
+            scope.launch {
+                repository.setWeatherLocation(point.latitude.toFloat(), point.longitude.toFloat(), name)
             }
+            editing = false
         },
+        onClear = if (savedLatitude != null) {
+            {
+                scope.launch { repository.setWeatherLocation(null, null, "") }
+                editing = false
+            }
+        } else {
+            null
+        },
+        onDismiss = { editing = false },
     )
 }
 // ---- privacy ----
@@ -4529,3 +4437,130 @@ private fun grammarCategoryInfo(category: GrammarCategory): Int = when (category
 }
 
 private val DictionarySourceRowHeight = 64.dp
+
+/**
+ * The AI reply tool's page (#234).
+ *
+ * The provider, the key and the model are the AI tool's and stay there — this
+ * tool borrows them, and two places to set the same key would be two places to
+ * get it wrong. What is here is only what a drafted reply needs: how many, how
+ * long, who the user is, and what happens to the copies it was built from.
+ */
+@Composable
+private fun AiReplyToolSettings(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+    onNavigate: (String) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val numberFormat = stringResource(R.string.values_number)
+    val charsFormat = stringResource(R.string.values_characters)
+
+    SettingsGroup(stringResource(R.string.toolai_reply_drafts_title)) {
+        item {
+            SliderSetting(
+                R.string.toolai_reply_count_title,
+                value = settings.watch { it.ai.reply.count }.toFloat(),
+                range = 1f..AiPrompts.MAX_REPLIES.toFloat(),
+                display = { numberFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.ai.reply.count.toFloat(),
+            ) { scope.launch { repository.setAiReplyCount(it.roundToInt()) } }
+        }
+        item {
+            ChoiceSetting(
+                title = R.string.toolai_reply_length_title,
+                subtitle = stringResource(R.string.toolai_reply_length_subtitle),
+                options = listOf(
+                    ReplyLength.SHORT to stringResource(R.string.toolai_reply_length_short),
+                    ReplyLength.MEDIUM to stringResource(R.string.toolai_reply_length_medium),
+                    ReplyLength.LONG to stringResource(R.string.toolai_reply_length_long),
+                ),
+                selected = settings.watch { it.ai.reply.length },
+                default = SettingsDefaults.ai.reply.length,
+            ) { scope.launch { repository.setAiReplyLength(it) } }
+        }
+        item {
+            ChoiceSetting(
+                title = R.string.toolai_reply_emoji_title,
+                subtitle = stringResource(R.string.toolai_reply_emoji_subtitle),
+                options = listOf(
+                    ReplyEmoji.MATCH to stringResource(R.string.toolai_reply_emoji_match),
+                    ReplyEmoji.ALLOW to stringResource(R.string.toolai_reply_emoji_allow),
+                    ReplyEmoji.AVOID to stringResource(R.string.toolai_reply_emoji_avoid),
+                ),
+                selected = settings.watch { it.ai.reply.emoji },
+                default = SettingsDefaults.ai.reply.emoji,
+            ) { scope.launch { repository.setAiReplyEmoji(it) } }
+        }
+    }
+
+    SettingsGroup(stringResource(R.string.toolai_reply_voice_title)) {
+        item {
+            TextFieldSetting(
+                label = stringResource(R.string.toolai_reply_persona_label),
+                value = settings.watch { it.ai.reply.persona },
+                hint = stringResource(R.string.toolai_reply_persona_hint),
+            ) { repository.setAiReplyPersona(it) }
+        }
+        item {
+            TextFieldSetting(
+                label = stringResource(R.string.toolai_reply_language_label),
+                value = settings.watch { it.ai.reply.language },
+                hint = stringResource(R.string.toolai_reply_language_hint),
+            ) { repository.setAiReplyLanguage(it) }
+        }
+        item {
+            SliderSetting(
+                R.string.toolai_reply_context_title,
+                value = settings.watch { it.ai.reply.contextChars }.toFloat(),
+                range = 300f..8_000f,
+                display = { charsFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.ai.reply.contextChars.toFloat(),
+            ) { scope.launch { repository.setAiReplyContextChars(it.roundToInt()) } }
+        }
+    }
+
+    SettingsGroup(stringResource(R.string.toolai_reply_shots_title)) {
+        item {
+            ChoiceSetting(
+                title = R.string.toolai_reply_image_mode_title,
+                subtitle = stringResource(R.string.toolai_reply_image_mode_subtitle),
+                options = listOf(
+                    ReplyImageMode.AUTO to stringResource(R.string.toolai_reply_image_mode_auto),
+                    ReplyImageMode.IMAGE to stringResource(R.string.toolai_reply_image_mode_image),
+                    ReplyImageMode.OCR to stringResource(R.string.toolai_reply_image_mode_ocr),
+                ),
+                selected = settings.watch { it.ai.reply.imageMode },
+                default = SettingsDefaults.ai.reply.imageMode,
+            ) { scope.launch { repository.setAiReplyImageMode(it) } }
+        }
+    }
+
+    SettingsGroup(stringResource(R.string.toolai_reply_after_title)) {
+        item {
+            ToggleSetting(
+                R.string.toolai_reply_tidy_title,
+                stringResource(R.string.toolai_reply_tidy_subtitle),
+                settings.watch { it.ai.reply.tidyUp },
+                default = SettingsDefaults.ai.reply.tidyUp,
+            ) { scope.launch { repository.setAiReplyTidyUp(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.toolai_reply_history_title,
+                stringResource(R.string.toolai_reply_history_subtitle),
+                settings.watch { it.ai.reply.keepHistory },
+                default = SettingsDefaults.ai.reply.keepHistory,
+            ) { scope.launch { repository.setAiReplyKeepHistory(it) } }
+        }
+    }
+
+    SettingsGroup(stringResource(R.string.toolai_reply_provider_title)) {
+        item {
+            NavRow(
+                R.string.toolai_reply_provider_nav_title,
+                stringResource(R.string.toolai_reply_provider_nav_subtitle),
+            ) { onNavigate("tool/${ToolbarTool.AI.name}") }
+        }
+    }
+}

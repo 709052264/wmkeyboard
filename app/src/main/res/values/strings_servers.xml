@@ -34,6 +34,7 @@
     <string name="servers_section_dictionary">Dictionary</string>
     <string name="servers_section_vocabulary">Vocabulary lookups</string>
     <string name="servers_section_weather">Weather</string>
+    <string name="servers_section_maps">Maps and addresses</string>
     <string name="servers_section_currency">Currency rates</string>
     <string name="servers_section_ai">AI providers</string>
     <string name="servers_section_updates">Update check</string>
