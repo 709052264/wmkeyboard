@@ -151,7 +151,8 @@ internal fun rememberEmojiPanelSession(state: KeyboardUiState): EmojiPanelSessio
     val categories = remember(state.emojiCatalog, categoryOrder, hiddenCategories) {
         EmojiOrder.categories(state.emojiCatalog, categoryOrder, hiddenCategories)
     }
-    val hasHistory = history.isNotEmpty()
+    // Off still records history (the emoji row and suggestions read it); it only hides the tab.
+    val hasHistory = historyMode != EmojiTabMode.OFF && history.isNotEmpty()
     // Kaomoji and emoticons sit after the Unicode categories: opt-in extras,
     // and appending them leaves every existing tab where muscle memory expects it.
     val textArtTabs = state.settings.emoji.kaomojiTabs

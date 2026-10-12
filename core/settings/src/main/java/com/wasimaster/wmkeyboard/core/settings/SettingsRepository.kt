@@ -1513,8 +1513,8 @@ enum class GlideCommitColorScope(@StringRes val labelRes: Int) {
     EVERYWHERE(R.string.core_settings_glide_commit_scope_keys_label),
 }
 
-/** What the history tab of the emoji panel shows. */
-enum class EmojiTabMode { RECENTS, MOST_USED }
+/** What the history tab of the emoji panel shows; [OFF] drops the tab altogether. */
+enum class EmojiTabMode { RECENTS, MOST_USED, OFF }
 
 /**
  * The dedicated emoji row (Gboard style): [ALWAYS] keeps it as its own row
@@ -3280,7 +3280,7 @@ data class KeyboardSettings(
      * to the spacebar where a punctuation key belongs.
      */
     val swapCommaAndGlobe: Boolean = true,
-    /** History tab of the emoji panel: recently used vs most used. */
+    /** History tab of the emoji panel: recently used, most used, or no tab at all. */
     val emojiTabMode: EmojiTabMode = EmojiTabMode.RECENTS,
     /** "Clear recents" button on the emoji panel's history tab. Off by default. */
     val emojiClearRecentsButton: Boolean = false,

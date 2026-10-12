@@ -122,12 +122,14 @@
     <string name="langemoji_media_remember_info">When this is on, the emoji key and the emoji tool open the panel of the three that you used last. If one of the three panels is open, they close it. When this is off, the emoji key always opens the emoji panel. The keyboard forgets the last panel when it restarts.</string>
     <string name="langemoji_emoji_tab_mode_title">History tab</string>
     <string name="langemoji_emoji_tab_mode_subtitle">What the first tab of the emoji panel shows</string>
-    <string name="langemoji_emoji_tab_mode_info">\"Recent\" lists emoji in the order that you used them last. \"Most used\" puts the emoji that you use most often first. The keyboard always keeps your favourite emoji at the start of both lists.</string>
+    <string name="langemoji_emoji_tab_mode_info">\"Recent\" lists emoji in the order that you used them last. \"Most used\" puts the emoji that you use most often first. The keyboard always keeps your favourite emoji at the start of both lists. \"Off\" removes the tab, so the panel opens on the first emoji category.</string>
     <string name="langemoji_emoji_recent_label">Recent</string>
     <string name="langemoji_emoji_most_used_label">Most used</string>
     <!-- One line under each option in the emoji history tab picker. -->
     <string name="langemoji_emoji_recent_desc">In the order that you used them last</string>
     <string name="langemoji_emoji_most_used_desc">The emoji that you use most often come first</string>
+    <string name="langemoji_emoji_tab_off_label">Off</string>
+    <string name="langemoji_emoji_tab_off_desc">No history tab. The panel opens on the first category</string>
     <string name="langemoji_emoji_clear_recents_title">Clear recents button</string>
     <string name="langemoji_emoji_clear_recents_subtitle">A button on the Recent tab that deletes the recents list</string>
     <string name="langemoji_emoji_clear_recents_info">This adds a \"Clear recents\" button to the Recent tab of the emoji panel. It is off by default, to keep the tab clean.</string>

@@ -390,6 +390,7 @@ internal object ChoiceOptionIcons {
 
         put(EmojiTabMode.RECENTS) { Icons.Outlined.History }
         put(EmojiTabMode.MOST_USED) { Icons.Outlined.TrendingUp }
+        put(EmojiTabMode.OFF) { Icons.Outlined.Block }
 
         put(EmojiInsertMode.REPLACE) { Icons.Outlined.FindReplace }
         put(EmojiInsertMode.APPEND) { Icons.AutoMirrored.Outlined.PlaylistAdd }

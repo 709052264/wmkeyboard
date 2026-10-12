@@ -526,6 +526,7 @@ internal fun EmojiPanelSettings(
                     EmojiTabMode.RECENTS to stringResource(R.string.langemoji_emoji_recent_label),
                     EmojiTabMode.MOST_USED to
                         stringResource(R.string.langemoji_emoji_most_used_label),
+                    EmojiTabMode.OFF to stringResource(R.string.langemoji_emoji_tab_off_label),
                 ),
                 selected = tabMode,
                 default = SettingsDefaults.emojiTabMode,
@@ -684,4 +685,5 @@ private fun emojiFontDescRes(choice: EmojiFontChoice): Int = when (choice) {
 private fun emojiTabModeDescRes(mode: EmojiTabMode): Int = when (mode) {
     EmojiTabMode.RECENTS -> R.string.langemoji_emoji_recent_desc
     EmojiTabMode.MOST_USED -> R.string.langemoji_emoji_most_used_desc
+    EmojiTabMode.OFF -> R.string.langemoji_emoji_tab_off_desc
 }
