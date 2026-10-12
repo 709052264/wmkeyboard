@@ -5,8 +5,12 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import com.google.android.gms.tasks.Task
 import com.wasimaster.wmkeyboard.core.tools.ReplyTurn
-import kotlinx.coroutines.tasks.await
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 /**
  * Reads a chat screenshot into messages, for a model that cannot see (#234).
@@ -75,5 +79,18 @@ object ReplyOcr {
         } finally {
             runCatching { recognizer.close() }
         }
+    }
+
+    /**
+     * Suspends over a Play Services [Task], the bridge `kotlinx-coroutines-
+     * play-services` would give: that artifact is kept out of the keyboard
+     * (see the note in `gradle/libs.versions.toml`), so the house writes the
+     * few lines itself, as the scanner panel does. A failed task throws its
+     * exception; a cancelled one cancels the caller.
+     */
+    private suspend fun <T> Task<T>.await(): T = suspendCancellableCoroutine { cont ->
+        addOnSuccessListener { cont.resume(it) }
+        addOnFailureListener { if (cont.isActive) cont.resumeWithException(it) }
+        addOnCanceledListener { cont.cancel(CancellationException("ML Kit task cancelled")) }
     }
 }
