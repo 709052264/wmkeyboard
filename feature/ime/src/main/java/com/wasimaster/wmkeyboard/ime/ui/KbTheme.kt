@@ -9,6 +9,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -76,6 +77,17 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.core.theme.ColorVision
 import com.wasimaster.wmkeyboard.core.theme.GradientSpec
 import com.wasimaster.wmkeyboard.core.theme.DecalSpec
+import com.wasimaster.wmkeyboard.core.theme.FROST_BACKDROP_BLUR_RANGE
+import com.wasimaster.wmkeyboard.core.theme.FROST_BRIGHTNESS_RANGE
+import com.wasimaster.wmkeyboard.core.theme.FROST_FALLBACK_OPACITY_RANGE
+import com.wasimaster.wmkeyboard.core.theme.FROST_GRAIN_RANGE
+import com.wasimaster.wmkeyboard.core.theme.FROST_RIM_RANGE
+import com.wasimaster.wmkeyboard.core.theme.FROST_SATURATION_RANGE
+import com.wasimaster.wmkeyboard.core.theme.FrostBackdropSource
+import com.wasimaster.wmkeyboard.core.theme.FrostSpec
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
+import com.wasimaster.wmkeyboard.core.theme.WallpaperBand
+import com.wasimaster.wmkeyboard.core.theme.WINDOW_BLUR_RADIUS_RANGE
 import com.wasimaster.wmkeyboard.core.theme.KeyEffectColorMode
 import com.wasimaster.wmkeyboard.core.theme.KeyEffectKind
 import com.wasimaster.wmkeyboard.core.theme.KeyOverride
@@ -281,7 +293,56 @@ data class KbTheme(
      * reason [reduceMotion] is.
      */
     val motion: KbMotion = KbMotion(),
+    /** Frosted glass, resolved; null is no glass. See [KbFrost]. */
+    val frost: KbFrost? = null,
 )
+
+/**
+ * A theme's frosted glass as the drawing code reads it: the surfaces that are
+ * glass, the window blur it asks for, the bake it samples, and the rim and
+ * grain colours already resolved against the theme. See `FrostSpec` for what
+ * each field means; the ranges are enforced here so no surface has to.
+ */
+@Immutable
+data class KbFrost(
+    val windowBlur: Boolean,
+    val windowBlurRadiusDp: Int,
+    val fallbackOpacity: Float,
+    val surfaces: Set<FrostSurface>,
+    val backdropBlur: Float,
+    val saturation: Float,
+    val brightness: Float,
+    val rim: Float,
+    val rimLight: Color,
+    val rimShadow: Color,
+    val grain: Float,
+    /** What the glass stands on when the app is not blurred behind it. */
+    val backdrop: FrostBackdropSource,
+    val wallpaperBand: WallpaperBand,
+) {
+    fun has(surface: FrostSurface): Boolean = surface in surfaces
+
+    /**
+     * Which picture the glass samples right now — the theme's own image, the
+     * wallpaper, or nothing — given whether the theme [hasImage] and whether
+     * the window is [blurLive] behind the board. `AUTO` only reaches for the
+     * wallpaper while no live blur is showing the app, since a backdrop
+     * painted over that blur would hide the very thing the theme asked for.
+     */
+    fun backdropKind(hasImage: Boolean, blurLive: Boolean): BackdropKind? = when (backdrop) {
+        FrostBackdropSource.NONE -> null
+        FrostBackdropSource.IMAGE -> if (hasImage) BackdropKind.IMAGE else null
+        FrostBackdropSource.WALLPAPER -> BackdropKind.WALLPAPER
+        FrostBackdropSource.AUTO -> when {
+            hasImage -> BackdropKind.IMAGE
+            windowBlur && blurLive -> null
+            else -> BackdropKind.WALLPAPER
+        }
+    }
+}
+
+/** The picture a glass theme is sampling; see [KbFrost.backdropKind]. */
+enum class BackdropKind { IMAGE, WALLPAPER }
 
 /**
  * The optional keyboard animations, each already gated on reduce motion (see
@@ -892,6 +953,32 @@ private fun specKbTheme(spec: ThemeSpec, settings: KeyboardSettings): KbTheme {
         animationSpeed = spec.animationSpeed,
         reduceMotion = settings.reduceMotion,
         motion = KbMotion.of(settings),
+        frost = spec.frost?.let { resolveFrost(it, spec.dark) },
+    )
+}
+
+/**
+ * [spec] with its ranges enforced and its rim colours chosen: the lit edge is
+ * the theme's own colour or a white — brighter on a light theme, whose panes
+ * are pale and need the edge to stand out — and the shadowed edge a
+ * translucent black on either. Null for a frost field switched off.
+ */
+internal fun resolveFrost(spec: FrostSpec, dark: Boolean): KbFrost? {
+    if (!spec.enabled) return null
+    return KbFrost(
+        windowBlur = spec.windowBlur,
+        windowBlurRadiusDp = spec.windowBlurRadiusDp.coerceIn(WINDOW_BLUR_RADIUS_RANGE),
+        fallbackOpacity = spec.fallbackOpacity.coerceIn(FROST_FALLBACK_OPACITY_RANGE),
+        surfaces = spec.surfaceSet,
+        backdropBlur = spec.backdropBlur.coerceIn(FROST_BACKDROP_BLUR_RANGE),
+        saturation = spec.saturation.coerceIn(FROST_SATURATION_RANGE),
+        brightness = spec.brightness.coerceIn(FROST_BRIGHTNESS_RANGE),
+        rim = spec.rim.coerceIn(FROST_RIM_RANGE),
+        rimLight = spec.rimColor?.let(::colorOf) ?: if (dark) Color(0xB3FFFFFF) else Color(0xE6FFFFFF),
+        rimShadow = if (dark) Color(0x66000000) else Color(0x33000000),
+        grain = spec.grain.coerceIn(FROST_GRAIN_RANGE),
+        backdrop = spec.backdropSource,
+        wallpaperBand = spec.band,
     )
 }
 
@@ -990,6 +1077,7 @@ private fun KbTheme.mapColors(f: (Color) -> Color): KbTheme = copy(
     } else {
         keyOverrides.mapValues { (_, override) -> override.mapColors(f) }
     },
+    frost = frost?.copy(rimLight = f(frost.rimLight), rimShadow = f(frost.rimShadow)),
 )
 
 /** Near-black or near-white, whichever reads on [background]. */
@@ -1045,6 +1133,8 @@ internal fun KbTheme.accessibilityAdjusted(settings: KeyboardSettings): KbTheme 
             decals = emptyList(),
             keyEffect = null,
             animation = ThemeAnimation.NONE,
+            // Glass is see-through by definition; the high-contrast board is not.
+            frost = null,
             key = key,
             modifierKey = modifier,
             keyText = maxContrastOn(key),
@@ -1352,6 +1442,9 @@ fun KeyboardThemeProvider(
         CompositionLocalProvider(
             LocalKbTheme provides kb,
             LocalKeyTextures provides rememberKeyTextures(kb),
+            // The glass backdrop, filled by the board once it knows its image
+            // and size; the surfaces sample it through this one holder.
+            LocalFrostBackdrop provides remember { FrostBackdrop() },
             LocalEmojiFontFamily provides emojiFontFamily,
             LocalEmojiShaper provides emojiShaper,
             content = content,
@@ -1565,6 +1658,28 @@ private fun lerpKbTheme(a: KbTheme, b: KbTheme, t: Float): KbTheme {
         animationSpeed = lerpF(a.animationSpeed, b.animationSpeed, t),
         reduceMotion = b.reduceMotion,
         motion = b.motion,
+        frost = lerpFrost(a.frost, b.frost, t),
+    )
+}
+
+/**
+ * Glass between two themes. The rim, grain and fallback opacity ease; the
+ * bake's inputs (blur, saturation, brightness), the window blur and its
+ * radius, and the surface set snap at the midpoint — each of those would
+ * otherwise ask for a new bake or a new window relayout on every frame of
+ * the fade. A theme with no glass against one with it snaps too: there is
+ * nothing on the other side to blend from.
+ */
+private fun lerpFrost(a: KbFrost?, b: KbFrost?, t: Float): KbFrost? {
+    if (a == null || b == null) return if (t >= 0.5f) b else a
+    val past = t >= 0.5f
+    val snapped = if (past) b else a
+    return snapped.copy(
+        fallbackOpacity = lerpF(a.fallbackOpacity, b.fallbackOpacity, t),
+        rim = lerpF(a.rim, b.rim, t),
+        rimLight = lerp(a.rimLight, b.rimLight, t),
+        rimShadow = lerp(a.rimShadow, b.rimShadow, t),
+        grain = lerpF(a.grain, b.grain, t),
     )
 }
 
@@ -1672,26 +1787,56 @@ fun BoxScope.BoardBackground(kb: KbTheme) {
             targetH = targetH,
         )
     }
+    // The glass: what the surfaces sample — the image above, baked blurred,
+    // or the wallpaper's band — and the board's own place for them to sample
+    // it against. Nothing is composed for a theme without glass.
+    val frost = kb.frost
+    val backdrop = LocalFrostBackdrop.current
+    val blurLive = windowFrostLive(kb)
+    val kind = frost?.backdropKind(hasImage = imagePath != null, blurLive = blurLive)
+    if (frost != null) FrostBackdropLoader(kb, imagePath, kind, targetW, targetH)
+    // The wallpaper backdrop is the board's picture, under the tint: what a
+    // theme that wanted the app blurred gets instead where it cannot be, and
+    // what a theme that asked for the wallpaper gets everywhere.
+    if (kind == BackdropKind.WALLPAPER) {
+        backdrop.bitmap?.let { picture ->
+            Image(
+                bitmap = picture,
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+            )
+        }
+    }
+    val boardModifier = if (frost != null) {
+        Modifier.matchParentSize().frostBoardBounds(backdrop)
+    } else {
+        Modifier.matchParentSize()
+    }
+    // A theme that asked for the app behind to be blurred, with nothing to
+    // stand on where it cannot be, is drawn at least its fallback opacity:
+    // the keys were designed over a blur, not over a sharp app.
+    val opacityFloor = frost?.takeIf { it.windowBlur && !blurLive && kind == null }?.fallbackOpacity
     val phase = themeAnimationPhase(kb.animation, kb.animationSpeed, kb.reduceMotion)
-    val gradient = kb.boardGradient
+    val gradient = kb.boardGradient?.let { if (opacityFloor == null) it else it.withAlphaFloor(opacityFloor) }
     if (gradient != null) {
         Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(gradient.brush(kb.animation, phase)),
+            modifier = boardModifier.background(gradient.brush(kb.animation, phase)),
         )
     } else {
-        val board = if (kb.animation == ThemeAnimation.HUE_CYCLE) {
+        val tinted = if (kb.animation == ThemeAnimation.HUE_CYCLE) {
             hueShift(kb.board, phase * 360f)
         } else {
             kb.board
         }
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(board),
-        )
+        val board = if (opacityFloor == null) tinted else tinted.copy(alpha = max(tinted.alpha, opacityFloor))
+        Box(modifier = boardModifier.background(board))
     }
+}
+
+/** Every stop at least [floor] opaque; see the fallback note in [BoardBackground]. */
+private fun GradientSpec.withAlphaFloor(floor: Float): GradientSpec = mapColors { color ->
+    if (color.alpha >= floor) color else color.copy(alpha = floor)
 }
 
 /**

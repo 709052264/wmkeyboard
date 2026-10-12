@@ -75,6 +75,7 @@ import com.wasimaster.wmkeyboard.core.prediction.UserLexicon
 import com.wasimaster.wmkeyboard.core.prediction.WordFacts
 import com.wasimaster.wmkeyboard.core.prediction.WordRanks
 import com.wasimaster.wmkeyboard.core.settings.RankControl
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.WordCard
 import com.wasimaster.wmkeyboard.ime.WordCardAction
@@ -138,6 +139,7 @@ private fun WordCardWindow(card: WordCard, growth: PopupGrowth, onAction: (WordC
     val dismiss = { onAction(WordCardAction.Dismiss) }
 
     Popup(onDismissRequest = dismiss) {
+        PopupBlurBehind(LocalKbTheme.current, FrostSurface.MENUS)
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -146,8 +148,9 @@ private fun WordCardWindow(card: WordCard, growth: PopupGrowth, onAction: (WordC
             contentAlignment = Alignment.Center,
         ) {
             Surface(
+                modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
                 shape = kb.menuShape(),
-                color = kb.popup,
+                color = kb.popupFill(FrostSurface.MENUS),
                 border = kb.popupSurfaceBorder(),
                 shadowElevation = elevationFor(kb.menuShapeKind, 8.dp),
                 modifier = Modifier

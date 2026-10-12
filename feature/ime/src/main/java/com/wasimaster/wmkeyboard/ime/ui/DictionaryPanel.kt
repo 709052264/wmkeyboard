@@ -47,6 +47,7 @@ import com.wasimaster.wmkeyboard.core.tools.DictionarySource
 import com.wasimaster.wmkeyboard.ime.DictionaryUi
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.aichat.AskAiContext
 
@@ -383,6 +384,7 @@ private fun DictionaryChip(label: String, filled: Boolean, onClick: () -> Unit) 
     Box(
         modifier = Modifier
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(if (filled) kb.chipActive else kb.chip)
             .chipBorder(kb, shape)
             .clickable(onClick = onClick)

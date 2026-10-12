@@ -392,6 +392,8 @@ import com.wasimaster.wmkeyboard.core.tools.toolbarHintButtons
 import com.wasimaster.wmkeyboard.ime.ui.StableMeasureFrame
 import com.wasimaster.wmkeyboard.ime.ui.ImeNavigationBars
 import com.wasimaster.wmkeyboard.ime.ui.LocalImeNavigationBars
+import com.wasimaster.wmkeyboard.ime.ui.LocalWindowFrost
+import com.wasimaster.wmkeyboard.ime.ui.WindowFrostHost
 import com.wasimaster.wmkeyboard.ime.ui.HandwritingFullScreenControls
 import com.wasimaster.wmkeyboard.ime.ui.LocalHandwritingFullScreen
 import com.wasimaster.wmkeyboard.ime.ui.handwritingFullScreen
@@ -666,6 +668,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -1102,6 +1107,35 @@ open class WMKeyboardService : InputMethodService() {
      * while power saving is in force (see [underPowerSaving]).
      */
     private val powerSaver = PowerSaver(this)
+
+    /**
+     * The window's blur for a glass theme (see [WindowFrostHost]): the system
+     * blurs the app behind the keyboard's window on Android 12 and later, and
+     * the keyboard reports whether that can run right now — the phone's own
+     * cross-window blur switch, which battery saver and some OEM builds turn
+     * off, and the keyboard's power saving. Lazy so the flow is made after
+     * the scope it collects in.
+     */
+    private val windowFrost = ImeWindowFrost()
+
+    private inner class ImeWindowFrost : WindowFrostHost {
+        val crossWindowBlur = MutableStateFlow(false)
+        val powerSaving = MutableStateFlow(false)
+
+        override val blurAvailable: StateFlow<Boolean> by lazy {
+            combine(crossWindowBlur, powerSaving) { blur, saving -> blur && !saving }
+                .stateIn(serviceScope, SharingStarted.Eagerly, false)
+        }
+
+        override fun setBackgroundBlur(radiusPx: Int) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+            window?.window?.setBackgroundBlurRadius(radiusPx)
+        }
+    }
+
+    /** Told the current state at once, then every change. */
+    private val crossWindowBlurListener =
+        java.util.function.Consumer<Boolean> { enabled -> windowFrost.crossWindowBlur.value = enabled }
 
     /**
      * What the connection costs, combined with the settings the same way the
@@ -3298,6 +3332,10 @@ open class WMKeyboardService : InputMethodService() {
         // isSupportedTool reads the answer with no Context of its own, and a
         // tool that appears and then vanishes a frame later looks like a bug.
         PlayServices.prime(this)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            getSystemService(WindowManager::class.java)
+                .addCrossWindowBlurEnabledListener(mainExecutor, crossWindowBlurListener)
+        }
         // Mirrors the state the composition draws — see [_shownState]. The
         // scope is Main.immediate and every update comes from the main thread,
         // so this resumes inside the update rather than a frame later.
@@ -3621,6 +3659,7 @@ open class WMKeyboardService : InputMethodService() {
                 val unlockedSettings =
                     if (userUnlocked) formed else formed.restrictedToDirectBoot()
                 val saving = unlockedSettings.powerSaving.appliesTo(power)
+                windowFrost.powerSaving.value = saving
                 val savedSettings =
                     if (saving) unlockedSettings.underPowerSaving() else unlockedSettings
                 // Data saving last of the three views: it is the one keyed to
@@ -4711,6 +4750,7 @@ open class WMKeyboardService : InputMethodService() {
                 LocalInlineChipPaletteReporter provides inlineChipPaletteReporter,
                 LocalImeNavigationBars provides navigationBars,
                 LocalHandwritingFullScreen provides hwFullScreenControls,
+                LocalWindowFrost provides windowFrost,
             ) {
                 ServiceKeyboardContent()
             }
@@ -7051,6 +7091,10 @@ open class WMKeyboardService : InputMethodService() {
         vocabSpeaker = null
         vocabProgress.save()
         KeyboardPassthrough.publishRegion(null)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            getSystemService(WindowManager::class.java)
+                .removeCrossWindowBlurEnabledListener(crossWindowBlurListener)
+        }
         powerSaver.stop()
         networkWatcher.stop()
         (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)

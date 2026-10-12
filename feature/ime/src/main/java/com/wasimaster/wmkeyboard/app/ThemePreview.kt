@@ -10,6 +10,16 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import com.wasimaster.wmkeyboard.core.theme.BackgroundBitmapCache
 import com.wasimaster.wmkeyboard.ime.ui.DecalsCanvas
+import com.wasimaster.wmkeyboard.ime.ui.BackdropKind
+import com.wasimaster.wmkeyboard.ime.ui.FrostBackdrop
+import com.wasimaster.wmkeyboard.ime.ui.KbFrost
+import com.wasimaster.wmkeyboard.core.theme.WallpaperBackdrop
+import com.wasimaster.wmkeyboard.ime.ui.frostBoardBounds
+import com.wasimaster.wmkeyboard.ime.ui.frostGlass
+import com.wasimaster.wmkeyboard.ime.ui.resolveFrost
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -46,6 +56,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
 import com.wasimaster.wmkeyboard.core.theme.ThemeAnimation
 import com.wasimaster.wmkeyboard.core.theme.ThemeBackgroundImage
@@ -129,6 +140,45 @@ private fun ThemePreviewContent(
         // theme in a scrolling list, was the worst offender in the settings app.
         val targetW = with(density) { configuration.screenWidthDp.dp.roundToPx() }
         val targetH = (targetW / PREVIEW_ASPECT_PORTRAIT).toInt()
+        // The glass, as the keyboard draws it where the window is not blurred
+        // (the gallery has no app behind it): the image, or the wallpaper's
+        // band, baked blurred for the keys to sample, and the wallpaper as the
+        // board's own picture. Without either the glass is the keys' own
+        // translucency, their rim and their grain.
+        val frost = theme.frost?.let { resolveFrost(it, theme.dark) }
+        val backdrop = remember { FrostBackdrop() }
+        val glassImage = (imageOverride as? String)?.takeUnless { it.startsWith("http") } ?: themeImage
+        val kind = frost?.backdropKind(hasImage = glassImage != null, blurLive = false)
+        val context = LocalContext.current
+        val configuration = LocalConfiguration.current
+        LaunchedEffect(backdrop, kind, frost?.backdropBlur, frost?.saturation, frost?.brightness, frost?.wallpaperBand, glassImage, targetW, targetH, configuration) {
+            backdrop.bitmap = when {
+                frost == null || kind == null -> null
+                kind == BackdropKind.IMAGE -> glassImage?.let {
+                    BackgroundBitmapCache.loadFrosted(
+                        it, frost.backdropBlur, frost.saturation, frost.brightness, targetW, targetH,
+                    )?.asImageBitmap()
+                }
+                else -> WallpaperBackdrop.loadFrosted(
+                    context, frost.wallpaperBand, frost.backdropBlur, frost.saturation, frost.brightness,
+                    targetW, targetH, theme.dark,
+                    fallbackColors = listOf(theme.boardBackground, theme.accent, theme.keyBackground),
+                )?.asImageBitmap()
+            }
+        }
+        if (kind == BackdropKind.WALLPAPER) {
+            backdrop.bitmap?.let { picture ->
+                Image(
+                    bitmap = picture,
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop,
+                )
+            }
+        }
+        // Nothing to stand on and no blur: the board at its fallback opacity,
+        // as the keyboard draws it on a phone that cannot blur.
+        val boardFloor = frost?.takeIf { it.windowBlur && kind == null }?.fallbackOpacity
         val remote = imageOverride as? String
         if (remote != null && remote.startsWith("http")) {
             // A photo being considered has not been downloaded yet, so it is
@@ -154,19 +204,16 @@ private fun ThemePreviewContent(
         }
         // Static (phase 0) gradient — the preview doesn't animate.
         val boardGradient = theme.boardGradient
+        val boardModifier = Modifier.matchParentSize().frostBoardBounds(backdrop)
         if (boardGradient != null) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(boardGradient.brush()),
-            )
+            Box(modifier = boardModifier.background(boardGradient.brush()))
         } else {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(colorOf(theme.boardBackground)),
-            )
+            val board = colorOf(theme.boardBackground).let { color ->
+                if (boardFloor == null || color.alpha >= boardFloor) color else color.copy(alpha = boardFloor)
+            }
+            Box(modifier = boardModifier.background(board))
         }
+        val glass = PreviewGlass(frost, backdrop)
         // Weighted rather than fixed heights, so the mock-up keeps its
         // proportions at whatever size it is drawn.
         Column(
@@ -205,33 +252,33 @@ private fun ThemePreviewContent(
             // Drawing three identical rows of ten made the preview read as a
             // grid rather than as a keyboard.
             PreviewKeyRow(theme, keyShape) {
-                repeat(10) { LetterKey(theme, keyShape) }
+                repeat(10) { LetterKey(theme, keyShape, glass) }
             }
             PreviewKeyRow(theme, keyShape) {
                 Spacer(Modifier.weight(0.5f))
-                repeat(9) { LetterKey(theme, keyShape) }
+                repeat(9) { LetterKey(theme, keyShape, glass) }
                 Spacer(Modifier.weight(0.5f))
             }
             PreviewKeyRow(theme, keyShape) {
-                ModifierKey(theme, keyShape, weight = 1.5f)
-                repeat(7) { LetterKey(theme, keyShape) }
-                ModifierKey(theme, keyShape, weight = 1.5f)
+                ModifierKey(theme, keyShape, glass, weight = 1.5f)
+                repeat(7) { LetterKey(theme, keyShape, glass) }
+                ModifierKey(theme, keyShape, glass, weight = 1.5f)
             }
             PreviewKeyRow(theme, keyShape) {
-                ModifierKey(theme, keyShape, weight = 1.5f)
-                LetterKey(theme, keyShape, weight = 1f, dot = false)
+                ModifierKey(theme, keyShape, glass, weight = 1.5f)
+                LetterKey(theme, keyShape, glass, weight = 1f, dot = false)
                 Box(
                     modifier = Modifier
                         .weight(5f)
                         .fillMaxHeight()
-                        .previewKeyFace(theme, theme.keyBackground, keyShape),
+                        .previewKeyFace(theme, theme.keyBackground, keyShape, glass.forSurface(FrostSurface.SPACE_BAR), glass.backdrop),
                 )
-                LetterKey(theme, keyShape, weight = 1f, dot = false)
+                LetterKey(theme, keyShape, glass, weight = 1f, dot = false)
                 Box(
                     modifier = Modifier
                         .weight(1.5f)
                         .fillMaxHeight()
-                        .previewKeyFace(theme, theme.enterKeyBackground, keyShape),
+                        .previewKeyFace(theme, theme.enterKeyBackground, keyShape, glass.forSurface(FrostSurface.ENTER_KEY), glass.backdrop),
                 )
             }
         }
@@ -304,6 +351,7 @@ private fun ColumnScope.PreviewKeyRow(
 private fun RowScope.LetterKey(
     theme: ThemeSpec,
     keyShape: Shape,
+    glass: PreviewGlass,
     weight: Float = 1f,
     dot: Boolean = true,
 ) {
@@ -323,7 +371,7 @@ private fun RowScope.LetterKey(
         modifier = Modifier
             .weight(weight)
             .fillMaxHeight()
-            .previewKeyFace(theme, theme.keyBackground, keyShape),
+            .previewKeyFace(theme, theme.keyBackground, keyShape, glass.forSurface(FrostSurface.KEYS), glass.backdrop),
         contentAlignment = Alignment.Center,
     ) {
         texture?.let {
@@ -362,24 +410,44 @@ private const val PREVIEW_TEXTURE_PX = 128
 
 /** Shift, backspace and the symbol key, which carry the modifier colour. */
 @Composable
-private fun RowScope.ModifierKey(theme: ThemeSpec, keyShape: Shape, weight: Float) {
+private fun RowScope.ModifierKey(theme: ThemeSpec, keyShape: Shape, glass: PreviewGlass, weight: Float) {
     Box(
         modifier = Modifier
             .weight(weight)
             .fillMaxHeight()
-            .previewKeyFace(theme, theme.modifierKeyBackground, keyShape),
+            .previewKeyFace(theme, theme.modifierKeyBackground, keyShape, glass.forSurface(FrostSurface.MODIFIER_KEYS), glass.backdrop),
     )
 }
+
+/**
+ * The mock-up's glass: the resolved frost and the backdrop its keys sample,
+ * handed to each key with the surface it stands for. Null frost is a theme
+ * with no glass, and [forSurface] then hands back nothing to draw.
+ */
+private class PreviewGlass(private val frost: KbFrost?, val backdrop: FrostBackdrop) {
+    fun forSurface(surface: FrostSurface): KbFrost? = frost?.takeIf { it.has(surface) }
+}
+
+
 
 /**
  * A mock-up key's face in [color] with the theme's key border, or nothing at
  * all for a theme with no key shape, whose keyboard shows only the labels.
  */
-private fun Modifier.previewKeyFace(theme: ThemeSpec, color: Long, shape: Shape): Modifier =
+private fun Modifier.previewKeyFace(
+    theme: ThemeSpec,
+    color: Long,
+    shape: Shape,
+    glass: KbFrost? = null,
+    backdrop: FrostBackdrop? = null,
+): Modifier =
     if (theme.keyShape == KeyShapeKind.NONE) {
         this
     } else {
-        background(colorOf(color), shape).previewKeyBorder(theme, shape)
+        // Glass under the colour, exactly as the key grid layers it.
+        then(if (glass != null && backdrop != null) Modifier.frostGlass(glass, backdrop, shape) else Modifier)
+            .background(colorOf(color), shape)
+            .previewKeyBorder(theme, shape)
     }
 
 /**

@@ -136,6 +136,7 @@ import com.wasimaster.wmkeyboard.core.settings.slotThemeId
 import com.wasimaster.wmkeyboard.core.settings.themeSelectionTarget
 import com.wasimaster.wmkeyboard.app.ThemePreview
 import com.wasimaster.wmkeyboard.core.theme.BuiltInThemes
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.theme.flattenedThemes
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.PaletteStyle
@@ -2740,6 +2741,7 @@ private fun StyleChip(
     Box(
         modifier = Modifier
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(if (selected) kb.chipActive else kb.chip)
             .chipBorder(kb, shape)
             .focusRing(focused, shape)

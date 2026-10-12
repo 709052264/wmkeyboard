@@ -64,6 +64,7 @@ import com.wasimaster.wmkeyboard.ime.CurrencyUi
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.R
 
 // Shared building blocks for the utility tool panels (symbols, calculator,
@@ -88,6 +89,7 @@ internal fun ToolPanelChip(
     Box(
         modifier = modifier
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background((if (selected) kb.chipActive else kb.chip).dim())
             .chipBorder(kb, shape)
             .clickable(enabled = enabled, onClick = onClick)

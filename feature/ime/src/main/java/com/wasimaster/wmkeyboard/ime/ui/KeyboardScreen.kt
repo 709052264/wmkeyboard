@@ -238,6 +238,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -368,6 +369,7 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import com.wasimaster.wmkeyboard.core.theme.KEY_OVERRIDE_LABEL_SCALE_RANGE
 import com.wasimaster.wmkeyboard.core.theme.KeyOverride
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
 import com.wasimaster.wmkeyboard.core.theme.PaletteStyle
 import com.wasimaster.wmkeyboard.ime.AppColors
@@ -1956,8 +1958,13 @@ private const val VoiceBarTransitionMs = 260
  * board underneath may be a gradient, a photo or an animation, and a drawn
  * fill would be a lid over all three.
  */
+@Composable
 private fun Modifier.barRowFill(color: Color?): Modifier =
-    if (color == null) this else background(color)
+    // Glass first, so the bar's own fill tints the backdrop slice under it.
+    // A bar with no fill of its own still gets the glass: the theme asked
+    // for the bars to be panes, and a pane with no tint is a clear one.
+    frostGlass(LocalKbTheme.current, RectangleShape, FrostSurface.BARS)
+        .then(if (color == null) Modifier else Modifier.background(color))
 
 /**
  * Docked chrome: the board background plus the width, alignment and
@@ -2102,6 +2109,9 @@ private fun DockedKeyboardFrame(
                 // window stops short of the bar -- so the window itself is
                 // asked for the colour instead (#255).
                 SystemNavigationBarColor(LocalKbTheme.current)
+                // The app behind the window, blurred for a glass theme. Only
+                // the docked frame asks: the floating window spans the screen.
+                WindowFrostEffect(LocalKbTheme.current)
                 // Same trick for the inline-autofill chips: the service builds
                 // their presentation spec long before this composition runs, so
                 // the resolved colours are reported out to it (#250).
@@ -8675,6 +8685,7 @@ internal fun ToolCircle(
                         height = 30.dp,
                     )
                     .clip(shape)
+                    .then(if (kb.toolRadiusDp > 0) Modifier.frostGlass(kb, shape, FrostSurface.TOOLS) else Modifier)
                     .background(background, shape)
                     .then(outline),
                 contentAlignment = Alignment.Center,
@@ -8728,6 +8739,9 @@ internal fun ToolCircle(
                 height = side.dp,
             )
             .clip(shape)
+            // Glass under the tool's own fill; a bare-icon theme (radius 0)
+            // has no background to be glass.
+            .then(if (kb.toolRadiusDp > 0) Modifier.frostGlass(kb, shape, FrostSurface.TOOLS) else Modifier)
             .background(background, shape)
             .then(outline)
             .then(click),
@@ -8763,9 +8777,11 @@ internal fun ToolCircle(
                 popupPositionProvider = rememberAboveAnchorPopup(),
                 onDismissRequest = { showLabel = false },
             ) {
+                PopupBlurBehind(kb, FrostSurface.POPUPS)
                 Surface(
+                    modifier = Modifier.frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS, sampleBackdrop = false),
                     shape = kb.popupShape(),
-                    color = kb.popup,
+                    color = kb.popupFill(FrostSurface.POPUPS),
                     border = kb.popupSurfaceBorder(),
                     shadowElevation = elevationFor(kb.popupShapeKind, 6.dp),
                 ) {
@@ -19720,6 +19736,9 @@ internal fun KeyButton(
     // The theme's key textures. A static local, changing only on a theme
     // switch — reading it here adds nothing to the press path.
     val textures = LocalKeyTextures.current
+    // The glass backdrop, likewise static; its bitmap and the board's place
+    // are read in the draw cache, not here.
+    val backdrop = LocalFrostBackdrop.current
     // The gap is handed to the shape as the room a leaning outline may spill
     // into: a slanted key then leans across the gap rather than out of its own
     // width, and neighbouring keys interlock instead of thinning out.
@@ -20044,8 +20063,18 @@ internal fun KeyButton(
                 val pressedPaint = pressedTexture?.let {
                     KeyTexturePaint.of(it, textures, outline, size)
                 }
+                // Frosted glass, where the theme makes this key's class a pane:
+                // the backdrop slice under the face, the rim and grain over it.
+                // The backdrop bitmap and the key's place are state reads
+                // here, so a bake landing or a relayout re-prepares the paint
+                // and the press path still only draws.
+                val frost = kb.frost?.takeIf { faces && it.has(frostSurfaceFor(key.action)) }
+                val glass = frost?.let { GlassPaint.of(backdrop, outline, keyBounds.value.topLeft) }
+                val rim = frost?.let { RimPaint.of(it, keyShape, size, layoutDirection, this) }
+                val grain = frost?.let { GrainPaint.of(it, outline) }
                 onDrawBehind {
                     val down = pressed.value
+                    glass?.draw(this)
                     drawOutline(outline, if (down) visual.pressedBackground else visual.background)
                     val paint = if (down) pressedPaint ?: texturePaint else texturePaint
                     if (paint != null) {
@@ -20178,9 +20207,11 @@ internal fun KeyButton(
                 popupPositionProvider = popupPosition,
                 properties = PreviewPopupProperties,
             ) {
+                PopupBlurBehind(kb, FrostSurface.POPUPS)
                 Surface(
+                    modifier = Modifier.frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS, sampleBackdrop = false),
                     shape = kb.popupShape(),
-                    color = kb.popup,
+                    color = kb.popupFill(FrostSurface.POPUPS),
                     border = kb.popupSurfaceBorder(),
                     shadowElevation = elevationFor(kb.popupShapeKind, 8.dp),
                 ) {
@@ -20773,11 +20804,16 @@ private fun AlternatesPopup(
         if (visible) withFrameNanos {}
         touchable = visible
     }
+    // The window's flags are rebuilt from its properties on every swap, so a
+    // blurred window carries the blur flag in both sets (see PopupBlurBehind).
+    val blurBehind = popupBlursBehind(kb, FrostSurface.POPUPS)
+    val properties = remember(touchable, blurBehind) { alternatesPopupProperties(touchable, blurBehind) }
     Popup(
         popupPositionProvider = provider,
         onDismissRequest = onDismiss,
-        properties = if (touchable) AlternatesShownProperties else AlternatesHiddenProperties,
+        properties = properties,
     ) {
+        PopupBlurBehind(kb, FrostSurface.POPUPS)
         Surface(
             // A scale at draw time, never a transform in the layer: the
             // hold-drag reads the grid's window position and its entries'
@@ -20785,9 +20821,10 @@ private fun AlternatesPopup(
             // long as the popup was growing. The layer's alpha moves nothing.
             modifier = Modifier
                 .graphicsLayer { alpha = if (shown) 1f else 0f }
-                .growFrom(pivot = { growPivot.value }) { grow.value },
+                .growFrom(pivot = { growPivot.value }) { grow.value }
+                .frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS, sampleBackdrop = false),
             shape = kb.popupShape(),
-            color = kb.popup,
+            color = kb.popupFill(FrostSurface.POPUPS),
             border = kb.popupSurfaceBorder(),
             shadowElevation = elevationFor(kb.popupShapeKind, 8.dp),
         ) {
@@ -20919,22 +20956,42 @@ private const val AlternatesPrewarmLeadMs = 100
  */
 private const val AlternatesPrewarmFloorMs = 120
 
-/** The alternates popup's window as Compose's defaults make it. */
-private val AlternatesShownProperties = PopupProperties()
-
 /**
- * The same window while prepared: not touchable (touches fall through to the
- * keyboard) and not watching outside touches, which would dismiss it.
+ * The alternates popup's window: as Compose's defaults make it once shown,
+ * and while prepared not touchable (touches fall through to the keyboard)
+ * and not watching outside touches, which would dismiss it. [blurBehind]
+ * adds the system's blur-behind flag for a glass theme on Android 12+; the
+ * radius itself is set by [PopupBlurBehind].
  */
-private val AlternatesHiddenProperties = PopupProperties(
-    flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-    inheritSecurePolicy = true,
-    dismissOnBackPress = true,
-    dismissOnClickOutside = true,
-    excludeFromSystemGesture = true,
-    usePlatformDefaultWidth = false,
-)
+internal fun alternatesPopupProperties(touchable: Boolean, blurBehind: Boolean): PopupProperties {
+    val blur = if (blurBehind) WindowManager.LayoutParams.FLAG_BLUR_BEHIND else 0
+    return if (touchable) {
+        if (blur == 0) {
+            PopupProperties()
+        } else {
+            // Compose's own default flags, plus the blur: focusable off is the
+            // default for a popup that is not focusable.
+            PopupProperties(
+                flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or blur,
+                inheritSecurePolicy = true,
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true,
+                excludeFromSystemGesture = true,
+                usePlatformDefaultWidth = false,
+            )
+        }
+    } else {
+        PopupProperties(
+            flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or blur,
+            inheritSecurePolicy = true,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true,
+            excludeFromSystemGesture = true,
+            usePlatformDefaultWidth = false,
+        )
+    }
+}
 
 /**
  * Draws the content scaled by [scale] about [pivot], the point it grows out of
@@ -21687,9 +21744,11 @@ private fun LanguagePickerPopup(
         popupPositionProvider = popupPosition,
         onDismissRequest = onDismiss,
     ) {
+        PopupBlurBehind(kb, FrostSurface.MENUS)
         Surface(
+            modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
             shape = kb.menuShape(),
-            color = kb.popup,
+            color = kb.popupFill(FrostSurface.MENUS),
             border = kb.popupSurfaceBorder(),
             shadowElevation = elevationFor(kb.menuShapeKind, 8.dp),
         ) {
@@ -21813,9 +21872,11 @@ private fun LanguageCarouselPopup(
         popupPositionProvider = popupPosition,
         onDismissRequest = onDismiss,
     ) {
+        PopupBlurBehind(kb, FrostSurface.MENUS)
         Surface(
+            modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
             shape = kb.menuShape(),
-            color = kb.popup,
+            color = kb.popupFill(FrostSurface.MENUS),
             border = kb.popupSurfaceBorder(),
             shadowElevation = elevationFor(kb.menuShapeKind, 8.dp),
         ) {

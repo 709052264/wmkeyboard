@@ -177,6 +177,10 @@ internal fun ColumnScope.RevealingBarRow(
         AnimatedVisibility(visible = visible, enter = enter, exit = exit) { content() }
         return
     }
+    // A band held open is window, and a glass theme's window is blurred: the
+    // band would show as a strip of blurred app above the keys for as long as
+    // the row is out. The one resize it saves is the cheaper loss there.
+    val reservePx = if (windowFrostLive(LocalKbTheme.current)) 0 else reserveWhenOutPx
     val reveal = remember { RowReveal() }
     // Tracked for as long as the row is in the stack. A row cut mid-move (a
     // full-bleed panel, the placement switched) takes its shortfall with it.
@@ -213,9 +217,9 @@ internal fun ColumnScope.RevealingBarRow(
         // a row opened for the first time in a session would otherwise drop
         // the band, then grow back into it, which is the resize this is here
         // to avoid.
-        if (out && reserveWhenOutPx > 0) reveal.fullPx = reserveWhenOutPx
+        if (out && reservePx > 0) reveal.fullPx = reservePx
         reveal.shortfallPx = if (out) 0 else (reveal.fullPx - shown).coerceAtLeast(0)
-        reveal.reservedPx = if (out) reserveWhenOutPx else 0
+        reveal.reservedPx = if (out) reservePx else 0
         layout(placeable?.width ?: constraints.minWidth, shown) { placeable?.place(0, 0) }
     }
 }

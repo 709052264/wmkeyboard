@@ -366,6 +366,64 @@
 
     <!-- Theme editor: animation. "Flow" and "Hue cycle" are the two names
          below. -->
+    <!-- Theme editor: frosted glass. "Glass" is the look of frosted glass:
+         see-through surfaces that blur what is behind them. -->
+    <string name="theme_glass_section_title">Glass</string>
+    <string name="theme_glass_section_body">Frosted glass: keys, bars and popups show what is behind them, blurred, with a rim of light and a little grain. Blurring the app behind the keyboard needs Android 12 or later and follows the phone\'s own blur setting. Over a background image the glass blurs the image instead, on every phone.</string>
+    <string name="theme_glass_title">Frosted glass</string>
+    <string name="theme_glass_subtitle">See-through surfaces over a blurred backdrop, with a rim and grain</string>
+    <string name="theme_glass_preset_label">Presets</string>
+    <string name="theme_glass_preset_body">A preset sets the glass sliders and makes the key, chip, tool and popup colors see-through where they are not already. Every slider still moves afterwards.</string>
+    <!-- Names of the four presets. Frosted is milky glass, Clear is almost
+         transparent, Mica is heavily blurred and muted, Smoked is tinted dark. -->
+    <string name="theme_glass_preset_frosted">Frosted</string>
+    <string name="theme_glass_preset_clear">Clear</string>
+    <string name="theme_glass_preset_mica">Mica</string>
+    <string name="theme_glass_preset_smoked">Smoked</string>
+    <string name="theme_glass_window_blur_title">Blur behind the keyboard</string>
+    <string name="theme_glass_window_blur_subtitle">The app behind the keyboard shows through the board, blurred. Android 12 and later. Off while the phone\'s blur or the keyboard\'s power saving is off, and in the floating keyboard</string>
+    <string name="theme_glass_blur_strength_title">Blur strength</string>
+    <string name="theme_glass_blur_strength_body">How far the system blurs the app behind the board, and the keys behind a popup or menu.</string>
+    <string name="theme_glass_fallback_title">Board opacity without blur</string>
+    <string name="theme_glass_fallback_body">The least opaque the board is drawn when the phone cannot blur behind it: an older Android, battery saver, the floating keyboard. The keys were made over a blur, and this keeps them readable without one.</string>
+    <string name="theme_glass_surfaces_label">Glass surfaces</string>
+    <string name="theme_glass_surface_keys">Letter keys</string>
+    <string name="theme_glass_surface_modifier_keys">Modifier keys</string>
+    <string name="theme_glass_surface_enter_key">Enter key</string>
+    <string name="theme_glass_surface_space_bar">Space bar</string>
+    <!-- The suggestion strip and the other bars around the keys. -->
+    <string name="theme_glass_surface_bars">Bars</string>
+    <string name="theme_glass_surface_tools">Tool buttons</string>
+    <string name="theme_glass_surface_chips">Chips</string>
+    <string name="theme_glass_surface_cards">Cards</string>
+    <string name="theme_glass_surface_popups">Popups</string>
+    <string name="theme_glass_surface_menus">Menus</string>
+    <!-- What the glass shows blurred behind it when the app is not blurred. -->
+    <string name="theme_glass_backdrop_label">Behind the glass</string>
+    <string name="theme_glass_backdrop_auto">Auto</string>
+    <string name="theme_glass_backdrop_image">Image</string>
+    <string name="theme_glass_backdrop_wallpaper">Wallpaper</string>
+    <string name="theme_glass_backdrop_none">Nothing</string>
+    <string name="theme_glass_backdrop_auto_desc">The background image if the theme has one, otherwise your wallpaper whenever the app behind is not being blurred</string>
+    <string name="theme_glass_backdrop_image_desc">The theme\'s background image, or nothing</string>
+    <string name="theme_glass_backdrop_wallpaper_desc">Your wallpaper, always, even where the app could be blurred instead</string>
+    <string name="theme_glass_backdrop_none_desc">Only each surface\'s own see-through color, its rim and its grain</string>
+    <string name="theme_glass_wallpaper_band_label">Part of the wallpaper</string>
+    <string name="theme_glass_wallpaper_band_bottom">Bottom</string>
+    <string name="theme_glass_wallpaper_band_center">Middle</string>
+    <string name="theme_glass_wallpaper_band_top">Top</string>
+    <string name="theme_glass_wallpaper_permission_title">Use your real wallpaper</string>
+    <string name="theme_glass_wallpaper_permission_subtitle">Allow storage access so the glass can show the wallpaper itself. Without it, the glass paints soft shapes in the wallpaper\'s colors</string>
+    <string name="theme_glass_wallpaper_colours_body">Android 13 and later keep the wallpaper\'s picture private from apps, so the glass paints soft shapes in the wallpaper\'s own colors instead.</string>
+    <string name="theme_glass_no_image_body">Backdrop blur, saturation and brightness need something behind the glass to blur. With nothing there, the glass is each surface\'s own see-through color, its rim and its grain.</string>
+    <string name="theme_glass_backdrop_blur_title">Backdrop blur</string>
+    <string name="theme_glass_backdrop_blur_body">How much the background image is blurred where it shows through a glass surface. The board itself stays as sharp as its own blur setting leaves it.</string>
+    <string name="theme_glass_saturation_title">Backdrop saturation</string>
+    <string name="theme_glass_brightness_title">Backdrop brightness</string>
+    <string name="theme_glass_rim_title">Rim</string>
+    <string name="theme_glass_rim_body">A hairline of light along the top-left edge of each surface and of shadow along the bottom-right.</string>
+    <string name="theme_glass_rim_color_title">Rim color</string>
+    <string name="theme_glass_grain_title">Grain</string>
     <string name="theme_animation_section_title">Animation</string>
     <string name="theme_animation_section_body">An animation runs only while the keyboard is on the screen.</string>
     <!-- Descriptions of the animations. -->

@@ -47,6 +47,15 @@ object BackgroundBitmapCache {
         val blurStep: Int,
         val targetW: Int,
         val targetH: Int,
+        /**
+         * A glass backdrop (see [loadFrosted]) rather than a board image: the
+         * blur is baked into the pixels on every API level, with the
+         * saturation and brightness steps beside it. Separate entries from the
+         * sharp decode, which the board keeps drawing.
+         */
+        val frost: Boolean = false,
+        val saturationStep: Int = 0,
+        val brightnessStep: Int = 0,
     )
 
     private const val BUCKET_PX = 128
@@ -93,11 +102,77 @@ object BackgroundBitmapCache {
         )
         cache.get(key)?.let { return it }
         val decoded = withContext(Dispatchers.IO) {
-            runCatching { decode(file, key) }.getOrNull()
+            runCatching { decode(path, key) }.getOrNull()
         } ?: return null
         cache.put(key, decoded)
         return decoded
     }
+
+    /**
+     * The backdrop the glass surfaces sample: the image at [path], sampled to
+     * cover [targetW] x [targetH] like [load], then put through [FrostBake]
+     * with [blur], [saturation] and [brightness]. Baked on every API level —
+     * the surfaces need the blurred pixels, not a draw-time effect — and
+     * cached under its own key, so the sharp board and its glass backdrop are
+     * two entries that never evict each other by accident.
+     */
+    suspend fun loadFrosted(
+        path: String,
+        blur: Float,
+        saturation: Float,
+        brightness: Float,
+        targetW: Int,
+        targetH: Int,
+    ): Bitmap? {
+        val stamp = File(path).lastModified().takeIf { it != 0L } ?: return null
+        val key = frostedKey(path, stamp, blur, saturation, brightness, targetW, targetH)
+        return loadBaked(key) {
+            decodeSharp(path, key)?.let { sharp ->
+                FrostBake.bake(
+                    sharp,
+                    blur = key.blurStep.toFloat(),
+                    saturation = key.saturationStep / SATURATION_STEPS,
+                    brightness = key.brightnessStep / BRIGHTNESS_STEPS,
+                )
+            }
+        }
+    }
+
+    /** The cache key of a glass bake, with its sliders quantised the way [loadFrosted] reads them back. */
+    fun frostedKey(
+        path: String,
+        stamp: Long,
+        blur: Float,
+        saturation: Float,
+        brightness: Float,
+        targetW: Int,
+        targetH: Int,
+    ): Key = Key(
+        path = path,
+        stamp = stamp,
+        blurStep = blur.roundToInt(),
+        targetW = bucket(targetW),
+        targetH = bucket(targetH),
+        frost = true,
+        saturationStep = (saturation * SATURATION_STEPS).roundToInt(),
+        brightnessStep = (brightness * BRIGHTNESS_STEPS).roundToInt(),
+    )
+
+    /**
+     * The bitmap under [key], or [produce]'s result put there: the one entry
+     * point for a backdrop that is not a file on disk (the wallpaper bake).
+     * [produce] runs on the IO dispatcher; a failure is a null, never a throw.
+     */
+    suspend fun loadBaked(key: Key, produce: suspend () -> Bitmap?): Bitmap? {
+        cache.get(key)?.let { return it }
+        val baked = withContext(Dispatchers.IO) { runCatching { produce() }.getOrNull() } ?: return null
+        cache.put(key, baked)
+        return baked
+    }
+
+    /** Slider quantisation for the glass bake's cache key; finer is only more decodes. */
+    const val SATURATION_STEPS = 20f
+    const val BRIGHTNESS_STEPS = 100f
 
     /** Drops entries for one path, for when its file is replaced or deleted. */
     fun invalidate(path: String) {
@@ -111,12 +186,25 @@ object BackgroundBitmapCache {
 
     fun evictAll() = cache.evictAll()
 
-    private fun decode(file: File, key: Key): Bitmap? {
-        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+    private fun decode(path: String, key: Key): Bitmap? {
+        val bitmap = decodeSharp(path, key) ?: return null
+        // Below API 31 the blur is baked in, so it belongs to the cache key.
+        // From 31 the draw applies it on the GPU and the sharp bitmap is cached
+        // once for every radius.
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            bitmap
+        } else {
+            bitmap.blurredBy(key.blurStep.toFloat())
+        }
+    }
+
+    /** The image at [path], sampled to the key's target and nothing else done to it. */
+    private fun decodeSharp(path: String, key: Key): Bitmap? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             // ImageDecoder samples in one pass and applies the EXIF rotation,
             // which BitmapFactory.decodeFile does not — so a portrait photo
             // from some phones used to draw on its side.
-            ImageDecoder.decodeBitmap(ImageDecoder.createSource(file)) { decoder, info, _ ->
+            ImageDecoder.decodeBitmap(ImageDecoder.createSource(File(path))) { decoder, info, _ ->
                 val sample = sampleSizeFor(info.size.width, info.size.height, key.targetW, key.targetH)
                 decoder.setTargetSize(
                     max(1, info.size.width / sample),

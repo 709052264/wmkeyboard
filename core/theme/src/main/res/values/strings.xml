@@ -58,6 +58,18 @@
     <string name="core_theme_builtin_aurora_label">Aurora</string>
     <!-- Dark blue, darkest at the edges. -->
     <string name="core_theme_builtin_deep_sea_label">Deep sea</string>
+
+    <!-- ================================================================== -->
+    <!-- Built-in themes made of frosted glass: see-through keys over a     -->
+    <!-- blurred background. "Frost" is the glass, not the weather.         -->
+    <!-- ================================================================== -->
+
+    <!-- Dark glass over the app behind the keyboard. -->
+    <string name="core_theme_builtin_frost_label">Frost</string>
+    <!-- Dark glass over the phone's own wallpaper. -->
+    <string name="core_theme_builtin_frost_wallpaper_label">Frost wallpaper</string>
+    <!-- The light version of Frost. -->
+    <string name="core_theme_builtin_frost_light_label">Frost light</string>
     <!-- Light theme, pale blue ice. -->
     <string name="core_theme_builtin_glacier_label">Glacier</string>
 
@@ -101,6 +113,8 @@
     <string name="core_theme_family_snow_label">Pastel</string>
     <!-- The family of the themes that paint a gradient behind the keys. -->
     <string name="core_theme_family_gradient_label">Gradients</string>
+    <!-- The family of the frosted-glass themes (Frost, Frost wallpaper, Frost light). -->
+    <string name="core_theme_family_frost_label">Frost</string>
     <!-- The names of these three families are project names. Keep in English. -->
     <string name="core_theme_family_dracula_label" translatable="false">Dracula</string>
     <string name="core_theme_family_solarized_label" translatable="false">Solarized</string>

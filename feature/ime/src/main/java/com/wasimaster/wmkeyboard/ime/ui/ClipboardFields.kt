@@ -131,6 +131,7 @@ import com.wasimaster.wmkeyboard.ime.ClipUndo
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.clipOcrAvailable
 
@@ -656,7 +657,7 @@ private fun ClipClearQuestion(
         val kb = LocalKbTheme.current
         Surface(
             shape = kb.menuShape(),
-            color = kb.popup,
+            color = kb.popupFill(FrostSurface.MENUS),
             border = kb.popupSurfaceBorder(),
             shadowElevation = elevationFor(kb.menuShapeKind, 6.dp),
             modifier = Modifier
@@ -750,7 +751,7 @@ internal fun PanelUndoBar(
             SwipeToDeleteCard(onDelete = onDismiss) {
                 Surface(
                     shape = kb.menuShape(),
-                    color = kb.popup,
+                    color = kb.popupFill(FrostSurface.MENUS),
                     border = kb.popupSurfaceBorder(),
                     shadowElevation = elevationFor(kb.menuShapeKind, 6.dp),
                     modifier = Modifier
@@ -991,6 +992,7 @@ private fun Modifier.clipSurface(
     val shape = kb.cardShape()
     return this
         .clip(shape)
+        .frostGlass(kb, shape, FrostSurface.CARDS)
         .background(kb.chip)
         .chipBorder(kb, shape)
         // A pinned clip's outline, when that is on (#371): the pin circle's
@@ -1151,9 +1153,11 @@ private fun ClipFullTextPopup(
         popupPositionProvider = rememberAboveAnchorPopup(),
         onDismissRequest = onDismiss,
     ) {
+        PopupBlurBehind(kb, FrostSurface.MENUS)
         Surface(
+            modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
             shape = kb.menuShape(),
-            color = kb.popup,
+            color = kb.popupFill(FrostSurface.MENUS),
             border = kb.popupSurfaceBorder(),
             shadowElevation = elevationFor(kb.menuShapeKind, 6.dp),
             modifier = Modifier
@@ -1509,9 +1513,11 @@ private fun ClipExtractPopup(entities: List<ClipEntity>, onPick: (ClipEntity) ->
         popupPositionProvider = rememberAboveAnchorPopup(),
         onDismissRequest = onDismiss,
     ) {
+        PopupBlurBehind(kb, FrostSurface.MENUS)
         Surface(
+            modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
             shape = kb.menuShape(),
-            color = kb.popup,
+            color = kb.popupFill(FrostSurface.MENUS),
             border = kb.popupSurfaceBorder(),
             shadowElevation = elevationFor(kb.menuShapeKind, 6.dp),
             modifier = Modifier
@@ -1821,7 +1827,7 @@ internal fun ClipEditDialog(
     Box(modifier = modifier.padding(horizontal = 6.dp, vertical = 4.dp)) {
         Surface(
             shape = kb.menuShape(),
-            color = kb.popup,
+            color = kb.popupFill(FrostSurface.MENUS),
             border = kb.popupSurfaceBorder(),
             shadowElevation = elevationFor(kb.menuShapeKind, 4.dp),
             modifier = Modifier.fillMaxSize(),

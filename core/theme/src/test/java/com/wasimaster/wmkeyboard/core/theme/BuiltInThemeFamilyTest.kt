@@ -23,6 +23,8 @@ class BuiltInThemeFamilyTest {
         "builtin_solarized_dark", "builtin_solarized_light",
         "builtin_catppuccin_mocha", "builtin_catppuccin_latte",
         "builtin_tokyo_night", "builtin_cyberpunk",
+        // The Frost family, added with frosted glass.
+        "builtin_frost", "builtin_frost_wallpaper", "builtin_frost_light",
     )
 
     @Test

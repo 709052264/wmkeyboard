@@ -55,6 +55,7 @@ import com.wasimaster.wmkeyboard.core.thesaurus.SynonymGroup
 import com.wasimaster.wmkeyboard.core.thesaurus.SynonymSource
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.SynonymAction
 import com.wasimaster.wmkeyboard.ime.SynonymsSheet
@@ -92,6 +93,7 @@ private fun SynonymsWindow(sheet: SynonymsSheet, growth: PopupGrowth, onAction: 
     val dismiss = { onAction(SynonymAction.Dismiss) }
 
     Popup(onDismissRequest = dismiss) {
+        PopupBlurBehind(LocalKbTheme.current, FrostSurface.MENUS)
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -100,8 +102,9 @@ private fun SynonymsWindow(sheet: SynonymsSheet, growth: PopupGrowth, onAction: 
             contentAlignment = Alignment.Center,
         ) {
             Surface(
+                modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
                 shape = kb.menuShape(),
-                color = kb.popup,
+                color = kb.popupFill(FrostSurface.MENUS),
                 border = kb.popupSurfaceBorder(),
                 shadowElevation = elevationFor(kb.menuShapeKind, 8.dp),
                 modifier = Modifier

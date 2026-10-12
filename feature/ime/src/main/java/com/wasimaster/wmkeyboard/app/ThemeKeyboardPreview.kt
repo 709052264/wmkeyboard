@@ -279,6 +279,10 @@ fun ThemeKeyboardPreview(
     // miniature is clipped to its own rounded corners, so there a bubble is
     // clamped to the top edge rather than cut in half.
     val bandMode = if (miniature) KeyPreviewBandMode.INSIDE else KeyPreviewBandMode.OUTSIDE
+    // No window of its own to blur the app behind: the default window-frost
+    // host reports none, so a glass theme previews the way it draws on a
+    // phone that cannot blur — on its wallpaper band, or at its fallback
+    // opacity.
     val keyboard: @Composable () -> Unit = {
         CompositionLocalProvider(
             LocalKeyPreviewBand provides bandMode,
