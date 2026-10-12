@@ -3497,6 +3497,13 @@ fun ThemeEditorScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
+        item(visible = look.watch { it.followWallpaper && it.wallpaperRoles.isNotEmpty() }) {
+            ToggleSetting(
+                R.string.theme_glass_accent_board_title,
+                stringResource(R.string.theme_glass_accent_board_subtitle),
+                checked = frost.accentBoard,
+            ) { on -> updateFrost { it.copy(accentBoard = on) } }
+        }
         item(visible = hasImage && frost.backdropSource != FrostBackdropSource.WALLPAPER &&
             frost.backdropSource != FrostBackdropSource.NONE
         ) {

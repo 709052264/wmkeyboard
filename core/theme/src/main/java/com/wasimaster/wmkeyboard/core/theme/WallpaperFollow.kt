@@ -81,7 +81,17 @@ data class WallpaperTones(
  */
 fun ThemeSpec.followingWallpaper(palette: WallpaperPalette?): ThemeSpec {
     if (!followWallpaper || palette == null) return this
-    return recoloredBy(palette)
+    val moved = recoloredBy(palette)
+    // A glass theme may keep its board out of the accent: the board keeps its
+    // own lightness and takes only the wallpaper's hue, as every theme without
+    // roles does, while the keys still follow their roles. That is the quieter
+    // board Frost had before it named roles, which some prefer to FrostKeys'
+    // saturated one.
+    if (frost?.accentBoard == false && wallpaperRoles.isNotEmpty()) {
+        val toned = copy(wallpaperRoles = emptyMap()).recoloredBy(palette)
+        return moved.copy(boardBackground = toned.boardBackground, boardGradient = toned.boardGradient)
+    }
+    return moved
 }
 
 /**

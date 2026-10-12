@@ -137,6 +137,25 @@ class FrostSpecTest {
     }
 
     @Test
+    fun `an accent-free board keeps its own lightness and the keys still follow their roles`() {
+        val frost = BuiltInThemes.first { it.id == "builtin_frost" }
+        val palette = WallpaperPalette(
+            roles = SnyggPalette.Baseline,
+            tones = WallpaperTones(
+                primary = List(13) { 0xFF3050A0 }, secondary = List(13) { 0xFF506080 },
+                tertiary = List(13) { 0xFF805070 }, neutral = List(13) { 0xFF303034 },
+                neutralVariant = List(13) { 0xFF303040 },
+            ),
+        )
+        val accented = frost.followingWallpaper(palette)
+        val quiet = frost.copy(frost = frost.frost?.copy(accentBoard = false)).followingWallpaper(palette)
+        assertTrue(accented.boardBackground != quiet.boardBackground)
+        assertEquals(accented.keyBackground, quiet.keyBackground)
+        // Alpha is the theme's own either way.
+        assertEquals(frost.boardBackground ushr 24, quiet.boardBackground ushr 24)
+    }
+
+    @Test
     fun `dressing keeps the backdrop choice`() {
         val theme = ThemeSpec(id = "t", name = "T", frost = FrostSpec(backdrop = "WALLPAPER", wallpaperBand = "CENTER"))
         val dressed = theme.dressedForGlass(FrostPreset.SMOKED)
