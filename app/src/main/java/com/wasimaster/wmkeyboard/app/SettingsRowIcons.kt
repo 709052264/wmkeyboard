@@ -164,6 +164,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MotionPhotosOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mouse
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MusicNote
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HeadsetMic
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BlurOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notifications
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.NotificationsOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Numbers
@@ -1275,6 +1276,7 @@ internal object SettingsRowIcons {
         put(R.string.langemoji_lang_metered_title) { Icons.Outlined.DataSaverOn }
         put(R.string.statistics_toggle_title) { Icons.Outlined.QueryStats }
         put(R.string.tooldetail_power_drop_popup_title) { Icons.Outlined.Notifications }
+        put(R.string.tooldetail_power_drop_glass_blur_title) { Icons.Outlined.BlurOn }
         put(R.string.tooldetail_autocorrect_title) { Icons.Outlined.Spellcheck }
         put(R.string.tooldetail_selection_actions_title) { Icons.Outlined.HighlightAlt }
         put(R.string.tooldetail_selection_actions_nav_title) { Icons.Outlined.Checklist }

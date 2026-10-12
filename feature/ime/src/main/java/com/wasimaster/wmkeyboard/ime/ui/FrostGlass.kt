@@ -1,13 +1,12 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
 import android.os.Build
-import android.view.View
-import android.view.WindowManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -15,7 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.ImageShader
@@ -42,7 +43,6 @@ import androidx.compose.ui.node.observeReads
 import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -152,9 +152,22 @@ internal fun Modifier.frostBoardBounds(backdrop: FrostBackdrop): Modifier =
  * it back by the surface's own origin. Built in a draw cache's block, so the
  * draw pass is one `drawOutline`.
  */
-class GlassPaint private constructor(private val outline: Outline, private val brush: Brush) {
+class GlassPaint private constructor(
+    private val outline: Outline,
+    private val brush: Brush,
+    private val boardTint: Color,
+) {
 
-    fun draw(scope: DrawScope) = with(scope) { drawOutline(outline, brush) }
+    /**
+     * The slice, then the board's own colour over it: a pane lies on the
+     * board, so what shows through it is the backdrop *as the board tints it*.
+     * Without the tint a dark board scrimming a bright wallpaper had keys in
+     * the wallpaper's full colour, brighter than the board they sat on.
+     */
+    fun draw(scope: DrawScope) = with(scope) {
+        drawOutline(outline, brush)
+        if (boardTint.alpha > 0f) drawOutline(outline, boardTint)
+    }
 
     companion object {
         /**
@@ -172,6 +185,8 @@ class GlassPaint private constructor(private val outline: Outline, private val b
             frost: KbFrost? = null,
             size: Size = Size.Zero,
             lensRadiusPx: Float = 0f,
+            /** The board colour the pane lies on; see [draw]. */
+            boardTint: Color = Color.Transparent,
         ): GlassPaint? {
             val bitmap = backdrop.bitmap ?: return null
             val board = backdrop.boardBounds
@@ -192,7 +207,7 @@ class GlassPaint private constructor(private val outline: Outline, private val b
             } else {
                 slice
             }
-            return GlassPaint(outline, ShaderBrush(shader))
+            return GlassPaint(outline, ShaderBrush(shader), boardTint)
         }
     }
 }
@@ -377,7 +392,7 @@ class GrainPaint private constructor(private val outline: Outline, private val a
  * [sampleBackdrop] is false for a surface in a window of its own (a popup):
  * its root is not the keyboard's, so it cannot find its place on the board,
  * and it blurs what is behind it through the window instead — see
- * [PopupBlurBehind].
+ * [GlassPopupBackdrop].
  */
 fun Modifier.frostGlass(
     frost: KbFrost?,
@@ -387,10 +402,12 @@ fun Modifier.frostGlass(
     /** What a liquid lens bends around; see [lensRadiusPx]. */
     lensKind: KeyShapeKind = KeyShapeKind.ROUNDED,
     lensRadiusDp: Int = 0,
+    /** The board colour laid over the slice; see [GlassPaint.draw]. */
+    boardTint: Color = Color.Transparent,
 ): Modifier = if (frost == null) {
     this
 } else {
-    this.then(FrostGlassElement(frost, backdrop, shape, sampleBackdrop, lensKind, lensRadiusDp))
+    this.then(FrostGlassElement(frost, backdrop, shape, sampleBackdrop, lensKind, lensRadiusDp, boardTint))
 }
 
 /** [frostGlass] for [surface], when the theme makes it glass; the backdrop comes from the composition. */
@@ -413,7 +430,10 @@ fun Modifier.frostGlass(
         FrostSurface.MENUS -> kb.menuShapeKind to kb.popupRadiusDp
         FrostSurface.BARS -> KeyShapeKind.SHARP to 0
     }
-    return frostGlass(frost, LocalFrostBackdrop.current, shape, sampleBackdrop, kind, radiusDp)
+    // A bar runs the full width with nothing beside it, so a rim drew a frame
+    // around the whole strip: bars keep the glass and the grain, not the rim.
+    val dressed = if (surface == FrostSurface.BARS) frost.copy(rim = 0f) else frost
+    return frostGlass(dressed, LocalFrostBackdrop.current, shape, sampleBackdrop, kind, radiusDp, kb.board)
 }
 
 private data class FrostGlassElement(
@@ -423,10 +443,12 @@ private data class FrostGlassElement(
     val sample: Boolean,
     val lensKind: KeyShapeKind,
     val lensRadiusDp: Int,
+    val boardTint: Color,
 ) : ModifierNodeElement<FrostGlassNode>() {
-    override fun create() = FrostGlassNode(frost, backdrop, shape, sample, lensKind, lensRadiusDp)
+    override fun create() = FrostGlassNode(frost, backdrop, shape, sample, lensKind, lensRadiusDp, boardTint)
 
-    override fun update(node: FrostGlassNode) = node.update(frost, backdrop, shape, sample, lensKind, lensRadiusDp)
+    override fun update(node: FrostGlassNode) =
+        node.update(frost, backdrop, shape, sample, lensKind, lensRadiusDp, boardTint)
 
     override fun InspectorInfo.inspectableProperties() {
         name = "frostGlass"
@@ -449,6 +471,7 @@ private class FrostGlassNode(
     private var sample: Boolean,
     private var lensKind: KeyShapeKind,
     private var lensRadiusDp: Int,
+    private var boardTint: Color,
 ) : Modifier.Node(), DrawModifierNode, LayoutAwareModifierNode, ObserverModifierNode {
 
     private var origin = Offset.Zero
@@ -464,6 +487,7 @@ private class FrostGlassNode(
         sample: Boolean,
         lensKind: KeyShapeKind,
         lensRadiusDp: Int,
+        boardTint: Color,
     ) {
         val rewatch = backdrop !== this.backdrop
         this.frost = frost
@@ -472,6 +496,7 @@ private class FrostGlassNode(
         this.sample = sample
         this.lensKind = lensKind
         this.lensRadiusDp = lensRadiusDp
+        this.boardTint = boardTint
         builtFor = null
         if (rewatch && isAttached) watchBackdrop()
         invalidateDraw()
@@ -516,7 +541,10 @@ private class FrostGlassNode(
         if (key != builtFor) {
             val outline = shape.createOutline(size, layoutDirection, this)
             glass = if (bitmap != null) {
-                GlassPaint.of(backdrop, outline, origin, frost, size, lensRadiusPx(lensKind, lensRadiusDp, size, this))
+                GlassPaint.of(
+                    backdrop, outline, origin, frost, size,
+                    lensRadiusPx(lensKind, lensRadiusDp, size, this), boardTint,
+                )
             } else {
                 null
             }
@@ -556,14 +584,17 @@ internal fun frostSurfaceFor(action: com.wasimaster.wmkeyboard.core.layout.KeyAc
 interface WindowFrostHost {
     val blurAvailable: StateFlow<Boolean>
 
-    /** Blur radius for the window's background, in pixels; 0 turns it off. */
-    fun setBackgroundBlur(radiusPx: Int)
+    /**
+     * Blur radius for the window's background, in pixels; 0 turns it off.
+     * [cornerPx] rounds the blurred region to match the board's own corners.
+     */
+    fun setBackgroundBlur(radiusPx: Int, cornerPx: Float = 0f)
 }
 
 /** A host with no window to blur. */
 object NoWindowFrost : WindowFrostHost {
     override val blurAvailable: StateFlow<Boolean> = MutableStateFlow(false)
-    override fun setBackgroundBlur(radiusPx: Int) = Unit
+    override fun setBackgroundBlur(radiusPx: Int, cornerPx: Float) = Unit
 }
 
 val LocalWindowFrost = staticCompositionLocalOf<WindowFrostHost> { NoWindowFrost }
@@ -584,7 +615,7 @@ fun windowFrostLive(kb: KbTheme): Boolean {
  * the whole app.
  */
 @Composable
-fun WindowFrostEffect(kb: KbTheme) {
+fun WindowFrostEffect(kb: KbTheme, boardCornerDp: Int = 0) {
     val host = LocalWindowFrost.current
     val density = LocalDensity.current
     val frost = kb.frost
@@ -593,72 +624,71 @@ fun WindowFrostEffect(kb: KbTheme) {
     } else {
         0
     }
-    LaunchedEffect(host, radiusPx) { host.setBackgroundBlur(radiusPx) }
+    val cornerPx = with(density) { boardCornerDp.dp.toPx() }
+    LaunchedEffect(host, radiusPx, cornerPx) { host.setBackgroundBlur(radiusPx, cornerPx) }
     DisposableEffect(host) {
         onDispose { host.setBackgroundBlur(0) }
     }
 }
 
 /**
- * Blurs what is behind a popup's own window — the keys under the alternates,
- * the board under a menu — on Android 12 and later, when the theme makes
- * [surface] glass and the phone can blur at all. Called at the top of the
- * popup's content, where [LocalView] is the popup's window view.
+ * How many glass popups are open over the board right now. While any is, the
+ * board blurs *itself* (see [popupBackdropBlur]), so the popup reads as a pane
+ * over softened keys.
  *
- * Compose rebuilds the window's flags from its `PopupProperties` whenever
- * they change, so a popup that swaps properties while up must carry
- * `FLAG_BLUR_BEHIND` in both sets (see [alternatesPopupProperties]); the
- * radius set here survives, since nothing else writes it.
+ * Why the board and not what is under the popup: a popup is a window of its
+ * own, and nothing public blurs what lies under just that window.
+ * `Window.setBackgroundBlurRadius` needs a real `Window`, which a Compose
+ * popup is not, and `FLAG_BLUR_BEHIND` blurs the *whole screen* behind it —
+ * measured on a CPH2481 (Android 15), one long-press turned the app and every
+ * key soft. FrostKeys reached the same answer: it blurs its own keyboard view
+ * with a `RenderEffect` while its popup-keys panel is up.
  */
+class PopupBackdrop {
+    var open by mutableIntStateOf(0)
+}
+
+val LocalPopupBackdrop = staticCompositionLocalOf { PopupBackdrop() }
+
+/** Blur under an open glass popup, the same 8 dp FrostKeys uses. */
+private const val POPUP_BACKDROP_BLUR_DP = 8f
+
+/** Whether a glass popup can blur the board under it: Android 12+ (`RenderEffect`), motion allowed. */
+private fun KbTheme.popupBackdropBlurs(surface: FrostSurface): Boolean =
+    frost?.has(surface) == true && !reduceMotion && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
+/** Counts this popup into [LocalPopupBackdrop] while [visible] and the theme makes [surface] glass. */
 @Composable
-fun PopupBlurBehind(kb: KbTheme, surface: FrostSurface) {
-    val frost = kb.frost?.takeIf { it.has(surface) } ?: return
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
-    val available by LocalWindowFrost.current.blurAvailable.collectAsState()
-    if (!available) return
-    val view = LocalView.current
-    val radiusPx = with(LocalDensity.current) { frost.windowBlurRadiusDp.dp.roundToPx() }
-    LaunchedEffect(view, radiusPx) {
-        // The composition's view is the popup's inner compose view; the
-        // window's own params sit on the ancestor the window manager holds.
-        val window = generateSequence<View>(view) { it.parent as? View }
-            .firstOrNull { it.layoutParams is WindowManager.LayoutParams }
-            ?: return@LaunchedEffect
-        val params = window.layoutParams as WindowManager.LayoutParams
-        val flagged = params.flags and WindowManager.LayoutParams.FLAG_BLUR_BEHIND != 0
-        if (flagged && params.blurBehindRadius == radiusPx) return@LaunchedEffect
-        params.blurBehindRadius = radiusPx
-        params.flags = params.flags or WindowManager.LayoutParams.FLAG_BLUR_BEHIND
-        if (!window.isAttachedToWindow) return@LaunchedEffect
-        val windowManager = window.context.getSystemService(WindowManager::class.java)
-        runCatching { windowManager.updateViewLayout(window, params) }
+fun GlassPopupBackdrop(kb: KbTheme, surface: FrostSurface, visible: Boolean = true) {
+    val wanted = visible && kb.popupBackdropBlurs(surface)
+    val backdrop = LocalPopupBackdrop.current
+    DisposableEffect(backdrop, wanted) {
+        if (wanted) backdrop.open++
+        onDispose { if (wanted) backdrop.open-- }
     }
 }
 
 /**
- * Whether a popup for [surface] gets a blurred window behind it right now —
- * the same answer [PopupBlurBehind] acts on, for the places that build the
- * popup's properties before its content composes.
+ * The board's half of [PopupBackdrop]: a layer whose render effect is a blur
+ * while a glass popup is open, read in the layer block so opening and closing
+ * one changes a layer property and recomposes nothing.
  */
-@Composable
-fun popupBlursBehind(kb: KbTheme, surface: FrostSurface): Boolean {
-    val frost = kb.frost?.takeIf { it.has(surface) } ?: return false
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return false
-    val available by LocalWindowFrost.current.blurAvailable.collectAsState()
-    return available && frost.windowBlurRadiusDp > 0
+fun Modifier.popupBackdropBlur(backdrop: PopupBackdrop): Modifier = graphicsLayer {
+    renderEffect = if (backdrop.open > 0) {
+        val radius = POPUP_BACKDROP_BLUR_DP * density
+        BlurEffect(radius, radius, TileMode.Clamp)
+    } else {
+        null
+    }
 }
 
 /**
- * The popup colour for [surface]: the theme's own where the window behind it
- * is blurred, and otherwise at least the theme's fallback opacity, so a
- * translucent sheet never sits on sharp keys.
+ * The popup colour for [surface]: the theme's own over a board that blurs
+ * itself under the popup ([GlassPopupBackdrop]), and otherwise at least the
+ * theme's fallback opacity, so a translucent sheet never sits on sharp keys.
  */
-@Composable
 fun KbTheme.popupFill(surface: FrostSurface): Color {
     val frost = frost?.takeIf { it.has(surface) } ?: return popup
-    return if (popupBlursBehind(this, surface)) {
-        popup
-    } else {
-        popup.copy(alpha = max(popup.alpha, frost.fallbackOpacity))
-    }
+    if (popupBackdropBlurs(surface)) return popup
+    return popup.copy(alpha = max(popup.alpha, frost.fallbackOpacity))
 }

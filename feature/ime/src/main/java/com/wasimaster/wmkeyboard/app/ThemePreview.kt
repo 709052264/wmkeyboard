@@ -450,7 +450,12 @@ private fun Modifier.previewKeyFace(
         then(
             if (glass != null && backdrop != null) {
                 // The mock-up's keys are a tenth the size, so the lens bends around a small radius.
-                Modifier.frostGlass(glass, backdrop, shape, lensKind = theme.keyShape, lensRadiusDp = PREVIEW_LENS_RADIUS_DP)
+                Modifier.frostGlass(
+                    glass, backdrop, shape,
+                    lensKind = theme.keyShape,
+                    lensRadiusDp = PREVIEW_LENS_RADIUS_DP,
+                    boardTint = Color(theme.boardBackground.toInt()),
+                )
             } else {
                 Modifier
             },

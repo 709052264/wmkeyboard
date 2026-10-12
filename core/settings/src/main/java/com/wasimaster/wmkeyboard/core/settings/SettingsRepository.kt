@@ -9053,6 +9053,7 @@ class SettingsRepository(private val context: Context) {
         private val PS_DROP_ANIMATIONS = booleanPreferencesKey("power_saving_drop_animations")
         private val PS_DROP_GLIDE_TRAIL = booleanPreferencesKey("power_saving_drop_glide_trail")
         private val PS_DROP_KEY_POPUP = booleanPreferencesKey("power_saving_drop_key_popup")
+        private val PS_DROP_GLASS_BLUR = booleanPreferencesKey("power_saving_drop_glass_blur")
         private val PS_DROP_GESTURE_TYPING = booleanPreferencesKey("power_saving_drop_gesture_typing")
         private val PS_DROP_EMOJI_PREDICTION =
             booleanPreferencesKey("power_saving_drop_emoji_prediction")
@@ -11666,6 +11667,7 @@ class SettingsRepository(private val context: Context) {
             dropAnimations = p[PS_DROP_ANIMATIONS] ?: defaults.powerSaving.dropAnimations,
             dropGlideTrail = p[PS_DROP_GLIDE_TRAIL] ?: defaults.powerSaving.dropGlideTrail,
             dropKeyPopup = p[PS_DROP_KEY_POPUP] ?: defaults.powerSaving.dropKeyPopup,
+            dropGlassBlur = p[PS_DROP_GLASS_BLUR] ?: defaults.powerSaving.dropGlassBlur,
             dropGestureTyping =
                 p[PS_DROP_GESTURE_TYPING] ?: defaults.powerSaving.dropGestureTyping,
             dropEmojiPrediction =
@@ -16625,6 +16627,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPowerSavingDropKeyPopup(value: Boolean) =
         editPrefs { it[PS_DROP_KEY_POPUP] = value }
+
+    suspend fun setPowerSavingDropGlassBlur(value: Boolean) =
+        editPrefs { it[PS_DROP_GLASS_BLUR] = value }
 
     suspend fun setPowerSavingDropGestureTyping(value: Boolean) =
         editPrefs { it[PS_DROP_GESTURE_TYPING] = value }

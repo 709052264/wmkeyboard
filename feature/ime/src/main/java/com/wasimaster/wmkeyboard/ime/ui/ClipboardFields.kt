@@ -1701,7 +1701,7 @@ private fun ClipFullTextPopup(
         popupPositionProvider = rememberAboveAnchorPopup(),
         onDismissRequest = onDismiss,
     ) {
-        PopupBlurBehind(kb, FrostSurface.MENUS)
+        GlassPopupBackdrop(kb, FrostSurface.MENUS)
         Surface(
             shape = kb.menuShape(),
             color = kb.popupFill(FrostSurface.MENUS),
@@ -2117,7 +2117,7 @@ private fun ClipExtractPopup(entities: List<ClipEntity>, onPick: (ClipEntity) ->
         popupPositionProvider = rememberAboveAnchorPopup(),
         onDismissRequest = onDismiss,
     ) {
-        PopupBlurBehind(kb, FrostSurface.MENUS)
+        GlassPopupBackdrop(kb, FrostSurface.MENUS)
         Surface(
             shape = kb.menuShape(),
             color = kb.popupFill(FrostSurface.MENUS),

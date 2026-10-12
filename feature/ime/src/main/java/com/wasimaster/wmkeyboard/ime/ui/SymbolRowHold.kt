@@ -76,7 +76,7 @@ class SymbolRowCallbacks(
 internal fun SymbolSetDeleteConfirm(name: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     val kb = LocalKbTheme.current
     Popup(onDismissRequest = onDismiss) {
-        PopupBlurBehind(LocalKbTheme.current, FrostSurface.MENUS)
+        GlassPopupBackdrop(LocalKbTheme.current, FrostSurface.MENUS)
         Box(
             modifier = Modifier
                 .fillMaxSize()

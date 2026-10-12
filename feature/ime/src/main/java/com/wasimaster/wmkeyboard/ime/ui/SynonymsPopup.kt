@@ -93,7 +93,7 @@ private fun SynonymsWindow(sheet: SynonymsSheet, growth: PopupGrowth, onAction: 
     val dismiss = { onAction(SynonymAction.Dismiss) }
 
     Popup(onDismissRequest = dismiss) {
-        PopupBlurBehind(LocalKbTheme.current, FrostSurface.MENUS)
+        GlassPopupBackdrop(LocalKbTheme.current, FrostSurface.MENUS)
         Box(
             modifier = Modifier
                 .fillMaxSize()

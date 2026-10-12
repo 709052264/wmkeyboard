@@ -1136,9 +1136,23 @@ open class WMKeyboardService : InputMethodService() {
                 .stateIn(serviceScope, SharingStarted.Eagerly, false)
         }
 
-        override fun setBackgroundBlur(radiusPx: Int) {
+        override fun setBackgroundBlur(radiusPx: Int, cornerPx: Float) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
-            window?.window?.setBackgroundBlurRadius(radiusPx)
+            val imeWindow = window?.window ?: return
+            // The platform takes the blur's corner radius from the outline of
+            // the window's background drawable, and only from a uniform round
+            // rect (FrostKeys found the same). Transparent, so it paints nothing.
+            imeWindow.setBackgroundDrawable(
+                if (radiusPx > 0 && cornerPx > 0f) {
+                    android.graphics.drawable.GradientDrawable().apply {
+                        setColor(android.graphics.Color.TRANSPARENT)
+                        cornerRadius = cornerPx
+                    }
+                } else {
+                    android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)
+                },
+            )
+            imeWindow.setBackgroundBlurRadius(radiusPx)
         }
     }
 
@@ -3723,7 +3737,11 @@ open class WMKeyboardService : InputMethodService() {
                 val unlockedSettings =
                     if (userUnlocked) formed else formed.restrictedToDirectBoot()
                 val saving = unlockedSettings.powerSaving.appliesTo(power)
-                windowFrost.powerSaving.value = saving
+                // WM Keyboard's own power saving decides, and only through its
+                // own switch: the phone's battery saver is never read here. (It
+                // does stop the blur all the same, by switching the system's
+                // cross-window blur off, which the listener reports.)
+                windowFrost.powerSaving.value = saving && unlockedSettings.powerSaving.dropGlassBlur
                 val savedSettings =
                     if (saving) unlockedSettings.underPowerSaving() else unlockedSettings
                 // Data saving last of the three views: it is the one keyed to

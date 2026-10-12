@@ -95,6 +95,17 @@ data class PowerSavingSettings(
     /** Stop drawing the character bubble over each pressed key. Off by default — it is cheap. */
     val dropKeyPopup: Boolean = false,
     /**
+     * Stop a glass theme asking the system to blur the app behind the
+     * keyboard and under its popups. On by default: that blur is GPU work in
+     * the system compositor on every frame the keyboard is up. The theme's
+     * glass keeps its rim, its grain and its wallpaper or image backdrop,
+     * which cost nothing per frame.
+     *
+     * Read by the service, not by [underPowerSaving]: the blur belongs to the
+     * theme, and the settings object has no field for it to clear.
+     */
+    val dropGlassBlur: Boolean = true,
+    /**
      * Turn gesture typing off entirely. Decoding a swipe is the most expensive
      * thing the keyboard does, but it is also why many people installed it, so
      * this is off by default and [dropGlideTrail] carries the cheap half.
@@ -160,7 +171,7 @@ data class PowerSavingSettings(
     /** Whether any feature is actually given up — a saving mode that drops nothing is inert. */
     val dropsAnything: Boolean
         get() = dropHaptics || dropKeySound || dropAnimations || dropGlideTrail ||
-            dropKeyPopup || dropGestureTyping || dropEmojiPrediction || dropSmartChips ||
+            dropKeyPopup || dropGlassBlur || dropGestureTyping || dropEmojiPrediction || dropSmartChips ||
             dropOctopus ||
             dropBackgroundNetwork || dropScreenshotWatch || dropOnDeviceModels ||
             dropTypingStats || dropMediaPin

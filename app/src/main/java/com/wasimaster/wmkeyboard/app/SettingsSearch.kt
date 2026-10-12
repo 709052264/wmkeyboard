@@ -1296,6 +1296,11 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.POWER_SAVING, R.string.tooldetail_power_drop_haptics_title, R.string.tooldetail_power_drop_haptics_subtitle),
     toolEntry(ToolbarTool.POWER_SAVING, R.string.tooldetail_power_drop_sound_title, R.string.tooldetail_power_drop_sound_subtitle),
     toolEntry(ToolbarTool.POWER_SAVING, R.string.tooldetail_power_drop_popup_title, R.string.tooldetail_power_drop_popup_subtitle),
+    toolEntry(
+        ToolbarTool.POWER_SAVING,
+        R.string.tooldetail_power_drop_glass_blur_title,
+        R.string.tooldetail_power_drop_glass_blur_subtitle,
+    ),
     toolEntry(ToolbarTool.POWER_SAVING, R.string.tooldetail_power_drop_glide_title, R.string.tooldetail_power_drop_glide_subtitle),
     toolEntry(ToolbarTool.POWER_SAVING, R.string.tooldetail_power_drop_emoji_title, R.string.tooldetail_power_drop_emoji_subtitle),
     toolEntry(ToolbarTool.POWER_SAVING, R.string.tooldetail_power_drop_anim_title, R.string.tooldetail_power_drop_anim_subtitle),

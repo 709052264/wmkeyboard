@@ -1507,6 +1507,8 @@ fun KeyboardThemeProvider(
             // The glass backdrop, filled by the board once it knows its image
             // and size; the surfaces sample it through this one holder.
             LocalFrostBackdrop provides remember { FrostBackdrop() },
+            // Open glass popups, which soften the board under them.
+            LocalPopupBackdrop provides remember { PopupBackdrop() },
             LocalEmojiFontFamily provides emojiFontFamily,
             LocalEmojiShaper provides emojiShaper,
             LocalScriptLabelFont provides scriptLabelFont,

@@ -1541,6 +1541,14 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.powerSaving.dropKeyPopup,
                     ) { scope.launch { repository.setPowerSavingDropKeyPopup(it) } }
                 }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_power_drop_glass_blur_title,
+                        stringResource(R.string.tooldetail_power_drop_glass_blur_subtitle),
+                        settings.watch { it.powerSaving.dropGlassBlur },
+                        default = SettingsDefaults.powerSaving.dropGlassBlur,
+                    ) { scope.launch { repository.setPowerSavingDropGlassBlur(it) } }
+                }
             }
             SettingsGroup(stringResource(R.string.tooldetail_power_drop_helpers_group)) {
                 item {

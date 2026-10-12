@@ -139,7 +139,7 @@ private fun WordCardWindow(card: WordCard, growth: PopupGrowth, onAction: (WordC
     val dismiss = { onAction(WordCardAction.Dismiss) }
 
     Popup(onDismissRequest = dismiss) {
-        PopupBlurBehind(LocalKbTheme.current, FrostSurface.MENUS)
+        GlassPopupBackdrop(LocalKbTheme.current, FrostSurface.MENUS)
         Box(
             modifier = Modifier
                 .fillMaxSize()

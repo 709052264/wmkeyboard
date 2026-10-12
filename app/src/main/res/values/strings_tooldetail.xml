@@ -269,6 +269,9 @@
     <string name="tooldetail_power_drop_trail_info">This drops only the trail. Glide typing still works. The keyboard draws the trail on every frame of a gesture, so it costs more than the decode that it decorates.</string>
     <string name="tooldetail_power_drop_popup_title">Key popup</string>
     <string name="tooldetail_power_drop_popup_subtitle">Stop the character bubble over each key</string>
+    <!-- A glass theme blurs the app behind the keyboard; this stops that blur. -->
+    <string name="tooldetail_power_drop_glass_blur_title">Glass blur</string>
+    <string name="tooldetail_power_drop_glass_blur_subtitle">Stop glass themes blurring the app behind the keyboard and its popups</string>
     <string name="tooldetail_power_drop_glide_title">Glide typing</string>
     <string name="tooldetail_power_drop_glide_subtitle">Turn glide typing off</string>
     <string name="tooldetail_power_drop_glide_info">A swipe decode is the most expensive thing the keyboard does. It is also why many people use the keyboard, so this setting is off by default and only the trail is dropped.</string>

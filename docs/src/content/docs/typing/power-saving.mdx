@@ -51,7 +51,7 @@ The keyboard watches a handful of coarse system broadcasts (battery low, battery
   <Shot id="typing/power-saving-what-to-drop" alt="The What to drop group — eleven independent switches." />
 </PhoneFrame>
 
-Power saving is thirteen independent switches rather than one bundle of "reduce everything", plus a fourteenth drop with no switch of its own. Each switch defaults to whatever gives up the least for the most battery back. Turn any of the thirteen back on individually if that trade-off doesn't suit you.
+Power saving is fourteen independent switches rather than one bundle of "reduce everything", plus a fourteenth drop with no switch of its own. Each switch defaults to whatever gives up the least for the most battery back. Turn any of the fourteen back on individually if that trade-off doesn't suit you.
 
 | Switch | Default | What it drops |
 |---|---|---|
@@ -60,6 +60,7 @@ Power saving is thirteen independent switches rather than one bundle of "reduce 
 | Animations | On | Every transition and motion effect (the same flag [Reduce motion](/accessibility/overview/#reducing-motion) uses), so it can end up on even if you never touched that toggle. |
 | Glide trail | On | Only the comet trail drawn behind a swipe. The swipe itself keeps decoding: see [Glide typing](/typing/glide-typing/). |
 | Key popup | Off | The character bubble over a pressed key. Off by default, since it's cheap to draw. |
+| Glass blur | On | A [glass theme](/themes/glass/)'s blur of the app behind the keyboard and under its popups, which the system redraws every frame. The glass keeps its rim, grain and wallpaper or image backdrop, and the board stands on that backdrop instead. |
 | Glide typing | Off | Swipe-to-type entirely. Left off by default: decoding a swipe is the most expensive thing the keyboard does, but it's also why many people installed it, so only the trail is dropped unless you opt into this too. |
 | Emoji suggestions | Off | Scanning what you type for emoji to suggest. Off by default: it's a dictionary look-up on a word you've already typed, and a strip that stops offering emoji reads as broken rather than as saving power. |
 | Smart chips | Off | The calc, currency, unit and keyword chip family: see [Smart chips](/smart/chips/). Off by default for the same reason as emoji suggestions: a few pattern matches on the current word aren't where a battery goes. Clipboard's own entity detection (pulling codes, numbers and links out of what you copy) isn't affected either way. |
@@ -88,7 +89,7 @@ The **Power saving** group holds the four controls above:
 | Low battery is | 20% (5%–50% range) |
 | Off while charging | On |
 
-Below it the thirteen switches sit in three cards: **Effects to drop** (Key vibration, Key sounds, Animations, Glide trail, Key popup), **Typing helpers to drop** (Glide typing, Emoji suggestions, Smart chips) and **Background work to drop** (Background network, Screenshot watching, On-device models, Typing statistics, Media tool pin).
+Below it the fourteen switches sit in three cards: **Effects to drop** (Key vibration, Key sounds, Animations, Glide trail, Key popup, Glass blur), **Typing helpers to drop** (Glide typing, Emoji suggestions, Smart chips) and **Background work to drop** (Background network, Screenshot watching, On-device models, Typing statistics, Media tool pin).
 
 ## Details & edge cases
 
