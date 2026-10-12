@@ -217,7 +217,7 @@ internal fun UpdatePromptDialog(settings: LiveSettings) {
     var showNotes by remember(available.versionCode) { mutableStateOf(false) }
     if (showNotes) {
         ReleaseNotesDialog(
-            version = available.versionName,
+            version = available.displayVersion(),
             notes = notes,
             onDismiss = { showNotes = false },
         )
@@ -265,7 +265,7 @@ private fun AvailableCard(
     val download = rememberUpdateDownloadRequest(updater, state.sizeBytes, settings)
     if (showNotes) {
         ReleaseNotesDialog(
-            version = state.versionName,
+            version = state.displayVersion(),
             notes = notes,
             onDismiss = { showNotes = false },
         )
@@ -476,15 +476,31 @@ internal fun startActionLabel(updater: AppUpdater): String = when {
 @Composable
 private fun availableBody(state: UpdateState.Available, updater: AppUpdater): String {
     val source = stringResource(updater.sourceNameRes)
+    val version = state.displayVersion()
     return when {
         state.immediate -> stringResource(R.string.update_card_urgent_body, source)
-        state.versionName.isNullOrBlank() ->
-            stringResource(R.string.update_card_available_body, source)
-        else -> stringResource(
-            R.string.update_card_available_body_versioned,
-            state.versionName,
-            source,
-        )
+        version == null -> stringResource(R.string.update_card_available_body, source)
+        else -> stringResource(R.string.update_card_available_body_versioned, version, source)
+    }
+}
+
+/**
+ * The version on offer, as the user should read it, or null when the release
+ * names none.
+ *
+ * Normally just the name. A fix can be re-released under the name already
+ * installed with only the version code raised (0.5.14 went out as vc30 and
+ * then vc31), and "0.5.14 is available" on a phone running 0.5.14 reads as a
+ * bug. When the names match, the build number is what tells them apart, so it
+ * is shown.
+ */
+@Composable
+internal fun UpdateState.Available.displayVersion(): String? {
+    val name = versionName?.takeIf { it.isNotBlank() } ?: return null
+    return if (name == BuildConfig.VERSION_NAME) {
+        stringResource(R.string.update_version_with_build, name, versionCode)
+    } else {
+        name
     }
 }
 
@@ -693,7 +709,7 @@ private fun AvailableRow(
             R.string.update_row_available_title_external,
             subtitle = stringResource(
                 R.string.update_row_available_subtitle_external,
-                state.versionName.orEmpty(),
+                state.displayVersion().orEmpty(),
                 stringResource(updater.sourceNameRes),
             ),
             onClick = { if (updater.state.value.row() == UpdateRowKind.AVAILABLE) download() },
@@ -936,7 +952,7 @@ internal fun AllLanguagesRow(settings: LiveSettings, extraLanguages: Int, englis
             subtitle = if (current.sizeBytes > 0L) {
                 stringResource(
                     R.string.about_all_languages_download_subtitle,
-                    current.versionName.orEmpty(),
+                    current.displayVersion().orEmpty(),
                     Formatter.formatShortFileSize(context, current.sizeBytes),
                 )
             } else {

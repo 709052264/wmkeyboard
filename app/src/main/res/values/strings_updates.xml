@@ -53,6 +53,11 @@
     <!-- Title of the dialog holding a release's notes. %1$s is the version. -->
     <string name="update_notes_title">What\'s new in <xliff:g id="version" example="0.5.9">%1$s</xliff:g></string>
 
+    <!-- A version that has the same name as the installed one and differs only
+         in its build number, as when a fix is re-released under the same name.
+         %1$s is the version name, %2$d is the build number (version code). -->
+    <string name="update_version_with_build"><xliff:g id="version" example="0.5.14">%1$s</xliff:g> (build <xliff:g id="build" example="31">%2$d</xliff:g>)</string>
+
     <!-- Release notes, when the release has none. -->
     <string name="update_notes_empty">This release has no notes</string>
 
