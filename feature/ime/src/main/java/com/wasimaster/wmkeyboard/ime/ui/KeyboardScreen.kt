@@ -604,6 +604,14 @@ import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
 internal val LocalKeyPressFeedback = staticCompositionLocalOf<() -> Unit> { {} }
 
 /**
+ * The board's own room under the key rows: the navigation bar's inset plus the
+ * bottom padding setting (see `bottomRoom` in [DockedKeyboardFrame]). The bottom key
+ * row reaches down over it as touch area (#649); zero wherever the keys are
+ * not drawn by that frame.
+ */
+internal val LocalBoardBottomRoom = staticCompositionLocalOf { 0.dp }
+
+/**
  * Haptic only, no key sound — for cues that are not a keypress. The emoji
  * long-press popup uses it: the click sound would announce an insertion the
  * long press deliberately did not make.
@@ -1992,8 +2000,15 @@ private fun DockedKeyboardFrame(
     // list is sealed. Resize mode keeps its own headroom instead: the frame is
     // already holding still there.
     val revealHeadroom = remember { RowRevealHeadroom() }
+    // The same room `bottomRoom` below pads under the body, for the bottom key
+    // row to take as touch area (#649).
+    val boardBottomRoom = with(density) { navigationBarInsets().getBottom(this).toDp() } +
+        bottomPaddingDp(state.settings).dp
     val revealingBody: @Composable ColumnScope.(KeyboardUiState) -> Unit = { bodyState ->
-        CompositionLocalProvider(LocalRowRevealHeadroom provides revealHeadroom) { body(bodyState) }
+        CompositionLocalProvider(
+            LocalRowRevealHeadroom provides revealHeadroom,
+            LocalBoardBottomRoom provides boardBottomRoom,
+        ) { body(bodyState) }
     }
     // The empty bands, reported to the service, which keeps them out of the
     // app's insets. Watched rather than read here: the reserved band changes as
@@ -16314,6 +16329,19 @@ private fun KeyRows(
             val padLeft = padHeight - (stretchDp * stretchRows).dp
             val (numberRowVisual, bodyBlocks) =
                 rememberKeyGrid(gridState, layout, bodyRows, extraRow, palette, gridWeight, stretchDp)
+            // Issue #649: the bottom row reaches down over this column's own
+            // bottom padding and the board's room under it, so a tap under the
+            // spacebar types a space, the way #530 lets a tap beside `a` type
+            // `a`. Only when nothing is laid out under the keys: a bar row moved
+            // below them sits in that room's way and takes its own taps.
+            val arrowRow = arrowRowShown(state)
+            val touchBelow = if (
+                settings.layoutBehavior.extendEdgeKeys && barRowsBelowKeys(state.settings.barOrder).isEmpty()
+            ) {
+                KeyRowsPadVertical + LocalBoardBottomRoom.current
+            } else {
+                0.dp
+            }
             if (numberRowVisual != null) {
                 KeyRow(
                     row = numberRowVisual,
@@ -16346,7 +16374,8 @@ private fun KeyRows(
             } else if (padLeft > 0.dp) {
                 Spacer(modifier = Modifier.height(padLeft))
             }
-            for (block in bodyBlocks) {
+            for ((blockIndex, block) in bodyBlocks.withIndex()) {
+                val blockBelow = if (!arrowRow && blockIndex == bodyBlocks.lastIndex) touchBelow else 0.dp
                 if (lane > 0.dp) {
                     // A band stands for several rows, so it reserves several
                     // lanes — the words above its second row need somewhere to
@@ -16373,6 +16402,7 @@ private fun KeyRows(
                         onSpacePositioned = onSpacePositioned,
                         smartResolve = smartResolve,
                         onBurst = onBurst,
+                        touchBelow = blockBelow,
                     )
 
                     is KeyGridBlock.Band -> KeyBand(
@@ -16389,10 +16419,11 @@ private fun KeyRows(
                         onSpacePositioned = onSpacePositioned,
                         smartResolve = smartResolve,
                         onBurst = onBurst,
+                        touchBelow = blockBelow,
                     )
                 }
             }
-            if (arrowRowShown(state)) {
+            if (arrowRow) {
                 ArrowKeyRow(
                     state = gridState,
                     layout = layout,
@@ -16404,6 +16435,7 @@ private fun KeyRows(
                     onLayoutSelect = onLayoutSelect,
                     onKeyPositioned = onKeyPositioned,
                     onBurst = onBurst,
+                    touchBelow = touchBelow,
                 )
             }
         }
@@ -16745,6 +16777,7 @@ private fun ArrowKeyRow(
     onLayoutSelect: (String) -> Unit,
     onKeyPositioned: (Key, LayoutCoordinates) -> Unit,
     onBurst: ((Rect, String?) -> Unit)?,
+    touchBelow: Dp = 0.dp,
 ) {
     val settings = state.settings
     val split = settings.splitKeyboard
@@ -16770,6 +16803,7 @@ private fun ArrowKeyRow(
         onLayoutSelect = onLayoutSelect,
         onKeyPositioned = onKeyPositioned,
         onBurst = onBurst,
+        touchBelow = touchBelow,
     )
 }
 
@@ -17372,6 +17406,8 @@ private fun KeyRow(
     smartResolve: (Key, PointerId) -> Key = { k, _ -> k },
     /** Spawns the theme's press burst at the key's bounds; null when off. */
     onBurst: ((Rect, String?) -> Unit)? = null,
+    /** Touch area every key of the row reaches below it (#649); see [KeyCell]. */
+    touchBelow: Dp = 0.dp,
 ) {
     // Issue #530: the end keys of a short row take its side gaps as touch area,
     // so a tap beside QWERTY's `a` or `l` types it. The cell grows into the gap
@@ -17403,6 +17439,7 @@ private fun KeyRow(
                 onBurst,
                 edgeStart = start / cell,
                 edgeEnd = end / cell,
+                touchBelow = touchBelow,
             )
         }
         // Split mode only: the halves are cut where the row was resolved, so an
@@ -17433,6 +17470,7 @@ private fun KeyRow(
                     onBurst,
                     edgeStart = start / cell,
                     edgeEnd = end / cell,
+                    touchBelow = touchBelow,
                 )
             }
         }
@@ -17468,6 +17506,8 @@ private fun KeyBand(
     onSpacePositioned: (LayoutCoordinates) -> Unit = {},
     smartResolve: (Key, PointerId) -> Key = { k, _ -> k },
     onBurst: ((Rect, String?) -> Unit)? = null,
+    /** Touch area the keys on the band's last row reach below it (#649). */
+    touchBelow: Dp = 0.dp,
 ) {
     // Row pitch in px: the key height the row was given, plus the gap above and
     // below it, exactly as an ordinary KeyCell measures itself.
@@ -17501,6 +17541,7 @@ private fun KeyBand(
                     onSpacePositioned,
                     smartResolve,
                     onBurst,
+                    touchBelow = if (slot.row + slot.span >= band.rowHeights.size) touchBelow else 0.dp,
                 )
             }
         },
@@ -17557,6 +17598,12 @@ private fun KeyCell(
      */
     edgeStart: Float = 0f,
     edgeEnd: Float = 0f,
+    /**
+     * Touch area the key reaches below its cell (#649): the bottom row's, over
+     * the board's padding under it. The cell keeps its size in the row, so
+     * nothing moves, and the face and the reported rect stay where they were.
+     */
+    touchBelow: Dp = 0.dp,
 ) {
     val key = visual.key
     // Every key reports, not only the ones that write a letter: the rect
@@ -17605,6 +17652,7 @@ private fun KeyCell(
         onLayoutSelect = onLayoutSelect,
         smartResolve = smartResolve,
         onBurst = onBurst,
+        touchBelow = touchBelow,
     )
 }
 
@@ -17691,6 +17739,29 @@ private fun Modifier.edgeInset(start: Float, end: Float): Modifier = layout { me
     val inner = (width - left - (width * end).roundToInt()).coerceAtLeast(0)
     val placeable = measurable.measure(constraints.copy(minWidth = inner, maxWidth = inner))
     layout(width, placeable.height) { placeable.placeRelative(left, 0) }
+}
+
+/**
+ * Lets the content run [extra] below this node: it is measured that much
+ * taller, and this node reports the height it would have had without it, so
+ * the parent lays everything out as before and the rest hangs past the bottom
+ * edge. Nothing on the way up clips, so the overhang still takes touches (#649).
+ */
+private fun Modifier.overhangBelow(extra: Dp): Modifier = layout { measurable, constraints ->
+    val extraPx = extra.roundToPx()
+    // Both bounds move: a key spanning rows in a [KeyBand] is handed a fixed
+    // height, which its own `height` modifier could not otherwise grow past.
+    val inner = if (constraints.hasBoundedHeight) {
+        constraints.copy(
+            minHeight = constraints.minHeight + extraPx,
+            maxHeight = constraints.maxHeight + extraPx,
+        )
+    } else {
+        constraints.copy(minHeight = constraints.minHeight + extraPx)
+    }
+    val placeable = measurable.measure(inner)
+    val height = (placeable.height - extraPx).coerceIn(constraints.minHeight, constraints.maxHeight)
+    layout(placeable.width, height) { placeable.placeRelative(0, 0) }
 }
 
 /**
@@ -19407,6 +19478,13 @@ internal fun KeyButton(
      * has taken a row's side gap (#530).
      */
     faceModifier: Modifier = Modifier,
+    /**
+     * Touch area below the key's cell (#649). The touch handler's node grows by
+     * it while the cell tells its row it did not, so the row keeps its height
+     * and the extra hangs over whatever is under it; the face is drawn in the
+     * part above.
+     */
+    touchBelow: Dp = 0.dp,
 ) {
     val key = visual.key
     // Held as the state object, never read through a `by` delegate: every read of
@@ -19642,7 +19720,8 @@ internal fun KeyButton(
 
     Box(
         modifier = modifier
-            .height((heightDp ?: settings.keyHeightDp).dp + keyGapV(settings) * 2)
+            .then(if (touchBelow > 0.dp) Modifier.overhangBelow(touchBelow) else Modifier)
+            .height((heightDp ?: settings.keyHeightDp).dp + keyGapV(settings) * 2 + touchBelow)
             .then(
                 if (screenReaderKeys) {
                     Modifier.semantics {
@@ -19795,6 +19874,7 @@ internal fun KeyButton(
                     alternates = alternatesHold.takeIf { holdToSelect },
                 )
             )
+            .then(if (touchBelow > 0.dp) Modifier.padding(bottom = touchBelow) else Modifier)
             .then(faceModifier)
             .padding(horizontal = keyGapH(settings), vertical = keyGapV(settings))
             // The theme's lift, under the fill and the border so both ride it.
