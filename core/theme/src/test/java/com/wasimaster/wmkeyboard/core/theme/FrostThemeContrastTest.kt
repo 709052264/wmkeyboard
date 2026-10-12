@@ -76,6 +76,18 @@ class FrostThemeContrastTest {
     }
 
     @Test
+    fun `every Frost colour that should follow the wallpaper names a role`() {
+        val recorded = frost.wallpaperRoles.values.map { it and 0xFFFFFF }.toSet()
+        val parts = listOf(
+            frost.boardBackground, frost.keyBackground, frost.modifierKeyBackground,
+            frost.enterKeyBackground, frost.accent, frost.keyText,
+        )
+        for (part in parts) {
+            assertTrue("%08X has no role".format(part), (part and 0xFFFFFF) in recorded)
+        }
+    }
+
+    @Test
     fun `the family is what the gallery promises`() {
         val looks = frost.selfAndVariants().associateBy { it.id }
         assertTrue(looks.keys.containsAll(listOf("builtin_frost", "builtin_frost_wallpaper", "builtin_frost_light")))

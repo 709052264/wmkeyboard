@@ -1459,11 +1459,10 @@ private val FrostVariants: List<ThemeSpec> = listOf(
 /**
  * Frost: the look FrostKeys ships as its frosted glass, so the two read the
  * same side by side. Its night defaults, from its `KeyboardTheme.kt`: a 65 px
- * window blur (25 dp on a 2.6x phone), the board a dark tint blended toward
- * the wallpaper's accent at 80/255, every key a grey blended toward the
- * accent at about 28% (Enter included, no accent fill), the modifier keys
- * the wallpaper's second accent at about 29%, no borders, no grain, colours
- * that follow the wallpaper.
+ * window blur (25 dp on a 2.6x phone), the board the wallpaper's accent
+ * container at 80/255, every key the wallpaper's primary at about 20% (Enter
+ * included, no accent fill), the modifier keys its second accent at about
+ * 29%, no borders, no grain.
  *
  * The thin board is the point of the look and its cost: over a white app the
  * labels sit on a pale blur, as they do in FrostKeys. Where the blur cannot
@@ -1475,21 +1474,34 @@ private val FrostTheme: ThemeSpec = ThemeSpec(
     name = "Frost",
     dark = true,
     boardBackground = 0x50243653,
-    keyBackground = 0x476E7B9A,
+    keyBackground = 0x336E7B9A,
     keyText = 0xFFF1F0F7,
     modifierKeyBackground = 0x4B8E95AE,
-    enterKeyBackground = 0x476E7B9A,
+    enterKeyBackground = 0x336E7B9A,
     enterKeyText = 0xFFF1F0F7,
     pressedKeyBackground = 0x806E7B9A,
     accent = 0xFFD9E2FF,
     popupBackground = 0xCC223047,
     popupText = 0xFFF1F0F7,
-    toolCircleBackground = 0x476E7B9A,
-    chipBackground = 0x476E7B9A,
+    toolCircleBackground = 0x336E7B9A,
+    chipBackground = 0x336E7B9A,
     suggestionText = 0xFFF1F0F7,
     keyCornerRadiusDp = 12,
-    // FrostKeys draws its frosted theme in the wallpaper's colours.
+    // FrostKeys draws its frosted theme in the wallpaper's colours, and in
+    // the wallpaper's *own* colours: the board is its accent container, not
+    // a navy moved onto the wallpaper's hue, which kept the navy's darkness
+    // and came out a muddy grey beside FrostKeys' saturated blue. So each
+    // part names the Material You role FrostKeys takes it from, and the
+    // values above are what a phone with no wallpaper palette draws.
     followWallpaper = true,
+    wallpaperRoles = mapOf(
+        wallpaperRoleKey(dark = true, role = "primaryContainer") to 0xFF243653,
+        wallpaperRoleKey(dark = true, role = "primary") to 0xFF6E7B9A,
+        wallpaperRoleKey(dark = true, role = "secondary") to 0xFF8E95AE,
+        wallpaperRoleKey(dark = true, role = "onPrimaryContainer") to 0xFFD9E2FF,
+        wallpaperRoleKey(dark = true, role = "onSurface") to 0xFFF1F0F7,
+        wallpaperRoleKey(dark = true, role = "surfaceContainerHigh") to 0xFF223047,
+    ),
     frost = FrostGlass.copy(
         windowBlurRadiusDp = 25,
         rim = 0f,
