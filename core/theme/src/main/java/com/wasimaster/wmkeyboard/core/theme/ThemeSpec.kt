@@ -1479,7 +1479,8 @@ private val FrostTheme: ThemeSpec = ThemeSpec(
     toolCircleBackground = 0x33FFFFFF,
     chipBackground = 0x33FFFFFF,
     suggestionText = 0xFFF4F7FF,
-    keyGradient = FrostSheen,
+    // No sheen: over a live blur the pane, its rim and its grain are the
+    // whole look, and a gradient on top read as a plastic highlight.
     keyCornerRadiusDp = 12,
     frost = FrostGlass,
     variants = FrostVariants,
