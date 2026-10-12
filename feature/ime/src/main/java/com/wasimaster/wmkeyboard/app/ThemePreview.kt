@@ -150,7 +150,6 @@ private fun ThemePreviewContent(
         val glassImage = (imageOverride as? String)?.takeUnless { it.startsWith("http") } ?: themeImage
         val kind = frost?.backdropKind(hasImage = glassImage != null, blurLive = false)
         val context = LocalContext.current
-        val configuration = LocalConfiguration.current
         LaunchedEffect(backdrop, kind, frost?.backdropBlur, frost?.saturation, frost?.brightness, frost?.wallpaperBand, glassImage, targetW, targetH, configuration) {
             backdrop.bitmap = when {
                 frost == null || kind == null -> null

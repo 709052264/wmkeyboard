@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.ime.ui
 
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoStories
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowForward
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Assignment

@@ -85,7 +85,6 @@ internal fun SymbolSetDeleteConfirm(name: String, onConfirm: () -> Unit, onDismi
             contentAlignment = Alignment.Center,
         ) {
             Surface(
-                modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
                 shape = kb.menuShape(),
                 color = kb.popupFill(FrostSurface.MENUS),
                 border = kb.popupSurfaceBorder(),
@@ -94,7 +93,8 @@ internal fun SymbolSetDeleteConfirm(name: String, onConfirm: () -> Unit, onDismi
                     .padding(12.dp)
                     .fillMaxWidth(0.86f)
                     // Taps inside the card must not reach the scrim.
-                    .pointerInput(Unit) { detectTapGestures { } },
+                    .pointerInput(Unit) { detectTapGestures { } }
+                    .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
             ) {
                 Column(modifier = Modifier.padding(start = 20.dp, end = 12.dp, top = 18.dp, bottom = 6.dp)) {
                     Text(

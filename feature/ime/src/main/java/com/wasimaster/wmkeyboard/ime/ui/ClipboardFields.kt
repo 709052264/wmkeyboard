@@ -1703,7 +1703,6 @@ private fun ClipFullTextPopup(
     ) {
         PopupBlurBehind(kb, FrostSurface.MENUS)
         Surface(
-            modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
             shape = kb.menuShape(),
             color = kb.popupFill(FrostSurface.MENUS),
             border = kb.popupSurfaceBorder(),
@@ -1711,7 +1710,8 @@ private fun ClipFullTextPopup(
             modifier = Modifier
                 .padding(horizontal = 8.dp)
                 .widthIn(max = ClipFullTextMaxWidth)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
         ) {
             Column(modifier = Modifier.padding(top = 10.dp)) {
                 Text(
@@ -2119,14 +2119,14 @@ private fun ClipExtractPopup(entities: List<ClipEntity>, onPick: (ClipEntity) ->
     ) {
         PopupBlurBehind(kb, FrostSurface.MENUS)
         Surface(
-            modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
             shape = kb.menuShape(),
             color = kb.popupFill(FrostSurface.MENUS),
             border = kb.popupSurfaceBorder(),
             shadowElevation = elevationFor(kb.menuShapeKind, 6.dp),
             modifier = Modifier
                 .padding(horizontal = 8.dp)
-                .widthIn(min = 200.dp, max = ClipFullTextMaxWidth),
+                .widthIn(min = 200.dp, max = ClipFullTextMaxWidth)
+                .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
         ) {
             LazyColumn(
                 modifier = Modifier.heightIn(max = ClipFullTextMaxHeight),

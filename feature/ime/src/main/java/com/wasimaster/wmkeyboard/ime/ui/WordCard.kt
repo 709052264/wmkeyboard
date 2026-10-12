@@ -148,7 +148,6 @@ private fun WordCardWindow(card: WordCard, growth: PopupGrowth, onAction: (WordC
             contentAlignment = Alignment.Center,
         ) {
             Surface(
-                modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
                 shape = kb.menuShape(),
                 color = kb.popupFill(FrostSurface.MENUS),
                 border = kb.popupSurfaceBorder(),
@@ -159,7 +158,8 @@ private fun WordCardWindow(card: WordCard, growth: PopupGrowth, onAction: (WordC
                     .fillMaxWidth(0.94f)
                     .fillMaxHeight(0.94f)
                     // Taps inside the card must not reach the scrim.
-                    .pointerInput(Unit) { detectTapGestures { } },
+                    .pointerInput(Unit) { detectTapGestures { } }
+                    .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
             ) {
                 Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
