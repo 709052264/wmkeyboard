@@ -100,7 +100,7 @@
     <string name="offline_import_busy">A download of the same thing is running. Try again once it finishes.</string>
     <string name="offline_import_failed">Could not install this file. It may be damaged or cut short.</string>
     <string name="offline_import_ocr_subtitle">Text recognition data fetched on another device, as .traineddata files</string>
-    <string name="offline_import_whisper_subtitle">A model\'s two files, the .tflite and its filters_vocab .bin, fetched on another device</string>
+    <string name="offline_import_whisper_subtitle">A model\'s files fetched on another device: one .bin, or a .tflite with its filters_vocab .bin</string>
     <string name="offline_import_whisper_vocab_label">Vocabulary, %1$s</string>
     <string name="offline_import_language_pack_title">Language pack</string>
     <string name="offline_import_language_pack_subtitle">Word list, word pairs and emoji names in one file, to fetch anywhere and import here</string>

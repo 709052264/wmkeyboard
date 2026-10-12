@@ -27,6 +27,21 @@ The system recognizer, covered in [Voice typing](/tools/voice/), is fast and sho
 
 You feel that trade every time you dictate, because Whisper doesn't stream. It records into a buffer and transcribes the whole clip once you stop talking, or once you hit the 30-second cap (see [Details & edge cases](#details--edge-cases)). The panel shows "Listening. Press when you are done." rather than live partial words. That press doesn't need aim: the whole panel left of the action rail takes it, so does anywhere on the compact bar, and so does the Voice tool on the toolbar (see [Starting dictation](/tools/voice/#starting-dictation)).
 
+## Two kinds of model
+
+Offline Whisper runs two kinds of model, and the catalog lists both.
+
+- **whisper.cpp models** run on [whisper.cpp](https://github.com/ggml-org/whisper.cpp), which is built into the app. They are the ones pointed at first, and they can do everything below that the other kind can't:
+  - **Any language, by name.** Each of Whisper's 99 languages, Bangla included, can be told to the model instead of left for it to guess. A dictation in [several languages](/tools/voice/#language-and-engine) is detected among those languages only, so a short phrase is never read as some third one.
+  - **Your own words.** The same **Words to listen for** list the system recognizer gets goes to the model as a prompt, so names and terms come out spelled your way.
+  - **Words while it works.** The line under the microphone shows the transcript as it is decoded, instead of only saying "Transcribing".
+  - **Longer clips.** A clip can run to two minutes instead of 30 seconds.
+  - **A closer search** on the smaller sizes (beam search), which gets a few more words right, and a transcription you cancel stops at once instead of finishing for nobody.
+  - Each one is a single `.bin` file, checked against its published SHA-256 once it downloads.
+- **LiteRT models** are the community `.tflite` conversions the app started with. Each has the whole decoding loop compiled in, so none of the above can be asked of it, and a few can only be told one of a fixed set of languages. They still work, and a model you already downloaded keeps working. Where whisper.cpp is available their names end in "(LiteRT)".
+
+whisper.cpp is in every Full edition, on 64-bit and 32-bit ARM phones and on x86_64. A phone whose cores all have the ARMv8.2 dot-product instructions (most from 2018 on) gets a build that uses them, which is several times faster at the arithmetic these models are made of.
+
 Bigger models trade download size and speed for accuracy:
 
 - **Tiny**: fastest multilingual model. Fine for clear speech, struggles with noise.
@@ -38,28 +53,30 @@ Bigger models trade download size and speed for accuracy:
 
 ## The model catalog
 
-On the Play Store build the interpreter that runs these models is not in the app you install: it is a small extra part (about 2 MB) that Google Play delivers the first time you need it. The Whisper settings screen offers it at the top until it is here, the keyboard asks for it on its own the first time you dictate with a model downloaded, and until it lands dictation says so instead of recording. Direct-download builds carry it from the start.
+On the Play Store build the interpreter that runs the LiteRT models is not in the app you install: it is a small extra part (about 2 MB) that Google Play delivers the first time you need it. The Whisper settings screen offers it at the top until it is here, the keyboard asks for it on its own the first time you dictate with a model downloaded, and until it lands dictation says so instead of recording. Direct-download builds carry it from the start.
 
-The catalog has 29 downloadable models. Ten are multilingual graphs: seven auto-detect the spoken language, and three are grouped models you can pin to one language. The other 19 are single-language models covering 13 languages, several at more than one size: English, German, Spanish, French, Hindi, Italian, Japanese, Portuguese, Russian, Tamil, Telugu, Urdu, and Chinese. A single-language model only appears in the catalog once you've enabled that language on the Languages screen.
+The catalog has 10 whisper.cpp models: Tiny, Base, Small, Medium, Turbo and Large v3, which take any language, and English-only Tiny, Base, Small and Medium, which show once English is enabled. Tiny to Small are 8-bit, which loses nothing measurable; Medium and up are 5-bit, which keeps the downloads to 540 MB for Medium, 574 MB for Turbo and 1.1 GB for Large v3. Beside them sit 29 LiteRT models. Ten are multilingual graphs: seven auto-detect the spoken language, and three are grouped models you can pin to one language. The other 19 are single-language models covering 13 languages, several at more than one size: English, German, Spanish, French, Hindi, Italian, Japanese, Portuguese, Russian, Tamil, Telugu, Urdu, and Chinese. A single-language model only appears in the catalog once you've enabled that language on the Languages screen.
 
 <PhoneFrame side caption="The model catalog, with a row of size filter chips over the list.">
 <Shot id="tools/whisper-catalog" alt="Model catalog with size and language filters, grouped by tier." />
 </PhoneFrame>
 
-The screen is four sections in a row: the per-language routing list, then **Your voice models**, then a short **Suggested for your languages** shortlist, then a collapsed browse section holding everything else. Browse carries one filter, a chip per size, and it splits what's left into the models that take any language and the ones locked to a single one. Each row wears its size, how many languages it covers, and its download size as small chips. Small is the only model carrying a Recommended badge.
+The screen is four sections in a row: the per-language routing list, then **Your voice models**, then a short **Suggested for your languages** shortlist, then a collapsed browse section holding everything else. Browse carries one filter, a chip per size, and it splits what's left into the models that take any language and the ones locked to a single one. Each row wears its size, how many languages it covers, and its download size as small chips. Small is the only model carrying a Recommended badge: the whisper.cpp one where it runs, else the LiteRT one.
 
 Turbo and Large v3 need a 128-band mel spectrogram, where every older Whisper model needs 80. Each one downloads a different filterbank file alongside its graph, and the audio pipeline reads the band count from that file. If the two files ever disagree, dictation fails with a message instead of decoding noise into confident-looking words.
 
 ### When a language can only be guessed at
 
-Every model has to decide which language you're speaking, unless it was built for one language or belongs to a grouped model that takes the language as an input. The grouped models list 40 and 26 languages, and those lists are compiled into the graph itself, so a language outside them cannot be forced no matter what the app asks for.
+With a whisper.cpp model nothing has to be guessed: it is told the language you dictate in, whichever of Whisper's 99 it is. The rest of this section is about the LiteRT models, and only matters if you use one.
+
+Every LiteRT model has to decide which language you're speaking, unless it was built for one language or belongs to a grouped model that takes the language as an input. The grouped models list 40 and 26 languages, and those lists are compiled into the graph itself, so a language outside them cannot be forced no matter what the app asks for.
 
 For those languages, and Bangla is one of them, a model can decide you're speaking a bigger neighbouring language and hand back fluent sentences in the wrong one. Nothing errors, because as far as the model is concerned it did its job. Two things help:
 
 - The model-per-language list says so on any affected language, and points at Turbo and Large v3, which get the language right far more often than the small models do.
 - When the wrong language happens to be written in a different alphabet, WM Keyboard converts it back. Bangla read as Hindi is the common case: the model still transcribed the Bangla words it heard, it just spelled them in Devanagari, and the two alphabets line up closely enough to map across. You get readable Bangla instead of a line you can't read at all. It can't rescue a genuinely wrong language, only a wrong alphabet.
 
-Whisper itself has an "initial prompt" that biases spelling and vocabulary, and its own way of forcing a language. Neither is available here. The community `.tflite` conversions this app uses were exported with the entire generation loop traced inside the graph. That leaves two inputs: the spectrogram, and on a grouped model a number selecting one of the languages it was built with.
+Whisper itself has an "initial prompt" that biases spelling and vocabulary, and its own way of forcing a language. The whisper.cpp models use both. The LiteRT models can't: the community `.tflite` conversions were exported with the entire generation loop traced inside the graph. That leaves two inputs: the spectrogram, and on a grouped model a number selecting one of the languages it was built with.
 
 ### Picking a model per language
 
@@ -85,7 +102,7 @@ That last step is deliberate: it produces wrong words rather than a dead microph
 
 Each catalog row carries its own **Download** button on the right. Tapping the row itself does something else. It expands the row to show what the model is and which languages it covers, so you can read up before spending the bandwidth. Once a model is on disk, that button becomes a delete icon. A failed attempt offers **Retry**, and an interrupted one offers **Resume**.
 
-Each model downloads as two files (the `.tflite` graph and a companion vocabulary/filterbank file), with the smaller vocabulary file fetched first so a broken connection fails fast. Downloads are resumable: if you lose connection or leave the app, the next attempt picks up where it left off instead of restarting.
+A whisper.cpp model downloads as one `.bin` file from a fixed revision of the whisper.cpp project's repository, and is checked against its published SHA-256 before it counts as downloaded; a damaged file is deleted and the row says so. A LiteRT model downloads as two files (the `.tflite` graph and a companion vocabulary/filterbank file), with the smaller vocabulary file fetched first so a broken connection fails fast. Downloads are resumable: if you lose connection or leave the app, the next attempt picks up where it left off instead of restarting.
 
 Only one model downloads at a time. Before it starts, WM Keyboard checks that you have enough free space: the remaining bytes plus a safety margin. If you don't, the download stops with a message telling you roughly how much to free up. On a metered connection, any model at or above roughly 150 MB asks you to confirm before it uses mobile data.
 
@@ -93,7 +110,7 @@ Downloaded models live in the app's private storage, not shared storage: the scr
 
 If you downloaded **Tiny (English)** in version 0.5.8 or earlier and dictation with it came back empty most of the time, that was the model file, not your microphone. Its source has since changed to a conversion that works, and the old file is recognised and discarded, so the model shows as not downloaded until you download it again.
 
-The English-only models (Tiny, Base, Small and Medium, each marked English) had a subtler fault of their own. Their conversion told the model to start every phrase from the wrong prompt, so a short phrase often came back empty, and more often still with other people talking nearby. The keyboard now corrects that inside the file the first time each one is used, so there's nothing to download again. The first phrase after the fix takes a moment longer while it happens. On recorded test speech it took Tiny (English) from 12 to 9 wrong words in a hundred, and from five empty results in sixteen short phrases to none.
+The English-only LiteRT models (Tiny, Base, Small and Medium, each marked English) had a subtler fault of their own. Their conversion told the model to start every phrase from the wrong prompt, so a short phrase often came back empty, and more often still with other people talking nearby. The keyboard now corrects that inside the file the first time each one is used, so there's nothing to download again. The first phrase after the fix takes a moment longer while it happens. On recorded test speech it took Tiny (English) from 12 to 9 wrong words in a hundred, and from five empty results in sixteen short phrases to none.
 
 A phone that cannot download can import a model instead. Below the catalog, **Get the files** lists both files of each model that suits your languages, to fetch in a browser on any device, and **Import** installs them: pick the `.tflite` and its `filters_vocab_*.bin` together, or one after the other in either order. A model imported without its vocabulary file is reported as still needing it. See [Using it without internet](/privacy/offline/#voice-models).
 
@@ -120,7 +137,9 @@ Nine of the 10 multilingual models support translation. Turbo doesn't, because l
 
 ## Details & edge cases
 
-**Every clip is a fixed 30-second window.** Whisper always processes a full 30-second spectrogram: a short utterance is padded, and hitting the 30-second mark auto-triggers transcription of whatever was captured. Anything you say after that mark isn't recorded, so for the last five seconds the line under the microphone counts down ("Stops in 3 seconds") instead of saying "Listening", and it turns to "Transcribing…" the moment recording ends. The model's own work is therefore roughly constant per phrase rather than scaling with how long you spoke. The preparation in front of it isn't: the padding is silence, whose spectrogram is known without computing it, so only the part you spoke is analysed. The model also loads while you're still talking instead of after you stop, so the first phrase of a session doesn't wait for it.
+**A whisper.cpp clip runs to two minutes.** whisper.cpp moves Whisper's 30-second window along a longer clip, so its models record for up to two minutes before stopping by themselves, with the same countdown over the last five seconds. A transcription works through it window by window, and the words appear under the microphone as they come.
+
+**A LiteRT clip is a fixed 30-second window.** Whisper always processes a full 30-second spectrogram: a short utterance is padded, and hitting the 30-second mark auto-triggers transcription of whatever was captured. Anything you say after that mark isn't recorded, so for the last five seconds the line under the microphone counts down ("Stops in 3 seconds") instead of saying "Listening", and it turns to "Transcribing…" the moment recording ends. The model's own work is therefore roughly constant per phrase rather than scaling with how long you spoke. The preparation in front of it isn't: the padding is silence, whose spectrogram is known without computing it, so only the part you spoke is analysed. The model also loads while you're still talking instead of after you stop, so the first phrase of a session doesn't wait for it.
 
 **A silent clip types nothing.** Whisper has no way to answer "I heard nothing". Hand it a silent window and it writes the likeliest caption for one, which after training on subtitled video is "Thank you." or "Thanks for watching!". So a clip shorter than 0.3 seconds, or one whose loudest moment is no louder than a quiet room, is never transcribed at all. A clip that is faint but not silent is transcribed, and if all that comes back is one of those stock phrases it isn't typed. Say "thank you" at speaking volume and it's typed like anything else. A transcript that is only a sound caption, such as `[Music]` or `(coughs)`, is never typed, and a word or short phrase the decoder repeats five or more times in a row is folded back to one. The [transcription server](/tools/transcription-server/) gets the same treatment, which also saves the upload.
 
@@ -144,6 +163,6 @@ Nine of the 10 multilingual models support translation. Turbo doesn't, because l
 
 **Privacy and downloads are separate concerns.** Transcription itself makes no network calls. The only network activity Whisper causes is fetching a model file over HTTPS from its public repository when you tap download (see [Network policy](/privacy/network/) for the full picture of what WM Keyboard can send and when).
 
-**Attribution.** The engine is TensorFlow Lite, branded LiteRT (Apache-2.0, Google). The model architecture and weights are OpenAI's Whisper (MIT). The `.tflite` graphs themselves are third-party conversions hosted on Hugging Face, not built by this project. Full credits are in the app's About screen.
+**Attribution.** The whisper.cpp models run on whisper.cpp and ggml (MIT, the ggml authors), and are the whisper.cpp project's quantized conversions of OpenAI's weights. The LiteRT models run on TensorFlow Lite, branded LiteRT (Apache-2.0, Google). The model architecture and weights are OpenAI's Whisper (MIT). The `.tflite` graphs themselves are third-party conversions hosted on Hugging Face, not built by this project. Full credits are in the app's About screen.
 
 Related: [Voice typing](/tools/voice/) covers starting dictation, strip vs. panel mode, continuous mode, and spoken punctuation, all shared behavior between the system recognizer and Whisper.

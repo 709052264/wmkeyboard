@@ -715,7 +715,7 @@ private fun VoiceBarStatus(
         13 -> micNotice.orEmpty()
         4 -> stringResource(R.string.ime_voice_strip_listening_hint)
         5 -> voice.partial.ifEmpty { speakNow }
-        6 -> stringResource(voice.transcribingLabelRes())
+        6 -> voiceLineTail(voice.partial).ifEmpty { stringResource(voice.transcribingLabelRes()) }
         7 -> "…"
         8 -> voice.errorMessage ?: stringResource(R.string.ime_voice_status_error)
         else -> stringResource(R.string.ime_voice_bar_paused)
@@ -726,7 +726,7 @@ private fun VoiceBarStatus(
     ) {
         Text(
             statusText,
-            color = if (listening && voice.partial.isNotEmpty()) {
+            color = if ((listening || transcribing) && voice.partial.isNotEmpty()) {
                 kb.toolbarIcon
             } else {
                 kb.secondaryText

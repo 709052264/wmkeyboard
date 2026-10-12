@@ -116,6 +116,9 @@
     <string name="models_whisper_detail_all_yours">This model handles all of your languages.</string>
     <string name="models_whisper_detail_missing">This model does not cover your <xliff:g id="languages" example="German">%1$s</xliff:g>.</string>
     <string name="models_whisper_detail_translate">This model can translate speech to English.</string>
+    <!-- Shown on a whisper.cpp model's expanded row. "Your own words" are the
+         words the user listed for dictation to listen for and their dictionary. -->
+    <string name="models_whisper_detail_cpp">It listens for your own words, keeps to the languages you dictate in, shows the words while it works on them, and takes up to two minutes at a time.</string>
     <string name="models_whisper_detail_fallback">The app uses this model for the languages that you did not select a model for.</string>
 
     <!-- ===== On-device AI: the local model screen ===== -->

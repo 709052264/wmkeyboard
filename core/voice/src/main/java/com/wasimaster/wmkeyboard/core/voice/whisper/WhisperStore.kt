@@ -4,12 +4,13 @@ import java.io.File
 
 /**
  * File layout for offline Whisper models. Each catalog entry downloads into
- * `filesDir/whisper/<id>/` as two files — the `.tflite` model and its
- * `filters_vocab_*.bin` — with a `<name>.part` while a file is in flight.
+ * `filesDir/whisper/<id>/`: a LiteRT entry as two files — the `.tflite` model
+ * and its `filters_vocab_*.bin` — and a whisper.cpp entry as its one `.bin`,
+ * with a `<name>.part` while a file is in flight.
  *
  * Atomic-rename contract: a final (non-.part) file exists only once its
  * download finished with the expected byte count, so a model counts as
- * downloaded exactly when **both** final files are present.
+ * downloaded exactly when every one of its [requiredFiles] is present.
  */
 object WhisperStore {
 
@@ -34,9 +35,13 @@ object WhisperStore {
     fun vocabFile(filesDir: File, model: WhisperModel): File =
         File(modelDir(filesDir, model), model.vocabFile)
 
-    /** Both files (model, vocab) that must exist for the model to be usable. */
+    /** The files that must exist for the model to be usable: graph and vocab, or the one `.bin`. */
     fun requiredFiles(filesDir: File, model: WhisperModel): List<File> =
-        listOf(modelFile(filesDir, model), vocabFile(filesDir, model))
+        if (model.ggml) {
+            listOf(modelFile(filesDir, model))
+        } else {
+            listOf(modelFile(filesDir, model), vocabFile(filesDir, model))
+        }
 
     fun isDownloaded(filesDir: File, model: WhisperModel): Boolean =
         requiredFiles(filesDir, model).all { it.isFile } && !isStale(filesDir, model)

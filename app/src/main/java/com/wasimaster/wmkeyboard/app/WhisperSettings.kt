@@ -198,12 +198,15 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
         )
     }
 
-    // A Play install carries the interpreter as an on-demand module. The
-    // models below can be fetched without it, but nothing transcribes until
-    // it is here, so it is the first thing on the screen while it is not.
+    // A Play install carries the LiteRT interpreter as an on-demand module.
+    // The LiteRT graphs below can be fetched without it, but none transcribes
+    // until it is here, so it is the first thing on the screen while it is
+    // not. whisper.cpp is in the app itself, so where it runs the module only
+    // matters once a LiteRT graph is on the device.
     val module by WhisperEngine.moduleState.collectAsState()
     var moduleMetered by remember { mutableStateOf(false) }
-    if (module != ModuleState.Installed) {
+    val needsModule = !WhisperCatalog.cppAvailable || onDisk.any { !it.ggml }
+    if (module != ModuleState.Installed && needsModule) {
         WhisperModuleBanner(
             module = module,
             onDownload = {
@@ -297,11 +300,15 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
         val vocabSeen = HashSet<String>()
         wanted.flatMap { model ->
             listOfNotNull(
-                OfflineLink(model.displayName, WhisperCatalog.downloadUrl(model.repo, model.modelFile)),
-                if (vocabSeen.add(model.vocabFile)) {
+                OfflineLink(
+                    model.displayName,
+                    WhisperCatalog.downloadUrl(model.repo, model.modelFile, model.revision),
+                ),
+                // A whisper.cpp model is one file; a LiteRT graph needs its vocab.
+                if (!model.ggml && vocabSeen.add(model.vocabFile)) {
                     OfflineLink(
                         context.getString(R.string.offline_import_whisper_vocab_label, model.vocabFile),
-                        WhisperCatalog.downloadUrl(model.vocabRepo, model.vocabFile),
+                        WhisperCatalog.downloadUrl(model.vocabRepo, model.vocabFile, model.revision),
                     )
                 } else {
                     null
@@ -814,6 +821,7 @@ private fun WhisperLanguageDetail(
         WhisperLanguages.labels(missed).joinToString(", "),
     )
     val translateLine = stringResource(R.string.models_whisper_detail_translate)
+    val cppLine = stringResource(R.string.models_whisper_detail_cpp)
     val fallbackLine = stringResource(R.string.models_whisper_detail_fallback)
     val lines = buildList {
         if (model.langCodes.size > 1) add(coversLine)
@@ -821,6 +829,7 @@ private fun WhisperLanguageDetail(
             if (missed.isEmpty()) add(allYoursLine) else add(missingLine)
         }
         if (model.supportsTranslate) add(translateLine)
+        if (model.ggml) add(cppLine)
         if (isFallback) add(fallbackLine)
     }
     if (lines.isEmpty()) return

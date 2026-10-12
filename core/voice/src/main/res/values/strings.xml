@@ -53,6 +53,16 @@
          language. Language names are not translated. -->
     <string name="core_voice_model_single_language_body">This model handles <xliff:g id="language" example="German">%1$s</xliff:g> only. It has no language detection step. This makes it faster and a little more accurate than a multilingual model of the same size.</string>
 
+    <!-- Descriptions of the whisper.cpp models. Whisper is the model's name and
+         is not translated. "Your own words" are the words the user listed to
+         listen for and the words in their dictionary. -->
+    <string name="core_voice_model_cpp_small_body">This model gives the best accuracy that still runs well on a phone. It uses the language you dictate in, in any of the 99 languages that Whisper knows, and it listens for your own words.</string>
+    <string name="core_voice_model_cpp_base_body">This model balances accuracy and speed. It uses the language you dictate in, in any of the 99 languages that Whisper knows, and it listens for your own words. Select it if the Small model is too slow.</string>
+    <string name="core_voice_model_cpp_tiny_body">This is the fastest model. It works well with clear speech, but noise reduces the accuracy. It uses the language you dictate in and listens for your own words.</string>
+    <string name="core_voice_model_cpp_turbo_body">This model is almost as accurate as the largest model, at half the size. Each phrase takes several seconds, and it cannot translate.</string>
+    <string name="core_voice_model_cpp_medium_body">This model gives almost desktop accuracy. Each phrase takes several seconds. The model uses almost one gigabyte of memory while it runs.</string>
+    <string name="core_voice_model_cpp_large_body">This is the most accurate Whisper model. The download is 1.1 GB. Only a device with a large amount of memory can load it. The Turbo model is almost as accurate and is half the size.</string>
+
     <!-- ================================================================== -->
     <!-- Model download failures. Shown under the model row in settings.     -->
     <!-- ================================================================== -->
@@ -63,7 +73,8 @@
          of the site the models come from. -->
     <string name="core_voice_download_http_error">The Hugging Face server did not send the file. The error code is HTTP <xliff:g id="status_code" example="404">%1$s</xliff:g>.</string>
     <string name="core_voice_download_interrupted_error">The connection stopped during the download. Try again to continue from where it stopped.</string>
-    <!-- The Whistle model arrived but is not the exact file the app expects. -->
+    <!-- A Whistle or whisper.cpp model arrived but is not the exact file the
+         app expects. -->
     <string name="core_voice_whistle_checksum_error">The downloaded model is damaged. Download it again.</string>
 
     <!-- ================================================================== -->

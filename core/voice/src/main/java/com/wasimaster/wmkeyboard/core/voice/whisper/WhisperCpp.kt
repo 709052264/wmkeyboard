@@ -1,0 +1,181 @@
+package com.wasimaster.wmkeyboard.core.voice.whisper
+
+import com.wasimaster.wmkeyboard.voice.R
+import java.io.File
+import java.util.concurrent.locks.ReentrantLock
+
+/**
+ * whisper.cpp, the second runtime offline Whisper runs on (#440), for the
+ * catalog's [WhisperFormat.GGML] models. Built from `native/whispercpp-jni`.
+ *
+ * Where the LiteRT graphs have the whole generation loop traced inside them,
+ * whisper.cpp runs it here, so everything Whisper itself can do is reachable:
+ * any of its 99 languages can be named rather than guessed, detection can be
+ * kept to the languages being dictated in, a prompt can carry the user's own
+ * words, beam search can be asked for, text can be read while it decodes, a
+ * transcription can be stopped part way, and a clip can run past 30 seconds.
+ *
+ * The libraries ship in the full flavour's `jniLibs` for arm64 (two builds,
+ * picked by [load]), armv7 and x86_64. Lite builds have none, so [available]
+ * is false there and the catalog offers no GGML models; there is no stub.
+ *
+ * One model is open at a time, and kept open between clips, since loading it
+ * takes as long as a short phrase does to say.
+ */
+object WhisperCpp {
+
+    /** What a clip came to. [language] is the Whisper code it was read as. */
+    class Result(val text: String, val language: String?)
+
+    private val lock = ReentrantLock()
+
+    /**
+     * Guards [handle] against being freed under [partial] or [abort], which run
+     * on other threads than [transcribe]. Never held across a transcription.
+     */
+    private val handleLock = Any()
+
+    @Volatile private var handle = 0L
+    private var openPath: String? = null
+
+    /** Whether a whisper.cpp library loaded on this device and build. */
+    val available: Boolean by lazy { load() }
+
+    /**
+     * The ARMv8.2 build where every core has the dot-product and half-precision
+     * instructions it is compiled for, else the baseline one. A core without
+     * them would die on an illegal instruction, so the check reads every
+     * core's flags, not the first: big.LITTLE parts mix generations.
+     */
+    private fun load(): Boolean {
+        if (hasArmV82Features() && runCatching { System.loadLibrary("wmwhispercpp_v82") }.isSuccess) return true
+        return runCatching { System.loadLibrary("wmwhispercpp") }.isSuccess
+    }
+
+    private fun hasArmV82Features(): Boolean = runCatching {
+        val features = File("/proc/cpuinfo").readLines()
+            .filter { it.startsWith("Features") }
+            .map { it.substringAfter(':').trim().split(' ').toSet() }
+        features.isNotEmpty() && features.all { "asimddp" in it && "asimdhp" in it && "fphp" in it }
+    }.getOrDefault(false)
+
+    /** Threads for one transcription: a phone's big cores, not its little ones too. */
+    private val threads: Int get() = Runtime.getRuntime().availableProcessors().coerceIn(2, 4)
+
+    /**
+     * Opens [modelFile] if it is not the model already open. Called while the
+     * phrase is still being said, so the first clip does not wait for it.
+     * Blocking; call off the main thread. Throws [WhisperException].
+     */
+    fun warm(modelFile: File) {
+        lock.lock()
+        try {
+            openLocked(modelFile)
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    /**
+     * [pcm] (16 kHz mono, in [-1, 1], any length) as text, or null when [abort]
+     * stopped it.
+     *
+     * @param languages Whisper codes. None lets the model detect among all 99;
+     *   one is forced; several are detected among those alone.
+     * @param translate English out, whatever language comes in.
+     * @param prompt words to steer spelling and vocabulary towards, or null.
+     * @param beamSize 1 decodes greedily; more keeps that many hypotheses.
+     * Blocking; call off the main thread. Throws [WhisperException].
+     */
+    fun transcribe(
+        modelFile: File,
+        pcm: FloatArray,
+        languages: List<String>,
+        translate: Boolean,
+        prompt: String?,
+        beamSize: Int,
+    ): Result? {
+        lock.lock()
+        try {
+            val h = openLocked(modelFile)
+            val bytes = try {
+                nativeTranscribe(h, pcm, languages.toTypedArray(), translate, prompt, beamSize, threads)
+            } catch (e: IllegalStateException) {
+                throw WhisperException(R.string.core_voice_whisper_transcribe_error, cause = e)
+            } ?: return null
+            val out = String(bytes, Charsets.UTF_8)
+            val language = out.substringBefore('\n').ifEmpty { null }
+            return Result(out.substringAfter('\n').trim(), language)
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    /**
+     * What the running transcription has decoded so far, empty when none is
+     * running or nothing is decoded yet. A preview: words can still change.
+     * Safe from any thread while [transcribe] runs.
+     */
+    fun partial(): String {
+        val bytes = synchronized(handleLock) {
+            val h = handle
+            if (h == 0L) return ""
+            nativePartial(h)
+        }
+        // A byte-level token can end half way through a character.
+        return String(bytes, Charsets.UTF_8).trimEnd('\uFFFD').trim()
+    }
+
+    /** Stops the running transcription at its next step; it returns null. Any thread. */
+    fun abort() = synchronized(handleLock) {
+        val h = handle
+        if (h != 0L) nativeAbort(h)
+    }
+
+    /** Closes the open model. Skipped while a transcription holds it, so trim-memory never waits. */
+    fun release() {
+        if (!lock.tryLock()) return
+        try {
+            closeLocked()
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    private fun openLocked(modelFile: File): Long {
+        check(available) { "whisper.cpp is not available in this build" }
+        val path = modelFile.canonicalPath
+        if (handle != 0L && openPath == path) return handle
+        closeLocked()
+        val h = nativeOpen(path)
+        if (h == 0L) throw WhisperException(R.string.core_voice_whisper_model_load_error)
+        handle = h
+        openPath = path
+        return h
+    }
+
+    private fun closeLocked() = synchronized(handleLock) {
+        val h = handle
+        handle = 0L
+        openPath = null
+        if (h != 0L) nativeClose(h)
+    }
+
+    @JvmStatic private external fun nativeOpen(path: String): Long
+
+    @JvmStatic private external fun nativeClose(handle: Long)
+
+    @JvmStatic private external fun nativeTranscribe(
+        handle: Long,
+        pcm: FloatArray,
+        languages: Array<String>,
+        translate: Boolean,
+        prompt: String?,
+        beamSize: Int,
+        threads: Int,
+    ): ByteArray?
+
+    @JvmStatic private external fun nativePartial(handle: Long): ByteArray
+
+    @JvmStatic private external fun nativeAbort(handle: Long)
+}

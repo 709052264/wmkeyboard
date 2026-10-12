@@ -1,0 +1,63 @@
+package com.wasimaster.wmkeyboard.core.voice.whisper
+
+/**
+ * How the keyboard asks [WhisperCpp] for a clip: which languages, how hard to
+ * search, how long a clip may run and what to prompt with. Kept apart from the
+ * service so each choice is a plain function with a test.
+ */
+object WhisperCppPlan {
+
+    /**
+     * The longest clip a whisper.cpp model is handed. It reads past Whisper's
+     * 30-second window by moving the window along, so the clip is bounded by
+     * how long anyone dictates in one breath and how long the wait afterwards
+     * is, not by the model.
+     */
+    const val MAX_CLIP_SECONDS = 120
+
+    /** Hypotheses beam search keeps: OpenAI's own default. */
+    private const val BEAM = 5
+
+    /** At most this many of the user's words go into a prompt. */
+    const val PROMPT_WORDS = 40
+
+    /**
+     * Beam search on the sizes where it is cheap beside the encoder, greedy on
+     * Medium and Large, whose every decoder step already costs a phone dearly.
+     * Turbo has a four-layer decoder, so it searches like the small ones. On
+     * LibriSpeech, beam search cut tiny.en's word error rate from 10.2 to 9.4 %
+     * on clean speech and from 54 to 49 % with people talking behind it.
+     */
+    fun beamSize(model: WhisperModel): Int = when (model.size) {
+        WhisperSize.TINY, WhisperSize.BASE, WhisperSize.SMALL, WhisperSize.TURBO -> BEAM
+        WhisperSize.MEDIUM, WhisperSize.LARGE -> 1
+    }
+
+    /**
+     * The Whisper codes to hand [WhisperCpp.transcribe] for a dictation in
+     * [languageIds] (keyboard ids, first is the main one). An English-only
+     * model takes none. Languages Whisper does not know are dropped; when that
+     * leaves none, the model detects among all of its own.
+     */
+    fun languages(model: WhisperModel, languageIds: List<String>): List<String> {
+        if (!model.multilingual) return emptyList()
+        return languageIds.mapNotNull(WhisperLanguages::codeForLanguage).distinct()
+    }
+
+    /**
+     * A prompt that leads Whisper towards the spellings in [words], or null when
+     * there are none. Whisper reads a prompt as text that came just before the
+     * clip, so a short list of names and terms makes them likelier to be
+     * written that way, the way FUTO's keyboard feeds its dictionary in.
+     */
+    fun prompt(words: List<String>): String? {
+        val picked = words.asSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() && it.none(Char::isISOControl) }
+            .distinct()
+            .take(PROMPT_WORDS)
+            .toList()
+        if (picked.isEmpty()) return null
+        return "Glossary: ${picked.joinToString(", ")}."
+    }
+}

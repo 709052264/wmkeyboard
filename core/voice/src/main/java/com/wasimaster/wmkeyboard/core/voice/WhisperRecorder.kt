@@ -12,7 +12,7 @@ import kotlin.math.sqrt
 
 /**
  * Captures microphone audio for offline Whisper: 16 kHz mono PCM into a fixed
- * 30-second float buffer (Whisper's window). Reports a smoothed input level for
+ * float buffer, 30 seconds (Whisper's window) unless told otherwise. Reports a smoothed input level for
  * the panel's pulse ring and fires [onMaxReached] when the buffer fills so the
  * service can transcribe and, in continuous mode, start the next utterance.
  * [onLost] fires instead when the microphone stops delivering mid-clip — the
@@ -42,8 +42,14 @@ class WhisperRecorder(
      * with its own choice rather than ending the capture.
      */
     private val preferredDevice: AudioDeviceInfo? = null,
+    /**
+     * How long one clip may run. Whisper's window is 30 seconds, and a LiteRT
+     * graph reads that and no more; whisper.cpp walks a longer clip window by
+     * window, so its models get more room before [onMaxReached].
+     */
+    maxSeconds: Int = WhisperMel.CHUNK_SECONDS,
 ) {
-    private val maxSamples = WhisperMel.N_SAMPLES // 16 kHz * 30 s
+    private val maxSamples = WhisperMel.SAMPLE_RATE * maxSeconds
     private val buffer = FloatArray(maxSamples)
 
     @Volatile private var count = 0

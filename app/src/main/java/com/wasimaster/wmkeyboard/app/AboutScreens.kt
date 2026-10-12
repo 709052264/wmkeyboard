@@ -323,6 +323,17 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "https://github.com/vilassn/whisper_android",
             ),
         )
+        // The runtime of Offline Whisper's ggml models (#440), and the
+        // quantized models it downloads, in the same builds.
+        add(
+            Attribution(
+                "whisper.cpp and ggml",
+                R.string.about_bundled_whisper_cpp_used,
+                "Copyright (c) 2023-2026 The ggml authors",
+                "MIT", "mit-whisper-cpp.txt",
+                "https://github.com/ggml-org/whisper.cpp",
+            ),
+        )
         // The other offline engine (#548), in the same builds.
         add(
             Attribution(

@@ -569,7 +569,8 @@ private fun MicContent(
                 pluralStringResource(R.plurals.ime_voice_status_stops_in, voice.secondsLeft, voice.secondsLeft)
             listening && voice.clipBased -> stringResource(R.string.ime_voice_status_listening_hint)
             listening -> voice.partial.ifEmpty { listeningLabel }
-            transcribing -> stringResource(voice.transcribingLabelRes())
+            // whisper.cpp's words as they decode (#440); the others say "Transcribing".
+            transcribing -> voice.partial.ifEmpty { stringResource(voice.transcribingLabelRes()) }
             finishing -> "…"
             voice.status == VoiceStatus.ERROR ->
                 voice.errorMessage ?: stringResource(R.string.ime_voice_status_error)
@@ -577,7 +578,7 @@ private fun MicContent(
         }
         Text(
             statusText,
-            color = if (listening && voice.partial.isNotEmpty()) kb.toolbarIcon else kb.secondaryText,
+            color = if ((listening || transcribing) && voice.partial.isNotEmpty()) kb.toolbarIcon else kb.secondaryText,
             fontSize = 13.sp,
             textAlign = TextAlign.Center,
             maxLines = 2,
@@ -933,7 +934,7 @@ internal fun VoiceStripBar(
                 pluralStringResource(R.plurals.ime_voice_status_stops_in, voice.secondsLeft, voice.secondsLeft)
             listening && voice.clipBased -> stringResource(R.string.ime_voice_strip_listening_hint)
             listening -> voice.partial.ifEmpty { listeningLabel }
-            transcribing -> stringResource(voice.transcribingLabelRes())
+            transcribing -> voiceLineTail(voice.partial).ifEmpty { stringResource(voice.transcribingLabelRes()) }
             finishing -> "…"
             voice.status == VoiceStatus.ERROR ->
                 voice.errorMessage ?: stringResource(R.string.ime_voice_status_error)
@@ -941,7 +942,7 @@ internal fun VoiceStripBar(
         }
         Text(
             statusText,
-            color = if (listening && voice.partial.isNotEmpty()) kb.toolbarIcon else kb.secondaryText,
+            color = if ((listening || transcribing) && voice.partial.isNotEmpty()) kb.toolbarIcon else kb.secondaryText,
             fontSize = 13.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -1246,7 +1247,8 @@ internal fun RowScope.FieldVoiceStatus(voice: VoiceUi, onAction: (CaptureVoiceAc
             pluralStringResource(R.plurals.ime_voice_status_stops_in, voice.secondsLeft, voice.secondsLeft)
         listening && voice.clipBased -> stringResource(R.string.ime_voice_strip_listening_hint)
         listening -> voice.partial.ifEmpty { listeningLabel }
-        voice.status == VoiceStatus.TRANSCRIBING -> stringResource(voice.transcribingLabelRes())
+        voice.status == VoiceStatus.TRANSCRIBING ->
+            voiceLineTail(voice.partial).ifEmpty { stringResource(voice.transcribingLabelRes()) }
         voice.status == VoiceStatus.FINISHING -> voice.partial.ifEmpty { "…" }
         voice.status == VoiceStatus.ERROR -> voice.errorMessage ?: stringResource(R.string.ime_voice_status_error)
         else -> ""
@@ -1385,4 +1387,17 @@ private fun VoiceRailKey(
             )
         }
     }
+}
+
+/**
+ * The end of [text], for a status line one line tall: a transcription that
+ * decodes as it goes (#440) grows at its end, so that is the part to keep in
+ * view, with an ellipsis for what scrolled off the front.
+ */
+internal fun voiceLineTail(text: String, max: Int = 48): String {
+    if (text.length <= max) return text
+    val tail = text.takeLast(max)
+    // Start on a word where one starts close by, rather than mid-word.
+    val space = tail.indexOf(' ')
+    return "…" + if (space in 0 until max / 3) tail.substring(space + 1) else tail
 }

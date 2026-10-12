@@ -7,6 +7,7 @@ import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.voice.R
 import java.io.File
+import java.security.MessageDigest
 import java.io.IOException
 import java.io.RandomAccessFile
 import java.net.HttpURLConnection
@@ -33,11 +34,12 @@ import kotlinx.coroutines.launch
  * the app can stop a download, but the `.part` file plus an HTTP Range request
  * resume exactly where it stopped.
  *
- * A model is **two files** (the `.tflite` and its `filters_vocab_*.bin`),
+ * A LiteRT model is **two files** (the `.tflite` and its `filters_vocab_*.bin`),
  * downloaded sequentially into one directory; both must land before the model
- * counts as downloaded. The combined progress bar spans both. The DocWolle repo
- * is public, so there is no token or license/gating path — only network and
- * space failures.
+ * counts as downloaded. The combined progress bar spans both. A whisper.cpp
+ * model is one `.bin`, fetched from a pinned commit and checked against its
+ * SHA-256 before it counts. Every repo is public, so there is no token or
+ * license/gating path — only network, space and damaged-file failures.
  */
 object WhisperDownloadManager {
 
@@ -150,7 +152,7 @@ object WhisperDownloadManager {
      * `whisper-tiny.en.tflite` and only one of them works (#207).
      */
     fun recognises(name: String, size: Long): Boolean =
-        modelFor(name, size) != null || WhisperCatalog.models.any { it.vocabFile == name && it.vocabBytes == size }
+        modelFor(name, size) != null || WhisperCatalog.models.any { !it.ggml && it.vocabFile == name && it.vocabBytes == size }
 
     private fun modelFor(name: String, size: Long): WhisperModel? =
         WhisperCatalog.models.firstOrNull { it.modelFile == name && it.modelBytes == size }
@@ -166,16 +168,23 @@ object WhisperDownloadManager {
         check(!isBusy) { "a download is running" }
         val size = file.length()
         val model = modelFor(name, size)
+        // A whisper.cpp model carries a known hash; a file of the right name
+        // and size that fails it is someone else's, and not installed.
+        if (model?.sha256 != null && !sha256Of(file).equals(model.sha256, ignoreCase = true)) return null
         if (model != null) {
             val dir = WhisperStore.modelDir(filesDir, model).apply { mkdirs() }
             copyInto(file, File(dir, model.modelFile))
+            if (model.ggml) {
+                refresh(filesDir)
+                return Installed.Ready(model)
+            }
             val vocab = File(dir, model.vocabFile)
             val pooled = File(WhisperStore.vocabPool(filesDir), model.vocabFile)
             if (!vocab.isFile && pooled.length() == model.vocabBytes) copyInto(pooled, vocab)
             refresh(filesDir)
             return if (vocab.isFile) Installed.Ready(model) else Installed.NeedsVocab(model, model.vocabFile)
         }
-        val users = WhisperCatalog.models.filter { it.vocabFile == name && it.vocabBytes == size }
+        val users = WhisperCatalog.models.filter { !it.ggml && it.vocabFile == name && it.vocabBytes == size }
         if (users.isEmpty()) return null
         copyInto(file, File(WhisperStore.vocabPool(filesDir).apply { mkdirs() }, name))
         for (user in users) {
@@ -237,17 +246,22 @@ object WhisperDownloadManager {
         // The loop below skips a file already in place, so a retired graph has
         // to go first or it would never be replaced.
         WhisperStore.purgeStale(filesDir, model)
-        val parts = listOf(
-            // Vocab first — tiny, so a bad connection fails fast before the big file.
-            Part(
-                WhisperCatalog.downloadUrl(model.vocabRepo, model.vocabFile),
-                File(dir, model.vocabFile), model.vocabBytes,
-            ),
-            Part(
-                WhisperCatalog.downloadUrl(model.repo, model.modelFile),
-                File(dir, model.modelFile), model.modelBytes,
-            ),
+        val graph = Part(
+            WhisperCatalog.downloadUrl(model.repo, model.modelFile, model.revision),
+            File(dir, model.modelFile), model.modelBytes,
         )
+        val parts = if (model.ggml) {
+            listOf(graph)
+        } else {
+            listOf(
+                // Vocab first — tiny, so a bad connection fails fast before the big file.
+                Part(
+                    WhisperCatalog.downloadUrl(model.vocabRepo, model.vocabFile, model.revision),
+                    File(dir, model.vocabFile), model.vocabBytes,
+                ),
+                graph,
+            )
+        }
 
         // Space preflight for everything still missing, up front.
         val stillNeeded = parts.filter { !it.finalFile.isFile }
@@ -272,6 +286,25 @@ object WhisperDownloadManager {
             downloadPart(model.id, p, doneBytes, grandTotal)
             doneBytes += p.finalFile.length()
         }
+        model.sha256?.let { expected ->
+            if (!sha256Of(graph.finalFile).equals(expected, ignoreCase = true)) {
+                graph.finalFile.delete()
+                throw FailedException(FailReason.OTHER, R.string.core_voice_whistle_checksum_error)
+            }
+        }
+    }
+
+    private fun sha256Of(file: File): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input ->
+            val buffer = ByteArray(1 shl 20)
+            while (true) {
+                val read = input.read(buffer)
+                if (read < 0) break
+                digest.update(buffer, 0, read)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
     private suspend fun downloadPart(modelId: String, p: Part, baseBytes: Long, grandTotal: Long) {

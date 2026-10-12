@@ -565,7 +565,10 @@ import com.wasimaster.wmkeyboard.core.voice.VoiceTidy
 import com.wasimaster.wmkeyboard.core.voice.WavEncoder
 import com.wasimaster.wmkeyboard.core.voice.WhisperRecorder
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperLanguages
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCpp
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCppPlan
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperEngine
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperMel
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperException
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperModel
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine
@@ -7222,6 +7225,7 @@ open class WMKeyboardService : InputMethodService() {
         releaseTranslateEngine()
         LocalLlmEngine.release()
         WhisperEngine.release()
+        WhisperCpp.release()
         serviceScope.cancel()
         // Before the owner is destroyed: super.onDestroy runs a full input
         // teardown, and onFinishInputView pauses the owner on the way out.
@@ -7408,6 +7412,7 @@ open class WMKeyboardService : InputMethodService() {
         // A cached local model pins hundreds of MB to a few GB (issue #476).
         LocalLlmEngine.release()
         WhisperEngine.release()
+        WhisperCpp.release()
         // Reloads on the next translation; the panel's state is untouched.
         if (translateEngineLoaded) OnDeviceTranslator.release()
         // Vocabulary cards: read back from the pack files on demand.
@@ -23606,7 +23611,7 @@ open class WMKeyboardService : InputMethodService() {
             fail(VoiceStatus.UNAVAILABLE)
             return
         }
-        if (onDevice is OnDeviceVoice.Whisper && !WhisperEngine.ready) {
+        if (onDevice is OnDeviceVoice.Whisper && !onDevice.model.ggml && !WhisperEngine.ready) {
             // Play only: the interpreter is an on-demand part that is not here
             // yet. Said now rather than after the phrase, which would be
             // recorded for nothing. Data saver holding downloads leaves the
@@ -23834,18 +23839,19 @@ open class WMKeyboardService : InputMethodService() {
      * engine is picked: Whistle when it covers what is being dictated and is
      * downloaded, since it is the quicker of the two, else the downloaded
      * Whisper model for the language being typed in. Null when there is
-     * neither, or no runtime to run Whisper with yet.
+     * neither, or no runtime to run that model with yet (a LiteRT graph on
+     * Play before its part has arrived; whisper.cpp is always in the app).
      */
     private fun fallbackOnDeviceVoice(): OnDeviceVoice? {
         if (whistleCoversVoice() && WhistleModelStore.isDownloaded(filesDir)) return OnDeviceVoice.Whistle
-        if (!isWhisperEnabled() || !WhisperEngine.ready) return null
+        if (!isWhisperEnabled()) return null
         val s = _uiState.value.settings
         return WhisperStore.modelForLanguage(
             filesDir,
             voiceLanguageId(),
             s.whisper.modelId,
             s.whisper.modelByLang,
-        )?.let { OnDeviceVoice.Whisper(it) }
+        )?.takeIf { it.ggml || WhisperEngine.ready }?.let { OnDeviceVoice.Whisper(it) }
     }
 
     /**
@@ -23865,6 +23871,10 @@ open class WMKeyboardService : InputMethodService() {
         val model = when (voice) {
             is OnDeviceVoice.Whisper -> voice.model
             OnDeviceVoice.Whistle -> return transcribeWithWhistle(pcm, languages, recognizerBias().words)
+        }
+        if (model.ggml) {
+            val translate = _uiState.value.settings.whisper.translate && model.supportsTranslate
+            return transcribeWithCpp(model, pcm, languages, recognizerBias().words, translate).orEmpty()
         }
         // As in [finishWhisper]: a choice of several languages is left to the
         // model to tell apart.
@@ -23897,6 +23907,35 @@ open class WMKeyboardService : InputMethodService() {
         ).trim()
 
     /**
+     * [pcm] transcribed by a whisper.cpp [model] (#440), or null when
+     * [cancelVoice] stopped it part way. Unlike a LiteRT graph it is told every
+     * language of the dictation by name: one is forced, several are the only
+     * ones it chooses among. [words] become its prompt, so names and terms come
+     * out spelled the user's way. A language Whisper does not know leaves it
+     * to detect among all of its own, and only then can it answer in the wrong
+     * script. Blocking; call off the main thread.
+     */
+    private fun transcribeWithCpp(
+        model: WhisperModel,
+        pcm: FloatArray,
+        languages: List<String>,
+        words: List<String>,
+        translate: Boolean,
+    ): String? {
+        val codes = WhisperCppPlan.languages(model, languages)
+        val result = WhisperCpp.transcribe(
+            WhisperStore.modelFile(filesDir, model),
+            pcm,
+            codes,
+            translate,
+            WhisperCppPlan.prompt(words),
+            WhisperCppPlan.beamSize(model),
+        ) ?: return null
+        val detected = model.multilingual && codes.isEmpty()
+        return if (detected) WhisperScript.rescueAmong(result.text, languages) else result.text
+    }
+
+    /**
      * What the system recognizer is told to listen for (#305): the user's own
      * list first, then their words from [voiceBiasPersonal]. Asks for another
      * look at those for next time, if the last one is old.
@@ -23917,13 +23956,15 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * Gathers [voiceBiasPersonal] again off the main thread, at most every
      * [VOICE_BIAS_TTL_MS], and only while it can be used: the setting on and
-     * an engine that takes a hint picked (the system recognizer, or Whistle's
-     * keywords). The server engine gathers its own
-     * at the moment it sends, since it is already off the main thread then.
+     * an engine that takes a hint picked (the system recognizer, Whistle's
+     * keywords, or a whisper.cpp model's prompt; a LiteRT graph takes none,
+     * but which kind a clip goes to is only known per language). The server
+     * engine gathers its own at the moment it sends, since it is already off
+     * the main thread then.
      */
     private fun refreshVoiceBias() {
         val whisper = _uiState.value.settings.whisper
-        if (!whisper.biasPersonalWords || (whisper.engine != "system" && whisper.engine != "whistle")) return
+        if (!whisper.biasPersonalWords || whisper.engine !in VOICE_BIAS_ENGINES) return
         val now = SystemClock.elapsedRealtime()
         if (voiceBiasJob?.isActive == true) return
         if (voiceBiasStamp != 0L && now - voiceBiasStamp < VOICE_BIAS_TTL_MS) return
@@ -24006,6 +24047,8 @@ open class WMKeyboardService : InputMethodService() {
         whisperCapture = model?.let { it to languageId }
         serverCapture = if (model == null) languageId else null
         captureLanguages = languages
+        // whisper.cpp reads past one 30-second window, so its clips get room.
+        val cpp = (model as? OnDeviceVoice.Whisper)?.model?.ggml == true
         lateinit var recorder: WhisperRecorder
         recorder = WhisperRecorder(
             onLevel = { level ->
@@ -24020,8 +24063,8 @@ open class WMKeyboardService : InputMethodService() {
                 }
             },
             onMaxReached = {
-                // Buffer full (30 s): transcribe this clip; continuous mode then
-                // starts the next one on its own.
+                // Buffer full (30 s, or longer for whisper.cpp): transcribe this
+                // clip; continuous mode then starts the next one on its own.
                 finishWhisper(userStopped = false)
             },
             onLost = { onWhisperCaptureLost(generation) },
@@ -24031,6 +24074,7 @@ open class WMKeyboardService : InputMethodService() {
             silenceStopMs = _uiState.value.settings.voiceBar.silenceStopMs,
             onSilence = { finishWhisper(userStopped = false) },
             preferredDevice = VoiceMics.deviceFor(this, mic),
+            maxSeconds = if (cpp) WhisperCppPlan.MAX_CLIP_SECONDS else WhisperMel.CHUNK_SECONDS,
         )
         if (!recorder.start()) {
             _uiState.update {
@@ -24051,10 +24095,15 @@ open class WMKeyboardService : InputMethodService() {
         // The graph loads while the phrase is being said rather than after it.
         when (model) {
             is OnDeviceVoice.Whisper -> serviceScope.launch(Dispatchers.Default) {
-                WhisperEngine.warm(
-                    WhisperStore.modelFile(filesDir, model.model),
-                    WhisperStore.vocabFile(filesDir, model.model),
-                )
+                if (model.model.ggml) {
+                    // A damaged file throws here; transcribing says so properly.
+                    runCatching { WhisperCpp.warm(WhisperStore.modelFile(filesDir, model.model)) }
+                } else {
+                    WhisperEngine.warm(
+                        WhisperStore.modelFile(filesDir, model.model),
+                        WhisperStore.vocabFile(filesDir, model.model),
+                    )
+                }
             }
             // A damaged file throws here; transcribing says so properly.
             OnDeviceVoice.Whistle -> serviceScope.launch(Dispatchers.Default) {
@@ -24136,11 +24185,15 @@ open class WMKeyboardService : InputMethodService() {
             settleVoiceToolEnding()
             return
         }
+        val cpp = whisper?.ggml == true
         // Read here, on the main thread, where the bias list is kept.
-        val keywords = if (model is OnDeviceVoice.Whistle) recognizerBias().words else emptyList()
+        val keywords = if (model is OnDeviceVoice.Whistle || cpp) recognizerBias().words else emptyList()
         _uiState.update {
             it.copy(voice = it.voice.copy(status = VoiceStatus.TRANSCRIBING, partial = "", level = 0f))
         }
+        // whisper.cpp can say what it has so far: the line under the
+        // microphone shows the words as they decode instead of a spinner.
+        val partials = if (cpp) watchCppPartials(gen) else null
         serviceScope.launch(Dispatchers.Default) {
             val pcm = runCatching { recorder.stop() }.getOrDefault(FloatArray(0))
             if (gen != voiceGeneration) return@launch
@@ -24152,22 +24205,30 @@ open class WMKeyboardService : InputMethodService() {
             } else {
                 runCatching {
                     when (model) {
-                        is OnDeviceVoice.Whisper -> WhisperEngine.transcribe(
-                            WhisperStore.modelFile(filesDir, model.model),
-                            WhisperStore.vocabFile(filesDir, model.model),
-                            pcm,
-                            translate,
-                            langToken,
-                        )
+                        // Null from whisper.cpp: stopped part way, by a cancel
+                        // that already moved the session on, so nothing is typed.
+                        is OnDeviceVoice.Whisper -> if (cpp) {
+                            transcribeWithCpp(model.model, pcm, languages, keywords, translate).orEmpty()
+                        } else {
+                            WhisperEngine.transcribe(
+                                WhisperStore.modelFile(filesDir, model.model),
+                                WhisperStore.vocabFile(filesDir, model.model),
+                                pcm,
+                                translate,
+                                langToken,
+                            )
+                        }
                         OnDeviceVoice.Whistle -> transcribeWithWhistle(pcm, languages, keywords)
                     }
                 }
             }
+            partials?.cancel()
             // A graph told which language to use, or built for exactly one, cannot
             // answer in the wrong script. Only the auto-detecting ones can, and
             // Bangla misread as Hindi is the case worth repairing. Whistle has no
-            // language that could be misread as one in another script.
-            val detected = whisper != null && langToken == null && whisper.fixedLang == null
+            // language that could be misread as one in another script, and
+            // whisper.cpp's repair is made inside [transcribeWithCpp].
+            val detected = whisper != null && !cpp && langToken == null && whisper.fixedLang == null
             withContext(Dispatchers.Main) {
                 if (gen != voiceGeneration) return@withContext
                 result
@@ -24191,6 +24252,23 @@ open class WMKeyboardService : InputMethodService() {
                             )
                         }
                     }
+            }
+        }
+    }
+
+    /**
+     * Reads what whisper.cpp has decoded so far into [VoiceUi.partial] while
+     * the clip of session [gen] transcribes, for the voice surfaces to show.
+     * Cancelled once the transcription returns.
+     */
+    private fun watchCppPartials(gen: Int): Job = serviceScope.launch(Dispatchers.Main) {
+        while (isActive && gen == voiceGeneration) {
+            delay(VOICE_PARTIAL_POLL_MS)
+            val text = WhisperCpp.partial()
+            if (gen != voiceGeneration || text.isEmpty()) continue
+            _uiState.update {
+                if (it.voice.status != VoiceStatus.TRANSCRIBING || it.voice.partial == text) it
+                else it.copy(voice = it.voice.copy(partial = text))
             }
         }
     }
@@ -24779,6 +24857,10 @@ open class WMKeyboardService : InputMethodService() {
             whisperRecorder = null
             serviceScope.launch(Dispatchers.IO) { runCatching { rec.stop() } }
         }
+        // whisper.cpp stops at its next step instead of finishing a
+        // transcription nobody will see, which on a long clip is most of the
+        // battery it would cost.
+        if (status == VoiceStatus.TRANSCRIBING) WhisperCpp.abort()
         if (status != VoiceStatus.LISTENING && status != VoiceStatus.FINISHING &&
             status != VoiceStatus.TRANSCRIBING
         ) {
@@ -38877,6 +38959,12 @@ open class WMKeyboardService : InputMethodService() {
 
         /** How long the recognizer's word list is used before it is gathered again. */
         private const val VOICE_BIAS_TTL_MS = 5 * 60_000L
+
+        /** The engines that take the user's words as a hint (#305, #548, #440). */
+        private val VOICE_BIAS_ENGINES = setOf("system", "whistle", "whisper")
+
+        /** How often the line under the microphone reads whisper.cpp's decoding so far. */
+        private const val VOICE_PARTIAL_POLL_MS = 200L
 
         /** Enough of a WebP to read the header flag that says it is animated. */
         private const val WEBP_HEADER_BYTES = 32

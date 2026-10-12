@@ -83,7 +83,9 @@ does not produce. The Harper grammar engine lives in the full source set (its
 Rust sources are under `native/harper-jni`), and the LLM module is only assembled
 for the Play channel. The offline Whistle voice engine is the same case: its JNI
 library is under `core/voice/src/full/jniLibs`, and the Cactus archive it links
-(`native/whistle-jni/prebuilt`) has no source to build from. Deleting them keeps
+(`native/whistle-jni/prebuilt`) has no source to build from. The whisper.cpp
+libraries for Offline Whisper sit in the same `jniLibs` directory (built from
+source by `native/whispercpp-jni/build.sh`), so the same entry removes them. Deleting them keeps
 F-Droid's scanner quiet and proves none of them reaches the built APK. The last
 build block carries the two Whistle paths ahead of the first release that has
 them; `AutoUpdateMode` copies that block forward.

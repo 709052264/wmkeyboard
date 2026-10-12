@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -477,9 +478,10 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
             ) { scope.launch { repository.setVoiceAiTidy(it) } }
         }
     }
-    // Offline Whisper has no way to take a hint, so the group only shows for
-    // the engines that read it (#305): Whistle takes it as keywords (#548).
-    if (!usingWhisper) {
+    // The group shows for the engines that read it (#305): Whistle takes it as
+    // keywords (#548), and offline Whisper's whisper.cpp models as their prompt
+    // (#440). Where only LiteRT graphs run, Whisper has no way to take a hint.
+    if (!usingWhisper || WhisperCatalog.cppAvailable) {
         SettingsGroup(stringResource(R.string.voice_bias_group)) {
             item {
                 ToggleSetting(
