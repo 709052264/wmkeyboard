@@ -10391,15 +10391,19 @@ internal fun fullBleedHiddenRows(
      */
     macroRow: Boolean = selectionMacroBarVisible(state),
 ): Dp =
-    // The strip, unless it has given its row up to the tools' (#302).
-    (if (state.settings.toolbarBehavior.stripHidden) 0.dp else topBarHeight(state.settings)) +
+    // The strip, unless it has given its row up to the tools' (#302), or the
+    // toolbar is switched off and the strip went with it: counting a row that
+    // was never on screen grew the keyboard by it the moment a panel opened.
+    (if (state.settings.toolbarBehavior.stripHidden || !barShown(state)) 0.dp else topBarHeight(state.settings)) +
         // An always-open tools row is one more strip's worth hidden under the
         // panel. An on-demand row is not counted: whether it was open is
         // composable-local state this function cannot see, and a row the user
         // opened by hand closing under a panel is a smaller surprise than the
         // keyboard growing by a row it never had.
         (
-            if (state.settings.toolbarBehavior.placement == ToolbarPlacement.ALWAYS_ROW) {
+            if (state.settings.toolbarBehavior.placement == ToolbarPlacement.ALWAYS_ROW &&
+                state.settings.toolbarBehavior.enabled
+            ) {
                 topBarHeight(state.settings)
             } else {
                 0.dp
@@ -10424,6 +10428,15 @@ internal fun fullBleedHiddenRows(
                 0.dp
             }
             )
+
+/**
+ * Whether the bar row is drawn at all, panels aside: the toolbar switched off
+ * takes the strip with it, unless the strip is all a physical keyboard's
+ * candidates have (#419). The body's own gate, which a full-bleed panel's
+ * height has to agree with.
+ */
+private fun barShown(state: KeyboardUiState): Boolean =
+    state.settings.toolbarBehavior.enabled || state.hardwareCandidateWindow
 
 /**
  * Whether the selection macro row was showing when the open panel opened
@@ -10989,7 +11002,7 @@ private fun KeyboardBody(
             // tools alike — so the keys claim its height. Not when the strip is
             // all there is: a view up only for a physical keyboard's candidates
             // would otherwise be an empty band (#419).
-            val topBarVisible = (state.settings.toolbarBehavior.enabled || state.hardwareCandidateWindow) &&
+            val topBarVisible = barShown(state) &&
                 !fullBleed &&
                 !emojiSearching && !clipboardSearching && !lockHidden
             // The other placement: the macros take the suggestion strip's own
@@ -11291,7 +11304,10 @@ private fun KeyboardBody(
                     val openFolder = state.openSnippetFolder()
                     // The search takes the header's width while it is typing
                     // (#471), the way the dictionary's does, and the panel
-                    // collapses to its header so the keys fit under it.
+                    // collapses so the keys fit under it — to the clipboard
+                    // search's height, not to the bare header: the matches are
+                    // the point of searching, and a header alone left nowhere
+                    // to show them.
                     val searching = state.snippetSearchActive
                     FullBleedTool(
                         state,
@@ -11304,7 +11320,7 @@ private fun KeyboardBody(
                             }
                         },
                         compact = searching,
-                        compactHeight = FullBleedHeaderHeight,
+                        compactHeight = ClipboardSearchHeight + topBarHeight(state.settings),
                         headerActions = {
                             if (searching) {
                                 SnippetHeaderSearchBar(state, snippetPanel.onSearchToggle)
@@ -11315,6 +11331,9 @@ private fun KeyboardBody(
                                     active = false,
                                     onClick = snippetPanel.onSearchToggle,
                                 )
+                                // Apart, so a thumb aiming at one does not land
+                                // on the other (#471).
+                                Spacer(Modifier.width(12.dp))
                                 ToolCircle(
                                     slot = IconSlots.forTool(ToolbarTool.SETTINGS),
                                     description = stringResource(R.string.ime_snippets_settings_desc),
@@ -25837,15 +25856,19 @@ private fun SnippetsPanel(
             return@Column
         }
         // The gear rides in the full-bleed header now, so this is only the
-        // reminder that a snippet's text can carry variables.
-        Text(
-            stringResource(R.string.ime_snippets_variables),
-            fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 20.dp, end = 8.dp, bottom = 4.dp),
-        )
+        // reminder that a snippet's text can carry variables. Not while
+        // searching: the panel is a couple of rows tall then, and they are
+        // for the matches.
+        if (!state.snippetSearchActive) {
+            Text(
+                stringResource(R.string.ime_snippets_variables),
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, end = 8.dp, bottom = 4.dp),
+            )
+        }
         // One region over both kinds of tile, folders first, in the order the
         // grid lays them out — so Tab walks the panel the way the eye does.
         PanelFocusTarget(

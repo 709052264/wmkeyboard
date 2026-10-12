@@ -14185,7 +14185,24 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun commitSplitAtCaret(ic: InputConnection, text: String, caret: Int) {
         val split = caret.coerceIn(0, text.length)
-        ic.commitText(text.substring(0, split), 1)
+        val head = text.substring(0, split)
+        // Chromium's address bar takes any edit that starts at offset 0 and
+        // adds more than one character for a paste, and runs the paste
+        // sanitiser over the whole field: `javascript:` is stripped and
+        // whitespace collapsed (#471). An expansion into an empty address bar
+        // is exactly that edit, so there the first character goes in on its
+        // own and the rest lands at offset 1, the way typing would put it.
+        val lead = if (_uiState.value.fieldKind == FieldKind.URI && head.length > 1) {
+            head.offsetByCodePoints(0, 1).takeIf { it < head.length }
+        } else {
+            null
+        }
+        if (lead != null) {
+            ic.commitText(head.substring(0, lead), 1)
+            ic.commitText(head.substring(lead), 1)
+        } else {
+            ic.commitText(head, 1)
+        }
         val tail = text.substring(split)
         if (tail.isEmpty()) return
         ic.commitText(tail, 0)
