@@ -103,6 +103,45 @@ class AlternatesHoldTest {
         assertEquals(1, hold.selected.intValue)
     }
 
+    /**
+     * Issue #586: a slide up one row's height reaches the row above, though
+     * the finger is still well below the popup. The highlight stays above the
+     * finger the way it started, rather than the finger climbing onto the row.
+     */
+    @Test
+    fun `a slide up one row reaches the row above`() {
+        val hold = AlternatesHold().apply {
+            open()
+            cell = Rect(100f, 400f, 140f, 450f)
+            popupOffset = IntOffset(60, 290)
+            gridOffset = Offset(4f, 4f)
+            // Entry 0 and 1 on the row nearest the key, entry 2 above entry 0.
+            rects = listOf(
+                Rect(0f, 40f, 40f, 80f),
+                Rect(40f, 40f, 80f, 80f),
+                Rect(0f, 0f, 40f, 40f),
+            )
+        }
+        hold.moveTo(Offset(20f, 25f), reach, steerPx = 12f)
+        hold.moveTo(Offset(20f, -15f), reach, steerPx = 12f)
+        assertEquals(2, hold.selected.intValue)
+        // And back down to the key is the first entry again.
+        hold.moveTo(Offset(20f, 25f), reach, steerPx = 12f)
+        assertEquals(0, hold.selected.intValue)
+    }
+
+    /**
+     * The aim sits a row above the finger, but sliding off the bottom of the
+     * key still backs out: the aim is judged against the popup alone.
+     */
+    @Test
+    fun `sliding down off the key still chooses nothing`() {
+        val hold = hold()
+        hold.moveTo(Offset(20f, 25f), reach, steerPx = 12f)
+        hold.moveTo(Offset(20f, 130f), reach, steerPx = 12f)
+        assertEquals(-1, hold.selected.intValue)
+    }
+
     /** The entry the finger is aimed at draws biggest, and the far one at rest. */
     @Test
     fun `the aimed-at entry is magnified`() {

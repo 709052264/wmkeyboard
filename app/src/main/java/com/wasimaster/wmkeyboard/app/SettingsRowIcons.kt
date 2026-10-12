@@ -560,6 +560,7 @@ internal object SettingsRowIcons {
         put(R.string.keypress_alternates_padding_title) { Icons.Outlined.Padding }
         put(R.string.keypress_alternates_columns_title) { Icons.Outlined.ViewWeek }
         put(R.string.keypress_alternates_nearest_title) { Icons.Outlined.SwapVert }
+        put(R.string.keypress_alternates_centred_title) { Icons.Outlined.SwapHoriz }
         put(R.string.keypress_alternates_order_title) { Icons.AutoMirrored.Outlined.Sort }
         put(R.string.keypress_alternates_hold_title) { Icons.Outlined.Gesture }
         put(R.string.keypress_popup_shape_title) { Icons.Outlined.Category }

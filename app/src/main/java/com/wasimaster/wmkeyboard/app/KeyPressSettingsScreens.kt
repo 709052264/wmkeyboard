@@ -948,6 +948,15 @@ internal fun KeyPressSettings(
             ) { scope.launch { repository.setAlternatesNearestFirst(it) } }
         }
         item {
+            ToggleSetting(
+                R.string.keypress_alternates_centred_title,
+                stringResource(R.string.keypress_alternates_centred_subtitle),
+                settings.watch { it.popup.alternatesCentred },
+                info = stringResource(R.string.keypress_alternates_centred_info),
+                default = SettingsDefaults.popup.alternatesCentred,
+            ) { scope.launch { repository.setAlternatesCentred(it) } }
+        }
+        item {
             // Issue #385: which group a letter's popup leads with.
             ControlSetting(
                 R.string.keypress_alternates_order_title,

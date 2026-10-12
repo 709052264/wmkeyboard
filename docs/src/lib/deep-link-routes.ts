@@ -396,7 +396,7 @@ export const LICENSE_ASSETS = [
 	'cc-by-4.0-lshk.txt', 'cc-by-4.0-noto-animated.txt', 'cc-by-sa-4.0.txt', 'harper-third-party.txt', 'jyutping-sources.txt',
 	'mit-bouncycastle.txt', 'mit-color-themes.txt', 'mit-gemoji.txt', 'mit-keyman.txt', 'mit-khipro.txt', 'mit-luaj.txt',
 	'mit-whisper-android.txt', 'mit-whisper.txt', 'mit-wmkeyboard.txt', 'mpl-1.1.txt', 'ofl-1.1-fonts.txt', 'ofl-1.1.txt',
-	'unicode-3.0.txt', 'wordlist-sources.txt',
+	'unicode-3.0.txt', 'wordlist-sources.txt', 'x11-keysymdef.txt',
 ];
 
 /** `FLASHLIGHT` → `Flashlight`, `SOUND_HAPTICS` → `Sound haptics`. */

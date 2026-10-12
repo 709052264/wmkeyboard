@@ -422,6 +422,15 @@ data class KeyPopupSettings(
      */
     val alternatesNearestFirst: Boolean = false,
     /**
+     * Whether each row of the popup is centred on its first alternate (#585):
+     * the first in the middle, over the key, and the rest alternating out to
+     * its right and left, so a slide either way reaches the next one. Off runs
+     * the rows in reading order away from the key, as they did before. A key
+     * too near the screen's edge to centre on gets the one-sided rows either
+     * way.
+     */
+    val alternatesCentred: Boolean = true,
+    /**
      * The order of the groups in a letter's popup (#385): the layout's own
      * alternates, the accents the passes add, and the capital or shifted
      * form. The default is the order they were always assembled in. See
@@ -8640,6 +8649,7 @@ class SettingsRepository(private val context: Context) {
         private val ALTERNATES_PADDING = intPreferencesKey("alternates_padding")
         private val ALTERNATES_COLUMNS = intPreferencesKey("alternates_columns")
         private val ALTERNATES_NEAREST_FIRST = booleanPreferencesKey("alternates_nearest_first")
+        private val ALTERNATES_CENTRED = booleanPreferencesKey("alternates_centred")
         private val ALTERNATES_ORDER = stringPreferencesKey("alternates_order")
         private val ALTERNATES_HOLD_TO_SELECT = booleanPreferencesKey("alternates_hold_to_select")
         private val ALTERNATES_CLASSIC = booleanPreferencesKey("alternates_classic")
@@ -14053,6 +14063,7 @@ class SettingsRepository(private val context: Context) {
             alternatesColumns = p[ALTERNATES_COLUMNS] ?: defaults.popup.alternatesColumns,
             alternatesNearestFirst = p[ALTERNATES_NEAREST_FIRST]
                 ?: defaults.popup.alternatesNearestFirst,
+            alternatesCentred = p[ALTERNATES_CENTRED] ?: defaults.popup.alternatesCentred,
             alternatesOrder = p[ALTERNATES_ORDER]?.let(::decodeAlternatesOrder)
                 ?: defaults.popup.alternatesOrder,
             alternatesHoldToSelect = p[ALTERNATES_HOLD_TO_SELECT]
@@ -15359,6 +15370,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAlternatesNearestFirst(value: Boolean) =
         editPrefs { it[ALTERNATES_NEAREST_FIRST] = value }
+
+    suspend fun setAlternatesCentred(value: Boolean) =
+        editPrefs { it[ALTERNATES_CENTRED] = value }
 
     suspend fun setAlternatesClassic(value: Boolean) =
         editPrefs { it[ALTERNATES_CLASSIC] = value }

@@ -54,4 +54,23 @@ class AlternateRowsTest {
         assertEquals(emptyList<Int>(), alternateRowSizes(emptyList(), columns = 0, limit = 100))
         assertEquals(emptyList<Int>(), alternateRowSizes(emptyList(), columns = 5, limit = 100))
     }
+
+    /** Issue #585: the first in the middle, then right, left, right, outward. */
+    @Test
+    fun `a centred row spreads out from its first entry`() {
+        // 1 2 3 4 5 6 reads 5 3 1 2 4 6.
+        assertEquals(listOf(4, 2, 0, 1, 3, 5), centredAlternateOrder(6).toList())
+        // 1 2 3 reads 3 1 2.
+        assertEquals(listOf(2, 0, 1), centredAlternateOrder(3).toList())
+        assertEquals(listOf(0, 1), centredAlternateOrder(2).toList())
+        assertEquals(listOf(0), centredAlternateOrder(1).toList())
+    }
+
+    @Test
+    fun `every centred slot is used exactly once`() {
+        for (size in 1..12) {
+            val slots = (0 until size).map { centredAlternateSlot(it, size) }
+            assertEquals((0 until size).toList(), slots.sorted())
+        }
+    }
 }

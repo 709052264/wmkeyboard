@@ -20396,11 +20396,12 @@ internal class AlternatesHold(
     val pointer = mutableStateOf<Offset?>(null)
 
     /**
-     * How far sideways the finger's aim is moved from where the finger is, so
-     * that the spot the finger started on counts as the first entry's centre.
-     * Fixed when the finger starts steering; null until then.
+     * How far the finger's aim is moved from where the finger is, so that the
+     * spot the finger started on counts as the first entry's centre: sideways
+     * (#532) and up onto the first entry's row (#586). Fixed when the finger
+     * starts steering; null until then.
      */
-    private var shiftX: Float? = null
+    private var aimShift: Offset? = null
 
     /** The popup has just opened under this finger: pre-select the first entry. */
     fun open() {
@@ -20410,7 +20411,7 @@ internal class AlternatesHold(
         selected.intValue = 0
         anchor = null
         steering = false
-        shiftX = null
+        aimShift = null
         pointer.value = null
         gate.open = true
     }
@@ -20436,6 +20437,12 @@ internal class AlternatesHold(
      * move is capped at one entry's width, which covers any press on the key
      * itself; past that the popup is far from the key anyway, and an aim moved
      * further would leave the entries at its far end out of reach.
+     *
+     * The aim is moved up the same way (#586). The first entry is highlighted
+     * above the finger while it rests on the key, and a slide up one row's
+     * height reaches the row above that, rather than the finger having to climb
+     * past the near row onto the one it wants, covering it as it does. The
+     * highlight stays a row and a key above the finger the whole way.
      */
     fun moveTo(local: Offset, reachPx: Float, steerPx: Float) {
         val start = anchor ?: local.also { anchor = it }
@@ -20443,7 +20450,7 @@ internal class AlternatesHold(
             if ((local - start).getDistance() < steerPx) return
             steering = true
         }
-        val shift = if (classic) 0f else shiftX ?: steeringShift(start)?.also { shiftX = it } ?: 0f
+        val shift = if (classic) Offset.Zero else aimShift ?: steeringShift(start)?.also { aimShift = it } ?: Offset.Zero
         val index = indexAt(local, reachPx, shift)
         selected.intValue = index
         pointer.value = if (index < 0) null else aimInGrid(local, shift)
@@ -20490,14 +20497,22 @@ internal class AlternatesHold(
         Offset(popupOffset.x + gridOffset.x, popupOffset.y + gridOffset.y)
 
     /**
-     * The sideways move [moveTo] gives the finger's aim, or null while the popup
-     * has not been measured (asked again on the next move). [start] is where the
-     * finger was, in the key's coordinates.
+     * The move [moveTo] gives the finger's aim, or null while the popup has not
+     * been measured (asked again on the next move). [start] is where the finger
+     * was, in the key's coordinates.
+     *
+     * Sideways it is capped at one entry's width ([moveTo]). Upward it is not:
+     * the first entry's row is always above the key, by however many rows a
+     * paragraph-ordered popup stacks under it.
      */
-    private fun steeringShift(start: Offset): Float? {
+    private fun steeringShift(start: Offset): Offset? {
         val first = rects.firstOrNull()?.takeIf { it.width > 0f } ?: return null
-        val centre = first.center.x + gridOrigin().x
-        return (centre - (cell.left + start.x)).coerceIn(-first.width, first.width)
+        val centre = first.center + gridOrigin()
+        val finger = cell.topLeft + start
+        return Offset(
+            (centre.x - finger.x).coerceIn(-first.width, first.width),
+            centre.y - finger.y,
+        )
     }
 
     /**
@@ -20505,12 +20520,12 @@ internal class AlternatesHold(
      * rows' centres span: a finger in the gap under the popup is aiming at the
      * nearest row, not at a point below it.
      */
-    private fun aimInGrid(local: Offset, shift: Float): Offset? {
+    private fun aimInGrid(local: Offset, shift: Offset): Offset? {
         val entries = rects
         if (entries.isEmpty()) return null
         val origin = gridOrigin()
-        val x = cell.left + local.x + shift - origin.x
-        val y = cell.top + local.y - origin.y
+        val x = cell.left + local.x + shift.x - origin.x
+        val y = cell.top + local.y + shift.y - origin.y
         var lowest = Float.MAX_VALUE
         var highest = -Float.MAX_VALUE
         for (rect in entries) {
@@ -20530,25 +20545,27 @@ internal class AlternatesHold(
      * resting on the key must still be choosing the entry it pre-selected.
      * Further out than that is a deliberate move away, and cancels.
      *
-     * [shift] moves where the finger is aiming sideways ([moveTo]); whether it
-     * has strayed out of reach is still judged where it actually is.
+     * [shift] moves where the finger is aiming ([moveTo]). It has strayed out
+     * of reach only when neither the finger nor its aim is still near: a finger
+     * steering down a paragraph-ordered popup aims rows above where it is, and
+     * may be well below the key while its aim is still on the popup.
      *
      * With no rects yet — the popup opened this frame and has not been measured
      * — the answer is the first entry, which is what was pre-selected.
      */
-    fun indexAt(local: Offset, slopPx: Float, shift: Float = 0f): Int {
+    fun indexAt(local: Offset, slopPx: Float, shift: Offset = Offset.Zero): Int {
         val entries = rects
         if (entries.isEmpty()) return 0
         val origin = gridOrigin()
         val finger = cell.topLeft + local
-        val point = Offset(finger.x + shift, finger.y)
+        val point = finger + shift
         var best = -1
         var bestDistance = Float.MAX_VALUE
         // The popup's own bounds, grown entry by entry: Rect has no union.
-        var left = cell.left
-        var top = cell.top
-        var right = cell.right
-        var bottom = cell.bottom
+        var left = Float.MAX_VALUE
+        var top = Float.MAX_VALUE
+        var right = -Float.MAX_VALUE
+        var bottom = -Float.MAX_VALUE
         for ((index, rect) in entries.withIndex()) {
             val entry = rect.translate(origin)
             left = minOf(left, entry.left)
@@ -20563,9 +20580,18 @@ internal class AlternatesHold(
                 best = index
             }
         }
-        if (bestDistance == 0f && shift == 0f) return best
-        val reachable = Rect(left, top, right, bottom).inflate(slopPx)
-        return if (reachable.contains(finger)) best else -1
+        if (bestDistance == 0f && shift == Offset.Zero) return best
+        // The finger is judged against the popup and its key together; the aim
+        // against the popup alone, or a finger sliding off the bottom of the key
+        // to cancel would still be aiming at the key, a row up, and never leave.
+        val popup = Rect(left, top, right, bottom)
+        val reachable = Rect(
+            minOf(left, cell.left),
+            minOf(top, cell.top),
+            max(right, cell.right),
+            max(bottom, cell.bottom),
+        ).inflate(slopPx)
+        return if (reachable.contains(finger) || popup.inflate(slopPx).contains(point)) best else -1
     }
 }
 
@@ -20687,6 +20713,13 @@ private fun AlternatesPopup(
     // until the first layout, which then places the popup as it always was.
     val firstEntry = remember { mutableStateOf<FirstAlternate?>(null) }
     val mirrored = remember { mutableStateOf(false) }
+    // Centred rows (#585) put the first entry in the middle with the rest
+    // either side of it. A key too near an edge for that to sit over it falls
+    // back to rows running away from the edge, as above, for as long as the
+    // popup is up: the one-sided popup is the one that keeps its first entry
+    // over the key there.
+    val centredFits = remember { mutableStateOf(true) }
+    val centred = popup.alternatesCentred && !classic && centredFits.value
     // Classic: placed where the key is, as before #532.
     val firstAt = firstEntry.value.takeIf { !classic }
     val provider = remember(popupPosition, hold, marginPx, firstAt) {
@@ -20702,6 +20735,12 @@ private fun AlternatesPopup(
                 val key = anchorBounds.center
                 val wanted = if (firstAt == null) {
                     at.x
+                } else if (firstAt.centred) {
+                    val x = key.x - firstAt.x.roundToInt()
+                    if (x < marginPx || x + popupContentSize.width > windowSize.width - marginPx) {
+                        centredFits.value = false
+                    }
+                    x
                 } else {
                     val width = popupContentSize.width
                     // The first entry's distance from whichever edge the rows
@@ -20721,9 +20760,9 @@ private fun AlternatesPopup(
     // The grid's place in the popup window and its first entry's centre inside
     // the grid, each reported from its own layout callback.
     val firstProbe = remember { FloatArray(2) }
-    val mirror = mirrored.value
+    val mirror = mirrored.value && !centred
     val publishFirst = {
-        firstEntry.value = FirstAlternate(firstProbe[0] + firstProbe[1], mirror)
+        firstEntry.value = FirstAlternate(firstProbe[0] + firstProbe[1], mirror, centred)
     }
     // The highlight slides from the entry it leaves to the one the finger
     // reaches, on a spring fast enough to keep up with the finger, the way
@@ -20840,6 +20879,7 @@ private fun AlternatesPopup(
                 // setting says, and every other key follows the setting.
                 columns = key.alternateColumns.takeIf { it > 0 } ?: popup.alternatesColumns,
                 nearestFirst = popup.alternatesNearestFirst,
+                centred = centred,
                 mirrored = mirror,
                 onRects = { rects ->
                     hold?.rects = rects
@@ -21038,11 +21078,19 @@ private fun Modifier.growFrom(pivot: () -> Offset?, scale: () -> Float): Modifie
  * the rows are placed bottom upward, so the first entry is on the row nearest the
  * key and the overflow climbs away from it (issue #64). Neither changes the order
  * inside a row, and neither is visible at all on a popup of one row.
+ *
+ * [centred] does change it (#585): each row's first entry goes in the middle
+ * and the rest alternate out to its right and left, nearest first, so the
+ * entries either side of the one over the key are a slide away in both
+ * directions ([centredAlternateSlot]). On a fixed grid a part-full row is
+ * centred on the same column as the full ones, so the column over the key
+ * always starts a row.
  */
 @Composable
 private fun AlternatesGrid(
     columns: Int,
     nearestFirst: Boolean,
+    centred: Boolean,
     /**
      * Runs every row right to left, so the first entry is at the right-hand end
      * — what a popup opened from a key near the right edge needs to keep its
@@ -21087,8 +21135,9 @@ private fun AlternatesGrid(
         }
         val heights = rows.map { row -> row.maxOfOrNull { it.height } ?: 0 }
         val cellWidth = (placeables.maxOfOrNull { it.width } ?: 0).coerceAtMost(cell)
+        val gridColumns = minOf(fitted, placeables.size)
         val widest = if (fitted > 0) {
-            cellWidth * minOf(fitted, placeables.size)
+            cellWidth * gridColumns
         } else {
             rows.maxOfOrNull { row -> row.sumOf { it.width } } ?: 0
         }
@@ -21103,23 +21152,28 @@ private fun AlternatesGrid(
             for (index in if (nearestFirst) rows.indices.reversed() else rows.indices) {
                 val row = rows[index]
                 val rowHeight = heights[index]
-                var x = if (fitted > 0) 0 else (width - row.sumOf { it.width }) / 2
+                // A centred part-full row on a fixed grid starts this many
+                // columns in, so its middle is the full rows' middle.
+                val indent = if (centred && fitted > 0) (gridColumns - 1) / 2 - (row.size - 1) / 2 else 0
+                var x = if (fitted > 0) indent * cellWidth else (width - row.sumOf { it.width }) / 2
                 // Where this row starts in the content, which is what the rows
                 // were cut from and so is the sum of every earlier row's size.
-                var slot = rows.take(index).sumOf { it.size }
-                for (placeable in row) {
+                val first = rows.take(index).sumOf { it.size }
+                // Left to right, which entry of the row goes where.
+                val order = if (centred) centredAlternateOrder(row.size) else IntArray(row.size) { it }
+                for (k in order) {
+                    val placeable = row[k]
                     val lane = if (fitted > 0) cellWidth else placeable.width
                     val laid = x + (lane - placeable.width) / 2
                     val left = if (mirrored) width - laid - placeable.width else laid
                     val top = y + (rowHeight - placeable.height) / 2
                     placeable.place(left, top)
-                    bounds[slot] = Rect(
+                    bounds[first + k] = Rect(
                         left.toFloat(),
                         top.toFloat(),
                         (left + placeable.width).toFloat(),
                         (top + placeable.height).toFloat(),
                     )
-                    slot++
                     placed++
                     x += lane
                 }
@@ -21130,6 +21184,29 @@ private fun AlternatesGrid(
             }
         }
     }
+}
+
+/**
+ * Where entry [k] of a centred row of [size] goes, counted from the left
+ * (#585): the first in the middle (left of it, for an even count), then one
+ * to its right, one to its left, and on outward, the way AOSP lays a popup
+ * out. So `1 2 3 4 5 6` reads `5 3 1 2 4 6`, and each entry is the nearest
+ * one to the first that is still free.
+ */
+internal fun centredAlternateSlot(k: Int, size: Int): Int {
+    val middle = (size - 1) / 2
+    return when {
+        k == 0 -> middle
+        k % 2 == 1 -> middle + (k + 1) / 2
+        else -> middle - k / 2
+    }
+}
+
+/** The inverse of [centredAlternateSlot]: which entry of the row each slot, left to right, holds. */
+internal fun centredAlternateOrder(size: Int): IntArray {
+    val order = IntArray(size)
+    for (k in 0 until size) order[centredAlternateSlot(k, size)] = k
+    return order
 }
 
 /**
@@ -21482,8 +21559,9 @@ private val AlternatesHighlightSpring = spring(
  * Where the alternates grid's first entry is, as the grid last laid it out:
  * [x] is its centre in the popup window, and [mirrored] whether the rows ran
  * leftward when it was measured, which says which edge [x] is counted from.
+ * [centred] rows (#585) put it near the middle instead, counted from the left.
  */
-private data class FirstAlternate(val x: Float, val mirrored: Boolean)
+private data class FirstAlternate(val x: Float, val mirrored: Boolean, val centred: Boolean)
 
 /**
  * Where the alternates popup's left edge goes so its first entry sits over the

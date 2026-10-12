@@ -141,6 +141,10 @@
     <string name="keypress_alternates_nearest_subtitle">Fill the popup from the key outward</string>
     <string name="keypress_alternates_nearest_info">The popup opens above the key that you hold. This decides which end of it the first alternate goes to.\n\nOff: the first alternate is at the top left and the popup fills downward, like lines of text. On a popup of several rows, the first alternate is then the furthest from your finger.\n\nOn: the first alternate is on the row nearest the key, and the rest climb away from it. This is what most stock keyboards do, and it is a shorter reach on a key with many alternates. A popup of one row looks the same either way.</string>
 
+    <string name="keypress_alternates_centred_title">Centre on the key</string>
+    <string name="keypress_alternates_centred_subtitle">Put the other alternates on both sides of the first</string>
+    <string name="keypress_alternates_centred_info">The first alternate always opens right over the key that you hold.\n\nOn: the others go on both sides of it, one to the right, one to the left, and so on outward, so a slide either way reaches the next one. A key near the edge of the screen has no room on one side, so its popup runs away from the edge instead.\n\nOff: the others follow the first in reading order, all to one side of it.</string>
+
     <string name="keypress_alternates_order_title">Order of the alternates</string>
     <string name="keypress_alternates_order_subtitle">Which group comes first in a letter\'s popup</string>
     <string name="keypress_alternates_order_info">A letter\'s popup can hold three kinds of character: the alternates the layout itself puts under the key, the accents added by All accents and Native letters first, and the capital or shifted form added by Shifted letter on press and hold. Drag the groups into the order you want. Inside each group the order stays as it was. The first entry is the one a hold and release types, so the group you reach for most belongs at the top. The default is the layout\'s own, then the accents, then the capital.</string>
