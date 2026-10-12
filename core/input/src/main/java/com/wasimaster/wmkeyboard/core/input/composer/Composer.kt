@@ -195,6 +195,16 @@ interface Composer {
     val isConversion: Boolean get() = false
 
     /**
+     * Whether a reading left without a conversion — ended by a punctuation
+     * mark, an arrow key, a caret move or a layout switch rather than by space
+     * or a picked candidate — commits as [typedReading] instead of as its best
+     * candidates (#616). True for Japanese, whose kana reading is already text
+     * the user can mean, the way Mozc and Gboard confirm it; false for the
+     * Chinese composers, whose reading is letters or keys nobody means to send.
+     */
+    val keepsUnconvertedReading: Boolean get() = false
+
+    /**
      * Whether this conversion composer reads its readings straight off the
      * Latin letter keys — full pinyin, romaji, Jyutping — so that the keys
      * spelling a reading could just as well be spelling an English word.

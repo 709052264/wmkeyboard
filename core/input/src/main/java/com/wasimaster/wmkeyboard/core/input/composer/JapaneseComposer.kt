@@ -21,6 +21,7 @@ object JapaneseComposer : Composer {
 
     override val isTransliterating: Boolean get() = true
     override val isConversion: Boolean get() = true
+    override val keepsUnconvertedReading: Boolean get() = true
     override val missingPack: String? get() = CjkDictionaries.missingJapanese
     override val readsLatinLetters: Boolean get() = true
 

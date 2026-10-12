@@ -13716,8 +13716,18 @@ open class WMKeyboardService : InputMethodService() {
         // callers that aren't the space bar — cursor scrub, layout switch,
         // defocus — never drop the unconverted tail. The space bar takes the
         // interactive one-step path (commitConversionPrefix) instead.
+        //
+        // Japanese keeps its kana instead (#616): ending なるといいです with ！
+        // typed NARUTOイイデス！. Only space and a picked candidate convert,
+        // as Enter already had it (#514); a candidate the arrow keys or a
+        // stepping space bar highlighted is still the pick.
         if (state.composer.isConversion) {
-            flushConversion(ic)
+            if (state.composer.keepsUnconvertedReading) {
+                commitHighlightedCandidate()
+                if (composing.isNotEmpty()) commitConversionAsTyped(ic)
+            } else {
+                flushConversion(ic)
+            }
             return true
         }
         // A buffer glued to word characters already in the field is the tail
