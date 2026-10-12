@@ -6,7 +6,7 @@
     <string name="location_format_subtitle">What Insert types. Hold a format on the panel to make it the default.</string>
     <string name="location_map_link_title">Map link</string>
     <string name="location_map_link_subtitle">The map that a shared link opens</string>
-    <string name="location_map_link_geo">geo: link, opens the reader's own maps app</string>
+    <string name="location_map_link_geo">geo: link, opens the reader\'s own maps app</string>
     <string name="location_precision_title">Precision</string>
     <string name="location_precision_subtitle">How much of your position a share gives away</string>
     <string name="location_precision_info">A coarser precision moves the point to the centre of a fixed square of that size. The square is the same each time, so many shares from one place cannot be averaged back to that place. The address, the link and the Plus code all use the moved point.</string>
@@ -40,6 +40,13 @@
     <string name="location_permission_status_approximate">Approximate</string>
     <string name="location_permission_status_absent">Not in this build</string>
 
+    <string name="location_camera_group">Location</string>
+    <string name="location_camera_info">Both use the location tool: its precision, its address lookup and its format. The first photo with either asks Android for location access.</string>
+    <string name="location_camera_stamp_title">Stamp the place on photos</string>
+    <string name="location_camera_stamp_subtitle">A band along the bottom with the address, coordinates, time and Plus code. The pin on the viewfinder turns this on and off.</string>
+    <string name="location_camera_caption_title">Add the place as text</string>
+    <string name="location_camera_caption_subtitle">Send puts the place in the text box too, in the location tool\'s default format</string>
+    <string name="location_camera_caption_info">The text goes in first, then the photo. Many chat apps use the text in the box as the photo\'s caption; others send it as a message of its own.</string>
     <string name="location_use_mine_action">Use my location</string>
     <string name="location_use_mine_failed_toast">Could not find your location</string>
 </resources>

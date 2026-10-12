@@ -38,6 +38,10 @@
     <string name="ime_location_weather_action">Use for weather and compass</string>
     <string name="ime_location_weather_saved_toast">Weather and compass now use this place</string>
     <string name="ime_location_refresh_desc">Find me again</string>
+    <string name="ime_location_photo_desc">Take a photo with the place on it</string>
+    <string name="ime_location_stamp_desc">Location stamp</string>
+    <string name="ime_location_stamp_waiting">Finding you for the stamp…</string>
+    <string name="ime_location_caption_label">Add the place as text</string>
 
     <string name="ime_location_places_empty">No saved places yet. Save where you are on Here, or add places in settings.</string>
     <string name="ime_location_places_add_action">Add in settings</string>

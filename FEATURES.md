@@ -18,12 +18,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Emoji, GIFs, stickers, kaomoji | 16 | 88 | 94 |
 | Toolbar and the tool set | 10 | 86 | 327 |
 | Clipboard, snippets, text expansion | 7 | 37 | 191 |
-| AI, voice, handwriting, scanning | 11 | 70 | 162 |
+| AI, voice, handwriting, scanning | 11 | 71 | 167 |
 | Privacy, backup, storage, statistics | 14 | 69 | 173 |
 | Accessibility, form factors, platform integration | 13 | 61 | 111 |
 | Extensibility: addons, plugins, imports, formats | 5 | 35 | 164 |
 | Modes, rows, field adaptation, runtime | 12 | 97 | 203 |
-| **Total** | **133** | **808** | **2245** |
+| **Total** | **133** | **809** | **2250** |
 
 ## Typing core: prediction, autocorrect, learning, spell check
 
@@ -2624,6 +2624,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Optional copy into Pictures/WM Keyboard
     - Scratch captures pruned to the 4 newest on each panel open
   - Per-tool feedback settings — shutter sound and in-panel haptics are separate toggles
+  - Location on the photo (#350) `RARE` — a pin chip on the rail stamps the place into the pixels; a confirm-step switch types it as the caption
+    - Stamp band — 📍 place, then coordinates · time · Plus code, white on a dark fade, ellipsized to the width; at the Location tool's precision
+    - Live line over the viewfinder — shows what the band will say, or that it is still finding you
+    - Caption goes in before the photo — apps that take the box as the caption get it; others send it as its own message
+    - Location panel's camera button — opens the camera with the stamp on for one photo
+    - Hidden without the Location tool or in -Pwmkb.noLocation builds
 
 **Conditions and gating**
 

@@ -1175,6 +1175,8 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_fullframe_title, R.string.tooldetail_camera_fullframe_subtitle),
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_gallery_title, R.string.tooldetail_camera_gallery_subtitle),
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_search_button_title, R.string.tooldetail_camera_search_button_subtitle),
+    toolEntry(ToolbarTool.CAMERA, R.string.location_camera_stamp_title, R.string.location_camera_stamp_subtitle),
+    toolEntry(ToolbarTool.CAMERA, R.string.location_camera_caption_title, R.string.location_camera_caption_subtitle),
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_search_with_title),
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_search_engine_title),
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_shutter_title, R.string.tooldetail_camera_shutter_subtitle),

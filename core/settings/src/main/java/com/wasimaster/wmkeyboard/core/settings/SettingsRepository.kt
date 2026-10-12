@@ -5094,6 +5094,14 @@ data class CameraSettings(
     val searchCustomUrl: String = "",
     /** Form field the photo goes in, for [PhotoSearchEngine.CUSTOM]. */
     val searchCustomField: String = "image",
+    /**
+     * Burn the place into the photo (#350): a band along the bottom with the
+     * address, the coordinates, the time and the Plus code, at the Location
+     * tool's precision. In the pixels, so every chat app shows it.
+     */
+    val locationStamp: Boolean = false,
+    /** Put the place in the text box as well when a photo is sent (#350). */
+    val locationCaption: Boolean = false,
 )
 
 /**
@@ -9575,6 +9583,8 @@ class SettingsRepository(private val context: Context) {
         private val CAMERA_SAVE_TO_GALLERY = booleanPreferencesKey("camera_save_to_gallery")
         private val CAMERA_FULL_FRAME = booleanPreferencesKey("camera_full_frame")
         private val CAMERA_SEARCH_BUTTON = booleanPreferencesKey("camera_search_button")
+        private val CAMERA_LOCATION_STAMP = booleanPreferencesKey("camera_location_stamp")
+        private val CAMERA_LOCATION_CAPTION = booleanPreferencesKey("camera_location_caption")
         private val CAMERA_SEARCH_WITH = stringPreferencesKey("camera_search_with")
         private val CAMERA_SEARCH_ENGINE = stringPreferencesKey("camera_search_engine")
         private val CAMERA_SEARCH_CUSTOM_URL = stringPreferencesKey("camera_search_custom_url")
@@ -11579,6 +11589,8 @@ class SettingsRepository(private val context: Context) {
             searchCustomUrl = p[CAMERA_SEARCH_CUSTOM_URL] ?: defaults.camera.searchCustomUrl,
             searchCustomField = p[CAMERA_SEARCH_CUSTOM_FIELD]
                 ?.takeIf { it.isNotBlank() } ?: defaults.camera.searchCustomField,
+            locationStamp = p[CAMERA_LOCATION_STAMP] ?: defaults.camera.locationStamp,
+            locationCaption = p[CAMERA_LOCATION_CAPTION] ?: defaults.camera.locationCaption,
         )
 
     private fun readScanner(p: Preferences, defaults: KeyboardSettings) =
@@ -12767,6 +12779,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setCameraSearchButton(value: Boolean) =
         editPrefs { it[CAMERA_SEARCH_BUTTON] = value }
+
+    suspend fun setCameraLocationStamp(value: Boolean) =
+        editPrefs { it[CAMERA_LOCATION_STAMP] = value }
+
+    suspend fun setCameraLocationCaption(value: Boolean) =
+        editPrefs { it[CAMERA_LOCATION_CAPTION] = value }
 
     suspend fun setCameraSearchWith(value: PhotoSearchTarget) =
         editPrefs { it[CAMERA_SEARCH_WITH] = value.name }

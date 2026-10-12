@@ -62,6 +62,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LocationOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MyLocation
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoCamera
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Place
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.WbSunny
@@ -116,6 +117,14 @@ data class LocationCallbacks(
     /** "Use my location" on the weather and compass panels. */
     val onUseMyLocationForTools: () -> Unit = {},
     val onOpenSettings: () -> Unit = {},
+    /** The camera, with its location stamp on for one photo. */
+    val onPhoto: () -> Unit = {},
+    /** The camera's stamp or caption wants a reading, with the Location panel closed. */
+    val onLocateForCamera: () -> Unit = {},
+    /** The camera's caption: the place as text, before the photo. */
+    val onCaption: () -> Unit = {},
+    /** The camera read [LocationUi.stampOnce]. */
+    val onStampConsumed: () -> Unit = {},
 )
 
 /**
@@ -266,14 +275,15 @@ private fun HereBody(
                 1 -> callbacks.onSave()
                 2 -> callbacks.onOpenMaps(precision.apply(fix.point), null)
                 3 -> callbacks.onUseForWeather(fix.point, null)
+                4 -> callbacks.onPhoto()
                 else -> callbacks.onLocate()
             }
         }
     }
 }
 
-/** Insert, Save, Map, Weather, Refresh. */
-private const val FIX_ACTIONS = 5
+/** Insert, Save, Map, Weather, Photo, Refresh. */
+private const val FIX_ACTIONS = 6
 
 @Composable
 private fun Intro(focused: Boolean, onLocate: () -> Unit) {
@@ -465,7 +475,8 @@ private fun FixView(
             ActionIcon(Icons.Outlined.WbSunny, stringResource(R.string.ime_location_weather_action), focusedAction == 3) {
                 callbacks.onUseForWeather(fix.point, null)
             }
-            ActionIcon(Icons.Outlined.Refresh, stringResource(R.string.ime_location_refresh_desc), focusedAction == 4, callbacks.onLocate)
+            ActionIcon(Icons.Outlined.PhotoCamera, stringResource(R.string.ime_location_photo_desc), focusedAction == 4, callbacks.onPhoto)
+            ActionIcon(Icons.Outlined.Refresh, stringResource(R.string.ime_location_refresh_desc), focusedAction == 5, callbacks.onLocate)
         }
     }
 }

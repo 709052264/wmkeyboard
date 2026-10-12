@@ -1047,6 +1047,28 @@ internal fun ToolDetailSettings(
                 }
             }
             SettingsGroup(
+                stringResource(R.string.location_camera_group),
+                info = stringResource(R.string.location_camera_info),
+            ) {
+                item {
+                    ToggleSetting(
+                        R.string.location_camera_stamp_title,
+                        stringResource(R.string.location_camera_stamp_subtitle),
+                        settings.watch { it.camera.locationStamp },
+                        default = SettingsDefaults.camera.locationStamp,
+                    ) { scope.launch { repository.setCameraLocationStamp(it) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.location_camera_caption_title,
+                        stringResource(R.string.location_camera_caption_subtitle),
+                        settings.watch { it.camera.locationCaption },
+                        info = stringResource(R.string.location_camera_caption_info),
+                        default = SettingsDefaults.camera.locationCaption,
+                    ) { scope.launch { repository.setCameraLocationCaption(it) } }
+                }
+            }
+            SettingsGroup(
                 stringResource(R.string.tooldetail_camera_search_group),
                 info = stringResource(R.string.tooldetail_camera_search_info),
             ) {

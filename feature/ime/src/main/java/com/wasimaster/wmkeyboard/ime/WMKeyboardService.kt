@@ -32189,6 +32189,7 @@ open class WMKeyboardService : InputMethodService() {
             panelOpen = { _uiState.value.panel == PanelMode.LOCATION },
             openToolSettings = { openToolSettings(ToolbarTool.LOCATION) },
             onWeatherLocationChanged = ::onWeatherLocationSaved,
+            openCamera = { onPanelChange(PanelMode.CAMERA) },
         )
     }
 

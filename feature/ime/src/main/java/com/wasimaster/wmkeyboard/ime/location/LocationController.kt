@@ -69,6 +69,8 @@ data class LocationUi(
     val format: LocationFormat? = null,
     /** The saved place opened to its actions. */
     val openPlace: Long? = null,
+    /** The panel's Photo button: the camera opens with its location stamp on, this once. */
+    val stampOnce: Boolean = false,
 ) {
     /** The address that belongs to the reading on screen at [precision], if it is in. */
     fun addressFor(precision: LocationPrecision): String? {
@@ -123,6 +125,8 @@ internal class LocationController(
     private val openToolSettings: () -> Unit,
     /** The weather location changed under the weather panel; refetch if it is open. */
     private val onWeatherLocationChanged: (latitude: Float, longitude: Float) -> Unit,
+    /** Opens the camera tool's panel. */
+    private val openCamera: () -> Unit,
 ) {
     private val context = context.applicationContext
     private val fixer by lazy { LocationFixer(this.context) }
@@ -134,7 +138,7 @@ internal class LocationController(
     private var addressJob: Job? = null
     private var toolsJob: Job? = null
 
-    private enum class Pending { NONE, LOCATE, TOOLS }
+    private enum class Pending { NONE, LOCATE, TOOLS, CAMERA }
 
     private var pending = Pending.NONE
     private var pendingSince = 0L
@@ -157,6 +161,10 @@ internal class LocationController(
         onServicesSettings = ::openServicesSettings,
         onUseMyLocationForTools = ::useForTools,
         onOpenSettings = openToolSettings,
+        onPhoto = ::photo,
+        onLocateForCamera = ::locateForCamera,
+        onCaption = ::insertCaption,
+        onStampConsumed = { _state.update { it.copy(stampOnce = false) } },
     )
 
     private val locationSettings: LocationSettings get() = settings().location
@@ -221,6 +229,7 @@ internal class LocationController(
         when (what) {
             Pending.LOCATE -> if (panelOpen()) startFix()
             Pending.TOOLS -> useForTools()
+            Pending.CAMERA -> startFix()
             Pending.NONE -> Unit
         }
     }
@@ -259,6 +268,43 @@ internal class LocationController(
             !ui.servicesOn -> Unit
             else -> startFix()
         }
+    }
+
+    /**
+     * The camera's location stamp or caption was turned on: make sure a
+     * reading is coming, asking Android first if it has to. Unlike [locate]
+     * this works with the Location panel closed, which it is.
+     */
+    private fun locateForCamera() {
+        refreshAccess()
+        val ui = _state.value
+        when {
+            !ui.declared -> toast(R.string.ime_location_no_permission_build_toast)
+            ui.grant == LocationGrant.NONE -> requestPermission(Pending.CAMERA)
+            !ui.servicesOn -> openServicesSettings()
+            ui.status == LocationStatus.LOCATING -> Unit
+            ui.fix != null && ui.fix.isRecent() -> ensureAddress()
+            else -> startFix()
+        }
+    }
+
+    /** The panel's Photo button: the camera, with the stamp on for this photo. */
+    private fun photo() {
+        haptic()
+        _state.update { it.copy(stampOnce = true) }
+        openCamera()
+    }
+
+    /**
+     * The camera's caption: the current reading in the default format, typed
+     * before the photo goes so apps that take the box as a caption use it.
+     * Nothing when there is no reading yet.
+     */
+    private fun insertCaption() {
+        val ui = _state.value
+        val fix = ui.fix ?: return
+        val share = ui.currentShare(locationSettings, timeText(fix)) ?: return
+        insertText(render(share, locationSettings.format))
     }
 
     private fun allowPrecise() {

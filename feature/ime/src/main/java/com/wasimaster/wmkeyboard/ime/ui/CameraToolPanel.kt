@@ -49,6 +49,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashAuto
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ImageSearch
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LocationOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Timer
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TimerOff
@@ -58,6 +59,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableFloatStateOf
@@ -95,7 +97,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.wasimaster.wmkeyboard.core.location.LocationAccess
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.util.runCancellable
+import com.wasimaster.wmkeyboard.ime.location.LocationStamp
+import com.wasimaster.wmkeyboard.ime.location.currentShare
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
@@ -158,6 +164,8 @@ internal fun CameraPanel(
     onSend: (File, Boolean) -> Unit,
     onRequestPermission: () -> Unit,
     onClose: () -> Unit,
+    /** The Location tool, for the stamp and the caption (#350). */
+    location: LocationCallbacks = LocationCallbacks(),
 ) {
     val height = keyRowsHeight(state)
     val kb = LocalKbTheme.current
@@ -192,7 +200,7 @@ internal fun CameraPanel(
             .height(height),
     ) {
         if (hasPermission) {
-            CameraContent(state = state, onSend = onSend, onClose = onClose)
+            CameraContent(state = state, onSend = onSend, onClose = onClose, location = location)
         } else {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -245,6 +253,7 @@ private fun CameraContent(
     state: KeyboardUiState,
     onSend: (File, Boolean) -> Unit,
     onClose: () -> Unit,
+    location: LocationCallbacks,
 ) {
     val kb = LocalKbTheme.current
     val context = LocalContext.current
@@ -275,6 +284,21 @@ private fun CameraContent(
     var zoomRatio by remember(camera) { mutableFloatStateOf(1f) }
     var geometry by remember { mutableStateOf<PanelGeometry?>(null) }
     val windowHeight = LocalView.current.rootView.height
+
+    // The place on the photo (#350). Offered while the Location tool is on and
+    // this build can read a position at all; the Location panel's Photo
+    // button turns the stamp on for one photo whatever the setting says.
+    val locationOffered = remember(state.settings.enabledTools) {
+        ToolbarTool.LOCATION in state.settings.enabledTools && LocationAccess.declared(context)
+    }
+    val place by location.state.collectAsState()
+    var stamp by remember {
+        mutableStateOf(locationOffered && (state.settings.camera.locationStamp || location.state.value.stampOnce))
+    }
+    var caption by remember { mutableStateOf(locationOffered && state.settings.camera.locationCaption) }
+    LaunchedEffect(Unit) { if (location.state.value.stampOnce) location.onStampConsumed() }
+    // Either one needs a reading; ask for it the moment it is turned on.
+    LaunchedEffect(stamp, caption) { if (stamp || caption) location.onLocateForCamera() }
 
     // Haptics on controls, ticks and shutter — the tool setting gates it;
     // the global haptic settings still shape the actual vibration.
@@ -400,6 +424,13 @@ private fun CameraContent(
             }
             val mirror = usingFront && state.settings.camera.mirrorFront
             val geo = geometry
+            // Read now, on the main thread: the place as it is at the shutter.
+            val stampLines = if (stamp) {
+                val now = android.text.format.DateFormat.getTimeFormat(context).format(java.util.Date())
+                place.currentShare(state.settings.location, now)?.let(LocationStamp::lines)
+            } else {
+                null
+            }
             val capture = withContext(Dispatchers.IO) {
                 runCancellable {
                     val proxy = imageCapture.awaitCapture(context)
@@ -408,7 +439,8 @@ private fun CameraContent(
                     // was actually on screen — what you saw is what you get.
                     // The full-frame setting skips that and keeps the lot.
                     val slice = if (fullFrame) null else upright.cropToVisible(geo)
-                    val bitmap = slice?.first ?: upright
+                    val framed = slice?.first ?: upright
+                    val bitmap = stampLines?.let { (title, detail) -> LocationStamp.draw(framed, title, detail) } ?: framed
                     val file = File(captureDir(context), "IMG_${System.currentTimeMillis()}.jpg")
                     file.outputStream().use { out ->
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 92, out)
@@ -519,6 +551,9 @@ private fun CameraContent(
                     // Send's vibration comes from the service handler.
                     CaptureAction.SEND -> {
                         pending = null
+                        // The text first: an app that takes the box as the
+                        // photo's caption finds it there when the photo lands.
+                        if (caption) location.onCaption()
                         onSend(captured.file, false)
                     }
                     // The photo stays up: the service closes the panel once
@@ -536,6 +571,20 @@ private fun CameraContent(
                 columns = actions.size,
             ) { index -> actions.getOrNull(index)?.let(act) }
             val focusedAction = state.focusedIndex(FocusRegion.ACTIONS)
+            if (locationOffered && !state.cameraSearchOnly) {
+                LocationCaptionToggle(
+                    on = caption,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 62.dp)
+                        .then(stillLayer),
+                ) {
+                    feedback()
+                    caption = !caption
+                    val next = caption
+                    scope.launch { settingsRepo.setCameraLocationCaption(next) }
+                }
+            }
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -629,6 +678,28 @@ private fun CameraContent(
 
         BackChip(offsetY = viewfinderTop, feedback = feedback, onClose = onClose)
 
+        // What the stamp will say, over the viewfinder, so nobody is
+        // surprised by the band on the photo.
+        if (stamp) {
+            val preview = place.currentShare(state.settings.location, "")?.let { LocationStamp.lines(it).first }
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(start = 16.dp, end = 16.dp, bottom = 74.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Black.copy(alpha = 0.45f))
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+            ) {
+                Text(
+                    preview?.let { "📍 $it" } ?: stringResource(R.string.ime_location_stamp_waiting),
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                )
+            }
+        }
+
         if (countdown > 0) {
             Text(
                 countdown.toString(),
@@ -694,6 +765,19 @@ private fun CameraContent(
                     timerSeconds = next
                     scope.launch { settingsRepo.setCameraTimerSeconds(next) }
                 }
+                if (locationOffered) {
+                    Spacer(Modifier.width(8.dp))
+                    CameraChipButton(
+                        icon = Icons.Outlined.LocationOn,
+                        description = stringResource(R.string.ime_location_stamp_desc),
+                        active = stamp,
+                    ) {
+                        feedback()
+                        stamp = !stamp
+                        val next = stamp
+                        scope.launch { settingsRepo.setCameraLocationStamp(next) }
+                    }
+                }
             }
             // Shutter: white ring with a fill that dims while busy. The
             // semantics lambda is not composable, so the label is read here.
@@ -729,6 +813,33 @@ private fun CameraContent(
                 }
             }
         }
+    }
+}
+
+/** The confirm step's "add the place as text" switch (#350). */
+@Composable
+private fun LocationCaptionToggle(on: Boolean, modifier: Modifier = Modifier, onToggle: () -> Unit) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.Black.copy(alpha = if (on) 0.6f else 0.4f))
+            .pointerInput(Unit) { detectTapGestures { onToggle() } }
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(
+            Icons.Outlined.LocationOn,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = if (on) Color(0xFFFFD54F) else Color.White,
+        )
+        Text(
+            stringResource(R.string.ime_location_caption_label),
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = if (on) FontWeight.SemiBold else FontWeight.Normal,
+        )
     }
 }
 

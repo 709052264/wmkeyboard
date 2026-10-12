@@ -11513,6 +11513,7 @@ private fun KeyboardBody(
                     onClose = {
                         onPanelChange(if (state.cameraSearchOnly) PanelMode.IMAGE_SEARCH else PanelMode.CAMERA)
                     },
+                    location = toolHold.location,
                 )
                 PanelMode.OCR -> if (BuildConfig.ENABLE_ML_KIT_SCANNERS) {
                     OcrPanel(
