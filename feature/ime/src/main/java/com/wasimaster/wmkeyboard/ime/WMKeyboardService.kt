@@ -7864,7 +7864,14 @@ open class WMKeyboardService : InputMethodService() {
             repeat(length) { composingKeys.removeLastOrNull() }
             repeat(length) { composingHints.removeLastOrNull() }
             ambiguousReading = null
-            updateComposingText(ic)
+            // A step that was the whole buffer (ㄱ becoming ㅋ as the first
+            // letter) leaves the region on screen for the next step to
+            // overwrite. Writing the empty buffer out ends the composition, and
+            // its echo — caret at the word's start, no region — arrives after
+            // the next step is already in the buffer and reads as the editor
+            // throwing the word away: the buffer is dropped, the consonant is
+            // committed bare, and the vowel after it no longer joins it (#598).
+            if (composing.isNotEmpty()) updateComposingText(ic)
             return false
         }
         val before = ic.getTextBeforeCursor(wrote.length + 1, 0)?.toString() ?: return null
@@ -18700,13 +18707,19 @@ open class WMKeyboardService : InputMethodService() {
                 // draws on the left: the place a typed word holds on every
                 // keyboard. Never ahead of the first entry, for the reason the
                 // comment below gives.
-                val keepTyped = !skipTyped && typed.isNotEmpty() && typed[0].isLetterOrDigit() &&
+                //
+                // On a board that builds its letters out of the keys (Hangul
+                // from jamo, Cheonjiin from strokes) the word as typed is the
+                // one in the field, not the keys: a chip reading ㄱㅣㆍ for 가
+                // would commit the jamo when tapped (#598).
+                val typedWord = if (state.composer.isTransliterating) state.composer.composeBuffer(typed) else typed
+                val keepTyped = !skipTyped && typedWord.isNotEmpty() && typedWord[0].isLetterOrDigit() &&
                     state.composer.phoneticLanguage == null && completing == null &&
                     state.allowsTypingIntelligence
                 fun withTyped(list: List<String>): List<String> =
-                    if (keepTyped && list.none { it.equals(typed, ignoreCase = true) }) {
+                    if (keepTyped && list.none { it.equals(typedWord, ignoreCase = true) }) {
                         val at = minOf(1, list.size)
-                        list.take(at) + typed + list.drop(at)
+                        list.take(at) + typedWord + list.drop(at)
                     } else {
                         list
                     }
