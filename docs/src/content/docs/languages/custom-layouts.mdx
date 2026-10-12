@@ -11,6 +11,7 @@ import PhoneFrame from '@components/PhoneFrame.astro';
 import LayoutExplorer from '@components/LayoutExplorer.astro';
 import qwertyAfar from '../../../../../app/src/main/assets/layouts/aa.wmlayout.json';
 import Shot from '@components/Shot.astro';
+import LayoutJsonReference from '@components/LayoutJsonReference.astro';
 
 A layout is the key grid itself: which key sits where, what it types, what its long-press alternates are. WM Keyboard ships 1,732 of them, and every one is editable: rearrange a few keys, add a Ctrl key for a terminal app, or build a language layout from scratch, then share the result as a file.
 
@@ -202,6 +203,12 @@ With a physical keyboard, this editor and the plugin editor take the keys that V
 The keys that the text field knows already keep working: `Ctrl+A`, the arrow keys with `Ctrl` and `Shift`, and `Ctrl+Backspace` to delete a word. The editor has one cursor, so the VS Code keys for more cursors, such as `Ctrl+D`, do nothing here.
 
 When WM Keyboard is your keyboard, it takes `Ctrl+Space` to change the language before the editor gets the key (see [Switching language](/typing/hardware-keyboard/#switching-language)). Use `Ctrl+I` for suggestions, or turn that setting off.
+
+#### Every property and value
+
+Each section below opens to the full list for one part of the format: every property an object takes, with its type, its default and what it does, every action type with its fields, and every value a fixed list allows. The lists are read from the app's own code when these pages are built, so they match the version they describe. The editor's suggestions offer the same values as you type.
+
+<LayoutJsonReference />
 
 ## Secondary layouts
 

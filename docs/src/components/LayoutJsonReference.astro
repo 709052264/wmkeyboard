@@ -1,0 +1,552 @@
+---
+/**
+ * Every property, action type and enum value the layout JSON takes, as
+ * collapsible sections, read from the app's Kotlin model at build time (see
+ * `src/lib/layout-json-schema.mjs`), so the lists here are the ones the
+ * decoder and the in-app JSON editor use.
+ *
+ *   <LayoutJsonReference />
+ */
+import { layoutJsonSchema } from '../lib/layout-json-schema.mjs';
+
+const s = layoutJsonSchema();
+
+/** The section a type name links to, when it has one here. */
+const ANCHORS: Record<string, string> = {
+	LayoutSpec: 'json-layout',
+	LayerSpec: 'json-layer',
+	Key: 'json-key',
+	KeyAction: 'json-actions',
+	KeyAlternate: 'json-alternate',
+	LayoutAppearance: 'json-appearance',
+	InputMethodBinding: 'json-appearance',
+	KeymanBinding: 'json-appearance',
+	PanelLayoutSpec: 'json-panels',
+	PanelKind: 'json-panels',
+	PanelFieldKind: 'json-panels',
+	ToolbarTool: 'json-tools',
+	TextEditAction: 'json-edit-ops',
+	ModifierKey: 'json-small-enums',
+	ClipboardKeyAction: 'json-small-enums',
+	KeyRole: 'json-small-enums',
+	FlickDirection: 'json-small-enums',
+	InputMethodKind: 'json-small-enums',
+	ComposerType: 'json-composers',
+	ScriptId: 'json-scripts',
+};
+
+/** Free-text properties whose values come from somewhere listed elsewhere. */
+const VALUES_FROM: Record<string, { href: string; text: string }> = {
+	'LayoutSpec.langId': { href: '/languages/overview/', text: 'a language id' },
+	'LayoutSpec.themeId': { href: '#json-strings', text: 'a theme id' },
+	'LayerSpec.themeId': { href: '#json-strings', text: 'a theme id' },
+	'LayoutAppearance.fontId': { href: '#json-strings', text: 'a font id' },
+	'Key.icon': { href: '#json-icons', text: 'an icon name' },
+	'Key.iconHint': { href: '#json-icons', text: 'an icon name' },
+	'KeyAlternate.icon': { href: '#json-icons', text: 'an icon name' },
+	'action:layout.id': { href: '#json-strings', text: 'a secondary layout id' },
+	'action:layer.layer': { href: '#json-layers', text: 'a layer name' },
+	'action:send_key.keyCode': { href: '#json-keycodes', text: 'an Android key code' },
+	'action:send_key.meta': { href: '#json-keycodes', text: 'meta flags' },
+};
+
+const typeParts = (json: { text: string; ref: string | null }) => {
+	const anchor = json.ref ? ANCHORS[json.ref] : undefined;
+	return { text: json.text.replace(/\bKeyAction\b/, 'action'), anchor };
+};
+
+/** A default worth printing: required fields and placeholders print nothing. */
+const shownDefault = (p: { required: boolean; default: string | null }) =>
+	p.required || p.default == null || p.default === '"UNKNOWN"' ? null : p.default;
+
+const smallEnums = [
+	{ title: 'clipboardAction', note: 'Key.clipboardAction', values: s.enums.ClipboardKeyAction },
+	{ title: 'role', note: 'Key.role', values: s.enums.KeyRole },
+	{ title: 'Flick directions', note: 'the keys of flick, flickShift and flickActions', values: s.enums.FlickDirection },
+	{ title: 'mod key', note: 'the key of a "mod" action', values: s.enums.ModifierKey },
+	{ title: 'inputMethod.kind', note: 'InputMethodBinding.kind', values: s.enums.InputMethodKind },
+];
+
+const tables = [
+	{ id: 'json-layout', title: 'The layout object', note: 'The top of the document.', props: s.objects.LayoutSpec },
+	{ id: 'json-layer', title: 'A layer', note: 'Each value under "layers".', props: s.objects.LayerSpec },
+	{ id: 'json-key', title: 'A key', note: 'Each entry of a row. Only label is required.', props: s.objects.Key },
+	{
+		id: 'json-alternate',
+		title: 'A popup or flick entry',
+		note: 'Each entry of actionAlternates, each value of flickActions, and holdAction.',
+		props: s.objects.KeyAlternate,
+	},
+	{
+		id: 'json-appearance',
+		title: 'appearance, keyman and inputMethod',
+		note: 'The small objects a layout can carry.',
+		props: [...s.objects.LayoutAppearance, ...s.objects.KeymanBinding, ...s.objects.InputMethodBinding],
+	},
+];
+const tablesBeforeActions = tables.slice(0, 3);
+const tablesAfterActions = tables.slice(3);
+---
+
+<div class="json-ref">
+	{
+		tablesBeforeActions.map((t) => (
+			<details id={t.id}>
+				<summary>
+					{t.title} <span class="count">{t.props.length} properties</span>
+				</summary>
+				<p>{t.note}</p>
+				<div class="scroll">
+					<table>
+						<thead>
+							<tr>
+								<th>Property</th>
+								<th>Type</th>
+								<th>Default</th>
+								<th>What it does</th>
+							</tr>
+						</thead>
+						<tbody>
+							{t.props.map((p) => {
+								const type = typeParts(p.json);
+								const from = VALUES_FROM[p.docKey];
+								const def = shownDefault(p);
+								return (
+									<tr>
+										<td>
+											<code>{p.name}</code>
+											{p.required && <span class="req">required</span>}
+										</td>
+										<td>
+											{type.anchor ? <a href={`#${type.anchor}`}>{type.text}</a> : type.text}
+											{from && (
+												<>
+													<br />
+													<a href={from.href}>{from.text}</a>
+												</>
+											)}
+										</td>
+										<td>{def != null && <code>{def}</code>}</td>
+										<td>
+											{p.doc}
+											{p.range && (
+												<span class="range">
+													{' '}
+													From {p.range[0]} to {p.range[1]}.
+												</span>
+											)}
+										</td>
+									</tr>
+								);
+							})}
+						</tbody>
+					</table>
+				</div>
+			</details>
+		))
+	}
+
+	<details id="json-layers">
+		<summary>Layer names <span class="count">{s.layers.length + s.panels.length}</span></summary>
+		<p>
+			The keys of <code>"layers"</code>. A layer left out uses the built-in grid. Any other name is a page of the layout's
+			own, reached by a <code>"layer"</code> action key.
+		</p>
+		<ul class="chips">
+			{s.layers.map((l) => (
+				<li>
+					<code>{l.value}</code>
+				</li>
+			))}
+			{s.panels.map((p) => (
+				<li>
+					<code>{p.layerKey}</code>
+				</li>
+			))}
+		</ul>
+		<p>
+			The <code>panel_…</code> layers are this layout's own grid for a tool panel, in place of the shared one. They take the
+			panel components listed under <a href="#json-panels">Panels</a>.
+		</p>
+	</details>
+
+	<details id="json-actions">
+		<summary>Action types <span class="count">{s.actions.length}</span></summary>
+		<p>
+			The <code>"type"</code> of a key's <code>"action"</code>. {s.actionTypeDoc} A key with no action types its <code>output</code> or <code>label</code>.
+		</p>
+		<div class="scroll">
+			<table>
+				<thead>
+					<tr>
+						<th>type</th>
+						<th>Fields</th>
+						<th>What it does</th>
+					</tr>
+				</thead>
+				<tbody>
+					{s.actions.map((a) => (
+						<tr>
+							<td>
+								<code>{a.tag}</code>
+							</td>
+							<td>
+								{a.fields.map((f) => {
+									const type = typeParts(f.json);
+									const from = VALUES_FROM[`action:${a.tag}.${f.name}`];
+									const def = shownDefault(f);
+									return (
+										<div class="field">
+											<code>{f.name}</code>{' '}
+											{type.anchor ? <a href={`#${type.anchor}`}>{type.text}</a> : from ? <a href={from.href}>{type.text}</a> : type.text}
+											{f.required ? <span class="req">required</span> : def != null && <span class="def">= {def}</span>}
+										</div>
+									);
+								})}
+							</td>
+							<td>
+								{a.doc}
+								{a.fields
+									.filter((f) => f.doc)
+									.map((f) => (
+										<div class="field-doc">
+											<code>{f.name}</code>: {f.doc}
+											{f.range && ` From ${f.range[0]} to ${f.range[1]}.`}
+										</div>
+									))}
+							</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
+	</details>
+
+	{
+		tablesAfterActions.map((t) => (
+			<details id={t.id}>
+				<summary>
+					{t.title} <span class="count">{t.props.length} properties</span>
+				</summary>
+				<p>{t.note}</p>
+				<div class="scroll">
+					<table>
+						<thead>
+							<tr>
+								<th>Property</th>
+								<th>Type</th>
+								<th>Default</th>
+								<th>What it does</th>
+							</tr>
+						</thead>
+						<tbody>
+							{t.props.map((p) => {
+								const type = typeParts(p.json);
+								const from = VALUES_FROM[p.docKey];
+								const def = shownDefault(p);
+								return (
+									<tr>
+										<td>
+											<code>{p.name}</code>
+											{p.required && <span class="req">required</span>}
+										</td>
+										<td>
+											{type.anchor ? <a href={`#${type.anchor}`}>{type.text}</a> : type.text}
+											{from && (
+												<>
+													<br />
+													<a href={from.href}>{from.text}</a>
+												</>
+											)}
+										</td>
+										<td>{def != null && <code>{def}</code>}</td>
+										<td>
+											{p.doc}
+											{p.range && ` From ${p.range[0]} to ${p.range[1]}.`}
+										</td>
+									</tr>
+								);
+							})}
+						</tbody>
+					</table>
+				</div>
+			</details>
+		))
+	}
+
+	<details id="json-tools">
+		<summary>Tools <span class="count">{s.enums.ToolbarTool.length}</span></summary>
+		<p>
+			The <code>"tool"</code> of a <code>{'{"type": "tool"}'}</code> action. A tool this build does not have, such as a
+			scanner on the lite build, makes the key do nothing.
+		</p>
+		<ul class="chips">
+			{s.enums.ToolbarTool.map((e) => (
+				<li>
+					<code>{e.value}</code>
+				</li>
+			))}
+		</ul>
+	</details>
+
+	<details id="json-edit-ops">
+		<summary>Editing operations <span class="count">{s.enums.TextEditAction.length}</span></summary>
+		<p>
+			The <code>"op"</code> of a <code>{'{"type": "edit"}'}</code> action. It is required: an operation this version does
+			not have is an error, not a fallback.
+		</p>
+		<ul class="chips">
+			{s.enums.TextEditAction.map((e) => (
+				<li>
+					<code>{e.value}</code>
+				</li>
+			))}
+		</ul>
+	</details>
+
+	<details id="json-panels">
+		<summary>Panels and panel components <span class="count">{s.panels.length} panels</span></summary>
+		<p>
+			A panel layout's <code>"panel"</code>, and the <code>"kind"</code> of a <code>{'{"type": "field"}'}</code> cell
+			that holds one of its live components. Each component goes on its own panel, at most once.
+		</p>
+		<div class="scroll">
+			<table>
+				<thead>
+					<tr>
+						<th>panel</th>
+						<th>Components it takes</th>
+					</tr>
+				</thead>
+				<tbody>
+					{s.panels.map((p) => {
+						const kinds = s.fieldKinds.filter((k) => k.panel === p.value);
+						return (
+							<tr>
+								<td>
+									<code>{p.value}</code>
+									{p.fullOnly && <span class="def">full build only</span>}
+								</td>
+								<td>
+									{kinds.length === 0
+										? 'Keys only.'
+										: kinds.map((k) => (
+												<div class="field">
+													<code>{k.value}</code>
+												</div>
+											))}
+								</td>
+							</tr>
+						);
+					})}
+				</tbody>
+			</table>
+		</div>
+		<p>
+			<code>media_tabs</code>, the emoji, GIF and sticker switch, also goes on the <code>gif</code> and <code>sticker</code> panels.
+		</p>
+	</details>
+
+	<details id="json-small-enums">
+		<summary>Other value lists</summary>
+		{
+			smallEnums.map((group) => (
+				<>
+					<p class="group">
+						<strong>{group.title}</strong> <span class="count">{group.note}</span>
+					</p>
+					<ul class="chips">
+						{group.values.map((e) => (
+							<li title={e.doc ?? undefined}>
+								<code>{e.value}</code>
+							</li>
+						))}
+					</ul>
+				</>
+			))
+		}
+		<p>
+			A <code>role</code> of <code>Period</code> or <code>Comma</code> marks the key an email or web address field turns
+			into <code>.com</code>, <code>@</code> or <code>/</code>. <code>Plain</code> says the key types exactly its label,
+			wherever it sits.
+		</p>
+	</details>
+
+	<details id="json-composers">
+		<summary>Composers <span class="count">{s.enums.ComposerType.length}</span></summary>
+		<p>
+			The <code>"composer"</code> of a layout. Leave it out to use the language's own; set it only when one language has two
+			typing methods.
+		</p>
+		<div class="scroll">
+			<table>
+				<tbody>
+					{s.enums.ComposerType.map((e) => (
+						<tr>
+							<td>
+								<code>{e.value}</code>
+							</td>
+							<td>{e.doc}</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
+	</details>
+
+	<details id="json-scripts">
+		<summary>Scripts <span class="count">{s.enums.ScriptId.length}</span></summary>
+		<p>
+			The <code>"script"</code> of a layout, for a grid that writes a script other than its language's. It decides the font
+			the keys draw in. An unknown name falls back to the language's script.
+		</p>
+		<ul class="chips">
+			{s.enums.ScriptId.map((e) => (
+				<li>
+					<code>{e.value}</code>
+				</li>
+			))}
+		</ul>
+	</details>
+
+	<details id="json-keycodes">
+		<summary>Key codes and modifier flags</summary>
+		<p>
+			A <code>{'{"type": "send_key"}'}</code> action takes any Android key code. These are the common ones; the editor
+			suggests them too.
+		</p>
+		<ul class="chips">
+			{s.keyCodes.map((k) => (
+				<li>
+					<code>{k.value}</code> {k.note}
+				</li>
+			))}
+		</ul>
+		<p><code>meta</code> adds the flags of the keys held with it. Add the numbers to combine them.</p>
+		<ul class="chips">
+			{s.metaFlags.map((k) => (
+				<li>
+					<code>{k.value}</code> {k.note}
+				</li>
+			))}
+		</ul>
+	</details>
+
+	<details id="json-icons">
+		<summary>Icon names <span class="count">{s.icons.names.length}</span></summary>
+		<p>
+			For <code>icon</code> and <code>iconHint</code>. Case does not matter, and an unknown name draws the label instead.
+			Every icon in the app's own icon set works as well, by its name; the icon picker in the grid editor shows them all.
+		</p>
+		<ul class="chips">
+			{s.icons.names.map((n) => (
+				<li>
+					<code>{n}</code>
+				</li>
+			))}
+		</ul>
+		<p>These names work too, each drawing the icon named after its arrow:</p>
+		<ul class="chips">
+			{Object.entries(s.icons.aliases).map(([alias, name]) => (
+				<li>
+					<code>{alias}</code> → <code>{name}</code>
+				</li>
+			))}
+		</ul>
+	</details>
+
+	<details id="json-strings">
+		<summary>Fonts, themes and other ids</summary>
+		<ul>
+			<li>
+				<code>fontId</code> is <code>"default"</code>, <code>"google:&lt;Name&gt;"</code> for a Google font, <code>"installed:&lt;name&gt;"</code> for a font you installed, or <code>"custom"</code>. A font this device does
+				not have falls back to the usual one.
+			</li>
+			<li>
+				<code>themeId</code> is the id of a theme on the device. An id the device does not have is ignored, and comes back
+				to life once the theme is installed.
+			</li>
+			<li>
+				<code>langId</code> is a language id such as <code>"en"</code> or <code>"bn"</code>. Every one is on <a href="/languages/overview/">Languages</a>.
+			</li>
+			<li>
+				A <code>"layout"</code> action's <code>id</code> is the id of one of your secondary layouts, and a <code>"switch_input_method"</code> action's <code>id</code> is another keyboard app's <code>package/.ServiceClass</code>.
+			</li>
+		</ul>
+		<p>In the editor, the suggestion list offers the values your device has for each of these.</p>
+	</details>
+</div>
+
+<script>
+	// A link to a section opens it: the type links in the tables point at
+	// sections that start closed.
+	function openTarget() {
+		const id = decodeURIComponent(location.hash.slice(1));
+		const target = id && document.getElementById(id);
+		if (target instanceof HTMLDetailsElement && !target.open) {
+			target.open = true;
+			target.scrollIntoView();
+		}
+	}
+	window.addEventListener('hashchange', openTarget);
+	openTarget();
+</script>
+
+<style>
+	.json-ref details {
+		margin-block: 0.5rem;
+	}
+	.json-ref summary {
+		cursor: pointer;
+		font-weight: 600;
+	}
+	.count {
+		color: var(--sl-color-gray-3);
+		font-size: var(--sl-text-xs);
+		font-weight: 400;
+		margin-inline-start: 0.4em;
+	}
+	.scroll {
+		overflow-x: auto;
+	}
+	.json-ref table {
+		font-size: var(--sl-text-sm);
+	}
+	.json-ref td {
+		vertical-align: top;
+	}
+	.json-ref td:last-child {
+		min-width: 16rem;
+	}
+	.req,
+	.def {
+		display: inline-block;
+		margin-inline-start: 0.4em;
+		font-size: var(--sl-text-xs);
+		color: var(--sl-color-gray-3);
+		white-space: nowrap;
+	}
+	.req {
+		color: var(--sl-color-orange-high);
+	}
+	.field {
+		margin-bottom: 0.2em;
+	}
+	.field-doc {
+		margin-top: 0.3em;
+	}
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem 0.5rem;
+		list-style: none;
+		padding: 0;
+	}
+	.chips li {
+		margin: 0;
+		font-size: var(--sl-text-sm);
+	}
+	.group {
+		margin-bottom: 0.25rem;
+	}
+</style>
