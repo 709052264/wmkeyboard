@@ -298,7 +298,7 @@ private fun CameraContent(
     var caption by remember { mutableStateOf(locationOffered && state.settings.camera.locationCaption) }
     LaunchedEffect(Unit) { if (location.state.value.stampOnce) location.onStampConsumed() }
     // Either one needs a reading; ask for it the moment it is turned on.
-    LaunchedEffect(stamp, caption) { if (stamp || caption) location.onLocateForCamera() }
+    LaunchedEffect(stamp, caption) { if (stamp || caption) location.onLocateQuietly() }
 
     // Haptics on controls, ticks and shutter — the tool setting gates it;
     // the global haptic settings still shape the actual vibration.

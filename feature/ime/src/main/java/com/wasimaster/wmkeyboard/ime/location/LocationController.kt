@@ -16,7 +16,9 @@ import com.wasimaster.wmkeyboard.core.location.LocationFormat
 import com.wasimaster.wmkeyboard.core.location.LocationFormatter
 import com.wasimaster.wmkeyboard.core.location.LocationGrant
 import com.wasimaster.wmkeyboard.core.location.LocationPrecision
+import com.wasimaster.wmkeyboard.core.location.LocationParser
 import com.wasimaster.wmkeyboard.core.location.LocationShare
+import com.wasimaster.wmkeyboard.core.location.ParsedLocation
 import com.wasimaster.wmkeyboard.core.location.ReverseGeocoder
 import com.wasimaster.wmkeyboard.core.location.SavedPlace
 import com.wasimaster.wmkeyboard.core.location.SavedPlaces
@@ -38,8 +40,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
-/** The two halves of the Location panel. */
-enum class LocationTab { HERE, PLACES }
+/** The Location panel's three tabs: where you are, what you saved, and what somebody sent. */
+enum class LocationTab { HERE, PLACES, FOUND }
+
+/** Where a place in the Found tab was read from. */
+enum class FoundOrigin { FIELD, CLIPBOARD }
+
+/** A place read out of the text box or a clip (#350). */
+data class FoundPlace(val location: ParsedLocation, val origin: FoundOrigin)
+
+/** What the compass points at besides north and the qibla. */
+data class CompassTarget(val point: GeoPoint, val label: String)
 
 enum class LocationStatus { IDLE, LOCATING, READY, FAILED }
 
@@ -71,7 +82,14 @@ data class LocationUi(
     val openPlace: Long? = null,
     /** The panel's Photo button: the camera opens with its location stamp on, this once. */
     val stampOnce: Boolean = false,
+    /** Places in the text box and the recent clips, read when the panel opens. */
+    val found: List<FoundPlace> = emptyList(),
+    /** The place the compass points at, until it is cleared. */
+    val compassTarget: CompassTarget? = null,
 ) {
+    /** The position distances and bearings are measured from: a reading no older than the panel keeps one. */
+    val origin: GeoPoint? get() = fix?.point
+
     /** The address that belongs to the reading on screen at [precision], if it is in. */
     fun addressFor(precision: LocationPrecision): String? {
         val fix = fix ?: return null
@@ -127,6 +145,13 @@ internal class LocationController(
     private val onWeatherLocationChanged: (latitude: Float, longitude: Float) -> Unit,
     /** Opens the camera tool's panel. */
     private val openCamera: () -> Unit,
+    /** Opens the compass tool's panel. */
+    private val openCompass: () -> Unit,
+    /**
+     * The text the Found tab reads: around the caret in the field, and the
+     * recent clips. Read only when the panel opens or the tab is picked.
+     */
+    private val foundTexts: () -> List<Pair<String, FoundOrigin>>,
 ) {
     private val context = context.applicationContext
     private val fixer by lazy { LocationFixer(this.context) }
@@ -162,7 +187,11 @@ internal class LocationController(
         onUseMyLocationForTools = ::useForTools,
         onOpenSettings = openToolSettings,
         onPhoto = ::photo,
-        onLocateForCamera = ::locateForCamera,
+        onLocateQuietly = ::locateQuietly,
+        onInsertPoint = ::insertPoint,
+        onSavePoint = ::savePoint,
+        onCompassTo = ::compassTo,
+        onCompassClear = ::compassClear,
         onCaption = ::insertCaption,
         onStampConsumed = { _state.update { it.copy(stampOnce = false) } },
     )
@@ -187,6 +216,7 @@ internal class LocationController(
                 status = if (expired) LocationStatus.IDLE else ui.status,
             )
         }
+        scanFound()
         val ui = _state.value
         val stale = ui.fix == null || now - ui.fix.timeMillis > STALE_MS
         val wanted = pending == Pending.LOCATE || (locationSettings.locateOnOpen && stale)
@@ -271,11 +301,11 @@ internal class LocationController(
     }
 
     /**
-     * The camera's location stamp or caption was turned on: make sure a
-     * reading is coming, asking Android first if it has to. Unlike [locate]
-     * this works with the Location panel closed, which it is.
+     * The camera's stamp or caption, or the compass pointing at a place, wants
+     * a reading: make sure one is coming, asking Android first if it has to.
+     * Unlike [locate] this works with the Location panel closed.
      */
-    private fun locateForCamera() {
+    private fun locateQuietly() {
         refreshAccess()
         val ui = _state.value
         when {
@@ -395,6 +425,62 @@ internal class LocationController(
     private fun setTab(tab: LocationTab) {
         haptic()
         _state.update { it.copy(tab = tab, openPlace = null) }
+        if (tab == LocationTab.FOUND) scanFound()
+    }
+
+    /** Reads the field and the recent clips for places; the newest clip's come first. */
+    private fun scanFound() {
+        val texts = runCatching { foundTexts() }.getOrDefault(emptyList())
+        scope.launch {
+            val found = withContext(Dispatchers.Default) {
+                val seen = HashSet<String>()
+                texts.flatMap { (text, origin) ->
+                    LocationParser.findAll(text).map { FoundPlace(it, origin) }
+                }.filter { seen.add(String.format(java.util.Locale.US, "%.5f,%.5f", it.location.point.latitude, it.location.point.longitude)) }
+                    .take(MAX_FOUND)
+            }
+            _state.update { it.copy(found = found) }
+        }
+    }
+
+    /** A place from the Found tab typed in the picked format: a received link turned into an address, say. */
+    private fun insertPoint(point: GeoPoint, label: String?) {
+        haptic()
+        val ui = _state.value
+        val share = LocationShare(
+            point = point,
+            precision = ui.precisionOr(locationSettings),
+            placeName = label?.ifBlank { null },
+        )
+        insertText(render(share, ui.formatOr(locationSettings)))
+    }
+
+    private fun savePoint(point: GeoPoint, label: String?) {
+        haptic()
+        scope.launch {
+            var saved: SavedPlace? = null
+            repository.updateLocationPlaces { places ->
+                val name = label?.trim()?.ifBlank { null }
+                    ?: context.getString(R.string.ime_location_place_default_name, places.size + 1)
+                val place = SavedPlace(SavedPlaces.newId(places), name, point)
+                saved = place
+                (places + place).takeLast(SavedPlaces.MAX)
+            }
+            saved?.let { toast(R.string.ime_location_saved_toast, it.name) }
+        }
+    }
+
+    /** Points the compass at [point] and opens it; it needs a reading of its own to measure from. */
+    private fun compassTo(point: GeoPoint, label: String?) {
+        haptic()
+        _state.update { it.copy(compassTarget = CompassTarget(point, label?.ifBlank { null } ?: LocationFormatter.coordinates(point, LocationPrecision.STREET))) }
+        if (_state.value.fix?.isRecent() != true) locateQuietly()
+        openCompass()
+    }
+
+    private fun compassClear() {
+        haptic()
+        _state.update { it.copy(compassTarget = null) }
     }
 
     private fun cyclePrecision() {
@@ -586,6 +672,9 @@ internal class LocationController(
 
         /** How long a permission request waits for its answer. */
         const val PENDING_MS = 2 * 60_000L
+
+        /** Places the Found tab lists at most. */
+        const val MAX_FOUND = 20
 
         /** A forecast and a qibla bearing do not need a fresh fix. */
         const val TOOLS_MAX_AGE_MS = 30 * 60_000L

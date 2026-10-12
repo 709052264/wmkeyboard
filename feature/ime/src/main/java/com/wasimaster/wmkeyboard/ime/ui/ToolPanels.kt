@@ -267,9 +267,15 @@ private fun PanelMessage(text: String, modifier: Modifier = Modifier) {
 @Composable
 internal fun CompassPanel(
     state: KeyboardUiState,
-    /** Reads the phone's position once and saves it as the weather location (#350); null hides the offer. */
-    onUseMyLocation: (() -> Unit)? = null,
+    /**
+     * The Location tool (#350): Use my location for the qibla, and a place to
+     * point at, picked on the Location panel's Found tab.
+     */
+    location: LocationCallbacks? = null,
 ) {
+    val onUseMyLocation = location?.onUseMyLocationForTools
+    val locationUi = location?.state?.collectAsState()?.value
+    val target = locationUi?.compassTarget
     val context = LocalContext.current
     val sensorManager = remember {
         context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -346,6 +352,13 @@ internal fun CompassPanel(
     val qiblaBearing = if (state.settings.sensorTools.compassQibla && latitude != null && longitude != null) {
         Qibla.bearing(latitude.toDouble(), longitude.toDouble()).toFloat()
     } else null
+    // Measured from a fresh reading when there is one, else from the saved place.
+    val origin = locationUi?.origin ?: if (latitude != null && longitude != null) {
+        com.wasimaster.wmkeyboard.core.location.GeoPoint(latitude.toDouble(), longitude.toDouble())
+    } else {
+        null
+    }
+    val targetBearing = if (target != null && origin != null) origin.bearingTo(target.point).toFloat() else null
 
     val kb = LocalKbTheme.current
     Column(
@@ -395,6 +408,24 @@ internal fun CompassPanel(
                             drawText(label, pos.x, pos.y + textPaint.textSize / 3f, textPaint)
                             restore()
                         }
+                    }
+                }
+                // A place from the Location tool, the same way as the qibla.
+                if (targetBearing != null) {
+                    val angle = Math.toRadians(targetBearing.toDouble())
+                    val dir = Offset(sin(angle).toFloat(), -cos(angle).toFloat())
+                    val pos = center + dir * (radius - 34.dp.toPx())
+                    drawLine(kb.accent, center + dir * (radius - 12.dp.toPx()), center + dir * radius, 5f)
+                    val pinPaint = android.graphics.Paint().apply {
+                        isAntiAlias = true
+                        textSize = 14.sp.toPx()
+                        textAlign = android.graphics.Paint.Align.CENTER
+                    }
+                    drawContext.canvas.nativeCanvas.apply {
+                        save()
+                        rotate(azimuth, pos.x, pos.y)
+                        drawText("📍", pos.x, pos.y + pinPaint.textSize / 3f, pinPaint)
+                        restore()
                     }
                 }
                 // Qibla marker rotates with the rose so it points at the
@@ -461,6 +492,34 @@ internal fun CompassPanel(
                     selected = true,
                     modifier = Modifier.padding(bottom = 4.dp),
                 ) { onUseMyLocation() }
+            }
+        }
+        if (target != null && location != null) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 4.dp, start = 12.dp, end = 12.dp),
+            ) {
+                Text(
+                    if (origin != null) {
+                        val bearing = origin.bearingTo(target.point).roundToInt() % 360
+                        stringResource(
+                            R.string.ime_location_compass_target,
+                            "📍 " + target.label,
+                            com.wasimaster.wmkeyboard.core.location.LocationFormatter.distance(origin.distanceTo(target.point)),
+                            bearing,
+                            cardinal(bearing),
+                        )
+                    } else {
+                        stringResource(R.string.ime_location_compass_needs_position, "📍 " + target.label)
+                    },
+                    color = kb.toolbarIcon,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                Spacer(Modifier.width(8.dp))
+                ToolPanelChip(stringResource(R.string.ime_location_compass_clear_action)) { location.onCompassClear() }
             }
         }
     }

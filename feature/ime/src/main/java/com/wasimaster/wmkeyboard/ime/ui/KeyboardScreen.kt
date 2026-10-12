@@ -145,7 +145,6 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LibraryAdd
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Password
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PlayArrow
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Phone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.RemoveCircleOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
@@ -11445,7 +11444,7 @@ private fun KeyboardBody(
                     Modifier
                         .fillMaxWidth()
                         .height(keyRowsHeight(state)),
-                ) { CompassPanel(state, onUseMyLocation = toolHold.location.onUseMyLocationForTools) }
+                ) { CompassPanel(state, location = toolHold.location) }
                 PanelMode.LEVEL -> Box(
                     Modifier
                         .fillMaxWidth()
@@ -26794,11 +26793,7 @@ private fun ClipEntityChip(
             ClipEntitySourcePopup(entity, onDismiss = { showSource = false })
         }
         Icon(
-            when (entity.kind) {
-                ClipEntityKind.OTP -> Icons.Outlined.Password
-                ClipEntityKind.PHONE -> Icons.Outlined.Phone
-                ClipEntityKind.URL -> Icons.Outlined.Link
-            },
+            clipEntityIcon(entity.kind),
             contentDescription = stringResource(entity.kind.labelRes),
             modifier = Modifier.size(15.dp),
             tint = accent,

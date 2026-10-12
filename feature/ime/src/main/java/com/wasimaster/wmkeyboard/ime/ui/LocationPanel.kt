@@ -36,7 +36,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BookmarkAdd
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LocationOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MyLocation
@@ -72,6 +75,7 @@ import com.wasimaster.wmkeyboard.core.location.LocationFormat
 import com.wasimaster.wmkeyboard.core.location.LocationFormatter
 import com.wasimaster.wmkeyboard.core.location.LocationGrant
 import com.wasimaster.wmkeyboard.core.location.LocationPrecision
+import com.wasimaster.wmkeyboard.core.location.ParsedLocation
 import com.wasimaster.wmkeyboard.core.location.PlusCode
 import com.wasimaster.wmkeyboard.core.location.SavedPlace
 import com.wasimaster.wmkeyboard.core.settings.LocationSettings
@@ -81,6 +85,8 @@ import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.location.AddressState
+import com.wasimaster.wmkeyboard.ime.location.FoundOrigin
+import com.wasimaster.wmkeyboard.ime.location.FoundPlace
 import com.wasimaster.wmkeyboard.ime.location.LocationStatus
 import com.wasimaster.wmkeyboard.ime.location.LocationTab
 import com.wasimaster.wmkeyboard.ime.location.LocationUi
@@ -119,8 +125,14 @@ data class LocationCallbacks(
     val onOpenSettings: () -> Unit = {},
     /** The camera, with its location stamp on for one photo. */
     val onPhoto: () -> Unit = {},
-    /** The camera's stamp or caption wants a reading, with the Location panel closed. */
-    val onLocateForCamera: () -> Unit = {},
+    /** The camera's stamp or caption, or the compass, wants a reading with this panel closed. */
+    val onLocateQuietly: () -> Unit = {},
+    /** A place from the Found tab, typed in the picked format. */
+    val onInsertPoint: (GeoPoint, String?) -> Unit = { _, _ -> },
+    val onSavePoint: (GeoPoint, String?) -> Unit = { _, _ -> },
+    /** Points the compass at a place, and opens it. */
+    val onCompassTo: (GeoPoint, String?) -> Unit = { _, _ -> },
+    val onCompassClear: () -> Unit = {},
     /** The camera's caption: the place as text, before the photo. */
     val onCaption: () -> Unit = {},
     /** The camera read [LocationUi.stampOnce]. */
@@ -169,6 +181,7 @@ internal fun LocationPanel(
         when (ui.tab) {
             LocationTab.HERE -> HereBody(state, ui, settings, precision, format, callbacks)
             LocationTab.PLACES -> PlacesBody(state, ui, settings, precision, format, callbacks)
+            LocationTab.FOUND -> FoundBody(state, ui, settings, format, callbacks)
         }
     }
 }
@@ -200,6 +213,14 @@ private fun RowScope.Header(
             },
             selected = ui.tab == LocationTab.PLACES,
         ) { callbacks.onTab(LocationTab.PLACES) }
+        ToolPanelChip(
+            if (ui.found.isEmpty()) {
+                stringResource(R.string.ime_location_tab_found)
+            } else {
+                stringResource(R.string.ime_location_tab_found_count, ui.found.size)
+            },
+            selected = ui.tab == LocationTab.FOUND,
+        ) { callbacks.onTab(LocationTab.FOUND) }
         val precisionLabel = stringResource(precision.shortLabelRes)
         val precisionDescription = stringResource(R.string.ime_location_precision_desc, stringResource(precision.labelRes))
         ToolPanelChip(
@@ -833,3 +854,162 @@ private fun PlaceRow(
         }
     }
 }
+
+// ---- Found ----
+
+/**
+ * Places somebody sent: map links, coordinates and Plus codes read out of the
+ * text box and the recent clips. Each one opens to what can be done with it:
+ * type it in another format, open it, save it, point the compass at it, or
+ * forecast it.
+ */
+@Composable
+private fun FoundBody(
+    state: KeyboardUiState,
+    ui: LocationUi,
+    settings: LocationSettings,
+    format: LocationFormat,
+    callbacks: LocationCallbacks,
+) {
+    val kb = LocalKbTheme.current
+    val focusedChip = state.focusedIndex(FocusRegion.CHIPS)
+    val focusedRow = state.focusedIndex(FocusRegion.RESULTS)
+    var open by remember { mutableStateOf<Int?>(null) }
+    PanelFocusTarget(
+        panel = PanelMode.LOCATION,
+        region = FocusRegion.RESULTS,
+        count = ui.found.size,
+        columns = 1,
+    ) { index -> open = if (open == index) null else index }
+    PanelFocusTarget(panel = PanelMode.LOCATION, region = FocusRegion.ACTIONS, count = 0, columns = 1) {}
+    if (ui.found.isEmpty()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                stringResource(R.string.ime_location_found_empty),
+                color = kb.secondaryText,
+                fontSize = 13.sp,
+                textAlign = TextAlign.Center,
+            )
+        }
+        return
+    }
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 4.dp)) {
+        FormatChips(format, settings.format, focusedChip, callbacks)
+        Spacer(Modifier.height(6.dp))
+        val listState = rememberLazyListState()
+        ScrollFocusIntoView(focusedRow) { listState.animateScrollToItem(it) }
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            itemsIndexed(ui.found) { index, place ->
+                FoundRow(
+                    place = place,
+                    from = ui.origin,
+                    open = open == index,
+                    focused = focusedRow == index,
+                    callbacks = callbacks,
+                ) { open = if (open == index) null else index }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FoundRow(
+    place: FoundPlace,
+    from: GeoPoint?,
+    open: Boolean,
+    focused: Boolean,
+    callbacks: LocationCallbacks,
+    onToggle: () -> Unit,
+) {
+    val kb = LocalKbTheme.current
+    val shape = kb.cardShape()
+    val location = place.location
+    val point = location.point
+    val label = location.label
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(if (open) kb.chip else kb.chip.copy(alpha = kb.chip.alpha * 0.5f))
+            .focusRing(focused, shape),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onToggle)
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                if (location.kind == ParsedLocation.Kind.LINK) Icons.Outlined.Link else Icons.Outlined.Place,
+                contentDescription = null,
+                tint = kb.accent,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(10.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    label ?: LocationFormatter.coordinates(point, LocationPrecision.STREET),
+                    color = kb.suggestionText,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    stringResource(
+                        if (place.origin == FoundOrigin.FIELD) R.string.ime_location_found_in_field else R.string.ime_location_found_in_clips,
+                        location.text,
+                    ),
+                    color = kb.secondaryText,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (from != null) {
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    LocationFormatter.distance(from.distanceTo(point)) + " " + compassPoint(from.bearingTo(point)),
+                    color = kb.secondaryText,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                )
+            }
+        }
+        if (open) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(start = 36.dp, end = 8.dp, bottom = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                ToolPanelChip(stringResource(R.string.ime_location_insert_action), selected = true) {
+                    callbacks.onInsertPoint(point, label)
+                }
+                ToolPanelChip(stringResource(R.string.ime_location_map_action)) { callbacks.onOpenMaps(point, label) }
+                ToolPanelChip(stringResource(R.string.ime_location_compass_action)) { callbacks.onCompassTo(point, label) }
+                ToolPanelChip(stringResource(R.string.ime_location_save_action)) { callbacks.onSavePoint(point, label) }
+                ToolPanelChip(stringResource(R.string.ime_location_weather_action)) { callbacks.onUseForWeather(point, label) }
+            }
+        }
+    }
+}
+
+/** "NE": one of eight points, for a distance in a list. Compass letters are international. */
+internal fun compassPoint(bearing: Double): String {
+    val names = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+    return names[(((bearing % 360) + 360) % 360 + 22.5).toInt() / 45 % 8]
+}
+

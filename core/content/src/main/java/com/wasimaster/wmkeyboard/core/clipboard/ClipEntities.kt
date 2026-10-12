@@ -2,6 +2,8 @@ package com.wasimaster.wmkeyboard.core.clipboard
 
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.content.R
+import com.wasimaster.wmkeyboard.core.location.LocationParser
+import com.wasimaster.wmkeyboard.core.location.ParsedLocation
 
 /**
  * A kind of fragment worth pulling out of a clip on its own: the six digits
@@ -12,7 +14,13 @@ import com.wasimaster.wmkeyboard.content.R
 enum class ClipEntityKind {
     OTP,
     PHONE,
-    URL;
+    URL,
+
+    /**
+     * Coordinates, a Plus code or a `geo:` link (#350). A map link stays a
+     * [URL]: it is one, and the Location tool's Found tab reads both.
+     */
+    PLACE;
 
     /** Two-word noun for the info popup and the chip's accessibility label. */
     @get:StringRes
@@ -21,6 +29,7 @@ enum class ClipEntityKind {
             OTP -> R.string.core_content_clip_entity_otp_label
             PHONE -> R.string.core_content_clip_entity_phone_label
             URL -> R.string.core_content_clip_entity_url_label
+            PLACE -> R.string.core_content_clip_entity_place_label
         }
 
     /** All-caps tag printed on the chip itself. */
@@ -30,6 +39,7 @@ enum class ClipEntityKind {
             OTP -> R.string.core_content_clip_entity_otp_tag
             PHONE -> R.string.core_content_clip_entity_phone_tag
             URL -> R.string.core_content_clip_entity_url_tag
+            PLACE -> R.string.core_content_clip_entity_place_tag
         }
 }
 
@@ -150,6 +160,12 @@ object ClipEntities {
             if (url.length >= 8 && url.substringAfterLast('.').isNotBlank()) {
                 claim(ClipEntityKind.URL, url, match.range.first)
             }
+        }
+
+        // Before codes and numbers: a Plus code is code-shaped, and the
+        // digits of a coordinate pair could read as either.
+        for (place in LocationParser.findAll(text)) {
+            if (place.kind != ParsedLocation.Kind.LINK) claim(ClipEntityKind.PLACE, place.text, place.start)
         }
 
         for ((start, value) in otpTokens(text)) {

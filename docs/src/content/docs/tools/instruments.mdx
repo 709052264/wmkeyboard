@@ -42,6 +42,8 @@ The toolbox tile mirrors the torch's real state. Flip the torch on from the syst
 
 Turn on **Show the qibla** and a 🕋 marker rides the rose, pointing toward the Kaaba. The compass has no location field of its own. It reuses whatever location you've already saved in the [Weather](#weather) tool's settings, and without one saved the panel prints "Qibla needs a saved location. Save one in the settings of the weather tool." instead of a bearing, with a **Use my location** button under it that reads your position once and saves it as that location. Everything is calculated on-device from that saved latitude and longitude. The compass itself never touches the network.
 
+The [Location tool](/tools/location/#places-somebody-sent-you) can also point the compass at any place, a friend's pin, say. A 📍 marker rides the rose next to the 🕋 one, and a line under the rose gives its distance and direction, with **Stop pointing** beside it.
+
 Once a location is saved, the rose turns to true north rather than magnetic north. The phone's sensor finds magnetic north, which is a few degrees off true north in most places and up to twenty in some; Android's own model of the Earth's field gives the difference for the saved place, so the heading and the qibla marker are both measured from true north.
 
 <PhoneFrame caption="The compass panel: rotating rose, degree readout, and the qibla marker pointing toward Mecca.">

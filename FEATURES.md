@@ -16,14 +16,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Languages, scripts, layouts, transliteration | 11 | 64 | 213 |
 | Themes and appearance | 14 | 73 | 183 |
 | Emoji, GIFs, stickers, kaomoji | 16 | 88 | 94 |
-| Toolbar and the tool set | 10 | 86 | 327 |
+| Toolbar and the tool set | 10 | 86 | 332 |
 | Clipboard, snippets, text expansion | 7 | 37 | 191 |
 | AI, voice, handwriting, scanning | 11 | 71 | 167 |
 | Privacy, backup, storage, statistics | 14 | 69 | 173 |
 | Accessibility, form factors, platform integration | 13 | 61 | 111 |
 | Extensibility: addons, plugins, imports, formats | 5 | 35 | 164 |
 | Modes, rows, field adaptation, runtime | 12 | 97 | 203 |
-| **Total** | **133** | **809** | **2250** |
+| **Total** | **133** | **809** | **2255** |
 
 ## Typing core: prediction, autocorrect, learning, spell check
 
@@ -1680,7 +1680,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Staggered two-column card grid — Short text clip isn't stretched to match a tall image
     - Files kept by reference, not bytes — URI, name, MIME and size only; up to 20 items per multi-file copy
     - Video frame thumbnail — Grabbed from the start of the clip instead of a blank icon
-    - Entity chips — OTP codes, phone numbers and links pulled out as dashed chips
+    - Entity chips — OTP codes, phone numbers, links and places (coordinates, Plus codes, geo: links; #350) pulled out as dashed chips
     - G- prefix stripped from OTP — Google's G-123456 pastes as the code alone
     - Learned phone-number formats — Turn a copied number into +880 1XXX-XXXXXX and match only that shape
     - Sensitive-clip handling — Keep / hide-and-forget (default) / never save, with its own 1–120 min timer
@@ -1990,6 +1990,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Qibla marker — Computed on-device from the Weather tool's saved coordinates
     - True north once a place is saved (#350) — GeomagneticField declination for the saved point, cached per place; the rose and the qibla marker stop being off by the local declination
     - Use my location under a missing qibla (#350) — One reading through the Location tool's controller, saved as the weather location
+    - Points at a place from the Location tool (#350) — 📍 marker, distance and bearing, Stop pointing
     - 16-point cardinal readout — Reads 'Calibrating…' until the sensor reports
     - Smoothed heading — Glides rather than jumping per sample
   - Bubble level `RARE` — Bullseye plus two tube vials
@@ -2026,6 +2027,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Reading kept 15 minutes in memory only — Never written unless saved as a place
     - Weather and compass share it — Use for weather and compass from Here or any place
     - No-location builds — -Pwmkb.noLocation=true strips both permissions; LocationAccess.declared reads the installed package and hides Locate me
+    - Found tab — Places read offline from the text box and the 10 newest non-sensitive clips: Google, Apple, OSM, OsmAnd, Waze and Bing links, geo:, decimal and DMS coordinates, Plus codes; never a password field
+    - Convert a received place — Insert in the picked format, open, save, use for weather; distance and 8-point direction from the reading
+    - Point the compass at a place — 📍 marker beside the qibla, distance and bearing line, Stop pointing; from the reading or the saved place
+    - Conservative parser — Three decimals a side, numbers inside non-map links ignored, shortened links not followed
   - Moon phase `RARE` — Computed, not fetched
     - Eight phase names — Plus percent illuminated and days into the cycle
     - Next full and new moon dates — From a synodic-month constant and a reference new moon

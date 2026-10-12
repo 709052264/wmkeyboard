@@ -4,6 +4,15 @@
     <string name="ime_location_tab_here">Here</string>
     <string name="ime_location_tab_places">Places</string>
     <string name="ime_location_tab_places_count">Places (%1$d)</string>
+    <string name="ime_location_tab_found">Found</string>
+    <string name="ime_location_tab_found_count">Found (%1$d)</string>
+    <string name="ime_location_found_empty">Places that somebody sent you show up here. Copy a map link, coordinates or a Plus code, or have one in the text box.</string>
+    <string name="ime_location_found_in_field">In the text box: %1$s</string>
+    <string name="ime_location_found_in_clips">In your clips: %1$s</string>
+    <string name="ime_location_compass_action">Point the compass</string>
+    <string name="ime_location_compass_target">%1$s: %2$s, %3$d° %4$s</string>
+    <string name="ime_location_compass_needs_position">%1$s: the compass needs your position</string>
+    <string name="ime_location_compass_clear_action">Stop pointing</string>
     <string name="ime_location_precision_desc">Precision: %1$s. Tap to change it.</string>
     <string name="ime_location_settings_desc">Location settings</string>
 

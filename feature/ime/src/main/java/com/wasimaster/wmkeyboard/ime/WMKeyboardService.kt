@@ -32190,7 +32190,29 @@ open class WMKeyboardService : InputMethodService() {
             openToolSettings = { openToolSettings(ToolbarTool.LOCATION) },
             onWeatherLocationChanged = ::onWeatherLocationSaved,
             openCamera = { onPanelChange(PanelMode.CAMERA) },
+            openCompass = { if (_uiState.value.panel != PanelMode.COMPASS) onPanelChange(PanelMode.COMPASS) },
+            foundTexts = ::locationFoundTexts,
         )
+    }
+
+    /**
+     * What the Location tool's Found tab reads for places somebody sent: the
+     * text around the caret, never in a password field, and the recent clips
+     * that are not marked sensitive.
+     */
+    private fun locationFoundTexts(): List<Pair<String, com.wasimaster.wmkeyboard.ime.location.FoundOrigin>> = buildList {
+        val ic = currentInputConnection
+        if (ic != null && !currentInputEditorInfo.isSecureField()) {
+            val around = ic.getTextBeforeCursor(LOCATION_FIELD_CHARS, 0)?.toString().orEmpty() +
+                ic.getTextAfterCursor(LOCATION_FIELD_CHARS, 0)?.toString().orEmpty()
+            if (around.isNotBlank()) add(around to com.wasimaster.wmkeyboard.ime.location.FoundOrigin.FIELD)
+        }
+        if (isClipboardAccessible()) {
+            clipboardStore.items().asSequence()
+                .filter { it.kind.isTextual && !it.sensitive }
+                .take(LOCATION_CLIPS)
+                .forEach { add(it.text.take(LOCATION_CLIP_CHARS) to com.wasimaster.wmkeyboard.ime.location.FoundOrigin.CLIPBOARD) }
+        }
     }
 
     /**
@@ -40502,3 +40524,10 @@ private val WHATSAPP_PACKAGES = listOf("com.whatsapp", "com.whatsapp.w4b")
 
 /** The apostrophe's two spellings, as code points: what a glide counts as a letter where it is one. */
 private val APOSTROPHE_LETTERS: Set<Int> = setOf('\''.code, '’'.code)
+
+/** How much text either side of the caret the Location tool's Found tab reads (#350). */
+private const val LOCATION_FIELD_CHARS = 2_000
+
+/** Recent clips the Found tab reads, newest first, and how much of each. */
+private const val LOCATION_CLIPS = 10
+private const val LOCATION_CLIP_CHARS = 4_000
