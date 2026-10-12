@@ -10323,6 +10323,8 @@ private fun ToolPill(
             .fillMaxWidth()
             .height(PillHeight)
             .clip(shape)
+            // Glass like the round tools; the pill view had none of it.
+            .frostGlass(kb, shape, FrostSurface.TOOLS)
             .then(
                 if (backgroundBrush != null) Modifier.background(backgroundBrush, shape)
                 else Modifier.background(background, shape),
@@ -14714,10 +14716,13 @@ private fun KeyPreviewBubble(
         modifier = Modifier
             .shadow(elevationFor(kb.popupShapeKind, kb.popupElevation), shape, clip = false)
             .then(if (border != null) Modifier.border(border, shape) else Modifier)
+            // Glass like the keys under it, for a glass theme.
+            .frostGlass(kb, shape, FrostSurface.POPUPS)
             // A per-key style first, then the user's own bubble colour, then the
             // theme: narrowest wins, and the theme is the one nobody picked by hand.
             .background(
-                preview.popupBackground ?: popup.backgroundColor?.let { Color(it.toInt()) } ?: kb.popup,
+                preview.popupBackground ?: popup.backgroundColor?.let { Color(it.toInt()) }
+                    ?: kb.popupFill(FrostSurface.POPUPS),
                 shape,
             )
             .clip(shape)
@@ -20231,7 +20236,10 @@ internal fun KeyButton(
                 val glass = frost?.let {
                     val lensKind = visual.shapeKind ?: kb.keyShapeKind
                     val lensRadius = lensRadiusPx(lensKind, kb.keyRadiusDp, size, this)
-                    GlassPaint.of(backdrop, outline, keyBounds.value.topLeft, it, size, lensRadius, kb.board)
+                    GlassPaint.of(
+                        backdrop, outline, keyBounds.value.topLeft, it, size, lensRadius, kb.boardFill,
+                        lensEdgePx = LENS_EDGE_DP.dp.toPx(),
+                    )
                 }
                 val rim = frost?.let { RimPaint.of(it, keyShape, size, layoutDirection, this) }
                 val grain = frost?.let { GrainPaint.of(it, outline) }
@@ -20386,7 +20394,7 @@ internal fun KeyButton(
                 Surface(
                     modifier = Modifier
                         .alpha(if (previewExit.exiting) 0f else 1f)
-                        .frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS, sampleBackdrop = false),
+                        .frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS),
                     shape = kb.popupShape(),
                     color = kb.popupFill(FrostSurface.POPUPS),
                     border = kb.popupSurfaceBorder(),
@@ -21064,7 +21072,7 @@ private fun AlternatesPopup(
             modifier = Modifier
                 .graphicsLayer { alpha = if (shown) 1f else 0f }
                 .growFrom(pivot = { growPivot.value }) { grow.value }
-                .frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS, sampleBackdrop = false),
+                .frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS),
             shape = kb.popupShape(),
             color = kb.popupFill(FrostSurface.POPUPS),
             border = kb.popupSurfaceBorder(),
@@ -22010,7 +22018,7 @@ private fun LanguagePickerPopup(
         PopupNoWindowAnimation()
         GlassPopupBackdrop(kb, FrostSurface.MENUS)
         Surface(
-            modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
+            modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
             shape = kb.menuShape(),
             color = kb.popupFill(FrostSurface.MENUS),
             border = kb.popupSurfaceBorder(),
@@ -22158,7 +22166,7 @@ private fun LanguageCarouselPopup(
         PopupNoWindowAnimation()
         GlassPopupBackdrop(kb, FrostSurface.MENUS)
         Surface(
-            modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
+            modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
             shape = kb.menuShape(),
             color = kb.popupFill(FrostSurface.MENUS),
             border = kb.popupSurfaceBorder(),

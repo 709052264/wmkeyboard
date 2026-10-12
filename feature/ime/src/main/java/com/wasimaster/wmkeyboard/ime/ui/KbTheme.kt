@@ -325,6 +325,8 @@ data class KbFrost(
     val wallpaperBand: WallpaperBand,
     /** Liquid glass: the backdrop bent at the edge; see `FrostStyle`. */
     val liquid: Boolean,
+    /** The board shows its image frosted too, not only the panes; see `FrostSpec.blurBoard`. */
+    val blurBoard: Boolean,
     val refraction: Float,
     val dispersion: Float,
 ) {
@@ -1003,6 +1005,7 @@ internal fun resolveFrost(spec: FrostSpec, dark: Boolean): KbFrost? {
         backdrop = spec.backdropSource,
         wallpaperBand = spec.band,
         liquid = spec.glassStyle == FrostStyle.LIQUID,
+        blurBoard = spec.blurBoard,
         refraction = spec.refraction.coerceIn(FROST_REFRACTION_RANGE),
         dispersion = spec.dispersion.coerceIn(FROST_DISPERSION_RANGE),
     )
@@ -1845,7 +1848,7 @@ fun BoxScope.BoardBackground(kb: KbTheme) {
             alpha = kb.backgroundImageOpacity,
             modifier = Modifier.matchParentSize(),
         )
-    } else {
+    } else if (!boardShowsFrostedImage(kb, imagePath)) {
         ThemeBackgroundImage(
             path = imagePath,
             blur = kb.backgroundImageBlur,
@@ -1864,14 +1867,30 @@ fun BoxScope.BoardBackground(kb: KbTheme) {
     if (frost != null) FrostBackdropLoader(kb, imagePath, kind, targetW, targetH)
     // The wallpaper backdrop is the board's picture, under the tint: what a
     // theme that wanted the app blurred gets instead where it cannot be, and
-    // what a theme that asked for the wallpaper gets everywhere.
-    if (kind == BackdropKind.WALLPAPER) {
-        backdrop.bitmap?.let { picture ->
+    // what a theme that asked for the wallpaper gets everywhere. A theme image
+    // is drawn the same way, frosted, when the theme asks for the board to be
+    // glass too: then the panes and the board between them are one material,
+    // and the backdrop sliders visibly reach the picture. Until the bake
+    // lands the sharp image above stands in.
+    val frostedBoard = kind == BackdropKind.WALLPAPER ||
+        (kind == BackdropKind.IMAGE && frost?.blurBoard == true)
+    if (frostedBoard) {
+        val picture = backdrop.bitmap
+        if (picture != null) {
             Image(
                 bitmap = picture,
                 contentDescription = null,
                 modifier = Modifier.matchParentSize(),
                 contentScale = ContentScale.Crop,
+                alpha = if (kind == BackdropKind.IMAGE) kb.backgroundImageOpacity else 1f,
+            )
+        } else if (kind == BackdropKind.IMAGE) {
+            ThemeBackgroundImage(
+                path = imagePath,
+                blur = kb.backgroundImageBlur,
+                opacity = kb.backgroundImageOpacity,
+                targetW = targetW,
+                targetH = targetH,
             )
         }
     }
@@ -1899,6 +1918,21 @@ fun BoxScope.BoardBackground(kb: KbTheme) {
         val board = if (opacityFloor == null) tinted else tinted.copy(alpha = max(tinted.alpha, opacityFloor))
         Box(modifier = boardModifier.background(board))
     }
+}
+
+/**
+ * Whether the board draws its image through the glass bake instead of sharp:
+ * a still image under a glass theme that asks for the board to be frosted.
+ * Decided before the backdrop is known, so the sharp image is never drawn
+ * under the frosted one. The live window blur does not matter here: an image
+ * hides the app either way.
+ */
+private fun boardShowsFrostedImage(kb: KbTheme, imagePath: String?): Boolean {
+    val frost = kb.frost ?: return false
+    if (imagePath == null || !frost.blurBoard) return false
+    if (kb.backgroundAnimated && !kb.reduceMotion) return false
+    return frost.backdrop == com.wasimaster.wmkeyboard.core.theme.FrostBackdropSource.AUTO ||
+        frost.backdrop == com.wasimaster.wmkeyboard.core.theme.FrostBackdropSource.IMAGE
 }
 
 /** Every stop at least [floor] opaque; see the fallback note in [BoardBackground]. */

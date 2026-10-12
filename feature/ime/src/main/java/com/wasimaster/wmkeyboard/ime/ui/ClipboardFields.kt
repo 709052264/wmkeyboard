@@ -1721,7 +1721,7 @@ private fun ClipFullTextPopup(
                 .padding(horizontal = 8.dp)
                 .widthIn(max = ClipFullTextMaxWidth)
                 .fillMaxWidth()
-                .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
+                .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
         ) {
             Column(modifier = Modifier.padding(top = 10.dp)) {
                 Text(
@@ -2138,7 +2138,7 @@ private fun ClipExtractPopup(entities: List<ClipEntity>, onPick: (ClipEntity) ->
             modifier = Modifier
                 .padding(horizontal = 8.dp)
                 .widthIn(min = 200.dp, max = ClipFullTextMaxWidth)
-                .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
+                .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
         ) {
             LazyColumn(
                 modifier = Modifier.heightIn(max = ClipFullTextMaxHeight),

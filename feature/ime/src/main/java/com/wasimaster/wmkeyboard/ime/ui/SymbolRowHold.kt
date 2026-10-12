@@ -94,7 +94,7 @@ internal fun SymbolSetDeleteConfirm(name: String, onConfirm: () -> Unit, onDismi
                     .fillMaxWidth(0.86f)
                     // Taps inside the card must not reach the scrim.
                     .pointerInput(Unit) { detectTapGestures { } }
-                    .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
+                    .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
             ) {
                 Column(modifier = Modifier.padding(start = 20.dp, end = 12.dp, top = 18.dp, bottom = 6.dp)) {
                     Text(

@@ -3497,6 +3497,15 @@ fun ThemeEditorScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
+        item(visible = hasImage && frost.backdropSource != FrostBackdropSource.WALLPAPER &&
+            frost.backdropSource != FrostBackdropSource.NONE
+        ) {
+            ToggleSetting(
+                R.string.theme_glass_blur_board_title,
+                stringResource(R.string.theme_glass_blur_board_subtitle),
+                checked = frost.blurBoard,
+            ) { on -> updateFrost { it.copy(blurBoard = on) } }
+        }
         item(visible = !hasBackdrop) {
             Text(
                 stringResource(R.string.theme_glass_no_image_body),

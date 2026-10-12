@@ -82,6 +82,15 @@ data class FrostSpec(
     val refraction: Float = 0.6f,
     /** How far a liquid pane splits the backdrop's colours at that edge; see [FROST_DISPERSION_RANGE]. */
     val dispersion: Float = 0.25f,
+    /**
+     * Whether the board shows its background image frosted too — through the
+     * same bake the panes sample — rather than sharp between them. On by
+     * default: with the board sharp and the panes blurred, every pane and the
+     * toolbar read as a different tint from the board, and the backdrop
+     * sliders seemed to do nothing to the picture. The image's own blur
+     * slider still applies when this is off.
+     */
+    val blurBoard: Boolean = true,
 ) {
     val glassStyle: FrostStyle
         get() = FrostStyle.entries.firstOrNull { it.name.equals(style, ignoreCase = true) } ?: FrostStyle.FROSTED
@@ -253,6 +262,7 @@ fun ThemeSpec.dressedForGlass(preset: FrostPreset): ThemeSpec {
             rimColor = current.rimColor,
             backdrop = current.backdrop,
             wallpaperBand = current.wallpaperBand,
+            blurBoard = current.blurBoard,
         ),
         keyBackground = keyBackground.atMost(preset.keyAlpha),
         modifierKeyBackground = modifierKeyBackground.atMost(preset.modifierAlpha),

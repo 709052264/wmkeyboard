@@ -99,7 +99,7 @@ internal fun IconHintBubble(label: String, onDismiss: () -> Unit) {
     ) {
         GlassPopupBackdrop(kb, FrostSurface.POPUPS)
         Surface(
-            modifier = Modifier.frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS, sampleBackdrop = false),
+            modifier = Modifier.frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS),
             shape = kb.popupShape(),
             color = kb.popupFill(FrostSurface.POPUPS),
             border = kb.popupSurfaceBorder(),

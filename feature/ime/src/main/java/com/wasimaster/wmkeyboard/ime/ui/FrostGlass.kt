@@ -33,7 +33,9 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.node.requireLayoutCoordinates
+import androidx.compose.ui.layout.positionOnScreen
 import androidx.compose.ui.node.DrawModifierNode
 import androidx.compose.ui.node.LayoutAwareModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
@@ -83,7 +85,33 @@ import kotlinx.coroutines.flow.StateFlow
 class FrostBackdrop {
     var bitmap by mutableStateOf<ImageBitmap?>(null)
     var boardBounds by mutableStateOf(Rect.Zero)
+
+    /**
+     * The board's top-left on the screen, which is what lets a surface in a
+     * window of its own — a popup, a menu — find where it sits on the board:
+     * its own screen position minus this, plus [boardBounds]' origin.
+     */
+    var boardScreenOrigin by mutableStateOf(Offset.Zero)
+
+    /** [screen] (a point on the screen) in the board root's coordinates. */
+    fun toBoardRoot(screen: Offset): Offset = screen - boardScreenOrigin + boardBounds.topLeft
 }
+
+/**
+ * What the board paints over its picture, which every pane lays over its
+ * slice so a pane shows the backdrop as the board shows it. The gradient,
+ * where the theme has one, is drawn at phase zero: a Flow or Hue-cycle board
+ * moves under still panes.
+ */
+@androidx.compose.runtime.Immutable
+data class BoardFill(val color: Color, val gradient: com.wasimaster.wmkeyboard.core.theme.GradientSpec?) {
+    companion object {
+        val None = BoardFill(Color.Transparent, null)
+    }
+}
+
+/** The board fill of [this] theme. */
+val KbTheme.boardFill: BoardFill get() = BoardFill(board, boardGradient)
 
 /** Provided beside [LocalKbTheme]; a host with no board hands out an empty one. */
 val LocalFrostBackdrop = staticCompositionLocalOf { FrostBackdrop() }
@@ -144,7 +172,10 @@ internal fun FrostBackdropLoader(
 
 /** Records where the board is, for the surfaces to sample the backdrop against. */
 internal fun Modifier.frostBoardBounds(backdrop: FrostBackdrop): Modifier =
-    onGloballyPositioned { backdrop.boardBounds = it.boundsInRoot() }
+    onGloballyPositioned {
+        backdrop.boardBounds = it.boundsInRoot()
+        backdrop.boardScreenOrigin = it.positionOnScreen()
+    }
 
 /**
  * The slice of the backdrop under one surface, ready to draw: an image
@@ -155,18 +186,20 @@ internal fun Modifier.frostBoardBounds(backdrop: FrostBackdrop): Modifier =
 class GlassPaint private constructor(
     private val outline: Outline,
     private val brush: Brush,
-    private val boardTint: Color,
+    private val fill: Brush?,
 ) {
 
     /**
-     * The slice, then the board's own colour over it: a pane lies on the
-     * board, so what shows through it is the backdrop *as the board tints it*.
-     * Without the tint a dark board scrimming a bright wallpaper had keys in
-     * the wallpaper's full colour, brighter than the board they sat on.
+     * The slice, then the board's own fill over it — its colour, or its
+     * gradient laid out as the board lays it out: a pane lies on the board,
+     * so what shows through it is the backdrop *as the board tints it*.
+     * Without it a dark board scrimming a bright wallpaper had keys in the
+     * wallpaper's full colour, and a gradient board stopped dead at every key
+     * and at the toolbar.
      */
     fun draw(scope: DrawScope) = with(scope) {
         drawOutline(outline, brush)
-        if (boardTint.alpha > 0f) drawOutline(outline, boardTint)
+        fill?.let { drawOutline(outline, it) }
     }
 
     companion object {
@@ -185,8 +218,10 @@ class GlassPaint private constructor(
             frost: KbFrost? = null,
             size: Size = Size.Zero,
             lensRadiusPx: Float = 0f,
-            /** The board colour the pane lies on; see [draw]. */
-            boardTint: Color = Color.Transparent,
+            /** What the board paints over its picture; see [draw]. */
+            boardFill: BoardFill = BoardFill.None,
+            /** Width of the lens's bent rim, in px; 0 lets the lens pick from [size]. */
+            lensEdgePx: Float = 0f,
         ): GlassPaint? {
             val bitmap = backdrop.bitmap ?: return null
             val board = backdrop.boardBounds
@@ -196,6 +231,12 @@ class GlassPaint private constructor(
             val dx = board.left + (board.width - bitmap.width * scale) / 2f - originInRoot.x
             val dy = board.top + (board.height - bitmap.height * scale) / 2f - originInRoot.y
             val slice = ImageShader(bitmap, TileMode.Clamp, TileMode.Clamp)
+            // Bilinear, not nearest: drawn straight a Paint filters the
+            // bitmap, but sampled as a runtime shader's child it is read
+            // unfiltered, and the upscaled bake came out in visible blocks.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && slice is android.graphics.BitmapShader) {
+                slice.filterMode = android.graphics.BitmapShader.FILTER_MODE_LINEAR
+            }
             slice.setLocalMatrix(
                 android.graphics.Matrix().apply {
                     setScale(scale, scale)
@@ -203,13 +244,30 @@ class GlassPaint private constructor(
                 },
             )
             val shader = if (frost != null && frost.liquid && LiquidLens.available && size.minDimension > 0f) {
-                LiquidLens.shader(slice, size, lensRadiusPx, frost)
+                LiquidLens.shader(slice, size, lensRadiusPx, frost, lensEdgePx)
             } else {
                 slice
             }
-            return GlassPaint(outline, ShaderBrush(shader), boardTint)
+            return GlassPaint(outline, ShaderBrush(shader), fillBrush(boardFill, board, originInRoot))
         }
     }
+}
+
+/**
+ * The board's fill as a brush in a pane's own coordinates: its flat colour,
+ * or its gradient built at the board's size and moved back by the pane's
+ * place on it, so the gradient runs on across every pane unbroken.
+ */
+private fun fillBrush(fill: BoardFill, board: Rect, originInRoot: Offset): Brush? {
+    val gradient = fill.gradient
+    if (gradient == null) return if (fill.color.alpha > 0f) SolidColor(fill.color) else null
+    val boardBrush = gradient.brush() as? ShaderBrush ?: return null
+    val shader = boardBrush.createShader(board.size)
+    val matrix = android.graphics.Matrix()
+    shader.getLocalMatrix(matrix)
+    matrix.postTranslate(board.left - originInRoot.x, board.top - originInRoot.y)
+    shader.setLocalMatrix(matrix)
+    return ShaderBrush(shader)
 }
 
 /**
@@ -240,8 +298,24 @@ object LiquidLens {
             runCatching { android.graphics.RuntimeShader(SOURCE) }.isSuccess
     }
 
-    /** How wide the bent band at the edge is, as a share of the pane's short side. */
+    /**
+     * The most of a pane's short side the bent rim may take. The rim itself is
+     * a fixed width (the caller's `lensEdgePx`, about 12 dp), so a space bar
+     * and a letter key bend the same amount at their edges; this cap only
+     * keeps a tiny chip from being all rim.
+     */
+    private const val EDGE_MAX_SHARE = 0.4f
+
+    /** Used when no rim width is given: a share of the short side, as before. */
     private const val EDGE_SHARE = 0.32f
+
+    /**
+     * How much every pane magnifies what it covers at full refraction, the
+     * same for every size of pane — the middle of a key was straight glass
+     * while a small key was almost all rim, which is what made the wide keys
+     * look like a different material.
+     */
+    private const val ZOOM = 0.08f
 
     /** Light from the upper left, the direction the rim is lit from. */
     private const val LIGHT_X = -0.55f
@@ -260,6 +334,7 @@ object LiquidLens {
         uniform float dispersion;
         uniform float specular;
         uniform float2 light;
+        uniform float zoom;
 
         float roundRect(float2 p, float2 extent, float r) {
             float2 q = abs(p) - extent + r;
@@ -279,10 +354,11 @@ object LiquidLens {
             ) + float2(0.0001, 0.0));
             float2 shift = -n * bend * refraction * edge * 0.7;
             float split = dispersion * bend * edge * 0.12;
+            float2 q = c + local * (1.0 - zoom * refraction) + shift;
             float4 col;
-            col.r = float4(backdrop.eval(p + shift + n * split)).r;
-            col.g = float4(backdrop.eval(p + shift)).g;
-            col.b = float4(backdrop.eval(p + shift - n * split)).b;
+            col.r = float4(backdrop.eval(q + n * split)).r;
+            col.g = float4(backdrop.eval(q)).g;
+            col.b = float4(backdrop.eval(q - n * split)).b;
             col.a = 1.0;
             float lit = max(dot(n, light), 0.0);
             col.rgb += float3(bend * bend * lit * specular);
@@ -291,9 +367,16 @@ object LiquidLens {
     """
 
     @androidx.annotation.RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    fun shader(slice: android.graphics.Shader, size: Size, lensRadiusPx: Float, frost: KbFrost): android.graphics.Shader {
+    fun shader(
+        slice: android.graphics.Shader,
+        size: Size,
+        lensRadiusPx: Float,
+        frost: KbFrost,
+        edgePx: Float = 0f,
+    ): android.graphics.Shader {
         val short = size.minDimension
-        return runCatching { lensShader(slice, size, short, lensRadiusPx, frost) }.getOrElse { slice }
+        val edge = if (edgePx > 0f) edgePx.coerceAtMost(short * EDGE_MAX_SHARE) else short * EDGE_SHARE
+        return runCatching { lensShader(slice, size, short, lensRadiusPx, frost, edge) }.getOrElse { slice }
     }
 
     @androidx.annotation.RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -303,12 +386,14 @@ object LiquidLens {
         short: Float,
         lensRadiusPx: Float,
         frost: KbFrost,
+        edge: Float,
     ): android.graphics.Shader {
         return android.graphics.RuntimeShader(SOURCE).apply {
             setInputShader("backdrop", slice)
             setFloatUniform("size", size.width, size.height)
             setFloatUniform("radius", lensRadiusPx.coerceIn(0f, short / 2f))
-            setFloatUniform("edge", (short * EDGE_SHARE).coerceAtLeast(1f))
+            setFloatUniform("edge", edge.coerceAtLeast(1f))
+            setFloatUniform("zoom", ZOOM)
             setFloatUniform("refraction", frost.refraction)
             setFloatUniform("dispersion", frost.dispersion)
             setFloatUniform("specular", SPECULAR * frost.refraction.coerceAtLeast(0.25f))
@@ -328,6 +413,9 @@ fun lensRadiusPx(kind: KeyShapeKind, radiusDp: Int, size: Size, density: Density
     KeyShapeKind.PILL, KeyShapeKind.CIRCLE, KeyShapeKind.ARCH -> size.minDimension / 2f
     else -> with(density) { radiusDp.dp.toPx() }.coerceAtMost(size.minDimension / 2f)
 }
+
+/** Width of a liquid lens's bent rim, the same on every pane. */
+internal const val LENS_EDGE_DP = 12f
 
 /** Width of the rim of light around a glass surface. */
 private const val RIM_WIDTH_DP = 1f
@@ -409,10 +497,9 @@ class GrainPaint private constructor(private val outline: Outline, private val a
  * them only when its size, its place on the board, or the backdrop changes;
  * the draw itself is three `drawOutline`s around the content.
  *
- * [sampleBackdrop] is false for a surface in a window of its own (a popup):
- * its root is not the keyboard's, so it cannot find its place on the board,
- * and it blurs what is behind it through the window instead — see
- * [GlassPopupBackdrop].
+ * A pane finds its place on the board through the screen, so a popup or a
+ * menu in a window of its own samples the backdrop exactly as a key does.
+ * [sampleBackdrop] false draws only the rim and grain.
  */
 fun Modifier.frostGlass(
     frost: KbFrost?,
@@ -422,12 +509,12 @@ fun Modifier.frostGlass(
     /** What a liquid lens bends around; see [lensRadiusPx]. */
     lensKind: KeyShapeKind = KeyShapeKind.ROUNDED,
     lensRadiusDp: Int = 0,
-    /** The board colour laid over the slice; see [GlassPaint.draw]. */
-    boardTint: Color = Color.Transparent,
+    /** What the board paints over its picture; see [GlassPaint.draw]. */
+    boardFill: BoardFill = BoardFill.None,
 ): Modifier = if (frost == null) {
     this
 } else {
-    this.then(FrostGlassElement(frost, backdrop, shape, sampleBackdrop, lensKind, lensRadiusDp, boardTint))
+    this.then(FrostGlassElement(frost, backdrop, shape, sampleBackdrop, lensKind, lensRadiusDp, boardFill))
 }
 
 /** [frostGlass] for [surface], when the theme makes it glass; the backdrop comes from the composition. */
@@ -451,9 +538,10 @@ fun Modifier.frostGlass(
         FrostSurface.BARS -> KeyShapeKind.SHARP to 0
     }
     // A bar runs the full width with nothing beside it, so a rim drew a frame
-    // around the whole strip: bars keep the glass and the grain, not the rim.
-    val dressed = if (surface == FrostSurface.BARS) frost.copy(rim = 0f) else frost
-    return frostGlass(dressed, LocalFrostBackdrop.current, shape, sampleBackdrop, kind, radiusDp, kb.board)
+    // around the whole strip and a lens bent a wedge into its ends: bars keep
+    // the glass and the grain, frosted, without either.
+    val dressed = if (surface == FrostSurface.BARS) frost.copy(rim = 0f, liquid = false) else frost
+    return frostGlass(dressed, LocalFrostBackdrop.current, shape, sampleBackdrop, kind, radiusDp, kb.boardFill)
 }
 
 private data class FrostGlassElement(
@@ -463,12 +551,12 @@ private data class FrostGlassElement(
     val sample: Boolean,
     val lensKind: KeyShapeKind,
     val lensRadiusDp: Int,
-    val boardTint: Color,
+    val boardFill: BoardFill,
 ) : ModifierNodeElement<FrostGlassNode>() {
-    override fun create() = FrostGlassNode(frost, backdrop, shape, sample, lensKind, lensRadiusDp, boardTint)
+    override fun create() = FrostGlassNode(frost, backdrop, shape, sample, lensKind, lensRadiusDp, boardFill)
 
     override fun update(node: FrostGlassNode) =
-        node.update(frost, backdrop, shape, sample, lensKind, lensRadiusDp, boardTint)
+        node.update(frost, backdrop, shape, sample, lensKind, lensRadiusDp, boardFill)
 
     override fun InspectorInfo.inspectableProperties() {
         name = "frostGlass"
@@ -491,7 +579,7 @@ private class FrostGlassNode(
     private var sample: Boolean,
     private var lensKind: KeyShapeKind,
     private var lensRadiusDp: Int,
-    private var boardTint: Color,
+    private var boardFill: BoardFill,
 ) : Modifier.Node(), DrawModifierNode, LayoutAwareModifierNode, ObserverModifierNode {
 
     private var origin = Offset.Zero
@@ -507,7 +595,7 @@ private class FrostGlassNode(
         sample: Boolean,
         lensKind: KeyShapeKind,
         lensRadiusDp: Int,
-        boardTint: Color,
+        boardFill: BoardFill,
     ) {
         val rewatch = backdrop !== this.backdrop
         this.frost = frost
@@ -516,7 +604,7 @@ private class FrostGlassNode(
         this.sample = sample
         this.lensKind = lensKind
         this.lensRadiusDp = lensRadiusDp
-        this.boardTint = boardTint
+        this.boardFill = boardFill
         builtFor = null
         if (rewatch && isAttached) watchBackdrop()
         invalidateDraw()
@@ -535,6 +623,7 @@ private class FrostGlassNode(
         observeReads {
             backdrop.bitmap
             backdrop.boardBounds
+            backdrop.boardScreenOrigin
         }
     }
 
@@ -545,25 +634,27 @@ private class FrostGlassNode(
     }
 
     override fun onPlaced(coordinates: LayoutCoordinates) {
-        if (!sample) return
-        val at = coordinates.positionInRoot()
-        if (at != origin) {
-            origin = at
-            builtFor = null
-            invalidateDraw()
-        }
+        invalidateDraw()
     }
 
     override fun ContentDrawScope.draw() {
         val bitmap = if (sample) backdrop.bitmap else null
         val bounds = if (sample) backdrop.boardBounds else Rect.Zero
+        // Where this pane is, in the board root's coordinates, found through
+        // the screen so a pane in a window of its own (a popup, a menu) lands
+        // on the board as truly as a key does. Read at draw, not at placement:
+        // a popup window moves to its anchor without its content relaying out.
+        if (sample && bitmap != null && isAttached) {
+            origin = backdrop.toBoardRoot(requireLayoutCoordinates().positionOnScreen())
+        }
         val key = GlassPaintKey(size, origin, bitmap, bounds, layoutDirection)
         if (key != builtFor) {
             val outline = shape.createOutline(size, layoutDirection, this)
             glass = if (bitmap != null) {
                 GlassPaint.of(
                     backdrop, outline, origin, frost, size,
-                    lensRadiusPx(lensKind, lensRadiusDp, size, this), boardTint,
+                    lensRadiusPx(lensKind, lensRadiusDp, size, this), boardFill,
+                    lensEdgePx = LENS_EDGE_DP.dp.toPx(),
                 )
             } else {
                 null
@@ -708,12 +799,19 @@ fun Modifier.popupBackdropBlur(backdrop: PopupBackdrop): Modifier = graphicsLaye
 }
 
 /**
- * The popup colour for [surface]: the theme's own over a board that blurs
- * itself under the popup ([GlassPopupBackdrop]), and otherwise at least the
- * theme's fallback opacity, so a translucent sheet never sits on sharp keys.
+ * The popup colour for [surface].
+ *
+ * Over a backdrop the popup is a pane like any key — it samples the same
+ * glass ([frostGlass] finds its place through the screen) — so it takes the
+ * letter-key fill and reads as one of them. With no backdrop, it is the
+ * theme's popup colour over a board that softens under it
+ * ([GlassPopupBackdrop]), or at least the fallback opacity where nothing
+ * softens, so a translucent sheet never sits on sharp keys.
  */
+@Composable
 fun KbTheme.popupFill(surface: FrostSurface): Color {
     val frost = frost?.takeIf { it.has(surface) } ?: return popup
+    if (LocalFrostBackdrop.current.bitmap != null) return key
     if (popupBackdropBlurs(surface)) return popup
     return popup.copy(alpha = max(popup.alpha, frost.fallbackOpacity))
 }

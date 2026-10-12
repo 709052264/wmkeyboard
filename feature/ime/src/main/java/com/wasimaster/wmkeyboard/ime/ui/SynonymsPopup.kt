@@ -114,7 +114,7 @@ private fun SynonymsWindow(sheet: SynonymsSheet, growth: PopupGrowth, onAction: 
                     .fillMaxWidth(0.94f)
                     // Taps inside the sheet must not reach the scrim.
                     .pointerInput(Unit) { detectTapGestures { } }
-                    .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
+                    .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
             ) {
                 Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {

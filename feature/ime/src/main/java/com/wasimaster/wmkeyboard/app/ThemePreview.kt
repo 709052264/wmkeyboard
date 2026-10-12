@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import com.wasimaster.wmkeyboard.core.theme.BackgroundBitmapCache
 import com.wasimaster.wmkeyboard.ime.ui.DecalsCanvas
 import com.wasimaster.wmkeyboard.ime.ui.BackdropKind
+import com.wasimaster.wmkeyboard.ime.ui.BoardFill
 import com.wasimaster.wmkeyboard.ime.ui.FrostBackdrop
 import com.wasimaster.wmkeyboard.ime.ui.KbFrost
 import com.wasimaster.wmkeyboard.core.theme.WallpaperBackdrop
@@ -165,7 +166,9 @@ private fun ThemePreviewContent(
                 )?.asImageBitmap()
             }
         }
-        if (kind == BackdropKind.WALLPAPER) {
+        // The board's picture frosted, as the keyboard draws it: the wallpaper
+        // band always, a theme image when the theme frosts the board too.
+        if (kind == BackdropKind.WALLPAPER || (kind == BackdropKind.IMAGE && frost?.blurBoard == true)) {
             backdrop.bitmap?.let { picture ->
                 Image(
                     bitmap = picture,
@@ -454,7 +457,7 @@ private fun Modifier.previewKeyFace(
                     glass, backdrop, shape,
                     lensKind = theme.keyShape,
                     lensRadiusDp = PREVIEW_LENS_RADIUS_DP,
-                    boardTint = Color(theme.boardBackground.toInt()),
+                    boardFill = BoardFill(Color(theme.boardBackground.toInt()), theme.boardGradient),
                 )
             } else {
                 Modifier

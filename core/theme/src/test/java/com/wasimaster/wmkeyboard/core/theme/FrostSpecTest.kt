@@ -130,6 +130,13 @@ class FrostSpecTest {
     }
 
     @Test
+    fun `the board is frosted by default and dressing keeps the choice`() {
+        assertTrue(FrostSpec().blurBoard)
+        val theme = ThemeSpec(id = "t", name = "T", frost = FrostSpec(blurBoard = false))
+        assertFalse(theme.dressedForGlass(FrostPreset.FROSTED).frost?.blurBoard ?: true)
+    }
+
+    @Test
     fun `dressing keeps the backdrop choice`() {
         val theme = ThemeSpec(id = "t", name = "T", frost = FrostSpec(backdrop = "WALLPAPER", wallpaperBand = "CENTER"))
         val dressed = theme.dressedForGlass(FrostPreset.SMOKED)
