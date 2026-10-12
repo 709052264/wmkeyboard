@@ -228,8 +228,17 @@ class GlassPaint private constructor(
  * a pixel program from a Paint.
  */
 object LiquidLens {
-    val available: Boolean
-        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+    /**
+     * Android 13+ and the program compiles on this phone. Compiled once and
+     * remembered, so a phone whose shader compiler rejects it draws every
+     * liquid pane frosted instead of throwing out of a draw pass — which
+     * kills the keyboard, and on 2026-10-12 did: AGSL reserves `half` as a
+     * type, and a parameter named so failed to compile on a CPH2481.
+     */
+    val available: Boolean by lazy {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            runCatching { android.graphics.RuntimeShader(SOURCE) }.isSuccess
+    }
 
     /** How wide the bent band at the edge is, as a share of the pane's short side. */
     private const val EDGE_SHARE = 0.32f
@@ -252,8 +261,8 @@ object LiquidLens {
         uniform float specular;
         uniform float2 light;
 
-        float roundRect(float2 p, float2 half, float r) {
-            float2 q = abs(p) - half + r;
+        float roundRect(float2 p, float2 extent, float r) {
+            float2 q = abs(p) - extent + r;
             return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
         }
 
@@ -284,6 +293,17 @@ object LiquidLens {
     @androidx.annotation.RequiresApi(Build.VERSION_CODES.TIRAMISU)
     fun shader(slice: android.graphics.Shader, size: Size, lensRadiusPx: Float, frost: KbFrost): android.graphics.Shader {
         val short = size.minDimension
+        return runCatching { lensShader(slice, size, short, lensRadiusPx, frost) }.getOrElse { slice }
+    }
+
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun lensShader(
+        slice: android.graphics.Shader,
+        size: Size,
+        short: Float,
+        lensRadiusPx: Float,
+        frost: KbFrost,
+    ): android.graphics.Shader {
         return android.graphics.RuntimeShader(SOURCE).apply {
             setInputShader("backdrop", slice)
             setFloatUniform("size", size.width, size.height)
