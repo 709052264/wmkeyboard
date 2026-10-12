@@ -1840,6 +1840,17 @@ open class WMKeyboardService : InputMethodService() {
     private var expectedSelStart = -1
     private var expectedSelEnd = -1
 
+    /**
+     * The fixed end of a selection the keyboard is stretching under shift or
+     * selection mode, or -1 (#613). [onUpdateSelection] reports a selection as
+     * a start and an end and loses which of the two the caret is on, so a
+     * selection grown up or to the left read back as one grown down or to the
+     * right: the next step moved the wrong end and the highlight shrank to
+     * nothing. Noted from the collapsed caret a stretch starts at, and dropped
+     * once neither reported end is it.
+     */
+    private var selectionAnchor = -1
+
     /** Where a converted Keyman layout's rules are read from. */
     private val keymanRules by lazy { KeymanRuleStore(this) }
 
@@ -6396,6 +6407,7 @@ open class WMKeyboardService : InputMethodService() {
         lastSelectionUpdateAt = SystemClock.uptimeMillis()
         expectedSelStart = newSelStart
         expectedSelEnd = newSelEnd
+        if (selectionAnchor != newSelStart && selectionAnchor != newSelEnd) selectionAnchor = -1
         trackCaretAtFieldStart(newSelStart, newSelEnd)
         caretMagnifier.onSelection(newSelStart, newSelEnd)
         // Marks the engine's context stale unless this is the echo of its own
@@ -7797,6 +7809,19 @@ open class WMKeyboardService : InputMethodService() {
         val caret = code in CARET_KEY_CODES
         val shifted = if (caret) state.caretExtendsSelection else shift
         if (shifted) meta = meta or KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
+        if (caret && shifted) {
+            noteSelectionAnchor()
+            // Shift+Up/Down in a one-line field selects to its start or end,
+            // as a desktop text box does; the arrow itself stepped into a
+            // search box's dropdown or out of the field (#613).
+            val vertical = code == KeyEvent.KEYCODE_DPAD_UP || code == KeyEvent.KEYCODE_DPAD_DOWN
+            val chord = KeyEvent.META_CTRL_ON or KeyEvent.META_ALT_ON or KeyEvent.META_META_ON
+            if (vertical && meta and chord == 0 &&
+                extendSelectionToEdgeDirectly(ic, up = code == KeyEvent.KEYCODE_DPAD_UP)
+            ) {
+                return true
+            }
+        }
 
         // Press order mirrors a hardware keyboard: modifiers down outermost and
         // released in reverse, so an editor that pairs down and up events never
@@ -19733,13 +19758,16 @@ open class WMKeyboardService : InputMethodService() {
         lastCaretScrubMs = SystemClock.uptimeMillis()
         commitComposing(ic, autocorrect = false)
         lastGestureWord = null
-        // A plain step, under the setting, moves the selection instead of
-        // pressing an arrow (#505); extending one keeps the arrow, which is
-        // what the shifted step is.
-        if (_uiState.value.settings.textEditing.spaceCursorDirect &&
-            !_uiState.value.caretExtendsSelection && moveCaretDirectly(ic, delta)
-        ) {
-            return
+        // Under the setting a step sets the selection instead of pressing an
+        // arrow (#505), a shifted one included: a search box reads Shift+Right
+        // as a step through its dropdown just as it reads Right (#613).
+        if (_uiState.value.settings.textEditing.spaceCursorDirect) {
+            val moved = if (_uiState.value.caretExtendsSelection) {
+                extendSelectionDirectly(ic, delta)
+            } else {
+                moveCaretDirectly(ic, delta)
+            }
+            if (moved) return
         }
         sendEditorKey(
             if (delta < 0) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT,
@@ -19771,6 +19799,92 @@ open class WMKeyboardService : InputMethodService() {
         expectedSelStart = to
         expectedSelEnd = to
         return true
+    }
+
+    /**
+     * The shifted form of [moveCaretDirectly] (#613): the selection's moving
+     * end goes one character the way [delta] points and its anchor stays put.
+     * False when the field has not said where its selection is, or the
+     * selection is too long to read the character beside its moving end, so
+     * the Shift+arrow path runs instead.
+     */
+    private fun extendSelectionDirectly(ic: InputConnection, delta: Int): Boolean {
+        val start = expectedSelStart
+        val end = expectedSelEnd
+        if (start < 0 || end < start) return false
+        val anchor = anchorFor(start, end, delta)
+        val focus = if (anchor == start) end else start
+        // The character or two the moving end steps over: outside the
+        // selection when it grows, its own first or last when it shrinks.
+        val near = when {
+            delta < 0 && focus == start -> ic.getTextBeforeCursor(2, 0)
+            delta > 0 && focus == end -> ic.getTextAfterCursor(2, 0)
+            end - start > DIRECT_SELECTION_READ_CAP -> null
+            else -> ic.getSelectedText(0)?.let { if (delta < 0) it.takeLast(2) else it.take(2) }
+        } ?: return false
+        if (near.isEmpty()) return true
+        val step = if (near.length == 2 && Character.isSurrogatePair(near[0], near[1])) 2 else 1
+        val to = (if (delta < 0) focus - step else focus + step).coerceAtLeast(0)
+        return setStretchedSelection(ic, anchor, to)
+    }
+
+    /**
+     * Shift+Up or Shift+Down in a one-line field (#613): the moving end goes to
+     * the start or the end of the text, which is what a desktop text box does
+     * with them. The arrow itself is no line move there; a search box steps
+     * into its dropdown and a plain field hands focus on, leaving nothing
+     * selected. False in a multi-line field, where the arrow follows the app's
+     * own wrapping, and when the field has not said where its selection is.
+     */
+    private fun extendSelectionToEdgeDirectly(ic: InputConnection, up: Boolean): Boolean {
+        val inputType = currentInputEditorInfo?.inputType ?: return false
+        if (inputType and InputType.TYPE_TEXT_FLAG_MULTI_LINE != 0) return false
+        val start = expectedSelStart
+        val end = expectedSelEnd
+        if (start < 0 || end < start) return false
+        val anchor = anchorFor(start, end, if (up) -1 else 1)
+        val to = if (up) {
+            val before = ic.getTextBeforeCursor(DIRECT_CARET_EDGE_REACH, 0) ?: return false
+            (start - before.length).coerceAtLeast(0)
+        } else {
+            val after = ic.getTextAfterCursor(DIRECT_CARET_EDGE_REACH, 0) ?: return false
+            end + after.length
+        }
+        return setStretchedSelection(ic, anchor, to)
+    }
+
+    /**
+     * Which end of the selection [start]..[end] stays put for a step the way
+     * [delta] points: the one [selectionAnchor] kept, or, for a selection the
+     * keyboard did not make, the end away from the step, so the first step
+     * grows it.
+     */
+    private fun anchorFor(start: Int, end: Int, delta: Int): Int = when {
+        start == end -> start
+        selectionAnchor == start || selectionAnchor == end -> selectionAnchor
+        delta < 0 -> end
+        else -> start
+    }
+
+    /**
+     * Sets the selection from [anchor] to [focus] in that order, so an editor
+     * that keeps a direction keeps this one, and remembers both ends.
+     */
+    private fun setStretchedSelection(ic: InputConnection, anchor: Int, focus: Int): Boolean {
+        if (!ic.setSelection(anchor, focus)) return false
+        expectedSelStart = minOf(anchor, focus)
+        expectedSelEnd = maxOf(anchor, focus)
+        selectionAnchor = anchor
+        return true
+    }
+
+    /**
+     * Before a Shift+arrow goes out: a collapsed caret is where the selection
+     * about to grow is anchored (#613). A selection already standing keeps
+     * whatever anchor was noted for it.
+     */
+    private fun noteSelectionAnchor() {
+        if (expectedSelStart >= 0 && expectedSelStart == expectedSelEnd) selectionAnchor = expectedSelStart
     }
 
     /**
@@ -32456,15 +32570,20 @@ open class WMKeyboardService : InputMethodService() {
      * Only ever called with a range live (the macro bar is the caller), so
      * there is no collapsed case to handle: reversing a caret would be the
      * same no-op.
+     *
+     * It lands on the direction the selection had. Always ending forwards
+     * turned a selection Shift had grown up or to the left around, so the next
+     * Shift+arrow moved its other end and the highlight vanished (#613).
      */
     private fun scrollCaretIntoView() {
         val ic = currentInputConnection ?: return
         val start = expectedSelStart
         val end = expectedSelEnd
         if (start < 0 || end < 0 || start == end) return
+        val (anchor, focus) = if (selectionAnchor == end) end to start else start to end
         runCatching {
-            ic.setSelection(end, start)
-            ic.setSelection(start, end)
+            ic.setSelection(focus, anchor)
+            ic.setSelection(anchor, focus)
         }
     }
 
@@ -33647,6 +33766,13 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val ic = currentInputConnection ?: return
+        if (shift) {
+            noteSelectionAnchor()
+            val vertical = code == KeyEvent.KEYCODE_DPAD_UP || code == KeyEvent.KEYCODE_DPAD_DOWN
+            if (vertical && !ctrl && extendSelectionToEdgeDirectly(ic, up = code == KeyEvent.KEYCODE_DPAD_UP)) {
+                return
+            }
+        }
         val time = android.os.SystemClock.uptimeMillis()
         var meta = 0
         if (shift) meta = meta or KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
@@ -39205,6 +39331,13 @@ private const val IDLE_RELEASE_MS = 120_000L
  * line lands this far along, and the next step goes on from there.
  */
 private const val DIRECT_CARET_EDGE_REACH = 10_000
+
+/**
+ * The longest selection a direct shifted step reads to find the character
+ * beside its moving end when that end is inside the selection (#613). Past it
+ * the step goes out as Shift and an arrow, as it did before.
+ */
+private const val DIRECT_SELECTION_READ_CAP = 4_000
 
 /**
  * The largest sample [android.graphics.ImageDecoder] accepts, i.e. the
