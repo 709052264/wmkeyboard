@@ -79,6 +79,13 @@ enum class MapLink(
 
     /** `geo:` (RFC 5870): opens whichever maps app the reader's phone uses, but is not a web link. */
     GEO("geo", "geo:"),
+
+    /**
+     * The docs site's `/place/` page: the place after the `#`, so the host
+     * never sees it, and a button for every map on the page. For a reader whose
+     * maps app is unknown; WM Keyboard reads these back.
+     */
+    CARD("card", "wmkeyboard.pages.dev"),
     ;
 
     companion object {
@@ -137,7 +144,7 @@ object LocationFormatter {
     /** The tokens a custom template understands, in the order the settings screen lists them. */
     val TOKENS: List<String> = listOf(
         "{name}", "{address}", "{coords}", "{lat}", "{lon}", "{dms}", "{plus}", "{link}",
-        "{google}", "{osm}", "{apple}", "{osmand}", "{waze}", "{geo}", "{accuracy}", "{time}",
+        "{google}", "{osm}", "{apple}", "{osmand}", "{waze}", "{geo}", "{card}", "{accuracy}", "{time}",
     )
 
     const val DEFAULT_TEMPLATE = "📍 {name} {address}\n{coords} · {link}"
@@ -150,8 +157,8 @@ object LocationFormatter {
     ): String {
         val point = share.precision.apply(share.point)
         val coords = coordinates(point, share.precision)
-        val link = link(mapLink, point, share.precision)
         val title = title(share) ?: coords
+        val link = link(mapLink, point, share.precision, label = title(share))
         return when (format) {
             LocationFormat.MESSAGE -> "📍 $title\n$link"
             LocationFormat.LINK -> link
@@ -182,6 +189,7 @@ object LocationFormatter {
     fun expand(template: String, share: LocationShare, mapLink: MapLink): String {
         val point = share.precision.apply(share.point)
         val precision = share.precision
+        val label = title(share)
         val values = mapOf(
             "name" to share.placeName.orEmpty(),
             "address" to share.address.orEmpty(),
@@ -190,13 +198,14 @@ object LocationFormatter {
             "lon" to number(point.longitude, precision.decimals),
             "dms" to dms(point, precision),
             "plus" to PlusCode.encode(point, precision.plusCodeLength),
-            "link" to link(mapLink, point, precision),
+            "link" to link(mapLink, point, precision, label),
             "google" to link(MapLink.GOOGLE, point, precision),
             "osm" to link(MapLink.OSM, point, precision),
             "apple" to link(MapLink.APPLE, point, precision),
             "osmand" to link(MapLink.OSMAND, point, precision),
             "waze" to link(MapLink.WAZE, point, precision),
             "geo" to link(MapLink.GEO, point, precision),
+            "card" to link(MapLink.CARD, point, precision, label),
             "accuracy" to accuracy(share.accuracyM, precision),
             "time" to share.timeText,
         )
@@ -231,7 +240,13 @@ object LocationFormatter {
         return String.format(Locale.US, "%d°%02d'%s\"%c", degrees, minutes, secondsText, hemisphere)
     }
 
-    fun link(mapLink: MapLink, point: GeoPoint, precision: LocationPrecision = LocationPrecision.EXACT): String {
+    fun link(
+        mapLink: MapLink,
+        point: GeoPoint,
+        precision: LocationPrecision = LocationPrecision.EXACT,
+        /** A name for the links that carry one; only [MapLink.CARD] does. */
+        label: String? = null,
+    ): String {
         val lat = number(point.latitude, precision.decimals)
         val lon = number(point.longitude, precision.decimals)
         val zoom = precision.mapZoom
@@ -244,8 +259,21 @@ object LocationFormatter {
             MapLink.OSMAND -> "https://osmand.net/map?pin=$lat,$lon#$zoom/$lat/$lon"
             MapLink.WAZE -> "https://waze.com/ul?ll=$lat%2C$lon"
             MapLink.GEO -> "geo:$lat,$lon?q=$lat,$lon"
+            MapLink.CARD -> CARD_BASE + "#$lat,$lon" +
+                (label?.trim()?.take(CARD_LABEL_MAX)?.takeIf { it.isNotEmpty() }?.let { ";n=" + cardEncode(it) } ?: "")
         }
     }
+
+    /** The docs site's shared-place page. */
+    const val CARD_BASE = "https://wmkeyboard.pages.dev/place/"
+    private const val CARD_LABEL_MAX = 80
+
+    /**
+     * Percent-encoding that the page's `decodeURIComponent` reads back:
+     * [URLEncoder] writes a space as `+`, which that leaves alone, and `;`
+     * would end the field.
+     */
+    private fun cardEncode(text: String): String = URLEncoder.encode(text, "UTF-8").replace("+", "%20")
 
     /**
      * "±12 m". Past [LocationPrecision.EXACT] the cell is the honest error

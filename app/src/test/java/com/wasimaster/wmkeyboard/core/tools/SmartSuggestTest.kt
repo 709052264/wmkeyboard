@@ -912,6 +912,20 @@ class SmartSuggestTest {
         assertNull(hit("how do you say", noTranslate))
     }
 
+    @Test
+    fun wordsBeforeAPlaceOfferTheLocationTool() {
+        // #350: the chip opens the tool and keeps the words.
+        for (text in listOf("I'm at ", "I’m at", "sending my location", "here is my current location:", "this is where I am")) {
+            val h = hit(text)
+            assertEquals(text, SmartSuggest.Kind.INTENT, h?.kind)
+            assertEquals(text, ToolbarTool.LOCATION, h?.tool)
+            assertEquals(text, 0, h?.replaceSpan)
+        }
+        // A word that only ends the same way is not the phrase.
+        assertNull(hit("whim at"))
+        assertNull(hit("I'm at", ctx.copy(enabledTools = ToolbarTool.entries - ToolbarTool.LOCATION)))
+    }
+
     // ---- the tools behind each family (#176) ----
 
     /** A trigger per family, with the context its chip shows in while every tool is on. */

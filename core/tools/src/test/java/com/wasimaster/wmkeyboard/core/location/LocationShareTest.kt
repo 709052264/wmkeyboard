@@ -36,6 +36,11 @@ class LocationShareTest {
         assertEquals("https://osmand.net/map?pin=23.780600,90.419300#18/23.780600/90.419300", LocationFormatter.link(MapLink.OSMAND, dhaka, p))
         assertEquals("https://waze.com/ul?ll=23.780600%2C90.419300", LocationFormatter.link(MapLink.WAZE, dhaka, p))
         assertEquals("geo:23.780600,90.419300?q=23.780600,90.419300", LocationFormatter.link(MapLink.GEO, dhaka, p))
+        assertEquals("https://wmkeyboard.pages.dev/place/#23.780600,90.419300", LocationFormatter.link(MapLink.CARD, dhaka, p))
+        assertEquals(
+            "https://wmkeyboard.pages.dev/place/#23.780600,90.419300;n=North%20End%20Coffee%2C%20Banani%3B%201",
+            LocationFormatter.link(MapLink.CARD, dhaka, p, label = "North End Coffee, Banani; 1"),
+        )
     }
 
     @Test

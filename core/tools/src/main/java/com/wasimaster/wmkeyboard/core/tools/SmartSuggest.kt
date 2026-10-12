@@ -1455,6 +1455,17 @@ object SmartSuggest {
         RegexOption.IGNORE_CASE,
     )
 
+    /**
+     * Words that come before a place (#350): "I'm at", "my location". The chip
+     * opens the Location tool and keeps what was typed, so the place goes in
+     * after the words.
+     */
+    private val LOCATION_TAIL = Regex(
+        "(?:^|[^\\p{L}])(?:i'?m at|i am at|i'?m here|i am here|my (?:current )?location|where i am|" +
+            "(?:send|share|here'?s|here is) (?:you )?my (?:current )?location)\\s?[:?!.]?$",
+        RegexOption.IGNORE_CASE,
+    )
+
     /** A celebratory phrase → the search the GIF panel opens on. */
     private val gifPhrases: List<Pair<String, String>> = listOf(
         "happy birthday" to "happy birthday",
@@ -1499,6 +1510,12 @@ object SmartSuggest {
         if (toolOn(ToolbarTool.TRANSLATE, ctx)) {
             TRANSLATE_TAIL.find(tail)?.let {
                 return intentHit(ToolbarTool.TRANSLATE, it.value.trimEnd(' ', '?'))
+            }
+        }
+        if (toolOn(ToolbarTool.LOCATION, ctx)) {
+            // Straight quotes and curly ones both: phones type ’ in "I’m".
+            LOCATION_TAIL.find(tail.replace('’', '\''))?.let {
+                return intentHit(ToolbarTool.LOCATION, it.value.trimStart { c -> !c.isLetter() }.trimEnd(' ', '?', '!', '.', ':'))
             }
         }
         return null

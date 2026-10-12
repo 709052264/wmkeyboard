@@ -56,6 +56,9 @@ object LocationParser {
 
     private val GOOGLE_PLACE_NAME = Regex("""/maps/place/([^/@?#]+)""")
 
+    /** WM Keyboard's own card: `…/place/#lat,lon;n=name`. */
+    private val CARD = Regex("""#($NUM),($NUM)(?:;n=([^;]*))?""")
+
     private val GEO_URI = Regex(
         """geo:($NUM),($NUM)(?:[^?\s]*)(?:\?q=([^\s]*))?""",
         RegexOption.IGNORE_CASE,
@@ -127,6 +130,13 @@ object LocationParser {
     /** A single map link or `geo:` URI, or null when it names no place this can read. */
     fun parseUrl(url: String): Triple<GeoPoint, String?, ParsedLocation.Kind>? {
         if (url.startsWith("geo:", ignoreCase = true)) return parseGeo(url)?.let { Triple(it.first, it.second, ParsedLocation.Kind.GEO_URI) }
+        if (url.startsWith(LocationFormatter.CARD_BASE, ignoreCase = true)) {
+            // Matched before decoding: the name is percent-encoded and may hold a comma.
+            val match = CARD.find(url) ?: return null
+            val point = match.pair() ?: return null
+            val label = match.groupValues[3].takeIf { it.isNotEmpty() }?.let(::decode)?.trim()?.ifEmpty { null }
+            return Triple(point, label, ParsedLocation.Kind.LINK)
+        }
         val decoded = decode(url)
         if (!isMapLink(decoded)) return null
         val point = GOOGLE_PIN.find(decoded)?.pair()

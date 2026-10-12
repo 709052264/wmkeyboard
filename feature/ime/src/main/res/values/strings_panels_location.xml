@@ -47,6 +47,9 @@
     <string name="ime_location_weather_action">Use for weather and compass</string>
     <string name="ime_location_weather_saved_toast">Weather and compass now use this place</string>
     <string name="ime_location_refresh_desc">Find me again</string>
+    <string name="ime_location_send_to_computer_desc">Send to %1$s</string>
+    <string name="ime_location_sent_to_computer_toast">Sent to %1$s</string>
+    <string name="ime_location_no_computer_toast">No computer is connected through KDE Connect</string>
     <string name="ime_location_photo_desc">Take a photo with the place on it</string>
     <string name="ime_location_stamp_desc">Location stamp</string>
     <string name="ime_location_stamp_waiting">Finding you for the stamp…</string>
@@ -61,6 +64,7 @@
     <string name="ime_location_place_default_name">Place %1$d</string>
 
     <string name="ime_location_use_my_location_action">Use my location</string>
+    <string name="ime_location_snippet_no_reading_toast">No recent location for the snippet. Finding you for next time.</string>
     <string name="ime_location_tools_finding_toast">Finding your location…</string>
     <string name="ime_location_tools_failed_toast">The keyboard could not find your location</string>
 </resources>

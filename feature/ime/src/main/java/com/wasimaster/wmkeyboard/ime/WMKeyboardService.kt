@@ -34826,6 +34826,8 @@ open class WMKeyboardService : InputMethodService() {
             appName = pkg?.let(::appLabel),
             packageName = pkg,
             selection = if (withSelection) ic?.getSelectedText(0)?.toString() else null,
+            location = locationTool::snippetLocation,
+            place = locationTool::snippetPlace,
         )
     }
 

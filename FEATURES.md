@@ -16,14 +16,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Languages, scripts, layouts, transliteration | 11 | 64 | 213 |
 | Themes and appearance | 14 | 73 | 183 |
 | Emoji, GIFs, stickers, kaomoji | 16 | 88 | 94 |
-| Toolbar and the tool set | 10 | 86 | 332 |
+| Toolbar and the tool set | 10 | 86 | 336 |
 | Clipboard, snippets, text expansion | 7 | 37 | 191 |
 | AI, voice, handwriting, scanning | 11 | 71 | 167 |
 | Privacy, backup, storage, statistics | 14 | 69 | 173 |
 | Accessibility, form factors, platform integration | 13 | 61 | 111 |
 | Extensibility: addons, plugins, imports, formats | 5 | 35 | 164 |
 | Modes, rows, field adaptation, runtime | 12 | 97 | 203 |
-| **Total** | **133** | **809** | **2255** |
+| **Total** | **133** | **809** | **2259** |
 
 ## Typing core: prediction, autocorrect, learning, spell check
 
@@ -1691,7 +1691,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Expiry and cap — 0–168h expiry (default 24), 5–500 unpinned entries (default 100); pins exempt
     - Swipe a card to delete — No confirmation, no undo
   - Snippets `uncommon` — Text expansion with variables and regex triggers
-    - 18 template variables — date, time, isodate, weekday, clip, selection, app, package, uuid, cursor and more
+    - 18 template variables — date, time, isodate, weekday, clip, selection, app, package, uuid, cursor and more, plus {location} and {place:Name} from the Location tool (#350)
     - {date:pattern} custom formats — Checked before plain {date}; malformed patterns expand to nothing
     - Word triggers — Case-insensitive exact match, fires on space/punctuation/Enter
     - Regex pattern triggers — $1–$9 captures, $0 whole match, ${1:upper|lower|title|trim} transforms
@@ -2031,6 +2031,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Convert a received place — Insert in the picked format, open, save, use for weather; distance and 8-point direction from the reading
     - Point the compass at a place — 📍 marker beside the qibla, distance and bearing line, Stop pointing; from the reading or the saved place
     - Conservative parser — Three decimals a side, numbers inside non-map links ignored, shortened links not followed
+    - Card link — wmkeyboard.pages.dev/place/#lat,lon;n=name: the place in the fragment, a button per map, OpenStreetMap embed only on request, Plus code computed in the page; read back with its name
+    - Send to computer — A KDE Connect computer in reach gets the place as a map link (geo: goes as OpenStreetMap)
+    - Snippet variables — {location}, {location:format}, {place:Name}, {place:Name:format}; no radio or network at expansion, a toast and a background reading when there is none
+    - "I'm at" chip — I'm at, my location, where I am, here is my location offer the tool under the intent hints, keeping the words
   - Moon phase `RARE` — Computed, not fetched
     - Eight phase names — Plus percent illuminated and days into the cycle
     - Next full and new moon dates — From a synodic-month constant and a reference new moon
@@ -2236,7 +2240,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Optional: cancel the source notification once the code is used
     - Per-digit entry for row-of-boxes code fields — Digits sent as key events with a gap so each box's focus handler can run
     - Turning the feature off drops any code already captured
-- **Snippets and text expansion** `uncommon` — 18 template variables plus {date:pattern}; word and regex triggers
+- **Snippets and text expansion** `uncommon` — 18 template variables plus {date:pattern}, {location} and {place:…}; word and regex triggers
   - Snippet panel
     - Two-column cards showing the raw template, not the expanded preview
     - File re-read on panel open and on field entry — Settings app and IME share snippets/snippets.json

@@ -10,7 +10,7 @@ import KeyCap from '@components/KeyCap.astro';
 
 Most chat apps can send a location, each in its own way, and some can't at all. The **Location** tool does it from the keyboard, so it works the same in every app: a tap finds you, you pick how the place should read, and the text goes into the box you're typing in. It also keeps a list of places you name yourself, like Home or Work, which go in with one tap and never need location access at all.
 
-Open **Location** from the toolbox, or type `location` or `gps` and tap the chip that appears. The panel has two tabs, **Here** and **Places**, a precision chip, and a shortcut to the tool's settings.
+Open **Location** from the toolbox, or type `location` or `gps` and tap the chip that appears. Typing `I'm at` or `my location` offers it too, and keeps your words, so the place goes in right after them. The panel has two tabs, **Here** and **Places**, a precision chip, and a shortcut to the tool's settings.
 
 ## Sharing where you are
 
@@ -82,6 +82,20 @@ Tap a place for what you can do with it:
 
 Reading is done on the phone, and nothing is looked up. A shortened link such as `maps.app.goo.gl/…` names no place until a server is asked, so it isn't listed. The text box is never read while it is a password field, and clips marked sensitive are skipped. Numbers that only look like coordinates are left alone: a pair needs at least three decimals on each side, and coordinates inside a link that isn't a map link don't count.
 
+## A link anyone can open
+
+**Map link** in settings also offers **A WM Keyboard page**. The link goes to a page on this website with the place after the `#`, which a browser never sends to the site, so nothing about the place reaches it. The page shows the name, the coordinates and the Plus code, with a button for each map: Google Maps, OpenStreetMap, Apple Maps, OsmAnd and Waze, plus the phone's own maps app on Android. A map view is one more press away, and it loads from OpenStreetMap only then. Use it when you don't know which maps app the reader has. Another WM Keyboard reads the link back, name and all, in its Found tab.
+
+## Sending a place to your computer
+
+With a computer paired through [KDE Connect](/tools/kde-connect/) and in reach, the **Here** tab has a computer button, and every place on **Places** and **Found** has **Send to** with the computer's name. The place goes as a map link, in the map you picked, which the computer opens in its browser. A `geo:` link has nothing to open it on most desktops, so with that choice the computer gets an OpenStreetMap link instead.
+
+## In snippets
+
+[Snippets](/tools/snippets/) can carry a place. `{location}` is where you are, in the default format, and `{location:link}` or any other format name picks one: `message`, `link`, `coordinates`, `dms`, `address`, `plus_code`, `custom`. `{place:Home}` is a saved place by name, and takes a format the same way, `{place:Home:address}`.
+
+A snippet never waits on the satellites. `{location}` uses the reading the panel has from the last 15 minutes, or the one Android already holds from the last 30, and the address only when it was already looked up for that point. With no reading at all it expands to nothing, says so, and starts one for next time. The precision you picked applies here too.
+
 ## Photos with the place on them
 
 The [camera tool](/tools/camera/#putting-the-place-on-a-photo) can stamp the place onto a photo, and type it into the box as the photo's caption. The camera button on **Here** opens the camera with the stamp on for one photo. Both use this tool's precision, address lookup and default format.
@@ -103,11 +117,11 @@ The reading stays in memory for 15 minutes, so reopening the panel doesn't ask a
 <SettingsPath path="Tools / Location" />
 
 - **Default format**: Message. What **Insert** types. Holding a format in the panel sets this too.
-- **Map link**: Google Maps. Which map a link opens: Google Maps, OpenStreetMap, Apple Maps, OsmAnd, Waze, or a `geo:` link, which opens the reader's own maps app but isn't a web address.
+- **Map link**: Google Maps. Which map a link opens: Google Maps, OpenStreetMap, Apple Maps, OsmAnd, Waze, a `geo:` link, which opens the reader's own maps app but isn't a web address, or [a WM Keyboard page](#a-link-anyone-can-open) with a button for each.
 - **Precision**: Exact. See [Precision](#precision). The chip in the panel changes this same setting.
 - **Look up the address**: on. See [What leaves the phone](#what-leaves-the-phone).
 - **Locate when the tool opens**: on. Off, the panel waits for **Locate me** every time, even when Android already allows it.
-- **Custom format**: a template for the **Custom** chip. Words in braces are replaced: `{name}`, `{address}`, `{coords}`, `{lat}`, `{lon}`, `{dms}`, `{plus}`, `{link}` (in the map you picked), `{google}`, `{osm}`, `{apple}`, `{osmand}`, `{waze}`, `{geo}`, `{accuracy}` and `{time}`. A word with nothing to put in its place disappears, and a word in braces the tool doesn't know is left as you typed it. An example under the field shows the template filled in for the Eiffel Tower.
+- **Custom format**: a template for the **Custom** chip. Words in braces are replaced: `{name}`, `{address}`, `{coords}`, `{lat}`, `{lon}`, `{dms}`, `{plus}`, `{link}` (in the map you picked), `{google}`, `{osm}`, `{apple}`, `{osmand}`, `{waze}`, `{geo}`, `{card}`, `{accuracy}` and `{time}`. A word with nothing to put in its place disappears, and a word in braces the tool doesn't know is left as you typed it. An example under the field shows the template filled in for the Eiffel Tower.
 - **Saved places**: each place, to rename, move or delete, and **Add a place**.
 - **Location access**: Precise, Approximate or Not granted. Tapping it asks Android, or, once precise is granted, opens the app's page in Android's settings, where it can be taken back.
 

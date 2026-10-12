@@ -403,6 +403,14 @@ internal fun SnippetSettings(
                 "{date:…}", stringResource(R.string.expander_var_date_pattern_info),
                 SnippetStore.expand("{date:EEE d MMM}"),
             )
+            VariableRow(
+                "{location}", stringResource(R.string.expander_var_location_info),
+                stringResource(R.string.expander_var_location_sample),
+            )
+            VariableRow(
+                "{place:Home}", stringResource(R.string.expander_var_place_info),
+                stringResource(R.string.expander_var_place_sample),
+            )
             Spacer(Modifier.height(8.dp))
             Text(
                 stringResource(R.string.expander_variables_info),

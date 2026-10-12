@@ -40,6 +40,14 @@ class LocationParserTest {
     }
 
     @Test
+    fun `a card link reads back with its name`() {
+        val link = LocationFormatter.link(MapLink.CARD, dhaka, LocationPrecision.EXACT, label = "North End Coffee, Banani")
+        val found = LocationParser.first("see $link")!!
+        assertNear(dhaka, found.point)
+        assertEquals("North End Coffee, Banani", found.label)
+    }
+
+    @Test
     fun `geo uris with a label`() {
         val found = LocationParser.first("geo:0,0?q=23.78,90.41(Home)")!!
         assertNear(GeoPoint(23.78, 90.41), found.point)

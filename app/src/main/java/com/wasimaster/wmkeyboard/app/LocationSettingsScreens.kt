@@ -81,7 +81,14 @@ internal fun LocationToolSettings(repository: SettingsRepository, settings: Live
 
     val formatOptions = LocationFormat.entries.map { it to stringResource(it.labelRes) }
     val geoLabel = stringResource(R.string.location_map_link_geo)
-    val mapOptions = MapLink.entries.map { it to if (it == MapLink.GEO) geoLabel else it.label }
+    val cardLabel = stringResource(R.string.location_map_link_card)
+    val mapOptions = MapLink.entries.map {
+        it to when (it) {
+            MapLink.GEO -> geoLabel
+            MapLink.CARD -> cardLabel
+            else -> it.label
+        }
+    }
     val precisionOptions = LocationPrecision.entries.map { it to stringResource(it.labelRes) }
 
     SettingsGroup(stringResource(R.string.location_share_group)) {

@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BookmarkAdd
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Computer
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LocationOn
@@ -133,6 +134,8 @@ data class LocationCallbacks(
     /** Points the compass at a place, and opens it. */
     val onCompassTo: (GeoPoint, String?) -> Unit = { _, _ -> },
     val onCompassClear: () -> Unit = {},
+    /** Sends a place to the paired KDE Connect computer as a map link. */
+    val onSendToComputer: (GeoPoint, String?) -> Unit = { _, _ -> },
     /** The camera's caption: the place as text, before the photo. */
     val onCaption: () -> Unit = {},
     /** The camera read [LocationUi.stampOnce]. */
@@ -274,7 +277,7 @@ private fun HereBody(
         else -> FixView(state, ui, fix, settings, precision, format, callbacks)
     }
     val count = when {
-        fix != null -> FIX_ACTIONS
+        fix != null -> if (ui.computer != null) FIX_ACTIONS + 1 else FIX_ACTIONS
         fix == null && ui.status == LocationStatus.LOCATING -> 0
         else -> 1
     }
@@ -297,6 +300,7 @@ private fun HereBody(
                 2 -> callbacks.onOpenMaps(precision.apply(fix.point), null)
                 3 -> callbacks.onUseForWeather(fix.point, null)
                 4 -> callbacks.onPhoto()
+                5 -> if (ui.computer != null) callbacks.onSendToComputer(fix.point, null) else callbacks.onLocate()
                 else -> callbacks.onLocate()
             }
         }
@@ -497,7 +501,20 @@ private fun FixView(
                 callbacks.onUseForWeather(fix.point, null)
             }
             ActionIcon(Icons.Outlined.PhotoCamera, stringResource(R.string.ime_location_photo_desc), focusedAction == 4, callbacks.onPhoto)
-            ActionIcon(Icons.Outlined.Refresh, stringResource(R.string.ime_location_refresh_desc), focusedAction == 5, callbacks.onLocate)
+            val computer = ui.computer
+            if (computer != null) {
+                ActionIcon(
+                    Icons.Outlined.Computer,
+                    stringResource(R.string.ime_location_send_to_computer_desc, computer),
+                    focusedAction == 5,
+                ) { callbacks.onSendToComputer(fix.point, address) }
+            }
+            ActionIcon(
+                Icons.Outlined.Refresh,
+                stringResource(R.string.ime_location_refresh_desc),
+                focusedAction == if (computer != null) 6 else 5,
+                callbacks.onLocate,
+            )
         }
     }
 }
@@ -751,6 +768,7 @@ private fun PlacesBody(
             itemsIndexed(places, key = { _, place -> place.id }) { index, place ->
                 PlaceRow(
                     place = place,
+                    computer = ui.computer,
                     from = ui.fix?.point,
                     precision = precision,
                     open = ui.openPlace == place.id,
@@ -773,6 +791,7 @@ private fun PlacesBody(
 @Composable
 private fun PlaceRow(
     place: SavedPlace,
+    computer: String?,
     from: GeoPoint?,
     precision: LocationPrecision,
     open: Boolean,
@@ -847,6 +866,11 @@ private fun PlaceRow(
                 ToolPanelChip(stringResource(R.string.ime_location_weather_action)) {
                     callbacks.onUseForWeather(place.point, place.name)
                 }
+                computer?.let { name ->
+                    ToolPanelChip(stringResource(R.string.ime_location_send_to_computer_desc, name)) {
+                        callbacks.onSendToComputer(place.point, place.name)
+                    }
+                }
                 ToolPanelChip(stringResource(R.string.ime_location_place_delete_action), icon = Icons.Outlined.Delete) {
                     callbacks.onPlaceDelete(place.id)
                 }
@@ -912,6 +936,7 @@ private fun FoundBody(
             itemsIndexed(ui.found) { index, place ->
                 FoundRow(
                     place = place,
+                    computer = ui.computer,
                     from = ui.origin,
                     open = open == index,
                     focused = focusedRow == index,
@@ -925,6 +950,7 @@ private fun FoundBody(
 @Composable
 private fun FoundRow(
     place: FoundPlace,
+    computer: String?,
     from: GeoPoint?,
     open: Boolean,
     focused: Boolean,
@@ -1002,6 +1028,11 @@ private fun FoundRow(
                 ToolPanelChip(stringResource(R.string.ime_location_compass_action)) { callbacks.onCompassTo(point, label) }
                 ToolPanelChip(stringResource(R.string.ime_location_save_action)) { callbacks.onSavePoint(point, label) }
                 ToolPanelChip(stringResource(R.string.ime_location_weather_action)) { callbacks.onUseForWeather(point, label) }
+                computer?.let { name ->
+                    ToolPanelChip(stringResource(R.string.ime_location_send_to_computer_desc, name)) {
+                        callbacks.onSendToComputer(point, label)
+                    }
+                }
             }
         }
     }

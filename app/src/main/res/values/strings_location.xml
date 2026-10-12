@@ -7,6 +7,7 @@
     <string name="location_map_link_title">Map link</string>
     <string name="location_map_link_subtitle">The map that a shared link opens</string>
     <string name="location_map_link_geo">geo: link, opens the reader\'s own maps app</string>
+    <string name="location_map_link_card">A WM Keyboard page with a button for every map</string>
     <string name="location_precision_title">Precision</string>
     <string name="location_precision_subtitle">How much of your position a share gives away</string>
     <string name="location_precision_info">A coarser precision moves the point to the centre of a fixed square of that size. The square is the same each time, so many shares from one place cannot be averaged back to that place. The address, the link and the Plus code all use the moved point.</string>

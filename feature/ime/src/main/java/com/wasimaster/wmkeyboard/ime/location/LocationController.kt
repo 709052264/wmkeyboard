@@ -18,6 +18,7 @@ import com.wasimaster.wmkeyboard.core.location.LocationGrant
 import com.wasimaster.wmkeyboard.core.location.LocationPrecision
 import com.wasimaster.wmkeyboard.core.location.LocationParser
 import com.wasimaster.wmkeyboard.core.location.LocationShare
+import com.wasimaster.wmkeyboard.core.location.MapLink
 import com.wasimaster.wmkeyboard.core.location.ParsedLocation
 import com.wasimaster.wmkeyboard.core.location.ReverseGeocoder
 import com.wasimaster.wmkeyboard.core.location.SavedPlace
@@ -26,6 +27,7 @@ import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.LocationSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
 import com.wasimaster.wmkeyboard.ime.ui.LocationCallbacks
 import java.util.Date
 import kotlinx.coroutines.CancellationException
@@ -86,6 +88,8 @@ data class LocationUi(
     val found: List<FoundPlace> = emptyList(),
     /** The place the compass points at, until it is cleared. */
     val compassTarget: CompassTarget? = null,
+    /** A paired KDE Connect computer that is reachable and takes shares, by name; null hides Send to computer. */
+    val computer: String? = null,
 ) {
     /** The position distances and bearings are measured from: a reading no older than the panel keeps one. */
     val origin: GeoPoint? get() = fix?.point
@@ -192,6 +196,7 @@ internal class LocationController(
         onSavePoint = ::savePoint,
         onCompassTo = ::compassTo,
         onCompassClear = ::compassClear,
+        onSendToComputer = ::sendToComputer,
         onCaption = ::insertCaption,
         onStampConsumed = { _state.update { it.copy(stampOnce = false) } },
     )
@@ -217,6 +222,7 @@ internal class LocationController(
             )
         }
         scanFound()
+        _state.update { it.copy(computer = computer()?.name) }
         val ui = _state.value
         val stale = ui.fix == null || now - ui.fix.timeMillis > STALE_MS
         val wanted = pending == Pending.LOCATE || (locationSettings.locateOnOpen && stale)
@@ -478,6 +484,62 @@ internal class LocationController(
         openCompass()
     }
 
+    /**
+     * `{location}` in a snippet: the reading in memory, or the one Android
+     * already holds, in [formatId] or the default format. No radio and no
+     * network at expansion time; with no reading at all it says so, starts
+     * one for next time, and the variable expands to nothing.
+     */
+    fun snippetLocation(formatId: String?): String? {
+        val fix = _state.value.fix?.takeIf { System.currentTimeMillis() - it.timeMillis <= KEEP_MS }
+            ?: runCatching { fixer.lastKnown(SNIPPET_MAX_AGE_MS) }.getOrNull()
+        if (fix == null) {
+            toast(R.string.ime_location_snippet_no_reading_toast)
+            locateQuietly()
+            return null
+        }
+        val settings = locationSettings
+        val precision = _state.value.precisionOr(settings)
+        val address = if (settings.lookupAddress) {
+            ReverseGeocoder.cached(precision.apply(fix.point), precision, language())
+        } else {
+            null
+        }
+        val share = LocationShare(fix.point, precision, address, accuracyM = fix.accuracyM, timeText = timeText(fix))
+        return render(share, LocationFormat.of(formatId) ?: settings.format)
+    }
+
+    /** `{place:Home}` in a snippet: a saved place by name, any case. */
+    fun snippetPlace(name: String, formatId: String?): String? {
+        val settings = locationSettings
+        val place = settings.places.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: return null
+        return render(place.share(_state.value.precisionOr(settings)), LocationFormat.of(formatId) ?: settings.format)
+    }
+
+    /** The computer a place goes to: the first paired one in reach that takes shares. */
+    private fun computer() = KdeConnectHub.state.value.connected.firstOrNull { it.canShare }
+
+    /**
+     * Sends the place to the paired computer as a map link, which its desktop
+     * opens in the browser. A geo: link has nothing to open it on most
+     * desktops, so that choice goes as OpenStreetMap.
+     */
+    private fun sendToComputer(point: GeoPoint, label: String?) {
+        haptic()
+        val device = computer()
+        if (device == null) {
+            _state.update { it.copy(computer = null) }
+            toast(R.string.ime_location_no_computer_toast)
+            return
+        }
+        val settings = locationSettings
+        val precision = _state.value.precisionOr(settings)
+        val map = if (settings.mapLink == MapLink.GEO) MapLink.OSM else settings.mapLink
+        val link = LocationFormatter.link(map, precision.apply(point), precision, label)
+        KdeConnectHub.send(context, device.id, emptyList(), link)
+        toast(R.string.ime_location_sent_to_computer_toast, device.name)
+    }
+
     private fun compassClear() {
         haptic()
         _state.update { it.copy(compassTarget = null) }
@@ -675,6 +737,9 @@ internal class LocationController(
 
         /** Places the Found tab lists at most. */
         const val MAX_FOUND = 20
+
+        /** A snippet uses a reading Android holds when it is this fresh. */
+        const val SNIPPET_MAX_AGE_MS = 30 * 60_000L
 
         /** A forecast and a qibla bearing do not need a fresh fix. */
         const val TOOLS_MAX_AGE_MS = 30 * 60_000L

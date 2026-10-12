@@ -1,0 +1,292 @@
+---
+/**
+ * /place/ — a shared place from the Location tool (#350).
+ *
+ * The keyboard writes `https://wmkeyboard.pages.dev/place/#23.780600,90.419300;n=Home`
+ * when the reader's own maps app is unknown. Everything after the `#` stays in
+ * the browser: the host never sees the position, and nothing here sends it
+ * anywhere until the reader presses a button that says where it goes.
+ *
+ * The page shows the place's name, its coordinates and Plus code, and a
+ * button for each map. A map view is one press away and loads OpenStreetMap's
+ * own embed only then, so opening the link costs the reader nothing and tells
+ * no tile server where they are looking.
+ *
+ * WM Keyboard reads these links back, so a friend with the keyboard sees the
+ * place in its Found tab with the distance and direction from them.
+ */
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+
+const head: { tag: 'meta'; attrs: Record<string, string> }[] = [
+	{ tag: 'meta', attrs: { name: 'wm:own-title', content: '' } },
+];
+---
+
+<StarlightPage
+	frontmatter={{
+		title: 'A shared place',
+		description: 'A place somebody shared from WM Keyboard, to open in any maps app.',
+		template: 'splash',
+		tableOfContents: false,
+		pagefind: false,
+		head,
+	}}
+	hasSidebar={false}
+>
+	<div class="pl-page not-content">
+		<div class="pl-card" data-state="loading">
+			<div class="pl-pin" aria-hidden="true">📍</div>
+			<p class="pl-kicker">Shared from WM Keyboard</p>
+			<h1 class="pl-title" id="pl-title">A shared place</h1>
+			<p class="pl-coords" id="pl-coords"></p>
+			<p class="pl-detail" id="pl-detail"></p>
+
+			<div class="pl-act" data-for="ready">
+				<div class="pl-maps" id="pl-maps"></div>
+				<div class="pl-row">
+					<button type="button" class="pl-btn" id="pl-copy">Copy the coordinates</button>
+					<button type="button" class="pl-btn" id="pl-show">Show on a map</button>
+				</div>
+				<p class="pl-note" id="pl-show-note">The map comes from OpenStreetMap, and loads only when you press the button.</p>
+				<div class="pl-frame" id="pl-frame" hidden></div>
+			</div>
+
+			<div class="pl-act" data-for="empty">
+				<p class="pl-note">
+					This link has no place in it. A shared place reads like
+					<code>/place/#23.780600,90.419300</code>. The <a href="/tools/location/">Location tool</a> writes them.
+				</p>
+			</div>
+
+			<p class="pl-foot">
+				The place is in the part of the link after the <code>#</code>, which your browser never sends to this website.
+				<a href="/tools/location/">About the Location tool</a>
+			</p>
+		</div>
+	</div>
+</StarlightPage>
+
+<script>
+	const ALPHABET = '23456789CFGHJMPQRVWX';
+
+	/** Open Location Code, the integer way the reference implementations do it. */
+	function plusCode(lat: number, lon: number): string {
+		const latMul = 8000 * 3125;
+		const lngMul = 8000 * 1024;
+		let latVal = Math.floor(Math.round((Math.min(90, Math.max(-90, lat)) + 90) * latMul * 1e6) / 1e6);
+		let lngVal = Math.floor(Math.round((lon + 180) * lngMul * 1e6) / 1e6);
+		if (latVal >= 180 * latMul) latVal = 180 * latMul - 1;
+		const span = 360 * lngMul;
+		lngVal = ((lngVal % span) + span) % span;
+		latVal = Math.floor(latVal / 3125);
+		lngVal = Math.floor(lngVal / 1024);
+		let code = '';
+		for (let i = 0; i < 5; i++) {
+			code = ALPHABET[latVal % 20] + ALPHABET[lngVal % 20] + code;
+			latVal = Math.floor(latVal / 20);
+			lngVal = Math.floor(lngVal / 20);
+		}
+		return code.slice(0, 8) + '+' + code.slice(8);
+	}
+
+	type Place = { lat: number; lon: number; name: string; accuracy: number | null };
+
+	/** `lat,lon` then any of `;n=name`, `;a=metres`. Unknown fields are ignored. */
+	function parse(hash: string): Place | null {
+		const body = decodeURIComponent(hash.replace(/^#/, ''));
+		const [coords, ...fields] = body.split(';');
+		const m = /^\s*(-?\d{1,2}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)\s*$/.exec(coords ?? '');
+		if (!m) return null;
+		const lat = Number(m[1]);
+		const lon = Number(m[2]);
+		if (!(lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)) return null;
+		let name = '';
+		let accuracy: number | null = null;
+		for (const field of fields) {
+			const [key, ...rest] = field.split('=');
+			const value = rest.join('=');
+			if (key === 'n') name = value.slice(0, 120);
+			if (key === 'a' && /^\d{1,6}$/.test(value)) accuracy = Number(value);
+		}
+		return { lat, lon, name, accuracy };
+	}
+
+	const card = document.querySelector<HTMLElement>('.pl-card')!;
+	const place = parse(location.hash);
+
+	if (!place) {
+		card.dataset.state = 'empty';
+	} else {
+		const { lat, lon, name, accuracy } = place;
+		const coords = `${lat}, ${lon}`;
+		const label = name || 'A shared place';
+		document.title = `${label} · WM Keyboard`;
+		document.getElementById('pl-title')!.textContent = label;
+		document.getElementById('pl-coords')!.textContent = coords;
+		const details = [plusCode(lat, lon)];
+		if (accuracy) details.push(`within about ${accuracy} m`);
+		document.getElementById('pl-detail')!.textContent = details.join(' · ');
+
+		const q = encodeURIComponent(`${lat},${lon}`);
+		const maps: [string, string][] = [
+			['Google Maps', `https://www.google.com/maps/search/?api=1&query=${q}`],
+			['OpenStreetMap', `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=17/${lat}/${lon}`],
+			['Apple Maps', `https://maps.apple.com/?ll=${lat},${lon}&q=${encodeURIComponent(label)}`],
+			['OsmAnd', `https://osmand.net/map?pin=${lat},${lon}#17/${lat}/${lon}`],
+			['Waze', `https://waze.com/ul?ll=${q}`],
+		];
+		// geo: opens whatever maps app the phone uses; desktops have none.
+		if (/Android/i.test(navigator.userAgent)) {
+			maps.unshift(['Your maps app', `geo:${lat},${lon}?q=${lat},${lon}(${encodeURIComponent(label)})`]);
+		}
+		const list = document.getElementById('pl-maps')!;
+		for (const [title, href] of maps) {
+			const a = document.createElement('a');
+			a.className = 'pl-map';
+			a.href = href;
+			a.rel = 'noopener noreferrer';
+			a.textContent = title;
+			list.append(a);
+		}
+
+		const copy = document.getElementById('pl-copy') as HTMLButtonElement;
+		copy.addEventListener('click', async () => {
+			try {
+				await navigator.clipboard.writeText(coords);
+				copy.textContent = 'Copied';
+			} catch {
+				copy.textContent = coords;
+			}
+		});
+
+		const show = document.getElementById('pl-show') as HTMLButtonElement;
+		show.addEventListener('click', () => {
+			const frame = document.getElementById('pl-frame')!;
+			const d = 0.004;
+			const bbox = [lon - d, lat - d, lon + d, lat + d].map((n) => n.toFixed(6)).join(',');
+			const iframe = document.createElement('iframe');
+			iframe.title = `Map of ${label}`;
+			iframe.loading = 'lazy';
+			iframe.referrerPolicy = 'no-referrer';
+			iframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`;
+			frame.replaceChildren(iframe);
+			frame.hidden = false;
+			show.hidden = true;
+			document.getElementById('pl-show-note')!.textContent = '© OpenStreetMap contributors';
+		});
+
+		card.dataset.state = 'ready';
+	}
+
+	// A second shared link opened in the same tab only changes the fragment.
+	window.addEventListener('hashchange', () => location.reload());
+</script>
+
+<style>
+	.pl-page {
+		display: flex;
+		justify-content: center;
+		padding: 2rem 1rem 3rem;
+	}
+	.pl-card {
+		width: min(100%, 27rem);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 1.75rem 1.5rem 1.25rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 20px;
+		background: var(--sl-color-gray-6);
+		box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
+		text-align: center;
+	}
+	:root[data-theme='light'] .pl-card {
+		background: #fff;
+		border-color: var(--sl-color-gray-6);
+		box-shadow: 0 18px 50px rgba(20, 24, 60, 0.12);
+	}
+	.pl-pin {
+		font-size: 2.5rem;
+		line-height: 1;
+	}
+	.pl-kicker {
+		margin: 0;
+		font-size: 0.8rem;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+	.pl-title {
+		margin: 0;
+		font-size: 1.5rem;
+		line-height: 1.25;
+		overflow-wrap: anywhere;
+	}
+	.pl-coords {
+		margin: 0;
+		font-family: var(--sl-font-mono);
+		font-size: 0.95rem;
+	}
+	.pl-detail,
+	.pl-note,
+	.pl-foot {
+		margin: 0;
+		font-size: 0.85rem;
+		color: var(--sl-color-gray-3);
+	}
+	.pl-foot {
+		margin-top: 0.5rem;
+		font-size: 0.75rem;
+	}
+	.pl-act {
+		display: none;
+		width: 100%;
+		flex-direction: column;
+		gap: 0.6rem;
+	}
+	.pl-card[data-state='ready'] .pl-act[data-for='ready'],
+	.pl-card[data-state='empty'] .pl-act[data-for='empty'] {
+		display: flex;
+	}
+	.pl-maps {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+		gap: 0.5rem;
+	}
+	.pl-maps :global(.pl-map),
+	.pl-btn {
+		display: block;
+		padding: 0.6rem 0.75rem;
+		border-radius: 12px;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-black);
+		color: var(--sl-color-white);
+		font: inherit;
+		font-size: 0.9rem;
+		text-decoration: none;
+		cursor: pointer;
+	}
+	.pl-maps :global(.pl-map:first-child) {
+		background: var(--sl-color-accent);
+		border-color: var(--sl-color-accent);
+		color: var(--sl-color-black);
+		font-weight: 600;
+	}
+	.pl-row {
+		display: flex;
+		gap: 0.5rem;
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+	/* The button style sets display, which would beat the hidden attribute. */
+	.pl-card [hidden] {
+		display: none !important;
+	}
+	.pl-frame :global(iframe) {
+		width: 100%;
+		height: 18rem;
+		border: 0;
+		border-radius: 12px;
+	}
+</style>
