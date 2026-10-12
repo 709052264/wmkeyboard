@@ -166,6 +166,8 @@ val FROST_SATURATION_RANGE = 0.5f..2f
 val FROST_BRIGHTNESS_RANGE = -0.3f..0.3f
 val FROST_RIM_RANGE = 0f..1f
 val FROST_GRAIN_RANGE = 0f..0.25f
+val FROST_REFRACTION_RANGE = 0f..1f
+val FROST_DISPERSION_RANGE = 0f..1f
 
 /**
  * Ready-made glass looks. Each is a [FrostSpec] plus the opacities it dresses
