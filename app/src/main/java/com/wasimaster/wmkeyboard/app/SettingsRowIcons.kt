@@ -164,7 +164,6 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MotionPhotosOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mouse
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MusicNote
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HeadsetMic
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BlurOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notifications
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.NotificationsOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Numbers
