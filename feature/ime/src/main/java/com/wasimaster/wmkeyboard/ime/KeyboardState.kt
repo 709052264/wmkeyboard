@@ -372,6 +372,12 @@ data class LayoutSet(
      * row (`LayoutSpec.handwriting`, issue #557).
      */
     val handwriting: Boolean = false,
+    /**
+     * The letter keys whose long-press order the user wrote (issue #622), which
+     * the "your language's letters first" pass leaves as written. See
+     * [authoredHolds].
+     */
+    val authoredHolds: Set<Key> = emptySet(),
 ) {
     /**
      * Rows the key grid reserves.

@@ -1,6 +1,9 @@
 package com.wasimaster.wmkeyboard.ime
 
 import com.wasimaster.wmkeyboard.core.keyman.KeymanLayers
+import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
+import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
+import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
@@ -11,6 +14,7 @@ import com.wasimaster.wmkeyboard.core.layout.compileNamed
 import com.wasimaster.wmkeyboard.core.layout.expandForTablet
 import com.wasimaster.wmkeyboard.core.layout.fillRowFor
 import com.wasimaster.wmkeyboard.core.layout.gridForTelevision
+import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
 import com.wasimaster.wmkeyboard.core.layout.numberRowFor
 import com.wasimaster.wmkeyboard.core.layout.panelLayers
 import com.wasimaster.wmkeyboard.core.layout.repair
@@ -105,7 +109,34 @@ fun compileLayoutSet(
             safe.keyman != null || keys.any { it.startsWith(KeymanLayers.PREFIX) }
         },
         handwriting = safe.handwriting,
+        authoredHolds = authoredHolds(spec, letters),
     )
+}
+
+/**
+ * The letter keys whose long-press list the user wrote, which the keyboard
+ * then draws in the order written (issue #622). Every key of a layout of the
+ * user's own; on an edit of a shipped layout, only the keys whose popup no
+ * longer matches the shipped key typing the same text. Empty for a shipped
+ * layout as it ships.
+ *
+ * Compared against the shipped grid rather than recorded by the editor, so an
+ * edit made before this existed, an imported file and a hand-written JSON
+ * layout all count the same way.
+ */
+fun authoredHolds(spec: LayoutSpec, letters: KeyboardLayout): Set<Key> {
+    val keys = letters.rows.flatten().filter { it.longPress.isNotEmpty() }
+    if (keys.isEmpty()) return emptySet()
+    val shipped = if (isShippedLayoutId(spec.id)) {
+        BuiltInLayouts.byId(spec.id) ?: AssetLayouts.byId(spec.id)
+    } else {
+        null
+    }
+    if (shipped == spec) return emptySet()
+    if (shipped == null) return keys.toSet()
+    val shippedHolds = shipped.repair().spec.compile(LayoutLayer.LETTERS).rows.flatten()
+        .associate { (it.output ?: it.label) to it.longPress }
+    return keys.filterTo(HashSet()) { shippedHolds[it.output ?: it.label] != it.longPress }
 }
 
 /** The layer keys that already have a slot of their own on [LayoutSet]. */

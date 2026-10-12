@@ -18562,8 +18562,11 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                 }
             }
             // After the accent merge, so an umlaut that pass added moves up too,
-            // and before the capital below, which belongs at the end.
-            mapped = nativeLettersFirst(mapped, nativeLetters)
+            // and before the capital below, which belongs at the end. A popup
+            // the user wrote themselves keeps their order (issue #622).
+            if (rowKey !in state.layouts.authoredHolds) {
+                mapped = nativeLettersFirst(mapped, nativeLetters)
+            }
             // Issue #108: the shifted form last of all, so it sits after the
             // accents and after whatever the layout itself listed — the first
             // entry is what a plain hold-and-release commits, and that has

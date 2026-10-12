@@ -85,6 +85,7 @@ import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.LayoutMode
 import com.wasimaster.wmkeyboard.ime.LayoutSet
+import com.wasimaster.wmkeyboard.ime.authoredHolds
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.ui.KeyPreviewBandMode
@@ -424,6 +425,7 @@ private fun previewLayoutSet(
         secondaries = secondaryLayouts(customs).associate { secondary ->
             secondary.id to secondary.repair().spec.compile(LayoutLayer.LETTERS).unthemed()
         },
+        authoredHolds = authoredHolds(spec, letters),
     )
 }
 
