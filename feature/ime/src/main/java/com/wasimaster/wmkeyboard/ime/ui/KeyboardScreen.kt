@@ -369,6 +369,8 @@ import androidx.compose.ui.graphics.luminance
 import com.wasimaster.wmkeyboard.core.theme.KEY_OVERRIDE_LABEL_SCALE_RANGE
 import com.wasimaster.wmkeyboard.core.theme.KeyOverride
 import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
+import com.wasimaster.wmkeyboard.core.theme.PaletteStyle
+import com.wasimaster.wmkeyboard.ime.AppColors
 import com.wasimaster.wmkeyboard.core.theme.keyShapeFor
 import com.wasimaster.wmkeyboard.core.theme.brush
 import com.wasimaster.wmkeyboard.core.theme.keyShapeKindOrNull
@@ -1268,6 +1270,8 @@ fun KeyboardScreen(
     onDictionarySearchToggle: () -> Unit = {},
     onDictionaryInsert: (String) -> Unit = {},
     onThemeSelect: (String) -> Unit = {},
+    onAppColorPick: (String, Int) -> Unit = { _, _ -> },
+    onAppColorStyle: (PaletteStyle) -> Unit = {},
     onIconPackSelect: (String) -> Unit = {},
     onEmojiFontSelect: (EmojiFontChoice, String) -> Unit = { _, _ -> },
     onFontSelect: (ScriptId, String) -> Unit = { _, _ -> },
@@ -1489,6 +1493,8 @@ fun KeyboardScreen(
                 onDictionarySearchToggle = onDictionarySearchToggle,
                 onDictionaryInsert = onDictionaryInsert,
                 onThemeSelect = onThemeSelect,
+                onAppColorPick = onAppColorPick,
+                onAppColorStyle = onAppColorStyle,
                 onIconPackSelect = onIconPackSelect,
                 onEmojiFontSelect = onEmojiFontSelect,
                 onFontSelect = onFontSelect,
@@ -1812,9 +1818,11 @@ private fun KeyboardScreenFrame(
 
 
     val rotationStates by PhotoBackgroundManager.rotationStates.collectAsState()
+    val appColors by AppColors.current.collectAsState()
     KeyboardThemeProvider(
         settings = state.settings,
         rotationStates = rotationStates,
+        appColors = appColors,
         layoutFontId = layoutFontId,
     ) {
         // The collapsed voice bar takes the whole window over: no keyboard, no
@@ -10680,6 +10688,8 @@ private fun KeyboardBody(
     onDictionarySearchToggle: () -> Unit,
     onDictionaryInsert: (String) -> Unit,
     onThemeSelect: (String) -> Unit,
+    onAppColorPick: (String, Int) -> Unit,
+    onAppColorStyle: (PaletteStyle) -> Unit,
     onIconPackSelect: (String) -> Unit,
     onEmojiFontSelect: (EmojiFontChoice, String) -> Unit,
     onFontSelect: (ScriptId, String) -> Unit,
@@ -11236,6 +11246,8 @@ private fun KeyboardBody(
                 PanelMode.THEMES -> ThemesPanel(
                     state,
                     onThemeSelect,
+                    onAppColorPick,
+                    onAppColorStyle,
                     onIconPackSelect,
                     onEmojiFontSelect,
                     onFontSelect,

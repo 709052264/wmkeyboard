@@ -23,6 +23,41 @@
     <string name="theme_material_you_title">Material You colors</string>
     <string name="theme_material_you_subtitle">The Default theme takes its colors from your wallpaper</string>
 
+    <!-- Themes screen: the keyboard taking the colors of the app it types in. -->
+    <string name="theme_app_colors_section_title">App colors</string>
+    <string name="theme_app_colors_section_body">The keyboard takes the colors of the app that you type in. It finds them in the app icon and in the colors that the app sets for its own screens. Then it makes a full palette from one of them, as Android does from your wallpaper. Your theme does not change. In a different app, or with this setting off, the keyboard shows the theme again. In the Appearance tool on the keyboard, you can select a different color of the app, or no color, for each app.</string>
+    <string name="theme_app_colors_title">Match the app colors</string>
+    <string name="theme_app_colors_subtitle">Use the colors of the app that you type in</string>
+    <string name="theme_app_colors_scope_title">Themes that change</string>
+    <string name="theme_app_colors_scope_following_label">Default and wallpaper themes</string>
+    <string name="theme_app_colors_scope_following_desc">The Default theme, and themes with Follow wallpaper colors on. Other themes keep their colors.</string>
+    <string name="theme_app_colors_scope_all_label">All themes</string>
+    <string name="theme_app_colors_scope_all_desc">Every theme takes the app colors, also themes with fixed colors. Light and dark parts of the theme stay light and dark.</string>
+    <string name="theme_app_colors_source_title">Find colors in</string>
+    <string name="theme_app_colors_source_auto_label">Auto</string>
+    <string name="theme_app_colors_source_auto_desc">The colors that the app sets for its screens first, then the app icon</string>
+    <string name="theme_app_colors_source_icon_label">App icon</string>
+    <string name="theme_app_colors_source_icon_desc">Only the app icon. Use this if the colors of an app look wrong.</string>
+    <string name="theme_app_colors_source_app_label">App screens</string>
+    <string name="theme_app_colors_source_app_desc">Only the colors that the app sets for its screens, for example its toolbar. Some apps set none.</string>
+    <string name="theme_app_colors_style_title">Palette style</string>
+    <string name="theme_app_colors_style_subtitle">How one app color becomes a full palette</string>
+    <string name="theme_app_colors_style_tonal_spot_desc">Calm colors. Android uses this style by default.</string>
+    <string name="theme_app_colors_style_vibrant_desc">The strongest colors</string>
+    <string name="theme_app_colors_style_expressive_desc">Colors moved away from the app color, for a playful look</string>
+    <string name="theme_app_colors_style_fidelity_desc">Stays nearest to the exact app color</string>
+    <string name="theme_app_colors_style_neutral_desc">Almost gray, with a small quantity of color</string>
+    <string name="theme_app_colors_style_monochrome_desc">Gray only</string>
+    <string name="theme_app_colors_style_rainbow_desc">Colored accents on gray</string>
+    <string name="theme_app_colors_style_fruit_salad_desc">Colored accents moved away from the app color</string>
+    <string name="theme_app_colors_reset_title">Color for each app</string>
+    <!-- %1$d is how many apps have a color other than their first one, or no color. -->
+    <plurals name="theme_app_colors_reset_subtitle">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> app uses a different color or no color</item>
+        <item quantity="other"><xliff:g id="count" example="3">%1$d</xliff:g> apps use a different color or no color</item>
+    </plurals>
+    <string name="theme_app_colors_reset_action">Reset</string>
+
     <!-- Themes screen: the automatic light and dark pair. -->
     <string name="theme_auto_section_title">Auto (light and dark)</string>
     <string name="theme_auto_section_body">The keyboard changes between a light theme and a dark theme on its own. While this is on, the theme tool on the keyboard shows only a preview. The schedule selects the active theme.</string>

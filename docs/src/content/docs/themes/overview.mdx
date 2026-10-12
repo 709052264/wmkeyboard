@@ -39,6 +39,37 @@ Turn on **Material You colors** and the **Default (system)** theme pulls its pal
 
 Any other theme can follow the wallpaper too, one theme at a time. Open it in the [theme editor](/themes/editor/#following-your-wallpaper) and turn on **Follow wallpaper colors**. That works for your own themes, copies of the built-in ones, and themes imported from FlorisBoard, Gboard, Rboard or HeliBoard. A FlorisBoard theme written in Material You colors, such as FloriStyle, has it on from the moment you import it.
 
+## Matching the app you type in
+
+<SettingsPath path="Appearance / Keyboard themes / Match the app colors" />
+
+Turn on **Match the app colors** and the keyboard dresses itself in the colors of whatever app you are typing in: green in WhatsApp, red in YouTube, blue in Telegram. Nothing is written into your theme. Switch to another app and the colors change with it; turn the switch off and your theme is back exactly as it was.
+
+The colors come from two places. One is the colors an app sets for its own screens, such as its toolbar. That is how AnySoftKeyboard does it, and it matches the app most closely when the app sets them. Many newer apps set none, or leave the template's purple in place, so the keyboard also looks at the app's launcher icon, which every app has. **Find colors in** picks between **Auto** (the app's screen colors first, then its icon), **App icon** and **App screens**. Grays, black, white and the stock template colors are skipped, because a palette made from them looks the same in every app.
+
+The app's color is not used as is. It is grown into a full palette (light and dark tones of a primary, a secondary, a tertiary and two neutrals), the same way Android grows one from your wallpaper. **Palette style** decides how, with the same styles Android offers for wallpaper colors:
+
+| Style | Looks like |
+|---|---|
+| Tonal spot *(default)* | Calm colors. Android's own default |
+| Vibrant | The strongest version of the color |
+| Expressive | The colors turned well away from the app's, for a playful look |
+| Fidelity | As near to the exact app color as a palette can stay |
+| Neutral | Nearly gray, with a hint of the color |
+| Monochrome | Gray only |
+| Rainbow | Colored accents over plain grays |
+| Fruit salad | Colored accents turned away from the app's color |
+
+**Themes that change** decides which themes take the app's colors. **Default and wallpaper themes** (the default) covers the Default theme and any theme with **Follow wallpaper colors** on, the themes that already take their colors from outside. Every other theme keeps its own colors. **All themes** recolors every theme. Each color keeps its lightness, so a dark theme stays dark, a light one stays light, and the contrast between keys and labels does not change.
+
+### Another color, or none, for one app
+
+While the setting is on, the keyboard's **Appearance** tool shows a **This app** row above the theme cards. It holds the colors the keyboard found in the app you are in (up to four), then a struck-through circle that keeps your plain theme in this app. Press one and the keyboard remembers it for that app only, so an app whose icon has two brand colors can wear the second one, and an app you would rather keep plain can stay plain. After them come the palette styles, each drawn in this app's color, so you can compare them before you pick. A style applies to every app.
+
+The settings screen counts the apps you changed under **Color for each app**, with a **Reset** button that puts every app back on its first color.
+
+The first time the keyboard opens in an app it reads that app's colors, which takes a moment, and then fades into them. After that it remembers them and opens in them straight away. The keyboard's own settings screens are never recolored, so a theme you are editing always shows as it is.
+
 ## Dark mode and AMOLED
 
 **Mode** is a four-way switch: System, Light, Dark, or AMOLED. Like Material You colors, it controls both the settings app and the Default theme. AMOLED always renders dark, and unlike System it doesn't wait on the phone's own light/dark setting. It forces the Default theme's board to pure black, and blacks out the settings app the same way — page, rows, bars, dialogs and sheets, not just the page behind them. Keys and other surfaces stay near-black blended tones rather than literal black, so key edges and the edges of settings rows are still visible against the black behind them. Built-in and custom themes ignore Mode entirely. If you want an AMOLED look on a fixed palette, the built-in **Pitch black** theme gets you there with its own true-black board.
@@ -77,6 +108,7 @@ A **Change the theme** row appears once either half is random, and it decides ho
 
 <SettingsPath path="Appearance / Keyboard themes" />
 
+- **Match the app colors** (default off). Recolors the keyboard to the app you are typing in. Once on: **Themes that change** (default Default and wallpaper themes), **Find colors in** (default Auto) and **Palette style** (default Tonal spot). See [Matching the app you type in](#matching-the-app-you-type-in).
 - **Material You colors** (default off). Wallpaper-based dynamic color for the Default theme and the settings app, in place of the app's own indigo palette. It does nothing below Android 12, and nothing to built-in or custom themes. Those have their own **Follow wallpaper colors** switch in the theme editor.
 - **Mode** (default System). System, Light, Dark, or AMOLED, applied to the settings app and the Default theme.
 - **Auto theme** (default off). Once on, pick a light theme, a dark theme, and a trigger (System light or dark, Time of day, or Sunrise and sunset). The time-of-day picker starts at 7:00 AM for the light theme and 7:00 PM for the dark theme.

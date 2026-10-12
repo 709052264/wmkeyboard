@@ -4,6 +4,8 @@ import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
@@ -193,3 +195,101 @@ private fun ColorScheme.asRoles(): Map<String, Long> = SnyggPalette.buildRoles(
     onErrorContainer = onErrorContainer.argb(),
     scrim = scrim.argb(),
 )
+
+/**
+ * The other direction: a role map back into a Compose scheme, for the Default
+ * theme, which is drawn from a scheme rather than from stored colours. Used
+ * when the palette did not come from the device — the app being typed into
+ * ([appPalette]) — so the Default theme can wear it the way it wears the
+ * wallpaper's.
+ */
+fun SnyggPalette.colorScheme(dark: Boolean): ColorScheme {
+    val roles = if (dark) this.dark else light
+    val base = if (dark) SnyggPalette.Baseline.dark else SnyggPalette.Baseline.light
+    fun c(role: String): Color {
+        val key = SnyggPalette.normalizeRole(role)
+        return Color((roles[key] ?: base.getValue(key)).toInt())
+    }
+    // Named rather than positional: the parameter order of these builders has
+    // moved between Material releases, and a role landing in its neighbour's
+    // slot would still compile.
+    return if (dark) {
+        darkColorScheme(
+            primary = c("primary"),
+            onPrimary = c("onPrimary"),
+            primaryContainer = c("primaryContainer"),
+            onPrimaryContainer = c("onPrimaryContainer"),
+            inversePrimary = c("inversePrimary"),
+            secondary = c("secondary"),
+            onSecondary = c("onSecondary"),
+            secondaryContainer = c("secondaryContainer"),
+            onSecondaryContainer = c("onSecondaryContainer"),
+            tertiary = c("tertiary"),
+            onTertiary = c("onTertiary"),
+            tertiaryContainer = c("tertiaryContainer"),
+            onTertiaryContainer = c("onTertiaryContainer"),
+            background = c("background"),
+            onBackground = c("onBackground"),
+            surface = c("surface"),
+            onSurface = c("onSurface"),
+            surfaceVariant = c("surfaceVariant"),
+            onSurfaceVariant = c("onSurfaceVariant"),
+            surfaceTint = c("surfaceTint"),
+            inverseSurface = c("inverseSurface"),
+            inverseOnSurface = c("inverseOnSurface"),
+            error = c("error"),
+            onError = c("onError"),
+            errorContainer = c("errorContainer"),
+            onErrorContainer = c("onErrorContainer"),
+            outline = c("outline"),
+            outlineVariant = c("outlineVariant"),
+            scrim = c("scrim"),
+            surfaceBright = c("surfaceBright"),
+            surfaceContainer = c("surfaceContainer"),
+            surfaceContainerHigh = c("surfaceContainerHigh"),
+            surfaceContainerHighest = c("surfaceContainerHighest"),
+            surfaceContainerLow = c("surfaceContainerLow"),
+            surfaceContainerLowest = c("surfaceContainerLowest"),
+            surfaceDim = c("surfaceDim"),
+        )
+    } else {
+        lightColorScheme(
+            primary = c("primary"),
+            onPrimary = c("onPrimary"),
+            primaryContainer = c("primaryContainer"),
+            onPrimaryContainer = c("onPrimaryContainer"),
+            inversePrimary = c("inversePrimary"),
+            secondary = c("secondary"),
+            onSecondary = c("onSecondary"),
+            secondaryContainer = c("secondaryContainer"),
+            onSecondaryContainer = c("onSecondaryContainer"),
+            tertiary = c("tertiary"),
+            onTertiary = c("onTertiary"),
+            tertiaryContainer = c("tertiaryContainer"),
+            onTertiaryContainer = c("onTertiaryContainer"),
+            background = c("background"),
+            onBackground = c("onBackground"),
+            surface = c("surface"),
+            onSurface = c("onSurface"),
+            surfaceVariant = c("surfaceVariant"),
+            onSurfaceVariant = c("onSurfaceVariant"),
+            surfaceTint = c("surfaceTint"),
+            inverseSurface = c("inverseSurface"),
+            inverseOnSurface = c("inverseOnSurface"),
+            error = c("error"),
+            onError = c("onError"),
+            errorContainer = c("errorContainer"),
+            onErrorContainer = c("onErrorContainer"),
+            outline = c("outline"),
+            outlineVariant = c("outlineVariant"),
+            scrim = c("scrim"),
+            surfaceBright = c("surfaceBright"),
+            surfaceContainer = c("surfaceContainer"),
+            surfaceContainerHigh = c("surfaceContainerHigh"),
+            surfaceContainerHighest = c("surfaceContainerHighest"),
+            surfaceContainerLow = c("surfaceContainerLow"),
+            surfaceContainerLowest = c("surfaceContainerLowest"),
+            surfaceDim = c("surfaceDim"),
+        )
+    }
+}

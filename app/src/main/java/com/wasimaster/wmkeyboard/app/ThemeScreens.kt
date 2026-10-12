@@ -142,6 +142,10 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.settings.AutoThemeTrigger
+import com.wasimaster.wmkeyboard.core.settings.AppColorScope
+import com.wasimaster.wmkeyboard.core.theme.AppColorSource
+import com.wasimaster.wmkeyboard.core.theme.PaletteStyle
+import com.wasimaster.wmkeyboard.core.theme.paletteStyleSwatch
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.RotationInterval
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
@@ -1387,6 +1391,8 @@ fun ThemesScreen(
         )
     }
 
+    AppColorsGroup(repository, settings)
+
     // The gallery is a grid of theme cards, which are their own surfaces, so
     // it keeps a plain header rather than being wrapped in a settings card.
     val grouped = settings.watch { it.themeGalleryGrouped() }
@@ -1743,6 +1749,129 @@ fun ThemesScreen(
 }
 
 /** The label of one [ThemeGalleryStyle] choice. */
+/**
+ * The keyboard taking the colors of the app it types in (issue #592).
+ *
+ * Only the switch until it is on: the rest are refinements of a feature the
+ * user has not asked for yet. The per-app choices themselves are made on the
+ * keyboard, in the app they are about; here they can only be counted and
+ * cleared.
+ */
+@Composable
+private fun AppColorsGroup(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    val on = settings.watch { it.appColors.enabled }
+    val picks = settings.watch { it.appColors.pickByPackage.size }
+    SettingsGroup(
+        stringResource(R.string.theme_app_colors_section_title),
+        info = stringResource(R.string.theme_app_colors_section_body),
+    ) {
+        item {
+            ToggleSetting(
+                R.string.theme_app_colors_title,
+                stringResource(R.string.theme_app_colors_subtitle),
+                checked = on,
+                default = SettingsDefaults.appColors.enabled,
+            ) { scope.launch { repository.setAppColorsEnabled(it) } }
+        }
+        item(visible = on) {
+            ChoiceSetting(
+                title = R.string.theme_app_colors_scope_title,
+                options = AppColorScope.entries.map { it to stringResource(appColorScopeLabelRes(it)) },
+                selected = settings.watch { it.appColors.scope },
+                default = SettingsDefaults.appColors.scope,
+                detail = { ChoiceDetail(stringResource(appColorScopeDescRes(it))) },
+            ) { value -> scope.launch { repository.setAppColorsScope(value) } }
+        }
+        item(visible = on) {
+            ChoiceSetting(
+                title = R.string.theme_app_colors_source_title,
+                options = AppColorSource.entries.map { it to stringResource(appColorSourceLabelRes(it)) },
+                selected = settings.watch { it.appColors.source },
+                default = SettingsDefaults.appColors.source,
+                detail = { ChoiceDetail(stringResource(appColorSourceDescRes(it))) },
+            ) { value -> scope.launch { repository.setAppColorsSource(value) } }
+        }
+        item(visible = on) {
+            ChoiceSetting(
+                title = R.string.theme_app_colors_style_title,
+                subtitle = stringResource(R.string.theme_app_colors_style_subtitle),
+                options = PaletteStyle.entries.map { it to stringResource(it.labelRes) },
+                selected = settings.watch { it.appColors.style },
+                default = SettingsDefaults.appColors.style,
+                detail = { style ->
+                    ChoiceDetail(
+                        description = stringResource(paletteStyleDescRes(style)),
+                        leading = { PaletteStyleSwatch(style) },
+                    )
+                },
+            ) { value -> scope.launch { repository.setAppColorsStyle(value) } }
+        }
+        item(visible = on && picks > 0) {
+            ActionRow(
+                title = R.string.theme_app_colors_reset_title,
+                subtitle = pluralStringResource(R.plurals.theme_app_colors_reset_subtitle, picks, picks),
+                action = stringResource(R.string.theme_app_colors_reset_action),
+            ) { scope.launch { repository.clearAppColorPicks() } }
+        }
+    }
+}
+
+/**
+ * One style, drawn as the three colours it grows out of a sample app colour.
+ * The sample is a plain blue because the screen has no app in hand; on the
+ * keyboard the same swatches are drawn in the real app's colour.
+ */
+@Composable
+private fun PaletteStyleSwatch(style: PaletteStyle) {
+    val colors = remember(style) { paletteStyleSwatch(PALETTE_SAMPLE_SEED, style) }
+    Canvas(Modifier.size(width = 24.dp, height = 12.dp)) {
+        val radius = size.height / 2f
+        colors.forEachIndexed { index, argb ->
+            drawCircle(
+                color = Color(argb.toInt()),
+                radius = radius,
+                center = Offset(radius + index * radius * 1.2f, radius),
+            )
+        }
+    }
+}
+
+private const val PALETTE_SAMPLE_SEED = 0xFF1E88E5L
+
+private fun appColorScopeLabelRes(scope: AppColorScope): Int = when (scope) {
+    AppColorScope.FOLLOWING -> R.string.theme_app_colors_scope_following_label
+    AppColorScope.ALL -> R.string.theme_app_colors_scope_all_label
+}
+
+private fun appColorScopeDescRes(scope: AppColorScope): Int = when (scope) {
+    AppColorScope.FOLLOWING -> R.string.theme_app_colors_scope_following_desc
+    AppColorScope.ALL -> R.string.theme_app_colors_scope_all_desc
+}
+
+private fun appColorSourceLabelRes(source: AppColorSource): Int = when (source) {
+    AppColorSource.AUTO -> R.string.theme_app_colors_source_auto_label
+    AppColorSource.ICON -> R.string.theme_app_colors_source_icon_label
+    AppColorSource.APP_THEME -> R.string.theme_app_colors_source_app_label
+}
+
+private fun appColorSourceDescRes(source: AppColorSource): Int = when (source) {
+    AppColorSource.AUTO -> R.string.theme_app_colors_source_auto_desc
+    AppColorSource.ICON -> R.string.theme_app_colors_source_icon_desc
+    AppColorSource.APP_THEME -> R.string.theme_app_colors_source_app_desc
+}
+
+private fun paletteStyleDescRes(style: PaletteStyle): Int = when (style) {
+    PaletteStyle.TONAL_SPOT -> R.string.theme_app_colors_style_tonal_spot_desc
+    PaletteStyle.VIBRANT -> R.string.theme_app_colors_style_vibrant_desc
+    PaletteStyle.EXPRESSIVE -> R.string.theme_app_colors_style_expressive_desc
+    PaletteStyle.FIDELITY -> R.string.theme_app_colors_style_fidelity_desc
+    PaletteStyle.NEUTRAL -> R.string.theme_app_colors_style_neutral_desc
+    PaletteStyle.MONOCHROME -> R.string.theme_app_colors_style_monochrome_desc
+    PaletteStyle.RAINBOW -> R.string.theme_app_colors_style_rainbow_desc
+    PaletteStyle.FRUIT_SALAD -> R.string.theme_app_colors_style_fruit_salad_desc
+}
+
 private fun themeGalleryStyleLabelRes(style: ThemeGalleryStyle): Int = when (style) {
     ThemeGalleryStyle.AUTO -> R.string.theme_gallery_style_auto_label
     ThemeGalleryStyle.GROUPED -> R.string.theme_gallery_style_grouped_label

@@ -118,6 +118,8 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipSensitivity
 import com.wasimaster.wmkeyboard.core.clipboard.ClipboardStore
 import com.wasimaster.wmkeyboard.core.clipboard.clipEditable
 import com.wasimaster.wmkeyboard.core.settings.AutoThemeTrigger
+import com.wasimaster.wmkeyboard.core.settings.AppColorSettings
+import com.wasimaster.wmkeyboard.core.theme.PaletteStyle
 import com.wasimaster.wmkeyboard.core.settings.ManualModeDuration
 import com.wasimaster.wmkeyboard.core.settings.ClipboardView
 import com.wasimaster.wmkeyboard.core.settings.CopiedCodeChip
@@ -4919,6 +4921,8 @@ open class WMKeyboardService : InputMethodService() {
                 onDictionarySearchToggle = ::onDictionarySearchToggle,
                 onDictionaryInsert = ::onDictionaryInsert,
                 onThemeSelect = ::onThemeSelect,
+                onAppColorPick = ::onAppColorPick,
+                onAppColorStyle = ::onAppColorStyle,
                 onIconPackSelect = ::onIconPackSelect,
                 onEmojiFontSelect = ::onEmojiFontSelect,
                 onFontSelect = ::onFontSelect,
@@ -5856,6 +5860,14 @@ open class WMKeyboardService : InputMethodService() {
         maybeRotateBackground()
         // Same rule, same moment, for an auto theme half that selects at random.
         maybeShuffleTheme()
+        // And for the app's own colours: read as the keyboard comes up in it,
+        // never changed under the keys mid-session.
+        AppColors.onApp(
+            context = this,
+            scope = serviceScope,
+            packageName = info?.packageName,
+            enabled = _uiState.value.settings.appColors.enabled,
+        )
         // Covers the OEMs where `zen_mode` is unreadable and the observer never
         // fires — see refreshDndState.
         refreshDndState()
@@ -25748,6 +25760,22 @@ open class WMKeyboardService : InputMethodService() {
             Toast.LENGTH_SHORT,
         ).show()
         serviceScope.launch { settingsRepository.setSelectionMacrosEnabled(next) }
+    }
+
+    /**
+     * One of the current app's colours pressed in the Themes tool, or
+     * [AppColorSettings.PICK_OFF] for "this app keeps the plain theme".
+     * Remembered for that app alone.
+     */
+    fun onAppColorPick(packageName: String, pick: Int) {
+        vibrate()
+        serviceScope.launch { settingsRepository.setAppColorPick(packageName, pick) }
+    }
+
+    /** A palette style pressed in the Themes tool; applies to every app. */
+    fun onAppColorStyle(style: PaletteStyle) {
+        vibrate()
+        serviceScope.launch { settingsRepository.setAppColorsStyle(style) }
     }
 
     /**

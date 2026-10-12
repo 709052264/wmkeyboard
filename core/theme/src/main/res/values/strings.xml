@@ -106,4 +106,16 @@
     <string name="core_theme_family_solarized_label" translatable="false">Solarized</string>
     <string name="core_theme_family_catppuccin_label" translatable="false">Catppuccin</string>
 
+    <!-- Palette styles: the ways one app colour is grown into a whole theme
+         palette. Same idea as the styles Android offers for wallpaper colours
+         (Settings, Wallpaper and style). -->
+    <string name="core_theme_palette_style_tonal_spot">Tonal spot</string>
+    <string name="core_theme_palette_style_vibrant">Vibrant</string>
+    <string name="core_theme_palette_style_expressive">Expressive</string>
+    <string name="core_theme_palette_style_fidelity">Fidelity</string>
+    <string name="core_theme_palette_style_neutral">Neutral</string>
+    <string name="core_theme_palette_style_monochrome">Monochrome</string>
+    <string name="core_theme_palette_style_rainbow">Rainbow</string>
+    <string name="core_theme_palette_style_fruit_salad">Fruit salad</string>
+
 </resources>

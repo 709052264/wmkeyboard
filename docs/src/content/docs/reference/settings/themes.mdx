@@ -57,6 +57,22 @@ Each half of the pair is independent: one can hold a single theme while the othe
 <Shot id="reference/settings/themes-auto-schedule" alt="Auto theme on, with Time of day chosen and both clock rows visible." />
 </PhoneFrame>
 
+### App colors
+
+<SettingsPath path="Appearance / Keyboard themes / Match the app colors" />
+
+| Setting | Control | Options | Default |
+|---|---|---|---|
+| Match the app colors | Toggle | On / Off | Off |
+| Themes that change *(shown only while Match the app colors is on)* | Choice | Default and wallpaper themes / All themes | Default and wallpaper themes |
+| Find colors in *(same)* | Choice | Auto / App icon / App screens | Auto |
+| Palette style *(same)* | Choice, each option drawn as three dots | Tonal spot / Vibrant / Expressive / Fidelity / Neutral / Monochrome / Rainbow / Fruit salad | Tonal spot |
+| Color for each app *(shown only once an app has a color other than its first)* | Button | Reset puts every app back on its first color | |
+
+The colors are laid over the theme as the keyboard draws it; nothing is saved into the theme. **Default and wallpaper themes** means the Default theme plus any theme with **Follow wallpaper colors** on; while you are in an app, its colors take the wallpaper's place. **Auto** reads the colors the app sets for its own screens first, then its launcher icon. The keyboard's own settings app is never recolored.
+
+The choice of color for one app is made on the keyboard: the **Appearance** tool shows a **This app** row with the app's colors (up to four), a struck-through circle for "no color in this app", and the palette styles drawn in the app's color. See [Matching the app you type in](/themes/overview/#matching-the-app-you-type-in).
+
 ### Themes
 
 | Setting | Control | Options | Default |

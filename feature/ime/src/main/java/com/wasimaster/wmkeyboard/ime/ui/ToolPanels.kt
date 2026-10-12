@@ -138,6 +138,8 @@ import com.wasimaster.wmkeyboard.app.ThemePreview
 import com.wasimaster.wmkeyboard.core.theme.BuiltInThemes
 import com.wasimaster.wmkeyboard.core.theme.flattenedThemes
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
+import com.wasimaster.wmkeyboard.core.theme.PaletteStyle
+import com.wasimaster.wmkeyboard.ime.AppColors
 import com.wasimaster.wmkeyboard.core.theme.DEFAULT_THEME_ID
 import com.wasimaster.wmkeyboard.core.tools.AltCalendar
 import com.wasimaster.wmkeyboard.core.tools.AltCalendars
@@ -1562,6 +1564,8 @@ internal fun hasCalendarPermission(context: Context): Boolean =
 internal fun ThemesPanel(
     state: KeyboardUiState,
     onThemeSelect: (String) -> Unit,
+    onAppColorPick: (String, Int) -> Unit,
+    onAppColorStyle: (PaletteStyle) -> Unit,
     onIconPackSelect: (String) -> Unit,
     onEmojiFontSelect: (EmojiFontChoice, String) -> Unit,
     onFontSelect: (ScriptId, String) -> Unit,
@@ -1663,7 +1667,8 @@ internal fun ThemesPanel(
             packs, packStore, packRevision, faces,
             scriptTabs, fontScript, { fontScript = it }, fontStore, fontRevision,
             modeTheme, autoOn, darkSlot, randomSlot,
-            onThemeSelect, onIconPackSelect, onEmojiFontSelect, onFontSelect, onOpenRoute,
+            onThemeSelect, onAppColorPick, onAppColorStyle,
+            onIconPackSelect, onEmojiFontSelect, onFontSelect, onOpenRoute,
         )
     }
 }
@@ -1705,6 +1710,8 @@ private fun ThemesPanelBody(
     darkSlot: Boolean,
     randomSlot: Boolean,
     onThemeSelect: (String) -> Unit,
+    onAppColorPick: (String, Int) -> Unit,
+    onAppColorStyle: (PaletteStyle) -> Unit,
     onIconPackSelect: (String) -> Unit,
     onEmojiFontSelect: (EmojiFontChoice, String) -> Unit,
     onFontSelect: (ScriptId, String) -> Unit,
@@ -1789,6 +1796,14 @@ private fun ThemesPanelBody(
                 return@Column
             }
             ThemesPanelTab.THEMES -> Unit
+        }
+        // The app's own colours sit above the grid while the keyboard is
+        // taking them, so the alternative colours and styles are one press
+        // away in the app they are for.
+        val appColors by AppColors.current.collectAsState()
+        val sample = appColors
+        if (state.settings.appColors.enabled && sample != null) {
+            AppColorStrip(sample, state.settings.appColors, onAppColorPick, onAppColorStyle)
         }
         // Index 0 is the leading "Auto" card, so a theme sits one past its own
         // position, and the store card closes the list one past the last theme.

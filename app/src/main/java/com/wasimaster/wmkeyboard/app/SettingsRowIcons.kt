@@ -429,6 +429,11 @@ internal object SettingsRowIcons {
         put(R.string.theme_auto_dark_title) { Icons.Outlined.DarkMode }
         put(R.string.theme_auto_light_from_title) { Icons.Outlined.WbSunny }
         put(R.string.theme_auto_dark_from_title) { Icons.Outlined.Bedtime }
+        put(R.string.theme_app_colors_title) { Icons.Outlined.Colorize }
+        put(R.string.theme_app_colors_scope_title) { Icons.Outlined.Layers }
+        put(R.string.theme_app_colors_source_title) { Icons.Outlined.Apps }
+        put(R.string.theme_app_colors_style_title) { Icons.Outlined.Style }
+        put(R.string.theme_app_colors_reset_title) { Icons.Outlined.RestartAlt }
 
         // ---- The theme editor ----
         put(R.string.theme_editor_dark_title) { Icons.Outlined.Contrast }

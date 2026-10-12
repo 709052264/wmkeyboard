@@ -81,6 +81,17 @@ data class WallpaperTones(
  */
 fun ThemeSpec.followingWallpaper(palette: WallpaperPalette?): ThemeSpec {
     if (!followWallpaper || palette == null) return this
+    return recoloredBy(palette)
+}
+
+/**
+ * This theme moved onto [palette] whether or not it follows the wallpaper: the
+ * same two mappings [followingWallpaper] uses, for a palette that came from
+ * somewhere else. The app being typed into is the other source (see
+ * [appPalette]); its colours replace the wallpaper's for as long as the
+ * keyboard is in that app.
+ */
+fun ThemeSpec.recoloredBy(palette: WallpaperPalette): ThemeSpec {
     val remap: (Long) -> Long = if (wallpaperRoles.isNotEmpty()) {
         roleRemap(wallpaperRoles, palette.roles)
     } else {
@@ -166,13 +177,13 @@ private fun lerpRgb(a: Long, b: Long, t: Float): Long {
     return ALPHA or (channel(16) shl 16) or (channel(8) shl 8) or channel(0)
 }
 
-private fun hueDistance(a: Float, b: Float): Float {
+internal fun hueDistance(a: Float, b: Float): Float {
     val d = abs(a - b) % 360f
     return if (d > 180f) 360f - d else d
 }
 
 /** CIELAB, D65. `l` is Material's "tone", which is why it is the one kept. */
-private data class Lab(val l: Float, val a: Float, val b: Float) {
+internal data class Lab(val l: Float, val a: Float, val b: Float) {
     val chroma: Float get() = sqrt(a * a + b * b)
     val hue: Float
         get() = Math.toDegrees(atan2(b.toDouble(), a.toDouble())).toFloat().let { if (it < 0f) it + 360f else it }

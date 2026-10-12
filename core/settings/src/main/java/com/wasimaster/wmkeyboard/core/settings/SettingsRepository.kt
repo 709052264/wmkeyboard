@@ -85,8 +85,10 @@ import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.script.ScriptRegistry
 import android.util.Base64
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
+import com.wasimaster.wmkeyboard.core.theme.AppColorSource
 import com.wasimaster.wmkeyboard.core.theme.DEFAULT_THEME_ID
 import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
+import com.wasimaster.wmkeyboard.core.theme.PaletteStyle
 import com.wasimaster.wmkeyboard.core.theme.PhotoAttribution
 import com.wasimaster.wmkeyboard.core.theme.ThemeCodec
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
@@ -2862,6 +2864,8 @@ data class KeyboardSettings(
     val customThemes: List<ThemeSpec> = emptyList(),
     /** Light+dark theme pair that follows the system setting; see [AutoThemeSettings]. */
     val autoTheme: AutoThemeSettings = AutoThemeSettings(),
+    /** Themes taking the colours of the app being typed into; see [AppColorSettings]. */
+    val appColors: AppColorSettings = AppColorSettings(),
     /**
      * Online photo backgrounds and the rotating background; see
      * [PhotoBackgroundSettings].
@@ -8463,6 +8467,11 @@ class SettingsRepository(private val context: Context) {
         private val AUTO_THEME_SHUFFLED_AT = longPreferencesKey("auto_theme_shuffled_at")
         private val AUTO_THEME_SHUFFLED_AT_ELAPSED =
             longPreferencesKey("auto_theme_shuffled_at_elapsed")
+        private val APP_COLORS_ENABLED = booleanPreferencesKey("app_colors_enabled")
+        private val APP_COLORS_SCOPE = stringPreferencesKey("app_colors_scope")
+        private val APP_COLORS_SOURCE = stringPreferencesKey("app_colors_source")
+        private val APP_COLORS_STYLE = stringPreferencesKey("app_colors_style")
+        private val APP_COLORS_PICKS = stringPreferencesKey("app_colors_picks")
         private val PHOTO_UNSPLASH_KEY = stringPreferencesKey("photo_unsplash_key")
         private val PHOTO_PEXELS_KEY = stringPreferencesKey("photo_pexels_key")
         private val PHOTO_ROTATE_ENABLED = booleanPreferencesKey("photo_rotate_enabled")
@@ -9901,6 +9910,7 @@ class SettingsRepository(private val context: Context) {
             customThemes = p[CUSTOM_THEMES]?.let { ThemeCodec.decodeList(it) }
                 ?: defaults.customThemes,
             autoTheme = readAutoTheme(p, defaults),
+            appColors = readAppColors(p, defaults),
             photoBackground = readPhotoBackground(p, defaults),
             keyHeightDp = p[KEY_HEIGHT] ?: defaults.keyHeightDp,
             numberRowHeightDp = p[NUMBER_ROW_HEIGHT] ?: p[KEY_HEIGHT] ?: defaults.numberRowHeightDp,
@@ -10189,6 +10199,22 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.autoTheme.shuffledAtEpochMs,
             shuffledAtElapsedMs = p[AUTO_THEME_SHUFFLED_AT_ELAPSED]
                 ?: defaults.autoTheme.shuffledAtElapsedMs,
+        )
+
+    private fun readAppColors(p: Preferences, defaults: KeyboardSettings) =
+        AppColorSettings(
+            enabled = p[APP_COLORS_ENABLED] ?: defaults.appColors.enabled,
+            scope = p[APP_COLORS_SCOPE]
+                ?.let { runCatching { AppColorScope.valueOf(it) }.getOrNull() }
+                ?: defaults.appColors.scope,
+            source = p[APP_COLORS_SOURCE]
+                ?.let { runCatching { AppColorSource.valueOf(it) }.getOrNull() }
+                ?: defaults.appColors.source,
+            style = p[APP_COLORS_STYLE]
+                ?.let { runCatching { PaletteStyle.valueOf(it) }.getOrNull() }
+                ?: defaults.appColors.style,
+            pickByPackage = p[APP_COLORS_PICKS]?.let { decodeAppColorPicks(it) }
+                ?: defaults.appColors.pickByPackage,
         )
 
     private fun readPhotoBackground(p: Preferences, defaults: KeyboardSettings) =
@@ -13148,6 +13174,35 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutoThemeShuffleInterval(value: RotationInterval) =
         editPrefs { it[AUTO_THEME_SHUFFLE_INTERVAL] = value.name }
+
+    suspend fun setAppColorsEnabled(value: Boolean) =
+        editPrefs { it[APP_COLORS_ENABLED] = value }
+
+    suspend fun setAppColorsScope(value: AppColorScope) =
+        editPrefs { it[APP_COLORS_SCOPE] = value.name }
+
+    suspend fun setAppColorsSource(value: AppColorSource) =
+        editPrefs { it[APP_COLORS_SOURCE] = value.name }
+
+    suspend fun setAppColorsStyle(value: PaletteStyle) =
+        editPrefs { it[APP_COLORS_STYLE] = value.name }
+
+    /**
+     * Which of [packageName]'s colours the keyboard wears there:
+     * an index into its candidates, or [AppColorSettings.PICK_OFF]. The first
+     * colour is what an app gets with no entry, so picking it removes the
+     * entry rather than storing a 0 for every app ever touched.
+     */
+    suspend fun setAppColorPick(packageName: String, pick: Int) =
+        editPrefs { prefs ->
+            val current = prefs[APP_COLORS_PICKS]?.let { decodeAppColorPicks(it) }.orEmpty()
+            val next = if (pick == 0) current - packageName else current + (packageName to pick)
+            if (next.isEmpty()) prefs.remove(APP_COLORS_PICKS) else prefs[APP_COLORS_PICKS] = encodeAppColorPicks(next)
+        }
+
+    /** Forgets every per-app choice: each app back on its first colour. */
+    suspend fun clearAppColorPicks() =
+        editPrefs { it.remove(APP_COLORS_PICKS) }
 
     /** Selects a new theme for every random half of the pair, now. */
     suspend fun shuffleAutoThemeNow(

@@ -278,6 +278,17 @@
          is no one theme for a press to set. -->
     <string name="ime_themes_auto_random_info">The automatic theme selects from a set at random. You can change the set in Settings.</string>
     <string name="ime_themes_pick_info">Press a theme to use it. More themes, and which show here, are in Settings.</string>
+    <!-- Above the theme grid while the keyboard takes the colours of the app
+         it is typing into. Labels the row of that app's colours. -->
+    <string name="ime_app_colors_label">This app</string>
+    <!-- Spoken for one of the app's colours in that row. %1$d is its place
+         in the row, counted from 1. -->
+    <string name="ime_app_colors_pick_desc">App color <xliff:g id="number" example="2">%1$d</xliff:g></string>
+    <!-- Spoken for the circle that keeps the plain theme in this app. -->
+    <string name="ime_app_colors_off_desc">Do not use this app\'s colors</string>
+    <!-- Shown in place of the colour row when the app gave no colour that a
+         theme can use (only greys, black or white). -->
+    <string name="ime_app_colors_none">No colors found in this app</string>
     <string name="ime_themes_edit_action">Edit themes</string>
     <string name="ime_themes_edit_desc">Create and edit themes in the settings</string>
     <!-- Chips that switch the panel between the theme grid, the icon pack

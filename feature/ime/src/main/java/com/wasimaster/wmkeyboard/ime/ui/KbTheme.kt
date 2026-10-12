@@ -58,6 +58,11 @@ import com.wasimaster.wmkeyboard.core.settings.withRotation
 import com.wasimaster.wmkeyboard.core.settings.rotates
 import com.wasimaster.wmkeyboard.core.settings.RotationState
 import com.wasimaster.wmkeyboard.core.settings.AutoThemeTrigger
+import com.wasimaster.wmkeyboard.core.settings.AppColorScope
+import com.wasimaster.wmkeyboard.core.theme.AppColorSample
+import com.wasimaster.wmkeyboard.core.theme.colorScheme
+import com.wasimaster.wmkeyboard.core.theme.recoloredBy
+import com.wasimaster.wmkeyboard.ime.AppColors
 import com.wasimaster.wmkeyboard.core.settings.ColorVisionFilter
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.ThemeMode
@@ -1162,6 +1167,13 @@ fun KeyboardThemeProvider(
      * hand (the layout editor's own preview picks its own) pass.
      */
     layoutFontId: String? = null,
+    /**
+     * The colours of the app being typed into ([AppColors]), which the theme
+     * wears when [KeyboardSettings.appColors] says so. Null, the default, is
+     * every caller but the keyboard itself: a preview in the settings app shows
+     * the theme as it is.
+     */
+    appColors: AppColorSample? = null,
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
@@ -1183,16 +1195,32 @@ fun KeyboardThemeProvider(
     // typed. `configuration` is a key so a wallpaper or ui-mode change, which
     // is what moves the dynamic palette underneath us, still re-resolves it.
     val configuration = LocalConfiguration.current
+    // Growing a palette from one colour is a few hundred colour conversions,
+    // so it is remembered on its own: only the app and the app colour settings
+    // move it, not every settings emission the resolve below re-runs for.
+    val appPalette = remember(settings.appColors, appColors) {
+        settings.appColors.paletteFor(appColors)
+    }
     val resolved = remember(
-        settings, systemDark, darkSlot, rotationStates, context, configuration,
+        settings, systemDark, darkSlot, rotationStates, context, configuration, appPalette,
     ) {
         // A theme that follows the wallpaper is moved onto it here, on the way
         // to the screen, the same way the rotating photo is laid over below:
         // the stored theme keeps its own colours, so turning the switch off
         // gives them back. `configuration` in the keys is what re-runs this
         // when the wallpaper changes (issue #357).
+        //
+        // The app's colours take the wallpaper's place the same way, for the
+        // themes the scope covers: the ones that follow the wallpaper already
+        // (and Default, below), or every theme.
         val spec = settings.activeThemeSpec(darkSlot)?.let { stored ->
-            if (stored.followWallpaper) stored.followingWallpaper(deviceWallpaperPalette(context)) else stored
+            when {
+                appPalette != null &&
+                    (stored.followWallpaper || settings.appColors.scope == AppColorScope.ALL) ->
+                    stored.recoloredBy(appPalette)
+                stored.followWallpaper -> stored.followingWallpaper(deviceWallpaperPalette(context))
+                else -> stored
+            }
         }
         if (spec == null) {
             // Under auto-theme the chosen slot decides light vs dark directly;
@@ -1208,6 +1236,9 @@ fun KeyboardThemeProvider(
             val supportsDynamic =
                 settings.dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
             val scheme = when {
+                // Default is the theme that takes its colours from outside by
+                // definition, so it wears the app's in either scope.
+                appPalette != null -> appPalette.roles.colorScheme(dark)
                 supportsDynamic && dark -> dynamicDarkColorScheme(context)
                 supportsDynamic -> dynamicLightColorScheme(context)
                 dark -> darkColorScheme()

@@ -1077,6 +1077,11 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Mode switch — System / Light / Dark / Amoled; Amoled forces a pure-black board
     - Dark-blend surfaces — Keys are onSurface blended over a darkened board, not surfaceContainer roles
     - Neutral pressed state — Press shifts toward the text colour, never flashes the accent
+  - App colours (#592) — Keyboard wears the colours of the app being typed into; laid over the theme, never stored
+    - Colour sources — Launch activity theme attrs (AnySoftKeyboard's method, app + framework namespace) and the launcher icon histogram; greys, template purples and the device's own accents skipped
+    - Palette styles — Tonal spot / Vibrant / Expressive / Fidelity / Neutral / Monochrome / Rainbow / Fruit salad, Material's scheme variants cut in CIELAB
+    - Scope — Default + wallpaper-following themes, or every theme; tone kept so contrast holds
+    - Per-app pick — Themes tool row: up to four app colours or none, remembered per package; styles drawn in the app's colour
   - Gallery presentation
     - Grouped or flat — ThemeGalleryStyle AUTO/GROUPED/FLAT; AUTO follows the onboarding persona depth
     - Two-column cards — Default card, then customs, then built-ins, each with a live mini-preview
