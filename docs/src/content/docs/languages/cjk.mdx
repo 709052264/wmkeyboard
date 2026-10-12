@@ -137,7 +137,7 @@ The character tables ship with the app. The phrase table is the **Traditional ch
 
 With Traditional on, a second control appears: a region picker (Standard / Taiwan / Taiwan wording / Hong Kong). **Taiwan** follows OpenCC's `s2tw`: Taiwan's character preferences (為, 裡, 著), and the word stays the one you typed, so `chuzuche` gives 出租車 and `jichengche` gives 計程車. **Taiwan wording** follows OpenCC's `s2twp`, which also swaps regional vocabulary: Taiwan's 計程車 instead of the mainland's 出租車 for "taxi," for instance, even though you typed the reading of 出租車. Vocabulary is matched inside a candidate too, so 出租车光盘 becomes 計程車光碟. It is a separate choice because a swap can also change the meaning: 支持 becomes 支援 and 文件 becomes 檔案 in every sense of the word. **Hong Kong** follows OpenCC's `s2hk`: the standard wording with Hong Kong's character preferences (説, 衞, 温). The Hong Kong choices come straight from OpenCC's tables and have not been reviewed by a Hong Kong writer yet; a wrong one is worth reporting.
 
-Both the Traditional toggle and the region picker also appear on the Japanese language screen, but they have no effect there. Japanese candidates never pass through this conversion at all.
+Both controls are on the Chinese and Cantonese options pages only, and they are one setting shared by the two languages. Japanese candidates never pass through this conversion, so the Japanese page does not show them.
 
 ## Handwriting layouts
 
@@ -238,7 +238,7 @@ Opening a Chinese, Cantonese, or Japanese entry from the Languages screen shows 
 | Setting | Default | Applies to |
 |---|---|---|
 | Conversion dictionary download | Not downloaded | Chinese, Cantonese, Japanese (see below) |
-| Traditional characters | Off | Shown for Chinese, Cantonese, and Japanese; only has an effect on Chinese and Cantonese |
+| Traditional characters | Off | Chinese and Cantonese, shared between them |
 | Regional wording (Standard / Taiwan / Taiwan wording / Hong Kong) | Standard | Same, only shown once Traditional is on |
 | Lazy pronunciation (懶音) | On | Cantonese only |
 | Match kana without marks | On | Japanese only, and only kana typed on Flick or Kana JIS |

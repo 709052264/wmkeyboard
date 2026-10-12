@@ -1619,8 +1619,11 @@ private fun CjkDictPackManager(
         }
 
         // Traditional output suits both Chinese (Taiwan) and Cantonese (Hong Kong),
-        // so unlike the pinyin options below it is not gated to zh.
-        item {
+        // so unlike the pinyin options below it is not gated to zh alone. Japanese
+        // candidates never pass through the conversion, and the value is shared
+        // with Chinese, so the row stays off its screen (#607).
+        val hanLang = langId == "zh" || langId == "yue"
+        item(visible = hanLang) {
             ToggleSetting(
                 R.string.languages_cjk_traditional_title,
                 stringResource(R.string.languages_cjk_traditional_subtitle),
@@ -1634,7 +1637,7 @@ private fun CjkDictPackManager(
         // (為, 説). Taiwan wording also swaps vocabulary (出租車 → 計程車), so
         // it is a separate choice and never the plain Taiwan one (#641). Only
         // worth showing once the toggle above is on.
-        item(visible = traditional) {
+        item(visible = hanLang && traditional) {
             ChoiceSetting(
                 R.string.languages_cjk_region_title,
                 info = stringResource(R.string.languages_cjk_region_info),
