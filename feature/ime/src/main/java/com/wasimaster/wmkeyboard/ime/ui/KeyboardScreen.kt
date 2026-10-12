@@ -1964,9 +1964,10 @@ private fun DockedKeyboardFrame(
     body: @Composable ColumnScope.(KeyboardUiState) -> Unit,
 ) {
     // In resize mode the outer frame reserves the session's headroom and the
-    // keyboard box sits at its bottom, so the host app is re-laid out once on
+    // keyboard box sits at its bottom, so the window changes height once on
     // entry and the keyboard's own box is the only thing that changes size
-    // frame to frame — the drag never moves its own origin.
+    // frame to frame — the drag never moves its own origin. The band is kept
+    // out of the app's insets (see [windowBandPx]), so the app does not move.
     val density = LocalDensity.current
     // The empty band above the board where a top-row bubble goes: the height
     // the bubbles ask for, and — once the measure pass has weighed it against
@@ -1993,15 +1994,17 @@ private fun DockedKeyboardFrame(
     val revealingBody: @Composable ColumnScope.(KeyboardUiState) -> Unit = { bodyState ->
         CompositionLocalProvider(LocalRowRevealHeadroom provides revealHeadroom) { body(bodyState) }
     }
-    // Both empty bands, reported to the service, which keeps them out of the
+    // The empty bands, reported to the service, which keeps them out of the
     // app's insets. Watched rather than read here: the reserved band changes as
     // a row opens and closes, and reading it in the composition would recompose
     // the whole frame on the very frame the row starts moving. A snapshot flow
     // sees the write from the layout pass that made it and delivers after the
-    // frame, which is also where the service's requestLayout belongs.
-    LaunchedEffect(revealHeadroom, previewBand, onWindowHeadroom) {
-        snapshotFlow { previewBand.heldPx + revealHeadroom.reservedPx }
-            .collect { onWindowHeadroom(it) }
+    // frame, which is also where the service's requestLayout belongs. Resize
+    // mode's frame holds its own band in place of the rows' (issue #643).
+    LaunchedEffect(revealHeadroom, previewBand, onWindowHeadroom, resize) {
+        snapshotFlow {
+            previewBand.heldPx + (resize?.windowBandPx() ?: revealHeadroom.windowPx)
+        }.collect { onWindowHeadroom(it) }
     }
     // Two boxes: the frame proper under its band, and the bubbles over the
     // lot. The band is on the inner one so the outer one's size, which the

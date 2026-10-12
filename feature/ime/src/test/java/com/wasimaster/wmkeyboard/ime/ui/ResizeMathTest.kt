@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.ime.ui
 import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.SidePadScaleRange
+import androidx.compose.runtime.mutableStateOf
 import com.wasimaster.wmkeyboard.ime.SizingAction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -217,5 +218,58 @@ class ResizeMathTest {
         assertNull(action.bottomPaddingDp)
         assertNull(action.sidePadLeftScale)
         assertNull(action.sidePadRightScale)
+    }
+
+    // ---- the band the app stays laid out under (#643) ----
+
+    private fun session() = ResizeSession(
+        entry = entry,
+        keyboardScale = 1f,
+        maxBottomPaddingDp = SettingsRepository.MAX_BOTTOM_PADDING_DP,
+        headroomDp = 0,
+        preview = mutableStateOf(null),
+        onCommit = {},
+    )
+
+    @Test
+    fun `no band before the frame has latched`() {
+        assertEquals(0, session().windowBandPx())
+    }
+
+    @Test
+    fun `the band is the reserved headroom and stays put while the keyboard moves inside it`() {
+        val s = session()
+        s.latchReserved(keyboardHeightPx = 600, headroomPx = 500, maxPx = 2000)
+        assertEquals(500, s.windowBandPx())
+        s.latchReserved(keyboardHeightPx = 900, headroomPx = 500, maxPx = 2000)
+        assertEquals("grown, the app line is still the entry top", 500, s.windowBandPx())
+        s.latchReserved(keyboardHeightPx = 400, headroomPx = 500, maxPx = 2000)
+        assertEquals("shrunk, likewise", 500, s.windowBandPx())
+    }
+
+    @Test
+    fun `past the screen cap the band follows the frame up and keeps the entry top`() {
+        val s = session()
+        s.latchReserved(keyboardHeightPx = 600, headroomPx = 500, maxPx = 800)
+        assertEquals(200, s.windowBandPx())
+        s.latchReserved(keyboardHeightPx = 1000, headroomPx = 500, maxPx = 800)
+        assertEquals(400, s.windowBandPx())
+    }
+
+    @Test
+    fun `a panel's height drag keeps the app where the drag started`() {
+        val headroom = RowRevealHeadroom()
+        val resize = ClipPanelResize(headroom)
+        resize.maxPanelPx = 1500
+        resize.measured(700)
+        resize.begin(0f)
+        assertEquals("the frame holds the tallest panel", 800, headroom.pendingPx)
+        assertEquals("and the app keeps the panel's starting top", 800, headroom.windowPx)
+        resize.measured(1100)
+        assertEquals(400, headroom.pendingPx)
+        assertEquals("however the panel moves", 800, headroom.windowPx)
+        resize.end {}
+        assertEquals(0, headroom.pendingPx)
+        assertEquals(0, headroom.windowPx)
     }
 }

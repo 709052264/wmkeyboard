@@ -4992,10 +4992,11 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * The empty band the docked frame holds above the board, in px: room for
      * the key preview bubbles, plus whatever a bar row keeps held open while
-     * it is out (the on-demand tools row, see RowRevealHeadroom). Window, not
-     * keyboard: [onComputeInsets] keeps it out of the app's content and visible
-     * insets, so the app is laid out to the board and a tap in the band is the
-     * app's.
+     * it is out (the on-demand tools row, see RowRevealHeadroom), the room a
+     * panel's height bar holds for a drag, and resize mode's reserved band
+     * (#643). Window, not keyboard: [onComputeInsets] keeps it out of the
+     * app's content and visible insets, so the app is laid out to the board
+     * and a tap in the band is the app's (resize mode keeps those taps).
      */
     private var windowHeadroomPx = 0
 
@@ -5199,6 +5200,12 @@ open class WMKeyboardService : InputMethodService() {
             if (headroom > 0) {
                 outInsets.contentTopInsets += headroom
                 outInsets.visibleTopInsets += headroom
+            }
+            // Resize mode's band is the app, dimmed, under a scrim that eats
+            // every touch, and a top handle dragged taller than the keyboard
+            // entered sits in it: the whole window stays ours (issue #643).
+            if (_uiState.value.resize) {
+                outInsets.touchableInsets = Insets.TOUCHABLE_INSETS_FRAME
             }
             return
         }

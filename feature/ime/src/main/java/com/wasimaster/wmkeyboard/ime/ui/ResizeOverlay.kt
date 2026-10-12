@@ -88,7 +88,9 @@ internal data class ResizeValues(
  * in this session (every height at its ceiling, padding at its ceiling). The
  * docked frame reserves that much extra on entry — see [resizeHeadroom] — and
  * [reservedPx] latches the resulting frame height on the first layout, so the
- * keyboard grows and shrinks inside a frame that never moves.
+ * keyboard grows and shrinks inside a frame that never moves. [entryPx] is the
+ * keyboard's own height at that latch and [keyboardPx] its height now; the two
+ * place the band the app stays laid out under ([windowBandPx]).
  */
 @Immutable
 internal class ResizeSession(
@@ -100,6 +102,8 @@ internal class ResizeSession(
     val onCommit: (ResizeValues?) -> Unit,
 ) {
     val reservedPx: MutableIntState = mutableIntStateOf(0)
+    val entryPx: MutableIntState = mutableIntStateOf(0)
+    val keyboardPx: MutableIntState = mutableIntStateOf(0)
 }
 
 /**
@@ -238,13 +242,18 @@ private class ResizeFrameMetrics {
 /**
  * Reserves the resize mode's headroom on the docked frame: a minimum height
  * latched on the session's first layout ([ResizeSession.reservedPx]), so the
- * frame — and with it the IME window's content inset and the host app's
- * layout — is settled once on entry and then holds still while the keyboard
- * grows and shrinks inside it.
+ * frame — and with it the IME window — is settled once on entry and then holds
+ * still while the keyboard grows and shrinks inside it.
  *
  * This is what makes a drag smooth. Without it every previewed dp re-laid
  * out the host app and moved the input view under the finger, and a drag
  * that moves its own origin every frame is a drag that fights itself.
+ *
+ * The reserved band is window, not keyboard: it is reported to the service
+ * ([windowBandPx]), which keeps it out of the app's insets. Counted in them,
+ * as it was, the app was squeezed into whatever the band left of the screen,
+ * up to 80% of it gone, and its content jumped up by the
+ * band on entry (issue #643).
  *
  * A measure-scope read of the latch: a change re-measures this node and
  * recomposes nothing.
@@ -263,16 +272,35 @@ internal fun Modifier.resizeHeadroom(session: ResizeSession): Modifier = layout 
  * leaves the host app some room.
  */
 internal fun ResizeSession.latchReserved(keyboardHeightPx: Int, headroomPx: Int, maxPx: Int) {
+    keyboardPx.intValue = keyboardHeightPx
     if (reservedPx.intValue != 0) return
+    entryPx.intValue = keyboardHeightPx
     reservedPx.intValue = (keyboardHeightPx + headroomPx)
         .coerceAtMost(maxPx)
         .coerceAtLeast(keyboardHeightPx)
 }
 
 /**
+ * How much of the frame's top is window rather than keyboard: from the frame's
+ * top edge down to where the keyboard's top stood on entry. The app stays laid
+ * out down to that line for the whole session, so entering moves nothing under
+ * it, and a keyboard dragged taller than it entered grows over the app, dimmed
+ * behind [ResizeHeadroomScrim], rather than shoving the app up a frame at a
+ * time. Past the reserved height (the screen-share cap) the frame grows with
+ * the keyboard, and the line is still the entry top.
+ */
+internal fun ResizeSession.windowBandPx(): Int {
+    val reserved = reservedPx.intValue
+    if (reserved == 0) return 0
+    return (maxOf(reserved, keyboardPx.intValue) - entryPx.intValue).coerceAtLeast(0)
+}
+
+/**
  * The dimmed, touch-eating band that fills the reserved headroom above the
- * keyboard. Drawn *under* the keyboard box (which is opaque), so it only ever
- * shows in the space the keyboard has not grown into yet.
+ * keyboard, with the app showing through it. Drawn *under* the keyboard box
+ * (which is opaque), so it only ever shows in the space the keyboard has not
+ * grown into yet. The service keeps the whole window touchable in resize mode
+ * so this band, and a top handle dragged up into it, get their touches.
  */
 @Composable
 internal fun BoxScope.ResizeHeadroomScrim() {

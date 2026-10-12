@@ -65,6 +65,13 @@ internal class RowRevealHeadroom {
     val reservedPx: Int
         get() = rows.sumOf { it.reservedPx }
 
+    /**
+     * Everything the service keeps out of the app's insets: [reservedPx], plus
+     * the part of a hold that a row has marked as window ([RowReveal.windowPx]).
+     */
+    val windowPx: Int
+        get() = rows.sumOf { it.reservedPx + it.windowPx }
+
     fun track(row: RowReveal) {
         rows += row
     }
@@ -109,6 +116,15 @@ internal class RowReveal {
      * reserving row sits in is the same height open, closed and mid-move.
      */
     var reservedPx by mutableIntStateOf(0)
+
+    /**
+     * How much of the hold the app is laid out under rather than around: not
+     * added to the frame (the shortfall already is), only kept out of the app's
+     * insets. A panel's height bar sets it for the length of a drag so the app
+     * stays where it was instead of jumping up by the whole hold (issue #643);
+     * see `ClipPanelResize`.
+     */
+    var windowPx by mutableIntStateOf(0)
 }
 
 /**

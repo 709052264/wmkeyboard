@@ -52,6 +52,13 @@ import com.wasimaster.wmkeyboard.ime.R
  * when the drag starts and once when it ends, and the panel grows and shrinks
  * inside a frame that holds still.
  *
+ * The app does not move with the window. What the hold covered when the drag
+ * began is marked as window ([RowReveal.windowPx]), so the app stays laid out
+ * down to the panel's starting top for the whole drag, the panel growing over
+ * it, and moves once, to the height the drag lands on, when it ends. Counted
+ * as keyboard, as it was, the app jumped up by the whole hold the moment a
+ * drag started (issue #643).
+ *
  * The composition half is [liveDp] and [pendingDp]; the rest is scratch the
  * gesture and the panel's measure write, and nothing composes from it (the
  * floating frame's `FloatingGesture` trick).
@@ -86,6 +93,7 @@ internal class ClipPanelResize(private val headroom: RowRevealHeadroom?) {
         liveDp = fromDp
         if (headroom != null && !held) {
             hold.shortfallPx = (maxPanelPx - panelPx).coerceAtLeast(0)
+            hold.windowPx = hold.shortfallPx
             headroom.track(hold)
             held = true
         }
@@ -111,6 +119,7 @@ internal class ClipPanelResize(private val headroom: RowRevealHeadroom?) {
         if (!held) return
         headroom?.untrack(hold)
         hold.shortfallPx = 0
+        hold.windowPx = 0
         held = false
     }
 
