@@ -1690,6 +1690,7 @@ object SmartSuggest {
         ToolbarTool.CALENDAR to listOf("calendar", "schedule"),
         ToolbarTool.MOON_PHASE to listOf("moon"),
         ToolbarTool.COMPASS to listOf("compass"),
+        ToolbarTool.LOCATION to listOf("location", "gps"),
         ToolbarTool.LEVEL to listOf("level"),
         ToolbarTool.THEMES to listOf("theme", "themes"),
         ToolbarTool.MODES to listOf("modes"),

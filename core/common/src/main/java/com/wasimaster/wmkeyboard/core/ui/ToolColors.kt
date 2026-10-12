@@ -104,6 +104,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.LEVEL -> Color(0xFF26C6DA)
     ToolbarTool.CALENDAR -> Color(0xFFE57373)
     ToolbarTool.WEATHER -> Color(0xFFFFA726)
+    // A map pin's red, a shade off the compass's so the two read apart.
+    ToolbarTool.LOCATION -> Color(0xFFE53935)
     ToolbarTool.MOON_PHASE -> Color(0xFF7986CB)
 
     // Cursor keys — one neutral so they read as a set

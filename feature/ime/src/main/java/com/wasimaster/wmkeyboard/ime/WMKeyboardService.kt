@@ -6412,6 +6412,9 @@ open class WMKeyboardService : InputMethodService() {
         // A fresh field is a fresh view of the emoji row, so taps from the last
         // one can reorder it now (see [publishEmojiHistory]).
         publishEmojiHistory()
+        // A location permission answer arrives the same way the scanned
+        // pages below do: the trampoline finished and the field came back.
+        locationTool.onKeyboardShown()
         // Pages from a just-finished document scan: the scanner activity
         // ran while the keyboard was down, so they can only insert now,
         // as the target field regains the input connection.
@@ -22506,6 +22509,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.LEARN_FROM_TEXT -> onPanelChange(PanelMode.LEARN_FROM_TEXT)
             ToolbarTool.FIND_REPLACE -> openFindReplaceTool()
             ToolbarTool.NOTES -> onPanelChange(PanelMode.NOTES)
+            ToolbarTool.LOCATION -> onPanelChange(PanelMode.LOCATION)
             ToolbarTool.MEDIA_CONTROL -> onPanelChange(PanelMode.MEDIA_CONTROL)
             ToolbarTool.KDE_CONNECT -> onPanelChange(PanelMode.KDE_CONNECT)
             ToolbarTool.PLUGINS -> onPanelChange(PanelMode.PLUGINS)
@@ -22598,6 +22602,7 @@ open class WMKeyboardService : InputMethodService() {
         // Leaving the Notes panel, by closing it or opening another: the draft
         // is saved and the editor, the search and the Undo bar go (#560).
         if (_uiState.value.panel == PanelMode.NOTES) notesLeavePanel()
+        if (_uiState.value.panel == PanelMode.LOCATION) locationTool.onPanelClose()
         // Whatever the GIF/sticker panel was showing survives it closing.
         stashMediaSearch(_uiState.value)
         _uiState.update {
@@ -22745,6 +22750,7 @@ open class WMKeyboardService : InputMethodService() {
         mediaCategoryJob?.cancel()
         when (_uiState.value.panel) {
             PanelMode.WEATHER -> refreshWeather()
+            PanelMode.LOCATION -> locationTool.onPanelOpen()
             PanelMode.VOCABULARY -> {
                 val prefill = _uiState.value.toolPrefill as? ToolPrefill.Vocab
                 if (prefill != null) onToolPrefillConsumed()
@@ -32120,6 +32126,7 @@ open class WMKeyboardService : InputMethodService() {
             ),
             vocab = vocabCallbacks(),
             notes = notesCallbacks(),
+            location = locationTool.callbacks,
             stickerOffer = com.wasimaster.wmkeyboard.ime.ui.StickerOfferCallbacks(
                 onPick = ::onStickerOfferPick,
                 onExpand = ::onStickerOfferExpand,
@@ -32162,6 +32169,42 @@ open class WMKeyboardService : InputMethodService() {
                 onShow = ::onLearnShow,
             ),
         )
+    }
+
+    // ---- Location tool (#350) ----
+
+    /**
+     * The Location tool's state and handlers. Its own class rather than more
+     * of this one: nothing else here reads a position, and the panel collects
+     * the controller's state directly.
+     */
+    private val locationTool by lazy {
+        com.wasimaster.wmkeyboard.ime.location.LocationController(
+            context = this,
+            scope = serviceScope,
+            settings = { _uiState.value.settings },
+            repository = settingsRepository,
+            insertText = ::onToolTextInsert,
+            haptic = { vibrate() },
+            panelOpen = { _uiState.value.panel == PanelMode.LOCATION },
+            openToolSettings = { openToolSettings(ToolbarTool.LOCATION) },
+            onWeatherLocationChanged = ::onWeatherLocationSaved,
+        )
+    }
+
+    /**
+     * The weather location was just written from a reading. The settings flow
+     * brings it to [_uiState] a moment later; an open weather panel refetches
+     * once it has, rather than with the old place.
+     */
+    private fun onWeatherLocationSaved(latitude: Float, longitude: Float) {
+        if (_uiState.value.panel != PanelMode.WEATHER) return
+        serviceScope.launch {
+            withTimeoutOrNull(2_000) {
+                _uiState.first { it.settings.weather.latitude == latitude && it.settings.weather.longitude == longitude }
+            }
+            refreshWeather(force = true)
+        }
     }
 
     // ---- Notes tool (#560) ----

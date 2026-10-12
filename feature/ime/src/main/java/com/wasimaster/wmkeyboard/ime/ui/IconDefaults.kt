@@ -81,6 +81,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCode2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QueryStats
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FindReplace
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StickyNote2
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LocationOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCodeScanner
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Schedule
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.School
@@ -187,6 +188,7 @@ object IconDefaults {
         ToolbarTool.STATISTICS -> Icons.Outlined.QueryStats
         ToolbarTool.FIND_REPLACE -> Icons.Outlined.FindReplace
         ToolbarTool.NOTES -> Icons.Outlined.StickyNote2
+        ToolbarTool.LOCATION -> Icons.Outlined.LocationOn
         ToolbarTool.MEDIA_CONTROL -> Icons.Outlined.MusicNote
         ToolbarTool.KDE_CONNECT -> Icons.Outlined.Phonelink
         ToolbarTool.PLUGINS -> Icons.Outlined.Extension

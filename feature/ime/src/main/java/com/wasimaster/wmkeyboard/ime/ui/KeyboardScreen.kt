@@ -7614,6 +7614,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.STATISTICS -> R.string.ime_tool_statistics
     ToolbarTool.FIND_REPLACE -> R.string.ime_tool_find_replace
     ToolbarTool.NOTES -> R.string.ime_tool_notes
+    ToolbarTool.LOCATION -> R.string.ime_tool_location
     ToolbarTool.PLUGINS -> R.string.ime_tool_plugins
     ToolbarTool.APP_LAUNCHER -> R.string.ime_tool_app_launcher
     ToolbarTool.AI -> R.string.ime_tool_ai
@@ -7706,6 +7707,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.STATISTICS -> false
     ToolbarTool.FIND_REPLACE -> state.panel == PanelMode.FIND_REPLACE
     ToolbarTool.NOTES -> state.panel == PanelMode.NOTES
+    ToolbarTool.LOCATION -> state.panel == PanelMode.LOCATION
     ToolbarTool.VOICE -> state.panel == PanelMode.VOICE || state.voice.strip || state.voice.bar
     ToolbarTool.GRAMMAR -> state.panel == PanelMode.GRAMMAR
     ToolbarTool.WIKIPEDIA -> state.panel == PanelMode.WIKIPEDIA
@@ -10439,7 +10441,7 @@ private val FullBleedPanels = setOf(
     PanelMode.DICTIONARY, PanelMode.SYMBOLS, PanelMode.MEDIA_CONTROL, PanelMode.KDE_CONNECT,
     PanelMode.VOCABULARY, PanelMode.LEARN_FROM_TEXT, PanelMode.NOTES,
     PanelMode.APP_LAUNCHER, PanelMode.THEMES, PanelMode.SNIPPETS, PanelMode.WIKIPEDIA,
-    PanelMode.AI_REPLY,
+    PanelMode.AI_REPLY, PanelMode.LOCATION,
 )
 
 /**
@@ -11443,7 +11445,7 @@ private fun KeyboardBody(
                     Modifier
                         .fillMaxWidth()
                         .height(keyRowsHeight(state)),
-                ) { CompassPanel(state) }
+                ) { CompassPanel(state, onUseMyLocation = toolHold.location.onUseMyLocationForTools) }
                 PanelMode.LEVEL -> Box(
                     Modifier
                         .fillMaxWidth()
@@ -11457,6 +11459,12 @@ private fun KeyboardBody(
                     // The prompt is about the weather location, so land on the
                     // weather tool's own page rather than the settings root.
                     onOpenSettings = { onOpenToolSettings(ToolbarTool.WEATHER) },
+                    onUseMyLocation = toolHold.location.onUseMyLocationForTools,
+                )
+                PanelMode.LOCATION -> LocationPanel(
+                    state = state,
+                    callbacks = toolHold.location,
+                    onClose = { onPanelChange(PanelMode.LOCATION) },
                 )
                 // The month grid and the selected day's event list are fighting
                 // over the same rows, so the calendar buys itself another band
@@ -26042,6 +26050,8 @@ data class ToolHoldCallbacks(
     val learnFromText: LearnFromTextCallbacks = LearnFromTextCallbacks(),
     /** The Notes panel's callbacks (#560); here for the same reason as [dictionaryBar]. */
     val notes: NotesCallbacks = NotesCallbacks(),
+    /** The Location panel's callbacks and state (#350); here for the same reason as [dictionaryBar]. */
+    val location: LocationCallbacks = LocationCallbacks(),
     /** The clipboard panel's editor and view switch; here for the same reason as [dictionaryBar]. */
     val clipboard: ClipboardPanelActions = ClipboardPanelActions(),
     /** The caret magnifier (discussion #303); here for the same reason as [dictionaryBar]. */

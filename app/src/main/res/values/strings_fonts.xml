@@ -98,6 +98,7 @@
     <string name="fonts_tool_redo_desc">One press sends the redo shortcut of the editor</string>
     <string name="fonts_tool_moon_phase_desc">The current phase, the illumination and the next full moon and new moon</string>
     <string name="fonts_tool_weather_desc">Current conditions for a saved location</string>
+    <string name="fonts_tool_location_desc">Put your position or a saved place into the text as a map link, an address or coordinates</string>
     <string name="fonts_tool_calendar_desc">Month view with your events and two calendars of your choice</string>
     <string name="fonts_tool_incognito_desc">One press pauses learning and clipboard capture</string>
     <string name="fonts_tool_power_saving_desc">Turn off features that use battery power, on demand or when the battery is low</string>

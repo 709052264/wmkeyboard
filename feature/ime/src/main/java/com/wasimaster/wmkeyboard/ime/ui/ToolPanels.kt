@@ -77,6 +77,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
@@ -264,7 +265,11 @@ private fun PanelMessage(text: String, modifier: Modifier = Modifier) {
  * qibla direction computed from the saved weather location.
  */
 @Composable
-internal fun CompassPanel(state: KeyboardUiState) {
+internal fun CompassPanel(
+    state: KeyboardUiState,
+    /** Reads the phone's position once and saves it as the weather location (#350); null hides the offer. */
+    onUseMyLocation: (() -> Unit)? = null,
+) {
     val context = LocalContext.current
     val sensorManager = remember {
         context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -272,6 +277,22 @@ internal fun CompassPanel(state: KeyboardUiState) {
     val sensor = remember { sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR) }
     // Raw sensor heading; the displayed azimuth chases it per frame below.
     var target by remember { mutableFloatStateOf(0f) }
+    // Magnetic to true north, once a saved place says where the phone is (#350).
+    // The rotation-vector sensor points at magnetic north, and the qibla
+    // bearing is a true one; with a saved place the gap between the two is
+    // known, so the rose turns to true north and the marker lands where the
+    // Kaaba is rather than up to twenty degrees off it. Cached: the panel
+    // recomposes every frame while the rose turns.
+    val savedLat = state.settings.weather.latitude
+    val savedLon = state.settings.weather.longitude
+    val declination = remember(savedLat, savedLon) {
+        if (savedLat != null && savedLon != null) {
+            android.hardware.GeomagneticField(savedLat, savedLon, 0f, System.currentTimeMillis()).declination
+        } else {
+            0f
+        }
+    }
+    val declinationNow by rememberUpdatedState(declination)
     var azimuth by remember { mutableFloatStateOf(0f) }
     var hasReading by remember { mutableStateOf(false) }
 
@@ -283,7 +304,7 @@ internal fun CompassPanel(state: KeyboardUiState) {
             override fun onSensorChanged(event: SensorEvent) {
                 SensorManager.getRotationMatrixFromVector(rotation, event.values)
                 SensorManager.getOrientation(rotation, orientation)
-                target = (Math.toDegrees(orientation[0].toDouble()).toFloat() + 360f) % 360f
+                target = (Math.toDegrees(orientation[0].toDouble()).toFloat() + declinationNow + 360f) % 360f
                 hasReading = true
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -434,6 +455,13 @@ internal fun CompassPanel(state: KeyboardUiState) {
                 fontSize = 12.sp,
                 modifier = Modifier.padding(bottom = 2.dp),
             )
+            if (qiblaBearing == null && onUseMyLocation != null) {
+                ToolPanelChip(
+                    stringResource(R.string.ime_location_use_my_location_action),
+                    selected = true,
+                    modifier = Modifier.padding(bottom = 4.dp),
+                ) { onUseMyLocation() }
+            }
         }
     }
 }
@@ -791,6 +819,8 @@ internal fun WeatherPanel(
     state: KeyboardUiState,
     onRefresh: () -> Unit,
     onOpenSettings: () -> Unit,
+    /** Reads the phone's position once and saves it as the weather location (#350); null hides the offer. */
+    onUseMyLocation: (() -> Unit)? = null,
 ) {
     // Keyboard height, no more: the stat grid scrolls, and growing the
     // window upward for it shoved the app's own content off screen.
@@ -838,6 +868,17 @@ internal fun WeatherPanel(
                         .width(160.dp)
                         .focusRing(focusedAction == 0),
                 ) { onOpenSettings() }
+                if (onUseMyLocation != null) {
+                    Spacer(Modifier.height(8.dp))
+                    val useMine = stringResource(R.string.ime_location_use_my_location_action)
+                    ToolPanelKey(
+                        description = useMine,
+                        label = useMine,
+                        modifier = Modifier
+                            .height(40.dp)
+                            .width(160.dp),
+                    ) { onUseMyLocation() }
+                }
             }
             WeatherUi.Loading -> PanelMessage(stringResource(R.string.ime_weather_progress))
             WeatherUi.Error -> Column(

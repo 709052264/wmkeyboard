@@ -54,6 +54,16 @@
          are read into memory for the suggestion strip, never stored. -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
+    <!-- Only used by the optional location tool (#350), and by "Use my
+         location" for the weather and compass tools: one reading when the
+         user taps, never in the background, no background-location
+         permission. Fine is asked for with coarse, so Android 12 offers its
+         precise-or-approximate choice; either works. A build made with
+         -Pwmkb.noLocation=true strips both (src/nolocation), and the tool
+         then keeps its saved places only. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <!-- Only used by the optional calendar tool to list the day's events;
          read-only, never written, and only queried while the tool is open. -->
     <uses-permission android:name="android.permission.READ_CALENDAR" />
@@ -113,6 +123,11 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- Declaring fine location implies these as required, which would hide
+         the keyboard from every device without GPS in the store. -->
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.location.network" android:required="false" />
     <uses-feature android:name="android.hardware.camera.front" android:required="false" />
     <uses-feature android:name="android.hardware.camera.flash" android:required="false" />
     <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
@@ -857,6 +872,16 @@
              android.permission.WRITE_EXTERNAL_STORAGE (API 24-28 only). -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.StoragePermissionActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- Same trampoline pattern for the location tool's precise and
+             approximate location (#350). -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.LocationPermissionActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:noHistory="true"

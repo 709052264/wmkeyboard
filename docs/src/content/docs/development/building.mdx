@@ -75,6 +75,16 @@ Nothing else changes. Typing, prediction, autocorrect, gesture typing, learning,
 
 In the code, every request passes through `NetLog` (or, for the OkHttp clients, the `InternetGate` interceptor) before its socket opens, and both refuse with an `IOException` when the permission is missing. That matters because Android does not fail politely without it: a host name lookup throws `SecurityException`, which the offline paths are not written to catch. `NetworkCallSitesTest` fails the build if an OkHttp client is added without the gate.
 
+## A build with no location permission
+
+The released APKs declare precise and approximate location for the [Location tool](/tools/location/) and the **Use my location** buttons. A build without them takes one property, the same way:
+
+```bash
+./gradlew assembleFullEnDebug -Pwmkb.noLocation=true
+```
+
+`wmkb.noLocation=true` in `local.properties` or `WMKB_NO_LOCATION=true` in the environment does the same. The property adds `app/src/nolocation/AndroidManifest.xml`, which removes both permissions from the merged manifest. The app checks what the installed package asked for at run time (`LocationAccess.declared`), so the Location tool keeps its saved places and hides **Locate me**, the weather and compass tools go back to a searched or typed place, and the permissions screen drops the row. It combines with `wmkb.noInternet`.
+
 ## Rebuilding the native grammar engine
 
 <Flavor edition="full" />: the grammar checker's native library only ships in full builds.

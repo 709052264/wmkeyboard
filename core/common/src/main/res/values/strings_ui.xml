@@ -33,6 +33,9 @@
     <string name="common_permission_camera_title">Camera access for the camera tool</string>
     <string name="common_permission_camera_body">WM Keyboard opens the camera only while the camera tool is on screen. You can take a photo and put it into the app that you type in. The keyboard writes the photo to its own private storage. The keyboard gives the photo to that app when you insert it. The keyboard uploads no photo, and sends no photo to the developer. The tool is optional.</string>
 
+    <string name="common_permission_location_title">Location access for the location tool</string>
+    <string name="common_permission_location_body">WM Keyboard reads where your phone is only when you tap Locate me in the location tool, or Use my location for the weather and compass tools. It reads one position and then stops. The keyboard does not track you and does not read your location in the background. It keeps the position in memory for a short time, and saves it only if you save a place. To show an address, the keyboard sends the position to the address server that you selected. You can turn the address off. Nothing goes to the developer. On the next screen, Only this time works: the keyboard asks again next time. The tool is optional.</string>
+
     <string name="common_permission_calendar_title">Calendar access for the calendar tool</string>
     <string name="common_permission_calendar_body">WM Keyboard reads your events. The calendar tool lists them, and you can insert one as text. The keyboard reads your calendar only while that tool is open. The keyboard never writes to your calendar. Your events stay on your device. The tool is optional.</string>
 

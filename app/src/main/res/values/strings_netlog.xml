@@ -157,6 +157,7 @@
     <string name="netlog_source_vocabulary">Vocabulary</string>
     <string name="netlog_source_synonyms">Synonyms</string>
     <string name="netlog_source_weather">Weather</string>
+    <string name="netlog_source_location">Location address</string>
     <string name="netlog_source_currency">Currency rates</string>
     <string name="netlog_source_photos">Photo backgrounds</string>
     <string name="netlog_source_link_preview">Link previews</string>
@@ -201,6 +202,7 @@
     <string name="netlog_sent_vocabulary">The word on the card, or the name of a word pack.</string>
     <string name="netlog_sent_synonyms">One word: the word you held on the suggestion strip.</string>
     <string name="netlog_sent_weather">The saved location, or the place name you searched.</string>
+    <string name="netlog_sent_location">The position at the precision you chose, to get its address. Never sent unless you located yourself or saved a place.</string>
     <string name="netlog_sent_currency">Nothing about you. The keyboard downloads the whole rate table and converts on your device.</string>
     <string name="netlog_sent_photos">Your search words and filters, or the name of the photo to download.</string>
     <string name="netlog_sent_link_preview">A request for the page you copied or scanned. Nothing else.</string>

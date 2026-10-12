@@ -16,14 +16,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Languages, scripts, layouts, transliteration | 11 | 64 | 213 |
 | Themes and appearance | 14 | 73 | 183 |
 | Emoji, GIFs, stickers, kaomoji | 16 | 88 | 94 |
-| Toolbar and the tool set | 10 | 85 | 311 |
+| Toolbar and the tool set | 10 | 86 | 327 |
 | Clipboard, snippets, text expansion | 7 | 37 | 191 |
 | AI, voice, handwriting, scanning | 11 | 70 | 162 |
 | Privacy, backup, storage, statistics | 14 | 69 | 173 |
 | Accessibility, form factors, platform integration | 13 | 61 | 111 |
 | Extensibility: addons, plugins, imports, formats | 5 | 35 | 164 |
 | Modes, rows, field adaptation, runtime | 12 | 97 | 203 |
-| **Total** | **133** | **807** | **2229** |
+| **Total** | **133** | **808** | **2245** |
 
 ## Typing core: prediction, autocorrect, learning, spell check
 
@@ -1590,7 +1590,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 ## Toolbar and the tool set
 
-- **Toolbar & toolbox mechanics** `uncommon` — 81 tools in ToolbarTool enum; 3 pinned by default (Emoji, Clipboard, Settings)
+- **Toolbar & toolbox mechanics** `uncommon` — 82 tools in ToolbarTool enum; 3 pinned by default (Emoji, Clipboard, Settings)
   - Pinned bar vs toolbox — A tool is on the bar or in the toolbox grid, never both
     - Default pinned row — Emoji, Clipboard, Settings (DefaultToolbarTools)
     - Tablet-aware default pin set — 5 pinned on small tablets, 7 on large, applied only if user never rearranged
@@ -1640,7 +1640,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Tool background radius and shape — toolCircleRadiusDp default 20, toolShape shares the key shapes; 0 removes it
     - Tool button width 38dp default — toolWidthDp stretches the circle into a pill
     - Tool icon size 22dp default (14–30) — toolbarBehavior.iconSizeDp, glyph only, button stays 38dp; toolbar + toolbox grid
-  - Per-tool settings screen `RARE` — Every one of the 81 tools has its own screen under Settings → Tools
+  - Per-tool settings screen `RARE` — Every one of the 82 tools has its own screen under Settings → Tools
     - Eight groups plus an Other catch-all — Panels, Scanners, Online, Create & convert, Modes, Cursor, Quick actions, Utilities
     - Tune icon marks tools with real options — toolHasOptions; toggle-only tools show just the switch
     - One switch controls bar, toolbox and leader key — setToolEnabled hides the tool everywhere at once
@@ -1649,7 +1649,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Per-tool colour override — toolColorOverrides map, reset-all button when any override exists
     - Two-colour gradient icons — toolIconGradients off by default, with its own end-colour override map
     - Icon-pack glyph substitution — IconSlots.forTool resolves an installed icon pack's glyph
-  - Direct-boot tool filter `RARE` — 48 of 81 tools work before the first unlock after reboot
+  - Direct-boot tool filter `RARE` — 48 of 82 tools work before the first unlock after reboot
     - Rule is what the tool reads — Arithmetic, sensors and keyboard-own state stay; disk, credentials, providers, activities go
     - All 14 cursor tools stay usable — They only touch the input connection
     - Not a user toggle — isDirectBootSafeTool is automatic and only applies pre-first-unlock
@@ -1980,7 +1980,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Manual switch coexists with the automatic trigger — Says which one is in charge instead of reading as a dead button
     - Warns when nothing is configured to drop — Separate toast when the profile drops nothing
   - Settings — Opens the settings app from the keyboard
-- **Utilities & instruments** `RARE` — 6 tools in the Utilities group
+- **Utilities & instruments** `RARE` — 7 tools in the Utilities group
   - Flashlight `RARE` — Torch toggle with no panel
     - No CAMERA permission needed — Torch mode only
     - Tile mirrors real torch state — Flipping it from quick settings lights the toolbox tile
@@ -1988,6 +1988,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Waits on the flash-camera probe — At most one tap queues, so a double tap can't leave it on
   - Compass `RARE` — Rotation-vector rose with optional qibla
     - Qibla marker — Computed on-device from the Weather tool's saved coordinates
+    - True north once a place is saved (#350) — GeomagneticField declination for the saved point, cached per place; the rose and the qibla marker stop being off by the local declination
+    - Use my location under a missing qibla (#350) — One reading through the Location tool's controller, saved as the weather location
     - 16-point cardinal readout — Reads 'Calibrating…' until the sensor reports
     - Smoothed heading — Glides rather than jumping per sample
   - Bubble level `RARE` — Bullseye plus two tube vials
@@ -2005,11 +2007,25 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Chinese computed astronomically — Real new-moon and solar-longitude calculations
   - Weather `RARE` — Open-Meteo current conditions, no key
     - Fetch the forecast as you type — Off on F-Droid, where a weather chip reads "Get the forecast" and fetches nothing until it is tapped
-    - Location typed or searched, never GPS — Open-Meteo geocoding, or manual latitude/longitude
+    - Location typed, searched, or read once (#350) — Open-Meteo geocoding, manual latitude/longitude, or Use my location; the saved place never follows the phone afterwards
+    - Use my location on the empty panel (#350) — Beside Open settings; named after the city through the Location tool's address lookup when that is on
     - 15-minute cache with manual refresh — Reopening the panel is usually instant
     - Conditional stat grid — Feels-like, humidity, wind always; rain chance, cloud, pressure, UV, sunrise, sunset when present
     - 8-point wind direction — Plus emoji and short description for current conditions
     - Shares its location with the compass — Qibla reads the same saved coordinates
+  - Location (#350) `RARE` — The phone's position or a saved place into any field, in the format the user picks
+    - One reading per tap — LocationManager only (no Play services): AOSP fused, GPS and network asked at once, each better answer shown as it lands, stops at 25 m or 20 s, nothing left registered
+    - Tile-free position dial — Accuracy ring, the shared precision cell and the shared point drawn to scale, north up; no map server learns where the user is
+    - Seven formats with a live preview — Message (📍 address + link), link, coordinates, degrees-minutes-seconds, address, Plus code, custom template; hold a chip to make it the default
+    - Six map links — Google Maps URLs API, OpenStreetMap, Apple Maps, OsmAnd, Waze, geo:
+    - Snapped precision — Exact, 100 m, 1 km, city: the point moves to the centre of a fixed grid cell, so repeated shares cannot be averaged back; address, link and Plus code all use the moved point
+    - Plus codes written from the spec — Integer arithmetic like the reference implementations, pinned against openlocationcode 1.0.1 vectors
+    - Short address at the share's precision — Nominatim /reverse at a matching zoom, identifying User-Agent, one request a second, in-memory cache; off switch sends nothing; endpoint overridable on F-Droid
+    - Saved places — Insert with no permission and no network; distance from the current reading; open in maps, use for weather, delete; add, edit and search in settings; carried by backup and sync
+    - One-time grants work — Every read re-checks; Android 12 approximate accepted with an Allow precise link
+    - Reading kept 15 minutes in memory only — Never written unless saved as a place
+    - Weather and compass share it — Use for weather and compass from Here or any place
+    - No-location builds — -Pwmkb.noLocation=true strips both permissions; LocationAccess.declared reads the installed package and hides Locate me
   - Moon phase `RARE` — Computed, not fetched
     - Eight phase names — Plus percent illuminated and days into the cycle
     - Next full and new moon dates — From a synodic-month constant and a reference new moon
@@ -2056,8 +2072,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Web search and Image search | needs a Brave API key (user's or the build's); with none the tools vanish from bar, toolbox, chips and hardware shortcuts |
 | Translate | network; optional Google Cloud Translation key, otherwise the free public endpoint |
 | Currency converter (fiat and crypto) | network; four keyless fiat sources and three keyless coin sources |
-| Weather and its place search | network (Open-Meteo, keyless); location typed or searched, never read from GPS |
+| Weather and its place search | network (Open-Meteo, keyless); location typed, searched, or read once with Use my location (location permission) |
 | Compass qibla marker | needs a location saved in the Weather tool's settings |
+| Location tool: Locate me and Use my location | location permission (precise or approximate), one reading per tap; location services on; absent in -Pwmkb.noLocation builds |
+| Location tool: address | network (Nominatim by default); turned off by Look up the address |
 | Wikipedia and Dictionary | network; keyless public APIs |
 | GIF and Sticker | network for the KLIPY/GIPHY providers; local packs work offline |
 | Camera tool | needs CAMERA permission, granted through a trampoline activity; shared with OCR and QR scan |
@@ -2067,8 +2085,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Clipboard source-app attribution | needs Usage Access; best-effort foreground-app guess |
 | Voice typing | needs microphone permission; audio may reach the OS recognizer service unless the on-device language model is installed |
 | Clipboard link previews and QR link details and dictionary auto-lookup | network, and force-disabled by power saving's background-network toggle |
-| 33 tools of 81 are unavailable before the first unlock after reboot | direct-boot filter; the other 48 (arithmetic, sensors, keyboard-own state, all 14 cursor tools) stay usable |
-| Lite edition tool count | 76 of 81 tools; the 5 ML Kit / Harper tools are compiled out, not just hidden |
+| 34 tools of 82 are unavailable before the first unlock after reboot | direct-boot filter; the other 48 (arithmetic, sensors, keyboard-own state, all 14 cursor tools) stay usable |
+| Lite edition tool count | 77 of 82 tools; the 5 ML Kit / Harper tools are compiled out, not just hidden |
 
 ## Clipboard, snippets, text expansion
 
@@ -2624,6 +2642,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Voice dictation (any engine) | needs the RECORD_AUDIO runtime permission, requested through a trampoline activity |
 | System speech recognition without the on-device language pack | sends audio to the OS recognizer service; the on-device model download itself needs network |
 | Camera tool, OCR and QR scanner | need the CAMERA runtime permission (shared trampoline) |
+| Location tool and Use my location | need ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION, asked together through a trampoline; never background |
 | QR scanner link previews | network; force-disabled by Power Saving's background-network option |
 | Whisper engine and handwrite-with-swipes | silently downgraded by Power Saving's "drop on-device models" option (Whisper → system recognizer, handwrite → glide typing) |
 | AI tool, handwriting, all three scanners and the camera tool | not direct-boot safe — unavailable until the device has been unlocked once after a restart |
@@ -2871,7 +2890,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - CSV export, clear with undo — Also listed on the Storage screen.
   - Keyboard activity dot `RARE` — Off by default; a dot on the toolbar in the requesting tool's colour, hold to read the server.
 - **Permissions & disclosures** `uncommon` — Prominent-disclosure layer plus an in-app permission inventory screen.
-  - Prominent disclosure before every prompt `uncommon` — 7 disclosure definitions covering 6 runtime permissions; refusable without granting.
+  - Prominent disclosure before every prompt `uncommon` — 8 disclosure definitions covering 7 runtime permissions (location counted once, precise and approximate asked together); refusable without granting.
     - Three sanctioned request paths only — IME trampoline activity, settings-side composable helper, special-access helper; no bare launch().
     - Contacts gets two texts — Separate wording for name suggestions and for email suggestions.
     - Photos disclosure admits the wide grant — Android has no screenshots-only permission, so the copy says the whole library opens.

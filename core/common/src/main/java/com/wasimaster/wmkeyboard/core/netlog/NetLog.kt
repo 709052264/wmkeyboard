@@ -285,6 +285,7 @@ object NetLog {
             ServiceGroup.DICTIONARY -> NetSource.DICTIONARY
             ServiceGroup.VOCABULARY -> NetSource.VOCABULARY
             ServiceGroup.WEATHER -> NetSource.WEATHER
+            ServiceGroup.MAPS -> NetSource.LOCATION
             ServiceGroup.CURRENCY -> NetSource.CURRENCY
             ServiceGroup.AI -> NetSource.AI
             ServiceGroup.DOWNLOADS -> NetSource.ADDONS

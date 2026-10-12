@@ -749,6 +749,13 @@ enum class PanelMode {
      * [CaptureTarget.AI_REPLY].
      */
     AI_REPLY,
+
+    /**
+     * The Location tool (#350): the phone's position or a saved place, to
+     * insert as a map link, an address, coordinates or a Plus code. Its state
+     * is the controller's, see `ime.location.LocationUi`.
+     */
+    LOCATION,
 }
 
 /**
@@ -915,6 +922,9 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     // The search pill, the filter chips, the note rows (or the read view's
     // tag chips), then the action row under an open note or the editor.
     PanelMode.NOTES -> listOf(FocusRegion.SEARCH, FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
+    // The format chips, the saved places, then Insert and its row (or the one
+    // button an empty state has).
+    PanelMode.LOCATION -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     PanelMode.PASSWORD_GEN ->
         listOf(FocusRegion.CHIPS, FocusRegion.ACTIONS, FocusRegion.RESULTS)
     // The dialect and Fix-all chips, then the lint cards. Seed-only (see

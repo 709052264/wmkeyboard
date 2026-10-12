@@ -112,6 +112,10 @@ enum class ToolbarTool {
     // user has written, this one reads what they cannot select — a clip, a
     // screenshot, a pasted message — and offers replies to pick from.
     AI_REPLY,
+    // Where the user is, or a place they saved, put into the field as a map
+    // link, an address, coordinates or a Plus code (#350). The only tool that
+    // reads the position, and only on a tap; saved places need no permission.
+    LOCATION,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -276,7 +280,7 @@ val PowerTools: Set<ToolbarTool> = RecommendedTools + setOf(
     ToolbarTool.WIKIPEDIA, ToolbarTool.VOCABULARY, ToolbarTool.NOTES, ToolbarTool.POWER_SAVING, ToolbarTool.MODES,
     ToolbarTool.NUMPAD,
     ToolbarTool.SYMBOLS, ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.CURRENCY,
-    ToolbarTool.PASSWORD_GEN, ToolbarTool.CALENDAR, ToolbarTool.WEATHER,
+    ToolbarTool.PASSWORD_GEN, ToolbarTool.CALENDAR, ToolbarTool.WEATHER, ToolbarTool.LOCATION,
     ToolbarTool.MEDIA_CONTROL, ToolbarTool.KDE_CONNECT, ToolbarTool.APP_LAUNCHER, ToolbarTool.HIDE_KEYBOARD,
 )
 

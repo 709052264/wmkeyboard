@@ -282,4 +282,21 @@
     <string name="core_tools_dictionary_source_wiktionary_rest_desc">Online, from wiktionary.org. Definitions and examples only.</string>
     <string name="core_tools_dictionary_source_dictionary_api">Free Dictionary API</string>
     <string name="core_tools_dictionary_source_dictionary_api_desc">Online, from dictionaryapi.dev. This service is often down.</string>
+
+    <!-- The Location tool (#350): precision and format names, shared by the panel and the settings page. -->
+    <string name="core_tools_location_precision_exact">Exact</string>
+    <string name="core_tools_location_precision_street">Street, about 100 m</string>
+    <string name="core_tools_location_precision_area">Area, about 1 km</string>
+    <string name="core_tools_location_precision_city">City, about 10 km</string>
+    <string name="core_tools_location_precision_exact_short">Exact</string>
+    <string name="core_tools_location_precision_street_short">About 100 m</string>
+    <string name="core_tools_location_precision_area_short">About 1 km</string>
+    <string name="core_tools_location_precision_city_short">City</string>
+    <string name="core_tools_location_format_message">Message</string>
+    <string name="core_tools_location_format_link">Link</string>
+    <string name="core_tools_location_format_coordinates">Coordinates</string>
+    <string name="core_tools_location_format_dms">Degrees</string>
+    <string name="core_tools_location_format_address">Address</string>
+    <string name="core_tools_location_format_plus_code">Plus code</string>
+    <string name="core_tools_location_format_custom">Custom</string>
 </resources>

@@ -87,7 +87,6 @@ import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.os.Build
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress
@@ -112,7 +111,6 @@ import com.wasimaster.wmkeyboard.core.settings.StickerTriggerAction
 import com.wasimaster.wmkeyboard.core.tools.AltCalendar
 import com.wasimaster.wmkeyboard.core.tools.Weekend
 import com.wasimaster.wmkeyboard.core.tools.isSouthernHemisphere
-import com.wasimaster.wmkeyboard.core.tools.GeoPlace
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
 import com.wasimaster.wmkeyboard.core.tools.MediaCategoryCache
 import com.wasimaster.wmkeyboard.core.tools.ToolApiKeys
@@ -131,7 +129,6 @@ import com.wasimaster.wmkeyboard.core.ocr.OcrPacks
 import androidx.compose.runtime.collectAsState
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
 import com.wasimaster.wmkeyboard.core.settings.DeepLWriteStyle
-import com.wasimaster.wmkeyboard.core.tools.WeatherClient
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -3152,6 +3149,7 @@ internal fun ToolDetailSettings(
         ToolbarTool.AI_REPLY -> AiReplyToolSettings(repository, settings, onNavigate)
         ToolbarTool.VOCABULARY -> VocabularyToolSettings(repository, settings, onNavigate)
         ToolbarTool.NOTES -> NotesToolSettings(repository, settings, onNavigate)
+        ToolbarTool.LOCATION -> LocationToolSettings(repository, settings)
         ToolbarTool.MODES -> SettingsGroup(stringResource(R.string.tooldetail_modes_group)) {
             item {
                 NavRow(
@@ -4322,148 +4320,31 @@ internal fun WeatherLocationSetting(repository: SettingsRepository, settings: Li
         subtitle = summary,
     ) { editing = true }
     if (!editing) return
-
-    var place by remember { mutableStateOf(savedPlace) }
-    var lat by remember { mutableStateOf(savedLatitude?.toString().orEmpty()) }
-    var lon by remember { mutableStateOf(savedLongitude?.toString().orEmpty()) }
-    var query by remember { mutableStateOf("") }
-    var results by remember { mutableStateOf<List<GeoPlace>>(emptyList()) }
-    var searching by remember { mutableStateOf(false) }
-    var searchFailed by remember { mutableStateOf(false) }
-    val parsedLat = lat.trim().toFloatOrNull()?.takeIf { it in -90f..90f }
-    val parsedLon = lon.trim().toFloatOrNull()?.takeIf { it in -180f..180f }
-
-    fun search() {
-        if (query.isBlank() || searching) return
-        searching = true
-        searchFailed = false
-        scope.launch {
-            val found = withContext(Dispatchers.IO) {
-                runCatching { WeatherClient.geocode(query) }.getOrNull()
-            }
-            searching = false
-            if (found == null) {
-                searchFailed = true
-            } else {
-                results = found
-                searchFailed = found.isEmpty()
-            }
-        }
-    }
-
-    AlertDialog(
-        onDismissRequest = { editing = false },
-        // Typing in the search/coordinate fields moves the dialog around the
-        // keyboard, so a tap can land on the scrim where the dialog just was
-        // and silently swallow the half-entered location. Explicit
-        // Cancel/Save only; back still dismisses.
-        properties = DialogProperties(dismissOnClickOutside = false),
-        title = { Text(stringResource(R.string.privacy_weather_dialog_title)) },
-        text = {
-            val unknownRegion = stringResource(R.string.privacy_weather_region_unknown)
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
-                        value = query,
-                        onValueChange = { query = it },
-                        label = { Text(stringResource(R.string.privacy_weather_search_hint)) },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Button(onClick = { search() }, enabled = query.isNotBlank() && !searching) {
-                        Text(if (searching) "…" else stringResource(CommonR.string.common_search))
-                    }
-                }
-                if (searchFailed) {
-                    Text(
-                        if (results.isEmpty() && !searching) {
-                            stringResource(R.string.privacy_weather_no_matches_error)
-                        } else {
-                            stringResource(R.string.privacy_weather_search_error)
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
-                for (result in results) {
-                    ListItem(
-                        headlineContent = { Text(result.name) },
-                        supportingContent = {
-                            Text(
-                                stringResource(
-                                    R.string.privacy_weather_result_summary,
-                                    result.region.ifBlank { unknownRegion },
-                                    result.latitude,
-                                    result.longitude,
-                                )
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                place = result.name
-                                lat = result.latitude.toString()
-                                lon = result.longitude.toString()
-                                results = emptyList()
-                            },
-                    )
-                }
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    stringResource(R.string.privacy_weather_manual_info),
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = place,
-                    onValueChange = { place = it },
-                    label = { Text(stringResource(R.string.privacy_weather_name_hint)) },
-                    singleLine = true,
-                )
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = lat,
-                    onValueChange = { lat = it },
-                    label = { Text(stringResource(R.string.privacy_weather_latitude_hint)) },
-                    singleLine = true,
-                    isError = lat.isNotBlank() && parsedLat == null,
-                )
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = lon,
-                    onValueChange = { lon = it },
-                    label = { Text(stringResource(R.string.privacy_weather_longitude_hint)) },
-                    singleLine = true,
-                    isError = lon.isNotBlank() && parsedLon == null,
-                )
-            }
+    val lookupNames = settings.watch { it.location.lookupAddress }
+    PlaceEditorDialog(
+        title = stringResource(R.string.privacy_weather_dialog_title),
+        initialName = savedPlace,
+        initialPoint = if (savedLatitude != null && savedLongitude != null) {
+            com.wasimaster.wmkeyboard.core.location.GeoPoint(savedLatitude.toDouble(), savedLongitude.toDouble())
+        } else {
+            null
         },
-        confirmButton = {
-            TextButton(
-                enabled = parsedLat != null && parsedLon != null,
-                onClick = {
-                    scope.launch {
-                        repository.setWeatherLocation(parsedLat, parsedLon, place.trim())
-                    }
-                    editing = false
-                },
-            ) { Text(stringResource(CommonR.string.common_save)) }
-        },
-        dismissButton = {
-            Row {
-                if (savedLatitude != null) {
-                    TextButton(onClick = {
-                        scope.launch { repository.setWeatherLocation(null, null, "") }
-                        editing = false
-                    }) { Text(stringResource(CommonR.string.common_clear)) }
-                }
-                TextButton(onClick = { editing = false }) {
-                    Text(stringResource(CommonR.string.common_cancel))
-                }
+        lookupNames = lookupNames,
+        onSave = { name, point ->
+            scope.launch {
+                repository.setWeatherLocation(point.latitude.toFloat(), point.longitude.toFloat(), name)
             }
+            editing = false
         },
+        onClear = if (savedLatitude != null) {
+            {
+                scope.launch { repository.setWeatherLocation(null, null, "") }
+                editing = false
+            }
+        } else {
+            null
+        },
+        onDismiss = { editing = false },
     )
 }
 // ---- privacy ----

@@ -120,6 +120,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.VOCABULARY -> R.string.netlog_source_vocabulary to R.string.netlog_sent_vocabulary
     NetSource.SYNONYMS -> R.string.netlog_source_synonyms to R.string.netlog_sent_synonyms
     NetSource.WEATHER -> R.string.netlog_source_weather to R.string.netlog_sent_weather
+    NetSource.LOCATION -> R.string.netlog_source_location to R.string.netlog_sent_location
     NetSource.CURRENCY -> R.string.netlog_source_currency to R.string.netlog_sent_currency
     NetSource.PHOTOS -> R.string.netlog_source_photos to R.string.netlog_sent_photos
     NetSource.LINK_PREVIEW -> R.string.netlog_source_link_preview to R.string.netlog_sent_link_preview
@@ -187,6 +188,8 @@ private fun fallbackIcon(source: NetSource): ImageVector = when (source) {
  */
 private val DataSaverSources = NetSource.entries.toSet() - setOf(
     NetSource.TRANSLATE, NetSource.DEEPL_WRITE, NetSource.BACKUP, NetSource.UPDATES, NetSource.KDE_CONNECT,
+    // One small request per share the user pressed; its own switch is on the Location page.
+    NetSource.LOCATION,
     NetSource.LINK_IMPORT, NetSource.SYNONYMS, NetSource.OCR_ONLINE, NetSource.OTHER,
 )
 

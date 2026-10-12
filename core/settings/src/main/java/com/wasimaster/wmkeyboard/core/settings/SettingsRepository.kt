@@ -160,6 +160,11 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.thesaurus.SynonymSourceChoice
 import com.wasimaster.wmkeyboard.core.thesaurus.SynonymSources
 import com.wasimaster.wmkeyboard.core.notes.NoteSort
+import com.wasimaster.wmkeyboard.core.location.LocationFormat
+import com.wasimaster.wmkeyboard.core.location.LocationPrecision
+import com.wasimaster.wmkeyboard.core.location.MapLink
+import com.wasimaster.wmkeyboard.core.location.SavedPlace
+import com.wasimaster.wmkeyboard.core.location.SavedPlaces
 import com.wasimaster.wmkeyboard.core.notes.NoteStore
 import com.wasimaster.wmkeyboard.core.vocab.VocabAccent
 import com.wasimaster.wmkeyboard.core.vocab.VocabAudioSource
@@ -3375,6 +3380,8 @@ data class KeyboardSettings(
     val redoUsesCtrlY: Boolean = false,
     /** Units and saved place for the weather tool (see [WeatherSettings]). */
     val weather: WeatherSettings = WeatherSettings(),
+    /** The Location tool (#350): format, map, precision, saved places (see [LocationSettings]). */
+    val location: LocationSettings = LocationSettings(),
     /** The network activity log's two switches (see [NetworkLogSettings]). */
     val networkLog: NetworkLogSettings = NetworkLogSettings(),
     /** Alternate calendars and the weekend, for the calendar tool (see [CalendarToolSettings]). */
@@ -9497,6 +9504,13 @@ class SettingsRepository(private val context: Context) {
         private val WEATHER_LON = floatPreferencesKey("weather_lon")
         private val WEATHER_PLACE = stringPreferencesKey("weather_place")
         private val WEATHER_AUTO_FETCH = booleanPreferencesKey("weather_auto_fetch")
+        private val LOCATION_FORMAT = stringPreferencesKey("location_format")
+        private val LOCATION_MAP_LINK = stringPreferencesKey("location_map_link")
+        private val LOCATION_PRECISION = stringPreferencesKey("location_precision")
+        private val LOCATION_LOOKUP_ADDRESS = booleanPreferencesKey("location_lookup_address")
+        private val LOCATION_LOCATE_ON_OPEN = booleanPreferencesKey("location_locate_on_open")
+        private val LOCATION_TEMPLATE = stringPreferencesKey("location_template")
+        private val LOCATION_PLACES = stringPreferencesKey("location_places")
         // Superseded by CALENDAR_ALT_ONE/TWO, still read once to carry the old
         // Bengali/Hijri switches over to the new pair of picks.
         private val CALENDAR_SHOW_BENGALI = booleanPreferencesKey("calendar_show_bengali")
@@ -10289,6 +10303,7 @@ class SettingsRepository(private val context: Context) {
             redoUsesCtrlY = p[REDO_USES_CTRL_Y] ?: defaults.redoUsesCtrlY,
             networkLog = readNetworkLog(p, defaults),
             weather = readWeather(p, defaults),
+            location = readLocation(p, defaults),
             calendarTool = readCalendarTool(p, defaults),
             handwritingStylusOnly = p[HANDWRITING_STYLUS_ONLY] ?: defaults.handwritingStylusOnly,
             handwritingCommitDelayMs = p[HANDWRITING_COMMIT_DELAY]
@@ -11465,6 +11480,17 @@ class SettingsRepository(private val context: Context) {
             showOnKeyboard = p[NETWORK_LOG_ON_KEYBOARD] ?: defaults.networkLog.showOnKeyboard,
         )
 
+    private fun readLocation(p: Preferences, defaults: KeyboardSettings) =
+        LocationSettings(
+            format = LocationFormat.of(p[LOCATION_FORMAT]) ?: defaults.location.format,
+            mapLink = MapLink.of(p[LOCATION_MAP_LINK]) ?: defaults.location.mapLink,
+            precision = LocationPrecision.of(p[LOCATION_PRECISION]) ?: defaults.location.precision,
+            lookupAddress = p[LOCATION_LOOKUP_ADDRESS] ?: defaults.location.lookupAddress,
+            locateOnOpen = p[LOCATION_LOCATE_ON_OPEN] ?: defaults.location.locateOnOpen,
+            template = p[LOCATION_TEMPLATE] ?: defaults.location.template,
+            places = p[LOCATION_PLACES]?.let(SavedPlaces::decode) ?: defaults.location.places,
+        )
+
     private fun readWeather(p: Preferences, defaults: KeyboardSettings) =
         WeatherSettings(
             fahrenheit = p[WEATHER_FAHRENHEIT] ?: defaults.weather.fahrenheit,
@@ -12457,6 +12483,29 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setNetworkLogOnKeyboard(value: Boolean) =
         editPrefs { it[NETWORK_LOG_ON_KEYBOARD] = value }
+
+    suspend fun setLocationFormat(value: LocationFormat) = editPrefs { it[LOCATION_FORMAT] = value.id }
+
+    suspend fun setLocationMapLink(value: MapLink) = editPrefs { it[LOCATION_MAP_LINK] = value.id }
+
+    suspend fun setLocationPrecision(value: LocationPrecision) = editPrefs { it[LOCATION_PRECISION] = value.id }
+
+    suspend fun setLocationLookupAddress(value: Boolean) = editPrefs { it[LOCATION_LOOKUP_ADDRESS] = value }
+
+    suspend fun setLocationLocateOnOpen(value: Boolean) = editPrefs { it[LOCATION_LOCATE_ON_OPEN] = value }
+
+    suspend fun setLocationTemplate(value: String) = editPrefs { it[LOCATION_TEMPLATE] = value }
+
+    /**
+     * Rewrites the saved places through [change], read and written in one
+     * edit so the keyboard and the settings app cannot drop each other's
+     * additions.
+     */
+    suspend fun updateLocationPlaces(change: (List<SavedPlace>) -> List<SavedPlace>) =
+        editPrefs { prefs ->
+            val next = change(SavedPlaces.decode(prefs[LOCATION_PLACES]))
+            if (next.isEmpty()) prefs.remove(LOCATION_PLACES) else prefs[LOCATION_PLACES] = SavedPlaces.encode(next)
+        }
 
     suspend fun setWeatherFahrenheit(value: Boolean) =
         editPrefs { it[WEATHER_FAHRENHEIT] = value }

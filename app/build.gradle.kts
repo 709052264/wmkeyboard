@@ -137,6 +137,11 @@ val channelSourceDirs = listOfNotNull(playServicesSourceDir, updaterSourceDir, g
 // fails the way it does offline.
 val noInternet = flag("wmkb.noInternet", "WMKB_NO_INTERNET")
 
+// A build that cannot ask for location at all (#350): `-Pwmkb.noLocation=true`.
+// The Location tool keeps its saved places and hides Locate me; the weather and
+// compass tools fall back to a typed or searched place, as before.
+val noLocation = flag("wmkb.noLocation", "WMKB_NO_LOCATION")
+
 // Manifest entries that belong to exactly one channel. REQUEST_INSTALL_PACKAGES
 // and the install-result receiver must not exist in a Play or F-Droid APK, and
 // the Play Store package query is pointless anywhere but Play.
@@ -144,6 +149,7 @@ val channelManifests = listOfNotNull(
     "src/play/AndroidManifest.xml".takeIf { playStoreChannel },
     "src/github/AndroidManifest.xml".takeIf { githubChannel },
     "src/nointernet/AndroidManifest.xml".takeIf { noInternet },
+    "src/nolocation/AndroidManifest.xml".takeIf { noLocation },
 )
 
 // Every interface language the repo has a translation for, as BCP-47 tags
