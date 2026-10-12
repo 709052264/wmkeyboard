@@ -158,6 +158,28 @@ mod tests {
         assert!(out.len() > 2, "expected at least one lint: {out}");
     }
 
+    /// Lints every file under `$HARPER_CORPUS` in all four dialects and writes
+    /// the results to `$HARPER_CORPUS_OUT`, to compare two builds of the crate
+    /// (the vendored, deflated harper against the published one, or a harper
+    /// bump) on the same text. Ignored by default: `cargo test -- --ignored`.
+    #[test]
+    #[ignore]
+    fn corpus_snapshot() {
+        let (Ok(dir), Ok(out)) = (std::env::var("HARPER_CORPUS"), std::env::var("HARPER_CORPUS_OUT")) else {
+            return;
+        };
+        let mut files: Vec<_> = std::fs::read_dir(&dir).unwrap().flatten().map(|e| e.path()).collect();
+        files.sort();
+        let mut all = String::new();
+        for path in files {
+            let Ok(text) = std::fs::read_to_string(&path) else { continue };
+            for dialect in 0..4u8 {
+                all.push_str(&format!("== {} {dialect}\n{}\n", path.display(), lint_text(&text, dialect)));
+            }
+        }
+        std::fs::write(out, all).unwrap();
+    }
+
     #[test]
     fn utf16_offsets_survive_emoji() {
         // '😀' is one char but two UTF-16 units; a lint after it must shift.

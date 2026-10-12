@@ -2239,18 +2239,15 @@ dependencies = [
 [[package]]
 name = "harper-brill"
 version = "2.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78176be681477890eea55780e3323e134d4efb937c65c17f7bd9c59e457c86f3"
 dependencies = [
  "harper-pos-utils",
+ "miniz_oxide",
  "serde_json",
 ]
 
 [[package]]
 name = "harper-core"
 version = "2.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "acab57352d953e0ab227d4a0a7a8f990e28053f47b8d633711677a83180f51fb"
 dependencies = [
  "ammonia",
  "bitflags",
@@ -2264,6 +2261,7 @@ dependencies = [
  "itertools 0.14.0",
  "levenshtein_automata",
  "lru",
+ "miniz_oxide",
  "ordered-float 5.3.0",
  "paste",
  "pulldown-cmark",

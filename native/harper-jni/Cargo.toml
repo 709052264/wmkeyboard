@@ -24,3 +24,11 @@ panic = "abort"
 # Size over speed: linting runs on a background thread against short texts;
 # shaving MB off every install beats single-digit-% lint latency.
 opt-level = "z"
+
+# harper-core and harper-brill embed their dictionary and trained models as
+# plain text and bytes, 2.9 MB of the .so. These vendored copies store them
+# deflated and inflate them once, on first use; nothing else differs from the
+# published 2.5.0 crates. See README.md before bumping harper-core.
+[patch.crates-io]
+harper-core = { path = "vendor/harper-core" }
+harper-brill = { path = "vendor/harper-brill" }
