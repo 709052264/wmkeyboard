@@ -1542,11 +1542,11 @@ internal object SettingsRowIcons {
         put(R.string.import_sticker_editor_cutout_action) { Icons.Outlined.ContentCut }
         put(R.string.import_sticker_pack_rename_subtitle) { Icons.Outlined.DriveFileRenameOutline }
         put(R.string.import_signal_added_title) { Icons.Outlined.CheckCircle }
+        put(R.string.import_telegram_added_title) { Icons.Outlined.CheckCircle }
 
         // ---- Layout editor ----
         put(R.string.layout_editor_name_title) { Icons.Outlined.DriveFileRenameOutline }
         put(R.string.layout_editor_language_title) { Icons.Outlined.Language }
-        put(R.string.import_telegram_added_title) { Icons.Outlined.CheckCircle }
         put(R.string.layout_editor_font_title) { Icons.Outlined.TextFields }
         put(R.string.layout_editor_font_scale_label) { Icons.Outlined.FormatSize }
         put(R.string.layout_editor_layer_theme_title) { Icons.Outlined.Palette }

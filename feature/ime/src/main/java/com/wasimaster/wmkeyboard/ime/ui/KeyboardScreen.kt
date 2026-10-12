@@ -16819,6 +16819,7 @@ private fun rememberExtraRow(state: KeyboardUiState, fillRow: List<Key>): List<K
     // nothing was given up and a stray ⌫ would just be litter.
     val tabletRow = state.layouts.gridWidth != null && !numericPadActive(state)
     val otherDigits = otherNumeralDigits(state)
+    val fancy = fancyStyleFor(state) != null
     return remember(
         kind,
         authored,
@@ -16828,6 +16829,7 @@ private fun rememberExtraRow(state: KeyboardUiState, fillRow: List<Key>): List<K
         fillRow,
         tabletRow,
         otherDigits,
+        fancy,
     ) {
         // The field's own rows and the shift-symbols option come
         // before a row the layout authored: a number row edited in
@@ -16900,7 +16902,6 @@ private fun ArrowKeyRow(
         settings = settings,
         split = split,
         numericField = state.fieldKind.isNumericPad,
-    val fancy = fancyStyleFor(state) != null
         layoutId = state.layoutId,
         keyPreview = keyPreview,
         onKey = onKey,
@@ -16910,7 +16911,6 @@ private fun ArrowKeyRow(
         onKeyPositioned = onKeyPositioned,
         onBurst = onBurst,
         touchBelow = touchBelow,
-        fancy,
     )
 }
 
@@ -18527,6 +18527,8 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // Issue #340: the keys that stand in for 小゛゜ while the reading ends in a
     // kana that has one of those forms.
     val kanaVariantKeys = state.kanaVariantReady
+    // Fancy Text: every digit key holds the digit's styled forms.
+    val fancyDigits = fancyStyleFor(state) != null
     if (!commaAsEmoji && !globeAsEmoji && !stripDigits &&
         clipboardKeys.isEmpty() && fieldKey == null && domainAlternates.isEmpty() &&
         currencyKeys.isEmpty() && !allAccents && !shiftedKeys && fullStop == null &&
@@ -18608,8 +18610,6 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                     output = null,
                     shiftLabel = null,
                     longPress = fieldKey.second,
-    // Fancy Text: every digit key holds the digit's styled forms.
-    val fancyDigits = fancyStyleFor(state) != null
                     actionAlternates = emptyList(),
                     icon = null,
                     iconHint = null,
@@ -18626,6 +18626,7 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
             if (stripDigits && mapped.longPress.any { it.isSingleDigit() }) {
                 mapped = mapped.copy(longPress = mapped.longPress.filterNot { it.isSingleDigit() })
             }
+            if (fancyDigits) mapped = mapped.withFancyDigitForms()
             // A44: the $ key takes the user's currency glyphs as its popup. On
             // a symbols page showing the language's own currency in its place
             // (see withLocalCurrency), `$` stays first on the hold.
@@ -18707,7 +18708,6 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                                 alt in accents -> AlternateGroup.ACCENTS
                                 else -> AlternateGroup.LAYOUT
                             },
-            if (fancyDigits) mapped = mapped.withFancyDigitForms()
                         )
                     },
                 )
@@ -18865,6 +18865,26 @@ private fun List<Key>.withOtherNumerals(other: String?): List<Key> {
     }
 }
 
+/** [withFancyDigitForms] on every key of the row, when [on]. */
+private fun List<Key>.withFancyDigitForms(on: Boolean): List<Key> =
+    if (on) map { it.withFancyDigitForms() } else this
+
+/**
+ * Fancy Text: a digit key's long press gains every styled form of its digit
+ * (bold, circled, fullwidth, superscript…), after whatever the key already
+ * held, so a plain hold still commits the layout's own first alternate. The
+ * face shows the active style's digit; this is how to reach the sets no style
+ * types, and every other style's, without switching. None of these is a plain
+ * digit, so the commit-time restyle passes them through untouched.
+ */
+private fun Key.withFancyDigitForms(): Key {
+    if (action != KeyAction.Text) return this
+    val digit = (output ?: label).singleOrNull() ?: return this
+    val forms = FancyStyles.digitForms(digit)
+    if (forms.isEmpty()) return this
+    return copy(longPress = (longPress + forms).distinct())
+}
+
 /**
  * Places a popup centered above its anchor with a clear gap, so the
  * character bubble and long-press alternates are not hidden under the
@@ -18946,26 +18966,6 @@ private val KeyGapHorizontal = 2.5.dp
 private val KeyGapVertical = 4.dp
 
 /**
-/** [withFancyDigitForms] on every key of the row, when [on]. */
-private fun List<Key>.withFancyDigitForms(on: Boolean): List<Key> =
-    if (on) map { it.withFancyDigitForms() } else this
-
-/**
- * Fancy Text: a digit key's long press gains every styled form of its digit
- * (bold, circled, fullwidth, superscript…), after whatever the key already
- * held, so a plain hold still commits the layout's own first alternate. The
- * face shows the active style's digit; this is how to reach the sets no style
- * types, and every other style's, without switching. None of these is a plain
- * digit, so the commit-time restyle passes them through untouched.
- */
-private fun Key.withFancyDigitForms(): Key {
-    if (action != KeyAction.Text) return this
-    val digit = (output ?: label).singleOrNull() ?: return this
-    val forms = FancyStyles.digitForms(digit)
-    if (forms.isEmpty()) return this
-    return copy(longPress = (longPress + forms).distinct())
-}
-
  * The gaps above, scaled by the user's key-spacing setting. Every gap-consuming
  * site reads these so the touch-cell padding and the height math in
  * [keyRowsHeight] scale together — the keyboard's height and the panels that
@@ -20090,6 +20090,8 @@ internal fun KeyButton(
                         }
                     }
                     if (sheen != null && !down) drawOutline(outline, sheen)
+                    rim?.draw(this)
+                    grain?.draw(this)
                 }
             }
             .then(

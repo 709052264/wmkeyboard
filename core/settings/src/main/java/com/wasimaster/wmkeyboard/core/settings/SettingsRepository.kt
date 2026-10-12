@@ -2725,6 +2725,12 @@ data class GifSettings(
      */
     val klipyApiKey: String = "",
     val giphyApiKey: String = "",
+    /**
+     * The user's own Telegram bot token, which is what lets the app ask the
+     * Bot API for a sticker set (`getStickerSet`). Blank until they make a
+     * bot with @BotFather; there is no built-in one.
+     */
+    val telegramBotToken: String = "",
     /** Provider rating level results are filtered to; see [GifContentFilter]. */
     val contentFilter: GifContentFilter = GifContentFilter.MEDIUM,
     /** Tabs per provider vs one evenly-mixed grid, when several have keys. */
@@ -2746,12 +2752,6 @@ data class GifSettings(
     /**
      * Holding a sticker in the offer's tray shows it large above the keyboard,
      * and sliding along the tray shows the next ones the same way (#404).
-    /**
-     * The user's own Telegram bot token, which is what lets the app ask the
-     * Bot API for a sticker set (`getStickerSet`). Blank until they make a
-     * bot with @BotFather; there is no built-in one.
-     */
-    val telegramBotToken: String = "",
      * Off, a hold does nothing and a slide scrolls the tray.
      */
     val stickerSuggestMagnify: Boolean = true,
@@ -5067,6 +5067,12 @@ data class VoiceBarSettings(
      */
     val pauseMedia: Boolean = false,
     /**
+     * The language chip on the compact bar over the keys (#603), the panel's
+     * #416 choice in the strip's one line. Off by default: the line is short,
+     * and the status text is what it is mostly for.
+     */
+    val stripLanguageChip: Boolean = false,
+    /**
      * Which microphone dictation listens through (#581): [MIC_AUTO], the one
      * Android picks, or a kind to prefer whenever one is connected —
      * [MIC_PHONE], [MIC_WIRED], [MIC_USB] or [MIC_BLUETOOTH]. A kind that is
@@ -5080,12 +5086,6 @@ data class VoiceBarSettings(
      * the way Gboard's "Rambler" does it on Google's servers. Off by default:
      * it sends every phrase to whichever model the AI tool uses. Never in
      * plain voice typing, whose point is the words exactly as said.
-    /**
-     * The language chip on the compact bar over the keys (#603), the panel's
-     * #416 choice in the strip's one line. Off by default: the line is short,
-     * and the status text is what it is mostly for.
-     */
-    val stripLanguageChip: Boolean = false,
      */
     val aiTidy: Boolean = false,
     /**
@@ -9331,6 +9331,7 @@ class SettingsRepository(private val context: Context) {
         private val VOICE_HOLD_TO_TALK_MS = intPreferencesKey("voice_hold_to_talk_ms")
         private val VOICE_HOLD_PICKS_MODE = booleanPreferencesKey("voice_hold_picks_mode")
         private val VOICE_PAUSE_MEDIA = booleanPreferencesKey("voice_pause_media")
+        private val VOICE_STRIP_LANGUAGE_CHIP = booleanPreferencesKey("voice_strip_language_chip")
         private val VOICE_MIC = stringPreferencesKey("voice_mic")
         private val VOICE_AI_TIDY = booleanPreferencesKey("voice_ai_tidy")
         private val VOICE_UI_RETURN_MODE = stringPreferencesKey("voice_ui_return_mode")
@@ -9350,7 +9351,6 @@ class SettingsRepository(private val context: Context) {
         // (SettingsBackup.SECRET_KEYS) and still carry the rest.
         private val VOICE_SERVER_KEY_BY_LANG = stringPreferencesKey("voice_server_key_by_lang")
         private val VOICE_SERVER_SEND_LANGUAGE = booleanPreferencesKey("voice_server_send_language")
-        private val VOICE_STRIP_LANGUAGE_CHIP = booleanPreferencesKey("voice_strip_language_chip")
         private val VOICE_BIAS_PERSONAL_WORDS = booleanPreferencesKey("voice_bias_personal_words")
         private val VOICE_BIAS_WORDS = stringPreferencesKey("voice_bias_words")
         private val VOICE_SERVER_PROMPT = stringPreferencesKey("voice_server_prompt")
@@ -9532,6 +9532,7 @@ class SettingsRepository(private val context: Context) {
         private val BRAVE_API_KEY = stringPreferencesKey("brave_api_key")
         private val TAVILY_API_KEY = stringPreferencesKey("tavily_api_key")
         private val GIPHY_API_KEY = stringPreferencesKey("giphy_api_key")
+        private val TELEGRAM_BOT_TOKEN = stringPreferencesKey("telegram_bot_token")
         private val GIF_SOURCE_MODE = stringPreferencesKey("gif_source_mode")
         private val GIF_CONTENT_FILTER = stringPreferencesKey("gif_content_filter")
         private val GIF_RESULT_LIMIT = intPreferencesKey("gif_result_limit")
@@ -9566,7 +9567,6 @@ class SettingsRepository(private val context: Context) {
         private val MODE_TOOL_ORDER_HINT = booleanPreferencesKey("mode_tool_order_hint")
         private val MODES_ENABLED = booleanPreferencesKey("modes_enabled")
         private val KEYBOARD_MODES = stringPreferencesKey("keyboard_modes")
-        private val TELEGRAM_BOT_TOKEN = stringPreferencesKey("telegram_bot_token")
         private val MODE_SEED_VERSION = intPreferencesKey("mode_seed_version")
         private val LAUNCHER_SORT = stringPreferencesKey("launcher_sort")
         private val LAUNCHER_SHOW_LABELS = booleanPreferencesKey("launcher_show_labels")
@@ -11279,6 +11279,7 @@ class SettingsRepository(private val context: Context) {
             silenceStopMs = p[VOICE_SILENCE_STOP_MS] ?: defaults.voiceBar.silenceStopMs,
             holdPicksTypingMode = p[VOICE_HOLD_PICKS_MODE] ?: defaults.voiceBar.holdPicksTypingMode,
             pauseMedia = p[VOICE_PAUSE_MEDIA] ?: defaults.voiceBar.pauseMedia,
+            stripLanguageChip = p[VOICE_STRIP_LANGUAGE_CHIP] ?: defaults.voiceBar.stripLanguageChip,
             mic = p[VOICE_MIC]?.takeIf { it in VoiceBarSettings.MICS } ?: defaults.voiceBar.mic,
             aiTidy = p[VOICE_AI_TIDY] ?: defaults.voiceBar.aiTidy,
             returnMode = p[VOICE_UI_RETURN_MODE] ?: defaults.voiceBar.returnMode,
@@ -11310,7 +11311,6 @@ class SettingsRepository(private val context: Context) {
         raw.split(',').map { it.trim() }.filter { it.isNotEmpty() }.distinct()
 
     private fun readCamera(p: Preferences, defaults: KeyboardSettings) =
-            stripLanguageChip = p[VOICE_STRIP_LANGUAGE_CHIP] ?: defaults.voiceBar.stripLanguageChip,
         CameraSettings(
             preferFront = p[CAMERA_PREFER_FRONT] ?: defaults.camera.preferFront,
             timerSeconds = p[CAMERA_TIMER_SECONDS] ?: defaults.camera.timerSeconds,
@@ -11360,6 +11360,7 @@ class SettingsRepository(private val context: Context) {
         GifSettings(
             klipyApiKey = p[KLIPY_API_KEY] ?: defaults.gif.klipyApiKey,
             giphyApiKey = p[GIPHY_API_KEY] ?: defaults.gif.giphyApiKey,
+            telegramBotToken = p[TELEGRAM_BOT_TOKEN] ?: defaults.gif.telegramBotToken,
             contentFilter = p[GIF_CONTENT_FILTER]
                 ?.let { runCatching { GifContentFilter.valueOf(it) }.getOrNull() }
                 ?: defaults.gif.contentFilter,
@@ -11400,7 +11401,6 @@ class SettingsRepository(private val context: Context) {
             selectionModeHold = p[SELECTION_MODE_HOLD]
                 ?: defaults.textEditing.selectionModeHold,
             selectionModeMultiTap = p[SELECTION_MODE_MULTI_TAP]
-            telegramBotToken = p[TELEGRAM_BOT_TOKEN] ?: defaults.gif.telegramBotToken,
                 ?: defaults.textEditing.selectionModeMultiTap,
             wrapSelectionWithPair =
                 p[WRAP_SELECTION_WITH_PAIR] ?: defaults.textEditing.wrapSelectionWithPair,
@@ -12333,6 +12333,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setVoicePauseMedia(value: Boolean) =
         editPrefs { it[VOICE_PAUSE_MEDIA] = value }
 
+    suspend fun setVoiceStripLanguageChip(value: Boolean) =
+        editPrefs { it[VOICE_STRIP_LANGUAGE_CHIP] = value }
+
     suspend fun setVoiceMic(value: String) {
         if (value !in VoiceBarSettings.MICS) return
         editPrefs { it[VOICE_MIC] = value }
@@ -12364,9 +12367,6 @@ class SettingsRepository(private val context: Context) {
      */
     suspend fun setVoiceSurface(mode: String, barActive: Boolean, returnMode: String? = null) =
         editPrefs {
-    suspend fun setVoiceStripLanguageChip(value: Boolean) =
-        editPrefs { it[VOICE_STRIP_LANGUAGE_CHIP] = value }
-
             it[VOICE_UI_MODE] = mode
             it[VOICE_BAR_ACTIVE] = barActive
             it[VOICE_BAR_INLINE] = mode == VoiceBarSettings.MODE_BAR
@@ -17616,6 +17616,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setGiphyApiKey(value: String) =
         editPrefs { it[GIPHY_API_KEY] = value.trim() }
 
+    suspend fun setTelegramBotToken(value: String) =
+        editPrefs { it[TELEGRAM_BOT_TOKEN] = value.trim() }
+
     suspend fun setGifSourceMode(value: GifSourceMode) =
         editPrefs { it[GIF_SOURCE_MODE] = value.name }
 
@@ -17672,9 +17675,6 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setWikiLanguage(value: String) =
         editPrefs { it[WIKI_LANGUAGE] = value.trim().lowercase() }
-    suspend fun setTelegramBotToken(value: String) =
-        editPrefs { it[TELEGRAM_BOT_TOKEN] = value.trim() }
-
 
     suspend fun setWikiLinksMarkdown(value: Boolean) =
         editPrefs { it[WIKI_LINKS_MARKDOWN] = value }
