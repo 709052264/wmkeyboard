@@ -1456,33 +1456,44 @@ private val FrostVariants: List<ThemeSpec> = listOf(
 )
 
 /**
- * Frost: frosted glass over whatever is behind the keyboard. The board is a
- * translucent navy over the system's blur of the app (Android 12+), the keys
- * are panes of white at a fifth strength with a rim of light. The board tint
- * is deliberately this strong: over a white app a thinner tint leaves white
- * labels on pale grey (FrostThemeContrastTest pins the worst case).
+ * Frost: the look FrostKeys ships as its frosted glass, so the two read the
+ * same side by side. Its night defaults, from its `KeyboardTheme.kt`: a 65 px
+ * window blur (25 dp on a 2.6x phone), the board a dark tint blended toward
+ * the wallpaper's accent at 80/255, every key a grey blended toward the
+ * accent at about 28% (Enter included, no accent fill), the modifier keys
+ * the wallpaper's second accent at about 29%, no borders, no grain, colours
+ * that follow the wallpaper.
+ *
+ * The thin board is the point of the look and its cost: over a white app the
+ * labels sit on a pale blur, as they do in FrostKeys. Where the blur cannot
+ * run the board is drawn nearly opaque, and `FrostThemeContrastTest` holds
+ * that case and the dark-app case to 4.5:1.
  */
 private val FrostTheme: ThemeSpec = ThemeSpec(
     id = "builtin_frost",
     name = "Frost",
     dark = true,
-    boardBackground = 0xCC101826,
-    keyBackground = 0x33FFFFFF,
-    keyText = 0xFFF4F7FF,
-    modifierKeyBackground = 0x1FFFFFFF,
-    enterKeyBackground = 0xE68AB4F8,
-    enterKeyText = 0xFF0B1220,
-    pressedKeyBackground = 0x73FFFFFF,
-    accent = 0xFF9CC9FF,
+    boardBackground = 0x50243653,
+    keyBackground = 0x476E7B9A,
+    keyText = 0xFFF1F0F7,
+    modifierKeyBackground = 0x4B8E95AE,
+    enterKeyBackground = 0x476E7B9A,
+    enterKeyText = 0xFFF1F0F7,
+    pressedKeyBackground = 0x806E7B9A,
+    accent = 0xFFD9E2FF,
     popupBackground = 0xCC223047,
-    popupText = 0xFFF4F7FF,
-    toolCircleBackground = 0x33FFFFFF,
-    chipBackground = 0x33FFFFFF,
-    suggestionText = 0xFFF4F7FF,
-    // No sheen: over a live blur the pane, its rim and its grain are the
-    // whole look, and a gradient on top read as a plastic highlight.
+    popupText = 0xFFF1F0F7,
+    toolCircleBackground = 0x476E7B9A,
+    chipBackground = 0x476E7B9A,
+    suggestionText = 0xFFF1F0F7,
     keyCornerRadiusDp = 12,
-    frost = FrostGlass,
+    // FrostKeys draws its frosted theme in the wallpaper's colours.
+    followWallpaper = true,
+    frost = FrostGlass.copy(
+        windowBlurRadiusDp = 25,
+        rim = 0f,
+        grain = 0f,
+    ),
     variants = FrostVariants,
 )
 

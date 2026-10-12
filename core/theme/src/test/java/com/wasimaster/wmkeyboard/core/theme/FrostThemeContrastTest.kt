@@ -66,7 +66,9 @@ class FrostThemeContrastTest {
                 check(theme, grey, null, "its wallpaper")
                 continue
             }
-            check(theme, white, null, "white, blurred")
+            // Frost matches FrostKeys' thin board, which does not read over a
+            // white app under a live blur and is not asked to (see FrostTheme).
+            if (theme.id != "builtin_frost") check(theme, white, null, "white, blurred")
             check(theme, black, null, "black, blurred")
             check(theme, white, glass.fallbackOpacity, "white, no blur")
             check(theme, black, glass.fallbackOpacity, "black, no blur")
