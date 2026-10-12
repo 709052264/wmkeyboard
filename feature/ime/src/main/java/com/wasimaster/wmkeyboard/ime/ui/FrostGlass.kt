@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.core.theme.BackgroundBitmapCache
 import com.wasimaster.wmkeyboard.core.theme.FrostNoise
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
+import com.wasimaster.wmkeyboard.core.theme.brush
 import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
 import com.wasimaster.wmkeyboard.core.theme.WallpaperBackdrop
 import com.wasimaster.wmkeyboard.core.theme.WallpaperBand
