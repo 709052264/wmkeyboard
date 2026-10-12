@@ -83,8 +83,11 @@ import com.wasimaster.wmkeyboard.core.theme.FROST_FALLBACK_OPACITY_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FROST_GRAIN_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FROST_RIM_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FROST_SATURATION_RANGE
+import com.wasimaster.wmkeyboard.core.theme.FROST_DISPERSION_RANGE
+import com.wasimaster.wmkeyboard.core.theme.FROST_REFRACTION_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FrostBackdropSource
 import com.wasimaster.wmkeyboard.core.theme.FrostSpec
+import com.wasimaster.wmkeyboard.core.theme.FrostStyle
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.theme.WallpaperBand
 import com.wasimaster.wmkeyboard.core.theme.WINDOW_BLUR_RADIUS_RANGE
@@ -319,6 +322,10 @@ data class KbFrost(
     /** What the glass stands on when the app is not blurred behind it. */
     val backdrop: FrostBackdropSource,
     val wallpaperBand: WallpaperBand,
+    /** Liquid glass: the backdrop bent at the edge; see `FrostStyle`. */
+    val liquid: Boolean,
+    val refraction: Float,
+    val dispersion: Float,
 ) {
     fun has(surface: FrostSurface): Boolean = surface in surfaces
 
@@ -979,6 +986,9 @@ internal fun resolveFrost(spec: FrostSpec, dark: Boolean): KbFrost? {
         grain = spec.grain.coerceIn(FROST_GRAIN_RANGE),
         backdrop = spec.backdropSource,
         wallpaperBand = spec.band,
+        liquid = spec.glassStyle == FrostStyle.LIQUID,
+        refraction = spec.refraction.coerceIn(FROST_REFRACTION_RANGE),
+        dispersion = spec.dispersion.coerceIn(FROST_DISPERSION_RANGE),
     )
 }
 
@@ -1680,6 +1690,8 @@ private fun lerpFrost(a: KbFrost?, b: KbFrost?, t: Float): KbFrost? {
         rimLight = lerp(a.rimLight, b.rimLight, t),
         rimShadow = lerp(a.rimShadow, b.rimShadow, t),
         grain = lerpF(a.grain, b.grain, t),
+        refraction = lerpF(a.refraction, b.refraction, t),
+        dispersion = lerpF(a.dispersion, b.dispersion, t),
     )
 }
 

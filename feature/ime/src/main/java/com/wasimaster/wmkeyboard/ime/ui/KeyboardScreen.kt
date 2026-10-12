@@ -20069,7 +20069,11 @@ internal fun KeyButton(
                 // here, so a bake landing or a relayout re-prepares the paint
                 // and the press path still only draws.
                 val frost = kb.frost?.takeIf { faces && it.has(frostSurfaceFor(key.action)) }
-                val glass = frost?.let { GlassPaint.of(backdrop, outline, keyBounds.value.topLeft) }
+                val glass = frost?.let {
+                    val lensKind = visual.shapeKind ?: kb.keyShapeKind
+                    val lensRadius = lensRadiusPx(lensKind, kb.keyRadiusDp, size, this)
+                    GlassPaint.of(backdrop, outline, keyBounds.value.topLeft, it, size, lensRadius)
+                }
                 val rim = frost?.let { RimPaint.of(it, keyShape, size, layoutDirection, this) }
                 val grain = frost?.let { GrainPaint.of(it, outline) }
                 onDrawBehind {

@@ -55,7 +55,20 @@ class FrostSpecTest {
             assertTrue(preset.name, spec.grain in FROST_GRAIN_RANGE)
             assertTrue(preset.name, spec.windowBlurRadiusDp in WINDOW_BLUR_RADIUS_RANGE)
             assertTrue(preset.name, spec.fallbackOpacity in FROST_FALLBACK_OPACITY_RANGE)
+            assertTrue(preset.name, spec.refraction in FROST_REFRACTION_RANGE)
+            assertTrue(preset.name, spec.dispersion in FROST_DISPERSION_RANGE)
         }
+    }
+
+    @Test
+    fun `the glass style travels as a name and only Liquid is a lens`() {
+        assertEquals(FrostStyle.FROSTED, FrostSpec().glassStyle)
+        assertEquals(FrostStyle.LIQUID, FrostSpec(style = "liquid").glassStyle)
+        assertEquals(FrostStyle.FROSTED, FrostSpec(style = "PLASMA").glassStyle)
+        assertEquals(FrostStyle.LIQUID, FrostPreset.LIQUID.spec.glassStyle)
+        // Picking a frosted preset over a liquid theme turns the lens off.
+        val back = ThemeSpec(id = "t", name = "T", frost = FrostSpec(style = "LIQUID")).dressedForGlass(FrostPreset.FROSTED)
+        assertEquals(FrostStyle.FROSTED, back.frost?.glassStyle)
     }
 
     @Test

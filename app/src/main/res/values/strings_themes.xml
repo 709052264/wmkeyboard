@@ -380,6 +380,17 @@
     <string name="theme_glass_preset_clear">Clear</string>
     <string name="theme_glass_preset_mica">Mica</string>
     <string name="theme_glass_preset_smoked">Smoked</string>
+    <!-- Thick clear lenses that bend what is behind them, the look Apple calls liquid glass. -->
+    <string name="theme_glass_preset_liquid">Liquid</string>
+    <string name="theme_glass_style_label">Kind of glass</string>
+    <string name="theme_glass_style_frosted">Frosted</string>
+    <string name="theme_glass_style_liquid">Liquid</string>
+    <string name="theme_glass_style_frosted_desc">A pane of milky glass: what is behind it, blurred, under the surface\'s color</string>
+    <string name="theme_glass_style_liquid_desc">A thick lens: what is behind it bends at the edge, its colors split a little there, and the edge catches the light. Android 13 and later, over an image or the wallpaper; older phones and the blurred app draw it frosted</string>
+    <string name="theme_glass_refraction_title">Refraction</string>
+    <string name="theme_glass_refraction_body">How far the backdrop is pulled inward near the edge of each pane, the way a thick lens magnifies what it covers. The middle always shows straight through.</string>
+    <string name="theme_glass_dispersion_title">Color split</string>
+    <string name="theme_glass_dispersion_body">How far red and blue part where the pane bends the backdrop, like light through the edge of a prism.</string>
     <string name="theme_glass_window_blur_title">Blur behind the keyboard</string>
     <string name="theme_glass_window_blur_subtitle">The app behind the keyboard shows through the board, blurred. Android 12 and later. Off while the phone\'s blur or the keyboard\'s power saving is off, and in the floating keyboard</string>
     <string name="theme_glass_blur_strength_title">Blur strength</string>
