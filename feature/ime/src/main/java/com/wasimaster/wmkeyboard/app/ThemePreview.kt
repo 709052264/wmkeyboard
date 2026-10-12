@@ -408,6 +408,9 @@ private fun RowScope.LetterKey(
 /** Decode edge for the mock-up's key texture; its keys are a few dp across. */
 private const val PREVIEW_TEXTURE_PX = 128
 
+/** The rounding a liquid lens bends around on a mock-up key, which is a tenth the size of a real one. */
+private const val PREVIEW_LENS_RADIUS_DP = 3
+
 /** Shift, backspace and the symbol key, which carry the modifier colour. */
 @Composable
 private fun RowScope.ModifierKey(theme: ThemeSpec, keyShape: Shape, glass: PreviewGlass, weight: Float) {
@@ -445,7 +448,14 @@ private fun Modifier.previewKeyFace(
         this
     } else {
         // Glass under the colour, exactly as the key grid layers it.
-        then(if (glass != null && backdrop != null) Modifier.frostGlass(glass, backdrop, shape) else Modifier)
+        then(
+            if (glass != null && backdrop != null) {
+                // The mock-up's keys are a tenth the size, so the lens bends around a small radius.
+                Modifier.frostGlass(glass, backdrop, shape, lensKind = theme.keyShape, lensRadiusDp = PREVIEW_LENS_RADIUS_DP)
+            } else {
+                Modifier
+            },
+        )
             .background(colorOf(color), shape)
             .previewKeyBorder(theme, shape)
     }

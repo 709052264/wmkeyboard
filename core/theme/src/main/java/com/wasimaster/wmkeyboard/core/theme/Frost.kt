@@ -71,7 +71,21 @@ data class FrostSpec(
     val backdrop: String = "AUTO",
     /** Which part of the wallpaper, as a [WallpaperBand] name; read through [band]. */
     val wallpaperBand: String = "BOTTOM",
+    /**
+     * The look of the glass, as a [FrostStyle] name: `FROSTED`, a pane of
+     * milky glass, or `LIQUID`, a thick lens that bends the backdrop at its
+     * edge, splits its colours there and catches the light along it. A
+     * string for the usual forward-compat reason; read through [glassStyle].
+     */
+    val style: String = "FROSTED",
+    /** How strongly a liquid pane bends the backdrop at its edge; see [FROST_REFRACTION_RANGE]. */
+    val refraction: Float = 0.6f,
+    /** How far a liquid pane splits the backdrop's colours at that edge; see [FROST_DISPERSION_RANGE]. */
+    val dispersion: Float = 0.25f,
 ) {
+    val glassStyle: FrostStyle
+        get() = FrostStyle.entries.firstOrNull { it.name.equals(style, ignoreCase = true) } ?: FrostStyle.FROSTED
+
     val backdropSource: FrostBackdropSource
         get() = FrostBackdropSource.entries.firstOrNull { it.name.equals(backdrop, ignoreCase = true) }
             ?: FrostBackdropSource.AUTO
@@ -132,6 +146,18 @@ enum class FrostSurface {
  */
 enum class FrostBackdropSource { AUTO, IMAGE, WALLPAPER, NONE }
 
+/**
+ * How a glass surface draws what it samples. `FROSTED` is the blurred slice
+ * under a tint. `LIQUID` is the look Apple calls liquid glass: the slice
+ * refracted — pulled inward near the edge as a thick lens magnifies — with
+ * its colours split a little where it bends and a band of light where the
+ * edge faces the light. Liquid needs a per-pixel shader, which Android has
+ * from 13 (`RuntimeShader`); below that, and over the live window blur
+ * (whose pixels the keyboard cannot read), a liquid pane draws frosted.
+ * Never serialized — travels as a string.
+ */
+enum class FrostStyle { FROSTED, LIQUID }
+
 /** Bounds the editor's sliders and the renderer hold the glass fields to. */
 val WINDOW_BLUR_RADIUS_RANGE = 4..64
 val FROST_FALLBACK_OPACITY_RANGE = 0.5f..1f
@@ -140,6 +166,8 @@ val FROST_SATURATION_RANGE = 0.5f..2f
 val FROST_BRIGHTNESS_RANGE = -0.3f..0.3f
 val FROST_RIM_RANGE = 0f..1f
 val FROST_GRAIN_RANGE = 0f..0.25f
+val FROST_REFRACTION_RANGE = 0f..1f
+val FROST_DISPERSION_RANGE = 0f..1f
 
 /**
  * Ready-made glass looks. Each is a [FrostSpec] plus the opacities it dresses
@@ -184,6 +212,20 @@ enum class FrostPreset(
         spec = FrostSpec(backdropBlur = 18f, saturation = 1f, brightness = -0.2f, rim = 0.3f, grain = 0.08f),
         keyAlpha = 0x59, modifierAlpha = 0x40, chipAlpha = 0x59, toolAlpha = 0x59, popupAlpha = 0xCC,
         sheen = GradientSpec(listOf(0x14FFFFFF, 0x26000000), GradientType.LINEAR, 90f),
+    ),
+
+    /**
+     * Thick, clear lenses: barely blurred, the backdrop bent and colour-split
+     * at the edge, a bright rim, no grain. Android 13 and later draw the lens;
+     * older phones draw this as very clear frosted glass.
+     */
+    LIQUID(
+        spec = FrostSpec(
+            style = "LIQUID", backdropBlur = 5f, saturation = 1.15f, brightness = 0.03f,
+            rim = 0.9f, grain = 0f, refraction = 0.7f, dispersion = 0.3f,
+        ),
+        keyAlpha = 0x2E, modifierAlpha = 0x1F, chipAlpha = 0x2E, toolAlpha = 0x2E, popupAlpha = 0x99,
+        sheen = GradientSpec(listOf(0x33FFFFFF, 0x00FFFFFF), GradientType.LINEAR, 90f),
     ),
 }
 

@@ -41,6 +41,14 @@ Every glass surface gets a one-pixel **Rim**: a hairline of light along its top-
 
 **Grain** lays a faint, fixed noise over each surface. A few percent is enough; it is what stops a large pane of glass from looking like flat plastic. The grain is the same tile on every surface and every launch, so a theme never twinkles.
 
+## Liquid glass
+
+**Kind of glass** has two settings. **Frosted** is everything above: the blurred slice under the surface's colour. **Liquid** is the look Apple calls liquid glass, and it changes what happens at the edge of every pane. Near the edge the backdrop is pulled inward, the way a thick lens magnifies what it covers, so the picture behind a key seems to bulge into it; red and blue part a little where it bends, like light through the edge of a prism; and a band of light sits along whichever edges face the light, from the upper left. The middle of each pane shows straight through, so a wide key is a lens and not a mirror. **Refraction** sets how far the edge bends the backdrop, **Color split** how far the colours part. The Liquid preset also drops the blur to almost nothing, turns the grain off and brightens the rim, since a lens is clear.
+
+A lens needs two things. It needs a picture to bend, so it works over a background image or the wallpaper band and not over the blurred app, whose pixels belong to the system and cannot be read; a window-blur theme set to Liquid is a lens on a phone that cannot blur and frosted on one that can, unless **Behind the glass** says Wallpaper. And it needs Android 13 or later, where a pane can run a small pixel program; older phones draw a liquid theme as very clear frosted glass, with the same rim. The program runs on the graphics chip for the keys' pixels only, and it is recorded once per key, not re-run on every keystroke.
+
+What is not here: Apple's panes also merge and stretch into each other as they move, and their highlight follows the phone's tilt. Neither is part of a theme yet.
+
 ## Presets and dressing a theme
 
 The **Presets** row sets the glass sliders in one tap and makes the theme's fills see-through where they are not already:
@@ -51,6 +59,7 @@ The **Presets** row sets the glass sliders in one tap and makes the theme's fill
 | Clear | Nearly transparent panes with a bright rim, the way polished glass catches light. |
 | Mica | Heavy blur and muted colour, like a wall of frosted acrylic. |
 | Smoked | The backdrop dimmed, a low rim, a touch more grain. |
+| Liquid | Thick clear lenses: the backdrop bent and colour-split at the edge, a bright rim, no grain. Android 13 and later draw the lens. |
 
 A preset lowers the opacity of the letter-key, modifier-key, chip, tool and popup colours to what it needs, but only where a fill is still more opaque than that: a colour you have already made more see-through is left alone. It also gives the letter keys a [key gradient](/themes/editor/#gradients) sheen if the theme has none, so each pane catches the light across its top. Whether the app behind is blurred is left as you set it. Afterwards nothing remembers which preset was picked, and every slider still moves.
 

@@ -198,7 +198,10 @@ import com.wasimaster.wmkeyboard.core.theme.FROST_GRAIN_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FROST_RIM_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FROST_SATURATION_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FrostPreset
+import com.wasimaster.wmkeyboard.core.theme.FROST_DISPERSION_RANGE
+import com.wasimaster.wmkeyboard.core.theme.FROST_REFRACTION_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FrostSpec
+import com.wasimaster.wmkeyboard.core.theme.FrostStyle
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.theme.WINDOW_BLUR_RADIUS_RANGE
 import com.wasimaster.wmkeyboard.core.theme.FrostBackdropSource
@@ -269,6 +272,19 @@ private fun frostPresetLabelRes(preset: FrostPreset): Int = when (preset) {
     FrostPreset.CLEAR -> R.string.theme_glass_preset_clear
     FrostPreset.MICA -> R.string.theme_glass_preset_mica
     FrostPreset.SMOKED -> R.string.theme_glass_preset_smoked
+    FrostPreset.LIQUID -> R.string.theme_glass_preset_liquid
+}
+
+@StringRes
+private fun frostStyleLabelRes(style: FrostStyle): Int = when (style) {
+    FrostStyle.FROSTED -> R.string.theme_glass_style_frosted
+    FrostStyle.LIQUID -> R.string.theme_glass_style_liquid
+}
+
+@StringRes
+private fun frostStyleDescRes(style: FrostStyle): Int = when (style) {
+    FrostStyle.FROSTED -> R.string.theme_glass_style_frosted_desc
+    FrostStyle.LIQUID -> R.string.theme_glass_style_liquid_desc
 }
 
 @StringRes
@@ -3369,6 +3385,33 @@ fun ThemeEditorScreen(
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
+        }
+        item {
+            ChoiceControl(
+                options = FrostStyle.entries.map { it to stringResource(frostStyleLabelRes(it)) },
+                selected = frost.glassStyle,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                label = stringResource(R.string.theme_glass_style_label),
+                detail = { style -> ChoiceDetail(stringResource(frostStyleDescRes(style))) },
+            ) { style -> updateFrost { f -> f.copy(style = style.name) } }
+        }
+        item(visible = frost.glassStyle == FrostStyle.LIQUID) {
+            SliderRow(
+                R.string.theme_glass_refraction_title,
+                value = frost.refraction,
+                range = FROST_REFRACTION_RANGE,
+                display = { if (it < 0.005f) offLabel else "${(it * 100).roundToInt()}%" },
+                info = stringResource(R.string.theme_glass_refraction_body),
+            ) { updateFrost { f -> f.copy(refraction = (it * 100).roundToInt() / 100f) } }
+        }
+        item(visible = frost.glassStyle == FrostStyle.LIQUID) {
+            SliderRow(
+                R.string.theme_glass_dispersion_title,
+                value = frost.dispersion,
+                range = FROST_DISPERSION_RANGE,
+                display = { if (it < 0.005f) offLabel else "${(it * 100).roundToInt()}%" },
+                info = stringResource(R.string.theme_glass_dispersion_body),
+            ) { updateFrost { f -> f.copy(dispersion = (it * 100).roundToInt() / 100f) } }
         }
         item {
             ToggleSetting(

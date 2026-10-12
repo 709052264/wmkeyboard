@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.core.theme.BackgroundBitmapCache
 import com.wasimaster.wmkeyboard.core.theme.FrostNoise
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
+import com.wasimaster.wmkeyboard.core.theme.KeyShapeKind
 import com.wasimaster.wmkeyboard.core.theme.WallpaperBackdrop
 import com.wasimaster.wmkeyboard.core.theme.WallpaperBand
 import androidx.compose.ui.platform.LocalConfiguration
@@ -159,8 +160,19 @@ class GlassPaint private constructor(private val outline: Outline, private val b
         /**
          * Null until the backdrop has been baked and the board placed — the
          * surface then draws its tint alone, which is what it drew before.
+         *
+         * A liquid pane wraps the slice in [LiquidLens] where the phone can
+         * run one; [size] and [lensRadiusPx] describe the pane the lens bends
+         * around, as a rounded rectangle whatever the outline really is.
          */
-        fun of(backdrop: FrostBackdrop, outline: Outline, originInRoot: Offset): GlassPaint? {
+        fun of(
+            backdrop: FrostBackdrop,
+            outline: Outline,
+            originInRoot: Offset,
+            frost: KbFrost? = null,
+            size: Size = Size.Zero,
+            lensRadiusPx: Float = 0f,
+        ): GlassPaint? {
             val bitmap = backdrop.bitmap ?: return null
             val board = backdrop.boardBounds
             if (board.isEmpty || bitmap.width == 0 || bitmap.height == 0) return null
@@ -168,16 +180,118 @@ class GlassPaint private constructor(private val outline: Outline, private val b
             val scale = max(board.width / bitmap.width, board.height / bitmap.height)
             val dx = board.left + (board.width - bitmap.width * scale) / 2f - originInRoot.x
             val dy = board.top + (board.height - bitmap.height * scale) / 2f - originInRoot.y
-            val shader = ImageShader(bitmap, TileMode.Clamp, TileMode.Clamp)
-            shader.setLocalMatrix(
+            val slice = ImageShader(bitmap, TileMode.Clamp, TileMode.Clamp)
+            slice.setLocalMatrix(
                 android.graphics.Matrix().apply {
                     setScale(scale, scale)
                     postTranslate(dx, dy)
                 },
             )
+            val shader = if (frost != null && frost.liquid && LiquidLens.available && size.minDimension > 0f) {
+                LiquidLens.shader(slice, size, lensRadiusPx, frost)
+            } else {
+                slice
+            }
             return GlassPaint(outline, ShaderBrush(shader))
         }
     }
+}
+
+/**
+ * The per-pixel half of liquid glass: a runtime shader that samples the
+ * backdrop slice through a thick lens. Near the edge of the pane the sample
+ * is pulled toward the middle (a lens magnifies what it covers), red and blue
+ * are pulled a little differently (the colours split where glass bends
+ * light), and a band of light is added where the edge faces the light. The
+ * middle of the pane samples straight through, so a wide key still reads as
+ * glass rather than as a funhouse mirror.
+ *
+ * The pane is treated as a rounded rectangle of the surface's size and
+ * [lensRadiusPx]; the real outline still clips the draw, so a pill or a
+ * squircle gets a lens that follows its box, which at key sizes is close
+ * enough. Android 13 and later only: `RuntimeShader` is the first way to run
+ * a pixel program from a Paint.
+ */
+object LiquidLens {
+    val available: Boolean
+        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+
+    /** How wide the bent band at the edge is, as a share of the pane's short side. */
+    private const val EDGE_SHARE = 0.32f
+
+    /** Light from the upper left, the direction the rim is lit from. */
+    private const val LIGHT_X = -0.55f
+    private const val LIGHT_Y = -0.835f
+
+    /** Peak brightness of the specular band at full refraction. */
+    private const val SPECULAR = 0.38f
+
+    // language=AGSL
+    private const val SOURCE = """
+        uniform shader backdrop;
+        uniform float2 size;
+        uniform float radius;
+        uniform float edge;
+        uniform float refraction;
+        uniform float dispersion;
+        uniform float specular;
+        uniform float2 light;
+
+        float roundRect(float2 p, float2 half, float r) {
+            float2 q = abs(p) - half + r;
+            return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+        }
+
+        half4 main(float2 p) {
+            float2 c = size * 0.5;
+            float2 local = p - c;
+            float inside = -roundRect(local, c, radius);
+            float t = 1.0 - clamp(inside / edge, 0.0, 1.0);
+            float bend = t * t;
+            float e = 1.0;
+            float2 n = normalize(float2(
+                roundRect(local + float2(e, 0.0), c, radius) - roundRect(local - float2(e, 0.0), c, radius),
+                roundRect(local + float2(0.0, e), c, radius) - roundRect(local - float2(0.0, e), c, radius)
+            ) + float2(0.0001, 0.0));
+            float2 shift = -n * bend * refraction * edge * 0.7;
+            float split = dispersion * bend * edge * 0.12;
+            float4 col;
+            col.r = float4(backdrop.eval(p + shift + n * split)).r;
+            col.g = float4(backdrop.eval(p + shift)).g;
+            col.b = float4(backdrop.eval(p + shift - n * split)).b;
+            col.a = 1.0;
+            float lit = max(dot(n, light), 0.0);
+            col.rgb += float3(bend * bend * lit * specular);
+            return half4(col);
+        }
+    """
+
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    fun shader(slice: android.graphics.Shader, size: Size, lensRadiusPx: Float, frost: KbFrost): android.graphics.Shader {
+        val short = size.minDimension
+        return android.graphics.RuntimeShader(SOURCE).apply {
+            setInputShader("backdrop", slice)
+            setFloatUniform("size", size.width, size.height)
+            setFloatUniform("radius", lensRadiusPx.coerceIn(0f, short / 2f))
+            setFloatUniform("edge", (short * EDGE_SHARE).coerceAtLeast(1f))
+            setFloatUniform("refraction", frost.refraction)
+            setFloatUniform("dispersion", frost.dispersion)
+            setFloatUniform("specular", SPECULAR * frost.refraction.coerceAtLeast(0.25f))
+            setFloatUniform("light", LIGHT_X, LIGHT_Y)
+        }
+    }
+}
+
+/**
+ * The corner radius the lens bends around, for a pane of [kind] drawn at
+ * [size]: the shapes that round themselves off their box (pill, circle, arch)
+ * are half the short side, a square is none, and the rest read the radius
+ * slider as the outline does.
+ */
+fun lensRadiusPx(kind: KeyShapeKind, radiusDp: Int, size: Size, density: Density): Float = when (kind) {
+    KeyShapeKind.SHARP -> 0f
+    KeyShapeKind.PILL, KeyShapeKind.CIRCLE, KeyShapeKind.ARCH -> size.minDimension / 2f
+    else -> with(density) { radiusDp.dp.toPx() }.coerceAtMost(size.minDimension / 2f)
 }
 
 /** Width of the rim of light around a glass surface. */
@@ -270,7 +384,14 @@ fun Modifier.frostGlass(
     backdrop: FrostBackdrop,
     shape: Shape,
     sampleBackdrop: Boolean = true,
-): Modifier = if (frost == null) this else this.then(FrostGlassElement(frost, backdrop, shape, sampleBackdrop))
+    /** What a liquid lens bends around; see [lensRadiusPx]. */
+    lensKind: KeyShapeKind = KeyShapeKind.ROUNDED,
+    lensRadiusDp: Int = 0,
+): Modifier = if (frost == null) {
+    this
+} else {
+    this.then(FrostGlassElement(frost, backdrop, shape, sampleBackdrop, lensKind, lensRadiusDp))
+}
 
 /** [frostGlass] for [surface], when the theme makes it glass; the backdrop comes from the composition. */
 @Composable
@@ -281,7 +402,18 @@ fun Modifier.frostGlass(
     sampleBackdrop: Boolean = true,
 ): Modifier {
     val frost = kb.frost?.takeIf { it.has(surface) } ?: return this
-    return frostGlass(frost, LocalFrostBackdrop.current, shape, sampleBackdrop)
+    // The outline the lens bends around: each surface's own shape and radius.
+    val (kind, radiusDp) = when (surface) {
+        FrostSurface.KEYS, FrostSurface.MODIFIER_KEYS, FrostSurface.ENTER_KEY, FrostSurface.SPACE_BAR ->
+            kb.keyShapeKind to kb.keyRadiusDp
+        FrostSurface.CHIPS -> kb.chipShapeKind to kb.chipRadiusDp
+        FrostSurface.CARDS -> kb.cardShapeKind to kb.chipRadiusDp
+        FrostSurface.TOOLS -> kb.toolShapeKind to kb.toolRadiusDp
+        FrostSurface.POPUPS -> kb.popupShapeKind to kb.popupRadiusDp
+        FrostSurface.MENUS -> kb.menuShapeKind to kb.popupRadiusDp
+        FrostSurface.BARS -> KeyShapeKind.SHARP to 0
+    }
+    return frostGlass(frost, LocalFrostBackdrop.current, shape, sampleBackdrop, kind, radiusDp)
 }
 
 private data class FrostGlassElement(
@@ -289,10 +421,12 @@ private data class FrostGlassElement(
     val backdrop: FrostBackdrop,
     val shape: Shape,
     val sample: Boolean,
+    val lensKind: KeyShapeKind,
+    val lensRadiusDp: Int,
 ) : ModifierNodeElement<FrostGlassNode>() {
-    override fun create() = FrostGlassNode(frost, backdrop, shape, sample)
+    override fun create() = FrostGlassNode(frost, backdrop, shape, sample, lensKind, lensRadiusDp)
 
-    override fun update(node: FrostGlassNode) = node.update(frost, backdrop, shape, sample)
+    override fun update(node: FrostGlassNode) = node.update(frost, backdrop, shape, sample, lensKind, lensRadiusDp)
 
     override fun InspectorInfo.inspectableProperties() {
         name = "frostGlass"
@@ -313,6 +447,8 @@ private class FrostGlassNode(
     private var backdrop: FrostBackdrop,
     private var shape: Shape,
     private var sample: Boolean,
+    private var lensKind: KeyShapeKind,
+    private var lensRadiusDp: Int,
 ) : Modifier.Node(), DrawModifierNode, LayoutAwareModifierNode, ObserverModifierNode {
 
     private var origin = Offset.Zero
@@ -321,12 +457,21 @@ private class FrostGlassNode(
     private var rim: RimPaint? = null
     private var grain: GrainPaint? = null
 
-    fun update(frost: KbFrost, backdrop: FrostBackdrop, shape: Shape, sample: Boolean) {
+    fun update(
+        frost: KbFrost,
+        backdrop: FrostBackdrop,
+        shape: Shape,
+        sample: Boolean,
+        lensKind: KeyShapeKind,
+        lensRadiusDp: Int,
+    ) {
         val rewatch = backdrop !== this.backdrop
         this.frost = frost
         this.backdrop = backdrop
         this.shape = shape
         this.sample = sample
+        this.lensKind = lensKind
+        this.lensRadiusDp = lensRadiusDp
         builtFor = null
         if (rewatch && isAttached) watchBackdrop()
         invalidateDraw()
@@ -370,7 +515,11 @@ private class FrostGlassNode(
         val key = GlassPaintKey(size, origin, bitmap, bounds, layoutDirection)
         if (key != builtFor) {
             val outline = shape.createOutline(size, layoutDirection, this)
-            glass = if (bitmap != null) GlassPaint.of(backdrop, outline, origin) else null
+            glass = if (bitmap != null) {
+                GlassPaint.of(backdrop, outline, origin, frost, size, lensRadiusPx(lensKind, lensRadiusDp, size, this))
+            } else {
+                null
+            }
             rim = RimPaint.of(frost, shape, size, layoutDirection, this)
             grain = GrainPaint.of(frost, outline)
             builtFor = key
