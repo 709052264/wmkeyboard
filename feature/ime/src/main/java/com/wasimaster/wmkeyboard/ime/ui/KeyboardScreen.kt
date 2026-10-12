@@ -3883,7 +3883,15 @@ private fun TopBar(
                             // Resting openers have their own flag: the override
                             // means "away from the candidates", and at rest the
                             // toolbar is already where the bar is.
-                            openersAtRest && !toolbarOverride -> openersShown = !openersShown
+                            //
+                            // Only while the openers are all that could hold the
+                            // strip. A paste chip, an offer or any other content
+                            // in [hasSuggestions] keeps the strip up on its own,
+                            // so flipping the openers flag there changed nothing
+                            // and the chevron looked dead; the override is what
+                            // takes the row from them.
+                            openersAtRest && !hasSuggestions && !toolbarOverride ->
+                                openersShown = !openersShown
                             else -> toolbarOverride = !toolbarOverride
                         }
                     },
