@@ -6357,11 +6357,19 @@ private fun EmojiBarCell(
                 // the cell's own size is unchanged.
                 .offset(y = if (hint != null) -(HintBadgeHeight / 2) else 0.dp)
                 .clickable { onEmoji(emoji) }
-                .padding(vertical = 6.dp),
+                .padding(vertical = 4.dp),
             fontSize = fontSize,
             fontFamily = emojiFamilyFor(emoji),
             textAlign = TextAlign.Center,
             maxLines = 1,
+            // The theme's bodyLarge line is 24sp, the same as the glyph, and an
+            // emoji font draws taller than its em: in a line that size the
+            // default clip cut the bottom off every emoji (#601). The font's
+            // own line fits it, and nothing is clipped if one still overhangs.
+            // (A `lineHeight` argument of Unspecified would fall back to the
+            // style's, so the style itself is copied.)
+            style = LocalTextStyle.current.copy(lineHeight = TextUnit.Unspecified),
+            overflow = TextOverflow.Visible,
         )
         if (hint != null) {
             HintBadge(hint, modifier = Modifier.align(Alignment.BottomCenter))
