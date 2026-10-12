@@ -98,7 +98,9 @@ internal fun NoteEditorScreen(settings: LiveSettings, noteId: Long, onDone: () -
         CaptionText(stringResource(R.string.notes_gone_caption))
         return
     }
-    var unlocked by remember(noteId) { mutableStateOf(initial?.locked != true) }
+    // A note opened from the list already passed the fingerprint there; the gate
+    // is for the route reached any other way (a link, a shortcut, process restore).
+    var unlocked by rememberSaveable(noteId) { mutableStateOf(initial?.locked != true || NoteUnlockPass.take(noteId)) }
     if (!unlocked) {
         LockedNoteGate(onUnlocked = { unlocked = true }, onCancel = onDone)
         return
@@ -244,7 +246,13 @@ private fun NoteEditorForm(settings: LiveSettings, state: NotesScreenState, init
                         onClick = {
                             menu = false
                             if (locked) {
-                                scope.launch { state.mutate { s -> s.setLocked(id, false) } }
+                                appLock.authenticate { result ->
+                                    if (result.succeeded) {
+                                        scope.launch { state.mutate { s -> s.setLocked(id, false) } }
+                                    } else if (result.explains) {
+                                        message = context.getString(result.message)
+                                    }
+                                }
                             } else {
                                 lockInfo = true
                             }

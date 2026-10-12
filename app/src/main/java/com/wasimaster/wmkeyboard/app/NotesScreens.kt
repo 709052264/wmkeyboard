@@ -193,12 +193,31 @@ internal fun rememberLockedNoteOpener(onOpen: (Note) -> Unit, onError: (Int) -> 
         status == AppLockStatus.READY
     return { note ->
         when {
-            !note.locked || screenGuarded -> onOpen(note)
+            !note.locked -> onOpen(note)
+            screenGuarded -> { NoteUnlockPass.grant(note.id); onOpen(note) }
             else -> appLock.authenticate { result ->
-                if (result.succeeded) onOpen(note) else if (result.explains) onError(result.message)
+                if (result.succeeded) {
+                    NoteUnlockPass.grant(note.id)
+                    onOpen(note)
+                } else if (result.explains) {
+                    onError(result.message)
+                }
             }
         }
     }
+}
+
+/**
+ * Hands a fingerprint already asked for by [rememberLockedNoteOpener] to the
+ * editor route it opens, so the editor's own gate does not ask a second time.
+ * One use: the editor takes the pass on arrival, and the next visit asks again.
+ */
+internal object NoteUnlockPass {
+    private val granted = mutableSetOf<Long>()
+
+    fun grant(id: Long) = synchronized(granted) { granted += id }
+
+    fun take(id: Long): Boolean = synchronized(granted) { granted.remove(id) }
 }
 
 // ---- the list ----
@@ -345,6 +364,7 @@ internal fun NotesListScreen(
                 selected = selected,
                 onClear = { selected = emptySet() },
                 onSelectAll = { selected = shown.map { it.id }.toSet() },
+                onError = { message = context.getString(it) },
                 onTrashed = { count ->
                     val ids = selected.toList()
                     selected = emptySet()
@@ -580,9 +600,11 @@ private fun BulkActionBar(
     selected: Set<Long>,
     onClear: () -> Unit,
     onSelectAll: () -> Unit,
+    onError: (Int) -> Unit,
     onTrashed: (Int) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    val appLock = LocalAppLock.current
     var more by remember { mutableStateOf(false) }
     var tagDialog by remember { mutableStateOf(false) }
     val notes = remember(selected, state.active, state.archived) { (state.active + state.archived).filter { it.id in selected } }
@@ -625,7 +647,19 @@ private fun BulkActionBar(
                         text = { Text(stringResource(if (allLocked) R.string.notes_unlock_action else R.string.notes_lock_action)) },
                         onClick = {
                             more = false
-                            scope.launch { state.mutate { s -> selected.forEach { s.setLocked(it, !allLocked) } } }
+                            val ids = selected.toList()
+                            if (allLocked) {
+                                // Taking the lock off is the one bulk action that needs the fingerprint.
+                                appLock.authenticate { result ->
+                                    if (result.succeeded) {
+                                        scope.launch { state.mutate { s -> ids.forEach { s.setLocked(it, false) } } }
+                                    } else if (result.explains) {
+                                        onError(result.message)
+                                    }
+                                }
+                            } else {
+                                scope.launch { state.mutate { s -> ids.forEach { s.setLocked(it, true) } } }
+                            }
                         },
                     )
                 }
