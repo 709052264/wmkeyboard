@@ -20,6 +20,13 @@ data class FancyStyle(
     val upper: Map<Char, String>,
     /** How the mapped letters are put back together. Nearly always in order. */
     val assembly: FancyAssembly = FancyAssembly.IN_ORDER,
+    /**
+     * The style's own 0–9, keyed by the plain digit. Empty for a style
+     * Unicode gives no digits (italic, script, fraktur…), whose numbers
+     * then stay plain; a digit missing from the map (parenthesized 0) does
+     * the same.
+     */
+    val digits: Map<Char, String> = emptyMap(),
 )
 
 /**
@@ -84,6 +91,73 @@ object FancyStyles {
      * the string, since a style only applies on that one language.
      */
     const val LANG_ID = "fancy"
+
+    /**
+     * Every styled set of 0–9 Unicode has, each a run of code points rather
+     * than typed glyphs (astral digits are surrogate pairs, see the note on
+     * the table). Several sets lack a zero, or keep it somewhere else: those
+     * are built with [digitRun]'s `zero`.
+     */
+    private val BOLD_DIGITS = digitRun(0x1D7CE)
+    private val DOUBLE_STRUCK_DIGITS = digitRun(0x1D7D8)
+    private val SANS_DIGITS = digitRun(0x1D7E2)
+    private val SANS_BOLD_DIGITS = digitRun(0x1D7EC)
+    private val MONOSPACE_DIGITS = digitRun(0x1D7F6)
+    private val FULLWIDTH_DIGITS = digitRun(0xFF10)
+    private val CIRCLED_DIGITS = digitRun(0x245F, zero = 0x24EA)
+    private val NEGATIVE_CIRCLED_DIGITS = digitRun(0x2775, zero = 0x24FF)
+    private val SANS_CIRCLED_DIGITS = digitRun(0x277F, zero = 0x1F10B)
+    private val PARENTHESIZED_DIGITS = digitRun(0x2473, zero = null)
+    private val FULL_STOP_DIGITS = digitRun(0x2487, zero = 0x1F100)
+    private val SUBSCRIPT_DIGITS = digitRun(0x2080)
+    private val SEGMENTED_DIGITS = digitRun(0x1FBF0)
+
+    // ¹²³ are Latin-1 leftovers; only ⁰ and ⁴–⁹ sit in the superscripts block.
+    private val SUPERSCRIPT_DIGITS = ('0'..'9').zip(
+        listOf(0x2070, 0xB9, 0xB2, 0xB3, 0x2074, 0x2075, 0x2076, 0x2077, 0x2078, 0x2079),
+    ).associate { (d, cp) -> d to String(Character.toChars(cp)) }
+
+    /**
+     * Which digits each style types. A style with no digits of its own
+     * borrows the nearest set that keeps its weight and family — bold italic
+     * types bold digits, sans italic sans ones — since a bold word next to
+     * plain numbers reads as a mistake. Italic, script and fraktur have no
+     * near neighbour and keep plain digits.
+     */
+    private val DIGITS_BY_STYLE: Map<String, Map<Char, String>> = mapOf(
+        "bold" to BOLD_DIGITS,
+        "bold_italic" to BOLD_DIGITS,
+        "bold_script" to BOLD_DIGITS,
+        "bold_fraktur" to BOLD_DIGITS,
+        "double_struck" to DOUBLE_STRUCK_DIGITS,
+        "sans" to SANS_DIGITS,
+        "sans_italic" to SANS_DIGITS,
+        "sans_bold" to SANS_BOLD_DIGITS,
+        "sans_bold_italic" to SANS_BOLD_DIGITS,
+        "monospace" to MONOSPACE_DIGITS,
+        "fullwidth" to FULLWIDTH_DIGITS,
+        "circled" to CIRCLED_DIGITS,
+        "circled_filled" to NEGATIVE_CIRCLED_DIGITS,
+        "superscript" to SUPERSCRIPT_DIGITS,
+        "parenthesized" to PARENTHESIZED_DIGITS,
+    )
+
+    /**
+     * Every set, in the order a digit key's long press lists them: the
+     * mathematical ones first, then the enclosed, then the small and the odd.
+     * Includes the sets no style types (sans circled, full stop, subscript,
+     * segmented) — the long press is the only way to reach those.
+     */
+    private val ALL_DIGIT_SETS = listOf(
+        BOLD_DIGITS, DOUBLE_STRUCK_DIGITS, SANS_DIGITS, SANS_BOLD_DIGITS, MONOSPACE_DIGITS,
+        FULLWIDTH_DIGITS, CIRCLED_DIGITS, NEGATIVE_CIRCLED_DIGITS, SANS_CIRCLED_DIGITS,
+        PARENTHESIZED_DIGITS, FULL_STOP_DIGITS, SUPERSCRIPT_DIGITS, SUBSCRIPT_DIGITS,
+        SEGMENTED_DIGITS,
+    )
+
+    /** Every styled form of [digit], for its key's long press; empty for a non-digit. */
+    fun digitForms(digit: Char): List<String> =
+        if (digit in '0'..'9') ALL_DIGIT_SETS.mapNotNull { it[digit] } else emptyList()
 
     val all: List<FancyStyle> = listOf(
         style(
@@ -510,9 +584,9 @@ object FancyStyles {
     fun byId(id: String): FancyStyle? = index[id]
 
     /**
-     * [text] with every mapped letter swapped for its styled form;
-     * everything else (digits, punctuation, other scripts) passes
-     * through untouched.
+     * [text] with every mapped letter and digit swapped for its styled
+     * form; everything else (punctuation, other scripts, digits the style
+     * has no form for) passes through untouched.
      */
     fun transform(text: String, style: FancyStyle): String {
         if (text.isEmpty()) return text
@@ -521,7 +595,7 @@ object FancyStyles {
         if (style.assembly == FancyAssembly.IN_ORDER) {
             val out = StringBuilder(text.length * 2)
             for (ch in text) {
-                out.append(style.lower[ch] ?: style.upper[ch] ?: ch)
+                out.append(style.lower[ch] ?: style.upper[ch] ?: style.digits[ch] ?: ch)
             }
             return out.toString()
         }
@@ -530,7 +604,7 @@ object FancyStyles {
         // one char (an astral pair, a letter plus a combining mark).
         val units = ArrayList<String>(text.length)
         for (ch in text) {
-            units.add(style.lower[ch] ?: style.upper[ch] ?: ch.toString())
+            units.add(style.lower[ch] ?: style.upper[ch] ?: style.digits[ch] ?: ch.toString())
         }
         val out = StringBuilder(text.length * 3)
         when (style.assembly) {
@@ -563,5 +637,16 @@ object FancyStyles {
         lower = ('a'..'z').zip(lower).toMap(),
         upper = ('A'..'Z').zip(upper).toMap(),
         assembly = assembly,
+        digits = DIGITS_BY_STYLE[id].orEmpty(),
     )
+
+    /**
+     * 0–9 from a run of consecutive code points: [base] is the 0 when [zero]
+     * is left alone, otherwise the code point *before* 1 (the run's 1–9) and
+     * [zero] is the 0 kept elsewhere, or null for a set with none.
+     */
+    private fun digitRun(base: Int, zero: Int? = base): Map<Char, String> = buildMap {
+        if (zero != null) put('0', String(Character.toChars(zero)))
+        for (d in 1..9) put('0' + d, String(Character.toChars(base + d)))
+    }
 }

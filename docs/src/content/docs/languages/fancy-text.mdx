@@ -62,7 +62,15 @@ The full set, with the name each one shows:
 
 ## The keyboard itself
 
-The fancy layout is a plain QWERTY grid: three letter rows plus a bottom row for <KeyCap>?123</KeyCap>, comma, <KeyCap>🌐</KeyCap>, space, period, and <KeyCap>Enter</KeyCap>. Comma, period, and space always commit as plain ASCII, because only the letters get the styled substitution. There are no long-press popups on the letter keys. Digits and symbols come from the shared <KeyCap>?123</KeyCap> panel, in plain ASCII.
+The fancy layout is a plain QWERTY grid: three letter rows plus a bottom row for <KeyCap>?123</KeyCap>, comma, <KeyCap>🌐</KeyCap>, space, period, and <KeyCap>Enter</KeyCap>. Comma, period, space and the other symbols always commit as plain ASCII, because only letters and digits get the styled substitution. There are no long-press popups on the letter keys. Digits come from the shared <KeyCap>?123</KeyCap> panel, or the number row if you have it on.
+
+## Numbers
+
+Digits are styled too, wherever Unicode has digits for the style: Bold types 𝟏𝟐𝟑, Double-struck 𝟙𝟚𝟛, Sans-serif 𝟣𝟤𝟥, Sans Bold 𝟭𝟮𝟯, Monospace 𝟷𝟸𝟹, Fullwidth １２３, Circled ①②③, Circled (Filled) ❶❷❸, Superscript ¹²³ and Parenthesized ⑴⑵⑶. The digit keys show the styled form, just like the letters.
+
+Unicode has no italic, script or fraktur digits. The bold variants of those (Bold Italic, Bold Script, Bold Fraktur) borrow the bold digits, and Sans Italic and Sans Bold Italic borrow the sans ones, so a word and the number next to it keep the same weight. Italic, Script, Fraktur and every other style type plain digits. Parenthesized has no zero, so 0 stays plain there.
+
+Hold any digit key, on the symbols panel or the number row, for every styled form of that digit in one popup, whatever style is active: bold, double-struck, sans-serif, sans bold, monospace, fullwidth, circled, negative circled (❶), sans-serif circled (➀), parenthesized (⑴), with a full stop (⒈), superscript (¹), subscript (₁) and segmented LCD digits (🯱). The last few belong to no style, so the popup is the only way to type them. The key's usual alternates stay first, so a plain hold still does what it always did. Segmented digits are from Unicode 13, and older fonts show them as empty boxes.
 
 <LayoutExplorer layout={fancy} title="The base grid. The style strip restyles these labels live; the stored layout stays plain." />
 

@@ -84,6 +84,34 @@ class FancyStylesTest {
     }
 
     @Test
+    fun `styles with digits of their own style numbers too`() {
+        assertEquals("𝐀𝟏𝟐", FancyStyles.transform("A12", FancyStyles.byId("bold")!!))
+        assertEquals("𝟘𝟡", FancyStyles.transform("09", FancyStyles.byId("double_struck")!!))
+        assertEquals("𝟶𝟿", FancyStyles.transform("09", FancyStyles.byId("monospace")!!))
+        assertEquals("⓪①⑨", FancyStyles.transform("019", FancyStyles.byId("circled")!!))
+        assertEquals("⓿❶❾", FancyStyles.transform("019", FancyStyles.byId("circled_filled")!!))
+        assertEquals("⁰¹²³⁴⁹", FancyStyles.transform("012349", FancyStyles.byId("superscript")!!))
+        // Parenthesized has no zero: it stays plain rather than vanishing.
+        assertEquals("0⑴⑼", FancyStyles.transform("019", FancyStyles.byId("parenthesized")!!))
+        // No digits of its own: borrows the bold set rather than going plain.
+        assertEquals("𝟕", FancyStyles.transform("7", FancyStyles.byId("bold_italic")!!))
+    }
+
+    @Test
+    fun `a digit's long press lists every styled set, astral ones whole`() {
+        val forms = FancyStyles.digitForms('1')
+        assertEquals(
+            listOf("𝟏", "𝟙", "𝟣", "𝟭", "𝟷", "１", "①", "❶", "➀", "⑴", "⒈", "¹", "₁", "🯱"),
+            forms,
+        )
+        // Zero: parenthesized has none, the rest keep it out of their run.
+        val zeros = FancyStyles.digitForms('0')
+        assertEquals(13, zeros.size)
+        assertTrue("🄋" in zeros && "🄀" in zeros && "⓪" in zeros && "⓿" in zeros)
+        assertTrue(FancyStyles.digitForms('a').isEmpty())
+    }
+
+    @Test
     fun `upside down text is laid out back to front`() {
         val upsideDown = FancyStyles.byId("upside_down")!!
         // Rotated glyphs alone would spell it backwards to anyone who turns
