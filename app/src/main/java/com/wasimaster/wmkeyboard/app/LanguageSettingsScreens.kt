@@ -66,6 +66,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.FlexLanguagePack
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictPack
+import com.wasimaster.wmkeyboard.core.input.composer.CjkDictStore
 import com.wasimaster.wmkeyboard.core.input.composer.DoublePinyin
 import com.wasimaster.wmkeyboard.core.input.composer.DoublePinyinProfile
 import com.wasimaster.wmkeyboard.core.input.composer.DoublePinyinScheme
@@ -453,24 +454,42 @@ private fun conjunctSample(script: ScriptId): String? = when (script) {
 }
 
 /**
- * What a language can download: its word list, its emoji keywords and its
- * n-gram pack, with a rough size for all three together. Any of them may be
- * missing — most languages have a word list, only 125 have keywords, and two
- * so far have an n-gram pack.
+ * What a language can download: its word list, its emoji keywords, its
+ * n-gram pack and the conversion packs its layouts type through, with a rough
+ * size for all of it together. Any of them may be missing — most languages
+ * have a word list, only 125 have keywords, two so far have an n-gram pack,
+ * and only Chinese, Cantonese and Japanese convert.
+ *
+ * [cjkPacks] is the one a language cannot do without: a word list makes typing
+ * better, but Pinyin with no pack never offers a single character.
  */
 internal data class LanguageData(
     val wordlist: DictionaryEntry?,
     val emojiDict: EmojiDictEntry?,
     val ngram: NgramPackEntry?,
     val bytes: Long,
+    val cjkPacks: List<CjkDictPack> = emptyList(),
 ) {
-    val isEmpty: Boolean get() = wordlist == null && emojiDict == null && ngram == null
+    val isEmpty: Boolean get() = wordlist == null && emojiDict == null && ngram == null && cjkPacks.isEmpty()
 
     /** Roughly what fetching all of it costs, with the word list at [size]. */
     fun approxBytes(size: DictionaryCatalog.DictionarySize): Long =
         (wordlist?.let { entryBytes(it, size) } ?: 0L) +
-            (emojiDict?.approxGzBytes ?: 0L) + (ngram?.approxGzBytes ?: 0L)
+            (emojiDict?.approxGzBytes ?: 0L) + (ngram?.approxGzBytes ?: 0L) +
+            cjkPacks.sumOf { it.sizeBytes }
 }
+
+/**
+ * The conversion packs [langId]'s own layouts need, one per table however many
+ * layouts share it (Pinyin, T9 and Zhuyin all read the pinyin pack). Only the
+ * packs a composer cannot work without: the Traditional phrase pack is an
+ * improvement, and stays a row on the language's page.
+ */
+internal fun requiredCjkPacks(langId: String): List<CjkDictPack> =
+    LanguageRegistry.byId(langId).layoutIds
+        .mapNotNull { id -> CjkDictCatalog.forComposer(resolveLayout(emptyList(), id).composerType()) }
+        .filter { it.available }
+        .distinctBy { it.id }
 
 /**
  * Roughly what [entry] transfers at [size]. The catalogue sizes the whole
@@ -485,7 +504,13 @@ internal fun languageData(langId: String): LanguageData {
     val wordlist = DictionaryCatalog.preferred(langId)
     val emojiDict = EmojiDictCatalog.forLanguage(langId)
     val ngram = NgramPackCatalog.forLanguage(langId)
-    val data = LanguageData(wordlist = wordlist, emojiDict = emojiDict, ngram = ngram, bytes = 0L)
+    val data = LanguageData(
+        wordlist = wordlist,
+        emojiDict = emojiDict,
+        ngram = ngram,
+        bytes = 0L,
+        cjkPacks = requiredCjkPacks(langId),
+    )
     return data.copy(bytes = data.approxBytes(AUTO_DOWNLOAD_SIZE))
 }
 
@@ -540,6 +565,15 @@ internal fun startLanguageDataDownload(
     // The n-gram pack has no per-language progress to follow — the manager
     // publishes completions and nothing else — so it downloads unannounced.
     data.ngram?.let { NgramPackDownloadManager.start(filesDir, it.languageId) }
+    // Only the packs not already here: one on disk would otherwise come up in
+    // the shade as a download that finished before it started.
+    val packs = data.cjkPacks.filterNot { CjkDictStore.isDownloaded(filesDir, it) }
+    if (packs.isNotEmpty()) {
+        CjkDictDownloadManager.startAll(filesDir, packs)
+        for (pack in packs) {
+            notify?.invoke(pack.id, context.getString(pack.displayNameRes), DownloadProgressFlows.cjkDict(context, pack.id))
+        }
+    }
 }
 
 /**
@@ -867,6 +901,7 @@ internal fun rememberLayoutToggle(
     val context = LocalContext.current
     val enableGate = rememberLayoutEnableGate(settings)
     val promptForRules = rememberKeymanRulesPrompt(onRulesInstalled)
+    val promptForPack = rememberCjkPackPrompt()
     return { layoutId, enable ->
         // At least one layout must stay enabled somewhere. Said out loud here,
         // where the old switch just sprang back.
@@ -874,7 +909,9 @@ internal fun rememberLayoutToggle(
             Toast.makeText(context, R.string.languages_layout_keep_one, Toast.LENGTH_SHORT).show()
             false
         } else {
-            setLayoutEnabled(layoutId, enable, settings.value, repository, scope, enableGate, promptForRules)
+            setLayoutEnabled(
+                layoutId, enable, settings.value, repository, scope, enableGate, promptForRules, promptForPack,
+            )
             true
         }
     }
@@ -883,7 +920,8 @@ internal fun rememberLayoutToggle(
 /**
  * Switches [layoutId] on or off: through the validation gate on the way on,
  * never on the way off, and with the Keyman rules prompt at the moment a
- * converted layout is switched on.
+ * converted layout is switched on, or the conversion pack prompt at the moment
+ * a layout that converts is.
  */
 private fun setLayoutEnabled(
     layoutId: String,
@@ -893,6 +931,7 @@ private fun setLayoutEnabled(
     scope: CoroutineScope,
     enableGate: (String, () -> Unit) -> Unit,
     promptForRules: (KeymanBinding, String) -> Unit,
+    promptForPack: (CjkDictPack, String) -> Unit,
 ) {
     fun write() {
         scope.launch {
@@ -908,6 +947,7 @@ private fun setLayoutEnabled(
         if (enable) {
             val spec = resolveLayout(settings.customLayouts, layoutId)
             spec.keyman?.let { promptForRules(it, spec.name) }
+            CjkDictCatalog.forComposer(spec.composerType())?.let { promptForPack(it, spec.name) }
         }
     }
     if (enable) enableGate(layoutId) { write() } else write()

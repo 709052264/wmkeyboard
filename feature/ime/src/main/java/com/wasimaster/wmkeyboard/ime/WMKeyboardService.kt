@@ -3513,6 +3513,15 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
 
+        // A layout that converts came up: say now, not after the first
+        // reading, when the pack behind it is not on the device. Keyed on the
+        // composer alone, since the chip is about which tables it reads.
+        serviceScope.launch {
+            _uiState.map { it.composer }.distinctUntilChanged().collect { composer ->
+                if (composer.isConversion) refreshConversionPackOffer(_uiState.value) else clearConversionPackOffer()
+            }
+        }
+
         // The Khipro glide table landed, or could not be fetched: Khipro's
         // glide is set up again, from the table or, failing it, on the device.
         serviceScope.launch {
@@ -15462,6 +15471,10 @@ open class WMKeyboardService : InputMethodService() {
             Jianpin.index = Jianpin.build(PinyinSyllables.valid)
             loadedCjkPackToken = token
         }
+        // The tables are in, so a missing pack is now really missing: the chip
+        // for one goes up without waiting for a keystroke, and one for a pack
+        // that just landed comes down.
+        withContext(Dispatchers.Main) { refreshConversionPackOffer(_uiState.value) }
     }
 
     /**
@@ -18199,7 +18212,7 @@ open class WMKeyboardService : InputMethodService() {
         val typed = composing.toString()
         val composer = state.composer
         val gridOpen = state.panel == PanelMode.CANDIDATES
-        refreshConversionPackOffer(state, typed)
+        refreshConversionPackOffer(state)
         // A new reading is a new list, so whatever the arrow keys had
         // highlighted in the old one no longer means anything. Reset here, on
         // the keystroke, rather than when the list lands: a stepping space
@@ -18346,21 +18359,27 @@ open class WMKeyboardService : InputMethodService() {
      * the composer still types, committing the raw reading, and no character is
      * ever offered for it. Nothing on screen said why, and the pack's own row
      * is several screens into Settings, so Chinese looked simply broken
-     * (issue #260). Asked here because this is the moment it matters — a
-     * reading has been typed and nothing came back.
+     * (issue #260). Asked the moment a layout that converts comes up, the way
+     * the missing-word-list chip is for glide, rather than only once a reading
+     * has been typed and nothing came back: by then the user has already met
+     * the broken keyboard the chip exists to explain.
+     *
+     * Not before the tables have been read once, though: until then every
+     * table is empty whether its pack is on disk or not, and the chip would
+     * go up, once and for good, for a user who has the pack.
      *
      * Once per pack per process, the same as the missing-word-list chip, and
      * never in a password field: a download offer is not what that field is
      * for.
      */
-    private fun refreshConversionPackOffer(state: KeyboardUiState, typed: String) {
+    private fun refreshConversionPackOffer(state: KeyboardUiState) {
         val pack = state.composer.missingPack
         if (pack == null) {
             // Downloaded since, or the layout moved to one that needs no pack.
             clearConversionPackOffer()
             return
         }
-        if (typed.isEmpty() || state.secureField) return
+        if (loadedCjkPackToken == Int.MIN_VALUE || state.secureField) return
         if (state.conversionPackOffer != null || !conversionPackNoticed.add(pack)) return
         _uiState.update { it.copy(conversionPackOffer = pack) }
     }

@@ -275,8 +275,8 @@ internal fun DictionariesGroup(
 }
 
 /**
- * Fetches, for each of [langIds], whatever of its word list, emoji names and
- * word pairs is not on the device and not already on its way: what a restore
+ * Fetches, for each of [langIds], whatever of its word list, emoji names,
+ * word pairs and conversion packs is not on the device and not already on its way: what a restore
  * calls after it switched languages on, since a restored list of languages is
  * no use without their dictionaries. The word list at the size a language
  * added in the wizard gets.
@@ -308,6 +308,8 @@ internal suspend fun startMissingLanguageData(
                     .isMissing()
             },
             bytes = 0L,
+            // Filtered against the disk by the download itself.
+            cjkPacks = all.cjkPacks,
         )
         if (!missing.isEmpty) startLanguageDataDownload(context, missing, notify)
     }

@@ -88,6 +88,8 @@
     <string name="languages_keyman_prompt_body">This keyboard uses rules to decide what its keys type. Without them, each key types the character printed on it. The rules are a few kilobytes and come from keyman.com.</string>
     <string name="languages_keyman_prompt_download">Download</string>
     <string name="languages_keyman_prompt_later">Not now</string>
+    <string name="languages_cjk_pack_prompt_title">Download the %1$s?</string>
+    <string name="languages_cjk_pack_prompt_body">%1$s types the reading and turns it into characters from this dictionary. Without it, no characters are offered. It is %2$s and works offline once downloaded.</string>
 
     <!--
       The way down to a language's converted Keyman layouts. Called "More

@@ -3313,6 +3313,9 @@ private fun TopBar(
         // And the chip pointing at a word list glide typing is missing, which
         // is up while nothing is being typed.
         state.glideWordListOffer != null ||
+        // And its conversion twin, which now also goes up as the layout does,
+        // before anything is typed.
+        state.conversionPackOffer != null ||
         // And the one offering a swiped word's path to the whole dictionary,
         // which is up while the caret rests inside that word (#135).
         state.glideSearchChip != null ||

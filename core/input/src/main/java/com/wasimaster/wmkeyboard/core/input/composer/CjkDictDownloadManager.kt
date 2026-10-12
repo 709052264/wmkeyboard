@@ -8,6 +8,7 @@ import com.wasimaster.wmkeyboard.input.R
 import java.io.File
 import java.io.IOException
 import java.io.RandomAccessFile
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
@@ -64,8 +65,16 @@ object CjkDictDownloadManager {
     private const val USER_AGENT = "WMKeyboard dictionary downloader"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private var activeJob: Job? = null
-    private var activeId: String? = null
+    @Volatile private var activeJob: Job? = null
+    @Volatile private var activeId: String? = null
+
+    /**
+     * Packs asked for by [startAll] while another was downloading, in the
+     * order asked. One file at a time stays the rule — the packs share one
+     * `.part` discipline and one progress row each — so the rest wait here
+     * and go one after another as each finishes.
+     */
+    private val waiting = ConcurrentLinkedQueue<Pair<File, CjkDictPack>>()
 
     private val _states = MutableStateFlow<Map<String, DownloadStatus>>(emptyMap())
 
@@ -81,6 +90,7 @@ object CjkDictDownloadManager {
                 val active = current[pack.id]
                 pack.id to when {
                     pack.id == activeId && isBusy && active != null -> active
+                    waiting.any { it.second.id == pack.id } && active != null -> active
                     CjkDictStore.isDownloaded(filesDir, pack) -> DownloadStatus.Downloaded
                     CjkDictStore.partFile(filesDir, pack).isFile -> DownloadStatus.Paused(
                         CjkDictStore.partFile(filesDir, pack).length(), pack.sizeBytes,
@@ -88,6 +98,46 @@ object CjkDictDownloadManager {
                     else -> DownloadStatus.NotDownloaded
                 }
             }
+        }
+    }
+
+    /**
+     * Fetches every one of [packs] not already on the device, one after
+     * another: what switching on a language or a layout that converts asks
+     * for, where [start] alone would drop all but the first on the floor.
+     * A queued pack reads as a download at its first byte, so its row and its
+     * notification say it is on its way rather than that nothing happened.
+     */
+    fun startAll(filesDir: File, packs: Collection<CjkDictPack>) {
+        for (pack in packs) {
+            if (!pack.available || CjkDictStore.isDownloaded(filesDir, pack)) continue
+            if (pack.id == activeId || waiting.any { it.second.id == pack.id }) continue
+            if (isBusy) {
+                waiting.add(filesDir to pack)
+                set(pack.id, DownloadStatus.Downloading(CjkDictStore.partFile(filesDir, pack).length(), pack.sizeBytes))
+            } else {
+                start(filesDir, pack)
+            }
+        }
+    }
+
+    /** The next queued pack, once the one before it has settled either way. */
+    private fun startNext() {
+        val (filesDir, pack) = waiting.poll() ?: return
+        if (CjkDictStore.isDownloaded(filesDir, pack)) {
+            set(pack.id, DownloadStatus.Downloaded)
+            startNext()
+        } else {
+            start(filesDir, pack)
+        }
+    }
+
+    /** Empties the queue, each pack back to whatever is on disk for it. */
+    private fun dropWaiting() {
+        while (true) {
+            val (filesDir, pack) = waiting.poll() ?: return
+            val part = CjkDictStore.partFile(filesDir, pack)
+            set(pack.id, if (part.isFile) DownloadStatus.Paused(part.length(), pack.sizeBytes) else DownloadStatus.NotDownloaded)
         }
     }
 
@@ -106,7 +156,7 @@ object CjkDictDownloadManager {
         activeId = pack.id
         val part = CjkDictStore.partFile(filesDir, pack)
         set(pack.id, DownloadStatus.Downloading(part.length(), pack.sizeBytes))
-        activeJob = scope.launch {
+        val job = scope.launch {
             try {
                 downloadInto(pack, part)
                 verifyChecksum(pack, part)
@@ -146,6 +196,12 @@ object CjkDictDownloadManager {
                 activeId = null
             }
         }
+        activeJob = job
+        // Runs once the job is complete, so [isBusy] already says no. A cancel
+        // is the user stopping the download, and with it the queue.
+        job.invokeOnCompletion { cause ->
+            if (cause is kotlinx.coroutines.CancellationException) dropWaiting() else startNext()
+        }
     }
 
     /**
@@ -172,10 +228,12 @@ object CjkDictDownloadManager {
     }
 
     fun cancel() {
+        if (!isBusy) dropWaiting()
         activeJob?.cancel()
     }
 
     fun delete(filesDir: File, pack: CjkDictPack) {
+        waiting.removeIf { it.second.id == pack.id }
         if (pack.id == activeId) cancel()
         CjkDictStore.delete(filesDir, pack)
         set(pack.id, DownloadStatus.NotDownloaded)

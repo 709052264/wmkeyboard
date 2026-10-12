@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.input.composer
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
+import com.wasimaster.wmkeyboard.core.script.ComposerType
 import com.wasimaster.wmkeyboard.input.R
 import java.io.File
 
@@ -156,6 +157,24 @@ object CjkDictCatalog {
 
     fun forLang(langId: String): List<CjkDictPack> =
         packs.filter { it.langId == langId || langId in it.alsoLangIds }
+
+    /**
+     * The pack a layout typing through [type] cannot convert without, or null
+     * for a composer that needs none. Spelled to match [CjkDictionaries]'
+     * `missing*`, which answers the same question once the tables are loaded;
+     * this one is for Settings, which has no tables, deciding what to offer
+     * when such a layout is switched on.
+     */
+    fun forComposer(type: ComposerType): CjkDictPack? = byId(
+        when (type) {
+            ComposerType.PINYIN, ComposerType.T9_PINYIN, ComposerType.ZHUYIN -> "pinyin"
+            ComposerType.ROMAJI -> "ja_kana"
+            ComposerType.STROKE -> "stroke"
+            ComposerType.CANGJIE, ComposerType.CANGJIE_QUICK -> "cangjie"
+            ComposerType.JYUTPING -> "jyutping"
+            else -> return null
+        },
+    )
 }
 
 /**
