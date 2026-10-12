@@ -1,0 +1,71 @@
+---
+title: "Offline voice (Whistle)"
+description: "Fast dictation on your phone in seven languages, with one small Cactus Whistle model."
+sidebar:
+  order: 4.2
+  badge:
+    text: "Full"
+    variant: note
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+Offline Whistle is a dictation engine that runs entirely on your phone, like [offline Whisper](/tools/whisper/), but with one small model instead of a catalog. [Cactus Whistle](https://huggingface.co/Cactus-Compute/whistle) is a 16.9 MB speech recognition model by Cactus Compute, run by their Needle engine. Once the model is downloaded, no audio leaves the phone.
+
+It was contributed by [@Guillermode20](https://github.com/Guillermode20).
+
+## Whistle or Whisper
+
+| | Whistle | Whisper |
+|---|---|---|
+| Languages | English, German, French, Spanish, Italian, Dutch, Polish | close to a hundred, depending on the model |
+| Download | one model, 16.9 MB | a catalog of 29, from about 40 MB to 1.5 GB |
+| Words to listen for | yes, as words to favour | no |
+| Translate to English | no | on most multilingual models |
+| Devices | 64-bit ARM phones (arm64) only | every phone the Full edition runs on |
+
+Cactus's published figures put Whistle well ahead of Whisper Base on speed and ahead on several English and European test sets, though not all of them. Those are the model makers' own measurements on a desktop processor, not this app's on a phone.
+
+Pick Whistle when you dictate in its languages and want a small download and a quick answer. Pick Whisper when you need any other language, or want to choose a bigger model for accuracy.
+
+## Setting it up
+
+<SettingsPath path="Voice typing / Recognition engine" />
+
+Choose **Offline Whistle** under **Recognition engine**. A **Whistle model** group appears below the dictation settings with one row: **Download** fetches the model, a cross pauses it, **Resume** carries on from where it stopped, and the bin deletes it. On a metered connection the download asks first, as every model download does (see [Data saver](/privacy/data-saver/)).
+
+The option is only offered where the engine can run: the Full edition on a 64-bit ARM phone. Cactus publishes no engine for x86 phones, and the one they publish for older 32-bit ARM phones cannot be built into an Android app, so those phones do not see Whistle at all.
+
+Dictate without the model downloaded and the voice panel says there is no model yet, with the same two ways forward Whisper offers: open settings to download it, or switch to the system recognizer.
+
+## Languages
+
+Dictation follows the language of the layout you are typing on, or the language you set under **Voice typing language**. When that is one of Whistle's seven, Whistle hears it. When it is any other language, dictation uses the system recognizer instead, without a prompt, because there is no Whistle model that could help.
+
+Set to listen for [several languages at once](/tools/voice/#language-and-engine), Whistle hears them only when all of them are among its seven, and it works out which one you spoke. Otherwise the system recognizer takes the whole session.
+
+## Words to listen for
+
+Unlike Whisper, Whistle can be told words to favour. The **Words to listen for** group stays on the screen with Whistle selected, and the same list the system recognizer gets, your own words and the ones you type into **More words to listen for**, goes to Whistle with each phrase. See [Words to listen for](/tools/voice/#words-to-listen-for).
+
+## How a phrase is heard
+
+Whistle works the way Whisper does in the keyboard: it records the phrase and transcribes it once you stop, when **Stop after a pause** ends it, or at 30 seconds. A clip with no speech in it is never shown to the model, a microphone that drops out keeps what it had, and the panel's own keys type without ending the recording. All of that is described under [offline Whisper's details](/tools/whisper/#details--edge-cases) and applies here unchanged.
+
+The model loads while you are speaking your first phrase, so that phrase does not wait for it. It then stays loaded until the keyboard's process ends: the engine has no way to unload a model, and at 17 MB it is not worth reloading.
+
+## Without a connection to your server
+
+With the [transcription server](/tools/transcription-server/) as your engine and **Use on-device models offline** on under [Data saver](/privacy/data-saver/), a phrase that cannot reach the server is transcribed on the phone instead. Whistle does that job when its model is downloaded and it knows the language; otherwise a downloaded Whisper model does.
+
+## Storage and importing
+
+The model is kept in the keyboard's private storage and listed under **Storage > Voice models** beside any Whisper models, where it can be deleted too.
+
+A phone that cannot download it can import it: fetch [`whistle.cact`](https://huggingface.co/Cactus-Compute/whistle/resolve/b358ddadd89b7a713b5aa131f23032d3cca1b251/whistle.cact) on any device and import it like any other file (see [Using it without internet](/privacy/offline/#voice-models)). The download and the import both check the file's SHA-256 before it is used, so only that exact file is accepted.
+
+## Privacy and credits
+
+Transcription makes no network calls. The one network request Whistle causes is the model download from Hugging Face, made when you press **Download**. See [Network policy](/privacy/network/).
+
+The Needle engine and the Whistle model are Cactus Compute's, under the Apache 2.0 licence. The engine ships in the app as Cactus's own published build, behind a small bridge of the keyboard's own; F-Droid builds are Lite and carry neither.

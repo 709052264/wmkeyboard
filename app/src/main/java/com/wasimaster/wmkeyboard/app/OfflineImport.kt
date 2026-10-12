@@ -27,6 +27,8 @@ import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.stickers.CutoutModel
 import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
+import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
+import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
 import java.io.File
 import java.io.IOException
 import java.util.zip.ZipFile
@@ -219,6 +221,16 @@ internal object OfflineImport {
                     is WhisperDownloadManager.Installed.Vocab ->
                         Outcome(name, true, R.string.offline_import_whisper_vocab, listOf(count(result.models.size)))
                     null -> Outcome(name, false, R.string.offline_import_unknown)
+                }
+            }
+        }
+        if (name == WhistleModelStore.MODEL_FILE_NAME) {
+            return attempt(name, busy = WhistleModelDownloadManager.isBusy) {
+                if (WhistleModelStore.install(filesDir, file)) {
+                    WhistleModelDownloadManager.refresh(filesDir)
+                    Outcome(name, true, R.string.offline_import_whistle_ready)
+                } else {
+                    Outcome(name, false, R.string.offline_import_mismatch)
                 }
             }
         }

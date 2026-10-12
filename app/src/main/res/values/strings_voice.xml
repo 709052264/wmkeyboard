@@ -14,12 +14,15 @@
     <string name="voice_engine_group">Engine</string>
     <string name="voice_engine_title">Recognition engine</string>
     <string name="voice_engine_subtitle">How the keyboard turns speech into text</string>
-    <string name="voice_engine_info">The system recognizer is fast and shows the words while you speak, but it depends on the operating system and its languages. Offline Whisper runs fully on your device across many languages and sends no audio anywhere. It transcribes each phrase after you stop speaking. A transcription server does the same work on a computer you choose, so your phone spends less battery. The recording of each phrase goes to that server and nowhere else.</string>
+    <string name="voice_engine_info">The system recognizer is fast and shows the words while you speak, but it depends on the operating system and its languages. Offline Whisper runs fully on your device across many languages and sends no audio anywhere. It transcribes each phrase after you stop speaking. Offline Whistle works the same way with one small, fast model for seven languages: English, German, French, Spanish, Italian, Dutch and Polish. A transcription server does the same work on a computer you choose, so your phone spends less battery. The recording of each phrase goes to that server and nowhere else.</string>
     <string name="voice_engine_system">System recognizer</string>
     <string name="voice_engine_whisper">Offline Whisper</string>
     <!-- One line under each option in the recognition engine picker. -->
     <string name="voice_engine_system_desc">Fast, and it shows the words while you speak. It depends on your device and its languages</string>
     <string name="voice_engine_whisper_desc">Runs on your device and sends no audio anywhere. Each phrase arrives after you stop</string>
+    <!-- Whistle is the model's name and is not translated. -->
+    <string name="voice_engine_whistle">Offline Whistle</string>
+    <string name="voice_engine_whistle_desc">One fast 17 MB model on your device for English, German, French, Spanish, Italian, Dutch and Polish. Other languages use the system recognizer</string>
     <string name="voice_engine_server">Transcription server</string>
     <string name="voice_engine_server_desc">Sends each phrase to a server you run, which saves battery. Each phrase arrives after you stop</string>
     <string name="voice_dictation_group">Dictation</string>
@@ -81,7 +84,7 @@
     <string name="voice_bias_group">Words to listen for</string>
     <string name="voice_bias_personal_title">Listen for my words</string>
     <string name="voice_bias_personal_subtitle">Names and other words from your dictionary, so they are spelled your way</string>
-    <string name="voice_bias_personal_info">Each time you dictate, the keyboard sends a list of your own words with it: the words you added by hand, the words in Android\'s personal dictionary, and the words the keyboard learned from your typing that are not in any word list, such as names. The system engine also gets permission to use what it knows about your phone, such as your contacts. The list goes to the engine that listens to your voice, and nowhere else. The system engine uses it on Android 13 and later, if the engine supports it. A transcription server gets it as part of its prompt. Offline Whisper cannot use a list, so this setting does not show for it.</string>
+    <string name="voice_bias_personal_info">Each time you dictate, the keyboard sends a list of your own words with it: the words you added by hand, the words in Android\'s personal dictionary, and the words the keyboard learned from your typing that are not in any word list, such as names. The system engine also gets permission to use what it knows about your phone, such as your contacts. The list goes to the engine that listens to your voice, and nowhere else. The system engine uses it on Android 13 and later, if the engine supports it. A transcription server gets it as part of its prompt, and Offline Whistle as words to favour. Offline Whisper cannot use a list, so this setting does not show for it.</string>
     <string name="voice_bias_words_label">More words to listen for</string>
     <string name="voice_bias_words_hint">Optional. Separate them with commas. These go first, before the words from your dictionary</string>
     <!-- A model or a whole other server for one language (#389). -->
@@ -139,4 +142,14 @@
     <string name="voice_languages_keyboard_group">Your keyboard languages</string>
     <string name="voice_languages_other_group">Other languages</string>
     <string name="voice_languages_dialog_body">Following the keyboard, dictation listens for the language of the layout you are typing on. Tick one language to keep dictation in it whatever the layout. Tick several to speak any of them. The system recognizer tells them apart on Android 14 and later, where the recognizer supports it. Offline Whisper and the transcription server work out the language themselves, so give Whisper a model that covers all of them. Elsewhere the first language is the one heard: the keyboard\'s language when it is ticked.</string>
+
+    <!-- ================================================================== -->
+    <!-- The Offline Whistle model (#548). Whistle and Cactus are names.     -->
+    <!-- ================================================================== -->
+    <string name="voice_whistle_group">Whistle model</string>
+    <string name="voice_whistle_model_title">Cactus Whistle</string>
+    <string name="voice_whistle_model_info">Whistle is a speech recognition model by Cactus Compute that runs on this phone. It covers English, German, French, Spanish, Italian, Dutch and Polish, and it is small and quick enough that a phrase is usually typed a moment after you stop. While a layout in another language is in use, dictation uses the system recognizer instead. The model comes from Hugging Face once, and after that no audio leaves the phone.</string>
+    <!-- %1$s is the download size, for example "16.9 MB". -->
+    <string name="voice_whistle_model_missing">Not downloaded · %1$s</string>
+    <string name="voice_whistle_model_ready">Ready. No audio leaves your phone</string>
 </resources>

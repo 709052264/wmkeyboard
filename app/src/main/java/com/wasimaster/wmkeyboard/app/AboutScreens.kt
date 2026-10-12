@@ -318,6 +318,16 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "https://github.com/vilassn/whisper_android",
             ),
         )
+        // The other offline engine (#548), in the same builds.
+        add(
+            Attribution(
+                "Cactus Needle and Whistle",
+                R.string.about_bundled_whistle_used,
+                "Copyright Cactus Compute, Inc.",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://huggingface.co/Cactus-Compute/whistle",
+            ),
+        )
     }
     add(
         Attribution(

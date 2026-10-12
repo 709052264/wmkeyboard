@@ -46,6 +46,7 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bolt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Memory
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhoneAndroid
 import androidx.compose.material.icons.Icons
@@ -224,12 +225,15 @@ internal fun PrivacySettings(
 internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     val whisperEnabled = com.wasimaster.wmkeyboard.core.settings.isWhisperEnabled()
+    // No library in lite or off arm64, so nothing to offer there (#548).
+    val whistleEnabled = com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine.available
     // What decides which groups and rows the screen holds; each row reads its
     // own value.
     val engine = settings.watch { it.whisper.engine }
     val voiceUiMode = settings.watch { it.voiceBar.mode }
     val typingMode = settings.watch { it.voiceBar.typingMode }
     val usingWhisper = whisperEnabled && engine == "whisper"
+    val usingWhistle = whistleEnabled && engine == "whistle"
     val usingServer = engine == "server"
     // The master switch (#578). Off, the rest of the screen is about something
     // the keyboard no longer does, so it goes; the values stay stored.
@@ -251,6 +255,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
     run {
         val systemEngine = stringResource(R.string.voice_engine_system)
         val whisperEngine = stringResource(R.string.voice_engine_whisper)
+        val whistleEngine = stringResource(R.string.voice_engine_whistle)
         val serverEngine = stringResource(R.string.voice_engine_server)
         SettingsGroup(stringResource(R.string.voice_engine_group)) {
             item {
@@ -265,6 +270,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                     options = listOfNotNull(
                         "system" to systemEngine,
                         ("whisper" to whisperEngine).takeIf { whisperEnabled },
+                        ("whistle" to whistleEngine).takeIf { whistleEnabled },
                         "server" to serverEngine,
                     ),
                     selected = engine,
@@ -274,6 +280,10 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                             "whisper" -> ChoiceDetail(
                                 stringResource(R.string.voice_engine_whisper_desc),
                                 Icons.Outlined.Memory,
+                            )
+                            "whistle" -> ChoiceDetail(
+                                stringResource(R.string.voice_engine_whistle_desc),
+                                Icons.Outlined.Bolt,
                             )
                             "server" -> ChoiceDetail(
                                 stringResource(R.string.voice_engine_server_desc),
@@ -466,7 +476,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
         }
     }
     // Offline Whisper has no way to take a hint, so the group only shows for
-    // the two engines that read it (#305).
+    // the engines that read it (#305): Whistle takes it as keywords (#548).
     if (!usingWhisper) {
         SettingsGroup(stringResource(R.string.voice_bias_group)) {
             item {
@@ -501,6 +511,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
         }
         WhisperModelManager(repository, settings)
     }
+    if (usingWhistle) WhistleModelManager(settings)
     if (usingServer) VoiceServerSettings(repository, settings)
 }
 

@@ -67,6 +67,8 @@ import com.wasimaster.wmkeyboard.core.tools.PhotoBackgroundManager
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperStore
+import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
+import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
 import com.wasimaster.wmkeyboard.ime.ui.mediaImageLoader
 import java.io.File
 
@@ -228,6 +230,9 @@ internal object StorageCategories {
      */
     private const val STICKER_CUTOUT_ITEM = "sticker_cutout_model"
 
+    /** Whistle's item among the Whisper model directories, whose ids are catalog ids. */
+    private const val WHISTLE_ITEM_ID = "whistle"
+
     fun byId(id: String): StorageCategory? = all.firstOrNull { it.id == id }
 
     /** In display order: the app, then downloads, looks, personal data, caches, the rest. */
@@ -370,7 +375,7 @@ internal object StorageCategories {
             danger = Danger.REDOWNLOAD,
             manageRoute = "voice",
             note = R.string.storage_note_mapped,
-            pathsOf = { listOf(WhisperStore.rootDir(it.files)) },
+            pathsOf = { listOf(WhisperStore.rootDir(it.files), WhistleModelStore.rootDir(it.files)) },
             itemsOf = { env ->
                 childrenOf(WhisperStore.rootDir(env.roots.files)).map { dir ->
                     StorageItem(
@@ -380,20 +385,35 @@ internal object StorageCategories {
                         bytes = diskUsage(dir, env.roots.blockSize),
                         files = listOf(dir),
                     )
-                }
+                } + listOfNotNull(
+                    // Whistle's one model (#548), downloaded or part-way.
+                    WhistleModelStore.rootDir(env.roots.files).takeIf { it.isDirectory }?.let { dir ->
+                        StorageItem(
+                            id = WHISTLE_ITEM_ID,
+                            label = "Whistle",
+                            bytes = diskUsage(dir, env.roots.blockSize),
+                            files = listOf(dir),
+                        )
+                    },
+                )
             },
             deleteOne = { env, item ->
-                // The selection goes first: the keyboard must never be pointed
-                // at a model file that is about to disappear.
-                env.repository.clearWhisperModelAssignments(item.id)
-                item.files.forEach { it.deleteRecursively() }
-                WhisperDownloadManager.refresh(env.roots.files)
+                if (item.id == WHISTLE_ITEM_ID) {
+                    WhistleModelDownloadManager.delete(env.roots.files)
+                } else {
+                    // The selection goes first: the keyboard must never be pointed
+                    // at a model file that is about to disappear.
+                    env.repository.clearWhisperModelAssignments(item.id)
+                    item.files.forEach { it.deleteRecursively() }
+                    WhisperDownloadManager.refresh(env.roots.files)
+                }
             },
             clearOf = { env ->
                 WhisperCatalog.models.forEach { env.repository.clearWhisperModelAssignments(it.id) }
                 env.repository.setWhisperModelId("")
                 emptyOut(WhisperStore.rootDir(env.roots.files))
                 WhisperDownloadManager.refresh(env.roots.files)
+                WhistleModelDownloadManager.delete(env.roots.files)
             },
         ),
         StorageCategory(

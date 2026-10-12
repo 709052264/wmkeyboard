@@ -562,6 +562,9 @@ import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperLanguages
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperEngine
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperException
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperModel
+import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine
+import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleLanguages
+import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperScript
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperStore
 import com.wasimaster.wmkeyboard.core.settings.isWhisperEnabled
@@ -2715,9 +2718,15 @@ open class WMKeyboardService : InputMethodService() {
      * can run for up to 30 seconds, during which the user can switch the
      * keyboard's language or pick a different Whisper model in Settings;
      * transcription must use what the clip was actually captured for, not
-     * whatever [whisperModel] resolves to when the clip finishes.
+     * whatever [onDeviceVoice] resolves to when the clip finishes.
      */
-    private var whisperCapture: Pair<WhisperModel, String>? = null
+    private var whisperCapture: Pair<OnDeviceVoice, String>? = null
+
+    /** What a clip is transcribed with on the device: a Whisper graph, or Whistle (#548). */
+    private sealed interface OnDeviceVoice {
+        data class Whisper(val model: WhisperModel) : OnDeviceVoice
+        data object Whistle : OnDeviceVoice
+    }
     /**
      * The language id [whisperRecorder] was started against when the clip is
      * for the transcription server (#286) rather than a local model. Null for
@@ -23360,11 +23369,16 @@ open class WMKeyboardService : InputMethodService() {
                 return
             }
         }
-        val whisperModel = if (offlineVoice) fallbackWhisperModel() else whisperModel()
-        val whisperSelected = isWhisperEnabled() && _uiState.value.settings.whisper.engine == "whisper"
-        if (whisperSelected && whisperModel == null) {
-            // Whisper is chosen but no model is downloaded — prompt for one
-            // instead of opening the mic to no purpose.
+        val onDevice = if (offlineVoice) fallbackOnDeviceVoice() else onDeviceVoice()
+        val engine = _uiState.value.settings.whisper.engine
+        val whisperSelected = isWhisperEnabled() && engine == "whisper"
+        // Whistle only answers for its seven languages (#548). Any other is
+        // the system recognizer's, with no prompt: there is no model that
+        // would help.
+        val whistleSelected = engine == "whistle" && whistleCoversVoice()
+        if ((whisperSelected || whistleSelected) && onDevice == null) {
+            // An offline engine is chosen but its model is not downloaded —
+            // prompt for one instead of opening the mic to no purpose.
             _uiState.update {
                 it.copy(
                     voice = it.voice.copy(
@@ -23376,11 +23390,11 @@ open class WMKeyboardService : InputMethodService() {
             }
             return
         }
-        if (!server && whisperModel == null && !voiceEngine.isAvailable()) {
+        if (!server && onDevice == null && !voiceEngine.isAvailable()) {
             fail(VoiceStatus.UNAVAILABLE)
             return
         }
-        if (whisperModel != null && !WhisperEngine.ready) {
+        if (onDevice is OnDeviceVoice.Whisper && !WhisperEngine.ready) {
             // Play only: the interpreter is an on-demand part that is not here
             // yet. Said now rather than after the phrase, which would be
             // recorded for nothing. Data saver holding downloads leaves the
@@ -23405,9 +23419,9 @@ open class WMKeyboardService : InputMethodService() {
                 voice = it.voice.copy(
                     status = VoiceStatus.LISTENING, languageTag = tag,
                     partial = "", level = 0f, errorMessage = null, secondsLeft = 0,
-                    whisper = whisperModel != null,
+                    whisper = onDevice != null,
                     remote = server,
-                    translate = _uiState.value.settings.whisper.translate,
+                    translate = _uiState.value.settings.whisper.translate && onDevice is OnDeviceVoice.Whisper,
                     whisperNeedsModel = false,
                     serverNeedsSetup = false,
                 ),
@@ -23418,8 +23432,8 @@ open class WMKeyboardService : InputMethodService() {
         // first words already come through the headset.
         val mic = voiceMicKind()
         voiceMicRoute.hold(mic)
-        if (whisperModel != null || server) {
-            startWhisperCapture(whisperModel, generation, mic)
+        if (onDevice != null || server) {
+            startWhisperCapture(onDevice, generation, mic)
             return
         }
         noteVoiceMic(VoiceMics.deviceFor(this, mic) ?: VoiceMics.autoDevice(this))
@@ -23604,11 +23618,14 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * The downloaded Whisper model for the language being typed in, whichever
-     * engine is picked, for dictation to fall back on (#452). Null when there is
-     * none, or no runtime to run it with yet.
+     * The on-device model for dictation to fall back on (#452), whichever
+     * engine is picked: Whistle when it covers what is being dictated and is
+     * downloaded, since it is the quicker of the two, else the downloaded
+     * Whisper model for the language being typed in. Null when there is
+     * neither, or no runtime to run Whisper with yet.
      */
-    private fun fallbackWhisperModel(): WhisperModel? {
+    private fun fallbackOnDeviceVoice(): OnDeviceVoice? {
+        if (whistleCoversVoice() && WhistleModelStore.isDownloaded(filesDir)) return OnDeviceVoice.Whistle
         if (!isWhisperEnabled() || !WhisperEngine.ready) return null
         val s = _uiState.value.settings
         return WhisperStore.modelForLanguage(
@@ -23616,15 +23633,27 @@ open class WMKeyboardService : InputMethodService() {
             voiceLanguageId(),
             s.whisper.modelId,
             s.whisper.modelByLang,
-        )
+        )?.let { OnDeviceVoice.Whisper(it) }
     }
+
+    /**
+     * Whistle can run here and knows every language the dictation listens for
+     * (#548). It takes one language or detects among its own seven, so a
+     * dictation in several (#416) is Whistle's only when all of them are.
+     */
+    private fun whistleCoversVoice(): Boolean =
+        WhistleEngine.available && voiceLanguageIds().all(WhistleLanguages::supports)
 
     /**
      * [pcm] transcribed by [model] the way [finishWhisper] does it, for a clip
      * recorded for the server that could not be sent (#452). Blocking; call off
      * the main thread.
      */
-    private fun transcribeOnDevice(model: WhisperModel, pcm: FloatArray, languages: List<String>): String {
+    private fun transcribeOnDevice(voice: OnDeviceVoice, pcm: FloatArray, languages: List<String>): String {
+        val model = when (voice) {
+            is OnDeviceVoice.Whisper -> voice.model
+            OnDeviceVoice.Whistle -> return transcribeWithWhistle(pcm, languages, recognizerBias().words)
+        }
         // As in [finishWhisper]: a choice of several languages is left to the
         // model to tell apart.
         val langToken = languages.singleOrNull()?.let(model::langTokenFor)
@@ -23640,6 +23669,20 @@ open class WMKeyboardService : InputMethodService() {
         // answer in the wrong script.
         return if (langToken == null && model.fixedLang == null) WhisperScript.rescueAmong(text, languages) else text
     }
+
+    /**
+     * [pcm] transcribed by Whistle (#548). One language is named to it; a
+     * dictation in several (#416) is left for it to tell apart. [keywords] are
+     * the same words the system recognizer is told to listen for. Blocking;
+     * call off the main thread.
+     */
+    private fun transcribeWithWhistle(pcm: FloatArray, languages: List<String>, keywords: List<String>): String =
+        WhistleEngine.transcribe(
+            WhistleModelStore.modelFile(filesDir),
+            pcm,
+            language = languages.singleOrNull(),
+            keywords = keywords,
+        ).trim()
 
     /**
      * What the system recognizer is told to listen for (#305): the user's own
@@ -23662,12 +23705,13 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * Gathers [voiceBiasPersonal] again off the main thread, at most every
      * [VOICE_BIAS_TTL_MS], and only while it can be used: the setting on and
-     * an engine that takes a hint picked. The server engine gathers its own
+     * an engine that takes a hint picked (the system recognizer, or Whistle's
+     * keywords). The server engine gathers its own
      * at the moment it sends, since it is already off the main thread then.
      */
     private fun refreshVoiceBias() {
         val whisper = _uiState.value.settings.whisper
-        if (!whisper.biasPersonalWords || whisper.engine != "system") return
+        if (!whisper.biasPersonalWords || (whisper.engine != "system" && whisper.engine != "whistle")) return
         val now = SystemClock.elapsedRealtime()
         if (voiceBiasJob?.isActive == true) return
         if (voiceBiasStamp != 0L && now - voiceBiasStamp < VOICE_BIAS_TTL_MS) return
@@ -23715,15 +23759,24 @@ open class WMKeyboardService : InputMethodService() {
         return byHand + system + unlisted
     }
 
-    private fun whisperModel(): WhisperModel? {
+    private fun onDeviceVoice(): OnDeviceVoice? {
         val s = _uiState.value.settings
-        if (!isWhisperEnabled() || s.whisper.engine != "whisper") return null
-        return WhisperStore.modelForLanguage(
-            filesDir,
-            voiceLanguageId(),
-            s.whisper.modelId,
-            s.whisper.modelByLang,
-        )
+        return when (s.whisper.engine) {
+            "whisper" -> if (!isWhisperEnabled()) {
+                null
+            } else {
+                WhisperStore.modelForLanguage(
+                    filesDir,
+                    voiceLanguageId(),
+                    s.whisper.modelId,
+                    s.whisper.modelByLang,
+                )?.let { OnDeviceVoice.Whisper(it) }
+            }
+            "whistle" -> OnDeviceVoice.Whistle.takeIf {
+                whistleCoversVoice() && WhistleModelStore.isDownloaded(filesDir)
+            }
+            else -> null
+        }
     }
 
     /**
@@ -23735,7 +23788,7 @@ open class WMKeyboardService : InputMethodService() {
      * A null [model] records the clip for the transcription server instead:
      * the capture is the same, only [finishWhisper] sends it somewhere else.
      */
-    private fun startWhisperCapture(model: WhisperModel?, generation: Int, mic: String) {
+    private fun startWhisperCapture(model: OnDeviceVoice?, generation: Int, mic: String) {
         val languages = voiceLanguageIds()
         val languageId = languages.first()
         whisperCapture = model?.let { it to languageId }
@@ -23784,10 +23837,18 @@ open class WMKeyboardService : InputMethodService() {
         // confident filler text, so catch it before anything is transcribed.
         micBlockWatcher.start(recorder.audioSessionId) { onMicBlocked(generation) }
         // The graph loads while the phrase is being said rather than after it.
-        if (model != null) {
-            serviceScope.launch(Dispatchers.Default) {
-                WhisperEngine.warm(WhisperStore.modelFile(filesDir, model), WhisperStore.vocabFile(filesDir, model))
+        when (model) {
+            is OnDeviceVoice.Whisper -> serviceScope.launch(Dispatchers.Default) {
+                WhisperEngine.warm(
+                    WhisperStore.modelFile(filesDir, model.model),
+                    WhisperStore.vocabFile(filesDir, model.model),
+                )
             }
+            // A damaged file throws here; transcribing says so properly.
+            OnDeviceVoice.Whistle -> serviceScope.launch(Dispatchers.Default) {
+                runCatching { WhistleEngine.warm(WhistleModelStore.modelFile(filesDir)) }
+            }
+            null -> Unit
         }
     }
 
@@ -23842,6 +23903,7 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val model = capture?.first
+        val whisper = (model as? OnDeviceVoice.Whisper)?.model
         val languageId = capture?.second ?: voiceLanguageId()
         val languages = captureLanguages.ifEmpty { listOf(languageId) }
         val gen = voiceGeneration
@@ -23850,18 +23912,20 @@ open class WMKeyboardService : InputMethodService() {
         // being typed in rather than letting them guess from a short clip. A
         // dictation that listens for several (#416) is the one case where the
         // guess is wanted: the graph can only be told one.
-        val langToken = if (languages.size == 1) model?.langTokenFor(languageId) else null
+        val langToken = if (languages.size == 1) whisper?.langTokenFor(languageId) else null
         // Only ask for the translate task where the model was actually trained for
         // it. A graph can carry the signature without it being any good: turbo was
         // exported with one and trained for transcription alone, and running that
         // task returns confident nonsense instead of failing.
-        val translate = _uiState.value.settings.whisper.translate && model?.supportsTranslate == true
+        val translate = _uiState.value.settings.whisper.translate && whisper?.supportsTranslate == true
         if (model == null) {
             serviceScope.launch(Dispatchers.IO) { runCatching { recorder.stop() } }
             _uiState.update { it.copy(voice = it.voice.copy(status = VoiceStatus.IDLE, level = 0f)) }
             settleVoiceToolEnding()
             return
         }
+        // Read here, on the main thread, where the bias list is kept.
+        val keywords = if (model is OnDeviceVoice.Whistle) recognizerBias().words else emptyList()
         _uiState.update {
             it.copy(voice = it.voice.copy(status = VoiceStatus.TRANSCRIBING, partial = "", level = 0f))
         }
@@ -23875,19 +23939,23 @@ open class WMKeyboardService : InputMethodService() {
                 Result.success("")
             } else {
                 runCatching {
-                    WhisperEngine.transcribe(
-                        WhisperStore.modelFile(filesDir, model),
-                        WhisperStore.vocabFile(filesDir, model),
-                        pcm,
-                        translate,
-                        langToken,
-                    )
+                    when (model) {
+                        is OnDeviceVoice.Whisper -> WhisperEngine.transcribe(
+                            WhisperStore.modelFile(filesDir, model.model),
+                            WhisperStore.vocabFile(filesDir, model.model),
+                            pcm,
+                            translate,
+                            langToken,
+                        )
+                        OnDeviceVoice.Whistle -> transcribeWithWhistle(pcm, languages, keywords)
+                    }
                 }
             }
             // A graph told which language to use, or built for exactly one, cannot
             // answer in the wrong script. Only the auto-detecting ones can, and
-            // Bangla misread as Hindi is the case worth repairing.
-            val detected = langToken == null && model.fixedLang == null
+            // Bangla misread as Hindi is the case worth repairing. Whistle has no
+            // language that could be misread as one in another script.
+            val detected = whisper != null && langToken == null && whisper.fixedLang == null
             withContext(Dispatchers.Main) {
                 if (gen != voiceGeneration) return@withContext
                 result
@@ -23982,7 +24050,7 @@ open class WMKeyboardService : InputMethodService() {
             val local = if (failure != null && ToolHttp.isUnreachable(failure) &&
                 _uiState.value.settings.dataSaver.offlineFallback
             ) {
-                fallbackWhisperModel()
+                fallbackOnDeviceVoice()
             } else {
                 null
             }
