@@ -20386,6 +20386,7 @@ internal fun KeyButton(
                                 settings.layoutBehavior.spacebarDisplay,
                             )
                             val chipFontSize = (14 * settings.popup.fontScale).sp
+                            val chipFont = layoutLabelFont(label, chipLayoutId, settings.customLayouts)
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier
@@ -20408,6 +20409,7 @@ internal fun KeyButton(
                                     maxLines = 1,
                                     softWrap = false,
                                     fontSize = chipFontSize,
+                                    fontFamily = chipFont,
                                     fontWeight = FontWeight.SemiBold,
                                     color = Color.Transparent,
                                 )
@@ -20416,6 +20418,7 @@ internal fun KeyButton(
                                     maxLines = 1,
                                     softWrap = false,
                                     fontSize = chipFontSize,
+                                    fontFamily = chipFont,
                                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                                     color = if (selected) kb.popupText else kb.popupText.copy(alpha = 0.45f),
                                 )
@@ -22020,8 +22023,10 @@ private fun LanguagePickerPopup(
                     for ((index, layoutId) in enabledLayoutIds.withIndex()) {
                         val selected = layoutId == currentLayoutId
                         val dragged = index == highlightIndex
+                        val label = layoutSwitchLabel(layoutId, enabledLayoutIds, customLayouts, displayMode)
                         Text(
-                            text = layoutSwitchLabel(layoutId, enabledLayoutIds, customLayouts, displayMode),
+                            text = label,
+                            fontFamily = layoutLabelFont(label, layoutId, customLayouts),
                             color = if (selected) kb.popupSelectedText else kb.popupText,
                             fontWeight = if (selected || dragged) FontWeight.Bold else FontWeight.Normal,
                             fontSize = 15.sp,
@@ -22160,8 +22165,10 @@ private fun LanguageCarouselPopup(
                     for ((index, layoutId) in enabledLayoutIds.withIndex()) {
                         val selected = layoutId == currentLayoutId
                         val dragged = index == highlightIndex
+                        val label = layoutSwitchLabel(layoutId, enabledLayoutIds, customLayouts, displayMode)
                         Text(
-                            text = layoutSwitchLabel(layoutId, enabledLayoutIds, customLayouts, displayMode),
+                            text = label,
+                            fontFamily = layoutLabelFont(label, layoutId, customLayouts),
                             color = if (selected) kb.popupSelectedText else kb.popupText,
                             fontWeight = if (selected || dragged) FontWeight.Bold else FontWeight.Normal,
                             fontSize = 15.sp,
@@ -22249,6 +22256,28 @@ private fun SwitcherExtraStopChip(
             .size((18 * fontScale).dp),
     )
 }
+
+/**
+ * The face [label], the switcher's name for [layoutId], is drawn in: the face
+ * of the script it is written in, never the active layout's (see
+ * [LocalScriptLabelFont]), so a switch leaves every name exactly as wide as it
+ * was. Written in the language's own letters ("বাংলা") it takes that script's
+ * face; named in Latin letters ("Avro phonetic", "Banglish") it takes the
+ * Latin one, as the same words would anywhere else on the keyboard.
+ */
+@Composable
+private fun layoutLabelFont(label: String, layoutId: String, customLayouts: List<LayoutSpec>): FontFamily? {
+    val script = resolveLayout(customLayouts, layoutId).language().script
+    val written = if (script != ScriptId.LATIN && label.any { it.isLetter() && it.code > LatinExtendedEnd }) {
+        script
+    } else {
+        ScriptId.LATIN
+    }
+    return LocalScriptLabelFont.current(written)
+}
+
+/** Last code point of Latin Extended-B: a letter past it is not one the Latin faces are for. */
+private const val LatinExtendedEnd = 0x024F
 
 /**
  * Label for an enabled layout in the spacebar language switcher (tooltip and

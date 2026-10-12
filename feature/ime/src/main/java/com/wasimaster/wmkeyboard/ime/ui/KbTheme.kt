@@ -53,6 +53,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
+import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.fonts.LayoutFonts
 import com.wasimaster.wmkeyboard.core.emoji.EmojiFontShaping
 import com.wasimaster.wmkeyboard.core.settings.withRotation
@@ -582,6 +583,21 @@ val LocalKbTheme = staticCompositionLocalOf<KbTheme> {
  * display face has no emoji glyphs and vice versa.
  */
 val LocalEmojiFontFamily = staticCompositionLocalOf<FontFamily?> { null }
+
+/**
+ * The face a label written in a given script is drawn in, whatever layout is
+ * active. The Material typography carries the *active* layout's face, so a
+ * strip of language names drawn with it changed face on every switch: each
+ * chip re-measured, the strip slid, and a Bengali name sat in a Latin face
+ * until it was the active one. The language switcher draws each name with
+ * this instead, so every chip keeps one face, its own script's, throughout.
+ *
+ * Same order as the key font, minus the active layout's own face (that one
+ * belongs to a single grid): the user's per-script pick, the theme's face for
+ * the script, the script's Noto face; then, for the scripts that ride the
+ * Latin faces, the user's key font and the theme's. Null leaves the system face.
+ */
+internal val LocalScriptLabelFont = staticCompositionLocalOf<(ScriptId) -> FontFamily?> { { null } }
 
 /**
  * Respells an emoji for whatever [LocalEmojiFontFamily] resolves to — see
@@ -1422,6 +1438,42 @@ fun KeyboardThemeProvider(
             ?: layoutFontId?.let { KeyboardFonts.family(context, it) }
             ?: themeFontId?.let { KeyboardFonts.family(context, it) }
     }
+    // See [LocalScriptLabelFont]. Resolved per script on first ask, then kept
+    // for as long as the font settings and the theme stay what they are.
+    val themeScriptFonts = remember(settings, darkSlot) {
+        settings.activeThemeSpec(darkSlot)?.scriptFontIds.orEmpty()
+    }
+    val scriptLabelFont = remember(
+        themeFontId,
+        themeScriptFonts,
+        settings.keyFontId,
+        settings.scriptFontIds,
+        settings.customFontName,
+        settings.customScriptFontNames,
+    ) {
+        val latin by lazy {
+            settings.keyFontId.takeIf { it != KeyboardFonts.DEFAULT_ID }
+                ?.let { KeyboardFonts.family(context, it) }
+                ?: themeFontId?.let { KeyboardFonts.family(context, it) }
+        }
+        val resolved = HashMap<ScriptId, FontFamily?>()
+        val resolve: (ScriptId) -> FontFamily? = { script ->
+            if (script in resolved) {
+                resolved[script]
+            } else {
+                (
+                    KeyboardFonts.scriptFamily(
+                        context,
+                        script,
+                        settings.scriptFontIds[script.name] ?: KeyboardFonts.DEFAULT_ID,
+                        null,
+                        themeScriptFonts[script.name],
+                    ) ?: latin
+                ).also { resolved[script] = it }
+            }
+        }
+        resolve
+    }
     val emojiFontFamily = remember(settings.emojiFont, settings.emojiFontInstalled.installedId) {
         KeyboardFonts.emojiFamily(
             context,
@@ -1457,6 +1509,7 @@ fun KeyboardThemeProvider(
             LocalFrostBackdrop provides remember { FrostBackdrop() },
             LocalEmojiFontFamily provides emojiFontFamily,
             LocalEmojiShaper provides emojiShaper,
+            LocalScriptLabelFont provides scriptLabelFont,
             content = content,
         )
     }

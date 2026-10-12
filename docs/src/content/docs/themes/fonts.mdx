@@ -84,6 +84,7 @@ A related but separate control: <SettingsPath path="Accessibility / Readable fon
 ## Details & edge cases
 
 - Fonts apply to key labels, the suggestion strip, and the keyboard's own panels, but not to the text you type, which always commits as plain Unicode and renders with whatever font the receiving app and device use.
+- The language switcher (the spacebar's preview, the picker list and the carousel) draws each language's name in the face of the script it's written in, not the active layout's: বাংলা in your Bengali face, English and names like Avro phonetic in your English one. So switching language never changes how the names look or how wide they are.
 - No Play Services means no Google Font rows: they're removed from every picker rather than left there resolving to the system face, and a short paragraph at the top of the screen says why. The system font, your imported files and the font library are all the app's own, so those stay.
 - With the provider present but the device offline the first time a Google Font is needed, that row quietly renders in the system font instead of erroring; it downloads normally as soon as the provider is reachable.
 - The 50-font and 32 MB limits are shared across the whole library: text and emoji fonts, manually imported and addon-installed, all count against the same caps.
