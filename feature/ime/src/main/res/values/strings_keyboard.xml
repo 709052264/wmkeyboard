@@ -816,6 +816,7 @@
     <!-- Last row of the language list. It opens the system list of the other
          keyboards that are installed on the device. -->
     <string name="ime_language_picker_other_keyboards">Other keyboards…</string>
+    <string name="ime_language_picker_language_settings">Language settings</string>
 
     <!-- The chip the suggestion strip shows for a tool. %1$s is a tool name. -->
     <string name="ime_smart_open_tool">Open %1$s</string>

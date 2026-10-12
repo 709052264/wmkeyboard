@@ -438,6 +438,7 @@ import com.wasimaster.wmkeyboard.core.settings.LetterSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.switchLayoutIds
 import com.wasimaster.wmkeyboard.core.settings.SpacebarDisplay
+import com.wasimaster.wmkeyboard.core.settings.SwitcherExtraStop
 import com.wasimaster.wmkeyboard.core.settings.TransliterationHintMode
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
 import com.wasimaster.wmkeyboard.core.settings.SuggestionOverflow
@@ -825,6 +826,13 @@ internal class LanguageSwitchEcho {
 }
 
 internal val LocalLanguageSwitchEcho = staticCompositionLocalOf { LanguageSwitchEcho() }
+
+/**
+ * Opens a settings screen by route, for a key that leads into settings: the
+ * spacebar switcher's [SwitcherExtraStop.LANGUAGE_SETTINGS] stop and the
+ * pickers' gear row.
+ */
+internal val LocalOpenRoute = staticCompositionLocalOf<(String) -> Unit> { {} }
 
 /**
  * A language the swipe preview showed for this long before the lift has been
@@ -1624,6 +1632,11 @@ fun KeyboardScreen(
         LocalPanelOverKeysHeight provides toolHold.onPanelOverKeysHeight,
         LocalHideKeyboard provides onHideKeyboard,
         LocalLanguageSwitchEcho provides languageSwitchEcho,
+        // Held behind a stable lambda: the service hands a fresh reference on
+        // every pass, and a static local that changes recomposes every key.
+        LocalOpenRoute provides rememberUpdatedState(onOpenRoute).let { latest ->
+            remember { { route: String -> latest.value(route) } }
+        },
         LocalTouchExploration provides rememberTouchExploration(),
         LocalPassthroughService provides
             KeyboardPassthrough.serviceConnected.collectAsState().value,
@@ -19781,6 +19794,9 @@ internal fun KeyButton(
     // Language the spacebar swipe currently has selected, shown in a tooltip
     // popup above the spacebar while the finger is still down.
     var languagePreview by remember { mutableStateOf<String?>(null) }
+    // The hold's preview carries the switcher's extra stop after the layouts.
+    var previewExtraStop by remember { mutableStateOf(false) }
+    val openRoute = LocalOpenRoute.current
     // The language a swipe just committed, lingering after the lift; only a
     // spacebar draws it, and the live swipe preview takes over while one runs.
     val languageSwitchEcho = LocalLanguageSwitchEcho.current
@@ -20105,6 +20121,16 @@ internal fun KeyButton(
                         if (it != null) languageSwitchEcho.clear()
                         languagePreview = it
                     },
+                    switcherExtraStop = settings.layoutBehavior.switcherExtraStop,
+                    openSwitcherExtraStop = {
+                        when (settings.layoutBehavior.switcherExtraStop) {
+                            SwitcherExtraStop.LANGUAGE_SETTINGS -> openRoute(LanguagesRoute)
+                            SwitcherExtraStop.KEYBOARDS ->
+                                onKey(Key(label = "", action = KeyAction.InputMethodPicker))
+                            SwitcherExtraStop.NONE -> Unit
+                        }
+                    },
+                    setPreviewExtraStop = { previewExtraStop = it },
                     echoLanguageSwitch = languageSwitchEcho::show,
                     languageEchoTotalMs = settings.layoutBehavior.languageEchoMs,
                     canDelete = canDelete,
@@ -20288,7 +20314,12 @@ internal fun KeyButton(
         // five-chip window sliding with the selection — drawing every enabled
         // layout ran off the screen the moment a handful were enabled.
         shownLanguage?.let { previewMode ->
-            val enabledLayoutIds = settings.switchLayoutIds()
+            val switchIds = settings.switchLayoutIds()
+            val extraStop = settings.layoutBehavior.switcherExtraStop
+                .takeIf { previewExtraStop && languagePreview != null }
+                ?: SwitcherExtraStop.NONE
+            val enabledLayoutIds =
+                if (extraStop == SwitcherExtraStop.NONE) switchIds else switchIds + SwitcherExtraStopId
             val previewWindow = if (enabledLayoutIds.size <= 5) {
                 enabledLayoutIds
             } else {
@@ -20336,9 +20367,21 @@ internal fun KeyButton(
                     ) {
                         for (chipLayoutId in previewWindow) {
                             val selected = chipLayoutId == previewMode
+                            if (chipLayoutId == SwitcherExtraStopId) {
+                                SwitcherExtraStopChip(
+                                    stop = extraStop,
+                                    selected = selected,
+                                    fontScale = settings.popup.fontScale,
+                                    modifier = Modifier.onPlaced {
+                                        previewChipBounds[chipLayoutId] =
+                                            it.positionInParent().x.roundToInt() to it.size.width
+                                    },
+                                )
+                                continue
+                            }
                             val label = layoutSwitchLabel(
                                 chipLayoutId,
-                                enabledLayoutIds,
+                                switchIds,
                                 settings.customLayouts,
                                 settings.layoutBehavior.spacebarDisplay,
                             )
@@ -20399,6 +20442,17 @@ internal fun KeyButton(
                 onKey(Key(label = "", action = KeyAction.InputMethodPicker))
             }
             val onDismiss = { showLanguagePicker = false; pickerDragIndex = null }
+            val onLanguageSettings = if (
+                settings.layoutBehavior.switcherExtraStop == SwitcherExtraStop.LANGUAGE_SETTINGS
+            ) {
+                {
+                    showLanguagePicker = false
+                    pickerDragIndex = null
+                    openRoute(LanguagesRoute)
+                }
+            } else {
+                null
+            }
             when (settings.layoutBehavior.languagePickerStyle) {
                 LanguagePickerStyle.LIST -> LanguagePickerPopup(
                     popupPosition = popupPosition,
@@ -20409,6 +20463,7 @@ internal fun KeyButton(
                     highlightIndex = pickerDragIndex,
                     onPick = onPick,
                     onOtherKeyboards = onOtherKeyboards,
+                    onLanguageSettings = onLanguageSettings,
                     onDismiss = onDismiss,
                 )
                 LanguagePickerStyle.CAROUSEL -> LanguageCarouselPopup(
@@ -20420,6 +20475,7 @@ internal fun KeyButton(
                     highlightIndex = pickerDragIndex,
                     onPick = onPick,
                     onOtherKeyboards = onOtherKeyboards,
+                    onLanguageSettings = onLanguageSettings,
                     onDismiss = onDismiss,
                 )
             }
@@ -21906,6 +21962,8 @@ private fun LanguagePickerPopup(
     onPick: (String) -> Unit,
     onOtherKeyboards: () -> Unit,
     onDismiss: () -> Unit,
+    /** The gear into the Languages screen ([SwitcherExtraStop.LANGUAGE_SETTINGS]); null leaves it out. */
+    onLanguageSettings: (() -> Unit)? = null,
     /**
      * Row a spacebar hold-drag has walked to, or null when the popup is in
      * plain tap mode (globe long-press, or a hold that has not moved yet).
@@ -21988,6 +22046,21 @@ private fun LanguagePickerPopup(
                     }
                 }
                 HorizontalDivider(color = kb.popupText.copy(alpha = 0.15f))
+                if (onLanguageSettings != null) {
+                    Text(
+                        text = stringResource(R.string.ime_language_picker_language_settings),
+                        color = kb.popupText,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(PickerRowHeightDp.dp)
+                            .clickable { onLanguageSettings() }
+                            .padding(horizontal = (16 - PickerRowInsetDp).dp)
+                            .wrapContentHeight(Alignment.CenterVertically),
+                    )
+                }
                 Text(
                     text = stringResource(R.string.ime_language_picker_other_keyboards),
                     color = kb.popupText,
@@ -22034,6 +22107,8 @@ private fun LanguageCarouselPopup(
     onPick: (String) -> Unit,
     onOtherKeyboards: () -> Unit,
     onDismiss: () -> Unit,
+    /** The gear into the Languages screen ([SwitcherExtraStop.LANGUAGE_SETTINGS]); null leaves it out. */
+    onLanguageSettings: (() -> Unit)? = null,
     /**
      * Chip a spacebar hold-drag has walked to, or null when the popup is in
      * plain tap mode (globe long-press, or a hold that has not moved yet).
@@ -22117,6 +22192,17 @@ private fun LanguageCarouselPopup(
                     modifier = Modifier.fillMaxHeight().padding(vertical = 8.dp),
                     color = kb.popupText.copy(alpha = 0.15f),
                 )
+                if (onLanguageSettings != null) {
+                    Icon(
+                        imageVector = Icons.Outlined.Settings,
+                        contentDescription = stringResource(R.string.ime_language_picker_language_settings),
+                        tint = kb.popupText,
+                        modifier = Modifier
+                            .clickable { onLanguageSettings() }
+                            .padding(start = 12.dp, top = 8.dp, bottom = 8.dp)
+                            .size(22.dp),
+                    )
+                }
                 Icon(
                     imageVector = Icons.Outlined.Keyboard,
                     contentDescription = stringResource(R.string.ime_language_picker_other_keyboards),
@@ -22129,6 +22215,39 @@ private fun LanguageCarouselPopup(
             }
         }
     }
+}
+
+/**
+ * The [SwitcherExtraStop] stop at the end of the spacebar's hold preview: a
+ * gear for the Languages screen or a keyboard for Android's keyboard list,
+ * lit like a language chip when the drag is on it.
+ */
+@Composable
+private fun SwitcherExtraStopChip(
+    stop: SwitcherExtraStop,
+    selected: Boolean,
+    fontScale: Float,
+    modifier: Modifier = Modifier,
+) {
+    val kb = LocalKbTheme.current
+    val (icon, description) = when (stop) {
+        SwitcherExtraStop.KEYBOARDS ->
+            Icons.Outlined.Keyboard to R.string.ime_language_picker_other_keyboards
+        else -> Icons.Outlined.Settings to R.string.ime_language_picker_language_settings
+    }
+    Icon(
+        imageVector = icon,
+        contentDescription = stringResource(description),
+        tint = if (selected) kb.popupText else kb.popupText.copy(alpha = 0.45f),
+        modifier = modifier
+            .padding(horizontal = 2.dp)
+            .background(
+                if (selected) kb.pressedKey else Color.Transparent,
+                RoundedCornerShape(kb.popupRadiusDp.dp),
+            )
+            .padding(horizontal = 10.dp, vertical = 8.dp)
+            .size((18 * fontScale).dp),
+    )
 }
 
 /**
@@ -23111,6 +23230,16 @@ private val PreviewPopupProperties = PopupProperties(
 private const val SpaceHoldPickerMs = 250
 
 /**
+ * The id the spacebar's language ring and its preview give the
+ * [SwitcherExtraStop] stop after the last layout. No layout id can start with
+ * a NUL, so it never collides with one.
+ */
+internal const val SwitcherExtraStopId = "\u0000switcher-extra-stop"
+
+/** The settings route the [SwitcherExtraStop.LANGUAGE_SETTINGS] stop opens. */
+private const val LanguagesRoute = "languages"
+
+/**
  * Fixed height of one language-picker row, shared between the popup's layout
  * and the spacebar hold-drag gesture that steps through it — the two must
  * agree or the finger and the highlight drift apart.
@@ -23436,6 +23565,12 @@ private fun Modifier.pointerInputKey(
      * inline preview at any ring length; it windows and scrolls itself.
      */
     pickerForLongRing: Boolean = true,
+    /** The stop after the layouts that a hold's preview adds; see [SwitcherExtraStop]. */
+    switcherExtraStop: SwitcherExtraStop = SwitcherExtraStop.NONE,
+    /** Runs [switcherExtraStop]: a lift on it opens the language settings or the keyboard list. */
+    openSwitcherExtraStop: () -> Unit = {},
+    /** Whether the preview draws the extra stop; raised while a hold's preview carries it. */
+    setPreviewExtraStop: (Boolean) -> Unit = {},
     setLanguagePreview: (String?) -> Unit,
     /** Keeps a just-switched-to language on screen briefly after the lift. */
     echoLanguageSwitch: (String, Long) -> Unit = { _, _ -> },
@@ -23462,7 +23597,7 @@ private fun Modifier.pointerInputKey(
             key, spaceShortSwipe, spaceLongSwipe, enabledLayoutIds, currentLayoutId, longPressDelayMs,
             hapticOnLongPress, hapticOnLongPressRelease, vibrateOnSpace, spaceCursor2d,
             spaceSwipeDownHide, textEditing, alternates, pickerIsCarousel, pickerForLongRing,
-            languageEchoTotalMs, spaceTouchpad, keyRepeat, vibrateOnRepeat, soundOnRepeat,
+            switcherExtraStop, languageEchoTotalMs, spaceTouchpad, keyRepeat, vibrateOnRepeat, soundOnRepeat,
         ) {
             val slopPx = 12.dp.toPx()
             val reachPx = AlternatesReachDp.toPx()
@@ -23522,6 +23657,10 @@ private fun Modifier.pointerInputKey(
                     // for this drag alone (#444).
                     var padVertical = spaceCursor2d
                     var langIndex = enabledLayoutIds.indexOf(currentLayoutId).coerceAtLeast(0)
+                    // The stops the language swipe walks: the layouts, plus the
+                    // switcher's extra stop once a hold has put the preview up
+                    // (see [SwitcherExtraStop]). A plain swipe never gets it.
+                    var ring = enabledLayoutIds
                     // With exactly two languages a swipe direction means "the
                     // other language", so a single run of travel toggles at most
                     // once: runDir is the direction of the current run and
@@ -23529,7 +23668,7 @@ private fun Modifier.pointerInputKey(
                     // the same direction must never cycle back to the language the
                     // user deliberately swiped away from; only reversing direction
                     // switches back.
-                    val twoModes = enabledLayoutIds.size == 2
+                    var twoModes = enabledLayoutIds.size == 2
                     var runDir = 0
                     var runSwitched = false
                     // When the swipe last stepped the language ring. A step in the
@@ -23619,7 +23758,14 @@ private fun Modifier.pointerInputKey(
                                     openLanguagePicker()
                                 } else {
                                     holdPreviewShown = true
-                                    setLanguagePreview(enabledLayoutIds[langIndex])
+                                    if (switcherExtraStop != SwitcherExtraStop.NONE) {
+                                        ring = enabledLayoutIds + SwitcherExtraStopId
+                                        // Three stops now, so the two-language
+                                        // toggle gives way to the ordinary walk.
+                                        twoModes = false
+                                        setPreviewExtraStop(true)
+                                    }
+                                    setLanguagePreview(ring[langIndex])
                                 }
                                 if (hapticOnLongPress) onKeyPress()
                             }
@@ -23773,6 +23919,7 @@ private fun Modifier.pointerInputKey(
                                     if (holdPreviewShown) {
                                         holdPreviewShown = false
                                         setLanguagePreview(null)
+                                        setPreviewExtraStop(false)
                                     }
                                     onKeyHaptic()
                                     onCaretDrag(true)
@@ -23837,7 +23984,7 @@ private fun Modifier.pointerInputKey(
                                     val flicked = if (twoModes) {
                                         1 - langIndex
                                     } else {
-                                        (langIndex + dir).coerceIn(0, enabledLayoutIds.size - 1)
+                                        (langIndex + dir).coerceIn(0, ring.size - 1)
                                     }
                                     if (flicked != langIndex) {
                                         langIndex = flicked
@@ -23846,7 +23993,7 @@ private fun Modifier.pointerInputKey(
                                     runDir = dir
                                     runSwitched = true
                                     lastStepAt = change.uptimeMillis
-                                    setLanguagePreview(enabledLayoutIds[langIndex])
+                                    setLanguagePreview(ring[langIndex])
                                 }
                                 change.consume()
                             }
@@ -23981,7 +24128,7 @@ private fun Modifier.pointerInputKey(
                                             langIndex = 1 - langIndex
                                             runSwitched = true
                                             lastStepAt = change.uptimeMillis
-                                            setLanguagePreview(enabledLayoutIds[langIndex])
+                                            setLanguagePreview(ring[langIndex])
                                             onKeyPress()
                                         }
                                         // Drain the overshoot so a reversal only
@@ -24000,7 +24147,7 @@ private fun Modifier.pointerInputKey(
                                     travel = accumulated,
                                     stepPx = langStepPx,
                                     wrapPx = langWrapPx,
-                                    last = enabledLayoutIds.size - 1,
+                                    last = ring.size - 1,
                                     lastDir = runDir,
                                     settled = change.uptimeMillis - lastStepAt >= LanguageStepDwellMs,
                                 )
@@ -24009,7 +24156,7 @@ private fun Modifier.pointerInputKey(
                                     langIndex = step.index
                                     runDir = step.dir
                                     lastStepAt = change.uptimeMillis
-                                    setLanguagePreview(enabledLayoutIds[langIndex])
+                                    setLanguagePreview(ring[langIndex])
                                     onKeyPress()
                                 }
                                 change.consume()
@@ -24028,6 +24175,7 @@ private fun Modifier.pointerInputKey(
                     setPressed(false)
                     onKeyRelease()
                     setLanguagePreview(null)
+                    setPreviewExtraStop(false)
                     when {
                         // A swipe-down already dismissed the keyboard: the finger
                         // lifting must not also type a space.
@@ -24054,15 +24202,21 @@ private fun Modifier.pointerInputKey(
                         // showed (usually the current language — a no-op) and
                         // must not type a space.
                         action == null && holdPreviewShown -> {
-                            val selected = enabledLayoutIds[langIndex]
-                            if (selected != currentLayoutId) onLayoutSelect(selected)
+                            val selected = ring[langIndex]
+                            if (selected == SwitcherExtraStopId) {
+                                openSwitcherExtraStop()
+                            } else if (selected != currentLayoutId) {
+                                onLayoutSelect(selected)
+                            }
                         }
                         // The hold repeated the space: those were the keystrokes.
                         spaceRepeated -> {}
                         action == null -> onKey(key)
                         action == SpaceSwipeAction.LANGUAGE -> {
-                            val selected = enabledLayoutIds[langIndex]
-                            if (selected != currentLayoutId) {
+                            val selected = ring[langIndex]
+                            if (selected == SwitcherExtraStopId) {
+                                openSwitcherExtraStop()
+                            } else if (selected != currentLayoutId) {
                                 // A lift with no up event (the pointer was cancelled)
                                 // counts as unseen: echo in full.
                                 val seenMs = if (liftAt > 0L) liftAt - lastStepAt else 0L

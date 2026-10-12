@@ -145,6 +145,7 @@ import com.wasimaster.wmkeyboard.core.settings.RotationInterval
 import com.wasimaster.wmkeyboard.core.settings.ScreenReaderMode
 import com.wasimaster.wmkeyboard.core.settings.SensitiveClipHandling
 import com.wasimaster.wmkeyboard.core.settings.LanguagePickerStyle
+import com.wasimaster.wmkeyboard.core.settings.SwitcherExtraStop
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.SpacebarDisplay
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
@@ -356,6 +357,10 @@ internal object ChoiceOptionIcons {
 
         put(LanguagePickerStyle.LIST) { Icons.AutoMirrored.Outlined.ViewList }
         put(LanguagePickerStyle.CAROUSEL) { Icons.Outlined.ViewCarousel }
+
+        put(SwitcherExtraStop.NONE) { Icons.Outlined.Block }
+        put(SwitcherExtraStop.LANGUAGE_SETTINGS) { Icons.Outlined.Settings }
+        put(SwitcherExtraStop.KEYBOARDS) { Icons.Outlined.Keyboard }
 
         put(BackspaceSwipeUnit.WORD) { Icons.AutoMirrored.Outlined.ShortText }
         put(BackspaceSwipeUnit.CHARACTER) { Icons.Outlined.Abc }

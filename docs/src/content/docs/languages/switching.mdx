@@ -77,6 +77,14 @@ A second setting takes this whole gesture away on purpose, the same way the hold
 
 The last row, **Other keyboards…**, isn't a layout. It opens Android's own "Choose input method" sheet, which is how you hand the field to a different keyboard app entirely. It sits below the scrolling part of the list so it's always in reach however many layouts you have on, and the hold-drag walk skips it: it's a tap-only row. In the carousel it is the keyboard glyph past the divider at the strip's end, and the same rules apply.
 
+### A way out of the switcher
+
+<SettingsPath path="Languages & layouts / Switching language / Extra stop in the switcher" />
+
+With two languages on, say Bangla and English, holding the spacebar shows just those two. **Extra stop in the switcher** adds one more stop after the last language, so the preview reads Bangla, English, then a gear. Drag onto the gear and lift, and the keyboard opens the Languages screen, where you add, remove and reorder what the switcher holds. Set it to **Other keyboards** instead and the last stop is a keyboard glyph that opens Android's "Choose input method" sheet, the same one the picker's **Other keyboards…** row opens.
+
+It ships on **None**. Only a hold reaches the extra stop: a quick swipe on the spacebar still walks your languages alone, so a flick past the last one never lands in settings. With two languages and the extra stop on, the hold-drag walks three stops in a line rather than toggling between two. The list and carousel pickers show the gear as a row of their own (a gear icon in the carousel), next to **Other keyboards…**, when it is set to Language settings.
+
 ## Using the globe key
 
 :::caution[Not shown by default]
@@ -210,6 +218,7 @@ Automation apps such as Tasker, and `adb` on a computer, can switch too. They se
 | Comma key opens emoji | Layout & size → Bottom row keys | Off |
 | Your languages / Switch order | Languages | Seeded from your phone's language list, then QWERTY, capped at 4 layouts |
 | Carry the word over | Languages → Switching language | On |
+| Extra stop in the switcher | Languages → Switching language | None |
 | Remember language per app | Languages → Per-app language | Off |
 | Forget remembered apps | Languages → Language data | A button, shown once apps are remembered |
 | Link romanized languages automatically | Languages → Language data | On |

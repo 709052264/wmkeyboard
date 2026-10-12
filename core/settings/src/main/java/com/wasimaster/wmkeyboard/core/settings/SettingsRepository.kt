@@ -1173,6 +1173,21 @@ enum class SpacebarDisplay { LANGUAGE, LAYOUT, BOTH }
 enum class LanguagePickerStyle { LIST, CAROUSEL }
 
 /**
+ * One more stop after the last layout in the spacebar's hold preview, for
+ * getting from the switcher to where the switcher's contents are changed:
+ *
+ *  - [NONE] — the ring is the layouts and nothing else, as it shipped.
+ *  - [LANGUAGE_SETTINGS] — a gear that opens the Languages screen. The list
+ *    and carousel pickers get it as a row of their own too.
+ *  - [KEYBOARDS] — Android's own keyboard list, the same one the pickers'
+ *    "Other keyboards…" row opens.
+ *
+ * Only a spacebar *hold* reaches it: a plain swipe walks the layouts alone, so
+ * a flick past the last language can never land in settings.
+ */
+enum class SwitcherExtraStop { NONE, LANGUAGE_SETTINGS, KEYBOARDS }
+
+/**
  * What the corner hints on a transliterating layout (Avro) show, with the
  * roman `k` pressed after another `k` as the example:
  *
@@ -7282,6 +7297,8 @@ data class LayoutBehaviorSettings(
      * and windows itself, so a long ring stays reachable from it.
      */
     val spaceHoldPickerForLongRing: Boolean = true,
+    /** The extra stop after the layouts in the spacebar hold preview; see [SwitcherExtraStop]. */
+    val switcherExtraStop: SwitcherExtraStop = SwitcherExtraStop.NONE,
     /**
      * How long, in ms, a spacebar language switch keeps the language it landed
      * on up after the finger lifts, counting the time the swipe preview already
@@ -9013,6 +9030,7 @@ class SettingsRepository(private val context: Context) {
         private val SPACEBAR_DISPLAY = stringPreferencesKey("spacebar_display")
         private val LANGUAGE_PICKER_STYLE = stringPreferencesKey("language_picker_style")
         private val SPACE_HOLD_PICKER_FOR_LONG_RING = booleanPreferencesKey("space_hold_picker_for_long_ring")
+        private val SWITCHER_EXTRA_STOP = stringPreferencesKey("switcher_extra_stop")
         private val LANGUAGE_ECHO_MS = intPreferencesKey("language_echo_ms")
         private val NUMERAL_SYSTEM_BY_LANG = stringPreferencesKey("numeral_system_by_lang")
         private val NUMERAL_COMMIT_SCOPE = stringPreferencesKey("numeral_commit_scope")
@@ -11166,6 +11184,9 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.layoutBehavior.languagePickerStyle,
             spaceHoldPickerForLongRing = p[SPACE_HOLD_PICKER_FOR_LONG_RING]
                 ?: defaults.layoutBehavior.spaceHoldPickerForLongRing,
+            switcherExtraStop = p[SWITCHER_EXTRA_STOP]
+                ?.let { runCatching { SwitcherExtraStop.valueOf(it) }.getOrNull() }
+                ?: defaults.layoutBehavior.switcherExtraStop,
             languageEchoMs = p[LANGUAGE_ECHO_MS]?.coerceIn(LanguageEchoMsRange)
                 ?: defaults.layoutBehavior.languageEchoMs,
             numeralSystemByLang = p[NUMERAL_SYSTEM_BY_LANG]
@@ -16689,6 +16710,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSpaceHoldPickerForLongRing(value: Boolean) =
         editPrefs { it[SPACE_HOLD_PICKER_FOR_LONG_RING] = value }
+
+    suspend fun setSwitcherExtraStop(value: SwitcherExtraStop) =
+        editPrefs { it[SWITCHER_EXTRA_STOP] = value.name }
 
     suspend fun setLanguageEchoMs(value: Int) =
         editPrefs { it[LANGUAGE_ECHO_MS] = value.coerceIn(LanguageEchoMsRange) }

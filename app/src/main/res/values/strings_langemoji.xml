@@ -37,6 +37,12 @@
     <string name="langemoji_lang_switching_title">Switching language</string>
     <string name="langemoji_lang_carry_word_title">Carry the word over</string>
     <string name="langemoji_lang_carry_word_subtitle">Switch to a phonetic layout mid-word and the letters that you typed convert too</string>
+    <string name="langemoji_lang_switcher_extra_title">Extra stop in the switcher</string>
+    <string name="langemoji_lang_switcher_extra_subtitle">After your languages, holding the spacebar can reach the language settings or your other keyboards</string>
+    <string name="langemoji_lang_switcher_extra_info">Hold the spacebar and the preview above it lists your languages. With this set, one more stop follows the last of them: a gear that opens this screen, or a keyboard that opens Android\'s list of keyboards. Drag onto it and lift to go there. Only a hold reaches it. A quick swipe on the spacebar still steps through your languages alone, so it never lands in settings by accident. The list and carousel pickers show the gear as a row of their own, next to Other keyboards.</string>
+    <string name="langemoji_lang_switcher_extra_none_label">None</string>
+    <string name="langemoji_lang_switcher_extra_settings_label">Language settings</string>
+    <string name="langemoji_lang_switcher_extra_keyboards_label">Other keyboards</string>
     <string name="langemoji_lang_carry_word_info">Phonetic layouts such as Avro, Hindi phonetic and Khipro spell their script with roman letters. When you notice halfway through a word that you are still on your Latin keyboard, switching language now converts the letters that you already typed instead of leaving them as they are: type "tu", switch to Avro, and the word reads তু, so "mi" after it finishes তুমি. Turn this off if you often switch language right after an English word and before typing a space, because that word is carried over as well.</string>
 
     <string name="langemoji_lang_per_app_title">Per-app language</string>

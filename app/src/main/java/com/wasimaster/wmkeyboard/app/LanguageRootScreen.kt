@@ -18,6 +18,7 @@ import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.SwitcherExtraStop
 import kotlinx.coroutines.launch
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
@@ -213,6 +214,25 @@ internal fun LanguageSettings(
                 info = stringResource(R.string.langemoji_lang_carry_word_info),
                 default = SettingsDefaults.carryWordOnLanguageSwitch,
             ) { scope.launch { repository.setCarryWordOnLanguageSwitch(it) } }
+        }
+        item {
+            // A way out of the spacebar's switcher to where its stops are
+            // changed, or to the other keyboards on the phone.
+            ChoiceSetting(
+                R.string.langemoji_lang_switcher_extra_title,
+                subtitle = stringResource(R.string.langemoji_lang_switcher_extra_subtitle),
+                info = stringResource(R.string.langemoji_lang_switcher_extra_info),
+                options = listOf(
+                    SwitcherExtraStop.NONE to
+                        stringResource(R.string.langemoji_lang_switcher_extra_none_label),
+                    SwitcherExtraStop.LANGUAGE_SETTINGS to
+                        stringResource(R.string.langemoji_lang_switcher_extra_settings_label),
+                    SwitcherExtraStop.KEYBOARDS to
+                        stringResource(R.string.langemoji_lang_switcher_extra_keyboards_label),
+                ),
+                selected = settings.watch { it.layoutBehavior.switcherExtraStop },
+                default = SettingsDefaults.layoutBehavior.switcherExtraStop,
+            ) { scope.launch { repository.setSwitcherExtraStop(it) } }
         }
     }
     SettingsGroup(stringResource(R.string.langemoji_lang_per_app_title)) {
