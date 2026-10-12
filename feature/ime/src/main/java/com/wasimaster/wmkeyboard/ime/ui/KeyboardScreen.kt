@@ -1481,6 +1481,7 @@ fun KeyboardScreen(
                 onOtpAccept = onOtpAccept,
                 onOtpDismiss = onOtpDismiss,
                 snippetPanel = snippetPanel,
+                reply = reply,
                 onToolTap = onToolTap,
                 onToolbarToolsChange = onToolbarToolsChange,
                 onToolboxOrderChange = onToolboxOrderChange,
@@ -10878,6 +10879,8 @@ private fun KeyboardBody(
     onOtpDismiss: () -> Unit,
     onEmojiRowShown: () -> Unit,
     snippetPanel: SnippetPanelCallbacks,
+    /** The AI reply panel's controls, threaded down from [KeyboardScreen]. */
+    reply: ReplyCallbacks,
     onToolTap: (ToolbarTool) -> Unit,
     onToolbarToolsChange: (List<ToolbarTool>) -> Unit,
     onToolboxOrderChange: (List<ToolbarTool>) -> Unit,
