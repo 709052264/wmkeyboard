@@ -472,17 +472,35 @@ internal fun startActionLabel(updater: AppUpdater): String = when {
     else -> stringResource(R.string.update_action_update)
 }
 
-/** The sentence describing what is on offer, with a version when there is one. */
+/**
+ * The sentence describing what is on offer, with a version when there is one,
+ * and the reason for the offer when that version has the name already installed.
+ */
 @Composable
 private fun availableBody(state: UpdateState.Available, updater: AppUpdater): String {
     val source = stringResource(updater.sourceNameRes)
     val version = state.displayVersion()
-    return when {
+    val offer = when {
         state.immediate -> stringResource(R.string.update_card_urgent_body, source)
         version == null -> stringResource(R.string.update_card_available_body, source)
         else -> stringResource(R.string.update_card_available_body_versioned, version, source)
     }
+    // The build number alone answers "which one is newer" but not "why is it
+    // offering me the version I have". Only the card and the prompt have room
+    // for that answer; the rows keep the short form.
+    if (!state.isSameName()) return offer
+    val notice = stringResource(
+        R.string.update_same_name_notice,
+        state.versionName.orEmpty(),
+        BuildConfig.VERSION_CODE,
+        state.versionCode,
+    )
+    return "$offer\n\n$notice"
 }
+
+/** Whether the release reuses the installed version name with a higher version code. */
+private fun UpdateState.Available.isSameName(): Boolean =
+    !versionName.isNullOrBlank() && versionName == BuildConfig.VERSION_NAME
 
 /**
  * The version on offer, as the user should read it, or null when the release
@@ -497,7 +515,7 @@ private fun availableBody(state: UpdateState.Available, updater: AppUpdater): St
 @Composable
 internal fun UpdateState.Available.displayVersion(): String? {
     val name = versionName?.takeIf { it.isNotBlank() } ?: return null
-    return if (name == BuildConfig.VERSION_NAME) {
+    return if (isSameName()) {
         stringResource(R.string.update_version_with_build, name, versionCode)
     } else {
         name

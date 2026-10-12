@@ -58,6 +58,11 @@
          %1$s is the version name, %2$d is the build number (version code). -->
     <string name="update_version_with_build"><xliff:g id="version" example="0.5.14">%1$s</xliff:g> (build <xliff:g id="build" example="31">%2$d</xliff:g>)</string>
 
+    <!-- Added under the update offer when the new release has the same version
+         name as the installed one. %1$s is the version name, %2$d is the
+         installed build number, %3$d is the new build number. -->
+    <string name="update_same_name_notice">Why the same version? You have <xliff:g id="version" example="0.5.14">%1$s</xliff:g> build <xliff:g id="installed" example="30">%2$d</xliff:g>. Build <xliff:g id="build" example="31">%3$d</xliff:g> is a fix released after it under the same version number, so the number did not change. Install it to get the fix.</string>
+
     <!-- Release notes, when the release has none. -->
     <string name="update_notes_empty">This release has no notes</string>
 
