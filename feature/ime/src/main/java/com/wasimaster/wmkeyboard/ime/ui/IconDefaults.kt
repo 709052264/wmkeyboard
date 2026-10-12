@@ -104,6 +104,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Quickreply
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.ime.EnterAction
 
@@ -216,6 +217,9 @@ object IconDefaults {
         ToolbarTool.CUT -> Icons.Outlined.ContentCut
         ToolbarTool.PASTE -> Icons.Outlined.ContentPaste
         ToolbarTool.RECENT_COPIES -> Icons.Outlined.History
+        // Material's own "quick reply": a speech bubble with a flash in it,
+        // which is exactly what this tool does.
+        ToolbarTool.AI_REPLY -> Icons.Outlined.Quickreply
     }
 
     /**

@@ -68,6 +68,25 @@
     <string name="core_tools_ai_action_continue_label">Continue</string>
 
     <!-- ================================================================== -->
+    <!-- AI reply tool: the tone a drafted reply is written in. Renaming one -->
+    <!-- makes it the user's own text, exactly as with the actions above.    -->
+    <!-- ================================================================== -->
+
+    <string name="core_tools_reply_tone_friendly">Friendly</string>
+    <!-- A reply of a handful of words. -->
+    <string name="core_tools_reply_tone_short">Short</string>
+    <!-- Shows that you understood how the other person feels. -->
+    <string name="core_tools_reply_tone_warm">Caring</string>
+    <!-- Answers, then asks something back so the conversation continues. -->
+    <string name="core_tools_reply_tone_keep_going">Keep it going</string>
+    <string name="core_tools_reply_tone_polite">Polite</string>
+    <string name="core_tools_reply_tone_agree">Agree</string>
+    <!-- Declines without being cold about it. -->
+    <string name="core_tools_reply_tone_decline">Say no kindly</string>
+    <string name="core_tools_reply_tone_funny">Funny</string>
+    <string name="core_tools_reply_tone_flirty">Flirty</string>
+
+    <!-- ================================================================== -->
     <!-- GIF and sticker panel: the chips that select a source.             -->
     <!-- ================================================================== -->
 

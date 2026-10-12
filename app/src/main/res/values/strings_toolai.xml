@@ -433,4 +433,51 @@
     <string name="toolai_continue_context_title">How much the AI reads back</string>
     <string name="toolai_continue_context_subtitle">Characters before the cursor sent by a carry-on action</string>
     <string name="toolai_continue_context_info">Actions that carry on from what you wrote send the text before your cursor. More characters give the model more of your writing to follow, which helps in a long piece. It also costs more of your tokens and takes longer on every run. This only applies when you have not selected anything: a selection is always sent as it is.</string>
+
+    <!-- ==================================================================== -->
+    <!-- AI reply tool (#234). The provider, key and model are the AI tool's;  -->
+    <!-- only what a drafted reply needs lives on this page.                  -->
+    <!-- ==================================================================== -->
+
+    <string name="toolai_reply_drafts_title">Drafts</string>
+    <!-- How many alternative replies one run writes. -->
+    <string name="toolai_reply_count_title">Replies per run</string>
+    <string name="toolai_reply_length_title">Length</string>
+    <string name="toolai_reply_length_subtitle">How long a drafted reply runs</string>
+    <string name="toolai_reply_length_short">Short</string>
+    <string name="toolai_reply_length_medium">Medium</string>
+    <string name="toolai_reply_length_long">Long</string>
+    <string name="toolai_reply_emoji_title">Emoji</string>
+    <string name="toolai_reply_emoji_subtitle">Whether drafted replies use emoji</string>
+    <!-- Use emoji as freely as the other person does, and no more. -->
+    <string name="toolai_reply_emoji_match">Match theirs</string>
+    <string name="toolai_reply_emoji_allow">Allow</string>
+    <string name="toolai_reply_emoji_avoid">Avoid</string>
+
+    <string name="toolai_reply_voice_title">Your voice</string>
+    <!-- Free text the user writes about themselves, sent with every draft. -->
+    <string name="toolai_reply_persona_label">About you</string>
+    <string name="toolai_reply_persona_hint">How you write, what you sound like, anything the replies should know</string>
+    <string name="toolai_reply_language_label">Reply language</string>
+    <string name="toolai_reply_language_hint">Blank follows the conversation</string>
+    <!-- How much of the gathered conversation one run sends. -->
+    <string name="toolai_reply_context_title">Conversation sent</string>
+
+    <string name="toolai_reply_shots_title">Screenshots</string>
+    <string name="toolai_reply_image_mode_title">How screenshots are read</string>
+    <string name="toolai_reply_image_mode_subtitle">Sent to the AI as a picture, or read on this device first</string>
+    <!-- Send the picture where the provider can take one, read it here otherwise. -->
+    <string name="toolai_reply_image_mode_auto">Automatic</string>
+    <string name="toolai_reply_image_mode_image">Send the picture</string>
+    <string name="toolai_reply_image_mode_ocr">Read on this device</string>
+
+    <string name="toolai_reply_after_title">After a reply</string>
+    <string name="toolai_reply_tidy_title">Clear what it used</string>
+    <string name="toolai_reply_tidy_subtitle">Take the copied messages and screenshots back out once a reply is used. You can turn this off for one reply in the panel</string>
+    <string name="toolai_reply_history_title">Keep drafted replies in the AI history</string>
+    <string name="toolai_reply_history_subtitle">Off: a record of a reply holds somebody else\'s message, not your own writing</string>
+
+    <string name="toolai_reply_provider_title">AI provider</string>
+    <string name="toolai_reply_provider_nav_title">AI settings</string>
+    <string name="toolai_reply_provider_nav_subtitle">Replies use the provider, key and model set up for the AI tool</string>
 </resources>

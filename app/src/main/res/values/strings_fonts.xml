@@ -139,6 +139,8 @@
     <string name="fonts_tool_plugins_desc">Run the plugins you install. They are small tools that run in a sandbox</string>
     <string name="fonts_tool_app_launcher_desc">Open an app, or a screen inside an app, from the keyboard</string>
     <string name="fonts_tool_ai_desc">Rewrite, summarize, translate and more. Use your own API key or a local server</string>
+    <!-- Drafts answers to a message somebody else sent (#234). -->
+    <string name="fonts_tool_ai_reply_desc">Draft a reply to what somebody sent you. Paste their message, pick a screenshot of the chat, and choose a tone</string>
     <string name="fonts_tool_modes_desc">Change between setups for each app: the emoji row, the pinned tools and the symbol sets</string>
     <string name="fonts_tool_cursor_left_desc">Move the cursor one character to the left</string>
     <string name="fonts_tool_cursor_right_desc">Move the cursor one character to the right</string>

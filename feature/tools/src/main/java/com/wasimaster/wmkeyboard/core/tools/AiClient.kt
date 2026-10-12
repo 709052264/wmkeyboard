@@ -89,6 +89,13 @@ object AiClient {
         val text: String,
         val toolCalls: List<AiToolCall> = emptyList(),
         val toolResult: AiToolResult? = null,
+        /**
+         * Pictures sent with this turn (#234): a screenshot of the conversation
+         * a reply is being drafted to. Only a user turn ever carries one, and
+         * only for a provider [supportsImages] allows — the reply tool reads
+         * the picture with OCR instead of sending it where it cannot go.
+         */
+        val images: List<AiImage> = emptyList(),
     ) {
         /**
          * Part of a tool exchange rather than something a person wrote. These
@@ -105,6 +112,41 @@ object AiClient {
      * of those in the body builders.
      */
     enum class ChatRole { USER, ASSISTANT, TOOL }
+
+    /**
+     * One picture on its way to a model, already encoded.
+     *
+     * Base64 rather than a file, because every provider wants the bytes inline
+     * (Anthropic a `source`, OpenAI a `data:` URL, Gemini `inline_data`, Ollama
+     * a bare string) and none of them will fetch a local path. The caller is
+     * responsible for the size: a full-resolution phone screenshot is several
+     * megabytes of base64 and models reject it.
+     */
+    data class AiImage(val mimeType: String, val base64: String) {
+        /** The `data:` URL form, which is what the OpenAI shape asks for. */
+        val dataUrl: String get() = "data:" + mimeType + ";base64," + base64
+    }
+
+    /**
+     * Whether a provider's request shape has anywhere to put a picture.
+     *
+     * Per provider, not per model: the keyboard cannot know whether the model
+     * name somebody typed into the settings is one with eyes. A provider that
+     * accepts the field will refuse the request itself if its model cannot read
+     * it, and that error is a better answer than silently dropping the picture.
+     *
+     * Brave answers from the web and takes a query, not a conversation with
+     * attachments. The on-device engine is a text runtime here: litert-lm has a
+     * vision backend, but [com.wasimaster.wmkeyboard.core.localllm.LocalLlmEngine]
+     * does not expose it, so a picture would be dropped on the floor.
+     */
+    fun supportsImages(provider: AiProvider): Boolean = when (provider) {
+        AiProvider.ANTHROPIC, AiProvider.OPENAI, AiProvider.GEMINI,
+        AiProvider.XAI, AiProvider.OLLAMA, AiProvider.LM_STUDIO,
+        AiProvider.OPENAI_COMPATIBLE,
+        -> true
+        else -> false
+    }
 
     /**
      * One finished response.
@@ -835,7 +877,25 @@ object AiClient {
             if (turn.toolCalls.isEmpty()) {
                 add(buildJsonObject {
                     put("role", if (turn.role == ChatRole.USER) "user" else "assistant")
-                    put("content", turn.text)
+                    if (turn.images.isEmpty()) {
+                        put("content", turn.text)
+                    } else {
+                        // Pictures first: Anthropic's own guidance is that a
+                        // question about an image reads better after it.
+                        put("content", buildJsonArray {
+                            for (image in turn.images) {
+                                add(buildJsonObject {
+                                    put("type", "image")
+                                    putJsonObject("source") {
+                                        put("type", "base64")
+                                        put("media_type", image.mimeType)
+                                        put("data", image.base64)
+                                    }
+                                })
+                            }
+                            add(buildJsonObject { put("type", "text"); put("text", turn.text) })
+                        })
+                    }
                 })
                 continue
             }
@@ -986,6 +1046,18 @@ object AiClient {
                     }
                 })
             }
+            turn.images.isNotEmpty() -> {
+                put("role", if (turn.role == ChatRole.USER) "user" else "assistant")
+                put("content", buildJsonArray {
+                    add(buildJsonObject { put("type", "text"); put("text", turn.text) })
+                    for (image in turn.images) {
+                        add(buildJsonObject {
+                            put("type", "image_url")
+                            putJsonObject("image_url") { put("url", image.dataUrl) }
+                        })
+                    }
+                })
+            }
             else -> {
                 put("role", if (turn.role == ChatRole.USER) "user" else "assistant")
                 put("content", turn.text)
@@ -1132,7 +1204,17 @@ object AiClient {
             else -> {
                 // Gemini's name for the assistant role is "model".
                 put("role", if (turn.role == ChatRole.USER) "user" else "model")
-                put("parts", buildJsonArray { add(buildJsonObject { put("text", turn.text) }) })
+                put("parts", buildJsonArray {
+                    for (image in turn.images) {
+                        add(buildJsonObject {
+                            putJsonObject("inline_data") {
+                                put("mime_type", image.mimeType)
+                                put("data", image.base64)
+                            }
+                        })
+                    }
+                    add(buildJsonObject { put("text", turn.text) })
+                })
             }
         }
     }
@@ -1260,6 +1342,11 @@ object AiClient {
         else -> buildJsonObject {
             put("role", if (turn.role == ChatRole.USER) "user" else "assistant")
             put("content", turn.text)
+            // Ollama takes bare base64 in an "images" array on the message
+            // itself, with no media type and no data: prefix.
+            if (turn.images.isNotEmpty()) {
+                put("images", buildJsonArray { for (image in turn.images) add(JsonPrimitive(image.base64)) })
+            }
         }
     }
 

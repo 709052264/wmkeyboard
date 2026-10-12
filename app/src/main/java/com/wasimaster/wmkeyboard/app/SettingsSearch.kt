@@ -1655,6 +1655,16 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
         weight = EntryWeight.SECTION,
     ),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_history_nav_title, R.string.toolai_ai_history_nav_subtitle),
+    // AI reply (#234). Its own tool, its own page: the provider rows stay above.
+    toolEntry(ToolbarTool.AI_REPLY, R.string.toolai_reply_count_title),
+    toolEntry(ToolbarTool.AI_REPLY, R.string.toolai_reply_length_title, R.string.toolai_reply_length_subtitle),
+    toolEntry(ToolbarTool.AI_REPLY, R.string.toolai_reply_emoji_title, R.string.toolai_reply_emoji_subtitle),
+    toolEntry(ToolbarTool.AI_REPLY, R.string.toolai_reply_persona_label, R.string.toolai_reply_persona_hint),
+    toolEntry(ToolbarTool.AI_REPLY, R.string.toolai_reply_language_label, R.string.toolai_reply_language_hint),
+    toolEntry(ToolbarTool.AI_REPLY, R.string.toolai_reply_context_title),
+    toolEntry(ToolbarTool.AI_REPLY, R.string.toolai_reply_image_mode_title, R.string.toolai_reply_image_mode_subtitle),
+    toolEntry(ToolbarTool.AI_REPLY, R.string.toolai_reply_tidy_title, R.string.toolai_reply_tidy_subtitle),
+    toolEntry(ToolbarTool.AI_REPLY, R.string.toolai_reply_history_title, R.string.toolai_reply_history_subtitle),
     entry(
         R.string.toolai_ai_history_max_title,
         R.string.toolai_ai_history_max_subtitle,

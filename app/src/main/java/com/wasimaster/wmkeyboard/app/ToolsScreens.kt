@@ -150,6 +150,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.PLUGINS -> ImeR.string.ime_tool_plugins
     ToolbarTool.APP_LAUNCHER -> R.string.fonts_tool_app_launcher_title
     ToolbarTool.AI -> R.string.fonts_tool_ai_title
+    ToolbarTool.AI_REPLY -> ImeR.string.ime_tool_ai_reply
     ToolbarTool.MODES -> R.string.fonts_tool_modes_title
     ToolbarTool.FANCY -> ImeR.string.ime_tool_fancy
     ToolbarTool.CUSTOM_LAYOUT -> ImeR.string.ime_tool_custom_layout
@@ -234,6 +235,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.PLUGINS -> R.string.fonts_tool_plugins_desc
     ToolbarTool.APP_LAUNCHER -> R.string.fonts_tool_app_launcher_desc
     ToolbarTool.AI -> R.string.fonts_tool_ai_desc
+    ToolbarTool.AI_REPLY -> R.string.fonts_tool_ai_reply_desc
     ToolbarTool.MODES -> R.string.fonts_tool_modes_desc
     ToolbarTool.FANCY -> R.string.fonts_tool_fancy_desc
     ToolbarTool.CUSTOM_LAYOUT -> R.string.fonts_tool_custom_layout_desc
@@ -555,7 +557,7 @@ internal val ToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildList {
         R.string.tools_group_online_title to listOf(
             ToolbarTool.TRANSLATE, ToolbarTool.GIF, ToolbarTool.STICKER,
             ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH,
-            ToolbarTool.WIKIPEDIA, ToolbarTool.CURRENCY, ToolbarTool.AI,
+            ToolbarTool.WIKIPEDIA, ToolbarTool.CURRENCY, ToolbarTool.AI, ToolbarTool.AI_REPLY,
         ),
     )
     add(

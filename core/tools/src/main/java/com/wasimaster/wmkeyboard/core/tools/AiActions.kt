@@ -18,6 +18,24 @@ enum class AiInputMode {
     BEFORE_CURSOR,
 }
 
+/**
+ * Which panel an action belongs to.
+ *
+ * One type covers both because everything around a spec — the editor, the
+ * order, the hide list, the storage codec — is worth having twice as much as
+ * it is worth writing twice, and a tone the user writes should be able to do
+ * what a shipped one does. The surface is what keeps the two lists apart on
+ * screen; it is a stored field with a default, so a spec written before the
+ * reply tool existed decodes as a [TRANSFORM] and nothing has to be migrated.
+ */
+enum class AiActionSurface {
+    /** The AI tool: something to do to text the user has already written. */
+    TRANSFORM,
+
+    /** The AI reply tool (#234): a tone to answer somebody else's message in. */
+    REPLY,
+}
+
 /** What the Replace button does with the answer. */
 enum class AiInsertMode {
     /** Puts the answer in place of the text the action ran on. */
@@ -87,6 +105,11 @@ data class AiActionSpec(
      * The panel keeps this button live when the others turn grey.
      */
     val worksWithoutText: Boolean = false,
+    /**
+     * Which panel draws this one. Last, with a default, so every spec stored
+     * before the reply tool existed still decodes.
+     */
+    val surface: AiActionSurface = AiActionSurface.TRANSFORM,
 )
 
 private val aiActionJson = Json {
@@ -264,10 +287,22 @@ fun aiInitialInstruction(
  * own. A stored spec whose id matches a built-in is an *edit* of that built-in
  * and takes its slot rather than appearing twice.
  */
-fun resolveAiActions(custom: List<AiActionSpec>): List<AiActionSpec> {
+fun resolveAiActions(
+    custom: List<AiActionSpec>,
+    surface: AiActionSurface = AiActionSurface.TRANSFORM,
+): List<AiActionSpec> {
+    val shipped = when (surface) {
+        AiActionSurface.TRANSFORM -> BuiltInAiActions.actions
+        AiActionSurface.REPLY -> BuiltInAiReplyTones.tones
+    }
+    val shippedIds = shipped.mapTo(HashSet()) { it.id }
     val overrides = custom.associateBy { it.id }
-    val builtIns = BuiltInAiActions.actions.map { overrides[it.id] ?: it }
-    return builtIns + custom.filter { !BuiltInAiActions.isBuiltIn(it.id) }
+    val builtIns = shipped.map { overrides[it.id] ?: it }
+    // A spec of the user's own belongs to the surface it names. An edit of a
+    // shipped one is already placed above, so the filter is by id as well as
+    // by surface: a stored edit carries whatever surface it was saved with,
+    // and the shipped list is the authority on where it is drawn.
+    return builtIns + custom.filter { it.id !in shippedIds && it.surface == surface }
 }
 
 /**
@@ -275,8 +310,12 @@ fun resolveAiActions(custom: List<AiActionSpec>): List<AiActionSpec> {
  * goes to the end in its shipped order, so a new shipped action appears rather
  * than being silently dropped, and a stale id is ignored.
  */
-fun orderedAiActions(custom: List<AiActionSpec>, order: List<String>): List<AiActionSpec> {
-    val all = resolveAiActions(custom)
+fun orderedAiActions(
+    custom: List<AiActionSpec>,
+    order: List<String>,
+    surface: AiActionSurface = AiActionSurface.TRANSFORM,
+): List<AiActionSpec> {
+    val all = resolveAiActions(custom, surface)
     if (order.isEmpty()) return all
     val byId = all.associateBy { it.id }
     val ordered = order.mapNotNull { byId[it] }
@@ -289,10 +328,11 @@ fun visibleAiActions(
     custom: List<AiActionSpec>,
     order: List<String>,
     hidden: List<String>,
+    surface: AiActionSurface = AiActionSurface.TRANSFORM,
 ): List<AiActionSpec> {
-    if (hidden.isEmpty()) return orderedAiActions(custom, order)
+    if (hidden.isEmpty()) return orderedAiActions(custom, order, surface)
     val off = hidden.toHashSet()
-    return orderedAiActions(custom, order).filter { it.id !in off }
+    return orderedAiActions(custom, order, surface).filter { it.id !in off }
 }
 
 /**

@@ -31,6 +31,8 @@
     <!-- %1$d is a plain whole number with no unit, for example 250. The format
          is here so that the digits follow the numeral system of the language. -->
     <string name="values_number">%1$d</string>
+    <!-- A count of characters, on a slider that caps how much text is sent. -->
+    <string name="values_characters" tools:ignore="PluralsCandidate">%1$d chars</string>
     <!-- %1$d is a whole number of days that a date moves back, for example -2.
          "d" is a unit symbol, not a countable noun: it does not inflect. -->
     <string name="values_days" tools:ignore="PluralsCandidate">%1$d d</string>

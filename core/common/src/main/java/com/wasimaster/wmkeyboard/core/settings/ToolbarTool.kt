@@ -107,6 +107,11 @@ enum class ToolbarTool {
     // key is typed. Bound to a hold, Copy's for one, it is the last few copies
     // one press away without opening the clipboard.
     RECENT_COPIES,
+    // Drafting an answer to somebody else's message (#234). Apart from the AI
+    // tool because it works the other way round: that one rewrites what the
+    // user has written, this one reads what they cannot select — a clip, a
+    // screenshot, a pasted message — and offers replies to pick from.
+    AI_REPLY,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -292,7 +297,7 @@ val ToolTopUps: Set<ToolbarTool> = setOf(ToolbarTool.WIKIPEDIA, ToolbarTool.POWE
  * and the sensors.
  */
 private val RestOfToolOrder: List<ToolbarTool> = listOf(
-    ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH,
+    ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH, ToolbarTool.AI_REPLY,
     ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.TYPING_TEST, ToolbarTool.STATISTICS, ToolbarTool.PLUGINS,
     ToolbarTool.CUSTOM_LAYOUT,
     ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO,

@@ -1,0 +1,92 @@
+---
+title: "AI reply"
+description: "Draft an answer to a message somebody sent you: paste it, type it, or pick a screenshot of the chat, then choose a tone."
+sidebar:
+  order: 12
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+import Flavor from '@components/Flavor.astro';
+
+The [AI tool](/tools/ai/) works on text you have already written. **AI reply** works the other way round: it reads what somebody else sent you and drafts answers for you to pick from. It is for the moments when you know what you want to say and not how to say it, or when you do not know what to say at all.
+
+Nothing is ever sent on your behalf. The tool writes drafts; tapping one puts it in the message box, exactly as if you had typed it, and you still press send yourself.
+
+## Getting their message in
+
+A keyboard can read the box you are typing in. It cannot read the conversation above it — those messages belong to the chat app, and no keyboard can reach into them. So the first thing the panel asks for is their message, and there are four ways to hand it over:
+
+- **Paste their words** takes the most recent thing you copied. Long-press their message in the chat app, copy it, and tap this.
+- **Type it** opens a box on the keyboard. Type or paste the message, press <kbd>Enter</kbd>, and it is added.
+- **Screenshot** lists the recent screenshots on your phone. Pick the one of the chat.
+- **Select it** works in the few apps that let you select the conversation text itself.
+
+### Several messages at once
+
+A reply usually needs more than one line of the conversation. While the reply panel is open, **anything you copy is added to it automatically** — so you can switch to the chat app, copy three messages one after another, come back, and all three are waiting. The same is true for screenshots: take one while the panel is open and it is picked up on its own.
+
+Each gathered message carries a **Them** or **Me** label. Tap the label to flip it. This matters more than it looks: nothing the keyboard can see says who wrote a copied line, so a message of your own that is read as theirs produces a reply to yourself.
+
+Tap the **×** on a message to drop it, or **Clear** to start over.
+
+### Screenshots
+
+A screenshot is the fastest way to hand over a whole conversation, because the bubbles' own left-and-right alignment says who said what.
+
+How it is read depends on your AI provider, set under <SettingsPath path="Tools > AI reply > How screenshots are read" />:
+
+- **Automatic** (the default) sends the picture to providers that accept pictures — Claude, OpenAI, Gemini, xAI, Ollama, LM Studio and OpenAI-compatible servers — and reads it on the device otherwise.
+- **Send the picture** always sends it. The model reads the alignment itself, so no labelling is needed.
+- **Read on this device** never sends the picture. The text is read on the phone and arrives as separate messages you can relabel. <Flavor edition="full" /> — the on-device reader is not in the Lite build.
+
+The keyboard cannot take a screenshot for you: capturing the screen needs a system permission dialog, and an input method that opens one loses the box it was typing into. Take it the usual way, with the hardware buttons, and the keyboard picks it up. Automatic pick-up needs **Screenshots in the clipboard** turned on under <SettingsPath path="Clipboard" />; the **Screenshot** button in the panel always works.
+
+Reading screenshots from the gallery needs permission to read your images, asked for the first time you open the picker.
+
+## Picking a tone
+
+Once there is something to reply to, the tone chips light up. One tap writes the drafts:
+
+| Tone | What it does |
+| --- | --- |
+| **Friendly** | A warm, everyday reply, the kind a friend would send |
+| **Short** | A handful of words |
+| **Caring** | Shows you understood how they feel, without unasked-for advice |
+| **Keep it going** | Answers, then asks one easy question back so the conversation continues |
+| **Polite** | Courteous and professional, for someone you do not know well |
+| **Agree** | Says yes plainly, without flattery |
+| **Say no kindly** | Declines clearly, without apologising repeatedly |
+| **Funny** | Light and playful, still answering what they said |
+| **Flirty** | Warm and lightly flirty |
+
+Tones are editable, and you can write your own: they share the action editor with the AI tool's actions, under <SettingsPath path="Tools > AI > Actions" />. A tone you write needs a saved instruction — there is nowhere on this panel to type one per run, because the panel's own box is for their message.
+
+The drafts appear below. Tap one to put it in the message box.
+
+## What it writes
+
+Under <SettingsPath path="Tools > AI reply" />:
+
+- **Replies per run** — how many alternatives one run writes, up to five. An on-device model is always asked for one: a small model asked for three writes the same reply three times.
+- **Length** — short, medium or long.
+- **Emoji** — match the other person's use of them, allow them, or avoid them entirely.
+- **About you** — anything the drafts should know about how you write. This is the single setting that most changes whether a reply sounds like you.
+- **Reply language** — blank follows the conversation, including its script, so Bengali written in Latin letters is answered the same way.
+- **Conversation sent** — how much of the gathered conversation one run sends. When it will not all fit, the oldest messages go first.
+
+The provider, API key and model are the AI tool's own, under <SettingsPath path="Tools > AI" />. There is only one set of them.
+
+## Clearing up afterwards
+
+Feeding this tool leaves other people's messages in your clipboard history and screenshots of your conversations in your gallery. So when you tap a draft, **the copies and screenshots that reply was built from are taken back out again**. It is on by default, it is a checkbox in the panel if you want to keep one for a particular reply, and it is a setting under <SettingsPath path="Tools > AI reply > Clear what it used" />.
+
+Clipboard entries are the keyboard's own, so those always go. A screenshot in your gallery is yours: from Android 11 an app may only delete pictures it created itself, so when the system refuses, the panel says so plainly rather than pretending the picture is gone.
+
+## Privacy
+
+- Nothing leaves the device until you tap a tone. Gathering messages, labelling them and reading a screenshot on the device are all local.
+- Their message is treated as data, never as instructions. A line in a conversation that tells the model to ignore its instructions is answered as part of the conversation, which is what someone sending it would deserve.
+- The tool refuses to run in a password field.
+- Drafted replies are **not** kept in the [AI history](/tools/ai/#history), even when the history is on. A record of a rewrite is your own writing; a record of a reply is somebody else's message. Turn it on under <SettingsPath path="Tools > AI reply > Keep drafted replies in the AI history" /> if you want them kept.
+- On a metered connection, [data saving](/typing/data-saver/) holds the request the same way it holds any other cloud AI run.
+- Choosing an on-device model keeps the whole thing on the phone. Screenshots then have to be read on the device too, since the on-device engine takes text only.

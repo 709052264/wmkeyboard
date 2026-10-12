@@ -37,6 +37,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.DICTIONARY -> Color(0xFF26A69A)
     ToolbarTool.VOCABULARY -> Color(0xFF8E24AA)
     ToolbarTool.LEARN_FROM_TEXT -> Color(0xFF00897B)
+    // The AI family's violet, since it is the AI tool's sibling (#234).
+    ToolbarTool.AI_REPLY -> Color(0xFF7C4DFF)
     ToolbarTool.HANDWRITING -> Color(0xFF7E57C2)
     ToolbarTool.NUMPAD -> Color(0xFF42A5F5)
     ToolbarTool.SYMBOLS -> Color(0xFF7E57C2)

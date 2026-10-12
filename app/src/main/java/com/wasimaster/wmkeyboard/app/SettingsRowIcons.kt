@@ -1390,6 +1390,15 @@ internal object SettingsRowIcons {
         put(R.string.toolai_typing_clear_records_title) { Icons.Outlined.DeleteSweep }
         put(R.string.toolai_ai_max_tokens_title) { Icons.Outlined.Numbers }
         put(R.string.toolai_ai_show_thinking_title) { Icons.Outlined.Psychology }
+        // AI reply (#234).
+        put(R.string.toolai_reply_count_title) { Icons.Outlined.Numbers }
+        put(R.string.toolai_reply_length_title) { Icons.AutoMirrored.Outlined.ShortText }
+        put(R.string.toolai_reply_emoji_title) { Icons.Outlined.EmojiEmotions }
+        put(R.string.toolai_reply_context_title) { Icons.AutoMirrored.Outlined.Chat }
+        put(R.string.toolai_reply_image_mode_title) { Icons.Outlined.Image }
+        put(R.string.toolai_reply_tidy_title) { Icons.Outlined.DeleteSweep }
+        put(R.string.toolai_reply_history_title) { Icons.Outlined.History }
+        put(R.string.toolai_reply_provider_nav_title) { Icons.Outlined.AutoAwesome }
         put(R.string.toolai_ai_model_picker_title) { Icons.Outlined.Tune }
         put(R.string.toolai_ai_actions_title) { Icons.Outlined.AutoAwesome }
         put(R.string.toolai_ai_diff_title) { Icons.Outlined.Difference }
