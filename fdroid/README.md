@@ -81,8 +81,12 @@ after the colon. That is its output; leave it.
 **`scandelete`** — prebuilt native libraries belonging to variants this build
 does not produce. The Harper grammar engine lives in the full source set (its
 Rust sources are under `native/harper-jni`), and the LLM module is only assembled
-for the Play channel. Deleting them keeps F-Droid's scanner quiet and proves
-neither reaches the built APK.
+for the Play channel. The offline Whistle voice engine is the same case: its JNI
+library is under `core/voice/src/full/jniLibs`, and the Cactus archive it links
+(`native/whistle-jni/prebuilt`) has no source to build from. Deleting them keeps
+F-Droid's scanner quiet and proves none of them reaches the built APK. The last
+build block carries the two Whistle paths ahead of the first release that has
+them; `AutoUpdateMode` copies that block forward.
 
 **`prebuild`** — two `sed` commands, both for the source scanner. It is a text
 search over the build files, run before the build and fatal on a match, and it

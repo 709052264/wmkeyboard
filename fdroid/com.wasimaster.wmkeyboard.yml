@@ -86,6 +86,8 @@ Builds:
     scandelete:
       - core/intelligence/src/full/jniLibs
       - feature/llm/src/main/jniLibs
+      - core/voice/src/full/jniLibs
+      - native/whistle-jni/prebuilt
     gradleprops:
       - wmkb.enablePlayStore=false
       - wmkb.enableGms=false

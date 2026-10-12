@@ -63,6 +63,8 @@
          of the site the models come from. -->
     <string name="core_voice_download_http_error">The Hugging Face server did not send the file. The error code is HTTP <xliff:g id="status_code" example="404">%1$s</xliff:g>.</string>
     <string name="core_voice_download_interrupted_error">The connection stopped during the download. Try again to continue from where it stopped.</string>
+    <!-- The Whistle model arrived but is not the exact file the app expects. -->
+    <string name="core_voice_whistle_checksum_error">The downloaded model is damaged. Download it again.</string>
 
     <!-- ================================================================== -->
     <!-- Offline voice typing failures. Shown on the voice panel.            -->
