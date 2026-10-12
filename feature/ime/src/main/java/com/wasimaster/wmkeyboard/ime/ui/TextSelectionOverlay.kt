@@ -50,6 +50,7 @@ import androidx.compose.ui.node.currentValueOf
 import androidx.compose.ui.node.invalidateDraw
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -102,7 +103,7 @@ import kotlin.math.roundToInt
  * message names it to the model, "the Wikipedia article "Cat"", and [label]
  * how the composer names it to the user, "Wikipedia: Cat".
  */
-internal data class AskAiSource(val framing: String, val label: String)
+data class AskAiSource(val framing: String, val label: String)
 
 /** One action on the selection bar. */
 @Stable
@@ -673,7 +674,30 @@ internal fun SelectableText(
      */
     quote: ((String) -> String)? = null,
     onTap: (() -> Unit)? = null,
+) = SelectableText(
+    AnnotatedString(text), color, fontSize, modifier, lineHeight, fontWeight, fontStyle, fontFamily, ask, quote, onTap,
+)
+
+/**
+ * [SelectableText] over styled text: a note's Markdown paragraph keeps its
+ * bold, code and links, and the selection and its bar work on the plain
+ * characters underneath.
+ */
+@Composable
+internal fun SelectableText(
+    styled: AnnotatedString,
+    color: Color,
+    fontSize: TextUnit,
+    modifier: Modifier = Modifier,
+    lineHeight: TextUnit = TextUnit.Unspecified,
+    fontWeight: FontWeight? = null,
+    fontStyle: FontStyle? = null,
+    fontFamily: FontFamily? = null,
+    ask: AskAiSource? = null,
+    quote: ((String) -> String)? = null,
+    onTap: (() -> Unit)? = null,
 ) {
+    val text = styled.text
     val kb = LocalKbTheme.current
     val tools = LocalSelectionTools.current
     val overlay = LocalSelectionOverlay.current
@@ -689,7 +713,7 @@ internal fun SelectableText(
     val start = current?.first ?: 0
     val end = current?.let { it.last + 1 } ?: 0
     Text(
-        text = text,
+        text = styled,
         color = color,
         fontSize = fontSize,
         lineHeight = lineHeight,

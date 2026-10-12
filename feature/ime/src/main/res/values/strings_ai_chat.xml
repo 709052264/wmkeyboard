@@ -66,6 +66,7 @@
     <string name="ime_ask_ai_label_wiki">Wikipedia: %1$s</string>
     <string name="ime_ask_ai_label_dict">Dictionary: %1$s</string>
     <string name="ime_ask_ai_label_vocab">Vocabulary: %1$s</string>
+    <string name="ime_ask_ai_label_note">Note: %1$s</string>
     <string name="ime_ask_ai_label_grammar">Grammar check</string>
     <string name="ime_grammar_ask_ai_desc">Ask AI about this issue</string>
     <string name="ime_ai_chat_ask_hint">Ask a question about the text, or start with one of these.</string>

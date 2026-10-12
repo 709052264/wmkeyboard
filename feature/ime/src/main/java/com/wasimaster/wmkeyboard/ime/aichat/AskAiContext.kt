@@ -49,6 +49,9 @@ object AskAiContext {
     /** What the Wikipedia panel calls an article in a selection's frame. */
     fun wikipediaSource(title: String): String = "the Wikipedia article \"$title\""
 
+    /** What the notes read view calls a note in a selection's frame; [title] is blank for an untitled one. */
+    fun noteSource(title: String): String = if (title.isBlank()) "one of the user's notes" else "the user's note \"$title\""
+
     /** Dictionary entries for one word, every meaning numbered as the panel shows it. */
     fun dictionary(entries: List<DictEntry>): String = buildString {
         for ((index, entry) in entries.withIndex()) {

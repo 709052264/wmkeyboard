@@ -73,6 +73,7 @@ import com.wasimaster.wmkeyboard.ime.NotesUndo
 import com.wasimaster.wmkeyboard.ime.NotesUndoKind
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.ime.aichat.AskAiContext
 
 /**
  * The Notes panel's service callbacks (#560), bundled into one value for the
@@ -740,6 +741,10 @@ private fun NotesReadView(state: KeyboardUiState, note: Note, callbacks: NotesCa
                 else -> {
                     val body = remember(note.body, showAll) { if (showAll) note.body else readPrefix(note.body) }
                     val editable = !note.inTrash && note.body.length <= NoteEdit.EDITOR_MAX_LENGTH
+                    // A long press selects, with Copy, Insert and Ask AI on its bar, as in Wikipedia.
+                    val title = note.displayTitle()
+                    val askLabel = stringResource(R.string.ime_ask_ai_label_note, title.ifEmpty { stringResource(R.string.ime_notes_untitled) })
+                    val ask = remember(title, askLabel) { AskAiSource(AskAiContext.noteSource(title), askLabel) }
                     if (state.settings.notes.renderMarkdown) {
                         ChatMarkdown(
                             body,
@@ -747,14 +752,18 @@ private fun NotesReadView(state: KeyboardUiState, note: Note, callbacks: NotesCa
                             fontSize = 13.sp,
                             onTaskToggle = if (note.inTrash) null else ({ task -> callbacks.onTaskToggle(note.id, task.line) }),
                             onBlockTap = if (editable) ({ block -> callbacks.onEditStart(note.id, block.line) }) else null,
+                            selectable = true,
+                            ask = ask,
                         )
                     } else {
-                        Text(
+                        SelectableText(
                             body,
                             color = kb.modifierKeyText,
                             fontSize = 13.sp,
                             lineHeight = 18.sp,
-                            modifier = Modifier.fillMaxWidth().clickable(enabled = editable) { callbacks.onEditStart(note.id, null) },
+                            modifier = Modifier.fillMaxWidth(),
+                            ask = ask,
+                            onTap = if (editable) ({ callbacks.onEditStart(note.id, null) }) else null,
                         )
                     }
                     if (!showAll && body.length < note.body.length) {

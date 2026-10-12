@@ -112,8 +112,18 @@ fun ChatMarkdown(
      * block's line. Null leaves the text inert, as a chat answer is.
      */
     onBlockTap: ((Block) -> Unit)? = null,
+    /**
+     * A long press on a paragraph, heading, list item, quote or footnote
+     * selects a word, with handles and the keyboard's Copy, Insert and Ask AI
+     * bar, as in Wikipedia (#352). Keyboard only: outside it there is no
+     * selection overlay to draw in, and the text stays as it is. [ask] names
+     * the text for Ask AI.
+     */
+    selectable: Boolean = false,
+    ask: AskAiSource? = null,
     codeActions: (@Composable RowScope.(Block.Code) -> Unit)? = null,
 ) {
+    val canSelect = selectable && LocalSelectionOverlay.current != null
     val blocks = remember(text) { AiMarkdownBlocks.parse(text) }
     val lineHeight = fontSize * LINE_HEIGHT
     val context = LocalContext.current
@@ -126,30 +136,40 @@ fun ChatMarkdown(
             } else {
                 Modifier
             }
+            val tap = onBlockTap?.let { { it(block) } }
             Box(tappable) {
             when (block) {
-                is Block.Paragraph -> Text(
+                is Block.Paragraph -> BlockText(
                     md(block.inline),
                     color = colors.text,
                     fontSize = fontSize,
                     lineHeight = lineHeight,
+                    selectable = canSelect,
+                    ask = ask,
+                    onTap = tap,
                 )
-                is Block.Heading -> Text(
+                is Block.Heading -> BlockText(
                     md(block.inline),
                     // h6 is the one level below body text, so it steps back in colour.
                     color = if (block.level >= 6) colors.dim else colors.text,
                     fontSize = fontSize * HEADING_SCALE[(block.level - 1).coerceIn(0, HEADING_SCALE.lastIndex)],
                     fontWeight = FontWeight.SemiBold,
                     lineHeight = lineHeight * 1.12f,
+                    selectable = canSelect,
+                    ask = ask,
+                    onTap = tap,
                 )
                 is Block.Bullet -> Row(Modifier.padding(start = (block.indent * 12).dp)) {
                     Text(block.marker, color = colors.dim, fontSize = fontSize, lineHeight = lineHeight)
                     Spacer(Modifier.width(6.dp))
-                    Text(
+                    BlockText(
                         md(block.inline),
                         color = colors.text,
                         fontSize = fontSize,
                         lineHeight = lineHeight,
+                        selectable = canSelect,
+                        ask = ask,
+                        onTap = tap,
                     )
                 }
                 is Block.Task -> TaskRow(block, colors, fontSize, lineHeight, onTaskToggle, onLink)
@@ -164,11 +184,14 @@ fun ChatMarkdown(
                         )
                         Spacer(Modifier.width(8.dp))
                     }
-                    Text(
+                    BlockText(
                         md(block.inline),
                         color = colors.dim,
                         fontSize = fontSize,
                         lineHeight = lineHeight,
+                        selectable = canSelect,
+                        ask = ask,
+                        onTap = tap,
                     )
                 }
                 is Block.Code -> CodeBlock(block, colors, fontSize, codeActions)
@@ -177,7 +200,7 @@ fun ChatMarkdown(
                 is Block.Footnote -> Row {
                     Text("${block.number}.", color = colors.dim, fontSize = fontSize * 0.85f, lineHeight = lineHeight)
                     Spacer(Modifier.width(6.dp))
-                    Text(md(block.inline), color = colors.dim, fontSize = fontSize * 0.85f, lineHeight = lineHeight)
+                    BlockText(md(block.inline), colors.dim, fontSize * 0.85f, lineHeight, selectable = canSelect, ask = ask, onTap = tap)
                 }
                 is Block.Rule -> Box(
                     Modifier
@@ -189,6 +212,25 @@ fun ChatMarkdown(
             }
             }
         }
+    }
+}
+
+/** One block's text: [SelectableText] when [selectable], else plain. */
+@Composable
+private fun BlockText(
+    text: AnnotatedString,
+    color: Color,
+    fontSize: TextUnit,
+    lineHeight: TextUnit,
+    fontWeight: FontWeight? = null,
+    selectable: Boolean,
+    ask: AskAiSource?,
+    onTap: (() -> Unit)?,
+) {
+    if (selectable) {
+        SelectableText(text, color, fontSize, lineHeight = lineHeight, fontWeight = fontWeight, ask = ask, onTap = onTap)
+    } else {
+        Text(text, color = color, fontSize = fontSize, fontWeight = fontWeight, lineHeight = lineHeight)
     }
 }
 

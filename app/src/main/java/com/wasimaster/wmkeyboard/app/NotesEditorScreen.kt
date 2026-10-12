@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
@@ -300,12 +301,15 @@ private fun NoteEditorForm(settings: LiveSettings, state: NotesScreenState, init
                         Text(stringResource(R.string.notes_preview_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else {
                         val ink = MaterialTheme.colorScheme.onSurface
-                        ChatMarkdown(
-                            body,
-                            ChatMarkdownColors(text = ink, dim = ink.copy(alpha = 0.65f), codeBackground = ink.copy(alpha = 0.10f), link = MaterialTheme.colorScheme.primary),
-                            fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                            onTaskToggle = { task -> NoteChecklist.toggleTask(body, task.line)?.let { body = it } },
-                        )
+                        // The app has an activity, so the platform's own selection and Copy bar work here.
+                        SelectionContainer {
+                            ChatMarkdown(
+                                body,
+                                ChatMarkdownColors(text = ink, dim = ink.copy(alpha = 0.65f), codeBackground = ink.copy(alpha = 0.10f), link = MaterialTheme.colorScheme.primary),
+                                fontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                                onTaskToggle = { task -> NoteChecklist.toggleTask(body, task.line)?.let { body = it } },
+                            )
+                        }
                     }
                 }
             }
