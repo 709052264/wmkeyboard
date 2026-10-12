@@ -270,7 +270,9 @@ android {
             dimension = "capabilities"
             buildConfigField("Boolean", "ENABLE_ML_KIT_HANDWRITING", "false")
             buildConfigField("Boolean", "ENABLE_ML_KIT_SCANNERS", "false")
-            buildConfigField("Boolean", "ENABLE_GRAMMAR", "false")
+            // Harper is open source and needs no Play services, so lite has it
+            // too; only the ML Kit and LiteRT features stay full-only.
+            buildConfigField("Boolean", "ENABLE_GRAMMAR", "true")
             buildConfigField("Boolean", "ENABLE_LOCAL_LLM", "false")
             buildConfigField("Boolean", "ENABLE_WHISPER", "false")
         }
@@ -511,8 +513,9 @@ android {
         // paths were removed from the DSL.
     }
 
-    // The Harper native libraries live in :core:intelligence under src/full/jniLibs,
-    // so lite builds exclude them by construction — no source-set surgery needed here.
+    // The Harper native libraries live in :core:intelligence under src/main/jniLibs,
+    // so every edition carries them; F-Droid's recipe deletes the prebuilt copies
+    // and the grammar tool and spell checker then report themselves absent.
 }
 
 // Compiles dictionaries-src/*.txt into assets/dictionaries/*.wmdict via the

@@ -81,7 +81,9 @@ android {
             dimension = "capabilities"
             buildConfigField("Boolean", "ENABLE_ML_KIT_HANDWRITING", "false")
             buildConfigField("Boolean", "ENABLE_ML_KIT_SCANNERS", "false")
-            buildConfigField("Boolean", "ENABLE_GRAMMAR", "false")
+            // Harper is open source and needs no Play services, so lite has it
+            // too; only the ML Kit and LiteRT features stay full-only.
+            buildConfigField("Boolean", "ENABLE_GRAMMAR", "true")
             buildConfigField("Boolean", "ENABLE_LOCAL_LLM", "false")
             buildConfigField("Boolean", "ENABLE_WHISPER", "false")
         }

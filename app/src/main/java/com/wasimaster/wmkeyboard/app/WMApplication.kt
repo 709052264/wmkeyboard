@@ -60,6 +60,9 @@ open class WMApplication : Application() {
         // The network activity log, before anything in this process can make
         // a request. Cheap: it reads two small files, or waits for the unlock.
         NetLog.attach(this)
+        // The spell checker is declared in every edition; off where the
+        // library it needs was left out of the build.
+        com.wasimaster.wmkeyboard.spell.HarperSpellChecker.syncAvailability(this)
         // Publishes the Drive token provider, if this build has one at all, so
         // the backup job can find it. Here rather than in the activity or the
         // keyboard because either of those may be what started the process, and

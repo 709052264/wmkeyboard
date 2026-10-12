@@ -30,6 +30,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllEngine
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
 import com.wasimaster.wmkeyboard.app.updates.AllLanguagesRow
 import com.wasimaster.wmkeyboard.app.updates.KeepEnglishOnlyRow
 import com.wasimaster.wmkeyboard.app.updates.UpdateSettings
@@ -307,15 +309,6 @@ private val bundledAttributions: List<Attribution> = buildList {
         )
         add(
             Attribution(
-                "OpenAI Whisper",
-                R.string.about_bundled_whisper_used,
-                "Copyright (c) 2022 OpenAI",
-                "MIT", "mit-whisper.txt",
-                "https://github.com/openai/whisper",
-            ),
-        )
-        add(
-            Attribution(
                 "whisper_android",
                 R.string.about_bundled_whisper_android_used,
                 "Copyright (c) 2023 Vilas Ninawe",
@@ -323,8 +316,33 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "https://github.com/vilassn/whisper_android",
             ),
         )
+        // The other offline engine (#548), in the same builds.
+        add(
+            Attribution(
+                "Cactus Needle and Whistle",
+                R.string.about_bundled_whistle_used,
+                "Copyright Cactus Compute, Inc.",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://huggingface.co/Cactus-Compute/whistle",
+            ),
+        )
+    }
+    // OpenAI's weights reach both runtimes: LiteRT's graphs in full builds,
+    // whisper.cpp's models in every edition that has its library (#440).
+    if (BuildConfig.ENABLE_WHISPER || WhisperCatalog.cppAvailable) {
+        add(
+            Attribution(
+                "OpenAI Whisper",
+                R.string.about_bundled_whisper_used,
+                "Copyright (c) 2022 OpenAI",
+                "MIT", "mit-whisper.txt",
+                "https://github.com/openai/whisper",
+            ),
+        )
+    }
+    if (WhisperCatalog.cppAvailable) {
         // The runtime of Offline Whisper's ggml models (#440), and the
-        // quantized models it downloads, in the same builds.
+        // quantized models it downloads, wherever its library is.
         add(
             Attribution(
                 "whisper.cpp and ggml",
@@ -334,6 +352,8 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "https://github.com/ggml-org/whisper.cpp",
             ),
         )
+    }
+    if (Asr4AllEngine.available) {
         // Offline Asr4All (#289): the runtime built into the app, and the
         // models it downloads, which carry their own restricted-use licence.
         add(
@@ -352,16 +372,6 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "Asr4All Model weights",
                 "Model Weights License (Restricted Use) 1.0", "asr4all-weights.txt",
                 "https://huggingface.co/futo-org/asr4all-s",
-            ),
-        )
-        // The other offline engine (#548), in the same builds.
-        add(
-            Attribution(
-                "Cactus Needle and Whistle",
-                R.string.about_bundled_whistle_used,
-                "Copyright Cactus Compute, Inc.",
-                "Apache-2.0", "apache-2.0.txt",
-                "https://huggingface.co/Cactus-Compute/whistle",
             ),
         )
     }

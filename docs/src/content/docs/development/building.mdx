@@ -77,9 +77,9 @@ In the code, every request passes through `NetLog` (or, for the OkHttp clients, 
 
 ## Rebuilding the native grammar engine
 
-<Flavor edition="full" />: the grammar checker's native library only ships in full builds.
+Both editions ship the grammar checker's native library.
 
-The grammar tool's linter is a Rust `cdylib` (`native/harper-jni/`) that wraps [Harper](https://github.com/automattic/harper)'s `harper-core` behind a small JNI surface. `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/grammar/HarperNative.kt` is the Kotlin entry point. The prebuilt `.so` files are committed under `core/intelligence/src/full/jniLibs/<abi>/`, so **a normal `assembleFullDebug` never touches Rust or the NDK.** Rebuild the library only if you edit `native/harper-jni/src/lib.rs` or bump the `harper-core` version:
+The grammar tool's linter is a Rust `cdylib` (`native/harper-jni/`) that wraps [Harper](https://github.com/automattic/harper)'s `harper-core` behind a small JNI surface. `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/grammar/HarperNative.kt` is the Kotlin entry point. The prebuilt `.so` files are committed under `core/intelligence/src/main/jniLibs/<abi>/`, so **a normal build never touches Rust or the NDK.** Rebuild the library only if you edit `native/harper-jni/src/lib.rs` or bump the `harper-core` version:
 
 ```sh
 # One-time setup
@@ -90,7 +90,7 @@ brew install --cask android-ndk   # or any NDK; set ANDROID_NDK_HOME
 # Build all three ABIs, from native/harper-jni/
 ANDROID_NDK_HOME=/opt/homebrew/share/android-ndk \
 cargo ndk -t arm64-v8a -t armeabi-v7a -t x86_64 --platform 24 \
-  -o ../../core/intelligence/src/full/jniLibs build --release
+  -o ../../core/intelligence/src/main/jniLibs build --release
 ```
 
 The same command is in `native/harper-jni/README.md`, along with the JNI contract the Kotlin side depends on.
@@ -99,9 +99,9 @@ The same command is in `native/harper-jni/README.md`, along with the JNI contrac
 
 ## Rebuilding the text scanner's Tesseract library
 
-<Flavor edition="full" />: like the grammar engine, it only ships in full builds.
+<Flavor edition="full" />: unlike the grammar engine, it only ships in full builds.
 
-The text scanner reads most non-Latin scripts with [Tesseract](https://github.com/tesseract-ocr/tesseract), compiled with Leptonica into one small library, `libwmtess.so`, from `native/tesseract-jni/`. `core/intelligence/src/full/java/com/wasimaster/wmkeyboard/core/ocr/TesseractOcr.kt` is the Kotlin entry point, and the prebuilt `.so` files sit beside Harper's under `core/intelligence/src/full/jniLibs/<abi>/`, so a normal build needs no NDK here either. Rebuild them only after you edit `native/tesseract-jni/`:
+The text scanner reads most non-Latin scripts with [Tesseract](https://github.com/tesseract-ocr/tesseract), compiled with Leptonica into one small library, `libwmtess.so`, from `native/tesseract-jni/`. `core/intelligence/src/full/java/com/wasimaster/wmkeyboard/core/ocr/TesseractOcr.kt` is the Kotlin entry point, and the prebuilt `.so` files sit under `core/intelligence/src/full/jniLibs/<abi>/`, so a normal build needs no NDK here either. Rebuild them only after you edit `native/tesseract-jni/`:
 
 ```sh
 # Needs NDK r29, CMake 3.22+ and Ninja

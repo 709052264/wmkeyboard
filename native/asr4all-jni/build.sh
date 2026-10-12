@@ -2,7 +2,7 @@
 # Builds libwmasr4all.so for every ABI: first a selective, static ExecuTorch
 # (only the operators in ops.txt, the XNNPACK delegate, the Module extension),
 # then asr4all_jni.cpp over it; copies the results into
-# core/voice/src/full/jniLibs/. See README.md.
+# core/voice/src/main/jniLibs/. See README.md.
 #
 #   ANDROID_NDK=/path/to/ndk native/asr4all-jni/build.sh
 #
@@ -63,7 +63,7 @@ for abi in arm64-v8a armeabi-v7a x86_64; do
         -DCMAKE_CXX_FLAGS="-ffile-prefix-map=$SRC=executorch -ffile-prefix-map=$HERE=." > "$jni.log" 2>&1 \
         || { tail -30 "$jni.log"; exit 1; }
     cmake --build "$jni" >> "$jni.log" 2>&1 || { tail -40 "$jni.log"; exit 1; }
-    dest=$REPO/core/voice/src/full/jniLibs/$abi
+    dest=$REPO/core/voice/src/main/jniLibs/$abi
     mkdir -p "$dest"
     "$BIN/llvm-strip" --strip-unneeded -o "$dest/libwmasr4all.so" "$jni/libwmasr4all.so"
     echo "$abi libwmasr4all.so: $(wc -c < "$dest/libwmasr4all.so") bytes"

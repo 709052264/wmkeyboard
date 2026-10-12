@@ -21,9 +21,10 @@ three sizes) and the XNNPACK delegate, links libc++ statically, and builds
 armv7 too. On arm64 that is 2.4 MB against the AAR's 9.1 MB `libexecutorch.so`
 plus fbjni and its C++ runtime.
 
-The built libraries are committed under `core/voice/src/full/jniLibs/`, so the
-app builds without an NDK. Being under `src/full` keeps them out of lite
-builds; F-Droid builds lite and `scandelete`s that directory. Rebuild after you
+The built libraries are committed under `core/voice/src/main/jniLibs/`, so the
+app builds without an NDK, and both editions, full and lite, carry them.
+F-Droid builds lite and `scandelete`s that directory, so its build has no
+such engine. Rebuild after you
 change anything here:
 
 ```sh

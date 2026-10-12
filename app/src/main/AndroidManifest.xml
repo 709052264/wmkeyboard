@@ -1158,6 +1158,23 @@
             android:name="com.wasimaster.wmkeyboard.app.SyncJobService"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <!-- The Harper spell checker, in every edition. A build made without
+             libharper_jni.so (F-Droid) has it switched off at startup by
+             HarperSpellChecker.syncAvailability, so Android's settings never
+             list one that cannot answer. -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.spell.HarperSpellCheckerService"
+            android:exported="true"
+            android:label="@string/spell_checker_name"
+            android:permission="android.permission.BIND_TEXT_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.textservice.SpellCheckerService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.view.textservice.scs"
+                android:resource="@xml/spellchecker" />
+        </service>
     </application>
 
 </manifest>

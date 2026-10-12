@@ -88,6 +88,8 @@ Builds:
       - feature/llm/src/main/jniLibs
       - core/voice/src/full/jniLibs
       - native/whistle-jni/prebuilt
+      - core/voice/src/main/jniLibs
+      - core/intelligence/src/main/jniLibs
     gradleprops:
       - wmkb.enablePlayStore=false
       - wmkb.enableGms=false

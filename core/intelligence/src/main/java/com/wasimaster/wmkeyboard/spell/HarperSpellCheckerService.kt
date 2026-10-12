@@ -1,10 +1,12 @@
 package com.wasimaster.wmkeyboard.spell
 
 import android.Manifest
+import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.ContactsContract
+import dalvik.system.BaseDexClassLoader
 import android.service.textservice.SpellCheckerService
 import android.view.textservice.SentenceSuggestionsInfo
 import android.view.textservice.SuggestionsInfo
@@ -58,6 +60,39 @@ internal fun spellReplacementFor(span: String, fix: GrammarFix): String? = when 
     "replace" -> fix.text
     "insertAfter" -> fix.text?.let { span + it }
     else -> null
+}
+
+/**
+ * Keeps the spell checker listed in Android's settings only where it can
+ * answer. Every edition ships Harper now, lite included, but a build made
+ * without it (F-Droid strips the prebuilt library) declares the same service,
+ * and a listed spell checker that never returns a result is worse than none.
+ */
+object HarperSpellChecker {
+
+    /**
+     * Enables or disables [HarperSpellCheckerService] to match whether this
+     * install carries `libharper_jni.so`. Asks the class loader where the
+     * library is rather than loading it, so a process start pays nothing.
+     * Writes only when the state is wrong.
+     */
+    fun syncAvailability(context: Context) {
+        val packaged = runCatching {
+            (context.classLoader as? BaseDexClassLoader)?.findLibrary("harper_jni") != null
+        }.getOrDefault(false)
+        val component = ComponentName(context, HarperSpellCheckerService::class.java)
+        val pm = context.packageManager
+        val wanted = if (packaged) {
+            PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
+        } else {
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+        }
+        runCatching {
+            if (pm.getComponentEnabledSetting(component) != wanted) {
+                pm.setComponentEnabledSetting(component, wanted, PackageManager.DONT_KILL_APP)
+            }
+        }
+    }
 }
 
 class HarperSpellCheckerService : SpellCheckerService() {

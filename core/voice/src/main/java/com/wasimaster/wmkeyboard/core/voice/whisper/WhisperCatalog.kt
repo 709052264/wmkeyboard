@@ -463,6 +463,9 @@ object WhisperCatalog {
                 Single("base-zh", WhisperSize.BASE, "whisper-base.zh.tflite", "zh", REPO, 78_448_496L),
             ),
         )
+    }.filter { model ->
+        // Lite has no LiteRT, so only whisper.cpp's models can run there.
+        model.ggml || WhisperEngine.AVAILABLE
     }.map { model ->
         // Beside whisper.cpp's models of the same sizes, the LiteRT graphs need
         // telling apart, and the one pointed at first is no longer theirs.

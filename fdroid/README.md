@@ -88,7 +88,13 @@ libraries for Offline Whisper sit in the same `jniLibs` directory (built from
 source by `native/whispercpp-jni/build.sh`), and so do the selective ExecuTorch
 builds for Offline Asr4All (`native/asr4all-jni/build.sh`), so the same entry
 removes them. Deleting them keeps
-F-Droid's scanner quiet and proves none of them reaches the built APK. The last
+F-Droid's scanner quiet and proves none of them reaches the built APK.
+whisper.cpp, Asr4All's ExecuTorch and Harper moved to the `src/main/jniLibs`
+directories of `:core:voice` and `:core:intelligence` when lite gained them, so
+those two are deleted too; the F-Droid build then reports the engines and the
+grammar tool as not in this build, and switches the spell checker off. All
+three can be built from source (`native/*/build.sh`, `cargo ndk`), which is
+the way to bring them to F-Droid. The last
 build block carries the two Whistle paths ahead of the first release that has
 them; `AutoUpdateMode` copies that block forward.
 

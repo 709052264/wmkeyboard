@@ -3,17 +3,13 @@ title: "Grammar check"
 description: "Offline grammar checking powered by Harper: squiggles without a server."
 sidebar:
   order: 7
-  badge:
-    text: "Full"
-    variant: note
 ---
 
 import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
-import Flavor from '@components/Flavor.astro';
 import Shot from '@components/Shot.astro';
 
-Grammar check runs your writing past Harper, the same open-source engine behind `harper-ls`, and surfaces fixable issues right above the keys as you type. <Flavor edition="full" /> Everything happens on-device. Nothing you type leaves the phone to get checked.
+Grammar check runs your writing past Harper, the same open-source engine behind `harper-ls`, and surfaces fixable issues right above the keys as you type. Everything happens on-device. Nothing you type leaves the phone to get checked.
 
 <PhoneFrame caption="The Grammar panel open above the key rows, with a spelling issue and its fix chips.">
   {/* shot: smart/grammar-panel-open */}
@@ -125,7 +121,7 @@ A **System-wide** group sits below these two, with a **Use Harper everywhere** b
 ## Details & edge cases
 
 - **English only.** Apart from the optional [DeepL Write](#deepl-write) button, Harper doesn't check any other language, and the dialect setting is global. It applies no matter which typing language or layout is currently active. Grammar check has nothing to do while you're typing in a non-English language.
-- **Full edition only.** Grammar check doesn't exist at all in the lite build. It's absent from both the toolbar customization list and the toolbox, rather than sitting there disabled or grayed out, because lite ships without Harper's native library. If you're on lite and don't see it, that's expected.
+- **Both editions.** Grammar check and the Harper spell checker are in full and lite alike. A build made without Harper's native library, which is what F-Droid builds, shows the tool as not in this build and keeps the spell checker out of Android's settings.
 - **A missing engine fails safely.** If `libharper_jni.so` somehow didn't load, the panel opens normally and says the grammar engine isn't in this build, rather than crashing or hanging on "checking."
 - **A fix only touches the words it flagged.** Applying a chip (or "Fix all") replaces the flagged spans and nothing else, so the rest of what you wrote isn't re-typed into the field. That's what keeps formatting alive in apps that have any: bold, colour, a checklist item in Google Keep. The one exception is an editor that won't tell the keyboard where its text starts. There's no way to address a span in one of those, so the fix falls back to rewriting the whole field, which flattens any styling it was carrying.
 - **Dismissing an issue is temporary.** A dismissed card comes back if you edit the text again and it re-lints to the same issue. There's no permanent "ignore this" list.

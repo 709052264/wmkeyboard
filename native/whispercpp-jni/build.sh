@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds libwmwhispercpp*.so (whispercpp_jni.cpp over whisper.cpp + ggml, CPU
-# backend) for every ABI and copies them into core/voice/src/full/jniLibs/.
+# backend) for every ABI and copies them into core/voice/src/main/jniLibs/.
 # Fetches whisper.cpp at the pinned commit unless WHISPER_SRC points at a
 # checkout of it. Needs CMake and Ninja on PATH. See README.md.
 #
@@ -40,7 +40,7 @@ build() {
         -DWHISPER_SRC="$SRC" -DWM_LIB_NAME="$name" "$@" > "$out.log" 2>&1 \
         || { tail -30 "$out.log"; exit 1; }
     cmake --build "$out" --target wmwhispercpp >> "$out.log" 2>&1 || { tail -40 "$out.log"; exit 1; }
-    local dest=$REPO/core/voice/src/full/jniLibs/$abi
+    local dest=$REPO/core/voice/src/main/jniLibs/$abi
     mkdir -p "$dest"
     "$BIN/llvm-strip" --strip-unneeded -o "$dest/lib$name.so" "$out/lib$name.so"
     echo "$abi lib$name.so: $(wc -c < "$dest/lib$name.so") bytes"

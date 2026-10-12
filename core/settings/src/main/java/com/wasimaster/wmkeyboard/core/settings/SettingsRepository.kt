@@ -606,12 +606,15 @@ enum class FloatingHandlePosition { TOP, BOTTOM }
 enum class KeyboardAlignment { LEFT, CENTER, RIGHT }
 
 /**
- * Whether the offline Whisper dictation engine can run in this build. False in
- * the lite flavor (no LiteRT runtime) — settings hide the engine option and the
- * IME never routes dictation through it.
+ * Whether the offline Whisper dictation engine can run in this build: on
+ * LiteRT (full builds) or on whisper.cpp (any edition with its library, lite
+ * included, #440). False only where neither is there, as on F-Droid, which
+ * strips the prebuilt libraries — settings hide the engine option and the IME
+ * never routes dictation through it.
  */
 fun isWhisperEnabled(): Boolean =
-    BuildConfig.ENABLE_WHISPER && com.wasimaster.wmkeyboard.core.voice.whisper.WhisperEngine.AVAILABLE
+    (BuildConfig.ENABLE_WHISPER && com.wasimaster.wmkeyboard.core.voice.whisper.WhisperEngine.AVAILABLE) ||
+        com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog.cppAvailable
 
 /**
  * Backend for the AI tool — cloud APIs (bring your own key), a self-hosted

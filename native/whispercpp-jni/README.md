@@ -11,10 +11,10 @@ Whisper takes: a language by name (any of the 99), detection kept to the
 languages being dictated in, an initial prompt, beam search, text while it
 decodes, stopping part way, and clips past 30 seconds.
 
-The built libraries are committed under `core/voice/src/full/jniLibs/`, so the
-app builds without an NDK. Being under `src/full` keeps them out of lite
-builds; F-Droid builds lite and `scandelete`s that directory. Rebuild after
-you change anything here:
+The built libraries are committed under `core/voice/src/main/jniLibs/`, so the
+app builds without an NDK, and both editions, full and lite, carry them.
+F-Droid builds lite and `scandelete`s that directory, so its build has no
+such engine. Rebuild after you change anything here:
 
 ```sh
 ANDROID_NDK=~/Library/Android/sdk/ndk/27.3.13750724 native/whispercpp-jni/build.sh

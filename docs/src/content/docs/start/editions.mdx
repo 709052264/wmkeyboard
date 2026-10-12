@@ -10,7 +10,7 @@ import SettingsPath from '@components/SettingsPath.astro';
 import Flavor from '@components/Flavor.astro';
 import Shot from '@components/Shot.astro';
 
-WM Keyboard builds as two APKs from the same source. <Flavor edition="full" /> bundles on-device machine learning for handwriting, scanning, grammar checking, offline voice, and a local AI model. <Flavor edition="lite" /> drops all of it for a much smaller download. Everything else (typing, prediction, themes, languages, privacy) is identical between them.
+WM Keyboard builds as two APKs from the same source. <Flavor edition="full" /> bundles Google's on-device machine learning for handwriting and scanning, the LiteRT runtimes behind its original Whisper models and a local AI model, and the Whistle voice engine. <Flavor edition="lite" /> drops those for a much smaller download. The open-source engines are in both: grammar checking (Harper), offline Whisper on whisper.cpp, and offline Asr4All. Everything else (typing, prediction, themes, languages, privacy) is identical between them.
 
 <PhoneFrame caption="The Tools panel on a Full build: Handwriting, Text scan, QR & barcode, Document scanner and Grammar check all appear.">
   <Shot id="start/editions-toolbox-full" alt="The Tools panel on a Full build: Handwriting, Text scan, QR & barcode, Document scanner and Grammar check all appear." />
@@ -18,7 +18,7 @@ WM Keyboard builds as two APKs from the same source. <Flavor edition="full" /> b
 
 ## What Lite leaves out
 
-Both flavors come from one Gradle flavor dimension (`capabilities`) that flips five build flags. Lite ships with all five off, which hides exactly five tools from the toolbox:
+Both flavors come from one Gradle flavor dimension (`capabilities`) that flips five build flags. Lite ships with four of them off, which hides exactly four tools from the toolbox:
 
 | Tool | What it does | <Flavor edition="lite" /> |
 |---|---|---|
@@ -26,15 +26,14 @@ Both flavors come from one Gradle flavor dimension (`capabilities`) that flips f
 | Text scan (OCR) | Point the camera at printed text and type it | Not available |
 | QR & barcode scanner | Scan a QR code or barcode and insert its text | Not available |
 | Document scanner | Scan a document with Google's scanner and send it as an image | Not available |
-| Grammar check | Check your writing for grammar issues, fully offline (Harper) | Not available |
 
-There's no toggle to flip in Lite. The setting never renders at all. The same check hides these tools everywhere they could otherwise show up: the toolbox panel, the Tools settings screen, [settings search](/reference/settings/), the hardware-keyboard tool shortcuts, and the onboarding tool picker. A Lite build also declares no Harper spell-checker service, so it never appears as an option under Android's system spell checker.
+There's no toggle to flip in Lite. The setting never renders at all. The same check hides these tools everywhere they could otherwise show up: the toolbox panel, the Tools settings screen, [settings search](/reference/settings/), the hardware-keyboard tool shortcuts, and the onboarding tool picker. Grammar check is in both editions, and so is the Harper spell checker under Android's system spell-checker settings. A build made without the Harper library, which is what F-Droid builds, switches that spell checker off and shows the grammar tool as not in this build.
 
 The document scanner has a second condition on top of the flavor. It's an activity inside Google Play services rather than this app's own code, so the same check drops it on a Full build running on a phone without Play services. Text scan and QR scanning stay on such a phone, because their models are in the APK.
 
 Handwriting carries one nuance of its own. Even on Full, its "Handwrite with swipes" option (draw letters instead of gliding) appears only once you've turned on gesture typing, because handwriting a swipe needs the same recognition model.
 
-<PhoneFrame caption="The same panel on a Lite build: those five tiles are gone, not grayed out.">
+<PhoneFrame caption="The same panel on a Lite build: those four tiles are gone, not grayed out.">
   {/* shot: start/editions-toolbox-lite */}
 </PhoneFrame>
 
@@ -42,14 +41,14 @@ See [Handwriting](/tools/handwriting/), [Scanner](/tools/scanner/), and [Grammar
 
 ## Full-only extras beyond the toolbox
 
-Two more features are Full-only without being toolbox tools of their own. Both are options nested inside tools that exist in both editions:
+Two more features are partly or wholly Full-only without being toolbox tools of their own. Both are options nested inside tools that exist in both editions:
 
-- **Offline Whisper voice dictation.** The [Voice typing](/tools/voice/) tool always exists, but its "Recognition engine" choice (system recognizer versus offline Whisper) appears only on Full. Lite users see the system recognizer and nothing else, and Whisper never comes up. Even on Full, the system recognizer stays the default until you switch it. The [Whisper](/tools/whisper/) tool page covers its full model catalog. Full on a 64-bit ARM phone also offers [offline Whistle](/tools/whistle/), a small model for seven languages, and every Full edition offers [offline Asr4All](/tools/asr4all/), English dictation that writes the words while you speak.
+- **Offline voice engines.** The [Voice typing](/tools/voice/) tool's "Recognition engine" choice is in both editions. Both offer [offline Whisper](/tools/whisper/) with its whisper.cpp models and [offline Asr4All](/tools/asr4all/), English dictation that writes the words while you speak. Full adds Whisper's older LiteRT models and, on a 64-bit ARM phone, [offline Whistle](/tools/whistle/), a small model for seven languages. The system recognizer stays the default in both until you switch it.
 - **On-device local LLM.** The [AI writing tools](/tools/ai/) provider picker filters out the "On your device" chip unless the Full flags are set, leaving the nine that reach a server: Claude, OpenAI, Gemini, Grok, DeepSeek, Brave, Ollama, LM Studio and "Other service" for anything else that speaks the OpenAI chat-completions shape. On Full, on-device is a tenth chip beside them. Claude (Anthropic) is still the default provider until you change it.
 
 ## Why the download is smaller
 
-The build's own comment on the flavor split calls it out directly: Lite "removes roughly 100 MB of ML Kit + Harper native libraries for low-storage devices." That figure covers the handwriting, scanning, and grammar libraries specifically. The LiteRT and LiteRT-LM runtimes behind offline Whisper and the local LLM are also Full-only native dependencies and add to the same gap.
+The build's own comment on the flavor split calls it out directly: Lite removes the ML Kit native libraries for low-storage devices. That covers the handwriting and scanning libraries specifically. The LiteRT and LiteRT-LM runtimes behind Whisper's LiteRT models and the local LLM are also Full-only native dependencies and add to the same gap. The engines both editions carry are small by comparison: on a 64-bit ARM phone about 5.5 MB for Harper, 3.3 MB for whisper.cpp (two builds for different processors) and 2.4 MB for Asr4All's runtime.
 
 On the Play Store build some of that library code is not in the initial install either: the LiteRT-LM runtime, ML Kit's translator, the LiteRT interpreter behind offline Whisper and the sticker editor's own background remover, and ML Kit's handwriting recogniser each arrive as an on-demand part the first time the feature is used.
 
@@ -61,7 +60,7 @@ Measuring the real 0.3.0 release APKs tells the same story, with a smaller gap t
 
 ## Privacy doesn't change between editions
 
-Lite is a smaller build, not a more private one. Every Full-only feature already runs on-device and says so in its own settings caption. Handwriting recognition "runs fully on your device with Google ML Kit." Text scan says "no photo and no text leaves your device, and it works offline." Document scanning says "the processing runs on your device." Harper grammar checking "works offline and uploads nothing that you type." Whisper "runs fully on your device across many languages and sends no audio anywhere." The on-device AI caption says the text you run an action on "stays on your device." Everything Full adds follows the same offline-first posture as the rest of the keyboard.
+Lite is a smaller build, not a more private one. Every Full-only feature already runs on-device and says so in its own settings caption. Handwriting recognition "runs fully on your device with Google ML Kit." Text scan says "no photo and no text leaves your device, and it works offline." Document scanning says "the processing runs on your device." Whisper "runs fully on your device across many languages and sends no audio anywhere." The on-device AI caption says the text you run an action on "stays on your device." Everything Full adds follows the same offline-first posture as the rest of the keyboard.
 
 ## Telling which edition you have
 
@@ -71,7 +70,7 @@ Lite is a smaller build, not a more private one. Every Full-only feature already
   <Shot id="start/editions-about-version" alt="Settings → About → Version names the flavor, build type, and version code." />
 </PhoneFrame>
 
-The Version row reads the build's own flavor name, so it shows "Full build (release) · code …" or "Lite build (release) · code …" alongside the version number. There's a quicker visual check, though. Open the toolbox. If Handwriting, Text scan, QR & barcode scanner, Document scanner and Grammar check are all there, you're on Full. If they're missing, you're on Lite.
+The Version row reads the build's own flavor name, so it shows "Full build (release) · code …" or "Lite build (release) · code …" alongside the version number. There's a quicker visual check, though. Open the toolbox. If Handwriting, Text scan, QR & barcode scanner and Document scanner are all there, you're on Full. If they're missing, you're on Lite.
 
 ## Switching editions
 
@@ -79,6 +78,6 @@ There's no in-app switch between editions. Which one you have depends entirely o
 
 ## Details & edge cases
 
-- Toggling a Lite build's settings never leaves Handwriting, OCR, QR, Doc scan or Grammar "enabled but hidden" in some special sense. All five are still listed among the keyboard's default enabled tools internally. They just never pass the supported-tool check that decides what renders, and that is true on either build.
+- Toggling a Lite build's settings never leaves Handwriting, OCR, QR or Doc scan "enabled but hidden" in some special sense. All four are still listed among the keyboard's default enabled tools internally. They just never pass the supported-tool check that decides what renders, and that is true on either build.
 - Build release APKs for both editions on different machines without sharing a signing keystore and the packages carry different signatures. Installing one over the other then fails the way any mismatched-signature update does (see [Installation → Details & edge cases](/start/installation/#details--edge-cases)).
 - Exported debug logs stamp which flavor produced them, which is useful context if you're sharing one for a bug report.
