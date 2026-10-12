@@ -115,6 +115,26 @@ object VocabLanguages {
         return out
     }
 
+    /**
+     * The word's meaning in the reader's language on one line, for the
+     * surfaces with room for one (the word-of-the-day card, a flashcard's
+     * back, the Dictionary panel): the first language [codesToShow] picks
+     * that has a gloss, up to [max] glosses, the romanisation leading on a
+     * romanised layout. Null when the record carries no translation, so the
+     * caller draws exactly what it drew before.
+     */
+    fun primaryMeaning(word: VocabWord, wanted: List<String>, enabledLanguageIds: List<String>, max: Int = 3): VocabMeaning? {
+        for (code in codesToShow(wanted, word.translations.keys)) {
+            val glosses = word.translations[code]?.glosses().orEmpty().take(max)
+            if (glosses.isEmpty()) continue
+            val romanFirst = prefersRomanized(code, enabledLanguageIds)
+            val lead = glosses.map { if (romanFirst && it.roman != null) it.roman else it.word }
+            val trail = glosses.mapNotNull { if (romanFirst && it.roman != null) it.word else it.roman }
+            return VocabMeaning(code, lead.joinToString(", "), trail.joinToString(", ").ifEmpty { null })
+        }
+        return null
+    }
+
     /** Whether the romanisation should lead for someone typing on any of [enabledLanguageIds]. */
     fun prefersRomanized(code: String, enabledLanguageIds: List<String>): Boolean =
         enabledLanguageIds.any { isRomanized(it) && codesFor(it).first() == code }
@@ -131,3 +151,10 @@ object VocabLanguages {
         return if (platform.isBlank() || platform.equals(code, ignoreCase = true)) code else platform
     }
 }
+
+/**
+ * One line of a word's meaning in another language: [text] leads, [trail]
+ * (the romanisation, or the script when the romanisation leads) follows it
+ * smaller, when there is one. [code] is the sidecar it came from.
+ */
+data class VocabMeaning(val code: String, val text: String, val trail: String?)

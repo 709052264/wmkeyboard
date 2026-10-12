@@ -2398,6 +2398,47 @@ private fun VocabTranslationRow(code: String, tr: VocabTranslation, romanizedFir
 }
 
 /**
+ * The word's meaning in the user's language, one line, for the surfaces
+ * that otherwise speak only English (#651): the word-of-the-day card and the
+ * Review screen's flashcard back. Null, and nothing drawn, when the record
+ * has no translation or Card sections has translations off.
+ */
+@Composable
+internal fun rememberVocabMeaning(word: VocabWord, settings: LiveSettings): com.wasimaster.wmkeyboard.core.vocab.VocabMeaning? {
+    val off = settings.watch { VocabCardFields.resolve(it.vocabulary.cardFields)[VocabCardField.TRANSLATIONS] == FieldVisibility.OFF }
+    val wanted = settings.watch { vocabTranslationCodes(it) }
+    val enabledIds = settings.watch { s -> s.enabledLanguages.map { it.id } }
+    return remember(word, off, wanted, enabledIds) {
+        if (off) null else VocabLanguages.primaryMeaning(word, wanted, enabledIds)
+    }
+}
+
+/** [meaning] as one line: the gloss, its romanisation smaller after it, and the language when it is not obvious. */
+@Composable
+internal fun VocabMeaningLine(
+    meaning: com.wasimaster.wmkeyboard.core.vocab.VocabMeaning,
+    style: androidx.compose.ui.text.TextStyle,
+    modifier: Modifier = Modifier,
+    textAlign: androidx.compose.ui.text.style.TextAlign? = null,
+    maxLines: Int = 2,
+) {
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    val language = languageNameFor(meaning.code)
+    Text(
+        buildAnnotatedString {
+            withStyle(SpanStyle(color = muted, fontSize = 12.sp)) { append("$language  ") }
+            append(meaning.text)
+            meaning.trail?.let { trail -> withStyle(SpanStyle(color = muted, fontSize = 12.sp)) { append("  ·  $trail") } }
+        },
+        style = style,
+        textAlign = textAlign,
+        maxLines = maxLines,
+        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+        modifier = modifier,
+    )
+}
+
+/**
  * One quotation from print: the year as a badge, the quote against a thin
  * rule, and the reference stripped to who, what and where.
  */

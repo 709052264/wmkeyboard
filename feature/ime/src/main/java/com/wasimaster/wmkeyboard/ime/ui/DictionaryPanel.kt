@@ -151,7 +151,7 @@ internal fun DictionaryPanel(
                 stringResource(R.string.ime_dict_not_found_empty, dict.word),
             )
             DictionaryUi.NoSources -> DictionaryMessage(stringResource(R.string.ime_dict_no_sources))
-            is DictionaryUi.Ready -> DictionaryEntries(state, dict.entries, dict.source, onLookup, onInsert, onAddToVocab)
+            is DictionaryUi.Ready -> DictionaryEntries(state, dict, onLookup, onInsert, onAddToVocab)
         }
     }
 }
@@ -172,12 +172,13 @@ private fun DictionaryMessage(text: String) {
 @Composable
 private fun DictionaryEntries(
     state: KeyboardUiState,
-    entries: List<DictEntry>,
-    source: DictionarySource,
+    ready: DictionaryUi.Ready,
     onLookup: (String) -> Unit,
     onInsert: (String) -> Unit,
     onAddToVocab: (String) -> Unit,
 ) {
+    val entries: List<DictEntry> = ready.entries
+    val source: DictionarySource = ready.source
     val kb = LocalKbTheme.current
     // Serif display face for headwords; falls back to the system serif
     // until the downloadable font arrives (or forever, offline).
@@ -212,59 +213,66 @@ private fun DictionaryEntries(
     ) {
         entries.forEachIndexed { entryIndex, entry ->
             item(key = "head$entryIndex") {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRing(entryIndex == focused, RoundedCornerShape(8.dp))
-                        .padding(top = if (entryIndex == 0) 2.dp else 14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        entry.word,
-                        color = kb.modifierKeyText,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = serif,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    if (entry.phonetic.isNotEmpty()) {
-                        Spacer(Modifier.width(10.dp))
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRing(entryIndex == focused, RoundedCornerShape(8.dp))
+                            .padding(top = if (entryIndex == 0) 2.dp else 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                         Text(
-                            entry.phonetic,
-                            color = kb.toolbarIcon,
-                            fontSize = 13.sp,
+                            entry.word,
+                            color = kb.modifierKeyText,
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = serif,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false),
                         )
-                    }
-                    Spacer(Modifier.weight(1f))
-                    val audioUrl = entry.audioUrl
-                    if (audioUrl != null) {
-                        IconButton(
-                            onClick = { playPronunciation(player, audioUrl) },
-                            modifier = Modifier.size(32.dp),
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Outlined.VolumeUp,
-                                contentDescription = stringResource(R.string.ime_dict_play_desc),
-                                modifier = Modifier.size(18.dp),
-                                tint = kb.accent,
+                        if (entry.phonetic.isNotEmpty()) {
+                            Spacer(Modifier.width(10.dp))
+                            Text(
+                                entry.phonetic,
+                                color = kb.toolbarIcon,
+                                fontSize = 13.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false),
                             )
                         }
-                    }
-                    DictionaryChip(
-                        label = stringResource(R.string.ime_dict_insert_action),
-                        filled = true,
-                    ) { onInsert(entry.word) }
-                    if (vocabToolOn(state)) {
-                        Spacer(Modifier.width(6.dp))
+                        Spacer(Modifier.weight(1f))
+                        val audioUrl = entry.audioUrl
+                        if (audioUrl != null) {
+                            IconButton(
+                                onClick = { playPronunciation(player, audioUrl) },
+                                modifier = Modifier.size(32.dp),
+                            ) {
+                                Icon(
+                                    Icons.AutoMirrored.Outlined.VolumeUp,
+                                    contentDescription = stringResource(R.string.ime_dict_play_desc),
+                                    modifier = Modifier.size(18.dp),
+                                    tint = kb.accent,
+                                )
+                            }
+                        }
                         DictionaryChip(
-                            label = stringResource(R.string.ime_dict_add_vocab_action),
-                            filled = false,
-                        ) { onAddToVocab(entry.word) }
+                            label = stringResource(R.string.ime_dict_insert_action),
+                            filled = true,
+                        ) { onInsert(entry.word) }
+                        if (vocabToolOn(state)) {
+                            Spacer(Modifier.width(6.dp))
+                            DictionaryChip(
+                                label = stringResource(R.string.ime_dict_add_vocab_action),
+                                filled = false,
+                            ) { onAddToVocab(entry.word) }
+                        }
                     }
+                    // The word in the user's language, from a vocabulary pack's
+                    // translations (#651). Inside the headword's item, so the
+                    // focus scroll's item count is unchanged.
+                    val meaning = ready.meaning
+                    if (entryIndex == 0 && meaning != null) VocabMeaningText(meaning)
                 }
             }
             entry.meanings.forEachIndexed { meaningIndex, meaning ->

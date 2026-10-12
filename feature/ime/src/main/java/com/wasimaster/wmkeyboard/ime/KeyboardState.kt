@@ -1796,6 +1796,11 @@ sealed interface DictionaryUi {
     data class Ready(
         val entries: List<com.wasimaster.wmkeyboard.core.tools.DictEntry>,
         val source: com.wasimaster.wmkeyboard.core.tools.DictionarySource,
+        /**
+         * The word's meaning in the user's language, from an installed
+         * vocabulary pack's translations (#651); null for a word no pack has.
+         */
+        val meaning: com.wasimaster.wmkeyboard.core.vocab.VocabMeaning? = null,
     ) : DictionaryUi
 }
 

@@ -490,6 +490,10 @@ import com.wasimaster.wmkeyboard.core.vocab.VocabIndex
 import com.wasimaster.wmkeyboard.core.thesaurus.SynonymLookup
 import com.wasimaster.wmkeyboard.core.thesaurus.SynonymSource
 import com.wasimaster.wmkeyboard.core.vocab.VocabIndexCache
+import com.wasimaster.wmkeyboard.core.vocab.VocabMeaning
+import com.wasimaster.wmkeyboard.core.vocab.VocabCardFields
+import com.wasimaster.wmkeyboard.core.vocab.VocabCardField
+import com.wasimaster.wmkeyboard.core.vocab.FieldVisibility
 import com.wasimaster.wmkeyboard.core.vocab.VocabLanguages
 import com.wasimaster.wmkeyboard.core.vocab.VocabPackFile
 import com.wasimaster.wmkeyboard.core.vocab.VocabPacks
@@ -29184,11 +29188,37 @@ open class WMKeyboardService : InputMethodService() {
                 null
             }
             val ui = when (val result = DictionaryLookup.resolve(word, sources, DictionaryLookup.fetcher { index })) {
-                is DictionaryLookup.Result.Found -> DictionaryUi.Ready(result.entries, result.source)
+                is DictionaryLookup.Result.Found -> DictionaryUi.Ready(
+                    result.entries,
+                    result.source,
+                    dictionaryMeaning(result.entries.firstOrNull()?.word ?: word, index, codes, settings),
+                )
                 DictionaryLookup.Result.NotFound -> DictionaryUi.NotFound(word)
                 DictionaryLookup.Result.Failed -> DictionaryUi.Error(word)
             }
             _uiState.update { it.copy(dictionary = ui) }
+        }
+    }
+
+    /**
+     * The looked-up word's meaning in the user's language (#651), when an
+     * installed vocabulary pack has the word and a translation for it. Reads
+     * the shared index only when the vocabulary tool is on and the card
+     * shows translations in the keyboard; a word outside the packs gets none.
+     */
+    private suspend fun dictionaryMeaning(
+        word: String,
+        loaded: VocabIndex?,
+        codes: List<String>,
+        settings: KeyboardSettings,
+    ): VocabMeaning? {
+        val fields = VocabCardFields.resolve(settings.vocabulary.cardFields)
+        if (fields[VocabCardField.TRANSLATIONS] != FieldVisibility.KEYBOARD) return null
+        if (ToolbarTool.VOCABULARY !in usableTools(settings) || !userUnlocked) return null
+        return withContext(Dispatchers.IO) {
+            val index = loaded ?: VocabIndexCache.get(filesDir, codes).takeUnless { it.isEmpty } ?: return@withContext null
+            val record = index.lookupAnyForm(word) ?: return@withContext null
+            VocabLanguages.primaryMeaning(record, codes, settings.enabledLanguages.map { it.id })
         }
     }
 

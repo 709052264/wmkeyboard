@@ -231,6 +231,10 @@ private fun VocabDailyBody(
             )
             Spacer(Modifier.height(4.dp))
             Text(word.definition, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            // The same word in the user's language, under the English (#651).
+            rememberVocabMeaning(word, settings)?.let { meaning ->
+                VocabMeaningLine(meaning, MaterialTheme.typography.bodyMedium, Modifier.padding(top = 2.dp), maxLines = 1)
+            }
             Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (interval != VocabWordInterval.DAILY) {
                     Text(

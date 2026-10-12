@@ -179,6 +179,10 @@ internal fun VocabReviewScreen(
                     Text(current.word, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                     current.pos.firstOrNull()?.let { Text(it, style = MaterialTheme.typography.labelMedium, fontStyle = FontStyle.Italic) }
                     Text(current.definition, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center, maxLines = 5)
+                    // The meaning in the user's language too, unless Card sections keeps it off (#651).
+                    rememberVocabMeaning(current, settings)?.let { meaning ->
+                        VocabMeaningLine(meaning, MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
+                    }
                     current.senses.firstOrNull()?.example?.let {
                         Text(
                             "“$it”",

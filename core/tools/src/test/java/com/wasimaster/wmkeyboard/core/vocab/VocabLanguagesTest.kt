@@ -58,4 +58,50 @@ class VocabLanguagesTest {
         assertTrue(VocabLanguages.prefersRomanized("bn", listOf("en", "bn_rom")))
         assertFalse(VocabLanguages.prefersRomanized("bn", listOf("en", "bn")))
     }
+
+    private val abhor = VocabWord(
+        word = "abhor",
+        translations = mapOf(
+            "bn" to VocabTranslation(w = listOf("ঘৃণা করা", "বিতৃষ্ণা"), r = listOf("ghrina kora", "bitrishna")),
+            "de" to VocabTranslation(w = listOf("verabscheuen")),
+        ),
+    )
+
+    @Test
+    fun `the one-line meaning takes the chosen language over the keyboard's`() {
+        val wanted = VocabLanguages.wantedCodes(listOf("de"), listOf("en", "bn"))
+        val meaning = VocabLanguages.primaryMeaning(abhor, wanted, listOf("en", "bn"))
+        assertEquals(VocabMeaning("de", "verabscheuen", null), meaning)
+    }
+
+    @Test
+    fun `a Banglish keyboard reads the Bangla gloss, romanisation first`() {
+        val ids = listOf("en", "bn_rom")
+        val wanted = VocabLanguages.wantedCodes(emptyList(), ids)
+        assertEquals(
+            VocabMeaning("bn", "ghrina kora, bitrishna", "ঘৃণা করা, বিতৃষ্ণা"),
+            VocabLanguages.primaryMeaning(abhor, wanted, ids),
+        )
+        // On the Bangla layout itself the script leads.
+        assertEquals(
+            VocabMeaning("bn", "ঘৃণা করা, বিতৃষ্ণা", "ghrina kora, bitrishna"),
+            VocabLanguages.primaryMeaning(abhor, wanted, listOf("en", "bn")),
+        )
+    }
+
+    @Test
+    fun `no translation means no meaning line`() {
+        val plain = VocabWord(word = "abhor")
+        assertEquals(null, VocabLanguages.primaryMeaning(plain, listOf("bn"), listOf("en", "bn")))
+        // An English-only keyboard asks for nothing, and the pack's own language is never a translation.
+        assertTrue(VocabLanguages.wantedCodes(emptyList(), listOf("en")).isEmpty())
+        val empty = VocabWord(word = "abhor", translations = mapOf("bn" to VocabTranslation()))
+        assertEquals(null, VocabLanguages.primaryMeaning(empty, listOf("bn"), listOf("bn")))
+    }
+
+    @Test
+    fun `the line keeps to a few glosses`() {
+        val many = VocabWord(word = "x", translations = mapOf("de" to VocabTranslation(w = listOf("a", "b", "c", "d"))))
+        assertEquals("a, b", VocabLanguages.primaryMeaning(many, listOf("de"), emptyList(), max = 2)?.text)
+    }
 }

@@ -64,6 +64,7 @@ import com.wasimaster.wmkeyboard.core.vocab.ReviewGrade
 import com.wasimaster.wmkeyboard.core.vocab.VocabCardField
 import com.wasimaster.wmkeyboard.core.vocab.VocabCardFields
 import com.wasimaster.wmkeyboard.core.vocab.VocabLanguages
+import com.wasimaster.wmkeyboard.core.vocab.VocabMeaning
 import com.wasimaster.wmkeyboard.core.vocab.VocabScheduler
 import com.wasimaster.wmkeyboard.core.vocab.VocabSense
 import com.wasimaster.wmkeyboard.core.vocab.VocabWord
@@ -848,6 +849,18 @@ private fun VocabReview(state: KeyboardUiState, callbacks: VocabCallbacks) {
                         maxLines = 4,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    // The meaning in the user's language under the English,
+                    // when the card shows translations in the keyboard (#651).
+                    val enabledIds = state.settings.enabledLanguages.map { it.id }
+                    val meaning = remember(current, settings.translationLangList, settings.cardFields, enabledIds) {
+                        val shown = VocabCardFields.resolve(settings.cardFields)[VocabCardField.TRANSLATIONS] == FieldVisibility.KEYBOARD
+                        if (!shown) {
+                            null
+                        } else {
+                            VocabLanguages.primaryMeaning(current, VocabLanguages.wantedCodes(settings.translationLangList, enabledIds), enabledIds)
+                        }
+                    }
+                    if (meaning != null) VocabMeaningText(meaning, TextAlign.Center)
                     current.senses.firstOrNull()?.example?.let {
                         Text(
                             "“$it”",
@@ -877,6 +890,29 @@ private fun VocabReview(state: KeyboardUiState, callbacks: VocabCallbacks) {
             }
         }
     }
+}
+
+/**
+ * A word's meaning in the user's language on one line, the language named
+ * small in front: the flashcard back here and the Dictionary panel (#651).
+ */
+@Composable
+internal fun VocabMeaningText(meaning: VocabMeaning, textAlign: TextAlign? = null, modifier: Modifier = Modifier) {
+    val kb = LocalKbTheme.current
+    Text(
+        buildAnnotatedString {
+            withStyle(SpanStyle(color = kb.toolbarIcon, fontSize = 11.sp)) { append(VocabLanguages.displayName(meaning.code) + "  ") }
+            append(meaning.text)
+            meaning.trail?.let { withStyle(SpanStyle(color = kb.toolbarIcon, fontSize = 11.sp)) { append("  ·  $it") } }
+        },
+        color = kb.modifierKeyText,
+        fontSize = 13.sp,
+        lineHeight = 17.sp,
+        textAlign = textAlign,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier.padding(top = 2.dp),
+    )
 }
 
 private fun ReviewGrade.labelRes(): Int = when (this) {
