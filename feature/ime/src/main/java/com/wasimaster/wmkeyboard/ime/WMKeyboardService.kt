@@ -6997,7 +6997,10 @@ open class WMKeyboardService : InputMethodService() {
         // hide after typing (CPH2481, measured). Each store snapshots itself
         // under its own lock, so typing into the next field is safe meanwhile.
         serviceScope.launch(persistDispatcher) { saveLearningStores() }
-        if (_uiState.value.settings.sensorTools.flashlightAutoOff && _uiState.value.torchOn) {
+        // Only a torch this keyboard lit: one switched on from the quick
+        // settings tile or the camera app is the user's, and closing the
+        // keyboard over it is no reason to put it out (#602).
+        if (_uiState.value.settings.sensorTools.flashlightAutoOff && _uiState.value.torchOn && torchLitHere) {
             setTorch(false)
         }
         // Nothing is on screen to need a model loaded. Armed after the saves
@@ -25467,6 +25470,7 @@ open class WMKeyboardService : InputMethodService() {
     private val torchCallback = object : CameraManager.TorchCallback() {
         override fun onTorchModeChanged(cameraId: String, enabled: Boolean) {
             if (cameraId == torchCameraId) {
+                if (!enabled) torchLitHere = false
                 _uiState.update { it.copy(torchOn = enabled) }
             }
         }
@@ -25531,8 +25535,15 @@ open class WMKeyboardService : InputMethodService() {
         // the icon truthful either way.
         runCatching {
             (getSystemService(Context.CAMERA_SERVICE) as CameraManager).setTorchMode(id, on)
-        }
+        }.onSuccess { if (on) torchLitHere = true }
     }
+
+    /**
+     * Whether the torch that is on was switched on by the flashlight tool,
+     * which is the only torch "Turn off with the keyboard" puts out on hide.
+     * Cleared by the torch callback the moment it goes off, from anywhere.
+     */
+    private var torchLitHere = false
 
     /**
      * Sends the editor's undo/redo keyboard shortcut (Ctrl+Z / Ctrl+Shift+Z

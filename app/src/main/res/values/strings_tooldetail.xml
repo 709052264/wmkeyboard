@@ -81,7 +81,7 @@
     <!-- Flashlight tool. -->
     <string name="tooldetail_flashlight_auto_off_title">Turn off with the keyboard</string>
     <string name="tooldetail_flashlight_auto_off_subtitle">Turn the torch off when the keyboard closes</string>
-    <string name="tooldetail_flashlight_auto_off_info">On: the torch goes off when the keyboard closes or when you change apps, so it is never left on in your pocket. Off: the torch stays on until you turn it off again, from the tool or from the quick settings tile of the system.</string>
+    <string name="tooldetail_flashlight_auto_off_info">On: a torch you turned on from the keyboard goes off when the keyboard closes or when you change apps, so it is never left on in your pocket. A torch turned on from the quick settings tile or another app is left alone. Off: the torch stays on until you turn it off again, from the tool or from the quick settings tile of the system.</string>
 
     <!-- Compass tool. -->
     <string name="tooldetail_compass_degrees_title">Degree readout</string>
