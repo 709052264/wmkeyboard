@@ -3844,22 +3844,21 @@ private fun TopBar(
             }
         }
         if (showToolbar) {
-            // The emoji never joins the dissolve on the way out: it is the one
-            // icon that survives the swap, and it has to be solid at the moment
-            // it hands its position to the strip's copy.
+            // A tool the strip also keeps (the emoji, by default) never joins
+            // the dissolve on the way out: it is the icon that survives the swap,
+            // and it has to be solid at the moment it hands its position to the
+            // strip's copy.
             //
-            // Only while the strip has a copy to hand to. With the strip's emoji
-            // button turned off (or the emoji tool disabled) there is no other
-            // node, so nothing slides: the pinned emoji is an ordinary tool, and
+            // Only while the strip has a copy to hand to. With the strip's
+            // buttons turned off (or the tool disabled) there is no other node,
+            // so nothing slides: the pinned tool is an ordinary one, and
             // exempting it left it popping in solid while every other tool faded,
             // which read as the handoff still playing for a button that was off.
-            // Same condition the strip's copy is drawn under, below.
-            val stripHasEmoji = state.settings.emojiToolbar &&
-                state.settings.toolbarBehavior.stripShortcut == ToolbarTool.EMOJI &&
-                ToolbarTool.EMOJI in state.settings.enabledTools
+            // Same condition the strip's copies are drawn under, below.
             ToolbarRow(
                 state, onPanelChange, onToolTap, drag, toolContentAlpha,
-                fadeEmoji = !stripHasEmoji || (emojiFadesWithTools && wantToolbar),
+                sharedTools = stripToolSet(state),
+                fadeShared = emojiFadesWithTools && wantToolbar,
             )
             if (state.settings.emojiBarMode == EmojiBarMode.BUTTON) {
                 IconButton(
@@ -3887,96 +3886,9 @@ private fun TopBar(
             // which ART never compiles a method, for a function that runs on
             // every keystroke. Here it compiles separately.
             StripSlot {
-                // The strip's emoji shortcut stands in for the pinned emoji tool
-                // while the tools are off screen. With the tools row up and the emoji
-                // tool pinned on it, the pinned one is already in reach and a second
-                // copy beside the suggestions is just the same button twice.
-                //
-                // Which tool that is, is the user's to say (#462): the clipboard
-                // or the microphone for someone who never opens the emoji panel.
-                // Only the emoji has a pinned twin to slide to, so any other tool
-                // is drawn as a plain button and takes no part in the handoff.
-                val shortcut = state.settings.toolbarBehavior.stripShortcut
-                val shortcutShown = state.settings.emojiToolbar && shortcut in state.settings.enabledTools &&
-                    isSupportedTool(shortcut) && isUsableTool(shortcut, state.settings) &&
-                    !(toolsRowVisible && shortcut in visibleToolbarTools(state))
-                if (shortcutShown && shortcut != ToolbarTool.EMOJI) {
-                    ToolCircle(
-                        slot = IconSlots.forTool(shortcut),
-                        description = stringResource(toolLabelRes(shortcut)),
-                        active = toolActive(shortcut, state),
-                        longPressLabel = stringResource(toolLabelRes(shortcut)),
-                        wide = true,
-                    ) { onToolTap(shortcut) }
-                }
-                if (shortcutShown && shortcut == ToolbarTool.EMOJI) {
-                    // The width the bar would give this icon, so the two copies are
-                    // the same shape. Nothing constrains it here, so at a tool width
-                    // wider than a toolbar cell the strip's copy came out at the
-                    // full setting while the pinned one was capped at its cell — the
-                    // icon changed size mid-slide, and since the slide tracks left
-                    // edges its centre jumped by half the difference first. See
-                    // [ToolDragController.pinnedToolWidthPx].
-                    val pinnedWidth = with(LocalDensity.current) {
-                        drag.pinnedToolWidthPx.takeIf { it > 0 }?.toDp()
-                    }
-                    ToolCircle(
-                        slot = IconSlots.CHROME_EMOJI_SHORTCUT,
-                        description = stringResource(R.string.ime_tool_emoji),
-                        active = false,
-                        // Same icon the toolbar pins: it slides between the two
-                        // spots instead of vanishing here and reappearing there.
-                        modifier = Modifier
-                            .then(
-                                if (pinnedWidth != null) {
-                                    Modifier.widthIn(max = pinnedWidth)
-                                } else {
-                                    Modifier
-                                },
-                            )
-                            .animateSharedPlacement(
-                                drag.emojiPlacement,
-                                enabled = !state.settings.reduceMotion,
-                            ) { drag.bodyCoords },
-                        longPressLabel = stringResource(R.string.ime_tool_emoji),
-                        // Matches the toolbar's pinned emoji footprint, so the
-                        // shared-placement slide lands on an identical shape.
-                        wide = true,
-                    ) { onToolTap(ToolbarTool.EMOJI) }
-                }
-                // The English-words switch, kept beside the words it decides.
-                // A phonetic layout reading a Bangla word as English is only ever
-                // noticed while the word is on the strip, and that is precisely
-                // when the toolbar the switch otherwise lives on is off the row —
-                // so the one moment it is wanted is the one moment it could not be
-                // reached. It stays for as long as it can do something: a phonetic
-                // layout with English among that language's secondary suggestion
-                // languages, which is the gate the toggle itself refuses outside
-                // of. Lit while the switch is on, exactly as the toolbar copy is.
-                // Pinned rather than dragged here, so it cannot be dragged away
-                // either: the language's own screen has the setting that takes it
-                // off the strip for whoever never turns the thing off.
-                val phoneticEnglishLanguage = state.composer.phoneticLanguage?.takeIf {
-                    state.settings.suggestionStrip.phoneticEnglishSwitch &&
-                        "en" in state.settings.secondaryLanguages[it].orEmpty()
-                }
-                // With the tools on a row of their own the switch is already in
-                // reach up there; a second copy beside the suggestions is the same
-                // button twice, the way the pinned emoji is above.
-                val phoneticEnglishOnToolsRow = toolsRowVisible &&
-                    ToolbarTool.PHONETIC_ENGLISH in visibleToolbarTools(state)
-                if (phoneticEnglishLanguage != null && !phoneticEnglishOnToolsRow) {
-                    ToolCircle(
-                        slot = IconSlots.forTool(ToolbarTool.PHONETIC_ENGLISH),
-                        description = stringResource(R.string.ime_tool_phonetic_english),
-                        active = state.settings.suggestionStrip.phoneticEnglishFor(phoneticEnglishLanguage),
-                        longPressLabel = stringResource(R.string.ime_tool_phonetic_english),
-                        // A switch beside the words, not a tool among tools: a
-                        // step down from the emoji button it sits next to, so the
-                        // row reads as words first.
-                        compact = true,
-                    ) { onToolTap(ToolbarTool.PHONETIC_ENGLISH) }
-                }
+                // The tools kept beside the suggestions (#462), then the phonetic
+                // layouts' English-words switch. See [StripTools].
+                StripTools(state, toolsRowVisible, drag, onToolTap)
                 // Bengali's ANSI button: on every Bengali layout once Bengali's
                 // screen allows ANSI output, lit while the layouts write it. Beside
                 // the words for the reason the switch above is: the field that
@@ -7754,11 +7666,14 @@ private class ToolDragController {
     /** Keyboard-body coordinates; the anchor for tool placement animations. */
     var bodyCoords: LayoutCoordinates? = null
     /**
-     * Shared home of the emoji icon. It rides here rather than in [TopBar]
-     * because the strip's copy and the toolbar's pinned copy are different
-     * nodes: the handoff needs a holder that outlives both.
+     * Shared home of each tool the strip keeps a copy of (the emoji, by
+     * default). It rides here rather than in [TopBar] because the strip's copy
+     * and the toolbar's pinned copy are different nodes: the handoff needs a
+     * holder that outlives both.
      */
-    val emojiPlacement = SharedPlacement()
+    private val sharedPlacements = HashMap<ToolbarTool, SharedPlacement>()
+
+    fun placementOf(tool: ToolbarTool): SharedPlacement = sharedPlacements.getOrPut(tool) { SharedPlacement() }
     /**
      * The stored pinned-tool list, in the order it is saved back. Every commit
      * is a rewrite of this.
@@ -8697,6 +8612,11 @@ internal fun ToolCircle(
     // suggestion strip) rather than on the toolbar. Bare-icon form only: a
     // labelled button already has its own, shorter box.
     compact: Boolean = false,
+    // The button's width and glyph size in dp, over the theme's tool sizes:
+    // the strip's buttons when they are sized apart from the toolbar's.
+    // Bare-icon form only, and ignored when [compact].
+    widthDp: Int? = null,
+    iconSizeDp: Int? = null,
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
@@ -8795,7 +8715,15 @@ internal fun ToolCircle(
     val side = if (compact) CompactToolSide else 38
     Box(
         modifier = modifier
-            .size(width = (if (wide && !compact) kb.toolWidthDp else side).dp, height = side.dp)
+            .size(
+                width = when {
+                    compact -> side
+                    widthDp != null -> widthDp
+                    wide -> kb.toolWidthDp
+                    else -> side
+                }.dp,
+                height = side.dp,
+            )
             .clip(shape)
             .background(background, shape)
             .then(outline)
@@ -8806,7 +8734,13 @@ internal fun ToolCircle(
             slot,
             contentDescription = description,
             modifier = Modifier
-                .size(if (compact) CompactToolIconSize else kb.toolIconSizeDp.dp)
+                .size(
+                    when {
+                        compact -> CompactToolIconSize
+                        iconSizeDp != null -> iconSizeDp.dp
+                        else -> kb.toolIconSizeDp.dp
+                    },
+                )
                 // The icon steps up by half the badge's height so the badge sits
                 // under it rather than across it. The button's own 38 dp box is
                 // untouched, so nothing on the bar moves.
@@ -8842,6 +8776,134 @@ internal fun ToolCircle(
             }
         }
     }
+}
+
+/**
+ * The language whose phonetic layout is being typed on, when the English-words
+ * switch can do something there: the switch is on for the strip, and English is
+ * among that language's secondary suggestion languages, which is the gate the
+ * toggle itself refuses outside of. Null otherwise.
+ */
+private fun phoneticEnglishLanguage(state: KeyboardUiState): String? =
+    state.composer.phoneticLanguage?.takeIf {
+        state.settings.suggestionStrip.phoneticEnglishSwitch &&
+            "en" in state.settings.secondaryLanguages[it].orEmpty()
+    }
+
+/**
+ * The tools the user keeps beside the suggestions (#462), in their order, less
+ * any this build or these settings cannot run. Empty while the strip's buttons
+ * are off ([KeyboardSettings.emojiToolbar]).
+ */
+private fun stripShortcutTools(state: KeyboardUiState): List<ToolbarTool> {
+    if (!state.settings.emojiToolbar) return emptyList()
+    return state.settings.toolbarBehavior.stripShortcuts.filter {
+        it in state.settings.enabledTools && isSupportedTool(it) && isUsableTool(it, state.settings)
+    }
+}
+
+/**
+ * Every tool the strip draws a copy of: the user's list plus the English-words
+ * switch while it is due. The toolbar's pinned copy of any of these hands its
+ * position across the strip↔toolbar flip instead of fading (see [ToolbarRow]).
+ */
+private fun stripToolSet(state: KeyboardUiState): Set<ToolbarTool> {
+    val tools = stripShortcutTools(state)
+    return if (phoneticEnglishLanguage(state) != null) {
+        tools.toSet() + ToolbarTool.PHONETIC_ENGLISH
+    } else {
+        tools.toSet()
+    }
+}
+
+/**
+ * The buttons kept beside the suggestions while the pinned tools are off the
+ * row: the tools the user picked (#462), in their order, then the phonetic
+ * layouts' English-words switch.
+ *
+ * Which tools those are is the user's to say: the clipboard or the microphone
+ * for someone who never opens the emoji panel, or several at once. A tool that
+ * is also pinned on the toolbar slides between its two spots on the flip
+ * ([ToolDragController.placementOf]) rather than vanishing here and
+ * reappearing there; the toolbar side of that is [ToolbarRow]'s `sharedTools`.
+ *
+ * With the tools on a row of their own and a tool on it, that one is already in
+ * reach and a second copy beside the suggestions is just the same button twice,
+ * so it is left out.
+ *
+ * The English-words switch is kept beside the words it decides. A phonetic
+ * layout reading a Bangla word as English is only ever noticed while the word
+ * is on the strip, and that is precisely when the toolbar the switch otherwise
+ * lives on is off the row, so the one moment it is wanted is the one moment it
+ * could not be reached. It stays for as long as it can do something (see
+ * [phoneticEnglishLanguage]), a step down in size from the user's own buttons
+ * unless those have a size of their own, and lit while the switch is on.
+ *
+ * Its own composable: the strip's lambda sits near ART's 10,000-instruction
+ * compile ceiling, and this loop would push it over.
+ */
+@Composable
+private fun StripTools(
+    state: KeyboardUiState,
+    toolsRowVisible: Boolean,
+    drag: ToolDragController,
+    onToolTap: (ToolbarTool) -> Unit,
+) {
+    val onRow = if (toolsRowVisible) visibleToolbarTools(state) else emptyList()
+    val tools = stripShortcutTools(state).filter { it !in onRow }
+    val phonetic = ToolbarTool.PHONETIC_ENGLISH
+    val autoPhonetic = phonetic !in tools && phonetic !in onRow && phoneticEnglishLanguage(state) != null
+    for (tool in tools) {
+        key(tool) { StripToolButton(state, tool, drag, compact = false, onToolTap) }
+    }
+    if (autoPhonetic) {
+        key(phonetic) {
+            StripToolButton(state, phonetic, drag, compact = !state.settings.toolbarBehavior.stripOwnSize, onToolTap)
+        }
+    }
+}
+
+/** One of [StripTools]' buttons. */
+@Composable
+private fun StripToolButton(
+    state: KeyboardUiState,
+    tool: ToolbarTool,
+    drag: ToolDragController,
+    compact: Boolean,
+    onToolTap: (ToolbarTool) -> Unit,
+) {
+    val behavior = state.settings.toolbarBehavior
+    // The width the bar would give this icon, so the two copies of a tool are
+    // the same shape. Nothing constrains it here, so at a tool width wider than
+    // a toolbar cell the strip's copy came out at the full setting while the
+    // pinned one was capped at its cell: the icon changed size mid-slide, and
+    // since the slide tracks left edges its centre jumped by half the
+    // difference first. See [ToolDragController.pinnedToolWidthPx]. Not when
+    // the strip's buttons have a size of their own, which is then the point.
+    val pinnedWidth = with(LocalDensity.current) {
+        drag.pinnedToolWidthPx.takeIf { it > 0 && !behavior.stripOwnSize }?.toDp()
+    }
+    val label = stringResource(toolLabelRes(tool))
+    ToolCircle(
+        // The emoji keeps an icon-pack slot of its own here, the one this
+        // button has always had.
+        slot = if (tool == ToolbarTool.EMOJI) IconSlots.CHROME_EMOJI_SHORTCUT else IconSlots.forTool(tool),
+        description = label,
+        active = toolActive(tool, state),
+        modifier = Modifier
+            .then(if (pinnedWidth != null) Modifier.widthIn(max = pinnedWidth) else Modifier)
+            .animateSharedPlacement(
+                drag.placementOf(tool),
+                enabled = !state.settings.reduceMotion,
+            ) { drag.bodyCoords },
+        longPressLabel = label,
+        // Matches the toolbar's pinned footprint, so the shared-placement slide
+        // lands on an identical shape.
+        wide = true,
+        compact = compact,
+        widthDp = behavior.stripToolWidthDp.takeIf { behavior.stripOwnSize },
+        iconSizeDp = behavior.stripIconSizeDp.takeIf { behavior.stripOwnSize },
+    ) { onToolTap(tool) }
 }
 
 /**
@@ -8979,12 +9041,15 @@ private fun RowScope.ToolbarRow(
     onToolTap: (ToolbarTool) -> Unit,
     drag: ToolDragController,
     // Opacity for the tools while the toolbar fades in. On an in-place
-    // strip→toolbar flip the emoji is exempt — it hands its position across and
-    // slides instead of fading — so this rides the toolbox launcher and pinned
-    // tools only. On a fresh mount nothing slides, so [fadeEmoji] folds the
-    // emoji into the same fade and the whole bar comes up together.
+    // strip→toolbar flip the tools in [sharedTools] are exempt — they hand
+    // their position across and slide instead of fading — so this rides the
+    // toolbox launcher and the other pinned tools only. On a fresh mount
+    // nothing slides, so [fadeShared] folds them into the same fade and the
+    // whole bar comes up together.
     contentAlpha: () -> Float = { 1f },
-    fadeEmoji: Boolean = false,
+    // The tools the suggestion strip also draws a copy of (see [stripToolSet]).
+    sharedTools: Set<ToolbarTool> = emptySet(),
+    fadeShared: Boolean = false,
 ) {
     val customizing = state.panel == PanelMode.TOOLBOX
     // Scrolling wants the tools at their natural width, so it overrides the
@@ -9152,9 +9217,9 @@ private fun RowScope.ToolbarRow(
                 } else {
                     Modifier.padding(horizontal = 3.dp)
                 }
-                // On an in-place flip the emoji slides and stays opaque while
-                // the rest fade (see [contentAlpha]); on a fresh mount ([fadeEmoji])
-                // nothing slides, so it fades in with them.
+                // On an in-place flip a shared tool slides and stays opaque
+                // while the rest fade (see [contentAlpha]); on a fresh mount
+                // ([fadeShared]) nothing slides, so it fades in with them.
                 //
                 // The alpha rides the *icon*, not the cell around it. A
                 // graphicsLayer below full opacity renders to an offscreen
@@ -9165,7 +9230,8 @@ private fun RowScope.ToolbarRow(
                 // was drawn with a slice missing and a hard vertical edge where
                 // the cell ended. On the icon's own node the buffer travels
                 // with it and there is nothing to clip.
-                val fadeThis = tool != ToolbarTool.EMOJI || fadeEmoji
+                val shared = tool in sharedTools
+                val fadeThis = !shared || fadeShared
                 // The Voice tool's hold menu (#173). Cell-local: it is about
                 // this one cell, opens on the hold's lift and closes on a
                 // pick or a tap outside, and nothing else needs to know.
@@ -9217,10 +9283,9 @@ private fun RowScope.ToolbarRow(
                             // keyboard body: cells are weighted so their
                             // widths snap, and only body-relative tracking
                             // sees the true on-screen motion.
-                            // The emoji tool also exists on the
-                            // suggestion strip, so it hands its position
-                            // across that swap instead of tracking only
-                            // its own node.
+                            // A tool the suggestion strip also keeps
+                            // hands its position across that swap
+                            // instead of tracking only its own node.
                             modifier = dragModifier
                                 // The cell owns the press (interactive = false
                                 // below), so it is the cell that marks itself
@@ -9234,9 +9299,9 @@ private fun RowScope.ToolbarRow(
                                     },
                                 )
                                 .then(
-                                    if (tool == ToolbarTool.EMOJI) {
+                                    if (shared) {
                                         Modifier.animateSharedPlacement(
-                                            drag.emojiPlacement,
+                                            drag.placementOf(tool),
                                             enabled = motion,
                                         ) { drag.bodyCoords }
                                     } else {

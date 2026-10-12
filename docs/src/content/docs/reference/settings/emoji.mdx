@@ -27,14 +27,19 @@ The Emoji screen collects every setting behind emoji access, suggestions, the pa
 | Setting | Control | Options / range | Default |
 |---|---|---|---|
 | Emoji button in toolbar | Toggle | On / Off | On |
-| Button beside the suggestions *(shown only while Emoji button in toolbar is on)* | Tool picker | any tool | Emoji |
+| Buttons beside the suggestions *(shown only while Emoji button in toolbar is on)* | Tool picker + reorderable list | any tools, in any order | Emoji |
+| Own size for these buttons *(same condition)* | Toggle | On / Off | Off |
+| Button width *(shown only while Own size for these buttons is on)* | Slider | 30–64 dp | 38 dp |
+| Button icon size *(same condition)* | Slider | 14–30 dp | 22 dp |
 | Full-screen emoji panel | Toggle | On / Off | On |
 | Panel layout | Nav row | n/a | opens the emoji panel's layout editor |
 | Emoji panel | Nav row | n/a | opens the [Emoji panel](#emoji-panel) page |
 
 **Emoji button in toolbar** keeps a one-tap emoji launcher in the top bar even while suggestions are showing.
 
-**Button beside the suggestions** picks which tool that button is. Emoji is the default. Choose Clipboard, Voice input or any other tool and that tool's button stays beside the suggestions in its place. The tool must be turned on under Tools to show.
+**Buttons beside the suggestions** picks which tools stay beside the suggestions, and how many. Emoji is the default. Tap **Add** to add Clipboard, Voice input or any other tool; the list under it holds the chosen buttons, where you drag the handle to change their order and tap the bin to take one off. A tool must be turned on under Tools to show. A tool that is also pinned on the toolbar slides between its two spots when the bar flips between the suggestions and the tools, the way the emoji button always has. With the tools on a row of their own, a button already on that open row is left off the strip.
+
+**Own size for these buttons** sizes the buttons beside the suggestions apart from the toolbar's tools, with **Button width** and **Button icon size**. Off, they take the toolbar's [Tool width and Tool icon size](/reference/settings/appearance/), so a tool in both places looks the same in each. Turned on, it also brings the English words switch of a phonetic layout up to the same size, instead of the smaller button it otherwise uses.
 
 **Full-screen emoji panel** makes the panel take over the whole keyboard: the toolbar, emoji row, and symbol row step aside, and the category tabs move into the row they leave behind, next to a back button. Turn it off to keep the toolbar within reach while picking emoji.
 

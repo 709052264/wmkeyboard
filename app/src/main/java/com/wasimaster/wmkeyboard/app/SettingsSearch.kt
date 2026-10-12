@@ -958,6 +958,9 @@ private fun SearchStrings.emojiRows(): List<SettingsSearchEntry> {
     return listOf(
         row(R.string.langemoji_emoji_toolbar_title, R.string.langemoji_emoji_toolbar_subtitle),
         row(R.string.langemoji_strip_shortcut_title, R.string.langemoji_strip_shortcut_subtitle),
+        row(R.string.langemoji_strip_own_size_title, R.string.langemoji_strip_own_size_subtitle),
+        row(R.string.langemoji_strip_tool_width_title, R.string.langemoji_strip_tool_width_subtitle),
+        row(R.string.langemoji_strip_icon_size_title, R.string.langemoji_strip_icon_size_subtitle),
         row(R.string.langemoji_emoji_full_bleed_title, R.string.langemoji_emoji_full_bleed_subtitle),
         row(R.string.panel_layout_row_title, R.string.panel_layout_row_subtitle),
         row(R.string.langemoji_emoji_prediction_title, R.string.langemoji_emoji_prediction_subtitle),

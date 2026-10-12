@@ -1780,12 +1780,26 @@ data class ToolbarBehavior(
      */
     val holdActions: Map<ToolbarTool, ToolHoldAction> = emptyMap(),
     /**
-     * The tool whose button stays beside the suggestions while the pinned
-     * tools are off the row (#462). The emoji tool by default, which is the
-     * button this has always been; [KeyboardSettings.emojiToolbar] is what
-     * shows or hides it.
+     * The tools whose buttons stay beside the suggestions while the pinned
+     * tools are off the row, in the order they are drawn (#462). The emoji
+     * tool alone by default, which is the button this has always been;
+     * [KeyboardSettings.emojiToolbar] is what shows or hides the lot. Any
+     * tool may be here, and one that is also pinned on the toolbar slides
+     * between its two spots when the bar flips, the way the emoji always has.
      */
-    val stripShortcut: ToolbarTool = ToolbarTool.EMOJI,
+    val stripShortcuts: List<ToolbarTool> = listOf(ToolbarTool.EMOJI),
+    /**
+     * Whether the strip's buttons take [stripToolWidthDp] and
+     * [stripIconSizeDp] instead of the toolbar's own [toolWidthDp] and
+     * [iconSizeDp]. Off by default: the strip's copy of a pinned tool then
+     * matches the toolbar's exactly, so the slide between them lands on an
+     * identical shape.
+     */
+    val stripOwnSize: Boolean = false,
+    /** Width of each button beside the suggestions, in dp, under [stripOwnSize]. */
+    val stripToolWidthDp: Int = 38,
+    /** Side of the glyph in each button beside the suggestions, in dp, under [stripOwnSize]. */
+    val stripIconSizeDp: Int = 22,
 )
 
 /**
@@ -9217,7 +9231,12 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_PLACEMENT = stringPreferencesKey("toolbar_placement")
         private val TOOLBAR_SHOW_STRIP = booleanPreferencesKey("toolbar_show_strip")
         private val TOOLBAR_HOLD_ACTIONS = stringPreferencesKey("toolbar_hold_actions")
+        /** The single tool #462 stored, before the strip took a list. Read as a one-tool list. */
         private val TOOLBAR_STRIP_SHORTCUT = stringPreferencesKey("toolbar_strip_shortcut")
+        private val TOOLBAR_STRIP_SHORTCUTS = stringPreferencesKey("toolbar_strip_shortcuts")
+        private val TOOLBAR_STRIP_OWN_SIZE = booleanPreferencesKey("toolbar_strip_own_size")
+        private val TOOLBAR_STRIP_TOOL_WIDTH = intPreferencesKey("toolbar_strip_tool_width")
+        private val TOOLBAR_STRIP_ICON_SIZE = intPreferencesKey("toolbar_strip_icon_size")
         private val TOOLBAR_DRAG_REARRANGE = booleanPreferencesKey("toolbar_drag_rearrange")
         private val THEMES_PANEL_BUILTINS = stringSetPreferencesKey("themes_panel_builtins")
         private val COMMA_AS_EMOJI = booleanPreferencesKey("comma_as_emoji")
@@ -11127,9 +11146,21 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.toolbarBehavior.placement,
             showStrip = p[TOOLBAR_SHOW_STRIP] ?: defaults.toolbarBehavior.showStrip,
             holdActions = ToolHoldActions.decode(p[TOOLBAR_HOLD_ACTIONS]),
-            stripShortcut = p[TOOLBAR_STRIP_SHORTCUT]
-                ?.let { runCatching { ToolbarTool.valueOf(it) }.getOrNull() }
-                ?: defaults.toolbarBehavior.stripShortcut,
+            stripShortcuts = p[TOOLBAR_STRIP_SHORTCUTS]
+                ?.let { csv ->
+                    if (csv.isEmpty()) {
+                        emptyList()
+                    } else {
+                        csv.split(',').mapNotNull { runCatching { ToolbarTool.valueOf(it) }.getOrNull() }.distinct()
+                    }
+                }
+                ?: p[TOOLBAR_STRIP_SHORTCUT]
+                    ?.let { runCatching { ToolbarTool.valueOf(it) }.getOrNull() }
+                    ?.let { listOf(it) }
+                ?: defaults.toolbarBehavior.stripShortcuts,
+            stripOwnSize = p[TOOLBAR_STRIP_OWN_SIZE] ?: defaults.toolbarBehavior.stripOwnSize,
+            stripToolWidthDp = p[TOOLBAR_STRIP_TOOL_WIDTH] ?: defaults.toolbarBehavior.stripToolWidthDp,
+            stripIconSizeDp = p[TOOLBAR_STRIP_ICON_SIZE] ?: defaults.toolbarBehavior.stripIconSizeDp,
         )
 
     private fun readEmoji(p: Preferences, defaults: KeyboardSettings) =
@@ -12894,8 +12925,19 @@ class SettingsRepository(private val context: Context) {
     suspend fun setToolbarShowStrip(value: Boolean) =
         editPrefs { it[TOOLBAR_SHOW_STRIP] = value }
 
-    suspend fun setStripShortcut(value: ToolbarTool) =
-        editPrefs { it[TOOLBAR_STRIP_SHORTCUT] = value.name }
+    suspend fun setStripShortcuts(value: List<ToolbarTool>) = editPrefs {
+        it[TOOLBAR_STRIP_SHORTCUTS] = value.distinct().joinToString(",") { tool -> tool.name }
+        it.remove(TOOLBAR_STRIP_SHORTCUT)
+    }
+
+    suspend fun setStripOwnSize(value: Boolean) =
+        editPrefs { it[TOOLBAR_STRIP_OWN_SIZE] = value }
+
+    suspend fun setStripToolWidthDp(value: Int) =
+        editPrefs { it[TOOLBAR_STRIP_TOOL_WIDTH] = value.coerceIn(30, 64) }
+
+    suspend fun setStripIconSizeDp(value: Int) =
+        editPrefs { it[TOOLBAR_STRIP_ICON_SIZE] = value.coerceIn(14, 30) }
 
     /**
      * Sets or clears one tool's press-and-hold action. Null puts that tool back

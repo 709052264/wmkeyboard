@@ -586,6 +586,9 @@ internal object SettingsRowIcons {
         // ---- Emoji ----
         put(R.string.langemoji_emoji_toolbar_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.langemoji_strip_shortcut_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.langemoji_strip_own_size_title) { Icons.Outlined.PhotoSizeSelectSmall }
+        put(R.string.langemoji_strip_tool_width_title) { Icons.Outlined.Straighten }
+        put(R.string.langemoji_strip_icon_size_title) { Icons.Outlined.PhotoSizeSelectSmall }
         put(R.string.langemoji_emoji_full_bleed_title) { Icons.Outlined.Fullscreen }
         put(R.string.langemoji_emoji_prediction_title) { Icons.Outlined.AutoAwesome }
         put(R.string.langemoji_emoji_insert_mode_title) { Icons.Outlined.TouchApp }
