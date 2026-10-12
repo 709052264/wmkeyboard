@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        A window animation with nothing in it, for the keyboard's timed popups
+        (see PopupWindowExit.kt). Naming one explicitly, rather than leaving
+        windowAnimations at 0, is what stops some OEM builds from filling in a
+        fade of their own on the way out.
+    -->
+    <style name="WmPopupNoAnimation">
+        <item name="android:windowEnterAnimation">@null</item>
+        <item name="android:windowExitAnimation">@null</item>
+    </style>
+</resources>

@@ -20313,7 +20313,11 @@ internal fun KeyButton(
         // enabled modes in a row, the live selection highlighted. Capped at a
         // five-chip window sliding with the selection — drawing every enabled
         // layout ran off the screen the moment a handful were enabled.
-        shownLanguage?.let { previewMode ->
+        // Kept up, drawn empty, for a couple of frames after it is hidden, so
+        // an exit animation the window manager plays has nothing to show
+        // (see PopupWindowExit.kt): the echo has to end when the setting says.
+        rememberPopupExit(shownLanguage)?.let { previewExit ->
+            val previewMode = previewExit.value
             val switchIds = settings.switchLayoutIds()
             val extraStop = settings.layoutBehavior.switcherExtraStop
                 .takeIf { previewExtraStop && languagePreview != null }
@@ -20350,9 +20354,12 @@ internal fun KeyButton(
                 popupPositionProvider = popupPosition,
                 properties = PreviewPopupProperties,
             ) {
-                PopupBlurBehind(kb, FrostSurface.POPUPS)
+                PopupNoWindowAnimation()
+                if (previewExit.exiting) PopupDropBlurBehind() else PopupBlurBehind(kb, FrostSurface.POPUPS)
                 Surface(
-                    modifier = Modifier.frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS, sampleBackdrop = false),
+                    modifier = Modifier
+                        .alpha(if (previewExit.exiting) 0f else 1f)
+                        .frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS, sampleBackdrop = false),
                     shape = kb.popupShape(),
                     color = kb.popupFill(FrostSurface.POPUPS),
                     border = kb.popupSurfaceBorder(),
@@ -21995,6 +22002,7 @@ private fun LanguagePickerPopup(
         popupPositionProvider = popupPosition,
         onDismissRequest = onDismiss,
     ) {
+        PopupNoWindowAnimation()
         PopupBlurBehind(kb, FrostSurface.MENUS)
         Surface(
             modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
@@ -22142,6 +22150,7 @@ private fun LanguageCarouselPopup(
         popupPositionProvider = popupPosition,
         onDismissRequest = onDismiss,
     ) {
+        PopupNoWindowAnimation()
         PopupBlurBehind(kb, FrostSurface.MENUS)
         Surface(
             modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS, sampleBackdrop = false),
