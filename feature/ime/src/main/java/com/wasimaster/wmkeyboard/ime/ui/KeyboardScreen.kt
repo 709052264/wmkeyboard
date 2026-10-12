@@ -1395,6 +1395,7 @@ fun KeyboardScreen(
                 },
             ),
             LocalTransliterationPreview provides rememberTransliterationPreview(bodyState),
+            LocalMirrorBrackets provides (bodyState.script.direction == TextDirection.RTL),
             // Whether a D-pad ring can land on the toolbar and the strip. The
             // keys read the same setting through the grid itself; these two
             // surfaces are too far from it to be handed a parameter.
@@ -20413,6 +20414,7 @@ private fun AlternatesPopup(
     shifted: Boolean = false,
 ) {
     val kb = LocalKbTheme.current
+    val mirrorBrackets = LocalMirrorBrackets.current
     val configuration = LocalConfiguration.current
     val classic = popup.alternatesClassic
     hold?.classic = classic
@@ -20648,7 +20650,7 @@ private fun AlternatesPopup(
                 key.alternateEntries().forEachIndexed { index, entry ->
                     when (entry) {
                         is AlternateEntry.Character -> AlternateCharacter(
-                            text = visibleAlternate(shiftCased(entry.text, shifted)),
+                            text = rtlMirrored(visibleAlternate(shiftCased(entry.text, shifted)), mirrorBrackets),
                             index = index,
                             hold = hold,
                             fontSize = (18 * fontScale).sp,
@@ -20657,11 +20659,12 @@ private fun AlternatesPopup(
                                 .alternateMagnify(index, hold)
                                 .alternatePadding(entryPadding),
                         )
-                        is AlternateEntry.Action -> AlternateAction(
+                        is AlternateEntry.Action -> AlternateActionEntry(
                             alternate = entry.alternate,
+                            index = index,
+                            hold = hold,
                             fontScale = fontScale,
                             padding = entryPadding,
-                            tint = kb.popupText,
                             modifier = Modifier.alternateMagnify(index, hold),
                         ) {
                             onAction(
@@ -21083,6 +21086,36 @@ private fun AlternateAction(
             )
         }
     }
+}
+
+/**
+ * An action entry of the alternates popup, tinted the way [AlternateCharacter]
+ * colours its glyph: the theme's Selected text colour while it is the entry
+ * under the finger. A fixed popup-text tint left the icon in the unselected
+ * colour on top of the Selected highlight — dark on dark green in a light
+ * theme (issue #625). A scope of its own for the same reason as the
+ * character's: a hold-drag recomposes the two entries it moves between.
+ */
+@Composable
+private fun AlternateActionEntry(
+    alternate: KeyAlternate,
+    index: Int,
+    hold: AlternatesHold?,
+    fontScale: Float,
+    padding: Dp,
+    modifier: Modifier,
+    onClick: () -> Unit,
+) {
+    val kb = LocalKbTheme.current
+    val selected = hold != null && hold.selected.intValue == index
+    AlternateAction(
+        alternate = alternate,
+        fontScale = fontScale,
+        padding = padding,
+        tint = if (selected) kb.popupSelectedText else kb.popupText,
+        modifier = modifier,
+        onClick = onClick,
+    )
 }
 
 /** What an unlabelled space alternate draws: the keycap legend for the space bar. */
@@ -22095,10 +22128,14 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             // whose global toggle is off. hideHint wins if a file sets both.
             val hintIcon = if (key.hideHint) null else KeyIcons.byName(key.iconHint)
             // Cased with the popup it previews: under shift a hold types the capital.
+            // Mirrored the way RTL text will show it (#645).
+            val mirrorBrackets = LocalMirrorBrackets.current
             val hint = if (key.hideHint) {
                 null
             } else {
-                key.longPress.firstOrNull()?.let { shiftCased(it, visual.alternatesShifted) }
+                key.longPress.firstOrNull()?.let {
+                    rtlMirrored(shiftCased(it, visual.alternatesShifted), mirrorBrackets)
+                }
             }
             val showHints = settings.longPressHints || key.forceHint
             // A theme may name the hint colour outright (issue #72); otherwise
@@ -22518,6 +22555,28 @@ internal class TransliterationPreview(
         composer.keyPreview(buffer.value, roman, wholeCluster)
             ?.takeIf { it.isNotEmpty() && it != roman }
 }
+
+/**
+ * True on a right-to-left board (Arabic, Persian, Urdu, Hebrew...). The key
+ * grid itself is laid out left to right, so a lone `(` drawn on it shows as
+ * `(`; typed into the right-to-left text it is for, the same character is
+ * mirrored and reads as `)`. The hint and the popup preview what a hold
+ * types, so on these boards they draw the glyph the text will show (issue
+ * #645). What is committed is unchanged.
+ */
+internal val LocalMirrorBrackets = staticCompositionLocalOf { false }
+
+/**
+ * [text] as right-to-left text displays it: a single paired bracket swapped
+ * for its mirror. Longer strings are left alone — mirroring them character by
+ * character would also have to reverse their order, and a hint is one glyph.
+ */
+internal fun rtlMirrored(text: String, mirror: Boolean): String =
+    if (mirror && text.length == 1) RtlMirrorPairs[text[0]]?.toString() ?: text else text
+
+private val RtlMirrorPairs: Map<Char, Char> = "()<>[]{}«»‹›".chunked(2)
+    .flatMap { listOf(it[0] to it[1], it[1] to it[0]) }
+    .toMap()
 
 /** Null on every board whose corners do not read a transliteration. */
 internal val LocalTransliterationPreview =
