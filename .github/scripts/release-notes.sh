@@ -8,6 +8,14 @@
 # (fetch-depth: 0) so the previous tag can be found.
 set -euo pipefail
 
+# A release body keeps every single newline as a line break, so the 80-column
+# wrapping in release-notes/*.md and the prose below would render as a narrow
+# column. Run the whole script through a filter that rejoins paragraphs.
+if [ -z "${WMKB_NOTES_UNWRAPPED:-}" ]; then
+  WMKB_NOTES_UNWRAPPED=1 "$0" "$@" | python3 "$(dirname "$0")/unwrap-markdown.py"
+  exit 0
+fi
+
 version=${1:?version}
 code=${2:?versionCode}
 tag=${3:?tag}
