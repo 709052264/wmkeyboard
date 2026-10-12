@@ -117,12 +117,7 @@ object HanVariant {
         val phrases = s2tPhrases
         val standard = arrayOf(phrases, s2t)
         if (standard.all { it.isEmpty() }) return text
-        val regional = when (region) {
-            HanRegion.GENERIC -> null
-            HanRegion.TAIWAN -> arrayOf(twVariantsPhrases, twVariants)
-            HanRegion.TAIWAN_WORDING -> arrayOf(twPhrases, twVariantsPhrases, twVariants)
-            HanRegion.HONG_KONG -> arrayOf(hkVariantsPhrases, hkVariants)
-        }
+        val regional = regionalGroup()
         val out = StringBuilder(text.length + 2)
         var run = 0
         var i = 0
@@ -140,6 +135,54 @@ object HanVariant {
         }
         if (run < text.length) segment(text, run, text.length, standard, regional, out)
         return if (text.contentEquals(out)) text else out.toString()
+    }
+
+    /**
+     * Every Traditional form a candidate can be written in, the conversion
+     * first (#608).
+     *
+     * A word has one right spelling and the phrase table finds it, but a lone
+     * character has no word around it to decide: 发 alone is as much 髮 as 發.
+     * [toTraditional] has to pick OpenCC's first value, which left 髮, 乾, 后,
+     * 里 and 鐘 untypable on their own, so for a single-character candidate the
+     * character table's other values follow it, each through the region's
+     * tables (里 stays 里, but the first form 裏 becomes Taiwan's 裡). Longer
+     * candidates get only [toTraditional]: the phrase table already chose, and
+     * multiplying their characters' forms out would bury the strip.
+     *
+     * Only for reading-based composers. The forms share the reading, which is
+     * why they belong under it; a shape code (Cangjie, strokes) describes one
+     * glyph and the others would not match it.
+     */
+    fun traditionalForms(text: String): List<String> {
+        val primary = toTraditional(text)
+        if (!CjkConfig.traditionalOutput || text.isEmpty() ||
+            Character.charCount(text.codePointAt(0)) != text.length
+        ) {
+            return listOf(primary)
+        }
+        val alternatives = s2t.alternatives(text)
+        if (alternatives.isEmpty()) return listOf(primary)
+        val regional = regionalGroup()
+        val forms = ArrayList<String>(alternatives.size + 1)
+        forms.add(primary)
+        for (alternative in alternatives) {
+            val form = if (regional == null) {
+                alternative
+            } else {
+                StringBuilder(alternative.length).also { convert(alternative, 0, alternative.length, regional, it) }.toString()
+            }
+            if (form !in forms) forms.add(form)
+        }
+        return forms
+    }
+
+    /** The region's table group, run over Traditional text; null for Standard. */
+    private fun regionalGroup(): Array<HanPhraseTable>? = when (region) {
+        HanRegion.GENERIC -> null
+        HanRegion.TAIWAN -> arrayOf(twVariantsPhrases, twVariants)
+        HanRegion.TAIWAN_WORDING -> arrayOf(twPhrases, twVariantsPhrases, twVariants)
+        HanRegion.HONG_KONG -> arrayOf(hkVariantsPhrases, hkVariants)
     }
 
     private fun segment(

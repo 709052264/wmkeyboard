@@ -90,11 +90,12 @@ object JyutpingComposer : Composer {
         val segs = JyutpingSyllables.segment(buffer)
         if (segs.isEmpty()) {
             return dict.candidates(buffer, LOOKUP_LIMIT)
-                .map { Cand(HanVariant.toTraditional(it), buffer.length, buffer) }
+                .flatMap { word -> HanVariant.traditionalForms(word).map { Cand(it, buffer.length, buffer) } }
+                .distinctBy { it.text }
         }
         val input = latticeInput(segs)
         val decoded = Lattice.decode(input, dict, CjkDictionaries.ngrams, Lattice.Opts(limit = LOOKUP_LIMIT))
-            .map { Cand(HanVariant.toTraditional(it.text), it.consumed, it.reading) }
+            .flatMap { c -> HanVariant.traditionalForms(c.text).map { Cand(it, c.consumed, c.reading) } }
             .distinctBy { it.text }
         return CjkLearning.rank(NAMESPACE, decoded, { it.text }, { it.reading })
     }

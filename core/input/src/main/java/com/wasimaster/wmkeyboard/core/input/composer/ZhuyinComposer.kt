@@ -69,7 +69,7 @@ object ZhuyinComposer : Composer {
         // decoder sees the pinyin reading and the pack needs no Zhuyin of its own.
         val input = Lattice.input(segs.map { it.pinyin }, segs.map { it.inputLen })
         val decoded = Lattice.decode(input, CjkDictionaries.pinyin, CjkDictionaries.ngrams, Lattice.Opts(limit = LOOKUP_LIMIT))
-            .map { Cand(HanVariant.toTraditional(it.text), it.consumed, it.reading) }
+            .flatMap { c -> HanVariant.traditionalForms(c.text).map { Cand(it, c.consumed, c.reading) } }
             .distinctBy { it.text }
         return CjkLearning.rank(NAMESPACE, decoded, { it.text }, { it.reading })
     }

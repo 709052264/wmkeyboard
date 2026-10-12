@@ -15,6 +15,7 @@ class HanPhraseTable private constructor(
     private val keyStarts: IntArray,
     private val values: String,
     private val valueStarts: IntArray,
+    private val alternates: Map<String, List<String>>,
 ) {
     val size: Int get() = keyStarts.size - 1
 
@@ -32,6 +33,13 @@ class HanPhraseTable private constructor(
         if (entry < 0 || keyLength(entry) != key.length) return null
         return values.substring(valueStarts[entry], valueStarts[entry + 1])
     }
+
+    /**
+     * The values OpenCC lists after the first for exactly [key] — the other
+     * Traditional characters one Simplified character also stands for (发 →
+     * 發, then 髮). Empty for most rows, which have one value.
+     */
+    fun alternatives(key: String): List<String> = alternates[key].orEmpty()
 
     /**
      * The entry with the longest key that [text] starts with at [start], looking
@@ -71,29 +79,33 @@ class HanPhraseTable private constructor(
     }
 
     companion object {
-        val EMPTY = HanPhraseTable("", IntArray(1), "", IntArray(1))
+        val EMPTY = HanPhraseTable("", IntArray(1), "", IntArray(1), emptyMap())
 
         /**
          * Parses OpenCC's text format. A row may list several values; the first is
-         * the one OpenCC converts to, so it is the one kept. Identity rows are
+         * the one OpenCC converts to, and the rest stay reachable through
+         * [alternatives] for candidate lists that offer every form. Identity rows are
          * kept too — 皇后 → 皇后 is a phrase rule, and it is what stops the
          * character table from writing 皇後.
          */
         fun parse(lines: Sequence<String>): HanPhraseTable {
             val rows = HashMap<String, String>()
+            val alternates = HashMap<String, List<String>>()
             for (raw in lines) {
                 if (raw.isEmpty() || raw.startsWith("#")) continue
                 val tab = raw.indexOf('\t')
                 if (tab <= 0) continue
                 val key = raw.substring(0, tab).trim()
-                val value = raw.substring(tab + 1).trim().substringBefore(' ')
-                if (key.isEmpty() || value.isEmpty()) continue
-                rows.putIfAbsent(key, value)
+                val values = raw.substring(tab + 1).trim().split(' ').filter { it.isNotEmpty() }
+                if (key.isEmpty() || values.isEmpty()) continue
+                if (rows.putIfAbsent(key, values[0]) == null && values.size > 1) {
+                    alternates[key] = values.subList(1, values.size).toList()
+                }
             }
-            return of(rows)
+            return of(rows, alternates)
         }
 
-        fun of(rows: Map<String, String>): HanPhraseTable {
+        fun of(rows: Map<String, String>, alternates: Map<String, List<String>> = emptyMap()): HanPhraseTable {
             if (rows.isEmpty()) return EMPTY
             // String.compareTo orders by UTF-16 unit, the same order [bound] reads.
             val sorted = rows.keys.sorted()
@@ -109,7 +121,7 @@ class HanPhraseTable private constructor(
             }
             keyStarts[sorted.size] = keys.length
             valueStarts[sorted.size] = values.length
-            return HanPhraseTable(keys.toString(), keyStarts, values.toString(), valueStarts)
+            return HanPhraseTable(keys.toString(), keyStarts, values.toString(), valueStarts, alternates)
         }
     }
 }

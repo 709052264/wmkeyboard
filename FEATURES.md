@@ -951,6 +951,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Word decides the character — 50k-entry phrase table: 頭髮 / 發展, 皇后 / 後來, 乾淨 / 幹部; a character in no phrase takes its most common form
     - OpenCC matching — Longest-phrase segmentation, then short-circuit table groups per segment, so stitched candidates convert too
     - Applied inside each composer — Converting a finished candidate list would break prefix-commit's string matching
+    - Every form of a lone character — A single-character candidate is followed by OpenCC's other values for it (发 → 發, 髮; 干 → 幹, 乾, 干), so no word is needed to reach 髮/后/里/鐘 (#608); Pinyin, T9, Zhuyin and Jyutping only, since a shape code describes one glyph
     - Four regions — Standard, Taiwan (s2tw: 為/裡, keeps the typed word), Taiwan wording (s2twp: also 出租車 to 計程車, opt-in since #641), Hong Kong (character preferences only)
     - Order is load-bearing — Regional tables are keyed to Traditional text, so the character pass must run first
     - Loaded on first use — Tables are parsed only once the toggle is on; without the s2t_phrases pack it degrades to one character at a time

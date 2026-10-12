@@ -200,6 +200,45 @@ class HanVariantTest {
     }
 
     @Test
+    fun `a lone character offers every traditional form (#608)`() {
+        loadShipped()
+        CjkConfig.traditionalOutput = true
+        HanVariant.region = HanVariant.HanRegion.TAIWAN
+        // The conversion first, then OpenCC's other values for the character.
+        assertEquals(listOf("發", "髮"), HanVariant.traditionalForms("发"))
+        assertTrue("乾" in HanVariant.traditionalForms("干"))
+        assertTrue("干" in HanVariant.traditionalForms("干"))
+        assertEquals(listOf("後", "后"), HanVariant.traditionalForms("后"))
+        // Taiwan writes 裡 for the first form; 里 itself stays.
+        assertEquals("裡", HanVariant.traditionalForms("里").first())
+        assertTrue("里" in HanVariant.traditionalForms("里"))
+        assertTrue("鐘" in HanVariant.traditionalForms("钟"))
+        // A word keeps the one form its phrase decides.
+        assertEquals(listOf("頭髮"), HanVariant.traditionalForms("头发"))
+        // Off, it is the candidate itself.
+        CjkConfig.traditionalOutput = false
+        assertEquals(listOf("发"), HanVariant.traditionalForms("发"))
+    }
+
+    @Test
+    fun `pinyin offers the other forms and commits the picked one (#608)`() {
+        loadShipped()
+        CjkConfig.traditionalOutput = true
+        HanVariant.region = HanVariant.HanRegion.TAIWAN
+        PinyinSyllables.valid = setOf("fa", "tou")
+        CjkDictionaries.pinyin = ConversionDictionary.parse(
+            sequenceOf("fa\t发\t900", "fa\t法\t800", "toufa\t头发\t500", "tou\t头\t700"),
+        )
+        val fa = PinyinComposer.candidates("fa")
+        assertTrue("got $fa", fa.indexOf("發") < fa.indexOf("髮"))
+        assertTrue("got $fa", "法" in fa)
+        assertEquals(2, PinyinComposer.consumedFor("fa", "髮"))
+        val toufa = PinyinComposer.candidates("toufa")
+        assertEquals("頭髮", toufa.first())
+        assertTrue("got $toufa", "頭發" !in toufa)
+    }
+
+    @Test
     fun `hong kong keeps standard vocabulary`() {
         loadShipped()
         CjkConfig.traditionalOutput = true

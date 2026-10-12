@@ -222,11 +222,12 @@ object PinyinComposer : Composer {
             // before committing: fall back to plain prefix lookup, which cannot
             // offer a prefix commit but always answers.
             return dict.candidates(buffer, LOOKUP_LIMIT)
-                .map { Cand(HanVariant.toTraditional(it), buffer.length, buffer) }
+                .flatMap { word -> HanVariant.traditionalForms(word).map { Cand(it, buffer.length, buffer) } }
+                .distinctBy { it.text }
         }
         val opts = Lattice.Opts(limit = LOOKUP_LIMIT, stitch = stitchFor(segs))
         val decoded = Lattice.decode(latticeInput(segs), dict, CjkDictionaries.ngrams, opts, ::learnedPicks)
-            .map { Cand(HanVariant.toTraditional(it.text), it.consumed, it.reading) }
+            .flatMap { c -> HanVariant.traditionalForms(c.text).map { Cand(it, c.consumed, c.reading) } }
             // Converting to Traditional can merge two Simplified words onto one
             // form, so de-duplicate after the conversion rather than before it.
             .distinctBy { it.text }
