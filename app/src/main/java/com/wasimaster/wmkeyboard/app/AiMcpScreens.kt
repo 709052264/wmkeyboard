@@ -58,6 +58,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Visibility
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
+import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.tools.McpCatalogEntry
 import com.wasimaster.wmkeyboard.core.tools.McpCatalogStore
@@ -637,6 +638,67 @@ internal fun AiMcpEditor(
                         scope.launch { repository.setMcpToolPolicy(serverId, tool.name, picked) }
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Extra headers for the chosen AI provider (#648): a session id and a
+ * User-Agent for OpenCode Go, a token for a gateway in front of a provider.
+ *
+ * Each edit is saved as it is made, like the key and model fields above it.
+ * The rows are held here and never read back from settings while the screen
+ * is open, so an echo of an earlier keystroke cannot rewind the field; they
+ * reload only when the provider changes.
+ */
+@Composable
+internal fun AiProviderHeadersGroup(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+    provider: AiProvider,
+) {
+    val scope = rememberCoroutineScope()
+    val headers = remember(provider) {
+        mutableStateListOf<McpHeader>().apply {
+            addAll(settings.value.ai.providerHeaders[provider.name].orEmpty())
+        }
+    }
+    fun save() {
+        val snapshot = headers.toList()
+        scope.launch { repository.setAiProviderHeaders(provider, snapshot) }
+    }
+    SettingsGroup(
+        stringResource(R.string.toolai_ai_provider_headers_title),
+        info = stringResource(R.string.toolai_ai_provider_headers_info),
+    ) {
+        headers.forEachIndexed { index, header ->
+            item {
+                McpHeaderRow(
+                    header,
+                    onChange = {
+                        if (index < headers.size) {
+                            headers[index] = it
+                            save()
+                        }
+                    },
+                    onDelete = {
+                        if (index < headers.size) {
+                            headers.removeAt(index)
+                            save()
+                        }
+                    },
+                )
+            }
+        }
+        item {
+            TextButton(
+                onClick = { headers.add(McpHeader()) },
+                modifier = Modifier.padding(horizontal = 8.dp),
+            ) {
+                Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(4.dp))
+                Text(stringResource(R.string.toolai_ai_mcp_header_add_action))
             }
         }
     }

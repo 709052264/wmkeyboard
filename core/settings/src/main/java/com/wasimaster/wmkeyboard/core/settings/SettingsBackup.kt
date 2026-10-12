@@ -143,6 +143,7 @@ object SettingsBackup {
         "ai_brave_key",
         "ai_compatible_key",
         "ai_mcp_headers",
+        "ai_provider_headers",
         "voice_server_key",
         "voice_server_key_by_lang",
         "hf_token",

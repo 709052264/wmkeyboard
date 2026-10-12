@@ -119,6 +119,16 @@ DeepSeek's reasoning models stream their thinking on a separate field. The app f
 An `http://` address works, for a service on your own network, and that traffic is plain HTTP. Keep the server on a network you trust.
 :::
 
+### Extra headers
+
+Some services want more in a request than a key. OpenCode Go, for one, reads a session header and a User-Agent of its own, and a gateway in front of a provider may want its own token. Every provider except On-device has an **Extra headers** group under its fields for this. Tap **Add header**, then fill in a name and a value. Each edit saves as you make it, and the value stays hidden until you tap the eye.
+
+- **Yours are sent last.** A header here replaces the app's own of the same name, whatever its capitals, so a `User-Agent` or `Authorization` you add is the one the service sees.
+- **`{session}` stands in for a session id.** Type it anywhere in a value, for example the name `x-opencode-session` with the value `{session}`. One panel action, its lookups included, sends one id, and a [chat](/tools/ai-chat/) sends the same id for every message in that conversation.
+- **Each provider has its own list.** Switching providers shows that provider's headers, not the last one's.
+- A name with a space or other character a header can't hold, or a value with a line break, is left out of the request rather than failing it.
+- A backup without secrets leaves the headers out, the same as API keys.
+
 ### Self-hosted servers
 
 **Ollama** and **LM Studio** point at a server on your own network instead of a cloud API. No key is needed, only an address like `http://192.168.0.10:11434` (Ollama) or `http://192.168.0.10:1234` (LM Studio). Set `OLLAMA_HOST=0.0.0.0` so Ollama listens beyond localhost. Turn on LM Studio's local-server option. Both address fields are blank by default. Ollama defaults its model field to `qwen3` when you leave it blank. LM Studio has no default model to fall back to, so it uses whatever the server currently has loaded.
@@ -347,6 +357,7 @@ API keys are never part of a record. It carries the model's name and nothing abo
 Like every tool, AI has an **Enabled** toggle (on by default) and, if [colorful tool icons](/reference/settings/tools/) are on, a per-tool icon color override. Below that:
 
 - **Keyword**: the word that offers this tool on the suggestion strip when you type it alone. Defaults to `ai`.
+- **Extra headers**: none to start with, see [Extra headers](#extra-headers).
 - **Provider**: which of the nine providers above is active. Defaults to **Claude**, though with no key entered yet a fresh install lands on the empty-state screen until you add one.
 - **Max response length**: a token ceiling, roughly ¾ of a word each, picked from steps rather than a slider: 1k through 128k, plus **Provider maximum**. Default **8,192**. A model the app takes for a reasoning model gets 4× this ceiling on its own, capped at 131,072, because reasoning tokens come out of the same budget before the answer starts. That guess is a substring match on the model ID, for strings like "thinking", "qwen3", "grok-4" or "deepseek-v4". The On-device provider swaps this row for **Context size**.
 - **Translate action's target language**: free text, defaults to **English**.

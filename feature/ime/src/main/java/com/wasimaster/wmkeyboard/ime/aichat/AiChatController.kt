@@ -30,6 +30,7 @@ import com.wasimaster.wmkeyboard.core.tools.ToolHttp
 import com.wasimaster.wmkeyboard.core.tools.ToolHttpException
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -465,7 +466,13 @@ object AiChatController {
         // The picker's provider stands in for the settings one, so chatting
         // with a different model never rewrites the keyboard's own selection.
         val chosen = settings.ai.copy(provider = choice.provider)
-        val config = AiClient.config(chosen).copy(netSource = NetSource.AI_CHAT)
+        // One session per conversation, stable across its messages, so a
+        // gateway that keys its prompt cache on a {session} header (#648)
+        // sees one conversation rather than a new one for every reply.
+        val config = AiClient.config(chosen).copy(
+            netSource = NetSource.AI_CHAT,
+            sessionId = UUID.nameUUIDFromBytes("wmkb-chat-$conversationId".toByteArray()).toString(),
+        )
         val turns = store(context).get(conversationId)?.messages.orEmpty()
             .filter { !it.failed }
             .map {

@@ -4387,6 +4387,14 @@ data class AiSettings(
      * `SettingsBackup.SECRET_KEYS`, the server list's is not.
      */
     val mcpHeaders: Map<String, List<McpHeader>> = emptyMap(),
+    /**
+     * Extra headers sent with every request to a provider, by `AiProvider.name`
+     * (#648). Some gateways want more than a key: OpenCode Go reads a session
+     * header and a User-Agent of its own. A value may hold `{session}`, which
+     * becomes one id per run or per chat. Secret like [mcpHeaders], since a
+     * gateway's token often travels here too.
+     */
+    val providerHeaders: Map<String, List<McpHeader>> = emptyMap(),
 )
 
 /**
@@ -9672,6 +9680,7 @@ class SettingsRepository(private val context: Context) {
         private val AI_TOOL_MAX_ROUNDS = intPreferencesKey("ai_tool_max_rounds")
         private val AI_MCP_SERVERS = stringPreferencesKey("ai_mcp_servers")
         private val AI_MCP_HEADERS = stringPreferencesKey("ai_mcp_headers")
+        private val AI_PROVIDER_HEADERS = stringPreferencesKey("ai_provider_headers")
         private val AI_DIFF_OPENS_FIRST = booleanPreferencesKey("ai_diff_opens_first")
         private val AI_CUSTOM_ACTIONS = stringPreferencesKey("ai_custom_actions")
         private val AI_ACTION_ORDER = stringPreferencesKey("ai_action_order")
@@ -11651,6 +11660,7 @@ class SettingsRepository(private val context: Context) {
             toolMaxRounds = p[AI_TOOL_MAX_ROUNDS] ?: defaults.ai.toolMaxRounds,
             mcpServers = McpServerCodec.decodeServers(p[AI_MCP_SERVERS].orEmpty()),
             mcpHeaders = McpServerCodec.decodeHeaders(p[AI_MCP_HEADERS].orEmpty()),
+            providerHeaders = McpServerCodec.decodeHeaders(p[AI_PROVIDER_HEADERS].orEmpty()),
         )
 
     private fun readLauncher(p: Preferences, defaults: KeyboardSettings) =
@@ -15675,6 +15685,23 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setMcpHeaders(id: String, headers: List<McpHeader>) =
         editPrefs { prefs -> writeMcpHeaders(prefs, id, headers) }
+
+    /**
+     * Replaces the extra headers sent to one AI provider (#648). Rows with no
+     * name are dropped, and an empty list removes the provider's entry.
+     */
+    suspend fun setAiProviderHeaders(provider: AiProvider, headers: List<McpHeader>) =
+        editPrefs { prefs ->
+            val kept = headers.filter { it.name.isNotBlank() }
+                .map { McpHeader(it.name.trim(), it.value.trim()) }
+            val all = McpServerCodec.decodeHeaders(prefs[AI_PROVIDER_HEADERS].orEmpty()) - provider.name
+            val next = if (kept.isEmpty()) all else all + (provider.name to kept)
+            if (next.isEmpty()) {
+                prefs.remove(AI_PROVIDER_HEADERS)
+            } else {
+                prefs[AI_PROVIDER_HEADERS] = McpServerCodec.encodeHeaders(next)
+            }
+        }
 
     private suspend fun editMcpServer(id: String, change: (McpServerSpec) -> McpServerSpec) =
         editPrefs { prefs ->

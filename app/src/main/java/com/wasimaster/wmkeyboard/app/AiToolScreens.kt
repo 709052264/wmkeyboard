@@ -325,6 +325,8 @@ internal fun AiToolSettings(
         }
         AiProvider.ON_DEVICE -> LocalLlmModelManager(repository, settings)
     }
+    // Every provider reached over HTTP can take extra headers (#648).
+    if (aiProvider != AiProvider.ON_DEVICE) AiProviderHeadersGroup(repository, settings, aiProvider)
     ServerFieldsGroup(
         repository,
         settings,

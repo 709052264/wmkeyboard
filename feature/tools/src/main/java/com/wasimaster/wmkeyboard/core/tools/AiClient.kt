@@ -21,6 +21,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
+import java.util.UUID
 
 /**
  * One-shot chat completion against the AI tool's configured provider —
@@ -40,7 +41,40 @@ object AiClient {
         val baseUrl: String,
         /** What the network activity log files this request under: the panel or the chat. */
         val netSource: NetSource = NetSource.AI,
+        /** The user's extra headers for this provider (#648), sent after ours so they win. */
+        val headers: List<McpHeader> = emptyList(),
+        /**
+         * What a `{session}` in a header value becomes. A fresh id per config,
+         * so one panel run, tool rounds included, is one session; the chat
+         * passes an id of its conversation instead.
+         */
+        val sessionId: String = UUID.randomUUID().toString(),
     )
+
+    /** The placeholder a header value can use for [Config.sessionId]. */
+    const val SESSION_PLACEHOLDER = "{session}"
+
+    /** An RFC 7230 token: anything else as a header name makes the request throw. */
+    private val HEADER_NAME = Regex("^[!#$%&'*+.^_`|~0-9A-Za-z-]+$")
+
+    /**
+     * The headers one request sends: the provider's own [base], then the
+     * user's [Config.headers] on top. A user header replaces a built-in one of
+     * the same name in any case, which is how a custom User-Agent or an
+     * `Authorization` for a gateway in front of the provider gets through.
+     * A name that is not a valid token, or a value with a line break, is
+     * dropped rather than allowed to fail the whole request.
+     */
+    internal fun requestHeaders(config: Config, base: Map<String, String>): Map<String, String> {
+        val extra = config.headers.mapNotNull { header ->
+            val name = header.name.trim()
+            val value = header.value.trim().replace(SESSION_PLACEHOLDER, config.sessionId)
+            if (!HEADER_NAME.matches(name) || '\r' in value || '\n' in value) null else name to value
+        }
+        if (extra.isEmpty()) return base
+        val overridden = extra.map { it.first.lowercase() }.toSet()
+        return base.filterKeys { it.lowercase() !in overridden } + extra
+    }
 
     /**
      * One prior message of a multi-turn chat, oldest first.
@@ -133,7 +167,10 @@ object AiClient {
         else -> error("${config.provider} does not use the OpenAI request shape")
     }
 
-    fun config(settings: AiSettings): Config = when (settings.provider) {
+    fun config(settings: AiSettings): Config =
+        baseConfig(settings).copy(headers = settings.providerHeaders[settings.provider.name].orEmpty())
+
+    private fun baseConfig(settings: AiSettings): Config = when (settings.provider) {
         AiProvider.ANTHROPIC -> Config(
             AiProvider.ANTHROPIC, settings.anthropicKey,
             settings.anthropicModel.ifBlank { DefaultModels.ANTHROPIC }, "",
@@ -836,9 +873,12 @@ object AiClient {
             source = config.netSource,
             url = ServiceEndpoints.base(ServiceEndpoint.ANTHROPIC) + "/v1/messages",
             body = body,
-            headers = mapOf(
-                "x-api-key" to config.apiKey,
-                "anthropic-version" to "2023-06-01",
+            headers = requestHeaders(
+                config,
+                mapOf(
+                    "x-api-key" to config.apiKey,
+                    "anthropic-version" to "2023-06-01",
+                ),
             ),
             timeoutMs = 120_000,
             onPhase = onPhase,
@@ -974,7 +1014,7 @@ object AiClient {
             source = config.netSource,
             url = url,
             body = body,
-            headers = headers,
+            headers = requestHeaders(config, headers),
             timeoutMs = 120_000,
             onPhase = onPhase,
             onPartial = onPartial,
@@ -1113,7 +1153,7 @@ object AiClient {
             url = ServiceEndpoints.base(ServiceEndpoint.GEMINI) + "/v1beta/models/" +
                 "${config.model}:streamGenerateContent?alt=sse",
             body = body,
-            headers = mapOf("x-goog-api-key" to config.apiKey),
+            headers = requestHeaders(config, mapOf("x-goog-api-key" to config.apiKey)),
             timeoutMs = 120_000,
             onPhase = onPhase,
             onPartial = onPartial,
@@ -1238,7 +1278,7 @@ object AiClient {
             source = config.netSource,
             url = "${config.baseUrl.trimEnd('/')}/api/chat",
             body = body,
-            headers = emptyMap(),
+            headers = requestHeaders(config, emptyMap()),
             timeoutMs = 120_000,
             onPhase = onPhase,
             onPartial = onPartial,
@@ -1301,7 +1341,7 @@ object AiClient {
             source = config.netSource,
             url = ServiceEndpoints.base(ServiceEndpoint.BRAVE_SEARCH) + "/res/v1/chat/completions",
             body = braveBody(system, turns, maxTokens),
-            headers = mapOf("X-Subscription-Token" to config.apiKey),
+            headers = requestHeaders(config, mapOf("X-Subscription-Token" to config.apiKey)),
             timeoutMs = 120_000,
             onPhase = onPhase,
             onPartial = onPartial,
