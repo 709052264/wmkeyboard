@@ -37,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,7 +45,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -76,6 +79,7 @@ import com.wasimaster.wmkeyboard.core.location.LocationFormat
 import com.wasimaster.wmkeyboard.core.location.LocationFormatter
 import com.wasimaster.wmkeyboard.core.location.LocationGrant
 import com.wasimaster.wmkeyboard.core.location.LocationPrecision
+import com.wasimaster.wmkeyboard.core.location.MapTiles
 import com.wasimaster.wmkeyboard.core.location.ParsedLocation
 import com.wasimaster.wmkeyboard.core.location.PlusCode
 import com.wasimaster.wmkeyboard.core.location.SavedPlace
@@ -421,6 +425,7 @@ private fun FixView(
                 locating = ui.status == LocationStatus.LOCATING,
                 reduceMotion = state.settings.reduceMotion,
                 modifier = Modifier.size(84.dp),
+                tileUrl = settings.tileUrl,
             )
             Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -668,8 +673,40 @@ private fun PositionDial(
     locating: Boolean,
     reduceMotion: Boolean,
     modifier: Modifier = Modifier,
+    /** A `{z}/{x}/{y}` tile server; blank draws no map. */
+    tileUrl: String = "",
 ) {
     val kb = LocalKbTheme.current
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    // The same scale the dial draws at, worked out ahead so the right zoom's
+    // tiles can be fetched; see the extent below.
+    val tiles = if (fix != null && MapTiles.isUsable(tileUrl)) {
+        val radiusPx = with(density) { 42.dp.toPx() - 4.dp.toPx() }
+        val shared = precision.apply(fix.point)
+        val offset = fix.point.distanceTo(shared).toFloat()
+        val extent = max(max(fix.accuracyM ?: 0f, 12f), offset + precision.cellMetres / 2f * 1.42f) * 1.15f
+        val pxPerMetre = radiusPx / extent
+        val zoom = MapTiles.zoomFor(pxPerMetre.toDouble(), fix.point.latitude)
+        val loaded by produceState<Map<Triple<Int, Int, Int>, androidx.compose.ui.graphics.ImageBitmap>>(emptyMap(), tileUrl, zoom, fix.point) {
+            val wanted = MapTiles.around(fix.point, zoom)
+            val got = HashMap<Triple<Int, Int, Int>, androidx.compose.ui.graphics.ImageBitmap>()
+            for (tile in wanted) {
+                val bitmap = TileCache.get(tileUrl, tile) ?: kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    MapTiles.fetch(tileUrl, tile.first, tile.second, tile.third)
+                        ?.let { android.graphics.BitmapFactory.decodeByteArray(it, 0, it.size) }
+                        ?.asImageBitmap()
+                        ?.also { TileCache.put(tileUrl, tile, it) }
+                }
+                if (bitmap != null) {
+                    got[tile] = bitmap
+                    value = HashMap(got)
+                }
+            }
+        }
+        Triple(zoom, pxPerMetre, loaded)
+    } else {
+        null
+    }
     val description = stringResource(R.string.ime_location_dial_desc)
     val pulse = if (locating && !reduceMotion) {
         val transition = rememberInfiniteTransition(label = "locating")
@@ -686,6 +723,37 @@ private fun PositionDial(
         val radius = size.minDimension / 2f
         val center = Offset(size.width / 2f, size.height / 2f)
         drawCircle(kb.chip, radius, center)
+        if (tiles != null && fix != null) {
+            val (zoom, _, loaded) = tiles
+            val (fx, fy) = MapTiles.tileOf(fix.point, zoom)
+            // Drawn at the dial's own scale so the ring and the square sit on the right streets.
+            val extentNow = max(
+                max(fix.accuracyM ?: 0f, 12f),
+                fix.point.distanceTo(precision.apply(fix.point)).toFloat() + precision.cellMetres / 2f * 1.42f,
+            ) * 1.15f
+            val scaleNow = (radius - 4.dp.toPx()) / extentNow
+            val tilePx = (MapTiles.tileMetres(zoom, fix.point.latitude) * scaleNow).toFloat()
+            val circle = androidx.compose.ui.graphics.Path().apply {
+                addOval(androidx.compose.ui.geometry.Rect(center, radius))
+            }
+            clipPath(circle) {
+                val n = 1 shl zoom
+                for ((tile, image) in loaded) {
+                    // Unwrap across the date line so the column sits beside its neighbours.
+                    var dx = tile.second - fx
+                    if (dx > n / 2) dx -= n
+                    if (dx < -n / 2) dx += n
+                    val left = center.x + (dx * tilePx).toFloat()
+                    val top = center.y + ((tile.third - fy) * tilePx).toFloat()
+                    drawImage(
+                        image,
+                        dstOffset = androidx.compose.ui.unit.IntOffset(left.toInt(), top.toInt()),
+                        dstSize = androidx.compose.ui.unit.IntSize(tilePx.toInt() + 1, tilePx.toInt() + 1),
+                        alpha = 0.85f,
+                    )
+                }
+            }
+        }
         drawCircle(kb.secondaryText.copy(alpha = 0.25f), radius, center, style = Stroke(1.dp.toPx()))
         drawLine(kb.toolbarIcon, Offset(center.x, 3.dp.toPx()), Offset(center.x, 10.dp.toPx()), 2.dp.toPx())
         if (fix != null) {
@@ -1044,3 +1112,21 @@ internal fun compassPoint(bearing: Double): String {
     return names[(((bearing % 360) + 360) % 360 + 22.5).toInt() / 45 % 8]
 }
 
+/** Map tiles already fetched for the dial, by server and tile; small, in memory only. */
+private object TileCache {
+    private const val SIZE = 36
+    private val map = object : LinkedHashMap<String, androidx.compose.ui.graphics.ImageBitmap>(SIZE, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, androidx.compose.ui.graphics.ImageBitmap>?) =
+            size > SIZE
+    }
+
+    private fun key(url: String, tile: Triple<Int, Int, Int>) = "$url|${tile.first}/${tile.second}/${tile.third}"
+
+    @Synchronized
+    fun get(url: String, tile: Triple<Int, Int, Int>) = map[key(url, tile)]
+
+    @Synchronized
+    fun put(url: String, tile: Triple<Int, Int, Int>, image: androidx.compose.ui.graphics.ImageBitmap) {
+        map[key(url, tile)] = image
+    }
+}

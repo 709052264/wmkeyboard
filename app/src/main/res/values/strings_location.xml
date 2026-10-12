@@ -17,6 +17,9 @@
     <string name="location_locate_on_open_title">Locate when the tool opens</string>
     <string name="location_locate_on_open_subtitle">If Android already allows it. Off, the panel waits for Locate me.</string>
 
+    <string name="location_tiles_group">Map behind the dial</string>
+    <string name="location_tiles_label">Tile server</string>
+    <string name="location_tiles_info">Off by default. A map needs pictures of the streets from a tile server, and each one tells that server roughly where you are, so the keyboard asks none unless you name one here. Use the address of a server whose terms allow it, with {z}, {x} and {y} where the zoom and the tile go. The public OpenStreetMap servers do not allow apps to use them this way.</string>
     <string name="location_template_group">Custom format</string>
     <string name="location_template_info">Words in braces are replaced: %1$s. A word with nothing to put in its place disappears.</string>
     <string name="location_template_label">Template</string>

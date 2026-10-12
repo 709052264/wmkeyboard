@@ -31,6 +31,8 @@ Instead of a map, **Here** shows a dial. A map would need pictures of the street
 - **The ring** is how sure the reading is. A tight ring is a good fix; a wide one means the phone is guessing.
 - **The square** appears when you share at a coarser precision. It is the area that goes out, with a hollow dot at the point that is actually shared and the filled dot where you really are.
 
+If you'd like streets behind the dial anyway, name a tile server under **Map behind the dial** in settings. The keyboard then fetches the few tiles around you, and only from that server. None is built in, because the public OpenStreetMap servers don't allow apps to use them this way, and because every tile request says roughly where you are.
+
 Next to the dial: the address (when **Look up the address** is on), the coordinates, how accurate the reading is, how old it is, and its Plus code. **Open in maps** hands the point to your own maps app, which is the way to see it on a real map.
 
 Under that is a row of formats. Tap one and the box below shows exactly what will be typed, then **Insert** types it. Hold a format to make it the default; the default carries a small dot.
@@ -122,6 +124,7 @@ The reading stays in memory for 15 minutes, so reopening the panel doesn't ask a
 - **Look up the address**: on. See [What leaves the phone](#what-leaves-the-phone).
 - **Locate when the tool opens**: on. Off, the panel waits for **Locate me** every time, even when Android already allows it.
 - **Custom format**: a template for the **Custom** chip. Words in braces are replaced: `{name}`, `{address}`, `{coords}`, `{lat}`, `{lon}`, `{dms}`, `{plus}`, `{link}` (in the map you picked), `{google}`, `{osm}`, `{apple}`, `{osmand}`, `{waze}`, `{geo}`, `{card}`, `{accuracy}` and `{time}`. A word with nothing to put in its place disappears, and a word in braces the tool doesn't know is left as you typed it. An example under the field shows the template filled in for the Eiffel Tower.
+- **Tile server**: blank. A `{z}/{x}/{y}` address, such as `https://tile.example.org/{z}/{x}/{y}.png`, for a map behind the dial. Use a server whose terms allow it; tiles are kept in memory only.
 - **Saved places**: each place, to rename, move or delete, and **Add a place**.
 - **Location access**: Precise, Approximate or Not granted. Tapping it asks Android, or, once precise is granted, opens the app's page in Android's settings, where it can be taken back.
 

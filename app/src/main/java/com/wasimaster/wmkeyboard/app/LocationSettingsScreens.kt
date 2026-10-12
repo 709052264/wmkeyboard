@@ -140,6 +140,20 @@ internal fun LocationToolSettings(repository: SettingsRepository, settings: Live
         serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.NOMINATIM))
     }
 
+    SettingsGroup(
+        stringResource(R.string.location_tiles_group),
+        info = stringResource(R.string.location_tiles_info),
+    ) {
+        item {
+            TextFieldSetting(
+                label = stringResource(R.string.location_tiles_label),
+                value = settings.watch { it.location.tileUrl },
+                hint = "https://tile.example.org/{z}/{x}/{y}.png",
+                default = "",
+            ) { repository.setLocationTileUrl(it) }
+        }
+    }
+
     val template = settings.watch { it.location.template }
     val mapLink = settings.watch { it.location.mapLink }
     SettingsGroup(

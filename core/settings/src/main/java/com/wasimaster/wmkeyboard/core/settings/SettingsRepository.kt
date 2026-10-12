@@ -9519,6 +9519,7 @@ class SettingsRepository(private val context: Context) {
         private val LOCATION_LOCATE_ON_OPEN = booleanPreferencesKey("location_locate_on_open")
         private val LOCATION_TEMPLATE = stringPreferencesKey("location_template")
         private val LOCATION_PLACES = stringPreferencesKey("location_places")
+        private val LOCATION_TILE_URL = stringPreferencesKey("location_tile_url")
         // Superseded by CALENDAR_ALT_ONE/TWO, still read once to carry the old
         // Bengali/Hijri switches over to the new pair of picks.
         private val CALENDAR_SHOW_BENGALI = booleanPreferencesKey("calendar_show_bengali")
@@ -11499,6 +11500,7 @@ class SettingsRepository(private val context: Context) {
             locateOnOpen = p[LOCATION_LOCATE_ON_OPEN] ?: defaults.location.locateOnOpen,
             template = p[LOCATION_TEMPLATE] ?: defaults.location.template,
             places = p[LOCATION_PLACES]?.let(SavedPlaces::decode) ?: defaults.location.places,
+            tileUrl = p[LOCATION_TILE_URL] ?: defaults.location.tileUrl,
         )
 
     private fun readWeather(p: Preferences, defaults: KeyboardSettings) =
@@ -12507,6 +12509,8 @@ class SettingsRepository(private val context: Context) {
     suspend fun setLocationLocateOnOpen(value: Boolean) = editPrefs { it[LOCATION_LOCATE_ON_OPEN] = value }
 
     suspend fun setLocationTemplate(value: String) = editPrefs { it[LOCATION_TEMPLATE] = value }
+
+    suspend fun setLocationTileUrl(value: String) = editPrefs { it[LOCATION_TILE_URL] = value.trim() }
 
     /**
      * Rewrites the saved places through [change], read and written in one

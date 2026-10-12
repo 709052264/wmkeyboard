@@ -16,14 +16,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Languages, scripts, layouts, transliteration | 11 | 64 | 213 |
 | Themes and appearance | 14 | 73 | 183 |
 | Emoji, GIFs, stickers, kaomoji | 16 | 88 | 94 |
-| Toolbar and the tool set | 10 | 86 | 336 |
+| Toolbar and the tool set | 10 | 86 | 337 |
 | Clipboard, snippets, text expansion | 7 | 37 | 191 |
 | AI, voice, handwriting, scanning | 11 | 71 | 167 |
 | Privacy, backup, storage, statistics | 14 | 69 | 173 |
 | Accessibility, form factors, platform integration | 13 | 61 | 111 |
 | Extensibility: addons, plugins, imports, formats | 5 | 35 | 164 |
 | Modes, rows, field adaptation, runtime | 12 | 97 | 203 |
-| **Total** | **133** | **809** | **2259** |
+| **Total** | **133** | **809** | **2260** |
 
 ## Typing core: prediction, autocorrect, learning, spell check
 
@@ -2035,6 +2035,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Send to computer — A KDE Connect computer in reach gets the place as a map link (geo: goes as OpenStreetMap)
     - Snippet variables — {location}, {location:format}, {place:Name}, {place:Name:format}; no radio or network at expansion, a toast and a background reading when there is none
     - "I'm at" chip — I'm at, my location, where I am, here is my location offer the tool under the intent hints, keeping the words
+    - Optional map behind the dial — only from a {z}/{x}/{y} tile server the user names; none built in; 3x3 tiles at the dial's own scale, clipped to the circle, cached in memory
   - Moon phase `RARE` — Computed, not fetched
     - Eight phase names — Plus percent illuminated and days into the cycle
     - Next full and new moon dates — From a synodic-month constant and a reference new moon

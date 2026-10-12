@@ -1164,6 +1164,7 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.LOCATION, R.string.location_lookup_address_title, R.string.location_lookup_address_subtitle),
     toolEntry(ToolbarTool.LOCATION, R.string.location_locate_on_open_title, R.string.location_locate_on_open_subtitle),
     toolEntry(ToolbarTool.LOCATION, R.string.location_template_label),
+    toolEntry(ToolbarTool.LOCATION, R.string.location_tiles_label, R.string.location_tiles_group),
     toolEntry(ToolbarTool.LOCATION, R.string.location_places_group, R.string.location_places_info),
     toolEntry(ToolbarTool.LOCATION, R.string.location_permission_title, R.string.location_permission_subtitle),
     toolEntry(ToolbarTool.CALENDAR, R.string.tooldetail_calendar_first_title, R.string.tooldetail_calendar_first_subtitle),

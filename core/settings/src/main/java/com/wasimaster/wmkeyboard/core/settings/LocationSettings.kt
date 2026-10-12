@@ -32,4 +32,10 @@ data class LocationSettings(
     /** The Custom format's template; see [LocationFormatter.TOKENS]. */
     val template: String = LocationFormatter.DEFAULT_TEMPLATE,
     val places: List<SavedPlace> = emptyList(),
+    /**
+     * A `{z}/{x}/{y}` tile address for a map behind the panel's dial. Blank,
+     * the default, draws no map and asks no tile server anything; none is
+     * built in (see `MapTiles`).
+     */
+    val tileUrl: String = "",
 )
