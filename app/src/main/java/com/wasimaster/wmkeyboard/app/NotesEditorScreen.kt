@@ -294,7 +294,7 @@ private fun NoteEditorForm(settings: LiveSettings, state: NotesScreenState, init
                         val ink = MaterialTheme.colorScheme.onSurface
                         ChatMarkdown(
                             body,
-                            ChatMarkdownColors(text = ink, dim = ink.copy(alpha = 0.65f), codeBackground = ink.copy(alpha = 0.10f)),
+                            ChatMarkdownColors(text = ink, dim = ink.copy(alpha = 0.65f), codeBackground = ink.copy(alpha = 0.10f), link = MaterialTheme.colorScheme.primary),
                             fontSize = MaterialTheme.typography.bodyLarge.fontSize,
                             onTaskToggle = { task -> NoteChecklist.toggleTask(body, task.line)?.let { body = it } },
                         )

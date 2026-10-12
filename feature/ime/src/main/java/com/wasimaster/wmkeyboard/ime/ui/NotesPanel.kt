@@ -743,7 +743,7 @@ private fun NotesReadView(state: KeyboardUiState, note: Note, callbacks: NotesCa
                     if (state.settings.notes.renderMarkdown) {
                         ChatMarkdown(
                             body,
-                            ChatMarkdownColors(text = kb.modifierKeyText, dim = kb.secondaryText, codeBackground = kb.chip),
+                            ChatMarkdownColors(text = kb.modifierKeyText, dim = kb.secondaryText, codeBackground = kb.chip, link = kb.accent),
                             fontSize = 13.sp,
                             onTaskToggle = if (note.inTrash) null else ({ task -> callbacks.onTaskToggle(note.id, task.line) }),
                             onBlockTap = if (editable) ({ block -> callbacks.onEditStart(note.id, block.line) }) else null,
