@@ -126,13 +126,15 @@ private fun SynonymsWindow(sheet: SynonymsSheet, growth: PopupGrowth, onAction: 
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f),
                         )
-                        IconButton(onClick = dismiss, modifier = Modifier.size(32.dp)) {
-                            Icon(
-                                Icons.Outlined.Close,
-                                contentDescription = stringResource(R.string.ime_synonyms_close_desc),
-                                tint = kb.popupText,
-                                modifier = Modifier.size(18.dp),
-                            )
+                        IconHint(stringResource(R.string.ime_synonyms_close_desc)) {
+                            IconButton(onClick = dismiss, modifier = Modifier.size(32.dp)) {
+                                Icon(
+                                    Icons.Outlined.Close,
+                                    contentDescription = stringResource(R.string.ime_synonyms_close_desc),
+                                    tint = kb.popupText,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
                         }
                     }
                     when (val status = sheet.status) {

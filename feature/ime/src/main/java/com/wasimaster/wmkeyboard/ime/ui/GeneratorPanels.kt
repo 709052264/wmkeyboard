@@ -234,18 +234,20 @@ internal fun PasswordPanel(
                     modifier = Modifier.weight(1f),
                 )
             }
-            IconButton(
-                onClick = { regenerateKey++ },
-                modifier = Modifier
-                    .size(30.dp)
-                    .focusRing(focusedAction == 0, CircleShape),
-            ) {
-                Icon(
-                    Icons.Outlined.Refresh,
-                    contentDescription = stringResource(R.string.ime_password_regenerate_desc),
-                    tint = kb.accent,
-                    modifier = Modifier.size(18.dp),
-                )
+            IconHint(stringResource(R.string.ime_password_regenerate_desc)) {
+                IconButton(
+                    onClick = { regenerateKey++ },
+                    modifier = Modifier
+                        .size(30.dp)
+                        .focusRing(focusedAction == 0, CircleShape),
+                ) {
+                    Icon(
+                        Icons.Outlined.Refresh,
+                        contentDescription = stringResource(R.string.ime_password_regenerate_desc),
+                        tint = kb.accent,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
             }
             Spacer(Modifier.width(4.dp))
             ToolPanelChip(

@@ -278,13 +278,15 @@ private fun WikiArticle(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (wiki.canGoBack) {
-                IconButton(onClick = onBack, modifier = Modifier.size(30.dp)) {
-                    Icon(
-                        Icons.AutoMirrored.Outlined.ArrowBack,
-                        contentDescription = stringResource(R.string.ime_wiki_back_desc),
-                        tint = kb.toolbarIcon,
-                        modifier = Modifier.size(18.dp),
-                    )
+                IconHint(stringResource(R.string.ime_wiki_back_desc)) {
+                    IconButton(onClick = onBack, modifier = Modifier.size(30.dp)) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = stringResource(R.string.ime_wiki_back_desc),
+                            tint = kb.toolbarIcon,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
                 }
             }
             Text(
@@ -297,34 +299,42 @@ private fun WikiArticle(
                 modifier = Modifier.weight(1f),
             )
             // Read it bigger, here or in the browser (#348).
-            IconButton(onClick = onExpand, modifier = Modifier.size(30.dp)) {
-                Icon(
-                    if (expanded) Icons.Outlined.CloseFullscreen else Icons.Outlined.OpenInFull,
-                    contentDescription = stringResource(
-                        if (expanded) R.string.ime_wiki_shrink_desc else R.string.ime_wiki_expand_desc,
-                    ),
-                    tint = kb.toolbarIcon,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-            if (wiki.summary.url.isNotBlank()) {
-                IconButton(
-                    onClick = {
-                        runCatching {
-                            context.startActivity(
-                                Intent(Intent.ACTION_VIEW, Uri.parse(wiki.summary.url))
-                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                            )
-                        }
-                    },
-                    modifier = Modifier.size(30.dp),
-                ) {
+            IconHint(
+                stringResource(
+                    if (expanded) R.string.ime_wiki_shrink_desc else R.string.ime_wiki_expand_desc,
+                ),
+            ) {
+                IconButton(onClick = onExpand, modifier = Modifier.size(30.dp)) {
                     Icon(
-                        Icons.AutoMirrored.Outlined.OpenInNew,
-                        contentDescription = stringResource(R.string.ime_wiki_open_browser_desc),
+                        if (expanded) Icons.Outlined.CloseFullscreen else Icons.Outlined.OpenInFull,
+                        contentDescription = stringResource(
+                            if (expanded) R.string.ime_wiki_shrink_desc else R.string.ime_wiki_expand_desc,
+                        ),
                         tint = kb.toolbarIcon,
                         modifier = Modifier.size(18.dp),
                     )
+                }
+            }
+            if (wiki.summary.url.isNotBlank()) {
+                IconHint(stringResource(R.string.ime_wiki_open_browser_desc)) {
+                    IconButton(
+                        onClick = {
+                            runCatching {
+                                context.startActivity(
+                                    Intent(Intent.ACTION_VIEW, Uri.parse(wiki.summary.url))
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                                )
+                            }
+                        },
+                        modifier = Modifier.size(30.dp),
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.OpenInNew,
+                            contentDescription = stringResource(R.string.ime_wiki_open_browser_desc),
+                            tint = kb.toolbarIcon,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
                 }
             }
         }

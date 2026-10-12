@@ -263,20 +263,22 @@ internal fun UndoStrokeButton(hw: HandwritingUi, onUndoStroke: () -> Unit, modif
     if (hw.strokes.isEmpty() || hw.status != HandwritingStatus.READY) return
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
-    Icon(
-        Icons.AutoMirrored.Outlined.Undo,
-        contentDescription = stringResource(R.string.ime_handwriting_undo_stroke_desc),
-        tint = kb.toolbarIcon,
-        modifier = modifier
-            .padding(4.dp)
-            .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
-            .clickable {
-                feedback()
-                onUndoStroke()
-            }
-            .padding(8.dp)
-            .size(20.dp),
-    )
+    IconHint(stringResource(R.string.ime_handwriting_undo_stroke_desc)) {
+        Icon(
+            Icons.AutoMirrored.Outlined.Undo,
+            contentDescription = stringResource(R.string.ime_handwriting_undo_stroke_desc),
+            tint = kb.toolbarIcon,
+            modifier = modifier
+                .padding(4.dp)
+                .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
+                .clickable {
+                    feedback()
+                    onUndoStroke()
+                }
+                .padding(8.dp)
+                .size(20.dp),
+        )
+    }
 }
 
 /**

@@ -1010,20 +1010,22 @@ private fun ChatIconButton(
     // Scaled from the theme's own alpha, as ToolPanelChip dims: some themes
     // draw chips translucent to begin with.
     fun Color.dim() = if (enabled) this else copy(alpha = alpha * 0.4f)
-    Box(
-        modifier = modifier
-            .size(size)
-            .clip(CircleShape)
-            .background((if (active) kb.chipActive else kb.chip).dim())
-            .clickable(enabled = enabled, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            icon,
-            contentDescription = description,
-            tint = (if (active) kb.chipActiveText else kb.chipText).dim(),
-            modifier = Modifier.size(size * 0.5f),
-        )
+    IconHint(description, modifier) {
+        Box(
+            modifier = Modifier
+                .size(size)
+                .clip(CircleShape)
+                .background((if (active) kb.chipActive else kb.chip).dim())
+                .clickable(enabled = enabled, onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                icon,
+                contentDescription = description,
+                tint = (if (active) kb.chipActiveText else kb.chipText).dim(),
+                modifier = Modifier.size(size * 0.5f),
+            )
+        }
     }
 }
 

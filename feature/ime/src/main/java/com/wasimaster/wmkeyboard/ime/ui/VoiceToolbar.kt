@@ -949,21 +949,23 @@ private fun VoiceBarIconButton(
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
-    Box(
-        modifier = Modifier
-            .size(VoiceBarButton)
-            .clip(kb.toolShape())
-            .clickable(enabled = enabled, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            icon,
-            contentDescription = description,
+    IconHint(description) {
+        Box(
             modifier = Modifier
-                .size(20.dp)
-                .graphicsLayer { alpha = if (enabled) 1f else 0.4f },
-            tint = kb.toolbarIcon,
-        )
+                .size(VoiceBarButton)
+                .clip(kb.toolShape())
+                .clickable(enabled = enabled, onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                icon,
+                contentDescription = description,
+                modifier = Modifier
+                    .size(20.dp)
+                    .graphicsLayer { alpha = if (enabled) 1f else 0.4f },
+                tint = kb.toolbarIcon,
+            )
+        }
     }
 }
 

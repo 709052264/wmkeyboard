@@ -592,32 +592,34 @@ internal fun ClipRegexButton(
     val kb = LocalKbTheme.current
     val shape = kb.cardShape()
     val description = stringResource(if (on) R.string.ime_clipboard_regex_off_desc else R.string.ime_clipboard_regex_on_desc)
-    Box(
-        modifier = modifier
-            .heightIn(max = 36.dp)
-            .fillMaxHeight()
-            .aspectRatio(1f)
-            .clip(shape)
-            .background(if (on) kb.toolCircleActive else kb.chip)
-            .chipBorder(kb, shape)
-            .focusRing(focused, shape)
-            .semantics {
-                role = Role.Switch
-                selected = on
-                contentDescription = description
-            }
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            ".*",
-            fontSize = 14.sp,
-            lineHeight = 14.sp,
-            fontWeight = FontWeight.SemiBold,
-            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-            color = if (on) kb.toolCircleActiveIcon else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.clearAndSetSemantics {},
-        )
+    IconHint(description, modifier) {
+        Box(
+            modifier = Modifier
+                .heightIn(max = 36.dp)
+                .fillMaxHeight()
+                .aspectRatio(1f)
+                .clip(shape)
+                .background(if (on) kb.toolCircleActive else kb.chip)
+                .chipBorder(kb, shape)
+                .focusRing(focused, shape)
+                .semantics {
+                    role = Role.Switch
+                    selected = on
+                    contentDescription = description
+                }
+                .clickable(onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                ".*",
+                fontSize = 14.sp,
+                lineHeight = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                color = if (on) kb.toolCircleActiveIcon else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.clearAndSetSemantics {},
+            )
+        }
     }
 }
 
@@ -635,46 +637,48 @@ private fun ClipFragmentsButton(
     val kb = LocalKbTheme.current
     val shape = kb.cardShape()
     val description = pluralStringResource(R.plurals.ime_clip_entity_show_desc, count, count)
-    Box(
-        modifier = modifier
-            .heightIn(max = 36.dp)
-            .fillMaxHeight()
-            .aspectRatio(1f)
-            .clip(shape)
-            .background(kb.chip)
-            .chipBorder(kb, shape)
-            .focusRing(focused, shape)
-            .clearAndSetSemantics {
-                role = Role.Button
-                contentDescription = description
-            }
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            Icons.Outlined.ContentCut,
-            contentDescription = null,
-            modifier = Modifier.size(17.dp),
-            tint = MaterialTheme.colorScheme.primary,
-        )
+    IconHint(description, modifier) {
         Box(
             modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 2.dp, end = 2.dp)
-                .heightIn(min = 13.dp)
-                .widthIn(min = 13.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary)
-                .padding(horizontal = 2.dp),
+                .heightIn(max = 36.dp)
+                .fillMaxHeight()
+                .aspectRatio(1f)
+                .clip(shape)
+                .background(kb.chip)
+                .chipBorder(kb, shape)
+                .focusRing(focused, shape)
+                .clearAndSetSemantics {
+                    role = Role.Button
+                    contentDescription = description
+                }
+                .clickable(onClick = onClick),
             contentAlignment = Alignment.Center,
         ) {
-            Text(
-                if (count > 99) "99+" else count.toString(),
-                fontSize = 8.sp,
-                lineHeight = 9.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onPrimary,
+            Icon(
+                Icons.Outlined.ContentCut,
+                contentDescription = null,
+                modifier = Modifier.size(17.dp),
+                tint = MaterialTheme.colorScheme.primary,
             )
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 2.dp, end = 2.dp)
+                    .heightIn(min = 13.dp)
+                    .widthIn(min = 13.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
+                    .padding(horizontal = 2.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    if (count > 99) "99+" else count.toString(),
+                    fontSize = 8.sp,
+                    lineHeight = 9.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                )
+            }
         }
     }
 }
@@ -692,25 +696,28 @@ private fun ClipboardClearButton(
 ) {
     val kb = LocalKbTheme.current
     val shape = kb.cardShape()
-    Box(
-        modifier = modifier
-            .heightIn(max = 36.dp)
-            .fillMaxHeight()
-            .aspectRatio(1f)
-            .clip(shape)
-            .background(if (asking) MaterialTheme.colorScheme.errorContainer else kb.chip)
-            .chipBorder(kb, shape)
-            .focusRing(focused, shape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            Icons.Outlined.DeleteSweep,
-            contentDescription = stringResource(R.string.ime_clipboard_clear_desc),
-            modifier = Modifier.size(18.dp),
-            tint = if (asking) MaterialTheme.colorScheme.onErrorContainer
-            else MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+    val description = stringResource(R.string.ime_clipboard_clear_desc)
+    IconHint(description, modifier) {
+        Box(
+            modifier = Modifier
+                .heightIn(max = 36.dp)
+                .fillMaxHeight()
+                .aspectRatio(1f)
+                .clip(shape)
+                .background(if (asking) MaterialTheme.colorScheme.errorContainer else kb.chip)
+                .chipBorder(kb, shape)
+                .focusRing(focused, shape)
+                .clickable(onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Outlined.DeleteSweep,
+                contentDescription = description,
+                modifier = Modifier.size(18.dp),
+                tint = if (asking) MaterialTheme.colorScheme.onErrorContainer
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -943,13 +950,16 @@ private fun ClipSelectionBar(
             .padding(start = 2.dp, end = 6.dp, top = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onCancel, modifier = Modifier.size(36.dp)) {
-            Icon(
-                Icons.Outlined.Close,
-                contentDescription = stringResource(R.string.ime_clip_select_cancel_desc),
-                modifier = Modifier.size(18.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        val cancel = stringResource(R.string.ime_clip_select_cancel_desc)
+        IconHint(cancel) {
+            IconButton(onClick = onCancel, modifier = Modifier.size(36.dp)) {
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = cancel,
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
         Text(
             pluralStringResource(R.plurals.ime_clip_selected_count, picked.size, picked.size),
@@ -1804,8 +1814,10 @@ private fun ClipFullTextPopup(
 /** One icon in the clip popups' action rows: the glyph says what it does, TalkBack says it in words. */
 @Composable
 internal fun ClipTextActionIcon(icon: ImageVector, description: String, tint: Color, onClick: () -> Unit) {
-    IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {
-        Icon(icon, contentDescription = description, tint = tint, modifier = Modifier.size(19.dp))
+    IconHint(description) {
+        IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {
+            Icon(icon, contentDescription = description, tint = tint, modifier = Modifier.size(19.dp))
+        }
     }
 }
 
@@ -2374,28 +2386,31 @@ internal fun ClipboardViewToggle(
 ) {
     val kb = LocalKbTheme.current
     val shape = kb.cardShape()
-    Box(
-        modifier = modifier
-            // Square, and no taller than the pill beside it: a strip row is
-            // shorter than 36 dp at small key heights, and the cell wins.
-            .heightIn(max = 36.dp)
-            .fillMaxHeight()
-            .aspectRatio(1f)
-            .clip(shape)
-            .background(kb.chip)
-            .chipBorder(kb, shape)
-            .focusRing(focused, shape)
-            .clickable(onClick = onToggle),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            if (list) Icons.Outlined.GridView else Icons.Outlined.ViewAgenda,
-            contentDescription = stringResource(
-                if (list) R.string.ime_clipboard_view_grid_desc else R.string.ime_clipboard_view_list_desc,
-            ),
-            modifier = Modifier.size(18.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+    val description = stringResource(
+        if (list) R.string.ime_clipboard_view_grid_desc else R.string.ime_clipboard_view_list_desc,
+    )
+    IconHint(description, modifier) {
+        Box(
+            modifier = Modifier
+                // Square, and no taller than the pill beside it: a strip row is
+                // shorter than 36 dp at small key heights, and the cell wins.
+                .heightIn(max = 36.dp)
+                .fillMaxHeight()
+                .aspectRatio(1f)
+                .clip(shape)
+                .background(kb.chip)
+                .chipBorder(kb, shape)
+                .focusRing(focused, shape)
+                .clickable(onClick = onToggle),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                if (list) Icons.Outlined.GridView else Icons.Outlined.ViewAgenda,
+                contentDescription = description,
+                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -2839,13 +2854,16 @@ private fun ClipReorderRow(
         )
         // Already first in its group: nowhere higher to send it.
         if (!first) {
-            IconButton(onClick = onTop, modifier = Modifier.size(40.dp)) {
-                Icon(
-                    Icons.Outlined.VerticalAlignTop,
-                    contentDescription = stringResource(R.string.ime_clip_reorder_top_desc),
-                    modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            val top = stringResource(R.string.ime_clip_reorder_top_desc)
+            IconHint(top) {
+                IconButton(onClick = onTop, modifier = Modifier.size(40.dp)) {
+                    Icon(
+                        Icons.Outlined.VerticalAlignTop,
+                        contentDescription = top,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         } else {
             Spacer(Modifier.width(40.dp))

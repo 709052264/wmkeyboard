@@ -101,16 +101,18 @@ internal fun RowScope.DictionaryHeaderSearchBar(
             modifier = Modifier.weight(1f),
         )
         if (state.dictionarySearchActive) {
-            IconButton(
-                onClick = { onLookup(state.dictionaryQuery) },
-                modifier = Modifier.size(30.dp),
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Outlined.ArrowForward,
-                    contentDescription = stringResource(R.string.ime_dict_lookup_desc),
-                    modifier = Modifier.size(16.dp),
-                    tint = kb.accent,
-                )
+            IconHint(stringResource(R.string.ime_dict_lookup_desc)) {
+                IconButton(
+                    onClick = { onLookup(state.dictionaryQuery) },
+                    modifier = Modifier.size(30.dp),
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Outlined.ArrowForward,
+                        contentDescription = stringResource(R.string.ime_dict_lookup_desc),
+                        modifier = Modifier.size(16.dp),
+                        tint = kb.accent,
+                    )
+                }
             }
         }
     }
@@ -244,16 +246,18 @@ private fun DictionaryEntries(
                         Spacer(Modifier.weight(1f))
                         val audioUrl = entry.audioUrl
                         if (audioUrl != null) {
-                            IconButton(
-                                onClick = { playPronunciation(player, audioUrl) },
-                                modifier = Modifier.size(32.dp),
-                            ) {
-                                Icon(
-                                    Icons.AutoMirrored.Outlined.VolumeUp,
-                                    contentDescription = stringResource(R.string.ime_dict_play_desc),
-                                    modifier = Modifier.size(18.dp),
-                                    tint = kb.accent,
-                                )
+                            IconHint(stringResource(R.string.ime_dict_play_desc)) {
+                                IconButton(
+                                    onClick = { playPronunciation(player, audioUrl) },
+                                    modifier = Modifier.size(32.dp),
+                                ) {
+                                    Icon(
+                                        Icons.AutoMirrored.Outlined.VolumeUp,
+                                        contentDescription = stringResource(R.string.ime_dict_play_desc),
+                                        modifier = Modifier.size(18.dp),
+                                        tint = kb.accent,
+                                    )
+                                }
                             }
                         }
                         DictionaryChip(

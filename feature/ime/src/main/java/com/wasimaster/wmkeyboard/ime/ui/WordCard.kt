@@ -169,13 +169,15 @@ private fun WordCardWindow(card: WordCard, growth: PopupGrowth, onAction: (WordC
                             color = kb.popupText,
                             modifier = Modifier.weight(1f),
                         )
-                        IconButton(onClick = dismiss, modifier = Modifier.size(32.dp)) {
-                            Icon(
-                                Icons.Outlined.Close,
-                                contentDescription = stringResource(R.string.ime_word_card_close_desc),
-                                tint = kb.popupText,
-                                modifier = Modifier.size(18.dp),
-                            )
+                        IconHint(stringResource(R.string.ime_word_card_close_desc)) {
+                            IconButton(onClick = dismiss, modifier = Modifier.size(32.dp)) {
+                                Icon(
+                                    Icons.Outlined.Close,
+                                    contentDescription = stringResource(R.string.ime_word_card_close_desc),
+                                    tint = kb.popupText,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
                         }
                     }
                     Column(
@@ -449,22 +451,26 @@ private fun Stepper(
     val lowerAlpha by animateFloatAsState(if (canLower) 1f else 0.35f, spec, label = "wordCardLower")
     val raiseAlpha by animateFloatAsState(if (canRaise) 1f else 0.35f, spec, label = "wordCardRaise")
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        IconButton(onClick = onLower, enabled = canLower) {
-            Icon(
-                Icons.Outlined.Remove,
-                contentDescription = stringResource(R.string.ime_word_card_step_down_desc),
-                tint = color,
-                modifier = Modifier.graphicsLayer { alpha = lowerAlpha },
-            )
+        IconHint(stringResource(R.string.ime_word_card_step_down_desc)) {
+            IconButton(onClick = onLower, enabled = canLower) {
+                Icon(
+                    Icons.Outlined.Remove,
+                    contentDescription = stringResource(R.string.ime_word_card_step_down_desc),
+                    tint = color,
+                    modifier = Modifier.graphicsLayer { alpha = lowerAlpha },
+                )
+            }
         }
         StepperValue(value, level, color, animate, Modifier.weight(1f))
-        IconButton(onClick = onRaise, enabled = canRaise) {
-            Icon(
-                Icons.Outlined.Add,
-                contentDescription = stringResource(R.string.ime_word_card_step_up_desc),
-                tint = color,
-                modifier = Modifier.graphicsLayer { alpha = raiseAlpha },
-            )
+        IconHint(stringResource(R.string.ime_word_card_step_up_desc)) {
+            IconButton(onClick = onRaise, enabled = canRaise) {
+                Icon(
+                    Icons.Outlined.Add,
+                    contentDescription = stringResource(R.string.ime_word_card_step_up_desc),
+                    tint = color,
+                    modifier = Modifier.graphicsLayer { alpha = raiseAlpha },
+                )
+            }
         }
     }
 }

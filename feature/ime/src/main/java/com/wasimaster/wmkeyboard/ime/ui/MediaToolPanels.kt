@@ -553,15 +553,17 @@ internal fun RowScope.MediaHeaderSearchBar(
             )
         }
         if (onClear != null && query.isNotEmpty()) {
-            Icon(
-                Icons.Outlined.Close,
-                contentDescription = stringResource(R.string.ime_clipboard_search_clear_desc),
-                modifier = Modifier
-                    .padding(start = 6.dp)
-                    .size(16.dp)
-                    .clickable { onClear() },
-                tint = kb.toolbarIcon,
-            )
+            IconHint(stringResource(R.string.ime_clipboard_search_clear_desc)) {
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = stringResource(R.string.ime_clipboard_search_clear_desc),
+                    modifier = Modifier
+                        .padding(start = 6.dp)
+                        .size(16.dp)
+                        .clickable { onClear() },
+                    tint = kb.toolbarIcon,
+                )
+            }
         }
     }
 }
@@ -1757,16 +1759,23 @@ internal fun WebSearchPanel(
                                         )
                                     }
                                 }
-                                IconButton(onClick = { sideAction(result) }) {
-                                    Icon(
-                                        if (openFirst) Icons.Outlined.AddLink else Icons.AutoMirrored.Outlined.OpenInNew,
-                                        contentDescription = stringResource(
-                                            if (openFirst) R.string.ime_web_search_insert_desc
-                                            else R.string.ime_web_search_open_desc,
-                                        ),
-                                        modifier = Modifier.size(18.dp),
-                                        tint = kb.toolbarIcon,
-                                    )
+                                IconHint(
+                                    stringResource(
+                                        if (openFirst) R.string.ime_web_search_insert_desc
+                                        else R.string.ime_web_search_open_desc,
+                                    ),
+                                ) {
+                                    IconButton(onClick = { sideAction(result) }) {
+                                        Icon(
+                                            if (openFirst) Icons.Outlined.AddLink else Icons.AutoMirrored.Outlined.OpenInNew,
+                                            contentDescription = stringResource(
+                                                if (openFirst) R.string.ime_web_search_insert_desc
+                                                else R.string.ime_web_search_open_desc,
+                                            ),
+                                            modifier = Modifier.size(18.dp),
+                                            tint = kb.toolbarIcon,
+                                        )
+                                    }
                                 }
                             }
                         }

@@ -274,19 +274,21 @@ internal fun GrammarPanel(
             }
             Spacer(Modifier.width(4.dp))
             Box {
-                Icon(
-                    Icons.Outlined.FilterList,
-                    contentDescription = stringResource(R.string.ime_grammar_filter_desc),
-                    modifier = Modifier
-                        .clip(kb.chipShape())
-                        .background(if (hidden.isEmpty()) kb.chip else kb.chipActive)
-                        .chipBorder(kb, kb.chipShape())
-                        .focusRing(focusedChip == 1, kb.chipShape())
-                        .clickable { filterOpen = true }
-                        .padding(horizontal = 6.dp, vertical = 4.dp)
-                        .size(16.dp),
-                    tint = if (hidden.isEmpty()) kb.toolbarIcon else kb.chipActiveText,
-                )
+                IconHint(stringResource(R.string.ime_grammar_filter_desc)) {
+                    Icon(
+                        Icons.Outlined.FilterList,
+                        contentDescription = stringResource(R.string.ime_grammar_filter_desc),
+                        modifier = Modifier
+                            .clip(kb.chipShape())
+                            .background(if (hidden.isEmpty()) kb.chip else kb.chipActive)
+                            .chipBorder(kb, kb.chipShape())
+                            .focusRing(focusedChip == 1, kb.chipShape())
+                            .clickable { filterOpen = true }
+                            .padding(horizontal = 6.dp, vertical = 4.dp)
+                            .size(16.dp),
+                        tint = if (hidden.isEmpty()) kb.toolbarIcon else kb.chipActiveText,
+                    )
+                }
                 if (filterOpen) {
                     GrammarFilterPicker(
                         hidden = hidden,
@@ -315,18 +317,20 @@ internal fun GrammarPanel(
             }
             if (deeplWrite) {
                 Spacer(Modifier.width(4.dp))
-                Icon(
-                    Icons.Outlined.EditNote,
-                    contentDescription = stringResource(R.string.ime_grammar_deepl_action_desc),
-                    modifier = Modifier
-                        .clip(kb.chipShape())
-                        .background(if (rephrase != null) kb.chipActive else kb.chip)
-                        .chipBorder(kb, kb.chipShape())
-                        .clickable(enabled = rephrase?.working != true) { callbacks.onRephrase() }
-                        .padding(horizontal = 6.dp, vertical = 4.dp)
-                        .size(16.dp),
-                    tint = if (rephrase != null) kb.chipActiveText else kb.toolbarIcon,
-                )
+                IconHint(stringResource(R.string.ime_grammar_deepl_action_desc)) {
+                    Icon(
+                        Icons.Outlined.EditNote,
+                        contentDescription = stringResource(R.string.ime_grammar_deepl_action_desc),
+                        modifier = Modifier
+                            .clip(kb.chipShape())
+                            .background(if (rephrase != null) kb.chipActive else kb.chip)
+                            .chipBorder(kb, kb.chipShape())
+                            .clickable(enabled = rephrase?.working != true) { callbacks.onRephrase() }
+                            .padding(horizontal = 6.dp, vertical = 4.dp)
+                            .size(16.dp),
+                        tint = if (rephrase != null) kb.chipActiveText else kb.toolbarIcon,
+                    )
+                }
             }
             Spacer(Modifier.weight(1f))
             if (grammar.checking || rephrase?.working == true) {
@@ -636,14 +640,16 @@ private fun ColumnScope.DeepLWriteCard(
                 )
                 Spacer(Modifier.width(8.dp))
             }
-            Icon(
-                Icons.Outlined.Close,
-                contentDescription = stringResource(R.string.ime_grammar_deepl_dismiss_desc),
-                modifier = Modifier
-                    .size(16.dp)
-                    .clickable { onDismiss() },
-                tint = kb.secondaryText,
-            )
+            IconHint(stringResource(R.string.ime_grammar_deepl_dismiss_desc)) {
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = stringResource(R.string.ime_grammar_deepl_dismiss_desc),
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clickable { onDismiss() },
+                    tint = kb.secondaryText,
+                )
+            }
         }
         Text(
             when {
@@ -747,44 +753,50 @@ private fun GrammarLintCard(
                 val askLabel = stringResource(R.string.ime_ask_ai_label_grammar)
                 val fixes = lint.suggestions.mapNotNull { fix -> fix.labelText?.takeIf { it.isNotBlank() } }
                 val kindName = if (kind.isEmpty()) categoryLabel else kind
-                Icon(
-                    Icons.Outlined.AutoAwesome,
-                    contentDescription = stringResource(R.string.ime_grammar_ask_ai_desc),
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clickable {
-                            tools.onAiChat(
-                                AiChatAction.AskAbout(
-                                    AskAiContext.grammar(lint, fixes, sourceText, kindName),
-                                    askLabel,
-                                    fromSelection = false,
-                                ),
-                            )
-                        },
-                    tint = kb.accent,
-                )
+                IconHint(stringResource(R.string.ime_grammar_ask_ai_desc)) {
+                    Icon(
+                        Icons.Outlined.AutoAwesome,
+                        contentDescription = stringResource(R.string.ime_grammar_ask_ai_desc),
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clickable {
+                                tools.onAiChat(
+                                    AiChatAction.AskAbout(
+                                        AskAiContext.grammar(lint, fixes, sourceText, kindName),
+                                        askLabel,
+                                        fromSelection = false,
+                                    ),
+                                )
+                            },
+                        tint = kb.accent,
+                    )
+                }
                 Spacer(Modifier.width(10.dp))
             }
             // Harper's explanation, to the clipboard (#348).
             if (lint.message.isNotBlank()) {
-                Icon(
-                    Icons.Outlined.ContentCopy,
-                    contentDescription = stringResource(CommonR.string.common_copy),
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clickable { tools.onAiChat(AiChatAction.Copy(lint.message)) },
-                    tint = kb.secondaryText,
-                )
+                IconHint(stringResource(CommonR.string.common_copy)) {
+                    Icon(
+                        Icons.Outlined.ContentCopy,
+                        contentDescription = stringResource(CommonR.string.common_copy),
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clickable { tools.onAiChat(AiChatAction.Copy(lint.message)) },
+                        tint = kb.secondaryText,
+                    )
+                }
                 Spacer(Modifier.width(10.dp))
             }
-            Icon(
-                Icons.Outlined.Close,
-                contentDescription = stringResource(R.string.ime_grammar_dismiss_desc),
-                modifier = Modifier
-                    .size(16.dp)
-                    .clickable { onDismiss(lint) },
-                tint = kb.secondaryText,
-            )
+            IconHint(stringResource(R.string.ime_grammar_dismiss_desc)) {
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = stringResource(R.string.ime_grammar_dismiss_desc),
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clickable { onDismiss(lint) },
+                    tint = kb.secondaryText,
+                )
+            }
         }
         val appliedLabel = applied
         if (appliedLabel != null) {
@@ -933,16 +945,18 @@ private fun GrammarFilterPicker(
                     )
                     FilterCount(kinds.sumOf { countByKind[it] ?: 0 })
                     FilterMark(shown = shown, total = kinds.size)
-                    Icon(
-                        if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
-                        contentDescription = stringResource(R.string.ime_grammar_filter_expand_desc),
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .clickable { expanded = if (open) null else category }
-                            .padding(4.dp)
-                            .size(16.dp),
-                        tint = kb.secondaryText,
-                    )
+                    IconHint(stringResource(R.string.ime_grammar_filter_expand_desc)) {
+                        Icon(
+                            if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                            contentDescription = stringResource(R.string.ime_grammar_filter_expand_desc),
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .clickable { expanded = if (open) null else category }
+                                .padding(4.dp)
+                                .size(16.dp),
+                            tint = kb.secondaryText,
+                        )
+                    }
                 }
                 if (open) {
                     kinds.forEach { kind ->

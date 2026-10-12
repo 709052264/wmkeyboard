@@ -421,22 +421,24 @@ private fun TranslateLanguageRow(
             animationSpec = if (animate) tween(TranslateSwapMs, easing = FastOutSlowInEasing) else tween(0),
             label = "translateSwap",
         )
-        Icon(
-            Icons.Outlined.SwapHoriz,
-            contentDescription = stringResource(R.string.ime_translate_swap_desc),
-            tint = if (canSwap) kb.toolbarIcon else kb.secondaryText.copy(alpha = 0.4f),
-            modifier = Modifier
-                .padding(horizontal = 2.dp)
-                .clip(kb.chipShape())
-                .focusRing(focusedChip == 1, kb.chipShape())
-                .clickable(enabled = canSwap) {
-                    if (animate) swapTurns++
-                    callbacks.onSwap()
-                }
-                .padding(4.dp)
-                .size(18.dp)
-                .graphicsLayer { rotationZ = swapTurn.value },
-        )
+        IconHint(stringResource(R.string.ime_translate_swap_desc)) {
+            Icon(
+                Icons.Outlined.SwapHoriz,
+                contentDescription = stringResource(R.string.ime_translate_swap_desc),
+                tint = if (canSwap) kb.toolbarIcon else kb.secondaryText.copy(alpha = 0.4f),
+                modifier = Modifier
+                    .padding(horizontal = 2.dp)
+                    .clip(kb.chipShape())
+                    .focusRing(focusedChip == 1, kb.chipShape())
+                    .clickable(enabled = canSwap) {
+                        if (animate) swapTurns++
+                        callbacks.onSwap()
+                    }
+                    .padding(4.dp)
+                    .size(18.dp)
+                    .graphicsLayer { rotationZ = swapTurn.value },
+            )
+        }
         Box(modifier = Modifier.weight(1f, fill = false)) {
             TranslateChip(
                 label = TranslateClient.languageName(target),

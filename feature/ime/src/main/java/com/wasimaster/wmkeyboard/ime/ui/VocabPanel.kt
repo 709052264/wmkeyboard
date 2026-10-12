@@ -309,13 +309,15 @@ private fun VocabCard(
                         )
                     }
                 }
-                IconButton(onClick = { callbacks.onSpeak(word) }, modifier = Modifier.size(34.dp)) {
-                    Icon(
-                        Icons.AutoMirrored.Outlined.VolumeUp,
-                        contentDescription = stringResource(R.string.ime_vocab_speak_desc),
-                        modifier = Modifier.size(20.dp),
-                        tint = kb.accent,
-                    )
+                IconHint(stringResource(R.string.ime_vocab_speak_desc)) {
+                    IconButton(onClick = { callbacks.onSpeak(word) }, modifier = Modifier.size(34.dp)) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.VolumeUp,
+                            contentDescription = stringResource(R.string.ime_vocab_speak_desc),
+                            modifier = Modifier.size(20.dp),
+                            tint = kb.accent,
+                        )
+                    }
                 }
                 if (card.learnt) {
                     Icon(
@@ -974,13 +976,15 @@ internal fun VocabDailyChip(
                 modifier = Modifier.widthIn(max = 200.dp),
             )
         }
-        IconButton(onClick = { feedback(); onDismiss() }, modifier = Modifier.size(28.dp)) {
-            Icon(
-                Icons.Outlined.Close,
-                contentDescription = stringResource(R.string.ime_smart_vocab_daily_dismiss_desc),
-                tint = tint.copy(alpha = 0.7f),
-                modifier = Modifier.size(14.dp),
-            )
+        IconHint(stringResource(R.string.ime_smart_vocab_daily_dismiss_desc)) {
+            IconButton(onClick = { feedback(); onDismiss() }, modifier = Modifier.size(28.dp)) {
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = stringResource(R.string.ime_smart_vocab_daily_dismiss_desc),
+                    tint = tint.copy(alpha = 0.7f),
+                    modifier = Modifier.size(14.dp),
+                )
+            }
         }
     }
 }

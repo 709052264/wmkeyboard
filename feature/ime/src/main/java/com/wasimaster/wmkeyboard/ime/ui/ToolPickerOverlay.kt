@@ -151,16 +151,18 @@ private fun CheatSheet(rows: List<CheatRow>, leader: String, onClose: () -> Unit
             // Escape closes this and so does any bound key, but every one of
             // those needs the keyboard that opened it. Unplug it, or put it
             // down, and the legend is a box on screen with no way out.
-            Icon(
-                Icons.Outlined.Close,
-                contentDescription = stringResource(R.string.ime_tool_picker_close_desc),
-                tint = kb.secondaryText,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable(onClick = onClose)
-                    .padding(4.dp)
-                    .size(16.dp),
-            )
+            IconHint(stringResource(R.string.ime_tool_picker_close_desc)) {
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = stringResource(R.string.ime_tool_picker_close_desc),
+                    tint = kb.secondaryText,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable(onClick = onClose)
+                        .padding(4.dp)
+                        .size(16.dp),
+                )
+            }
         }
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),

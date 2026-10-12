@@ -902,17 +902,23 @@ internal fun WeatherPanel(
                                 overflow = TextOverflow.Ellipsis,
                             )
                         }
-                        IconButton(
-                            onClick = onRefresh,
-                            modifier = Modifier.focusRing(focusedAction == 0, CircleShape),
+                        IconHint(
+                            stringResource(
+                                R.string.ime_weather_refresh_desc,
+                            ),
                         ) {
-                            Icon(
-                                Icons.Outlined.Refresh,
-                                contentDescription = stringResource(
-                                    R.string.ime_weather_refresh_desc,
-                                ),
-                                tint = kb.toolbarIcon,
-                            )
+                            IconButton(
+                                onClick = onRefresh,
+                                modifier = Modifier.focusRing(focusedAction == 0, CircleShape),
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Refresh,
+                                    contentDescription = stringResource(
+                                        R.string.ime_weather_refresh_desc,
+                                    ),
+                                    tint = kb.toolbarIcon,
+                                )
+                            }
                         }
                     }
                     Spacer(Modifier.height(6.dp))
@@ -1121,19 +1127,25 @@ internal fun CalendarPanel(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                IconButton(
-                    onClick = {
-                        if (shownMonth == 1) { shownMonth = 12; shownYear-- } else shownMonth--
-                    },
-                    modifier = Modifier
-                        .size(30.dp)
-                        .focusRing(focusedAction == 0, CircleShape),
+                IconHint(
+                    stringResource(
+                        R.string.ime_calendar_previous_month_desc,
+                    ),
                 ) {
-                    Icon(Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
-                        contentDescription = stringResource(
-                            R.string.ime_calendar_previous_month_desc,
-                        ),
-                        tint = kb.toolbarIcon)
+                    IconButton(
+                        onClick = {
+                            if (shownMonth == 1) { shownMonth = 12; shownYear-- } else shownMonth--
+                        },
+                        modifier = Modifier
+                            .size(30.dp)
+                            .focusRing(focusedAction == 0, CircleShape),
+                    ) {
+                        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
+                            contentDescription = stringResource(
+                                R.string.ime_calendar_previous_month_desc,
+                            ),
+                            tint = kb.toolbarIcon)
+                    }
                 }
                 Column(
                     modifier = Modifier.weight(1f),
@@ -1177,17 +1189,19 @@ internal fun CalendarPanel(
                         )
                     }
                 }
-                IconButton(
-                    onClick = {
-                        if (shownMonth == 12) { shownMonth = 1; shownYear++ } else shownMonth++
-                    },
-                    modifier = Modifier
-                        .size(30.dp)
-                        .focusRing(focusedAction == 2, CircleShape),
-                ) {
-                    Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-                        contentDescription = stringResource(R.string.ime_calendar_next_month_desc),
-                        tint = kb.toolbarIcon)
+                IconHint(stringResource(R.string.ime_calendar_next_month_desc)) {
+                    IconButton(
+                        onClick = {
+                            if (shownMonth == 12) { shownMonth = 1; shownYear++ } else shownMonth++
+                        },
+                        modifier = Modifier
+                            .size(30.dp)
+                            .focusRing(focusedAction == 2, CircleShape),
+                    ) {
+                        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                            contentDescription = stringResource(R.string.ime_calendar_next_month_desc),
+                            tint = kb.toolbarIcon)
+                    }
                 }
             }
             // Weekday initials, with the user's weekend tinted. Which days those

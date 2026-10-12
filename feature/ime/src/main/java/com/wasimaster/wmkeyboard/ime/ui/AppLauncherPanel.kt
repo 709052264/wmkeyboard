@@ -1010,43 +1010,59 @@ private fun LauncherDetail(
                 )
             }
             val pinned = app.packageName in launcher.pinned
-            Icon(
-                Icons.Outlined.PushPin,
-                contentDescription = stringResource(
+            IconHint(
+                stringResource(
                     if (pinned) R.string.ime_launcher_unpin_action
                     else R.string.ime_launcher_pin_action,
                 ),
-                modifier = Modifier
-                    .size(34.dp)
-                    .clip(CircleShape)
-                    .clickable { onPinToggle(app.packageName) }
-                    .padding(8.dp),
-                tint = if (pinned) kb.toolCircleActiveIcon else kb.toolbarIcon,
-            )
+            ) {
+                Icon(
+                    Icons.Outlined.PushPin,
+                    contentDescription = stringResource(
+                        if (pinned) R.string.ime_launcher_unpin_action
+                        else R.string.ime_launcher_pin_action,
+                    ),
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .clickable { onPinToggle(app.packageName) }
+                        .padding(8.dp),
+                    tint = if (pinned) kb.toolCircleActiveIcon else kb.toolbarIcon,
+                )
+            }
             val hidden = app.packageName in launcher.hidden
-            Icon(
-                if (hidden) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
-                contentDescription = stringResource(
+            IconHint(
+                stringResource(
                     if (hidden) R.string.ime_launcher_unhide_action
                     else R.string.ime_launcher_hide_action,
                 ),
-                modifier = Modifier
-                    .size(34.dp)
-                    .clip(CircleShape)
-                    .clickable { onHideToggle(app.packageName) }
-                    .padding(8.dp),
-                tint = kb.toolbarIcon,
-            )
-            Icon(
-                Icons.Outlined.Info,
-                contentDescription = stringResource(R.string.ime_launcher_app_info_action),
-                modifier = Modifier
-                    .size(34.dp)
-                    .clip(CircleShape)
-                    .clickable { onAppInfo(app.packageName) }
-                    .padding(8.dp),
-                tint = kb.toolbarIcon,
-            )
+            ) {
+                Icon(
+                    if (hidden) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                    contentDescription = stringResource(
+                        if (hidden) R.string.ime_launcher_unhide_action
+                        else R.string.ime_launcher_hide_action,
+                    ),
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .clickable { onHideToggle(app.packageName) }
+                        .padding(8.dp),
+                    tint = kb.toolbarIcon,
+                )
+            }
+            IconHint(stringResource(R.string.ime_launcher_app_info_action)) {
+                Icon(
+                    Icons.Outlined.Info,
+                    contentDescription = stringResource(R.string.ime_launcher_app_info_action),
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .clickable { onAppInfo(app.packageName) }
+                        .padding(8.dp),
+                    tint = kb.toolbarIcon,
+                )
+            }
         }
         if (!launcher.activityDrilldown) return@Column
         Text(

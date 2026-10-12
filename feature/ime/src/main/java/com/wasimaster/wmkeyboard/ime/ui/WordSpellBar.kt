@@ -352,19 +352,21 @@ private fun SpellBarButton(
     val spec: AnimationSpec<Float> = if (animate) tween(BUTTON_MS) else snap()
     val alpha by animateFloatAsState(if (enabled) 1f else 0.35f, spec, label = "spellButtonAlpha")
     val scale by animateFloatAsState(if (enabled) 1f else BUTTON_OFF_SCALE, spec, label = "spellButtonScale")
-    IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(34.dp)) {
-        Icon(
-            icon,
-            contentDescription = description,
-            tint = tint,
-            modifier = Modifier
-                .size(20.dp)
-                .graphicsLayer {
-                    this.alpha = alpha
-                    scaleX = scale
-                    scaleY = scale
-                },
-        )
+    IconHint(description) {
+        IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(34.dp)) {
+            Icon(
+                icon,
+                contentDescription = description,
+                tint = tint,
+                modifier = Modifier
+                    .size(20.dp)
+                    .graphicsLayer {
+                        this.alpha = alpha
+                        scaleX = scale
+                        scaleY = scale
+                    },
+            )
+        }
     }
 }
 

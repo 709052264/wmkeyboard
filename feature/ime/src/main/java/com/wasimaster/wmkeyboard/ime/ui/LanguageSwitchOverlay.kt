@@ -81,17 +81,19 @@ internal fun LanguageSwitchOverlay(
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f),
                 )
-                Icon(
-                    Icons.Outlined.Close,
-                    contentDescription =
-                        stringResource(R.string.ime_language_switch_close_desc),
-                    tint = kb.secondaryText,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable(onClick = onDismiss)
-                        .padding(4.dp)
-                        .size(16.dp),
-                )
+                IconHint(stringResource(R.string.ime_language_switch_close_desc)) {
+                    Icon(
+                        Icons.Outlined.Close,
+                        contentDescription =
+                            stringResource(R.string.ime_language_switch_close_desc),
+                        tint = kb.secondaryText,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable(onClick = onDismiss)
+                            .padding(4.dp)
+                            .size(16.dp),
+                    )
+                }
             }
             ScrollRail(
                 state = rail,

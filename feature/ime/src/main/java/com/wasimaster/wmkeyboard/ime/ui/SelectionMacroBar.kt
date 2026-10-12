@@ -410,20 +410,22 @@ private fun Modifier.staggerIn(clock: Animatable<Float, AnimationVector1D>, inde
 @Composable
 private fun MacroBackButton(onClick: () -> Unit) {
     val feedback = LocalKeyPressFeedback.current
-    Icon(
-        Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
-        contentDescription = stringResource(R.string.ime_selection_macro_back_desc),
-        modifier = Modifier
-            .padding(start = 4.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .clickable {
-                feedback()
-                onClick()
-            }
-            .padding(6.dp)
-            .size(20.dp),
-        tint = LocalKbTheme.current.suggestionText,
-    )
+    IconHint(stringResource(R.string.ime_selection_macro_back_desc)) {
+        Icon(
+            Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
+            contentDescription = stringResource(R.string.ime_selection_macro_back_desc),
+            modifier = Modifier
+                .padding(start = 4.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .clickable {
+                    feedback()
+                    onClick()
+                }
+                .padding(6.dp)
+                .size(20.dp),
+            tint = LocalKbTheme.current.suggestionText,
+        )
+    }
 }
 
 /**

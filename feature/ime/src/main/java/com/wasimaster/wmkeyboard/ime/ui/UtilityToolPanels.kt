@@ -736,18 +736,20 @@ internal fun UnitConverterPanel(
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.End,
             )
-            IconButton(
-                onClick = { val tmp = fromIndex; fromIndex = toIndex; toIndex = tmp },
-                modifier = Modifier
-                    .size(30.dp)
-                    .focusRing(focusedAction == 0, CircleShape),
-            ) {
-                Icon(
-                    Icons.Outlined.SwapHoriz,
-                    contentDescription = stringResource(R.string.ime_units_swap_desc),
-                    tint = kb.accent,
-                    modifier = Modifier.size(18.dp),
-                )
+            IconHint(stringResource(R.string.ime_units_swap_desc)) {
+                IconButton(
+                    onClick = { val tmp = fromIndex; fromIndex = toIndex; toIndex = tmp },
+                    modifier = Modifier
+                        .size(30.dp)
+                        .focusRing(focusedAction == 0, CircleShape),
+                ) {
+                    Icon(
+                        Icons.Outlined.SwapHoriz,
+                        contentDescription = stringResource(R.string.ime_units_swap_desc),
+                        tint = kb.accent,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
             }
             Text(
                 resultText.orEmpty(),
@@ -967,18 +969,20 @@ internal fun CurrencyPanel(
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.End,
                     )
-                    IconButton(
-                        onClick = { onPairChange(toCode, fromCode) },
-                        modifier = Modifier
-                            .size(30.dp)
-                            .focusRing(focusedAction == 0, CircleShape),
-                    ) {
-                        Icon(
-                            Icons.Outlined.SwapHoriz,
-                            contentDescription = stringResource(R.string.ime_currency_swap_desc),
-                            tint = kb.accent,
-                            modifier = Modifier.size(18.dp),
-                        )
+                    IconHint(stringResource(R.string.ime_currency_swap_desc)) {
+                        IconButton(
+                            onClick = { onPairChange(toCode, fromCode) },
+                            modifier = Modifier
+                                .size(30.dp)
+                                .focusRing(focusedAction == 0, CircleShape),
+                        ) {
+                            Icon(
+                                Icons.Outlined.SwapHoriz,
+                                contentDescription = stringResource(R.string.ime_currency_swap_desc),
+                                tint = kb.accent,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
                     }
                     Text(
                         if (resultText != null) "$resultText $toCode" else "",
@@ -997,20 +1001,26 @@ internal fun CurrencyPanel(
                             onInsert(resultText)
                         }
                     }
-                    IconButton(
-                        onClick = onRefresh,
-                        modifier = Modifier
-                            .size(28.dp)
-                            .focusRing(focusedAction == 2, CircleShape),
+                    IconHint(
+                        stringResource(
+                            R.string.ime_currency_refresh_desc,
+                        ),
                     ) {
-                        Icon(
-                            Icons.Outlined.Refresh,
-                            contentDescription = stringResource(
-                                R.string.ime_currency_refresh_desc,
-                            ),
-                            tint = kb.toolbarIcon,
-                            modifier = Modifier.size(16.dp),
-                        )
+                        IconButton(
+                            onClick = onRefresh,
+                            modifier = Modifier
+                                .size(28.dp)
+                                .focusRing(focusedAction == 2, CircleShape),
+                        ) {
+                            Icon(
+                                Icons.Outlined.Refresh,
+                                contentDescription = stringResource(
+                                    R.string.ime_currency_refresh_desc,
+                                ),
+                                tint = kb.toolbarIcon,
+                                modifier = Modifier.size(16.dp),
+                            )
+                        }
                     }
                 }
                 ConverterKeypad(

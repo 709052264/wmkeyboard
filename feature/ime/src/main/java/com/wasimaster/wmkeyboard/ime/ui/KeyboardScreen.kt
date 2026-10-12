@@ -3077,23 +3077,27 @@ private fun OneHandedRail(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        IconButton(onClick = onFlip) {
-            Icon(
-                if (current == OneHandedMode.LEFT) {
-                    Icons.AutoMirrored.Outlined.ArrowForward
-                } else {
-                    Icons.AutoMirrored.Outlined.ArrowBack
-                },
-                contentDescription = stringResource(R.string.ime_one_handed_flip_desc),
-                tint = kb.oneHandedPanelIcon,
-            )
+        IconHint(stringResource(R.string.ime_one_handed_flip_desc)) {
+            IconButton(onClick = onFlip) {
+                Icon(
+                    if (current == OneHandedMode.LEFT) {
+                        Icons.AutoMirrored.Outlined.ArrowForward
+                    } else {
+                        Icons.AutoMirrored.Outlined.ArrowBack
+                    },
+                    contentDescription = stringResource(R.string.ime_one_handed_flip_desc),
+                    tint = kb.oneHandedPanelIcon,
+                )
+            }
         }
-        IconButton(onClick = onExit) {
-            Icon(
-                Icons.Outlined.Fullscreen,
-                contentDescription = stringResource(R.string.ime_one_handed_exit_desc),
-                tint = kb.oneHandedPanelIcon,
-            )
+        IconHint(stringResource(R.string.ime_one_handed_exit_desc)) {
+            IconButton(onClick = onExit) {
+                Icon(
+                    Icons.Outlined.Fullscreen,
+                    contentDescription = stringResource(R.string.ime_one_handed_exit_desc),
+                    tint = kb.oneHandedPanelIcon,
+                )
+            }
         }
     }
 }
@@ -3769,18 +3773,20 @@ private fun TopBar(
                 onOpenPanel = { onPanelChange(PanelMode.EMOJI) },
                 modifier = Modifier.weight(1f),
             )
-            IconButton(
-                onClick = {
-                    feedback()
-                    emojiBarOpen = false
-                },
-                modifier = Modifier.size(36.dp),
-            ) {
-                Icon(
-                    Icons.Outlined.Close,
-                    contentDescription = stringResource(R.string.ime_emoji_row_close_desc),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            IconHint(stringResource(R.string.ime_emoji_row_close_desc)) {
+                IconButton(
+                    onClick = {
+                        feedback()
+                        emojiBarOpen = false
+                    },
+                    modifier = Modifier.size(36.dp),
+                ) {
+                    Icon(
+                        Icons.Outlined.Close,
+                        contentDescription = stringResource(R.string.ime_emoji_row_close_desc),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
             return@Row
         }
@@ -3859,41 +3865,52 @@ private fun TopBar(
             enter = fadeIn(tween(motionMs)),
             exit = ExitTransition.None,
         ) {
-            IconButton(
-                onClick = {
-                    feedback()
+            IconHint(
+                stringResource(
                     when {
-                        toolsOwnRow -> onToolsRowToggle()
-                        // Resting openers have their own flag: the override
-                        // means "away from the candidates", and at rest the
-                        // toolbar is already where the bar is.
-                        openersAtRest && !toolbarOverride -> openersShown = !openersShown
-                        else -> toolbarOverride = !toolbarOverride
-                    }
-                },
-                modifier = Modifier.size(36.dp),
-            ) {
-                // A sideways chevron says "flip this row", which is what it does
-                // on the shared strip. With a row of their own the tools open
-                // above or below this one, so the chevron points that way and
-                // turns to face back once the row is out.
-                Icon(
-                    when {
-                        !toolsOwnRow -> Icons.Outlined.ChevronRight
-                        toolsRowAbove -> Icons.Outlined.KeyboardArrowUp
-                        else -> Icons.Outlined.KeyboardArrowDown
+                        toolsOwnRow && toolsRowOpen -> R.string.ime_toolbar_hide_desc
+                        toolsOwnRow -> R.string.ime_toolbar_show_desc
+                        showToolbar -> R.string.ime_suggestions_show_desc
+                        else -> R.string.ime_toolbar_show_desc
                     },
-                    contentDescription = stringResource(
+                ),
+            ) {
+                IconButton(
+                    onClick = {
+                        feedback()
                         when {
-                            toolsOwnRow && toolsRowOpen -> R.string.ime_toolbar_hide_desc
-                            toolsOwnRow -> R.string.ime_toolbar_show_desc
-                            showToolbar -> R.string.ime_suggestions_show_desc
-                            else -> R.string.ime_toolbar_show_desc
+                            toolsOwnRow -> onToolsRowToggle()
+                            // Resting openers have their own flag: the override
+                            // means "away from the candidates", and at rest the
+                            // toolbar is already where the bar is.
+                            openersAtRest && !toolbarOverride -> openersShown = !openersShown
+                            else -> toolbarOverride = !toolbarOverride
+                        }
+                    },
+                    modifier = Modifier.size(36.dp),
+                ) {
+                    // A sideways chevron says "flip this row", which is what it does
+                    // on the shared strip. With a row of their own the tools open
+                    // above or below this one, so the chevron points that way and
+                    // turns to face back once the row is out.
+                    Icon(
+                        when {
+                            !toolsOwnRow -> Icons.Outlined.ChevronRight
+                            toolsRowAbove -> Icons.Outlined.KeyboardArrowUp
+                            else -> Icons.Outlined.KeyboardArrowDown
                         },
-                    ),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.graphicsLayer { rotationZ = chevronTurn },
-                )
+                        contentDescription = stringResource(
+                            when {
+                                toolsOwnRow && toolsRowOpen -> R.string.ime_toolbar_hide_desc
+                                toolsOwnRow -> R.string.ime_toolbar_show_desc
+                                showToolbar -> R.string.ime_suggestions_show_desc
+                                else -> R.string.ime_toolbar_show_desc
+                            },
+                        ),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.graphicsLayer { rotationZ = chevronTurn },
+                    )
+                }
             }
         }
         if (showToolbar) {
@@ -3914,22 +3931,24 @@ private fun TopBar(
                 fadeShared = emojiFadesWithTools && wantToolbar,
             )
             if (state.settings.emojiBarMode == EmojiBarMode.BUTTON) {
-                IconButton(
-                    onClick = {
-                        feedback()
-                        emojiBarOpen = true
-                        onEmojiRowShown()
-                    },
-                    modifier = Modifier
-                        .size(36.dp)
-                        // Fades in with the rest of the tools on strip→toolbar.
-                        .graphicsLayer { alpha = toolContentAlpha() },
-                ) {
-                    Icon(
-                        Icons.Outlined.EmojiEmotions,
-                        contentDescription = stringResource(R.string.ime_emoji_row_show_desc),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                IconHint(stringResource(R.string.ime_emoji_row_show_desc)) {
+                    IconButton(
+                        onClick = {
+                            feedback()
+                            emojiBarOpen = true
+                            onEmojiRowShown()
+                        },
+                        modifier = Modifier
+                            .size(36.dp)
+                            // Fades in with the rest of the tools on strip→toolbar.
+                            .graphicsLayer { alpha = toolContentAlpha() },
+                    ) {
+                        Icon(
+                            Icons.Outlined.EmojiEmotions,
+                            contentDescription = stringResource(R.string.ime_emoji_row_show_desc),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         } else {
@@ -5431,12 +5450,14 @@ private fun RowScope.CandidateStrip(
     }
     // Outside the scrolling row on purpose, so the way to see the rest of the
     // candidates cannot itself scroll off the end of the candidates.
-    IconButton(onClick = onExpand, enabled = enabled) {
-        Icon(
-            Icons.Outlined.ArrowDropDown,
-            contentDescription = stringResource(R.string.ime_candidates_more_desc),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+    IconHint(stringResource(R.string.ime_candidates_more_desc)) {
+        IconButton(onClick = onExpand, enabled = enabled) {
+            Icon(
+                Icons.Outlined.ArrowDropDown,
+                contentDescription = stringResource(R.string.ime_candidates_more_desc),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -6291,13 +6312,15 @@ private fun EmojiBarStrip(
             .height(EmojiBarHeight),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onOpenPanel, modifier = Modifier.size(36.dp)) {
-            Icon(
-                Icons.Outlined.EmojiEmotions,
-                contentDescription = stringResource(R.string.ime_emoji_panel_open_desc),
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        IconHint(stringResource(R.string.ime_emoji_panel_open_desc)) {
+            IconButton(onClick = onOpenPanel, modifier = Modifier.size(36.dp)) {
+                Icon(
+                    Icons.Outlined.EmojiEmotions,
+                    contentDescription = stringResource(R.string.ime_emoji_panel_open_desc),
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
         // One slot width drives both layouts: `count` emoji span the leftover
         // width either way, and the glyphs shrink into their slot, so a
@@ -8729,16 +8752,19 @@ internal fun ToolCircle(
         else -> Modifier
     }
     var showLabel by remember { mutableStateOf(false) }
+    // A bare icon with no label of its own still names itself on a hold: the
+    // panels' header buttons are ToolCircles too, and pass no label.
+    val holdLabel = longPressLabel ?: description.takeIf { label == null && it.isNotBlank() }
     val feedback = LocalKeyPressFeedback.current
     // Every live button is a possible panel opener: the panel a tap opens
     // grows out of the button (see [PanelMotionSlot]). Not the inert ones — the
     // cell around those owns the press, and records itself with its name.
     val click = if (!interactive) {
         Modifier
-    } else if (longPressLabel == null && onLongPress == null) {
+    } else if (holdLabel == null && onLongPress == null) {
         Modifier.panelOrigin().clickable(onClick = onClick)
     } else {
-        Modifier.panelOrigin().pointerInput(longPressLabel, onLongPress != null) {
+        Modifier.panelOrigin().pointerInput(holdLabel, onLongPress != null) {
             detectTapGestures(
                 onTap = { onClick() },
                 onLongPress = {
@@ -8848,31 +8874,8 @@ internal fun ToolCircle(
         if (hint != null) {
             HintBadge(hint, modifier = Modifier.align(Alignment.BottomCenter))
         }
-        if (showLabel && longPressLabel != null) {
-            LaunchedEffect(Unit) {
-                delay(1200)
-                showLabel = false
-            }
-            Popup(
-                popupPositionProvider = rememberAboveAnchorPopup(),
-                onDismissRequest = { showLabel = false },
-            ) {
-                GlassPopupBackdrop(kb, FrostSurface.POPUPS)
-                Surface(
-                    modifier = Modifier.frostGlass(kb, kb.popupShape(), FrostSurface.POPUPS, sampleBackdrop = false),
-                    shape = kb.popupShape(),
-                    color = kb.popupFill(FrostSurface.POPUPS),
-                    border = kb.popupSurfaceBorder(),
-                    shadowElevation = elevationFor(kb.popupShapeKind, 6.dp),
-                ) {
-                    Text(
-                        longPressLabel,
-                        color = kb.popupText,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                    )
-                }
-            }
+        if (showLabel && holdLabel != null) {
+            IconHintBubble(holdLabel) { showLabel = false }
         }
     }
 }
@@ -9635,19 +9638,21 @@ private fun ToolboxPanel(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f),
                 )
-                IconButton(
-                    onClick = {
-                        hintVisible = false
-                        onHintDismiss()
-                    },
-                    modifier = Modifier.size(28.dp),
-                ) {
-                    Icon(
-                        Icons.Outlined.Close,
-                        contentDescription = stringResource(R.string.ime_toolbox_hint_dismiss_desc),
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                IconHint(stringResource(R.string.ime_toolbox_hint_dismiss_desc)) {
+                    IconButton(
+                        onClick = {
+                            hintVisible = false
+                            onHintDismiss()
+                        },
+                        modifier = Modifier.size(28.dp),
+                    ) {
+                        Icon(
+                            Icons.Outlined.Close,
+                            contentDescription = stringResource(R.string.ime_toolbox_hint_dismiss_desc),
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
@@ -22209,25 +22214,29 @@ private fun LanguageCarouselPopup(
                     color = kb.popupText.copy(alpha = 0.15f),
                 )
                 if (onLanguageSettings != null) {
+                    IconHint(stringResource(R.string.ime_language_picker_language_settings)) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = stringResource(R.string.ime_language_picker_language_settings),
+                            tint = kb.popupText,
+                            modifier = Modifier
+                                .clickable { onLanguageSettings() }
+                                .padding(start = 12.dp, top = 8.dp, bottom = 8.dp)
+                                .size(22.dp),
+                        )
+                    }
+                }
+                IconHint(stringResource(R.string.ime_language_picker_other_keyboards)) {
                     Icon(
-                        imageVector = Icons.Outlined.Settings,
-                        contentDescription = stringResource(R.string.ime_language_picker_language_settings),
+                        imageVector = Icons.Outlined.Keyboard,
+                        contentDescription = stringResource(R.string.ime_language_picker_other_keyboards),
                         tint = kb.popupText,
                         modifier = Modifier
-                            .clickable { onLanguageSettings() }
-                            .padding(start = 12.dp, top = 8.dp, bottom = 8.dp)
+                            .clickable { onOtherKeyboards() }
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
                             .size(22.dp),
                     )
                 }
-                Icon(
-                    imageVector = Icons.Outlined.Keyboard,
-                    contentDescription = stringResource(R.string.ime_language_picker_other_keyboards),
-                    tint = kb.popupText,
-                    modifier = Modifier
-                        .clickable { onOtherKeyboards() }
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
-                        .size(22.dp),
-                )
             }
         }
     }
@@ -26197,13 +26206,15 @@ private fun RowScope.SnippetHeaderSearchBar(state: KeyboardUiState, onToggle: ()
             fontSize = 13.sp,
             modifier = Modifier.weight(1f),
         )
-        IconButton(onClick = onToggle, modifier = Modifier.size(30.dp)) {
-            Icon(
-                Icons.Outlined.Close,
-                contentDescription = stringResource(R.string.ime_snippets_search_clear_desc),
-                modifier = Modifier.size(16.dp),
-                tint = kb.toolbarIcon,
-            )
+        IconHint(stringResource(R.string.ime_snippets_search_clear_desc)) {
+            IconButton(onClick = onToggle, modifier = Modifier.size(30.dp)) {
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = stringResource(R.string.ime_snippets_search_clear_desc),
+                    modifier = Modifier.size(16.dp),
+                    tint = kb.toolbarIcon,
+                )
+            }
         }
     }
 }
@@ -26409,16 +26420,23 @@ private fun SnippetPickerList(picker: SnippetPickerUi, callbacks: SnippetPanelCa
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            IconButton(onClick = callbacks.onPickerBack, modifier = Modifier.size(32.dp)) {
-                Icon(
-                    Icons.AutoMirrored.Outlined.ArrowBack,
-                    contentDescription = stringResource(
-                        R.string.ime_snippet_offer_back_desc,
-                        picker.title,
-                    ),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp),
-                )
+            IconHint(
+                stringResource(
+                    R.string.ime_snippet_offer_back_desc,
+                    picker.title,
+                ),
+            ) {
+                IconButton(onClick = callbacks.onPickerBack, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        Icons.AutoMirrored.Outlined.ArrowBack,
+                        contentDescription = stringResource(
+                            R.string.ime_snippet_offer_back_desc,
+                            picker.title,
+                        ),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
             }
             Text(
                 text = picker.title,
@@ -26508,16 +26526,23 @@ private fun SnippetPickerRow(
             )
         }
         if (drillable) {
-            IconButton(onClick = onDrill, modifier = Modifier.size(36.dp)) {
-                Icon(
-                    Icons.Outlined.ChevronRight,
-                    contentDescription = stringResource(
-                        R.string.ime_snippet_offer_more_desc,
-                        row.label,
-                    ),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp),
-                )
+            IconHint(
+                stringResource(
+                    R.string.ime_snippet_offer_more_desc,
+                    row.label,
+                ),
+            ) {
+                IconButton(onClick = onDrill, modifier = Modifier.size(36.dp)) {
+                    Icon(
+                        Icons.Outlined.ChevronRight,
+                        contentDescription = stringResource(
+                            R.string.ime_snippet_offer_more_desc,
+                            row.label,
+                        ),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
             }
         }
     }
@@ -26570,29 +26595,33 @@ internal fun ClipboardSearchField(
         // Which clips, and which way round (#612): its own press, which opens
         // the filter row without starting a search.
         if (onFilter != null) {
-            Icon(
-                Icons.Outlined.FilterList,
-                contentDescription = stringResource(R.string.ime_clipboard_filter_desc),
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .size(18.dp)
-                    .clip(CircleShape)
-                    .clickable { onFilter() },
-                tint = if (filterOn) kb.accent else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            val filter = stringResource(R.string.ime_clipboard_filter_desc)
+            IconHint(filter, Modifier.padding(start = 8.dp)) {
+                Icon(
+                    Icons.Outlined.FilterList,
+                    contentDescription = filter,
+                    modifier = Modifier
+                        .size(18.dp)
+                        .clip(CircleShape)
+                        .clickable { onFilter() },
+                    tint = if (filterOn) kb.accent else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
         // Only up while searching (typing is the only way to fill the query,
         // and closing clears it). Clears the filter and hands the keys back.
         if (active) {
-            Icon(
-                Icons.Outlined.Close,
-                contentDescription = stringResource(R.string.ime_clipboard_search_clear_desc),
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .size(18.dp)
-                    .clickable { onToggle() },
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            val clear = stringResource(R.string.ime_clipboard_search_clear_desc)
+            IconHint(clear, Modifier.padding(start = 8.dp)) {
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = clear,
+                    modifier = Modifier
+                        .size(18.dp)
+                        .clickable { onToggle() },
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
@@ -26658,13 +26687,15 @@ internal fun ClipEntityStrip(
                 }
             }
             if (onHide != null) {
-                IconButton(onClick = onHide, modifier = Modifier.size(32.dp)) {
-                    Icon(
-                        Icons.Outlined.Close,
-                        contentDescription = stringResource(R.string.ime_clip_entity_hide_desc),
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                IconHint(stringResource(R.string.ime_clip_entity_hide_desc)) {
+                    IconButton(onClick = onHide, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            Icons.Outlined.Close,
+                            contentDescription = stringResource(R.string.ime_clip_entity_hide_desc),
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
@@ -26830,7 +26861,7 @@ internal fun ClipActionCircle(
     description: String,
     tint: Color,
     onClick: () -> Unit,
-) {
+) = IconHint(description) {
     Box(
         modifier = Modifier
             .size(30.dp)

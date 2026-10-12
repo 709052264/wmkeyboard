@@ -1022,19 +1022,21 @@ internal fun VoiceStripBar(
             }
         }
         if (voice.canUndo && !listening && !finishing) {
-            Icon(
-                Icons.AutoMirrored.Outlined.Undo,
-                contentDescription = stringResource(R.string.ime_voice_strip_undo_desc),
-                tint = kb.toolbarIcon,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
-                    .clickable {
-                        feedback()
-                        onUndo()
-                    }
-                    .padding(6.dp)
-                    .size(20.dp),
-            )
+            IconHint(stringResource(R.string.ime_voice_strip_undo_desc)) {
+                Icon(
+                    Icons.AutoMirrored.Outlined.Undo,
+                    contentDescription = stringResource(R.string.ime_voice_strip_undo_desc),
+                    tint = kb.toolbarIcon,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
+                        .clickable {
+                            feedback()
+                            onUndo()
+                        }
+                        .padding(6.dp)
+                        .size(20.dp),
+                )
+            }
         }
         if (state.voiceMicSwitchVisible()) {
             VoiceMicSwitch(
@@ -1046,31 +1048,35 @@ internal fun VoiceStripBar(
         // Collapse to the bar: same session, small pill instead of the strip;
         // persists as the voice tool's new default.
         if (!state.secureField) {
+            IconHint(stringResource(R.string.ime_voice_collapse_desc)) {
+                Icon(
+                    Icons.Outlined.KeyboardDoubleArrowDown,
+                    contentDescription = stringResource(R.string.ime_voice_collapse_desc),
+                    tint = kb.toolbarIcon,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
+                        .clickable {
+                            feedback()
+                            onCollapse()
+                        }
+                        .padding(6.dp)
+                        .size(20.dp),
+                )
+            }
+        }
+        IconHint(stringResource(R.string.ime_voice_strip_close_desc)) {
             Icon(
-                Icons.Outlined.KeyboardDoubleArrowDown,
-                contentDescription = stringResource(R.string.ime_voice_collapse_desc),
+                Icons.Outlined.Close,
+                contentDescription = stringResource(R.string.ime_voice_strip_close_desc),
                 tint = kb.toolbarIcon,
                 modifier = Modifier
+                    .padding(end = 4.dp)
                     .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
-                    .clickable {
-                        feedback()
-                        onCollapse()
-                    }
+                    .clickable { onClose() }
                     .padding(6.dp)
                     .size(20.dp),
             )
         }
-        Icon(
-            Icons.Outlined.Close,
-            contentDescription = stringResource(R.string.ime_voice_strip_close_desc),
-            tint = kb.toolbarIcon,
-            modifier = Modifier
-                .padding(end = 4.dp)
-                .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
-                .clickable { onClose() }
-                .padding(6.dp)
-                .size(20.dp),
-        )
     }
 }
 
@@ -1283,16 +1289,18 @@ internal fun RowScope.FieldVoiceStatus(voice: VoiceUi, onAction: (CaptureVoiceAc
                 .padding(horizontal = 12.dp, vertical = 6.dp),
         )
     }
-    Icon(
-        Icons.Outlined.Close,
-        contentDescription = stringResource(R.string.ime_voice_strip_close_desc),
-        tint = kb.toolbarIcon,
-        modifier = Modifier
-            .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
-            .clickable { onAction(CaptureVoiceAction.CLOSE) }
-            .padding(6.dp)
-            .size(20.dp),
-    )
+    IconHint(stringResource(R.string.ime_voice_strip_close_desc)) {
+        Icon(
+            Icons.Outlined.Close,
+            contentDescription = stringResource(R.string.ime_voice_strip_close_desc),
+            tint = kb.toolbarIcon,
+            modifier = Modifier
+                .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
+                .clickable { onAction(CaptureVoiceAction.CLOSE) }
+                .padding(6.dp)
+                .size(20.dp),
+        )
+    }
 }
 
 @Composable
