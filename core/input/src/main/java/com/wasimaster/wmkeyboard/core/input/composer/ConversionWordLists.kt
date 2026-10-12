@@ -208,7 +208,7 @@ object ConversionWordLists {
     private fun isWord(field: String): Boolean =
         field.length <= MAX_WORD_LENGTH && field.any { it.code > ASCII_END } && field.none { it.isWhitespace() }
 
-    private val CEDICT = Regex("""^(\S+)\s+(\S+)\s+\[([^\]]*)]\s*(?:\{([^}]*)})?""")
+    private val CEDICT = Regex("""^(\S+)\s+(\S+)\s+\[([^\]]*)\]\s*(?:\{([^}]*)\})?""")
     private val WHITESPACE = Regex("\\s+")
     private val HIRAGANA = 'ぁ'..'ゖ'
     private val KATAKANA = 'ァ'..'ヶ'
