@@ -165,16 +165,17 @@ object CjkDictCatalog {
      * this one is for Settings, which has no tables, deciding what to offer
      * when such a layout is switched on.
      */
-    fun forComposer(type: ComposerType): CjkDictPack? = byId(
-        when (type) {
+    fun forComposer(type: ComposerType): CjkDictPack? {
+        val id = when (type) {
             ComposerType.PINYIN, ComposerType.T9_PINYIN, ComposerType.ZHUYIN -> "pinyin"
             ComposerType.ROMAJI -> "ja_kana"
             ComposerType.STROKE -> "stroke"
             ComposerType.CANGJIE, ComposerType.CANGJIE_QUICK -> "cangjie"
             ComposerType.JYUTPING -> "jyutping"
             else -> return null
-        },
-    )
+        }
+        return byId(id)
+    }
 }
 
 /**
