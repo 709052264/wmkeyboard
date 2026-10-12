@@ -135,6 +135,9 @@ internal object OfflineImport {
         for (file in files) {
             val name = file.name
             if (IGNORED.any { it.matches(name) }) continue
+            // A language pack carries a CJK table's earlier version too, for
+            // app versions that pin it; this one would fail its checksum.
+            if (CjkDictCatalog.isLegacyFileName(name)) continue
             val wordlist = DictionaryCatalog.byFileName(name)
             val pair = if (wordlist == null) NgramPackCatalog.byFileName(name) else null
             when {

@@ -16,7 +16,7 @@ import org.junit.Test
  */
 class JianpinPackTest {
 
-    private val packFile = File(System.getProperty("user.home"), "Work/wmkeyboard-data/cjk/pinyin.tsv")
+    private val packFile = File(System.getProperty("user.home"), "Work/wmkeyboard-data/cjk/pinyin_v2.tsv")
 
     @Before
     fun load() {

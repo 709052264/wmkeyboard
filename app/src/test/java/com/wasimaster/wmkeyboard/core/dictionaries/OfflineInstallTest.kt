@@ -45,7 +45,11 @@ class OfflineInstallTest {
         assertEquals("bn_rom" to true, NgramPackCatalog.byFileName("bn_rom_trigrams.txt.gz")?.let { it.first.languageId to it.second })
         assertEquals("en" to false, NgramPackCatalog.byFileName("en_bigrams.txt")?.let { it.first.languageId to it.second })
         assertEquals("de", EmojiDictCatalog.byFileName("de_emoji.json.gz")?.languageId)
-        assertEquals("pinyin", CjkDictCatalog.byFileName("pinyin.tsv")?.id)
+        assertEquals("pinyin", CjkDictCatalog.byFileName("pinyin_v2.tsv")?.id)
+        // The pre-rescore table still ships in language packs for older app
+        // versions; this one passes over it rather than fail its checksum.
+        assertNull(CjkDictCatalog.byFileName("pinyin.tsv"))
+        assertTrue(CjkDictCatalog.isLegacyFileName("pinyin.tsv"))
         assertEquals("ben", OcrPacks.packOf("ben.traineddata"))
         assertNull(OcrPacks.packOf("ben.txt"))
         assertNull(OcrPacks.packOf("nonexistent.traineddata"))

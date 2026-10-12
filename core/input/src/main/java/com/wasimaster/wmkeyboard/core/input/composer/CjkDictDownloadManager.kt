@@ -113,6 +113,7 @@ object CjkDictDownloadManager {
                 check(part.renameTo(CjkDictStore.packFile(filesDir, pack))) {
                     "could not move the finished download into place"
                 }
+                CjkDictStore.dropLegacy(filesDir, pack)
                 set(pack.id, DownloadStatus.Downloaded)
             } catch (e: kotlinx.coroutines.CancellationException) {
                 if (part.isFile) set(pack.id, DownloadStatus.Paused(part.length(), pack.sizeBytes))
@@ -163,6 +164,7 @@ object CjkDictDownloadManager {
             val final = CjkDictStore.packFile(filesDir, pack)
             final.delete()
             check(part.renameTo(final)) { "could not move the dictionary into place" }
+            CjkDictStore.dropLegacy(filesDir, pack)
             set(pack.id, DownloadStatus.Downloaded)
         } finally {
             part.delete()

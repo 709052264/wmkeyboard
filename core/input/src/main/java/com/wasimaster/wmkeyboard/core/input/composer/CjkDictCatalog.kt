@@ -38,6 +38,16 @@ data class CjkDictPack(
      * downloaded once: the row on either screen shows the same file.
      */
     val alsoLangIds: Set<String> = emptySet(),
+    /**
+     * Names earlier versions of this pack were published and stored under.
+     *
+     * A published pack is never rebuilt in place: every installed app version
+     * checks it against the checksum it shipped with, so new bytes under the
+     * old name break the download for all of them. A rebuild goes out under a
+     * new [path] and [fileName] instead, and the old name lands here so a copy
+     * already on the device keeps converting until the new one replaces it.
+     */
+    val legacyFileNames: List<String> = emptyList(),
 ) {
     /** Where the pack is fetched from: the data repository, wherever [ServiceRepo.DATA] points. */
     val url: String get() = ServiceEndpoints.repo(ServiceRepo.DATA).rawUrl(path)
@@ -61,10 +71,13 @@ object CjkDictCatalog {
             langId = "zh",
             displayNameRes = R.string.core_input_cjk_pack_pinyin_title,
             descriptionRes = R.string.core_input_cjk_pack_pinyin_subtitle,
-            path = "cjk/pinyin.tsv",
+            // v2 is the rescore from the zh_cn corpus (#633). pinyin.tsv stays
+            // published, unchanged, for the versions that pinned it.
+            path = "cjk/pinyin_v2.tsv",
             sizeBytes = 2_586_937L,
             sha256 = "0c572b5f5699378beb0eab5ec81cf79bb277e0f100d3c944d8969b7445b1a0c9",
-            fileName = "pinyin.tsv",
+            fileName = "pinyin_v2.tsv",
+            legacyFileNames = listOf("pinyin.tsv"),
         ),
         CjkDictPack(
             id = "ja_kana",
@@ -130,9 +143,16 @@ object CjkDictCatalog {
 
     fun byId(id: String): CjkDictPack? = packs.firstOrNull { it.id == id }
 
-    /** The pack published as [name] (`pinyin.tsv`), by the file name in the data repo. */
+    /** The pack published as [name] (`pinyin_v2.tsv`), by the file name in the data repo. */
     fun byFileName(name: String): CjkDictPack? =
         packs.firstOrNull { it.available && it.path.substringAfterLast('/') == name }
+
+    /**
+     * True for a name an older version of a pack was published under. Offline
+     * language packs carry those too, for app versions that still pin them, and
+     * this one passes over them: their bytes would fail its checksum.
+     */
+    fun isLegacyFileName(name: String): Boolean = packs.any { name in it.legacyFileNames }
 
     fun forLang(langId: String): List<CjkDictPack> =
         packs.filter { it.langId == langId || langId in it.alsoLangIds }
@@ -162,9 +182,26 @@ object CjkDictStore {
         packDir(filesDir, pack).deleteRecursively()
     }
 
-    /** The downloaded pack file for [id] if present, else null (no candidates until downloaded). */
-    fun downloadedFileFor(filesDir: File, id: String): File? =
-        CjkDictCatalog.byId(id)?.let { packFile(filesDir, it).takeIf(File::isFile) }
+    /** Removes copies of [pack]'s earlier versions, once the current one is in place. */
+    fun dropLegacy(filesDir: File, pack: CjkDictPack) {
+        pack.legacyFileNames.forEach { File(packDir(filesDir, pack), it).delete() }
+    }
+
+    /**
+     * The pack file for [id] to convert with: the current version if it is on
+     * disk, else a copy of an earlier one, else null (no candidates until
+     * downloaded).
+     *
+     * The earlier copy is what keeps typing working across an update that moves
+     * a pack to a new version. [isDownloaded] still says no, so the pack's row
+     * offers the download, but nobody loses Chinese between updating the app
+     * and fetching the new table.
+     */
+    fun downloadedFileFor(filesDir: File, id: String): File? {
+        val pack = CjkDictCatalog.byId(id) ?: return null
+        packFile(filesDir, pack).takeIf(File::isFile)?.let { return it }
+        return pack.legacyFileNames.map { File(packDir(filesDir, pack), it) }.firstOrNull(File::isFile)
+    }
 
     /**
      * A monotonically-changing token summarising which packs are on disk. The
