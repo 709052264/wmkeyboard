@@ -2332,6 +2332,49 @@ data class ClipEdit(
     }
 }
 
+/** Which of [ClipCombineDraft]'s three boxes the keys type into. */
+enum class ClipCombineField { JOINER, BASE, APPEND }
+
+/**
+ * Several clips being joined into one in the clipboard panel (#612): the clips
+ * in the order they were picked, and the rule, which the keys type into the way
+ * they type into the clip editor. See `ClipCombine.combine` for what each part
+ * of the rule does.
+ */
+data class ClipCombineDraft(
+    val ids: List<Long>,
+    /** What goes between the clips. */
+    val joiner: String,
+    /** What goes in front of them all. */
+    val base: String = "",
+    /** A pattern: each clip gives only its first match, when not empty. */
+    val append: String = "",
+    val focused: ClipCombineField = ClipCombineField.JOINER,
+) {
+    /** The box [focused] names. */
+    val focusedText: String
+        get() = when (focused) {
+            ClipCombineField.JOINER -> joiner
+            ClipCombineField.BASE -> base
+            ClipCombineField.APPEND -> append
+        }
+
+    /** This, with [text] in the box [focused] names, cut to [MAX_LENGTH]. */
+    fun withFocusedText(text: String): ClipCombineDraft {
+        val cut = text.take(MAX_LENGTH)
+        return when (focused) {
+            ClipCombineField.JOINER -> copy(joiner = cut)
+            ClipCombineField.BASE -> copy(base = cut)
+            ClipCombineField.APPEND -> copy(append = cut)
+        }
+    }
+
+    companion object {
+        /** Each box's ceiling: a rule, not a document. */
+        const val MAX_LENGTH = 500
+    }
+}
+
 /**
  * The clipboard panel's Undo bar after a delete (#327): the clips it would put
  * back, oldest delete first. Deleting another clip while the bar is up joins
@@ -2992,6 +3035,8 @@ data class KeyboardUiState(
     val clipboardWithKeys: Boolean = false,
     /** The clip open in the clipboard panel's editor; see [clipEditActive]. */
     val clipEdit: ClipEdit? = null,
+    /** The clips being combined into one, and the rule (#612); see [clipCombineActive]. */
+    val clipCombine: ClipCombineDraft? = null,
     /** The clipboard panel's Undo bar, while a delete can still be taken back. */
     val clipboardUndo: ClipUndo? = null,
     /**
@@ -3001,11 +3046,13 @@ data class KeyboardUiState(
      */
     val clipboardSuggestion: ClipItem? = null,
     /**
-     * The row of recent copies on the idle strip (#414) was put away, by its
-     * ✕ or by pasting one of its clips. Back the moment something new is
-     * copied, and not before (#594).
+     * The row of recent copies is on the strip (#414, #612). Only ever put
+     * there by hand, by the button beside the last-copy chip or the Recent
+     * copies tool, and taken down by the first key typed, its ✕, or another
+     * field: a row that came and went by itself flickered every time the
+     * strip had nothing else to show.
      */
-    val clipChipsDismissed: Boolean = false,
+    val recentClipsOpen: Boolean = false,
     /**
      * One-time code lifted from a just-arrived notification, offered as a chip
      * on the suggestion strip. Null when there is none, it expired, it was
@@ -3656,6 +3703,10 @@ data class KeyboardUiState(
     val clipEditActive: Boolean
         get() = panel == PanelMode.CLIPBOARD && clipEdit != null
 
+    /** Whether keystrokes belong to the clipboard panel's Combine rule (#612); as [clipEditActive]. */
+    val clipCombineActive: Boolean
+        get() = panel == PanelMode.CLIPBOARD && clipCombine != null
+
     /**
      * Whether the clipboard panel has handed the key rows back for one of its
      * own fields — the search pill or the clip editor — and shrunk to make
@@ -3663,7 +3714,9 @@ data class KeyboardUiState(
      */
     val clipboardTakesKeys: Boolean
         get() = when (captureTarget()) {
-            CaptureTarget.CLIPBOARD_SEARCH, CaptureTarget.CLIP_EDIT -> panel == PanelMode.CLIPBOARD
+            CaptureTarget.CLIPBOARD_SEARCH, CaptureTarget.CLIP_EDIT,
+            CaptureTarget.CLIP_JOINER, CaptureTarget.CLIP_BASE, CaptureTarget.CLIP_APPEND,
+            -> panel == PanelMode.CLIPBOARD
             else -> false
         }
 
@@ -3717,6 +3770,11 @@ data class KeyboardUiState(
         converterTypingActive -> CaptureTarget.CONVERTER
         wordSpellActive -> CaptureTarget.WORD_SPELL
         clipEditActive -> CaptureTarget.CLIP_EDIT
+        clipCombineActive -> when (clipCombine?.focused) {
+            ClipCombineField.BASE -> CaptureTarget.CLIP_BASE
+            ClipCombineField.APPEND -> CaptureTarget.CLIP_APPEND
+            else -> CaptureTarget.CLIP_JOINER
+        }
         emojiSearchActive -> CaptureTarget.EMOJI_SEARCH
         mediaSearchActive && panel.hasMediaSearch -> CaptureTarget.MEDIA_SEARCH
         dictionarySearchActive -> CaptureTarget.DICTIONARY_SEARCH
@@ -3756,6 +3814,9 @@ data class KeyboardUiState(
         CaptureTarget.DICTIONARY_SEARCH -> dictionaryQuery
         CaptureTarget.CLIPBOARD_SEARCH -> clipboardQuery
         CaptureTarget.CLIP_EDIT -> clipEdit?.draft.orEmpty()
+        CaptureTarget.CLIP_JOINER -> clipCombine?.joiner.orEmpty()
+        CaptureTarget.CLIP_BASE -> clipCombine?.base.orEmpty()
+        CaptureTarget.CLIP_APPEND -> clipCombine?.append.orEmpty()
         CaptureTarget.SNIPPET_SEARCH -> snippetQuery
         CaptureTarget.NOTE_SEARCH -> notes.query
         CaptureTarget.NOTE_TITLE -> notes.editing?.titleDraft.orEmpty()

@@ -159,6 +159,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Bottom right</string>
     <string name="core_settings_clip_time_copied_label">Time copied</string>
     <string name="core_settings_clip_time_expires_label">Time left</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Both ways delete</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Right pins, left deletes</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Left pins, right deletes</string>
     <string name="core_settings_copied_code_chip_code_fields_label">Code boxes only</string>
     <string name="core_settings_copied_code_chip_any_field_label">Any field</string>
 

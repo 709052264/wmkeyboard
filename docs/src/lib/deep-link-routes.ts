@@ -157,6 +157,7 @@ export const ROUTES: RouteSpec[] = [
 	},
 	{ pattern: 'clipboard', label: 'Clipboard', group: 'Emoji, clipboard and stickers' },
 	{ pattern: 'phoneformats', label: 'Phone number formats', group: 'Emoji, clipboard and stickers' },
+	{ pattern: 'cliprules', label: 'Copy rules', group: 'Emoji, clipboard and stickers' },
 	{ pattern: 'sticker_packs', label: 'Sticker packs', group: 'Emoji, clipboard and stickers' },
 	{ pattern: 'signal_stickers', label: 'Signal sticker packs', group: 'Emoji, clipboard and stickers' },
 	{ pattern: 'whatsapp_stickers', label: 'WhatsApp stickers', group: 'Emoji, clipboard and stickers' },
@@ -349,7 +350,7 @@ export const TOOL_NAMES = [
 	'CURSOR_RIGHT', 'CURSOR_UP', 'CURSOR_DOWN', 'CURSOR_HOME', 'CURSOR_END', 'PAGE_UP', 'PAGE_DOWN',
 	'CURSOR_WORD_LEFT', 'CURSOR_WORD_RIGHT', 'SELECT_WORD', 'SELECT_LINE', 'SELECT_ALL', 'SELECT_MODE', 'COPY',
 	'CUT', 'PASTE', 'HIDE_KEYBOARD', 'PERSISTENT', 'SELECTION_ACTIONS', 'LEARN_FROM_TEXT',
-	'PHONETIC_ENGLISH', 'KDE_CONNECT', 'STATISTICS', 'FIND_REPLACE', 'NOTES',
+	'PHONETIC_ENGLISH', 'KDE_CONNECT', 'STATISTICS', 'FIND_REPLACE', 'NOTES', 'RECENT_COPIES',
 ];
 
 /**

@@ -1212,6 +1212,16 @@ private fun SettingsNavGraph(
                 com.wasimaster.wmkeyboard.app.kdeconnect.KdeDevicesScreen(repository, settings)
             }
         }
+        composable("cliprules") {
+            SettingsScreen(
+                stringResource(R.string.clipboard_copy_rules_title),
+                { navController.popBackStack() },
+                route = "cliprules",
+                subtitle = stringResource(R.string.copy_rules_info),
+            ) {
+                CopyRuleSettings(repository, settings)
+            }
+        }
         composable("phoneformats") {
             SettingsScreen(
                 stringResource(R.string.home_screen_phoneformats_title),

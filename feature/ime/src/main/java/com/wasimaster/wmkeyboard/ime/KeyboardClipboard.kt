@@ -8,10 +8,12 @@ import android.content.Context
  * Where the keyboard's own copies go (#392).
  *
  * Normally that is the system clipboard. While incognito keeps the clipboard
- * private ([isPrivate], set by the service from `incognitoPrivateClipboard`),
- * a copy stays here instead, in memory only, and the keyboard's paste keys
- * paste it back. Nothing the keyboard copies reaches the system clipboard,
- * where every other app could read it. Leaving incognito forgets the clip.
+ * private ([isPrivate], set by the service from `incognitoPrivateClipboard`,
+ * or always with the clipboard's private copies on, #612), a copy stays here
+ * instead, in memory, and the keyboard's paste keys paste it back. Nothing the
+ * keyboard copies reaches the system clipboard, where every other app could
+ * read it. Leaving the private mode forgets the clip. Outside incognito the
+ * service also files it in the clipboard history, through [onPrivateCopy].
  *
  * An object rather than service state because panels copy too (the password
  * generator, the scanner), and they only have a [Context].
@@ -30,10 +32,20 @@ object KeyboardClipboard {
     var held: String? = null
         private set
 
+    /**
+     * Told of every private copy, so the service can keep it in the history
+     * the system clipboard's listener never hears about. Null outside a
+     * running service.
+     */
+    @Volatile
+    var onPrivateCopy: ((String) -> Unit)? = null
+
     /** Copies [text]: into [held] while private, else onto the system clipboard. */
     fun copy(context: Context, text: CharSequence, label: String = "") {
         if (isPrivate) {
-            held = text.toString()
+            val kept = text.toString()
+            held = kept
+            onPrivateCopy?.invoke(kept)
             return
         }
         runCatching {

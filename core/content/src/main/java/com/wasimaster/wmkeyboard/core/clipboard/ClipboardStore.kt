@@ -84,7 +84,19 @@ data class ClipItem(
      * from [timestamp], which an edit leaves alone so the clip keeps its place.
      */
     val editedAt: Long? = null,
+    /**
+     * Where the user dragged this clip to (#612), as a sort key that takes the
+     * place of [timestamp] in [ClipboardStore.items]; null for a clip that was
+     * never moved, which sorts by when it was copied. See [orderKey].
+     */
+    val position: Double? = null,
 )
+
+/**
+ * What [ClipboardStore.items] sorts a clip by inside its pinned or unpinned
+ * group, highest first: where it was dragged to, else when it was copied.
+ */
+val ClipItem.orderKey: Double get() = position ?: timestamp.toDouble()
 
 /**
  * Everything about a clip that its search query is matched against: the text
@@ -246,6 +258,12 @@ class ClipboardStore(
         const val DEFAULT_EXPIRY_MILLIS = 24L * 60 * 60 * 1000 // 1 day
         const val DEFAULT_MAX_ITEMS = 100
         const val DEFAULT_SENSITIVE_EXPIRY_MILLIS = 5L * 60 * 1000 // 5 minutes
+
+        /**
+         * How far past the clock [move] puts a clip dragged to the top of its
+         * group: about three centuries, so no copy made later sorts above it.
+         */
+        private const val STICKY_TOP_MILLIS = 1.0e13
     }
 
     init {
@@ -457,7 +475,39 @@ class ClipboardStore(
         } else {
             compareByDescending<ClipItem> { it.pinned }
         }
-        return items.sortedWith(byPin.thenByDescending { it.timestamp })
+        return items.sortedWith(byPin.thenByDescending { it.orderKey })
+    }
+
+    /**
+     * Moves a clip to [toIndex] within its own group, pinned or unpinned, in
+     * the order [items] lists them (#612), so the panel keeps it there.
+     *
+     * The clip gets a [ClipItem.position] between its new neighbours'. Moved
+     * to the top of its group, it is put far enough above the clock that the
+     * copies made after it still land under it: a clip dragged to the top is
+     * one the user wants first, and the next copy should not take that away.
+     * Returns whether anything moved.
+     */
+    @Synchronized
+    fun move(id: Long, toIndex: Int, now: Long = System.currentTimeMillis()): Boolean {
+        val listed = items(now)
+        val item = listed.firstOrNull { it.id == id } ?: return false
+        val group = listed.filter { it.pinned == item.pinned }
+        val from = group.indexOf(item)
+        val others = group - item
+        val to = toIndex.coerceIn(0, others.size)
+        if (to == from) return false
+        val above = others.getOrNull(to - 1)
+        val below = others.getOrNull(to)
+        val key = when {
+            above == null && below == null -> return false
+            above == null -> maxOf(below!!.orderKey, now.toDouble()) + STICKY_TOP_MILLIS
+            below == null -> above.orderKey - 1.0
+            else -> (above.orderKey + below.orderKey) / 2.0
+        }
+        val index = items.indexOfFirst { it.id == id }
+        items[index] = items[index].copy(position = key)
+        return true
     }
 
     /** Most recent textual clip, for snippet {clip} expansion. */

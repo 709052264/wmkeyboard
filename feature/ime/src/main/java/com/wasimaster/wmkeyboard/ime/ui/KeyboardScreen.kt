@@ -445,6 +445,11 @@ import com.wasimaster.wmkeyboard.core.settings.ToolbarPlacement
 import com.wasimaster.wmkeyboard.core.settings.ToolHoldAction
 import com.wasimaster.wmkeyboard.core.settings.holdActionOf
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.ClipRecentChipsMax
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Reorder
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Checklist
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FilterList
 import com.wasimaster.wmkeyboard.core.settings.isOwnRow
 import com.wasimaster.wmkeyboard.core.settings.stripHidden
 import com.wasimaster.wmkeyboard.core.settings.autoBottomPaddingDp
@@ -3282,10 +3287,10 @@ private fun TopBar(
     // to what was just typed with it. The recently-copied paste chip counts
     // the same way, so an idle strip holds it instead of flipping to the tools.
     val recentClipChip = state.settings.clipboard.suggestRecent && state.clipboardSuggestion != null
-    // The row of the last few copies (#414), which holds the idle strip the
-    // same way the single chip does, until its ✕ or the next keystroke.
-    val recentClipsBar = state.settings.clipboard.suggestRecent &&
-        state.settings.clipboard.recentChips > 1 && !state.clipChipsDismissed &&
+    // The row of the last few copies (#414), which holds the strip the same
+    // way the single chip does. Only up when asked for (#612), and down again
+    // at the first key typed, its ✕, or the next field.
+    val recentClipsBar = state.recentClipsOpen &&
         state.clipboardItems.any { it.kind.isTextual && !it.sensitive && it.text.isNotBlank() }
     // Suggestions-first mode keeps the strip as the resting state (an empty
     // strip plus the chevron into the toolbar); the override then survives
@@ -4290,14 +4295,16 @@ private fun TopBar(
                 // paste chip gives way to its narrow form when both are present
                 // rather than stretching across a strip it now shares.
                 val clipChipShares = suggestionsShowing || smartReplies.isNotEmpty()
-                // The last few copies as a row of chips (#414): the idle strip
-                // holds them until something is typed, and one ✕ at the end
-                // (or a paste from it) puts the row away until the next copy. Text clips only, never a
-                // secret, the same gates as the single chip's.
-                val clipBarChips = if (recentClipsBar && smart == null && !clipChipShares) {
+                // The last few copies as a row of chips (#414), newest first
+                // whatever is pinned (#612). Asked for by hand, so it holds the
+                // strip over any words until something is typed or its ✕.
+                // Text clips only, never a secret, the same gates as the
+                // single chip's.
+                val clipBarChips = if (recentClipsBar && smart == null) {
                     state.clipboardItems
                         .filter { it.kind.isTextual && !it.sensitive && it.text.isNotBlank() }
-                        .take(state.settings.clipboard.recentChips)
+                        .sortedByDescending { it.timestamp }
+                        .take(recentClipsRowCount(state.settings.clipboard.recentChips))
                 } else {
                     emptyList()
                 }
@@ -4347,6 +4354,11 @@ private fun TopBar(
                                 else onClipboardSuggestion(recentClip)
                             },
                             onDismiss = onClipboardSuggestionDismiss,
+                            // More than the last copy, from a button on the
+                            // chip (#612), when the row is set to hold more.
+                            onMore = if (state.settings.clipboard.recentChips > 1) {
+                                { onToolTap(ToolbarTool.RECENT_COPIES) }
+                            } else null,
                             modifier = chipModifier,
                         )
                     }
@@ -5500,6 +5512,13 @@ private val CandidateChipMinWidth = 44.dp
 private val CandidateFontSize = 20.sp
 
 /**
+ * How many copies the row of recent copies holds (#612): the setting's own
+ * number once it is above one; at one, which is the chip alone and no button
+ * on it, the Recent copies tool still opens a row of [ClipRecentChipsMax].
+ */
+internal fun recentClipsRowCount(setting: Int): Int = if (setting > 1) setting else ClipRecentChipsMax
+
+/**
  * The recently-copied paste chip shown on the suggestion strip: an accent pill
  * that pastes the last copied text on tap, with a trailing dismiss button. Styled
  * to match [SmartSuggestionChip] so the two chips read as one family.
@@ -5514,6 +5533,8 @@ private fun ClipboardSuggestionChip(
     otp: ClipEntity? = null,
     /** False for a chip in the row of recent copies (#414), which shares one ✕ for the row. */
     dismissible: Boolean = true,
+    /** Opens the row of recent copies, from a button before the ✕ (#612); null for none. */
+    onMore: (() -> Unit)? = null,
 ) {
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
@@ -5642,6 +5663,24 @@ private fun ClipboardSuggestionChip(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f, fill = false),
+            )
+        }
+        if (onMore != null) Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .clip(CircleShape)
+                .clickable {
+                    feedback()
+                    onMore()
+                }
+                .padding(start = 6.dp, end = if (dismissible) 0.dp else 8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Outlined.History,
+                contentDescription = stringResource(R.string.ime_clip_chip_more_desc),
+                tint = tint.copy(alpha = 0.85f),
+                modifier = Modifier.size(16.dp),
             )
         }
         if (dismissible) Box(
@@ -7521,6 +7560,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CURSOR_HOME -> R.string.ime_tool_cursor_home
     ToolbarTool.CURSOR_END -> R.string.ime_tool_cursor_end
     ToolbarTool.HIDE_KEYBOARD -> R.string.ime_tool_hide_keyboard
+    ToolbarTool.RECENT_COPIES -> R.string.ime_tool_recent_copies
     ToolbarTool.PAGE_UP -> R.string.ime_tool_page_up
     ToolbarTool.PAGE_DOWN -> R.string.ime_tool_page_down
     ToolbarTool.SELECT_WORD -> R.string.ime_tool_select_word
@@ -7635,6 +7675,8 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
     // A one-shot action too — it hides the keyboard, nothing to keep lit.
     ToolbarTool.HIDE_KEYBOARD -> false
+    // Lit while its row is on the strip (#612).
+    ToolbarTool.RECENT_COPIES -> state.recentClipsOpen
 }
 
 /**
@@ -19283,7 +19325,9 @@ internal fun keyRowsUnderPanel(state: KeyboardUiState): Boolean = when (state.ca
     // The emoji and clipboard panels reroute their search pills;
     // the rest are only ever up with their own panel open.
     CaptureTarget.EMOJI_SEARCH -> state.panel == PanelMode.EMOJI
-    CaptureTarget.CLIPBOARD_SEARCH, CaptureTarget.CLIP_EDIT -> barClipboardSearching(state)
+    CaptureTarget.CLIPBOARD_SEARCH, CaptureTarget.CLIP_EDIT,
+    CaptureTarget.CLIP_JOINER, CaptureTarget.CLIP_BASE, CaptureTarget.CLIP_APPEND,
+    -> barClipboardSearching(state)
     CaptureTarget.DICTIONARY_SEARCH -> state.panel == PanelMode.DICTIONARY
     CaptureTarget.MEDIA_SEARCH -> state.panel.hasMediaSearch
     CaptureTarget.SNIPPET_SEARCH -> state.panel == PanelMode.SNIPPETS
@@ -26228,6 +26272,9 @@ internal fun ClipboardSearchField(
     state: KeyboardUiState,
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
+    /** The filter button inside the pill's end (#612), lit while a filter is open or set; none when null. */
+    onFilter: (() -> Unit)? = null,
+    filterOn: Boolean = false,
 ) {
     val active = state.clipboardSearchActive
     val kb = LocalKbTheme.current
@@ -26257,6 +26304,20 @@ internal fun ClipboardSearchField(
             fontSize = 14.sp,
             modifier = Modifier.weight(1f),
         )
+        // Which clips, and which way round (#612): its own press, which opens
+        // the filter row without starting a search.
+        if (onFilter != null) {
+            Icon(
+                Icons.Outlined.FilterList,
+                contentDescription = stringResource(R.string.ime_clipboard_filter_desc),
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .size(18.dp)
+                    .clip(CircleShape)
+                    .clickable { onFilter() },
+                tint = if (filterOn) kb.accent else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         // Only up while searching (typing is the only way to fill the query,
         // and closing clears it). Clears the filter and hands the keys back.
         if (active) {
@@ -26288,11 +26349,12 @@ internal fun ClipEntityStrip(
     entities: List<ClipEntity>,
     focused: Int?,
     onPaste: (ClipEntity) -> Unit,
+    /** Folds the strip away (#612), from the ✕ at the end of its chips; none when null. */
+    onHide: (() -> Unit)? = null,
 ) = BoxWithConstraints {
     // The cell is a share of the key height, and small keys leave it shorter
-    // than the caption and a two-line chip together: the chip's text was then
-    // cut off at the cell's bottom edge (#414). The caption is the part that
-    // can go — the chips' dashed outline already says what they are.
+    // than the caption and a chip together. The caption is the part that can
+    // go — the chips' dashed outline already says what they are.
     val compact = maxHeight < EntityStripFullHeight
     // A light top inset: the panel layout's cell already keeps a key gap
     // above the strip, and every dp here comes out of the chips' row.
@@ -26314,26 +26376,47 @@ internal fun ClipEntityStrip(
             Text(
                 stringResource(R.string.ime_clip_entity_hint),
                 fontSize = 10.sp,
+                // Set, not inherited: Material's 24 sp body line would make
+                // this one small line as tall as two (#612).
+                lineHeight = 12.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        LazyRow(
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            itemsIndexed(entities, key = { _, entity -> entity.key }) { index, entity ->
-                ClipEntityChip(entity, focused = index == focused, onPaste = onPaste)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            LazyRow(
+                modifier = Modifier.weight(1f),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                itemsIndexed(entities, key = { _, entity -> entity.key }) { index, entity ->
+                    ClipEntityChip(entity, focused = index == focused, onPaste = onPaste)
+                }
+            }
+            if (onHide != null) {
+                IconButton(onClick = onHide, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        Icons.Outlined.Close,
+                        contentDescription = stringResource(R.string.ime_clip_entity_hide_desc),
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }
 }
 
 /** The least a cell may give [ClipEntityStrip] before its caption is dropped to fit the chips. */
-private val EntityStripFullHeight = 64.dp
+private val EntityStripFullHeight = 52.dp
 
-/** One dashed fragment chip: kind tag above the text that will be pasted. */
+/**
+ * One dashed fragment chip: the kind's icon and tag, then the text that will
+ * be pasted, on one line (#612). It was two lines, the tag over the text, each
+ * on Material's 24 sp body line, which no strip cell was tall enough for: the
+ * text was cut off at the bottom, the reported "almost invisible" chip.
+ */
 @Composable
 private fun ClipEntityChip(
     entity: ClipEntity,
@@ -26370,24 +26453,25 @@ private fun ClipEntityChip(
             tint = accent,
         )
         Spacer(Modifier.width(6.dp))
-        Column {
-            Text(
-                stringResource(entity.kind.tagRes),
-                fontSize = 8.sp,
-                letterSpacing = 0.8.sp,
-                fontWeight = FontWeight.Medium,
-                color = accent.copy(alpha = 0.85f),
-                maxLines = 1,
-            )
-            Text(
-                entity.value,
-                fontSize = 13.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.widthIn(max = 170.dp),
-            )
-        }
+        Text(
+            stringResource(entity.kind.tagRes),
+            fontSize = 8.sp,
+            lineHeight = 10.sp,
+            letterSpacing = 0.8.sp,
+            fontWeight = FontWeight.Medium,
+            color = accent.copy(alpha = 0.85f),
+            maxLines = 1,
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            entity.value,
+            fontSize = 13.sp,
+            lineHeight = 16.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.widthIn(max = 170.dp),
+        )
     }
 }
 
@@ -26526,6 +26610,12 @@ internal fun ClipInfoPopup(
     onViewText: (() -> Unit)? = null,
     /** Pins or unpins the clip; null while the clip's own pin button does that (#414). */
     onTogglePin: (() -> Unit)? = null,
+    /** Starts picking clips, with this one (#612). */
+    onPick: (() -> Unit)? = null,
+    /** The Reorder view (#612). */
+    onReorder: (() -> Unit)? = null,
+    /** Pastes the clip, as a tap on it does; at the end of the action row (#612). */
+    onPaste: (() -> Unit)? = null,
     onDismiss: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
@@ -26576,8 +26666,8 @@ internal fun ClipInfoPopup(
         ) {
             Column(
                 modifier = Modifier
-                    .widthIn(min = 160.dp, max = 240.dp)
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                    .widthIn(min = 220.dp, max = 320.dp)
+                    .padding(start = 12.dp, end = 4.dp, top = 10.dp, bottom = 2.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 ClipInfoRow(
@@ -26595,108 +26685,76 @@ internal fun ClipInfoPopup(
                 sizeLabel?.let {
                     ClipInfoRow(stringResource(R.string.ime_clip_info_size), it, kb.popupText)
                 }
-                if (onViewText != null) {
-                    TextButton(
-                        onClick = onViewText,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Icon(Icons.AutoMirrored.Outlined.Article, contentDescription = null)
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.ime_clip_view_text))
-                    }
-                }
-                if (onEdit != null) {
-                    TextButton(
-                        onClick = onEdit,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Icon(Icons.Outlined.Edit, contentDescription = null)
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.ime_clip_edit))
-                    }
-                }
-                if (onOpenLink != null) {
-                    TextButton(
-                        onClick = onOpenLink,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null)
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.ime_clip_open_link))
-                    }
-                }
-                if (onView != null) {
-                    TextButton(
-                        onClick = onView,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Icon(Icons.Outlined.Visibility, contentDescription = null)
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.ime_clip_view_image))
-                    }
-                }
-                if (onExtractText != null) {
-                    TextButton(
-                        onClick = onExtractText,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Icon(Icons.Outlined.TextFields, contentDescription = null)
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.ime_clip_extract_text))
-                    }
-                }
-                if (onExtractParts != null) {
-                    TextButton(
-                        onClick = onExtractParts,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Icon(Icons.Outlined.ContentCut, contentDescription = null)
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.ime_clip_extract_parts))
-                    }
-                }
-                if (onSendSticker != null) {
-                    TextButton(
-                        onClick = onSendSticker,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Icon(Icons.Outlined.EmojiEmotions, contentDescription = null)
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.ime_clip_send_as_sticker))
-                    }
-                }
-                if (onTogglePin != null) {
-                    TextButton(
-                        onClick = onTogglePin,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Icon(
-                            if (item.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                            contentDescription = null,
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(if (item.pinned) R.string.ime_clip_unpin else R.string.ime_clip_pin))
-                    }
-                }
-                if (onDelete != null) {
-                    TextButton(
-                        onClick = onDelete,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error,
-                        ),
-                    ) {
-                        Icon(Icons.Outlined.Delete, contentDescription = null)
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(CommonR.string.common_delete))
-                    }
-                }
                 if (item.sensitive) {
                     ClipInfoRow(
                         stringResource(R.string.ime_clip_info_private),
                         stringResource(R.string.ime_clip_info_private_detail),
                         kb.popupText,
                     )
+                }
+                // The same row of icons the full text has (#612), at the end
+                // under the thumb, rather than a column of worded buttons as
+                // tall again as the details over it.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    val tint = kb.popupText
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                        Row(
+                            modifier = Modifier.horizontalScroll(rememberScrollState()),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            onViewText?.let {
+                                ClipTextActionIcon(Icons.AutoMirrored.Outlined.Article, stringResource(R.string.ime_clip_view_text), tint, it)
+                            }
+                            onPick?.let {
+                                ClipTextActionIcon(Icons.Outlined.Checklist, stringResource(R.string.ime_clip_select), tint, it)
+                            }
+                            onReorder?.let {
+                                ClipTextActionIcon(Icons.Outlined.Reorder, stringResource(R.string.ime_clip_reorder), tint, it)
+                            }
+                            onEdit?.let {
+                                ClipTextActionIcon(Icons.Outlined.Edit, stringResource(R.string.ime_clip_edit), tint, it)
+                            }
+                            onOpenLink?.let {
+                                ClipTextActionIcon(Icons.AutoMirrored.Outlined.OpenInNew, stringResource(R.string.ime_clip_open_link), tint, it)
+                            }
+                            onView?.let {
+                                ClipTextActionIcon(Icons.Outlined.Visibility, stringResource(R.string.ime_clip_view_image), tint, it)
+                            }
+                            onExtractText?.let {
+                                ClipTextActionIcon(Icons.Outlined.TextFields, stringResource(R.string.ime_clip_extract_text), tint, it)
+                            }
+                            onExtractParts?.let {
+                                ClipTextActionIcon(Icons.Outlined.ContentCut, stringResource(R.string.ime_clip_extract_parts), tint, it)
+                            }
+                            onSendSticker?.let {
+                                ClipTextActionIcon(Icons.Outlined.EmojiEmotions, stringResource(R.string.ime_clip_send_as_sticker), tint, it)
+                            }
+                            onTogglePin?.let {
+                                ClipTextActionIcon(
+                                    if (item.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                                    stringResource(if (item.pinned) R.string.ime_clip_unpin else R.string.ime_clip_pin),
+                                    tint,
+                                    it,
+                                )
+                            }
+                            onDelete?.let {
+                                ClipTextActionIcon(
+                                    Icons.Outlined.Delete,
+                                    stringResource(CommonR.string.common_delete),
+                                    MaterialTheme.colorScheme.error,
+                                    it,
+                                )
+                            }
+                        }
+                    }
+                    if (onPaste != null) {
+                        TextButton(onClick = onPaste) {
+                            Text(stringResource(CommonR.string.common_paste), fontWeight = FontWeight.SemiBold)
+                        }
+                    }
                 }
             }
         }
@@ -26711,7 +26769,7 @@ private fun clipExactTime(millis: Long): String =
 /** One "Label: value" line in the clipboard info popup. */
 @Composable
 private fun ClipInfoRow(label: String, value: String, textColor: Color) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(end = 8.dp)) {
         Text(
             label,
             fontSize = 11.sp,
@@ -26741,11 +26799,13 @@ internal fun SwipeToDeleteCard(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     /**
-     * What a swipe to the right does instead of deleting (#414): pinning, on
-     * the clipboard. The card springs back afterwards rather than leaving,
-     * since it is still there. Null keeps both directions deleting.
+     * What a swipe one way does instead of deleting (#414): pinning, on the
+     * clipboard. The card springs back afterwards rather than leaving, since
+     * it is still there. Null keeps both directions deleting.
      */
-    onSwipeRight: (() -> Unit)? = null,
+    onSwipePin: (() -> Unit)? = null,
+    /** [onSwipePin] is the swipe to the left, not the right (#612). */
+    pinLeft: Boolean = false,
     /**
      * [onDelete] only asks, so the card springs back to its slot after it
      * rather than staying gone (#636); the list drops it if the answer is yes.
@@ -26760,8 +26820,13 @@ internal fun SwipeToDeleteCard(
     val offset = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
     var width by remember { mutableIntStateOf(0) }
-    // Read at release, not captured by the gesture: a pin can change it meanwhile.
+    // Read at release, not captured by the gesture: a pin can change it
+    // meanwhile, and the pin itself is a fresh lambda over the clip as it is
+    // now — the one the gesture started with would pin a pinned clip again.
     val keep by rememberUpdatedState(keepOnDelete)
+    val pin by rememberUpdatedState(onSwipePin)
+    val left by rememberUpdatedState(pinLeft)
+    val delete by rememberUpdatedState(onDelete)
     // A dismissed card stays off-screen and invisible until the grid drops it.
     // The delete only reaches the list a frame or two later, and the grid then
     // plays its fade-out on the card still in place — so putting the card back
@@ -26776,7 +26841,7 @@ internal fun SwipeToDeleteCard(
                     dismissed -> 0f
                     width == 0 -> 1f
                     // A swipe that pins keeps the card, so it does not fade.
-                    onSwipeRight != null && offset.value > 0 -> 1f
+                    pin != null && (if (left) offset.value < 0 else offset.value > 0) -> 1f
                     // Gone by the time it has travelled its own width, so the
                     // card never ghosts over its neighbour on the way out.
                     else -> (1f - abs(offset.value) / width).coerceIn(0f, 1f)
@@ -26793,10 +26858,12 @@ internal fun SwipeToDeleteCard(
                     onDragEnd = {
                         if (!dismissed) scope.launch {
                             val threshold = width * 0.4f
-                            if (width > 0 && offset.value > threshold && onSwipeRight != null) {
+                            val pinWay = if (left) -offset.value else offset.value
+                            val pinNow = pin
+                            if (width > 0 && pinWay > threshold && pinNow != null) {
                                 // Pinned, not gone: the card comes back to its
                                 // slot, where the grid re-sorts it in a moment.
-                                onSwipeRight()
+                                pinNow()
                                 offset.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow))
                             } else if (width > 0 && abs(offset.value) > threshold) {
                                 // Finish the slide off-screen, then delete, and
@@ -26806,11 +26873,11 @@ internal fun SwipeToDeleteCard(
                                     tween(120),
                                 )
                                 if (keep) {
-                                    onDelete()
+                                    delete()
                                     offset.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow))
                                 } else {
                                     dismissed = true
-                                    onDelete()
+                                    delete()
                                 }
                             } else {
                                 offset.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow))
@@ -27015,7 +27082,7 @@ private fun formatDuration(millis: Long): String? {
  * was the one thing the card found room for (#414).
  */
 @Composable
-internal fun ClipLinkBody(item: ClipItem, maxLines: Int = 2) {
+internal fun ClipLinkBody(item: ClipItem, maxLines: Int = 2, lineHeight: TextUnit = TextUnit.Unspecified) {
     val preview = item.linkPreview?.takeIf { !it.failed && !it.isEmpty }
     val linkColor = MaterialTheme.colorScheme.primary
     Column {
@@ -27033,6 +27100,7 @@ internal fun ClipLinkBody(item: ClipItem, maxLines: Int = 2) {
                 maxLines = if (preview != null) 2 else maxLines,
                 overflow = TextOverflow.Ellipsis,
                 fontSize = 13.sp,
+                lineHeight = lineHeight,
                 fontWeight = if (preview != null) FontWeight.Medium else FontWeight.Normal,
                 color = if (preview != null) MaterialTheme.colorScheme.onSurface else linkColor,
                 textDecoration = if (preview != null) null else TextDecoration.Underline,

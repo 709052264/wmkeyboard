@@ -100,6 +100,7 @@ internal object SettingsRoutes {
         "launchercombos",
         "kdeconnect/devices",
         "phoneformats",
+        "cliprules",
         "hwshortcuts",
         "appearance",
         "appearance/toolbar",

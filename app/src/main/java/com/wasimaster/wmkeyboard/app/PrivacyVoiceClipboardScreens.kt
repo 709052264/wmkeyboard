@@ -30,6 +30,8 @@ import android.os.Build
 import com.wasimaster.wmkeyboard.core.input.composer.CjkLearning
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.settings.ClipRecentChipsMax
+import com.wasimaster.wmkeyboard.core.settings.ClipLineSpacingRange
+import com.wasimaster.wmkeyboard.core.settings.ClipSwipePin
 import com.wasimaster.wmkeyboard.core.settings.HoldToTalkRange
 import com.wasimaster.wmkeyboard.core.settings.VoiceSilenceStopRange
 import com.wasimaster.wmkeyboard.core.settings.ClipboardView
@@ -899,6 +901,20 @@ internal fun ClipboardSettings(
         // The number chips are the ones that go wrong, because a phone
         // number is the one fragment with no shape of its own. This row
         // is where the user gives it one.
+        // Before the history keeps a copy, the user's own patterns tidy it (#612).
+        item {
+            val count = settings.watch { it.clipboard.copyRules.size }
+            NavRow(
+                R.string.clipboard_copy_rules_title,
+                subtitle = if (count == 0) {
+                    stringResource(R.string.clipboard_copy_rules_subtitle)
+                } else {
+                    pluralStringResource(R.plurals.clipboard_copy_rules_count_subtitle, count, count)
+                },
+                route = "cliprules",
+                onClick = { onNavigate("cliprules") },
+            )
+        }
         item(visible = detectEntities) {
             val count = settings.watch { it.clipboard.phoneFormats.size }
             NavRow(
@@ -1014,6 +1030,18 @@ internal fun ClipboardSettings(
             ) { scope.launch { repository.setClipboardPreviewLines(it.roundToInt()) } }
         }
         item {
+            val percent = stringResource(R.string.clipboard_line_spacing_value)
+            SliderSetting(
+                R.string.clipboard_line_spacing_title,
+                subtitle = stringResource(R.string.clipboard_line_spacing_subtitle),
+                value = settings.watch { it.clipboard.lineSpacing }.toFloat(),
+                range = ClipLineSpacingRange.first.toFloat()..ClipLineSpacingRange.last.toFloat(),
+                display = { percent.format((it / 5f).roundToInt() * 5) },
+                info = stringResource(R.string.clipboard_line_spacing_info),
+                default = SettingsDefaults.clipboard.lineSpacing.toFloat(),
+            ) { scope.launch { repository.setClipboardLineSpacing((it / 5f).roundToInt() * 5) } }
+        }
+        item {
             ChoiceSetting(
                 title = R.string.clipboard_time_title,
                 subtitle = stringResource(R.string.clipboard_time_subtitle),
@@ -1095,13 +1123,14 @@ internal fun ClipboardSettings(
             ) { scope.launch { repository.setClipboardSwipeToDelete(it) } }
         }
         item(visible = swipeToDelete) {
-            ToggleSetting(
-                R.string.clipboard_swipe_right_pins_title,
-                stringResource(R.string.clipboard_swipe_right_pins_subtitle),
-                settings.watch { it.clipboard.swipeRightPins },
-                info = stringResource(R.string.clipboard_swipe_right_pins_info),
-                default = SettingsDefaults.clipboard.swipeRightPins,
-            ) { scope.launch { repository.setClipboardSwipeRightPins(it) } }
+            ChoiceSetting(
+                title = R.string.clipboard_swipe_pin_title,
+                subtitle = stringResource(R.string.clipboard_swipe_pin_subtitle),
+                info = stringResource(R.string.clipboard_swipe_pin_info),
+                options = ClipSwipePin.entries.map { it to stringResource(it.labelRes) },
+                selected = settings.watch { it.clipboard.swipePin },
+                default = SettingsDefaults.clipboard.swipePin,
+            ) { scope.launch { repository.setClipboardSwipePin(it) } }
         }
         item {
             ToggleSetting(
@@ -1166,6 +1195,15 @@ internal fun ClipboardSettings(
         }
     }
     SettingsGroup(stringResource(R.string.clipboard_sensitive_group)) {
+        item {
+            ToggleSetting(
+                R.string.clipboard_private_copies_title,
+                stringResource(R.string.clipboard_private_copies_subtitle),
+                settings.watch { it.clipboard.privateCopies },
+                info = stringResource(R.string.clipboard_private_copies_info),
+                default = SettingsDefaults.clipboard.privateCopies,
+            ) { scope.launch { repository.setClipboardPrivateCopies(it) } }
+        }
         item {
             ToggleSetting(
                 R.string.clipboard_password_paste_title,

@@ -31,6 +31,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Label
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StickyNote2
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Article
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Rule
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Chat
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.TextSnippet
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AdsClick
@@ -558,6 +559,7 @@ internal object SettingsRouteIcons {
         "blacklist" to { Icons.Outlined.VisibilityOff },
         "learnedcorrections" to { Icons.Outlined.Spellcheck },
         "phoneformats" to { Icons.Outlined.Phone },
+        "cliprules" to { Icons.AutoMirrored.Outlined.Rule },
         "hwshortcuts" to { SymbolIcons.KeyboardExternalInput },
         "musicapps" to { Icons.Outlined.MusicNote },
         "launchercombos" to { Icons.Outlined.VerticalSplit },

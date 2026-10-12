@@ -321,6 +321,17 @@ private fun EmojiPanelPage(
 internal fun ClipboardPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCallbacks) {
     val session = rememberClipboardPanelSession(state)
     val onClose = { callbacks.onPanelChange(PanelMode.CLIPBOARD) }
+    // Combine (#612) takes the panel the way the editor does, keys and all.
+    val combine = state.clipCombine
+    if (combine != null && state.clipCombineActive) {
+        ClipCombineDialog(
+            state, combine, callbacks.clipboard.actions,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(clipEditPanelHeight(state)),
+        )
+        return
+    }
     val edit = state.clipEdit
     if (edit != null && state.clipEditActive) {
         // The keys come back underneath, as for the search, but the editor
@@ -401,7 +412,7 @@ private fun ClipboardHistoryPage(
     // The strips only exist when they have something to show, as before: a
     // row holding nothing but an empty strip takes no height.
     val collapsed = buildSet {
-        if (!session.showSearch && !session.showClear) add(PanelFieldKind.CLIPBOARD_SEARCH)
+        if (clipSearchCellParts(session).isEmpty()) add(PanelFieldKind.CLIPBOARD_SEARCH)
         // Nor does the fragment strip while stacked (#615): it took a third of
         // the short panel, and with the tabs under it the history was down to
         // a single line. The fragments are a tap on the keys toggle away.
@@ -462,10 +473,12 @@ private fun ClipboardHistoryPage(
                                 // The pill takes its share of the width; the switch
                                 // is a fixed square beside it, or alone at the end,
                                 // and so is the clear button with the pill hidden.
-                                val cell = if (kind == PanelFieldKind.CLIPBOARD_SEARCH && session.showSearch) {
-                                    Modifier.weight(key.width)
-                                } else {
-                                    Modifier.width(HeaderToggleWidth)
+                                val cell = when {
+                                    kind != PanelFieldKind.CLIPBOARD_SEARCH -> Modifier.width(HeaderToggleWidth)
+                                    session.showSearch -> Modifier.weight(key.width)
+                                    // The bin and the fragments button with no
+                                    // pill: a square for each (#612).
+                                    else -> Modifier.width(HeaderToggleWidth * clipSearchCellParts(session).size)
                                 }
                                 Box(
                                     modifier = cell

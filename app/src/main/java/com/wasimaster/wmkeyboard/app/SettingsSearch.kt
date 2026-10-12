@@ -1063,7 +1063,9 @@ private fun SearchStrings.clipboardRows(): List<SettingsSearchEntry> {
         row(R.string.clipboard_type_out_title, R.string.clipboard_type_out_subtitle),
         row(R.string.clipboard_type_tags_title, R.string.clipboard_type_tags_subtitle),
         row(R.string.clipboard_keep_rich_text_title, R.string.clipboard_keep_rich_text_subtitle),
-        row(R.string.clipboard_swipe_right_pins_title, R.string.clipboard_swipe_right_pins_subtitle),
+        row(R.string.clipboard_swipe_pin_title, R.string.clipboard_swipe_pin_subtitle),
+        row(R.string.clipboard_line_spacing_title, R.string.clipboard_line_spacing_subtitle),
+        row(R.string.clipboard_private_copies_title, R.string.clipboard_private_copies_subtitle),
         row(R.string.clipboard_swipe_delete_title, R.string.clipboard_swipe_delete_subtitle),
         row(R.string.clipboard_undo_delete_title, R.string.clipboard_undo_delete_subtitle),
         row(R.string.clipboard_confirm_pinned_delete_title, R.string.clipboard_confirm_pinned_delete_subtitle),
@@ -2256,6 +2258,14 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.home_clipboard_title,
             "phoneformats",
             R.string.search_kw_phoneformats,
+        ),
+        // The same: one row on the Clipboard screen that only opens this (#612).
+        under(
+            R.string.clipboard_copy_rules_title,
+            R.string.clipboard_copy_rules_subtitle,
+            R.string.home_clipboard_title,
+            "cliprules",
+            R.string.search_kw_cliprules,
         ),
         under(
             R.string.typing_hw_shortcuts_list_title,

@@ -87,10 +87,10 @@
     <string name="clipboard_type_tags_info">A clip copied with bold, links or other formatting shows a small Rich text label under its text. Turn this off to hide the label. A card with nothing else on that row then loses the row, so more clips fit. This setting is on by default.</string>
     <string name="clipboard_keep_rich_text_title">Keep formatting</string>
     <string name="clipboard_keep_rich_text_subtitle">Store copied text with its bold, links and other formatting</string>
-    <string name="clipboard_keep_rich_text_info">With this setting on, a copy that came with formatting pastes it back into apps that take formatting. Turn it off and every copy is kept as plain text from then on, so it pastes as plain text everywhere and never shows the Rich text label. Clips already in the history keep what they have. This setting is on by default.</string>
-    <string name="clipboard_swipe_right_pins_title">Swipe right to pin</string>
-    <string name="clipboard_swipe_right_pins_subtitle">A swipe to the right pins the clip, a swipe to the left deletes it</string>
-    <string name="clipboard_swipe_right_pins_info">With this setting off, a swipe in either direction deletes the clip. Turn it on and the two directions do two things: left deletes, right pins or unpins, and the clip slides back into place. This setting is off by default.</string>
+    <string name="clipboard_keep_rich_text_info">With this setting on, a copy that came with formatting pastes it back into apps that take formatting. Turn it off and every copy is kept as plain text from then on, so it pastes as plain text everywhere and never shows the Rich text label. The panel then shows every clip as plain text too: a link is not coloured, underlined or given an icon. Clips already in the history keep what they have. This setting is on by default.</string>
+    <string name="clipboard_swipe_pin_title">Swipe to pin</string>
+    <string name="clipboard_swipe_pin_subtitle">Which way a swipe pins a clip instead of deleting it</string>
+    <string name="clipboard_swipe_pin_info">By default a swipe in either direction deletes the clip. Pick a direction and the two directions do two things: that way pins or unpins the clip, which slides back into place, and the other way deletes it. Right pins, left deletes, or the other way round.</string>
     <string name="clipboard_panel_height_title">Panel height</string>
     <string name="clipboard_panel_height_subtitle">How much taller than the keyboard the clipboard panel opens</string>
     <string name="clipboard_panel_height_info">You can also drag the bar on top of the clipboard panel up or down. A taller panel shows more clips, so there is less to scroll. The panel never covers more than most of the screen, so on a short screen, or with the phone sideways, it can stay shorter than this. The default is the keyboard\'s own height.</string>
@@ -161,7 +161,46 @@
     <string name="clipboard_chip_life_info">The chip appears on the suggestion strip after you copy something, so that you can paste it without opening the clipboard. Typing does not dismiss it, because it is meant to survive writing the message you will paste it into. Set a shorter time if you would rather what you copied stopped being on screen, which matters for a password or an address. You can always dismiss the chip yourself.</string>
     <string name="clipboard_chip_until_dismissed">Until dismissed</string>
     <string name="clipboard_recent_chips_title">Recent copies on the strip</string>
-    <string name="clipboard_recent_chips_subtitle">How many of your latest copies the empty suggestion strip offers</string>
-    <string name="clipboard_recent_chips_info">At 1, the strip shows one chip for the last copy, for as long as the setting above says. Set more, and whenever the strip has nothing to suggest it shows that many of your latest text clips in a row you can scroll, each one a press from pasted. The row goes away while you type, and its cross puts it away for the field you are in; it is back in the next field, and the moment you copy something new. Hidden clips never appear. The default is 1.</string>
+    <string name="clipboard_recent_chips_subtitle">How many of your latest copies the row of recent copies shows</string>
+    <string name="clipboard_recent_chips_info">The strip shows one chip for the last copy, for as long as the setting above says. Set more than 1, and the chip gets a clock button that opens a row of that many of your latest text clips, newest first, which you can scroll, each one a press from pasted. The row stays until you type, press its cross, or move to another field. It never opens by itself. The Recent copies tool opens the same row, from the toolbar or from a press and hold you give it, such as the Copy tool\'s. Hidden clips never appear. The default is 1.</string>
+
+    <!-- How tightly a clip's lines are set in the panel (#612). -->
+    <string name="clipboard_line_spacing_title">Line spacing</string>
+    <string name="clipboard_line_spacing_subtitle">The space between the lines of a clip\'s text</string>
+    <!-- Slider readout for the line spacing, in percent. -->
+    <string name="clipboard_line_spacing_value">%1$d%%</string>
+    <string name="clipboard_line_spacing_info">At 100% the lines of a clip sit as close as the font allows. Raise it to spread them out. The default is 130%.</string>
+
+    <!-- The keyboard's own copies kept off the system clipboard (#612). -->
+    <string name="clipboard_private_copies_title">Keep the keyboard\'s copies private</string>
+    <string name="clipboard_private_copies_subtitle">Copy and cut from the keyboard stay in the keyboard, and other apps cannot read them</string>
+    <string name="clipboard_private_copies_info">Any app can read the system clipboard, so text you copy there can be read by apps you did not mean to give it to. With this setting on, text you copy or cut with the keyboard\'s own keys, tools and panels never goes to the system clipboard. It goes into the clipboard history instead, and the keyboard\'s paste keys and the clipboard panel paste it. The copy and paste menu of other apps does not see it. Incognito has its own switch for this, which holds only while incognito is on. This setting is off by default.</string>
+
+    <!-- Rules that tidy every copy before the history keeps it (#612). -->
+    <string name="clipboard_copy_rules_title">Copy rules</string>
+    <string name="clipboard_copy_rules_subtitle">Tidy every copy with patterns before it is kept</string>
+    <plurals name="clipboard_copy_rules_count_subtitle">
+        <item quantity="one">%1$d rule</item>
+        <item quantity="other">%1$d rules</item>
+    </plurals>
+    <string name="copy_rules_info">Each rule finds a pattern in what you copy and replaces it. Leave the replacement empty to remove the match.</string>
+    <string name="copy_rules_add_action">Add a rule</string>
+    <string name="copy_rules_empty">There are no rules. Copies are kept as they are.</string>
+    <string name="copy_rules_add_title">Add a rule</string>
+    <string name="copy_rules_edit_title">Edit the rule</string>
+    <string name="copy_rules_add_body">The pattern is a regular expression, and case does not matter. https?://(www\\.)? takes the front off every web address. The replacement can name a group of the pattern, like $1.</string>
+    <string name="copy_rules_pattern_label">Pattern</string>
+    <string name="copy_rules_replacement_label">Replace with</string>
+    <string name="copy_rules_bad_pattern">This pattern is not a regular expression yet</string>
+    <string name="copy_rules_removes">Removes the match</string>
+    <string name="copy_rules_replaces">Replaces it with \u201c%1$s\u201d</string>
+    <string name="copy_rules_delete_desc">Delete the rule %1$s</string>
+    <string name="copy_rules_test_title">Try the rules</string>
+    <string name="copy_rules_test_field_label">Text as copied</string>
+    <string name="copy_rules_test_result">Kept as: %1$s</string>
+    <string name="copy_rules_test_unchanged">No rule changes this text</string>
+    <string name="clipboard_copy_rules_system_title">Change the system clipboard too</string>
+    <string name="clipboard_copy_rules_system_subtitle">So a paste from any app\'s own menu gets the tidied text</string>
+    <string name="clipboard_copy_rules_system_info">With this setting off, the rules change only what the clipboard history keeps, and what the keyboard pastes from it. Turn it on and a copy a rule changed is put back on the system clipboard as changed, so the paste menu of every app gets it too. A clip its app marked as a password is never changed. This setting is off by default.</string>
 
 </resources>

@@ -103,6 +103,10 @@ enum class ToolbarTool {
     // with the settings app's Notes screen. Reads filesDir, so not available
     // before the first unlock.
     NOTES,
+    // The row of the latest copies on the suggestion strip (#612), up until a
+    // key is typed. Bound to a hold, Copy's for one, it is the last few copies
+    // one press away without opening the clipboard.
+    RECENT_COPIES,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -208,7 +212,7 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.FLASHLIGHT, ToolbarTool.UNDO, ToolbarTool.REDO,
     ToolbarTool.INCOGNITO, ToolbarTool.POWER_SAVING, ToolbarTool.AUTOCORRECT,
     ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.HIDE_KEYBOARD,
-    ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH,
+    ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.RECENT_COPIES,
     -> false
     // The cursor moves nudge the caret and nothing else, and the clipboard trio
     // acts on the selection in place.
@@ -303,7 +307,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.CURSOR_HOME, ToolbarTool.CURSOR_END, ToolbarTool.PAGE_UP, ToolbarTool.PAGE_DOWN,
     ToolbarTool.SELECT_WORD, ToolbarTool.SELECT_LINE, ToolbarTool.SELECT_ALL,
     ToolbarTool.SELECT_MODE,
-    ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
+    ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE, ToolbarTool.RECENT_COPIES,
 )
 
 /**

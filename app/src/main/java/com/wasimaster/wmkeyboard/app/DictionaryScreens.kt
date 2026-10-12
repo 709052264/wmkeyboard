@@ -22,6 +22,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import com.wasimaster.wmkeyboard.app.lock.AppLockTargets
 import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
+import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRule
+import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRules
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Rule
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Remove
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
@@ -1106,6 +1109,156 @@ internal fun PhoneFormatSettings(repository: SettingsRepository, settings: LiveS
         )
     }
 }
+// ---- clipboard copy rules ----
+
+/**
+ * The rules that tidy every copy before the clipboard history keeps it (#612):
+ * a pattern, and what to put in its place, empty to take it out. Applied in
+ * the order listed. A rule can be switched off without losing it, and the
+ * box at the bottom shows what a sample copy would be kept as.
+ */
+@Composable
+internal fun CopyRuleSettings(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    val rules = settings.watch { it.clipboard.copyRules }
+    // The rule being edited by its index, or -1 for a new one; null while no dialog is up.
+    var editing by remember { mutableStateOf<Int?>(null) }
+    var sample by remember { mutableStateOf("") }
+    val save: (List<ClipCopyRule>) -> Unit = { next -> scope.launch { repository.setClipboardCopyRules(next) } }
+
+    RegisterAddFab(stringResource(R.string.copy_rules_add_action)) { editing = -1 }
+    SettingsGroup {
+        item {
+            ToggleSetting(
+                R.string.clipboard_copy_rules_system_title,
+                stringResource(R.string.clipboard_copy_rules_system_subtitle),
+                settings.watch { it.clipboard.copyRulesToSystem },
+                info = stringResource(R.string.clipboard_copy_rules_system_info),
+                default = SettingsDefaults.clipboard.copyRulesToSystem,
+            ) { scope.launch { repository.setClipboardCopyRulesToSystem(it) } }
+        }
+    }
+    if (rules.isEmpty()) {
+        CaptionText(stringResource(R.string.copy_rules_empty))
+    }
+    SettingsGroup {
+        for ((index, rule) in rules.withIndex()) {
+            item(key = "rule-$index-${rule.pattern}") {
+                val broken = ClipCopyRules.compile(rule) == null
+                WmRow(
+                    title = rule.pattern,
+                    subtitle = when {
+                        broken -> stringResource(R.string.copy_rules_bad_pattern)
+                        rule.replacement.isEmpty() -> stringResource(R.string.copy_rules_removes)
+                        else -> stringResource(R.string.copy_rules_replaces, rule.replacement)
+                    },
+                    icon = Icons.AutoMirrored.Outlined.Rule,
+                    onClick = { editing = index },
+                    trailing = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Switch(
+                                checked = rule.enabled,
+                                onCheckedChange = { on ->
+                                    save(rules.mapIndexed { i, r -> if (i == index) r.copy(enabled = on) else r })
+                                },
+                            )
+                            IconButton(onClick = { save(rules.filterIndexed { i, _ -> i != index }) }) {
+                                Icon(
+                                    Icons.Outlined.Delete,
+                                    contentDescription = stringResource(R.string.copy_rules_delete_desc, rule.pattern),
+                                )
+                            }
+                        }
+                    },
+                )
+            }
+        }
+    }
+    // A rule is a promise about copies the user cannot see from here, so the
+    // screen lets them put one in and watch the answer, as the phone formats do.
+    Text(
+        stringResource(R.string.copy_rules_test_title),
+        style = MaterialTheme.typography.titleSmall,
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 20.dp),
+    )
+    OutlinedTextField(
+        value = sample,
+        onValueChange = { sample = it },
+        label = { Text(stringResource(R.string.copy_rules_test_field_label)) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    )
+    if (sample.isNotBlank()) {
+        val kept = remember(sample, rules) { ClipCopyRules.apply(sample, rules) }
+        Text(
+            if (kept == sample) {
+                stringResource(R.string.copy_rules_test_unchanged)
+            } else {
+                stringResource(R.string.copy_rules_test_result, kept)
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
+    }
+    Spacer(Modifier.height(16.dp))
+
+    editing?.let { index ->
+        val existing = rules.getOrNull(index)
+        var pattern by remember(index) { mutableStateOf(existing?.pattern.orEmpty()) }
+        var replacement by remember(index) { mutableStateOf(existing?.replacement.orEmpty()) }
+        val valid = pattern.isNotEmpty() && ClipCopyRules.compile(ClipCopyRule(pattern)) != null
+        AlertDialog(
+            onDismissRequest = { editing = null },
+            title = {
+                Text(stringResource(if (existing == null) R.string.copy_rules_add_title else R.string.copy_rules_edit_title))
+            },
+            text = {
+                Column {
+                    Text(
+                        stringResource(R.string.copy_rules_add_body),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = pattern,
+                        onValueChange = { pattern = it },
+                        label = { Text(stringResource(R.string.copy_rules_pattern_label)) },
+                        singleLine = true,
+                        isError = pattern.isNotEmpty() && !valid,
+                        supportingText = if (pattern.isNotEmpty() && !valid) {
+                            { Text(stringResource(R.string.copy_rules_bad_pattern)) }
+                        } else null,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = replacement,
+                        onValueChange = { replacement = it },
+                        label = { Text(stringResource(R.string.copy_rules_replacement_label)) },
+                        singleLine = true,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = valid,
+                    onClick = {
+                        val rule = ClipCopyRule(pattern, replacement, existing?.enabled ?: true)
+                        save(if (existing == null) rules + rule else rules.mapIndexed { i, r -> if (i == index) rule else r })
+                        editing = null
+                    },
+                ) { Text(stringResource(if (existing == null) CommonR.string.common_add else CommonR.string.common_save)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { editing = null }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
+    }
+}
+
 /**
  * The mask [raw] stands for, from one field that takes both spellings: a
  * format if the user wrote one (it has an X in it), and otherwise a number to

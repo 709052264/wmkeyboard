@@ -214,6 +214,7 @@ object IconDefaults {
         ToolbarTool.COPY -> Icons.Outlined.ContentCopy
         ToolbarTool.CUT -> Icons.Outlined.ContentCut
         ToolbarTool.PASTE -> Icons.Outlined.ContentPaste
+        ToolbarTool.RECENT_COPIES -> Icons.Outlined.History
     }
 
     /**

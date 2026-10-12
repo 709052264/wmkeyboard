@@ -345,6 +345,15 @@ enum class CaptureTarget(
     CLIPBOARD_SEARCH(takesWords = true),
     /** The clipboard panel's clip editor: free text, newlines and all. */
     CLIP_EDIT(takesWords = true),
+
+    /** The clipboard's Combine (#612): what goes between the clips. Punctuation, not words. */
+    CLIP_JOINER(takesWords = false),
+
+    /** Combine's text in front of the joined clips. */
+    CLIP_BASE(takesWords = false),
+
+    /** Combine's pattern for the part of each clip to keep. */
+    CLIP_APPEND(takesWords = false),
     /** The snippets panel's search pill (#471). */
     SNIPPET_SEARCH(takesWords = true),
 

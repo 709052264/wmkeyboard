@@ -25,6 +25,8 @@ import com.wasimaster.wmkeyboard.core.endpoints.toFields
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.settings.sink.S3Sink
 import com.wasimaster.wmkeyboard.core.addons.AddonStore
+import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRule
+import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRules
 import com.wasimaster.wmkeyboard.core.clipboard.ClipboardStore
 import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacro
@@ -5953,8 +5955,34 @@ enum class ClipTimeLabel {
         }
 }
 
+/**
+ * Which way a sideways swipe on a clip pins it (#414, #612); the other way
+ * deletes. [OFF] is the original: both ways delete.
+ */
+enum class ClipSwipePin {
+    OFF,
+    RIGHT,
+    LEFT,
+    ;
+
+    /** Caption for this choice; resolve it where it is drawn. */
+    @get:StringRes
+    val labelRes: Int
+        get() = when (this) {
+            OFF -> R.string.core_settings_clip_swipe_pin_off_label
+            RIGHT -> R.string.core_settings_clip_swipe_pin_right_label
+            LEFT -> R.string.core_settings_clip_swipe_pin_left_label
+        }
+}
+
 /** Lines of text a clip may show in the panel; 0 is the view's own (see [ClipboardSettings.previewLines]). */
 val ClipPreviewLinesRange = 0..20
+
+/**
+ * The line spacing of a clip's text, in percent of its size (#612). 100 sets
+ * the lines as tight as the font allows.
+ */
+val ClipLineSpacingRange = 100..200
 
 /** Columns the grid view may have. */
 val ClipGridColumnsRange = 1..4
@@ -6216,11 +6244,12 @@ data class ClipboardSettings(
      */
     val keepRichText: Boolean = true,
     /**
-     * A swipe to the right pins the clip instead of deleting it (#414), so the
-     * two directions do two things. Off by default, where either direction
-     * deletes, as it always has. Only while swipes are on at all.
+     * Which way a swipe pins the clip instead of deleting it (#414), so the
+     * two directions do two things; the other way still deletes. Right or
+     * left, as the user likes it (#612). [ClipSwipePin.OFF] by default, where
+     * either direction deletes, as it always has. Only while swipes are on.
      */
-    val swipeRightPins: Boolean = false,
+    val swipePin: ClipSwipePin = ClipSwipePin.OFF,
     /**
      * How many recent copies the idle strip offers as chips (#414), 1 to
      * [ClipRecentChipsMax]. At 1, the default, the strip shows the single
@@ -6230,6 +6259,45 @@ data class ClipboardSettings(
      * pressed, and comes back on the next field or the next copy.
      */
     val recentChips: Int = 1,
+    /**
+     * The fragments strip over the history is folded away (#612), by the ✕ on
+     * its caption; a scissors button beside the search brings it back. Kept,
+     * so the strip stays away until it is asked for. Off by default.
+     */
+    val entityStripHidden: Boolean = false,
+    /**
+     * The spacing between the lines of a clip's text, in percent of the text
+     * size (#612), [ClipLineSpacingRange]. 130 by default: the panel used to
+     * inherit Material's body spacing, nearly twice the text size, which left
+     * a clip of three short lines as tall as one of five.
+     */
+    val lineSpacing: Int = 130,
+    /**
+     * What the keyboard copies or cuts stays inside the keyboard, always, not
+     * only in incognito (#612, #392): it is kept in the clipboard history and
+     * pasted by the keyboard's own paste keys, and never put on the system
+     * clipboard where every app can read it. Off by default.
+     */
+    val privateCopies: Boolean = false,
+    /**
+     * Rules that tidy every copy before the history keeps it (#612), applied
+     * in order; see [ClipCopyRule]. Empty by default.
+     */
+    val copyRules: List<ClipCopyRule> = emptyList(),
+    /**
+     * A copy a rule changed is put back on the system clipboard as changed
+     * (#612), so the app's own paste gets the tidy text too. Off by default:
+     * the rules then change only what the history keeps.
+     */
+    val copyRulesToSystem: Boolean = false,
+    /**
+     * The last rule clips were combined with in the panel (#612): the text
+     * between them, a text put in front, and a pattern that keeps only part
+     * of each clip. Remembered for the next Combine, set in the panel.
+     */
+    val combineJoiner: String = " ",
+    val combineBase: String = "",
+    val combineAppend: String = "",
     /**
      * How much taller than the keyboard the clipboard panel opens, in dp
      * (#414), set by dragging the bar on top of the panel. 0, the default, is
@@ -9124,7 +9192,17 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_TYPE_OUT_PASTES = booleanPreferencesKey("clipboard_type_out_pastes")
         private val CLIPBOARD_TYPE_TAGS = booleanPreferencesKey("clipboard_type_tags")
         private val CLIPBOARD_KEEP_RICH_TEXT = booleanPreferencesKey("clipboard_keep_rich_text")
+        /** Read only, to carry the old right-swipe switch across to [CLIPBOARD_SWIPE_PIN]. */
         private val CLIPBOARD_SWIPE_RIGHT_PINS = booleanPreferencesKey("clipboard_swipe_right_pins")
+        private val CLIPBOARD_SWIPE_PIN = stringPreferencesKey("clipboard_swipe_pin")
+        private val CLIPBOARD_ENTITY_STRIP_HIDDEN = booleanPreferencesKey("clipboard_entity_strip_hidden")
+        private val CLIPBOARD_LINE_SPACING = intPreferencesKey("clipboard_line_spacing")
+        private val CLIPBOARD_PRIVATE_COPIES = booleanPreferencesKey("clipboard_private_copies")
+        private val CLIPBOARD_COPY_RULES = stringPreferencesKey("clipboard_copy_rules")
+        private val CLIPBOARD_COPY_RULES_TO_SYSTEM = booleanPreferencesKey("clipboard_copy_rules_to_system")
+        private val CLIPBOARD_COMBINE_JOINER = stringPreferencesKey("clipboard_combine_joiner")
+        private val CLIPBOARD_COMBINE_BASE = stringPreferencesKey("clipboard_combine_base")
+        private val CLIPBOARD_COMBINE_APPEND = stringPreferencesKey("clipboard_combine_append")
         private val CLIPBOARD_RECENT_CHIPS = intPreferencesKey("clipboard_recent_chips")
         private val CLIPBOARD_PANEL_EXTRA_HEIGHT_DP = intPreferencesKey("clipboard_panel_extra_height_dp")
         private val OTP_CHIP_ENABLED = booleanPreferencesKey("otp_chip_enabled")
@@ -10704,7 +10782,19 @@ class SettingsRepository(private val context: Context) {
             typeOutPastes = p[CLIPBOARD_TYPE_OUT_PASTES] ?: defaults.clipboard.typeOutPastes,
             typeTags = p[CLIPBOARD_TYPE_TAGS] ?: defaults.clipboard.typeTags,
             keepRichText = p[CLIPBOARD_KEEP_RICH_TEXT] ?: defaults.clipboard.keepRichText,
-            swipeRightPins = p[CLIPBOARD_SWIPE_RIGHT_PINS] ?: defaults.clipboard.swipeRightPins,
+            swipePin = p[CLIPBOARD_SWIPE_PIN]
+                ?.let { runCatching { ClipSwipePin.valueOf(it) }.getOrNull() }
+                ?: p[CLIPBOARD_SWIPE_RIGHT_PINS]?.let { if (it) ClipSwipePin.RIGHT else ClipSwipePin.OFF }
+                ?: defaults.clipboard.swipePin,
+            entityStripHidden = p[CLIPBOARD_ENTITY_STRIP_HIDDEN] ?: defaults.clipboard.entityStripHidden,
+            lineSpacing = p[CLIPBOARD_LINE_SPACING]?.coerceIn(ClipLineSpacingRange)
+                ?: defaults.clipboard.lineSpacing,
+            privateCopies = p[CLIPBOARD_PRIVATE_COPIES] ?: defaults.clipboard.privateCopies,
+            copyRules = p[CLIPBOARD_COPY_RULES]?.let(ClipCopyRules::decode) ?: defaults.clipboard.copyRules,
+            copyRulesToSystem = p[CLIPBOARD_COPY_RULES_TO_SYSTEM] ?: defaults.clipboard.copyRulesToSystem,
+            combineJoiner = p[CLIPBOARD_COMBINE_JOINER] ?: defaults.clipboard.combineJoiner,
+            combineBase = p[CLIPBOARD_COMBINE_BASE] ?: defaults.clipboard.combineBase,
+            combineAppend = p[CLIPBOARD_COMBINE_APPEND] ?: defaults.clipboard.combineAppend,
             recentChips = p[CLIPBOARD_RECENT_CHIPS]?.coerceIn(1, ClipRecentChipsMax)
                 ?: defaults.clipboard.recentChips,
             panelExtraHeightDp = p[CLIPBOARD_PANEL_EXTRA_HEIGHT_DP]?.coerceIn(ClipPanelExtraHeightRange)
@@ -17076,8 +17166,36 @@ class SettingsRepository(private val context: Context) {
     suspend fun setClipboardKeepRichText(value: Boolean) =
         editPrefs { it[CLIPBOARD_KEEP_RICH_TEXT] = value }
 
-    suspend fun setClipboardSwipeRightPins(value: Boolean) =
-        editPrefs { it[CLIPBOARD_SWIPE_RIGHT_PINS] = value }
+    /** See [ClipboardSettings.swipePin]; drops the old right-swipe switch it replaced. */
+    suspend fun setClipboardSwipePin(value: ClipSwipePin) =
+        editPrefs {
+            it[CLIPBOARD_SWIPE_PIN] = value.name
+            it.remove(CLIPBOARD_SWIPE_RIGHT_PINS)
+        }
+
+    suspend fun setClipboardEntityStripHidden(value: Boolean) =
+        editPrefs { it[CLIPBOARD_ENTITY_STRIP_HIDDEN] = value }
+
+    suspend fun setClipboardLineSpacing(value: Int) =
+        editPrefs { it[CLIPBOARD_LINE_SPACING] = value.coerceIn(ClipLineSpacingRange) }
+
+    suspend fun setClipboardPrivateCopies(value: Boolean) =
+        editPrefs { it[CLIPBOARD_PRIVATE_COPIES] = value }
+
+    /** Replaces the copy rules (#612), in the order they run. */
+    suspend fun setClipboardCopyRules(rules: List<ClipCopyRule>) =
+        editPrefs { it[CLIPBOARD_COPY_RULES] = ClipCopyRules.encode(rules) }
+
+    suspend fun setClipboardCopyRulesToSystem(value: Boolean) =
+        editPrefs { it[CLIPBOARD_COPY_RULES_TO_SYSTEM] = value }
+
+    /** The rule the panel's Combine last used (#612), offered again next time. */
+    suspend fun setClipboardCombineRule(joiner: String, base: String, append: String) =
+        editPrefs {
+            it[CLIPBOARD_COMBINE_JOINER] = joiner
+            it[CLIPBOARD_COMBINE_BASE] = base
+            it[CLIPBOARD_COMBINE_APPEND] = append
+        }
 
     suspend fun setClipboardRecentChips(value: Int) =
         editPrefs { it[CLIPBOARD_RECENT_CHIPS] = value.coerceIn(1, ClipRecentChipsMax) }

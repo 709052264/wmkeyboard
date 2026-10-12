@@ -57,6 +57,34 @@ class ClipboardStoreTest {
         assertEquals(listOf("fresh", "pinned"), store.items(now = 3000).map { it.text })
     }
 
+    @Test fun moveKeepsADraggedClipWhereItWasPut() {
+        val store = ClipboardStore(null)
+        val a = store.add("a", now = 1000)!!
+        store.add("b", now = 2000)
+        store.add("c", now = 3000)
+        // c b a → c a b
+        assertTrue(store.move(a.id, 1, now = 4000))
+        assertEquals(listOf("c", "a", "b"), store.items(now = 4000).map { it.text })
+        // To the top, and a copy made afterwards still lands under it (#612).
+        assertTrue(store.move(a.id, 0, now = 4000))
+        store.add("d", now = 5000)
+        assertEquals(listOf("a", "d", "c", "b"), store.items(now = 5000).map { it.text })
+        // To the bottom.
+        assertTrue(store.move(a.id, 3, now = 5000))
+        assertEquals(listOf("d", "c", "b", "a"), store.items(now = 5000).map { it.text })
+        assertFalse(store.move(a.id, 3, now = 5000))
+    }
+
+    @Test fun moveStaysInsideItsGroup() {
+        val store = ClipboardStore(null)
+        val pin = store.add("pinned", now = 1000)!!
+        store.setPinned(pin.id, true)
+        val old = store.add("old", now = 2000)!!
+        store.add("new", now = 3000)
+        assertTrue(store.move(old.id, 0, now = 4000))
+        assertEquals(listOf("pinned", "old", "new"), store.items(now = 4000).map { it.text })
+    }
+
     @Test fun editKeepsIdPlaceAndTimestamp() {
         val store = ClipboardStore(null)
         val a = store.add("teh answer", now = 1000)!!

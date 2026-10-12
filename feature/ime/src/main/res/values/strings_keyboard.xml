@@ -271,6 +271,7 @@
     <string name="ime_clip_chip_image">Copied image</string>
     <string name="ime_clip_chip_item">Copied item</string>
     <string name="ime_clip_chip_dismiss_desc">Hide the copied text</string>
+    <string name="ime_clip_chip_more_desc">Show more recent copies</string>
     <!-- The ✕ on the chip that offers a code found in a notification. -->
     <string name="ime_otp_chip_dismiss_desc">Hide the code</string>
     <!-- Screen reader text for the chip that offers a snippet the user marked
@@ -486,6 +487,7 @@
     <string name="ime_tool_cursor_home">Line start</string>
     <string name="ime_tool_cursor_end">Line end</string>
     <string name="ime_tool_hide_keyboard">Hide</string>
+    <string name="ime_tool_recent_copies">Recent copies</string>
     <string name="ime_tool_page_up">Page up</string>
     <string name="ime_tool_page_down">Page down</string>
     <string name="ime_tool_select_word">Select word</string>
@@ -695,6 +697,56 @@
     <string name="ime_clipboard_tab_pinned">Pinned</string>
     <string name="ime_clipboard_tab_unpinned_empty">No unpinned clips.\nNew copies show here.</string>
     <string name="ime_clipboard_tab_pinned_empty">No pinned clips.\nPin a clip to keep it here.</string>
+    <!-- A clip pinned or unpinned while the tabs are on moves to the other tab; this says where it went (#612). -->
+    <string name="ime_clip_pinned_notice">Pinned. It is in the Pinned tab now</string>
+    <string name="ime_clip_unpinned_notice">Unpinned. It is in the Unpinned tab now</string>
+    <!-- The .* button beside the clipboard search, for a screen reader (#612). -->
+    <string name="ime_clipboard_regex_on_desc">Search with regular expressions</string>
+    <string name="ime_clipboard_regex_off_desc">Search as plain text</string>
+    <!-- The filter button inside the clipboard search bar (#612). -->
+    <string name="ime_clipboard_filter_desc">Filter and sort the clips</string>
+    <string name="ime_clip_order_newest">Newest first</string>
+    <string name="ime_clip_order_oldest">Oldest first</string>
+    <string name="ime_clip_filter_all">All</string>
+    <string name="ime_clip_filter_images">Images</string>
+    <string name="ime_clip_filter_files">Files</string>
+    <!-- The button that brings back the folded strip of parts found in clips. %1$d is how many parts it holds. -->
+    <plurals name="ime_clip_entity_show_desc">
+        <item quantity="one">Show %1$d part found in your clips</item>
+        <item quantity="other">Show %1$d parts found in your clips</item>
+    </plurals>
+    <string name="ime_clip_entity_hide_desc">Hide the parts found in your clips</string>
+    <!-- Picking several clips to combine or delete them (#612). -->
+    <string name="ime_clip_select">Select</string>
+    <string name="ime_clip_select_cancel_desc">Stop selecting</string>
+    <plurals name="ime_clip_selected_count">
+        <item quantity="one">%1$d selected</item>
+        <item quantity="other">%1$d selected</item>
+    </plurals>
+    <string name="ime_clip_picked_desc">Selected</string>
+    <string name="ime_clip_not_picked_desc">Not selected</string>
+    <!-- Joining the picked clips into one clip (#612). -->
+    <string name="ime_clip_combine">Combine</string>
+    <plurals name="ime_clip_combine_title">
+        <item quantity="one">Combine %1$d clip</item>
+        <item quantity="other">Combine %1$d clips</item>
+    </plurals>
+    <string name="ime_clip_combine_joiner">Between the clips</string>
+    <string name="ime_clip_combine_base">In front of them all (optional)</string>
+    <string name="ime_clip_combine_append">Keep only the part that matches this pattern (optional)</string>
+    <string name="ime_clip_combine_bad_pattern">The pattern is not finished, so nothing can be combined yet</string>
+    <string name="ime_clip_combine_no_match">No clip has a part that matches the pattern</string>
+    <string name="ime_clip_joiner_space">Space</string>
+    <string name="ime_clip_joiner_newline">New line</string>
+    <string name="ime_clip_joiner_comma">Comma</string>
+    <string name="ime_clip_joiner_semicolon">Semicolon</string>
+    <string name="ime_clip_joiner_bar">Bar</string>
+    <!-- Dragging clips into an order of the user's own (#612). -->
+    <string name="ime_clip_reorder">Reorder</string>
+    <string name="ime_clip_reorder_hint">Drag a clip by its handle to move it. It stays where you put it.</string>
+    <string name="ime_clip_reorder_done">Done</string>
+    <string name="ime_clip_reorder_handle_desc">Drag to move this clip</string>
+    <string name="ime_clip_reorder_top_desc">Move to the top</string>
     <string name="ime_clipboard_view_list_desc">Show clips as a list</string>
     <string name="ime_clipboard_view_grid_desc">Show clips as a grid</string>
     <!-- Spoken before a clip's content when clip numbers are on. %1$d is the clip's number in the history. -->

@@ -330,6 +330,7 @@
     <string name="search_kw_dictionary">learned words, user dictionary, my words, add word</string>
     <string name="search_kw_blacklist">banned words, never suggest, block words, ban</string>
     <string name="search_kw_learnedcorrections">learned corrections, my fixes, typo pairs, taught fixes, autocorrect learning, slips, habits</string>
+    <string name="search_kw_cliprules">regex, pattern, tidy, strip, remove, replace, https, links, copy, clipboard</string>
     <string name="search_kw_phoneformats">phone number, dial code, country code, mobile number, clipboard chips</string>
     <string name="search_kw_codes">otp, one time password, 2fa, two factor, verification code, sms code, login code</string>
     <string name="search_kw_musicapps">music apps, spotify, player apps, now playing, podcast apps</string>
