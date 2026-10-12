@@ -68,6 +68,13 @@ class WhisperRecorder(
     /** How much has been captured so far, in samples. */
     val sampleCount: Int get() = count
 
+    /**
+     * A copy of the samples captured from [from] up to [to] (clamped to what is
+     * there), for an engine that decodes while the clip is still recording.
+     * Safe from any thread: samples below [sampleCount] are never written again.
+     */
+    fun samples(from: Int, to: Int): FloatArray = buffer.copyOfRange(from, minOf(to, count).coerceAtLeast(from))
+
     /** Whole seconds of room left in the clip, rounded up: 1 until the very end. */
     val secondsLeft: Int
         get() = (maxSamples - count + WhisperMel.SAMPLE_RATE - 1) / WhisperMel.SAMPLE_RATE

@@ -567,7 +567,9 @@ private fun MicContent(
             // to press when done.
             listening && voice.clipBased && voice.secondsLeft > 0 ->
                 pluralStringResource(R.plurals.ime_voice_status_stops_in, voice.secondsLeft, voice.secondsLeft)
-            listening && voice.clipBased -> stringResource(R.string.ime_voice_status_listening_hint)
+            // An offline engine that hears as it goes (#289) shows its words instead.
+            listening && voice.clipBased && voice.partial.isEmpty() ->
+                stringResource(R.string.ime_voice_status_listening_hint)
             listening -> voice.partial.ifEmpty { listeningLabel }
             // whisper.cpp's words as they decode (#440); the others say "Transcribing".
             transcribing -> voice.partial.ifEmpty { stringResource(voice.transcribingLabelRes()) }
@@ -932,8 +934,9 @@ internal fun VoiceStripBar(
             micNotice != null && voice.partial.isEmpty() && voice.status != VoiceStatus.ERROR -> micNotice
             listening && voice.clipBased && voice.secondsLeft > 0 ->
                 pluralStringResource(R.plurals.ime_voice_status_stops_in, voice.secondsLeft, voice.secondsLeft)
-            listening && voice.clipBased -> stringResource(R.string.ime_voice_strip_listening_hint)
-            listening -> voice.partial.ifEmpty { listeningLabel }
+            listening && voice.clipBased && voice.partial.isEmpty() ->
+                stringResource(R.string.ime_voice_strip_listening_hint)
+            listening -> voiceLineTail(voice.partial).ifEmpty { listeningLabel }
             transcribing -> voiceLineTail(voice.partial).ifEmpty { stringResource(voice.transcribingLabelRes()) }
             finishing -> "…"
             voice.status == VoiceStatus.ERROR ->
@@ -1245,8 +1248,9 @@ internal fun RowScope.FieldVoiceStatus(voice: VoiceUi, onAction: (CaptureVoiceAc
         voice.serverNeedsSetup -> stringResource(R.string.ime_voice_strip_no_server)
         listening && voice.clipBased && voice.secondsLeft > 0 ->
             pluralStringResource(R.plurals.ime_voice_status_stops_in, voice.secondsLeft, voice.secondsLeft)
-        listening && voice.clipBased -> stringResource(R.string.ime_voice_strip_listening_hint)
-        listening -> voice.partial.ifEmpty { listeningLabel }
+        listening && voice.clipBased && voice.partial.isEmpty() ->
+            stringResource(R.string.ime_voice_strip_listening_hint)
+        listening -> voiceLineTail(voice.partial).ifEmpty { listeningLabel }
         voice.status == VoiceStatus.TRANSCRIBING ->
             voiceLineTail(voice.partial).ifEmpty { stringResource(voice.transcribingLabelRes()) }
         voice.status == VoiceStatus.FINISHING -> voice.partial.ifEmpty { "…" }

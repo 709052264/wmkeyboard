@@ -67,6 +67,9 @@ import com.wasimaster.wmkeyboard.core.tools.PhotoBackgroundManager
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperStore
+import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllDownloadManager
+import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllSize
+import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllStore
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
 import com.wasimaster.wmkeyboard.ime.ui.mediaImageLoader
@@ -233,6 +236,9 @@ internal object StorageCategories {
     /** Whistle's item among the Whisper model directories, whose ids are catalog ids. */
     private const val WHISTLE_ITEM_ID = "whistle"
 
+    /** asr4all's items among them (#289): one per size, the id after this prefix. */
+    private const val ASR4ALL_ITEM_PREFIX = "asr4all-"
+
     fun byId(id: String): StorageCategory? = all.firstOrNull { it.id == id }
 
     /** In display order: the app, then downloads, looks, personal data, caches, the rest. */
@@ -375,7 +381,13 @@ internal object StorageCategories {
             danger = Danger.REDOWNLOAD,
             manageRoute = "voice",
             note = R.string.storage_note_mapped,
-            pathsOf = { listOf(WhisperStore.rootDir(it.files), WhistleModelStore.rootDir(it.files)) },
+            pathsOf = {
+                listOf(
+                    WhisperStore.rootDir(it.files),
+                    WhistleModelStore.rootDir(it.files),
+                    Asr4AllStore.rootDir(it.files),
+                )
+            },
             itemsOf = { env ->
                 childrenOf(WhisperStore.rootDir(env.roots.files)).map { dir ->
                     StorageItem(
@@ -395,11 +407,24 @@ internal object StorageCategories {
                             files = listOf(dir),
                         )
                     },
-                )
+                ) + Asr4AllSize.entries.mapNotNull { size ->
+                    // asr4all's sizes (#289), downloaded or part-way.
+                    Asr4AllStore.dir(env.roots.files, size).takeIf { it.isDirectory }?.let { dir ->
+                        StorageItem(
+                            id = ASR4ALL_ITEM_PREFIX + size.id,
+                            label = "Asr4All ${size.name.lowercase().replaceFirstChar { it.uppercaseChar() }}",
+                            bytes = diskUsage(dir, env.roots.blockSize),
+                            files = listOf(dir),
+                        )
+                    }
+                }
             },
             deleteOne = { env, item ->
                 if (item.id == WHISTLE_ITEM_ID) {
                     WhistleModelDownloadManager.delete(env.roots.files)
+                } else if (item.id.startsWith(ASR4ALL_ITEM_PREFIX)) {
+                    Asr4AllSize.byId(item.id.removePrefix(ASR4ALL_ITEM_PREFIX))
+                        ?.let { Asr4AllDownloadManager.delete(env.roots.files, it) }
                 } else {
                     // The selection goes first: the keyboard must never be pointed
                     // at a model file that is about to disappear.
@@ -414,6 +439,7 @@ internal object StorageCategories {
                 emptyOut(WhisperStore.rootDir(env.roots.files))
                 WhisperDownloadManager.refresh(env.roots.files)
                 WhistleModelDownloadManager.delete(env.roots.files)
+                Asr4AllSize.entries.forEach { Asr4AllDownloadManager.delete(env.roots.files, it) }
             },
         ),
         StorageCategory(

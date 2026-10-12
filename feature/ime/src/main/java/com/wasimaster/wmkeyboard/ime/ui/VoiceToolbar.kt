@@ -687,7 +687,7 @@ private fun VoiceBarStatus(
         voice.serverNeedsSetup -> 11
         micNotice != null && voice.partial.isEmpty() && voice.status != VoiceStatus.ERROR -> 13
         listening && voice.clipBased && voice.secondsLeft > 0 -> 12
-        listening && voice.clipBased -> 4
+        listening && voice.clipBased && voice.partial.isEmpty() -> 4
         listening -> 5
         transcribing -> 6
         voice.status == VoiceStatus.FINISHING -> 7
@@ -714,7 +714,7 @@ private fun VoiceBarStatus(
         12 -> pluralStringResource(R.plurals.ime_voice_status_stops_in, voice.secondsLeft, voice.secondsLeft)
         13 -> micNotice.orEmpty()
         4 -> stringResource(R.string.ime_voice_strip_listening_hint)
-        5 -> voice.partial.ifEmpty { speakNow }
+        5 -> voiceLineTail(voice.partial).ifEmpty { speakNow }
         6 -> voiceLineTail(voice.partial).ifEmpty { stringResource(voice.transcribingLabelRes()) }
         7 -> "…"
         8 -> voice.errorMessage ?: stringResource(R.string.ime_voice_status_error)

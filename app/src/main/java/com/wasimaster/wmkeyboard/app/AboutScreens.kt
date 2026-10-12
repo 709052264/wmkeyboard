@@ -334,6 +334,26 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "https://github.com/ggml-org/whisper.cpp",
             ),
         )
+        // Offline Asr4All (#289): the runtime built into the app, and the
+        // models it downloads, which carry their own restricted-use licence.
+        add(
+            Attribution(
+                "ExecuTorch",
+                R.string.about_bundled_executorch_used,
+                "Copyright (c) Meta Platforms, Inc. and affiliates",
+                "BSD-3-Clause", "bsd-executorch.txt",
+                "https://github.com/pytorch/executorch",
+            ),
+        )
+        add(
+            Attribution(
+                "Asr4All Model",
+                R.string.about_bundled_asr4all_used,
+                "Asr4All Model weights",
+                "Model Weights License (Restricted Use) 1.0", "asr4all-weights.txt",
+                "https://huggingface.co/futo-org/asr4all-s",
+            ),
+        )
         // The other offline engine (#548), in the same builds.
         add(
             Attribution(
