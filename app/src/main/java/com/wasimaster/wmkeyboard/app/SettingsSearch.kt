@@ -1004,6 +1004,7 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
         row(R.string.voice_engine_title, R.string.voice_engine_subtitle),
         row(R.string.voice_languages_title, R.string.voice_languages_subtitle),
         row(R.string.voice_ui_title, R.string.voice_ui_subtitle),
+        row(R.string.voice_strip_language_title, R.string.voice_strip_language_subtitle),
         row(R.string.voice_typing_title, R.string.voice_typing_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.voice_hold_picks_title, R.string.voice_hold_picks_subtitle),
         row(R.string.voice_pause_media_title, R.string.voice_pause_media_subtitle),

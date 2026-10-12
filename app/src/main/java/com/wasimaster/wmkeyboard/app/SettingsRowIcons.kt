@@ -1306,6 +1306,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_doc_scan_gallery_title) { Icons.Outlined.PhotoLibrary }
         put(R.string.voice_enabled_title) { Icons.Outlined.Mic }
         put(R.string.voice_ui_title) { Icons.Outlined.ViewAgenda }
+        put(R.string.voice_strip_language_title) { Icons.Outlined.Language }
         put(R.string.voice_typing_title) { Icons.Outlined.RecordVoiceOver }
         put(R.string.voice_hold_picks_title) { Icons.Outlined.TouchApp }
         put(R.string.voice_pause_media_title) { Icons.Outlined.MusicNote }

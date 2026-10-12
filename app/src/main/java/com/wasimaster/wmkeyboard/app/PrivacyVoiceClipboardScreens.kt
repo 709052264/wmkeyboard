@@ -318,6 +318,17 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 },
             ) { scope.launch { repository.setVoiceUiMode(it) } }
         }
+        if (voiceUiMode == com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.MODE_STRIP) {
+            item {
+                ToggleSetting(
+                    R.string.voice_strip_language_title,
+                    stringResource(R.string.voice_strip_language_subtitle),
+                    settings.watch { it.voiceBar.stripLanguageChip },
+                    info = stringResource(R.string.voice_strip_language_info),
+                    default = SettingsDefaults.voiceBar.stripLanguageChip,
+                ) { scope.launch { repository.setVoiceStripLanguageChip(it) } }
+            }
+        }
         item {
             ChoiceSetting(
                 R.string.voice_typing_title,

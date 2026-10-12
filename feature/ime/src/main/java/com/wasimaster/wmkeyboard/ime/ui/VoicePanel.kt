@@ -839,6 +839,8 @@ internal fun VoiceStripBar(
     modifier: Modifier = Modifier,
     /** The microphone switch (#581). */
     onCycleMic: () -> Unit = {},
+    /** The language chip's choice (#603), the panel's [VoiceBarAction.PickLanguages]. */
+    onPickLanguages: (List<String>) -> Unit = {},
 ) {
     val kb = LocalKbTheme.current
     val voice = state.voice
@@ -973,6 +975,51 @@ internal fun VoiceStripBar(
                     }
                     .padding(horizontal = 12.dp, vertical = 6.dp),
             )
+        }
+        // The panel's language chip (#603), opt-in: same rule for when there
+        // is a choice to make, same menu.
+        val chosenLanguages = state.settings.whisper.languages
+        val enabledLanguageIds = state.settings.enabledLanguages.map { it.id }
+        if (state.settings.voiceBar.stripLanguageChip &&
+            (enabledLanguageIds.size > 1 || chosenLanguages.isNotEmpty())
+        ) {
+            var languageMenuOpen by remember { mutableStateOf(false) }
+            val pickDescription = stringResource(R.string.ime_voice_language_menu_title)
+            Box {
+                Text(
+                    text = voiceLanguagesLabel(state.settings.whisper.dictationLanguages(state.language.id)),
+                    color = if (chosenLanguages.isEmpty()) kb.secondaryText else kb.toolbarIcon,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .padding(horizontal = 2.dp)
+                        .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
+                        .background(kb.chip)
+                        .clickable(onClickLabel = pickDescription) {
+                            feedback()
+                            languageMenuOpen = true
+                        }
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                )
+                if (languageMenuOpen) {
+                    StripMenuScrim(onDismiss = { languageMenuOpen = false })
+                    VoiceLanguageMenu(
+                        chosen = chosenLanguages,
+                        enabled = enabledLanguageIds,
+                        onDismiss = { languageMenuOpen = false },
+                        onPick = { ids ->
+                            languageMenuOpen = false
+                            onPickLanguages(ids)
+                        },
+                        onMore = {
+                            languageMenuOpen = false
+                            feedback()
+                            onOpenVoiceSettings()
+                        },
+                    )
+                }
+            }
         }
         if (voice.canUndo && !listening && !finishing) {
             Icon(

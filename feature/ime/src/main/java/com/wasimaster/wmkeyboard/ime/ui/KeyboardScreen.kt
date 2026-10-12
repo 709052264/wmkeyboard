@@ -3696,6 +3696,7 @@ private fun TopBar(
                     onClose = { onVoiceAction(VoiceBarAction.CloseStrip) },
                     modifier = Modifier.weight(1f),
                     onCycleMic = { onVoiceAction(VoiceBarAction.CycleMic) },
+                    onPickLanguages = { onVoiceAction(VoiceBarAction.PickLanguages(it)) },
                 )
                 return@Row
             }

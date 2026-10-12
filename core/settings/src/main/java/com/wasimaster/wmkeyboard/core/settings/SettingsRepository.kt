@@ -5062,6 +5062,12 @@ data class VoiceBarSettings(
      * the way Gboard's "Rambler" does it on Google's servers. Off by default:
      * it sends every phrase to whichever model the AI tool uses. Never in
      * plain voice typing, whose point is the words exactly as said.
+    /**
+     * The language chip on the compact bar over the keys (#603), the panel's
+     * #416 choice in the strip's one line. Off by default: the line is short,
+     * and the status text is what it is mostly for.
+     */
+    val stripLanguageChip: Boolean = false,
      */
     val aiTidy: Boolean = false,
     /**
@@ -9316,6 +9322,7 @@ class SettingsRepository(private val context: Context) {
         // (SettingsBackup.SECRET_KEYS) and still carry the rest.
         private val VOICE_SERVER_KEY_BY_LANG = stringPreferencesKey("voice_server_key_by_lang")
         private val VOICE_SERVER_SEND_LANGUAGE = booleanPreferencesKey("voice_server_send_language")
+        private val VOICE_STRIP_LANGUAGE_CHIP = booleanPreferencesKey("voice_strip_language_chip")
         private val VOICE_BIAS_PERSONAL_WORDS = booleanPreferencesKey("voice_bias_personal_words")
         private val VOICE_BIAS_WORDS = stringPreferencesKey("voice_bias_words")
         private val VOICE_SERVER_PROMPT = stringPreferencesKey("voice_server_prompt")
@@ -11246,6 +11253,7 @@ class SettingsRepository(private val context: Context) {
         raw.split(',').map { it.trim() }.filter { it.isNotEmpty() }.distinct()
 
     private fun readCamera(p: Preferences, defaults: KeyboardSettings) =
+            stripLanguageChip = p[VOICE_STRIP_LANGUAGE_CHIP] ?: defaults.voiceBar.stripLanguageChip,
         CameraSettings(
             preferFront = p[CAMERA_PREFER_FRONT] ?: defaults.camera.preferFront,
             timerSeconds = p[CAMERA_TIMER_SECONDS] ?: defaults.camera.timerSeconds,
@@ -12299,6 +12307,9 @@ class SettingsRepository(private val context: Context) {
      */
     suspend fun setVoiceSurface(mode: String, barActive: Boolean, returnMode: String? = null) =
         editPrefs {
+    suspend fun setVoiceStripLanguageChip(value: Boolean) =
+        editPrefs { it[VOICE_STRIP_LANGUAGE_CHIP] = value }
+
             it[VOICE_UI_MODE] = mode
             it[VOICE_BAR_ACTIVE] = barActive
             it[VOICE_BAR_INLINE] = mode == VoiceBarSettings.MODE_BAR

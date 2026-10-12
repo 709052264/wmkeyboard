@@ -107,6 +107,9 @@
     <string name="voice_system_info">Recognition uses the speech recognizer of your device. On Android 12 and later it runs on your device when the language model is installed. If it is not, the audio goes to the recognizer service while you speak. Press and hold the microphone to speak in walkie-talkie style. It stops when you let go.</string>
 
     <!-- The line between a tap and a walkie-talkie hold. -->
+    <string name="voice_strip_language_title">Language button on the compact bar</string>
+    <string name="voice_strip_language_subtitle">Pick the voice typing language without leaving the bar</string>
+    <string name="voice_strip_language_info">Adds a small button with the language code, such as EN, to the compact bar over the keys. Tap it to choose which language voice typing listens for: the keyboard\'s language, one language whatever the keyboard is set to, or all your keyboard languages at once. It is the same choice as the button on the full voice panel.\n\nThis setting is off by default, because the bar has room for one line. The button shows only when you have more than one keyboard language, or a language already chosen.</string>
     <string name="voice_pause_media_title">Pause media during voice typing</string>
     <string name="voice_pause_media_subtitle">Pause music and video while the microphone listens</string>
     <string name="voice_mic_title">Microphone</string>
