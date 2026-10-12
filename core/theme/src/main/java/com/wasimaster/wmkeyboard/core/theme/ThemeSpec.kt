@@ -1460,9 +1460,9 @@ private val FrostVariants: List<ThemeSpec> = listOf(
  * Frost: the look FrostKeys ships as its frosted glass, so the two read the
  * same side by side. Its night defaults, from its `KeyboardTheme.kt`: a 65 px
  * window blur (25 dp on a 2.6x phone), the board the wallpaper's accent
- * container at 80/255, every key the wallpaper's primary at about 20% (Enter
- * included, no accent fill), the modifier keys its second accent at about
- * 29%, no borders, no grain.
+ * container at 80/255, every letter the wallpaper's primary at about 28%, the
+ * action keys (shift, delete, ?123, enter) a solid mid accent blue, rounder
+ * keys, no borders, no grain.
  *
  * The thin board is the point of the look and its cost: over a white app the
  * labels sit on a pale blur, as they do in FrostKeys. Where the blur cannot
@@ -1474,19 +1474,22 @@ private val FrostTheme: ThemeSpec = ThemeSpec(
     name = "Frost",
     dark = true,
     boardBackground = 0x50243653,
-    keyBackground = 0x336E7B9A,
+    keyBackground = 0x476E7B9A,
     keyText = 0xFFF1F0F7,
-    modifierKeyBackground = 0x4B8E95AE,
-    enterKeyBackground = 0x336E7B9A,
+    // FrostKeys' action keys (shift, delete, ?123, enter) are a solid,
+    // saturated accent blue; sampled side by side on a CPH2481 it was
+    // (70, 104, 163) against the letters' pale glass.
+    modifierKeyBackground = 0xE63F5F96,
+    enterKeyBackground = 0xE63F5F96,
     enterKeyText = 0xFFF1F0F7,
     pressedKeyBackground = 0x806E7B9A,
     accent = 0xFFD9E2FF,
     popupBackground = 0xCC223047,
     popupText = 0xFFF1F0F7,
-    toolCircleBackground = 0x336E7B9A,
-    chipBackground = 0x336E7B9A,
+    toolCircleBackground = 0x476E7B9A,
+    chipBackground = 0x476E7B9A,
     suggestionText = 0xFFF1F0F7,
-    keyCornerRadiusDp = 12,
+    keyCornerRadiusDp = 16,
     // FrostKeys draws its frosted theme in the wallpaper's colours, and in
     // the wallpaper's *own* colours: the board is its accent container, not
     // a navy moved onto the wallpaper's hue, which kept the navy's darkness
@@ -1497,7 +1500,7 @@ private val FrostTheme: ThemeSpec = ThemeSpec(
     wallpaperRoles = mapOf(
         wallpaperRoleKey(dark = true, role = "primaryContainer") to 0xFF243653,
         wallpaperRoleKey(dark = true, role = "primary") to 0xFF6E7B9A,
-        wallpaperRoleKey(dark = true, role = "secondary") to 0xFF8E95AE,
+        wallpaperRoleKey(dark = true, role = "inversePrimary") to 0xFF3F5F96,
         wallpaperRoleKey(dark = true, role = "onPrimaryContainer") to 0xFFD9E2FF,
         wallpaperRoleKey(dark = true, role = "onSurface") to 0xFFF1F0F7,
         wallpaperRoleKey(dark = true, role = "surfaceContainerHigh") to 0xFF223047,
