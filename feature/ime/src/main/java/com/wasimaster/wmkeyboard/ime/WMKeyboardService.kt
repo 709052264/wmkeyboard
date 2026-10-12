@@ -36820,7 +36820,11 @@ open class WMKeyboardService : InputMethodService() {
         // The dedicated key is claimed bare and unconditionally — no app wants
         // it. With fewer than two layouts it falls through, so the framework's
         // own next-IME rotation still means something on a one-language setup.
-        if (keyCode == KeyEvent.KEYCODE_LANGUAGE_SWITCH &&
+        //
+        // A Korean keyboard's 한/영 key is the same key under another name
+        // (#621): Linux reads it as KEY_HANGEUL, and Android's Generic.kl maps
+        // that scancode to KANA, not LANGUAGE_SWITCH.
+        if ((keyCode == KeyEvent.KEYCODE_LANGUAGE_SWITCH || keyCode == KeyEvent.KEYCODE_KANA) &&
             event.metaState and
             (KeyEvent.META_CTRL_ON or KeyEvent.META_ALT_ON or KeyEvent.META_META_ON) == 0
         ) {
