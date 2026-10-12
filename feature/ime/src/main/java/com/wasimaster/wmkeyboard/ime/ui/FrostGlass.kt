@@ -639,7 +639,12 @@ fun WindowFrostEffect(kb: KbTheme, boardCornerDp: Int = 0) {
     val host = LocalWindowFrost.current
     val density = LocalDensity.current
     val frost = kb.frost
-    val radiusPx = if (frost?.windowBlur == true) {
+    // Only while the blur may run: WM Keyboard's own power saving says no
+    // through `blurAvailable`, and the system does not know to ignore the
+    // request then, so asking anyway blurred the band above the board while
+    // the board itself had already gone to its fallback.
+    val live = windowFrostLive(kb)
+    val radiusPx = if (frost != null && live) {
         with(density) { frost.windowBlurRadiusDp.dp.roundToPx() }
     } else {
         0
