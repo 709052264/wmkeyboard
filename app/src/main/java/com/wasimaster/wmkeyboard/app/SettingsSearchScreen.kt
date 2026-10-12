@@ -99,6 +99,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import kotlin.math.min
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.animation.EnterExitState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -324,11 +325,18 @@ internal fun HighlightableRow(
         title == null -> false
         else -> title == stringResource(target)
     }
-    HighlightFrame(
-        requested = requested,
-        rank = if (coarse) HighlightRank.SECTION else HighlightRank.ROW,
-        content = content,
-    )
+    // The same two names are what a row's link is made of (#646), so the row
+    // publishes them for its link button, and a plain row takes the long
+    // press here. A group's heading takes its own, in [SettingsGroup]: the
+    // whole group would otherwise answer a hold on any row inside it.
+    CompositionLocalProvider(LocalRowLinkKey provides RowLinkKey(title, highlightKey)) {
+        HighlightFrame(
+            requested = requested,
+            rank = if (coarse) HighlightRank.SECTION else HighlightRank.ROW,
+            modifier = if (coarse) Modifier else Modifier.settingLinkHold(),
+            content = content,
+        )
+    }
 }
 
 /**
@@ -419,6 +427,7 @@ internal fun ScrollAnchor(active: Boolean, content: @Composable () -> Unit) {
 private fun HighlightFrame(
     requested: Boolean,
     rank: HighlightRank,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     var flashing by remember { mutableStateOf(false) }
@@ -450,7 +459,7 @@ private fun HighlightFrame(
         SettingsHighlight.clear()
     }
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .bringIntoViewRequester(requester)
             .then(if (flashing && SettingsHighlight.hold) Modifier.testTag(SettingsHighlight.HIGHLIGHT_TAG) else Modifier)

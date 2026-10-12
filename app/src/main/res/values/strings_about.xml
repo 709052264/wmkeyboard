@@ -92,6 +92,16 @@
     <string name="about_user_guide_title">User guide</string>
     <string name="about_privacy_policy_title">Privacy policy</string>
     <string name="about_privacy_policy_subtitle">What leaves your device, and what never leaves it</string>
+    <!-- How a settings row offers a web link to itself (#646). The three options are Off, Hold and Button. -->
+    <string name="about_setting_links_title">Setting links</string>
+    <string name="about_setting_links_subtitle">Copy a web link that opens one setting</string>
+    <string name="about_setting_links_info">Use this to send someone to a setting. The link opens this app on that screen and flashes the setting. If the app is not installed, the link opens a page on the website that tells how to get it. "Hold" copies the link when you touch and hold a setting or a group heading. "Button" shows a small link button next to each setting and group heading. Settings with no fixed name, such as one language or one theme, have no link.</string>
+    <string name="about_setting_links_hold">Hold</string>
+    <string name="about_setting_links_button">Button</string>
+    <!-- Content description of the link button on a settings row. %1$s = the name of the setting. -->
+    <string name="about_setting_link_desc">Copy link to <xliff:g id="setting" example="Autocorrect">%1$s</xliff:g></string>
+    <!-- Shown after a setting link is copied, on Android versions that do not confirm a copy themselves. -->
+    <string name="about_setting_link_copied">Link copied</string>
 
     <!-- About screen: the Third party group. -->
     <string name="about_third_party_title">Third party</string>

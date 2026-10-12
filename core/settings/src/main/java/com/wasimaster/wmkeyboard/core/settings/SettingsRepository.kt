@@ -5766,7 +5766,16 @@ data class AppUiSettings(
      * the way; nothing in the keyboard reads it.
      */
     val keyboardPreviewButton: Boolean = true,
+    /**
+     * How a settings row offers a web link to itself (#646): not at all, on a
+     * long press, or as a small link button beside the reset and the "?". Off
+     * by default; it is for people who send other people to a setting.
+     */
+    val settingLinks: SettingLinkMode = SettingLinkMode.OFF,
 )
+
+/** See [AppUiSettings.settingLinks]. */
+enum class SettingLinkMode { OFF, HOLD, BUTTON }
 
 /** What the symbol row's height slider offers, matching the number row's. */
 val SymbolRowHeightRange = 28..64
@@ -9115,6 +9124,7 @@ class SettingsRepository(private val context: Context) {
         private val SETTINGS_SCREEN_TRANSITIONS = booleanPreferencesKey("settings_screen_transitions")
         private val SETTINGS_KEYBOARD_PREVIEW_BUTTON =
             booleanPreferencesKey("settings_keyboard_preview_button")
+        private val SETTINGS_SETTING_LINKS = stringPreferencesKey("settings_setting_links")
         private val SYMBOL_ROW_HEIGHT = intPreferencesKey("symbol_row_height")
         private val SYMBOL_ROW_LINES = intPreferencesKey("symbol_row_lines")
         private val SYMBOL_ROW_SCROLL = stringPreferencesKey("symbol_row_scroll")
@@ -10694,6 +10704,9 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.appUi.screenTransitions,
             keyboardPreviewButton = p[SETTINGS_KEYBOARD_PREVIEW_BUTTON]
                 ?: defaults.appUi.keyboardPreviewButton,
+            settingLinks = p[SETTINGS_SETTING_LINKS]
+                ?.let { runCatching { SettingLinkMode.valueOf(it) }.getOrNull() }
+                ?: defaults.appUi.settingLinks,
         )
 
     private fun readToolLimits(p: Preferences, defaults: KeyboardSettings) =
@@ -16865,6 +16878,10 @@ class SettingsRepository(private val context: Context) {
     /** See [AppUiSettings.keyboardPreviewButton]. */
     suspend fun setKeyboardPreviewButton(value: Boolean) =
         editPrefs { it[SETTINGS_KEYBOARD_PREVIEW_BUTTON] = value }
+
+    /** See [AppUiSettings.settingLinks]. */
+    suspend fun setSettingLinks(value: SettingLinkMode) =
+        editPrefs { it[SETTINGS_SETTING_LINKS] = value.name }
 
     suspend fun setWeatherRefreshMinutes(value: Int) =
         editPrefs { it[WEATHER_REFRESH_MINUTES] = value.coerceIn(1, 180) }

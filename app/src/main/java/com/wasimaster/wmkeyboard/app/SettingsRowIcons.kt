@@ -356,6 +356,7 @@ internal object SettingsRowIcons {
         put(R.string.about_all_languages_keep_title) { Icons.Outlined.Close }
         put(R.string.about_user_guide_title) { Icons.AutoMirrored.Outlined.MenuBook }
         put(R.string.about_privacy_policy_title) { Icons.Outlined.PrivacyTip }
+        put(R.string.about_setting_links_title) { Icons.Outlined.Link }
         put(R.string.about_storage_title) { Icons.Outlined.PieChart }
         put(R.string.statistics_title) { Icons.Outlined.QueryStats }
         put(R.string.about_diagnostics_title) { Icons.AutoMirrored.Outlined.Article }

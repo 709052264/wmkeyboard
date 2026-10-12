@@ -680,6 +680,9 @@ private fun SettingsNavHost(
             // handed the settings.
             LocalReduceMotion provides reduceMotion,
             LocalKeyboardPreview provides preview.takeIf { previewWanted },
+            // About › Documentation › Setting links (#646): how a row hands
+            // out a link to itself, read by every row and heading.
+            LocalSettingLinks provides rememberSettingLinks(settings.watch { it.appUi.settingLinks }),
             // "Icons in settings", animated once here for every row and
             // heading, so the screen the switch is on sees its tiles leave.
             LocalIconReveal provides rememberIconReveal(
@@ -2259,6 +2262,7 @@ private fun SettingsNavGraph(
             ) {
                 AboutSettings(
                     settings = settings,
+                    repository = repository,
                     persona = settings.watch { it.onboarding },
                     onOpenLicenses = { navController.navigate("licenses") },
                     onOpenLicenseText = { navController.navigate("license_text/$it") },
@@ -2991,7 +2995,7 @@ internal fun SettingsGroup(
                 folds?.toggle(foldId, !open)
             }
         } else if (title != null) {
-            SectionHeader(title, info = info, action = action, modifier = GroupHeadingPadding)
+            SectionHeader(title, info = info, action = action, modifier = GroupHeadingPadding, linkable = true)
         }
         val cards: @Composable () -> Unit = {
             // The 3 dp between two cards is drawn by the card below rather
@@ -3096,6 +3100,7 @@ private fun FoldHeader(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
+            .settingLinkHold()
             .clickable(onClick = onToggle)
             .then(GroupHeadingPadding),
     ) {
@@ -3126,6 +3131,7 @@ private fun FoldHeader(
         )
         HeadingControls {
             if (info != null) InfoButton(title = title, detail = info)
+            SettingLinkButton(title)
             ExpandChevron(open)
         }
     }
@@ -3369,18 +3375,27 @@ internal fun SectionHeader(
     modifier: Modifier = Modifier.padding(start = 32.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
     action: (@Composable () -> Unit)? = null,
     trailing: String? = null,
+    /**
+     * True for a [SettingsGroup]'s own heading, which can hand out a link to
+     * its group (#646). A free-standing heading is not the row the link would
+     * flash, so it never offers one.
+     */
+    linkable: Boolean = false,
 ) {
+    val link = linkable && settingLinkButtonShown() && currentRowLink() != null
+    val outer = if (linkable) Modifier.settingLinkHold().then(modifier) else modifier
     if (trailing != null) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = outer.fillMaxWidth()) {
             Text(
                 text,
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f),
             )
-            if (info != null || action != null) {
+            if (info != null || action != null || link) {
                 HeadingControls {
                     if (info != null) InfoButton(title = text, detail = info)
+                    if (link) SettingLinkButton(text)
                     action?.invoke()
                 }
             }
@@ -3395,16 +3410,16 @@ internal fun SectionHeader(
         }
         return
     }
-    if (info == null && action == null) {
+    if (info == null && action == null && !link) {
         Text(
             text,
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary,
-            modifier = modifier,
+            modifier = outer,
         )
         return
     }
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = outer) {
         Text(
             text,
             style = MaterialTheme.typography.titleSmall,
@@ -3413,6 +3428,7 @@ internal fun SectionHeader(
         )
         HeadingControls {
             if (info != null) InfoButton(title = text, detail = info)
+            if (link) SettingLinkButton(text)
             action?.invoke()
         }
     }
@@ -3481,7 +3497,7 @@ internal fun NavRow(
     val beside = value != null && fitsBesideTitle(
         value,
         MaterialTheme.typography.labelLarge,
-        furniture = TRAILING_ICON_WIDTH + 4.dp,
+        furniture = TRAILING_ICON_WIDTH + 4.dp + (if (settingLinkButtonShown()) SettingLinkTargetSize else 0.dp),
         hasIcon = rowHasTile(icon),
     )
     val below = value.takeIf { it != null && !beside }
@@ -3494,6 +3510,7 @@ internal fun NavRow(
             flightTo = route,
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    SettingLinkButton(title)
                     if (beside && value != null) {
                         RowValueText(value, textAlign = TextAlign.End, maxLines = 1)
                         Spacer(Modifier.width(4.dp))
@@ -3694,6 +3711,7 @@ internal fun ToggleSetting(
                         change(default == true)
                     }
                     if (info != null) InfoButton(title, info)
+                    SettingLinkButton(title)
                     Switch(
                         checked = checked,
                         onCheckedChange = change,
@@ -3744,6 +3762,7 @@ internal fun ToggleNavRow(
                         onChange(default == true)
                     }
                     if (info != null) InfoButton(name, info)
+                    SettingLinkButton(name)
                     Switch(
                         checked = checked,
                         onCheckedChange = onChange,
@@ -3864,6 +3883,7 @@ internal fun ControlSetting(
             header = {
                 ReflowingText(title, style = MaterialTheme.typography.bodyLarge)
                 if (info != null) InfoButton(title, info)
+                SettingLinkButton(title)
                 Spacer(Modifier.weight(1f))
             },
             content = content,
@@ -3998,6 +4018,7 @@ internal fun SliderSetting(
                         }
                     }
                     if (info != null) InfoButton(title, info)
+                    SettingLinkButton(title)
                 }
                 // A slider cannot be landed on one exact millisecond by thumb,
                 // so the number is a button that takes it typed (#415). The
@@ -4127,6 +4148,7 @@ internal fun StepperSetting(
                         onChange(default ?: 0)
                     }
                     if (info != null) InfoButton(title, info)
+                    SettingLinkButton(title)
                 }
             },
         ) {
@@ -4353,6 +4375,7 @@ internal fun <T> ChoiceSetting(
                             default?.let(onChange)
                         }
                         if (info != null) InfoButton(title, info)
+                        SettingLinkButton(title)
                         Spacer(Modifier.weight(1f))
                     },
                 ) {
@@ -4382,6 +4405,7 @@ internal fun <T> ChoiceSetting(
             furniture = TRAILING_ICON_WIDTH +
                 (if (info != null) INFO_BUTTON_WIDTH else 0.dp) +
                 (if (default != null) RESET_WIDTH else 0.dp) +
+                (if (settingLinkButtonShown()) SettingLinkTargetSize else 0.dp) +
                 (if (glyph != null) ChoiceValueGlyphSize + ChoiceValueGlyphGap else 0.dp),
             hasIcon = rowHasTile(icon),
             rowWidth = maxWidth,
@@ -4409,6 +4433,7 @@ internal fun <T> ChoiceSetting(
                             default?.let(onChange)
                         }
                         if (info != null) InfoButton(title, info)
+                        SettingLinkButton(title)
                         // The same glyph the sheet puts on this option, small
                         // enough to sit in a value's lane: the row and the
                         // sheet then agree at a glance about what is chosen.
@@ -4788,6 +4813,7 @@ internal fun <T> MultiChoiceSetting(
                     default?.let(onChange)
                 }
                 if (info != null) InfoButton(name, info)
+                SettingLinkButton(name)
                 Spacer(Modifier.weight(1f))
             },
         ) {

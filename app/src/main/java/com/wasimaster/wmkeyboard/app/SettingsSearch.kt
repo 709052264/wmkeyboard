@@ -1971,6 +1971,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         // Open-source licences has its own screen, indexed once in sectionRows.
         about(R.string.about_user_guide_title),
         about(R.string.about_privacy_policy_title, R.string.about_privacy_policy_subtitle),
+        about(R.string.about_setting_links_title, R.string.about_setting_links_subtitle),
         about(R.string.about_report_bug_title, R.string.about_report_bug_subtitle),
         about(R.string.about_email_developer_title),
         entry(

@@ -1672,6 +1672,7 @@ internal fun ColorSetting(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     ResetSetting(title, color != null) { onChange(null) }
                     if (info != null) InfoButton(title, info)
+                    SettingLinkButton(title)
                     if (color == null) {
                         Text(
                             stringResource(CommonR.string.common_auto),

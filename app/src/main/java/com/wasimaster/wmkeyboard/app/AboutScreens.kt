@@ -13,6 +13,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -35,6 +37,9 @@ import com.wasimaster.wmkeyboard.app.updates.languageSwitchCanBeDropped
 import com.wasimaster.wmkeyboard.core.settings.OnboardingSettings
 import com.wasimaster.wmkeyboard.core.settings.PersonaDepth
 import com.wasimaster.wmkeyboard.core.settings.PersonaLanguages
+import com.wasimaster.wmkeyboard.core.settings.SettingLinkMode
+import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
+import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.support.Support
 import kotlinx.coroutines.Dispatchers
@@ -737,6 +742,7 @@ private fun AppLanguageSetting() {
 @Composable
 internal fun AboutSettings(
     settings: LiveSettings,
+    repository: SettingsRepository,
     persona: OnboardingSettings,
     onOpenLicenses: () -> Unit,
     onOpenLicenseText: (String) -> Unit,
@@ -748,6 +754,7 @@ internal fun AboutSettings(
 ) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val flavor = BuildConfig.FLAVOR_capabilities.replaceFirstChar { it.uppercase() }
     val channel = when {
         BuildConfig.ENABLE_PLAY_STORE -> " · Play Store"
@@ -972,6 +979,23 @@ internal fun AboutSettings(
             ) {
                 uriHandler.openUri(PRIVACY_POLICY_URL)
             }
+        }
+        item {
+            // A web link to one setting, from the setting itself (#646). The
+            // rows read the mode through LocalSettingLinks, so this row and
+            // its own heading change the moment it is picked.
+            ChoiceSetting(
+                R.string.about_setting_links_title,
+                subtitle = stringResource(R.string.about_setting_links_subtitle),
+                info = stringResource(R.string.about_setting_links_info),
+                options = listOf(
+                    SettingLinkMode.OFF to stringResource(CommonR.string.common_off),
+                    SettingLinkMode.HOLD to stringResource(R.string.about_setting_links_hold),
+                    SettingLinkMode.BUTTON to stringResource(R.string.about_setting_links_button),
+                ),
+                selected = settings.watch { it.appUi.settingLinks },
+                default = SettingsDefaults.appUi.settingLinks,
+            ) { scope.launch { repository.setSettingLinks(it) } }
         }
     }
 
