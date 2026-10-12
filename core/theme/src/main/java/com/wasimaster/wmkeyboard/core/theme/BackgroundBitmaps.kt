@@ -88,9 +88,7 @@ object BackgroundBitmapCache {
      * behind its back looks like.
      */
     suspend fun load(path: String, blur: Float, targetW: Int, targetH: Int): Bitmap? {
-        val file = File(path)
-        val stamp = file.lastModified()
-        if (stamp == 0L) return null
+        val stamp = File(path).lastModified().takeIf { it != 0L } ?: return null
         val key = Key(
             path = path,
             stamp = stamp,
@@ -215,20 +213,12 @@ object BackgroundBitmapCache {
             }
         } else {
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            BitmapFactory.decodeFile(file.absolutePath, bounds)
+            BitmapFactory.decodeFile(path, bounds)
             if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
             val options = BitmapFactory.Options().apply {
                 inSampleSize = sampleSizeFor(bounds.outWidth, bounds.outHeight, key.targetW, key.targetH)
             }
-            BitmapFactory.decodeFile(file.absolutePath, options)
-        } ?: return null
-        // Below API 31 the blur is baked in, so it belongs to the cache key.
-        // From 31 the draw applies it on the GPU and the sharp bitmap is cached
-        // once for every radius.
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            bitmap
-        } else {
-            bitmap.blurredBy(key.blurStep.toFloat())
+            BitmapFactory.decodeFile(path, options)
         }
     }
 
