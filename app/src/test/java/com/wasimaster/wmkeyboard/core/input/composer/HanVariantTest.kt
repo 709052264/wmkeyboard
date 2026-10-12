@@ -7,7 +7,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
-/** Traditional output and the Taiwan/Hong Kong vocabulary layer on top of it. */
+/** Traditional output and the Taiwan/Hong Kong layers on top of it. */
 class HanVariantTest {
 
     private fun asset(name: String): Sequence<String> =
@@ -109,7 +109,7 @@ class HanVariantTest {
         CjkConfig.traditionalOutput = true
         assertEquals("頭髮乾淨", HanVariant.toTraditional("头发干净"))
         assertEquals("皇后後來", HanVariant.toTraditional("皇后后来"))
-        HanVariant.region = HanVariant.HanRegion.TAIWAN
+        HanVariant.region = HanVariant.HanRegion.TAIWAN_WORDING
         assertEquals("計程車光碟", HanVariant.toTraditional("出租车光盘"))
     }
 
@@ -158,14 +158,45 @@ class HanVariantTest {
     }
 
     @Test
-    fun `taiwan swaps the word, not just the characters`() {
-        // The whole point of the layer: 出租车 in Traditional characters is
-        // 出租車, which no one in Taipei says.
+    fun `taiwan wording swaps the word, not just the characters`() {
+        // The whole point of the opt-in layer: 出租车 in Traditional characters
+        // is 出租車, which Taipei calls 計程車.
+        loadShipped()
+        CjkConfig.traditionalOutput = true
+        HanVariant.region = HanVariant.HanRegion.TAIWAN_WORDING
+        assertEquals("計程車", HanVariant.toTraditional("出租车"))
+        assertEquals("光碟", HanVariant.toTraditional("光盘"))
+    }
+
+    @Test
+    fun `plain taiwan keeps the typed word (#641)`() {
+        // s2tw, not s2twp: Taiwan character forms, but the word is the one
+        // whose reading was typed. 出租車 is chu zu che; 計程車 is ji cheng che.
         loadShipped()
         CjkConfig.traditionalOutput = true
         HanVariant.region = HanVariant.HanRegion.TAIWAN
-        assertEquals("計程車", HanVariant.toTraditional("出租车"))
-        assertEquals("光碟", HanVariant.toTraditional("光盘"))
+        assertEquals("出租車", HanVariant.toTraditional("出租车"))
+        assertEquals("我支持這個決定", HanVariant.toTraditional("我支持这个决定"))
+        assertEquals("法律文件", HanVariant.toTraditional("法律文件"))
+        assertEquals("手術程序", HanVariant.toTraditional("手术程序"))
+        // Taiwan's character forms still apply.
+        assertEquals("為", HanVariant.toTraditional("为"))
+        assertEquals("頭髮", HanVariant.toTraditional("头发"))
+    }
+
+    @Test
+    fun `plain taiwan offers the typed word, not its synonym`() {
+        loadShipped()
+        CjkConfig.traditionalOutput = true
+        HanVariant.region = HanVariant.HanRegion.TAIWAN
+        PinyinSyllables.valid = setOf("chu", "zu", "che")
+        CjkDictionaries.pinyin = ConversionDictionary.parse(
+            sequenceOf("chuzuche\t出租车\t500", "chu\t出\t900"),
+        )
+        val candidates = PinyinComposer.candidates("chuzuche")
+        assertTrue("got $candidates", "出租車" in candidates)
+        assertTrue("got $candidates", "計程車" !in candidates)
+        assertEquals(8, PinyinComposer.consumedFor("chuzuche", "出租車"))
     }
 
     @Test
@@ -193,7 +224,7 @@ class HanVariantTest {
         // the *input* it covers, which comes from the reading, not the output.
         loadShipped()
         CjkConfig.traditionalOutput = true
-        HanVariant.region = HanVariant.HanRegion.TAIWAN
+        HanVariant.region = HanVariant.HanRegion.TAIWAN_WORDING
         PinyinSyllables.valid = setOf("chu", "zu", "che")
         CjkDictionaries.pinyin = ConversionDictionary.parse(
             sequenceOf("chuzuche\t出租车\t500", "chu\t出\t900"),
@@ -210,7 +241,7 @@ class HanVariantTest {
     fun `a length-changing phrase still commits its own reading`() {
         loadShipped()
         CjkConfig.traditionalOutput = true
-        HanVariant.region = HanVariant.HanRegion.TAIWAN
+        HanVariant.region = HanVariant.HanRegion.TAIWAN_WORDING
         // 中間件 (3 chars) becomes 中介軟體 (4) — output length and input length
         // have nothing to do with each other, which is exactly the invariant.
         assertEquals("中介軟體", HanVariant.toTraditional("中间件"))

@@ -1630,9 +1630,10 @@ private fun CjkDictPackManager(
             ) { on -> scope.launch { repository.setCjkTraditionalOutput(on) } }
         }
 
-        // Traditional characters are only half of writing Traditional: Taipei
-        // says 計程車 where the mainland says 出租車, and no character map
-        // reaches that. Only worth showing once the toggle above is on.
+        // Taiwan and Hong Kong each prefer some character forms of their own
+        // (為, 説). Taiwan wording also swaps vocabulary (出租車 → 計程車), so
+        // it is a separate choice and never the plain Taiwan one (#641). Only
+        // worth showing once the toggle above is on.
         item(visible = traditional) {
             ChoiceSetting(
                 R.string.languages_cjk_region_title,
@@ -1973,11 +1974,13 @@ private fun translitHintDescRes(mode: TransliterationHintMode): Int = when (mode
 private fun cjkRegionDescRes(region: HanVariant.HanRegion): Int = when (region) {
     HanVariant.HanRegion.GENERIC -> R.string.languages_cjk_region_generic_subtitle
     HanVariant.HanRegion.TAIWAN -> R.string.languages_cjk_region_taiwan_subtitle
+    HanVariant.HanRegion.TAIWAN_WORDING -> R.string.languages_cjk_region_taiwan_wording_subtitle
     HanVariant.HanRegion.HONG_KONG -> R.string.languages_cjk_region_hong_kong_subtitle
 }
 
 private fun cjkRegionLabelRes(region: HanVariant.HanRegion): Int = when (region) {
     HanVariant.HanRegion.GENERIC -> R.string.languages_cjk_region_generic_title
     HanVariant.HanRegion.TAIWAN -> R.string.languages_cjk_region_taiwan_title
+    HanVariant.HanRegion.TAIWAN_WORDING -> R.string.languages_cjk_region_taiwan_wording_title
     HanVariant.HanRegion.HONG_KONG -> R.string.languages_cjk_region_hong_kong_title
 }

@@ -561,6 +561,7 @@ internal object ChoiceOptionIcons {
 
         put(HanVariant.HanRegion.GENERIC) { Icons.Outlined.Public }
         put(HanVariant.HanRegion.TAIWAN) { Icons.Outlined.Place }
+        put(HanVariant.HanRegion.TAIWAN_WORDING) { Icons.Outlined.Translate }
         put(HanVariant.HanRegion.HONG_KONG) { Icons.Outlined.LocationCity }
     }
 

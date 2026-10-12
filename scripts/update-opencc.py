@@ -9,7 +9,7 @@ table is a megabyte, so it is a downloadable CJK pack instead: it is written
 to the sibling wmkeyboard-data checkout (cjk/s2t_phrases.txt, or $WMKB_DATA/cjk),
 and the size and SHA-256 printed for it go into CjkDictCatalog.kt.
 
-HanVariant.kt runs OpenCC's own s2t / s2twp / s2hk conversion chains over these
+HanVariant.kt runs OpenCC's own s2t / s2tw / s2twp / s2hk conversion chains over these
 files, so they are copied verbatim rather than flattened: every row keeps all of
 its values (the converter takes the first, as OpenCC does), and identity rows
 like 皇后 -> 皇后 stay, because they are what stops the character table turning

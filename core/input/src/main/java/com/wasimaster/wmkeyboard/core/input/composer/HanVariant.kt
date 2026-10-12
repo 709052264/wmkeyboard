@@ -33,9 +33,18 @@ package com.wasimaster.wmkeyboard.core.input.composer
  *    else the character table ([s2t]), else the character passes through.
  * 3. **Localize** each converted segment the same way through the region's
  *    tables, which are keyed to *Traditional* text (出租車, not 出租车), so this
- *    step cannot run first. Taiwan is OpenCC's `s2twp` (phrases, then variant
- *    phrases, then variant characters: 出租車 → 計程車); Hong Kong is `s2hk`
+ *    step cannot run first. Taiwan is OpenCC's `s2tw` (variant phrases, then
+ *    variant characters: 爲 → 為); Taiwan wording is `s2twp`, which puts the
+ *    vocabulary table in front of those (出租車 → 計程車); Hong Kong is `s2hk`
  *    (character preferences only); Standard is `s2t` and stops after step 2.
+ *
+ * ### Characters, not words (#641)
+ *
+ * Plain Taiwan is `s2tw`, not `s2twp`. A candidate is the word whose reading
+ * the user typed; swapping it for a regional synonym read differently (typing
+ * `chuzuche` and getting 計程車, jì chéng chē) is autocorrecting "lorry" to
+ * "truck". The vocabulary layer is its own choice, [HanRegion.TAIWAN_WORDING],
+ * for someone who wants Mainland wording adapted on the way out.
  *
  * Every table group is short-circuit, as in OpenCC: the first table that has
  * *any* match at a position wins, even over a longer match in a later table.
@@ -49,8 +58,11 @@ package com.wasimaster.wmkeyboard.core.input.composer
  */
 object HanVariant {
 
-    /** Which Traditional-using region's vocabulary to prefer. */
-    enum class HanRegion { GENERIC, TAIWAN, HONG_KONG }
+    /**
+     * Which Traditional-using region's conventions to follow. Persisted by name,
+     * so entries can be added anywhere but never renamed.
+     */
+    enum class HanRegion { GENERIC, TAIWAN, TAIWAN_WORDING, HONG_KONG }
 
     /** OpenCC STCharacters: Simplified → Traditional, one character each. */
     @Volatile
@@ -87,7 +99,7 @@ object HanVariant {
     var hkVariants: HanPhraseTable = HanPhraseTable.EMPTY
         set(value) { field = value; CjkDictionaries.invalidate() }
 
-    /** The user's region; [HanRegion.GENERIC] leaves vocabulary untouched. */
+    /** The user's region; only [HanRegion.TAIWAN_WORDING] changes vocabulary. */
     @Volatile
     var region: HanRegion = HanRegion.GENERIC
         set(value) { field = value; CjkDictionaries.invalidate() }
@@ -107,7 +119,8 @@ object HanVariant {
         if (standard.all { it.isEmpty() }) return text
         val regional = when (region) {
             HanRegion.GENERIC -> null
-            HanRegion.TAIWAN -> arrayOf(twPhrases, twVariantsPhrases, twVariants)
+            HanRegion.TAIWAN -> arrayOf(twVariantsPhrases, twVariants)
+            HanRegion.TAIWAN_WORDING -> arrayOf(twPhrases, twVariantsPhrases, twVariants)
             HanRegion.HONG_KONG -> arrayOf(hkVariantsPhrases, hkVariants)
         }
         val out = StringBuilder(text.length + 2)
