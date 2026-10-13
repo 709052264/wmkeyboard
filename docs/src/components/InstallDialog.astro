@@ -62,6 +62,15 @@ const icon = (id: string) => BRAND_PATHS[id as keyof typeof BRAND_PATHS];
 
 		<li class="wm-inst-opt">
 			<div class="wm-inst-head">
+				<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d={icon('fdroid')}></path></svg>
+				<strong>F-Droid</strong>
+			</div>
+			<p>If you already use the F-Droid app store. New versions reach it a little later.</p>
+			<a class="wm-inst-btn" href={fdroid.url} rel="noopener" target="_blank">Open F-Droid</a>
+		</li>
+
+		<li class="wm-inst-opt">
+			<div class="wm-inst-head">
 				<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d={icon('github')}></path></svg>
 				<strong>Download the app file</strong>
 			</div>
@@ -102,15 +111,6 @@ const icon = (id: string) => BRAND_PATHS[id as keyof typeof BRAND_PATHS];
 					(<a href="/start/installation/#downloading-a-release-apk">which one?</a>).
 				</p>
 			</details>
-		</li>
-
-		<li class="wm-inst-opt">
-			<div class="wm-inst-head">
-				<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d={icon('fdroid')}></path></svg>
-				<strong>F-Droid</strong>
-			</div>
-			<p>If you already use the F-Droid app store. New versions reach it a little later.</p>
-			<a class="wm-inst-btn" href={fdroid.url} rel="noopener" target="_blank">Open F-Droid</a>
 		</li>
 	</ol>
 

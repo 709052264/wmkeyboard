@@ -6,7 +6,7 @@
  * with a logo on it.
  *
  * `icon` names a mark in brand-icons.mjs. Listed in the order people are
- * pointed at them: Play first, then the APK, then F-Droid.
+ * pointed at them: Play first, then F-Droid, then the APK.
  */
 export const PACKAGE = 'com.wasimaster.wmkeyboard';
 
@@ -20,19 +20,19 @@ export const INSTALL_SOURCES = [
 		note: 'The easiest. Updates itself.',
 	},
 	{
-		id: 'github',
-		label: 'GitHub',
-		icon: 'github',
-		url: 'https://github.com/wasi-master/wmkeyboard/releases/latest',
-		listed: true,
-		note: 'Signed APKs, Full and Lite.',
-	},
-	{
 		id: 'fdroid',
 		label: 'F-Droid',
 		icon: 'fdroid',
 		url: `https://f-droid.org/packages/${PACKAGE}/`,
 		listed: true,
 		note: 'Built and signed by F-Droid.',
+	},
+	{
+		id: 'github',
+		label: 'GitHub',
+		icon: 'github',
+		url: 'https://github.com/wasi-master/wmkeyboard/releases/latest',
+		listed: true,
+		note: 'Signed APKs, Full and Lite.',
 	},
 ];
