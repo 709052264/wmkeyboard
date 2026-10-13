@@ -177,6 +177,20 @@ const { title = data.title, tagline, actions = [] } = data.hero || {};
 		padding-top: 0.25rem;
 	}
 
+	/* On a phone the Install button gets its own row, and a taller one: it is
+	   the one thing someone handed this link came here to press. */
+	@media (max-width: 40rem) {
+		.wm-hero-actions {
+			align-self: stretch;
+		}
+		.wm-hero-actions > :global(:first-child) {
+			flex-basis: 100%;
+			justify-content: center;
+			min-height: 3rem;
+			font-size: 1rem;
+		}
+	}
+
 	.wm-hero-screen :global(.wm-stats) {
 		margin-top: 0;
 		margin-bottom: 0;
