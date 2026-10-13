@@ -65,6 +65,7 @@ import com.wasimaster.wmkeyboard.core.aichat.AiChatConversation
 import com.wasimaster.wmkeyboard.core.aichat.AiChatMessage
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.tools.AiThinking
 import com.wasimaster.wmkeyboard.core.tools.AiToolActivity
 import com.wasimaster.wmkeyboard.ime.AiChatAction
@@ -471,6 +472,7 @@ private fun MessageBubble(
                 modifier = Modifier
                     .weight(1f, fill = false)
                     .clip(bubbleShape(fromUser))
+                    .frostGlass(kb, bubbleShape(fromUser), FrostSurface.CHIPS)
                     .background(if (fromUser) kb.chipActive else kb.chip)
                     .combinedClickable(onClick = onTap, onLongClick = { onCopy(message.content) })
                     .padding(horizontal = 10.dp, vertical = 7.dp),
@@ -628,6 +630,7 @@ private fun StreamingBubble(run: AiChatController.ChatRun, showThinking: Boolean
             modifier = Modifier
                 .weight(1f, fill = false)
                 .clip(bubbleShape(fromUser = false))
+                .frostGlass(kb, bubbleShape(fromUser = false), FrostSurface.CHIPS)
                 .background(kb.chip)
                 .padding(horizontal = 10.dp, vertical = 7.dp),
         ) {
@@ -1015,6 +1018,7 @@ private fun ChatIconButton(
             modifier = Modifier
                 .size(size)
                 .clip(CircleShape)
+                .frostGlass(kb, CircleShape, FrostSurface.CHIPS)
                 .background((if (active) kb.chipActive else kb.chip).dim())
                 .clickable(enabled = enabled, onClick = onClick),
             contentAlignment = Alignment.Center,

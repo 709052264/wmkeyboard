@@ -50,6 +50,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.style.TextDecoration
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.platform.LocalContext
@@ -247,6 +248,7 @@ internal fun AiPanel(
                         .weight(1f)
                         .fillMaxWidth()
                         .clip(inputShape)
+                        .frostGlass(kb, inputShape, FrostSurface.CHIPS)
                         .background(kb.chip)
                         .chipBorder(kb, inputShape)
                         .padding(horizontal = 10.dp, vertical = 8.dp)
@@ -366,6 +368,7 @@ internal fun AiPanel(
                         .weight(1f)
                         .fillMaxWidth()
                         .clip(resultShape)
+                        .frostGlass(kb, resultShape, FrostSurface.CHIPS)
                         .background(kb.chip)
                         .chipBorder(kb, resultShape)
                         .padding(horizontal = 10.dp, vertical = 6.dp)

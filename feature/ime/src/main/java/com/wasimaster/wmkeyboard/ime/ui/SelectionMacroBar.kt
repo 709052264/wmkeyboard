@@ -108,6 +108,7 @@ import com.wasimaster.wmkeyboard.core.selection.SelectionKind
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacro
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.effectiveTimeZones
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
 import com.wasimaster.wmkeyboard.core.tools.BuiltInAiActions
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -368,6 +369,7 @@ private fun PickLadder(
                 modifier = Modifier
                     .staggerIn(chips, index)
                     .clip(shape)
+                    .frostGlass(kb, shape, FrostSurface.CHIPS)
                     .background(kb.chipActive)
                     .chipBorder(kb, shape)
                     .clickable { onPick(arg) }
@@ -464,6 +466,7 @@ private fun MacroChip(
     Row(
         modifier = Modifier
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chipActive)
             .chipBorder(kb, shape)
             .clickable(enabled = !busy, onClick = onClick)
@@ -570,6 +573,7 @@ private fun AiChip(spec: AiActionSpec, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chipActive)
             .chipBorder(kb, shape)
             .clickable(onClick = onClick)

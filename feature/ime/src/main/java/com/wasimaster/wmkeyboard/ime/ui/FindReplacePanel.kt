@@ -51,6 +51,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.FindOption
 import com.wasimaster.wmkeyboard.ime.FindReplaceField
 import com.wasimaster.wmkeyboard.ime.FindReplaceUi
@@ -383,6 +384,7 @@ private fun QueryPill(
     Row(
         modifier = modifier
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
             .focusRing(ringed, shape)
             .clickable(onClick = onTap)

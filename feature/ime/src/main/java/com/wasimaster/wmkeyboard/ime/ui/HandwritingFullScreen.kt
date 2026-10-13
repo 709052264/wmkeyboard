@@ -51,6 +51,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TouchApp
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.settings.HandwritingFullScreenMode
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.HandwritingStatus
 import com.wasimaster.wmkeyboard.ime.HandwritingUi
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -265,6 +266,7 @@ private fun CandidateRow(candidates: List<String>, onPick: (String) -> Unit) {
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .clip(kb.chipShape())
+                    .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
                     .background(kb.chip)
                     .chipBorder(kb, kb.chipShape())
                     .clickable {

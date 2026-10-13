@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.settings.AppColorSettings
 import com.wasimaster.wmkeyboard.core.theme.AppColorSample
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.theme.PaletteStyle
 import com.wasimaster.wmkeyboard.core.theme.paletteStyleSwatch
 import com.wasimaster.wmkeyboard.ime.R
@@ -103,6 +104,7 @@ internal fun AppColorStrip(
             Row(
                 modifier = Modifier
                     .clip(shape)
+                    .frostGlass(kb, shape, FrostSurface.CHIPS)
                     .background(if (active) kb.chipActive else kb.chip)
                     .chipBorder(kb, shape)
                     .semantics { selected = active }

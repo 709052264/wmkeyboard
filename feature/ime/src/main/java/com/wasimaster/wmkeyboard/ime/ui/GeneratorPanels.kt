@@ -54,6 +54,7 @@ import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryStore
 import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
 import com.wasimaster.wmkeyboard.core.prediction.MappedTrie
 import com.wasimaster.wmkeyboard.core.prediction.topWords
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.tools.PasswordGen
 import com.wasimaster.wmkeyboard.core.tools.QrCodeGen
 import com.wasimaster.wmkeyboard.common.R as CommonR
@@ -215,6 +216,7 @@ internal fun PasswordPanel(
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)
                 .clip(cardShape)
+                .frostGlass(kb, cardShape, FrostSurface.CARDS)
                 .background(kb.chip)
                 .chipBorder(kb, cardShape)
                 .padding(horizontal = 10.dp, vertical = 6.dp),
@@ -456,6 +458,7 @@ internal fun QrGeneratorPanel(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(18.dp))
+                .frostGlass(kb, RoundedCornerShape(18.dp), FrostSurface.CHIPS)
                 .background(kb.chip)
                 .padding(horizontal = 12.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,

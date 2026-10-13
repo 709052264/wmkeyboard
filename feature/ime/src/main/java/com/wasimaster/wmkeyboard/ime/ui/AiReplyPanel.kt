@@ -53,6 +53,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.UnfoldLess
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
 import com.wasimaster.wmkeyboard.core.tools.AiActionSurface
 import com.wasimaster.wmkeyboard.core.tools.BuiltInAiReplyTones
@@ -279,6 +280,7 @@ private fun ReplyGather(state: KeyboardUiState, callbacks: ReplyCallbacks) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(10.dp))
+                .frostGlass(kb, RoundedCornerShape(10.dp), FrostSurface.CHIPS)
                 .background(kb.chip)
                 .padding(horizontal = 8.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -614,6 +616,7 @@ private fun ReplyDrafts(state: KeyboardUiState, callbacks: ReplyCallbacks) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
+                        .frostGlass(kb, RoundedCornerShape(10.dp), FrostSurface.CHIPS)
                         .background(kb.chip)
                         .clickable { callbacks.onInsert(draft) }
                         .padding(horizontal = 10.dp, vertical = 8.dp),
@@ -687,6 +690,7 @@ private fun ReplyShotTile(shot: ReplyShot, onPick: () -> Unit) {
             .fillMaxWidth()
             .aspectRatio(SHOT_TILE_ASPECT)
             .clip(RoundedCornerShape(8.dp))
+            .frostGlass(kb, RoundedCornerShape(8.dp), FrostSurface.CHIPS)
             .background(kb.chip)
             .clickable(onClick = onPick),
     ) {

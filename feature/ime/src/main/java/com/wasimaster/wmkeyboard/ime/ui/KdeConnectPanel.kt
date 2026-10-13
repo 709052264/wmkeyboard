@@ -104,6 +104,7 @@ import com.wasimaster.wmkeyboard.core.kdeconnect.KdeTransfer
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeTransferState
 import com.wasimaster.wmkeyboard.core.media.MediaSnapshot
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KdeAction
 import com.wasimaster.wmkeyboard.ime.KdeModKey
@@ -268,6 +269,7 @@ private fun DeviceChip(kb: KbTheme, state: KeyboardUiState, device: KdeDevice?, 
     Row(
         modifier = Modifier
             .clip(kb.chipShape())
+            .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
             .background(if (state.kde.showDevices) kb.chipActive else kb.chip)
             .chipBorder(kb, kb.chipShape())
             .clickable { onKde(KdeAction.ShowDevices(!state.kde.showDevices)) }

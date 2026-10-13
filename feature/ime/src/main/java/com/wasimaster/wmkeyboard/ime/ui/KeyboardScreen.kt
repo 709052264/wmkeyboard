@@ -26656,6 +26656,7 @@ private fun RowScope.SnippetHeaderSearchBar(state: KeyboardUiState, onToggle: ()
             .weight(1f)
             .padding(start = 6.dp, end = 4.dp)
             .clip(RoundedCornerShape(18.dp))
+            .frostGlass(kb, RoundedCornerShape(18.dp), FrostSurface.CHIPS)
             .background(kb.chip)
             .padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -26727,6 +26728,7 @@ private fun SnippetFolderTile(
         modifier = modifier
             .focusRing(focused, cardShape)
             .clip(cardShape)
+            .frostGlass(kb, cardShape, FrostSurface.CARDS)
             .background(kb.chip)
             .chipBorder(kb, cardShape)
             .combinedClickable(
@@ -26811,6 +26813,7 @@ private fun SnippetTile(
         modifier = modifier
             .focusRing(focused, cardShape)
             .clip(cardShape)
+            .frostGlass(kb, cardShape, FrostSurface.CARDS)
             .background(kb.chip)
             .chipBorder(kb, cardShape)
             .combinedClickable(
@@ -26959,6 +26962,7 @@ private fun SnippetPickerRow(
         modifier = Modifier
             .fillMaxWidth()
             .clip(cardShape)
+            .frostGlass(kb, cardShape, FrostSurface.CARDS)
             .background(kb.chip)
             .chipBorder(kb, cardShape),
         verticalAlignment = Alignment.CenterVertically,
@@ -27040,6 +27044,7 @@ internal fun ClipboardSearchField(
     Row(
         modifier = modifier
             .clip(fieldShape)
+            .frostGlass(kb, fieldShape, FrostSurface.CHIPS)
             .background(kb.chip)
             .chipBorder(kb, fieldShape)
             .clickable { onToggle() }

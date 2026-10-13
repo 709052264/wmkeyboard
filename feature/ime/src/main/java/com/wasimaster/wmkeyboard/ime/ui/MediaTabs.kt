@@ -51,6 +51,7 @@ import com.wasimaster.wmkeyboard.core.settings.MediaSwitcher
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.isUsableTool
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
@@ -343,6 +344,7 @@ internal fun MediaTabsField(
     Row(
         modifier = modifier
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
             .mediaTabIndicator(tabs.size, kb.chipActive, shape, slide)
             .chipBorder(kb, shape)

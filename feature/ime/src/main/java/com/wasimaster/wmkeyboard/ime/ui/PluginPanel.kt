@@ -31,6 +31,7 @@ import com.wasimaster.wmkeyboard.core.plugins.ui.LocalPluginPanelStyle
 import com.wasimaster.wmkeyboard.core.plugins.ui.PluginInputHost
 import com.wasimaster.wmkeyboard.core.plugins.ui.PluginPanelStyle
 import com.wasimaster.wmkeyboard.core.plugins.ui.PluginWidgetList
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
@@ -154,6 +155,7 @@ private fun PluginRow(plugin: InstalledPlugin, focused: Boolean = false, onClick
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
             .chipBorder(kb, shape)
             .focusRing(focused, shape)

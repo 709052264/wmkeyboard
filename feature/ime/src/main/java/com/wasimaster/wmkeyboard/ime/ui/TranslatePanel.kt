@@ -70,6 +70,7 @@ import androidx.compose.ui.window.Popup
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
 import com.wasimaster.wmkeyboard.core.translate.OfflineModelState
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslateLanguages
@@ -695,6 +696,7 @@ private fun TranslateQueryBox(
         modifier = modifier
             .padding(top = 2.dp, bottom = 6.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
             .chipBorder(kb, shape)
             .focusRing(focused, shape)
@@ -878,6 +880,7 @@ private fun TranslateChip(
     Row(
         modifier = Modifier
             .clip(kb.chipShape())
+            .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
             .background(kb.chip)
             .chipBorder(kb, kb.chipShape())
             .focusRing(focused, kb.chipShape())
@@ -1087,6 +1090,7 @@ private fun TranslateAction(
     Row(
         modifier = modifier
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(if (enabled) kb.chipActive else kb.chip)
             .chipBorder(kb, shape)
             .clickable(enabled = enabled) { onClick() }

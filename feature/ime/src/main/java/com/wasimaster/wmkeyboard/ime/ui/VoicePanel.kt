@@ -71,6 +71,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.CaptureVoiceAction
 import com.wasimaster.wmkeyboard.ime.EnterAction
 import com.wasimaster.wmkeyboard.ime.FocusRegion
@@ -229,6 +230,7 @@ internal fun VoicePanel(
                     Box(
                         modifier = Modifier
                             .clip(kb.chipShape())
+                            .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
                             .background(kb.chipActive)
                             .chipBorder(kb, kb.chipShape())
                             .focusRing(focusedAction == 0, kb.chipShape())
@@ -299,6 +301,7 @@ internal fun VoicePanel(
                         modifier = Modifier
                             .padding(4.dp)
                             .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
+                            .frostGlass(kb, RoundedCornerShape(kb.toolRadiusDp.dp), FrostSurface.CHIPS)
                             .background(kb.chip)
                             .focusRing(
                                 focusedAction == languageRingIndex,
@@ -365,6 +368,7 @@ internal fun VoicePanel(
                         .padding(bottom = 8.dp, start = 48.dp, end = 48.dp)
                         .graphicsLayer { alpha = noticeAlpha }
                         .clip(CircleShape)
+                        .frostGlass(kb, CircleShape, FrostSurface.CHIPS)
                         .background(kb.chip)
                         .padding(horizontal = 14.dp, vertical = 8.dp),
                 )
@@ -510,6 +514,8 @@ private fun MicContent(
                 modifier = Modifier
                     .size(64.dp)
                     .clip(CircleShape)
+                    // Glass like the board's own keys, and only where those have faces.
+                    .then(if (kb.keysHaveFaces) Modifier.frostGlass(kb, CircleShape, FrostSurface.MODIFIER_KEYS) else Modifier)
                     .background(if (listening) kb.toolCircleActive else kb.modifierKey)
                     .focusRing(micFocused, CircleShape)
                     .pointerInput(Unit) {
@@ -626,6 +632,7 @@ private fun MicContent(
                     modifier = Modifier
                         .padding(top = 8.dp)
                         .clip(toggleShape)
+                        .frostGlass(kb, toggleShape, FrostSurface.CHIPS)
                         .background(if (translate) kb.chipActive else kb.chip)
                         .chipBorder(kb, toggleShape)
                         .clickable { onToggleTranslate() }
@@ -664,6 +671,7 @@ private fun MicContent(
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
+                    .frostGlass(kb, RoundedCornerShape(kb.toolRadiusDp.dp), FrostSurface.CHIPS)
                     .background(kb.chip)
                     .clickable { onDownloadModel() }
                     .padding(horizontal = 12.dp, vertical = 6.dp),
@@ -790,6 +798,7 @@ private fun VoiceChipAction(text: String, icon: ImageVector, onClick: () -> Unit
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
             .chipBorder(kb, shape)
             .clickable {
@@ -892,6 +901,7 @@ internal fun VoiceStripBar(
                 modifier = Modifier
                     .size(30.dp)
                     .clip(CircleShape)
+                    .frostGlass(kb, CircleShape, FrostSurface.CHIPS)
                     .background(if (listening) kb.toolCircleActive else kb.chip)
                     .clickable(enabled = !busy) { onToggle() },
                 contentAlignment = Alignment.Center,
@@ -999,6 +1009,7 @@ internal fun VoiceStripBar(
                     modifier = Modifier
                         .padding(horizontal = 2.dp)
                         .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
+                        .frostGlass(kb, RoundedCornerShape(kb.toolRadiusDp.dp), FrostSurface.CHIPS)
                         .background(kb.chip)
                         .clickable(onClickLabel = pickDescription) {
                             feedback()
@@ -1133,6 +1144,7 @@ internal fun VoiceMicChip(
             modifier = Modifier
                 .size(28.dp)
                 .clip(CircleShape)
+                .frostGlass(kb, CircleShape, FrostSurface.CHIPS)
                 .background(if (listening) kb.toolCircleActive else kb.chip)
                 .clickable(enabled = !busy) { onToggle() },
             contentAlignment = Alignment.Center,
@@ -1198,6 +1210,7 @@ internal fun FieldVoiceMic(voice: VoiceUi, mine: Boolean, onToggle: () -> Unit) 
             modifier = Modifier
                 .size(28.dp)
                 .clip(CircleShape)
+                .frostGlass(kb, CircleShape, FrostSurface.CHIPS)
                 .background(if (listening) kb.toolCircleActive else kb.chip)
                 // The service buzzes for this press itself.
                 .clickable(enabled = !busy) { onToggle() },
@@ -1348,6 +1361,8 @@ private fun VoiceRailKey(
             .fillMaxWidth()
             .padding(2.dp)
             .clip(shape)
+            // Glass like the board's own keys, and only where those have faces.
+            .then(if (kb.keysHaveFaces) Modifier.frostGlass(kb, shape, FrostSurface.MODIFIER_KEYS) else Modifier)
             .background(kb.keyFace(kb.modifierKey), shape)
             .panelKeyBorder(kb, shape)
             .pointerInput(repeatable) {

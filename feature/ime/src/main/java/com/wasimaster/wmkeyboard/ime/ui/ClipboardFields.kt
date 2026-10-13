@@ -600,6 +600,7 @@ internal fun ClipRegexButton(
                 .fillMaxHeight()
                 .aspectRatio(1f)
                 .clip(shape)
+                .frostGlass(kb, shape, FrostSurface.CHIPS)
                 .background(if (on) kb.toolCircleActive else kb.chip)
                 .chipBorder(kb, shape)
                 .focusRing(focused, shape)
@@ -645,6 +646,7 @@ private fun ClipFragmentsButton(
                 .fillMaxHeight()
                 .aspectRatio(1f)
                 .clip(shape)
+                .frostGlass(kb, shape, FrostSurface.CHIPS)
                 .background(kb.chip)
                 .chipBorder(kb, shape)
                 .focusRing(focused, shape)
@@ -705,6 +707,7 @@ private fun ClipboardClearButton(
                 .fillMaxHeight()
                 .aspectRatio(1f)
                 .clip(shape)
+                .frostGlass(kb, shape, FrostSurface.CHIPS)
                 .background(if (asking) MaterialTheme.colorScheme.errorContainer else kb.chip)
                 .chipBorder(kb, shape)
                 .focusRing(focused, shape)
@@ -1023,6 +1026,7 @@ private fun ClipFilterChip(label: String, selected: Boolean, icon: ImageVector? 
         modifier = Modifier
             .height(28.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(if (selected) kb.toolCircleActive else kb.chip)
             .chipBorder(kb, shape)
             .semantics {
@@ -1083,6 +1087,7 @@ private fun ClipTabRow(
                     .weight(1f)
                     .height(ClipTabHeight)
                     .clip(shape)
+                    .frostGlass(kb, shape, FrostSurface.CHIPS)
                     .background(if (on) kb.toolCircleActive else kb.chip)
                     .chipBorder(kb, shape)
                     .focusRing(focused == index, shape)
@@ -2401,6 +2406,7 @@ internal fun ClipboardViewToggle(
                 .fillMaxHeight()
                 .aspectRatio(1f)
                 .clip(shape)
+                .frostGlass(kb, shape, FrostSurface.CHIPS)
                 .background(kb.chip)
                 .chipBorder(kb, shape)
                 .focusRing(focused, shape)
@@ -2500,6 +2506,7 @@ internal fun ClipEditDialog(
                         .fillMaxWidth()
                         .weight(1f)
                         .clip(fieldShape)
+                        .frostGlass(kb, fieldShape, FrostSurface.CHIPS)
                         .background(kb.chip)
                         .chipBorder(kb, fieldShape)
                         .padding(horizontal = 10.dp, vertical = 6.dp),
@@ -2816,6 +2823,7 @@ private fun ClipReorderRow(
             .fillMaxWidth()
             .height(ReorderRowHeight)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
             .chipBorder(kb, shape),
         verticalAlignment = Alignment.CenterVertically,
@@ -2996,6 +3004,7 @@ internal fun ClipCombineDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
+                            .frostGlass(kb, RoundedCornerShape(8.dp), FrostSurface.CHIPS)
                             .background(kb.chip.copy(alpha = 0.6f))
                             .padding(horizontal = 10.dp, vertical = 6.dp),
                     )
@@ -3044,6 +3053,7 @@ private fun ClipCombineBox(
                 .fillMaxWidth()
                 .height(36.dp)
                 .clip(shape)
+                .frostGlass(kb, shape, FrostSurface.CHIPS)
                 .background(kb.chip)
                 .then(if (focused) Modifier.border(1.5.dp, kb.accent, shape) else Modifier.chipBorder(kb, shape))
                 .then(if (focused) Modifier else Modifier.clickable(onClick = onFocus))

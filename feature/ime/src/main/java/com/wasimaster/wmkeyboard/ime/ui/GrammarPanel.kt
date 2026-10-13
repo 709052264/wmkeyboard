@@ -71,6 +71,7 @@ import com.wasimaster.wmkeyboard.core.settings.GrammarCategory
 import com.wasimaster.wmkeyboard.core.settings.GrammarDialect
 import com.wasimaster.wmkeyboard.core.settings.GrammarLintKind
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.AiChatAction
 import com.wasimaster.wmkeyboard.ime.DeepLWriteUi
 import com.wasimaster.wmkeyboard.ime.aichat.AskAiContext
@@ -240,6 +241,7 @@ internal fun GrammarPanel(
                 Row(
                     modifier = Modifier
                         .clip(kb.chipShape())
+                        .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
                         .background(kb.chip)
                         .chipBorder(kb, kb.chipShape())
                         .focusRing(focusedChip == 0, kb.chipShape())
@@ -280,6 +282,7 @@ internal fun GrammarPanel(
                         contentDescription = stringResource(R.string.ime_grammar_filter_desc),
                         modifier = Modifier
                             .clip(kb.chipShape())
+                            .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
                             .background(if (hidden.isEmpty()) kb.chip else kb.chipActive)
                             .chipBorder(kb, kb.chipShape())
                             .focusRing(focusedChip == 1, kb.chipShape())
@@ -323,6 +326,7 @@ internal fun GrammarPanel(
                         contentDescription = stringResource(R.string.ime_grammar_deepl_action_desc),
                         modifier = Modifier
                             .clip(kb.chipShape())
+                            .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
                             .background(if (rephrase != null) kb.chipActive else kb.chip)
                             .chipBorder(kb, kb.chipShape())
                             .clickable(enabled = rephrase?.working != true) { callbacks.onRephrase() }
@@ -345,6 +349,7 @@ internal fun GrammarPanel(
                 Row(
                     modifier = Modifier
                         .clip(kb.chipShape())
+                        .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
                         .background(kb.chipActive)
                         .chipBorder(kb, kb.chipShape())
                         .focusRing(focusedChip == 2, kb.chipShape())
@@ -602,6 +607,7 @@ private fun ColumnScope.DeepLWriteCard(
             .weight(1f, fill = false)
             .fillMaxWidth()
             .clip(cardShape)
+            .frostGlass(kb, cardShape, FrostSurface.CARDS)
             .background(kb.chip)
             .chipBorder(kb, cardShape)
             .padding(horizontal = 10.dp, vertical = 6.dp),
@@ -633,6 +639,7 @@ private fun ColumnScope.DeepLWriteCard(
                     maxLines = 1,
                     modifier = Modifier
                         .clip(kb.chipShape())
+                        .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
                         .background(kb.chipActive)
                         .chipBorder(kb, kb.chipShape())
                         .clickable { onApply() }
@@ -715,6 +722,7 @@ private fun GrammarLintCard(
             // One fix per card: a second tap mid-play would edit the field twice.
             .blockTouches(applied != null)
             .clip(cardShape)
+            .frostGlass(kb, cardShape, FrostSurface.CARDS)
             .background(kb.chip)
             .chipBorder(kb, cardShape)
             .focusRing(focused, cardShape)
@@ -856,6 +864,7 @@ private fun GrammarLintCard(
                                     maxLines = 1,
                                     modifier = Modifier
                                         .clip(kb.chipShape())
+                                        .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
                                         .background(kb.chipActive)
                                         .chipBorder(kb, kb.chipShape())
                                         .clickable {

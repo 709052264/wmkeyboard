@@ -45,6 +45,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Label
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckBoxOutlineBlank
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Title
 import com.wasimaster.wmkeyboard.core.notes.SuggestedNoteTag
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.NoteEdit
@@ -94,6 +95,7 @@ internal fun NotesEditor(
                 .fillMaxWidth()
                 .weight(1f)
                 .clip(fieldShape)
+                .frostGlass(kb, fieldShape, FrostSurface.CHIPS)
                 .background(kb.chip)
                 .chipBorder(kb, fieldShape)
                 .padding(horizontal = 10.dp, vertical = 6.dp),
@@ -185,6 +187,7 @@ private fun NoteTagRow(state: KeyboardUiState, edit: NoteEdit, callbacks: NotesC
                 modifier = Modifier
                     .width(140.dp)
                     .clip(shape)
+                    .frostGlass(kb, shape, FrostSurface.CHIPS)
                     .background(kb.chipActive)
                     .chipBorder(kb, shape)
                     .padding(horizontal = 10.dp, vertical = 5.dp),

@@ -61,6 +61,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.UnfoldMore
 import com.wasimaster.wmkeyboard.core.notes.Note
 import com.wasimaster.wmkeyboard.core.notes.NoteTag
 import com.wasimaster.wmkeyboard.core.notes.NoteTagPalette
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.NoteEdit
@@ -262,6 +263,7 @@ private fun RowScope.NotesEditHeader(state: KeyboardUiState, title: String, titl
             .weight(1f)
             .padding(horizontal = 4.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
             .chipBorder(kb, shape)
             .clickable { callbacks.onEditFocus(NoteEditField.TITLE, null) }
@@ -821,6 +823,7 @@ internal fun NoteTagChip(
         modifier = Modifier
             .focusRing(focused, shape)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(if (filled) kb.chipActive else kb.chip)
             .chipBorder(kb, shape)
             .combinedClickable(

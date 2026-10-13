@@ -30,6 +30,7 @@ import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.ScriptRegistry
 import com.wasimaster.wmkeyboard.core.script.TextDirection
 import com.wasimaster.wmkeyboard.core.settings.TypingTestSettings
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.tools.TypingWordPools
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -642,6 +643,7 @@ private fun TypingResultView(
                         Row(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(10.dp))
+                                .frostGlass(kb, RoundedCornerShape(10.dp), FrostSurface.CHIPS)
                                 .background(if (isNew) kb.accent.copy(alpha = 0.18f) else kb.chip)
                                 .padding(horizontal = 9.dp, vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -785,6 +787,7 @@ private fun StatTile(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(10.dp))
+            .frostGlass(kb, RoundedCornerShape(10.dp), FrostSurface.CHIPS)
             .background(kb.chip)
             .padding(horizontal = 8.dp, vertical = 6.dp),
     ) {

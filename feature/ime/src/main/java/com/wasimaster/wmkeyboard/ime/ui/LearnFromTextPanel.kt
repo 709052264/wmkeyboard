@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.settings.LearnFromTextSort
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.LearnFromTextUi
@@ -233,6 +234,7 @@ private fun EditBody(ui: LearnFromTextUi) {
             .fillMaxWidth()
             .padding(horizontal = 10.dp, vertical = 6.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -360,6 +362,7 @@ private fun LearnWordRow(
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(if (open) kb.chip else kb.chip.copy(alpha = kb.chip.alpha * 0.5f))
             .focusRing(focused, shape),
     ) {

@@ -55,6 +55,7 @@ import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
 import com.wasimaster.wmkeyboard.core.handwriting.HwPoint
 import com.wasimaster.wmkeyboard.core.handwriting.HwStroke
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.HandwritingStatus
 import com.wasimaster.wmkeyboard.ime.HandwritingUi
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -116,6 +117,7 @@ internal fun HandwritingCanvasField(
                     .align(Alignment.TopStart)
                     .padding(4.dp)
                     .clip(kb.chipShape())
+                    .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
                     .background(kb.chip)
                     .chipBorder(kb, kb.chipShape())
                     .clickable {
@@ -510,6 +512,8 @@ internal fun HwRailKey(
             .fillMaxWidth()
             .padding(2.dp)
             .clip(shape)
+            // Glass like the board's own keys, and only where those have faces.
+            .then(if (kb.keysHaveFaces) Modifier.frostGlass(kb, shape, FrostSurface.MODIFIER_KEYS) else Modifier)
             .background(kb.keyFace(kb.modifierKey), shape)
             .panelKeyBorder(kb, shape)
             .pointerInput(repeatable) {

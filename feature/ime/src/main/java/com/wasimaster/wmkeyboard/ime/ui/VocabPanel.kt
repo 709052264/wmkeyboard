@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.usableTools
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.vocab.FieldVisibility
 import com.wasimaster.wmkeyboard.core.vocab.ReviewGrade
 import com.wasimaster.wmkeyboard.core.vocab.VocabCardField
@@ -655,6 +656,7 @@ private fun VocabChip(
         modifier = Modifier
             .focusRing(focused, shape)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(if (filled) kb.chipActive else kb.chip)
             .chipBorder(kb, shape)
             .combinedClickable(
@@ -817,6 +819,7 @@ private fun VocabReview(state: KeyboardUiState, callbacks: VocabCallbacks) {
                     cameraDistance = 12f * density
                 }
                 .clip(kb.cardShape())
+                .frostGlass(kb, kb.cardShape(), FrostSurface.CARDS)
                 .background(kb.chip)
                 .chipBorder(kb, kb.cardShape())
                 .clickable { callbacks.onFlip() }

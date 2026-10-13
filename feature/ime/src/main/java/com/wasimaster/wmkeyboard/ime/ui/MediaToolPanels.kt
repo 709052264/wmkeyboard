@@ -86,6 +86,7 @@ import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import com.wasimaster.wmkeyboard.core.net.InternetGate
 import com.wasimaster.wmkeyboard.core.net.NetLogInterceptor
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import coil3.ImageLoader
@@ -524,6 +525,7 @@ internal fun RowScope.MediaHeaderSearchBar(
             .weight(1f)
             .padding(start = 6.dp, end = 4.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
             .chipBorder(kb, shape)
             .focusRing(focused, shape)
@@ -599,6 +601,7 @@ private fun MediaSearchBar(
             modifier = Modifier
                 .weight(1f)
                 .clip(shape)
+                .frostGlass(kb, shape, FrostSurface.CHIPS)
                 .background(kb.chip)
                 .chipBorder(kb, shape)
                 .focusRing(focused, shape)
@@ -671,6 +674,7 @@ private fun PanelNotice(
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier
                     .clip(kb.chipShape())
+                    .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
                     .background(kb.chipActive)
                     .chipBorder(kb, kb.chipShape())
                     .clickable { onAction() }
@@ -714,6 +718,7 @@ private fun MediaUnsupportedNotice(stickers: Boolean) {
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .clip(kb.cardShape())
+            .frostGlass(kb, kb.cardShape(), FrostSurface.CARDS)
             .background(kb.chip)
             .chipBorder(kb, kb.cardShape())
             .padding(horizontal = 10.dp, vertical = 6.dp),
@@ -1111,6 +1116,7 @@ private fun FavouritesStar(on: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .size(36.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(if (on) kb.chipActive else kb.chip)
             .chipBorder(kb, shape)
             .clickable(onClick = onClick),
@@ -1216,6 +1222,7 @@ private fun GifSourceChips(
                 modifier = Modifier
                     .weight(1f)
                     .clip(shape)
+                    .frostGlass(kb, shape, FrostSurface.CHIPS)
                     .background(if (active) kb.chipActive else kb.chip)
                     .chipBorder(kb, shape)
                     .focusRing(index == focused, shape)
@@ -1235,6 +1242,7 @@ private fun StickerAddChip(onAdd: () -> Unit, verticalPadding: Dp) {
     Box(
         modifier = Modifier
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
             .chipBorder(kb, shape)
             .clickable { onAdd() }
@@ -1286,6 +1294,7 @@ private fun GifCategoryChips(
                 maxLines = 1,
                 modifier = Modifier
                     .clip(shape)
+                    .frostGlass(kb, shape, FrostSurface.CHIPS)
                     .background(if (active) kb.chipActive else kb.chip)
                     .chipBorder(kb, shape)
                     .focusRing(index == focused, shape)
@@ -1340,6 +1349,7 @@ private fun StickerPackChips(
                 maxLines = 1,
                 modifier = Modifier
                     .clip(shape)
+                    .frostGlass(kb, shape, FrostSurface.CHIPS)
                     .background(if (active) kb.chipActive else kb.chip)
                     .chipBorder(kb, shape)
                     .clickable { onSelect(id) }
@@ -1649,6 +1659,7 @@ private fun GifCell(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
+            .frostGlass(LocalKbTheme.current, RoundedCornerShape(8.dp), FrostSurface.CHIPS)
             .background(LocalKbTheme.current.chip)
             .focusRing(focused, RoundedCornerShape(8.dp))
             .combinedClickable(
@@ -1849,6 +1860,7 @@ private fun WebSearchAnswer(answer: String, onInsert: () -> Unit) {
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
             .clickable { expanded = !expanded }
             .padding(horizontal = 12.dp, vertical = 8.dp),
@@ -1988,6 +2000,7 @@ private fun ImageGrid(
                 modifier = Modifier
                     .height(86.dp)
                     .clip(RoundedCornerShape(8.dp))
+                    .frostGlass(LocalKbTheme.current, RoundedCornerShape(8.dp), FrostSurface.CHIPS)
                     .background(LocalKbTheme.current.chip)
                     .focusRing(index == focused, RoundedCornerShape(8.dp))
                     .pointerInput(result.imageUrl, downloadingId == null) {

@@ -85,6 +85,7 @@ import com.wasimaster.wmkeyboard.core.location.PlusCode
 import com.wasimaster.wmkeyboard.core.location.SavedPlace
 import com.wasimaster.wmkeyboard.core.settings.LocationSettings
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
@@ -562,6 +563,7 @@ private fun FormatChips(
             Row(
                 modifier = Modifier
                     .clip(shape)
+                    .frostGlass(kb, shape, FrostSurface.CHIPS)
                     .background(if (selected) kb.chipActive else kb.chip)
                     .chipBorder(kb, shape)
                     .focusRing(focused == index, shape)
@@ -603,6 +605,7 @@ private fun PreviewBox(text: String, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip.copy(alpha = kb.chip.alpha * 0.6f))
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 10.dp, vertical = 6.dp),
@@ -625,6 +628,7 @@ private fun PrimaryButton(
         modifier = modifier
             .height(38.dp)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chipActive)
             .focusRing(focused, shape)
             .clickable(onClick = onClick)
@@ -649,6 +653,7 @@ private fun ActionIcon(icon: ImageVector, description: String, focused: Boolean,
             modifier = Modifier
                 .size(38.dp)
                 .clip(shape)
+                .frostGlass(kb, shape, FrostSurface.CHIPS)
                 .background(kb.chip)
                 .chipBorder(kb, shape)
                 .focusRing(focused, shape)
@@ -873,6 +878,7 @@ private fun PlaceRow(
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(if (open) kb.chip else kb.chip.copy(alpha = kb.chip.alpha * 0.5f))
             .focusRing(focused, shape),
     ) {
@@ -1034,6 +1040,7 @@ private fun FoundRow(
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(if (open) kb.chip else kb.chip.copy(alpha = kb.chip.alpha * 0.5f))
             .focusRing(focused, shape),
     ) {

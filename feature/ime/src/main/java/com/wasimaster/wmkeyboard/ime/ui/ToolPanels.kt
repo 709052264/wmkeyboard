@@ -204,6 +204,8 @@ private fun ToolPanelKey(
     Box(
         modifier = modifier
             .clip(shape)
+            // Glass like the board's own keys, and only where those have faces.
+            .then(if (kb.keysHaveFaces) Modifier.frostGlass(kb, shape, FrostSurface.MODIFIER_KEYS) else Modifier)
             .background(if (pressed) kb.pressedKey else kb.keyFace(kb.modifierKey), shape)
             .panelKeyBorder(kb, shape)
             .pointerInput(repeatable) {
@@ -855,6 +857,7 @@ private fun WeatherStat(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
             .chipBorder(kb, shape)
             .padding(horizontal = 6.dp, vertical = 6.dp),
@@ -1272,6 +1275,7 @@ internal fun CalendarPanel(
                     Box(
                         modifier = Modifier
                             .clip(kb.chipShape())
+                            .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
                             .background(kb.chip)
                             .chipBorder(kb, kb.chipShape())
                             .focusRing(focusedAction == 1, kb.chipShape())
@@ -1528,6 +1532,7 @@ private fun CalendarDayEvents(
                 modifier = Modifier
                     .padding(start = 8.dp)
                     .clip(kb.chipShape())
+                    .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
                     .background(kb.chipActive)
                     .chipBorder(kb, kb.chipShape())
                     .clickable {
@@ -1604,6 +1609,7 @@ private fun EventRow(event: DeviceCalendarEvent, timeFormat: SimpleDateFormat) {
             // would have nothing to fill.
             .height(IntrinsicSize.Min)
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip, shape)
             .chipBorder(kb, shape),
         verticalAlignment = Alignment.CenterVertically,
@@ -2022,6 +2028,7 @@ private fun ThemesTabChips(
                 modifier = Modifier
                     .weight(1f)
                     .clip(shape)
+                    .frostGlass(kb, shape, FrostSurface.CHIPS)
                     .background(if (active) kb.chipActive else kb.chip)
                     .chipBorder(kb, shape)
                     .focusRing(index == focused, shape)

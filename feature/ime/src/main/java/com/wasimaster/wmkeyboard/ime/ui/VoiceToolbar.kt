@@ -80,6 +80,7 @@ import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.settings.dictationLanguages
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.VoiceBarAction
@@ -816,6 +817,7 @@ private fun VoiceBarMic(
             modifier = Modifier
                 .size(38.dp)
                 .clip(CircleShape)
+                .frostGlass(kb, CircleShape, FrostSurface.CHIPS)
                 .background(if (listening) kb.toolCircleActive else kb.chip)
                 .clickable(enabled = !busy) {
                     if (hasPermission) onToggle() else onRequestPermission()
@@ -911,6 +913,7 @@ private fun VoiceBarLanguageChip(
             maxLines = 1,
             modifier = Modifier
                 .clip(kb.chipShape())
+                .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
                 .background(kb.chip)
                 .chipBorder(kb, kb.chipShape())
                 .clickable(onClickLabel = stringResource(R.string.ime_voice_language_menu_title)) {
