@@ -281,6 +281,7 @@ class KeyboardModeTest {
     fun `a mode switched off leaves the keyboard's view and takes its bindings with it`() {
         // The feature is on; only the browser mode is off (#152).
         val settings = KeyboardSettings(
+            modesEnabled = true,
             keyboardModes = listOf(password, email, browser.copy(enabled = false), chat),
         )
         val seen = settings.withoutModes()
@@ -297,6 +298,7 @@ class KeyboardModeTest {
     fun `modes overriding a row are the ones that set it the other way`() {
         val writing = KeyboardMode(id = "writing", name = "Writing", symbolRowEnabled = true)
         val off = KeyboardSettings(
+            modesEnabled = true,
             symbolRowEnabled = false,
             emojiBarMode = EmojiBarMode.OFF,
             keyboardModes = listOf(password, email, writing, chat),
@@ -316,7 +318,7 @@ class KeyboardModeTest {
 
     @Test
     fun `with every mode on the view is the settings themselves`() {
-        val settings = KeyboardSettings(keyboardModes = modes)
+        val settings = KeyboardSettings(modesEnabled = true, keyboardModes = modes)
         assertTrue(settings.withoutModes() === settings)
     }
 

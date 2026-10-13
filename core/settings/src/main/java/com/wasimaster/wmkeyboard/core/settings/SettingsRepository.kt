@@ -3575,15 +3575,18 @@ data class KeyboardSettings(
     /**
      * Master switch for the whole modes feature (issue #41).
      *
-     * On by default, because the shipped modes are what configure the emoji
-     * and symbol rows for a chat box or a password field. Off hides the tool,
+     * Off by default: a keyboard that quietly looks different in the next app
+     * reads as one that lost the settings just chosen, so the feature is
+     * opt-in, offered as a card on every onboarding path. Off hides the tool,
      * stops any mode being applied, and leaves the keyboard on the plain
-     * globals everywhere — the answer for someone who found their settings
-     * quietly different in the next app and read it as the keyboard losing
-     * them. The modes themselves are kept, so switching it back on restores
-     * every one of them: [withoutModes] is a view, not a write.
+     * globals everywhere. The modes themselves are kept, so switching it on
+     * restores every one of them: [withoutModes] is a view, not a write.
+     *
+     * Read with a fallback (see the reader): an install that never wrote the
+     * switch but has stored modes of its own built them while the feature
+     * was on by default, and keeps it on.
      */
-    val modesEnabled: Boolean = true,
+    val modesEnabled: Boolean = false,
     /** Keyboard modes (per-app / per-field bundles of overrides). */
     val keyboardModes: List<KeyboardMode> = DefaultKeyboardModes,
     /**
@@ -10430,7 +10433,10 @@ class SettingsRepository(private val context: Context) {
             mediaFullBleed = p[MEDIA_FULL_BLEED] ?: defaults.mediaFullBleed,
             modeToolOrderEdits = p[MODE_TOOL_ORDER_EDITS] ?: defaults.modeToolOrderEdits,
             modeToolOrderHintSeen = p[MODE_TOOL_ORDER_HINT] ?: defaults.modeToolOrderHintSeen,
-            modesEnabled = p[MODES_ENABLED] ?: defaults.modesEnabled,
+            // Modes used to be on by default. Someone who edited or built a
+            // mode back then has it stored, and keeps the feature on.
+            modesEnabled = p[MODES_ENABLED]
+                ?: (p[KEYBOARD_MODES] != null || defaults.modesEnabled),
             keyboardModes = p[KEYBOARD_MODES]?.let { KeyboardModeCodec.decodeList(it) }
                 ?: defaults.keyboardModes,
             smartSuggestions = p[SMART_SUGGESTIONS] ?: defaults.smartSuggestions,
@@ -18340,9 +18346,15 @@ class SettingsRepository(private val context: Context) {
      * has been topped up — bump it whenever [DefaultKeyboardModes] grows, and
      * a mode the user deleted stays deleted because its version is already
      * covered. Idempotent; safe to call on every start.
+     *
+     * Also pins the modes switch the first time it runs on a version where
+     * the feature ships off: the read-time fallback keys on a stored mode
+     * list, and a mode edited later with the switch off would otherwise
+     * stand in for an old install and turn the feature on.
      */
     suspend fun seedNewDefaultModes() =
         editPrefs { prefs ->
+            if (prefs[MODES_ENABLED] == null) prefs[MODES_ENABLED] = prefs[KEYBOARD_MODES] != null
             val seeded = prefs[MODE_SEED_VERSION] ?: 0
             if (seeded >= CurrentModeSeedVersion) return@editPrefs
             prefs[MODE_SEED_VERSION] = CurrentModeSeedVersion
