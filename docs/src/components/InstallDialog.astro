@@ -66,6 +66,25 @@ const icon = (id: string) => BRAND_PATHS[id as keyof typeof BRAND_PATHS];
 				<strong>Download the app file</strong>
 			</div>
 			<p>For phones without the Play Store, or if you'd rather skip it. The app checks for its own updates.</p>
+			<form class="wm-inst-pick" id="wm-inst-pick" aria-label="Which app file">
+				<fieldset>
+					<legend>Version</legend>
+					<label><input type="radio" name="ed" value="lite" checked /><span>Lite<small data-size></small></span></label>
+					<label><input type="radio" name="ed" value="full" /><span>Full<small data-size></small></span></label>
+				</fieldset>
+				<fieldset>
+					<legend>Menus</legend>
+					<label><input type="radio" name="lang" value="en" checked /><span>English<small data-size></small></span></label>
+					<label><input type="radio" name="lang" value="intl" /><span>Any language<small data-size></small></span></label>
+				</fieldset>
+				<fieldset>
+					<legend>Phone</legend>
+					<label><input type="radio" name="abi" value="arm64-v8a" checked /><span>Most<small data-size></small></span></label>
+					<label><input type="radio" name="abi" value="armeabi-v7a" /><span>Older<small data-size></small></span></label>
+					<label><input type="radio" name="abi" value="universal" /><span>Not sure<small data-size></small></span></label>
+				</fieldset>
+				<p class="wm-inst-hint" id="wm-inst-hint" aria-live="polite"></p>
+			</form>
 			<a class="wm-inst-btn" id="wm-inst-apk" href={github.url} rel="noopener">Download from GitHub</a>
 			<details class="wm-inst-how">
 				<summary>How do I install a downloaded app?</summary>
@@ -79,8 +98,8 @@ const icon = (id: string) => BRAND_PATHS[id as keyof typeof BRAND_PATHS];
 					<li>Tap <b>Install</b>.</li>
 				</ol>
 				<p>
-					Need a smaller or different version? <a href={github.url} rel="noopener">See every file</a> and the{' '}
-					<a href="/start/installation/#downloading-a-release-apk">guide to picking one</a>.
+					Other builds, like one with no internet access, are on the <a href={github.url} rel="noopener">release page</a>{' '}
+					(<a href="/start/installation/#downloading-a-release-apk">which one?</a>).
 				</p>
 			</details>
 		</li>
@@ -103,8 +122,17 @@ const icon = (id: string) => BRAND_PATHS[id as keyof typeof BRAND_PATHS];
 
 <script>
 	const RELEASE_API = 'https://api.github.com/repos/wasi-master/wmkeyboard/releases/latest';
-	/** The release page's starred cell: every feature, every language, almost every phone since 2017. */
-	const APK_PATTERN = /-full-intl-arm64-v8a\.apk$/;
+
+	/** One line each, so the choice reads without the installation page. */
+	const HINTS: Record<string, string> = {
+		lite: 'Lite has everything except handwriting and camera scanning.',
+		full: 'Full adds handwriting and text, QR and document scanning.',
+		en: 'Menus in English. You can still type in every language.',
+		intl: 'Menus in 48 languages besides English.',
+		'arm64-v8a': '',
+		'armeabi-v7a': 'For phones from before about 2017.',
+		universal: 'Works on any phone, at a bigger download.',
+	};
 
 	type Asset = { name: string; size: number; browser_download_url: string };
 
@@ -125,22 +153,47 @@ const icon = (id: string) => BRAND_PATHS[id as keyof typeof BRAND_PATHS];
 		let qrDrawn = false;
 		let apkLooked = false;
 
-		/** Point the download button at the APK itself, so nobody has to choose from thirty files. */
+		const form = dialog.querySelector<HTMLFormElement>('#wm-inst-pick')!;
+		const btn = dialog.querySelector<HTMLAnchorElement>('#wm-inst-apk')!;
+		const hint = dialog.querySelector<HTMLElement>('#wm-inst-hint')!;
+		let assets: Asset[] = [];
+
+		const mb = (bytes: number) => `${Math.round(bytes / 1e6)} MB`;
+		const picked = () => Object.fromEntries(new FormData(form)) as Record<'ed' | 'lang' | 'abi', string>;
+		// `-lite-en-arm64-v8a.apk` never matches the `-lite-en-nointernet-arm64-v8a.apk` beside it.
+		const assetFor = (c: Record<string, string>) =>
+			assets.find((a) => a.name.endsWith(`-${c.ed}-${c.lang}-${c.abi}.apk`));
+
+		/** Point the button at the one file the form describes, and price every other choice beside it. */
+		function update() {
+			const choice = picked();
+			hint.textContent = [HINTS[choice.ed], HINTS[choice.lang], HINTS[choice.abi]].filter(Boolean).join(' ');
+			form.querySelectorAll<HTMLInputElement>('input').forEach((input) => {
+				const other = assetFor({ ...choice, [input.name]: input.value });
+				const tag = input.parentElement!.querySelector('[data-size]')!;
+				tag.textContent = other ? mb(other.size) : '';
+			});
+			const apk = assetFor(choice);
+			if (apk) {
+				btn.href = apk.browser_download_url;
+				btn.textContent = `Download (${mb(apk.size)})`;
+			}
+		}
+		form.addEventListener('change', update);
+		form.addEventListener('submit', (e) => e.preventDefault());
+		update();
+
 		function findApk() {
 			if (apkLooked) return;
 			apkLooked = true;
-			const btn = dialog!.querySelector<HTMLAnchorElement>('#wm-inst-apk');
-			if (!btn) return;
 			fetch(RELEASE_API, { headers: { Accept: 'application/vnd.github+json' } })
 				.then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
 				.then((rel: { assets?: Asset[] }) => {
-					const apk = rel.assets?.find((a) => APK_PATTERN.test(a.name));
-					if (!apk) return;
-					btn.href = apk.browser_download_url;
-					btn.textContent = `Download (${Math.round(apk.size / 1e6)} MB)`;
+					assets = rel.assets ?? [];
+					update();
 				})
 				.catch(() => {
-					// Rate-limited or offline: the release page still works.
+					// Rate-limited or offline: the button still opens the release page.
 				});
 		}
 
@@ -396,6 +449,79 @@ const icon = (id: string) => BRAND_PATHS[id as keyof typeof BRAND_PATHS];
 		color: var(--sl-color-black);
 	}
 
+	.wm-inst-pick {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+	.wm-inst-pick fieldset {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		margin: 0;
+		padding: 0;
+		border: 0;
+	}
+	.wm-inst-pick legend {
+		float: left;
+		width: 3.6rem;
+		flex: none;
+		padding: 0;
+		color: var(--sl-color-gray-3);
+		font-size: var(--sl-text-xs);
+	}
+	.wm-inst-pick label {
+		flex: 1;
+		min-width: 0;
+	}
+	.wm-inst-pick input {
+		position: absolute;
+		opacity: 0;
+		pointer-events: none;
+	}
+	.wm-inst-pick span {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		min-height: 2.6rem;
+		padding: 0.25rem 0.4rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 10px;
+		color: var(--sl-color-gray-2);
+		font-size: var(--sl-text-sm);
+		font-weight: 600;
+		line-height: 1.2;
+		text-align: center;
+		white-space: nowrap;
+		cursor: pointer;
+		transition: border-color 120ms ease, background 120ms ease;
+	}
+	.wm-inst-pick small {
+		color: var(--sl-color-gray-3);
+		font-size: 0.7rem;
+		font-weight: 500;
+	}
+	.wm-inst-pick small:empty {
+		display: none;
+	}
+	.wm-inst-pick span:hover {
+		border-color: var(--sl-color-gray-4);
+	}
+	.wm-inst-pick input:checked + span {
+		border-color: var(--sl-color-accent);
+		background: var(--sl-color-accent-low);
+		color: var(--sl-color-white);
+	}
+	.wm-inst-pick input:focus-visible + span {
+		outline: 2px solid var(--sl-color-accent);
+		outline-offset: 2px;
+	}
+	.wm-inst-hint {
+		min-height: 1.5em;
+		color: var(--sl-color-gray-3);
+		font-size: var(--sl-text-xs);
+	}
 	.wm-inst-how summary {
 		cursor: pointer;
 		color: var(--sl-color-gray-2);
