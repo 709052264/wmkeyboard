@@ -398,6 +398,7 @@ object BuiltinIcons {
         "Timer" to { Icons.Outlined.Timer },
         "TimerOff" to { Icons.Outlined.TimerOff },
         "TouchApp" to { Icons.Outlined.TouchApp },
+        "TrackpadInput" to { SymbolIcons.TrackpadInput },
         "Translate" to { Icons.Outlined.Translate },
         "TravelExplore" to { Icons.Outlined.TravelExplore },
         "Tune" to { Icons.Outlined.Tune },
