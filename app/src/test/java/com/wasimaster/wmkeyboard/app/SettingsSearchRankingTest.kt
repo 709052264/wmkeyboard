@@ -101,7 +101,6 @@ class SettingsSearchRankingTest {
         screen("gestures", "typing/gestures"),
         screen("toolbar", "appearance/toolbar"),
         screen("dictionary", "dictionary"),
-        screen("fingerprint", "applock"),
         screen("storage", "storage"),
         screen("otp", "typing/codes"),
         // The tool's page, when only a tool is called that.
@@ -127,6 +126,11 @@ class SettingsSearchRankingTest {
         first("keyboard height", "layout_key_height_title"),
         first("backspace", "typing_backspace_swipe_title"),
         first("shift", "typing_shift_enter_title"),
+        // The screen is "App lock" now, so "fingerprint" reaches it through its
+        // search words only, and the permission row named exactly "Fingerprint"
+        // keeps its own name (see SettingsSearchKeywords). "Offer the fingerprint
+        // first" sits on the lock screen, so two of the first three open it.
+        screen("fingerprint", "applock"),
         first("otp", "typing_otp_chip_title"),
         first("codes", "typing_otp_chip_title"),
         first("suggestions", "typing_suggestions_title"),
