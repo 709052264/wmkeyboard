@@ -186,7 +186,7 @@
     <string name="search_kw_typing_inline_autofill">bitwarden 1password lastpass keepass credentials</string>
     <string name="search_kw_typing_inline_emoji_search">colon shortcode slack discord</string>
     <string name="search_kw_typing_language_detection">multilingual bilingual mixed</string>
-    <string name="search_kw_typing_letter_swipe_action">graffiti unistroke scribble</string>
+    <string name="search_kw_typing_letter_swipe_action">graffiti unistroke scribble slide select lift release wrong key precise</string>
     <string name="search_kw_typing_personal_dictionary">user saved remembered</string>
     <string name="search_kw_typing_shift_enter">newline linebreak carriage return</string>
     <string name="search_kw_typing_capital_flick">uppercase caps shift flick gesture gboard</string>

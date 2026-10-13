@@ -62,9 +62,9 @@ Chinese, Japanese and Korean have a **Handwriting** layout of their own, the way
 
 ## Handwriting without opening the panel
 
-<SettingsPath path="Typing / Gestures / Handwrite with swipes" />
+<SettingsPath path="Typing / Gestures / What a swipe does" />
 
-There's a second way to write by hand that doesn't need the panel at all. Turn on **Glide typing** and a **Handwrite with swipes** choice appears underneath it. Set that choice to "Handwrite". A swipe across the letter keys then draws a stroke on the keyboard itself instead of gliding a word. Recognition and insertion work exactly like the panel, and a plain tap still types its key. The default is "Type words", so this is off until you change it.
+There's a second way to write by hand that doesn't need the panel at all. Turn on **Glide typing** and a **What a swipe does** choice appears underneath it. Set that choice to "Handwrite". A swipe across the letter keys then draws a stroke on the keyboard itself instead of gliding a word. Recognition and insertion work exactly like the panel, and a plain tap still types its key. The default is "Type words", so this is off until you change it.
 
 Picking "Handwrite" swaps one set of options for another:
 
@@ -121,4 +121,4 @@ Whatever the Recognition pause slider is set to, handwriting in these languages 
 
 ## Why full only
 
-Digital ink recognition depends on `com.google.mlkit:digital-ink-recognition`. That library is compiled into the full build and left out of the lite build entirely, rather than hidden behind a toggle. So the Handwriting tool doesn't appear in the toolbar or toolbox on lite, and the "Handwrite with swipes" choice under Gesture typing is full-only too. See [Full vs Lite](/start/editions/) if you're deciding between builds.
+Digital ink recognition depends on `com.google.mlkit:digital-ink-recognition`. That library is compiled into the full build and left out of the lite build entirely, rather than hidden behind a toggle. So the Handwriting tool doesn't appear in the toolbar or toolbox on lite, and the "Handwrite" option of **What a swipe does** is full-only too. See [Full vs Lite](/start/editions/) if you're deciding between builds.

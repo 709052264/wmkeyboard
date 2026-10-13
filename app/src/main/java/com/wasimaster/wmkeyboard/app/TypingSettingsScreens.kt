@@ -1774,19 +1774,24 @@ internal fun TypingGesturesSettings(
                 default = SettingsDefaults.gestureTyping,
             ) { scope.launch { repository.setGestureTyping(it) } }
         }
-        // What a letter swipe does — glide a word or handwrite it. Full builds
-        // only (needs the ML Kit handwriting model), and only relevant once
-        // letter swipes are switched on above.
-        item(visible = BuildConfig.ENABLE_ML_KIT_HANDWRITING && glideOn) {
+        // What a letter swipe does — glide a word, handwrite it (full builds
+        // only: it needs the ML Kit handwriting model), or slide to one key and
+        // type it on the lift (#658). Only relevant once letter swipes are
+        // switched on above.
+        item(visible = glideOn) {
             ChoiceSetting(
                 title = R.string.typing_letter_swipe_action_title,
                 subtitle = stringResource(R.string.typing_letter_swipe_action_subtitle),
                 info = stringResource(R.string.typing_letter_swipe_action_info),
-                options = listOf(
+                options = listOfNotNull(
                     LetterSwipeAction.TYPE_WORDS to
                         stringResource(R.string.typing_letter_swipe_type_words_label),
-                    LetterSwipeAction.HANDWRITE to
-                        stringResource(R.string.typing_letter_swipe_handwrite_label),
+                    (
+                        LetterSwipeAction.HANDWRITE to
+                            stringResource(R.string.typing_letter_swipe_handwrite_label)
+                        ).takeIf { BuildConfig.ENABLE_ML_KIT_HANDWRITING },
+                    LetterSwipeAction.SELECT_KEY to
+                        stringResource(R.string.typing_letter_swipe_select_key_label),
                 ),
                 selected = swipeAction,
                 onChange = { scope.launch { repository.setLetterSwipeAction(it) } },
@@ -1794,10 +1799,10 @@ internal fun TypingGesturesSettings(
                 detail = { action ->
                     ChoiceDetail(
                         stringResource(
-                            if (action == LetterSwipeAction.HANDWRITE) {
-                                R.string.typing_letter_swipe_handwrite_desc
-                            } else {
-                                R.string.typing_letter_swipe_type_words_desc
+                            when (action) {
+                                LetterSwipeAction.HANDWRITE -> R.string.typing_letter_swipe_handwrite_desc
+                                LetterSwipeAction.SELECT_KEY -> R.string.typing_letter_swipe_select_key_desc
+                                LetterSwipeAction.TYPE_WORDS -> R.string.typing_letter_swipe_type_words_desc
                             },
                         ),
                     )
@@ -2025,7 +2030,9 @@ internal fun TypingGesturesSettings(
                     )
                 }
             }
-            item {
+            // A slide-to-select starts when the finger reaches another key,
+            // not at a distance.
+            item(visible = swipeAction != LetterSwipeAction.SELECT_KEY) {
                 val valueFormat = stringResource(R.string.typing_value_multiplier_suffix)
                 SliderSetting(
                     R.string.typing_swipe_start_distance_title,
@@ -2113,7 +2120,8 @@ internal fun TypingGesturesSettings(
         }
     }
     SettingsGroup(stringResource(R.string.typing_group_glide_trail_title)) {
-        if (glideOn) {
+        // A slide-to-select lights the key it is over and draws no trail.
+        if (glideOn && swipeAction != LetterSwipeAction.SELECT_KEY) {
             item {
                 val dpFormat = stringResource(R.string.typing_value_dp)
                 // Width and opacity are among the sizes a theme's "Layout for

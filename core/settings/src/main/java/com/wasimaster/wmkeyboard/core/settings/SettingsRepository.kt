@@ -1217,8 +1217,10 @@ enum class TransliterationHintMode { OFF, ADDED, CLUSTER }
  * What a swipe across the letter keys does. TYPE_WORDS is the classic glide
  * decoder; HANDWRITE turns the same swipe into a handwriting stroke fed to the
  * ML Kit recognizer (full builds only — needs a downloaded handwriting model).
+ * SELECT_KEY (#658) types one key per touch: the finger slides to the key it
+ * meant, lighting each key it is over, and the lift types only that one.
  */
-enum class LetterSwipeAction { TYPE_WORDS, HANDWRITE }
+enum class LetterSwipeAction { TYPE_WORDS, HANDWRITE, SELECT_KEY }
 
 /**
  * How full-screen handwriting tells ink from touches meant for the app

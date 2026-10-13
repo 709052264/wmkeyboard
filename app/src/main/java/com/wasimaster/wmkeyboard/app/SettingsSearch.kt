@@ -239,12 +239,9 @@ private fun SearchStrings.typingRows(): List<SettingsSearchEntry> {
         // are indexed once, in sectionRows, pointing straight at that screen: a
         // second entry that lands on Typing and flashes the row would be a
         // near-identical result one line below the useful one.
-        // Full builds only: the handwriting recognizer is an ML Kit feature.
-        if (BuildConfig.ENABLE_ML_KIT_HANDWRITING) {
-            row(R.string.typing_letter_swipe_action_title, R.string.typing_letter_swipe_action_subtitle)
-        } else {
-            null
-        },
+        // Every build: slide-to-select (#658) is there even without the ML
+        // Kit handwriting recognizer.
+        row(R.string.typing_letter_swipe_action_title, R.string.typing_letter_swipe_action_subtitle),
         // "Extra time for a dot or a cross" is left out on purpose: it is drawn
         // only while the letter swipe writes by hand, which is neither the
         // default nor a state a search result can put the screen into.

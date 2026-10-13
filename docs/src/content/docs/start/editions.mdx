@@ -31,7 +31,7 @@ There's no toggle to flip in Lite. The setting never renders at all. The same ch
 
 The document scanner has a second condition on top of the flavor. It's an activity inside Google Play services rather than this app's own code, so the same check drops it on a Full build running on a phone without Play services. Text scan and QR scanning stay on such a phone, because their models are in the APK.
 
-Handwriting carries one nuance of its own. Even on Full, its "Handwrite with swipes" option (draw letters instead of gliding) appears only once you've turned on gesture typing, because handwriting a swipe needs the same recognition model.
+Handwriting carries one nuance of its own. Even on Full, its "Handwrite" option under **What a swipe does** (draw letters instead of gliding) is Full-only, because handwriting a swipe needs the same recognition model. The choice itself appears once you've turned on gesture typing, and Lite still offers its other two options.
 
 <PhoneFrame caption="The same panel on a Lite build: those four tiles are gone, not grayed out.">
   {/* shot: start/editions-toolbox-lite */}

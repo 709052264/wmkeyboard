@@ -20606,6 +20606,8 @@ open class WMKeyboardService : InputMethodService() {
     private fun glideWordListOffer(languageId: String): LanguageDef? {
         val state = _uiState.value
         if (!state.settings.gestureTyping || state.language.id != languageId) return null
+        // Slide-to-select (#658) types single keys; no word list is involved.
+        if (state.settings.letterSwipeAction == LetterSwipeAction.SELECT_KEY) return null
         // Nothing to download for a language whose list is in the APK, so the
         // chip would open a page with nothing on it to press. Its words being
         // missing all the same means the list was switched off ("Only my word

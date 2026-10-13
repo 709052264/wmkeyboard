@@ -367,6 +367,7 @@ internal object ChoiceOptionIcons {
 
         put(LetterSwipeAction.TYPE_WORDS) { Icons.Outlined.Gesture }
         put(LetterSwipeAction.HANDWRITE) { Icons.Outlined.Draw }
+        put(LetterSwipeAction.SELECT_KEY) { Icons.Outlined.Abc }
 
         put(HandwritingFullScreenMode.MANUAL) { Icons.Outlined.TouchApp }
         put(HandwritingFullScreenMode.AUTOMATIC) { Icons.Outlined.Draw }

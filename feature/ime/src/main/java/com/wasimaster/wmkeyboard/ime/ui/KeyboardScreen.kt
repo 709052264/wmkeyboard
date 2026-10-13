@@ -13105,6 +13105,38 @@ private fun shiftChordPreview(source: Key?, target: Key, cell: Rect, enabled: Bo
 }
 
 /**
+ * Whether a drag off this key is a slide-to-select (#658) when that mode is
+ * on: a key that types text, without flick arms of its own (those flick) and
+ * not the possessive key (whose swipe appends 's, #169).
+ */
+internal fun Key?.startsSlideSelect(possessiveChar: Char?): Boolean =
+    this != null && typesSlideSelected() && !hasFlicks() && !startsPossessiveSwipe(possessiveChar)
+
+/** A key a slide-to-select (#658) may land on: one that types text. */
+internal fun Key.typesSlideSelected(): Boolean =
+    action == KeyAction.Text || action is KeyAction.KeymanKey
+
+/**
+ * The bubble over the key a slide-to-select (#658) would type on lift, cased
+ * the way the board draws it. Null while key previews are off, the same
+ * switch a tap's bubble answers to, and for a key the lift would not type.
+ */
+private fun slideSelectPreview(target: Key, cell: Rect, enabled: Boolean, shift: ShiftState): KeyPreview? {
+    if (!enabled || !target.typesSlideSelected()) return null
+    val label = if (shift == ShiftState.OFF) {
+        target.label
+    } else {
+        target.shiftLabel ?: (target.output ?: target.label).uppercase()
+    }
+    return KeyPreview(
+        token = ChordPreviewToken,
+        label = label,
+        position = cell.topLeft,
+        size = IntSize(cell.width.roundToInt(), cell.height.roundToInt()),
+    )
+}
+
+/**
  * The layer a drag off [source] shows while the finger is down, or null when
  * that key is not one a drag can look through (issue #108).
  *
@@ -14907,6 +14939,14 @@ private fun KeyRows(
     // compare tapping against gliding, so the test's own switch stands in for
     // the keyboard-wide setting while it is up.
     val glideInTest = state.typingTestActive && state.settings.typingTest.glide
+    // Slide-to-select (#658): letter swipes neither glide nor draw. A drag off
+    // a text key lights the key under the finger and the lift types that one
+    // key, so a finger that landed on the wrong letter slides to the right one
+    // instead of typing it and deleting it. Every layer and every field, the
+    // keyboard's own included; a typing test whose glide option is on glides.
+    val slideSelect = state.settings.gestureTyping &&
+        state.settings.letterSwipeAction == LetterSwipeAction.SELECT_KEY &&
+        !state.layouts.handwriting && !glideInTest
     // Every other keyboard-owned field glides too (#161): the stroke spells a
     // word into that field's own buffer at its own caret, never into the app
     // behind the panel. `state.panel == PanelMode.NONE` used to be the whole
@@ -14914,7 +14954,7 @@ private fun KeyRows(
     val glideInCapture = state.captureTarget()?.takesWords == true &&
         state.captureTarget() != CaptureTarget.TYPING_TEST &&
         state.settings.gestureTyping
-    val gestureEnabled = !handwriteSwipe && !state.layouts.handwriting &&
+    val gestureEnabled = !handwriteSwipe && !slideSelect && !state.layouts.handwriting &&
         (
             glideInTest || glideInCapture ||
                 (state.settings.gestureTyping && state.panel == PanelMode.NONE)
@@ -15132,8 +15172,9 @@ private fun KeyRows(
     // With glide typing on, the stroke belongs to the glide loop, which asks
     // the same question at its own lift and calls the same function to answer
     // it. Only a board without glide needs its own flick detector.
+    // Slide-to-select owns every drag off a letter, flicks included.
     val octopusFlickHere = octopusSettings.enabled &&
-        octopusSettings.flickCommits && !gestureEnabled
+        octopusSettings.flickCommits && !gestureEnabled && !slideSelect
     val octopusArmed = octopusTapHere || octopusFlickHere
     // Whether the glide loop should hand short strokes on rather than dropping
     // them: true whenever a flick could be what is happening, glide or no.
@@ -15360,7 +15401,13 @@ private fun KeyRows(
             // the key it lifts on runs that letter's shortcut (copy on `c`),
             // the way Ctrl onto C would, and for the same reason it is claimed
             // here, first, before a glide can take it.
-            .pointerInput(stampedOnKey, trailMs, onGlobeShortcut) {
+            //
+            // Slide-to-select (#658) rides it too: a drag off a text key that
+            // reaches another key types the key it lifts on and nothing else.
+            // It waits for the finger to be over a different key rather than
+            // for the slop, so a wobble inside the key is still a tap, and an
+            // open alternates popup keeps the finger it was given.
+            .pointerInput(stampedOnKey, keyTapOnKey, trailMs, onGlobeShortcut, slideSelect, possessiveChar) {
                 awaitEachGesture {
                     val down = awaitFirstDown(
                         requireUnconsumed = false,
@@ -15368,7 +15415,8 @@ private fun KeyRows(
                     )
                     val source = liveRects.value.keyAt(down.position + boxOrigin)
                     val globe = source.startsGlobeDrag(globeDragLive.value)
-                    if (!source.startsChordDrag() && !globe) return@awaitEachGesture
+                    val slideSource = slideSelect && source.startsSlideSelect(possessiveChar)
+                    if (!source.startsChordDrag() && !globe && !slideSource) return@awaitEachGesture
                     // Issue #367: a held shift types capitals under the other
                     // fingers until it lifts. Not under caps lock, where every
                     // letter is a capital already and the tap that ends caps
@@ -15394,6 +15442,7 @@ private fun KeyRows(
                     fun fires(target: Key): Boolean = when {
                         target === source -> true
                         globe -> globeDragAction(target, letterActionsLive.value) != null
+                        slideSource -> target.typesSlideSelected()
                         mod != null -> chordKey(target, mod) != null
                         else -> shiftChordKey(target) != null
                     }
@@ -15415,15 +15464,22 @@ private fun KeyRows(
                                 // Consumed after typing under it too: the shift
                                 // key drops its press, so the lift does not also
                                 // arm shift for the letter after.
-                                if (dragging || shiftHold.typed) change.consume()
+                                if (dragging || (!slideSource && shiftHold.typed)) change.consume()
                                 break
+                            }
+                            // A slide starts once the finger is over another
+                            // key, and never out of the key's open popup.
+                            val starts = if (slideSource) {
+                                !alternatesGate.open &&
+                                    liveRects.value.keyAt(change.position + boxOrigin)
+                                        .let { it != null && it !== source }
+                            } else {
+                                (change.position - down.position).getDistance() > slop
                             }
                             // Once something was typed under the held shift, the
                             // shift finger drifting is a hand at work, not a
                             // chord drag towards the key it ends on.
-                            if (!dragging && !shiftHold.typed &&
-                                (change.position - down.position).getDistance() > slop
-                            ) {
+                            if (!dragging && (slideSource || !shiftHold.typed) && starts) {
                                 // A 🌐 held still long enough has opened the
                                 // language picker, and a drag from there is the
                                 // picker's: the key's own press is left as it is.
@@ -15431,18 +15487,21 @@ private fun KeyRows(
                                     return@awaitEachGesture
                                 }
                                 dragging = true
-                                trail.beginLine(anchor.x, anchor.y)
+                                // No band for a slide: the lit key is the answer.
+                                if (!slideSource) trail.beginLine(anchor.x, anchor.y)
                                 chordDrag.active = true
                                 chordDrag.shifted = source?.action == KeyAction.Shift
                             }
                             if (dragging) {
                                 change.consume()
-                                trail.add(
-                                    change.position.x,
-                                    change.position.y,
-                                    change.uptimeMillis,
-                                    trailMs,
-                                )
+                                if (!slideSource) {
+                                    trail.add(
+                                        change.position.x,
+                                        change.position.y,
+                                        change.uptimeMillis,
+                                        trailMs,
+                                    )
+                                }
                                 val rects = liveRects.value
                                 val now = rects.keyAt(change.position + boxOrigin)
                                 if (now !== over) {
@@ -15455,7 +15514,11 @@ private fun KeyRows(
                                     // the key the lift will type (#436). One token,
                                     // so moving on replaces it rather than stacking.
                                     val bubble = cell?.let {
-                                        shiftChordPreview(source, now, it, state.settings.popup.enabled)
+                                        if (slideSource) {
+                                            slideSelectPreview(now, it, state.settings.popup.enabled, liveShift.value)
+                                        } else {
+                                            shiftChordPreview(source, now, it, state.settings.popup.enabled)
+                                        }
                                     }
                                     if (bubble != null) keyPreview.press(bubble) else keyPreview.cancel(ChordPreviewToken)
                                 }
@@ -15467,15 +15530,22 @@ private fun KeyRows(
                         // under it was a slow tap, and fires the press it held
                         // back.
                         if (!dragging) {
-                            if (!shiftHold.typed) shiftHold.deferred?.let(stampedOnKey)
+                            // A slide that never left its key is the key's own
+                            // tap, and the held shift's deferred press is not
+                            // this finger's to fire.
+                            if (!slideSource && !shiftHold.typed) shiftHold.deferred?.let(stampedOnKey)
                             return@awaitEachGesture
                         }
-                        trail.release()
+                        if (!slideSource) trail.release()
                         val target = over
                         when {
                             // Lifted off the grid: the slide-away cancel every other
                             // key already has, and nothing fires.
                             target == null -> Unit
+                            // A slide types the key it lifts on as a tap would,
+                            // through the same route, so a held shift still
+                            // capitalises it (#367).
+                            slideSource -> if (fires(target)) keyTapOnKey(target)
                             // Wandered off and came back. The press was cancelled on
                             // the way out, so the tap it would have been is fired
                             // here rather than swallowed.
