@@ -59,8 +59,8 @@ Candidates from every source merge into one ranked list, and the sources don't c
 
 | Source | Weight |
 | --- | --- |
-| Bundled/downloaded dictionary | baseline |
-| Custom-imported dictionary | &times;100 |
+| Bundled/downloaded dictionary | baseline. A downloaded list counts words on a far bigger scale than the built-in one, so it's scaled down until its commonest word matches the built-in list's, keeping its own order |
+| Custom-imported dictionary | &times;100, or scaled down the same way if the list carries real word counts |
 | Secondary-language dictionary | &times;40, scaled 0.5&times;&ndash;2&times; by how much you actually mix that language in. A downloaded list with real word counts is capped lower, so its commonest word sits at half the primary's commonest and never buries a word you typed in full in your main language |
 | Your personal dictionary | &times;500 |
 | App names | &times;400 |

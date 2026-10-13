@@ -966,6 +966,46 @@ class SuggestionEngineTest {
         assertTrue("Italian still offered in $s", "visita" in s)
     }
 
+    @Test fun `english as a secondary still shows beside a downloaded primary`() {
+        // The reverse of #653: Italian primary downloaded with corpus counts,
+        // bundled English riding as the secondary at half its 0..10000 scale.
+        val italian = Trie().apply {
+            insert("di", 19_000_000)
+            insert("visita", 900_000)
+            insert("visitare", 400_000)
+        }
+        val english = Trie().apply {
+            insert("the", 10_000)
+            insert("visit", 2_000)
+        }
+        val e = SuggestionEngine(english, BengaliPhoneticIndex(emptyList()), UserLexicon(null)).apply {
+            englishSources = false
+            englishAsSecondary = true
+            primaryLanguageId = "it"
+            customDictionary = italian
+        }
+        val s = e.suggest("visit", previousWord = null)
+        assertTrue("English visit offered in $s", "visit" in s)
+    }
+
+    @Test fun `a downloaded primary list does not correct every word it lacks`() {
+        // #403: a Greek list with corpus counts in the millions read at its raw
+        // scale cleared the lone-candidate floor by ten nats, so any unknown
+        // word one slip from a rare listed one was replaced.
+        val greek = Trie().apply {
+            insert("kai", 19_000_000)
+            insert("einai", 10_000_000)
+            insert("kalimera", 5_000)
+        }
+        val e = SuggestionEngine(Trie(), BengaliPhoneticIndex(emptyList()), UserLexicon(null)).apply {
+            englishSources = false
+            primaryLanguageId = "el"
+            customDictionary = greek
+        }
+        assertNull("rare listed word must not fire unopposed", e.shouldAutocorrect("kalimeri"))
+        assertEquals("einai", e.shouldAutocorrect("eiani"))
+    }
+
     @Test fun `words the primary covers do not inflate a secondary`() {
         // "world" is a primary (English) word: committing it must count toward
         // the primary, leaving the untouched secondary damped below neutral —

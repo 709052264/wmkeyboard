@@ -213,7 +213,7 @@ class SuggestionEngine(
      * Dictionaries for the user's secondary languages, consulted alongside the
      * primary so a bilingual typist gets both without switching. Imported
      * freq-1 lists or downloaded ones with real counts, weighted below the
-     * primary (see [secondaryBaseWeight]); a word valid
+     * primary (see [SourceScales]); a word valid
      * in one is never autocorrected away. Each is tagged with its language id so
      * its share of the strip adapts to how much the user actually types it (see
      * [mixConfidence] / [recordUsage]).
@@ -798,52 +798,89 @@ class SuggestionEngine(
      * secondary language: the base [SECONDARY_ENGLISH_DIVISOR] scaled by how
      * much the user actually mixes English in. At the neutral (untrained)
      * confidence this is exactly `1 / SECONDARY_ENGLISH_DIVISOR`, matching the
-     * old fixed behaviour.
+     * old fixed behaviour. A downloaded English list is first brought down to
+     * the bundled one's scale (see [SourceScales]).
      */
     private fun englishSecondaryFactor(): Double =
-        mixConfidence.confidenceFor(EN) / SECONDARY_ENGLISH_DIVISOR * fieldFactorFor(EN)
+        sourceScales().english * mixConfidence.confidenceFor(EN) * fieldFactorFor(EN)
 
     /** Adaptive weight for a secondary language's imported list. */
     private fun secondaryWeightOf(langId: String): Double =
-        secondaryBaseWeight(langId) * mixConfidence.confidenceFor(langId) * fieldFactorFor(langId)
+        (sourceScales().secondary[langId] ?: SECONDARY_WORD_WEIGHT.toDouble()) *
+            mixConfidence.confidenceFor(langId) * fieldFactorFor(langId)
 
     /**
-     * The weight a secondary list starts from before the mix adapts it (#653).
+     * The multiplier each word list is read at, before the mix adapts it.
      *
-     * [SECONDARY_WORD_WEIGHT] lifts a flat freq-1 imported list into the
-     * primary's middle. A downloaded list is not flat: it carries real corpus
-     * counts, Italian's top words in the millions, and ×40 on top of that put
-     * `visita` and `visitare` over the English `visit` the user had typed in
-     * full. So the weight is capped where the secondary's commonest word lands
-     * at [SECONDARY_SCALE_SHARE] of the primary's commonest — the same
-     * fraction English gets when it is the secondary. A flat list never
-     * reaches the cap and keeps its old weight; with no primary list to
-     * measure against there is nothing to cap to.
+     * Every weight and threshold in this engine was tuned against the bundled
+     * English list, whose commonest word is [REFERENCE_TOP_FREQUENCY]: user
+     * words at ×500, contacts at ×3000, the lone-candidate autocorrect floor,
+     * a flat imported list lifted ×100 to mid-dictionary. A downloaded list is
+     * on another scale entirely. It carries corpus counts with its commonest
+     * word in the tens of millions, so read as is it outweighed everything
+     * else, and an unopposed correction cleared [SOLO_RUNNER_UP_SCORE] by ten
+     * nats whatever it reached: a Greek list corrected every word it did not
+     * know (#403). As a secondary language it put Italian `visita` over the
+     * English `visit` typed in full (#653).
+     *
+     * So any list whose commonest word, at its usual weight, lands above the
+     * reference is scaled down to land on it, which moves every word of it by
+     * the same amount in log space and keeps its own ranking intact. A list
+     * already on the reference scale, or a flat one, keeps exactly its old
+     * weight. Secondaries are put at [SECONDARY_SCALE_SHARE] of the primary's
+     * commonest word, English as a secondary at the same share of the
+     * reference, which is what the bundled list there always had.
      */
-    private fun secondaryBaseWeight(langId: String): Double {
+    private class SourceScales(
+        val active: Double,
+        val custom: Double,
+        val english: Double,
+        val secondary: Map<String, Double>,
+    )
+
+    private fun sourceScales(): SourceScales {
         val gen = generation.get()
-        secondaryBaseCache?.let { (cachedGen, weights) ->
-            if (cachedGen == gen) return weights[langId] ?: SECONDARY_WORD_WEIGHT.toDouble()
+        sourceScalesCache?.let { (cachedGen, scales) -> if (cachedGen == gen) return scales }
+        val activeTop = topFrequency(activeDictionary)
+        val customTop = topFrequency(customDictionary)
+        val active = scaledWeight(activeTop, 1.0, REFERENCE_TOP_FREQUENCY)
+        val custom = scaledWeight(customTop, CUSTOM_WORD_WEIGHT.toDouble(), REFERENCE_TOP_FREQUENCY)
+        val primaryTop = maxOf(activeTop * active, customTop * custom)
+            .takeIf { it > 0.0 } ?: REFERENCE_TOP_FREQUENCY
+        val english = if (englishAsSecondary && !englishSources) {
+            scaledWeight(
+                topFrequency(dictionary),
+                1.0 / SECONDARY_ENGLISH_DIVISOR,
+                REFERENCE_TOP_FREQUENCY / SECONDARY_ENGLISH_DIVISOR,
+            )
+        } else {
+            1.0 / SECONDARY_ENGLISH_DIVISOR
         }
-        val primaryTop = maxOf(
-            topFrequency(activeDictionary).toDouble(),
-            topFrequency(customDictionary).toDouble() * CUSTOM_WORD_WEIGHT,
-        )
-        val weights = HashMap<String, Double>(secondaryDictionaries.size * 2)
+        val secondary = HashMap<String, Double>(secondaryDictionaries.size * 2)
         for (t in secondaryDictionaries) {
-            val top = topFrequency(t.source)
-            weights[t.langId] = if (primaryTop <= 0.0 || top <= 0) {
-                SECONDARY_WORD_WEIGHT.toDouble()
-            } else {
-                minOf(SECONDARY_WORD_WEIGHT.toDouble(), primaryTop * SECONDARY_SCALE_SHARE / top)
-            }
+            secondary[t.langId] = scaledWeight(
+                topFrequency(t.source),
+                SECONDARY_WORD_WEIGHT.toDouble(),
+                primaryTop * SECONDARY_SCALE_SHARE,
+            )
         }
-        secondaryBaseCache = gen to weights
-        return weights[langId] ?: SECONDARY_WORD_WEIGHT.toDouble()
+        return SourceScales(active, custom, english, secondary)
+            .also { sourceScalesCache = gen to it }
     }
 
     @Volatile
-    private var secondaryBaseCache: Pair<Long, Map<String, Double>>? = null
+    private var sourceScalesCache: Pair<Long, SourceScales>? = null
+
+    /**
+     * [weight], lowered just enough that a list whose commonest word is [top]
+     * tops out at [target]. Never raised: a flat list stays where its weight
+     * puts it. The small tolerance keeps the bundled list, whose stored top
+     * is rounded by the file format, at exactly its old weight.
+     */
+    private fun scaledWeight(top: Int, weight: Double, target: Double): Double {
+        val effective = top * weight
+        return if (top <= 0 || effective <= target * SCALE_TOLERANCE) weight else target / top
+    }
 
     /** The highest frequency anywhere in [source]: its walkers' root bound. */
     private fun topFrequency(source: WordSource): Int =
@@ -1594,8 +1631,9 @@ class SuggestionEngine(
         // weights bit-identical to the pre-detection engine.
         val primaryShift = ln(fieldFactorFor(primaryLanguageId))
         if (onlyLang == null || onlyLang == primaryLanguageId) {
-            add(activeDictionary, primaryShift)
-            add(customDictionary, LOG_CUSTOM_WORD_WEIGHT + primaryShift)
+            val scales = sourceScales()
+            add(activeDictionary, ln(scales.active) + primaryShift)
+            add(customDictionary, ln(scales.custom) + primaryShift)
         }
         if (englishAsSecondary && !englishSources && (onlyLang == null || onlyLang == EN)) {
             val factor = englishSecondaryFactor()
@@ -1670,15 +1708,23 @@ class SuggestionEngine(
 
     /** Best frequency for a word across the primary, secondary and platform lists. */
     private fun dictionaryFrequencyOf(word: String): Int = maxOf(
-        activeDictionary.frequencyOf(word),
-        weighted(customDictionary.frequencyOf(word), CUSTOM_WORD_WEIGHT),
+        scaled(activeDictionary.frequencyOf(word), sourceScales().active),
+        scaled(customDictionary.frequencyOf(word), sourceScales().custom),
         weighted(systemDictionary.frequencyOf(word), USER_WORD_WEIGHT),
         secondaryEnglishFrequencyOf(word),
         secondaryDictionaries.maxOfOrNull {
-            (it.source.frequencyOf(word) * secondaryWeightOf(it.langId))
-                .coerceIn(0.0, Int.MAX_VALUE.toDouble()).toInt()
+            scaled(it.source.frequencyOf(word), secondaryWeightOf(it.langId))
         } ?: 0,
     )
+
+    /**
+     * Frequency × a fractional weight, clamped to the Int range. A listed word
+     * never scales down to 0, which callers read as "not in any list".
+     */
+    private fun scaled(frequency: Int, weight: Double): Int = when {
+        frequency <= 0 || weight <= 0.0 -> 0
+        else -> (frequency * weight).coerceIn(1.0, Int.MAX_VALUE.toDouble()).toInt()
+    }
 
     /**
      * Frequency × weight, widened to Long and clamped to the Int range.
@@ -1857,10 +1903,20 @@ class SuggestionEngine(
 
         /**
          * Where a secondary list with real frequencies tops out, as a share of
-         * the primary's commonest word (see [secondaryBaseWeight]). Half, like
+         * the primary's commonest word (see [SourceScales]). Half, like
          * English as a secondary at [SECONDARY_ENGLISH_DIVISOR].
          */
         private const val SECONDARY_SCALE_SHARE = 0.5
+
+        /**
+         * The commonest word's frequency in the bundled English list: the
+         * scale every weight here was tuned on, and the one a downloaded list
+         * is brought onto (see [SourceScales]).
+         */
+        private const val REFERENCE_TOP_FREQUENCY = 10_000.0
+
+        /** Slack above a target before a list counts as on another scale. */
+        private const val SCALE_TOLERANCE = 1.01
 
         /** English-as-secondary participates at a fraction of its real frequency. */
         private const val SECONDARY_ENGLISH_DIVISOR = 2
@@ -1968,7 +2024,6 @@ class SuggestionEngine(
 
         /** Log-space forms of the source weights, fed to the fuzzy walk. */
         private val LOG_USER_WORD_WEIGHT = ln(USER_WORD_WEIGHT.toDouble())
-        private val LOG_CUSTOM_WORD_WEIGHT = ln(CUSTOM_WORD_WEIGHT.toDouble())
 
         /**
          * Synthetic runner-up score when a correction has no competition at
@@ -2583,10 +2638,11 @@ class SuggestionEngine(
                 }
             }
         }
-        fold(1.0, activeDictionary.walkers())
+        val scales = sourceScales()
+        fold(scales.active, activeDictionary.walkers())
         fold(USER_WORD_WEIGHT.toDouble(), userLexicon.walkers())
         fold(USER_WORD_WEIGHT.toDouble(), systemDictionary.walkers())
-        fold(CUSTOM_WORD_WEIGHT.toDouble(), customDictionary.walkers())
+        fold(scales.custom, customDictionary.walkers())
         val max = tally.values.maxOrNull() ?: return emptyMap()
         if (max <= 0.0) return emptyMap()
         return tally.mapValues { (it.value / max).toFloat() }
