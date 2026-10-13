@@ -20,6 +20,13 @@
     <!-- Content description of the button that deletes a mode, and the label
          of the delete button at the end of the mode editor. -->
     <string name="modes_delete_action">Delete mode</string>
+    <!-- Row at the foot of the mode list, shown only while one or more of the
+         shipped modes is missing from it. -->
+    <string name="modes_restore_defaults_title">Restore built-in modes</string>
+    <plurals name="modes_restore_defaults_subtitle">
+        <item quantity="one">Brings back %1$s. Your own modes stay as they are</item>
+        <item quantity="other">Brings back %1$s. Your own modes stay as they are</item>
+    </plurals>
     <!-- The switch on a mode's row and at the top of its editor: the mode's
          own on/off, kept apart from deleting it (#152). -->
     <string name="modes_use_title">Use this mode</string>

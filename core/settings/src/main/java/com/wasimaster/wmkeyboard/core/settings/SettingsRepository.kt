@@ -18500,6 +18500,20 @@ class SettingsRepository(private val context: Context) {
         }
 
     /**
+     * Puts back every built-in mode that is missing from the stored list, as
+     * it ships, after the user's own modes. Modes still present are left
+     * exactly as they are, edits included.
+     */
+    suspend fun restoreMissingDefaultModes() =
+        editPrefs { prefs ->
+            val current = prefs[KEYBOARD_MODES]?.let { KeyboardModeCodec.decodeList(it) }
+                ?: DefaultKeyboardModes
+            prefs[KEYBOARD_MODES] = KeyboardModeCodec.encodeList(
+                current + KeyboardModeCodec.missingDefaults(current),
+            )
+        }
+
+    /**
      * Restores a built-in mode to the configuration it ships with (its entry
      * in [DefaultKeyboardModes]), discarding the user's edits to it. A no-op
      * for an id that was never a built-in — a user-created mode has no shipped

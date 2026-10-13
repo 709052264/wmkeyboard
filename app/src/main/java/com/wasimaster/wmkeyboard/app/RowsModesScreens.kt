@@ -97,6 +97,7 @@ import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.layoutAfterFancy
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
+import com.wasimaster.wmkeyboard.core.settings.KeyboardModeCodec
 import com.wasimaster.wmkeyboard.core.settings.DefaultKeyboardModes
 import com.wasimaster.wmkeyboard.core.settings.ManualModeDuration
 import com.wasimaster.wmkeyboard.core.settings.SymbolRowHeightRange
@@ -1404,6 +1405,12 @@ internal fun ModesSettings(
     // What decides which rows the groups hold; each row reads its own value.
     val modesOn = settings.watch { it.modesEnabled }
     val modeIds = settings.watch { s -> s.keyboardModes.map { it.id } }
+    // Deleted built-ins had no way back short of clearing the app's data,
+    // and a list that empties itself (an unreadable store) left the screen
+    // with nothing to tap at all.
+    val missing = settings.watch { s ->
+        KeyboardModeCodec.missingDefaults(s.keyboardModes).map { it.name }
+    }
     val deleteModeDesc = stringResource(R.string.modes_delete_action)
     // A mode is a screenful of bindings and overrides that took real effort to
     // set up, and the delete button sits on the row you tap to open it. Both
@@ -1507,6 +1514,20 @@ internal fun ModesSettings(
                     },
                     flightTo = modeEditRoute(mode.id),
                     onClick = { onNavigate(modeEditRoute(mode.id)) },
+                )
+            }
+        }
+        if (missing.isNotEmpty()) {
+            item {
+                WmRow(
+                    title = stringResource(R.string.modes_restore_defaults_title),
+                    subtitle = pluralStringResource(
+                        R.plurals.modes_restore_defaults_subtitle,
+                        missing.size,
+                        missing.joinToString(", "),
+                    ),
+                    leading = { Icon(Icons.Outlined.Refresh, contentDescription = null) },
+                    onClick = { scope.launch { repository.restoreMissingDefaultModes() } },
                 )
             }
         }

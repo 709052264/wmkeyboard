@@ -332,6 +332,27 @@ class KeyboardModeTest {
     }
 
     @Test
+    fun `one unreadable mode no longer takes the rest of the list with it`() {
+        val good = KeyboardModeCodec.encodeList(listOf(browser)).removeSurrounding("[", "]")
+        val json = "[{\"id\":\"broken\",\"emojiBarMode\":\"NOT_A_MODE\"},$good]"
+        assertEquals(listOf(browser.id), KeyboardModeCodec.decodeList(json).map { it.id })
+    }
+
+    @Test
+    fun `a store with nothing readable falls back to the shipped modes`() {
+        assertEquals(DefaultKeyboardModes, KeyboardModeCodec.decodeList("not json"))
+        assertEquals(DefaultKeyboardModes, KeyboardModeCodec.decodeList("[{\"name\":1}]"))
+        assertEquals(emptyList<KeyboardMode>(), KeyboardModeCodec.decodeList("[]"))
+    }
+
+    @Test
+    fun `missing defaults lists only the built-ins that are gone`() {
+        val kept = DefaultKeyboardModes.drop(2)
+        assertEquals(DefaultKeyboardModes.take(2), KeyboardModeCodec.missingDefaults(kept))
+        assertEquals(emptyList<KeyboardMode>(), KeyboardModeCodec.missingDefaults(DefaultKeyboardModes))
+    }
+
+    @Test
     fun `manual pick beats everything`() {
         assertEquals(
             "email",
