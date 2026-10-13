@@ -70,6 +70,8 @@
     <string name="core_theme_builtin_frost_wallpaper_label">Frost wallpaper</string>
     <!-- The light version of Frost. -->
     <string name="core_theme_builtin_frost_light_label">Frost light</string>
+    <!-- Dark glass with clear, lens-like keys (Apple's "liquid glass" look). -->
+    <string name="core_theme_builtin_frost_liquid_label">Frost liquid</string>
     <!-- Light theme, pale blue ice. -->
     <string name="core_theme_builtin_glacier_label">Glacier</string>
 

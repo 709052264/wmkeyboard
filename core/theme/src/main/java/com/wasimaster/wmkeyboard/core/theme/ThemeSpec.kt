@@ -1454,6 +1454,45 @@ private val FrostVariants: List<ThemeSpec> = listOf(
         keyCornerRadiusDp = 12,
         frost = FrostGlass.copy(fallbackOpacity = 0.95f),
     ),
+    // The author's own daily look, tuned on a CPH2481: liquid panes over the
+    // blurred app, a board barely there, a bright rim and no grain, the
+    // action keys a quieter pane than the letters and Enter a pale grey.
+    // Backdrop NONE: where the blur cannot run, the board goes near opaque
+    // rather than standing on the wallpaper.
+    ThemeSpec(
+        id = "builtin_frost_liquid",
+        name = "Frost liquid",
+        dark = true,
+        boardBackground = 0x27000000,
+        keyBackground = 0x2EFFFFFF,
+        keyText = 0xFFF4F7FF,
+        modifierKeyBackground = 0x1FFFFFFF,
+        enterKeyBackground = 0xE6CBCBCB,
+        enterKeyText = 0xFF0B1220,
+        pressedKeyBackground = 0x73FFFFFF,
+        accent = 0xFFCBCBCB,
+        popupBackground = 0x9A00172F,
+        popupText = 0xFFF4F7FF,
+        popupSelectedBackground = 0xFFCCCCCC,
+        toolCircleBackground = 0x2EFFFFFF,
+        chipBackground = 0x2EFFFFFF,
+        suggestionText = 0xFFF4F7FF,
+        keyGradient = GradientSpec(listOf(0x26FFFFFF, 0x00FFFFFF), GradientType.LINEAR, 90f),
+        keyCornerRadiusDp = 12,
+        frost = FrostGlass.copy(
+            windowBlurRadiusDp = 20,
+            fallbackOpacity = 0.96f,
+            backdrop = FrostBackdropSource.NONE.name,
+            backdropBlur = 5f,
+            saturation = 1.15f,
+            brightness = 0.03f,
+            rim = 0.71f,
+            grain = 0f,
+            style = FrostStyle.LIQUID.name,
+            refraction = 1f,
+            dispersion = 0.2f,
+        ),
+    ),
 )
 
 /**
@@ -1599,6 +1638,7 @@ private val BuiltInThemeNameRes: Map<String, Int> = mapOf(
     "builtin_frost" to R.string.core_theme_builtin_frost_label,
     "builtin_frost_wallpaper" to R.string.core_theme_builtin_frost_wallpaper_label,
     "builtin_frost_light" to R.string.core_theme_builtin_frost_light_label,
+    "builtin_frost_liquid" to R.string.core_theme_builtin_frost_liquid_label,
 ) + PaletteThemeNameRes
 
 /**

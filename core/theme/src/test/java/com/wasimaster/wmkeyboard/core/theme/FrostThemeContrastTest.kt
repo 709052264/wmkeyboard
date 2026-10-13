@@ -15,6 +15,8 @@ class FrostThemeContrastTest {
 
     private val frost = BuiltInThemes.first { it.id == "builtin_frost" }
 
+    private val thinBoards = setOf("builtin_frost", "builtin_frost_liquid")
+
     private fun channel(c: Long, shift: Int) = ((c ushr shift) and 0xFF) / 255.0
 
     private fun alpha(c: Long) = channel(c, 24)
@@ -66,9 +68,10 @@ class FrostThemeContrastTest {
                 check(theme, grey, null, "its wallpaper")
                 continue
             }
-            // Frost matches FrostKeys' thin board, which does not read over a
-            // white app under a live blur and is not asked to (see FrostTheme).
-            if (theme.id != "builtin_frost") check(theme, white, null, "white, blurred")
+            // Frost matches FrostKeys' thin board, and Frost liquid's is thinner
+            // still; neither reads over a white app under a live blur and
+            // neither is asked to (see FrostTheme).
+            if (theme.id !in thinBoards) check(theme, white, null, "white, blurred")
             check(theme, black, null, "black, blurred")
             check(theme, white, glass.fallbackOpacity, "white, no blur")
             check(theme, black, glass.fallbackOpacity, "black, no blur")
@@ -90,11 +93,12 @@ class FrostThemeContrastTest {
     @Test
     fun `the family is what the gallery promises`() {
         val looks = frost.selfAndVariants().associateBy { it.id }
-        assertTrue(looks.keys.containsAll(listOf("builtin_frost", "builtin_frost_wallpaper", "builtin_frost_light")))
+        assertTrue(looks.keys.containsAll(listOf("builtin_frost", "builtin_frost_wallpaper", "builtin_frost_light", "builtin_frost_liquid")))
         assertTrue(looks.getValue("builtin_frost").frost?.windowBlur == true)
         assertTrue(looks.getValue("builtin_frost_wallpaper").frost?.windowBlur == false)
         assertTrue(looks.getValue("builtin_frost_wallpaper").frost?.backdropSource == FrostBackdropSource.WALLPAPER)
         assertTrue(!looks.getValue("builtin_frost_light").dark)
         assertTrue(looks.getValue("builtin_frost_light").frost?.windowBlur == true)
+        assertTrue(looks.getValue("builtin_frost_liquid").frost?.glassStyle == FrostStyle.LIQUID)
     }
 }
