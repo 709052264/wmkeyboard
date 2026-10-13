@@ -146,7 +146,6 @@
   {"title":"Statistics","name":"ime_tool_statistics","route":"tool/STATISTICS","screens":["Tools"],"screen":true,"description":"Open your typing statistics: your level, achievements and where you tap"},
   {"title":"Find & replace","name":"ime_tool_find_replace","route":"tool/FIND_REPLACE","screens":["Tools"],"screen":true,"description":"Search the text you are writing and replace matches, with match case, whole word and regular expressions"},
   {"title":"Notes","name":"ime_tool_notes","route":"tool/NOTES","screens":["Tools"],"screen":true,"description":"Write and keep notes in the keyboard, with tags, checklists, pins and a trash"},
-  {"title":"Recent copies","name":"fonts_tool_recent_copies_title","route":"tool/RECENT_COPIES","screens":["Tools"],"screen":true,"description":"Show your latest copies in a row on the suggestion strip, until you type"},
   {"title":"AI reply","name":"ime_tool_ai_reply","route":"tool/AI_REPLY","screens":["Tools"],"screen":true,"description":"Draft a reply to what somebody sent you. Paste their message, pick a screenshot of the chat, and choose a tone"},
   {"title":"Location","name":"ime_tool_location","route":"tool/LOCATION","screens":["Tools"],"screen":true,"description":"Put your position or a saved place into the text as a map link, an address or coordinates"},
   {"title":"Installed fonts","name":"fonts_installed_header","route":"fonts","screens":["Appearance","Keyboard font"],"screen":false},
