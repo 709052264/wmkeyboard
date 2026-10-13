@@ -6891,6 +6891,7 @@ open class WMKeyboardService : InputMethodService() {
         val (autofillBudget, platformBudget) = inlineChipBudgets()
         if (autofillBudget + platformBudget == 0) return false
         if (response.inlineSuggestions.isEmpty()) onInlineChipsWithdrawn()
+        val generation = ++inlineResponseGeneration
         val lanes = InlineAutofill.split(
             suggestions = response.inlineSuggestions,
             autofillBudget = autofillBudget,
@@ -6900,12 +6901,25 @@ open class WMKeyboardService : InputMethodService() {
             context = inlineChipContext(),
             lanes = lanes,
         ) { chips ->
+            // Inflation is remote and asynchronous, so an older response can
+            // finish after a newer one — or after the chips were dismissed or
+            // the field was left. Only the latest answer may reach the strip;
+            // a late one would put back chips the platform already withdrew,
+            // whose surfaces are dead and draw blank (#398).
+            if (generation != inlineResponseGeneration) return@inflateAll
             _uiState.update {
                 it.copy(autofillChips = chips.autofill, smartReplyChips = chips.platform)
             }
         }
         return true
     }
+
+    /**
+     * Bumped by every inline response and every local withdrawal of the chips,
+     * so an inflation still in flight can tell it has been overtaken. Main
+     * thread only: responses and inflate callbacks both arrive there.
+     */
+    private var inlineResponseGeneration = 0
 
     /**
      * When the keyboard last did something that can make the platform filter
@@ -7015,6 +7029,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onDismissInlineSuggestions() {
         vibrate()
+        inlineResponseGeneration++
         _uiState.update { it.copy(autofillChips = emptyList(), smartReplyChips = emptyList()) }
     }
 
@@ -7171,7 +7186,8 @@ open class WMKeyboardService : InputMethodService() {
         stopPlugins()
         // Credentials — and replies to the conversation — for the field just
         // left must not linger over the next one, which may belong to another
-        // app entirely.
+        // app entirely. Nor may an inflation still running for it land later.
+        inlineResponseGeneration++
         if (_uiState.value.autofillChips.isNotEmpty() ||
             _uiState.value.smartReplyChips.isNotEmpty()
         ) {
