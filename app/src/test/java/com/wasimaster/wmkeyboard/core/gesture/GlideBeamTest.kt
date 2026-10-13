@@ -298,8 +298,8 @@ class GlideBeamTest {
         // stroke as how the user draws "good" makes "good" the reading. A
         // perfect trace would not do: its ideal distance is already nothing,
         // and a learned shape can only ever bring a word nearer than that.
-        // The test also pins that the store's shape is the shape channel's
-        // own normalisation of the stroke: distance zero to itself.
+        // The test also pins that the store keeps the stroke as the decoder
+        // resampled it: distance zero to itself.
         val stroke = gestureFor("god", jitter = 14f)
         val shape = beam.sampleShape(stroke, keyWidth, workspace) ?: error("too short")
         val store = GlideShapeStore(null)

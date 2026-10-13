@@ -173,6 +173,10 @@ class GlideWorkspace {
     val idealShapeX = FloatArray(SAMPLE_POINTS)
     val idealShapeY = FloatArray(SAMPLE_POINTS)
 
+    /** A learned shape of a candidate word, normalised like the drawn one. */
+    val learnedShapeX = FloatArray(SAMPLE_POINTS)
+    val learnedShapeY = FloatArray(SAMPLE_POINTS)
+
     /** A candidate word's key centres, before resampling. */
     val idealX = FloatArray(MAX_IDEAL_POINTS)
     val idealY = FloatArray(MAX_IDEAL_POINTS)

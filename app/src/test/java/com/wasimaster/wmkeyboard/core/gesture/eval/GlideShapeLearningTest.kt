@@ -40,7 +40,10 @@ import org.junit.Test
  *
  * Measured 2026-09-08 at seed 42, 400 typical words drawn twice: top-1 on
  * the second draw .9150 without the shapes, .9375 with them; 280 words the
- * hand never drew, decoded against the full store, .9000 either way. The
+ * hand never drew, decoded against the full store, .9000 either way.
+ * Re-measured 2026-10-13 after the store moved to key-width shapes and the
+ * shape channel learned to normalise them before comparing: .9175 to .9375
+ * on the second draw, .8964 either way on the words never drawn. The
  * decode itself costs the same with a thousand-word store as without one
  * (`GestureLatencyBench`).
  */

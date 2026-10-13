@@ -14,11 +14,18 @@ import kotlin.math.sqrt
  */
 interface GlideShapeSource {
     /**
-     * How far [drawn] sits from the nearest shape stored for [word], in the
-     * same mean-distance units as the decoder's shape channel, or -1 when the
-     * word has none here.
+     * How far [drawn] sits from the nearest shape stored for [word], as a
+     * mean distance in key widths, or -1 when the word has none here.
      */
     fun minDistance(word: String, drawn: ByteArray): Float
+
+    /**
+     * The shapes stored for [word], in key-width coordinates times
+     * [GlideShapeStore.QUANT], empty when it has none here. The decoder's
+     * shape channel compares them after taking their position and size out,
+     * the way it does the drawn stroke.
+     */
+    fun shapesOf(word: String): List<ByteArray>
 
     /** Words with a stored shape within [radius] of [drawn], nearest first, at most [limit] of them. */
     fun wordsNear(drawn: ByteArray, radius: Float, limit: Int): List<String>
@@ -40,9 +47,11 @@ class GlideShapeSample(val layoutKey: Long, val shape: ByteArray)
  * to go on, and a real hand never draws it: it cuts corners its own way,
  * overshoots one key and undershoots the next, and does so the same way
  * every time. Swype kept the user's own strokes for exactly this reason. A
- * shape here is a stroke resampled and normalised the way the shape channel
- * normalises the drawn one — centred, scaled to unit spread — and quantised
- * to a byte a coordinate, so a word's whole record is a few hundred bytes.
+ * shape here is a stroke resampled the way the decoder resamples one, kept
+ * in key-width coordinates so where it starts still counts for merging and
+ * seeding, and quantised to a byte a coordinate, so a word's whole record is
+ * a few hundred bytes. The shape channel normalises it like the drawn
+ * stroke — centred, scaled to unit spread — before comparing the two.
  *
  * **Graduated, never taken at commit.** A shape is attached to the word in
  * the learning buffer and lands here only when the word settles: a glide the
@@ -102,6 +111,11 @@ class GlideShapeStore(private val storageFile: File?) {
                 if (d < best) best = d
             }
             return if (best == Float.MAX_VALUE) -1f else best
+        }
+
+        override fun shapesOf(word: String): List<ByteArray> {
+            val indices = byWord[WordKey.of(word)] ?: return emptyList()
+            return indices.map { shapes[it] }
         }
 
         override fun wordsNear(drawn: ByteArray, radius: Float, limit: Int): List<String> {
