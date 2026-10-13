@@ -5382,7 +5382,7 @@
     "id": "reference/settings/app-lock-screen",
     "page": "docs/src/content/docs/reference/settings/app-lock.mdx",
     "file": "src/assets/screens/reference/settings/app-lock-screen.light.webp",
-    "caption": "The Fingerprint lock screen: the master switch, then the screens, the delete buttons and the behaviour groups.",
+    "caption": "The App lock screen: the master switch, then the screens, the delete buttons and the behaviour groups.",
     "host": "settings",
     "setup": [],
     "status": "done",

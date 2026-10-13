@@ -64,6 +64,16 @@ internal object AppLockSession {
      */
     var prompting: String? by mutableStateOf(null)
 
+    /**
+     * Whether the app's own PIN, password or pattern sheet is up. Here and not
+     * on the lock object for the same reason as [prompting]: a rotation must
+     * bring the sheet back, answering to the rebuilt activity.
+     */
+    var secretEntry: Boolean by mutableStateOf(false)
+
+    /** Which system sheet is up for the current check, if any. */
+    var sheet: SystemSheet? = null
+
     /** Whether a past check still counts under [policy]. */
     fun isOpen(policy: AppLockRelock, now: Long): Boolean {
         val at = grantedAt ?: return false
@@ -120,4 +130,16 @@ internal object AppLockSession {
     }
 
     private const val MINUTE_MS = 60_000L
+}
+
+/** Why the system prompt is on screen. */
+internal enum class SystemSheet {
+    /** The fingerprint method itself. */
+    MAIN,
+
+    /** The fingerprint offered ahead of the app's own secret. Backing out of it falls through to the secret. */
+    SHORTCUT,
+
+    /** "Forgot?" on the secret sheet: the phone's own lock stands in for the app's. */
+    RECOVERY,
 }

@@ -149,8 +149,15 @@ object SettingsBackup {
         "hf_token",
         "photo_unsplash_key",
         "photo_pexels_key",
+        // A hash, not the PIN itself, but a four-digit PIN falls to a brute
+        // force of its hash in minutes. Left behind, the lock reads as the
+        // fingerprint on the new phone; see AppLockSettings.secret.
+        APP_LOCK_SECRET,
         AUTO_BACKUP_LOCATIONS,
     )
+
+    /** The app lock's stored PIN, password or pattern hash. */
+    const val APP_LOCK_SECRET = "app_lock_secret"
 
     /**
      * Custom themes are stored as one JSON string preference. The full-config

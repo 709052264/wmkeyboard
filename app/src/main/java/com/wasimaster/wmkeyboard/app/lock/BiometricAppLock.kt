@@ -14,13 +14,33 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.settings.AppLockDefaults
 import com.wasimaster.wmkeyboard.core.settings.AppLockSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.AppLockMethod
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+/** How an answer on the app's own sheet went. */
+internal sealed interface SecretAnswer {
+    data object Right : SecretAnswer
+
+    /** Wrong. [waitMs] is the wait this miss started, or 0. */
+    data class Wrong(val waitMs: Long) : SecretAnswer
+
+    /** Not checked: an earlier run of misses still has [waitMs] to go. */
+    data class Wait(val waitMs: Long) : SecretAnswer
+}
 
 /**
- * The real lock: `androidx.biometric` in front of the settings the user chose.
+ * The real lock: `androidx.biometric` in front of the settings the user chose,
+ * or the app's own PIN, password or pattern when the user picked one of those.
+ *
+ * Both kinds of check go through the same [show]/[finish] pair, so the session
+ * rules in [AppLockSession] do not care which one answered. The app's own
+ * sheet is drawn by [AppLockSecretPrompt], which reads
+ * [AppLockSession.secretEntry] and answers through [submitSecret].
  *
  * **Construct this from `onCreate`, before `setContent`.** The library keeps
  * its prompt in a retained fragment, and building the [BiometricPrompt] while
@@ -46,7 +66,12 @@ internal class BiometricAppLock(
     private val _config = MutableStateFlow<AppLockSettings?>(null)
     override val config: StateFlow<AppLockSettings?> = _config.asStateFlow()
 
+    private val _biometric = MutableStateFlow(AppLockStatus.NO_HARDWARE)
+    override val biometric: StateFlow<AppLockStatus> = _biometric.asStateFlow()
+
     private val biometricManager = BiometricManager.from(activity)
+
+    private val throttle = AppLockThrottle(activity)
 
     /**
      * Where the current prompt reports to.
@@ -63,10 +88,31 @@ internal class BiometricAppLock(
         object : BiometricPrompt.AuthenticationCallback() {
 
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                // The phone's own lock vouched for the user who forgot the
+                // app's: the run of misses on the app's sheet is over too.
+                if (AppLockSession.sheet == SystemSheet.RECOVERY) throttle.reset()
                 finish(AppLockResult.SUCCESS)
             }
 
             override fun onAuthenticationError(code: Int, message: CharSequence) {
+                val sheet = AppLockSession.sheet
+                if (sheet == SystemSheet.SHORTCUT || sheet == SystemSheet.RECOVERY) {
+                    AppLockSession.sheet = null
+                    // Backing out of the fingerprint offered ahead of the
+                    // app's secret is backing out of the check. Everything
+                    // else there — the "Use PIN" button, a lockout, a sensor
+                    // that went away — and anything at all on the recovery
+                    // sheet falls through to the app's own sheet, which can
+                    // always answer.
+                    val backedOut = code == BiometricPrompt.ERROR_USER_CANCELED ||
+                        code == BiometricPrompt.ERROR_CANCELED
+                    if (sheet == SystemSheet.SHORTCUT && backedOut) {
+                        finish(AppLockResult.CANCELLED)
+                    } else {
+                        AppLockSession.secretEntry = true
+                    }
+                    return
+                }
                 // These three say the capability changed underneath us: the
                 // last fingerprint was removed, the screen lock was cleared,
                 // the reader went away. Re-read it, so the next gate fails
@@ -105,8 +151,14 @@ internal class BiometricAppLock(
                     // the answer to "can this phone do it" can change while
                     // the app is away.
                     Lifecycle.Event.ON_RESUME -> refresh()
-                    Lifecycle.Event.ON_STOP ->
+                    Lifecycle.Event.ON_STOP -> {
+                        // The app's sheet goes when the app does, the way the
+                        // system prompt cancels itself; a rotation keeps it.
+                        if (AppLockSession.secretEntry && !activity.isChangingConfigurations) {
+                            finish(AppLockResult.CANCELLED)
+                        }
                         AppLockSession.onStopped(_config.value?.relock ?: AppLockDefaults.relock)
+                    }
 
                     else -> Unit
                 }
@@ -115,9 +167,22 @@ internal class BiometricAppLock(
     }
 
     override fun refresh() {
-        val allowCredential = _config.value?.allowDeviceCredential
-            ?: AppLockDefaults.allowDeviceCredential
-        _status.value = when (biometricManager.canAuthenticate(authenticators(allowCredential))) {
+        val cfg = _config.value
+        if (cfg?.usesSecret == true) {
+            // The app can always ask for its own secret, so the gates never
+            // stand aside for want of a sensor. The fingerprint is only the
+            // shortcut here, and asked about on its own.
+            _biometric.value = statusFor(Authenticators.BIOMETRIC_WEAK)
+            _status.value = AppLockStatus.READY
+        } else {
+            val allowCredential = cfg?.allowDeviceCredential ?: AppLockDefaults.allowDeviceCredential
+            _status.value = statusFor(authenticators(allowCredential))
+            _biometric.value = _status.value
+        }
+    }
+
+    private fun statusFor(authenticators: Int): AppLockStatus =
+        when (biometricManager.canAuthenticate(authenticators)) {
             BiometricManager.BIOMETRIC_SUCCESS -> AppLockStatus.READY
             BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> AppLockStatus.NOT_ENROLLED
             BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE,
@@ -126,6 +191,71 @@ internal class BiometricAppLock(
 
             else -> AppLockStatus.TEMPORARILY_UNAVAILABLE
         }
+
+    /** The method the open sheet is asking for, for its wording. */
+    val secretMethod: AppLockMethod
+        get() = _config.value?.method ?: AppLockDefaults.method
+
+    /** Whether the app's sheet can offer the fingerprint, right now. */
+    fun canUseFingerprint(): Boolean = statusFor(Authenticators.BIOMETRIC_WEAK) == AppLockStatus.READY
+
+    /**
+     * Whether "Forgot?" has anything to hand over to: a fingerprint, or the
+     * phone's own screen lock when the user allows it.
+     */
+    fun canRecover(): Boolean {
+        val allowCredential = _config.value?.allowDeviceCredential ?: AppLockDefaults.allowDeviceCredential
+        return statusFor(authenticators(allowCredential)) == AppLockStatus.READY
+    }
+
+    /** Milliseconds before the app's sheet will take another answer. */
+    fun waitMs(): Long = throttle.remainingMs()
+
+    /**
+     * Checks [input] against the stored secret, and ends the check on a match.
+     * Call from the main thread; the hashing itself runs off it.
+     */
+    suspend fun submitSecret(input: String): SecretAnswer {
+        val wait = throttle.remainingMs()
+        if (wait > 0) return SecretAnswer.Wait(wait)
+        val stored = _config.value?.secret
+        if (stored == null) {
+            // The secret went away under an open sheet: the method was changed
+            // somewhere else. Nothing can be checked, so nothing is granted.
+            finish(AppLockResult.CANCELLED)
+            return SecretAnswer.Wrong(0)
+        }
+        val right = withContext(Dispatchers.Default) { AppLockSecret.verify(input, stored) }
+        if (!AppLockSession.secretEntry) return SecretAnswer.Wrong(0)
+        return if (right) {
+            throttle.reset()
+            finish(AppLockResult.SUCCESS)
+            SecretAnswer.Right
+        } else {
+            SecretAnswer.Wrong(throttle.fail())
+        }
+    }
+
+    /** The app's sheet was dismissed. */
+    fun cancelSecret() {
+        if (AppLockSession.secretEntry) finish(AppLockResult.CANCELLED)
+    }
+
+    /** "Use fingerprint" on the app's sheet. */
+    fun switchToFingerprint() {
+        AppLockSession.secretEntry = false
+        showSheet(SystemSheet.SHORTCUT)
+    }
+
+    /** "Forgot?" on the app's sheet: let the phone's own lock answer instead. */
+    fun recover() {
+        AppLockSession.secretEntry = false
+        showSheet(SystemSheet.RECOVERY)
+    }
+
+    private fun showSheet(sheet: SystemSheet) {
+        AppLockSession.sheet = sheet
+        prompt.authenticate(promptInfo(sheet))
     }
 
     override fun isLocked(target: LockTarget): Boolean {
@@ -174,7 +304,12 @@ internal class BiometricAppLock(
         }
         pending = onResult
         AppLockSession.prompting = id
-        prompt.authenticate(promptInfo())
+        val cfg = _config.value
+        when {
+            cfg?.usesSecret != true -> showSheet(SystemSheet.MAIN)
+            cfg.biometricShortcut && canUseFingerprint() -> showSheet(SystemSheet.SHORTCUT)
+            else -> AppLockSession.secretEntry = true
+        }
     }
 
     private fun finish(result: AppLockResult) {
@@ -182,6 +317,8 @@ internal class BiometricAppLock(
         val id = AppLockSession.prompting
         pending = null
         AppLockSession.prompting = null
+        AppLockSession.secretEntry = false
+        AppLockSession.sheet = null
         // Open the session off the id the prompt was raised for, not off the
         // callback. A rotation destroys this object while the sheet is still
         // up; the retained fragment then reports to the *new* instance, whose
@@ -207,12 +344,23 @@ internal class BiometricAppLock(
         callback?.invoke(result)
     }
 
-    private fun promptInfo(): BiometricPrompt.PromptInfo {
-        val allowCredential = _config.value?.allowDeviceCredential
-            ?: AppLockDefaults.allowDeviceCredential
+    private fun promptInfo(sheet: SystemSheet): BiometricPrompt.PromptInfo {
+        // The shortcut is the fingerprint alone: the phone's screen lock is
+        // not the answer the user picked, and its negative button is the way
+        // to the one they did.
+        val allowCredential = sheet != SystemSheet.SHORTCUT &&
+            (_config.value?.allowDeviceCredential ?: AppLockDefaults.allowDeviceCredential)
         return BiometricPrompt.PromptInfo.Builder()
             .setTitle(activity.getString(R.string.privacy_lock_prompt_title))
-            .setSubtitle(activity.getString(R.string.privacy_lock_prompt_subtitle))
+            .setSubtitle(
+                activity.getString(
+                    if (sheet == SystemSheet.RECOVERY) {
+                        R.string.privacy_lock_prompt_recover_subtitle
+                    } else {
+                        R.string.privacy_lock_prompt_subtitle
+                    },
+                ),
+            )
             .setAllowedAuthenticators(authenticators(allowCredential))
             .apply {
                 // The builder rejects a negative button when the screen lock
@@ -222,7 +370,13 @@ internal class BiometricAppLock(
                 // on the API level.
                 if (!allowCredential) {
                     setNegativeButtonText(
-                        activity.getString(com.wasimaster.wmkeyboard.common.R.string.common_cancel),
+                        activity.getString(
+                            if (sheet == SystemSheet.SHORTCUT) {
+                                useSecretLabel(secretMethod)
+                            } else {
+                                com.wasimaster.wmkeyboard.common.R.string.common_cancel
+                            },
+                        ),
                     )
                 }
             }
@@ -250,6 +404,12 @@ internal class BiometricAppLock(
         fun authenticators(allowCredential: Boolean): Int =
             if (allowCredential) Authenticators.BIOMETRIC_WEAK or Authenticators.DEVICE_CREDENTIAL
             else Authenticators.BIOMETRIC_WEAK
+
+        fun useSecretLabel(method: AppLockMethod): Int = when (method) {
+            AppLockMethod.PASSWORD -> R.string.privacy_lock_use_password
+            AppLockMethod.PATTERN -> R.string.privacy_lock_use_pattern
+            else -> R.string.privacy_lock_use_pin
+        }
 
         fun resultFor(code: Int): AppLockResult = when (code) {
             BiometricPrompt.ERROR_NEGATIVE_BUTTON,

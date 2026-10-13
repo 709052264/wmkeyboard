@@ -1,9 +1,10 @@
 package com.wasimaster.wmkeyboard.core.settings
 
 /**
- * The settings app's optional fingerprint lock: which of its screens and
- * destructive actions ask for a fingerprint first, and how long one check
- * lasts.
+ * The settings app's optional lock: which of its screens and destructive
+ * actions ask for a check first, what answers that check (a fingerprint and
+ * the phone's own screen lock, or a PIN, password or pattern set in this app),
+ * and how long one check lasts.
  *
  * **This is a lock on the user interface, not encryption.** Nothing it hides
  * is stored differently; a settings export, Android's own backup, `adb` with
@@ -53,7 +54,51 @@ data class AppLockSettings(
      * reader has broken or that never had one.
      */
     val allowDeviceCredential: Boolean = true,
-)
+    /**
+     * What the check asks for. [AppLockMethod.BIOMETRIC] hands it to the
+     * system prompt; the other three ask for [secret] in the app's own sheet.
+     */
+    val method: AppLockMethod = AppLockMethod.BIOMETRIC,
+    /**
+     * The app's own PIN, password or pattern, as a salted PBKDF2 hash —
+     * never the secret itself. Null until one is set.
+     *
+     * Listed in [SettingsBackup.SECRET_KEYS], so it stays out of every backup
+     * that leaves the API keys out and out of the direct-boot mirror. A
+     * [method] that needs a secret but has none (a restore without secrets)
+     * falls back to [AppLockMethod.BIOMETRIC] rather than to no lock — see
+     * [usesSecret] — and from there to the usual fail-open rule.
+     */
+    val secret: String? = null,
+    /**
+     * Whether a fingerprint is offered first when [method] is a secret, with
+     * the PIN, password or pattern one tap away. Has no effect when this phone
+     * has no fingerprint, or when [method] is already the fingerprint.
+     */
+    val biometricShortcut: Boolean = true,
+) {
+    /**
+     * Whether checks go to the app's own sheet. False when the chosen method
+     * needs a secret that is not there, which reads as the fingerprint.
+     */
+    val usesSecret: Boolean get() = method.usesSecret && secret != null
+}
+
+/** What answers the lock's check. */
+enum class AppLockMethod {
+    /** The system prompt: a fingerprint or face, and the phone's screen lock if allowed. */
+    BIOMETRIC,
+    /** Digits only, 4 to 16 of them, on the app's own number pad. */
+    PIN,
+    /** Any text, at least 4 characters. */
+    PASSWORD,
+    /** At least 4 dots joined on a 3 by 3 grid. */
+    PATTERN,
+    ;
+
+    /** Whether this method asks for the app's own [AppLockSettings.secret]. */
+    val usesSecret: Boolean get() = this != BIOMETRIC
+}
 
 /** When a successful check stops counting. */
 enum class AppLockRelock {

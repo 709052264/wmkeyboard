@@ -2668,7 +2668,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 ## Privacy, backup, storage, statistics
 
-- **Fingerprint lock** — Optional BiometricPrompt in front of the settings screens and destructive buttons the user picks.
+- **App lock** — Optional check in front of the settings screens and destructive buttons the user picks: BiometricPrompt, or the app's own PIN, password or pattern.
+  - App-own secret — PIN (4–16 digits, own number pad, no IME), password (4+ chars) or 3×3 pattern (4+ dots, jumped middle dot joins); salted PBKDF2-SHA256 hash, 120k iterations, never the secret.
+    - Fingerprint first — Optional BiometricPrompt shortcut with a "Use PIN" negative button down to the app's sheet.
+    - Forgot? — The phone's own fingerprint or screen lock stands in, so a forgotten PIN never locks the owner out of the off switch.
+    - Throttle — 5 free tries, then 30 s doubling to 15 min, persisted across process death; cleared by a right answer or Forgot?.
+    - Secret key — `app_lock_secret` is in SECRET_KEYS and never syncs; restored without it, the method reads as the fingerprint.
   - Curated target registry — 22 lockable items (11 screens, 11 actions) in one file; a screen costs one entry, an action that entry plus a `lock =` argument.
     - Labels borrow the guarded row's own string — Configurator reads in the same words as the thing it protects and inherits its glyph.
     - Source-reading drift test — AppLockTargetsTest fails on a route with no destination or an action with no call site.
