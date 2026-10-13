@@ -33,7 +33,7 @@ Tap the **×** on a message to drop it, or **Clear** to start over.
 
 A screenshot is the fastest way to hand over a whole conversation, because the bubbles' own left-and-right alignment says who said what.
 
-How it is read depends on your AI provider, set under <SettingsPath path="Tools > AI reply > How screenshots are read" />:
+How it is read depends on your AI provider, set under <SettingsPath path="Tools / AI reply / How screenshots are read" />:
 
 - **Automatic** (the default) sends the picture to providers that accept pictures — Claude, OpenAI, Gemini, xAI, Ollama, LM Studio and OpenAI-compatible servers — and reads it on the device otherwise.
 - **Send the picture** always sends it. The model reads the alignment itself, so no labelling is needed.
@@ -59,13 +59,13 @@ Once there is something to reply to, the tone chips light up. One tap writes the
 | **Funny** | Light and playful, still answering what they said |
 | **Flirty** | Warm and lightly flirty |
 
-Tones are editable, and you can write your own: they share the action editor with the AI tool's actions, under <SettingsPath path="Tools > AI > Actions" />. A tone you write needs a saved instruction — there is nowhere on this panel to type one per run, because the panel's own box is for their message.
+Tones are editable, and you can write your own: they share the action editor with the AI tool's actions, under <SettingsPath path="Tools / AI / Actions" />. A tone you write needs a saved instruction — there is nowhere on this panel to type one per run, because the panel's own box is for their message.
 
 The drafts appear below. Tap one to put it in the message box.
 
 ## What it writes
 
-Under <SettingsPath path="Tools > AI reply" />:
+Under <SettingsPath path="Tools / AI reply" />:
 
 - **Replies per run** — how many alternatives one run writes, up to five. An on-device model is always asked for one: a small model asked for three writes the same reply three times.
 - **Length** — short, medium or long.
@@ -74,11 +74,11 @@ Under <SettingsPath path="Tools > AI reply" />:
 - **Reply language** — blank follows the conversation, including its script, so Bengali written in Latin letters is answered the same way.
 - **Conversation sent** — how much of the gathered conversation one run sends. When it will not all fit, the oldest messages go first.
 
-The provider, API key and model are the AI tool's own, under <SettingsPath path="Tools > AI" />. There is only one set of them.
+The provider, API key and model are the AI tool's own, under <SettingsPath path="Tools / AI" />. There is only one set of them.
 
 ## Clearing up afterwards
 
-Feeding this tool leaves other people's messages in your clipboard history and screenshots of your conversations in your gallery. So when you tap a draft, **the copies and screenshots that reply was built from are taken back out again**. It is on by default, it is a checkbox in the panel if you want to keep one for a particular reply, and it is a setting under <SettingsPath path="Tools > AI reply > Clear what it used" />.
+Feeding this tool leaves other people's messages in your clipboard history and screenshots of your conversations in your gallery. So when you tap a draft, **the copies and screenshots that reply was built from are taken back out again**. It is on by default, it is a checkbox in the panel if you want to keep one for a particular reply, and it is a setting under <SettingsPath path="Tools / AI reply / Clear what it used" />.
 
 Clipboard entries are the keyboard's own, so those always go. A screenshot in your gallery is yours: from Android 11 an app may only delete pictures it created itself, so when the system refuses, the panel says so plainly rather than pretending the picture is gone.
 
@@ -87,6 +87,6 @@ Clipboard entries are the keyboard's own, so those always go. A screenshot in yo
 - Nothing leaves the device until you tap a tone. Gathering messages, labelling them and reading a screenshot on the device are all local.
 - Their message is treated as data, never as instructions. A line in a conversation that tells the model to ignore its instructions is answered as part of the conversation, which is what someone sending it would deserve.
 - The tool refuses to run in a password field.
-- Drafted replies are **not** kept in the [AI history](/tools/ai/#history), even when the history is on. A record of a rewrite is your own writing; a record of a reply is somebody else's message. Turn it on under <SettingsPath path="Tools > AI reply > Keep drafted replies in the AI history" /> if you want them kept.
+- Drafted replies are **not** kept in the [AI history](/tools/ai/#history), even when the history is on. A record of a rewrite is your own writing; a record of a reply is somebody else's message. Turn it on under <SettingsPath path="Tools / AI reply / Keep drafted replies in the AI history" /> if you want them kept.
 - On a metered connection, [data saving](/typing/data-saver/) holds the request the same way it holds any other cloud AI run.
 - Choosing an on-device model keeps the whole thing on the phone. Screenshots then have to be read on the device too, since the on-device engine takes text only.
