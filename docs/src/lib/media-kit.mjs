@@ -174,7 +174,7 @@ export const PRESS_EMAIL = 'arianmollik323@gmail.com';
 
 export const FACTS = [
 	['Name', 'WM Keyboard (two words; “WM” in capitals)'],
-	['Made by', 'Arian Mollik Wasi, an independent developer'],
+	['Made by', 'Arian Mollik Wasi, an independent developer based in Bangladesh'],
 	['Platform', 'Android 7.0 and later, phones, tablets and Android TV'],
 	['Price', 'Free. No ads, no in-app purchases, no analytics'],
 	['Licence', 'MIT, source on GitHub'],

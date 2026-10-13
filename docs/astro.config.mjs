@@ -130,12 +130,17 @@ export default defineConfig({
 			// One group per SECTIONS entry (src/site.mjs), which is also what the
 			// SEO layer reads to name a page's section. The labels used to live
 			// here as well, so renaming a group renamed it in the sidebar only.
-			sidebar: SECTIONS.map(({ label, directory, badge, collapsed }) => ({
-				label,
-				...(badge ? { badge } : {}),
-				...(collapsed ? { collapsed: true } : {}),
-				items: [{ autogenerate: { directory, ...(collapsed ? { collapsed: true } : {}) } }],
-			}))
+			sidebar: [
+				...SECTIONS.map(({ label, directory, badge, collapsed }) => ({
+					label,
+					...(badge ? { badge } : {}),
+					...(collapsed ? { collapsed: true } : {}),
+					items: [{ autogenerate: { directory, ...(collapsed ? { collapsed: true } : {}) } }],
+				})),
+				// A page for people writing about the app rather than using it, so it
+				// sits under the sections instead of inside one of them.
+				{ label: 'Media kit', link: '/media-kit/' },
+			],
 		}),
 		sitemap({
 			// Anything a crawler is told not to index has no business being
