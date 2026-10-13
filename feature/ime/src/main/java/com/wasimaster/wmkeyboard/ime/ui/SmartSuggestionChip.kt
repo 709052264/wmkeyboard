@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowRight
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sms
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
@@ -89,6 +90,8 @@ internal fun SmartSuggestionChip(
     val tint = kb.accent
     val fill = tint.copy(alpha = if (kb.dark) 0.20f else 0.11f)
     val keyword = hit.kind in SmartSuggest.narrowKinds
+    // Narrow, but with a second door: the face calls, the button texts (#656).
+    val contact = hit.kind == SmartSuggest.Kind.CONTACT
 
     // The accent tint is this chip's identity (it is an *answer*, not a word),
     // so the colours stay accent-based; only the outline follows the theme's
@@ -142,12 +145,14 @@ internal fun SmartSuggestionChip(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.widthIn(max = 220.dp),
                 )
-                Icon(
-                    Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = tint.copy(alpha = 0.7f),
-                    modifier = Modifier.size(15.dp),
-                )
+                if (!contact) {
+                    Icon(
+                        Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = tint.copy(alpha = 0.7f),
+                        modifier = Modifier.size(15.dp),
+                    )
+                }
             } else if (hit.result == null) {
                 // Rates or a forecast still missing. The chip is already up so
                 // the strip does not jump when the answer lands. It spins while
@@ -226,7 +231,7 @@ internal fun SmartSuggestionChip(
                 }
             }
         }
-        if (!keyword && canOpen) {
+        if ((!keyword || contact) && canOpen) {
             Box(
                 modifier = Modifier
                     .width(1.dp)
@@ -245,10 +250,12 @@ internal fun SmartSuggestionChip(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    Icons.Outlined.Tune,
-                    contentDescription = stringResource(
-                        R.string.ime_smart_open_tool, toolLabel(hit.tool),
-                    ),
+                    if (contact) Icons.Outlined.Sms else Icons.Outlined.Tune,
+                    contentDescription = if (contact) {
+                        stringResource(R.string.ime_smart_contact_message, hit.query)
+                    } else {
+                        stringResource(R.string.ime_smart_open_tool, toolLabel(hit.tool))
+                    },
                     tint = tint.copy(alpha = 0.85f),
                     modifier = Modifier.size(17.dp),
                 )
@@ -290,6 +297,8 @@ private fun narrowChipLabel(hit: SmartSuggest.SmartHit): String = when (hit.kind
         },
         toolLabel(hit.tool),
     )
+    // The face is the call: the phone icon beside the name says so.
+    SmartSuggest.Kind.CONTACT -> hit.query
     else -> stringResource(R.string.ime_smart_open_tool, toolLabel(hit.tool))
 }
 

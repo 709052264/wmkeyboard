@@ -950,6 +950,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_smart_intents_title) { Icons.Outlined.Translate }
         put(R.string.typing_smart_gifs_title) { SymbolIcons.GifBox }
         put(R.string.typing_smart_numbers_title) { Icons.Outlined.Numbers }
+        put(R.string.typing_smart_contacts_title) { Icons.Outlined.Contacts }
         put(R.string.typing_smart_number_grouping_title) { Icons.AutoMirrored.Outlined.Segment }
         put(R.string.typing_otp_chip_title) { Icons.Outlined.Password }
         put(R.string.typing_otp_access_title) { Icons.Outlined.Notifications }

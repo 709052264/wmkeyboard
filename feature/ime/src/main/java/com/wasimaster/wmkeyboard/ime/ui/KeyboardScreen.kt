@@ -130,6 +130,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PictureAsPdf
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoSizeSelectActual
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PlayCircleOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VideoFile
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Call
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronRight
@@ -4270,9 +4271,12 @@ private fun TopBar(
                     // Opening runs in two halves: the service clears the trigger
                     // text and stages the prefill, then the tool is tapped the
                     // ordinary way so panel routing stays in one place.
+                    val contactChip = smart.kind == SmartSuggest.Kind.CONTACT
                     val open = {
                         onSmartOpen()
-                        onToolTap(smart.tool)
+                        // A contact chip's button texts the contact; the
+                        // service does that alone, with no panel to open.
+                        if (!contactChip) onToolTap(smart.tool)
                     }
                     // A vocabulary nudge has two doors: the card and the swap. The
                     // setting says which one the tap is; the hold is the other.
@@ -4282,10 +4286,10 @@ private fun TopBar(
                     SmartSuggestionChip(
                         hit = smart,
                         reduceMotion = state.settings.reduceMotion,
-                        icon = toolIcon(smart.tool),
+                        icon = if (contactChip) Icons.Outlined.Call else toolIcon(smart.tool),
                         // An answer chip still shows with its tool switched off,
                         // and onToolTap would drop the gear's press without a word.
-                        canOpen = smart.tool in state.settings.enabledTools &&
+                        canOpen = contactChip || smart.tool in state.settings.enabledTools &&
                             isSupportedTool(smart.tool) && isUsableTool(smart.tool, state.settings),
                         // The tool it opens grows out of the chip.
                         modifier = Modifier.panelOrigin().then(
@@ -4303,6 +4307,8 @@ private fun TopBar(
                         // opens its tool instead: the whole face is one door.
                         onAccept = {
                             when {
+                                // The face calls; the service starts the dialer.
+                                contactChip -> onSmartAccept()
                                 vocabTapSwaps -> onSmartAccept()
                                 // Rates it may fetch only on a tap: this is that tap.
                                 smart.awaitingTap -> onSmartAccept()

@@ -130,6 +130,7 @@ import com.wasimaster.wmkeyboard.core.settings.activeThemeSpec
 import com.wasimaster.wmkeyboard.core.settings.keySound
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.tools.SolarCalculator
+import com.wasimaster.wmkeyboard.core.tools.ContactPhones
 import com.wasimaster.wmkeyboard.core.emoji.AnimatedEmoji
 import com.wasimaster.wmkeyboard.core.emoji.EmojiCatalog
 import com.wasimaster.wmkeyboard.core.emoji.EmojiEntry
@@ -2154,6 +2155,9 @@ open class WMKeyboardService : InputMethodService() {
     /** Contact email addresses for completion, when the setting + permission allow. */
     private var contactEmails: ContactEmails = ContactEmails.EMPTY
 
+    /** Contact names and phone numbers for the call/message chip (#656). */
+    private var contactPhones: ContactPhones = ContactPhones.EMPTY
+
     /** Installed-app label words for suggestions, when the setting allows. */
     private var appNames: AppNames = AppNames.EMPTY
 
@@ -3713,6 +3717,7 @@ open class WMKeyboardService : InputMethodService() {
             var emojiUsageVersion = -1
             var contactsEnabled: Boolean? = null
             var contactEmailsEnabled: Boolean? = null
+            var contactPhonesEnabled: Boolean? = null
             var appNamesEnabled: Boolean? = null
             var linkPreviewsEnabled: Boolean? = null
             var pinnedLastEnabled: Boolean? = null
@@ -3925,6 +3930,10 @@ open class WMKeyboardService : InputMethodService() {
                         contactEmails = ContactEmails.EMPTY
                         suggestionEngine?.contactEmails = ContactEmails.EMPTY
                     }
+                }
+                if (settings.smartChips.contacts != contactPhonesEnabled) {
+                    contactPhonesEnabled = settings.smartChips.contacts
+                    if (settings.smartChips.contacts) loadContactPhones() else contactPhones = ContactPhones.EMPTY
                 }
                 if (settings.suggestionSources.appNames != appNamesEnabled) {
                     appNamesEnabled = settings.suggestionSources.appNames
@@ -6103,7 +6112,10 @@ open class WMKeyboardService : InputMethodService() {
         numberRunPending = false
         // A new field is a fresh audience for the intent chips; a restart is
         // the same field talking, where a retired hint stays retired.
-        if (!restarting) intentChipsRetired.clear()
+        if (!restarting) {
+            intentChipsRetired.clear()
+            contactChipsRetired.clear()
+        }
         if (!restarting) {
             // Same for the vocabulary nudges — unless the cooldown is a day,
             // in which case today's already-shown words carry over.
@@ -6127,6 +6139,9 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (_uiState.value.settings.suggestionSources.contactEmails && contactEmails.isEmpty) {
             loadContactEmails()
+        }
+        if (_uiState.value.settings.smartChips.contacts && contactPhones.isEmpty) {
+            loadContactPhones()
         }
         // A dictionary downloaded (or deleted) in Settings goes live here, on
         // the next field focus — token-guarded, so this is a cheap no-op when
@@ -17218,6 +17233,67 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Reads contact names and phone numbers into [contactPhones] for the
+     * call/message chip (memory only, never persisted). No-op without the
+     * permission; the settings app requests it, and [onStartInputView] retries
+     * once it has been granted.
+     */
+    private fun loadContactPhones() {
+        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        serviceScope.launch {
+            val loaded = withContext(Dispatchers.IO) {
+                runCatching {
+                    val entries = ArrayList<ContactPhones.Entry>()
+                    contentResolver.query(
+                        ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                        arrayOf(
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+                            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME_PRIMARY,
+                            ContactsContract.CommonDataKinds.Phone.NUMBER,
+                            ContactsContract.CommonDataKinds.Phone.IS_SUPER_PRIMARY,
+                        ),
+                        null,
+                        null,
+                        null,
+                    )?.use { cursor ->
+                        val idColumn = cursor.getColumnIndexOrThrow(
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID
+                        )
+                        val nameColumn = cursor.getColumnIndexOrThrow(
+                            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME_PRIMARY
+                        )
+                        val numberColumn = cursor.getColumnIndexOrThrow(
+                            ContactsContract.CommonDataKinds.Phone.NUMBER
+                        )
+                        val primaryColumn = cursor.getColumnIndexOrThrow(
+                            ContactsContract.CommonDataKinds.Phone.IS_SUPER_PRIMARY
+                        )
+                        while (cursor.moveToNext()) {
+                            val name = cursor.getString(nameColumn) ?: continue
+                            val number = cursor.getString(numberColumn) ?: continue
+                            entries.add(
+                                ContactPhones.Entry(
+                                    name = name,
+                                    number = number,
+                                    primary = cursor.getInt(primaryColumn) != 0,
+                                    contactId = cursor.getLong(idColumn),
+                                ),
+                            )
+                        }
+                    }
+                    ContactPhones.from(entries)
+                }.getOrDefault(ContactPhones.EMPTY)
+            }
+            // The switch may have gone off while the query ran.
+            contactPhones = if (_uiState.value.settings.smartChips.contacts) loaded else ContactPhones.EMPTY
+        }
+    }
+
+    /**
      * Reads contact email addresses into [contactEmails] (memory only, never
      * persisted). No-op without the permission — the settings app requests it,
      * and [onStartInputView] retries once it has been granted.
@@ -17676,6 +17752,13 @@ open class WMKeyboardService : InputMethodService() {
      */
     private val intentChipsRetired = mutableSetOf<ToolbarTool>()
 
+    /**
+     * Contacts whose chip this field has already offered and moved past, by
+     * display name. The same rule as [intentChipsRetired]: a name typed in a
+     * chat is usually meant for the chat, so the offer to call comes once.
+     */
+    private val contactChipsRetired = mutableSetOf<String>()
+
     /** Records [next] replacing (or clearing) a shown intent or lookup chip. */
     private fun retireIntentChip(next: SmartSuggest.SmartHit?) {
         val prev = _uiState.value.smart ?: return
@@ -17684,6 +17767,12 @@ open class WMKeyboardService : InputMethodService() {
             // not nudge again until the cooldown says so.
             if (next == null || next.kind != prev.kind || !next.query.equals(prev.query, ignoreCase = true)) {
                 retireVocabNudge(prev.query)
+            }
+            return
+        }
+        if (prev.kind == SmartSuggest.Kind.CONTACT) {
+            if (next == null || next.kind != prev.kind || next.query != prev.query) {
+                contactChipsRetired += prev.query
             }
             return
         }
@@ -17776,6 +17865,9 @@ open class WMKeyboardService : InputMethodService() {
             ) {
                 hit = null
             }
+            if (hit != null && hit.kind == SmartSuggest.Kind.CONTACT && hit.query in contactChipsRetired) {
+                hit = null
+            }
             retireIntentChip(hit)
             if (hit != _uiState.value.smart) _uiState.update { it.copy(smart = hit) }
             // Recognised but missing data: fetch it, and the completion
@@ -17853,6 +17945,7 @@ open class WMKeyboardService : InputMethodService() {
                 state.settings.layoutBehavior.numeralSystemFor(state.language.id),
                 state.language,
             ),
+            contacts = contactPhones.takeIf { state.settings.smartChips.contacts && !it.isEmpty },
         )
 
     private fun todayJdn(): Long = Calendar.getInstance().let {
@@ -17900,6 +17993,10 @@ open class WMKeyboardService : InputMethodService() {
             fetchForChip(hit)
             return
         }
+        if (hit.kind == SmartSuggest.Kind.CONTACT) {
+            startContactAction(hit, message = false)
+            return
+        }
         val insert = hit.insert ?: return
         if (hit.kind == SmartSuggest.Kind.VOCAB) retireVocabNudge(hit.query)
         stopVoiceForManualInput()
@@ -17932,6 +18029,10 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onSmartSuggestionOpen() {
         val hit = _uiState.value.smart ?: return
+        if (hit.kind == SmartSuggest.Kind.CONTACT) {
+            startContactAction(hit, message = true)
+            return
+        }
         // A hint that was taken has done its job for this field.
         if (hit.kind == SmartSuggest.Kind.INTENT || hit.kind == SmartSuggest.Kind.LOOKUP) {
             intentChipsRetired += hit.tool
@@ -17954,6 +18055,25 @@ open class WMKeyboardService : InputMethodService() {
                 octopus = emptyMap(),
             )
         }
+    }
+
+    /**
+     * A contact chip was tapped (#656): the dialer with the number filled in,
+     * or the messaging app addressed to it. The dialer, never a call placed
+     * from here: the keyboard holds no call permission, and a call is the one
+     * thing a stray tap must not start. The typed name stays where it is.
+     */
+    private fun startContactAction(hit: SmartSuggest.SmartHit, message: Boolean) {
+        val contact = hit.prefill as? com.wasimaster.wmkeyboard.core.tools.ToolPrefill.Contact ?: return
+        vibrate()
+        contactChipsRetired += hit.query
+        _uiState.update { it.copy(smart = null) }
+        val intent = if (message) {
+            Intent(Intent.ACTION_SENDTO, Uri.fromParts("smsto", contact.number, null))
+        } else {
+            Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", contact.number, null))
+        }
+        startMacroActivity(intent)
     }
 
     /** A panel has loaded its prefill; drop it so reopening starts clean. */

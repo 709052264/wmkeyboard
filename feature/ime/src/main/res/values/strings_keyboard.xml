@@ -841,6 +841,8 @@
     <string name="ime_smart_wiki_word">“%1$s” on Wikipedia</string>
     <string name="ime_smart_translate_offer">Translate</string>
     <string name="ime_smart_gif_offer">Find a GIF</string>
+    <!-- The message button on a contact chip, for screen readers. %1$s is the contact's name. -->
+    <string name="ime_smart_contact_message">Text <xliff:g id="name" example="Jane Doe">%1$s</xliff:g></string>
 
     <!-- Badge on the preview of a theme that moves while you type. -->
     <string name="ime_theme_animated_badge">Animated</string>

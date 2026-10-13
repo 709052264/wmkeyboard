@@ -128,6 +128,13 @@ object PermissionDisclosures {
         bodyRes = R.string.common_permission_contact_emails_body,
     )
 
+    /** The call/message chip (#656): names and phone numbers. */
+    val CONTACT_PHONES = PermissionDisclosure(
+        permission = Manifest.permission.READ_CONTACTS,
+        titleRes = R.string.common_permission_contact_phones_title,
+        bodyRes = R.string.common_permission_contact_phones_body,
+    )
+
     /**
      * Screenshots in the clipboard. Android has no screenshots-only permission —
      * granting this opens the whole photo library — so the disclosure says so

@@ -1530,6 +1530,31 @@ internal fun TypingSmartChipsSettings(
                     },
                 ) { scope.launch { repository.setSmartChipNumberGrouping(it) } }
             }
+            // #656: a contact's name typed → call or text them. Reads the
+            // address book, so it asks through the same disclosure as the
+            // other contact switches before Android's own prompt.
+            item {
+                val permissionContext = LocalContext.current
+                val contactsPermission =
+                    rememberDisclosedPermissionRequest(PermissionDisclosures.CONTACT_PHONES) {
+                        scope.launch { repository.setSmartChipContacts(true) }
+                    }
+                ToggleSetting(
+                    R.string.typing_smart_contacts_title,
+                    stringResource(R.string.typing_smart_contacts_subtitle),
+                    settings.watch { it.smartChips.contacts },
+                    info = stringResource(R.string.typing_smart_contacts_info),
+                    default = SettingsDefaults.smartChips.contacts,
+                ) { enabled ->
+                    when {
+                        !enabled -> scope.launch { repository.setSmartChipContacts(false) }
+                        permissionContext.checkSelfPermission(Manifest.permission.READ_CONTACTS) ==
+                            PackageManager.PERMISSION_GRANTED ->
+                            scope.launch { repository.setSmartChipContacts(true) }
+                        else -> contactsPermission()
+                    }
+                }
+            }
         }
     }
 }

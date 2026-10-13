@@ -82,6 +82,22 @@ Five more families watch for text that isn't a sum or a keyword but still sounds
 
 Each only fires when the tool it would open is switched on under Tools. If one of these switches is on while its tool is off, a note under the switch names the tool, with a **Turn on** button that switches it back on. The narrow ones are hints rather than answers, so each gets one shot per field: once you type past a lookup or intent chip, that tool won't hint again until you move to another field. One wiring quirk is worth knowing. **GIFs for celebrations** sits inside **Translate hints** rather than beside it, so turning the translate hints off takes the celebration GIFs with them, while turning the GIFs off leaves translate alone.
 
+## Calling or texting a contact
+
+<SettingsPath path="Typing / Smart chips / Call or text a contact" />
+
+Type the name of someone in your contacts and a narrow chip with their name and a phone icon comes up beside the word candidates. Tap the name and your phone app opens with their number already in the dialer, ready for you to press call. Tap the message button on the chip's right and your messages app opens addressed to them. The keyboard never places the call or sends anything itself, and the name you typed stays in your text, since you may have been writing it for the person you're chatting with.
+
+What counts as a name:
+
+- **The whole name, in any case.** `jane doe`, `Jane Doe` and `Mom` all work, so long as that's how the contact is saved.
+- **The first name alone, with its capital**, and only when no one else in your contacts shares it. `Jane` finds Jane Doe, but `jane` doesn't, and with two Marks saved `Mark` finds neither: a chip that has to guess who to ring would be worse than none. This is also what keeps `Will` the contact apart from `will` the word.
+- **The name right before the cursor**, or followed by one space. Type on and the chip moves on; punctuation straight after the name (`Mom,`) ends it too.
+
+A contact with several numbers is offered on the one you've marked as default in your contacts, and otherwise on the first one Android lists. Like the lookup and intent hints, each name gets one offer per field: once you type past it, that contact won't come up again until you're in another text box.
+
+The switch is **off** by default because it reads your address book. Turning it on asks for the contacts permission, after a screen explaining what's read. Names and numbers are held in memory only while the keyboard runs, are never written to a file, and never leave the phone. The chip doesn't show in password fields, or anywhere the strip is switched off.
+
 ## Pulling fragments out of your clipboard
 
 Open the [Clipboard](/tools/clipboard/) tool and a row of dashed-outline chips sits above the grid of copied items. It surfaces one-time codes, phone numbers, and links found buried inside your clipboard history, not only in your latest copy. The scan covers your recent clips, sorts codes before phone numbers before links, and shows up to a dozen chips at once. Long-press a chip to see the fragment highlighted inside the clip it came from. Tap it to paste just that fragment, leaving the full clip in history untouched.
@@ -122,7 +138,7 @@ Each detector has guards against the shapes of text that look like a trigger but
   <Shot id="smart/options" alt="Smart chips settings under Typing: master switch and the four per-family toggles." />
 </PhoneFrame>
 
-- **Smart chips**: the master switch, default **on**. Turn it off and all ten chip families below go at once.
+- **Smart chips**: the master switch, default **on**. Turn it off and all eleven chip families below go at once.
 - **Calculate as you type**: default **on**.
 - **Convert currencies**: default **on**.
 - **Convert units**: default **on**.
@@ -134,6 +150,7 @@ Each detector has guards against the shapes of text that look like a trigger but
 - **GIFs for celebrations**: default **on**.
 - **Group long numbers**: default **on**.
 - **Grouping style**: **Automatic**, **Thousands** or **Lakh and crore**, default **Automatic**, which follows the language you're typing in.
+- **Call or text a contact**: default **off**. Needs the contacts permission. See [Calling or texting a contact](#calling-or-texting-a-contact).
 
 Each tool's own page (Calculator, Unit converter, Currency converter) links back here with a **Suggestion chip** row that shows whether its chip is on. The switches themselves live only under Smart chips.
 

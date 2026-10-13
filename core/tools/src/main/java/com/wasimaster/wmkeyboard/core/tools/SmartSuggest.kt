@@ -33,6 +33,12 @@ sealed interface ToolPrefill {
 
     /** A vocabulary word whose card the panel opens on. */
     data class Vocab(val word: String) : ToolPrefill
+
+    /**
+     * The person a contact chip offers to call or text. Not a panel's input:
+     * the service reads it to start the dialer or the messaging app.
+     */
+    data class Contact(val name: String, val number: String) : ToolPrefill
 }
 
 /**
@@ -53,12 +59,13 @@ object SmartSuggest {
      * [UNIT], [NUMBER], [DATE] and [WEATHER] are answers and take the whole
      * strip; [TOOL] (a typed keyword), [LOOKUP] (a term to look up) and
      * [INTENT] (text that sounds like a job a tool does) stay narrow beside
-     * the word candidates.
+     * the word candidates. [CONTACT] (a saved contact's name) is narrow too,
+     * with a call face and a message button.
      */
-    enum class Kind { CALC, CURRENCY, UNIT, NUMBER, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB }
+    enum class Kind { CALC, CURRENCY, UNIT, NUMBER, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB, CONTACT }
 
     /** The kinds that only claim the space their label needs. */
-    val narrowKinds: Set<Kind> = setOf(Kind.TOOL, Kind.LOOKUP, Kind.INTENT, Kind.VOCAB)
+    val narrowKinds: Set<Kind> = setOf(Kind.TOOL, Kind.LOOKUP, Kind.INTENT, Kind.VOCAB, Kind.CONTACT)
 
     /**
      * A switch under Smart chips, as far as the tools behind it go. The
@@ -242,6 +249,12 @@ object SmartSuggest {
          * glyphs for 0..9 in order, as the numeral systems store them.
          */
         val numberDigits: String? = null,
+        // ---- contacts ----
+        /**
+         * Names and numbers from the address book, for the call/message chip
+         * (#656). Null while the switch is off or nothing is loaded.
+         */
+        val contacts: ContactPhones? = null,
     )
 
     /** Characters of context the scanners look back over. */
@@ -271,6 +284,11 @@ object SmartSuggest {
         if (ctx.lookupChips) detectLookup(tail, ctx)?.let { return it }
         if (ctx.intentChips) detectIntent(tail, ctx)?.let { return it }
         if (ctx.keywordsEnabled) detectKeyword(tail, ctx)?.let { return it }
+        // A name only says who: anything above that recognised what is wanted
+        // has more to offer.
+        ctx.contacts?.let { contacts ->
+            detectContact(tail, contacts, truncated = text.length > LOOKBEHIND)?.let { return it }
+        }
         // Last: a nudge is advice, and every explicit trigger above outranks it.
         if (ctx.vocabChips) detectVocab(tail, ctx)?.let { return it }
         return null
@@ -1607,6 +1625,48 @@ object SmartSuggest {
      * keeps the spacing. When the typed word *is* a vocabulary word the hit
      * carries no [SmartHit.result] — an open-only chip that shows the card.
      */
+    /** A word a name can be made of: letters, with the marks names carry. */
+    private val NAME_WORD = Regex("""[\p{L}\p{M}][\p{L}\p{M}'’.\-]*""")
+
+    /**
+     * A saved contact's name just typed: the chip offers to call them, and its
+     * button to text them (#656). The longest run of trailing words that names
+     * somebody wins, so "Jane Doe" is not read as a first name alone. One
+     * trailing space is allowed, since a finished name is usually followed by
+     * one; the next letter typed moves the chip on.
+     *
+     * The text is never touched: the name may well be meant for the message.
+     */
+    private fun detectContact(tail: String, contacts: ContactPhones, truncated: Boolean): SmartHit? {
+        val body = if (tail.endsWith(' ')) tail.dropLast(1) else tail
+        if (body.isEmpty() || body.last().isWhitespace()) return null
+        val tokens = body.split(' ', '\t', '\n')
+        val words = ArrayList<String>()
+        for (index in tokens.indices.reversed()) {
+            val token = tokens[index]
+            // The first token of a cut-off lookbehind may be half a word.
+            if (truncated && index == 0) break
+            if (!NAME_WORD.matches(token)) break
+            words.add(0, token)
+            if (words.size == ContactPhones.MAX_WORDS) break
+        }
+        for (n in words.size downTo 1) {
+            val contact = contacts.match(words.takeLast(n).joinToString(" ")) ?: continue
+            return SmartHit(
+                kind = Kind.CONTACT,
+                query = contact.name,
+                result = contact.number,
+                insert = null,
+                replaceSpan = 0,
+                // No tool of its own; the selection macros are the other place
+                // the keyboard calls or texts a number.
+                tool = ToolbarTool.SELECTION_ACTIONS,
+                prefill = ToolPrefill.Contact(contact.name, contact.number),
+            )
+        }
+        return null
+    }
+
     private fun detectVocab(tail: String, ctx: Context): SmartHit? {
         if (!toolOn(ToolbarTool.VOCABULARY, ctx)) return null
         val index = ctx.vocab ?: return null

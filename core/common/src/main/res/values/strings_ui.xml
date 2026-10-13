@@ -43,6 +43,8 @@
     <string name="common_permission_contact_names_body">WM Keyboard reads the names in your contacts. The names then complete as you type, and autocorrect does not change them. The keyboard keeps the names in memory while it runs, and writes them to no file. The names never leave your device. The setting is optional. It stays off until you turn it on.</string>
 
     <string name="common_permission_contact_emails_title">Contacts access for email suggestions</string>
+    <string name="common_permission_contact_phones_title">Contacts access for call and message chips</string>
+    <string name="common_permission_contact_phones_body">WM Keyboard reads the names and phone numbers in your contacts. When you type the name of a contact, the keyboard offers to call or text that person. A tap opens your phone app or your messages app with the number filled in. The keyboard does not make the call or send the message. The keyboard keeps the names and numbers in memory while it runs, and writes them to no file. They never leave your device. The setting is optional. It stays off until you turn it on.</string>
     <string name="common_permission_contact_emails_body">WM Keyboard reads the email addresses in your contacts. When you type the start of an address, the keyboard offers the full address. The keyboard keeps the addresses in memory while it runs, and writes them to no file. The addresses never leave your device. The setting is optional. It stays off until you turn it on.</string>
 
     <!-- Android has no screenshots-only permission, so this asks for the whole

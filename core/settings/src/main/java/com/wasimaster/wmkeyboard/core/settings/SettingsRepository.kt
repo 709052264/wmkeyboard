@@ -4806,6 +4806,11 @@ data class SmartChipSettings(
     val numbers: Boolean = true,
     /** Which grouping the number chip offers; Auto follows the typed language. */
     val numberGrouping: NumberGrouping = NumberGrouping.AUTO,
+    /**
+     * A saved contact's name → call or text them (#656). Off by default: it
+     * reads the address book, which needs the contacts permission.
+     */
+    val contacts: Boolean = false,
 )
 
 /**
@@ -9858,6 +9863,7 @@ class SettingsRepository(private val context: Context) {
         private val SMART_CHIP_GIFS = booleanPreferencesKey("smart_chip_gifs")
         private val SMART_CHIP_NUMBERS = booleanPreferencesKey("smart_chip_numbers")
         private val SMART_CHIP_NUMBER_GROUPING = stringPreferencesKey("smart_chip_number_grouping")
+        private val SMART_CHIP_CONTACTS = booleanPreferencesKey("smart_chip_contacts")
 
         private val SELECTION_MACROS_ENABLED = booleanPreferencesKey("selection_macros_enabled")
         private val SELECTION_MACROS_PLACEMENT = stringPreferencesKey("selection_macros_placement")
@@ -11891,6 +11897,7 @@ class SettingsRepository(private val context: Context) {
             numberGrouping = p[SMART_CHIP_NUMBER_GROUPING]
                 ?.let { runCatching { NumberGrouping.valueOf(it) }.getOrNull() }
                 ?: defaults.smartChips.numberGrouping,
+            contacts = p[SMART_CHIP_CONTACTS] ?: defaults.smartChips.contacts,
         )
 
     private fun readSelectionMacros(p: Preferences, defaults: KeyboardSettings) =
@@ -18381,6 +18388,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSmartChipNumbers(value: Boolean) =
         editPrefs { it[SMART_CHIP_NUMBERS] = value }
+
+    suspend fun setSmartChipContacts(value: Boolean) =
+        editPrefs { it[SMART_CHIP_CONTACTS] = value }
 
     /** Which grouping a number chip offers; [NumberGrouping.AUTO] follows the language. */
     suspend fun setSmartChipNumberGrouping(value: NumberGrouping) =
