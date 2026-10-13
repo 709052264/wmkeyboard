@@ -9983,13 +9983,20 @@ open class WMKeyboardService : InputMethodService() {
             // its own sake, after an abbreviation or a name no list holds, so
             // by default the space bar is still where a word gets
             // second-guessed.
-            commitComposing(
+            val committedWord = commitComposing(
                 ic,
                 autocorrect = endsWord && state.settings.correction.enabled &&
                     state.settings.correction.onPunctuation,
                 fixApostrophes = endsWord && state.settings.autoText.apostrophe,
                 expandPatterns = endsWord,
             )
+            // Nothing of ours was composing, but the editor may still hold a
+            // region the keyboard has already let go of: a word the caret
+            // paused in mid-scrub, re-armed, then left behind. The mark's
+            // commitText would replace that region instead of landing at the
+            // caret, and "word!" with the caret after the quote became "? !"
+            // (#365). Finishing never changes the text, only the span.
+            if (!committedWord) ic.finishComposingText()
             if (swallowTerminatorAfterCommit) {
                 swallowTerminatorAfterCommit = false
                 consumeShift()
@@ -20313,6 +20320,11 @@ open class WMKeyboardService : InputMethodService() {
      * that rebuilds its text from such a commit (CodeMirror, in ViolentMonkey)
      * dropped or shuffled characters under a run of Shift+arrows (#613).
      * Anything typed into the word is committed as before.
+     *
+     * With nothing in the buffer the region is finished anyway: an editor
+     * that restyles its text can keep a span the keyboard has already let go
+     * of, and a region left behind a moving caret is where the next commit
+     * lands, replacing the word the drag passed through (#365).
      */
     private fun endCompositionForCaretKey(ic: InputConnection) {
         val resumed = resumedWord
@@ -20322,7 +20334,7 @@ open class WMKeyboardService : InputMethodService() {
             dropComposingForSelectionEdit(ic)
             return
         }
-        commitComposing(ic, autocorrect = false)
+        if (!commitComposing(ic, autocorrect = false)) ic.finishComposingText()
     }
 
     /**
