@@ -1210,20 +1210,25 @@ private val symbolsShiftedRows = listOf(
 
 /**
  * 4-column keypad grid shared by the numeric field kinds: digits on the left 3
- * columns (0 under 8, phone-pad style), delete/enter anchoring the right column,
- * and the field-specific characters filling the rest.
+ * columns (0 under 8, phone-pad style), delete over enter anchoring the right
+ * column, and the field-specific characters filling the rest.
+ *
+ * The keys every pad has stay put across all five (issue #594): the digits,
+ * delete in the low-right slot under the thumb, enter below it, and space,
+ * on the pads that carry one, at the top of the right column. Someone who
+ * moves delete on one pad then finds it where they expect on the others, and
+ * the field-specific keys are the only ones that differ.
  */
 private fun numpad(
+    rightTop: Key,
     rightMid: Key,
-    rightLow: Key,
     bottomLeft: Key,
     bottomRight: Key,
     zero: Key = Key("0"),
-    rightTop: Key = Key("⌫", action = KeyAction.Delete),
 ) = listOf(
     listOf(Key("1"), Key("2"), Key("3"), rightTop),
     listOf(Key("4"), Key("5"), Key("6"), rightMid),
-    listOf(Key("7"), Key("8"), Key("9"), rightLow),
+    listOf(Key("7"), Key("8"), Key("9"), Key("⌫", action = KeyAction.Delete)),
     listOf(bottomLeft, zero, bottomRight, Key("⏎", action = KeyAction.Enter)),
 )
 
@@ -1244,47 +1249,46 @@ private fun padSpace() = Key(PAD_SPACE_LABEL, action = KeyAction.Space)
  * keeps the pad stable across the many apps that forget to set the flags.
  */
 private val numberRows = numpad(
-    // Space and backspace trade places relative to the other keypads:
-    // deleting is the frequent correction while typing a number, so it sits
-    // on the low-right slot under the thumb, and space takes the top.
     rightTop = padSpace(),
     rightMid = Key("-", longPress = listOf("+", "%", "*", "/")),
-    rightLow = Key("⌫", action = KeyAction.Delete),
     bottomLeft = Key(".", longPress = listOf(":")),
     bottomRight = Key(","),
 )
 
 /** TYPE_CLASS_PHONE: dial pad with pause (,) and wait (;) on long press. */
 private val phoneRows = numpad(
+    rightTop = padSpace(),
     rightMid = Key("-", longPress = listOf("(", ")", "/", ".")),
-    rightLow = padSpace(),
     bottomLeft = Key("*", longPress = listOf(",")),
     bottomRight = Key("#", longPress = listOf(";")),
     zero = Key("0", longPress = listOf("+")),
 )
 
-/** TYPE_DATETIME_VARIATION_DATE: separators for 20/07/2026, 2026-07-20, 20.7.26. */
+/**
+ * TYPE_DATETIME_VARIATION_DATE: separators for 20/07/2026, 2026-07-20, 20.7.26.
+ * No space here, so the slot space holds on the other pads takes the slash.
+ */
 private val dateRows = numpad(
-    rightMid = Key("/", longPress = listOf(":")),
-    rightLow = Key("-"),
+    rightTop = Key("/", longPress = listOf(":")),
+    rightMid = Key("-"),
     bottomLeft = Key("."),
     bottomRight = Key(","),
 )
 
 /** TYPE_DATETIME_VARIATION_TIME: colon-led (17:45), space for AM/PM-ish suffixes. */
 private val timeRows = numpad(
+    rightTop = padSpace(),
     rightMid = Key(":", longPress = listOf(".")),
-    rightLow = padSpace(),
     bottomLeft = Key("."),
     bottomRight = Key("-"),
 )
 
 /** TYPE_DATETIME_VARIATION_NORMAL: date and time separators together. */
 private val dateTimeRows = numpad(
+    rightTop = padSpace(),
     rightMid = Key("/", longPress = listOf(".")),
-    rightLow = Key(":"),
     bottomLeft = Key("-"),
-    bottomRight = padSpace(),
+    bottomRight = Key(":"),
 )
 
 /**
