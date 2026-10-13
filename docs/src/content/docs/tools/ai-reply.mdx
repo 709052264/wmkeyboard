@@ -16,18 +16,22 @@ Nothing is ever sent on your behalf. The tool writes drafts; tapping one puts it
 
 A keyboard can read the box you are typing in. It cannot read the conversation above it — those messages belong to the chat app, and no keyboard can reach into them. So the first thing the panel asks for is their message, and there are four ways to hand it over:
 
-- **Paste copied** takes the most recent thing you copied. Long-press their message in the chat app, copy it, and tap this.
+- **Copy it.** Long-press their message in the chat app and copy it. Anything you copied in the two minutes before opening the panel is already there when it opens, and anything you copy while it's open is added as you copy it. This works whether or not the clipboard keeps a history; without one, only the latest copy is picked up on opening. **Paste copied** adds the most recent copy by hand.
 - **Screenshot** shows the recent screenshots on your phone as a grid of pictures, newest first, each marked with how long ago it was taken. Tap the one of the chat.
 - **Type** opens a box on the keyboard. Type or paste the message, press <kbd>Enter</kbd>, and it is added.
 - **Use the selection** works in the few apps that let you select the conversation text itself.
 
 ### Several messages at once
 
-A reply usually needs more than one line of the conversation. While the reply panel is open, **anything you copy is added to it automatically** — so you can switch to the chat app, copy three messages one after another, come back, and all three are waiting. The same is true for screenshots: take one while the panel is open and it is picked up on its own.
+A reply usually needs more than one line of the conversation. While the reply panel is open, **anything you copy is added to it automatically**, so you can switch to the chat app, copy three messages one after another, come back, and all three are waiting. Screenshots can be picked up the same way; see below.
 
 The gathered messages are drawn like the chat they came from: theirs on the left, yours on the right in the theme's accent colour. Each carries a **Them** or **Me** label; tap the label to flip it. This matters more than it looks: nothing the keyboard can see says who wrote a copied line, so a message of your own that is read as theirs produces a reply to yourself.
 
-Tap the **×** on a message to drop it, or **Clear** to start over. Between two messages sits a small **Join** button: when one message arrived as two pieces, tap it to make them one again.
+Tap a message's text to edit it in the box on the keyboard; **Save** puts it back, and saving it empty removes it. Swipe a message sideways, or tap its **×**, to drop it, or tap **Clear** to start over. Between two messages sits a small **Join** button: when one message arrived as two pieces, tap it to make them one again.
+
+A message with no real word in it is outlined in red and marked **No real words?**. That is usually what reading a screenshot makes of a sticker, a profile picture or a line cut off at the edge. Only words in Latin letters are judged, against the dictionaries your keyboard has loaded. Messages in other scripts, emoji and numbers are never marked. **Remove unclear** at the front of the row clears them all at once.
+
+A screenshot sent as a picture has no **Them** or **Me** label. It holds both sides of the conversation, and the model reads who said what from where each bubble sits.
 
 ### Screenshots
 
@@ -41,9 +45,9 @@ How it is read depends on your AI provider, set under <SettingsPath path="Tools 
 
 Once a screenshot is in the conversation, a **Screenshot goes as** row above the tones switches it between **Picture** and **Text** for this reply. Text reads it on the phone straight away, so you can check and relabel every line. Picture puts the lines read from that screenshot back together into the picture. Picture only shows when the chosen model can take one. Your choice is remembered as the setting above: Picture as **Automatic**, so switching later to a model that can't read pictures falls back to text instead of failing, and Text as **Read on this device**. If you switch to a model that can't read pictures after adding one, the screenshot is read on the phone when you pick a tone.
 
-When a screenshot is read on the device, the parts that are not the conversation are left out: the status bar and the chat app's top bar (the contact's name, "Active now"), message times and dates, "Seen" and "Delivered" marks, and the message box's own placeholder. A screenshot taken while the reply panel was open also has the keyboard in it, and everything from the keyboard down is skipped. Lines of one bubble that wraps are put back together; when that misses one, use **Join**.
+When a screenshot is read on the device, the parts that are not the conversation are left out: the status bar and the chat app's top bar (the contact's name, "Active now"), message times and dates, "Seen" and "Delivered" marks, the message box's own placeholder, and the app's own notices inside the thread, such as "Replied to you", reaction banners, "This message was deleted", "Photo" and "Voice message" labels, call records, unread and encryption notices, and group events. A screenshot taken while the keyboard was on screen has the keyboard in it, and everything from the keyboard's top edge down is skipped. The keyboard remembers where its top edge was at each moment, so a screenshot taken with the plain keyboard up is cut at the plain keyboard's top, even when you pick it later from the taller reply panel. Lines of one bubble that wraps are put back together; when that misses one, use **Join**.
 
-The keyboard cannot take a screenshot for you: capturing the screen needs a system permission dialog, and an input method that opens one loses the box it was typing into. Take it the usual way, with the hardware buttons, while the reply panel is open, and the keyboard picks it up. This works whatever **Screenshots in the clipboard** under <SettingsPath path="Clipboard" /> is set to, and a screenshot caught for a reply is not added to the clipboard unless that setting is on. It needs the same permission to read your images as the **Screenshot** button.
+The keyboard cannot take a screenshot for you: capturing the screen needs a system permission dialog, and an input method that opens one loses the box it was typing into. Take it the usual way, with the hardware buttons, and pick it with **Screenshot**. To skip that step, turn on <SettingsPath path="Tools / AI reply / Add screenshots automatically" />. It's off by default. With it on, a screenshot taken while the panel is open is added on its own, and so is the newest one from the two minutes before you open it. This works whatever **Screenshots in the clipboard** under <SettingsPath path="Clipboard" /> is set to, and a screenshot caught for a reply is not added to the clipboard unless that setting is on. It needs the same permission to read your images as the **Screenshot** button.
 
 Reading screenshots from the gallery needs permission to read your images. Tapping **Screenshot** without it asks for it straight away, and the grid opens once you allow it. If you said no, the panel shows an **Allow** button to ask again.
 
@@ -53,17 +57,22 @@ Once there is something to reply to, the tones appear at the bottom of the panel
 
 | Tone | What it does |
 | --- | --- |
-| **Friendly** | A warm, everyday reply, the kind a friend would send |
-| **Short** | A handful of words |
-| **Caring** | Shows you understood how they feel, without unasked-for advice |
-| **Keep it going** | Answers, then asks one easy question back so the conversation continues |
+| **Casual** | A relaxed text, the way friends message each other |
+| **Quick** | Two to six words, or a single emoji when it fits |
+| **Keep it going** | Answers, then asks one easy question back so the chat continues |
+| **Sounds good** | Says yes and confirms any plan, time or place |
+| **Say no** | Declines clearly and kindly, without repeated apologies |
+| **Funny** | Playful banter that still answers what they said |
+| **Excited** | Hyped or congratulating, the way a friend texts back |
+| **Supportive** | Shows you understood how they feel, without unasked-for advice |
+| **Apologise** | A short, sincere apology without excuses |
 | **Polite** | Courteous and professional, for someone you do not know well |
-| **Agree** | Says yes plainly, without flattery |
-| **Say no kindly** | Declines clearly, without apologising repeatedly |
-| **Funny** | Light and playful, still answering what they said |
 | **Flirty** | Warm and lightly flirty |
+| **Custom…** | Asks what the reply should say, then writes it in that direction |
 
-Tones are editable, and you can write your own: they share the action editor with the AI tool's actions, under <SettingsPath path="Tools / AI / Actions" />. A tone you write needs a saved instruction — there is nowhere on this panel to type one per run, because the panel's own box is for their message.
+**Custom…** turns the box on the keyboard into an instruction box: type something like "say I'm running late, suggest 8:30" and tap **Write**.
+
+Tones are editable, and you can write your own under <SettingsPath path="Tools / AI reply / Tones" />. Reorder them, turn some off, change what one does, or add a new one with **New tone**. A tone you write can also ask for its instruction each time, the way **Custom…** does. Changing a shipped tone keeps a **Reset** to bring the original back.
 
 The drafts take the place of the conversation, and each one appears as soon as the model has finished writing it, rather than all three at the end. Tap one to put it in the message box.
 

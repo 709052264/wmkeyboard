@@ -1752,12 +1752,19 @@ data class ReplyEntry(
      */
     val image: Boolean = false,
     /**
-     * The screenshot was taken with the keyboard on screen. Kept on a picture
-     * entry so that, if the model turns out not to see and the picture has to
-     * be read on the phone after all, the keyboard's own keys are cut off
-     * the same way they would have been when it was added.
+     * Where the keyboard's top edge was on screen, in pixels, when the
+     * screenshot was taken; 0 when the keyboard was not in the picture. Kept
+     * on a screenshot's entries so that reading it on the phone — now or
+     * after a model turns out not to see — cuts off the keyboard that was
+     * actually in the picture, not whatever is on screen when it is read.
      */
-    val keyboardInShot: Boolean = false,
+    val boardTopPx: Int = 0,
+    /**
+     * No word in it is one the keyboard knows ([ReplyText.looksUnclear]):
+     * what OCR makes of a sticker or a cut-off line. Drawn in red, with one
+     * button on the panel to clear them all.
+     */
+    val unclear: Boolean = false,
     /**
      * For a line read off a screenshot: the screenshot it came from, on every
      * line of it (unlike [shotUri], which only the first carries so the
@@ -1815,6 +1822,14 @@ data class AiReplyUi(
      * refreshed when the panel opens and when the model is switched.
      */
     val canSendPicture: Boolean = false,
+    /** The message box is editing this message rather than adding a new one. */
+    val editing: Int? = null,
+    /**
+     * A tone that asks for its instruction each run (the shipped Custom…, or
+     * one the user wrote that way) is waiting for it: the message box is the
+     * instruction box until it is sent or closed.
+     */
+    val askTone: AiActionSpec? = null,
     /** A one-line message under the header: nothing copied, no permission, nothing read. */
     @androidx.annotation.StringRes val notice: Int? = null,
 ) {
@@ -1826,6 +1841,9 @@ data class AiReplyUi(
 
     /** Some of the conversation came from a screenshot, as a picture or as its lines. */
     val hasShots: Boolean get() = entries.any { it.image || it.fromShot != null }
+
+    /** How many messages read as noise rather than words. */
+    val unclearCount: Int get() = entries.count { it.unclear }
 
     /** The conversation as the prompt builder wants it. */
     fun context(source: ReplySource = ReplySource.TYPED, app: String? = null): ReplyContext =

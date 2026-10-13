@@ -2152,6 +2152,20 @@ private fun SettingsNavGraph(
                 AiActionsSettings(repository, settings) { navController.navigate(it) }
             }
         }
+        composable("ai_reply_tones") {
+            SettingsScreen(
+                stringResource(R.string.toolai_reply_tones_title),
+                { navController.popBackStack() },
+                route = "ai_reply_tones",
+            ) {
+                AiActionsSettings(
+                    repository,
+                    settings,
+                    onNavigate = { navController.navigate(it) },
+                    surface = com.wasimaster.wmkeyboard.core.tools.AiActionSurface.REPLY,
+                )
+            }
+        }
         composable("ai_history") {
             SettingsScreen(
                 stringResource(R.string.home_screen_ai_history_title),

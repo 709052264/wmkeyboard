@@ -117,6 +117,7 @@ import com.wasimaster.wmkeyboard.core.tools.McpServerSpec
 import com.wasimaster.wmkeyboard.core.tools.McpToolPolicy
 import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
 import com.wasimaster.wmkeyboard.core.tools.BuiltInAiActions
+import com.wasimaster.wmkeyboard.core.tools.BuiltInAiReplyTones
 import com.wasimaster.wmkeyboard.core.tools.BuiltInSymbolSets
 import com.wasimaster.wmkeyboard.core.settings.sync.SyncStatistics
 import com.wasimaster.wmkeyboard.core.tools.TypingStats
@@ -4345,6 +4346,14 @@ data class AiReplySettings(
      * Those are not the same thing to keep.
      */
     val keepHistory: Boolean = false,
+    /**
+     * Screenshots join the conversation on their own (#234): one taken while
+     * the reply panel is open, and the newest one from the last two minutes
+     * when it opens. Off by default — it reads the gallery as screenshots
+     * arrive, and not everybody gathering a reply wants every screenshot in
+     * it. The picker works either way.
+     */
+    val catchScreenshots: Boolean = false,
 )
 
 /**
@@ -7783,6 +7792,14 @@ data class LayoutBehaviorSettings(
      * [PanelOverKeysExtraHeightRange].
      */
     val panelOverKeysExtraHeightDp: Int = 0,
+    /**
+     * How much taller than its own opening height a full-bleed tool opens, in
+     * dp: the AI, AI reply, translate, converter and other tools that take
+     * the keyboard's place. Set by dragging the bar on top of one. One value
+     * for all of them, like [panelOverKeysExtraHeightDp]. See
+     * [PanelOverKeysExtraHeightRange], which bounds both.
+     */
+    val fullBleedExtraHeightDp: Int = 0,
 ) {
     /** The characters that spring the symbols layer back, with the default applied. */
     fun symbolsReturnCharSet(): String =
@@ -9091,6 +9108,7 @@ class SettingsRepository(private val context: Context) {
         private val SPACE_SWIPE_DOWN_HIDE = booleanPreferencesKey("space_swipe_down_hide")
         private val EDGE_SWIPE_BACK = booleanPreferencesKey("edge_swipe_back")
         private val PANEL_OVER_KEYS_EXTRA_HEIGHT_DP = intPreferencesKey("panel_over_keys_extra_height_dp")
+        private val FULL_BLEED_EXTRA_HEIGHT_DP = intPreferencesKey("full_bleed_extra_height_dp")
         private val HIDE_SYSTEM_KEYBOARD_BAR = booleanPreferencesKey("hide_system_keyboard_bar")
         private val EXTEND_EDGE_KEYS = booleanPreferencesKey("extend_edge_keys")
         private val GLOBE_IN_ONE_PLACE = booleanPreferencesKey("globe_in_one_place")
@@ -10010,6 +10028,7 @@ class SettingsRepository(private val context: Context) {
         private val AI_REPLY_IMAGE_MODE = stringPreferencesKey("ai_reply_image_mode")
         private val AI_REPLY_TIDY_UP = booleanPreferencesKey("ai_reply_tidy_up")
         private val AI_REPLY_KEEP_HISTORY = booleanPreferencesKey("ai_reply_keep_history")
+        private val AI_REPLY_CATCH_SCREENSHOTS = booleanPreferencesKey("ai_reply_catch_screenshots")
         // Where a per-action prompt override used to live, one key each. Read
         // only now, and folded into the action list on every read; see
         // [legacyAiPrompts]. Not deleted, because a settings backup taken
@@ -11301,6 +11320,8 @@ class SettingsRepository(private val context: Context) {
             globeInOnePlace = p[GLOBE_IN_ONE_PLACE] ?: defaults.layoutBehavior.globeInOnePlace,
             panelOverKeysExtraHeightDp = p[PANEL_OVER_KEYS_EXTRA_HEIGHT_DP]?.coerceIn(PanelOverKeysExtraHeightRange)
                 ?: defaults.layoutBehavior.panelOverKeysExtraHeightDp,
+            fullBleedExtraHeightDp = p[FULL_BLEED_EXTRA_HEIGHT_DP]?.coerceIn(PanelOverKeysExtraHeightRange)
+                ?: defaults.layoutBehavior.fullBleedExtraHeightDp,
             hintFlick = p[HINT_FLICK] ?: defaults.layoutBehavior.hintFlick,
             capitalFlick = p[CAPITAL_FLICK] ?: defaults.layoutBehavior.capitalFlick,
             globeTypingGuardMs = p[GLOBE_TYPING_GUARD_MS]?.coerceIn(GlobeTypingGuardMsRange)
@@ -12078,6 +12099,7 @@ class SettingsRepository(private val context: Context) {
                     ?: defaults.ai.reply.imageMode,
                 tidyUp = p[AI_REPLY_TIDY_UP] ?: defaults.ai.reply.tidyUp,
                 keepHistory = p[AI_REPLY_KEEP_HISTORY] ?: defaults.ai.reply.keepHistory,
+                catchScreenshots = p[AI_REPLY_CATCH_SCREENSHOTS] ?: defaults.ai.reply.catchScreenshots,
             ),
         )
 
@@ -16201,6 +16223,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setAiReplyKeepHistory(value: Boolean) =
         editPrefs { it[AI_REPLY_KEEP_HISTORY] = value }
 
+    suspend fun setAiReplyCatchScreenshots(value: Boolean) =
+        editPrefs { it[AI_REPLY_CATCH_SCREENSHOTS] = value }
+
     suspend fun setAiToolWebSearch(value: Boolean) =
         editPrefs { it[AI_TOOL_WEB_SEARCH] = value }
 
@@ -16763,6 +16788,10 @@ class SettingsRepository(private val context: Context) {
     /** See [LayoutBehaviorSettings.panelOverKeysExtraHeightDp]. */
     suspend fun setPanelOverKeysExtraHeightDp(value: Int) =
         editPrefs { it[PANEL_OVER_KEYS_EXTRA_HEIGHT_DP] = value.coerceIn(PanelOverKeysExtraHeightRange) }
+
+    /** See [LayoutBehaviorSettings.fullBleedExtraHeightDp]. */
+    suspend fun setFullBleedExtraHeightDp(value: Int) =
+        editPrefs { it[FULL_BLEED_EXTRA_HEIGHT_DP] = value.coerceIn(PanelOverKeysExtraHeightRange) }
 
     suspend fun setHideSystemKeyboardBar(value: Boolean) =
         editPrefs { it[HIDE_SYSTEM_KEYBOARD_BAR] = value }
@@ -18737,7 +18766,7 @@ class SettingsRepository(private val context: Context) {
             val current = AiActionCodec.decodeList(prefs[AI_CUSTOM_ACTIONS].orEmpty())
             prefs[AI_CUSTOM_ACTIONS] = AiActionCodec.encodeList(current.filter { it.id != id })
             clearLegacyAiPrompt(prefs, id)
-            if (BuiltInAiActions.isBuiltIn(id)) return@editPrefs
+            if (BuiltInAiActions.isBuiltIn(id) || BuiltInAiReplyTones.isBuiltIn(id)) return@editPrefs
             val order = AiActionCodec.decodeIds(prefs[AI_ACTION_ORDER].orEmpty())
             if (id in order) prefs[AI_ACTION_ORDER] = AiActionCodec.encodeIds(order - id)
             val off = AiActionCodec.decodeIds(prefs[AI_ACTIONS_OFF].orEmpty())

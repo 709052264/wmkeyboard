@@ -195,35 +195,83 @@ object BuiltInAiReplyTones {
     const val DECLINE_ID = "reply_decline"
     const val FUNNY_ID = "reply_funny"
     const val FLIRTY_ID = "reply_flirty"
+    const val EXCITED_ID = "reply_excited"
+    const val SORRY_ID = "reply_sorry"
+    const val CUSTOM_ID = "reply_custom"
 
+    /** Prefix of a tone the user writes, which is how the editor knows it is a tone and not an action. */
+    const val CUSTOM_PREFIX = "reply_custom_"
+
+    /**
+     * Written for chat apps: the replies people actually send in a thread are
+     * short, lower-key and unpunctuated next to an email, so every tone says
+     * how a text reads rather than how a letter does. The one exception,
+     * Polite, is for the colleague or stranger who gets the email register.
+     */
     val tones: List<AiActionSpec> = listOf(
         AiActionSpec(
             id = FRIENDLY_ID,
-            name = "Friendly",
+            name = "Casual",
             surface = AiActionSurface.REPLY,
-            task = "write a warm, natural, everyday reply — the kind a friend would send.",
+            task = "write a casual text the way friends message each other: relaxed, " +
+                "natural, a sentence or two at most, light punctuation, no formal phrasing.",
         ),
         AiActionSpec(
             id = SHORT_ID,
-            name = "Short",
+            name = "Quick",
             surface = AiActionSurface.REPLY,
-            task = "write a very short reply: a handful of words, the way people actually " +
-                "answer on a phone.",
-        ),
-        AiActionSpec(
-            id = WARM_ID,
-            name = "Caring",
-            surface = AiActionSurface.REPLY,
-            task = "write a reply that shows you understood how they feel and takes it " +
-                "seriously, without being sentimental or giving advice that was not asked for.",
+            task = "write a very short text: two to six words, the way people answer in a " +
+                "chat when they are busy. A single word or emoji is fine when it fits.",
         ),
         AiActionSpec(
             id = KEEP_GOING_ID,
             name = "Keep it going",
             surface = AiActionSurface.REPLY,
-            task = "write a reply that answers what they said and then asks one easy, " +
-                "specific question back, so the conversation has somewhere to go. Never " +
-                "ask more than one question.",
+            task = "answer what they said, then ask one easy, specific question back so " +
+                "the chat has somewhere to go. Never ask more than one question.",
+        ),
+        AiActionSpec(
+            id = AGREE_ID,
+            name = "Sounds good",
+            surface = AiActionSurface.REPLY,
+            task = "say yes or agree, plainly and warmly, confirming any plan, time or " +
+                "place they mentioned so nothing is left vague.",
+        ),
+        AiActionSpec(
+            id = DECLINE_ID,
+            name = "Say no",
+            surface = AiActionSurface.REPLY,
+            task = "decline or disagree kindly but clearly: the answer is no. One short " +
+                "reason at most, no repeated apologies, and offer another time only if it " +
+                "fits what they asked.",
+        ),
+        AiActionSpec(
+            id = FUNNY_ID,
+            name = "Funny",
+            surface = AiActionSurface.REPLY,
+            task = "write a playful, witty text that still answers what they said. Banter, " +
+                "not a joke lecture, and never mean about them.",
+        ),
+        AiActionSpec(
+            id = EXCITED_ID,
+            name = "Excited",
+            surface = AiActionSurface.REPLY,
+            task = "react with genuine excitement or congratulations, the way someone " +
+                "hyped for a friend texts back.",
+        ),
+        AiActionSpec(
+            id = WARM_ID,
+            name = "Supportive",
+            surface = AiActionSurface.REPLY,
+            task = "show you understood how they feel and that you are there for them, in " +
+                "a short caring text, without unasked-for advice or sounding like a card.",
+        ),
+        AiActionSpec(
+            id = SORRY_ID,
+            name = "Apologise",
+            surface = AiActionSurface.REPLY,
+            task = "apologise sincerely and briefly for what the conversation shows went " +
+                "wrong, without excuses or grovelling.",
         ),
         AiActionSpec(
             id = POLITE_ID,
@@ -233,31 +281,19 @@ object BuiltInAiReplyTones {
                 "colleague or someone you do not know well.",
         ),
         AiActionSpec(
-            id = AGREE_ID,
-            name = "Agree",
-            surface = AiActionSurface.REPLY,
-            task = "write a reply that agrees with what they said and says so plainly, " +
-                "without flattery.",
-        ),
-        AiActionSpec(
-            id = DECLINE_ID,
-            name = "Say no kindly",
-            surface = AiActionSurface.REPLY,
-            task = "write a reply that declines or disagrees, kindly and without " +
-                "apologising repeatedly. Be clear that the answer is no.",
-        ),
-        AiActionSpec(
-            id = FUNNY_ID,
-            name = "Funny",
-            surface = AiActionSurface.REPLY,
-            task = "write a light, playful reply with a bit of humour, still answering " +
-                "what they actually said. Never be sarcastic about them.",
-        ),
-        AiActionSpec(
             id = FLIRTY_ID,
             name = "Flirty",
             surface = AiActionSurface.REPLY,
-            task = "write a warm, lightly flirty reply. Keep it tasteful and never explicit.",
+            task = "write a warm, lightly flirty text. Keep it tasteful and never explicit.",
+        ),
+        AiActionSpec(
+            id = CUSTOM_ID,
+            name = "Custom",
+            surface = AiActionSurface.REPLY,
+            // Typed on the panel each run, in the box the messages are typed
+            // in, which turns into the instruction box for the run.
+            askEachRun = true,
+            worksWithoutText = false,
         ),
     )
 
@@ -283,6 +319,9 @@ object BuiltInAiReplyTones {
         spec.id == DECLINE_ID -> R.string.core_tools_reply_tone_decline
         spec.id == FUNNY_ID -> R.string.core_tools_reply_tone_funny
         spec.id == FLIRTY_ID -> R.string.core_tools_reply_tone_flirty
+        spec.id == EXCITED_ID -> R.string.core_tools_reply_tone_excited
+        spec.id == SORRY_ID -> R.string.core_tools_reply_tone_sorry
+        spec.id == CUSTOM_ID -> R.string.core_tools_reply_tone_custom
         else -> null
     }
 
@@ -395,5 +434,27 @@ object AiReplyParse {
             if (paired) s = s.substring(1, s.length - 1).trim()
         }
         return s
+    }
+}
+
+/**
+ * A gathered message that reads as noise rather than words (#234): no word in
+ * it is one the keyboard knows. What OCR makes of a sticker, a blurred avatar
+ * or a cut-off line, and what a stray copy pastes in.
+ *
+ * Only Latin-script words are judged, because only they are checked against
+ * the English the user asked about; a message in another script, or one that
+ * is all emoji and numbers, is never marked. One- and two-letter words do not
+ * count either way — "ok" and "u" are chat, and "xq" is not evidence of
+ * anything.
+ */
+object ReplyText {
+
+    private val WORD = Regex("[A-Za-z][A-Za-z']+")
+
+    fun looksUnclear(text: String, isKnown: (String) -> Boolean): Boolean {
+        val words = WORD.findAll(text).map { it.value.trim('\'') }.filter { it.length >= 3 }.toList()
+        if (words.isEmpty()) return false
+        return words.none { isKnown(it) || isKnown(it.lowercase()) }
     }
 }

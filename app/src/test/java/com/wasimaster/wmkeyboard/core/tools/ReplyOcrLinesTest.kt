@@ -95,4 +95,49 @@ class ReplyOcrLinesTest {
         )
         assertEquals(listOf("first", "second"), turns.map { it.text })
     }
+
+    // ---- the app's own notices inside a thread ----
+
+    @Test
+    fun `reply and reaction banners are chrome`() {
+        for (line in listOf(
+            "Replied to you", "You replied to Sam", "replied to your story",
+            "Sam reacted 😂 to your message", "Liked a message", "Sam mentioned you",
+        )) assertTrue(line, ReplyOcrLines.isChrome(line))
+    }
+
+    @Test
+    fun `deleted stubs, attachments and calls are chrome`() {
+        for (line in listOf(
+            "This message was deleted", "You deleted this message", "Photo", "Sticker",
+            "Voice message 0:12", "Missed voice call", "Video call 3:21", "Tap to view",
+            "2 unread messages", "Messages and calls are end-to-end encrypted. Tap to learn more.",
+            "Sam pinned a message", "Sam left the group", "Swipe to reply",
+        )) assertTrue(line, ReplyOcrLines.isChrome(line))
+    }
+
+    @Test
+    fun `messages that only start like a notice are kept`() {
+        for (line in listOf(
+            "I left early", "call me when you're free", "Photo looks great, where was it taken?",
+            "replied to your mom yet? she was asking about sunday dinner and the whole plan",
+        )) assertFalse(line, ReplyOcrLines.isChrome(line))
+    }
+
+    // ---- unclear messages ----
+
+    @Test
+    fun `a message with no known word is unclear`() {
+        val known = setOf("see", "you", "tomorrow")
+        assertTrue(ReplyText.looksUnclear("xqzv bnmt", known::contains))
+        assertFalse(ReplyText.looksUnclear("see you tmrw", known::contains))
+    }
+
+    @Test
+    fun `emoji, numbers and other scripts are never unclear`() {
+        val none = { _: String -> false }
+        assertFalse(ReplyText.looksUnclear("😂😂 12:30", none))
+        assertFalse(ReplyText.looksUnclear("আজকে আসবি?", none))
+        assertFalse(ReplyText.looksUnclear("ok u", none))
+    }
 }

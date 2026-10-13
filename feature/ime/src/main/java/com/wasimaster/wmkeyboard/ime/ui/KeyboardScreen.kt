@@ -1639,6 +1639,7 @@ fun KeyboardScreen(
         LocalSpaceTouchpad provides remember { SpaceTouchpad() },
         LocalCaretDrag provides toolHold.caretMagnifier.onDrag,
         LocalPanelOverKeysHeight provides toolHold.onPanelOverKeysHeight,
+        LocalFullBleedHeight provides toolHold.onFullBleedHeight,
         LocalHideKeyboard provides onHideKeyboard,
         LocalLanguageSwitchEcho provides languageSwitchEcho,
         // Held behind a stable lambda: the service hands a fresh reference on
@@ -10748,9 +10749,20 @@ internal fun FullBleedTool(
     } else {
         null
     }
-    val handle = overKeys?.bar ?: topHandle
+    // Opened at the keyboard's own height, the tool wears the same kind of bar
+    // to drag it taller, one height every full-bleed tool shares. Not where
+    // the panel brings a bar of its own (the clipboard's, the media panels').
+    val board = keyRowsHeight(state) + fullBleedHiddenRows(state, macroRowAtPanelOpen(state))
+    val grown = if (overKeys == null && !compact && topHandle == null) {
+        fullBleedSize(state, wanted = board + extraHeight, floor = board)
+    } else {
+        null
+    }
+    val handle = overKeys?.bar ?: grown?.bar ?: topHandle
     val height = if (overKeys != null) {
         overKeys.height
+    } else if (grown != null) {
+        grown.height
     } else if (compact) {
         // A field of the keyboard's own draws a suggestion strip between this
         // panel and the keys (#161), and the row for it comes out of the
@@ -10760,11 +10772,10 @@ internal fun FullBleedTool(
         // just that has nothing left to give, and the strip costs height.
         toolPanelHeight(state, wanted = compactHeight - captureStripHeight(state), floor = FullBleedHeaderHeight)
     } else {
-        val board = keyRowsHeight(state) + fullBleedHiddenRows(state, macroRowAtPanelOpen(state))
         toolPanelHeight(state, wanted = board + extraHeight, floor = board)
     }
     Column(
-        modifier = (overKeys?.probe ?: Modifier)
+        modifier = (overKeys?.probe ?: grown?.probe ?: Modifier)
             .fillMaxWidth()
             .height(height),
     ) {
@@ -26486,6 +26497,11 @@ data class ToolHoldCallbacks(
      * reason as [dictionaryBar].
      */
     val onPanelOverKeysHeight: (Int) -> Unit = {},
+    /**
+     * The bar on top of a full-bleed tool let go: how many dp taller than its
+     * own opening height every such tool opens. Same reason as [dictionaryBar].
+     */
+    val onFullBleedHeight: (Int) -> Unit = {},
 )
 
 // ---- snippets panel ----

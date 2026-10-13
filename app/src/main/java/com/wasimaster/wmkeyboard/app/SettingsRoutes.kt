@@ -178,6 +178,7 @@ internal object SettingsRoutes {
         "rows",
         "rows/symbol",
         "ai_actions",
+        "ai_reply_tones",
         "ai_history",
         "ai_chat",
         "ai_chat/{conversationId}",

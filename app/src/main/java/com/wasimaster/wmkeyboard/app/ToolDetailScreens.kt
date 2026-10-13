@@ -4534,6 +4534,23 @@ private fun AiReplyToolSettings(
                 default = SettingsDefaults.ai.reply.imageMode,
             ) { scope.launch { repository.setAiReplyImageMode(it) } }
         }
+        item {
+            ToggleSetting(
+                R.string.toolai_reply_catch_shots_title,
+                stringResource(R.string.toolai_reply_catch_shots_subtitle),
+                settings.watch { it.ai.reply.catchScreenshots },
+                default = SettingsDefaults.ai.reply.catchScreenshots,
+            ) { scope.launch { repository.setAiReplyCatchScreenshots(it) } }
+        }
+    }
+
+    SettingsGroup(stringResource(R.string.toolai_reply_tones_title)) {
+        item {
+            NavRow(
+                R.string.toolai_reply_tones_nav_title,
+                stringResource(R.string.toolai_reply_tones_nav_subtitle),
+            ) { onNavigate("ai_reply_tones") }
+        }
     }
 
     SettingsGroup(stringResource(R.string.toolai_reply_after_title)) {

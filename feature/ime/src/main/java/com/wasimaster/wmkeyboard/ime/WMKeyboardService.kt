@@ -470,6 +470,7 @@ import com.wasimaster.wmkeyboard.core.tools.AiPrompts
 import com.wasimaster.wmkeyboard.core.tools.AiReplyParse
 import com.wasimaster.wmkeyboard.core.tools.ReplyImageMode
 import com.wasimaster.wmkeyboard.core.tools.ReplySource
+import com.wasimaster.wmkeyboard.core.tools.ReplyText
 import com.wasimaster.wmkeyboard.core.tools.ReplyStyle
 import com.wasimaster.wmkeyboard.core.reply.ReplyShots
 import com.wasimaster.wmkeyboard.ime.reply.ReplyOcr
@@ -2949,6 +2950,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         val state = _uiState.value
         kdeClipboardChanged(state)
+        noteCopyForReply(state)
         if (!isClipboardAccessible() ||
             !state.settings.clipboard.history ||
             clipCapturePaused(state)
@@ -3122,7 +3124,10 @@ open class WMKeyboardService : InputMethodService() {
      * option the user may never have heard of.
      */
     private fun refreshScreenshotObserver(settings: KeyboardSettings = _uiState.value.settings) {
-        updateScreenshotObserver(settings.clipboard.userScreenshots || _uiState.value.panel == PanelMode.AI_REPLY)
+        updateScreenshotObserver(
+            settings.clipboard.userScreenshots ||
+                (_uiState.value.panel == PanelMode.AI_REPLY && settings.ai.reply.catchScreenshots),
+        )
     }
 
     private fun updateScreenshotObserver(enabled: Boolean) {
@@ -3173,7 +3178,8 @@ open class WMKeyboardService : InputMethodService() {
         // not paused) and the reply panel (open, not over a password field).
         val forClipboard = state.settings.clipboard.userScreenshots &&
             state.settings.clipboard.history && !clipCapturePaused(state)
-        val forReply = state.panel == PanelMode.AI_REPLY && !state.secureField
+        val forReply = state.panel == PanelMode.AI_REPLY && !state.secureField &&
+            state.settings.ai.reply.catchScreenshots
         if (!forClipboard && !forReply) return
 
         serviceScope.launch(Dispatchers.IO) {
@@ -5435,6 +5441,7 @@ open class WMKeyboardService : InputMethodService() {
                 outInsets.visibleTopInsets += headroom
             }
             boardTopInWindow = outInsets.visibleTopInsets
+            boardTopOnScreen()?.let { noteBoardTop(it) }
             // Resize mode's band is the app, dimmed, under a scrim that eats
             // every touch, and a top handle dragged taller than the keyboard
             // entered sits in it: the whole window stays ours (issue #643).
@@ -7127,6 +7134,8 @@ open class WMKeyboardService : InputMethodService() {
      */
     override fun onWindowHidden() {
         super.onWindowHidden()
+        // Off screen: a screenshot from now on has no keyboard in it (#234).
+        noteBoardTop(0)
         // Nothing to draw from here until the window comes back, so the
         // composition stops being handed new state — see [_shownState].
         windowOnScreen = false
@@ -27537,6 +27546,8 @@ open class WMKeyboardService : InputMethodService() {
             onMerge = ::onReplyMerge,
             onShowMessages = ::onReplyShowMessages,
             onAllowImages = ::onReplyAllowImages,
+            onEdit = ::onReplyEdit,
+            onRemoveUnclear = ::onReplyRemoveUnclear,
             onPickModel = ::onAiPickModel,
             onSendPictures = ::onReplySendPictures,
         )
@@ -28743,10 +28754,55 @@ open class WMKeyboardService : InputMethodService() {
                     notice = null,
                     draft = draft,
                     canSendPicture = replyCanSendPicture(settings),
+                    editing = null,
+                    askTone = null,
                 ),
             )
         }
+        addRecentClipsForReply()
+        if (settings.ai.reply.catchScreenshots && canReadImages()) {
+            serviceScope.launch {
+                val shot = withContext(Dispatchers.IO) {
+                    ReplyShots.newest(this@WMKeyboardService, REPLY_RECENT_WINDOW_SEC)
+                } ?: return@launch
+                if (_uiState.value.panel != PanelMode.AI_REPLY) return@launch
+                addReplyShot(shot.uri.toString(), null, boardTopAt(shot.addedAt))
+            }
+        }
     }
+
+    /**
+     * What was copied in the last couple of minutes, added as the panel opens
+     * (#234): the usual order is copy their message, then open the tool, and
+     * a copy made just before opening is the message to answer. From the
+     * clipboard history when it is on, oldest first; otherwise the one copy
+     * the keyboard saw last, which it notes whether or not history is kept.
+     */
+    private fun addRecentClipsForReply() {
+        if (_uiState.value.secureField) return
+        val cutoff = System.currentTimeMillis() - REPLY_RECENT_WINDOW_SEC * 1000
+        val settings = _uiState.value.settings
+        if (settings.clipboard.history && isClipboardAccessible()) {
+            clipboardStore.items()
+                .filter { it.kind.isTextual && !it.sensitive && it.timestamp >= cutoff && it.text.isNotBlank() }
+                .sortedBy { it.timestamp }
+                .forEach { item ->
+                    addReplyEntry(ReplyEntry(text = item.text.trim(), source = ReplySource.CLIPBOARD, clipId = item.id))
+                }
+            return
+        }
+        val copied = lastCopiedText ?: return
+        if (lastCopiedAt >= cutoff) addReplyEntry(ReplyEntry(text = copied, source = ReplySource.CLIPBOARD))
+    }
+
+    /**
+     * The last text the keyboard saw copied, and when (#234). Kept whatever
+     * the clipboard history setting says, in memory only, so the reply tool
+     * can pick up "the message I just copied" for someone who keeps no
+     * history at all.
+     */
+    private var lastCopiedText: String? = null
+    private var lastCopiedAt = 0L
 
     /**
      * Adds one message to the conversation being replied to.
@@ -28762,15 +28818,75 @@ open class WMKeyboardService : InputMethodService() {
             // had already arrived on its own — is one message, not two.
             if (entry.clipId != 0L && existing.any { e -> e.clipId == entry.clipId }) return@update it
             if (entry.shotUri != null && existing.any { e -> e.shotUri == entry.shotUri }) return@update it
+            // A copy seen twice — live, and again from the history when the
+            // panel opens — is one message.
+            if (entry.source == ReplySource.CLIPBOARD &&
+                existing.any { e -> e.source == ReplySource.CLIPBOARD && e.text == entry.text }
+            ) {
+                return@update it
+            }
+            val marked = if (entry.image) entry else entry.copy(unclear = replyLooksUnclear(entry.text))
             it.copy(
                 aiReply = it.aiReply.copy(
-                    entries = (existing + entry).takeLast(MAX_REPLY_ENTRIES),
+                    entries = (existing + marked).takeLast(MAX_REPLY_ENTRIES),
                     notice = null,
                     // A new message makes the drafts on screen answers to a
                     // conversation that has moved on.
                     candidates = emptyList(),
                 ),
             )
+        }
+    }
+
+    /**
+     * Every copy, for the reply tool (#234), before the clipboard history's
+     * own gates: remembered as "the last thing copied" for the panel to pick
+     * up when it opens, and handed straight to an open panel when the history
+     * will not hand it over itself (history off, or paused) — copying their
+     * message while the panel is open must work for somebody who keeps no
+     * clipboard history. Secrets are skipped by the same tests the history
+     * uses.
+     */
+    private fun noteCopyForReply(state: KeyboardUiState) {
+        if (!isClipboardAccessible()) return
+        val clip = runCatching {
+            (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip
+        }.getOrNull() ?: return
+        if (clipMarkedSensitive(clip)) return
+        val text = clip.getItemAt(0)?.text?.toString()?.trim().orEmpty()
+        if (text.isEmpty() || ClipSensitivity.looksSensitive(text)) return
+        lastCopiedText = text.take(MAX_REPLY_CHARS)
+        lastCopiedAt = System.currentTimeMillis()
+        val historyHandsItOver = state.settings.clipboard.history && !clipCapturePaused(state)
+        if (!historyHandsItOver && state.panel == PanelMode.AI_REPLY && !state.secureField) {
+            addReplyEntry(ReplyEntry(text = text.take(MAX_REPLY_CHARS), source = ReplySource.CLIPBOARD))
+        }
+    }
+
+    /** No word the keyboard knows in [text]; see [ReplyText.looksUnclear]. */
+    private fun replyLooksUnclear(text: String): Boolean = ReplyText.looksUnclear(text, ::isKnownWord)
+
+    /** The red-marked messages, all at once. */
+    fun onReplyRemoveUnclear() {
+        vibrate()
+        _uiState.update {
+            it.copy(
+                aiReply = it.aiReply.copy(
+                    entries = it.aiReply.entries.filterNot { e -> e.unclear },
+                    candidates = emptyList(),
+                    editing = null,
+                ),
+            )
+        }
+    }
+
+    /** Opens message [index] in the message box, to fix what OCR or a copy got wrong. */
+    fun onReplyEdit(index: Int) {
+        vibrate()
+        _uiState.update {
+            val entry = it.aiReply.entries.getOrNull(index) ?: return@update it
+            if (entry.image) return@update it
+            it.copy(aiReply = it.aiReply.copy(typing = true, typed = entry.text, editing = index, askTone = null))
         }
     }
 
@@ -28829,12 +28945,49 @@ open class WMKeyboardService : InputMethodService() {
     /** The box takes the keys, or gives them back. */
     fun onReplyTypeFocus(on: Boolean) {
         vibrate()
-        _uiState.update { it.copy(aiReply = it.aiReply.copy(typing = on)) }
+        _uiState.update {
+            // Closing the box drops an edit or a pending instruction with it:
+            // the box opened for one of those, and a later open is for a new
+            // message.
+            if (on) it.copy(aiReply = it.aiReply.copy(typing = true))
+            else it.copy(aiReply = it.aiReply.copy(typing = false, editing = null, askTone = null, typed = ""))
+        }
     }
 
     /** Enter, and the box's own Add button: what is typed becomes a message. */
     fun onReplyTypedDone() {
-        val typed = _uiState.value.aiReply.typed.trim()
+        val reply = _uiState.value.aiReply
+        val typed = reply.typed.trim()
+        // The box was the instruction for a tone that asks each run.
+        reply.askTone?.let { tone ->
+            if (typed.isEmpty()) return
+            _uiState.update { it.copy(aiReply = it.aiReply.copy(typing = false, typed = "", askTone = null)) }
+            runAiReply(tone, instruction = typed)
+            return
+        }
+        // The box was editing a message: replace it, or drop it when emptied.
+        reply.editing?.let { index ->
+            _uiState.update {
+                val entries = it.aiReply.entries
+                val updated = when {
+                    index !in entries.indices -> entries
+                    typed.isEmpty() -> entries.filterIndexed { i, _ -> i != index }
+                    else -> entries.toMutableList().also { list ->
+                        list[index] = list[index].copy(text = typed, unclear = replyLooksUnclear(typed))
+                    }
+                }
+                it.copy(
+                    aiReply = it.aiReply.copy(
+                        entries = updated,
+                        typing = false,
+                        typed = "",
+                        editing = null,
+                        candidates = emptyList(),
+                    ),
+                )
+            }
+            return
+        }
         if (typed.isEmpty()) {
             _uiState.update { it.copy(aiReply = it.aiReply.copy(typing = false)) }
             return
@@ -28946,7 +29099,9 @@ open class WMKeyboardService : InputMethodService() {
     private fun noteScreenshotForReply(uri: android.net.Uri, copy: java.io.File?) {
         if (_uiState.value.panel != PanelMode.AI_REPLY) return
         // Taken with this panel on screen, so the keyboard is in the picture.
-        addReplyShot(uri.toString(), copy?.absolutePath, keyboardInShot = true)
+        // Taken with this panel on screen, so the keyboard is in the picture —
+        // where it was at that moment, from the board's own history.
+        addReplyShot(uri.toString(), copy?.absolutePath, boardTopAt(System.currentTimeMillis() / 1000))
     }
 
     /**
@@ -28987,17 +29142,45 @@ open class WMKeyboardService : InputMethodService() {
      * when the keyboard was in the picture: otherwise the panel's own buttons
      * and notices come back as messages the other person sent.
      */
-    private fun replyOcrFrame(keyboardInShot: Boolean): ReplyOcrLines.ReplyOcrFrame {
+    private fun replyOcrFrame(boardTopPx: Int): ReplyOcrLines.ReplyOcrFrame {
         val screen = screenHeightPx().takeIf { it > 0 } ?: return ReplyOcrLines.ReplyOcrFrame()
         val statusId = resources.getIdentifier("status_bar_height", "dimen", "android")
         val status = if (statusId > 0) resources.getDimensionPixelSize(statusId) else 0
         val appBar = (REPLY_APP_BAR_DP * resources.displayMetrics.density).toInt()
         val top = ((status + appBar).toFloat() / screen).coerceIn(0f, REPLY_MAX_TOP_CUT)
-        val bottom = if (keyboardInShot) boardTopOnScreen()?.let { it.toFloat() / screen } else null
+        val bottom = boardTopPx.takeIf { it > 0 }?.let { it.toFloat() / screen }
         return ReplyOcrLines.ReplyOcrFrame(
             topCut = top,
             bottomCut = bottom?.takeIf { it > top }?.coerceAtMost(1f) ?: 1f,
         )
+    }
+
+    /**
+     * Where the docked keyboard's top edge has been on screen, and since when
+     * (#234): pairs of wall-clock millis and screen pixels, 0 for "not on
+     * screen" (hidden or floating). A screenshot only says when it was taken,
+     * so this is how the reply tool knows what part of it was the keyboard.
+     */
+    private val boardTopHistory = ArrayDeque<LongArray>()
+
+    private fun noteBoardTop(topPx: Int) {
+        val last = boardTopHistory.lastOrNull()
+        if (last != null && last[1].toInt() == topPx) return
+        boardTopHistory.addLast(longArrayOf(System.currentTimeMillis(), topPx.toLong()))
+        while (boardTopHistory.size > BOARD_TOP_HISTORY) boardTopHistory.removeFirst()
+    }
+
+    /**
+     * The keyboard's top edge on screen when a screenshot saved at [epochSec]
+     * was taken, or 0 when it was not on screen. MediaStore keeps whole
+     * seconds and stamps the moment the file was written, a beat after the
+     * capture, so the board is read a moment before that.
+     */
+    private fun boardTopAt(epochSec: Long): Int {
+        if (epochSec <= 0) return 0
+        val at = epochSec * 1000 - SHOT_WRITE_LAG_MS
+        val sample = boardTopHistory.lastOrNull { it[0] <= at } ?: return 0
+        return sample[1].toInt()
     }
 
     /** The docked keyboard's top edge in screen pixels, or null when floating or unmeasured. */
@@ -29065,8 +29248,11 @@ open class WMKeyboardService : InputMethodService() {
         // A screenshot taken since this panel opened was taken with it on
         // screen — the usual flow is open the panel, screenshot the chat,
         // pick it — so the keyboard is in the picture and must not be read.
-        val keyboardInShot = shot != null && replyOpenedAtSec > 0 && shot.addedAt >= replyOpenedAtSec
-        addReplyShot(uri, null, keyboardInShot)
+        // Where the keyboard was when it was taken — not where it is now: a
+        // shot of the chat with the plain keyboard up, picked from this taller
+        // panel, has to be cut at the plain keyboard's top, and one taken
+        // with the keyboard down is not cut at all.
+        addReplyShot(uri, null, shot?.let { boardTopAt(it.addedAt) } ?: 0)
     }
 
     /**
@@ -29079,7 +29265,7 @@ open class WMKeyboardService : InputMethodService() {
      * who asked for it to stay on the device — the picture is read here instead
      * and arrives as lines the user can relabel.
      */
-    private fun addReplyShot(uriString: String, copyPath: String?, keyboardInShot: Boolean) {
+    private fun addReplyShot(uriString: String, copyPath: String?, boardTopPx: Int) {
         // The same screenshot twice, as a picture or as lines already read,
         // is one screenshot.
         if (_uiState.value.aiReply.entries.any { it.shotUri == uriString || it.fromShot == uriString }) return
@@ -29103,7 +29289,7 @@ open class WMKeyboardService : InputMethodService() {
                     shotUri = uriString,
                     shotFile = copyPath,
                     image = true,
-                    keyboardInShot = keyboardInShot,
+                    boardTopPx = boardTopPx,
                 ),
             )
             return
@@ -29113,7 +29299,7 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         _uiState.update { it.copy(aiReply = it.aiReply.copy(reading = true, notice = null)) }
-        val frame = replyOcrFrame(keyboardInShot)
+        val frame = replyOcrFrame(boardTopPx)
         serviceScope.launch {
             val turns = withContext(Dispatchers.IO) {
                 val bitmap = ReplyShots.bitmap(this@WMKeyboardService, android.net.Uri.parse(uriString))
@@ -29136,7 +29322,7 @@ open class WMKeyboardService : InputMethodService() {
                         source = ReplySource.SCREENSHOT,
                         shotUri = if (first) uriString else null,
                         shotFile = if (first) copyPath else null,
-                        keyboardInShot = keyboardInShot,
+                        boardTopPx = boardTopPx,
                         fromShot = uriString,
                     ),
                 )
@@ -29163,7 +29349,10 @@ open class WMKeyboardService : InputMethodService() {
         // AI tool's instruction box belongs to its own panel. A tone the user
         // writes carries its task, which is the shape that fits this surface.
         if (spec.askEachRun) {
-            replyNotice(R.string.ime_reply_notice_tone_needs_task)
+            // The message box becomes the instruction box for this run.
+            _uiState.update {
+                it.copy(aiReply = it.aiReply.copy(askTone = spec, typing = true, typed = "", editing = null, notice = null))
+            }
             return
         }
         runAiReply(spec, instruction = "")
@@ -29393,7 +29582,7 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
         serviceScope.launch {
-            val frames = shots.associateWith { replyOcrFrame(it.keyboardInShot) }
+            val frames = shots.associateWith { replyOcrFrame(it.boardTopPx) }
             val read = withContext(Dispatchers.IO) {
                 shots.associateWith { entry ->
                     val uri = entry.shotUri ?: return@associateWith emptyList()
@@ -29414,7 +29603,7 @@ open class WMKeyboardService : InputMethodService() {
                             source = ReplySource.SCREENSHOT,
                             shotUri = if (i == 0) entry.shotUri else null,
                             shotFile = if (i == 0) entry.shotFile else null,
-                            keyboardInShot = entry.keyboardInShot,
+                            boardTopPx = entry.boardTopPx,
                             fromShot = entry.shotUri,
                         )
                     }
@@ -29466,7 +29655,7 @@ open class WMKeyboardService : InputMethodService() {
                         shotUri = shot,
                         shotFile = group.firstNotNullOfOrNull { it.shotFile },
                         image = true,
-                        keyboardInShot = entry.keyboardInShot,
+                        boardTopPx = entry.boardTopPx,
                     )
                 }
                 current.copy(aiReply = current.aiReply.copy(entries = rebuilt, candidates = emptyList(), notice = null))
@@ -33230,6 +33419,7 @@ open class WMKeyboardService : InputMethodService() {
             clipboard = clipboardPanelActions(),
             onMediaPanelHeight = ::onMediaPanelHeight,
             onPanelOverKeysHeight = ::onPanelOverKeysHeight,
+            onFullBleedHeight = ::onFullBleedHeight,
             caretMagnifier = com.wasimaster.wmkeyboard.ime.ui.CaretMagnifierSeam(
                 onDrag = ::onCaretDrag,
                 state = caretMagnifier.state,
@@ -38057,6 +38247,15 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The bar on top of a full-bleed tool let go: [extraDp] is how much taller
+     * than its own opening height every such tool opens from now on.
+     */
+    fun onFullBleedHeight(extraDp: Int) {
+        if (extraDp == _uiState.value.settings.layoutBehavior.fullBleedExtraHeightDp) return
+        serviceScope.launch { settingsRepository.setFullBleedExtraHeightDp(extraDp) }
+    }
+
+    /**
      * The bar on a panel stacked over the keys let go (#615): [extraDp] is how
      * much taller than its compact height every such panel opens from now on.
      */
@@ -40978,6 +41177,15 @@ open class WMKeyboardService : InputMethodService() {
 
         /** Screenshots the picker offers. */
         private const val REPLY_SHOT_CHOICES = 24
+
+        /** How far back "just copied" and "just screenshotted" reach when the reply panel opens. */
+        private const val REPLY_RECENT_WINDOW_SEC = 120L
+
+        /** Board positions kept for matching screenshots to where the keyboard was. */
+        private const val BOARD_TOP_HISTORY = 64
+
+        /** How long after the capture a screenshot's file is stamped, roughly. */
+        private const val SHOT_WRITE_LAG_MS = 400L
 
         /** A chat app's top bar, under the status bar: the name and "Active now". */
         private const val REPLY_APP_BAR_DP = 64

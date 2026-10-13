@@ -271,3 +271,45 @@ internal fun panelOverKeysSize(state: KeyboardUiState, wanted: Dp, floor: Dp): P
         probe = probe,
     )
 }
+
+/**
+ * Where the bar on a full-bleed tool commits what it lands on: how many dp
+ * taller than its own opening height such a tool opens. A local for the
+ * reason [LocalPanelOverKeysHeight] is one.
+ */
+internal val LocalFullBleedHeight = staticCompositionLocalOf<(Int) -> Unit> { {} }
+
+/**
+ * The height of a full-bleed tool — AI, AI reply, translate and the rest —
+ * with the bar on top that drags it taller: the [wanted] height it has always
+ * opened at, plus the shared [LayoutBehaviorSettings.fullBleedExtraHeightDp],
+ * fitted to the screen and never below [floor].
+ *
+ * The bar's band comes out of the panel rather than being added to it, so a
+ * tool that was never dragged opens exactly as tall as it always did, and
+ * the window does not grow by a band nobody asked for.
+ */
+@Composable
+internal fun fullBleedSize(state: KeyboardUiState, wanted: Dp, floor: Dp): PanelOverKeysSize {
+    val setting = state.settings.layoutBehavior.fullBleedExtraHeightDp
+    val resize = rememberClipPanelResize(setting)
+    val base = toolPanelHeight(state, wanted = wanted, floor = floor)
+    val maxPanel = toolPanelHeight(
+        state,
+        wanted = wanted + PanelOverKeysExtraHeightRange.last.dp,
+        floor = base,
+    )
+    val maxExtra = (maxPanel - base).coerceAtLeast(0.dp)
+    val probe = remember(resize) { Modifier.clipPanelHeightProbe(resize) }
+    if (maxExtra < 1.dp) return PanelOverKeysSize(base, null, probe)
+    val extra = resize.shownDp(setting).dp.coerceIn(0.dp, maxExtra)
+    val maxPanelPx = with(LocalDensity.current) { maxPanel.roundToPx() }
+    SideEffect { resize.maxPanelPx = maxPanelPx }
+    val onCommit = LocalFullBleedHeight.current
+    val description = stringResource(R.string.ime_full_bleed_height_desc)
+    return PanelOverKeysSize(
+        height = base + extra,
+        bar = { ClipPanelHeightBar(resize, extra, maxExtra, onCommit, description) },
+        probe = probe,
+    )
+}

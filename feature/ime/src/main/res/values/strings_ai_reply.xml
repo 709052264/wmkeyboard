@@ -72,8 +72,15 @@
     <string name="ime_reply_send_as">Screenshot goes as</string>
     <string name="ime_reply_send_picture">Picture</string>
     <string name="ime_reply_send_text">Text</string>
+    <string name="ime_reply_remove_unclear">Remove unclear (%1$d)</string>
+    <string name="ime_reply_unclear_label">No real words?</string>
+    <string name="ime_reply_edit_hint">Edit the message</string>
+    <string name="ime_reply_save">Save</string>
+    <string name="ime_reply_instruction_hint">What should the reply say?</string>
+    <string name="ime_reply_write">Write</string>
+    <string name="ime_reply_screenshot_label">Screenshot</string>
+    <string name="ime_reply_screenshot_caption">Sent as a picture. The model reads who said what from where the bubbles sit.</string>
     <string name="ime_reply_draft_line">From your draft: %1$s</string>
     <string name="ime_reply_notice_shot_kept">Removed from WM Keyboard. The screenshot is still in your gallery.</string>
     <!-- A tone that asks for an instruction every run has nowhere to type one here. -->
-    <string name="ime_reply_notice_tone_needs_task">Give this tone a saved instruction in the settings to use it here.</string>
 </resources>

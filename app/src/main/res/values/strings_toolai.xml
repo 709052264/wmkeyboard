@@ -479,5 +479,12 @@
 
     <string name="toolai_reply_provider_title">AI provider</string>
     <string name="toolai_reply_provider_nav_title">AI settings</string>
+    <string name="toolai_reply_tones_title">Tones</string>
+    <string name="toolai_reply_tones_caption">The tones on the AI reply panel. Reorder them, turn them off, edit one, or write your own. Custom… asks for an instruction each time.</string>
+    <string name="toolai_reply_tones_nav_title">Tones</string>
+    <string name="toolai_reply_tones_nav_subtitle">Edit, reorder or turn off the tones, or write your own</string>
+    <string name="toolai_reply_tone_new">New tone</string>
+    <string name="toolai_reply_catch_shots_title">Add screenshots automatically</string>
+    <string name="toolai_reply_catch_shots_subtitle">One taken while the panel is open, and the newest from the last two minutes when it opens. Needs permission to read your images</string>
     <string name="toolai_reply_provider_nav_subtitle">Replies use the provider, key and model set up for the AI tool</string>
 </resources>

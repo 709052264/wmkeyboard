@@ -1,7 +1,10 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
 import android.text.format.DateUtils
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -16,6 +19,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -36,9 +40,22 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.abs
+import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -95,6 +112,10 @@ data class ReplyCallbacks(
     val onPickModel: (AiProvider, String?) -> Unit = { _, _ -> },
     /** Screenshots go to the model as the picture (true) or as the text read off it (false). */
     val onSendPictures: (Boolean) -> Unit = {},
+    /** Opens a message in the message box to fix it. */
+    val onEdit: (Int) -> Unit = {},
+    /** Clears every message marked as having no real words. */
+    val onRemoveUnclear: () -> Unit = {},
 )
 
 /**
@@ -239,6 +260,13 @@ private fun ReplyGather(state: KeyboardUiState, callbacks: ReplyCallbacks) {
         horizontalArrangement = Arrangement.spacedBy(5.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // First in the row while there are any: the one tap that clears what
+        // OCR or a stray copy left that is not a message at all.
+        if (reply.unclearCount > 0) {
+            ToolPanelChip(stringResource(R.string.ime_reply_remove_unclear, reply.unclearCount), selected = true) {
+                callbacks.onRemoveUnclear()
+            }
+        }
         ToolPanelChip(stringResource(R.string.ime_reply_add_clip)) { callbacks.onAddClip() }
         ToolPanelChip(stringResource(R.string.ime_reply_add_shot)) { callbacks.onPickShots(true) }
         ToolPanelChip(stringResource(R.string.ime_reply_add_typed), selected = reply.typing) {
@@ -287,7 +315,13 @@ private fun ReplyGather(state: KeyboardUiState, callbacks: ReplyCallbacks) {
         ) {
             SearchQueryText(
                 query = reply.typed,
-                placeholder = stringResource(R.string.ime_reply_typed_hint),
+                // One box, three jobs: a new message, an edit of one, or the
+                // instruction a Custom… tone asks for.
+                placeholder = when {
+                    reply.askTone != null -> stringResource(R.string.ime_reply_instruction_hint)
+                    reply.editing != null -> stringResource(R.string.ime_reply_edit_hint)
+                    else -> stringResource(R.string.ime_reply_typed_hint)
+                },
                 active = state.aiReplyTypingActive,
                 textColor = kb.suggestionText,
                 placeholderColor = kb.secondaryText,
@@ -295,7 +329,16 @@ private fun ReplyGather(state: KeyboardUiState, callbacks: ReplyCallbacks) {
                 modifier = Modifier.weight(1f),
             )
             Spacer(Modifier.width(6.dp))
-            ToolPanelChip(stringResource(R.string.ime_reply_add), selected = true) {
+            ToolPanelChip(
+                stringResource(
+                    when {
+                        reply.askTone != null -> R.string.ime_reply_write
+                        reply.editing != null -> R.string.ime_reply_save
+                        else -> R.string.ime_reply_add
+                    },
+                ),
+                selected = true,
+            ) {
                 callbacks.onTypedDone()
             }
         }
@@ -336,9 +379,14 @@ private fun ReplyConversation(state: KeyboardUiState, callbacks: ReplyCallbacks)
     val reply = state.aiReply
     // Follows the newest message: the gather flow is copy, copy, copy, and a
     // list that stays where it was hides each new one below the fold.
+    // Only when the list grows: removing or editing one must leave the list
+    // where the user was looking, not throw them to the bottom.
     val listState = rememberLazyListState()
+    var lastSize by remember { mutableIntStateOf(reply.entries.size) }
     LaunchedEffect(reply.entries.size) {
-        if (reply.entries.isNotEmpty()) listState.animateScrollToItem(reply.entries.size - 1)
+        val grew = reply.entries.size > lastSize
+        lastSize = reply.entries.size
+        if (grew) listState.animateScrollToItem(reply.entries.size - 1)
     }
     LazyColumn(
         state = listState,
@@ -406,6 +454,106 @@ private fun ReplyJoin(onJoin: () -> Unit) {
  */
 @Composable
 private fun ReplyBubble(entry: ReplyEntry, index: Int, callbacks: ReplyCallbacks) {
+    // Swiped sideways past a third of the width, the message goes: the quick
+    // way to drop one without aiming for the ✕.
+    val scope = rememberCoroutineScope()
+    val offset = remember { Animatable(0f) }
+    var width by remember { mutableIntStateOf(1) }
+    val currentIndex by rememberUpdatedState(index)
+    val remove by rememberUpdatedState(callbacks.onRemove)
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .onSizeChanged { width = it.width.coerceAtLeast(1) }
+            .offset { IntOffset(offset.value.roundToInt(), 0) }
+            .graphicsLayer { alpha = 1f - (abs(offset.value) / width).coerceIn(0f, SWIPE_FADE) }
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragEnd = {
+                        scope.launch {
+                            if (abs(offset.value) > width * SWIPE_REMOVE) {
+                                offset.animateTo(if (offset.value > 0) width.toFloat() else -width.toFloat())
+                                remove(currentIndex)
+                                // The row now holds the next message.
+                                offset.snapTo(0f)
+                            } else {
+                                offset.animateTo(0f)
+                            }
+                        }
+                    },
+                    onDragCancel = { scope.launch { offset.animateTo(0f) } },
+                ) { change, dx ->
+                    change.consume()
+                    scope.launch { offset.snapTo(offset.value + dx) }
+                }
+            },
+    ) {
+        if (entry.image) ReplyPictureBubble(entry, index, callbacks) else ReplyTextBubble(entry, index, callbacks)
+    }
+}
+
+/**
+ * A screenshot sent as a picture. No Them/Me label: a screenshot holds both
+ * sides of the conversation, and the model reads who said what from where
+ * each bubble sits in it. Centred and full width, so it does not read as one
+ * person's message.
+ */
+@Composable
+private fun ReplyPictureBubble(entry: ReplyEntry, index: Int, callbacks: ReplyCallbacks) {
+    val kb = LocalKbTheme.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(kb.chip)
+            .padding(start = 8.dp, end = 2.dp, top = 2.dp, bottom = 8.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.ime_reply_screenshot_label),
+                color = kb.secondaryText,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(vertical = 4.dp),
+            )
+            Spacer(Modifier.weight(1f))
+            ReplyRemoveButton { callbacks.onRemove(index) }
+        }
+        val uri = entry.shotUri
+        if (uri != null) {
+            AsyncImage(
+                model = uri,
+                imageLoader = rememberMediaImageLoader(),
+                contentDescription = stringResource(R.string.ime_reply_entry_picture),
+                contentScale = ContentScale.Fit,
+                alignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 6.dp)
+                    .heightIn(max = 140.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+            )
+        }
+        Text(
+            stringResource(R.string.ime_reply_screenshot_caption),
+            color = kb.secondaryText,
+            fontSize = 10.sp,
+            modifier = Modifier.padding(top = 4.dp, end = 6.dp),
+        )
+    }
+}
+
+/**
+ * One message as a chat bubble.
+ *
+ * Who said it is drawn three ways at once — the side, the colour and the
+ * label — because it is the one thing the keyboard guesses, and a wrong guess
+ * has to be visible at a glance. The label is a button. Tapping the text
+ * opens it in the message box to fix it; a message with no real word in it
+ * wears a red outline and says so.
+ */
+@Composable
+private fun ReplyTextBubble(entry: ReplyEntry, index: Int, callbacks: ReplyCallbacks) {
     val kb = LocalKbTheme.current
     val mine = entry.fromMe
     val fill = if (mine) kb.accent.copy(alpha = MINE_FILL_ALPHA) else kb.chip
@@ -427,6 +575,7 @@ private fun ReplyBubble(entry: ReplyEntry, index: Int, callbacks: ReplyCallbacks
                 .widthIn(max = 320.dp)
                 .clip(shape)
                 .background(fill)
+                .then(if (entry.unclear) Modifier.border(1.5.dp, UNCLEAR_RED, shape) else Modifier)
                 .padding(start = 6.dp, end = 2.dp, top = 2.dp, bottom = 8.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -451,42 +600,59 @@ private fun ReplyBubble(entry: ReplyEntry, index: Int, callbacks: ReplyCallbacks
                         modifier = Modifier.size(13.dp),
                     )
                 }
+                if (entry.unclear) {
+                    Text(
+                        stringResource(R.string.ime_reply_unclear_label),
+                        color = UNCLEAR_RED,
+                        fontSize = 10.sp,
+                        modifier = Modifier.padding(start = 4.dp),
+                    )
+                }
                 Spacer(Modifier.weight(1f))
-                Icon(
-                    Icons.Outlined.Close,
-                    contentDescription = stringResource(CommonR.string.common_remove),
-                    tint = kb.secondaryText,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable { callbacks.onRemove(index) }
-                        .padding(5.dp),
-                )
+                ReplyRemoveButton { callbacks.onRemove(index) }
             }
-            val uri = entry.shotUri
-            if (entry.image && uri != null) {
-                AsyncImage(
-                    model = uri,
-                    imageLoader = rememberMediaImageLoader(),
-                    contentDescription = stringResource(R.string.ime_reply_entry_picture),
-                    contentScale = ContentScale.Fit,
-                    alignment = Alignment.CenterStart,
-                    modifier = Modifier
-                        .padding(start = 4.dp, end = 8.dp)
-                        .heightIn(max = 140.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                )
-            } else {
-                Text(
-                    if (entry.image) stringResource(R.string.ime_reply_entry_picture) else entry.text,
-                    color = kb.suggestionText,
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(start = 4.dp, end = 8.dp),
-                )
-            }
+            Text(
+                entry.text,
+                color = kb.suggestionText,
+                fontSize = 13.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable { callbacks.onEdit(index) }
+                    .padding(start = 4.dp, end = 8.dp),
+            )
         }
     }
 }
+
+/** The ✕ on a bubble. */
+@Composable
+private fun ReplyRemoveButton(onRemove: () -> Unit) {
+    val kb = LocalKbTheme.current
+    Icon(
+        Icons.Outlined.Close,
+        contentDescription = stringResource(CommonR.string.common_remove),
+        tint = kb.secondaryText,
+        modifier = Modifier
+            .size(24.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onRemove)
+            .padding(5.dp),
+    )
+}
+
+/** Past this share of the width, a swipe removes the message. */
+private const val SWIPE_REMOVE = 0.35f
+
+/** How faded a bubble gets as it is swiped away. */
+private const val SWIPE_FADE = 0.7f
+
+/**
+ * The outline on a message with no real word in it. A fixed red rather than a
+ * theme colour: no theme carries an error colour, and this has to read as a
+ * warning on every one of them.
+ */
+private val UNCLEAR_RED = Color(0xFFE5484D)
 
 /** How much of the width a bubble may take, so the two sides stay apart. */
 private const val BUBBLE_WIDTH = 0.86f

@@ -101,6 +101,40 @@ object ReplyOcrLines {
         "aa", "reply", "send a message", "send message", "chat", "say something",
     )
 
+    /**
+     * The app's own notices inside a thread: reply and reaction banners,
+     * deleted-message stubs, attachment labels, call records, encryption and
+     * unread separators, group events. Matched from the start of the line,
+     * because a real message can contain any of these words later on.
+     */
+    private val NOTICES = Regex(
+        "^(" +
+            "(you\\s+)?replied(\\s+to\\s+(you|yourself|them|their|your|him|her|\\S+))?.*|" +
+            "(\\S+\\s+)?(reacted|liked|loved|laughed at|emphasi[sz]ed)\\b.*(message|story|photo|post|to you).*|" +
+            "(\\S+\\s+)?mentioned you.*|" +
+            "(you\\s+)?(sent|shared) (a|an) (photo|video|attachment|sticker|gif|voice message|link|post|reel).*|" +
+            "this message (was|has been) (deleted|removed|unsent).*|" +
+            "you (deleted|unsent|removed) (this|a) message.*|message (deleted|unsent|removed)|" +
+            "(missed )?(voice|video|audio) call( ended)?(\\s+\\d.*)?|missed call.*|call ended.*|" +
+            "voice message(\\s+\\d.*)?|(photo|video|sticker|gif|image|document|audio|location|contact)|" +
+            "view once.*|tap to (view|load|retry|download|see).*|" +
+            "(\\d+\\s+)?(new|unread) messages?|" +
+            "messages (and calls )?are end-to-end encrypted.*|.*end-to-end encrypted.*|" +
+            "(\\S+\\s+)?(pinned|unpinned) a message.*|" +
+            "(\\S+\\s+)?(added|removed|left|joined|created|changed)\\b.*\\b(group|chat|subject|icon|name|theme)\\b.*|" +
+            "(\\S+\\s+)?(left|joined) the (group|chat|channel)|" +
+            "(\\S+\\s+)?is (now )?(a contact|on \\S+)|say hi.*|wave( to \\S+)?.*|" +
+            "swipe (left |right )?to reply.*|forwarded( many times)?|" +
+            "replying to \\S+.*|original message.*|you can now (message|call|chat).*|" +
+            "(story|reel) reply|reply to story|" +
+            "copy|forward|react|more|undo|edit|delete|translate" +
+            ")\\W*$",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /** Notices are short; a long line starting "Photo" or "Replied" is somebody's message. */
+    private const val NOTICE_MAX = 70
+
     /** Status-bar and badge leftovers: digits, punctuation, ticks. */
     private val SYMBOLS_ONLY = Regex("^[\\d\\s\\p{P}\\p{S}]+$")
 
@@ -112,6 +146,7 @@ object ReplyOcrLines {
         if (t.lowercase() in PLACEHOLDERS) return true
         // A status line is short; a long one starting "Read" is a message.
         if (t.length <= STATUS_MAX && (PRESENCE.matches(t) || DELIVERY.matches(t))) return true
+        if (t.length <= NOTICE_MAX && NOTICES.matches(t)) return true
         return TIME.matches(t) || DATE.matches(t)
     }
 
