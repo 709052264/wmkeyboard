@@ -1861,6 +1861,11 @@ data class ToolbarBehavior(
     val stripToolWidthDp: Int = 38,
     /** Side of the glyph in each button beside the suggestions, in dp, under [stripOwnSize]. */
     val stripIconSizeDp: Int = 22,
+    /**
+     * Whether the buttons beside the suggestions sit after the words, at the
+     * strip's far end, rather than before them at its start (the default).
+     */
+    val stripShortcutsAtEnd: Boolean = false,
 )
 
 /**
@@ -8122,6 +8127,19 @@ data class SuggestionStripSettings(
      */
     val swipeForMore: Boolean = false,
     /**
+     * Swipe up on the word suggestions for more of them, HeliBoard's way: the
+     * engine's deeper list opens in a popup over the text, above the strip,
+     * and the finger that swiped stays down to slide onto a word; lifting on
+     * it picks it, lifting anywhere else picks nothing. Off by default.
+     */
+    val swipeUpForMore: Boolean = false,
+    /**
+     * Lay the extra suggestions (the swipe-down pages and the swipe-up popup)
+     * out in a grid of as many columns as the strip has slots, rather than
+     * wrapped to each word's own width. Off by default.
+     */
+    val expandedGrid: Boolean = false,
+    /**
      * Bumped by the settings app when it edits or deletes the learned
      * corrections or the tap model, so a running keyboard reloads its copy —
      * its own signal, because the lexicon's also empties the learning buffer.
@@ -9520,6 +9538,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_STRIP_OWN_SIZE = booleanPreferencesKey("toolbar_strip_own_size")
         private val TOOLBAR_STRIP_TOOL_WIDTH = intPreferencesKey("toolbar_strip_tool_width")
         private val TOOLBAR_STRIP_ICON_SIZE = intPreferencesKey("toolbar_strip_icon_size")
+        private val TOOLBAR_STRIP_AT_END = booleanPreferencesKey("toolbar_strip_at_end")
         private val TOOLBAR_DRAG_REARRANGE = booleanPreferencesKey("toolbar_drag_rearrange")
         private val THEMES_PANEL_BUILTINS = stringSetPreferencesKey("themes_panel_builtins")
         private val COMMA_AS_EMOJI = booleanPreferencesKey("comma_as_emoji")
@@ -9806,6 +9825,8 @@ class SettingsRepository(private val context: Context) {
         private val ADAPT_TO_TAPS = booleanPreferencesKey("adapt_to_taps")
         private val MISTYPE_TOLERANCE = intPreferencesKey("mistype_tolerance")
         private val SUGGESTIONS_SWIPE_FOR_MORE = booleanPreferencesKey("suggestions_swipe_for_more")
+        private val SUGGESTIONS_SWIPE_UP_FOR_MORE = booleanPreferencesKey("suggestions_swipe_up_for_more")
+        private val SUGGESTIONS_EXPANDED_GRID = booleanPreferencesKey("suggestions_expanded_grid")
         private val CORRECTIONS_VERSION = intPreferencesKey("corrections_version")
         private val EMOJI_ROW_ABOVE_TOOLBAR = booleanPreferencesKey("emoji_row_above_toolbar")
         private val TRANSLATE_TARGET_LANG = stringPreferencesKey("translate_target_lang")
@@ -11162,6 +11183,8 @@ class SettingsRepository(private val context: Context) {
             mistypeTolerance = p[MISTYPE_TOLERANCE]?.coerceIn(50, 200)
                 ?: defaults.suggestionStrip.mistypeTolerance,
             swipeForMore = p[SUGGESTIONS_SWIPE_FOR_MORE] ?: defaults.suggestionStrip.swipeForMore,
+            swipeUpForMore = p[SUGGESTIONS_SWIPE_UP_FOR_MORE] ?: defaults.suggestionStrip.swipeUpForMore,
+            expandedGrid = p[SUGGESTIONS_EXPANDED_GRID] ?: defaults.suggestionStrip.expandedGrid,
             correctionsVersion = p[CORRECTIONS_VERSION]
                 ?: defaults.suggestionStrip.correctionsVersion,
             suggestionsFirst = p[SUGGESTIONS_FIRST] ?: defaults.suggestionStrip.suggestionsFirst,
@@ -11502,6 +11525,7 @@ class SettingsRepository(private val context: Context) {
             stripOwnSize = p[TOOLBAR_STRIP_OWN_SIZE] ?: defaults.toolbarBehavior.stripOwnSize,
             stripToolWidthDp = p[TOOLBAR_STRIP_TOOL_WIDTH] ?: defaults.toolbarBehavior.stripToolWidthDp,
             stripIconSizeDp = p[TOOLBAR_STRIP_ICON_SIZE] ?: defaults.toolbarBehavior.stripIconSizeDp,
+            stripShortcutsAtEnd = p[TOOLBAR_STRIP_AT_END] ?: defaults.toolbarBehavior.stripShortcutsAtEnd,
         )
 
     private fun readEmoji(p: Preferences, defaults: KeyboardSettings) =
@@ -13248,6 +13272,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun setSuggestionsSwipeForMore(value: Boolean) =
         editPrefs { it[SUGGESTIONS_SWIPE_FOR_MORE] = value }
 
+    suspend fun setSuggestionsSwipeUpForMore(value: Boolean) =
+        editPrefs { it[SUGGESTIONS_SWIPE_UP_FOR_MORE] = value }
+
+    suspend fun setSuggestionsExpandedGrid(value: Boolean) =
+        editPrefs { it[SUGGESTIONS_EXPANDED_GRID] = value }
+
     /**
      * The Learned-corrections screen changed the learned corrections or the
      * tap model on disk: tell a running keyboard to drop its copy — without
@@ -13353,6 +13383,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setStripIconSizeDp(value: Int) =
         editPrefs { it[TOOLBAR_STRIP_ICON_SIZE] = value.coerceIn(14, 30) }
+
+    suspend fun setStripShortcutsAtEnd(value: Boolean) =
+        editPrefs { it[TOOLBAR_STRIP_AT_END] = value }
 
     /**
      * Sets or clears one tool's press-and-hold action. Null puts that tool back

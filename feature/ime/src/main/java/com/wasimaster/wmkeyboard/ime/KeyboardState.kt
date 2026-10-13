@@ -2879,6 +2879,12 @@ data class KeyboardUiState(
      * [suggestions]; this is a widening of it, so the two agree on ordering.
      */
     val expandedCandidates: List<String> = emptyList(),
+    /**
+     * The words the swipe-up popup offers over the strip, while a swipe up
+     * holds it open (see [com.wasimaster.wmkeyboard.core.settings.SuggestionStripSettings.swipeUpForMore]).
+     * Empty whenever no finger holds it.
+     */
+    val moreSuggestions: List<String> = emptyList(),
     val suggestions: List<String> = emptyList(),
     /**
      * What the next undecided syllable of a conversion reading could be, for a

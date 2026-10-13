@@ -269,6 +269,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.layout.positionOnScreen
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -3695,6 +3696,8 @@ private fun TopBar(
     // The toolbar's own fill while the tools hold the bar (#504); null paints
     // nothing, and the strip's fill from the slot outside shows through.
     val toolbarFill = LocalKbTheme.current.toolbar
+    // The finger steering the swipe-up popup of more words, and where its cells are.
+    val moreHold = remember { MoreSuggestionsHold() }
     Box(
         Modifier
             .fillMaxWidth()
@@ -3702,47 +3705,31 @@ private fun TopBar(
             .graphicsLayer()
             .barRowFill(if (showToolbar) toolbarFill else null),
     ) {
+    if (state.moreSuggestions.isNotEmpty()) MoreSuggestionsPopup(state, moreHold)
     Row(
         modifier = Modifier
             .fillMaxSize()
             // A deliberate downward flick anywhere on the strip dismisses the
-            // keyboard. A tool's own reorder is a hold-then-drag, so it fires
-            // its long-press first and never reaches this detector; a quick
-            // flick never trips the long-press, so the two don't collide.
+            // keyboard, or opens the pages of more words (#385); an upward one
+            // opens the popup of more words over the strip. A tool's own reorder
+            // is a hold-then-drag, so it fires its long-press first and never
+            // reaches this detector; a quick flick never trips the long-press,
+            // so the two don't collide. See [stripSwipes].
             .then(
-                if (state.settings.toolbarBehavior.swipeDownHide || state.settings.suggestionStrip.swipeForMore) {
+                if (state.settings.toolbarBehavior.swipeDownHide || state.settings.suggestionStrip.swipeForMore ||
+                    state.settings.suggestionStrip.swipeUpForMore
+                ) {
                     // Read at the moment of the swipe, not when the detector
                     // was installed: whether there are words to page through
                     // changes with every keystroke (#385).
-                    val pages = rememberUpdatedState(
-                        state.settings.suggestionStrip.swipeForMore && state.suggestions.isNotEmpty() &&
-                            !state.composer.isConversion,
+                    val wordsToPage = state.suggestions.isNotEmpty() && !state.composer.isConversion
+                    val pages = rememberUpdatedState(state.settings.suggestionStrip.swipeForMore && wordsToPage)
+                    val more = rememberUpdatedState(
+                        state.settings.suggestionStrip.swipeUpForMore && wordsToPage && state.panel == PanelMode.NONE,
                     )
                     val pagesOpen = rememberUpdatedState(state.panel == PanelMode.CANDIDATES)
                     val hide = rememberUpdatedState(state.settings.toolbarBehavior.swipeDownHide)
-                    Modifier.pointerInput(onSwipeDownHide, suggestionHold) {
-                        val threshold = ToolbarSwipeHideThreshold.toPx()
-                        var travelled = 0f
-                        var fired = false
-                        detectVerticalDragGestures(
-                            onDragStart = { travelled = 0f; fired = false },
-                            onDragEnd = { travelled = 0f; fired = false },
-                            onDragCancel = { travelled = 0f; fired = false },
-                        ) { _, dragAmount ->
-                            travelled += dragAmount
-                            if (!fired && pagesOpen.value && kotlin.math.abs(travelled) > threshold) {
-                                // Either way closes the open pages.
-                                fired = true
-                                suggestionHold.onPagesToggle(false)
-                            } else if (!fired && travelled > threshold) {
-                                fired = true
-                                // Words to page through win the swipe; the
-                                // keyboard hides from an idle strip.
-                                if (pages.value) suggestionHold.onPagesToggle(true)
-                                else if (hide.value) onSwipeDownHide()
-                            }
-                        }
-                    }
+                    Modifier.stripSwipes(pages, more, pagesOpen, hide, moreHold, suggestionHold, onSwipeDownHide)
                 } else {
                     Modifier
                 },
@@ -3983,7 +3970,9 @@ private fun TopBar(
             StripSlot {
                 // The tools kept beside the suggestions (#462), then the phonetic
                 // layouts' English-words switch. See [StripTools].
-                StripTools(state, toolsRowVisible, drag, onToolTap)
+                if (!state.settings.toolbarBehavior.stripShortcutsAtEnd) {
+                    StripTools(state, toolsRowVisible, drag, onToolTap)
+                }
                 // Bengali's ANSI button: on every Bengali layout once Bengali's
                 // screen allows ANSI output, lit while the layouts write it. Beside
                 // the words for the reason the switch above is: the field that
@@ -4765,6 +4754,11 @@ private fun TopBar(
                         }
                     }
                 }
+            }
+            // The same buttons at the strip's far end instead, after the words,
+            // when the user put them there.
+            if (state.settings.toolbarBehavior.stripShortcutsAtEnd) {
+                StripTools(state, toolsRowVisible, drag, onToolTap)
             }
         }
     }
@@ -5586,31 +5580,50 @@ private fun CandidateGridPanel(
                 )
             }
         }
-        FlowRow(modifier = Modifier.fillMaxWidth()) {
-            state.expandedCandidates.forEachIndexed { index, candidate ->
-                Box(
-                    modifier = Modifier
-                        .padding(2.dp)
-                        .widthIn(min = CandidateChipMinWidth)
-                        .height(CandidateGridRowHeight)
-                        .combinedClickable(
-                            onLongClick = if (adjustable) {
-                                { menuFor = index }
-                            } else {
-                                null
-                            },
-                        ) { onCandidate(candidate, index) },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = candidate,
-                        modifier = Modifier.padding(horizontal = 10.dp),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = CandidateFontSize * textScale,
-                        fontWeight = if (index == 0) FontWeight.SemiBold else FontWeight.Normal,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+        // One candidate's chip, wherever the layout below puts it.
+        val chip: @Composable (Modifier, Int, String) -> Unit = { cell, index, candidate ->
+            Box(
+                modifier = cell
+                    .padding(2.dp)
+                    .widthIn(min = CandidateChipMinWidth)
+                    .height(CandidateGridRowHeight)
+                    .combinedClickable(
+                        onLongClick = if (adjustable) {
+                            { menuFor = index }
+                        } else {
+                            null
+                        },
+                    ) { onCandidate(candidate, index) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = candidate,
+                    modifier = Modifier.padding(horizontal = 10.dp),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = CandidateFontSize * textScale,
+                    fontWeight = if (index == 0) FontWeight.SemiBold else FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        // Word pages may be a grid of the strip's own columns instead (the
+        // expanded-grid setting); conversion candidates run from one glyph to
+        // four, which fixed columns would leave ragged, so they always wrap.
+        val columns = state.settings.suggestionStrip.slotCount.coerceAtLeast(1)
+        if (!state.composer.isConversion && state.settings.suggestionStrip.expandedGrid) {
+            state.expandedCandidates.chunked(columns).forEachIndexed { row, words ->
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    words.forEachIndexed { column, candidate ->
+                        chip(Modifier.weight(1f), row * columns + column, candidate)
+                    }
+                    repeat(columns - words.size) { Spacer(modifier = Modifier.weight(1f)) }
+                }
+            }
+        } else {
+            FlowRow(modifier = Modifier.fillMaxWidth()) {
+                state.expandedCandidates.forEachIndexed { index, candidate ->
+                    chip(Modifier, index, candidate)
                 }
             }
         }
@@ -9067,6 +9080,280 @@ internal fun ToolCircle(
         }
     }
 }
+
+/**
+ * The finger steering the swipe-up popup of more words, and the popup's cells as
+ * the finger sees them.
+ *
+ * The finger never leaves the strip's window: it went down on the strip, and the
+ * keyboard window keeps every move of that pointer however far above itself it
+ * travels. The popup is a window of its own over the app, so it cannot be hit
+ * test against directly; both sides state their positions on screen instead, the
+ * cells as they are placed and the strip as it is, and the strip's gesture asks
+ * [track] which cell is under the finger.
+ */
+@Stable
+internal class MoreSuggestionsHold {
+    /** The cell under the finger, as an index into [words], or -1 for none. */
+    val selected = mutableIntStateOf(-1)
+
+    /** The words the popup is drawing, in cell order. */
+    var words: List<String> = emptyList()
+
+    /** The strip's top-left corner on screen, which the gesture's positions are relative to. */
+    var origin: Offset = Offset.Zero
+
+    /** The strip's width, which the popup takes. */
+    var widthPx: Int = 0
+
+    /** Each cell's bounds on screen, by index. */
+    val cells = HashMap<Int, Rect>()
+
+    fun reset() {
+        selected.intValue = -1
+        cells.clear()
+    }
+
+    /**
+     * Lights the cell at [screen]: the one it is inside, else the nearest one
+     * while the finger is still within half a cell of the popup's edge. Further
+     * out than that (back down on the strip, say) nothing is lit, so lifting
+     * there picks nothing.
+     */
+    fun track(screen: Offset) {
+        selected.intValue = moreSuggestionAt(cells, screen)
+    }
+
+    /** The lit word, or null when none is. */
+    fun selectedWord(): String? = words.getOrNull(selected.intValue)
+}
+
+/** See [MoreSuggestionsHold.track]. Pure, for the tests. */
+internal fun moreSuggestionAt(cells: Map<Int, Rect>, screen: Offset): Int {
+    if (cells.isEmpty()) return -1
+    cells.entries.firstOrNull { it.value.contains(screen) }?.let { return it.key }
+    val first = cells.values.first()
+    var union = first
+    for (cell in cells.values) {
+        union = Rect(
+            minOf(union.left, cell.left),
+            minOf(union.top, cell.top),
+            maxOf(union.right, cell.right),
+            maxOf(union.bottom, cell.bottom),
+        )
+    }
+    val slack = first.height / 2f
+    if (!union.inflate(slack).contains(screen)) return -1
+    return cells.minByOrNull { (_, cell) ->
+        val dx = (screen.x - screen.x.coerceIn(cell.left, cell.right))
+        val dy = (screen.y - screen.y.coerceIn(cell.top, cell.bottom))
+        dx * dx + dy * dy
+    }?.key ?: -1
+}
+
+/**
+ * The word strip's vertical swipes, as one gesture: down hides the keyboard or
+ * opens the pages of more words (#385), up opens the popup of more words over
+ * the strip and keeps the finger to steer it.
+ *
+ * Its own detector rather than [detectVerticalDragGestures], because the popup
+ * needs every move of the finger once it is open, sideways ones included, and
+ * that detector reports only the vertical part of a vertical drag. Until the
+ * finger has travelled past the touch slop nothing is consumed, so a tap still
+ * reaches the word under it; travel that is more sideways than up or down is
+ * handed back too, so a scrolling strip still scrolls.
+ *
+ * Each flag is read at the moment of the swipe through its [State], since
+ * whether there are words to show changes with every keystroke.
+ */
+private fun Modifier.stripSwipes(
+    pages: State<Boolean>,
+    more: State<Boolean>,
+    pagesOpen: State<Boolean>,
+    hide: State<Boolean>,
+    hold: MoreSuggestionsHold,
+    suggestionHold: SuggestionHoldCallbacks,
+    onSwipeDownHide: () -> Unit,
+): Modifier = this
+    .onGloballyPositioned {
+        hold.origin = it.positionOnScreen()
+        hold.widthPx = it.size.width
+    }
+    .pointerInput(onSwipeDownHide, suggestionHold, hold) {
+        val threshold = ToolbarSwipeHideThreshold.toPx()
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false)
+            var dragging = false
+            var fired = false
+            var opened = false
+            try {
+                while (true) {
+                    val event = awaitPointerEvent()
+                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                    if (!change.pressed) {
+                        if (opened) {
+                            // The lift is the pick: whatever is lit, or nothing.
+                            change.consume()
+                            val word = hold.selectedWord()
+                            opened = false
+                            suggestionHold.onMorePopup(false)
+                            if (word != null) suggestionHold.onMorePick(word)
+                        }
+                        break
+                    }
+                    val total = change.position - down.position
+                    if (!dragging) {
+                        // Something under the finger took the gesture first (a
+                        // tool picked up for a reorder): it is not a swipe.
+                        if (change.isConsumed) break
+                        val slop = viewConfiguration.touchSlop
+                        val ay = kotlin.math.abs(total.y)
+                        val ax = kotlin.math.abs(total.x)
+                        when {
+                            ay > slop && ay >= ax -> dragging = true
+                            ax > slop -> break
+                            else -> continue
+                        }
+                    }
+                    change.consume()
+                    if (opened) {
+                        hold.track(hold.origin + change.position)
+                        continue
+                    }
+                    if (fired) continue
+                    when {
+                        // Either way closes the open pages.
+                        pagesOpen.value && kotlin.math.abs(total.y) > threshold -> {
+                            fired = true
+                            suggestionHold.onPagesToggle(false)
+                        }
+                        // Words to page through win the swipe; the keyboard
+                        // hides from an idle strip.
+                        total.y > threshold -> {
+                            fired = true
+                            if (pages.value) suggestionHold.onPagesToggle(true)
+                            else if (hide.value) onSwipeDownHide()
+                        }
+                        total.y < -threshold && more.value -> {
+                            fired = true
+                            opened = true
+                            hold.reset()
+                            suggestionHold.onMorePopup(true)
+                        }
+                    }
+                }
+            } finally {
+                // A gesture torn down mid-steer (the strip left the screen)
+                // takes its popup with it.
+                if (opened) suggestionHold.onMorePopup(false)
+            }
+        }
+    }
+
+/**
+ * The swipe-up popup of more words: the engine's deeper list, over the app and
+ * just above the strip, as wide as the strip. The finger that swiped up steers
+ * it from the strip ([stripSwipes]); the popup itself takes no touches, so its
+ * window is not touchable and nothing under it is blocked.
+ *
+ * In a grid of the strip's own columns when the expanded-grid setting is on,
+ * filled from the row nearest the strip upward, so the best of the extra words
+ * is the shortest reach from where the finger already is. Otherwise each row
+ * wraps the words to their own widths, in the same bottom-up order.
+ */
+@Composable
+private fun MoreSuggestionsPopup(state: KeyboardUiState, hold: MoreSuggestionsHold) {
+    val kb = LocalKbTheme.current
+    val words = state.moreSuggestions
+    SideEffect { hold.words = words }
+    val density = LocalDensity.current
+    val width = with(density) { hold.widthPx.toDp() }
+    val selected = hold.selected.intValue
+    val columns = state.settings.suggestionStrip.slotCount.coerceAtLeast(1)
+    val grid = state.settings.suggestionStrip.expandedGrid
+    val textScale = state.settings.suggestionStrip.textScale
+    val provider = remember {
+        object : PopupPositionProvider {
+            override fun calculatePosition(
+                anchorBounds: IntRect,
+                windowSize: IntSize,
+                layoutDirection: LayoutDirection,
+                popupContentSize: IntSize,
+            ): IntOffset = IntOffset(anchorBounds.left, anchorBounds.top - popupContentSize.height)
+        }
+    }
+    val cell: @Composable (Modifier, Int) -> Unit = { modifier, index ->
+        val lit = index == selected
+        Box(
+            modifier = modifier
+                .padding(2.dp)
+                .height(MoreSuggestionRowHeight)
+                .onGloballyPositioned { coords ->
+                    val at = coords.positionOnScreen()
+                    hold.cells[index] = Rect(at, coords.size.toSize())
+                }
+                .clip(kb.chipShape())
+                .background(if (lit) kb.popupText.copy(alpha = 0.16f) else Color.Transparent),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = words[index],
+                modifier = Modifier.padding(horizontal = 10.dp),
+                color = kb.popupText,
+                fontSize = MoreSuggestionFontSize * textScale,
+                fontWeight = if (lit) FontWeight.SemiBold else FontWeight.Normal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+    Popup(popupPositionProvider = provider, properties = MoreSuggestionsProperties) {
+        Surface(
+            modifier = Modifier.width(width),
+            shape = kb.popupShape(),
+            color = kb.popup,
+            border = kb.popupSurfaceBorder(),
+            shadowElevation = elevationFor(kb.popupShapeKind, 6.dp),
+        ) {
+            Column(modifier = Modifier.padding(4.dp)) {
+                // Rows are built nearest-the-strip first, then laid out top
+                // down, so the list reads upward from the strip.
+                val rows = if (grid) {
+                    words.indices.chunked(columns)
+                } else {
+                    words.indices.chunked(columns + 1)
+                }
+                for (row in rows.asReversed()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = if (grid) Arrangement.Start else Arrangement.SpaceEvenly,
+                    ) {
+                        for (index in row) {
+                            key(words[index]) {
+                                cell(if (grid) Modifier.weight(1f) else Modifier.weight(1f, fill = false), index)
+                            }
+                        }
+                        if (grid) repeat(columns - row.size) { Spacer(modifier = Modifier.weight(1f)) }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** The popup's window: drawn only, never touched, so it blocks nothing beneath it. */
+private val MoreSuggestionsProperties = PopupProperties(
+    flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+    inheritSecurePolicy = true,
+    dismissOnBackPress = false,
+    dismissOnClickOutside = false,
+    excludeFromSystemGesture = true,
+    usePlatformDefaultWidth = false,
+)
+
+private val MoreSuggestionRowHeight = 40.dp
+private val MoreSuggestionFontSize = 15.sp
 
 /**
  * The language whose phonetic layout is being typed on, when the English-words

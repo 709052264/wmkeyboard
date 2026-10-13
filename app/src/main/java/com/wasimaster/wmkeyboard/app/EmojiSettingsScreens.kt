@@ -136,6 +136,15 @@ internal fun EmojiSettings(
                 keepLast = false,
             )
         }
+        // Which end of the strip they sit at.
+        item(visible = emojiButtonOn) {
+            ToggleSetting(
+                R.string.langemoji_strip_at_end_title,
+                stringResource(R.string.langemoji_strip_at_end_subtitle),
+                settings.watch { it.toolbarBehavior.stripShortcutsAtEnd },
+                default = SettingsDefaults.toolbarBehavior.stripShortcutsAtEnd,
+            ) { scope.launch { repository.setStripShortcutsAtEnd(it) } }
+        }
         // Their size, apart from the toolbar's tools (which the Toolbar page's
         // sliders size). Off, a tool on both looks the same in either spot.
         item(visible = emojiButtonOn) {

@@ -19257,7 +19257,8 @@ open class WMKeyboardService : InputMethodService() {
             // Pages of suggestions (#385) want the deeper list the strip never
             // shows. Asked for in the same walk, so a swipe down has it at once;
             // the strip and the keys still take the head they always took.
-            val pagesOn = state.settings.suggestionStrip.swipeForMore && state.composer.completionLanguage == null
+            val pagesOn = (state.settings.suggestionStrip.swipeForMore || state.settings.suggestionStrip.swipeUpForMore) &&
+                state.composer.completionLanguage == null
             val askDeep = if (pagesOn) maxOf(askFor, SUGGEST_PAGES_POOL) else askFor
             // Desktop Avro's candidate list, for the row above the strip when
             // the language is set to draw it there.
@@ -19715,6 +19716,36 @@ open class WMKeyboardService : InputMethodService() {
         if (forWord != composing.toString() || words.size <= state.settings.suggestionStrip.slotCount) return
         vibrate()
         _uiState.update { it.copy(panel = PanelMode.CANDIDATES, expandedCandidates = words) }
+    }
+
+    /**
+     * Opens or closes the swipe-up popup of more words over the strip. It
+     * offers the same deeper list the pages grid does, less the words already
+     * on the strip, and only for the word the list was filled for. Closed by
+     * the strip's gesture when the finger lifts, picked or not.
+     */
+    fun onMoreSuggestionsPopup(open: Boolean) {
+        val state = _uiState.value
+        if (!open) {
+            if (state.moreSuggestions.isNotEmpty()) _uiState.update { it.copy(moreSuggestions = emptyList()) }
+            return
+        }
+        if (state.composer.isConversion || state.panel != PanelMode.NONE) return
+        val (forWord, words) = suggestionPages ?: return
+        if (forWord != composing.toString()) return
+        val shown = state.suggestions.toSet()
+        val more = words.filter { it !in shown }.take(MORE_SUGGESTIONS_MAX)
+        if (more.isEmpty()) return
+        vibrate()
+        _uiState.update { it.copy(moreSuggestions = more) }
+    }
+
+    /** A word lifted on in the swipe-up popup: the popup goes, and the pick is an ordinary strip pick. */
+    fun onMoreSuggestionPicked(word: String) {
+        if (_uiState.value.moreSuggestions.isNotEmpty()) {
+            _uiState.update { it.copy(moreSuggestions = emptyList()) }
+        }
+        onSuggestionTapped(word)
     }
 
     /**
@@ -36701,6 +36732,8 @@ open class WMKeyboardService : InputMethodService() {
             onCard = ::onWordCardAction,
             onSynonyms = ::onSynonymAction,
             onPagesToggle = ::onSuggestionPagesToggle,
+            onMorePopup = ::onMoreSuggestionsPopup,
+            onMorePick = ::onMoreSuggestionPicked,
             onCandidateAdjust = ::onCandidateAdjust,
         )
     }
@@ -41691,6 +41724,9 @@ private const val SUGGEST_LIMIT = 5
 
 /** How deep the pages of suggestions go (#385). */
 private const val SUGGEST_PAGES_POOL = 24
+
+/** The most words the swipe-up popup over the strip offers: four rows of three at the default slot count. */
+private const val MORE_SUGGESTIONS_MAX = 12
 
 /**
  * The chips a fixed phonetic strip keeps in place ahead of its suggestions:

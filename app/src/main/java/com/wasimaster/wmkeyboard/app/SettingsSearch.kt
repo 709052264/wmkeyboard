@@ -322,6 +322,9 @@ private fun SearchStrings.typingSuggestionsRows(): List<SettingsSearchEntry> {
     return listOf(
         row(R.string.typing_suggestions_title, R.string.typing_suggestions_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.typing_suggestion_slots_title, R.string.typing_suggestion_slots_subtitle),
+        row(R.string.typing_suggestion_pages_title, R.string.typing_suggestion_pages_subtitle),
+        row(R.string.typing_suggestion_swipe_up_title, R.string.typing_suggestion_swipe_up_subtitle),
+        row(R.string.typing_suggestion_expanded_grid_title, R.string.typing_suggestion_expanded_grid_subtitle),
         row(R.string.typing_suggestion_emoji_slot_title, R.string.typing_suggestion_emoji_slot_subtitle),
         row(R.string.typing_suggestion_emoji_count_title, R.string.typing_suggestion_emoji_count_subtitle),
         row(R.string.typing_suggestion_fixed_slots_title, R.string.typing_suggestion_fixed_slots_subtitle),
@@ -966,6 +969,7 @@ private fun SearchStrings.emojiRows(): List<SettingsSearchEntry> {
     return listOf(
         row(R.string.langemoji_emoji_toolbar_title, R.string.langemoji_emoji_toolbar_subtitle),
         row(R.string.langemoji_strip_shortcut_title, R.string.langemoji_strip_shortcut_subtitle),
+        row(R.string.langemoji_strip_at_end_title, R.string.langemoji_strip_at_end_subtitle),
         row(R.string.langemoji_strip_own_size_title, R.string.langemoji_strip_own_size_subtitle),
         row(R.string.langemoji_strip_tool_width_title, R.string.langemoji_strip_tool_width_subtitle),
         row(R.string.langemoji_strip_icon_size_title, R.string.langemoji_strip_icon_size_subtitle),

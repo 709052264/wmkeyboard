@@ -840,6 +840,11 @@
 
     <string name="typing_suggestion_pages_title">Swipe down for more suggestions</string>
     <string name="typing_suggestion_pages_subtitle">Swipe down on the suggestions to see every word the keyboard ranked</string>
+    <string name="typing_suggestion_swipe_up_title">Swipe up for more suggestions</string>
+    <string name="typing_suggestion_swipe_up_subtitle">Swipe up on the suggestions, then slide onto a word and lift to use it</string>
+    <string name="typing_suggestion_swipe_up_info">With this on, swipe up on the strip while it has words and up to 12 more suggestions open just above it. Keep your finger down and slide it onto the word you want: lift there to use it, or lift anywhere outside the words to close them without picking. This setting is off by default.</string>
+    <string name="typing_suggestion_expanded_grid_title">More suggestions in a grid</string>
+    <string name="typing_suggestion_expanded_grid_subtitle">Line the extra suggestions up in columns, one for each suggestion slot</string>
     <string name="typing_suggestion_pages_info">The strip shows only a few words. With this on, swipe down on it while it has words and a grid of up to 24 suggestions covers the keys, best first. Tap one to use it, or swipe the strip again or tap Back to the keys to close the grid. When this is on, a downward swipe over suggestions opens the grid instead of hiding the keyboard; over an empty strip it still hides it if that setting is on. This setting is off by default.</string>
     <string name="typing_suggestion_slots_title">Number of suggestions</string>
     <string name="typing_suggestion_slots_subtitle">How many words the suggestion strip shows at once</string>

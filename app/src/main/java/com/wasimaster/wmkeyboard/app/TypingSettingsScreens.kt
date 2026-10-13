@@ -675,6 +675,7 @@ internal fun TypingSuggestionsSettings(
     val askBeforeLearning = settings.watch { it.suggestionStrip.askBeforeLearning }
     val scrollable = settings.watch { it.suggestionStrip.scrollable }
     val contactEmailsOn = settings.watch { it.suggestionSources.contactEmails }
+    val moreSuggestionsOn = settings.watch { it.suggestionStrip.swipeForMore || it.suggestionStrip.swipeUpForMore }
     SettingsGroup(stringResource(R.string.typing_group_suggestions_title)) {
         item {
             ToggleSetting(
@@ -724,6 +725,24 @@ internal fun TypingSuggestionsSettings(
                 info = stringResource(R.string.typing_suggestion_pages_info),
                 default = SettingsDefaults.suggestionStrip.swipeForMore,
             ) { scope.launch { repository.setSuggestionsSwipeForMore(it) } }
+        }
+        item {
+            // HeliBoard's popup: swipe up, keep the finger down, lift on a word.
+            ToggleSetting(
+                R.string.typing_suggestion_swipe_up_title,
+                stringResource(R.string.typing_suggestion_swipe_up_subtitle),
+                settings.watch { it.suggestionStrip.swipeUpForMore },
+                info = stringResource(R.string.typing_suggestion_swipe_up_info),
+                default = SettingsDefaults.suggestionStrip.swipeUpForMore,
+            ) { scope.launch { repository.setSuggestionsSwipeUpForMore(it) } }
+        }
+        item(visible = moreSuggestionsOn) {
+            ToggleSetting(
+                R.string.typing_suggestion_expanded_grid_title,
+                stringResource(R.string.typing_suggestion_expanded_grid_subtitle),
+                settings.watch { it.suggestionStrip.expandedGrid },
+                default = SettingsDefaults.suggestionStrip.expandedGrid,
+            ) { scope.launch { repository.setSuggestionsExpandedGrid(it) } }
         }
         item {
             ToggleSetting(

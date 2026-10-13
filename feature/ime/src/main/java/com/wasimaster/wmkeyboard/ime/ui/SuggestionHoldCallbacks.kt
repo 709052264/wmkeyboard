@@ -34,6 +34,10 @@ class SuggestionHoldCallbacks(
     val onSynonyms: (SynonymAction) -> Unit = {},
     /** A swipe on the word strip: true opens the pages of suggestions, false closes them (#385). */
     val onPagesToggle: (Boolean) -> Unit = {},
+    /** A swipe up on the word strip: true opens the popup of more words over it, false closes it. */
+    val onMorePopup: (Boolean) -> Unit = {},
+    /** A word picked from that popup, by lifting the swiping finger on it. */
+    val onMorePick: (String) -> Unit = {},
     /**
      * A held conversion candidate's menu was answered (#580): the candidate,
      * its strip position, and earlier, later or never.

@@ -590,6 +590,7 @@ internal object SettingsRowIcons {
         // ---- Emoji ----
         put(R.string.langemoji_emoji_toolbar_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.langemoji_strip_shortcut_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.langemoji_strip_at_end_title) { Icons.Outlined.SwapHoriz }
         put(R.string.langemoji_strip_own_size_title) { Icons.Outlined.PhotoSizeSelectSmall }
         put(R.string.langemoji_strip_tool_width_title) { Icons.Outlined.Straighten }
         put(R.string.langemoji_strip_icon_size_title) { Icons.Outlined.PhotoSizeSelectSmall }
@@ -877,6 +878,8 @@ internal object SettingsRowIcons {
         put(R.string.typing_adapt_taps_title) { Icons.Outlined.TouchApp }
         put(R.string.typing_mistype_tolerance_title) { Icons.Outlined.TouchApp }
         put(R.string.typing_suggestion_pages_title) { Icons.Outlined.UnfoldMore }
+        put(R.string.typing_suggestion_swipe_up_title) { Icons.Outlined.UnfoldMore }
+        put(R.string.typing_suggestion_expanded_grid_title) { Icons.Outlined.GridOn }
         put(R.string.typing_skip_all_caps_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.typing_autocorrect_on_enter_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.typing_autocorrect_on_punctuation_title) { Icons.Outlined.Spellcheck }
