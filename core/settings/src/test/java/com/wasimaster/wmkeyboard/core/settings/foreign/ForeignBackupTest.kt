@@ -167,7 +167,7 @@ class ForeignBackupTest {
         // is a hold that does nothing; the repeat, page start and a tap-only
         // entry have nothing to bind.
         assertEquals("UNDO=CUT,CLIPBOARD=NONE", mapped.value)
-        assertEquals("toolbar_hold_actions", mapped.entry.key)
+        assertEquals("toolbar_hold_actions", mapped.entry.name)
     }
 
     @Test

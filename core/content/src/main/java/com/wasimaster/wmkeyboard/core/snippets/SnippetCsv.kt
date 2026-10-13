@@ -236,8 +236,9 @@ object SnippetCsv {
      * The separator the first line uses, counted outside quotes: tab, comma or
      * semicolon (what a spreadsheet writes where the comma is the decimal
      * mark). Null when the line has none of them, which a table cannot be.
+     * Public for :app's SnippetCsvTest, which cannot see this module's internals.
      */
-    internal fun sniffDelimiter(text: String): Char? {
+    fun sniffDelimiter(text: String): Char? {
         val counts = IntArray(CANDIDATES.size)
         var quoted = false
         for (c in text) {
@@ -260,9 +261,10 @@ object SnippetCsv {
     /**
      * RFC 4180 rows. A quote opens a quoted field only at the start of a field;
      * anywhere else it is an ordinary character, which is how hand-written
-     * files that never quote anything still read as written.
+     * files that never quote anything still read as written. Public for the
+     * same test as [sniffDelimiter].
      */
-    internal fun parseRows(text: String, delimiter: Char): List<List<String>> {
+    fun parseRows(text: String, delimiter: Char): List<List<String>> {
         val rows = ArrayList<List<String>>()
         var row = ArrayList<String>()
         val field = StringBuilder()
