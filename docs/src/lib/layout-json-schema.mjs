@@ -12,10 +12,27 @@
  * Throws when a file or a declaration is missing, so a moved model fails the
  * docs build instead of quietly publishing an empty reference.
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
-const ROOT = new URL('../../../', import.meta.url);
-const read = (path) => readFileSync(new URL(path, ROOT), 'utf8');
+/**
+ * The repository root, found from the working directory: at render time this
+ * module is a chunk inside `dist/.prerender/`, so a path built from
+ * `import.meta.url` lands in `docs/` and every read misses.
+ */
+function findRepoRoot() {
+	let dir = process.cwd();
+	for (let i = 0; i < 5; i += 1) {
+		if (existsSync(join(dir, 'settings.gradle.kts'))) return dir;
+		const parent = dirname(dir);
+		if (parent === dir) break;
+		dir = parent;
+	}
+	return join(process.cwd(), '..');
+}
+
+const ROOT = findRepoRoot();
+const read = (path) => readFileSync(join(ROOT, path), 'utf8');
 
 const CORE = 'core/language/src/main/java/com/wasimaster/wmkeyboard/core/';
 const SETTINGS = 'core/common/src/main/java/com/wasimaster/wmkeyboard/core/settings/';

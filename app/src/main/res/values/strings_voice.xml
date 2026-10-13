@@ -5,7 +5,7 @@
   Voice typing tool page; the tool page now holds one row that opens this, the
   same shape the Emoji tool has.
 -->
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
     <!-- The switch at the top of the screen. Off hides every other row on it. -->
     <string name="voice_enabled_title">Use voice typing</string>
