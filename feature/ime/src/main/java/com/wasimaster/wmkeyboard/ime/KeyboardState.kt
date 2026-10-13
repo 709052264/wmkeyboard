@@ -1129,10 +1129,44 @@ data class VoiceUi(
      * mounts a frame after the session started still shows the rest of it.
      */
     val micNoticeAt: Long = 0L,
+    /**
+     * The engine the language being dictated uses, its own pick or the global
+     * one, as a `voice_engine` value. Empty before the first session.
+     */
+    val engine: String = "",
+    /** The language id [engineChoices] are for. */
+    val engineLanguage: String = "",
+    /**
+     * What the panel's engine chip offers for [engineLanguage], when that
+     * chip is switched on: engines and downloaded models that serve it.
+     */
+    val engineChoices: List<com.wasimaster.wmkeyboard.core.voice.VoiceChoice> = emptyList(),
+    /** [engineLanguage]'s stored pick (`engine` or `engine:modelId`), empty when it follows the global engine. */
+    val engineChoice: String = "",
 )
 
 /** The session records a whole clip and transcribes it after the stop tap. */
 val VoiceUi.clipBased: Boolean get() = whisper || remote
+
+/**
+ * The voice typing modes that do something different with the current setup,
+ * for the Voice tool's hold menu. Typing while you speak needs the keys on
+ * screen during dictation, which only the compact bar over the keys leaves
+ * there: the panel and the collapsed bar both take the keyboard's place. Plain
+ * text also needs an engine that can be asked for no punctuation, which is the
+ * system recognizer; the offline models and a server punctuate on their own.
+ */
+fun KeyboardUiState.supportedVoiceModes(): List<String> {
+    val keysShown = settings.voiceBar.mode == com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.MODE_STRIP
+    val engine = voice.engine.ifEmpty { settings.whisper.engine }
+    return buildList {
+        add(com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_BLOCK)
+        if (keysShown) {
+            add(com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_INTERACTIVE)
+            if (engine == "system") add(com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_PLAIN)
+        }
+    }
+}
 
 /**
  * The persisted settings say the collapsed voice bar should be up. Never while
@@ -1261,6 +1295,13 @@ sealed interface VoiceBarAction {
 
     /** The voice panel's microphone chip (#581): listen through the next microphone plugged in. */
     data object CycleMic : VoiceBarAction
+
+    /**
+     * A pick off the voice panel's engine chip: [languageId] dictates with
+     * [choice] (`engine` or `engine:modelId`) from now on; blank goes back to
+     * the engine picked in settings.
+     */
+    data class PickEngine(val languageId: String, val choice: String) : VoiceBarAction
 }
 
 /**

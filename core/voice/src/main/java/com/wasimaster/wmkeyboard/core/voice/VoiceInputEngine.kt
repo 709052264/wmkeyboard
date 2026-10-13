@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.ModelDownloadListener
 import android.speech.RecognitionListener
 import android.speech.RecognitionSupport
@@ -57,6 +59,24 @@ class VoiceInputEngine(private val context: Context) {
      */
     private val onDeviceFailedTags = mutableSetOf<String>()
 
+    /**
+     * Languages whose on-device recognizer opened the microphone and then
+     * heard nothing at all: no level, no partial. Android System
+     * Intelligence's SODA pipeline can stall that way (seen on Android 15,
+     * en-US: "Pipeline lagging", then NO_SPEECH for every phrase), and from
+     * outside it looks exactly like a dead microphone. Those go to the
+     * network recognizer for the rest of the process.
+     */
+    private val onDeviceStalledTags = mutableSetOf<String>()
+
+    private val main = Handler(Looper.getMainLooper())
+
+    /** The pending stall check of the session running now, if it is on-device. */
+    private var stallCheck: Runnable? = null
+
+    /** [finish] was called on the session running now: it ends, it is not restarted. */
+    private var finishing = false
+
     /** False on devices without any recognition service (no GMS). */
     fun isAvailable(): Boolean =
         SpeechRecognizer.isRecognitionAvailable(context) ||
@@ -92,6 +112,7 @@ class VoiceInputEngine(private val context: Context) {
         val onDevice = allowOnDevice &&
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
             languageTag !in onDeviceFailedTags &&
+            languageTag !in onDeviceStalledTags &&
             SpeechRecognizer.isOnDeviceRecognitionAvailable(context)
         val session = if (onDevice) {
             SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
@@ -99,12 +120,31 @@ class VoiceInputEngine(private val context: Context) {
             SpeechRecognizer.createSpeechRecognizer(context)
         }
         recognizer = session
+        finishing = false
+        // A healthy recognizer reports a level many times a second, silence
+        // included, so an on-device session with neither a level nor a
+        // partial after this long has stalled and will only end in NO_SPEECH.
+        var heard = false
+        fun stalled() {
+            onDeviceStalledTags += languageTag
+            release(session)
+            start(
+                languageTag, listener, allowOnDevice = false,
+                formatting = formatting, bias = bias, alsoListenFor = alsoListenFor,
+            )
+        }
+        if (onDevice) {
+            val check = Runnable { if (recognizer === session && !heard) stalled() }
+            stallCheck = check
+            main.postDelayed(check, STALL_MS)
+        }
         session.setRecognitionListener(object : RecognitionListener {
             override fun onReadyForSpeech(params: Bundle?) = listener.onListening()
 
             override fun onBeginningOfSpeech() {}
 
             override fun onRmsChanged(rmsdB: Float) {
+                heard = true
                 // Typical rmsdB swings about -2..10 dB; fold into 0..1.
                 listener.onLevel(((rmsdB + 2f) / 12f).coerceIn(0f, 1f))
             }
@@ -114,8 +154,18 @@ class VoiceInputEngine(private val context: Context) {
             override fun onEndOfSpeech() = listener.onEndOfSpeech()
 
             override fun onError(error: Int) {
-                release(session)
+                if (recognizer !== session) return
                 val kind = errorKind(error)
+                if (onDevice && !heard && kind == ErrorKind.NO_SPEECH) {
+                    // Ended before the check ran: the same stall. Stopped by
+                    // the user, it is only remembered for the next phrase.
+                    if (!finishing) {
+                        stalled()
+                        return
+                    }
+                    onDeviceStalledTags += languageTag
+                }
+                release(session)
                 if (onDevice && kind == ErrorKind.LANGUAGE) {
                     onDeviceFailedTags += languageTag
                     start(
@@ -128,11 +178,21 @@ class VoiceInputEngine(private val context: Context) {
             }
 
             override fun onResults(results: Bundle?) {
+                if (recognizer !== session) return
                 release(session)
                 val text = results
                     ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     ?.firstOrNull()
                     .orEmpty()
+                if (text.isBlank() && onDevice && !heard && !finishing) {
+                    // An empty final from a recognizer that never heard a thing.
+                    onDeviceStalledTags += languageTag
+                    start(
+                        languageTag, listener, allowOnDevice = false,
+                        formatting = formatting, bias = bias, alsoListenFor = alsoListenFor,
+                    )
+                    return
+                }
                 if (text.isBlank()) listener.onError(ErrorKind.NO_SPEECH) else listener.onFinal(text)
             }
 
@@ -140,7 +200,10 @@ class VoiceInputEngine(private val context: Context) {
                 val text = partialResults
                     ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     ?.firstOrNull()
-                if (!text.isNullOrBlank()) listener.onPartial(text)
+                if (!text.isNullOrBlank()) {
+                    heard = true
+                    listener.onPartial(text)
+                }
             }
 
             override fun onEvent(eventType: Int, params: Bundle?) {}
@@ -278,6 +341,7 @@ class VoiceInputEngine(private val context: Context) {
                         // The earlier network fallback for this language is
                         // stale now — the next session goes on-device.
                         onDeviceFailedTags.remove(languageTag)
+                        onDeviceStalledTags.remove(languageTag)
                         callback.onSuccess()
                     }
 
@@ -298,6 +362,7 @@ class VoiceInputEngine(private val context: Context) {
             downloader.triggerModelDownload(intent)
             downloader.destroy()
             onDeviceFailedTags.remove(languageTag)
+            onDeviceStalledTags.remove(languageTag)
             callback.onScheduled()
         }
     }
@@ -313,6 +378,9 @@ class VoiceInputEngine(private val context: Context) {
 
     /** Stop capturing and let the recognizer deliver its final result. */
     fun finish() {
+        finishing = true
+        stallCheck?.let(main::removeCallbacks)
+        stallCheck = null
         recognizer?.stopListening()
     }
 
@@ -326,7 +394,16 @@ class VoiceInputEngine(private val context: Context) {
 
     private fun release(session: SpeechRecognizer) {
         session.destroy()
-        if (recognizer === session) recognizer = null
+        if (recognizer === session) {
+            recognizer = null
+            stallCheck?.let(main::removeCallbacks)
+            stallCheck = null
+        }
+    }
+
+    private companion object {
+        /** How long an on-device session may stay deaf before it counts as stalled. */
+        const val STALL_MS = 1800L
     }
 
     private fun errorKind(code: Int): ErrorKind = when (code) {

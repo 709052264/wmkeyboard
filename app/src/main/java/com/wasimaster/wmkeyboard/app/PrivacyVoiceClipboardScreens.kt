@@ -331,8 +331,8 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                     ).joinToString("\n\n"),
                     options = listOfNotNull(
                         "system" to systemEngine,
-                        ("whisper" to whisperEngine).takeIf { whisperEnabled },
                         ("whistle" to whistleEngine).takeIf { whistleEnabled },
+                        ("whisper" to whisperEngine).takeIf { whisperEnabled },
                         ("asr4all" to asr4allEngine).takeIf { etEnabled },
                         ("parakeet" to parakeetEngine).takeIf { etEnabled },
                         ("moonshine" to moonshineEngine).takeIf { etEnabled },
@@ -374,7 +374,19 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                     },
                 ) { scope.launch { repository.setVoiceEngine(it) } }
             }
+            if (engine == "system") {
+                item {
+                    ToggleSetting(
+                        R.string.voice_system_on_device_title,
+                        stringResource(R.string.voice_system_on_device_subtitle),
+                        settings.watch { it.whisper.systemOnDevice },
+                        info = stringResource(R.string.voice_system_on_device_info),
+                        default = SettingsDefaults.whisper.systemOnDevice,
+                    ) { scope.launch { repository.setVoiceSystemOnDevice(it) } }
+                }
+            }
             item { VoiceLanguageRow(repository, settings) }
+            item { VoiceEngineLanguagesRow(repository, settings) }
         }
     }
     SettingsGroup(stringResource(R.string.voice_dictation_group)) {
@@ -421,6 +433,10 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 R.string.voice_typing_title,
                 subtitle = stringResource(R.string.voice_typing_subtitle),
                 info = stringResource(R.string.voice_typing_info),
+                // Typing while you speak needs the keys on screen, which only
+                // the compact bar leaves there; plain text needs an engine that
+                // can be asked for no punctuation, the system recognizer. The
+                // mode in force stays listed so it can be changed back.
                 options = listOf(
                     com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_BLOCK to
                         stringResource(R.string.voice_typing_block),
@@ -428,7 +444,13 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                         stringResource(R.string.voice_typing_interactive),
                     com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_PLAIN to
                         stringResource(R.string.voice_typing_plain),
-                ),
+                ).filter { (mode, _) ->
+                    val keysShown = voiceUiMode == com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.MODE_STRIP
+                    mode == typingMode ||
+                        mode == com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_BLOCK ||
+                        (keysShown && mode == com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_INTERACTIVE) ||
+                        (keysShown && engine == "system")
+                },
                 selected = typingMode,
                 default = SettingsDefaults.voiceBar.typingMode,
                 detail = { mode ->
@@ -461,7 +483,17 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.voiceBar.pauseMedia,
             ) { scope.launch { repository.setVoicePauseMedia(it) } }
         }
+        val micSwitch = settings.watch { it.voiceBar.micSwitch }
         item {
+            ToggleSetting(
+                R.string.voice_mic_switch_title,
+                stringResource(R.string.voice_mic_switch_subtitle),
+                micSwitch,
+                info = stringResource(R.string.voice_mic_switch_info),
+                default = SettingsDefaults.voiceBar.micSwitch,
+            ) { scope.launch { repository.setVoiceMicSwitch(it) } }
+        }
+        if (micSwitch) item {
             ChoiceSetting(
                 R.string.voice_mic_title,
                 subtitle = stringResource(R.string.voice_mic_subtitle),
@@ -481,6 +513,15 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 selected = settings.watch { it.voiceBar.mic },
                 default = SettingsDefaults.voiceBar.mic,
             ) { scope.launch { repository.setVoiceMic(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.voice_engine_picker_title,
+                stringResource(R.string.voice_engine_picker_subtitle),
+                settings.watch { it.voiceBar.enginePicker },
+                info = stringResource(R.string.voice_engine_picker_info),
+                default = SettingsDefaults.voiceBar.enginePicker,
+            ) { scope.launch { repository.setVoiceEnginePicker(it) } }
         }
         // Only the panel's mic reads a hold: the strip and collapsed-bar mics
         // are plain taps, and the panel is never opened in those modes.

@@ -5256,6 +5256,19 @@ data class VoiceBarSettings(
      */
     val mic: String = MIC_AUTO,
     /**
+     * The microphone switch on the voice surfaces, and the [mic] pick behind
+     * it. Off, dictation listens through whatever Android picks: no headset
+     * routing, no button, no "Using … mic" notice.
+     */
+    val micSwitch: Boolean = true,
+    /**
+     * An engine chip on the voice panel and the compact bar's line, to change
+     * the engine and model of the language being dictated without going to
+     * settings. Off by default; it writes the same per-language choice as
+     * [WhisperSettings.voiceByLang].
+     */
+    val enginePicker: Boolean = false,
+    /**
      * Each dictated phrase is tidied by the AI tool's provider after it lands
      * (#499): filler words, false starts and spoken self-corrections taken out,
      * the way Gboard's "Rambler" does it on Google's servers. Off by default:
@@ -5437,7 +5450,43 @@ data class WhisperSettings(
      * which one a session starts in.
      */
     val languages: List<String> = emptyList(),
+    /**
+     * The system recognizer tries the phone's on-device recognizer first, and
+     * goes to the network one for a language the device cannot do or whose
+     * on-device recognizer is heard to stall. Off, it always uses the network
+     * recognizer.
+     */
+    val systemOnDevice: Boolean = true,
+    /**
+     * Language id → the engine, and maybe the model, dictation in that
+     * language uses: `system`, `server`, `whistle`, `whisper`, or
+     * `<engine>:<modelId>` for a pinned Whisper or ExecuTorch model. A
+     * language without an entry uses [engine]. See [voiceFor].
+     */
+    val voiceByLang: Map<String, String> = emptyMap(),
 )
+
+/** An engine id and, when one is pinned, the model it runs. */
+data class VoiceChoiceRef(val engine: String, val modelId: String?) {
+    /** The stored form, `engine` or `engine:modelId`. */
+    fun encode(): String = if (modelId.isNullOrEmpty()) engine else "$engine:$modelId"
+
+    companion object {
+        fun parse(raw: String): VoiceChoiceRef {
+            val colon = raw.indexOf(':')
+            return if (colon <= 0) {
+                VoiceChoiceRef(raw, null)
+            } else {
+                VoiceChoiceRef(raw.substring(0, colon), raw.substring(colon + 1).ifEmpty { null })
+            }
+        }
+    }
+}
+
+/** The engine and model dictation in [languageId] uses: its own choice, else the global engine. */
+fun WhisperSettings.voiceFor(languageId: String): VoiceChoiceRef =
+    voiceByLang[languageId]?.takeIf { it.isNotBlank() }?.let(VoiceChoiceRef::parse)
+        ?: VoiceChoiceRef(engine, null)
 
 /**
  * The languages a dictation listens for (#416), the one it starts in first.
@@ -9656,6 +9705,10 @@ class SettingsRepository(private val context: Context) {
         private val VOICE_PAUSE_MEDIA = booleanPreferencesKey("voice_pause_media")
         private val VOICE_STRIP_LANGUAGE_CHIP = booleanPreferencesKey("voice_strip_language_chip")
         private val VOICE_MIC = stringPreferencesKey("voice_mic")
+        private val VOICE_MIC_SWITCH = booleanPreferencesKey("voice_mic_switch")
+        private val VOICE_ENGINE_PICKER = booleanPreferencesKey("voice_engine_picker")
+        private val VOICE_SYSTEM_ON_DEVICE = booleanPreferencesKey("voice_system_on_device")
+        private val VOICE_BY_LANG = stringPreferencesKey("voice_by_lang")
         private val VOICE_AI_TIDY = booleanPreferencesKey("voice_ai_tidy")
         private val VOICE_UI_RETURN_MODE = stringPreferencesKey("voice_ui_return_mode")
         private val VOICE_BAR_INLINE = booleanPreferencesKey("voice_bar_inline")
@@ -11673,6 +11726,8 @@ class SettingsRepository(private val context: Context) {
             pauseMedia = p[VOICE_PAUSE_MEDIA] ?: defaults.voiceBar.pauseMedia,
             stripLanguageChip = p[VOICE_STRIP_LANGUAGE_CHIP] ?: defaults.voiceBar.stripLanguageChip,
             mic = p[VOICE_MIC]?.takeIf { it in VoiceBarSettings.MICS } ?: defaults.voiceBar.mic,
+            micSwitch = p[VOICE_MIC_SWITCH] ?: defaults.voiceBar.micSwitch,
+            enginePicker = p[VOICE_ENGINE_PICKER] ?: defaults.voiceBar.enginePicker,
             aiTidy = p[VOICE_AI_TIDY] ?: defaults.voiceBar.aiTidy,
             returnMode = p[VOICE_UI_RETURN_MODE] ?: defaults.voiceBar.returnMode,
             inline = p[VOICE_BAR_INLINE] ?: defaults.voiceBar.inline,
@@ -11697,6 +11752,8 @@ class SettingsRepository(private val context: Context) {
             biasWords = p[VOICE_BIAS_WORDS] ?: defaults.whisper.biasWords,
             serverPrompt = p[VOICE_SERVER_PROMPT] ?: defaults.whisper.serverPrompt,
             languages = p[VOICE_LANGUAGES]?.let(::decodeVoiceLanguages) ?: defaults.whisper.languages,
+            systemOnDevice = p[VOICE_SYSTEM_ON_DEVICE] ?: defaults.whisper.systemOnDevice,
+            voiceByLang = p[VOICE_BY_LANG]?.let { decodeWhisperModelByLang(it) } ?: defaults.whisper.voiceByLang,
         )
 
     private fun decodeVoiceLanguages(raw: String): List<String> =
@@ -12782,6 +12839,27 @@ class SettingsRepository(private val context: Context) {
         if (value !in VoiceBarSettings.MICS) return
         editPrefs { it[VOICE_MIC] = value }
     }
+
+    suspend fun setVoiceMicSwitch(value: Boolean) =
+        editPrefs { it[VOICE_MIC_SWITCH] = value }
+
+    suspend fun setVoiceEnginePicker(value: Boolean) =
+        editPrefs { it[VOICE_ENGINE_PICKER] = value }
+
+    suspend fun setVoiceSystemOnDevice(value: Boolean) =
+        editPrefs { it[VOICE_SYSTEM_ON_DEVICE] = value }
+
+    /**
+     * Gives [languageId] its own engine and model ([VoiceChoiceRef.encode]),
+     * or drops the entry when [choice] is blank so it follows the global engine.
+     */
+    suspend fun setVoiceForLanguage(languageId: String, choice: String) =
+        editPrefs { prefs ->
+            val current = prefs[VOICE_BY_LANG]?.let { decodeWhisperModelByLang(it) }.orEmpty()
+            val next = if (choice.isBlank()) current - languageId else current + (languageId to choice)
+            if (next == current) return@editPrefs
+            prefs[VOICE_BY_LANG] = encodeWhisperModelByLang(next)
+        }
 
     suspend fun setVoiceAiTidy(value: Boolean) =
         editPrefs { it[VOICE_AI_TIDY] = value }

@@ -155,6 +155,9 @@ internal fun VoicePanel(
     // The microphone switch (#581): there whenever there is a microphone to
     // switch to, or a pick already made that the user may want to undo.
     val micChipVisible = micUsable && hasPermission && state.voiceMicSwitchVisible()
+    // The engine chip, only with "Change engine from the voice tool" on.
+    val engineChipVisible = micUsable && hasPermission && state.voiceEngineChipVisible()
+    var engineMenuOpen by remember { mutableStateOf(false) }
     fun collapseToBar() = onRailKey(
         VoiceBarAction.SwitchSurface(VoiceBarSettings.MODE_BAR),
     )
@@ -166,6 +169,7 @@ internal fun VoicePanel(
         if (languageChipVisible) add { feedback(); languageMenuOpen = true }
         if (collapseVisible) add { feedback(); collapseToBar() }
         if (micChipVisible) add { feedback(); onRailKey(VoiceBarAction.CycleMic) }
+        if (engineChipVisible) add { feedback(); engineMenuOpen = true }
     }
     PanelFocusTarget(
         panel = PanelMode.VOICE,
@@ -178,6 +182,7 @@ internal fun VoicePanel(
     val languageRingIndex = undoRingIndex + (if (undoVisible) 1 else 0)
     val collapseRingIndex = languageRingIndex + (if (languageChipVisible) 1 else 0)
     val micRingIndex = collapseRingIndex + (if (collapseVisible) 1 else 0)
+    val engineRingIndex = micRingIndex + (if (micChipVisible) 1 else 0)
 
     // While the mic is open, this whole side of the panel is the stop button,
     // not only the 64dp circle in the middle of it (#283). The stop press is
@@ -345,6 +350,19 @@ internal fun VoicePanel(
                         .align(Alignment.BottomEnd)
                         .padding(4.dp)
                         .focusRing(micRingIndex == focusedAction, RoundedCornerShape(kb.toolRadiusDp.dp)),
+                )
+            }
+            // Which engine the language being dictated uses, bottom left,
+            // opposite the microphone switch.
+            if (engineChipVisible) {
+                VoiceEngineChip(
+                    state = state,
+                    focused = focusedAction == engineRingIndex,
+                    onAction = onRailKey,
+                    onOpenSettings = onOpenVoiceSettings,
+                    menuOpen = engineMenuOpen,
+                    onMenuOpen = { engineMenuOpen = it },
+                    modifier = Modifier.align(Alignment.BottomStart),
                 )
             }
             val micNotice = rememberVoiceMicNotice(state)

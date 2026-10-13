@@ -66,7 +66,10 @@ import kotlinx.coroutines.delay
  * plugged in that the session's engine can be pointed at.
  */
 internal fun KeyboardUiState.voiceMicChoices(): List<String> =
-    VoiceMics.choices(voice.mics, ownCapture = voice.clipBased || settings.whisper.engine != "system")
+    VoiceMics.choices(
+        voice.mics,
+        ownCapture = voice.clipBased || voice.engine.ifEmpty { settings.whisper.engine } != "system",
+    )
 
 /**
  * The switch is drawn when there is a microphone to switch to, or a pick
@@ -74,7 +77,8 @@ internal fun KeyboardUiState.voiceMicChoices(): List<String> =
  * before the microphone may be used at all.
  */
 internal fun KeyboardUiState.voiceMicSwitchVisible(): Boolean =
-    !secureField &&
+    settings.voiceBar.micSwitch &&
+        !secureField &&
         voice.status != VoiceStatus.UNAVAILABLE &&
         voice.status != VoiceStatus.NEED_PERMISSION &&
         (voiceMicChoices().size > 1 || settings.voiceBar.mic != VoiceMics.AUTO)

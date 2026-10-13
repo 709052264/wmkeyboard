@@ -426,14 +426,18 @@
 		"voice_ai_tidy_title": "0.5.14",
 		"voice_bias_personal_title": "0.5.12",
 		"voice_enabled_title": "0.5.15",
+		"voice_engine_languages_title": "0.5.15",
+		"voice_engine_picker_title": "0.5.15",
 		"voice_hold_picks_title": "0.5.8",
 		"voice_languages_title": "0.5.14",
+		"voice_mic_switch_title": "0.5.15",
 		"voice_mic_title": "0.5.15",
 		"voice_pause_media_title": "0.5.14",
 		"voice_server_language_title": "0.5.11",
 		"voice_server_test_title": "0.5.11",
 		"voice_silence_stop_title": "0.5.14",
-		"voice_strip_language_title": "0.5.15"
+		"voice_strip_language_title": "0.5.15",
+		"voice_system_on_device_title": "0.5.15"
 	},
 	"modes": {}
 }

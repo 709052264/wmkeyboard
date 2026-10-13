@@ -1340,6 +1340,10 @@ internal object SettingsRowIcons {
         put(R.string.voice_typing_title) { Icons.Outlined.RecordVoiceOver }
         put(R.string.voice_hold_picks_title) { Icons.Outlined.TouchApp }
         put(R.string.voice_pause_media_title) { Icons.Outlined.MusicNote }
+        put(R.string.voice_mic_switch_title) { Icons.Outlined.HeadsetMic }
+        put(R.string.voice_engine_picker_title) { Icons.Outlined.TouchApp }
+        put(R.string.voice_system_on_device_title) { Icons.Outlined.Memory }
+        put(R.string.voice_engine_languages_title) { Icons.Outlined.Translate }
         put(R.string.voice_mic_title) { Icons.Outlined.HeadsetMic }
         put(R.string.voice_ai_tidy_title) { Icons.Outlined.AutoAwesome }
         put(R.string.voice_continuous_title) { Icons.Outlined.MicNone }

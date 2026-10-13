@@ -528,6 +528,7 @@ import com.wasimaster.wmkeyboard.ime.TypingTestAction
 import com.wasimaster.wmkeyboard.ime.VoiceBarAction
 import com.wasimaster.wmkeyboard.ime.fieldVoiceSpeaks
 import com.wasimaster.wmkeyboard.ime.voiceChipOnly
+import com.wasimaster.wmkeyboard.ime.supportedVoiceModes
 import com.wasimaster.wmkeyboard.ime.SizingAction
 import com.wasimaster.wmkeyboard.ime.SoundHapticAction
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
@@ -5289,6 +5290,8 @@ private fun WordMenuRow(label: String, icon: ImageVector, onClick: () -> Unit) {
 @Composable
 private fun VoiceModeMenu(
     current: String,
+    /** The modes that work with the view and engine in use; see [supportedVoiceModes]. */
+    modes: List<String>,
     onDismiss: () -> Unit,
     onPick: (String) -> Unit,
 ) {
@@ -5304,6 +5307,7 @@ private fun VoiceModeMenu(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
         for ((mode, label) in VoiceModeMenuEntries) {
+            if (mode !in modes) continue
             DropdownMenuItem(
                 text = { Text(stringResource(label)) },
                 leadingIcon = {
@@ -8282,7 +8286,9 @@ private fun holdPicksVoiceMode(
     state: KeyboardUiState,
 ): Boolean = fromToolbar &&
     tool == ToolbarTool.VOICE &&
-    state.settings.voiceBar.holdPicksTypingMode
+    state.settings.voiceBar.holdPicksTypingMode &&
+    // A menu of one is no choice: the hold goes back to the toolbar.
+    state.supportedVoiceModes().size > 1
 
 /**
  * Whether a press and hold on [tool] opens the trackpad panel for as long as the
@@ -9904,6 +9910,7 @@ private fun RowScope.ToolbarRow(
                         StripMenuScrim(onDismiss = { voiceMenuOpen = false })
                         VoiceModeMenu(
                             current = state.settings.voiceBar.typingMode,
+                            modes = state.supportedVoiceModes(),
                             onDismiss = { voiceMenuOpen = false },
                             onPick = { mode ->
                                 voiceMenuOpen = false

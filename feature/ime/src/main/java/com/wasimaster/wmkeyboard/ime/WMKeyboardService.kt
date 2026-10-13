@@ -295,6 +295,8 @@ import com.wasimaster.wmkeyboard.core.settings.interactiveTyping
 import com.wasimaster.wmkeyboard.core.settings.plainTyping
 import com.wasimaster.wmkeyboard.core.settings.serverFor
 import com.wasimaster.wmkeyboard.core.settings.dictationLanguages
+import com.wasimaster.wmkeyboard.core.settings.VoiceChoiceRef
+import com.wasimaster.wmkeyboard.core.settings.voiceFor
 import com.wasimaster.wmkeyboard.core.settings.restrictedToDirectBoot
 import com.wasimaster.wmkeyboard.core.settings.withoutModes
 import com.wasimaster.wmkeyboard.core.settings.PowerSavingSettings
@@ -569,6 +571,7 @@ import com.wasimaster.wmkeyboard.core.voice.VoiceBias
 import com.wasimaster.wmkeyboard.core.voice.VoiceBiasRequest
 import com.wasimaster.wmkeyboard.core.voice.VoiceInputEngine
 import com.wasimaster.wmkeyboard.core.voice.VoiceMics
+import com.wasimaster.wmkeyboard.core.voice.VoiceChoices
 import com.wasimaster.wmkeyboard.core.voice.VoiceClipGate
 import com.wasimaster.wmkeyboard.core.voice.VoicePunctuation
 import com.wasimaster.wmkeyboard.core.voice.VoiceCasing
@@ -585,6 +588,7 @@ import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperException
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperModel
 import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllEngine
 import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllStream
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtModel
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
@@ -596,6 +600,7 @@ import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleLanguages
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperScript
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperStore
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
 import com.wasimaster.wmkeyboard.core.settings.isWhisperEnabled
 import com.wasimaster.wmkeyboard.core.transliteration.BijoyAnsi
 import com.wasimaster.wmkeyboard.core.transliteration.BengaliGraphemes
@@ -23944,6 +23949,44 @@ open class WMKeyboardService : InputMethodService() {
     /** The language a dictation starts in; see [voiceLanguageIds]. */
     private fun voiceLanguageId(): String = voiceLanguageIds().first()
 
+    /**
+     * The engine, and the model when one is pinned, that dictation in
+     * [voiceLanguageId] uses: that language's own pick from settings or the
+     * panel's engine chip, else the engine picked for every language.
+     */
+    private fun voiceChoice(): VoiceChoiceRef = _uiState.value.settings.whisper.voiceFor(voiceLanguageId())
+
+    /** [voiceChoice]'s engine, as a `voice_engine` value. */
+    private fun voiceEngine(): String = voiceChoice().engine
+
+    /**
+     * Brings the voice state's engine, and the engine chip's list when that
+     * chip is on, in line with the language about to be dictated. The list
+     * walks the model folders, so it is only built for the chip.
+     */
+    private fun refreshVoiceEngineChoices() {
+        val s = _uiState.value.settings
+        val languageId = voiceLanguageId()
+        val engine = voiceEngine()
+        val choices = if (s.voiceBar.enginePicker) {
+            VoiceChoices.choices(
+                filesDir, languageId,
+                whisperEnabled = isWhisperEnabled(),
+                serverConfigured = s.whisper.serverFor(languageId).url.isNotBlank(),
+            )
+        } else {
+            emptyList()
+        }
+        val own = s.whisper.voiceByLang[languageId].orEmpty()
+        _uiState.update {
+            it.copy(
+                voice = it.voice.copy(
+                    engine = engine, engineLanguage = languageId, engineChoices = choices, engineChoice = own,
+                ),
+            )
+        }
+    }
+
     /** BCP-47 tag of [voiceLanguageId], as the recognizer takes it. */
     private fun voiceLanguageTag(): String = voiceTagOf(voiceLanguageId())
 
@@ -24126,6 +24169,7 @@ open class WMKeyboardService : InputMethodService() {
         voiceSessionForField = fieldVoice()
         val languageIds = voiceLanguageIds()
         voiceSessionLanguages = languageIds
+        refreshVoiceEngineChoices()
         val tag = voiceTagOf(languageIds.first())
         fun fail(status: VoiceStatus, message: String? = null) {
             _uiState.update {
@@ -24190,7 +24234,7 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
         val onDevice = if (offlineVoice) fallbackOnDeviceVoice() else onDeviceVoice()
-        val engine = _uiState.value.settings.whisper.engine
+        val engine = voiceEngine()
         val whisperSelected = isWhisperEnabled() && engine == "whisper"
         // Whistle only answers for its seven languages (#548). Any other is
         // the system recognizer's, with no prompt: there is no model that
@@ -24263,6 +24307,9 @@ open class WMKeyboardService : InputMethodService() {
         if (!modelKnown) refreshVoiceModelState(tag)
         voiceEngine.start(
             tag,
+            // The phone's own recognizer first unless the user turned that
+            // off; VoiceInputEngine also leaves it for one it hears stall.
+            allowOnDevice = _uiState.value.settings.whisper.systemOnDevice,
             // Plain voice typing wants the words and nothing else, so the
             // recognizer is asked for no punctuation and no capital letters.
             formatting = !plainVoice(),
@@ -24411,7 +24458,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     /** The transcription server is the chosen engine (#286). Every flavour has it. */
     private fun serverVoiceSelected(): Boolean =
-        _uiState.value.settings.whisper.engine == "server"
+        voiceEngine() == "server"
 
     /**
      * Whether a request that would go to a server goes to the device instead
@@ -24589,7 +24636,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun refreshVoiceBias() {
         val whisper = _uiState.value.settings.whisper
-        if (!whisper.biasPersonalWords || whisper.engine !in VOICE_BIAS_ENGINES) return
+        if (!whisper.biasPersonalWords || voiceEngine() !in VOICE_BIAS_ENGINES) return
         val now = SystemClock.elapsedRealtime()
         if (voiceBiasJob?.isActive == true) return
         if (voiceBiasStamp != 0L && now - voiceBiasStamp < VOICE_BIAS_TTL_MS) return
@@ -24639,23 +24686,33 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun onDeviceVoice(): OnDeviceVoice? {
         val s = _uiState.value.settings
-        return when (s.whisper.engine) {
+        val choice = voiceChoice()
+        return when (choice.engine) {
             "whisper" -> if (!isWhisperEnabled()) {
                 null
             } else {
-                WhisperStore.modelForLanguage(
-                    filesDir,
-                    voiceLanguageId(),
-                    s.whisper.modelId,
-                    s.whisper.modelByLang,
-                )?.let { OnDeviceVoice.Whisper(it) }
+                // A model pinned to the language off the engine chip or the
+                // per-language setting, while it is still on the phone.
+                (
+                    choice.modelId?.let(WhisperCatalog::byId)?.takeIf { WhisperStore.isDownloaded(filesDir, it) }
+                        ?: WhisperStore.modelForLanguage(
+                            filesDir,
+                            voiceLanguageId(),
+                            s.whisper.modelId,
+                            s.whisper.modelByLang,
+                        )
+                    )?.let { OnDeviceVoice.Whisper(it) }
             }
             "whistle" -> OnDeviceVoice.Whistle.takeIf {
                 whistleCoversVoice() && WhistleModelStore.isDownloaded(filesDir)
             }
-            else -> EtEngine.byId(s.whisper.engine)
+            else -> EtEngine.byId(choice.engine)
                 ?.takeIf(::etCoversVoice)
-                ?.let { EtStore.active(filesDir, it) }
+                ?.let { engine ->
+                    choice.modelId?.let(EtCatalog::byId)
+                        ?.takeIf { it.engine == engine && EtStore.isDownloaded(filesDir, it) }
+                        ?: EtStore.active(filesDir, engine)
+                }
                 ?.let { OnDeviceVoice.Et(it) }
         }
     }
@@ -25401,6 +25458,7 @@ open class WMKeyboardService : InputMethodService() {
             is VoiceBarAction.Bounds -> onVoiceBarBounds(action)
             is VoiceBarAction.PickLanguages -> onVoiceLanguagePick(action.ids)
             VoiceBarAction.CycleMic -> cycleVoiceMic()
+            is VoiceBarAction.PickEngine -> onVoiceEnginePick(action.languageId, action.choice)
         }
     }
 
@@ -25410,6 +25468,8 @@ open class WMKeyboardService : InputMethodService() {
      * dropped out does not leave dictation pointed at nothing.
      */
     private fun voiceMicKind(): String {
+        // The switch turned off leaves the microphone to Android.
+        if (!_uiState.value.settings.voiceBar.micSwitch) return VoiceMics.AUTO
         val picked = _uiState.value.settings.voiceBar.mic
         return if (picked != VoiceMics.AUTO && picked in VoiceMics.available(this)) picked else VoiceMics.AUTO
     }
@@ -25450,7 +25510,7 @@ open class WMKeyboardService : InputMethodService() {
         val kind = device?.let(VoiceMics::kindOf).orEmpty()
         val name = device?.productName?.toString().orEmpty()
         val key = "$kind|$name"
-        val show = forceMicNotice || key != lastMicNotice
+        val show = _uiState.value.settings.voiceBar.micSwitch && (forceMicNotice || key != lastMicNotice)
         forceMicNotice = false
         lastMicNotice = key
         _uiState.update {
@@ -25471,7 +25531,33 @@ open class WMKeyboardService : InputMethodService() {
      * Bluetooth headset.
      */
     private fun voiceOwnCapture(): Boolean =
-        _uiState.value.voice.clipBased || _uiState.value.settings.whisper.engine != "system"
+        _uiState.value.voice.clipBased || voiceEngine() != "system"
+
+    /**
+     * A pick off the voice panel's engine chip: [languageId] dictates with
+     * [choice] from now on, the same per-language choice the settings screen
+     * edits. Mirrored into the state ahead of the write, as the microphone
+     * pick is, so the session restarted for it already uses it.
+     */
+    private fun onVoiceEnginePick(languageId: String, choice: String) {
+        vibrate()
+        _uiState.update {
+            val whisper = it.settings.whisper
+            val byLang = if (choice.isBlank()) {
+                whisper.voiceByLang - languageId
+            } else {
+                whisper.voiceByLang + (languageId to choice)
+            }
+            it.copy(settings = it.settings.copy(whisper = whisper.copy(voiceByLang = byLang)))
+        }
+        serviceScope.launch { settingsRepository.setVoiceForLanguage(languageId, choice) }
+        if (voiceActive()) {
+            voiceSilentRetries = 0
+            startVoice()
+        } else {
+            refreshVoiceEngineChoices()
+        }
+    }
 
     private fun onVoiceSurfaceKey(key: Key) {
         if (_uiState.value.voice.partial.isNotEmpty()) {
@@ -26079,14 +26165,21 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onVoiceUseSystemEngine() {
         vibrate()
+        // A language with its own engine is moved on its own; the rest keep theirs.
+        val languageId = voiceLanguageId()
+        val own = _uiState.value.settings.whisper.voiceByLang.containsKey(languageId)
         serviceScope.launch {
-            settingsRepository.setVoiceEngine("system")
+            if (own) {
+                settingsRepository.setVoiceForLanguage(languageId, "system")
+            } else {
+                settingsRepository.setVoiceEngine("system")
+            }
             // Settings arrive through the state flow, so starting has to wait for
             // the new value to land or startVoice would read "whisper" again and
             // put the same prompt back up. Bounded, so a write that never surfaces
             // leaves the panel as it is now rather than a coroutine parked here.
             withTimeoutOrNull(ENGINE_SWITCH_TIMEOUT_MS) {
-                _uiState.first { it.settings.whisper.engine == "system" }
+                _uiState.first { it.settings.whisper.voiceFor(languageId).engine == "system" }
             }
             _uiState.update { it.copy(voice = it.voice.copy(serverNeedsSetup = false, remote = false)) }
             // The panel could have been closed while that landed, and a mic opened
