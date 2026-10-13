@@ -5075,6 +5075,7 @@ open class WMKeyboardService : InputMethodService() {
                 onClipboardDelete = ::onClipboardDelete,
                 onClipboardSearchToggle = ::onClipboardSearchToggle,
                 onClipboardSuggestionDismiss = ::onClipboardSuggestionDismiss,
+                onRecentClipsToggle = ::onRecentClipsToggle,
                 onClipboardEntity = ::onClipboardEntityTapped,
                 onOtpAccept = ::onOtpSuggestionTapped,
                 onOtpDismiss = ::onOtpSuggestionDismiss,
@@ -22817,10 +22818,7 @@ open class WMKeyboardService : InputMethodService() {
         // shortcut can still name one: a stored binding outlives the tool
         // leaving the strip. The device-level tests are in [runTool], which the
         // key-bound path ([runToolFromKey]) reaches without this one.
-        // The one exception: the button beside the last-copy chip opens the
-        // row of recent copies through this tool whether or not it is on the
-        // bar (#612), the way the chip itself needs no tool.
-        if (tool !in _uiState.value.settings.enabledTools && tool != ToolbarTool.RECENT_COPIES) return
+        if (tool !in _uiState.value.settings.enabledTools) return
         runTool(tool)
     }
 
@@ -23005,7 +23003,6 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.COPY -> onTextEdit(TextEditAction.COPY)
             ToolbarTool.CUT -> onTextEdit(TextEditAction.CUT)
             ToolbarTool.PASTE -> onTextEdit(TextEditAction.PASTE)
-            ToolbarTool.RECENT_COPIES -> onRecentClipsToggle()
             ToolbarTool.HIDE_KEYBOARD -> onHideKeyboard()
         }
     }
@@ -37056,7 +37053,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * The Recent copies tool, or the button beside the last-copy chip (#612):
+     * The button beside the last-copy chip (#612):
      * the row of the latest copies goes up on the strip, or comes down. It
      * stays until a key is typed, its ✕, or another field.
      */

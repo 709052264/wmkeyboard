@@ -103,10 +103,6 @@ enum class ToolbarTool {
     // with the settings app's Notes screen. Reads filesDir, so not available
     // before the first unlock.
     NOTES,
-    // The row of the latest copies on the suggestion strip (#612), up until a
-    // key is typed. Bound to a hold, Copy's for one, it is the last few copies
-    // one press away without opening the clipboard.
-    RECENT_COPIES,
     // Drafting an answer to somebody else's message (#234). Apart from the AI
     // tool because it works the other way round: that one rewrites what the
     // user has written, this one reads what they cannot select — a clip, a
@@ -221,7 +217,7 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.FLASHLIGHT, ToolbarTool.UNDO, ToolbarTool.REDO,
     ToolbarTool.INCOGNITO, ToolbarTool.POWER_SAVING, ToolbarTool.AUTOCORRECT,
     ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.HIDE_KEYBOARD,
-    ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.RECENT_COPIES,
+    ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH,
     -> false
     // The cursor moves nudge the caret and nothing else, and the clipboard trio
     // acts on the selection in place.
@@ -242,6 +238,22 @@ fun isSupportedTool(tool: ToolbarTool): Boolean = when {
     else -> true
 }
 
+
+/**
+ * Tools no preset turns on, not even "Everything" or the all-on default a
+ * fresh install starts from: the user switches them on by hand or not at all.
+ * Learn from text reads a whole pasted document into the dictionary, which is
+ * a thing to go looking for, not a tile to trip over.
+ */
+val OptInOnlyTools: Set<ToolbarTool> = setOf(ToolbarTool.LEARN_FROM_TEXT)
+
+/**
+ * The "Everything" preset, and the enabled-tools default before setup swaps
+ * it for a persona's set: every tool except [OptInOnlyTools]. Onboarding
+ * compares the stored set against this one to tell an untouched default from
+ * a user's own choice.
+ */
+val EverythingTools: List<ToolbarTool> = ToolbarTool.entries.filterNot { it in OptInOnlyTools }
 
 /**
  * The onboarding starting selection for the "keep it simple" persona: what a
@@ -316,7 +328,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.CURSOR_HOME, ToolbarTool.CURSOR_END, ToolbarTool.PAGE_UP, ToolbarTool.PAGE_DOWN,
     ToolbarTool.SELECT_WORD, ToolbarTool.SELECT_LINE, ToolbarTool.SELECT_ALL,
     ToolbarTool.SELECT_MODE,
-    ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE, ToolbarTool.RECENT_COPIES,
+    ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
 )
 
 /**

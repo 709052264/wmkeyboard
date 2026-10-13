@@ -498,7 +498,6 @@
     <string name="ime_tool_cursor_home">Line start</string>
     <string name="ime_tool_cursor_end">Line end</string>
     <string name="ime_tool_hide_keyboard">Hide</string>
-    <string name="ime_tool_recent_copies">Recent copies</string>
     <string name="ime_tool_page_up">Page up</string>
     <string name="ime_tool_page_down">Page down</string>
     <string name="ime_tool_select_word">Select word</string>

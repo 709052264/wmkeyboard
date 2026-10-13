@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
 import com.wasimaster.wmkeyboard.core.settings.DefaultToolOrder
+import com.wasimaster.wmkeyboard.core.settings.EverythingTools
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.MinimalTools
 import com.wasimaster.wmkeyboard.core.settings.OnboardingSettings
@@ -134,7 +135,7 @@ class OnboardingPresetsTest {
 
     @Test
     fun `finishing over the untouched all-on default lands the persona's set`() {
-        val allOn = KeyboardSettings(enabledTools = ToolbarTool.entries.toList())
+        val allOn = KeyboardSettings(enabledTools = EverythingTools)
         assertEquals(RecommendedTools, afterFinish(allOn))
         assertEquals(
             MinimalTools,

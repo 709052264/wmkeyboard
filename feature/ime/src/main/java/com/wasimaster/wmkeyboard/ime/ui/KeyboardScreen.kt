@@ -1241,6 +1241,7 @@ fun KeyboardScreen(
     onClipboardDelete: (ClipItem) -> Unit,
     onClipboardSearchToggle: () -> Unit = {},
     onClipboardSuggestionDismiss: () -> Unit = {},
+    onRecentClipsToggle: () -> Unit = {},
     onClipboardEntity: (ClipEntity) -> Unit = {},
     onOtpAccept: (NotificationOtp) -> Unit = {},
     onOtpDismiss: () -> Unit = {},
@@ -1481,6 +1482,7 @@ fun KeyboardScreen(
                 onClipboardDelete = onClipboardDelete,
                 onClipboardSearchToggle = onClipboardSearchToggle,
                 onClipboardSuggestionDismiss = onClipboardSuggestionDismiss,
+                onRecentClipsToggle = onRecentClipsToggle,
                 onClipboardEntity = onClipboardEntity,
                 onOtpAccept = onOtpAccept,
                 onOtpDismiss = onOtpDismiss,
@@ -3316,6 +3318,7 @@ private fun TopBar(
     onStripOfferAction: (StripOfferAction) -> Unit = {},
     onClipboardSuggestion: (ClipItem) -> Unit = {},
     onClipboardSuggestionDismiss: () -> Unit = {},
+    onRecentClipsToggle: () -> Unit = {},
     onClipboardEntity: (ClipEntity) -> Unit = {},
     onOtpAccept: (NotificationOtp) -> Unit = {},
     onOtpDismiss: () -> Unit = {},
@@ -4436,7 +4439,7 @@ private fun TopBar(
                             // More than the last copy, from a button on the
                             // chip (#612), when the row is set to hold more.
                             onMore = if (state.settings.clipboard.recentChips > 1) {
-                                { onToolTap(ToolbarTool.RECENT_COPIES) }
+                                onRecentClipsToggle
                             } else null,
                             modifier = chipModifier,
                         )
@@ -7798,7 +7801,6 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CURSOR_HOME -> R.string.ime_tool_cursor_home
     ToolbarTool.CURSOR_END -> R.string.ime_tool_cursor_end
     ToolbarTool.HIDE_KEYBOARD -> R.string.ime_tool_hide_keyboard
-    ToolbarTool.RECENT_COPIES -> R.string.ime_tool_recent_copies
     ToolbarTool.PAGE_UP -> R.string.ime_tool_page_up
     ToolbarTool.PAGE_DOWN -> R.string.ime_tool_page_down
     ToolbarTool.SELECT_WORD -> R.string.ime_tool_select_word
@@ -7916,7 +7918,6 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     // A one-shot action too — it hides the keyboard, nothing to keep lit.
     ToolbarTool.HIDE_KEYBOARD -> false
     // Lit while its row is on the strip (#612).
-    ToolbarTool.RECENT_COPIES -> state.recentClipsOpen
 }
 
 /**
@@ -11043,6 +11044,7 @@ private fun KeyboardBody(
     onClipboardDelete: (ClipItem) -> Unit,
     onClipboardSearchToggle: () -> Unit,
     onClipboardSuggestionDismiss: () -> Unit,
+    onRecentClipsToggle: () -> Unit,
     onClipboardEntity: (ClipEntity) -> Unit,
     onOtpAccept: (NotificationOtp) -> Unit,
     onOtpDismiss: () -> Unit,
@@ -11342,6 +11344,7 @@ private fun KeyboardBody(
                                     onStripOfferAction = onStripOfferAction,
                                     onClipboardSuggestion = onClipboardItem,
                                     onClipboardSuggestionDismiss = onClipboardSuggestionDismiss,
+                                    onRecentClipsToggle = onRecentClipsToggle,
                                     onClipboardEntity = onClipboardEntity,
                                     onOtpAccept = onOtpAccept,
                                     onOtpDismiss = onOtpDismiss,

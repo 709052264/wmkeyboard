@@ -101,6 +101,7 @@ import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.settings.DefaultToolOrder
 import com.wasimaster.wmkeyboard.core.settings.EmojiFontChoice
 import com.wasimaster.wmkeyboard.core.settings.EmojiSkinTone
+import com.wasimaster.wmkeyboard.core.settings.EverythingTools
 import com.wasimaster.wmkeyboard.core.settings.RecommendedTools
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.ThemeMode
@@ -1435,7 +1436,7 @@ internal fun ToolsPage(
     LaunchedEffect(Unit) {
         if (!seeded) {
             onSeeded()
-            if (settings.value.enabledTools.toSet() == ToolbarTool.entries.toSet()) {
+            if (settings.value.enabledTools.toSet() == EverythingTools.toSet()) {
                 repository.setEnabledTools(starter.ifEmpty { RecommendedTools })
             }
         }
@@ -1458,7 +1459,7 @@ internal fun ToolsPage(
             icon = Icons.Outlined.SelectAll,
             label = stringResource(R.string.onboarding_tools_everything_action),
             modifier = Modifier.weight(1f),
-        ) { scope.launch { repository.setEnabledTools(ToolbarTool.entries) } }
+        ) { scope.launch { repository.setEnabledTools(EverythingTools) } }
     }
     // Most-used-by-most-people first — same order the toolbox itself opens with.
     for (tool in DefaultToolOrder.filter(::isSupportedTool)) {

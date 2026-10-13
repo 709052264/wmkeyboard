@@ -139,7 +139,6 @@
   {"title":"Cut","name":"ime_tool_cut","route":"tool/CUT","screens":["Tools"],"screen":true,"description":"Cut the selected text"},
   {"title":"Paste","name":"ime_tool_paste","route":"tool/PASTE","screens":["Tools"],"screen":true,"description":"Paste from the clipboard"},
   {"title":"Hide keyboard","name":"fonts_tool_hide_keyboard_title","route":"tool/HIDE_KEYBOARD","screens":["Tools"],"screen":true,"description":"Hide the keyboard with one press"},
-  {"title":"Recent copies","name":"fonts_tool_recent_copies_title","route":"tool/RECENT_COPIES","screens":["Tools"],"screen":true,"description":"Show your latest copies in a row on the suggestion strip, until you type"},
   {"title":"Keep on screen","name":"ime_tool_persistent","route":"tool/PERSISTENT","screens":["Tools"],"screen":true,"description":"Keep the keyboard open when no text field has focus"},
   {"title":"Selection actions","name":"ime_tool_selection_actions","route":"tool/SELECTION_ACTIONS","screens":["Tools"],"screen":true,"description":"One press turns the bar of actions for selected text on or off"},
   {"title":"Learn from text","name":"ime_tool_learn_from_text","route":"tool/LEARN_FROM_TEXT","screens":["Tools"],"screen":true,"description":"List the words in what you have written that the keyboard does not know yet, and add them to your personal dictionary"},

@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.app
 import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.Color
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.settings.EverythingTools
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.MinimalTools
 import com.wasimaster.wmkeyboard.core.settings.OnboardingSettings
@@ -270,7 +271,7 @@ internal fun toolsAfterFinish(
     playServices: Boolean,
     isSupported: (ToolbarTool) -> Boolean,
 ): Set<ToolbarTool>? {
-    if (settings.enabledTools.toSet() != ToolbarTool.entries.toSet()) return null
+    if (settings.enabledTools.toSet() != EverythingTools.toSet()) return null
     val persona = settings.onboarding.takeIf { it.personaDepth != PersonaDepth.UNSET }
         ?: settings.onboarding.copy(personaDepth = PersonaDepth.BALANCED)
     return starterTools(persona, playServices, isSupported)

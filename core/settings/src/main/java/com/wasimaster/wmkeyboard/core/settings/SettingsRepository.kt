@@ -3373,7 +3373,7 @@ data class KeyboardSettings(
     /** Emoji options that didn't fit the flat field list (see [EmojiSettings]). */
     val emoji: EmojiSettings = EmojiSettings(),
     /** Tools available anywhere on the keyboard; disabled tools are hidden. */
-    val enabledTools: List<ToolbarTool> = ToolbarTool.entries.toList(),
+    val enabledTools: List<ToolbarTool> = EverythingTools,
     /**
      * Every tool's position in the toolbox grid, most-used-first by default;
      * the user rearranges it by dragging tools around the toolbox. Always a

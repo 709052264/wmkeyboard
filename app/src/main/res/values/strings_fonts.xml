@@ -74,7 +74,6 @@
     <string name="fonts_tool_cursor_up_title">Cursor up</string>
     <string name="fonts_tool_cursor_down_title">Cursor down</string>
     <string name="fonts_tool_hide_keyboard_title">Hide keyboard</string>
-    <string name="fonts_tool_recent_copies_title">Recent copies</string>
 
     <!-- ==================================================================== -->
     <!-- Tools: the one-line description under the name of a tool.            -->
@@ -161,7 +160,6 @@
     <string name="fonts_tool_cut_desc">Cut the selected text</string>
     <string name="fonts_tool_paste_desc">Paste from the clipboard</string>
     <string name="fonts_tool_hide_keyboard_desc">Hide the keyboard with one press</string>
-    <string name="fonts_tool_recent_copies_desc">Show your latest copies in a row on the suggestion strip, until you type</string>
 
     <string name="fonts_tool_vocabulary_desc">Word cards, nudges and flashcards from downloadable vocabulary packs</string>
     <string name="fonts_tool_notes_desc">Write and keep notes in the keyboard, with tags, checklists, pins and a trash</string>
