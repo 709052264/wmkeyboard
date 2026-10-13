@@ -1,6 +1,6 @@
 ---
 title: "Installation"
-description: "Install from F-Droid, download a release APK, or build from source, pick Full or Lite, and install it on your device."
+description: "Install from Google Play or F-Droid, download a release APK, or build from source, pick Full or Lite, and install it on your device."
 sidebar:
   order: 1
 ---
@@ -11,7 +11,21 @@ import Flavor from '@components/Flavor.astro';
 import { Steps } from '@astrojs/starlight/components';
 import Shot from '@components/Shot.astro';
 
-Install it from [F-Droid](https://f-droid.org/packages/com.wasimaster.wmkeyboard/), or grab a signed APK from the releases page and install that like any other app. Building it yourself works too, and takes a few minutes if you already have the Android SDK. Google Play is coming.
+Install it from [Google Play](https://play.google.com/store/apps/details?id=com.wasimaster.wmkeyboard) or [F-Droid](https://f-droid.org/packages/com.wasimaster.wmkeyboard/), or grab a signed APK from the releases page and install that like any other app. Building it yourself works too, and takes a few minutes if you already have the Android SDK.
+
+## Installing from Google Play
+
+Open the [WM Keyboard listing](https://play.google.com/store/apps/details?id=com.wasimaster.wmkeyboard) and tap **Install**. There is nothing to pick: Play carries the <Flavor edition="full" /> edition and serves your phone the right CPU architecture on its own.
+
+The Play copy differs from the GitHub APKs in a few ways:
+
+- **Heavier parts arrive when you first need them.** The on-device AI runtime, the on-device translation engine, handwriting recognition and the interpreter behind offline voice typing and the sticker editor's background remover are not in the first install. The first time you use one, Play downloads it, and the feature carries on by itself once it lands. See [Full vs Lite](/start/editions/).
+- **ML Kit comes from Google Play services** rather than from inside the app, so OCR and QR scanning use the copy Play services already keeps.
+- **Updates come from Play.** The app has no updater of its own there. When a new version is out, the settings app can offer it through Play's in-app update prompt.
+- **Two device-side extras are left out:** the accessibility service that keeps keyboard gestures working under TalkBack, and the photos permission that lets new screenshots turn up in the clipboard. Install from GitHub or F-Droid if you need either. See [Permissions](/privacy/permissions/).
+- **Play signs it with its own key.** Android only updates an app with a build signed by the same key, so you cannot install a GitHub or F-Droid APK over the Play copy, or the other way round. To switch, export a backup, uninstall, install from the other source, and import the backup. See [Updating and what carries over](#updating-and-what-carries-over).
+
+Its privacy policy is [Privacy policy (Google Play edition)](/privacy/policy/).
 
 ## Downloading a release APK
 
@@ -111,7 +125,7 @@ Opening the app for the first time drops you straight into a short setup wizard 
 
 Installing a new build over an existing install (same package, same signing key) works like any Android app update. Your settings, themes, learned words, snippets and everything else stay exactly as they were, automatically.
 
-F-Droid builds and the GitHub APKs share a key from 0.5.10 on, so you can move between them the same way. F-Droid still compiles its copy from source, and it publishes one only after checking it is identical to the `-fdroid.apk` on the same GitHub release.
+F-Droid builds and the GitHub APKs share a key from 0.5.10 on, so you can move between them the same way. The copy from Google Play is signed with Play's own key, so it can't be swapped for either of them in place. Move across with a backup, the same way as below. F-Droid still compiles its copy from source, and it publishes one only after checking it is identical to the `-fdroid.apk` on the same GitHub release.
 
 The exception is an install from F-Droid of 0.5.9 or older. Those were signed with F-Droid's own key, and Android will not update an app to a build signed with a different one, so F-Droid can't update it to 0.5.10. To move over once: export a backup (see below), uninstall, install WM Keyboard from F-Droid again, and import the backup. Every update after that is ordinary.
 
@@ -139,7 +153,7 @@ This separate toggle is **off by default**. It opts the keyboard into Android's 
 
 ## Details & edge cases
 
-- The release APKs, and a build you make yourself with the default flags, both carry a GitHub-releases updater. It checks this project's releases in the background and shows an "Update available" card on the Home screen. It downloads the APK itself and asks you to confirm before installing. Only a build made for the Play Store channel skips it, and that isn't a channel you can install from yet.
+- The release APKs, and a build you make yourself with the default flags, both carry a GitHub-releases updater. It checks this project's releases in the background and shows an "Update available" card on the Home screen. It downloads the APK itself and asks you to confirm before installing. Only the Google Play build skips it, because Play handles its updates.
 - Installing over a release APK works only if both were signed with the same key. A release APK replaces an earlier release APK cleanly. It will not install over a build you made yourself, and vice versa. Uninstall first, and export a backup before you do.
 - Build release APKs on more than one machine without sharing a signing keystore and they carry different signatures. Android then refuses to install one over the other. You have to uninstall first, which loses your data unless you exported a backup.
 - The Backup & restore export has a separate "include API keys" switch, off by default. It covers the translate, GIF, search and AI tool keys you may have entered. An export made with it on is worth treating like a password, because anyone holding the file gets those keys.

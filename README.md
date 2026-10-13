@@ -12,6 +12,7 @@ An open source multilingual Android keyboard with prediction, glide typing, tran
 emoji search and a 75+ tool toolbox that all run on the phone and never phone home.
 
 <a href="https://github.com/wasi-master/wmkeyboard/releases/latest"><img src="https://img.shields.io/github/v/release/wasi-master/wmkeyboard?style=flat-square&label=Release&color=3DDC84&logo=android&logoColor=white" alt="Latest release"></a>
+<a href="https://play.google.com/store/apps/details?id=com.wasimaster.wmkeyboard"><img src="https://img.shields.io/badge/Google%20Play-Get%20it-01875F?style=flat-square&logo=googleplay&logoColor=white" alt="Google Play"></a>
 <a href="https://f-droid.org/packages/com.wasimaster.wmkeyboard/"><img src="https://img.shields.io/f-droid/v/com.wasimaster.wmkeyboard?style=flat-square&label=F-Droid&color=1976D2&logo=fdroid&logoColor=white" alt="F-Droid"></a>
 <a href="https://github.com/wasi-master/wmkeyboard/releases"><img src="https://img.shields.io/github/downloads/wasi-master/wmkeyboard/total?style=flat-square&label=Downloads&color=6C5CE7&logo=rolldown&logoColor=white" alt="Downloads"></a>
 <a href="https://github.com/wasi-master/wmkeyboard/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/wasi-master/wmkeyboard/ci.yml?style=flat-square&label=CI&logo=githubactions&logoColor=white" alt="CI"></a>
@@ -222,6 +223,7 @@ identical. What differs is which on-device machine learning ships in the box.
 | Google libraries on the compile classpath | ML Kit, LiteRT | none |
 | APK, `arm64-v8a`, English UI | 85 MB | 12 MB |
 | APK, `arm64-v8a`, all 48 UI languages | 132 MB | 57 MB |
+| On Google Play | ✓ | |
 | On F-Droid | | ✓ |
 
 Sizes are from 0.5.12 and drift with dependencies. The UI-language choice only affects the
@@ -232,11 +234,15 @@ words the settings app shows you. Every layout and dictionary is in both.
 ## Install
 
 <p>
+<a href="https://play.google.com/store/apps/details?id=com.wasimaster.wmkeyboard"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="72"></a>
 <a href="https://f-droid.org/packages/com.wasimaster.wmkeyboard/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="72"></a>
 <a href="https://github.com/wasi-master/wmkeyboard/releases/latest"><img src="https://user-images.githubusercontent.com/663460/26973090-f8fdc986-4d14-11e7-995a-e7c5e79ed925.png" alt="Get the APK from GitHub" height="72"></a>
 <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/wasi-master/wmkeyboard"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="72"></a>
 </p>
 
+- **Google Play** carries the Full edition. Play delivers the heavier on-device parts (the local
+  LLM runtime, the translation engine, handwriting, the offline-voice interpreter) the first time
+  you use them, so the install stays small, and updates it like any other app.
 - **F-Droid** carries the Lite edition, built from source and checked byte-for-byte against the
   `-fdroid.apk` on the matching GitHub release.
 - **GitHub releases** carry both editions, each in English-only and all-languages builds, for
@@ -244,12 +250,12 @@ words the settings app shows you. Every layout and dictionary is in both.
   wants `arm64-v8a`. A `SHA256SUMS.txt` sits next to them.
 - **Obtainium** tracks the GitHub releases and updates you automatically. The release APKs also
   carry their own update check, which asks GitHub and shows a card on the Home screen.
-- **Google Play** is coming.
 
-Install the APK, open the app, follow the setup card. Android will warn you that a third-party
+Install it, open the app, follow the setup card. Android will warn you that a third-party
 keyboard can see what you type. It says that about every keyboard, Gboard included, because that
 is what a keyboard is. F-Droid and GitHub builds share a signing key from 0.5.10 on, so moving
-between them is an ordinary update.
+between them is an ordinary update. Google Play signs its copy with its own key, so moving
+between Play and the other two takes a backup, an uninstall and a restore.
 
 Needs Android 7.0 or newer.
 
