@@ -122,7 +122,9 @@ import com.wasimaster.wmkeyboard.core.theme.safeContainerKind
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
 import java.io.File
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 /**
  * Fully resolved keyboard theme: every color the keyboard UI draws with,
@@ -599,6 +601,12 @@ val LocalEmojiFontFamily = staticCompositionLocalOf<FontFamily?> { null }
  * the script, the script's Noto face; then, for the scripts that ride the
  * Latin faces, the user's key font and the theme's. Null leaves the system face.
  */
+/**
+ * The scripts that draw in the user's English font already, so have no script
+ * face to chain it in front of (see [KeyboardFonts.latinFirstFamily]).
+ */
+private val LATIN_FONT_SCRIPTS = setOf(ScriptId.LATIN, ScriptId.CYRILLIC, ScriptId.GREEK, ScriptId.IPA)
+
 internal val LocalScriptLabelFont = staticCompositionLocalOf<(ScriptId) -> FontFamily?> { { null } }
 
 /**
@@ -1441,6 +1449,51 @@ fun KeyboardThemeProvider(
             ?: layoutFontId?.let { KeyboardFonts.family(context, it) }
             ?: themeFontId?.let { KeyboardFonts.family(context, it) }
     }
+    // A non-Latin board draws in its script's face, and a FontFamily never
+    // looks for a glyph in another font, so every Latin character on it — an
+    // English suggestion, a copied word in the clipboard chip — lost the user's
+    // English font (#591). Where there is both a Latin pick (the user's, else
+    // the theme's) and a script face, the two are chained per glyph instead,
+    // Latin first. Built off the main thread: a Google face is a provider
+    // round trip. Until it lands, and below Android 10, the script face alone.
+    val latinFirstIds = remember(
+        scriptId,
+        layoutFontId,
+        layoutFontsInstalled,
+        themeFontId,
+        themeScriptFontId,
+        settings.keyFontId,
+        settings.scriptFontIds,
+        settings.customFontName,
+        settings.customScriptFontNames,
+    ) {
+        if (scriptId in LATIN_FONT_SCRIPTS) return@remember null
+        val latinId = settings.keyFontId.takeIf {
+            it != KeyboardFonts.DEFAULT_ID && KeyboardFonts.family(context, it) != null
+        } ?: themeFontId?.takeIf { KeyboardFonts.family(context, it) != null }
+            ?: return@remember null
+        val scriptFontId = KeyboardFonts.scriptFontId(
+            context,
+            scriptId,
+            settings.scriptFontIds[scriptId.name] ?: KeyboardFonts.DEFAULT_ID,
+            layoutFontId,
+            themeScriptFontId,
+        ) ?: return@remember null
+        (latinId to scriptFontId).takeIf { latinId != scriptFontId }
+    }
+    val chainedFontFamily by produceState<FontFamily?>(null, latinFirstIds) {
+        val (latinId, scriptFontId) = latinFirstIds ?: run {
+            value = null
+            return@produceState
+        }
+        // Already built once this process: no frame in the script face alone.
+        value = KeyboardFonts.cachedLatinFirstFamily(latinId, scriptFontId)
+        if (value != null) return@produceState
+        value = withContext(Dispatchers.IO) {
+            KeyboardFonts.latinFirstFamily(context, latinId, scriptFontId)
+        }
+    }
+    val boardFontFamily = chainedFontFamily ?: keyFontFamily
     // See [LocalScriptLabelFont]. Resolved per script on first ask, then kept
     // for as long as the font settings and the theme stay what they are.
     val themeScriptFonts = remember(settings, darkSlot) {
@@ -1502,7 +1555,7 @@ fun KeyboardThemeProvider(
         // with this theme's colours over it) — remembered for the same reason
         // the palette above is, since `kb` only moves on a theme change.
         colorScheme = remember(kb) { schemeFor(kb) },
-        typography = remember(keyFontFamily) { typographyWith(keyFontFamily) },
+        typography = remember(boardFontFamily) { typographyWith(boardFontFamily) },
     ) {
         CompositionLocalProvider(
             LocalKbTheme provides kb,

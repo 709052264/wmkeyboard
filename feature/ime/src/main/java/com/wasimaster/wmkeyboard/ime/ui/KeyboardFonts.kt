@@ -2,8 +2,12 @@ package com.wasimaster.wmkeyboard.ime.ui
 
 import android.content.Context
 import android.graphics.Typeface
+import android.graphics.fonts.Font as PlatformFont
+import android.graphics.fonts.FontFamily as PlatformFontFamily
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.core.provider.FontRequest
 import androidx.core.provider.FontsContractCompat
@@ -455,21 +459,118 @@ object KeyboardFonts {
         selectedId: String = DEFAULT_ID,
         layoutFontId: String? = null,
         themeScriptId: String? = null,
-    ): FontFamily? {
-        if (selectedId != DEFAULT_ID) family(context, selectedId)?.let { return it }
-        if (layoutFontId != null) family(context, layoutFontId)?.let { return it }
-        if (themeScriptId != null) family(context, themeScriptId)?.let { return it }
+    ): FontFamily? =
+        scriptFontId(context, scriptId, selectedId, layoutFontId, themeScriptId)?.let { family(context, it) }
+
+    /**
+     * The font id [scriptFamily] draws with, by the same order, or null where it
+     * returns null. The id rather than the family is what [latinFirstFamily]
+     * needs: it builds a platform typeface out of the font's file.
+     */
+    fun scriptFontId(
+        context: Context,
+        scriptId: ScriptId,
+        selectedId: String = DEFAULT_ID,
+        layoutFontId: String? = null,
+        themeScriptId: String? = null,
+    ): String? {
+        if (selectedId != DEFAULT_ID && family(context, selectedId) != null) return selectedId
+        if (layoutFontId != null && family(context, layoutFontId) != null) return layoutFontId
+        if (themeScriptId != null && family(context, themeScriptId) != null) return themeScriptId
         // Asked before the provider check below: this one is our own download,
         // not Google's, and works on a phone without Play services.
-        fetchedScriptFonts[scriptId]?.let { return family(context, FontStore.fontIdFor(it.name)) }
+        fetchedScriptFonts[scriptId]?.let { entry ->
+            return FontStore.fontIdFor(entry.name).takeIf { family(context, it) != null }
+        }
         // Only when the provider is actually there. Without this the request is
         // made on every device — including the many with no Play services at
         // all, where it can do nothing but fail — and on F-Droid, where
         // PlayServices reports absent by channel, it is a connection the
         // listing promises is not made.
         if (!PlayServices.hasFontProvider(context)) return null
-        return scriptGoogleFonts[scriptId]?.let { googleFamily(it) }
+        return scriptGoogleFonts[scriptId]?.let { googleId(it) }
     }
+
+    /**
+     * One face built out of two fonts: [latinId] first, then [scriptFontId] for every
+     * glyph [latinId] does not have (#591).
+     *
+     * A Compose [FontFamily] picks one font per run by weight and style and never
+     * looks for a glyph in another, so a board drawing in its script's face drew
+     * all of its Latin text in that face too — an English suggestion, a copied
+     * "Screenshot" in the clipboard chip, the digits on the number row — and the
+     * user's own English font never showed up outside an English board. The
+     * platform's font fallback does work per glyph, and
+     * [Typeface.CustomFallbackBuilder] puts our own fonts at the head of it, so
+     * the Latin font answers for what it can draw and the script's face for the
+     * rest, the way Minikin already falls back to the system fonts after both.
+     *
+     * Latin goes first because a Latin face carries no Arabic or Bengali, while
+     * most script faces carry a Latin alphabet of their own — the other order
+     * would never reach the Latin font at all.
+     *
+     * Null below Android 10, which has no such builder (the board keeps the
+     * script face alone, as before), and when either font has no file to build
+     * from: a Google face that has never been fetched and cannot be now, or an
+     * installed font since deleted. Blocking — a Google face is a provider round
+     * trip — so callers ask off the main thread. Kept for the process per pair.
+     */
+    fun latinFirstFamily(context: Context, latinId: String, scriptFontId: String): FontFamily? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
+        val key = "chain:$latinId|$scriptFontId"
+        synchronized(chains) { chains[key]?.let { return it } }
+        val latin = platformFont(context, latinId) ?: return null
+        val script = platformFont(context, scriptFontId) ?: return null
+        val typeface = runCatching {
+            Typeface.CustomFallbackBuilder(PlatformFontFamily.Builder(latin).build())
+                .addCustomFallback(PlatformFontFamily.Builder(script).build())
+                .build()
+        }.getOrNull() ?: return null
+        val family = FontFamily(typeface)
+        synchronized(chains) { chains[key] = family }
+        return family
+    }
+
+    /** [latinFirstFamily] if it has already been built, without building it. */
+    fun cachedLatinFirstFamily(latinId: String, scriptFontId: String): FontFamily? =
+        synchronized(chains) { chains["chain:$latinId|$scriptFontId"] }
+
+    private val chains = HashMap<String, FontFamily>()
+
+    /**
+     * A font id as a platform [PlatformFont], read from its file: the imported or
+     * installed file directly, or the file the Google Fonts provider serves for a
+     * `google:` id (regular weight, the one the keys draw with).
+     */
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun platformFont(context: Context, id: String): PlatformFont? = runCatching {
+        if (id.startsWith(GOOGLE_PREFIX)) {
+            if (!PlayServices.hasFontProvider(context)) return null
+            val request = FontRequest(
+                "com.google.android.gms.fonts",
+                "com.google.android.gms",
+                id.removePrefix(GOOGLE_PREFIX),
+                R.array.com_google_android_gms_fonts_certs,
+            )
+            val result = FontsContractCompat.fetchFonts(context, null, request)
+            if (result.statusCode != FontsContractCompat.FontFamilyResult.STATUS_OK) return null
+            val info = result.fonts
+                .filter { it.resultCode == FontsContractCompat.Columns.RESULT_CODE_OK }
+                .minByOrNull { kotlin.math.abs(it.weight - 400) + if (it.isItalic) 1000 else 0 }
+                ?: return null
+            context.contentResolver.openFileDescriptor(info.uri, "r")?.use { fd ->
+                PlatformFont.Builder(fd).setTtcIndex(info.ttcIndex).build()
+            }
+        } else {
+            fontFile(context, id)?.let { PlatformFont.Builder(it).build() }
+        }
+    }.getOrNull()
+
+    /** The file behind an imported or installed font id, if it is still there. */
+    private fun fontFile(context: Context, id: String): File? = when (id) {
+        CUSTOM_ID, CUSTOM_BENGALI_ID -> customFontFile(context, id)
+        else -> installedFontFile(context, id)
+    }?.takeIf { it.exists() }
 
     fun googleId(name: String): String = GOOGLE_PREFIX + name
 
