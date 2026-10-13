@@ -1493,7 +1493,7 @@
     <string name="fonts_tool_flashlight_desc">Washa au zima tochi kutoka kwenye kibodi</string>
     <string name="fonts_tool_floating_desc">Tenganisha kibodi kwenye paneli unayoweza kuisogeza</string>
     <string name="fonts_tool_floating_title">Kibodi inayoelea</string>
-    <string name="fonts_tool_gif_desc">Tafuta GIFs (Klipy, GIPHY) na uzitume kutoka kwa kibodi</string>
+    <string name="fonts_tool_gif_desc">Tafuta GIFs (KLIPY, GIPHY) na uzitume kutoka kwa kibodi</string>
     <string name="fonts_tool_grammar_desc">Angalia maandishi unayoandika kwa matatizo ya sarufi. Harper hufanya hivi nje ya mtandao</string>
     <string name="fonts_tool_grammar_title">Kuangalia sarufi</string>
     <string name="fonts_tool_handwriting_desc">Andika maneno kwa mkono kwa kidole au S Pen. Kifaa chako hufanya utambuzi</string>
@@ -2015,7 +2015,7 @@
         <item quantity="one">Programu imeleta %1$s ikiwa na kibandiko %2$d.</item>
         <item quantity="other">Programu imeleta %1$s ikiwa na vibandiko %2$d.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Ongeza vibandiko kutoka kwenye picha zako, au bonyeza na ushikilie kibandiko cha Klipy au GIPHY kwenye kibodi</string>
+    <string name="import_stickers_empty_subtitle">Ongeza vibandiko kutoka kwenye picha zako, au bonyeza na ushikilie kibandiko cha KLIPY au GIPHY kwenye kibodi</string>
     <string name="import_stickers_empty_title">Hakuna vibandiko katika kifurushi hiki</string>
     <string name="import_stickers_none_added">Programu haijaongeza chochote.</string>
     <string name="import_stickers_none_read">Programu haiwezi kusoma vibandiko vyovyote katika kifurushi hicho.</string>
@@ -6058,7 +6058,7 @@
     <string name="tooldetail_media_filter_header">Kichujio cha maudhui</string>
     <string name="tooldetail_media_filter_high">Juu</string>
     <string name="tooldetail_media_filter_high_desc">Huficha zaidi. Ukadiriaji wa G</string>
-    <string name="tooldetail_media_filter_info">Klipy na GIPHY hupa kila matokeo ukadiriaji. Kila huduma hutumia kiwango chako kwa matokeo yake yenyewe.</string>
+    <string name="tooldetail_media_filter_info">KLIPY na GIPHY hupa kila matokeo ukadiriaji. Kila huduma hutumia kiwango chako kwa matokeo yake yenyewe.</string>
     <string name="tooldetail_media_filter_low">Chini</string>
     <string name="tooldetail_media_filter_low_desc">Huficha matokeo yenye nguvu zaidi pekee. Ukadiriaji wa PG-13</string>
     <string name="tooldetail_media_filter_medium">Kati</string>
@@ -6077,7 +6077,7 @@
     <string name="tooldetail_media_info">Zana za GIF na vibandiko hushiriki haya yote, na kichujio cha maudhui hapa chini. Kitufe kimoja kinatosha. Kila chanzo ambacho kina kitufe huonekana kwenye paneli.</string>
     <string name="tooldetail_media_keys_group">Vyanzo na funguo za API</string>
     <string name="tooldetail_media_klipy_hint">Bure kutoka partner.klipy.com. API ya Tenor ilifungwa katikati ya 2026</string>
-    <string name="tooldetail_media_klipy_label">Ufunguo wa API wa Klipy</string>
+    <string name="tooldetail_media_klipy_label">Ufunguo wa API wa KLIPY</string>
     <string name="tooldetail_media_layout_group">Mpangilio</string>
     <string name="tooldetail_media_limit_group">Matokeo</string>
     <string name="tooldetail_media_limit_subtitle">Ni vitu vingapi utafutaji mmoja au mwonekano wa mambo yanayovuma hupakia. Vifurushi vyako vya vibandiko huonyeshwa kikamilifu kila wakati.</string>

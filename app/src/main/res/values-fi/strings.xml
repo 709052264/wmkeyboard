@@ -1490,7 +1490,7 @@
     <string name="fonts_tool_flashlight_desc">Sytytä tai sammuta taskulamppu näppäimistöltä</string>
     <string name="fonts_tool_floating_desc">Irrota näppäimistö paneeliksi, jota voit siirtää</string>
     <string name="fonts_tool_floating_title">Kelluva näppäimistö</string>
-    <string name="fonts_tool_gif_desc">Etsi GIF-kuvia (Klipy, GIPHY) ja lähetä niitä näppäimistöltä</string>
+    <string name="fonts_tool_gif_desc">Etsi GIF-kuvia (KLIPY, GIPHY) ja lähetä niitä näppäimistöltä</string>
     <string name="fonts_tool_grammar_desc">Tarkista kirjoittamasi teksti kielioppiongelmien varalta. Harper tekee tämän offline-tilassa</string>
     <string name="fonts_tool_grammar_title">Kieliopin tarkistus</string>
     <string name="fonts_tool_handwriting_desc">Kirjoita sanoja käsin sormella tai S Pen -kynällä. Laitteesi tunnistaa kirjoituksen</string>
@@ -2012,7 +2012,7 @@
         <item quantity="one">Sovellus toi kohteen %1$s, jossa on %2$d tarra.</item>
         <item quantity="other">Sovellus toi kohteen %1$s, jossa on %2$d tarraa.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Lisää tarroja kuvistasi tai paina pitkään Klipy- tai GIPHY-tarraa näppäimistössä</string>
+    <string name="import_stickers_empty_subtitle">Lisää tarroja kuvistasi tai paina pitkään KLIPY- tai GIPHY-tarraa näppäimistössä</string>
     <string name="import_stickers_empty_title">Ei tarroja tässä pakkauksessa</string>
     <string name="import_stickers_none_added">Sovellus ei lisännyt mitään.</string>
     <string name="import_stickers_none_read">Sovellus ei voi lukea yhtään tarraa kyseisestä paketista.</string>
@@ -6044,7 +6044,7 @@
     <string name="tooldetail_media_filter_header">Sisältösuodatin</string>
     <string name="tooldetail_media_filter_high">Korkea</string>
     <string name="tooldetail_media_filter_high_desc">Piilottaa eniten. G-luokitus</string>
-    <string name="tooldetail_media_filter_info">Klipy ja GIPHY antavat jokaiselle tulokselle luokituksen. Jokainen palvelu soveltaa tasoasi omiin tuloksiinsa.</string>
+    <string name="tooldetail_media_filter_info">KLIPY ja GIPHY antavat jokaiselle tulokselle luokituksen. Jokainen palvelu soveltaa tasoasi omiin tuloksiinsa.</string>
     <string name="tooldetail_media_filter_low">Matala</string>
     <string name="tooldetail_media_filter_low_desc">Piilottaa vain vahvimmat tulokset. PG-13-luokitus</string>
     <string name="tooldetail_media_filter_medium">Keskikokoinen</string>
@@ -6063,7 +6063,7 @@
     <string name="tooldetail_media_info">GIF- ja tarratyökalut jakavat kaiken tämän sekä alla olevan sisältösuodattimen. Yksikin avain riittää. Jokainen lähde, jolla on avain, näkyy paneelissa.</string>
     <string name="tooldetail_media_keys_group">Lähteet ja API-avaimet</string>
     <string name="tooldetail_media_klipy_hint">Ilmainen palvelusta partner.klipy.com. Tenor API suljettiin vuoden 2026 puolivälissä</string>
-    <string name="tooldetail_media_klipy_label">Klipy-sovellusliittymäavain</string>
+    <string name="tooldetail_media_klipy_label">KLIPY-sovellusliittymäavain</string>
     <string name="tooldetail_media_layout_group">Asettelu</string>
     <string name="tooldetail_media_limit_group">Tulokset</string>
     <string name="tooldetail_media_limit_subtitle">Kuinka monta kohdetta yksi haku tai trendinäkymä lataa. Omat tarrapakettisi näkyvät aina kokonaan.</string>

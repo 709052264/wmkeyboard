@@ -338,7 +338,7 @@
     <string name="ime_font_script_thai_label">થાઈ</string>
     <string name="ime_font_system_default_label">સિસ્ટમ ડિફોલ્ટ</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF ટૂલને Klipy અથવા GIPHY તરફથી API કીની જરૂર છે. બંને કી મફત છે. આ ટૂલ માટે સેટિંગ્સમાં કી ઉમેરો.</string>
+    <string name="ime_gif_need_key_body">GIF ટૂલને KLIPY અથવા GIPHY તરફથી API કીની જરૂર છે. બંને કી મફત છે. આ ટૂલ માટે સેટિંગ્સમાં કી ઉમેરો.</string>
     <string name="ime_gif_search_empty">“%1$s” માટે કોઈ GIF નથી</string>
     <string name="ime_gif_search_hint">GIFs શોધો</string>
     <string name="ime_gif_unsupported_field_notice">આ ફીલ્ડ GIFs સ્વીકારતું નથી. ચેટ એપ અથવા નોટ્સ એપ અજમાવો.</string>
@@ -864,8 +864,8 @@
     <string name="ime_sticker_info_untitled">કોઈ શીર્ષક નથી</string>
     <string name="ime_sticker_local_search_empty">તમારા કોઈ પણ સ્ટીકર “%1$s” સાથે મેળ ખાતા નથી</string>
     <string name="ime_sticker_manage_packs_action">પેક્સ મેનેજ કરો</string>
-    <string name="ime_sticker_need_key_body">સ્ટીકર ટૂલને Klipy અથવા GIPHY તરફથી API કીની જરૂર છે. બંને કી મફત છે. આ ટૂલ માટે સેટિંગ્સમાં કી ઉમેરો.</string>
-    <string name="ime_sticker_no_packs_empty">હજુ સુધી કોઈ સ્ટીકર પેક નથી. સેટિંગ્સમાં પેક બનાવો. તમે તેને અહીં સાચવવા માટે Klipy અથવા GIPHY માંથી સ્ટીકરને દબાવી રાખી શકો છો.</string>
+    <string name="ime_sticker_need_key_body">સ્ટીકર ટૂલને KLIPY અથવા GIPHY તરફથી API કીની જરૂર છે. બંને કી મફત છે. આ ટૂલ માટે સેટિંગ્સમાં કી ઉમેરો.</string>
+    <string name="ime_sticker_no_packs_empty">હજુ સુધી કોઈ સ્ટીકર પેક નથી. સેટિંગ્સમાં પેક બનાવો. તમે તેને અહીં સાચવવા માટે KLIPY અથવા GIPHY માંથી સ્ટીકરને દબાવી રાખી શકો છો.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d સ્ટીકર</item>
         <item quantity="other">%1$d સ્ટીકરો</item>

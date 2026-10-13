@@ -1494,7 +1494,7 @@
     <string name="fonts_tool_flashlight_desc">تشغيل أو إيقاف المصباح من لوحة المفاتيح</string>
     <string name="fonts_tool_floating_desc">فصل لوحة المفاتيح إلى لوحة يمكنك تحريكها</string>
     <string name="fonts_tool_floating_title">لوحة مفاتيح عائمة</string>
-    <string name="fonts_tool_gif_desc">ابحث عن صور GIF (Klipy, GIPHY) وأرسلها من لوحة المفاتيح</string>
+    <string name="fonts_tool_gif_desc">ابحث عن صور GIF (KLIPY, GIPHY) وأرسلها من لوحة المفاتيح</string>
     <string name="fonts_tool_grammar_desc">تحقق من النص الذي تكتبه بحثاً عن مشاكل القواعد. يقوم هاربر بذلك دون اتصال بالإنترنت</string>
     <string name="fonts_tool_grammar_title">التدقيق النحوي</string>
     <string name="fonts_tool_handwriting_desc">اكتب الكلمات يدوياً بإصبعك أو بقلم S Pen. يقوم جهازك بالتعرف عليها</string>
@@ -2014,7 +2014,7 @@
         <item quantity="one">استورد التطبيق %1$s مع ملصق واحد (%2$d).</item>
         <item quantity="other">استورد التطبيق %1$s مع %2$d ملصقاً.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">أضف ملصقات من صورك، أو اضغط مع الاستمرار على ملصق Klipy أو GIPHY في لوحة المفاتيح</string>
+    <string name="import_stickers_empty_subtitle">أضف ملصقات من صورك، أو اضغط مع الاستمرار على ملصق KLIPY أو GIPHY في لوحة المفاتيح</string>
     <string name="import_stickers_empty_title">لا توجد ملصقات في هذه الحزمة</string>
     <string name="import_stickers_none_added">لم يضف التطبيق شيئاً.</string>
     <string name="import_stickers_none_read">لا يمكن للتطبيق قراءة أي ملصق في تلك الحزمة.</string>
@@ -6053,7 +6053,7 @@
     <string name="tooldetail_media_filter_header">فلتر المحتوى</string>
     <string name="tooldetail_media_filter_high">عالية</string>
     <string name="tooldetail_media_filter_high_desc">إخفاء معظم المحتوى. تصنيف G</string>
-    <string name="tooldetail_media_filter_info">يخفي خيار \"عالي\" معظم المحتوى، بينما لا يخفي خيار \"إيقاف\" شيئًا. يرتبط هذا بتصنيف Klipy و GIPHY، حيث يكون \"عالي\" هو G و \"إيقاف\" هو R.</string>
+    <string name="tooldetail_media_filter_info">يخفي خيار \"عالي\" معظم المحتوى، بينما لا يخفي خيار \"إيقاف\" شيئًا. يرتبط هذا بتصنيف KLIPY و GIPHY، حيث يكون \"عالي\" هو G و \"إيقاف\" هو R.</string>
     <string name="tooldetail_media_filter_low">منخفض</string>
     <string name="tooldetail_media_filter_low_desc">يخفي النتائج الأقوى فقط. تصنيف PG-13</string>
     <string name="tooldetail_media_filter_medium">متوسط</string>
@@ -6072,7 +6072,7 @@
     <string name="tooldetail_media_info">تتشارك أدوات صور GIF والملصقات في كل هذا، بالإضافة إلى مرشح المحتوى أدناه. يكفي وجود مفتاح واحد. يظهر كل مصدر يحتوي على مفتاح في اللوحة.</string>
     <string name="tooldetail_media_keys_group">المصادر ومفاتيح API</string>
     <string name="tooldetail_media_klipy_hint">مجاناً من partner.klipy.com. تم إغلاق Tenor API في منتصف عام 2026</string>
-    <string name="tooldetail_media_klipy_label">مفتاح واجهة برمجة تطبيقات Klipy</string>
+    <string name="tooldetail_media_klipy_label">مفتاح واجهة برمجة تطبيقات KLIPY</string>
     <string name="tooldetail_media_layout_group">التخطيط</string>
     <string name="tooldetail_media_limit_group">النتائج</string>
     <string name="tooldetail_media_limit_subtitle">عدد العناصر التي يتم تحميلها في عملية بحث واحدة أو في عرض العناصر الشائعة. حزم الملصقات الخاصة بك تظهر دائمًا بالكامل.</string>

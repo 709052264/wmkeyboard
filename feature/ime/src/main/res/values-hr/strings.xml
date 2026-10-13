@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">Tajlandski</string>
     <string name="ime_font_system_default_label">Zadano u sustavu</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF alat treba API ključ od Klipy ili GIPHY. Oba ključa su besplatna. Dodajte ključ u postavkama za ovaj alat.</string>
+    <string name="ime_gif_need_key_body">GIF alat treba API ključ od KLIPY ili GIPHY. Oba ključa su besplatna. Dodajte ključ u postavkama za ovaj alat.</string>
     <string name="ime_gif_search_empty">Nema GIF-ova za “%1$s”</string>
     <string name="ime_gif_search_hint">Pretraži GIF-ove</string>
     <string name="ime_gif_unsupported_field_notice">Ovo polje ne prihvaća GIF-ove. Isprobaj aplikaciju za chat ili bilješke.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">Bez naslova</string>
     <string name="ime_sticker_local_search_empty">Nijedna vaša naljepnica ne odgovara „%1$s”</string>
     <string name="ime_sticker_manage_packs_action">Upravljanje paketima</string>
-    <string name="ime_sticker_need_key_body">Alat za naljepnice treba API ključ od Klipyja ili GIPHY-ja. Oba ključa su besplatna. Dodajte ključ u postavkama za ovaj alat.</string>
-    <string name="ime_sticker_no_packs_empty">Još nema paketa naljepnica. Napravite paket u postavkama. Također možete pritisnuti i držati naljepnicu iz Klipyja ili GIPHY-ja kako biste je spremili ovdje.</string>
+    <string name="ime_sticker_need_key_body">Alat za naljepnice treba API ključ od KLIPY-ja ili GIPHY-ja. Oba ključa su besplatna. Dodajte ključ u postavkama za ovaj alat.</string>
+    <string name="ime_sticker_no_packs_empty">Još nema paketa naljepnica. Napravite paket u postavkama. Također možete pritisnuti i držati naljepnicu iz KLIPY-ja ili GIPHY-ja kako biste je spremili ovdje.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d naljepnica</item>
         <item quantity="other">%1$d naljepnica</item>

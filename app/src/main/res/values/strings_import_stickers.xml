@@ -410,8 +410,8 @@
          wording never changes with the count: this is a ratio, not a plural. -->
     <string name="import_stickers_used_subtitle" tools:ignore="PluralsCandidate">%1$d of %2$d used</string>
     <string name="import_stickers_empty_title">No stickers in this pack</string>
-    <!-- Klipy and GIPHY are the names of two sticker services. -->
-    <string name="import_stickers_empty_subtitle">Add stickers from your photos, or press and hold a Klipy or GIPHY sticker in the keyboard</string>
+    <!-- KLIPY and GIPHY are the names of two sticker services. -->
+    <string name="import_stickers_empty_subtitle">Add stickers from your photos, or press and hold a KLIPY or GIPHY sticker in the keyboard</string>
     <!-- Read out for a sticker that has no name of its own. -->
     <string name="import_sticker_desc_fallback">Sticker</string>
     <string name="import_sticker_pack_missing">The app cannot find this pack.</string>

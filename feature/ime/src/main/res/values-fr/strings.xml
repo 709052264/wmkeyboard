@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">Thaï</string>
     <string name="ime_font_system_default_label">Par défaut du système</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">L\'outil GIF nécessite une clé API de Klipy ou GIPHY. Les deux clés sont gratuites. Ajoutez une clé dans les paramètres de cet outil.</string>
+    <string name="ime_gif_need_key_body">L\'outil GIF nécessite une clé API de KLIPY ou GIPHY. Les deux clés sont gratuites. Ajoutez une clé dans les paramètres de cet outil.</string>
     <string name="ime_gif_search_empty">Aucun GIF pour « %1$s »</string>
     <string name="ime_gif_search_hint">Rechercher des GIF</string>
     <string name="ime_gif_unsupported_field_notice">Ce champ n\'accepte pas les GIF. Essayez une application de messagerie ou de notes.</string>
@@ -864,8 +864,8 @@
     <string name="ime_sticker_info_untitled">Sans titre</string>
     <string name="ime_sticker_local_search_empty">Aucun de vos autocollants ne correspond à « %1$s »</string>
     <string name="ime_sticker_manage_packs_action">Gérer les packs</string>
-    <string name="ime_sticker_need_key_body">L\'outil d\'autocollants nécessite une clé API de Klipy ou GIPHY. Les deux clés sont gratuites. Ajoutez une clé dans les paramètres de cet outil.</string>
-    <string name="ime_sticker_no_packs_empty">Aucun pack d\'autocollants pour le moment. Créez un pack dans les paramètres. Vous pouvez également appuyer longuement sur un autocollant de Klipy ou GIPHY pour l\'enregistrer ici.</string>
+    <string name="ime_sticker_need_key_body">L\'outil d\'autocollants nécessite une clé API de KLIPY ou GIPHY. Les deux clés sont gratuites. Ajoutez une clé dans les paramètres de cet outil.</string>
+    <string name="ime_sticker_no_packs_empty">Aucun pack d\'autocollants pour le moment. Créez un pack dans les paramètres. Vous pouvez également appuyer longuement sur un autocollant de KLIPY ou GIPHY pour l\'enregistrer ici.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d autocollant</item>
         <item quantity="other">%1$d autocollants</item>

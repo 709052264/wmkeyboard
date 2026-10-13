@@ -1491,7 +1491,7 @@
     <string name="fonts_tool_flashlight_desc">Slå lommelykten av eller på fra tastaturet</string>
     <string name="fonts_tool_floating_desc">Løsne tastaturet til et panel du kan flytte</string>
     <string name="fonts_tool_floating_title">Flytende tastatur</string>
-    <string name="fonts_tool_gif_desc">Søk etter GIF-er (Klipy, GIPHY) og send dem fra tastaturet</string>
+    <string name="fonts_tool_gif_desc">Søk etter GIF-er (KLIPY, GIPHY) og send dem fra tastaturet</string>
     <string name="fonts_tool_grammar_desc">Sjekk teksten du skriver for grammatikkfeil. Harper gjør dette offline</string>
     <string name="fonts_tool_grammar_title">Grammatikkontroll</string>
     <string name="fonts_tool_handwriting_desc">Skriv ord for hånd med en finger eller en S Pen. Enheten din utfører gjenkjenningen</string>
@@ -2013,7 +2013,7 @@
         <item quantity="one">Appen importerte %1$s med %2$d klistremerke.</item>
         <item quantity="other">Appen importerte %1$s med %2$d klistremerker.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Legg til klistremerker fra bildene dine, eller trykk og hold på et Klipy- eller GIPHY-klistremerke på tastaturet</string>
+    <string name="import_stickers_empty_subtitle">Legg til klistremerker fra bildene dine, eller trykk og hold på et KLIPY- eller GIPHY-klistremerke på tastaturet</string>
     <string name="import_stickers_empty_title">Ingen klistremerker i denne pakken</string>
     <string name="import_stickers_none_added">Appen la ikke til noe.</string>
     <string name="import_stickers_none_read">Appen kan ikke lese noen klistremerker i den pakken.</string>
@@ -6052,7 +6052,7 @@
     <string name="tooldetail_media_filter_header">Innholdsfilter</string>
     <string name="tooldetail_media_filter_high">Høy</string>
     <string name="tooldetail_media_filter_high_desc">Skjuler mest. G-vurderingen</string>
-    <string name="tooldetail_media_filter_info">Klipy og GIPHY gir hvert resultat en vurdering. Hver tjeneste bruker ditt nivå på sine egne resultater.</string>
+    <string name="tooldetail_media_filter_info">KLIPY og GIPHY gir hvert resultat en vurdering. Hver tjeneste bruker ditt nivå på sine egne resultater.</string>
     <string name="tooldetail_media_filter_low">Lav</string>
     <string name="tooldetail_media_filter_low_desc">Skjuler kun de sterkeste resultatene. PG-13-vurderingen</string>
     <string name="tooldetail_media_filter_medium">Medium</string>
@@ -6071,7 +6071,7 @@
     <string name="tooldetail_media_info">GIF- og klistremerkeverktøyene deler alt dette, samt innholdsfilteret nedenfor. Én nøkkel er nok. Hver kilde som har en nøkkel vises i panelet.</string>
     <string name="tooldetail_media_keys_group">Kilder og API-nøkler</string>
     <string name="tooldetail_media_klipy_hint">Gratis fra partner.klipy.com. Tenor API-et ble stengt i midten av 2026</string>
-    <string name="tooldetail_media_klipy_label">Klipy API-nøkkel</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API-nøkkel</string>
     <string name="tooldetail_media_layout_group">Oppsett</string>
     <string name="tooldetail_media_limit_group">Resultater</string>
     <string name="tooldetail_media_limit_subtitle">Hvor mange elementer ett søk eller trendvisningen laster inn. Dine egne klistremerkepakker vises alltid i sin helhet.</string>

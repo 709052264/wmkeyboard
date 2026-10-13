@@ -1491,7 +1491,7 @@
     <string name="fonts_tool_flashlight_desc">Ενεργοποίηση ή απενεργοποίηση του φακού από το πληκτρολόγιο</string>
     <string name="fonts_tool_floating_desc">Αποσπάστε το πληκτρολόγιο σε ένα πλαίσιο που μπορείτε να μετακινήσετε</string>
     <string name="fonts_tool_floating_title">Αιωρούμενο πληκτρολόγιο</string>
-    <string name="fonts_tool_gif_desc">Αναζητήστε GIF (Klipy, GIPHY) και στείλτε τα από το πληκτρολόγιο</string>
+    <string name="fonts_tool_gif_desc">Αναζητήστε GIF (KLIPY, GIPHY) και στείλτε τα από το πληκτρολόγιο</string>
     <string name="fonts_tool_grammar_desc">Ελέγξτε το κείμενο που γράφετε για γραμματικά προβλήματα. Ο Harper το κάνει αυτό εκτός σύνδεσης</string>
     <string name="fonts_tool_grammar_title">Ορθογραφικός έλεγχος</string>
     <string name="fonts_tool_handwriting_desc">Γράψτε λέξεις με το χέρι χρησιμοποιώντας το δάχτυλο ή το S Pen. Η συσκευή σας αναλαμβάνει την αναγνώριση</string>
@@ -2012,7 +2012,7 @@
         <item quantity="one">Η εφαρμογή εισήγαγε το %1$s με %2$d αυτοκόλλητο.</item>
         <item quantity="other">Η εφαρμογή εισήγαγε το %1$s με %2$d αυτοκόλλητα.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Προσθέστε αυτοκόλλητα από τις φωτογραφίες σας ή πατήστε παρατεταμένα ένα αυτοκόλλητο Klipy ή GIPHY στο πληκτρολόγιο</string>
+    <string name="import_stickers_empty_subtitle">Προσθέστε αυτοκόλλητα από τις φωτογραφίες σας ή πατήστε παρατεταμένα ένα αυτοκόλλητο KLIPY ή GIPHY στο πληκτρολόγιο</string>
     <string name="import_stickers_empty_title">Δεν υπάρχουν αυτοκόλλητα σε αυτό το πακέτο</string>
     <string name="import_stickers_none_added">Η εφαρμογή δεν πρόσθεσε τίποτα.</string>
     <string name="import_stickers_none_read">Η εφαρμογή δεν μπορεί να διαβάσει κανένα αυτοκόλλητο σε αυτό το πακέτο.</string>
@@ -6047,7 +6047,7 @@
     <string name="tooldetail_media_filter_header">Φίλτρο περιεχομένου</string>
     <string name="tooldetail_media_filter_high">Υψηλή</string>
     <string name="tooldetail_media_filter_high_desc">Κρύβει τα περισσότερα. Η βαθμολογία G</string>
-    <string name="tooldetail_media_filter_info">Το Klipy και το GIPHY δίνουν σε κάθε αποτέλεσμα μια βαθμολογία. Κάθε υπηρεσία εφαρμόζει το επίπεδό σας στα δικά της αποτελέσματα.</string>
+    <string name="tooldetail_media_filter_info">Το KLIPY και το GIPHY δίνουν σε κάθε αποτέλεσμα μια βαθμολογία. Κάθε υπηρεσία εφαρμόζει το επίπεδό σας στα δικά της αποτελέσματα.</string>
     <string name="tooldetail_media_filter_low">Χαμηλό</string>
     <string name="tooldetail_media_filter_low_desc">Αποκρύπτει μόνο τα πιο έντονα αποτελέσματα. Η βαθμολογία PG-13</string>
     <string name="tooldetail_media_filter_medium">Μεσαίο</string>
@@ -6066,7 +6066,7 @@
     <string name="tooldetail_media_info">Τα εργαλεία GIF και αυτοκόλλητων μοιράζονται όλα αυτά, καθώς και το φίλτρο περιεχομένου παρακάτω. Οποιοδήποτε πλήκτρο αρκεί. Κάθε πηγή που διαθέτει πλήκτρο εμφανίζεται στον πίνακα.</string>
     <string name="tooldetail_media_keys_group">Πηγές και κλειδιά API</string>
     <string name="tooldetail_media_klipy_hint">Δωρεάν από το partner.klipy.com. Το API του Tenor έκλεισε στα μέσα του 2026</string>
-    <string name="tooldetail_media_klipy_label">Κλειδί API Klipy</string>
+    <string name="tooldetail_media_klipy_label">Κλειδί API KLIPY</string>
     <string name="tooldetail_media_layout_group">Διάταξη</string>
     <string name="tooldetail_media_limit_group">Αποτελέσματα</string>
     <string name="tooldetail_media_limit_subtitle">Πόσα στοιχεία φορτώνει μία αναζήτηση ή η προβολή τάσεων. Τα δικά σας πακέτα αυτοκόλλητων εμφανίζονται πάντα πλήρως.</string>

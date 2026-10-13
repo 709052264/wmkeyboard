@@ -1487,7 +1487,7 @@
     <string name="fonts_tool_flashlight_desc">Bật hoặc tắt đèn pin từ bàn phím</string>
     <string name="fonts_tool_floating_desc">Tách bàn phím thành một bảng điều khiển mà bạn có thể di chuyển</string>
     <string name="fonts_tool_floating_title">Bàn phím nổi</string>
-    <string name="fonts_tool_gif_desc">Tìm kiếm ảnh GIF (Klipy, GIPHY) và gửi chúng từ bàn phím</string>
+    <string name="fonts_tool_gif_desc">Tìm kiếm ảnh GIF (KLIPY, GIPHY) và gửi chúng từ bàn phím</string>
     <string name="fonts_tool_grammar_desc">Kiểm tra các vấn đề ngữ pháp trong văn bản bạn viết. Harper thực hiện việc này ngoại tuyến</string>
     <string name="fonts_tool_grammar_title">Kiểm tra ngữ pháp</string>
     <string name="fonts_tool_handwriting_desc">Viết chữ bằng tay với ngón tay hoặc bút S Pen. Thiết bị của bạn sẽ thực hiện nhận dạng</string>
@@ -2007,7 +2007,7 @@
         <item quantity="one">Ứng dụng đã nhập %1$s với %2$d nhãn dán.</item>
         <item quantity="other">Ứng dụng đã nhập %1$s với %2$d nhãn dán.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Thêm nhãn dán từ ảnh của bạn, hoặc nhấn và giữ nhãn dán Klipy hoặc GIPHY trên bàn phím</string>
+    <string name="import_stickers_empty_subtitle">Thêm nhãn dán từ ảnh của bạn, hoặc nhấn và giữ nhãn dán KLIPY hoặc GIPHY trên bàn phím</string>
     <string name="import_stickers_empty_title">Không có nhãn dán nào trong gói này</string>
     <string name="import_stickers_none_added">Ứng dụng không thêm gì cả.</string>
     <string name="import_stickers_none_read">Ứng dụng không thể đọc bất kỳ nhãn dán nào trong gói đó.</string>
@@ -6042,7 +6042,7 @@
     <string name="tooldetail_media_filter_header">Bộ lọc nội dung</string>
     <string name="tooldetail_media_filter_high">Cao</string>
     <string name="tooldetail_media_filter_high_desc">Ẩn nhiều nhất. Xếp hạng G</string>
-    <string name="tooldetail_media_filter_info">Cao ẩn nhiều nhất và Tắt không ẩn gì cả. Điều này ánh xạ tới xếp hạng của Klipy và GIPHY, trong đó Cao là G và Tắt là R.</string>
+    <string name="tooldetail_media_filter_info">Cao ẩn nhiều nhất và Tắt không ẩn gì cả. Điều này ánh xạ tới xếp hạng của KLIPY và GIPHY, trong đó Cao là G và Tắt là R.</string>
     <string name="tooldetail_media_filter_low">Thấp</string>
     <string name="tooldetail_media_filter_low_desc">Chỉ ẩn các kết quả mạnh nhất. Xếp hạng PG-13</string>
     <string name="tooldetail_media_filter_medium">Trung bình</string>
@@ -6061,7 +6061,7 @@
     <string name="tooldetail_media_info">Các công cụ ảnh GIF và nhãn dán chia sẻ tất cả những nội dung này cùng với bộ lọc nội dung bên dưới. Chỉ cần một khóa là đủ. Mọi nguồn có khóa sẽ xuất hiện trong bảng.</string>
     <string name="tooldetail_media_keys_group">Nguồn và khóa API</string>
     <string name="tooldetail_media_klipy_hint">Miễn phí từ partner.klipy.com. API Tenor đã đóng vào giữa năm 2026</string>
-    <string name="tooldetail_media_klipy_label">Khóa API Klipy</string>
+    <string name="tooldetail_media_klipy_label">Khóa API KLIPY</string>
     <string name="tooldetail_media_layout_group">Bố cục</string>
     <string name="tooldetail_media_limit_group">Kết quả</string>
     <string name="tooldetail_media_limit_subtitle">Số lượng mục mà một tìm kiếm hoặc chế độ xem thịnh hành tải. Các gói nhãn dán của riêng bạn luôn hiển thị đầy đủ.</string>

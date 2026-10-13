@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">تایلندی</string>
     <string name="ime_font_system_default_label">پیش‌فرض سیستم</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">ابزار GIF به یک کلید API از Klipy یا GIPHY نیاز دارد. هر دو کلید رایگان هستند. یک کلید در تنظیمات این ابزار اضافه کنید.</string>
+    <string name="ime_gif_need_key_body">ابزار GIF به یک کلید API از KLIPY یا GIPHY نیاز دارد. هر دو کلید رایگان هستند. یک کلید در تنظیمات این ابزار اضافه کنید.</string>
     <string name="ime_gif_search_empty">گیفی برای «%1$s» یافت نشد</string>
     <string name="ime_gif_search_hint">جستجوی گیف‌ها</string>
     <string name="ime_gif_unsupported_field_notice">این فیلد از فایل‌های GIF پشتیبانی نمی‌کند. از یک برنامه چت یا یادداشت استفاده کنید.</string>
@@ -864,8 +864,8 @@
     <string name="ime_sticker_info_untitled">بدون عنوان</string>
     <string name="ime_sticker_local_search_empty">هیچ استیکری از شما با «%1$s» مطابقت ندارد</string>
     <string name="ime_sticker_manage_packs_action">مدیریت بسته‌ها</string>
-    <string name="ime_sticker_need_key_body">ابزار استیکر به یک کلید API از Klipy یا GIPHY نیاز دارد. هر دو کلید رایگان هستند. یک کلید در تنظیمات این ابزار اضافه کنید.</string>
-    <string name="ime_sticker_no_packs_empty">هنوز بسته‌ی استیکری وجود ندارد. در تنظیمات یک بسته بسازید. همچنین می‌توانید یک استیکر از Klipy یا GIPHY را فشار داده و نگه دارید تا اینجا ذخیره شود.</string>
+    <string name="ime_sticker_need_key_body">ابزار استیکر به یک کلید API از KLIPY یا GIPHY نیاز دارد. هر دو کلید رایگان هستند. یک کلید در تنظیمات این ابزار اضافه کنید.</string>
+    <string name="ime_sticker_no_packs_empty">هنوز بسته‌ی استیکری وجود ندارد. در تنظیمات یک بسته بسازید. همچنین می‌توانید یک استیکر از KLIPY یا GIPHY را فشار داده و نگه دارید تا اینجا ذخیره شود.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d استیکر</item>
         <item quantity="other">%1$d استیکر</item>

@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">Tiếng Thái</string>
     <string name="ime_font_system_default_label">Mặc định hệ thống</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">Công cụ GIF cần khóa API từ Klipy hoặc GIPHY. Cả hai khóa đều miễn phí. Hãy thêm khóa trong phần cài đặt cho công cụ này.</string>
+    <string name="ime_gif_need_key_body">Công cụ GIF cần khóa API từ KLIPY hoặc GIPHY. Cả hai khóa đều miễn phí. Hãy thêm khóa trong phần cài đặt cho công cụ này.</string>
     <string name="ime_gif_search_empty">Không có ảnh GIF cho “%1$s”</string>
     <string name="ime_gif_search_hint">Tìm kiếm ảnh GIF</string>
     <string name="ime_gif_unsupported_field_notice">Trường này không chấp nhận tệp GIF. Hãy thử ứng dụng trò chuyện hoặc ứng dụng ghi chú.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">Không có tiêu đề</string>
     <string name="ime_sticker_local_search_empty">Không có nhãn dán nào của bạn khớp với “%1$s”</string>
     <string name="ime_sticker_manage_packs_action">Quản lý gói</string>
-    <string name="ime_sticker_need_key_body">Công cụ nhãn dán cần khóa API từ Klipy hoặc GIPHY. Cả hai khóa đều miễn phí. Hãy thêm khóa trong phần cài đặt cho công cụ này.</string>
-    <string name="ime_sticker_no_packs_empty">Chưa có gói nhãn dán nào. Hãy tạo một gói trong phần cài đặt. Bạn cũng có thể nhấn và giữ một nhãn dán từ Klipy hoặc GIPHY để lưu nó tại đây.</string>
+    <string name="ime_sticker_need_key_body">Công cụ nhãn dán cần khóa API từ KLIPY hoặc GIPHY. Cả hai khóa đều miễn phí. Hãy thêm khóa trong phần cài đặt cho công cụ này.</string>
+    <string name="ime_sticker_no_packs_empty">Chưa có gói nhãn dán nào. Hãy tạo một gói trong phần cài đặt. Bạn cũng có thể nhấn và giữ một nhãn dán từ KLIPY hoặc GIPHY để lưu nó tại đây.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d nhãn dán</item>
         <item quantity="other">%1$d nhãn dán</item>

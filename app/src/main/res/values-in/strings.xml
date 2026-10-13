@@ -1488,7 +1488,7 @@
     <string name="fonts_tool_flashlight_desc">Nyalakan atau matikan senter dari papan ketik</string>
     <string name="fonts_tool_floating_desc">Lepaskan papan ketik menjadi panel yang dapat Anda pindahkan</string>
     <string name="fonts_tool_floating_title">Papan ketik mengambang</string>
-    <string name="fonts_tool_gif_desc">Cari GIF (Klipy, GIPHY) dan kirim dari papan ketik</string>
+    <string name="fonts_tool_gif_desc">Cari GIF (KLIPY, GIPHY) dan kirim dari papan ketik</string>
     <string name="fonts_tool_grammar_desc">Periksa teks yang Anda tulis untuk masalah tata bahasa. Harper melakukan ini secara offline</string>
     <string name="fonts_tool_grammar_title">Pemeriksaan tata bahasa</string>
     <string name="fonts_tool_handwriting_desc">Tulis kata dengan tangan menggunakan jari atau S Pen. Perangkat Anda yang melakukan pengenalan</string>
@@ -2008,7 +2008,7 @@
         <item quantity="one">Aplikasi mengimpor %1$s dengan %2$d stiker.</item>
         <item quantity="other">Aplikasi mengimpor %1$s dengan %2$d stiker.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Tambahkan stiker dari foto Anda, atau tekan dan tahan stiker Klipy atau GIPHY di papan ketik</string>
+    <string name="import_stickers_empty_subtitle">Tambahkan stiker dari foto Anda, atau tekan dan tahan stiker KLIPY atau GIPHY di papan ketik</string>
     <string name="import_stickers_empty_title">Tidak ada stiker di paket ini</string>
     <string name="import_stickers_none_added">Aplikasi tidak menambahkan apa pun.</string>
     <string name="import_stickers_none_read">Aplikasi tidak dapat membaca stiker apa pun dalam paket tersebut.</string>
@@ -6044,7 +6044,7 @@
     <string name="tooldetail_media_filter_header">Filter konten</string>
     <string name="tooldetail_media_filter_high">Tinggi</string>
     <string name="tooldetail_media_filter_high_desc">Paling banyak disembunyikan. Peringkat G</string>
-    <string name="tooldetail_media_filter_info">Tinggi menyembunyikan paling banyak dan Mati tidak menyembunyikan apa pun. Ini memetakan ke peringkat Klipy dan GIPHY, di mana Tinggi adalah G dan Mati adalah R.</string>
+    <string name="tooldetail_media_filter_info">Tinggi menyembunyikan paling banyak dan Mati tidak menyembunyikan apa pun. Ini memetakan ke peringkat KLIPY dan GIPHY, di mana Tinggi adalah G dan Mati adalah R.</string>
     <string name="tooldetail_media_filter_low">Rendah</string>
     <string name="tooldetail_media_filter_low_desc">Hanya menyembunyikan hasil terkuat. Peringkat PG-13</string>
     <string name="tooldetail_media_filter_medium">Sedang</string>
@@ -6063,7 +6063,7 @@
     <string name="tooldetail_media_info">Alat GIF dan stiker berbagi semua ini, serta filter konten di bawah. Satu kunci saja sudah cukup. Setiap sumber yang memiliki kunci akan muncul di panel.</string>
     <string name="tooldetail_media_keys_group">Sumber dan kunci API</string>
     <string name="tooldetail_media_klipy_hint">Gratis dari partner.klipy.com. API Tenor ditutup pada pertengahan 2026</string>
-    <string name="tooldetail_media_klipy_label">Kunci API Klipy</string>
+    <string name="tooldetail_media_klipy_label">Kunci API KLIPY</string>
     <string name="tooldetail_media_layout_group">Tata letak</string>
     <string name="tooldetail_media_limit_group">Hasil</string>
     <string name="tooldetail_media_limit_subtitle">Berapa banyak item yang dimuat oleh satu pencarian atau tampilan tren. Paket stiker Anda sendiri selalu ditampilkan sepenuhnya.</string>

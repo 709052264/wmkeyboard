@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">Тайландски</string>
     <string name="ime_font_system_default_label">Системна настройка по подразбиране</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">Инструментът за GIF файлове се нуждае от API ключ от Klipy или GIPHY. И двата ключа са безплатни. Добавете ключ в настройките за този инструмент.</string>
+    <string name="ime_gif_need_key_body">Инструментът за GIF файлове се нуждае от API ключ от KLIPY или GIPHY. И двата ключа са безплатни. Добавете ключ в настройките за този инструмент.</string>
     <string name="ime_gif_search_empty">Няма GIF файлове за „%1$s“</string>
     <string name="ime_gif_search_hint">Търсене на GIF файлове</string>
     <string name="ime_gif_unsupported_field_notice">Това поле не приема GIF файлове. Опитайте в приложение за чат или бележки.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">Без заглавие</string>
     <string name="ime_sticker_local_search_empty">Няма ваши стикери, съответстващи на „%1$s“</string>
     <string name="ime_sticker_manage_packs_action">Управление на пакетите</string>
-    <string name="ime_sticker_need_key_body">Инструментът за стикери се нуждае от API ключ от Klipy или GIPHY. И двата ключа са безплатни. Добавете ключ в настройките за този инструмент.</string>
-    <string name="ime_sticker_no_packs_empty">Все още няма пакети със стикери. Създайте пакет в настройките. Можете също да натиснете и задържите стикер от Klipy или GIPHY, за да го запазите тук.</string>
+    <string name="ime_sticker_need_key_body">Инструментът за стикери се нуждае от API ключ от KLIPY или GIPHY. И двата ключа са безплатни. Добавете ключ в настройките за този инструмент.</string>
+    <string name="ime_sticker_no_packs_empty">Все още няма пакети със стикери. Създайте пакет в настройките. Можете също да натиснете и задържите стикер от KLIPY или GIPHY, за да го запазите тук.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d стикер</item>
         <item quantity="other">%1$d стикера</item>

@@ -1492,7 +1492,7 @@
     <string name="fonts_tool_flashlight_desc">Ieslēdziet vai izslēdziet lukturīti no tastatūras</string>
     <string name="fonts_tool_floating_desc">Atvienojiet tastatūru panelī, kuru varat pārvietot</string>
     <string name="fonts_tool_floating_title">Peldošā tastatūra</string>
-    <string name="fonts_tool_gif_desc">Meklējiet GIF (Klipy, GIPHY) un sūtiet tos no tastatūras</string>
+    <string name="fonts_tool_gif_desc">Meklējiet GIF (KLIPY, GIPHY) un sūtiet tos no tastatūras</string>
     <string name="fonts_tool_grammar_desc">Pārbaudiet rakstīto tekstu, vai tajā nav gramatikas kļūdu. Harper to dara bezsaistē</string>
     <string name="fonts_tool_grammar_title">Gramatikas pārbaude</string>
     <string name="fonts_tool_handwriting_desc">Rakstiet vārdus ar roku, izmantojot pirkstu vai S Pen irbuli. Jūsu ierīce veiks atpazīšanu</string>
@@ -2013,7 +2013,7 @@
         <item quantity="one">Lietotne importēja %1$s ar %2$d uzlīmi.</item>
         <item quantity="other">Lietotne importēja %1$s ar %2$d uzlīmēm.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Pievienojiet uzlīmes no saviem fotoattēliem vai nospiediet un turiet Klipy vai GIPHY uzlīmi tastatūrā</string>
+    <string name="import_stickers_empty_subtitle">Pievienojiet uzlīmes no saviem fotoattēliem vai nospiediet un turiet KLIPY vai GIPHY uzlīmi tastatūrā</string>
     <string name="import_stickers_empty_title">Šajā komplektā nav uzlīmju</string>
     <string name="import_stickers_none_added">Lietotne neko nepievienoja.</string>
     <string name="import_stickers_none_read">Lietotne nevar nolasīt nevienu uzlīmi šajā pakotnē.</string>
@@ -6051,7 +6051,7 @@
     <string name="tooldetail_media_filter_header">Satura filtrs</string>
     <string name="tooldetail_media_filter_high">Augsts</string>
     <string name="tooldetail_media_filter_high_desc">Slēpj visvairāk. G vērtējums</string>
-    <string name="tooldetail_media_filter_info">Klipy un GIPHY piešķir katram rezultātam vērtējumu. Katrs pakalpojums piemēro jūsu līmeni saviem rezultātiem.</string>
+    <string name="tooldetail_media_filter_info">KLIPY un GIPHY piešķir katram rezultātam vērtējumu. Katrs pakalpojums piemēro jūsu līmeni saviem rezultātiem.</string>
     <string name="tooldetail_media_filter_low">Zems</string>
     <string name="tooldetail_media_filter_low_desc">Slēpj tikai spēcīgākos rezultātus. PG-13 vērtējums</string>
     <string name="tooldetail_media_filter_medium">Vidējs</string>
@@ -6070,7 +6070,7 @@
     <string name="tooldetail_media_info">GIF un uzlīmju rīki koplieto visu šo, kā arī satura filtru zemāk. Pietiek ar vienu atslēgu. Katrs avots, kuram ir atslēga, parādās panelī.</string>
     <string name="tooldetail_media_keys_group">Avoti un API atslēgas</string>
     <string name="tooldetail_media_klipy_hint">Bezmaksas no partner.klipy.com. Tenor API tika slēgts 2026. gada vidū</string>
-    <string name="tooldetail_media_klipy_label">Klipy API atslēga</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API atslēga</string>
     <string name="tooldetail_media_layout_group">Izkārtojums</string>
     <string name="tooldetail_media_limit_group">Rezultāti</string>
     <string name="tooldetail_media_limit_subtitle">Cik vienumus ielādē viena meklēšana vai populārāko skats. Jūsu pašu uzlīmju pakas vienmēr tiek rādītas pilnībā.</string>

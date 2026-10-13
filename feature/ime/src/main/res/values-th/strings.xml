@@ -338,7 +338,7 @@
     <string name="ime_font_script_thai_label">ไทย</string>
     <string name="ime_font_system_default_label">ค่าเริ่มต้นของระบบ</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">เครื่องมือ GIF จำเป็นต้องมีคีย์ API จาก Klipy หรือ GIPHY ซึ่งทั้งสองคีย์นั้นฟรี เพิ่มคีย์ในการตั้งค่าสำหรับเครื่องมือนี้</string>
+    <string name="ime_gif_need_key_body">เครื่องมือ GIF จำเป็นต้องมีคีย์ API จาก KLIPY หรือ GIPHY ซึ่งทั้งสองคีย์นั้นฟรี เพิ่มคีย์ในการตั้งค่าสำหรับเครื่องมือนี้</string>
     <string name="ime_gif_search_empty">ไม่พบ GIF สำหรับ “%1$s”</string>
     <string name="ime_gif_search_hint">ค้นหา GIF</string>
     <string name="ime_gif_unsupported_field_notice">ช่องนี้ไม่รองรับ GIF ลองใช้แอปแชทหรือแอปจดบันทึกดู</string>
@@ -864,8 +864,8 @@
     <string name="ime_sticker_info_untitled">ไม่มีชื่อ</string>
     <string name="ime_sticker_local_search_empty">ไม่มีสติกเกอร์ของคุณที่ตรงกับ “%1$s”</string>
     <string name="ime_sticker_manage_packs_action">จัดการชุดสติกเกอร์</string>
-    <string name="ime_sticker_need_key_body">เครื่องมือสติกเกอร์ต้องใช้ API key จาก Klipy หรือ GIPHY ซึ่งทั้งสองคีย์นั้นฟรี โปรดเพิ่มคีย์ในการตั้งค่าสำหรับเครื่องมือนี้</string>
-    <string name="ime_sticker_no_packs_empty">ยังไม่มีชุดสติกเกอร์ สร้างชุดสติกเกอร์ได้ในการตั้งค่า หรือกดค้างที่สติกเกอร์จาก Klipy หรือ GIPHY เพื่อบันทึกไว้ที่นี่</string>
+    <string name="ime_sticker_need_key_body">เครื่องมือสติกเกอร์ต้องใช้ API key จาก KLIPY หรือ GIPHY ซึ่งทั้งสองคีย์นั้นฟรี โปรดเพิ่มคีย์ในการตั้งค่าสำหรับเครื่องมือนี้</string>
+    <string name="ime_sticker_no_packs_empty">ยังไม่มีชุดสติกเกอร์ สร้างชุดสติกเกอร์ได้ในการตั้งค่า หรือกดค้างที่สติกเกอร์จาก KLIPY หรือ GIPHY เพื่อบันทึกไว้ที่นี่</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d สติกเกอร์</item>
         <item quantity="other">%1$d สติกเกอร์</item>

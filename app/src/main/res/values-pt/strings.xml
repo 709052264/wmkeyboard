@@ -1490,7 +1490,7 @@
     <string name="fonts_tool_flashlight_desc">Ligue ou desligue a lanterna a partir do teclado</string>
     <string name="fonts_tool_floating_desc">Desanexar o teclado em um painel que você pode mover</string>
     <string name="fonts_tool_floating_title">Teclado flutuante</string>
-    <string name="fonts_tool_gif_desc">Pesquise GIFs (Klipy, GIPHY) e envie-os pelo teclado</string>
+    <string name="fonts_tool_gif_desc">Pesquise GIFs (KLIPY, GIPHY) e envie-os pelo teclado</string>
     <string name="fonts_tool_grammar_desc">Verifique o texto que você escreve em busca de problemas gramaticais. O Harper faz isso offline</string>
     <string name="fonts_tool_grammar_title">Verificação gramatical</string>
     <string name="fonts_tool_handwriting_desc">Escreva palavras à mão com um dedo ou uma S Pen. O seu dispositivo faz o reconhecimento</string>
@@ -2010,7 +2010,7 @@
         <item quantity="one">O aplicativo importou %1$s com %2$d figurinha.</item>
         <item quantity="other">O aplicativo importou %1$s com %2$d figurinhas.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Adicione figurinhas das suas fotos ou pressione e segure uma figurinha do Klipy ou GIPHY no teclado</string>
+    <string name="import_stickers_empty_subtitle">Adicione figurinhas das suas fotos ou pressione e segure uma figurinha do KLIPY ou GIPHY no teclado</string>
     <string name="import_stickers_empty_title">Nenhum adesivo neste pacote</string>
     <string name="import_stickers_none_added">O aplicativo não adicionou nada.</string>
     <string name="import_stickers_none_read">O aplicativo não consegue ler nenhum adesivo nesse pacote.</string>
@@ -6046,7 +6046,7 @@
     <string name="tooldetail_media_filter_header">Filtro de conteúdo</string>
     <string name="tooldetail_media_filter_high">Alto</string>
     <string name="tooldetail_media_filter_high_desc">Esconde o máximo. A classificação G</string>
-    <string name="tooldetail_media_filter_info">Alto oculta o máximo e Desativado não oculta nada. Isso mapeia para a classificação do Klipy e GIPHY, onde Alto é G e Desativado é R.</string>
+    <string name="tooldetail_media_filter_info">Alto oculta o máximo e Desativado não oculta nada. Isso mapeia para a classificação do KLIPY e GIPHY, onde Alto é G e Desativado é R.</string>
     <string name="tooldetail_media_filter_low">Baixo</string>
     <string name="tooldetail_media_filter_low_desc">Oculta apenas os resultados mais fortes. A classificação PG-13</string>
     <string name="tooldetail_media_filter_medium">Méd</string>
@@ -6065,7 +6065,7 @@
     <string name="tooldetail_media_info">As ferramentas de GIF e figurinhas compartilham tudo isso e o filtro de conteúdo abaixo. Qualquer chave é suficiente. Toda fonte que possui uma chave aparece no painel.</string>
     <string name="tooldetail_media_keys_group">Fontes e chaves de API</string>
     <string name="tooldetail_media_klipy_hint">Gratuito em partner.klipy.com. A API do Tenor foi encerrada em meados de 2026</string>
-    <string name="tooldetail_media_klipy_label">Chave da API Klipy</string>
+    <string name="tooldetail_media_klipy_label">Chave da API KLIPY</string>
     <string name="tooldetail_media_layout_group">Layout</string>
     <string name="tooldetail_media_limit_group">Resultados</string>
     <string name="tooldetail_media_limit_subtitle">Quantos itens uma pesquisa ou a visualização de tendências carrega. Seus próprios pacotes de figurinhas sempre são exibidos totalmente.</string>

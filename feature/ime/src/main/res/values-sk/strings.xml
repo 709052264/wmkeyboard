@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">thajčina</string>
     <string name="ime_font_system_default_label">Predvolené systémové</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">Nástroj GIF potrebuje kľúč API od Klipy alebo GIPHY. Oba kľúče sú bezplatné. Pridajte kľúč v nastaveniach tohto nástroja.</string>
+    <string name="ime_gif_need_key_body">Nástroj GIF potrebuje kľúč API od KLIPY alebo GIPHY. Oba kľúče sú bezplatné. Pridajte kľúč v nastaveniach tohto nástroja.</string>
     <string name="ime_gif_search_empty">Žiadne GIFy pre „%1$s“</string>
     <string name="ime_gif_search_hint">Hľadať GIFy</string>
     <string name="ime_gif_unsupported_field_notice">Toto pole neprijíma súbory GIF. Skúste aplikáciu na chat alebo poznámky.</string>
@@ -864,8 +864,8 @@
     <string name="ime_sticker_info_untitled">Bez názvu</string>
     <string name="ime_sticker_local_search_empty">Žiadne vaše nálepky sa nezhodujú s „%1$s“</string>
     <string name="ime_sticker_manage_packs_action">Spravovať balíky</string>
-    <string name="ime_sticker_need_key_body">Nástroj na nálepky vyžaduje kľúč API od Klipy alebo GIPHY. Oba kľúče sú bezplatné. Pridajte kľúč v nastaveniach tohto nástroja.</string>
-    <string name="ime_sticker_no_packs_empty">Zatiaľ žiadne balíky nálepiek. Vytvorte balík v nastaveniach. Nálepku z Klipy alebo GIPHY môžete tiež stlačiť a podržať, aby ste ju sem uložili.</string>
+    <string name="ime_sticker_need_key_body">Nástroj na nálepky vyžaduje kľúč API od KLIPY alebo GIPHY. Oba kľúče sú bezplatné. Pridajte kľúč v nastaveniach tohto nástroja.</string>
+    <string name="ime_sticker_no_packs_empty">Zatiaľ žiadne balíky nálepiek. Vytvorte balík v nastaveniach. Nálepku z KLIPY alebo GIPHY môžete tiež stlačiť a podržať, aby ste ju sem uložili.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d nálepka</item>
         <item quantity="other">%1$d nálepiek</item>

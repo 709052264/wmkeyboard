@@ -1488,7 +1488,7 @@
     <string name="fonts_tool_flashlight_desc">Allumez ou éteignez la lampe torche depuis le clavier</string>
     <string name="fonts_tool_floating_desc">Détacher le clavier dans un panneau que vous pouvez déplacer</string>
     <string name="fonts_tool_floating_title">Clavier flottant</string>
-    <string name="fonts_tool_gif_desc">Recherchez des GIF (Klipy, GIPHY) et envoyez-les depuis le clavier</string>
+    <string name="fonts_tool_gif_desc">Recherchez des GIF (KLIPY, GIPHY) et envoyez-les depuis le clavier</string>
     <string name="fonts_tool_grammar_desc">Vérifiez les problèmes de grammaire dans vos textes. Harper effectue cette opération hors ligne.</string>
     <string name="fonts_tool_grammar_title">Vérification grammaticale</string>
     <string name="fonts_tool_handwriting_desc">Écrivez des mots à la main avec un doigt ou un stylet S Pen. Votre appareil effectue la reconnaissance</string>
@@ -2008,7 +2008,7 @@
         <item quantity="one">L\'application a importé %1$s avec %2$d autocollant.</item>
         <item quantity="other">L\'application a importé %1$s avec %2$d autocollants.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Ajoutez des autocollants depuis vos photos, ou appuyez longuement sur un autocollant Klipy ou GIPHY dans le clavier</string>
+    <string name="import_stickers_empty_subtitle">Ajoutez des autocollants depuis vos photos, ou appuyez longuement sur un autocollant KLIPY ou GIPHY dans le clavier</string>
     <string name="import_stickers_empty_title">Aucun autocollant dans ce pack</string>
     <string name="import_stickers_none_added">L\'application n\'a rien ajouté.</string>
     <string name="import_stickers_none_read">L\'application ne peut lire aucun autocollant dans ce pack.</string>
@@ -6042,7 +6042,7 @@
     <string name="tooldetail_media_filter_header">Filtre de contenu</string>
     <string name="tooldetail_media_filter_high">Élevé</string>
     <string name="tooldetail_media_filter_high_desc">Masque le plus de contenu. Classement G</string>
-    <string name="tooldetail_media_filter_info">Le niveau Élevé masque le plus de contenu et Désactivé n\'en masque aucun. Cela correspond au classement de Klipy et GIPHY, où Élevé est G et Désactivé est R.</string>
+    <string name="tooldetail_media_filter_info">Le niveau Élevé masque le plus de contenu et Désactivé n\'en masque aucun. Cela correspond au classement de KLIPY et GIPHY, où Élevé est G et Désactivé est R.</string>
     <string name="tooldetail_media_filter_low">Faible</string>
     <string name="tooldetail_media_filter_low_desc">Masque uniquement les résultats les plus explicites. La classification PG-13</string>
     <string name="tooldetail_media_filter_medium">Moy</string>
@@ -6061,7 +6061,7 @@
     <string name="tooldetail_media_info">Les outils GIF et autocollants partagent tout cela, ainsi que le filtre de contenu ci-dessous. Une seule clé suffit. Chaque source possédant une clé s\'affiche dans le panneau.</string>
     <string name="tooldetail_media_keys_group">Sources et clés API</string>
     <string name="tooldetail_media_klipy_hint">Gratuit depuis partner.klipy.com. L\'API Tenor a fermé mi-2026</string>
-    <string name="tooldetail_media_klipy_label">Clé API Klipy</string>
+    <string name="tooldetail_media_klipy_label">Clé API KLIPY</string>
     <string name="tooldetail_media_layout_group">Mise en page</string>
     <string name="tooldetail_media_limit_group">Résultats</string>
     <string name="tooldetail_media_limit_subtitle">Combien d\'éléments une recherche ou la vue tendance charge. Vos propres packs d\'autocollants s\'affichent toujours entièrement.</string>

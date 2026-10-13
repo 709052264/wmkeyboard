@@ -1493,7 +1493,7 @@
     <string name="fonts_tool_flashlight_desc">কীবোর্ড থেকে টর্চ চালু বা বন্ধ করুন</string>
     <string name="fonts_tool_floating_desc">কিবোর্ডটিকে একটি প্যানেলে আলাদা করুন যা আপনি সরাতে পারবেন</string>
     <string name="fonts_tool_floating_title">ফ্লোটিং কিবোর্ড</string>
-    <string name="fonts_tool_gif_desc">GIF (Klipy, GIPHY) খুঁজুন এবং কীবোর্ড থেকে সেগুলো পাঠান</string>
+    <string name="fonts_tool_gif_desc">GIF (KLIPY, GIPHY) খুঁজুন এবং কীবোর্ড থেকে সেগুলো পাঠান</string>
     <string name="fonts_tool_grammar_desc">আপনার লেখা টেক্সটে ব্যাকরণগত সমস্যা আছে কিনা তা পরীক্ষা করুন। হার্পার এটি অফলাইনে করে</string>
     <string name="fonts_tool_grammar_title">ব্যাকরণ পরীক্ষা</string>
     <string name="fonts_tool_handwriting_desc">আঙুল বা এস পেন (S Pen) দিয়ে হাতে শব্দ লিখুন। আপনার ডিভাইস এটি শনাক্ত করবে</string>
@@ -2014,7 +2014,7 @@
         <item quantity="one">অ্যাপটি %2$d স্টিকার সহ %1$s ইম্পোর্ট করেছে।</item>
         <item quantity="other">অ্যাপটি %2$d স্টিকার সহ %1$s ইম্পোর্ট করেছে।</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">আপনার ছবি থেকে স্টিকার যোগ করুন, অথবা কীবোর্ডে একটি ক্লিপি (Klipy) বা জিআইপিএইচওয়াই (GIPHY) স্টিকার চেপে ধরে রাখুন</string>
+    <string name="import_stickers_empty_subtitle">আপনার ছবি থেকে স্টিকার যোগ করুন, অথবা কীবোর্ডে একটি ক্লিপি (KLIPY) বা জিআইপিএইচওয়াই (GIPHY) স্টিকার চেপে ধরে রাখুন</string>
     <string name="import_stickers_empty_title">এই প্যাকে কোনো স্টিকার নেই</string>
     <string name="import_stickers_none_added">অ্যাপটি কিছুই যোগ করেনি।</string>
     <string name="import_stickers_none_read">অ্যাপটি সেই প্যাকের কোনো স্টিকার পড়তে পারছে না।</string>
@@ -6070,7 +6070,7 @@
     <string name="tooldetail_media_filter_header">কন্টেন্ট ফিল্টার</string>
     <string name="tooldetail_media_filter_high">উচ্চ</string>
     <string name="tooldetail_media_filter_high_desc">সবচেয়ে বেশি লুকায়। জি রেটিং</string>
-    <string name="tooldetail_media_filter_info">High মানে সবচেয়ে বেশি লুকানো এবং Off মানে কিছুই না লুকানো। এটি Klipy এবং GIPHY-এর রেটিং অনুযায়ী কাজ করে, যেখানে High হলো G এবং Off হলো R।</string>
+    <string name="tooldetail_media_filter_info">High মানে সবচেয়ে বেশি লুকানো এবং Off মানে কিছুই না লুকানো। এটি KLIPY এবং GIPHY-এর রেটিং অনুযায়ী কাজ করে, যেখানে High হলো G এবং Off হলো R।</string>
     <string name="tooldetail_media_filter_low">কম</string>
     <string name="tooldetail_media_filter_low_desc">শুধুমাত্র সবচেয়ে শক্তিশালী ফলাফলগুলো লুকায়। পিজি-১৩ রেটিং</string>
     <string name="tooldetail_media_filter_medium">মাঝারি</string>
@@ -6089,7 +6089,7 @@
     <string name="tooldetail_media_info">GIF এবং স্টিকার টুলগুলো এই সব এবং নিচের কন্টেন্ট ফিল্টার শেয়ার করে। যেকোনো একটি কি-ই যথেষ্ট। যে সোর্সে কি আছে তা প্যানেলে দেখা যায়।</string>
     <string name="tooldetail_media_keys_group">উৎস এবং এপিআই কী</string>
     <string name="tooldetail_media_klipy_hint">partner.klipy.com থেকে বিনামূল্যে। Tenor API ২০২৬ সালের মাঝামাঝি সময়ে বন্ধ হয়ে গেছে</string>
-    <string name="tooldetail_media_klipy_label">Klipy API কী</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API কী</string>
     <string name="tooldetail_media_layout_group">লেআউট</string>
     <string name="tooldetail_media_limit_group">ফলাফল</string>
     <string name="tooldetail_media_limit_subtitle">একটি সার্চ বা ট্রেন্ডিং ভিউ কতগুলো আইটেম লোড করবে। আপনার নিজের স্টিকার প্যাকগুলো সবসময় পুরোপুরি দেখায়।</string>

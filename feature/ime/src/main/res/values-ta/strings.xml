@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">தாய்</string>
     <string name="ime_font_system_default_label">சிஸ்டம் இயல்புநிலை</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF கருவிக்கு Klipy அல்லது GIPHY இலிருந்து API விசை தேவை. இரண்டு விசைகளும் இலவசம். இந்தக் கருவிக்கான அமைப்புகளில் விசையைச் சேர்க்கவும்.</string>
+    <string name="ime_gif_need_key_body">GIF கருவிக்கு KLIPY அல்லது GIPHY இலிருந்து API விசை தேவை. இரண்டு விசைகளும் இலவசம். இந்தக் கருவிக்கான அமைப்புகளில் விசையைச் சேர்க்கவும்.</string>
     <string name="ime_gif_search_empty">“%1$s”-க்கு GIF-கள் இல்லை</string>
     <string name="ime_gif_search_hint">GIF-களைத் தேடுங்கள்</string>
     <string name="ime_gif_unsupported_field_notice">இந்த புலம் GIF-களை ஏற்காது. அரட்டை ஆப்ஸ் அல்லது குறிப்புகள் ஆப்ஸை முயற்சிக்கவும்.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">தலைப்பில்லை</string>
     <string name="ime_sticker_local_search_empty">“%1$s” என்பதற்குப் பொருந்தும் ஸ்டிக்கர்கள் எதுவும் உங்களிடம் இல்லை</string>
     <string name="ime_sticker_manage_packs_action">பேக்குகளை நிர்வகி</string>
-    <string name="ime_sticker_need_key_body">ஸ்டிக்கர் கருவிக்கு Klipy அல்லது GIPHY இலிருந்து API விசை தேவை. இரண்டு சாவிகளும் இலவசம். இந்த கருவிக்கான அமைப்புகளில் ஒரு விசையைச் சேர்க்கவும்.</string>
-    <string name="ime_sticker_no_packs_empty">ஸ்டிக்கர் பேக்குகள் இன்னும் இல்லை. அமைப்புகளில் ஒரு பேக்கை உருவாக்கவும். Klipy அல்லது GIPHY இலிருந்து ஒரு ஸ்டிக்கரை இங்கே சேமிக்க அதை அழுத்திப் பிடிக்கலாம்.</string>
+    <string name="ime_sticker_need_key_body">ஸ்டிக்கர் கருவிக்கு KLIPY அல்லது GIPHY இலிருந்து API விசை தேவை. இரண்டு சாவிகளும் இலவசம். இந்த கருவிக்கான அமைப்புகளில் ஒரு விசையைச் சேர்க்கவும்.</string>
+    <string name="ime_sticker_no_packs_empty">ஸ்டிக்கர் பேக்குகள் இன்னும் இல்லை. அமைப்புகளில் ஒரு பேக்கை உருவாக்கவும். KLIPY அல்லது GIPHY இலிருந்து ஒரு ஸ்டிக்கரை இங்கே சேமிக்க அதை அழுத்திப் பிடிக்கலாம்.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d ஸ்டிக்கர்</item>
         <item quantity="other">%1$d ஸ்டிக்கர்கள்</item>

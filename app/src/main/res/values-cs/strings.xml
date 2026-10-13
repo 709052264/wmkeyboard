@@ -1488,7 +1488,7 @@
     <string name="fonts_tool_flashlight_desc">Zapnutí nebo vypnutí svítilny z klávesnice</string>
     <string name="fonts_tool_floating_desc">Odpojte klávesnici do panelu, který můžete přesouvat</string>
     <string name="fonts_tool_floating_title">Plovoucí klávesnice</string>
-    <string name="fonts_tool_gif_desc">Vyhledávejte GIFy (Klipy, GIPHY) a posílejte je přímo z klávesnice</string>
+    <string name="fonts_tool_gif_desc">Vyhledávejte GIFy (KLIPY, GIPHY) a posílejte je přímo z klávesnice</string>
     <string name="fonts_tool_grammar_desc">Kontrolujte text, který píšete, na gramatické problémy. Harper to dělá offline</string>
     <string name="fonts_tool_grammar_title">Kontrola gramatiky</string>
     <string name="fonts_tool_handwriting_desc">Pište slova rukou prstem nebo perem S Pen. Vaše zařízení provede rozpoznání</string>
@@ -2010,7 +2010,7 @@
         <item quantity="one">Aplikace importovala %1$s s %2$d nálepkou.</item>
         <item quantity="other">Aplikace importovala %1$s s %2$d nálepkami.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Přidejte nálepky ze svých fotografií nebo stiskněte a podržte nálepku Klipy nebo GIPHY na klávesnici</string>
+    <string name="import_stickers_empty_subtitle">Přidejte nálepky ze svých fotografií nebo stiskněte a podržte nálepku KLIPY nebo GIPHY na klávesnici</string>
     <string name="import_stickers_empty_title">V tomto balíčku nejsou žádné nálepky</string>
     <string name="import_stickers_none_added">Aplikace nic nepřidala.</string>
     <string name="import_stickers_none_read">Aplikace nedokáže přečíst žádnou nálepku v tomto balíčku.</string>
@@ -6045,7 +6045,7 @@
     <string name="tooldetail_media_filter_header">Filtr obsahu</string>
     <string name="tooldetail_media_filter_high">Vysoká</string>
     <string name="tooldetail_media_filter_high_desc">Skrývá nejvíce. Hodnocení G</string>
-    <string name="tooldetail_media_filter_info">Klipy a GIPHY hodnotí každý výsledek. Každá služba aplikuje vaši úroveň na své vlastní výsledky.</string>
+    <string name="tooldetail_media_filter_info">KLIPY a GIPHY hodnotí každý výsledek. Každá služba aplikuje vaši úroveň na své vlastní výsledky.</string>
     <string name="tooldetail_media_filter_low">Nízká</string>
     <string name="tooldetail_media_filter_low_desc">Skryje pouze nejsilnější výsledky. Hodnocení PG-13</string>
     <string name="tooldetail_media_filter_medium">Střední</string>
@@ -6064,7 +6064,7 @@
     <string name="tooldetail_media_info">Nástroje pro GIFy a nálepky sdílejí vše toto a níže uvedený filtr obsahu. Stačí jedna klávesa. Každý zdroj, který má klávesu, se zobrazí v panelu.</string>
     <string name="tooldetail_media_keys_group">Zdroje a klíče API</string>
     <string name="tooldetail_media_klipy_hint">Zdarma od partner.klipy.com. API Tenor bylo v polovině roku 2026 uzavřeno</string>
-    <string name="tooldetail_media_klipy_label">Klipy API klíč</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API klíč</string>
     <string name="tooldetail_media_layout_group">Rozložení</string>
     <string name="tooldetail_media_limit_group">Výsledky</string>
     <string name="tooldetail_media_limit_subtitle">Kolik položek načte jedno vyhledávání nebo zobrazení trendů. Vaše vlastní balíčky nálepek se vždy zobrazí celé.</string>

@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">Tai</string>
     <string name="ime_font_system_default_label">Süsteemi vaikeväärtus</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF-tööriist vajab API-võtit Klipy-lt või GIPHY-lt. Mõlemad võtmed on tasuta. Lisage selle tööriista seadetesse võti.</string>
+    <string name="ime_gif_need_key_body">GIF-tööriist vajab API-võtit KLIPY-lt või GIPHY-lt. Mõlemad võtmed on tasuta. Lisage selle tööriista seadetesse võti.</string>
     <string name="ime_gif_search_empty">GIF-e päringule „%1$s“ ei leitud</string>
     <string name="ime_gif_search_hint">Otsi GIF-e</string>
     <string name="ime_gif_unsupported_field_notice">See väli ei toeta GIF-e. Proovi vestlusrakendust või märkmerakendust.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">Pealkirjata</string>
     <string name="ime_sticker_local_search_empty">Ükski sinu kleebis ei vasta otsingule „%1$s“</string>
     <string name="ime_sticker_manage_packs_action">Halda pakke</string>
-    <string name="ime_sticker_need_key_body">Kleebiste tööriist vajab API-võtit Klipy või GIPHY teenusest. Mõlemad võtmed on tasuta. Lisage selle tööriista seadetesse võti.</string>
-    <string name="ime_sticker_no_packs_empty">Kleebisepakke veel pole. Loo pakk seadetes. Samuti võid siia salvestamiseks vajutada ja hoida all Klipy või GIPHY kleebist.</string>
+    <string name="ime_sticker_need_key_body">Kleebiste tööriist vajab API-võtit KLIPY või GIPHY teenusest. Mõlemad võtmed on tasuta. Lisage selle tööriista seadetesse võti.</string>
+    <string name="ime_sticker_no_packs_empty">Kleebisepakke veel pole. Loo pakk seadetes. Samuti võid siia salvestamiseks vajutada ja hoida all KLIPY või GIPHY kleebist.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d kleebis</item>
         <item quantity="other">%1$d kleebist</item>

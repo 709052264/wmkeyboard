@@ -1489,7 +1489,7 @@
     <string name="fonts_tool_flashlight_desc">Klavyeden el fenerini açın veya kapatın</string>
     <string name="fonts_tool_floating_desc">Klavyeyi taşıyabileceğiniz bir panele ayırın</string>
     <string name="fonts_tool_floating_title">Yüzen klavye</string>
-    <string name="fonts_tool_gif_desc">GIF\'leri (Klipy, GIPHY) arayın ve klavyeden gönderin</string>
+    <string name="fonts_tool_gif_desc">GIF\'leri (KLIPY, GIPHY) arayın ve klavyeden gönderin</string>
     <string name="fonts_tool_grammar_desc">Yazdığınız metni dil bilgisi hataları için kontrol edin. Harper bunu çevrimdışı yapar</string>
     <string name="fonts_tool_grammar_title">Dil bilgisi denetimi</string>
     <string name="fonts_tool_handwriting_desc">Parmak veya S Pen ile el yazısıyla kelimeler yazın. Tanıma işlemini cihazınız yapar</string>
@@ -2009,7 +2009,7 @@
         <item quantity="one">Uygulama, %2$d çıkartma ile %1$s öğesini içe aktardı.</item>
         <item quantity="other">Uygulama, %2$d çıkartma ile %1$s öğesini içe aktardı.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Fotoğraflarınızdan çıkartmalar ekleyin veya klavyedeki bir Klipy ya da GIPHY çıkartmasına basılı tutun</string>
+    <string name="import_stickers_empty_subtitle">Fotoğraflarınızdan çıkartmalar ekleyin veya klavyedeki bir KLIPY ya da GIPHY çıkartmasına basılı tutun</string>
     <string name="import_stickers_empty_title">Bu pakette çıkartma yok</string>
     <string name="import_stickers_none_added">Uygulama hiçbir şey eklemedi.</string>
     <string name="import_stickers_none_read">Uygulama bu paketteki hiçbir çıkartmayı okuyamıyor.</string>
@@ -6040,7 +6040,7 @@
     <string name="tooldetail_media_filter_header">İçerik filtresi</string>
     <string name="tooldetail_media_filter_high">Yüksek</string>
     <string name="tooldetail_media_filter_high_desc">En fazlasını gizler. G derecelendirmesi</string>
-    <string name="tooldetail_media_filter_info">Yüksek en çoğunu gizler ve Kapalı hiçbir şeyi gizlemez. Bu, Yüksek\'in G ve Kapalı\'nın R olduğu Klipy ve GIPHY derecelendirmesiyle eşleşir.</string>
+    <string name="tooldetail_media_filter_info">Yüksek en çoğunu gizler ve Kapalı hiçbir şeyi gizlemez. Bu, Yüksek\'in G ve Kapalı\'nın R olduğu KLIPY ve GIPHY derecelendirmesiyle eşleşir.</string>
     <string name="tooldetail_media_filter_low">Düşük</string>
     <string name="tooldetail_media_filter_low_desc">Yalnızca en güçlü sonuçları gizler. PG-13 derecelendirmesi</string>
     <string name="tooldetail_media_filter_medium">Orta</string>
@@ -6059,7 +6059,7 @@
     <string name="tooldetail_media_info">GIF ve çıkartma araçları bunların tümünü ve aşağıdaki içerik filtresini paylaşır. Herhangi bir anahtar yeterlidir. Anahtarı olan her kaynak panelde görünür.</string>
     <string name="tooldetail_media_keys_group">Kaynaklar ve API anahtarları</string>
     <string name="tooldetail_media_klipy_hint">partner.klipy.com\'dan ücretsiz. Tenor API 2026\'nın ortasında kapandı</string>
-    <string name="tooldetail_media_klipy_label">Klipy API anahtarı</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API anahtarı</string>
     <string name="tooldetail_media_layout_group">Düzen</string>
     <string name="tooldetail_media_limit_group">Sonuçlar</string>
     <string name="tooldetail_media_limit_subtitle">Bir aramanın veya trend görünümünün kaç öğe yükleyeceği. Kendi çıkartma paketleriniz her zaman tam olarak görünür.</string>

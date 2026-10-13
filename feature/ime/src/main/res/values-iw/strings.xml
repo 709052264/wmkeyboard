@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">תאילנדית</string>
     <string name="ime_font_system_default_label">ברירת מחדל של המערכת</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">כלי ה-GIF זקוק למפתח API מ-Klipy או GIPHY. שני המפתחות בחינם. הוסף מפתח בהגדרות עבור כלי זה.</string>
+    <string name="ime_gif_need_key_body">כלי ה-GIF זקוק למפתח API מ-KLIPY או GIPHY. שני המפתחות בחינם. הוסף מפתח בהגדרות עבור כלי זה.</string>
     <string name="ime_gif_search_empty">אין קובצי GIF עבור “%1$s”</string>
     <string name="ime_gif_search_hint">חיפוש GIF</string>
     <string name="ime_gif_unsupported_field_notice">שדה זה אינו מקבל קובצי GIF. נסה אפליקציית צ\'אט או אפליקציית פתקים.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">ללא כותרת</string>
     <string name="ime_sticker_local_search_empty">אף מדבקה שלך לא תואמת ל-“%1$s”</string>
     <string name="ime_sticker_manage_packs_action">נהל חבילות</string>
-    <string name="ime_sticker_need_key_body">כלי המדבקות זקוק למפתח API מ-Klipy או GIPHY. שני המפתחות בחינם. הוסף מפתח בהגדרות עבור כלי זה.</string>
-    <string name="ime_sticker_no_packs_empty">אין עדיין חבילות מדבקות. צור חבילה בהגדרות. ניתן גם ללחוץ לחיצה ארוכה על מדבקה מ-Klipy או GIPHY כדי לשמור אותה כאן.</string>
+    <string name="ime_sticker_need_key_body">כלי המדבקות זקוק למפתח API מ-KLIPY או GIPHY. שני המפתחות בחינם. הוסף מפתח בהגדרות עבור כלי זה.</string>
+    <string name="ime_sticker_no_packs_empty">אין עדיין חבילות מדבקות. צור חבילה בהגדרות. ניתן גם ללחוץ לחיצה ארוכה על מדבקה מ-KLIPY או GIPHY כדי לשמור אותה כאן.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">מדבקה %1$d</item>
         <item quantity="other">%1$d מדבקות</item>

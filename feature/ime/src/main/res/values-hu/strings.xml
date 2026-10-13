@@ -336,7 +336,7 @@
     <string name="ime_font_script_thai_label">Thai</string>
     <string name="ime_font_system_default_label">Rendszer alapértelmezett</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">A GIF-eszközhöz API-kulcs szükséges a Klipy-től vagy a GIPHY-től. Mindkét kulcs ingyenes. Adjon meg egy kulcsot az eszköz beállításaiban.</string>
+    <string name="ime_gif_need_key_body">A GIF-eszközhöz API-kulcs szükséges a KLIPY-től vagy a GIPHY-től. Mindkét kulcs ingyenes. Adjon meg egy kulcsot az eszköz beállításaiban.</string>
     <string name="ime_gif_search_empty">Nincs GIF a(z) „%1$s” kifejezésre</string>
     <string name="ime_gif_search_hint">GIF-ek keresése</string>
     <string name="ime_gif_unsupported_field_notice">Ez a mező nem fogad el GIF-eket. Próbálkozz csevegő- vagy jegyzetalkalmazással.</string>
@@ -862,8 +862,8 @@
     <string name="ime_sticker_info_untitled">Nincs cím</string>
     <string name="ime_sticker_local_search_empty">Nincs a „%1$s” kifejezésre illeszkedő matricája</string>
     <string name="ime_sticker_manage_packs_action">Csomagok kezelése</string>
-    <string name="ime_sticker_need_key_body">A matricaeszközhöz API-kulcs szükséges a Klipy-től vagy a GIPHY-től. Mindkét kulcs ingyenes. Add meg a kulcsot az eszköz beállításaiban.</string>
-    <string name="ime_sticker_no_packs_empty">Még nincsenek matricacsomagok. Hozz létre egyet a beállításokban. A Klipy vagy GIPHY matricáit is megnyomva és nyomva tartva elmentheted őket ide.</string>
+    <string name="ime_sticker_need_key_body">A matricaeszközhöz API-kulcs szükséges a KLIPY-től vagy a GIPHY-től. Mindkét kulcs ingyenes. Add meg a kulcsot az eszköz beállításaiban.</string>
+    <string name="ime_sticker_no_packs_empty">Még nincsenek matricacsomagok. Hozz létre egyet a beállításokban. A KLIPY vagy GIPHY matricáit is megnyomva és nyomva tartva elmentheted őket ide.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d matrica</item>
         <item quantity="other">%1$d matrica</item>

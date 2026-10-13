@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">Tailandès</string>
     <string name="ime_font_system_default_label">Predeterminat del sistema</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">L\'eina GIF necessita una clau API de Klipy o GIPHY. Ambdues claus són gratuïtes. Afegeix una clau a la configuració d\'aquesta eina.</string>
+    <string name="ime_gif_need_key_body">L\'eina GIF necessita una clau API de KLIPY o GIPHY. Ambdues claus són gratuïtes. Afegeix una clau a la configuració d\'aquesta eina.</string>
     <string name="ime_gif_search_empty">No hi ha GIFs per a “%1$s”</string>
     <string name="ime_gif_search_hint">Cerca GIFs</string>
     <string name="ime_gif_unsupported_field_notice">Aquest camp no accepta GIF. Prova una aplicació de xat o una aplicació de notes.</string>
@@ -864,8 +864,8 @@
     <string name="ime_sticker_info_untitled">Sense títol</string>
     <string name="ime_sticker_local_search_empty">Cap dels teus adhesius coincideix amb “%1$s”</string>
     <string name="ime_sticker_manage_packs_action">Gestiona els paquets</string>
-    <string name="ime_sticker_need_key_body">L\'eina d\'adhesius necessita una clau API de Klipy o GIPHY. Ambdues claus són gratuïtes. Afegeix una clau a la configuració d\'aquesta eina.</string>
-    <string name="ime_sticker_no_packs_empty">Encara no hi ha paquets d\'adhesius. Creeu-ne un a la configuració. També podeu prémer i mantenir premut un adhesiu de Klipy o GIPHY per desar-lo aquí.</string>
+    <string name="ime_sticker_need_key_body">L\'eina d\'adhesius necessita una clau API de KLIPY o GIPHY. Ambdues claus són gratuïtes. Afegeix una clau a la configuració d\'aquesta eina.</string>
+    <string name="ime_sticker_no_packs_empty">Encara no hi ha paquets d\'adhesius. Creeu-ne un a la configuració. També podeu prémer i mantenir premut un adhesiu de KLIPY o GIPHY per desar-lo aquí.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d adhesiu</item>
         <item quantity="other">%1$d adhesius</item>

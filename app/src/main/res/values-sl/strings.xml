@@ -1492,7 +1492,7 @@
     <string name="fonts_tool_flashlight_desc">Vklopite ali izklopite svetilko s tipkovnice</string>
     <string name="fonts_tool_floating_desc">Odlepite tipkovnico v ploščo, ki jo lahko premikate</string>
     <string name="fonts_tool_floating_title">Plavajoča tipkovnica</string>
-    <string name="fonts_tool_gif_desc">Iščite GIF-e (Klipy, GIPHY) in jih pošljite neposredno s tipkovnice</string>
+    <string name="fonts_tool_gif_desc">Iščite GIF-e (KLIPY, GIPHY) in jih pošljite neposredno s tipkovnice</string>
     <string name="fonts_tool_grammar_desc">Preverite besedilo, ki ga pišete, za slovnične napake. Harper to počne brez povezave</string>
     <string name="fonts_tool_grammar_title">Preverjanje slovnice</string>
     <string name="fonts_tool_handwriting_desc">Pišite besede ročno s prstom ali pisalom S Pen. Vaša naprava opravi prepoznavo</string>
@@ -2013,7 +2013,7 @@
         <item quantity="one">Aplikacija je uvozila %1$s z %2$d nalepko.</item>
         <item quantity="other">Aplikacija je uvozila %1$s z %2$d nalepkami.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Dodajte nalepke iz svojih fotografij ali pritisnite in pridržite nalepko Klipy ali GIPHY na tipkovnici</string>
+    <string name="import_stickers_empty_subtitle">Dodajte nalepke iz svojih fotografij ali pritisnite in pridržite nalepko KLIPY ali GIPHY na tipkovnici</string>
     <string name="import_stickers_empty_title">V tem paketu ni nalepk</string>
     <string name="import_stickers_none_added">Aplikacija ni dodala ničesar.</string>
     <string name="import_stickers_none_read">Aplikacija ne more prebrati nobene nalepke v tem paketu.</string>
@@ -6054,7 +6054,7 @@
     <string name="tooldetail_media_filter_header">Filter vsebine</string>
     <string name="tooldetail_media_filter_high">Visoka</string>
     <string name="tooldetail_media_filter_high_desc">Skrije največ. Oznaka G</string>
-    <string name="tooldetail_media_filter_info">Klipy in GIPHY vsakemu rezultatu dodelita oceno. Vsaka storitev uporabi vašo raven za svoje rezultate.</string>
+    <string name="tooldetail_media_filter_info">KLIPY in GIPHY vsakemu rezultatu dodelita oceno. Vsaka storitev uporabi vašo raven za svoje rezultate.</string>
     <string name="tooldetail_media_filter_low">Nizko</string>
     <string name="tooldetail_media_filter_low_desc">Skrije samo najmočnejše rezultate. Ocena PG-13</string>
     <string name="tooldetail_media_filter_medium">Srednje</string>
@@ -6073,7 +6073,7 @@
     <string name="tooldetail_media_info">Orodji GIF in nalepke si delita vse to in spodnji filter vsebine. Dovolj je kateri koli ključ. Vsak vir, ki ima ključ, se prikaže v plošči.</string>
     <string name="tooldetail_media_keys_group">Viri in ključi API</string>
     <string name="tooldetail_media_klipy_hint">Brezplačno od partner.klipy.com. API Tenor je bil zaprt sredi leta 2026</string>
-    <string name="tooldetail_media_klipy_label">Ključ API za Klipy</string>
+    <string name="tooldetail_media_klipy_label">Ključ API za KLIPY</string>
     <string name="tooldetail_media_layout_group">Postavitev</string>
     <string name="tooldetail_media_limit_group">Rezultati</string>
     <string name="tooldetail_media_limit_subtitle">Koliko elementov naloži eno iskanje ali pogled trendov. Vaši lastni paketi nalepk so vedno prikazani v celoti.</string>

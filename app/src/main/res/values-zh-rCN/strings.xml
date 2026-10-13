@@ -1487,7 +1487,7 @@
     <string name="fonts_tool_flashlight_desc">通过键盘开启或关闭手电筒</string>
     <string name="fonts_tool_floating_desc">将键盘分离为一个可移动的面板</string>
     <string name="fonts_tool_floating_title">悬浮键盘</string>
-    <string name="fonts_tool_gif_desc">搜索 GIF（Klipy、GIPHY）并直接从键盘发送</string>
+    <string name="fonts_tool_gif_desc">搜索 GIF（KLIPY、GIPHY）并直接从键盘发送</string>
     <string name="fonts_tool_grammar_desc">检查您输入的文本是否存在语法问题。Harper 可离线执行此操作</string>
     <string name="fonts_tool_grammar_title">语法检查</string>
     <string name="fonts_tool_handwriting_desc">用手指或 S Pen 手写文字。您的设备将进行识别</string>
@@ -2007,7 +2007,7 @@
         <item quantity="one">应用已导入 %1$s，包含 %2$d 个贴纸。</item>
         <item quantity="other">应用已导入 %1$s，包含 %2$d 个贴纸。</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">从您的照片中添加贴纸，或在键盘中长按 Klipy 或 GIPHY 贴纸</string>
+    <string name="import_stickers_empty_subtitle">从您的照片中添加贴纸，或在键盘中长按 KLIPY 或 GIPHY 贴纸</string>
     <string name="import_stickers_empty_title">此表情包中没有贴纸</string>
     <string name="import_stickers_none_added">应用未添加任何内容。</string>
     <string name="import_stickers_none_read">应用无法读取该表情包中的任何贴纸。</string>
@@ -6040,7 +6040,7 @@
     <string name="tooldetail_media_filter_header">内容过滤器</string>
     <string name="tooldetail_media_filter_high">高</string>
     <string name="tooldetail_media_filter_high_desc">过滤程度最高。G 级评级</string>
-    <string name="tooldetail_media_filter_info">“高”隐藏最多，“关”不隐藏任何内容。这对应于 Klipy 和 GIPHY 的分级，其中“高”为 G 级，“关”为 R 级。</string>
+    <string name="tooldetail_media_filter_info">“高”隐藏最多，“关”不隐藏任何内容。这对应于 KLIPY 和 GIPHY 的分级，其中“高”为 G 级，“关”为 R 级。</string>
     <string name="tooldetail_media_filter_low">低</string>
     <string name="tooldetail_media_filter_low_desc">仅隐藏最强烈的搜索结果。PG-13 分级</string>
     <string name="tooldetail_media_filter_medium">中</string>
@@ -6059,7 +6059,7 @@
     <string name="tooldetail_media_info">GIF 和贴纸工具共享所有这些内容以及下方的过滤器。任何一个密钥都足够了。每个拥有密钥的来源都会显示在面板中。</string>
     <string name="tooldetail_media_keys_group">来源和 API 密钥</string>
     <string name="tooldetail_media_klipy_hint">由 partner.klipy.com 提供。Tenor API 已于 2026 年年中关闭</string>
-    <string name="tooldetail_media_klipy_label">Klipy API 密钥</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API 密钥</string>
     <string name="tooldetail_media_layout_group">布局</string>
     <string name="tooldetail_media_limit_group">结果</string>
     <string name="tooldetail_media_limit_subtitle">单次搜索或趋势视图加载的项目数量。您自己的贴纸包始终会完整显示。</string>

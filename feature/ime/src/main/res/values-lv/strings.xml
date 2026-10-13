@@ -338,7 +338,7 @@
     <string name="ime_font_script_thai_label">taju</string>
     <string name="ime_font_system_default_label">Sistēmas noklusējums</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF rīkam ir nepieciešama API atslēga no Klipy vai GIPHY. Abas atslēgas ir bezmaksas. Pievienojiet atslēgu šī rīka iestatījumos.</string>
+    <string name="ime_gif_need_key_body">GIF rīkam ir nepieciešama API atslēga no KLIPY vai GIPHY. Abas atslēgas ir bezmaksas. Pievienojiet atslēgu šī rīka iestatījumos.</string>
     <string name="ime_gif_search_empty">Nav GIF failu priekš “%1$s”</string>
     <string name="ime_gif_search_hint">Meklēt GIF</string>
     <string name="ime_gif_unsupported_field_notice">Šis lauks nepieņem GIF. Izmēģiniet tērzēšanas vai piezīmju lietotni.</string>
@@ -865,8 +865,8 @@
     <string name="ime_sticker_info_untitled">Bez nosaukuma</string>
     <string name="ime_sticker_local_search_empty">Neviena jūsu uzlīme neatbilst “%1$s”</string>
     <string name="ime_sticker_manage_packs_action">Pārvaldīt pakas</string>
-    <string name="ime_sticker_need_key_body">Uzlīmju rīkam ir nepieciešama API atslēga no Klipy vai GIPHY. Abas atslēgas ir bezmaksas. Pievienojiet atslēgu šī rīka iestatījumos.</string>
-    <string name="ime_sticker_no_packs_empty">Pagaidām nav uzlīmju paku. Izveidojiet paku iestatījumos. Varat arī nospiest un turēt uzlīmi no Klipy vai GIPHY, lai saglabātu to šeit.</string>
+    <string name="ime_sticker_need_key_body">Uzlīmju rīkam ir nepieciešama API atslēga no KLIPY vai GIPHY. Abas atslēgas ir bezmaksas. Pievienojiet atslēgu šī rīka iestatījumos.</string>
+    <string name="ime_sticker_no_packs_empty">Pagaidām nav uzlīmju paku. Izveidojiet paku iestatījumos. Varat arī nospiest un turēt uzlīmi no KLIPY vai GIPHY, lai saglabātu to šeit.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d uzlīme</item>
         <item quantity="other">%1$d uzlīmes</item>

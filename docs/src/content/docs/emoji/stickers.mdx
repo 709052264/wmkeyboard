@@ -10,7 +10,7 @@ import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
 import Shot from '@components/Shot.astro';
 
-The sticker tool searches Klipy and GIPHY. Where the app on the other end supports them, results go out as real stickers, and you can build your own packs from photos already on your phone. It sits right next to [GIFs](/emoji/gifs/) in the toolbox and shares most of its settings.
+The sticker tool searches KLIPY and GIPHY. Where the app on the other end supports them, results go out as real stickers, and you can build your own packs from photos already on your phone. It sits right next to [GIFs](/emoji/gifs/) in the toolbox and shares most of its settings.
 
 <PhoneFrame caption="Sticker search results, with the My stickers tab for your own packs.">
   {/* shot: emoji/sticker-panel-search */}
@@ -22,7 +22,7 @@ The sticker tool searches Klipy and GIPHY. Where the app on the other end suppor
   <Shot id="emoji/sticker-panel-unsupported-field" alt="The standing notice a field that can't take images shows, with results dimmed underneath." />
 </PhoneFrame>
 
-Open the tool from the toolbox, or from the toolbar once you've pinned it there. Type to search Klipy and GIPHY, or switch to **My stickers** for packs you've built yourself. Tap a result to download and insert it. While it downloads, the tile dims and shows a spinner over the preview.
+Open the tool from the toolbox, or from the toolbar once you've pinned it there. Type to search KLIPY and GIPHY, or switch to **My stickers** for packs you've built yourself. Tap a result to download and insert it. While it downloads, the tile dims and shows a spinner over the preview.
 
 The emoji and GIF panels are one tap away. The bottom row under the results holds <KeyCap>ABC</KeyCap>, a switch to emoji, GIFs and stickers, space and backspace, the same row the [emoji panel](/emoji/picker/#switching-to-gifs-and-stickers) ends in. That setting can put the switch next to the search box instead, or turn it off; the <KeyCap>ABC</KeyCap>, space and backspace stay. Like the GIF panel, the sticker panel is a [panel layout](/languages/custom-layouts/#panel-layouts) you can rearrange: its component is **Sticker search and results**. It opens as tall as the emoji panel's **Panel height** setting makes it, and like the GIF panel it has a [bar across its top](/emoji/gifs/#making-the-panel-taller) that drags it taller or shorter. **Hide the search when you scroll** folds the search box and the chip rows away while you scroll down the results, [as on the GIF panel](/emoji/gifs/#hiding-the-search-while-you-scroll).
 
@@ -38,16 +38,16 @@ If the field does take images but rejects a still sticker, the keyboard tries a 
 
 ## Long-pressing a sticker
 
-Long-pressing a Klipy or GIPHY result opens a menu with three kinds of row:
+Long-pressing a KLIPY or GIPHY result opens a menu with three kinds of row:
 
 - **Save to a pack**, shown as "Save to a new pack" if you have none yet, or "Save to `<pack name>`" for each pack you've made. The keyboard can't pull a sticker back out of a chat someone sent you. To keep one of those, save it to your phone from the chat app, then add it with the **+** chip under [My stickers](#my-stickers-and-your-own-packs).
 - **Copy** puts the sticker on the system clipboard instead of into the field, to paste wherever you like.
-- **Report** opens a mail draft to the maintainer naming the provider, your search term, and the sticker's id and URL, with room at the top to say what's wrong with it. Nothing leaves the device on its own. The draft sits in your mail app for you to read, edit, or drop. Klipy and GIPHY search their own catalogues, so results arrive unvetted, and this is where a bad one goes. [GIFs](/emoji/gifs/) have the same menu, minus the save rows.
+- **Report** opens a mail draft to the maintainer naming the provider, your search term, and the sticker's id and URL, with room at the top to say what's wrong with it. Nothing leaves the device on its own. The draft sits in your mail app for you to read, edit, or drop. KLIPY and GIPHY search their own catalogues, so results arrive unvetted, and this is where a bad one goes. [GIFs](/emoji/gifs/) have the same menu, minus the save rows.
 
 Long-pressing a sticker from **My stickers** starts with what the sticker is and what finds it: its title (or "No title"), the pack it's in, its keywords, and its emoji. Below that it shows "Manage packs" (which jumps straight to the pack management screen covered below) and **Copy**. There's no save row, since you already have it, and no report row, since it's your own file and there's nobody to report it to.
 
-<PhoneFrame caption="Long-press menu over a Klipy result: save to a pack, copy, or report.">
-  <Shot id="emoji/sticker-long-press-save" alt="Long-press menu over a Klipy result: save to a pack, copy, or report." />
+<PhoneFrame caption="Long-press menu over a KLIPY result: save to a pack, copy, or report.">
+  <Shot id="emoji/sticker-long-press-save" alt="Long-press menu over a KLIPY result: save to a pack, copy, or report." />
 </PhoneFrame>
 
 ## My stickers and your own packs
@@ -56,7 +56,7 @@ Long-pressing a sticker from **My stickers** starts with what the sticker is and
   <Shot id="emoji/sticker-pack-manage" alt="A sticker pack's management screen, with reorder and export controls." />
 </PhoneFrame>
 
-**My stickers** is always its own tab or chip. Your packs are never interleaved into the Klipy or GIPHY grid, in either source layout mode. With more than one pack, a second row of filter chips (All, then one per pack name) appears above the grid, and search there matches a sticker's title, its keywords and its pack name together.
+**My stickers** is always its own tab or chip. Your packs are never interleaved into the KLIPY or GIPHY grid, in either source layout mode. With more than one pack, a second row of filter chips (All, then one per pack name) appears above the grid, and search there matches a sticker's title, its keywords and its pack name together.
 
 The **+** chip at the end of the source chips' row, beside **My stickers**, is the quick way to add a sticker. It opens the app on the pack with the photo picker already up, so adding one sticker is a tap and a pick. The pack is the one you filtered the grid to, or your only pack if you have one. Under **All** with several packs, it asks which pack first. It sits on the source chips' row so that a single pack, with nothing to filter, costs no row of its own. When **My stickers** is your only source and there are no source chips, the **+** chip starts the pack filter row instead. With no packs yet, the empty grid's **Manage packs** button is the way in instead.
 
@@ -87,7 +87,7 @@ Between sessions it isn't. When you add a sticker from a photo, the keyboard kee
 
 A resumed edit opens on the **Erase** tab rather than **Crop**, since the crop is already made and a stray pan there is the one gesture that would throw the erasing away. **Undo** starts empty each time you open the editor, because it only covers the strokes of this session. "Crop again" is what clears an old cut-out, and it asks first.
 
-Stickers that arrived some other way (saved from Klipy or GIPHY, imported in a pack) have no separate photo behind them, so they reopen as themselves. The first time you edit one, the version you're replacing is kept as its original, and from then on it resumes like any other.
+Stickers that arrived some other way (saved from KLIPY or GIPHY, imported in a pack) have no separate photo behind them, so they reopen as themselves. The first time you edit one, the version you're replacing is kept as its original, and from then on it resumes like any other.
 
 None of this leaves the phone. Exporting a `.wmstickers` pack writes the manifest and the finished stickers only, the settings backup's sticker section walks the same list, and Android's own cloud backup and device transfer skip the folder entirely. It does take up space, so <SettingsPath path="About / Storage / Sticker packs" /> lists it as its own row ("Images you made stickers from"). Delete just that row to get the space back while keeping every sticker. Deleting it costs the resumable edits too, and those stickers go back to reopening as themselves.
 
@@ -199,14 +199,14 @@ Stickers isn't pinned to the toolbar by default. It lives in the toolbox alongsi
 - **Panel height**, under <SettingsPath path="Tools / Stickers / Layout" />, default **Same as keyboard**. The emoji panel's setting, here too because the bar on top of the panel drags it.
 - **Hide the search when you scroll**, under <SettingsPath path="Tools / Stickers / Layout" />, default **off**. Scrolling down the results folds the search box and the chips away, and scrolling up brings them back. Shared with the GIF tool.
 - **Panel layout**, under <SettingsPath path="Tools / Stickers / Layout" />. Opens the sticker panel's layout editor. **Standard** ends the way the emoji panel ends.
-- **Klipy API key** and **GIPHY API key**, under <SettingsPath path="Tools / Stickers / Sources and API keys" />, both blank by default and shared with the GIF tool. Either one alone is enough. Every source you've configured a key for shows up as a chip in the panel. Klipy replaced Tenor after Tenor's API was retired.
+- **KLIPY API key** and **GIPHY API key**, under <SettingsPath path="Tools / Stickers / Sources and API keys" />, both blank by default and shared with the GIF tool. Either one alone is enough. Every source you've configured a key for shows up as a chip in the panel. KLIPY replaced Tenor after Tenor's API was retired.
 - **Offer your stickers as you type**, under <SettingsPath path="Tools / Stickers / Suggest while typing" />, default **on**. Only shown under Stickers. See [Stickers as you type](#stickers-as-you-type). While it's on, two more rows sit under it:
   - **Where they show**: Tray, On the strip or One chip, default **Tray**.
   - **After you send one**: Remove the typed text or Keep the typed text, default **Remove the typed text**.
   - **Hold to see them bigger**, default **on**: hold a sticker in the tray to see it large, and slide to see the others.
 - **Send stickers as**, under <SettingsPath path="Tools / Stickers / Sending" />, Sticker or Image, default **Sticker**. Only shown under Stickers, since it governs what the sticker panel commits. The GIF panel has its own **Send GIFs as** on its own page.
-- **Multiple sources**, Tabs or Mixed, default **Tabs**. Tabs gives every configured source its own chip, including My stickers. Mixed collapses Klipy and GIPHY into one "Online" chip and keeps My stickers as a second chip.
-- **Content filter**, Off/Low/Medium/High, default **Medium**. Maps to Klipy's and GIPHY's own content rating.
+- **Multiple sources**, Tabs or Mixed, default **Tabs**. Tabs gives every configured source its own chip, including My stickers. Mixed collapses KLIPY and GIPHY into one "Online" chip and keeps My stickers as a second chip.
+- **Content filter**, Off/Low/Medium/High, default **Medium**. Maps to KLIPY's and GIPHY's own content rating.
 - **Results for each search**, under <SettingsPath path="Tools / Stickers / Results" />: a slider from 6 to 48, default **24**. It sets how many stickers one search or the trending view loads. Your own packs ignore it, so **My stickers** always shows everything that matches, however long the list. Shared with the GIF tool.
 
 Both tools are among the ones the setup wizard suggests enabling, and neither needs a particular edition. What an API key gates is the online half. The GIF panel has nothing to show without one, while **My stickers** needs no key at all, so the sticker tool never lands on a "needs an API key" notice the way the GIF tool can.
@@ -218,7 +218,7 @@ Both tools are among the ones the setup wizard suggests enabling, and neither ne
 - **Save and report don't apply to your own stickers.** Long-pressing something from My stickers offers pack management and Copy only. There's nothing to save (you already have it) and nothing to report (nobody served it to you).
 - **A source already at spec is left alone.** If a picked image is already a 512×512 WebP under 100 KB, it's stored as-is rather than re-encoded.
 - **One process, one store, but two independent views of it.** The keyboard and the settings app run in the same app process and share the same on-disk pack store, so every mutator saves immediately rather than batching. Each side still caches its own snapshot of the packs. The keyboard checks a cheap size-and-timestamp signal against the manifest and only reloads when that changed, rather than re-parsing it on every keystroke.
-- **Multiple sources and Content filter don't get a restore button.** Every other row on this screen grows [a small restore button](/reference/settings/#putting-one-setting-back) once you move it off its shipped value. Those two are drawn as a bare segmented row under a heading rather than as full setting rows, so there's nowhere to hang one. Undo them by picking Tabs and the middle filter level back yourself. The Klipy and GIPHY key fields have no button either, though clearing the box does the same job there.
+- **Multiple sources and Content filter don't get a restore button.** Every other row on this screen grows [a small restore button](/reference/settings/#putting-one-setting-back) once you move it off its shipped value. Those two are drawn as a bare segmented row under a heading rather than as full setting rows, so there's nowhere to hang one. Undo them by picking Tabs and the middle filter level back yourself. The KLIPY and GIPHY key fields have no button either, though clearing the box does the same job there.
 - **Packs need the device unlocked.** Sticker packs live in app-private storage that isn't available before you unlock the device after a restart, so the sticker tool isn't usable from a locked-screen field the way some other tools are.
 
 See also [GIFs](/emoji/gifs/) for the tool this one shares its settings and layout with, and [Emoji picker & search](/emoji/picker/) for the other route into expressive content on this keyboard.

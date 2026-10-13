@@ -1491,7 +1491,7 @@
     <string name="fonts_tool_flashlight_desc">Lülita taskulamp klaviatuurilt sisse või välja</string>
     <string name="fonts_tool_floating_desc">Eralda klaviatuur paneeliks, mida saad liigutada</string>
     <string name="fonts_tool_floating_title">Ujuv klaviatuur</string>
-    <string name="fonts_tool_gif_desc">Otsige GIF-e (Klipy, GIPHY) ja saatke neid klaviatuurilt</string>
+    <string name="fonts_tool_gif_desc">Otsige GIF-e (KLIPY, GIPHY) ja saatke neid klaviatuurilt</string>
     <string name="fonts_tool_grammar_desc">Kontrollige kirjutatud teksti grammatikaprobleemide suhtes. Harper teeb seda võrguühenduseta</string>
     <string name="fonts_tool_grammar_title">Grammatika kontroll</string>
     <string name="fonts_tool_handwriting_desc">Kirjutage sõnu käsitsi sõrme või S Pen-pliiatsiga. Teie seade teeb tuvastuse</string>
@@ -2013,7 +2013,7 @@
         <item quantity="one">Rakendus importis %1$s koos %2$d kleebisega.</item>
         <item quantity="other">Rakendus importis %1$s koos %2$d kleebisega.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Lisage kleebiseid oma fotodest või vajutage ja hoidke klaviatuuril Klipy või GIPHY kleebist</string>
+    <string name="import_stickers_empty_subtitle">Lisage kleebiseid oma fotodest või vajutage ja hoidke klaviatuuril KLIPY või GIPHY kleebist</string>
     <string name="import_stickers_empty_title">Selles pakis pole kleebiseid</string>
     <string name="import_stickers_none_added">Rakendus ei lisanud midagi.</string>
     <string name="import_stickers_none_read">Rakendus ei suuda sellest pakist ühtegi kleebist lugeda.</string>
@@ -6054,7 +6054,7 @@
     <string name="tooldetail_media_filter_header">Sisufilter</string>
     <string name="tooldetail_media_filter_high">Kõrge</string>
     <string name="tooldetail_media_filter_high_desc">Peidab kõige rohkem. G-reiting</string>
-    <string name="tooldetail_media_filter_info">Klipy ja GIPHY hindavad iga tulemust. Iga teenus rakendab teie taset oma tulemustele.</string>
+    <string name="tooldetail_media_filter_info">KLIPY ja GIPHY hindavad iga tulemust. Iga teenus rakendab teie taset oma tulemustele.</string>
     <string name="tooldetail_media_filter_low">Madal</string>
     <string name="tooldetail_media_filter_low_desc">Peidab ainult kõige tugevamad tulemused. PG-13 reiting</string>
     <string name="tooldetail_media_filter_medium">Keskmine</string>
@@ -6073,7 +6073,7 @@
     <string name="tooldetail_media_info">GIF-i ja kleebiste tööriistad jagavad seda kõike ja allolevat sisufiltrit. Piisab ühest klahvist. Iga allikas, millel on klahv, kuvatakse paneelil.</string>
     <string name="tooldetail_media_keys_group">Allikad ja API-võtmed</string>
     <string name="tooldetail_media_klipy_hint">Tasuta partnerilt partner.klipy.com. Tenori API suleti 2026. aasta keskel</string>
-    <string name="tooldetail_media_klipy_label">Klipy API võti</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API võti</string>
     <string name="tooldetail_media_layout_group">Paigutus</string>
     <string name="tooldetail_media_limit_group">Tulemused</string>
     <string name="tooldetail_media_limit_subtitle">Mitu üksust üks otsing või trendivaade laadib. Sinu enda kleebisepakid kuvatakse alati täielikult.</string>

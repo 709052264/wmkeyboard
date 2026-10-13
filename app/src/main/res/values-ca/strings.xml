@@ -1490,7 +1490,7 @@
     <string name="fonts_tool_flashlight_desc">Encén o apaga la llanterna des del teclat</string>
     <string name="fonts_tool_floating_desc">Desacobla el teclat en un panell que pots moure</string>
     <string name="fonts_tool_floating_title">Teclat flotant</string>
-    <string name="fonts_tool_gif_desc">Cerca GIFs (Klipy, GIPHY) i envia\'ls des del teclat</string>
+    <string name="fonts_tool_gif_desc">Cerca GIFs (KLIPY, GIPHY) i envia\'ls des del teclat</string>
     <string name="fonts_tool_grammar_desc">Comproveu si el text que escriviu té problemes gramaticals. Harper ho fa fora de línia</string>
     <string name="fonts_tool_grammar_title">Corrector gramatical</string>
     <string name="fonts_tool_handwriting_desc">Escriu paraules a mà amb un dit o amb un S Pen. El teu dispositiu fa el reconeixement</string>
@@ -2011,7 +2011,7 @@
         <item quantity="one">L\'aplicació ha importat %1$s amb %2$d adhesiu.</item>
         <item quantity="other">L\'aplicació ha importat %1$s amb %2$d adhesius.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Afegeix adhesius de les teves fotos, o prem i mantén premut un adhesiu de Klipy o GIPHY al teclat</string>
+    <string name="import_stickers_empty_subtitle">Afegeix adhesius de les teves fotos, o prem i mantén premut un adhesiu de KLIPY o GIPHY al teclat</string>
     <string name="import_stickers_empty_title">No hi ha adhesius en aquest paquet</string>
     <string name="import_stickers_none_added">L\'aplicació no ha afegit res.</string>
     <string name="import_stickers_none_read">L\'aplicació no pot llegir cap adhesiu d\'aquest paquet.</string>
@@ -6044,7 +6044,7 @@
     <string name="tooldetail_media_filter_header">Filtre de contingut</string>
     <string name="tooldetail_media_filter_high">Alt</string>
     <string name="tooldetail_media_filter_high_desc">Amaga la majoria. La classificació G</string>
-    <string name="tooldetail_media_filter_info">Klipy i GIPHY donen una qualificació a cada resultat. Cada servei aplica el vostre nivell als seus propis resultats.</string>
+    <string name="tooldetail_media_filter_info">KLIPY i GIPHY donen una qualificació a cada resultat. Cada servei aplica el vostre nivell als seus propis resultats.</string>
     <string name="tooldetail_media_filter_low">Baix</string>
     <string name="tooldetail_media_filter_low_desc">Amaga només els resultats més forts. La classificació PG-13</string>
     <string name="tooldetail_media_filter_medium">Mitjà</string>
@@ -6063,7 +6063,7 @@
     <string name="tooldetail_media_info">Les eines de GIF i adhesius comparteixen tot això, i el filtre de contingut següent. Qualsevol tecla és suficient. Totes les fonts que tenen una tecla apareixen al tauler.</string>
     <string name="tooldetail_media_keys_group">Fonts i claus d\'API</string>
     <string name="tooldetail_media_klipy_hint">Gratuït des de partner.klipy.com. L\'API de Tenor va tancar a mitjans de 2026</string>
-    <string name="tooldetail_media_klipy_label">Clau API de Klipy</string>
+    <string name="tooldetail_media_klipy_label">Clau API de KLIPY</string>
     <string name="tooldetail_media_layout_group">Disseny</string>
     <string name="tooldetail_media_limit_group">Resultats</string>
     <string name="tooldetail_media_limit_subtitle">Quants elements carrega una cerca o la vista de tendències. Els vostres propis paquets d\'adhesius sempre es mostren completament.</string>

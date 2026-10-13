@@ -1493,7 +1493,7 @@
     <string name="fonts_tool_flashlight_desc">چراغ‌قوه را از طریق صفحه‌کلید روشن یا خاموش کنید</string>
     <string name="fonts_tool_floating_desc">صفحه‌کلید را به پنلی جدا کنید که بتوانید آن را جابجا کنید</string>
     <string name="fonts_tool_floating_title">صفحه‌کلید شناور</string>
-    <string name="fonts_tool_gif_desc">جستجوی فایل‌های GIF (از طریق Klipy یا GIPHY) و ارسال آن‌ها از طریق صفحه‌کلید</string>
+    <string name="fonts_tool_gif_desc">جستجوی فایل‌های GIF (از طریق KLIPY یا GIPHY) و ارسال آن‌ها از طریق صفحه‌کلید</string>
     <string name="fonts_tool_grammar_desc">متنی را که می‌نویسید از نظر مشکلات دستوری بررسی کنید. هارپر این کار را به صورت آفلاین انجام می‌دهد</string>
     <string name="fonts_tool_grammar_title">بررسی دستور زبان</string>
     <string name="fonts_tool_handwriting_desc">کلمات را با دست و با انگشت یا قلم S Pen بنویسید. دستگاه شما تشخیص را انجام می‌دهد</string>
@@ -2013,7 +2013,7 @@
         <item quantity="one">برنامه %1$s را با %2$d برچسب وارد کرد.</item>
         <item quantity="other">برنامه %1$s را با %2$d برچسب وارد کرد.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">استیکرها را از عکس‌های خود اضافه کنید، یا یک استیکر Klipy یا GIPHY را در صفحه کلید فشار داده و نگه دارید</string>
+    <string name="import_stickers_empty_subtitle">استیکرها را از عکس‌های خود اضافه کنید، یا یک استیکر KLIPY یا GIPHY را در صفحه کلید فشار داده و نگه دارید</string>
     <string name="import_stickers_empty_title">هیچ استیکری در این بسته وجود ندارد</string>
     <string name="import_stickers_none_added">برنامه چیزی اضافه نکرد.</string>
     <string name="import_stickers_none_read">برنامه نمی‌تواند هیچ استیکری را در آن بسته بخواند.</string>
@@ -6055,7 +6055,7 @@
     <string name="tooldetail_media_filter_header">فیلتر محتوا</string>
     <string name="tooldetail_media_filter_high">بالا</string>
     <string name="tooldetail_media_filter_high_desc">بیشترین محدودیت. رده‌بندی G</string>
-    <string name="tooldetail_media_filter_info">حالت «زیاد» بیشترین موارد را پنهان می‌کند و «خاموش» چیزی را پنهان نمی‌کند. این با رتبه‌بندی Klipy و GIPHY مطابقت دارد، که در آن «زیاد» معادل G و «خاموش» معادل R است.</string>
+    <string name="tooldetail_media_filter_info">حالت «زیاد» بیشترین موارد را پنهان می‌کند و «خاموش» چیزی را پنهان نمی‌کند. این با رتبه‌بندی KLIPY و GIPHY مطابقت دارد، که در آن «زیاد» معادل G و «خاموش» معادل R است.</string>
     <string name="tooldetail_media_filter_low">کم</string>
     <string name="tooldetail_media_filter_low_desc">فقط قوی‌ترین نتایج را پنهان می‌کند. رده‌بندی PG-13</string>
     <string name="tooldetail_media_filter_medium">متوسط</string>

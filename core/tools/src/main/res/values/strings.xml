@@ -93,7 +93,7 @@
     <!-- GIF and sticker panel: the chips that select a source.             -->
     <!-- ================================================================== -->
 
-    <string name="core_tools_gif_source_klipy" translatable="false">Klipy</string>
+    <string name="core_tools_gif_source_klipy" translatable="false">KLIPY</string>
     <string name="core_tools_gif_source_giphy" translatable="false">GIPHY</string>
     <!-- The sticker packs the user keeps on the device. -->
     <string name="core_tools_gif_source_local">My stickers</string>

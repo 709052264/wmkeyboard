@@ -1488,7 +1488,7 @@
     <string name="fonts_tool_flashlight_desc">키보드에서 손전등 켜기 또는 끄기</string>
     <string name="fonts_tool_floating_desc">키보드를 이동 가능한 패널로 분리합니다</string>
     <string name="fonts_tool_floating_title">플로팅 키보드</string>
-    <string name="fonts_tool_gif_desc">GIF(Klipy, GIPHY)를 검색하고 키보드에서 바로 전송</string>
+    <string name="fonts_tool_gif_desc">GIF(KLIPY, GIPHY)를 검색하고 키보드에서 바로 전송</string>
     <string name="fonts_tool_grammar_desc">작성한 텍스트의 문법 문제를 확인하세요. Harper는 오프라인에서 이 작업을 수행합니다.</string>
     <string name="fonts_tool_grammar_title">문법 검사</string>
     <string name="fonts_tool_handwriting_desc">손가락이나 S 펜으로 단어를 직접 쓰세요. 기기가 인식합니다.</string>
@@ -2008,7 +2008,7 @@
         <item quantity="one">앱이 %1$s을(를) 스티커 %2$d개와 함께 가져왔습니다.</item>
         <item quantity="other">앱이 %1$s을(를) 스티커 %2$d개와 함께 가져왔습니다.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">사진에서 스티커를 추가하거나 키보드에서 Klipy 또는 GIPHY 스티커를 길게 누르세요</string>
+    <string name="import_stickers_empty_subtitle">사진에서 스티커를 추가하거나 키보드에서 KLIPY 또는 GIPHY 스티커를 길게 누르세요</string>
     <string name="import_stickers_empty_title">이 팩에는 스티커가 없습니다</string>
     <string name="import_stickers_none_added">앱이 아무것도 추가하지 않았습니다.</string>
     <string name="import_stickers_none_read">앱이 해당 팩에서 스티커를 읽을 수 없습니다.</string>
@@ -6043,7 +6043,7 @@
     <string name="tooldetail_media_filter_header">콘텐츠 필터</string>
     <string name="tooldetail_media_filter_high">높음</string>
     <string name="tooldetail_media_filter_high_desc">가장 많이 숨김. G 등급</string>
-    <string name="tooldetail_media_filter_info">높음은 가장 많이 숨기고, 끄기는 아무것도 숨기지 않습니다. 이는 Klipy 및 GIPHY의 등급에 매핑되며, 높음은 G 등급, 끄기는 R 등급에 해당합니다.</string>
+    <string name="tooldetail_media_filter_info">높음은 가장 많이 숨기고, 끄기는 아무것도 숨기지 않습니다. 이는 KLIPY 및 GIPHY의 등급에 매핑되며, 높음은 G 등급, 끄기는 R 등급에 해당합니다.</string>
     <string name="tooldetail_media_filter_low">낮음</string>
     <string name="tooldetail_media_filter_low_desc">가장 강력한 결과만 숨깁니다. PG-13 등급</string>
     <string name="tooldetail_media_filter_medium">중간</string>
@@ -6062,7 +6062,7 @@
     <string name="tooldetail_media_info">GIF 및 스티커 도구는 이 모든 항목과 아래의 콘텐츠 필터를 공유합니다. 키 하나만 있어도 충분합니다. 키가 있는 모든 소스가 패널에 표시됩니다.</string>
     <string name="tooldetail_media_keys_group">소스 및 API 키</string>
     <string name="tooldetail_media_klipy_hint">partner.klipy.com에서 무료 제공. Tenor API는 2026년 중반에 종료되었습니다.</string>
-    <string name="tooldetail_media_klipy_label">Klipy API 키</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API 키</string>
     <string name="tooldetail_media_layout_group">레이아웃</string>
     <string name="tooldetail_media_limit_group">결과</string>
     <string name="tooldetail_media_limit_subtitle">한 번의 검색이나 트렌드 보기에서 불러올 항목 수입니다. 사용자의 스티커 팩은 항상 전체가 표시됩니다.</string>

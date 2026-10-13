@@ -1490,7 +1490,7 @@
     <string name="fonts_tool_flashlight_desc">Aprinde sau stinge lanterna de la tastatură</string>
     <string name="fonts_tool_floating_desc">Detașează tastatura într-un panou pe care îl poți muta</string>
     <string name="fonts_tool_floating_title">Tastatură plutitoare</string>
-    <string name="fonts_tool_gif_desc">Caută GIF-uri (Klipy, GIPHY) și trimite-le direct de pe tastatură</string>
+    <string name="fonts_tool_gif_desc">Caută GIF-uri (KLIPY, GIPHY) și trimite-le direct de pe tastatură</string>
     <string name="fonts_tool_grammar_desc">Verificați textul pe care îl scrieți pentru probleme gramaticale. Harper face acest lucru offline</string>
     <string name="fonts_tool_grammar_title">Verificare gramaticală</string>
     <string name="fonts_tool_handwriting_desc">Scrie cuvinte de mână cu un deget sau cu un S Pen. Dispozitivul tău face recunoașterea</string>
@@ -2011,7 +2011,7 @@
         <item quantity="one">Aplicația a importat %1$s cu %2$d autocolant.</item>
         <item quantity="other">Aplicația a importat %1$s cu %2$d autocolante.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Adaugă stickere din fotografiile tale sau apasă lung pe un sticker Klipy sau GIPHY în tastatură</string>
+    <string name="import_stickers_empty_subtitle">Adaugă stickere din fotografiile tale sau apasă lung pe un sticker KLIPY sau GIPHY în tastatură</string>
     <string name="import_stickers_empty_title">Nu există stickere în acest pachet</string>
     <string name="import_stickers_none_added">Aplicația nu a adăugat nimic.</string>
     <string name="import_stickers_none_read">Aplicația nu poate citi niciun autocolant din acel pachet.</string>
@@ -6048,7 +6048,7 @@
     <string name="tooldetail_media_filter_header">Filtru de conținut</string>
     <string name="tooldetail_media_filter_high">Ridicat</string>
     <string name="tooldetail_media_filter_high_desc">Ascunde cele mai multe. Clasificarea G</string>
-    <string name="tooldetail_media_filter_info">Klipy și GIPHY oferă fiecărui rezultat un rating. Fiecare serviciu aplică nivelul dvs. propriilor rezultate.</string>
+    <string name="tooldetail_media_filter_info">KLIPY și GIPHY oferă fiecărui rezultat un rating. Fiecare serviciu aplică nivelul dvs. propriilor rezultate.</string>
     <string name="tooldetail_media_filter_low">Scăzut</string>
     <string name="tooldetail_media_filter_low_desc">Ascunde doar cele mai puternice rezultate. Clasificarea PG-13</string>
     <string name="tooldetail_media_filter_medium">Mediu</string>
@@ -6067,7 +6067,7 @@
     <string name="tooldetail_media_info">Instrumentele GIF și autocolante partajează toate acestea, precum și filtrul de conținut de mai jos. O singură cheie este suficientă. Fiecare sursă care are o cheie apare în panou.</string>
     <string name="tooldetail_media_keys_group">Surse și chei API</string>
     <string name="tooldetail_media_klipy_hint">Gratuit de la partner.klipy.com. API-ul Tenor s-a închis la jumătatea anului 2026</string>
-    <string name="tooldetail_media_klipy_label">Cheie API Klipy</string>
+    <string name="tooldetail_media_klipy_label">Cheie API KLIPY</string>
     <string name="tooldetail_media_layout_group">Aspect</string>
     <string name="tooldetail_media_limit_group">Rezultate</string>
     <string name="tooldetail_media_limit_subtitle">Câte elemente încarcă o căutare sau vizualizarea în tendințe. Propriile tale pachete de stickere se afișează întotdeauna complet.</string>

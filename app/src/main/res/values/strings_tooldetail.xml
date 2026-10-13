@@ -466,7 +466,7 @@
     <string name="tooldetail_gif_favourites_offline_info">The copies download when you add a favourite or open Favourites, and only on a connection that data saving allows. Turn this off to delete the copies. Your favourites stay.</string>
     <string name="tooldetail_media_hide_header_info">The results get the room that the search box, the source chips and the category chips take. When you are at the top of the results, pull down to bring them back. While you type a search, the search box always shows. This applies to both tools.</string>
     <string name="tooldetail_media_keys_group">Sources and API keys</string>
-    <string name="tooldetail_media_klipy_label">Klipy API key</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API key</string>
     <string name="tooldetail_media_klipy_hint">Free from partner.klipy.com. The Tenor API closed in the middle of 2026</string>
     <string name="tooldetail_media_giphy_label">GIPHY API key</string>
     <string name="tooldetail_media_giphy_hint">Free from developers.giphy.com</string>
@@ -501,12 +501,12 @@
     <string name="tooldetail_media_filter_medium">Medium</string>
     <string name="tooldetail_media_filter_high">High</string>
     <!-- Descriptions of the four filter levels. G, PG, PG-13 and R are the
-         rating letters of Klipy and GIPHY. Keep them as they are. -->
+         rating letters of KLIPY and GIPHY. Keep them as they are. -->
     <string name="tooldetail_media_filter_off_desc">Every result. The R rating</string>
     <string name="tooldetail_media_filter_low_desc">Hides only the strongest results. The PG-13 rating</string>
     <string name="tooldetail_media_filter_medium_desc">Suitable for most chats. The PG rating</string>
     <string name="tooldetail_media_filter_high_desc">Hides the most. The G rating</string>
-    <string name="tooldetail_media_filter_info">Klipy and GIPHY give each result a rating. Each service applies your level to its own results.</string>
+    <string name="tooldetail_media_filter_info">KLIPY and GIPHY give each result a rating. Each service applies your level to its own results.</string>
     <string name="tooldetail_media_limit_group">Results</string>
     <string name="tooldetail_media_limit_title">Results for each search</string>
     <string name="tooldetail_media_limit_subtitle">How many items one search or the trending view loads. Your own sticker packs always show fully.</string>

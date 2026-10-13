@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">タイ語</string>
     <string name="ime_font_system_default_label">システムデフォルト</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIFツールにはKlipyまたはGIPHYのAPIキーが必要です。どちらのキーも無料で取得できます。このツールの設定でキーを追加してください。</string>
+    <string name="ime_gif_need_key_body">GIFツールにはKLIPYまたはGIPHYのAPIキーが必要です。どちらのキーも無料で取得できます。このツールの設定でキーを追加してください。</string>
     <string name="ime_gif_search_empty">「%1$s」のGIFは見つかりませんでした</string>
     <string name="ime_gif_search_hint">GIFを検索</string>
     <string name="ime_gif_unsupported_field_notice">このフィールドはGIFに対応していません。チャットアプリやメモアプリを試してください。</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">タイトルなし</string>
     <string name="ime_sticker_local_search_empty">「%1$s」に一致するステッカーはありません</string>
     <string name="ime_sticker_manage_packs_action">パックを管理</string>
-    <string name="ime_sticker_need_key_body">ステッカーツールを使用するには、KlipyまたはGIPHYのAPIキーが必要です。どちらのキーも無料で取得できます。このツールの設定でキーを追加してください。</string>
-    <string name="ime_sticker_no_packs_empty">ステッカーパックがまだありません。設定からパックを作成してください。KlipyやGIPHYのステッカーを長押しして、ここに保存することもできます。</string>
+    <string name="ime_sticker_need_key_body">ステッカーツールを使用するには、KLIPYまたはGIPHYのAPIキーが必要です。どちらのキーも無料で取得できます。このツールの設定でキーを追加してください。</string>
+    <string name="ime_sticker_no_packs_empty">ステッカーパックがまだありません。設定からパックを作成してください。KLIPYやGIPHYのステッカーを長押しして、ここに保存することもできます。</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d個のステッカー</item>
         <item quantity="other">%1$d個のステッカー</item>

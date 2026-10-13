@@ -1490,7 +1490,7 @@
     <string name="fonts_tool_flashlight_desc">కీబోర్డ్ నుండి టార్చ్‌ను ఆన్ లేదా ఆఫ్ చేయండి</string>
     <string name="fonts_tool_floating_desc">కీబోర్డ్‌ను మీరు తరలించగల ప్యానెల్‌గా విడదీయండి</string>
     <string name="fonts_tool_floating_title">ఫ్లోటింగ్ కీబోర్డ్</string>
-    <string name="fonts_tool_gif_desc">GIFల కోసం (Klipy, GIPHY) వెతకండి మరియు వాటిని కీబోర్డ్ నుండి పంపండి</string>
+    <string name="fonts_tool_gif_desc">GIFల కోసం (KLIPY, GIPHY) వెతకండి మరియు వాటిని కీబోర్డ్ నుండి పంపండి</string>
     <string name="fonts_tool_grammar_desc">మీరు రాసే టెక్స్ట్‌లో వ్యాకరణ సమస్యలను తనిఖీ చేయండి. హార్పర్ దీన్ని ఆఫ్‌లైన్‌లో చేస్తుంది</string>
     <string name="fonts_tool_grammar_title">వ్యాకరణ తనిఖీ</string>
     <string name="fonts_tool_handwriting_desc">వేలితో లేదా S పెన్‌తో చేతితో పదాలు రాయండి. మీ పరికరం గుర్తింపును చేస్తుంది</string>
@@ -2010,7 +2010,7 @@
         <item quantity="one">యాప్ %1$sని %2$d స్టిక్కర్‌తో దిగుమతి చేసుకుంది.</item>
         <item quantity="other">యాప్ %1$sని %2$d స్టిక్కర్‌లతో దిగుమతి చేసుకుంది.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">మీ ఫోటోల నుండి స్టిక్కర్లను జోడించండి, లేదా కీబోర్డ్‌లోని క్లిపీ (Klipy) లేదా గిఫీ (GIPHY) స్టిక్కర్‌ను నొక్కి పట్టుకోండి</string>
+    <string name="import_stickers_empty_subtitle">మీ ఫోటోల నుండి స్టిక్కర్లను జోడించండి, లేదా కీబోర్డ్‌లోని క్లిపీ (KLIPY) లేదా గిఫీ (GIPHY) స్టిక్కర్‌ను నొక్కి పట్టుకోండి</string>
     <string name="import_stickers_empty_title">ఈ ప్యాక్‌లో స్టిక్కర్లు లేవు</string>
     <string name="import_stickers_none_added">యాప్ ఏమీ జోడించలేదు.</string>
     <string name="import_stickers_none_read">ఆ ప్యాక్‌లోని ఏ స్టిక్కర్‌ను యాప్ చదవలేకపోతోంది.</string>
@@ -6053,7 +6053,7 @@
     <string name="tooldetail_media_filter_header">కంటెంట్ ఫిల్టర్</string>
     <string name="tooldetail_media_filter_high">అధికం</string>
     <string name="tooldetail_media_filter_high_desc">అత్యధికంగా దాచిపెడుతుంది. G రేటింగ్</string>
-    <string name="tooldetail_media_filter_info">హై (High) అత్యధికంగా దాచిపెడుతుంది మరియు ఆఫ్ (Off) ఏదీ దాచదు. ఇది Klipy మరియు GIPHY రేటింగ్‌కు మ్యాప్ అవుతుంది, ఇక్కడ హై అంటే G మరియు ఆఫ్ అంటే R.</string>
+    <string name="tooldetail_media_filter_info">హై (High) అత్యధికంగా దాచిపెడుతుంది మరియు ఆఫ్ (Off) ఏదీ దాచదు. ఇది KLIPY మరియు GIPHY రేటింగ్‌కు మ్యాప్ అవుతుంది, ఇక్కడ హై అంటే G మరియు ఆఫ్ అంటే R.</string>
     <string name="tooldetail_media_filter_low">తక్కువ</string>
     <string name="tooldetail_media_filter_low_desc">అత్యంత బలమైన ఫలితాలను మాత్రమే దాచిపెడుతుంది. PG-13 రేటింగ్</string>
     <string name="tooldetail_media_filter_medium">మధ్యస్థం</string>
@@ -6072,7 +6072,7 @@
     <string name="tooldetail_media_info">GIF మరియు స్టిక్కర్ టూల్స్ వీటన్నింటినీ మరియు దిగువన ఉన్న కంటెంట్ ఫిల్టర్‌ను పంచుకుంటాయి. ఏదైనా ఒక కీ సరిపోతుంది. కీ ఉన్న ప్రతి మూలం ప్యానెల్‌లో కనిపిస్తుంది.</string>
     <string name="tooldetail_media_keys_group">మూలాలు మరియు API కీలు</string>
     <string name="tooldetail_media_klipy_hint">partner.klipy.com నుండి ఉచితం. Tenor API 2026 మధ్యలో మూసివేయబడింది</string>
-    <string name="tooldetail_media_klipy_label">Klipy API కీ</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API కీ</string>
     <string name="tooldetail_media_layout_group">లేఅవుట్</string>
     <string name="tooldetail_media_limit_group">ఫలితాలు</string>
     <string name="tooldetail_media_limit_subtitle">ఒక సెర్చ్ లేదా ట్రెండింగ్ వ్యూ ఎన్ని ఐటమ్స్‌ను లోడ్ చేస్తుందో ఇది నిర్ణయిస్తుంది. మీ స్వంత స్టిక్కర్ ప్యాక్‌లు ఎల్లప్పుడూ పూర్తిగా కనిపిస్తాయి.</string>

@@ -1489,7 +1489,7 @@
     <string name="fonts_tool_flashlight_desc">A zseblámpa be- vagy kikapcsolása a billentyűzetről</string>
     <string name="fonts_tool_floating_desc">Válassza le a billentyűzetet egy mozgatható panelre</string>
     <string name="fonts_tool_floating_title">Lebegő billentyűzet</string>
-    <string name="fonts_tool_gif_desc">Keressen GIF-eket (Klipy, GIPHY) és küldje el őket a billentyűzetről</string>
+    <string name="fonts_tool_gif_desc">Keressen GIF-eket (KLIPY, GIPHY) és küldje el őket a billentyűzetről</string>
     <string name="fonts_tool_grammar_desc">Ellenőrizd az írott szöveged nyelvtani hibáit. A Harper ezt offline módon végzi</string>
     <string name="fonts_tool_grammar_title">Nyelvhelyesség-ellenőrzés</string>
     <string name="fonts_tool_handwriting_desc">Írjon szavakat kézzel, ujjal vagy S Pennel. Az eszköz elvégzi a felismerést</string>
@@ -2010,7 +2010,7 @@
         <item quantity="one">Az alkalmazás importálta a(z) %1$s elemet %2$d matricával.</item>
         <item quantity="other">Az alkalmazás importálta a(z) %1$s elemet %2$d matricával.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Adjon hozzá matricákat a fényképeiből, vagy tartson lenyomva egy Klipy vagy GIPHY matricát a billentyűzeten</string>
+    <string name="import_stickers_empty_subtitle">Adjon hozzá matricákat a fényképeiből, vagy tartson lenyomva egy KLIPY vagy GIPHY matricát a billentyűzeten</string>
     <string name="import_stickers_empty_title">Nincsenek matricák ebben a csomagban</string>
     <string name="import_stickers_none_added">Az alkalmazás nem adott hozzá semmit.</string>
     <string name="import_stickers_none_read">Az alkalmazás nem tud beolvasni egyetlen matricát sem az adott csomagból.</string>
@@ -6043,7 +6043,7 @@
     <string name="tooldetail_media_filter_header">Tartalomszűrő</string>
     <string name="tooldetail_media_filter_high">Magas</string>
     <string name="tooldetail_media_filter_high_desc">A legtöbbet rejti el. A G besorolás</string>
-    <string name="tooldetail_media_filter_info">A Klipy és a GIPHY minden eredményt értékeléssel lát el. Mindegyik szolgáltatás a saját eredményeire alkalmazza az Ön által beállított szintet.</string>
+    <string name="tooldetail_media_filter_info">A KLIPY és a GIPHY minden eredményt értékeléssel lát el. Mindegyik szolgáltatás a saját eredményeire alkalmazza az Ön által beállított szintet.</string>
     <string name="tooldetail_media_filter_low">Alacsony</string>
     <string name="tooldetail_media_filter_low_desc">Csak a legerősebb találatokat rejti el. A PG-13 besorolás</string>
     <string name="tooldetail_media_filter_medium">Közepes</string>
@@ -6062,7 +6062,7 @@
     <string name="tooldetail_media_info">A GIF- és matricaeszközök mindezt megosztják, valamint az alábbi tartalomszűrőt. Bármelyik billentyű elegendő. Minden forrás, amelyhez tartozik billentyű, megjelenik a panelen.</string>
     <string name="tooldetail_media_keys_group">Források és API-kulcsok</string>
     <string name="tooldetail_media_klipy_hint">Ingyenes a partner.klipy.com oldalról. A Tenor API 2026 közepén bezárt</string>
-    <string name="tooldetail_media_klipy_label">Klipy API-kulcs</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API-kulcs</string>
     <string name="tooldetail_media_layout_group">Elrendezés</string>
     <string name="tooldetail_media_limit_group">Eredmények</string>
     <string name="tooldetail_media_limit_subtitle">Hány elemet töltsön be egy keresés vagy a felkapott nézet. A saját matricacsomagjaid mindig teljesen megjelennek.</string>

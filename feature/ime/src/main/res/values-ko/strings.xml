@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">태국어</string>
     <string name="ime_font_system_default_label">시스템 기본값</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF 도구를 사용하려면 Klipy 또는 GIPHY의 API 키가 필요합니다. 두 키 모두 무료입니다. 이 도구의 설정에서 키를 추가하세요.</string>
+    <string name="ime_gif_need_key_body">GIF 도구를 사용하려면 KLIPY 또는 GIPHY의 API 키가 필요합니다. 두 키 모두 무료입니다. 이 도구의 설정에서 키를 추가하세요.</string>
     <string name="ime_gif_search_empty">“%1$s”에 대한 GIF가 없습니다</string>
     <string name="ime_gif_search_hint">GIF 검색</string>
     <string name="ime_gif_unsupported_field_notice">이 필드는 GIF를 지원하지 않습니다. 채팅 앱이나 메모 앱에서 시도해 보세요.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">제목 없음</string>
     <string name="ime_sticker_local_search_empty">“%1$s”와 일치하는 스티커가 없습니다</string>
     <string name="ime_sticker_manage_packs_action">팩 관리</string>
-    <string name="ime_sticker_need_key_body">스티커 도구를 사용하려면 Klipy 또는 GIPHY의 API 키가 필요합니다. 두 키 모두 무료입니다. 이 도구의 설정에서 키를 추가하세요.</string>
-    <string name="ime_sticker_no_packs_empty">아직 스티커 팩이 없습니다. 설정에서 팩을 만드세요. Klipy 또는 GIPHY의 스티커를 길게 눌러 여기에 저장할 수도 있습니다.</string>
+    <string name="ime_sticker_need_key_body">스티커 도구를 사용하려면 KLIPY 또는 GIPHY의 API 키가 필요합니다. 두 키 모두 무료입니다. 이 도구의 설정에서 키를 추가하세요.</string>
+    <string name="ime_sticker_no_packs_empty">아직 스티커 팩이 없습니다. 설정에서 팩을 만드세요. KLIPY 또는 GIPHY의 스티커를 길게 눌러 여기에 저장할 수도 있습니다.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">스티커 %1$d개</item>
         <item quantity="other">스티커 %1$d개</item>

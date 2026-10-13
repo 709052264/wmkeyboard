@@ -196,13 +196,19 @@
     <!-- GIF and sticker panel. -->
     <string name="ime_gif_search_hint">Search GIFs</string>
     <string name="ime_sticker_search_hint">Search stickers</string>
-    <!-- Credit under the search box. %1$s is a list of providers, for example "Klipy · GIPHY". -->
-    <string name="ime_media_attribution">from <xliff:g id="providers" example="Klipy · GIPHY">%1$s</xliff:g></string>
+    <!-- Hint in the search box while KLIPY answers. KLIPY's brand terms ask for
+         this wording. %1$s is the providers, for example "KLIPY" or "KLIPY · GIPHY".
+         Keep KLIPY in capitals. -->
+    <string name="ime_media_search_provider">Search <xliff:g id="providers" example="KLIPY">%1$s</xliff:g></string>
+    <!-- Credit under the search box. %1$s is a list of providers, for example "KLIPY · GIPHY". -->
+    <string name="ime_media_attribution">from <xliff:g id="providers" example="KLIPY · GIPHY">%1$s</xliff:g></string>
+    <!-- Spoken name of the KLIPY logo next to the search box. KLIPY is a brand name. -->
+    <string name="ime_media_powered_by_klipy">Powered by KLIPY</string>
     <!-- Bar over the grid when the text field takes no pictures. -->
     <string name="ime_gif_unsupported_field_notice">This field does not accept GIFs. Try a chat app or a notes app.</string>
     <string name="ime_sticker_unsupported_field_notice">This field does not accept stickers. Try a chat app or a notes app.</string>
-    <string name="ime_gif_need_key_body">The GIF tool needs an API key from Klipy or GIPHY. Both keys are free. Add a key in the settings for this tool.</string>
-    <string name="ime_sticker_need_key_body">The sticker tool needs an API key from Klipy or GIPHY. Both keys are free. Add a key in the settings for this tool.</string>
+    <string name="ime_gif_need_key_body">The GIF tool needs an API key from KLIPY or GIPHY. Both keys are free. Add a key in the settings for this tool.</string>
+    <string name="ime_sticker_need_key_body">The sticker tool needs an API key from KLIPY or GIPHY. Both keys are free. Add a key in the settings for this tool.</string>
     <string name="ime_media_trending_empty">No trending results now</string>
     <!-- The first chip in the category row: what is popular now, no category. -->
     <string name="ime_media_category_trending_label">Trending</string>
@@ -218,7 +224,7 @@
     <string name="ime_sticker_search_empty">No stickers for “<xliff:g id="query" example="cat">%1$s</xliff:g>”</string>
     <!-- Empty result inside the packs the user made. %1$s is the search text. -->
     <string name="ime_sticker_local_search_empty">No stickers of yours match “<xliff:g id="query" example="cat">%1$s</xliff:g>”</string>
-    <string name="ime_sticker_no_packs_empty">No sticker packs yet. Make a pack in the settings. You can also press and hold a sticker from Klipy or GIPHY to save it here.</string>
+    <string name="ime_sticker_no_packs_empty">No sticker packs yet. Make a pack in the settings. You can also press and hold a sticker from KLIPY or GIPHY to save it here.</string>
     <string name="ime_sticker_pack_empty">This pack is empty.</string>
     <!-- Chip that shows the stickers of every pack together. -->
     <string name="ime_sticker_pack_all_label">All</string>

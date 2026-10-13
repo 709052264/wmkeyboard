@@ -1489,7 +1489,7 @@
     <string name="fonts_tool_flashlight_desc">Accendi o spegni la torcia dalla tastiera</string>
     <string name="fonts_tool_floating_desc">Stacca la tastiera in un pannello che puoi spostare</string>
     <string name="fonts_tool_floating_title">Tastiera mobile</string>
-    <string name="fonts_tool_gif_desc">Cerca GIF (Klipy, GIPHY) e inviale dalla tastiera</string>
+    <string name="fonts_tool_gif_desc">Cerca GIF (KLIPY, GIPHY) e inviale dalla tastiera</string>
     <string name="fonts_tool_grammar_desc">Controlla il testo che scrivi per problemi grammaticali. Harper lo fa offline</string>
     <string name="fonts_tool_grammar_title">Controllo grammaticale</string>
     <string name="fonts_tool_handwriting_desc">Scrivi le parole a mano con un dito o con una S Pen. Il tuo dispositivo eseguirà il riconoscimento</string>
@@ -2009,7 +2009,7 @@
         <item quantity="one">L\'app ha importato %1$s con %2$d adesivo.</item>
         <item quantity="other">L\'app ha importato %1$s con %2$d adesivi.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Aggiungi adesivi dalle tue foto, oppure tieni premuto un adesivo Klipy o GIPHY nella tastiera</string>
+    <string name="import_stickers_empty_subtitle">Aggiungi adesivi dalle tue foto, oppure tieni premuto un adesivo KLIPY o GIPHY nella tastiera</string>
     <string name="import_stickers_empty_title">Nessun adesivo in questo pacchetto</string>
     <string name="import_stickers_none_added">L\'app non ha aggiunto nulla.</string>
     <string name="import_stickers_none_read">L\'app non riesce a leggere alcuno sticker in quel pacchetto.</string>
@@ -6041,7 +6041,7 @@
     <string name="tooldetail_media_filter_header">Filtro contenuti</string>
     <string name="tooldetail_media_filter_high">Alta</string>
     <string name="tooldetail_media_filter_high_desc">Nasconde la maggior parte dei contenuti. Classificazione G</string>
-    <string name="tooldetail_media_filter_info">Alto nasconde di più e Disattivato non nasconde nulla. Questo corrisponde alla classificazione di Klipy e GIPHY, dove Alto è G e Disattivato è R.</string>
+    <string name="tooldetail_media_filter_info">Alto nasconde di più e Disattivato non nasconde nulla. Questo corrisponde alla classificazione di KLIPY e GIPHY, dove Alto è G e Disattivato è R.</string>
     <string name="tooldetail_media_filter_low">Basso</string>
     <string name="tooldetail_media_filter_low_desc">Nasconde solo i risultati più forti. La classificazione PG-13</string>
     <string name="tooldetail_media_filter_medium">Med</string>
@@ -6060,7 +6060,7 @@
     <string name="tooldetail_media_info">Gli strumenti GIF e adesivi condividono tutto questo e il filtro contenuti qui sotto. Basta un solo tasto. Ogni fonte che ha un tasto appare nel pannello.</string>
     <string name="tooldetail_media_keys_group">Fonti e chiavi API</string>
     <string name="tooldetail_media_klipy_hint">Gratuito da partner.klipy.com. L\'API di Tenor è stata chiusa a metà 2026</string>
-    <string name="tooldetail_media_klipy_label">Chiave API Klipy</string>
+    <string name="tooldetail_media_klipy_label">Chiave API KLIPY</string>
     <string name="tooldetail_media_layout_group">Layout</string>
     <string name="tooldetail_media_limit_group">Risultati</string>
     <string name="tooldetail_media_limit_subtitle">Quanti elementi carica una ricerca o la vista di tendenza. I tuoi pacchetti di adesivi personali vengono sempre mostrati completamente.</string>

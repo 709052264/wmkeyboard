@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">泰语</string>
     <string name="ime_font_system_default_label">系统默认</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF 工具需要 Klipy 或 GIPHY 的 API 密钥。这两个密钥都是免费的。请在此工具的设置中添加密钥。</string>
+    <string name="ime_gif_need_key_body">GIF 工具需要 KLIPY 或 GIPHY 的 API 密钥。这两个密钥都是免费的。请在此工具的设置中添加密钥。</string>
     <string name="ime_gif_search_empty">没有找到关于“%1$s”的 GIF</string>
     <string name="ime_gif_search_hint">搜索 GIF</string>
     <string name="ime_gif_unsupported_field_notice">此字段不支持 GIF。请尝试在聊天应用或笔记应用中使用。</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">无标题</string>
     <string name="ime_sticker_local_search_empty">没有与“%1$s”匹配的贴纸</string>
     <string name="ime_sticker_manage_packs_action">管理表情包</string>
-    <string name="ime_sticker_need_key_body">贴纸工具需要来自 Klipy 或 GIPHY 的 API 密钥。两个密钥都是免费的。请在此工具的设置中添加密钥。</string>
-    <string name="ime_sticker_no_packs_empty">暂无贴纸包。请在设置中创建一个。您也可以长按来自 Klipy 或 GIPHY 的贴纸将其保存到此处。</string>
+    <string name="ime_sticker_need_key_body">贴纸工具需要来自 KLIPY 或 GIPHY 的 API 密钥。两个密钥都是免费的。请在此工具的设置中添加密钥。</string>
+    <string name="ime_sticker_no_packs_empty">暂无贴纸包。请在设置中创建一个。您也可以长按来自 KLIPY 或 GIPHY 的贴纸将其保存到此处。</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d 个贴纸</item>
         <item quantity="other">%1$d 个贴纸</item>

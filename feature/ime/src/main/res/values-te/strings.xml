@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">థాయ్</string>
     <string name="ime_font_system_default_label">సిస్టమ్ డిఫాల్ట్</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF టూల్‌కు Klipy లేదా GIPHY నుండి API కీ అవసరం. రెండు కీలు ఉచితం. ఈ టూల్ కోసం సెట్టింగ్‌లలో కీని జోడించండి.</string>
+    <string name="ime_gif_need_key_body">GIF టూల్‌కు KLIPY లేదా GIPHY నుండి API కీ అవసరం. రెండు కీలు ఉచితం. ఈ టూల్ కోసం సెట్టింగ్‌లలో కీని జోడించండి.</string>
     <string name="ime_gif_search_empty">“%1$s” కోసం ఎటువంటి GIFలు లేవు</string>
     <string name="ime_gif_search_hint">GIFలను వెతకండి</string>
     <string name="ime_gif_unsupported_field_notice">ఈ ఫీల్డ్ GIFలను అనుమతించదు. చాట్ యాప్ లేదా నోట్స్ యాప్‌లో ప్రయత్నించండి.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">శీర్షిక లేదు</string>
     <string name="ime_sticker_local_search_empty">మీ స్టిక్కర్‌లేవీ “%1$s”తో సరిపోలడం లేదు</string>
     <string name="ime_sticker_manage_packs_action">ప్యాక్‌లను నిర్వహించండి</string>
-    <string name="ime_sticker_need_key_body">స్టిక్కర్ సాధనానికి Klipy లేదా GIPHY నుండి API కీ అవసరం. రెండు కీలు ఉచితం. ఈ సాధనం కోసం సెట్టింగ్‌లలో కీని జోడించండి.</string>
-    <string name="ime_sticker_no_packs_empty">ఇంకా స్టిక్కర్ ప్యాక్‌లు లేవు. సెట్టింగ్‌లలో ఒక ప్యాక్‌ని సృష్టించండి. మీరు Klipy లేదా GIPHY నుండి స్టిక్కర్‌ను నొక్కి పట్టుకోవడం ద్వారా కూడా ఇక్కడ సేవ్ చేయవచ్చు.</string>
+    <string name="ime_sticker_need_key_body">స్టిక్కర్ సాధనానికి KLIPY లేదా GIPHY నుండి API కీ అవసరం. రెండు కీలు ఉచితం. ఈ సాధనం కోసం సెట్టింగ్‌లలో కీని జోడించండి.</string>
+    <string name="ime_sticker_no_packs_empty">ఇంకా స్టిక్కర్ ప్యాక్‌లు లేవు. సెట్టింగ్‌లలో ఒక ప్యాక్‌ని సృష్టించండి. మీరు KLIPY లేదా GIPHY నుండి స్టిక్కర్‌ను నొక్కి పట్టుకోవడం ద్వారా కూడా ఇక్కడ సేవ్ చేయవచ్చు.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d స్టిక్కర్</item>
         <item quantity="other">%1$d స్టిక్కర్లు</item>

@@ -1490,7 +1490,7 @@
     <string name="fonts_tool_flashlight_desc">הדלק או כבה את הפנס מהמקלדת</string>
     <string name="fonts_tool_floating_desc">נתק את המקלדת לפאנל שניתן להזיז</string>
     <string name="fonts_tool_floating_title">מקלדת צפה</string>
-    <string name="fonts_tool_gif_desc">חפש קובצי GIF (Klipy, GIPHY) ושלח אותם מהמקלדת</string>
+    <string name="fonts_tool_gif_desc">חפש קובצי GIF (KLIPY, GIPHY) ושלח אותם מהמקלדת</string>
     <string name="fonts_tool_grammar_desc">בדוק את הטקסט שכתבת עבור בעיות דקדוק. Harper עושה זאת במצב לא מקוון</string>
     <string name="fonts_tool_grammar_title">בדיקת דקדוק</string>
     <string name="fonts_tool_handwriting_desc">כתוב מילים בכתב יד עם אצבע או עם S Pen. המכשיר שלך מבצע את הזיהוי</string>
@@ -2012,7 +2012,7 @@
         <item quantity="one">האפליקציה ייבאה את %1$s עם מדבקה אחת (%2$d).</item>
         <item quantity="other">האפליקציה ייבאה את %1$s עם %2$d מדבקות.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">הוסף מדבקות מהתמונות שלך, או לחץ לחיצה ארוכה על מדבקת Klipy או GIPHY במקלדת</string>
+    <string name="import_stickers_empty_subtitle">הוסף מדבקות מהתמונות שלך, או לחץ לחיצה ארוכה על מדבקת KLIPY או GIPHY במקלדת</string>
     <string name="import_stickers_empty_title">אין מדבקות בחבילה זו</string>
     <string name="import_stickers_none_added">האפליקציה לא הוסיפה דבר.</string>
     <string name="import_stickers_none_read">האפליקציה אינה יכולה לקרוא אף מדבקה בחבילה זו.</string>
@@ -6050,7 +6050,7 @@
     <string name="tooldetail_media_filter_header">מסנן תוכן</string>
     <string name="tooldetail_media_filter_high">גבוה</string>
     <string name="tooldetail_media_filter_high_desc">מסתיר הכי הרבה. דירוג G</string>
-    <string name="tooldetail_media_filter_info">Klipy ו-GIPHY נותנים לכל תוצאה דירוג. כל שירות מחיל את הרמה שלך על התוצאות שלו.</string>
+    <string name="tooldetail_media_filter_info">KLIPY ו-GIPHY נותנים לכל תוצאה דירוג. כל שירות מחיל את הרמה שלך על התוצאות שלו.</string>
     <string name="tooldetail_media_filter_low">נמוך</string>
     <string name="tooldetail_media_filter_low_desc">מסתיר רק את התוצאות הקיצוניות ביותר. דירוג PG-13</string>
     <string name="tooldetail_media_filter_medium">בינוני</string>
@@ -6069,7 +6069,7 @@
     <string name="tooldetail_media_info">כלי ה-GIF והמדבקות חולקים את כל זה, ואת מסנן התוכן למטה. כל מפתח אחד מספיק. כל מקור שיש לו מפתח מופיע בלוח.</string>
     <string name="tooldetail_media_keys_group">מקורות ומפתחות API</string>
     <string name="tooldetail_media_klipy_hint">חינם מ-partner.klipy.com. ה-API של Tenor נסגר באמצע 2026</string>
-    <string name="tooldetail_media_klipy_label">מפתח API של Klipy</string>
+    <string name="tooldetail_media_klipy_label">מפתח API של KLIPY</string>
     <string name="tooldetail_media_layout_group">פריסה</string>
     <string name="tooldetail_media_limit_group">תוצאות</string>
     <string name="tooldetail_media_limit_subtitle">כמה פריטים נטענים בחיפוש אחד או בתצוגת המגמות. חבילות המדבקות שלך תמיד מוצגות במלואן.</string>

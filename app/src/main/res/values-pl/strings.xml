@@ -1490,7 +1490,7 @@
     <string name="fonts_tool_flashlight_desc">Włącz lub wyłącz latarkę z poziomu klawiatury</string>
     <string name="fonts_tool_floating_desc">Odłącz klawiaturę do panelu, który można przesuwać</string>
     <string name="fonts_tool_floating_title">Pływająca klawiatura</string>
-    <string name="fonts_tool_gif_desc">Wyszukuj pliki GIF (Klipy, GIPHY) i wysyłaj je bezpośrednio z klawiatury</string>
+    <string name="fonts_tool_gif_desc">Wyszukuj pliki GIF (KLIPY, GIPHY) i wysyłaj je bezpośrednio z klawiatury</string>
     <string name="fonts_tool_grammar_desc">Sprawdź pisany tekst pod kątem błędów gramatycznych. Harper robi to offline</string>
     <string name="fonts_tool_grammar_title">Sprawdzanie gramatyki</string>
     <string name="fonts_tool_handwriting_desc">Pisz słowa ręcznie palcem lub rysikiem S Pen. Twoje urządzenie zajmie się rozpoznawaniem pisma</string>
@@ -2011,7 +2011,7 @@
         <item quantity="one">Aplikacja zaimportowała %1$s z %2$d naklejką.</item>
         <item quantity="other">Aplikacja zaimportowała %1$s z %2$d naklejkami.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Dodaj naklejki ze swoich zdjęć lub naciśnij i przytrzymaj naklejkę Klipy lub GIPHY na klawiaturze</string>
+    <string name="import_stickers_empty_subtitle">Dodaj naklejki ze swoich zdjęć lub naciśnij i przytrzymaj naklejkę KLIPY lub GIPHY na klawiaturze</string>
     <string name="import_stickers_empty_title">Brak naklejek w tym pakiecie</string>
     <string name="import_stickers_none_added">Aplikacja nic nie dodała.</string>
     <string name="import_stickers_none_read">Aplikacja nie może odczytać żadnej naklejki w tym pakiecie.</string>
@@ -6047,7 +6047,7 @@
     <string name="tooldetail_media_filter_header">Filtr zawartości</string>
     <string name="tooldetail_media_filter_high">Wysoka</string>
     <string name="tooldetail_media_filter_high_desc">Ukrywa najwięcej. Kategoria G</string>
-    <string name="tooldetail_media_filter_info">Klipy i GIPHY nadają każdemu wynikowi ocenę. Każda usługa stosuje Twój poziom do własnych wyników.</string>
+    <string name="tooldetail_media_filter_info">KLIPY i GIPHY nadają każdemu wynikowi ocenę. Każda usługa stosuje Twój poziom do własnych wyników.</string>
     <string name="tooldetail_media_filter_low">Niski</string>
     <string name="tooldetail_media_filter_low_desc">Ukrywa tylko najsilniejsze wyniki. Klasyfikacja PG-13</string>
     <string name="tooldetail_media_filter_medium">Średni</string>
@@ -6066,7 +6066,7 @@
     <string name="tooldetail_media_info">Narzędzia GIF i naklejek współdzielą to wszystko oraz poniższy filtr zawartości. Wystarczy jeden klucz. Każde źródło, które posiada klucz, pojawi się w panelu.</string>
     <string name="tooldetail_media_keys_group">Źródła i klucze API</string>
     <string name="tooldetail_media_klipy_hint">Bezpłatne z partner.klipy.com. API Tenor zostało zamknięte w połowie 2026 roku</string>
-    <string name="tooldetail_media_klipy_label">Klucz API Klipy</string>
+    <string name="tooldetail_media_klipy_label">Klucz API KLIPY</string>
     <string name="tooldetail_media_layout_group">Układ</string>
     <string name="tooldetail_media_limit_group">Wyniki</string>
     <string name="tooldetail_media_limit_subtitle">Ile elementów ładuje jedno wyszukiwanie lub widok trendów. Twoje własne pakiety naklejek zawsze wyświetlają się w całości.</string>

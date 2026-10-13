@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">থাই</string>
     <string name="ime_font_system_default_label">সিস্টেম ডিফল্ট</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF টুলের জন্য Klipy বা GIPHY থেকে একটি API কী প্রয়োজন। উভয় কী-ই বিনামূল্যে পাওয়া যায়। এই টুলের সেটিংসে একটি কী যোগ করুন।</string>
+    <string name="ime_gif_need_key_body">GIF টুলের জন্য KLIPY বা GIPHY থেকে একটি API কী প্রয়োজন। উভয় কী-ই বিনামূল্যে পাওয়া যায়। এই টুলের সেটিংসে একটি কী যোগ করুন।</string>
     <string name="ime_gif_search_empty">“%1$s”-এর জন্য কোনো জিআইএফ (GIF) নেই</string>
     <string name="ime_gif_search_hint">GIF অনুসন্ধান করুন</string>
     <string name="ime_gif_unsupported_field_notice">এই ফিল্ডটি জিআইএফ (GIF) সমর্থন করে না। কোনো চ্যাট অ্যাপ বা নোটস অ্যাপ ব্যবহার করে দেখুন।</string>
@@ -864,8 +864,8 @@
     <string name="ime_sticker_info_untitled">কোনো শিরোনাম নেই</string>
     <string name="ime_sticker_local_search_empty">আপনার কোনো স্টিকার “%1$s”-এর সাথে মেলে না</string>
     <string name="ime_sticker_manage_packs_action">প্যাক ম্যানেজ করুন</string>
-    <string name="ime_sticker_need_key_body">স্টিকার টুলের জন্য Klipy বা GIPHY থেকে একটি API কী প্রয়োজন। উভয় কী-ই বিনামূল্যে পাওয়া যায়। এই টুলের সেটিংসে একটি কী যোগ করুন।</string>
-    <string name="ime_sticker_no_packs_empty">এখনও কোনো স্টিকার প্যাক নেই। সেটিংসে একটি প্যাক তৈরি করুন। এছাড়াও আপনি Klipy বা GIPHY থেকে কোনো স্টিকার এখানে সেভ করতে চাইলে সেটি চেপে ধরে রাখতে পারেন।</string>
+    <string name="ime_sticker_need_key_body">স্টিকার টুলের জন্য KLIPY বা GIPHY থেকে একটি API কী প্রয়োজন। উভয় কী-ই বিনামূল্যে পাওয়া যায়। এই টুলের সেটিংসে একটি কী যোগ করুন।</string>
+    <string name="ime_sticker_no_packs_empty">এখনও কোনো স্টিকার প্যাক নেই। সেটিংসে একটি প্যাক তৈরি করুন। এছাড়াও আপনি KLIPY বা GIPHY থেকে কোনো স্টিকার এখানে সেভ করতে চাইলে সেটি চেপে ধরে রাখতে পারেন।</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$dটি স্টিকার</item>
         <item quantity="other">%1$dটি স্টিকার</item>

@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">Thailandeză</string>
     <string name="ime_font_system_default_label">Implicit sistem</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">Instrumentul GIF are nevoie de o cheie API de la Klipy sau GIPHY. Ambele chei sunt gratuite. Adaugă o cheie în setările pentru acest instrument.</string>
+    <string name="ime_gif_need_key_body">Instrumentul GIF are nevoie de o cheie API de la KLIPY sau GIPHY. Ambele chei sunt gratuite. Adaugă o cheie în setările pentru acest instrument.</string>
     <string name="ime_gif_search_empty">Niciun GIF pentru „%1$s”</string>
     <string name="ime_gif_search_hint">Caută GIF-uri</string>
     <string name="ime_gif_unsupported_field_notice">Acest câmp nu acceptă GIF-uri. Încearcă o aplicație de chat sau o aplicație de notițe.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">Fără titlu</string>
     <string name="ime_sticker_local_search_empty">Niciunul dintre stickerele tale nu se potrivește cu „%1$s”</string>
     <string name="ime_sticker_manage_packs_action">Gestionați pachetele</string>
-    <string name="ime_sticker_need_key_body">Instrumentul de stickere are nevoie de o cheie API de la Klipy sau GIPHY. Ambele chei sunt gratuite. Adaugă o cheie în setările pentru acest instrument.</string>
-    <string name="ime_sticker_no_packs_empty">Încă nu există pachete de stickere. Creează un pachet în setări. De asemenea, poți apăsa lung pe un sticker din Klipy sau GIPHY pentru a-l salva aici.</string>
+    <string name="ime_sticker_need_key_body">Instrumentul de stickere are nevoie de o cheie API de la KLIPY sau GIPHY. Ambele chei sunt gratuite. Adaugă o cheie în setările pentru acest instrument.</string>
+    <string name="ime_sticker_no_packs_empty">Încă nu există pachete de stickere. Creează un pachet în setări. De asemenea, poți apăsa lung pe un sticker din KLIPY sau GIPHY pentru a-l salva aici.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d autocolant</item>
         <item quantity="other">%1$d autocolante</item>

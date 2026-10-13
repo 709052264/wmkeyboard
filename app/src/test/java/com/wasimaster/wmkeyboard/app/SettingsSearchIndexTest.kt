@@ -249,7 +249,7 @@ class SettingsSearchIndexTest {
             "backup",
             weight = EntryWeight.MIRROR,
         ),
-        row("Klipy API key", "Free from partner.klipy.com", "Tools › GIF", "tool/GIF", tool = ToolbarTool.GIF),
+        row("KLIPY API key", "Free from partner.klipy.com", "Tools › GIF", "tool/GIF", tool = ToolbarTool.GIF),
         row(
             "Include API keys",
             "Translate, GIF, search and AI keys",

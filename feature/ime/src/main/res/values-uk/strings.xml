@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">Тайська</string>
     <string name="ime_font_system_default_label">Системний за замовчуванням</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">Для інструменту GIF потрібен ключ API від Klipy або GIPHY. Обидва ключі безкоштовні. Додайте ключ у налаштуваннях цього інструменту.</string>
+    <string name="ime_gif_need_key_body">Для інструменту GIF потрібен ключ API від KLIPY або GIPHY. Обидва ключі безкоштовні. Додайте ключ у налаштуваннях цього інструменту.</string>
     <string name="ime_gif_search_empty">Немає GIF-файлів для “%1$s”</string>
     <string name="ime_gif_search_hint">Пошук GIF</string>
     <string name="ime_gif_unsupported_field_notice">Це поле не приймає GIF-файли. Спробуйте програму для чату або нотаток.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">Без назви</string>
     <string name="ime_sticker_local_search_empty">Жоден ваш стікер не відповідає “%1$s”</string>
     <string name="ime_sticker_manage_packs_action">Керування наборами</string>
-    <string name="ime_sticker_need_key_body">Для інструмента стікерів потрібен ключ API від Klipy або GIPHY. Обидва ключі безкоштовні. Додайте ключ у налаштуваннях цього інструмента.</string>
-    <string name="ime_sticker_no_packs_empty">Поки що немає наборів стікерів. Створіть набір у налаштуваннях. Ви також можете натиснути й утримувати стікер з Klipy або GIPHY, щоб зберегти його тут.</string>
+    <string name="ime_sticker_need_key_body">Для інструмента стікерів потрібен ключ API від KLIPY або GIPHY. Обидва ключі безкоштовні. Додайте ключ у налаштуваннях цього інструмента.</string>
+    <string name="ime_sticker_no_packs_empty">Поки що немає наборів стікерів. Створіть набір у налаштуваннях. Ви також можете натиснути й утримувати стікер з KLIPY або GIPHY, щоб зберегти його тут.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d стікер</item>
         <item quantity="other">%1$d стікерів</item>

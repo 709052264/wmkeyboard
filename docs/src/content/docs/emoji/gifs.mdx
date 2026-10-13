@@ -1,6 +1,6 @@
 ---
 title: "GIFs"
-description: "Search GIFs from Klipy and GIPHY and send them, with a copy-to-clipboard fallback when an app won't take them directly."
+description: "Search GIFs from KLIPY and GIPHY and send them, with a copy-to-clipboard fallback when an app won't take them directly."
 sidebar:
   order: 3
 ---
@@ -10,7 +10,7 @@ import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
 import Shot from '@components/Shot.astro';
 
-The GIF tool searches Klipy and GIPHY from a panel inside the keyboard, then sends the result straight into the field you're typing in. No switching apps, no copy-paste. On the F-Droid build it also searches Wikimedia Commons without any key at all, an educational corpus rather than reaction GIFs. Every other build needs a Klipy or GIPHY key before the tool can search anything online. [Offline GIF packs](#offline-gif-packs) need neither a key nor a connection.
+The GIF tool searches KLIPY and GIPHY from a panel inside the keyboard, then sends the result straight into the field you're typing in. No switching apps, no copy-paste. On the F-Droid build it also searches Wikimedia Commons without any key at all, an educational corpus rather than reaction GIFs. Every other build needs a KLIPY or GIPHY key before the tool can search anything online. [Offline GIF packs](#offline-gif-packs) need neither a key nor a connection.
 
 <PhoneFrame caption="The GIF panel, showing trending results on open.">
   <Shot id="emoji/gif-panel-trending" alt="The GIF panel, showing trending results on open." />
@@ -18,9 +18,9 @@ The GIF tool searches Klipy and GIPHY from a panel inside the keyboard, then sen
 
 ## Searching for a GIF
 
-Open the GIF tool and it fetches trending GIFs immediately, before you type anything. Start typing in the search box and results update live, 450ms after you stop. There's no Enter to press. That's different from the [web and image search tools](/tools/search/), which wait for you to submit the query; GIF and sticker lookups are cheap enough on Klipy and GIPHY to search as you type.
+Open the GIF tool and it fetches trending GIFs immediately, before you type anything. Start typing in the search box and results update live, 450ms after you stop. There's no Enter to press. That's different from the [web and image search tools](/tools/search/), which wait for you to submit the query; GIF and sticker lookups are cheap enough on KLIPY and GIPHY to search as you type.
 
-Results are laid out as justified rows of animated previews rather than a fixed grid: every preview keeps its own aspect ratio and nothing is cropped, so squarish results sit three across and a pair of wide ones fills a row on its own. **GIFs per row** sets how many share a row, from one to six, and **Gap between cells** the space around each one. At the end of the search box a small line reads "from Klipy" (or "from Klipy · GIPHY" once Mixed mode is pulling from both at once), so you know where a result came from.
+Results are laid out as justified rows of animated previews rather than a fixed grid: every preview keeps its own aspect ratio and nothing is cropped, so squarish results sit three across and a pair of wide ones fills a row on its own. **GIFs per row** sets how many share a row, from one to six, and **Gap between cells** the space around each one. The search box names where results come from. While KLIPY answers it reads "Search KLIPY" (or "Search KLIPY · GIPHY" once Mixed mode is pulling from both at once), with KLIPY's small "Powered by KLIPY" mark at its end. GIPHY on its own, or next to KLIPY, gets a small "from GIPHY" line instead. The same goes for the sticker panel.
 
 Before you've typed anything, a scrollable row of **category chips** sits above the grid: Trending first, then Reactions, Love, Happy, Sad and so on. Tap one to run it as a search, which is a way to browse without thinking of a word. Tap the active chip, or Trending, to go back. The chips come from the provider itself when it publishes categories, and from a built-in list when it doesn't, so the row is there offline too. It belongs to the default view only. Type anything and it steps aside for the results. With the full-screen picker turned off it also needs a certain amount of key height to be worth drawing, so a short three-row layout with the number row off loses it rather than losing the last row of the grid.
 
@@ -80,7 +80,7 @@ Long-press a GIF instead of tapping it and a small menu opens over the grid:
 
 - **Add to favourites** puts the GIF in the [Favourites chip](#favourites-and-recent-gifs). On a GIF that is already a favourite the row reads **Remove from favourites** and takes it out.
 - **Copy** downloads the GIF and puts it on the system clipboard, so you can paste it wherever you like rather than into the field you happen to be in. It's the same thing the fallback in step 3 above does, except you asked for it instead of finding out afterwards that the field wouldn't take the file.
-- **Report** opens a mail draft to the maintainer naming the provider, your search term, and the result's id and URL, with room at the top to say what's wrong with it. Nothing is sent from the keyboard. The draft lands in your mail app, and you can read, edit, or abandon it. Klipy and GIPHY answer a search out of their own catalogues, so a result nobody vetted can come back. This is where that goes.
+- **Report** opens a mail draft to the maintainer naming the provider, your search term, and the result's id and URL, with room at the top to say what's wrong with it. Nothing is sent from the keyboard. The draft lands in your mail app, and you can read, edit, or abandon it. KLIPY and GIPHY answer a search out of their own catalogues, so a result nobody vetted can come back. This is where that goes.
 
 Back (or tapping outside the menu) closes it without doing anything.
 
@@ -96,7 +96,7 @@ Saving to a pack is sticker-only, since a GIF can't become one. That row shows o
 
 | Setting | Default | What it does |
 |---|---|---|
-| Klipy API key | Empty | Paste a free key from `partner.klipy.com`. Klipy replaced Tenor as the primary provider after Google retired Tenor's third-party API in mid-2026. |
+| KLIPY API key | Empty | Paste a free key from `partner.klipy.com`. KLIPY replaced Tenor as the primary provider after Google retired Tenor's third-party API in mid-2026. |
 | GIPHY API key | Empty | Paste a free key from `developers.giphy.com`, as a second source. |
 | Full-screen picker | On | The toolbar, emoji row and symbol row step aside so the GIF grid gets the full keyboard height, with search moved up next to a back button. Shared with the sticker tool. |
 | GIFs per row | 3 | A slider from 1 to 6: the most GIFs side by side in a row. Fewer makes each one bigger. A row of wide GIFs can hold fewer than this. The sticker tool has its own. |
@@ -112,7 +112,7 @@ Saving to a pack is sticker-only, since a GIF can't become one. That row shows o
 | Content filter | Medium | Four levels (Off, Low, Medium, High) mapped to each provider's own content rating (High maps to G-rated results, Off to R). Shared with the sticker tool. |
 | Results for each search | 24 | A slider from 6 to 48. How many GIFs one search or the trending view loads. Shared with the sticker tool. |
 
-You only need one working key, Klipy or GIPHY, for the tool to work, except on the F-Droid build, which already has Commons. Configuring both Klipy and GIPHY adds a second source to search. **Send GIFs as** is only shown here, and the sticker tool's **Send stickers as** only on its own page. Each governs the panel it sits under, so neither page offers the other's setting. See [Stickers](/emoji/stickers/) for that one.
+You only need one working key, KLIPY or GIPHY, for the tool to work, except on the F-Droid build, which already has Commons. Configuring both KLIPY and GIPHY adds a second source to search. **Send GIFs as** is only shown here, and the sticker tool's **Send stickers as** only on its own page. Each governs the panel it sits under, so neither page offers the other's setting. See [Stickers](/emoji/stickers/) for that one.
 
 ## Details & edge cases
 
@@ -122,6 +122,6 @@ You only need one working key, Klipy or GIPHY, for the tool to work, except on t
 - **Two of these rows never grow a restore button.** Settings you've moved off their shipped value normally pick up [a small restore button](/reference/settings/#putting-one-setting-back) next to the control. **Multiple sources** and **Content filter** are the exception on this screen. They're drawn as a bare segmented row under a heading rather than as full setting rows, so there's nowhere for the button to sit. Put them back by picking Tabs and the middle filter level yourself. (The two API key fields don't have one either, but there the shipped value is an empty box.)
 - **No size cap on downloads.** Stickers cap the source file size. A GIF download has no maximum, so a very large or very long GIF still downloads in full before sending.
 - **Recently sent files are cached, not stored permanently.** Downloaded files are kept in a local cache, so re-picking the same GIF skips re-downloading it. The cache keeps only the 30 most recently touched files and deletes the rest, so it isn't a place to go looking for something you sent a while ago.
-- **Network use is opt-in and tool-scoped.** Klipy and GIPHY are only contacted while the GIF panel is open: trending on open, live search as you type, and the download on tap. Nothing happens in the background. See [Network policy](/privacy/network/) for the full breakdown of what each online tool sends.
+- **Network use is opt-in and tool-scoped.** KLIPY and GIPHY are only contacted while the GIF panel is open: trending on open, live search as you type, and the download on tap. Nothing happens in the background. See [Network policy](/privacy/network/) for the full breakdown of what each online tool sends.
 
 For custom sticker packs, long-press-to-save, and the Local tab, see [Stickers](/emoji/stickers/). For the toolbar and toolbox in general, see [The toolbar](/tools/overview/).

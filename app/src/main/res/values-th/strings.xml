@@ -1488,7 +1488,7 @@
     <string name="fonts_tool_flashlight_desc">เปิดหรือปิดไฟฉายจากแป้นพิมพ์</string>
     <string name="fonts_tool_floating_desc">แยกแป้นพิมพ์ออกเป็นแผงที่คุณสามารถเคลื่อนย้ายได้</string>
     <string name="fonts_tool_floating_title">แป้นพิมพ์แบบลอย</string>
-    <string name="fonts_tool_gif_desc">ค้นหา GIF (Klipy, GIPHY) และส่งจากแป้นพิมพ์</string>
+    <string name="fonts_tool_gif_desc">ค้นหา GIF (KLIPY, GIPHY) และส่งจากแป้นพิมพ์</string>
     <string name="fonts_tool_grammar_desc">ตรวจสอบข้อความที่คุณเขียนเพื่อหาปัญหาทางไวยากรณ์ Harper ทำสิ่งนี้แบบออฟไลน์</string>
     <string name="fonts_tool_grammar_title">ตรวจสอบไวยากรณ์</string>
     <string name="fonts_tool_handwriting_desc">เขียนคำด้วยมือโดยใช้นิ้วหรือ S Pen อุปกรณ์ของคุณจะทำการจดจำ</string>
@@ -2008,7 +2008,7 @@
         <item quantity="one">แอปนำเข้า %1$s พร้อมสติกเกอร์ %2$d รายการแล้ว</item>
         <item quantity="other">แอปนำเข้า %1$s พร้อมสติกเกอร์ %2$d รายการแล้ว</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">เพิ่มสติกเกอร์จากรูปภาพของคุณ หรือกดค้างที่สติกเกอร์ Klipy หรือ GIPHY ในคีย์บอร์ด</string>
+    <string name="import_stickers_empty_subtitle">เพิ่มสติกเกอร์จากรูปภาพของคุณ หรือกดค้างที่สติกเกอร์ KLIPY หรือ GIPHY ในคีย์บอร์ด</string>
     <string name="import_stickers_empty_title">ไม่มีสติกเกอร์ในชุดนี้</string>
     <string name="import_stickers_none_added">แอปไม่ได้เพิ่มสิ่งใดเลย</string>
     <string name="import_stickers_none_read">แอปไม่สามารถอ่านสติกเกอร์ใดๆ ในชุดนั้นได้</string>
@@ -6040,7 +6040,7 @@
     <string name="tooldetail_media_filter_header">ตัวกรองเนื้อหา</string>
     <string name="tooldetail_media_filter_high">สูง</string>
     <string name="tooldetail_media_filter_high_desc">ซ่อนเนื้อหามากที่สุด ระดับ G</string>
-    <string name="tooldetail_media_filter_info">ระดับสูงจะซ่อนเนื้อหามากที่สุด และปิดคือไม่ซ่อนอะไรเลย ซึ่งจะอ้างอิงตามการจัดเรตของ Klipy และ GIPHY โดยที่ระดับสูงคือ G และปิดคือ R</string>
+    <string name="tooldetail_media_filter_info">ระดับสูงจะซ่อนเนื้อหามากที่สุด และปิดคือไม่ซ่อนอะไรเลย ซึ่งจะอ้างอิงตามการจัดเรตของ KLIPY และ GIPHY โดยที่ระดับสูงคือ G และปิดคือ R</string>
     <string name="tooldetail_media_filter_low">ต่ำ</string>
     <string name="tooldetail_media_filter_low_desc">ซ่อนเฉพาะผลลัพธ์ที่รุนแรงที่สุด ระดับ PG-13</string>
     <string name="tooldetail_media_filter_medium">กลาง</string>
@@ -6059,7 +6059,7 @@
     <string name="tooldetail_media_info">เครื่องมือ GIF และสติกเกอร์ใช้สิ่งเหล่านี้ร่วมกัน รวมถึงตัวกรองเนื้อหาด้านล่าง คีย์เพียงคีย์เดียวก็เพียงพอแล้ว แหล่งข้อมูลทุกแห่งที่มีคีย์จะปรากฏในแผงควบคุม</string>
     <string name="tooldetail_media_keys_group">แหล่งที่มาและคีย์ API</string>
     <string name="tooldetail_media_klipy_hint">ฟรีจาก partner.klipy.com API ของ Tenor ปิดตัวลงในช่วงกลางปี 2026</string>
-    <string name="tooldetail_media_klipy_label">คีย์ API ของ Klipy</string>
+    <string name="tooldetail_media_klipy_label">คีย์ API ของ KLIPY</string>
     <string name="tooldetail_media_layout_group">เค้าโครง</string>
     <string name="tooldetail_media_limit_group">ผลลัพธ์</string>
     <string name="tooldetail_media_limit_subtitle">จำนวนรายการที่การค้นหาหนึ่งครั้งหรือมุมมองที่กำลังเป็นกระแสโหลดมา ชุดสติกเกอร์ของคุณเองจะแสดงเต็มรูปแบบเสมอ</string>

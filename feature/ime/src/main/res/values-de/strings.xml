@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">Thailändisch</string>
     <string name="ime_font_system_default_label">Systemstandard</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">Das GIF-Tool benötigt einen API-Schlüssel von Klipy oder GIPHY. Beide Schlüssel sind kostenlos. Fügen Sie in den Einstellungen für dieses Tool einen Schlüssel hinzu.</string>
+    <string name="ime_gif_need_key_body">Das GIF-Tool benötigt einen API-Schlüssel von KLIPY oder GIPHY. Beide Schlüssel sind kostenlos. Fügen Sie in den Einstellungen für dieses Tool einen Schlüssel hinzu.</string>
     <string name="ime_gif_search_empty">Keine GIFs für „%1$s“</string>
     <string name="ime_gif_search_hint">GIFs suchen</string>
     <string name="ime_gif_unsupported_field_notice">Dieses Feld akzeptiert keine GIFs. Versuchen Sie es mit einer Chat- oder Notizen-App.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">Kein Titel</string>
     <string name="ime_sticker_local_search_empty">Keine deiner Sticker entsprechen „%1$s“</string>
     <string name="ime_sticker_manage_packs_action">Pakete verwalten</string>
-    <string name="ime_sticker_need_key_body">Das Sticker-Tool benötigt einen API-Schlüssel von Klipy oder GIPHY. Beide Schlüssel sind kostenlos. Fügen Sie in den Einstellungen für dieses Tool einen Schlüssel hinzu.</string>
-    <string name="ime_sticker_no_packs_empty">Noch keine Sticker-Pakete. Erstellen Sie ein Paket in den Einstellungen. Sie können auch einen Sticker von Klipy oder GIPHY gedrückt halten, um ihn hier zu speichern.</string>
+    <string name="ime_sticker_need_key_body">Das Sticker-Tool benötigt einen API-Schlüssel von KLIPY oder GIPHY. Beide Schlüssel sind kostenlos. Fügen Sie in den Einstellungen für dieses Tool einen Schlüssel hinzu.</string>
+    <string name="ime_sticker_no_packs_empty">Noch keine Sticker-Pakete. Erstellen Sie ein Paket in den Einstellungen. Sie können auch einen Sticker von KLIPY oder GIPHY gedrückt halten, um ihn hier zu speichern.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d Sticker</item>
         <item quantity="other">%1$d Sticker</item>

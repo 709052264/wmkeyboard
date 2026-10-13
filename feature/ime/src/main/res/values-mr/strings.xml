@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">थाई</string>
     <string name="ime_font_system_default_label">सिस्टम डीफॉल्ट</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF टूलला Klipy किंवा GIPHY कडून API की आवश्यक आहे. दोन्ही की मोफत आहेत. या टूलच्या सेटिंग्जमध्ये की जोडा.</string>
+    <string name="ime_gif_need_key_body">GIF टूलला KLIPY किंवा GIPHY कडून API की आवश्यक आहे. दोन्ही की मोफत आहेत. या टूलच्या सेटिंग्जमध्ये की जोडा.</string>
     <string name="ime_gif_search_empty">“%1$s” साठी कोणतेही GIF नाहीत</string>
     <string name="ime_gif_search_hint">GIFs शोधा</string>
     <string name="ime_gif_unsupported_field_notice">हे फील्ड GIF स्वीकारत नाही. चॅट ॲप किंवा नोट्स ॲप वापरून पहा.</string>
@@ -864,8 +864,8 @@
     <string name="ime_sticker_info_untitled">शीर्षक नाही</string>
     <string name="ime_sticker_local_search_empty">तुमच्या कोणत्याही स्टिकर्सशी “%1$s” जुळत नाही</string>
     <string name="ime_sticker_manage_packs_action">पॅक व्यवस्थापित करा</string>
-    <string name="ime_sticker_need_key_body">स्टिकर टूलला Klipy किंवा GIPHY कडून API की आवश्यक आहे. दोन्ही की मोफत आहेत. या टूलच्या सेटिंग्जमध्ये की जोडा.</string>
-    <string name="ime_sticker_no_packs_empty">अद्याप कोणतेही स्टिकर पॅक नाहीत. सेटिंग्जमध्ये एक पॅक तयार करा. तुम्ही Klipy किंवा GIPHY मधील स्टिकर दाबून धरून ते येथे सेव्ह करू शकता.</string>
+    <string name="ime_sticker_need_key_body">स्टिकर टूलला KLIPY किंवा GIPHY कडून API की आवश्यक आहे. दोन्ही की मोफत आहेत. या टूलच्या सेटिंग्जमध्ये की जोडा.</string>
+    <string name="ime_sticker_no_packs_empty">अद्याप कोणतेही स्टिकर पॅक नाहीत. सेटिंग्जमध्ये एक पॅक तयार करा. तुम्ही KLIPY किंवा GIPHY मधील स्टिकर दाबून धरून ते येथे सेव्ह करू शकता.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d स्टिकर</item>
         <item quantity="other">%1$d स्टिकर्स</item>

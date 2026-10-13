@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">Thai</string>
     <string name="ime_font_system_default_label">Systemstandard</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF-værktøjet kræver en API-nøgle fra Klipy eller GIPHY. Begge nøgler er gratis. Tilføj en nøgle i indstillingerne for dette værktøj.</string>
+    <string name="ime_gif_need_key_body">GIF-værktøjet kræver en API-nøgle fra KLIPY eller GIPHY. Begge nøgler er gratis. Tilføj en nøgle i indstillingerne for dette værktøj.</string>
     <string name="ime_gif_search_empty">Ingen GIF\'er til “%1$s”</string>
     <string name="ime_gif_search_hint">Søg efter GIF\'er</string>
     <string name="ime_gif_unsupported_field_notice">Dette felt accepterer ikke GIF\'er. Prøv en chat-app eller en note-app.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">Ingen titel</string>
     <string name="ime_sticker_local_search_empty">Ingen af dine klistermærker matcher “%1$s”</string>
     <string name="ime_sticker_manage_packs_action">Administrer pakker</string>
-    <string name="ime_sticker_need_key_body">Klistermærkeværktøjet kræver en API-nøgle fra Klipy eller GIPHY. Begge nøgler er gratis. Tilføj en nøgle i indstillingerne for dette værktøj.</string>
-    <string name="ime_sticker_no_packs_empty">Ingen klistermærkepakker endnu. Lav en pakke i indstillingerne. Du kan også trykke og holde på et klistermærke fra Klipy eller GIPHY for at gemme det her.</string>
+    <string name="ime_sticker_need_key_body">Klistermærkeværktøjet kræver en API-nøgle fra KLIPY eller GIPHY. Begge nøgler er gratis. Tilføj en nøgle i indstillingerne for dette værktøj.</string>
+    <string name="ime_sticker_no_packs_empty">Ingen klistermærkepakker endnu. Lav en pakke i indstillingerne. Du kan også trykke og holde på et klistermærke fra KLIPY eller GIPHY for at gemme det her.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d klistermærke</item>
         <item quantity="other">%1$d klistermærker</item>

@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">Tailandés</string>
     <string name="ime_font_system_default_label">Predeterminado del sistema</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">La herramienta GIF necesita una clave API de Klipy o GIPHY. Ambas claves son gratuitas. Añade una clave en la configuración de esta herramienta.</string>
+    <string name="ime_gif_need_key_body">La herramienta GIF necesita una clave API de KLIPY o GIPHY. Ambas claves son gratuitas. Añade una clave en la configuración de esta herramienta.</string>
     <string name="ime_gif_search_empty">No hay GIFs para “%1$s”</string>
     <string name="ime_gif_search_hint">Buscar GIFs</string>
     <string name="ime_gif_unsupported_field_notice">Este campo no acepta GIFs. Prueba con una aplicación de chat o de notas.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">Sin título</string>
     <string name="ime_sticker_local_search_empty">Ninguno de tus stickers coincide con “%1$s”</string>
     <string name="ime_sticker_manage_packs_action">Gestionar paquetes</string>
-    <string name="ime_sticker_need_key_body">La herramienta de stickers necesita una clave API de Klipy o GIPHY. Ambas claves son gratuitas. Añade una clave en los ajustes de esta herramienta.</string>
-    <string name="ime_sticker_no_packs_empty">Aún no hay paquetes de stickers. Crea un paquete en los ajustes. También puedes mantener presionado un sticker de Klipy o GIPHY para guardarlo aquí.</string>
+    <string name="ime_sticker_need_key_body">La herramienta de stickers necesita una clave API de KLIPY o GIPHY. Ambas claves son gratuitas. Añade una clave en los ajustes de esta herramienta.</string>
+    <string name="ime_sticker_no_packs_empty">Aún no hay paquetes de stickers. Crea un paquete en los ajustes. También puedes mantener presionado un sticker de KLIPY o GIPHY para guardarlo aquí.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d sticker</item>
         <item quantity="other">%1$d stickers</item>

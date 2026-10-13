@@ -1491,7 +1491,7 @@
     <string name="fonts_tool_flashlight_desc">Schakel de zaklamp in of uit vanaf het toetsenbord</string>
     <string name="fonts_tool_floating_desc">Maak het toetsenbord los in een paneel dat je kunt verplaatsen</string>
     <string name="fonts_tool_floating_title">Zwevend toetsenbord</string>
-    <string name="fonts_tool_gif_desc">Zoek naar GIF\'s (Klipy, GIPHY) en verstuur ze vanaf het toetsenbord</string>
+    <string name="fonts_tool_gif_desc">Zoek naar GIF\'s (KLIPY, GIPHY) en verstuur ze vanaf het toetsenbord</string>
     <string name="fonts_tool_grammar_desc">Controleer de tekst die je schrijft op grammaticale problemen. Harper doet dit offline</string>
     <string name="fonts_tool_grammar_title">Grammaticacontrole</string>
     <string name="fonts_tool_handwriting_desc">Schrijf woorden met de hand met een vinger of een S Pen. Je apparaat doet de herkenning</string>
@@ -2012,7 +2012,7 @@
         <item quantity="one">De app heeft %1$s geïmporteerd met %2$d sticker.</item>
         <item quantity="other">De app heeft %1$s geïmporteerd met %2$d stickers.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Voeg stickers toe vanuit je foto\'s, of houd een Klipy- of GIPHY-sticker ingedrukt op het toetsenbord</string>
+    <string name="import_stickers_empty_subtitle">Voeg stickers toe vanuit je foto\'s, of houd een KLIPY- of GIPHY-sticker ingedrukt op het toetsenbord</string>
     <string name="import_stickers_empty_title">Geen stickers in dit pakket</string>
     <string name="import_stickers_none_added">De app heeft niets toegevoegd.</string>
     <string name="import_stickers_none_read">De app kan geen enkele sticker in dat pakket lezen.</string>
@@ -6050,7 +6050,7 @@
     <string name="tooldetail_media_filter_header">Inhoudsfilter</string>
     <string name="tooldetail_media_filter_high">Hoog</string>
     <string name="tooldetail_media_filter_high_desc">Verbergt het meeste. De G-beoordeling</string>
-    <string name="tooldetail_media_filter_info">Klipy en GIPHY geven elk resultaat een beoordeling. Elke service past jouw niveau toe op zijn eigen resultaten.</string>
+    <string name="tooldetail_media_filter_info">KLIPY en GIPHY geven elk resultaat een beoordeling. Elke service past jouw niveau toe op zijn eigen resultaten.</string>
     <string name="tooldetail_media_filter_low">Laag</string>
     <string name="tooldetail_media_filter_low_desc">Verbergt alleen de sterkste resultaten. De PG-13-classificatie</string>
     <string name="tooldetail_media_filter_medium">Medium</string>
@@ -6069,7 +6069,7 @@
     <string name="tooldetail_media_info">De GIF- en sticker-tools delen dit alles, en het inhoudsfilter hieronder. Eén toets is voldoende. Elke bron die een toets heeft, verschijnt in het paneel.</string>
     <string name="tooldetail_media_keys_group">Bronnen en API-sleutels</string>
     <string name="tooldetail_media_klipy_hint">Gratis van partner.klipy.com. De Tenor API is medio 2026 gesloten</string>
-    <string name="tooldetail_media_klipy_label">Klipy API-sleutel</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API-sleutel</string>
     <string name="tooldetail_media_layout_group">Indeling</string>
     <string name="tooldetail_media_limit_group">Resultaten</string>
     <string name="tooldetail_media_limit_subtitle">Hoeveel items één zoekopdracht of de trending-weergave laadt. Je eigen stickerpakketten worden altijd volledig getoond.</string>

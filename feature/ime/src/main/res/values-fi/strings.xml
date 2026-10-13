@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">thai</string>
     <string name="ime_font_system_default_label">Järjestelmän oletus</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF-työkalu tarvitsee API-avaimen Klipy- tai GIPHY-palvelusta. Molemmat avaimet ovat ilmaisia. Lisää avain tämän työkalun asetuksiin.</string>
+    <string name="ime_gif_need_key_body">GIF-työkalu tarvitsee API-avaimen KLIPY- tai GIPHY-palvelusta. Molemmat avaimet ovat ilmaisia. Lisää avain tämän työkalun asetuksiin.</string>
     <string name="ime_gif_search_empty">Ei GIF-kuvia haulla ”%1$s”</string>
     <string name="ime_gif_search_hint">Etsi GIF-kuvia</string>
     <string name="ime_gif_unsupported_field_notice">Tämä kenttä ei hyväksy GIF-kuvia. Kokeile chat-sovellusta tai muistiinpanosovellusta.</string>
@@ -864,8 +864,8 @@
     <string name="ime_sticker_info_untitled">Ei otsikkoa</string>
     <string name="ime_sticker_local_search_empty">Yksikään tarroistasi ei vastaa hakua ”%1$s”</string>
     <string name="ime_sticker_manage_packs_action">Hallitse paketteja</string>
-    <string name="ime_sticker_need_key_body">Tarratyökalu tarvitsee API-avaimen Klipy- tai GIPHY-palvelusta. Molemmat avaimet ovat ilmaisia. Lisää avain tämän työkalun asetuksiin.</string>
-    <string name="ime_sticker_no_packs_empty">Ei vielä tarrapaketteja. Luo paketti asetuksissa. Voit myös tallentaa tarran tänne painamalla sitä pitkään Klipy- tai GIPHY-palvelussa.</string>
+    <string name="ime_sticker_need_key_body">Tarratyökalu tarvitsee API-avaimen KLIPY- tai GIPHY-palvelusta. Molemmat avaimet ovat ilmaisia. Lisää avain tämän työkalun asetuksiin.</string>
+    <string name="ime_sticker_no_packs_empty">Ei vielä tarrapaketteja. Luo paketti asetuksissa. Voit myös tallentaa tarran tänne painamalla sitä pitkään KLIPY- tai GIPHY-palvelussa.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d tarra</item>
         <item quantity="other">%1$d tarraa</item>

@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">തായ്</string>
     <string name="ime_font_system_default_label">സിസ്റ്റം ഡിഫോൾട്ട്</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF ടൂളിന് Klipy അല്ലെങ്കിൽ GIPHY-ൽ നിന്ന് ഒരു API കീ ആവശ്യമാണ്. രണ്ട് കീകളും സൗജന്യമാണ്. ഈ ടൂളിനായുള്ള ക്രമീകരണങ്ങളിൽ ഒരു കീ ചേർക്കുക.</string>
+    <string name="ime_gif_need_key_body">GIF ടൂളിന് KLIPY അല്ലെങ്കിൽ GIPHY-ൽ നിന്ന് ഒരു API കീ ആവശ്യമാണ്. രണ്ട് കീകളും സൗജന്യമാണ്. ഈ ടൂളിനായുള്ള ക്രമീകരണങ്ങളിൽ ഒരു കീ ചേർക്കുക.</string>
     <string name="ime_gif_search_empty">“%1$s”-നായി GIF-കൾ ഒന്നുമില്ല</string>
     <string name="ime_gif_search_hint">GIF-കൾ തിരയുക</string>
     <string name="ime_gif_unsupported_field_notice">ഈ ഫീൽഡ് GIF-കൾ സ്വീകരിക്കുന്നില്ല. ഒരു ചാറ്റ് ആപ്പ് അല്ലെങ്കിൽ നോട്ട്സ് ആപ്പ് പരീക്ഷിക്കുക.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">തലക്കെട്ടില്ല</string>
     <string name="ime_sticker_local_search_empty">നിങ്ങളുടെ സ്റ്റിക്കറുകളൊന്നും “%1$s” എന്നതിനോട് യോജിക്കുന്നില്ല</string>
     <string name="ime_sticker_manage_packs_action">പാക്കുകൾ നിയന്ത്രിക്കുക</string>
-    <string name="ime_sticker_need_key_body">സ്റ്റിക്കർ ടൂളിന് Klipy അല്ലെങ്കിൽ GIPHY-ൽ നിന്നുള്ള ഒരു API കീ ആവശ്യമാണ്. രണ്ട് കീകളും സൗജന്യമാണ്. ഈ ടൂളിന്റെ ക്രമീകരണങ്ങളിൽ ഒരു കീ ചേർക്കുക.</string>
-    <string name="ime_sticker_no_packs_empty">സ്റ്റിക്കർ പാക്കുകളൊന്നുമില്ല. ക്രമീകരണങ്ങളിൽ ഒരു പാക്ക് ഉണ്ടാക്കുക. Klipy അല്ലെങ്കിൽ GIPHY-ൽ നിന്നുള്ള ഒരു സ്റ്റിക്കർ അമർത്തിപ്പിടിച്ച് ഇവിടെ സേവ് ചെയ്യാനും സാധിക്കും.</string>
+    <string name="ime_sticker_need_key_body">സ്റ്റിക്കർ ടൂളിന് KLIPY അല്ലെങ്കിൽ GIPHY-ൽ നിന്നുള്ള ഒരു API കീ ആവശ്യമാണ്. രണ്ട് കീകളും സൗജന്യമാണ്. ഈ ടൂളിന്റെ ക്രമീകരണങ്ങളിൽ ഒരു കീ ചേർക്കുക.</string>
+    <string name="ime_sticker_no_packs_empty">സ്റ്റിക്കർ പാക്കുകളൊന്നുമില്ല. ക്രമീകരണങ്ങളിൽ ഒരു പാക്ക് ഉണ്ടാക്കുക. KLIPY അല്ലെങ്കിൽ GIPHY-ൽ നിന്നുള്ള ഒരു സ്റ്റിക്കർ അമർത്തിപ്പിടിച്ച് ഇവിടെ സേവ് ചെയ്യാനും സാധിക്കും.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d സ്റ്റിക്കർ</item>
         <item quantity="other">%1$d സ്റ്റിക്കറുകൾ</item>

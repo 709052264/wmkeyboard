@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">Thailändska</string>
     <string name="ime_font_system_default_label">Systemstandard</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF-verktyget behöver en API-nyckel från Klipy eller GIPHY. Båda nycklarna är gratis. Lägg till en nyckel i inställningarna för detta verktyg.</string>
+    <string name="ime_gif_need_key_body">GIF-verktyget behöver en API-nyckel från KLIPY eller GIPHY. Båda nycklarna är gratis. Lägg till en nyckel i inställningarna för detta verktyg.</string>
     <string name="ime_gif_search_empty">Inga GIF-filer för ”%1$s”</string>
     <string name="ime_gif_search_hint">Sök efter GIF-filer</string>
     <string name="ime_gif_unsupported_field_notice">Det här fältet accepterar inte GIF-filer. Prova en chattapp eller en anteckningsapp.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">Ingen titel</string>
     <string name="ime_sticker_local_search_empty">Inga av dina klistermärken matchar \"%1$s\"</string>
     <string name="ime_sticker_manage_packs_action">Hantera paket</string>
-    <string name="ime_sticker_need_key_body">Klistermärkesverktyget behöver en API-nyckel från Klipy eller GIPHY. Båda nycklarna är gratis. Lägg till en nyckel i inställningarna för detta verktyg.</string>
-    <string name="ime_sticker_no_packs_empty">Inga klistermärkepaket än. Skapa ett paket i inställningarna. Du kan också trycka och hålla ned ett klistermärke från Klipy eller GIPHY för att spara det här.</string>
+    <string name="ime_sticker_need_key_body">Klistermärkesverktyget behöver en API-nyckel från KLIPY eller GIPHY. Båda nycklarna är gratis. Lägg till en nyckel i inställningarna för detta verktyg.</string>
+    <string name="ime_sticker_no_packs_empty">Inga klistermärkepaket än. Skapa ett paket i inställningarna. Du kan också trycka och hålla ned ett klistermärke från KLIPY eller GIPHY för att spara det här.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d klistermärke</item>
         <item quantity="other">%1$d klistermärken</item>

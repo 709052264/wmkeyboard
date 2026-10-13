@@ -338,7 +338,7 @@
     <string name="ime_font_script_thai_label">Ταϊλανδικά</string>
     <string name="ime_font_system_default_label">Προεπιλογή συστήματος</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">Το εργαλείο GIF χρειάζεται ένα κλειδί API από το Klipy ή το GIPHY. Και τα δύο κλειδιά είναι δωρεάν. Προσθέστε ένα κλειδί στις ρυθμίσεις για αυτό το εργαλείο.</string>
+    <string name="ime_gif_need_key_body">Το εργαλείο GIF χρειάζεται ένα κλειδί API από το KLIPY ή το GIPHY. Και τα δύο κλειδιά είναι δωρεάν. Προσθέστε ένα κλειδί στις ρυθμίσεις για αυτό το εργαλείο.</string>
     <string name="ime_gif_search_empty">Δεν βρέθηκαν GIF για το “%1$s”</string>
     <string name="ime_gif_search_hint">Αναζήτηση GIF</string>
     <string name="ime_gif_unsupported_field_notice">Αυτό το πεδίο δεν δέχεται GIF. Δοκιμάστε μια εφαρμογή συνομιλίας ή μια εφαρμογή σημειώσεων.</string>
@@ -866,8 +866,8 @@
     <string name="ime_sticker_info_untitled">Χωρίς τίτλο</string>
     <string name="ime_sticker_local_search_empty">Κανένα δικό σας αυτοκόλλητο δεν ταιριάζει με το “%1$s”</string>
     <string name="ime_sticker_manage_packs_action">Διαχείριση πακέτων</string>
-    <string name="ime_sticker_need_key_body">Το εργαλείο αυτοκόλλητων χρειάζεται ένα κλειδί API από το Klipy ή το GIPHY. Και τα δύο κλειδιά είναι δωρεάν. Προσθέστε ένα κλειδί στις ρυθμίσεις για αυτό το εργαλείο.</string>
-    <string name="ime_sticker_no_packs_empty">Δεν υπάρχουν ακόμη πακέτα αυτοκόλλητων. Δημιουργήστε ένα πακέτο στις ρυθμίσεις. Μπορείτε επίσης να πατήσετε παρατεταμένα ένα αυτοκόλλητο από το Klipy ή το GIPHY για να το αποθηκεύσετε εδώ.</string>
+    <string name="ime_sticker_need_key_body">Το εργαλείο αυτοκόλλητων χρειάζεται ένα κλειδί API από το KLIPY ή το GIPHY. Και τα δύο κλειδιά είναι δωρεάν. Προσθέστε ένα κλειδί στις ρυθμίσεις για αυτό το εργαλείο.</string>
+    <string name="ime_sticker_no_packs_empty">Δεν υπάρχουν ακόμη πακέτα αυτοκόλλητων. Δημιουργήστε ένα πακέτο στις ρυθμίσεις. Μπορείτε επίσης να πατήσετε παρατεταμένα ένα αυτοκόλλητο από το KLIPY ή το GIPHY για να το αποθηκεύσετε εδώ.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d αυτοκόλλητο</item>
         <item quantity="other">%1$d αυτοκόλλητα</item>

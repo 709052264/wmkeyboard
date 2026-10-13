@@ -338,7 +338,7 @@
     <string name="ime_font_script_thai_label">Kithai</string>
     <string name="ime_font_system_default_label">Chaguo-msingi la mfumo</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">Zana ya GIF inahitaji ufunguo wa API kutoka Klipy au GIPHY. Funguo zote mbili ni bure. Ongeza ufunguo katika mipangilio ya zana hii.</string>
+    <string name="ime_gif_need_key_body">Zana ya GIF inahitaji ufunguo wa API kutoka KLIPY au GIPHY. Funguo zote mbili ni bure. Ongeza ufunguo katika mipangilio ya zana hii.</string>
     <string name="ime_gif_search_empty">Hakuna GIF za “%1$s”</string>
     <string name="ime_gif_search_hint">Tafuta GIF</string>
     <string name="ime_gif_unsupported_field_notice">Sehemu hii haikubali GIF. Jaribu programu ya gumzo au programu ya madokezo.</string>
@@ -865,8 +865,8 @@
     <string name="ime_sticker_info_untitled">Hakuna kichwa</string>
     <string name="ime_sticker_local_search_empty">Hakuna vibandiko vyako vinavyolingana na “%1$s”</string>
     <string name="ime_sticker_manage_packs_action">Dhibiti vifurushi</string>
-    <string name="ime_sticker_need_key_body">Zana ya vibandiko inahitaji ufunguo wa API kutoka Klipy au GIPHY. Funguo zote mbili ni bure. Ongeza ufunguo katika mipangilio ya zana hii.</string>
-    <string name="ime_sticker_no_packs_empty">Hakuna vifurushi vya vibandiko bado. Tengeneza kifurushi katika mipangilio. Unaweza pia kubonyeza na kushikilia kibandiko kutoka Klipy au GIPHY ili kukihifadhi hapa.</string>
+    <string name="ime_sticker_need_key_body">Zana ya vibandiko inahitaji ufunguo wa API kutoka KLIPY au GIPHY. Funguo zote mbili ni bure. Ongeza ufunguo katika mipangilio ya zana hii.</string>
+    <string name="ime_sticker_no_packs_empty">Hakuna vifurushi vya vibandiko bado. Tengeneza kifurushi katika mipangilio. Unaweza pia kubonyeza na kushikilia kibandiko kutoka KLIPY au GIPHY ili kukihifadhi hapa.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">Kibandiko %1$d</item>
         <item quantity="other">Vibandiko %1$d</item>

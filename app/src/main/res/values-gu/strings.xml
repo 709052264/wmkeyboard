@@ -1490,7 +1490,7 @@
     <string name="fonts_tool_flashlight_desc">કીબોર્ડ પરથી ટોર્ચ ચાલુ અથવા બંધ કરો</string>
     <string name="fonts_tool_floating_desc">કીબોર્ડને એક પેનલમાં અલગ કરો જેને તમે ખસેડી શકો છો</string>
     <string name="fonts_tool_floating_title">ફ્લોટિંગ કીબોર્ડ</string>
-    <string name="fonts_tool_gif_desc">GIFs (Klipy, GIPHY) શોધો અને તેમને કીબોર્ડથી મોકલો</string>
+    <string name="fonts_tool_gif_desc">GIFs (KLIPY, GIPHY) શોધો અને તેમને કીબોર્ડથી મોકલો</string>
     <string name="fonts_tool_grammar_desc">તમે લખેલા લખાણમાં વ્યાકરણની સમસ્યાઓ તપાસો. હાર્પર આ કામ ઓફલાઇન કરે છે</string>
     <string name="fonts_tool_grammar_title">વ્યાકરણ તપાસ</string>
     <string name="fonts_tool_handwriting_desc">આંગળી અથવા S Pen વડે હાથથી શબ્દો લખો. તમારું ઉપકરણ તેને ઓળખશે</string>
@@ -2010,7 +2010,7 @@
         <item quantity="one">એપ્લિકેશને %1$s ને %2$d સ્ટીકર સાથે આયાત કર્યું.</item>
         <item quantity="other">એપ્લિકેશને %1$s ને %2$d સ્ટીકરો સાથે આયાત કર્યું.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">તમારા ફોટામાંથી સ્ટીકરો ઉમેરો, અથવા કીબોર્ડમાં ક્લિપી (Klipy) અથવા GIPHY સ્ટીકરને દબાવી રાખો</string>
+    <string name="import_stickers_empty_subtitle">તમારા ફોટામાંથી સ્ટીકરો ઉમેરો, અથવા કીબોર્ડમાં ક્લિપી (KLIPY) અથવા GIPHY સ્ટીકરને દબાવી રાખો</string>
     <string name="import_stickers_empty_title">આ પેકમાં કોઈ સ્ટીકર નથી</string>
     <string name="import_stickers_none_added">એપ્લિકેશને કંઈપણ ઉમેર્યું નથી.</string>
     <string name="import_stickers_none_read">એપ તે પેકમાં કોઈ પણ સ્ટીકર વાંચી શકતી નથી.</string>
@@ -6046,7 +6046,7 @@
     <string name="tooldetail_media_filter_header">કન્ટેન્ટ ફિલ્ટર</string>
     <string name="tooldetail_media_filter_high">ઉચ્ચ</string>
     <string name="tooldetail_media_filter_high_desc">સૌથી વધુ છુપાવે છે. G રેટિંગ</string>
-    <string name="tooldetail_media_filter_info">હાઈ સૌથી વધુ છુપાવે છે અને ઓફ કંઈપણ છુપાવતું નથી. આ Klipy અને GIPHY ના રેટિંગ સાથે મેપ થાય છે, જ્યાં હાઈ એટલે G અને ઓફ એટલે R.</string>
+    <string name="tooldetail_media_filter_info">હાઈ સૌથી વધુ છુપાવે છે અને ઓફ કંઈપણ છુપાવતું નથી. આ KLIPY અને GIPHY ના રેટિંગ સાથે મેપ થાય છે, જ્યાં હાઈ એટલે G અને ઓફ એટલે R.</string>
     <string name="tooldetail_media_filter_low">ઓછું</string>
     <string name="tooldetail_media_filter_low_desc">માત્ર સૌથી મજબૂત પરિણામોને છુપાવે છે. PG-13 રેટિંગ</string>
     <string name="tooldetail_media_filter_medium">મધ્યમ</string>
@@ -6065,7 +6065,7 @@
     <string name="tooldetail_media_info">GIF અને સ્ટીકર ટૂલ્સ આ બધું અને નીચેનું કન્ટેન્ટ ફિલ્ટર શેર કરે છે. કોઈપણ એક કી પૂરતી છે. જે સ્ત્રોતમાં કી છે તે પેનલમાં દેખાય છે.</string>
     <string name="tooldetail_media_keys_group">સ્ત્રોતો અને API કી</string>
     <string name="tooldetail_media_klipy_hint">partner.klipy.com તરફથી મફત. Tenor API 2026 ના મધ્યમાં બંધ થઈ ગયું હતું</string>
-    <string name="tooldetail_media_klipy_label">Klipy API કી</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API કી</string>
     <string name="tooldetail_media_layout_group">લેઆઉટ</string>
     <string name="tooldetail_media_limit_group">પરિણામો</string>
     <string name="tooldetail_media_limit_subtitle">એક સર્ચ અથવા ટ્રેન્ડિંગ વ્યૂ કેટલી આઇટમ્સ લોડ કરે છે. તમારા પોતાના સ્ટીકર પેક્સ હંમેશા સંપૂર્ણ રીતે દેખાય છે.</string>

@@ -1487,7 +1487,7 @@
     <string name="fonts_tool_flashlight_desc">Kveiktu eða slökktu á vasaljósinu af takkaborðinu</string>
     <string name="fonts_tool_floating_desc">Aftengdu lyklaborðið í spjaldi sem þú getur fært</string>
     <string name="fonts_tool_floating_title">Fljótandi lyklaborð</string>
-    <string name="fonts_tool_gif_desc">Leitaðu að GIF-myndum (Klipy, GIPHY) og sendu þær frá lyklaborðinu</string>
+    <string name="fonts_tool_gif_desc">Leitaðu að GIF-myndum (KLIPY, GIPHY) og sendu þær frá lyklaborðinu</string>
     <string name="fonts_tool_grammar_desc">Athugaðu textann sem þú skrifar fyrir málfræðivillum. Harper gerir þetta án nettengingar</string>
     <string name="fonts_tool_grammar_title">Málfræðileit</string>
     <string name="fonts_tool_handwriting_desc">Skrifaðu orð í höndunum með fingri eða S Pen. Tækið þitt sér um auðkenninguna</string>
@@ -2008,7 +2008,7 @@
         <item quantity="one">Forritið flutti inn %1$s með %2$d límmiða.</item>
         <item quantity="other">Forritið flutti inn %1$s með %2$d límmiðum.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Bættu við límmiðum úr myndunum þínum, eða ýttu lengi á Klipy eða GIPHY límmiða á lyklaborðinu</string>
+    <string name="import_stickers_empty_subtitle">Bættu við límmiðum úr myndunum þínum, eða ýttu lengi á KLIPY eða GIPHY límmiða á lyklaborðinu</string>
     <string name="import_stickers_empty_title">Engir límmiðar í þessum pakka</string>
     <string name="import_stickers_none_added">Forritið bætti engu við.</string>
     <string name="import_stickers_none_read">Forritið getur ekki lesið neina límmiða í þeim pakka.</string>
@@ -6047,7 +6047,7 @@
     <string name="tooldetail_media_filter_header">Efnisía</string>
     <string name="tooldetail_media_filter_high">Hátt</string>
     <string name="tooldetail_media_filter_high_desc">Felur mest. G-einkunnin</string>
-    <string name="tooldetail_media_filter_info">Klipy og GIPHY gefa hverri niðurstöðu einkunn. Hver þjónusta beitir þínu stigi á sínar eigin niðurstöður.</string>
+    <string name="tooldetail_media_filter_info">KLIPY og GIPHY gefa hverri niðurstöðu einkunn. Hver þjónusta beitir þínu stigi á sínar eigin niðurstöður.</string>
     <string name="tooldetail_media_filter_low">Lágt</string>
     <string name="tooldetail_media_filter_low_desc">Felur aðeins sterkustu niðurstöðurnar. PG-13 einkunnin</string>
     <string name="tooldetail_media_filter_medium">Miðlungs</string>
@@ -6066,7 +6066,7 @@
     <string name="tooldetail_media_info">GIF og límmiðaverkfærin deila öllu þessu, og efnissíunni hér fyrir neðan. Einn lykill er nóg. Hver uppspretta sem hefur lykil birtist í spjaldinu.</string>
     <string name="tooldetail_media_keys_group">Heimildir og API-lyklar</string>
     <string name="tooldetail_media_klipy_hint">Ókeypis frá partner.klipy.com. Tenor API lokaði um mitt ár 2026</string>
-    <string name="tooldetail_media_klipy_label">Klipy API-lykill</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API-lykill</string>
     <string name="tooldetail_media_layout_group">Skipulag</string>
     <string name="tooldetail_media_limit_group">Niðurstöður</string>
     <string name="tooldetail_media_limit_subtitle">Hversu mörg atriði ein leit eða vinsældasýn hleður. Þínir eigin límmiðapakkar birtast alltaf að fullu.</string>

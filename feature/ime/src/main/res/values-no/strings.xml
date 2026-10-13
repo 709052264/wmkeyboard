@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">Thai</string>
     <string name="ime_font_system_default_label">Systemstandard</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF-verktøyet trenger en API-nøkkel fra Klipy eller GIPHY. Begge nøklene er gratis. Legg til en nøkkel i innstillingene for dette verktøyet.</string>
+    <string name="ime_gif_need_key_body">GIF-verktøyet trenger en API-nøkkel fra KLIPY eller GIPHY. Begge nøklene er gratis. Legg til en nøkkel i innstillingene for dette verktøyet.</string>
     <string name="ime_gif_search_empty">Ingen GIF-er for “%1$s”</string>
     <string name="ime_gif_search_hint">Søk etter GIF-er</string>
     <string name="ime_gif_unsupported_field_notice">Dette feltet godtar ikke GIF-er. Prøv en chat-app eller en notat-app.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">Ingen tittel</string>
     <string name="ime_sticker_local_search_empty">Ingen av dine klistremerker matcher «%1$s»</string>
     <string name="ime_sticker_manage_packs_action">Administrer pakker</string>
-    <string name="ime_sticker_need_key_body">Klistremerkeverktøyet trenger en API-nøkkel fra Klipy eller GIPHY. Begge nøklene er gratis. Legg til en nøkkel i innstillingene for dette verktøyet.</string>
-    <string name="ime_sticker_no_packs_empty">Ingen klistremerkepakker ennå. Lag en pakke i innstillingene. Du kan også trykke og holde på et klistremerke fra Klipy eller GIPHY for å lagre det her.</string>
+    <string name="ime_sticker_need_key_body">Klistremerkeverktøyet trenger en API-nøkkel fra KLIPY eller GIPHY. Begge nøklene er gratis. Legg til en nøkkel i innstillingene for dette verktøyet.</string>
+    <string name="ime_sticker_no_packs_empty">Ingen klistremerkepakker ennå. Lag en pakke i innstillingene. Du kan også trykke og holde på et klistremerke fra KLIPY eller GIPHY for å lagre det her.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d klistremerke</item>
         <item quantity="other">%1$d klistremerker</item>

@@ -1488,7 +1488,7 @@
     <string name="fonts_tool_flashlight_desc">キーボードからライトのオン/オフを切り替える</string>
     <string name="fonts_tool_floating_desc">キーボードを移動可能なパネルとして分離します</string>
     <string name="fonts_tool_floating_title">フローティングキーボード</string>
-    <string name="fonts_tool_gif_desc">GIF（Klipy、GIPHY）を検索し、キーボードから送信します</string>
+    <string name="fonts_tool_gif_desc">GIF（KLIPY、GIPHY）を検索し、キーボードから送信します</string>
     <string name="fonts_tool_grammar_desc">入力したテキストの文法上の問題をチェックします。Harperはオフラインで動作します。</string>
     <string name="fonts_tool_grammar_title">文法チェック</string>
     <string name="fonts_tool_handwriting_desc">指やSペンで手書き入力します。デバイスが文字を認識します</string>
@@ -2008,7 +2008,7 @@
         <item quantity="one">%1$s をインポートしました（ステッカー %2$d 個）。</item>
         <item quantity="other">%1$s をインポートしました（ステッカー %2$d 個）。</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">写真からステッカーを追加するか、キーボード上のKlipyまたはGIPHYステッカーを長押ししてください</string>
+    <string name="import_stickers_empty_subtitle">写真からステッカーを追加するか、キーボード上のKLIPYまたはGIPHYステッカーを長押ししてください</string>
     <string name="import_stickers_empty_title">このパックにはステッカーがありません</string>
     <string name="import_stickers_none_added">アプリは何も追加しませんでした。</string>
     <string name="import_stickers_none_read">アプリはそのパック内のステッカーを読み取ることができません。</string>
@@ -6043,7 +6043,7 @@
     <string name="tooldetail_media_filter_header">コンテンツフィルタ</string>
     <string name="tooldetail_media_filter_high">高</string>
     <string name="tooldetail_media_filter_high_desc">最も多く非表示にします。G指定（全年齢対象）</string>
-    <string name="tooldetail_media_filter_info">「高」は最も多く非表示にし、「オフ」は何も非表示にしません。これはKlipyおよびGIPHYのレーティングに対応しており、「高」はG、「オフ」はRに相当します。</string>
+    <string name="tooldetail_media_filter_info">「高」は最も多く非表示にし、「オフ」は何も非表示にしません。これはKLIPYおよびGIPHYのレーティングに対応しており、「高」はG、「オフ」はRに相当します。</string>
     <string name="tooldetail_media_filter_low">低</string>
     <string name="tooldetail_media_filter_low_desc">最も強い結果のみを非表示にします。PG-13レーティング</string>
     <string name="tooldetail_media_filter_medium">中</string>
@@ -6062,7 +6062,7 @@
     <string name="tooldetail_media_info">GIFツールとステッカーツールは、これらすべてと以下のコンテンツフィルターを共有します。いずれか1つのキーがあれば十分です。キーを持つすべてのソースがパネルに表示されます。</string>
     <string name="tooldetail_media_keys_group">ソースとAPIキー</string>
     <string name="tooldetail_media_klipy_hint">partner.klipy.comから無料で提供されています。Tenor APIは2026年半ばに終了しました。</string>
-    <string name="tooldetail_media_klipy_label">Klipy APIキー</string>
+    <string name="tooldetail_media_klipy_label">KLIPY APIキー</string>
     <string name="tooldetail_media_layout_group">レイアウト</string>
     <string name="tooldetail_media_limit_group">結果</string>
     <string name="tooldetail_media_limit_subtitle">1回の検索またはトレンド表示で読み込むアイテム数。独自のステッカーパックは常にすべて表示されます。</string>

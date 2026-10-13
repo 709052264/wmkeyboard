@@ -338,7 +338,7 @@
     <string name="ime_font_script_thai_label">Isi-Thai</string>
     <string name="ime_font_system_default_label">Okuzenzakalelayo kwesistimu</string>
     <string name="ime_gif_item_desc">I-GIF</string>
-    <string name="ime_gif_need_key_body">Ithuluzi le-GIF lidinga ukhiye we-API ovela ku-Klipy noma ku-GIPHY. Zombili lezi zikhiye zimahhala. Engeza ukhiye kuzilungiselelo zaleli thuluzi.</string>
+    <string name="ime_gif_need_key_body">Ithuluzi le-GIF lidinga ukhiye we-API ovela ku-KLIPY noma ku-GIPHY. Zombili lezi zikhiye zimahhala. Engeza ukhiye kuzilungiselelo zaleli thuluzi.</string>
     <string name="ime_gif_search_empty">Awekho ama-GIF we-“%1$s”</string>
     <string name="ime_gif_search_hint">Sesha ama-GIF</string>
     <string name="ime_gif_unsupported_field_notice">Le nsimu ayiwamukeli ama-GIF. Zama uhlelo lokusebenza lokuxoxa noma uhlelo lokusebenza lwamanothi.</string>
@@ -865,8 +865,8 @@
     <string name="ime_sticker_info_untitled">Ayikho isihloko</string>
     <string name="ime_sticker_local_search_empty">Azikho izitika zakho ezihambisana ne-“%1$s”</string>
     <string name="ime_sticker_manage_packs_action">Phatha amaphakethe</string>
-    <string name="ime_sticker_need_key_body">Ithuluzi lezitikha lidinga ukhiye we-API ovela ku-Klipy noma ku-GIPHY. Bobabili okhiye bakhululekile. Engeza ukhiye kuzilungiselelo zaleli thuluzi.</string>
-    <string name="ime_sticker_no_packs_empty">Awekho amaphakethe ezitikha okwamanje. Yenza iphakethe kuzilungiselelo. Ungaphinda ucindezele ubambe isitikha kusuka ku-Klipy noma i-GIPHY ukuze usilondoloze lapha.</string>
+    <string name="ime_sticker_need_key_body">Ithuluzi lezitikha lidinga ukhiye we-API ovela ku-KLIPY noma ku-GIPHY. Bobabili okhiye bakhululekile. Engeza ukhiye kuzilungiselelo zaleli thuluzi.</string>
+    <string name="ime_sticker_no_packs_empty">Awekho amaphakethe ezitikha okwamanje. Yenza iphakethe kuzilungiselelo. Ungaphinda ucindezele ubambe isitikha kusuka ku-KLIPY noma i-GIPHY ukuze usilondoloze lapha.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">isitika esingu-%1$d</item>
         <item quantity="other">izitika ezingu-%1$d</item>

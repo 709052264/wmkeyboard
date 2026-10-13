@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">Tayca</string>
     <string name="ime_font_system_default_label">Sistem varsayılanı</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF aracı, Klipy veya GIPHY\'den bir API anahtarına ihtiyaç duyar. Her iki anahtar da ücretsizdir. Bu araç için ayarlara bir anahtar ekleyin.</string>
+    <string name="ime_gif_need_key_body">GIF aracı, KLIPY veya GIPHY\'den bir API anahtarına ihtiyaç duyar. Her iki anahtar da ücretsizdir. Bu araç için ayarlara bir anahtar ekleyin.</string>
     <string name="ime_gif_search_empty">“%1$s” için GIF bulunamadı</string>
     <string name="ime_gif_search_hint">GIF\'leri ara</string>
     <string name="ime_gif_unsupported_field_notice">Bu alan GIF kabul etmiyor. Bir sohbet veya not uygulaması deneyin.</string>
@@ -864,8 +864,8 @@
     <string name="ime_sticker_info_untitled">Başlıksız</string>
     <string name="ime_sticker_local_search_empty">“%1$s” ile eşleşen çıkartmanız yok</string>
     <string name="ime_sticker_manage_packs_action">Paketleri yönet</string>
-    <string name="ime_sticker_need_key_body">Çıkartma aracı, Klipy veya GIPHY\'den bir API anahtarına ihtiyaç duyar. Her iki anahtar da ücretsizdir. Bu araç için ayarlara bir anahtar ekleyin.</string>
-    <string name="ime_sticker_no_packs_empty">Henüz çıkartma paketi yok. Ayarlardan bir paket oluşturun. Ayrıca buraya kaydetmek için Klipy veya GIPHY\'den bir çıkartmaya basılı tutabilirsiniz.</string>
+    <string name="ime_sticker_need_key_body">Çıkartma aracı, KLIPY veya GIPHY\'den bir API anahtarına ihtiyaç duyar. Her iki anahtar da ücretsizdir. Bu araç için ayarlara bir anahtar ekleyin.</string>
+    <string name="ime_sticker_no_packs_empty">Henüz çıkartma paketi yok. Ayarlardan bir paket oluşturun. Ayrıca buraya kaydetmek için KLIPY veya GIPHY\'den bir çıkartmaya basılı tutabilirsiniz.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d çıkartma</item>
         <item quantity="other">%1$d çıkartma</item>

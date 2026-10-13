@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">ਥਾਈ</string>
     <string name="ime_font_system_default_label">ਸਿਸਟਮ ਡਿਫੌਲਟ</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF ਟੂਲ ਨੂੰ Klipy ਜਾਂ GIPHY ਤੋਂ ਇੱਕ API ਕੁੰਜੀ ਦੀ ਲੋੜ ਹੈ। ਦੋਵੇਂ ਕੁੰਜੀਆਂ ਮੁਫਤ ਹਨ। ਇਸ ਟੂਲ ਲਈ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਇੱਕ ਕੁੰਜੀ ਸ਼ਾਮਲ ਕਰੋ।</string>
+    <string name="ime_gif_need_key_body">GIF ਟੂਲ ਨੂੰ KLIPY ਜਾਂ GIPHY ਤੋਂ ਇੱਕ API ਕੁੰਜੀ ਦੀ ਲੋੜ ਹੈ। ਦੋਵੇਂ ਕੁੰਜੀਆਂ ਮੁਫਤ ਹਨ। ਇਸ ਟੂਲ ਲਈ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਇੱਕ ਕੁੰਜੀ ਸ਼ਾਮਲ ਕਰੋ।</string>
     <string name="ime_gif_search_empty">“%1$s” ਲਈ ਕੋਈ GIF ਨਹੀਂ</string>
     <string name="ime_gif_search_hint">GIFs ਖੋਜੋ</string>
     <string name="ime_gif_unsupported_field_notice">ਇਹ ਖੇਤਰ GIF ਨੂੰ ਸਵੀਕਾਰ ਨਹੀਂ ਕਰਦਾ ਹੈ। ਕਿਸੇ ਚੈਟ ਐਪ ਜਾਂ ਨੋਟਸ ਐਪ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">ਕੋਈ ਸਿਰਲੇਖ ਨਹੀਂ</string>
     <string name="ime_sticker_local_search_empty">ਤੁਹਾਡਾ ਕੋਈ ਵੀ ਸਟਿੱਕਰ “%1$s” ਨਾਲ ਮੇਲ ਨਹੀਂ ਖਾਂਦਾ</string>
     <string name="ime_sticker_manage_packs_action">ਪੈਕ ਪ੍ਰਬੰਧਿਤ ਕਰੋ</string>
-    <string name="ime_sticker_need_key_body">ਸਟਿੱਕਰ ਟੂਲ ਨੂੰ Klipy ਜਾਂ GIPHY ਤੋਂ ਇੱਕ API ਕੁੰਜੀ ਦੀ ਲੋੜ ਹੈ। ਦੋਵੇਂ ਕੁੰਜੀਆਂ ਮੁਫ਼ਤ ਹਨ। ਇਸ ਟੂਲ ਲਈ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਇੱਕ ਕੁੰਜੀ ਸ਼ਾਮਲ ਕਰੋ।</string>
-    <string name="ime_sticker_no_packs_empty">ਅਜੇ ਤੱਕ ਕੋਈ ਸਟਿੱਕਰ ਪੈਕ ਨਹੀਂ ਹੈ। ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਇੱਕ ਪੈਕ ਬਣਾਓ। ਤੁਸੀਂ ਇਸਨੂੰ ਇੱਥੇ ਸੁਰੱਖਿਅਤ ਕਰਨ ਲਈ Klipy ਜਾਂ GIPHY ਤੋਂ ਕਿਸੇ ਸਟਿੱਕਰ ਨੂੰ ਦਬਾ ਕੇ ਵੀ ਰੱਖ ਸਕਦੇ ਹੋ।</string>
+    <string name="ime_sticker_need_key_body">ਸਟਿੱਕਰ ਟੂਲ ਨੂੰ KLIPY ਜਾਂ GIPHY ਤੋਂ ਇੱਕ API ਕੁੰਜੀ ਦੀ ਲੋੜ ਹੈ। ਦੋਵੇਂ ਕੁੰਜੀਆਂ ਮੁਫ਼ਤ ਹਨ। ਇਸ ਟੂਲ ਲਈ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਇੱਕ ਕੁੰਜੀ ਸ਼ਾਮਲ ਕਰੋ।</string>
+    <string name="ime_sticker_no_packs_empty">ਅਜੇ ਤੱਕ ਕੋਈ ਸਟਿੱਕਰ ਪੈਕ ਨਹੀਂ ਹੈ। ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਇੱਕ ਪੈਕ ਬਣਾਓ। ਤੁਸੀਂ ਇਸਨੂੰ ਇੱਥੇ ਸੁਰੱਖਿਅਤ ਕਰਨ ਲਈ KLIPY ਜਾਂ GIPHY ਤੋਂ ਕਿਸੇ ਸਟਿੱਕਰ ਨੂੰ ਦਬਾ ਕੇ ਵੀ ਰੱਖ ਸਕਦੇ ਹੋ।</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d ਸਟਿੱਕਰ</item>
         <item quantity="other">%1$d ਸਟਿੱਕਰ</item>

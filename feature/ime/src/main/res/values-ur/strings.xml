@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">تھائی</string>
     <string name="ime_font_system_default_label">سسٹم ڈیفالٹ</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF ٹول کو Klipy یا GIPHY سے API کلید کی ضرورت ہے۔ دونوں کلیدیں مفت ہیں۔ اس ٹول کی ترتیبات میں ایک کلید شامل کریں۔</string>
+    <string name="ime_gif_need_key_body">GIF ٹول کو KLIPY یا GIPHY سے API کلید کی ضرورت ہے۔ دونوں کلیدیں مفت ہیں۔ اس ٹول کی ترتیبات میں ایک کلید شامل کریں۔</string>
     <string name="ime_gif_search_empty">“%1$s” کے لیے کوئی GIFs نہیں ہیں</string>
     <string name="ime_gif_search_hint">GIFs تلاش کریں</string>
     <string name="ime_gif_unsupported_field_notice">یہ فیلڈ GIFs قبول نہیں کرتی ہے۔ چیٹ ایپ یا نوٹس ایپ آزمائیں۔</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">کوئی عنوان نہیں</string>
     <string name="ime_sticker_local_search_empty">آپ کا کوئی بھی اسٹیکر \"%1$s\" سے میل نہیں کھاتا</string>
     <string name="ime_sticker_manage_packs_action">پیکس کا نظم کریں</string>
-    <string name="ime_sticker_need_key_body">اسٹیکر ٹول کو Klipy یا GIPHY سے API کلید کی ضرورت ہے۔ دونوں کلیدیں مفت ہیں۔ اس ٹول کی ترتیبات میں ایک کلید شامل کریں۔</string>
-    <string name="ime_sticker_no_packs_empty">ابھی تک کوئی اسٹیکر پیک نہیں ہے۔ سیٹنگز میں ایک پیک بنائیں۔ آپ اسے یہاں محفوظ کرنے کے لیے Klipy یا GIPHY سے اسٹیکر کو دبا کر بھی رکھ سکتے ہیں۔</string>
+    <string name="ime_sticker_need_key_body">اسٹیکر ٹول کو KLIPY یا GIPHY سے API کلید کی ضرورت ہے۔ دونوں کلیدیں مفت ہیں۔ اس ٹول کی ترتیبات میں ایک کلید شامل کریں۔</string>
+    <string name="ime_sticker_no_packs_empty">ابھی تک کوئی اسٹیکر پیک نہیں ہے۔ سیٹنگز میں ایک پیک بنائیں۔ آپ اسے یہاں محفوظ کرنے کے لیے KLIPY یا GIPHY سے اسٹیکر کو دبا کر بھی رکھ سکتے ہیں۔</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d اسٹیکر</item>
         <item quantity="other">%1$d اسٹیکرز</item>

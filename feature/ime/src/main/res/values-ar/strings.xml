@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">التايلاندية</string>
     <string name="ime_font_system_default_label">الافتراضي للنظام</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">تحتاج أداة GIF إلى مفتاح API من Klipy أو GIPHY. كلا المفتاحين مجانيان. أضف مفتاحاً في إعدادات هذه الأداة.</string>
+    <string name="ime_gif_need_key_body">تحتاج أداة GIF إلى مفتاح API من KLIPY أو GIPHY. كلا المفتاحين مجانيان. أضف مفتاحاً في إعدادات هذه الأداة.</string>
     <string name="ime_gif_search_empty">لا توجد صور GIF لـ “%1$s”</string>
     <string name="ime_gif_search_hint">البحث عن صور GIF</string>
     <string name="ime_gif_unsupported_field_notice">هذا الحقل لا يقبل صور GIF. جرب تطبيق دردشة أو تطبيق ملاحظات.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">بدون عنوان</string>
     <string name="ime_sticker_local_search_empty">لا توجد ملصقات خاصة بك تطابق \"%1$s\"</string>
     <string name="ime_sticker_manage_packs_action">إدارة الحزم</string>
-    <string name="ime_sticker_need_key_body">تحتاج أداة الملصقات إلى مفتاح API من Klipy أو GIPHY. كلا المفتاحين مجانيان. أضف مفتاحاً في إعدادات هذه الأداة.</string>
-    <string name="ime_sticker_no_packs_empty">لا توجد حزم ملصقات بعد. قم بإنشاء حزمة في الإعدادات. يمكنك أيضاً الضغط مع الاستمرار على ملصق من Klipy أو GIPHY لحفظه هنا.</string>
+    <string name="ime_sticker_need_key_body">تحتاج أداة الملصقات إلى مفتاح API من KLIPY أو GIPHY. كلا المفتاحين مجانيان. أضف مفتاحاً في إعدادات هذه الأداة.</string>
+    <string name="ime_sticker_no_packs_empty">لا توجد حزم ملصقات بعد. قم بإنشاء حزمة في الإعدادات. يمكنك أيضاً الضغط مع الاستمرار على ملصق من KLIPY أو GIPHY لحفظه هنا.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d ملصق</item>
         <item quantity="other">%1$d ملصقات</item>

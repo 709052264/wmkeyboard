@@ -1490,7 +1490,7 @@
     <string name="fonts_tool_flashlight_desc">Slå på eller av ficklampan från tangentbordet</string>
     <string name="fonts_tool_floating_desc">Lösgör tangentbordet till en panel som du kan flytta</string>
     <string name="fonts_tool_floating_title">Flytande tangentbord</string>
-    <string name="fonts_tool_gif_desc">Sök efter GIF-filer (Klipy, GIPHY) och skicka dem från tangentbordet</string>
+    <string name="fonts_tool_gif_desc">Sök efter GIF-filer (KLIPY, GIPHY) och skicka dem från tangentbordet</string>
     <string name="fonts_tool_grammar_desc">Kontrollera texten du skriver för grammatikproblem. Harper gör detta offline</string>
     <string name="fonts_tool_grammar_title">Grammatikkontroll</string>
     <string name="fonts_tool_handwriting_desc">Skriv ord för hand med ett finger eller en S Pen. Din enhet sköter igenkänningen</string>
@@ -2011,7 +2011,7 @@
         <item quantity="one">Appen importerade %1$s med %2$d klistermärke.</item>
         <item quantity="other">Appen importerade %1$s med %2$d klistermärken.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Lägg till klistermärken från dina foton, eller tryck och håll ned ett Klipy- eller GIPHY-klistermärke på tangentbordet</string>
+    <string name="import_stickers_empty_subtitle">Lägg till klistermärken från dina foton, eller tryck och håll ned ett KLIPY- eller GIPHY-klistermärke på tangentbordet</string>
     <string name="import_stickers_empty_title">Inga klistermärken i detta paket</string>
     <string name="import_stickers_none_added">Appen lade inte till någonting.</string>
     <string name="import_stickers_none_read">Appen kan inte läsa några klistermärken i det paketet.</string>
@@ -6050,7 +6050,7 @@
     <string name="tooldetail_media_filter_header">Innehållsfilter</string>
     <string name="tooldetail_media_filter_high">Hög</string>
     <string name="tooldetail_media_filter_high_desc">Döljer mest. G-klassificeringen</string>
-    <string name="tooldetail_media_filter_info">Klipy och GIPHY ger varje resultat ett betyg. Varje tjänst tillämpar din nivå på sina egna resultat.</string>
+    <string name="tooldetail_media_filter_info">KLIPY och GIPHY ger varje resultat ett betyg. Varje tjänst tillämpar din nivå på sina egna resultat.</string>
     <string name="tooldetail_media_filter_low">Låg</string>
     <string name="tooldetail_media_filter_low_desc">Döljer endast de starkaste resultaten. PG-13-betyget</string>
     <string name="tooldetail_media_filter_medium">Medium</string>
@@ -6069,7 +6069,7 @@
     <string name="tooldetail_media_info">GIF- och sticker-verktygen delar allt detta, samt innehållsfiltret nedan. En enda nyckel räcker. Varje källa som har en nyckel visas i panelen.</string>
     <string name="tooldetail_media_keys_group">Källor och API-nycklar</string>
     <string name="tooldetail_media_klipy_hint">Gratis från partner.klipy.com. Tenor-API:et stängdes i mitten av 2026</string>
-    <string name="tooldetail_media_klipy_label">Klipy API-nyckel</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API-nyckel</string>
     <string name="tooldetail_media_layout_group">Layout</string>
     <string name="tooldetail_media_limit_group">Resultat</string>
     <string name="tooldetail_media_limit_subtitle">Hur många objekt en sökning eller trendvyn laddar. Dina egna klistermärkepaket visas alltid i sin helhet.</string>

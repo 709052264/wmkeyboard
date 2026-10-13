@@ -1493,7 +1493,7 @@
     <string name="fonts_tool_flashlight_desc">कीबोर्ड से टॉर्च चालू या बंद करें</string>
     <string name="fonts_tool_floating_desc">कीबोर्ड को एक ऐसे पैनल में अलग करें जिसे आप स्थानांतरित कर सकते हैं</string>
     <string name="fonts_tool_floating_title">फ्लोटिंग कीबोर्ड</string>
-    <string name="fonts_tool_gif_desc">GIFs (Klipy, GIPHY) खोजें और उन्हें कीबोर्ड से भेजें</string>
+    <string name="fonts_tool_gif_desc">GIFs (KLIPY, GIPHY) खोजें और उन्हें कीबोर्ड से भेजें</string>
     <string name="fonts_tool_grammar_desc">व्याकरण संबंधी समस्याओं के लिए अपने लिखे गए टेक्स्ट की जाँच करें। हार्पर इसे ऑफ़लाइन करता है</string>
     <string name="fonts_tool_grammar_title">व्याकरण जांच</string>
     <string name="fonts_tool_handwriting_desc">उंगली या एस पेन से हाथ से शब्द लिखें। आपका डिवाइस पहचान करता है</string>
@@ -2013,7 +2013,7 @@
         <item quantity="one">ऐप ने %2$d स्टिकर के साथ %1$s आयात किया।</item>
         <item quantity="other">ऐप ने %2$d स्टिकर के साथ %1$s आयात किया।</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">अपनी तस्वीरों से स्टिकर जोड़ें, या कीबोर्ड में Klipy या GIPHY स्टिकर को दबाकर रखें</string>
+    <string name="import_stickers_empty_subtitle">अपनी तस्वीरों से स्टिकर जोड़ें, या कीबोर्ड में KLIPY या GIPHY स्टिकर को दबाकर रखें</string>
     <string name="import_stickers_empty_title">इस पैक में कोई स्टिकर नहीं है</string>
     <string name="import_stickers_none_added">ऐप ने कुछ भी नहीं जोड़ा।</string>
     <string name="import_stickers_none_read">ऐप उस पैक में कोई भी स्टिकर नहीं पढ़ सकता है।</string>
@@ -6062,7 +6062,7 @@
     <string name="tooldetail_media_filter_header">कंटेंट फ़िल्टर</string>
     <string name="tooldetail_media_filter_high">उच्च</string>
     <string name="tooldetail_media_filter_high_desc">सबसे अधिक छिपाता है। G रेटिंग</string>
-    <string name="tooldetail_media_filter_info">High सबसे अधिक छिपाता है और Off कुछ भी नहीं छिपाता है। यह Klipy और GIPHY की रेटिंग के अनुसार है, जहाँ High का मतलब G और Off का मतलब R है।</string>
+    <string name="tooldetail_media_filter_info">High सबसे अधिक छिपाता है और Off कुछ भी नहीं छिपाता है। यह KLIPY और GIPHY की रेटिंग के अनुसार है, जहाँ High का मतलब G और Off का मतलब R है।</string>
     <string name="tooldetail_media_filter_low">कम</string>
     <string name="tooldetail_media_filter_low_desc">केवल सबसे मजबूत परिणामों को छिपाता है। PG-13 रेटिंग</string>
     <string name="tooldetail_media_filter_medium">मध्यम</string>
@@ -6081,7 +6081,7 @@
     <string name="tooldetail_media_info">GIF और स्टिकर टूल इन सभी को साझा करते हैं, और नीचे दिए गए कंटेंट फ़िल्टर को भी। कोई भी एक कुंजी पर्याप्त है। जिस भी स्रोत में कुंजी है, वह पैनल में दिखाई देता है।</string>
     <string name="tooldetail_media_keys_group">स्रोत और API कुंजियाँ</string>
     <string name="tooldetail_media_klipy_hint">partner.klipy.com से निःशुल्क। Tenor API 2026 के मध्य में बंद हो गया</string>
-    <string name="tooldetail_media_klipy_label">Klipy API कुंजी</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API कुंजी</string>
     <string name="tooldetail_media_layout_group">लेआउट</string>
     <string name="tooldetail_media_limit_group">परिणाम</string>
     <string name="tooldetail_media_limit_subtitle">एक खोज या ट्रेंडिंग व्यू कितनी सामग्री लोड करता है। आपके अपने स्टिकर पैक हमेशा पूरी तरह से दिखाई देते हैं।</string>

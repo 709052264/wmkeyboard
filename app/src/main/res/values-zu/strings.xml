@@ -1493,7 +1493,7 @@
     <string name="fonts_tool_flashlight_desc">Vula noma uvale ithoshi kusuka kukhibhodi</string>
     <string name="fonts_tool_floating_desc">Khipha ikhibhodi ibe iphaneli ongayihambisa</string>
     <string name="fonts_tool_floating_title">Ikhibhodi entantayo</string>
-    <string name="fonts_tool_gif_desc">Sesha ama-GIF (Klipy, GIPHY) bese uwathumela kusuka kukhibhodi</string>
+    <string name="fonts_tool_gif_desc">Sesha ama-GIF (KLIPY, GIPHY) bese uwathumela kusuka kukhibhodi</string>
     <string name="fonts_tool_grammar_desc">Hlola umbhalo owubhalayo ngezinkinga zohlelo lolimi. U-Harper wenza lokhu ungaxhunyiwe ku-inthanethi</string>
     <string name="fonts_tool_grammar_title">Ukuhlola uhlelo lolimi</string>
     <string name="fonts_tool_handwriting_desc">Bhala amagama ngesandla ngomunwe noma nge-S Pen. Idivayisi yakho yenza ukubona</string>
@@ -2013,7 +2013,7 @@
         <item quantity="one">Uhlelo lokusebenza lungenise i-%1$s nesitikha esingu-%2$d.</item>
         <item quantity="other">Uhlelo lokusebenza lungenise i-%1$s nezitikha ezingu-%2$d.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Engeza izitikha ezivela ezithombeni zakho, noma cindezela ubambe isitikha se-Klipy noma se-GIPHY kukhibhodi</string>
+    <string name="import_stickers_empty_subtitle">Engeza izitikha ezivela ezithombeni zakho, noma cindezela ubambe isitikha se-KLIPY noma se-GIPHY kukhibhodi</string>
     <string name="import_stickers_empty_title">Azikho izitika kuleli phakethe</string>
     <string name="import_stickers_none_added">Uhlelo lokusebenza alungezanga lutho.</string>
     <string name="import_stickers_none_read">Uhlelo lokusebenza alukwazi ukufunda noma yisiphi isitikha kulelo phakethe.</string>
@@ -6061,7 +6061,7 @@
     <string name="tooldetail_media_filter_header">Isihlungi sokuqukethwe</string>
     <string name="tooldetail_media_filter_high">Phezulu</string>
     <string name="tooldetail_media_filter_high_desc">Ifihla okuningi. Isilinganiso sika-G</string>
-    <string name="tooldetail_media_filter_info">Okuphezulu kufihla okuningi futhi Okucishiwe akufihli lutho. Lokhu kuhambisana nesilinganiso se-Klipy ne-GIPHY, lapho Okuphezulu kuyi-G kanti Okucishiwe kuyi-R.</string>
+    <string name="tooldetail_media_filter_info">Okuphezulu kufihla okuningi futhi Okucishiwe akufihli lutho. Lokhu kuhambisana nesilinganiso se-KLIPY ne-GIPHY, lapho Okuphezulu kuyi-G kanti Okucishiwe kuyi-R.</string>
     <string name="tooldetail_media_filter_low">Phansi</string>
     <string name="tooldetail_media_filter_low_desc">Ifihla imiphumela enamandla kakhulu kuphela. Isilinganiso se-PG-13</string>
     <string name="tooldetail_media_filter_medium">Phakathi</string>
@@ -6080,7 +6080,7 @@
     <string name="tooldetail_media_info">Amathuluzi e-GIF nezitika abelana ngakho konke lokhu, kanye nesihlungi sokuqukethwe esingezansi. Noma yimuphi ukhiye owodwa wanele. Yonke imithombo enokhiye iyavela kuphaneli.</string>
     <string name="tooldetail_media_keys_group">Imithombo nezinkinobho ze-API</string>
     <string name="tooldetail_media_klipy_hint">Kumahhala kusuka ku-partner.klipy.com. I-Tenor API ivaliwe phakathi nonyaka ka-2026</string>
-    <string name="tooldetail_media_klipy_label">Ukhiye we-API we-Klipy</string>
+    <string name="tooldetail_media_klipy_label">Ukhiye we-API we-KLIPY</string>
     <string name="tooldetail_media_layout_group">Isakhiwo</string>
     <string name="tooldetail_media_limit_group">Imiphumela</string>
     <string name="tooldetail_media_limit_subtitle">Mangaki amaphakethe okusesha noma ukubuka okuthrendayo okulayishayo. Amaphakethe akho ezitikha ahlala ebonisa ngokugcwele.</string>

@@ -1491,7 +1491,7 @@
     <string name="fonts_tool_flashlight_desc">Включение и выключение фонарика с клавиатуры</string>
     <string name="fonts_tool_floating_desc">Открепить клавиатуру в панель, которую можно перемещать</string>
     <string name="fonts_tool_floating_title">Плавающая клавиатура</string>
-    <string name="fonts_tool_gif_desc">Ищите GIF-файлы (Klipy, GIPHY) и отправляйте их прямо с клавиатуры</string>
+    <string name="fonts_tool_gif_desc">Ищите GIF-файлы (KLIPY, GIPHY) и отправляйте их прямо с клавиатуры</string>
     <string name="fonts_tool_grammar_desc">Проверяйте написанный текст на наличие грамматических ошибок. Harper делает это офлайн</string>
     <string name="fonts_tool_grammar_title">Проверка грамматики</string>
     <string name="fonts_tool_handwriting_desc">Пишите слова от руки пальцем или S Pen. Ваше устройство выполнит распознавание</string>
@@ -2011,7 +2011,7 @@
         <item quantity="one">Приложение импортировало %1$s с %2$d стикером.</item>
         <item quantity="other">Приложение импортировало %1$s с %2$d стикерами.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Добавьте стикеры из своих фотографий или нажмите и удерживайте стикер Klipy или GIPHY на клавиатуре</string>
+    <string name="import_stickers_empty_subtitle">Добавьте стикеры из своих фотографий или нажмите и удерживайте стикер KLIPY или GIPHY на клавиатуре</string>
     <string name="import_stickers_empty_title">В этом наборе нет стикеров</string>
     <string name="import_stickers_none_added">Приложение ничего не добавило.</string>
     <string name="import_stickers_none_read">Приложение не может прочитать ни одного стикера в этом наборе.</string>
@@ -6050,7 +6050,7 @@
     <string name="tooldetail_media_filter_header">Фильтр контента</string>
     <string name="tooldetail_media_filter_high">Высокое</string>
     <string name="tooldetail_media_filter_high_desc">Скрывает больше всего. Рейтинг G</string>
-    <string name="tooldetail_media_filter_info">«Высокий» скрывает больше всего, а «Выкл.» ничего не скрывает. Это соответствует рейтингу Klipy и GIPHY, где «Высокий» — это G, а «Выкл.» — R.</string>
+    <string name="tooldetail_media_filter_info">«Высокий» скрывает больше всего, а «Выкл.» ничего не скрывает. Это соответствует рейтингу KLIPY и GIPHY, где «Высокий» — это G, а «Выкл.» — R.</string>
     <string name="tooldetail_media_filter_low">Низкий</string>
     <string name="tooldetail_media_filter_low_desc">Скрывает только самые сильные результаты. Рейтинг PG-13</string>
     <string name="tooldetail_media_filter_medium">Сред.</string>
@@ -6069,7 +6069,7 @@
     <string name="tooldetail_media_info">Инструменты для GIF и стикеров используют всё это, а также фильтр контента ниже. Достаточно любой одной клавиши. Каждый источник, у которого есть клавиша, отображается на панели.</string>
     <string name="tooldetail_media_keys_group">Источники и ключи API</string>
     <string name="tooldetail_media_klipy_hint">Бесплатно от partner.klipy.com. API Tenor закрылся в середине 2026 года</string>
-    <string name="tooldetail_media_klipy_label">Ключ API Klipy</string>
+    <string name="tooldetail_media_klipy_label">Ключ API KLIPY</string>
     <string name="tooldetail_media_layout_group">Макет</string>
     <string name="tooldetail_media_limit_group">Результаты</string>
     <string name="tooldetail_media_limit_subtitle">Количество элементов, загружаемых при одном поиске или в представлении трендов. Ваши собственные наборы стикеров всегда отображаются полностью.</string>

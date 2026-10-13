@@ -1491,7 +1491,7 @@
     <string name="fonts_tool_flashlight_desc">Taschenlampe über die Tastatur ein- oder ausschalten</string>
     <string name="fonts_tool_floating_desc">Trennen Sie die Tastatur in ein verschiebbares Bedienfeld</string>
     <string name="fonts_tool_floating_title">Schwebende Tastatur</string>
-    <string name="fonts_tool_gif_desc">Suche nach GIFs (Klipy, GIPHY) und sende sie über die Tastatur</string>
+    <string name="fonts_tool_gif_desc">Suche nach GIFs (KLIPY, GIPHY) und sende sie über die Tastatur</string>
     <string name="fonts_tool_grammar_desc">Überprüfen Sie den Text, den Sie schreiben, auf Grammatikprobleme. Harper erledigt dies offline</string>
     <string name="fonts_tool_grammar_title">Grammatikprüfung</string>
     <string name="fonts_tool_handwriting_desc">Schreiben Sie Wörter von Hand mit einem Finger oder einem S Pen. Ihr Gerät übernimmt die Erkennung</string>
@@ -2011,7 +2011,7 @@
         <item quantity="one">Die App hat %1$s mit %2$d Sticker importiert.</item>
         <item quantity="other">Die App hat %1$s mit %2$d Stickern importiert.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Füge Sticker aus deinen Fotos hinzu oder halte einen Klipy- oder GIPHY-Sticker auf der Tastatur gedrückt</string>
+    <string name="import_stickers_empty_subtitle">Füge Sticker aus deinen Fotos hinzu oder halte einen KLIPY- oder GIPHY-Sticker auf der Tastatur gedrückt</string>
     <string name="import_stickers_empty_title">Keine Sticker in diesem Paket</string>
     <string name="import_stickers_none_added">Die App hat nichts hinzugefügt.</string>
     <string name="import_stickers_none_read">Die App kann keine Sticker in diesem Paket lesen.</string>
@@ -6049,7 +6049,7 @@
     <string name="tooldetail_media_filter_header">Inhaltsfilter</string>
     <string name="tooldetail_media_filter_high">Hoch</string>
     <string name="tooldetail_media_filter_high_desc">Filtert am meisten. Die G-Einstufung</string>
-    <string name="tooldetail_media_filter_info">Hoch blendet am meisten aus und Aus blendet nichts aus. Dies entspricht der Bewertung von Klipy und GIPHY, wobei Hoch G und Aus R ist.</string>
+    <string name="tooldetail_media_filter_info">Hoch blendet am meisten aus und Aus blendet nichts aus. Dies entspricht der Bewertung von KLIPY und GIPHY, wobei Hoch G und Aus R ist.</string>
     <string name="tooldetail_media_filter_low">Niedrig</string>
     <string name="tooldetail_media_filter_low_desc">Blendet nur die stärksten Ergebnisse aus. Die PG-13-Einstufung</string>
     <string name="tooldetail_media_filter_medium">Mittel</string>
@@ -6068,7 +6068,7 @@
     <string name="tooldetail_media_info">Die GIF- und Sticker-Tools teilen sich all dies sowie den Inhaltsfilter unten. Ein einziger Schlüssel reicht aus. Jede Quelle, die einen Schlüssel hat, erscheint im Panel.</string>
     <string name="tooldetail_media_keys_group">Quellen und API-Schlüssel</string>
     <string name="tooldetail_media_klipy_hint">Kostenlos von partner.klipy.com. Die Tenor-API wurde Mitte 2026 geschlossen</string>
-    <string name="tooldetail_media_klipy_label">Klipy API-Schlüssel</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API-Schlüssel</string>
     <string name="tooldetail_media_layout_group">Layout</string>
     <string name="tooldetail_media_limit_group">Ergebnisse</string>
     <string name="tooldetail_media_limit_subtitle">Wie viele Elemente eine Suche oder die Trend-Ansicht lädt. Deine eigenen Sticker-Pakete werden immer vollständig angezeigt.</string>

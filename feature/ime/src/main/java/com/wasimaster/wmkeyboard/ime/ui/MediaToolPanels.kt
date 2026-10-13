@@ -71,6 +71,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.text.TextLayoutResult
@@ -505,6 +506,8 @@ internal fun RowScope.MediaHeaderSearchBar(
     placeholder: String,
     onQueryTap: () -> Unit,
     attribution: String? = null,
+    // KLIPY's "Powered by KLIPY" mark at the end of the box, while it answers.
+    klipyLogo: Boolean = false,
     // Prompt shown once the field is typed into. Null falls back to the search
     // wording; tools that aren't searching (e.g. translate) pass their own.
     // A default argument cannot hold a resource, hence the null.
@@ -557,6 +560,7 @@ internal fun RowScope.MediaHeaderSearchBar(
                 modifier = Modifier.padding(start = 6.dp),
             )
         }
+        if (klipyLogo) PoweredByKlipy(height = 8.dp, modifier = Modifier.padding(start = 6.dp))
         if (onClear != null && query.isNotEmpty()) {
             IconHint(stringResource(R.string.ime_clipboard_search_clear_desc)) {
                 Icon(
@@ -584,6 +588,8 @@ private fun MediaSearchBar(
     placeholder: String,
     onQueryTap: () -> Unit,
     attribution: String? = null,
+    // KLIPY's "Powered by KLIPY" mark beside the box, while it answers.
+    klipyLogo: Boolean = false,
     focused: Boolean = false,
     // Drawn after the box and its credit: the switch to the emoji and the
     // other media panel, when it sits up here (issue #366).
@@ -638,6 +644,7 @@ private fun MediaSearchBar(
                 modifier = Modifier.padding(start = 8.dp),
             )
         }
+        if (klipyLogo) PoweredByKlipy(height = 9.dp, modifier = Modifier.padding(start = 8.dp))
         if (trailing != null) {
             Spacer(Modifier.width(8.dp))
             trailing()
@@ -762,30 +769,76 @@ private fun PanelSpinner() {
 // several providers configured, either a chip per source or one
 // evenly-mixed grid, per the tool's settings.
 
-/** The hint in the search box: GIFs and stickers each have their own wording. */
+/**
+ * The hint in the search box. While KLIPY is one of the providers the grid
+ * pulls from it reads "Search KLIPY" (or "Search KLIPY · GIPHY"): KLIPY's
+ * brand terms make that wording a condition of a production key. Otherwise
+ * GIFs and stickers each have their own wording.
+ */
 @Composable
-private fun gifSearchHint(stickers: Boolean): String = stringResource(
-    if (stickers) R.string.ime_sticker_search_hint else R.string.ime_gif_search_hint,
-)
+private fun gifSearchHint(state: KeyboardUiState, stickers: Boolean): String {
+    val targets = gifTargets(state, stickers)
+    if (GifSource.KLIPY in targets) {
+        return stringResource(R.string.ime_media_search_provider, providerNames(targets))
+    }
+    return stringResource(if (stickers) R.string.ime_sticker_search_hint else R.string.ime_gif_search_hint)
+}
 
-/** "from Klipy · GIPHY" — whichever providers this grid is actually pulling from. */
+/**
+ * "from GIPHY": the providers this grid is actually pulling from, less KLIPY,
+ * which [gifShowsKlipyLogo] credits with its own mark instead.
+ */
 @Composable
 private fun gifAttribution(state: KeyboardUiState, stickers: Boolean = false): String? {
-    val sources = gifSourcesFor(state, stickers)
-    val tabs = state.settings.gif.sourceMode == GifSourceMode.TABS
-    val targets = GifSources.targets(sources, state.mediaSource, tabs)
     // Nothing to credit for packs on the device.
-    if (targets.isEmpty() || targets.all { it.onDevice }) return null
+    val credited = gifTargets(state, stickers).filter { !it.onDevice && it != GifSource.KLIPY }
+    if (credited.isEmpty()) return null
+    return stringResource(R.string.ime_media_attribution, providerNames(credited))
+}
+
+/** The grid pulls from KLIPY, so the search bar carries its "Powered by KLIPY" mark. */
+private fun gifShowsKlipyLogo(state: KeyboardUiState, stickers: Boolean): Boolean =
+    GifSource.KLIPY in gifTargets(state, stickers)
+
+private fun gifTargets(state: KeyboardUiState, stickers: Boolean): List<GifSource> = GifSources.targets(
+    gifSourcesFor(state, stickers),
+    state.mediaSource,
+    state.settings.gif.sourceMode == GifSourceMode.TABS,
+)
+
+/** "KLIPY · GIPHY", in the order the sources are configured. */
+@Composable
+private fun providerNames(sources: List<GifSource>): String {
     val names = StringBuilder()
-    for (target in targets) {
+    for (source in sources) {
         if (names.isNotEmpty()) names.append(" · ")
-        names.append(stringResource(GifSources.displayNameRes(target)))
+        names.append(stringResource(GifSources.displayNameRes(source)))
     }
-    return stringResource(R.string.ime_media_attribution, names.toString())
+    return names.toString()
 }
 
 private fun gifSourcesFor(state: KeyboardUiState, stickers: Boolean): List<GifSource> =
     if (stickers) ToolApiKeys.stickerSources(state.settings) else ToolApiKeys.gifSources(state.settings)
+
+/**
+ * KLIPY's "Powered by KLIPY" mark, at the end of the search box while KLIPY
+ * answers. Tinted with the panel's secondary text, as KLIPY ships it in grey,
+ * black and white for exactly that.
+ */
+@Composable
+private fun PoweredByKlipy(height: Dp, modifier: Modifier = Modifier) {
+    Icon(
+        painterResource(R.drawable.ime_powered_by_klipy),
+        contentDescription = stringResource(R.string.ime_media_powered_by_klipy),
+        modifier = modifier
+            .height(height)
+            .aspectRatio(KLIPY_LOGO_ASPECT),
+        tint = LocalKbTheme.current.secondaryText,
+    )
+}
+
+/** Width over height of the "Powered by KLIPY" artwork (its viewBox). */
+private const val KLIPY_LOGO_ASPECT = 2335.63f / 396.67f
 
 /**
  * "via Brave" or "via Tavily" in the web and image search bars, for whichever
@@ -809,9 +862,10 @@ internal fun RowScope.GifHeaderSearchBar(
 ) {
     MediaHeaderSearchBar(
         state = state,
-        placeholder = gifSearchHint(stickers),
+        placeholder = gifSearchHint(state, stickers),
         onQueryTap = onQueryTap,
         attribution = gifAttribution(state, stickers),
+        klipyLogo = gifShowsKlipyLogo(state, stickers),
     )
 }
 
@@ -931,9 +985,10 @@ internal fun GifPanel(
                 if (!fullBleed) {
                     MediaSearchBar(
                         state = state,
-                        placeholder = gifSearchHint(stickers),
+                        placeholder = gifSearchHint(state, stickers),
                         onQueryTap = onQueryTap,
                         attribution = gifAttribution(state, stickers),
+                        klipyLogo = gifShowsKlipyLogo(state, stickers),
                         focused = state.focusedIndex(FocusRegion.SEARCH) == 0,
                         trailing = trailing,
                     )

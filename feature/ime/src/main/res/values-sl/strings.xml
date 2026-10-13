@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">tajščina</string>
     <string name="ime_font_system_default_label">Sistemsko privzeto</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">Orodje GIF potrebuje ključ API od Klipy ali GIPHY. Oba ključa sta brezplačna. Dodajte ključ v nastavitvah za to orodje.</string>
+    <string name="ime_gif_need_key_body">Orodje GIF potrebuje ključ API od KLIPY ali GIPHY. Oba ključa sta brezplačna. Dodajte ključ v nastavitvah za to orodje.</string>
     <string name="ime_gif_search_empty">Ni GIF-ov za „%1$s“</string>
     <string name="ime_gif_search_hint">Išči GIF-e</string>
     <string name="ime_gif_unsupported_field_notice">To polje ne podpira datotek GIF. Poskusite v aplikaciji za klepet ali beležke.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">Brez naslova</string>
     <string name="ime_sticker_local_search_empty">Nobena vaša nalepka se ne ujema z “%1$s”</string>
     <string name="ime_sticker_manage_packs_action">Upravljanje paketov</string>
-    <string name="ime_sticker_need_key_body">Orodje za nalepke potrebuje ključ API od Klipy ali GIPHY. Oba ključa sta brezplačna. Dodajte ključ v nastavitvah za to orodje.</string>
-    <string name="ime_sticker_no_packs_empty">Še ni paketov nalepk. Ustvarite paket v nastavitvah. Prav tako lahko pritisnete in pridržite nalepko iz Klipy ali GIPHY, da jo shranite tukaj.</string>
+    <string name="ime_sticker_need_key_body">Orodje za nalepke potrebuje ključ API od KLIPY ali GIPHY. Oba ključa sta brezplačna. Dodajte ključ v nastavitvah za to orodje.</string>
+    <string name="ime_sticker_no_packs_empty">Še ni paketov nalepk. Ustvarite paket v nastavitvah. Prav tako lahko pritisnete in pridržite nalepko iz KLIPY ali GIPHY, da jo shranite tukaj.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d nalepka</item>
         <item quantity="other">%1$d nalepk</item>

@@ -338,7 +338,7 @@
     <string name="ime_font_script_thai_label">ಥಾಯ್</string>
     <string name="ime_font_system_default_label">ಸಿಸ್ಟಮ್ ಡೀಫಾಲ್ಟ್</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">GIF ಟೂಲ್‌ಗೆ Klipy ಅಥವಾ GIPHY ನಿಂದ API ಕೀ ಅಗತ್ಯವಿದೆ. ಎರಡೂ ಕೀಗಳು ಉಚಿತವಾಗಿವೆ. ಈ ಟೂಲ್‌ಗಾಗಿ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಕೀಯನ್ನು ಸೇರಿಸಿ.</string>
+    <string name="ime_gif_need_key_body">GIF ಟೂಲ್‌ಗೆ KLIPY ಅಥವಾ GIPHY ನಿಂದ API ಕೀ ಅಗತ್ಯವಿದೆ. ಎರಡೂ ಕೀಗಳು ಉಚಿತವಾಗಿವೆ. ಈ ಟೂಲ್‌ಗಾಗಿ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಕೀಯನ್ನು ಸೇರಿಸಿ.</string>
     <string name="ime_gif_search_empty">“%1$s” ಗಾಗಿ ಯಾವುದೇ GIFಗಳಿಲ್ಲ</string>
     <string name="ime_gif_search_hint">GIFಗಳನ್ನು ಹುಡುಕಿ</string>
     <string name="ime_gif_unsupported_field_notice">ಈ ಕ್ಷೇತ್ರವು GIFಗಳನ್ನು ಸ್ವೀಕರಿಸುವುದಿಲ್ಲ. ಚಾಟ್ ಅಪ್ಲಿಕೇಶನ್ ಅಥವಾ ನೋಟ್ಸ್ ಅಪ್ಲಿಕೇಶನ್ ಪ್ರಯತ್ನಿಸಿ.</string>
@@ -864,8 +864,8 @@
     <string name="ime_sticker_info_untitled">ಶೀರ್ಷಿಕೆ ಇಲ್ಲ</string>
     <string name="ime_sticker_local_search_empty">ನಿಮ್ಮ ಯಾವುದೇ ಸ್ಟಿಕ್ಕರ್‌ಗಳು “%1$s” ಗೆ ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ</string>
     <string name="ime_sticker_manage_packs_action">ಪ್ಯಾಕ್‌ಗಳನ್ನು ನಿರ್ವಹಿಸಿ</string>
-    <string name="ime_sticker_need_key_body">ಸ್ಟಿಕ್ಕರ್ ಟೂಲ್‌ಗೆ Klipy ಅಥವಾ GIPHY ನಿಂದ API ಕೀ ಅಗತ್ಯವಿದೆ. ಎರಡೂ ಕೀಗಳು ಉಚಿತವಾಗಿವೆ. ಈ ಟೂಲ್‌ನ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಕೀಯನ್ನು ಸೇರಿಸಿ.</string>
-    <string name="ime_sticker_no_packs_empty">ಇನ್ನೂ ಯಾವುದೇ ಸ್ಟಿಕ್ಕರ್ ಪ್ಯಾಕ್‌ಗಳಿಲ್ಲ. ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಪ್ಯಾಕ್ ಮಾಡಿ. ಕ್ಲಿಪಿ (Klipy) ಅಥವಾ GIPHY ನಿಂದ ಸ್ಟಿಕ್ಕರ್ ಅನ್ನು ಇಲ್ಲಿ ಉಳಿಸಲು ನೀವು ಅದನ್ನು ಒತ್ತಿ ಹಿಡಿಯಬಹುದು.</string>
+    <string name="ime_sticker_need_key_body">ಸ್ಟಿಕ್ಕರ್ ಟೂಲ್‌ಗೆ KLIPY ಅಥವಾ GIPHY ನಿಂದ API ಕೀ ಅಗತ್ಯವಿದೆ. ಎರಡೂ ಕೀಗಳು ಉಚಿತವಾಗಿವೆ. ಈ ಟೂಲ್‌ನ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಕೀಯನ್ನು ಸೇರಿಸಿ.</string>
+    <string name="ime_sticker_no_packs_empty">ಇನ್ನೂ ಯಾವುದೇ ಸ್ಟಿಕ್ಕರ್ ಪ್ಯಾಕ್‌ಗಳಿಲ್ಲ. ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಪ್ಯಾಕ್ ಮಾಡಿ. ಕ್ಲಿಪಿ (KLIPY) ಅಥವಾ GIPHY ನಿಂದ ಸ್ಟಿಕ್ಕರ್ ಅನ್ನು ಇಲ್ಲಿ ಉಳಿಸಲು ನೀವು ಅದನ್ನು ಒತ್ತಿ ಹಿಡಿಯಬಹುದು.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d ಸ್ಟಿಕರ್</item>
         <item quantity="other">%1$d ಸ್ಟಿಕರ್‌ಗಳು</item>

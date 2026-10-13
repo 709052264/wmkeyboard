@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">Tailandese</string>
     <string name="ime_font_system_default_label">Predefinito di sistema</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">Lo strumento GIF necessita di una chiave API da Klipy o GIPHY. Entrambe le chiavi sono gratuite. Aggiungi una chiave nelle impostazioni di questo strumento.</string>
+    <string name="ime_gif_need_key_body">Lo strumento GIF necessita di una chiave API da KLIPY o GIPHY. Entrambe le chiavi sono gratuite. Aggiungi una chiave nelle impostazioni di questo strumento.</string>
     <string name="ime_gif_search_empty">Nessuna GIF per “%1$s”</string>
     <string name="ime_gif_search_hint">Cerca GIF</string>
     <string name="ime_gif_unsupported_field_notice">Questo campo non accetta GIF. Prova un\'app di chat o un\'app di note.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">Nessun titolo</string>
     <string name="ime_sticker_local_search_empty">Nessuno dei tuoi sticker corrisponde a “%1$s”</string>
     <string name="ime_sticker_manage_packs_action">Gestisci pacchetti</string>
-    <string name="ime_sticker_need_key_body">Lo strumento adesivi necessita di una chiave API da Klipy o GIPHY. Entrambe le chiavi sono gratuite. Aggiungi una chiave nelle impostazioni per questo strumento.</string>
-    <string name="ime_sticker_no_packs_empty">Nessun pacchetto di adesivi ancora. Crea un pacchetto nelle impostazioni. Puoi anche tenere premuto un adesivo da Klipy o GIPHY per salvarlo qui.</string>
+    <string name="ime_sticker_need_key_body">Lo strumento adesivi necessita di una chiave API da KLIPY o GIPHY. Entrambe le chiavi sono gratuite. Aggiungi una chiave nelle impostazioni per questo strumento.</string>
+    <string name="ime_sticker_no_packs_empty">Nessun pacchetto di adesivi ancora. Crea un pacchetto nelle impostazioni. Puoi anche tenere premuto un adesivo da KLIPY o GIPHY per salvarlo qui.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d adesivo</item>
         <item quantity="other">%1$d adesivi</item>

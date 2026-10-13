@@ -1490,7 +1490,7 @@
     <string name="fonts_tool_flashlight_desc">کی بورڈ سے ٹارچ کو آن یا آف کریں</string>
     <string name="fonts_tool_floating_desc">کی بورڈ کو ایک پینل میں الگ کریں جسے آپ منتقل کر سکتے ہیں</string>
     <string name="fonts_tool_floating_title">فلوٹنگ کی بورڈ</string>
-    <string name="fonts_tool_gif_desc">GIFs (Klipy, GIPHY) تلاش کریں اور انہیں کی بورڈ سے بھیجیں</string>
+    <string name="fonts_tool_gif_desc">GIFs (KLIPY, GIPHY) تلاش کریں اور انہیں کی بورڈ سے بھیجیں</string>
     <string name="fonts_tool_grammar_desc">اپنے لکھے ہوئے متن میں گرامر کی غلطیوں کو چیک کریں۔ ہارپر یہ کام آف لائن کرتا ہے</string>
     <string name="fonts_tool_grammar_title">گرائمر چیک</string>
     <string name="fonts_tool_handwriting_desc">انگلی یا ایس پین سے ہاتھ سے الفاظ لکھیں۔ آپ کی ڈیوائس شناخت کرتی ہے</string>
@@ -2010,7 +2010,7 @@
         <item quantity="one">ایپ نے %1$s کو %2$d اسٹیکر کے ساتھ درآمد کیا۔</item>
         <item quantity="other">ایپ نے %1$s کو %2$d اسٹیکرز کے ساتھ درآمد کیا۔</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">اپنی تصاویر سے اسٹیکرز شامل کریں، یا کی بورڈ میں Klipy یا GIPHY اسٹیکر کو دبا کر رکھیں</string>
+    <string name="import_stickers_empty_subtitle">اپنی تصاویر سے اسٹیکرز شامل کریں، یا کی بورڈ میں KLIPY یا GIPHY اسٹیکر کو دبا کر رکھیں</string>
     <string name="import_stickers_empty_title">اس پیک میں کوئی اسٹیکر نہیں ہے</string>
     <string name="import_stickers_none_added">ایپ نے کچھ بھی شامل نہیں کیا۔</string>
     <string name="import_stickers_none_read">ایپ اس پیک میں کوئی اسٹیکر نہیں پڑھ سکتی۔</string>
@@ -6048,7 +6048,7 @@
     <string name="tooldetail_media_filter_header">مواد کا فلٹر</string>
     <string name="tooldetail_media_filter_high">اعلیٰ</string>
     <string name="tooldetail_media_filter_high_desc">سب سے زیادہ چھپاتا ہے۔ G ریٹنگ</string>
-    <string name="tooldetail_media_filter_info">ہائی سب سے زیادہ چھپاتا ہے اور آف کچھ نہیں چھپاتا۔ یہ Klipy اور GIPHY کی درجہ بندی سے منسلک ہے، جہاں ہائی G ہے اور آف R ہے۔</string>
+    <string name="tooldetail_media_filter_info">ہائی سب سے زیادہ چھپاتا ہے اور آف کچھ نہیں چھپاتا۔ یہ KLIPY اور GIPHY کی درجہ بندی سے منسلک ہے، جہاں ہائی G ہے اور آف R ہے۔</string>
     <string name="tooldetail_media_filter_low">کم</string>
     <string name="tooldetail_media_filter_low_desc">صرف مضبوط ترین نتائج کو چھپاتا ہے۔ PG-13 درجہ بندی</string>
     <string name="tooldetail_media_filter_medium">درمیانہ</string>
@@ -6067,7 +6067,7 @@
     <string name="tooldetail_media_info">GIF اور اسٹیکر ٹولز یہ سب شیئر کرتے ہیں، اور نیچے دیا گیا مواد کا فلٹر بھی۔ کوئی بھی ایک کلید کافی ہے۔ ہر وہ ذریعہ جس کی کلید موجود ہو پینل میں ظاہر ہوتا ہے۔</string>
     <string name="tooldetail_media_keys_group">ذرائع اور API کلیدیں</string>
     <string name="tooldetail_media_klipy_hint">partner.klipy.com سے مفت۔ Tenor API 2026 کے وسط میں بند ہو گئی تھی</string>
-    <string name="tooldetail_media_klipy_label">Klipy API کی</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API کی</string>
     <string name="tooldetail_media_layout_group">لے آؤٹ</string>
     <string name="tooldetail_media_limit_group">نتائج</string>
     <string name="tooldetail_media_limit_subtitle">ایک سرچ یا ٹرینڈنگ ویو کتنی آئٹمز لوڈ کرتی ہے۔ آپ کے اپنے اسٹیکر پیک ہمیشہ مکمل طور پر نظر آتے ہیں۔</string>

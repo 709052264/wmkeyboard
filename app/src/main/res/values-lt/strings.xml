@@ -1491,7 +1491,7 @@
     <string name="fonts_tool_flashlight_desc">Įjunkite arba išjunkite žibintuvėlį klaviatūra</string>
     <string name="fonts_tool_floating_desc">Atskirkite klaviatūrą į skydelį, kurį galite perkelti</string>
     <string name="fonts_tool_floating_title">Slankioji klaviatūra</string>
-    <string name="fonts_tool_gif_desc">Ieškokite GIF (Klipy, GIPHY) ir siųskite juos iš klaviatūros</string>
+    <string name="fonts_tool_gif_desc">Ieškokite GIF (KLIPY, GIPHY) ir siųskite juos iš klaviatūros</string>
     <string name="fonts_tool_grammar_desc">Tikrinkite rašomą tekstą dėl gramatikos klaidų. „Harper“ tai atlieka neprisijungus</string>
     <string name="fonts_tool_grammar_title">Gramatikos tikrinimas</string>
     <string name="fonts_tool_handwriting_desc">Rašykite žodžius ranka pirštu arba „S Pen“ rašikliu. Įrenginys atliks atpažinimą</string>
@@ -2012,7 +2012,7 @@
         <item quantity="one">Programa importavo %1$s su %2$d lipduku.</item>
         <item quantity="other">Programa importavo %1$s su %2$d lipdukais.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">Pridėkite lipdukų iš savo nuotraukų arba paspauskite ir palaikykite „Klipy“ ar „GIPHY“ lipduką klaviatūroje</string>
+    <string name="import_stickers_empty_subtitle">Pridėkite lipdukų iš savo nuotraukų arba paspauskite ir palaikykite „KLIPY“ ar „GIPHY“ lipduką klaviatūroje</string>
     <string name="import_stickers_empty_title">Šiame rinkinyje nėra lipdukų</string>
     <string name="import_stickers_none_added">Programa nieko nepridėjo.</string>
     <string name="import_stickers_none_read">Programa negali nuskaityti jokių lipdukų iš to paketo.</string>
@@ -6048,7 +6048,7 @@
     <string name="tooldetail_media_filter_header">Turinio filtras</string>
     <string name="tooldetail_media_filter_high">Aukštas</string>
     <string name="tooldetail_media_filter_high_desc">Paslepia daugiausiai. G reitingas</string>
-    <string name="tooldetail_media_filter_info">„Klipy“ ir „GIPHY“ kiekvienam rezultatui suteikia įvertinimą. Kiekviena paslauga taiko jūsų lygį savo rezultatams.</string>
+    <string name="tooldetail_media_filter_info">„KLIPY“ ir „GIPHY“ kiekvienam rezultatui suteikia įvertinimą. Kiekviena paslauga taiko jūsų lygį savo rezultatams.</string>
     <string name="tooldetail_media_filter_low">Žemas</string>
     <string name="tooldetail_media_filter_low_desc">Paslepia tik stipriausius rezultatus. PG-13 reitingas</string>
     <string name="tooldetail_media_filter_medium">Vidutinis</string>
@@ -6067,7 +6067,7 @@
     <string name="tooldetail_media_info">GIF ir lipdukų įrankiai dalijasi visu šiuo turiniu bei toliau pateiktu turinio filtru. Pakanka bet kurio vieno rakto. Kiekvienas šaltinis, turintis raktą, rodomas skydelyje.</string>
     <string name="tooldetail_media_keys_group">Šaltiniai ir API raktai</string>
     <string name="tooldetail_media_klipy_hint">Nemokamai iš partner.klipy.com. „Tenor“ API buvo uždaryta 2026 m. viduryje</string>
-    <string name="tooldetail_media_klipy_label">„Klipy“ API raktas</string>
+    <string name="tooldetail_media_klipy_label">„KLIPY“ API raktas</string>
     <string name="tooldetail_media_layout_group">Išdėstymas</string>
     <string name="tooldetail_media_limit_group">Rezultatai</string>
     <string name="tooldetail_media_limit_subtitle">Kiek elementų įkelia viena paieška arba populiariausių rodinys. Jūsų pačių lipdukų paketai visada rodomi pilnai.</string>

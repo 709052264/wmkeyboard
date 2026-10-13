@@ -1490,7 +1490,7 @@
     <string name="fonts_tool_flashlight_desc">விசைப்பலகையிலிருந்து டார்ச்சை ஆன் அல்லது ஆஃப் செய்யவும்</string>
     <string name="fonts_tool_floating_desc">விசைப்பலகையை நீங்கள் நகர்த்தக்கூடிய ஒரு பேனலாகப் பிரிக்கவும்</string>
     <string name="fonts_tool_floating_title">மிதக்கும் விசைப்பலகை</string>
-    <string name="fonts_tool_gif_desc">GIF-களை (Klipy, GIPHY) தேடி விசைப்பலகையிலிருந்து அனுப்பவும்</string>
+    <string name="fonts_tool_gif_desc">GIF-களை (KLIPY, GIPHY) தேடி விசைப்பலகையிலிருந்து அனுப்பவும்</string>
     <string name="fonts_tool_grammar_desc">நீங்கள் எழுதும் உரையில் இலக்கணப் பிழைகள் உள்ளதா எனச் சரிபார்க்கவும். ஹார்பர் இதை ஆஃப்லைனில் செய்கிறது</string>
     <string name="fonts_tool_grammar_title">இலக்கணச் சரிபார்ப்பு</string>
     <string name="fonts_tool_handwriting_desc">விரல் அல்லது எஸ் பேன் (S Pen) மூலம் வார்த்தைகளை கையால் எழுதுங்கள். உங்கள் சாதனம் அதை அடையாளம் காணும்</string>
@@ -2011,7 +2011,7 @@
         <item quantity="one">ஆப்ஸ் %1$s-ஐ %2$d ஸ்டிக்கருடன் இறக்குமதி செய்தது.</item>
         <item quantity="other">ஆப்ஸ் %1$s-ஐ %2$d ஸ்டிக்கர்களுடன் இறக்குமதி செய்தது.</item>
     </plurals>
-    <string name="import_stickers_empty_subtitle">உங்கள் புகைப்படங்களிலிருந்து ஸ்டிக்கர்களைச் சேர்க்கவும், அல்லது விசைப்பலகையில் உள்ள கிளிப்பி (Klipy) அல்லது ஜிஃபி (GIPHY) ஸ்டிக்கரை அழுத்திப் பிடிக்கவும்</string>
+    <string name="import_stickers_empty_subtitle">உங்கள் புகைப்படங்களிலிருந்து ஸ்டிக்கர்களைச் சேர்க்கவும், அல்லது விசைப்பலகையில் உள்ள கிளிப்பி (KLIPY) அல்லது ஜிஃபி (GIPHY) ஸ்டிக்கரை அழுத்திப் பிடிக்கவும்</string>
     <string name="import_stickers_empty_title">இந்த பேக்கில் ஸ்டிக்கர்கள் இல்லை</string>
     <string name="import_stickers_none_added">பயன்பாடு எதையும் சேர்க்கவில்லை.</string>
     <string name="import_stickers_none_read">அந்தப் பொதியில் உள்ள எந்த ஸ்டிக்கரையும் செயலியால் படிக்க முடியவில்லை.</string>
@@ -6047,7 +6047,7 @@
     <string name="tooldetail_media_filter_header">உள்ளடக்க வடிகட்டி</string>
     <string name="tooldetail_media_filter_high">அதிகம்</string>
     <string name="tooldetail_media_filter_high_desc">அதிகபட்சமாக மறைக்கும். G மதிப்பீடு</string>
-    <string name="tooldetail_media_filter_info">High என்பது பெரும்பாலானவற்றை மறைக்கும், Off என்பது எதையும் மறைக்காது. இது Klipy மற்றும் GIPHY-ன் மதிப்பீட்டுடன் பொருந்துகிறது, இதில் High என்பது G மற்றும் Off என்பது R ஆகும்.</string>
+    <string name="tooldetail_media_filter_info">High என்பது பெரும்பாலானவற்றை மறைக்கும், Off என்பது எதையும் மறைக்காது. இது KLIPY மற்றும் GIPHY-ன் மதிப்பீட்டுடன் பொருந்துகிறது, இதில் High என்பது G மற்றும் Off என்பது R ஆகும்.</string>
     <string name="tooldetail_media_filter_low">குறைவு</string>
     <string name="tooldetail_media_filter_low_desc">மிகவும் வலுவான முடிவுகளை மட்டுமே மறைக்கும். PG-13 மதிப்பீடு</string>
     <string name="tooldetail_media_filter_medium">நடுத்தரம்</string>
@@ -6066,7 +6066,7 @@
     <string name="tooldetail_media_info">GIF மற்றும் ஸ்டிக்கர் கருவிகள் இவை அனைத்தையும், கீழே உள்ள உள்ளடக்க வடிகட்டியையும் பகிர்கின்றன. ஏதேனும் ஒரு சாவி (key) இருந்தால் போதுமானது. சாவி உள்ள ஒவ்வொரு ஆதாரமும் பேனலில் காண்பிக்கப்படும்.</string>
     <string name="tooldetail_media_keys_group">ஆதாரங்கள் மற்றும் API சாவிகள்</string>
     <string name="tooldetail_media_klipy_hint">partner.klipy.com இலிருந்து இலவசம். டெனர் (Tenor) API 2026 ஆம் ஆண்டின் நடுப்பகுதியில் மூடப்பட்டது</string>
-    <string name="tooldetail_media_klipy_label">Klipy API விசை</string>
+    <string name="tooldetail_media_klipy_label">KLIPY API விசை</string>
     <string name="tooldetail_media_layout_group">தளவமைப்பு</string>
     <string name="tooldetail_media_limit_group">முடிவுகள்</string>
     <string name="tooldetail_media_limit_subtitle">ஒரு தேடல் அல்லது டிரெண்டிங் வியூ எத்தனை உருப்படிகளை ஏற்றுகிறது. உங்கள் சொந்த ஸ்டிக்கர் பேக்குகள் எப்போதும் முழுமையாகக் காட்டப்படும்.</string>

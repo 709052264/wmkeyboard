@@ -337,7 +337,7 @@
     <string name="ime_font_script_thai_label">Тайский</string>
     <string name="ime_font_system_default_label">Системный шрифт</string>
     <string name="ime_gif_item_desc">GIF</string>
-    <string name="ime_gif_need_key_body">Для инструмента GIF требуется ключ API от Klipy или GIPHY. Оба ключа бесплатны. Добавьте ключ в настройках этого инструмента.</string>
+    <string name="ime_gif_need_key_body">Для инструмента GIF требуется ключ API от KLIPY или GIPHY. Оба ключа бесплатны. Добавьте ключ в настройках этого инструмента.</string>
     <string name="ime_gif_search_empty">Нет GIF для «%1$s»</string>
     <string name="ime_gif_search_hint">Поиск GIF</string>
     <string name="ime_gif_unsupported_field_notice">Это поле не поддерживает GIF. Попробуйте использовать приложение для чата или заметок.</string>
@@ -863,8 +863,8 @@
     <string name="ime_sticker_info_untitled">Без названия</string>
     <string name="ime_sticker_local_search_empty">Ваши стикеры не соответствуют «%1$s»</string>
     <string name="ime_sticker_manage_packs_action">Управление наборами</string>
-    <string name="ime_sticker_need_key_body">Для инструмента стикеров требуется API-ключ от Klipy или GIPHY. Оба ключа бесплатны. Добавьте ключ в настройках этого инструмента.</string>
-    <string name="ime_sticker_no_packs_empty">Наборов стикеров пока нет. Создайте набор в настройках. Вы также можете нажать и удерживать стикер из Klipy или GIPHY, чтобы сохранить его здесь.</string>
+    <string name="ime_sticker_need_key_body">Для инструмента стикеров требуется API-ключ от KLIPY или GIPHY. Оба ключа бесплатны. Добавьте ключ в настройках этого инструмента.</string>
+    <string name="ime_sticker_no_packs_empty">Наборов стикеров пока нет. Создайте набор в настройках. Вы также можете нажать и удерживать стикер из KLIPY или GIPHY, чтобы сохранить его здесь.</string>
     <plurals name="ime_sticker_offer_count">
         <item quantity="one">%1$d стикер</item>
         <item quantity="other">%1$d стикеров</item>
