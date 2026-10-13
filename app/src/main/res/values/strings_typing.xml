@@ -103,6 +103,10 @@
     <string name="typing_undo_memory_title">Remember my undos</string>
     <string name="typing_undo_memory_subtitle">How long a correction you undo stays undone</string>
     <string name="typing_undo_memory_info">When you undo a correction, the keyboard remembers that exact pair of words and stops making the same correction. This setting says how long the keyboard keeps that memory. The keyboard reads an undo in two ways. Backspace, pressed right after the correction, is a clear undo. The keyboard also checks the text later, and counts it as an undo when your own spelling stands where the correction was. The second reading is weaker. You can go back to fix a typo by hand without seeing that the keyboard already fixed it, and type the same typo again. On every level except Strict, the keyboard ignores that second reading when your spelling is not a word it knows.</string>
+    <string name="typing_stop_after_declines_title">Stop after I refuse a fix</string>
+    <string name="typing_stop_after_declines_subtitle">Leave a word alone once you have undone or deleted its correction this many times</string>
+    <string name="typing_stop_after_declines_never">Never</string>
+    <string name="typing_stop_after_declines_info">Sometimes autocorrect changes a word, you delete the change and type your word again, and autocorrect changes it again. This setting ends that loop. Each time you undo a correction or delete it, the keyboard counts one refusal for that word in that place. When the count reaches this number, the word you type there stays as you typed it, and the keyboard does not offer the fix on the strip either. Only that one place in that one text field is affected. The same typo anywhere else is still corrected, and the count is gone when you leave the field. Never turns this off.</string>
     <string name="typing_undo_memory_off">Off</string>
     <string name="typing_undo_memory_off_desc">The keyboard forgets the undo at once and corrects the word again next time</string>
     <string name="typing_undo_memory_light">Light</string>

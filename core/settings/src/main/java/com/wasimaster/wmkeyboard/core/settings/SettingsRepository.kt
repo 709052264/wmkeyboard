@@ -2400,6 +2400,9 @@ const val ACTION_POSITION_LAST = -1
 /** The furthest from the front [LongPressLetterActions.actionPosition] can name, counting from 0. */
 const val ACTION_POSITION_MAX = 7
 
+/** The most declines [AutocorrectSettings.stopAfterDeclines] can ask for. */
+const val MAX_STOP_AFTER_DECLINES = 5
+
 /**
  * Whether the keyboard replaces a word it thinks is wrong, and how sure it has
  * to be first.
@@ -2437,6 +2440,13 @@ data class AutocorrectSettings(
      * ([CorrectionStats]) is what actually implements them.
      */
     val undoMemory: UndoMemory = UndoMemory.NORMAL,
+    /**
+     * How many times a correction may be turned down at one spot — undone, or
+     * deleted and the word typed again — before the word there is left as
+     * typed. Only that occurrence in that field; the same typo elsewhere is
+     * corrected as usual. 0 never stops.
+     */
+    val stopAfterDeclines: Int = 2,
     /** Never autocorrect a word typed all in capitals (acronyms, shouting). */
     val skipAllCaps: Boolean = true,
     /**
@@ -8939,6 +8949,8 @@ class SettingsRepository(private val context: Context) {
         private val AUTOCORRECT_ADAPTIVE = booleanPreferencesKey("autocorrect_adaptive")
         private val AUTOCORRECT_UNDO_MEMORY =
             stringPreferencesKey("autocorrect_undo_memory")
+        private val AUTOCORRECT_STOP_AFTER_DECLINES =
+            intPreferencesKey("autocorrect_stop_after_declines")
         private val REVERT_AUTOCORRECT_ON_BACKSPACE =
             booleanPreferencesKey("revert_autocorrect_on_backspace")
         private val AUTOCORRECT_SKIP_ALL_CAPS =
@@ -10705,6 +10717,9 @@ class SettingsRepository(private val context: Context) {
             undoMemory = p[AUTOCORRECT_UNDO_MEMORY]
                 ?.let { runCatching { UndoMemory.valueOf(it) }.getOrNull() }
                 ?: defaults.correction.undoMemory,
+            stopAfterDeclines = p[AUTOCORRECT_STOP_AFTER_DECLINES]
+                ?.coerceIn(0, MAX_STOP_AFTER_DECLINES)
+                ?: defaults.correction.stopAfterDeclines,
             skipAllCaps = p[AUTOCORRECT_SKIP_ALL_CAPS] ?: defaults.correction.skipAllCaps,
             onEnter = p[AUTOCORRECT_ON_ENTER] ?: defaults.correction.onEnter,
             onPunctuation = p[AUTOCORRECT_ON_PUNCTUATION] ?: defaults.correction.onPunctuation,
@@ -15923,6 +15938,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutocorrectUndoMemory(value: UndoMemory) =
         editPrefs { it[AUTOCORRECT_UNDO_MEMORY] = value.name }
+
+    suspend fun setAutocorrectStopAfterDeclines(value: Int) =
+        editPrefs { it[AUTOCORRECT_STOP_AFTER_DECLINES] = value.coerceIn(0, MAX_STOP_AFTER_DECLINES) }
 
     suspend fun setRevertAutocorrectOnBackspace(value: Boolean) =
         editPrefs { it[REVERT_AUTOCORRECT_ON_BACKSPACE] = value }

@@ -216,6 +216,7 @@ import com.wasimaster.wmkeyboard.core.prediction.CandidateReranker
 import com.wasimaster.wmkeyboard.core.prediction.CorrectionMemory
 import com.wasimaster.wmkeyboard.core.prediction.CorrectionStats
 import com.wasimaster.wmkeyboard.core.prediction.CorrectionWatch
+import com.wasimaster.wmkeyboard.core.prediction.DeclinedSpots
 import com.wasimaster.wmkeyboard.core.prediction.EditOps
 import com.wasimaster.wmkeyboard.core.prediction.GlideOutcomes
 import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackDownloadManager
@@ -898,6 +899,12 @@ open class WMKeyboardService : InputMethodService() {
      * against the text they landed in.
      */
     private val correctionWatch = CorrectionWatch()
+
+    /**
+     * Where in this field a correction has been turned down, so the one the
+     * user keeps deleting and retyping stops coming back. See [DeclinedSpots].
+     */
+    private val declinedSpots = DeclinedSpots()
 
     /**
      * What the user's own fixes have taught autocorrect: taught pairs and the
@@ -6023,6 +6030,7 @@ open class WMKeyboardService : InputMethodService() {
             // undo puts on a correction are scoped to the run that earned them.
             // What should outlive it is in the persisted pair counts by now.
             correctionStats.endFieldSession()
+            declinedSpots.clear()
             clearLearnOffer()
             clearCorrectionOffer()
             // A genuinely different field. Whatever a plugin was collecting
@@ -11027,6 +11035,10 @@ open class WMKeyboardService : InputMethodService() {
         // A two-thumb word takes back its latest tap or swipe (#638).
         if (composing.isNotEmpty() && duetBackspace(ic)) return
         if (composing.isNotEmpty()) {
+            // A correction re-armed as the composing word and backspaced is
+            // being deleted all the same; the buffer path just never reaches
+            // [noteDeletedForLearning].
+            if (expectedSelStart > 0) declinedSpots.onDeleted(expectedSelStart - 1, expectedSelStart)
             // The buffer is the field's own text, so a backspace has to take the
             // same thing off it that the branch below would take off the field —
             // for a cluster-shaping layout, a whole conjunct rather than one code
@@ -11184,6 +11196,7 @@ open class WMKeyboardService : InputMethodService() {
                 // a rejection has to hold in incognito and with learning off
                 // too. Other corrections of the same typed word stay live.
                 suggestionEngine?.rejectCorrection(revert.original, revert.committed)
+                declinedSpots.undone(revert.original)
                 // Judged here and now, so the settle pass must not judge it
                 // again on the way out and count the rejection twice.
                 correctionWatch.drop(revert.original, revert.committed)
@@ -14209,6 +14222,12 @@ open class WMKeyboardService : InputMethodService() {
         // the undo, the near-miss chip, the correction span — names this, and
         // never the keystrokes that spelled it.
         val fieldWord = vietnameseComposed ?: typed
+        // Where this word starts in the field, for [declinedSpots]; -1 unknown.
+        val wordStart = if (expectedSelStart >= fieldText.length) expectedSelStart - fieldText.length else -1
+        // The user has turned a correction of this word down at this very spot
+        // often enough: it goes in as typed, and is not offered either.
+        val declinedHere = wordStart >= 0 &&
+            declinedSpots.blocks(wordStart, fieldWord, state.settings.correction.stopAfterDeclines)
         val output = when {
             state.composer.phoneticLanguage != null -> {
                 val language = state.composer.phoneticLanguage.orEmpty()
@@ -14239,8 +14258,8 @@ open class WMKeyboardService : InputMethodService() {
                     timingMultiplier = timingMultiplier(),
                     previousWord = previousWord,
                 ) ?: SuggestionEngine.NO_CORRECTION
-                corrected = decision.apply?.takeIf { it != vietnameseComposed }
-                offered = decision.offer?.takeIf { it != vietnameseComposed }
+                corrected = decision.apply?.takeIf { it != vietnameseComposed && !declinedHere }
+                offered = decision.offer?.takeIf { it != vietnameseComposed && !declinedHere }
                 obviousness = decision.obviousness
                 corrected ?: vietnameseComposed
             }
@@ -14280,8 +14299,8 @@ open class WMKeyboardService : InputMethodService() {
                         previousWord = previousWord,
                     ) ?: SuggestionEngine.NO_CORRECTION
                 }
-                corrected = decision.apply?.takeIf { it != typed }
-                offered = decision.offer?.takeIf { it != typed }
+                corrected = decision.apply?.takeIf { it != typed && !declinedHere }
+                offered = decision.offer?.takeIf { it != typed && !declinedHere }
                 obviousness = decision.obviousness
                 corrected ?: typed
             }
@@ -14348,6 +14367,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         lastRevertible = revertible
         if (corrected != null && revertible != null && revertible.kind == RevertibleCommit.Kind.AUTOCORRECT) {
+            declinedSpots.fired(wordStart, revertible.original, revertible.committed)
             // Only the engine's own guesses: an apostrophe repair is a table,
             // not a judgement the gate could learn to make more carefully.
             //
@@ -16295,6 +16315,7 @@ open class WMKeyboardService : InputMethodService() {
         // The same verdict backspacing it away carries: this exact pair is
         // retired, and the settle pass must not judge it a second time.
         suggestionEngine?.rejectCorrection(undo.typed, undo.corrected)
+        declinedSpots.undone(undo.typed)
         correctionWatch.drop(undo.typed, undo.corrected)
         if (state.settings.learnFromTyping &&
             !(state.incognitoOn && state.settings.incognitoPausesLearning) &&
@@ -17344,6 +17365,8 @@ open class WMKeyboardService : InputMethodService() {
         if (start < 0 || end <= start) return
         // The glide readings behind the span move up with the text (#199).
         glideReadings.onDeleted(start, end)
+        // Deleting a correction is turning it down as surely as undoing it.
+        declinedSpots.onDeleted(start, end)
         if (learningBuffer.isEmpty()) return
         val dropped = learningBuffer.onDeleted(start, end)
         if (dropped.isNotEmpty()) lastDropped = dropped

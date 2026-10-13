@@ -114,6 +114,12 @@ A retired pair is not gone forever. Once it has sat quiet for about forty saves 
 
 Pick **Light** if you find the keyboard gives up on corrections too easily. Pick **Strict** if you want an undo to be final. **Off** keeps the undo itself and forgets everything else.
 
+### When you keep deleting the same fix
+
+Backspace right after a correction is not the only way to say no to it. Often the correction goes unnoticed for a moment, and you delete it letter by letter or with a word delete, type your word again, and get the same correction again. **Stop after I refuse a fix** under <SettingsPath path="Typing / Automatic corrections" /> ends that loop.
+
+Every undo or deletion of a correction counts as one refusal for that word *at that place*. Once a place has collected the set number of refusals (2 by default, up to 5), the word you type there goes in as you typed it, and the fix is not offered on the strip either. It is a local truce, not a verdict on the word: the same typo anywhere else in the text is corrected as usual, nothing is saved, and the count is gone when you move to another field. Set it to **Never** to turn it off; **Remember my undos** above still applies either way.
+
 ## Learning from your own fixes
 
 Most typos autocorrect misses end the same way: you notice the word, go back, and fix it by hand. That fix used to teach the keyboard nothing. Now it teaches two things.
@@ -258,7 +264,7 @@ Android has a spell checker of its own, separate from the keyboard: it draws the
 
 The table covers the rows this page is about. The same group also carries **Adapt to app tone** and **Space after a suggestion** (both described on [Suggestions & prediction](/smart/suggestions/)), **Automatic capital letters**, and the two selection rules, wrap-with-a-pair and shift-re-cases-the-selection.
 
-The **Autocorrect** toggle is the master switch for the seventeen rows marked "Autocorrect on" above, from the confidence slider down to Fix number row slips. It is *not* a switch for the whole group. The apostrophe fix, both double-space rules, the auto-space after punctuation and the space-before-punctuation fix carry on working with autocorrect off, which is the point of them having their own toggles. Autocorrect is also reachable as a one-tap toolbar tool that flips the same switch without leaving the keyboard, showing a brief "Autocorrect on"/"Autocorrect off" confirmation.
+The **Autocorrect** toggle is the master switch for the eighteen rows marked "Autocorrect on" above, from the confidence slider down to Fix number row slips. It is *not* a switch for the whole group. The apostrophe fix, both double-space rules, the auto-space after punctuation and the space-before-punctuation fix carry on working with autocorrect off, which is the point of them having their own toggles. Autocorrect is also reachable as a one-tap toolbar tool that flips the same switch without leaving the keyboard, showing a brief "Autocorrect on"/"Autocorrect off" confirmation.
 
 **Autocorrect confidence** is the ratio the top candidate must beat the runner-up by. It's a continuous slider from 1.5&times; to 10&times;, labeled with the exact multiplier (for example "&times;4.0"). Lower makes autocorrect fire more eagerly, on less-certain calls. Higher restricts it to only the most unambiguous typos. Two-source agreement (see [How a correction is chosen](#how-a-correction-is-chosen)) always bypasses this slider, whatever it's set to.
 
@@ -266,6 +272,7 @@ Three more rows change what autocorrect does without you touching the slider:
 
 - **Adaptive confidence** (on) watches how often corrections get rejected and raises the bar when a lot of them do. It stays out of the way until twenty corrections have been judged, and it can move the gate anywhere from 0.85&times; the slider (a spotless record) up to 2.5&times; it, with the result always held inside the slider's own 1.5&times;&ndash;10&times; range. That is the whole of this row: it moves one global gate. The memory of individual corrections you undid is a separate setting, **Remember my undos**, described in [How long an undo lasts](#how-long-an-undo-lasts).
 - **Remember my undos** (Normal) sets how long the keyboard keeps an undo. It is the row to reach for if autocorrect either forgets a fix you rejected or refuses to fix a word you want fixed. See [How long an undo lasts](#how-long-an-undo-lasts).
+- **Stop after I refuse a fix** (2) leaves a word alone at the place where you have undone or deleted its correction that many times. See [When you keep deleting the same fix](#when-you-keep-deleting-the-same-fix).
 - **Learn from my fixes** (on) and **Learn where my taps land** (on) are the two halves of [Learning from your own fixes](#learning-from-your-own-fixes): the first remembers the typos you repair by hand and the slips behind them, the second where your finger lands on each key. **Learned corrections** opens the list of what has been learned.
 - **Typing rhythm** (0%, so off until you move it) measures how fast you typed the word. A quick sloppy burst makes autocorrect a bit braver. Slow deliberate typing, as with an unusual name or a word from another language, makes it hold back. The slider is how much the rhythm is allowed to sway things.
 - **Detection strength** decides how hard the language the keyboard reads the field as leans on ranking, from a light nudge at Gentle through Balanced to a heavy tilt at Aggressive. It reweights the word lists rather than moving the confidence gate, so it changes *which* word autocorrect reaches for, not how sure it has to be. See [Mixed-language typing](/smart/mixed-language/).

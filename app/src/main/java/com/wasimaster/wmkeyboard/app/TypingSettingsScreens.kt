@@ -26,6 +26,7 @@ import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
 import com.wasimaster.wmkeyboard.core.prediction.OctopusKind
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.core.settings.FlickDistanceRange
+import com.wasimaster.wmkeyboard.core.settings.MAX_STOP_AFTER_DECLINES
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
 import com.wasimaster.wmkeyboard.core.thesaurus.SynonymSource
@@ -371,6 +372,18 @@ internal fun TypingCorrectionsSettings(
                     default = SettingsDefaults.correction.undoMemory,
                     detail = { level -> ChoiceDetail(stringResource(undoMemoryDescRes(level))) },
                 ) { scope.launch { repository.setAutocorrectUndoMemory(it) } }
+            }
+            item {
+                val never = stringResource(R.string.typing_stop_after_declines_never)
+                SliderSetting(
+                    R.string.typing_stop_after_declines_title,
+                    subtitle = stringResource(R.string.typing_stop_after_declines_subtitle),
+                    value = settings.watch { it.correction.stopAfterDeclines }.toFloat(),
+                    range = 0f..MAX_STOP_AFTER_DECLINES.toFloat(),
+                    display = { if (it.toInt() <= 0) never else it.toInt().toString() },
+                    info = stringResource(R.string.typing_stop_after_declines_info),
+                    default = SettingsDefaults.correction.stopAfterDeclines.toFloat(),
+                ) { scope.launch { repository.setAutocorrectStopAfterDeclines(it.toInt()) } }
             }
             item {
                 ToggleSetting(
