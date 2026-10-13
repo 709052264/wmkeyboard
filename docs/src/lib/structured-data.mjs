@@ -18,6 +18,7 @@ import {
 	OG_IMAGE,
 	PLAY_URL,
 	REPO_URL,
+	SOCIALS,
 	SITE_AUTHOR,
 	SITE_DESCRIPTION,
 	SITE_TITLE,
@@ -83,7 +84,7 @@ const appNode = (site) => ({
 	isAccessibleForFree: true,
 	offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD', availability: 'https://schema.org/InStock' },
 	identifier: APP_ID,
-	sameAs: [REPO_URL, PLAY_URL],
+	sameAs: [REPO_URL, PLAY_URL, ...SOCIALS.map((s) => s.href)],
 	featureList: [
 		'Offline word prediction and autocorrect',
 		'Glide (swipe) typing',

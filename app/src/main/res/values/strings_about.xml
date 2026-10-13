@@ -87,6 +87,19 @@
     <!-- Shown when no email app can open the draft. %1$s = the email address of the maintainer. -->
     <string name="about_no_email_app_error">Your device has no email app. Write to <xliff:g id="email" example="name@example.com">%1$s</xliff:g> instead.</string>
 
+    <!-- About screen: the Community group, the Telegram group and the project's social accounts. -->
+    <string name="about_community_title">Community</string>
+    <string name="about_community_body">The Telegram group is the quickest place to ask a question, see what other people have made and hear about a release first. Bugs still go to GitHub, where they can be tracked to a fix. Touch and hold an account to copy its link.</string>
+    <string name="about_telegram_title">Join the Telegram group</string>
+    <string name="about_telegram_subtitle">Ask questions, share layouts and themes, and hear about new releases first</string>
+    <!-- The pill on the Telegram row. Keep it one short word. -->
+    <string name="about_telegram_join">Join</string>
+    <string name="about_follow_title">Follow WM Keyboard</string>
+    <string name="about_follow_subtitle">Tips, new features and short videos</string>
+    <!-- Read out for a social account tile. %1$s = the platform, such as Instagram. %2$s = the account handle, such as @wmkeyboardapp. -->
+    <string name="about_social_cd">WM Keyboard on <xliff:g id="platform" example="Instagram">%1$s</xliff:g>, <xliff:g id="handle" example="@wmkeyboardapp">%2$s</xliff:g></string>
+    <string name="about_link_copied">Link copied</string>
+
     <!-- About screen: the Documentation group. -->
     <string name="about_documentation_title">Documentation</string>
     <string name="about_user_guide_title">User guide</string>

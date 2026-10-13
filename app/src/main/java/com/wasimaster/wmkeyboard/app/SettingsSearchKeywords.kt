@@ -52,6 +52,8 @@ internal val SettingsSearchKeywords: Map<Int, Int> = buildMap {
     put(R.string.about_licences_title, R.string.search_kw_about_licences)
     put(R.string.about_replay_onboarding_title, R.string.search_kw_about_replay_onboarding)
     put(R.string.about_report_bug_title, R.string.search_kw_about_report_bug)
+    put(R.string.about_telegram_title, R.string.search_kw_about_telegram)
+    put(R.string.about_follow_title, R.string.search_kw_about_follow)
     put(R.string.about_source_title, R.string.search_kw_about_source)
     put(R.string.about_storage_title, R.string.search_kw_about_storage)
     put(R.string.about_user_guide_title, R.string.search_kw_about_user_guide)

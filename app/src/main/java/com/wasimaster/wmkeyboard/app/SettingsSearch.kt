@@ -2011,6 +2011,8 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         about(R.string.about_setting_links_title, R.string.about_setting_links_subtitle),
         about(R.string.about_report_bug_title, R.string.about_report_bug_subtitle),
         about(R.string.about_email_developer_title),
+        about(R.string.about_telegram_title, R.string.about_telegram_subtitle),
+        about(R.string.about_follow_title, R.string.about_follow_subtitle),
         entry(
             R.string.about_diagnostics_title, R.string.about_diagnostics_subtitle,
             R.string.home_about_title, "debug_log", keywords = R.string.search_kw_diagnostics,

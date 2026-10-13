@@ -50,6 +50,19 @@ export const PLAY_URL =
 export const APP_ID = 'com.wasimaster.wmkeyboard';
 
 /**
+ * The project's own accounts, in the order the header shows them. `icon` is a
+ * Starlight built-in icon name. Every handle is `wmkeyboard` except Instagram,
+ * where that name was taken: keep `wmkeyboardapp` there.
+ */
+export const SOCIALS = [
+	{ icon: 'telegram', label: 'Telegram', handle: 't.me/wmkeyboard', href: 'https://t.me/wmkeyboard' },
+	{ icon: 'x.com', label: 'X', handle: '@wmkeyboard', href: 'https://x.com/wmkeyboard' },
+	{ icon: 'reddit', label: 'Reddit', handle: 'r/wmkeyboard', href: 'https://www.reddit.com/r/wmkeyboard' },
+	{ icon: 'instagram', label: 'Instagram', handle: '@wmkeyboardapp', href: 'https://www.instagram.com/wmkeyboardapp' },
+	{ icon: 'tiktok', label: 'TikTok', handle: '@wmkeyboard', href: 'https://www.tiktok.com/@wmkeyboard' },
+];
+
+/**
  * The sidebar's shape, and the only place a section's name lives.
  *
  * `astro.config.mjs` builds the sidebar from this, and the SEO layer reads the

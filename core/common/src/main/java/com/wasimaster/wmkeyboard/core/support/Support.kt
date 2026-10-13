@@ -32,6 +32,16 @@ object Support {
     /** Preferred first stop for a bug: public, searchable, and trackable. */
     const val ISSUES_URL = "$SOURCE_URL/issues"
 
+    /** The community group: questions, layouts and themes, release news. */
+    const val TELEGRAM_URL = "https://t.me/wmkeyboard"
+
+    // The project's social accounts. Every handle is `wmkeyboard` except
+    // Instagram, where that name was taken.
+    const val X_URL = "https://x.com/wmkeyboard"
+    const val REDDIT_URL = "https://www.reddit.com/r/wmkeyboard"
+    const val INSTAGRAM_URL = "https://www.instagram.com/wmkeyboardapp"
+    const val TIKTOK_URL = "https://www.tiktok.com/@wmkeyboard"
+
     /**
      * Longest run of the user's own text (input, and the model's output) that
      * a report quotes. A long document would make the draft unreadable, and

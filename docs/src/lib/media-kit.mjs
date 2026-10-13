@@ -18,7 +18,7 @@ import { resolve } from 'node:path';
 import { strToU8, zipSync } from 'fflate';
 import sharp from 'sharp';
 
-import { REPO_URL, SITE_URL } from '../site.mjs';
+import { REPO_URL, SITE_URL, SOCIALS } from '../site.mjs';
 import { INSTALL_SOURCES } from './install-links.mjs';
 
 // The build runs from docs/. Not `import.meta.url`: this module is bundled
@@ -187,6 +187,7 @@ export const LINKS = [
 	['Google Play', play],
 	['F-Droid', fdroid],
 	['Releases', `${REPO_URL}/releases`],
+	...SOCIALS.map((s) => [s.label, s.href]),
 	['Press contact', `mailto:${PRESS_EMAIL}`],
 ];
 

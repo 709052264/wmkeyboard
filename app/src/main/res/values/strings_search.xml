@@ -52,6 +52,8 @@
     <string name="search_kw_about_licences">credits attribution third party</string>
     <string name="search_kw_about_replay_onboarding">onboarding wizard welcome tour</string>
     <string name="search_kw_about_report_bug">crash freeze feedback problem</string>
+    <string name="search_kw_about_telegram">community chat group help support discord forum</string>
+    <string name="search_kw_about_follow">social media x twitter reddit instagram tiktok news</string>
     <string name="search_kw_about_source">github repository contribute</string>
     <string name="search_kw_about_storage">cache disk space free up</string>
     <string name="search_kw_about_user_guide">help documentation manual faq tutorial</string>

@@ -9,7 +9,7 @@ import starlightImageZoom from 'starlight-image-zoom';
 import starlightLinksValidator from 'starlight-links-validator';
 import starlightThemeBlack from 'starlight-theme-black';
 
-import { SECTIONS, SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from './src/site.mjs';
+import { SECTIONS, SITE_DESCRIPTION, SITE_TITLE, SITE_URL, SOCIALS } from './src/site.mjs';
 import { crawlWeight, isNoindex } from './src/lib/robots.mjs';
 import { lastModifiedForDoc, lastModifiedForPage } from './src/lib/last-modified.mjs';
 
@@ -104,6 +104,7 @@ export default defineConfig({
 			favicon: '/favicon.png',
 			social: [
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/wasi-master/wmkeyboard' },
+				...SOCIALS.map(({ icon, label, href }) => ({ icon, label, href })),
 			],
 			editLink: {
 				// TODO: point at the real repo/branch once the docs land.
