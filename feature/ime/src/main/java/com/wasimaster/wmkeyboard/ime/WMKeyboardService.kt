@@ -14767,7 +14767,7 @@ open class WMKeyboardService : InputMethodService() {
         match: SnippetMatch? = null,
     ) {
         val state = _uiState.value
-        if (!state.allowsTypingIntelligence || state.secureField || state.fieldNoSuggestions ||
+        if (!snippetChipField(state) || state.secureField || state.fieldNoSuggestions ||
             state.panel != PanelMode.NONE
         ) {
             return
@@ -14796,6 +14796,18 @@ open class WMKeyboardService : InputMethodService() {
      * that snippet asks before it expands.
      *
      * This is derived state, recomputed from the field rather than remembered
+    /**
+     * Whether the field is one a snippet's chips may sit over: a text field,
+     * or a browser's address bar (#471). The address bar composes once the
+     * strip is on it ([KeyboardUiState.composesForSuggestions]), and a trigger
+     * that asks first expands there the moment it is let in, as one that does
+     * not ask already did. Asking only [KeyboardUiState.allowsTypingIntelligence]
+     * left those triggers dead in every address bar: no chip, and no expansion
+     * either, since asking is what holds the expansion back.
+     */
+    private fun snippetChipField(state: KeyboardUiState): Boolean =
+        state.allowsTypingIntelligence || (state.fieldKind == FieldKind.URI && !state.secureField)
+
      * from a commit, and that is what makes the chip arrive when the trigger is
      * typed instead of when the space is. Type "hello Jo" and the offer is
      * already there, reading "Hello, Jo!"; the next letter re-derives it. There
@@ -14820,7 +14832,7 @@ open class WMKeyboardService : InputMethodService() {
         // [tryPatternExpansion] stays out of, for the same reason. A composing
         // buffer holding an input spelling (Avro, Pinyin) is not a trigger and
         // not a word a pattern can read.
-        val allowed = state.allowsTypingIntelligence && !state.secureField &&
+        val allowed = snippetChipField(state) && !state.secureField &&
             !state.fieldNoSuggestions && state.panel == PanelMode.NONE &&
             !state.composer.isTransliterating && !state.composer.isConversion
         if (!allowed) {
@@ -14847,7 +14859,11 @@ open class WMKeyboardService : InputMethodService() {
             publishSnippetOffer(pickSet(trigger, typed, consumed = typed, composed = true))
             return
         }
-        val wantPattern = snippetStore.hasConfirmPatterns() && patternGateOpen(typed)
+        // Not in a browser's address bar: a pattern that expands on its own
+        // stays out of one ([tryPatternExpansion]), and one that asks first
+        // keeps to the same fields.
+        val wantPattern = state.allowsTypingIntelligence && snippetStore.hasConfirmPatterns() &&
+            patternGateOpen(typed)
         if (!wantPrefix && !wantPattern) {
             publishSnippetOffer(null)
             return
