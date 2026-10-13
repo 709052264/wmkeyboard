@@ -11,7 +11,7 @@ export const SceneGlide: React.FC = () => {
       chips={[
         { label: "Glide in any language", accent: VIOLET },
         { label: "On-device learning", accent: LIME },
-        { label: "352 languages · 372 layouts", accent: CYAN },
+        { label: "Hundreds of languages", accent: CYAN },
       ]}
     >
       <PhoneFrame clip="glide" still="kb-english-dark.png" width={400} delay={4} tilt={-2} />

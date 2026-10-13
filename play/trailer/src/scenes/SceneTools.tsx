@@ -11,7 +11,7 @@ export const TOOLS_FRAMES = 200;
 // Rapid cuts through toolbar panels; headline persists, phone + chip swap.
 // Cuts whose clip is not yet captured are dropped (no static fallback).
 const CUTS: { clip: string; label: string; accent: string }[] = [
-  { clip: "toolbox", label: "60+ built-in tools", accent: AMBER },
+  { clip: "toolbox", label: "75+ built-in tools", accent: AMBER },
   { clip: "dictionary", label: "Dictionary & Wikipedia", accent: CYAN },
   { clip: "calc", label: "Calculator in the strip", accent: AMBER },
   { clip: "voice", label: "On-device voice typing", accent: LIME },

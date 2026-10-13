@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill, useVideoConfig } from "remotion";
 import { INK } from "../theme";
 
 const blob = (
@@ -26,10 +26,11 @@ export const Backdrop: React.FC<{
   accentB?: string;
   children?: React.ReactNode;
 }> = ({ accentA = "#7C5CFF", accentB = "#22D3EE", children }) => {
+  const { width, height } = useVideoConfig();
   return (
     <AbsoluteFill style={{ backgroundColor: INK }}>
       <div style={blob(accentA, 1200, -300, -400, 0.22)} />
-      <div style={blob(accentB, 1000, 1300, 500, 0.16)} />
+      <div style={blob(accentB, 1000, width - 620, height - 580, 0.16)} />
       <AbsoluteFill
         style={{
           background:

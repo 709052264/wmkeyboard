@@ -13,7 +13,8 @@ import { Chip } from "../components/Chip";
 import { GradientHeadline } from "../components/GradientHeadline";
 import { Sfx } from "../components/Sfx";
 import { INTER } from "../fonts";
-import { AMBER, BODY, CYAN, LIME, MAGENTA, VIOLET, WHITE } from "../theme";
+import { AMBER, BODY, CYAN, LIME, MAGENTA, V_SAFE_BOTTOM, V_SAFE_TOP, VIOLET, WHITE } from "../theme";
+import { useVertical } from "../useVertical";
 
 const ROW_A = [
   ["Offline Whisper dictation", LIME],
@@ -35,6 +36,9 @@ const ROW_B = [
 export const SceneOutro: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
+  const vertical = useVertical();
+  const rowTop = vertical ? V_SAFE_TOP + 60 : 120;
+  const rowBottom = vertical ? V_SAFE_BOTTOM + 60 : 120;
   const logo = spring({
     frame: frame - 46,
     fps,
@@ -62,7 +66,7 @@ export const SceneOutro: React.FC = () => {
         <div
           style={{
             position: "absolute",
-            top: 120,
+            top: rowTop,
             left: 0,
             right: 0,
             display: "flex",
@@ -82,7 +86,7 @@ export const SceneOutro: React.FC = () => {
         <div
           style={{
             position: "absolute",
-            bottom: 120,
+            bottom: rowBottom,
             left: 0,
             right: 0,
             display: "flex",

@@ -2,7 +2,7 @@ import "./index.css";
 import React from "react";
 import { Composition, Folder } from "remotion";
 import { Trailer, TRAILER_DURATION } from "./Trailer";
-import { FPS, HEIGHT, WIDTH } from "./theme";
+import { FPS, HEIGHT, V_HEIGHT, V_WIDTH, WIDTH } from "./theme";
 import { SceneAddons } from "./scenes/SceneAddons";
 import { SceneEmoji } from "./scenes/SceneEmoji";
 import { SceneGlide } from "./scenes/SceneGlide";
@@ -18,6 +18,14 @@ export const RemotionRoot: React.FC = () => {
   return (
     <>
       <Composition id="Trailer" component={Trailer} durationInFrames={TRAILER_DURATION} {...size} />
+      <Composition
+        id="TrailerVertical"
+        component={Trailer}
+        durationInFrames={TRAILER_DURATION}
+        fps={FPS}
+        width={V_WIDTH}
+        height={V_HEIGHT}
+      />
       <Folder name="Scenes">
         <Composition id="Intro" component={SceneIntro} durationInFrames={70} {...size} />
         <Composition id="Glide" component={SceneGlide} durationInFrames={150} {...size} />
