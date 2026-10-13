@@ -169,9 +169,12 @@ export const BOILERPLATE = {
 	].join('\n\n'),
 };
 
+/** Where press questions go. Shown on the page and in the zip's README. */
+export const PRESS_EMAIL = 'arianmollik323@gmail.com';
+
 export const FACTS = [
 	['Name', 'WM Keyboard (two words; “WM” in capitals)'],
-	['Made by', 'Wasi Master, an independent developer'],
+	['Made by', 'Arian Mollik Wasi, an independent developer'],
 	['Platform', 'Android 7.0 and later, phones, tablets and Android TV'],
 	['Price', 'Free. No ads, no in-app purchases, no analytics'],
 	['Licence', 'MIT, source on GitHub'],
@@ -184,7 +187,7 @@ export const LINKS = [
 	['Google Play', play],
 	['F-Droid', fdroid],
 	['Releases', `${REPO_URL}/releases`],
-	['Press questions', `${REPO_URL}/issues`],
+	['Press contact', `mailto:${PRESS_EMAIL}`],
 ];
 
 // ---------------------------------------------------------------- the zip
@@ -220,7 +223,7 @@ function readme() {
 		'',
 		...FACTS.map(([k, v]) => `${k}: ${v}`),
 		'',
-		...LINKS.map(([k, v]) => `${k}: ${v}`),
+		...LINKS.map(([k, v]) => `${k}: ${v.replace(/^mailto:/, '')}`),
 		'',
 		'Colours',
 		...COLOURS.map((c) => `  ${c.hex}  ${c.name} (${c.use})`),

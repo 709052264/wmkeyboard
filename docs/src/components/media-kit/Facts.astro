@@ -2,7 +2,7 @@
 /** The fact sheet and the links a writer needs, as two plain tables. */
 import { FACTS, LINKS } from '../../lib/media-kit.mjs';
 
-const pretty = (url: string) => url.replace(/^https:\/\//, '').replace(/\/$/, '');
+const pretty = (url: string) => url.replace(/^(https:\/\/|mailto:)/, '').replace(/\/$/, '');
 ---
 
 <div class="mk-facts not-content">
