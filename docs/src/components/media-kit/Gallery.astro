@@ -1,0 +1,147 @@
+---
+/**
+ * A grid of downloadable images straight from the repo's Play pipeline (play/)
+ * and the site's own cards. Thumbnails go through astro:assets; each one links
+ * to the untouched original, emitted as-is via `?url`.
+ *
+ * Vite needs every glob and its options as literals, hence the repetition.
+ */
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { caption } from '../../lib/media-kit.mjs';
+
+interface Props {
+	set: 'phone' | 'tablet' | 'store' | 'banners';
+}
+const { set } = Astro.props;
+
+type Images = Record<string, { default: ImageMetadata }>;
+type Urls = Record<string, string>;
+
+const sets: Record<Props['set'], [Images, Urls]> = {
+	phone: [
+		import.meta.glob<{ default: ImageMetadata }>('../../../../play/screencaps/*.{png,jpg}', { eager: true }),
+		import.meta.glob<string>('../../../../play/screencaps/*.{png,jpg}', { eager: true, query: '?url', import: 'default' }),
+	],
+	tablet: [
+		import.meta.glob<{ default: ImageMetadata }>('../../../../play/screencaps-tablet/*.png', { eager: true }),
+		import.meta.glob<string>('../../../../play/screencaps-tablet/*.png', { eager: true, query: '?url', import: 'default' }),
+	],
+	store: [
+		import.meta.glob<{ default: ImageMetadata }>(
+			['../../../../play/store-listing/0*.png', '../../../../play/store-listing/feature-graphic.png'],
+			{ eager: true },
+		),
+		import.meta.glob<string>(
+			['../../../../play/store-listing/0*.png', '../../../../play/store-listing/feature-graphic.png'],
+			{ eager: true, query: '?url', import: 'default' },
+		),
+	],
+	banners: [
+		import.meta.glob<{ default: ImageMetadata }>(
+			['../../../../play/social/*.png', '../../../public/og-card.png', '../../../../.github/social_preview.png'],
+			{ eager: true },
+		),
+		import.meta.glob<string>(
+			['../../../../play/social/*.png', '../../../public/og-card.png', '../../../../.github/social_preview.png'],
+			{ eager: true, query: '?url', import: 'default' },
+		),
+	],
+};
+
+const [images, urls] = sets[set];
+// Feature graphic first in the store set: it's the one most often wanted.
+const items = Object.keys(images)
+	.sort((a, b) => Number(b.includes('feature-graphic')) - Number(a.includes('feature-graphic')) || a.localeCompare(b))
+	.map((path) => {
+		const file = path.split('/').pop()!;
+		const stem = file.replace(/\.[^.]+$/, '');
+		const img = images[path].default;
+		return { stem, file, img, href: urls[path], label: caption(stem) };
+	});
+const wide = set === 'tablet' || set === 'banners';
+---
+
+<ul class:list={['mk-gallery', 'not-content', { 'is-wide': wide }]}>
+	{
+		items.map(({ stem, file, img, href, label }) => (
+			<li class:list={{ 'is-feature': stem === 'feature-graphic' }}>
+				<a href={href} download={`wm-keyboard-${file}`} title={`Download ${label}`}>
+					<Picture
+						src={img}
+						alt={label}
+						formats={['avif', 'webp']}
+						widths={[320, 640]}
+						sizes={wide ? '(max-width: 40rem) 90vw, 22rem' : '(max-width: 40rem) 45vw, 11rem'}
+						loading="lazy"
+						decoding="async"
+					/>
+				</a>
+				<span class="cap">
+					<span>{label}</span>
+					<span class="dim">
+						{img.width}×{img.height}
+					</span>
+				</span>
+			</li>
+		))
+	}
+</ul>
+
+<style>
+	.mk-gallery {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+		gap: 1rem 0.9rem;
+		margin: 1rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	.mk-gallery.is-wide {
+		grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+	}
+	.is-feature {
+		grid-column: span 2;
+	}
+	@media (max-width: 30rem) {
+		.is-feature {
+			grid-column: 1 / -1;
+		}
+	}
+	a {
+		display: block;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.75rem;
+		overflow: hidden;
+		background: var(--sl-color-gray-6);
+		transition: border-color 0.15s, transform 0.15s;
+	}
+	a:hover {
+		border-color: var(--wm-blue);
+		transform: translateY(-2px);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		a:hover {
+			transform: none;
+		}
+	}
+	a :global(img) {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+	.cap {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: 0 0.5rem;
+		margin-top: 0.4rem;
+		font-size: var(--sl-text-xs);
+		color: var(--sl-color-gray-2);
+	}
+	.dim {
+		color: var(--sl-color-gray-3);
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+	}
+</style>

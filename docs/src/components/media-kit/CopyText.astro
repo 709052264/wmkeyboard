@@ -1,0 +1,74 @@
+---
+/** A block of boilerplate with a copy button. The text is plain, paragraphs split on blank lines. */
+interface Props {
+	id: string;
+	label: string;
+	text: string;
+}
+const { id, label, text } = Astro.props;
+const paragraphs = text.split(/\n\n+/);
+---
+
+<figure class="mk-copy not-content">
+	<figcaption>
+		<span>{label}</span>
+		<button type="button" data-wm-copy data-wm-copy-from={id}>
+			<span data-wm-copy-label>Copy</span>
+		</button>
+	</figcaption>
+	<div id={id} class="mk-copy-body">
+		{paragraphs.map((p) => <p>{p}</p>)}
+	</div>
+</figure>
+
+<script>
+	import './copy';
+</script>
+
+<style>
+	.mk-copy {
+		margin: 1rem 0 0;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.75rem;
+		overflow: hidden;
+	}
+	figcaption {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.45rem 0.6rem 0.45rem 0.9rem;
+		border-bottom: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-gray-6);
+		color: var(--sl-color-gray-2);
+		font-size: var(--sl-text-xs);
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+	button {
+		padding: 0.25rem 0.7rem;
+		border: 1px solid var(--sl-color-gray-4);
+		border-radius: 999px;
+		background: transparent;
+		color: var(--sl-color-white);
+		font: inherit;
+		text-transform: none;
+		letter-spacing: 0;
+		cursor: pointer;
+	}
+	button:global(.is-copied) {
+		border-color: var(--wm-blue);
+		color: var(--wm-blue);
+	}
+	.mk-copy-body {
+		padding: 0.9rem;
+	}
+	.mk-copy-body p {
+		margin: 0;
+		line-height: 1.6;
+	}
+	.mk-copy-body p + p {
+		margin-top: 0.75rem;
+	}
+</style>

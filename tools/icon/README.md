@@ -41,6 +41,25 @@ python3 tools/icon/gen_addon_icon.py --out ../wmkeyboard-addon-repository/icon.p
 `--size` defaults to 256px, which is what `repo.icon` in the repo format wants.
 This script needs no font.
 
+## Media kit logos
+
+`gen_media_kit.py` renders the logo files offered at `/media-kit/` on the docs
+site into `docs/public/media-kit/logo/`: the icon (square and rounded), the
+mark alone for dark and light backgrounds, a one-colour mark, the wordmark,
+and horizontal and stacked lockups. Each is an SVG plus a PNG render. It
+imports `gen_icon.py` for the geometry and palette, sets the wordmark in Inter
+and converts it to outlines.
+
+```bash
+python3 tools/icon/gen_media_kit.py
+```
+
+Needs `uharfbuzz` (for Inter's kerning) and Inter at
+`~/Library/Fonts/Inter-VariableFont_opsz,wght.ttf`. Without the monogram font it
+recovers the WM outline from `ic_launcher_monochrome.xml`. Re-run it after
+changing the icon. The page's screenshots and banners need nothing: they are
+read from `play/` at build time.
+
 ## Notes
 
 - The monogram is **Amaz Obitaem Ostrov V.2** (straight), converted to outlines.

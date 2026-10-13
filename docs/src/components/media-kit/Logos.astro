@@ -1,0 +1,118 @@
+---
+/**
+ * Logo cards: a preview on the backdrop the file is meant for, and a download
+ * link per format. The files are public/media-kit/logo/, rendered by
+ * tools/icon/gen_media_kit.py.
+ */
+import { LOGOS } from '../../lib/media-kit.mjs';
+
+const BASE = '/media-kit/logo/';
+const label = (file: string) => {
+	const ext = file.split('.').pop()!.toUpperCase();
+	const size = /-(\d+)\.png$/.exec(file)?.[1];
+	const tone = /-(white|black|navy)\./.exec(file)?.[1];
+	const square = /^icon[.-]/.test(file) && 'Square';
+	return [square, ext, size && `${size}px`, tone].filter(Boolean).join(' ');
+};
+---
+
+<ul class="mk-logos not-content">
+	{
+		LOGOS.map((logo) => (
+			<li>
+				<div class={`stage on-${logo.on}`}>
+					<img src={`${BASE}${logo.preview}`} alt={`${logo.title}`} loading="lazy" decoding="async" />
+				</div>
+				<div class="body">
+					<strong>{logo.title}</strong>
+					<p>{logo.note}</p>
+					<div class="files">
+						{logo.files.map((file) => (
+							<a href={`${BASE}${file}`} download={`wm-keyboard-${file}`}>
+								{label(file)}
+							</a>
+						))}
+					</div>
+				</div>
+			</li>
+		))
+	}
+</ul>
+
+<style>
+	.mk-logos {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+		gap: 1rem;
+		margin: 1rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	li {
+		display: flex;
+		flex-direction: column;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 1rem;
+		overflow: hidden;
+	}
+	.stage {
+		display: grid;
+		place-items: center;
+		height: 9.5rem;
+		padding: 1.5rem;
+	}
+	/* An explicit cap, not 100%: a percentage height inside a grid cell
+	   resolves against nothing and lets a tall lockup spill out. */
+	.stage img {
+		width: auto;
+		max-width: 100%;
+		height: auto;
+		max-height: 6.5rem;
+	}
+	.on-dark {
+		background: #14162b;
+	}
+	.on-light {
+		background: #f5f5fa;
+	}
+	.on-checker {
+		background:
+			repeating-conic-gradient(#e7e7ef 0 25%, #f7f7fb 0 50%) 0 0 / 1rem 1rem;
+	}
+	.body {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		gap: 0.35rem;
+		padding: 0.9rem 1rem 1rem;
+		border-top: 1px solid var(--sl-color-gray-5);
+	}
+	.body strong {
+		color: var(--sl-color-white);
+	}
+	.body p {
+		flex: 1;
+		margin: 0;
+		color: var(--sl-color-gray-2);
+		font-size: var(--sl-text-sm);
+	}
+	.files {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin-top: 0.4rem;
+	}
+	.files a {
+		padding: 0.2rem 0.6rem;
+		border: 1px solid var(--sl-color-gray-4);
+		border-radius: 999px;
+		color: var(--sl-color-white);
+		font-size: var(--sl-text-xs);
+		font-weight: 600;
+		text-decoration: none;
+	}
+	.files a:hover {
+		border-color: var(--wm-blue);
+		color: var(--wm-blue);
+	}
+</style>

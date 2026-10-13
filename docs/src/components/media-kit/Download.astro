@@ -1,0 +1,53 @@
+---
+/** The one big "download everything" button, with the archive's real size. */
+import { mediaKitZip, ZIP_PATH } from '../../lib/media-kit.mjs';
+
+const bytes = (await mediaKitZip()).byteLength;
+const size = `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+---
+
+<div class="mk-download not-content">
+	<a class="mk-download-btn" href={ZIP_PATH} download>
+		<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+			<path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.59l3.3-3.3a1 1 0 1 1 1.4 1.42l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 1 1 1.4-1.42l3.3 3.3V4a1 1 0 0 1 1-1Zm-8 15a1 1 0 0 1 1 1v1h14v-1a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1Z" />
+		</svg>
+		Download the media kit
+	</a>
+	<p>One zip, {size}: logos in SVG and PNG, phone and tablet screenshots, store graphics, banners and a text file with the copy below.</p>
+</div>
+
+<style>
+	.mk-download {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem 1.25rem;
+		margin-block: 1.5rem;
+		padding: 1.25rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 1rem;
+		background:
+			linear-gradient(135deg, color-mix(in srgb, var(--wm-blue) 14%, transparent), color-mix(in srgb, var(--wm-violet) 14%, transparent));
+	}
+	.mk-download-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.7rem 1.2rem;
+		border-radius: 999px;
+		background: var(--wm-gradient);
+		color: #fff;
+		font-weight: 600;
+		text-decoration: none;
+		white-space: nowrap;
+	}
+	.mk-download-btn:hover {
+		filter: brightness(1.08);
+	}
+	.mk-download p {
+		flex: 1 1 16rem;
+		margin: 0;
+		color: var(--sl-color-gray-2);
+		font-size: var(--sl-text-sm);
+	}
+</style>

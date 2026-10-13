@@ -1,0 +1,83 @@
+---
+title: "Media kit"
+description: "Logos, screenshots, brand colours and ready-to-paste descriptions of WM Keyboard, for press, reviewers and anyone writing about the app."
+editUrl: false
+---
+
+import Download from '@components/media-kit/Download.astro';
+import Facts from '@components/media-kit/Facts.astro';
+import CopyText from '@components/media-kit/CopyText.astro';
+import Logos from '@components/media-kit/Logos.astro';
+import Colours from '@components/media-kit/Colours.astro';
+import Gallery from '@components/media-kit/Gallery.astro';
+import { BOILERPLATE } from '../../lib/media-kit.mjs';
+
+Writing about WM Keyboard, reviewing it, or putting it in a video or a list? Everything here is free to use for that, no need to ask first. Click any image to download the full-size original, or take the lot in one go.
+
+<Download />
+
+## At a glance
+
+<Facts />
+
+## Describing the app
+
+Use whichever length fits. Edit freely for your own voice; the facts are what matter.
+
+<CopyText id="mk-tagline" label="Tagline" text={BOILERPLATE.tagline} />
+<CopyText id="mk-short" label="One sentence" text={BOILERPLATE.short} />
+<CopyText id="mk-long" label="Three paragraphs" text={BOILERPLATE.long} />
+
+## Logos
+
+Every logo comes as an SVG, which scales to any size, and a large transparent PNG. Pick the version made for your background: the dark ones have white type, the light ones navy.
+
+<Logos />
+
+### Using the logo
+
+- **Do** give it room. Keep clear space on every side at least as tall as the "W" in the wordmark.
+- **Do** use the one-colour mark when print, embroidery or a single-ink job can't reproduce the gradient.
+- **Don't** recolour, stretch, rotate or outline it, or add shadows, glows or other effects.
+- **Don't** set the name in another typeface or rebuild the icon. Use the files.
+- **Don't** imply an endorsement. Using the logo to point at the app is welcome; using it to suggest WM Keyboard backs your product is not.
+
+Write the name as **WM Keyboard**: two words, "WM" in capitals. Not "WMKeyboard", "Wm Keyboard" or "WM keyboard".
+
+## Colours
+
+The brand runs on one gradient, blue to violet, over deep navy. Click a swatch to copy its hex.
+
+<Colours />
+
+## Typography
+
+The wordmark is set in [Inter](https://rsms.me/inter/), in a heavy display weight, and shipped as outlines so it looks the same with or without the font installed. Inter is also the face on the store graphics and banners. Inside the app, text follows the phone's system font.
+
+## Screenshots
+
+The phone set is 1080×2400, the tablet set 3000×2120.
+
+### Phone
+
+<Gallery set="phone" />
+
+### Tablet
+
+<Gallery set="tablet" />
+
+## Store graphics
+
+The Google Play feature graphic and listing images, with their captions already on them.
+
+<Gallery set="store" />
+
+## Banners
+
+Header images for social profiles and the cards that show up when a link to the site or the repository is shared.
+
+<Gallery set="banners" />
+
+## Questions
+
+For anything this page doesn't answer, an interview, or a build to review ahead of a release, [open an issue on GitHub](https://github.com/wasi-master/wmkeyboard/issues). To try the app yourself, see [Installation](/start/installation/).

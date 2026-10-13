@@ -1,0 +1,51 @@
+---
+/** The fact sheet and the links a writer needs, as two plain tables. */
+import { FACTS, LINKS } from '../../lib/media-kit.mjs';
+
+const pretty = (url: string) => url.replace(/^https:\/\//, '').replace(/\/$/, '');
+---
+
+<div class="mk-facts not-content">
+	<dl>
+		{FACTS.map(([k, v]) => (<div><dt>{k}</dt><dd>{v}</dd></div>))}
+	</dl>
+	<dl>
+		{LINKS.map(([k, v]) => (<div><dt>{k}</dt><dd><a href={v}>{pretty(v)}</a></dd></div>))}
+	</dl>
+</div>
+
+<style>
+	.mk-facts {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+		gap: 1rem;
+		margin-block: 1rem;
+	}
+	dl {
+		margin: 0;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.75rem;
+		overflow: hidden;
+	}
+	dl > div {
+		display: grid;
+		grid-template-columns: 7.5rem 1fr;
+		gap: 0.75rem;
+		padding: 0.6rem 0.9rem;
+		font-size: var(--sl-text-sm);
+	}
+	dl > div + div {
+		border-top: 1px solid var(--sl-color-gray-5);
+	}
+	dt {
+		color: var(--sl-color-gray-3);
+	}
+	dd {
+		margin: 0;
+		color: var(--sl-color-white);
+		overflow-wrap: anywhere;
+	}
+	dd a {
+		color: var(--sl-color-text-accent);
+	}
+</style>
