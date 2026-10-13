@@ -185,7 +185,9 @@ if __name__ == "__main__":
     # Reddit: 1920x384. Mobile crops the sides hard; community icon sits bottom-left.
     make("reddit-1920x384", 1920, 384, (300, 40, 1320, 304), out)
     # Reddit's newer banner editor crops to ~8.3:1 (measured from its crop box).
-    make("reddit-wide-1920x232", 1920, 232, (260, 14, 1400, 204), out)
+    # The community card on the sidebar/mobile shows only the centre ~3.6:1
+    # (~840px of 1920), so everything sits in the middle 780px.
+    make("reddit-wide-1920x232", 1920, 232, (570, 16, 780, 200), out)
     # Mastodon / Bluesky / X: 1500x500 (3:1). Avatar overlaps bottom-left.
     make("header-1500x500", 1500, 500, (330, 60, 1080, 330), out)
     # YouTube: 2560x1440, everything must sit in the 1546x423 centre safe area.
