@@ -52,11 +52,14 @@ internal fun VoiceEngineLanguagesRow(repository: SettingsRepository, settings: L
     NavRow(
         R.string.voice_engine_languages_title,
         subtitle = stringResource(R.string.voice_engine_languages_subtitle),
+        // map, not joinToString's transform: only an inline lambda may call
+        // the composable label.
         value = languages.filter { byLang.containsKey(it.id) }
-            .takeIf { it.isNotEmpty() }
-            ?.joinToString(", ") { language ->
+            .map { language ->
                 "${language.englishName}: ${voiceChoiceLabel(VoiceChoiceRef.parse(byLang.getValue(language.id)))}"
-            },
+            }
+            .takeIf { it.isNotEmpty() }
+            ?.joinToString(", "),
     ) { open = true }
     if (open) {
         VoiceEngineLanguagesDialog(

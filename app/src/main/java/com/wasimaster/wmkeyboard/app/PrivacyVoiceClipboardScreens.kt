@@ -297,6 +297,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
     // The master switch (#578). Off, the rest of the screen is about something
     // the keyboard no longer does, so it goes; the values stay stored.
     val voiceOn = settings.watch { it.voiceBar.enabled }
+    val micSwitchOn = settings.watch { it.voiceBar.micSwitch }
     SettingsGroup {
         item {
             ToggleSetting(
@@ -483,17 +484,18 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.voiceBar.pauseMedia,
             ) { scope.launch { repository.setVoicePauseMedia(it) } }
         }
-        val micSwitch = settings.watch { it.voiceBar.micSwitch }
         item {
             ToggleSetting(
                 R.string.voice_mic_switch_title,
                 stringResource(R.string.voice_mic_switch_subtitle),
-                micSwitch,
+                settings.watch { it.voiceBar.micSwitch },
                 info = stringResource(R.string.voice_mic_switch_info),
                 default = SettingsDefaults.voiceBar.micSwitch,
             ) { scope.launch { repository.setVoiceMicSwitch(it) } }
         }
-        if (micSwitch) item {
+        // The pick behind the switch; read where the rest of the screen's
+        // shape is decided, since this builder is not composable.
+        if (micSwitchOn) item {
             ChoiceSetting(
                 R.string.voice_mic_title,
                 subtitle = stringResource(R.string.voice_mic_subtitle),

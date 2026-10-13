@@ -2149,7 +2149,7 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = "ai_actions",
             ) {
-                AiActionsSettings(repository, settings) { navController.navigate(it) }
+                AiActionsSettings(repository, settings, onNavigate = { navController.navigate(it) })
             }
         }
         composable("ai_reply_tones") {
