@@ -64,4 +64,31 @@ class FindReplaceTest {
         assertEquals(listOf(TextEdit(4, 6, "<22>"), TextEdit(1, 2, "<1>")), edits)
         assertEquals("x<1> y<22>", FindReplace.apply("x1 y22", edits))
     }
+
+    @Test
+    fun `preserve case follows the replaced word`() {
+        assertEquals("DOG", FindReplace.matchCase("CAT", "dog"))
+        assertEquals("Dog", FindReplace.matchCase("Cat", "dog"))
+        assertEquals("dog", FindReplace.matchCase("cat", "Dog"))
+        assertEquals("dOg", FindReplace.matchCase("iPhone", "dOg"))
+        assertEquals("Dog", FindReplace.matchCase("A", "dog"))
+    }
+
+    @Test
+    fun `replace all with preserve case keeps each match's case`() {
+        val text = "cat Cat CAT"
+        val options = FindOptions(preserveCase = true)
+        val found = FindReplace.find(text, "cat", options) as FindResult.Matches
+        val edits = FindReplace.replaceAll(text, found.ranges, "dog", "cat", options)
+        assertEquals("dog Dog DOG", FindReplace.apply(text, edits))
+    }
+
+    @Test
+    fun `a regex replacement reads backslash n and t`() {
+        val options = FindOptions(regex = true)
+        val edit = FindReplace.replaceOne("a, b", 1..2, """\n\t""", ", ", options)
+        assertEquals("\n\t", edit.text)
+        // A plain replacement is never read for escapes.
+        assertEquals("""\n""", FindReplace.replaceOne("a, b", 1..2, """\n""", ", ", FindOptions()).text)
+    }
 }

@@ -23,9 +23,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.ime.FindOption
 import com.wasimaster.wmkeyboard.ime.FindReplaceField
 import com.wasimaster.wmkeyboard.ime.FindReplaceUi
@@ -66,6 +71,8 @@ data class FindReplaceCallbacks(
     val onUndo: () -> Unit = {},
     val onHistoryPick: (String) -> Unit = {},
     val onHistoryClear: () -> Unit = {},
+    /** A field's ×: empty it. */
+    val onClear: (FindReplaceField) -> Unit = {},
 )
 
 /**
@@ -127,7 +134,12 @@ internal fun FindReplacePanel(state: KeyboardUiState, callbacks: FindReplaceCall
     PanelFocusTarget(panel = PanelMode.FIND_REPLACE, region = FocusRegion.SEARCH, count = 2, columns = 2) { index ->
         callbacks.onFocusField(if (index == 0) FindReplaceField.FIND else FindReplaceField.REPLACE)
     }
-    PanelFocusTarget(panel = PanelMode.FIND_REPLACE, region = FocusRegion.CHIPS, count = 3, columns = 3) { index ->
+    PanelFocusTarget(
+        panel = PanelMode.FIND_REPLACE,
+        region = FocusRegion.CHIPS,
+        count = FindOption.entries.size,
+        columns = FindOption.entries.size,
+    ) { index ->
         callbacks.onToggle(FindOption.entries[index])
     }
     PanelFocusTarget(panel = PanelMode.FIND_REPLACE, region = FocusRegion.ACTIONS, count = 5, columns = 5) { index ->
@@ -156,20 +168,25 @@ internal fun FindReplacePanel(state: KeyboardUiState, callbacks: FindReplaceCall
                 active = fr.focused == FindReplaceField.FIND,
                 ringed = focusedField == 0,
                 modifier = Modifier.weight(1f),
+                onClear = { callbacks.onClear(FindReplaceField.FIND) },
             ) { callbacks.onFocusField(FindReplaceField.FIND) }
             Spacer(Modifier.width(6.dp))
+            val previousDesc = stringResource(R.string.ime_find_prev_desc)
+            val nextDesc = stringResource(R.string.ime_find_next_desc)
             ToolPanelChip(
                 "‹",
                 enabled = canStep,
                 modifier = Modifier
                     .focusRing(focusedAction == 0, chipShape)
-                    .semantics { contentDescription = "" },
+                    .semantics { contentDescription = previousDesc },
             ) { previous() }
             Spacer(Modifier.width(4.dp))
             ToolPanelChip(
                 "›",
                 enabled = canStep,
-                modifier = Modifier.focusRing(focusedAction == 1, chipShape),
+                modifier = Modifier
+                    .focusRing(focusedAction == 1, chipShape)
+                    .semantics { contentDescription = nextDesc },
             ) { next() }
             Spacer(Modifier.width(8.dp))
             val count = FindCount(
@@ -213,6 +230,7 @@ internal fun FindReplacePanel(state: KeyboardUiState, callbacks: FindReplaceCall
                 active = fr.focused == FindReplaceField.REPLACE,
                 ringed = focusedField == 1,
                 modifier = Modifier.weight(1f),
+                onClear = { callbacks.onClear(FindReplaceField.REPLACE) },
             ) { callbacks.onFocusField(FindReplaceField.REPLACE) }
             Spacer(Modifier.width(6.dp))
             ToolPanelChip(
@@ -244,6 +262,15 @@ internal fun FindReplacePanel(state: KeyboardUiState, callbacks: FindReplaceCall
             Spacer(Modifier.width(4.dp))
             Toggle(R.string.ime_find_regex_label, R.string.ime_find_regex_desc, fr.regex, focusedToggle == 2) {
                 callbacks.onToggle(FindOption.REGEX)
+            }
+            Spacer(Modifier.width(4.dp))
+            Toggle(
+                R.string.ime_find_preserve_case_label,
+                R.string.ime_find_preserve_case_desc,
+                fr.preserveCase,
+                focusedToggle == 3,
+            ) {
+                callbacks.onToggle(FindOption.PRESERVE_CASE)
             }
             Spacer(Modifier.width(8.dp))
             Text(
@@ -348,6 +375,7 @@ private fun QueryPill(
     active: Boolean,
     ringed: Boolean,
     modifier: Modifier = Modifier,
+    onClear: () -> Unit,
     onTap: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
@@ -370,6 +398,20 @@ private fun QueryPill(
             fontSize = 13.sp,
             modifier = Modifier.weight(1f),
         )
+        // Every key edits the field one character at a time, so a long query
+        // was a long hold on backspace; the × empties it in one tap.
+        if (text.isNotEmpty()) {
+            Icon(
+                Icons.Outlined.Close,
+                contentDescription = stringResource(R.string.ime_find_clear_desc, placeholder),
+                tint = kb.secondaryText,
+                modifier = Modifier
+                    .padding(start = 4.dp)
+                    .size(16.dp)
+                    .clip(CircleShape)
+                    .clickable(onClick = onClear),
+            )
+        }
     }
 }
 

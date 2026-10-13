@@ -9,6 +9,8 @@ data class FindOptions(
     val matchCase: Boolean = false,
     val wholeWord: Boolean = false,
     val regex: Boolean = false,
+    /** A replacement takes the case of the text it replaces: `Cat`→`Dog`, `CAT`→`DOG`. */
+    val preserveCase: Boolean = false,
 )
 
 /** One splice: the text between [start] and [end] becomes [text]. */
@@ -127,7 +129,7 @@ object FindReplace {
      */
     fun replaceOne(text: String, range: IntRange, replacement: String, query: String, options: FindOptions): TextEdit {
         val pattern = if (options.regex) compile(query, options).getOrNull() else null
-        return TextEdit(range.first, range.last + 1, expand(pattern, text, range, replacement))
+        return TextEdit(range.first, range.last + 1, expand(pattern, text, range, replacement, options))
     }
 
     /**
@@ -138,7 +140,7 @@ object FindReplace {
     fun replaceAll(text: String, ranges: List<IntRange>, replacement: String, query: String, options: FindOptions): List<TextEdit> {
         val pattern = if (options.regex) compile(query, options).getOrNull() else null
         return ranges.sortedByDescending { it.first }.map { range ->
-            TextEdit(range.first, range.last + 1, expand(pattern, text, range, replacement))
+            TextEdit(range.first, range.last + 1, expand(pattern, text, range, replacement, options))
         }
     }
 
@@ -151,19 +153,68 @@ object FindReplace {
         return out
     }
 
-    private fun expand(pattern: Pattern?, text: String, range: IntRange, replacement: String): String {
+    private fun expand(pattern: Pattern?, text: String, range: IntRange, replacement: String, options: FindOptions): String {
+        val expanded = expandGroups(pattern, text, range, replacement)
+        return if (options.preserveCase) matchCase(text.substring(range.first, range.last + 1), expanded) else expanded
+    }
+
+    private fun expandGroups(pattern: Pattern?, text: String, range: IntRange, replacement: String): String {
         if (pattern == null) return replacement
         val matcher: Matcher = pattern.matcher(text)
-        if (!matcher.find(range.first) || matcher.start() != range.first || matcher.end() != range.last + 1) return replacement
+        if (!matcher.find(range.first) || matcher.start() != range.first || matcher.end() != range.last + 1) {
+            return replacement
+        }
         return try {
             val buffer = StringBuffer()
-            matcher.appendReplacement(buffer, replacement)
+            matcher.appendReplacement(buffer, escapes(replacement))
             buffer.substring(range.first)
         } catch (ignored: IllegalArgumentException) {
             // A group reference the pattern lacks: the replacement is used as typed.
             literal(replacement)
         } catch (ignored: IndexOutOfBoundsException) {
             literal(replacement)
+        }
+    }
+
+    /**
+     * `\n` and `\t` in a regex replacement as the line break and the tab they
+     * mean in every editor, since a keyboard has no other way to type a line
+     * break into a one-line box. Java's own replace would read them as a
+     * quoted `n` and `t`. Every other escape is left for the engine.
+     */
+    fun escapes(replacement: String): String {
+        if ('\\' !in replacement) return replacement
+        val out = StringBuilder(replacement.length)
+        var i = 0
+        while (i < replacement.length) {
+            val c = replacement[i]
+            val next = replacement.getOrNull(i + 1)
+            when {
+                c == '\\' && next == 'n' -> { out.append('\n'); i += 2 }
+                c == '\\' && next == 't' -> { out.append('\t'); i += 2 }
+                c == '\\' && next != null -> { out.append(c).append(next); i += 2 }
+                else -> { out.append(c); i++ }
+            }
+        }
+        return out.toString()
+    }
+
+    /**
+     * [replacement] in the case [original] was written in: all capitals, a
+     * capital first letter, or all small. Mixed case like `iPhone` says
+     * nothing a replacement could follow, so it is used as typed.
+     */
+    fun matchCase(original: String, replacement: String): String {
+        val letters = original.filter { it.isLetter() }
+        if (letters.isEmpty() || replacement.isEmpty()) return replacement
+        val first = letters.first()
+        val rest = letters.drop(1)
+        return when {
+            letters.length > 1 && letters.all { it.isUpperCase() } -> replacement.uppercase()
+            first.isUpperCase() && rest.none { it.isUpperCase() } ->
+                replacement.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+            letters.none { it.isUpperCase() } && letters.any { it.isLowerCase() } -> replacement.lowercase()
+            else -> replacement
         }
     }
 

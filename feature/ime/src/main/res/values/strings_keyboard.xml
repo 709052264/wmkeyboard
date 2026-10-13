@@ -891,6 +891,9 @@
     <string name="ime_find_whole_word_desc">Whole word</string>
     <string name="ime_find_regex_label" translatable="false">.*</string>
     <string name="ime_find_regex_desc">Regular expression</string>
+    <string name="ime_find_preserve_case_label" translatable="false">AB</string>
+    <string name="ime_find_preserve_case_desc">Preserve case</string>
+    <string name="ime_find_clear_desc">Clear <xliff:g id="field" example="Find">%1$s</xliff:g></string>
     <string name="ime_find_prev_desc">Previous match</string>
     <string name="ime_find_next_desc">Next match</string>
     <string name="ime_find_replace_action">Replace</string>

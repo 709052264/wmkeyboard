@@ -5,8 +5,8 @@ import com.wasimaster.wmkeyboard.core.selection.FindOptions
 /** Which of the panel's two fields the keys type into. */
 enum class FindReplaceField { FIND, REPLACE }
 
-/** The panel's three toggles. */
-enum class FindOption { CASE, WHOLE_WORD, REGEX }
+/** The panel's toggles, in the order the panel draws them. */
+enum class FindOption { CASE, WHOLE_WORD, REGEX, PRESERVE_CASE }
 
 /**
  * The Find and replace panel, opened from its toolbar tool or the selection
@@ -24,6 +24,8 @@ data class FindReplaceUi(
     val caseSensitive: Boolean = false,
     val wholeWord: Boolean = false,
     val regex: Boolean = false,
+    /** Replacements take the case of what they replace. */
+    val preserveCase: Boolean = false,
     val matches: List<IntRange> = emptyList(),
     val current: Int = -1,
     /** The count stopped at the matcher's cap. */
@@ -43,5 +45,6 @@ data class FindReplaceUi(
     val focusedText: String
         get() = if (focused == FindReplaceField.FIND) query else replacement
 
-    fun options(): FindOptions = FindOptions(matchCase = caseSensitive, wholeWord = wholeWord, regex = regex)
+    fun options(): FindOptions =
+        FindOptions(matchCase = caseSensitive, wholeWord = wholeWord, regex = regex, preserveCase = preserveCase)
 }

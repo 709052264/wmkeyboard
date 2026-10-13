@@ -32794,6 +32794,7 @@ open class WMKeyboardService : InputMethodService() {
                 onUndo = ::onFindReplaceUndo,
                 onHistoryPick = ::onFindHistoryPick,
                 onHistoryClear = ::onFindHistoryClear,
+                onClear = ::onFindReplaceClear,
             ),
             clipboard = clipboardPanelActions(),
             onMediaPanelHeight = ::onMediaPanelHeight,
@@ -34480,6 +34481,22 @@ open class WMKeyboardService : InputMethodService() {
         if (fr.focused == FindReplaceField.FIND) refreshFindMatches(reselect = true, immediate = !next.regex)
     }
 
+    /** The × in a field: empties it and puts the keys there. */
+    fun onFindReplaceClear(field: FindReplaceField) {
+        vibrate()
+        val fr = _uiState.value.findReplace ?: return
+        _uiState.update {
+            it.copy(
+                findReplace = if (field == FindReplaceField.FIND) {
+                    fr.copy(query = "", focused = field)
+                } else {
+                    fr.copy(replacement = "", focused = field)
+                },
+            )
+        }
+        if (field == FindReplaceField.FIND) refreshFindMatches(reselect = false)
+    }
+
     fun onFindReplaceFocus(field: FindReplaceField) {
         _uiState.update { it.copy(findReplace = it.findReplace?.copy(focused = field)) }
     }
@@ -34493,6 +34510,7 @@ open class WMKeyboardService : InputMethodService() {
                     FindOption.CASE -> fr.copy(caseSensitive = !fr.caseSensitive)
                     FindOption.WHOLE_WORD -> fr.copy(wholeWord = !fr.wholeWord)
                     FindOption.REGEX -> fr.copy(regex = !fr.regex)
+                    FindOption.PRESERVE_CASE -> fr.copy(preserveCase = !fr.preserveCase)
                 },
             )
         }
