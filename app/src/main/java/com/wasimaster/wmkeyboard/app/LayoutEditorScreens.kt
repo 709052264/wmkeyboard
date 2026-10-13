@@ -5911,7 +5911,7 @@ private val AlternateActionCatalog: List<KeyActionOption> =
  * not list — the glyph the popup will draw.
  */
 @Composable
-private fun actionAlternateName(alternate: KeyAlternate, secondaryLayouts: List<LayoutSpec>): String {
+internal fun actionAlternateName(alternate: KeyAlternate, secondaryLayouts: List<LayoutSpec>): String {
     val action = alternate.action
     if (action is KeyAction.Tool) return stringResource(toolTitle(action.tool))
     if (action is KeyAction.Layout) {
@@ -6591,7 +6591,7 @@ private fun GridSizeStepper(
  * than offering an empty radio group.
  */
 @Composable
-private fun SecondaryLayoutPickerDialog(
+internal fun SecondaryLayoutPickerDialog(
     current: String?,
     options: List<LayoutSpec>,
     onDismiss: () -> Unit,
@@ -6639,7 +6639,7 @@ private fun enabledOtherInputMethods(context: android.content.Context): List<and
  * switches to the keyboard already showing would do nothing.
  */
 @Composable
-private fun InputMethodPickerDialog(
+internal fun InputMethodPickerDialog(
     current: String?,
     onDismiss: () -> Unit,
     onPick: (id: String, name: String) -> Unit,

@@ -977,6 +977,8 @@ internal object SettingsRowIcons {
         put(R.string.typing_gesture_cooldown_title) { Icons.Outlined.Timer }
         put(R.string.typing_space_glide_multiword_title) { Icons.Outlined.SpaceBar }
         put(R.string.typing_two_thumb_title) { Icons.Outlined.TouchApp }
+        put(R.string.typing_finger_swipes_title) { Icons.Outlined.Swipe }
+        put(R.string.typing_finger_swipes_reset_title) { Icons.Outlined.RestartAlt }
         put(R.string.typing_two_thumb_word_end_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.typing_swipe_continues_typed_title) { Icons.Outlined.Swipe }
         put(R.string.typing_shift_glide_capitals_title) { Icons.Outlined.KeyboardCapslock }

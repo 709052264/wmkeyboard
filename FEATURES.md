@@ -433,6 +433,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - 🌐 typing guard `RARE` — layoutBehavior.globeTypingGuardMs, 0–1000 ms in 50 ms steps, default 0 (off): a 🌐 tap within the window after a key that typed into the field (Text, Keyman, Space, Delete, ⌦, Enter, Newline) is dropped at the top of dispatchKey; 🌐 bursts, shift and mode keys do not arm it, and the hold picker is untouched
   - Spacebar label control `uncommon` — Language / layout / both, or a custom string where %s is the live language name
     - Direction arrows — ◀ ▶ drawn around the label only when a slot is set to Language and more than one mode is enabled
+- **Multi-finger swipes** `uncommon` — Two, three or four fingers swiped together over the letters run a bound action instead of typing (#647); on by default
+  - Twelve slots — Finger count × up/down/left/right; defaults 2↑ Select all, 2← Undo, 2→ Redo, 2↓ Paste, the rest empty; each bindable to any key action via the layout editor's picker (text, tool, edit step, layer, keyboard, key event, broadcast)
+  - Claimed late, never on speculation — FingerSwipeTracker claims only when 2+ fingers are down, none lifted, each moved 28 dp inside a 35° cone of the same axis; until then nothing is consumed, so rollover typing and glide are untouched
+  - Takes the whole touch — First grid handler on the Initial pass; after the claim it consumes everything (keys drop their presses) and FingerSwipeGate stops glide, two-thumb glide, chord, layer peek, octopus flick and handwriting from acting at their lift
+  - A trail per finger — Four extra GlideTrails, drawn from where each finger landed with the glide trail's colour, width and length
+  - Two-thumb rule — Two-finger swipes stand aside while two-thumb glide runs; three and four still work
 - **Backspace behaviour** — Tap, hold-repeat and word-swipe are one state machine on the key
   - Grapheme-correct deletion — 64-character lookback so multi-codepoint emoji go in one press
     - ZWJ and tag sequences — 👨‍👩‍👧, 👍🏽, ☠️ delete whole rather than shedding a piece per press

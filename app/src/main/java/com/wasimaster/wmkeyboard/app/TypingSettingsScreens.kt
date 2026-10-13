@@ -2549,6 +2549,8 @@ internal fun TypingGesturesSettings(
             ) { repository.setSpacebarLabel(it) }
         }
     }
+    // Issue #647: two, three and four finger swipes over the keys.
+    FingerSwipeSettings(repository, settings)
 }
 
 @Composable

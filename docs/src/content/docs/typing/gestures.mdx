@@ -246,6 +246,25 @@ A few rules keep the drag from firing when you didn't mean it:
 - An <KeyCap>ABC</KeyCap> key on the letters layer has no other layer to show, so a drag off it does nothing at all.
 - If you held the key long enough to open its own popup first (a <KeyCap>?123</KeyCap> key with alternates of its own), that popup keeps your finger and the layer stays where it is.
 
+## Swiping with several fingers
+
+<SettingsPath path="Typing / Gestures / Multi-finger swipes" />
+
+Put two, three or four fingers on the keys and swipe them the same way together, and the keyboard runs an action instead of typing. Each finger count has its own four directions, so there are twelve swipes to bind. Out of the box only two-finger swipes do something:
+
+| Swipe | Does |
+| --- | --- |
+| Two fingers up | Selects all the text |
+| Two fingers left | Undo |
+| Two fingers right | Redo |
+| Two fingers down | Paste |
+
+Tap any of the twelve rows to change it. The list is the same one the [layout editor](/languages/custom-layouts/#editing-a-key) offers for a key, so a swipe can do anything a key can: type a piece of text, open a tool or a panel, run a text-editing step, switch to a layer or another keyboard app, send Tab or an arrow, or fire a broadcast for an automation app. **No action** empties a slot, default or not, and **Reset swipe actions** at the end of the list puts all twelve back.
+
+A line follows each finger while the swipe is on, in the [glide typing](/typing/glide-typing/) trail's colour, width and length, and fades once you lift.
+
+Fast typing is never mistaken for a swipe. Nothing is decided until every finger on the keys has travelled about 28&nbsp;dp, all of them the same way. A typist rolling from one key to the next lifts long before that, and the keys type as they always did. Lifting any finger before the swipe is recognised hands the whole touch back to the keys.
+
 ## Volume keys as a cursor control
 
 <SettingsPath path="Typing / Volume keys" />
@@ -305,6 +324,9 @@ A printable table of every gesture on one page lives at [Gesture cheat sheet](/r
 | Word delete interval | 140&nbsp;ms (60–500&nbsp;ms) |
 | Volume keys move the cursor | Off |
 | Release the keys while audio plays | On |
+| Multi-finger swipes | On |
+| Two fingers up / left / right / down | Select all / Undo / Redo / Paste |
+| Three and four fingers, any direction | Nothing |
 
 Open the **Typing** tile in settings, or search "Gestures", "Delete keys" or "Volume keys". The last two rows live under Typing / Key press rather than Delete keys, and Word delete interval only appears while Holding delete clears words is on. Cursor speed and Cursor magnifier only appear while a swipe slot is set to Cursor. Swipe deletes, Show what you will delete and the two step distances only appear while Swipe to delete is on, and the two distances are one setting each: Words mode shows Word delete distance, Characters mode shows Character delete distance. The Gestures group's language-switching settings (Arrows on the spacebar, The spacebar shows, Spacebar text) are covered on [Switching languages](/languages/switching/#swiping-the-spacebar) instead of here. For the field-by-field breakdown see [Typing settings](/reference/settings/typing/).
 
@@ -319,6 +341,9 @@ Open the **Typing** tile in settings, or search "Gestures", "Delete keys" or "Vo
 - **A held delete key and a swiped one can disagree about the unit, and that's on purpose.** Holding delete clears words is a Key press setting about the repeat; Swipe deletes is a Delete keys setting about the drag. One can be Words while the other is Characters.
 - **Swiping the wrong way on a delete key cancels the repeat and does nothing else.** Either key claims a drag past the slop in either direction, so the hold stops as soon as your finger travels. Only travel in the key's own direction takes text: leftward on <KeyCap>⌫</KeyCap>, rightward on <KeyCap>⌦</KeyCap>.
 - **Backspace's word-delete acceleration resets on a reversal, not on release.** Dragging right mid-swipe doesn't bring back a deleted word. It only means the *next* leftward word costs full travel again instead of the shrunk amount.
+- **A multi-finger swipe takes the whole touch once it is recognised.** A word you had started gliding with the first finger is dropped, a key press under any of the fingers types nothing, and a chord or layer drag fires nothing at the lift. The swipe is counted by the most fingers that were down at once, so a third finger that lands a moment late still makes it a three-finger swipe.
+- **Two-finger swipes stand aside while [two-thumb typing](/typing/glide-typing/) is on.** There two thumbs moving together are two halves of a word, so only three and four finger swipes run. The two-finger rows say so.
+- **A swipe that leans more than about 35° off straight up, down, left or right is no swipe at all**, and neither is one where the fingers head different ways, such as a pinch. Those fall through to the keys.
 - **Volume-key cursor control re-checks "is audio playing" on every key press**, not once at the start of the drag, so control passes back and forth live as playback starts and stops.
 - **A drag off <KeyCap>?123</KeyCap> or <KeyCap>ABC</KeyCap> is never read as a word either**, for the same reason as a modifier drag: <KeyCap>?123</KeyCap> sits against the bottom row beside the spacebar, and a touch that starts there belongs to the layer drag.
 - **A drag off a modifier or Shift key is never read as a word.** Glide typing and handwriting both measure where your finger landed, and a touch that started on one of those keys belongs to the chord drag. Shift is the one you may notice: it sits against the bottom letter row, so a glide that used to be startable from its inner edge now capitalizes instead. Start the word one key further in.

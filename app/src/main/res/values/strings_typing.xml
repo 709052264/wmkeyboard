@@ -996,4 +996,20 @@
     <string name="typing_octopus_stack_title">Words per key</string>
     <string name="typing_octopus_stack_subtitle">How many words one key can carry, stacked</string>
     <string name="typing_octopus_stack_info">One word per key is what the BlackBerry and Octopus keyboards drew, and it is all a phone-sized key has room for. On a tablet the keys are tall enough for two or three, stacked away from the key with the likeliest word nearest it. A flick up takes the nearest word; a tap takes the word you touch. How many words still caps the whole keyboard.</string>
+    <string name="typing_group_finger_swipes_title">Multi-finger swipes</string>
+    <string name="typing_finger_swipes_title">Multi-finger swipes</string>
+    <string name="typing_finger_swipes_subtitle">Swipe two, three or four fingers together over the keys to run an action</string>
+    <string name="typing_finger_swipes_info">Put two or more fingers on the keys and swipe them the same way together. Instead of typing, the swipe runs the action you chose for that number of fingers and that direction. Out of the box, two fingers up selects all the text, left undoes, right redoes and down pastes. Three and four fingers start empty. Fast typing is not mistaken for a swipe: every finger has to travel the same way before anything happens, and lifting one first leaves the keys to type as usual. A line follows each finger while the swipe is on.</string>
+    <string name="typing_finger_swipe_row_title">%1$d fingers %2$s</string>
+    <string name="typing_finger_swipe_up">up</string>
+    <string name="typing_finger_swipe_down">down</string>
+    <string name="typing_finger_swipe_left">left</string>
+    <string name="typing_finger_swipe_right">right</string>
+    <string name="typing_finger_swipe_nothing_value">Nothing</string>
+    <string name="typing_finger_swipe_text_value">Types “%1$s”</string>
+    <string name="typing_finger_swipe_two_thumb_subtitle">Off while two-thumb typing is on</string>
+    <string name="typing_finger_swipe_text_title">Text to type</string>
+    <string name="typing_finger_swipe_broadcast_title">Broadcast action</string>
+    <string name="typing_finger_swipes_reset_title">Reset swipe actions</string>
+    <string name="typing_finger_swipes_reset_subtitle">Put every multi-finger swipe back to its default</string>
 </resources>

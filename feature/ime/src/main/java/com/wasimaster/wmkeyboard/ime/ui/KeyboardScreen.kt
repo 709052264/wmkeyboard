@@ -533,6 +533,8 @@ import com.wasimaster.wmkeyboard.ime.displayCaseForShift
 import com.wasimaster.wmkeyboard.ime.shiftForGlide
 import com.wasimaster.wmkeyboard.core.layout.BottomRowRules
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
+import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCounts
+import com.wasimaster.wmkeyboard.core.layout.actionOf
 import com.wasimaster.wmkeyboard.core.layout.PAD_SPACE_LABEL
 import com.wasimaster.wmkeyboard.core.layout.FlickArm
 import com.wasimaster.wmkeyboard.core.layout.flickArm
@@ -15149,6 +15151,10 @@ private fun KeyRows(
     // The other thumb's, under two-thumb typing (#638): two strokes can be
     // drawn at once. Idle, and never visible, otherwise.
     val trail2 = remember { GlideTrail() }
+    // One per finger of a multi-finger swipe (#647), and whether one has taken
+    // the touch now on the grid; see [FingerSwipeGate].
+    val fingerTrails = remember { Array(FingerSwipeCounts.last) { GlideTrail() } }
+    val fingerGate = remember { FingerSwipeGate() }
     val duetScope = rememberCoroutineScope()
     // The quad the trail is filled through, rewound per segment and kept across
     // frames: the draw below builds one per sample, and a 120 Hz stroke would
@@ -15277,6 +15283,10 @@ private fun KeyRows(
     // Two-thumb typing (#638) runs its own pointer loop. Only on the app's
     // field: a test run and the keyboard's own boxes keep the one-finger glide.
     val twoThumbOn = gesture.twoThumbGlide && state.panel == PanelMode.NONE && !state.typingTestActive
+    // Multi-finger swipes (#647), on the same terms: the letters, not a panel
+    // or a typing test. The bindings are read live inside the loop.
+    val fingerSwipesOn = gesture.multiFingerSwipes && state.panel == PanelMode.NONE && !state.typingTestActive
+    val fingerSwipeMap = rememberUpdatedState(gesture.fingerSwipes)
     // Drawing through the shift key capitalizes the word the stroke is writing
     // (#115). Read live for the same reason the apostrophe key is: the stroke's
     // loop outlives this composition.
@@ -15351,6 +15361,13 @@ private fun KeyRows(
             withFrameMillis { now -> trail2.tick(now, trailMs) }
         }
     }
+    for (fingerTrail in fingerTrails) {
+        LaunchedEffect(fingerTrail.visible) {
+            while (fingerTrail.visible) {
+                withFrameMillis { now -> fingerTrail.tick(now, trailMs) }
+            }
+        }
+    }
     // A trail outlives the thing that drew it otherwise: switching the feature
     // off or changing the layout leaves the last stroke painted over the new
     // grid, because the pointer loop that would have released it is gone.
@@ -15365,6 +15382,7 @@ private fun KeyRows(
         onDispose {
             if (!drawnForPeek && layerPeek.mode == null) trail.clear()
             trail2.clear()
+            fingerTrails.forEach(GlideTrail::clear)
         }
     }
 
@@ -15377,6 +15395,76 @@ private fun KeyRows(
                 boxWindow = it.positionInWindow()
                 boxSize = it.size
                 spaceTouchpad.gridBounds = it.boundsInRoot()
+            }
+            // Issue #647: two, three or four fingers swiped together run the
+            // action bound to that swipe instead of typing. First in the chain,
+            // so it sees every change before anything can consume it, and it
+            // consumes nothing until [FingerSwipeTracker] claims the touch:
+            // until then each finger is its key's, or the glide's, as it always
+            // was. From the claim on it consumes everything, which makes the
+            // keys drop their presses, and [fingerGate] tells the loops that do
+            // not look at consumption to stand down at their lift.
+            .pointerInput(fingerSwipesOn, twoThumbOn, gestureEnabled, trailMs, stampedOnKey, stampedOnText) {
+                if (!fingerSwipesOn) return@pointerInput
+                val claimPx = FingerSwipeClaimDp.dp.toPx()
+                // Two moving thumbs are two words only while the two-thumb
+                // loop is the one running.
+                val thumbsGlide = twoThumbOn && gestureEnabled
+                awaitEachGesture {
+                    val first = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                    fingerGate.claimed = false
+                    val tracker = FingerSwipeTracker(claimPx, thumbsGlide)
+                    tracker.track(first.id.value, first.position.x, first.position.y, pressed = true)
+                    // Which trail each finger draws in, given at the claim.
+                    val slots = HashMap<Long, Int>()
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        for (change in event.changes) {
+                            if (tracker.track(change.id.value, change.position.x, change.position.y, change.pressed)) {
+                                fingerGate.claimed = true
+                            }
+                        }
+                        if (tracker.abandoned) return@awaitEachGesture
+                        if (tracker.claimed) {
+                            for (change in event.changes) {
+                                change.consume()
+                                val id = change.id.value
+                                val slot = slots[id] ?: if (change.pressed && slots.size < fingerTrails.size) {
+                                    val fresh = slots.size
+                                    slots[id] = fresh
+                                    // Drawn from where the finger landed, so the
+                                    // line shows the whole swipe and not only
+                                    // what came after the claim.
+                                    fingerTrails[fresh].begin()
+                                    tracker.start(id)?.let { (x, y) ->
+                                        fingerTrails[fresh].add(x, y, change.uptimeMillis, trailMs)
+                                    }
+                                    fresh
+                                } else {
+                                    null
+                                }
+                                if (slot == null) continue
+                                if (change.pressed) {
+                                    fingerTrails[slot].add(
+                                        change.position.x, change.position.y, change.uptimeMillis, trailMs,
+                                    )
+                                } else {
+                                    fingerTrails[slot].release()
+                                }
+                            }
+                        }
+                        if (event.changes.none { it.pressed }) break
+                    }
+                    for (slot in slots.values) fingerTrails[slot].release()
+                    val swipe = tracker.result() ?: return@awaitEachGesture
+                    val binding = fingerSwipeMap.value.actionOf(swipe) ?: return@awaitEachGesture
+                    if (hapticOn.value) pickerHaptic()
+                    if (binding.action == KeyAction.Text) {
+                        if (binding.label.isNotEmpty()) stampedOnText(binding.label)
+                    } else {
+                        stampedOnKey(Key(label = binding.label, action = binding.action))
+                    }
+                }
             }
             // Issue #67: a drag that starts on a modifier key and lifts on
             // another fires that chord — Ctrl+C, rather than a latched Ctrl and
@@ -15524,6 +15612,11 @@ private fun KeyRows(
                                 }
                             }
                         }
+                        // A multi-finger swipe took the touch (#647): nothing fires.
+                        if (fingerGate.claimed) {
+                            if (dragging && !slideSource) trail.release()
+                            return@awaitEachGesture
+                        }
                         // Never travelled: an ordinary press the modifier key owns,
                         // still unconsumed, and it latches exactly as it always has.
                         // A shift held past the long press with nothing typed
@@ -15600,7 +15693,7 @@ private fun KeyRows(
                     trailMs = trailMs,
                     dwellMs = state.settings.longPressDelayMs.toLong(),
                     onPopupOpen = { if (hapticOn.value) pickerHaptic() },
-                    onKey = stampedOnKey,
+                    onKey = { if (!fingerGate.claimed) stampedOnKey(it) },
                 )
             }
             // The octopus (discussion #102). Two gestures, one loop, sitting
@@ -15718,7 +15811,7 @@ private fun KeyRows(
                         ),
                         sensitivity = octopusSettings.flickSensitivity,
                     )
-                    if (taken) {
+                    if (taken && !fingerGate.claimed) {
                         // Only now, and only the lift: the key's own handler
                         // reads a consumed up as "the grid took this pointer"
                         // and cancels its press, which is exactly right. A miss
@@ -15767,6 +15860,7 @@ private fun KeyRows(
                         },
                         onGesture = onGesture,
                         onGesturePreview = onGesturePreview,
+                        swipeClaimed = { fingerGate.claimed },
                     )
                     return@pointerInput
                 }
@@ -15949,6 +16043,17 @@ private fun KeyRows(
                             continue
                         }
                         val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                        // A multi-finger swipe took the touch (#647): the
+                        // stroke is dropped where it is, and a preview it sent
+                        // is retired the way a cancelled stroke's is.
+                        if (fingerGate.claimed) {
+                            picker.close()
+                            trail.clear()
+                            if (previewedSeg) {
+                                keyList?.let { onGesture(seg, it, keyWidth.value, GlideVerdict.Cancel) }
+                            }
+                            return@awaitEachGesture
+                        }
                         if (!change.pressed) {
                             if (isGesture) change.consume()
                             break
@@ -16307,7 +16412,7 @@ private fun KeyRows(
                     }
                     // A dot tap is a single-point stroke; a drawn stroke needs at
                     // least two points to have a shape.
-                    if (isStroke && pts.size >= (if (moved) 2 else 1)) {
+                    if (isStroke && !fingerGate.claimed && pts.size >= (if (moved) 2 else 1)) {
                         onKeyboardHandwritingStroke(HwStroke(pts.toList()), boxSize)
                         // Only a drawn stroke arms the dot window for the next tap.
                         if (moved) lastHwStrokeTime.longValue = SystemClock.uptimeMillis()
@@ -16824,7 +16929,7 @@ private fun KeyRows(
             hitStrength = hitStrength.value,
             keyWidth = keyWidth.value,
             boxSize = boxSize,
-            glideActive = trail.visible || trail2.visible,
+            glideActive = trail.visible || trail2.visible || fingerTrails.any { it.visible },
             lastKeyPressTime = lastKeyPressTime,
             letterKeys = letterKeys,
             palette = palette,
@@ -16850,8 +16955,9 @@ private fun KeyRows(
         // `visible` flips twice a stroke, so this composes and decomposes once
         // per glide. Everything that changes per sample is read inside the draw
         // lambda below, where it invalidates the draw alone.
-        // Two of them under two-thumb typing (#638), one per thumb.
-        for (stroke in arrayOf(trail, trail2)) {
+        // Two of them under two-thumb typing (#638), one per thumb, and one per
+        // finger of a multi-finger swipe (#647).
+        for (stroke in arrayOf(trail, trail2, *fingerTrails)) {
             if (!stroke.visible) continue
             Canvas(modifier = Modifier.matchParentSize()) {
                 // Comet-style trail: each segment fades and thins with age,
@@ -18270,6 +18376,7 @@ private suspend fun PointerInputScope.twoThumbGlide(
     grid: () -> List<KeyCenter>,
     onGesture: (List<GesturePoint>, List<KeyCenter>, Float, GlideVerdict) -> Unit,
     onGesturePreview: (List<GesturePoint>, List<KeyCenter>, Float, GlideCase) -> Unit,
+    swipeClaimed: () -> Boolean,
 ) {
     val strokes = HashMap<PointerId, ThumbStroke>()
     awaitPointerEventScope {
@@ -18291,6 +18398,10 @@ private suspend fun PointerInputScope.twoThumbGlide(
                     if (stroke.slot >= 0) trails[stroke.slot].release()
                     val keys = stroke.keys ?: continue
                     when {
+                        // A multi-finger swipe took the touch (#647).
+                        swipeClaimed() -> if (stroke.previewed) {
+                            onGesture(stroke.points, keys, keyWidth.value, GlideVerdict.Cancel)
+                        }
                         stroke.points.size >= COMMIT_MIN_POINTS ->
                             onGesture(stroke.points, keys, keyWidth.value, GlideVerdict.Leader())
                         // Too short to read, but it showed a preview: retire it.

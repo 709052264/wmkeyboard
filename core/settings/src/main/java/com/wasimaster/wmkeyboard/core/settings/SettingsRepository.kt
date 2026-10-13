@@ -55,6 +55,11 @@ import com.wasimaster.wmkeyboard.core.snippets.MultiExpandMode
 import com.wasimaster.wmkeyboard.core.layout.AlternateColumnsRange
 import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
+import com.wasimaster.wmkeyboard.core.layout.DefaultFingerSwipes
+import com.wasimaster.wmkeyboard.core.layout.FingerSwipe
+import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCodec
+import com.wasimaster.wmkeyboard.core.layout.KeyAlternate
+import com.wasimaster.wmkeyboard.core.layout.actionOf
 import com.wasimaster.wmkeyboard.core.layout.LayoutCodec
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
@@ -6752,6 +6757,21 @@ data class GestureSettings(
     /** What finishes a two-thumb word. See [TwoThumbWordEnd]. */
     val twoThumbWordEnd: TwoThumbWordEnd = TwoThumbWordEnd.SPACE,
     /**
+     * Two, three or four fingers swiped together across the keys run an
+     * action instead of typing (issue #647). On by default: the swipe is
+     * claimed only once every finger down has moved the same way, which a
+     * typist rolling from one key to the next never does. Two-finger swipes
+     * stand aside while [twoThumbGlide] is on, where two moving thumbs are
+     * two words.
+     */
+    val multiFingerSwipes: Boolean = true,
+    /**
+     * The user's bindings for [multiFingerSwipes], over [DefaultFingerSwipes];
+     * read through [actionOf]. A slot bound to `KeyAction.None` is a default
+     * the user cleared.
+     */
+    val fingerSwipes: Map<FingerSwipe, KeyAlternate> = emptyMap(),
+    /**
      * A swipe right after typed letters finishes them as one word, so "to"
      * typed and "gether" swiped give "together" (issue #595). Two-thumb
      * typing always does this; this switch is for ordinary glide, where the
@@ -8992,6 +9012,8 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_SHIFT_MODE = stringPreferencesKey("gesture_shift_glide_mode")
         private val GESTURE_TWO_THUMB = booleanPreferencesKey("gesture_two_thumb")
         private val GESTURE_TWO_THUMB_WORD_END = stringPreferencesKey("gesture_two_thumb_word_end")
+        private val GESTURE_MULTI_FINGER = booleanPreferencesKey("gesture_multi_finger_swipes")
+        private val GESTURE_FINGER_SWIPES = stringPreferencesKey("gesture_finger_swipes")
         private val GESTURE_SWIPE_CONTINUES_TYPED = booleanPreferencesKey("gesture_swipe_continues_typed")
         private val GESTURE_AMBIGUITY_PICKER = booleanPreferencesKey("gesture_ambiguity_picker")
         private val GESTURE_PICKER_DWELL_MS = intPreferencesKey("gesture_picker_dwell_ms")
@@ -10676,6 +10698,9 @@ class SettingsRepository(private val context: Context) {
             twoThumbWordEnd = p[GESTURE_TWO_THUMB_WORD_END]
                 ?.let { runCatching { TwoThumbWordEnd.valueOf(it) }.getOrNull() }
                 ?: defaults.gesture.twoThumbWordEnd,
+            multiFingerSwipes = p[GESTURE_MULTI_FINGER] ?: defaults.gesture.multiFingerSwipes,
+            fingerSwipes = p[GESTURE_FINGER_SWIPES]?.let(FingerSwipeCodec::decode)
+                ?: defaults.gesture.fingerSwipes,
             swipeContinuesTyped = p[GESTURE_SWIPE_CONTINUES_TYPED] ?: defaults.gesture.swipeContinuesTyped,
             ambiguityPicker = p[GESTURE_AMBIGUITY_PICKER] ?: defaults.gesture.ambiguityPicker,
             // Coerced on the way in as well as on the way out: a value
@@ -16456,6 +16481,21 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGestureTwoThumbWordEnd(value: TwoThumbWordEnd) =
         editPrefs { it[GESTURE_TWO_THUMB_WORD_END] = value.name }
+
+    suspend fun setMultiFingerSwipes(value: Boolean) =
+        editPrefs { it[GESTURE_MULTI_FINGER] = value }
+
+    /**
+     * Binds [swipe] to [binding] (issue #647). Null puts the slot back to its
+     * default; `KeyAction.None` clears it, default or not.
+     */
+    suspend fun setFingerSwipe(swipe: FingerSwipe, binding: KeyAlternate?) =
+        editPrefs { prefs ->
+            val current = FingerSwipeCodec.decode(prefs[GESTURE_FINGER_SWIPES])
+            val next = if (binding == null) current - swipe else current + (swipe to binding)
+            if (next.isEmpty()) prefs.remove(GESTURE_FINGER_SWIPES)
+            else prefs[GESTURE_FINGER_SWIPES] = FingerSwipeCodec.encode(next)
+        }
 
     suspend fun setGestureSwipeContinuesTyped(value: Boolean) =
         editPrefs { it[GESTURE_SWIPE_CONTINUES_TYPED] = value }
