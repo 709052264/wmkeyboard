@@ -55,6 +55,7 @@ class JianpinTest {
         CjkConfig.traditionalOutput = false
         CjkDictionaries.pinyin = ConversionDictionary.EMPTY
         CjkDictionaries.ngrams = CjkNgrams.EMPTY
+        CjkDictionaries.pinyinNgrams = CjkNgrams.EMPTY
         PinyinSyllables.valid = emptySet()
         Jianpin.index = Jianpin.EMPTY
         CjkLearning.store = null

@@ -18,6 +18,7 @@ object ZhuyinComposer : Composer {
     override val isTransliterating: Boolean get() = true
     override val isConversion: Boolean get() = true
     override val missingPack: String? get() = CjkDictionaries.missingPinyin
+    override val improvingPack: String? get() = CjkDictionaries.missingPinyinNgrams
 
     /** Reading space for learned picks: bopomofo is its own notation. */
     private const val NAMESPACE = "zhuyin"
@@ -41,6 +42,13 @@ object ZhuyinComposer : Composer {
     override fun learnChoice(buffer: String, index: Int) {
         val cand = ranked(buffer).getOrNull(index) ?: return
         CjkLearning.learn(NAMESPACE, cand.reading, cand.text)
+    }
+
+    override val adjustsChoices: Boolean get() = true
+
+    override fun adjustChoice(buffer: String, index: Int, adjustment: CandidateAdjustment) {
+        val cand = ranked(buffer).getOrNull(index) ?: return
+        CjkLearning.adjust(NAMESPACE, cand.reading, cand.text, cand.text, adjustment)
     }
 
 
@@ -68,7 +76,13 @@ object ZhuyinComposer : Composer {
         // Bopomofo is a second spelling of the same Mandarin syllables, so the
         // decoder sees the pinyin reading and the pack needs no Zhuyin of its own.
         val input = Lattice.input(segs.map { it.pinyin }, segs.map { it.inputLen })
-        val decoded = Lattice.decode(input, CjkDictionaries.pinyin, CjkDictionaries.ngrams, Lattice.Opts(limit = LOOKUP_LIMIT))
+        val decoded = Lattice.decode(
+            input,
+            CjkDictionaries.pinyin,
+            CjkDictionaries.pinyinNgrams,
+            Lattice.Opts(limit = LOOKUP_LIMIT),
+            adjust = CjkLearning.adjustFor(NAMESPACE),
+        )
             .flatMap { c -> HanVariant.traditionalForms(c.text).map { Cand(it, c.consumed, c.reading) } }
             .distinctBy { it.text }
         return CjkLearning.rank(NAMESPACE, decoded, { it.text }, { it.reading })

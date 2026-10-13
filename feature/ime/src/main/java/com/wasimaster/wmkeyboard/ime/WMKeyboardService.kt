@@ -624,6 +624,11 @@ import com.wasimaster.wmkeyboard.core.input.composer.KhiproComposer
 import com.wasimaster.wmkeyboard.core.input.composer.CjkConfig
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictionaries
+import com.wasimaster.wmkeyboard.core.input.composer.CjkNgrams
+import com.wasimaster.wmkeyboard.core.input.composer.DoublePinyinScheme
+import com.wasimaster.wmkeyboard.core.input.composer.PinyinComposer
+import com.wasimaster.wmkeyboard.core.input.composer.PinyinGlide
+import com.wasimaster.wmkeyboard.core.input.composer.CandidateAdjustment
 import com.wasimaster.wmkeyboard.core.input.composer.HanPhraseTable
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.input.composer.HangulStrokes
@@ -2349,7 +2354,9 @@ open class WMKeyboardService : InputMethodService() {
             }.toMap()
         }
         engine.extraPhonetic = backends
-        romanizedGlides = romanizedGlides.filterKeys { it == PhoneticSchemes.BENGALI.languageId || it == KHIPRO_GLIDE } +
+        romanizedGlides = romanizedGlides.filterKeys {
+            it == PhoneticSchemes.BENGALI.languageId || it == KHIPRO_GLIDE || it == PINYIN_GLIDE
+        } +
             backends.mapValues { (_, backend) ->
                 RomanizedIndex.of(
                     spellings = backend.spellings,
@@ -11349,6 +11356,52 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * The spellings a swipe over the Pinyin board decodes into (#580), built
+     * from the pinyin table once it is loaded and again whenever it changes.
+     * Off the main thread: it walks every row of the table.
+     */
+    private fun ensurePinyinGlide() {
+        val table = CjkDictionaries.pinyin
+        if (table.isEmpty || pinyinGlideTable === table || pinyinGlideJob?.isActive == true) return
+        pinyinGlideJob = serviceScope.launch {
+            val trie = withContext(Dispatchers.Default) {
+                PackedTrie.of(PinyinGlide.spellings(table, PinyinSyllables.valid))
+            }
+            pinyinGlideTable = table
+            romanizedGlides = romanizedGlides +
+                (PINYIN_GLIDE to RomanizedIndex.deterministic(trie, PackedTrie.EMPTY, PINYIN_GLIDE_KEYS) { it })
+            glideSourcesEpoch.update { it + 1 }
+        }
+    }
+
+    private var pinyinGlideJob: Job? = null
+    private var pinyinGlideTable: ConversionDictionary? = null
+
+    /**
+     * A swipe over the Pinyin board (#580): the stroke decodes into a reading,
+     * which joins the composing buffer as if typed, and the strip converts it.
+     * Nothing is committed and no space follows — in Chinese the reading is
+     * only the start of a pick, and a second swipe carries the same sentence
+     * on.
+     */
+    private fun pinyinGlide(points: List<GesturePoint>, keys: List<KeyCenter>, keyWidthPx: Float) {
+        gestureGeneration.incrementAndGet()
+        suggestionJob?.cancel()
+        gestureJob?.cancel()
+        clearGlidePreview()
+        gestureJob = serviceScope.launch {
+            val reading = withContext(Dispatchers.Default) { glideDecode(points, keys, keyWidthPx) }
+            val spelled = reading.words.firstOrNull()?.lowercase()?.filter { it in 'a'..'z' }
+            if (spelled.isNullOrEmpty()) return@launch
+            val ic = currentInputConnection ?: return@launch
+            if (_uiState.value.composer !== PinyinComposer) return@launch
+            appendComposing(spelled)
+            updateComposingText(ic)
+            refreshSuggestions()
+        }
+    }
+
     private var khiproGlideJob: Job? = null
     private var khiproGlideMain: WordSource? = null
     private var khiproGlideList: SortedWords? = null
@@ -15685,7 +15738,18 @@ open class WMKeyboardService : InputMethodService() {
                 if (langId != null) t = t * 31 + conversionListsToken(langId)
                 return loadedCjkTables.put(packId, t) != t
             }
-            if (stale("pinyin", "zh")) CjkDictionaries.pinyin = conversionTable("pinyin", "zh")
+            if (stale("pinyin", "zh")) {
+                CjkDictionaries.pinyin = conversionTable("pinyin", "zh")
+                // A new table is new swipe spellings (#580); the gate rebuilds them.
+                glideSourcesEpoch.update { it + 1 }
+            }
+            // Which Mandarin words follow which (#580). Optional: without it
+            // the decoder ranks each word by its own frequency alone.
+            if (stale("pinyin_ngrams", null)) {
+                CjkDictionaries.pinyinNgrams = CjkDictStore.downloadedFileFor(filesDir, "pinyin_ngrams")
+                    ?.let { file -> runCatching { file.bufferedReader().useLines(CjkNgrams::parse) }.getOrNull() }
+                    ?: CjkNgrams.EMPTY
+            }
             if (stale("ja_kana", "ja")) CjkDictionaries.japanese = conversionTable("ja_kana", "ja")
             if (stale("stroke", null)) {
                 CjkDictionaries.stroke = CjkDictStore.downloadedFileFor(filesDir, "stroke")
@@ -18747,7 +18811,9 @@ open class WMKeyboardService : InputMethodService() {
      * for.
      */
     private fun refreshConversionPackOffer(state: KeyboardUiState) {
-        val pack = state.composer.missingPack
+        // A pack that would only improve the candidates (#580) is asked about
+        // the same way, once nothing more basic is missing.
+        val pack = state.composer.missingPack ?: state.composer.improvingPack
         if (pack == null) {
             // Downloaded since, or the layout moved to one that needs no pack.
             clearConversionPackOffer()
@@ -19508,6 +19574,46 @@ open class WMKeyboardService : InputMethodService() {
         }
         val current = composer.candidates(composing.toString(), CANDIDATE_GRID_LIMIT).getOrNull(composerIndex)
         commitConversionPrefix(ic, candidate, if (current == candidate) composerIndex else -1)
+    }
+
+    /**
+     * A held conversion candidate's menu was answered (#580): show it earlier,
+     * later, or never. The composer records it in the reading space its picks
+     * live in, and the list is decoded again at once, so the answer shows on
+     * the strip the user is looking at rather than at the next keystroke.
+     *
+     * Resolved the way a tap is ([onCandidateTapped]): a strip position is
+     * only trusted while the buffer's own ranking still has this candidate
+     * there. An English word among the conversions (#633) is not the
+     * composer's to adjust; "never" puts it on the suggestion blacklist, which
+     * is where English words are kept off the strip, and the other two do
+     * nothing for it.
+     */
+    private fun onCandidateAdjust(candidate: String, index: Int, adjustment: CandidateAdjustment) {
+        val state = _uiState.value
+        val composer = state.composer
+        val typed = composing.toString()
+        if (!composer.isConversion || typed.isEmpty()) return
+        val gridOpen = state.panel == PanelMode.CANDIDATES
+        val extras = conversionExtras?.takeIf { it.typed == typed }
+        val composerIndex = extras?.composerIndex(index) ?: index
+        if (extras != null && candidate in extras.english && composerIndex < 0) {
+            if (adjustment == CandidateAdjustment.BLOCK) onSuggestionHeld(candidate)
+            return
+        }
+        val list = composer.candidates(typed, CANDIDATE_GRID_LIMIT)
+        val at = composerIndex.takeIf { list.getOrNull(it) == candidate } ?: list.indexOf(candidate)
+        if (at < 0) return
+        vibrate()
+        composer.adjustChoice(typed, at, adjustment)
+        CjkLearning.store?.let { store -> serviceScope.launch(Dispatchers.IO) { store.save() } }
+        refreshConversionCandidates(_uiState.value)
+        if (gridOpen) {
+            val grid = composer.candidates(typed, CANDIDATE_GRID_LIMIT)
+            _uiState.update {
+                it.copy(expandedCandidates = conversionExtras?.takeIf { e -> e.typed == typed }?.into(grid) ?: grid)
+            }
+        }
     }
 
     /** The candidate strip's chevron: opens the overflow grid, or closes it. */
@@ -21275,7 +21381,14 @@ open class WMKeyboardService : InputMethodService() {
                     phonetic = state.composer.phoneticLanguage
                         // Classic only: the glide spellings are Classic's,
                         // which join consonants that Dark leaves apart.
-                        ?: KHIPRO_GLIDE.takeIf { state.composer === KhiproComposer.CLASSIC },
+                        ?: KHIPRO_GLIDE.takeIf { state.composer === KhiproComposer.CLASSIC }
+                        // Full pinyin spells readings on QWERTY (#580). Not
+                        // Double Pinyin, whose two keys per syllable no
+                        // swipe of a reading draws.
+                        ?: PINYIN_GLIDE.takeIf {
+                            state.composer === PinyinComposer &&
+                                state.settings.cjk.pinyinDoublePinyin == DoublePinyinScheme.OFF
+                        },
                     alphabet = state.layouts.letterAlphabet + state.composer.glideKeys +
                         // The glide grid puts the apostrophe on the `'` key for
                         // these (see KeyboardScreen), so their words count as
@@ -21291,6 +21404,7 @@ open class WMKeyboardService : InputMethodService() {
                     // romanization rather than about the Bengali word list.
                     val engine = suggestionEngine
                     if (gate.phonetic == KHIPRO_GLIDE) ensureKhiproGlide()
+                    if (gate.phonetic == PINYIN_GLIDE) ensurePinyinGlide()
                     engine?.glideRomanization =
                         gate.phonetic?.let { romanizedGlides[it] } ?: RomanizedIndex.EMPTY
                     val allowed = gate.phonetic != null || !gate.converts
@@ -21371,6 +21485,9 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         if (keys.isEmpty()) return
+        // A Pinyin swipe previews nothing: what it decodes is a reading, which
+        // the strip shows converted once the finger lifts (#580).
+        if (state.composer === PinyinComposer) return
         syncGlideTriggers(state)
         gesturePreviews.trySend(
             GesturePreviewRequest(
@@ -21938,6 +22055,10 @@ open class WMKeyboardService : InputMethodService() {
         // Two-thumb typing, or a swipe finishing typed letters: the stroke
         // joins the word in progress instead of being one (#638, #595).
         if (duetSwipe(state, points, keys, keyWidthPx, shiftAtGesture)) return
+        if (state.composer === PinyinComposer) {
+            pinyinGlide(points, keys, keyWidthPx)
+            return
+        }
         gestureJob = serviceScope.launch {
             val reading = withContext(Dispatchers.Default) {
                 glideDecode(points, keys, keyWidthPx)
@@ -35804,6 +35925,7 @@ open class WMKeyboardService : InputMethodService() {
             onCard = ::onWordCardAction,
             onSynonyms = ::onSynonymAction,
             onPagesToggle = ::onSuggestionPagesToggle,
+            onCandidateAdjust = ::onCandidateAdjust,
         )
     }
 
@@ -40778,6 +40900,12 @@ private const val SUGGEST_PAGES_POOL = 24
 private const val FIXED_PHONETIC_CHIPS = 2
 /** [romanizedGlides]' key for Khipro, whose spellings are not a language's. */
 private const val KHIPRO_GLIDE = "bn_khipro"
+
+/** [romanizedGlides]' key for full Pinyin, whose spellings are readings (#580). */
+private const val PINYIN_GLIDE = "zh_pinyin"
+
+/** Every key a Pinyin reading can pass through. */
+private const val PINYIN_GLIDE_KEYS = "abcdefghijklmnopqrstuvwxyz"
 
 /** The notification row that follows the Khipro spellings being worked out. */
 private const val KHIPRO_GLIDE_NOTIFY_KEY = "khipro-glide"

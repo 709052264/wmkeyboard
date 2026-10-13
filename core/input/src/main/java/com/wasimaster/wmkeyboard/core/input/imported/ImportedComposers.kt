@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.input.imported
 
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictionaries
+import com.wasimaster.wmkeyboard.core.input.composer.CandidateAdjustment
 import com.wasimaster.wmkeyboard.core.input.composer.CjkLearning
 import com.wasimaster.wmkeyboard.core.input.composer.Composer
 import com.wasimaster.wmkeyboard.core.input.composer.Lattice
@@ -143,6 +144,13 @@ internal class ReadingMethodComposer(private val id: String) : Composer {
         CjkLearning.learn(namespace, cand.reading, cand.text)
     }
 
+    override val adjustsChoices: Boolean get() = true
+
+    override fun adjustChoice(buffer: String, index: Int, adjustment: CandidateAdjustment) {
+        val cand = ranked(buffer).getOrNull(index) ?: return
+        CjkLearning.adjust(namespace, cand.reading, cand.text, cand.text, adjustment)
+    }
+
     /** Picks are kept per method: one schema's `ni` has nothing to do with another's. */
     private val namespace = "im:$id"
 
@@ -173,6 +181,7 @@ internal class ReadingMethodComposer(private val id: String) : Composer {
             CjkDictionaries.ngrams,
             Lattice.Opts(limit = LOOKUP),
             learned = { r -> CjkLearning.store?.picksFor(namespace, r) },
+            adjust = CjkLearning.adjustFor(namespace),
         ).map { Cand(it.text, it.consumed, it.reading) }.distinctBy { it.text }
         return CjkLearning.rank(namespace, decoded, { it.text }, { it.reading })
     }

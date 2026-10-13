@@ -35,9 +35,23 @@ class CjkUserHistory(private val storageFile: File?) {
         val version: Int = 1,
         /** namespace → reading → word → times chosen. */
         val picks: Map<String, Map<String, Map<String, Int>>> = emptyMap(),
+        /** namespace → words never to offer, from the candidate menu (#580). */
+        val blocked: Map<String, List<String>> = emptyMap(),
+        /** namespace → word → steps moved down (negative) by the candidate menu (#580). */
+        val bias: Map<String, Map<String, Int>> = emptyMap(),
     )
 
     private val picks = HashMap<String, HashMap<String, HashMap<String, Int>>>()
+    private val blocked = HashMap<String, MutableSet<String>>()
+    private val bias = HashMap<String, HashMap<String, Int>>()
+
+    /**
+     * [blocked] and [bias] per namespace as the decoder reads them, rebuilt on
+     * every change so a decode reads them without the lock — it asks about
+     * every row it emits, thousands per keystroke.
+     */
+    @Volatile
+    private var adjustments: Map<String, WordAdjust> = emptyMap()
 
     /** Whether anything has changed since the last [save]. */
     @Volatile
@@ -78,23 +92,98 @@ class CjkUserHistory(private val storageFile: File?) {
     fun picksFor(namespace: String, reading: String): Map<String, Int>? =
         picks[namespace]?.get(reading)?.takeIf { it.isNotEmpty() }
 
+    /** What the candidate menu has said about words in [namespace], or null when nothing. */
+    fun adjustFor(namespace: String): WordAdjust? = adjustments[namespace]
+
+    /**
+     * Never offer [word] in [namespace] again. Its picks go with it, or the
+     * history would keep a count for a word it no longer shows.
+     */
+    @Synchronized
+    fun block(namespace: String, vararg word: String) {
+        val words = word.filter { it.isNotEmpty() }.toSet()
+        if (words.isEmpty()) return
+        blocked.getOrPut(namespace) { HashSet() }.addAll(words)
+        forgetPicks(namespace, words)
+        changed()
+    }
+
+    /**
+     * One step lower for [word] in [namespace]: below the words it ties with,
+     * and a cost on every path built through it. Its picks go too, since a
+     * pick is what put it first. Bounded at [MAX_STEPS].
+     */
+    @Synchronized
+    fun demote(namespace: String, vararg word: String) {
+        val words = word.filter { it.isNotEmpty() }.toSet()
+        if (words.isEmpty()) return
+        val steps = bias.getOrPut(namespace) { HashMap() }
+        for (w in words) steps[w] = ((steps[w] ?: 0) - 1).coerceAtLeast(-MAX_STEPS)
+        forgetPicks(namespace, words)
+        changed()
+    }
+
+    /**
+     * One step higher for [word] read [reading]: whatever demotion it had is
+     * taken back, and it counts as picked once more, which is what puts a
+     * candidate first for its reading.
+     */
+    @Synchronized
+    fun promote(namespace: String, reading: String, vararg word: String) {
+        val words = word.filter { it.isNotEmpty() }.toSet()
+        if (words.isEmpty() || reading.isEmpty()) return
+        bias[namespace]?.let { steps -> words.forEach { steps.remove(it) } }
+        val counts = picks.getOrPut(namespace) { HashMap() }.getOrPut(reading) { HashMap() }
+        val shown = word.first { it.isNotEmpty() }
+        counts[shown] = (counts[shown] ?: 0) + 1
+        changed()
+    }
+
+    private fun forgetPicks(namespace: String, words: Set<String>) {
+        val byReading = picks[namespace] ?: return
+        val empty = ArrayList<String>()
+        for ((reading, counts) in byReading) {
+            counts.keys.removeAll(words)
+            if (counts.isEmpty()) empty.add(reading)
+        }
+        empty.forEach(byReading::remove)
+    }
+
+    private fun changed() {
+        dirty = true
+        rebuildAdjustments()
+        CjkDictionaries.invalidate()
+    }
+
+    private fun rebuildAdjustments() {
+        val out = HashMap<String, WordAdjust>()
+        for (ns in blocked.keys + bias.keys) {
+            val a = WordAdjust(blocked[ns].orEmpty().toSet(), bias[ns].orEmpty().filterValues { it != 0 })
+            if (!a.isEmpty) out[ns] = a
+        }
+        adjustments = out
+    }
+
     /** True when nothing has ever been learned for [namespace]. */
     @Synchronized
     fun isEmptyFor(namespace: String): Boolean = picks[namespace].isNullOrEmpty()
 
     @Synchronized
     fun clear() {
-        if (picks.isEmpty()) return
+        if (picks.isEmpty() && blocked.isEmpty() && bias.isEmpty()) return
         picks.clear()
-        dirty = true
-        CjkDictionaries.invalidate()
+        blocked.clear()
+        bias.clear()
+        changed()
     }
 
     @Synchronized
     fun clear(namespace: String) {
-        if (picks.remove(namespace) == null) return
-        dirty = true
-        CjkDictionaries.invalidate()
+        val had = picks.remove(namespace) != null
+        val hadBlocked = blocked.remove(namespace) != null
+        val hadBias = bias.remove(namespace) != null
+        if (!had && !hadBlocked && !hadBias) return
+        changed()
     }
 
     fun save() {
@@ -106,6 +195,8 @@ class CjkUserHistory(private val storageFile: File?) {
                 picks = picks.mapValues { (_, readings) ->
                     readings.mapValues { (_, words) -> words.toMap() }
                 },
+                blocked = blocked.mapValues { (_, words) -> words.sorted() },
+                bias = bias.mapValues { (_, steps) -> steps.toMap() },
             )
         }
         // Encoded and written outside the lock, so the store stays usable while
@@ -129,12 +220,18 @@ class CjkUserHistory(private val storageFile: File?) {
                 val target = picks.getOrPut(namespace) { HashMap() }
                 for ((reading, counts) in byReading) target[reading] = HashMap(counts)
             }
+            for ((namespace, words) in snapshot.blocked) blocked[namespace] = words.toHashSet()
+            for ((namespace, steps) in snapshot.bias) bias[namespace] = HashMap(steps)
+            rebuildAdjustments()
         }
         dirty = false
     }
 
     private companion object {
         val JSON = Json { ignoreUnknownKeys = true }
+
+        /** How far down the candidate menu can push a word, in steps. */
+        const val MAX_STEPS = 5
     }
 }
 
@@ -162,6 +259,25 @@ object CjkLearning {
         store?.learn(namespace, reading, word)
     }
 
+    /** What the candidate menu has said about [namespace]'s words; null when nothing. */
+    fun adjustFor(namespace: String): WordAdjust? = store?.adjustFor(namespace)
+
+    /**
+     * The held candidate's menu (#580). [shown] is the candidate as the strip
+     * drew it and [source] what the decoder found (they differ under
+     * Traditional output); both are recorded, so the block holds whichever
+     * the next ranking compares against. Not gated on [enabled]: this is the
+     * user telling the keyboard something, not the keyboard watching them.
+     */
+    fun adjust(namespace: String, reading: String, shown: String, source: String, adjustment: CandidateAdjustment) {
+        val history = store ?: return
+        when (adjustment) {
+            CandidateAdjustment.PROMOTE -> history.promote(namespace, reading, shown, source)
+            CandidateAdjustment.DEMOTE -> history.demote(namespace, shown, source)
+            CandidateAdjustment.BLOCK -> history.block(namespace, shown, source)
+        }
+    }
+
     /**
      * [items] with previously-chosen candidates first, most-chosen first among
      * them, and everything else left in exactly the order it arrived.
@@ -179,14 +295,68 @@ object CjkLearning {
         items: List<T>,
         text: (T) -> String,
         reading: (T) -> String,
+    ): List<T> = rank(namespace, items, text, reading, text, null)
+
+    /**
+     * [rank], with the candidate menu's answers applied (#580): a blocked
+     * candidate is dropped, and a demoted one goes after everything it would
+     * otherwise tie with. [source] is the decoder's own text for an item.
+     *
+     * With [group], the reordering stays inside each group, and the groups keep
+     * the order they arrived in. Pinyin groups by how much of the buffer a
+     * candidate covers, so a character picked for `wo` once rises among the
+     * single characters for `wbxh` instead of above every reading of all four
+     * letters — which is what put 我 ahead of 我不喜欢 in the issue.
+     */
+    fun <T> rank(
+        namespace: String,
+        items: List<T>,
+        text: (T) -> String,
+        reading: (T) -> String,
+        source: (T) -> String,
+        group: ((T) -> Int)?,
     ): List<T> {
         val history = store ?: return items
-        if (items.size < 2 || history.isEmptyFor(namespace)) return items
-        var seen = false
-        val counts = items.map { item ->
-            history.countFor(namespace, reading(item), text(item)).also { if (it > 0) seen = true }
+        if (items.isEmpty()) return items
+        val adjust = history.adjustFor(namespace)
+        val kept = if (adjust == null || adjust.blocked.isEmpty()) {
+            items
+        } else {
+            items.filterNot { text(it) in adjust.blocked || source(it) in adjust.blocked }
         }
-        if (!seen) return items
-        return items.indices.sortedByDescending { counts[it] }.map { items[it] }
+        if (kept.size < 2) return kept
+        val learned = !history.isEmptyFor(namespace)
+        val bias = adjust?.bias.orEmpty()
+        if (!learned && bias.isEmpty()) return kept
+        var moved = false
+        val counts = IntArray(kept.size)
+        val lowered = BooleanArray(kept.size)
+        for ((i, item) in kept.withIndex()) {
+            if (learned) counts[i] = history.countFor(namespace, reading(item), text(item))
+            lowered[i] = (bias[source(item)] ?: bias[text(item)] ?: 0) < 0
+            if (counts[i] > 0 || lowered[i]) moved = true
+        }
+        if (!moved) return kept
+        val groupOrder = HashMap<Int, Int>()
+        val groupOf = IntArray(kept.size) { i ->
+            val key = group?.invoke(kept[i]) ?: 0
+            groupOrder.getOrPut(key) { groupOrder.size }
+        }
+        // Stable, so everything nothing was said about keeps the decoder's order.
+        return kept.indices.sortedWith(
+            compareBy<Int>({ groupOf[it] }, { -counts[it] }, { if (lowered[it]) 1 else 0 }),
+        ).map { kept[it] }
     }
+}
+
+/** What the held candidate's menu asks for (#580). */
+enum class CandidateAdjustment {
+    /** Show it earlier: counted as picked, any demotion taken back. */
+    PROMOTE,
+
+    /** Show it later: one step down, and its picks forgotten. */
+    DEMOTE,
+
+    /** Never show it again in this reading space. */
+    BLOCK,
 }

@@ -27,6 +27,7 @@ class HanVariantTest {
         PinyinSyllables.valid = emptySet()
         CjkDictionaries.pinyin = ConversionDictionary.EMPTY
         CjkDictionaries.ngrams = CjkNgrams.EMPTY
+        CjkDictionaries.pinyinNgrams = CjkNgrams.EMPTY
         CjkLearning.store = null
     }
 
@@ -66,7 +67,7 @@ class HanVariantTest {
     @Test
     fun `the longest key wins, and a key needs the whole of itself`() {
         val t = HanPhraseTable.of(mapOf("a" to "1", "ab" to "2", "abcd" to "4", "b" to "5"))
-        assertEquals(1, t.keyLength(t.matchPrefix("abcx", 0, 4)))
+        assertEquals(1, t.keyLength(t.matchPrefix("axcd", 0, 4)))
         assertEquals(2, t.keyLength(t.matchPrefix("abc", 0, 3)))
         assertEquals(4, t.keyLength(t.matchPrefix("abcde", 0, 5)))
         // The end bound is respected: "abcd" is there, but only "ab" fits.

@@ -48,6 +48,15 @@ Word-frequency lists
   Romanized lists: Malayalam via knadh/ml2en over the FrequencyWords list;
   Roman Urdu from Khubaib01/RomanUrdu-NLP-Sentiment-Corpus (Apache-2.0).
 
+Chinese word pairs (the Pinyin "Chinese word pairs" pack)
+---------------------------------------------------------
+
+  Word and word-pair counts, not text: OpenSubtitles 2018 Simplified
+  Chinese via OPUS (https://opus.nlpl.eu/, Lison and Tiedemann 2016) — the
+  same subtitles as the FrequencyWords zh_cn list above — and the Leipzig
+  Corpora Collection's zho-cn_web_2015 and zho_news_2020 sentences
+  (CC BY 4.0), split into words with the CC-CEDICT pinyin pack.
+
 Offensive word lists (optional suggestion filters)
 --------------------------------------------------
 

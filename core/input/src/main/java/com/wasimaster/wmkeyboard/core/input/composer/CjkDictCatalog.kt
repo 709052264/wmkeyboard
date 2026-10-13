@@ -49,6 +49,13 @@ data class CjkDictPack(
      * already on the device keeps converting until the new one replaces it.
      */
     val legacyFileNames: List<String> = emptyList(),
+    /**
+     * The pack this one improves and is fetched with: wherever that one is
+     * offered — switching a layout on, a language's download-all — this one
+     * comes too, without a prompt of its own. Null for a pack that stands
+     * alone.
+     */
+    val alongside: String? = null,
 ) {
     /** Where the pack is fetched from: the data repository, wherever [ServiceRepo.DATA] points. */
     val url: String get() = ServiceEndpoints.repo(ServiceRepo.DATA).rawUrl(path)
@@ -79,6 +86,20 @@ object CjkDictCatalog {
             sha256 = "0c572b5f5699378beb0eab5ec81cf79bb277e0f100d3c944d8969b7445b1a0c9",
             fileName = "pinyin_v2.tsv",
             legacyFileNames = listOf("pinyin.tsv"),
+        ),
+        // Not a reading table: which words follow which (#580), so `wbxh`
+        // reads 我不喜欢 rather than 亡八喜欢. Pinyin converts without it, one
+        // word's frequency at a time; it comes with the pinyin pack.
+        CjkDictPack(
+            id = "pinyin_ngrams",
+            langId = "zh",
+            displayNameRes = R.string.core_input_cjk_pack_pinyin_ngrams_title,
+            descriptionRes = R.string.core_input_cjk_pack_pinyin_ngrams_subtitle,
+            path = "cjk/pinyin_ngrams.tsv",
+            sizeBytes = 11_036_820L,
+            sha256 = "30c0c614ac0576379407b0e519615653a4be5939590a795dae7074ce960e30bf",
+            fileName = "pinyin_ngrams.tsv",
+            alongside = "pinyin",
         ),
         CjkDictPack(
             id = "ja_kana",
@@ -143,6 +164,10 @@ object CjkDictCatalog {
     }
 
     fun byId(id: String): CjkDictPack? = packs.firstOrNull { it.id == id }
+
+    /** [pack] and every available pack fetched [CjkDictPack.alongside] it. */
+    fun withCompanions(pack: CjkDictPack): List<CjkDictPack> =
+        listOf(pack) + packs.filter { it.alongside == pack.id && it.available }
 
     /** The pack published as [name] (`pinyin_v2.tsv`), by the file name in the data repo. */
     fun byFileName(name: String): CjkDictPack? =

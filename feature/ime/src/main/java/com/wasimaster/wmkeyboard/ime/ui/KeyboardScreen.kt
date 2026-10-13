@@ -207,7 +207,9 @@ import com.wasimaster.wmkeyboard.core.settings.applyThemeOverrides
 import com.wasimaster.wmkeyboard.core.settings.applyScreenDefaults
 import com.wasimaster.wmkeyboard.core.settings.resolvedFor
 import com.wasimaster.wmkeyboard.core.input.MorseCode
+import com.wasimaster.wmkeyboard.core.input.composer.CandidateAdjustment
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
+import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Stable
@@ -4208,7 +4210,12 @@ private fun TopBar(
                     val packShares = suggestionsShowing || state.smart != null
                     OfferChip(
                         label = stringResource(
-                            R.string.ime_conversion_pack_offer,
+                            // The word pairs improve conversion; it works without them.
+                            if (packOffer.alongside != null) {
+                                R.string.ime_conversion_pack_improve_offer
+                            } else {
+                                R.string.ime_conversion_pack_offer
+                            },
                             stringResource(packOffer.displayNameRes),
                         ),
                         icon = Icons.Outlined.Download,
@@ -4520,8 +4527,10 @@ private fun TopBar(
                         textScale = state.settings.suggestionStrip.textScale,
                         hints = if (suggestionsShowing) suggestionHintPlan(state) else null,
                         highlighted = state.candidateCursor,
+                        adjustable = state.composer.adjustsChoices,
                         onCandidate = onCandidate,
                         onExpand = onCandidatesExpand,
+                        onAdjust = suggestionHold.onCandidateAdjust,
                     )
                 } else {
                     // The join chip leads the row, visually apart from the three
@@ -5403,17 +5412,37 @@ private fun RowScope.CandidateStrip(
     hints: HintPlan? = null,
     /** The candidate the arrow keys or a stepping space bar moved to, or -1 (#419). */
     highlighted: Int = -1,
+    /** Whether holding a candidate opens its menu: earlier, later, never (#580). */
+    adjustable: Boolean = false,
     onCandidate: (String, Int) -> Unit,
     onExpand: () -> Unit,
+    onAdjust: (String, Int, CandidateAdjustment) -> Unit = { _, _, _ -> },
 ) {
     val listState = rememberLazyListState()
+    // The held candidate whose menu fills the strip, by position; -1 for none.
+    var menuFor by remember { mutableIntStateOf(-1) }
     // A new reading starts at the left edge, where its best candidates are.
     // The list keeps its scroll by item key otherwise, so a strip scrolled
     // through for one word opened the next one part way along (#589).
     // requestScrollToItem lands before the next layout, with no frame drawn
     // at the old offset.
     LaunchedEffect(candidates) {
+        // The menu belongs to the list it was opened on.
+        menuFor = -1
         listState.requestScrollToItem(highlighted.takeIf { it in candidates.indices } ?: 0)
+    }
+    val held = candidates.getOrNull(menuFor)
+    if (held != null) {
+        CandidateMenu(
+            candidate = held,
+            textScale = textScale,
+            onPick = { adjustment ->
+                onAdjust(held, menuFor, adjustment)
+                menuFor = -1
+            },
+            onDismiss = { menuFor = -1 },
+        )
+        return
     }
     // Stepping past the right edge has to bring the highlight with it, or the
     // candidate Enter is about to type is one nobody can see.
@@ -5444,7 +5473,14 @@ private fun RowScope.CandidateStrip(
                     .focusRing(index == highlighted, RoundedCornerShape(10.dp))
                     // By position, not text: the composer works out how much of
                     // the buffer to eat from where the chip sat.
-                    .clickable(enabled = enabled) { onCandidate(suggestion, index) },
+                    .combinedClickable(
+                        enabled = enabled,
+                        onLongClick = if (adjustable) {
+                            { menuFor = index }
+                        } else {
+                            null
+                        },
+                    ) { onCandidate(suggestion, index) },
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -5492,8 +5528,11 @@ private fun RowScope.CandidateStrip(
 private fun CandidateGridPanel(
     state: KeyboardUiState,
     onCandidate: (String, Int) -> Unit,
+    onAdjust: (String, Int, CandidateAdjustment) -> Unit = { _, _, _ -> },
 ) {
     val textScale = state.settings.suggestionStrip.textScale
+    var menuFor by remember(state.expandedCandidates) { mutableIntStateOf(-1) }
+    val adjustable = state.composer.isConversion && state.composer.adjustsChoices
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -5501,6 +5540,20 @@ private fun CandidateGridPanel(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 8.dp, vertical = 4.dp),
     ) {
+        // A held candidate's menu (#580), over the grid it was held in.
+        state.expandedCandidates.getOrNull(menuFor)?.let { held ->
+            Row(modifier = Modifier.fillMaxWidth().height(CandidateGridRowHeight)) {
+                CandidateMenu(
+                    candidate = held,
+                    textScale = textScale,
+                    onPick = { adjustment ->
+                        onAdjust(held, menuFor, adjustment)
+                        menuFor = -1
+                    },
+                    onDismiss = { menuFor = -1 },
+                )
+            }
+        }
         // Pages of word suggestions (#385) have no chevron on the strip to
         // close them by, so they carry their own way back to the keys.
         if (!state.composer.isConversion) {
@@ -5532,7 +5585,13 @@ private fun CandidateGridPanel(
                         .padding(2.dp)
                         .widthIn(min = CandidateChipMinWidth)
                         .height(CandidateGridRowHeight)
-                        .clickable { onCandidate(candidate, index) },
+                        .combinedClickable(
+                            onLongClick = if (adjustable) {
+                                { menuFor = index }
+                            } else {
+                                null
+                            },
+                        ) { onCandidate(candidate, index) },
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
@@ -5547,6 +5606,69 @@ private fun CandidateGridPanel(
                 }
             }
         }
+    }
+}
+
+/**
+ * What holding a conversion candidate offers (#580), in the strip's own row:
+ * the candidate, then show it earlier, show it later, never show it. Every
+ * shipping Chinese IME has this, and it is the only way to tell the keyboard
+ * that 亡八 is not a word anyone types — the decoder will not learn that from
+ * the user simply not picking it.
+ */
+@Composable
+private fun RowScope.CandidateMenu(
+    candidate: String,
+    textScale: Float,
+    onPick: (CandidateAdjustment) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.weight(1f).fillMaxHeight(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = candidate,
+            modifier = Modifier.padding(horizontal = 10.dp).weight(1f, fill = false),
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = CandidateFontSize * textScale,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        CandidateMenuItem(Icons.Outlined.KeyboardArrowUp, stringResource(R.string.ime_candidate_menu_earlier)) {
+            onPick(CandidateAdjustment.PROMOTE)
+        }
+        CandidateMenuItem(Icons.Outlined.KeyboardArrowDown, stringResource(R.string.ime_candidate_menu_later)) {
+            onPick(CandidateAdjustment.DEMOTE)
+        }
+        CandidateMenuItem(Icons.Outlined.RemoveCircleOutline, stringResource(R.string.ime_candidate_menu_never)) {
+            onPick(CandidateAdjustment.BLOCK)
+        }
+        Spacer(Modifier.weight(1f))
+        IconButton(onClick = onDismiss) {
+            Icon(
+                Icons.Outlined.Close,
+                contentDescription = stringResource(R.string.ime_candidate_menu_close_desc),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+/** One action in [CandidateMenu]: an icon and a word, one tap target. */
+@Composable
+private fun CandidateMenuItem(icon: ImageVector, label: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxHeight()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+        Spacer(Modifier.width(4.dp))
+        Text(label, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, maxLines = 1)
     }
 }
 
@@ -11500,7 +11622,7 @@ private fun KeyboardBody(
                 )
                 PanelMode.SOUND_HAPTICS -> SoundHapticsPanel(state, onSoundHaptic, onOpenRoute)
                 PanelMode.NUMPAD -> NumpadPanelHost(state, panelCallbacks)
-                PanelMode.CANDIDATES -> CandidateGridPanel(state, onCandidate)
+                PanelMode.CANDIDATES -> CandidateGridPanel(state, onCandidate, suggestionHold.onCandidateAdjust)
                 PanelMode.HANDWRITING -> if (BuildConfig.ENABLE_ML_KIT_HANDWRITING) {
                     HandwritingPanelHost(
                         state, panelCallbacks,
@@ -13181,6 +13303,24 @@ internal fun Key?.startsLayerDrag(): Boolean =
  */
 internal fun Key?.ownsDrag(): Boolean =
     startsChordDrag() || startsLayerDrag() || (this != null && hasFlicks())
+
+/**
+ * Whether glide typing may still take a stroke that starts on this flick key
+ * (#655), once the finger has left the key's cell. A letter key given corner
+ * swipes — every letter of an Unexpected Keyboard layout, or one given arms in
+ * the editor — refused glide outright under [ownsDrag], so a board made of them
+ * could not be glided at all.
+ *
+ * The arms stay the key's own while the finger is on it, which is all a flick
+ * ever travels; leaving the cell is a glide, and the glide consuming the
+ * pointer is what tells the key's handler to drop its arm. Left out: keys that
+ * are not text, whose drags chord or peek, and keys with an arm that repeats,
+ * because a held arrow arm has already moved the caret by the time the finger
+ * wanders off and nothing would take that back.
+ */
+internal fun Key?.glidesPastFlicks(): Boolean =
+    this != null && action == KeyAction.Text && hasFlicks() &&
+        FlickDirection.entries.none { flickKey(it)?.flickArmRepeats() == true }
 
 /**
  * What a swipe out to [direction] and more than halfway back again types
@@ -15886,7 +16026,17 @@ private fun KeyRows(
                     // otherwise start a glide from either. The spacebar's
                     // swipes too (#333), which sideways lie wholly inside it.
                     val downKey = liveRects.value.keyAt(down.position + boxOrigin)
-                    if (downKey.ownsDrag() || downKey.startsPossessiveSwipe(possessiveChar) ||
+                    // A letter key with flick arms keeps its arms for as long as
+                    // the finger stays on it, and only then lets a glide begin
+                    // (#655): its cell, read once here, and null on every other
+                    // key, where the usual start slop decides alone.
+                    val flickCell = if (downKey.glidesPastFlicks()) {
+                        liveRects.value.cellAt(down.position + boxOrigin)
+                    } else {
+                        null
+                    }
+                    if ((downKey.ownsDrag() && flickCell == null) ||
+                        downKey.startsPossessiveSwipe(possessiveChar) ||
                         downKey.startsGlobeDrag(globeDragLive.value) ||
                         downKey.ownsDeleteStroke() || downKey.ownsSpaceStroke()
                     ) {
@@ -16067,6 +16217,9 @@ private fun KeyRows(
                         // A glide that had already started cancelled the key's
                         // long press on the way, so this can only be the popup.
                         if (!isGesture && alternatesGate.open) break
+                        // Still inside the flick key it began on: an arm, not a
+                        // word, so the stroke is not looked at yet.
+                        if (!isGesture && flickCell?.contains(change.position + boxOrigin) == true) continue
                         if (!isGesture && keyWidth.value > 0f &&
                             (change.position - down.position).getDistance() > slop * effectiveSlop &&
                             nearLetterKey(
@@ -23496,6 +23649,11 @@ private fun displayLabel(key: Key, state: KeyboardUiState): String {
     // uppercase branch above already cased the plain letter, so shift shows
     // the style's capital via the upper map.
     fancyStyleFor(state)?.let { style -> return FancyStyles.transform(raw, style) }
+    // A Chinese board writing Traditional labels its Han keys that way too:
+    // the word separator reads '詞, not '词 (#580), and 分词 reads 分詞.
+    if (state.settings.cjk.traditionalOutput && state.language.id == "zh" && raw.any { it in '\u4e00'..'\u9fff' }) {
+        return HanVariant.toTraditional(raw)
+    }
     return mapDigits(raw, digits)
 }
 

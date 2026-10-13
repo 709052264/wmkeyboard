@@ -103,18 +103,36 @@ Three conventions borrowed from Sogou and Google Pinyin:
 
 ### Everyday pairings
 
-A lot of Chinese isn't dictionary words. 我的 and 我不 are two single characters that happen to turn up together constantly, and no Chinese-English dictionary lists either as an entry — so for a while `wdmm` answered 味道妈妈 and the 我的妈妈 you meant appeared nowhere at all.
+A lot of Chinese isn't dictionary words. 我的 and 我不 are two single characters that turn up together constantly, and no dictionary lists either as an entry. Ranked one word at a time, `wbxh` came out as 亡八喜欢: two real words beat four, whatever the words are.
 
-From three abbreviated letters up, and only where no single entry already covers everything you typed, the strip now carries a few **stitched readings** behind the dictionary's own answer: whole-buffer ways of reading what you typed as a sequence of separate words. `wdmm` offers 我的妈妈, `wbxhni` offers 我不喜欢你, `wsyg` offers 我是一个. They sit behind the phrase, not in front of it, because the keyboard has no corpus to tell it which of the two you meant — and one tap settles that for good: a picked reading is learned whole, and leads next time.
+The **Chinese word pairs** pack fixes that. It counts which words follow which in a large body of everyday Chinese (film and TV subtitles, plus web and news text), so the keyboard can tell that 不 after 我 and 喜欢 after 不 are what people write. With it, `wbxh` leads with 我不喜欢, `wbxz` with 我不想再, `wdmm` with 我的妈妈, `nine` with 你呢 and `hd` with 好的. It comes with the Pinyin dictionary when you download that, and if you already had the dictionary, a chip on the strip offers it once: "Download Chinese word pairs for better candidates". It's about 11 MB. T9 Pinyin and Zhuyin use it too.
 
-Learning now steers the search as well as the finished list. The characters you keep choosing for a reading are the ones paths get built out of, so the longer you type the more the stitched readings come out in your own words rather than the dictionary's. Short abbreviations are deliberately left alone: `bj` means 北京 and `zg` means 中国, and filling those strips with 不就 and 在个 would cost more than it gives.
+Without the pairs, from three abbreviated letters up and only where no single entry covers everything you typed, the strip carries a few **stitched readings** right after its first answer: whole-buffer ways of reading the letters as separate words, so 我的妈妈 for `wdmm` is still a tap away.
 
-One honest limit. Between two characters the shipped CC-CEDICT pack rates almost identically — 和 at 970 against 好 at 941 — the keyboard has nothing to go on, so `hd` leads with 回答 and a two-letter abbreviation can't reach 好的 the way a desktop IME with a corpus bigram model does. Fixing that is a data problem, not a ranking one: the decoder already takes a word n-gram model, and the day a pack ships one these orderings come right.
+Learning steers the search as well as the finished list. The characters you keep choosing for a reading are the ones paths get built out of, so the longer you type, the more the readings come out in your own words.
 
 Two things follow from abbreviations being real units:
 
 - **Candidates appear from the first key.** `n` alone offers 你, 那, 能 and so on, and `nih` already leads with 你好, so a whole word is often on the strip before its second syllable is finished.
 - **A half-typed trailing syllable is guessed, not ignored.** With `nihaoz` on the strip, the top candidate covers all six letters (你好在, say), where before it would have covered 你好 and left the `z`. Keep typing and the guess resolves; tap 你好 and only those five letters commit, the `z` stays.
+
+### Two readings of the same letters
+
+Some letters split into syllables more than one way. `xian` is one syllable (先, 现) and also two (西安, Xi'an); `nine` is `nin` + `e` and also `ni` + `ne` (你呢); `fangan` is 方案. Pinyin marks the second kind with an apostrophe, which almost nobody types on a phone, so the keyboard reads both and the more likely reading wins: `xian` offers 先 and 现 first and 西安 a few places on, and `nine` leads with 你呢. Type the apostrophe and it's settled: `xi'an` is two syllables only, so 先 is no longer offered.
+
+Splits that need more abbreviations, or more syllables, than the letters require are left out. `xian` never reads as `xia` + `n` (下年), and `nihao` never as `ni` + `ha` + `o`.
+
+### A missed key
+
+Where the letters you typed only make sense as a run of initials, the keyboard also tries each letter as the key next to it. `xiqn` reads as `xian`, the `a` beside the `q` missed, and offers 先 and 现 alongside whatever the initials spell. It only looks where the letters need two or more bare initials to read at all, so ordinary pinyin and deliberate initials (`wbxh`) are never second-guessed.
+
+### The word separator key
+
+On the Pinyin layout the key left of <KeyCap>z</KeyCap> is <KeyCap>'词</KeyCap> (<KeyCap>'詞</KeyCap> with Traditional characters on), not Shift. It types the apostrophe that marks a syllable boundary, so `xi'an` and `s'h` take one tap each, the way Gboard's Pinyin keyboard has it.
+
+### Swiping
+
+You can swipe on the Pinyin layout, with [gesture typing](/typing/gestures/) on. A swipe spells a reading, either the full pinyin (`nihao`) or the initials of a word (`wm` for 我们), and the reading goes into the text you're composing as if you'd typed it, so the strip converts it the usual way and a second swipe carries the same sentence on. Nothing commits and no space follows. It needs the Pinyin dictionary, since that is where the readings come from, and it's off under a Double Pinyin scheme.
 
 ### The rest of it
 
@@ -193,7 +211,13 @@ Whenever a conversion composer has a non-empty buffer, the usual word-suggestion
 
 Tapping a candidate (in the strip or the grid) resolves by its position in the ranked list, not by its text, because the same word can legitimately appear twice at different reading lengths (a Japanese reading might list 行 for both い and いき). Only the part of your typed buffer that the candidate covers gets deleted. The rest re-converts. Space is the fast path: it commits the top-ranked candidate for the leading syllables and moves on, so repeated space presses walk a whole sentence through without ever opening the strip. No path here adds a trailing space, since Chinese and Japanese don't put spaces between words. <KeyCap>Enter</KeyCap> converts nothing: it confirms the reading exactly as typed and does nothing else, so no line break and no send. In Japanese that is the hiragana you see, which is how you keep a word in kana; in Chinese it is the letters you pressed, so with Double Pinyin on, `nihc` goes in as `nihc` and not as the `nihao` the composing line spells out. That makes Enter the quick way to drop a Latin word into a sentence without switching keyboards. Any other commit (punctuation, moving the cursor, switching layout, or leaving the field) ends the reading too. In Japanese it keeps the kana as typed, the way Enter does, so なるといいです！ stays in hiragana and only space or a candidate you pick converts. A candidate you highlighted with the arrow keys or a stepping space bar still goes in. In Chinese it flushes the whole buffer by repeatedly taking the top candidate until nothing's left, so you're never left with pinyin letters in the text.
 
+In Pinyin the list runs from the whole buffer down to its first letter. Every reading of everything you typed comes first, then the best readings of shorter stretches from the start, longest first, then the single characters for the first syllable. `wbxh` offers 我不喜欢 and 我不想和, then 我不想 and 我必须, then 我不, then 我. Each one commits the letters it covers and leaves the rest to convert.
+
 If a reading has no dictionary match at all, it always falls back to committing what you typed as-is (raw pinyin letters, kana, or a stroke code) rather than trapping you in an empty buffer.
+
+### Earlier, later, never
+
+Hold a candidate in the strip or the grid and the strip turns into its menu: **Earlier**, **Later** and **Never show**, with ✕ to close it. Earlier counts it as picked, which puts it first for that reading. Later moves it one step down, behind the candidates it was level with, and also makes every sentence built with it a little less likely. Never show takes it off the list for good, along with every reading built through it, so blocking 亡八 also removes 亡八喜欢. The strip updates at once. It works on every conversion layout (Pinyin, T9 Pinyin, Zhuyin, Jyutping, Japanese and imported input methods), each in its own [learning history](#learning-from-your-picks). On an English word in the strip, Never show adds it to the [suggestion blacklist](/smart/suggestions/) instead. To undo the lot, clear the learned words below.
 
 ### English words and emoji
 
@@ -219,7 +243,7 @@ The candidate bar is not the ordinary suggestion strip wearing a different coat,
 
 ## Learning from your picks
 
-Every candidate you pick from the strip or the grid is remembered against the reading you typed, and so is the one a space press commits. Three paths teach nothing: Enter's confirm-as-typed, whatever goes in when you leave the buffer some other way (punctuation, moving the cursor), and a reading the dictionary couldn't convert at all, since the raw-reading fallback is in no ranked list. The next time the same reading comes up, your previously-chosen candidates move to the front (most-picked first) while everything else keeps the order the dictionary gave it. It's a reordering of your own history, not a blended relevance score, so a candidate you've never picked never gets promoted just because it's common in general.
+Every candidate you pick from the strip or the grid is remembered against the reading you typed, and so is the one a space press commits. Three paths teach nothing: Enter's confirm-as-typed, whatever goes in when you leave the buffer some other way (punctuation, moving the cursor), and a reading the dictionary couldn't convert at all, since the raw-reading fallback is in no ranked list. The next time the same reading comes up, your previously-chosen candidates move to the front (most-picked first) while everything else keeps the order the dictionary gave it. In Pinyin they move to the front of their own group: a 我 you picked for `wo` comes first among the single characters for `wbxh`, never ahead of 我不喜欢. It's a reordering of your own history, not a blended relevance score, so a candidate you've never picked never gets promoted just because it's common in general.
 
 Learning is scoped separately per reading system (pinyin, T9 Pinyin, zhuyin, jyutping, and Japanese kana readings each keep their own history), because the same word can be spelled several different ways depending on which Chinese scheme you're using. **Cangjie, Cangjie Quick, and Stroke don't participate in learning at all**: their radical and stroke codes map deterministically to one character, so there's no ambiguity to learn from.
 
@@ -254,7 +278,7 @@ To clear everything the keyboard has learned from your CJK picks:
 
 <SettingsPath path="Privacy / Your data / Learned words" />
 
-CJK picks live in a file of their own, but the **Delete the learned words** button clears the lot in one action: your typed-word history, emoji usage, autocorrect statistics, the CJK pick history and the per-app language-mix record. There's no way to clear the CJK half on its own.
+CJK picks live in a file of their own, but the **Delete the learned words** button clears the lot in one action: your typed-word history, emoji usage, autocorrect statistics, the CJK pick history (with what you told the [candidate menu](#earlier-later-never)) and the per-app language-mix record. There's no way to clear the CJK half on its own.
 
 ### Conversion dictionaries are downloads, not bundled data
 
@@ -265,6 +289,7 @@ You don't have to know that in advance. Adding Chinese, Cantonese or Japanese pu
 | Language | Pack | Approx. size | Coverage |
 |---|---|---|---|
 | Chinese | Pinyin (also covers Zhuyin & T9 Pinyin) | ~2.6 MB | ~121k entries, CC-CEDICT-derived |
+| Chinese | Chinese word pairs (comes with Pinyin, for [ranking whole readings](#everyday-pairings)) | ~11 MB | ~85k words, 700k pairs |
 | Chinese | Stroke | ~450 KB | Stroke-order table |
 | Chinese | Cangjie (also covers Cangjie Quick) | ~350 KB | ~29k characters |
 | Chinese, Cantonese | Traditional characters phrase table (optional, for [Traditional output](#traditional-characters-and-regional-wording)) | ~1 MB | ~50k phrases, OpenCC |

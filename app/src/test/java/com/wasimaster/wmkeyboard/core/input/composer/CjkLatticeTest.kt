@@ -27,6 +27,7 @@ class CjkLatticeTest {
         HanVariant.s2t = HanPhraseTable.EMPTY
         CjkDictionaries.pinyin = ConversionDictionary.EMPTY
         CjkDictionaries.ngrams = CjkNgrams.EMPTY
+        CjkDictionaries.pinyinNgrams = CjkNgrams.EMPTY
         PinyinSyllables.valid = emptySet()
         Jianpin.index = Jianpin.EMPTY
     }
@@ -334,6 +335,20 @@ class CjkLatticeTest {
         // path drops out of the lattice.
         assertTrue(ngrams.logProbability(null, "没有", 0, 0).isFinite())
         assertTrue(CjkNgrams.parse(sequenceOf("# nothing")).isEmpty)
+    }
+
+    @Test
+    fun `ngram parsing sorts a large table and keeps the last of a repeated row`() {
+        // Thousands of rows, so the merge sort runs many passes, written in an
+        // order that has nothing to do with the hashes.
+        val rows = (0 until 5000).map { "w$it\t${it + 1}" } + (0 until 3000).map { "w$it\tw${it + 1}\t${it + 7}" }
+        val ngrams = CjkNgrams.parse((rows.reversed() + "w42\t999").asSequence())
+        for (i in listOf(0, 1, 777, 4999)) {
+            if (i != 42) assertEquals(i + 1, ngrams.unigram("w$i"))
+        }
+        assertEquals(999, ngrams.unigram("w42"))
+        for (i in listOf(0, 1500, 2999)) assertEquals(i + 7, ngrams.bigram("w$i", "w${i + 1}"))
+        assertEquals(0, ngrams.bigram("w1", "w0"))
     }
 
     // --- caching --------------------------------------------------------------

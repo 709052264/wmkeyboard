@@ -25,6 +25,7 @@ class JyutpingFuzzyTest {
         HanVariant.s2t = HanPhraseTable.EMPTY
         CjkDictionaries.jyutping = ConversionDictionary.EMPTY
         CjkDictionaries.ngrams = CjkNgrams.EMPTY
+        CjkDictionaries.pinyinNgrams = CjkNgrams.EMPTY
         JyutpingSyllables.valid = emptySet()
         CjkLearning.store = null
     }

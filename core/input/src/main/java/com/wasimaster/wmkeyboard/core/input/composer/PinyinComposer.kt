@@ -21,6 +21,7 @@ object PinyinComposer : Composer {
     override val isTransliterating: Boolean get() = true
     override val isConversion: Boolean get() = true
     override val missingPack: String? get() = CjkDictionaries.missingPinyin
+    override val improvingPack: String? get() = CjkDictionaries.missingPinyinNgrams
     override val readsLatinLetters: Boolean get() = true
 
     /** Reading space for learned picks: pinyin letters, whatever scheme typed them. */
@@ -59,8 +60,25 @@ object PinyinComposer : Composer {
     /** Stitched whole-buffer readings offered beyond the best path (#405). */
     private const val STITCH_CANDIDATES = 3
 
-    /** Shortest abbreviated buffer worth stitching; see [stitchFor]. */
+    /**
+     * Shortest buffer worth stitching, in units, and only where it is
+     * abbreviated. A fully spelled-out buffer is already decoded correctly —
+     * offering 呢好 under 你好 for `nihao` would be noise — and at two units
+     * the alternatives are worth less than the strip slots they would cost:
+     * `bj` means 北京 and `zg` means 中国, and stitching two single characters
+     * there pushes those down for 不就 and 在个. From three units the
+     * dictionary runs out of whole phrases and stitching is the only way to
+     * reach 我的妈妈 or 我不喜欢你 without a word-pair model.
+     */
     private const val MIN_STITCH_UNITS = 3
+
+    /**
+     * What reading a mistyped key as its neighbour costs (#580): `xiqn` is
+     * `xian` with the `a` missed, and a stretch typed that way also reads as
+     * initials, which is worth keeping. At ln(0.05) the repair wins only where
+     * the initials make nothing likelier.
+     */
+    private val TYPO_PENALTY = ln(0.05)
 
     /**
      * Buffer length, in syllables, past which the lattice gives way to plain
@@ -171,6 +189,23 @@ object PinyinComposer : Composer {
         )
     }
 
+    /**
+     * The arcs one span of the buffer contributes to the graph: [unit] as typed
+     * with its fuzzy variants and abbreviations, the way [latticeInput] reads a
+     * unit; a digraph's merged syllables; or a mistyped key's repair.
+     */
+    private fun arcsFor(unit: String, to: Int, kind: PinyinGraph.Kind): List<Lattice.Arc> = when (kind) {
+        PinyinGraph.Kind.UNIT -> {
+            val o = unitOptions(unit, PinyinSyllables.valid, CjkConfig.fuzzyPinyin, CjkConfig.fuzzyPinyinPairs, jianpin())
+            o.readings.indices.map { i -> Lattice.Arc(to, o.readings[i], o.costs[i], guess = i > 0 && i < o.partialFrom) }
+        }
+        // Two letters typed, so two abbreviations' worth: charged as one, a
+        // digraph syllable outscored every reading of the letters as two
+        // initials, and `sh` buried 上海 under a hundred single characters.
+        PinyinGraph.Kind.DIGRAPH -> jianpin()?.expansions?.get(unit).orEmpty().map { Lattice.Arc(to, it, 2 * PARTIAL_PENALTY) }
+        PinyinGraph.Kind.TYPO -> listOf(Lattice.Arc(to, unit, TYPO_PENALTY, guess = true))
+    }
+
     /** One unit's readings, what each costs, and where the abbreviations begin. */
     private class UnitOptions(val readings: Array<String>, val costs: DoubleArray, val partialFrom: Int)
 
@@ -216,53 +251,66 @@ object PinyinComposer : Composer {
 
     private fun rank(buffer: String): List<Cand> {
         val dict = CjkDictionaries.pinyin
-        val segs = segments(buffer)
-        if (segs.isEmpty() || segs.size > MAX_LATTICE_UNITS) {
+        val adjust = CjkLearning.adjustFor(NAMESPACE)
+        val graph: Lattice.Graph?
+        val stitch: Int
+        if (doublePinyinTable() != null) {
+            // Every syllable is two keys, so there is exactly one way to split
+            // the buffer and nothing for a graph to choose between.
+            val segs = segments(buffer)
+            graph = if (segs.isEmpty() || segs.size > MAX_LATTICE_UNITS) null else Lattice.graph(latticeInput(segs))
+            stitch = 0
+        } else {
+            val built = PinyinGraph.build(buffer, PinyinSyllables.valid, jianpin(), ::arcsFor)
+            graph = built?.graph?.takeIf { built.units <= MAX_LATTICE_UNITS }
+            // Stitching stands in for a word-pair model; with the pairs loaded
+            // the decoder ranks those readings itself, and better.
+            stitch = if (built != null && built.units >= MIN_STITCH_UNITS && built.abbreviated &&
+                CjkDictionaries.pinyinNgrams.isEmpty
+            ) {
+                STITCH_CANDIDATES
+            } else {
+                0
+            }
+        }
+        if (graph == null) {
             // Nothing segments yet, or the buffer is longer than anyone types
             // before committing: fall back to plain prefix lookup, which cannot
             // offer a prefix commit but always answers.
             return dict.candidates(buffer, LOOKUP_LIMIT)
-                .flatMap { word -> HanVariant.traditionalForms(word).map { Cand(it, buffer.length, buffer) } }
+                .flatMap { word -> HanVariant.traditionalForms(word).map { Cand(it, buffer.length, buffer, word) } }
                 .distinctBy { it.text }
         }
-        val opts = Lattice.Opts(limit = LOOKUP_LIMIT, stitch = stitchFor(segs))
-        val decoded = Lattice.decode(latticeInput(segs), dict, CjkDictionaries.ngrams, opts, ::learnedPicks)
-            .flatMap { c -> HanVariant.traditionalForms(c.text).map { Cand(it, c.consumed, c.reading) } }
+        val opts = Lattice.Opts(limit = LOOKUP_LIMIT, stitch = stitch, coverageOrder = true)
+        val decoded = Lattice.decode(graph, dict, CjkDictionaries.pinyinNgrams, opts, ::learnedPicks, adjust)
+            .flatMap { c -> HanVariant.traditionalForms(c.text).map { Cand(it, c.consumed, c.reading, c.text) } }
             // Converting to Traditional can merge two Simplified words onto one
             // form, so de-duplicate after the conversion rather than before it.
             .distinctBy { it.text }
-        return CjkLearning.rank(NAMESPACE, decoded, { it.text }, { it.reading })
+        // Grouped by how much of the buffer each covers: a single character
+        // picked for `wo` last week moves up among the single characters, not
+        // above every reading of the four letters typed (#580).
+        return CjkLearning.rank(NAMESPACE, decoded, { it.text }, { it.reading }, { it.source }, { it.consumed })
     }
 
-    /**
-     * How many stitched whole-buffer readings to offer for [segs]
-     * (see [Lattice.Opts.stitch]); 0 for a buffer that needs none.
-     *
-     * Only where the buffer is abbreviated, and only from three units up. A
-     * fully spelled-out buffer is already decoded correctly — offering 呢好 under
-     * 你好 for `nihao` would be noise — and at two units the alternatives are
-     * worth less than the strip slots they would cost: `bj` means 北京 and
-     * `zg` means 中国, and stitching two single characters there pushes those
-     * down for 不就 and 在个. From three units the dictionary runs out of whole
-     * phrases and stitching is the only way to reach 我的妈妈 or 我不喜欢你.
-     */
-    private fun stitchFor(segs: List<Seg>): Int {
-        if (segs.size < MIN_STITCH_UNITS) return 0
-        val jianpin = jianpin() ?: return 0
-        val valid = PinyinSyllables.valid
-        return if (segs.any { it.syllable !in valid && jianpin.expansions.containsKey(it.syllable) }) {
-            STITCH_CANDIDATES
-        } else {
-            0
-        }
+    override val adjustsChoices: Boolean get() = true
+
+    override fun adjustChoice(buffer: String, index: Int, adjustment: CandidateAdjustment) {
+        val cand = ranked(buffer.lowercase()).getOrNull(index) ?: return
+        CjkLearning.adjust(NAMESPACE, cand.reading, cand.text, cand.source, adjustment)
     }
 
     /** What the user has picked for this reading, for the decoder's own ranking. */
     private fun learnedPicks(reading: String): Map<String, Int>? =
         CjkLearning.store?.picksFor(NAMESPACE, reading)
 
-    /** A candidate word, the input chars (keys) it covers, and the reading behind it. */
-    private data class Cand(val text: String, val consumed: Int, val reading: String)
+    /**
+     * A candidate word, the input chars (keys) it covers, the reading behind it,
+     * and the Simplified text the decoder found, which [text] may be the
+     * Traditional form of. The candidate menu acts on [source]: that is what
+     * the decoder can recognise next time.
+     */
+    private data class Cand(val text: String, val consumed: Int, val reading: String, val source: String)
 
     private val cache = RankCache<List<Cand>>()
 }

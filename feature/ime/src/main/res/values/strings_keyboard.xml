@@ -314,6 +314,12 @@
          dictionary". Tapping the chip opens that language's page, where the
          pack downloads. -->
     <string name="ime_conversion_pack_offer">Download the %1$s to type characters</string>
+    <!-- Holding a Chinese or Japanese candidate (#580). -->
+    <string name="ime_candidate_menu_earlier">Earlier</string>
+    <string name="ime_candidate_menu_later">Later</string>
+    <string name="ime_candidate_menu_never">Never show</string>
+    <string name="ime_candidate_menu_close_desc">Close the candidate menu</string>
+    <string name="ime_conversion_pack_improve_offer">Download %1$s for better candidates</string>
     <!-- The ✕ on that chip: screen reader text. -->
     <string name="ime_conversion_pack_offer_dismiss_desc">Dismiss</string>
     <!-- The chip offering to decode a swiped word's stroke against every word

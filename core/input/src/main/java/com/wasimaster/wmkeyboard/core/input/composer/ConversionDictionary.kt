@@ -101,6 +101,9 @@ class ConversionDictionary private constructor(
     /** The word at [row], materialized out of the arena. */
     fun word(row: Int): String = words.substring(wordAt[row], wordLen[row])
 
+    /** The reading at [row], materialized out of the arena. */
+    fun reading(row: Int): String = readings.substring(readingAt[row], readingLen[row])
+
     /**
      * Characters in the word at [row], without cutting it. One Hanzi spells one
      * syllable, so this is the syllable-count test the ranking needs, and it runs

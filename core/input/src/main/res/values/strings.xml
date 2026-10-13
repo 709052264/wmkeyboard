@@ -14,6 +14,9 @@
     <string name="core_input_cjk_pack_ja_kana_title">Japanese kana to kanji dictionary</string>
     <string name="core_input_cjk_pack_ja_kana_subtitle">Kana readings from mozc, 1.08 million entries, about 42 MB. The keyboard needs this pack for Japanese conversion.</string>
 
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Chinese word pairs</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Which words follow which, counted from Chinese web and news text. Comes with the Pinyin dictionary. With it, initials like wbxh give 我不喜欢 first and not two unrelated words.</string>
+
     <string name="core_input_cjk_pack_stroke_title">Chinese stroke (笔画) dictionary</string>
     <string name="core_input_cjk_pack_stroke_subtitle">A table of stroke order to Hanzi characters. The keyboard needs this pack for the stroke layout.</string>
 

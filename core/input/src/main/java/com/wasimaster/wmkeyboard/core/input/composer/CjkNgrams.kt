@@ -6,12 +6,12 @@ import kotlin.math.ln
  * Word unigram and bigram counts for the conversion decoder — how likely 事情 is
  * at all, and how much likelier it becomes right after 这件.
  *
- * **No pack ships one yet.** [EMPTY] is the shipped state, and it is a working
+ * Mandarin has one: the `pinyin_ngrams` pack (#580), fetched with the pinyin
+ * table. Without it — or for a language with no pack — [EMPTY] is a working
  * state rather than a stub: [logProbability] then falls back to the conversion
- * pack's own frequency column, which is what makes the decoder a unigram Viterbi
- * today and a bigram one the day a pack lands, with no change to [Lattice].
+ * pack's own frequency column, which makes the decoder a unigram Viterbi.
  *
- * The format, when it does land, is the plain TSV every other pack here uses,
+ * The format is the plain TSV every other pack here uses,
  * with the section decided by field count:
  * ```
  * # wmkeyboard cjk ngram v1
@@ -96,41 +96,128 @@ class CjkNgrams private constructor(
          * that picked up stray lines somewhere between the corpus and the device.
          */
         fun parse(lines: Sequence<String>): CjkNgrams {
-            val uni = HashMap<Long, Int>()
-            val bi = HashMap<Long, Int>()
+            // Straight into primitive arrays: the shipped pack is several
+            // hundred thousand rows, and a HashMap<Long, Int> of that boxes
+            // every key and value — tens of megabytes of garbage on a heap
+            // that has already run out once under [ConversionDictionary].
+            val uni = Table()
+            val bi = Table()
             var total = 0L
             for (raw in lines) {
                 val line = raw.trim()
                 if (line.isEmpty() || line.startsWith("#")) continue
-                val parts = line.split('\t')
-                when (parts.size) {
-                    2 -> {
-                        val count = parts[1].trim().toIntOrNull() ?: continue
-                        if (parts[0].isEmpty() || count <= 0) continue
-                        uni[hash(parts[0])] = count
-                        total += count
-                    }
-                    3 -> {
-                        val count = parts[2].trim().toIntOrNull() ?: continue
-                        if (parts[0].isEmpty() || parts[1].isEmpty() || count <= 0) continue
-                        bi[pairHash(parts[0], parts[1])] = count
-                    }
-                    else -> continue
+                val t1 = line.indexOf('\t')
+                if (t1 <= 0) continue
+                val t2 = line.indexOf('\t', t1 + 1)
+                if (t2 < 0) {
+                    val count = line.substring(t1 + 1).trim().toIntOrNull() ?: continue
+                    if (count <= 0) continue
+                    uni.add(hash(line.substring(0, t1)), count)
+                    total += count
+                } else {
+                    if (t2 == t1 + 1 || line.indexOf('\t', t2 + 1) >= 0) continue
+                    val count = line.substring(t2 + 1).trim().toIntOrNull() ?: continue
+                    if (count <= 0) continue
+                    bi.add(pairHash(line.substring(0, t1), line.substring(t1 + 1, t2)), count)
                 }
             }
-            if (uni.isEmpty() && bi.isEmpty()) return EMPTY
-            val (uk, uc) = sortedPairs(uni)
-            val (bk, bc) = sortedPairs(bi)
-            return CjkNgrams(uk, uc, bk, bc, total)
+            if (uni.size == 0 && bi.size == 0) return EMPTY
+            uni.sortAndMerge()
+            bi.sortAndMerge()
+            return CjkNgrams(uni.keys(), uni.counts(), bi.keys(), bi.counts(), total)
         }
 
-        /** A hash map flattened into key-sorted parallel arrays for binary search. */
-        private fun sortedPairs(src: Map<Long, Int>): Pair<LongArray, IntArray> {
-            val keys = src.keys.toLongArray()
-            keys.sort()
-            val counts = IntArray(keys.size)
-            for (i in keys.indices) counts[i] = src.getValue(keys[i])
-            return keys to counts
+        /** A growable key/count column pair, sorted by key once filled. */
+        private class Table {
+            private var keys = LongArray(INITIAL)
+            private var counts = IntArray(INITIAL)
+            var size = 0
+                private set
+
+            fun add(key: Long, count: Int) {
+                if (size == keys.size) {
+                    keys = keys.copyOf(size * 2)
+                    counts = counts.copyOf(size * 2)
+                }
+                keys[size] = key
+                counts[size] = count
+                size++
+            }
+
+            /** Sorts by key; a key listed twice keeps its last count, as a map would. */
+            fun sortAndMerge() {
+                if (size < 2) return
+                sort()
+                var w = 0
+                for (r in 0 until size) {
+                    if (w > 0 && keys[w - 1] == keys[r]) {
+                        counts[w - 1] = counts[r]
+                    } else {
+                        keys[w] = keys[r]
+                        counts[w] = counts[r]
+                        w++
+                    }
+                }
+                size = w
+            }
+
+            fun keys(): LongArray = keys.copyOf(size)
+
+            fun counts(): IntArray = counts.copyOf(size)
+
+            /**
+             * Bottom-up merge sort of both columns together. Stable, so "last
+             * count wins" above means the last line.
+             */
+            private fun sort() {
+                val n = size
+                var srcK = keys
+                var srcC = counts
+                var dstK = LongArray(keys.size)
+                var dstC = IntArray(keys.size)
+                var width = 1
+                while (width < n) {
+                    var left = 0
+                    while (left < n) {
+                        val mid = minOf(left + width, n)
+                        val right = minOf(left + 2 * width, n)
+                        var i = left
+                        var j = mid
+                        var k = left
+                        while (i < mid && j < right) {
+                            if (srcK[j] < srcK[i]) {
+                                dstK[k] = srcK[j]
+                                dstC[k] = srcC[j]
+                                j++
+                            } else {
+                                dstK[k] = srcK[i]
+                                dstC[k] = srcC[i]
+                                i++
+                            }
+                            k++
+                        }
+                        System.arraycopy(srcK, i, dstK, k, mid - i)
+                        System.arraycopy(srcC, i, dstC, k, mid - i)
+                        k += mid - i
+                        System.arraycopy(srcK, j, dstK, k, right - j)
+                        System.arraycopy(srcC, j, dstC, k, right - j)
+                        left += 2 * width
+                    }
+                    val swapK = srcK
+                    srcK = dstK
+                    dstK = swapK
+                    val swapC = srcC
+                    srcC = dstC
+                    dstC = swapC
+                    width *= 2
+                }
+                keys = srcK
+                counts = srcC
+            }
+
+            private companion object {
+                const val INITIAL = 1024
+            }
         }
 
         /** FNV-1a 64 over the chars — cheap, and well spread for short strings. */

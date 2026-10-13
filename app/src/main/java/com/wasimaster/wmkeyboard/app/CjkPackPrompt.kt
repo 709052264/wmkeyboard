@@ -11,6 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictPack
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictStore
@@ -44,7 +45,7 @@ internal fun rememberCjkPackPrompt(): (CjkDictPack, String) -> Unit {
                     stringResource(
                         R.string.languages_cjk_pack_prompt_body,
                         layoutName,
-                        formatBytes(pack.sizeBytes),
+                        formatBytes(CjkDictCatalog.withCompanions(pack).sumOf { it.sizeBytes }),
                     ),
                 )
             },
@@ -52,7 +53,8 @@ internal fun rememberCjkPackPrompt(): (CjkDictPack, String) -> Unit {
                 TextButton(
                     onClick = {
                         asking = null
-                        CjkDictDownloadManager.startAll(context.filesDir, listOf(pack))
+                        // The word pairs ride along with the pinyin table (#580).
+                        CjkDictDownloadManager.startAll(context.filesDir, CjkDictCatalog.withCompanions(pack))
                         notifyDownload(pack.id, packName, DownloadProgressFlows.cjkDict(context, pack.id))
                     },
                 ) { Text(stringResource(R.string.languages_keyman_prompt_download)) }

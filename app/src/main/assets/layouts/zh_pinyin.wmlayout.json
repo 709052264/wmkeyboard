@@ -6,7 +6,7 @@
     "name": "中文 拼音 (Chinese Pinyin)",
     "langId": "zh",
     "composer": "PINYIN",
-    "version": 2,
+    "version": 3,
     "layers": {
       "letters": {
         "rows": [
@@ -73,10 +73,8 @@
           ],
           [
             {
-              "label": "⇧",
-              "action": {
-                "type": "shift"
-              },
+              "label": "'词",
+              "output": "'",
               "width": 1.5
             },
             {

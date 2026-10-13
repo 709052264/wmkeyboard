@@ -29,6 +29,7 @@ object T9PinyinComposer : Composer {
     override val isTransliterating: Boolean get() = true
     override val isConversion: Boolean get() = true
     override val missingPack: String? get() = CjkDictionaries.missingPinyin
+    override val improvingPack: String? get() = CjkDictionaries.missingPinyinNgrams
 
     /** The whole input alphabet is digits, and they must be able to *start* a buffer. */
     override val bufferDigits: Boolean get() = true
@@ -148,6 +149,13 @@ object T9PinyinComposer : Composer {
         CjkLearning.learn(NAMESPACE, cand.reading, cand.text)
     }
 
+    override val adjustsChoices: Boolean get() = true
+
+    override fun adjustChoice(buffer: String, index: Int, adjustment: CandidateAdjustment) {
+        val cand = ranked(buffer).getOrNull(index) ?: return
+        CjkLearning.adjust(NAMESPACE, cand.reading, cand.text, cand.text, adjustment)
+    }
+
 
     /** A candidate, the digits it covers, and the reading that produced it. */
     private data class Cand(val text: String, val consumed: Int, val reading: String)
@@ -257,11 +265,12 @@ object T9PinyinComposer : Composer {
         return Lattice.decode(
             input,
             CjkDictionaries.pinyin,
-            CjkDictionaries.ngrams,
+            CjkDictionaries.pinyinNgrams,
             // Every digit is ambiguous, so the ambiguity cap has to come off or
             // later syllables get pinned to whichever one sorted first — the
             // alphabetical bias this whole change removes.
             Lattice.Opts(limit = LOOKUP_LIMIT, maxAmbiguousSpan = Int.MAX_VALUE),
+            adjust = CjkLearning.adjustFor(NAMESPACE),
         )
             .flatMap { c -> HanVariant.traditionalForms(c.text).map { Cand(it, c.consumed, c.reading) } }
             .distinctBy { it.text }

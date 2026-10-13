@@ -481,14 +481,15 @@ internal data class LanguageData(
 
 /**
  * The conversion packs [langId]'s own layouts need, one per table however many
- * layouts share it (Pinyin, T9 and Zhuyin all read the pinyin pack). Only the
- * packs a composer cannot work without: the Traditional phrase pack is an
- * improvement, and stays a row on the language's page.
+ * layouts share it (Pinyin, T9 and Zhuyin all read the pinyin pack), with what
+ * comes along with each (the pinyin word pairs). The Traditional phrase pack is
+ * an improvement nobody asked for yet, and stays a row on the language's page.
  */
 internal fun requiredCjkPacks(langId: String): List<CjkDictPack> =
     LanguageRegistry.byId(langId).layoutIds
         .mapNotNull { id -> CjkDictCatalog.forComposer(resolveLayout(emptyList(), id).composerType()) }
         .filter { it.available }
+        .flatMap { CjkDictCatalog.withCompanions(it) }
         .distinctBy { it.id }
 
 /**

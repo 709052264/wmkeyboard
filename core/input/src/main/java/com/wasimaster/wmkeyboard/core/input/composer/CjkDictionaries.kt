@@ -53,9 +53,22 @@ object CjkDictionaries {
     var jyutping: ConversionDictionary = ConversionDictionary.EMPTY
         set(value) { field = value; invalidate() }
 
-    /** Word n-grams for the decoder. [CjkNgrams.EMPTY] until a pack ships one. */
+    /**
+     * Word n-grams for the decoders that have no pack of their own (Japanese,
+     * Cantonese, imported methods). [CjkNgrams.EMPTY]: none ships yet.
+     */
     @Volatile
     var ngrams: CjkNgrams = CjkNgrams.EMPTY
+        set(value) { field = value; invalidate() }
+
+    /**
+     * Mandarin word pairs, for everything that converts through [pinyin] —
+     * full and T9 pinyin and Zhuyin (#580). Its own field because the words
+     * are Simplified Chinese ones: Japanese kanji or Cantonese wording scored
+     * by them would be scored by the wrong language.
+     */
+    @Volatile
+    var pinyinNgrams: CjkNgrams = CjkNgrams.EMPTY
         set(value) { field = value; invalidate() }
 
     // What each composer answers [Composer.missingPack] with: the
@@ -67,6 +80,13 @@ object CjkDictionaries {
 
     /** Pinyin, T9 pinyin and Zhuyin all convert through [pinyin]. */
     val missingPinyin: String? get() = "pinyin".takeIf { pinyin.isEmpty }
+
+    /**
+     * The word-pair pack, while the pinyin table it improves is loaded and it
+     * is not (#580): for someone who fetched Pinyin before the pairs existed.
+     * Pinyin converts without it, so this is an offer, never a [missingPinyin].
+     */
+    val missingPinyinNgrams: String? get() = "pinyin_ngrams".takeIf { !pinyin.isEmpty && pinyinNgrams.isEmpty }
 
     val missingJapanese: String? get() = "ja_kana".takeIf { japanese.isEmpty }
 

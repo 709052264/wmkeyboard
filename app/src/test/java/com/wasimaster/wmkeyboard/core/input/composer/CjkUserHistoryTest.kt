@@ -27,6 +27,7 @@ class CjkUserHistoryTest {
         HanVariant.s2t = HanPhraseTable.EMPTY
         CjkDictionaries.pinyin = ConversionDictionary.EMPTY
         CjkDictionaries.ngrams = CjkNgrams.EMPTY
+        CjkDictionaries.pinyinNgrams = CjkNgrams.EMPTY
         PinyinSyllables.valid = emptySet()
     }
 

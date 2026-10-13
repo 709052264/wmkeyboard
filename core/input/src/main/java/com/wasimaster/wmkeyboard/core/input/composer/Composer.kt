@@ -289,6 +289,28 @@ interface Composer {
     }
 
     /**
+     * Whether a held conversion candidate offers [adjustChoice] (#580): show it
+     * earlier, show it later, never show it. False for everything that does not
+     * keep a learned history to put the answer in.
+     */
+    val adjustsChoices: Boolean get() = false
+
+    /**
+     * A [CjkDictCatalog] pack that would make this composer's candidates
+     * better but that it converts without — offered once [missingPack] is
+     * null. Null when there is none, or it is already loaded.
+     */
+    val improvingPack: String? get() = null
+
+    /**
+     * Applies the user's [adjustment] to the candidate at [index] of [buffer]'s
+     * list, in the same reading space [learnChoice] learns in.
+     */
+    fun adjustChoice(buffer: String, index: Int, adjustment: CandidateAdjustment) {
+        // Nothing to adjust: no candidate list of its own.
+    }
+
+    /**
      * The readings the next undecided part of [buffer] could be, best first, for
      * a keypad whose keys each stand for several letters: a 九宫格 pinyin `9426`
      * could be xiao, zhan, xi, yi… (issue #635). The keyboard lists them beside

@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
 import androidx.compose.runtime.Immutable
+import com.wasimaster.wmkeyboard.core.input.composer.CandidateAdjustment
 import com.wasimaster.wmkeyboard.ime.SynonymAction
 import com.wasimaster.wmkeyboard.ime.WordCardAction
 import com.wasimaster.wmkeyboard.ime.WordMenuAction
@@ -33,4 +34,9 @@ class SuggestionHoldCallbacks(
     val onSynonyms: (SynonymAction) -> Unit = {},
     /** A swipe on the word strip: true opens the pages of suggestions, false closes them (#385). */
     val onPagesToggle: (Boolean) -> Unit = {},
+    /**
+     * A held conversion candidate's menu was answered (#580): the candidate,
+     * its strip position, and earlier, later or never.
+     */
+    val onCandidateAdjust: (candidate: String, index: Int, adjustment: CandidateAdjustment) -> Unit = { _, _, _ -> },
 )
