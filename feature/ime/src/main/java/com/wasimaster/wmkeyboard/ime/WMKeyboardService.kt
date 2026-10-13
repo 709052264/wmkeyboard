@@ -471,6 +471,7 @@ import com.wasimaster.wmkeyboard.core.tools.ReplySource
 import com.wasimaster.wmkeyboard.core.tools.ReplyStyle
 import com.wasimaster.wmkeyboard.core.reply.ReplyShots
 import com.wasimaster.wmkeyboard.ime.reply.ReplyOcr
+import com.wasimaster.wmkeyboard.core.tools.ReplyOcrLines
 import com.wasimaster.wmkeyboard.core.tools.AiToolActivity
 import com.wasimaster.wmkeyboard.core.tools.AiToolLoop
 import com.wasimaster.wmkeyboard.core.tools.AiToolRunner
@@ -3101,6 +3102,15 @@ open class WMKeyboardService : InputMethodService() {
         clip.description?.extras?.getBoolean(EXTRA_IS_SENSITIVE, false) == true
 
     private var lastScreenshotId = -1L
+
+    /** When the reply panel last opened, in MediaStore's seconds; 0 before it ever has. */
+    private var replyOpenedAtSec = 0L
+
+    /** The reply panel's Screenshot button sent the user to grant images access. */
+    private var replyShotsAfterGrant = false
+
+    /** The docked keyboard's top inside its window, from the last [onComputeInsets]. */
+    private var boardTopInWindow = 0
     private var screenshotObserver: android.database.ContentObserver? = null
 
     private fun updateScreenshotObserver(enabled: Boolean) {
@@ -5401,6 +5411,7 @@ open class WMKeyboardService : InputMethodService() {
                 outInsets.contentTopInsets += headroom
                 outInsets.visibleTopInsets += headroom
             }
+            boardTopInWindow = outInsets.visibleTopInsets
             // Resize mode's band is the app, dimmed, under a scrim that eats
             // every touch, and a top handle dragged taller than the keyboard
             // entered sits in it: the whole window stays ours (issue #643).
@@ -6479,6 +6490,9 @@ open class WMKeyboardService : InputMethodService() {
         // A location permission answer arrives the same way the scanned
         // pages below do: the trampoline finished and the field came back.
         locationTool.onKeyboardShown()
+        // Same for the images permission the reply panel's screenshot button
+        // asked for: open the picker it was pressed for.
+        resumeReplyShotsAfterGrant()
         // Pages from a just-finished document scan: the scanner activity
         // ran while the keyboard was down, so they can only insert now,
         // as the target field regains the input connection.
@@ -27477,6 +27491,9 @@ open class WMKeyboardService : InputMethodService() {
             onAddShot = ::onReplyAddShot,
             onTone = ::onReplyTone,
             onInsert = ::onReplyInsert,
+            onMerge = ::onReplyMerge,
+            onShowMessages = ::onReplyShowMessages,
+            onAllowImages = ::onReplyAllowImages,
         )
     }
 
@@ -28615,6 +28632,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Opens the reply panel: the run state reset, the tidy-up switch seeded. */
     private fun prepareAiReply() {
+        replyOpenedAtSec = System.currentTimeMillis() / 1000
         val settings = _uiState.value.settings
         val initial = aiInitialState(settings)
         _uiState.update {
@@ -28801,7 +28819,11 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         if (!canReadImages()) {
+            // Asked straight away rather than explained: pressing Screenshot
+            // is the request. The notice stays behind with its own Allow
+            // button for the user who said no and changed their mind.
             replyNotice(R.string.ime_reply_notice_no_images_permission)
+            onReplyAllowImages()
             return
         }
         _uiState.update { it.copy(aiReply = it.aiReply.copy(picking = true, notice = null)) }
@@ -28824,14 +28846,128 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun noteScreenshotForReply(uri: android.net.Uri, copy: java.io.File?) {
         if (_uiState.value.panel != PanelMode.AI_REPLY) return
-        addReplyShot(uri.toString(), copy?.absolutePath)
+        // Taken with this panel on screen, so the keyboard is in the picture.
+        addReplyShot(uri.toString(), copy?.absolutePath, keyboardInShot = true)
+    }
+
+    /**
+     * The images permission, through the trampoline: an input method cannot
+     * show the system dialog itself. The picker opens on its own when the
+     * keyboard comes back with the grant ([resumeReplyShotsAfterGrant]).
+     */
+    fun onReplyAllowImages() {
+        replyShotsAfterGrant = true
+        startActivity(
+            Intent(this, com.wasimaster.wmkeyboard.app.ImagesPermissionActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            },
+        )
+    }
+
+    /** The other half of [onReplyAllowImages], from [onStartInputView]. */
+    private fun resumeReplyShotsAfterGrant() {
+        if (!replyShotsAfterGrant) return
+        if (_uiState.value.panel != PanelMode.AI_REPLY) {
+            replyShotsAfterGrant = false
+            return
+        }
+        // Refused: leave the flag set, so a second Allow that succeeds still
+        // lands in the picker.
+        if (!canReadImages()) return
+        replyShotsAfterGrant = false
+        onReplyPickShots(true)
+    }
+
+    /**
+     * Which part of a screenshot is the conversation, as fractions of its
+     * height.
+     *
+     * The top cut is the status bar and the chat app's own bar — the contact's
+     * name and "Active now" — measured from this device's status bar plus a
+     * standard app bar. The bottom cut is where the keyboard started, and only
+     * when the keyboard was in the picture: otherwise the panel's own buttons
+     * and notices come back as messages the other person sent.
+     */
+    private fun replyOcrFrame(keyboardInShot: Boolean): ReplyOcrLines.ReplyOcrFrame {
+        val screen = screenHeightPx().takeIf { it > 0 } ?: return ReplyOcrLines.ReplyOcrFrame()
+        val statusId = resources.getIdentifier("status_bar_height", "dimen", "android")
+        val status = if (statusId > 0) resources.getDimensionPixelSize(statusId) else 0
+        val appBar = (REPLY_APP_BAR_DP * resources.displayMetrics.density).toInt()
+        val top = ((status + appBar).toFloat() / screen).coerceIn(0f, REPLY_MAX_TOP_CUT)
+        val bottom = if (keyboardInShot) boardTopOnScreen()?.let { it.toFloat() / screen } else null
+        return ReplyOcrLines.ReplyOcrFrame(
+            topCut = top,
+            bottomCut = bottom?.takeIf { it > top }?.coerceAtMost(1f) ?: 1f,
+        )
+    }
+
+    /** The docked keyboard's top edge in screen pixels, or null when floating or unmeasured. */
+    private fun boardTopOnScreen(): Int? {
+        if (floatingNow()) return null
+        val decor = window?.window?.decorView ?: return null
+        val top = boardTopInWindow.takeIf { it > 0 } ?: return null
+        val at = IntArray(2)
+        decor.getLocationOnScreen(at)
+        return at[1] + top
+    }
+
+    /** The whole screen's height, the size a screenshot is taken at. */
+    private fun screenHeightPx(): Int {
+        val wm = getSystemService(android.view.WindowManager::class.java) ?: return 0
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            wm.maximumWindowMetrics.bounds.height()
+        } else {
+            val size = android.graphics.Point()
+            @Suppress("DEPRECATION")
+            wm.defaultDisplay.getRealSize(size)
+            size.y
+        }
+    }
+
+    /**
+     * Joins message [index] onto the one before it: one bubble that OCR, or
+     * the user copying it in two goes, turned into two.
+     *
+     * The earlier message keeps its side — it is the one the user was
+     * reading when they pressed the join between them.
+     */
+    fun onReplyMerge(index: Int) {
+        vibrate()
+        _uiState.update {
+            val entries = it.aiReply.entries
+            if (index !in 1 until entries.size) return@update it
+            val first = entries[index - 1]
+            val second = entries[index]
+            if (first.image || second.image) return@update it
+            val merged = first.copy(
+                text = (first.text.trimEnd() + " " + second.text.trimStart()).trim(),
+                clipId = first.clipId.takeIf { id -> id != 0L } ?: second.clipId,
+                shotUri = first.shotUri ?: second.shotUri,
+                shotFile = first.shotFile ?: second.shotFile,
+            )
+            val updated = entries.toMutableList()
+            updated[index - 1] = merged
+            updated.removeAt(index)
+            it.copy(aiReply = it.aiReply.copy(entries = updated, candidates = emptyList()))
+        }
+    }
+
+    /** Back from the drafts to the messages, to fix one before trying again. */
+    fun onReplyShowMessages() {
+        vibrate()
+        _uiState.update { it.copy(aiReply = it.aiReply.copy(candidates = emptyList())) }
     }
 
     /** The picker's rows. */
     fun onReplyAddShot(uri: String) {
         vibrate()
+        val shot = _uiState.value.aiReply.recentShots.firstOrNull { it.uri == uri }
         _uiState.update { it.copy(aiReply = it.aiReply.copy(picking = false)) }
-        addReplyShot(uri, null)
+        // A screenshot taken since this panel opened was taken with it on
+        // screen — the usual flow is open the panel, screenshot the chat,
+        // pick it — so the keyboard is in the picture and must not be read.
+        val keyboardInShot = shot != null && replyOpenedAtSec > 0 && shot.addedAt >= replyOpenedAtSec
+        addReplyShot(uri, null, keyboardInShot)
     }
 
     /**
@@ -28844,7 +28980,7 @@ open class WMKeyboardService : InputMethodService() {
      * who asked for it to stay on the device — the picture is read here instead
      * and arrives as lines the user can relabel.
      */
-    private fun addReplyShot(uriString: String, copyPath: String?) {
+    private fun addReplyShot(uriString: String, copyPath: String?, keyboardInShot: Boolean) {
         val settings = _uiState.value.settings
         val mode = settings.ai.reply.imageMode
         val sendable = AiClient.supportsImages(settings.ai.provider) &&
@@ -28875,11 +29011,12 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         _uiState.update { it.copy(aiReply = it.aiReply.copy(reading = true, notice = null)) }
+        val frame = replyOcrFrame(keyboardInShot)
         serviceScope.launch {
             val turns = withContext(Dispatchers.IO) {
                 val bitmap = ReplyShots.bitmap(this@WMKeyboardService, android.net.Uri.parse(uriString))
                     ?: return@withContext emptyList()
-                ReplyOcr.read(bitmap)
+                ReplyOcr.read(bitmap, frame)
             }
             _uiState.update { it.copy(aiReply = it.aiReply.copy(reading = false)) }
             if (turns.isEmpty()) {
@@ -40543,7 +40680,13 @@ open class WMKeyboardService : InputMethodService() {
         private const val MAX_REPLY_CHARS = 4_000
 
         /** Screenshots the picker offers. */
-        private const val REPLY_SHOT_CHOICES = 12
+        private const val REPLY_SHOT_CHOICES = 24
+
+        /** A chat app's top bar, under the status bar: the name and "Active now". */
+        private const val REPLY_APP_BAR_DP = 64
+
+        /** Never cut more than this off the top, whatever the measurements say. */
+        private const val REPLY_MAX_TOP_CUT = 0.2f
 
         /**
          * What rides as the user message when a screenshot is the whole context.

@@ -6,6 +6,7 @@ import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.google.android.gms.tasks.Task
+import com.wasimaster.wmkeyboard.core.tools.ReplyOcrLines
 import com.wasimaster.wmkeyboard.core.tools.ReplyTurn
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -24,7 +25,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
  *
  * OCR gives back lines and boxes, and the thing that actually says who wrote a
  * message is which side of the screen its bubble sits on. So the side is the
- * guess: a line whose box sits past [MINE_FROM] of the width is the user's own.
+ * guess: a line whose box sits past [ReplyOcrLines.MINE_FROM] of the width is
+ * the user's own.
  * It is only a guess — a centred system notice, a wide bubble, a tablet layout
  * all defeat it — so the panel draws the label on every line and a tap flips
  * it. Being able to fix it is the feature; being right most of the time is the
@@ -36,44 +38,29 @@ object ReplyOcr {
     val available: Boolean get() = BuildConfig.ENABLE_ML_KIT_SCANNERS
 
     /**
-     * Where a line has to start before it reads as the user's own message.
-     *
-     * Past the middle rather than at it: a long message from the other person
-     * wraps across most of the width, and its box would otherwise straddle the
-     * centre and flip sides between screenshots.
-     */
-    private const val MINE_FROM = 0.52f
-
-    /** Lines shorter than this are timestamps, read receipts and reactions. */
-    private const val MIN_CHARS = 2
-
-    /**
-     * [bitmap] read as a conversation, oldest first.
+     * [bitmap] read as a conversation, oldest first, from the part of it
+     * [frame] says is the chat.
      *
      * Returns an empty list when nothing legible was found, which the caller
      * reports as "no text found" rather than as a failure — a photo of a sunset
-     * is not an error, it is just not a conversation.
+     * is not an error, it is just not a conversation. Which lines are chrome
+     * and which belong to one bubble is [ReplyOcrLines]'s, where it is tested.
      */
-    suspend fun read(bitmap: Bitmap): List<ReplyTurn> {
+    suspend fun read(
+        bitmap: Bitmap,
+        frame: ReplyOcrLines.ReplyOcrFrame = ReplyOcrLines.ReplyOcrFrame(),
+    ): List<ReplyTurn> {
         if (!available) return emptyList()
         val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
         return try {
             val result = recognizer.process(InputImage.fromBitmap(bitmap, 0)).await()
-            val width = bitmap.width.takeIf { it > 0 } ?: return emptyList()
-            result.textBlocks
+            val lines = result.textBlocks
                 .flatMap { it.lines }
                 .mapNotNull { line ->
-                    val text = line.text.trim()
-                    if (text.length < MIN_CHARS) return@mapNotNull null
-                    val box = line.boundingBox
-                    val mine = box != null && box.left.toFloat() / width >= MINE_FROM
-                    // Sorted by where it sits down the page, because ML Kit
-                    // returns blocks in its own reading order and a chat is
-                    // only a conversation in the order it happened.
-                    Triple(box?.top ?: 0, mine, text)
+                    val box = line.boundingBox ?: return@mapNotNull null
+                    ReplyOcrLines.Line(line.text, box.left, box.top, box.right, box.bottom)
                 }
-                .sortedBy { it.first }
-                .map { ReplyTurn(fromMe = it.second, text = it.third) }
+            ReplyOcrLines.messages(lines, bitmap.width, bitmap.height, frame)
         } catch (_: Exception) {
             emptyList()
         } finally {

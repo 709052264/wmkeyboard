@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import android.text.format.DateUtils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -7,15 +8,22 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,16 +35,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Screenshot
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.UnfoldLess
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
 import com.wasimaster.wmkeyboard.core.tools.AiActionSurface
@@ -46,6 +56,7 @@ import com.wasimaster.wmkeyboard.ime.AiUi
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.ReplyEntry
+import com.wasimaster.wmkeyboard.ime.ReplyShot
 import com.wasimaster.wmkeyboard.common.R as CommonR
 
 /**
@@ -68,16 +79,24 @@ data class ReplyCallbacks(
     val onAddShot: (String) -> Unit = {},
     val onTone: (AiActionSpec) -> Unit = {},
     val onInsert: (String) -> Unit = {},
+    /** Joins a message to the one before it: one bubble OCR read as two. */
+    val onMerge: (Int) -> Unit = {},
+    /** Back from the drafts to the gathered messages. */
+    val onShowMessages: () -> Unit = {},
+    /** The images permission, through the trampoline. */
+    val onAllowImages: () -> Unit = {},
 )
 
 /**
  * The AI reply tool (#234).
  *
- * Three bands, top to bottom: what the other person said, the tone to answer
- * in, and the drafts to pick from. The first band is the one that makes this
- * tool different from every other AI surface — the keyboard cannot read the
- * conversation it is replying to, so gathering it is a thing the user does,
- * and the panel is mostly about making that cheap.
+ * Three steps, top to bottom, and the panel only ever shows the ones that
+ * apply: the ways to add what the other person said, the conversation
+ * gathered so far (or the drafts, once there are some), and the tones to
+ * answer in. The first step is the one that makes this tool different from
+ * every other AI surface — the keyboard cannot read the conversation it is
+ * replying to, so gathering it is a thing the user does, and the panel is
+ * mostly about making that cheap.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -86,6 +105,7 @@ internal fun AiReplyPanel(
     callbacks: ReplyCallbacks,
     onOpenToolSettings: (ToolbarTool) -> Unit,
 ) {
+    val kb = LocalKbTheme.current
     val reply = state.aiReply
     val tones = visibleAiActions(
         state.settings.ai.customActions,
@@ -109,7 +129,19 @@ internal fun AiReplyPanel(
                 action = stringResource(R.string.ime_ai_open_settings_action),
                 onAction = { onOpenToolSettings(ToolbarTool.AI) },
             )
-            is AiUi.Loading -> ReplyLoading(ai)
+            // Drafts stream in: once the first one has arrived the panel
+            // shows them under a thin bar rather than the full loader.
+            is AiUi.Loading -> if (reply.candidates.isEmpty()) {
+                ReplyLoading(ai)
+            } else {
+                LinearProgressIndicator(
+                    progress = { ai.phase.fraction },
+                    color = kb.accent,
+                    modifier = Modifier.fillMaxWidth().height(2.dp),
+                )
+                Spacer(Modifier.height(4.dp))
+                Box(Modifier.weight(1f).fillMaxWidth()) { ReplyDrafts(state, callbacks) }
+            }
             is AiUi.Error -> ReplyCentredNotice(
                 text = ai.message,
                 action = stringResource(CommonR.string.common_retry),
@@ -120,34 +152,54 @@ internal fun AiReplyPanel(
                     ReplyShotPicker(state, callbacks)
                 } else {
                     ReplyGather(state, callbacks)
-                    Spacer(Modifier.height(4.dp))
-                    ReplyToneRow(tones, reply.hasContext, callbacks.onTone)
-                    Spacer(Modifier.height(4.dp))
-                    ReplyDrafts(state, callbacks)
+                    // The middle takes what is left, so the tones below stay
+                    // on screen however long the conversation gets — they are
+                    // the next step, and a list that pushes them off the
+                    // bottom leaves the user with nothing to press.
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                    ) {
+                        when {
+                            reply.candidates.isNotEmpty() -> ReplyDrafts(state, callbacks)
+                            reply.entries.isNotEmpty() -> ReplyConversation(state, callbacks)
+                            else -> ReplyEmpty()
+                        }
+                    }
+                    if (reply.hasContext) {
+                        ReplyToneRow(
+                            tones,
+                            again = reply.candidates.isNotEmpty(),
+                            current = reply.tone?.id,
+                            onTone = callbacks.onTone,
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-/** The gathered conversation, and the four ways to add to it. */
+/** The ways to add to the conversation, and what is happening to them. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ReplyGather(state: KeyboardUiState, callbacks: ReplyCallbacks) {
     val kb = LocalKbTheme.current
     val reply = state.aiReply
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-        ToolPanelChip(
-            stringResource(R.string.ime_reply_add_clip),
-            icon = Icons.Outlined.ContentPaste,
-        ) { callbacks.onAddClip() }
-        ToolPanelChip(stringResource(R.string.ime_reply_add_typed), icon = Icons.Outlined.Add) {
+    // Words, not icons: a clipboard, a plus and a phone outline say nothing
+    // about which one reads a screenshot, and this row is the first thing
+    // anybody new to the tool has to understand.
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        ToolPanelChip(stringResource(R.string.ime_reply_add_clip)) { callbacks.onAddClip() }
+        ToolPanelChip(stringResource(R.string.ime_reply_add_shot)) { callbacks.onPickShots(true) }
+        ToolPanelChip(stringResource(R.string.ime_reply_add_typed), selected = reply.typing) {
             callbacks.onTypeFocus(!reply.typing)
         }
-        ToolPanelChip(
-            stringResource(R.string.ime_reply_add_shot),
-            icon = Icons.Outlined.Screenshot,
-        ) { callbacks.onPickShots(true) }
         // Only where there is a selection to take: in most chat apps the
         // conversation cannot be selected at all, and a chip that is always
         // "nothing selected" is a chip nobody presses twice.
@@ -157,14 +209,26 @@ private fun ReplyGather(state: KeyboardUiState, callbacks: ReplyCallbacks) {
             }
         }
         if (reply.entries.isNotEmpty()) {
-            ToolPanelChip(stringResource(CommonR.string.common_clear), icon = Icons.Outlined.Delete) {
-                callbacks.onClear()
-            }
+            ToolPanelChip(stringResource(CommonR.string.common_clear)) { callbacks.onClear() }
         }
     }
-    reply.notice?.let {
-        Spacer(Modifier.height(3.dp))
-        Text(stringResource(it), color = kb.secondaryText, fontSize = 11.sp)
+    reply.notice?.let { notice ->
+        Spacer(Modifier.height(4.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(notice),
+                color = kb.secondaryText,
+                fontSize = 11.sp,
+                modifier = Modifier.weight(1f),
+            )
+            // The one notice the user can fix from here.
+            if (notice == R.string.ime_reply_notice_no_images_permission) {
+                Spacer(Modifier.width(6.dp))
+                ToolPanelChip(stringResource(R.string.ime_reply_allow_images), selected = true) {
+                    callbacks.onAllowImages()
+                }
+            }
+        }
     }
     if (reply.typing) {
         Spacer(Modifier.height(4.dp))
@@ -196,67 +260,187 @@ private fun ReplyGather(state: KeyboardUiState, callbacks: ReplyCallbacks) {
         Text(stringResource(R.string.ime_reply_reading), color = kb.secondaryText, fontSize = 11.sp)
         LinearProgressIndicator(color = kb.accent, modifier = Modifier.fillMaxWidth().height(2.dp))
     }
-    if (reply.entries.isNotEmpty()) {
-        Spacer(Modifier.height(4.dp))
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            itemsIndexed(reply.entries) { index, entry ->
-                ReplyEntryRow(entry, index, callbacks)
-            }
-        }
-        Spacer(Modifier.height(3.dp))
-        ReplyTidyRow(reply.tidyUp, callbacks.onTidyUp)
+}
+
+/** Nothing gathered yet: what to do, in the order it is done. */
+@Composable
+private fun ReplyEmpty() {
+    val kb = LocalKbTheme.current
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(
+            stringResource(R.string.ime_reply_empty_body),
+            color = kb.secondaryText,
+            fontSize = 12.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 20.dp),
+        )
     }
 }
 
 /**
- * One gathered message: who said it, what it says, and a way to drop it.
+ * The gathered conversation, drawn as the chat it came from: their messages on
+ * the left, the user's own on the right in the accent colour.
  *
- * The side label is a button rather than a caption on purpose. Nothing the
- * keyboard can read says whether a clip or a line of OCR was theirs or the
- * user's own, so the guess is always wrong sometimes, and one tap is what
- * stands between a wrong guess and a reply answering the user's own sentence.
+ * Between two neighbouring messages sits a small join button. OCR reads a
+ * bubble that wraps as two lines, and when the automatic grouping misses one
+ * the fix has to be a tap, not a delete-and-retype.
  */
 @Composable
-private fun ReplyEntryRow(entry: ReplyEntry, index: Int, callbacks: ReplyCallbacks) {
+private fun ReplyConversation(state: KeyboardUiState, callbacks: ReplyCallbacks) {
     val kb = LocalKbTheme.current
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(kb.chip)
-            .padding(horizontal = 6.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    val reply = state.aiReply
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 4.dp),
     ) {
-        Text(
-            stringResource(if (entry.fromMe) R.string.ime_reply_side_me else R.string.ime_reply_side_them),
-            color = if (entry.fromMe) kb.secondaryText else kb.accent,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier
-                .clip(RoundedCornerShape(6.dp))
-                .clickable { callbacks.onToggleSide(index) }
-                .padding(horizontal = 6.dp, vertical = 3.dp),
-        )
-        Spacer(Modifier.width(6.dp))
-        Text(
-            if (entry.image) stringResource(R.string.ime_reply_entry_picture) else entry.text,
-            color = kb.suggestionText,
-            fontSize = 12.sp,
-            maxLines = 2,
-            modifier = Modifier.weight(1f),
-        )
-        Icon(
-            Icons.Outlined.Close,
-            contentDescription = stringResource(CommonR.string.common_remove),
-            tint = kb.secondaryText,
-            modifier = Modifier
-                .size(26.dp)
-                .clip(RoundedCornerShape(13.dp))
-                .clickable { callbacks.onRemove(index) }
-                .padding(5.dp),
-        )
+        itemsIndexed(reply.entries) { index, entry ->
+            if (index > 0) {
+                val prev = reply.entries[index - 1]
+                if (!prev.image && !entry.image) {
+                    ReplyJoin { callbacks.onMerge(index) }
+                } else {
+                    Spacer(Modifier.height(6.dp))
+                }
+            }
+            ReplyBubble(entry, index, callbacks)
+        }
+        item {
+            Spacer(Modifier.height(6.dp))
+            Text(
+                stringResource(R.string.ime_reply_pick_tone_body),
+                color = kb.secondaryText,
+                fontSize = 11.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+            )
+            ReplyTidyRow(reply.tidyUp, callbacks.onTidyUp)
+        }
     }
 }
+
+/** The join control between two bubbles: small, centred, out of the way. */
+@Composable
+private fun ReplyJoin(onJoin: () -> Unit) {
+    val kb = LocalKbTheme.current
+    Box(Modifier.fillMaxWidth().height(22.dp), contentAlignment = Alignment.Center) {
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(11.dp))
+                .clickable(onClick = onJoin)
+                .padding(horizontal = 8.dp, vertical = 3.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Outlined.UnfoldLess,
+                contentDescription = null,
+                tint = kb.secondaryText,
+                modifier = Modifier.size(13.dp),
+            )
+            Spacer(Modifier.width(3.dp))
+            Text(stringResource(R.string.ime_reply_merge), color = kb.secondaryText, fontSize = 10.sp)
+        }
+    }
+}
+
+/**
+ * One gathered message as a chat bubble.
+ *
+ * Who said it is drawn three ways at once — the side, the colour and the
+ * label — because it is the one thing the keyboard guesses, and a wrong guess
+ * has to be visible at a glance. The label is a button: nothing the keyboard
+ * can read says whether a clip or a line of OCR was theirs or the user's own,
+ * and one tap is what stands between a wrong guess and a reply answering the
+ * user's own sentence.
+ */
+@Composable
+private fun ReplyBubble(entry: ReplyEntry, index: Int, callbacks: ReplyCallbacks) {
+    val kb = LocalKbTheme.current
+    val mine = entry.fromMe
+    val fill = if (mine) kb.accent.copy(alpha = MINE_FILL_ALPHA) else kb.chip
+    val labelColor = if (mine) kb.accent else kb.secondaryText
+    // The tail corner on the speaker's side, as every chat app draws it.
+    val shape = RoundedCornerShape(
+        topStart = 14.dp,
+        topEnd = 14.dp,
+        bottomStart = if (mine) 14.dp else 4.dp,
+        bottomEnd = if (mine) 4.dp else 14.dp,
+    )
+    Box(
+        Modifier.fillMaxWidth(),
+        contentAlignment = if (mine) Alignment.CenterEnd else Alignment.CenterStart,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(BUBBLE_WIDTH)
+                .widthIn(max = 320.dp)
+                .clip(shape)
+                .background(fill)
+                .padding(start = 6.dp, end = 2.dp, top = 2.dp, bottom = 8.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { callbacks.onToggleSide(index) }
+                        .padding(horizontal = 4.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        stringResource(if (mine) R.string.ime_reply_side_me else R.string.ime_reply_side_them),
+                        color = labelColor,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
+                    Spacer(Modifier.width(3.dp))
+                    Icon(
+                        Icons.Outlined.SwapHoriz,
+                        contentDescription = stringResource(R.string.ime_reply_swap_side_desc),
+                        tint = labelColor,
+                        modifier = Modifier.size(13.dp),
+                    )
+                }
+                Spacer(Modifier.weight(1f))
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = stringResource(CommonR.string.common_remove),
+                    tint = kb.secondaryText,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { callbacks.onRemove(index) }
+                        .padding(5.dp),
+                )
+            }
+            val uri = entry.shotUri
+            if (entry.image && uri != null) {
+                AsyncImage(
+                    model = uri,
+                    imageLoader = rememberMediaImageLoader(),
+                    contentDescription = stringResource(R.string.ime_reply_entry_picture),
+                    contentScale = ContentScale.Fit,
+                    alignment = Alignment.CenterStart,
+                    modifier = Modifier
+                        .padding(start = 4.dp, end = 8.dp)
+                        .heightIn(max = 140.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                )
+            } else {
+                Text(
+                    if (entry.image) stringResource(R.string.ime_reply_entry_picture) else entry.text,
+                    color = kb.suggestionText,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(start = 4.dp, end = 8.dp),
+                )
+            }
+        }
+    }
+}
+
+/** How much of the width a bubble may take, so the two sides stay apart. */
+private const val BUBBLE_WIDTH = 0.86f
+
+/** The user's own bubbles: the accent, faint enough to read text over. */
+private const val MINE_FILL_ALPHA = 0.24f
 
 /** The per-run tidy-up switch, worded as what it will actually take away. */
 @Composable
@@ -285,17 +469,34 @@ private fun ReplyTidyRow(on: Boolean, onToggle: (Boolean) -> Unit) {
     }
 }
 
-/** The tone chips. Greyed out until there is something to reply to. */
+/**
+ * The tones: the step after gathering, so it only appears once there is
+ * something to reply to, under a heading that says what pressing one does.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ReplyToneRow(
     tones: List<AiActionSpec>,
-    enabled: Boolean,
+    again: Boolean,
+    current: String?,
     onTone: (AiActionSpec) -> Unit,
 ) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+    val kb = LocalKbTheme.current
+    Text(
+        stringResource(if (again) R.string.ime_reply_tone_again else R.string.ime_reply_tone_title),
+        color = kb.suggestionText,
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Medium,
+        modifier = Modifier.padding(bottom = 3.dp),
+    )
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
         for (tone in tones) {
-            ToolPanelChip(replyToneLabel(tone), enabled = enabled) { onTone(tone) }
+            // The tone the drafts on screen were written in stays lit, so
+            // "Try another tone" has something to be another than.
+            ToolPanelChip(replyToneLabel(tone), selected = again && tone.id == current) { onTone(tone) }
         }
     }
 }
@@ -310,39 +511,42 @@ private fun replyToneLabel(spec: AiActionSpec): String =
 private fun ReplyDrafts(state: KeyboardUiState, callbacks: ReplyCallbacks) {
     val kb = LocalKbTheme.current
     val reply = state.aiReply
-    if (reply.candidates.isEmpty()) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Column(Modifier.fillMaxSize()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                stringResource(
-                    if (reply.hasContext) R.string.ime_reply_pick_tone_body
-                    else R.string.ime_reply_empty_body,
-                ),
-                color = kb.secondaryText,
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 20.dp),
-            )
-        }
-        return
-    }
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        items(reply.candidates) { draft ->
-            Text(
-                draft,
+                stringResource(R.string.ime_reply_drafts_title),
                 color = kb.suggestionText,
-                fontSize = 13.sp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(kb.chip)
-                    .clickable { callbacks.onInsert(draft) }
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.weight(1f),
             )
+            ToolPanelChip(stringResource(R.string.ime_reply_show_messages)) { callbacks.onShowMessages() }
+        }
+        Spacer(Modifier.height(4.dp))
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            items(reply.candidates) { draft ->
+                Text(
+                    draft,
+                    color = kb.suggestionText,
+                    fontSize = 13.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(kb.chip)
+                        .clickable { callbacks.onInsert(draft) }
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                )
+            }
         }
     }
 }
 
-/** The recent screenshots, newest first. */
+/**
+ * The recent screenshots, newest first, as a grid of thumbnails.
+ *
+ * Pictures rather than file names: every name is "Screenshot_" and a time
+ * stamp, and the only way to tell which one is the chat is to see it.
+ */
 @Composable
 private fun ReplyShotPicker(state: KeyboardUiState, callbacks: ReplyCallbacks) {
     val kb = LocalKbTheme.current
@@ -371,24 +575,74 @@ private fun ReplyShotPicker(state: KeyboardUiState, callbacks: ReplyCallbacks) {
             }
             return@Column
         }
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            items(shots) { shot ->
-                Text(
-                    shot.name,
-                    color = kb.suggestionText,
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(kb.chip)
-                        .clickable { callbacks.onAddShot(shot.uri) }
-                        .padding(horizontal = 8.dp, vertical = 6.dp),
-                )
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = 88.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            items(shots, key = { it.uri }) { shot ->
+                ReplyShotTile(shot) { callbacks.onAddShot(shot.uri) }
             }
         }
     }
 }
+
+/** One screenshot: the picture, and how long ago it was taken. */
+@Composable
+private fun ReplyShotTile(shot: ReplyShot, onPick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    val context = LocalContext.current
+    val takenMs = shot.addedAt * 1000
+    val ago = DateUtils.getRelativeTimeSpanString(
+        takenMs,
+        System.currentTimeMillis(),
+        DateUtils.MINUTE_IN_MILLIS,
+        DateUtils.FORMAT_ABBREV_RELATIVE,
+    ).toString()
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(SHOT_TILE_ASPECT)
+            .clip(RoundedCornerShape(8.dp))
+            .background(kb.chip)
+            .clickable(onClick = onPick),
+    ) {
+        AsyncImage(
+            model = shot.uri,
+            imageLoader = rememberMediaImageLoader(),
+            contentDescription = stringResource(
+                R.string.ime_reply_shot_desc,
+                DateUtils.formatDateTime(
+                    context,
+                    takenMs,
+                    DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_SHOW_DATE,
+                ),
+            ),
+            contentScale = ContentScale.Crop,
+            // The top of a chat screenshot is the name of who it is with,
+            // which is what tells two screenshots of two chats apart.
+            alignment = Alignment.TopCenter,
+            modifier = Modifier.fillMaxSize(),
+        )
+        // Fixed white on a dark scrim rather than theme colours: it sits on a
+        // picture, which no theme knows the colour of.
+        Text(
+            ago,
+            color = Color.White,
+            fontSize = 10.sp,
+            maxLines = 1,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .fillMaxWidth()
+                .background(Color.Black.copy(alpha = 0.55f))
+                .padding(horizontal = 5.dp, vertical = 2.dp),
+        )
+    }
+}
+
+/** Roughly a phone screen's shape, so a screenshot reads as one at a glance. */
+private const val SHOT_TILE_ASPECT = 0.55f
 
 /** The run in progress, reusing the AI tool's own phase readout. */
 @Composable

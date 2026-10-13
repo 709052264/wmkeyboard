@@ -16,18 +16,18 @@ Nothing is ever sent on your behalf. The tool writes drafts; tapping one puts it
 
 A keyboard can read the box you are typing in. It cannot read the conversation above it — those messages belong to the chat app, and no keyboard can reach into them. So the first thing the panel asks for is their message, and there are four ways to hand it over:
 
-- **Paste their words** takes the most recent thing you copied. Long-press their message in the chat app, copy it, and tap this.
-- **Type it** opens a box on the keyboard. Type or paste the message, press <kbd>Enter</kbd>, and it is added.
-- **Screenshot** lists the recent screenshots on your phone. Pick the one of the chat.
-- **Select it** works in the few apps that let you select the conversation text itself.
+- **Paste copied** takes the most recent thing you copied. Long-press their message in the chat app, copy it, and tap this.
+- **Screenshot** shows the recent screenshots on your phone as a grid of pictures, newest first, each marked with how long ago it was taken. Tap the one of the chat.
+- **Type** opens a box on the keyboard. Type or paste the message, press <kbd>Enter</kbd>, and it is added.
+- **Use the selection** works in the few apps that let you select the conversation text itself.
 
 ### Several messages at once
 
 A reply usually needs more than one line of the conversation. While the reply panel is open, **anything you copy is added to it automatically** — so you can switch to the chat app, copy three messages one after another, come back, and all three are waiting. The same is true for screenshots: take one while the panel is open and it is picked up on its own.
 
-Each gathered message carries a **Them** or **Me** label. Tap the label to flip it. This matters more than it looks: nothing the keyboard can see says who wrote a copied line, so a message of your own that is read as theirs produces a reply to yourself.
+The gathered messages are drawn like the chat they came from: theirs on the left, yours on the right in the theme's accent colour. Each carries a **Them** or **Me** label; tap the label to flip it. This matters more than it looks: nothing the keyboard can see says who wrote a copied line, so a message of your own that is read as theirs produces a reply to yourself.
 
-Tap the **×** on a message to drop it, or **Clear** to start over.
+Tap the **×** on a message to drop it, or **Clear** to start over. Between two messages sits a small **Join** button: when one message arrived as two pieces, tap it to make them one again.
 
 ### Screenshots
 
@@ -39,13 +39,15 @@ How it is read depends on your AI provider, set under <SettingsPath path="Tools 
 - **Send the picture** always sends it. The model reads the alignment itself, so no labelling is needed.
 - **Read on this device** never sends the picture. The text is read on the phone and arrives as separate messages you can relabel. <Flavor edition="full" /> — the on-device reader is not in the Lite build.
 
+When a screenshot is read on the device, the parts that are not the conversation are left out: the status bar and the chat app's top bar (the contact's name, "Active now"), message times and dates, "Seen" and "Delivered" marks, and the message box's own placeholder. A screenshot taken while the reply panel was open also has the keyboard in it, and everything from the keyboard down is skipped. Lines of one bubble that wraps are put back together; when that misses one, use **Join**.
+
 The keyboard cannot take a screenshot for you: capturing the screen needs a system permission dialog, and an input method that opens one loses the box it was typing into. Take it the usual way, with the hardware buttons, and the keyboard picks it up. Automatic pick-up needs **Screenshots in the clipboard** turned on under <SettingsPath path="Clipboard" />; the **Screenshot** button in the panel always works.
 
-Reading screenshots from the gallery needs permission to read your images, asked for the first time you open the picker.
+Reading screenshots from the gallery needs permission to read your images. Tapping **Screenshot** without it asks for it straight away, and the grid opens once you allow it. If you said no, the panel shows an **Allow** button to ask again.
 
 ## Picking a tone
 
-Once there is something to reply to, the tone chips light up. One tap writes the drafts:
+Once there is something to reply to, the tones appear at the bottom of the panel under **Next: pick how to reply**. They stay there however long the conversation gets. One tap writes the drafts:
 
 | Tone | What it does |
 | --- | --- |
@@ -61,7 +63,7 @@ Once there is something to reply to, the tone chips light up. One tap writes the
 
 Tones are editable, and you can write your own: they share the action editor with the AI tool's actions, under <SettingsPath path="Tools / AI / Actions" />. A tone you write needs a saved instruction — there is nowhere on this panel to type one per run, because the panel's own box is for their message.
 
-The drafts appear below. Tap one to put it in the message box.
+The drafts take the place of the conversation. Tap one to put it in the message box. The tone they were written in stays highlighted; tap another under **Try another tone** for a different set, or **Messages** to go back and fix a message first.
 
 ## What it writes
 

@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.reply
 
 import android.graphics.Bitmap
+import com.wasimaster.wmkeyboard.core.tools.ReplyOcrLines
 import com.wasimaster.wmkeyboard.core.tools.ReplyTurn
 
 /**
@@ -18,5 +19,8 @@ object ReplyOcr {
 
     /** Nothing to read with. */
     @Suppress("UNUSED_PARAMETER")
-    suspend fun read(bitmap: Bitmap): List<ReplyTurn> = emptyList()
+    suspend fun read(
+        bitmap: Bitmap,
+        frame: ReplyOcrLines.ReplyOcrFrame = ReplyOcrLines.ReplyOcrFrame(),
+    ): List<ReplyTurn> = emptyList()
 }

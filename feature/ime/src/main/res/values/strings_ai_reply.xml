@@ -11,9 +11,9 @@
     <string name="ime_tool_ai_reply">AI reply</string>
 
     <!-- Adds the most recent copied text as a message. -->
-    <string name="ime_reply_add_clip">Paste their words</string>
+    <string name="ime_reply_add_clip">Paste copied</string>
     <!-- Opens a box to type or paste a message into. -->
-    <string name="ime_reply_add_typed">Type it</string>
+    <string name="ime_reply_add_typed">Type</string>
     <!-- Opens the list of recent screenshots. -->
     <string name="ime_reply_add_shot">Screenshot</string>
     <!-- Adds what is in the box as one more message. -->
@@ -34,8 +34,24 @@
     <!-- Checkbox: remove the copies and screenshots this reply was built from. -->
     <string name="ime_reply_tidy_up">Clear the copies and screenshots used</string>
 
-    <string name="ime_reply_pick_tone_body">Pick a tone and WM Keyboard drafts a few replies. Nothing is sent until you tap one.</string>
-    <string name="ime_reply_empty_body">Add what they said first: paste a copy, type it, or pick a screenshot of the chat.</string>
+    <string name="ime_reply_pick_tone_body">Pick a tone below and WM Keyboard drafts a few replies. Nothing is sent until you tap one.</string>
+    <!-- Heading over the tone buttons, once there is something to reply to. -->
+    <string name="ime_reply_tone_title">Next: pick how to reply</string>
+    <!-- The same heading while drafts are on screen. -->
+    <string name="ime_reply_tone_again">Try another tone</string>
+    <!-- Heading over the drafted replies. -->
+    <string name="ime_reply_drafts_title">Tap a reply to put it in the message box</string>
+    <!-- Goes back from the drafts to the messages they answer. -->
+    <string name="ime_reply_show_messages">Messages</string>
+    <!-- Small button between two messages: joins them into one. -->
+    <string name="ime_reply_merge">Join</string>
+    <!-- TalkBack: the Them/Me label on a message, which switches who said it. -->
+    <string name="ime_reply_swap_side_desc">Switch who said this</string>
+    <!-- TalkBack: one screenshot in the picker. %1$s is when it was taken. -->
+    <string name="ime_reply_shot_desc">Screenshot from %1$s</string>
+    <!-- Next to the missing-permission notice: asks for it. -->
+    <string name="ime_reply_allow_images">Allow</string>
+    <string name="ime_reply_empty_body">First add what they said with a button above: paste a copied message, pick a screenshot of the chat, or type it. Then pick a tone, and tap the reply you like to put it in the message box.</string>
     <string name="ime_reply_pick_shot_title">Recent screenshots</string>
     <string name="ime_reply_shot_hint">No screenshots found. Take one of the chat and it appears here.</string>
     <string name="ime_reply_settings_desc">AI reply settings</string>
