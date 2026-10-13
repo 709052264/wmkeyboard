@@ -153,7 +153,7 @@
     <string name="search_kw_layout_split">thumb ergonomic tablet</string>
     <string name="search_kw_privacy_backup">phone migrate</string>
     <string name="search_kw_privacy_learn_typing">personalization adapt remember habits</string>
-    <string name="search_kw_privacy_lock">biometric face unlock applock</string>
+    <string name="search_kw_privacy_lock">biometric fingerprint face unlock applock pin password pattern passcode</string>
     <string name="search_kw_selection_macros">highlight context menu share</string>
     <string name="search_kw_selection_macros_actions">cut paste sort json base64 camelcase markdown undo</string>
     <string name="search_kw_netlog">network, traffic, requests, connections, servers, data, privacy log</string>
@@ -316,7 +316,7 @@
     <string name="search_kw_privacy">incognito, permissions, tracking, learning, data</string>
     <string name="search_kw_permissions">grant, allow, revoke, access, microphone, camera, contacts, calendar, notification access, usage access</string>
     <string name="search_kw_automation">automation, tasker, macrodroid, automate, adb, intent, broadcast, command, script, remote control</string>
-    <string name="search_kw_applock">fingerprint, biometric, touch id, face unlock, app lock, lock, unlock, padlock, pin, passcode, protect, secure, privacy lock</string>
+    <string name="search_kw_applock">fingerprint, biometric, touch id, face unlock, app lock, lock, unlock, padlock, pin, password, pattern, passcode, protect, secure, privacy lock</string>
     <string name="search_kw_notifications">notification, notifications, shade, status bar, alerts, download finished, update installed, backup failed, keyboard controls, pin keyboard</string>
     <string name="search_kw_datasaver">mobile data, cellular, metered, roaming, wifi only, data usage, bandwidth, offline, save data</string>
     <string name="search_kw_advanced">power user, expert, hidden, extra, modes, add-ons, data saver</string>

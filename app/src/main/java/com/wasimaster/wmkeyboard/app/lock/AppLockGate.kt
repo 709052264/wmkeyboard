@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Fingerprint
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.WmIconTile
 import com.wasimaster.wmkeyboard.app.routeAccent
+import com.wasimaster.wmkeyboard.core.settings.AppLockMethod
 import com.wasimaster.wmkeyboard.core.settings.AppLockRelock
 
 /**
@@ -104,6 +103,7 @@ private fun rememberLockedState(target: LockTarget, route: String): Boolean {
 @Composable
 private fun LockGate(target: LockTarget, onCancel: () -> Unit) {
     val lock = LocalAppLock.current
+    val config by lock.config.collectAsStateWithLifecycle()
     var error by remember(target.id) { mutableStateOf<AppLockResult?>(null) }
 
     val ask: () -> Unit = {
@@ -135,7 +135,9 @@ private fun LockGate(target: LockTarget, onCancel: () -> Unit) {
     ) {
         WmIconTile(accent = routeAccent(target.route.orEmpty()), size = 72.dp, radius = 24.dp) {
             Icon(
-                Icons.Outlined.Fingerprint,
+                // The answer the check will ask for, so the user knows before
+                // the sheet comes up whether to reach for a finger or a PIN.
+                config?.takeIf { it.usesSecret }?.method?.icon() ?: AppLockMethod.BIOMETRIC.icon(),
                 contentDescription = null,
                 modifier = Modifier.size(36.dp),
             )

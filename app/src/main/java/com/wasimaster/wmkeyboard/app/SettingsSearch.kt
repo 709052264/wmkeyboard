@@ -1870,6 +1870,8 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         appLock(R.string.privacy_lock_enabled_title, R.string.privacy_lock_enabled_subtitle),
         appLock(R.string.privacy_lock_relock_title, R.string.privacy_lock_relock_info),
         appLock(R.string.privacy_lock_credential_title, R.string.privacy_lock_credential_subtitle),
+        appLock(R.string.privacy_lock_method_title, R.string.privacy_lock_method_info),
+        appLock(R.string.privacy_lock_shortcut_title, R.string.privacy_lock_shortcut_subtitle),
         // Data saver. Every row, because each one is a feature someone will
         // look for by name once it stops working on mobile data.
         dataSaver(R.string.datasaver_manual_title, R.string.datasaver_manual_subtitle),

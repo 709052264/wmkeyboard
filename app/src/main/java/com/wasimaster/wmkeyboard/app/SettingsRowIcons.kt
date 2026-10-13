@@ -811,6 +811,8 @@ internal object SettingsRowIcons {
         put(R.string.privacy_lock_storage_delete_title) { Icons.Outlined.DeleteSweep }
         put(R.string.privacy_lock_factory_reset_title) { Icons.Outlined.RestartAlt }
         put(R.string.privacy_lock_export_title) { Icons.Outlined.Save }
+        put(R.string.privacy_lock_method_title) { Icons.Outlined.Pin }
+        put(R.string.privacy_lock_shortcut_title) { Icons.Outlined.Fingerprint }
 
         // ---- Privacy: permissions ----
         put(R.string.privacy_permissions_title) { Icons.Outlined.Key }

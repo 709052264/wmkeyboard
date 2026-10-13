@@ -134,16 +134,16 @@
     -->
 
     <string name="privacy_lock_group_title">Lock</string>
-    <string name="privacy_lock_title">Fingerprint lock</string>
-    <string name="privacy_lock_subtitle">Ask for your fingerprint before the screens and the delete buttons that you pick</string>
+    <string name="privacy_lock_title">App lock</string>
+    <string name="privacy_lock_subtitle">Ask for your fingerprint, a PIN, a password or a pattern before the screens and the delete buttons that you pick</string>
 
     <string name="privacy_lock_state_on">On</string>
     <string name="privacy_lock_state_off">Off</string>
     <string name="privacy_lock_state_unavailable">Not available</string>
 
-    <string name="privacy_lock_enabled_title">Use the fingerprint lock</string>
-    <string name="privacy_lock_enabled_subtitle">Turning this on and off also asks for your fingerprint</string>
-    <string name="privacy_lock_enabled_info">The keyboard asks for your fingerprint before it opens the screens that you tick below, and before it runs the delete buttons that you tick. It asks again before you can turn this setting off, so somebody holding your unlocked phone cannot simply switch it off.\n\nThis is a lock on the screens, not encryption. It does not change how anything is stored. A settings export, the Android backup, a computer with USB debugging on, and a rooted phone all still reach the same data, and the keyboard itself keeps working as before. What the lock stops is the case it is for: somebody who picks up your unlocked phone for half a minute.\n\nIf you remove every fingerprint from this phone, the lock stands aside and the screens open normally. There is then nothing to check against, and you must never be shut out of your own settings.</string>
+    <string name="privacy_lock_enabled_title">Use the app lock</string>
+    <string name="privacy_lock_enabled_subtitle">Turning this on and off also asks for a check</string>
+    <string name="privacy_lock_enabled_info">The keyboard asks for your fingerprint, or the PIN, password or pattern set on this screen, before it opens the screens that you tick below, and before it runs the delete buttons that you tick. It asks again before you can turn this setting off, so somebody holding your unlocked phone cannot simply switch it off.\n\nThis is a lock on the screens, not encryption. It does not change how anything is stored. A settings export, the Android backup, a computer with USB debugging on, and a rooted phone all still reach the same data, and the keyboard itself keeps working as before. What the lock stops is the case it is for: somebody who picks up your unlocked phone for half a minute.\n\nIf the lock uses your fingerprint and you remove every fingerprint and the screen lock from this phone, the lock stands aside and the screens open normally. There is then nothing to check against, and you must never be shut out of your own settings. A PIN, password or pattern set here never stands aside. If you forget it, Forgot? on its sheet lets this phone\'s own fingerprint or screen lock in instead.</string>
 
     <string name="privacy_lock_group_content">Screens</string>
     <string name="privacy_lock_group_destructive">Delete and reset</string>
@@ -172,8 +172,9 @@
     <string name="privacy_lock_credential_subtitle">Accept the PIN, pattern or password of this phone as well as a fingerprint</string>
     <string name="privacy_lock_credential_info">Keep this on unless you have a reason not to. It is the way back in when the fingerprint reader locks itself out after too many tries, and it is the only way this works at all on a phone with no reader. Turn it off and a fingerprint is the only answer the lock accepts.</string>
 
-    <string name="privacy_lock_prompt_title">Fingerprint lock</string>
+    <string name="privacy_lock_prompt_title">App lock</string>
     <string name="privacy_lock_prompt_subtitle">Confirm that this is you</string>
+    <string name="privacy_lock_prompt_recover_subtitle">Forgot it? Confirm that this is you with this phone\'s own lock</string>
 
     <string name="privacy_lock_gate_title">Locked</string>
     <string name="privacy_lock_gate_body">You chose to lock this. Confirm that this is you to open it.</string>
@@ -183,12 +184,48 @@
     <string name="privacy_lock_error_lockout_permanent">Too many tries. Unlock this phone with your PIN, pattern or password, then come back.</string>
     <string name="privacy_lock_error_generic">The check did not work. Try again.</string>
 
-    <string name="privacy_lock_unavailable_none_enrolled">This phone has no fingerprint and no screen lock set up, so there is nothing to check against. The lock stands aside until you add one.</string>
-    <string name="privacy_lock_unavailable_no_hardware">This phone has no fingerprint reader that the app can use, so the lock stands aside.</string>
+    <string name="privacy_lock_unavailable_none_enrolled">This phone has no fingerprint and no screen lock set up, so there is nothing to check against. The lock stands aside until you add one, or until you pick a PIN, password or pattern below.</string>
+    <string name="privacy_lock_unavailable_no_hardware">This phone has no fingerprint reader that the app can use, so the lock stands aside. Pick a PIN, password or pattern below to use it anyway.</string>
     <string name="privacy_lock_unavailable_temporary">The fingerprint reader is busy. Try again in a moment.</string>
 
     <string name="privacy_lock_enroll_title">Set up a fingerprint</string>
     <string name="privacy_lock_enroll_subtitle">Open the system settings to add a fingerprint or a screen lock</string>
+
+    <string name="privacy_lock_method_group_title">Unlock with</string>
+    <string name="privacy_lock_method_title">Answer the lock with</string>
+    <string name="privacy_lock_method_info">Fingerprint uses this phone\'s own prompt, and its screen lock too if you allow it below. A PIN, password or pattern is set here, for this app only, and works on a phone with no fingerprint reader and no screen lock.\n\nOnly a scrambled copy of the PIN, password or pattern is kept, never the thing itself. It is left out of every backup unless you include passwords and keys, so on a new phone the lock asks for the fingerprint until you set one again. Five wrong answers in a row make the next one wait, from 30 seconds up to 15 minutes. A short PIN is still a short PIN: six digits or more is worth the extra second.</string>
+    <string name="privacy_lock_method_biometric">Fingerprint</string>
+    <string name="privacy_lock_method_pin">PIN</string>
+    <string name="privacy_lock_method_password">Password</string>
+    <string name="privacy_lock_method_pattern">Pattern</string>
+    <string name="privacy_lock_change_pin">Change the PIN</string>
+    <string name="privacy_lock_change_password">Change the password</string>
+    <string name="privacy_lock_change_pattern">Change the pattern</string>
+    <string name="privacy_lock_change_subtitle">Enter a new one twice. Only a scrambled copy is kept</string>
+    <string name="privacy_lock_shortcut_title">Offer the fingerprint first</string>
+    <string name="privacy_lock_shortcut_subtitle">Unlock with a finger, with the PIN, password or pattern one tap away</string>
+    <string name="privacy_lock_shortcut_unavailable">This phone has no fingerprint set up</string>
+    <string name="privacy_lock_use_pin">Use PIN</string>
+    <string name="privacy_lock_use_password">Use password</string>
+    <string name="privacy_lock_use_pattern">Use pattern</string>
+    <string name="privacy_lock_secret_title_pin">Enter your PIN</string>
+    <string name="privacy_lock_secret_title_password">Enter your password</string>
+    <string name="privacy_lock_secret_title_pattern">Draw your pattern</string>
+    <string name="privacy_lock_secret_wrong">That is not it. Try again.</string>
+    <string name="privacy_lock_secret_wait">Too many wrong tries. Try again in %1$s.</string>
+    <string name="privacy_lock_secret_use_fingerprint">Fingerprint</string>
+    <string name="privacy_lock_secret_forgot">Forgot?</string>
+    <string name="privacy_lock_setup_title_pin">Choose a PIN</string>
+    <string name="privacy_lock_setup_title_password">Choose a password</string>
+    <string name="privacy_lock_setup_title_pattern">Draw a pattern</string>
+    <string name="privacy_lock_setup_confirm_pin">Enter the PIN again</string>
+    <string name="privacy_lock_setup_confirm_password">Enter the password again</string>
+    <string name="privacy_lock_setup_confirm_pattern">Draw the pattern again</string>
+    <string name="privacy_lock_setup_hint_pin">4 to 16 digits</string>
+    <string name="privacy_lock_setup_hint_password">At least 4 characters</string>
+    <string name="privacy_lock_setup_hint_pattern">Join at least 4 dots</string>
+    <string name="privacy_lock_setup_mismatch">The two did not match. Start again.</string>
+    <string name="privacy_lock_pattern_description">Drag across the dots to join them</string>
 
     <string name="privacy_lock_threat_info">The lock hides these screens inside this app. It does not encrypt them. A settings export, the Android backup, a computer with USB debugging on and a rooted phone all still read the same data.</string>
 

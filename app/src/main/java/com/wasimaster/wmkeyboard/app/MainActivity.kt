@@ -57,6 +57,7 @@ import com.wasimaster.wmkeyboard.app.storage.storageRoute
 import com.wasimaster.wmkeyboard.app.language.appLanguageSplitCompat
 import com.wasimaster.wmkeyboard.app.launcher.LauncherCombos
 import com.wasimaster.wmkeyboard.app.launcher.LauncherCombosScreen
+import com.wasimaster.wmkeyboard.app.lock.AppLockSecretPrompt
 import com.wasimaster.wmkeyboard.app.lock.AppLockTargets
 import com.wasimaster.wmkeyboard.app.lock.BiometricAppLock
 import com.wasimaster.wmkeyboard.app.lock.LocalAppLock
@@ -351,6 +352,9 @@ class MainActivity : FragmentActivity() {
                         pending = pending,
                         onPendingHandled = { pendingNav.value = null },
                     )
+                    // The app lock's own PIN, password or pattern sheet. Once,
+                    // up here, like the system prompt it stands in for.
+                    AppLockSecretPrompt(appLock)
                     // Here rather than beside the card on the home screen,
                     // which is the one screen the user may not be on when
                     // the offer arrives.

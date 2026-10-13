@@ -82,7 +82,7 @@ The screen closes on a caption saying as much. Android gives that last group out
 
 ## Details & edge cases
 
-- **The Fingerprint row is not a reader of your fingerprint.** `USE_BIOMETRIC` asks Android to run its own prompt and report a yes or a no. The fingerprint never reaches the app. Nothing requests the prompt unless you turn the [Fingerprint lock](/reference/settings/app-lock/) on.
+- **The Fingerprint row is not a reader of your fingerprint.** `USE_BIOMETRIC` asks Android to run its own prompt and report a yes or a no. The fingerprint never reaches the app. Nothing requests the prompt unless you turn the [App lock](/reference/settings/app-lock/) on.
 - **The "Included with the app" group lists four rows, not every install-time permission in the APK.** These are the four the app declares for itself. A full build carries three more that never show up here and never produce a prompt: `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED` and `FOREGROUND_SERVICE`. They arrive in the merged manifest from androidx.work, which ML Kit pulls in, and the app schedules no WorkManager job of its own. Lite builds don't declare them at all.
 - **The labels re-read themselves every time the screen comes back.** Both directions of a change happen on a system screen this one sends you to, so a row would otherwise be stale the moment you pressed Back. Grant something in Android's Settings, return to the keyboard, and the row already says **Granted**.
 - **Nothing on this screen is a setting**, so no row grows the usual restore button. What a row reflects is a grant held by Android, not a value stored by the app; see [Putting one setting back](/reference/settings/#putting-one-setting-back) for where that button does apply.

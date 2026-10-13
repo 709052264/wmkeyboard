@@ -9701,6 +9701,9 @@ class SettingsRepository(private val context: Context) {
         private val APP_LOCK_TARGETS = stringSetPreferencesKey("app_lock_targets")
         private val APP_LOCK_RELOCK = stringPreferencesKey("app_lock_relock")
         private val APP_LOCK_ALLOW_CREDENTIAL = booleanPreferencesKey("app_lock_allow_credential")
+        private val APP_LOCK_METHOD = stringPreferencesKey("app_lock_method")
+        private val APP_LOCK_SECRET = stringPreferencesKey(SettingsBackup.APP_LOCK_SECRET)
+        private val APP_LOCK_BIOMETRIC_SHORTCUT = booleanPreferencesKey("app_lock_biometric_shortcut")
 
         // Automation intents; see [AutomationSettings]. One flag per
         // [AutomationPermission], keyed by its stable [AutomationPermission.key].
@@ -13919,6 +13922,12 @@ class SettingsRepository(private val context: Context) {
                     ?: AppLockDefaults.relock,
                 allowDeviceCredential = p[APP_LOCK_ALLOW_CREDENTIAL]
                     ?: AppLockDefaults.allowDeviceCredential,
+                method = p[APP_LOCK_METHOD]
+                    ?.let { name -> AppLockMethod.entries.find { it.name == name } }
+                    ?: AppLockDefaults.method,
+                secret = p[APP_LOCK_SECRET],
+                biometricShortcut = p[APP_LOCK_BIOMETRIC_SHORTCUT]
+                    ?: AppLockDefaults.biometricShortcut,
             )
         }
         .distinctUntilChanged()
@@ -13946,6 +13955,22 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAppLockAllowDeviceCredential(value: Boolean) =
         editPrefs { it[APP_LOCK_ALLOW_CREDENTIAL] = value }
+
+    /**
+     * Switches the lock to [method], with [secretHash] as its answer.
+     *
+     * One write for both, so no frame ever sees a PIN method paired with the
+     * old method's hash. A null hash (the fingerprint) removes the stored one:
+     * a secret the lock no longer asks for is one less thing to leak.
+     */
+    suspend fun setAppLockMethod(method: AppLockMethod, secretHash: String?) =
+        editPrefs { prefs ->
+            prefs[APP_LOCK_METHOD] = method.name
+            if (secretHash != null) prefs[APP_LOCK_SECRET] = secretHash else prefs.remove(APP_LOCK_SECRET)
+        }
+
+    suspend fun setAppLockBiometricShortcut(value: Boolean) =
+        editPrefs { it[APP_LOCK_BIOMETRIC_SHORTCUT] = value }
 
     /**
      * Which photo each rotating theme is showing.

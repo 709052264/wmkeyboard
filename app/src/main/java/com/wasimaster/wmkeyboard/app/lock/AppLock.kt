@@ -85,7 +85,8 @@ internal enum class AppLockResult(@StringRes val message: Int) {
 }
 
 /**
- * The fingerprint gate in front of the settings the user chose to protect.
+ * The gate in front of the settings the user chose to protect: a fingerprint,
+ * or the app's own PIN, password or pattern.
  *
  * The interface is separate from its one implementation so that a preview, a
  * test, or a screen composed outside
@@ -94,8 +95,19 @@ internal enum class AppLockResult(@StringRes val message: Int) {
  */
 internal interface AppLock {
 
-    /** What this phone can do, refreshed on every resume. */
+    /**
+     * Whether the lock can ask, refreshed on every resume. Always
+     * [AppLockStatus.READY] while the app's own PIN, password or pattern is
+     * the answer: the app can always ask for that.
+     */
     val status: StateFlow<AppLockStatus>
+
+    /**
+     * What the system prompt could do on this phone. The same as [status] for
+     * the fingerprint method; for the app's own secret it is the fingerprint
+     * alone, which is what decides whether the shortcut can be offered.
+     */
+    val biometric: StateFlow<AppLockStatus>
 
     /** The user's configuration, or null until DataStore's first emission. */
     val config: StateFlow<AppLockSettings?>
@@ -144,6 +156,7 @@ internal interface AppLock {
  */
 internal object NoAppLock : AppLock {
     override val status: StateFlow<AppLockStatus> = MutableStateFlow(AppLockStatus.NO_HARDWARE)
+    override val biometric: StateFlow<AppLockStatus> = status
     override val config: StateFlow<AppLockSettings?> = MutableStateFlow(null)
     override fun isLocked(target: LockTarget): Boolean = false
     override fun unlock(target: LockTarget, onResult: (AppLockResult) -> Unit) =

@@ -52,6 +52,7 @@ object SyncKeys {
         "onboarding_persona_privacy", "auto_pair_romanized_done", "toolbox_hint_dismissed",
         // Security that belongs to one device's owner and hardware.
         "app_lock_enabled", "app_lock_relock", "app_lock_targets", "app_lock_allow_credential",
+        "app_lock_method", "app_lock_secret", "app_lock_biometric_shortcut",
     )
 
     /**

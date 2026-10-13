@@ -1,6 +1,6 @@
 ---
-title: "Fingerprint lock"
-description: "Every row on the Fingerprint lock screen: the master switch, the list of screens and buttons you can lock, how long one check lasts, and what the lock does not protect."
+title: "App lock"
+description: "Every row on the App lock screen: the master switch, what answers the lock (fingerprint, PIN, password or pattern), the list of screens and buttons you can lock, how long one check lasts, and what the lock does not protect."
 sidebar:
   order: 18.6
 ---
@@ -9,12 +9,12 @@ import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
 import Shot from '@components/Shot.astro';
 
-The Fingerprint lock puts a system fingerprint prompt in front of the settings screens and the delete buttons that you choose. You pick which ones. Nothing is locked until you turn the feature on, and the list starts on a small set of sensible picks that you can change.
+The App lock puts a check in front of the settings screens and the delete buttons that you choose. The check is your fingerprint through the system prompt, or a PIN, a password or a pattern that you set in the app. You pick which screens and buttons, and which kind of check. Nothing is locked until you turn the feature on, and the list starts on a small set of sensible picks that you can change.
 
 This page is the field reference. For what the keyboard stores and where, see [Your data on device](/privacy/data/).
 
-<PhoneFrame caption="The Fingerprint lock screen: the master switch, then the screens, the delete buttons and the behaviour groups.">
-  <Shot id="reference/settings/app-lock-screen" alt="The Fingerprint lock screen: the master switch, then the screens, the delete buttons and the behaviour groups." />
+<PhoneFrame caption="The App lock screen: the master switch, then the screens, the delete buttons and the behaviour groups.">
+  <Shot id="reference/settings/app-lock-screen" alt="The App lock screen: the master switch, then the screens, the delete buttons and the behaviour groups." />
 </PhoneFrame>
 
 ## What the lock does and does not do
@@ -29,15 +29,16 @@ The lock hides screens inside the settings app. It does not encrypt anything, an
 - a rooted phone
 - the keyboard itself, which keeps working exactly as before
 
-What the lock stops is the case it is for. Somebody picks up your unlocked phone, opens the keyboard settings, and reads your word list or deletes your themes. That person now needs your fingerprint.
+What the lock stops is the case it is for. Somebody picks up your unlocked phone, opens the keyboard settings, and reads your word list or deletes your themes. That person now needs your fingerprint, or your PIN, password or pattern.
 
 ## Turn the lock on
 
 To turn the lock on, do these steps:
 
-1. Open <SettingsPath path="Privacy / Fingerprint lock" />.
-2. Set **Use the fingerprint lock** to on.
-3. Put your finger on the sensor when the system asks.
+1. Open <SettingsPath path="Privacy / App lock" />.
+2. Optional: under **Unlock with**, pick **PIN**, **Password** or **Pattern** and set it. Skip this to use your fingerprint.
+3. Set **Use the app lock** to on.
+4. Answer the check: your finger on the sensor, or the PIN, password or pattern you just set.
 
 The switch moves only after the check passes. If the check fails, or if you cancel it, the switch goes back to off.
 
@@ -49,19 +50,45 @@ Turning the lock off keeps your ticks. Turn it on again later and the same items
 
 ## Options
 
-<SettingsPath path="Privacy / Fingerprint lock" />
+<SettingsPath path="Privacy / App lock" />
 
 ### The master switch
 
 | Setting | Control | Default |
 |---|---|---|
-| Use the fingerprint lock | Toggle | Off |
+| Use the app lock | Toggle | Off |
 
-Both directions ask for a check. The switch is greyed out when this phone cannot answer a prompt. See [When the lock is not available](#when-the-lock-is-not-available).
+Both directions ask for a check. The switch is greyed out when the lock uses the fingerprint and this phone cannot answer a prompt. See [When the lock is not available](#when-the-lock-is-not-available).
+
+### Unlock with
+
+<SettingsPath path="Privacy / App lock / Answer the lock with" />
+
+| Setting | Control | Default |
+|---|---|---|
+| Answer the lock with | Fingerprint, PIN, Password, Pattern | **Fingerprint** |
+| Change the PIN, password or pattern *(shown only for those three)* | Opens a sheet | |
+| Offer the fingerprint first *(shown only for those three)* | Toggle | **On** |
+
+**Fingerprint** hands the check to the phone's own prompt: a fingerprint or face, and the phone's screen lock as well if **Allow the screen lock instead** is on.
+
+**PIN**, **Password** and **Pattern** are set here, for this app only, and are separate from the phone's own screen lock. They work on a phone with no fingerprint reader and no screen lock at all.
+
+| Method | What it takes | How you enter it |
+|---|---|---|
+| PIN | 4 to 16 digits | The app's own number pad, so the keyboard you are configuring never has to come up |
+| Password | At least 4 characters | A password field |
+| Pattern | At least 4 dots on a 3 by 3 grid | Drag across the dots. A line straight over a dot joins it, as on Android's own pattern lock |
+
+Picking one of the three opens a sheet that asks for it twice. Nothing changes until both match, so cancelling keeps the method you had. **Change the PIN** (or password, or pattern) asks for a new one the same way. Picking **Fingerprint** again deletes the stored PIN, password or pattern.
+
+With **Offer the fingerprint first** on, and a fingerprint set up on the phone, the check opens on the system fingerprint prompt with a **Use PIN** button (or **Use password**, **Use pattern**) that takes you to the app's own sheet. Turn it off and the check always opens on the sheet.
+
+The app's sheet has two more buttons. **Fingerprint** switches to the fingerprint prompt. **Forgot?** lets the phone's own fingerprint or screen lock answer instead, so a forgotten PIN never shuts you out of the screen where you change it. **Forgot?** honours **Allow the screen lock instead**, and is hidden when the phone has neither.
 
 ### Screens
 
-<SettingsPath path="Privacy / Fingerprint lock / Screens" />
+<SettingsPath path="Privacy / App lock / Screens" />
 
 Each row locks one settings screen. The keyboard asks for a check before the screen opens.
 
@@ -82,7 +109,7 @@ Deep links follow the same rule. A launcher shortcut or a link that opens a lock
 
 ### Delete and reset
 
-<SettingsPath path="Privacy / Fingerprint lock / Delete and reset" />
+<SettingsPath path="Privacy / App lock / Delete and reset" />
 
 Each row locks one button that throws data away. The keyboard asks for a check after you confirm and before it deletes.
 
@@ -102,7 +129,7 @@ Each row locks one button that throws data away. The keyboard asks for a check a
 
 ### Data that leaves the app
 
-<SettingsPath path="Privacy / Fingerprint lock / Data that leaves the app" />
+<SettingsPath path="Privacy / App lock / Data that leaves the app" />
 
 | Item | Where it lives | Locked by default |
 |---|---|---|
@@ -113,11 +140,11 @@ The export button is the one control in the settings app that copies your data i
 
 ### How the lock behaves
 
-<SettingsPath path="Privacy / Fingerprint lock / How the lock behaves" />
+<SettingsPath path="Privacy / App lock / How the lock behaves" />
 
 | Setting | Control | Default |
 |---|---|---|
-| Ask again *(shown only while Use the fingerprint lock is on)* | Five choices | **When you leave the app** |
+| Ask again *(shown only while Use the app lock is on)* | Five choices | **When you leave the app** |
 | Allow the screen lock instead | Toggle | **On** |
 
 **Ask again** sets how long one check lasts. The row is hidden while the master switch is off, since nothing is asking yet:
@@ -132,13 +159,15 @@ The export button is the one control in the settings app that copies your data i
 
 This applies to screens only. A delete button always asks again, however recently you answered. That check is the last step before something goes away for good, so it is the one that is worth making.
 
-**Allow the screen lock instead** lets the PIN, the pattern or the password of the phone answer the prompt as well as a fingerprint. Keep it on unless you have a reason not to. It is the way back in after the sensor locks itself out, and it is the only way the lock works at all on a phone with no reader.
+**Allow the screen lock instead** lets the PIN, the pattern or the password of the phone answer the system prompt as well as a fingerprint. That is the phone's own screen lock, not the one under **Unlock with**. Keep it on unless you have a reason not to. It is the way back in after the sensor locks itself out, and it is the only way the lock works at all on a phone with no reader.
 
 ## When the lock is not available
 
+This section is about the **Fingerprint** method. A PIN, password or pattern set in the app is always available, so none of it applies to them: the lock never stands aside for want of a sensor.
+
 The keyboard checks what this phone can do each time the settings app comes to the front. Three answers are possible.
 
-**No fingerprint and no screen lock.** There is nothing to check against. The locked screens open normally and the master switch is greyed out. The screen shows a **Set up a fingerprint** row that opens the system settings.
+**No fingerprint and no screen lock.** There is nothing to check against. The locked screens open normally and the master switch is greyed out. The screen shows a **Set up a fingerprint** row that opens the system settings. Or pick a PIN, password or pattern under **Unlock with**, and the master switch comes back.
 
 **No usable reader.** Same result. The screen says so.
 
@@ -152,9 +181,12 @@ This is deliberate, and it is the most important rule in the feature. If you rem
 - **The lock is not in the launcher shortcuts on purpose.** A long press on the app icon does not offer a way into this screen. That shortcut would advertise the off switch to the person the lock is meant to stop.
 - **Settings search still finds locked rows.** A search for "personal dictionary" still returns the row, and opening it lands on the lock. Search results show the shipped name and the shipped description of a setting, never a value read from your data, so nothing leaks. The name of a setting is not the secret. Its contents are.
 - **A wrong finger does not close the prompt.** Android counts the tries itself. After too many, the prompt reports a lockout, and the panel keeps the reason on screen with a **Retry** button instead of sending you back.
+- **Wrong PIN, password or pattern.** The first five wrong answers in a row cost nothing. After that each one makes the next wait: 30 seconds, then a minute, doubling up to 15 minutes. The wait survives closing the app. A right answer, or getting in through **Forgot?**, clears it.
+- **Only a scrambled copy is kept.** The app stores a salted PBKDF2 hash of the PIN, password or pattern, never the thing itself. A short PIN is still a short PIN to anybody holding that hash, so six digits or more is worth it.
 - **A rotation does not lose the prompt.** The prompt survives, and the check applies to the screen you rotated to.
 - **A restart does lose the unlock.** The keyboard never writes a passed check to disk. Close the app from recents and the lock is back.
-- **Your picks travel in a backup.** The four stored values are the switch, your list of ticks, the "Ask again" choice and the screen-lock choice. They are ordinary settings, not credentials, so an export carries them and a restore brings them back. Restore them onto a phone with no fingerprint and the lock stands aside, exactly as described above.
+- **Your picks travel in a backup.** The switch, your list of ticks, the "Ask again" choice, the screen-lock choice, the method under **Unlock with** and the fingerprint-first choice are ordinary settings, so an export carries them and a restore brings them back. Restore them onto a phone with no fingerprint and the lock stands aside, exactly as described above.
+- **The PIN, password or pattern only travels with your passwords and keys.** Its hash is treated like an API key: left out of an export unless you include those, and never synced. Restored without it, the lock asks for the fingerprint until you set a PIN, password or pattern again.
 - **A tick from a newer version is kept, not dropped.** If a backup names something this build does not know about, the keyboard keeps the entry and does not show it. Your picks survive going back a version and then forward again.
 - **No edition differences.** Every setting on this screen behaves the same on the full and the lite builds.
 
