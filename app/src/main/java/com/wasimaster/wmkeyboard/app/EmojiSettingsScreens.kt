@@ -57,7 +57,13 @@ import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import kotlin.math.roundToInt
 import com.wasimaster.wmkeyboard.core.emoji.EmojiSearchExamples
+import com.wasimaster.wmkeyboard.core.fonts.FontFile
+import com.wasimaster.wmkeyboard.core.fonts.FontImportResult
 import com.wasimaster.wmkeyboard.core.fonts.FontStore
+import com.wasimaster.wmkeyboard.core.util.requireInputStream
+import com.wasimaster.wmkeyboard.content.R as ContentR
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import kotlinx.coroutines.launch
 
 // ---- emoji ----
@@ -646,11 +652,17 @@ internal fun EmojiPanelSettings(
     }
 }
 /**
- * The emoji faces in the font library, with the one in use ticked.
+ * The emoji faces in the font library, with the one in use ticked, and the
+ * button that adds a file of the user's own to it.
  *
  * Emoji fonts live in the same [FontStore] as the text faces — same files, same
  * lifecycle — but are listed apart, since drawing key labels in a colour emoji
  * font is not a choice anyone makes on purpose.
+ *
+ * The import is here, and not only under "Custom", because Custom is a single
+ * slot that each import overwrites (#657): someone without the download route,
+ * such as an offline build, had to pick the file again every time they went
+ * back to a face they had used before.
  */
 @Composable
 private fun InstalledEmojiFontList(repository: SettingsRepository, settings: LiveSettings) {
@@ -659,10 +671,52 @@ private fun InstalledEmojiFontList(repository: SettingsRepository, settings: Liv
     val store = remember { FontStore.get(context) }
     val revision by store.revision.collectAsStateWithLifecycle()
     val fonts = remember(revision) { store.emojiFonts() }
+    // A refused import, already in words: it is resolved on the main thread
+    // as the result lands, against the language the screen is showing.
+    var importError by remember { mutableStateOf<String?>(null) }
+    val importFont = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.requireInputStream(uri).use {
+                        FontFile.import(it, store, name = fontFileLabel(context, uri), emoji = true)
+                    }
+                }.getOrElse {
+                    FontImportResult.Failed(ContentR.string.core_content_font_error_read)
+                }
+            }
+            when (result) {
+                // Selected straight away: importing a face and then having to
+                // find it in the list to use it is one step too many.
+                is FontImportResult.Imported -> repository.setInstalledEmojiFont(result.font.id)
+                is FontImportResult.NotAFont -> importError = context.getString(result.messageRes)
+                FontImportResult.TooManyFonts -> importError = context.resources.getQuantityString(
+                    R.plurals.fonts_import_limit_message,
+                    FontStore.MAX_FONTS,
+                    FontStore.MAX_FONTS,
+                )
+                is FontImportResult.Failed -> importError =
+                    context.getString(result.messageRes, *result.messageArgs.toTypedArray())
+            }
+        }
+    }
+    importError?.let { message ->
+        AlertDialog(
+            onDismissRequest = { importError = null },
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = { importError = null }) {
+                    Text(stringResource(CommonR.string.common_ok))
+                }
+            },
+        )
+    }
 
     if (fonts.isEmpty()) {
         CaptionText(stringResource(R.string.langemoji_emoji_fonts_empty))
-        return
     }
     val installedId = settings.watch { it.emojiFontInstalled.installedId }
     for (font in fonts) {
@@ -699,6 +753,12 @@ private fun InstalledEmojiFontList(repository: SettingsRepository, settings: Liv
             onClick = { scope.launch { repository.setInstalledEmojiFont(font.id) } },
         )
     }
+    Spacer(Modifier.height(8.dp))
+    OutlinedButton(
+        onClick = { importFont.launch(FONT_MIME_TYPES) },
+        modifier = Modifier.padding(horizontal = 16.dp),
+    ) { Text(stringResource(R.string.langemoji_emoji_fonts_add_action)) }
+    Spacer(Modifier.height(8.dp))
 }
 
 /** What each emoji suggestion answer does to the typed word, for the sheet. */

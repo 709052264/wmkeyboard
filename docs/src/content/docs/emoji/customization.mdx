@@ -23,8 +23,8 @@ WM Keyboard ships no emoji font of its own. It draws emoji with whichever one yo
 
 - **System** (default): your phone's own emoji pack. On Samsung phones that's Samsung's set, not Google's.
 - **Google**: fetches Noto Color Emoji, the stock-Android look, once through the system font provider and caches it on the device.
-- **Installed**: an emoji font from [Addons](/addons/installing/), such as Twemoji or OpenMoji, picked from a list of whatever you've installed. Deleting the font you currently have selected falls back to System automatically.
-- **Custom**: a single font file you import yourself, kept separate from the addon library.
+- **Installed**: a list of every emoji font you've installed, picked with one tap. Fonts arrive there from [Addons](/addons/installing/), such as Twemoji or OpenMoji, or from your own storage: **Add emoji font file** under the list takes a `.ttf` or `.otf`, keeps it, and selects it. That's the route on an offline build, and once a few are in the list you can move between them without picking a file again. Deleting the font you currently have selected falls back to System automatically.
+- **Custom**: a single font file you import yourself, kept separate from the library. Each import replaces the last one, so use Installed if you want to keep more than one.
 
 Text you send is always plain Unicode, whichever font you pick. The app or phone on the other end draws it with its own emoji font. This setting only changes how emoji look while you're composing them.
 

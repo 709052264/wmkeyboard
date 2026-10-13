@@ -201,7 +201,7 @@
     <!-- One line under each option in the emoji font picker. -->
     <string name="langemoji_emoji_font_system_desc">The emoji pack of your device</string>
     <string name="langemoji_emoji_font_noto_desc">Noto Color Emoji, the standard Android look</string>
-    <string name="langemoji_emoji_font_installed_desc">An emoji font from Addons, such as Twemoji or OpenMoji</string>
+    <string name="langemoji_emoji_font_installed_desc">Emoji fonts from Addons or from your files, kept so that you can change between them</string>
     <string name="langemoji_emoji_font_custom_desc">One emoji font file that you import below</string>
     <!-- Offers a direct download of the current Noto Color Emoji, because the
          "Google" choice above can only ask the system font provider, which
@@ -232,7 +232,9 @@
 
     <!-- ===== Installed emoji fonts ===== -->
 
-    <string name="langemoji_emoji_fonts_empty">No emoji fonts are installed. Install one from Addons, such as Twemoji or OpenMoji. You can also import one file with the \"Custom\" setting.</string>
+    <string name="langemoji_emoji_fonts_empty">No emoji fonts are installed. Install one from Addons, such as Twemoji or OpenMoji, or add a font file from your device.</string>
+    <!-- Adds a .ttf or .otf file to the list of installed emoji fonts and selects it. -->
+    <string name="langemoji_emoji_fonts_add_action">Add emoji font file</string>
     <string name="langemoji_emoji_font_selected_desc">Selected</string>
     <!-- %1$s is the name of the emoji font. -->
     <string name="langemoji_emoji_font_delete_desc">Delete <xliff:g id="font" example="Twemoji">%1$s</xliff:g></string>
