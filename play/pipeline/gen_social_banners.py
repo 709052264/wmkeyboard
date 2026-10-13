@@ -98,7 +98,7 @@ def make(name, W, H, safe, out_dir, align="split"):
     # Content sizing from safe area.
     title = "WM Keyboard"
     tag = "Privacy-first Android keyboard"
-    feats = ["Glide typing", "350+ languages", "Offline AI", "Open source"]
+    feats = ["Glide typing", "Hundreds of languages", "Offline AI", "Open source"]
 
     # Title size: fit height first, then width budget.
     text_budget_w = sw * (0.55 if align == "split" else 0.9)
