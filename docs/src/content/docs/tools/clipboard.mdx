@@ -271,6 +271,7 @@ The whole-app [config backup](/privacy/backup/) has its own Clipboard section, o
 ## Details & edge cases
 
 - Every toggle and slider on this screen carries the usual [restore button](/reference/settings/#putting-one-setting-back) once you've moved it off its shipped value, so the rows that grew one are the ones you've changed.
+- The panel stays open when the app changes the text of the field you're in by itself, such as a browser address bar's clear button, or the pencil that copies the page address into the bar for editing. Moving to a different field still closes it.
 - The clipboard tool needs the device to have been unlocked at least once since restart. Its history lives in credential-encrypted storage, so it sits out any lock-screen or pre-unlock typing until then.
 - Ships the same way in the full and lite editions, except **Extract text** on an image clip, which needs the full edition's text scanner.
 - Link previews make a direct, unauthenticated request to whichever site you copied a link from, not through any of the app's own network services. Turn that setting on and the site sees a request from your device the moment you open the panel with a fresh link in history.

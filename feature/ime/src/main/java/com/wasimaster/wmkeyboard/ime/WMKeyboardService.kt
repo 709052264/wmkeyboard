@@ -6303,7 +6303,13 @@ open class WMKeyboardService : InputMethodService() {
                 // A panel dies with the field — unless its layout says to keep
                 // it open (issue #60, the same switch a key layer has), in
                 // which case it stays until a key, a tool or Back closes it.
-                panel = if (panelLayoutPersists(it)) it.panel else PanelMode.NONE,
+                // A restart is not a new field (#612): it is the same field
+                // reporting itself after the app set its text, which a
+                // browser's address bar does for its own clear and "edit this
+                // address" buttons. Closing the panel there took the clipboard
+                // down under the user's finger. The panel stays, and so does
+                // whatever was half done in it.
+                panel = if (restarting || panelLayoutPersists(it)) it.panel else PanelMode.NONE,
                 // A fresh field starts on the letter layer; a restart of the
                 // same field keeps whatever layer the user was on. So does a
                 // layer its author marked persistent (issue #60): that one
@@ -6330,18 +6336,20 @@ open class WMKeyboardService : InputMethodService() {
                 fieldAlignment = if (television) info.requestedAlignment() else null,
                 fieldNoSuggestions = fieldNoSuggestions,
                 fieldIncognito = fieldIncognito,
-                emojiSearchActive = false,
-                emojiQuery = "",
-                dictionarySearchActive = false,
-                clipboardSearchActive = false,
-                clipboardQuery = "",
-                snippetSearchActive = false,
-                snippetQuery = "",
+                emojiSearchActive = restarting && it.emojiSearchActive,
+                emojiQuery = if (restarting) it.emojiQuery else "",
+                dictionarySearchActive = restarting && it.dictionarySearchActive,
+                clipboardSearchActive = restarting && it.clipboardSearchActive,
+                clipboardQuery = if (restarting) it.clipboardQuery else "",
+                snippetSearchActive = restarting && it.snippetSearchActive,
+                snippetQuery = if (restarting) it.snippetQuery else "",
                 // A clip half-edited survives the same field restarting, the
-                // way a selection mode does; another field closes the editor.
+                // way a selection mode does; another field closes the editor,
+                // and Combine with it (#612).
                 clipEdit = if (restarting) it.clipEdit else null,
-                mediaSearchActive = false,
-                mediaQuery = "",
+                clipCombine = if (restarting) it.clipCombine else null,
+                mediaSearchActive = restarting && it.mediaSearchActive,
+                mediaQuery = if (restarting) it.mediaQuery else "",
                 mediaDownloadingId = null,
                 mediaDownloadProgress = null,
                 launcherDetail = null,
