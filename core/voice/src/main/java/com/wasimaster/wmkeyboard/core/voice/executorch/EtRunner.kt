@@ -1,4 +1,4 @@
-package com.wasimaster.wmkeyboard.core.voice.asr4all
+package com.wasimaster.wmkeyboard.core.voice.executorch
 
 /**
  * A tensor as it crosses into and out of a model: its [shape] and its values
@@ -6,6 +6,16 @@ package com.wasimaster.wmkeyboard.core.voice.asr4all
  * IntArray (int32) or ByteArray (bool, uint8).
  */
 class Tensor(val shape: LongArray, val data: Any) {
+
+    /** The first value as a number, for scalar outputs and a program's constant methods. */
+    val scalar: Long
+        get() = when (data) {
+            is LongArray -> data[0]
+            is IntArray -> data[0].toLong()
+            is FloatArray -> data[0].toLong()
+            is ByteArray -> data[0].toLong()
+            else -> error("not a numeric tensor")
+        }
 
     val floats: FloatArray get() = data as FloatArray
     val longs: LongArray
@@ -33,6 +43,9 @@ class Tensor(val shape: LongArray, val data: Any) {
             shape,
             if (spec.dtype == DType.INT) IntArray(values.size) { values[it].toInt() } else values,
         )
+
+        /** One int64 value of [shape] (a token id, a length). */
+        fun long(value: Long, shape: LongArray = longArrayOf(1)): Tensor = Tensor(shape, longArrayOf(value))
     }
 }
 
@@ -55,11 +68,11 @@ class TensorSpec(val dtype: Int, val dims: LongArray) {
 class MethodShape(val inputs: List<TensorSpec>, val outputs: List<TensorSpec>)
 
 /**
- * Runs the methods of one loaded program. The native one is [Asr4AllNative];
- * tests drive [Asr4AllStream] through a fake, since the decoding is all
- * arithmetic on what comes back.
+ * Runs the methods of one loaded ExecuTorch program. The native one is
+ * [EtNative.Program]; tests drive the model pipelines through a fake, since
+ * their decoding is all arithmetic on what comes back.
  */
-interface Asr4AllRunner {
+interface EtRunner {
     /** The tensors [method] takes and returns, or null when the program has no such method. */
     fun shape(method: String): MethodShape?
 

@@ -51,6 +51,8 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bolt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GraphicEq
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Speed
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Memory
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhoneAndroid
 import androidx.compose.material.icons.Icons
@@ -231,8 +233,9 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
     val whisperEnabled = com.wasimaster.wmkeyboard.core.settings.isWhisperEnabled()
     // No library in lite or off arm64, so nothing to offer there (#548).
     val whistleEnabled = com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine.available
-    // The same for asr4all's runtime (#289): full builds on arm64, armv7 and x86_64.
-    val asr4allEnabled = com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllEngine.available
+    // The ExecuTorch runtime behind Asr4All (#289), Parakeet and Moonshine:
+    // both editions, wherever its library is.
+    val etEnabled = com.wasimaster.wmkeyboard.core.voice.executorch.EtNative.available
     // What decides which groups and rows the screen holds; each row reads its
     // own value.
     val engine = settings.watch { it.whisper.engine }
@@ -240,7 +243,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
     val typingMode = settings.watch { it.voiceBar.typingMode }
     val usingWhisper = whisperEnabled && engine == "whisper"
     val usingWhistle = whistleEnabled && engine == "whistle"
-    val usingAsr4All = asr4allEnabled && engine == "asr4all"
+    val etEngine = com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.byId(engine)?.takeIf { etEnabled }
     val usingServer = engine == "server"
     // The master switch (#578). Off, the rest of the screen is about something
     // the keyboard no longer does, so it goes; the values stay stored.
@@ -264,6 +267,8 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
         val whisperEngine = stringResource(R.string.voice_engine_whisper)
         val whistleEngine = stringResource(R.string.voice_engine_whistle)
         val asr4allEngine = stringResource(R.string.voice_engine_asr4all)
+        val parakeetEngine = stringResource(R.string.voice_engine_parakeet)
+        val moonshineEngine = stringResource(R.string.voice_engine_moonshine)
         val serverEngine = stringResource(R.string.voice_engine_server)
         SettingsGroup(stringResource(R.string.voice_engine_group)) {
             item {
@@ -279,7 +284,9 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                         "system" to systemEngine,
                         ("whisper" to whisperEngine).takeIf { whisperEnabled },
                         ("whistle" to whistleEngine).takeIf { whistleEnabled },
-                        ("asr4all" to asr4allEngine).takeIf { asr4allEnabled },
+                        ("asr4all" to asr4allEngine).takeIf { etEnabled },
+                        ("parakeet" to parakeetEngine).takeIf { etEnabled },
+                        ("moonshine" to moonshineEngine).takeIf { etEnabled },
                         "server" to serverEngine,
                     ),
                     selected = engine,
@@ -293,6 +300,14 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                             "whistle" -> ChoiceDetail(
                                 stringResource(R.string.voice_engine_whistle_desc),
                                 Icons.Outlined.Bolt,
+                            )
+                            "parakeet" -> ChoiceDetail(
+                                stringResource(R.string.voice_engine_parakeet_desc),
+                                Icons.Outlined.Translate,
+                            )
+                            "moonshine" -> ChoiceDetail(
+                                stringResource(R.string.voice_engine_moonshine_desc),
+                                Icons.Outlined.Speed,
                             )
                             "asr4all" -> ChoiceDetail(
                                 stringResource(R.string.voice_engine_asr4all_desc),
@@ -492,7 +507,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
     // keywords (#548), and offline Whisper's whisper.cpp models as their prompt
     // (#440). Where only LiteRT graphs run, Whisper has no way to take a hint.
     // asr4all has no way to take one either.
-    if ((!usingWhisper || WhisperCatalog.cppAvailable) && !usingAsr4All) {
+    if ((!usingWhisper || WhisperCatalog.cppAvailable) && etEngine == null) {
         SettingsGroup(stringResource(R.string.voice_bias_group)) {
             item {
                 ToggleSetting(
@@ -527,7 +542,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
         WhisperModelManager(repository, settings)
     }
     if (usingWhistle) WhistleModelManager(settings)
-    if (usingAsr4All) Asr4AllModelManager(settings)
+    etEngine?.let { EtModelManager(it, settings) }
     if (usingServer) VoiceServerSettings(repository, settings)
 }
 

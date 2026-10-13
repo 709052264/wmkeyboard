@@ -1,61 +1,42 @@
 package com.wasimaster.wmkeyboard.core.voice.asr4all
 
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtModel
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
 import java.io.File
-import java.util.concurrent.Executors
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.asCoroutineDispatcher
 
 /**
  * Offline asr4all dictation: a streaming English recogniser that transcribes
  * while the user speaks, with punctuation and capitals from its own second
- * pass. Run by ExecuTorch through [Asr4AllNative].
- *
- * Everything that touches the model runs on [dispatcher], one thread, since a
- * loaded program is not thread-safe; callers switch to it rather than lock.
- * One program is kept open between dictations: loading one takes about as
- * long as a short phrase does to say.
+ * pass. Run by ExecuTorch through [EtNative], whose one thread every call here
+ * must be on ([EtNative.dispatcher]). The program stays open between
+ * dictations, since loading one takes about as long as a short phrase does to
+ * say, until another engine's model takes its place.
  */
 object Asr4AllEngine {
 
-    /** The one thread every program call runs on. */
-    val dispatcher: CoroutineDispatcher by lazy {
-        Executors.newSingleThreadExecutor { r -> Thread(r, "asr4all").apply { isDaemon = true } }
-            .asCoroutineDispatcher()
-    }
+    const val PROGRAM = "asr_encoder.pte"
+    const val METADATA = "metadata.json"
 
-    /** Whether this device and build can run asr4all at all. */
-    val available: Boolean get() = Asr4AllNative.available
-
-    @Volatile private var program: Asr4AllNative.Program? = null
-
-    /** Whether a program is open, so a memory trim knows there is something to free. Any thread. */
-    val isOpen: Boolean get() = program != null
     private var metadata: Asr4AllMetadata? = null
-    private var loaded: Asr4AllSize? = null
+    private var metadataPath: String? = null
 
-    /** Opens [size] if it is not the model already open. On [dispatcher] only. Throws when it will not load. */
-    fun warm(filesDir: File, size: Asr4AllSize) {
-        if (loaded == size && program != null) return
-        release()
-        val meta = Asr4AllMetadata.parse(Asr4AllStore.file(filesDir, size, size.metadata).readText())
-        val opened = Asr4AllNative.open(Asr4AllStore.file(filesDir, size, size.program))
-            ?: error("The asr4all model did not load")
-        program = opened
-        metadata = meta
-        loaded = size
+    /** Opens [model] if it is not the one already open. On [EtNative.dispatcher] only. Throws when it will not load. */
+    fun warm(filesDir: File, model: EtModel) {
+        newStream(filesDir, model)
     }
 
-    /** A fresh utterance on [size], opening it first if need be. On [dispatcher] only. */
-    fun newStream(filesDir: File, size: Asr4AllSize): Asr4AllStream {
-        warm(filesDir, size)
-        return Asr4AllStream(program!!, metadata!!)
-    }
-
-    /** Closes the open program. On [dispatcher] only, so never under a running stream. */
-    fun release() {
-        program?.close()
-        program = null
-        metadata = null
-        loaded = null
+    /** A fresh utterance on [model], opening it first if need be. On [EtNative.dispatcher] only. */
+    fun newStream(filesDir: File, model: EtModel): Asr4AllStream {
+        require(model.engine == EtEngine.ASR4ALL)
+        val program = EtNative.programs(listOf(EtStore.file(filesDir, model, PROGRAM))).single()
+        val metaFile = EtStore.file(filesDir, model, METADATA)
+        val meta = metadata?.takeIf { metadataPath == metaFile.path }
+            ?: Asr4AllMetadata.parse(metaFile.readText()).also {
+                metadata = it
+                metadataPath = metaFile.path
+            }
+        return Asr4AllStream(program, meta)
     }
 }

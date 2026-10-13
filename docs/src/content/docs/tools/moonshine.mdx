@@ -1,0 +1,32 @@
+---
+title: "Offline voice (Moonshine)"
+description: "Quick English dictation on your phone with Moonshine Tiny, a model made for short phrases."
+sidebar:
+  order: 4.5
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+Offline Moonshine is an English dictation engine that runs entirely on your phone, with [Moonshine Tiny](https://github.com/moonshine-ai/moonshine), a 27-million-parameter model made for short phrases on small devices. Once the model is downloaded, no audio leaves the phone. While a layout in another language is in use, dictation uses the system recognizer instead.
+
+## Setting it up
+
+<SettingsPath path="Voice typing" />
+
+Choose **Offline Moonshine** under **Recognition engine**, then download the model from the **Moonshine model** group that appears below it: 151 MB in three files, from Hugging Face at a fixed revision, each checked against its published SHA-256.
+
+## How it works
+
+Moonshine transcribes a phrase once you stop, and a phrase can run to 30 seconds. Where Whisper always pads what you said to a 30-second window, Moonshine reads only as much audio as there is, so a three-second phrase costs a three-second encode, which is what makes it quick on a phone. The text arrives punctuated and capitalised, then goes through the same spacing, spoken punctuation and undo as any other dictation (see [Voice typing](/tools/voice/)).
+
+## Moonshine, Asr4All or Whisper
+
+For English, [Asr4All](/tools/asr4all/) shows the words while you speak, and the [whisper.cpp Whisper models](/tools/whisper/) take your own words as hints and run to two minutes. Moonshine is the small, quick one: the least to download among them for its accuracy, and the fastest to answer a short phrase.
+
+## Details & edge cases
+
+**No words to listen for.** Moonshine has no way to take a list of names or terms, so **Words to listen for** does not show while it is the engine.
+
+**Both editions.** The runtime, [ExecuTorch](https://github.com/pytorch/executorch) built for the keyboard's models alone, is in full and lite alike. A build made without it, as F-Droid's is, does not offer the engine.
+
+**The licence.** Moonshine is Useful Sensors' model, under the MIT licence; it is credited in the app's About screen.

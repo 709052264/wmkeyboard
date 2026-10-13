@@ -85,11 +85,11 @@ for the Play channel. The offline Whistle voice engine is the same case: its JNI
 library is under `core/voice/src/full/jniLibs`, and the Cactus archive it links
 (`native/whistle-jni/prebuilt`) has no source to build from. The whisper.cpp
 libraries for Offline Whisper sit in the same `jniLibs` directory (built from
-source by `native/whispercpp-jni/build.sh`), and so do the selective ExecuTorch
-builds for Offline Asr4All (`native/asr4all-jni/build.sh`), so the same entry
-removes them. Deleting them keeps
+source by `native/whispercpp-jni/build.sh`), and so does the selective ExecuTorch
+build behind Offline Asr4All, Parakeet and Moonshine
+(`native/executorch-jni/build.sh`), so the same entry removes them. Deleting them keeps
 F-Droid's scanner quiet and proves none of them reaches the built APK.
-whisper.cpp, Asr4All's ExecuTorch and Harper moved to the `src/main/jniLibs`
+whisper.cpp, the ExecuTorch runtime and Harper moved to the `src/main/jniLibs`
 directories of `:core:voice` and `:core:intelligence` when lite gained them, so
 those two are deleted too; the F-Droid build then reports the engines and the
 grammar tool as not in this build, and switches the spell checker off. All

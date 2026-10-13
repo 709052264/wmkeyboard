@@ -1,4 +1,4 @@
-package com.wasimaster.wmkeyboard.core.voice.asr4all
+package com.wasimaster.wmkeyboard.core.voice.executorch
 
 import android.os.StatFs
 import androidx.annotation.StringRes
@@ -26,12 +26,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * Downloads asr4all models into [Asr4AllStore]: the same spine as the Whistle
- * and Whisper managers. Its own IO scope so progress outlives the screen, a
- * `.part` plus a Range request to resume, one model at a time, and each file
- * moved into place only once its SHA-256 matches.
+ * Downloads the ExecuTorch engines' models ([EtCatalog]) into [EtStore]: the
+ * same spine as the Whistle and Whisper managers. Its own IO scope so progress
+ * outlives the screen, a `.part` plus a Range request to resume, one model at
+ * a time, and each file moved into place only once its SHA-256 matches.
  */
-object Asr4AllDownloadManager {
+object EtDownloadManager {
 
     sealed interface Status {
         data object NotDownloaded : Status
@@ -51,50 +51,50 @@ object Asr4AllDownloadManager {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var job: Job? = null
-    private var activeSize: Asr4AllSize? = null
-    private val _states = MutableStateFlow<Map<Asr4AllSize, Status>>(emptyMap())
+    private var activeId: String? = null
+    private val _states = MutableStateFlow<Map<String, Status>>(emptyMap())
 
-    /** Size → status, for every size. */
-    val states: StateFlow<Map<Asr4AllSize, Status>> = _states.asStateFlow()
+    /** Model id → status, for every model in [EtCatalog]. */
+    val states: StateFlow<Map<String, Status>> = _states.asStateFlow()
 
     val isBusy: Boolean get() = job?.isActive == true
 
     /** Seeds [states] from disk; call when the screen appears. */
     fun refresh(filesDir: File) {
         _states.update { current ->
-            Asr4AllSize.entries.associateWith { size ->
-                val active = current[size]
-                when {
-                    size == activeSize && isBusy && active != null -> active
-                    Asr4AllStore.isDownloaded(filesDir, size) -> Status.Downloaded
-                    Asr4AllStore.bytesOnDisk(filesDir, size) > 0 ->
-                        Status.Paused(Asr4AllStore.bytesOnDisk(filesDir, size), size.bytes)
+            EtCatalog.models.associate { model ->
+                val active = current[model.id]
+                model.id to when {
+                    model.id == activeId && isBusy && active != null -> active
+                    EtStore.isDownloaded(filesDir, model) -> Status.Downloaded
+                    EtStore.bytesOnDisk(filesDir, model) > 0 ->
+                        Status.Paused(EtStore.bytesOnDisk(filesDir, model), model.bytes)
                     else -> Status.NotDownloaded
                 }
             }
         }
     }
 
-    fun start(filesDir: File, size: Asr4AllSize) {
-        if (isBusy || Asr4AllStore.isDownloaded(filesDir, size)) return
-        activeSize = size
-        set(size, Status.Downloading(Asr4AllStore.bytesOnDisk(filesDir, size), size.bytes))
+    fun start(filesDir: File, model: EtModel) {
+        if (isBusy || EtStore.isDownloaded(filesDir, model)) return
+        activeId = model.id
+        set(model, Status.Downloading(EtStore.bytesOnDisk(filesDir, model), model.bytes))
         job = scope.launch {
             try {
-                download(filesDir, size)
-                set(size, Status.Downloaded)
+                download(filesDir, model)
+                set(model, Status.Downloaded)
             } catch (e: CancellationException) {
                 // delete() cancels and then wipes; the unwinding job must not
                 // bring a Paused back for files that are gone.
-                val onDisk = Asr4AllStore.bytesOnDisk(filesDir, size)
-                set(size, if (onDisk > 0) Status.Paused(onDisk, size.bytes) else Status.NotDownloaded)
+                val onDisk = EtStore.bytesOnDisk(filesDir, model)
+                set(model, if (onDisk > 0) Status.Paused(onDisk, model.bytes) else Status.NotDownloaded)
                 throw e
             } catch (e: FailedException) {
-                set(size, Status.Failed(e.messageRes, e.messageArg))
+                set(model, Status.Failed(e.messageRes, e.messageArg))
             } catch (_: Exception) {
-                set(size, Status.Failed(CommonR.string.common_error_network))
+                set(model, Status.Failed(CommonR.string.common_error_network))
             } finally {
-                activeSize = null
+                activeId = null
             }
         }
     }
@@ -103,22 +103,22 @@ object Asr4AllDownloadManager {
         job?.cancel()
     }
 
-    fun delete(filesDir: File, size: Asr4AllSize) {
-        if (size == activeSize) cancel()
-        Asr4AllStore.delete(filesDir, size)
-        set(size, Status.NotDownloaded)
+    fun delete(filesDir: File, model: EtModel) {
+        if (model.id == activeId) cancel()
+        EtStore.delete(filesDir, model)
+        set(model, Status.NotDownloaded)
     }
 
-    private fun set(size: Asr4AllSize, status: Status) {
-        _states.update { it + (size to status) }
+    private fun set(model: EtModel, status: Status) {
+        _states.update { it + (model.id to status) }
     }
 
     private class FailedException(@StringRes val messageRes: Int, val messageArg: String = "") : IOException()
 
-    private suspend fun download(filesDir: File, size: Asr4AllSize) {
-        val dir = Asr4AllStore.dir(filesDir, size).apply { mkdirs() }
-        val stillNeeded = size.files.sumOf { f ->
-            val target = Asr4AllStore.file(filesDir, size, f)
+    private suspend fun download(filesDir: File, model: EtModel) {
+        val dir = EtStore.dir(filesDir, model).apply { mkdirs() }
+        val stillNeeded = model.files.sumOf { f ->
+            val target = EtStore.file(filesDir, model, f)
             if (target.length() == f.bytes) 0L else f.bytes - File(dir, "${f.name}.part").length()
         }
         if (StatFs(dir.path).availableBytes < stillNeeded + SPACE_MARGIN_BYTES) {
@@ -128,22 +128,22 @@ object Asr4AllDownloadManager {
             )
         }
         var done = 0L
-        // Metadata first: small, so a bad connection fails before the big file.
-        for (f in size.files) {
-            val target = Asr4AllStore.file(filesDir, size, f)
+        // In catalog order: the small files first, so a bad connection fails before the big one.
+        for (f in model.files) {
+            val target = EtStore.file(filesDir, model, f)
             if (target.isFile && target.length() == f.bytes) {
                 done += f.bytes
                 continue
             }
-            downloadFile(size, f, target, done)
+            downloadFile(model, f, target, done)
             done += f.bytes
         }
     }
 
-    private suspend fun downloadFile(size: Asr4AllSize, f: Asr4AllFile, target: File, base: Long) {
+    private suspend fun downloadFile(model: EtModel, f: EtFile, target: File, base: Long) {
         val part = File(target.parentFile, "${target.name}.part")
         var resumeFrom = part.length()
-        val url = size.url(f)
+        val url = model.url(f)
         val connection = URL(url).openConnection() as HttpURLConnection
         val netCall = NetLog.call(NetSource.DOWNLOAD_WHISPER, "GET", url, route = NetLog.pathOf(url))
         try {
@@ -174,7 +174,7 @@ object Asr4AllDownloadManager {
                         val now = System.currentTimeMillis()
                         if (now - lastUpdate >= PROGRESS_INTERVAL_MS) {
                             lastUpdate = now
-                            set(size, Status.Downloading(base + written, size.bytes))
+                            set(model, Status.Downloading(base + written, model.bytes))
                         }
                     }
                 }
@@ -187,7 +187,7 @@ object Asr4AllDownloadManager {
             netCall.end()
         }
         if (part.length() < f.bytes) throw FailedException(R.string.core_voice_download_interrupted_error)
-        if (!Asr4AllStore.sha256(part).equals(f.sha256, ignoreCase = true)) {
+        if (!EtStore.sha256(part).equals(f.sha256, ignoreCase = true)) {
             // Wrong bytes cannot be resumed into right ones: start over next time.
             part.delete()
             throw FailedException(R.string.core_voice_whistle_checksum_error)

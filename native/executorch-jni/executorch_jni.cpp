@@ -1,12 +1,14 @@
-// JNI surface for ExecuTorch, as much of it as the asr4all streaming models
-// need: open a .pte, describe a method's tensors, run a method. Everything
-// about streaming, CTC and the punctuation pass is Kotlin
-// (com.wasimaster.wmkeyboard.core.voice.asr4all), which keeps this file a
+// JNI surface for ExecuTorch: open a .pte, describe a method's tensors, run
+// a method. Everything about a particular model (Asr4All's streaming and
+// punctuation pass, Parakeet's transducer loop, Moonshine's decoder loop) is
+// Kotlin, in com.wasimaster.wmkeyboard.core.voice, which keeps this file a
 // plain tensor pipe that does not care what the model is.
 //
 // Tensors cross as primitive arrays: float32 and float16 as FloatArray, int64
 // as LongArray, int32 as IntArray, bool and uint8 as ByteArray. The dtype
-// a method declares decides the conversion in both directions.
+// a method declares decides the conversion in both directions. An output
+// that is a plain number rather than a tensor (a program's constant methods,
+// such as Parakeet's blank id) comes back as a one-element array of shape [].
 
 #include <jni.h>
 
@@ -95,7 +97,7 @@ void describe(std::vector<jlong>& out, ScalarType type, executorch::runtime::Spa
 }  // namespace
 
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_wasimaster_wmkeyboard_core_voice_asr4all_Asr4AllNative_nativeOpen(JNIEnv* env, jclass, jstring path) {
+Java_com_wasimaster_wmkeyboard_core_voice_executorch_EtNative_nativeOpen(JNIEnv* env, jclass, jstring path) {
     executorch::runtime::runtime_init();
     auto s = std::make_unique<Session>();
     s->module = std::make_unique<Module>(str(env, path), Module::LoadMode::Mmap);
@@ -104,7 +106,7 @@ Java_com_wasimaster_wmkeyboard_core_voice_asr4all_Asr4AllNative_nativeOpen(JNIEn
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_wasimaster_wmkeyboard_core_voice_asr4all_Asr4AllNative_nativeClose(JNIEnv*, jclass, jlong handle) {
+Java_com_wasimaster_wmkeyboard_core_voice_executorch_EtNative_nativeClose(JNIEnv*, jclass, jlong handle) {
     auto* s = reinterpret_cast<Session*>(handle);
     if (!s) return;
     {
@@ -121,7 +123,7 @@ Java_com_wasimaster_wmkeyboard_core_voice_asr4all_Asr4AllNative_nativeClose(JNIE
  * program has no such method.
  */
 extern "C" JNIEXPORT jlongArray JNICALL
-Java_com_wasimaster_wmkeyboard_core_voice_asr4all_Asr4AllNative_nativeMethodMeta(
+Java_com_wasimaster_wmkeyboard_core_voice_executorch_EtNative_nativeMethodMeta(
     JNIEnv* env, jclass, jlong handle, jstring method) {
     auto* s = reinterpret_cast<Session*>(handle);
     if (!s) return nullptr;
@@ -153,7 +155,7 @@ Java_com_wasimaster_wmkeyboard_core_voice_asr4all_Asr4AllNative_nativeMethodMeta
  * Throws IllegalStateException when the method fails.
  */
 extern "C" JNIEXPORT jobjectArray JNICALL
-Java_com_wasimaster_wmkeyboard_core_voice_asr4all_Asr4AllNative_nativeExecute(
+Java_com_wasimaster_wmkeyboard_core_voice_executorch_EtNative_nativeExecute(
     JNIEnv* env, jclass, jlong handle, jstring jmethod, jobjectArray inputs, jobjectArray shapes) {
     auto* s = reinterpret_cast<Session*>(handle);
     if (!s) {
@@ -250,7 +252,31 @@ Java_com_wasimaster_wmkeyboard_core_voice_asr4all_Asr4AllNative_nativeExecute(
     jclass objectClass = env->FindClass("java/lang/Object");
     jobjectArray out = env->NewObjectArray(static_cast<jsize>(outs.size() * 2), objectClass, nullptr);
     for (size_t i = 0; i < outs.size(); ++i) {
-        if (!outs[i].isTensor()) continue;
+        if (!outs[i].isTensor()) {
+            jobject value = nullptr;
+            if (outs[i].isInt()) {
+                const jlong v = static_cast<jlong>(outs[i].toInt());
+                jlongArray a = env->NewLongArray(1);
+                env->SetLongArrayRegion(a, 0, 1, &v);
+                value = a;
+            } else if (outs[i].isDouble()) {
+                const jfloat v = static_cast<jfloat>(outs[i].toDouble());
+                jfloatArray a = env->NewFloatArray(1);
+                env->SetFloatArrayRegion(a, 0, 1, &v);
+                value = a;
+            } else if (outs[i].isBool()) {
+                const jbyte v = outs[i].toBool() ? 1 : 0;
+                jbyteArray a = env->NewByteArray(1);
+                env->SetByteArrayRegion(a, 0, 1, &v);
+                value = a;
+            }
+            if (value) {
+                env->SetObjectArrayElement(out, static_cast<jsize>(i * 2), value);
+                env->SetObjectArrayElement(out, static_cast<jsize>(i * 2 + 1), env->NewLongArray(0));
+                env->DeleteLocalRef(value);
+            }
+            continue;
+        }
         const auto& t = outs[i].toTensor();
         const size_t count = static_cast<size_t>(t.numel());
         jobject data = nullptr;

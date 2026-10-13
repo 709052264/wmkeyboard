@@ -578,9 +578,13 @@ import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperMel
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperException
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperModel
 import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllEngine
-import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllSize
-import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllStore
 import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllStream
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtModel
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
+import com.wasimaster.wmkeyboard.core.voice.moonshine.MoonshineEngine
+import com.wasimaster.wmkeyboard.core.voice.parakeet.ParakeetEngine
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleLanguages
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
@@ -2735,7 +2739,7 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * The asr4all utterance decoding alongside [whisperRecorder] (#289): the
      * job that feeds it as the microphone delivers, and what it has been fed.
-     * Both belong to [Asr4AllEngine.dispatcher].
+     * Both belong to [EtNative.dispatcher].
      */
     private var asr4allJob: Job? = null
     @Volatile private var asr4allCapture: Asr4AllCapture? = null
@@ -2783,8 +2787,11 @@ open class WMKeyboardService : InputMethodService() {
         data class Whisper(val model: WhisperModel) : OnDeviceVoice
         data object Whistle : OnDeviceVoice
 
-        /** asr4all (#289): English, decoded while it is said. */
-        data class Asr4All(val size: Asr4AllSize) : OnDeviceVoice
+        /**
+         * A model on the ExecuTorch runtime: Asr4All (#289), decoded while it
+         * is said, or Parakeet or Moonshine, transcribed when the clip ends.
+         */
+        data class Et(val model: EtModel) : OnDeviceVoice
     }
     /**
      * The language id [whisperRecorder] was started against when the clip is
@@ -7451,8 +7458,8 @@ open class WMKeyboardService : InputMethodService() {
         WhisperEngine.release()
         WhisperCpp.release()
         // Only between dictations: the program is the running stream's.
-        if (asr4allJob?.isActive != true && Asr4AllEngine.isOpen) {
-            serviceScope.launch(Asr4AllEngine.dispatcher) { if (asr4allJob?.isActive != true) Asr4AllEngine.release() }
+        if (asr4allJob?.isActive != true && EtNative.isOpen) {
+            serviceScope.launch(EtNative.dispatcher) { if (asr4allJob?.isActive != true) EtNative.release() }
         }
         // Reloads on the next translation; the panel's state is untouched.
         if (translateEngineLoaded) OnDeviceTranslator.release()
@@ -23643,9 +23650,10 @@ open class WMKeyboardService : InputMethodService() {
         // the system recognizer's, with no prompt: there is no model that
         // would help.
         val whistleSelected = engine == "whistle" && whistleCoversVoice()
-        // asr4all is English only, and leaves any other language the same way.
-        val asr4allSelected = engine == "asr4all" && asr4allCoversVoice()
-        if ((whisperSelected || whistleSelected || asr4allSelected) && onDevice == null) {
+        // The ExecuTorch engines (Asr4All and Moonshine English, Parakeet 25
+        // European languages) leave any other language the same way.
+        val etSelected = EtEngine.byId(engine)?.let(::etCoversVoice) == true
+        if ((whisperSelected || whistleSelected || etSelected) && onDevice == null) {
             // An offline engine is chosen but its model is not downloaded —
             // prompt for one instead of opening the mic to no purpose.
             _uiState.update {
@@ -23896,7 +23904,9 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun fallbackOnDeviceVoice(): OnDeviceVoice? {
         if (whistleCoversVoice() && WhistleModelStore.isDownloaded(filesDir)) return OnDeviceVoice.Whistle
-        if (asr4allCoversVoice()) Asr4AllStore.active(filesDir)?.let { return OnDeviceVoice.Asr4All(it) }
+        for (engine in EtEngine.entries) {
+            if (etCoversVoice(engine)) EtStore.active(filesDir, engine)?.let { return OnDeviceVoice.Et(it) }
+        }
         if (!isWhisperEnabled()) return null
         val s = _uiState.value.settings
         return WhisperStore.modelForLanguage(
@@ -23915,9 +23925,20 @@ open class WMKeyboardService : InputMethodService() {
     private fun whistleCoversVoice(): Boolean =
         WhistleEngine.available && voiceLanguageIds().all(WhistleLanguages::supports)
 
-    /** asr4all can run here and every language the dictation listens for is English (#289). */
-    private fun asr4allCoversVoice(): Boolean =
-        Asr4AllEngine.available && voiceLanguageIds().all(Asr4AllStore::supports)
+    /** [engine] can run here and transcribes every language the dictation listens for. */
+    private fun etCoversVoice(engine: EtEngine): Boolean =
+        EtNative.available && voiceLanguageIds().all(engine::supports)
+
+    /** [pcm] through an ExecuTorch [model] in one go. On [EtNative.dispatcher] only. */
+    private fun transcribeWithEt(model: EtModel, pcm: FloatArray): String = when (model.engine) {
+        // The streaming loop run to its end.
+        EtEngine.ASR4ALL -> Asr4AllEngine.newStream(filesDir, model).run {
+            feed(pcm)
+            finish()
+        }
+        EtEngine.PARAKEET -> ParakeetEngine.transcribe(filesDir, model, pcm)
+        EtEngine.MOONSHINE -> MoonshineEngine.transcribe(filesDir, model, pcm)
+    }
 
     /**
      * [pcm] transcribed by [model] the way [finishWhisper] does it, for a clip
@@ -23928,12 +23949,7 @@ open class WMKeyboardService : InputMethodService() {
         val model = when (voice) {
             is OnDeviceVoice.Whisper -> voice.model
             OnDeviceVoice.Whistle -> return transcribeWithWhistle(pcm, languages, recognizerBias().words)
-            // A whole clip at once: the streaming loop run to its end.
-            is OnDeviceVoice.Asr4All -> return runBlocking(Asr4AllEngine.dispatcher) {
-                val stream = Asr4AllEngine.newStream(filesDir, voice.size)
-                stream.feed(pcm)
-                stream.finish()
-            }
+            is OnDeviceVoice.Et -> return runBlocking(EtNative.dispatcher) { transcribeWithEt(voice.model, pcm) }
         }
         if (model.ggml) {
             val translate = _uiState.value.settings.whisper.translate && model.supportsTranslate
@@ -24091,12 +24107,10 @@ open class WMKeyboardService : InputMethodService() {
             "whistle" -> OnDeviceVoice.Whistle.takeIf {
                 whistleCoversVoice() && WhistleModelStore.isDownloaded(filesDir)
             }
-            "asr4all" -> if (asr4allCoversVoice()) {
-                Asr4AllStore.active(filesDir)?.let { OnDeviceVoice.Asr4All(it) }
-            } else {
-                null
-            }
-            else -> null
+            else -> EtEngine.byId(s.whisper.engine)
+                ?.takeIf(::etCoversVoice)
+                ?.let { EtStore.active(filesDir, it) }
+                ?.let { OnDeviceVoice.Et(it) }
         }
     }
 
@@ -24116,7 +24130,8 @@ open class WMKeyboardService : InputMethodService() {
         serverCapture = if (model == null) languageId else null
         captureLanguages = languages
         // whisper.cpp reads past one 30-second window, so its clips get room.
-        val cpp = (model as? OnDeviceVoice.Whisper)?.model?.ggml == true || model is OnDeviceVoice.Asr4All
+        val cpp = (model as? OnDeviceVoice.Whisper)?.model?.ggml == true ||
+            (model as? OnDeviceVoice.Et)?.model?.engine == EtEngine.ASR4ALL
         lateinit var recorder: WhisperRecorder
         recorder = WhisperRecorder(
             onLevel = { level ->
@@ -24142,7 +24157,11 @@ open class WMKeyboardService : InputMethodService() {
             silenceStopMs = _uiState.value.settings.voiceBar.silenceStopMs,
             onSilence = { finishWhisper(userStopped = false) },
             preferredDevice = VoiceMics.deviceFor(this, mic),
-            maxSeconds = if (cpp) WhisperCppPlan.MAX_CLIP_SECONDS else WhisperMel.CHUNK_SECONDS,
+            maxSeconds = when {
+                cpp -> WhisperCppPlan.MAX_CLIP_SECONDS
+                (model as? OnDeviceVoice.Et)?.model?.engine == EtEngine.PARAKEET -> ParakeetEngine.MAX_CLIP_SECONDS
+                else -> WhisperMel.CHUNK_SECONDS
+            },
         )
         if (!recorder.start()) {
             _uiState.update {
@@ -24177,7 +24196,19 @@ open class WMKeyboardService : InputMethodService() {
             OnDeviceVoice.Whistle -> serviceScope.launch(Dispatchers.Default) {
                 runCatching { WhistleEngine.warm(WhistleModelStore.modelFile(filesDir)) }
             }
-            is OnDeviceVoice.Asr4All -> startAsr4AllStream(model.size, recorder, generation)
+            is OnDeviceVoice.Et -> if (model.model.engine == EtEngine.ASR4ALL) {
+                startAsr4AllStream(model.model, recorder, generation)
+            } else {
+                // A damaged file throws here; transcribing says so properly.
+                serviceScope.launch(EtNative.dispatcher) {
+                    runCatching {
+                        when (model.model.engine) {
+                            EtEngine.PARAKEET -> ParakeetEngine.warm(filesDir, model.model)
+                            else -> MoonshineEngine.warm(filesDir, model.model)
+                        }
+                    }
+                }
+            }
             null -> Unit
         }
     }
@@ -24189,11 +24220,11 @@ open class WMKeyboardService : InputMethodService() {
      * clip ends, [finishAsr4All] needs only decode the last moment. A model
      * that will not load is left for [finishAsr4All] to report.
      */
-    private fun startAsr4AllStream(size: Asr4AllSize, recorder: WhisperRecorder, generation: Int) {
+    private fun startAsr4AllStream(model: EtModel, recorder: WhisperRecorder, generation: Int) {
         asr4allCapture = null
         asr4allJob?.cancel()
-        asr4allJob = serviceScope.launch(Asr4AllEngine.dispatcher) {
-            val stream = runCatching { Asr4AllEngine.newStream(filesDir, size) }.getOrNull() ?: return@launch
+        asr4allJob = serviceScope.launch(EtNative.dispatcher) {
+            val stream = runCatching { Asr4AllEngine.newStream(filesDir, model) }.getOrNull() ?: return@launch
             val capture = Asr4AllCapture(stream)
             asr4allCapture = capture
             var shown = ""
@@ -24226,11 +24257,11 @@ open class WMKeyboardService : InputMethodService() {
      * stream has not had yet, then its finish, which settles punctuation and
      * capitals. Most of the clip is decoded by then, so this is quick.
      */
-    private suspend fun finishAsr4All(size: Asr4AllSize, pcm: FloatArray): String {
+    private suspend fun finishAsr4All(model: EtModel, pcm: FloatArray): String {
         asr4allJob?.cancelAndJoin()
         asr4allJob = null
-        return withContext(Asr4AllEngine.dispatcher) {
-            val capture = asr4allCapture ?: Asr4AllCapture(Asr4AllEngine.newStream(filesDir, size))
+        return withContext(EtNative.dispatcher) {
+            val capture = asr4allCapture ?: Asr4AllCapture(Asr4AllEngine.newStream(filesDir, model))
             asr4allCapture = null
             if (pcm.size > capture.fed) capture.stream.feed(pcm.copyOfRange(capture.fed, pcm.size))
             capture.stream.finish()
@@ -24343,7 +24374,11 @@ open class WMKeyboardService : InputMethodService() {
                             )
                         }
                         OnDeviceVoice.Whistle -> transcribeWithWhistle(pcm, languages, keywords)
-                        is OnDeviceVoice.Asr4All -> finishAsr4All(model.size, pcm)
+                        is OnDeviceVoice.Et -> if (model.model.engine == EtEngine.ASR4ALL) {
+                            finishAsr4All(model.model, pcm)
+                        } else {
+                            withContext(EtNative.dispatcher) { transcribeWithEt(model.model, pcm) }
+                        }
                     }
                 }
             }

@@ -26,86 +26,108 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
-import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllDownloadManager
-import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllDownloadManager.Status
-import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllSize
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager.Status
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtModel
+
+/** Downloads above this size ask before using mobile data. */
+private const val ET_METERED_CONFIRM_BYTES = 150_000_000L
 
 /**
- * The three asr4all sizes (#289): download, progress, delete. There is no
- * setting for which one dictates: the largest one on the device does, so
- * keeping a size is choosing it, and the screen marks the one in use. Shown
- * only while asr4all is the engine and the device can run it.
+ * The models of one ExecuTorch engine: Asr4All's three sizes (#289), or
+ * Parakeet's and Moonshine's one each. Download, progress, delete. There is
+ * no setting for which one dictates: the largest one on the device does, so
+ * keeping a model is choosing it, and the screen marks the one in use. Shown
+ * only while [engine] is the engine and the device can run it.
  */
 @Composable
-internal fun Asr4AllModelManager(settings: LiveSettings) {
+internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
     val context = LocalContext.current
     val filesDir = context.filesDir
-    val states by Asr4AllDownloadManager.states.collectAsState()
-    var meteredAsk by remember { mutableStateOf<Asr4AllSize?>(null) }
+    val states by EtDownloadManager.states.collectAsState()
+    var meteredAsk by remember { mutableStateOf<EtModel?>(null) }
     var meteredBlocked by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { Asr4AllDownloadManager.refresh(filesDir) }
+    LaunchedEffect(Unit) { EtDownloadManager.refresh(filesDir) }
+    val models = remember(engine) { EtCatalog.forEngine(engine) }
 
-    fun requestDownload(size: Asr4AllSize) {
+    fun requestDownload(model: EtModel) {
         when (downloadDecisionNow(context, settings.value)) {
-            MeteredDecision.ALLOWED -> Asr4AllDownloadManager.start(filesDir, size)
-            MeteredDecision.ASK -> meteredAsk = size
+            // Data saving is not holding it, but Parakeet is most of a
+            // gigabyte: over mobile data that still deserves a word, as the
+            // Whisper screen gives its big models.
+            MeteredDecision.ALLOWED ->
+                if (isMeteredNow(context) && model.bytes >= ET_METERED_CONFIRM_BYTES) {
+                    meteredAsk = model
+                } else {
+                    EtDownloadManager.start(filesDir, model)
+                }
+            MeteredDecision.ASK -> meteredAsk = model
             MeteredDecision.BLOCKED -> meteredBlocked = true
         }
     }
 
     // Read from the states, so the mark moves the moment a download lands.
-    val active = Asr4AllSize.entries
-        .filter { states[it] is Status.Downloaded }
+    val active = models
+        .filter { states[it.id] is Status.Downloaded }
         .maxByOrNull { it.millions }
 
     SettingsGroup(
-        stringResource(R.string.voice_asr4all_group),
-        info = stringResource(R.string.voice_asr4all_model_info),
+        stringResource(
+            when (engine) {
+                EtEngine.ASR4ALL -> R.string.voice_asr4all_group
+                EtEngine.PARAKEET -> R.string.voice_parakeet_group
+                EtEngine.MOONSHINE -> R.string.voice_moonshine_group
+            },
+        ),
+        info = stringResource(
+            when (engine) {
+                EtEngine.ASR4ALL -> R.string.voice_asr4all_model_info
+                EtEngine.PARAKEET -> R.string.voice_parakeet_model_info
+                EtEngine.MOONSHINE -> R.string.voice_moonshine_model_info
+            },
+        ),
     ) {
-        for (size in Asr4AllSize.entries) {
+        for (model in models) {
             item {
-                val status = states[size] ?: Status.NotDownloaded
-                val title = stringResource(
-                    when (size) {
-                        Asr4AllSize.SMALL -> R.string.voice_asr4all_small
-                        Asr4AllSize.MEDIUM -> R.string.voice_asr4all_medium
-                        Asr4AllSize.LARGE -> R.string.voice_asr4all_large
-                    },
-                )
+                val status = states[model.id] ?: Status.NotDownloaded
+                // A model's own name, which is not translated.
+                val title = model.label
                 Column(modifier = Modifier.fillMaxWidth()) {
                     WmRow(
                         title = title,
                         subtitle = when (status) {
                             Status.Downloaded -> stringResource(
-                                if (size == active) R.string.voice_asr4all_in_use
-                                else R.string.voice_asr4all_kept,
+                                if (model == active) R.string.voice_et_model_in_use
+                                else R.string.voice_et_model_kept,
                             )
                             is Status.Paused -> stringResource(R.string.models_paused_progress, formatBytes(status.bytes))
-                            else -> stringResource(R.string.voice_asr4all_missing, formatBytes(size.bytes))
+                            else -> stringResource(R.string.voice_et_model_missing, formatBytes(model.bytes))
                         },
                         trailing = {
                             when (status) {
                                 Status.Downloaded -> IconButton(
-                                    onClick = { Asr4AllDownloadManager.delete(filesDir, size) },
+                                    onClick = { EtDownloadManager.delete(filesDir, model) },
                                 ) {
                                     Icon(
                                         Icons.Outlined.Delete,
                                         contentDescription = stringResource(R.string.models_delete_model_desc, title),
                                     )
                                 }
-                                is Status.Downloading -> IconButton(onClick = { Asr4AllDownloadManager.cancel() }) {
+                                is Status.Downloading -> IconButton(onClick = { EtDownloadManager.cancel() }) {
                                     Icon(
                                         Icons.Outlined.Close,
                                         contentDescription = stringResource(R.string.models_cancel_download_desc),
                                     )
                                 }
                                 is Status.Paused -> TextButton(
-                                    onClick = { requestDownload(size) },
-                                    enabled = !Asr4AllDownloadManager.isBusy,
+                                    onClick = { requestDownload(model) },
+                                    enabled = !EtDownloadManager.isBusy,
                                 ) { Text(stringResource(R.string.models_resume_action)) }
                                 Status.NotDownloaded, is Status.Failed -> TextButton(
-                                    onClick = { requestDownload(size) },
-                                    enabled = !Asr4AllDownloadManager.isBusy,
+                                    onClick = { requestDownload(model) },
+                                    enabled = !EtDownloadManager.isBusy,
                                 ) {
                                     Text(
                                         stringResource(
@@ -148,12 +170,12 @@ internal fun Asr4AllModelManager(settings: LiveSettings) {
             }
         }
     }
-    meteredAsk?.let { size ->
+    meteredAsk?.let { model ->
         MeteredDownloadDialog(
             detail = null,
             onConfirm = {
                 meteredAsk = null
-                Asr4AllDownloadManager.start(filesDir, size)
+                EtDownloadManager.start(filesDir, model)
             },
             onDismiss = { meteredAsk = null },
         )

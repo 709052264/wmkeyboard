@@ -14,7 +14,7 @@
     <string name="voice_engine_group">Engine</string>
     <string name="voice_engine_title">Recognition engine</string>
     <string name="voice_engine_subtitle">How the keyboard turns speech into text</string>
-    <string name="voice_engine_info">The system recognizer is fast and shows the words while you speak, but it depends on the operating system and its languages. Offline Whisper runs fully on your device across many languages and sends no audio anywhere. It transcribes each phrase after you stop speaking. Offline Whistle works the same way with one small, fast model for seven languages: English, German, French, Spanish, Italian, Dutch and Polish. Offline Asr4All is English only, and writes the words while you speak, on your device. A transcription server does the same work on a computer you choose, so your phone spends less battery. The recording of each phrase goes to that server and nowhere else.</string>
+    <string name="voice_engine_info">The system recognizer is fast and shows the words while you speak, but it depends on the operating system and its languages. Offline Whisper runs fully on your device across many languages and sends no audio anywhere. It transcribes each phrase after you stop speaking. Offline Whistle works the same way with one small, fast model for seven languages: English, German, French, Spanish, Italian, Dutch and Polish. Offline Asr4All is English only, and writes the words while you speak, on your device. Offline Parakeet transcribes 25 European languages and works out which one you speak. Offline Moonshine is a small, quick model for English. A transcription server does the same work on a computer you choose, so your phone spends less battery. The recording of each phrase goes to that server and nowhere else.</string>
     <string name="voice_engine_system">System recognizer</string>
     <string name="voice_engine_whisper">Offline Whisper</string>
     <!-- One line under each option in the recognition engine picker. -->
@@ -26,6 +26,11 @@
     <!-- Asr4All is the model's name and is not translated. -->
     <string name="voice_engine_asr4all">Offline Asr4All</string>
     <string name="voice_engine_asr4all_desc">English only, on your device. It writes the words while you speak, with punctuation and capitals. Other languages use the system recognizer</string>
+    <!-- Parakeet and Moonshine are model names and are not translated. -->
+    <string name="voice_engine_parakeet">Offline Parakeet</string>
+    <string name="voice_engine_parakeet_desc">25 European languages on your device, told apart by the model. A large model for recent phones. Each phrase arrives after you stop</string>
+    <string name="voice_engine_moonshine">Offline Moonshine</string>
+    <string name="voice_engine_moonshine_desc">A small, quick English model on your device. Each phrase arrives after you stop. Other languages use the system recognizer</string>
     <string name="voice_engine_server">Transcription server</string>
     <string name="voice_engine_server_desc">Sends each phrase to a server you run, which saves battery. Each phrase arrives after you stop</string>
     <string name="voice_dictation_group">Dictation</string>
@@ -161,11 +166,18 @@
     <!-- ================================================================== -->
     <string name="voice_asr4all_group">Asr4All models</string>
     <string name="voice_asr4all_model_info">Asr4All is an English speech recognition model that runs on this phone and listens as you speak: the words appear while you talk, and a second pass adds punctuation and capitals. Of the sizes you download, the largest is used. Small is quickest, Large the most accurate. While a layout in another language is in use, dictation uses the system recognizer instead. The models come from Hugging Face once, under their own licence, which allows dictation; after that no audio leaves the phone.</string>
-    <string name="voice_asr4all_small">Asr4All Small</string>
-    <string name="voice_asr4all_medium">Asr4All Medium</string>
-    <string name="voice_asr4all_large">Asr4All Large</string>
+
+    <!-- ================================================================== -->
+    <!-- The Offline Parakeet and Moonshine models. Names are not translated. -->
+    <!-- ================================================================== -->
+    <string name="voice_parakeet_group">Parakeet model</string>
+    <string name="voice_parakeet_model_info">Parakeet TDT is a speech recognition model by NVIDIA that runs on this phone. It transcribes 25 European languages, among them English, German, French, Spanish, Italian, Portuguese, Polish, Dutch, Ukrainian and Russian, and it works out which one you speak. It is a large model, so it suits a recent phone with plenty of memory. A phrase is transcribed once you stop, and can run to 50 seconds. While a layout in another language is in use, dictation uses the system recognizer instead. The model comes from Hugging Face once, and after that no audio leaves the phone.</string>
+    <string name="voice_moonshine_group">Moonshine model</string>
+    <string name="voice_moonshine_model_info">Moonshine Tiny is a small English speech recognition model that runs on this phone. It is made for short phrases on small devices: it reads only as much audio as you said, so a short phrase is quick. A phrase is transcribed once you stop, and can run to 30 seconds. While a layout in another language is in use, dictation uses the system recognizer instead. The model comes from Hugging Face once, and after that no audio leaves the phone.</string>
+
+    <!-- Lines under each downloadable model of the Asr4All, Parakeet and Moonshine engines. -->
     <!-- %1$s is the download size, for example "38.6 MB". -->
-    <string name="voice_asr4all_missing">Not downloaded · %1$s</string>
-    <string name="voice_asr4all_in_use">In use. No audio leaves your phone</string>
-    <string name="voice_asr4all_kept">Downloaded. A larger one is in use</string>
+    <string name="voice_et_model_missing">Not downloaded · <xliff:g id="size" example="38.6 MB">%1$s</xliff:g></string>
+    <string name="voice_et_model_in_use">In use. No audio leaves your phone</string>
+    <string name="voice_et_model_kept">Downloaded. A larger one is in use</string>
 </resources>

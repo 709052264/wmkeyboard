@@ -1,5 +1,12 @@
 package com.wasimaster.wmkeyboard.core.voice.asr4all
 
+import com.wasimaster.wmkeyboard.core.voice.executorch.DType
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtRunner
+import com.wasimaster.wmkeyboard.core.voice.executorch.MethodShape
+import com.wasimaster.wmkeyboard.core.voice.executorch.Tensor
+import com.wasimaster.wmkeyboard.core.voice.executorch.TensorSpec
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -9,7 +16,7 @@ import org.junit.Test
  * The decode around the model, against a fake program: a streaming method that
  * emits a scripted frame per call, and a second pass that writes a capital and
  * a full stop. The real model is checked on the desktop; see
- * native/asr4all-jni/README.md.
+ * native/executorch-jni/README.md.
  */
 class Asr4AllStreamTest {
 
@@ -29,7 +36,7 @@ class Asr4AllStreamTest {
     )
 
     /** Two frames per call, a window of four frames (16 samples), one-wide hidden state. */
-    private inner class FakeProgram(private val frames: List<Int>) : Asr4AllRunner {
+    private inner class FakeProgram(private val frames: List<Int>) : EtRunner {
         var calls = 0
 
         /** The second pass's one-token delay line: what it writes lags what it reads. */
@@ -137,14 +144,16 @@ class Asr4AllStreamTest {
 
     @Test
     fun `only English is asr4all's`() {
-        assertTrue(Asr4AllStore.supports("en"))
-        assertTrue(Asr4AllStore.supports("en_GB"))
-        assertFalse(Asr4AllStore.supports("bn"))
+        assertTrue(EtEngine.ASR4ALL.supports("en"))
+        assertTrue(EtEngine.ASR4ALL.supports("en_GB"))
+        assertFalse(EtEngine.ASR4ALL.supports("bn"))
+        assertTrue(EtEngine.PARAKEET.supports("de"))
+        assertFalse(EtEngine.MOONSHINE.supports("de"))
     }
 
     @Test
     fun `method metadata reads back as shapes`() {
-        val shape = Asr4AllNative.parseShape(longArrayOf(1, 1, 6, 2, 1, 22400, 4, 0))
+        val shape = EtNative.parseShape(longArrayOf(1, 1, 6, 2, 1, 22400, 4, 0))
         assertEquals(1, shape.inputs.size)
         assertEquals(22400L, shape.inputs[0].dims[1])
         assertEquals(DType.LONG, shape.outputs[0].dtype)

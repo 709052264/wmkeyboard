@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.voice.asr4all
 
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtRunner
+import com.wasimaster.wmkeyboard.core.voice.executorch.Tensor
 import kotlin.math.min
 
 /**
@@ -21,7 +23,7 @@ import kotlin.math.min
  * Not thread-safe: one thread feeds, finishes and reads.
  */
 class Asr4AllStream(
-    private val runner: Asr4AllRunner,
+    private val runner: EtRunner,
     private val meta: Asr4AllMetadata,
     tierName: String = meta.defaultTier,
     usePcec: Boolean = true,
@@ -151,7 +153,7 @@ class Asr4AllStream(
      * it, so its first outputs are warm-up and are dropped.
      */
     private class Pcec(
-        private val runner: Asr4AllRunner,
+        private val runner: EtRunner,
         private val meta: Asr4AllMetadata.Pcec,
         private val method: String,
         private val flushMethod: String,

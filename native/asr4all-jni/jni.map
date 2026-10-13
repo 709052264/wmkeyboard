@@ -1,6 +1,0 @@
-{
-  global:
-    Java_com_wasimaster_wmkeyboard_core_voice_asr4all_Asr4AllNative_*;
-  local:
-    *;
-};

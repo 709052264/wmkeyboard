@@ -30,7 +30,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
-import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllEngine
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
 import com.wasimaster.wmkeyboard.app.updates.AllLanguagesRow
 import com.wasimaster.wmkeyboard.app.updates.KeepEnglishOnlyRow
@@ -353,7 +353,7 @@ private val bundledAttributions: List<Attribution> = buildList {
             ),
         )
     }
-    if (Asr4AllEngine.available) {
+    if (EtNative.available) {
         // Offline Asr4All (#289): the runtime built into the app, and the
         // models it downloads, which carry their own restricted-use licence.
         add(
@@ -372,6 +372,26 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "Asr4All Model weights",
                 "Model Weights License (Restricted Use) 1.0", "asr4all-weights.txt",
                 "https://huggingface.co/futo-org/asr4all-s",
+            ),
+        )
+        // Offline Parakeet and Offline Moonshine, on the same runtime; their
+        // weights download on request.
+        add(
+            Attribution(
+                "NVIDIA Parakeet TDT 0.6B v3",
+                R.string.about_bundled_parakeet_used,
+                "Copyright NVIDIA Corporation",
+                "CC-BY-4.0", "cc-by-4.0-parakeet.txt",
+                "https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3",
+            ),
+        )
+        add(
+            Attribution(
+                "Moonshine",
+                R.string.about_bundled_moonshine_used,
+                "Copyright (c) 2024 Useful Sensors",
+                "MIT", "mit-moonshine.txt",
+                "https://github.com/moonshine-ai/moonshine",
             ),
         )
     }
