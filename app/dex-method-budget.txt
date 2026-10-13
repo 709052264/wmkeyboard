@@ -26,9 +26,9 @@ com.wasimaster.wmkeyboard.app.ThemeScreensKt.ThemeEditorScreen  11700  1472  # s
 com.wasimaster.wmkeyboard.app.ThemeKeyboardPreviewKt.ThemeKeyboardPreview  3400  3136  # theme editor preview: settings app, not the typing keyboard
 
 # ---- Keyboard, but off the per-keystroke path ----
-com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen  14400  3968  # outer keyboard composable: collects the state without reading it, so it recomposes only when the service recomposes the root (see its opening comment)
-com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$154  500  3904  # the stable composition locals around KeyboardScreenFrame: recomposes with KeyboardScreen, not per key
-com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.TopBar$lambda$59$0$1$9  9200  1280  # toolbar content: recomposes on tool and strip changes, not per key
+com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen  14500  4032  # outer keyboard composable: collects the state without reading it, so it recomposes only when the service recomposes the root (see its opening comment)
+com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$155  500  3904  # the stable composition locals around KeyboardScreenFrame: recomposes with KeyboardScreen, not per key
+com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.TopBar$lambda$60$0$1$9  9200  1280  # toolbar content: recomposes on tool and strip changes, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.restorePersistentSurface  1300  3904  # once per show
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.openDictionary  1000  3904  # opening the dictionary tool
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshEmojiResults$1.invokeSuspend  1100  3904  # emoji panel search, debounced
@@ -42,8 +42,8 @@ com.wasimaster.wmkeyboard.ime.WMKeyboardService.captureWrite  6700  3968  # typi
 # already are (SuggestionHoldCallbacks, ToolHoldCallbacks, ...); the state
 # classes' is fewer fields, which is a split of the classes themselves.
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardBody  8400  3584  # ~157 parameters, and a lambda capturing them
-com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardBody$lambda$24  400  3456  # same parameter list
-com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$142$1  400  3328  # the call to KeyboardBody: 157 argument slots
+com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardBody$lambda$24  400  3520  # same parameter list
+com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$143$1  400  3328  # the call to KeyboardBody: 157 argument slots
 com.wasimaster.wmkeyboard.ime.KeyboardUiState.<init>  3700  4352  # generated: one register per field
 com.wasimaster.wmkeyboard.ime.KeyboardUiState.copy  1000  3712  # generated: one register per field
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.<init>  7000  4416  # generated: one register per field
