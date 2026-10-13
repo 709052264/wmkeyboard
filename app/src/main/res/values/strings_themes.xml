@@ -495,6 +495,20 @@
     <string name="theme_key_override_bold_label">Bold label</string>
     <string name="theme_key_override_label_size_title">Label size</string>
     <string name="theme_key_background_title">Key background</string>
+    <string name="theme_key_override_pick_action">Pick on keyboard</string>
+
+    <!-- Theme editor: picking a part of the keyboard on the preview (#265). -->
+    <string name="theme_pick_start_title">Pick on the keyboard</string>
+    <string name="theme_pick_start_subtitle">Press a key, a tool or the suggestion strip on the preview to style it</string>
+    <string name="theme_pick_start_desc">Pick a part of the keyboard to style</string>
+    <string name="theme_pick_hint">Press a key, a tool or the strip</string>
+    <!-- Words the preview's suggestion strip shows while the strip is being styled, separated by commas. -->
+    <string name="theme_pick_strip_sample_words">Hello,Thanks,Okay</string>
+    <string name="theme_parts_section_title">Toolbar and strip</string>
+    <string name="theme_parts_section_body">The bar above the keys has a sheet of its own for each of its two faces. Pressing a tool or a suggestion on the preview opens the same sheets.</string>
+    <string name="theme_parts_toolbar_subtitle">Tool fills, icons, shape, border</string>
+    <string name="theme_parts_strip_subtitle">Strip fill, word colors and size</string>
+    <string name="theme_strip_sheet_title">Suggestion strip</string>
 
     <!-- Theme editor: stickers over the keyboard. -->
     <string name="theme_decal_section_title">Stickers</string>

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import android.content.res.Resources
 import android.os.SystemClock
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.core.LinearEasing
@@ -28,9 +29,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,6 +62,7 @@ import com.wasimaster.wmkeyboard.core.feedback.KeySoundPlayer
 import com.wasimaster.wmkeyboard.core.feedback.KeySoundTarget
 import com.wasimaster.wmkeyboard.core.input.composer.composerFor
 import com.wasimaster.wmkeyboard.core.layout.Key
+import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
@@ -92,6 +96,9 @@ import com.wasimaster.wmkeyboard.ime.ui.KeyPreviewBandMode
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardScreen
 import com.wasimaster.wmkeyboard.ime.ui.LocalKeyPreviewBand
 import com.wasimaster.wmkeyboard.ime.ui.LocalKeyboardPreviewHost
+import com.wasimaster.wmkeyboard.ime.ui.keyOverrideId
+import com.wasimaster.wmkeyboard.ime.ui.textEditDescription
+import com.wasimaster.wmkeyboard.ime.ui.toolLabelRes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
@@ -131,6 +138,11 @@ fun ThemeKeyboardPreview(
      * for a host that measures it (the image-size guide, #397).
      */
     onBoardPositioned: ((LayoutCoordinates) -> Unit)? = null,
+    /**
+     * Set while the theme editor is picking a part of the keyboard to style
+     * (#265): a key, a tool or the strip goes to it instead of to the sandbox.
+     */
+    picker: PreviewPicker? = null,
 ) {
     val context = LocalContext.current
     val view = LocalView.current
@@ -142,13 +154,17 @@ fun ThemeKeyboardPreview(
     // an editor whose preview shows the pair's pick instead of the draft is an
     // editor with no preview. Floating and one-handed are chrome around the
     // board rather than part of its look, and both need a window to sit in.
-    val previewSettings = remember(settings, theme.id) {
+    // While picking, a drag across the letters is a finger finding a key, not
+    // a word, so glide is off: every key that is let go of is the one picked.
+    val picking = picker != null
+    val previewSettings = remember(settings, theme.id, picking) {
         settings.copy(
             keyboardThemeId = theme.id,
             autoTheme = settings.autoTheme.copy(enabled = false),
             floatingKeyboard = false,
             floatingKeyboardLandscape = false,
             oneHandedMode = OneHandedMode.OFF,
+            gestureTyping = settings.gestureTyping && !picking,
         )
     }
     val form = remember(configuration.smallestScreenWidthDp) {
@@ -263,12 +279,15 @@ fun ThemeKeyboardPreview(
             context = mutableStateOf(sandboxContext),
             enabledTools = mutableStateOf(previewSettings.enabledTools),
             onHide = mutableStateOf(onHide),
+            picker = mutableStateOf(picker),
+            resources = context.resources,
         )
     }
     SideEffect {
         actions.context.value = sandboxContext
         actions.enabledTools.value = previewSettings.enabledTools
         actions.onHide.value = onHide
+        actions.picker.value = picker
     }
 
     // Neither preview has a window behind the board, so neither holds the
@@ -365,30 +384,96 @@ private class PreviewActions(
     val context: MutableState<SandboxContext>,
     val enabledTools: MutableState<List<ToolbarTool>>,
     val onHide: MutableState<() -> Unit>,
+    val picker: MutableState<PreviewPicker?>,
+    private val resources: Resources,
 ) {
     val onKey: (Key) -> Unit = { key ->
-        sandbox.value = sandbox.value.onKey(key, context.value, SystemClock.uptimeMillis())
+        val pick = picker.value
+        if (pick != null) {
+            keyPick(key, resources)?.let(pick.onKey)
+        } else {
+            sandbox.value = sandbox.value.onKey(key, context.value, SystemClock.uptimeMillis())
+        }
     }
     val onInsert: (String) -> Unit = { text ->
-        sandbox.value = sandbox.value.inserted(text, context.value)
+        if (picker.value == null) sandbox.value = sandbox.value.inserted(text, context.value)
     }
     val onSuggestion: (String) -> Unit = { word ->
-        sandbox.value = sandbox.value.onSuggestion(word, context.value)
+        val pick = picker.value
+        if (pick != null) {
+            pick.onStrip()
+        } else {
+            sandbox.value = sandbox.value.onSuggestion(word, context.value)
+        }
     }
     val onLayoutSelect: (String) -> Unit = { id ->
-        sandbox.value = sandbox.value.selectingLayout(id)
+        if (picker.value == null) sandbox.value = sandbox.value.selectingLayout(id)
     }
+    // The toolbox launcher and the bar's back chevron are the toolbar's own
+    // chrome, so while picking they pick the toolbar.
     val onPanelChange: (PanelMode) -> Unit = { panel ->
-        sandbox.value = sandbox.value.onPanel(panel)
+        val pick = picker.value
+        if (pick != null) {
+            pick.onToolbar()
+        } else {
+            sandbox.value = sandbox.value.onPanel(panel)
+        }
     }
     val onToolTap: (ToolbarTool) -> Unit = { tool ->
+        val pick = picker.value
         when {
+            pick != null -> pick.onToolbar()
             tool == ToolbarTool.HIDE_KEYBOARD -> onHide.value()
             tool in enabledTools.value -> sandbox.value = sandbox.value.onTool(tool)
         }
     }
     val onHideKeyboard: () -> Unit = { onHide.value() }
 }
+
+/**
+ * Where the preview's presses go while the theme editor is picking the part of
+ * the keyboard to style (#265), instead of into the sandbox.
+ */
+@Stable
+class PreviewPicker(
+    /** A key: the style entry it answers to, and what to call it. */
+    val onKey: (KeyPick) -> Unit,
+    /** A tool, the toolbox launcher or the bar's chevron. */
+    val onToolbar: () -> Unit,
+    /** A word on the suggestion strip. */
+    val onStrip: () -> Unit,
+)
+
+/**
+ * A key picked on the preview: [id] is the single-key style entry the picker
+ * writes (`keyOverrideId`, the most specific name the key answers to), and
+ * [title] is the key as the user knows it — its letter, its tool, its
+ * operation — for the sheet's heading.
+ */
+@Immutable
+data class KeyPick(val id: String, val title: String)
+
+/** The pick for [key], or null for a key no style can name (a blank letter key). */
+private fun keyPick(key: Key, resources: Resources): KeyPick? {
+    val id = keyOverrideId(key) ?: return null
+    val title = when (val action = key.action) {
+        KeyAction.Text -> key.label.uppercase()
+        is KeyAction.Edit -> resources.getString(textEditDescription(action.op))
+        is KeyAction.Tool -> resources.getString(toolLabelRes(action.tool))
+        else -> key.label.takeIf { it.isNotBlank() && it.none(Char::isISOControl) }
+            ?.let { "${humanisedOverrideId(id)} ($it)" }
+            ?: humanisedOverrideId(id)
+    }
+    return KeyPick(id, title)
+}
+
+/**
+ * An entry name the way a list reads it: `LANGUAGESWITCH` as "Languageswitch",
+ * `EDIT_PAGE_UP` as "Edit page up". The fallback for names with no label of
+ * their own; the editor's list names the common ones properly.
+ */
+fun humanisedOverrideId(id: String): String =
+    id.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
 
 /**
  * The grids the preview's keyboard can reach, compiled the way the service

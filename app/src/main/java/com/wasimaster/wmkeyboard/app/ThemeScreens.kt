@@ -66,6 +66,22 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileDownload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileUpload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
 import androidx.compose.material3.AlertDialog
+import androidx.compose.runtime.CompositionLocalProvider
+import com.wasimaster.wmkeyboard.ime.layoutKind
+import com.wasimaster.wmkeyboard.ime.PanelMode
+import com.wasimaster.wmkeyboard.ime.LayoutMode
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.TextEditAction
+import com.wasimaster.wmkeyboard.core.layout.resolveLayout
+import com.wasimaster.wmkeyboard.core.layout.PanelKind
+import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Button
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -2539,8 +2555,43 @@ fun ThemeEditorScreen(
     // typed buffer serves both, so switching between them loses nothing.
     val previewSandbox = remember(familyId) { mutableStateOf(ThemePreviewSandbox()) }
     var keyboardDocked by rememberSaveable(familyId) { mutableStateOf(false) }
+    // Picking (#265): the preview stops typing and every press on it opens the
+    // style of what was pressed — a key's own sheet, the toolbar's, the strip's.
+    var picking by rememberSaveable(familyId) { mutableStateOf(false) }
+    var partSheet by rememberSaveable(lookId) { mutableStateOf<ThemePart?>(null) }
+    var overrideEditorId by rememberSaveable(lookId) { mutableStateOf<String?>(null) }
+    // The picked key's own name for the sheet's heading ("Left", "Clipboard"),
+    // which an id alone cannot always give back.
+    var overrideEditorTitle by rememberSaveable(lookId) { mutableStateOf<String?>(null) }
+    val picker = remember(lookId) {
+        PreviewPicker(
+            onKey = { pick ->
+                overrideEditorTitle = pick.title
+                overrideEditorId = pick.id
+            },
+            onToolbar = { partSheet = ThemePart.TOOLBAR },
+            onStrip = { partSheet = ThemePart.STRIP },
+        )
+    }
     // Back takes the docked keyboard down first, as it would a real one.
     BackHandler(enabled = keyboardDocked) { keyboardDocked = false }
+    // …and leaves picking once nothing it opened is still up.
+    BackHandler(enabled = picking && partSheet == null && overrideEditorId == null) { picking = false }
+    // Picking happens on the pinned miniature, where an open sheet leaves the
+    // keyboard in sight above it; the docked one would sit under the sheet.
+    LaunchedEffect(picking) { if (picking) keyboardDocked = false }
+    // The strip shows only while there is something on it, so its sheet puts a
+    // few words there, and taking them away again brings the toolbar back.
+    val sampleWords = stringResource(R.string.theme_pick_strip_sample_words)
+    LaunchedEffect(partSheet, sampleWords) {
+        val sample = if (partSheet == ThemePart.STRIP) {
+            sampleWords.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+        } else {
+            emptyList()
+        }
+        val box = previewSandbox.value.copy(sampleSuggestions = sample)
+        previewSandbox.value = if (sample.isEmpty()) box else box.showingPanel(PanelMode.NONE)
+    }
     val reduceMotion = settings.watch { it.reduceMotion }
     RegisterPinned {
         AnimatedVisibility(
@@ -2548,18 +2599,47 @@ fun ThemeEditorScreen(
             enter = if (reduceMotion) EnterTransition.None else expandVertically() + fadeIn(),
             exit = if (reduceMotion) ExitTransition.None else shrinkVertically() + fadeOut(),
         ) {
-            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                ThemeKeyboardPreview(
-                    settings = settings.watch { it },
-                    theme = look.watch { it },
-                    sandbox = previewSandbox,
-                    miniature = true,
-                    // The gallery card's miniature grows into this one. Both
-                    // draw the same theme at two sizes, which is what
-                    // [wmSharedBounds] is for — the keys scale rather than
-                    // being laid out again mid-flight.
-                    modifier = Modifier.wmSharedBounds(landingKey("preview")),
-                )
+            Column {
+                AnimatedVisibility(
+                    visible = picking,
+                    enter = if (reduceMotion) EnterTransition.None else expandVertically() + fadeIn(),
+                    exit = if (reduceMotion) ExitTransition.None else shrinkVertically() + fadeOut(),
+                ) {
+                    PickBar(
+                        settings = settings,
+                        sandbox = previewSandbox,
+                        onPart = { partSheet = it },
+                        onDone = { picking = false },
+                    )
+                }
+                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                    ThemeKeyboardPreview(
+                        settings = settings.watch { it },
+                        theme = look.watch { it },
+                        sandbox = previewSandbox,
+                        miniature = true,
+                        // The gallery card's miniature grows into this one. Both
+                        // draw the same theme at two sizes, which is what
+                        // [wmSharedBounds] is for — the keys scale rather than
+                        // being laid out again mid-flight.
+                        modifier = Modifier.wmSharedBounds(landingKey("preview")),
+                        picker = picker.takeIf { picking },
+                    )
+                    // The pencil the issue asked for on the keyboard itself: the
+                    // way into picking, in the corner of the bar it also edits.
+                    if (!picking) {
+                        FilledTonalIconButton(
+                            onClick = { picking = true },
+                            modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).size(32.dp),
+                        ) {
+                            Icon(
+                                Icons.Outlined.Edit,
+                                contentDescription = stringResource(R.string.theme_pick_start_desc),
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -2587,7 +2667,14 @@ fun ThemeEditorScreen(
         }
     }
     RegisterFab {
-        FloatingActionButton(onClick = { keyboardDocked = !keyboardDocked }) {
+        FloatingActionButton(
+            onClick = {
+                keyboardDocked = !keyboardDocked
+                // Picking lives on the pinned miniature, so the docked board
+                // is for typing again.
+                if (keyboardDocked) picking = false
+            },
+        ) {
             Icon(
                 if (keyboardDocked) Icons.Outlined.KeyboardHide else Icons.Outlined.Keyboard,
                 contentDescription = stringResource(
@@ -2837,19 +2924,10 @@ fun ThemeEditorScreen(
             )
         }
         item {
-            // Both bars follow the board until the theme says otherwise, so
-            // their fallback swatch is the board's own colour and Auto is the
-            // resting state (issue #109).
-            NullableColorRow(
-                R.string.theme_suggestion_bar_title,
-                look.watch { it.suggestionBarBackground },
-                fallback = look.watch { it.boardBackground },
-                supportsAlpha = true,
-                info = stringResource(R.string.theme_suggestion_bar_body),
-                onChange = { update { t -> t.copy(suggestionBarBackground = it) } },
-            )
-        }
-        item {
+            // The navigation bar follows the board until the theme says
+            // otherwise, so its fallback swatch is the board's own colour and
+            // Auto is the resting state (issue #109). The strip's twin of this
+            // row lives on the strip's own sheet (#265).
             NullableColorRow(
                 R.string.theme_navigation_bar_title,
                 look.watch { it.navigationBarBackground },
@@ -3661,7 +3739,6 @@ fun ThemeEditorScreen(
         }
     }
 
-    var overrideEditorId by rememberSaveable(lookId) { mutableStateOf<String?>(null) }
     var addOverrideOpen by rememberSaveable(lookId) { mutableStateOf(false) }
     SettingsGroup(
         stringResource(R.string.theme_key_override_section_title),
@@ -3684,15 +3761,27 @@ fun ThemeEditorScreen(
                             )
                         }
                     },
-                    onClick = { overrideEditorId = id },
+                    onClick = {
+                        overrideEditorTitle = null
+                        overrideEditorId = id
+                    },
                 )
             }
         }
         item {
-            OutlinedButton(
-                onClick = { addOverrideOpen = true },
+            // Pressing the key itself is the usual way in (#265); typing its
+            // letter stays for the key a layout the preview is not showing has.
+            Row(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            ) { Text(stringResource(R.string.theme_key_override_add_action)) }
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Button(onClick = { picking = true }) {
+                    Text(stringResource(R.string.theme_key_override_pick_action))
+                }
+                OutlinedButton(onClick = { addOverrideOpen = true }) {
+                    Text(stringResource(R.string.theme_key_override_add_action))
+                }
+            }
         }
     }
     if (addOverrideOpen) {
@@ -3702,6 +3791,7 @@ fun ThemeEditorScreen(
                 update { t ->
                     t.copy(keyOverrides = t.keyOverrides + (id to (t.keyOverrides[id] ?: KeyOverride())))
                 }
+                overrideEditorTitle = null
                 overrideEditorId = id
             },
             onDismiss = { addOverrideOpen = false },
@@ -3710,6 +3800,7 @@ fun ThemeEditorScreen(
     overrideEditorId?.let { id ->
         KeyOverrideDialog(
             id = id,
+            title = overrideEditorTitle,
             look = look,
             popupsShown = popupsOn,
             // The theme's own effect group hides itself under reduce motion,
@@ -3718,7 +3809,10 @@ fun ThemeEditorScreen(
             onChange = { changed ->
                 update { t -> t.copy(keyOverrides = t.keyOverrides + (id to changed)) }
             },
-            onDismiss = { overrideEditorId = null },
+            onDismiss = {
+                overrideEditorId = null
+                overrideEditorTitle = null
+            },
         )
     }
 
@@ -3969,100 +4063,139 @@ fun ThemeEditorScreen(
         }
     }
 
-    SettingsGroup(stringResource(R.string.theme_toolbar_section_title), foldKey = "theme/toolbar") {
+    // The toolbar and the strip are styled on sheets of their own (#265),
+    // opened from these two rows or by pressing either part on the preview, so
+    // the page carries one short group for them instead of two long ones.
+    SettingsGroup(
+        stringResource(R.string.theme_parts_section_title),
+        info = stringResource(R.string.theme_parts_section_body),
+    ) {
         item {
-            // The fill behind the tools, its own row or the strip while the
-            // tools hold it. Auto follows the suggestion strip's fill, which
-            // itself follows the board, so the fallback swatch walks that chain.
-            NullableColorRow(
-                R.string.theme_toolbar_background_title,
-                look.watch { it.toolbarBackground },
-                fallback = look.watch { it.suggestionBarBackground ?: it.boardBackground },
-                supportsAlpha = true,
-                info = stringResource(R.string.theme_toolbar_background_body),
-                onChange = { update { t -> t.copy(toolbarBackground = it) } },
-            )
-        }
-        item {
-            val toolShape = look.watchWith { s, t -> keyShapeKindOrNull(t.toolShape) ?: s.toolShape }
             WmRow(
-                title = stringResource(R.string.theme_tool_shape_title),
-                icon = SettingsRowIcons[R.string.theme_tool_shape_title],
-                subtitle = keyShapeName(toolShape),
-                trailing = {
-                    KeyShapeSwatch(
-                        kind = toolShape,
-                        radiusDp = look.watchWith { s, t -> t.toolCircleRadiusDp ?: s.toolCircleRadiusDp },
-                        color = MaterialTheme.colorScheme.primary,
+                title = stringResource(R.string.theme_toolbar_section_title),
+                icon = SettingsRowIcons[R.string.theme_toolbar_section_title],
+                subtitle = stringResource(R.string.theme_parts_toolbar_subtitle),
+                onClick = { partSheet = ThemePart.TOOLBAR },
+            )
+        }
+        item {
+            WmRow(
+                title = stringResource(R.string.theme_strip_sheet_title),
+                icon = SettingsRowIcons[R.string.theme_strip_sheet_title],
+                subtitle = stringResource(R.string.theme_parts_strip_subtitle),
+                onClick = { partSheet = ThemePart.STRIP },
+            )
+        }
+        item {
+            WmRow(
+                title = stringResource(R.string.theme_pick_start_title),
+                icon = SettingsRowIcons[R.string.theme_pick_start_title],
+                subtitle = stringResource(R.string.theme_pick_start_subtitle),
+                onClick = { picking = true },
+            )
+        }
+    }
+    if (partSheet == ThemePart.TOOLBAR) {
+        ThemePartSheet(
+            title = stringResource(R.string.theme_toolbar_section_title),
+            onDismiss = { partSheet = null },
+        ) {
+            SettingsGroup {
+                item {
+                    // The fill behind the tools, its own row or the strip while the
+                    // tools hold it. Auto follows the suggestion strip's fill, which
+                    // itself follows the board, so the fallback swatch walks that chain.
+                    NullableColorRow(
+                        R.string.theme_toolbar_background_title,
+                        look.watch { it.toolbarBackground },
+                        fallback = look.watch { it.suggestionBarBackground ?: it.boardBackground },
+                        supportsAlpha = true,
+                        info = stringResource(R.string.theme_toolbar_background_body),
+                        onChange = { update { t -> t.copy(toolbarBackground = it) } },
                     )
-                },
-                onClick = { toolShapePickerOpen = true },
-            )
-        }
-        item {
-            NullableColorRow(
-                R.string.theme_tool_icons_title, look.watch { it.toolbarIcon },
-                fallback = look.watch { t ->
-                    colorOf(t.keyText).copy(alpha = 0.65f)
-                        .compositeOver(colorOf(t.boardBackground)).argb()
-                },
-                onChange = { update { t -> t.copy(toolbarIcon = it) } },
-            )
-        }
-        item {
-            NullableColorRow(
-                R.string.theme_tool_circles_title,
-                look.watch { it.toolCircleBackground }, fallback = look.watch { it.effectiveToolCircle() },
-                supportsAlpha = true,
-                onChange = { update { t -> t.copy(toolCircleBackground = it) } },
-            )
-        }
-        item {
-            NullableColorRow(
-                R.string.theme_tool_circle_active_title,
-                look.watch { it.toolCircleActiveBackground }, fallback = look.watch { it.effectivePressed() },
-                supportsAlpha = true,
-                onChange = { update { t -> t.copy(toolCircleActiveBackground = it) } },
-            )
-        }
-        item {
-            // The glyph on an active tool. Its own row rather than a shade of
-            // the fill: a FlorisBoard sheet states the two separately, and
-            // deriving one from the other threw away a colour the theme set.
-            NullableColorRow(
-                R.string.theme_tool_circle_active_icon_title,
-                look.watch { it.toolCircleActiveIcon },
-                fallback = look.watch { it.toolCircleActiveBackground?.let(::onColorFor) ?: it.accent },
-                onChange = { update { t -> t.copy(toolCircleActiveIcon = it) } },
-            )
-        }
-        item {
-            // Colour then width, the way the key border is set: the colour is
-            // what turns the outline on, and the width row appears with it.
-            NullableColorRow(
-                R.string.theme_tool_border_title,
-                look.watch { it.toolBorderColor }, fallback = look.watch { it.toolbarIcon ?: it.keyText },
-                supportsAlpha = true,
-                onChange = { update { t -> t.copy(toolBorderColor = it) } },
-            )
-        }
-        if (hasToolBorder) {
-            item {
-                SliderRow(
-                    R.string.theme_tool_border_width_title,
-                    value = look.watch { it.toolBorderWidthDp },
-                    range = 0f..3f,
-                    display = { "%.1f dp".format(it) },
-                ) { update { t -> t.copy(toolBorderWidthDp = (it * 10).toInt() / 10f) } }
+                }
+                item {
+                    val toolShape = look.watchWith { s, t -> keyShapeKindOrNull(t.toolShape) ?: s.toolShape }
+                    WmRow(
+                        title = stringResource(R.string.theme_tool_shape_title),
+                        icon = SettingsRowIcons[R.string.theme_tool_shape_title],
+                        subtitle = keyShapeName(toolShape),
+                        trailing = {
+                            KeyShapeSwatch(
+                                kind = toolShape,
+                                radiusDp = look.watchWith { s, t -> t.toolCircleRadiusDp ?: s.toolCircleRadiusDp },
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        },
+                        onClick = { toolShapePickerOpen = true },
+                    )
+                }
+                item {
+                    NullableColorRow(
+                        R.string.theme_tool_icons_title, look.watch { it.toolbarIcon },
+                        fallback = look.watch { t ->
+                            colorOf(t.keyText).copy(alpha = 0.65f)
+                                .compositeOver(colorOf(t.boardBackground)).argb()
+                        },
+                        onChange = { update { t -> t.copy(toolbarIcon = it) } },
+                    )
+                }
+                item {
+                    NullableColorRow(
+                        R.string.theme_tool_circles_title,
+                        look.watch { it.toolCircleBackground }, fallback = look.watch { it.effectiveToolCircle() },
+                        supportsAlpha = true,
+                        onChange = { update { t -> t.copy(toolCircleBackground = it) } },
+                    )
+                }
+                item {
+                    NullableColorRow(
+                        R.string.theme_tool_circle_active_title,
+                        look.watch { it.toolCircleActiveBackground }, fallback = look.watch { it.effectivePressed() },
+                        supportsAlpha = true,
+                        onChange = { update { t -> t.copy(toolCircleActiveBackground = it) } },
+                    )
+                }
+                item {
+                    // The glyph on an active tool. Its own row rather than a shade of
+                    // the fill: a FlorisBoard sheet states the two separately, and
+                    // deriving one from the other threw away a colour the theme set.
+                    NullableColorRow(
+                        R.string.theme_tool_circle_active_icon_title,
+                        look.watch { it.toolCircleActiveIcon },
+                        fallback = look.watch { it.toolCircleActiveBackground?.let(::onColorFor) ?: it.accent },
+                        onChange = { update { t -> t.copy(toolCircleActiveIcon = it) } },
+                    )
+                }
+                item {
+                    // Colour then width, the way the key border is set: the colour is
+                    // what turns the outline on, and the width row appears with it.
+                    NullableColorRow(
+                        R.string.theme_tool_border_title,
+                        look.watch { it.toolBorderColor }, fallback = look.watch { it.toolbarIcon ?: it.keyText },
+                        supportsAlpha = true,
+                        onChange = { update { t -> t.copy(toolBorderColor = it) } },
+                    )
+                }
+                if (hasToolBorder) {
+                    item {
+                        SliderRow(
+                            R.string.theme_tool_border_width_title,
+                            value = look.watch { it.toolBorderWidthDp },
+                            range = 0f..3f,
+                            display = { "%.1f dp".format(it) },
+                        ) { update { t -> t.copy(toolBorderWidthDp = (it * 10).toInt() / 10f) } }
+                    }
+                }
+                item {
+                    SliderRow(
+                        R.string.theme_tool_elevation_title,
+                        value = look.watch { it.toolElevationDp },
+                        range = 0f..MAX_ELEVATION_DP,
+                        display = { "%.1f dp".format(it) },
+                    ) { update { t -> t.copy(toolElevationDp = (it * 10).toInt() / 10f) } }
+                }
             }
-        }
-        item {
-            SliderRow(
-                R.string.theme_tool_elevation_title,
-                value = look.watch { it.toolElevationDp },
-                range = 0f..MAX_ELEVATION_DP,
-                display = { "%.1f dp".format(it) },
-            ) { update { t -> t.copy(toolElevationDp = (it * 10).toInt() / 10f) } }
         }
     }
 
@@ -4074,39 +4207,6 @@ fun ThemeEditorScreen(
                 supportsAlpha = true,
                 onChange = { update { t -> t.copy(chipBackground = it) } },
             )
-        }
-        item {
-            NullableColorRow(
-                R.string.theme_suggestion_text_title,
-                look.watch { it.suggestionText }, fallback = look.watch { it.keyText },
-                onChange = { update { t -> t.copy(suggestionText = it) } },
-            )
-        }
-        item {
-            // The suggestions beside the primary one: their own colour, and
-            // their size as a share of the primary's (#504). Auto is the
-            // strip's text colour at full size, which is what they always were.
-            NullableColorRow(
-                R.string.theme_other_suggestions_title,
-                look.watch { it.secondarySuggestionText },
-                fallback = look.watch { it.suggestionText ?: it.keyText },
-                info = stringResource(R.string.theme_other_suggestions_body),
-                onChange = { update { t -> t.copy(secondarySuggestionText = it) } },
-            )
-        }
-        item {
-            SliderRow(
-                R.string.theme_other_suggestions_size_title,
-                value = look.watch { it.secondarySuggestionScale ?: 1f },
-                range = SECONDARY_SUGGESTION_SCALE_RANGE,
-                display = { "${(it * 100).roundToInt()}%" },
-                info = stringResource(R.string.theme_other_suggestions_size_body),
-            ) {
-                // Stored in 5% steps, and the resting value stays null so a
-                // theme that never touched the slider stays "same size".
-                val stepped = (it * 20).roundToInt() / 20f
-                update { t -> t.copy(secondarySuggestionScale = stepped.takeIf { s -> s != 1f }) }
-            }
         }
         item {
             // The quieter line beside the main one, and the hairlines between
@@ -4130,6 +4230,65 @@ fun ThemeEditorScreen(
                 info = stringResource(R.string.theme_divider_body),
                 onChange = { update { t -> t.copy(dividerColor = it) } },
             )
+        }
+    }
+
+    // The strip's own colours and the size of the words beside the first one,
+    // on a sheet the strip opens when it is pressed on the preview (#265). The
+    // preview puts a few words on the strip while the sheet is up.
+    if (partSheet == ThemePart.STRIP) {
+        ThemePartSheet(
+            title = stringResource(R.string.theme_strip_sheet_title),
+            onDismiss = { partSheet = null },
+        ) {
+            SettingsGroup {
+                item {
+                    // The strip follows the board until the theme says otherwise, so
+                    // its fallback swatch is the board's own colour and Auto is the
+                    // resting state (issue #109).
+                    NullableColorRow(
+                        R.string.theme_suggestion_bar_title,
+                        look.watch { it.suggestionBarBackground },
+                        fallback = look.watch { it.boardBackground },
+                        supportsAlpha = true,
+                        info = stringResource(R.string.theme_suggestion_bar_body),
+                        onChange = { update { t -> t.copy(suggestionBarBackground = it) } },
+                    )
+                }
+                item {
+                    NullableColorRow(
+                        R.string.theme_suggestion_text_title,
+                        look.watch { it.suggestionText }, fallback = look.watch { it.keyText },
+                        onChange = { update { t -> t.copy(suggestionText = it) } },
+                    )
+                }
+                item {
+                    // The suggestions beside the primary one: their own colour, and
+                    // their size as a share of the primary's (#504). Auto is the
+                    // strip's text colour at full size, which is what they always were.
+                    NullableColorRow(
+                        R.string.theme_other_suggestions_title,
+                        look.watch { it.secondarySuggestionText },
+                        fallback = look.watch { it.suggestionText ?: it.keyText },
+                        info = stringResource(R.string.theme_other_suggestions_body),
+                        onChange = { update { t -> t.copy(secondarySuggestionText = it) } },
+                    )
+                }
+                item {
+                    SliderRow(
+                        R.string.theme_other_suggestions_size_title,
+                        value = look.watch { it.secondarySuggestionScale ?: 1f },
+                        range = SECONDARY_SUGGESTION_SCALE_RANGE,
+                        display = { "${(it * 100).roundToInt()}%" },
+                        info = stringResource(R.string.theme_other_suggestions_size_body),
+                    ) {
+                        // Stored in 5% steps, and the resting value stays null so a
+                        // theme that never touched the slider stays "same size".
+                        val stepped = (it * 20).roundToInt() / 20f
+                        update { t -> t.copy(secondarySuggestionScale = stepped.takeIf { s -> s != 1f }) }
+                    }
+                }
+            }
         }
     }
 
@@ -5177,6 +5336,132 @@ private enum class KeyTextureSlot(@StringRes val titleRes: Int, val fileTag: Str
     }
 }
 
+/** The parts of the keyboard with a sheet of their own in the theme editor (#265). */
+private enum class ThemePart { TOOLBAR, STRIP }
+
+/**
+ * One part of the keyboard's style, on a sheet that opens half-way (#265).
+ *
+ * Half-way is the point: the editor's pinned preview sits at the top of the
+ * screen, so a sheet that leaves it showing lets every row be judged against
+ * the keyboard it changes, which a dialog over the whole screen could not.
+ * The scrim is light for the same reason.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ThemePartSheet(title: String, onDismiss: () -> Unit, content: @Composable () -> Unit) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(),
+        scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = PartSheetScrimAlpha),
+    ) {
+        Text(
+            title,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp),
+        )
+        // Out of the screen's staged entrance: that ledger hands places to the
+        // groups the page composed as it opened, and a group arriving on a
+        // sheet long after would queue behind a wave that has already passed.
+        CompositionLocalProvider(LocalScreenReveal provides null) {
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 24.dp),
+            ) { content() }
+        }
+    }
+}
+
+private const val PartSheetScrimAlpha = 0.12f
+
+/**
+ * The strip over the preview while the editor is picking (#265): which grid
+ * the keyboard shows, since every key on it now picks rather than switches,
+ * and the toolbar and the strip as parts to pick in their own right.
+ *
+ * The typing layers are the ones the keyboard can reach from the letters; the
+ * panels are every panel that is a grid of keys, the same set the layout
+ * editor lists, named the way it names them.
+ */
+@Composable
+private fun PickBar(
+    settings: LiveSettings,
+    sandbox: MutableState<ThemePreviewSandbox>,
+    onPart: (ThemePart) -> Unit,
+    onDone: () -> Unit,
+) {
+    val box = sandbox.value
+    val activeLayoutId = settings.watch { it.activeLayoutId }
+    val customs = settings.watch { it.customLayouts }
+    val layoutId = box.layoutId ?: activeLayoutId
+    val hasFn = remember(customs, layoutId) { resolveLayout(customs, layoutId).layer(LayoutLayer.FN) != null }
+    val layers = remember(hasFn) {
+        listOfNotNull(
+            LayoutLayer.LETTERS to LayoutMode.LETTERS,
+            LayoutLayer.SYMBOLS to LayoutMode.SYMBOLS,
+            LayoutLayer.SYMBOLS_SHIFTED to LayoutMode.SYMBOLS_SHIFTED,
+            (LayoutLayer.FN to LayoutMode.FN).takeIf { hasFn },
+        )
+    }
+    val panels = remember {
+        PanelKind.entries.filter { it.shipped }.mapNotNull { kind ->
+            PanelMode.entries.firstOrNull { it.layoutKind == kind }?.let { kind to it }
+        }
+    }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.padding(start = 16.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                stringResource(R.string.theme_pick_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = onDone) { Text(stringResource(CommonR.string.common_done)) }
+        }
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            items(layers) { (layer, mode) ->
+                FilterChip(
+                    selected = box.panel == PanelMode.NONE && box.layoutMode == mode,
+                    onClick = { sandbox.value = sandbox.value.showingLayer(mode) },
+                    label = { Text(stringResource(layerTitleRes(layer)), maxLines = 1) },
+                )
+            }
+            items(panels) { (kind, mode) ->
+                FilterChip(
+                    selected = box.panel == mode,
+                    onClick = { sandbox.value = sandbox.value.showingPanel(mode) },
+                    label = { Text(stringResource(panelTitleRes(kind)), maxLines = 1) },
+                )
+            }
+            // The two parts that are not keys, as chips with the pencil the
+            // issue asked for: pressing them on the preview works too, but the
+            // strip is not on screen until there is something on it.
+            item {
+                PartChip(stringResource(R.string.theme_toolbar_section_title)) { onPart(ThemePart.TOOLBAR) }
+            }
+            item {
+                PartChip(stringResource(R.string.theme_strip_sheet_title)) { onPart(ThemePart.STRIP) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PartChip(title: String, onClick: () -> Unit) {
+    AssistChip(
+        onClick = onClick,
+        label = { Text(title, maxLines = 1) },
+        leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null, modifier = Modifier.size(16.dp)) },
+    )
+}
+
 /**
  * The special keys the per-key style editor offers, with the id convention the
  * keyboard resolves (`keyOverrideId`): the action's name in uppercase.
@@ -5185,13 +5470,24 @@ private val specialOverrideKeys = listOf(
     "ENTER", "SPACE", "SHIFT", "DELETE", "SYMBOLS", "EMOJI", "LANGUAGESWITCH",
 )
 
-/** How an override id reads in the editor list: `A` for a letter, `Enter` for a special. */
-private fun keyOverrideDisplayName(id: String): String =
-    if (id.length <= 2 && id.none { it.isUpperCase() }) {
-        id.uppercase()
-    } else {
-        id.lowercase().replaceFirstChar { it.uppercase() }
+/**
+ * How an override id reads in the editor list: `A` for a letter, `Enter` for a
+ * special, and the operation or tool's own name for a key that carries one
+ * (`EDIT_LEFT` as "Left", `TOOL_CLIPBOARD` as "Clipboard", #265).
+ */
+@Composable
+private fun keyOverrideDisplayName(id: String): String {
+    if (id.length <= 2 && id.none { it.isUpperCase() }) return id.uppercase()
+    val param = id.substringAfter('_', missingDelimiterValue = "")
+    val named = when (id.substringBefore('_')) {
+        "EDIT" -> TextEditAction.entries.firstOrNull { it.name == param }
+            ?.let { stringResource(textEditActionTitle(it)) }
+        "TOOL" -> ToolbarTool.entries.firstOrNull { it.name == param }
+            ?.let { stringResource(toolTitle(it)) }
+        else -> null
     }
+    return named ?: humanisedOverrideId(id)
+}
 
 /** Picks which key gets its own style: type a letter, or choose a special key. */
 @Composable
@@ -5248,6 +5544,8 @@ private fun AddKeyOverrideDialog(onAdd: (String) -> Unit, onDismiss: () -> Unit)
 @Composable
 private fun KeyOverrideDialog(
     id: String,
+    /** The picked key's own name, when it was picked on the preview; null names it by [id]. */
+    title: String?,
     look: OpenLook,
     /** Off while key popups are, which is what hides the two popup colours. */
     popupsShown: Boolean,
@@ -5296,160 +5594,158 @@ private fun KeyOverrideDialog(
             offerNone = true,
         )
     }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(keyOverrideDisplayName(id)) },
-        text = {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+    // A sheet rather than a dialog (#265): it leaves the pinned preview in
+    // sight above it, so the key changes under the user's eyes as they pick.
+    ThemePartSheet(
+        title = title ?: keyOverrideDisplayName(id),
+        onDismiss = onDismiss,
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+            NullableColorRow(
+                R.string.theme_key_background_title,
+                override.background, fallback = theme.keyBackground,
+                supportsAlpha = true,
+                onChange = { onChange(override.copy(background = it)) },
+            )
+            NullableColorRow(
+                R.string.theme_key_text_title,
+                override.text, fallback = theme.keyText,
+                onChange = { onChange(override.copy(text = it)) },
+            )
+            NullableColorRow(
+                R.string.theme_hint_text_title,
+                override.hint, fallback = theme.hintText ?: theme.keyText,
+                onChange = { onChange(override.copy(hint = it)) },
+            )
+            NullableColorRow(
+                R.string.theme_key_border_title,
+                override.border, fallback = theme.keyBorderColor ?: theme.keyText,
+                onChange = { onChange(override.copy(border = it)) },
+            )
+            if (popupsShown) {
                 NullableColorRow(
-                    R.string.theme_key_background_title,
-                    override.background, fallback = theme.keyBackground,
-                    supportsAlpha = true,
-                    onChange = { onChange(override.copy(background = it)) },
+                    R.string.theme_popup_background_title,
+                    override.popupBackground,
+                    fallback = theme.popupBackground ?: theme.keyBackground,
+                    onChange = { onChange(override.copy(popupBackground = it)) },
                 )
                 NullableColorRow(
-                    R.string.theme_key_text_title,
-                    override.text, fallback = theme.keyText,
-                    onChange = { onChange(override.copy(text = it)) },
+                    R.string.theme_popup_text_title,
+                    override.popupText, fallback = theme.popupText ?: theme.keyText,
+                    onChange = { onChange(override.copy(popupText = it)) },
                 )
-                NullableColorRow(
-                    R.string.theme_hint_text_title,
-                    override.hint, fallback = theme.hintText ?: theme.keyText,
-                    onChange = { onChange(override.copy(hint = it)) },
-                )
-                NullableColorRow(
-                    R.string.theme_key_border_title,
-                    override.border, fallback = theme.keyBorderColor ?: theme.keyText,
-                    onChange = { onChange(override.copy(border = it)) },
-                )
-                if (popupsShown) {
-                    NullableColorRow(
-                        R.string.theme_popup_background_title,
-                        override.popupBackground,
-                        fallback = theme.popupBackground ?: theme.keyBackground,
-                        onChange = { onChange(override.copy(popupBackground = it)) },
+            }
+            WmRow(
+                title = stringResource(R.string.theme_key_override_texture_title),
+                subtitle = stringResource(
+                    if (override.texture != null) {
+                        R.string.theme_texture_set_label
+                    } else {
+                        R.string.theme_key_override_texture_unset
+                    },
+                ),
+                leading = { ImageThumb(override.texture) },
+                trailing = {
+                    if (override.texture != null) {
+                        IconButton(
+                            onClick = {
+                                override.texture?.let { File(it).delete() }
+                                onChange(override.copy(texture = null))
+                            },
+                        ) {
+                            Icon(
+                                Icons.Outlined.Delete,
+                                contentDescription =
+                                    stringResource(CommonR.string.common_remove),
+                            )
+                        }
+                    }
+                },
+                onClick = {
+                    texturePicker.launch(
+                        PickVisualMediaRequest(
+                            ActivityResultContracts.PickVisualMedia.ImageOnly,
+                        ),
                     )
-                    NullableColorRow(
-                        R.string.theme_popup_text_title,
-                        override.popupText, fallback = theme.popupText ?: theme.keyText,
-                        onChange = { onChange(override.copy(popupText = it)) },
-                    )
-                }
-                WmRow(
-                    title = stringResource(R.string.theme_key_override_texture_title),
-                    subtitle = stringResource(
-                        if (override.texture != null) {
-                            R.string.theme_texture_set_label
-                        } else {
-                            R.string.theme_key_override_texture_unset
-                        },
-                    ),
-                    leading = { ImageThumb(override.texture) },
-                    trailing = {
-                        if (override.texture != null) {
-                            IconButton(
-                                onClick = {
-                                    override.texture?.let { File(it).delete() }
-                                    onChange(override.copy(texture = null))
-                                },
-                            ) {
-                                Icon(
-                                    Icons.Outlined.Delete,
-                                    contentDescription =
-                                        stringResource(CommonR.string.common_remove),
-                                )
-                            }
+                },
+            )
+            if (effectsShown) {
+                // Only the drawn kinds: a per-key image set would be a
+                // transport and memory cost out of proportion to the
+                // feature. See KeyOverride.effect.
+                val kinds = KeyEffectKind.entries.filter { it != KeyEffectKind.CUSTOM_IMAGE }
+                ChoiceControl(
+                    options = listOf<KeyEffectKind?>(null).plus(kinds).map { kind ->
+                        kind to when (kind) {
+                            null -> stringResource(CommonR.string.common_auto)
+                            KeyEffectKind.STARS ->
+                                stringResource(R.string.theme_effect_stars_label)
+                            KeyEffectKind.HEARTS ->
+                                stringResource(R.string.theme_effect_hearts_label)
+                            KeyEffectKind.SPARKLE ->
+                                stringResource(R.string.theme_effect_sparkle_label)
+                            KeyEffectKind.CONFETTI ->
+                                stringResource(R.string.theme_effect_confetti_label)
+                            else -> stringResource(R.string.theme_effect_emoji_label)
                         }
                     },
-                    onClick = {
-                        texturePicker.launch(
-                            PickVisualMediaRequest(
-                                ActivityResultContracts.PickVisualMedia.ImageOnly,
-                            ),
-                        )
-                    },
-                )
-                if (effectsShown) {
-                    // Only the drawn kinds: a per-key image set would be a
-                    // transport and memory cost out of proportion to the
-                    // feature. See KeyOverride.effect.
-                    val kinds = KeyEffectKind.entries.filter { it != KeyEffectKind.CUSTOM_IMAGE }
-                    ChoiceControl(
-                        options = listOf<KeyEffectKind?>(null).plus(kinds).map { kind ->
-                            kind to when (kind) {
-                                null -> stringResource(CommonR.string.common_auto)
-                                KeyEffectKind.STARS ->
-                                    stringResource(R.string.theme_effect_stars_label)
-                                KeyEffectKind.HEARTS ->
-                                    stringResource(R.string.theme_effect_hearts_label)
-                                KeyEffectKind.SPARKLE ->
-                                    stringResource(R.string.theme_effect_sparkle_label)
-                                KeyEffectKind.CONFETTI ->
-                                    stringResource(R.string.theme_effect_confetti_label)
-                                else -> stringResource(R.string.theme_effect_emoji_label)
-                            }
-                        },
-                        selected = override.effectKind,
-                        modifier = Modifier.padding(vertical = 8.dp),
-                        label = stringResource(R.string.theme_key_override_effect_label),
-                    ) { kind -> onChange(override.copy(effect = kind?.name)) }
-                    if (override.effectKind == KeyEffectKind.EMOJI) {
-                        // Local state while typing, for the reason the theme's
-                        // own emoji field keeps it: the DataStore echo would
-                        // scramble the caret mid-edit.
-                        var emoji by remember(id) { mutableStateOf(override.effectParam.orEmpty()) }
-                        OutlinedTextField(
-                            value = emoji,
-                            onValueChange = { text ->
-                                val clipped = text.take(16)
-                                emoji = clipped
-                                onChange(override.copy(effectParam = clipped))
-                            },
-                            singleLine = true,
-                            label = {
-                                Text(stringResource(R.string.theme_effect_emoji_field_label))
-                            },
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                        )
-                    }
-                }
-                WmRow(
-                    title = stringResource(R.string.theme_key_override_shape_title),
-                    icon = SettingsRowIcons[R.string.theme_key_override_shape_title],
-                    subtitle = keyShapeKindOrNull(override.shape)?.let { keyShapeName(it) }
-                        ?: stringResource(CommonR.string.common_auto),
-                    onClick = { shapePickerOpen = true },
-                )
-                ChoiceControl(
-                    options = listOf(
-                        null to stringResource(CommonR.string.common_auto),
-                        false to stringResource(CommonR.string.common_off),
-                        true to stringResource(CommonR.string.common_on),
-                    ),
-                    selected = override.bold,
+                    selected = override.effectKind,
                     modifier = Modifier.padding(vertical = 8.dp),
-                    label = stringResource(R.string.theme_key_override_bold_label),
-                ) { bold -> onChange(override.copy(bold = bold)) }
-                ToggleSetting(
-                    title = R.string.theme_key_override_label_size_title,
-                    subtitle = override.labelScale?.let { "${(it * 100).toInt()}%" }
-                        ?: stringResource(CommonR.string.common_auto),
-                    checked = override.labelScale != null,
-                ) { on -> onChange(override.copy(labelScale = if (on) 1f else null)) }
-                override.labelScale?.let { scale ->
-                    SliderRow(
-                        R.string.theme_key_override_label_size_title,
-                        value = scale,
-                        range = KEY_OVERRIDE_LABEL_SCALE_RANGE,
-                        display = { "${(it * 100).toInt()}%" },
-                    ) { onChange(override.copy(labelScale = (it * 20).toInt() / 20f)) }
+                    label = stringResource(R.string.theme_key_override_effect_label),
+                ) { kind -> onChange(override.copy(effect = kind?.name)) }
+                if (override.effectKind == KeyEffectKind.EMOJI) {
+                    // Local state while typing, for the reason the theme's
+                    // own emoji field keeps it: the DataStore echo would
+                    // scramble the caret mid-edit.
+                    var emoji by remember(id) { mutableStateOf(override.effectParam.orEmpty()) }
+                    OutlinedTextField(
+                        value = emoji,
+                        onValueChange = { text ->
+                            val clipped = text.take(16)
+                            emoji = clipped
+                            onChange(override.copy(effectParam = clipped))
+                        },
+                        singleLine = true,
+                        label = {
+                            Text(stringResource(R.string.theme_effect_emoji_field_label))
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    )
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_done)) }
-        },
-    )
+            WmRow(
+                title = stringResource(R.string.theme_key_override_shape_title),
+                icon = SettingsRowIcons[R.string.theme_key_override_shape_title],
+                subtitle = keyShapeKindOrNull(override.shape)?.let { keyShapeName(it) }
+                    ?: stringResource(CommonR.string.common_auto),
+                onClick = { shapePickerOpen = true },
+            )
+            ChoiceControl(
+                options = listOf(
+                    null to stringResource(CommonR.string.common_auto),
+                    false to stringResource(CommonR.string.common_off),
+                    true to stringResource(CommonR.string.common_on),
+                ),
+                selected = override.bold,
+                modifier = Modifier.padding(vertical = 8.dp),
+                label = stringResource(R.string.theme_key_override_bold_label),
+            ) { bold -> onChange(override.copy(bold = bold)) }
+            ToggleSetting(
+                title = R.string.theme_key_override_label_size_title,
+                subtitle = override.labelScale?.let { "${(it * 100).toInt()}%" }
+                    ?: stringResource(CommonR.string.common_auto),
+                checked = override.labelScale != null,
+            ) { on -> onChange(override.copy(labelScale = if (on) 1f else null)) }
+            override.labelScale?.let { scale ->
+                SliderRow(
+                    R.string.theme_key_override_label_size_title,
+                    value = scale,
+                    range = KEY_OVERRIDE_LABEL_SCALE_RANGE,
+                    display = { "${(it * 100).toInt()}%" },
+                ) { onChange(override.copy(labelScale = (it * 20).toInt() / 20f)) }
+            }
+        }
+    }
 }
 
 /**

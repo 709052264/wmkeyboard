@@ -14344,7 +14344,11 @@ internal fun keyVisual(
     // The theme's own style for this one key, if it carries one. Applied over
     // the class colours below, but never over a latch — an armed modifier has
     // to look armed whatever colour its face was given.
-    val overrideId = if (palette.overrides.isEmpty()) null else keyOverrideId(key)
+    val overrideId = if (palette.overrides.isEmpty()) {
+        null
+    } else {
+        keyOverrideIds(key).firstOrNull { it in palette.overrides }
+    }
     val override = overrideId?.let { palette.overrides[it] }
     val overrideBackground = override?.background
         ?.takeIf { latch == null || latch == ModifierState.OFF }
@@ -14459,12 +14463,36 @@ internal fun KeyVisual.drawnLabelScale(): Float? = key.drawnLabelScale() ?: labe
  * label for letter keys — so an override follows the letter across layouts —
  * and the action's name (`ENTER`, `SHIFT`, `SPACE`, `DELETE`, `SYMBOLS`,
  * `MOD_CTRL`, …) for everything else. Null for a letter key with no label.
+ *
+ * An action that carries a parameter names it too (`EDIT_LEFT`, `TOOL_CLIPBOARD`,
+ * `LAYERSWITCH_PAGE2`), so the arrows of the text-editing pad can be styled
+ * apart from its Home and End (issue #265). This is the id the theme editor's
+ * key picker writes; [keyOverrideIds] is what the keyboard looks up.
  */
-internal fun keyOverrideId(key: Key): String? = when (val action = key.action) {
-    KeyAction.Text -> key.label.takeIf { it.isNotBlank() }?.lowercase()
-    is KeyAction.Mod -> "MOD_${action.key.name}"
-    else -> action::class.simpleName?.uppercase()
+internal fun keyOverrideId(key: Key): String? = keyOverrideIds(key).firstOrNull()
+
+/**
+ * Every entry name that can style [key], most specific first. A parameterised
+ * action answers to its own name and then to its class's, so a theme written
+ * before ids carried the parameter — or by an importer that only knows the
+ * class — still styles every key of that class, and a key given a style of its
+ * own wins over it whole.
+ */
+internal fun keyOverrideIds(key: Key): List<String> = when (val action = key.action) {
+    KeyAction.Text -> listOfNotNull(key.label.takeIf { it.isNotBlank() }?.lowercase())
+    is KeyAction.Mod -> listOf("MOD_${action.key.name}")
+    is KeyAction.Edit -> listOf("EDIT_${action.op.name}", "EDIT")
+    is KeyAction.Tool -> listOf("TOOL_${action.tool.name}", "TOOL")
+    is KeyAction.SendKey -> listOf("SENDKEY_${action.keyCode}", "SENDKEY")
+    is KeyAction.LayerSwitch -> parameterisedIds("LAYERSWITCH", action.layer)
+    is KeyAction.Layout -> parameterisedIds("LAYOUT", action.id)
+    is KeyAction.BrailleDot -> listOf("BRAILLEDOT_${action.dot}", "BRAILLEDOT")
+    else -> listOfNotNull(action::class.simpleName?.uppercase())
 }
+
+/** [base] with [param] appended, then [base] alone; a blank parameter is just [base]. */
+private fun parameterisedIds(base: String, param: String): List<String> =
+    if (param.isBlank()) listOf(base) else listOf("${base}_${param.uppercase()}", base)
 
 /**
  * Whether the spacebar's language-cycle arrows are drawn. They only mean

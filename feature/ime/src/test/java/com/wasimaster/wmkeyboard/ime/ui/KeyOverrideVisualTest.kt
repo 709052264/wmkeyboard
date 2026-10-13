@@ -9,6 +9,8 @@ import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
 import com.wasimaster.wmkeyboard.core.layout.ModifierKey
 import com.wasimaster.wmkeyboard.core.layout.compile
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.TextEditAction
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.theme.KEY_OVERRIDE_LABEL_SCALE_RANGE
 import com.wasimaster.wmkeyboard.core.theme.KeyOverride
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -96,6 +98,52 @@ class KeyOverrideVisualTest {
     }
 
     @Test
+    fun `a key with a parameter is named by it, then by its class`() {
+        val left = Key("", action = KeyAction.Edit(TextEditAction.LEFT))
+        assertEquals(listOf("EDIT_LEFT", "EDIT"), keyOverrideIds(left))
+        assertEquals("EDIT_LEFT", keyOverrideId(left))
+        assertEquals(
+            listOf("TOOL_CLIPBOARD", "TOOL"),
+            keyOverrideIds(Key("", action = KeyAction.Tool(ToolbarTool.CLIPBOARD))),
+        )
+        assertEquals(
+            listOf("LAYERSWITCH_PAGE2", "LAYERSWITCH"),
+            keyOverrideIds(Key("", action = KeyAction.LayerSwitch("page2"))),
+        )
+        // A blank parameter is the editor's placeholder, not a name.
+        assertEquals(listOf("LAYOUT"), keyOverrideIds(Key("", action = KeyAction.Layout(""))))
+    }
+
+    @Test
+    fun `a style for one arrow leaves the other edit keys alone`() {
+        val palette = palette(mapOf("EDIT_LEFT" to KeyOverride(background = red)))
+        val left = keyVisual(Key("", action = KeyAction.Edit(TextEditAction.LEFT)), state(), palette)
+        val home = keyVisual(Key("", action = KeyAction.Edit(TextEditAction.HOME)), state(), palette)
+        assertEquals(Color(red.toInt()), left.background)
+        assertEquals("EDIT_LEFT", left.overrideId)
+        assertEquals(Color.Gray, home.background)
+        assertNull(home.overrideId)
+    }
+
+    @Test
+    fun `a class-wide style still reaches every key of the class, and a key's own beats it`() {
+        val palette = palette(
+            mapOf(
+                "EDIT" to KeyOverride(background = red),
+                "EDIT_HOME" to KeyOverride(text = red),
+            ),
+        )
+        val left = keyVisual(Key("", action = KeyAction.Edit(TextEditAction.LEFT)), state(), palette)
+        assertEquals(Color(red.toInt()), left.background)
+        assertEquals("EDIT", left.overrideId)
+        // Whole, not merged: Home's own style says nothing about its face.
+        val home = keyVisual(Key("", action = KeyAction.Edit(TextEditAction.HOME)), state(), palette)
+        assertEquals(Color.Gray, home.background)
+        assertEquals(Color(red.toInt()), home.contentColor)
+        assertEquals("EDIT_HOME", home.overrideId)
+    }
+
+    @Test
     fun `an override keyed by letter is case-insensitive to the label`() {
         val palette = palette(mapOf("a" to KeyOverride(background = red)))
         val upper = keyVisual(Key("A"), state(), palette)
@@ -144,9 +192,9 @@ class KeyOverrideVisualTest {
     fun `the override id rides the visual for the texture and the burst`() {
         val palette = palette(mapOf("a" to KeyOverride(background = red)))
         assertEquals("a", keyVisual(Key("a"), state(), palette).overrideId)
-        // Keys the theme never named carry an id too, so one override does not
-        // make every other key look one up.
-        assertEquals("b", keyVisual(Key("b"), state(), palette).overrideId)
+        // A key the theme never named carries none, so the texture and the
+        // burst go straight to the class answer.
+        assertNull(keyVisual(Key("b"), state(), palette).overrideId)
         // A theme with no single-key styles at all asks nothing of any key.
         assertNull(keyVisual(Key("a"), state(), palette()).overrideId)
     }

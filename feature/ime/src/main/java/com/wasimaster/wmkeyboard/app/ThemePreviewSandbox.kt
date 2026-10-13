@@ -50,17 +50,26 @@ data class ThemePreviewSandbox(
     val layoutId: String? = null,
     /** When shift was last tapped, for the caps-lock double tap. */
     val lastShiftTapMs: Long = 0L,
+    /**
+     * Words the editor puts on the strip while the user styles it (#265), so
+     * there is a strip to look at without typing one up. Empty the rest of the
+     * time, which is the only time the preview types.
+     */
+    val sampleSuggestions: List<String> = emptyList(),
 ) {
     /**
      * The strip's words: the word under the caret, the way the real strip leads
      * with what was typed. There is no engine behind the preview to offer more,
      * and inventing completions would show the user predictions their keyboard
-     * never makes.
+     * never makes — except while the strip itself is being styled, when the
+     * editor's [sampleSuggestions] stand in.
      */
     val suggestions: List<String>
-        get() = text.takeLastWhile { !it.isWhitespace() }.takeIf { it.isNotEmpty() }
-            ?.let { listOf(it) }
-            ?: emptyList()
+        get() = sampleSuggestions.ifEmpty {
+            text.takeLastWhile { !it.isWhitespace() }.takeIf { it.isNotEmpty() }
+                ?.let { listOf(it) }
+                ?: emptyList()
+        }
 
     /**
      * One key of the grid, as the keyboard would take it.
@@ -128,6 +137,16 @@ data class ThemePreviewSandbox(
      */
     fun onPanel(panel: PanelMode): ThemePreviewSandbox =
         copy(panel = if (this.panel == panel) PanelMode.NONE else panel)
+
+    /**
+     * A typing layer put on screen by the theme editor's key picker (#265),
+     * which has no ?123 key to press: every key there picks rather than types.
+     */
+    fun showingLayer(mode: LayoutMode): ThemePreviewSandbox =
+        copy(layoutMode = mode, panel = PanelMode.NONE)
+
+    /** A panel put on screen by the key picker, outright rather than toggled. */
+    fun showingPanel(panel: PanelMode): ThemePreviewSandbox = copy(panel = panel)
 
     /** A word taken from the strip: replaces the word being typed and ends it. */
     fun onSuggestion(word: String, context: SandboxContext): ThemePreviewSandbox {

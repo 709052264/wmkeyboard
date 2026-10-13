@@ -1519,6 +1519,9 @@ internal object SettingsRowIcons {
         put(R.string.theme_popup_selected_title) { Icons.Outlined.Highlight }
         put(R.string.theme_popup_selected_text_title) { Icons.Outlined.FormatColorText }
         put(R.string.theme_menu_shape_title) { Icons.Outlined.Category }
+        put(R.string.theme_toolbar_section_title) { Icons.Outlined.Widgets }
+        put(R.string.theme_strip_sheet_title) { Icons.Outlined.Subtitles }
+        put(R.string.theme_pick_start_title) { Icons.Outlined.TouchApp }
         put(R.string.theme_toolbar_background_title) { Icons.Outlined.FormatColorFill }
         put(R.string.theme_tool_shape_title) { Icons.Outlined.Category }
         put(R.string.theme_tool_icons_title) { Icons.Outlined.Widgets }

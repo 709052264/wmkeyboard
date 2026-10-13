@@ -235,6 +235,7 @@ Six slots when Key popup (under Key press) is on, five without it, one image eac
 
 | Control | What it does |
 |---|---|
+| Pick on keyboard | Turns the pinned preview into a picker: pressing a key opens its sheet. Chips above the preview switch it to Letters, Symbols, Symbols 2, Fn (when the layout has one) or any panel that is a grid of keys |
 | Add a key | Dialog: type a letter, or pick one of Enter, Space, Shift, Delete, Symbols, Emoji, Languageswitch (the globe key) |
 | A key's row | Opens that key's own style sheet, below |
 | Bin icon | Drops the whole override for that key |
@@ -250,7 +251,7 @@ A key's sheet:
 | Bold label | Automatic / Off / On |
 | Label size | Switch to set one, then a slider from 30% to 200% of a letter's size |
 
-A letter's style follows that letter onto every layout that has it. Anything you leave unset keeps following the theme, and an armed or locked modifier still shows the accent or pressed face whatever colour you gave it. A label size the layout gave the key in the layout editor beats the theme's.
+A letter's style follows that letter onto every layout that has it. A key that does one particular thing (an arrow or Home on the text-editing pad, a tool key, a page key) is styled for that thing alone, and a style an older or imported theme gave the whole family still reaches every key with none of its own. The sheet opens half-way, so the pinned preview shows each change as you make it. Anything you leave unset keeps following the theme, and an armed or locked modifier still shows the accent or pressed face whatever colour you gave it. A label size the layout gave the key in the layout editor beats the theme's.
 
 ### Stickers
 
@@ -281,7 +282,15 @@ Purely decorative images laid over the keys. The layer takes no touches, so typi
 
 Accent drives the shift-on tint, the active-tool highlight, and buttons across the panels. Popup shape covers every popup surface, from the character bubble to the long-press alternates, the language list, and the panel menus. Menu shape is the exception. On **Automatic**, the list menus take Popup shape only when it's one of the four plain outlines (Rounded, Square, Cut, Squircle), and fall back to Rounded otherwise, since a slanted or scalloped menu clips its own rows. Picking a shape here overrules that.
 
-### Toolbar
+### Toolbar and strip
+
+| Control | What it does |
+|---|---|
+| Toolbar | Opens the toolbar's sheet, below |
+| Suggestion strip | Opens the strip's sheet, below. The preview shows a few sample words on the strip while it's open |
+| Pick on the keyboard | The same picker as under Single-key styles: a tool on the preview opens the toolbar's sheet, a suggestion the strip's, a key its own style. Also the pencil in the preview's corner |
+
+The toolbar's sheet:
 
 | Setting | Control | Default |
 |---|---|---|
@@ -293,20 +302,28 @@ Accent drives the shift-on tint, the active-tool highlight, and buttons across t
 | Tool outline | Color, alpha, Auto → no outline | Auto |
 | Tool outline width *(outline color set)* | Slider, 0–3dp | 0dp |
 
-**Toolbar background** paints the tools' own row and the suggestion strip while it shows the tools. The strip's own fill (**Suggestion strip**, under Board) comes back the moment words arrive.
+**Toolbar background** paints the tools' own row and the suggestion strip while it shows the tools. The strip's own fill (**Suggestion strip**, on the strip's sheet) comes back the moment words arrive.
+
+The strip's sheet:
+
+| Setting | Control | Default |
+|---|---|---|
+| Suggestion strip | Color, alpha, Auto → the board | Auto |
+| Suggestion text | Color, Auto → Key text | Auto |
+| Other suggestions | Color, Auto → Suggestion text | Auto |
+| Other suggestions size | Slider, 50–120% in 5% steps | 100% |
+
+**Suggestion strip** also fills the other bars around the keys (the emoji row, the symbol row, the dictionary bar and the rest), and **Suggestion text** also colours the panels' body text. **Other suggestions** and its size row cover every word on the strip except the primary one, as a colour and as a share of the primary's size; the CJK conversion candidates and Avro's candidate list ignore both.
 
 ### Panels & suggestions
 
 | Setting | Control | Default |
 |---|---|---|
 | Cards & search bar | Color, alpha, Auto → Modifier keys | Auto |
-| Suggestion text | Color, Auto → Key text | Auto |
-| Other suggestions | Color, Auto → Suggestion text | Auto |
-| Other suggestions size | Slider, 50–120% in 5% steps | 100% |
 | Secondary text | Color, alpha, Auto → Suggestion text at 65% opacity | Auto |
 | Dividers | Color, alpha, Auto → Suggestion text at 25% opacity | Auto |
 
-"Cards & search bar" covers suggestion chips and the search bar surface across the tool panels. **Other suggestions** and its size row cover every word on the strip except the primary one, as a colour and as a share of the primary's size; the CJK conversion candidates and Avro's candidate list ignore both.
+"Cards & search bar" covers suggestion chips and the search bar surface across the tool panels. The strip's own colours moved to the strip's sheet under [Toolbar and strip](#toolbar-and-strip).
 
 Any row still on Auto shows an "Auto" label instead of a swatch; once you override it, its [color picker](/themes/editor/#the-color-picker) gains an **Auto** button next to Apply that clears the override again. See [Theme editor](/themes/editor/#options) for the exact fallback formula behind every Auto field.
 
