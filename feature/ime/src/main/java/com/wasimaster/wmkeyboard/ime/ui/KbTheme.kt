@@ -1024,14 +1024,21 @@ internal fun resolveFrost(spec: FrostSpec, dark: Boolean): KbFrost? {
  * list bits in the panels), mapped from the resolved theme so everything
  * follows the theme's colors. Surfaces are flattened to opaque so text on
  * them stays readable even when the board itself is translucent.
+ *
+ * The containers are the theme's fills laid over that opaque board, not the
+ * fills with their alpha dropped: a glass theme's chip is a pale tint at a
+ * quarter alpha, and at full alpha it became a solid pale blue or white under
+ * the white text meant for the board (every menu, the voice language one
+ * first).
  */
 private fun schemeFor(kb: KbTheme): ColorScheme {
     val base = if (kb.dark) darkColorScheme() else lightColorScheme()
     val opaqueBoard = kb.board.copy(alpha = 1f)
+    fun onBoard(fill: Color) = fill.compositeOver(opaqueBoard)
     return base.copy(
         primary = kb.accent,
         onPrimary = kb.enterKeyText,
-        primaryContainer = kb.pressedKey.copy(alpha = 1f),
+        primaryContainer = onBoard(kb.pressedKey),
         onPrimaryContainer = kb.keyText,
         background = opaqueBoard,
         // suggestionText, not keyText: this is the "text on the board" role
@@ -1043,9 +1050,9 @@ private fun schemeFor(kb: KbTheme): ColorScheme {
         onSurface = kb.suggestionText,
         surfaceContainerLowest = opaqueBoard,
         surfaceContainerLow = opaqueBoard,
-        surfaceContainer = kb.chip.copy(alpha = 1f),
-        surfaceContainerHigh = kb.modifierKey.copy(alpha = 1f),
-        surfaceContainerHighest = kb.key.copy(alpha = 1f),
+        surfaceContainer = onBoard(kb.chip),
+        surfaceContainerHigh = onBoard(kb.modifierKey),
+        surfaceContainerHighest = onBoard(kb.key),
         onSurfaceVariant = kb.secondaryText,
         outlineVariant = kb.divider,
     )
