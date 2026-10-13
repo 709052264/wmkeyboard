@@ -154,6 +154,7 @@ object AiPrompts {
         style: ReplyStyle,
         instruction: String = "",
         hasImage: Boolean = false,
+        draft: String = "",
     ): String {
         val task = when {
             spec.askEachRun -> instruction.trim()
@@ -175,6 +176,17 @@ object AiPrompts {
                 // prompt's messages are.
                 append(" About the user, in their own words: ").append(style.persona.trim())
                 if (!style.persona.trim().endsWith('.')) append('.')
+            }
+            if (draft.isNotBlank()) {
+                // What the user had already started typing in the reply box.
+                // Their own words, so a directive rather than data, like the
+                // persona: the drafts say what they meant to say, written out
+                // in the tone asked for, instead of a different answer.
+                append(" The user has already started their reply: \"")
+                    .append(draft.trim().take(MAX_DRAFT))
+                    .append("\". Keep what it means — every point it makes, in the same ")
+                    .append("person — and write it out properly in the tone asked for, ")
+                    .append("rather than inventing a different answer.")
             }
             append(' ').append(style.length.rule)
             append(' ').append(style.emoji.rule)
@@ -220,6 +232,9 @@ object AiPrompts {
      * on-device model loses the format entirely.
      */
     const val MAX_REPLIES = 5
+
+    /** Longest stretch of the user's own draft carried into the prompt. */
+    const val MAX_DRAFT = 600
 
     /**
      * Takes a whole stored prompt back apart into its task and its output-only

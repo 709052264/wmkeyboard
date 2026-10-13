@@ -1751,6 +1751,13 @@ data class ReplyEntry(
      * panel draws rather than anything that is sent.
      */
     val image: Boolean = false,
+    /**
+     * The screenshot was taken with the keyboard on screen. Kept on a picture
+     * entry so that, if the model turns out not to see and the picture has to
+     * be read on the phone after all, the keyboard's own keys are cut off
+     * the same way they would have been when it was added.
+     */
+    val keyboardInShot: Boolean = false,
 )
 
 /** A screenshot offered in the reply panel's picker. */
@@ -1786,8 +1793,14 @@ data class AiReplyUi(
     val reading: Boolean = false,
     /** The tone the drafts on screen were written in. */
     val tone: AiActionSpec? = null,
-    /** The drafts themselves. */
+    /** The drafts themselves. While a run is going these are the ones finished so far. */
     val candidates: List<String> = emptyList(),
+    /**
+     * What the user had already typed in the field when the run started: the
+     * drafts say that, in the tone picked, and the one chosen replaces it
+     * rather than landing beside it. Blank when the field was empty.
+     */
+    val draft: String = "",
     /** A one-line message under the header: nothing copied, no permission, nothing read. */
     @androidx.annotation.StringRes val notice: Int? = null,
 ) {

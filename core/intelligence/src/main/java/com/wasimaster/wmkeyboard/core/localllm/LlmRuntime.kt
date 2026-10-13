@@ -31,6 +31,22 @@ interface LlmRuntime {
         onPartial: ((String) -> Unit)?,
     ): String
 
+    /**
+     * Contract of [LocalLlmEngine.generateWithImages]: [generate] with
+     * pictures attached to the user turn, as encoded image bytes (JPEG/PNG).
+     * Plain byte arrays, not SDK types, for the reason at the top of this file.
+     */
+    fun generateWithImages(
+        context: Context,
+        modelFile: File,
+        backend: LocalLlmBackend,
+        contextTokens: Int,
+        system: String,
+        user: String,
+        images: List<ByteArray>,
+        onPartial: ((String) -> Unit)?,
+    ): String
+
     /** Contract of [LocalLlmEngine.chatSession]. */
     fun chatSession(
         context: Context,

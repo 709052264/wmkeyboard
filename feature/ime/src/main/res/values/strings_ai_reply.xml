@@ -68,6 +68,8 @@
     <string name="ime_reply_notice_nothing_read">No text was found in that screenshot.</string>
     <string name="ime_reply_notice_no_context">Add their message first.</string>
     <!-- The gallery copy of a screenshot could not be removed; ours was. -->
+    <string name="ime_reply_notice_reading_instead">This model can\'t see pictures, so the screenshot was read on your phone instead.</string>
+    <string name="ime_reply_draft_line">From your draft: %1$s</string>
     <string name="ime_reply_notice_shot_kept">Removed from WM Keyboard. The screenshot is still in your gallery.</string>
     <!-- A tone that asks for an instruction every run has nowhere to type one here. -->
     <string name="ime_reply_notice_tone_needs_task">Give this tone a saved instruction in the settings to use it here.</string>

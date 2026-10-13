@@ -25,6 +25,23 @@ object LocalLlmEngine {
         onPartial: ((String) -> Unit)? = null,
     ): String = error("On-device AI is not available in the lite build")
 
+    /**
+     * Throws [VisionUnsupportedException] rather than `error()`: the reply tool
+     * catches that type to fall back to reading the picture another way, and
+     * an IllegalStateException would get past it.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    fun generateWithImages(
+        context: Context,
+        modelFile: File,
+        backend: LocalLlmBackend,
+        contextTokens: Int,
+        system: String,
+        user: String,
+        images: List<ByteArray>,
+        onPartial: ((String) -> Unit)? = null,
+    ): String = throw VisionUnsupportedException("On-device AI is not available in the lite build")
+
     @Suppress("UNUSED_PARAMETER")
     fun chatSession(
         context: Context,

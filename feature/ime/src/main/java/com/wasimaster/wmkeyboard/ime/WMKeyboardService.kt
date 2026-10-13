@@ -461,6 +461,8 @@ import com.wasimaster.wmkeyboard.core.tools.AiInsertMode
 import com.wasimaster.wmkeyboard.core.tools.BuiltInAiActions
 import com.wasimaster.wmkeyboard.core.tools.aiInitialInstruction
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmCatalog
+import com.wasimaster.wmkeyboard.core.localllm.ModelTier
+import com.wasimaster.wmkeyboard.core.localllm.VisionUnsupportedException
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmEngine
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.tools.AiClient
@@ -3113,6 +3115,16 @@ open class WMKeyboardService : InputMethodService() {
     private var boardTopInWindow = 0
     private var screenshotObserver: android.database.ContentObserver? = null
 
+    /**
+     * The screenshot watcher, on while either of its two users wants it: the
+     * clipboard's own setting, or the AI reply panel being open (#234) — the
+     * reply tool's "screenshot the chat now" must not depend on a clipboard
+     * option the user may never have heard of.
+     */
+    private fun refreshScreenshotObserver(settings: KeyboardSettings = _uiState.value.settings) {
+        updateScreenshotObserver(settings.clipboard.userScreenshots || _uiState.value.panel == PanelMode.AI_REPLY)
+    }
+
     private fun updateScreenshotObserver(enabled: Boolean) {
         val hasPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             androidx.core.content.ContextCompat.checkSelfPermission(
@@ -3157,7 +3169,12 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun handleScreenshotAdded() {
         val state = _uiState.value
-        if (!state.settings.clipboard.history || clipCapturePaused(state)) return
+        // Two users of one watcher: the clipboard (its setting, history on,
+        // not paused) and the reply panel (open, not over a password field).
+        val forClipboard = state.settings.clipboard.userScreenshots &&
+            state.settings.clipboard.history && !clipCapturePaused(state)
+        val forReply = state.panel == PanelMode.AI_REPLY && !state.secureField
+        if (!forClipboard && !forReply) return
 
         serviceScope.launch(Dispatchers.IO) {
             val projection = arrayOf(
@@ -3191,6 +3208,12 @@ open class WMKeyboardService : InputMethodService() {
                     val mimeType = c.getString(c.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media.MIME_TYPE)) ?: "image/png"
                     val uri = android.content.ContentUris.withAppendedId(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
 
+                    if (!forClipboard) {
+                        // The reply reads the gallery entry itself; there is
+                        // no clipboard copy to make, or to tidy up later.
+                        withContext(Dispatchers.Main) { noteScreenshotForReply(uri, null) }
+                        return@launch
+                    }
                     val copied = runCatching {
                         val dir = File(filesDir, "clipboard/images").apply { mkdirs() }
                         val extension = when (mimeType) {
@@ -3929,7 +3952,7 @@ open class WMKeyboardService : InputMethodService() {
                 linkPreviewsEnabled = settings.clipboard.linkPreviews
                 if (userScreenshotsEnabled != settings.clipboard.userScreenshots) {
                     userScreenshotsEnabled = settings.clipboard.userScreenshots
-                    updateScreenshotObserver(settings.clipboard.userScreenshots)
+                    refreshScreenshotObserver(settings)
                 }
                 if (!settings.floatingFor(landscapeNow())) floatingPanelBounds = null
                 if (settings.suggestionSources.contacts != contactsEnabled) {
@@ -23078,6 +23101,11 @@ open class WMKeyboardService : InputMethodService() {
         // is saved and the editor, the search and the Undo bar go (#560).
         if (_uiState.value.panel == PanelMode.NOTES) notesLeavePanel()
         if (_uiState.value.panel == PanelMode.LOCATION) locationTool.onPanelClose()
+        // Leaving the reply panel, by closing it or opening another: the
+        // screenshot watcher goes back to what the clipboard setting says (#234).
+        if (_uiState.value.panel == PanelMode.AI_REPLY) {
+            updateScreenshotObserver(_uiState.value.settings.clipboard.userScreenshots)
+        }
         // Whatever the GIF/sticker panel was showing survives it closing.
         stashMediaSearch(_uiState.value)
         _uiState.update {
@@ -28621,8 +28649,10 @@ open class WMKeyboardService : InputMethodService() {
         return ReplyStyle(
             // A small on-device model asked for three variants writes one
             // three times, and loses the one-per-line format doing it. Ask it
-            // for the one it can actually give.
-            count = if (onDevice) 1 else reply.count,
+            // for the one it can actually give — unless it is one of the
+            // recommended models, which keep the format, and whose drafts now
+            // arrive one at a time rather than after the whole answer.
+            count = if (onDevice && !strongLocalModel(settings)) 1 else reply.count,
             length = reply.length,
             emoji = reply.emoji,
             persona = reply.persona,
@@ -28630,9 +28660,52 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
 
+    /** A catalog model ranked Recommended: big enough to write several drafts in one go. */
+    private fun strongLocalModel(settings: KeyboardSettings): Boolean =
+        effectiveLocalModelId(settings)?.let { LocalLlmCatalog.byId(it) }?.tier == ModelTier.RECOMMENDED
+
+    /**
+     * The on-device model whose engine refused a picture this session (#234).
+     * Its screenshots go straight to the on-device reader from then on, rather
+     * than each one paying for a failed attempt first.
+     */
+    private var replyVisionRefusedModel: String? = null
+
+    /**
+     * Whether a screenshot can go to the model as a picture.
+     *
+     * Cloud: the provider's own word ([AiClient.supportsImages]). On the
+     * device: a model the catalog says has eyes, or an imported one nobody
+     * has told us about yet — the engine answers that cleanly by trying, and
+     * [readShotsInstead] picks up the pieces if it cannot.
+     */
+    private fun replyCanSendPicture(settings: KeyboardSettings): Boolean {
+        if (settings.ai.provider != AiProvider.ON_DEVICE) return AiClient.supportsImages(settings.ai.provider)
+        if (!BuildConfig.ENABLE_LOCAL_LLM) return false
+        val id = effectiveLocalModelId(settings) ?: return false
+        if (id == replyVisionRefusedModel) return false
+        return LocalLlmCatalog.canSee(id) != false
+    }
+
+    /**
+     * The reply the user had already begun in the field, as the drafts' brief:
+     * "cant fri, busy" becomes three polished ways of saying exactly that.
+     * Blank in a password field and in an empty one.
+     */
+    private fun replyDraftFromField(): String {
+        if (_uiState.value.secureField) return ""
+        return extractFieldText().trim().take(AiPrompts.MAX_DRAFT)
+    }
+
     /** Opens the reply panel: the run state reset, the tidy-up switch seeded. */
     private fun prepareAiReply() {
+        // The half-typed word is part of the draft the run reads as its brief.
+        currentInputConnection?.let { commitComposing(it, autocorrect = false) }
         replyOpenedAtSec = System.currentTimeMillis() / 1000
+        // Screenshots are caught while this panel is open whatever the
+        // clipboard's own screenshot setting says.
+        refreshScreenshotObserver()
+        val draft = replyDraftFromField()
         val settings = _uiState.value.settings
         val initial = aiInitialState(settings)
         _uiState.update {
@@ -28644,6 +28717,7 @@ open class WMKeyboardService : InputMethodService() {
                     picking = false,
                     typing = false,
                     notice = null,
+                    draft = draft,
                 ),
             )
         }
@@ -28983,8 +29057,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun addReplyShot(uriString: String, copyPath: String?, keyboardInShot: Boolean) {
         val settings = _uiState.value.settings
         val mode = settings.ai.reply.imageMode
-        val sendable = AiClient.supportsImages(settings.ai.provider) &&
-            settings.ai.provider != AiProvider.ON_DEVICE
+        val sendable = replyCanSendPicture(settings)
         val asImage = when (mode) {
             ReplyImageMode.IMAGE -> true
             ReplyImageMode.OCR -> false
@@ -29002,6 +29075,7 @@ open class WMKeyboardService : InputMethodService() {
                     shotUri = uriString,
                     shotFile = copyPath,
                     image = true,
+                    keyboardInShot = keyboardInShot,
                 ),
             )
             return
@@ -29068,11 +29142,10 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * Asks for the drafts.
      *
-     * Its own path rather than [runAi]'s, for one reason: this does not stream.
-     * A reply arrives as several answers that have to be split apart, and
-     * splitting a half-written response re-draws the list on every partial —
-     * lines appearing, merging and renumbering as the model writes. The phase
-     * readout is the honest progress signal here, and that is shared.
+     * Its own path rather than [runAi]'s: a reply is several answers that
+     * have to be split apart. They are drawn as each one finishes
+     * ([AiReplyParse.settled]) — only lines that have ended, so a card never
+     * changes after it appears — and the full parse replaces them at the end.
      */
     private fun runAiReply(tone: AiActionSpec, instruction: String) {
         // Somebody else's message is never worth less care than the user's own.
@@ -29106,30 +29179,47 @@ open class WMKeyboardService : InputMethodService() {
             replyNotice(R.string.ime_reply_notice_no_context)
             return
         }
+        val draft = replyDraftFromField()
         val seq = ++aiRunSeq
         val startedAt = SystemClock.uptimeMillis()
         _uiState.update {
             it.copy(
                 ai = AiUi.Loading(tone, startedAtMs = startedAt),
-                aiReply = it.aiReply.copy(tone = tone, candidates = emptyList(), notice = null),
+                aiReply = it.aiReply.copy(tone = tone, candidates = emptyList(), notice = null, draft = draft),
             )
         }
+        // Drafts as they finish. Called from the stream's own thread, so the
+        // count is atomic; only a longer list is published, which also keeps
+        // a late partial from undoing the final parse.
+        val shown = java.util.concurrent.atomic.AtomicInteger(0)
+        val onPartial: (String) -> Unit = { partial ->
+            val settled = AiReplyParse.settled(partial, style.count)
+            val before = shown.get()
+            if (seq == aiRunSeq && settled.size > before && shown.compareAndSet(before, settled.size)) {
+                _uiState.update {
+                    if (it.ai is AiUi.Loading) it.copy(aiReply = it.aiReply.copy(candidates = settled)) else it
+                }
+            }
+        }
         aiJob = serviceScope.launch {
-            val system = AiPrompts.replyPrompt(tone, style, instruction, hasImage = shots.isNotEmpty())
+            val system = AiPrompts.replyPrompt(tone, style, instruction, hasImage = shots.isNotEmpty(), draft = draft)
             val config = AiClient.config(settings.ai)
             val outcome = withContext(Dispatchers.IO) {
                 runCatching {
-                    val images = shots.mapNotNull { entry ->
-                        val uri = entry.shotUri ?: return@mapNotNull null
-                        ReplyShots.encode(this@WMKeyboardService, android.net.Uri.parse(uri))
-                            ?.let { AiClient.AiImage(it.mimeType, it.base64) }
-                    }
                     // A picture with nothing said about it still needs a user
                     // message: several providers reject an empty one outright.
                     val user = transcript.ifBlank { REPLY_IMAGE_ONLY_MESSAGE }
                     if (onDevice) {
-                        runReplyOnDevice(seq, system, user, settings)
+                        val pictures = shots.mapNotNull { entry ->
+                            entry.shotUri?.let { ReplyShots.jpeg(this@WMKeyboardService, android.net.Uri.parse(it)) }
+                        }
+                        runReplyOnDevice(seq, system, user, pictures, settings, onPartial)
                     } else {
+                        val images = shots.mapNotNull { entry ->
+                            val uri = entry.shotUri ?: return@mapNotNull null
+                            ReplyShots.encode(this@WMKeyboardService, android.net.Uri.parse(uri))
+                                ?.let { AiClient.AiImage(it.mimeType, it.base64) }
+                        }
                         AiClient.completeStreaming(
                             config = config,
                             system = system,
@@ -29138,7 +29228,7 @@ open class WMKeyboardService : InputMethodService() {
                             ),
                             maxTokens = AiClient.effectiveMaxTokens(settings.ai),
                             onPhase = { phase -> applyAiPhase(seq, phase) },
-                            onPartial = { },
+                            onPartial = onPartial,
                             isActive = { seq == aiRunSeq },
                         )
                     }
@@ -29174,6 +29264,14 @@ open class WMKeyboardService : InputMethodService() {
                     }
                 },
                 onFailure = { e ->
+                    // The on-device model has no eyes: read the screenshots on
+                    // the phone instead and run again, rather than stopping at
+                    // an error about something the user did not choose.
+                    if (e is VisionUnsupportedException && onDevice && shots.isNotEmpty() && ReplyOcr.available) {
+                        replyVisionRefusedModel = effectiveLocalModelId(settings)
+                        readShotsInstead(tone, instruction, shots)
+                        return@fold
+                    }
                     _uiState.update {
                         it.copy(
                             ai = AiUi.Error(
@@ -29187,29 +29285,103 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
-    /** The on-device half of [runAiReply]; no tools, no streaming, no pictures. */
+    /**
+     * The on-device half of [runAiReply]. Pictures go to the model itself when
+     * there are any — a Gemma 4 model reads the bubbles' alignment the way a
+     * cloud model does — and the engine throws [VisionUnsupportedException]
+     * when this model cannot.
+     */
     private fun runReplyOnDevice(
         seq: Int,
         system: String,
         user: String,
+        pictures: List<ByteArray>,
         settings: KeyboardSettings,
+        onPartial: (String) -> Unit,
     ): AiClient.Completion {
         val modelFile = effectiveLocalModelFile(settings)
             ?: throw IOException(getString(R.string.ime_ai_error_model_missing))
         applyAiPhase(seq, AiPhase.PREPARING)
-        val text = LocalLlmEngine.generate(
-            context = applicationContext,
-            modelFile = modelFile,
-            backend = settings.ai.localBackend,
-            contextTokens = settings.ai.localContextTokens,
-            system = system,
-            user = user,
-        )
+        val text = if (pictures.isEmpty()) {
+            LocalLlmEngine.generate(
+                context = applicationContext,
+                modelFile = modelFile,
+                backend = settings.ai.localBackend,
+                contextTokens = settings.ai.localContextTokens,
+                system = system,
+                user = user,
+                onPartial = onPartial,
+            )
+        } else {
+            LocalLlmEngine.generateWithImages(
+                context = applicationContext,
+                modelFile = modelFile,
+                backend = settings.ai.localBackend,
+                contextTokens = settings.ai.localContextTokens,
+                system = system,
+                user = user,
+                images = pictures,
+                onPartial = onPartial,
+            )
+        }
         return AiClient.Completion(text)
     }
 
     /**
+     * Turns the picture entries into lines read on the phone, then runs the
+     * same tone again — the fallback for an on-device model that turned out
+     * not to see. Each picture's lines take its place in the conversation,
+     * the first carrying the screenshot so the tidy-up still finds it.
+     */
+    private fun readShotsInstead(tone: AiActionSpec, instruction: String, shots: List<ReplyEntry>) {
+        _uiState.update {
+            it.copy(
+                ai = aiInitialState(it.settings),
+                aiReply = it.aiReply.copy(reading = true, notice = R.string.ime_reply_notice_reading_instead),
+            )
+        }
+        serviceScope.launch {
+            val frames = shots.associateWith { replyOcrFrame(it.keyboardInShot) }
+            val read = withContext(Dispatchers.IO) {
+                shots.associateWith { entry ->
+                    val uri = entry.shotUri ?: return@associateWith emptyList()
+                    val bitmap = ReplyShots.bitmap(this@WMKeyboardService, android.net.Uri.parse(uri))
+                        ?: return@associateWith emptyList()
+                    ReplyOcr.read(bitmap, frames.getValue(entry))
+                }
+            }
+            var anyText = false
+            _uiState.update { state ->
+                val rebuilt = state.aiReply.entries.flatMap { entry ->
+                    val turns = read[entry] ?: return@flatMap listOf(entry)
+                    if (turns.isNotEmpty()) anyText = true
+                    turns.mapIndexed { i, turn ->
+                        ReplyEntry(
+                            text = turn.text,
+                            fromMe = turn.fromMe,
+                            source = ReplySource.SCREENSHOT,
+                            shotUri = if (i == 0) entry.shotUri else null,
+                            shotFile = if (i == 0) entry.shotFile else null,
+                        )
+                    }
+                }
+                state.copy(aiReply = state.aiReply.copy(entries = rebuilt.takeLast(MAX_REPLY_ENTRIES), reading = false))
+            }
+            if (!anyText) {
+                replyNotice(R.string.ime_reply_notice_nothing_read)
+                return@launch
+            }
+            runAiReply(tone, instruction)
+        }
+    }
+
+    /**
      * Puts one draft into the field, and clears away what it was built from.
+     *
+     * When the run was written from a draft the user had started, the chosen
+     * reply replaces that draft — it is the same message, said better — but
+     * only while the field still holds exactly what was read; anything typed
+     * since wins, and the reply lands at the cursor instead.
      *
      * The tidy-up happens here rather than when the panel closes, because this
      * is the moment the reply has served its purpose. A panel closed without
@@ -29218,8 +29390,13 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onReplyInsert(text: String) {
         if (text.isBlank()) return
-        onToolTextInsert(text)
         val state = _uiState.value
+        val draft = state.aiReply.draft
+        if (draft.isNotBlank() && !state.secureField && extractFieldText().trim() == draft) {
+            replaceFieldText(text)
+        } else {
+            onToolTextInsert(text)
+        }
         if (state.aiReply.tidyUp) tidyUpReply(state.aiReply.entries)
         _uiState.update {
             it.copy(
@@ -29229,6 +29406,7 @@ open class WMKeyboardService : InputMethodService() {
                     candidates = emptyList(),
                     typed = "",
                     typing = false,
+                    draft = "",
                 ),
             )
         }
@@ -29237,12 +29415,14 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * Takes back the clips and screenshots a finished reply was built from.
      *
-     * Only what this reply used, and only what the platform allows. The
-     * clipboard rows are the keyboard's own and always go. A screenshot's
-     * gallery entry is the user's: from Android 11 an app may only delete media
-     * it created, and anything else needs a system consent dialog, which an
-     * input method cannot show. So the delete is attempted and the panel says
-     * what actually happened rather than claiming the picture is gone.
+     * Only what this reply used. The clipboard rows are the keyboard's own and
+     * always go. A screenshot's gallery entry is the user's: from Android 11 an
+     * app may only delete media it created, so what the plain delete could not
+     * remove goes to Android's own consent dialog, through a trampoline
+     * ([ReplyShotDeleteActivity]) — the reply is already in the field, so
+     * losing it for the length of one dialog costs nothing. Where there is no
+     * such dialog (a photo-picker grant, Android 10) the panel says the
+     * picture was kept rather than pretending it is gone.
      */
     private fun tidyUpReply(entries: List<ReplyEntry>) {
         val clipIds = entries.mapNotNull { it.clipId.takeIf { id -> id != 0L } }.distinct()
@@ -29250,20 +29430,30 @@ open class WMKeyboardService : InputMethodService() {
         if (clipIds.isEmpty() && shots.isEmpty()) return
         serviceScope.launch(Dispatchers.IO) {
             for (id in clipIds) clipboardStore.remove(id)
-            var keptAny = false
+            val kept = ArrayList<android.net.Uri>()
             for (shot in shots) {
+                val uri = shot.shotUri?.let { android.net.Uri.parse(it) }
                 val removed = ReplyShots.delete(
                     this@WMKeyboardService,
-                    shot.shotUri?.let { android.net.Uri.parse(it) },
+                    uri,
                     shot.shotFile?.let { java.io.File(it) },
                 )
-                if (!removed) keptAny = true
+                if (!removed && uri != null) kept += uri
             }
             if (clipIds.isNotEmpty()) {
                 saveClipboardSoon()
                 _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
             }
-            if (keptAny) replyNotice(R.string.ime_reply_notice_shot_kept)
+            if (kept.isEmpty()) return@launch
+            val request = ReplyShots.deleteRequest(this@WMKeyboardService, kept)
+            if (request == null) {
+                replyNotice(R.string.ime_reply_notice_shot_kept)
+                return@launch
+            }
+            withContext(Dispatchers.Main) {
+                runCatching { com.wasimaster.wmkeyboard.app.ReplyShotDeleteActivity.start(this@WMKeyboardService, request) }
+                    .onFailure { replyNotice(R.string.ime_reply_notice_shot_kept) }
+            }
         }
     }
 

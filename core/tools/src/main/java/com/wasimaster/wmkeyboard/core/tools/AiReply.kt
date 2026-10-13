@@ -332,6 +332,38 @@ object AiReplyParse {
     fun candidates(raw: String, want: Int): List<String> {
         val body = AiThinking.stripped(raw).trim().ifBlank { raw.trim() }
         if (body.isBlank()) return emptyList()
+        val found = lines(body)
+        if (found.isEmpty()) {
+            // Nothing survived the filters, but something did arrive: show it
+            // rather than an empty panel.
+            return listOf(body.take(MAX_CANDIDATE))
+        }
+        return found.take(want.coerceAtLeast(FALLBACK))
+    }
+
+    /**
+     * The replies a response still being written has already finished, for
+     * drawing them as they arrive.
+     *
+     * Only lines that have ended count: the line being written is left out,
+     * so a card never shows half a sentence and never changes after it
+     * appears — which was the reason the first version waited for the whole
+     * answer. No [FALLBACK] either: an unbroken paragraph is not settled until
+     * the response is done, and [candidates] owns that case. Empty while the
+     * model is still inside a reasoning block.
+     */
+    fun settled(partial: String, want: Int): List<String> {
+        val open = partial.lastIndexOf("<think>")
+        if (open >= 0 && partial.indexOf("</think>", open) < 0) return emptyList()
+        val end = partial.lastIndexOf('\n')
+        if (end < 0) return emptyList()
+        val body = AiThinking.stripped(partial.substring(0, end)).trim()
+        if (body.isBlank()) return emptyList()
+        return lines(body).take(want.coerceAtLeast(FALLBACK))
+    }
+
+    /** [body]'s separate replies, cleaned and de-duplicated, in order. */
+    private fun lines(body: String): List<String> {
         val lines = body.lines()
             .map { it.trim() }
             .filter { it.isNotEmpty() }
@@ -344,13 +376,7 @@ object AiReplyParse {
             if (key.isEmpty()) continue
             unique.putIfAbsent(key, line.take(MAX_CANDIDATE))
         }
-        val found = unique.values.toList()
-        if (found.isEmpty()) {
-            // Nothing survived the filters, but something did arrive: show it
-            // rather than an empty panel.
-            return listOf(body.take(MAX_CANDIDATE))
-        }
-        return found.take(want.coerceAtLeast(FALLBACK))
+        return unique.values.toList()
     }
 
     /** One line with its numbering, label and surrounding quotes taken off. */

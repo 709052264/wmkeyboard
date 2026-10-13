@@ -61,6 +61,12 @@ data class LocalLlmModel(
      * output is bare reasoning up to a `</think>` (see AiThinking).
      */
     val reasoning: Boolean = false,
+    /**
+     * The file carries a vision encoder, so it can read a picture (#234: the
+     * reply tool's screenshots). Only set where the published file is known
+     * to: a model family that has eyes elsewhere is not enough.
+     */
+    val vision: Boolean = false,
 )
 
 /**
@@ -90,6 +96,7 @@ object LocalLlmCatalog {
             tier = ModelTier.RECOMMENDED,
             minRamMb = 6144,
             descriptionRes = R.string.core_intel_llm_model_gemma4_e2b_subtitle,
+            vision = true,
         ),
         LocalLlmModel(
             id = "gemma4-e4b",
@@ -104,6 +111,7 @@ object LocalLlmCatalog {
             tier = ModelTier.RECOMMENDED,
             minRamMb = 8192,
             descriptionRes = R.string.core_intel_llm_model_gemma4_e4b_subtitle,
+            vision = true,
         ),
         LocalLlmModel(
             id = "gemma3-1b",
@@ -199,6 +207,17 @@ object LocalLlmCatalog {
     }
 
     fun byId(id: String): LocalLlmModel? = models.firstOrNull { it.id == id }
+
+    /**
+     * Whether the model behind a selection id can read a picture: true or
+     * false for a catalog model, null for an imported file (`custom:<name>`),
+     * whose capability nothing on disk declares. A caller treats null as
+     * "try it": the engine says so cleanly when it cannot.
+     */
+    fun canSee(id: String?): Boolean? {
+        if (id.isNullOrBlank() || id.startsWith("custom:")) return null
+        return byId(id)?.vision
+    }
 
     fun downloadUrl(model: LocalLlmModel): String =
         "https://huggingface.co/${model.repo}/resolve/main/${model.fileName}"

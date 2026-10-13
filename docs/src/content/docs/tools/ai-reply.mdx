@@ -35,13 +35,13 @@ A screenshot is the fastest way to hand over a whole conversation, because the b
 
 How it is read depends on your AI provider, set under <SettingsPath path="Tools / AI reply / How screenshots are read" />:
 
-- **Automatic** (the default) sends the picture to providers that accept pictures — Claude, OpenAI, Gemini, xAI, Ollama, LM Studio and OpenAI-compatible servers — and reads it on the device otherwise.
+- **Automatic** (the default) sends the picture to providers that accept pictures — Claude, OpenAI, Gemini, xAI, Ollama, LM Studio and OpenAI-compatible servers — and reads it on the device otherwise. With an [on-device model](/tools/ai/#choosing-where-it-runs), Gemma 4 E2B and E4B look at the picture themselves, without it leaving the phone. A model you imported is tried the same way; if it turns out not to read pictures, the screenshot is read on the phone instead and the drafts are written from that, with a note in the panel saying so.
 - **Send the picture** always sends it. The model reads the alignment itself, so no labelling is needed.
 - **Read on this device** never sends the picture. The text is read on the phone and arrives as separate messages you can relabel. <Flavor edition="full" /> — the on-device reader is not in the Lite build.
 
 When a screenshot is read on the device, the parts that are not the conversation are left out: the status bar and the chat app's top bar (the contact's name, "Active now"), message times and dates, "Seen" and "Delivered" marks, and the message box's own placeholder. A screenshot taken while the reply panel was open also has the keyboard in it, and everything from the keyboard down is skipped. Lines of one bubble that wraps are put back together; when that misses one, use **Join**.
 
-The keyboard cannot take a screenshot for you: capturing the screen needs a system permission dialog, and an input method that opens one loses the box it was typing into. Take it the usual way, with the hardware buttons, and the keyboard picks it up. Automatic pick-up needs **Screenshots in the clipboard** turned on under <SettingsPath path="Clipboard" />; the **Screenshot** button in the panel always works.
+The keyboard cannot take a screenshot for you: capturing the screen needs a system permission dialog, and an input method that opens one loses the box it was typing into. Take it the usual way, with the hardware buttons, while the reply panel is open, and the keyboard picks it up. This works whatever **Screenshots in the clipboard** under <SettingsPath path="Clipboard" /> is set to, and a screenshot caught for a reply is not added to the clipboard unless that setting is on. It needs the same permission to read your images as the **Screenshot** button.
 
 Reading screenshots from the gallery needs permission to read your images. Tapping **Screenshot** without it asks for it straight away, and the grid opens once you allow it. If you said no, the panel shows an **Allow** button to ask again.
 
@@ -63,13 +63,17 @@ Once there is something to reply to, the tones appear at the bottom of the panel
 
 Tones are editable, and you can write your own: they share the action editor with the AI tool's actions, under <SettingsPath path="Tools / AI / Actions" />. A tone you write needs a saved instruction — there is nowhere on this panel to type one per run, because the panel's own box is for their message.
 
-The drafts take the place of the conversation. Tap one to put it in the message box. The tone they were written in stays highlighted; tap another under **Try another tone** for a different set, or **Messages** to go back and fix a message first.
+The drafts take the place of the conversation, and each one appears as soon as the model has finished writing it, rather than all three at the end. Tap one to put it in the message box.
+
+### Starting from your own words
+
+If you have already typed something in the message box when you open the panel, such as "cant fri, busy", the drafts say that, in the tone you pick, instead of inventing a different answer. The panel shows **From your draft** above the tones so you know it is being used. The draft you pick replaces what you typed. If you typed more in the meantime, it is added at the cursor instead and your text is left alone. The tone they were written in stays highlighted; tap another under **Try another tone** for a different set, or **Messages** to go back and fix a message first.
 
 ## What it writes
 
 Under <SettingsPath path="Tools / AI reply" />:
 
-- **Replies per run** — how many alternatives one run writes, up to five. An on-device model is always asked for one: a small model asked for three writes the same reply three times.
+- **Replies per run** — how many alternatives one run writes, up to five. A small on-device model is asked for one, because asked for three it writes the same reply three times. The recommended on-device models, Gemma 4 E2B and E4B, get the full number.
 - **Length** — short, medium or long.
 - **Emoji** — match the other person's use of them, allow them, or avoid them entirely.
 - **About you** — anything the drafts should know about how you write. This is the single setting that most changes whether a reply sounds like you.
@@ -82,7 +86,7 @@ The provider, API key and model are the AI tool's own, under <SettingsPath path=
 
 Feeding this tool leaves other people's messages in your clipboard history and screenshots of your conversations in your gallery. So when you tap a draft, **the copies and screenshots that reply was built from are taken back out again**. It is on by default, it is a checkbox in the panel if you want to keep one for a particular reply, and it is a setting under <SettingsPath path="Tools / AI reply / Clear what it used" />.
 
-Clipboard entries are the keyboard's own, so those always go. A screenshot in your gallery is yours: from Android 11 an app may only delete pictures it created itself, so when the system refuses, the panel says so plainly rather than pretending the picture is gone.
+Clipboard entries are the keyboard's own, so those always go. A screenshot in your gallery is yours: from Android 11 an app may only delete pictures it created itself, so Android shows its own dialog asking whether WM Keyboard may delete it. The reply is already in the message box by then, so answering the dialog loses nothing. On Android 10 and older, or when the dialog can't be shown, the panel says plainly that the screenshot is still in your gallery.
 
 ## Privacy
 
@@ -91,4 +95,5 @@ Clipboard entries are the keyboard's own, so those always go. A screenshot in yo
 - The tool refuses to run in a password field.
 - Drafted replies are **not** kept in the [AI history](/tools/ai/#history), even when the history is on. A record of a rewrite is your own writing; a record of a reply is somebody else's message. Turn it on under <SettingsPath path="Tools / AI reply / Keep drafted replies in the AI history" /> if you want them kept.
 - On a metered connection, [data saving](/privacy/data-saver/) holds the request the same way it holds any other cloud AI run.
-- Choosing an on-device model keeps the whole thing on the phone. Screenshots then have to be read on the device too, since the on-device engine takes text only.
+- Choosing an on-device model keeps the whole thing on the phone, screenshots included. Gemma 4 reads the picture itself; other on-device models get the text read off it on the phone.
+- The draft you had started in the message box is sent along with the conversation, since the drafts are written from it.

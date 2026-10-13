@@ -935,6 +935,18 @@
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
+        <!-- Invisible trampoline for the AI reply tool's tidy-up (#234): it
+             shows Android's own consent dialog for deleting the screenshot a
+             reply was drafted from. No noHistory, for the reason the scanner
+             below has none: the dialog's result comes back to this activity. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.ReplyShotDeleteActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
         <!-- Invisible trampoline that runs ML Kit's full-screen document
              scanner for the doc-scan tool; the IME commits the scanned
              pages once the target app gets focus back. No noHistory here —

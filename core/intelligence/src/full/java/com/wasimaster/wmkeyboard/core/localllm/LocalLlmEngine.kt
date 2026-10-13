@@ -71,6 +71,26 @@ object LocalLlmEngine {
         .generate(context, modelFile, backend, contextTokens, system, user, onPartial)
 
     /**
+     * [generate] with pictures on the user turn (#234: a chat screenshot for
+     * the reply tool). Builds the engine with its vision encoder, which only
+     * multimodal models carry; a model without one fails with
+     * [VisionUnsupportedException], a subclass of [IOException], so a caller
+     * that has another way to read the picture can tell the two failures
+     * apart and fall back rather than show an error.
+     */
+    fun generateWithImages(
+        context: Context,
+        modelFile: File,
+        backend: LocalLlmBackend,
+        contextTokens: Int,
+        system: String,
+        user: String,
+        images: List<ByteArray>,
+        onPartial: ((String) -> Unit)? = null,
+    ): String = runtime(context)
+        .generateWithImages(context, modelFile, backend, contextTokens, system, user, images, onPartial)
+
+    /**
      * Opens a chat whose context lives across [ChatSession.sendMessage] calls
      * — real multi-turn on the conversation's KV cache, unlike [generate],
      * which starts over every call. Creating the session needs the runtime,

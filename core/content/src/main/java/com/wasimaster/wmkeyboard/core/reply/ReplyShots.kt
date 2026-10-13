@@ -175,6 +175,32 @@ object ReplyShots {
         BitmapFactory.decodeFile(file.absolutePath, opts)
     }.getOrNull()
 
+    /**
+     * [uri] scaled and compressed like [encode], as raw JPEG bytes: what the
+     * on-device model takes, which wants the picture itself rather than a
+     * base64 string meant for a JSON body.
+     */
+    fun jpeg(context: Context, uri: Uri): ByteArray? = encode(context, uri)
+        ?.let { runCatching { Base64.decode(it.base64, Base64.NO_WRAP) }.getOrNull() }
+
+    /**
+     * The system's own "allow this app to delete…" request for gallery
+     * entries the keyboard did not create, or null where there is none.
+     *
+     * From Android 11 that consent dialog is the only way to remove somebody
+     * else's media, and it has to be started from an activity — the reply
+     * tool's tidy-up hands this to a trampoline after the draft is already in
+     * the field, so losing the field for a moment costs nothing. Only
+     * `content://media/` rows qualify: a photo-picker URI is a read grant,
+     * not something MediaStore will delete.
+     */
+    fun deleteRequest(context: Context, uris: List<Uri>): android.app.PendingIntent? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return null
+        val media = uris.filter { it.authority == MediaStore.AUTHORITY }
+        if (media.isEmpty()) return null
+        return runCatching { MediaStore.createDeleteRequest(context.contentResolver, media) }.getOrNull()
+    }
+
     private fun encodeBitmap(bitmap: Bitmap): Encoded? {
         val scaled = scale(bitmap)
         val out = java.io.ByteArrayOutputStream()

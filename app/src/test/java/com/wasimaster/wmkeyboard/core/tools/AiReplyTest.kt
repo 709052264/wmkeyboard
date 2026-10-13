@@ -296,4 +296,62 @@ class AiReplyTest {
         assertNotNull(back)
         assertEquals(AiActionSurface.REPLY, back.surface)
     }
+
+    // ---- settled (drafts drawn while the answer is still arriving) ----
+
+    @Test
+    fun `the line still being written is left out`() {
+        assertEquals(listOf("Sounds good!"), AiReplyParse.settled("Sounds good!\nI'm i", 3))
+    }
+
+    @Test
+    fun `nothing is settled before the first line ends`() {
+        assertTrue(AiReplyParse.settled("Sounds go", 3).isEmpty())
+    }
+
+    @Test
+    fun `nothing is settled inside an open reasoning block`() {
+        assertTrue(AiReplyParse.settled("<think>they want a yes\nmaybe short\n", 3).isEmpty())
+    }
+
+    @Test
+    fun `reasoning that has closed is skipped`() {
+        val partial = "<think>short and warm\n</think>\nYes!\nOn my way\nSee y"
+        assertEquals(listOf("Yes!", "On my way"), AiReplyParse.settled(partial, 3))
+    }
+
+    @Test
+    fun `a settled preamble never becomes a card`() {
+        assertEquals(listOf("Sure thing"), AiReplyParse.settled("Here are three replies:\n1. Sure thing\n2. Wor", 3))
+    }
+
+    @Test
+    fun `settled lines are a prefix of the final drafts`() {
+        val full = "1. Sure thing\n2. Works for me\n3. On my way"
+        val partial = full.substring(0, full.indexOf("3."))
+        val settled = AiReplyParse.settled(partial, 3)
+        assertEquals(AiReplyParse.candidates(full, 3).take(settled.size), settled)
+    }
+
+    // ---- the user's own draft ----
+
+    @Test
+    fun `a draft the user started is carried into the prompt`() {
+        val tone = BuiltInAiReplyTones.byId(BuiltInAiReplyTones.POLITE_ID)!!
+        val prompt = AiPrompts.replyPrompt(tone, ReplyStyle(), draft = "cant come fri busy")
+        assertTrue(prompt.contains("cant come fri busy"))
+    }
+
+    @Test
+    fun `no draft leaves the prompt as it was`() {
+        val tone = BuiltInAiReplyTones.byId(BuiltInAiReplyTones.POLITE_ID)!!
+        assertEquals(AiPrompts.replyPrompt(tone, ReplyStyle()), AiPrompts.replyPrompt(tone, ReplyStyle(), draft = "  "))
+    }
+
+    @Test
+    fun `a long draft is capped`() {
+        val tone = BuiltInAiReplyTones.byId(BuiltInAiReplyTones.POLITE_ID)!!
+        val prompt = AiPrompts.replyPrompt(tone, ReplyStyle(), draft = "a".repeat(5000))
+        assertFalse(prompt.contains("a".repeat(AiPrompts.MAX_DRAFT + 1)))
+    }
 }

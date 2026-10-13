@@ -168,6 +168,19 @@ internal fun AiReplyPanel(
                             else -> ReplyEmpty()
                         }
                     }
+                    // The run writes from what the user had started, and the
+                    // reply they pick replaces it: say so before they pick a
+                    // tone, so the drafts saying their words is no surprise.
+                    if (reply.draft.isNotBlank()) {
+                        Text(
+                            stringResource(R.string.ime_reply_draft_line, reply.draft),
+                            color = kb.secondaryText,
+                            fontSize = 11.sp,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                        )
+                    }
                     if (reply.hasContext) {
                         ReplyToneRow(
                             tones,
