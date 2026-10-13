@@ -944,6 +944,28 @@ class SuggestionEngineTest {
         )
     }
 
+    @Test fun `a downloaded secondary with real counts does not bury the typed primary word`() {
+        // #653: bundled English on its 0..10000 scale, Italian downloaded with
+        // corpus counts in the millions. "visit" typed in full stays first.
+        val dictionary = Trie().apply {
+            insert("the", 10_000)
+            insert("visit", 238)
+        }
+        val italian = Trie().apply {
+            insert("di", 19_000_000)
+            insert("visita", 900_000)
+            insert("visitare", 400_000)
+            insert("visite", 300_000)
+        }
+        val e = SuggestionEngine(dictionary, BengaliPhoneticIndex(emptyList()), UserLexicon(null)).apply {
+            primaryLanguageId = "en"
+            secondaryDictionaries = listOf(SecondaryDictionary("it", italian))
+        }
+        val s = e.suggest("visit", previousWord = null)
+        assertEquals("expected visit first in $s", "visit", s.first())
+        assertTrue("Italian still offered in $s", "visita" in s)
+    }
+
     @Test fun `words the primary covers do not inflate a secondary`() {
         // "world" is a primary (English) word: committing it must count toward
         // the primary, leaving the untouched secondary damped below neutral —

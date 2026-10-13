@@ -211,8 +211,9 @@ class SuggestionEngine(
 
     /**
      * Dictionaries for the user's secondary languages, consulted alongside the
-     * primary so a bilingual typist gets both without switching. These are the
-     * freq-1 imported lists, weighted below every primary source; a word valid
+     * primary so a bilingual typist gets both without switching. Imported
+     * freq-1 lists or downloaded ones with real counts, weighted below the
+     * primary (see [secondaryBaseWeight]); a word valid
      * in one is never autocorrected away. Each is tagged with its language id so
      * its share of the strip adapts to how much the user actually types it (see
      * [mixConfidence] / [recordUsage]).
@@ -803,9 +804,50 @@ class SuggestionEngine(
         mixConfidence.confidenceFor(EN) / SECONDARY_ENGLISH_DIVISOR * fieldFactorFor(EN)
 
     /** Adaptive weight for a secondary language's imported list. */
-    private fun secondaryWeight(langId: String): Int =
-        (SECONDARY_WORD_WEIGHT * mixConfidence.confidenceFor(langId) * fieldFactorFor(langId))
-            .toInt()
+    private fun secondaryWeightOf(langId: String): Double =
+        secondaryBaseWeight(langId) * mixConfidence.confidenceFor(langId) * fieldFactorFor(langId)
+
+    /**
+     * The weight a secondary list starts from before the mix adapts it (#653).
+     *
+     * [SECONDARY_WORD_WEIGHT] lifts a flat freq-1 imported list into the
+     * primary's middle. A downloaded list is not flat: it carries real corpus
+     * counts, Italian's top words in the millions, and ×40 on top of that put
+     * `visita` and `visitare` over the English `visit` the user had typed in
+     * full. So the weight is capped where the secondary's commonest word lands
+     * at [SECONDARY_SCALE_SHARE] of the primary's commonest — the same
+     * fraction English gets when it is the secondary. A flat list never
+     * reaches the cap and keeps its old weight; with no primary list to
+     * measure against there is nothing to cap to.
+     */
+    private fun secondaryBaseWeight(langId: String): Double {
+        val gen = generation.get()
+        secondaryBaseCache?.let { (cachedGen, weights) ->
+            if (cachedGen == gen) return weights[langId] ?: SECONDARY_WORD_WEIGHT.toDouble()
+        }
+        val primaryTop = maxOf(
+            topFrequency(activeDictionary).toDouble(),
+            topFrequency(customDictionary).toDouble() * CUSTOM_WORD_WEIGHT,
+        )
+        val weights = HashMap<String, Double>(secondaryDictionaries.size * 2)
+        for (t in secondaryDictionaries) {
+            val top = topFrequency(t.source)
+            weights[t.langId] = if (primaryTop <= 0.0 || top <= 0) {
+                SECONDARY_WORD_WEIGHT.toDouble()
+            } else {
+                minOf(SECONDARY_WORD_WEIGHT.toDouble(), primaryTop * SECONDARY_SCALE_SHARE / top)
+            }
+        }
+        secondaryBaseCache = gen to weights
+        return weights[langId] ?: SECONDARY_WORD_WEIGHT.toDouble()
+    }
+
+    @Volatile
+    private var secondaryBaseCache: Pair<Long, Map<String, Double>>? = null
+
+    /** The highest frequency anywhere in [source]: its walkers' root bound. */
+    private fun topFrequency(source: WordSource): Int =
+        source.walkers().maxOfOrNull { it.maxSubtree(it.root) } ?: 0
 
     /**
      * The languages taking part in the current mix: the primary, bundled
@@ -1561,8 +1603,7 @@ class SuggestionEngine(
         }
         for (t in secondaryDictionaries) {
             if (onlyLang != null && t.langId != onlyLang) continue
-            val weight = SECONDARY_WORD_WEIGHT * mixConfidence.confidenceFor(t.langId) *
-                fieldFactorFor(t.langId)
+            val weight = secondaryWeightOf(t.langId)
             if (weight > 0) add(t.source, ln(weight))
         }
         return sources
@@ -1634,7 +1675,8 @@ class SuggestionEngine(
         weighted(systemDictionary.frequencyOf(word), USER_WORD_WEIGHT),
         secondaryEnglishFrequencyOf(word),
         secondaryDictionaries.maxOfOrNull {
-            weighted(it.source.frequencyOf(word), secondaryWeight(it.langId))
+            (it.source.frequencyOf(word) * secondaryWeightOf(it.langId))
+                .coerceIn(0.0, Int.MAX_VALUE.toDouble()).toInt()
         } ?: 0,
     )
 
@@ -1812,6 +1854,13 @@ class SuggestionEngine(
 
         /** Imported secondary-language lists rank below the primary custom list. */
         private const val SECONDARY_WORD_WEIGHT = 40
+
+        /**
+         * Where a secondary list with real frequencies tops out, as a share of
+         * the primary's commonest word (see [secondaryBaseWeight]). Half, like
+         * English as a secondary at [SECONDARY_ENGLISH_DIVISOR].
+         */
+        private const val SECONDARY_SCALE_SHARE = 0.5
 
         /** English-as-secondary participates at a fraction of its real frequency. */
         private const val SECONDARY_ENGLISH_DIVISOR = 2
