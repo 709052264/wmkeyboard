@@ -275,7 +275,7 @@ internal fun CompassPanel(
 ) {
     val onUseMyLocation = location?.onUseMyLocationForTools
     val locationUi = location?.state?.collectAsState()?.value
-    val target = locationUi?.compassTarget
+    val place = locationUi?.compassTarget
     val context = LocalContext.current
     val sensorManager = remember {
         context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -358,7 +358,7 @@ internal fun CompassPanel(
     } else {
         null
     }
-    val targetBearing = if (target != null && origin != null) origin.bearingTo(target.point).toFloat() else null
+    val targetBearing = if (place != null && origin != null) origin.bearingTo(place.point).toFloat() else null
 
     val kb = LocalKbTheme.current
     Column(
@@ -494,23 +494,23 @@ internal fun CompassPanel(
                 ) { onUseMyLocation() }
             }
         }
-        if (target != null && location != null) {
+        if (place != null && location != null) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(bottom = 4.dp, start = 12.dp, end = 12.dp),
             ) {
                 Text(
                     if (origin != null) {
-                        val bearing = origin.bearingTo(target.point).roundToInt() % 360
+                        val bearing = origin.bearingTo(place.point).roundToInt() % 360
                         stringResource(
                             R.string.ime_location_compass_target,
-                            "📍 " + target.label,
-                            com.wasimaster.wmkeyboard.core.location.LocationFormatter.distance(origin.distanceTo(target.point)),
+                            "📍 " + place.label,
+                            com.wasimaster.wmkeyboard.core.location.LocationFormatter.distance(origin.distanceTo(place.point)),
                             bearing,
                             cardinal(bearing),
                         )
                     } else {
-                        stringResource(R.string.ime_location_compass_needs_position, "📍 " + target.label)
+                        stringResource(R.string.ime_location_compass_needs_position, "📍 " + place.label)
                     },
                     color = kb.toolbarIcon,
                     fontSize = 12.sp,
