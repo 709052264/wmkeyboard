@@ -1802,7 +1802,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     @Volatile private var systemDictLoadedWith: Boolean? = null
     private var lastSpaceTime = 0L
-    /** uptime of the last spacebar/volume caret-scrub step; see [CARET_SCRUB_WINDOW_MS]. */
+    /** uptime of the last spacebar/volume caret-scrub step or caret key; see [CARET_SCRUB_WINDOW_MS]. */
     private var lastCaretScrubMs = 0L
     private var lastShiftTapTime = 0L
     private var suggestionJob: Job? = null
@@ -7920,7 +7920,13 @@ open class WMKeyboardService : InputMethodService() {
             ?: keyCodeForChar((key.output ?: key.label).singleOrNull() ?: return false)
             ?: return false
 
-        commitComposing(ic, autocorrect = false)
+        val caret = code in CARET_KEY_CODES
+        if (caret) {
+            endCompositionForCaretKey(ic)
+            lastCaretScrubMs = SystemClock.uptimeMillis()
+        } else {
+            commitComposing(ic, autocorrect = false)
+        }
         lastGestureWord = null
         var meta = modifiers.metaFlags() or (explicit?.meta ?: 0)
         // A layout's own arrow key (or Home/End/PageUp/PageDown) extends the
@@ -7929,7 +7935,6 @@ open class WMKeyboardService : InputMethodService() {
         // pressed is excluded there, and only there: on an arrow it would turn a
         // tap at a sentence start into a selection the next keystroke overwrites,
         // while on a letter it is the auto-capital that was asked for.
-        val caret = code in CARET_KEY_CODES
         val shifted = if (caret) state.caretExtendsSelection else shift
         if (shifted) meta = meta or KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
         if (caret && shifted) {
@@ -14792,11 +14797,6 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * Offers whatever snippet the text in front of the cursor matches, when
-     * that snippet asks before it expands.
-     *
-     * This is derived state, recomputed from the field rather than remembered
-    /**
      * Whether the field is one a snippet's chips may sit over: a text field,
      * or a browser's address bar (#471). The address bar composes once the
      * strip is on it ([KeyboardUiState.composesForSuggestions]), and a trigger
@@ -14808,6 +14808,11 @@ open class WMKeyboardService : InputMethodService() {
     private fun snippetChipField(state: KeyboardUiState): Boolean =
         state.allowsTypingIntelligence || (state.fieldKind == FieldKind.URI && !state.secureField)
 
+    /**
+     * Offers whatever snippet the text in front of the cursor matches, when
+     * that snippet asks before it expands.
+     *
+     * This is derived state, recomputed from the field rather than remembered
      * from a commit, and that is what makes the chip arrive when the trigger is
      * typed instead of when the space is. Type "hello Jo" and the offer is
      * already there, reading "Hello, Jo!"; the next letter re-derives it. There
@@ -19927,7 +19932,7 @@ open class WMKeyboardService : InputMethodService() {
         // Mark the scrub so the caret's landing spot doesn't resume-compose the
         // word under it mid-drag (this same commit would then churn it).
         lastCaretScrubMs = SystemClock.uptimeMillis()
-        commitComposing(ic, autocorrect = false)
+        endCompositionForCaretKey(ic)
         lastGestureWord = null
         // Under the setting a step sets the selection instead of pressing an
         // arrow (#505), a shifted one included: a search box reads Shift+Right
@@ -20059,6 +20064,26 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Ends the composition ahead of a caret key, the spacebar scrub's steps
+     * included. A word the caret only landed in, re-armed as composing and not
+     * typed into since, is finished where it stands: committing it wrote the
+     * same text back over itself before the key went out, and a web editor
+     * that rebuilds its text from such a commit (CodeMirror, in ViolentMonkey)
+     * dropped or shuffled characters under a run of Shift+arrows (#613).
+     * Anything typed into the word is committed as before.
+     */
+    private fun endCompositionForCaretKey(ic: InputConnection) {
+        val resumed = resumedWord
+        if (composing.isNotEmpty() && resumed != null &&
+            _uiState.value.composer.resumeBuffer(resumed) == composing.toString()
+        ) {
+            dropComposingForSelectionEdit(ic)
+            return
+        }
+        commitComposing(ic, autocorrect = false)
+    }
+
+    /**
      * The feedback for one step of the caret under a spacebar drag or a volume
      * key. The vibration has a switch of its own (#466): a drag across a line
      * is dozens of steps, and a buzz for each is what some people turn the
@@ -20083,7 +20108,7 @@ open class WMKeyboardService : InputMethodService() {
         val ic = currentInputConnection ?: return
         caretStepFeedback()
         lastCaretScrubMs = SystemClock.uptimeMillis()
-        commitComposing(ic, autocorrect = false)
+        endCompositionForCaretKey(ic)
         lastGestureWord = null
         if (_uiState.value.settings.textEditing.spaceCursorDirect &&
             !_uiState.value.caretExtendsSelection && moveCaretToEdgeDirectly(ic, delta)
@@ -34545,9 +34570,10 @@ open class WMKeyboardService : InputMethodService() {
         }
         val ic = currentInputConnection ?: return
         if (haptic) vibrate()
-        commitComposing(ic, autocorrect = false)
+        endCompositionForCaretKey(ic)
         lastGestureWord = null
         val selecting = extendSelection || _uiState.value.selectingText
+        if (action in CARET_EDIT_ACTIONS) lastCaretScrubMs = SystemClock.uptimeMillis()
         when (action) {
             TextEditAction.LEFT -> sendEditorKey(KeyEvent.KEYCODE_DPAD_LEFT, selecting)
             TextEditAction.RIGHT -> sendEditorKey(KeyEvent.KEYCODE_DPAD_RIGHT, selecting)
@@ -40158,6 +40184,18 @@ open class WMKeyboardService : InputMethodService() {
          * The panel's own moves are not in here: they name their action rather
          * than a keycode, and [onTextEdit] reads the mode itself.
          */
+        /**
+         * The text-editing actions that only move the caret or stretch the
+         * selection: a run of them is a scrub, and the word each lands in is
+         * not re-armed as composing until it stops (#613).
+         */
+        private val CARET_EDIT_ACTIONS = setOf(
+            TextEditAction.UP, TextEditAction.DOWN, TextEditAction.LEFT, TextEditAction.RIGHT,
+            TextEditAction.HOME, TextEditAction.END, TextEditAction.PAGE_UP, TextEditAction.PAGE_DOWN,
+            TextEditAction.WORD_LEFT, TextEditAction.WORD_RIGHT,
+            TextEditAction.DOC_START, TextEditAction.DOC_END,
+        )
+
         private val CARET_KEY_CODES = intArrayOf(
             KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
             KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN,
