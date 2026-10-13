@@ -38,6 +38,16 @@ class CjkNgrams private constructor(
     private val biCounts: IntArray,
     /** Corpus size, the denominator for an unconditioned unigram. */
     private val totalTokens: Long,
+    /** The unigram words themselves, sorted, for [completions] and [successors]. */
+    private val words: Array<String> = emptyArray(),
+    /** Parallel to [words]. */
+    private val wordCounts: IntArray = IntArray(0),
+    /** Per word in [words], where its successors start in [succWords]; size `words + 1`. */
+    private val succStart: IntArray = IntArray(1),
+    /** Successors as indexes into [words], commonest first within each word's run. */
+    private val succWords: IntArray = IntArray(0),
+    /** Parallel to [succWords]: the pair's count. */
+    private val succCounts: IntArray = IntArray(0),
 ) {
 
     val isEmpty: Boolean get() = uniKeys.isEmpty() && biKeys.isEmpty()
@@ -52,6 +62,36 @@ class CjkNgrams private constructor(
     fun bigram(previous: String, word: String): Int {
         val i = biKeys.binarySearch(pairHash(previous, word))
         return if (i >= 0) biCounts[i] else 0
+    }
+
+    /**
+     * The words seen most often straight after [word], commonest first, each
+     * with the pair's count: what the strip offers once [word] is written
+     * (#580 follow-up). Only the [SUCCESSORS] commonest per word are kept.
+     */
+    fun successors(word: String, limit: Int = SUCCESSORS): List<Pair<String, Int>> {
+        val i = words.binarySearch(word)
+        if (i < 0) return emptyList()
+        val out = ArrayList<Pair<String, Int>>()
+        for (k in succStart[i] until minOf(succStart[i + 1], succStart[i] + limit)) {
+            out.add(words[succWords[k]] to succCounts[k])
+        }
+        return out
+    }
+
+    /**
+     * Words longer than [prefix] that start with it, commonest first, each with
+     * its count: 无聊 for 无, so the strip can offer 聊 the moment 无 is written.
+     */
+    fun completions(prefix: String, limit: Int): List<Pair<String, Int>> {
+        if (prefix.isEmpty() || words.isEmpty()) return emptyList()
+        var i = words.binarySearch(prefix).let { if (it >= 0) it + 1 else -it - 1 }
+        val found = ArrayList<Pair<String, Int>>()
+        while (i < words.size && words[i].startsWith(prefix)) {
+            found.add(words[i] to wordCounts[i])
+            i++
+        }
+        return found.sortedByDescending { it.second }.take(limit)
     }
 
     /**
@@ -72,6 +112,19 @@ class CjkNgrams private constructor(
      */
     fun logProbability(previous: String?, word: String, packFreq: Int, packTotal: Long): Double {
         if (isEmpty) return ln((packFreq + 1).toDouble()) - ln((packTotal + 1).toDouble())
+        val lambda = bigramWeight
+        if (lambda > 0.0) {
+            // Interpolated (Jelinek-Mercer), libpinyin's form: the pair's
+            // conditional and the word's own share, mixed by a fixed weight.
+            val unigram = (unigram(word) + 1).toDouble() / (totalTokens + 1).toDouble()
+            var conditional = 0.0
+            if (previous != null) {
+                val pair = bigram(previous, word)
+                val prior = if (pair > 0) unigram(previous) else 0
+                if (prior > 0) conditional = pair.toDouble() / prior.toDouble()
+            }
+            return ln(lambda * conditional.coerceAtMost(1.0) + (1.0 - lambda) * unigram)
+        }
         if (previous != null) {
             val pair = bigram(previous, word)
             if (pair > 0) {
@@ -90,6 +143,18 @@ class CjkNgrams private constructor(
         private val LOG_BACKOFF = ln(BACKOFF)
 
         /**
+         * The pair's share when interpolating (libpinyin's form), or 0 for
+         * stupid backoff. 0: on the held-out benchmark (`PinyinBenchmarkTest`)
+         * backoff beat every weight from 0.3 to 0.85, by up to four points of
+         * whole clauses. A variable so that benchmark can compare them again.
+         */
+        @Volatile
+        var bigramWeight: Double = 0.0
+
+        /** Successors kept per word for [successors]. */
+        const val SUCCESSORS = 8
+
+        /**
          * Parses the TSV described on the class. Two fields is a unigram, three a
          * bigram; anything else — blank lines, comments, malformed rows — is
          * skipped, matching [ConversionDictionary.parse]'s tolerance of a pack
@@ -103,6 +168,14 @@ class CjkNgrams private constructor(
             val uni = Table()
             val bi = Table()
             var total = 0L
+            // The words themselves, for successors and completions. The pack
+            // lists every unigram before the first pair, so a pair's words
+            // are already indexed when it arrives; one that is not (a pack
+            // written some other way) is still scored, just never offered.
+            val wordList = ArrayList<String>()
+            val wordCountList = Table()
+            val indexOf = HashMap<String, Int>()
+            val pairs = Table()
             for (raw in lines) {
                 val line = raw.trim()
                 if (line.isEmpty() || line.startsWith("#")) continue
@@ -112,20 +185,84 @@ class CjkNgrams private constructor(
                 if (t2 < 0) {
                     val count = line.substring(t1 + 1).trim().toIntOrNull() ?: continue
                     if (count <= 0) continue
-                    uni.add(hash(line.substring(0, t1)), count)
+                    val word = line.substring(0, t1)
+                    uni.add(hash(word), count)
                     total += count
+                    if (indexOf.putIfAbsent(word, wordList.size) == null) {
+                        wordList.add(word)
+                        wordCountList.add(0L, count)
+                    }
                 } else {
                     if (t2 == t1 + 1 || line.indexOf('\t', t2 + 1) >= 0) continue
                     val count = line.substring(t2 + 1).trim().toIntOrNull() ?: continue
                     if (count <= 0) continue
-                    bi.add(pairHash(line.substring(0, t1), line.substring(t1 + 1, t2)), count)
+                    val first = line.substring(0, t1)
+                    val second = line.substring(t1 + 1, t2)
+                    bi.add(pairHash(first, second), count)
+                    val a = indexOf[first]
+                    val b = indexOf[second]
+                    if (a != null && b != null) pairs.add(a.toLong() shl 32 or b.toLong(), count)
                 }
             }
             if (uni.size == 0 && bi.size == 0) return EMPTY
             uni.sortAndMerge()
             bi.sortAndMerge()
-            return CjkNgrams(uni.keys(), uni.counts(), bi.keys(), bi.counts(), total)
+            return successorIndex(wordList, wordCountList.counts(), pairs) { words, counts, start, succ, succCounts ->
+                CjkNgrams(uni.keys(), uni.counts(), bi.keys(), bi.counts(), total, words, counts, start, succ, succCounts)
+            }
         }
+
+        /**
+         * Sorts the words and keeps each one's [SUCCESSORS] commonest
+         * followers, as indexes into the sorted list.
+         */
+        private fun successorIndex(
+            wordList: List<String>,
+            counts: IntArray,
+            pairs: Table,
+            build: (Array<String>, IntArray, IntArray, IntArray, IntArray) -> CjkNgrams,
+        ): CjkNgrams {
+            val n = wordList.size
+            val order = (0 until n).sortedWith { x, y -> wordList[x].compareTo(wordList[y]) }
+            val rank = IntArray(n)
+            for ((sorted, original) in order.withIndex()) rank[original] = sorted
+            val words = Array(n) { wordList[order[it]] }
+            val wordCounts = IntArray(n) { counts[order[it]] }
+            // One sortable long per pair: first word, then count descending, then second word.
+            val keys = pairs.keys()
+            val pairCounts = pairs.counts()
+            val packed = LongArray(keys.size) { k ->
+                val a = rank[(keys[k] ushr 32).toInt()].toLong()
+                val b = rank[(keys[k] and 0xFFFFFFFFL).toInt()].toLong()
+                val inverse = (MAX_PACKED_COUNT - pairCounts[k].coerceAtMost(MAX_PACKED_COUNT)).toLong()
+                (a shl 44) or (inverse shl 20) or b
+            }
+            packed.sort()
+            val start = IntArray(n + 1)
+            val succ = IntArray(minOf(packed.size, n * SUCCESSORS))
+            val succCounts = IntArray(succ.size)
+            var w = 0
+            var current = -1
+            var taken = 0
+            for (p in packed) {
+                val a = (p ushr 44).toInt()
+                if (a != current) {
+                    for (x in current + 1..a) start[x] = w
+                    current = a
+                    taken = 0
+                }
+                if (taken >= SUCCESSORS) continue
+                succ[w] = (p and 0xFFFFF).toInt()
+                succCounts[w] = MAX_PACKED_COUNT - ((p ushr 20) and 0xFFFFFF).toInt()
+                w++
+                taken++
+            }
+            for (x in current + 1..n) start[x] = w
+            return build(words, wordCounts, start, succ.copyOf(w), succCounts.copyOf(w))
+        }
+
+        /** Largest count [successorIndex] packs; anything above sorts as this. */
+        private const val MAX_PACKED_COUNT = 0xFFFFFF
 
         /** A growable key/count column pair, sorted by key once filled. */
         private class Table {

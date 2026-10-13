@@ -269,7 +269,7 @@ object T9PinyinComposer : Composer {
             // Every digit is ambiguous, so the ambiguity cap has to come off or
             // later syllables get pinned to whichever one sorted first — the
             // alphabetical bias this whole change removes.
-            Lattice.Opts(limit = LOOKUP_LIMIT, maxAmbiguousSpan = Int.MAX_VALUE),
+            Lattice.Opts(limit = LOOKUP_LIMIT, maxAmbiguousSpan = Int.MAX_VALUE, wordPenalty = HanLevels::penalty),
             adjust = CjkLearning.adjustFor(NAMESPACE),
         )
             .flatMap { c -> HanVariant.traditionalForms(c.text).map { Cand(it, c.consumed, c.reading) } }

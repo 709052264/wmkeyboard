@@ -24,6 +24,23 @@ class CodeTableDictionary private constructor(
     val isEmpty: Boolean get() = codes.isEmpty()
 
     /**
+     * Character → its shortest code, built the first time [codeOf] is asked.
+     * Pinyin's stroke filter reads the stroke table this way round: it has
+     * the characters and wants to know how each one is written.
+     */
+    private val byWord: Map<String, String> by lazy {
+        val out = HashMap<String, String>(words.size * 2)
+        for (i in words.indices) {
+            val current = out[words[i]]
+            if (current == null || codes[i].length < current.length) out[words[i]] = codes[i]
+        }
+        out
+    }
+
+    /** The code [word] is written with, or null when the table has no entry for it. */
+    fun codeOf(word: String): String? = if (codes.isEmpty()) null else byWord[word]
+
+    /**
      * Characters whose code starts with [pattern], best first: a character whose
      * code is *exactly* what was typed leads, then the rest by frequency.
      *

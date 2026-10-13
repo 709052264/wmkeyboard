@@ -5645,6 +5645,18 @@ private fun RowScope.CandidateMenu(
         CandidateMenuItem(Icons.Outlined.RemoveCircleOutline, stringResource(R.string.ime_candidate_menu_never)) {
             onPick(CandidateAdjustment.BLOCK)
         }
+        // 以词定字: type only the first or the last character of a word, for
+        // a character that is hard to find under its own reading.
+        if (candidate.codePointCount(0, candidate.length) >= 2) {
+            val first = candidate.substring(0, candidate.offsetByCodePoints(0, 1))
+            val last = candidate.substring(candidate.offsetByCodePoints(candidate.length, -1))
+            CandidateCharItem(first, stringResource(R.string.ime_candidate_menu_first_desc, first), textScale) {
+                onPick(CandidateAdjustment.FIRST_CHARACTER)
+            }
+            CandidateCharItem(last, stringResource(R.string.ime_candidate_menu_last_desc, last), textScale) {
+                onPick(CandidateAdjustment.LAST_CHARACTER)
+            }
+        }
         Spacer(Modifier.weight(1f))
         IconButton(onClick = onDismiss) {
             Icon(
@@ -5653,6 +5665,32 @@ private fun RowScope.CandidateMenu(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    }
+}
+
+/**
+ * One character of the held candidate in [CandidateMenu], drawn as itself
+ * in a tinted box: a tap types only that character.
+ */
+@Composable
+private fun CandidateCharItem(char: String, description: String, textScale: Float, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxHeight()
+            .clickable(onClick = onClick)
+            .semantics { contentDescription = description }
+            .padding(horizontal = 4.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = char,
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
+                .padding(horizontal = 8.dp, vertical = 2.dp),
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = CandidateFontSize * textScale,
+            maxLines = 1,
+        )
     }
 }
 

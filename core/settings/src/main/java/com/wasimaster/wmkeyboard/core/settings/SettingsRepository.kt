@@ -4938,6 +4938,19 @@ data class CjkSettings(
     /** Chinese: treat confusable pinyin initials/finals as equivalent (zh↔z, an↔ang…). */
     val pinyinFuzzy: Boolean = false,
     /**
+     * Chinese: `rq`, `sj` and `xq` offer the date, time and weekday, and `v`
+     * with a number offers it in Chinese numerals. On by default, as in
+     * Sogou and fcitx: nothing typed as pinyin starts with `v`, and the date
+     * sits behind the reading's own best candidate.
+     */
+    val pinyinShortcuts: Boolean = true,
+    /**
+     * Chinese: once a conversion is committed, the strip offers the words
+     * that usually come next (联想). On by default, as in every phone
+     * Chinese keyboard.
+     */
+    val pinyinPrediction: Boolean = true,
+    /**
      * Which of [PinyinFuzzy.PAIRS] [pinyinFuzzy] applies, by pair id. All of
      * them by default, which is what the switch meant on its own.
      *
@@ -9261,6 +9274,8 @@ class SettingsRepository(private val context: Context) {
         private val CONJUNCT_BACKSPACE = booleanPreferencesKey("conjunct_backspace")
         private val PINYIN_JIANPIN = booleanPreferencesKey("pinyin_jianpin")
         private val PINYIN_FUZZY = booleanPreferencesKey("pinyin_fuzzy")
+        private val PINYIN_SHORTCUTS = booleanPreferencesKey("pinyin_shortcuts")
+        private val PINYIN_PREDICTION = booleanPreferencesKey("pinyin_prediction")
         private val PINYIN_FUZZY_PAIRS = stringSetPreferencesKey("pinyin_fuzzy_pairs")
         private val PINYIN_DOUBLE_PINYIN = stringPreferencesKey("pinyin_double_pinyin")
         private val PINYIN_DOUBLE_PINYIN_CUSTOM = stringPreferencesKey("pinyin_double_pinyin_custom")
@@ -10889,6 +10904,8 @@ class SettingsRepository(private val context: Context) {
         CjkSettings(
             pinyinJianpin = p[PINYIN_JIANPIN] ?: defaults.cjk.pinyinJianpin,
             pinyinFuzzy = p[PINYIN_FUZZY] ?: defaults.cjk.pinyinFuzzy,
+            pinyinShortcuts = p[PINYIN_SHORTCUTS] ?: defaults.cjk.pinyinShortcuts,
+            pinyinPrediction = p[PINYIN_PREDICTION] ?: defaults.cjk.pinyinPrediction,
             // Unknown ids are dropped rather than kept: a pair removed in
             // a later build must not sit in the set forever, and the
             // composer would ignore it anyway.
@@ -17239,6 +17256,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPinyinFuzzy(value: Boolean) =
         editPrefs { it[PINYIN_FUZZY] = value }
+
+    suspend fun setPinyinShortcuts(value: Boolean) =
+        editPrefs { it[PINYIN_SHORTCUTS] = value }
+
+    suspend fun setPinyinPrediction(value: Boolean) =
+        editPrefs { it[PINYIN_PREDICTION] = value }
 
     suspend fun setVietnameseStrictTones(value: Boolean) =
         editPrefs { it[VI_STRICT_TONES] = value }

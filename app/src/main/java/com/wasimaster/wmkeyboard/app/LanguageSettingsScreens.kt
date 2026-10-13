@@ -1760,6 +1760,28 @@ private fun CjkDictPackManager(
                     default = SettingsDefaults.cjk.pinyinJianpin,
                 ) { on -> scope.launch { repository.setPinyinJianpin(on) } }
             }
+            // 联想: once a conversion lands, the strip offers what usually
+            // comes next, from the word pairs and from the user's own habits.
+            item {
+                ToggleSetting(
+                    R.string.languages_cjk_prediction_title,
+                    stringResource(R.string.languages_cjk_prediction_subtitle),
+                    settings.watch { it.cjk.pinyinPrediction },
+                    info = stringResource(R.string.languages_cjk_prediction_info),
+                    default = SettingsDefaults.cjk.pinyinPrediction,
+                ) { on -> scope.launch { repository.setPinyinPrediction(on) } }
+            }
+            // rq / sj / xq for the date, time and weekday, v + a number for
+            // Chinese numerals, the way Sogou and fcitx take them.
+            item {
+                ToggleSetting(
+                    R.string.languages_cjk_shortcuts_title,
+                    stringResource(R.string.languages_cjk_shortcuts_subtitle),
+                    settings.watch { it.cjk.pinyinShortcuts },
+                    info = stringResource(R.string.languages_cjk_shortcuts_info),
+                    default = SettingsDefaults.cjk.pinyinShortcuts,
+                ) { on -> scope.launch { repository.setPinyinShortcuts(on) } }
+            }
             item {
                 ToggleSetting(
                     R.string.languages_cjk_fuzzy_title,

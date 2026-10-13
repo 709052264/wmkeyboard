@@ -124,7 +124,43 @@ Splits that need more abbreviations, or more syllables, than the letters require
 
 ### A missed key
 
-Where the letters you typed only make sense as a run of initials, the keyboard also tries each letter as the key next to it. `xiqn` reads as `xian`, the `a` beside the `q` missed, and offers 先 and 现 alongside whatever the initials spell. It only looks where the letters need two or more bare initials to read at all, so ordinary pinyin and deliberate initials (`wbxh`) are never second-guessed.
+Where the letters you typed only make sense as a run of initials, the keyboard also tries the slips a finger makes: each letter as the key next to it, two letters the wrong way round, one letter too many and one too few. `xiqn` reads as `xian` (the `a` beside the `q` missed), `qign` as `qing`, `zhng` as `zhong` and `zhonng` as `zhong`, and the repair is offered alongside whatever the initials spell. It only looks where the letters need two or more bare initials to read at all, so ordinary pinyin and deliberate initials (`wbxh`) are never second-guessed. A repair is only offered while it reads nearly as well as the letters as typed, at least a tenth as likely, so a slip never pushes a real reading of your letters off the strip.
+
+### Other spellings
+
+Some syllables have more than one spelling in use, and a few slips are so common that every Pinyin keyboard takes them. They all read as the syllable they stand for, with nothing to switch on:
+
+- ü as `u` or `v`: `lue` and `nue` for lüe and nüe, `jv`, `qv`, `xv` and `yv` for ju, qu, xu and yu.
+- The long forms that pinyin shortens: `liou` for liu, `guei` for gui, `duen` for dun.
+- `gn` for `ng` (`bagn` is bang) and `on` for `ong` (`zhon` is zhong).
+
+A spelling that is a syllable in its own right keeps its own meaning: `lu` is always lu.
+
+### Before you finish the syllable
+
+The last syllable can be unfinished. `zho` at the end of what you typed also reads as zhong and zhou, `nia` as nian, niang and niao, so 中 and 年 are on the strip before you type the rest. This only applies to the last few letters, and only where they aren't a syllable already.
+
+### Rare characters
+
+Every character has a place in the ranking from how often it shows up in a large body of text, and for rare characters that count is unreliable: one odd file is enough to put a character nobody writes at the top of its reading. The keyboard also knows which characters China's standard list of common characters (通用规范汉字表) includes and at which of its three levels. A character outside the list, or in its rarer levels, sinks below the everyday ones that share its reading. This list is part of the app, not a download.
+
+### Dates and numbers
+
+<SettingsPath path="Languages & layouts / (a CJK language) / (language) options / Date, time and numbers" />
+
+Some letters type things that aren't in any dictionary:
+
+- `rq` (日期) offers today's date: 2026年10月13日, 二〇二六年十月十三日, 2026-10-13 and 10月13日.
+- `sj` (时间) offers the time: 14:05, 14点5分 and 下午2点5分.
+- `xq` (星期) offers the weekday: 星期二, 周二 and 礼拜二.
+
+These come right after the best candidate for the same letters, so `sj` still leads with 时间. Picking one teaches the keyboard nothing.
+
+Type `v` and then a number, with a decimal point if you like, for the number in Chinese numerals: `v1234.5` offers 一千二百三十四点五, the financial 壹仟贰佰叁拾肆点伍, 一二三四点五 digit by digit, and for whole numbers the amount 壹仟贰佰叁拾肆元整. No pinyin syllable starts with `v`, so this never changes what pinyin reads. All of this is on by default and one switch turns it off.
+
+### Narrowing the list by strokes
+
+When the character you want is far down a long list, narrow it by how the character is written. Hold <KeyCap>'词</KeyCap> for a backtick, then type the first strokes with the letters fcitx and Sogou use: `h` for 横 (一), `s` for 竖 (丨), `p` for 撇 (丿), `d` or `n` for 点 (丶) and `z` for 折 (乙). `yi` then `` `z `` leaves 乙 and the other characters that start with 折; the composing text shows the strokes as you type them. Picking a candidate ends the filter, and only the letters that candidate covers are used up. It needs the Stroke dictionary download, which is where the stroke order comes from. Without it the filter narrows nothing.
 
 ### The word separator key
 
@@ -219,6 +255,16 @@ If a reading has no dictionary match at all, it always falls back to committing 
 
 Hold a candidate in the strip or the grid and the strip turns into its menu: **Earlier**, **Later** and **Never show**, with ✕ to close it. Earlier counts it as picked, which puts it first for that reading. Later moves it one step down, behind the candidates it was level with, and also makes every sentence built with it a little less likely. Never show takes it off the list for good, along with every reading built through it, so blocking 亡八 also removes 亡八喜欢. The strip updates at once. It works on every conversion layout (Pinyin, T9 Pinyin, Zhuyin, Jyutping, Japanese and imported input methods), each in its own [learning history](#learning-from-your-picks). On an English word in the strip, Never show adds it to the [suggestion blacklist](/smart/suggestions/) instead. To undo the lot, clear the learned words below.
 
+### One character of a word
+
+The hold menu on a candidate of two or more characters also shows its first and its last character. Tap one to type only that character, for the whole reading the word covered: hold 选择 and tap 选. This is the quick way to a character that is hard to find under its own reading (以词定字, fcitx's <KeyCap>[</KeyCap> and <KeyCap>]</KeyCap>). Nothing is learned from it.
+
+### What comes next (联想)
+
+<SettingsPath path="Languages & layouts / (a CJK language) / (language) options / Next-word suggestions (联想)" />
+
+Once a Chinese conversion is complete and nothing is composing, the strip offers the words that usually come next: after 我 it might offer 们, 的 and 是; after 喜欢, 你 and 吃. Tap one and it goes in as it is, with no space, and the strip offers what follows that. The words you have written after the same text before come first, then the common pairs from the word pairs pack, then the rest of a longer word the last character starts (无 offers 聊, from 无聊). It needs the word pairs pack, follows the strip's own switches like any other suggestion, and is on by default. Start typing pinyin and the strip goes back to converting.
+
 ### English words and emoji
 
 Pinyin, romaji and Jyutping are typed on the same letters as English, so with **English** turned on under the language's [Also suggest from](/languages/overview/#each-language-has-its-own-screen), the strip offers English words for those letters too. Type `hello` and *hello* sits right behind 和. When the top candidate already covers everything you typed, as 很 does for `hen`, the English waits behind the first three candidates instead. Space still commits the top candidate, never the English. Tapping an English word puts it in exactly as shown, in place of the whole reading, with no space after it. Only words that start with what you typed are offered, never corrections, since the letters are a reading first. T9, Zhuyin, Cangjie and Stroke layouts don't offer English, because their keys aren't the alphabet.
@@ -245,6 +291,14 @@ The candidate bar is not the ordinary suggestion strip wearing a different coat,
 
 Every candidate you pick from the strip or the grid is remembered against the reading you typed, and so is the one a space press commits. Three paths teach nothing: Enter's confirm-as-typed, whatever goes in when you leave the buffer some other way (punctuation, moving the cursor), and a reading the dictionary couldn't convert at all, since the raw-reading fallback is in no ranked list. The next time the same reading comes up, your previously-chosen candidates move to the front (most-picked first) while everything else keeps the order the dictionary gave it. In Pinyin they move to the front of their own group: a 我 you picked for `wo` comes first among the single characters for `wbxh`, never ahead of 我不喜欢. It's a reordering of your own history, not a blended relevance score, so a candidate you've never picked never gets promoted just because it's common in general.
 
+In Pinyin it learns three more things:
+
+- **Phrases you build.** When you commit one buffer in two or more picks, say 我的 and then 妈妈 for `wodemama`, the whole thing is learned as one phrase, so next time it's offered whole, and `wdmm` finds it too. Only short ones are kept, up to four syllables (or six single characters), and none where the word pairs already join every piece to the next.
+- **What you write after what.** Each pick is remembered as following the word before it, whether that was the pick before or the Chinese text in front of the cursor. Those pairs help decide between readings (`ta` after 她说 leans to 她) and come first in [what comes next](#what-comes-next-联想).
+- **The text before the cursor.** The first word of a new reading is ranked as following whatever Chinese is already written before it, using the word pairs pack and your own pairs. After a space, a punctuation mark or Latin text, the reading starts a new sentence.
+
+Nothing you taught it stays forever if you stop using it. After every 3,000 picks or so, each count that hasn't been used in that time is halved, and a count of one goes. A word you pick every day never fades, and one you picked a few times last year stops outranking it.
+
 Learning is scoped separately per reading system (pinyin, T9 Pinyin, zhuyin, jyutping, and Japanese kana readings each keep their own history), because the same word can be spelled several different ways depending on which Chinese scheme you're using. **Cangjie, Cangjie Quick, and Stroke don't participate in learning at all**: their radical and stroke codes map deterministically to one character, so there's no ambiguity to learn from.
 
 This history is governed by the same setting as ordinary word learning:
@@ -269,6 +323,8 @@ Opening a Chinese, Cantonese, or Japanese entry from the Languages screen shows 
 | Full-width space | Off | Chinese, Cantonese, and Japanese, each on its own |
 | Space steps through candidates | Off | Chinese, Cantonese, and Japanese, each on its own |
 | Jianpin (简拼) | On | Chinese only; ignored under a Double Pinyin scheme |
+| Next-word suggestions (联想) | On | Chinese only |
+| Date, time and numbers | On | Chinese only |
 | Fuzzy Pinyin | Off | Chinese only |
 | The eleven fuzzy pairs, one row each | All on | Chinese only, shown while Fuzzy Pinyin is on |
 | Double Pinyin scheme | Off (full Pinyin) | Chinese only |

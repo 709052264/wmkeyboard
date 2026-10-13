@@ -326,6 +326,28 @@ interface Composer {
      */
     fun pickReading(buffer: String, reading: String): String? = null
 
+    /**
+     * Words to offer once a conversion is committed and nothing is composing
+     * (联想, "association"): what is likely to follow [context], the text just
+     * before the caret, best first. A pick is written as it stands and asked
+     * about again with itself added to [context]. Empty for every composer
+     * with nothing to predict from.
+     */
+    fun predictions(context: String, limit: Int): List<String> = emptyList()
+
+    /** Records that [picked] was taken from [predictions] for [context]. */
+    fun learnPrediction(context: String, picked: String) {
+        // Nothing to learn: the default composer predicts nothing.
+    }
+
+    /**
+     * What stays composing once a candidate has consumed the head of the
+     * buffer and [rest] is left. Pinyin's stroke filter (`` `hs ``) narrows
+     * the list it was typed for, so it goes with that pick rather than
+     * narrowing whatever is read next. The default keeps [rest] whole.
+     */
+    fun remainderAfterCommit(rest: String): String = rest
+
     /** A transliterator's buffer (roman, or jamo) rendered as script text. */
     fun composeBuffer(buffer: String): String = buffer
 

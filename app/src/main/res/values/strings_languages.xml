@@ -433,6 +433,12 @@
     <string name="languages_cjk_jianpin_title">Jianpin (简拼)</string>
     <string name="languages_cjk_jianpin_subtitle">Type only the first letter of a syllable: wm finds 我们, zg finds 中国</string>
     <string name="languages_cjk_jianpin_info">A letter that is not a whole syllable stands for every syllable that starts with it, so wm finds 我们 and haod finds 好的. Each letter is one syllable: hd means h… plus d…. A syllable that you type in full is matched exactly and ranks first. The letters z, c and s also cover zh, ch and sh. A Double Pinyin scheme does not use this, because every syllable is exactly two keys there.</string>
+    <string name="languages_cjk_prediction_title">Next-word suggestions (联想)</string>
+    <string name="languages_cjk_prediction_subtitle">After you pick Chinese text, show the words that usually come next</string>
+    <string name="languages_cjk_prediction_info">When a conversion is complete and nothing is composing, the strip shows the words that usually follow the text before the cursor. Tap one to type it, and the strip shows what follows that. The words that you write after others come first, then the common word pairs, then the rest of a word that the last character starts (无 gives 聊). This needs the word pairs pack.</string>
+    <string name="languages_cjk_shortcuts_title">Date, time and numbers</string>
+    <string name="languages_cjk_shortcuts_subtitle">rq types the date, sj the time, xq the weekday, v and a number gives Chinese numerals</string>
+    <string name="languages_cjk_shortcuts_info">Type rq for the date, sj for the time and xq for the weekday. These show after the best candidate for the same letters. Type v and then a number, for example v1234.5, to get it as 一千二百三十四点五, as 壹仟贰佰叁拾肆点伍 for amounts, or digit by digit. No pinyin syllable starts with v, so this does not change pinyin.</string>
     <string name="languages_cjk_fuzzy_title">Fuzzy Pinyin</string>
     <!-- Only "Match confusable sounds" needs translation. The rest is Pinyin
          spelling and stays as it is. -->

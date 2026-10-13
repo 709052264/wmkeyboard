@@ -642,6 +642,8 @@ internal object SettingsRowIcons {
         put(R.string.languages_emoji_keywords_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.languages_cjk_traditional_title) { Icons.Outlined.Translate }
         put(R.string.languages_cjk_jianpin_title) { Icons.AutoMirrored.Outlined.ShortText }
+        put(R.string.languages_cjk_prediction_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.languages_cjk_shortcuts_title) { Icons.Outlined.Today }
         put(R.string.languages_cjk_fuzzy_title) { Icons.Outlined.BlurOn }
         put(R.string.languages_cjk_lazy_title) { Icons.Outlined.RecordVoiceOver }
         put(R.string.languages_cjk_loose_marks_title) { Icons.Outlined.Spellcheck }

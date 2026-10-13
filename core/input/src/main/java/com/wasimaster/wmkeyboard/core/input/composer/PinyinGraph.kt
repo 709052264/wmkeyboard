@@ -18,7 +18,7 @@ package com.wasimaster.wmkeyboard.core.input.composer
  * (two syllables each), and keeps `nihao` from reading as `ni`+`ha`+`o` —
  * 哦 is a syllable, but three is more than two.
  *
- * Three kinds of arc are added on top of that:
+ * Five kinds of arc are added on top of that:
  *  - the **apostrophe split**: a syllable that is also two, the second
  *    starting with a or e — `xian` as `xi`+`an` (西安), `fangan` as
  *    `fang`+`an` (方案). Pinyin marks that boundary with an apostrophe, which
@@ -28,13 +28,40 @@ package com.wasimaster.wmkeyboard.core.input.composer
  *    how Jianpin has always read `zhg` as 中国 while `sh` stays 上海 as well;
  *  - a **mistyped key** (`xiqn` → `xian`): a stretch the cheapest split can
  *    only read with two or more bare initials, which one neighbouring key
- *    turns into a whole syllable. Those cost a penalty and compete with the
- *    initials rather than replacing them, since `xiqn` may really be initials.
+ *    turns into a whole syllable — or two swapped keys (`qign`), one key
+ *    too many (`zhonng`) or one too few (`zhng`). Those cost a penalty and
+ *    compete with the initials rather than replacing them, since `xiqn` may
+ *    really be initials;
+ *  - another **spelling** of a syllable ([PinyinSpellings.aliases]): `lue`
+ *    for `lüe`, `jv` for `ju`, the textbook `liou` for `liu`, and the slips
+ *    every pinyin IME forgives, `bagn` for `bang` and `zhon` for `zhong`.
+ *    These are units like any syllable, read as the syllable they spell;
+ *  - the **unfinished last syllable** ([PinyinSpellings.completions]): `nia`
+ *    at the end of the buffer also reads as nian, niang and niao, so the
+ *    word is on the strip before its last letter is.
  */
 internal object PinyinGraph {
 
     /** What a span of the buffer is, for the composer turning it into arcs. */
-    enum class Kind { UNIT, DIGRAPH, TYPO }
+    enum class Kind {
+        UNIT,
+        DIGRAPH,
+
+        /** One key replaced by its neighbour. */
+        TYPO,
+
+        /** Two keys typed the wrong way round. */
+        SWAP,
+
+        /** One key too many, or one too few. */
+        EXTRA,
+
+        /** Another spelling of a syllable; the unit is that syllable. */
+        ALIAS,
+
+        /** The start of a syllable at the end of the buffer; the unit is the syllable. */
+        PARTIAL,
+    }
 
     /**
      * The graph, how many units the cheapest split has, and whether that split
@@ -80,6 +107,8 @@ internal object PinyinGraph {
         val s = buffer.lowercase()
         val n = s.length
         val units = jianpin?.units?.takeIf { it.isNotEmpty() } ?: valid
+        val spellings = PinyinSpellings.of(valid)
+        val aliases = spellings.aliases
 
         // Every unit that starts at each position. An apostrophe is the user's
         // own boundary: skipped, and counted into the unit after it, so a
@@ -90,7 +119,11 @@ internal object PinyinGraph {
             val out = ArrayList<Span>()
             for (len in minOf(MAX_SYLLABLE, n - start) downTo 1) {
                 val unit = s.substring(start, start + len)
-                if (unit in units) out.add(Span(i, start, start + len, unit, if (unit in valid) 1 else INITIAL + 1))
+                if (unit in units) {
+                    out.add(Span(i, start, start + len, unit, if (unit in valid) 1 else INITIAL + 1))
+                } else if (unit in aliases) {
+                    out.add(Span(i, start, start + len, unit, 1))
+                }
             }
             out
         }
@@ -127,7 +160,7 @@ internal object PinyinGraph {
         // A syllable that also reads as two, split where an apostrophe would go.
         val splits = ArrayList<Span>()
         for (sp in kept) {
-            if (sp.cost != 1 || sp.to - sp.start < 2) continue
+            if (sp.cost != 1 || sp.to - sp.start < 2 || sp.unit !in valid) continue
             for (k in sp.start + 1 until sp.to) {
                 val head = s.substring(sp.start, k)
                 val tail = s.substring(k, sp.to)
@@ -139,14 +172,38 @@ internal object PinyinGraph {
         }
         kept.addAll(splits)
 
+        // The last syllable, still being typed: from where the buffer's own
+        // split leaves off, or from a boundary inside it, to the end.
+        val partials = ArrayList<Span>()
+        val partialFrom = (kept.map { it.from } + end).distinct()
+        for (i in partialFrom) {
+            if (best[i] == INF) continue
+            var start = i
+            while (start < n && s[start] == '\'') start++
+            val tail = s.substring(start)
+            if (tail.length >= 2 && '\'' !in tail && spellings.completions.containsKey(tail)) {
+                partials.add(Span(i, start, n, tail, INITIAL + 1))
+            }
+        }
+
         val positions = sortedSetOf(0, end)
         for (sp in kept) { positions.add(sp.from); positions.add(sp.to) }
+        if (partials.isNotEmpty()) positions.add(n)
         val nodes = positions.toIntArray()
         val index = HashMap<Int, Int>(nodes.size * 2)
         for ((k, p) in nodes.withIndex()) index[p] = k
         val arcs = Array(nodes.size) { ArrayList<Lattice.Arc>() }
 
-        for (sp in kept) arcs.getValue(sp.from, index).addAll(arcsFor(sp.unit, index.getValue(sp.to), Kind.UNIT))
+        for (sp in kept) {
+            val kind = if (sp.unit in units) Kind.UNIT else Kind.ALIAS
+            val unit = if (kind == Kind.ALIAS) aliases.getValue(sp.unit) else sp.unit
+            arcs.getValue(sp.from, index).addAll(arcsFor(unit, index.getValue(sp.to), kind))
+        }
+        for (sp in partials) {
+            for (syllable in spellings.completions.getValue(sp.unit)) {
+                arcs.getValue(sp.from, index).addAll(arcsFor(syllable, index.getValue(n), Kind.PARTIAL))
+            }
+        }
 
         // `z` then `h`, both bare and back to back, also read as the one
         // initial zh… — unless an apostrophe sits between them.
@@ -162,23 +219,35 @@ internal object PinyinGraph {
             }
         }
 
-        // A stretch that needs two or more bare initials, and that one
-        // neighbouring key would make a whole syllable of.
+        // A stretch that needs two or more bare initials, and that one slip
+        // of a finger would make a whole syllable of: a neighbouring key, two
+        // keys swapped, one key too many or one too few.
         for (i in nodes) {
             for (j in nodes) {
-                if (j <= i || best[i] == INF || best[j] == INF) continue
+                if (j <= i || j > end || best[i] == INF || best[j] == INF) continue
                 if ((best[j] - best[i]) / INITIAL < TYPO_ABBREVIATIONS) continue
                 var start = i
                 while (start < j && s[start] == '\'') start++
                 val window = s.substring(start, j)
-                if (window.length !in MIN_TYPO..MAX_SYLLABLE || '\'' in window || window in valid) continue
+                if (window.length !in MIN_TYPO..MAX_SYLLABLE + 1 || '\'' in window) continue
+                if (window in valid || window in aliases) continue
+                val to = index.getValue(j)
                 val seen = HashSet<String>()
+                fun offer(fixed: String, kind: Kind) {
+                    if (fixed in valid && seen.add(fixed)) arcs.getValue(i, index).addAll(arcsFor(fixed, to, kind))
+                }
                 for (p in window.indices) {
                     for (c in NEIGHBOURS[window[p]].orEmpty()) {
-                        val fixed = window.substring(0, p) + c + window.substring(p + 1)
-                        if (fixed in valid && seen.add(fixed)) {
-                            arcs.getValue(i, index).addAll(arcsFor(fixed, index.getValue(j), Kind.TYPO))
-                        }
+                        offer(window.substring(0, p) + c + window.substring(p + 1), Kind.TYPO)
+                    }
+                }
+                for (p in 0 until window.length - 1) {
+                    offer(window.substring(0, p) + window[p + 1] + window[p] + window.substring(p + 2), Kind.SWAP)
+                }
+                for (p in window.indices) offer(window.removeRange(p, p + 1), Kind.EXTRA)
+                if (window.length < MAX_SYLLABLE) {
+                    for (p in 1..window.length) {
+                        for (c in 'a'..'z') offer(window.substring(0, p) + c + window.substring(p), Kind.EXTRA)
                     }
                 }
             }

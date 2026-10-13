@@ -88,6 +88,21 @@ object CjkConfig {
         set(value) { field = value; CjkDictionaries.invalidate() }
 
     /**
+     * Pinyin's typed shortcuts: `rq`, `sj` and `xq` for the date, time and
+     * weekday, and `v` and a number for Chinese numerals. See [PinyinShortcuts].
+     */
+    @Volatile
+    var pinyinShortcuts: Boolean = true
+        set(value) { field = value; CjkDictionaries.invalidate() }
+
+    /**
+     * Pinyin offers the words likely to come next once a conversion is
+     * committed (联想). See [Composer.predictions].
+     */
+    @Volatile
+    var pinyinPrediction: Boolean = true
+
+    /**
      * Cantonese lazy pronunciation (懶音): match the sound mergers most Hong Kong
      * speakers have, so a syllable typed the way it is said still finds its
      * characters. See [JyutpingFuzzy].

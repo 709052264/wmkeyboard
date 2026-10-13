@@ -622,6 +622,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.resolvedComposer
 import com.wasimaster.wmkeyboard.core.input.composer.Composer
 import com.wasimaster.wmkeyboard.core.input.composer.KhiproComposer
 import com.wasimaster.wmkeyboard.core.input.composer.CjkConfig
+import com.wasimaster.wmkeyboard.core.input.composer.CjkContext
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictionaries
 import com.wasimaster.wmkeyboard.core.input.composer.CjkNgrams
@@ -631,6 +632,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.PinyinGlide
 import com.wasimaster.wmkeyboard.core.input.composer.CandidateAdjustment
 import com.wasimaster.wmkeyboard.core.input.composer.HanPhraseTable
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
+import com.wasimaster.wmkeyboard.core.input.composer.HanLevels
 import com.wasimaster.wmkeyboard.core.input.composer.HangulStrokes
 import com.wasimaster.wmkeyboard.core.input.composer.NaratgeulComposer
 import com.wasimaster.wmkeyboard.core.input.composer.Kana
@@ -4175,6 +4177,8 @@ open class WMKeyboardService : InputMethodService() {
                 CjkConfig.jianpin = settings.cjk.pinyinJianpin
                 CjkConfig.fuzzyPinyin = settings.cjk.pinyinFuzzy
                 CjkConfig.fuzzyPinyinPairs = settings.cjk.pinyinFuzzyPairs
+                CjkConfig.pinyinShortcuts = settings.cjk.pinyinShortcuts
+                CjkConfig.pinyinPrediction = settings.cjk.pinyinPrediction
                 CjkConfig.customDoublePinyin = settings.cjk.pinyinDoublePinyinCustom
                 CjkConfig.doublePinyin = settings.cjk.pinyinDoublePinyin
                 CjkConfig.traditionalOutput = settings.cjk.traditionalOutput
@@ -9491,7 +9495,7 @@ open class WMKeyboardService : InputMethodService() {
         if (index < 0) return false
         val consumed = composer.consumedForIndex(run.keys, index).coerceIn(1, run.keys.length)
         if (learningAllowed) composer.learnChoice(run.keys, index)
-        val rest = run.keys.substring(consumed)
+        val rest = composer.remainderAfterCommit(run.keys.substring(consumed))
         val shown = composer.composeBuffer(run.keys)
         val tail = composer.composeBuffer(rest)
         val text = before.text.substring(0, run.start) + chosen + tail +
@@ -15420,6 +15424,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun flushConversion(ic: InputConnection) {
         val composer = _uiState.value.composer
         var guard = 0
+        var converted = false
         while (composing.isNotEmpty() && guard++ < 64) {
             val buf = composing.toString()
             val top = composer.candidates(buf).firstOrNull()
@@ -15431,25 +15436,82 @@ open class WMKeyboardService : InputMethodService() {
             }.coerceIn(1, composing.length)
             ic.commitText(chosen, 1)
             composing.delete(0, consumed)
+            val rest = composer.remainderAfterCommit(composing.toString())
+            if (rest.length != composing.length) composing = StringBuilder(rest)
+            if (top != null) CjkContext.committed(chosen) else CjkContext.before = ""
+            converted = top != null
         }
-        afterConversionFlushed()
+        afterConversionFlushed(predict = converted)
     }
 
     /** Enter's side of a conversion reading: commits [Composer.typedReading] whole. */
     private fun commitConversionAsTyped(ic: InputConnection) {
         ic.commitText(_uiState.value.composer.typedReading(composing.toString()), 1)
         consumeShift()
+        CjkContext.before = ""
         afterConversionFlushed()
     }
 
-    /** The buffer is spent: clears it and turns the strip to next-word suggestions. */
-    private fun afterConversionFlushed() {
+    /**
+     * What the conversion composer offers after [context] (联想), under the
+     * strip's own gates: unlike the candidates, these are suggestions. Kept
+     * in [conversionPredictions] with the context they answer, so a tap on
+     * one is recognised as a prediction and not a stale candidate.
+     */
+    private fun conversionPredictions(context: String): List<String> {
+        val state = _uiState.value
+        if (!state.composer.isConversion || context.isEmpty()) return clearConversionPredictions()
+        if (!state.settings.suggestions || state.secureField || state.fieldNoSuggestions ||
+            !state.allowsTypingIntelligence
+        ) {
+            return clearConversionPredictions()
+        }
+        val words = state.composer.predictions(context, state.settings.suggestionStrip.slotCount.coerceAtLeast(CONVERSION_PREDICTIONS))
+        conversionPredictions = context to words
+        return words
+    }
+
+    private fun clearConversionPredictions(): List<String> {
+        conversionPredictions = null
+        return emptyList()
+    }
+
+    /** The context the strip's predictions answer, and the predictions. */
+    private var conversionPredictions: Pair<String, List<String>>? = null
+
+    /**
+     * A prediction tapped with nothing composing: it goes in as it stands,
+     * no space, and the strip predicts again from the longer context. False
+     * when [chosen] is not one of the strip's predictions.
+     */
+    private fun commitConversionPrediction(ic: InputConnection, chosen: String): Boolean {
+        val (context, words) = conversionPredictions ?: return false
+        if (chosen !in words) return false
+        val composer = _uiState.value.composer
+        ic.commitText(chosen, 1)
+        if (learningAllowed) composer.learnPrediction(context, chosen)
+        CjkContext.before = context + chosen
+        val next = conversionPredictions(CjkContext.before)
+        _uiState.update {
+            it.copy(suggestions = next, emojiSuggestions = emptyList(), autocorrectWord = null, candidateCursor = -1)
+        }
+        CjkLearning.store?.let { store -> serviceScope.launch(Dispatchers.IO) { store.save() } }
+        return true
+    }
+
+    /**
+     * The buffer is spent: clears it and turns the strip to next-word
+     * suggestions — the composer's own (联想) after a conversion when it has
+     * any, the word engine's otherwise.
+     */
+    private fun afterConversionFlushed(predict: Boolean = false) {
         composing = StringBuilder()
         val (nextWords, nextEmojis) = nextWordStrip()
+        val predicted = if (predict) conversionPredictions(CjkContext.before) else emptyList()
         _uiState.update {
             it.copy(
                 composingPreview = "",
-                suggestions = nextWords,
+                suggestions = predicted.ifEmpty { nextWords },
                 conversionReadings = emptyList(),
                 emojiSuggestions = nextEmojis,
                 autocorrectWord = null,
@@ -15466,8 +15528,11 @@ open class WMKeyboardService : InputMethodService() {
      * `nihao` commits 你 and leaves `hao` composing. Never learns (Hanzi/Kanji
      * are not lexicon words) and never adds a trailing space.
      */
-    private fun commitConversionPrefix(ic: InputConnection, chosen: String, index: Int = -1) {
-        if (composing.isEmpty()) return
+    private fun commitConversionPrefix(ic: InputConnection, chosen: String, index: Int = -1, piece: String? = null) {
+        if (composing.isEmpty()) {
+            commitConversionPrediction(ic, chosen)
+            return
+        }
         val composer = _uiState.value.composer
         val buf = composing.toString()
         // By strip position when the caller knows it, which is exact even where a
@@ -15483,16 +15548,24 @@ open class WMKeyboardService : InputMethodService() {
         // reading the dictionary could not convert. Not hooked into
         // flushConversion either — that auto-commits whatever already ranked
         // first, so learning it would only entrench the existing order.
-        if (index >= 0 && learningAllowed) composer.learnChoice(buf, index)
-        ic.commitText(chosen, 1)
+        // A single character of the candidate ([piece], 以词定字) consumes the
+        // candidate's whole reading but teaches nothing about the word.
+        if (index >= 0 && piece == null && learningAllowed) composer.learnChoice(buf, index)
+        val written = piece ?: chosen
+        ic.commitText(written, 1)
         composing.delete(0, consumed)
+        val rest = composer.remainderAfterCommit(composing.toString())
+        if (rest.length != composing.length) composing = StringBuilder(rest)
+        // The raw reading is no Chinese for the next buffer to follow on from.
+        if (index >= 0 || piece != null) CjkContext.committed(written) else CjkContext.before = ""
         consumeShift()
         if (composing.isEmpty()) {
             val (nextWords, nextEmojis) = nextWordStrip()
+            val predicted = if (index >= 0 || piece != null) conversionPredictions(CjkContext.before) else emptyList()
             _uiState.update {
                 it.copy(
                     composingPreview = "",
-                    suggestions = nextWords,
+                    suggestions = predicted.ifEmpty { nextWords },
                     conversionReadings = emptyList(),
                     emojiSuggestions = nextEmojis,
                     autocorrectWord = null,
@@ -15825,6 +15898,15 @@ open class WMKeyboardService : InputMethodService() {
             // Jianpin's initials are derived from the same inventory: `h` stands
             // for every syllable the inventory starts with h.
             Jianpin.index = Jianpin.build(PinyinSyllables.valid)
+            // Which characters the 通用规范汉字表 lists, and at which level: 25 KB,
+            // bundled, so a rare character sinks without any pack.
+            if (HanLevels.table.isEmpty) {
+                runCatching {
+                    assets.open("dictionaries/han_levels.txt").bufferedReader().useLines {
+                        HanLevels.table = HanLevels.parse(it)
+                    }
+                }
+            }
             loadedCjkPackToken = token
         }
         // The tables are in, so a missing pack is now really missing: the chip
@@ -18672,6 +18754,17 @@ open class WMKeyboardService : InputMethodService() {
         commitResolution = null
         val typed = composing.toString()
         val composer = state.composer
+        conversionPredictions = null
+        // A new reading: what is written before it is the context its first
+        // word is scored after (#580 follow-up). Read once per reading, from
+        // the field, since the caret may have moved since the last commit.
+        if (typed.length == 1) {
+            // The reading itself is already in the field as the composing
+            // text, right before the caret, so it is read and taken back off.
+            val shown = composer.composeBuffer(typed)
+            val before = currentInputConnection?.getTextBeforeCursor(CjkContext.KEEP + shown.length, 0)?.toString().orEmpty()
+            CjkContext.before = before.removeSuffix(shown)
+        }
         val gridOpen = state.panel == PanelMode.CANDIDATES
         refreshConversionPackOffer(state)
         // A new reading is a new list, so whatever the arrow keys had
@@ -19525,6 +19618,9 @@ open class WMKeyboardService : InputMethodService() {
     /** English words offered beside a conversion reading's candidates (#633). */
     private val CONVERSION_ENGLISH_WORDS = 2
 
+    /** Fewest predictions asked for after a conversion commit; the strip scrolls. */
+    private val CONVERSION_PREDICTIONS = 12
+
     /** How many conversions keep their places ahead of the English words, at most. */
     private val CONVERSION_ENGLISH_AFTER = 3
 
@@ -19628,6 +19724,19 @@ open class WMKeyboardService : InputMethodService() {
         val at = composerIndex.takeIf { list.getOrNull(it) == candidate } ?: list.indexOf(candidate)
         if (at < 0) return
         vibrate()
+        // 以词定字: one character of the word, for the whole word's reading.
+        if (adjustment == CandidateAdjustment.FIRST_CHARACTER || adjustment == CandidateAdjustment.LAST_CHARACTER) {
+            val ic = currentInputConnection ?: return
+            if (candidate.codePointCount(0, candidate.length) < 2) return
+            val piece = if (adjustment == CandidateAdjustment.FIRST_CHARACTER) {
+                candidate.substring(0, candidate.offsetByCodePoints(0, 1))
+            } else {
+                candidate.substring(candidate.offsetByCodePoints(candidate.length, -1))
+            }
+            if (gridOpen) _uiState.update { it.copy(panel = PanelMode.NONE, expandedCandidates = emptyList()) }
+            commitConversionPrefix(ic, candidate, at, piece)
+            return
+        }
         composer.adjustChoice(typed, at, adjustment)
         CjkLearning.store?.let { store -> serviceScope.launch(Dispatchers.IO) { store.save() } }
         refreshConversionCandidates(_uiState.value)

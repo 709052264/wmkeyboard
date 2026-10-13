@@ -397,7 +397,7 @@ private val bundledAttributions: List<Attribution> = buildList {
     }
     add(
         Attribution(
-            "Unicode CLDR & emoji data",
+            "Unicode CLDR, emoji & Han data",
             R.string.about_bundled_unicode_used,
             "Copyright Unicode, Inc.",
             "Unicode License v3", "unicode-3.0.txt",

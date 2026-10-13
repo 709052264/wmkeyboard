@@ -124,6 +124,8 @@
     <string name="search_kw_langemoji_emoji_sticker">sticker png</string>
     <string name="search_kw_langemoji_lang_os_switcher">ime subtype</string>
     <string name="search_kw_languages_cjk_jianpin">mandarin abbreviated pinyin initials shorthand 简拼</string>
+    <string name="search_kw_languages_cjk_prediction">mandarin chinese association next word predict 联想 after commit</string>
+    <string name="search_kw_languages_cjk_shortcuts">mandarin chinese date time weekday numerals 日期 时间 星期 大写 数字 rq sj v</string>
     <string name="search_kw_languages_cjk_double_pinyin_custom">shuangpin 双拼 mandarin chinese scheme key table fcitx sp.dat import export</string>
     <string name="search_kw_languages_cjk_fuzzy">mandarin putonghua</string>
     <string name="search_kw_languages_cjk_lazy">cantonese jyutping</string>

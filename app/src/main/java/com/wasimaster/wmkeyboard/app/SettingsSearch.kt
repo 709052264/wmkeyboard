@@ -952,6 +952,8 @@ private fun SearchStrings.languageRows(): List<SettingsSearchEntry> {
         row(R.string.languages_cjk_full_width_space_title, R.string.languages_cjk_full_width_space_subtitle),
         row(R.string.languages_cjk_space_steps_title, R.string.languages_cjk_space_steps_subtitle),
         row(R.string.languages_cjk_jianpin_title, R.string.languages_cjk_jianpin_subtitle),
+        row(R.string.languages_cjk_prediction_title, R.string.languages_cjk_prediction_subtitle),
+        row(R.string.languages_cjk_shortcuts_title, R.string.languages_cjk_shortcuts_subtitle),
         row(R.string.languages_cjk_fuzzy_title, R.string.languages_cjk_fuzzy_subtitle),
         row(R.string.languages_cjk_double_pinyin_custom_title, R.string.languages_cjk_double_pinyin_custom_subtitle),
     )

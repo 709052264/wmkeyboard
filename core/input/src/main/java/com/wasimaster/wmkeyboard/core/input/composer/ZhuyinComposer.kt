@@ -80,7 +80,7 @@ object ZhuyinComposer : Composer {
             input,
             CjkDictionaries.pinyin,
             CjkDictionaries.pinyinNgrams,
-            Lattice.Opts(limit = LOOKUP_LIMIT),
+            Lattice.Opts(limit = LOOKUP_LIMIT, wordPenalty = HanLevels::penalty),
             adjust = CjkLearning.adjustFor(NAMESPACE),
         )
             .flatMap { c -> HanVariant.traditionalForms(c.text).map { Cand(it, c.consumed, c.reading) } }

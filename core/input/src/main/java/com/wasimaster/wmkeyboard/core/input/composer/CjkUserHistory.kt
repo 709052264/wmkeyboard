@@ -39,11 +39,39 @@ class CjkUserHistory(private val storageFile: File?) {
         val blocked: Map<String, List<String>> = emptyMap(),
         /** namespace → word → steps moved down (negative) by the candidate menu (#580). */
         val bias: Map<String, Map<String, Int>> = emptyMap(),
+        /** namespace → previous word → word → times written straight after it. */
+        val pairs: Map<String, Map<String, Map<String, Int>>> = emptyMap(),
+        /** Picks and pairs learned so far, for [AGE_EVERY]. */
+        val tick: Long = 0,
     )
 
     private val picks = HashMap<String, HashMap<String, HashMap<String, Int>>>()
     private val blocked = HashMap<String, MutableSet<String>>()
     private val bias = HashMap<String, HashMap<String, Int>>()
+    private val pairs = HashMap<String, HashMap<String, HashMap<String, Int>>>()
+
+    /**
+     * Learning events so far. Every [AGE_EVERY] of them, whatever was not
+     * used in the meantime is halved ([age]), so a word picked a hundred
+     * times last year stops outranking the one picked twice this week.
+     */
+    private var tick = 0L
+
+    /** namespace → readings picked or paired since the last [age]: spared by it. */
+    private val touched = HashMap<String, HashSet<String>>()
+
+    /**
+     * The readings of everything learned with two characters or more, per
+     * namespace, sorted: what the decoder asks whether a reading still leads
+     * to a phrase the user taught ([hasPhrasePrefix]). Rebuilt on change and
+     * read without the lock.
+     */
+    @Volatile
+    private var phraseReadings: Map<String, Array<String>> = emptyMap()
+
+    /** [pairs] as the decoder reads them, rebuilt on change and read without the lock. */
+    @Volatile
+    private var pairSnapshot: Map<String, Map<String, Map<String, Int>>> = emptyMap()
 
     /**
      * [blocked] and [bias] per namespace as the decoder reads them, rebuilt on
@@ -70,8 +98,92 @@ class CjkUserHistory(private val storageFile: File?) {
         val byReading = picks.getOrPut(namespace) { HashMap() }
         val counts = byReading.getOrPut(reading) { HashMap() }
         counts[word] = (counts[word] ?: 0) + 1
+        touched.getOrPut(namespace) { HashSet() }.add(reading)
+        if (word.codePointCount(0, word.length) >= 2) rebuildPhraseReadings()
+        ticked()
         dirty = true
         CjkDictionaries.invalidate()
+    }
+
+    /**
+     * Records that [word] was written straight after [previous] — a pick
+     * following the last one, or a word taken from the strip after a commit.
+     */
+    @Synchronized
+    fun learnPair(namespace: String, previous: String, word: String) {
+        if (previous.isEmpty() || word.isEmpty()) return
+        val byPrevious = pairs.getOrPut(namespace) { HashMap() }
+        val counts = byPrevious.getOrPut(previous) { HashMap() }
+        counts[word] = (counts[word] ?: 0) + 1
+        touched.getOrPut(namespace) { HashSet() }.add(PAIR_MARK + previous)
+        ticked()
+        rebuildPairs()
+        dirty = true
+        CjkDictionaries.invalidate()
+    }
+
+    /** What the user has written after [previous], most often first. */
+    fun followersOf(namespace: String, previous: String): List<Pair<String, Int>> =
+        pairSnapshot[namespace]?.get(previous)?.entries?.sortedByDescending { it.value }?.map { it.key to it.value }.orEmpty()
+
+    /** Previous word → word → times, for the decoder; empty when nothing was learned. */
+    fun pairsFor(namespace: String): Map<String, Map<String, Int>> = pairSnapshot[namespace].orEmpty()
+
+    /** Whether a phrase of two characters or more learned in [namespace] is read starting with [prefix]. */
+    fun hasPhrasePrefix(namespace: String, prefix: String): Boolean {
+        val readings = phraseReadings[namespace] ?: return false
+        val i = readings.binarySearch(prefix).let { if (it >= 0) return true else -it - 1 }
+        return i < readings.size && readings[i].startsWith(prefix)
+    }
+
+    private fun ticked() {
+        tick++
+        if (tick % AGE_EVERY == 0L) age()
+    }
+
+    /**
+     * Halves every count nothing has touched since the last time, and drops
+     * the ones that reach zero. A pick made once and never again is gone
+     * after one quiet period; one made every day never fades.
+     */
+    private fun age() {
+        for ((namespace, byReading) in picks) {
+            val spared = touched[namespace].orEmpty()
+            halve(byReading) { it in spared }
+        }
+        for ((namespace, byPrevious) in pairs) {
+            val spared = touched[namespace].orEmpty()
+            halve(byPrevious) { PAIR_MARK + it in spared }
+        }
+        touched.clear()
+        rebuildPhraseReadings()
+        rebuildPairs()
+    }
+
+    private fun halve(table: HashMap<String, HashMap<String, Int>>, spared: (String) -> Boolean) {
+        val emptied = ArrayList<String>()
+        for ((key, counts) in table) {
+            if (spared(key)) continue
+            val it = counts.entries.iterator()
+            while (it.hasNext()) {
+                val e = it.next()
+                val half = e.value / 2
+                if (half <= 0) it.remove() else e.setValue(half)
+            }
+            if (counts.isEmpty()) emptied.add(key)
+        }
+        emptied.forEach(table::remove)
+    }
+
+    private fun rebuildPhraseReadings() {
+        phraseReadings = picks.mapValues { (_, byReading) ->
+            byReading.filter { (_, words) -> words.keys.any { it.codePointCount(0, it.length) >= 2 } }
+                .keys.sorted().toTypedArray()
+        }
+    }
+
+    private fun rebuildPairs() {
+        pairSnapshot = pairs.mapValues { (_, byPrevious) -> byPrevious.mapValues { (_, words) -> HashMap(words) } }
     }
 
     /** How many times [word] has been chosen for [reading]. */
@@ -140,13 +252,27 @@ class CjkUserHistory(private val storageFile: File?) {
     }
 
     private fun forgetPicks(namespace: String, words: Set<String>) {
-        val byReading = picks[namespace] ?: return
-        val empty = ArrayList<String>()
-        for ((reading, counts) in byReading) {
-            counts.keys.removeAll(words)
-            if (counts.isEmpty()) empty.add(reading)
+        picks[namespace]?.let { byReading ->
+            val empty = ArrayList<String>()
+            for ((reading, counts) in byReading) {
+                counts.keys.removeAll(words)
+                if (counts.isEmpty()) empty.add(reading)
+            }
+            empty.forEach(byReading::remove)
         }
-        empty.forEach(byReading::remove)
+        // A word taken back is taken back after everything too, the way
+        // libime's "forget" drops every sentence that contains it.
+        pairs[namespace]?.let { byPrevious ->
+            words.forEach(byPrevious::remove)
+            val empty = ArrayList<String>()
+            for ((previous, counts) in byPrevious) {
+                counts.keys.removeAll(words)
+                if (counts.isEmpty()) empty.add(previous)
+            }
+            empty.forEach(byPrevious::remove)
+        }
+        rebuildPhraseReadings()
+        rebuildPairs()
     }
 
     private fun changed() {
@@ -170,10 +296,14 @@ class CjkUserHistory(private val storageFile: File?) {
 
     @Synchronized
     fun clear() {
-        if (picks.isEmpty() && blocked.isEmpty() && bias.isEmpty()) return
+        if (picks.isEmpty() && blocked.isEmpty() && bias.isEmpty() && pairs.isEmpty()) return
         picks.clear()
         blocked.clear()
         bias.clear()
+        pairs.clear()
+        touched.clear()
+        rebuildPhraseReadings()
+        rebuildPairs()
         changed()
     }
 
@@ -182,7 +312,10 @@ class CjkUserHistory(private val storageFile: File?) {
         val had = picks.remove(namespace) != null
         val hadBlocked = blocked.remove(namespace) != null
         val hadBias = bias.remove(namespace) != null
-        if (!had && !hadBlocked && !hadBias) return
+        val hadPairs = pairs.remove(namespace) != null
+        if (!had && !hadBlocked && !hadBias && !hadPairs) return
+        rebuildPhraseReadings()
+        rebuildPairs()
         changed()
     }
 
@@ -197,6 +330,10 @@ class CjkUserHistory(private val storageFile: File?) {
                 },
                 blocked = blocked.mapValues { (_, words) -> words.sorted() },
                 bias = bias.mapValues { (_, steps) -> steps.toMap() },
+                pairs = pairs.mapValues { (_, byPrevious) ->
+                    byPrevious.mapValues { (_, words) -> words.toMap() }
+                },
+                tick = tick,
             )
         }
         // Encoded and written outside the lock, so the store stays usable while
@@ -222,16 +359,32 @@ class CjkUserHistory(private val storageFile: File?) {
             }
             for ((namespace, words) in snapshot.blocked) blocked[namespace] = words.toHashSet()
             for ((namespace, steps) in snapshot.bias) bias[namespace] = HashMap(steps)
+            for ((namespace, byPrevious) in snapshot.pairs) {
+                val target = pairs.getOrPut(namespace) { HashMap() }
+                for ((previous, counts) in byPrevious) target[previous] = HashMap(counts)
+            }
+            tick = snapshot.tick
             rebuildAdjustments()
+            rebuildPhraseReadings()
+            rebuildPairs()
         }
         dirty = false
     }
 
-    private companion object {
-        val JSON = Json { ignoreUnknownKeys = true }
+    companion object {
+        private val JSON = Json { ignoreUnknownKeys = true }
 
         /** How far down the candidate menu can push a word, in steps. */
-        const val MAX_STEPS = 5
+        private const val MAX_STEPS = 5
+
+        /**
+         * Learning events between two [age] passes. A Chinese user commits a
+         * few hundred times a day, so this is about a week or two of typing.
+         */
+        const val AGE_EVERY = 3000L
+
+        /** Marks a pair's previous word in [touched], apart from a reading. */
+        private const val PAIR_MARK = "\u0001"
     }
 }
 
@@ -259,6 +412,24 @@ object CjkLearning {
         store?.learn(namespace, reading, word)
     }
 
+    /** Records [word] written straight after [previous]; gated like [learn]. */
+    fun learnPair(namespace: String, previous: String, word: String) {
+        if (!enabled) return
+        store?.learnPair(namespace, previous, word)
+    }
+
+    /**
+     * What the decoder needs from the store for [namespace]: which readings
+     * lead to a phrase the user taught, and their word pairs.
+     */
+    fun userWords(namespace: String): Lattice.UserWords {
+        val history = store ?: return Lattice.UserWords.NONE
+        return Lattice.UserWords(
+            hasPrefix = { history.hasPhrasePrefix(namespace, it) },
+            pairs = history.pairsFor(namespace),
+        )
+    }
+
     /** What the candidate menu has said about [namespace]'s words; null when nothing. */
     fun adjustFor(namespace: String): WordAdjust? = store?.adjustFor(namespace)
 
@@ -275,6 +446,9 @@ object CjkLearning {
             CandidateAdjustment.PROMOTE -> history.promote(namespace, reading, shown, source)
             CandidateAdjustment.DEMOTE -> history.demote(namespace, shown, source)
             CandidateAdjustment.BLOCK -> history.block(namespace, shown, source)
+            // Not an answer about the word: the service commits one of its
+            // characters instead, and nothing is learned from that.
+            CandidateAdjustment.FIRST_CHARACTER, CandidateAdjustment.LAST_CHARACTER -> Unit
         }
     }
 
@@ -359,4 +533,14 @@ enum class CandidateAdjustment {
 
     /** Never show it again in this reading space. */
     BLOCK,
+
+    /**
+     * Type only its first character (以词定字): 选 out of 选择 when the
+     * character alone is hard to find under its own reading. The whole word's
+     * reading is consumed, as fcitx's `[` does.
+     */
+    FIRST_CHARACTER,
+
+    /** Type only its last character: 择 out of 选择, fcitx's `]`. */
+    LAST_CHARACTER,
 }

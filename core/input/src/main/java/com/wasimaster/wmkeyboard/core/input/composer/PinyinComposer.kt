@@ -15,6 +15,14 @@ import kotlin.math.ln
  * Jianpin ([Jianpin]) lets a bare initial stand in for a whole syllable, and
  * Fuzzy Pinyin ([PinyinFuzzy]) widens each syllable's lookup. With no dictionary
  * match the raw pinyin commits, so the buffer never traps the user.
+ *
+ * Beyond the reading itself: the word before the caret ([CjkContext]) is
+ * the context the first word is scored after; phrases the user built pick by
+ * pick are learned as words, and what they write after what as word pairs;
+ * `rq`, `sj`, `xq` and `v` + a number type dates and numerals
+ * ([PinyinShortcuts]); a backtick and stroke letters (`` `hs ``) narrow the
+ * list to characters written with those first strokes; and once a buffer is
+ * committed, [predictions] offers what usually comes next.
  */
 object PinyinComposer : Composer {
 
@@ -81,18 +89,83 @@ object PinyinComposer : Composer {
     private val TYPO_PENALTY = ln(0.05)
 
     /**
+     * Two keys typed the wrong way round (`qign`): a likelier slip than a
+     * wrong key, libime's "advanced typo", so it costs half as much.
+     */
+    private val SWAP_PENALTY = ln(0.1)
+
+    /** One key too many (`zhonng`) or one too few (`zhng`): the least likely repair. */
+    private val EXTRA_PENALTY = ln(0.03)
+
+    /**
+     * Another spelling of a syllable ([PinyinSpellings.aliases]): `lue`,
+     * `jv`, `liou`, `bagn`. Deliberate or nearly so, so it costs little; only
+     * enough that where the same letters also spell real syllables, those lead.
+     */
+    private val ALIAS_PENALTY = ln(0.6)
+
+    /** Marks a stroke filter in the buffer: `nihao` + `` ` `` + strokes. */
+    private const val STROKE_MARK = '`'
+
+    /**
+     * Stroke letters after [STROKE_MARK], to the stroke table's digits:
+     * 横 h, 竖 s, 撇 p, 点 d or n (捺), 折 z — the letters fcitx and Sogou use.
+     */
+    private val STROKE_LETTERS = mapOf('h' to '1', 's' to '2', 'p' to '3', 'd' to '4', 'n' to '4', 'z' to '5')
+
+    /** How the composing region draws each stroke digit. */
+    private const val STROKE_GLYPHS = "一丨丿丶乙"
+
+    /** A phrase pieced together pick by pick is learned up to this many syllables. */
+    private const val PHRASE_SYLLABLES = 4
+
+    /** ...or up to this many, where every pick was a single character. */
+    private const val PHRASE_SINGLES = 6
+
+    /** Longest context suffix [predictions] looks a follower up for. */
+    private const val PREDICT_CONTEXT = 4
+
+    /**
+     * What finishing a word costs against a word that follows one (无 → 聊
+     * from 无聊 against 无 → 法), in nats: a completion is half the evidence.
+     */
+    private val COMPLETION_COST = ln(0.5)
+
+    /**
      * Buffer length, in syllables, past which the lattice gives way to plain
      * prefix lookup. Nobody types two dozen syllables without committing, and the
      * bound is what keeps a pathological buffer off the frame budget.
      */
     private const val MAX_LATTICE_UNITS = 24
 
-    /** The composing region shows the pinyin — translated from key codes in Double Pinyin. */
+    /**
+     * The composing region shows the pinyin — translated from key codes in
+     * Double Pinyin — and a stroke filter as the strokes themselves.
+     */
     override fun composeBuffer(buffer: String): String {
+        val cut = buffer.indexOf(STROKE_MARK)
+        if (cut >= 0) {
+            val strokes = strokeDigits(buffer.substring(cut + 1)).map { STROKE_GLYPHS[it - '1'] }.joinToString("")
+            return composeBuffer(buffer.substring(0, cut)) + " " + strokes
+        }
         val table = doublePinyinTable()
         return if (table != null) DoublePinyin.translate(buffer.lowercase(), table, PinyinSyllables.valid)
         else buffer.lowercase()
     }
+
+    /**
+     * A backtick after a reading starts a stroke filter, and a `v` number
+     * takes its digits and one decimal point.
+     */
+    override fun buffersChar(c: Char, composing: CharSequence): Boolean = when {
+        c == STROKE_MARK -> composing.isNotEmpty() && STROKE_MARK !in composing && !PinyinShortcuts.isNumber(composing.toString())
+        CjkConfig.pinyinShortcuts && PinyinShortcuts.continuesNumber(composing, c) -> true
+        else -> false
+    }
+
+    /** The stroke digits a filter's letters spell; anything else is dropped. */
+    private fun strokeDigits(letters: String): String =
+        letters.lowercase().mapNotNull { STROKE_LETTERS[it] ?: it.takeIf { d -> d in '1'..'5' } }.joinToString("")
 
     /**
      * The keys as pressed. In Double Pinyin the composing region shows the
@@ -117,8 +190,56 @@ object PinyinComposer : Composer {
     }
 
     override fun learnChoice(buffer: String, index: Int) {
-        val cand = ranked(buffer.lowercase()).getOrNull(index) ?: return
-        CjkLearning.learn(NAMESPACE, cand.reading, cand.text)
+        val b = buffer.lowercase()
+        val cand = ranked(b).getOrNull(index) ?: return
+        if (cand.special) {
+            run = null
+            return
+        }
+        // Learned as the decoder found it, not as Traditional output drew it:
+        // the decoder looks picks up by its own words.
+        CjkLearning.learn(NAMESPACE, cand.reading, cand.source)
+        val current = run?.takeIf { it.rest == b }
+        val previous = current?.parts?.lastOrNull() ?: contextWord()
+        if (previous != null) CjkLearning.learnPair(NAMESPACE, previous, cand.source)
+        val rest = remainderAfterCommit(b.substring(cand.consumed.coerceIn(0, b.length)))
+        val parts = current?.parts.orEmpty() + cand.source
+        val reading = (current?.reading ?: "") + cand.reading
+        if (rest.isNotEmpty()) {
+            run = Run(rest, parts, reading)
+            return
+        }
+        run = null
+        learnPhrase(parts, reading)
+    }
+
+    /**
+     * One buffer committed a pick at a time: what is left of it, and what the
+     * picks so far wrote and read. Main-thread state, like the service's own
+     * composing buffer; a pick for any other buffer starts afresh.
+     */
+    private class Run(val rest: String, val parts: List<String>, val reading: String)
+
+    @Volatile
+    private var run: Run? = null
+
+    /**
+     * A buffer committed in two picks or more is a phrase the decoder did not
+     * offer whole: learned as one word, so it does next time — 我的妈妈 for
+     * `wdmm` once it has been picked as 我的 + 妈妈. Kept short, the way
+     * libime keeps it (four syllables, or single characters), and skipped
+     * where the word pairs already join every pick to the next, since the
+     * decoder will find that reading on its own.
+     */
+    private fun learnPhrase(parts: List<String>, reading: String) {
+        if (parts.size < 2) return
+        val text = parts.joinToString("")
+        val syllables = text.codePointCount(0, text.length)
+        val singles = parts.all { it.codePointCount(0, it.length) == 1 }
+        if (syllables > (if (singles) PHRASE_SINGLES else PHRASE_SYLLABLES)) return
+        val pairs = CjkDictionaries.pinyinNgrams
+        if (!pairs.isEmpty && parts.zipWithNext().all { (a, b) -> pairs.bigram(a, b) > 0 }) return
+        CjkLearning.learn(NAMESPACE, reading, text)
     }
 
 
@@ -203,7 +324,17 @@ object PinyinComposer : Composer {
         // digraph syllable outscored every reading of the letters as two
         // initials, and `sh` buried 上海 under a hundred single characters.
         PinyinGraph.Kind.DIGRAPH -> jianpin()?.expansions?.get(unit).orEmpty().map { Lattice.Arc(to, it, 2 * PARTIAL_PENALTY) }
-        PinyinGraph.Kind.TYPO -> listOf(Lattice.Arc(to, unit, TYPO_PENALTY, guess = true))
+        PinyinGraph.Kind.TYPO -> listOf(Lattice.Arc(to, unit, TYPO_PENALTY, guess = true, correction = true))
+        PinyinGraph.Kind.SWAP -> listOf(Lattice.Arc(to, unit, SWAP_PENALTY, guess = true, correction = true))
+        PinyinGraph.Kind.EXTRA -> listOf(Lattice.Arc(to, unit, EXTRA_PENALTY, guess = true, correction = true))
+        // Another spelling of the syllable [unit], read with its fuzzy
+        // variants the way the syllable itself would be.
+        PinyinGraph.Kind.ALIAS -> {
+            val o = unitOptions(unit, PinyinSyllables.valid, CjkConfig.fuzzyPinyin, CjkConfig.fuzzyPinyinPairs, null)
+            o.readings.indices.map { i -> Lattice.Arc(to, o.readings[i], o.costs[i] + ALIAS_PENALTY, guess = i > 0) }
+        }
+        // The rest of a syllable not typed yet: an abbreviation, like an initial.
+        PinyinGraph.Kind.PARTIAL -> listOf(Lattice.Arc(to, unit, PARTIAL_PENALTY))
     }
 
     /** One unit's readings, what each costs, and where the abbreviations begin. */
@@ -246,10 +377,68 @@ object PinyinComposer : Composer {
      */
     private fun ranked(buffer: String): List<Cand> {
         if (buffer.isEmpty()) return emptyList()
-        return cache.get(buffer) { rank(buffer) }
+        if (CjkConfig.pinyinShortcuts && PinyinShortcuts.isNumber(buffer)) {
+            return PinyinShortcuts.numbers(buffer).map { Cand(it, buffer.length, buffer, it, special = true) }
+        }
+        val cut = buffer.indexOf(STROKE_MARK)
+        if (cut >= 0) return filtered(buffer, cut)
+        val context = contextWord()
+        val base = cache.get(if (context == null) buffer else buffer + '\u0000' + context) { rank(buffer, context) }
+        val extra = if (CjkConfig.pinyinShortcuts) PinyinShortcuts.expand(buffer) else emptyList()
+        if (extra.isEmpty()) return base
+        // Behind the reading's own best candidate: `sj` is also 时间 and 世界.
+        val at = minOf(1, base.size)
+        return base.take(at) + extra.map { Cand(it, buffer.length, buffer, it, special = true) } + base.drop(at)
     }
 
-    private fun rank(buffer: String): List<Cand> {
+    /**
+     * [buffer]'s reading before the backtick at [cut], narrowed to the
+     * candidates whose first character starts with the strokes after it. A
+     * candidate covering the whole reading consumes the filter too; one that
+     * covers less leaves the rest of the reading, and the filter goes with
+     * the pick ([remainderAfterCommit]). Without the stroke table the filter
+     * narrows nothing.
+     */
+    private fun filtered(buffer: String, cut: Int): List<Cand> {
+        val reading = buffer.substring(0, cut)
+        if (reading.isEmpty()) return emptyList()
+        val strokes = strokeDigits(buffer.substring(cut + 1))
+        val table = CjkDictionaries.stroke
+        val all = ranked(reading)
+        val kept = if (strokes.isEmpty() || table.isEmpty) {
+            all
+        } else {
+            all.filter { c ->
+                // By the decoder's own text, which the stroke table is keyed
+                // by, and then the form shown, for a table that has it too.
+                fun first(t: String) = if (t.isEmpty()) t else t.substring(0, t.offsetByCodePoints(0, 1))
+                (table.codeOf(first(c.source)) ?: table.codeOf(first(c.text)))?.startsWith(strokes) == true
+            }
+        }
+        return kept.map { c -> if (c.consumed >= reading.length) c.copy(consumed = buffer.length) else c }
+    }
+
+    /** A stroke filter goes with the pick it narrowed the list for. */
+    override fun remainderAfterCommit(rest: String): String {
+        val cut = rest.indexOf(STROKE_MARK)
+        return if (cut < 0) rest else rest.substring(0, cut)
+    }
+
+    /**
+     * The word before the caret the decoder scores the buffer after: the
+     * longest stretch of [CjkContext.before] the word pairs or the user's own
+     * pairs know. Null at the start of a sentence, and with neither loaded.
+     */
+    private fun contextWord(): String? {
+        val before = CjkContext.before
+        if (before.isEmpty()) return null
+        val ngrams = CjkDictionaries.pinyinNgrams
+        val pairs = CjkLearning.store?.pairsFor(NAMESPACE).orEmpty()
+        if (ngrams.isEmpty && pairs.isEmpty()) return null
+        return CjkContext.previousWord(before) { ngrams.unigram(it) > 0 || it in pairs }
+    }
+
+    private fun rank(buffer: String, context: String?): List<Cand> {
         val dict = CjkDictionaries.pinyin
         val adjust = CjkLearning.adjustFor(NAMESPACE)
         val graph: Lattice.Graph?
@@ -281,8 +470,17 @@ object PinyinComposer : Composer {
                 .flatMap { word -> HanVariant.traditionalForms(word).map { Cand(it, buffer.length, buffer, word) } }
                 .distinctBy { it.text }
         }
-        val opts = Lattice.Opts(limit = LOOKUP_LIMIT, stitch = stitch, coverageOrder = true)
-        val decoded = Lattice.decode(graph, dict, CjkDictionaries.pinyinNgrams, opts, ::learnedPicks, adjust)
+        val opts = Lattice.Opts(limit = LOOKUP_LIMIT, stitch = stitch, coverageOrder = true, wordPenalty = HanLevels::penalty)
+        val decoded = Lattice.decode(
+            graph,
+            dict,
+            CjkDictionaries.pinyinNgrams,
+            opts,
+            ::learnedPicks,
+            adjust,
+            context = context,
+            user = CjkLearning.userWords(NAMESPACE),
+        )
             .flatMap { c -> HanVariant.traditionalForms(c.text).map { Cand(it, c.consumed, c.reading, c.text) } }
             // Converting to Traditional can merge two Simplified words onto one
             // form, so de-duplicate after the conversion rather than before it.
@@ -290,14 +488,63 @@ object PinyinComposer : Composer {
         // Grouped by how much of the buffer each covers: a single character
         // picked for `wo` last week moves up among the single characters, not
         // above every reading of the four letters typed (#580).
-        return CjkLearning.rank(NAMESPACE, decoded, { it.text }, { it.reading }, { it.source }, { it.consumed })
+        // Counted by the decoder's own text, which is what a pick is learned as.
+        return CjkLearning.rank(NAMESPACE, decoded, { it.source }, { it.reading }, { it.text }, { it.consumed })
     }
 
     override val adjustsChoices: Boolean get() = true
 
     override fun adjustChoice(buffer: String, index: Int, adjustment: CandidateAdjustment) {
         val cand = ranked(buffer.lowercase()).getOrNull(index) ?: return
+        if (cand.special) return
         CjkLearning.adjust(NAMESPACE, cand.reading, cand.text, cand.source, adjustment)
+    }
+
+    /**
+     * What usually follows [context] (#580 follow-up): the user's own habits
+     * first, then the word pairs' commonest followers of its last word, and
+     * the rest of a longer word it starts (无 → 聊, from 无聊). Looked up for
+     * every ending of [context] up to four characters, so 喜欢 and 欢 both get
+     * asked, and scored on one scale, `ln P(next | ending)`.
+     */
+    override fun predictions(context: String, limit: Int): List<String> {
+        if (!CjkConfig.pinyinPrediction) return emptyList()
+        val tail = CjkContext.hanTail(context)
+        if (tail.isEmpty()) return emptyList()
+        val ngrams = CjkDictionaries.pinyinNgrams
+        val history = CjkLearning.store
+        val blocked = CjkLearning.adjustFor(NAMESPACE)?.blocked.orEmpty()
+        val scores = HashMap<String, Double>()
+        fun offer(word: String, score: Double) {
+            if (word.isEmpty() || word in blocked) return
+            if (score > (scores[word] ?: Double.NEGATIVE_INFINITY)) scores[word] = score
+        }
+        val points = tail.codePointCount(0, tail.length)
+        for (len in minOf(PREDICT_CONTEXT, points) downTo 1) {
+            val ending = tail.substring(tail.offsetByCodePoints(tail.length, -len))
+            // The user's own habit outranks any corpus.
+            history?.followersOf(NAMESPACE, ending)?.forEach { (word, n) -> offer(word, n.toDouble()) }
+            val prior = ngrams.unigram(ending)
+            if (prior <= 0) continue
+            for ((word, n) in ngrams.successors(ending)) offer(word, ln(n.toDouble() / prior))
+            for ((word, n) in ngrams.completions(ending, limit)) {
+                offer(word.substring(ending.length), ln(n.toDouble() / maxOf(prior, n)) + COMPLETION_COST)
+            }
+        }
+        return scores.entries.sortedByDescending { it.value }
+            .take(limit)
+            .map { HanVariant.traditionalForms(it.key).first() }
+            .distinct()
+    }
+
+    override fun learnPrediction(context: String, picked: String) {
+        val tail = CjkContext.hanTail(context)
+        val ngrams = CjkDictionaries.pinyinNgrams
+        val pairs = CjkLearning.store?.pairsFor(NAMESPACE).orEmpty()
+        val previous = CjkContext.previousWord(tail) { ngrams.unigram(it) > 0 || it in pairs }
+            ?: tail.takeIf { it.isNotEmpty() }?.let { it.substring(it.offsetByCodePoints(it.length, -1)) }
+            ?: return
+        CjkLearning.learnPair(NAMESPACE, previous, picked)
     }
 
     /** What the user has picked for this reading, for the decoder's own ranking. */
@@ -310,7 +557,14 @@ object PinyinComposer : Composer {
      * Traditional form of. The candidate menu acts on [source]: that is what
      * the decoder can recognise next time.
      */
-    private data class Cand(val text: String, val consumed: Int, val reading: String, val source: String)
+    private data class Cand(
+        val text: String,
+        val consumed: Int,
+        val reading: String,
+        val source: String,
+        /** A [PinyinShortcuts] answer rather than a conversion: never learned or adjusted. */
+        val special: Boolean = false,
+    )
 
     private val cache = RankCache<List<Cand>>()
 }

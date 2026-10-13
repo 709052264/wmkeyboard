@@ -318,6 +318,8 @@
     <string name="ime_candidate_menu_earlier">Earlier</string>
     <string name="ime_candidate_menu_later">Later</string>
     <string name="ime_candidate_menu_never">Never show</string>
+    <string name="ime_candidate_menu_first_desc">Type only %1$s, the first character</string>
+    <string name="ime_candidate_menu_last_desc">Type only %1$s, the last character</string>
     <string name="ime_candidate_menu_close_desc">Close the candidate menu</string>
     <string name="ime_conversion_pack_improve_offer">Download %1$s for better candidates</string>
     <!-- The ✕ on that chip: screen reader text. -->
