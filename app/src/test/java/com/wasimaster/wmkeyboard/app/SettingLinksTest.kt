@@ -73,4 +73,35 @@ class SettingLinksTest {
         assertNull(SettingLinks.concreteRoute("tool/{tool}") { null })
         assertNull(SettingLinks.concreteRoute(null) { "x" })
     }
+
+    private val trail = listOf(
+        SettingsCrumb("1", "Home"),
+        SettingsCrumb("2", "Typing"),
+        SettingsCrumb("3", "Autocorrect"),
+        SettingsCrumb("4", "Below"),
+    )
+
+    @Test
+    fun `the path stops at the row's own screen and ends with the row`() {
+        assertEquals(
+            listOf("Home", "Typing", "Autocorrect", "Undo on backspace"),
+            SettingLinks.path(trail, "3", "Undo on backspace"),
+        )
+    }
+
+    @Test
+    fun `a row named like its screen is not named twice`() {
+        assertEquals(listOf("Home", "Typing"), SettingLinks.path(trail, "2", "Typing"))
+    }
+
+    @Test
+    fun `a screen not on the trail yet takes the whole trail`() {
+        assertEquals(listOf("Home", "Typing", "Autocorrect", "Below", "Row"), SettingLinks.path(trail, "9", "Row"))
+    }
+
+    @Test
+    fun `the copy puts the path above the link`() {
+        assertEquals("Home › Typing\nhttps://x", SettingLinks.clipText(listOf("Home", "Typing"), "https://x"))
+        assertEquals("https://x", SettingLinks.clipText(emptyList(), "https://x"))
+    }
 }

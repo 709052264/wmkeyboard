@@ -104,6 +104,27 @@ internal object SettingLinks {
         return route.takeUnless { missing }
     }
 
+    /**
+     * The settings path down to one row, as the breadcrumb strip names it:
+     * every screen on [trail] up to and including [entryId]'s, then [row]
+     * unless the screen is already called that (a group heading on a page of
+     * the same name). The whole trail when [entryId] is not on it yet.
+     */
+    fun path(trail: List<SettingsCrumb>, entryId: String?, row: String?): List<String> {
+        val at = trail.indexOfFirst { it.entryId == entryId }
+        val screens = (if (at < 0) trail else trail.subList(0, at + 1)).map { it.title }.filter { it.isNotBlank() }
+        return if (row.isNullOrBlank() || screens.lastOrNull() == row) screens else screens + row
+    }
+
+    /**
+     * What a copy puts on the clipboard: the path on a line of its own above
+     * the link, so whoever it is sent to can walk there by hand when the link
+     * will not open, or when they would rather not tap a link they were sent.
+     */
+    fun clipText(path: List<String>, link: String): String =
+        if (path.isEmpty()) link else path.joinToString(PATH_SEPARATOR) + "\n" + link
+
+    private const val PATH_SEPARATOR = " › "
     private val VERSION = Regex("[0-9]{1,4}(\\.[0-9]{1,6}){0,3}")
     private val ARGUMENT = Regex("\\{([^}]+)\\}")
 }
@@ -206,12 +227,35 @@ internal fun currentRowLink(): SettingLinkTarget? {
     return remember(links, row, route) { links.target(route, row.title, row.key) }
 }
 
-/** Puts [target]'s web link on the clipboard and says so where the system does not. */
-internal fun copySettingLink(context: Context, target: SettingLinkTarget) {
+/**
+ * The settings path to the row around the caller, read when it is asked for
+ * rather than while composing: the trail is still settling on a screen's first
+ * frames, and a copy is only ever made long after them.
+ */
+@Composable
+internal fun rememberSettingPath(): () -> List<String> {
+    val trail = LocalSettingsCrumbTrail.current
+    val entryId = currentCrumbEntry()?.id
+    val row = LocalRowLinkKey.current
+    val resources = LocalContext.current.resources
+    return remember(trail, entryId, row, resources) {
+        {
+            val title = row?.title ?: row?.key?.takeIf { it != 0 }?.let { runCatching { resources.getString(it) }.getOrNull() }
+            SettingLinks.path(trail?.path.orEmpty(), entryId, title)
+        }
+    }
+}
+
+/**
+ * Puts [target]'s web link on the clipboard, under the settings [path] that
+ * leads to it, and says so where the system does not.
+ */
+internal fun copySettingLink(context: Context, target: SettingLinkTarget, path: List<String> = emptyList()) {
     val link = SettingLinks.webLink(SettingLinks.appLink(target.route, target.name, BuildConfig.VERSION_NAME))
+    val text = SettingLinks.clipText(path, link)
     val copied = runCatching {
         context.getSystemService(ClipboardManager::class.java)
-            ?.setPrimaryClip(ClipData.newPlainText(link, link))
+            ?.setPrimaryClip(ClipData.newPlainText(link, text))
     }.isSuccess
     // Android 13 and later show their own confirmation for every copy.
     if (copied && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
@@ -220,7 +264,7 @@ internal fun copySettingLink(context: Context, target: SettingLinkTarget) {
 }
 
 /** The link button's tap target: the reset control's size, for the same reason. */
-internal val SettingLinkTargetSize = 36.dp
+internal val SettingLinkTargetSize = RowExtraSize
 
 /**
  * The small link button a row shows beside its reset and its "?" while
@@ -232,8 +276,9 @@ internal fun SettingLinkButton(name: String) {
     if (LocalSettingLinks.current?.mode != SettingLinkMode.BUTTON) return
     val target = currentRowLink() ?: return
     val context = LocalContext.current
+    val path = rememberSettingPath()
     IconButton(
-        onClick = { copySettingLink(context, target) },
+        onClick = { copySettingLink(context, target, path()) },
         modifier = Modifier.size(SettingLinkTargetSize),
     ) {
         Icon(
@@ -266,7 +311,8 @@ internal fun Modifier.settingLinkHold(): Modifier {
     val context = LocalContext.current
     val view = LocalView.current
     val config = LocalViewConfiguration.current
-    return pointerInput(target) {
+    val path = rememberSettingPath()
+    return pointerInput(target, path) {
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false)
             // The scope's own timeout: the gesture scope restricts suspension,
@@ -282,7 +328,7 @@ internal fun Modifier.settingLinkHold(): Modifier {
             } == null
             if (!held) return@awaitEachGesture
             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-            copySettingLink(context, target)
+            copySettingLink(context, target, path())
             // The rest of this gesture is the hold's, not the row's.
             while (true) {
                 val event = awaitPointerEvent(PointerEventPass.Initial)

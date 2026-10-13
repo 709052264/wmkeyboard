@@ -66,6 +66,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -121,6 +122,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
@@ -1507,13 +1509,17 @@ internal fun ReflowingText(
 // ---- reset to default ----
 
 /**
- * The tap target of the reset control. Smaller than Material's 48 dp
- * `IconButton`, because it shares a row's trailing edge with a switch and the
- * two together would push the row's own words off a narrow phone. 36 dp is
- * still comfortably past the 24 dp the accessibility guidance floors at, and
- * the row it sits in is 56 dp tall, so the finger has vertical room to spare.
+ * The tap target of the reset control, and of the "?" and link buttons that
+ * share [RowExtras] with it. Material's `IconButton` pads every one of them to
+ * 48 dp, which put 30 dp of nothing between three 18 dp glyphs and pushed the
+ * row's own name onto three lines. 24 dp is the floor the accessibility
+ * guidance sets, and [RowExtras] stacks them two to a column, so each keeps
+ * its full 24 dp square without the row growing taller than its switch.
  */
-private val ResetTargetSize = 36.dp
+internal val RowExtraSize = 24.dp
+
+/** The reset control's target, which is [RowExtraSize] like its neighbours. */
+private val ResetTargetSize = RowExtraSize
 
 /** The glyph inside that target. */
 private val ResetGlyphSize = 18.dp
@@ -1608,6 +1614,56 @@ internal fun ResetSetting(
     }
 }
 
+/**
+ * The small controls at the end of a row's name: its "?", its link and its
+ * reset. They are the row's furniture, and were each a full `IconButton` side
+ * by side, which spent 144 dp of a phone's width on three glyphs.
+ *
+ * Here the 48 dp padding Material adds around each is dropped, and with
+ * [stack] they sit two to a column, so three of them take 48 dp across and
+ * no more height than the switch beside them. A row whose controls sit on a
+ * line of their own above a slider or a segmented choice passes `stack =
+ * false`: there the width is free and a second line of height is not.
+ *
+ * Only the children that draw anything are laid out, so a reset that is not
+ * showing leaves no hole in the stack. Callers put the reset last: it is the
+ * one that comes and goes, and last it appears in the free slot nearest the
+ * switch instead of shuffling the "?" and the link into new places.
+ */
+@Composable
+internal fun RowExtras(stack: Boolean = true, content: @Composable () -> Unit) {
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+        Layout(content) { measurables, constraints ->
+            val loose = constraints.copy(minWidth = 0, minHeight = 0)
+            val all = measurables.map { it.measure(loose) }
+            val shown = all.filter { it.width > 0 && it.height > 0 }
+            val columns = shown.chunked(if (stack) ROW_EXTRAS_PER_COLUMN else 1)
+            val widths = columns.map { column -> column.maxOf { it.width } }
+            val height = columns.maxOfOrNull { column -> column.sumOf { it.height } } ?: 0
+            layout(widths.sum(), height) {
+                var x = 0
+                columns.forEachIndexed { index, column ->
+                    var y = (height - column.sumOf { it.height }) / 2
+                    for (placeable in column) {
+                        placeable.placeRelative(x + (widths[index] - placeable.width) / 2, y)
+                        y += placeable.height
+                    }
+                    x += widths[index]
+                }
+                // The empty ones still need placing, for the animation that
+                // brings a reset back to have somewhere to start from.
+                all.filter { it.width == 0 || it.height == 0 }.forEach { it.place(0, 0) }
+            }
+        }
+    }
+}
+
+private const val ROW_EXTRAS_PER_COLUMN = 2
+
+/** The width [RowExtras] takes for [count] controls, stacked, for the rows that budget their own width. */
+internal fun rowExtrasWidth(count: Int): Dp =
+    RowExtraSize * ((count + ROW_EXTRAS_PER_COLUMN - 1) / ROW_EXTRAS_PER_COLUMN)
+
 /** [ColorSetting] for a row named by a string resource. */
 @Composable
 internal fun ColorSetting(
@@ -1670,9 +1726,11 @@ internal fun ColorSetting(
             titleReflows = true,
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    ResetSetting(title, color != null) { onChange(null) }
-                    if (info != null) InfoButton(title, info)
-                    SettingLinkButton(title)
+                    RowExtras {
+                        if (info != null) InfoButton(title, info)
+                        SettingLinkButton(title)
+                        ResetSetting(title, color != null) { onChange(null) }
+                    }
                     if (color == null) {
                         Text(
                             stringResource(CommonR.string.common_auto),

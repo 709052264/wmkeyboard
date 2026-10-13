@@ -95,7 +95,7 @@
     <!-- How a settings row offers a web link to itself (#646). The three options are Off, Hold and Button. -->
     <string name="about_setting_links_title">Setting links</string>
     <string name="about_setting_links_subtitle">Copy a web link that opens one setting</string>
-    <string name="about_setting_links_info">Use this to send someone to a setting. The link opens this app on that screen and flashes the setting. If the app is not installed, the link opens a page on the website that tells how to get it. "Hold" copies the link when you touch and hold a setting or a group heading. "Button" shows a small link button next to each setting and group heading. Settings with no fixed name, such as one language or one theme, have no link.</string>
+    <string name="about_setting_links_info">Use this to send someone to a setting. The copy has the path to the setting on its first line, so it can be found by hand too, and the link under it. The link opens this app on that screen and flashes the setting. If the app is not installed, the link opens a page on the website that tells how to get it. "Hold" copies the link when you touch and hold a setting or a group heading. "Button" shows a small link button next to each setting and group heading. Settings with no fixed name, such as one language or one theme, have no link.</string>
     <string name="about_setting_links_hold">Hold</string>
     <string name="about_setting_links_button">Button</string>
     <!-- Content description of the link button on a settings row. %1$s = the name of the setting. -->

@@ -3292,11 +3292,11 @@ internal fun transparentListColors(): ListItemColors =
 @Composable
 internal fun InfoButton(title: String, detail: String) {
     var open by remember { mutableStateOf(false) }
-    IconButton(onClick = { open = true }) {
+    IconButton(onClick = { open = true }, modifier = Modifier.size(RowExtraSize)) {
         Icon(
             Icons.AutoMirrored.Outlined.HelpOutline,
             contentDescription = stringResource(R.string.home_info_desc, title),
-            modifier = Modifier.size(20.dp),
+            modifier = Modifier.size(18.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
         )
     }
@@ -3514,7 +3514,7 @@ internal fun NavRow(
             flightTo = route,
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    SettingLinkButton(title)
+                    RowExtras { SettingLinkButton(title) }
                     if (beside && value != null) {
                         RowValueText(value, textAlign = TextAlign.End, maxLines = 1)
                         Spacer(Modifier.width(4.dp))
@@ -3564,12 +3564,6 @@ private val ROW_PADDING = 32.dp
 
 /** The leading slot of a row that has one: the tile, and the gap after it. */
 private val ROW_ICON_LANE = WmIconTileSize + 16.dp
-
-/** An [InfoButton] is an `IconButton`, so 48 dp whatever the glyph inside is. */
-private val INFO_BUTTON_WIDTH = 48.dp
-
-/** A [ResetSetting]'s target, which is `ResetTargetSize` over in `SettingsUi`. */
-private val RESET_WIDTH = 36.dp
 
 /** A trailing chevron or drop-down arrow, at the default `Icon` size. */
 private val TRAILING_ICON_WIDTH = 24.dp
@@ -3711,11 +3705,13 @@ internal fun ToggleSetting(
             titleReflows = default != null,
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    ResetSetting(title, default != null && checked != default, possible = default != null) {
-                        change(default == true)
+                    RowExtras {
+                        if (info != null) InfoButton(title, info)
+                        SettingLinkButton(title)
+                        ResetSetting(title, default != null && checked != default, possible = default != null) {
+                            change(default == true)
+                        }
                     }
-                    if (info != null) InfoButton(title, info)
-                    SettingLinkButton(title)
                     Switch(
                         checked = checked,
                         onCheckedChange = change,
@@ -3762,11 +3758,13 @@ internal fun ToggleNavRow(
             titleReflows = default != null,
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    ResetSetting(name, default != null && checked != default, possible = default != null) {
-                        onChange(default == true)
+                    RowExtras {
+                        if (info != null) InfoButton(name, info)
+                        SettingLinkButton(name)
+                        ResetSetting(name, default != null && checked != default, possible = default != null) {
+                            onChange(default == true)
+                        }
                     }
-                    if (info != null) InfoButton(name, info)
-                    SettingLinkButton(name)
                     Switch(
                         checked = checked,
                         onCheckedChange = onChange,
@@ -3886,8 +3884,10 @@ internal fun ControlSetting(
             subtitle = subtitle,
             header = {
                 ReflowingText(title, style = MaterialTheme.typography.bodyLarge)
-                if (info != null) InfoButton(title, info)
-                SettingLinkButton(title)
+                RowExtras(stack = false) {
+                    if (info != null) InfoButton(title, info)
+                    SettingLinkButton(title)
+                }
                 Spacer(Modifier.weight(1f))
             },
             content = content,
@@ -4014,15 +4014,17 @@ internal fun SliderSetting(
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.weight(1f, fill = false),
                     )
-                    if (onReset != null) {
-                        ResetSetting(title, true, possible = true, onReset)
-                    } else {
-                        ResetSetting(title, default != null && value != default, possible = default != null) {
-                            onChange(default ?: 0f)
+                    RowExtras(stack = false) {
+                        if (info != null) InfoButton(title, info)
+                        SettingLinkButton(title)
+                        if (onReset != null) {
+                            ResetSetting(title, true, possible = true, onReset)
+                        } else {
+                            ResetSetting(title, default != null && value != default, possible = default != null) {
+                                onChange(default ?: 0f)
+                            }
                         }
                     }
-                    if (info != null) InfoButton(title, info)
-                    SettingLinkButton(title)
                 }
                 // A slider cannot be landed on one exact millisecond by thumb,
                 // so the number is a button that takes it typed (#415). The
@@ -4148,11 +4150,13 @@ internal fun StepperSetting(
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.weight(1f, fill = false),
                     )
-                    ResetSetting(title, default != null && value != default, possible = default != null) {
-                        onChange(default ?: 0)
+                    RowExtras(stack = false) {
+                        if (info != null) InfoButton(title, info)
+                        SettingLinkButton(title)
+                        ResetSetting(title, default != null && value != default, possible = default != null) {
+                            onChange(default ?: 0)
+                        }
                     }
-                    if (info != null) InfoButton(title, info)
-                    SettingLinkButton(title)
                 }
             },
         ) {
@@ -4375,11 +4379,13 @@ internal fun <T> ChoiceSetting(
                         // The same `default != null` that draws the control at all is what
                         // makes the let non-empty; there is no fallback option to reset to
                         // on a row that shipped without a default.
-                        ResetSetting(title, default != null && selected != default, possible = default != null) {
-                            default?.let(onChange)
+                        RowExtras(stack = false) {
+                            if (info != null) InfoButton(title, info)
+                            SettingLinkButton(title)
+                            ResetSetting(title, default != null && selected != default, possible = default != null) {
+                                default?.let(onChange)
+                            }
                         }
-                        if (info != null) InfoButton(title, info)
-                        SettingLinkButton(title)
                         Spacer(Modifier.weight(1f))
                     },
                 ) {
@@ -4407,9 +4413,9 @@ internal fun <T> ChoiceSetting(
             current,
             MaterialTheme.typography.labelLarge,
             furniture = TRAILING_ICON_WIDTH +
-                (if (info != null) INFO_BUTTON_WIDTH else 0.dp) +
-                (if (default != null) RESET_WIDTH else 0.dp) +
-                (if (settingLinkButtonShown()) SettingLinkTargetSize else 0.dp) +
+                rowExtrasWidth(
+                    listOf(info != null, default != null, settingLinkButtonShown()).count { it },
+                ) +
                 (if (glyph != null) ChoiceValueGlyphSize + ChoiceValueGlyphGap else 0.dp),
             hasIcon = rowHasTile(icon),
             rowWidth = maxWidth,
@@ -4433,11 +4439,13 @@ internal fun <T> ChoiceSetting(
                 titleReflows = default != null,
                 trailing = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        ResetSetting(title, default != null && selected != default, possible = default != null) {
-                            default?.let(onChange)
+                        RowExtras {
+                            if (info != null) InfoButton(title, info)
+                            SettingLinkButton(title)
+                            ResetSetting(title, default != null && selected != default, possible = default != null) {
+                                default?.let(onChange)
+                            }
                         }
-                        if (info != null) InfoButton(title, info)
-                        SettingLinkButton(title)
                         // The same glyph the sheet puts on this option, small
                         // enough to sit in a value's lane: the row and the
                         // sheet then agree at a glance about what is chosen.
@@ -4813,11 +4821,13 @@ internal fun <T> MultiChoiceSetting(
             subtitle = subtitle,
             header = {
                 ReflowingText(name, style = MaterialTheme.typography.bodyLarge)
-                ResetSetting(name, default != null && selected != default, possible = default != null) {
-                    default?.let(onChange)
+                RowExtras(stack = false) {
+                    if (info != null) InfoButton(name, info)
+                    SettingLinkButton(name)
+                    ResetSetting(name, default != null && selected != default, possible = default != null) {
+                        default?.let(onChange)
+                    }
                 }
-                if (info != null) InfoButton(name, info)
-                SettingLinkButton(name)
                 Spacer(Modifier.weight(1f))
             },
         ) {

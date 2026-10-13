@@ -99,7 +99,7 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
                             // and ToggleSetting would key the highlight on the
                             // drawn title instead. The reset control is the one
                             // thing it would otherwise have brought with it.
-                            ResetSetting(title, enabled) { store.setSubsystemEnabled(false) }
+                            RowExtras { ResetSetting(title, enabled) { store.setSubsystemEnabled(false) } }
                             Switch(
                                 checked = enabled,
                                 onCheckedChange = { store.setSubsystemEnabled(it) },
