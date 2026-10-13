@@ -217,8 +217,9 @@ class WordCardEditTest {
         assertEquals("Teh", service.uiState.value.wordSpell?.draft)
         service.onKey(shift)
         assertEquals("TEH", service.uiState.value.wordSpell?.draft)
-        // Spent on the selection, not armed for the next letter.
-        assertEquals(ShiftState.OFF, service.uiState.value.shiftState)
+        // Spent on the selection, and the keys follow the case it was put in
+        // (#525, 421776412): UPPER is the lock.
+        assertEquals(ShiftState.CAPS_LOCK, service.uiState.value.shiftState)
         assertEquals("", editor.text.toString())
     }
 

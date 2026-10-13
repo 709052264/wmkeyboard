@@ -294,9 +294,9 @@ object EspansoFile {
     /**
      * The match's triggers, in the order Espanso would try them.
      *
-     * A trigger that does not end in a word (`->`, `x:`) is dropped and noted:
-     * it never produces a composing word, so there would be nothing to look it
-     * up by. See [SnippetMatcher.splitPrefix].
+     * A trigger the keyboard could never watch for is dropped and noted; see
+     * [SnippetMatcher.isMatchableTrigger]. One ending in a symbol (`->`, `x:`)
+     * is kept: it fires off the field when that symbol lands (#471).
      */
     private fun readTriggers(match: Map<String, Any?>, notes: EspansoNotes): List<String> {
         val raw = buildList {
@@ -324,11 +324,9 @@ object EspansoFile {
     /**
      * True when this app could actually watch for [trigger].
      *
-     * The keyboard looks a trigger up by the word in its composing buffer, and
-     * that buffer only ever holds letters, digits and apostrophes. So a trigger
-     * has to end in one of those: everything in front of the last word is
-     * confirmed by reading the field, but a trigger that is all punctuation
-     * (`->`) or that ends in it (`x:`) leaves nothing to look up at all.
+     * A plain word, a word behind a lead-in, or a trigger ending in a symbol
+     * (`->`, `x:`), which is looked up by that symbol and confirmed off the
+     * field.
      */
     private fun matchable(trigger: String): Boolean =
         // `js:`, `->` count too: fired off the field when the last symbol lands (#471).

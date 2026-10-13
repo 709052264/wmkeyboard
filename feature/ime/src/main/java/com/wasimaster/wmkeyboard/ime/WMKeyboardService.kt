@@ -10615,8 +10615,13 @@ open class WMKeyboardService : InputMethodService() {
         // re-casing there would leave the user no way to put the shift back
         // down. Press it once to release the modifier; press it again, with the
         // selection still standing and the shift now down, to re-case.
+        //
+        // A shift the re-case itself put up ([syncShiftToCase]) is not that
+        // modifier: it only mirrors the selection's new case, and taking it
+        // for one stopped the cycle at Title — the second press armed shift
+        // instead of going on to UPPER.
         if (_uiState.value.settings.textEditing.recapitalizeSelectionWithShift &&
-            !_uiState.value.shiftSelectsText
+            (!_uiState.value.shiftSelectsText || _uiState.value.shiftState == shiftFromRecase)
         ) {
             val target = _uiState.value.captureTarget()
             val caret = _uiState.value.captureCaretText()
@@ -10664,6 +10669,8 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
         }
+        // A shift pressed here is the user's own, whatever a re-case left up.
+        shiftFromRecase = null
         val now = System.currentTimeMillis()
         // The caps-lock double-tap window is user-tunable (A47); Fn and the
         // modifier keys keep the fixed SHIFT_DOUBLE_TAP_MS.
@@ -10748,6 +10755,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun syncShiftToCase(text: String) {
         val next = shiftStateForCase(text) ?: return
+        shiftFromRecase = next
         _uiState.update {
             if (it.shiftState == next) {
                 it
@@ -10758,6 +10766,13 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
     }
+
+    /**
+     * The shift state [syncShiftToCase] last put up, so [onShift] can tell it
+     * from a shift the user pressed to hold a selection open; null once the
+     * user has pressed shift themselves.
+     */
+    private var shiftFromRecase: ShiftState? = null
 
     /** Advances [s] one step through lower → Title → UPPER → lower. */
     private fun nextCaseForm(s: String): String {

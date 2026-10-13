@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
+import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -214,6 +216,7 @@ class RowRevealHeadroomTest {
 
     private fun start() {
         compose.mainClock.autoAdvance = false
+        val theme = defaultKbTheme(lightColorScheme(), dark = false, amoled = false, settings = KeyboardSettings())
         compose.setContent {
             val headroom = remember { RowRevealHeadroom() }
             this.headroom = headroom
@@ -222,7 +225,12 @@ class RowRevealHeadroomTest {
                     .onSizeChanged { frame += compose.mainClock.currentTime to it.height }
                     .rowRevealHeadroom(headroom),
             ) {
-                CompositionLocalProvider(LocalRowRevealHeadroom provides headroom) {
+                // A plain (non-glass) theme: a frosted one drops the reserved
+                // band (7d0b59bf2), which is not what these frames measure.
+                CompositionLocalProvider(
+                    LocalKbTheme provides theme,
+                    LocalRowRevealHeadroom provides headroom,
+                ) {
                     Column(
                         Modifier
                             .fillMaxWidth()

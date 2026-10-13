@@ -211,7 +211,9 @@ class SelectionMacrosTest {
         assertTrue(SelectionMacros.defaultMacros.all { it in SelectionMacros.configurable })
         val unsafe = SelectionMacro.entries.filter { !it.directBootSafe }.toSet()
         assertEquals(
-            SelectionMacro.entries.filter { it.leavesApp }.toSet() + SelectionMacro.PASTE + SelectionMacro.READ_ALOUD,
+            SelectionMacro.entries.filter { it.leavesApp }.toSet() + SelectionMacro.PASTE + SelectionMacro.READ_ALOUD +
+                // The notes file is behind the lock too (5d175e9f5).
+                SelectionMacro.SAVE_NOTE,
             unsafe,
         )
         assertEquals(

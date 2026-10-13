@@ -88,17 +88,23 @@ class ConversionDictionaryTest {
             }
         }
 
+        // Measured against the heap as it stood before the parse: the test JVM
+        // is shared with every other :app test class (no forkEvery), and what
+        // they leave in statics is not this table's. Read whole, the heap grew
+        // with the suite past the budget while the table stayed ~70 MB.
         val runtime = Runtime.getRuntime()
+        System.gc()
+        val before = runtime.totalMemory() - runtime.freeMemory()
         val d = ConversionDictionary.parse(lines)
         System.gc()
-        val retainedMb = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024)
+        val retainedMb = (runtime.totalMemory() - runtime.freeMemory() - before) / (1024 * 1024)
 
         assertFalse(d.isEmpty)
         assertEquals(listOf("漢字1"), d.exact("reading1"))
         assertEquals(listOf("漢字$rows"), d.exact("reading$rows"))
         assertEquals(listOf("漢字540930"), d.exact("reading540930"))
         assertEquals(emptyList<String>(), d.exact("reading${rows + 1}"))
-        // Comfortably under a phone's heap; the old layout needed >160 MB.
-        assertTrue("retained ${retainedMb}MB for $rows rows", retainedMb < 200)
+        // ~47 MB of text and ~22 MB of row arrays; the old layout needed >160 MB.
+        assertTrue("retained ${retainedMb}MB for $rows rows", retainedMb < 150)
     }
 }

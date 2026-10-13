@@ -75,6 +75,7 @@ class PowerSavingSettingsTest {
                 dropOctopus = false,
                 dropBackgroundNetwork = false, dropScreenshotWatch = false,
                 dropOnDeviceModels = false, dropMediaPin = false,
+                dropGlassBlur = false,
             ).dropsAnything,
         )
     }

@@ -449,7 +449,8 @@ class EspansoFileTest {
     }
 
     @Test
-    fun `a trigger made only of symbols is dropped and the snippet kept`() {
+    fun `a trigger made only of symbols comes across`() {
+        // Fired off the field the moment its last symbol lands (#471, 32b79a65c).
         val import = read(
             """
             matches:
@@ -458,9 +459,9 @@ class EspansoFileTest {
             """,
         )!!
         val snippet = import.snippets.single()
-        assertNull(snippet.trigger)
+        assertEquals("->", snippet.trigger)
         assertEquals("→", snippet.text)
-        assertEquals(1, noteCount(import, EspansoNote.SYMBOL_TRIGGER))
+        assertEquals(0, noteCount(import, EspansoNote.SYMBOL_TRIGGER))
     }
 
     @Test
@@ -478,7 +479,7 @@ class EspansoFileTest {
     }
 
     @Test
-    fun `a trigger that ends in punctuation is still dropped`() {
+    fun `a trigger that ends in punctuation comes across too`() {
         val import = read(
             """
             matches:
@@ -486,8 +487,8 @@ class EspansoFileTest {
                 replace: "x"
             """,
         )!!
-        assertNull(import.snippets.single().trigger)
-        assertEquals(1, noteCount(import, EspansoNote.SYMBOL_TRIGGER))
+        assertEquals("gr db:", import.snippets.single().trigger)
+        assertEquals(0, noteCount(import, EspansoNote.SYMBOL_TRIGGER))
     }
 
     @Test

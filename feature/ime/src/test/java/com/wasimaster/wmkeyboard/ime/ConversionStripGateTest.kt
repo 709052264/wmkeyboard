@@ -47,6 +47,18 @@ class ConversionStripGateTest {
         CjkDictionaries.pinyin = ConversionDictionary.EMPTY
     }
 
+    /**
+     * The chip waits until the tables have been read once (f8fda054b): before
+     * that every table is empty whether its pack is on disk or not. This test
+     * plants its table by hand instead of through the service's own load, so
+     * it says the load has happened the way the load itself would.
+     */
+    private fun markCjkTablesRead(service: WMKeyboardService) {
+        val field = WMKeyboardService::class.java.getDeclaredField("loadedCjkPackToken")
+        field.isAccessible = true
+        field.setInt(service, 0)
+    }
+
     private fun pinyinState(
         suggestions: Boolean,
         fieldNoSuggestions: Boolean,
@@ -122,6 +134,7 @@ class ConversionStripGateTest {
         CjkDictionaries.pinyin = ConversionDictionary.EMPTY
         val service = GlideKeyboard(RecordingEditor())
         plantPersonalStores(service)
+        markCjkTablesRead(service)
         seedState(service, pinyinState(suggestions = true, fieldNoSuggestions = true))
         service.onKey(Key(label = "n"))
         service.onKey(Key(label = "i"))
