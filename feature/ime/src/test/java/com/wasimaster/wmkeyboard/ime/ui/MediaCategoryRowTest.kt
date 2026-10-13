@@ -77,6 +77,11 @@ class MediaCategoryRowTest {
     }
 
     @Test
+    fun `shows for the favourites alone when the provider has no categories`() {
+        assertTrue(shows(state(categories = emptyList()).copy(gifFavouriteIds = setOf("g1"))))
+    }
+
+    @Test
     fun `hides when the field takes no rich media`() {
         assertFalse(shows(state(), acceptsRichMedia = false))
     }

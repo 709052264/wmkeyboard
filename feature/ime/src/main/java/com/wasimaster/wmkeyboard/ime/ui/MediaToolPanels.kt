@@ -47,6 +47,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Info
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Star
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -155,7 +156,9 @@ internal fun showMediaCategories(
     /** The height the panel's body is given, when the keys of its layout take some of the key area (#538). */
     available: Dp? = null,
 ): Boolean {
-    if (state.mediaCategories.isEmpty()) return false
+    // A provider with no categories still has the panel's own lists to offer
+    // (#597): without them the favourites had no way in at all.
+    if (state.mediaCategories.isEmpty() && gifCollectionChips(state, state.panel == PanelMode.STICKER).isEmpty()) return false
     if (state.mediaSearchActive || localGrid || !acceptsRichMedia) return false
     if (state.mediaQuery.isNotBlank() && state.mediaCategory == null) return false
     return fullBleed || (available ?: keyRowsHeight(state)) >= MediaCategoryMinPanelHeight
@@ -889,6 +892,28 @@ internal fun GifPanel(
     BoxWithConstraints(modifier = sizing) {
         // In a layout cell the keys around it have taken some of the key area.
         val available = if (inGrid) maxHeight else null
+        val categoryRow = showMediaCategories(state, localGrid, fullBleed, state.acceptsRichMedia, available)
+        // The favourites live on the category row, which a short panel, or a
+        // field that takes no images, does not draw. A star in the search bar
+        // is then their way in, and costs no height (#597).
+        val favouritesStar = !stickers && !categoryRow && !state.mediaSearchActive &&
+            (state.gifFavouriteIds.isNotEmpty() || state.mediaCategory == MediaCategories.FAVOURITES)
+        val trailing: (@Composable () -> Unit)? = if (favouritesStar) {
+            {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    FavouritesStar(
+                        on = state.mediaCategory == MediaCategories.FAVOURITES,
+                        onClick = { onCategorySelect(MediaCategories.FAVOURITES) },
+                    )
+                    if (switcher != null) {
+                        Spacer(Modifier.width(8.dp))
+                        switcher()
+                    }
+                }
+            }
+        } else {
+            switcher
+        }
         Column(modifier = Modifier.fillMaxSize()) {
             PanelFocusTarget(
                 panel = state.panel,
@@ -905,7 +930,7 @@ internal fun GifPanel(
                         onQueryTap = onQueryTap,
                         attribution = gifAttribution(state, stickers),
                         focused = state.focusedIndex(FocusRegion.SEARCH) == 0,
-                        trailing = switcher,
+                        trailing = trailing,
                     )
                 }
                 if (chips.isNotEmpty() && !state.mediaSearchActive) {
@@ -939,7 +964,7 @@ internal fun GifPanel(
                         onAdd = if (chips.isEmpty()) onAdd else null,
                     )
                 }
-                if (showMediaCategories(state, localGrid, fullBleed, state.acceptsRichMedia, available)) {
+                if (categoryRow) {
                     // Trending first, so there is always a way back out of a
                     // category — and somewhere for the focus ring to sit when no
                     // category is on. The GIF panel's own lists lead it (#597):
@@ -1075,6 +1100,29 @@ internal fun gifCollectionChips(state: KeyboardUiState, stickers: Boolean): List
         chips += MediaCategory(term = MediaCategories.RECENT, labelRes = R.string.ime_gif_recent_label)
     }
     return chips
+}
+
+/** The search bar's way into the GIF favourites, for when the category row is not drawn; lit while they show. */
+@Composable
+private fun FavouritesStar(on: Boolean, onClick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    val shape = kb.chipShape()
+    Box(
+        modifier = Modifier
+            .size(36.dp)
+            .clip(shape)
+            .background(if (on) kb.chipActive else kb.chip)
+            .chipBorder(kb, shape)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            Icons.Outlined.Star,
+            contentDescription = stringResource(R.string.ime_gif_favourites_label),
+            modifier = Modifier.size(20.dp),
+            tint = if (on) kb.chipActiveText else kb.toolbarIcon,
+        )
+    }
 }
 
 /** The empty grid: local packs have their own way of being empty, and so do favourites and recent GIFs. */
