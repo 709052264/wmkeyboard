@@ -88,6 +88,36 @@ object SnippetMatcher {
     }
 
     /**
+     * [trigger] split the way the composing buffer holds it when the trigger's
+     * last word is a hyphenated compound, or null when it has none (#659).
+     *
+     * A hyphen typed straight after a letter stays in the buffer as part of the
+     * word (`well-paid`, `e-mail`), so `m:f-u` reaches the end of the word as
+     * "f-u" with only "m:" in the field, and `f-u` reaches it as one word with
+     * nothing in front. [splitPrefix] keys both under "u", which is what a
+     * buffer that did not join the hyphen holds, so the index registers this
+     * spelling as well. `m:f-u` gives `("m:", "f-u")`; `f-u` gives `("", "f-u")`,
+     * a plain trigger.
+     */
+    fun splitCompound(trigger: String): Prefixed? {
+        var cut = trigger.length
+        while (cut > 0 && isTriggerWordChar(trigger[cut - 1])) cut--
+        if (cut == trigger.length) return null
+        var joined = false
+        // A hyphen with a word character on both sides is inside the word, the
+        // same rule the keyboard's buffer and its word read-back both use.
+        while (cut >= 2 && trigger[cut - 1] == '-' && isTriggerWordChar(trigger[cut - 2])) {
+            cut--
+            while (cut > 0 && isTriggerWordChar(trigger[cut - 1])) cut--
+            joined = true
+        }
+        if (!joined || cut > MAX_PREFIX) return null
+        val prefix = trigger.substring(0, cut)
+        if (prefix.any { it != ' ' && it.isWhitespace() }) return null
+        return Prefixed(prefix, trigger.substring(cut))
+    }
+
+    /**
      * True for a character the keyboard's composing buffer holds.
      *
      * Deliberately the same set as `isComposingWordChar` on the IME side: a
@@ -583,7 +613,9 @@ class SnippetIndex private constructor(
      * the same set comes back until the snippets change — which is what lets
      * the keyboard tell by identity whether to rebuild anything.
      */
-    val expandingTriggers: Set<String> = plain.filterValues { it.id !in asking }.keys
+    val expandingTriggers: Set<String> = plain
+        .filter { (key, snippet) -> snippet.id !in asking && key.all(SnippetMatcher::isTriggerWordChar) }
+        .keys
 
     /**
      * True when some expanding plain trigger opens with a digit, like `123`
@@ -880,6 +912,17 @@ class SnippetIndex private constructor(
                     } else {
                         prefixed.getOrPut(split.word.lowercase(Locale.ROOT)) { ArrayList() } +=
                             PrefixTrigger(split.prefix, spelling, snippet)
+                    }
+                    // A hyphenated last word also arrives whole, the way the
+                    // buffer joins it (#659). Only one of the two spellings can
+                    // ever fit what was typed, so registering both never
+                    // doubles a match.
+                    val compound = SnippetMatcher.splitCompound(spelling) ?: continue
+                    if (compound.prefix.isEmpty()) {
+                        plain.putIfAbsent(compound.word.lowercase(Locale.ROOT), snippet)
+                    } else {
+                        prefixed.getOrPut(compound.word.lowercase(Locale.ROOT)) { ArrayList() } +=
+                            PrefixTrigger(compound.prefix, spelling, snippet)
                     }
                 }
                 if (triggered) continue

@@ -119,6 +119,26 @@ class SnippetPrefixTriggerTest {
     }
 
     @Test
+    fun `a hyphenated last word is also found the way the buffer joins it`() {
+        // #659: the buffer holds "f-u" whole, with only "m:" in the field.
+        assertEquals(SnippetMatcher.Prefixed("m:", "f-u"), SnippetMatcher.splitCompound("m:f-u"))
+        assertEquals(SnippetMatcher.Prefixed("", "e-mail"), SnippetMatcher.splitCompound("e-mail"))
+        assertNull(SnippetMatcher.splitCompound(":shrug"))
+        assertNull(SnippetMatcher.splitCompound("omw"))
+        assertNull(SnippetMatcher.splitCompound("-u"))
+
+        val index = SnippetIndex.of(
+            listOf(snip(trigger = "m:f-u", text = "one"), snip(trigger = "e-mail", id = 2, text = "two")),
+        )
+        assertEquals("one", index.matchPrefix("f-u", "x m:")!!.snippet.text)
+        assertEquals("one", index.matchPrefix("u", "x m:f-")!!.snippet.text)
+        assertNull(index.matchPrefix("f-u", "xm:"))
+        assertEquals("two", index.matchTrigger("E-mail")!!.text)
+        assertEquals("two", index.matchPrefix("mail", "e-")!!.snippet.text)
+        assertFalse("e-mail" in index.expandingTriggers)
+    }
+
+    @Test
     fun `a lead-in with whitespace that is not a space is refused`() {
         // Neither is reachable from a keyboard, so storing one is storing an
         // inert trigger.
