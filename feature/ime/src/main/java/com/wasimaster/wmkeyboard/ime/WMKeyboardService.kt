@@ -27522,6 +27522,8 @@ open class WMKeyboardService : InputMethodService() {
             onMerge = ::onReplyMerge,
             onShowMessages = ::onReplyShowMessages,
             onAllowImages = ::onReplyAllowImages,
+            onPickModel = ::onAiPickModel,
+            onSendPictures = ::onReplySendPictures,
         )
     }
 
@@ -28529,7 +28531,14 @@ open class WMKeyboardService : InputMethodService() {
                     localModelId = localModelId ?: current.ai.localModelId,
                 ),
             )
-            _uiState.update { it.copy(ai = aiInitialState(updated)) }
+            _uiState.update {
+                it.copy(
+                    ai = aiInitialState(updated),
+                    // The reply panel's Picture chip follows the model: a
+                    // switch to one without eyes takes it away (#234).
+                    aiReply = it.aiReply.copy(canSendPicture = replyCanSendPicture(updated)),
+                )
+            }
         }
     }
 
@@ -28718,6 +28727,7 @@ open class WMKeyboardService : InputMethodService() {
                     typing = false,
                     notice = null,
                     draft = draft,
+                    canSendPicture = replyCanSendPicture(settings),
                 ),
             )
         }
@@ -29055,6 +29065,9 @@ open class WMKeyboardService : InputMethodService() {
      * and arrives as lines the user can relabel.
      */
     private fun addReplyShot(uriString: String, copyPath: String?, keyboardInShot: Boolean) {
+        // The same screenshot twice, as a picture or as lines already read,
+        // is one screenshot.
+        if (_uiState.value.aiReply.entries.any { it.shotUri == uriString || it.fromShot == uriString }) return
         val settings = _uiState.value.settings
         val mode = settings.ai.reply.imageMode
         val sendable = replyCanSendPicture(settings)
@@ -29108,6 +29121,8 @@ open class WMKeyboardService : InputMethodService() {
                         source = ReplySource.SCREENSHOT,
                         shotUri = if (first) uriString else null,
                         shotFile = if (first) copyPath else null,
+                        keyboardInShot = keyboardInShot,
+                        fromShot = uriString,
                     ),
                 )
                 first = false
@@ -29153,6 +29168,18 @@ open class WMKeyboardService : InputMethodService() {
         aiJob?.cancel()
         val settings = _uiState.value.settings
         val onDevice = settings.ai.provider == AiProvider.ON_DEVICE
+        // Pictures gathered for one model and a run on another that cannot
+        // take them — the user switched model in between. Read them on the
+        // phone and go on, rather than sending a picture to be refused.
+        val pending = _uiState.value.aiReply.images
+        if (pending.isNotEmpty() && !replyCanSendPicture(settings)) {
+            if (ReplyOcr.available) {
+                readShotsInstead(tone, instruction, pending)
+            } else {
+                replyNotice(R.string.ime_reply_notice_no_vision)
+            }
+            return
+        }
         if (!onDevice) {
             val decision = dataSaverStatus.decide(MeteredFeature.CLOUD_AI)
             if (decision != MeteredDecision.ALLOWED) {
@@ -29333,11 +29360,21 @@ open class WMKeyboardService : InputMethodService() {
      * not to see. Each picture's lines take its place in the conversation,
      * the first carrying the screenshot so the tidy-up still finds it.
      */
-    private fun readShotsInstead(tone: AiActionSpec, instruction: String, shots: List<ReplyEntry>) {
+    private fun readShotsInstead(
+        tone: AiActionSpec?,
+        instruction: String,
+        shots: List<ReplyEntry>,
+        @StringRes notice: Int? = R.string.ime_reply_notice_reading_instead,
+    ) {
         _uiState.update {
             it.copy(
                 ai = aiInitialState(it.settings),
-                aiReply = it.aiReply.copy(reading = true, notice = R.string.ime_reply_notice_reading_instead),
+                aiReply = it.aiReply.copy(
+                    reading = true,
+                    notice = notice,
+                    candidates = emptyList(),
+                    canSendPicture = replyCanSendPicture(it.settings),
+                ),
             )
         }
         serviceScope.launch {
@@ -29362,6 +29399,8 @@ open class WMKeyboardService : InputMethodService() {
                             source = ReplySource.SCREENSHOT,
                             shotUri = if (i == 0) entry.shotUri else null,
                             shotFile = if (i == 0) entry.shotFile else null,
+                            keyboardInShot = entry.keyboardInShot,
+                            fromShot = entry.shotUri,
                         )
                     }
                 }
@@ -29371,7 +29410,60 @@ open class WMKeyboardService : InputMethodService() {
                 replyNotice(R.string.ime_reply_notice_nothing_read)
                 return@launch
             }
-            runAiReply(tone, instruction)
+            if (tone != null) runAiReply(tone, instruction)
+        }
+    }
+
+    /**
+     * The panel's Picture/Text switch for screenshots (#234). Remembered as
+     * the "How screenshots are read" setting — Picture as Automatic, so a
+     * later switch to a model without eyes falls back to text instead of
+     * failing — and applied to the screenshots already gathered: pictures are
+     * read into lines, or a screenshot's lines go back to being its picture.
+     */
+    fun onReplySendPictures(pictures: Boolean) {
+        vibrate()
+        val state = _uiState.value
+        if (state.ai is AiUi.Loading || state.aiReply.reading) return
+        if (pictures) {
+            if (!replyCanSendPicture(state.settings)) {
+                replyNotice(R.string.ime_reply_notice_no_vision)
+                return
+            }
+            serviceScope.launch { settingsRepository.setAiReplyImageMode(ReplyImageMode.AUTO) }
+            _uiState.update { current ->
+                val entries = current.aiReply.entries
+                val rebuilt = ArrayList<ReplyEntry>(entries.size)
+                val seen = HashSet<String>()
+                for (entry in entries) {
+                    val shot = entry.fromShot
+                    if (shot == null) {
+                        rebuilt += entry
+                        continue
+                    }
+                    // The whole screenshot comes back once, where its first
+                    // line was; the rest of its lines fold into it.
+                    if (!seen.add(shot)) continue
+                    val group = entries.filter { it.fromShot == shot }
+                    rebuilt += ReplyEntry(
+                        text = "",
+                        source = ReplySource.SCREENSHOT,
+                        shotUri = shot,
+                        shotFile = group.firstNotNullOfOrNull { it.shotFile },
+                        image = true,
+                        keyboardInShot = entry.keyboardInShot,
+                    )
+                }
+                current.copy(aiReply = current.aiReply.copy(entries = rebuilt, candidates = emptyList(), notice = null))
+            }
+        } else {
+            if (!ReplyOcr.available) {
+                replyNotice(R.string.ime_reply_notice_no_ocr)
+                return
+            }
+            serviceScope.launch { settingsRepository.setAiReplyImageMode(ReplyImageMode.OCR) }
+            val shots = state.aiReply.images
+            if (shots.isNotEmpty()) readShotsInstead(null, "", shots, notice = null)
         }
     }
 

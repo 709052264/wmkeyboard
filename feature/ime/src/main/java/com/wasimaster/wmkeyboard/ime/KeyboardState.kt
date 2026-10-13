@@ -1758,6 +1758,14 @@ data class ReplyEntry(
      * the same way they would have been when it was added.
      */
     val keyboardInShot: Boolean = false,
+    /**
+     * For a line read off a screenshot: the screenshot it came from, on every
+     * line of it (unlike [shotUri], which only the first carries so the
+     * tidy-up and the duplicate check see the picture once). It is what lets
+     * the panel's Picture/Text switch turn a screenshot's lines back into the
+     * picture they were read from.
+     */
+    val fromShot: String? = null,
 )
 
 /** A screenshot offered in the reply panel's picker. */
@@ -1801,6 +1809,12 @@ data class AiReplyUi(
      * rather than landing beside it. Blank when the field was empty.
      */
     val draft: String = "",
+    /**
+     * The model the next run goes to can take a picture. Worked out by the
+     * service — it knows which on-device model refused one this session — and
+     * refreshed when the panel opens and when the model is switched.
+     */
+    val canSendPicture: Boolean = false,
     /** A one-line message under the header: nothing copied, no permission, nothing read. */
     @androidx.annotation.StringRes val notice: Int? = null,
 ) {
@@ -1809,6 +1823,9 @@ data class AiReplyUi(
 
     /** Pictures being sent as pictures. */
     val images: List<ReplyEntry> get() = entries.filter { it.image }
+
+    /** Some of the conversation came from a screenshot, as a picture or as its lines. */
+    val hasShots: Boolean get() = entries.any { it.image || it.fromShot != null }
 
     /** The conversation as the prompt builder wants it. */
     fun context(source: ReplySource = ReplySource.TYPED, app: String? = null): ReplyContext =

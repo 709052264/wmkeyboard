@@ -39,6 +39,8 @@ How it is read depends on your AI provider, set under <SettingsPath path="Tools 
 - **Send the picture** always sends it. The model reads the alignment itself, so no labelling is needed.
 - **Read on this device** never sends the picture. The text is read on the phone and arrives as separate messages you can relabel. <Flavor edition="full" /> — the on-device reader is not in the Lite build.
 
+Once a screenshot is in the conversation, a **Screenshot goes as** row above the tones switches it between **Picture** and **Text** for this reply. Text reads it on the phone straight away, so you can check and relabel every line. Picture puts the lines read from that screenshot back together into the picture. Picture only shows when the chosen model can take one. Your choice is remembered as the setting above: Picture as **Automatic**, so switching later to a model that can't read pictures falls back to text instead of failing, and Text as **Read on this device**. If you switch to a model that can't read pictures after adding one, the screenshot is read on the phone when you pick a tone.
+
 When a screenshot is read on the device, the parts that are not the conversation are left out: the status bar and the chat app's top bar (the contact's name, "Active now"), message times and dates, "Seen" and "Delivered" marks, and the message box's own placeholder. A screenshot taken while the reply panel was open also has the keyboard in it, and everything from the keyboard down is skipped. Lines of one bubble that wraps are put back together; when that misses one, use **Join**.
 
 The keyboard cannot take a screenshot for you: capturing the screen needs a system permission dialog, and an input method that opens one loses the box it was typing into. Take it the usual way, with the hardware buttons, while the reply panel is open, and the keyboard picks it up. This works whatever **Screenshots in the clipboard** under <SettingsPath path="Clipboard" /> is set to, and a screenshot caught for a reply is not added to the clipboard unless that setting is on. It needs the same permission to read your images as the **Screenshot** button.
@@ -47,7 +49,7 @@ Reading screenshots from the gallery needs permission to read your images. Tappi
 
 ## Picking a tone
 
-Once there is something to reply to, the tones appear at the bottom of the panel under **Next: pick how to reply**. They stay there however long the conversation gets. One tap writes the drafts:
+Once there is something to reply to, the tones appear at the bottom of the panel under **Next: pick how to reply**, in one row you can swipe sideways. They stay there however long the conversation gets, and the conversation above them scrolls to the newest message as you add one. One tap writes the drafts:
 
 | Tone | What it does |
 | --- | --- |
@@ -80,7 +82,7 @@ Under <SettingsPath path="Tools / AI reply" />:
 - **Reply language** — blank follows the conversation, including its script, so Bengali written in Latin letters is answered the same way.
 - **Conversation sent** — how much of the gathered conversation one run sends. When it will not all fit, the oldest messages go first.
 
-The provider, API key and model are the AI tool's own, under <SettingsPath path="Tools / AI" />. There is only one set of them.
+The provider, API key and model are the AI tool's own, under <SettingsPath path="Tools / AI" />. There is only one set of them. When more than one is set up, the panel shows the same **Model** row as the AI tool at the top, with your downloaded on-device models and every cloud provider you have a key for. Picking one there picks it for the AI tool too. The row is hidden while drafts are being written, and turns off with **Model picker on the panel** under <SettingsPath path="Tools / AI" />.
 
 ## Clearing up afterwards
 

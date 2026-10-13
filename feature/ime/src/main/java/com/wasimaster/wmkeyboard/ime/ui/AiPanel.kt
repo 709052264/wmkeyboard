@@ -771,7 +771,7 @@ private fun visibleWhitespace(text: String): String {
 }
 
 /** One entry in the panel's model picker. */
-private class ModelPick(
+internal class ModelPick(
     // Stable identity across reorders so the LazyRow can animate the selected
     // chip sliding to the front instead of snapping.
     val key: String,
@@ -797,7 +797,7 @@ private class ModelPick(
  * CHIPS region with the exact indices the row draws.
  */
 @Composable
-private fun rememberModelPicks(
+internal fun rememberModelPicks(
     state: KeyboardUiState,
     onPickModel: (AiProvider, String?) -> Unit,
 ): List<ModelPick> {
@@ -841,7 +841,7 @@ private fun rememberModelPicks(
 }
 
 @Composable
-private fun ModelPickerRow(picks: List<ModelPick>, focused: Int?) {
+internal fun ModelPickerRow(picks: List<ModelPick>, focused: Int? = null) {
     val kb = LocalKbTheme.current
     // A LazyRow keyed by model identity so the just-picked chip animates to the
     // front instead of jumping there.

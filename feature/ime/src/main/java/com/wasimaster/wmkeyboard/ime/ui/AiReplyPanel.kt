@@ -3,11 +3,12 @@ package com.wasimaster.wmkeyboard.ime.ui
 import android.text.format.DateUtils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +22,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -32,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +51,7 @@ import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.UnfoldLess
+import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
 import com.wasimaster.wmkeyboard.core.tools.AiActionSurface
@@ -85,6 +90,10 @@ data class ReplyCallbacks(
     val onShowMessages: () -> Unit = {},
     /** The images permission, through the trampoline. */
     val onAllowImages: () -> Unit = {},
+    /** The model chip row: the AI tool's own picker, the same shared choice. */
+    val onPickModel: (AiProvider, String?) -> Unit = { _, _ -> },
+    /** Screenshots go to the model as the picture (true) or as the text read off it (false). */
+    val onSendPictures: (Boolean) -> Unit = {},
 )
 
 /**
@@ -113,11 +122,20 @@ internal fun AiReplyPanel(
         state.settings.ai.hiddenActions,
         AiActionSurface.REPLY,
     )
+    // The AI tool's model row, word for word: the choice is shared, so
+    // switching here switches there. Hidden while a run is going — changing
+    // the model under a request in flight would only cancel it.
+    val picks = if (state.settings.ai.panelModelPicker && state.ai !is AiUi.Loading) {
+        rememberModelPicks(state, callbacks.onPickModel)
+    } else {
+        emptyList()
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 8.dp, vertical = 4.dp),
     ) {
+        if (picks.isNotEmpty() && !reply.picking) ModelPickerRow(picks)
         when (val ai = state.ai) {
             // The provider screens are the AI tool's, word for word: the same
             // setup is missing and the same page fixes it.
@@ -168,6 +186,15 @@ internal fun AiReplyPanel(
                             else -> ReplyEmpty()
                         }
                     }
+                    // How a screenshot reaches the model, where there is one:
+                    // the picture itself, or the text read off it on the phone.
+                    if (reply.hasShots && reply.candidates.isEmpty()) {
+                        ReplySendAsRow(
+                            pictures = reply.entries.any { it.image },
+                            canSendPicture = reply.canSendPicture,
+                            onSendPictures = callbacks.onSendPictures,
+                        )
+                    }
                     // The run writes from what the user had started, and the
                     // reply they pick replaces it: say so before they pick a
                     // tone, so the drafts saying their words is no surprise.
@@ -204,9 +231,12 @@ private fun ReplyGather(state: KeyboardUiState, callbacks: ReplyCallbacks) {
     // Words, not icons: a clipboard, a plus and a phone outline say nothing
     // about which one reads a screenshot, and this row is the first thing
     // anybody new to the tool has to understand.
-    FlowRow(
+    // One line that scrolls sideways rather than a row that wraps: every line
+    // this row grows by comes out of the conversation's share of the panel.
+    Row(
+        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(5.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         ToolPanelChip(stringResource(R.string.ime_reply_add_clip)) { callbacks.onAddClip() }
         ToolPanelChip(stringResource(R.string.ime_reply_add_shot)) { callbacks.onPickShots(true) }
@@ -302,7 +332,14 @@ private fun ReplyEmpty() {
 private fun ReplyConversation(state: KeyboardUiState, callbacks: ReplyCallbacks) {
     val kb = LocalKbTheme.current
     val reply = state.aiReply
+    // Follows the newest message: the gather flow is copy, copy, copy, and a
+    // list that stays where it was hides each new one below the fold.
+    val listState = rememberLazyListState()
+    LaunchedEffect(reply.entries.size) {
+        if (reply.entries.isNotEmpty()) listState.animateScrollToItem(reply.entries.size - 1)
+    }
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 4.dp),
     ) {
@@ -502,14 +539,46 @@ private fun ReplyToneRow(
         fontWeight = FontWeight.Medium,
         modifier = Modifier.padding(bottom = 3.dp),
     )
-    FlowRow(
+    // One line that scrolls sideways. A wrapping row grew a line for every
+    // few tones, and with enough of them (or the message box open) it took
+    // the whole panel and pushed itself off the bottom.
+    LazyRow(
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(5.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        for (tone in tones) {
+        items(tones, key = { it.id }) { tone ->
             // The tone the drafts on screen were written in stays lit, so
             // "Try another tone" has something to be another than.
             ToolPanelChip(replyToneLabel(tone), selected = again && tone.id == current) { onTone(tone) }
+        }
+    }
+}
+
+/**
+ * Picture or text, for the screenshots in the conversation.
+ *
+ * The picture is the better input — the model sees which side each bubble
+ * sits on — but it leaves the phone with a cloud model and only a few models
+ * can read one at all; the text is read here and every line can be relabelled.
+ * Picture is offered only when the chosen model can take one.
+ */
+@Composable
+private fun ReplySendAsRow(pictures: Boolean, canSendPicture: Boolean, onSendPictures: (Boolean) -> Unit) {
+    val kb = LocalKbTheme.current
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(stringResource(R.string.ime_reply_send_as), color = kb.secondaryText, fontSize = 11.sp)
+        if (canSendPicture) {
+            ToolPanelChip(stringResource(R.string.ime_reply_send_picture), selected = pictures) {
+                if (!pictures) onSendPictures(true)
+            }
+        }
+        ToolPanelChip(stringResource(R.string.ime_reply_send_text), selected = !pictures) {
+            if (pictures) onSendPictures(false)
         }
     }
 }
