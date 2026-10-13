@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.stickers
 
+import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import android.content.Context
 import android.graphics.Bitmap
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
@@ -146,7 +147,7 @@ internal object LocalSubjectCutout {
         }
         // Short means interrupted: keep the part, the next try resumes it.
         if (part.length() < CutoutModel.SIZE_BYTES) return false
-        if (sha256Of(part) != CutoutModel.SHA256) {
+        if (!IntegrityChecks.accept(sha256Of(part) == CutoutModel.SHA256, CutoutModel.FILE_NAME)) {
             part.delete()
             return false
         }

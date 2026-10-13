@@ -152,6 +152,7 @@
     <string name="search_kw_layout_size_position">resize shrink compact grow</string>
     <string name="search_kw_layout_split">thumb ergonomic tablet</string>
     <string name="search_kw_privacy_backup">phone migrate</string>
+    <string name="search_kw_privacy_verify_checksums">checksum hash sha256 integrity signature mismatch corrupt</string>
     <string name="search_kw_privacy_learn_typing">personalization adapt remember habits</string>
     <string name="search_kw_privacy_lock">biometric fingerprint face unlock applock pin password pattern passcode</string>
     <string name="search_kw_selection_macros">highlight context menu share</string>

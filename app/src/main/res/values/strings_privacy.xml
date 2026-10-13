@@ -98,6 +98,14 @@
     <string name="privacy_backup_subtitle">Include the keyboard in the Android backup and in the device-to-device transfer</string>
     <string name="privacy_backup_info">This setting is off at the start. The keyboard copies nothing that it stores to Google Drive or to a new device. Turn it on, and the Android backup treats the keyboard like any other app. Your settings, themes, layouts, snippets, learned words, sticker packs, icon packs and plugins come back on a new device, or after you install the app again. The backup leaves out the voice models, the AI models, the downloaded word lists and the emoji keyword packs. The keyboard can download these again by itself, and the backup must stay inside the size limit of Android. The backup does include your saved API keys. Android makes a cloud backup only on a device that can encrypt it with your screen lock. Backup &amp; restore in Settings is the other way, and it never uses Google. It saves the same data in a file that you move yourself.</string>
 
+    <string name="privacy_downloads_group_title">Downloads</string>
+    <string name="privacy_verify_checksums_title">Verify downloaded files</string>
+    <string name="privacy_verify_checksums_subtitle">Check every download and import against its published checksum</string>
+    <string name="privacy_verify_checksums_off_subtitle">Off: the keyboard uses files that fail their checksum. Turn this back on when you can.</string>
+    <string name="privacy_verify_checksums_info">Each file that the keyboard downloads or imports has a published SHA-256 checksum: dictionary packs, voice models, fonts, add-ons, themes, Keyman layouts and app updates. The keyboard refuses a file whose checksum does not match, because the file is damaged or is not the file that was published. Keep this setting on. Turn it off only for a short time, when the developer tells you that a file changed on the server and your version of the app still expects the old file. Updates still need the developer\'s signature to install.</string>
+    <string name="privacy_verify_checksums_confirm_title">Turn off file verification?</string>
+    <string name="privacy_verify_checksums_confirm_body">The keyboard will use downloaded and imported files even when their checksum does not match. A damaged download, or a file that someone changed on its way to you, will then be installed and used. Do this only when the developer asks you to, and turn it back on after you update the app.</string>
+
     <string name="privacy_data_group_title">Your data</string>
     <string name="privacy_delete_learned_words_action">Delete the learned words</string>
     <string name="privacy_delete_learned_words_title">Learned words</string>

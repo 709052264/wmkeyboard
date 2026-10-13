@@ -14,6 +14,10 @@ import com.wasimaster.wmkeyboard.app.lock.AppLockTargets
 import com.wasimaster.wmkeyboard.app.lock.LocalAppLock
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -195,6 +199,9 @@ internal fun PrivacySettings(
         }
     }
     OtherAppsGroup(repository, onNavigate)
+    SettingsGroup(stringResource(R.string.privacy_downloads_group_title)) {
+        item { VerifyChecksumsRow(repository, settings) }
+    }
     SettingsGroup(stringResource(R.string.privacy_data_group_title)) {
         item {
             ActionRow(
@@ -216,6 +223,48 @@ internal fun PrivacySettings(
         }
     }
 }
+
+/**
+ * The switch behind [IntegrityChecks]. Turning it on is instant; turning it
+ * off asks first, because it is the one switch on this screen that makes the
+ * keyboard trust a file it would otherwise refuse.
+ */
+@Composable
+private fun VerifyChecksumsRow(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    val verify = settings.watch { it.verifyChecksums }
+    var confirmOff by remember { mutableStateOf(false) }
+    ToggleSetting(
+        R.string.privacy_verify_checksums_title,
+        stringResource(
+            if (verify) R.string.privacy_verify_checksums_subtitle else R.string.privacy_verify_checksums_off_subtitle,
+        ),
+        verify,
+        info = stringResource(R.string.privacy_verify_checksums_info),
+        default = SettingsDefaults.verifyChecksums,
+    ) { on ->
+        if (on) scope.launch { repository.setVerifyChecksums(true) } else confirmOff = true
+    }
+    if (confirmOff) {
+        AlertDialog(
+            onDismissRequest = { confirmOff = false },
+            title = { Text(stringResource(R.string.privacy_verify_checksums_confirm_title)) },
+            text = { Text(stringResource(R.string.privacy_verify_checksums_confirm_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmOff = false
+                    scope.launch { repository.setVerifyChecksums(false) }
+                }) { Text(stringResource(CommonR.string.common_disable)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmOff = false }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
+    }
+}
+
 // ---- voice typing ----
 
 /**

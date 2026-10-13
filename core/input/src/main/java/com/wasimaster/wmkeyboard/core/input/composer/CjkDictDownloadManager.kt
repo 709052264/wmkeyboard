@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.input.composer
 
+import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import android.os.StatFs
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
@@ -352,7 +353,7 @@ object CjkDictDownloadManager {
             }
         }
         val actual = digest.digest().joinToString("") { "%02x".format(it) }
-        if (!actual.equals(pack.sha256, ignoreCase = true)) {
+        if (!IntegrityChecks.accept(actual.equals(pack.sha256, ignoreCase = true), pack.path)) {
             throw FailedException(
                 FailReason.CHECKSUM,
                 R.string.core_input_cjk_download_error_checksum,

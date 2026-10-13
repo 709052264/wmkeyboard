@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice.whistle
 
+import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import java.io.File
 import java.security.MessageDigest
 
@@ -38,7 +39,10 @@ object WhistleModelStore {
                 digest.update(buffer, 0, count)
             }
         }
-        return digest.digest().joinToString("") { "%02x".format(it) } == MODEL_SHA256
+        return IntegrityChecks.accept(
+            digest.digest().joinToString("") { "%02x".format(it) } == MODEL_SHA256,
+            MODEL_FILE_NAME,
+        )
     }
 
     fun delete(filesDir: File) {

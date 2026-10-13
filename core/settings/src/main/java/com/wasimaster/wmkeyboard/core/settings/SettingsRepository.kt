@@ -23,6 +23,7 @@ import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
 import com.wasimaster.wmkeyboard.core.endpoints.repoLocationFromFields
 import com.wasimaster.wmkeyboard.core.endpoints.toFields
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
+import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import com.wasimaster.wmkeyboard.core.settings.sink.S3Sink
 import com.wasimaster.wmkeyboard.core.addons.AddonStore
 import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRule
@@ -3387,6 +3388,11 @@ data class KeyboardSettings(
     val location: LocationSettings = LocationSettings(),
     /** The network activity log's two switches (see [NetworkLogSettings]). */
     val networkLog: NetworkLogSettings = NetworkLogSettings(),
+    /**
+     * Hold downloaded and imported files to the SHA-256 they were published
+     * with. An emergency escape hatch only; see [IntegrityChecks].
+     */
+    val verifyChecksums: Boolean = true,
     /** Alternate calendars and the weekend, for the calendar tool (see [CalendarToolSettings]). */
     val calendarTool: CalendarToolSettings = CalendarToolSettings(),
     /** Handwriting canvas ignores finger touches; only a stylus draws. */
@@ -9510,6 +9516,7 @@ class SettingsRepository(private val context: Context) {
         private val MOON_SOUTHERN = booleanPreferencesKey("moon_southern_hemisphere")
         private val NETWORK_LOG_KEEP = booleanPreferencesKey("network_log_keep")
         private val NETWORK_LOG_ON_KEYBOARD = booleanPreferencesKey("network_log_on_keyboard")
+        private val VERIFY_CHECKSUMS = booleanPreferencesKey("verify_checksums")
         private val WEATHER_FAHRENHEIT = booleanPreferencesKey("weather_fahrenheit")
         private val WEATHER_LAT = floatPreferencesKey("weather_lat")
         private val WEATHER_LON = floatPreferencesKey("weather_lon")
@@ -10063,6 +10070,7 @@ class SettingsRepository(private val context: Context) {
             // Same reasoning for the network log's switch: whoever reads
             // settings keeps the log's idea of "on" current.
             NetLog.enabled = it.networkLog.keep
+            IntegrityChecks.enabled = it.verifyChecksums
         }
         .flowOn(Dispatchers.Default)
 
@@ -10319,6 +10327,7 @@ class SettingsRepository(private val context: Context) {
             sensorTools = readSensorTools(p, defaults),
             redoUsesCtrlY = p[REDO_USES_CTRL_Y] ?: defaults.redoUsesCtrlY,
             networkLog = readNetworkLog(p, defaults),
+            verifyChecksums = p[VERIFY_CHECKSUMS] ?: defaults.verifyChecksums,
             weather = readWeather(p, defaults),
             location = readLocation(p, defaults),
             calendarTool = readCalendarTool(p, defaults),
@@ -12503,6 +12512,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setNetworkLogOnKeyboard(value: Boolean) =
         editPrefs { it[NETWORK_LOG_ON_KEYBOARD] = value }
+
+    suspend fun setVerifyChecksums(value: Boolean) =
+        editPrefs { it[VERIFY_CHECKSUMS] = value }
 
     suspend fun setLocationFormat(value: LocationFormat) = editPrefs { it[LOCATION_FORMAT] = value.id }
 

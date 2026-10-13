@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.fonts
 
+import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import android.content.Context
 import android.os.SystemClock
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
@@ -111,7 +112,7 @@ object LayoutFonts {
         if (store.textFonts().any { it.name.equals(entry.name, ignoreCase = true) }) return true
         val bytes = fetch(entry) ?: return false
         val digest = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
-        if (digest != entry.sha256) return false
+        if (!IntegrityChecks.accept(digest == entry.sha256, entry.name)) return false
         val result = FontFile.import(
             input = ByteArrayInputStream(bytes),
             store = store,

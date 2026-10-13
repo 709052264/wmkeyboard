@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app.updates
 
+import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import android.content.Context
 import android.os.StatFs
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
@@ -198,6 +199,8 @@ internal object ApkDownload {
             }
         }.getOrElse { return false }
         val actual = digest.digest().joinToString("") { "%02x".format(it) }
-        return actual == sha256.lowercase()
+        // The signing-certificate pin in [ApkInstall] still holds when this is let
+        // through, so an APK someone else signed is never installed either way.
+        return IntegrityChecks.accept(actual == sha256.lowercase(), candidate.assetName)
     }
 }

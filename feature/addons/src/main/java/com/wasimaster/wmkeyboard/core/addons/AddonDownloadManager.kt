@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.addons
 
+import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import android.content.Context
 import android.os.StatFs
 import androidx.annotation.StringRes
@@ -590,7 +591,7 @@ object AddonDownloadManager {
             }
         }
         val actual = digest.digest().joinToString("") { "%02x".format(it) }
-        if (actual != expected) {
+        if (!IntegrityChecks.accept(actual == expected, entry.id)) {
             throw FailedException(
                 FailReason.CHECKSUM,
                 AddonText.of(R.string.faddons_download_error_checksum),

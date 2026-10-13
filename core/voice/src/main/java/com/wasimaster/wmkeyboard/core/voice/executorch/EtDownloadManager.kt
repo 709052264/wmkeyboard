@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice.executorch
 
+import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import android.os.StatFs
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.common.R as CommonR
@@ -187,7 +188,7 @@ object EtDownloadManager {
             netCall.end()
         }
         if (part.length() < f.bytes) throw FailedException(R.string.core_voice_download_interrupted_error)
-        if (!EtStore.sha256(part).equals(f.sha256, ignoreCase = true)) {
+        if (!IntegrityChecks.accept(EtStore.sha256(part).equals(f.sha256, ignoreCase = true), f.path)) {
             // Wrong bytes cannot be resumed into right ones: start over next time.
             part.delete()
             throw FailedException(R.string.core_voice_whistle_checksum_error)

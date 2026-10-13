@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.keyman
 
+import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.security.MessageDigest
@@ -81,8 +82,9 @@ object KeymanMirror {
                 out.toByteArray()
             }
         }.getOrNull() ?: return null
-        if (bytes.size.toLong() != meta.bytes) return null
-        return bytes.takeIf { sha256Hex(it) == meta.sha256 }
+        val what = "Keyman mirror ${meta.version}"
+        if (!IntegrityChecks.accept(bytes.size.toLong() == meta.bytes, what)) return null
+        return bytes.takeIf { IntegrityChecks.accept(sha256Hex(it) == meta.sha256, what) }
     }
 
     private fun sha256Hex(bytes: ByteArray): String =

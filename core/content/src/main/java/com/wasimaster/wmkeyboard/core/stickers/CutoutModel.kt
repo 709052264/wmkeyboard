@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.stickers
 
+import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
 import java.io.File
@@ -75,7 +76,8 @@ object CutoutModel {
                 digest.update(buffer, 0, read)
             }
         }
-        if (digest.digest().joinToString("") { "%02x".format(it) } != SHA256) return false
+        val matches = digest.digest().joinToString("") { "%02x".format(it) } == SHA256
+        if (!IntegrityChecks.accept(matches, FILE_NAME)) return false
         val part = partFile(filesDir)
         dir(filesDir).mkdirs()
         try {

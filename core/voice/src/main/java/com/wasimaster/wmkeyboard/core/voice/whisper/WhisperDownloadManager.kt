@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice.whisper
 
+import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import android.os.StatFs
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.common.R as CommonR
@@ -170,7 +171,11 @@ object WhisperDownloadManager {
         val model = modelFor(name, size)
         // A whisper.cpp model carries a known hash; a file of the right name
         // and size that fails it is someone else's, and not installed.
-        if (model?.sha256 != null && !sha256Of(file).equals(model.sha256, ignoreCase = true)) return null
+        if (model?.sha256 != null &&
+            !IntegrityChecks.accept(sha256Of(file).equals(model.sha256, ignoreCase = true), name)
+        ) {
+            return null
+        }
         if (model != null) {
             val dir = WhisperStore.modelDir(filesDir, model).apply { mkdirs() }
             copyInto(file, File(dir, model.modelFile))
@@ -287,7 +292,7 @@ object WhisperDownloadManager {
             doneBytes += p.finalFile.length()
         }
         model.sha256?.let { expected ->
-            if (!sha256Of(graph.finalFile).equals(expected, ignoreCase = true)) {
+            if (!IntegrityChecks.accept(sha256Of(graph.finalFile).equals(expected, ignoreCase = true), model.id)) {
                 graph.finalFile.delete()
                 throw FailedException(FailReason.OTHER, R.string.core_voice_whistle_checksum_error)
             }

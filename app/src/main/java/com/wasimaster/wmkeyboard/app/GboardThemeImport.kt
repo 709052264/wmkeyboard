@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import android.content.Context
 import android.graphics.BitmapFactory
 import androidx.activity.compose.BackHandler
@@ -595,7 +596,7 @@ private fun decodeSampled(bytes: ByteArray): ImageBitmap? = runCatching {
 private fun downloadPack(pack: RboardPack, cacheDir: File): File? {
     val name = (pack.sha256 ?: sha256Hex(pack.url.toByteArray())) + ".zip"
     val file = File(cacheDir, name)
-    if (file.isFile && (pack.sha256 == null || sha256Hex(file) == pack.sha256)) return file
+    if (file.isFile && (pack.sha256 == null || IntegrityChecks.accept(sha256Hex(file) == pack.sha256, pack.url))) return file
     ToolHttp.download(
         pack.url,
         file,
@@ -604,7 +605,7 @@ private fun downloadPack(pack: RboardPack, cacheDir: File): File? {
         source = NetSource.RBOARD_THEMES,
         route = NetLog.pathOf(pack.url),
     )
-    if (pack.sha256 != null && sha256Hex(file) != pack.sha256) {
+    if (pack.sha256 != null && !IntegrityChecks.accept(sha256Hex(file) == pack.sha256, pack.url)) {
         file.delete()
         return null
     }
