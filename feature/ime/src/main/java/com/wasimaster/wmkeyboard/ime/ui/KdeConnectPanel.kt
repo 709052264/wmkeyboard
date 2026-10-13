@@ -43,7 +43,9 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Keyboa
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardReturn
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.VolumeOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.VolumeUp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AttachFile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Computer
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardArrowDown
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardArrowUp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Laptop
@@ -54,6 +56,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Shuffle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Smartphone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tablet
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tv
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -785,6 +788,33 @@ private fun KdePlayer.toSnapshot(deviceName: String, art: android.graphics.Bitma
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SendTab(kb: KbTheme, device: KdeDevice, engine: KdeConnectEngine, onKde: (KdeAction) -> Unit) {
+    if (device.transfers.isEmpty()) {
+        // Nothing to list yet: the three ways to send take the room the list would.
+        Column(
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Row(Modifier.widthIn(max = SEND_TILES_MAX_WIDTH).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SendTile(kb, Icons.Outlined.ContentPaste, stringResource(R.string.ime_kde_send_clipboard), enabled = device.canClipboard, accent = true) {
+                    onKde(KdeAction.SendClipboard)
+                }
+                SendTile(kb, Icons.Outlined.TextFields, stringResource(R.string.ime_kde_send_field), enabled = device.canShare) {
+                    onKde(KdeAction.SendFieldText)
+                }
+                SendTile(kb, Icons.Outlined.AttachFile, stringResource(R.string.ime_kde_send_files), enabled = device.canShare) {
+                    onKde(KdeAction.PickFiles)
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                stringResource(if (device.canShare) R.string.ime_kde_send_empty else R.string.ime_kde_send_unsupported),
+                color = kb.secondaryText, fontSize = 12.sp, textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            )
+        }
+        return
+    }
     Column(Modifier.fillMaxSize()) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             ToolPanelChip(stringResource(R.string.ime_kde_send_clipboard), selected = true, enabled = device.canClipboard) { onKde(KdeAction.SendClipboard) }
@@ -795,13 +825,27 @@ private fun SendTab(kb: KbTheme, device: KdeDevice, engine: KdeConnectEngine, on
             }
         }
         Spacer(Modifier.height(4.dp))
-        if (device.transfers.isEmpty()) {
-            Text(stringResource(if (device.canShare) R.string.ime_kde_send_empty else R.string.ime_kde_send_unsupported), color = kb.secondaryText, fontSize = 12.sp, modifier = Modifier.padding(4.dp))
-        } else {
-            LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                items(device.transfers.asReversed(), key = { it.id }) { transfer -> TransferRow(kb, transfer, engine, onKde) }
-            }
+        LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            items(device.transfers.asReversed(), key = { it.id }) { transfer -> TransferRow(kb, transfer, engine, onKde) }
         }
+    }
+}
+
+/** One of the Send tab's empty-state buttons: an icon over its label, a third of the row. */
+@Composable
+private fun RowScope.SendTile(kb: KbTheme, icon: ImageVector, label: String, enabled: Boolean, accent: Boolean = false, onClick: () -> Unit) {
+    val fill = if (accent) kb.accent else kb.chip
+    val tint = if (accent) maxContrastOn(kb.accent) else kb.chipText
+    Column(
+        Modifier.weight(1f).height(SEND_TILE_HEIGHT).alpha(if (enabled) 1f else BUTTON_DISABLED_ALPHA)
+            .clip(RoundedCornerShape(kb.keyRadiusDp.dp)).background(fill)
+            .clickable(enabled = enabled, onClick = onClick).padding(horizontal = 6.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Icon(icon, null, tint = tint, modifier = Modifier.size(26.dp))
+        Spacer(Modifier.height(6.dp))
+        Text(label, color = tint, fontSize = 13.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -1132,6 +1176,10 @@ private const val BUTTON_DISABLED_ALPHA = 0.4f
 
 /** Esc, Tab, the arrows and the "Type on PC" button beside them: one row height. */
 private val QUICK_KEY_HEIGHT = 34.dp
+
+/** The Send tab's empty-state buttons; capped so a tablet's width does not stretch them into bars. */
+private val SEND_TILE_HEIGHT = 84.dp
+private val SEND_TILES_MAX_WIDTH = 480.dp
 private const val ECHO_CHARS = 120
 private const val OUTPUT_LINES_SHOWN = 200
 private const val FINGERPRINT_SHOWN = 47
