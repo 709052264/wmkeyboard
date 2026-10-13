@@ -591,6 +591,9 @@ internal class Stylesheet(
             for (name in listOf(
                 "clipboard header", "clipboard header text",
                 "smartbar actions editor header", "subtype panel header",
+                // A section heading inside the editor, not quieter text: several
+                // themes paint it in the accent (see the secondary text list).
+                "smartbar actions editor subheader",
                 "clipboard history disabled title", "clipboard history locked title",
             )) {
                 put(name, EL_PANEL_HEADER)
@@ -598,7 +601,7 @@ internal class Stylesheet(
             // The body of those notices is the quieter text (`onSurfaceVariant`).
             for (name in listOf(
                 "clipboard history disabled message", "clipboard history locked message",
-                "clipboard clear all dialog message", "smartbar actions editor subheader",
+                "clipboard clear all dialog message",
             )) {
                 put(name, EL_SECONDARY_TEXT)
             }

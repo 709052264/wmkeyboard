@@ -42,8 +42,10 @@ class FrostBakeTest {
         for (i in 0 until 4) {
             assertEquals("mirror at $i", pixels[i], pixels[width - 1 - i])
         }
-        // The centre keeps the most, and the far ends (outside the window) none.
-        assertTrue((pixels[4] and 0xFF) > (pixels[3] and 0xFF))
+        // A box blur is flat across its window: the centre keeps as much as any
+        // pixel in reach, something reaches, and the far ends (outside it) get none.
+        assertTrue((pixels[4] and 0xFF) > 0)
+        assertTrue((pixels[4] and 0xFF) >= (pixels[3] and 0xFF))
         assertEquals(0, pixels[0] and 0xFF)
     }
 

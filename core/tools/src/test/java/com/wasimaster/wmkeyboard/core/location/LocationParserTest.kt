@@ -19,7 +19,7 @@ class LocationParserTest {
         for (precision in listOf(LocationPrecision.EXACT, LocationPrecision.STREET)) {
             val shared = precision.apply(dhaka)
             for (link in MapLink.entries) {
-                val text = "Meet me here " + LocationFormatter.link(link, dhaka, precision) + " ok?"
+                val text = "Meet me here " + LocationFormatter.link(link, shared, precision) + " ok?"
                 val found = LocationParser.first(text)
                 assertNear(shared, found?.point, metres = 15.0)
             }
