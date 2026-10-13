@@ -20,6 +20,14 @@ enum class GifSource {
 
     /** Files on the device rather than a provider: its own grid, never interleaved, never metered. */
     val onDevice: Boolean get() = this == LOCAL || this == OFFLINE
+
+    /**
+     * Always a grid of its own, never interleaved in mixed mode. True of the
+     * packs on the device, and of GIPHY: its API terms (section 1) forbid
+     * mixing its search results with another provider's without its written
+     * approval.
+     */
+    val ownGrid: Boolean get() = onDevice || this == GIPHY
 }
 
 /**
@@ -40,6 +48,12 @@ data class GifItem(
     val source: GifSource,
     /** Provider's name for the item, or a local sticker's — may be blank. */
     val title: String = "",
+    /**
+     * Who made it, as the provider names them: a GIPHY username. Blank when
+     * the provider gives none. GIPHY's API terms (section 5) ask for it to be
+     * shown wherever it exists.
+     */
+    val creator: String = "",
 )
 
 /** One chip in the source row, with the label it shows. */
@@ -61,41 +75,46 @@ object GifSources {
     /**
      * Which sources one fetch should hit, given the chip the user is on.
      *
-     * Packs on the device are never interleaved with providers: picking
-     * them is always a grid of its own, in mixed mode as much as in tabs mode.
+     * Packs on the device and GIPHY ([GifSource.ownGrid]) are never
+     * interleaved with anything: picking one is always a grid of its own, in
+     * mixed mode as much as in tabs mode.
      */
     fun targets(sources: List<GifSource>, selected: GifSource, tabs: Boolean): List<GifSource> {
         if (sources.isEmpty()) return emptyList()
         val pick = selected.takeIf { it in sources }
-        if (pick != null && pick.onDevice) return listOf(pick)
+        if (pick != null && pick.ownGrid) return listOf(pick)
         if (tabs) return listOf(pick ?: sources.first())
-        val remote = sources.filterNot { it.onDevice }
-        return remote.ifEmpty { listOf(sources.first()) }
+        val mixed = sources.filterNot { it.ownGrid }
+        return mixed.ifEmpty { listOf(sources.first()) }
     }
 
     /**
      * Chips for the source row, or an empty list when there is nothing to
-     * switch between. Mixed mode collapses the providers into one "Online"
-     * chip standing for the interleaved grid, so packs on the device still
-     * get a tab each.
+     * switch between. Mixed mode collapses the providers it may interleave
+     * into one "Online" chip standing for the interleaved grid (or the
+     * provider's own name, when only one is left), so the sources with a grid
+     * of their own ([GifSource.ownGrid]) still get a tab each.
      */
     fun chips(sources: List<GifSource>, tabs: Boolean): List<SourceChip> {
         if (tabs) {
             return if (sources.size > 1) sources.map { SourceChip(displayNameRes(it), it) } else emptyList()
         }
-        val remote = sources.filterNot { it.onDevice }
-        val onDevice = sources.filter { it.onDevice }
-        if (remote.size + onDevice.size < 2 || onDevice.isEmpty()) return emptyList()
-        val online = remote.firstOrNull()?.let { listOf(SourceChip(R.string.core_tools_gif_source_online, it)) }
-        return online.orEmpty() + onDevice.map { SourceChip(displayNameRes(it), it) }
+        val mixed = sources.filterNot { it.ownGrid }
+        val lead = when (mixed.size) {
+            0 -> emptyList()
+            1 -> listOf(SourceChip(displayNameRes(mixed[0]), mixed[0]))
+            else -> listOf(SourceChip(R.string.core_tools_gif_source_online, mixed[0]))
+        }
+        val chips = lead + sources.filter { it.ownGrid }.map { SourceChip(displayNameRes(it), it) }
+        return if (chips.size > 1) chips else emptyList()
     }
 
     /** Index of the active chip in [chips], falling back to the first. */
     fun selectedChip(chips: List<SourceChip>, selected: GifSource): Int {
         val exact = chips.indexOfFirst { it.source == selected }
         if (exact >= 0) return exact
-        // Mixed mode: any provider means the "Online" chip is the active one.
-        return chips.indexOfFirst { !it.source.onDevice }.coerceAtLeast(0)
+        // Mixed mode: any interleaved provider means the "Online" chip is the active one.
+        return chips.indexOfFirst { !it.source.ownGrid }.coerceAtLeast(0)
     }
 
     /**

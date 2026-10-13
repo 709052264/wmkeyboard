@@ -115,9 +115,18 @@ object GiphyClient {
                 aspectRatio = preview.aspectRatio,
                 source = GifSource.GIPHY,
                 title = result.text("title").orEmpty(),
+                creator = creator(result),
             )
         }
     }
+
+    /**
+     * The uploader's GIPHY username, for the credit the API terms ask for. The
+     * `user` object carries it for verified channels; plain uploads only have
+     * the top-level `username`, often blank.
+     */
+    private fun creator(result: JsonObject): String =
+        (result["user"] as? JsonObject)?.text("username") ?: result.text("username").orEmpty()
 
     private class Rendition(val url: String, val aspectRatio: Float)
 

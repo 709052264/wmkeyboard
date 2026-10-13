@@ -5,6 +5,7 @@ import android.os.Build
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -64,6 +65,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
@@ -506,8 +508,8 @@ internal fun RowScope.MediaHeaderSearchBar(
     placeholder: String,
     onQueryTap: () -> Unit,
     attribution: String? = null,
-    // KLIPY's "Powered by KLIPY" mark at the end of the box, while it answers.
-    klipyLogo: Boolean = false,
+    // A provider's "Powered by" mark at the end of the box, while it answers.
+    logo: GifSource? = null,
     // Prompt shown once the field is typed into. Null falls back to the search
     // wording; tools that aren't searching (e.g. translate) pass their own.
     // A default argument cannot hold a resource, hence the null.
@@ -560,7 +562,7 @@ internal fun RowScope.MediaHeaderSearchBar(
                 modifier = Modifier.padding(start = 6.dp),
             )
         }
-        if (klipyLogo) PoweredByKlipy(height = 8.dp, modifier = Modifier.padding(start = 6.dp))
+        if (logo != null) ProviderLogo(logo, height = 8.dp, modifier = Modifier.padding(start = 6.dp))
         if (onClear != null && query.isNotEmpty()) {
             IconHint(stringResource(R.string.ime_clipboard_search_clear_desc)) {
                 Icon(
@@ -588,8 +590,8 @@ private fun MediaSearchBar(
     placeholder: String,
     onQueryTap: () -> Unit,
     attribution: String? = null,
-    // KLIPY's "Powered by KLIPY" mark beside the box, while it answers.
-    klipyLogo: Boolean = false,
+    // A provider's "Powered by" mark beside the box, while it answers.
+    logo: GifSource? = null,
     focused: Boolean = false,
     // Drawn after the box and its credit: the switch to the emoji and the
     // other media panel, when it sits up here (issue #366).
@@ -644,7 +646,7 @@ private fun MediaSearchBar(
                 modifier = Modifier.padding(start = 8.dp),
             )
         }
-        if (klipyLogo) PoweredByKlipy(height = 9.dp, modifier = Modifier.padding(start = 8.dp))
+        if (logo != null) ProviderLogo(logo, height = 9.dp, modifier = Modifier.padding(start = 8.dp))
         if (trailing != null) {
             Spacer(Modifier.width(8.dp))
             trailing()
@@ -770,35 +772,44 @@ private fun PanelSpinner() {
 // evenly-mixed grid, per the tool's settings.
 
 /**
- * The hint in the search box. While KLIPY is one of the providers the grid
- * pulls from it reads "Search KLIPY" (or "Search KLIPY · GIPHY"): KLIPY's
- * brand terms make that wording a condition of a production key. Otherwise
- * GIFs and stickers each have their own wording.
+ * The hint in the search box. A grid from KLIPY or GIPHY names it: "Search
+ * KLIPY" is a condition of KLIPY's production key, and GIPHY's own search
+ * boxes read "Search GIPHY". Otherwise GIFs and stickers each have their own
+ * wording.
  */
 @Composable
 private fun gifSearchHint(state: KeyboardUiState, stickers: Boolean): String {
-    val targets = gifTargets(state, stickers)
-    if (GifSource.KLIPY in targets) {
-        return stringResource(R.string.ime_media_search_provider, providerNames(targets))
+    val brand = gifBrand(state, stickers)
+    if (brand != null) {
+        return stringResource(R.string.ime_media_search_provider, stringResource(GifSources.displayNameRes(brand)))
     }
     return stringResource(if (stickers) R.string.ime_sticker_search_hint else R.string.ime_gif_search_hint)
 }
 
 /**
- * "from GIPHY": the providers this grid is actually pulling from, less KLIPY,
- * which [gifShowsKlipyLogo] credits with its own mark instead.
+ * "from Wikimedia Commons": the providers this grid is pulling from that have
+ * no mark of their own. KLIPY and GIPHY get theirs from [ProviderLogo].
  */
 @Composable
 private fun gifAttribution(state: KeyboardUiState, stickers: Boolean = false): String? {
     // Nothing to credit for packs on the device.
-    val credited = gifTargets(state, stickers).filter { !it.onDevice && it != GifSource.KLIPY }
+    val credited = gifTargets(state, stickers).filter { !it.onDevice && it !in BRANDED_SOURCES }
     if (credited.isEmpty()) return null
-    return stringResource(R.string.ime_media_attribution, providerNames(credited))
+    val names = StringBuilder()
+    for (source in credited) {
+        if (names.isNotEmpty()) names.append(" · ")
+        names.append(stringResource(GifSources.displayNameRes(source)))
+    }
+    return stringResource(R.string.ime_media_attribution, names.toString())
 }
 
-/** The grid pulls from KLIPY, so the search bar carries its "Powered by KLIPY" mark. */
-private fun gifShowsKlipyLogo(state: KeyboardUiState, stickers: Boolean): Boolean =
-    GifSource.KLIPY in gifTargets(state, stickers)
+/**
+ * KLIPY or GIPHY, when the grid pulls from one: the search bar then carries
+ * its "Powered by" mark. GIPHY is never mixed with anything
+ * ([GifSource.ownGrid]), so a grid has at most one of the two.
+ */
+private fun gifBrand(state: KeyboardUiState, stickers: Boolean): GifSource? =
+    gifTargets(state, stickers).firstOrNull { it in BRANDED_SOURCES }
 
 private fun gifTargets(state: KeyboardUiState, stickers: Boolean): List<GifSource> = GifSources.targets(
     gifSourcesFor(state, stickers),
@@ -806,39 +817,53 @@ private fun gifTargets(state: KeyboardUiState, stickers: Boolean): List<GifSourc
     state.settings.gif.sourceMode == GifSourceMode.TABS,
 )
 
-/** "KLIPY · GIPHY", in the order the sources are configured. */
-@Composable
-private fun providerNames(sources: List<GifSource>): String {
-    val names = StringBuilder()
-    for (source in sources) {
-        if (names.isNotEmpty()) names.append(" · ")
-        names.append(stringResource(GifSources.displayNameRes(source)))
-    }
-    return names.toString()
-}
-
 private fun gifSourcesFor(state: KeyboardUiState, stickers: Boolean): List<GifSource> =
     if (stickers) ToolApiKeys.stickerSources(state.settings) else ToolApiKeys.gifSources(state.settings)
 
+/** The providers whose terms ask for their own "Powered by" mark rather than a line of text. */
+private val BRANDED_SOURCES = setOf(GifSource.KLIPY, GifSource.GIPHY)
+
 /**
- * KLIPY's "Powered by KLIPY" mark, at the end of the search box while KLIPY
- * answers. Tinted with the panel's secondary text, as KLIPY ships it in grey,
- * black and white for exactly that.
+ * The provider's "Powered by" mark at the end of the search box, from the kit
+ * each one hands to API partners. Both make it a condition of a production key.
+ *
+ * KLIPY's is one colour, so it takes the panel's secondary text, as KLIPY
+ * ships it in grey, black and white for exactly that. GIPHY's carries its
+ * coloured logo and cannot be tinted: white lettering on a dark panel, and on
+ * a light one the black plate GIPHY's kit gives for light backgrounds.
  */
 @Composable
-private fun PoweredByKlipy(height: Dp, modifier: Modifier = Modifier) {
-    Icon(
-        painterResource(R.drawable.ime_powered_by_klipy),
-        contentDescription = stringResource(R.string.ime_media_powered_by_klipy),
+private fun ProviderLogo(source: GifSource, height: Dp, modifier: Modifier = Modifier) {
+    val kb = LocalKbTheme.current
+    if (source == GifSource.KLIPY) {
+        Icon(
+            painterResource(R.drawable.ime_powered_by_klipy),
+            contentDescription = stringResource(R.string.ime_media_powered_by_klipy),
+            modifier = modifier
+                .height(height)
+                .aspectRatio(KLIPY_LOGO_ASPECT),
+            tint = kb.secondaryText,
+        )
+        return
+    }
+    // Light text means a dark panel.
+    val darkPanel = kb.suggestionText.luminance() > 0.5f
+    val art = if (darkPanel) R.drawable.ime_powered_by_giphy_on_dark else R.drawable.ime_powered_by_giphy_on_light
+    Image(
+        painterResource(art),
+        contentDescription = stringResource(R.string.ime_media_powered_by_giphy),
+        // The plate has its own margin round the lettering, so it stands a little taller.
         modifier = modifier
-            .height(height)
-            .aspectRatio(KLIPY_LOGO_ASPECT),
-        tint = LocalKbTheme.current.secondaryText,
+            .height(if (darkPanel) height else height * GIPHY_PLATE_SCALE)
+            .aspectRatio(if (darkPanel) GIPHY_LOGO_ASPECT else GIPHY_PLATE_ASPECT),
     )
 }
 
-/** Width over height of the "Powered by KLIPY" artwork (its viewBox). */
+/** Width over height of each "Powered by" artwork, so it sizes from a height alone. */
 private const val KLIPY_LOGO_ASPECT = 2335.63f / 396.67f
+private const val GIPHY_LOGO_ASPECT = 578f / 77f
+private const val GIPHY_PLATE_ASPECT = 641f / 136f
+private const val GIPHY_PLATE_SCALE = 1.5f
 
 /**
  * "via Brave" or "via Tavily" in the web and image search bars, for whichever
@@ -865,7 +890,7 @@ internal fun RowScope.GifHeaderSearchBar(
         placeholder = gifSearchHint(state, stickers),
         onQueryTap = onQueryTap,
         attribution = gifAttribution(state, stickers),
-        klipyLogo = gifShowsKlipyLogo(state, stickers),
+        logo = gifBrand(state, stickers),
     )
 }
 
@@ -988,7 +1013,7 @@ internal fun GifPanel(
                         placeholder = gifSearchHint(state, stickers),
                         onQueryTap = onQueryTap,
                         attribution = gifAttribution(state, stickers),
-                        klipyLogo = gifShowsKlipyLogo(state, stickers),
+                        logo = gifBrand(state, stickers),
                         focused = state.focusedIndex(FocusRegion.SEARCH) == 0,
                         trailing = trailing,
                     )
@@ -1476,6 +1501,21 @@ private fun MediaActionSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 18.dp, vertical = 10.dp),
+                )
+            }
+            // Who made it, where the provider says: GIPHY's API terms ask for
+            // its uploader's credit wherever there is one, and its own apps
+            // put it on this same long-press view.
+            if (own == null && item.creator.isNotBlank()) {
+                Text(
+                    stringResource(R.string.ime_media_creator, item.creator),
+                    color = kb.secondaryText,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 18.dp, end = 18.dp, bottom = 8.dp),
                 )
             }
             val local = item.source == GifSource.LOCAL

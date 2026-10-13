@@ -202,6 +202,7 @@ class GifCollections internal constructor(private val dir: File) {
                     aspectRatio = obj["aspectRatio"]?.jsonPrimitive?.floatOrNull ?: 1f,
                     source = source,
                     title = text("title").orEmpty(),
+                    creator = text("creator").orEmpty(),
                 ),
                 local = text("local"),
             )
@@ -237,6 +238,7 @@ class GifCollections internal constructor(private val dir: File) {
             "aspectRatio" to JsonPrimitive(item.aspectRatio),
             "source" to JsonPrimitive(item.source.name),
             "title" to JsonPrimitive(item.title),
+            "creator" to JsonPrimitive(item.creator),
         )
         entry.local?.let { fields["local"] = JsonPrimitive(it) }
         return JsonObject(fields)
