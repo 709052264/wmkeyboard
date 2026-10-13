@@ -42,12 +42,12 @@ class GlideShapeStoreTest {
         val store = GlideShapeStore(null)
         val base = flat(10)
         store.learn(GlideShapeSample(layout, base), "hello")
-        // Two quantised units is a twentieth of a key width: the same shape.
+        // Two quantised units is a fifth of a key width: the same shape.
         store.learn(GlideShapeSample(layout, near(base, 2)), "hello")
         assertEquals(1, store.countFor("hello"))
         // Blended halfway: one unit off on both axes of every point.
         assertEquals(kotlin.math.sqrt(2f) / GlideShapeStore.QUANT, store.forLayout(layout)!!.minDistance("hello", base), 1e-6f)
-        // Forty units is a whole key width off: another shape.
+        // Forty units is four key widths off: another shape.
         store.learn(GlideShapeSample(layout, near(base, 40)), "hello")
         assertEquals(2, store.countFor("hello"))
         // And a fourth distinct shape replaces the least accepted.
@@ -75,9 +75,11 @@ class GlideShapeStoreTest {
         store.learn(GlideShapeSample(layout, flat(10)), "hello")
         store.learn(GlideShapeSample(layout, flat(14)), "help")
         store.learn(GlideShapeSample(layout, flat(90)), "world")
-        val near = store.forLayout(layout)!!.wordsNear(flat(11), radius = 0.2f, limit = 8)
+        // A key width is QUANT units: hello sits 0.14 key widths off the draw,
+        // help 0.42 and world nearly eleven.
+        val near = store.forLayout(layout)!!.wordsNear(flat(11), radius = 0.5f, limit = 8)
         assertEquals(listOf("hello", "help"), near)
-        assertEquals(listOf("hello"), store.forLayout(layout)!!.wordsNear(flat(11), radius = 0.2f, limit = 1))
+        assertEquals(listOf("hello"), store.forLayout(layout)!!.wordsNear(flat(11), radius = 0.5f, limit = 1))
     }
 
     @Test
@@ -211,8 +213,8 @@ class GlideShapeStoreTest {
     @Test
     fun `distance is the shape channel's mean point distance`() {
         val a = flat(0)
-        val b = near(a, 40)
-        // Forty units on both axes is sqrt(2) key widths at every point.
+        val b = near(a, GlideShapeStore.QUANT.toInt())
+        // One key width (QUANT units) on both axes is sqrt(2) key widths at every point.
         assertEquals(kotlin.math.sqrt(2f), GlideShapeStore.distance(a, b), 1e-5f)
         assertTrue(GlideShapeStore.distance(a, b, abortAbove = 0.5f) > 0.5f)
     }

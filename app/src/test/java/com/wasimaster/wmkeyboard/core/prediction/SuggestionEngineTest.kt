@@ -810,7 +810,9 @@ class SuggestionEngineTest {
             insert("a", 9500)
             insert("lot", 800)
         }
+        // The strip offers splits only while "Add missing spaces" is on (#413).
         val e = SuggestionEngine(dictionary, BengaliPhoneticIndex(emptyList()), UserLexicon(null))
+            .apply { autocorrectSplits = true }
         assertEquals("of the", e.suggest("ofthe", previousWord = null).first())
         assertTrue("a lot" in e.suggest("alot", previousWord = null))
         // Capitalization pattern carries over the whole phrase.
@@ -1030,14 +1032,20 @@ class SuggestionEngineTest {
     // ---- missing-space splits ----
 
     @Test fun `stray spacebar-neighbour letter offers the split in the strip`() {
-        val e = engine().apply { touchModel = KeyTouchModel(mapOf('b' to TouchPoint(5f, 3f))) }
+        val e = engine().apply {
+            touchModel = KeyTouchModel(mapOf('b' to TouchPoint(5f, 3f)))
+            autocorrectSplits = true
+        }
         val low = List(9) { i -> if (i == 3) TouchPoint(5f, 3.4f) else null }
         val out = e.suggest("thebworld", previousWord = null, touch = low)
         assertTrue("expected 'the world' in $out", "the world" in out)
     }
 
     @Test fun `boundary letter far from the spacebar never reads as a space`() {
-        val e = engine().apply { touchModel = KeyTouchModel(mapOf('x' to TouchPoint(2f, 3f))) }
+        val e = engine().apply {
+            touchModel = KeyTouchModel(mapOf('x' to TouchPoint(2f, 3f)))
+            autocorrectSplits = true
+        }
         val low = List(9) { i -> if (i == 3) TouchPoint(2f, 3.4f) else null }
         val out = e.suggest("thexworld", previousWord = null, touch = low)
         assertTrue("unexpected split in $out", "the world" !in out)
@@ -1276,11 +1284,14 @@ class SuggestionEngineTest {
     private fun banglishEngine(
         shift: Double = SuggestionEngine.FIELD_SHIFT_AGGRESSIVE,
     ): SuggestionEngine {
+        // On the bundled list's 0..10000 scale: a list topping out above it is
+        // read as a downloaded one and scaled down onto it (the engine's
+        // SourceScales), which would take "bark" down with it.
         val dictionary = Trie().apply {
             insert("bark", 2000)
-            insert("how", 90_000)
-            insert("are", 80_000)
-            insert("you", 100_000)
+            insert("how", 9_000)
+            insert("are", 8_000)
+            insert("you", 10_000)
         }
         val banglish = Trie().apply {
             insert("bari", 1)

@@ -113,15 +113,25 @@ object GestureEvalBaseline {
      * while the 451k downloadable Bengali list ships every word at frequency 1.
      * On that list a stroke that fits ক and খ equally has nothing left to
      * consult, and top-1 would fall a long way below what is measured here.
+     *
+     * 2026-10-13, re-measured after the word list itself changed, not the
+     * decoder: a19072cf7 added 120 colloquial chat verb forms (বানাইছি,
+     * করতিছে, খুঁজতেছে) at frequencies 269 to 617, so the corpus, which draws
+     * by frequency, now draws them often, and every list word is a rival to
+     * every stroke. .7955 -> .7845
+     * top-1 (words 20645 -> 20765), clean .8220 -> .8040, sloppy .7340 ->
+     * .7060, typical up .7760 -> .7900. English measured unchanged to the
+     * fourth decimal the same run, which is what says the decoder did not
+     * move.
      */
     val BENGALI = Floors(
-        top1 = 0.7955,
-        top3 = 0.8890,
-        mrr = 0.8444,
-        clean = 0.8220,
-        light = 0.8500,
-        typical = 0.7760,
-        sloppy = 0.7340,
+        top1 = 0.7845,
+        top3 = 0.8785,
+        mrr = 0.8311,
+        clean = 0.8040,
+        light = 0.8380,
+        typical = 0.7900,
+        sloppy = 0.7060,
     )
 
     /**
