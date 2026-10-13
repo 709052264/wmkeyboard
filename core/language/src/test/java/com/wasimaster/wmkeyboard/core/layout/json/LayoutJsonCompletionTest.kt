@@ -86,7 +86,7 @@ class LayoutJsonCompletionTest {
 
     @Test
     fun `an enum property offers its values after the colon`() {
-        assertEquals(listOf("Period", "Comma"), labels(complete(inKey("{\"label\": \".\", \"role\": |}"))))
+        assertEquals(listOf("Period", "Comma", "Plain"), labels(complete(inKey("{\"label\": \".\", \"role\": |}"))))
     }
 
     @Test

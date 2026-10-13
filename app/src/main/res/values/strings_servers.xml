@@ -58,6 +58,7 @@
     <string name="servers_wiktionary">Wiktionary</string>
     <string name="servers_open_meteo">Open-Meteo forecast</string>
     <string name="servers_open_meteo_geocoding">Open-Meteo place search</string>
+    <string name="servers_nominatim">OpenStreetMap Nominatim</string>
     <string name="servers_currency_api">currency-api</string>
     <string name="servers_currency_api_mirror">currency-api, second server</string>
     <string name="servers_frankfurter">Frankfurter</string>

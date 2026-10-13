@@ -226,7 +226,10 @@ class MultilingLayoutTest {
     @Test
     fun `the AltGr block is a page reached from the comma`() {
         val converted = converted(diyPlus)
-        assertEquals(listOf("ñ", "á", "é", "í", "ó", "ú"), converted.page("altgr").rows.first().map { it.label })
+        // One row of characters, so it is also the last and carries the page's delete key.
+        val altgr = converted.page("altgr").rows.first()
+        assertEquals(listOf("ñ", "á", "é", "í", "ó", "ú"), altgr.filter { it.action != KeyAction.Delete }.map { it.label })
+        assertTrue(altgr.any { it.action == KeyAction.Delete })
         val comma = converted.letters().rows.last().first { it.label == "," }
         assertEquals(KeyAction.LayerSwitch("altgr"), comma.flickActions[FlickDirection.LEFT]?.action)
     }

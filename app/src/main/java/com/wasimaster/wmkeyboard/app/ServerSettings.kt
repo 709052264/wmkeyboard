@@ -316,6 +316,7 @@ internal val ServiceEndpoint.labelRes: Int
         ServiceEndpoint.WIKTIONARY -> R.string.servers_wiktionary
         ServiceEndpoint.OPEN_METEO -> R.string.servers_open_meteo
         ServiceEndpoint.OPEN_METEO_GEOCODING -> R.string.servers_open_meteo_geocoding
+        ServiceEndpoint.NOMINATIM -> R.string.servers_nominatim
         ServiceEndpoint.CURRENCY_API -> R.string.servers_currency_api
         ServiceEndpoint.CURRENCY_API_MIRROR -> R.string.servers_currency_api_mirror
         ServiceEndpoint.FRANKFURTER -> R.string.servers_frankfurter
