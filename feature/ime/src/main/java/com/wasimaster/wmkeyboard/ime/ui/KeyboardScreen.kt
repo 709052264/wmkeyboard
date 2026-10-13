@@ -2125,12 +2125,16 @@ private fun DockedKeyboardFrame(
             // own block reads the count, so a popup opening touches no measure.
             val popupBackdrop = LocalPopupBackdrop.current
             val popupBlur = remember(popupBackdrop) { Modifier.popupBackdropBlur(popupBackdrop) }
+            val boardContext = LocalContext.current
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .then(if (boardShape == null) Modifier else Modifier.clip(boardShape))
                     .then(popupBlur)
+                    // The box the background image is cropped to; the theme
+                    // editor's cropper frames the picture in this shape.
+                    .onSizeChanged { KeyboardBoardShape.record(boardContext, it, landscape) }
                     .then(
                         if (resize == null) Modifier else Modifier.onSizeChanged {
                             resize.latchReserved(it.height, headroomPx, maxReservedPx)

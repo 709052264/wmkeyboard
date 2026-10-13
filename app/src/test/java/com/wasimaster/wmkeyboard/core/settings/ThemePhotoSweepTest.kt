@@ -31,6 +31,23 @@ class ThemePhotoSweepTest {
     }
 
     @Test
+    fun `a cropped background keeps its original and frame, an old crop's are swept`() {
+        val plan = themePhotoSweepPlan(
+            themes = listOf(theme("a", image = "crop_2.img")),
+            rotationStates = emptyMap(),
+            imagesOnDisk = listOf(
+                SweptFile("crop_2.img", old),
+                SweptFile("crop_2.img$CROP_ORIGINAL_SUFFIX", old),
+                SweptFile("crop_2.img$CROP_FRAME_SUFFIX", old),
+                SweptFile("crop_1.img$CROP_ORIGINAL_SUFFIX", old),
+            ),
+            poolFileNames = emptySet(),
+            nowMs = now,
+        )
+        assertEquals(listOf("crop_1.img$CROP_ORIGINAL_SUFFIX"), plan.deleteImages)
+    }
+
+    @Test
     fun `a file written moments ago is left alone`() {
         // The picker writes the file just before the theme that points at it is
         // saved. Sweeping in that window would delete it out from under a write

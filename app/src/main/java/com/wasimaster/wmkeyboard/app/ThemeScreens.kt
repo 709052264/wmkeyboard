@@ -155,6 +155,7 @@ import com.wasimaster.wmkeyboard.core.ui.rememberLiveSlider
 import com.wasimaster.wmkeyboard.core.util.PlayServices
 import com.wasimaster.wmkeyboard.core.util.requireOutputStream
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardFonts
+import com.wasimaster.wmkeyboard.ime.ui.KeyboardBoardShape
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.addons.AddonType
@@ -164,6 +165,8 @@ import com.wasimaster.wmkeyboard.core.theme.AppColorSource
 import com.wasimaster.wmkeyboard.core.theme.PaletteStyle
 import com.wasimaster.wmkeyboard.core.theme.paletteStyleSwatch
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.CROP_FRAME_SUFFIX
+import com.wasimaster.wmkeyboard.core.settings.CROP_ORIGINAL_SUFFIX
 import com.wasimaster.wmkeyboard.core.settings.RotationInterval
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -418,6 +421,17 @@ private fun gradientTypeDescRes(type: GradientType): Int = when (type) {
  * something the user meant to keep.
  */
 private const val FREE_CROP_ASPECT = -1f
+
+/**
+ * Sentinel for the crop dialog's "keyboard" ratio: the shape the docked board
+ * last had on screen in that orientation ([KeyboardBoardShape]), which is the
+ * box the image is centre-cropped to. A sentinel rather than the number, so a
+ * remembered frame follows the board when its height setting changes.
+ */
+private const val KEYBOARD_CROP_ASPECT = -2f
+
+/** What the keyboard ratio falls back to before the board has been measured. */
+private const val FALLBACK_KEYBOARD_ASPECT = 2.4f
 
 /**
  * The display name for a theme id in the same namespace as keyboardThemeId.
@@ -3113,9 +3127,10 @@ fun ThemeEditorScreen(
     if (cropOpen && cropSource != null) {
         CropImageDialog(
             path = cropSource,
+            landscape = false,
             onCropped = { newPath ->
                 scope.launch {
-                    File(cropSource).delete()
+                    deleteWithCropSidecars(cropSource)
                     val (family, theme) = look.now() ?: return@launch
                     // The crop decodes one frame and writes it back, so an
                     // animation does not survive it. Whether the theme still
@@ -3141,9 +3156,10 @@ fun ThemeEditorScreen(
     if (cropLandscapeOpen && cropLandscapeSource != null) {
         CropImageDialog(
             path = cropLandscapeSource,
+            landscape = true,
             onCropped = { newPath ->
                 scope.launch {
-                    File(cropLandscapeSource).delete()
+                    deleteWithCropSidecars(cropLandscapeSource)
                     val (family, theme) = look.now() ?: return@launch
                     // As above: the cropped landscape image is a still now, so
                     // only the portrait one can keep the flag on.
@@ -6029,39 +6045,93 @@ private fun GradientEditor(
 
 // ---- image cropper ----
 
+/** The uncropped picture a cropped background was cut from, kept beside it. */
+private fun cropOriginalOf(path: String): File = File(path + CROP_ORIGINAL_SUFFIX)
+
+/** Where the last crop's frame sat in [cropOriginalOf], kept beside it. */
+private fun cropFrameOf(path: String): File = File(path + CROP_FRAME_SUFFIX)
+
+/** Deletes a background image together with what its crop kept beside it. */
+private fun deleteWithCropSidecars(path: String) {
+    File(path).delete()
+    cropOriginalOf(path).delete()
+    cropFrameOf(path).delete()
+}
+
+/**
+ * The last crop: the ratio option it was made with and its rectangle, as
+ * fractions of the original so a different decode size does not move it.
+ */
+private data class CropFrame(
+    val aspect: Float,
+    val left: Float,
+    val top: Float,
+    val width: Float,
+    val height: Float,
+) {
+    fun encode(): String = "$aspect $left $top $width $height"
+
+    companion object {
+        fun decode(text: String): CropFrame? {
+            val parts = text.trim().split(' ').mapNotNull { it.toFloatOrNull() }
+            if (parts.size != 5) return null
+            val (aspect, left, top, width, height) = parts
+            if (width <= 0f || height <= 0f) return null
+            return CropFrame(aspect, left, top, width, height)
+        }
+    }
+}
+
 /**
  * Pinch/drag cropper. The frame is the crop; the image pans and zooms under
  * it (cover-scaled, so the frame is always filled). Confirming maps the
  * frame back into bitmap coordinates and writes a new image file.
+ *
+ * It always works on the uncropped picture. The first crop copies the source
+ * beside the result ([cropOriginalOf]) and every later one starts from that
+ * copy, so a second crop can move to a part the first one cut away; the frame
+ * it was left at ([cropFrameOf]) is where the dialog opens next time.
  */
 @Composable
 private fun CropImageDialog(
     path: String,
+    landscape: Boolean,
     onCropped: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val bitmap by produceState<android.graphics.Bitmap?>(initialValue = null, path) {
+    val source = remember(path) { cropOriginalOf(path).takeIf { it.isFile } ?: File(path) }
+    val savedFrame = remember(path) {
+        runCatching { cropFrameOf(path).takeIf { it.isFile }?.readText() }.getOrNull()
+            ?.let { CropFrame.decode(it) }
+    }
+    // The shape the image is actually drawn into, measured by the keyboard.
+    val keyboardAspect = remember(landscape) {
+        KeyboardBoardShape.aspect(context, landscape) ?: FALLBACK_KEYBOARD_ASPECT
+    }
+    val bitmap by produceState<android.graphics.Bitmap?>(initialValue = null, source) {
         value = withContext(Dispatchers.IO) {
             runCatching {
                 // Downsample huge photos; a keyboard background never needs
                 // more than ~2048 px on a side.
                 val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeFile(path, bounds)
+                BitmapFactory.decodeFile(source.path, bounds)
                 var sample = 1
                 while (bounds.outWidth / (sample * 2) >= 2048 || bounds.outHeight / (sample * 2) >= 2048) {
                     sample *= 2
                 }
-                BitmapFactory.decodeFile(path, BitmapFactory.Options().apply { inSampleSize = sample })
+                BitmapFactory.decodeFile(source.path, BitmapFactory.Options().apply { inSampleSize = sample })
             }.getOrNull()
         }
     }
-    var aspect by rememberSaveable { mutableFloatStateOf(2.4f) }
+    var aspect by rememberSaveable(path) { mutableFloatStateOf(savedFrame?.aspect ?: KEYBOARD_CROP_ASPECT) }
     var zoom by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
     var frame by remember { mutableStateOf(IntSize.Zero) }
     var saving by remember { mutableStateOf(false) }
+    // Applied once, at the first layout of the frame it was saved for.
+    var pendingRestore by remember(path) { mutableStateOf(savedFrame) }
 
     fun coverScale(bmp: android.graphics.Bitmap): Float =
         if (frame == IntSize.Zero) 1f
@@ -6074,6 +6144,23 @@ private fun CropImageDialog(
         return Offset(o.x.coerceIn(-maxX, maxX), o.y.coerceIn(-maxY, maxY))
     }
 
+    // Zoom and pan that put the frame back over the saved rectangle: the same
+    // width, centred on the same point. The board may have changed shape since,
+    // so the height follows the frame and the clamp keeps it on the picture.
+    fun restore(saved: CropFrame, bmp: android.graphics.Bitmap) {
+        val cover = coverScale(bmp)
+        val s = frame.width / (saved.width * bmp.width)
+        zoom = (s / cover).coerceIn(1f, 6f)
+        val scaled = cover * zoom
+        val centreX = (saved.left + saved.width / 2f) * bmp.width
+        val centreY = (saved.top + saved.height / 2f) * bmp.height
+        offset = clampOffset(
+            Offset((bmp.width / 2f - centreX) * scaled, (bmp.height / 2f - centreY) * scaled),
+            bmp,
+            zoom,
+        )
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.theme_crop_image_title)) },
@@ -6082,12 +6169,12 @@ private fun CropImageDialog(
                 val bmp = bitmap
                 // Free resolves to the source image's own ratio, so the
                 // crop frame matches the picture and nothing is cut.
-                val effectiveAspect = if (aspect == FREE_CROP_ASPECT && bmp != null) {
-                    bmp.width.toFloat() / bmp.height.coerceAtLeast(1)
-                } else if (aspect == FREE_CROP_ASPECT) {
-                    2.4f
-                } else {
-                    aspect
+                val effectiveAspect = when {
+                    aspect == KEYBOARD_CROP_ASPECT -> keyboardAspect
+                    aspect == FREE_CROP_ASPECT && bmp != null ->
+                        bmp.width.toFloat() / bmp.height.coerceAtLeast(1)
+                    aspect == FREE_CROP_ASPECT -> keyboardAspect
+                    else -> aspect
                 }
                 if (bmp == null) {
                     Text(
@@ -6104,7 +6191,13 @@ private fun CropImageDialog(
                             .onGloballyPositioned {
                                 if (frame != it.size) {
                                     frame = it.size
-                                    offset = clampOffset(offset, bmp, zoom)
+                                    val saved = pendingRestore
+                                    if (saved != null) {
+                                        pendingRestore = null
+                                        restore(saved, bmp)
+                                    } else {
+                                        offset = clampOffset(offset, bmp, zoom)
+                                    }
                                 }
                             }
                             .pointerInput(bmp, effectiveAspect) {
@@ -6131,7 +6224,7 @@ private fun CropImageDialog(
                     Spacer(Modifier.height(8.dp))
                     ChoiceControl(
                         options = listOf(
-                            2.4f to stringResource(R.string.theme_crop_ratio_keyboard_label),
+                            KEYBOARD_CROP_ASPECT to stringResource(R.string.theme_crop_ratio_keyboard_label),
                             1.7f to stringResource(R.string.theme_crop_ratio_wide_label),
                             1f to stringResource(R.string.theme_crop_ratio_square_label),
                             // A split or a floating keyboard is none of the
@@ -6146,7 +6239,7 @@ private fun CropImageDialog(
                                 icon = when (ratio) {
                                     FREE_CROP_ASPECT -> Icons.Outlined.CropFree
                                     1f -> Icons.Outlined.CropSquare
-                                    2.4f -> Icons.Outlined.Keyboard
+                                    KEYBOARD_CROP_ASPECT -> Icons.Outlined.Keyboard
                                     else -> Icons.Outlined.Crop169
                                 },
                             )
@@ -6155,6 +6248,7 @@ private fun CropImageDialog(
                         aspect = value
                         zoom = 1f
                         offset = Offset.Zero
+                        pendingRestore = null
                     }
                 }
             }
@@ -6165,6 +6259,7 @@ private fun CropImageDialog(
                 onClick = {
                     val bmp = bitmap ?: return@TextButton
                     saving = true
+                    val chosenAspect = aspect
                     scope.launch(Dispatchers.IO) {
                         val saved = runCatching {
                             val s = coverScale(bmp) * zoom
@@ -6180,6 +6275,19 @@ private fun CropImageDialog(
                                 cropped.compress(android.graphics.Bitmap.CompressFormat.JPEG, 92, out)
                             }
                             if (cropped !== bmp) cropped.recycle()
+                            // Keep the uncropped picture with the result. A
+                            // copy, not a move: the theme still points at the
+                            // old file until the caller's write lands.
+                            source.copyTo(cropOriginalOf(file.absolutePath), overwrite = true)
+                            cropFrameOf(file.absolutePath).writeText(
+                                CropFrame(
+                                    aspect = chosenAspect,
+                                    left = srcLeft / bmp.width.toFloat(),
+                                    top = srcTop / bmp.height.toFloat(),
+                                    width = srcW / bmp.width.toFloat(),
+                                    height = srcH / bmp.height.toFloat(),
+                                ).encode(),
+                            )
                             file.absolutePath
                         }.getOrNull()
                         withContext(Dispatchers.Main) {

@@ -37,8 +37,14 @@ fun themePhotoSweepPlan(
     val allThemes = themes.flattenedThemes()
     val referenced = buildSet {
         allThemes.forEach { theme ->
-            theme.backgroundImage?.let { add(it.substringAfterLast('/')) }
-            theme.backgroundImageLandscape?.let { add(it.substringAfterLast('/')) }
+            // A cropped background keeps the picture it was cut from beside
+            // it, so the next crop can reach parts the last one cut away.
+            listOfNotNull(theme.backgroundImage, theme.backgroundImageLandscape).forEach {
+                val name = it.substringAfterLast('/')
+                add(name)
+                add(name + CROP_ORIGINAL_SUFFIX)
+                add(name + CROP_FRAME_SUFFIX)
+            }
             // Key textures live in the same directory; a sweep that does not
             // know them would take an active theme's textures after a day.
             theme.keyTexture?.let { add(it.substringAfterLast('/')) }
@@ -71,3 +77,9 @@ fun themePhotoSweepPlan(
 
 /** A file has to have been unreferenced this long before it is removed. */
 const val SWEEP_MIN_AGE_MS = 24L * 60 * 60 * 1000
+
+/** Beside a cropped background: the uncropped picture it was cut from. */
+const val CROP_ORIGINAL_SUFFIX = ".original"
+
+/** Beside a cropped background: where in [CROP_ORIGINAL_SUFFIX] the frame sat. */
+const val CROP_FRAME_SUFFIX = ".frame"

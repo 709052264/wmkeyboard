@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import com.wasimaster.wmkeyboard.ime.ui.KeyboardBoardShape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
@@ -164,11 +165,21 @@ internal fun PhotoTile(
  * Dims the parts of a photo the keyboard crops away, leaving the strip it
  * actually uses bright.
  *
- * Accurate rather than decorative: it matches the cropper's own default
- * aspect, so what stands out in the grid is what ends up behind the keys.
+ * Accurate rather than decorative: the band is the shape the keyboard last
+ * measured itself at, the same one the cropper's own default frame uses, so
+ * what stands out in the grid is what ends up behind the keys.
  */
 @Composable
 internal fun KeyboardBandGuide(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    // The share of the tile's height a full-width band of the board's shape
+    // takes. A board squarer than the tile has no band to show.
+    val bandShare = remember(context) {
+        val boardAspect = KeyboardBoardShape.aspect(context, landscape = false) ?: FALLBACK_BOARD_ASPECT
+        (TILE_ASPECT / boardAspect).coerceIn(MIN_BAND_SHARE, 1f)
+    }
+    if (bandShare >= 1f) return
+    val edgeWeight = (1f - bandShare) / 2f
     Box(modifier) {
         // The band is centred, so the two dimmed strips are the same height.
         val scrim = Color.Black.copy(alpha = 0.28f)
@@ -176,18 +187,18 @@ internal fun KeyboardBandGuide(modifier: Modifier = Modifier) {
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .weight(BAND_EDGE_WEIGHT)
+                    .weight(edgeWeight)
                     .background(scrim),
             )
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .weight(BAND_CENTRE_WEIGHT),
+                    .weight(bandShare),
             )
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .weight(BAND_EDGE_WEIGHT)
+                    .weight(edgeWeight)
                     .background(scrim),
             )
         }
@@ -362,8 +373,10 @@ internal fun parseHexColor(hex: String): Color? {
 /** A keyboard is a wide, short strip, so photos are shown in that shape. */
 private const val TILE_ASPECT = 3f / 2f
 
-/** Weights that leave a centred 2.4:1 band, matching the cropper's default. */
-private const val BAND_CENTRE_WEIGHT = 1f
-private const val BAND_EDGE_WEIGHT = 0.28f
+/** The band's shape before the keyboard has measured itself. */
+private const val FALLBACK_BOARD_ASPECT = 2.4f
+
+/** Keeps a very short board's band visible enough to read. */
+private const val MIN_BAND_SHARE = 0.2f
 
 private const val LOAD_MORE_BUFFER = 6

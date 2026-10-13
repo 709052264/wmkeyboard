@@ -20,8 +20,8 @@ This page covers a picture from your own device. A photo from Unsplash or Pexels
 
 <SettingsPath path="Appearance / Keyboard themes / (edit a theme) / Board" />
 
-<PhoneFrame side caption="Cropping a background image to the keyboard's 2.4:1 aspect ratio.">
-  ![Cropping a background image to the keyboard's 2.4:1 aspect ratio.](@assets/screens/themes/background-crop-dialog.webp)
+<PhoneFrame side caption="Cropping a background image to the keyboard's own shape.">
+  ![Cropping a background image to the keyboard's own shape.](@assets/screens/themes/background-crop-dialog.webp)
 </PhoneFrame>
 
 Open a theme for editing. Scroll to the **Board** section. Tap **Background image** to open the **Select a background** dialog. **Add from this device** opens the system photo picker, which offers image files only. The app copies the picture you choose into its own storage, and it never reads the original file again.
@@ -39,12 +39,14 @@ The photo also joins your [photo collection](/themes/online-photos/#the-photo-co
 
 Once an image is set, a **Crop image** row appears. In the crop dialog, pinch to zoom and drag to reposition. The image always scales to cover the frame, so there's never a gap at the edges. Four crop ratios are available:
 
-- **Keyboard** (2.4:1): matches the keyboard's own proportions, and is selected by default
+- **Keyboard**: the shape your keyboard actually has on screen, in portrait for the portrait image and in landscape for the landscape one, so the frame shows exactly what ends up behind the keys. The keyboard measures itself each time it opens, so this follows your key height, number row, toolbar and width settings. Selected by default. Until the keyboard has been opened once in that orientation, it uses 2.4:1.
 - **Wide** (1.7:1)
 - **Square** (1:1)
 - **Free**: keeps the picture's own shape. The other three are all wider-than-tall keyboard shapes, which crop a split or floating keyboard down.
 
-Confirm the crop and the app saves a new file, then discards the original. Cropping is optional, and an uncropped image still renders correctly, scaled to cover the board. Crop when you want to control which part of the photo lines up with the keys.
+Confirm the crop and the app saves the cropped picture, and keeps the uncropped one beside it. Opening **Crop image** again starts from the whole picture, with the frame where you left it, so you can move to a part an earlier crop cut away, or zoom back out. Cropping is optional, and an uncropped image still renders correctly, scaled to cover the board. Crop when you want to control which part of the photo lines up with the keys.
+
+The photo grid in [Online photos](/themes/online-photos/) dims the parts of each photo outside the keyboard's shape, using the same measured portrait shape.
 
 ## Keeping keys readable
 
