@@ -1,0 +1,427 @@
+---
+/**
+ * The homepage's Install dialog.
+ *
+ * Opened by anything carrying `data-wm-install` (the hero's Install button),
+ * or by landing on the site with `#install`, which is what the QR code on a
+ * computer points at: scan it and the phone opens straight onto this dialog.
+ *
+ * Written for someone who was handed the docs link and has never installed an
+ * app outside a store: Google Play first and largest, then the APK as a direct
+ * download with the "allow this source" step spelled out, then F-Droid for
+ * people who already use it. The button keeps its href to the installation
+ * page, so with no script it still goes somewhere useful.
+ */
+import { INSTALL_SOURCES } from '../lib/install-links.mjs';
+import { BRAND_PATHS } from '../lib/brand-icons.mjs';
+import { SITE_URL } from '../site.mjs';
+
+const src = Object.fromEntries(INSTALL_SOURCES.map((s) => [s.id, s]));
+const { play, github, fdroid } = src;
+const icon = (id: string) => BRAND_PATHS[id as keyof typeof BRAND_PATHS];
+---
+
+<dialog class="wm-inst not-content" id="wm-install" aria-labelledby="wm-inst-title" data-qr={`${SITE_URL}/#install`}>
+	<button type="button" class="wm-inst-close" aria-label="Close" data-close>
+		<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+			<path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+		</svg>
+	</button>
+
+	<p class="wm-inst-kicker">Free · Android phones and tablets</p>
+	<h2 class="wm-inst-title" id="wm-inst-title">Install WM Keyboard</h2>
+
+	<!-- iPhone / iPad -->
+	<p class="wm-inst-warn" data-for="ios" hidden>
+		WM Keyboard is only for Android. It can't be installed on an iPhone or iPad.
+	</p>
+
+	<!-- a computer: the app goes on the phone -->
+	<div class="wm-inst-desk" data-for="desktop" hidden>
+		<div class="wm-inst-qr"><canvas width="224" height="224" aria-label="QR code that opens this page on your phone"></canvas></div>
+		<p>
+			<strong>On a computer?</strong> Point your Android phone's camera at this code. This page opens on the phone, and
+			you can install from there.
+		</p>
+	</div>
+
+	<p class="wm-inst-lead">Pick <strong>one</strong> of these. If you're not sure, use Google Play.</p>
+
+	<ol class="wm-inst-list">
+		<li class="wm-inst-opt is-main">
+			<div class="wm-inst-head">
+				<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d={icon('googleplay')}></path></svg>
+				<span>
+					<strong>Google Play</strong>
+					<span class="wm-inst-badge">Easiest</span>
+				</span>
+			</div>
+			<p>Opens the Play Store. Tap <b>Install</b> and you're done. It keeps itself up to date.</p>
+			<a class="wm-inst-btn is-primary" href={play.url} rel="noopener" target="_blank">Open Google Play</a>
+		</li>
+
+		<li class="wm-inst-opt">
+			<div class="wm-inst-head">
+				<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d={icon('github')}></path></svg>
+				<strong>Download the app file</strong>
+			</div>
+			<p>For phones without the Play Store, or if you'd rather skip it. The app checks for its own updates.</p>
+			<a class="wm-inst-btn" id="wm-inst-apk" href={github.url} rel="noopener">Download from GitHub</a>
+			<details class="wm-inst-how">
+				<summary>How do I install a downloaded app?</summary>
+				<ol>
+					<li>Tap <b>Download</b> above and wait for it to finish.</li>
+					<li>Tap the finished download, in the notification or in your <b>Downloads</b>.</li>
+					<li>
+						If the phone says it isn't allowed to install apps from this source, tap <b>Settings</b>, turn on <b>Allow from
+						this source</b>, then go back.
+					</li>
+					<li>Tap <b>Install</b>.</li>
+				</ol>
+				<p>
+					Need a smaller or different version? <a href={github.url} rel="noopener">See every file</a> and the{' '}
+					<a href="/start/installation/#downloading-a-release-apk">guide to picking one</a>.
+				</p>
+			</details>
+		</li>
+
+		<li class="wm-inst-opt">
+			<div class="wm-inst-head">
+				<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d={icon('fdroid')}></path></svg>
+				<strong>F-Droid</strong>
+			</div>
+			<p>If you already use the F-Droid app store. New versions reach it a little later.</p>
+			<a class="wm-inst-btn" href={fdroid.url} rel="noopener" target="_blank">Open F-Droid</a>
+		</li>
+	</ol>
+
+	<p class="wm-inst-after">
+		<b>After installing:</b> open WM Keyboard. It walks you through switching it on.{' '}
+		<a href="/start/setup/">Setting it up</a> · <a href="/start/installation/">Full install guide</a>
+	</p>
+</dialog>
+
+<script>
+	const RELEASE_API = 'https://api.github.com/repos/wasi-master/wmkeyboard/releases/latest';
+	/** The release page's starred cell: every feature, every language, almost every phone since 2017. */
+	const APK_PATTERN = /-full-intl-arm64-v8a\.apk$/;
+
+	type Asset = { name: string; size: number; browser_download_url: string };
+
+	function setup() {
+		const dialog = document.getElementById('wm-install') as HTMLDialogElement | null;
+		if (!dialog || dialog.dataset.ready) return;
+		dialog.dataset.ready = '1';
+
+		const ua = navigator.userAgent;
+		const isAndroid = /Android/i.test(ua);
+		// iPadOS reports itself as a Mac; a touch screen gives it away.
+		const isIos = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+		const show = (key: string, on: boolean) =>
+			dialog.querySelectorAll<HTMLElement>(`[data-for="${key}"]`).forEach((n) => (n.hidden = !on));
+		show('ios', isIos);
+		show('desktop', !isAndroid && !isIos);
+
+		let qrDrawn = false;
+		let apkLooked = false;
+
+		/** Point the download button at the APK itself, so nobody has to choose from thirty files. */
+		function findApk() {
+			if (apkLooked) return;
+			apkLooked = true;
+			const btn = dialog!.querySelector<HTMLAnchorElement>('#wm-inst-apk');
+			if (!btn) return;
+			fetch(RELEASE_API, { headers: { Accept: 'application/vnd.github+json' } })
+				.then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+				.then((rel: { assets?: Asset[] }) => {
+					const apk = rel.assets?.find((a) => APK_PATTERN.test(a.name));
+					if (!apk) return;
+					btn.href = apk.browser_download_url;
+					btn.textContent = `Download (${Math.round(apk.size / 1e6)} MB)`;
+				})
+				.catch(() => {
+					// Rate-limited or offline: the release page still works.
+				});
+		}
+
+		function drawQr() {
+			if (qrDrawn || isAndroid || isIos) return;
+			qrDrawn = true;
+			const canvas = dialog!.querySelector('canvas');
+			if (!canvas) return;
+			import('qrcode')
+				.then((QR) =>
+					QR.toCanvas(canvas, dialog!.dataset.qr!, { width: 224, margin: 0, color: { dark: '#0b0d18', light: '#ffffff' } }),
+				)
+				.catch(() => {
+					canvas.closest('.wm-inst-qr')?.remove();
+				});
+		}
+
+		function open() {
+			if (!dialog!.open) dialog!.showModal();
+			findApk();
+			drawQr();
+		}
+
+		document.addEventListener('click', (e) => {
+			const trigger = (e.target as Element).closest?.('[data-wm-install]');
+			if (!trigger) return;
+			e.preventDefault();
+			open();
+		});
+
+		dialog.querySelector('[data-close]')?.addEventListener('click', () => dialog.close());
+		// A press on the backdrop lands on the dialog itself, outside its box.
+		dialog.addEventListener('click', (e) => {
+			if (e.target !== dialog) return;
+			const r = dialog.getBoundingClientRect();
+			const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+			if (!inside) dialog.close();
+		});
+		dialog.addEventListener('close', () => {
+			if (location.hash === '#install') history.replaceState(null, '', location.pathname + location.search);
+		});
+
+		if (location.hash === '#install') open();
+		window.addEventListener('hashchange', () => {
+			if (location.hash === '#install') open();
+		});
+	}
+
+	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup);
+	else setup();
+	document.addEventListener('astro:page-load', setup);
+</script>
+
+<style>
+	.wm-inst {
+		position: fixed;
+		inset: 0;
+		margin: auto;
+		height: fit-content;
+		width: min(calc(100% - 2rem), 30rem);
+		max-height: calc(100dvh - 2rem);
+		padding: 1.6rem 1.4rem 1.3rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 20px;
+		background:
+			radial-gradient(26rem 12rem at 50% -5rem, color-mix(in oklab, var(--wm-violet) 28%, transparent), transparent 70%),
+			var(--sl-color-gray-6);
+		color: var(--sl-color-gray-2);
+		box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+		overflow: auto;
+		overscroll-behavior: contain;
+	}
+	:root[data-theme='light'] .wm-inst {
+		background:
+			radial-gradient(26rem 12rem at 50% -5rem, color-mix(in oklab, var(--wm-violet) 14%, transparent), transparent 70%),
+			#fff;
+		border-color: var(--sl-color-gray-6);
+		box-shadow: 0 24px 70px rgba(20, 24, 60, 0.2);
+	}
+	.wm-inst[open] {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		animation: wm-inst-in 160ms ease-out;
+	}
+	.wm-inst::backdrop {
+		background: rgba(8, 10, 20, 0.6);
+		backdrop-filter: blur(3px);
+	}
+	@keyframes wm-inst-in {
+		from {
+			opacity: 0;
+			transform: translateY(8px) scale(0.98);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.wm-inst[open] {
+			animation: none;
+		}
+	}
+	.wm-inst :is(p, h2, ol) {
+		margin: 0;
+	}
+	.wm-inst [hidden] {
+		display: none !important;
+	}
+	.wm-inst a:not(.wm-inst-btn) {
+		color: var(--sl-color-text-accent);
+	}
+
+	.wm-inst-close {
+		position: absolute;
+		top: 0.7rem;
+		right: 0.7rem;
+		display: grid;
+		place-items: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: none;
+		color: var(--sl-color-gray-3);
+		cursor: pointer;
+	}
+	.wm-inst-close:hover {
+		background: var(--sl-color-gray-5);
+		color: var(--sl-color-white);
+	}
+	.wm-inst-kicker {
+		font-size: 0.7rem;
+		font-weight: 600;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+	.wm-inst-title {
+		margin-top: -0.4rem !important;
+		padding-right: 2rem;
+		border: 0;
+		font-size: 1.5rem;
+		font-weight: 700;
+		line-height: 1.2;
+		letter-spacing: -0.015em;
+		color: var(--sl-color-white);
+	}
+	.wm-inst-lead,
+	.wm-inst-warn,
+	.wm-inst-after {
+		font-size: var(--sl-text-sm);
+		line-height: 1.5;
+	}
+	.wm-inst-warn {
+		padding: 0.6rem 0.8rem;
+		border: 1px solid var(--sl-color-orange);
+		border-radius: 12px;
+		background: var(--sl-color-orange-low);
+		color: var(--sl-color-white);
+	}
+
+	.wm-inst-desk {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 0.75rem;
+		border: 1px dashed var(--sl-color-gray-5);
+		border-radius: 14px;
+		font-size: var(--sl-text-sm);
+		line-height: 1.5;
+	}
+	.wm-inst-qr {
+		flex: none;
+		padding: 0.5rem;
+		border-radius: 10px;
+		background: #fff;
+		line-height: 0;
+	}
+	/* qrcode writes its own inline size; this one wins. */
+	.wm-inst-qr canvas {
+		display: block;
+		width: 112px !important;
+		height: 112px !important;
+	}
+
+	.wm-inst-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+		padding: 0;
+		list-style: none;
+	}
+	.wm-inst-opt {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 0.85rem 0.95rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 14px;
+		font-size: var(--sl-text-sm);
+		line-height: 1.5;
+	}
+	.wm-inst-opt.is-main {
+		border-color: var(--sl-color-accent);
+		background: var(--sl-color-accent-low);
+	}
+	.wm-inst-head {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		color: var(--sl-color-white);
+		font-size: 1rem;
+	}
+	.wm-inst-head svg {
+		flex: none;
+	}
+	.wm-inst-badge {
+		margin-left: 0.45rem;
+		padding: 0.1em 0.6em;
+		border-radius: 999px;
+		background: var(--sl-color-accent);
+		color: var(--sl-color-black);
+		font-size: var(--sl-text-xs);
+		font-weight: 650;
+		vertical-align: 0.1em;
+	}
+
+	.wm-inst-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 2.75rem;
+		padding: 0.55rem 1rem;
+		border: 1px solid var(--sl-color-gray-4);
+		border-radius: 999px;
+		color: var(--sl-color-white);
+		font-weight: 600;
+		text-decoration: none;
+		transition: background 120ms ease, border-color 120ms ease;
+	}
+	.wm-inst-btn:hover {
+		border-color: var(--sl-color-accent);
+		background: var(--sl-color-accent-low);
+		color: var(--sl-color-white);
+	}
+	.wm-inst-btn.is-primary {
+		border-color: var(--sl-color-accent);
+		background: var(--sl-color-accent);
+		color: var(--sl-color-black);
+	}
+	.wm-inst-btn.is-primary:hover {
+		background: var(--sl-color-accent-high);
+		color: var(--sl-color-black);
+	}
+
+	.wm-inst-how summary {
+		cursor: pointer;
+		color: var(--sl-color-gray-2);
+		font-weight: 600;
+	}
+	.wm-inst-how[open] summary {
+		margin-bottom: 0.4rem;
+	}
+	.wm-inst-how ol {
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+		padding-left: 1.3rem;
+		list-style: decimal;
+	}
+	.wm-inst-how li {
+		margin: 0;
+	}
+	.wm-inst-how p {
+		margin-top: 0.5rem;
+		color: var(--sl-color-gray-3);
+	}
+	.wm-inst-after {
+		color: var(--sl-color-gray-3);
+	}
+	.wm-inst-after a {
+		white-space: nowrap;
+	}
+</style>

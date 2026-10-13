@@ -11,6 +11,7 @@ import { Image } from 'astro:assets';
 import { LinkButton } from 'starlight-theme-black/components';
 import ThemeBlackHero from 'starlight-theme-black/overrides/Hero.astro';
 import ThemeDeck from './ThemeDeck.astro';
+import InstallDialog from './InstallDialog.astro';
 import logoImg from '../assets/logo.png';
 import languages from '../data/languages.json';
 import wordlists from '../data/wordlists.json';
@@ -54,6 +55,7 @@ const { title = data.title, tagline, actions = [] } = data.hero || {};
 				<a href="/tools/whisper/"><strong data-count={29}>29</strong> Whisper models</a>
 				<a href="/tools/ai/"><strong data-count={8}>8</strong> local LLMs</a>
 			</div>
+			<InstallDialog />
 		</div>
 	)
 }
