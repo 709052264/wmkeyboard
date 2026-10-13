@@ -614,7 +614,6 @@ class LayoutCodecTest {
             KeyAction.LanguageSwitch,
             KeyAction.None,
             KeyAction.Layout("custom_1"),
-            KeyAction.SwitchInputMethod("com.example.ime/.Service"),
         )) {
             assertTrue(action.toString(), action.commitsNoText())
         }
@@ -629,6 +628,8 @@ class LayoutCodecTest {
             KeyAction.Delete,
             KeyAction.Emoji,
             KeyAction.InputMethodPicker,
+            // Another keyboard takes over and can type, like the picker.
+            KeyAction.SwitchInputMethod("com.example.ime/.Service"),
             KeyAction.KanaVariant,
             KeyAction.AddStroke,
             KeyAction.DoubleConsonant,

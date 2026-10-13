@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowForward
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Article
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Assignment
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Backspace
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.FactCheck
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.HelpOutline
@@ -236,6 +237,7 @@ object BuiltinIcons {
         "ArrowUpward" to { Icons.Outlined.ArrowUpward },
         "Article" to { Icons.AutoMirrored.Outlined.Article },
         "AspectRatio" to { Icons.Outlined.AspectRatio },
+        "Assignment" to { Icons.AutoMirrored.Outlined.Assignment },
         "AudioFile" to { Icons.Outlined.AudioFile },
         "AutoAwesome" to { Icons.Outlined.AutoAwesome },
         "AutoStories" to { Icons.Outlined.AutoStories },

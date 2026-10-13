@@ -62,7 +62,7 @@ class AssetLayoutsTest {
     }
 
     /**
-     * Only the T9 keypads carry the field, so every other file gets the
+     * Only the T9 keypads and the handwriting pads carry the field, so every other file gets the
      * default. Pinned because flipping that default would opt 1,259 layouts out of
      * the tablet grid in one edit, and nothing else would notice.
      */
@@ -73,6 +73,9 @@ class AssetLayoutsTest {
             // The T9 keypads opt out, as builtin_t9 does: widening a keypad
             // with Tab, caps lock and a mirrored shift makes it neither.
             if (layout.layers.values.any { layer -> layer.rows.flatten().any { it.isAmbiguous() } }) continue
+            // The handwriting pads opt out too (d9ebd3087): the letters page is
+            // a drawing surface over one row of punctuation, not a key grid.
+            if (layout.handwriting) continue
             assertTrue("${file.name} opted out of tablet expansion", layout.tabletExpand)
         }
     }

@@ -101,6 +101,9 @@ class TabletExpansionCorpusTest {
                 "en_flick",
                 "ipa", "music", "nqo_nko",
                 "zh_cangjie", "zh_cangjie_quick", "zh_pinyin_t9", "zh_zhuyin",
+                // Pinyin's shift slot is the '词 syllable separator (#580,
+                // 1969f7090): letters are typed lower case, so no shift to mirror.
+                "zh_pinyin",
                 // The 천지인 pad (#372): a 12-key keypad with no shift key.
                 "ko_cheonjiin",
                 // The 나랏글 pad (#599), the same shape.

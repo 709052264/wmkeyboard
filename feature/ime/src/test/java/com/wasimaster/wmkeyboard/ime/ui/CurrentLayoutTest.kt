@@ -691,8 +691,10 @@ class CurrentLayoutTest {
         val s = state(buried("…", "\u064E", "!"), settings = plain())
             .copy(script = ScriptRegistry[ScriptId.ARABIC])
         val popup = periodOf(s).longPress
-        assertEquals(listOf("…", "\u064E", "!"), popup.take(3))
-        assertEquals(ScriptRegistry[ScriptId.ARABIC].periodAlternates - "\u064E", popup.drop(3))
+        // ؟ leads, lifted by issue #408 since nothing else on this grid types
+        // it, so the plain hold still asks a question.
+        assertEquals(listOf("؟", "…", "\u064E", "!"), popup.take(4))
+        assertEquals(ScriptRegistry[ScriptId.ARABIC].periodAlternates - "\u064E", popup.drop(4))
     }
 
     /** Only the letters page: the symbols pages' "." is for numbers. */

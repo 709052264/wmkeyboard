@@ -266,6 +266,9 @@ class AssetLayoutHygieneTest {
         "ABC", "abc", "OK", "Fn", "Esc", "Tab", "Del", "Ins", "IPA",
         // The T9 pinyin pad labels its keys with the letter group, Nokia-style.
         "DEF", "GHI", "JKL", "MNO", "PQRS", "TUV", "WXYZ",
+        // A single letter of the Klingon alphabet, written with three Latin
+        // ones; tlh_qwerty gives it a key of its own (e3568d40c).
+        "tlh",
     )
 
     @Test

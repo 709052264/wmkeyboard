@@ -1468,14 +1468,23 @@
                   }
                 ],
                 "flick": {
+                  "up_left": {
+                    "id": "T_NEW_226"
+                  },
                   "up": {
                     "id": "T_NEW_227"
+                  },
+                  "up_right": {
+                    "id": "T_NEW_228"
                   },
                   "left": {
                     "id": "T_NEW_229"
                   },
                   "right": {
                     "id": "T_NEW_230"
+                  },
+                  "down_left": {
+                    "id": "U_1266"
                   }
                 }
               },
@@ -1490,9 +1499,12 @@
                 "ቧ"
               ],
               "flick": {
+                "up_left": "በ",
                 "up": "ቡ",
+                "up_right": "ቢ",
                 "left": "ባ",
-                "right": "ቤ"
+                "right": "ቤ",
+                "down_left": "ቦ"
               }
             },
             {
