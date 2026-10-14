@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app.modules
 
 import android.app.Application
 import com.google.android.play.core.splitcompat.SplitCompat
+import com.google.android.play.core.splitinstall.SplitInstallHelper
 import com.google.android.play.core.splitinstall.SplitInstallManager
 import com.google.android.play.core.splitinstall.SplitInstallManagerFactory
 import com.google.android.play.core.splitinstall.SplitInstallRequest
@@ -15,7 +16,9 @@ import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Play-channel delivery of the on-demand modules that share one gate type:
- * `:feature:litert` and `:feature:handwriting`. This directory replaces
+ * `:feature:litert`, `:feature:handwriting`, `:feature:speech` (the
+ * whisper.cpp and ExecuTorch libraries) and `:feature:grammar` (Harper).
+ * This directory replaces
  * `src/noplay/java` when `wmkb.enablePlayStore` is on, the same seam as
  * LlmDelivery and TranslateDelivery beside it, and each module here is
  * driven exactly the way TranslateDelivery drives its own.
@@ -24,18 +27,21 @@ import kotlinx.coroutines.flow.StateFlow
 /** The splits' names: the last segment of each `:feature:*` project path. */
 private const val LITERT_MODULE = "litert"
 private const val HANDWRITING_MODULE = "handwriting"
+private const val SPEECH_MODULE = "speech"
+private const val GRAMMAR_MODULE = "grammar"
 
 /**
  * Publishes a SplitInstall-backed gate for each module into [FeatureModules].
  * Called once from [WMApplication.onCreate]; nothing here touches the
- * network by itself. One manager and one listener serve both modules: the
+ * network by itself. One manager and one listener serve every module: the
  * listener is registered for the life of the process because it is the only
  * thing that hears an install finish, and whatever asked for it may be gone
  * by then.
  */
 fun installOnDemandDelivery(app: Application) {
     val manager = SplitInstallManagerFactory.create(app)
-    val gates = listOf(LITERT_MODULE, HANDWRITING_MODULE).associateWith { PlayModuleGate(manager, it) }
+    val gates = listOf(LITERT_MODULE, HANDWRITING_MODULE, SPEECH_MODULE, GRAMMAR_MODULE)
+        .associateWith { PlayModuleGate(manager, it) }
     manager.registerListener { session: SplitInstallSessionState ->
         for (name in session.moduleNames()) gates[name]?.onSession(session)
         if (session.status() == SplitInstallSessionStatus.INSTALLED) {
@@ -46,6 +52,12 @@ fun installOnDemandDelivery(app: Application) {
     }
     FeatureModules.litert = gates.getValue(LITERT_MODULE)
     FeatureModules.handwriting = gates.getValue(HANDWRITING_MODULE)
+    FeatureModules.speech = gates.getValue(SPEECH_MODULE)
+    FeatureModules.grammar = gates.getValue(GRAMMAR_MODULE)
+    // The speech and grammar splits hold bare native libraries for classes in
+    // the base. A split installed after this process started is not on the
+    // class loader's library path; SplitInstallHelper looks there as well.
+    FeatureModules.loadLibrary = { name -> SplitInstallHelper.loadLibrary(app, name) }
 }
 
 private class PlayModuleGate(
@@ -60,6 +72,8 @@ private class PlayModuleGate(
     )
 
     override val state: StateFlow<ModuleState> = mutableState
+
+    override val onDemand: Boolean get() = true
 
     fun onSession(session: SplitInstallSessionState) {
         mutableState.value = when (session.status()) {

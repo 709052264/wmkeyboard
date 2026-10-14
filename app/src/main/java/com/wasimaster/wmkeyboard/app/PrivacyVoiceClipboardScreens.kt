@@ -284,7 +284,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
     val whistleEnabled = com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine.available
     // The ExecuTorch runtime behind Asr4All (#289), Parakeet and Moonshine:
     // both editions, wherever its library is.
-    val etEnabled = com.wasimaster.wmkeyboard.core.voice.executorch.EtNative.available
+    val etEnabled = com.wasimaster.wmkeyboard.core.voice.executorch.EtNative.shipped
     // What decides which groups and rows the screen holds; each row reads its
     // own value.
     val engine = settings.watch { it.whisper.engine }

@@ -30,7 +30,7 @@ of it, so nothing here needs a branch or a patched source tree.
 | On-device translation (ML Kit) | bundled | absent | on-demand `:feature:translate` module |
 | LiteRT interpreter (offline Whisper, the sticker editor's own background remover) | bundled | absent | on-demand `:feature:litert` module |
 | Handwriting recognition (ML Kit) | bundled | absent | on-demand `:feature:handwriting` module |
-| Harper, whisper.cpp, ExecuTorch (grammar, Offline Whisper, Asr4All, Parakeet, Moonshine) | committed prebuilt libraries | compiled from source by the recipe | committed prebuilt libraries |
+| Harper, whisper.cpp, ExecuTorch (grammar, Offline Whisper, Asr4All, Parakeet, Moonshine) | committed prebuilt libraries | compiled from source by the recipe | the same prebuilt libraries, in the on-demand `:feature:speech` (whisper.cpp, ExecuTorch) and `:feature:grammar` (Harper) modules |
 | In-app updates | GitHub releases, downloads and installs | checks F-Droid, links out | Play In-App Updates |
 
 The flags read from a `-P` Gradle property first, then `local.properties`, then
@@ -701,7 +701,8 @@ non-UTF-8 locale otherwise raises rather than counting.
 
    Go to internal first, always. Play's own device catalogue tells you within
    minutes if an on-demand module (`:feature:llm`, `:feature:translate`,
-   `:feature:litert`, `:feature:handwriting`) or the unbundled ML Kit path
+   `:feature:litert`, `:feature:handwriting`, `:feature:speech`,
+   `:feature:grammar`) or the unbundled ML Kit path
    is misconfigured, and that is far cheaper to learn there than in
    production.
 

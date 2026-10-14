@@ -24578,6 +24578,14 @@ open class WMKeyboardService : InputMethodService() {
             fail(VoiceStatus.ERROR, getString(VoiceR.string.core_voice_whisper_module_downloading))
             return
         }
+        val needsSpeechLibs = (onDevice is OnDeviceVoice.Whisper && onDevice.model.ggml) || onDevice is OnDeviceVoice.Et
+        if (needsSpeechLibs && !WhisperCpp.moduleReady) {
+            // Play only, the same way: whisper.cpp's and ExecuTorch's
+            // libraries are the on-demand :feature:speech part.
+            if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) WhisperCpp.requestModule()
+            fail(VoiceStatus.ERROR, getString(VoiceR.string.core_voice_whisper_module_downloading))
+            return
+        }
         if (!voiceSessionForField) {
             val ic = currentInputConnection ?: return
             // Flush the half-typed word so dictation appends after it.
@@ -24828,7 +24836,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /** [engine] can run here and transcribes every language the dictation listens for. */
     private fun etCoversVoice(engine: EtEngine): Boolean =
-        EtNative.available && voiceLanguageIds().all(engine::supports)
+        EtNative.shipped && voiceLanguageIds().all(engine::supports)
 
     /** [pcm] through an ExecuTorch [model] in one go. On [EtNative.dispatcher] only. */
     private fun transcribeWithEt(model: EtModel, pcm: FloatArray): String = when (model.engine) {
@@ -33444,6 +33452,29 @@ open class WMKeyboardService : InputMethodService() {
     // ---- grammar tool (offline, Harper via JNI) ----
 
     /**
+     * Play only: the Harper library is the on-demand `:feature:grammar` part.
+     * Asks for it unless data saver holds downloads, says so in the panel,
+     * and checks again once it lands, if the panel is still open.
+     */
+    private suspend fun awaitGrammarModule() {
+        if (!dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) {
+            _uiState.update { it.copy(grammar = GrammarUi(moduleHint = R.string.ime_grammar_module_data_saver_info)) }
+            return
+        }
+        _uiState.update {
+            it.copy(grammar = GrammarUi(checking = true, moduleHint = R.string.ime_grammar_module_installing_info))
+        }
+        val here = GrammarChecker.awaitModule()
+        if (_uiState.value.panel != PanelMode.GRAMMAR) return
+        if (here) {
+            _uiState.update { it.copy(grammar = GrammarUi()) }
+            scheduleGrammarCheck(immediate = true)
+        } else {
+            _uiState.update { it.copy(grammar = GrammarUi(moduleHint = R.string.ime_grammar_module_failed_info)) }
+        }
+    }
+
+    /**
      * Re-extracts the field and lints it after a short debounce. Linting is
      * local and fast, but the debounce keeps the strip from churning on
      * every keystroke mid-word.
@@ -33454,6 +33485,10 @@ open class WMKeyboardService : InputMethodService() {
             if (!immediate) delay(_uiState.value.settings.grammarDebounceMs.toLong())
             val state = _uiState.value
             if (state.panel != PanelMode.GRAMMAR) return@launch
+            if (!GrammarChecker.moduleReady) {
+                awaitGrammarModule()
+                return@launch
+            }
             if (!GrammarChecker.available) {
                 _uiState.update { it.copy(grammar = GrammarUi(available = false)) }
                 return@launch
@@ -36065,6 +36100,12 @@ open class WMKeyboardService : InputMethodService() {
     /** Runs the grammar checker over the selection alone and commits every first suggestion. */
     private fun fixGrammarInSelection(offer: SelectionMacroOffer) {
         if (!BuildConfig.ENABLE_GRAMMAR) return
+        if (!GrammarChecker.moduleReady) {
+            // Play, before the library's part is here.
+            if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) GrammarChecker.requestModule()
+            toast(R.string.ime_grammar_module_installing_toast)
+            return
+        }
         if (!GrammarChecker.available) {
             if (!grammarProbePending()) toast(R.string.ime_selection_macro_grammar_unavailable_toast)
             return

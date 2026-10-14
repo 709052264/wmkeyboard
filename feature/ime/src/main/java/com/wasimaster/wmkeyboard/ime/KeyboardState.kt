@@ -1521,6 +1521,12 @@ data class GrammarUi(
     /** Native Harper library present in this build. */
     val available: Boolean = true,
     /**
+     * Play only: why the library is not here yet (still downloading, held by
+     * data saver, or the download failed), shown in place of the issues.
+     */
+    @androidx.annotation.StringRes
+    val moduleHint: Int? = null,
+    /**
      * DeepL Write's rewrite of the field, while one was asked for (#331).
      * Every fresh lint builds a new [GrammarUi] without it, which is what
      * drops a rewrite of text the user has since changed.

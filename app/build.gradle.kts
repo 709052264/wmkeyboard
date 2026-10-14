@@ -419,6 +419,12 @@ android {
         // recogniser (~6.5 MB per ABI) behind the handwriting tool.
         dynamicFeatures += ":feature:litert"
         dynamicFeatures += ":feature:handwriting"
+        // The whisper.cpp and ExecuTorch libraries (~7 MB on arm64) behind
+        // the offline voice engines other than LiteRT Whisper, and Harper's
+        // (~2.3 MB) behind the grammar tool and the spell checker. Library
+        // files only: their Kotlin stays in the base.
+        dynamicFeatures += ":feature:speech"
+        dynamicFeatures += ":feature:grammar"
     }
 
     // See the splitApks flag at the top of this file. Splits shape APK
@@ -520,8 +526,8 @@ android {
     }
 
     // The Harper native libraries live in :core:intelligence under src/main/jniLibs,
-    // so every edition carries them; F-Droid's recipe deletes the prebuilt copies
-    // and the grammar tool and spell checker then report themselves absent.
+    // so every edition carries them; F-Droid builds them from source. Play
+    // builds package them in the on-demand :feature:grammar split instead.
 }
 
 // Compiles dictionaries-src/*.txt into assets/dictionaries/*.wmdict via the
@@ -1178,7 +1184,8 @@ dependencies {
     if (playStoreChannel) {
         implementation(libs.play.app.update)
         // SplitInstall + SplitCompat for the on-demand :feature:llm,
-        // :feature:translate, :feature:litert and :feature:handwriting modules.
+        // :feature:translate, :feature:litert, :feature:handwriting,
+        // :feature:speech and :feature:grammar modules.
         implementation(libs.play.feature.delivery)
         // ML Kit's own half of running from an on-demand module. It has to be
         // in the base: it is what lets the ML Kit context that started with

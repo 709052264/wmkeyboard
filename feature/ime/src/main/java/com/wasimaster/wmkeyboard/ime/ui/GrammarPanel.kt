@@ -387,6 +387,7 @@ internal fun GrammarPanel(
             // The card holds the panel's body while it is up: 146dp has no
             // room for it and the issue list both, and it is what was asked for.
             rephrase != null && !rephrase.working -> GrammarBody.REPHRASE
+            grammar.moduleHint != null -> GrammarBody.MODULE
             !grammar.available -> GrammarBody.UNAVAILABLE
             grammar.sourceText.isEmpty() && !grammar.checking -> GrammarBody.EMPTY
             lints.isEmpty() && grammar.checkedOnce && !grammar.checking -> GrammarBody.CLEAR
@@ -406,6 +407,7 @@ internal fun GrammarPanel(
                 Box(Modifier.fillMaxSize().blockTouches(shown != body)) {
                     when (shown) {
                         GrammarBody.REPHRASE -> Unit
+                        GrammarBody.MODULE -> grammar.moduleHint?.let { GrammarHint(stringResource(it)) }
                         GrammarBody.UNAVAILABLE -> GrammarHint(
                             stringResource(R.string.ime_grammar_unavailable_info),
                         )
@@ -449,7 +451,7 @@ internal fun GrammarPanel(
 }
 
 /** What the grammar panel's body is showing, for the cross-fade between them. */
-private enum class GrammarBody { REPHRASE, UNAVAILABLE, EMPTY, CLEAR, LIST }
+private enum class GrammarBody { REPHRASE, MODULE, UNAVAILABLE, EMPTY, CLEAR, LIST }
 
 /**
  * A key for each card that survives the field changing around it. Offsets will

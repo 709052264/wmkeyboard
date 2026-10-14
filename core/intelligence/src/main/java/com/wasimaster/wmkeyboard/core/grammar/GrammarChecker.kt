@@ -1,8 +1,12 @@
 package com.wasimaster.wmkeyboard.core.grammar
 
 import androidx.annotation.StringRes
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import java.util.concurrent.Executors
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -81,9 +85,12 @@ object GrammarChecker {
      * keyboard asks at every start just to decide how the grammar tool draws
      * itself; most sessions never lint anything. The class loader can say
      * whether the library is packaged without opening it. Off Android (unit
-     * tests) there is no such loader and the answer is [available]'s.
+     * tests) there is no such loader and the answer is [available]'s. On
+     * Play the library is the on-demand `:feature:grammar` split, so the
+     * build has it whether or not Play has fetched it yet.
      */
     val bundled: Boolean by lazy {
+        if (FeatureModules.grammar.onDemand) return@lazy true
         val loader = GrammarChecker::class.java.classLoader
         if (loader is dalvik.system.BaseDexClassLoader) {
             loader.findLibrary(HarperNative.LIBRARY) != null
@@ -91,6 +98,18 @@ object GrammarChecker {
             available
         }
     }
+
+    /** Where the library's Play module stands. Always installed outside Play. */
+    val moduleState: StateFlow<ModuleState> get() = FeatureModules.grammar.state
+
+    /** Whether the library is on the device, without loading it. */
+    val moduleReady: Boolean get() = FeatureModules.grammar.installed
+
+    /** Asks Play for the library's module. A no-op where it is in the base. */
+    fun requestModule() = FeatureModules.grammar.requestInstall()
+
+    /** Asks Play for the module and waits for it. False when the fetch failed. */
+    suspend fun awaitModule(): Boolean = FeatureModules.grammar.awaitInstalled()
 
     private val linter = Executors.newSingleThreadExecutor { r -> Thread(r, "harper-lint") }
     private val dispatcher = linter.asCoroutineDispatcher()
@@ -107,6 +126,12 @@ object GrammarChecker {
 
     /** Builds the native linter ahead of the first check; cheap if already built. */
     suspend fun warmUp(dialectOrdinal: Int) {
+        // The spell checker's warm-up is the first sign it is in use: on Play
+        // that is when the library is worth fetching.
+        if (!moduleReady) {
+            requestModule()
+            return
+        }
         if (!available) return
         withContext(dispatcher) { runCatching { HarperNative.nativeWarmUp(dialectOrdinal) } }
         built = true

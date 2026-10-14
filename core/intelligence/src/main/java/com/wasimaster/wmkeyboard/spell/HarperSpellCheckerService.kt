@@ -77,7 +77,9 @@ object HarperSpellChecker {
      * Writes only when the state is wrong.
      */
     fun syncAvailability(context: Context) {
-        val packaged = runCatching {
+        // On Play the library is the on-demand :feature:grammar split: in the
+        // build, though not on the device until the service first asks for it.
+        val packaged = com.wasimaster.wmkeyboard.core.modules.FeatureModules.grammar.onDemand || runCatching {
             (context.classLoader as? BaseDexClassLoader)?.findLibrary("harper_jni") != null
         }.getOrDefault(false)
         val component = ComponentName(context, HarperSpellCheckerService::class.java)

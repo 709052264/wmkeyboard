@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.voice.executorch
 
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.GatedLibrary
 import java.io.File
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineDispatcher
@@ -11,9 +13,11 @@ import kotlinx.coroutines.asCoroutineDispatcher
  * models use, the XNNPACK delegate and the Module extension. Asr4All, Parakeet
  * and Moonshine all run on it; each has its own Kotlin pipeline over [Program].
  *
- * The libraries ship in `src/main/jniLibs`, so both editions carry them; a
- * build without them (F-Droid deletes prebuilt libraries) has [available]
- * false and offers none of these engines.
+ * The libraries ship in `src/main/jniLibs`, so both editions carry them. Play
+ * builds move them into the on-demand `:feature:speech` split, shared with
+ * whisper.cpp, so [shipped] says whether the build has the runtime and
+ * [available] whether it is loaded. A build without them (F-Droid deletes
+ * prebuilt libraries) has [shipped] false and offers none of these engines.
  *
  * A program is not thread-safe, and the models are large, so every call runs
  * on [dispatcher], one thread, and [open] keeps one set of programs at a time:
@@ -21,8 +25,15 @@ import kotlinx.coroutines.asCoroutineDispatcher
  */
 object EtNative {
 
-    /** Whether the runtime loaded on this device and build. */
-    val available: Boolean by lazy { runCatching { System.loadLibrary("wmexecutorch") }.isSuccess }
+    private val library = GatedLibrary({ FeatureModules.speech }) {
+        runCatching { FeatureModules.loadLibrary("wmexecutorch") }.isSuccess
+    }
+
+    /** Whether the runtime is loaded on this device and build. */
+    val available: Boolean get() = library.available
+
+    /** Whether this build has the runtime, counting a Play module not fetched yet. */
+    val shipped: Boolean get() = library.shipped
 
     /** The one thread every program call runs on. */
     val dispatcher: CoroutineDispatcher by lazy {
@@ -65,7 +76,10 @@ object EtNative {
 
     /** Opens [file], or null when it is not a program this runtime can load. */
     fun open(file: File): Program? {
-        check(available) { "the ExecuTorch runtime is not in this build" }
+        check(available) {
+            if (FeatureModules.speech.installed) "the ExecuTorch runtime is not in this build"
+            else "the ExecuTorch runtime is still downloading from Google Play"
+        }
         val h = nativeOpen(file.absolutePath)
         return if (h == 0L) null else Program(h)
     }

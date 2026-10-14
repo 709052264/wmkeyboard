@@ -51,7 +51,7 @@ object VoiceChoices {
         languageId = languageId,
         whistleReady = WhistleEngine.available && WhistleModelStore.isDownloaded(filesDir),
         whisperModels = if (whisperEnabled) WhisperStore.downloadedModels(filesDir) else emptyList(),
-        etModels = if (EtNative.available) EtEngine.entries.flatMap { EtStore.downloaded(filesDir, it) } else emptyList(),
+        etModels = if (EtNative.shipped) EtEngine.entries.flatMap { EtStore.downloaded(filesDir, it) } else emptyList(),
         serverConfigured = serverConfigured,
     )
 

@@ -79,6 +79,11 @@ if (playStoreChannel) {
     // background remover) and ML Kit's ink recogniser, the same way.
     include(":feature:litert")
     include(":feature:handwriting")
+    // whisper.cpp and ExecuTorch's native libraries, and Harper's: no code,
+    // only the .so files :core:voice and :core:intelligence leave out of the
+    // base APK on this channel.
+    include(":feature:speech")
+    include(":feature:grammar")
 }
 // Macrobenchmarks and the baseline profile generator (-Pwmkb.benchmark=true).
 // Out of the ordinary build for two reasons. Applying the baselineprofile

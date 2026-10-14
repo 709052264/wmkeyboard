@@ -39,6 +39,14 @@ interface ModuleGate {
     fun requestInstall()
 
     val installed: Boolean get() = state.value == ModuleState.Installed
+
+    /**
+     * Whether this gate is backed by a Play module at all. True on Play even
+     * once the module is installed; false wherever the runtime is compiled
+     * into the base APK. Lets a facade say "this build has it" without
+     * loading anything, before Play has fetched it.
+     */
+    val onDemand: Boolean get() = false
 }
 
 /** The gate of every channel that compiles its runtimes into the base APK. */
@@ -67,6 +75,27 @@ object FeatureModules {
     var handwriting: ModuleGate = AlwaysInstalled
 
     /**
+     * `:feature:speech`: the whisper.cpp and ExecuTorch native libraries
+     * behind the GGML Whisper models, Asr4All, Parakeet and Moonshine
+     * (`:core:voice`). Only the libraries move; their Kotlin stays in the base.
+     */
+    @Volatile
+    var speech: ModuleGate = AlwaysInstalled
+
+    /** `:feature:grammar`: the Harper grammar library (`:core:intelligence`). */
+    @Volatile
+    var grammar: ModuleGate = AlwaysInstalled
+
+    /**
+     * How a native library is loaded. `System.loadLibrary` wherever the
+     * library is in the base APK. Play swaps in SplitInstallHelper's, which
+     * also finds a library in a split installed after this process started,
+     * where the class loader's own search path does not reach yet.
+     */
+    @Volatile
+    var loadLibrary: (String) -> Unit = System::loadLibrary
+
+    /**
      * Asks for the module and waits until it is here, reporting Play's byte
      * counts on the way. False when the fetch failed; the caller decides what
      * that means to the user. A cancelled caller leaves the download running:
@@ -92,4 +121,38 @@ object FeatureModules {
         @Suppress("UNCHECKED_CAST")
         return Class.forName(className, true, loader).getDeclaredConstructor().newInstance() as T
     }
+}
+
+/**
+ * A native library that lives in [gate]'s module on Play and in the base APK
+ * everywhere else. Nothing is loaded until [available] is read, and on Play
+ * not before the module is installed, so a read while it is missing stays
+ * retryable instead of caching the miss for the life of the process.
+ */
+class GatedLibrary(private val gate: () -> ModuleGate, private val load: () -> Boolean) {
+
+    @Volatile private var loaded = false
+
+    /** Set once a load was tried with the module present and failed: final. */
+    @Volatile private var absent = false
+
+    /** Whether the library is loaded now; tries to load it if it can. */
+    val available: Boolean
+        get() {
+            if (loaded) return true
+            if (absent || !gate().installed) return false
+            synchronized(this) {
+                if (!loaded && !absent) {
+                    if (load()) loaded = true else absent = true
+                }
+            }
+            return loaded
+        }
+
+    /**
+     * Whether this build has the library, counting a Play module not fetched
+     * yet. Loads nothing while the module is missing; outside Play it is
+     * [available].
+     */
+    val shipped: Boolean get() = (gate().onDemand && !absent && !gate().installed) || available
 }

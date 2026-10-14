@@ -226,7 +226,7 @@ object WhisperCatalog {
      * whisper.cpp library for its ABI. Read once, before [models], which is
      * built from it. Where it is false the catalog is exactly the LiteRT one.
      */
-    val cppAvailable: Boolean = WhisperCpp.available
+    val cppAvailable: Boolean = WhisperCpp.shipped
 
     /** The id of the model pointed at first: the whisper.cpp Small where it runs. */
     val defaultId: String get() = if (cppAvailable) "cpp-small" else "small-multi"

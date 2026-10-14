@@ -60,6 +60,12 @@ open class WMApplication : Application() {
         // The network activity log, before anything in this process can make
         // a request. Cheap: it reads two small files, or waits for the unlock.
         NetLog.attach(this)
+        // The Play gates of the LiteRT interpreter (WhisperEngine,
+        // LocalSubjectCutout), ML Kit's ink recogniser (HandwritingModels) and
+        // the whisper.cpp, ExecuTorch and Harper libraries. Before the spell
+        // checker's sync below, which asks the grammar gate whether this build
+        // has Harper at all.
+        installOnDemandDelivery(this)
         // The spell checker is declared in every edition; off where the
         // library it needs was left out of the build.
         com.wasimaster.wmkeyboard.spell.HarperSpellChecker.syncAvailability(this)
@@ -75,9 +81,6 @@ open class WMApplication : Application() {
         installLlmDelivery(this)
         // The same for ML Kit's translator and OnDeviceTranslator.
         installTranslateDelivery(this)
-        // And for the LiteRT interpreter (WhisperEngine, LocalSubjectCutout)
-        // and ML Kit's ink recogniser (HandwritingModels).
-        installOnDemandDelivery(this)
         // The Dropbox and OneDrive client ids, which live in BuildConfig and
         // so cannot be read from the library module that needs them.
         BackupClients.install(

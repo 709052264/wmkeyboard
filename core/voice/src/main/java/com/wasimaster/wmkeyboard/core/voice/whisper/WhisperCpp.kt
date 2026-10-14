@@ -1,8 +1,12 @@
 package com.wasimaster.wmkeyboard.core.voice.whisper
 
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.GatedLibrary
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.voice.R
 import java.io.File
 import java.util.concurrent.locks.ReentrantLock
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * whisper.cpp, the second runtime offline Whisper runs on (#440), for the
@@ -15,9 +19,12 @@ import java.util.concurrent.locks.ReentrantLock
  * words, beam search can be asked for, text can be read while it decodes, a
  * transcription can be stopped part way, and a clip can run past 30 seconds.
  *
- * The libraries ship in the full flavour's `jniLibs` for arm64 (two builds,
- * picked by [load]), armv7 and x86_64. Lite builds have none, so [available]
- * is false there and the catalog offers no GGML models; there is no stub.
+ * The libraries ship in `src/main/jniLibs` for arm64 (two builds, picked by
+ * [load]), armv7 and x86_64. Play builds move them into the on-demand
+ * `:feature:speech` split, fetched the first time a GGML model is used, so
+ * [shipped] says whether the build has them and [available] whether they are
+ * loaded. A build without them (F-Droid deletes prebuilt libraries) offers no
+ * GGML models; there is no stub.
  *
  * One model is open at a time, and kept open between clips, since loading it
  * takes as long as a short phrase does to say.
@@ -38,8 +45,22 @@ object WhisperCpp {
     @Volatile private var handle = 0L
     private var openPath: String? = null
 
-    /** Whether a whisper.cpp library loaded on this device and build. */
-    val available: Boolean by lazy { load() }
+    private val library = GatedLibrary({ FeatureModules.speech }, ::load)
+
+    /** Whether a whisper.cpp library is loaded on this device and build. */
+    val available: Boolean get() = library.available
+
+    /** Whether this build has whisper.cpp, counting a Play module not fetched yet. */
+    val shipped: Boolean get() = library.shipped
+
+    /** Where the libraries' Play module stands. Always installed outside Play. */
+    val moduleState: StateFlow<ModuleState> get() = FeatureModules.speech.state
+
+    /** Whether the libraries are on the device, without loading them. */
+    val moduleReady: Boolean get() = FeatureModules.speech.installed
+
+    /** Asks Play for the libraries' module. A no-op where they are in the base. */
+    fun requestModule() = FeatureModules.speech.requestInstall()
 
     /**
      * The ARMv8.2 build where every core has the dot-product and half-precision
@@ -48,8 +69,8 @@ object WhisperCpp {
      * core's flags, not the first: big.LITTLE parts mix generations.
      */
     private fun load(): Boolean {
-        if (hasArmV82Features() && runCatching { System.loadLibrary("wmwhispercpp_v82") }.isSuccess) return true
-        return runCatching { System.loadLibrary("wmwhispercpp") }.isSuccess
+        if (hasArmV82Features() && runCatching { FeatureModules.loadLibrary("wmwhispercpp_v82") }.isSuccess) return true
+        return runCatching { FeatureModules.loadLibrary("wmwhispercpp") }.isSuccess
     }
 
     private fun hasArmV82Features(): Boolean = runCatching {
@@ -143,7 +164,12 @@ object WhisperCpp {
     }
 
     private fun openLocked(modelFile: File): Long {
-        check(available) { "whisper.cpp is not available in this build" }
+        if (!available) {
+            // Play, before the split is here: the same error the LiteRT
+            // graphs give while their interpreter is on its way.
+            if (!moduleReady) throw WhisperException(R.string.core_voice_whisper_module_downloading)
+            error("whisper.cpp is not available in this build")
+        }
         val path = modelFile.canonicalPath
         if (handle != 0L && openPath == path) return handle
         closeLocked()

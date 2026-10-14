@@ -73,6 +73,9 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
         .filter { states[it.id] is Status.Downloaded }
         .maxByOrNull { it.millions }
 
+    // Play: the runtime itself is an on-demand part, shared with whisper.cpp.
+    SpeechModuleBanner(settings)
+
     SettingsGroup(
         stringResource(
             when (engine) {

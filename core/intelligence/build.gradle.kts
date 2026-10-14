@@ -60,6 +60,13 @@ android {
     }
     buildFeatures { compose = true }
     lint { lintConfig = rootProject.file("config/lint/lint.xml") }
+    // Play builds leave src/main/jniLibs (Harper) out of this module, so out of
+    // the base APK: the on-demand :feature:grammar split packages the same
+    // directory instead. The files stay here because the native build
+    // scripts and F-Droid's recipe write and scan exactly this path.
+    if (playStoreChannel) {
+        sourceSets.getByName("main").jniLibs.setSrcDirs(emptyList<String>())
+    }
 }
 
 androidComponents {

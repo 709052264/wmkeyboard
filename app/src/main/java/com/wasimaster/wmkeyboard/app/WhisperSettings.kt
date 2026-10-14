@@ -59,6 +59,7 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCpp
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager.DownloadStatus
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperEngine
@@ -228,6 +229,11 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
             )
         }
     }
+
+    // whisper.cpp's own libraries are an on-demand part too on Play, shared
+    // with the ExecuTorch engines, so they are asked for once a GGML model is
+    // on the device.
+    if (onDisk.any { it.ggml }) SpeechModuleBanner(settings)
 
     WhisperRoutingCard(
         languages = enabledLanguages,
@@ -894,6 +900,38 @@ private fun WhisperDownloadProgress(bytes: Long, total: Long) {
             )
         }
     }
+}
+
+/**
+ * The whisper.cpp and ExecuTorch libraries' own download (`:feature:speech`),
+ * on a Play install that has not fetched them. Nothing anywhere else, where
+ * the libraries are in the APK. Asks the way the interpreter's banner does.
+ */
+@Composable
+internal fun SpeechModuleBanner(settings: LiveSettings) {
+    val context = LocalContext.current
+    val module by WhisperCpp.moduleState.collectAsState()
+    if (module == ModuleState.Installed) return
+    var metered by remember { mutableStateOf(false) }
+    var blocked by remember { mutableStateOf(false) }
+    WhisperModuleBanner(module) {
+        when (downloadDecisionNow(context, settings.value)) {
+            MeteredDecision.ALLOWED -> WhisperCpp.requestModule()
+            MeteredDecision.ASK -> metered = true
+            MeteredDecision.BLOCKED -> blocked = true
+        }
+    }
+    if (metered) {
+        MeteredDownloadDialog(
+            detail = stringResource(R.string.models_whisper_module_metered_body),
+            onConfirm = {
+                metered = false
+                WhisperCpp.requestModule()
+            },
+            onDismiss = { metered = false },
+        )
+    }
+    if (blocked) MeteredBlockedDialog(onDismiss = { blocked = false })
 }
 
 /**

@@ -31,6 +31,8 @@
          sticker editor's background remover share, and :feature:handwriting. -->
     <string name="litert_module_title">Offline voice typing and sticker cutout</string>
     <string name="handwriting_module_title">Handwriting recognition</string>
+    <string name="speech_module_title">Offline voice engines</string>
+    <string name="grammar_module_title">Grammar checker</string>
     <!-- Shown in Settings › Notification access for the listener that the
          media-control tool and the one-time code chip share. It is the whole
          sentence the user reads before granting, so it names both features:

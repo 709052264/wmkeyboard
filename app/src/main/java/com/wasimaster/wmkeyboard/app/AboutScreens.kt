@@ -385,7 +385,7 @@ private val bundledAttributions: List<Attribution> = buildList {
             ),
         )
     }
-    if (EtNative.available) {
+    if (EtNative.shipped) {
         // Offline Asr4All (#289): the runtime built into the app, and the
         // models it downloads, which carry their own restricted-use licence.
         add(
