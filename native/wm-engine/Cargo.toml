@@ -1,0 +1,18 @@
+[package]
+name = "wm-engine"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "MIT"
+description = "WM Keyboard's text engines: one implementation for the Android app (through JNI) and for WMK Desktop"
+
+[lib]
+name = "wm_engine"
+
+# No dependencies on purpose: the crate is the engine only. Platform bridges
+# (JNI for Android, the desktop daemon) are separate crates that depend on it.
+[dependencies]
+
+[profile.release]
+lto = true
+codegen-units = 1
