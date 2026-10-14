@@ -116,8 +116,24 @@ if [ -z "$SRC" ]; then
     retry fresh_clone "$SRC" --quiet --depth 1 --branch "$ET_TAG" https://github.com/pytorch/executorch
     retry git -C "$SRC" submodule update --init --depth 1 --recursive --quiet \
         backends/xnnpack/third-party third-party/flatbuffers third-party/flatcc \
-        third-party/json third-party/gflags third-party/pocketfft third-party/ao \
-        kernels/optimized/third-party/eigen
+        third-party/json third-party/gflags third-party/pocketfft third-party/ao
+    # Eigen lives on gitlab.com alone, which refused clones under load for
+    # hours on the day 0.6.0 shipped. Git fetches the submodule by its pinned
+    # commit hash, so a mirror cannot hand over different code: try
+    # upstream, then two GitHub mirrors of it.
+    eigen=kernels/optimized/third-party/eigen
+    eigen_commit=$(git -C "$SRC" ls-tree HEAD "$eigen" | awk '{print $3}')
+    fetch_eigen() {  # url
+        rm -rf "${SRC:?}/$eigen" && git init --quiet "$SRC/$eigen" &&
+            git -C "$SRC/$eigen" fetch --quiet --depth 1 "$1" "$eigen_commit" &&
+            git -C "$SRC/$eigen" checkout --quiet FETCH_HEAD
+    }
+    for url in https://gitlab.com/libeigen/eigen.git https://github.com/eigen-mirror/eigen.git \
+               https://github.com/live-clones/eigen.git; do
+        retry fetch_eigen "$url" && break
+    done
+    [ "$(git -C "$SRC/$eigen" rev-parse HEAD 2>/dev/null)" = "$eigen_commit" ] || {
+        echo "could not fetch Eigen $eigen_commit from any source" >&2; exit 1; }
 fi
 got=$(git -C "$SRC" rev-parse HEAD)
 [ "$got" = "$ET_COMMIT" ] || { echo "ExecuTorch is at $got, expected $ET_COMMIT" >&2; exit 1; }
