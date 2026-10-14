@@ -565,7 +565,12 @@ object BuiltInLayouts {
  * is what keeps the spacebar and the enter key where the hand expects them
  * whatever the grid above is doing.
  */
-private fun bottomRow(symbols: Boolean = false, scale: Float = 1f) = listOf(
+private fun bottomRow(
+    symbols: Boolean = false,
+    scale: Float = 1f,
+    /** Appended to the full stop's hold, after the shared punctuation. */
+    periodExtras: List<String> = emptyList(),
+) = listOf(
     Key(
         if (symbols) "ABC" else "?123",
         action = if (symbols) KeyAction.Letters else KeyAction.Symbols,
@@ -577,7 +582,7 @@ private fun bottomRow(symbols: Boolean = false, scale: Float = 1f) = listOf(
     Key(
         ".",
         role = KeyRole.Period,
-        longPress = listOf("…", ",", "?", "!", ":", ";", "।"),
+        longPress = listOf("…", ",", "?", "!", ":", ";", "।") + periodExtras,
         width = scale,
     ),
     Key("⏎", action = KeyAction.Enter, width = 1.5f * scale),
@@ -902,6 +907,15 @@ private val halmakRows = listOf(
     bottomRow(),
 )
 
+/**
+ * ZWNJ then ZWJ, on the hold of hasant and of the full stop on every fixed
+ * Bengali layout (issue #668). ZWNJ after hasant keeps two consonants from
+ * forming a conjunct; ZWJ asks for a half form, as in the র-ফলা of র‍্যাব.
+ * Desktop Jatiya and Probhat put them on AltGr and shift layers a phone
+ * does not have. The popup draws both by name, since neither has a glyph.
+ */
+private val BengaliJoiners = listOf("\u200C", "\u200D")
+
 private val probhatRows = listOf(
     listOf(
         Key("দ", shiftLabel = "ধ"), Key("ূ", shiftLabel = "ঊ"), Key("ী", shiftLabel = "ঈ"),
@@ -922,10 +936,10 @@ private val probhatRows = listOf(
         Key("য়", shiftLabel = "য"), Key("শ", shiftLabel = "ঢ়"), Key("চ", shiftLabel = "ছ"),
         Key("আ", shiftLabel = "ঋ", longPress = listOf("ৃ")), Key("ব", shiftLabel = "ভ"),
         Key("ন", shiftLabel = "ণ"), Key("ম", shiftLabel = "ঙ"),
-        Key("্", shiftLabel = "।", longPress = listOf("ঁ", "়", "॥")),
+        Key("্", shiftLabel = "।", longPress = listOf("ঁ", "়", "॥") + BengaliJoiners),
         Key("⌫", action = KeyAction.Delete, width = 1.3f),
     ),
-    bottomRow(),
+    bottomRow(periodExtras = BengaliJoiners),
 )
 
 private val jatiyaRows = listOf(
@@ -940,7 +954,7 @@ private val jatiyaRows = listOf(
         Key("ু", shiftLabel = "ূ", longPress = listOf("উ", "ঊ")),
         Key("ি", shiftLabel = "ী", longPress = listOf("ই", "ঈ")),
         Key("ব", shiftLabel = "ভ"),
-        Key("্", shiftLabel = "।", longPress = listOf("॥", "ৎ")),
+        Key("্", shiftLabel = "।", longPress = listOf("॥", "ৎ") + BengaliJoiners),
         Key("া", shiftLabel = "অ", longPress = listOf("আ")),
         Key("ক", shiftLabel = "খ"), Key("ত", shiftLabel = "থ"),
         Key("দ", shiftLabel = "ধ"),
@@ -954,7 +968,7 @@ private val jatiyaRows = listOf(
         Key("স", shiftLabel = "ষ"), Key("ম", shiftLabel = "শ"),
         Key("⌫", action = KeyAction.Delete, width = 1.3f),
     ),
-    bottomRow(),
+    bottomRow(periodExtras = BengaliJoiners),
 )
 
 // Korean 2-beolsik: compatibility jamo in the standard phone arrangement, tense
