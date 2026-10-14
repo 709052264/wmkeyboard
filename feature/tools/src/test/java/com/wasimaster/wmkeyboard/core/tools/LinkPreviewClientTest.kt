@@ -52,6 +52,22 @@ class LinkPreviewClientTest {
         assertEquals("Card Title", preview.title)
     }
 
+    @Test fun blankTagsFallThroughToTheNextSource() {
+        // rust-lang.org's head, cut down: empty Open Graph and Twitter titles,
+        // the real one in <title>.
+        val preview = LinkPreviewClient.parse(
+            """
+            <meta name="twitter:title" content="">
+            <meta property="og:title" content=" " />
+            <meta property="og:description" content="">
+            <meta name="description" content="Kept description.">
+            <title>Kept</title>
+            """.trimIndent()
+        )
+        assertEquals("Kept", preview.title)
+        assertEquals("Kept description.", preview.description)
+    }
+
     @Test fun decodesEntitiesAndCollapsesWhitespace() {
         val preview = LinkPreviewClient.parse(
             "<title>Tom &amp; Jerry&#39;s\n   &quot;Best&quot; Day</title>"

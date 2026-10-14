@@ -91,6 +91,11 @@ object LinkPreviewClient {
 
     private fun metaName(html: String, name: String): String? = attrContent(html, "name", name)
 
+    /**
+     * The tag's content, or null when it is missing or blank. A blank tag is
+     * no answer: rust-lang.org ships `og:title content=""` and its real title
+     * in `<title>`, so an empty match has to fall through to the next source.
+     */
     private fun attrContent(html: String, attr: String, value: String): String? {
         val quoted = Regex.escape(value)
         val contentFirst = Regex(
@@ -99,7 +104,9 @@ object LinkPreviewClient {
         val attrFirst = Regex(
             """<meta[^>]+$attr=["']$quoted["'][^>]*content=["']([^"']*)["']""", RE_OPTIONS,
         )
-        return (attrFirst.find(html) ?: contentFirst.find(html))?.groupValues?.get(1)
+        return sequenceOf(attrFirst, contentFirst)
+            .mapNotNull { it.find(html)?.groupValues?.get(1) }
+            .firstOrNull { it.isNotBlank() }
     }
 
     private fun clean(raw: String?): String = raw.orEmpty()
