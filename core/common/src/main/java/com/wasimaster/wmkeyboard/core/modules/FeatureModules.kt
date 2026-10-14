@@ -75,9 +75,9 @@ object FeatureModules {
     var handwriting: ModuleGate = AlwaysInstalled
 
     /**
-     * `:feature:speech`: the whisper.cpp and ExecuTorch native libraries
-     * behind the GGML Whisper models, Asr4All, Parakeet and Moonshine
-     * (`:core:voice`). Only the libraries move; their Kotlin stays in the base.
+     * `:feature:speech`: the whisper.cpp, ExecuTorch and Whistle native
+     * libraries behind the GGML Whisper models, Asr4All, Parakeet, Moonshine
+     * and Whistle (`:core:voice`). Only the libraries move; their Kotlin stays in the base.
      */
     @Volatile
     var speech: ModuleGate = AlwaysInstalled
@@ -85,6 +85,10 @@ object FeatureModules {
     /** `:feature:grammar`: the Harper grammar library (`:core:intelligence`). */
     @Volatile
     var grammar: ModuleGate = AlwaysInstalled
+
+    /** `:feature:ocr`: the Tesseract library behind the scanner's offline reads (`:core:intelligence`). */
+    @Volatile
+    var ocr: ModuleGate = AlwaysInstalled
 
     /**
      * How a native library is loaded. `System.loadLibrary` wherever the

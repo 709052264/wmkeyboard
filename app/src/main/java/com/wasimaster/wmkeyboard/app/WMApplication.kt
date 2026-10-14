@@ -62,7 +62,7 @@ open class WMApplication : Application() {
         NetLog.attach(this)
         // The Play gates of the LiteRT interpreter (WhisperEngine,
         // LocalSubjectCutout), ML Kit's ink recogniser (HandwritingModels) and
-        // the whisper.cpp, ExecuTorch and Harper libraries. Before the spell
+        // the whisper.cpp, ExecuTorch, Whistle, Harper and Tesseract libraries. Before the spell
         // checker's sync below, which asks the grammar gate whether this build
         // has Harper at all.
         installOnDemandDelivery(this)

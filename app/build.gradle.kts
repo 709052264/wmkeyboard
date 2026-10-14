@@ -419,12 +419,14 @@ android {
         // recogniser (~6.5 MB per ABI) behind the handwriting tool.
         dynamicFeatures += ":feature:litert"
         dynamicFeatures += ":feature:handwriting"
-        // The whisper.cpp and ExecuTorch libraries (~7 MB on arm64) behind
-        // the offline voice engines other than LiteRT Whisper, and Harper's
-        // (~2.3 MB) behind the grammar tool and the spell checker. Library
-        // files only: their Kotlin stays in the base.
+        // The whisper.cpp, ExecuTorch and Whistle libraries behind the
+        // offline voice engines other than LiteRT Whisper, Harper's behind
+        // the grammar tool and the spell checker, and Tesseract's behind the
+        // scanner's offline reader. Library files only: their Kotlin stays
+        // in the base.
         dynamicFeatures += ":feature:speech"
         dynamicFeatures += ":feature:grammar"
+        dynamicFeatures += ":feature:ocr"
     }
 
     // See the splitApks flag at the top of this file. Splits shape APK
@@ -1185,7 +1187,7 @@ dependencies {
         implementation(libs.play.app.update)
         // SplitInstall + SplitCompat for the on-demand :feature:llm,
         // :feature:translate, :feature:litert, :feature:handwriting,
-        // :feature:speech and :feature:grammar modules.
+        // :feature:speech, :feature:grammar and :feature:ocr modules.
         implementation(libs.play.feature.delivery)
         // ML Kit's own half of running from an on-demand module. It has to be
         // in the base: it is what lets the ML Kit context that started with

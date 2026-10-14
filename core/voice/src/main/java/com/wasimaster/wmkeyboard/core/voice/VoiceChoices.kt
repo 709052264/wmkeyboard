@@ -49,7 +49,7 @@ object VoiceChoices {
         serverConfigured: Boolean,
     ): List<VoiceChoice> = forLanguage(
         languageId = languageId,
-        whistleReady = WhistleEngine.available && WhistleModelStore.isDownloaded(filesDir),
+        whistleReady = WhistleEngine.shipped && WhistleModelStore.isDownloaded(filesDir),
         whisperModels = if (whisperEnabled) WhisperStore.downloadedModels(filesDir) else emptyList(),
         etModels = if (EtNative.shipped) EtEngine.entries.flatMap { EtStore.downloaded(filesDir, it) } else emptyList(),
         serverConfigured = serverConfigured,

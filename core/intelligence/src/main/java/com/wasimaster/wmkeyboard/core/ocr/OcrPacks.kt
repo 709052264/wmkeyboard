@@ -3,6 +3,8 @@ package com.wasimaster.wmkeyboard.core.ocr
 import android.os.StatFs
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.intelligence.R
@@ -97,9 +99,15 @@ object OcrPacks {
         synchronized(jobs) {
             if (jobs[pack]?.isActive == true) return
             set(pack, Status.Downloading(0, OcrLanguages.sizeOf(pack)))
+            // Play: Tesseract itself is the on-demand :feature:ocr split, asked
+            // for alongside the first pack so both arrive together. A no-op
+            // wherever the library is in the APK.
+            FeatureModules.ocr.requestInstall()
             jobs[pack] = scope.launch {
                 try {
-                    download(filesDir, pack)
+                    // A pack already on disk only waits for the library.
+                    if (!isDownloaded(filesDir, pack)) download(filesDir, pack)
+                    if (!FeatureModules.ocr.awaitInstalled()) throw FailedException(R.string.core_intel_ocr_module_error)
                     set(pack, Status.Downloaded)
                 } catch (e: CancellationException) {
                     set(pack, Status.NotDownloaded)

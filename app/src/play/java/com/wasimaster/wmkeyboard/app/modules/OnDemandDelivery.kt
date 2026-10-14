@@ -17,7 +17,8 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * Play-channel delivery of the on-demand modules that share one gate type:
  * `:feature:litert`, `:feature:handwriting`, `:feature:speech` (the
- * whisper.cpp and ExecuTorch libraries) and `:feature:grammar` (Harper).
+ * whisper.cpp, ExecuTorch and Whistle libraries), `:feature:grammar`
+ * (Harper) and `:feature:ocr` (Tesseract).
  * This directory replaces
  * `src/noplay/java` when `wmkb.enablePlayStore` is on, the same seam as
  * LlmDelivery and TranslateDelivery beside it, and each module here is
@@ -29,6 +30,7 @@ private const val LITERT_MODULE = "litert"
 private const val HANDWRITING_MODULE = "handwriting"
 private const val SPEECH_MODULE = "speech"
 private const val GRAMMAR_MODULE = "grammar"
+private const val OCR_MODULE = "ocr"
 
 /**
  * Publishes a SplitInstall-backed gate for each module into [FeatureModules].
@@ -40,7 +42,7 @@ private const val GRAMMAR_MODULE = "grammar"
  */
 fun installOnDemandDelivery(app: Application) {
     val manager = SplitInstallManagerFactory.create(app)
-    val gates = listOf(LITERT_MODULE, HANDWRITING_MODULE, SPEECH_MODULE, GRAMMAR_MODULE)
+    val gates = listOf(LITERT_MODULE, HANDWRITING_MODULE, SPEECH_MODULE, GRAMMAR_MODULE, OCR_MODULE)
         .associateWith { PlayModuleGate(manager, it) }
     manager.registerListener { session: SplitInstallSessionState ->
         for (name in session.moduleNames()) gates[name]?.onSession(session)
@@ -54,7 +56,8 @@ fun installOnDemandDelivery(app: Application) {
     FeatureModules.handwriting = gates.getValue(HANDWRITING_MODULE)
     FeatureModules.speech = gates.getValue(SPEECH_MODULE)
     FeatureModules.grammar = gates.getValue(GRAMMAR_MODULE)
-    // The speech and grammar splits hold bare native libraries for classes in
+    FeatureModules.ocr = gates.getValue(OCR_MODULE)
+    // The speech, grammar and OCR splits hold bare native libraries for classes in
     // the base. A split installed after this process started is not on the
     // class loader's library path; SplitInstallHelper looks there as well.
     FeatureModules.loadLibrary = { name -> SplitInstallHelper.loadLibrary(app, name) }

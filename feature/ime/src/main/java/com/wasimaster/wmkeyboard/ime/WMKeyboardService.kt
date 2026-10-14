@@ -24578,10 +24578,11 @@ open class WMKeyboardService : InputMethodService() {
             fail(VoiceStatus.ERROR, getString(VoiceR.string.core_voice_whisper_module_downloading))
             return
         }
-        val needsSpeechLibs = (onDevice is OnDeviceVoice.Whisper && onDevice.model.ggml) || onDevice is OnDeviceVoice.Et
+        val needsSpeechLibs = (onDevice is OnDeviceVoice.Whisper && onDevice.model.ggml) ||
+            onDevice is OnDeviceVoice.Et || onDevice == OnDeviceVoice.Whistle
         if (needsSpeechLibs && !WhisperCpp.moduleReady) {
-            // Play only, the same way: whisper.cpp's and ExecuTorch's
-            // libraries are the on-demand :feature:speech part.
+            // Play only, the same way: whisper.cpp's, ExecuTorch's and
+            // Whistle's libraries are the on-demand :feature:speech part.
             if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) WhisperCpp.requestModule()
             fail(VoiceStatus.ERROR, getString(VoiceR.string.core_voice_whisper_module_downloading))
             return
@@ -24832,7 +24833,7 @@ open class WMKeyboardService : InputMethodService() {
      * dictation in several (#416) is Whistle's only when all of them are.
      */
     private fun whistleCoversVoice(): Boolean =
-        WhistleEngine.available && voiceLanguageIds().all(WhistleLanguages::supports)
+        WhistleEngine.shipped && voiceLanguageIds().all(WhistleLanguages::supports)
 
     /** [engine] can run here and transcribes every language the dictation listens for. */
     private fun etCoversVoice(engine: EtEngine): Boolean =

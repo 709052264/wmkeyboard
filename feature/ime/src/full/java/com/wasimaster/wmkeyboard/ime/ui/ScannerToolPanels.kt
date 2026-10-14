@@ -94,6 +94,7 @@ import com.google.android.gms.tasks.Task
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.clipboard.ClipLinks
 import com.wasimaster.wmkeyboard.core.clipboard.LinkPreview
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.ocr.OcrLanguages
 import com.wasimaster.wmkeyboard.core.ocr.OcrPacks
 import com.wasimaster.wmkeyboard.core.settings.OcrEngine
@@ -267,9 +268,16 @@ private fun OcrContent(
     val packStates by OcrPacks.states.collectAsState()
     LaunchedEffect(pack) { if (pack != null) OcrPacks.refresh(filesDir, listOf(pack)) }
     val packStatus = pack?.let { packStates[it] }
-    val packReady = remember(pack, packStatus) {
-        pack == null || packStatus == OcrPacks.Status.Downloaded ||
-            (packStatus == null && OcrPacks.isDownloaded(filesDir, pack))
+    // Play: a pack on disk reads only once Tesseract's own split is here too;
+    // until then the prompt's download fetches the split.
+    val ocrModule by TesseractOcr.moduleState.collectAsState()
+    val packReady = remember(pack, packStatus, ocrModule) {
+        pack == null || (
+            ocrModule == ModuleState.Installed && (
+                packStatus == OcrPacks.Status.Downloaded ||
+                    (packStatus == null && OcrPacks.isDownloaded(filesDir, pack))
+                )
+            )
     }
 
     val previewView = remember {

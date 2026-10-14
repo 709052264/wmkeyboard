@@ -5,17 +5,20 @@ plugins {
     id("com.android.dynamic-feature")
 }
 
-// The on-demand home of the whisper.cpp and ExecuTorch native libraries,
+// The on-demand home of the whisper.cpp, ExecuTorch and Whistle native libraries,
 // Play builds only: :app lists this module in `dynamicFeatures` when
 // wmkb.enablePlayStore is on, and no other build references it at all. Every
 // other channel packages the same files in the base APK from :core:voice.
-// The module has no code: WhisperCpp and EtNative stay in :core:voice and
+// The module has no code: WhisperCpp, EtNative and WhistleEngine stay in :core:voice and
 // load the libraries through FeatureModules.loadLibrary once Play has
-// installed this split. It packages :core:voice's src/main/jniLibs in place,
-// which :core:voice drops from itself on this channel, so the files keep the
-// one path the native build scripts and F-Droid's recipe know. About 7 MB on
-// arm64, used only by the GGML Whisper models, Asr4All, Parakeet and
-// Moonshine, all of which the user picks and downloads first.
+// installed this split. It packages :core:voice's src/main/jniLibs and, for
+// full, src/full/jniLibs (Whistle, arm64 only) in place, which :core:voice
+// drops from itself on this channel, so the files keep the paths the native
+// build scripts and F-Droid's recipe know. Whistle rides here rather than in a
+// split of its own because bundletool wants every module with native code on
+// the base's three ABIs, and Whistle has one. Used only by the GGML Whisper
+// models, Asr4All, Parakeet, Moonshine and Whistle, all of which the user
+// picks and downloads first.
 android {
     namespace = "com.wasimaster.wmkeyboard.speechfeature"
     compileSdk {
@@ -59,8 +62,11 @@ kotlin {
 androidComponents {
     onVariants { variant ->
         // Both flavours: the base carries these libraries in full and lite
-        // alike off Play.
+        // alike off Play. Whistle is full only, as it is off Play.
         variant.sources.jniLibs?.addStaticSourceDirectory("../../core/voice/src/main/jniLibs")
+        if (variant.flavorName == "full") {
+            variant.sources.jniLibs?.addStaticSourceDirectory("../../core/voice/src/full/jniLibs")
+        }
     }
 }
 

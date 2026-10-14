@@ -281,7 +281,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
     val scope = rememberCoroutineScope()
     val whisperEnabled = com.wasimaster.wmkeyboard.core.settings.isWhisperEnabled()
     // No library in lite or off arm64, so nothing to offer there (#548).
-    val whistleEnabled = com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine.available
+    val whistleEnabled = com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine.shipped
     // The ExecuTorch runtime behind Asr4All (#289), Parakeet and Moonshine:
     // both editions, wherever its library is.
     val etEnabled = com.wasimaster.wmkeyboard.core.voice.executorch.EtNative.shipped

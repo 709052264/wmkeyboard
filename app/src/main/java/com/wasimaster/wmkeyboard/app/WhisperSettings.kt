@@ -903,7 +903,7 @@ private fun WhisperDownloadProgress(bytes: Long, total: Long) {
 }
 
 /**
- * The whisper.cpp and ExecuTorch libraries' own download (`:feature:speech`),
+ * The whisper.cpp, ExecuTorch and Whistle libraries' own download (`:feature:speech`),
  * on a Play install that has not fetched them. Nothing anywhere else, where
  * the libraries are in the APK. Asks the way the interpreter's banner does.
  */

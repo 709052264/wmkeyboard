@@ -53,6 +53,9 @@ internal fun WhistleModelManager(settings: LiveSettings) {
         }
     }
 
+    // Play: the engine itself is an on-demand part, shared with whisper.cpp.
+    SpeechModuleBanner(settings)
+
     val title = stringResource(R.string.voice_whistle_model_title)
     SettingsGroup(
         stringResource(R.string.voice_whistle_group),

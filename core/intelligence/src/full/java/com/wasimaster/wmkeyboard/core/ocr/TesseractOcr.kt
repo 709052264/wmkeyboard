@@ -1,24 +1,32 @@
 package com.wasimaster.wmkeyboard.core.ocr
 
 import android.graphics.Bitmap
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.GatedLibrary
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.Executors
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 
 /**
  * The JNI surface of `libwmtess.so`, built from `native/tesseract-jni` and
  * committed under this module's `src/full/jniLibs`. Handles are native
- * pointers; see the C++ file for what each call guarantees.
+ * pointers; see the C++ file for what each call guarantees. Play builds carry
+ * the library in the on-demand `:feature:ocr` split instead, fetched with the
+ * first language pack (see [OcrPacks.start]).
  */
 internal object TesseractNative {
 
-    /** False when the library is missing from this build or failed to load. */
-    val available: Boolean = runCatching { System.loadLibrary("wmtess") }.isSuccess
+    /** Loaded on first read of [GatedLibrary.available], once the split (if any) is here. */
+    val library = GatedLibrary({ FeatureModules.ocr }) {
+        runCatching { FeatureModules.loadLibrary("wmtess") }.isSuccess
+    }
 
     @JvmStatic external fun nativeCreate(dataDir: String, languages: String): Long
 
@@ -66,7 +74,15 @@ class TesseractException(val reason: Reason, message: String) : IOException(mess
  */
 object TesseractOcr {
 
-    val available: Boolean get() = TesseractNative.available
+    /**
+     * Whether this build has Tesseract, counting a Play split not fetched yet:
+     * what decides that a language reads with it. Loads nothing on Play
+     * before the split is here.
+     */
+    val available: Boolean get() = TesseractNative.library.shipped
+
+    /** Where the library's Play module stands. Always installed outside Play. */
+    val moduleState: StateFlow<ModuleState> get() = FeatureModules.ocr.state
 
     private val thread = Executors.newSingleThreadExecutor { r -> Thread(r, "tesseract") }
     private val dispatcher = thread.asCoroutineDispatcher()
@@ -82,7 +98,7 @@ object TesseractOcr {
      * or fails, so a broken engine never looks like a photo without text.
      */
     suspend fun recognize(filesDir: File, pack: String, bitmap: Bitmap): String {
-        if (!available) {
+        if (!TesseractNative.library.available) {
             throw TesseractException(TesseractException.Reason.UNAVAILABLE, "libwmtess is not loaded")
         }
         if (!OcrPacks.isDownloaded(filesDir, pack)) {

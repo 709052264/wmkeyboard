@@ -1,5 +1,8 @@
 package com.wasimaster.wmkeyboard.core.voice.whistle
 
+import android.os.Build
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.GatedLibrary
 import java.io.File
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -11,17 +14,29 @@ import kotlinx.serialization.json.jsonPrimitive
  *
  * The library ships in the full flavour's `jniLibs` for arm64 only, so lite
  * builds and other ABIs simply fail to load it and [available] is false; there
- * is no stub to keep in step. The engine is process-global and holds one
+ * is no stub to keep in step. Play builds carry it in the on-demand
+ * `:feature:speech` split with whisper.cpp and ExecuTorch, so [shipped] says
+ * whether the build has it and [available] whether it is loaded. The engine is process-global and holds one
  * model, loaded on first use and kept: the C API has no unload.
  */
 object WhistleEngine {
 
     private val lock = Any()
 
-    /** Whether the native engine loaded on this device and build. */
-    val available: Boolean by lazy {
-        runCatching { System.loadLibrary("wmwhistle") }.isSuccess
+    private val library = GatedLibrary({ FeatureModules.speech }) {
+        runCatching { FeatureModules.loadLibrary("wmwhistle") }.isSuccess
     }
+
+    /** Whether the native engine is loaded on this device and build. */
+    val available: Boolean get() = library.available
+
+    /**
+     * Whether this build and device have the engine, counting a Play split not
+     * fetched yet. The split carries it for arm64 alone, so before it is here
+     * the process's own ABI is the answer.
+     */
+    val shipped: Boolean
+        get() = library.shipped && (FeatureModules.speech.installed || Build.SUPPORTED_ABIS.firstOrNull() == "arm64-v8a")
 
     private var loadedModel: File? = null
 
