@@ -13,9 +13,16 @@
 //! - [`avro`]: the keyboard's own Avro-style phonetic transliterator.
 //! - [`avro_desktop`]: desktop Avro's grammars and lookups out of ibus-avro's
 //!   data (readings, autocorrect, suffixes, the search expression).
+//! - [`hindi`]: Hindi phonetic, into Devanagari.
+//! - [`arabic_script`] with [`urdu`], [`arabic`] and [`persian`]: the shared
+//!   roman-to-Arabic-script walk and its three tables.
+//! - [`indic`] with [`indic_script`], [`indic_profiles`] and one module per
+//!   language (Marathi, Gujarati, Punjabi, Odia, Tamil, Telugu, Kannada,
+//!   Malayalam): the shared Indic engine and its profiles.
 //!
-//! Still Kotlin: Hindi and Urdu phonetic, the Indic tables, the Bijoy ANSI
-//! converter, Avro's dictionary walk, prediction and glide.
+//! Still Kotlin: Assamese, the Bijoy ANSI converter, the romanizers and
+//! phonetic indexes, the Bengali grapheme helpers, Avro's dictionary walk,
+//! prediction and glide.
 //!
 //! The crate does no I/O. Its tables are compiled in from the Android app's
 //! own resource and asset files, so the two never disagree about which
@@ -25,9 +32,20 @@ pub mod arabic;
 pub mod arabic_script;
 pub mod avro;
 pub mod avro_desktop;
+pub mod gujarati;
 pub mod hindi;
+pub mod indic;
+pub mod indic_profiles;
+pub mod indic_script;
+pub mod kannada;
 pub mod khipro;
+pub mod malayalam;
+pub mod marathi;
+pub mod odia;
 pub mod persian;
+pub mod punjabi;
 pub mod sexp;
+pub mod tamil;
+pub mod telugu;
 pub mod unicode;
 pub mod urdu;

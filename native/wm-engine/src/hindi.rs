@@ -416,9 +416,7 @@ impl Tables {
         // the end of the word, or nothing at all.
         let closing = last
             || (index == tokens.len() - 2 && self.rules[tokens[index + 1]].kind == Kind::Vowel);
-        if doubled {
-            true
-        } else if here == "य" {
+        if doubled || here == "य" {
             true
         } else if here == "र" {
             BEFORE_R.contains(&before)
