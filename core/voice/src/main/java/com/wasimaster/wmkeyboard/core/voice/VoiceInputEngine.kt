@@ -144,7 +144,10 @@ class VoiceInputEngine(private val context: Context) {
         // panel on its spinner for good (#664). A session that has stopped
         // listening gets RESULT_MS to answer; after that it is cancelled and
         // what was heard lands as the result, so continuous dictation goes on.
-        val waitForResult: () -> Unit = {
+        // Transcribro sends the phrase as a partial a moment after the pause
+        // and the result up to a dozen seconds later, or never, so a partial
+        // once listening has stopped shortens the wait to RESULT_AFTER_PARTIAL_MS.
+        val waitForResult: (Long) -> Unit = { delay ->
             resultCheck?.let(main::removeCallbacks)
             val check = Runnable {
                 if (recognizer === session) {
@@ -153,9 +156,9 @@ class VoiceInputEngine(private val context: Context) {
                 }
             }
             resultCheck = check
-            main.postDelayed(check, RESULT_MS)
+            main.postDelayed(check, delay)
         }
-        awaitResult = waitForResult
+        awaitResult = { waitForResult(RESULT_MS) }
         fun stalled() {
             onDeviceStalledTags += languageTag
             release(session)
@@ -183,7 +186,7 @@ class VoiceInputEngine(private val context: Context) {
             override fun onBufferReceived(buffer: ByteArray?) {}
 
             override fun onEndOfSpeech() {
-                if (recognizer === session) waitForResult()
+                if (recognizer === session && resultCheck == null) waitForResult(RESULT_MS)
                 listener.onEndOfSpeech()
             }
 
@@ -237,9 +240,9 @@ class VoiceInputEngine(private val context: Context) {
                 if (!text.isNullOrBlank()) {
                     heard = true
                     lastPartial = text
-                    // Still working: a partial after the end of speech is
-                    // the recognizer showing it has not hung.
-                    if (recognizer === session && resultCheck != null) waitForResult()
+                    // Words after the end of speech are the phrase the
+                    // recognizer settled on; its result should follow at once.
+                    if (recognizer === session && resultCheck != null) waitForResult(RESULT_AFTER_PARTIAL_MS)
                     listener.onPartial(text)
                 }
             }
@@ -453,6 +456,12 @@ class VoiceInputEngine(private val context: Context) {
          * one on the phone transcribes only now, so this leaves it room.
          */
         const val RESULT_MS = 12_000L
+
+        /**
+         * The same wait once a partial has come in after listening stopped:
+         * the words are known, only the recognizer's result is missing.
+         */
+        const val RESULT_AFTER_PARTIAL_MS = 3_000L
     }
 
     private fun errorKind(code: Int): ErrorKind = when (code) {

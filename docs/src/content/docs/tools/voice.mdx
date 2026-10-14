@@ -121,7 +121,7 @@ With **Keep listening** on (the default), finishing one sentence doesn't stop di
 
 Between sentences the mic is really closed for a moment: the recognizer has stopped hearing and is working out the words. The pulse ring goes away and the line shows "…" for exactly that stretch, so you can see when to wait. It comes back when the next sentence is listening. Pressing the mic while it's working out the words makes that sentence the last one.
 
-That stretch has a limit. A recognizer that stops on its own pause is expected to send the words it heard, but some don't always: Transcribro, a Whisper-based recognizer often installed on phones without Google's, can go quiet after the pause and leave the spinner turning. After 12 seconds with nothing from the recognizer, the keyboard ends the sentence itself, keeps the words already shown, and carries on listening.
+That stretch has a limit. A recognizer that stops on its own pause is expected to send the words it heard, but some don't always: Transcribro, a Whisper-based recognizer often installed on phones without Google's, shows the words a moment after the pause and then sends its result many seconds later, or never, which left the spinner turning. Once the words of a finished sentence are on screen, the keyboard waits 3 seconds for the recognizer to confirm them; with no words at all it waits 12. Then it ends the sentence itself, keeps the words already shown, and carries on listening.
 
 Continuous mode is also patient with silence: a pause that would normally time out the recognizer just restarts listening quietly instead of surfacing an error, but only for two silent retries in a row. After that it gives up and goes idle, so an abandoned open mic doesn't sit there listening forever.
 
