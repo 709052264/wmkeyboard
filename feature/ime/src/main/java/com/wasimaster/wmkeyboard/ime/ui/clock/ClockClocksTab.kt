@@ -229,7 +229,9 @@ private fun ZoneCard(
     val tz = remember(zone.zoneId) { TimeZone.getTimeZone(zone.zoneId) }
     val home = TimeZone.getDefault()
     val coords = remember(zone) {
-        if (zone.latitude != null && zone.longitude != null) zone.latitude to zone.longitude else ZoneCoordinates.of(zone.zoneId)
+        val lat = zone.latitude
+        val lon = zone.longitude
+        if (lat != null && lon != null) lat to lon else ZoneCoordinates.of(zone.zoneId)
     }
     val sun = remember(zone.zoneId, now / DAY_MS) { coords?.let { SolarCalculator.forDate(it.first, it.second, now, tz) } }
     val city = remember(zone) { zone.label.ifEmpty { IcuZoneNames().city(zone.zoneId) ?: ZoneCatalog.fallbackCity(zone.zoneId) } }
