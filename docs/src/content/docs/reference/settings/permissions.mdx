@@ -56,6 +56,8 @@ The grants Android won't prompt for. Each one is a switch on a system screen, so
 | Notification access | Media controls on the keyboard, and one-time codes from your notifications | Android's full notification-listener list, where you find WM Keyboard yourself |
 | Usage access | Show which app a clipboard entry was copied from | Android's usage-access list |
 | Display over other apps | The floating button that opens the keyboard without a text field | Android's "Display over other apps" page for WM Keyboard |
+| Alarms and reminders | Clock tool alarms and timers ring at the exact minute (Android 12 and later) | Android's "Alarms & reminders" page for WM Keyboard |
+| Full-screen notifications | A ringing clock alarm shows its screen over the lock screen (Android 14 and later) | Android's full-screen notification page for WM Keyboard |
 | Accessibility service | Keep the keyboard gestures while TalkBack is on (not in the Play Store build) | Android's accessibility list |
 | Install updates | Install a new version of this app that you downloaded from its release page | Android's "install unknown apps" page for WM Keyboard |
 
@@ -69,7 +71,7 @@ Notification access is the one place a row from this screen lands somewhere broa
 
 <SettingsPath path="Privacy / Permissions / Included with the app" />
 
-Four permissions the app holds from the moment you install it. They can't be asked for and they can't be given back, so these rows do nothing when tapped. They read **Automatic** on the right rather than a grant state.
+Five permissions the app holds from the moment you install it. They can't be asked for and they can't be given back, so these rows do nothing when tapped. They read **Automatic** on the right rather than a grant state.
 
 | Row | Subtitle |
 |---|---|
@@ -77,13 +79,14 @@ Four permissions the app holds from the moment you install it. They can't be ask
 | Network state | The model downloads first check that the connection is not metered |
 | Vibration | Haptic feedback when you press a key |
 | Fingerprint | Ask the system to check a fingerprint for the lock in Privacy. The app never sees the fingerprint itself |
+| Ring alarms | Keep an alarm or a timer sounding while it rings, and the phone awake for that time. Only after you set one in the clock tool |
 
 The screen closes on a caption saying as much. Android gives that last group out at install, and an app can't ask for them or give them back. Every other permission on the screen can be taken back at any time. The feature using it then stops, and the rest of the keyboard carries on.
 
 ## Details & edge cases
 
 - **The Fingerprint row is not a reader of your fingerprint.** `USE_BIOMETRIC` asks Android to run its own prompt and report a yes or a no. The fingerprint never reaches the app. Nothing requests the prompt unless you turn the [App lock](/reference/settings/app-lock/) on.
-- **The "Included with the app" group lists four rows, not every install-time permission in the APK.** These are the four the app declares for itself. A full build carries three more that never show up here and never produce a prompt: `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED` and `FOREGROUND_SERVICE`. They arrive in the merged manifest from androidx.work, which ML Kit pulls in, and the app schedules no WorkManager job of its own. Lite builds don't declare them at all.
+- **The "Included with the app" group lists five rows, not every install-time permission in the APK.** **Ring alarms** stands for three the [Clock](/tools/clock/) tool declares together: `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SYSTEM_EXEMPTED` and `WAKE_LOCK`, used only while an alarm or a timer rings. A full build carries one more that never shows up here and never produces a prompt, `RECEIVE_BOOT_COMPLETED`. It arrives in the merged manifest from androidx.work, which ML Kit pulls in, and the app schedules no WorkManager job of its own and registers no boot receiver. Lite builds don't declare it at all.
 - **The labels re-read themselves every time the screen comes back.** Both directions of a change happen on a system screen this one sends you to, so a row would otherwise be stale the moment you pressed Back. Grant something in Android's Settings, return to the keyboard, and the row already says **Granted**.
 - **Nothing on this screen is a setting**, so no row grows the usual restore button. What a row reflects is a grant held by Android, not a value stored by the app; see [Putting one setting back](/reference/settings/#putting-one-setting-back) for where that button does apply.
 - **Contacts is one permission behind two features.** Contact-name suggestions and contact-email suggestions both read the same grant. This screen asks for it once, with the name-suggestions wording. The two settings on the [Typing](/reference/settings/typing/) screen each have their own.

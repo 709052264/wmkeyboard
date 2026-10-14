@@ -7807,6 +7807,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.FIND_REPLACE -> R.string.ime_tool_find_replace
     ToolbarTool.NOTES -> R.string.ime_tool_notes
     ToolbarTool.LOCATION -> R.string.ime_tool_location
+    ToolbarTool.CLOCK -> R.string.ime_tool_clock
     ToolbarTool.PLUGINS -> R.string.ime_tool_plugins
     ToolbarTool.APP_LAUNCHER -> R.string.ime_tool_app_launcher
     ToolbarTool.AI -> R.string.ime_tool_ai
@@ -7899,6 +7900,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.FIND_REPLACE -> state.panel == PanelMode.FIND_REPLACE
     ToolbarTool.NOTES -> state.panel == PanelMode.NOTES
     ToolbarTool.LOCATION -> state.panel == PanelMode.LOCATION
+    ToolbarTool.CLOCK -> state.panel == PanelMode.CLOCK
     ToolbarTool.VOICE -> state.panel == PanelMode.VOICE || state.voice.strip || state.voice.bar
     ToolbarTool.GRAMMAR -> state.panel == PanelMode.GRAMMAR
     ToolbarTool.WIKIPEDIA -> state.panel == PanelMode.WIKIPEDIA
@@ -10908,7 +10910,7 @@ private val FullBleedPanels = setOf(
     PanelMode.DICTIONARY, PanelMode.SYMBOLS, PanelMode.MEDIA_CONTROL, PanelMode.KDE_CONNECT,
     PanelMode.VOCABULARY, PanelMode.LEARN_FROM_TEXT, PanelMode.NOTES,
     PanelMode.APP_LAUNCHER, PanelMode.THEMES, PanelMode.SNIPPETS, PanelMode.WIKIPEDIA,
-    PanelMode.AI_REPLY, PanelMode.LOCATION,
+    PanelMode.AI_REPLY, PanelMode.LOCATION, PanelMode.CLOCK,
 )
 
 /**
@@ -11944,6 +11946,11 @@ private fun KeyboardBody(
                     state = state,
                     callbacks = toolHold.location,
                     onClose = { onPanelChange(PanelMode.LOCATION) },
+                )
+                PanelMode.CLOCK -> com.wasimaster.wmkeyboard.ime.ui.clock.ClockPanel(
+                    state = state,
+                    callbacks = toolHold.clock,
+                    onClose = { onPanelChange(PanelMode.CLOCK) },
                 )
                 // The month grid and the selected day's event list are fighting
                 // over the same rows, so the calendar buys itself another band
@@ -26775,6 +26782,8 @@ data class ToolHoldCallbacks(
     val notes: NotesCallbacks = NotesCallbacks(),
     /** The Location panel's callbacks and state (#350); here for the same reason as [dictionaryBar]. */
     val location: LocationCallbacks = LocationCallbacks(),
+    /** The Clock panel's callbacks and state; here for the same reason as [dictionaryBar]. */
+    val clock: com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks = com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks(),
     /** The clipboard panel's editor and view switch; here for the same reason as [dictionaryBar]. */
     val clipboard: ClipboardPanelActions = ClipboardPanelActions(),
     /** The caret magnifier (discussion #303); here for the same reason as [dictionaryBar]. */

@@ -756,6 +756,13 @@ enum class PanelMode {
      * is the controller's, see `ime.location.LocationUi`.
      */
     LOCATION,
+
+    /**
+     * The Clock tool: world clocks, alarms, timers, stopwatch, planner, dates
+     * and history. Its state is the controller's, see `ime.clock.ClockUi`; its
+     * text box takes the keys through the `CLOCK_*` capture targets.
+     */
+    CLOCK,
 }
 
 /**
@@ -925,6 +932,8 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     // The format chips, the saved places, then Insert and its row (or the one
     // button an empty state has).
     PanelMode.LOCATION -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
+    // The tab row; each tab's own controls are touch, and typing reaches its box.
+    PanelMode.CLOCK -> listOf(FocusRegion.CHIPS)
     PanelMode.PASSWORD_GEN ->
         listOf(FocusRegion.CHIPS, FocusRegion.ACTIONS, FocusRegion.RESULTS)
     // The dialect and Fix-all chips, then the lint cards. Seed-only (see
@@ -3488,6 +3497,11 @@ data class KeyboardUiState(
     val torchOn: Boolean = false,
     /** The Notes panel (#560); survives the panel closing like [vocab]. */
     val notes: NotesPanelUi = NotesPanelUi(),
+    /**
+     * The Clock panel's text box while it has the keys: a zone search or a
+     * label. The rest of the panel's state is the controller's.
+     */
+    val clockText: com.wasimaster.wmkeyboard.ime.clock.ClockTextEntry? = null,
     val weather: WeatherUi = WeatherUi.NoLocation,
     val dictionary: DictionaryUi = DictionaryUi.Idle,
     /** Word in the dictionary panel's search field. */
@@ -3913,6 +3927,10 @@ data class KeyboardUiState(
     val notesTypingActive: Boolean
         get() = panel == PanelMode.NOTES && (notes.editing != null || notes.searchActive)
 
+    /** Whether the Clock panel's text box has the keys; panel *and* box, as [notesTypingActive]. */
+    val clockTypingActive: Boolean
+        get() = panel == PanelMode.CLOCK && clockText != null
+
     /**
      * Whether keystrokes belong to the clipboard panel's clip editor. Panel
      * *and* an open edit, like [learnEditActive], so an edit left behind by a
@@ -3985,6 +4003,12 @@ data class KeyboardUiState(
             NoteEditField.TAG -> CaptureTarget.NOTE_TAG
             null -> CaptureTarget.NOTE_SEARCH
         }
+        clockTypingActive ->
+            if (clockText?.field == com.wasimaster.wmkeyboard.ime.clock.ClockTextField.SEARCH) {
+                CaptureTarget.CLOCK_SEARCH
+            } else {
+                CaptureTarget.CLOCK_LABEL
+            }
         calcTypingActive -> CaptureTarget.CALC
         converterTypingActive -> CaptureTarget.CONVERTER
         wordSpellActive -> CaptureTarget.WORD_SPELL
@@ -4042,6 +4066,7 @@ data class KeyboardUiState(
         CaptureTarget.NOTE_TITLE -> notes.editing?.titleDraft.orEmpty()
         CaptureTarget.NOTE_BODY -> notes.editing?.bodyDraft.orEmpty()
         CaptureTarget.NOTE_TAG -> notes.editing?.tagDraft.orEmpty()
+        CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> clockText?.text.orEmpty()
     }
 
     /**

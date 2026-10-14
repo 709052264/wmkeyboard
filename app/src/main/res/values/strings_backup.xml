@@ -130,6 +130,7 @@
     <string name="backup_section_vocab_label">Vocabulary</string>
     <string name="backup_section_swipe_label">Swipe style</string>
     <string name="backup_section_notes_label">Notes</string>
+    <string name="backup_section_clock_label">Clock</string>
 
     <!-- The same names in the middle of a sentence, for the list in     -->
     <!-- backup_restore_done ("The app restored themes, snippets.").      -->
@@ -148,6 +149,7 @@
     <string name="backup_section_vocab_label_lowercase">vocabulary</string>
     <string name="backup_section_swipe_label_lowercase">swipe style</string>
     <string name="backup_section_notes_label_lowercase">notes</string>
+    <string name="backup_section_clock_label_lowercase">clock</string>
 
     <!-- How much of each part a backup file holds. %1$d is the count. These -->
     <!-- go after the name of the part: "Themes: 3 custom themes".           -->
@@ -208,6 +210,10 @@
         <item quantity="one">%1$d note</item>
         <item quantity="other">%1$d notes</item>
     </plurals>
+    <plurals name="backup_section_clock_count">
+        <item quantity="one">%1$d alarm</item>
+        <item quantity="other">%1$d alarms</item>
+    </plurals>
 
     <!-- ================================================================== -->
     <!-- Backup: what the export file holds.                                -->
@@ -240,6 +246,8 @@
     <string name="backup_include_vocab_subtitle">Your word lists, imported packs and learning progress. Downloaded packs are left out; they can be downloaded again.</string>
     <string name="backup_include_notes_subtitle">Your notes, their tags, and what is in the trash</string>
     <string name="backup_include_notes_info">Locked notes stay out of the file unless Include API keys is on. A backup file is easy to share, and a locked note is one you asked to keep from view.</string>
+    <string name="backup_include_clock_subtitle">Alarms, timer presets, countdowns and the clock settings</string>
+    <string name="backup_include_clock_info">Running timers, the stopwatch and the history stay on this phone. Sync leaves the clock out unless you turn it on, so two phones do not ring for one alarm.</string>
     <string name="backup_include_swipe_subtitle">How you swipe: where your finger lands, the readings you corrected, and the shape you draw each word in. Holds the words you have swiped.</string>
     <string name="backup_include_addons_info">This is only the list of addresses. The add-ons themselves go into the sections above. An installed theme is a custom theme, and an installed pack is an icon pack.</string>
 

@@ -6533,6 +6533,8 @@ open class WMKeyboardService : InputMethodService() {
         // A location permission answer arrives the same way the scanned
         // pages below do: the trampoline finished and the field came back.
         locationTool.onKeyboardShown()
+        // And a clock grant (exact alarms, full screen) given on a system screen.
+        if (clockToolDelegate.isInitialized()) clockTool.onKeyboardShown()
         // Same for the images permission the reply panel's screenshot button
         // asked for: open the picker it was pressed for.
         resumeReplyShotsAfterGrant()
@@ -9169,6 +9171,8 @@ open class WMKeyboardService : InputMethodService() {
             }
             // Enter finishes a new tag's name.
             CaptureTarget.NOTE_TAG -> onNoteTagCommit()
+            // Search adds its best match; a label is kept. Either way the keys go back.
+            CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> state.clockText?.let(clockTool::onTextEnter)
             // A clip is free text, so Enter is a line break in it; saving is
             // the editor's own button.
             CaptureTarget.CLIP_EDIT -> captureTyped("\n")
@@ -9406,6 +9410,12 @@ open class WMKeyboardService : InputMethodService() {
                     noteEditDraft { it.copy(titleDraft = after.text.replace("\n", " ").take(NoteStore.MAX_TITLE_LENGTH)) }
                 CaptureTarget.NOTE_BODY -> noteEditDraft { it.copy(bodyDraft = after.text.take(NoteEdit.EDITOR_MAX_LENGTH)) }
                 CaptureTarget.NOTE_TAG -> noteEditDraft { it.copy(tagDraft = after.text.trimStart().take(NoteStore.MAX_TAG_LENGTH)) }
+                CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> {
+                    val limit = com.wasimaster.wmkeyboard.ime.clock.ClockController.LABEL_MAX
+                    val entry = _uiState.value.clockText?.copy(text = after.text.replace("\n", " ").take(limit))
+                    _uiState.update { it.copy(clockText = entry) }
+                    entry?.let(clockTool::onText)
+                }
             }
         }
         val written = _uiState.value.captureBuffer()
@@ -23092,6 +23102,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.FIND_REPLACE -> openFindReplaceTool()
             ToolbarTool.NOTES -> onPanelChange(PanelMode.NOTES)
             ToolbarTool.LOCATION -> onPanelChange(PanelMode.LOCATION)
+            ToolbarTool.CLOCK -> onPanelChange(PanelMode.CLOCK)
             ToolbarTool.MEDIA_CONTROL -> onPanelChange(PanelMode.MEDIA_CONTROL)
             ToolbarTool.KDE_CONNECT -> onPanelChange(PanelMode.KDE_CONNECT)
             ToolbarTool.PLUGINS -> onPanelChange(PanelMode.PLUGINS)
@@ -23184,6 +23195,11 @@ open class WMKeyboardService : InputMethodService() {
         // is saved and the editor, the search and the Undo bar go (#560).
         if (_uiState.value.panel == PanelMode.NOTES) notesLeavePanel()
         if (_uiState.value.panel == PanelMode.LOCATION) locationTool.onPanelClose()
+        // Leaving the Clock panel: its text box gives the keys back.
+        if (_uiState.value.panel == PanelMode.CLOCK) {
+            clockTool.onPanelClose()
+            _uiState.update { it.copy(clockText = null) }
+        }
         // Leaving the reply panel, by closing it or opening another: the
         // screenshot watcher goes back to what the clipboard setting says (#234).
         if (_uiState.value.panel == PanelMode.AI_REPLY) {
@@ -23337,6 +23353,7 @@ open class WMKeyboardService : InputMethodService() {
         when (_uiState.value.panel) {
             PanelMode.WEATHER -> refreshWeather()
             PanelMode.LOCATION -> locationTool.onPanelOpen()
+            PanelMode.CLOCK -> clockTool.onPanelOpen()
             PanelMode.VOCABULARY -> {
                 val prefill = _uiState.value.toolPrefill as? ToolPrefill.Vocab
                 if (prefill != null) onToolPrefillConsumed()
@@ -33541,6 +33558,7 @@ open class WMKeyboardService : InputMethodService() {
             vocab = vocabCallbacks(),
             notes = notesCallbacks(),
             location = locationTool.callbacks,
+            clock = clockTool.callbacks,
             stickerOffer = com.wasimaster.wmkeyboard.ime.ui.StickerOfferCallbacks(
                 onPick = ::onStickerOfferPick,
                 onExpand = ::onStickerOfferExpand,
@@ -33594,6 +33612,41 @@ open class WMKeyboardService : InputMethodService() {
      * of this one: nothing else here reads a position, and the panel collects
      * the controller's state directly.
      */
+    /**
+     * The Clock tool. Built on first use, like [locationTool]; the delegate is
+     * kept so the keyboard-shown hook can skip a controller nobody opened.
+     */
+    private val clockToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.clock.ClockController(
+            context = this,
+            scope = serviceScope,
+            insertText = ::onToolTextInsert,
+            haptic = { vibrate() },
+            openToolSettings = { openToolSettings(ToolbarTool.CLOCK) },
+            openRoute = ::openRoute,
+            beginText = { entry ->
+                _uiState.update {
+                    it.copy(
+                        clockText = entry,
+                        panelFocus = null,
+                        captureCaret = CaptureCaret(
+                            if (entry.field == com.wasimaster.wmkeyboard.ime.clock.ClockTextField.SEARCH) {
+                                CaptureTarget.CLOCK_SEARCH.name
+                            } else {
+                                CaptureTarget.CLOCK_LABEL.name
+                            },
+                            entry.text.length,
+                            entry.text,
+                        ),
+                    )
+                }
+            },
+            endText = { _uiState.update { it.copy(clockText = null) } },
+            currentText = { _uiState.value.clockText },
+        )
+    }
+    private val clockTool by clockToolDelegate
+
     private val locationTool by lazy {
         com.wasimaster.wmkeyboard.ime.location.LocationController(
             context = this,

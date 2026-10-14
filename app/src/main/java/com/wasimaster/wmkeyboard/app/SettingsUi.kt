@@ -401,6 +401,8 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "vocab/review" to Color(0xFF8E24AA),
     "vocab/browse" to Color(0xFF8E24AA),
     // The Notes tool's own yellow, see ToolColors.
+    // The Clock tool's own indigo, see ToolColors.
+    "clock" to Color(0xFF5C6BC0),
     "notes" to Color(0xFFFBC02D),
     "notes/tags" to Color(0xFFFBC02D),
     "notes/trash" to Color(0xFFFBC02D),

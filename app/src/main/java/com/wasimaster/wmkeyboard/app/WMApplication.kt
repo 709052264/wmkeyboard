@@ -89,5 +89,11 @@ open class WMApplication : Application() {
         // keyboard and the settings app share this process, and either may be
         // the one running. Does nothing while sync is off.
         SyncWatcher.start(this, SettingsRepository(this))
+        // The clock tool's alarms and timers. Android drops every registered
+        // wake-up at a reboot, and the app has no boot receiver on purpose:
+        // the keyboard starts at boot anyway, and this puts them back then.
+        // Free for anyone who never set one (one file-exists check), and off
+        // the main thread for those who did.
+        com.wasimaster.wmkeyboard.core.clock.ClockEngine.rearmOnStart(this)
     }
 }

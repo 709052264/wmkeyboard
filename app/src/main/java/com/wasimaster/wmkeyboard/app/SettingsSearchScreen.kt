@@ -535,6 +535,7 @@ internal object SettingsRouteIcons {
         "vocab/lists" to { Icons.Outlined.AutoStories },
         "vocab/review" to { Icons.Outlined.AutoStories },
         "vocab/browse" to { Icons.Outlined.AutoStories },
+        "clock" to { Icons.Outlined.Schedule },
         "notes" to { Icons.Outlined.StickyNote2 },
         "notes/tags" to { Icons.Outlined.Label },
         "notes/trash" to { Icons.Outlined.DeleteSweep },

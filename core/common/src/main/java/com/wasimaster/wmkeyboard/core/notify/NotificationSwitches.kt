@@ -56,6 +56,13 @@ object NotificationSwitches {
      */
     const val DEFAULT_CONNECT = true
 
+    /**
+     * Running timers and the stopwatch. On: each one is something the user
+     * just started, and the shade is the only way to stop it with the
+     * keyboard hidden.
+     */
+    const val DEFAULT_CLOCK = true
+
     /** Whether [kind] may be posted at all. */
     fun isOn(context: Context, kind: NotificationKind): Boolean =
         runCatching { prefs(context).getBoolean(kind.key, kind.default) }
@@ -93,6 +100,7 @@ object NotificationSwitches {
             NotificationKind.BACKUP -> DEFAULT_BACKUP
             NotificationKind.KEYBOARD -> DEFAULT_KEYBOARD
             NotificationKind.CONNECT -> DEFAULT_CONNECT
+            NotificationKind.CLOCK -> DEFAULT_CLOCK
         }
 
     private fun prefs(context: Context) =

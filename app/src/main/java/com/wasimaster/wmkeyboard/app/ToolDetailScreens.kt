@@ -3172,6 +3172,7 @@ internal fun ToolDetailSettings(
         ToolbarTool.VOCABULARY -> VocabularyToolSettings(repository, settings, onNavigate)
         ToolbarTool.NOTES -> NotesToolSettings(repository, settings, onNavigate)
         ToolbarTool.LOCATION -> LocationToolSettings(repository, settings)
+        ToolbarTool.CLOCK -> ClockToolSettings(onNavigate)
         ToolbarTool.MODES -> SettingsGroup(stringResource(R.string.tooldetail_modes_group)) {
             item {
                 NavRow(

@@ -144,6 +144,7 @@ internal fun sectionLabelRes(section: ConfigBackup.Section): Int = when (section
     ConfigBackup.Section.VOCAB -> R.string.backup_section_vocab_label
     ConfigBackup.Section.SWIPE -> R.string.backup_section_swipe_label
     ConfigBackup.Section.NOTES -> R.string.backup_section_notes_label
+    ConfigBackup.Section.CLOCK -> R.string.backup_section_clock_label
 }
 internal fun sectionLabel(context: Context, section: ConfigBackup.Section): String =
     context.getString(sectionLabelRes(section))
@@ -169,6 +170,7 @@ internal fun sectionLabelLowercase(context: Context, section: ConfigBackup.Secti
             ConfigBackup.Section.VOCAB -> R.string.backup_section_vocab_label_lowercase
             ConfigBackup.Section.SWIPE -> R.string.backup_section_swipe_label_lowercase
             ConfigBackup.Section.NOTES -> R.string.backup_section_notes_label_lowercase
+            ConfigBackup.Section.CLOCK -> R.string.backup_section_clock_label_lowercase
         },
     )
 @PluralsRes
@@ -187,6 +189,7 @@ private fun sectionCountPlural(section: ConfigBackup.Section): Int = when (secti
     ConfigBackup.Section.VOCAB -> R.plurals.backup_section_vocab_count
     ConfigBackup.Section.SWIPE -> R.plurals.backup_section_swipe_count
     ConfigBackup.Section.NOTES -> R.plurals.backup_section_notes_count
+    ConfigBackup.Section.CLOCK -> R.plurals.backup_section_clock_count
 }
 /** "3 themes", "1 snippet": the count line shown per section on import. */
 internal fun sectionSummary(context: Context, section: ConfigBackup.Section, count: Int): String =
@@ -653,10 +656,11 @@ private val SECTION_ROWS = listOf(
     SectionRow(ConfigBackup.Section.VOCAB, R.string.backup_include_vocab_subtitle),
     SectionRow(ConfigBackup.Section.SWIPE, R.string.backup_include_swipe_subtitle),
     SectionRow(ConfigBackup.Section.NOTES, R.string.backup_include_notes_subtitle, R.string.backup_include_notes_info),
+    SectionRow(ConfigBackup.Section.CLOCK, R.string.backup_include_clock_subtitle, R.string.backup_include_clock_info),
 )
 
 /**
- * The same fourteen switches for the three lists that pick sections: the
+ * The same fifteen switches for the three lists that pick sections: the
  * export, the automatic backup and sync. [sections] picks the list's sections
  * out of the settings, which each row reads for itself. [secrets] adds the
  * API-key switch under Settings where the list has one, shown while

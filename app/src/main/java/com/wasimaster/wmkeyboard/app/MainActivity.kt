@@ -1509,6 +1509,14 @@ private fun SettingsNavGraph(
                 VocabWordScreen(packId, word, settings) { route -> navController.navigate(route) }
             }
         }
+        composable("clock") {
+            // A timer's or the stopwatch's notification opens its own section.
+            val tab = (LocalContext.current as? android.app.Activity)?.intent
+                ?.getStringExtra(com.wasimaster.wmkeyboard.core.clock.ClockNotifications.EXTRA_TAB)
+            SettingsScreen(stringResource(R.string.clock_title), { navController.popBackStack() }, route = "clock") {
+                ClockScreen(tab) { route -> navController.navigate(route) }
+            }
+        }
         composable("notes") {
             SettingsScreen(stringResource(R.string.notes_title), { navController.popBackStack() }, route = "notes") {
                 NotesListScreen(repository, settings) { route -> navController.navigate(route) }

@@ -189,6 +189,7 @@ object IconDefaults {
         ToolbarTool.FIND_REPLACE -> Icons.Outlined.FindReplace
         ToolbarTool.NOTES -> Icons.Outlined.StickyNote2
         ToolbarTool.LOCATION -> Icons.Outlined.LocationOn
+        ToolbarTool.CLOCK -> Icons.Outlined.Schedule
         ToolbarTool.MEDIA_CONTROL -> Icons.Outlined.MusicNote
         ToolbarTool.KDE_CONNECT -> Icons.Outlined.Phonelink
         ToolbarTool.PLUGINS -> Icons.Outlined.Extension

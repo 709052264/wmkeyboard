@@ -1,0 +1,110 @@
+package com.wasimaster.wmkeyboard.core.clock
+
+import android.content.Context
+import androidx.core.content.edit
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.serialization.Serializable
+
+/**
+ * The clock tool's settings.
+ *
+ * Not in `KeyboardSettings`, on purpose. The receiver an alarm wakes and the
+ * service that rings both need the snooze length, the fade-in and the sound,
+ * and both run below `:core:settings`, before the first unlock, where the
+ * settings DataStore cannot be read. So the settings live here, in
+ * device-protected preferences, read the same way by the keyboard, the
+ * settings app and the ringer; the clock's backup section carries them.
+ */
+@Serializable
+data class ClockConfig(
+    /** Null follows the phone's 12/24-hour setting. */
+    val hour24: Boolean? = null,
+    val showSeconds: Boolean = true,
+    val zones: List<WorldZone> = emptyList(),
+    val insertFormat: String = InsertFormat.TIME_PLACE.id,
+    val workStartMinutes: Int = 9 * 60,
+    val workEndMinutes: Int = 17 * 60,
+    val snoozeMinutes: Int = 10,
+    val fadeInSeconds: Int = 20,
+    val autoSilenceMinutes: Int = 10,
+    val vibrate: Boolean = true,
+    /** Null rings the system's default alarm sound; empty rings nothing. */
+    val alarmSound: String? = null,
+    val timerSound: String? = null,
+    val focusMinutes: Int = 25,
+    val shortBreakMinutes: Int = 5,
+    val longBreakMinutes: Int = 15,
+    val longBreakEvery: Int = 4,
+    /** Days of history to keep; 0 keeps it until the cap. */
+    val historyDays: Int = 90,
+    /** Volume keys snooze a ringing alarm (otherwise they dismiss nothing and only silence). */
+    val volumeKeysSnooze: Boolean = true,
+    /** The panel tab last open, by [ClockTab.id]. */
+    val lastTab: String = "clocks",
+) {
+    val pomodoro: PomodoroPlan
+        get() = PomodoroPlan(focusMinutes, shortBreakMinutes, longBreakMinutes, longBreakEvery)
+
+    fun is24(systemIs24: Boolean): Boolean = hour24 ?: systemIs24
+}
+
+/** The panel's tabs, in order. */
+enum class ClockTab(val id: String) {
+    CLOCKS("clocks"), ALARMS("alarms"), TIMERS("timers"), STOPWATCH("stopwatch"),
+    PLANNER("planner"), DATES("dates"), HISTORY("history");
+
+    companion object {
+        fun of(id: String?): ClockTab = entries.firstOrNull { it.id == id } ?: CLOCKS
+    }
+}
+
+/** Where [ClockConfig] is kept: one JSON string in device-protected preferences. */
+object ClockPrefs {
+
+    private const val PREFS = "clock"
+    private const val KEY = "config"
+
+    @Volatile
+    private var flow: MutableStateFlow<ClockConfig>? = null
+
+    fun state(context: Context): StateFlow<ClockConfig> = flowFor(context)
+
+    fun get(context: Context): ClockConfig = flowFor(context).value
+
+    fun update(context: Context, change: (ClockConfig) -> ClockConfig) {
+        val f = flowFor(context)
+        synchronized(this) {
+            val next = change(f.value)
+            if (next == f.value) return
+            f.value = next
+            val text = ClockStore.json.encodeToString(ClockConfig.serializer(), next)
+            runCatching { prefs(context).edit { putString(KEY, text) } }
+        }
+    }
+
+    /** The stored JSON, for the backup. */
+    fun raw(context: Context): String? = runCatching { prefs(context).getString(KEY, null) }.getOrNull()
+
+    /** Restores the JSON a backup carried. Unknown or broken text is ignored. */
+    fun restore(context: Context, text: String) {
+        val parsed = runCatching { ClockStore.json.decodeFromString(ClockConfig.serializer(), text) }.getOrNull()
+            ?: return
+        update(context) { parsed }
+    }
+
+    private fun flowFor(context: Context): MutableStateFlow<ClockConfig> =
+        flow ?: synchronized(this) {
+            flow ?: MutableStateFlow(load(context)).also { flow = it }
+        }
+
+    private fun load(context: Context): ClockConfig {
+        val text = runCatching { prefs(context).getString(KEY, null) }.getOrNull() ?: return ClockConfig()
+        return runCatching { ClockStore.json.decodeFromString(ClockConfig.serializer(), text) }
+            .getOrElse { ClockConfig() }
+    }
+
+    private fun prefs(context: Context) =
+        context.applicationContext.createDeviceProtectedStorageContext()
+            .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+}

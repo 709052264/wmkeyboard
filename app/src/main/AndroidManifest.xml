@@ -122,6 +122,26 @@
          when the user turns the button on, after a disclosure. -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
+    <!-- The clock tool's alarms and timers. All of it only after the user
+         sets an alarm or starts a timer; none of it does anything otherwise.
+         - SCHEDULE_EXACT_ALARM: an alarm set for 6:30 rings at 6:30, not at
+           whatever minute Doze lets through. From Android 12 a special grant
+           the user gives on a system screen, asked after a disclosure; without
+           it alarms still ring, only less exactly. Not USE_EXACT_ALARM, which
+           Play keeps for apps whose main job is an alarm clock.
+         - USE_FULL_SCREEN_INTENT: the ring screen lights up a locked phone.
+         - FOREGROUND_SERVICE(_SYSTEM_EXEMPTED): the sound keeps playing while
+           an alarm rings, and only then. The service stops the moment the ring
+           is answered, and by itself after the auto-silence time.
+         - WAKE_LOCK: the phone stays awake for those same minutes.
+         No RECEIVE_BOOT_COMPLETED: the keyboard's own start after a reboot
+         re-arms the alarms (ClockEngine.rearmOnStart). -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <!-- Declaring fine location implies these as required, which would hide
          the keyboard from every device without GPS in the store. -->
@@ -1114,6 +1134,45 @@
         <receiver
             android:name="com.wasimaster.wmkeyboard.ime.KeyboardControlReceiver"
             android:exported="false" />
+
+        <!-- The clock tool: alarm and timer wake-ups, the buttons on its
+             notifications, and the system events that make a registered
+             wake-up wrong (clock or zone changed, exact-alarm grant changed,
+             the app updated). Direct-boot aware so an alarm rings before the
+             first unlock after a reboot; its data is in device-protected
+             storage for the same reason. -->
+        <receiver
+            android:name="com.wasimaster.wmkeyboard.core.clock.ClockReceiver"
+            android:directBootAware="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Plays an alarm or a timer while it rings, and only then. -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.core.clock.ClockRingService"
+            android:directBootAware="true"
+            android:exported="false"
+            android:foregroundServiceType="systemExempted" />
+
+        <!-- The ring screen: over the lock screen, lights the display, out of
+             recents so an answered alarm leaves nothing behind. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.clock.ClockRingActivity"
+            android:directBootAware="true"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:showWhenLocked="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.WMKeyboard"
+            android:turnScreenOn="true"
+            tools:targetApi="27" />
 
         <!-- Control from adb and automation apps (Tasker, MacroDroid,
              Automate). Exported with no permission on purpose: those are the

@@ -112,6 +112,11 @@ enum class ToolbarTool {
     // link, an address, coordinates or a Plus code (#350). The only tool that
     // reads the position, and only on a tap; saved places need no permission.
     LOCATION,
+    // World clocks, alarms, timers, a stopwatch, a meeting planner, date maths
+    // and a history. Its data is in device-protected storage so alarms ring
+    // before the first unlock, but the panel itself waits for the unlock like
+    // the other tools that keep files.
+    CLOCK,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -292,7 +297,7 @@ val PowerTools: Set<ToolbarTool> = RecommendedTools + setOf(
     ToolbarTool.WIKIPEDIA, ToolbarTool.VOCABULARY, ToolbarTool.NOTES, ToolbarTool.POWER_SAVING, ToolbarTool.MODES,
     ToolbarTool.NUMPAD,
     ToolbarTool.SYMBOLS, ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.CURRENCY,
-    ToolbarTool.PASSWORD_GEN, ToolbarTool.CALENDAR, ToolbarTool.WEATHER, ToolbarTool.LOCATION,
+    ToolbarTool.PASSWORD_GEN, ToolbarTool.CALENDAR, ToolbarTool.CLOCK, ToolbarTool.WEATHER, ToolbarTool.LOCATION,
     ToolbarTool.MEDIA_CONTROL, ToolbarTool.KDE_CONNECT, ToolbarTool.APP_LAUNCHER, ToolbarTool.HIDE_KEYBOARD,
 )
 

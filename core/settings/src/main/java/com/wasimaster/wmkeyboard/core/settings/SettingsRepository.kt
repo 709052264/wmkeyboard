@@ -4057,6 +4057,9 @@ data class AutoBackupSettings(
             // Written on purpose like snippets, and nothing re-downloads a
             // note. Locked notes stay out until secrets are included.
             ConfigBackup.Section.NOTES.id,
+            // Alarms set by hand. Not in sync's defaults: two phones that both
+            // ring for one alarm is a bug.
+            ConfigBackup.Section.CLOCK.id,
         )
     }
 }
@@ -15417,6 +15420,12 @@ class SettingsRepository(private val context: Context) {
             // the same reason — this file is easy to send somewhere.
             readStore(NoteStore.FILE_PATH)?.let { out[ConfigBackup.Section.NOTES] = NotesBackup.portable(it, includeSecrets) }
         }
+        if (ConfigBackup.Section.CLOCK in sections) {
+            // Only when the clock was ever used: its store file is the sign.
+            if (com.wasimaster.wmkeyboard.core.clock.ClockStore.exists(context)) {
+                out[ConfigBackup.Section.CLOCK] = com.wasimaster.wmkeyboard.core.clock.ClockBackup.portable(context)
+            }
+        }
         return ConfigBackup.encode(appVersion, appVersionName, out)
     }
 
@@ -15451,6 +15460,8 @@ class SettingsRepository(private val context: Context) {
                     ConfigBackup.Section.SWIPE -> swipeSectionWordCount(element)
                     // Notes outside the trash; the tags ride along uncounted.
                     ConfigBackup.Section.NOTES -> NotesBackup.count(element)
+                    // Alarms; presets, countdowns and the settings ride along uncounted.
+                    ConfigBackup.Section.CLOCK -> com.wasimaster.wmkeyboard.core.clock.ClockBackup.count(element)
                 }
             }.getOrDefault(0)
             counts[section] = count
@@ -15594,6 +15605,13 @@ class SettingsRepository(private val context: Context) {
                 // The keyboard holds the notes in memory; without this it
                 // saves its own list over the one just restored.
                 bumpNotesVersion()
+            }
+        }
+        (parsed.sections[ConfigBackup.Section.CLOCK] as? JsonObject)?.let { obj ->
+            // Through the clock's own engine, so the restored alarms are armed
+            // at once; the keyboard and the ringer share its one store.
+            if (com.wasimaster.wmkeyboard.core.clock.ClockBackup.restore(context, obj)) {
+                restored.add(ConfigBackup.Section.CLOCK)
             }
         }
         return ConfigImportResult.Applied(restored, settingsFailed)

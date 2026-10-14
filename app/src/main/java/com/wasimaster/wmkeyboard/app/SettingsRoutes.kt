@@ -129,6 +129,7 @@ internal object SettingsRoutes {
         "vocab/review",
         "vocab/browse",
         "vocab/word/{packId}/{word}",
+        "clock",
         "notes",
         "notes/edit/{noteId}",
         "notes/tags",

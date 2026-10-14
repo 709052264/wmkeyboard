@@ -190,6 +190,20 @@ enum class NotificationKind(
         importance = NotificationManager.IMPORTANCE_DEFAULT,
         category = NotificationCompat.CATEGORY_EVENT,
     ),
+
+    /**
+     * Timers and the stopwatch while they run, with their buttons, so they
+     * can be paused or stopped with the keyboard hidden. Ringing alarms are
+     * not this channel: an alarm the user set always rings, and the clock
+     * tool makes its own channel for that (`ClockNotifications`).
+     */
+    CLOCK(
+        channelId = "clock",
+        channelNameRes = R.string.common_notify_channel_clock_title,
+        channelBodyRes = R.string.common_notify_channel_clock_body,
+        importance = NotificationManager.IMPORTANCE_LOW,
+        category = NotificationCompat.CATEGORY_STOPWATCH,
+    ),
 }
 
 /** Stable notification ids, so two features cannot overwrite each other. */
@@ -212,6 +226,24 @@ object NotificationIds {
 
     /** The last file, ping or text a paired computer sent. */
     const val CONNECT_EVENT = 6
+
+    /** An alarm or a timer ringing: the ring service's own notification. */
+    const val CLOCK_RING = 100
+
+    /** The stopwatch, running or paused. */
+    const val CLOCK_STOPWATCH = 101
+
+    /**
+     * One per running timer, from its id. Timer ids only grow, so two running
+     * timers sharing a row would need 400 timers in between.
+     */
+    fun forTimer(id: Long): Int = CLOCK_TIMER_BASE + Math.floorMod(id, CLOCK_TIMER_SPAN.toLong()).toInt()
+
+    /** Whether [id] is one of [forTimer]'s. */
+    fun isTimer(id: Int): Boolean = id in CLOCK_TIMER_BASE until CLOCK_TIMER_BASE + CLOCK_TIMER_SPAN
+
+    private const val CLOCK_TIMER_BASE = 200
+    private const val CLOCK_TIMER_SPAN = 400
 
     /**
      * One id per download, derived from its key.

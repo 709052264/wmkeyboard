@@ -243,6 +243,8 @@
 
     <string name="privacy_permissions_biometric_title">Fingerprint</string>
     <string name="privacy_permissions_biometric_subtitle">Ask the system to check a fingerprint for the lock in Privacy. The app never sees the fingerprint itself</string>
+    <string name="privacy_permissions_clock_ring_title">Ring alarms</string>
+    <string name="privacy_permissions_clock_ring_subtitle">Keep an alarm or a timer sounding while it rings, and the phone awake for that time. Only after you set one in the clock tool</string>
 
     <string name="privacy_permissions_title">Permissions</string>
     <string name="privacy_permissions_subtitle">See what the keyboard can reach, and give or take back a permission</string>
@@ -287,6 +289,10 @@
 
     <string name="privacy_permissions_overlay_title">Display over other apps</string>
     <string name="privacy_permissions_overlay_subtitle">The floating button that opens the keyboard without a text field</string>
+    <string name="privacy_permissions_exact_alarms_title">Alarms and reminders</string>
+    <string name="privacy_permissions_exact_alarms_subtitle">Clock tool alarms and timers ring at the exact minute</string>
+    <string name="privacy_permissions_full_screen_title">Full-screen notifications</string>
+    <string name="privacy_permissions_full_screen_subtitle">A ringing clock alarm shows its screen over the lock screen</string>
 
     <string name="privacy_permissions_accessibility_title">Accessibility service</string>
     <string name="privacy_permissions_accessibility_subtitle">Keep the keyboard gestures while TalkBack is on</string>

@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.clock.ClockEngine
+import com.wasimaster.wmkeyboard.core.clock.ClockNotifications
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -128,6 +130,23 @@ internal fun PermissionsSettings() {
                 SpecialAccess.OVERLAY,
             ) { Settings.canDrawOverlays(it) }
         }
+        // The clock tool's two grants, only where Android asks for them.
+        item(visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            SpecialAccessRow(
+                R.string.privacy_permissions_exact_alarms_title,
+                R.string.privacy_permissions_exact_alarms_subtitle,
+                SpecialAccess.EXACT_ALARMS,
+                ClockEngine::canScheduleExact,
+            )
+        }
+        item(visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            SpecialAccessRow(
+                R.string.privacy_permissions_full_screen_title,
+                R.string.privacy_permissions_full_screen_subtitle,
+                SpecialAccess.FULL_SCREEN,
+                ClockNotifications::canUseFullScreen,
+            )
+        }
         item(visible = ChannelFeatures.GESTURE_PASSTHROUGH) {
             SpecialAccessRow(
                 R.string.privacy_permissions_accessibility_title,
@@ -174,6 +193,12 @@ internal fun PermissionsSettings() {
             InstallPermissionRow(
                 R.string.privacy_permissions_biometric_title,
                 R.string.privacy_permissions_biometric_subtitle,
+            )
+        }
+        item {
+            InstallPermissionRow(
+                R.string.privacy_permissions_clock_ring_title,
+                R.string.privacy_permissions_clock_ring_subtitle,
             )
         }
     }

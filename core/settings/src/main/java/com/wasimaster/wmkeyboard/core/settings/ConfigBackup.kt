@@ -111,6 +111,13 @@ object ConfigBackup {
          * after [SWIPE] for the reason given on [VOCAB].
          */
         NOTES("notes"),
+
+        /**
+         * The Clock tool: alarms, timer presets, countdowns and its settings.
+         * Not what is running and not the history; see `ClockBackup`.
+         * Appended after [NOTES] for the reason given on [VOCAB].
+         */
+        CLOCK("clock"),
     }
 
     private val json = Json { prettyPrint = true }

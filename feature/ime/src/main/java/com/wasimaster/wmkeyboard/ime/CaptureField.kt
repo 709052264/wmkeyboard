@@ -374,6 +374,12 @@ enum class CaptureTarget(
 
     /** A new tag being typed in the note editor's tag row; Enter adds it. */
     NOTE_TAG(takesWords = true),
+
+    /** The Clock panel's city search: filters as it is typed, Enter adds the best match. */
+    CLOCK_SEARCH(takesWords = true),
+
+    /** A label in the Clock panel: an alarm's, a timer's, a countdown's, a city's own name. */
+    CLOCK_LABEL(takesWords = true),
     ;
 
     /**
@@ -398,7 +404,7 @@ enum class CaptureTarget(
     val isSearch: Boolean
         get() = this == EMOJI_SEARCH || this == MEDIA_SEARCH || this == DICTIONARY_SEARCH ||
             this == CLIPBOARD_SEARCH || this == FIND_QUERY || this == SNIPPET_SEARCH ||
-            this == NOTE_SEARCH || this == NOTE_TAG
+            this == NOTE_SEARCH || this == NOTE_TAG || this == CLOCK_SEARCH
 }
 
 /**

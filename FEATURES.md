@@ -1596,7 +1596,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 ## Toolbar and the tool set
 
-- **Toolbar & toolbox mechanics** `uncommon` — 82 tools in ToolbarTool enum; 3 pinned by default (Emoji, Clipboard, Settings)
+- **Toolbar & toolbox mechanics** `uncommon` — 83 tools in ToolbarTool enum; 3 pinned by default (Emoji, Clipboard, Settings)
   - Pinned bar vs toolbox — A tool is on the bar or in the toolbox grid, never both
     - Default pinned row — Emoji, Clipboard, Settings (DefaultToolbarTools)
     - Tablet-aware default pin set — 5 pinned on small tablets, 7 on large, applied only if user never rearranged
@@ -1646,7 +1646,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Tool background radius and shape — toolCircleRadiusDp default 20, toolShape shares the key shapes; 0 removes it
     - Tool button width 38dp default — toolWidthDp stretches the circle into a pill
     - Tool icon size 22dp default (14–30) — toolbarBehavior.iconSizeDp, glyph only, button stays 38dp; toolbar + toolbox grid
-  - Per-tool settings screen `RARE` — Every one of the 82 tools has its own screen under Settings → Tools
+  - Per-tool settings screen `RARE` — Every one of the 83 tools has its own screen under Settings → Tools
     - Eight groups plus an Other catch-all — Panels, Scanners, Online, Create & convert, Modes, Cursor, Quick actions, Utilities
     - Tune icon marks tools with real options — toolHasOptions; toggle-only tools show just the switch
     - One switch controls bar, toolbox and leader key — setToolEnabled hides the tool everywhere at once
@@ -1655,7 +1655,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Per-tool colour override — toolColorOverrides map, reset-all button when any override exists
     - Two-colour gradient icons — toolIconGradients off by default, with its own end-colour override map
     - Icon-pack glyph substitution — IconSlots.forTool resolves an installed icon pack's glyph
-  - Direct-boot tool filter `RARE` — 48 of 82 tools work before the first unlock after reboot
+  - Direct-boot tool filter `RARE` — 48 of 83 tools work before the first unlock after reboot
     - Rule is what the tool reads — Arithmetic, sensors and keyboard-own state stay; disk, credentials, providers, activities go
     - All 14 cursor tools stay usable — They only touch the input connection
     - Not a user toggle — isDirectBootSafeTool is automatic and only applies pre-first-unlock
@@ -1986,7 +1986,26 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Manual switch coexists with the automatic trigger — Says which one is in charge instead of reading as a dead button
     - Warns when nothing is configured to drop — Separate toast when the profile drops nothing
   - Settings — Opens the settings app from the keyboard
-- **Utilities & instruments** `RARE` — 7 tools in the Utilities group
+- **Clock** `RARE` — World clocks, alarms, timers, stopwatch, meeting planner, date maths and history in one keyboard panel, with a full Clock screen in the settings app on the same store
+  - World clocks — Home clock with seconds, an analog face light by day and dark by night, sunrise and sunset from the tz database's own coordinates; a card per city with offset delta and today/tomorrow
+    - Offline city search — ~420 tz zones, ICU city and country names in the user's language, word-start, accent-folded, abbreviations (IST, PST) and offsets (+5:30, utc-3)
+    - Insert any time — Time, date and time, full date, time and place, ISO 8601, relative, Discord timestamp, Unix time; each chip previews what it types; hold sets the default
+    - Insert all clocks — One conversion line across every city, weekday added where the date differs
+  - Alarms — Drum time picker with haptic ticks, repeat days, label, per-alarm vibrate and snooze, skip next, quick alarms in 10 to 90 minutes, undo on delete
+    - Own alarm engine — AlarmManager.setAlarmClock for the next alarm, exact wake-up for the next timer end; inexact fallback without the exact-alarm grant
+    - Ring service — Foreground service only while something rings; alarm-stream sound with fade-in, vibration, wake lock, auto-silence logged as missed
+    - Ring screen — Over the lock screen, slide to dismiss, big snooze with 5/10/15/30 chips, volume keys snooze, several rings stacked
+    - Rings before first unlock — Alarms and settings in device-protected storage, receiver and service direct-boot aware
+    - No boot permission — Re-armed at process start (the keyboard starts at boot), on time or zone change, on app update
+  - Timers — Microwave-style keypad, presets (save, hold to delete), several at once with draining rings, pause, +1 min, reset
+    - Chronometer notifications — Count down in the shade by themselves with Pause, +1 min, Stop; no service
+    - Pomodoro — Focus, short break, long break every N, each phase starting the next; dots for the set
+  - Stopwatch — Centisecond reading in a minute-sweep dial, laps with best in green and worst in red, insert time and laps, shade buttons
+  - Meeting planner — Half-hour strips per city for one day, working/awake/night shading, overlap highlighted, drag cursor with every city's time, best-time pick, insert across all cities
+  - Dates — Between two dates (days, y/m/d, weeks, workdays), add days/weeks/months/years/workdays, countdowns with days left; steppers, no typing
+  - History — Alarms, timers, Pomodoro, stopwatch runs with laps, grouped by day, today's focus total, filter, clear with undo, insert; 500 cap, retention setting
+  - Backup — Clock section: alarms, presets, countdowns, settings; not running state or history; not in sync's defaults
+- **Utilities & instruments** `RARE` — 9 tools in the Utilities group
   - Flashlight `RARE` — Torch toggle with no panel
     - No CAMERA permission needed — Torch mode only
     - Tile mirrors real torch state — Flipping it from quick settings lights the toolbox tile
@@ -2092,6 +2111,9 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Compass qibla marker | needs a location saved in the Weather tool's settings |
 | Location tool: Locate me and Use my location | location permission (precise or approximate), one reading per tap; location services on; absent in -Pwmkb.noLocation builds |
 | Location tool: address | network (Nominatim by default); turned off by Look up the address |
+| Clock: alarms to the minute | Alarms and reminders special access (Android 12+); without it alarms still ring, possibly some minutes late |
+| Clock: ring screen over the lock screen | full-screen intent access (Android 14+); without it the ring is a notification |
+| Clock: alarms after a reboot | re-armed when the keyboard next starts; no RECEIVE_BOOT_COMPLETED |
 | Wikipedia and Dictionary | network; keyless public APIs |
 | GIF and Sticker | network for the KLIPY/GIPHY providers; local packs work offline |
 | Camera tool | needs CAMERA permission, granted through a trampoline activity; shared with OCR and QR scan |
@@ -2101,8 +2123,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Clipboard source-app attribution | needs Usage Access; best-effort foreground-app guess |
 | Voice typing | needs microphone permission; audio may reach the OS recognizer service unless the on-device language model is installed |
 | Clipboard link previews and QR link details and dictionary auto-lookup | network, and force-disabled by power saving's background-network toggle |
-| 34 tools of 82 are unavailable before the first unlock after reboot | direct-boot filter; the other 48 (arithmetic, sensors, keyboard-own state, all 14 cursor tools) stay usable |
-| Lite edition tool count | 77 of 82 tools; the 5 ML Kit / Harper tools are compiled out, not just hidden |
+| 35 tools of 83 are unavailable before the first unlock after reboot | direct-boot filter; the other 48 (arithmetic, sensors, keyboard-own state, all 14 cursor tools) stay usable |
+| Lite edition tool count | 78 of 83 tools; the 5 ML Kit / Harper tools are compiled out, not just hidden |
 
 ## Clipboard, snippets, text expansion
 

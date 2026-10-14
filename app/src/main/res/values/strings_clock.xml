@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clock: the ring screen -->
+    <string name="clock_ring_alarm">Alarm</string>
+    <string name="clock_ring_timer_done">Time is up</string>
+    <string name="clock_ring_slide_dismiss">Slide to dismiss</string>
+    <string name="clock_ring_slide_stop">Slide to stop</string>
+    <string name="clock_ring_dismiss">Dismiss</string>
+    <string name="clock_ring_add_minute">Add 1 minute</string>
+    <plurals name="clock_ring_snooze_for">
+        <item quantity="one">Snooze for %d minute</item>
+        <item quantity="other">Snooze for %d minutes</item>
+    </plurals>
+    <plurals name="clock_ring_minutes_short">
+        <item quantity="one">%d min</item>
+        <item quantity="other">%d min</item>
+    </plurals>
+
+    <!-- Clock: the Clock screen -->
+    <string name="clock_title">Clock</string>
+    <string name="clock_settings_title">Clock settings</string>
+    <string name="clock_settings_subtitle">Sounds, snooze, Pomodoro, working hours and history</string>
+    <string name="clock_no_alarms">No alarms yet. Add one with the button below.</string>
+    <string name="clock_no_timers">No timers running. Start one from a preset above, or from the keyboard\'s Clock tool.</string>
+    <string name="clock_no_zones">No cities yet. Add the places of the people you talk to.</string>
+
+    <!-- Clock: tool settings -->
+    <string name="clock_open_title">Open the clock</string>
+    <string name="clock_open_subtitle">Alarms, timers, stopwatch, world clocks, countdowns and history</string>
+    <string name="clock_grants_group">For alarms you can rely on</string>
+    <string name="clock_grants_info">An alarm needs three things from Android to ring at the exact minute, over the lock screen, with buttons to snooze and dismiss. Each row here is one that is still missing. Alarms ring without them too, only less exactly, or as a plain notification. After the phone restarts, the alarms are set again when the keyboard first starts.</string>
+    <string name="clock_grant_exact_title">Allow exact alarms</string>
+    <string name="clock_grant_exact_subtitle">Without it, Android can ring an alarm some minutes late</string>
+    <string name="clock_grant_full_title">Allow the ring screen</string>
+    <string name="clock_grant_full_subtitle">Without it, a ringing alarm shows only as a notification on the lock screen</string>
+    <string name="clock_grant_notify_title">Allow notifications</string>
+    <string name="clock_grant_notify_subtitle">For Snooze and Dismiss in the shade, and for running timers</string>
+    <string name="clock_display_group">Clocks</string>
+    <string name="clock_hour_format_title">Hour format</string>
+    <string name="clock_hour_format_system">Like the phone</string>
+    <string name="clock_hour_format_12">12-hour</string>
+    <string name="clock_hour_format_24">24-hour</string>
+    <string name="clock_show_seconds_title">Show seconds</string>
+    <string name="clock_show_seconds_subtitle">On the big clock and on the clock faces</string>
+    <string name="clock_insert_format_title">Default format</string>
+    <string name="clock_insert_format_subtitle">A hold on your own clock types this one at once, and a hold on a city offers it first</string>
+    <string name="clock_alarms_group">Alarms and timers</string>
+    <string name="clock_alarms_info">These apply to every alarm. An alarm can keep its own snooze length and vibration, set in its editor.</string>
+    <string name="clock_alarm_sound_title">Alarm sound</string>
+    <string name="clock_timer_sound_title">Timer sound</string>
+    <string name="clock_sound_default">Default alarm sound</string>
+    <string name="clock_sound_same_as_alarm">Same as alarms</string>
+    <string name="clock_sound_silent">Silent, vibrate only</string>
+    <string name="clock_vibrate_title">Vibrate</string>
+    <string name="clock_vibrate_subtitle">While an alarm or a timer rings</string>
+    <string name="clock_snooze_title">Snooze length</string>
+    <string name="clock_fade_title">Fade in</string>
+    <string name="clock_fade_subtitle">An alarm starts quiet and gets louder over this time. Timers always ring at full volume.</string>
+    <string name="clock_fade_off">Off</string>
+    <string name="clock_auto_silence_title">Stop ringing after</string>
+    <string name="clock_auto_silence_subtitle">An alarm nobody answers stops by itself and shows as missed in the history</string>
+    <string name="clock_volume_keys_title">Volume keys snooze</string>
+    <string name="clock_volume_keys_subtitle">On the ring screen. When off, the volume keys do nothing there.</string>
+    <string name="clock_pomodoro_group">Pomodoro</string>
+    <string name="clock_pomodoro_info">A Pomodoro run is a focus time, then a short break, again and again, with a long break after some focus times. Each phase starts by itself when the one before ends.</string>
+    <string name="clock_focus_title">Focus</string>
+    <string name="clock_short_break_title">Short break</string>
+    <string name="clock_long_break_title">Long break</string>
+    <string name="clock_long_every_title">Long break after</string>
+    <string name="clock_planner_group">Meeting planner</string>
+    <string name="clock_planner_info">The planner shades these hours as working hours in every city on your list, and finds the times when they all overlap.</string>
+    <string name="clock_work_start_title">Work starts</string>
+    <string name="clock_work_end_title">Work ends</string>
+    <string name="clock_midnight">Midnight</string>
+    <string name="clock_history_group">History</string>
+    <string name="clock_history_keep_title">Keep history for</string>
+    <string name="clock_history_keep_forever">Always</string>
+    <plurals name="clock_minutes_value">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <plurals name="clock_seconds_value">
+        <item quantity="one">%d second</item>
+        <item quantity="other">%d seconds</item>
+    </plurals>
+    <plurals name="clock_sessions_value">
+        <item quantity="one">%d focus time</item>
+        <item quantity="other">%d focus times</item>
+    </plurals>
+    <plurals name="clock_days_value">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+</resources>

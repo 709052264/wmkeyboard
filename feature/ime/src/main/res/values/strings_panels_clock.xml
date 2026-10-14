@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clock tool panel -->
+    <string name="ime_clock_tab_clocks">Clocks</string>
+    <string name="ime_clock_tab_alarms">Alarms</string>
+    <string name="ime_clock_tab_timers">Timers</string>
+    <string name="ime_clock_tab_stopwatch">Stopwatch</string>
+    <string name="ime_clock_tab_planner">Planner</string>
+    <string name="ime_clock_tab_dates">Dates</string>
+    <string name="ime_clock_tab_history">History</string>
+    <string name="ime_clock_settings_desc">Clock settings</string>
+    <string name="ime_clock_done">Done</string>
+    <string name="ime_clock_search_hint">Search a city, a country or an offset like +5:30</string>
+    <string name="ime_clock_label_hint">Label</string>
+    <string name="ime_clock_countdown_title_hint">What are you counting down to?</string>
+    <string name="ime_clock_zone_label_hint">Name for this clock, such as Mum or Office</string>
+    <string name="ime_clock_undo_alarm">Alarm deleted</string>
+    <string name="ime_clock_undo_history">History cleared</string>
+    <string name="ime_clock_undo_zone">Clock removed</string>
+
+    <!-- Clocks -->
+    <string name="ime_clock_add_city">Add a city</string>
+    <string name="ime_clock_insert_all">Insert all clocks</string>
+    <string name="ime_clock_today">Today</string>
+    <string name="ime_clock_tomorrow">Tomorrow</string>
+    <string name="ime_clock_yesterday">Yesterday</string>
+    <string name="ime_clock_zone_delta">%1$s · %2$s</string>
+    <string name="ime_clock_move_up_desc">Move up</string>
+    <string name="ime_clock_move_down_desc">Move down</string>
+    <string name="ime_clock_rename_desc">Rename</string>
+    <string name="ime_clock_remove_desc">Remove</string>
+    <string name="ime_clock_sunrise_desc">Sunrise</string>
+    <string name="ime_clock_sunset_desc">Sunset</string>
+    <string name="ime_clock_insert_hint">Tap to type it. Hold to make it the default.</string>
+    <string name="ime_clock_relative_now">now</string>
+    <string name="ime_clock_search_empty_title">No place found</string>
+    <string name="ime_clock_search_empty_body">Try the name of a big city near it, its country, or its offset from UTC.</string>
+    <string name="ime_clock_format_time">Time</string>
+    <string name="ime_clock_format_date_time">Date and time</string>
+    <string name="ime_clock_format_date_long">Full date</string>
+    <string name="ime_clock_format_time_place">Time and place</string>
+    <string name="ime_clock_format_iso">ISO 8601</string>
+    <string name="ime_clock_format_relative">Relative</string>
+    <string name="ime_clock_format_discord">Discord</string>
+    <string name="ime_clock_format_unix">Unix time</string>
+
+    <!-- Alarms -->
+    <string name="ime_clock_exact_banner">Android can hold alarms back by some minutes while the phone sleeps.</string>
+    <string name="ime_clock_full_screen_banner">A ringing alarm shows only as a notification on the lock screen.</string>
+    <string name="ime_clock_notifications_banner">Notifications are off, so a ringing alarm has no Snooze or Dismiss button.</string>
+    <string name="ime_clock_allow">Allow</string>
+    <string name="ime_clock_open_app">Open</string>
+    <string name="ime_clock_no_alarms_title">No alarms on</string>
+    <string name="ime_clock_no_alarms_body">Set one below, or tap a quick one.</string>
+    <string name="ime_clock_rings_in">Rings in %1$s</string>
+    <string name="ime_clock_new_alarm">New alarm</string>
+    <string name="ime_clock_quick_in">In %1$s</string>
+    <string name="ime_clock_snoozed_until">Snoozed until %1$s</string>
+    <string name="ime_clock_skipping_next">Next one skipped</string>
+    <string name="ime_clock_once">Once</string>
+    <string name="ime_clock_once_today">Once, today</string>
+    <string name="ime_clock_once_tomorrow">Once, tomorrow</string>
+    <string name="ime_clock_alarm_switch_desc">Alarm on</string>
+    <string name="ime_clock_skip_next">Skip next</string>
+    <string name="ime_clock_unskip">Do not skip</string>
+    <string name="ime_clock_delete">Delete</string>
+    <string name="ime_clock_every_day">Every day</string>
+    <string name="ime_clock_weekdays">Weekdays</string>
+    <string name="ime_clock_weekends">Weekends</string>
+    <string name="ime_clock_hour_desc">Hour</string>
+    <string name="ime_clock_minute_desc">Minute</string>
+    <string name="ime_clock_add_label">Add a label</string>
+    <string name="ime_clock_vibrate_desc">Vibrate</string>
+    <string name="ime_clock_cancel">Cancel</string>
+    <string name="ime_clock_save">Save</string>
+    <plurals name="ime_clock_snooze_minutes">
+        <item quantity="one">Snooze %d min</item>
+        <item quantity="other">Snooze %d min</item>
+    </plurals>
+
+    <!-- Timers -->
+    <string name="ime_clock_timer">Timer</string>
+    <string name="ime_clock_new_timer">New timer</string>
+    <string name="ime_clock_paused">Paused</string>
+    <string name="ime_clock_ends_at">Ends at %1$s</string>
+    <string name="ime_clock_plus_minute">+1 min</string>
+    <string name="ime_clock_pause">Pause</string>
+    <string name="ime_clock_resume">Resume</string>
+    <string name="ime_clock_reset">Reset</string>
+    <string name="ime_clock_stop">Stop</string>
+    <string name="ime_clock_start">Start</string>
+    <string name="ime_clock_mode_timer">Timer</string>
+    <string name="ime_clock_mode_pomodoro">Pomodoro</string>
+    <string name="ime_clock_start_focus">Start focus</string>
+    <string name="ime_clock_type_duration">Type a length, or pick one below</string>
+    <string name="ime_clock_save_preset">Save as preset</string>
+    <string name="ime_clock_backspace_desc">Delete a digit. Hold to clear.</string>
+    <string name="ime_clock_pomodoro_title">Focus, then a break</string>
+    <plurals name="ime_clock_pomodoro_rhythm">
+        <item quantity="one">A long break after every focus session</item>
+        <item quantity="other">A long break after every %d focus sessions</item>
+    </plurals>
+
+    <!-- Stopwatch -->
+    <string name="ime_clock_lap">Lap</string>
+    <string name="ime_clock_lap_number">Lap %d</string>
+    <string name="ime_clock_insert_laps">Insert the time and laps</string>
+    <string name="ime_clock_lap_line">Lap %1$d: %2$s</string>
+    <string name="ime_clock_total_line">Total: %1$s</string>
+
+    <!-- Planner -->
+    <string name="ime_clock_planner_empty_title">Plan across time zones</string>
+    <string name="ime_clock_planner_empty_body">Add the cities of the people you meet. The planner then shows when everyone is at work.</string>
+    <string name="ime_clock_previous_day_desc">Previous day</string>
+    <string name="ime_clock_next_day_desc">Next day</string>
+    <string name="ime_clock_best_time">Best time</string>
+    <string name="ime_clock_insert">Insert</string>
+    <string name="ime_clock_planner_no_overlap">No hour has everyone at work. Pick a time with nobody asleep.</string>
+    <string name="ime_clock_planner_overlap">Everyone is at work for %1$s</string>
+    <string name="ime_clock_planner_strip_desc">Hours of the day. Drag to pick a time.</string>
+
+    <!-- Dates -->
+    <string name="ime_clock_dates_between">Between</string>
+    <string name="ime_clock_dates_add">Add</string>
+    <string name="ime_clock_dates_countdowns">Countdowns</string>
+    <string name="ime_clock_dates_countdowns_count">Countdowns · %d</string>
+    <string name="ime_clock_from">From</string>
+    <string name="ime_clock_to">To</string>
+    <string name="ime_clock_start_date">Start</string>
+    <string name="ime_clock_countdown_date">Date</string>
+    <string name="ime_clock_swap_desc">Swap the dates</string>
+    <string name="ime_clock_month_back_desc">One month back</string>
+    <string name="ime_clock_day_back_desc">One day back</string>
+    <string name="ime_clock_day_on_desc">One day on</string>
+    <string name="ime_clock_month_on_desc">One month on</string>
+    <string name="ime_clock_less_ten_desc">Ten less</string>
+    <string name="ime_clock_less_one_desc">One less</string>
+    <string name="ime_clock_more_one_desc">One more</string>
+    <string name="ime_clock_more_ten_desc">Ten more</string>
+    <string name="ime_clock_unit_days">Days</string>
+    <string name="ime_clock_unit_weeks">Weeks</string>
+    <string name="ime_clock_unit_months">Months</string>
+    <string name="ime_clock_unit_years">Years</string>
+    <string name="ime_clock_unit_workdays">Workdays</string>
+    <string name="ime_clock_week_day_of_year">Week %1$d, day %2$d of the year</string>
+    <string name="ime_clock_new_countdown">New countdown</string>
+    <string name="ime_clock_countdowns_empty_title">Count down to a day</string>
+    <string name="ime_clock_countdowns_empty_body">A trip, an exam, a birthday. Tap a countdown to type how long is left.</string>
+    <string name="ime_clock_countdown_untitled">The day</string>
+    <string name="ime_clock_countdown_today">%1$s is today</string>
+    <plurals name="ime_clock_countdown_until">
+        <item quantity="one">%1$d day until %2$s</item>
+        <item quantity="other">%1$d days until %2$s</item>
+    </plurals>
+    <plurals name="ime_clock_countdown_since">
+        <item quantity="one">%1$d day since %2$s</item>
+        <item quantity="other">%1$d days since %2$s</item>
+    </plurals>
+    <plurals name="ime_clock_dates_between_text">
+        <item quantity="one">From %1$s to %2$s: %3$d day</item>
+        <item quantity="other">From %1$s to %2$s: %3$d days</item>
+    </plurals>
+    <plurals name="ime_clock_days_left">
+        <item quantity="one">day left</item>
+        <item quantity="other">days left</item>
+    </plurals>
+    <plurals name="ime_clock_days_ago">
+        <item quantity="one">day ago</item>
+        <item quantity="other">days ago</item>
+    </plurals>
+    <plurals name="ime_clock_days_from_today">
+        <item quantity="one">%d day from today</item>
+        <item quantity="other">%d days from today</item>
+    </plurals>
+    <plurals name="ime_clock_workdays">
+        <item quantity="one">%d workday</item>
+        <item quantity="other">%d workdays</item>
+    </plurals>
+
+    <!-- History -->
+    <string name="ime_clock_all">All</string>
+    <string name="ime_clock_kind_alarm">Alarm</string>
+    <string name="ime_clock_kind_timer">Timer</string>
+    <string name="ime_clock_kind_stopwatch">Stopwatch</string>
+    <string name="ime_clock_kind_pomodoro">Pomodoro</string>
+    <string name="ime_clock_clear_history">Clear history</string>
+    <string name="ime_clock_history_empty_title">Nothing yet</string>
+    <string name="ime_clock_history_empty_body">Alarms that ring, timers that finish and stopwatch runs you reset show here.</string>
+    <string name="ime_clock_focus_today">Focus today: %1$s</string>
+    <string name="ime_clock_timed_today">Timed today: %1$s</string>
+    <string name="ime_clock_outcome_snoozed">Snoozed</string>
+    <string name="ime_clock_outcome_missed">Missed</string>
+    <string name="ime_clock_outcome_stopped">Stopped</string>
+</resources>

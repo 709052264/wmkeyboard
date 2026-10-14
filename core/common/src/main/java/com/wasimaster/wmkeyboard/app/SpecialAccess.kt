@@ -75,6 +75,20 @@ enum class SpecialAccess {
      * #374). Nothing is read with it: the one window it draws is the button.
      */
     OVERLAY,
+
+    /**
+     * "Alarms and reminders", for the clock tool: an alarm set for 6:30
+     * rings at 6:30. Without it the alarm still rings, but Android may hold
+     * it back by some minutes while the phone sleeps. Nothing is read.
+     */
+    EXACT_ALARMS,
+
+    /**
+     * Full-screen notifications, for the clock tool's ring screen on a locked
+     * phone (asked from Android 14). Without it a ringing alarm shows as a
+     * notification instead.
+     */
+    FULL_SCREEN,
     ;
 
     /** Dialog heading: the grant and the feature that wants it. */
@@ -87,6 +101,8 @@ enum class SpecialAccess {
             ACCESSIBILITY -> R.string.common_special_access_accessibility_title
             INSTALL_UPDATES -> R.string.common_special_access_install_updates_title
             OVERLAY -> R.string.common_special_access_overlay_title
+            EXACT_ALARMS -> R.string.common_special_access_exact_alarms_title
+            FULL_SCREEN -> R.string.common_special_access_full_screen_title
         }
 
     /** What is read, why, where it goes, and that the feature is optional. */
@@ -99,6 +115,8 @@ enum class SpecialAccess {
             ACCESSIBILITY -> R.string.common_special_access_accessibility_body
             INSTALL_UPDATES -> R.string.common_special_access_install_updates_body
             OVERLAY -> R.string.common_special_access_overlay_body
+            EXACT_ALARMS -> R.string.common_special_access_exact_alarms_body
+            FULL_SCREEN -> R.string.common_special_access_full_screen_body
         }
 
     /**
@@ -147,6 +165,23 @@ enum class SpecialAccess {
             Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, "package:$packageName".toUri()),
             Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION),
         )
+        // Both pages are newer than minSdk; the checks are spelled out for Lint.
+        EXACT_ALARMS -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            listOf(
+                Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, "package:$packageName".toUri()),
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:$packageName".toUri()),
+            )
+        } else {
+            emptyList()
+        }
+        FULL_SCREEN -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            listOf(
+                Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, "package:$packageName".toUri()),
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:$packageName".toUri()),
+            )
+        } else {
+            emptyList()
+        }
     }.map { it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
 }
 

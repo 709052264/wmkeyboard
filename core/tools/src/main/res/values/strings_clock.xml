@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Clock tool: notifications and the ring. Shared by the keyboard panel and the settings app. -->
+    <string name="core_tools_clock_alarm">Alarm</string>
+    <string name="core_tools_clock_timer">Timer</string>
+    <string name="core_tools_clock_timer_done">Time is up</string>
+    <string name="core_tools_clock_stopwatch">Stopwatch</string>
+    <string name="core_tools_clock_paused_left">Paused, %1$s left</string>
+    <string name="core_tools_clock_pause">Pause</string>
+    <string name="core_tools_clock_resume">Resume</string>
+    <string name="core_tools_clock_add_minute">+1 min</string>
+    <string name="core_tools_clock_cancel">Stop</string>
+    <string name="core_tools_clock_lap">Lap</string>
+    <string name="core_tools_clock_reset">Reset</string>
+    <string name="core_tools_clock_snooze">Snooze</string>
+    <string name="core_tools_clock_dismiss">Dismiss</string>
+    <string name="core_tools_clock_focus">Focus</string>
+    <string name="core_tools_clock_short_break">Short break</string>
+    <string name="core_tools_clock_long_break">Long break</string>
+    <plurals name="core_tools_clock_laps">
+        <item quantity="one">%d lap</item>
+        <item quantity="other">%d laps</item>
+    </plurals>
+    <plurals name="core_tools_clock_ring_more">
+        <item quantity="one">%1$s and %2$d more</item>
+        <item quantity="other">%1$s and %2$d more</item>
+    </plurals>
+    <string name="core_tools_clock_channel_ring_title">Alarms and timers ringing</string>
+    <string name="core_tools_clock_channel_ring_body">Shows an alarm or a timer while it rings. The clock tool plays the sound itself, so this channel stays silent.</string>
+    <string name="core_tools_clock_channel_sound_title">Alarms ringing (backup)</string>
+    <string name="core_tools_clock_channel_sound_body">Used only when Android does not let the clock tool ring by itself. This channel then plays the alarm sound until you answer it.</string>
+</resources>
