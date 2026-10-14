@@ -173,7 +173,7 @@ Builds:
     subdir: app
     sudo:
       - apt-get update
-      - apt-get install -y cmake ninja-build g++ python3-yaml python3-typing-extensions
+      - apt-get install -y cmake ninja-build g++ make python3-yaml python3-typing-extensions
     gradle:
       - lite
     prebuild:

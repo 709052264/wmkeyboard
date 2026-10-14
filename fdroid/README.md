@@ -108,7 +108,7 @@ scan emptied (`native/harper-jni` with Rust and `cargo ndk`,
 ExecuTorch and the PyTorch sources ExecuTorch's code generator and optimized
 kernels need are fetched at pinned commits, the Rust toolchain at a pinned
 version through rustup, the crates through `Cargo.lock`. `ndk` names the NDK
-the scripts compile with, and `sudo` installs CMake, Ninja, a host compiler
+the scripts compile with, and `sudo` installs CMake, Ninja, make and a host compiler
 for ExecuTorch's flatbuffers tools, and the two Python modules the code
 generator imports.
 
