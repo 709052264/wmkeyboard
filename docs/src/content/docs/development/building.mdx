@@ -85,6 +85,23 @@ The released APKs declare precise and approximate location for the [Location too
 
 `wmkb.noLocation=true` in `local.properties` or `WMKB_NO_LOCATION=true` in the environment does the same. The property adds `app/src/nolocation/AndroidManifest.xml`, which removes both permissions from the merged manifest. The app checks what the installed package asked for at run time (`LocationAccess.declared`), so the Location tool keeps its saved places and hides **Locate me**, the weather and compass tools go back to a searched or typed place, and the permissions screen drops the row. It combines with `wmkb.noInternet`.
 
+## Rebuilding the text engines
+
+Both editions ship the text engines' native library, and nothing types Bengali, Hindi, Urdu or the Indic languages without it.
+
+The phonetic engines (Avro, Khipro, Hindi, Urdu, Arabic, Persian, Assamese and the eight Indic languages), the Bijoy ANSI converter, the Bengali grapheme helpers and the romanizers are one Rust crate, `native/wm-engine`, shared with WMK Desktop. `native/wm-engine-jni` wraps it in a JNI `cdylib`, and the Kotlin objects in `core/language`'s transliteration package (`AvroPhonetic`, `Khipro`, `BijoyAnsi` and the rest) are facades over it through `EngineNative`. The prebuilt `.so` files are committed under `core/language/src/main/jniLibs/<abi>/`, so a normal build never touches Rust or the NDK. Rebuild them after any change under `native/wm-engine`, `native/wm-engine-jni` or `app/src/main/assets/avro` (the Avro grammar files are compiled into the crate):
+
+```sh
+# One-time setup, as for the grammar engine below
+rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
+cargo install cargo-ndk
+
+# All three ABIs, into core/language/src/main/jniLibs/
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/wm-engine-jni/build.sh
+```
+
+The JVM unit tests load a host build of the same library instead, which the Gradle test tasks of `:core:language` and `:app` make first through `native/wm-engine-jni/build-host.sh` (plain `cargo build --release`). That is the one place the Gradle build needs Rust: `cargo` on the PATH, or in `~/.cargo/bin`. The engines' own tests run with `cargo test` in `native/wm-engine`; see [testing](/development/testing/).
+
 ## Rebuilding the native grammar engine
 
 Both editions ship the grammar checker's native library.

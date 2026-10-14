@@ -1308,6 +1308,11 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
+// The transliteration tests call the Rust text engines through JNI, so the
+// library has to exist for this machine before the suite starts. The task is
+// :core:language's, where the facades live; see the comment on it there.
+tasks.withType<Test>().configureEach { dependsOn(":core:language:buildHostEngine") }
+
 // `-Pwmkb.skipBenchmarks` drops the wall-clock benchmarks from the run. They
 // assert against millisecond budgets measured on a quiet machine, so on a
 // shared CI runner they measure the runner's neighbours rather than this

@@ -1,0 +1,26 @@
+[package]
+name = "wm-engine-jni"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "MIT"
+description = "JNI bridge from the Android app to wm-engine"
+
+[lib]
+name = "wm_engine_jni"
+crate-type = ["cdylib"]
+
+[dependencies]
+wm-engine = { path = "../wm-engine" }
+jni = "0.21"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"
+# The engines run on every keystroke, so speed over size here, unlike the
+# grammar bridge; the tables are small and the code is a few hundred KB.
+opt-level = 3
+# Every entry point catches panics and rethrows them as a Java exception, so
+# an abort would only ever come from the catch itself.
+panic = "unwind"

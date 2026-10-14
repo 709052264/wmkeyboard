@@ -35,13 +35,13 @@ Still Kotlin: Avro's dictionary walk, prediction, glide.
 
 ## Data
 
-The crate does no I/O. Its tables are compiled in with `include_str!` from the
-Android app's own resource and asset files, for instance
-`core/language/src/main/resources/khipro/*.mim` and
-`app/src/main/assets/avro/*.json`, so the two implementations cannot run
-different upstream revisions. `scripts/update-khipro.sh` refreshes the Khipro
-files for both. The Bijoy tables are generated from the Kotlin
-`BijoyAnsiTables.kt`; regenerate `src/bijoy_tables.rs` when that changes.
+The crate does no I/O. Its tables are compiled in with `include_str!`: the
+Khipro specs and their upstream conformance tables under `data/khipro/`
+(`scripts/update-khipro.sh` refreshes them), and ibus-avro's grammar files from
+the Android app's own `app/src/main/assets/avro/*.json`, which the Kotlin
+dictionary walk still reads too, so the two cannot run different revisions.
+The Bijoy tables in `src/bijoy_tables.rs` were generated from the Kotlin
+`BijoyAnsiTables.kt` at the time of the port and are the only copy now.
 
 ## Tests
 
@@ -56,7 +56,10 @@ interpreter, never the table.
 
 ## Bridges
 
-None yet. The Android bridge will be a separate `wm-engine-jni` crate built
-the way `harper-jni` is (`cargo ndk`, prebuilt `.so` files committed under a
-module's `jniLibs`, rebuilt from source by F-Droid). The desktop app depends
-on this crate as a git dependency.
+`../wm-engine-jni` is the Android bridge: a `cdylib` with one JNI entry point
+per engine function, loaded by `EngineNative` in `core/language`, which the
+Kotlin facades (`AvroPhonetic`, `Khipro`, `BijoyAnsi`...) call. Its `build.sh`
+cross-compiles the three ABIs with `cargo ndk` into
+`core/language/src/main/jniLibs`, as `harper-jni/build.sh` does; F-Droid
+rebuilds it from source. `build-host.sh` builds it for this machine, which
+the JVM unit tests load. The desktop app depends on this crate directly.

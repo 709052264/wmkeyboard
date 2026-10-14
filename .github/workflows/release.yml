@@ -285,7 +285,7 @@ jobs:
           unzip -p "$out" META-INF/version-control-info.textproto | grep -q "revision: \"$GITHUB_SHA\"" \
             || { echo "::error::$out does not record commit $GITHUB_SHA"; exit 1; }
           # The lite edition's own engines must be in it, built from source.
-          for lib in libharper_jni.so libwmwhispercpp.so libwmwhispercpp_v82.so libwmexecutorch.so; do
+          for lib in libwm_engine_jni.so libharper_jni.so libwmwhispercpp.so libwmwhispercpp_v82.so libwmexecutorch.so; do
             unzip -l "$out" | grep -q "lib/arm64-v8a/$lib" \
               || { echo "::error::$out has no arm64-v8a $lib"; exit 1; }
           done

@@ -90,7 +90,12 @@ keep composing one the caret handed back to it.
 ### Bangla phonetics: two engines, one job
 
 - `AvroPhonetic` is a deterministic greedy longest-match transliterator (rules
-  → glyphs). It answers "what did the user literally type?"
+  → glyphs). It answers "what did the user literally type?" The rules run in
+  Rust: every phonetic engine, Khipro, the Bijoy converter, the grapheme
+  helpers and the romanizers live in the `native/wm-engine` crate, which the
+  desktop app shares, and the Kotlin objects in `core/transliteration` are
+  facades over one JNI library (`native/wm-engine-jni`, loaded by
+  `EngineNative`). The word-list indexes stay in Kotlin.
 - `BengaliPhoneticIndex` answers "which real words sound like this?" by folding
   both roman input and dictionary words into a lenient canonical key
   (স/শ/ষ/ছ/চ → s, aspiration dropped, inherent vowels dropped). This is what
@@ -269,8 +274,11 @@ announce nor explore.
   [the dictionary pipeline](/development/dictionaries/).
 - **Emoji.** Append lines to `emoji/catalog.tsv`. Add synonym rows to
   `EmojiSearch.SYNONYMS` for concept queries.
-- **Transliteration schemes.** Implement one alongside `AvroPhonetic` and
-  `HindiPhonetic`, give it a composer that sets `phoneticLanguage`, and add a
+- **Transliteration schemes.** Write the engine in Rust in `native/wm-engine`
+  alongside `hindi.rs` and the Indic language modules, with its tests there,
+  add an entry point in `native/wm-engine-jni` and a Kotlin facade next to
+  `HindiPhonetic`, then give it a composer that sets `phoneticLanguage` and a
   `PhoneticScheme` entry: `transliterate()`, `variants()`, an index builder and
   the spelling-map assets. The service loads the backend when a layout that
-  types through it is enabled.
+  types through it is enabled. Rebuild the committed `.so` files with
+  `native/wm-engine-jni/build.sh`; see [building](/development/building/).

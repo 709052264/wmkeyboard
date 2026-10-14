@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Builds, from source, every native library the lite edition ships, into the
-# src/main/jniLibs directories of :core:intelligence and :core:voice:
+# src/main/jniLibs directories of :core:language, :core:intelligence and
+# :core:voice:
 #
+#   Text engines        wm-engine-jni/build.sh    libwm_engine_jni.so
 #   Harper grammar      harper-jni/build.sh       libharper_jni.so
 #   Offline Whisper     whispercpp-jni/build.sh   libwmwhispercpp*.so
 #   Asr4All, Parakeet,  executorch-jni/build.sh   libwmexecutorch.so
@@ -14,6 +16,9 @@
 # come out byte for byte the same.
 #
 #   ANDROID_NDK=/path/to/ndk native/build-lite-libs.sh
+#
+# The text engines are the phonetic and fixed-layout engines every edition
+# types Bengali, Hindi, Urdu and the Indic languages through (native/wm-engine).
 #
 # Needs git, curl, CMake, Ninja, a host C++ compiler and Python 3 with PyYAML
 # and typing_extensions. Rust comes from rustup, which is installed at a
@@ -42,6 +47,7 @@ if ! command -v rustup >/dev/null 2>&1; then
     rm -f "$init"
 fi
 
+"$HERE/wm-engine-jni/build.sh"
 "$HERE/harper-jni/build.sh"
 "$HERE/whispercpp-jni/build.sh"
 "$HERE/executorch-jni/build.sh"

@@ -187,6 +187,7 @@ Builds:
       - native/whistle-jni/prebuilt
       - core/voice/src/main/jniLibs
       - core/intelligence/src/main/jniLibs
+      - core/language/src/main/jniLibs
     build: ../native/build-lite-libs.sh
     ndk: 29.0.14206865
     gradleprops:

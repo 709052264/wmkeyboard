@@ -94,17 +94,19 @@ tree before the source scan. Some belong to variants this build never
 produces: the Tesseract and Whistle libraries under
 `core/intelligence/src/full/` and `core/voice/src/full/`, the Cactus archive
 Whistle links (`native/whistle-jni/prebuilt`, which has no source to build
-from), and the LLM module's ABI placeholders. The other two directories,
-`src/main/jniLibs` of `:core:intelligence` and `:core:voice`, hold what lite
-itself ships since 0.6.0: Harper's grammar engine, whisper.cpp for Offline
-Whisper, and the selective ExecuTorch build behind Offline Asr4All, Parakeet
-and Moonshine.
+from), and the LLM module's ABI placeholders. The other directories,
+`src/main/jniLibs` of `:core:intelligence`, `:core:voice` and
+`:core:language`, hold what lite itself ships since 0.6.0: Harper's grammar
+engine, whisper.cpp for Offline Whisper, the selective ExecuTorch build behind
+Offline Asr4All, Parakeet and Moonshine, and, from the release after 0.6.0,
+the text engines (Avro, Khipro, Bijoy, Hindi, Urdu and the Indic languages),
+which moved from Kotlin into the Rust crate `native/wm-engine`.
 
 Up to 0.5.14 lite carried none of them, so deleting was the whole story. Now
 `build` puts them back: `../native/build-lite-libs.sh` runs after the scan and
-before Gradle, and compiles all three from source into the directories the
-scan emptied (`native/harper-jni` with Rust and `cargo ndk`,
-`native/whispercpp-jni` and `native/executorch-jni` with CMake). whisper.cpp,
+before Gradle, and compiles all of them from source into the directories the
+scan emptied (`native/wm-engine-jni` and `native/harper-jni` with Rust and
+`cargo ndk`, `native/whispercpp-jni` and `native/executorch-jni` with CMake). whisper.cpp,
 ExecuTorch and the PyTorch sources ExecuTorch's code generator and optimized
 kernels need are fetched at pinned commits, the Rust toolchain at a pinned
 version through rustup, the crates through `Cargo.lock`. `ndk` names the NDK

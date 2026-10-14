@@ -16,8 +16,8 @@
 //! The method is defined as an m17n input method (`bn-khipro.mim`), a small
 //! state machine over maps of key sequences. Rather than transcribe its ~200
 //! conjunct rules, where they would drift from every upstream fix, this runs
-//! the official spec itself: the `.mim` files are compiled in verbatim from
-//! the Android app's resources and [`Spec`] interprets them. The interpreter
+//! the official spec itself: the `.mim` files under `data/khipro/` are
+//! compiled in verbatim and [`Spec`] interprets them. The interpreter
 //! follows KhiproTeam's own `khipro-library`, which re-runs the whole roman
 //! tape through the spec on every key, and is conformance-tested against the
 //! same `khipro-testcases` tables.
@@ -95,10 +95,7 @@ impl Variant {
     fn source(self) -> &'static str {
         macro_rules! spec_file {
             ($name:literal) => {
-                include_str!(concat!(
-                    "../../../core/language/src/main/resources/khipro/",
-                    $name
-                ))
+                include_str!(concat!("../data/khipro/", $name))
             };
         }
         match self {
@@ -629,7 +626,7 @@ mod tests {
 
     use super::*;
 
-    const FIXTURES: &str = "../../../core/language/src/test/resources/khipro/";
+    const FIXTURES: &str = "../data/khipro/tests/";
 
     fn cases(text: &str) -> Vec<(String, String)> {
         text.lines()
@@ -669,7 +666,7 @@ mod tests {
         assert_conforms(
             "khipro-testcases-touch.tsv",
             include_str!(
-                "../../../core/language/src/test/resources/khipro/khipro-testcases-touch.tsv"
+                "../data/khipro/tests/khipro-testcases-touch.tsv"
             ),
             Variant::Touchscreen,
         );
@@ -679,7 +676,7 @@ mod tests {
     fn desktop_spec_passes_the_desktop_conformance_cases() {
         assert_conforms(
             "khipro-testcases.tsv",
-            include_str!("../../../core/language/src/test/resources/khipro/khipro-testcases.tsv"),
+            include_str!("../data/khipro/tests/khipro-testcases.tsv"),
             Variant::Desktop,
         );
     }
@@ -689,7 +686,7 @@ mod tests {
         assert_conforms(
             "khipro-dark-testcases-touch.tsv",
             include_str!(
-                "../../../core/language/src/test/resources/khipro/khipro-dark-testcases-touch.tsv"
+                "../data/khipro/tests/khipro-dark-testcases-touch.tsv"
             ),
             Variant::DarkTouchscreen,
         );
@@ -700,7 +697,7 @@ mod tests {
         assert_conforms(
             "khipro-dark-testcases.tsv",
             include_str!(
-                "../../../core/language/src/test/resources/khipro/khipro-dark-testcases.tsv"
+                "../data/khipro/tests/khipro-dark-testcases.tsv"
             ),
             Variant::DarkDesktop,
         );

@@ -419,7 +419,7 @@ core/
 ├── common/           Utilities, direct boot, debug log, shared contracts
 └── config/           Build flags and API keys
 tools/dictc/          Host-side dictionary compiler, shares :core:prediction sources
-native/               Rust: the Harper grammar bridge, and wm-engine (the text engines, shared with WMK Desktop)
+native/               Rust: wm-engine (the text engines, shared with WMK Desktop), its JNI bridge, the Harper grammar bridge
 docs/                 The documentation site (Astro Starlight)
 ```
 
