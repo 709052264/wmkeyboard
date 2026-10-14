@@ -77,6 +77,15 @@ class VoiceInputEngine(private val context: Context) {
     /** [finish] was called on the session running now: it ends, it is not restarted. */
     private var finishing = false
 
+    /**
+     * The pending wait for the result of the session running now, once it has
+     * stopped listening (#664). See [RESULT_MS].
+     */
+    private var resultCheck: Runnable? = null
+
+    /** Starts, or restarts, [resultCheck] for the session running now. */
+    private var awaitResult: (() -> Unit)? = null
+
     /** False on devices without any recognition service (no GMS). */
     fun isAvailable(): Boolean =
         SpeechRecognizer.isRecognitionAvailable(context) ||
@@ -125,6 +134,28 @@ class VoiceInputEngine(private val context: Context) {
         // included, so an on-device session with neither a level nor a
         // partial after this long has stalled and will only end in NO_SPEECH.
         var heard = false
+        // The newest partial, which stands in for the result of a recognizer
+        // that never sends one.
+        var lastPartial = ""
+        // Every recognizer is trusted to end a session in onResults or
+        // onError. Transcribro (a Whisper recognition service people install
+        // where there is no Google) ends one on its own pause detection with
+        // onEndOfSpeech and then, at times, nothing more, which left the
+        // panel on its spinner for good (#664). A session that has stopped
+        // listening gets RESULT_MS to answer; after that it is cancelled and
+        // what was heard lands as the result, so continuous dictation goes on.
+        val waitForResult: () -> Unit = {
+            resultCheck?.let(main::removeCallbacks)
+            val check = Runnable {
+                if (recognizer === session) {
+                    cancel()
+                    if (lastPartial.isBlank()) listener.onError(ErrorKind.NO_SPEECH) else listener.onFinal(lastPartial)
+                }
+            }
+            resultCheck = check
+            main.postDelayed(check, RESULT_MS)
+        }
+        awaitResult = waitForResult
         fun stalled() {
             onDeviceStalledTags += languageTag
             release(session)
@@ -151,7 +182,10 @@ class VoiceInputEngine(private val context: Context) {
 
             override fun onBufferReceived(buffer: ByteArray?) {}
 
-            override fun onEndOfSpeech() = listener.onEndOfSpeech()
+            override fun onEndOfSpeech() {
+                if (recognizer === session) waitForResult()
+                listener.onEndOfSpeech()
+            }
 
             override fun onError(error: Int) {
                 if (recognizer !== session) return
@@ -202,6 +236,10 @@ class VoiceInputEngine(private val context: Context) {
                     ?.firstOrNull()
                 if (!text.isNullOrBlank()) {
                     heard = true
+                    lastPartial = text
+                    // Still working: a partial after the end of speech is
+                    // the recognizer showing it has not hung.
+                    if (recognizer === session && resultCheck != null) waitForResult()
                     listener.onPartial(text)
                 }
             }
@@ -381,6 +419,7 @@ class VoiceInputEngine(private val context: Context) {
         finishing = true
         stallCheck?.let(main::removeCallbacks)
         stallCheck = null
+        if (recognizer != null) awaitResult?.invoke()
         recognizer?.stopListening()
     }
 
@@ -398,12 +437,22 @@ class VoiceInputEngine(private val context: Context) {
             recognizer = null
             stallCheck?.let(main::removeCallbacks)
             stallCheck = null
+            resultCheck?.let(main::removeCallbacks)
+            resultCheck = null
+            awaitResult = null
         }
     }
 
     private companion object {
         /** How long an on-device session may stay deaf before it counts as stalled. */
         const val STALL_MS = 1800L
+
+        /**
+         * How long a session that has stopped listening may take to send its
+         * result. A network recognizer answers in a second or two; a Whisper
+         * one on the phone transcribes only now, so this leaves it room.
+         */
+        const val RESULT_MS = 12_000L
     }
 
     private fun errorKind(code: Int): ErrorKind = when (code) {
