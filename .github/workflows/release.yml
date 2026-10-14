@@ -289,7 +289,8 @@ jobs:
             unzip -l "$out" | grep -q "lib/arm64-v8a/$lib" \
               || { echo "::error::$out has no arm64-v8a $lib"; exit 1; }
           done
-          pipx run apksigcopier==1.1.1 compare "$out" --unsigned dist/fdroid-unsigned.apk
+          PATH="$(dirname "$apksigner"):$PATH" \
+            pipx run apksigcopier==1.1.1 compare "$out" --unsigned dist/fdroid-unsigned.apk
           mkdir -p dist-ref && mv "$out" dist-ref/
 
       - uses: actions/upload-artifact@v4
