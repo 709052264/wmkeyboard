@@ -7958,7 +7958,14 @@ open class WMKeyboardService : InputMethodService() {
             // arrow, Home or End goes to the keyboard's own field first while
             // one has the keys (#414): the clip editor's caret, not the app's.
             is KeyAction.SendKey -> {
-                if (!captureCaretKeyCode((key.action as KeyAction.SendKey).keyCode)) {
+                val send = key.action as KeyAction.SendKey
+                if (send.isShiftEnter()) {
+                    // Enter tapped under a held shift, or a drag off shift onto
+                    // it: Enter itself with the shift held, so the word ends,
+                    // autocorrect runs, and the field decides between a line
+                    // break and its action the way onEnter always does.
+                    onEnter(heldShift = true)
+                } else if (!captureCaretKeyCode(send.keyCode)) {
                     sendShortcut(key, Modifiers.None)
                 }
             }
@@ -12997,8 +13004,16 @@ open class WMKeyboardService : InputMethodService() {
      *
      * [ignoreShift] leaves Shift+Enter's override out entirely, for the one
      * caller that exists to get past it ([onEditorAction]).
+     *
+     * [heldShift] is the on-screen shift held down under the Enter tap, or
+     * dragged onto it, rather than latched by a tap. Like the physical one it
+     * never reaches [KeyboardUiState.shiftState], so it is passed in.
      */
-    private fun onEnter(hardwareShift: Boolean? = null, ignoreShift: Boolean = false) {
+    private fun onEnter(
+        hardwareShift: Boolean? = null,
+        ignoreShift: Boolean = false,
+        heldShift: Boolean = false,
+    ) {
         val state = _uiState.value
         // Enter belongs to whichever keyboard-owned field has the keys, and
         // never to the app behind the panel.
@@ -13040,12 +13055,13 @@ open class WMKeyboardService : InputMethodService() {
         // box declares Send, so this is the only way to put a line break in a
         // message without sending it. The key draws the newline glyph while the
         // override is live (see enterActionFor), so it still does what it shows.
-        val forceNewline = !ignoreShift && state.settings.layoutBehavior.shiftEnterNewline &&
-            (hardwareShift ?: state.softShiftForcesNewline)
+        val shifted = !ignoreShift && (hardwareShift ?: (heldShift || state.softShiftForcesNewline))
+        val forceNewline = shifted && state.settings.layoutBehavior.shiftEnterNewline
         // Same decoder that labels the key, so Enter always does what the
         // key is drawing — including an app's own actionId behind a custom
         // actionLabel. Null means "no action": type a real newline.
-        val action = if (forceNewline) null else currentInputEditorInfo.editorActionId()
+        val fieldAction = currentInputEditorInfo.editorActionId()
+        val action = if (forceNewline) null else fieldAction
         if (action != null) {
             ic.performEditorAction(action)
             // The action is the app's to answer, and a message box answers it by
@@ -13055,7 +13071,7 @@ open class WMKeyboardService : InputMethodService() {
             // stale idea of the text used against it (#236).
             invalidateExpectedSelection()
             invalidateRecentWords()
-        } else if (forceNewline) {
+        } else if (forceNewline && fieldAction != null) {
             // Committed rather than sent as a key event, which is what the
             // override needs and what a plain newline does not. A field that
             // declares an action is a single-line TextView, and TextView answers
@@ -13091,10 +13107,35 @@ open class WMKeyboardService : InputMethodService() {
             // page, a terminal. These want the key event — a committed "\n"
             // reaches a page behind keyCode 229 with no Enter for its handlers
             // to see, which is the mirror image of the digit case above.
-            ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
-            ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
+            //
+            // A user's shift rides along on it. Google Docs, Word and every
+            // contenteditable page read Shift+Enter as a line break inside the
+            // paragraph and a bare Enter as a new paragraph, and a committed
+            // "\n" is the bare one to all of them. A plain multi-line EditText
+            // types the same newline either way.
+            if (shifted) {
+                sendShiftedEnter(ic)
+            } else {
+                ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
+                ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
+            }
             maybeAutoCapitalize()
         }
+    }
+
+    /**
+     * Shift+Enter as a hardware keyboard sends it: shift down, Enter down and
+     * up with the shift mask on both, shift up. Editors that tell a line break
+     * from a paragraph break read the mask; some only track the shift key's
+     * own down and up, so both are sent.
+     */
+    private fun sendShiftedEnter(ic: InputConnection) {
+        val meta = KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
+        val time = SystemClock.uptimeMillis()
+        ic.sendKeyEvent(shortcutEvent(time, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_SHIFT_LEFT, meta))
+        ic.sendKeyEvent(shortcutEvent(time, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER, meta))
+        ic.sendKeyEvent(shortcutEvent(time, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER, meta))
+        ic.sendKeyEvent(shortcutEvent(time, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_SHIFT_LEFT, 0))
     }
 
     /**
@@ -42223,6 +42264,11 @@ open class WMKeyboardService : InputMethodService() {
             }
             return action
         }
+
+        /** Enter with shift and no other modifier; see the [KeyAction.SendKey] dispatch. */
+        private fun KeyAction.SendKey.isShiftEnter(): Boolean =
+            keyCode == KeyEvent.KEYCODE_ENTER && meta and KeyEvent.META_SHIFT_ON != 0 &&
+                meta and (KeyEvent.META_CTRL_ON or KeyEvent.META_ALT_ON or KeyEvent.META_META_ON) == 0
 
         /**
          * Whether a newline here must be *committed* rather than sent as a

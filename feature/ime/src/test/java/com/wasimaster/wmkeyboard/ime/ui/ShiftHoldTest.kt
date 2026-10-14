@@ -38,11 +38,20 @@ class ShiftHoldTest {
     }
 
     @Test
-    fun `space and enter stay themselves but still spend the hold`() {
+    fun `space stays itself but still spends the hold`() {
         val hold = ShiftHold().apply { begin() }
         val space = Key(" ", action = KeyAction.Space)
         assertSame(space, hold.route(space))
         // Lifting shift after "A B" must not arm it for the next letter.
+        assertTrue(hold.typed)
+    }
+
+    @Test
+    fun `enter under a held shift is shift+enter`() {
+        val hold = ShiftHold().apply { begin() }
+        val action = hold.route(Key("⏎", action = KeyAction.Enter))!!.action as KeyAction.SendKey
+        assertEquals(android.view.KeyEvent.KEYCODE_ENTER, action.keyCode)
+        assertTrue(action.meta and android.view.KeyEvent.META_SHIFT_ON != 0)
         assertTrue(hold.typed)
     }
 

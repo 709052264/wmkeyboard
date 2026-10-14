@@ -88,6 +88,8 @@ internal open class RecordingEditor(
 
     /** Key codes the service sent, downs and ups alike. */
     val keys = mutableListOf<Int>()
+    /** The same events whole, for a test that reads their meta state. */
+    val keyEvents = mutableListOf<KeyEvent>()
 
     /** Editor actions the service fired, in order — Send, Done, an app's own id. */
     val editorActions = mutableListOf<Int>()
@@ -137,7 +139,10 @@ internal open class RecordingEditor(
     }
 
     override fun sendKeyEvent(event: KeyEvent?): Boolean {
-        event?.let { keys += it.keyCode }
+        event?.let {
+            keys += it.keyCode
+            keyEvents += it
+        }
         return true
     }
 

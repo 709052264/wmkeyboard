@@ -48,8 +48,12 @@ class EnterNewlineFieldTest {
         it.imeOptions = imeOptions
     }
 
-    /** Taps the on-screen Enter key against a field shaped by [info]. */
-    private fun pressEnter(info: EditorInfo): RecordingEditor {
+    /**
+     * Taps the on-screen Enter key against a field shaped by [info]; with
+     * [heldShift], with a finger held on shift, which reaches the service as
+     * the Shift+Enter chord the grid builds for it.
+     */
+    private fun pressEnter(info: EditorInfo, heldShift: Boolean = false): RecordingEditor {
         val editor = RecordingEditor()
         val service = EnterKeyboard(editor, info)
         plantPersonalStores(service)
@@ -62,9 +66,16 @@ class EnterNewlineFieldTest {
                 ),
             ),
         )
-        service.onKey(Key(label = "\n", action = KeyAction.Enter))
+        val shiftMeta = KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
+        val action = if (heldShift) KeyAction.SendKey(KeyEvent.KEYCODE_ENTER, shiftMeta) else KeyAction.Enter
+        service.onKey(Key(label = "\n", action = action))
         return editor
     }
+
+    private val multiLineField = editorInfo(
+        inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE,
+        imeOptions = EditorInfo.IME_ACTION_NONE,
+    )
 
     /** Discord's message box, as `dumpsys input_method` reports it (#214). */
     private val discordBox = editorInfo(
@@ -141,5 +152,45 @@ class EnterNewlineFieldTest {
         assertEquals(emptyList<String>(), editor.commits)
         assertFalse(KeyEvent.KEYCODE_ENTER in editor.keys)
         assertEquals(listOf(EditorInfo.IME_ACTION_DONE), editor.editorActions)
+    }
+
+    @Test
+    fun `held shift sends a shifted enter to a multi-line field`() {
+        // Google Docs and Word: Shift+Enter is a line break inside the
+        // paragraph, and they can only tell it from Enter by the meta state.
+        val editor = pressEnter(multiLineField, heldShift = true)
+
+        val enters = editor.keyEvents.filter { it.keyCode == KeyEvent.KEYCODE_ENTER }
+        assertEquals(2, enters.size)
+        assertTrue(enters.all { it.isShiftPressed })
+        assertTrue(KeyEvent.KEYCODE_SHIFT_LEFT in editor.keys)
+        assertEquals(emptyList<String>(), editor.commits)
+    }
+
+    @Test
+    fun `plain enter in a multi-line field carries no shift`() {
+        val editor = pressEnter(multiLineField)
+
+        assertTrue(editor.keyEvents.none { it.isShiftPressed })
+    }
+
+    @Test
+    fun `held shift breaks the line in a send field instead of sending`() {
+        val editor = pressEnter(
+            editorInfo(inputType = InputType.TYPE_CLASS_TEXT, imeOptions = EditorInfo.IME_ACTION_SEND),
+            heldShift = true,
+        )
+
+        assertEquals(listOf("\n"), editor.commits)
+        assertEquals(emptyList<Int>(), editor.editorActions)
+        assertFalse(KeyEvent.KEYCODE_ENTER in editor.keys)
+    }
+
+    @Test
+    fun `held shift still commits the break in a box that refused the enter action`() {
+        val editor = pressEnter(discordBox, heldShift = true)
+
+        assertEquals(listOf("\n"), editor.commits)
+        assertFalse(KeyEvent.KEYCODE_ENTER in editor.keys)
     }
 }

@@ -14293,10 +14293,12 @@ internal class ShiftHold {
      * capital while one is, and null — nothing yet — for the held shift's own
      * long press, which the lift fires later if nothing was typed under it.
      *
-     * Only text keys change. Space, backspace and enter under a held shift are
-     * the keys themselves, as they are on the stock keyboards: a Shift+Enter
-     * chord is the drag off shift's job, and a held shift that turned a space
-     * into a key event would lose the word it ends.
+     * Text keys and Enter change. Enter becomes Shift+Enter, the way Gboard
+     * reads a held shift: a line break inside the paragraph in Docs or Word, a
+     * line break rather than Send in a chat box. The service takes that chord
+     * through its own Enter path, so the word still ends the way Enter ends it.
+     * Space and backspace stay the keys themselves: a held shift that turned a
+     * space into a key event would lose the word it ends.
      */
     fun route(key: Key): Key? {
         if (!held) return key
@@ -14305,7 +14307,10 @@ internal class ShiftHold {
             return null
         }
         typed = true
-        return if (key.action == KeyAction.Text) shiftChordKey(key) else key
+        return when (key.action) {
+            KeyAction.Text, KeyAction.Enter -> shiftChordKey(key) ?: key
+            else -> key
+        }
     }
 }
 
