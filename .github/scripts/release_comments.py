@@ -3,7 +3,7 @@
 
 Reads the body of a published GitHub release, finds each issue it links, and
 comments on that issue: which version it is in, a mention of whoever opened
-it and of everyone who gave it a positive reaction (👍 ❤️ 🎉 🚀), any settings the change added (as ``wmkeyboard.pages.dev/open/`` links that
+it and of everyone who reacted to it (any reaction but 👎 and 😕), any settings the change added (as ``wmkeyboard.pages.dev/open/`` links that
 open the row in the app), and a note that F-Droid and Google Play lag the
 GitHub release by a few days.
 
@@ -86,8 +86,8 @@ MAX_COMMITS = 6
 # GitHub asks for at least a second between content-creating requests.
 WRITE_PAUSE_SECONDS = 1.5
 
-# Reactions that mean "I want this too". Laugh, confused, eyes and 👎 do not.
-POSITIVE_REACTIONS = {"+1", "heart", "hooray", "rocket"}
+# Reactions that mean "not for me". Every other one (👍 😄 🎉 ❤️ 🚀 👀) counts.
+NEGATIVE_REACTIONS = {"-1", "confused"}
 # Reactors mentioned by name in one comment; the rest are counted, not pinged.
 MAX_REACTORS = 25
 
@@ -382,7 +382,7 @@ class Plan:
 
 
 def find_reactors(gh: GitHub, number: int, exclude: set[str]) -> list[str]:
-    """People who reacted positively to the issue itself, oldest first.
+    """People who reacted to the issue itself with anything but 👎 or 😕, oldest first.
 
     Bots, the ghost account and anyone in ``exclude`` (the author, the owner)
     are left out, and each person is listed once however many reactions they gave.
@@ -397,7 +397,7 @@ def find_reactors(gh: GitHub, number: int, exclude: set[str]) -> list[str]:
     for r in reactions:
         user = r.get("user") or {}
         login = user.get("login")
-        if (r.get("content") not in POSITIVE_REACTIONS or user.get("type") != "User"
+        if (r.get("content") in NEGATIVE_REACTIONS or user.get("type") != "User"
                 or not login or login == "ghost" or login.lower() in seen):
             continue
         seen.add(login.lower())
