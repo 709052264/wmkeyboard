@@ -57,6 +57,11 @@ for d in "$home_vagrant/tmp" "$home_vagrant/unsigned" "$home_vagrant/logs" \
          "$home_vagrant/build" "$home_vagrant/.android" "$home_vagrant/.gradle"; do
     mkdir -p "$d"
 done
+# An `--on-server` build expects the source already in build/<appid>: on
+# F-Droid's buildserver the host clones it and pushes it into the VM. It
+# reads SOURCE_DATE_EPOCH from that clone before its own checkout.
+git clone --quiet https://github.com/wasi-master/wmkeyboard.git "$home_vagrant/build/$appid"
+git -C "$home_vagrant/build/$appid" checkout --quiet "$commit"
 chown -R vagrant "$home_vagrant"
 apt-get install -qy sudo openjdk-21-jdk-headless
 update-alternatives --set java /usr/lib/jvm/java-21-openjdk-amd64/bin/java
