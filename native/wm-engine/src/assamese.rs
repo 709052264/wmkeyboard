@@ -10,8 +10,12 @@
 //! - ৱ, not ওয়: inside a word Avro's ওয় glide becomes ৱ ("suwali" ছোৱালী);
 //!   opening one it stays, since ও there is a vowel.
 
+use std::collections::HashMap;
+
 use crate::avro;
 use crate::bengali_graphemes::is_bengali;
+use crate::bengali_index::BengaliPhoneticIndex;
+use crate::phonetic_index::{bounded_entries, PhoneticIndex, PHONETIC_INDEX_BUDGET};
 
 const BENGALI_RA: char = '\u{9B0}';
 const ASSAMESE_RA: char = '\u{9F0}';
@@ -63,6 +67,61 @@ pub fn is_assamese(c: char) -> bool {
     is_bengali(c)
 }
 
+/// Reverse-phonetic lookup for Assamese: the Bengali index over the list
+/// spelled in Bangla letters ([`to_bengali`]), answering in the list's own
+/// Assamese spelling.
+pub struct AssamesePhoneticIndex {
+    native: HashMap<String, String>,
+    inner: BengaliPhoneticIndex,
+}
+
+impl AssamesePhoneticIndex {
+    pub fn new(entries: Vec<(String, i32)>) -> AssamesePhoneticIndex {
+        let kept = bounded_entries(entries, PHONETIC_INDEX_BUDGET);
+        let mut native: HashMap<String, String> = HashMap::with_capacity(kept.len());
+        let mut converted: Vec<(String, i32)> = Vec::with_capacity(kept.len());
+        for (word, frequency) in kept {
+            let bn = to_bengali(&word);
+            native.entry(bn.clone()).or_insert_with(|| word.clone());
+            converted.push((bn, frequency));
+        }
+        AssamesePhoneticIndex {
+            native,
+            inner: BengaliPhoneticIndex::new(converted),
+        }
+    }
+}
+
+impl PhoneticIndex for AssamesePhoneticIndex {
+    fn lookup(&self, input: &str) -> Vec<String> {
+        let mut out: Vec<String> = Vec::new();
+        for bn in self.inner.lookup(&input.replace('x', "s")) {
+            if let Some(word) = self.native.get(&bn) {
+                if !out.contains(word) {
+                    out.push(word.clone());
+                }
+            }
+        }
+        out
+    }
+
+    fn frequency_of(&self, word: &str) -> i32 {
+        self.inner.frequency_of(&to_bengali(word))
+    }
+
+    fn match_strength(&self, input: &str) -> i32 {
+        self.inner.match_strength(&input.replace('x', "s"))
+    }
+
+    fn max_frequency(&self) -> i32 {
+        self.inner.max_frequency()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     //! Mirrors `AssamesePhoneticTest.kt`, the index test aside.
@@ -98,5 +157,20 @@ mod tests {
     #[test]
     fn to_bengali_is_the_way_into_the_bangla_index() {
         assert_eq!("\u{9B0}\u{9AC}", to_bengali("\u{9F0}\u{9F1}"));
+    }
+
+    #[test]
+    fn the_index_answers_in_assamese_spelling() {
+        use super::AssamesePhoneticIndex;
+        use crate::phonetic_index::PhoneticIndex;
+        let index = AssamesePhoneticIndex::new(vec![
+            ("\u{986}\u{9AE}\u{9BE}\u{9F0}".to_string(), 100),
+            ("\u{9AE}\u{987}".to_string(), 90),
+        ]);
+        assert_eq!(
+            Some("\u{986}\u{9AE}\u{9BE}\u{9F0}".to_string()),
+            index.lookup("amar").into_iter().next()
+        );
+        assert_eq!(100, index.frequency_of("\u{986}\u{9AE}\u{9BE}\u{9F0}"));
     }
 }

@@ -28,8 +28,12 @@
 //!   generated [`bijoy_tables`]; [`khipro_romanizer`]: Khipro run backwards;
 //!   [`phonetic_key_map`]: the key maps the settings pages draw.
 //!
-//! Still Kotlin: the phonetic indexes (they need the word lists), Avro's
-//! dictionary walk, prediction and glide.
+//! - [`phonetic_index`] and the reverse-phonetic indexes over word lists:
+//!   [`bengali_index`], [`hindi_index`], [`indic_index`], [`urdu_index`]
+//!   (with the Arabic-script wrapper), and the Assamese one in [`assamese`].
+//!
+//! That is the whole of the Kotlin `core/transliteration` package. Still
+//! Kotlin: Avro's dictionary walk, prediction and glide.
 //!
 //! The crate does no I/O. Its tables are compiled in from the Android app's
 //! own resource and asset files, so the two never disagree about which
@@ -41,13 +45,16 @@ pub mod assamese;
 pub mod avro;
 pub mod avro_desktop;
 pub mod bengali_graphemes;
+pub mod bengali_index;
 pub mod bengali_romanizer;
 pub mod bijoy;
 pub mod bijoy_tables;
 pub mod devanagari_romanizer;
 pub mod gujarati;
 pub mod hindi;
+pub mod hindi_index;
 pub mod indic;
+pub mod indic_index;
 pub mod indic_profiles;
 pub mod indic_script;
 pub mod kannada;
@@ -57,6 +64,7 @@ pub mod malayalam;
 pub mod marathi;
 pub mod odia;
 pub mod persian;
+pub mod phonetic_index;
 pub mod phonetic_key_map;
 pub mod punjabi;
 pub mod sexp;
@@ -64,4 +72,5 @@ pub mod tamil;
 pub mod telugu;
 pub mod unicode;
 pub mod urdu;
+pub mod urdu_index;
 pub mod urdu_romanizer;
