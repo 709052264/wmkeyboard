@@ -6357,6 +6357,9 @@ open class WMKeyboardService : InputMethodService() {
         syncPhoneticAutoEnglish(modeSettings, fieldSpec)
         syncPhoneticFixedStrip(modeSettings, fieldSpec)
         syncAnsiOutput(modeSettings, fieldSpec)
+        // GIFs and stickers queued in the last field don't follow the user
+        // into this one; a restart is still the same field, so they go on.
+        if (!restarting) mediaSendQueue.clear()
         _uiState.update {
             it.copy(
                 settings = modeSettings,
@@ -6433,6 +6436,7 @@ open class WMKeyboardService : InputMethodService() {
                 mediaQuery = if (restarting) it.mediaQuery else "",
                 mediaDownloadingId = null,
                 mediaDownloadProgress = null,
+                mediaQueue = if (restarting) it.mediaQueue else emptyList(),
                 launcherDetail = null,
                 // A run belongs to the field it was started over; moving to
                 // another one abandons it rather than resuming half-typed.
@@ -18489,6 +18493,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         stickerMutedAfter = ic?.getTextBeforeCursor(StickerTriggerIndex.LOOKBEHIND, 0)?.toString()
         clearStickerOffer()
+        vibrate()
         insertLocalSticker(pick.item, state.settings.stickerSendMode)
         refreshSuggestions()
     }
@@ -32072,29 +32077,131 @@ open class WMKeyboardService : InputMethodService() {
      * Tapped a GIF/sticker cell: download the full file and commit it. The
      * two panels share this path, so which send mode applies depends on
      * which one is open.
+     *
+     * Taps while one is still on its way queue up behind it rather than being
+     * dropped, and go out one by one in the order they were tapped; each
+     * waiting cell wears its place in the line. Tapping a waiting cell again
+     * takes it back out.
      */
     fun onGifSelect(item: GifItem) {
-        val settings = _uiState.value.settings
+        val state = _uiState.value
+        val settings = state.settings
         // The field advertises what it can receive; when it advertises nothing
         // the send has nowhere to land. Stop here rather than downloading the
         // file and dead-ending in the clipboard fallback and its "copied,
         // paste it instead" toast — the panel already shows a standing notice
         // (see GifPanel), so a silent no-op is the honest answer.
-        if (!_uiState.value.acceptsRichMedia) {
+        if (!state.acceptsRichMedia) {
             vibrate()
             return
         }
-        val sendMode = if (_uiState.value.panel == PanelMode.STICKER) {
+        // The one on its way can't be called back; a second tap on it is a slip.
+        if (mediaSending?.item?.id == item.id) return
+        vibrate()
+        if (mediaSendQueue.removeAll { it.item.id == item.id }) {
+            publishMediaQueue()
+            return
+        }
+        val sendMode = if (state.panel == PanelMode.STICKER) {
             settings.stickerSendMode
         } else {
             settings.gif.sendMode
         }
-        if (item.source == GifSource.LOCAL) {
-            insertLocalSticker(item, sendMode)
-            return
+        if (item.source != GifSource.LOCAL) recordRecentGif(item)
+        val editor = currentInputEditorInfo
+        mediaSendQueue.addLast(QueuedMedia(item, sendMode, editor?.packageName, editor?.fieldId))
+        publishMediaQueue()
+        if (mediaQueueJob?.isActive != true) mediaQueueJob = serviceScope.launch { drainMediaQueue() }
+    }
+
+    /**
+     * One tapped GIF/sticker waiting its turn, with the send mode of the panel
+     * it was tapped on and the field it was meant for.
+     */
+    private class QueuedMedia(
+        val item: GifItem,
+        val sendMode: MediaSendMode,
+        val packageName: String?,
+        val fieldId: Int?,
+    )
+
+    /** Tapped GIFs/stickers not yet started, oldest first. Main thread only. */
+    private val mediaSendQueue = ArrayDeque<QueuedMedia>()
+
+    /** The queued send being downloaded or committed right now, if any. */
+    private var mediaSending: QueuedMedia? = null
+    private var mediaQueueJob: Job? = null
+
+    /**
+     * A sticker [commitAnimatedAsGif] is still converting. The queue waits for
+     * it, so a still sticker tapped after an animated one can't overtake it.
+     */
+    private var gifConversionJob: Job? = null
+
+    private fun publishMediaQueue() {
+        val ids = mediaSendQueue.map { it.item.id }
+        _uiState.update { if (it.mediaQueue == ids) it else it.copy(mediaQueue = ids) }
+    }
+
+    /** Drops every waiting send, for a field that is no longer the one they were tapped in. */
+    private fun clearMediaQueue() {
+        if (mediaSendQueue.isEmpty()) return
+        mediaSendQueue.clear()
+        publishMediaQueue()
+    }
+
+    private fun isSameField(packageName: String?, fieldId: Int?): Boolean {
+        val now = currentInputEditorInfo ?: return false
+        return now.packageName == packageName && now.fieldId == fieldId
+    }
+
+    /**
+     * Sends the queue in tap order, one at a time. Each one is checked against
+     * the field it was tapped in just before it commits: once the user has
+     * moved on, the rest of the line goes too, rather than landing somewhere
+     * it was never sent to.
+     */
+    private suspend fun drainMediaQueue() {
+        try {
+            while (true) {
+                val next = mediaSendQueue.removeFirstOrNull() ?: break
+                publishMediaQueue()
+                if (!isSameField(next.packageName, next.fieldId)) {
+                    clearMediaQueue()
+                    break
+                }
+                mediaSending = next
+                val item = next.item
+                if (item.source == GifSource.LOCAL) {
+                    insertLocalSticker(item, next.sendMode)
+                } else {
+                    startMediaDownload(item.id)
+                    val file = withContext(Dispatchers.IO) {
+                        downloadMediaFile(item.fullUrl, item.mime, trackProgress = true)
+                    }
+                    endMediaDownload()
+                    if (file == null) {
+                        Toast.makeText(
+                            this@WMKeyboardService,
+                            getString(R.string.ime_service_media_download_error_toast),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    } else if (isSameField(next.packageName, next.fieldId)) {
+                        commitImageFile(file, item.mime, next.sendMode)
+                    } else {
+                        clearMediaQueue()
+                        break
+                    }
+                }
+                mediaSending = null
+                gifConversionJob?.join()
+                // A breath between sends, so a chat app that is still taking
+                // one picture in doesn't get the next on top of it.
+                if (mediaSendQueue.isNotEmpty()) delay(MEDIA_QUEUE_GAP_MS)
+            }
+        } finally {
+            mediaSending = null
         }
-        recordRecentGif(item)
-        insertDownloadedImage(item.id, item.fullUrl, item.mime, sendMode)
     }
 
     /**
@@ -32115,7 +32222,6 @@ open class WMKeyboardService : InputMethodService() {
      * failing silently.
      */
     private fun insertLocalSticker(item: GifItem, sendMode: MediaSendMode) {
-        vibrate()
         val found = stickerPackStore.findByItemId(item.id)
         val file = found?.let { (pack, sticker) -> stickerPackStore.fileFor(pack.id, sticker) }
         if (found == null || file == null || !file.exists()) {
@@ -38091,7 +38197,7 @@ open class WMKeyboardService : InputMethodService() {
         val sentToPackage = editorInfo.packageName
         val sentToField = editorInfo.fieldId
         Toast.makeText(this, getString(R.string.ime_service_converting_to_gif_toast), Toast.LENGTH_SHORT).show()
-        serviceScope.launch {
+        gifConversionJob = serviceScope.launch {
             val converted = withContext(Dispatchers.Default) {
                 com.wasimaster.wmkeyboard.core.media.AnimatedWebpToGif.transcode(file, gif)
             }
@@ -40984,6 +41090,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** Enough of a WebP to read the header flag that says it is animated. */
         private const val WEBP_HEADER_BYTES = 32
+
+        /** Pause between two queued GIF/sticker sends. */
+        private const val MEDIA_QUEUE_GAP_MS = 350L
 
         /**
          * What a percentage counts up to. The system's voice-model download

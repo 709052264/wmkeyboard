@@ -56,7 +56,11 @@ If neither provider has a key configured and no offline pack is installed, the p
   <Shot id="emoji/gif-no-rich-media" alt="A field that can't accept images — the panel dims and shows the standing notice." />
 </PhoneFrame>
 
-Tap a result and it downloads and lands in the field in one step. There's no separate "insert" confirmation. What happens next depends on what the field will accept:
+Tap a result and it downloads and lands in the field in one step. There's no separate "insert" confirmation.
+
+You don't have to wait for one to arrive before tapping the next. Tap several in a row and they queue up: the first downloads while the rest wait, each with a small number in its corner for its place in the line, and they go out one after another in the order you tapped them. Tap a numbered GIF again to take it back out of the queue. If you leave the field before the queue is done, the GIFs still waiting are dropped rather than sent somewhere else.
+
+What happens to each one depends on what the field will accept:
 
 1. **The field doesn't take images at all.** Plain text boxes can't receive a GIF through Android's `commitContent` mechanism. The panel shows a standing notice, "This field does not accept GIFs. Try a chat app or a notes app.", and tapping a result does nothing beyond a short vibration. Nothing downloads. This is a pre-send check, not a failed attempt.
 2. **The field takes images.** The full-size file downloads and commits using a MIME type the field advertises it can accept. With <SettingsPath path="Tools / GIFs / Send GIFs as" /> set to Sticker, a WebP result first offers WhatsApp's private sticker MIME (`image/webp.wasticker`) before falling back to plain `image/webp`. Android has no official "this is a sticker" flag, so this is a best-effort convention rather than a documented API. The PNG fallback only ever applies to a WebP-format download. If the field won't take `image/webp` but does accept PNG, a still WebP is re-encoded to a still PNG rather than failing outright. An animated WebP is skipped, since a PNG can't hold the animation. A plain `image/gif` download (what most GIF-panel results actually are) has no such fallback. If the field doesn't accept `image/gif`, it goes straight to the clipboard fallback below.
