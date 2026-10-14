@@ -314,9 +314,12 @@ private fun AlarmDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(ImeR.string.ime_clock_vibrate_desc), modifier = Modifier.weight(1f))
-                    Switch(checked = vibrate, onCheckedChange = { vibrate = it })
+                // Only the ring service can vibrate per alarm; see ChannelFeatures.
+                if (ChannelFeatures.CLOCK_RING_SERVICE) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(ImeR.string.ime_clock_vibrate_desc), modifier = Modifier.weight(1f))
+                        Switch(checked = vibrate, onCheckedChange = { vibrate = it })
+                    }
                 }
             }
         },

@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wasimaster.wmkeyboard.app.ChannelFeatures
 import com.wasimaster.wmkeyboard.core.clock.Alarm
 import com.wasimaster.wmkeyboard.core.clock.AlarmMath
 import com.wasimaster.wmkeyboard.core.clock.ClockFormats
@@ -393,7 +394,8 @@ private fun AlarmEditor(edit: AlarmEdit, ui: ClockUi, act: (ClockAction) -> Unit
                         icon = Icons.Outlined.Label,
                         height = 30.dp,
                     ) { act(ClockAction.AlarmLabel) }
-                    PillButton(
+                    // Only the ring service can vibrate per alarm; see ChannelFeatures.
+                    if (ChannelFeatures.CLOCK_RING_SERVICE) PillButton(
                         "",
                         icon = Icons.Outlined.Vibration,
                         primary = edit.vibrate,

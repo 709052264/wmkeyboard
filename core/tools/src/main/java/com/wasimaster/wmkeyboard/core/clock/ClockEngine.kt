@@ -24,11 +24,31 @@ object ClockEngine {
     /** Applies [change] and brings the system's view of the clock up to date. */
     fun update(context: Context, change: (ClockData) -> ClockData): ClockData {
         val app = context.applicationContext
+        val before = ClockStore.get(app).data
         val data = ClockStore.get(app).update(change)
         rearm(app, data)
         ClockNotifications.refresh(app, data)
+        // Answered: the ring's notification goes. The ring service does this
+        // itself, but the notification-only ring (the Play build, or a phone
+        // that refused the service) has nobody else to take it down.
+        if (before.ringing.isNotEmpty() && data.ringing.isEmpty()) ClockNotifications.cancelRing(app)
         return data
     }
+
+    /**
+     * Rings that were never answered and are long past their auto-silence:
+     * logged as missed. The ring service does this on a timer, but a ring with
+     * no service (or a service the process lost) would otherwise sit in the
+     * data for ever, and keep its alarm from ringing the next day.
+     */
+    private fun expireStale(context: Context, now: Long) {
+        val limit = ClockPrefs.get(context).autoSilenceMinutes.coerceAtLeast(1) * 60_000L + STALE_GRACE_MS
+        val stale = ClockStore.get(context).data.ringing.filter { now - it.since > limit }
+        if (stale.isEmpty()) return
+        update(context) { d -> stale.fold(d) { acc, r -> ClockActions.missed(acc, r, now) } }
+    }
+
+    private const val STALE_GRACE_MS = 60_000L
 
     // ---- Wake-ups ------------------------------------------------------
 
@@ -123,6 +143,7 @@ object ClockEngine {
 
     /** The alarm wake-up fired: ring whatever is due. */
     fun onAlarmWake(context: Context, at: Long) {
+        expireStale(context, at)
         var started: List<Ringing> = emptyList()
         update(context) { d ->
             val (next, rang) = ClockActions.fireAlarms(d, at, TimeZone.getDefault())
@@ -134,6 +155,7 @@ object ClockEngine {
 
     /** The timer wake-up fired, or a process start found timers that ran out. */
     fun onTimerWake(context: Context, at: Long, ringIfDue: Boolean = true) {
+        expireStale(context, at)
         val config = ClockPrefs.get(context)
         var started: List<Ringing> = emptyList()
         update(context) { d ->

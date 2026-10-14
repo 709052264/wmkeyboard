@@ -118,7 +118,7 @@ object ClockNotifications {
      * The ring's notification: what rings, Snooze and Dismiss, and the ring
      * screen as its full-screen intent so a locked phone lights up with it.
      */
-    fun ringNotification(context: Context, ringing: List<Ringing>, loud: Boolean): Notification {
+    fun ringNotification(context: Context, ringing: List<Ringing>, loud: Boolean, timeoutMs: Long? = null): Notification {
         ensureRingChannels(context)
         val first = ringing.firstOrNull()
         val title = when {
@@ -150,15 +150,21 @@ object ClockNotifications {
             .setFullScreenIntent(ring, true)
             .addAction(0, context.getString(R.string.core_tools_clock_snooze), action(context, ClockReceiver.ACTION_SNOOZE_ALL))
             .addAction(0, context.getString(R.string.core_tools_clock_dismiss), action(context, ClockReceiver.ACTION_DISMISS_ALL))
+            .apply { if (timeoutMs != null) setTimeoutAfter(timeoutMs) }
             .build()
             .apply { if (loud) flags = flags or Notification.FLAG_INSISTENT }
     }
 
     /** The ring without a service: the loud channel plays the sound itself. */
     fun postFallbackRing(context: Context, ringing: List<Ringing>) {
-        if (!WmNotifications.canPost(context)) return
+        if (!WmNotifications.canPost(context) || ringing.isEmpty()) return
+        // No service is there to stop the sound, so the shade does: the ring
+        // stops by itself after the auto-silence time, and the next wake-up
+        // logs it as missed (ClockEngine.expireStale).
+        val silenceMs = ClockPrefs.get(context).autoSilenceMinutes.coerceAtLeast(1) * 60_000L
         runCatching {
-            NotificationManagerCompat.from(context).notify(NotificationIds.CLOCK_RING, ringNotification(context, ringing, loud = true))
+            NotificationManagerCompat.from(context)
+                .notify(NotificationIds.CLOCK_RING, ringNotification(context, ringing, loud = true, timeoutMs = silenceMs))
         }
     }
 
@@ -194,7 +200,8 @@ object ClockNotifications {
             putExtra(ClockReceiver.EXTRA_ID, id)
         }
 
-    private fun ensureRingChannels(context: Context) {
+    /** Makes the two ring channels, so their system settings page exists to open. */
+    fun ensureRingChannels(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         if (manager.getNotificationChannel(CHANNEL_RING) == null) {

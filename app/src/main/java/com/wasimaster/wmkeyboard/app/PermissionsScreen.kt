@@ -195,7 +195,8 @@ internal fun PermissionsSettings() {
                 R.string.privacy_permissions_biometric_subtitle,
             )
         }
-        item {
+        // The Play build declares no ring service; see ChannelFeatures.
+        item(visible = ChannelFeatures.CLOCK_RING_SERVICE) {
             InstallPermissionRow(
                 R.string.privacy_permissions_clock_ring_title,
                 R.string.privacy_permissions_clock_ring_subtitle,

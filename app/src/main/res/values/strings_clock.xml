@@ -47,6 +47,8 @@
     <string name="clock_alarms_group">Alarms and timers</string>
     <string name="clock_alarms_info">These apply to every alarm. An alarm can keep its own snooze length and vibration, set in its editor.</string>
     <string name="clock_alarm_sound_title">Alarm sound</string>
+    <string name="clock_channel_sound_title">Sound and vibration</string>
+    <string name="clock_channel_sound_subtitle">Alarms and timers ring through Android\'s alarm notification. Pick its sound and vibration on Android\'s settings page for it.</string>
     <string name="clock_timer_sound_title">Timer sound</string>
     <string name="clock_sound_default">Default alarm sound</string>
     <string name="clock_sound_same_as_alarm">Same as alarms</string>

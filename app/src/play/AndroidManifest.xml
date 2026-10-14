@@ -34,6 +34,19 @@
         android:name="android.permission.READ_MEDIA_VIDEO"
         tools:node="remove" />
 
+    <!--
+       The clock tool's ring service. Play keeps the systemExempted
+       foreground-service type for apps whose core job is an alarm clock, and
+       would refuse a keyboard that declares it, so the Play APK has neither
+       the type's permission nor the service. Alarms there ring through the
+       insistent alarm notification channel; ChannelFeatures.CLOCK_RING_SERVICE
+       routes ClockRinger to it and hides the settings that only the service
+       can honour (alarm and timer sound, fade-in).
+    -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED"
+        tools:node="remove" />
+
     <application>
         <!--
            TalkBack gesture pass-through. Play wants the store listing built
@@ -43,6 +56,11 @@
         -->
         <service
             android:name="com.wasimaster.wmkeyboard.core.accessibility.TouchPassthroughService"
+            tools:node="remove" />
+
+        <!-- See the permission above. -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.core.clock.ClockRingService"
             tools:node="remove" />
 
         <!--

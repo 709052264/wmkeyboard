@@ -66,6 +66,16 @@ Each one opens with the keyboard's own explanation first, then Android's setting
 
 While something rings, the keyboard runs a short foreground service that plays the sound and keeps the phone awake. It is the only part of the app that runs that way, and it stops the moment you answer the ring or it gives up by itself.
 
+### In the Play Store build
+
+Google Play allows that kind of service only for apps whose main job is an alarm clock, so the Play Store build doesn't have it. There, an alarm or a timer rings through Android's own alarm notification instead. The ring screen, Snooze, Dismiss and the history work the same, and the ring still stops by itself after **Stop ringing after**. What changes:
+
+- The sound and the vibration are the ones set for the **Alarms ringing (backup)** notification in Android's settings. **Sound and vibration** in the tool's settings opens that page. There is no sound or vibration per alarm.
+- There is no fade-in: the alarm starts at the volume Android gives alarm notifications.
+- Timers ring with the same sound as alarms.
+
+The GitHub and F-Droid builds have the service and every option above.
+
 After you restart the phone, Android forgets every alarm an app has set. The keyboard sets them again when it next starts, which happens straight after a restart when it is your default keyboard. The app has no permission to start itself at boot.
 
 ## Timers
@@ -124,11 +134,12 @@ A timer stopped within its first five seconds, or a stopwatch reset before five 
 | **Hour format** | **Like the phone**, **12-hour** or **24-hour**, for the panel, the ring screen and what the tool types | Like the phone |
 | **Show seconds** | Seconds on the big clock and its face | On |
 | **Default format** | What a hold on your own clock types, and the first button when you hold a city | Time and place |
-| **Alarm sound** | Any sound from Android's picker, or silent (vibrate only) | Default alarm sound |
-| **Timer sound** | The same, for timers | Same as alarms |
-| **Vibrate** | While an alarm or a timer rings. An alarm can turn it off for itself | On |
+| **Sound and vibration** | Play Store build only: opens Android's settings for the alarm notification, which plays the ring there | |
+| **Alarm sound** | Any sound from Android's picker, or silent (vibrate only). Not in the Play Store build | Default alarm sound |
+| **Timer sound** | The same, for timers. Not in the Play Store build | Same as alarms |
+| **Vibrate** | While an alarm or a timer rings. An alarm can turn it off for itself. Not in the Play Store build | On |
 | **Snooze length** | 1 to 30 minutes. An alarm can keep its own | 10 minutes |
-| **Fade in** | How long an alarm takes to reach full volume, up to 60 seconds. Timers always ring at full volume | 20 seconds |
+| **Fade in** | How long an alarm takes to reach full volume, up to 60 seconds. Timers always ring at full volume. Not in the Play Store build | 20 seconds |
 | **Stop ringing after** | When an alarm nobody answers stops, 1 to 30 minutes | 10 minutes |
 | **Volume keys snooze** | On the ring screen. When off, the volume keys do nothing there | On |
 | **Focus**, **Short break**, **Long break** | The Pomodoro lengths | 25, 5 and 15 minutes |

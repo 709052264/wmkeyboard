@@ -1994,6 +1994,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Alarms — Drum time picker with haptic ticks, repeat days, label, per-alarm vibrate and snooze, skip next, quick alarms in 10 to 90 minutes, undo on delete
     - Own alarm engine — AlarmManager.setAlarmClock for the next alarm, exact wake-up for the next timer end; inexact fallback without the exact-alarm grant
     - Ring service — Foreground service only while something rings; alarm-stream sound with fade-in, vibration, wake lock, auto-silence logged as missed
+    - Play build has no ring service — systemExempted FGS removed by the play manifest; rings through the insistent alarm channel with a timeout, stale rings logged as missed at the next wake-up
     - Ring screen — Over the lock screen, slide to dismiss, big snooze with 5/10/15/30 chips, volume keys snooze, several rings stacked
     - Rings before first unlock — Alarms and settings in device-protected storage, receiver and service direct-boot aware
     - No boot permission — Re-armed at process start (the keyboard starts at boot), on time or zone change, on app update

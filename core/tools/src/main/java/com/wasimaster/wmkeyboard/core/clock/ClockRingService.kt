@@ -17,6 +17,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.core.content.ContextCompat
+import com.wasimaster.wmkeyboard.app.ChannelFeatures
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.notify.NotificationIds
 import kotlinx.coroutines.CoroutineScope
@@ -32,6 +33,11 @@ object ClockRinger {
 
     fun start(context: Context) {
         val app = context.applicationContext
+        if (!ChannelFeatures.CLOCK_RING_SERVICE) {
+            // The Play build has no ring service at all; see ChannelFeatures.
+            ClockNotifications.postFallbackRing(app, ClockStore.get(app).data.ringing)
+            return
+        }
         val ok = runCatching {
             ContextCompat.startForegroundService(app, Intent(app, ClockRingService::class.java))
         }.isSuccess

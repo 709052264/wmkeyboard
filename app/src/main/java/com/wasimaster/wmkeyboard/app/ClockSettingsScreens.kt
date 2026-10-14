@@ -92,21 +92,37 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
         if (n == 0) context.getString(R.string.clock_fade_off) else context.resources.getQuantityString(R.plurals.clock_seconds_value, n, n)
     }
 
+    // Sound, vibration and fade-in are the ring service's to play. Where the
+    // build has none (Play), the alarm channel plays them, so its system page
+    // is where they are set.
+    val service = ChannelFeatures.CLOCK_RING_SERVICE
     SettingsGroup(stringResource(R.string.clock_alarms_group), info = stringResource(R.string.clock_alarms_info)) {
-        item {
+        item(visible = !service && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NavRow(R.string.clock_channel_sound_title, stringResource(R.string.clock_channel_sound_subtitle)) {
+                ClockNotifications.ensureRingChannels(context)
+                runCatching {
+                    context.startActivity(
+                        Intent(android.provider.Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                            .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
+                            .putExtra(android.provider.Settings.EXTRA_CHANNEL_ID, ClockNotifications.CHANNEL_RING_SOUND),
+                    )
+                }
+            }
+        }
+        item(visible = service) {
             SoundRow(
                 title = R.string.clock_alarm_sound_title,
                 uri = config.alarmSound,
             ) { v -> set { it.copy(alarmSound = v) } }
         }
-        item {
+        item(visible = service) {
             SoundRow(
                 title = R.string.clock_timer_sound_title,
                 uri = config.timerSound,
                 followsAlarm = true,
             ) { v -> set { it.copy(timerSound = v) } }
         }
-        item {
+        item(visible = service) {
             ToggleSetting(
                 R.string.clock_vibrate_title,
                 stringResource(R.string.clock_vibrate_subtitle),
@@ -123,7 +139,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 default = defaults.snoozeMinutes.toFloat(),
             ) { v -> set { it.copy(snoozeMinutes = v.roundToInt()) } }
         }
-        item {
+        item(visible = service) {
             SliderSetting(
                 R.string.clock_fade_title,
                 stringResource(R.string.clock_fade_subtitle),
