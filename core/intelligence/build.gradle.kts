@@ -60,14 +60,22 @@ android {
     }
     buildFeatures { compose = true }
     lint { lintConfig = rootProject.file("config/lint/lint.xml") }
-    // Play builds leave src/main/jniLibs (Harper) and src/full/jniLibs
-    // (Tesseract) out of this module, so out of the base APK: the on-demand
-    // :feature:grammar and :feature:ocr splits package the same directories
-    // instead. The files stay here because the native build scripts and
-    // F-Droid's recipe write and scan exactly these paths.
-    if (playStoreChannel) {
-        sourceSets.getByName("main").jniLibs.setSrcDirs(emptyList<String>())
-        sourceSets.getByName("full").jniLibs.setSrcDirs(emptyList<String>())
+}
+
+// Play builds leave src/main/jniLibs (Harper) and src/full/jniLibs
+// (Tesseract) out of this module, so out of the base APK: the on-demand
+// :feature:grammar and :feature:ocr splits package the same directories
+// instead. The files stay here because the native build scripts and
+// F-Droid's recipe write and scan exactly these paths.
+//
+// Through the new DSL's extension type, not the `android` accessor's
+// `sourceSets`: under AGP 9 that one is typed as the old API's
+// AndroidLibrarySourceSet, and the container's objects fail the cast at
+// configuration time.
+if (playStoreChannel) {
+    extensions.getByType<com.android.build.api.dsl.LibraryExtension>().sourceSets.apply {
+        getByName("main").jniLibs.setSrcDirs(emptyList<String>())
+        getByName("full").jniLibs.setSrcDirs(emptyList<String>())
     }
 }
 
