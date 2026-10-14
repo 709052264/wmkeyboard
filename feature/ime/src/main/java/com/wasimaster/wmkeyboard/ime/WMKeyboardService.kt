@@ -7927,7 +7927,10 @@ open class WMKeyboardService : InputMethodService() {
             is KeyAction.SwitchInputMethod -> switchToInputMethod((key.action as KeyAction.SwitchInputMethod).id)
             KeyAction.Emoji -> onPanelChange(emojiOpenerTarget(), haptic = false)
             // Produced only by a long-press on ?123 when the opt-in is set.
-            KeyAction.Numpad -> onPanelChange(PanelMode.NUMPAD, haptic = false)
+            KeyAction.Numpad -> {
+                releaseUserShift()
+                onPanelChange(PanelMode.NUMPAD, haptic = false)
+            }
             // A key — or a long-press alternate — bound to a tool: voice, the
             // edit pad, the clipboard. Runs whether or not the tool is on the
             // toolbar; see [runToolFromKey].
@@ -10918,6 +10921,24 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Puts down a shift the user put up, the lock included (#613): after a cut
+     * or a paste, and on the way from the letters to the symbols or the number
+     * pad, the way a physical keyboard's shift is let go of once the shortcut
+     * is done. Left up, it kept every caret move after it a selection.
+     * A shift the field armed by itself is not the user's, and stays; the
+     * caret update after a paste re-arms auto-capitalize where it belongs.
+     */
+    private fun releaseUserShift() {
+        _uiState.update {
+            if (it.shiftPressedByUser && it.shiftState != ShiftState.OFF) {
+                it.copy(shiftState = ShiftState.OFF, shiftPressedByUser = false)
+            } else {
+                it
+            }
+        }
+    }
+
+    /**
      * Re-cases the current selection to the next form in the cycle
      * lower → Title → UPPER → lower and keeps it selected, so repeated shift
      * presses walk the cycle. Returns false (leaving the selection alone) when
@@ -13132,8 +13153,12 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private fun toggleSymbols() {
-        // Leaving the letter layer ends the on-keyboard writing surface.
-        if (_uiState.value.layoutMode == LayoutMode.LETTERS) dropKeyboardHandwritingInk()
+        // Leaving the letter layer ends the on-keyboard writing surface, and
+        // the shift the user locked over the letters (#613).
+        if (_uiState.value.layoutMode == LayoutMode.LETTERS) {
+            dropKeyboardHandwritingInk()
+            releaseUserShift()
+        }
         _uiState.update {
             it.copy(
                 layoutMode = when (it.layoutMode) {
@@ -23289,7 +23314,10 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.FANCY -> onFancyToggle()
             ToolbarTool.CUSTOM_LAYOUT -> onCustomLayoutToggle()
             ToolbarTool.SOUND_HAPTICS -> onPanelChange(PanelMode.SOUND_HAPTICS)
-            ToolbarTool.NUMPAD -> onPanelChange(PanelMode.NUMPAD)
+            ToolbarTool.NUMPAD -> {
+                releaseUserShift()
+                onPanelChange(PanelMode.NUMPAD)
+            }
             ToolbarTool.HANDWRITING -> onPanelChange(PanelMode.HANDWRITING)
             ToolbarTool.CAMERA -> onPanelChange(PanelMode.CAMERA)
             ToolbarTool.DICTIONARY -> onPanelChange(PanelMode.DICTIONARY)
@@ -36287,6 +36315,7 @@ open class WMKeyboardService : InputMethodService() {
             }
             TextEditAction.PASTE -> {
                 if (!isClipboardAccessible()) return
+                releaseUserShift()
                 if (privatePaste(ic)) return
                 ic.performContextMenuAction(android.R.id.paste)
                 purgeAfterPasswordPaste()
@@ -36305,6 +36334,7 @@ open class WMKeyboardService : InputMethodService() {
                 flushLearningBuffer(verifyCorrections = false)
                 if (!privateCopy(ic, cut = true)) ic.performContextMenuAction(android.R.id.cut)
                 _uiState.update { it.copy(textEditSelecting = false) }
+                releaseUserShift()
             }
         }
     }
@@ -36460,9 +36490,11 @@ open class WMKeyboardService : InputMethodService() {
                 if (!hasSelection && selectAllIfEmpty) ic.performContextMenuAction(android.R.id.selectAll)
                 if (!privateCopy(ic, cut = true)) ic.performContextMenuAction(android.R.id.cut)
                 _uiState.update { it.copy(textEditSelecting = false) }
+                releaseUserShift()
             }
             ClipboardKeyAction.PASTE -> {
                 if (!isClipboardAccessible()) return
+                releaseUserShift()
                 if (privatePaste(ic)) return
                 ic.performContextMenuAction(android.R.id.paste)
                 purgeAfterPasswordPaste()
