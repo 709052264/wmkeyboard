@@ -49,6 +49,7 @@
     <string name="search_kw_about_diagnostics">log logcat debug troubleshoot</string>
     <string name="search_kw_about_app_language">interface translation translated locale display ui</string>
     <string name="search_kw_about_launcher_name">launcher label rename drawer</string>
+    <string name="search_kw_about_launcher_shown">hide icon launcher drawer home screen</string>
     <string name="search_kw_about_licences">credits attribution third party</string>
     <string name="search_kw_about_replay_onboarding">onboarding wizard welcome tour</string>
     <string name="search_kw_about_report_bug">crash freeze feedback problem</string>

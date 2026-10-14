@@ -26,6 +26,10 @@
     <string name="about_launcher_name_title">Short app name</string>
     <string name="about_launcher_name_subtitle">Show \"WMK\" under the app icon, not \"WM Keyboard\"</string>
     <string name="about_launcher_name_info">This changes only the name under the icon, in your app drawer and on your home screen. Everywhere else, such as the Android app settings, the keyboard list and the app stores, the app keeps its full name. If you opened the app from its icon, this screen opens again when you change the name. Your launcher can take a few seconds to show the new name. If the icon goes from your home screen, add it again from the app drawer.</string>
+    <!-- The switch that hides the launcher icon. "App info" is the name of Android's own page for an app. -->
+    <string name="about_launcher_shown_title">Show in app drawer</string>
+    <string name="about_launcher_shown_subtitle">The app icon in your app drawer and on your home screen</string>
+    <string name="about_launcher_shown_info">Turn this off to take the icon away. The keyboard keeps working, and these settings are still a tap away: the settings key on the keyboard, the keyboard\'s entry in Android\'s keyboard settings, or a settings link. The long-press shortcuts on the icon go with it. On Android 10 and newer, Android may put an icon back that opens the App info page instead, because it does that for every installed app with no icon of its own. Only apps that came with the phone escape it. To stop it for every app, run adb shell settings put global show_hidden_icon_apps_enabled 0 from a computer.</string>
     <!-- The in-app interface language picker (#322). -->
     <string name="about_app_language_title">App language</string>
     <string name="about_app_language_subtitle">The language of the menus and settings. Your typing languages are in Settings, then Languages</string>

@@ -346,6 +346,7 @@ internal object SettingsRowIcons {
         put(R.string.about_licences_title) { Icons.Outlined.Gavel }
         put(R.string.about_source_title) { Icons.Outlined.Code }
         put(R.string.about_launcher_name_title) { Icons.AutoMirrored.Outlined.ShortText }
+        put(R.string.about_launcher_shown_title) { Icons.Outlined.VisibilityOff }
         put(R.string.about_app_language_title) { Icons.Outlined.Translate }
         put(R.string.about_all_languages_checking_title) { Icons.Outlined.Translate }
         put(R.string.about_all_languages_download_title) { Icons.Outlined.Download }

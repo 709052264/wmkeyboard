@@ -22,12 +22,13 @@ The **Share** group at the top has up to three rows: **Share the Play Store link
 
 ## Checking version, licence, and source
 
-The **App** group holds ten rows:
+The **App** group holds eleven rows:
 
 - **Version** shows the edition, build type and store channel as its subtitle ("Full build (release · Play Store)", or "Lite build (debug)" on something you sideloaded), with the build number after "code," and the version name as the row's trailing value. It navigates nowhere, but it isn't quite inert. Tap it seven times and you get [the hidden mini game](/reference/easter-eggs/#find-the-hidden-mini-game), with a toast counting you down from the fourth tap.
 - **Licence** shows "MIT, © 2026 Wasi Master" and opens the app's own MIT licence text in full underneath it, monospaced and horizontally scrollable.
 - **Source code** opens the GitHub repository directly in your browser; unlike the Share rows above, this one navigates immediately rather than opening a share sheet.
 - **Short app name** is a switch, off by default. Turn it on and your app drawer and home screen call the app **WMK** instead of **WM Keyboard**, so a narrow launcher grid doesn't cut the name short. See [Changing the name under the icon](#changing-the-name-under-the-icon).
+- **Show in app drawer** is a switch, on by default. Turn it off and the icon leaves your app drawer and home screen, while the keyboard keeps working. See [Hiding the icon](#hiding-the-icon). Android TV doesn't show this row.
 - **App language** picks the language the app's menus and settings are shown in, separate from your phone's. On the English-only download from GitHub it says so instead, and offers to fetch the version with every language. See [Changing the app's language](#changing-the-apps-language).
 - **Storage** opens the [storage screen](#seeing-what-the-app-is-using) below, which is where you see what the app keeps on your device and delete any of it.
 - **Statistics** opens [Statistics](/reference/settings/statistics/): your level and achievements, a heatmap of where you tap, how much you type day by day, plus the switch that turns the counting off.
@@ -49,6 +50,18 @@ A few things happen when you flip it:
 - The long-press shortcuts on the icon (Themes, Languages and the rest) stay the same under either name.
 
 The choice is kept by Android rather than in the app's settings, so it survives updates but doesn't travel in a settings export or a backup. Resetting the row puts the full name back.
+
+### Hiding the icon
+
+**Show in app drawer** takes the app's icon off your launcher. Nothing else changes: the keyboard types as before, and these settings open from the keyboard's own settings key, from WM Keyboard's entry under Android's keyboard settings, or from a settings link. The long-press shortcuts on the icon go with it. Flipping it reopens the About screen when you came in from the icon, for the same reason the name switch does. Hidden, the app still remembers which name you picked, and showing the icon again brings that name back.
+
+Up to Android 9, that's the whole story. Android 10 and newer add their own icon for any installed app that has none, and that icon opens the app's App info page rather than the app. Apps that came with the phone don't get one, which is how a preinstalled Gboard can hide completely; an app you installed can't avoid it, so what the switch gives you there is an icon that leads to App info. To turn those stand-in icons off for every app, connect the phone to a computer and run:
+
+```bash
+adb shell settings put global show_hidden_icon_apps_enabled 0
+```
+
+Some launchers never show the stand-in at all. Like the name, the choice is kept by Android, not in the app's settings, so it survives updates and stays out of exports and backups.
 
 ### Changing the app's language
 
@@ -233,13 +246,14 @@ The **app log** itself is a free-text filter field plus one level chip per sever
 
 ## Options
 
-There are only four switches and two pickers in this whole tree. Everything else is either a display-only row (Version, Dictionaries) or a read-only browser (the licence and diagnostics screens).
+There are only five switches and two pickers in this whole tree. Everything else is either a display-only row (Version, Dictionaries) or a read-only browser (the licence and diagnostics screens).
 
 <SettingsPath path="About" />
 
 | Setting | Control | Default |
 |---|---|---|
 | Short app name | Toggle | Off |
+| Show in app drawer | Toggle | On |
 | App language | Choice | System default (on the English-only build, an offer to switch) |
 
 <SettingsPath path="About / Documentation" />

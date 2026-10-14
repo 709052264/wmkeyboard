@@ -74,6 +74,7 @@ import com.wasimaster.wmkeyboard.core.settings.PersonaLanguages
 import com.wasimaster.wmkeyboard.core.settings.SettingLinkMode
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.isTelevision
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.support.Support
 import kotlinx.coroutines.Dispatchers
@@ -895,6 +896,10 @@ internal fun AboutSettings(
     // settings (see LauncherName), and nothing else changes it while this
     // screen is open, so one read per visit is the truth.
     var shortName by remember { mutableStateOf(LauncherName.isShort(context)) }
+    var launcherShown by remember { mutableStateOf(LauncherName.isShown(context)) }
+    // A TV home screen lists only the television alias, which this never
+    // touches, so the switch would do nothing there.
+    val television = remember(context) { context.isTelevision() }
     // Read out here because the group's builder below is not composable.
     val canDropLanguageSwitch = !AppLanguage.canChoose && languageSwitchCanBeDropped()
 
@@ -959,6 +964,19 @@ internal fun AboutSettings(
                 onChange = {
                     shortName = it
                     LauncherName.setShort(context, it)
+                },
+            )
+        }
+        item(visible = !television) {
+            ToggleSetting(
+                R.string.about_launcher_shown_title,
+                stringResource(R.string.about_launcher_shown_subtitle),
+                checked = launcherShown,
+                info = stringResource(R.string.about_launcher_shown_info),
+                default = LauncherName.DEFAULT_SHOWN,
+                onChange = {
+                    launcherShown = it
+                    LauncherName.setShown(context, it)
                 },
             )
         }

@@ -64,6 +64,7 @@ class LauncherNameTest {
         assertEquals("true", attribute(alias(LauncherName.FULL_ALIAS).first, "enabled"))
         assertEquals("false", attribute(alias(LauncherName.SHORT_ALIAS).first, "enabled"))
         assertFalse("the reset value must be what the manifest enables", LauncherName.DEFAULT_SHORT)
+        assertTrue("a fresh install shows its icon", LauncherName.DEFAULT_SHOWN)
     }
 
     @Test

@@ -11,21 +11,36 @@ import android.content.pm.PackageManager.DONT_KILL_APP
 
 /**
  * Which name the launcher shows under the app icon: "WM Keyboard", or "WMK"
- * (#140).
+ * (#140), and whether it shows the icon at all.
  *
  * A launcher shows the label of the activity it starts, and a manifest label
  * is fixed at build time. So the launcher entry is not MainActivity but one of
- * two `<activity-alias>`es of it, one per name, and exactly one of them is
+ * two `<activity-alias>`es of it, one per name, and at most one of them is
  * enabled. The application label, which Android's app settings, the keyboard
  * list and the stores read, is never touched.
  *
- * The component state *is* the setting. PackageManager keeps it across updates
- * and reboots, so there is no preference behind it that could disagree with
- * it, and for the same reason it does not travel in a settings backup.
+ * The component states *are* the setting. PackageManager keeps them across
+ * updates and reboots, so there is no preference behind them that could
+ * disagree, and for the same reason they do not travel in a settings backup.
+ * Four states, two components:
  *
- * Turning the short name off returns both aliases to
- * `COMPONENT_ENABLED_STATE_DEFAULT` rather than to explicit values, so the full
+ * | Shown        | full alias | short alias |
+ * |--------------|------------|-------------|
+ * | WM Keyboard  | default    | default     |
+ * | WMK          | disabled   | enabled     |
+ * | hidden, full | disabled   | default     |
+ * | hidden, WMK  | disabled   | disabled    |
+ *
+ * The short alias's explicit `disabled` is what remembers the name while the
+ * icon is hidden, so showing it again brings back the name it had. The full
  * name is exactly a fresh install's state, not a copy of it.
+ *
+ * Hiding is honest only up to Android 9. From Android 10 an app that requests
+ * permissions and ships a launcher entry enabled in its manifest gets a
+ * stand-in icon that opens its App info page once every entry is off
+ * (LauncherAppsService.shouldShowSyntheticActivity). Gboard escapes that by
+ * being a system app; nothing an installed app can do does. The About row says
+ * so. The television alias is never touched: a TV home screen lists it alone.
  */
 internal object LauncherName {
     /** Enabled by the manifest. Stored state: read the manifest comment before renaming. */
@@ -37,27 +52,45 @@ internal object LauncherName {
     /** What a fresh install shows, and what the About row's reset returns to. */
     const val DEFAULT_SHORT = false
 
-    /** The About row's title resource name, so a restart lands on the row. */
-    private const val ROW = "about_launcher_name_title"
+    /** A fresh install has its icon. */
+    const val DEFAULT_SHOWN = true
+
+    /** The About rows' title resource names, so a restart lands on the row. */
+    private const val NAME_ROW = "about_launcher_name_title"
+    private const val SHOWN_ROW = "about_launcher_shown_title"
 
     fun isShort(context: Context): Boolean =
-        context.packageManager.getComponentEnabledSetting(ComponentName(context, SHORT_ALIAS)) ==
-            COMPONENT_ENABLED_STATE_ENABLED
+        state(context, SHORT_ALIAS) != COMPONENT_ENABLED_STATE_DEFAULT
 
-    fun setShort(context: Context, short: Boolean) {
-        if (short == isShort(context)) return
+    fun isShown(context: Context): Boolean =
+        state(context, FULL_ALIAS) != COMPONENT_ENABLED_STATE_DISABLED ||
+            state(context, SHORT_ALIAS) == COMPONENT_ENABLED_STATE_ENABLED
+
+    fun setShort(context: Context, short: Boolean) =
+        write(context, short = short, shown = isShown(context), row = NAME_ROW)
+
+    fun setShown(context: Context, shown: Boolean) =
+        write(context, short = isShort(context), shown = shown, row = SHOWN_ROW)
+
+    private fun write(context: Context, short: Boolean, shown: Boolean, row: String) {
         val packageManager = context.packageManager
-        val shown = ComponentName(context, if (short) SHORT_ALIAS else FULL_ALIAS)
-        val hidden = ComponentName(context, if (short) FULL_ALIAS else SHORT_ALIAS)
+        val wanted = mapOf(
+            FULL_ALIAS to if (shown && !short) COMPONENT_ENABLED_STATE_DEFAULT else COMPONENT_ENABLED_STATE_DISABLED,
+            SHORT_ALIAS to when {
+                shown && short -> COMPONENT_ENABLED_STATE_ENABLED
+                short -> COMPONENT_ENABLED_STATE_DISABLED
+                else -> COMPONENT_ENABLED_STATE_DEFAULT
+            },
+        ).filter { (alias, state) -> state != state(context, alias) }
+        if (wanted.isEmpty()) return
+        val (opening, closing) = wanted.entries.partition { (alias, state) -> launchable(alias, state) }
 
         // The new entry first. With neither enabled, even for the length of
         // one broadcast, a launcher sees an app with nothing to launch and can
         // delete its home-screen icon instead of moving it to the other name.
-        packageManager.setComponentEnabledSetting(
-            shown,
-            if (short) COMPONENT_ENABLED_STATE_ENABLED else COMPONENT_ENABLED_STATE_DEFAULT,
-            DONT_KILL_APP,
-        )
+        for ((alias, state) in opening) {
+            packageManager.setComponentEnabledSetting(ComponentName(context, alias), state, DONT_KILL_APP)
+        }
 
         // DONT_KILL_APP spares the process, not the task. When a component is
         // disabled, Android removes every task whose root intent names it
@@ -65,21 +98,27 @@ internal object LauncherName {
         // and a settings app opened from the launcher is rooted at exactly the
         // alias about to go: it would vanish under the user's finger. A
         // CLEAR_TASK start re-roots the task at MainActivity itself, which no
-        // switch ever disables, and lands back on this row. It has to happen
-        // before the call below, whose broadcast is what triggers the removal.
-        if (rootedAt(context, hidden.className)) {
+        // switch ever disables, and lands back on the row. It has to happen
+        // before the calls below, whose broadcast is what triggers the removal.
+        if (closing.any { (alias, _) -> rootedAt(context, alias) }) {
             context.startActivity(
-                MainActivityContract.intent(context, route = "about", setting = ROW)
+                MainActivityContract.intent(context, route = "about", setting = row)
                     .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION),
             )
         }
 
-        packageManager.setComponentEnabledSetting(
-            hidden,
-            if (short) COMPONENT_ENABLED_STATE_DISABLED else COMPONENT_ENABLED_STATE_DEFAULT,
-            DONT_KILL_APP,
-        )
+        for ((alias, state) in closing) {
+            packageManager.setComponentEnabledSetting(ComponentName(context, alias), state, DONT_KILL_APP)
+        }
     }
+
+    private fun state(context: Context, alias: String): Int =
+        context.packageManager.getComponentEnabledSetting(ComponentName(context, alias))
+
+    /** Whether [alias] in [state] is a launcher entry; `default` means what the manifest says. */
+    private fun launchable(alias: String, state: Int): Boolean =
+        state == COMPONENT_ENABLED_STATE_ENABLED ||
+            (state == COMPONENT_ENABLED_STATE_DEFAULT && alias == FULL_ALIAS)
 
     /** Whether any of this app's tasks was started through [alias]. */
     private fun rootedAt(context: Context, alias: String): Boolean =
