@@ -32,3 +32,5 @@ opt-level = "z"
 [patch.crates-io]
 harper-core = { path = "vendor/harper-core" }
 harper-brill = { path = "vendor/harper-brill" }
+const-random-macro = { path = "vendor/const-random-macro" }
+blanket = { path = "vendor/blanket" }

@@ -35,12 +35,11 @@ CARGO_HOME=${CARGO_HOME:-$HOME/.cargo}
 SYSROOT=$(rustc --print sysroot)
 # Panic locations carry source paths: the crates.io registry, the standard
 # library (rust-src, when installed) and this crate's vendored sources.
-export RUSTFLAGS="--remap-path-prefix=$CARGO_HOME=/cargo --remap-path-prefix=$SYSROOT=/rustc --remap-path-prefix=$REPO=/wmkeyboard"
 export CARGO_TARGET_DIR=${HARPER_TARGET_DIR:-$HERE/target}
-# burn-ndarray, under harper-pos-utils, seeds its RNG with const_random!(u64),
-# a fresh random number on every compile, which lands in the machine code.
-# const-random takes a fixed seed from the environment instead.
-export CONST_RANDOM_SEED=wmkeyboard-harper
+mkdir -p "$CARGO_TARGET_DIR"
+CARGO_TARGET_DIR=$(cd "$CARGO_TARGET_DIR" && pwd -P)
+# Build scripts' generated sources live under the target directory.
+export RUSTFLAGS="--remap-path-prefix=$CARGO_HOME=/cargo --remap-path-prefix=$SYSROOT=/rustc --remap-path-prefix=$REPO=/wmkeyboard --remap-path-prefix=$CARGO_TARGET_DIR=/target"
 
 cd "$HERE"
 ANDROID_NDK_HOME=$NDK cargo ndk -t arm64-v8a -t armeabi-v7a -t x86_64 --platform 24 \

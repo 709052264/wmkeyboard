@@ -62,3 +62,21 @@ claims above again before rebuilding.
   0 American, 1 British, 2 Canadian, 3 Australian. Append-only.
 - Harper's `LintGroup` is not `Send`, so the linter cache is thread-local.
   `GrammarChecker` funnels every call through one dedicated thread.
+
+## Vendored blanket and const-random-macro
+
+Two proc macros made the library come out different from one build to the
+next, which F-Droid's reproducible build cannot accept. Both are vendored in
+`vendor/` through `[patch.crates-io]`, each with one marked "WM Keyboard"
+change:
+
+- `blanket` 0.4.0 kept its `derive(...)` list in a `HashSet`, so
+  `#[blanket(derive(Arc, Ref))]` on harper-core's `Dictionary` emitted the two
+  impls in a random order. It is a `Vec` in the order written now.
+- `const-random-macro` 0.1.16 drew a fresh random number on every compile
+  (burn-ndarray uses it for an RNG seed the keyboard never runs) and mixed in
+  the call site's source position. It returns a fixed value now.
+
+Check a change to this crate the same way: build it twice into different
+target directories (`HARPER_TARGET_DIR`, `HARPER_OUT`) and compare the
+libraries byte for byte.
