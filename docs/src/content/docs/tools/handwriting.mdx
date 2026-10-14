@@ -95,6 +95,8 @@ Downloads can also take longer than their size suggests, because the service can
 
 The list of available models isn't hardcoded in WM Keyboard. It's read straight out of ML Kit's own digital ink library, then filtered down to the languages you have enabled. So enabling a new keyboard language surfaces its handwriting model on its own, with nothing WM-Keyboard-specific to configure. The flip side: the catalog of *which languages have a model at all* only grows when ML Kit itself grows.
 
+A phone that cannot download, or a build with no internet permission, can import a model instead. The **Import from a file** row under the models lists each language's files under **Get the files**: two or three `.zip` files from `dl.google.com`, the same ones ML Kit would fetch. Download them on any device, move them to the phone and pick them under **Import**. See [Importing instead of downloading](/privacy/offline/#importing-instead-of-downloading).
+
 If an enabled language has no ink model, it's called out separately underneath the list: writing in that language falls back to the nearest language that does have one, rather than failing outright. And if none of your enabled languages has a model, the list itself is replaced by a note asking you to add a language on the Languages screen first. A **Languages and layouts** row at the bottom of the section takes you straight there either way.
 
 ## Options

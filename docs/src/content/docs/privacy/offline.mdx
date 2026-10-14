@@ -24,11 +24,14 @@ Each screen that downloads something has an import row with two buttons:
 | A language's word list, word pairs and emoji names | <SettingsPath path="Languages & layouts / (a language) / Dictionaries / Language pack" /> | The language pack zip, or the loose `.txt.gz` and `.json.gz` files |
 | Chinese, Japanese and Cantonese conversion tables | The same Language pack row | Inside the language pack, or the loose `.tsv` |
 | Offline voice models <Flavor edition="full" /> | <SettingsPath path="Voice typing" />, below the model catalog | The model's `.tflite` and its `filters_vocab_*.bin` |
+| Handwriting models <Flavor edition="full" /> | <SettingsPath path="Tools / Handwriting / Recognition models" />, below the models | The model's two or three `.zip` files from `dl.google.com` |
 | Text recognition data <Flavor edition="full" /> | <SettingsPath path="Tools / Text scan (OCR) / Tesseract languages" />, below the languages | `<language>.traineddata` |
 | GIF packs | <SettingsPath path="Tools / GIFs / Offline GIF packs" /> | A CleverKeys GIF pack zip |
 | Anything above, plus AI models and the background remover | <SettingsPath path="About / Storage / Import downloaded files" /> | Any of these |
 
 The Storage row takes every kind of file, so it is the one to use for a folder of mixed downloads. It is also the only way in for an on-device AI model other than the AI model screen's own import, and for the sticker editor's background remover (`u2netp.tflite`).
+
+A handwriting model is made of two or three files, which Google publishes for ML Kit to fetch: a small recogniser spec, the recogniser itself (shared by every language in one script) and, for most languages, a word list. **Get the files** lists them per language. Leave them as `.zip` files, loose or zipped together; the import checks each against the SHA-1 checksum ML Kit ships with. Once every file a language needs is in, its model installs the way a download would, through ML Kit itself, and the import answers ML Kit's requests for those files from the phone. Files that arrive before the rest of their set are kept until it is complete. The import needs no network and no internet permission.
 
 Files are recognised by name, which is the name they are published under. Renaming one (a browser adding `(1)` to a second download, for instance) makes it unrecognisable, and the report says so rather than guessing.
 
@@ -54,10 +57,9 @@ Only the **Discord community** packs carry animated GIFs. The **thumbnail** pack
 
 ## What cannot work offline
 
-Two things on the full edition have no file to import:
+One thing on the full edition has no file to import:
 
-- **Handwriting.** The recogniser's models are downloaded and stored by Google's ML Kit, which offers no way to install one from a file.
-- **On-device translation.** The same: ML Kit keeps its language models to itself.
+- **On-device translation.** Google's ML Kit downloads and keeps its language models itself, and offers no way to install one from a file.
 
 Everything reaching an online service (web and image search, GIFs from KLIPY or GIPHY, the dictionary and synonyms lookups, cloud AI providers, the currency rates, backups to a cloud account) needs the connection by definition. On a build with no internet permission those say that the build cannot connect, rather than waiting for a network that will never come.
 

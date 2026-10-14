@@ -122,6 +122,9 @@ dependencies {
     // on Play none of the libraries below that used to bring it along are in
     // the base any more.
     "fullImplementation"(libs.mlkit.common)
+    // InkPackImports serves imported handwriting packs to ML Kit's own OkHttp
+    // client, so it speaks OkHttp's interceptor API.
+    "fullImplementation"(libs.okhttp)
     if (!playStoreChannel) {
         // Handwriting. Play builds leave it out of the base APK; the on-demand
         // :feature:handwriting module carries it instead, so the recogniser's

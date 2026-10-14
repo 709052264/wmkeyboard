@@ -3,6 +3,9 @@ plugins {
     // through build-logic, and Gradle refuses a versioned plugin request for
     // a plugin the classpath already carries.
     id("com.android.dynamic-feature")
+    // See :app: the digital-ink library is packaged here on Play, so its
+    // downloader is rewritten here.
+    id("wmkeyboard.ink-offline-imports")
 }
 
 // The on-demand home of ML Kit's digital-ink recogniser, Play builds only:

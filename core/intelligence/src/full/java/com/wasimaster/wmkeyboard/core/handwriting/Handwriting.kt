@@ -279,9 +279,24 @@ object HandwritingModels {
         onProgress: (HandwritingDownloadProgress) -> Unit = {},
     ) {
         require(hasModel(tag)) { "No model for $tag" }
-        // ML Kit fetches through the system DownloadManager, which refuses a
-        // caller without the internet permission with a SecurityException (#292).
+        // Packs imported from another device (#666) are served off disk, so
+        // that download needs neither the network nor the permission for it.
+        InkPackImports.attach(context)
+        if (withContext(Dispatchers.IO) { InkPackImports.covers(context, tag) }) {
+            InkPackImports.waiving { fetch(context, tag, onProgress) }
+            return
+        }
+        // Without the internet permission ML Kit's downloader refuses to
+        // start, and OkHttp's lookup throws a SecurityException (#292).
         InternetPermission.check()
+        fetch(context, tag, onProgress)
+    }
+
+    private suspend fun fetch(
+        context: Context,
+        tag: String,
+        onProgress: (HandwritingDownloadProgress) -> Unit,
+    ) {
         val moduleHere = FeatureModules.handwriting.awaitInstalled { bytes, total ->
             onProgress(HandwritingDownloadProgress(bytes = bytes, totalBytes = total))
         }

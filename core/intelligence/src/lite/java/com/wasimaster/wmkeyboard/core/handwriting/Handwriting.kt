@@ -21,6 +21,24 @@ data class HandwritingDownloadProgress(
     val fraction: Float? get() = null
 }
 
+/** Lite-flavor stand-in: no ML Kit, so no file is ever one of its packs. */
+object InkPackImports {
+    sealed interface Result {
+        val fileName: String
+
+        data class Installed(override val fileName: String, val tags: List<String>) : Result
+        data class Waiting(override val fileName: String) : Result
+        data class Mismatch(override val fileName: String) : Result
+        data class Failed(override val fileName: String) : Result
+    }
+
+    fun isPack(context: Context, file: java.io.File): Boolean = false
+
+    suspend fun install(context: Context, files: List<java.io.File>): List<Result> = emptyList()
+
+    fun packUrls(context: Context, tag: String): List<String> = emptyList()
+}
+
 /** Lite-flavor stand-in: no models ship, so none has a size. */
 object HandwritingModelSizes {
     suspend fun installedBytes(context: Context, tag: String): Long = 0

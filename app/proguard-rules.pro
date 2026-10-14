@@ -235,6 +235,14 @@
     <init>();
     *;
 }
+# Called from ML Kit's own downloader, rewritten at build time to reach it
+# (InkOfflineImportsTransform, #666). On Play the callers sit in the split, so
+# the names must survive the base's shrink as written.
+-keep class com.wasimaster.wmkeyboard.core.handwriting.InkPackImports {
+    public static *** build(...);
+    public static *** checkSelfPermission(...);
+    public static *** connectivityWaived();
+}
 
 # --- JSch (SFTP backup location) ----------------------------------------------
 # JSch builds every algorithm with Class.forName on a name from its config

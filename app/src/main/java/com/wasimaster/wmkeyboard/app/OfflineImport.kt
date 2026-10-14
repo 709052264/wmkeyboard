@@ -16,6 +16,8 @@ import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackEntry
 import com.wasimaster.wmkeyboard.core.dictionaries.WordlistDownloadManager
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictCatalog
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictDownloadManager
+import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
+import com.wasimaster.wmkeyboard.core.handwriting.InkPackImports
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmCatalog
@@ -98,7 +100,9 @@ internal object OfflineImport {
                     outcomes += failure(name, it)
                     return@forEachIndexed
                 }
-                if (!isZip(staged)) {
+                // A handwriting pack is a zip ML Kit unpacks itself, so it is
+                // installed whole rather than opened here.
+                if (!isZip(staged) || InkPackImports.isPack(context, staged)) {
                     files += staged
                     return@forEachIndexed
                 }
@@ -111,7 +115,12 @@ internal object OfflineImport {
                     staged.delete()
                 }
             }
-            outcomes += installAll(context, files, wordlistSize, choose, onFile)
+            val (ink, rest) = files.partition { InkPackImports.isPack(context, it) }
+            outcomes += installAll(context, rest, wordlistSize, choose, onFile)
+            if (ink.isNotEmpty()) {
+                onFile(ink.joinToString(", ") { it.name })
+                outcomes += installInk(context, ink)
+            }
             return outcomes
         } finally {
             staging.deleteRecursively()
@@ -277,6 +286,28 @@ internal object OfflineImport {
             }
         }
         return Outcome(name, false, R.string.offline_import_unknown)
+    }
+
+    /**
+     * Handwriting packs (#666): kept until every pack a model needs is here,
+     * then the model installs through ML Kit as its download would.
+     */
+    private suspend fun installInk(context: Context, files: List<File>): List<Outcome> {
+        val results = runCatching { InkPackImports.install(context, files) }.getOrElse { error ->
+            return files.map { failure(it.name, error) }
+        }
+        return results.map { result ->
+            when (result) {
+                is InkPackImports.Result.Installed -> Outcome(
+                    result.fileName, true, R.string.offline_import_handwriting_done,
+                    listOf(result.tags.map(HandwritingModels::displayName).distinct().joinToString(", ")),
+                )
+                is InkPackImports.Result.Waiting ->
+                    Outcome(result.fileName, true, R.string.offline_import_handwriting_waiting)
+                is InkPackImports.Result.Mismatch -> Outcome(result.fileName, false, R.string.offline_import_mismatch)
+                is InkPackImports.Result.Failed -> Outcome(result.fileName, false, R.string.offline_import_failed)
+            }
+        }
     }
 
     private fun installGifPack(context: Context, name: String, zip: File): Outcome = attempt(name) {

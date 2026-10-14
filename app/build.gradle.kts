@@ -10,6 +10,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     id("wmkeyboard.compose-metrics")
+    // Offline handwriting model imports (#666): rewrites three calls inside
+    // ML Kit's digital-ink downloader. Inert on Play, where the library is in
+    // :feature:handwriting, which applies it too.
+    id("wmkeyboard.ink-offline-imports")
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.detekt)
     alias(libs.plugins.licensee)
