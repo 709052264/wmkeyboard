@@ -23,10 +23,26 @@ BIN=$(ls -d "$NDK"/toolchains/llvm/prebuilt/*/bin)
 WORK=$(cd "$(mktemp -d)" && pwd -P)
 trap 'rm -rf "$WORK"' EXIT
 
+# Network fetches retry: F-Droid's builders share GitHub and GitLab with
+# everyone, and a busy host refusing one clone should not fail the build.
+retry() {
+    local n
+    for n in 1 2 3 4 5; do
+        "$@" && return 0
+        echo "attempt $n failed, retrying in $((n * 30)) s: $*" >&2
+        sleep $((n * 30))
+    done
+    return 1
+}
+fresh_clone() {  # dir, then git clone arguments
+    local dir=$1; shift
+    rm -rf "$dir" && git clone "$@" "$dir"
+}
+
 SRC=${WHISPER_SRC:-}
 if [ -z "$SRC" ]; then
     SRC=$WORK/whisper.cpp
-    git clone --quiet --depth 1 --branch "$WHISPER_TAG" https://github.com/ggml-org/whisper.cpp "$SRC"
+    retry fresh_clone "$SRC" --quiet --depth 1 --branch "$WHISPER_TAG" https://github.com/ggml-org/whisper.cpp
 fi
 got=$(git -C "$SRC" rev-parse HEAD)
 [ "$got" = "$WHISPER_COMMIT" ] || { echo "whisper.cpp is at $got, expected $WHISPER_COMMIT" >&2; exit 1; }

@@ -40,6 +40,22 @@ mkdir -p "$WORK"
 WORK=$(cd "$WORK" && pwd -P)
 PY=$(command -v python3)
 
+# Network fetches retry: F-Droid's builders share GitHub and GitLab with
+# everyone, and a busy host refusing one clone should not fail the build.
+retry() {
+    local n
+    for n in 1 2 3 4 5; do
+        "$@" && return 0
+        echo "attempt $n failed, retrying in $((n * 30)) s: $*" >&2
+        sleep $((n * 30))
+    done
+    return 1
+}
+fresh_clone() {  # dir, then git clone arguments
+    local dir=$1; shift
+    rm -rf "$dir" && git clone "$@" "$dir"
+}
+
 # PyTorch, from source at the pinned tag, for two things a selective build
 # takes from an installed torch: torchgen with the two operator tables it
 # reads (laid out as the wheel packages them, torchgen/packaged/ATen/native/),
@@ -51,10 +67,10 @@ PY=$(command -v python3)
 PT=$WORK/pytorch-src
 if [ ! -f "$PT/.wm-ready" ]; then
     rm -rf "$PT"
-    git clone --quiet --depth 1 --branch "$TORCH_TAG" --filter=blob:none --no-checkout \
-        https://github.com/pytorch/pytorch "$PT"
+    retry fresh_clone "$PT" --quiet --depth 1 --branch "$TORCH_TAG" --filter=blob:none --no-checkout \
+        https://github.com/pytorch/pytorch
     git -C "$PT" sparse-checkout set --no-cone /torchgen/ /aten/src/ATen/ /c10/ /torch/headeronly/
-    git -C "$PT" checkout --quiet
+    retry git -C "$PT" checkout --quiet
     mkdir -p "$PT/torchgen/packaged/ATen/native"
     cp "$PT/aten/src/ATen/native/native_functions.yaml" "$PT/aten/src/ATen/native/tags.yaml" \
         "$PT/torchgen/packaged/ATen/native/"
@@ -97,8 +113,8 @@ export PYTHONPATH=$PT:$STUB${PYTHONPATH:+:$PYTHONPATH}
 SRC=${EXECUTORCH_SRC:-}
 if [ -z "$SRC" ]; then
     SRC=$WORK/executorch
-    git clone --quiet --depth 1 --branch "$ET_TAG" https://github.com/pytorch/executorch "$SRC"
-    git -C "$SRC" submodule update --init --depth 1 --recursive --quiet \
+    retry fresh_clone "$SRC" --quiet --depth 1 --branch "$ET_TAG" https://github.com/pytorch/executorch
+    retry git -C "$SRC" submodule update --init --depth 1 --recursive --quiet \
         backends/xnnpack/third-party third-party/flatbuffers third-party/flatcc \
         third-party/json third-party/gflags third-party/pocketfft third-party/ao \
         kernels/optimized/third-party/eigen

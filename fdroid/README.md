@@ -122,6 +122,12 @@ out of what it compiles (`-ffile-prefix-map` for C and C++,
 `/Users/...` paths in Harper's panic messages), and every tool is pinned. Do
 not let a script pick up a version from the machine.
 
+**`sdkmanager 'ndk;28.2.13676358'`** in `prebuild` (from 0.6.0, a packager's
+change on the merge request): the NDK AGP 9 asks for by default, installed
+beside the r29 the native scripts use. Gradle's own steps (stripping the
+libraries it packages) then run with the NDK they expect. The release
+workflow builds from this file, so its reference APK gets the same.
+
 **`timeout`**: five hours. fdroidserver stops a build after two by default,
 and ExecuTorch is three full builds, one per ABI, before Gradle starts.
 

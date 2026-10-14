@@ -180,6 +180,7 @@ Builds:
       - sed -i -e '/org.gradle.toolchains.foojay-resolver-convention/d' ../settings.gradle.kts
       - sed -i -e '/libs.play.app.update/d' -e '/libs.play.feature.delivery/d' -e
         '/libs.play.services.auth/d' build.gradle.kts
+      - sdkmanager 'ndk;28.2.13676358'
     scandelete:
       - core/intelligence/src/full/jniLibs
       - feature/llm/src/main/jniLibs
