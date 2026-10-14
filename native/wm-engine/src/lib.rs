@@ -20,9 +20,16 @@
 //!   language (Marathi, Gujarati, Punjabi, Odia, Tamil, Telugu, Kannada,
 //!   Malayalam): the shared Indic engine and its profiles.
 //!
-//! Still Kotlin: Assamese, the Bijoy ANSI converter, the romanizers and
-//! phonetic indexes, the Bengali grapheme helpers, Avro's dictionary walk,
-//! prediction and glide.
+//! - [`assamese`] on the Avro engine, [`bengali_graphemes`] for cluster-aware
+//!   editing, and the romanizers [`bengali_romanizer`],
+//!   [`devanagari_romanizer`] and [`urdu_romanizer`].
+//!
+//! - [`bijoy`]: Unicode Bengali to the Bijoy ANSI font encodings, with the
+//!   generated [`bijoy_tables`]; [`khipro_romanizer`]: Khipro run backwards;
+//!   [`phonetic_key_map`]: the key maps the settings pages draw.
+//!
+//! Still Kotlin: the phonetic indexes (they need the word lists), Avro's
+//! dictionary walk, prediction and glide.
 //!
 //! The crate does no I/O. Its tables are compiled in from the Android app's
 //! own resource and asset files, so the two never disagree about which
@@ -30,8 +37,14 @@
 
 pub mod arabic;
 pub mod arabic_script;
+pub mod assamese;
 pub mod avro;
 pub mod avro_desktop;
+pub mod bengali_graphemes;
+pub mod bengali_romanizer;
+pub mod bijoy;
+pub mod bijoy_tables;
+pub mod devanagari_romanizer;
 pub mod gujarati;
 pub mod hindi;
 pub mod indic;
@@ -39,13 +52,16 @@ pub mod indic_profiles;
 pub mod indic_script;
 pub mod kannada;
 pub mod khipro;
+pub mod khipro_romanizer;
 pub mod malayalam;
 pub mod marathi;
 pub mod odia;
 pub mod persian;
+pub mod phonetic_key_map;
 pub mod punjabi;
 pub mod sexp;
 pub mod tamil;
 pub mod telugu;
 pub mod unicode;
 pub mod urdu;
+pub mod urdu_romanizer;
