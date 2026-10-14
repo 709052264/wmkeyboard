@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.ime.clock
 
 import android.content.Context
 import android.text.format.DateUtils
+import com.wasimaster.wmkeyboard.app.ChannelFeatures
 import com.wasimaster.wmkeyboard.app.SpecialAccess
 import com.wasimaster.wmkeyboard.app.SpecialAccessActivity
 import com.wasimaster.wmkeyboard.core.clock.AlarmMath
@@ -102,7 +103,8 @@ internal class ClockController(
         _state.update {
             it.copy(
                 exactAllowed = ClockEngine.canScheduleExact(app),
-                fullScreenAllowed = ClockNotifications.canUseFullScreen(app),
+                // A build without the permission (Play) has nothing to offer here.
+                fullScreenAllowed = !ChannelFeatures.CLOCK_FULL_SCREEN || ClockNotifications.canUseFullScreen(app),
                 notificationsAllowed = WmNotifications.canPost(app),
             )
         }

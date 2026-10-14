@@ -139,7 +139,7 @@ internal fun PermissionsSettings() {
                 ClockEngine::canScheduleExact,
             )
         }
-        item(visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        item(visible = ChannelFeatures.CLOCK_FULL_SCREEN && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             SpecialAccessRow(
                 R.string.privacy_permissions_full_screen_title,
                 R.string.privacy_permissions_full_screen_subtitle,

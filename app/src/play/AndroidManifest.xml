@@ -47,6 +47,16 @@
         android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED"
         tools:node="remove" />
 
+    <!--
+       The clock's ring screen over the lock screen. Play keeps this one for
+       alarm-clock and calling apps too; without it a ringing alarm is a
+       heads-up notification, and a tap on it opens the ring screen.
+       ChannelFeatures.CLOCK_FULL_SCREEN hides the matching grant rows.
+    -->
+    <uses-permission
+        android:name="android.permission.USE_FULL_SCREEN_INTENT"
+        tools:node="remove" />
+
     <application>
         <!--
            TalkBack gesture pass-through. Play wants the store listing built

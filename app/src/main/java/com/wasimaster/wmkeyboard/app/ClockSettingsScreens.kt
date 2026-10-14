@@ -261,7 +261,7 @@ internal fun ClockGrantsGroup() {
         item(visible = !exact && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             NavRow(R.string.clock_grant_exact_title, stringResource(R.string.clock_grant_exact_subtitle), onClick = askExact)
         }
-        item(visible = !full && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        item(visible = !full && ChannelFeatures.CLOCK_FULL_SCREEN && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             NavRow(R.string.clock_grant_full_title, stringResource(R.string.clock_grant_full_subtitle), onClick = askFull)
         }
         item(visible = !notify) {
