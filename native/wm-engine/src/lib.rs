@@ -10,13 +10,19 @@
 //! Ported so far:
 //!
 //! - [`khipro`]: the Khipro m17n interpreter (Bengali, compositional).
+//! - [`avro`]: the keyboard's own Avro-style phonetic transliterator.
+//! - [`avro_desktop`]: desktop Avro's grammars and lookups out of ibus-avro's
+//!   data (readings, autocorrect, suffixes, the search expression).
 //!
-//! Still Kotlin: Avro phonetic, Hindi and Urdu phonetic, the Indic tables,
-//! the Bijoy ANSI converter, prediction and glide.
+//! Still Kotlin: Hindi and Urdu phonetic, the Indic tables, the Bijoy ANSI
+//! converter, Avro's dictionary walk, prediction and glide.
 //!
-//! The crate has no dependencies and does no I/O. Its tables are compiled in
-//! from the Android app's own resource files, so the two never disagree about
-//! which upstream revision they run.
+//! The crate does no I/O. Its tables are compiled in from the Android app's
+//! own resource and asset files, so the two never disagree about which
+//! upstream revision they run.
 
+pub mod avro;
+pub mod avro_desktop;
 pub mod khipro;
 pub mod sexp;
+pub mod unicode;

@@ -9,9 +9,11 @@ description = "WM Keyboard's text engines: one implementation for the Android ap
 [lib]
 name = "wm_engine"
 
-# No dependencies on purpose: the crate is the engine only. Platform bridges
-# (JNI for Android, the desktop daemon) are separate crates that depend on it.
+# The crate is the engine only; platform bridges (JNI for Android, the desktop
+# daemon) are separate crates that depend on it. serde_json reads ibus-avro's
+# grammar files, which are compiled in from the app's assets.
 [dependencies]
+serde_json = "1"
 
 [profile.release]
 lto = true
