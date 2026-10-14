@@ -30,8 +30,13 @@ The whole of the Kotlin `core/transliteration` package, module for module.
 | `phonetic_index`, `bengali_index`, `hindi_index`, `indic_index`, `urdu_index` | reverse-phonetic lookup over word lists |
 | `phonetic_key_map` | the key maps the settings pages draw, tested against the engines |
 | `unicode` | the letter and mark classes `std` has no table for |
+| `wmdict` | the `.wmdict` binary dictionary: the breadth-first trie builder, the writer (byte for byte the Kotlin codec, proven against the app's compiled lists) and the in-place reader with branch-and-bound completion |
+| `wmng` | the `.wmng` n-gram pack: builder, writer and in-place reader |
+| `wordlist`, `freq_codec` | the text word lists the dictionaries compile from; the minifloat both files store counts in |
 
-Still Kotlin: Avro's dictionary walk, prediction, glide.
+Still Kotlin: Avro's dictionary walk, prediction, glide. The desktop app
+reads the phone's dictionaries and packs through `wmdict` and `wmng`, so
+the two apps share word lists as files, not just engines.
 
 ## Data
 

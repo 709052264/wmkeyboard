@@ -32,8 +32,14 @@
 //!   [`bengali_index`], [`hindi_index`], [`indic_index`], [`urdu_index`]
 //!   (with the Arabic-script wrapper), and the Assamese one in [`assamese`].
 //!
-//! That is the whole of the Kotlin `core/transliteration` package. Still
-//! Kotlin: Avro's dictionary walk, prediction and glide.
+//! That is the whole of the Kotlin `core/transliteration` package.
+//!
+//! - [`wmdict`] and [`wmng`]: the binary dictionary and n-gram pack, read in
+//!   place, with the builders and writers that make them; [`wordlist`] reads
+//!   the text lists they are compiled from; [`freq_codec`] is the minifloat
+//!   both store counts in.
+//!
+//! Still Kotlin: Avro's dictionary walk, prediction and glide.
 //!
 //! The crate does no I/O. Its tables are compiled in from the Android app's
 //! own resource and asset files, so the two never disagree about which
@@ -50,6 +56,7 @@ pub mod bengali_romanizer;
 pub mod bijoy;
 pub mod bijoy_tables;
 pub mod devanagari_romanizer;
+pub mod freq_codec;
 pub mod gujarati;
 pub mod hindi;
 pub mod hindi_index;
@@ -74,3 +81,6 @@ pub mod unicode;
 pub mod urdu;
 pub mod urdu_index;
 pub mod urdu_romanizer;
+pub mod wmdict;
+pub mod wmng;
+pub mod wordlist;

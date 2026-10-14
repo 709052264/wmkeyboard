@@ -29,6 +29,8 @@ Only two languages are bundled this way today: `app/dictionaries-src/en.txt` (17
 
 `MappedTrie` is the reader. It `mmap`s the file read-only and does every lookup as a raw `ByteBuffer` read against the mapped pages. The trie never reaches the Java heap (only the file's edge-label alphabet is copied out at open, at most 512 bytes), so "loading" a dictionary is a single `mmap` call, and pages your typing never touches are never read at all. `MappedTrie.open()` returns `null` silently on a missing, truncated or wrong-version file rather than throwing, so a corrupt or half-written download falls back to whatever other word sources are available instead of crashing the keyboard.
 
+The Rust engine crate carries the same format, builder, writer and reader (`native/wm-engine/src/wmdict.rs`), and its tests compare the writer's bytes with the dictionaries the Android build compiles, so WMK Desktop reads a phone's `.wmdict` unchanged. The n-gram pack has its twin in `wmng.rs`.
+
 The format itself carries no compression. That happens one layer up: the APK deflates bundled `.wmdict` assets the ordinary way, and the download pipeline inflates a `.gz` wordlist before writing it into this format. A `.wmdict` on disk is always raw.
 
 Full byte-level layout: [file formats reference](/reference/file-formats/).

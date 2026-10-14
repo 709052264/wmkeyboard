@@ -665,9 +665,7 @@ mod tests {
     fn touchscreen_spec_passes_the_touch_conformance_cases() {
         assert_conforms(
             "khipro-testcases-touch.tsv",
-            include_str!(
-                "../data/khipro/tests/khipro-testcases-touch.tsv"
-            ),
+            include_str!("../data/khipro/tests/khipro-testcases-touch.tsv"),
             Variant::Touchscreen,
         );
     }
@@ -685,9 +683,7 @@ mod tests {
     fn dark_touchscreen_spec_passes_the_dark_touch_conformance_cases() {
         assert_conforms(
             "khipro-dark-testcases-touch.tsv",
-            include_str!(
-                "../data/khipro/tests/khipro-dark-testcases-touch.tsv"
-            ),
+            include_str!("../data/khipro/tests/khipro-dark-testcases-touch.tsv"),
             Variant::DarkTouchscreen,
         );
     }
@@ -696,9 +692,7 @@ mod tests {
     fn dark_desktop_spec_passes_the_dark_desktop_conformance_cases() {
         assert_conforms(
             "khipro-dark-testcases.tsv",
-            include_str!(
-                "../data/khipro/tests/khipro-dark-testcases.tsv"
-            ),
+            include_str!("../data/khipro/tests/khipro-dark-testcases.tsv"),
             Variant::DarkDesktop,
         );
     }
