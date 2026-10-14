@@ -362,7 +362,7 @@ fn roman_slots(input: &str) -> Vec<Slot> {
             _ if raw == 'H' => {}
             'a' => {
                 let mut j = i;
-                while j < chars.len() && chars[j].to_ascii_lowercase() == 'a' {
+                while j < chars.len() && chars[j].eq_ignore_ascii_case(&'a') {
                     j += 1;
                 }
                 slots.push(Slot::AVowel {

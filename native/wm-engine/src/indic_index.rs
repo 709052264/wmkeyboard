@@ -16,6 +16,9 @@ use crate::indic_profiles;
 use crate::indic_script::IndicScript;
 use crate::phonetic_index::{bounded_entries, PhoneticIndex, PHONETIC_INDEX_BUDGET};
 
+/// A spelling rewrite, on either side of the fold.
+type Prep = fn(&str) -> String;
+
 /// How many of the fold's candidates the re-rank reorders.
 const RERANK_DEPTH: usize = 30;
 
@@ -74,20 +77,19 @@ impl IndicPhoneticIndex {
         language_id: &str,
     ) -> Option<IndicPhoneticIndex> {
         let engine = indic_profiles::for_language(language_id)?;
-        let (roman_prep, devanagari_prep): (fn(&str) -> String, fn(&str) -> String) =
-            match language_id {
-                "ta" => (|s| indic_profiles::roman_prep("ta", s), identity),
-                "te" => (|s| indic_profiles::roman_prep("te", s), identity),
-                "kn" => (|s| indic_profiles::roman_prep("kn", s), identity),
-                "ml" => (
-                    |s| indic_profiles::roman_prep("ml", s),
-                    |s| indic_profiles::devanagari_prep("ml", s),
-                ),
-                _ => (identity, identity),
-            };
+        let (roman_prep, devanagari_prep): (Prep, Prep) = match language_id {
+            "ta" => (|s| indic_profiles::roman_prep("ta", s), identity),
+            "te" => (|s| indic_profiles::roman_prep("te", s), identity),
+            "kn" => (|s| indic_profiles::roman_prep("kn", s), identity),
+            "ml" => (
+                |s| indic_profiles::roman_prep("ml", s),
+                |s| indic_profiles::devanagari_prep("ml", s),
+            ),
+            _ => (identity, identity),
+        };
         let rerank_by: Option<fn(&str) -> String> = if indic_profiles::rerank_flat_list(language_id)
         {
-            Some(|s| crate::tamil::transliterate(s))
+            Some(crate::tamil::transliterate)
         } else {
             None
         };
