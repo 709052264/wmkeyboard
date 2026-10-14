@@ -190,35 +190,51 @@ jobs:
   # publishes that, so F-Droid users get an APK signed with our key. The recipe
   # points at this file through `Binaries:` (fdroid/com.wasimaster.wmkeyboard.yml).
   #
-  # It has to be the build F-Droid makes, byte for byte, so it copies the
-  # recipe: the lite+intl variant through the `assembleLiteRelease` alias, run
-  # from app/ as fdroidserver does, with the recipe's three flags and nothing
-  # else. No API keys (the recipe passes none, and a key is a BuildConfig
-  # string), no ABI split. Its own runner, so no flag from the `apks` job leaks
-  # in through a shared Gradle daemon or configuration cache.
-  #
-  # Built without the recipe's prebuild seds. They delete lines the lite build
-  # never resolves, so the output is the same with or without them; checked by
-  # rebuilding 0.5.9 and comparing it with the APK F-Droid published.
+  # It has to be the build F-Droid makes, byte for byte, and since 0.6.0 that
+  # build compiles the lite edition's native libraries (Harper, whisper.cpp,
+  # ExecuTorch) from source with the NDK, Rust and CMake rather than taking
+  # the committed ones. So the APK is not built here with Gradle: F-Droid's own
+  # `fdroid build` makes it, from fdroidserver master inside F-Droid's
+  # buildserver image, from the recipe in this repo with one entry for this
+  # commit (.github/scripts/fdroid-build.sh, which follows the `fdroid build`
+  # job in fdroiddata's CI). That also runs their source scanner over the tag,
+  # so a recipe problem shows up here rather than days later on their side.
+  # The unsigned APK it leaves is then signed with the release key, keeping
+  # its alignment, which is what apksigcopier needs to carry the signature
+  # back onto F-Droid's build.
   fdroid:
     name: F-Droid reference APK
     needs: verify
     if: needs.verify.outputs.buildable == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4
 
-      # F-Droid's builder uses Debian's OpenJDK 21. The major version is what
-      # matters: Kotlin, D8 and R8 ship with the build and do not depend on it.
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
+      # The buildserver image, ExecuTorch's three builds and the Gradle build
+      # do not fit in the runner's default free space.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android/sdk/ndk /opt/ghc \
+            /usr/local/.ghcup /usr/share/swift /usr/local/share/powershell /opt/hostedtoolcache/CodeQL
+          df -h /
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - name: Build with fdroidserver
+        run: |
+          version='${{ needs.verify.outputs.version }}'
+          code=$(grep '^wmkb.versionCode=' gradle.properties | cut -d= -f2)
+          docker run --rm -v "$PWD:/src" \
+            registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie \
+            bash /src/.github/scripts/fdroid-build.sh "$GITHUB_SHA" "$version" "$code"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fdroid-build-log
+          path: |
+            dist/fdroid-build.log
+            dist/fdroid-unsigned.apk
+          retention-days: 30
 
       - name: Restore keystore
         env:
@@ -230,19 +246,23 @@ jobs:
           fi
           echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
 
-      - name: Build the F-Droid APK
-        working-directory: app
+      # --alignment-preserved: apksigner otherwise re-aligns the entries, and
+      # the APK would no longer be F-Droid's build plus a signature.
+      - name: Sign
         env:
-          RELEASE_STORE_FILE: release.keystore
           RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
-          ../gradlew \
-            -Pwmkb.enablePlayStore=false \
-            -Pwmkb.enableGms=false \
-            -Pwmkb.enableFdroid=true \
-            assembleLiteRelease --stacktrace
+          version='${{ needs.verify.outputs.version }}'
+          code=$(grep '^wmkb.versionCode=' gradle.properties | cut -d= -f2)
+          apksigner=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          mkdir -p out
+          "$apksigner" sign --ks release.keystore --ks-key-alias "$RELEASE_KEY_ALIAS" \
+            --ks-pass env:RELEASE_STORE_PASSWORD --key-pass env:RELEASE_KEY_PASSWORD \
+            --alignment-preserved \
+            --out "out/wmkeyboard-${version}-vc${code}-fdroid.apk" dist/fdroid-unsigned.apk
+          rm -f out/*.idsig
 
       - name: Wipe keystore
         if: always()
@@ -250,21 +270,11 @@ jobs:
 
       # AllowedAPKSigningKeys in the recipe pins this certificate, and F-Droid
       # refuses a reference APK signed by anything else, or signed with v1
-      # alone. Better to find out here than from a failed build on their side
-      # a few days after the release.
-      - name: Collect and check
+      # alone. apksigcopier is what F-Droid runs to compare the two builds;
+      # running it here proves the signature carries over.
+      - name: Check
         run: |
-          version=$(grep '^wmkb.versionName=' gradle.properties | cut -d= -f2)
-          code=$(grep '^wmkb.versionCode=' gradle.properties | cut -d= -f2)
-          shopt -s nullglob
-          apks=(app/build/outputs/apk/lite/release/*.apk)
-          if [ ${#apks[@]} -ne 1 ]; then
-            echo "::error::Expected one APK in apk/lite/release, found ${#apks[@]}"
-            exit 1
-          fi
-          mkdir -p dist
-          out="dist/wmkeyboard-${version}-vc${code}-fdroid.apk"
-          cp "${apks[0]}" "$out"
+          out=$(ls out/*-fdroid.apk)
           apksigner=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
           certs=$("$apksigner" verify --print-certs -v "$out")
           echo "$certs"
@@ -272,17 +282,20 @@ jobs:
             || { echo "::error::$out has no v2 signature"; exit 1; }
           echo "$certs" | grep -q 'certificate SHA-256 digest: d6c1f30a6116d33e4e778b372f335faa91dad35f657a84e4e7077b29641e7cad' \
             || { echo "::error::$out is not signed with the key AllowedAPKSigningKeys pins"; exit 1; }
-          # AGP writes the commit into the APK. F-Droid builds from a real
-          # clone, so it records the hash; a checkout AGP cannot read (a git
-          # worktree, a tarball) writes NO_VALID_GIT_FOUND instead, and that
-          # one file is enough to fail the comparison.
           unzip -p "$out" META-INF/version-control-info.textproto | grep -q "revision: \"$GITHUB_SHA\"" \
             || { echo "::error::$out does not record commit $GITHUB_SHA"; exit 1; }
+          # The lite edition's own engines must be in it, built from source.
+          for lib in libharper_jni.so libwmwhispercpp.so libwmwhispercpp_v82.so libwmexecutorch.so; do
+            unzip -l "$out" | grep -q "lib/arm64-v8a/$lib" \
+              || { echo "::error::$out has no arm64-v8a $lib"; exit 1; }
+          done
+          pipx run apksigcopier==1.1.1 compare "$out" --unsigned dist/fdroid-unsigned.apk
+          mkdir -p dist-ref && mv "$out" dist-ref/
 
       - uses: actions/upload-artifact@v4
         with:
           name: fdroid-apk
-          path: dist/
+          path: dist-ref/
           retention-days: 30
 
   # The build with no INTERNET permission (#292), for people who want a

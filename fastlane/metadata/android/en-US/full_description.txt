@@ -26,12 +26,12 @@ A full theme editor: palettes, fonts, key shapes, textures, decals, particles an
 
 VOICE AND AI
 
-Speech recognition with a continuous mode, through Android's own recognizer, and optional AI writing tools where you bring your own API key or point the keyboard at a server you run yourself. Nothing is enabled behind your back.
+Speech recognition with a continuous mode, through Android's own recognizer or entirely on the phone: Whisper on whisper.cpp, and Asr4All, Parakeet and Moonshine on ExecuTorch, each model a download you ask for. Harper checks grammar offline. AI writing tools are optional, with your own API key or your own server. Nothing is enabled behind your back.
 
 PRIVACY
 
 Every network feature is a tool you choose to open, and each one is documented. This edition downloads nothing unasked: automatic language data is off by default, so a language's n-gram pack and emoji dictionary arrive only when you accept the prompt or press the button. One connection is not a tool, and it is worth naming: a script with no font of its own is drawn in Noto, fetched through Android's downloadable-fonts provider — Google Play Services where that is installed, and nothing where it is not. Typing on its own never reaches the network: a weather or currency chip waits for your tap before it fetches anything, and exchange rates come from currency-api and Frankfurter, both free software with open data, unless you pick another source. Every service the keyboard uses can also be pointed at another server, including one you run yourself. The update check asks F-Droid only when you press the button for it. Password and secure fields turn off learning, suggestions and clipboard capture on their own, and incognito mode does the same on demand. Backups are written where you point them, and a passphrase encrypts them.
 
-This is the lite edition. It leaves out handwriting, text and QR scanning, offline dictation and the on-device AI models, because all of them are built on Google libraries, and it carries none. Its privacy policy is its own: https://wmkeyboard.pages.dev/privacy/policy-fdroid/
+This is the lite edition. It leaves out handwriting, text and QR scanning, the Whistle dictation engine and the on-device AI chat models, because they are built on Google libraries or code without published source, and it carries neither. Its privacy policy is its own: https://wmkeyboard.pages.dev/privacy/policy-fdroid/
 
 The full documentation, including exactly what touches the network and when, is at https://wmkeyboard.pages.dev

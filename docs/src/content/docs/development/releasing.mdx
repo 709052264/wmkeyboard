@@ -30,6 +30,7 @@ of it, so nothing here needs a branch or a patched source tree.
 | On-device translation (ML Kit) | bundled | absent | on-demand `:feature:translate` module |
 | LiteRT interpreter (offline Whisper, the sticker editor's own background remover) | bundled | absent | on-demand `:feature:litert` module |
 | Handwriting recognition (ML Kit) | bundled | absent | on-demand `:feature:handwriting` module |
+| Harper, whisper.cpp, ExecuTorch (grammar, Offline Whisper, Asr4All, Parakeet, Moonshine) | committed prebuilt libraries | compiled from source by the recipe | committed prebuilt libraries |
 | In-app updates | GitHub releases, downloads and installs | checks F-Droid, links out | Play In-App Updates |
 
 The flags read from a `-P` Gradle property first, then `local.properties`, then
@@ -451,13 +452,25 @@ instead.
    `app/dictionaries-src/`, and `.wmng` n-gram packs are downloaded at runtime
    rather than built at all. No binary dictionary is committed. Apart from
    `gradle/wrapper/gradle-wrapper.jar`, which F-Droid checks against its own
-   known-good list, the only prebuilt binaries in the tree are the Harper
-   `.so` files under `core/intelligence/src/full/` and the LLM module's, both
-   of which belong to variants a `lite` build never assembles. The recipe
-   deletes them before building so the scanner has nothing to complain about.
+   known-good list, the only prebuilt binaries in the tree are native
+   libraries. Some belong to variants a `lite` build never assembles
+   (Tesseract, Whistle, the LLM module's placeholders). The rest, Harper,
+   whisper.cpp and ExecuTorch under the `src/main/jniLibs` of
+   `:core:intelligence` and `:core:voice`, ship in `lite` itself. The recipe
+   deletes all of them before the source scan, then its `build:` step runs
+   `native/build-lite-libs.sh`, which compiles the `lite` ones from source with
+   the NDK the recipe names, Rust and CMake.
 
-2. **Test the exact build locally** before you submit, because a failed build
-   on their side means a round trip:
+2. **Test the exact build** before you submit, because a failed build on
+   their side means a round trip. The release workflow's `fdroid` job runs
+   F-Droid's own `fdroid build` in F-Droid's buildserver image, from the recipe
+   in this repo, so a dry run of the workflow is that test:
+
+   ```sh
+   gh workflow run release.yml -f dry_run=true
+   ```
+
+   The Gradle half alone is quicker to check on your own machine:
 
    ```sh
    ./gradlew clean assembleLiteRelease -Pwmkb.enablePlayStore=false -Pwmkb.enableGms=false
@@ -524,13 +537,18 @@ its build and publishes that. If they are not, that version fails and does
 not ship on F-Droid. `AllowedAPKSigningKeys` pins the certificate, so a
 reference APK signed with anything else is refused as well.
 
-The `fdroid` job in the release workflow builds that file. It is the recipe
-copied exactly: `assembleLiteRelease` run from `app/`, the recipe's three
-`-P` flags, no API keys, no ABI split, on its own runner so nothing leaks in
-from the other builds. It skips the recipe's `prebuild` seds, because they
-only delete lines a `lite` build never reads. That was checked before the
-switch by rebuilding 0.5.9 and comparing it with the APK F-Droid had
-published.
+The `fdroid` job in the release workflow builds that file, and it does not
+imitate F-Droid's build: it runs it. `.github/scripts/fdroid-build.sh` installs
+fdroidserver master in F-Droid's buildserver image, writes the recipe from
+this repo with one entry for the commit being released, and runs `fdroid
+build`, the same steps as the `fdroid build` job in fdroiddata's CI. The job
+then signs the unsigned APK with `apksigner sign --alignment-preserved`,
+checks with `apksigcopier compare` that the signature carries back onto it,
+and checks the `lite` engines are inside. Until 0.5.14 the job ran
+`assembleLiteRelease` with the recipe's flags instead, which was enough while
+the recipe was Gradle alone. From 0.6.0 the recipe compiles Harper, whisper.cpp
+and ExecuTorch with the NDK and Rust, and only fdroidserver itself reproduces
+that faithfully.
 
 The rules that follow from this:
 
@@ -541,6 +559,13 @@ The rules that follow from this:
   A timestamp or a random value in `BuildConfig`, a dependency pulled by a
   version range, a JDK toolchain other than the one their image carries.
   When a build fails the comparison, their build log holds the diff.
+- **Native code must not remember where it was built.** A path in a
+  compiled library (`__FILE__` in an assert, a Rust panic message, a libc++
+  header) differs between F-Droid's machine and the runner. The scripts under
+  `native/` map every such path away and pin every tool: the NDK in the
+  recipe, Rust and `cargo-ndk` in `harper-jni/build.sh`, and the commits of
+  whisper.cpp, ExecuTorch and PyTorch in theirs. A new native library joins
+  `native/build-lite-libs.sh` the same way, or stays out of `lite`.
 - **Build it from a real clone.** AGP writes the commit hash into
   `META-INF/version-control-info.textproto`. From a git worktree or a
   tarball it cannot read the repository and writes `NO_VALID_GIT_FOUND`
@@ -590,9 +615,10 @@ under the Play tree for a version whose Play notes must differ, which
 `internal` prefers when it exists.
 
 :::caution[The lite description must not promise what lite does not ship]
-The lite flavour has no ML Kit, no Whisper and no Harper, so it has no
-handwriting, no text or QR scanning, no offline dictation and no on-device AI
-models. `fastlane/metadata/android/en-US/full_description.txt` names those as
+The lite flavour has no ML Kit, no LiteRT and no Whistle, so it has no
+handwriting, no text or QR scanning, no LiteRT Whisper, no Whistle dictation
+and no on-device AI chat models. It does have the Harper grammar checker and
+offline dictation through whisper.cpp and ExecuTorch, built from source. `fastlane/metadata/android/en-US/full_description.txt` names those as
 *absent* and links [`/privacy/policy-fdroid/`](/privacy/policy-fdroid/); the
 Play copy describes them as present and links
 [`/privacy/policy/`](/privacy/policy/). Adding a feature to one description

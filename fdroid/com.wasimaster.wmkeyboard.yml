@@ -75,8 +75,105 @@ Builds:
 
   - versionName: 0.5.10
     versionCode: 22
+    disable: switched to reproducible builds
     commit: 7b84e4fdeae25bba24c1a91d330952f4ee1c2ff2
     subdir: app
+    gradle:
+      - lite
+    prebuild:
+      - sed -i -e '/org.gradle.toolchains.foojay-resolver-convention/d' ../settings.gradle.kts
+      - sed -i -e '/libs.play.app.update/d' -e '/libs.play.feature.delivery/d' -e
+        '/libs.play.services.auth/d' build.gradle.kts
+    scandelete:
+      - core/intelligence/src/full/jniLibs
+      - feature/llm/src/main/jniLibs
+    gradleprops:
+      - wmkb.enablePlayStore=false
+      - wmkb.enableGms=false
+      - wmkb.enableFdroid=true
+
+  - versionName: 0.5.11
+    versionCode: 23
+    disable: switched to reproducible builds
+    commit: 52e13fb4974a49862aa4710afaa4cf5b17fc7905
+    subdir: app
+    gradle:
+      - lite
+    prebuild:
+      - sed -i -e '/org.gradle.toolchains.foojay-resolver-convention/d' ../settings.gradle.kts
+      - sed -i -e '/libs.play.app.update/d' -e '/libs.play.feature.delivery/d' -e
+        '/libs.play.services.auth/d' build.gradle.kts
+    scandelete:
+      - core/intelligence/src/full/jniLibs
+      - feature/llm/src/main/jniLibs
+    gradleprops:
+      - wmkb.enablePlayStore=false
+      - wmkb.enableGms=false
+      - wmkb.enableFdroid=true
+
+  - versionName: 0.5.12
+    versionCode: 25
+    disable: switched to reproducible builds
+    commit: 9818b0b8b13875c9aa09d38995f03e1b440415a6
+    subdir: app
+    gradle:
+      - lite
+    prebuild:
+      - sed -i -e '/org.gradle.toolchains.foojay-resolver-convention/d' ../settings.gradle.kts
+      - sed -i -e '/libs.play.app.update/d' -e '/libs.play.feature.delivery/d' -e
+        '/libs.play.services.auth/d' build.gradle.kts
+    scandelete:
+      - core/intelligence/src/full/jniLibs
+      - feature/llm/src/main/jniLibs
+    gradleprops:
+      - wmkb.enablePlayStore=false
+      - wmkb.enableGms=false
+      - wmkb.enableFdroid=true
+
+  - versionName: 0.5.13
+    versionCode: 28
+    commit: a4dd65b18acc674d8ebd01f6a730d59087274a94
+    subdir: app
+    gradle:
+      - lite
+    prebuild:
+      - sed -i -e '/org.gradle.toolchains.foojay-resolver-convention/d' ../settings.gradle.kts
+      - sed -i -e '/libs.play.app.update/d' -e '/libs.play.feature.delivery/d' -e
+        '/libs.play.services.auth/d' build.gradle.kts
+    scandelete:
+      - core/intelligence/src/full/jniLibs
+      - feature/llm/src/main/jniLibs
+    gradleprops:
+      - wmkb.enablePlayStore=false
+      - wmkb.enableGms=false
+      - wmkb.enableFdroid=true
+
+  - versionName: 0.5.14
+    versionCode: 31
+    commit: aff2d786cf604b0bb0df6d65622ff523625d525f
+    subdir: app
+    gradle:
+      - lite
+    prebuild:
+      - sed -i -e '/org.gradle.toolchains.foojay-resolver-convention/d' ../settings.gradle.kts
+      - sed -i -e '/libs.play.app.update/d' -e '/libs.play.feature.delivery/d' -e
+        '/libs.play.services.auth/d' build.gradle.kts
+    scandelete:
+      - core/intelligence/src/full/jniLibs
+      - feature/llm/src/main/jniLibs
+    gradleprops:
+      - wmkb.enablePlayStore=false
+      - wmkb.enableGms=false
+      - wmkb.enableFdroid=true
+
+  - versionName: 0.6.0
+    versionCode: 33
+    commit: v0.6.0
+    timeout: 18000
+    subdir: app
+    sudo:
+      - apt-get update
+      - apt-get install -y cmake ninja-build g++ python3-yaml python3-typing-extensions
     gradle:
       - lite
     prebuild:
@@ -90,6 +187,8 @@ Builds:
       - native/whistle-jni/prebuilt
       - core/voice/src/main/jniLibs
       - core/intelligence/src/main/jniLibs
+    build: ../native/build-lite-libs.sh
+    ndk: 29.0.14206865
     gradleprops:
       - wmkb.enablePlayStore=false
       - wmkb.enableGms=false
@@ -100,5 +199,5 @@ AllowedAPKSigningKeys: d6c1f30a6116d33e4e778b372f335faa91dad35f657a84e4e7077b296
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
 UpdateCheckData: gradle.properties|wmkb.versionCode=(\d+)|.|wmkb.versionName=(.+)
-CurrentVersion: 0.5.10
-CurrentVersionCode: 22
+CurrentVersion: 0.6.0
+CurrentVersionCode: 33

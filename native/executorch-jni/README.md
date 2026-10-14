@@ -39,16 +39,22 @@ stay out of `ops.txt`.
 
 The built libraries are committed under `core/voice/src/main/jniLibs/`, so the
 app builds without an NDK, and both editions, full and lite, carry them.
-F-Droid builds lite and `scandelete`s that directory, so its build has none
-of these engines. Rebuild after you change anything here:
+F-Droid deletes the committed copies and builds them with this script
+(through `native/build-lite-libs.sh`), and so does the release workflow for
+the reference APK F-Droid compares against; the script maps the build
+machine's paths out of the library so the two builds match. Rebuild after
+you change anything here:
 
 ```sh
 ANDROID_NDK=~/Library/Android/sdk/ndk/27.3.13750724 native/executorch-jni/build.sh
 ```
 
-It needs CMake, Ninja and a Python with ExecuTorch's code generator on `PATH`
-(`pip install executorch torch pyyaml`): selective builds generate the
-operator registration from `ops.txt`. ExecuTorch is fetched at the pinned
+It needs CMake, Ninja and a Python 3 with PyYAML and typing_extensions on
+`PATH`: selective builds generate the operator registration from `ops.txt`.
+No torch install is needed. The generator runs over torchgen, and the
+optimized kernels include ATen's CPU vector headers; both come from
+PyTorch's own sources at the tag ExecuTorch pins (`v2.14.0`), fetched by the
+script, with the few headers a torch build would generate written by it. ExecuTorch is fetched at the pinned
 commit with the submodules it needs (XNNPACK, flatbuffers, flatcc, Eigen,
 pocketfft, ...) unless `EXECUTORCH_SRC` points at a checkout of it, which
 ExecuTorch requires to be named `executorch`. Each ABI is a full ExecuTorch

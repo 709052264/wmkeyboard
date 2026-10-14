@@ -93,9 +93,11 @@ cat <<EOF
 
 There are two choices to make, and the second one is easy.
 
-**full or lite?** **full** is the whole keyboard. **lite** leaves out ML Kit and
-the on-device models (handwriting, OCR, document scanning, Whisper voice input
-and the local LLM) for a far smaller download.
+**full or lite?** **full** is the whole keyboard. **lite** leaves out ML Kit,
+LiteRT and the engines built on them (handwriting, OCR, document scanning,
+Whistle dictation and the local LLM) for a far smaller download. It keeps the
+grammar checker and offline dictation through whisper.cpp, Asr4All, Parakeet
+and Moonshine.
 
 **Which languages?** This is about the words the app *shows* you, on its
 settings screens and its panels. **all** has them in 48 languages besides

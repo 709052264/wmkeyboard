@@ -51,13 +51,23 @@ of the release certificate (`apksigner verify --print-certs`, "certificate
 SHA-256 digest"), and the reference APK has to carry a v2 signature or better.
 
 The reference APK is built by the `fdroid` job in `.github/workflows/release.yml`,
-which copies this recipe exactly: `assembleLiteRelease` from `app/`, the three
-`gradleprops`, no API keys, no ABI split. It does not run the `prebuild` seds,
-since they only delete lines a lite build never reads. Before the switch, 0.5.9
-was rebuilt that way and compared with the APK F-Droid had published for it,
-with `apksigcopier compare`: identical apart from the signature, built on macOS
-with the JetBrains Runtime 21 against F-Droid's Debian OpenJDK 21. The first try
-did not match, and the one difference is worth knowing. AGP writes the commit
+and since 0.6.0 it is not built with Gradle there at all. The job runs
+fdroidserver's own `fdroid build`, from fdroidserver master, inside F-Droid's
+buildserver image (`registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie`),
+from this recipe with one entry for the commit being released
+(`.github/scripts/fdroid-build.sh`, which follows the `fdroid build` job in
+fdroiddata's CI). It then signs the unsigned APK that leaves with
+`apksigner sign --alignment-preserved` and checks the signature carries back
+with `apksigcopier compare`, the tool F-Droid uses. Building it any other way
+stopped being possible once the recipe compiled native code: the APK has to be
+the recipe's output, and the recipe's output is now partly made by the NDK.
+Running their scanner over every tag is a side benefit.
+
+Before that, the job copied the recipe by hand (`assembleLiteRelease` from
+`app/` with the three flags), and 0.5.9 was rebuilt that way and compared with
+F-Droid's APK: identical apart from the signature, built on macOS with the
+JetBrains Runtime 21 against F-Droid's Debian OpenJDK 21. The first try did
+not match, and the one difference is worth knowing. AGP writes the commit
 into `META-INF/version-control-info.textproto`, and in a git worktree (where
 `.git` is a file) it cannot read it and writes `NO_VALID_GIT_FOUND`. Build a
 reference APK from a real clone.
@@ -78,25 +88,45 @@ request for every release, because the bot cannot write signature files.
 `Binaries` is wrapped onto a second line by `rewritemeta`, with a trailing space
 after the colon. That is its output; leave it.
 
-**`scandelete`** — prebuilt native libraries belonging to variants this build
-does not produce. The Harper grammar engine lives in the full source set (its
-Rust sources are under `native/harper-jni`), and the LLM module is only assembled
-for the Play channel. The offline Whistle voice engine is the same case: its JNI
-library is under `core/voice/src/full/jniLibs`, and the Cactus archive it links
-(`native/whistle-jni/prebuilt`) has no source to build from. The whisper.cpp
-libraries for Offline Whisper sit in the same `jniLibs` directory (built from
-source by `native/whispercpp-jni/build.sh`), and so does the selective ExecuTorch
-build behind Offline Asr4All, Parakeet and Moonshine
-(`native/executorch-jni/build.sh`), so the same entry removes them. Deleting them keeps
-F-Droid's scanner quiet and proves none of them reaches the built APK.
-whisper.cpp, the ExecuTorch runtime and Harper moved to the `src/main/jniLibs`
-directories of `:core:voice` and `:core:intelligence` when lite gained them, so
-those two are deleted too; the F-Droid build then reports the engines and the
-grammar tool as not in this build, and switches the spell checker off. All
-three can be built from source (`native/*/build.sh`, `cargo ndk`), which is
-the way to bring them to F-Droid. The last
-build block carries the two Whistle paths ahead of the first release that has
-them; `AutoUpdateMode` copies that block forward.
+**`scandelete`, `build`, `ndk` and `sudo`**: the native libraries, from 0.6.0
+built from source. `scandelete` removes every prebuilt `.so` and `.a` in the
+tree before the source scan. Some belong to variants this build never
+produces: the Tesseract and Whistle libraries under
+`core/intelligence/src/full/` and `core/voice/src/full/`, the Cactus archive
+Whistle links (`native/whistle-jni/prebuilt`, which has no source to build
+from), and the LLM module's ABI placeholders. The other two directories,
+`src/main/jniLibs` of `:core:intelligence` and `:core:voice`, hold what lite
+itself ships since 0.6.0: Harper's grammar engine, whisper.cpp for Offline
+Whisper, and the selective ExecuTorch build behind Offline Asr4All, Parakeet
+and Moonshine.
+
+Up to 0.5.14 lite carried none of them, so deleting was the whole story. Now
+`build` puts them back: `../native/build-lite-libs.sh` runs after the scan and
+before Gradle, and compiles all three from source into the directories the
+scan emptied (`native/harper-jni` with Rust and `cargo ndk`,
+`native/whispercpp-jni` and `native/executorch-jni` with CMake). whisper.cpp,
+ExecuTorch and the PyTorch sources ExecuTorch's code generator and optimized
+kernels need are fetched at pinned commits, the Rust toolchain at a pinned
+version through rustup, the crates through `Cargo.lock`. `ndk` names the NDK
+the scripts compile with, and `sudo` installs CMake, Ninja, a host compiler
+for ExecuTorch's flatbuffers tools, and the two Python modules the code
+generator imports.
+
+The reproducible build is what makes this delicate. The reference APK carries
+these libraries too, so F-Droid's copies must come out byte for byte the same
+as the release workflow's. Each script maps every path of the build machine
+out of what it compiles (`-ffile-prefix-map` for C and C++,
+`--remap-path-prefix` for Rust; the committed 0.5.x libraries still carried
+`/Users/...` paths in Harper's panic messages), and every tool is pinned. Do
+not let a script pick up a version from the machine.
+
+**`timeout`**: five hours. fdroidserver stops a build after two by default,
+and ExecuTorch is three full builds, one per ABI, before Gradle starts.
+
+**`commit: v0.6.0`** in the staged copy: a tag, which fdroiddata will not
+take. The copy is written before the tag exists, so it cannot hold the hash;
+the merge request that carries the entry to fdroiddata replaces it with the
+tag's full hash, and the bot does the same for every later entry.
 
 **`prebuild`** — two `sed` commands, both for the source scanner. It is a text
 search over the build files, run before the build and fatal on a match, and it
@@ -205,10 +235,9 @@ check-jsonschema --schemafile metadata.json metadata/com.wasimaster.wmkeyboard.y
 ```
 
 The fifth job, `fdroid build`, runs the real build in an image provisioned like
-the production buildserver. There is no local stand-in for it, but building the
-tag in a clean worktree with no `local.properties` and the `scandelete`
-directories removed is the same thing in miniature — see the F-Droid steps in
-`docs/development/releasing`.
+the production buildserver. The release workflow's `fdroid` job runs that same
+build on every tag, in the same image, so a dry run of the workflow
+(`gh workflow run release.yml -f dry_run=true`) is the local stand-in for it.
 
 When `rewritemeta` does disagree with you, its job uploads what it wanted under
 `tmp/` in the job artifacts, reachable at

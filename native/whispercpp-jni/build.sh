@@ -12,11 +12,15 @@ WHISPER_COMMIT=d1be6fde11ac6e0407606b4e42fe72d34add8037
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)
+# Where the libraries go: the jniLibs directory of the module that packages
+# them for the non-Play builds. F-Droid's recipe scandeletes the same path.
+OUT=${WHISPER_OUT:-$REPO/core/voice/src/main/jniLibs}
 NDK=${ANDROID_NDK:-${ANDROID_NDK_HOME:-}}
 [ -n "$NDK" ] && [ -f "$NDK/build/cmake/android.toolchain.cmake" ] || {
     echo "Set ANDROID_NDK to an NDK install (r27 or newer)" >&2; exit 1; }
+NDK=$(cd "$NDK" && pwd -P)
 BIN=$(ls -d "$NDK"/toolchains/llvm/prebuilt/*/bin)
-WORK=$(mktemp -d)
+WORK=$(cd "$(mktemp -d)" && pwd -P)
 trap 'rm -rf "$WORK"' EXIT
 
 SRC=${WHISPER_SRC:-}
@@ -27,6 +31,11 @@ fi
 got=$(git -C "$SRC" rev-parse HEAD)
 [ "$got" = "$WHISPER_COMMIT" ] || { echo "whisper.cpp is at $got, expected $WHISPER_COMMIT" >&2; exit 1; }
 
+# Every path on the build machine is mapped out of the library (__FILE__ in
+# asserts, the NDK's libc++ headers), so two machines with the same NDK build
+# the same bytes. F-Droid's reproducible build relies on that.
+MAP="-ffile-prefix-map=$SRC=whisper.cpp -ffile-prefix-map=$WORK=build -ffile-prefix-map=$HERE=. -ffile-prefix-map=$NDK=ndk"
+
 # abi  library-name  extra cmake flags
 build() {
     local abi=$1 name=$2; shift 2
@@ -35,12 +44,11 @@ build() {
         -DCMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake" \
         -DANDROID_ABI="$abi" -DANDROID_PLATFORM=android-24 -DANDROID_STL=c++_static \
         -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_C_FLAGS="-ffile-prefix-map=$SRC=whisper.cpp -ffile-prefix-map=$HERE=." \
-        -DCMAKE_CXX_FLAGS="-ffile-prefix-map=$SRC=whisper.cpp -ffile-prefix-map=$HERE=." \
+        -DCMAKE_C_FLAGS="$MAP" -DCMAKE_CXX_FLAGS="$MAP" -DCMAKE_ASM_FLAGS="$MAP" \
         -DWHISPER_SRC="$SRC" -DWM_LIB_NAME="$name" "$@" > "$out.log" 2>&1 \
         || { tail -30 "$out.log"; exit 1; }
     cmake --build "$out" --target wmwhispercpp >> "$out.log" 2>&1 || { tail -40 "$out.log"; exit 1; }
-    local dest=$REPO/core/voice/src/main/jniLibs/$abi
+    local dest=$OUT/$abi
     mkdir -p "$dest"
     "$BIN/llvm-strip" --strip-unneeded -o "$dest/lib$name.so" "$out/lib$name.so"
     echo "$abi lib$name.so: $(wc -c < "$dest/lib$name.so") bytes"

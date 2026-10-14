@@ -9,16 +9,16 @@ The prebuilt `libharper_jni.so` files are committed under
 toolchain. Rebuild them after you change this crate or bump `harper-core`:
 
 ```sh
-# One-time setup
-rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
-cargo install cargo-ndk
-brew install --cask android-ndk   # or any NDK; set ANDROID_NDK_HOME
-
-# Build all supported ABIs (arm64-v8a, armeabi-v7a, x86_64) into core/intelligence (from this directory)
-ANDROID_NDK_HOME=/opt/homebrew/share/android-ndk \
-cargo ndk -t arm64-v8a -t armeabi-v7a -t x86_64 --platform 24 \
-  -o ../../core/intelligence/src/main/jniLibs build --release
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/harper-jni/build.sh
 ```
+
+`build.sh` installs the pinned Rust toolchain and Android targets through
+rustup and the pinned `cargo-ndk`, builds arm64-v8a, armeabi-v7a and x86_64,
+and remaps the registry, standard library and repository paths out of the
+panic messages, so two machines with the same toolchain build the same bytes.
+F-Droid deletes the committed copies and builds them with it (through
+`native/build-lite-libs.sh`), as does the release workflow for the reference
+APK F-Droid compares against.
 
 Host-side tests (`cargo test`) exercise the lint→JSON path without Android.
 
