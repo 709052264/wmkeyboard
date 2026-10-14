@@ -3,7 +3,7 @@
 
 Reads the body of a published GitHub release, finds each issue it links, and
 comments on that issue: which version it is in, a mention of whoever opened
-it, any settings the change added (as ``wmkeyboard.pages.dev/open/`` links that
+it and of everyone who gave it a positive reaction (👍 ❤️ 🎉 🚀), any settings the change added (as ``wmkeyboard.pages.dev/open/`` links that
 open the row in the app), and a note that F-Droid and Google Play lag the
 GitHub release by a few days.
 
@@ -85,6 +85,11 @@ MAX_SETTINGS = 8
 MAX_COMMITS = 6
 # GitHub asks for at least a second between content-creating requests.
 WRITE_PAUSE_SECONDS = 1.5
+
+# Reactions that mean "I want this too". Laugh, confused, eyes and 👎 do not.
+POSITIVE_REACTIONS = {"+1", "heart", "hooray", "rocket"}
+# Reactors mentioned by name in one comment; the rest are counted, not pinged.
+MAX_REACTORS = 25
 
 MAINTAINER_ASSOCIATIONS = {"OWNER", "MEMBER", "COLLABORATOR"}
 DEFAULT_STORES = "F-Droid,Google Play"
@@ -367,12 +372,37 @@ class Plan:
     number: int
     title: str = ""
     author: str | None = None
+    reactors: list[str] = field(default_factory=list)
     state: str = ""
     commits: list[str] = field(default_factory=list)
     settings: list[NewSetting] = field(default_factory=list)
     existing: dict | None = None
     skip: str | None = None
     body: str = ""
+
+
+def find_reactors(gh: GitHub, number: int, exclude: set[str]) -> list[str]:
+    """People who reacted positively to the issue itself, oldest first.
+
+    Bots, the ghost account and anyone in ``exclude`` (the author, the owner)
+    are left out, and each person is listed once however many reactions they gave.
+    """
+    try:
+        reactions = gh.paginate(f"/repos/{gh.repo}/issues/{number}/reactions")
+    except GitHubError as e:
+        log(f"  #{number}: no reactions ({e})")
+        return []
+    seen = {e.lower() for e in exclude}
+    out = []
+    for r in reactions:
+        user = r.get("user") or {}
+        login = user.get("login")
+        if (r.get("content") not in POSITIVE_REACTIONS or user.get("type") != "User"
+                or not login or login == "ghost" or login.lower() in seen):
+            continue
+        seen.add(login.lower())
+        out.append(login)
+    return out
 
 
 def find_commits(gh: GitHub, number: int, comments: list[dict], by_message: dict[int, list[str]],
@@ -463,6 +493,13 @@ def compose(plan: Plan, *, tag: str, version: str, release_url: str, repo: str,
     if greeting:
         shipped = shipped[0].lower() + shipped[1:]
     lines.append(f"🚀 {greeting}{shipped} **[WM Keyboard {version}]({release_url})**.")
+
+    if plan.reactors:
+        named = [f"@{r}" for r in plan.reactors[:MAX_REACTORS]]
+        more = len(plan.reactors) - len(named)
+        lines.append("")
+        lines.append("Also letting " + join_words(named + ([f"{more} others"] if more > 0 else []))
+                     + " know, since you reacted to this issue.")
 
     if plan.commits:
         shown = [f"[`{s[:9]}`](https://github.com/{repo}/commit/{s})" for s in plan.commits[:MAX_COMMITS]]
@@ -606,6 +643,7 @@ def main() -> int:
         user = issue.get("user") or {}
         if user.get("type") == "User" and user.get("login") and user["login"] != "ghost":
             plan.author = user["login"]
+        plan.reactors = find_reactors(gh, n, {owner} | ({plan.author} if plan.author else set()))
         try:
             comments = gh.paginate(f"/repos/{args.repo}/issues/{n}/comments")
         except GitHubError as e:
@@ -632,7 +670,7 @@ def main() -> int:
         action = "update" if plan.existing else "post"
         if args.dry_run:
             print(f"\n===== {head}  [{action}, {len(plan.commits)} commits, "
-                  f"{len(plan.settings)} settings] =====\n{plan.body}")
+                  f"{len(plan.settings)} settings, {len(plan.reactors)} reactors] =====\n{plan.body}")
             rows.append((plan, f"would {action}"))
         else:
             try:
@@ -656,9 +694,10 @@ def main() -> int:
 
     table = [f"### Release comments for {tag}{' (dry run)' if args.dry_run else ''}", "",
              f"Range `{span}`. Settings links {'checked' if links_work else 'not available in this release'}.",
-             "", "| Issue | Result | Commits | New settings |", "|---|---|--:|--:|"]
+             "", "| Issue | Result | Commits | New settings | Reactors |", "|---|---|--:|--:|--:|"]
     for plan, result in rows:
-        table.append(f"| #{plan.number} | {result} | {len(plan.commits)} | {len(plan.settings)} |")
+        table.append(f"| #{plan.number} | {result} | {len(plan.commits)} | {len(plan.settings)} "
+                     f"| {len(plan.reactors)} |")
     summary("\n".join(table))
     return 1 if failed else 0
 
