@@ -151,6 +151,12 @@ Two related rules ride along with autocorrect and share its "sentence in progres
 - **Double space inserts a period.** Type two spaces in a row within a fraction of a second and the first space becomes `. `. Deleting a space and retyping it "undoes" nothing here; a following [Shift](#shift-cancels-a-pending-auto-space) is what cancels it. A separate, off-by-default setting can make a double space insert a tab instead, which takes priority over the period rule when both are on.
 - **Punctuation auto-inserts the space after it.** Off by default. When it's on, a sentence-ending or clause mark inserts a trailing space automatically: period, exclamation point, question mark, comma, semicolon, colon, and the Bengali `।`. You don't need a separate spacebar tap before the next word. A mark typed straight after a digit is part of the number and gets no space, so `5,000`, `3.14` and `5:00` stay whole. A full stop inside an email address gets none either, so `test@pm.me` doesn't come out as `test@pm. Me`; a comma or question mark after the address still does. A run of marks like "..." or "?!" isn't pulled apart into "... !", because the space from the previous mark is taken back before the next one lands. A closing mark does the same thing: type `"hi.` and the closing quote hugs the full stop rather than landing a space past it. This is also gated off in password and structured fields, same as autocorrect itself.
 
+### A space that is already there
+
+Every rule that types a space after something, the space bar after a word, the space after a mark and the space after a glided word, checks first whether the text already goes on with a space. If it does, the cursor steps over that space instead of typing a second one, so it lands at the start of the next word. Put the cursor at `auto| space`, type `matic` and a space, and you get `automatic |space`, ready for the next word. The same goes for a word tapped from the strip. Before, the cursor stayed in front of the old space, so the next word ran into the one after it and every space and mark after that landed in the same wrong place.
+
+A word the cursor only landed on is not a word you ended, so a space pressed there with nothing typed into the word is an ordinary space.
+
 ### Shift cancels a pending auto-space
 
 Right after either rule above inserts a space and auto-capitalization raises Shift for the next sentence, the very next <KeyCap>Shift</KeyCap> press does something different from lowering it. It deletes that trailing space, as long as nothing has changed the text since, and cancels that auto-capitalization too. When Shift wasn't raised for you, because the mark was a comma or auto-capitalization is off, the press arms Shift as usual and the space stays, so you can still capitalize the next word by hand. It's a one-shot. Press any other key first and the pending state clears, after which a plain space press just confirms the space already there rather than adding a second one.
@@ -210,6 +216,10 @@ The rule also stands down when the bracket lands in front of a word — `(` type
 The pair works the same in apps and web pages that handle typing their own way, Discord, browser-based editors and the like, where the cursor used to land outside the closing bracket.
 
 With **Automatic space after punctuation** on, a closing `)` gets the space after it too, typed or stepped over: `(see below)` then a word gives `(see below) word`. Only when nothing but a space or the end of the line follows it, so `((a))` and `(a).` don't come apart. `]` and `}` get no space, because `[text](link)` is a Markdown link and the space would break it.
+
+A closing quote gets the same space: `"exact phrase"` then a word gives `"exact phrase" word`. The curly `”` always closes. The straight `"` is counted the way the rule above counts it, so only the quote that closes a quotation gets the space, and the one that opens it stays up against the next word. A full stop typed after the quote takes the space back, the same as after any other mark.
+
+In a browser's address bar the punctuation rule stays out, because a full stop or a colon there is part of an address. Once what you type there has a space in it, it is a search and not an address, and the closing `)` and closing quotes get their space as in a message.
 
 ## Reducing typos before they happen
 

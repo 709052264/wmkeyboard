@@ -159,6 +159,47 @@ internal fun closesQuote(textBefore: String, quote: Char): Boolean =
     textBefore.substringAfterLast('\n').count { it == quote } % 2 == 1
 
 /**
+ * The quote that can only close a quotation, which the auto-space after
+ * punctuation follows wherever it lands. Only the curly close quote: the
+ * guillemets point opposite ways in French and German, so neither one says
+ * which end it is.
+ */
+private const val CLOSING_QUOTE = '”'
+
+/**
+ * Whether [mark] is a quote that may be closing a quotation, before anything
+ * is read to say whether it does. The cheap first half of
+ * [closingQuoteTakesSpace], for callers that read the field only for a quote.
+ */
+internal fun mayCloseQuote(mark: Char): Boolean = mark == CLOSING_QUOTE || mark in AMBIGUOUS_QUOTES
+
+/**
+ * Whether the auto-space after punctuation follows the quote [mark] typed at
+ * the end of [textBefore] (#662): `"exact phrase"` then a word reads
+ * `"exact phrase" word`, the way `(see below)` already did.
+ *
+ * The straight quote only when it closes a quotation, counted the way
+ * [closesQuote] counts. The one that opens it wants the word up against it, and
+ * a space after it would be the same mistake [swallowsAutoSpace] exists to
+ * undo. [textBefore] is a lambda so the curly quote, which needs no reading,
+ * does not cost an editor round trip.
+ */
+internal fun closingQuoteTakesSpace(mark: Char, textBefore: () -> String): Boolean = when {
+    mark == CLOSING_QUOTE -> true
+    mark in AMBIGUOUS_QUOTES -> closesQuote(textBefore(), mark)
+    else -> false
+}
+
+/**
+ * Whether the line typed so far into a browser's address bar ([textBefore]) is
+ * a search rather than an address (#662): it has a space in it. An address
+ * never does, and a search of two or more words always does, so the space is
+ * the cheapest honest answer the bar gives.
+ */
+internal fun typedAsSearch(textBefore: String): Boolean =
+    textBefore.substringAfterLast('\n').any { WordContext.isSpaceLike(it) }
+
+/**
  * Whether typing [text] right after a space the keyboard typed — after a glided
  * word, a word picked from the suggestion strip, or the auto-space that follows
  * a punctuation mark — should take that space back.

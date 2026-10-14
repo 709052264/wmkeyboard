@@ -1030,6 +1030,25 @@ internal fun KeyPressSettings(
                 default = SettingsDefaults.textEditing.deleteHoldDeletesWords,
             ) { scope.launch { repository.setDeleteHoldDeletesWords(it) } }
         }
+        // What one word is, for every delete that takes words: this hold, and a
+        // backspace swipe set to words (#662).
+        item(visible = holdDeletesWords || (swipeDelete && swipeUnit == BackspaceSwipeUnit.WORD)) {
+            ToggleSetting(
+                R.string.keypress_word_stops_punctuation_title,
+                stringResource(R.string.keypress_word_stops_punctuation_subtitle),
+                settings.watch { it.textEditing.deleteWordStopsAtPunctuation },
+                info = stringResource(R.string.keypress_word_stops_punctuation_info),
+                default = SettingsDefaults.textEditing.deleteWordStopsAtPunctuation,
+            ) { scope.launch { repository.setDeleteWordStopsAtPunctuation(it) } }
+        }
+        item(visible = holdDeletesWords || (swipeDelete && swipeUnit == BackspaceSwipeUnit.WORD)) {
+            ToggleSetting(
+                R.string.keypress_word_stops_capitals_title,
+                stringResource(R.string.keypress_word_stops_capitals_subtitle),
+                settings.watch { it.textEditing.deleteWordStopsAtCapitals },
+                default = SettingsDefaults.textEditing.deleteWordStopsAtCapitals,
+            ) { scope.launch { repository.setDeleteWordStopsAtCapitals(it) } }
+        }
         item(visible = holdDeletesWords) {
             SliderSetting(
                 R.string.keypress_word_delete_repeat_title,

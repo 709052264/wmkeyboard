@@ -196,6 +196,18 @@
     <string name="tooldetail_select_mode_taps_title">Two presses select a word</string>
     <string name="tooldetail_select_mode_taps_subtitle">Two quick presses select the word at the cursor. Three select the full line</string>
     <string name="tooldetail_select_mode_taps_info">The first press of a pair still turns selection mode on or off, in the same way the shift key gives you caps lock. Turn this off if you press the tool twice in quick succession and want no word selected.</string>
+    <string name="tooldetail_word_steps_group">Where a word ends</string>
+    <string name="tooldetail_word_steps_title">Word steps</string>
+    <string name="tooldetail_word_steps_subtitle">Where Word left and Word right stop, and what Select word takes</string>
+    <string name="tooldetail_word_steps_info">The same setting applies to Word left, Word right and Select word.\n\nPress Select word again to also select the word on each side. Press shift and then Select word to go back one step. If \"Shift changes the case of the selection\" is on, shift changes the case instead.</string>
+    <string name="tooldetail_word_steps_app">As the app decides</string>
+    <string name="tooldetail_word_steps_app_desc">The app moves the cursor as it does for Ctrl and an arrow key. Most apps treat \"wmkeyboard.pages.dev\" as one word.</string>
+    <string name="tooldetail_word_steps_spaces">At spaces</string>
+    <string name="tooldetail_word_steps_spaces_desc">The cursor stops only at spaces. An address is one word.</string>
+    <string name="tooldetail_word_steps_punctuation">At spaces and punctuation</string>
+    <string name="tooldetail_word_steps_punctuation_desc">The cursor also stops at a dot, a slash or another mark, so it can stop at \"wmkeyboard.|\".</string>
+    <string name="tooldetail_word_steps_capitals_title">Stop at capitals</string>
+    <string name="tooldetail_word_steps_capitals_subtitle">\"GrapheneOS\" is two words: \"Graphene\" and \"OS\"</string>
     <string name="tooldetail_select_mode_info">While selection mode is on, every cursor move selects text: the cursor tools, the text editing panel, the spacebar cursor swipe and the volume keys. Turn it off to keep what you selected and stop selecting more.</string>
 
     <!-- Trackpad tool on the toolbar (issue #39). -->

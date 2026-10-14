@@ -25145,7 +25145,12 @@ private fun Modifier.pointerInputKey(
                         change.consume()
                         break
                     }
-                    if (!swiping && abs(change.position.x - down.position.x) > slopPx) {
+                    // Once the hold has started repeating the press is a hold, and
+                    // stays one. A thumb resting on the key for the length of a
+                    // long URL rolls a few pixels sideways, and turning that into
+                    // a swipe cancelled the repeat under it: delete just stopped,
+                    // the finger still down (#662).
+                    if (!swiping && !longPressFired && abs(change.position.x - down.position.x) > slopPx) {
                         swiping = true
                         repeat.cancel()
                         anchorX = down.position.x

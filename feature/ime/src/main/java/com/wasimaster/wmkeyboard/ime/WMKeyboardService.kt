@@ -85,6 +85,7 @@ import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.settings.ClipTypeOutMaxChars
+import com.wasimaster.wmkeyboard.core.settings.CursorWordSteps
 import com.wasimaster.wmkeyboard.core.settings.switchLayoutIds
 import com.wasimaster.wmkeyboard.core.settings.MediaSendMode
 import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
@@ -372,6 +373,7 @@ import com.wasimaster.wmkeyboard.core.settings.TAP_MODEL_FILE
 import com.wasimaster.wmkeyboard.core.perf.JankMonitor
 import com.wasimaster.wmkeyboard.core.text.EmojiGraphemes
 import com.wasimaster.wmkeyboard.core.text.Graphemes
+import com.wasimaster.wmkeyboard.core.text.WordBreaks
 import com.wasimaster.wmkeyboard.core.text.WordDelete
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
 import com.wasimaster.wmkeyboard.core.tools.BraveSearchClient
@@ -5453,7 +5455,10 @@ open class WMKeyboardService : InputMethodService() {
                 outInsets.visibleTopInsets += headroom
             }
             boardTopInWindow = outInsets.visibleTopInsets
-            boardTopOnScreen()?.let { noteBoardTop(it) }
+            boardTopOnScreen()?.let {
+                noteBoardTop(it)
+                noteBoardGrowth(it)
+            }
             // Resize mode's band is the app, dimmed, under a scrim that eats
             // every touch, and a top handle dragged taller than the keyboard
             // entered sits in it: the whole window stays ours (issue #643).
@@ -6599,6 +6604,83 @@ open class WMKeyboardService : InputMethodService() {
     /** Delivers [onUpdateSelection] for an editor in this process; see there. */
     private val inProcessEchoHandler = Handler(Looper.getMainLooper())
 
+    /**
+     * Where the composing word started when [absorbGluedWord] last looked in
+     * front of it, so each word pays for that read once and not on every
+     * keystroke's echo.
+     */
+    private var gluedCheckedAt = -1
+
+    /**
+     * Takes the rest of the word into the composition when the letters being
+     * typed went on straight from the end of a word already in the field.
+     *
+     * Backspace "excepted" to "except" and type "io", and the keyboard is meant
+     * to be finishing "exceptio". It does when the caret's echo arrives first,
+     * because the echo re-arms "except" as the composing word
+     * ([restartSuggestionsAtCursor]). But echoes queue behind fast backspaces,
+     * the re-arm then checks the caret has not moved on and stands down, and
+     * the next letter starts a word of its own: only "io" was underlined, and
+     * the strip offered words for "io" (#662). The commit then saw the buffer
+     * glued to a word and typed it as it stood, which kept the text right but
+     * the strip and the correction wrong for the whole word.
+     *
+     * This is the late half of the same re-arm. On the echo of the new word's
+     * own keystroke it looks once in front of the region, and when a word ends
+     * exactly there it widens the region over that word and puts the word in
+     * the buffer, the same as a resume would have. Only for the composers whose
+     * buffer is the field's text, and not in front of an elided prefix ("l'"),
+     * which ends a word rather than starting one, nor inside a word the caret
+     * was dropped into the middle of.
+     */
+    private fun absorbGluedWord(selStart: Int, selEnd: Int, candidatesStart: Int, candidatesEnd: Int) {
+        if (composing.isEmpty() || candidatesStart < 0 || selStart != selEnd || selEnd != candidatesEnd) return
+        if (candidatesStart == gluedCheckedAt) return
+        val state = _uiState.value
+        if (state.composer.isTransliterating || state.layouts.ambiguousKeys ||
+            !state.allowsTypingIntelligence || duetWord.active || inlineEmojiQuery() != null ||
+            !composingResumable(state.composer, suggestionEngine?.hasWordSources == true)
+        ) {
+            return
+        }
+        val text = composedPreview(state, composing.toString())
+        if (candidatesEnd - candidatesStart != text.length) return
+        val ic = currentInputConnection ?: return
+        val before = ic.getTextBeforeCursor(text.length + GLUED_WORD_LOOKBACK, 0)?.toString() ?: return
+        // The field has moved on past this echo (a stale one is not a no: the
+        // next echo asks again).
+        if (!before.endsWith(text)) return
+        val ahead = before.substring(0, before.length - text.length)
+        val head = ahead.takeLastWhile { isComposingWordChar(it) }
+        if (head.isEmpty()) {
+            // The ordinary case, a word started after a space: settled for
+            // this word with the one read.
+            gluedCheckedAt = candidatesStart
+            return
+        }
+        // Only now the whole-text read that proves the echo is live, since
+        // widening the region from a stale offset would put it over the
+        // wrong characters.
+        if (!caretStillAt(ic, selStart)) return
+        gluedCheckedAt = candidatesStart
+        // A run of word characters as long as the read is a token or an
+        // address, not a word anybody is finishing.
+        if (head.length >= GLUED_WORD_LOOKBACK) return
+        if (Elisions.rulesFor(state.language.id)?.endsWithElidedPrefix(ahead) == true) return
+        val after = ic.getTextAfterCursor(1, 0)
+        if (!after.isNullOrEmpty() && continuesWordAhead(after[0])) return
+        if (!ic.setComposingRegion(candidatesStart - head.length, candidatesEnd)) return
+        val word = head + composing.toString()
+        composing = StringBuilder(word)
+        composingCaseTrusted = false
+        gluedCheckedAt = candidatesStart - head.length
+        val context = ahead.substring(0, ahead.length - head.length)
+        setContextFrom(context)
+        rebuildRecentWords(context)
+        _uiState.update { it.copy(composingPreview = head + text) }
+        refreshSuggestions()
+    }
+
     private fun updateSelection(
         oldSelStart: Int,
         oldSelEnd: Int,
@@ -6609,6 +6691,15 @@ open class WMKeyboardService : InputMethodService() {
     ) {
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
         lastSelectionUpdateAt = SystemClock.uptimeMillis()
+        // The first half of a caret nudge (#662): the caret is on its way
+        // straight back, so nothing about where it is now is worth acting on.
+        if (revealDetourStart >= 0) {
+            val detour = minOf(newSelStart, newSelEnd) == revealDetourStart &&
+                maxOf(newSelStart, newSelEnd) == revealDetourEnd
+            revealDetourStart = -1
+            revealDetourEnd = -1
+            if (detour) return
+        }
         expectedSelStart = newSelStart
         expectedSelEnd = newSelEnd
         if (selectionAnchor != newSelStart && selectionAnchor != newSelEnd) selectionAnchor = -1
@@ -6767,6 +6858,9 @@ open class WMKeyboardService : InputMethodService() {
                     octopus = emptyMap(),
                 )
             }
+        }
+        if (!composingDropped && !composingReplaced) {
+            absorbGluedWord(newSelStart, newSelEnd, candidatesStart, candidatesEnd)
         }
         // Partial dictation results are cumulative per utterance, so they
         // can't follow a cursor jump without duplicating what's already
@@ -7169,6 +7263,8 @@ open class WMKeyboardService : InputMethodService() {
         rememberTypedNumber()
         super.onFinishInputView(finishingInput)
         keyboardVisible = false
+        // The next show is a first show, which the app answers itself.
+        boardTopForReveal = -1
         // The next keyboard says which microphone its first dictation uses.
         lastMicNotice = null
         // The drag that put it up cannot finish with the keyboard gone.
@@ -10192,27 +10288,52 @@ open class WMKeyboardService : InputMethodService() {
      * (#206, [markContinuesNumber]), and a full stop inside an email address
      * typed into a plain text field is the address's own dot ([markContinuesAddress]);
      * the field is read last, and only for a mark. A closing [SPACED_CLOSER] is
-     * spaced too, but only where it ends the text it closes ([closerTakesSpace]).
+     * spaced too, but only where it ends the text it closes ([closerTakesSpace]),
+     * and so is a closing quote (#662, [closingQuoteTakesSpace]).
+     *
+     * The closers are also spaced in a browser's address bar once what is being
+     * typed there is a search, which is what a space in it says (#662): the
+     * quote that closes `"exact phrase"` is followed by the next word, the same
+     * as in a message. Marks keep out of it: a full stop or a colon typed there
+     * is far more often part of an address.
      */
     private fun shouldAutoSpaceAfterPunctuation(
         ic: InputConnection,
         state: KeyboardUiState,
         text: String,
-    ): Boolean =
-        state.settings.autoText.spaceAfterPunctuation &&
-            state.allowsTypingIntelligence &&
-            !state.composer.isConversion &&
-            text.length == 1 &&
-            if (text[0] == SPACED_CLOSER) {
-                // No number test: "(page 5)" ends on a digit and is still a
-                // closed bracket, not part of the number.
-                closerTakesSpace(ic.getTextAfterCursor(1, 0))
-            } else {
-                text[0] in AUTO_SPACE_PUNCTUATION &&
-                    (ic.getTextBeforeCursor(ADDRESS_LOOKBACK, 0) ?: "").let { before ->
-                        !markContinuesNumber(before) && !markContinuesAddress(before, text[0])
-                    }
+    ): Boolean {
+        if (!state.settings.autoText.spaceAfterPunctuation || state.composer.isConversion || text.length != 1) {
+            return false
+        }
+        val mark = text[0]
+        if (mark == SPACED_CLOSER || mayCloseQuote(mark)) {
+            val prose = state.allowsTypingIntelligence
+            val search = !prose && state.allowsBracketPairs && state.fieldKind == FieldKind.URI
+            if (!prose && !search) return false
+            // Read once, and only now that the mark is one of these.
+            var line: String? = null
+            fun before(): String = line ?: quoteContext(ic).also { line = it }
+            if (search && !typedAsSearch(before())) return false
+            if (mark != SPACED_CLOSER && !closingQuoteTakesSpace(mark, ::before)) return false
+            // No number test: "(page 5)" ends on a digit and is still a
+            // closed bracket, not part of the number.
+            return closerTakesSpace(ic.getTextAfterCursor(1, 0))
+        }
+        return state.allowsTypingIntelligence &&
+            mark in AUTO_SPACE_PUNCTUATION &&
+            (ic.getTextBeforeCursor(ADDRESS_LOOKBACK, 0) ?: "").let { before ->
+                !markContinuesNumber(before) && !markContinuesAddress(before, mark)
             }
+    }
+
+    /**
+     * Whether [c] is a mark the auto-space after punctuation follows, so the
+     * space in front of the caret after it is one the keyboard typed: the
+     * ordinary marks, the closing bracket and the closing quotes. The space
+     * press and the shift press that take that space back ask this.
+     */
+    private fun isAutoSpacedMark(c: Char): Boolean =
+        c in AUTO_SPACE_PUNCTUATION || c == SPACED_CLOSER || mayCloseQuote(c)
 
     /**
      * Types the space that follows an auto-spaced punctuation mark, unless the
@@ -10225,7 +10346,7 @@ open class WMKeyboardService : InputMethodService() {
      * mark takes it back the way it takes back a glide's (see [swallowsAutoSpace]).
      */
     private fun insertPunctuationSpace(ic: InputConnection) {
-        if (spacedAfterCaret(ic.getTextAfterCursor(1, 0))) return
+        if (stepOverFollowingSpace(ic)) return
         mirrorTypedIntoRevision(ic, " ")
         ic.commitText(" ", 1)
         pendingAutoSpace = true
@@ -10234,6 +10355,39 @@ open class WMKeyboardService : InputMethodService() {
         // the selection update it triggers reads as "the user moved the caret"
         // and disarms the cancel before it can ever be used.
         armRevertGuard()
+    }
+
+    /**
+     * Moves the caret past the space already in front of it, and says whether
+     * there was one to move past.
+     *
+     * Every rule that types a space after something — a word ended by the
+     * space bar, an auto-spaced mark, a glided word — used to stop short when
+     * the text already went on with a space, which left the caret in front of
+     * it: "auto⌶ space", type "matic" and a space, and the next word ran into
+     * the one after it ("automatic⌶ space" then "automaticword space"). From
+     * there every later space and mark landed in front of that same old space,
+     * so the auto-spacing looked switched off for the rest of the sentence
+     * (#508, #662). Other keyboards step over it, so the caret lands at the
+     * start of the next word: "automatic ⌶space".
+     *
+     * The space is taken from in front of the caret and put back behind it
+     * rather than the caret being moved, because a caret move needs the
+     * caret's offset and not every editor will give it. The text is the same
+     * either way, the very same character included, a no-break space or a tab.
+     * A line break is not a space here, for the reason [spacedAfterCaret] gives.
+     */
+    private fun stepOverFollowingSpace(ic: InputConnection): Boolean {
+        val next = ic.getTextAfterCursor(1, 0)
+        if (next == null || !spacedAfterCaret(next)) return false
+        val gap = next.subSequence(0, 1).toString()
+        mirrorTypedIntoRevision(ic, gap)
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(0, 1)
+        ic.commitText(gap, 1)
+        ic.endBatchEdit()
+        invalidateExpectedSelection()
+        return true
     }
 
     /**
@@ -10667,7 +10821,15 @@ open class WMKeyboardService : InputMethodService() {
                 }
             } else {
                 val ic = currentInputConnection
-                if (ic != null && hasSelection(ic) && recapitalizeSelection(ic)) return
+                if (ic != null) {
+                    if (hasSelection(ic)) {
+                        if (recapitalizeSelection(ic)) return
+                    } else if (_uiState.value.settings.textEditing.shiftRecasesWordAtCaret &&
+                        recapitalizeWordAtCaret(ic)
+                    ) {
+                        return
+                    }
+                }
             }
         }
         // Cancel a just-inserted auto-space after punctuation — the ". " from a
@@ -10686,7 +10848,7 @@ open class WMKeyboardService : InputMethodService() {
             val ic = currentInputConnection
             if (ic != null) {
                 val before = ic.getTextBeforeCursor(2, 0)?.toString().orEmpty()
-                if (before.length == 2 && before[1] == ' ' && before[0] in AUTO_SPACE_PUNCTUATION) {
+                if (before.length == 2 && before[1] == ' ' && isAutoSpacedMark(before[0])) {
                     ic.deleteSurroundingText(1, 0)
                     // The ". " also armed auto-cap for a new sentence; cancelling
                     // the break cancels that too, so typing continues in case.
@@ -10763,6 +10925,47 @@ open class WMKeyboardService : InputMethodService() {
         if (end != null) ic.setSelection((end - next.length).coerceAtLeast(0), end)
         ic.endBatchEdit()
         syncShiftToCase(next)
+        return true
+    }
+
+    /**
+     * Re-cases the word the collapsed caret is touching, the way SwiftKey's
+     * shift does (#662): `cursor⌶ touching` or `cur⌶sor touching`, one step of
+     * lower → Title → UPPER, with the caret left where it was so the next press
+     * takes the next step. False, and the shift arms as usual, when the caret
+     * touches no word, the word has no case to change, or a word is being
+     * typed: the shift pressed in the middle of typing one is for the next
+     * letter, which is the whole of what a shift has always meant. A word the
+     * caret only came back to is not being typed.
+     *
+     * The case forms must keep the word's length (they do outside a handful
+     * of letters such as ß), because the caret goes back to the same offset.
+     */
+    private fun recapitalizeWordAtCaret(ic: InputConnection): Boolean {
+        if (composing.isNotEmpty() && composing.toString() != resumedWord) return false
+        val before = ic.getTextBeforeCursor(CARET_WORD_AHEAD, 0)?.toString() ?: return false
+        val after = ic.getTextAfterCursor(CARET_WORD_AHEAD, 0)?.toString() ?: return false
+        val head = before.takeLastWhile { isComposingWordChar(it) }
+        val tail = after.takeWhile { isComposingWordChar(it) }
+        val word = head + tail
+        if (word.isEmpty()) return false
+        val next = nextCaseForm(word)
+        if (next == word || next.length != word.length) return false
+        val caret = caretOffset(ic)
+        dropComposingForSelectionEdit(ic)
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(head.length, tail.length)
+        if (caret != null) {
+            ic.commitText(next, 1)
+            ic.setSelection(caret, caret)
+        } else {
+            // No offset to put the caret back at: the two halves go in either
+            // side of it instead, which a plain editor honours.
+            ic.commitText(next.substring(0, head.length), 1)
+            ic.commitText(next.substring(head.length), 0)
+        }
+        ic.endBatchEdit()
+        invalidateExpectedSelection()
         return true
     }
 
@@ -11689,7 +11892,7 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val after = ic.getTextAfterCursor(96, 0) ?: return
-        val length = WordDelete.lengthAfter(after)
+        val length = WordDelete.lengthAfter(after, deleteWordBreaks())
         if (length <= 0) return
         revision?.expectDelete(0, length)
         if (expectedSelStart >= 0) noteDeletedForLearning(expectedSelStart, expectedSelStart + length)
@@ -12259,7 +12462,7 @@ open class WMKeyboardService : InputMethodService() {
             sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL)
             return
         }
-        val length = WordDelete.lengthBefore(before)
+        val length = WordDelete.lengthBefore(before, deleteWordBreaks())
         if (length > 0) {
             revision?.expectDelete(length, 0)
             if (expectedSelStart >= 0) noteDeletedForLearning(expectedSelStart - length, expectedSelStart)
@@ -12505,9 +12708,9 @@ open class WMKeyboardService : InputMethodService() {
                 text.subSequence(0, text.length - taken)
             }
             val step = when {
-                deleteSwipeForward && byWord -> WordDelete.lengthAfter(rest)
+                deleteSwipeForward && byWord -> WordDelete.lengthAfter(rest, deleteWordBreaks())
                 deleteSwipeForward -> Graphemes.firstLength(rest).coerceAtLeast(1)
-                byWord -> WordDelete.lengthBefore(rest)
+                byWord -> WordDelete.lengthBefore(rest, deleteWordBreaks())
                 else -> charDeleteLength(rest)
             }
             if (step <= 0) break
@@ -12587,7 +12790,7 @@ open class WMKeyboardService : InputMethodService() {
         // the one-shot is gone by then.
         if (followsPunctuationSpace) {
             val before = ic.getTextBeforeCursor(2, 0)?.toString().orEmpty()
-            if (before.length == 2 && before[1] == ' ' && before[0] in AUTO_SPACE_PUNCTUATION) {
+            if (before.length == 2 && before[1] == ' ' && isAutoSpacedMark(before[0])) {
                 lastSpaceTime = now
                 maybeAutoCapitalize()
                 return
@@ -12663,6 +12866,10 @@ open class WMKeyboardService : InputMethodService() {
         // every early return past this point runs with an empty buffer.
         val batched = composing.isNotEmpty()
         if (batched) ic.beginBatchEdit()
+        // A word the caret only landed on and nobody typed into is not a word
+        // being ended: the space press there is the user making room for a new
+        // word, and stepping over the gap ahead would glue that word to the next.
+        val typedWord = composing.isNotEmpty() && composing.toString() != resumedWord
         val committed = commitComposing(
             ic,
             autocorrect = state.settings.correction.enabled,
@@ -12717,8 +12924,15 @@ open class WMKeyboardService : InputMethodService() {
         // A word being followed in the field ends at this space when the caret
         // is at its end, and gains the space when it is inside it.
         val space = spaceText(state)
-        mirrorTypedIntoRevision(ic, space)
-        ic.commitText(space, 1)
+        // A word typed into the middle of a sentence ends in front of the space
+        // that was already there, and the press steps over it rather than
+        // doubling it: "auto ⌶ space", type "added" and a space, and the field
+        // reads "auto added ⌶space" with the caret at the next word (#508,
+        // #662). The pick from the strip has done the same since #508.
+        if (!(typedWord && committed && stepOverFollowingSpace(ic))) {
+            mirrorTypedIntoRevision(ic, space)
+            ic.commitText(space, 1)
+        }
         // The one plain-space landing: the confirm-a-space-already-there and
         // double-space returns above add no character worth counting.
         recordStat { onSeparator(now, SystemClock.uptimeMillis()) }
@@ -22736,7 +22950,10 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun commitGestureSpace(ic: InputConnection, state: KeyboardUiState) {
         if (!state.settings.gesture.autoSpaceAfterGlide) return
-        if (spacedAfterCaret(ic.getTextAfterCursor(1, 0))) return
+        // A word glided back into the middle of a sentence lands in front of
+        // the space that was already there; the caret goes past it, ready for
+        // the next word, the same as after a typed one (#662).
+        if (stepOverFollowingSpace(ic)) return
         ic.commitText(" ", 1)
         pendingWordSpace = true
     }
@@ -34839,6 +35056,121 @@ open class WMKeyboardService : InputMethodService() {
     private var caretRevealJob: Job? = null
 
     /**
+     * The docked board's top on screen when [noteBoardGrowth] last saw it, or
+     * -1 before the first measure of this showing.
+     */
+    private var boardTopForReveal = -1
+
+    /**
+     * The offsets a caret nudge ([revealCaret]) parks the selection at for a
+     * moment, so [updateSelection] can let that echo pass without reading it as
+     * the user moving the caret; -1 when no nudge is out.
+     */
+    private var revealDetourStart = -1
+    private var revealDetourEnd = -1
+
+    /**
+     * Puts the caret back on screen when the keyboard grows under it (#662).
+     *
+     * A caret placed by a tap starts the strip for the word it landed on, the
+     * strip unfolds, and the board gets taller by a row. Nothing tells the app
+     * the caret was covered: an editor scrolls to a caret that *moves*, and
+     * this one did not, so in notes.futo.tech and many others the line stayed
+     * under the keys until the first letter typed. The first showing is not
+     * this case; the app scrolls for that itself.
+     *
+     * Not while a word is being typed, which the editor follows on its own, nor
+     * while a commit's one-shot undo is armed: the nudge moves the caret, which
+     * would disarm it.
+     */
+    private fun noteBoardGrowth(top: Int) {
+        val last = boardTopForReveal
+        boardTopForReveal = top
+        if (last < 0 || top >= last || !keyboardVisible) return
+        val state = _uiState.value
+        if (state.panel != PanelMode.NONE && state.panel != PanelMode.FIND_REPLACE) return
+        if (composing.isNotEmpty() && composing.toString() != resumedWord) return
+        if (lastRevertible != null || lastGestureWord != null || pendingAutoSpace || pendingWordSpace) return
+        val start = expectedSelStart
+        val end = expectedSelEnd
+        if (start < 0 || end < 0) return
+        scheduleCaretReveal(start, end)
+    }
+
+    /**
+     * [revealCaret] once the board has finished growing and the app has laid
+     * itself out again, if the selection is still [start]..[end] by then.
+     */
+    private fun scheduleCaretReveal(start: Int, end: Int) {
+        caretRevealJob?.cancel()
+        caretRevealJob = serviceScope.launch {
+            delay(MACRO_ROW_REVEAL_DELAY_MS)
+            if (expectedSelStart == start && expectedSelEnd == end) revealCaret()
+        }
+    }
+
+    /**
+     * Asks the editor to scroll its caret, or its selection, into view.
+     *
+     * A selection goes through [scrollCaretIntoView]. A caret cannot be set
+     * reversed, so it takes one step aside and back: an editor scrolls to a
+     * caret that moved. In a web page the step is an arrow key, the one move a
+     * page scrolls for (a selection set from the keyboard is not), and a
+     * selection there is stepped the same way with shift. The step's own echo
+     * is let through unread ([revealDetourStart]).
+     */
+    private fun revealCaret() {
+        val ic = currentInputConnection ?: return
+        val start = expectedSelStart
+        val end = expectedSelEnd
+        if (start < 0 || end < 0) return
+        val web = isWebEditField()
+        if (start != end && !web) {
+            scrollCaretIntoView()
+            return
+        }
+        if (start != end) {
+            // Its moving end goes in a step and back out.
+            revealDetourStart = minOf(start, end)
+            revealDetourEnd = maxOf(start, end) - 1
+            runCatching {
+                sendShiftedArrow(ic, KeyEvent.KEYCODE_DPAD_LEFT)
+                sendShiftedArrow(ic, KeyEvent.KEYCODE_DPAD_RIGHT)
+            }
+            return
+        }
+        val back = start > 0
+        val step = if (back) {
+            val before = ic.getTextBeforeCursor(2, 0) ?: return
+            if (before.length == 2 && Character.isSurrogatePair(before[0], before[1])) 2 else 1
+        } else {
+            val after = ic.getTextAfterCursor(2, 0) ?: return
+            if (after.isEmpty()) return
+            if (after.length == 2 && Character.isSurrogatePair(after[0], after[1])) 2 else 1
+        }
+        val aside = if (back) start - step else start + step
+        revealDetourStart = aside
+        revealDetourEnd = aside
+        runCatching {
+            if (web) {
+                sendDownUpKeyEvents(if (back) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT)
+                sendDownUpKeyEvents(if (back) KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT)
+            } else {
+                ic.setSelection(aside, aside)
+                ic.setSelection(start, start)
+            }
+        }
+    }
+
+    /** One press of [code] with shift held, for [revealCaret]'s selection step. */
+    private fun sendShiftedArrow(ic: InputConnection, code: Int) {
+        val now = SystemClock.uptimeMillis()
+        val meta = KeyEvent.META_SHIFT_ON or KeyEvent.META_SHIFT_LEFT_ON
+        ic.sendKeyEvent(KeyEvent(now, now, KeyEvent.ACTION_DOWN, code, 0, meta))
+        ic.sendKeyEvent(KeyEvent(now, now, KeyEvent.ACTION_UP, code, 0, meta))
+    }
+
+    /**
      * Waits for the row to have opened and the app to have re-laid out, then
      * puts the caret back on screen — but only if the selection it was asked
      * about is still the one standing, so a handle still being dragged is left
@@ -35480,6 +35812,10 @@ open class WMKeyboardService : InputMethodService() {
         ic.setSelection(origin + range.first, origin + range.last + 1)
         expectedSelStart = origin + range.first
         expectedSelEnd = origin + range.last + 1
+        // Many editors leave a selection set from outside where it is, off
+        // screen or under the keyboard, so the match is brought into view the
+        // way a caret the board grew over is (#662).
+        scheduleCaretReveal(expectedSelStart, expectedSelEnd)
         _uiState.update { it.copy(findReplace = it.findReplace?.copy(current = index, preview = findPreview(index, fr.matches))) }
     }
 
@@ -35598,6 +35934,10 @@ open class WMKeyboardService : InputMethodService() {
         ic.setSelection(origin + range.first, origin + range.last + 1)
         expectedSelStart = origin + range.first
         expectedSelEnd = origin + range.last + 1
+        // Many editors leave a selection set from outside where it is, off
+        // screen or under the keyboard, so the match is brought into view the
+        // way a caret the board grew over is (#662).
+        scheduleCaretReveal(expectedSelStart, expectedSelEnd)
     }
 
     /** Runs the grammar checker over the selection alone and commits every first suggestion. */
@@ -35857,10 +36197,17 @@ open class WMKeyboardService : InputMethodService() {
             TextEditAction.PAGE_DOWN -> sendEditorKey(KeyEvent.KEYCODE_PAGE_DOWN, selecting)
             // Ctrl+Arrow is the editor's move-by-word shortcut; with the panel's
             // select mode on it carries shift too and extends word by word.
+            // Measured by the keyboard instead when the user set where a word
+            // ends (#662); the key event is the fallback for a field that will
+            // not say where its caret is.
             TextEditAction.WORD_LEFT ->
-                sendEditorKey(KeyEvent.KEYCODE_DPAD_LEFT, selecting, ctrl = true)
+                if (!moveByWordDirectly(ic, back = true, selecting = selecting)) {
+                    sendEditorKey(KeyEvent.KEYCODE_DPAD_LEFT, selecting, ctrl = true)
+                }
             TextEditAction.WORD_RIGHT ->
-                sendEditorKey(KeyEvent.KEYCODE_DPAD_RIGHT, selecting, ctrl = true)
+                if (!moveByWordDirectly(ic, back = false, selecting = selecting)) {
+                    sendEditorKey(KeyEvent.KEYCODE_DPAD_RIGHT, selecting, ctrl = true)
+                }
             TextEditAction.SELECT_WORD -> selectWordAtCursor(ic)
             TextEditAction.SELECT_LINE -> selectLineAtCursor(ic)
             // Reads the armed state rather than `selecting`, which a caller may
@@ -36137,21 +36484,142 @@ open class WMKeyboardService : InputMethodService() {
         val et = ic.getExtractedText(ExtractedTextRequest(), 0) ?: return
         val text = et.text ?: return
         val n = text.length
+        val origin = et.startOffset
+        val selStart = et.selectionStart.coerceIn(0, n)
+        val selEnd = et.selectionEnd.coerceIn(0, n)
+        val breaks = cursorWordBreaks()
+        // Pressed again over a selection it made: the selection grows by the
+        // word on each side, and with shift down it gives the last growth back
+        // (#662). Any other selection is a fresh start.
+        val grown = selectWordSteps.lastOrNull()
+        if (selStart != selEnd && grown != null &&
+            grown.first == origin + minOf(selStart, selEnd) && grown.last + 1 == origin + maxOf(selStart, selEnd)
+        ) {
+            val shrinking = _uiState.value.shiftSelectsText
+            val next = if (shrinking) {
+                // The word the first press took is as small as it goes.
+                if (selectWordSteps.size < 2) return
+                selectWordSteps.removeAt(selectWordSteps.lastIndex)
+                selectWordSteps.last()
+            } else {
+                val from = minOf(selStart, selEnd)
+                val to = maxOf(selStart, selEnd)
+                val wordBreaks = breaks ?: WordBreaks.DELETE_DEFAULT
+                val start = from - WordDelete.lengthBefore(text.subSequence(0, from), wordBreaks)
+                val end = to + WordDelete.lengthAfter(text.subSequence(to, n), wordBreaks)
+                if (start == from && end == to) return
+                (origin + start until origin + end).also { selectWordSteps += it }
+            }
+            if (shrinking) consumeShift()
+            setWordSelection(ic, next.first, next.last + 1)
+            return
+        }
+        selectWordSteps.clear()
         // Anchor at the caret (selection end); clamp defensively.
         val caret = et.selectionEnd.let { if (it in 0..n) it else et.selectionStart }
         if (caret !in 0..n) return
-        fun isWord(c: Char) = c.isLetterOrDigit() || c == '\'' || c == '_'
-        var start = caret
-        var end = caret
-        while (start > 0 && isWord(text[start - 1])) start--
-        while (end < n && isWord(text[end])) end++
-        if (start == end) return
+        val range = if (breaks == null) {
+            fun isWord(c: Char) = c.isLetterOrDigit() || c == '\'' || c == '_'
+            var start = caret
+            var end = caret
+            while (start > 0 && isWord(text[start - 1])) start--
+            while (end < n && isWord(text[end])) end++
+            if (start == end) return
+            start until end
+        } else {
+            WordDelete.wordAround(text, caret, breaks) ?: return
+        }
+        val word = origin + range.first until origin + range.last + 1
+        selectWordSteps += word
+        setWordSelection(ic, word.first, word.last + 1)
+    }
+
+    /**
+     * The selections successive Select word presses made, smallest first, so
+     * the next press grows the last one and a shifted press steps back to the
+     * one before (#662). Cleared by a press over anything else.
+     */
+    private val selectWordSteps = ArrayList<IntRange>()
+
+    private fun setWordSelection(ic: InputConnection, start: Int, end: Int) {
         ic.setSelection(start, end)
         // The range is known; recording it directly closes the window where
         // the cache still said "collapsed" and a fast backspace would have
         // deleted the character before the selection instead of it.
         expectedSelStart = start
         expectedSelEnd = end
+    }
+
+    /** What ends a word for the delete keys' word steps (#662). */
+    private fun deleteWordBreaks(): WordBreaks = _uiState.value.settings.textEditing.let {
+        WordBreaks(punctuation = it.deleteWordStopsAtPunctuation, capitals = it.deleteWordStopsAtCapitals)
+    }
+
+    /**
+     * What ends a word for the word cursor moves and Select word, or null when
+     * the app's own word moves are wanted ([CursorWordSteps.APP]).
+     */
+    private fun cursorWordBreaks(): WordBreaks? = _uiState.value.settings.textEditing.let {
+        when (it.cursorWordSteps) {
+            CursorWordSteps.APP -> null
+            CursorWordSteps.SPACES -> WordBreaks(punctuation = false, capitals = it.cursorWordStopsAtCapitals)
+            CursorWordSteps.PUNCTUATION -> WordBreaks(punctuation = true, capitals = it.cursorWordStopsAtCapitals)
+        }
+    }
+
+    /**
+     * Word left or Word right, measured by the keyboard rather than handed to
+     * the app as Ctrl and an arrow (#662): the app's own idea of a word is what
+     * the user set [CursorWordSteps] to get away from. Left lands at the start
+     * of the word behind the caret, right at the end of the one ahead of it,
+     * spaces in between included, the same step a word delete takes.
+     *
+     * With [selecting], the selection's moving end goes and its anchor stays,
+     * as a shifted step does. False, so the key event runs, under
+     * [CursorWordSteps.APP] and when the field has not said where its caret is.
+     */
+    private fun moveByWordDirectly(ic: InputConnection, back: Boolean, selecting: Boolean): Boolean {
+        val breaks = cursorWordBreaks() ?: return false
+        val start = expectedSelStart
+        val end = expectedSelEnd
+        if (start < 0 || end < start) return false
+        if (selecting) noteSelectionAnchor()
+        val anchor = if (selecting) anchorFor(start, end, if (back) -1 else 1) else -1
+        // Without a selection being stretched, a word move from a range starts
+        // at the range's edge on the side it goes, like an arrow key's.
+        val focus = when {
+            selecting -> if (anchor == start) end else start
+            back -> start
+            else -> end
+        }
+        val distance = if (back) {
+            val before = ic.getTextBeforeCursor(WORD_MOVE_REACH, 0) ?: return false
+            // The read is measured from the selection's start; a moving end at
+            // its far side reads the selection itself too.
+            val upTo = if (focus == end && end > start) {
+                val selected = ic.getSelectedText(0) ?: return false
+                "$before$selected"
+            } else {
+                before
+            }
+            WordDelete.lengthBefore(upTo, breaks)
+        } else {
+            val after = ic.getTextAfterCursor(WORD_MOVE_REACH, 0) ?: return false
+            val from = if (focus == start && end > start) {
+                val selected = ic.getSelectedText(0) ?: return false
+                "$selected$after"
+            } else {
+                after
+            }
+            WordDelete.lengthAfter(from, breaks)
+        }
+        if (distance == 0) return true
+        val to = if (back) (focus - distance).coerceAtLeast(0) else focus + distance
+        if (selecting) return setStretchedSelection(ic, anchor, to)
+        if (!ic.setSelection(to, to)) return false
+        expectedSelStart = to
+        expectedSelEnd = to
+        return true
     }
 
     /**
@@ -40713,9 +41181,19 @@ open class WMKeyboardService : InputMethodService() {
         if (info.inputType and InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS != 0) {
             return ShiftState.CAPS_LOCK
         }
-        val caps = currentInputConnection?.getCursorCapsMode(info.inputType)
-            ?: info.initialCapsMode
-        return if (caps != 0) ShiftState.ON else ShiftState.OFF
+        val ic = currentInputConnection
+        val caps = ic?.getCursorCapsMode(info.inputType) ?: info.initialCapsMode
+        if (caps == 0) return ShiftState.OFF
+        // A sentence capital only, and the mark that earned it ended a quotation
+        // or a bracket inside the sentence: `An "exclamation!" is` goes on in
+        // lower case (#662). Read only here, at the rare caret the field calls a
+        // sentence start, never on an ordinary keystroke. A field capitalizing
+        // every word is left to it.
+        if (ic != null && caps and InputType.TYPE_TEXT_FLAG_CAP_WORDS == 0) {
+            val before = ic.getTextBeforeCursor(QUOTE_CONTEXT_CHARS, 0)
+            if (before != null && sentenceEndInsidePair(before)) return ShiftState.OFF
+        }
+        return ShiftState.ON
     }
 
     private fun shouldAutoCapitalize(): Boolean = autoCapitalizeShift() != ShiftState.OFF
@@ -41165,6 +41643,20 @@ open class WMKeyboardService : InputMethodService() {
          * the count stops at the last line break anyway.
          */
         private const val QUOTE_CONTEXT_CHARS = 240
+
+        /**
+         * How far in front of a new composing word [absorbGluedWord] looks for
+         * the word it was typed onto. Longer than any word worth finishing; a
+         * run of letters that fills it is a token, and is left alone.
+         */
+        private const val GLUED_WORD_LOOKBACK = 48
+
+        /**
+         * How much text a word cursor move the keyboard measures reads in the
+         * way it goes (#662). Far past any word; a run of text with no break in
+         * it this long lands this far along, and the next move goes on.
+         */
+        private const val WORD_MOVE_REACH = 1024
 
         /**
          * How long after arming a revert window its anchor keeps following the
