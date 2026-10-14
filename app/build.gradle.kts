@@ -447,7 +447,9 @@ android {
         jniLibs {
             // Uncompressed and page-aligned in the APK, which is both what the
             // 16 KB page-size requirement wants and what lets the loader mmap
-            // the library straight out of the APK.
+            // the library straight out of the APK. GitHub release APKs are
+            // the exception: see the onVariants block after
+            // MinifyLayoutAssetsTask.
             useLegacyPackaging = false
             // No keepDebugSymbols override: AGP strips as usual. Every .so we
             // package — ours and the prebuilt ML Kit/LiteRT ones — already
@@ -809,6 +811,85 @@ val generateLayoutIndex =
     tasks.register<GenerateLayoutIndexTask>("generateLayoutIndex") {
         layoutsDir.set(layout.projectDirectory.dir("src/main/assets/layouts"))
     }
+
+// Rewrites the merged assets with every bundled layout's JSON compacted. The
+// files under src/main/assets/layouts are indented for people and for diffs:
+// 44 MB across ~1,700 layouts, 14.5 MB without the whitespace, which in the
+// APK is ~0.8 MB less to download and ~30 MB less on the phone. Only
+// whitespace outside strings goes, so every value is the byte-identical
+// text the parser would have read anyway. A transform of the merged ASSETS
+// artifact rather than a generated directory beside the sources, because
+// the sources would still be merged in and collide with it.
+abstract class MinifyLayoutAssetsTask : DefaultTask() {
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val input: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val output: DirectoryProperty
+
+    @TaskAction
+    fun run() {
+        val from = input.get().asFile
+        val to = output.get().asFile
+        to.deleteRecursively()
+        from.walkTopDown().filter { it.isFile }.forEach { file ->
+            val rel = file.relativeTo(from).invariantSeparatorsPath
+            val dest = to.resolve(rel)
+            dest.parentFile.mkdirs()
+            if (rel.startsWith("layouts/") && rel.endsWith(".wmlayout.json")) {
+                dest.writeText(compact(file.readText()))
+            } else {
+                file.copyTo(dest)
+            }
+        }
+    }
+
+    /** [json] without the whitespace between tokens. Strings, escapes included, are kept as written. */
+    private fun compact(json: String): String {
+        val out = StringBuilder(json.length / 2)
+        var inString = false
+        var escaped = false
+        for (c in json) {
+            if (inString) {
+                out.append(c)
+                when {
+                    escaped -> escaped = false
+                    c == '\\' -> escaped = true
+                    c == '"' -> inString = false
+                }
+            } else when (c) {
+                ' ', '\n', '\r', '\t' -> Unit
+                '"' -> {
+                    inString = true
+                    out.append(c)
+                }
+                else -> out.append(c)
+            }
+        }
+        return out.toString()
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        val name = variant.name.replaceFirstChar { it.uppercase() }
+        val minify = tasks.register<MinifyLayoutAssetsTask>("minifyLayoutAssets$name")
+        variant.artifacts.use(minify)
+            .wiredWithDirectories(MinifyLayoutAssetsTask::input, MinifyLayoutAssetsTask::output)
+            .toTransform(com.android.build.api.artifact.SingleArtifact.ASSETS)
+
+        // GitHub release APKs compress their native libraries. Play compresses
+        // for transport on its own and F-Droid's reference APK has to stay as
+        // it is, but a GitHub APK is downloaded as the raw file, where ~78 MB
+        // of uncompressed arm64 libraries in the full edition shrink to ~35 MB.
+        // The cost lands on the phone, which extracts a copy at install time.
+        // Release only, so debug and fast builds still install quickly.
+        if (githubChannel && variant.buildType == "release") {
+            variant.packaging.jniLibs.useLegacyPackaging.set(true)
+        }
+    }
+}
 
 // Only the `fast` build: release-mode d8 like the shipped APK, but no R8, so
 // the dex still carries the source's names. See [CheckDexMethodsTask].

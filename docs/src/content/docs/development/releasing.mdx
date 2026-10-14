@@ -33,6 +33,8 @@ of it, so nothing here needs a branch or a patched source tree.
 | Harper, whisper.cpp, ExecuTorch (grammar, Offline Whisper, Asr4All, Parakeet, Moonshine) | committed prebuilt libraries | compiled from source by the recipe | the same prebuilt libraries, in the on-demand `:feature:speech` (whisper.cpp, ExecuTorch) and `:feature:grammar` (Harper) modules |
 | Whistle, Tesseract (Whistle dictation, the scanner's offline reader) | committed prebuilt libraries, full only | absent | the same prebuilt libraries, in the on-demand `:feature:speech` (Whistle, arm64 only) and `:feature:ocr` (Tesseract) modules |
 | In-app updates | GitHub releases, downloads and installs | checks F-Droid, links out | Play In-App Updates |
+| Native libraries in the APK | compressed in release APKs (smaller download, extracted at install) | uncompressed and page-aligned | uncompressed and page-aligned; Play compresses the download itself |
+| Bundled layouts | JSON compacted at build time | same | same |
 
 The flags read from a `-P` Gradle property first, then `local.properties`, then
 the environment, then default to `false`. `-P` winning is what lets a fastlane
