@@ -145,6 +145,7 @@ import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.ToolBlocker
 import com.wasimaster.wmkeyboard.core.settings.toolBlocker
 import com.wasimaster.wmkeyboard.core.settings.PowerSavingTrigger
+import com.wasimaster.wmkeyboard.core.settings.CursorWordSteps
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.ToolHoldAction
@@ -345,6 +346,53 @@ internal fun ToolPickerDialog(
     )
 }
 /** One tool's screen: the enable switch plus every setting the tool has. */
+/**
+ * Where Word left, Word right and Select word stop (#662): the app's own idea
+ * of a word, or the keyboard's, measured at spaces or at punctuation too, and
+ * optionally at a capital inside a word. Shared by the three tools' pages,
+ * since the setting is one for all three.
+ */
+@Composable
+private fun WordStepsGroup(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    val steps = settings.watch { it.textEditing.cursorWordSteps }
+    SettingsGroup(stringResource(R.string.tooldetail_word_steps_group)) {
+        item {
+            ChoiceSetting(
+                R.string.tooldetail_word_steps_title,
+                subtitle = stringResource(R.string.tooldetail_word_steps_subtitle),
+                options = listOf(
+                    CursorWordSteps.APP to stringResource(R.string.tooldetail_word_steps_app),
+                    CursorWordSteps.SPACES to stringResource(R.string.tooldetail_word_steps_spaces),
+                    CursorWordSteps.PUNCTUATION to stringResource(R.string.tooldetail_word_steps_punctuation),
+                ),
+                selected = steps,
+                info = stringResource(R.string.tooldetail_word_steps_info),
+                default = SettingsDefaults.textEditing.cursorWordSteps,
+                detail = { choice ->
+                    ChoiceDetail(
+                        stringResource(
+                            when (choice) {
+                                CursorWordSteps.APP -> R.string.tooldetail_word_steps_app_desc
+                                CursorWordSteps.SPACES -> R.string.tooldetail_word_steps_spaces_desc
+                                CursorWordSteps.PUNCTUATION -> R.string.tooldetail_word_steps_punctuation_desc
+                            },
+                        ),
+                    )
+                },
+            ) { scope.launch { repository.setCursorWordSteps(it) } }
+        }
+        item(visible = steps != CursorWordSteps.APP) {
+            ToggleSetting(
+                R.string.tooldetail_word_steps_capitals_title,
+                stringResource(R.string.tooldetail_word_steps_capitals_subtitle),
+                settings.watch { it.textEditing.cursorWordStopsAtCapitals },
+                default = SettingsDefaults.textEditing.cursorWordStopsAtCapitals,
+            ) { scope.launch { repository.setCursorWordStopsAtCapitals(it) } }
+        }
+    }
+}
+
 @Composable
 internal fun ToolDetailSettings(
     repository: SettingsRepository,
@@ -1360,6 +1408,9 @@ internal fun ToolDetailSettings(
                 }
             }
         }
+        // Select word grows over the words beside it, measured as the two word
+        // moves measure (#662), so its page carries the same rows.
+        ToolbarTool.SELECT_WORD -> WordStepsGroup(repository, settings)
         // The caret movers, which are the only tools a hold repeats. Home, End
         // and the two select tools are not in the set — a second press of those
         // lands exactly where the first one did — so their pages stay plain.
@@ -1405,6 +1456,9 @@ internal fun ToolDetailSettings(
                         ) { scope.launch { repository.setTextEditRepeatMs(it.toInt()) } }
                     }
                 }
+            }
+            if (tool == ToolbarTool.CURSOR_WORD_LEFT || tool == ToolbarTool.CURSOR_WORD_RIGHT) {
+                WordStepsGroup(repository, settings)
             }
         }
         ToolbarTool.NUMPAD -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {

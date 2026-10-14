@@ -5513,6 +5513,19 @@ fun WhisperSettings.dictationLanguages(keyboardId: String): List<String> = when 
 enum class BackspaceSwipeUnit { WORD, CHARACTER }
 
 /**
+ * Where the word cursor moves (Word left, Word right) stop, and what Select
+ * word takes (#662).
+ *
+ * [APP] hands the move to the app as Ctrl and an arrow, so the app's own idea
+ * of a word decides; most treat "wmkeyboard.pages.dev" as one. [SPACES] stops
+ * only at spaces. [PUNCTUATION] also stops between letters and marks, so the
+ * cursor can land at "wmkeyboard.|". The keyboard measures the last two
+ * itself, which is what lets [TextEditingSettings.cursorWordStopsAtCapitals]
+ * apply to them.
+ */
+enum class CursorWordSteps { APP, SPACES, PUNCTUATION }
+
+/**
  * Text-editing tool and selection-editing settings, grouped into their own
  * object (see [CameraSettings] for why). DataStore keys stay flat.
  */
@@ -5595,6 +5608,23 @@ data class TextEditingSettings(
      * instead of arming shift for the next character.
      */
     val recapitalizeSelectionWithShift: Boolean = true,
+    /**
+     * Shift with nothing selected changes the case of the word the cursor
+     * touches, as on SwiftKey (#662): `cursor| touching` or `cur|sor`. Not while
+     * a word is being typed, where shift is for the next letter.
+     *
+     * Off by default, because it changes what shift does next to any word.
+     * Only acts with [recapitalizeSelectionWithShift] on.
+     */
+    val shiftRecasesWordAtCaret: Boolean = false,
+    /** See [CursorWordSteps]. The app's own word moves by default. */
+    val cursorWordSteps: CursorWordSteps = CursorWordSteps.APP,
+    /**
+     * The word cursor moves and Select word also stop at a capital inside a
+     * word ("Graphene|OS"). Applies only when the keyboard measures the steps,
+     * so not under [CursorWordSteps.APP].
+     */
+    val cursorWordStopsAtCapitals: Boolean = false,
     /**
      * How long after a space another space still counts as a double space, for
      * the ". " and tab rules.
@@ -5738,6 +5768,15 @@ data class TextEditingSettings(
      * own key points.
      */
     val deleteHoldDeletesWords: Boolean = false,
+    /**
+     * A word the delete keys take (the hold above, and a word-unit backspace
+     * swipe) ends at punctuation: "wmkeyboard.pages.dev" goes "dev", ".",
+     * "pages". On by default, which is how it has always worked; off, it goes
+     * to the last space in one step (#662).
+     */
+    val deleteWordStopsAtPunctuation: Boolean = true,
+    /** Same, at a capital inside a word: "GrapheneOS" goes "OS", then "Graphene" (#662). */
+    val deleteWordStopsAtCapitals: Boolean = false,
     /**
      * Dragging sideways on the ⌦ key deletes forward, the way the same drag on
      * backspace deletes behind (issue #226).
@@ -9814,6 +9853,11 @@ class SettingsRepository(private val context: Context) {
         private val DELETE_HOLD_DELETES_WORDS = booleanPreferencesKey("delete_hold_deletes_words")
         private val FORWARD_DELETE_SWIPE = booleanPreferencesKey("forward_delete_swipe")
         private val WEB_BACKSPACE_KEY_EVENTS = booleanPreferencesKey("web_backspace_key_events")
+        private val DELETE_WORD_STOPS_AT_PUNCTUATION = booleanPreferencesKey("delete_word_stops_at_punctuation")
+        private val DELETE_WORD_STOPS_AT_CAPITALS = booleanPreferencesKey("delete_word_stops_at_capitals")
+        private val SHIFT_RECASES_WORD_AT_CARET = booleanPreferencesKey("shift_recases_word_at_caret")
+        private val CURSOR_WORD_STEPS = stringPreferencesKey("cursor_word_steps")
+        private val CURSOR_WORD_STOPS_AT_CAPITALS = booleanPreferencesKey("cursor_word_stops_at_capitals")
         private val PUNCTUATION_CHIPS = stringPreferencesKey("punctuation_chips")
         private val SUGGESTION_SLOT_COUNT = intPreferencesKey("suggestion_slot_count")
         private val SUGGESTION_SCROLLABLE = booleanPreferencesKey("suggestion_scrollable")
@@ -11862,6 +11906,13 @@ class SettingsRepository(private val context: Context) {
                 p[AUTO_CLOSE_BRACKETS] ?: defaults.textEditing.autoCloseBrackets,
             recapitalizeSelectionWithShift = p[RECAPITALIZE_SELECTION_WITH_SHIFT]
                 ?: defaults.textEditing.recapitalizeSelectionWithShift,
+            shiftRecasesWordAtCaret = p[SHIFT_RECASES_WORD_AT_CARET]
+                ?: defaults.textEditing.shiftRecasesWordAtCaret,
+            cursorWordSteps = p[CURSOR_WORD_STEPS]
+                ?.let { runCatching { CursorWordSteps.valueOf(it) }.getOrNull() }
+                ?: defaults.textEditing.cursorWordSteps,
+            cursorWordStopsAtCapitals = p[CURSOR_WORD_STOPS_AT_CAPITALS]
+                ?: defaults.textEditing.cursorWordStopsAtCapitals,
             doubleSpaceWindowMs = p[DOUBLE_SPACE_WINDOW_MS]
                 ?: defaults.textEditing.doubleSpaceWindowMs,
             spaceCursorStepDp = p[SPACE_CURSOR_STEP_DP]
@@ -11889,6 +11940,10 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.textEditing.backspaceCharStepDp,
             deleteHoldDeletesWords = p[DELETE_HOLD_DELETES_WORDS]
                 ?: defaults.textEditing.deleteHoldDeletesWords,
+            deleteWordStopsAtPunctuation = p[DELETE_WORD_STOPS_AT_PUNCTUATION]
+                ?: defaults.textEditing.deleteWordStopsAtPunctuation,
+            deleteWordStopsAtCapitals = p[DELETE_WORD_STOPS_AT_CAPITALS]
+                ?: defaults.textEditing.deleteWordStopsAtCapitals,
             forwardDeleteSwipe = p[FORWARD_DELETE_SWIPE]
                 ?: defaults.textEditing.forwardDeleteSwipe,
             webBackspaceKeyEvents = p[WEB_BACKSPACE_KEY_EVENTS]
@@ -13102,6 +13157,21 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setWebBackspaceKeyEvents(value: Boolean) =
         editPrefs { it[WEB_BACKSPACE_KEY_EVENTS] = value }
+
+    suspend fun setDeleteWordStopsAtPunctuation(value: Boolean) =
+        editPrefs { it[DELETE_WORD_STOPS_AT_PUNCTUATION] = value }
+
+    suspend fun setDeleteWordStopsAtCapitals(value: Boolean) =
+        editPrefs { it[DELETE_WORD_STOPS_AT_CAPITALS] = value }
+
+    suspend fun setShiftRecasesWordAtCaret(value: Boolean) =
+        editPrefs { it[SHIFT_RECASES_WORD_AT_CARET] = value }
+
+    suspend fun setCursorWordSteps(value: CursorWordSteps) =
+        editPrefs { it[CURSOR_WORD_STEPS] = value.name }
+
+    suspend fun setCursorWordStopsAtCapitals(value: Boolean) =
+        editPrefs { it[CURSOR_WORD_STOPS_AT_CAPITALS] = value }
 
     suspend fun setBackspaceCharStepDp(value: Int) =
         editPrefs { it[BACKSPACE_CHAR_STEP_DP] = value.coerceIn(8, 48) }

@@ -283,6 +283,7 @@ internal fun TypingCorrectionsSettings(
     val numberRowOn = settings.watch { it.numberRow }
     val doubleSpaceOn = settings.watch { it.autoText.doubleSpacePeriod || it.autoText.doubleSpaceTab }
     val hugOn = settings.watch { it.autoText.hugPunctuation }
+    val recaseOn = settings.watch { it.textEditing.recapitalizeSelectionWithShift }
     SettingsGroup(stringResource(R.string.typing_group_corrections_title)) {
         item {
             ToggleSetting(
@@ -662,10 +663,19 @@ internal fun TypingCorrectionsSettings(
             ToggleSetting(
                 R.string.typing_shift_recase_title,
                 stringResource(R.string.typing_shift_recase_subtitle),
-                settings.watch { it.textEditing.recapitalizeSelectionWithShift },
+                recaseOn,
                 info = stringResource(R.string.typing_shift_recase_info),
                 default = SettingsDefaults.textEditing.recapitalizeSelectionWithShift,
             ) { scope.launch { repository.setRecapitalizeSelectionWithShift(it) } }
+        }
+        item(visible = recaseOn) {
+            ToggleSetting(
+                R.string.typing_shift_recase_caret_title,
+                stringResource(R.string.typing_shift_recase_caret_subtitle),
+                settings.watch { it.textEditing.shiftRecasesWordAtCaret },
+                info = stringResource(R.string.typing_shift_recase_caret_info),
+                default = SettingsDefaults.textEditing.shiftRecasesWordAtCaret,
+            ) { scope.launch { repository.setShiftRecasesWordAtCaret(it) } }
         }
     }
 }

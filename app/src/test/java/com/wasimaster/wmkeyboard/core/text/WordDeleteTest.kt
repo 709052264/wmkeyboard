@@ -83,4 +83,42 @@ class WordDeleteTest {
         assertEquals(" hello".length, after(" hello world "))
         assertEquals("world ".length, len(" hello world "))
     }
+
+    // ---- what ends a word (#662) ----
+
+    private val spacesOnly = WordBreaks(punctuation = false, capitals = false)
+    private val capitals = WordBreaks(punctuation = true, capitals = true)
+
+    @Test
+    fun `without punctuation breaks a word runs to the last space`() {
+        assertEquals("wmkeyboard.pages.dev".length, WordDelete.lengthBefore("see wmkeyboard.pages.dev", spacesOnly))
+        assertEquals(" wmkeyboard.pages.dev".length, WordDelete.lengthAfter(" wmkeyboard.pages.dev x", spacesOnly))
+    }
+
+    @Test
+    fun `capitals split a word`() {
+        assertEquals("OS".length, WordDelete.lengthBefore("GrapheneOS", capitals))
+        assertEquals("Graphene".length, WordDelete.lengthBefore("Graphene", capitals))
+        assertEquals("Parser".length, WordDelete.lengthBefore("HTMLParser", capitals))
+        assertEquals("HTML".length, WordDelete.lengthAfter("HTMLParser", capitals))
+        assertEquals("camel".length, WordDelete.lengthAfter("camelCase", capitals))
+    }
+
+    @Test
+    fun `the default still stops at punctuation and not at capitals`() {
+        assertEquals("dev".length, len("wmkeyboard.pages.dev"))
+        assertEquals("GrapheneOS".length, len("GrapheneOS"))
+    }
+
+    @Test
+    fun `the word around the cursor follows the same breaks`() {
+        val text = "go wmkeyboard.pages.dev now"
+        val at = text.indexOf("pages") + 2
+        assertEquals(text.indexOf("pages") until text.indexOf(".dev"), WordDelete.wordAround(text, at, WordBreaks(true, false)))
+        assertEquals(text.indexOf("wm") until text.indexOf(" now"), WordDelete.wordAround(text, at, spacesOnly))
+        val camel = "GrapheneOS"
+        assertEquals(8 until 10, WordDelete.wordAround(camel, 9, capitals))
+        assertEquals(0 until 8, WordDelete.wordAround(camel, 3, capitals))
+        assertEquals(null, WordDelete.wordAround("a  b", 2, spacesOnly))
+    }
 }

@@ -51,16 +51,30 @@ The panel above costs one tap to open and another to act. If you reach for the s
 | Tool | What it does |
 |---|---|
 | Cursor left / Cursor right | Move the cursor one character |
-| Word left / Word right | Jump a whole word (Ctrl+Arrow) |
+| Word left / Word right | Jump a whole word (Ctrl+Arrow, or where you set a word to end) |
 | Cursor up / Cursor down | Move the cursor a line |
 | Line start / Line end | Jump to the start or end of the line |
 | Page up / Page down | Scroll the cursor a page |
-| Select word | Select the word at the cursor |
+| Select word | Select the word at the cursor; press again to take the words beside it too |
 | Select line | Select the entire line at the cursor |
 | Select all | Select the whole field |
 | Selection mode | Every cursor move selects text until you turn it back off |
 
 **Select all** is the panel's <KeyCap>Select all</KeyCap> key on the toolbar: it selects the whole field and leaves selection mode where it found it. **Select word** and **Select line** don't send Ctrl+Shift+Arrow. The keyboard works out the word or line boundaries around the cursor itself and sets the selection directly. Both turn selection mode on afterward. Both do nothing if the cursor sits on whitespace or punctuation with no word to grab, or on an empty line.
+
+Press **Select word** again while its selection is still there and the selection grows by one word on each side. Each press after that grows it again. With <KeyCap>Shift</KeyCap> up, a press goes back one step instead, down to the first word. While **Shift changes the case of the selection** is on, pressing Shift with text selected changes its case, so turn that off to use Shift this way.
+
+### Where a word ends
+
+Out of the box, **Word left** and **Word right** send Ctrl and an arrow key, and the app decides what a word is. Most apps treat `wmkeyboard.pages.dev` as one word and `GrapheneOS` as one word, so the cursor cannot stop at `wmkeyboard.|`. **Word steps**, on the settings page of each of the three word tools, lets the keyboard measure the steps itself:
+
+- **As the app decides**: Ctrl and an arrow key, as before.
+- **At spaces**: the cursor stops only at spaces.
+- **At spaces and punctuation**: the cursor also stops between letters and marks, so `wmkeyboard.pages.dev` is five steps.
+
+With either of the last two, **Stop at capitals** also splits a word at a capital inside it: `GrapheneOS` is `Graphene` and `OS`, and `HTMLParser` is `HTML` and `Parser`. **Select word** takes its word by the same rules. A field that does not say where its cursor is gets the Ctrl and arrow key anyway.
+
+The delete keys have their own two switches for the same thing, on the [Key press](/reference/settings/keypress/#timing) screen.
 
 ### Hold Shift to select
 
@@ -221,6 +235,8 @@ This is the only place cut lives: there's no Cut button in the text-editing pane
 ## Details & edge cases
 
 - **Shift on a live selection re-cases it, and the keys follow.** Lower case puts Shift down, Title case arms it, UPPER turns the lock on, so the case you just gave the selection is the case the next thing you type comes out in — no need to unselect, press Shift again and reselect. It re-cases rather than switching Shift off, with one exception: a Shift that's currently holding the selection open. There the first tap is read as putting the modifier down, so a selection you dragged out with Shift can always be ended with the same key; the tap after that re-cases. That's the "Tapping Shift with text selected cycles its case" toggle in the next bullet, on by default; turn it off and Shift goes back to being a plain Shift.
+- **Shift can change the case of a word with nothing selected.** Turn on **Shift changes the case of the word at the cursor**, under the selection one on the Typing screen, and Shift with the cursor on a word or right after it steps that word through lowercase, Title Case and UPPERCASE, the way SwiftKey does: `cursor| touching` or `cur|sor touching`. The cursor stays where it was. While you type a word, Shift is still for the next letter. Off by default.
+- **A selection the keyboard sets is brought into view.** Find on the selection bar, and the Find & replace panel, select the match in the field. Many editors leave a selection set from outside where it is, under the keyboard or off the screen, so the keyboard nudges the selection a step and back, which makes the editor scroll to it. The same nudge puts the cursor back on screen when the keyboard grows under it, for example when the suggestion strip opens for a word you tapped.
 - **Two Typing-screen toggles change what Select mode does elsewhere on the keyboard**, even though neither is on this page's own settings screens. Typing a bracket or quote with text selected wraps the selection in the pair instead of replacing it (on by default). Either half works: `(` and `)` both turn a selected "abc" into "(abc)". Tapping Shift with text selected cycles its case instead of arming Shift for the next letter (also on by default, and a no-op in caseless scripts like Bengali). Both live under <SettingsPath path="Typing / Automatic corrections" />.
 - **Every tool on this page works before you've unlocked your device for the first time after a restart** (direct boot). The panel, the cursor tools, undo/redo and the numpad only touch the input connection, never stored data, so none of them wait on your device being unlocked. Compare [Media controls](/tools/media/), which can't.
 - **Nothing here is edition-gated.** The panel, every cursor tool, undo/redo, and the numpad all work identically on the full and lite builds.
