@@ -21,8 +21,13 @@
 //! own resource and asset files, so the two never disagree about which
 //! upstream revision they run.
 
+pub mod arabic;
+pub mod arabic_script;
 pub mod avro;
 pub mod avro_desktop;
+pub mod hindi;
 pub mod khipro;
+pub mod persian;
 pub mod sexp;
 pub mod unicode;
+pub mod urdu;
