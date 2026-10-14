@@ -676,8 +676,8 @@ jobs:
           gh release edit "$TAG" --repo "$REPO" --draft=false --latest
 
       # Announce the new release on the Telegram community in the
-      # announcements and releases topic (#19), linking the full arm64 APK
-      # and attaching the lite arm64 APK for direct install.
+      # announcements and releases topic (#19), linking the full English arm64 APK
+      # and attaching the lite English one (Full is over the 50 MB bot upload cap).
       - name: Announce on Telegram
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}

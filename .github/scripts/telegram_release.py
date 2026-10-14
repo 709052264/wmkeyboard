@@ -3,7 +3,7 @@
 
 Posts release highlights, a changelog summary, and download links to the
 announcements topic of the WM Keyboard Telegram supergroup, and attaches
-the lightweight arm64 APK for direct installation.
+the Lite arm64 APK (Full exceeds the Bot API's 50 MB upload cap).
 
 Usage:
     python3 .github/scripts/telegram_release.py \\
@@ -157,10 +157,13 @@ def build_announcement_message(
     if full_apk_name:
         full_url = f"https://github.com/{repo}/releases/download/{tag}/{full_apk_name}"
         size_label = f" ({format_size(full_apk_size)})" if full_apk_size else ""
-        downloads += f'• <a href="{full_url}">Download Full APK — arm64-v8a</a>{size_label}\n'
+        downloads += f'• <a href="{full_url}">Download Full APK (arm64 · English)</a>{size_label}\n'
 
     if has_attached_apk:
-        downloads += "\n<i>Attached below: Lite APK (arm64 · English) for quick installation.</i>\n"
+        downloads += (
+            "\n<i>Attached below: the Lite APK (arm64 · English). Only Lite is attached "
+            "because the Telegram Bot API caps uploads at 50 MB; get Full from the links above.</i>\n"
+        )
 
     # Build changelog items from sections
     bullets_block = ""
@@ -350,6 +353,7 @@ def post_to_telegram(
     message_text: str,
     apk_file: Path | None = None,
     apk_caption: str = "",
+    link_preview_url: str | None = None,
 ) -> None:
     """Send release announcement message and optionally attach the APK document."""
     # 1. Send text message
@@ -358,7 +362,13 @@ def post_to_telegram(
         "message_thread_id": thread_id,
         "text": message_text,
         "parse_mode": "HTML",
-        "disable_web_page_preview": False,
+        # Preview the release page, not whatever link comes first in the
+        # notes (usually an issue). When link_preview_url is None, no preview.
+        "link_preview_options": (
+            {"url": link_preview_url, "prefer_large_media": True}
+            if link_preview_url
+            else {"is_disabled": True}
+        ),
     }
 
     try:
@@ -407,29 +417,13 @@ def find_apks(dist_dir: Path) -> tuple[Path | None, Path | None]:
     if not dist_dir.exists() or not dist_dir.is_dir():
         return None, None
 
-    all_apks = list(dist_dir.glob("*.apk"))
+    # Exact suffixes: the English-only, internet-enabled arm64 builds are
+    # what most people download. Substring matching used to pick the
+    # intl-nointernet build, since "intl" was preferred and it contains it.
+    def pick(suffix: str) -> Path | None:
+        return next(iter(sorted(dist_dir.glob(f"*{suffix}"))), None)
 
-    full_arm64: Path | None = None
-    lite_arm64: Path | None = None
-
-    # Preferred patterns
-    for apk in all_apks:
-        name = apk.name.lower()
-        if "full" in name and "arm64" in name:
-            if full_arm64 is None or "intl" in name:
-                full_arm64 = apk
-        elif "lite" in name and "arm64" in name:
-            if lite_arm64 is None or "en" in name:
-                lite_arm64 = apk
-
-    # Fallbacks if exact name split differs
-    if not lite_arm64:
-        for apk in all_apks:
-            if "lite" in apk.name.lower() and apk.stat().st_size < TELEGRAM_MAX_FILE_SIZE:
-                lite_arm64 = apk
-                break
-
-    return full_arm64, lite_arm64
+    return pick("-full-en-arm64-v8a.apk"), pick("-lite-en-arm64-v8a.apk")
 
 
 def main() -> None:
@@ -535,6 +529,7 @@ def main() -> None:
         message_text=message,
         apk_file=apk_to_attach if has_attached_apk else None,
         apk_caption=caption,
+        link_preview_url=f"https://github.com/{repo}/releases/tag/{tag}",
     )
     print("[telegram] All done!")
 
