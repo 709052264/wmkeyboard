@@ -1,7 +1,7 @@
 {
 	"floor": "0.5.3",
-	"latest": "0.5.14",
-	"next": "0.6.0",
+	"latest": "0.6.0",
+	"next": "0.6.1",
 	"sinceAware": "0.5.12",
 	"modeRows": "0.5.12",
 	"routes": {
