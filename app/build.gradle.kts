@@ -447,9 +447,7 @@ android {
         jniLibs {
             // Uncompressed and page-aligned in the APK, which is both what the
             // 16 KB page-size requirement wants and what lets the loader mmap
-            // the library straight out of the APK. GitHub release APKs are
-            // the exception: see the onVariants block after
-            // MinifyLayoutAssetsTask.
+            // the library straight out of the APK, in every channel.
             useLegacyPackaging = false
             // No keepDebugSymbols override: AGP strips as usual. Every .so we
             // package — ours and the prebuilt ML Kit/LiteRT ones — already
@@ -878,16 +876,6 @@ androidComponents {
         variant.artifacts.use(minify)
             .wiredWithDirectories(MinifyLayoutAssetsTask::input, MinifyLayoutAssetsTask::output)
             .toTransform(com.android.build.api.artifact.SingleArtifact.ASSETS)
-
-        // GitHub release APKs compress their native libraries. Play compresses
-        // for transport on its own and F-Droid's reference APK has to stay as
-        // it is, but a GitHub APK is downloaded as the raw file, where ~78 MB
-        // of uncompressed arm64 libraries in the full edition shrink to ~35 MB.
-        // The cost lands on the phone, which extracts a copy at install time.
-        // Release only, so debug and fast builds still install quickly.
-        if (githubChannel && variant.buildType == "release") {
-            variant.packaging.jniLibs.useLegacyPackaging.set(true)
-        }
     }
 }
 
