@@ -370,8 +370,7 @@ private fun InsertSheet(zoneId: String, now: Long, ui: ClockUi, act: (ClockActio
                 val shape = kb.chipShape()
                 Column(
                     modifier = Modifier
-                        .clip(shape)
-                        .background(if (isDefault) kb.chipActive else kb.chip)
+                        .clockChip(selected = isDefault, shape = shape)
                         .combinedClickable(
                             onClick = { act(ClockAction.Insert(zoneId, format)) },
                             onLongClick = { act(ClockAction.SetDefaultFormat(format)) },
@@ -448,14 +447,13 @@ private fun SearchResults(results: List<ZoneEntry>, ui: ClockUi, act: (ClockActi
                 Box(
                     Modifier
                         .size(24.dp)
-                        .clip(CircleShape)
-                        .background(if (isAdded) kb.accent.copy(alpha = 0.2f) else kb.chip),
+                        .clockChip(selected = isAdded, shape = CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         if (isAdded) Icons.Outlined.Check else Icons.Outlined.Add,
                         contentDescription = null,
-                        tint = if (isAdded) kb.accent else kb.chipText,
+                        tint = if (isAdded) kb.chipActiveText else kb.chipText,
                         modifier = Modifier.size(16.dp),
                     )
                 }

@@ -323,7 +323,12 @@ private fun daysDescription(days: Int): String = when (days) {
     }
 }
 
-/** The editor: drums for the time, then days, label, vibration and snooze, then Save. */
+/**
+ * The editor, top to bottom so each part gets the panel's full width: the
+ * time drums, when that rings, the seven days, then one scrolling row of day
+ * shortcuts, label, vibration and snooze. Delete, Cancel and Save stay pinned
+ * under it however far the rest scrolls.
+ */
 @Composable
 private fun AlarmEditor(edit: AlarmEdit, ui: ClockUi, act: (ClockAction) -> Unit) {
     val kb = LocalKbTheme.current
@@ -336,7 +341,13 @@ private fun AlarmEditor(edit: AlarmEdit, ui: ClockUi, act: (ClockAction) -> Unit
             .fillMaxSize()
             .padding(horizontal = 10.dp, vertical = 2.dp),
     ) {
-        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+        Column(
+            Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
             TimeWheel(
                 hour = edit.hour,
                 minute = edit.minute,
@@ -346,93 +357,86 @@ private fun AlarmEditor(edit: AlarmEdit, ui: ClockUi, act: (ClockAction) -> Unit
                 hourDescription = stringResource(R.string.ime_clock_hour_desc),
                 minuteDescription = stringResource(R.string.ime_clock_minute_desc),
                 onChange = { h, m -> act(ClockAction.AlarmDraft(edit.copy(hour = h, minute = m))) },
-                modifier = Modifier.width(if (ui.hour24) 132.dp else 180.dp),
+                modifier = Modifier.fillMaxWidth(),
             )
-            Spacer(Modifier.width(8.dp))
-            Column(
-                Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+            Text(
+                preview?.let { stringResource(R.string.ime_clock_rings_in, ClockText.duration(it - now)) }.orEmpty(),
+                color = kb.secondaryText,
+                fontSize = 12.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                    for (i in 0 until 7) {
-                        val on = Weekdays.has(edit.days, i)
-                        Box(
-                            Modifier
-                                .size(26.dp)
-                                .clip(CircleShape)
-                                .background(if (on) kb.chipActive else kb.chip)
-                                .clickable { act(ClockAction.AlarmDraft(edit.copy(days = Weekdays.toggle(edit.days, i)))) },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(letters[i], color = if (on) kb.chipActiveText else kb.chipText, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                        }
+                for (i in 0 until 7) {
+                    val on = Weekdays.has(edit.days, i)
+                    Box(
+                        Modifier
+                            .size(32.dp)
+                            .clockChip(selected = on, shape = CircleShape)
+                            .clickable { act(ClockAction.AlarmDraft(edit.copy(days = Weekdays.toggle(edit.days, i)))) },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(letters[i], color = if (on) kb.chipActiveText else kb.chipText, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
-                Row(
-                    Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    ToolPanelChip(stringResource(R.string.ime_clock_weekdays), selected = edit.days == Weekdays.WORKDAYS) {
-                        act(ClockAction.AlarmDraft(edit.copy(days = if (edit.days == Weekdays.WORKDAYS) 0 else Weekdays.WORKDAYS)))
-                    }
-                    ToolPanelChip(stringResource(R.string.ime_clock_weekends), selected = edit.days == Weekdays.WEEKEND) {
-                        act(ClockAction.AlarmDraft(edit.copy(days = if (edit.days == Weekdays.WEEKEND) 0 else Weekdays.WEEKEND)))
-                    }
-                    ToolPanelChip(stringResource(R.string.ime_clock_every_day), selected = edit.days == Weekdays.ALL) {
-                        act(ClockAction.AlarmDraft(edit.copy(days = if (edit.days == Weekdays.ALL) 0 else Weekdays.ALL)))
-                    }
+            }
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ToolPanelChip(stringResource(R.string.ime_clock_weekdays), selected = edit.days == Weekdays.WORKDAYS) {
+                    act(ClockAction.AlarmDraft(edit.copy(days = if (edit.days == Weekdays.WORKDAYS) 0 else Weekdays.WORKDAYS)))
                 }
-                Row(
-                    Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                ToolPanelChip(stringResource(R.string.ime_clock_weekends), selected = edit.days == Weekdays.WEEKEND) {
+                    act(ClockAction.AlarmDraft(edit.copy(days = if (edit.days == Weekdays.WEEKEND) 0 else Weekdays.WEEKEND)))
+                }
+                ToolPanelChip(stringResource(R.string.ime_clock_every_day), selected = edit.days == Weekdays.ALL) {
+                    act(ClockAction.AlarmDraft(edit.copy(days = if (edit.days == Weekdays.ALL) 0 else Weekdays.ALL)))
+                }
+                PillButton(
+                    edit.label.ifEmpty { stringResource(R.string.ime_clock_add_label) },
+                    icon = Icons.Outlined.Label,
+                    height = 28.dp,
+                ) { act(ClockAction.AlarmLabel) }
+                // Only the ring service can vibrate per alarm; see ChannelFeatures.
+                if (ChannelFeatures.CLOCK_RING_SERVICE) {
                     PillButton(
-                        edit.label.ifEmpty { stringResource(R.string.ime_clock_add_label) },
-                        icon = Icons.Outlined.Label,
-                        height = 30.dp,
-                    ) { act(ClockAction.AlarmLabel) }
-                    // Only the ring service can vibrate per alarm; see ChannelFeatures.
-                    if (ChannelFeatures.CLOCK_RING_SERVICE) PillButton(
                         "",
                         icon = Icons.Outlined.Vibration,
                         primary = edit.vibrate,
-                        height = 30.dp,
+                        height = 28.dp,
                         modifier = Modifier.semantics { contentDescription = vibrateDescription },
                     ) { act(ClockAction.AlarmDraft(edit.copy(vibrate = !edit.vibrate))) }
-                    val snooze = edit.snoozeMinutes.takeIf { it > 0 } ?: ui.config.snoozeMinutes
-                    ToolPanelChip(
-                        pluralStringResource(R.plurals.ime_clock_snooze_minutes, snooze, snooze),
-                        selected = edit.snoozeMinutes > 0,
-                    ) {
-                        val i = SNOOZE_STEPS.indexOf(edit.snoozeMinutes)
-                        act(ClockAction.AlarmDraft(edit.copy(snoozeMinutes = SNOOZE_STEPS[(i + 1) % SNOOZE_STEPS.size])))
-                    }
+                }
+                val snooze = edit.snoozeMinutes.takeIf { it > 0 } ?: ui.config.snoozeMinutes
+                ToolPanelChip(
+                    pluralStringResource(R.plurals.ime_clock_snooze_minutes, snooze, snooze),
+                    selected = edit.snoozeMinutes > 0,
+                ) {
+                    val i = SNOOZE_STEPS.indexOf(edit.snoozeMinutes)
+                    act(ClockAction.AlarmDraft(edit.copy(snoozeMinutes = SNOOZE_STEPS[(i + 1) % SNOOZE_STEPS.size])))
                 }
             }
         }
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(bottom = 4.dp),
+                .padding(top = 4.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Text(
-                preview?.let { stringResource(R.string.ime_clock_rings_in, ClockText.duration(it - now)) }.orEmpty(),
-                color = kb.secondaryText,
-                fontSize = 12.sp,
-                modifier = Modifier.weight(1f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
             if (edit.id != null) {
                 RoundButton(Icons.Outlined.Delete, stringResource(R.string.ime_clock_delete), size = 34.dp) {
                     act(ClockAction.DeleteAlarm(edit.id))
                 }
             }
+            Spacer(Modifier.weight(1f))
             PillButton(stringResource(R.string.ime_clock_cancel)) { act(ClockAction.CancelAlarmEdit) }
             PillButton(stringResource(R.string.ime_clock_save), primary = true) { act(ClockAction.SaveAlarm) }
         }

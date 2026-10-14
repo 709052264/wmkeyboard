@@ -43,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -424,14 +425,15 @@ internal fun RoundButton(
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
+    // The theme's chip shape rather than a fixed circle: a theme with square
+    // chips gets square buttons here too.
+    val shape = kb.chipShape()
     IconHint(description, modifier) {
         Box(
             modifier = Modifier
                 .size(size)
-                .clip(CircleShape)
-                .background(if (primary) kb.chipActive else kb.chip)
-                .chipBorder(kb, CircleShape)
-                .focusRing(focused, CircleShape)
+                .clockChip(selected = primary, shape = shape)
+                .focusRing(focused, shape)
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center,
         ) {
@@ -454,7 +456,9 @@ internal fun Banner(text: String, action: String, onAction: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CARDS)
             .background(kb.accent.copy(alpha = 0.14f))
+            .chipBorder(kb, shape)
             .clickable(onClick = onAction)
             .padding(horizontal = 10.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -521,7 +525,9 @@ internal fun SectionLabel(text: String, modifier: Modifier = Modifier) {
 @Composable
 internal fun ClockSwitch(on: Boolean, description: String, onChange: (Boolean) -> Unit) {
     val kb = LocalKbTheme.current
-    val track = if (on) kb.accent else kb.secondaryText.copy(alpha = 0.35f)
+    // The selected-chip pair when on and the plain chip pair when off, so the
+    // switch reads in the theme's own colours (and its glass and outline).
+    val knob = if (on) kb.chipActiveText else kb.chipText
     val knobOffset by animateDpAsState(
         targetValue = if (on) 18.dp else 2.dp,
         animationSpec = if (kb.reduceMotion) tween(0) else tween(SWITCH_MS),
@@ -530,8 +536,7 @@ internal fun ClockSwitch(on: Boolean, description: String, onChange: (Boolean) -
     Box(
         modifier = Modifier
             .size(width = 40.dp, height = 24.dp)
-            .clip(CircleShape)
-            .background(track)
+            .clockChip(selected = on, shape = CircleShape)
             .toggleable(value = on, role = Role.Switch, onValueChange = onChange)
             .semantics { contentDescription = description },
     ) {
@@ -540,9 +545,26 @@ internal fun ClockSwitch(on: Boolean, description: String, onChange: (Boolean) -
                 .padding(start = knobOffset, top = 2.dp)
                 .size(20.dp)
                 .clip(CircleShape)
-                .background(Color.White),
+                .background(knob),
         )
     }
 }
 
 private const val SWITCH_MS = 160
+
+/**
+ * How every chip-like surface in the panel dresses: the theme's chip shape
+ * (or [shape]), glass where the theme makes chips glass, the chip fill (or the
+ * selected-chip fill), and the theme's chip outline. One place, so a theme
+ * reaches all of them, the way [ToolPanelChip] dresses the other panels.
+ */
+@Composable
+internal fun Modifier.clockChip(selected: Boolean = false, shape: Shape? = null): Modifier {
+    val kb = LocalKbTheme.current
+    val s = shape ?: kb.chipShape()
+    return this
+        .clip(s)
+        .frostGlass(kb, s, FrostSurface.CHIPS)
+        .background(if (selected) kb.chipActive else kb.chip)
+        .chipBorder(kb, s)
+}

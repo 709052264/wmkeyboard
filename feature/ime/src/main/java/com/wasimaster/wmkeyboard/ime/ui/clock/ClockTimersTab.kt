@@ -61,7 +61,14 @@ import com.wasimaster.wmkeyboard.ime.clock.ClockText
 import com.wasimaster.wmkeyboard.ime.clock.ClockUi
 import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
 import com.wasimaster.wmkeyboard.ime.ui.ToolPanelChip
+import com.wasimaster.wmkeyboard.ime.ui.LocalKeyPressFeedback
 import com.wasimaster.wmkeyboard.ime.ui.chipShape
+import com.wasimaster.wmkeyboard.ime.ui.frostGlass
+import com.wasimaster.wmkeyboard.ime.ui.keyFace
+import com.wasimaster.wmkeyboard.ime.ui.keyShape
+import com.wasimaster.wmkeyboard.ime.ui.keysHaveFaces
+import com.wasimaster.wmkeyboard.ime.ui.panelKeyBorder
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.tools.R as ToolsR
 
 /**
@@ -332,8 +339,7 @@ private fun PresetRow(ui: ClockUi, act: (ClockAction) -> Unit) {
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier
-                    .clip(shape)
-                    .background(kb.chip)
+                    .clockChip(shape = shape)
                     .combinedClickable(
                         onClick = { act(ClockAction.TimerClear); act(ClockAction.TimerAdd(p.durationMs)) },
                         onLongClick = {
@@ -361,23 +367,28 @@ private fun presetLabel(label: String, ms: Long): String {
 @Composable
 private fun Keypad(act: (ClockAction) -> Unit, modifier: Modifier = Modifier) {
     val kb = LocalKbTheme.current
-    val haptic = LocalHapticFeedback.current
+    val feedback = LocalKeyPressFeedback.current
     val rows = listOf("123", "456", "789", "#0<")
+    // These are keys, so they dress like the key grid, as the calculator's do:
+    // the theme's key shape, glass and outline, and no face at all where the
+    // theme's keys have none.
+    val shape = kb.keyShape()
     val backspace = stringResource(R.string.ime_clock_backspace_desc)
     Column(modifier.fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         rows.forEach { row ->
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 row.forEach { c ->
-                    val shape = kb.chipShape()
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
                             .clip(shape)
-                            .background(kb.key)
+                            .then(if (kb.keysHaveFaces) Modifier.frostGlass(kb, shape, FrostSurface.KEYS) else Modifier)
+                            .background(kb.keyFace(kb.key))
+                            .panelKeyBorder(kb, shape)
                             .combinedClickable(
                                 onClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    feedback()
                                     when (c) {
                                         '<' -> act(ClockAction.TimerBackspace)
                                         '#' -> { act(ClockAction.TimerDigit('0')); act(ClockAction.TimerDigit('0')) }
