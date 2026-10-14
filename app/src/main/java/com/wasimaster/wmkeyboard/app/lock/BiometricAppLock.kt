@@ -82,12 +82,20 @@ internal class BiometricAppLock(
      */
     private var pending: ((AppLockResult) -> Unit)? = null
 
+    /**
+     * Set between cancelling a lost prompt and raising its replacement; see
+     * [breakStaleLatch]. Whatever the cancelled prompt reports in that window
+     * belongs to it and must not end the new check.
+     */
+    private var restarting = false
+
     private val prompt = BiometricPrompt(
         activity,
         ContextCompat.getMainExecutor(activity),
         object : BiometricPrompt.AuthenticationCallback() {
 
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                if (restarting) return
                 // The phone's own lock vouched for the user who forgot the
                 // app's: the run of misses on the app's sheet is over too.
                 if (AppLockSession.sheet == SystemSheet.RECOVERY) throttle.reset()
@@ -95,6 +103,7 @@ internal class BiometricAppLock(
             }
 
             override fun onAuthenticationError(code: Int, message: CharSequence) {
+                if (restarting) return
                 val sheet = AppLockSession.sheet
                 if (sheet == SystemSheet.SHORTCUT || sheet == SystemSheet.RECOVERY) {
                     AppLockSession.sheet = null
@@ -294,7 +303,9 @@ internal class BiometricAppLock(
         // this instance; the session flag catches the case where a rotation
         // rebuilt everything while the sheet stayed on screen, which leaves
         // this instance with no pending callback and a live prompt anyway.
-        if (pending != null || AppLockSession.prompting != null) return
+        if (pending != null || AppLockSession.prompting != null) {
+            if (!breakStaleLatch()) return
+        }
         // Nothing here can answer, so there is nothing to ask. Callers gate on
         // [isLocked] first, which already stands aside, but the master toggle
         // reaches [authenticate] directly.
@@ -304,12 +315,56 @@ internal class BiometricAppLock(
         }
         pending = onResult
         AppLockSession.prompting = id
+        if (restarting) {
+            // The lost prompt was just cancelled. Give its late report a
+            // moment to arrive and be ignored before raising the new one.
+            activity.window.decorView.postDelayed({
+                restarting = false
+                if (AppLockSession.prompting == id) raise()
+            }, RESTART_DELAY_MS)
+        } else {
+            raise()
+        }
+    }
+
+    private fun raise() {
         val cfg = _config.value
         when {
             cfg?.usesSecret != true -> showSheet(SystemSheet.MAIN)
             cfg.biometricShortcut && canUseFingerprint() -> showSheet(SystemSheet.SHORTCUT)
             else -> AppLockSession.secretEntry = true
         }
+    }
+
+    /**
+     * Clears a check that is marked open but has nothing on screen, and says
+     * whether it did.
+     *
+     * Some phones (seen on Xiaomi) take the system sheet down without ever
+     * calling back. [finish] then never runs, [AppLockSession.prompting] stays
+     * set for the life of the process, and every gate and every Unlock press
+     * after it is silently dropped: a lockout with no way out but killing the
+     * app.
+     *
+     * The test is that this activity is in front and holds window focus. The
+     * system sheet, the in-app fingerprint dialog on API 28 and the screen-lock
+     * activity on 28 and 29 all take focus from it, so a request arriving while
+     * it still has focus came from a tap no real sheet was covering. The app's
+     * own secret sheet is never lost — Compose draws it off
+     * [AppLockSession.secretEntry] — so that state is left alone.
+     */
+    private fun breakStaleLatch(): Boolean {
+        if (AppLockSession.secretEntry) return false
+        if (!activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return false
+        if (!activity.hasWindowFocus()) return false
+        // The library may still think its fragment is showing, in which case a
+        // fresh authenticate() is refused as a duplicate. Cancel it first.
+        restarting = true
+        prompt.cancelAuthentication()
+        pending = null
+        AppLockSession.prompting = null
+        AppLockSession.sheet = null
+        return true
     }
 
     private fun finish(result: AppLockResult) {
@@ -387,6 +442,9 @@ internal class BiometricAppLock(
 
         /** The id [AppLockSession.prompting] carries for a check with no target. */
         const val BARE = "applock_bare"
+
+        /** How long a cancelled, lost prompt gets to report before its replacement. */
+        const val RESTART_DELAY_MS = 300L
 
         /**
          * Which kinds of answer the prompt accepts.

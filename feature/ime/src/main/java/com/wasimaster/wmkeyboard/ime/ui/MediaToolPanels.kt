@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,6 +39,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -1127,6 +1129,7 @@ internal fun GifPanel(
                                     items = ui.items,
                                     downloadingId = state.mediaDownloadingId,
                                     progress = state.mediaDownloadProgress,
+                                    queue = state.mediaQueue,
                                     onSelect = onSelect,
                                     onLongPress = onLongPress,
                                     panel = state.panel,
@@ -1670,6 +1673,8 @@ private fun GifGrid(
     items: List<GifItem>,
     downloadingId: String?,
     progress: Float?,
+    /** Ids waiting to send after the one downloading, in order. */
+    queue: List<String> = emptyList(),
     onSelect: (GifItem) -> Unit,
     onLongPress: ((GifItem) -> Unit)? = null,
     panel: PanelMode = PanelMode.GIF,
@@ -1721,6 +1726,7 @@ private fun GifGrid(
                         loader = loader,
                         downloadingId = downloadingId,
                         progress = progress,
+                        queuePosition = queue.indexOf(item.id) + 1,
                         focused = rowStarts[rowIndex] + indexInRow == focused,
                         onSelect = onSelect,
                         onLongPress = onLongPress,
@@ -1746,6 +1752,8 @@ private fun GifCell(
     loader: ImageLoader,
     downloadingId: String?,
     progress: Float?,
+    /** Place in the send queue, 1 for next; 0 when it isn't waiting. */
+    queuePosition: Int,
     focused: Boolean,
     onSelect: (GifItem) -> Unit,
     onLongPress: ((GifItem) -> Unit)?,
@@ -1757,8 +1765,9 @@ private fun GifCell(
             .frostGlass(LocalKbTheme.current, RoundedCornerShape(8.dp), FrostSurface.CHIPS)
             .background(LocalKbTheme.current.chip)
             .focusRing(focused, RoundedCornerShape(8.dp))
+            // Stays tappable while another sends: a tap then queues this one
+            // behind it, and a second tap takes it back out.
             .combinedClickable(
-                enabled = downloadingId == null,
                 onClick = { onSelect(item) },
                 onLongClick = onLongPress?.let { { it(item) } },
             ),
@@ -1773,6 +1782,40 @@ private fun GifCell(
             contentScale = ContentScale.Fit,
         )
         if (downloadingId == item.id) MediaDownloadOverlay(progress)
+        if (queuePosition > 0) MediaQueueBadge(queuePosition)
+    }
+}
+
+/**
+ * A waiting cell's place in the send queue: the preview dimmed a little, and
+ * its number in the corner, so a row of taps reads as the order they go out.
+ */
+@Composable
+private fun BoxScope.MediaQueueBadge(position: Int) {
+    val theme = LocalKbTheme.current
+    Box(
+        modifier = Modifier
+            .matchParentSize()
+            .background(Color.Black.copy(alpha = 0.25f)),
+    )
+    Box(
+        modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(4.dp)
+            .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
+            .background(theme.chipActive, CircleShape)
+            .padding(horizontal = 5.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = position.toString(),
+            color = theme.chipActiveText,
+            fontSize = 12.sp,
+            // The inherited 24 sp line box would sit the digit low in a 20 dp dot.
+            lineHeight = 12.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+        )
     }
 }
 

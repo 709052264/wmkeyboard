@@ -21009,14 +21009,15 @@ internal fun KeyButton(
                     val lensRadius = lensRadiusPx(lensKind, kb.keyRadiusDp, size, this)
                     GlassPaint.of(
                         backdrop, outline, keyBounds.value.topLeft, it, size, lensRadius, kb.boardFill,
-                        lensEdgePx = LENS_EDGE_DP.dp.toPx(),
+                        pxPerDp = density, withPress = true,
                     )
                 }
-                val rim = frost?.let { RimPaint.of(it, keyShape, size, layoutDirection, this) }
+                // A lens draws its own rim of light; the gradient rim's dark edge would sit on it.
+                val rim = frost?.takeIf { glass?.lensed != true }?.let { RimPaint.of(it, keyShape, size, layoutDirection, this) }
                 val grain = frost?.let { GrainPaint.of(it, outline) }
                 onDrawBehind {
                     val down = pressed.value
-                    glass?.draw(this)
+                    glass?.draw(this, down)
                     drawOutline(outline, if (down) visual.pressedBackground else visual.background)
                     val paint = if (down) pressedPaint ?: texturePaint else texturePaint
                     if (paint != null) {

@@ -3555,6 +3555,11 @@ data class KeyboardUiState(
      * recompositions of one cell, not one per 8 KB buffer.
      */
     val mediaDownloadProgress: Float? = null,
+    /**
+     * Ids of GIFs/stickers tapped while another was still sending, in the
+     * order they will go out. A cell shows its place in this line.
+     */
+    val mediaQueue: List<String> = emptyList(),
     /** Selected provider chip on the GIF/sticker panel (tabs mode). */
     val mediaSource: com.wasimaster.wmkeyboard.core.tools.GifSource =
         com.wasimaster.wmkeyboard.core.tools.GifSource.KLIPY,

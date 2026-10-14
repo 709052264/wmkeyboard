@@ -58,6 +58,7 @@ import com.wasimaster.wmkeyboard.core.theme.WallpaperBand
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.graphics.toArgb
 import kotlin.math.max
+import kotlin.math.min
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -188,6 +189,10 @@ class GlassPaint private constructor(
     private val outline: Outline,
     private val brush: Brush,
     private val fill: Brush?,
+    /** The lens pressed, for a liquid pane; null draws [brush] either way. */
+    private val pressedBrush: Brush?,
+    /** True when [LiquidLens] draws this pane, rim of light included, so no [RimPaint] goes over it. */
+    val lensed: Boolean,
 ) {
 
     /**
@@ -198,8 +203,8 @@ class GlassPaint private constructor(
      * wallpaper's full colour, and a gradient board stopped dead at every key
      * and at the toolbar.
      */
-    fun draw(scope: DrawScope) = with(scope) {
-        drawOutline(outline, brush)
+    fun draw(scope: DrawScope, pressed: Boolean = false) = with(scope) {
+        drawOutline(outline, if (pressed) pressedBrush ?: brush else brush)
         fill?.let { drawOutline(outline, it) }
     }
 
@@ -211,6 +216,7 @@ class GlassPaint private constructor(
          * A liquid pane wraps the slice in [LiquidLens] where the phone can
          * run one; [size] and [lensRadiusPx] describe the pane the lens bends
          * around, as a rounded rectangle whatever the outline really is.
+         * [withPress] also prepares the pressed lens, for a key.
          */
         fun of(
             backdrop: FrostBackdrop,
@@ -221,8 +227,9 @@ class GlassPaint private constructor(
             lensRadiusPx: Float = 0f,
             /** What the board paints over its picture; see [draw]. */
             boardFill: BoardFill = BoardFill.None,
-            /** Width of the lens's bent rim, in px; 0 lets the lens pick from [size]. */
-            lensEdgePx: Float = 0f,
+            /** The screen's density, which sizes the lens's bevel. */
+            pxPerDp: Float = 1f,
+            withPress: Boolean = false,
         ): GlassPaint? {
             val bitmap = backdrop.bitmap ?: return null
             val board = backdrop.boardBounds
@@ -244,12 +251,19 @@ class GlassPaint private constructor(
                     postTranslate(dx, dy)
                 },
             )
-            val shader = if (frost != null && frost.liquid && LiquidLens.available && size.minDimension > 0f) {
-                LiquidLens.shader(slice, size, lensRadiusPx, frost, lensEdgePx)
-            } else {
-                slice
+            val lensed = frost != null && frost.liquid && LiquidLens.available && size.minDimension > 0f
+            if (!lensed || frost == null) {
+                return GlassPaint(outline, ShaderBrush(slice), fillBrush(boardFill, board, originInRoot), null, false)
             }
-            return GlassPaint(outline, ShaderBrush(shader), fillBrush(boardFill, board, originInRoot))
+            val lens = LiquidLens.shader(slice, size, lensRadiusPx, frost, pxPerDp)
+            val pressedLens = if (withPress) LiquidLens.shader(slice, size, lensRadiusPx, frost, pxPerDp, press = 1f) else null
+            return GlassPaint(
+                outline,
+                ShaderBrush(lens),
+                fillBrush(boardFill, board, originInRoot),
+                pressedLens?.let { ShaderBrush(it) },
+                lensed = lens !== slice,
+            )
         }
     }
 }
@@ -273,12 +287,25 @@ private fun fillBrush(fill: BoardFill, board: Rect, originInRoot: Offset): Brush
 
 /**
  * The per-pixel half of liquid glass: a runtime shader that samples the
- * backdrop slice through a thick lens. Near the edge of the pane the sample
- * is pulled toward the middle (a lens magnifies what it covers), red and blue
- * are pulled a little differently (the colours split where glass bends
- * light), and a band of light is added where the edge faces the light. The
- * middle of the pane samples straight through, so a wide key still reads as
- * glass rather than as a funhouse mirror.
+ * backdrop slice through a thick lens, after the SDF lens of
+ * QWEA0/Liquid-Glass-Android (`GlassLensRenderer`), whose shapes were
+ * measured off iOS 26's Control Center.
+ *
+ * - The pane is flat glass in the middle and a bevel at the rim. Across the
+ *   bevel the sample is pulled inward along the edge's normal by an
+ *   inverse-power profile, `(1 + 4t)^-2`: almost all of the bending is in the
+ *   last few pixels, where what lies just inside the edge is folded back into
+ *   a thin compressed mirror ring, and the middle reads straight through.
+ * - Red, green and blue bend by different amounts along that normal, so the
+ *   ring is fringed with colour like the edge of a prism.
+ * - The light is two equal lobes of `dot(n, -light)`: a two-pixel hairline on
+ *   the edges facing the light (upper left, 30 degrees off the horizontal)
+ *   and on the edges facing away (the inner wall reflecting it), nothing on
+ *   the sides, plus a short glow inward on the lit side only. There is no
+ *   shadowed edge — glass has none — which is why a lensed pane draws no
+ *   [RimPaint].
+ * - Pressed, the rim bends 60% harder, the hairline dims and the middle of
+ *   the pane bulges toward its centre, the reference's liquid press.
  *
  * The pane is treated as a rounded rectangle of the surface's size and
  * [lensRadiusPx]; the real outline still clips the draw, so a pill or a
@@ -299,43 +326,49 @@ object LiquidLens {
             runCatching { android.graphics.RuntimeShader(SOURCE) }.isSuccess
     }
 
-    /**
-     * The most of a pane's short side the bent rim may take. The rim itself is
-     * a fixed width (the caller's `lensEdgePx`, about 12 dp), so a space bar
-     * and a letter key bend the same amount at their edges; this cap only
-     * keeps a tiny chip from being all rim.
-     */
-    private const val EDGE_MAX_SHARE = 0.4f
+    /** Width of the bevel, the same on every pane so a space bar and a letter bend alike. */
+    private const val BEVEL_DP = LENS_EDGE_DP
 
-    /** Used when no rim width is given: a share of the short side, as before. */
-    private const val EDGE_SHARE = 0.32f
+    /** The most of a pane's short side the bevel may take, so a small chip is not all rim. */
+    private const val BEVEL_MAX_SHARE = 0.3f
 
     /**
-     * How much every pane magnifies what it covers at full refraction, the
-     * same for every size of pane — the middle of a key was straight glass
-     * while a small key was almost all rim, which is what made the wide keys
-     * look like a different material.
+     * How far the very edge reaches inward at full refraction, as a share of
+     * the short side, and the short side below which that share shrinks
+     * again by (side / reference)²: a 48 dp key folds about 38 px, a large
+     * card no more than its own bevel can carry. The reference's numbers.
      */
-    private const val ZOOM = 0.08f
+    private const val REFRACT_SHARE = 0.7f
+    private const val REFRACT_REFERENCE_DP = 110f
 
-    /** Light from the upper left, the direction the rim is lit from. */
-    private const val LIGHT_X = -0.55f
-    private const val LIGHT_Y = -0.835f
+    /** Inverse-power exponent of the bevel profile; 2 keeps the bending at the very edge. */
+    private const val FALLOFF = 2f
 
-    /** Peak brightness of the specular band at full refraction. */
-    private const val SPECULAR = 0.38f
+    /** Colour split at full dispersion; the slider's 0.3 lands on the reference's 0.12. */
+    private const val DISPERSION_SCALE = 0.4f
+    private const val DISPERSION_MAX = 0.9f
+
+    /** Inward glow on the lit side: at most this many px, and 5% of the short side. */
+    private const val GLOW_MAX_PX = 6f
+    private const val GLOW_SHARE = 0.05f
+
+    /** Direction the light travels, from the upper left 30 degrees off the horizontal. */
+    private const val LIGHT_X = 0.866f
+    private const val LIGHT_Y = 0.5f
 
     // language=AGSL
     private const val SOURCE = """
         uniform shader backdrop;
         uniform float2 size;
         uniform float radius;
-        uniform float edge;
-        uniform float refraction;
+        uniform float bevel;
+        uniform float refractPx;
+        uniform float falloff;
         uniform float dispersion;
-        uniform float specular;
-        uniform float2 light;
-        uniform float zoom;
+        uniform float2 lightDir;
+        uniform float specStrength;
+        uniform float glowMax;
+        uniform float press;
 
         float roundRect(float2 p, float2 extent, float r) {
             float2 q = abs(p) - extent + r;
@@ -345,60 +378,102 @@ object LiquidLens {
         half4 main(float2 p) {
             float2 c = size * 0.5;
             float2 local = p - c;
-            float inside = -roundRect(local, c, radius);
-            float t = 1.0 - clamp(inside / edge, 0.0, 1.0);
-            float bend = t * t;
-            float e = 1.0;
-            float2 n = normalize(float2(
-                roundRect(local + float2(e, 0.0), c, radius) - roundRect(local - float2(e, 0.0), c, radius),
-                roundRect(local + float2(0.0, e), c, radius) - roundRect(local - float2(0.0, e), c, radius)
-            ) + float2(0.0001, 0.0));
-            float2 shift = -n * bend * refraction * edge * 0.7;
-            float split = dispersion * bend * edge * 0.12;
-            float2 q = c + local * (1.0 - zoom * refraction) + shift;
-            float4 col;
-            col.r = float4(backdrop.eval(q + n * split)).r;
-            col.g = float4(backdrop.eval(q)).g;
-            col.b = float4(backdrop.eval(q - n * split)).b;
-            col.a = 1.0;
-            float lit = max(dot(n, light), 0.0);
-            col.rgb += float3(bend * bend * lit * specular);
-            return half4(col);
+            float d = roundRect(local, c, radius);
+
+            float2 n = float2(
+                roundRect(local + float2(1.0, 0.0), c, radius) - roundRect(local - float2(1.0, 0.0), c, radius),
+                roundRect(local + float2(0.0, 1.0), c, radius) - roundRect(local - float2(0.0, 1.0), c, radius)
+            );
+            float nLen = length(n);
+            if (nLen > 0.0001) {
+                n = n / nLen;
+            } else {
+                n = float2(0.0, -1.0);
+            }
+
+            // 1 at the edge, falling as (1 + 4t)^-p and reaching 0 where the bevel ends.
+            float t = clamp(-d / max(bevel, 1.0), 0.0, 1.0);
+            float tail = pow(5.0, -falloff);
+            float slope = (pow(1.0 + 4.0 * t, -falloff) - tail) / (1.0 - tail);
+
+            float refr = refractPx * (1.0 + 0.6 * press);
+            float2 offset = -n * (slope * refr);
+
+            // Pressed: the middle bulges, samples drawn toward the centre.
+            if (press > 0.001) {
+                float tr = length(local);
+                float sigma = max(max(c.x, c.y), 1.0);
+                float bump = press * exp(-(tr * tr) / (sigma * sigma * 0.30));
+                if (tr > 1.0) {
+                    offset -= (local / tr) * (bump * refr * 0.5);
+                }
+            }
+
+            float2 lo = float2(1.0);
+            float2 hi = size - 1.0;
+            float2 cR = clamp(p + offset * (1.0 - dispersion * slope), lo, hi);
+            float2 cG = clamp(p + offset, lo, hi);
+            float2 cB = clamp(p + offset * (1.0 + dispersion * slope), lo, hi);
+            float3 col = float3(
+                float4(backdrop.eval(cR)).r,
+                float4(backdrop.eval(cG)).g,
+                float4(backdrop.eval(cB)).b
+            );
+
+            float facing = dot(n, -lightDir);
+            float lobeF = pow(max(facing, 0.0), 4.5);
+            float lobeB = pow(max(-facing, 0.0), 4.5);
+            float bandW = clamp(bevel * 0.3, 2.0, glowMax);
+            float glowIn = clamp((-d - 1.0) / 2.0, 0.0, 1.0);
+            float glow = glowIn * pow(clamp(1.0 - (-d - 3.0) / bandW, 0.0, 1.0), 1.5);
+            float hair = clamp(1.0 - abs(d + 1.0) / 2.0, 0.0, 1.0);
+            float spec = (hair * 0.70 * (lobeF + lobeB) + glow * 0.10 * lobeF)
+                * specStrength * (1.0 - 0.35 * press);
+            col = clamp(col + float3(spec), 0.0, 1.0);
+            return half4(half3(col), 1.0);
         }
     """
 
+    /**
+     * The lens over [slice] for a pane of [size]. [pxPerDp] sizes the bevel
+     * and the fold; [press] 0..1 is the liquid press.
+     */
     @androidx.annotation.RequiresApi(Build.VERSION_CODES.TIRAMISU)
     fun shader(
         slice: android.graphics.Shader,
         size: Size,
         lensRadiusPx: Float,
         frost: KbFrost,
-        edgePx: Float = 0f,
-    ): android.graphics.Shader {
-        val short = size.minDimension
-        val edge = if (edgePx > 0f) edgePx.coerceAtMost(short * EDGE_MAX_SHARE) else short * EDGE_SHARE
-        return runCatching { lensShader(slice, size, short, lensRadiusPx, frost, edge) }.getOrElse { slice }
-    }
+        pxPerDp: Float,
+        press: Float = 0f,
+    ): android.graphics.Shader =
+        runCatching { lensShader(slice, size, lensRadiusPx, frost, pxPerDp, press) }.getOrElse { slice }
 
     @androidx.annotation.RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun lensShader(
         slice: android.graphics.Shader,
         size: Size,
-        short: Float,
         lensRadiusPx: Float,
         frost: KbFrost,
-        edge: Float,
+        pxPerDp: Float,
+        press: Float,
     ): android.graphics.Shader {
+        val short = size.minDimension
+        val bevel = (BEVEL_DP * pxPerDp).coerceAtMost(short * BEVEL_MAX_SHARE).coerceAtLeast(2f)
+        val reference = REFRACT_REFERENCE_DP * pxPerDp
+        val refract = frost.refraction * REFRACT_SHARE * short * min(1f, short / reference)
         return android.graphics.RuntimeShader(SOURCE).apply {
             setInputShader("backdrop", slice)
             setFloatUniform("size", size.width, size.height)
             setFloatUniform("radius", lensRadiusPx.coerceIn(0f, short / 2f))
-            setFloatUniform("edge", edge.coerceAtLeast(1f))
-            setFloatUniform("zoom", ZOOM)
-            setFloatUniform("refraction", frost.refraction)
-            setFloatUniform("dispersion", frost.dispersion)
-            setFloatUniform("specular", SPECULAR * frost.refraction.coerceAtLeast(0.25f))
-            setFloatUniform("light", LIGHT_X, LIGHT_Y)
+            setFloatUniform("bevel", bevel)
+            setFloatUniform("refractPx", refract)
+            setFloatUniform("falloff", FALLOFF)
+            setFloatUniform("dispersion", (frost.dispersion * DISPERSION_SCALE).coerceIn(0f, DISPERSION_MAX))
+            setFloatUniform("lightDir", LIGHT_X, LIGHT_Y)
+            setFloatUniform("specStrength", frost.rim)
+            setFloatUniform("glowMax", min(GLOW_MAX_PX, short * GLOW_SHARE).coerceAtLeast(2f))
+            setFloatUniform("press", press)
         }
     }
 }
@@ -415,7 +490,7 @@ fun lensRadiusPx(kind: KeyShapeKind, radiusDp: Int, size: Size, density: Density
     else -> with(density) { radiusDp.dp.toPx() }.coerceAtMost(size.minDimension / 2f)
 }
 
-/** Width of a liquid lens's bent rim, the same on every pane. */
+/** Width of a liquid lens's bevel, the same on every pane. */
 internal const val LENS_EDGE_DP = 12f
 
 /** Width of the rim of light around a glass surface. */
@@ -452,7 +527,7 @@ class RimPaint private constructor(
             if (inner.width <= 0f || inner.height <= 0f) return null
             val light = frost.rimLight.copy(alpha = frost.rimLight.alpha * frost.rim)
             val shadow = frost.rimShadow.copy(alpha = frost.rimShadow.alpha * frost.rim)
-            val brush = Brush.linearGradient(
+            val brush = if (frost.liquid) liquidRim(light, inner) else Brush.linearGradient(
                 0f to light,
                 0.45f to light.copy(alpha = light.alpha * MID_RIM_ALPHA),
                 0.55f to shadow.copy(alpha = shadow.alpha * MID_RIM_ALPHA),
@@ -465,6 +540,32 @@ class RimPaint private constructor(
 
         /** How much of the rim survives across the middle of the diagonal. */
         private const val MID_RIM_ALPHA = 0.15f
+
+        /**
+         * A liquid pane's rim where no lens draws it (over the live window
+         * blur, or before Android 13): the lens's two equal lobes of light, on
+         * the edges facing the light and on those facing away, along the same
+         * axis 30 degrees off the horizontal, gone on the sides. No shadowed
+         * edge; liquid glass has none.
+         */
+        private fun liquidRim(light: Color, size: Size): Brush {
+            val ux = 0.866f
+            val uy = 0.5f
+            val reach = size.width / 2f * ux + size.height / 2f * uy
+            val centre = Offset(size.width / 2f, size.height / 2f)
+            val clear = light.copy(alpha = 0f)
+            return Brush.linearGradient(
+                0f to light,
+                LIQUID_LOBE to clear,
+                1f - LIQUID_LOBE to clear,
+                1f to light,
+                start = centre - Offset(ux * reach, uy * reach),
+                end = centre + Offset(ux * reach, uy * reach),
+            )
+        }
+
+        /** Where along the light axis each lobe has faded out. */
+        private const val LIQUID_LOBE = 0.3f
     }
 }
 
@@ -655,12 +756,12 @@ private class FrostGlassNode(
                 GlassPaint.of(
                     backdrop, outline, origin, frost, size,
                     lensRadiusPx(lensKind, lensRadiusDp, size, this), boardFill,
-                    lensEdgePx = LENS_EDGE_DP.dp.toPx(),
+                    pxPerDp = density,
                 )
             } else {
                 null
             }
-            rim = RimPaint.of(frost, shape, size, layoutDirection, this)
+            rim = if (glass?.lensed == true) null else RimPaint.of(frost, shape, size, layoutDirection, this)
             grain = GrainPaint.of(frost, outline)
             builtFor = key
         }
