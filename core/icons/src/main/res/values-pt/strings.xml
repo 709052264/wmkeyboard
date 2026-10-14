@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">O aplicativo descartou \"%1$s\". O aplicativo não pode salvá-lo.</string>
     <string name="core_icons_repair_svg_unreadable">O aplicativo descartou \"%1$s\". O aplicativo não consegue ler seu arquivo SVG.</string>
+    <string name="core_icons_slot_arrow_down_label">Seta para baixo</string>
+    <string name="core_icons_slot_arrow_left_label">Seta para a esquerda</string>
+    <string name="core_icons_slot_arrow_right_label">Seta para a direita</string>
+    <string name="core_icons_slot_arrow_up_label">Seta para cima</string>
     <string name="core_icons_slot_backspace_label">Backspace</string>
+    <string name="core_icons_slot_caps_lock_key_label">Tecla Caps Lock</string>
     <string name="core_icons_slot_caps_lock_label">Caps lock</string>
     <string name="core_icons_slot_emoji_activities_label">Atividades</string>
     <string name="core_icons_slot_emoji_animals_label">Animais</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: enviar</string>
     <string name="core_icons_slot_forward_delete_label">Excluir para frente</string>
     <string name="core_icons_slot_globe_label">Trocar idioma</string>
+    <string name="core_icons_slot_hide_keys_label">Ocultar as teclas (teclado físico)</string>
     <string name="core_icons_slot_incognito_label">Selo de anônimo</string>
     <string name="core_icons_slot_input_method_picker_label">Mudar teclado</string>
     <string name="core_icons_slot_panel_back_label">Voltar para as teclas</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Fechar pesquisa</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (ativado)</string>
+    <string name="core_icons_slot_show_keys_label">Mostrar as teclas (teclado físico)</string>
     <string name="core_icons_slot_suggestions_expand_label">Mostrar ferramentas</string>
+    <string name="core_icons_slot_tab_label">Tecla Tab</string>
     <string name="core_icons_slot_toolbox_label">Caixa de ferramentas</string>
 </resources>

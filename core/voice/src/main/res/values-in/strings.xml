@@ -8,6 +8,12 @@
     <string name="core_voice_model_base_eu_body">Model ini menggunakan bahasa yang Anda ketik, sama seperti model 40 bahasa. Model ini hanya mencakup bahasa-bahasa Eropa, sehingga unduhannya lebih kecil.</string>
     <string name="core_voice_model_base_multi_body">Model ini menyeimbangkan akurasi dan kecepatan. Model ini mencakup setiap bahasa yang diketahui Whisper. Pilih ini jika model Kecil terlalu lambat.</string>
     <string name="core_voice_model_base_world_body">Model ini menggunakan bahasa yang Anda ketik alih-alih tebakan. Frasa pendek menjadi jauh lebih andal. Pilih model ini jika daftarnya memuat bahasa Anda.</string>
+    <string name="core_voice_model_cpp_base_body">Model ini menyeimbangkan akurasi dan kecepatan. Model ini menggunakan bahasa yang Anda gunakan untuk mendikte, dalam salah satu dari 99 bahasa yang diketahui Whisper, dan mendengarkan kata-kata Anda sendiri. Pilih ini jika model Kecil terlalu lambat.</string>
+    <string name="core_voice_model_cpp_large_body">Ini adalah model Whisper yang paling akurat. Ukuran unduhannya 1,1 GB. Hanya perangkat dengan memori besar yang dapat memuatnya. Model Turbo hampir sama akuratnya dan ukurannya setengahnya.</string>
+    <string name="core_voice_model_cpp_medium_body">Model ini memberikan akurasi yang hampir setara dengan desktop. Setiap frasa membutuhkan waktu beberapa detik. Model ini menggunakan hampir satu gigabyte memori saat berjalan.</string>
+    <string name="core_voice_model_cpp_small_body">Model ini memberikan akurasi terbaik yang masih berjalan dengan baik di ponsel. Model ini menggunakan bahasa yang Anda diktekan, dalam 99 bahasa apa pun yang diketahui Whisper, dan mendengarkan kata-kata Anda sendiri.</string>
+    <string name="core_voice_model_cpp_tiny_body">Ini adalah model tercepat. Model ini bekerja dengan baik dengan ucapan yang jelas, tetapi kebisingan mengurangi akurasi. Model ini menggunakan bahasa yang Anda diktekan dan mendengarkan kata-kata Anda sendiri.</string>
+    <string name="core_voice_model_cpp_turbo_body">Model ini hampir seakurat model terbesar, dengan ukuran setengahnya. Setiap frasa memerlukan beberapa detik, dan model ini tidak bisa menerjemahkan.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d bahasa</item>
         <item quantity="other">%1$d bahasa</item>
@@ -32,4 +38,5 @@
     <string name="core_voice_whisper_module_downloading">Bagian pengetikan suara luring papan tik sedang diunduh dari Google Play. Coba lagi nanti.</string>
     <string name="core_voice_whisper_module_restart">Bagian pengetikan suara luring baru saja selesai diinstal. Tutup dan buka kembali papan tik untuk menggunakannya.</string>
     <string name="core_voice_whisper_transcribe_error">Pengetikan suara tidak berfungsi. Coba lagi, atau pilih model yang lebih kecil.</string>
+    <string name="core_voice_whistle_checksum_error">Model yang diunduh rusak. Unduh kembali.</string>
 </resources>

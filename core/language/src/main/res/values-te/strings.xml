@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">కంప్యూటర్‌లో AltGr కీ టైప్ చేసే అక్షరాలు అదే కీలను నొక్కి పట్టుకోవడం ద్వారా వస్తాయి.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d డెడ్ కీ కంప్యూటర్‌లో తదుపరి అక్షరంపై యాసను ఉంచుతుంది. ఇక్కడ, ఆ యాస ఉన్న అక్షరాలు ప్రతి అక్షరాన్ని నొక్కి పట్టుకోవడం ద్వారా వస్తాయి.</item>
+        <item quantity="other">%1$d డెడ్ కీలు కంప్యూటర్‌లో తదుపరి అక్షరంపై యాసలను ఉంచుతాయి. ఇక్కడ, ఆ యాసలు ఉన్న అక్షరాలు ప్రతి అక్షరాన్ని నొక్కి పట్టుకోవడం ద్వారా వస్తాయి.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">ఈ ఫైల్ మీరు తెరవని %1$d ఇతర ఫైల్ (%2$s) పై ఆధారపడి ఉంటుంది. ఆ ఫైల్ మాత్రమే సెట్ చేసే కీలు లేవు.</item>
+        <item quantity="other">ఈ ఫైల్ మీరు తెరవని %1$d ఇతర ఫైళ్ల (%2$s) పై ఆధారపడి ఉంటుంది. ఆ ఫైళ్లు మాత్రమే సెట్ చేసే కీలు లేవు.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">అక్షరాలు లేని కీ నుండి %1$d అక్షరం ఫుల్ స్టాప్‌ను నొక్కి పట్టుకోవడంపై ఉంది.</item>
+        <item quantity="other">అక్షరాలు లేని కీలనుండి %1$d అక్షరాలు ఫుల్ స్టాప్‌ను నొక్కి పట్టుకోవడంపై ఉన్నాయి.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">యాప్‌కు ఫైల్‌లోని %1$d అక్షరం పేరు తెలియదు, కాబట్టి అది వదిలివేయబడింది: %2$s.</item>
+        <item quantity="other">యాప్‌కు ఫైల్‌లోని %1$d అక్షరాల పేర్లు తెలియవు, కాబట్టి అవి వదిలివేయబడ్డాయి: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">కీపై %1$d స్వైప్‌కు ఇక్కడ స్థానం లేదు, ఎందుకంటే ఈ కీబోర్డ్ ఆ స్వైప్‌ను మరొక పని కోసం ఉపయోగిస్తుంది. యాప్ దానిని తొలగించింది.</item>
+        <item quantity="other">కీలపై %1$d స్వైప్‌లకు ఇక్కడ స్థానం లేదు, ఎందుకంటే ఈ కీబోర్డ్ ఆ స్వైప్‌లను ఇతర పనుల కోసం ఉపయోగిస్తుంది. యాప్ వాటిని తొలగించింది.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">యాప్ %1$d కీని దానికి దగ్గరగా ఉన్న కీకి మార్చింది.</item>
         <item quantity="other">యాప్ %1$d కీలను వాటికి దగ్గరగా ఉన్న కీలకు మార్చింది.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">యాప్ %1$d అక్షరాలను ఈ కీబోర్డ్ రాసే రూపానికి మార్చింది.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">యాప్ నంబర్ల వరుసను తొలగించింది. నంబర్ వరుసను పొందడానికి లేఅవుట్ మరియు సైజులో దాన్ని ఆన్ చేయండి.</string>
+    <string name="core_lang_foreign_number_row_kept">ఫైల్ యొక్క నంబర్ల వరుస ఈ లేఅవుట్ యొక్క నంబర్ వరుస. లేఅవుట్ మరియు పరిమాణంలో నంబర్ వరుస ఆన్‌లో ఉన్నప్పుడు ఇది కనిపిస్తుంది.</string>
+    <string name="core_lang_foreign_pages_kept">AltGr వంటి ఫైల్ యొక్క అదనపు పేజీలు ఈ లేఅవుట్ యొక్క పేజీలు. వాటిని ఇక్కడ తెరవడానికి ఇతర కీబోర్డ్‌లో వాటిని తెరిచిన కీ నుండి స్వైప్ చేయండి.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d కీకి ప్రెస్-అండ్-హోల్డ్ అక్షరాలు లేవు. ఫైల్ వాటిని మీరు తెరవని రెండవ ఫైల్‌లో ఉంచుతుంది.</item>
         <item quantity="other">%1$d కీలకు ప్రెస్-అండ్-హోల్డ్ అక్షరాలు లేవు. ఫైల్ వాటిని మీరు తెరవని రెండవ ఫైల్‌లో ఉంచుతుంది.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">షిఫ్ట్ స్టేట్ లేదా ఇతర కీబోర్డ్‌లోని ఫీల్డ్‌తో %1$d కీ మారుతుంది. యాప్ అది విశ్రాంతిగా ఉన్నప్పుడు ఎలా కనిపిస్తుందో అలాగే ఉంచింది.</item>
         <item quantity="other">షిఫ్ట్ స్టేట్ లేదా ఇతర కీబోర్డ్‌లోని ఫీల్డ్‌తో %1$d కీలు మారుతాయి. యాప్ అవి విశ్రాంతిగా ఉన్నప్పుడు ఎలా కనిపిస్తాయో అలాగే ఉంచింది.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">ఫైల్‌లోని %1$d షిఫ్ట్ చేయబడిన పేజీ కీలు అది షిఫ్ట్ చేసే పేజీ కంటే వేరే చోట ఉన్నాయి. యాప్ అక్కడ క్యాపిటల్ అక్షరాలను ఉపయోగిస్తుంది.</item>
+        <item quantity="other">ఫైల్‌లోని %1$d షిఫ్ట్ చేయబడిన పేజీల కీలు అవి షిఫ్ట్ చేసే పేజీల కంటే వేరే చోట ఉన్నాయి. యాప్ అక్కడ క్యాపిటల్ అక్షరాలను ఉపయోగిస్తుంది.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">మరో కీబోర్డ్‌లో షిఫ్ట్ నొక్కినప్పుడు %1$d కీ వేర్వేరు ప్రెస్-అండ్-హోల్డ్ అక్షరాలను కలిగి ఉంటుంది. యాప్ షిఫ్ట్ చేయని వాటిని అలాగే ఉంచింది.</item>
+        <item quantity="other">మరో కీబోర్డ్‌లో షిఫ్ట్ నొక్కినప్పుడు %1$d కీలు వేర్వేరు ప్రెస్-అండ్-హోల్డ్ అక్షరాలను కలిగి ఉంటాయి. యాప్ షిఫ్ట్ చేయని వాటిని అలాగే ఉంచింది.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">ఇతర కీబోర్డ్ కీ వెడల్పులను భిన్నంగా కొలుస్తుంది. ఈ గ్రిడ్‌కు సరిపోయేలా యాప్ వెడల్పులను మార్చింది.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

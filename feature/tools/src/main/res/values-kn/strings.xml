@@ -3,8 +3,34 @@
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
     <string name="ftools_ai_stream_error">AI ಒದಗಿಸುವವರು ದೋಷದೊಂದಿಗೆ ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಕೊನೆಗೊಳಿಸಿದ್ದಾರೆ</string>
+    <string name="ftools_ai_tool_failed">ಟೂಲ್ ವಿಫಲವಾಗಿದೆ: %1$s. ಒಂದೇ ಇನ್‌ಪುಟ್‌ನೊಂದಿಗೆ ಅದನ್ನು ಮತ್ತೆ ಕರೆಯಬೇಡಿ.</string>
+    <string name="ftools_ai_tool_missing_argument">ಕರೆಗೆ ಅಗತ್ಯವಿರುವ \"%1$s\" ಮೌಲ್ಯವನ್ನು ಬಿಟ್ಟುಬಿಡಲಾಗಿದೆ.</string>
+    <string name="ftools_ai_tool_no_results">ಯಾವುದೇ ಫಲಿತಾಂಶಗಳಿಲ್ಲ.</string>
+    <string name="ftools_ai_tool_no_search">ಈ ಕೀಬೋರ್ಡ್‌ನಲ್ಲಿ ವೆಬ್ ಹುಡುಕಾಟವನ್ನು ಹೊಂದಿಸಲಾಗಿಲ್ಲ, ಆದ್ದರಿಂದ ಹುಡುಕಲು ಸಾಧ್ಯವಿಲ್ಲ. ನಿಮಗೆ ತಿಳಿದಿರುವ ವಿಷಯದಿಂದ ಉತ್ತರಿಸಿ ಮತ್ತು ಹುಡುಕಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ ಎಂದು ತಿಳಿಸಿ.</string>
+    <string name="ftools_ai_tool_reason_bad_url">ಕೀಬೋರ್ಡ್ ತೆರೆಯುವ ವೆಬ್ ವಿಳಾಸವಲ್ಲ</string>
+    <string name="ftools_ai_tool_reason_missing">ಮಾದರಿಯು %1$s ಅನ್ನು ಬಿಟ್ಟುಬಿಟ್ಟಿದೆ</string>
+    <string name="ftools_ai_tool_reason_no_search">ವೆಬ್ ಹುಡುಕಾಟವನ್ನು ಹೊಂದಿಸಲಾಗಿಲ್ಲ</string>
+    <string name="ftools_ai_tool_reason_unknown">ಮಾದರಿಯು ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲದ ಟೂಲ್ ಅನ್ನು ಕೇಳಿದೆ</string>
+    <string name="ftools_ai_tool_truncated">[ಪುಟವು ಈ ಹಂತದ ನಂತರ ಮುಂದುವರಿಯುತ್ತದೆ ಮತ್ತು ಕತ್ತರಿಸಲ್ಪಟ್ಟಿದೆ]</string>
+    <string name="ftools_ai_tool_unknown">%1$s ಎಂಬ ಹೆಸರಿನ ಯಾವುದೇ ಸಾಧನವಿಲ್ಲ.</string>
+    <string name="ftools_mcp_declined">ಬಳಕೆದಾರರು ಈ ಕರೆಯನ್ನು ಅನುಮತಿಸಲಿಲ್ಲ. ಈ ಉತ್ತರದಲ್ಲಿ ಈ ಉಪಕರಣವನ್ನು ಮತ್ತೆ ಕರೆಯಬೇಡಿ. ಇಲ್ಲದೆ ಉತ್ತರಿಸಿ ಮತ್ತು ನೀವು ಏನು ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ ಎಂಬುದನ್ನು ತಿಳಿಸಿ.</string>
+    <string name="ftools_mcp_empty">ಉಪಕರಣವು ಚಲಿಸಿದೆ ಮತ್ತು ಏನನ್ನೂ ಹಿಂತಿರುಗಿಸಲಿಲ್ಲ.</string>
+    <string name="ftools_mcp_error_needs_input">ಸರ್ವರ್ ಹೆಚ್ಚಿನ ಇನ್‌ಪುಟ್ ಕೇಳಿದೆ, ಮತ್ತು ಕೀಬೋರ್ಡ್ ಅದನ್ನು ಇನ್ನೂ ನೀಡಲು ಸಾಧ್ಯವಿಲ್ಲ.</string>
+    <string name="ftools_mcp_error_no_version">ಈ ಸರ್ವರ್ ಕೀಬೋರ್ಡ್‌ಗೆ ತಿಳಿದಿರುವುದಕ್ಕಿಂತ ಹೊಸ ಆವೃತ್ತಿಯ MCP ಅನ್ನು ಬಳಸುತ್ತಿದೆ.</string>
+    <string name="ftools_mcp_error_not_mcp">ಈ ವಿಳಾಸವು MCP ಸರ್ವರ್‌ನಂತೆ ಉತ್ತರಿಸಲಿಲ್ಲ. ವಿಳಾಸ ಮತ್ತು ಪ್ರಕಾರವನ್ನು ಪರಿಶೀಲಿಸಿ.</string>
+    <string name="ftools_mcp_error_server">ಸರ್ವರ್ ದೋಷವನ್ನು ಕಳುಹಿಸಿದೆ: %1$s</string>
+    <string name="ftools_mcp_error_sign_in">ಈ ಸರ್ವರ್‌ಗೆ ನೀವು ಸೈನ್ ಇನ್ ಆಗುವ ಅಗತ್ಯವಿದೆ, ಮತ್ತು ಕೀಬೋರ್ಡ್ ಇನ್ನೂ ಅದನ್ನು ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ. ಸರ್ವರ್ ಟೋಕನ್‌ಗಳು ಅಥವಾ ಕೀಗಳನ್ನು ನೀಡಿದರೆ, ಒಂದನ್ನು ಹೆಡರ್ ಆಗಿ ಸೇರಿಸಿ.</string>
+    <string name="ftools_mcp_omitted">[ಟೂಲ್ ನೀವು ಇಲ್ಲಿ ಓದಲು ಸಾಧ್ಯವಾಗದ ವಿಷಯವನ್ನು ಸಹ ಹಿಂತಿರುಗಿಸಿದೆ: %1$s]</string>
+    <string name="ftools_mcp_reason_declined">ನೀವು ಅದನ್ನು ಅನುಮತಿಸಲಿಲ್ಲ</string>
+    <string name="ftools_mcp_reason_stopped">ಚಾಲನೆಯಾಗುವ ಮುನ್ನವೇ ನಿಲ್ಲಿಸಲಾಗಿದೆ</string>
+    <string name="ftools_mcp_reason_tool_error">ಉಪಕರಣವು ದೋಷವನ್ನು ವರದಿ ಮಾಡಿದೆ</string>
+    <string name="ftools_mcp_stopped">ಕರೆ ನಡೆಯುವ ಮೊದಲೇ ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ.</string>
+    <string name="ftools_mcp_tool_error">ಉಪಕರಣವು ದೋಷವನ್ನು ವರದಿ ಮಾಡಿದೆ: %1$s</string>
+    <string name="ftools_mcp_truncated">[ಉತ್ತರವು ಈ ಹಂತವನ್ನು ಮೀರಿ ಮುಂದುವರಿಯುತ್ತದೆ ಮತ್ತು ಅದನ್ನು ಕತ್ತರಿಸಲಾಗಿದೆ]</string>
     <string name="ftools_photo_error_failed">ಅಪ್ಲಿಕೇಶನ್ ಫೋಟೋಗಳನ್ನು ಪಡೆಯಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ</string>
     <string name="ftools_photo_error_offline">ಅಪ್ಲಿಕೇಶನ್ ಫೋಟೋ ಸೇವೆಯನ್ನು ತಲುಪಲು ಸಾಧ್ಯವಿಲ್ಲ. ನಿಮ್ಮ ನೆಟ್‌ವರ್ಕ್ ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.</string>
     <string name="ftools_photo_error_timeout">ಫೋಟೋ ಸೇವೆಯು ಉತ್ತರಿಸಲು ಹೆಚ್ಚು ಸಮಯ ತೆಗೆದುಕೊಂಡಿದೆ</string>
     <string name="ftools_search_error_json_disabled">ಈ SearXNG ಇನ್ಸ್ಟೆನ್ಸ್ ತನ್ನ JSON API ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿಲ್ಲ. ಅದರ settings.yml ನಲ್ಲಿ search.formats ಗೆ &lt;b&gt;json&lt;/b&gt; ಅನ್ನು ಸೇರಿಸಿ, ಅಥವಾ ಇನ್ನೊಂದು ಇನ್ಸ್ಟೆನ್ಸ್ ಬಳಸಿ.</string>
+    <string name="ftools_search_error_searx_limited">ಈ SearXNG ನಿದರ್ಶನವು ಸದ್ಯಕ್ಕೆ ಅಪ್ಲಿಕೇಶನ್‌ಗಳನ್ನು ತಿರಸ್ಕರಿಸುತ್ತಿದೆ (HTTP 429). ಸಾರ್ವಜನಿಕ ನಿದರ್ಶನಗಳು ಬ್ರೌಸರ್‌ನಿಂದ ಬರದ ವಿನಂತಿಗಳನ್ನು ಮಿತಿಗೊಳಿಸುತ್ತವೆ. ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ, ಅಥವಾ ನಿಮ್ಮ ಸ್ವಂತ ನಿದರ್ಶನವನ್ನು ಬಳಸಿ ಅಥವಾ ಅದರ JSON API ಅನ್ನು ಅನುಮತಿಸುವ ಒಂದನ್ನು ಬಳಸಿ.</string>
+    <string name="ftools_web_fetch_bad_url">ಇದು ಈ ಕೀಬೋರ್ಡ್ ತೆರೆಯುವ ವೆಬ್ ವಿಳಾಸವಲ್ಲ. ಪೂರ್ಣ http:// ಅಥವಾ https:// ವಿಳಾಸವನ್ನು ನೀಡಿ.</string>
 </resources>

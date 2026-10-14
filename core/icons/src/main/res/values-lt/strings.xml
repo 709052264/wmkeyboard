@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">Programa atmetė „%1$s“. Programa negali jos išsaugoti.</string>
     <string name="core_icons_repair_svg_unreadable">Programa atmetė „%1$s“. Programa negali nuskaityti jos SVG failo.</string>
+    <string name="core_icons_slot_arrow_down_label">Rodyklė žemyn</string>
+    <string name="core_icons_slot_arrow_left_label">Rodyklė į kairę</string>
+    <string name="core_icons_slot_arrow_right_label">Rodyklė į dešinę</string>
+    <string name="core_icons_slot_arrow_up_label">Rodyklė aukštyn</string>
     <string name="core_icons_slot_backspace_label">Grįžties klavišas</string>
+    <string name="core_icons_slot_caps_lock_key_label">Didžiųjų raidžių klavišas</string>
     <string name="core_icons_slot_caps_lock_label">Didžiųjų raidžių užraktas</string>
     <string name="core_icons_slot_emoji_activities_label">Veikla</string>
     <string name="core_icons_slot_emoji_animals_label">Gyvūnai</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Įvesti: siųsti</string>
     <string name="core_icons_slot_forward_delete_label">Trinti į priekį</string>
     <string name="core_icons_slot_globe_label">Perjungti kalbą</string>
+    <string name="core_icons_slot_hide_keys_label">Slėpti klavišus (aparatinė klaviatūra)</string>
     <string name="core_icons_slot_incognito_label">Inkognito ženklelis</string>
     <string name="core_icons_slot_input_method_picker_label">Perjungti klaviatūrą</string>
     <string name="core_icons_slot_panel_back_label">Atgal prie klavišų</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Uždaryti paiešką</string>
     <string name="core_icons_slot_shift_label">Lygio keitimas (Shift)</string>
     <string name="core_icons_slot_shift_on_label">Didžiosios raidės (įjungta)</string>
+    <string name="core_icons_slot_show_keys_label">Rodyti klavišus (techninė klaviatūra)</string>
     <string name="core_icons_slot_suggestions_expand_label">Rodyti įrankius</string>
+    <string name="core_icons_slot_tab_label">Tab klavišas</string>
     <string name="core_icons_slot_toolbox_label">Įrankių dėžė</string>
 </resources>

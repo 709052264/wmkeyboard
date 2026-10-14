@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">கீழ் வலது</string>
     <string name="core_settings_board_corner_top_left_label">மேல் இடது</string>
     <string name="core_settings_board_corner_top_right_label">மேல் வலது</string>
+    <string name="core_settings_clip_swipe_pin_left_label">இடதுபுறம் பின், வலதுபுறம் நீக்கு</string>
+    <string name="core_settings_clip_swipe_pin_off_label">இரு வழிகளிலும் நீக்கு</string>
+    <string name="core_settings_clip_swipe_pin_right_label">வலது பின் (Pin), இடது நீக்கு</string>
     <string name="core_settings_clip_time_copied_label">நகலெடுக்கப்பட்ட நேரம்</string>
     <string name="core_settings_clip_time_expires_label">மீதமுள்ள நேரம்</string>
     <string name="core_settings_clip_time_off_label">ஒன்றும் இல்லை</string>

@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">ആപ്പ് \"%1$s\" ഉപേക്ഷിച്ചു. ആപ്പിന് അത് സംരക്ഷിക്കാൻ കഴിയില്ല.</string>
     <string name="core_icons_repair_svg_unreadable">ആപ്പ് \"%1$s\" ഒഴിവാക്കി. ആപ്പിന് അതിന്റെ SVG ഫയൽ വായിക്കാൻ കഴിയില്ല.</string>
+    <string name="core_icons_slot_arrow_down_label">താഴേക്കുള്ള അമ്പ്</string>
+    <string name="core_icons_slot_arrow_left_label">ഇടത് അമ്പടയാളം</string>
+    <string name="core_icons_slot_arrow_right_label">വലത് അമ്പ്</string>
+    <string name="core_icons_slot_arrow_up_label">മുകളിലേക്കുള്ള അമ്പ്</string>
     <string name="core_icons_slot_backspace_label">ബാക്ക്‌സ്‌പേസ്</string>
+    <string name="core_icons_slot_caps_lock_key_label">ക്യാപ്‌സ് ലോക്ക് കീ</string>
     <string name="core_icons_slot_caps_lock_label">ക്യാപ്സ് ലോക്ക്</string>
     <string name="core_icons_slot_emoji_activities_label">പ്രവർത്തനങ്ങൾ</string>
     <string name="core_icons_slot_emoji_animals_label">മൃഗങ്ങൾ</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">എന്റർ: അയയ്ക്കുക</string>
     <string name="core_icons_slot_forward_delete_label">ഫോർവേഡ് ഡിലീറ്റ്</string>
     <string name="core_icons_slot_globe_label">ഭാഷ മാറ്റുക</string>
+    <string name="core_icons_slot_hide_keys_label">കീകൾ മറയ്ക്കുക (ഹാർഡ്‌വെയർ കീബോർഡ്)</string>
     <string name="core_icons_slot_incognito_label">ഇൻകോഗ്നിറ്റോ ബാഡ്ജ്</string>
     <string name="core_icons_slot_input_method_picker_label">കീബോർഡ് മാറ്റുക</string>
     <string name="core_icons_slot_panel_back_label">കീകളിലേക്ക് മടങ്ങുക</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">തിരയൽ അവസാനിപ്പിക്കുക</string>
     <string name="core_icons_slot_shift_label">ഷിഫ്റ്റ്</string>
     <string name="core_icons_slot_shift_on_label">ഷിഫ്റ്റ് (ഓൺ)</string>
+    <string name="core_icons_slot_show_keys_label">കീകൾ കാണിക്കുക (ഹാർഡ്‌വെയർ കീബോർഡ്)</string>
     <string name="core_icons_slot_suggestions_expand_label">ടൂളുകൾ കാണിക്കുക</string>
+    <string name="core_icons_slot_tab_label">ടാബ് കീ</string>
     <string name="core_icons_slot_toolbox_label">ടൂൾബോക്സ്</string>
 </resources>

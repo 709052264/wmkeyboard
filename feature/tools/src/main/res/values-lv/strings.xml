@@ -3,8 +3,34 @@
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
     <string name="ftools_ai_stream_error">AI pakalpojumu sniedzējs pabeidza atbildi ar kļūdu</string>
+    <string name="ftools_ai_tool_failed">Rīks neizdevās: %1$s. Nesauciet to vēlreiz ar to pašu ievadi.</string>
+    <string name="ftools_ai_tool_missing_argument">Izsaukumā trūka nepieciešamās \"%1$s\" vērtības.</string>
+    <string name="ftools_ai_tool_no_results">Nav rezultātu.</string>
+    <string name="ftools_ai_tool_no_search">Meklēšana tīmeklī šajā tastatūrā nav iestatīta, tāpēc meklēšana nav iespējama. Atbildiet, balstoties uz to, ko jau zināt, un pasakiet, ka nevarējāt veikt meklēšanu.</string>
+    <string name="ftools_ai_tool_reason_bad_url">Tīmekļa adrese, kuru tastatūra neatvērs</string>
+    <string name="ftools_ai_tool_reason_missing">Modelis izlaida %1$s</string>
+    <string name="ftools_ai_tool_reason_no_search">Meklēšana tīmeklī nav iestatīta</string>
+    <string name="ftools_ai_tool_reason_unknown">Modelis pieprasīja rīku, kura nav</string>
+    <string name="ftools_ai_tool_truncated">[lapa turpinās aiz šī punkta un tika nogriezta]</string>
+    <string name="ftools_ai_tool_unknown">Nav rīka ar nosaukumu %1$s.</string>
+    <string name="ftools_mcp_declined">Lietotājs neatļāva šo zvanu. Neizsauciet šo rīku vēlreiz šajā atbildē. Atbildiet bez tā un pasakiet, ko nevarējāt izdarīt.</string>
+    <string name="ftools_mcp_empty">Rīks tika izpildīts un neko neatgrieza.</string>
+    <string name="ftools_mcp_error_needs_input">Serveris pieprasīja papildu ievadi, un tastatūra to vēl nevar sniegt.</string>
+    <string name="ftools_mcp_error_no_version">Šis serveris izmanto jaunāku MCP versiju, nekā tastatūra atpazīst.</string>
+    <string name="ftools_mcp_error_not_mcp">Šī adrese neatbildēja kā MCP serveris. Pārbaudiet adresi un veidu.</string>
+    <string name="ftools_mcp_error_server">Serveris nosūtīja kļūdu: %1$s</string>
+    <string name="ftools_mcp_error_sign_in">Šim serverim ir nepieciešams, lai jūs pierakstītos, un tastatūra to vēl nevar izdarīt. Ja serveris izsniedz marķierus vai atslēgas, pievienojiet vienu kā galveni.</string>
+    <string name="ftools_mcp_omitted">[rīks arī nosūtīja atpakaļ saturu, ko šeit nevarat izlasīt: %1$s]</string>
+    <string name="ftools_mcp_reason_declined">Jūs to neatļāvāt</string>
+    <string name="ftools_mcp_reason_stopped">Apturēts pirms palaišanas</string>
+    <string name="ftools_mcp_reason_tool_error">Rīks ziņoja par kļūdu</string>
+    <string name="ftools_mcp_stopped">Zvans tika atcelts pirms tā izpildes.</string>
+    <string name="ftools_mcp_tool_error">Rīks ziņoja par kļūdu: %1$s</string>
+    <string name="ftools_mcp_truncated">[atbilde turpinās aiz šīs vietas un tika nogriezta]</string>
     <string name="ftools_photo_error_failed">Lietotne nevarēja iegūt fotoattēlus</string>
     <string name="ftools_photo_error_offline">Lietotne nevar sasniegt fotoattēlu pakalpojumu. Pārbaudiet tīkla savienojumu un mēģiniet vēlreiz.</string>
     <string name="ftools_photo_error_timeout">Fotoattēlu pakalpojums atbildēja pārāk ilgi</string>
     <string name="ftools_search_error_json_disabled">Šī SearXNG instance nav aktivizējusi savu JSON API. Pievienojiet &lt;b&gt;json&lt;/b&gt; pie &lt;b&gt;search.formats&lt;/b&gt; tās settings.yml failā vai izmantojiet citu instanci.</string>
+    <string name="ftools_search_error_searx_limited">Šī SearXNG instance pagaidām noraida lietotnes (HTTP 429). Publiskās instances ierobežo pieprasījumus, kas nenāk no pārlūkprogrammas. Mēģiniet vēlāk vai izmantojiet savu instanci, vai tādu, kas atļauj tās JSON API.</string>
+    <string name="ftools_web_fetch_bad_url">Šī nav tīmekļa adrese, ko šī tastatūra atvērs. Norādiet pilnu http:// vai https:// adresi.</string>
 </resources>

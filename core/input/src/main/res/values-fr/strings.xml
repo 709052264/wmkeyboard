@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Dictionnaire japonais kana vers kanji</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Une table de lectures Jyutping vers les caractères Hanzi, 163 000 entrées. Le clavier a besoin de ce pack pour la conversion en cantonais.</string>
     <string name="core_input_cjk_pack_jyutping_title">Dictionnaire cantonais Jyutping</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Quels mots suivent lesquels, comptés à partir de textes web et d\'actualités en chinois. Livré avec le dictionnaire Pinyin. Avec lui, des initiales comme wbxh donnent 我不喜欢 en premier et non deux mots sans rapport.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Paires de mots chinois</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Caractères et phrases Hanzi issus de CC-CEDICT, 120 000 entrées. Le clavier a besoin de ce pack pour la conversion chinoise.</string>
     <string name="core_input_cjk_pack_pinyin_title">Dictionnaire chinois Pinyin</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Phrases d\'OpenCC, 50 000 entrées, environ 1 Mo. Avec les caractères traditionnels activés, le clavier l\'utilise pour écrire la forme correcte du mot, comme 頭髮 et non 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Tableau de phrases en caractères traditionnels</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Une table de l\'ordre des traits pour les caractères Hanzi. Le clavier a besoin de ce pack pour la disposition des traits.</string>
     <string name="core_input_cjk_pack_stroke_title">Dictionnaire de traits chinois (笔画)</string>
+    <string name="core_input_double_pinyin_custom_label">Personnalisé</string>
     <string name="core_input_double_pinyin_off_label">Désactivé (Pinyin complet)</string>
+    <string name="core_input_im_note_candidates">Pour certaines touches, cette méthode propose une liste de choix. Le clavier utilise toujours le premier choix.</string>
+    <string name="core_input_im_note_missing_files">Ces fichiers n\'ont pas été sélectionnés, leur partie est donc manquante : %1$s. Pour les inclure, importez à nouveau et sélectionnez-les ensemble.</string>
+    <string name="core_input_im_note_module">Cette méthode utilise un module complémentaire, tel qu\'Anthy, que le clavier ne peut pas exécuter. Les touches qui l\'utilisent ne font rien ici.</string>
+    <string name="core_input_im_note_other_method">Cette méthode donne certaines touches à une autre méthode de saisie. Cette partie ne fonctionne pas ici.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">L\'application ne peut pas lire %1$d règle d\'orthographe, elle l\'ignore donc.</item>
+        <item quantity="other">L\'application ne peut pas lire %1$d règles d\'orthographe, elle les ignore donc.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Cette méthode utilise la barre d\'espace comme une touche, par exemple pour un ton. Ici, la barre d\'espace saisit toujours un espace.</string>
+    <string name="core_input_im_note_truncated">La table est très grande, l\'application n\'a donc conservé que sa première partie.</string>
+    <string name="core_input_im_note_unused_files">L\'application n\'a pas utilisé ces fichiers : %1$s.</string>
+    <string name="core_input_im_refused_broken">Le fichier contient une erreur, l\'application ne peut donc pas le lire : %1$s</string>
+    <string name="core_input_im_refused_empty">Le fichier ne contient aucun élément à saisir.</string>
+    <string name="core_input_im_refused_no_dictionary">Le schéma nécessite son dictionnaire. Importez à nouveau et sélectionnez également %1$s.</string>
+    <string name="core_input_im_refused_not_method">L\'application ne peut pas lire cela comme une méthode de saisie. Elle lit les tables .cin, les schémas et dictionnaires Rime (.schema.yaml, .dict.yaml) et les fichiers .mim m17n.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">L\'application a lu ceci comme une table .cin avec %1$d entrée. Tapez un code, puis choisissez le caractère dans la barre de suggestion.</item>
+        <item quantity="other">L\'application a lu ceci comme une table .cin avec %1$d entrées. Tapez un code, puis choisissez le caractère dans la barre de suggestion.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">L\'application a détecté ceci comme une méthode de saisie m17n avec %1$d règle. Les touches saisissent le texte au fur et à mesure que vous tapez.</item>
+        <item quantity="other">L\'application a détecté ceci comme une méthode de saisie m17n avec %1$d règles. Les touches saisissent le texte au fur et à mesure que vous tapez.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">L\'application a lu ceci comme un schéma Rime avec %1$d entrée de dictionnaire. Tapez les syllabes, puis choisissez les mots dans la barre de suggestions.</item>
+        <item quantity="other">L\'application a lu ceci comme un schéma Rime avec %1$d entrées de dictionnaire. Tapez les syllabes, puis choisissez les mots dans la barre de suggestions.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">L\'application a lu ceci comme une table de codes Rime avec %1$d entrée. Tapez un code, puis choisissez le caractère dans la barre de suggestions.</item>
+        <item quantity="other">L\'application a lu ceci comme une table de codes Rime avec %1$d entrées. Tapez un code, puis choisissez le caractère dans la barre de suggestions.</item>
+    </plurals>
 </resources>

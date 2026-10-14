@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">右下角</string>
     <string name="core_settings_board_corner_top_left_label">左上角</string>
     <string name="core_settings_board_corner_top_right_label">右上角</string>
+    <string name="core_settings_clip_swipe_pin_left_label">向左固定，向右删除</string>
+    <string name="core_settings_clip_swipe_pin_off_label">双向删除</string>
+    <string name="core_settings_clip_swipe_pin_right_label">向右滑动固定，向左滑动删除</string>
     <string name="core_settings_clip_time_copied_label">复制时间</string>
     <string name="core_settings_clip_time_expires_label">剩余时间</string>
     <string name="core_settings_clip_time_off_label">无</string>

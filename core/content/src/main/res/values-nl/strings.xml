@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">CODE</string>
     <string name="core_content_clip_entity_phone_label">Telefoonnummer</string>
     <string name="core_content_clip_entity_phone_tag">TELEFOON</string>
+    <string name="core_content_clip_entity_place_label">Plek</string>
+    <string name="core_content_clip_entity_place_tag">PLAATS</string>
     <string name="core_content_clip_entity_url_label">Link</string>
     <string name="core_content_clip_entity_url_tag">LINK</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">De app kan WOFF-webfonts niet lezen. Gebruik de .ttf- of .otf-versie van het lettertype.</string>
     <string name="core_content_font_error_woff2">De app kan geen WOFF2-webfonts lezen. Gebruik de .ttf- of .otf-versie van het lettertype.</string>
     <string name="core_content_font_error_zip">Dit bestand is een zip-archief, geen lettertype.</string>
+    <string name="core_content_note_tag_ideas">Ideeën</string>
+    <string name="core_content_note_tag_important">Belangrijk</string>
+    <string name="core_content_note_tag_personal">Persoonlijk</string>
+    <string name="core_content_note_tag_school">School</string>
+    <string name="core_content_note_tag_study">Studie</string>
+    <string name="core_content_note_tag_work">Werk</string>
     <string name="core_content_selection_macro_add_contact">Contact</string>
     <string name="core_content_selection_macro_calendar">Agenda</string>
     <string name="core_content_selection_macro_call">Bellen</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Uitspreken</string>
     <string name="core_content_selection_macro_replace">Vervangen</string>
+    <string name="core_content_selection_macro_save_note">Opslaan als notitie</string>
     <string name="core_content_selection_macro_search">Zoeken</string>
     <string name="core_content_selection_macro_share">Delen</string>
     <string name="core_content_selection_macro_sms">Bericht</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Vertalen</string>
     <string name="core_content_selection_macro_url_decode">Decoderen</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Het bestand bevat ook %1$d woord zonder snelkoppeling. Om dit aan je woorden toe te voegen, open het bestand vanuit Persoonlijk woordenboek.</item>
+        <item quantity="other">Het bestand bevat ook %1$d woorden zonder snelkoppeling. Om deze aan je woorden toe te voegen, open het bestand vanuit Persoonlijk woordenboek.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">De app heeft %2$d uitbreiding weggelaten uit \"%1$s\".</item>
         <item quantity="other">De app heeft %2$d uitbreidingen weggelaten uit \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">De app heeft het patroon uit \"%1$s\" verwijderd. Het was langer dan %2$d teken.</item>
         <item quantity="other">De app heeft het patroon uit \"%1$s\" verwijderd. Het was langer dan %2$d tekens.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">De app heeft %1$d rij zonder tekst verwijderd.</item>
+        <item quantity="other">De app heeft %1$d rijen zonder tekst verwijderd.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">De app heeft \"%1$s\" ingekort. Het was langer dan %2$d teken.</item>
         <item quantity="other">De app heeft \"%1$s\" ingekort. Het was langer dan %2$d tekens.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">De app heeft %1$d trigger verwijderd die het toetsenbord niet kan controleren. Het fragment blijft in de lijst staan.</item>
+        <item quantity="other">De app heeft %1$d triggers verwijderd die het toetsenbord niet kan controleren. De fragmenten blijven in de lijst staan.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">De naam van de app waarin je typt</string>
     <string name="core_content_snippet_var_clip_info">Het nieuwste klemborditem</string>

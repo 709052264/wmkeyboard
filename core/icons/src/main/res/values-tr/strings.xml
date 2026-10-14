@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">Uygulama \"%1$s\" öğesini bıraktı. Uygulama bunu kaydedemiyor.</string>
     <string name="core_icons_repair_svg_unreadable">Uygulama \"%1$s\" öğesini bıraktı. Uygulama SVG dosyasını okuyamıyor.</string>
+    <string name="core_icons_slot_arrow_down_label">Aşağı ok</string>
+    <string name="core_icons_slot_arrow_left_label">Sola ok</string>
+    <string name="core_icons_slot_arrow_right_label">Sağ ok</string>
+    <string name="core_icons_slot_arrow_up_label">Yukarı ok</string>
     <string name="core_icons_slot_backspace_label">Geri silme</string>
+    <string name="core_icons_slot_caps_lock_key_label">Büyük harf kilidi tuşu</string>
     <string name="core_icons_slot_caps_lock_label">Büyük harf kilidi</string>
     <string name="core_icons_slot_emoji_activities_label">Aktiviteler</string>
     <string name="core_icons_slot_emoji_animals_label">Hayvanlar</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: gönder</string>
     <string name="core_icons_slot_forward_delete_label">İleri sil</string>
     <string name="core_icons_slot_globe_label">Dili değiştir</string>
+    <string name="core_icons_slot_hide_keys_label">Tuşları gizle (donanım klavyesi)</string>
     <string name="core_icons_slot_incognito_label">Gizli mod rozeti</string>
     <string name="core_icons_slot_input_method_picker_label">Klavyeyi değiştir</string>
     <string name="core_icons_slot_panel_back_label">Tuşlara geri dön</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Aramayı kapat</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (açık)</string>
+    <string name="core_icons_slot_show_keys_label">Tuşları göster (donanım klavyesi)</string>
     <string name="core_icons_slot_suggestions_expand_label">Araçları göster</string>
+    <string name="core_icons_slot_tab_label">Sekme tuşu</string>
     <string name="core_icons_slot_toolbox_label">Araç kutusu</string>
 </resources>

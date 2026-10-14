@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Adâncurile mării</string>
     <string name="core_theme_builtin_facet_label">Facet</string>
     <string name="core_theme_builtin_forest_label">Pădure</string>
+    <string name="core_theme_builtin_frost_label">Îngheț</string>
+    <string name="core_theme_builtin_frost_light_label">Frost light</string>
+    <string name="core_theme_builtin_frost_liquid_label">Lichid înghețat</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Imagine de fundal înghețată</string>
     <string name="core_theme_builtin_glacier_label">Ghețar</string>
     <string name="core_theme_builtin_mint_label">Mentă</string>
     <string name="core_theme_builtin_nebula_label">Nebuloasă</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Zăpadă</string>
     <string name="core_theme_builtin_sunset_drift_label">Sunset drift</string>
     <string name="core_theme_builtin_sunset_label">Apus</string>
+    <string name="core_theme_family_frost_label">Îngheț</string>
     <string name="core_theme_family_gradient_label">Degradeuri</string>
     <string name="core_theme_family_ocean_label">Amurg</string>
     <string name="core_theme_family_snow_label">Pastel</string>
+    <string name="core_theme_palette_style_expressive">Expresiv</string>
+    <string name="core_theme_palette_style_fidelity">Fidelitate</string>
+    <string name="core_theme_palette_style_fruit_salad">Salată de fructe</string>
+    <string name="core_theme_palette_style_monochrome">Monocrom</string>
+    <string name="core_theme_palette_style_neutral">Neutru</string>
+    <string name="core_theme_palette_style_rainbow">Curcubeu</string>
+    <string name="core_theme_palette_style_tonal_spot">Punct tonal</string>
+    <string name="core_theme_palette_style_vibrant">Vibrant</string>
 </resources>

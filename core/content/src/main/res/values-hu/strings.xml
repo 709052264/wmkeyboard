@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">KÓD</string>
     <string name="core_content_clip_entity_phone_label">Telefonszám</string>
     <string name="core_content_clip_entity_phone_tag">TELEFON</string>
+    <string name="core_content_clip_entity_place_label">Hely</string>
+    <string name="core_content_clip_entity_place_tag">HELY</string>
     <string name="core_content_clip_entity_url_label">Link</string>
     <string name="core_content_clip_entity_url_tag">LINK</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Az alkalmazás nem tudja olvasni a WOFF webes betűtípusokat. Használd a betűtípus .ttf vagy .otf verzióját.</string>
     <string name="core_content_font_error_woff2">Az alkalmazás nem tudja olvasni a WOFF2 webes betűtípusokat. Használja a betűtípus .ttf vagy .otf verzióját.</string>
     <string name="core_content_font_error_zip">Ez a fájl egy zip archívum, nem betűtípus.</string>
+    <string name="core_content_note_tag_ideas">Ötletek</string>
+    <string name="core_content_note_tag_important">Fontos</string>
+    <string name="core_content_note_tag_personal">Személyes</string>
+    <string name="core_content_note_tag_school">Iskola</string>
+    <string name="core_content_note_tag_study">Tanulás</string>
+    <string name="core_content_note_tag_work">Munka</string>
     <string name="core_content_selection_macro_add_contact">Névjegy</string>
     <string name="core_content_selection_macro_calendar">Naptár</string>
     <string name="core_content_selection_macro_call">Hívás</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Felolvasás</string>
     <string name="core_content_selection_macro_replace">Csere</string>
+    <string name="core_content_selection_macro_save_note">Mentés jegyzetként</string>
     <string name="core_content_selection_macro_search">Keresés</string>
     <string name="core_content_selection_macro_share">Megosztás</string>
     <string name="core_content_selection_macro_sms">Üzenet</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Fordítás</string>
     <string name="core_content_selection_macro_url_decode">Dekódolás</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">A fájl tartalmaz még %1$d olyan szót, amelyhez nincs parancsikon. Ha hozzá szeretné adni a szavaihoz, nyissa meg a fájlt a Személyes szótárból.</item>
+        <item quantity="other">A fájl tartalmaz még %1$d olyan szót, amelyhez nincs parancsikon. Ha hozzá szeretné adni őket a szavaihoz, nyissa meg a fájlt a Személyes szótárból.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Az alkalmazás %2$d kiterjesztést hagyott ki a(z) \"%1$s\"-ből.</item>
         <item quantity="other">Az alkalmazás %2$d kiterjesztést hagyott ki a(z) \"%1$s\"-ből.</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Az alkalmazás eltávolította a mintát a(z) \"%1$s\" elemből. Hosszabb volt, mint %2$d karakter.</item>
         <item quantity="other">Az alkalmazás eltávolította a mintát a(z) \"%1$s\" elemből. Hosszabb volt, mint %2$d karakter.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Az alkalmazás eldobott %1$d sort, amely nem tartalmaz szöveget.</item>
+        <item quantity="other">Az alkalmazás eldobott %1$d sort, amelyek nem tartalmaznak szöveget.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Az alkalmazás lerövidítette a(z) \"%1$s\" szöveget. Hosszabb volt, mint %2$d karakter.</item>
         <item quantity="other">Az alkalmazás lerövidítette a(z) \"%1$s\" szöveget. Hosszabb volt, mint %2$d karakter.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Az alkalmazás eltávolított %1$d triggert, amelyet a billentyűzet nem tud figyelni. A kódrészlete a listában marad.</item>
+        <item quantity="other">Az alkalmazás eltávolított %1$d triggert, amelyet a billentyűzet nem tud figyelni. A kódrészleteik a listában maradnak.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Annak az alkalmazásnak a neve, amelyben gépel</string>
     <string name="core_content_snippet_var_clip_info">A legújabb vágólap-bejegyzés</string>

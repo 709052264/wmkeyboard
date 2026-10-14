@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">Programu imeacha \"%1$s\". Programu haiwezi kuihifadhi.</string>
     <string name="core_icons_repair_svg_unreadable">Programu imeondoa \"%1$s\". Programu haiwezi kusoma faili yake ya SVG.</string>
+    <string name="core_icons_slot_arrow_down_label">Mshale wa chini</string>
+    <string name="core_icons_slot_arrow_left_label">Mshale kushoto</string>
+    <string name="core_icons_slot_arrow_right_label">Mshale wa kulia</string>
+    <string name="core_icons_slot_arrow_up_label">Mshale juu</string>
     <string name="core_icons_slot_backspace_label">Futa</string>
+    <string name="core_icons_slot_caps_lock_key_label">Kitufe cha Caps lock</string>
     <string name="core_icons_slot_caps_lock_label">Caps lock</string>
     <string name="core_icons_slot_emoji_activities_label">Shughuli</string>
     <string name="core_icons_slot_emoji_animals_label">Wanyama</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: tuma</string>
     <string name="core_icons_slot_forward_delete_label">Futa mbele</string>
     <string name="core_icons_slot_globe_label">Badilisha lugha</string>
+    <string name="core_icons_slot_hide_keys_label">Ficha funguo (kibodi ya maunzi)</string>
     <string name="core_icons_slot_incognito_label">Beji ya fiche</string>
     <string name="core_icons_slot_input_method_picker_label">Badilisha kibodi</string>
     <string name="core_icons_slot_panel_back_label">Rudi kwenye funguo</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Funga utafutaji</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (imewashwa)</string>
+    <string name="core_icons_slot_show_keys_label">Onyesha funguo (kibodi ya maunzi)</string>
     <string name="core_icons_slot_suggestions_expand_label">Onyesha zana</string>
+    <string name="core_icons_slot_tab_label">Ufunguo wa Tab</string>
     <string name="core_icons_slot_toolbox_label">Sanduku la zana</string>
 </resources>

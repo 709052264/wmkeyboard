@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Chini kulia</string>
     <string name="core_settings_board_corner_top_left_label">Juu kushoto</string>
     <string name="core_settings_board_corner_top_right_label">Juu kulia</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Kushoto kubandika, kulia kufuta</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Futa pande zote mbili</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Kulia kubandika, kushoto kufuta</string>
     <string name="core_settings_clip_time_copied_label">Muda uliyonakiliwa</string>
     <string name="core_settings_clip_time_expires_label">Muda uliobaki</string>
     <string name="core_settings_clip_time_off_label">Hakuna</string>

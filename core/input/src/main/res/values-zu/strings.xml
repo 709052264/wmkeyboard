@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Isichazamazwi sesi-Japanese kana kuya ku-kanji</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Ithebula lokufundwa kwe-Jyutping ezinhlamvini ze-Hanzi, okufakiwe okungu-163,000. Ikhibhodi idinga leli phakethe ukuze iguqule isi-Cantonese.</string>
     <string name="core_input_cjk_pack_jyutping_title">Isichazamazwi sesi-Cantonese Jyutping</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Imaphi amagama alandelayo, abalwe kusuka kumbhalo wewebhu nezindaba zesiShayina. Iza nesichazamazwi se-Pinyin. Nayo, izinhlamvu zokuqala ezifana ne-wbxh zinikeza 我不喜欢 kuqala hhayi amagama amabili angahlobene.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Izibhangqwana zamagama esiShayina</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Izinhlamvu ze-Hanzi nemishwana evela ku-CC-CEDICT, okufakiwe okungu-120,000. Ikhibhodi idinga leli phakethe ukuze iguqule isiShayina.</string>
     <string name="core_input_cjk_pack_pinyin_title">Isichazamazwi sesiShayina se-Pinyin</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Imishwana evela ku-OpenCC, okufakiwe okungu-50,000, cishe i-1 MB. Uma izinhlamvu zesiShayina sendabuko zivuliwe, ikhibhodi iyisebenzisela ukubhala ifomu elilungile legama, njenge-頭髮 hhayi i-頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Ithebula lemishwana yezinhlamvu zendabuko</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Ithebula lokuhleleka kwemivimbo yezinhlamvu zesi-Hanzi. Ikhibhodi idinga leli phakethe lesakhiwo semivimbo.</string>
     <string name="core_input_cjk_pack_stroke_title">Isichazamazwi semivimbo yesiShayina (笔画)</string>
+    <string name="core_input_double_pinyin_custom_label">Okuzenzelayo</string>
     <string name="core_input_double_pinyin_off_label">Valiwe (Pinyin egcwele)</string>
+    <string name="core_input_im_note_candidates">Kezinye izinkinobho le ndlela inikeza uhlu lwezinketho. Ikhibhodi ihlale isebenzisa inketho yokuqala.</string>
+    <string name="core_input_im_note_missing_files">La mafayela awazange akhethwe, ngakho ingxenye yawo ayikho: %1$s. Ukuze uwafake, ngenisa futhi futhi uwakhethe ndawonye.</string>
+    <string name="core_input_im_note_module">Le ndlela isebenzisa i-plug-in, njenge-Anthy, ikhibhodi engakwazi ukuyisebenzisa. Okhiye abayisebenzisayo abenzi lutho lapha.</string>
+    <string name="core_input_im_note_other_method">Le ndlela inikeza okhiye abathile kwenye indlela yokufaka. Leyo ngxenye ayisebenzi lapha.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Uhlelo lokusebenza alukwazi ukufunda umthetho owodwa wokupela %1$d, ngakho luyaweqa.</item>
+        <item quantity="other">Uhlelo lokusebenza alukwazi ukufunda imithetho yokupela engu-%1$d, ngakho luyayeqa.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Le ndlela isebenzisa ibha yesikhala njengokhiye, isibonelo sethoni. Lapha ibha yesikhala ihlale ithayipha isikhala.</string>
+    <string name="core_input_im_note_truncated">Ithebula likhulu kakhulu, ngakho uhlelo lokusebenza lugcine ingxenye yalo yokuqala kuphela.</string>
+    <string name="core_input_im_note_unused_files">Uhlelo lokusebenza aluzange lusebenzise lawa mafayela: %1$s.</string>
+    <string name="core_input_im_refused_broken">Ifayela linephutha, ngakho uhlelo lokusebenza alikwazi ukulifunda: %1$s</string>
+    <string name="core_input_im_refused_empty">Ifayela alinalutho lokuthayipha ngalo.</string>
+    <string name="core_input_im_refused_no_dictionary">Isikimu sidinga isichazamazwi saso. Ngenisa futhi futhi ukhethe %1$s.</string>
+    <string name="core_input_im_refused_not_method">Uhlelo lokusebenza alukwazi ukufunda lokho njengendlela yokufaka. Lufunda amatafula e-.cin, izikimu ze-Rime nezichazamazwi (.schema.yaml, .dict.yaml), namafayela e-m17n .mim.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Uhlelo lokusebenza lufunde lokhu njengetafula le-.cin elinokufakiwe oku-%1$d. Thayipha ikhodi, bese ukhetha uhlamvu emgqeni weziphakamiso.</item>
+        <item quantity="other">Uhlelo lokusebenza lufunde lokhu njengetafula le-.cin elinokufakiwe oku-%1$d. Thayipha ikhodi, bese ukhetha uhlamvu emgqeni weziphakamiso.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Uhlelo lokusebenza lufunde lokhu njengendlela yokufaka ye-m17n enomthetho ongu-%1$d. Okhiye babhala umbhalo njengoba uthayipha.</item>
+        <item quantity="other">Uhlelo lokusebenza lufunde lokhu njengendlela yokufaka ye-m17n enemithetho engu-%1$d. Okhiye babhala umbhalo njengoba uthayipha.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Uhlelo lokusebenza lufunde lokhu njengesikimu se-Rime esinomngeno owodwa wesichazamazwi %1$d. Thayipha ama-syllable, bese ukhetha amagama emgqeni wokusikisela.</item>
+        <item quantity="other">Uhlelo lokusebenza lufunde lokhu njengesikimu se-Rime esinemingenelo yesichazamazwi %1$d. Thayipha ama-syllable, bese ukhetha amagama emgqeni wokusikisela.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Uhlelo lokusebenza lufunde lokhu njengetafula lekhodi ye-Rime elinokufakiwe okungu-%1$d. Thayipha ikhodi, bese ukhetha uhlamvu emugqeni wesiphakamiso.</item>
+        <item quantity="other">Uhlelo lokusebenza lufunde lokhu njengetafula lekhodi ye-Rime elinokufakiwe okungu-%1$d. Thayipha ikhodi, bese ukhetha uhlamvu emugqeni wesiphakamiso.</item>
+    </plurals>
 </resources>

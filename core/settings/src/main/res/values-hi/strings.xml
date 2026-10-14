@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">नीचे दाएं</string>
     <string name="core_settings_board_corner_top_left_label">ऊपर बायां</string>
     <string name="core_settings_board_corner_top_right_label">ऊपर दायां</string>
+    <string name="core_settings_clip_swipe_pin_left_label">बाएँ पिन करें, दाएँ हटाएँ</string>
+    <string name="core_settings_clip_swipe_pin_off_label">दोनों तरफ से हटाएं</string>
+    <string name="core_settings_clip_swipe_pin_right_label">दाएं पिन, बाएं हटाएं</string>
     <string name="core_settings_clip_time_copied_label">कॉपी करने का समय</string>
     <string name="core_settings_clip_time_expires_label">बचा हुआ समय</string>
     <string name="core_settings_clip_time_off_label">कोई नहीं</string>

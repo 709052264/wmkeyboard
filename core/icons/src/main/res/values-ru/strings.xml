@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">Приложение отбросило «%1$s». Приложение не может его сохранить.</string>
     <string name="core_icons_repair_svg_unreadable">Приложение отбросило \"%1$s\". Приложение не может прочитать свой SVG-файл.</string>
+    <string name="core_icons_slot_arrow_down_label">Стрелка вниз</string>
+    <string name="core_icons_slot_arrow_left_label">Стрелка влево</string>
+    <string name="core_icons_slot_arrow_right_label">Стрелка вправо</string>
+    <string name="core_icons_slot_arrow_up_label">Стрелка вверх</string>
     <string name="core_icons_slot_backspace_label">Backspace</string>
+    <string name="core_icons_slot_caps_lock_key_label">Клавиша Caps lock</string>
     <string name="core_icons_slot_caps_lock_label">Caps lock</string>
     <string name="core_icons_slot_emoji_activities_label">Активность</string>
     <string name="core_icons_slot_emoji_animals_label">Животные</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Ввод: отправить</string>
     <string name="core_icons_slot_forward_delete_label">Удалить вперед</string>
     <string name="core_icons_slot_globe_label">Переключить язык</string>
+    <string name="core_icons_slot_hide_keys_label">Скрыть клавиши (аппаратная клавиатура)</string>
     <string name="core_icons_slot_incognito_label">Значок инкогнито</string>
     <string name="core_icons_slot_input_method_picker_label">Переключить клавиатуру</string>
     <string name="core_icons_slot_panel_back_label">Назад к клавишам</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Закрыть поиск</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (вкл.)</string>
+    <string name="core_icons_slot_show_keys_label">Показывать клавиши (аппаратная клавиатура)</string>
     <string name="core_icons_slot_suggestions_expand_label">Показать инструменты</string>
+    <string name="core_icons_slot_tab_label">Клавиша Tab</string>
     <string name="core_icons_slot_toolbox_label">Панель инструментов</string>
 </resources>

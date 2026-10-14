@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Herufi ambazo ufunguo wa AltGr huandika kwenye kompyuta hupatikana kwa kubonyeza na kushikilia funguo zilezile.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">Ufunguo mfu %1$d huweka lafudhi kwenye herufi inayofuata kwenye kompyuta. Hapa, herufi zenye lafudhi hiyo hupatikana kwa kubonyeza na kushikilia kila herufi.</item>
+        <item quantity="other">Funguo mfu %1$d huweka lafudhi kwenye herufi inayofuata kwenye kompyuta. Hapa, herufi zenye lafudhi hizo hupatikana kwa kubonyeza na kushikilia kila herufi.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Faili inajengwa juu ya faili nyingine %1$d (%2$s) ambayo hukufungua. Funguo ambazo faili hiyo pekee huiweka hazipo.</item>
+        <item quantity="other">Faili inajengwa juu ya faili nyingine %1$d (%2$s) ambazo hukufungua. Funguo ambazo faili hizo pekee huiweka hazipo.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">Kibambo %1$d kutoka kwa ufunguo usio na herufi kipo kwenye kubonyeza na kushikilia kitone.</item>
+        <item quantity="other">Vibambo %1$d kutoka kwa funguo zisizo na herufi vipo kwenye kubonyeza na kushikilia kitone.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Programu haijui jina la herufi %1$d kwenye faili, kwa hivyo imeliacha: %2$s.</item>
+        <item quantity="other">Programu haijui majina ya herufi %1$d kwenye faili, kwa hivyo imeyaacha: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">kutelezesha kidole mara %1$d kwenye kitufe hakufai hapa, kwa sababu kibodi hii hutumia kutelezesha huko kwa kazi nyingine. Programu imeiondoa.</item>
+        <item quantity="other">kutelezesha kidole mara %1$d kwenye vitufe hakufai hapa, kwa sababu kibodi hii hutumia kutelezesha huko kwa kazi nyingine. Programu imeiondoa.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Programu imebadilisha ufunguo %1$d kuwa ufunguo wa karibu zaidi ilionao.</item>
         <item quantity="other">Programu imebadilisha funguo %1$d kuwa funguo za karibu zaidi ilizonazo.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Programu imebadilisha herufi %1$d kuwa umbo ambalo kibodi hii huandika.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Programu imeondoa safu ya nambari. Washa safu ya nambari katika Mpangilio na ukubwa ili kupata moja.</string>
+    <string name="core_lang_foreign_number_row_kept">Safu ya nambari ya faili ni safu ya nambari ya mpangilio huu. Inaonyesha wakati safu ya nambari imewashwa katika Mpangilio na saizi.</string>
+    <string name="core_lang_foreign_pages_kept">Kurasa za ziada za faili, kama vile AltGr, ni kurasa za mpangilio huu. Telezesha kutoka kwa ufunguo uliozifungua kwenye kibodi nyingine ili kuzifungua hapa.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">Ufunguo %1$d hauna herufi za kubonyeza na kushikilia. Faili linazihifadhi katika faili la pili ambalo hukulifungua.</item>
         <item quantity="other">Funguo %1$d hazina herufi za kubonyeza na kushikilia. Faili linazihifadhi katika faili la pili ambalo hukulifungua.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">Ufunguo %1$d hubadilika kulingana na hali ya shift au sehemu kwenye kibodi nyingine. Programu imehifadhi jinsi inavyoonekana wakati wa utulivu.</item>
         <item quantity="other">Funguo %1$d hubadilika kulingana na hali ya shift au sehemu kwenye kibodi nyingine. Programu imehifadhi jinsi zinavyoonekana wakati wa utulivu.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">Ukurasa %1$d uliopinduliwa kwenye faili una funguo zake katika maeneo mengine badala ya ukurasa unaopinduliwa. Programu hutumia herufi kubwa hapo badala yake.</item>
+        <item quantity="other">Kurasa %1$d zilizopinduliwa kwenye faili zina funguo zake katika maeneo mengine badala ya kurasa zinazopinduliwa. Programu hutumia herufi kubwa hapo badala yake.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">Ufunguo %1$d una herufi tofauti za kubonyeza-na-kushikilia wakati shift imeshushwa kwenye kibodi nyingine. Programu imehifadhi zile ambazo hazijabadilishwa.</item>
+        <item quantity="other">Funguo %1$d zina herufi tofauti za kubonyeza-na-kushikilia wakati shift imeshushwa kwenye kibodi nyingine. Programu imehifadhi zile ambazo hazijabadilishwa.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Kibodi nyingine hupima upana wa vitufe kwa njia tofauti. Programu imebadilisha upana ili kutoshea gridi hii.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

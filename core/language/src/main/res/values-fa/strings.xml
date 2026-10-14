@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">کاراکترهایی که کلید AltGr در رایانه تایپ می‌کند، با فشردن و نگه داشتن همان کلیدها در دسترس هستند.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d کلید مرده روی رایانه، یک علامت روی حرف بعدی می‌گذارد. در اینجا، حروف دارای آن علامت با فشار دادن و نگه داشتن هر حرف در دسترس هستند.</item>
+        <item quantity="other">%1$d کلید مرده روی رایانه، علامت‌هایی روی حرف بعدی می‌گذارند. در اینجا، حروف دارای آن علامت‌ها با فشار دادن و نگه داشتن هر حرف در دسترس هستند.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">این فایل بر اساس %1$d فایل دیگر (%2$s) ساخته شده که شما باز نکرده‌اید. کلیدهایی که فقط آن فایل تنظیم می‌کند، موجود نیستند.</item>
+        <item quantity="other">این فایل بر اساس %1$d فایل دیگر (%2$s) ساخته شده که شما باز نکرده‌اید. کلیدهایی که فقط آن فایل‌ها تنظیم می‌کنند، موجود نیستند.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d نویسه از کلیدی بدون حروف، با فشردن و نگه‌داشتن نقطه در دسترس است.</item>
+        <item quantity="other">%1$d نویسه از کلیدهایی بدون حروف، با فشردن و نگه‌داشتن نقطه در دسترس هستند.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">برنامه %1$d نام کاراکتر را در فایل نمی‌شناسد، بنابراین آن را حذف کرد: %2$s.</item>
+        <item quantity="other">برنامه %1$d نام کاراکتر را در فایل نمی‌شناسد، بنابراین آن‌ها را حذف کرد: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d حرکت کشیدن روی یک کلید در اینجا جایگاهی ندارد، زیرا این صفحه‌کلید از آن حرکت برای کار دیگری استفاده می‌کند. برنامه آن را حذف کرد.</item>
+        <item quantity="other">%1$d حرکت کشیدن روی کلیدها در اینجا جایگاهی ندارند، زیرا این صفحه‌کلید از آن حرکات برای کارهای دیگری استفاده می‌کند. برنامه آن‌ها را حذف کرد.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">برنامه %1$d کلید را به نزدیک‌ترین کلیدی که دارد تغییر داد.</item>
         <item quantity="other">برنامه %1$d کلید را به نزدیک‌ترین کلیدهایی که دارد تغییر داد.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">برنامه %1$d حرف را به شکلی که این صفحه‌کلید می‌نویسد تغییر داد.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">برنامه ردیف اعداد را حذف کرد. برای داشتن آن، ردیف اعداد را در بخش «طرح‌بندی و اندازه» روشن کنید.</string>
+    <string name="core_lang_foreign_number_row_kept">ردیف اعداد فایل، ردیف اعداد این طرح‌بندی است. این ردیف زمانی نمایش داده می‌شود که ردیف اعداد در «طرح‌بندی و اندازه» روشن باشد.</string>
+    <string name="core_lang_foreign_pages_kept">صفحات اضافی فایل، مانند AltGr، صفحات این طرح‌بندی هستند. از کلیدی که آن‌ها را در صفحه‌کلید دیگر باز کرده است، بکشید تا اینجا باز شوند.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d کلید هیچ حرفی برای فشار طولانی ندارد. فایل آن‌ها را در فایل دومی نگه می‌دارد که شما باز نکردید.</item>
         <item quantity="other">%1$d کلید هیچ حرفی برای فشار طولانی ندارند. فایل آن‌ها را در فایل دومی نگه می‌دارد که شما باز نکردید.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d کلید با وضعیت شیفت یا فیلد در صفحه‌کلید دیگر تغییر می‌کند. برنامه ظاهر آن را در حالت استراحت حفظ کرد.</item>
         <item quantity="other">%1$d کلید با وضعیت شیفت یا فیلد در صفحه‌کلید دیگر تغییر می‌کنند. برنامه ظاهر آن‌ها را در حالت استراحت حفظ کرد.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d صفحه جابجا شده در فایل، کلیدهایش در جایی غیر از صفحه‌ای که جابجا می‌کند قرار دارد. برنامه در آنجا از حروف بزرگ استفاده می‌کند.</item>
+        <item quantity="other">%1$d صفحه جابجا شده در فایل، کلیدهایشان در جایی غیر از صفحاتی که جابجا می‌کنند قرار دارد. برنامه در آنجا از حروف بزرگ استفاده می‌کند.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d کلید دارای حروف متفاوت در حالت فشردن و نگه‌داشتن هنگام فعال بودن Shift در صفحه‌کلید دیگر است. برنامه حروف بدون Shift را حفظ کرد.</item>
+        <item quantity="other">%1$d کلید دارای حروف متفاوت در حالت فشردن و نگه‌داشتن هنگام فعال بودن Shift در صفحه‌کلید دیگر هستند. برنامه حروف بدون Shift را حفظ کرد.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">صفحه‌کلید دیگر عرض کلیدها را متفاوت اندازه‌گیری می‌کند. برنامه عرض‌ها را تغییر داد تا با این شبکه مطابقت داشته باشد.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

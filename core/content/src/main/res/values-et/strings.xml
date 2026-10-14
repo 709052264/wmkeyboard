@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">KOOD</string>
     <string name="core_content_clip_entity_phone_label">Telefoninumber</string>
     <string name="core_content_clip_entity_phone_tag">TELEFON</string>
+    <string name="core_content_clip_entity_place_label">Koht</string>
+    <string name="core_content_clip_entity_place_tag">KOHT</string>
     <string name="core_content_clip_entity_url_label">Link</string>
     <string name="core_content_clip_entity_url_tag">LINK</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Rakendus ei saa lugeda WOFF-veebifonte. Kasuta fondi .ttf või .otf versiooni.</string>
     <string name="core_content_font_error_woff2">Rakendus ei suuda WOFF2-veebifonte lugeda. Kasutage fondi versiooni .ttf või .otf.</string>
     <string name="core_content_font_error_zip">See fail on zip-arhiiv, mitte font.</string>
+    <string name="core_content_note_tag_ideas">Ideed</string>
+    <string name="core_content_note_tag_important">Tähtis</string>
+    <string name="core_content_note_tag_personal">Isiklik</string>
+    <string name="core_content_note_tag_school">Kool</string>
+    <string name="core_content_note_tag_study">Õppimine</string>
+    <string name="core_content_note_tag_work">Töö</string>
     <string name="core_content_selection_macro_add_contact">Kontakt</string>
     <string name="core_content_selection_macro_calendar">Kalender</string>
     <string name="core_content_selection_macro_call">Helista</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Räägi</string>
     <string name="core_content_selection_macro_replace">Asenda</string>
+    <string name="core_content_selection_macro_save_note">Salvesta märkmena</string>
     <string name="core_content_selection_macro_search">Otsi</string>
     <string name="core_content_selection_macro_share">Jaga</string>
     <string name="core_content_selection_macro_sms">Sõnum</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Tõlgi</string>
     <string name="core_content_selection_macro_url_decode">Dekodeeri</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Failis on ka %1$d sõna ilma otseteeta. Selle lisamiseks oma sõnadesse ava fail isiklikust sõnastikust.</item>
+        <item quantity="other">Failis on ka %1$d sõna ilma otseteeta. Nende lisamiseks oma sõnadesse ava fail isiklikust sõnastikust.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Rakendus jättis \"%1$s\" hulgast välja %2$d laienduse.</item>
         <item quantity="other">Rakendus jättis \"%1$s\" hulgast välja %2$d laiendust.</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Rakendus eemaldas mustri \"%1$s\". See oli pikem kui %2$d märk.</item>
         <item quantity="other">Rakendus eemaldas mustri \"%1$s\". See oli pikem kui %2$d märki.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Rakendus eemaldas %1$d rea, millel puudub tekst.</item>
+        <item quantity="other">Rakendus eemaldas %1$d rida, millel puudub tekst.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Rakendus lühendas \"%1$s\". See oli pikem kui %2$d märk.</item>
         <item quantity="other">Rakendus lühendas \"%1$s\". See oli pikem kui %2$d märki.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Rakendus eemaldas %1$d päästiku, mida klaviatuur ei saa jälgida. Selle väljavõte jääb loendisse.</item>
+        <item quantity="other">Rakendus eemaldas %1$d päästikut, mida klaviatuur ei saa jälgida. Nende väljavõtted jäävad loendisse.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Rakenduse nimi, millesse trükite</string>
     <string name="core_content_snippet_var_clip_info">Uusim lõikelaua kirje</string>

@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">KODE</string>
     <string name="core_content_clip_entity_phone_label">Telefonnummer</string>
     <string name="core_content_clip_entity_phone_tag">TELEFON</string>
+    <string name="core_content_clip_entity_place_label">Sted</string>
+    <string name="core_content_clip_entity_place_tag">STED</string>
     <string name="core_content_clip_entity_url_label">Link</string>
     <string name="core_content_clip_entity_url_tag">LINK</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Appen kan ikke læse WOFF-webfonte. Brug .ttf- eller .otf-versionen af fonten.</string>
     <string name="core_content_font_error_woff2">Appen kan ikke læse WOFF2-webfonte. Brug .ttf- eller .otf-versionen af fonten.</string>
     <string name="core_content_font_error_zip">Denne fil er et zip-arkiv, ikke en skrifttype.</string>
+    <string name="core_content_note_tag_ideas">Ideer</string>
+    <string name="core_content_note_tag_important">Vigtigt</string>
+    <string name="core_content_note_tag_personal">Personligt</string>
+    <string name="core_content_note_tag_school">Skole</string>
+    <string name="core_content_note_tag_study">Studie</string>
+    <string name="core_content_note_tag_work">Arbejde</string>
     <string name="core_content_selection_macro_add_contact">Kontakt</string>
     <string name="core_content_selection_macro_calendar">Kalender</string>
     <string name="core_content_selection_macro_call">Opkald</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Tal</string>
     <string name="core_content_selection_macro_replace">Erstat</string>
+    <string name="core_content_selection_macro_save_note">Gem som note</string>
     <string name="core_content_selection_macro_search">Søg</string>
     <string name="core_content_selection_macro_share">Del</string>
     <string name="core_content_selection_macro_sms">Besked</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Oversæt</string>
     <string name="core_content_selection_macro_url_decode">Afkod</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Filen indeholder også %1$d ord uden genvej. For at tilføje det til dine ord, skal du åbne filen fra Personlig ordbog.</item>
+        <item quantity="other">Filen indeholder også %1$d ord uden genvej. For at tilføje dem til dine ord, skal du åbne filen fra Personlig ordbog.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Appen udelod %2$d udvidelse fra \"%1$s\".</item>
         <item quantity="other">Appen udelod %2$d udvidelser fra \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Appen fjernede mønsteret fra \"%1$s\". Det var længere end %2$d tegn.</item>
         <item quantity="other">Appen fjernede mønsteret fra \"%1$s\". Det var længere end %2$d tegn.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Appen fjernede %1$d række uden tekst.</item>
+        <item quantity="other">Appen fjernede %1$d rækker uden tekst.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Appen forkortede \"%1$s\". Den var længere end %2$d tegn.</item>
         <item quantity="other">Appen forkortede \"%1$s\". Den var længere end %2$d tegn.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Appen fjernede %1$d udløser, som tastaturet ikke kan overvåge. Dens snippet bliver i listen.</item>
+        <item quantity="other">Appen fjernede %1$d udløsere, som tastaturet ikke kan overvåge. Deres snippets bliver i listen.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Navnet på den app, du skriver i</string>
     <string name="core_content_snippet_var_clip_info">Den nyeste post i udklipsholderen</string>

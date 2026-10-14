@@ -8,6 +8,12 @@
     <string name="core_voice_model_base_eu_body">Denne model bruger det sprog, du skriver på, ligesom 40-sprogsmodellen. Den dækker kun de europæiske sprog, så downloaden er mindre.</string>
     <string name="core_voice_model_base_multi_body">Denne model balancerer nøjagtighed og hastighed. Den dækker alle sprog, som Whisper kender. Vælg den, hvis Small-modellen er for langsom.</string>
     <string name="core_voice_model_base_world_body">Denne model bruger det sprog, du skriver på, i stedet for at gætte. Korte sætninger bliver meget mere pålidelige. Vælg den, når dens liste indeholder dine sprog.</string>
+    <string name="core_voice_model_cpp_base_body">Denne model balancerer nøjagtighed og hastighed. Den bruger det sprog, du dikterer på, ud af de 99 sprog, som Whisper kender, og den lytter efter dine egne ord. Vælg den, hvis den lille model er for langsom.</string>
+    <string name="core_voice_model_cpp_large_body">Dette er den mest nøjagtige Whisper-model. Overførslen er på 1,1 GB. Kun en enhed med en stor mængde hukommelse kan indlæse den. Turbo-modellen er næsten lige så nøjagtig og er halv størrelse.</string>
+    <string name="core_voice_model_cpp_medium_body">Denne model giver næsten desktop-nøjagtighed. Hver sætning tager flere sekunder. Modellen bruger næsten en gigabyte hukommelse, mens den kører.</string>
+    <string name="core_voice_model_cpp_small_body">Denne model giver den bedste nøjagtighed, der stadig kører godt på en telefon. Den bruger det sprog, du dikterer på, ud af de 99 sprog, som Whisper kender, og den lytter efter dine egne ord.</string>
+    <string name="core_voice_model_cpp_tiny_body">Dette er den hurtigste model. Den fungerer godt med tydelig tale, men støj reducerer nøjagtigheden. Den bruger det sprog, du dikterer på, og lytter efter dine egne ord.</string>
+    <string name="core_voice_model_cpp_turbo_body">Denne model er næsten lige så præcis som den største model, til halv størrelse. Hver sætning tager flere sekunder, og den kan ikke oversætte.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d sprog</item>
         <item quantity="other">%1$d sprog</item>
@@ -32,4 +38,5 @@
     <string name="core_voice_whisper_module_downloading">Den offline stemmeskrivningsdel af tastaturet downloades fra Google Play. Prøv igen om et øjeblik.</string>
     <string name="core_voice_whisper_module_restart">Den offline stemmeskrivningsdel er færdig med at installere. Luk og genåbn tastaturet for at bruge det.</string>
     <string name="core_voice_whisper_transcribe_error">Stemmeskrivning virkede ikke. Prøv igen, eller vælg en mindre model.</string>
+    <string name="core_voice_whistle_checksum_error">Den downloadede model er beskadiget. Download den igen.</string>
 </resources>

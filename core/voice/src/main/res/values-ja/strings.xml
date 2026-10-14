@@ -8,6 +8,12 @@
     <string name="core_voice_model_base_eu_body">このモデルは、40言語モデルと同じく、入力した言語を使用します。ヨーロッパ言語のみを対象としているため、ダウンロードサイズが小さくなっています。</string>
     <string name="core_voice_model_base_multi_body">このモデルは精度と速度のバランスが取れています。Whisperが対応するすべての言語をカバーします。Smallモデルが遅すぎる場合に選択してください。</string>
     <string name="core_voice_model_base_world_body">このモデルは推測ではなく、入力した言語を使用します。短いフレーズの認識精度が大幅に向上します。リストに自分の言語が含まれている場合に選択してください。</string>
+    <string name="core_voice_model_cpp_base_body">このモデルは精度と速度のバランスが取れています。Whisperが対応する99言語のいずれかで、あなたが話す言語を認識し、あなたの言葉を書き起こします。Smallモデルの動作が遅い場合に選択してください。</string>
+    <string name="core_voice_model_cpp_large_body">これは最も精度の高いWhisperモデルです。ダウンロードサイズは1.1GBです。大容量メモリを搭載したデバイスでのみ読み込み可能です。Turboモデルはほぼ同等の精度で、サイズは半分です。</string>
+    <string name="core_voice_model_cpp_medium_body">このモデルはデスクトップ並みの精度を提供します。各フレーズの処理に数秒かかります。実行中、モデルは約1ギガバイトのメモリを使用します。</string>
+    <string name="core_voice_model_cpp_small_body">このモデルは、スマートフォンで快適に動作しつつ最高の精度を提供します。Whisperが対応する99言語のいずれかで話した内容を認識し、あなたの言葉をそのまま聞き取ります。</string>
+    <string name="core_voice_model_cpp_tiny_body">これは最も高速なモデルです。明瞭な音声ではうまく機能しますが、ノイズがあると精度が低下します。あなたが話す言語を使用し、あなたの言葉を認識します。</string>
+    <string name="core_voice_model_cpp_turbo_body">このモデルは最大サイズのモデルとほぼ同等の精度を持ちながら、サイズは半分です。フレーズごとに数秒かかり、翻訳はできません。</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d言語</item>
         <item quantity="other">%1$d言語</item>
@@ -32,4 +38,5 @@
     <string name="core_voice_whisper_module_downloading">キーボードのオフライン音声入力コンポーネントをGoogle Playからダウンロードしています。しばらくしてからもう一度お試しください。</string>
     <string name="core_voice_whisper_module_restart">オフライン音声入力機能のインストールが完了しました。キーボードを一度閉じてから再度開くと使用できます。</string>
     <string name="core_voice_whisper_transcribe_error">音声入力が機能しませんでした。もう一度試すか、より小さなモデルを選択してください。</string>
+    <string name="core_voice_whistle_checksum_error">ダウンロードしたモデルが破損しています。再ダウンロードしてください。</string>
 </resources>

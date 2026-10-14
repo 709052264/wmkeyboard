@@ -11,6 +11,7 @@
     <string name="core_intel_llm_engine_error_gpu">模型在 GPU 上运行失败。GPU 内存远小于系统内存。下一次尝试将使用 CPU。要始终使用 CPU，请在设置中将计算设置为 CPU。您也可以选择一个更小的模型。</string>
     <string name="core_intel_llm_engine_error_load">模型加载失败。文件可能已损坏。请在设置中删除该模型并重新下载。</string>
     <string name="core_intel_llm_engine_error_memory">模型内存不足或运行失败。请选择较小的模型。</string>
+    <string name="core_intel_llm_engine_error_vision">此模型无法读取图片。Gemma 4 可以。</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">上一代的小型 Gemma 模型。它具有良好的质量和 4K token 的上下文。</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">来自 Google 的最小 Gemma 模型。它在所有设备上运行速度都很快。</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">最新的 Gemma 版本。它能在您的设备上提供顶级的质量。</string>

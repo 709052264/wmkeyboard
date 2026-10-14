@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">De tecken som AltGr-tangenten skriver på en dator nås genom att trycka och hålla ned samma tangenter.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d död tangent sätter en accent på nästa bokstav på en dator. Här finns bokstäverna med den accenten genom att trycka och hålla ned varje bokstav.</item>
+        <item quantity="other">%1$d döda tangenter sätter accenter på nästa bokstav på en dator. Här finns bokstäverna med dessa accenter genom att trycka och hålla ned varje bokstav.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Filen bygger på 1 annan fil (%2$s) som du inte öppnade. Nycklar som endast den filen anger saknas.</item>
+        <item quantity="other">Filen bygger på %1$d andra filer (%2$s) som du inte öppnade. Nycklar som endast dessa filer anger saknas.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d tecken från en tangent utan bokstäver visas vid långtryck på punkten.</item>
+        <item quantity="other">%1$d tecken från tangenter utan bokstäver visas vid långtryck på punkten.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Appen känner inte till %1$d teckennamn i filen, så den utelämnades: %2$s.</item>
+        <item quantity="other">Appen känner inte till %1$d teckennamn i filen, så de utelämnades: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d svep på en tangent har ingen plats här, eftersom det här tangentbordet använder det svepet för en annan uppgift. Appen tog bort det.</item>
+        <item quantity="other">%1$d svep på tangenter har ingen plats här, eftersom det här tangentbordet använder de svepen för andra uppgifter. Appen tog bort dem.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Appen ändrade %1$d tangent till den närmaste tangenten den har.</item>
         <item quantity="other">Appen ändrade %1$d tangenter till de närmaste tangenterna den har.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Appen ändrade %1$d bokstäver till den form som detta tangentbord skriver.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Appen tog bort sifferraden. Slå på sifferraden under Layout och storlek för att få en.</string>
+    <string name="core_lang_foreign_number_row_kept">Filens sifferrad är denna layouts sifferrad. Den visas när sifferraden är aktiverad under Layout och storlek.</string>
+    <string name="core_lang_foreign_pages_kept">Filens extra sidor, såsom AltGr, är sidor i denna layout. Svep från tangenten som öppnade dem i det andra tangentbordet för att öppna dem här.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d tangent saknar bokstäver vid långtryck. Filen sparar dem i en andra fil som du inte öppnade.</item>
         <item quantity="other">%1$d tangenter saknar bokstäver vid långtryck. Filen sparar dem i en andra fil som du inte öppnade.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d tangent ändras med skiftläget eller fältet i det andra tangentbordet. Appen behöll hur den ser ut i viloläge.</item>
         <item quantity="other">%1$d tangenter ändras med skiftläget eller fältet i det andra tangentbordet. Appen behöll hur de ser ut i viloläge.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d förskjuten sida i filen har sina nycklar på andra platser än sidan den förskjuter. Appen använder versaler där istället.</item>
+        <item quantity="other">%1$d förskjutna sidor i filen har sina nycklar på andra platser än sidorna de förskjuter. Appen använder versaler där istället.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d tangent har andra tryck-och-håll-bokstäver medan skift är nedtryckt i det andra tangentbordet. Appen behöll de oskiftade.</item>
+        <item quantity="other">%1$d tangenter har andra tryck-och-håll-bokstäver medan skift är nedtryckt i det andra tangentbordet. Appen behöll de oskiftade.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Det andra tangentbordet mäter tangentbredder annorlunda. Appen ändrade bredderna för att passa detta rutnät.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

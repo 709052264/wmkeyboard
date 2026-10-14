@@ -11,6 +11,7 @@
     <string name="core_intel_llm_engine_error_gpu">ਮਾਡਲ GPU \'ਤੇ ਅਸਫਲ ਰਿਹਾ। GPU ਮੈਮੋਰੀ ਸਿਸਟਮ ਮੈਮੋਰੀ ਨਾਲੋਂ ਬਹੁਤ ਛੋਟੀ ਹੈ। ਅਗਲੀ ਕੋਸ਼ਿਸ਼ CPU ਦੀ ਵਰਤੋਂ ਕਰਦੀ ਹੈ। ਹਮੇਸ਼ਾ CPU ਦੀ ਵਰਤੋਂ ਕਰਨ ਲਈ, ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਕੰਪਿਊਟ ਨੂੰ CPU \'ਤੇ ਸੈੱਟ ਕਰੋ। ਤੁਸੀਂ ਇੱਕ ਛੋਟਾ ਮਾਡਲ ਵੀ ਚੁਣ ਸਕਦੇ ਹੋ।</string>
     <string name="core_intel_llm_engine_error_load">ਮਾਡਲ ਲੋਡ ਨਹੀਂ ਹੋਇਆ। ਫਾਈਲ ਸ਼ਾਇਦ ਖਰਾਬ ਹੈ। ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਮਾਡਲ ਨੂੰ ਮਿਟਾਓ ਅਤੇ ਇਸਨੂੰ ਦੁਬਾਰਾ ਡਾਊਨਲੋਡ ਕਰੋ।</string>
     <string name="core_intel_llm_engine_error_memory">ਮਾਡਲ ਦੀ ਮੈਮੋਰੀ ਖਤਮ ਹੋ ਗਈ ਹੈ, ਜਾਂ ਇਹ ਅਸਫਲ ਹੋ ਗਿਆ ਹੈ। ਇੱਕ ਛੋਟਾ ਮਾਡਲ ਚੁਣੋ।</string>
+    <string name="core_intel_llm_engine_error_vision">ਇਹ ਮਾਡਲ ਤਸਵੀਰਾਂ ਨਹੀਂ ਪੜ੍ਹ ਸਕਦਾ। Gemma 4 ਪੜ੍ਹ ਸਕਦਾ ਹੈ।</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">ਪਿਛਲੀ ਪੀੜ੍ਹੀ ਦਾ ਇੱਕ ਛੋਟਾ ਜੇਮਾ (Gemma) ਮਾਡਲ। ਇਸਦੀ ਕੁਆਲਿਟੀ ਚੰਗੀ ਹੈ ਅਤੇ 4K ਟੋਕਨਾਂ ਦਾ ਸੰਦਰਭ ਹੈ।</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">ਗੂਗਲ ਵੱਲੋਂ ਸਭ ਤੋਂ ਛੋਟਾ ਜੇਮਾ (Gemma)। ਇਹ ਸਾਰੀਆਂ ਡਿਵਾਈਸਾਂ \'ਤੇ ਤੇਜ਼ ਹੈ।</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">ਸਭ ਤੋਂ ਨਵੀਂ Gemma ਪੀੜ੍ਹੀ। ਇਹ ਤੁਹਾਡੀ ਡਿਵਾਈਸ \'ਤੇ ਉੱਚ ਗੁਣਵੱਤਾ ਦਿੰਦੀ ਹੈ।</string>

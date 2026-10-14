@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Japanisches Kana-zu-Kanji-Wörterbuch</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Eine Tabelle mit Jyutping-Lesungen für Hanzi-Zeichen, 163.000 Einträge. Die Tastatur benötigt dieses Paket für die kantonesische Konvertierung.</string>
     <string name="core_input_cjk_pack_jyutping_title">Kantonesisches Jyutping-Wörterbuch</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Welche Wörter folgen aufeinander, basierend auf chinesischen Web- und Nachrichtentexten. Wird mit dem Pinyin-Wörterbuch geliefert. Damit ergeben Initialen wie wbxh zuerst 我不喜欢 und nicht zwei zusammenhanglose Wörter.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Chinesische Wortpaare</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Hanzi-Zeichen und Phrasen aus CC-CEDICT, 120.000 Einträge. Die Tastatur benötigt dieses Paket für die chinesische Konvertierung.</string>
     <string name="core_input_cjk_pack_pinyin_title">Chinesisches Pinyin-Wörterbuch</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Phrasen von OpenCC, 50.000 Einträge, ca. 1 MB. Wenn traditionelle Zeichen aktiviert sind, verwendet die Tastatur dies, um die korrekte Form für das Wort zu schreiben, wie z. B. 頭髮 und nicht 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Phrasentabelle für traditionelle Schriftzeichen</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Eine Tabelle der Strichfolge für Hanzi-Zeichen. Die Tastatur benötigt dieses Paket für das Strich-Layout.</string>
     <string name="core_input_cjk_pack_stroke_title">Chinesisches Strich-Wörterbuch (笔画)</string>
+    <string name="core_input_double_pinyin_custom_label">Benutzerdefiniert</string>
     <string name="core_input_double_pinyin_off_label">Aus (vollständiges Pinyin)</string>
+    <string name="core_input_im_note_candidates">Für einige Tasten bietet diese Methode eine Liste von Auswahlmöglichkeiten. Die Tastatur verwendet immer die erste Wahl.</string>
+    <string name="core_input_im_note_missing_files">Diese Dateien wurden nicht ausgewählt, daher fehlt ihr Teil: %1$s. Um sie einzuschließen, importieren Sie erneut und wählen Sie sie zusammen aus.</string>
+    <string name="core_input_im_note_module">Diese Methode verwendet ein Plug-in, wie z. B. Anthy, das von der Tastatur nicht ausgeführt werden kann. Die Tasten, die es verwenden, bewirken hier nichts.</string>
+    <string name="core_input_im_note_other_method">Diese Methode gibt einige Tasten an eine andere Eingabemethode weiter. Dieser Teil funktioniert hier nicht.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Die App kann %1$d Rechtschreibregel nicht lesen und überspringt sie daher.</item>
+        <item quantity="other">Die App kann %1$d Rechtschreibregeln nicht lesen und überspringt sie daher.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Diese Methode verwendet die Leertaste als Taste, zum Beispiel für einen Ton. Hier tippt die Leertaste immer ein Leerzeichen.</string>
+    <string name="core_input_im_note_truncated">Die Tabelle ist sehr groß, daher hat die App nur den ersten Teil behalten.</string>
+    <string name="core_input_im_note_unused_files">Die App hat diese Dateien nicht verwendet: %1$s.</string>
+    <string name="core_input_im_refused_broken">Die Datei enthält einen Fehler, daher kann die App sie nicht lesen: %1$s</string>
+    <string name="core_input_im_refused_empty">Die Datei enthält nichts, womit man tippen könnte.</string>
+    <string name="core_input_im_refused_no_dictionary">Das Schema benötigt sein Wörterbuch. Importieren Sie erneut und wählen Sie auch %1$s aus.</string>
+    <string name="core_input_im_refused_not_method">Die App kann dies nicht als Eingabemethode lesen. Sie liest .cin-Tabellen, Rime-Schemata und Wörterbücher (.schema.yaml, .dict.yaml) sowie m17n .mim-Dateien.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Die App hat dies als .cin-Tabelle mit %1$d Eintrag gelesen. Geben Sie einen Code ein und wählen Sie dann das Zeichen aus der Vorschlagsleiste.</item>
+        <item quantity="other">Die App hat dies als .cin-Tabelle mit %1$d Einträgen gelesen. Geben Sie einen Code ein und wählen Sie dann das Zeichen aus der Vorschlagsleiste.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Die App hat dies als m17n-Eingabemethode mit %1$d Regel gelesen. Die Tasten schreiben den Text während der Eingabe.</item>
+        <item quantity="other">Die App hat dies als m17n-Eingabemethode mit %1$d Regeln gelesen. Die Tasten schreiben den Text während der Eingabe.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Die App hat dies als Rime-Schema mit %1$d Wörterbucheintrag gelesen. Geben Sie die Silben ein und wählen Sie dann die Wörter aus der Vorschlagsleiste aus.</item>
+        <item quantity="other">Die App hat dies als Rime-Schema mit %1$d Wörterbucheinträgen gelesen. Geben Sie die Silben ein und wählen Sie dann die Wörter aus der Vorschlagsleiste aus.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Die App hat dies als Rime-Codetabelle mit %1$d Eintrag gelesen. Gib einen Code ein und wähle dann das Zeichen aus der Vorschlagsleiste.</item>
+        <item quantity="other">Die App hat dies als Rime-Codetabelle mit %1$d Einträgen gelesen. Gib einen Code ein und wähle dann das Zeichen aus der Vorschlagsleiste.</item>
+    </plurals>
 </resources>

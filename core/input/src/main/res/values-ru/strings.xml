@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Словарь японской каны и кандзи</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Таблица чтений Jyutping для иероглифов, 163 000 записей. Клавиатуре нужен этот пакет для преобразования в кантонский диалект.</string>
     <string name="core_input_cjk_pack_jyutping_title">Кантонский словарь Jyutping</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Последовательность слов, подсчитанная на основе китайских веб-сайтов и новостей. Поставляется со словарем пиньинь. С ним инициалы, такие как wbxh, дают 我不喜欢 первым, а не два несвязанных слова.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Китайские словосочетания</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Китайские иероглифы и фразы из CC-CEDICT, 120 000 записей. Клавиатуре нужен этот пакет для китайского преобразования.</string>
     <string name="core_input_cjk_pack_pinyin_title">Китайский словарь Пиньинь</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Фразы из OpenCC, 50 000 записей, около 1 МБ. При включенных традиционных иероглифах клавиатура использует их для написания правильной формы слова, например 頭髮, а не 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Таблица фраз традиционных иероглифов</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Таблица порядка черт для иероглифов ханьцзы. Клавиатуре нужен этот пакет для раскладки по чертам.</string>
     <string name="core_input_cjk_pack_stroke_title">Словарь китайских черт (笔画)</string>
+    <string name="core_input_double_pinyin_custom_label">Пользовательский</string>
     <string name="core_input_double_pinyin_off_label">Выкл. (полный Pinyin)</string>
+    <string name="core_input_im_note_candidates">Для некоторых клавиш этот метод дает список вариантов выбора. Клавиатура всегда использует первый вариант.</string>
+    <string name="core_input_im_note_missing_files">Эти файлы не были выбраны, поэтому их часть отсутствует: %1$s. Чтобы включить их, импортируйте снова и выберите их вместе.</string>
+    <string name="core_input_im_note_module">Этот метод использует плагин, например Anthy, который клавиатура не может запустить. Клавиши, использующие его, здесь не работают.</string>
+    <string name="core_input_im_note_other_method">Этот метод передает некоторые ключи другому методу ввода. Эта часть здесь не работает.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Приложение не может прочитать %1$d правило правописания, поэтому пропускает его.</item>
+        <item quantity="other">Приложение не может прочитать %1$d правил правописания, поэтому пропускает их.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Этот метод использует клавишу пробела как функциональную, например, для тона. Здесь пробел всегда вводит пробел.</string>
+    <string name="core_input_im_note_truncated">Таблица слишком большая, поэтому приложение сохранило только ее первую часть.</string>
+    <string name="core_input_im_note_unused_files">Приложение не использовало эти файлы: %1$s.</string>
+    <string name="core_input_im_refused_broken">Файл содержит ошибку, поэтому приложение не может его прочитать: %1$s</string>
+    <string name="core_input_im_refused_empty">В файле нет данных для ввода.</string>
+    <string name="core_input_im_refused_no_dictionary">Для схемы нужен словарь. Импортируйте снова и выберите %1$s.</string>
+    <string name="core_input_im_refused_not_method">Приложение не может прочитать это как метод ввода. Оно считывает таблицы .cin, схемы и словари Rime (.schema.yaml, .dict.yaml) и файлы m17n .mim.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Приложение распознало это как таблицу .cin с %1$d записью. Введите код, затем выберите символ из строки подсказок.</item>
+        <item quantity="other">Приложение распознало это как таблицу .cin с %1$d записями. Введите код, затем выберите символ из строки подсказок.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Приложение распознало это как метод ввода m17n с %1$d правилом. Клавиши записывают текст по мере ввода.</item>
+        <item quantity="other">Приложение распознало это как метод ввода m17n с %1$d правилами. Клавиши записывают текст по мере ввода.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Приложение распознало это как схему Rime с %1$d словарной статьей. Введите слоги, затем выберите слова из полосы подсказок.</item>
+        <item quantity="other">Приложение распознало это как схему Rime с %1$d словарными статьями. Введите слоги, затем выберите слова из полосы подсказок.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Приложение распознало это как таблицу кодов Rime с %1$d записью. Введите код, затем выберите символ из строки подсказок.</item>
+        <item quantity="other">Приложение распознало это как таблицу кодов Rime с %1$d записями. Введите код, затем выберите символ из строки подсказок.</item>
+    </plurals>
 </resources>

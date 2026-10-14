@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">कोड</string>
     <string name="core_content_clip_entity_phone_label">फोन नंबर</string>
     <string name="core_content_clip_entity_phone_tag">फोन</string>
+    <string name="core_content_clip_entity_place_label">ठिकाण</string>
+    <string name="core_content_clip_entity_place_tag">ठिकाण</string>
     <string name="core_content_clip_entity_url_label">लिंक</string>
     <string name="core_content_clip_entity_url_tag">लिंक</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">ॲप WOFF वेब फॉन्ट वाचू शकत नाही. फॉन्टची .ttf किंवा .otf आवृत्ती वापरा.</string>
     <string name="core_content_font_error_woff2">ॲप WOFF2 वेब फॉन्ट वाचू शकत नाही. फॉन्टची .ttf किंवा .otf आवृत्ती वापरा.</string>
     <string name="core_content_font_error_zip">ही फाइल झिप आर्काइव्ह आहे, फॉन्ट नाही.</string>
+    <string name="core_content_note_tag_ideas">कल्पना</string>
+    <string name="core_content_note_tag_important">महत्त्वाचे</string>
+    <string name="core_content_note_tag_personal">वैयक्तिक</string>
+    <string name="core_content_note_tag_school">शाळा</string>
+    <string name="core_content_note_tag_study">अभ्यास</string>
+    <string name="core_content_note_tag_work">काम</string>
     <string name="core_content_selection_macro_add_contact">संपर्क</string>
     <string name="core_content_selection_macro_calendar">कॅलेंडर</string>
     <string name="core_content_selection_macro_call">कॉल करा</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">बोला</string>
     <string name="core_content_selection_macro_replace">बदला</string>
+    <string name="core_content_selection_macro_save_note">नोट म्हणून सेव्ह करा</string>
     <string name="core_content_selection_macro_search">शोधा</string>
     <string name="core_content_selection_macro_share">शेअर करा</string>
     <string name="core_content_selection_macro_sms">संदेश</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">भाषांतर करा</string>
     <string name="core_content_selection_macro_url_decode">डिकोड करा</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">फाईलमध्ये शॉर्टकट नसलेला %1$d शब्द देखील आहे. तो तुमच्या शब्दांमध्ये जोडण्यासाठी, वैयक्तिक शब्दकोशातून फाईल उघडा.</item>
+        <item quantity="other">फाईलमध्ये शॉर्टकट नसलेले %1$d शब्द देखील आहेत. ते तुमच्या शब्दांमध्ये जोडण्यासाठी, वैयक्तिक शब्दकोशातून फाईल उघडा.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">ॲपने \"%1$s\" मधून %2$d विस्तार वगळला.</item>
         <item quantity="other">ॲपने \"%1$s\" मधून %2$d विस्तार वगळले.</item>
@@ -162,9 +175,17 @@
         <item quantity="one">ॲपने \"%1$s\" मधून पॅटर्न काढला आहे. तो %2$d कॅरेक्टरपेक्षा जास्त लांब होता.</item>
         <item quantity="other">ॲपने \"%1$s\" मधून पॅटर्न काढला आहे. तो %2$d कॅरेक्टर्सपेक्षा जास्त लांब होता.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">ॲपने मजकूर नसलेली %1$d ओळ काढून टाकली आहे.</item>
+        <item quantity="other">ॲपने मजकूर नसलेल्या %1$d ओळी काढून टाकल्या आहेत.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">ॲपने \"%1$s\" लहान केले आहे. ते %2$d अक्षरापेक्षा जास्त लांब होते.</item>
         <item quantity="other">ॲपने \"%1$s\" लहान केले आहे. ते %2$d अक्षरांपेक्षा जास्त लांब होते.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">ॲपने %1$d ट्रिगर काढला आहे ज्यावर कीबोर्ड लक्ष ठेवू शकत नाही. त्याचे स्निपेट लिस्टमध्येच राहील.</item>
+        <item quantity="other">ॲपने %1$d ट्रिगर्स काढले आहेत ज्यावर कीबोर्ड लक्ष ठेवू शकत नाही. त्यांची स्निपेट्स लिस्टमध्येच राहतील.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">तुम्ही ज्या ॲपमध्ये टाईप करत आहात त्याचे नाव</string>
     <string name="core_content_snippet_var_clip_info">क्लिपबोर्डवरील सर्वात नवीन एन्ट्री</string>

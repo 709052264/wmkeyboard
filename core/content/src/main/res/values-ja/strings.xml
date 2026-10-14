@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">コード</string>
     <string name="core_content_clip_entity_phone_label">電話番号</string>
     <string name="core_content_clip_entity_phone_tag">電話番号</string>
+    <string name="core_content_clip_entity_place_label">場所</string>
+    <string name="core_content_clip_entity_place_tag">場所</string>
     <string name="core_content_clip_entity_url_label">リンク</string>
     <string name="core_content_clip_entity_url_tag">リンク</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">アプリはWOFFウェブフォントを読み込めません。フォントの.ttfまたは.otfバージョンを使用してください。</string>
     <string name="core_content_font_error_woff2">このアプリはWOFF2ウェブフォントを読み込めません。フォントの.ttfまたは.otfバージョンを使用してください。</string>
     <string name="core_content_font_error_zip">このファイルはzipアーカイブであり、フォントではありません。</string>
+    <string name="core_content_note_tag_ideas">アイデア</string>
+    <string name="core_content_note_tag_important">重要</string>
+    <string name="core_content_note_tag_personal">個人用</string>
+    <string name="core_content_note_tag_school">学校</string>
+    <string name="core_content_note_tag_study">勉強</string>
+    <string name="core_content_note_tag_work">仕事</string>
     <string name="core_content_selection_macro_add_contact">連絡先</string>
     <string name="core_content_selection_macro_calendar">カレンダー</string>
     <string name="core_content_selection_macro_call">通話</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">読み上げ</string>
     <string name="core_content_selection_macro_replace">置換</string>
+    <string name="core_content_selection_macro_save_note">メモとして保存</string>
     <string name="core_content_selection_macro_search">検索</string>
     <string name="core_content_selection_macro_share">共有</string>
     <string name="core_content_selection_macro_sms">メッセージ</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">翻訳</string>
     <string name="core_content_selection_macro_url_decode">デコード</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">ファイルにはショートカットのない単語が %1$d つ含まれています。単語に追加するには、「個人辞書」からファイルを開いてください。</item>
+        <item quantity="other">ファイルにはショートカットのない単語が %1$d つ含まれています。単語に追加するには、「個人辞書」からファイルを開いてください。</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">アプリは\"%1$s\"から%2$d個の拡張を除外しました。</item>
         <item quantity="other">アプリは\"%1$s\"から%2$d個の拡張を除外しました。</item>
@@ -162,9 +175,17 @@
         <item quantity="one">\"%1$s\"からパターンを削除しました。%2$d文字を超えていました。</item>
         <item quantity="other">\"%1$s\"からパターンを削除しました。%2$d文字を超えていました。</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">テキストのない行が%1$d件削除されました。</item>
+        <item quantity="other">テキストのない行が%1$d件削除されました。</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">\"%1$s\" を短縮しました。%2$d 文字を超えていました。</item>
         <item quantity="other">\"%1$s\" を短縮しました。%2$d 文字を超えていました。</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">キーボードが監視できないトリガーが%1$dつ削除されました。そのスニペットはリストに残ります。</item>
+        <item quantity="other">キーボードが監視できないトリガーが%1$dつ削除されました。それらのスニペットはリストに残ります。</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">入力中のアプリ名</string>
     <string name="core_content_snippet_var_clip_info">最新のクリップボードエントリ</string>

@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">কোড</string>
     <string name="core_content_clip_entity_phone_label">ফোন নম্বর</string>
     <string name="core_content_clip_entity_phone_tag">ফোন</string>
+    <string name="core_content_clip_entity_place_label">স্থান</string>
+    <string name="core_content_clip_entity_place_tag">স্থান</string>
     <string name="core_content_clip_entity_url_label">লিঙ্ক</string>
     <string name="core_content_clip_entity_url_tag">লিঙ্ক</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">অ্যাপটি WOFF ওয়েব ফন্ট পড়তে পারে না। ফন্টের .ttf বা .otf সংস্করণ ব্যবহার করুন।</string>
     <string name="core_content_font_error_woff2">অ্যাপটি WOFF2 ওয়েব ফন্ট পড়তে পারে না। ফন্টের .ttf বা .otf সংস্করণ ব্যবহার করুন।</string>
     <string name="core_content_font_error_zip">এই ফাইলটি একটি জিপ আর্কাইভ, ফন্ট নয়।</string>
+    <string name="core_content_note_tag_ideas">আইডিয়া</string>
+    <string name="core_content_note_tag_important">গুরুত্বপূর্ণ</string>
+    <string name="core_content_note_tag_personal">ব্যক্তিগত</string>
+    <string name="core_content_note_tag_school">স্কুল</string>
+    <string name="core_content_note_tag_study">পড়াশোনা</string>
+    <string name="core_content_note_tag_work">কাজ</string>
     <string name="core_content_selection_macro_add_contact">যোগাযোগ</string>
     <string name="core_content_selection_macro_calendar">ক্যালেন্ডার</string>
     <string name="core_content_selection_macro_call">কল</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">বলুন</string>
     <string name="core_content_selection_macro_replace">প্রতিস্থাপন করুন</string>
+    <string name="core_content_selection_macro_save_note">নোট হিসেবে সংরক্ষণ করুন</string>
     <string name="core_content_selection_macro_search">অনুসন্ধান</string>
     <string name="core_content_selection_macro_share">শেয়ার করুন</string>
     <string name="core_content_selection_macro_sms">মেসেজ</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">অনুবাদ করুন</string>
     <string name="core_content_selection_macro_url_decode">ডিকোড</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">ফাইলটিতে শর্টকাট ছাড়া %1$dটি শব্দ রয়েছে। এটিকে আপনার শব্দভাণ্ডারে যোগ করতে, ব্যক্তিগত অভিধান থেকে ফাইলটি খুলুন।</item>
+        <item quantity="other">ফাইলটিতে শর্টকাট ছাড়া %1$dটি শব্দ রয়েছে। সেগুলোকে আপনার শব্দভাণ্ডারে যোগ করতে, ব্যক্তিগত অভিধান থেকে ফাইলটি খুলুন।</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">অ্যাপটি \"%1$s\" থেকে %2$d টি প্রসারণ বাদ দিয়েছে।</item>
         <item quantity="other">অ্যাপটি \"%1$s\" থেকে %2$d টি প্রসারণ বাদ দিয়েছে।</item>
@@ -162,9 +175,17 @@
         <item quantity="one">অ্যাপটি \"%1$s\" থেকে প্যাটার্নটি সরিয়ে দিয়েছে। এটি %2$d অক্ষরের চেয়ে বেশি দীর্ঘ ছিল।</item>
         <item quantity="other">অ্যাপটি \"%1$s\" থেকে প্যাটার্নটি সরিয়ে দিয়েছে। এটি %2$d অক্ষরের চেয়ে বেশি দীর্ঘ ছিল।</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">অ্যাপটি এমন %1$d টি সারি বাদ দিয়েছে যাতে কোনো টেক্সট নেই।</item>
+        <item quantity="other">অ্যাপটি এমন %1$d টি সারি বাদ দিয়েছে যাতে কোনো টেক্সট নেই।</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">অ্যাপটি \"%1$s\" ছোট করেছে। এটি %2$d অক্ষরের চেয়ে বড় ছিল।</item>
         <item quantity="other">অ্যাপটি \"%1$s\" ছোট করেছে। এটি %2$d অক্ষরের চেয়ে বড় ছিল।</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">অ্যাপটি %1$dটি ট্রিগার সরিয়েছে যা কীবোর্ড পর্যবেক্ষণ করতে পারে না। এর স্নিপেট তালিকায় থেকে যাবে।</item>
+        <item quantity="other">অ্যাপটি %1$dটি ট্রিগার সরিয়েছে যা কীবোর্ড পর্যবেক্ষণ করতে পারে না। তাদের স্নিপেট তালিকায় থেকে যাবে।</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">আপনি যে অ্যাপটিতে টাইপ করছেন তার নাম</string>
     <string name="core_content_snippet_var_clip_info">সবচেয়ে নতুন ক্লিপবোর্ড এন্ট্রি</string>

@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">앱이 \"%1$s\"을(를) 삭제했습니다. 앱에서 저장할 수 없습니다.</string>
     <string name="core_icons_repair_svg_unreadable">앱이 \"%1$s\"을(를) 삭제했습니다. 앱에서 SVG 파일을 읽을 수 없습니다.</string>
+    <string name="core_icons_slot_arrow_down_label">아래 화살표</string>
+    <string name="core_icons_slot_arrow_left_label">왼쪽 화살표</string>
+    <string name="core_icons_slot_arrow_right_label">오른쪽 화살표</string>
+    <string name="core_icons_slot_arrow_up_label">위쪽 화살표</string>
     <string name="core_icons_slot_backspace_label">백스페이스</string>
+    <string name="core_icons_slot_caps_lock_key_label">Caps Lock 키</string>
     <string name="core_icons_slot_caps_lock_label">Caps lock</string>
     <string name="core_icons_slot_emoji_activities_label">활동</string>
     <string name="core_icons_slot_emoji_animals_label">동물</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: 전송</string>
     <string name="core_icons_slot_forward_delete_label">앞으로 삭제</string>
     <string name="core_icons_slot_globe_label">언어 전환</string>
+    <string name="core_icons_slot_hide_keys_label">키 숨기기(하드웨어 키보드)</string>
     <string name="core_icons_slot_incognito_label">시크릿 배지</string>
     <string name="core_icons_slot_input_method_picker_label">키보드 전환</string>
     <string name="core_icons_slot_panel_back_label">키로 돌아가기</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">검색 닫기</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (켜짐)</string>
+    <string name="core_icons_slot_show_keys_label">키 표시 (하드웨어 키보드)</string>
     <string name="core_icons_slot_suggestions_expand_label">도구 표시</string>
+    <string name="core_icons_slot_tab_label">탭 키</string>
     <string name="core_icons_slot_toolbox_label">도구 상자</string>
 </resources>

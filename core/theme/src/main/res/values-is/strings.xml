@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Djúpsjór</string>
     <string name="core_theme_builtin_facet_label">Fleti</string>
     <string name="core_theme_builtin_forest_label">Skógur</string>
+    <string name="core_theme_builtin_frost_label">Frost</string>
+    <string name="core_theme_builtin_frost_light_label">Frostljóst</string>
+    <string name="core_theme_builtin_frost_liquid_label">Frostvökvi</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Frost veggfóður</string>
     <string name="core_theme_builtin_glacier_label">Glacier</string>
     <string name="core_theme_builtin_mint_label">Mynta</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Snjór</string>
     <string name="core_theme_builtin_sunset_drift_label">Sólarlagsreik</string>
     <string name="core_theme_builtin_sunset_label">Sólarlag</string>
+    <string name="core_theme_family_frost_label">Frost</string>
     <string name="core_theme_family_gradient_label">Litstiglar</string>
     <string name="core_theme_family_ocean_label">Rökkur</string>
     <string name="core_theme_family_snow_label">Pastellitur</string>
+    <string name="core_theme_palette_style_expressive">Tjáningarríkt</string>
+    <string name="core_theme_palette_style_fidelity">Tryggð</string>
+    <string name="core_theme_palette_style_fruit_salad">Ávaxtasalat</string>
+    <string name="core_theme_palette_style_monochrome">Einlitur</string>
+    <string name="core_theme_palette_style_neutral">Hlutlaust</string>
+    <string name="core_theme_palette_style_rainbow">Regnbogi</string>
+    <string name="core_theme_palette_style_tonal_spot">Tónblettur</string>
+    <string name="core_theme_palette_style_vibrant">Líflegt</string>
 </resources>

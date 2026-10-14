@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">Aplikacija je opustila \"%1$s\". Aplikacija je ne more shraniti.</string>
     <string name="core_icons_repair_svg_unreadable">Aplikacija je opustila \"%1$s\". Aplikacija ne more prebrati njene datoteke SVG.</string>
+    <string name="core_icons_slot_arrow_down_label">Puščica dol</string>
+    <string name="core_icons_slot_arrow_left_label">Puščica levo</string>
+    <string name="core_icons_slot_arrow_right_label">Puščica desno</string>
+    <string name="core_icons_slot_arrow_up_label">Puščica navzgor</string>
     <string name="core_icons_slot_backspace_label">Vračalka</string>
+    <string name="core_icons_slot_caps_lock_key_label">Tipka Caps Lock</string>
     <string name="core_icons_slot_caps_lock_label">Caps lock</string>
     <string name="core_icons_slot_emoji_activities_label">Dejavnosti</string>
     <string name="core_icons_slot_emoji_animals_label">Živali</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: pošlji</string>
     <string name="core_icons_slot_forward_delete_label">Brisanje naprej</string>
     <string name="core_icons_slot_globe_label">Preklopi jezik</string>
+    <string name="core_icons_slot_hide_keys_label">Skrij tipke (strojna tipkovnica)</string>
     <string name="core_icons_slot_incognito_label">Značka brez beleženja zgodovine</string>
     <string name="core_icons_slot_input_method_picker_label">Preklopi tipkovnico</string>
     <string name="core_icons_slot_panel_back_label">Nazaj na tipke</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Zapri iskanje</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (vklopljeno)</string>
+    <string name="core_icons_slot_show_keys_label">Prikaži tipke (strojna tipkovnica)</string>
     <string name="core_icons_slot_suggestions_expand_label">Prikaži orodja</string>
+    <string name="core_icons_slot_tab_label">Tipka Tab</string>
     <string name="core_icons_slot_toolbox_label">Orodjarna</string>
 </resources>

@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">ΚΩΔΙΚΟΣ</string>
     <string name="core_content_clip_entity_phone_label">Αριθμός τηλεφώνου</string>
     <string name="core_content_clip_entity_phone_tag">ΤΗΛΕΦΩΝΟ</string>
+    <string name="core_content_clip_entity_place_label">Τοποθεσία</string>
+    <string name="core_content_clip_entity_place_tag">ΤΟΠΟΘΕΣΙΑ</string>
     <string name="core_content_clip_entity_url_label">Σύνδεσμος</string>
     <string name="core_content_clip_entity_url_tag">ΣΥΝΔΕΣΜΟΣ</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Η εφαρμογή δεν μπορεί να διαβάσει γραμματοσειρές ιστού WOFF. Χρησιμοποιήστε την έκδοση .ttf ή .otf της γραμματοσειράς.</string>
     <string name="core_content_font_error_woff2">Η εφαρμογή δεν μπορεί να διαβάσει γραμματοσειρές ιστού WOFF2. Χρησιμοποιήστε την έκδοση .ttf ή .otf της γραμματοσειράς.</string>
     <string name="core_content_font_error_zip">Αυτό το αρχείο είναι αρχείο zip, όχι γραμματοσειρά.</string>
+    <string name="core_content_note_tag_ideas">Ιδέες</string>
+    <string name="core_content_note_tag_important">Σημαντικό</string>
+    <string name="core_content_note_tag_personal">Προσωπικά</string>
+    <string name="core_content_note_tag_school">Σχολείο</string>
+    <string name="core_content_note_tag_study">Μελέτη</string>
+    <string name="core_content_note_tag_work">Εργασία</string>
     <string name="core_content_selection_macro_add_contact">Επαφή</string>
     <string name="core_content_selection_macro_calendar">Ημερολόγιο</string>
     <string name="core_content_selection_macro_call">Κλήση</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Εκφώνηση</string>
     <string name="core_content_selection_macro_replace">Αντικατάσταση</string>
+    <string name="core_content_selection_macro_save_note">Αποθήκευση ως σημείωση</string>
     <string name="core_content_selection_macro_search">Αναζήτηση</string>
     <string name="core_content_selection_macro_share">Κοινοποίηση</string>
     <string name="core_content_selection_macro_sms">Μήνυμα</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Μετάφραση</string>
     <string name="core_content_selection_macro_url_decode">Αποκωδικοποίηση</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Το αρχείο έχει επίσης %1$d λέξη χωρίς συντόμευση. Για να την προσθέσετε στις λέξεις σας, ανοίξτε το αρχείο από το Προσωπικό λεξικό.</item>
+        <item quantity="other">Το αρχείο έχει επίσης %1$d λέξεις χωρίς συντόμευση. Για να τις προσθέσετε στις λέξεις σας, ανοίξτε το αρχείο από το Προσωπικό λεξικό.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Η εφαρμογή άφησε έξω %2$d επέκταση από το \"%1$s\".</item>
         <item quantity="other">Η εφαρμογή άφησε έξω %2$d επεκτάσεις από το \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Η εφαρμογή αφαίρεσε το μοτίβο από το \"%1$s\". Ήταν μεγαλύτερο από %2$d χαρακτήρα.</item>
         <item quantity="other">Η εφαρμογή αφαίρεσε το μοτίβο από το \"%1$s\". Ήταν μεγαλύτερο από %2$d χαρακτήρες.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Η εφαρμογή απέρριψε %1$d σειρά που δεν έχει κείμενο.</item>
+        <item quantity="other">Η εφαρμογή απέρριψε %1$d σειρές που δεν έχουν κείμενο.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Η εφαρμογή συντόμευσε το \"%1$s\". Ήταν μεγαλύτερο από %2$d χαρακτήρα.</item>
         <item quantity="other">Η εφαρμογή συντόμευσε το \"%1$s\". Ήταν μεγαλύτερο από %2$d χαρακτήρες.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Η εφαρμογή αφαίρεσε %1$d έναυσμα που το πληκτρολόγιο δεν μπορεί να παρακολουθήσει. Το απόσπασμά του παραμένει στη λίστα.</item>
+        <item quantity="other">Η εφαρμογή αφαίρεσε %1$d εναύσματα που το πληκτρολόγιο δεν μπορεί να παρακολουθήσει. Τα αποσπάσματά τους παραμένουν στη λίστα.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Το όνομα της εφαρμογής στην οποία πληκτρολογείτε</string>
     <string name="core_content_snippet_var_clip_info">Η νεότερη καταχώρηση στο πρόχειρο</string>

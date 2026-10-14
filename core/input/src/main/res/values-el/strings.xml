@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Λεξικό ιαπωνικών kana σε kanji</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Ένας πίνακας με αναγνώσεις Jyutping για χαρακτήρες Hanzi, με 163.000 καταχωρήσεις. Το πληκτρολόγιο χρειάζεται αυτό το πακέτο για τη μετατροπή στα Καντονέζικα.</string>
     <string name="core_input_cjk_pack_jyutping_title">Λεξικό Καντονέζικων Jyutping</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Ποιες λέξεις ακολουθούν ποιες, μετρημένες από κινεζικά κείμενα ιστού και ειδήσεων. Συνοδεύεται από το λεξικό Pinyin. Με αυτό, αρχικά όπως το wbxh δίνουν πρώτα το 我不喜欢 και όχι δύο άσχετες λέξεις.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Κινεζικά ζεύγη λέξεων</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Χαρακτήρες και φράσεις Hanzi από το CC-CEDICT, 120.000 καταχωρήσεις. Το πληκτρολόγιο χρειάζεται αυτό το πακέτο για την κινεζική μετατροπή.</string>
     <string name="core_input_cjk_pack_pinyin_title">Κινεζικό λεξικό Pinyin</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Φράσεις από το OpenCC, 50.000 καταχωρήσεις, περίπου 1 MB. Με τους παραδοσιακούς χαρακτήρες ενεργοποιημένους, το πληκτρολόγιο το χρησιμοποιεί για να γράψει τη σωστή μορφή για τη λέξη, όπως 頭髮 και όχι 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Πίνακας φράσεων παραδοσιακών χαρακτήρων</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Ένας πίνακας σειράς γραμμών για χαρακτήρες Hanzi. Το πληκτρολόγιο χρειάζεται αυτό το πακέτο για τη διάταξη γραμμών.</string>
     <string name="core_input_cjk_pack_stroke_title">Κινεζικό λεξικό με βάση τις γραμμές (笔画)</string>
+    <string name="core_input_double_pinyin_custom_label">Προσαρμοσμένο</string>
     <string name="core_input_double_pinyin_off_label">Απενεργοποιημένο (πλήρες Pinyin)</string>
+    <string name="core_input_im_note_candidates">Για ορισμένα πλήκτρα αυτή η μέθοδος δίνει μια λίστα επιλογών. Το πληκτρολόγιο χρησιμοποιεί πάντα την πρώτη επιλογή.</string>
+    <string name="core_input_im_note_missing_files">Αυτά τα αρχεία δεν επιλέχθηκαν, επομένως το τμήμα τους λείπει: %1$s. Για να τα συμπεριλάβετε, εισαγάγετε ξανά και επιλέξτε τα μαζί.</string>
+    <string name="core_input_im_note_module">Αυτή η μέθοδος χρησιμοποιεί ένα πρόσθετο, όπως το Anthy, το οποίο το πληκτρολόγιο δεν μπορεί να εκτελέσει. Τα πλήκτρα που το χρησιμοποιούν δεν έχουν καμία λειτουργία εδώ.</string>
+    <string name="core_input_im_note_other_method">Αυτή η μέθοδος δίνει ορισμένα πλήκτρα σε άλλη μέθοδο εισαγωγής. Αυτό το μέρος δεν λειτουργεί εδώ.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Η εφαρμογή δεν μπορεί να διαβάσει %1$d κανόνα ορθογραφίας, οπότε τον παρακάμπτει.</item>
+        <item quantity="other">Η εφαρμογή δεν μπορεί να διαβάσει %1$d κανόνες ορθογραφίας, οπότε τους παρακάμπτει.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Αυτή η μέθοδος χρησιμοποιεί το πλήκτρο διαστήματος ως πλήκτρο, για παράδειγμα για έναν τόνο. Εδώ το πλήκτρο διαστήματος πληκτρολογεί πάντα ένα διάστημα.</string>
+    <string name="core_input_im_note_truncated">Ο πίνακας είναι πολύ μεγάλος, οπότε η εφαρμογή κράτησε μόνο το πρώτο του μέρος.</string>
+    <string name="core_input_im_note_unused_files">Η εφαρμογή δεν χρησιμοποίησε αυτά τα αρχεία: %1$s.</string>
+    <string name="core_input_im_refused_broken">Το αρχείο έχει σφάλμα, επομένως η εφαρμογή δεν μπορεί να το διαβάσει: %1$s</string>
+    <string name="core_input_im_refused_empty">Το αρχείο δεν περιέχει τίποτα για πληκτρολόγηση.</string>
+    <string name="core_input_im_refused_no_dictionary">Το σχήμα χρειάζεται το λεξικό του. Εισαγάγετε ξανά και επιλέξτε επίσης %1$s.</string>
+    <string name="core_input_im_refused_not_method">Η εφαρμογή δεν μπορεί να το διαβάσει ως μέθοδο εισαγωγής. Διαβάζει πίνακες .cin, σχήματα και λεξικά Rime (.schema.yaml, .dict.yaml) και αρχεία m17n .mim.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Η εφαρμογή το διάβασε ως πίνακα .cin με %1$d καταχώρηση. Πληκτρολογήστε έναν κωδικό και μετά επιλέξτε τον χαρακτήρα από τη γραμμή προτάσεων.</item>
+        <item quantity="other">Η εφαρμογή το διάβασε ως πίνακα .cin με %1$d καταχωρήσεις. Πληκτρολογήστε έναν κωδικό και μετά επιλέξτε τον χαρακτήρα από τη γραμμή προτάσεων.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Η εφαρμογή το διάβασε ως μέθοδο εισαγωγής m17n με %1$d κανόνα. Τα πλήκτρα γράφουν το κείμενο καθώς πληκτρολογείτε.</item>
+        <item quantity="other">Η εφαρμογή το διάβασε ως μέθοδο εισαγωγής m17n με %1$d κανόνες. Τα πλήκτρα γράφουν το κείμενο καθώς πληκτρολογείτε.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Η εφαρμογή το διάβασε ως σχήμα Rime με %1$d καταχώρηση λεξικού. Πληκτρολογήστε τις συλλαβές και μετά επιλέξτε τις λέξεις από τη γραμμή προτάσεων.</item>
+        <item quantity="other">Η εφαρμογή το διάβασε ως σχήμα Rime με %1$d καταχωρήσεις λεξικού. Πληκτρολογήστε τις συλλαβές και μετά επιλέξτε τις λέξεις από τη γραμμή προτάσεων.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Η εφαρμογή το διάβασε ως πίνακα κωδικών Rime με %1$d καταχώριση. Πληκτρολογήστε έναν κωδικό και, στη συνέχεια, επιλέξτε τον χαρακτήρα από τη γραμμή προτάσεων.</item>
+        <item quantity="other">Η εφαρμογή το διάβασε ως πίνακα κωδικών Rime με %1$d καταχωρίσεις. Πληκτρολογήστε έναν κωδικό και, στη συνέχεια, επιλέξτε τον χαρακτήρα από τη γραμμή προτάσεων.</item>
+    </plurals>
 </resources>

@@ -8,6 +8,12 @@
     <string name="core_voice_model_base_eu_body">Tento model používa jazyk, v ktorom píšete, rovnako ako 40-jazykový model. Zahŕňa iba európske jazyky, takže sťahovanie je menšie.</string>
     <string name="core_voice_model_base_multi_body">Tento model vyvažuje presnosť a rýchlosť. Pokrýva každý jazyk, ktorý Whisper pozná. Vyberte ho, ak je malý model príliš pomalý.</string>
     <string name="core_voice_model_base_world_body">Tento model používa jazyk, v ktorom píšete, namiesto odhadu. Krátke frázy sa stávajú oveľa spoľahlivejšími. Vyberte ho, keď jeho zoznam obsahuje vaše jazyky.</string>
+    <string name="core_voice_model_cpp_base_body">Tento model vyvažuje presnosť a rýchlosť. Používa jazyk, v ktorom diktujete, z ktoréhokoľvek z 99 jazykov, ktoré Whisper pozná, a počúva vaše vlastné slová. Vyberte ho, ak je malý model príliš pomalý.</string>
+    <string name="core_voice_model_cpp_large_body">Toto je najpresnejší model Whisper. Súbor na stiahnutie má 1,1 GB. Načítať ho dokáže iba zariadenie s veľkým množstvom pamäte. Model Turbo je takmer rovnako presný a má polovičnú veľkosť.</string>
+    <string name="core_voice_model_cpp_medium_body">Tento model poskytuje presnosť takmer ako na počítači. Každá fráza trvá niekoľko sekúnd. Model pri behu využíva takmer jeden gigabajt pamäte.</string>
+    <string name="core_voice_model_cpp_small_body">Tento model poskytuje najlepšiu presnosť, ktorá stále dobre funguje v telefóne. Používa jazyk, v ktorom diktujete, v ktoromkoľvek z 99 jazykov, ktoré Whisper pozná, a počúva vaše vlastné slová.</string>
+    <string name="core_voice_model_cpp_tiny_body">Toto je najrýchlejší model. Funguje dobre pri jasnej reči, ale hluk znižuje presnosť. Používa jazyk, v ktorom diktujete, a počúva vaše vlastné slová.</string>
+    <string name="core_voice_model_cpp_turbo_body">Tento model je takmer rovnako presný ako najväčší model, pri polovičnej veľkosti. Každá fráza trvá niekoľko sekúnd a nedokáže prekladať.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d jazyk</item>
         <item quantity="other">%1$d jazykov</item>
@@ -32,4 +38,5 @@
     <string name="core_voice_whisper_module_downloading">Offline časť hlasového písania na klávesnici sa sťahuje zo služby Google Play. Skúste to o chvíľu znova.</string>
     <string name="core_voice_whisper_module_restart">Inštalácia offline hlasového písania bola dokončená. Ak chcete túto funkciu používať, zatvorte a znova otvorte klávesnicu.</string>
     <string name="core_voice_whisper_transcribe_error">Hlasové písanie nefungovalo. Skúste to znova alebo vyberte menší model.</string>
+    <string name="core_voice_whistle_checksum_error">Stiahnutý model je poškodený. Stiahnite ho znova.</string>
 </resources>

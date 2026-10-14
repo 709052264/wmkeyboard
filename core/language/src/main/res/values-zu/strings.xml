@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Izinhlamvu ezithayishwa ukhiye we-AltGr kukhompyutha zitholakala ngokucindezela nokubamba okhiye abafanayo.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d ukhiye ofile ubeka uphawu kuhlamvu olulandelayo kukhompyutha. Lapha, izinhlamvu ezinolo phawu zitholakala ngokucindezela nokubamba uhlamvu ngalunye.</item>
+        <item quantity="other">%1$d okhiye abafile babeka izimpawu ezinhlamvwini ezilandelayo kukhompyutha. Lapha, izinhlamvu ezinalezo zimpawu zitholakala ngokucindezela nokubamba uhlamvu ngalunye.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Ifayela lakhiwe phezu kwefayela elilodwa elengeziwe (%2$s) ongalivulanga. Okhiye abasethwa yilelo fayela kuphela abekho.</item>
+        <item quantity="other">Ifayela lakhiwe phezu kwamafayela angu-%1$d angeziwe (%2$s) ongalivulanga. Okhiye abasethwa yilawo mafayela kuphela abekho.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d uhlamvu oluvela kokhiye ongenazo izinhlamvu lusekucindezeleni nasekubambeni isikhathi esigcwele.</item>
+        <item quantity="other">%1$d izinhlamvu ezivela kokhiye abangenazo izinhlamvu zisekucindezeleni nasekubambeni isikhathi esigcwele.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Uhlelo lokusebenza alulwazi igama lomlingiswa elingu-%1$d efayelini, ngakho lishiywe ngaphandle: %2$s.</item>
+        <item quantity="other">Uhlelo lokusebenza alulwazi amagama abalingiswa angu-%1$d efayelini, ngakho lishiywe ngaphandle: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">Ukuswayipha okungu-%1$d okhiye akunawo umsebenzi lapha, ngoba le khibhodi isebenzisa lokho kuswayipha komunye umsebenzi. Uhlelo lokusebenza lukuqede.</item>
+        <item quantity="other">Ukuswayipha okungu-%1$d okhiye akunawo umsebenzi lapha, ngoba le khibhodi isebenzisa lokho kuswayipha kweminye imisebenzi. Uhlelo lokusebenza lukuqede.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Uhlelo lokusebenza lushintshe ukhiye ongu-%1$d uba ukhiye oseduze onawo.</item>
         <item quantity="other">Uhlelo lokusebenza lushintshe okhiye abangu-%1$d baba okhiye abaseduze onawo.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Uhlelo lokusebenza lushintshe izinhlamvu ezi-%1$d zaya efomini elibhalwa yile khibhodi.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Uhlelo lokusebenza lususe umugqa wezinombolo. Vula umugqa wezinombolo kokuthi Isakhiwo nosayizi ukuze uthole owodwa.</string>
+    <string name="core_lang_foreign_number_row_kept">Umugqa wezinombolo wefayela uwumugqa wezinombolo walolu hlelo. Ubonakala ngenkathi umugqa wezinombolo uvuliwe ku-Layout nosayizi.</string>
+    <string name="core_lang_foreign_pages_kept">Amakhasi engeziwe efayela, njenge-AltGr, angamakhasi alolu hlelo. Swayipha usuka kukhiye owawuvule kuleliya khibhodi ukuze uwavule lapha.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d ukhiye awunazo izinhlamvu zokucindezela nokubamba. Ifayela lizigcina kwelinye ifayela ongalivulanga.</item>
         <item quantity="other">%1$d okhiye abanazo izinhlamvu zokucindezela nokubamba. Ifayela lizigcina kwelinye ifayela ongalivulanga.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">Ukhiye ongu-%1$d ushintsha ngesimo sokushintsha noma inkambu ekhibhodi enye. Uhlelo lokusebenza lugcine indlela obukeka ngayo uma uphumule.</item>
         <item quantity="other">Okhiye abangu-%1$d bashintsha ngesimo sokushintsha noma inkambu ekhibhodi enye. Uhlelo lokusebenza lugcine indlela ababukeka ngayo uma bephumule.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">Ikhasi elingu-%1$d elishintshiwe efayelini linezikhi zalo kwezinye izindawo ngaphandle kwekhasi elishintshayo. Uhlelo lokusebenza lusebenzisa izinhlamvu ezinkulu lapho esikhundleni salokho.</item>
+        <item quantity="other">Amakhasi angu-%1$d ashintshiwe efayelini anezikhi zawo kwezinye izindawo ngaphandle kwamakhasi ashintshayo. Uhlelo lokusebenza lusebenzisa izinhlamvu ezinkulu lapho esikhundleni salokho.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d ukhiye unezinhlamvu ezihlukene zokucindezela nokubamba ngenkathi i-shift ivuliwe kwenye ikhibhodi. Uhlelo lokusebenza lugcine lezo ezingashintshiwe.</item>
+        <item quantity="other">%1$d okhiye banezinhlamvu ezihlukene zokucindezela nokubamba ngenkathi i-shift ivuliwe kwenye ikhibhodi. Uhlelo lokusebenza lugcine lezo ezingashintshiwe.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Enye ikhibhodi ilinganisa ububanzi bokhiye ngokuhlukile. Uhlelo lokusebenza lushintshe ububanzi ukuze bulingane nale gridi.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

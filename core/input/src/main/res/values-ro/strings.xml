@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Dicționar japonez kana în kanji</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Un tabel de citiri Jyutping pentru caractere Hanzi, 163.000 de intrări. Tastatura are nevoie de acest pachet pentru conversia în cantoneză.</string>
     <string name="core_input_cjk_pack_jyutping_title">Dicționar cantonez Jyutping</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Ce cuvinte urmează după altele, numărate din textul web și de știri chinezești. Vine cu dicționarul Pinyin. Cu acesta, inițiale precum wbxh oferă 我不喜欢 mai întâi și nu două cuvinte fără legătură.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Perechi de cuvinte chinezești</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Caractere și fraze Hanzi din CC-CEDICT, 120.000 de intrări. Tastatura are nevoie de acest pachet pentru conversia în chineză.</string>
     <string name="core_input_cjk_pack_pinyin_title">Dicționar chinez Pinyin</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Expresii din OpenCC, 50.000 de intrări, aproximativ 1 MB. Cu caracterele tradiționale activate, tastatura o folosește pentru a scrie forma corectă a cuvântului, cum ar fi 頭髮 și nu 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Tabel de fraze cu caractere tradiționale</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Un tabel cu ordinea trăsăturilor pentru caracterele Hanzi. Tastatura are nevoie de acest pachet pentru aspectul trăsăturilor.</string>
     <string name="core_input_cjk_pack_stroke_title">Dicționar de trăsături chinezești (笔画)</string>
+    <string name="core_input_double_pinyin_custom_label">Personalizat</string>
     <string name="core_input_double_pinyin_off_label">Oprit (Pinyin complet)</string>
+    <string name="core_input_im_note_candidates">Pentru unele taste, această metodă oferă o listă de opțiuni. Tastatura folosește întotdeauna prima opțiune.</string>
+    <string name="core_input_im_note_missing_files">Aceste fișiere nu au fost selectate, deci partea lor lipsește: %1$s. Pentru a le include, importă din nou și selectează-le împreună.</string>
+    <string name="core_input_im_note_module">Această metodă folosește un modul, cum ar fi Anthy, pe care tastatura nu îl poate rula. Tastele care îl folosesc nu fac nimic aici.</string>
+    <string name="core_input_im_note_other_method">Această metodă oferă unele taste unei alte metode de introducere. Acea parte nu funcționează aici.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Aplicația nu poate citi %1$d regulă de ortografie, așa că o omite.</item>
+        <item quantity="other">Aplicația nu poate citi %1$d reguli de ortografie, așa că le omite.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Această metodă folosește bara de spațiu ca tastă, de exemplu pentru un ton. Aici, bara de spațiu introduce întotdeauna un spațiu.</string>
+    <string name="core_input_im_note_truncated">Tabelul este foarte mare, așa că aplicația a păstrat doar prima parte a acestuia.</string>
+    <string name="core_input_im_note_unused_files">Aplicația nu a folosit aceste fișiere: %1$s.</string>
+    <string name="core_input_im_refused_broken">Fișierul are o eroare, deci aplicația nu îl poate citi: %1$s</string>
+    <string name="core_input_im_refused_empty">Fișierul nu conține nimic de tastat.</string>
+    <string name="core_input_im_refused_no_dictionary">Schema are nevoie de dicționarul său. Importă din nou și alege și %1$s.</string>
+    <string name="core_input_im_refused_not_method">Aplicația nu poate citi acest lucru ca metodă de introducere. Citește tabele .cin, scheme și dicționare Rime (.schema.yaml, .dict.yaml) și fișiere m17n .mim.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Aplicația a citit acest lucru ca un tabel .cin cu %1$d intrare. Tastați un cod, apoi alegeți caracterul din bara de sugestii.</item>
+        <item quantity="other">Aplicația a citit acest lucru ca un tabel .cin cu %1$d intrări. Tastați un cod, apoi alegeți caracterul din bara de sugestii.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Aplicația a citit acest lucru ca o metodă de introducere m17n cu %1$d regulă. Tastele scriu textul pe măsură ce tastați.</item>
+        <item quantity="other">Aplicația a citit acest lucru ca o metodă de introducere m17n cu %1$d reguli. Tastele scriu textul pe măsură ce tastați.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Aplicația a citit acest lucru ca o schemă Rime cu %1$d intrare în dicționar. Tastați silabele, apoi alegeți cuvintele din bara de sugestii.</item>
+        <item quantity="other">Aplicația a citit acest lucru ca o schemă Rime cu %1$d intrări în dicționar. Tastați silabele, apoi alegeți cuvintele din bara de sugestii.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Aplicația a citit acest lucru ca un tabel de coduri Rime cu %1$d intrare. Tastați un cod, apoi alegeți caracterul din bara de sugestii.</item>
+        <item quantity="other">Aplicația a citit acest lucru ca un tabel de coduri Rime cu %1$d intrări. Tastați un cod, apoi alegeți caracterul din bara de sugestii.</item>
+    </plurals>
 </resources>

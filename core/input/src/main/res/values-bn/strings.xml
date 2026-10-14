@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">জাপানি কানা থেকে কাঞ্জি অভিধান</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">হানজি অক্ষরের জন্য জিউটপিং রিডিংয়ের একটি টেবিল, ১৬৩,০০০ এন্ট্রি। ক্যান্টোনিজ রূপান্তরের জন্য কীবোর্ডের এই প্যাকটি প্রয়োজন।</string>
     <string name="core_input_cjk_pack_jyutping_title">ক্যান্টোনিজ জিউটপিং ডিকশনারি</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">চীনা ওয়েব এবং সংবাদের টেক্সট থেকে গণনা করা হয়েছে যে কোন শব্দের পরে কোনটি আসে। এটি পিনয়িন ডিকশনারির সাথে আসে। এর মাধ্যমে, wbxh-এর মতো ইনিশিয়ালগুলো দিলে দুটি সম্পর্কহীন শব্দের পরিবর্তে প্রথমে 我不喜欢 দেখাবে।</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">চীনা শব্দের জোড়া</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">CC-CEDICT থেকে ১২০,০০০ এন্ট্রি সহ হানজি অক্ষর এবং শব্দগুচ্ছ। চীনা রূপান্তরের জন্য কীবোর্ডের এই প্যাকটি প্রয়োজন।</string>
     <string name="core_input_cjk_pack_pinyin_title">চীনা পিনয়িন অভিধান</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">OpenCC থেকে বাক্যাংশ, ৫০,০০০ এন্ট্রি, প্রায় ১ এমবি। ট্র্যাডিশনাল ক্যারেক্টার চালু থাকলে, কিবোর্ড এটি ব্যবহার করে শব্দের সঠিক রূপ লিখতে, যেমন 頭髮 এবং 頭發 নয়।</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">ঐতিহ্যবাহী অক্ষরের শব্দগুচ্ছের টেবিল</string>
     <string name="core_input_cjk_pack_stroke_subtitle">হানজি অক্ষরের স্ট্রোক অর্ডারের একটি টেবিল। স্ট্রোক লেআউটের জন্য কীবোর্ডের এই প্যাকটি প্রয়োজন।</string>
     <string name="core_input_cjk_pack_stroke_title">চাইনিজ স্ট্রোক (笔画) অভিধান</string>
+    <string name="core_input_double_pinyin_custom_label">কাস্টম</string>
     <string name="core_input_double_pinyin_off_label">বন্ধ (সম্পূর্ণ পিনয়িন)</string>
+    <string name="core_input_im_note_candidates">কিছু কী-এর জন্য এই পদ্ধতিটি পছন্দের একটি তালিকা দেয়। কীবোর্ড সবসময় প্রথম পছন্দটি ব্যবহার করে।</string>
+    <string name="core_input_im_note_missing_files">এই ফাইলগুলো নির্বাচন করা হয়নি, তাই এদের অংশ অনুপস্থিত: %1$s। এগুলো অন্তর্ভুক্ত করতে, আবার ইমপোর্ট করুন এবং একসাথে নির্বাচন করুন।</string>
+    <string name="core_input_im_note_module">এই পদ্ধতিটি অ্যান্থি (Anthy)-এর মতো একটি প্লাগ-ইন ব্যবহার করে, যা কীবোর্ড চালাতে পারে না। যে কীগুলো এটি ব্যবহার করে, সেগুলো এখানে কোনো কাজ করে না।</string>
+    <string name="core_input_im_note_other_method">এই পদ্ধতিটি অন্য একটি ইনপুট মেথডকে কিছু কি (key) প্রদান করে। সেই অংশটি এখানে কাজ করে না।</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">অ্যাপটি %1$d বানান নিয়ম পড়তে পারেনি, তাই এটি বাদ দেওয়া হয়েছে।</item>
+        <item quantity="other">অ্যাপটি %1$d বানান নিয়ম পড়তে পারেনি, তাই সেগুলো বাদ দেওয়া হয়েছে।</item>
+    </plurals>
+    <string name="core_input_im_note_space">এই পদ্ধতিটি স্পেস বারকে একটি কী হিসেবে ব্যবহার করে, উদাহরণস্বরূপ টোনের জন্য। এখানে স্পেস বার সবসময় একটি স্পেস টাইপ করে।</string>
+    <string name="core_input_im_note_truncated">টেবিলটি খুব বড়, তাই অ্যাপটি শুধুমাত্র এর প্রথম অংশটি রেখেছে।</string>
+    <string name="core_input_im_note_unused_files">অ্যাপটি এই ফাইলগুলো ব্যবহার করেনি: %1$s।</string>
+    <string name="core_input_im_refused_broken">ফাইলটিতে একটি ত্রুটি রয়েছে, তাই অ্যাপটি এটি পড়তে পারছে না: %1$s</string>
+    <string name="core_input_im_refused_empty">ফাইলটিতে টাইপ করার মতো কিছু নেই।</string>
+    <string name="core_input_im_refused_no_dictionary">স্কিমাটির জন্য এর ডিকশনারি প্রয়োজন। আবার ইম্পোর্ট করুন এবং %1$s নির্বাচন করুন।</string>
+    <string name="core_input_im_refused_not_method">অ্যাপটি এটিকে ইনপুট পদ্ধতি হিসেবে পড়তে পারে না। এটি .cin টেবিল, Rime স্কিমা এবং ডিকশনারি (.schema.yaml, .dict.yaml) এবং m17n .mim ফাইল পড়তে পারে।</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">অ্যাপটি এটিকে %1$dটি এন্ট্রি সহ একটি .cin টেবিল হিসেবে পড়েছে। একটি কোড টাইপ করুন, তারপর সাজেশন স্ট্রিপ থেকে অক্ষরটি বেছে নিন।</item>
+        <item quantity="other">অ্যাপটি এটিকে %1$dটি এন্ট্রি সহ একটি .cin টেবিল হিসেবে পড়েছে। একটি কোড টাইপ করুন, তারপর সাজেশন স্ট্রিপ থেকে অক্ষরটি বেছে নিন।</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">অ্যাপটি এটিকে %1$dটি নিয়মসহ একটি m17n ইনপুট মেথড হিসেবে পড়েছে। আপনি টাইপ করার সাথে সাথে কীগুলো টেক্সট লিখে ফেলে।</item>
+        <item quantity="other">অ্যাপটি এটিকে %1$dটি নিয়মসহ একটি m17n ইনপুট মেথড হিসেবে পড়েছে। আপনি টাইপ করার সাথে সাথে কীগুলো টেক্সট লিখে ফেলে।</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">অ্যাপটি এটিকে %1$dটি ডিকশনারি এন্ট্রি সহ একটি Rime স্কিমা হিসেবে পড়েছে। সিলেবলগুলো টাইপ করুন, তারপর সাজেশন স্ট্রিপ থেকে শব্দগুলো বেছে নিন।</item>
+        <item quantity="other">অ্যাপটি এটিকে %1$dটি ডিকশনারি এন্ট্রি সহ একটি Rime স্কিমা হিসেবে পড়েছে। সিলেবলগুলো টাইপ করুন, তারপর সাজেশন স্ট্রিপ থেকে শব্দগুলো বেছে নিন।</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">অ্যাপটি এটিকে %1$d এন্ট্রি সহ একটি Rime কোড টেবিল হিসেবে পড়েছে। একটি কোড টাইপ করুন, তারপর সাজেশন স্ট্রিপ থেকে অক্ষরটি বেছে নিন।</item>
+        <item quantity="other">অ্যাপটি এটিকে %1$d এন্ট্রি সহ একটি Rime কোড টেবিল হিসেবে পড়েছে। একটি কোড টাইপ করুন, তারপর সাজেশন স্ট্রিপ থেকে অক্ষরটি বেছে নিন।</item>
+    </plurals>
 </resources>

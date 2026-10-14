@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Les caractères que la touche AltGr saisit sur un ordinateur sont obtenus par un appui long sur les mêmes touches.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d touche morte place un accent sur la lettre suivante sur un ordinateur. Ici, les lettres avec cet accent sont accessibles par un appui long sur chaque lettre.</item>
+        <item quantity="other">%1$d touches mortes placent des accents sur la lettre suivante sur un ordinateur. Ici, les lettres avec ces accents sont accessibles par un appui long sur chaque lettre.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Le fichier s\'appuie sur %1$d autre fichier (%2$s) que vous n\'avez pas ouvert. Les touches définies uniquement par ce fichier sont manquantes.</item>
+        <item quantity="other">Le fichier s\'appuie sur %1$d autres fichiers (%2$s) que vous n\'avez pas ouverts. Les touches définies uniquement par ces fichiers sont manquantes.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d caractère provenant d\'une touche sans lettre est disponible par un appui long sur le point.</item>
+        <item quantity="other">%1$d caractères provenant de touches sans lettre sont disponibles par un appui long sur le point.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">L\'application ne connaît pas %1$d nom de caractère dans le fichier, elle l\'a donc omis : %2$s.</item>
+        <item quantity="other">L\'application ne connaît pas %1$d noms de caractères dans le fichier, elle les a donc omis : %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d balayage sur une touche n\'a pas sa place ici, car ce clavier utilise ce balayage pour une autre fonction. L\'application l\'a supprimé.</item>
+        <item quantity="other">%1$d balayages sur des touches n\'ont pas leur place ici, car ce clavier utilise ces balayages pour d\'autres fonctions. L\'application les a supprimés.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">L\'application a remplacé %1$d touche par la touche la plus proche disponible.</item>
         <item quantity="other">L\'application a remplacé %1$d touches par les touches les plus proches disponibles.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">L\'application a modifié %1$d lettres pour la forme utilisée par ce clavier.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">L\'application a supprimé la rangée de chiffres. Activez la rangée de chiffres dans Disposition et taille pour en obtenir une.</string>
+    <string name="core_lang_foreign_number_row_kept">La rangée de chiffres du fichier est la rangée de chiffres de cette disposition. Elle s\'affiche lorsque la rangée de chiffres est activée dans « Disposition et taille ».</string>
+    <string name="core_lang_foreign_pages_kept">Les pages supplémentaires du fichier, telles que AltGr, sont des pages de cette disposition. Balayez depuis la touche qui les a ouvertes dans l\'autre clavier pour les ouvrir ici.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d touche n\'a pas de lettres accessibles par appui long. Le fichier les conserve dans un second fichier que vous n\'avez pas ouvert.</item>
         <item quantity="other">%1$d touches n\'ont pas de lettres accessibles par appui long. Le fichier les conserve dans un second fichier que vous n\'avez pas ouvert.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d touche change avec l\'état de la majuscule ou le champ dans l\'autre clavier. L\'application a conservé son apparence au repos.</item>
         <item quantity="other">%1$d touches changent avec l\'état de la majuscule ou le champ dans l\'autre clavier. L\'application a conservé leur apparence au repos.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d page décalée dans le fichier a ses touches à d\'autres endroits que la page qu\'elle décale. L\'application utilise des lettres majuscules à la place.</item>
+        <item quantity="other">%1$d pages décalées dans le fichier ont leurs touches à d\'autres endroits que les pages qu\'elles décalent. L\'application utilise des lettres majuscules à la place.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d touche a des lettres différentes lors d\'un appui long lorsque la touche Maj est activée sur l\'autre clavier. L\'application a conservé celles sans Maj.</item>
+        <item quantity="other">%1$d touches ont des lettres différentes lors d\'un appui long lorsque la touche Maj est activée sur l\'autre clavier. L\'application a conservé celles sans Maj.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">L\'autre clavier mesure les largeurs de touches différemment. L\'application a modifié les largeurs pour s\'adapter à cette grille.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

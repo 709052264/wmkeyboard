@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">האפליקציה השמיטה את \"%1$s\". האפליקציה לא יכולה לשמור אותו.</string>
     <string name="core_icons_repair_svg_unreadable">האפליקציה הסירה את \"%1$s\". האפליקציה אינה יכולה לקרוא את קובץ ה-SVG שלו.</string>
+    <string name="core_icons_slot_arrow_down_label">חץ למטה</string>
+    <string name="core_icons_slot_arrow_left_label">חץ שמאלה</string>
+    <string name="core_icons_slot_arrow_right_label">חץ ימינה</string>
+    <string name="core_icons_slot_arrow_up_label">חץ למעלה</string>
     <string name="core_icons_slot_backspace_label">מחיקה</string>
+    <string name="core_icons_slot_caps_lock_key_label">מקש Caps lock</string>
     <string name="core_icons_slot_caps_lock_label">Caps lock</string>
     <string name="core_icons_slot_emoji_activities_label">פעילויות</string>
     <string name="core_icons_slot_emoji_animals_label">בעלי חיים</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: שלח</string>
     <string name="core_icons_slot_forward_delete_label">מחיקה קדימה</string>
     <string name="core_icons_slot_globe_label">החלף שפה</string>
+    <string name="core_icons_slot_hide_keys_label">הסתרת המקשים (מקלדת חומרה)</string>
     <string name="core_icons_slot_incognito_label">תג גלישה בסתר</string>
     <string name="core_icons_slot_input_method_picker_label">החלף מקלדת</string>
     <string name="core_icons_slot_panel_back_label">חזרה למקשים</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">סגור חיפוש</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (מופעל)</string>
+    <string name="core_icons_slot_show_keys_label">הצג את המקשים (מקלדת חומרה)</string>
     <string name="core_icons_slot_suggestions_expand_label">הצגת כלים</string>
+    <string name="core_icons_slot_tab_label">מקש Tab</string>
     <string name="core_icons_slot_toolbox_label">ארגז כלים</string>
 </resources>

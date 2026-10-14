@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">코드</string>
     <string name="core_content_clip_entity_phone_label">전화번호</string>
     <string name="core_content_clip_entity_phone_tag">전화</string>
+    <string name="core_content_clip_entity_place_label">장소</string>
+    <string name="core_content_clip_entity_place_tag">장소</string>
     <string name="core_content_clip_entity_url_label">링크</string>
     <string name="core_content_clip_entity_url_tag">링크</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">앱에서 WOFF 웹 폰트를 읽을 수 없습니다. .ttf 또는 .otf 버전의 폰트를 사용하세요.</string>
     <string name="core_content_font_error_woff2">앱이 WOFF2 웹 폰트를 읽을 수 없습니다. .ttf 또는 .otf 버전의 폰트를 사용하세요.</string>
     <string name="core_content_font_error_zip">이 파일은 글꼴이 아니라 zip 아카이브입니다.</string>
+    <string name="core_content_note_tag_ideas">아이디어</string>
+    <string name="core_content_note_tag_important">중요</string>
+    <string name="core_content_note_tag_personal">개인</string>
+    <string name="core_content_note_tag_school">학교</string>
+    <string name="core_content_note_tag_study">학습</string>
+    <string name="core_content_note_tag_work">업무</string>
     <string name="core_content_selection_macro_add_contact">연락처</string>
     <string name="core_content_selection_macro_calendar">캘린더</string>
     <string name="core_content_selection_macro_call">통화</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">읽기</string>
     <string name="core_content_selection_macro_replace">바꾸기</string>
+    <string name="core_content_selection_macro_save_note">메모로 저장</string>
     <string name="core_content_selection_macro_search">검색</string>
     <string name="core_content_selection_macro_share">공유</string>
     <string name="core_content_selection_macro_sms">메시지</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">번역</string>
     <string name="core_content_selection_macro_url_decode">디코딩</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">파일에 바로가기가 없는 단어가 %1$d개 있습니다. 단어에 추가하려면 개인 사전에서 파일을 여세요.</item>
+        <item quantity="other">파일에 바로가기가 없는 단어가 %1$d개 있습니다. 단어에 추가하려면 개인 사전에서 파일을 여세요.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">앱이 \"%1$s\"에서 %2$d개의 확장을 제외했습니다.</item>
         <item quantity="other">앱이 \"%1$s\"에서 %2$d개의 확장을 제외했습니다.</item>
@@ -162,9 +175,17 @@
         <item quantity="one">앱이 \"%1$s\"에서 패턴을 제거했습니다. %2$d자보다 길었습니다.</item>
         <item quantity="other">앱이 \"%1$s\"에서 패턴을 제거했습니다. %2$d자보다 길었습니다.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">앱이 텍스트가 없는 행 %1$d개를 삭제했습니다.</item>
+        <item quantity="other">앱이 텍스트가 없는 행 %1$d개를 삭제했습니다.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">앱이 \"%1$s\"을(를) 단축했습니다. %2$d자보다 길었습니다.</item>
         <item quantity="other">앱이 \"%1$s\"을(를) 단축했습니다. %2$d자보다 길었습니다.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">앱이 키보드에서 감시할 수 없는 트리거 %1$d개를 제거했습니다. 스니펫은 목록에 유지됩니다.</item>
+        <item quantity="other">앱이 키보드에서 감시할 수 없는 트리거 %1$d개를 제거했습니다. 스니펫은 목록에 유지됩니다.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">입력 중인 앱 이름</string>
     <string name="core_content_snippet_var_clip_info">가장 최근 클립보드 항목</string>

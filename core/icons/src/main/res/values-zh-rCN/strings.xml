@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">应用已丢弃“%1$s”，无法保存。</string>
     <string name="core_icons_repair_svg_unreadable">应用丢失了“%1$s”。应用无法读取其 SVG 文件。</string>
+    <string name="core_icons_slot_arrow_down_label">向下箭头</string>
+    <string name="core_icons_slot_arrow_left_label">向左箭头</string>
+    <string name="core_icons_slot_arrow_right_label">向右箭头</string>
+    <string name="core_icons_slot_arrow_up_label">向上箭头</string>
     <string name="core_icons_slot_backspace_label">退格键</string>
+    <string name="core_icons_slot_caps_lock_key_label">大写锁定键</string>
     <string name="core_icons_slot_caps_lock_label">大写锁定</string>
     <string name="core_icons_slot_emoji_activities_label">活动</string>
     <string name="core_icons_slot_emoji_animals_label">动物</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">回车键：发送</string>
     <string name="core_icons_slot_forward_delete_label">向后删除</string>
     <string name="core_icons_slot_globe_label">切换语言</string>
+    <string name="core_icons_slot_hide_keys_label">隐藏按键（硬件键盘）</string>
     <string name="core_icons_slot_incognito_label">隐身模式徽标</string>
     <string name="core_icons_slot_input_method_picker_label">切换键盘</string>
     <string name="core_icons_slot_panel_back_label">返回按键</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">关闭搜索</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (开启)</string>
+    <string name="core_icons_slot_show_keys_label">显示按键（硬件键盘）</string>
     <string name="core_icons_slot_suggestions_expand_label">显示工具</string>
+    <string name="core_icons_slot_tab_label">Tab 键</string>
     <string name="core_icons_slot_toolbox_label">工具箱</string>
 </resources>

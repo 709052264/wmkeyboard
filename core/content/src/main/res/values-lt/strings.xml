@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">KODAS</string>
     <string name="core_content_clip_entity_phone_label">Telefono numeris</string>
     <string name="core_content_clip_entity_phone_tag">TELEFONAS</string>
+    <string name="core_content_clip_entity_place_label">Vieta</string>
+    <string name="core_content_clip_entity_place_tag">VIETA</string>
     <string name="core_content_clip_entity_url_label">Nuoroda</string>
     <string name="core_content_clip_entity_url_tag">NUORODA</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Programa negali nuskaityti WOFF žiniatinklio šriftų. Naudokite .ttf arba .otf šrifto versiją.</string>
     <string name="core_content_font_error_woff2">Programėlė negali nuskaityti WOFF2 žiniatinklio šriftų. Naudokite .ttf arba .otf šrifto versiją.</string>
     <string name="core_content_font_error_zip">Šis failas yra ZIP archyvas, o ne šriftas.</string>
+    <string name="core_content_note_tag_ideas">Idėjos</string>
+    <string name="core_content_note_tag_important">Svarbu</string>
+    <string name="core_content_note_tag_personal">Asmeninis</string>
+    <string name="core_content_note_tag_school">Mokykla</string>
+    <string name="core_content_note_tag_study">Mokymasis</string>
+    <string name="core_content_note_tag_work">Darbas</string>
     <string name="core_content_selection_macro_add_contact">Kontaktas</string>
     <string name="core_content_selection_macro_calendar">Kalendorius</string>
     <string name="core_content_selection_macro_call">Skambinti</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Skaityti garsiai</string>
     <string name="core_content_selection_macro_replace">Pakeisti</string>
+    <string name="core_content_selection_macro_save_note">Išsaugoti kaip užrašą</string>
     <string name="core_content_selection_macro_search">Paieška</string>
     <string name="core_content_selection_macro_share">Bendrinti</string>
     <string name="core_content_selection_macro_sms">Žinutė</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Versti</string>
     <string name="core_content_selection_macro_url_decode">Dekoduoti</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Faile taip pat yra %1$d žodis be nuorodos. Norėdami jį įtraukti į savo žodžius, atidarykite failą iš asmeninio žodyno.</item>
+        <item quantity="other">Faile taip pat yra %1$d žodžių be nuorodos. Norėdami juos įtraukti į savo žodžius, atidarykite failą iš asmeninio žodyno.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Programa praleido %2$d plėtinį iš „%1$s“.</item>
         <item quantity="other">Programa praleido %2$d plėtinių iš „%1$s“.</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Programa pašalino šabloną iš „%1$s“. Jis buvo ilgesnis nei %2$d simbolis.</item>
         <item quantity="other">Programa pašalino šabloną iš „%1$s“. Jis buvo ilgesnis nei %2$d simboliai.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Programėlė pašalino %1$d eilutę, kurioje nėra teksto.</item>
+        <item quantity="other">Programėlė pašalino %1$d eilučių, kuriose nėra teksto.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Programa sutrumpino „%1$s“. Jis buvo ilgesnis nei %2$d simbolis.</item>
         <item quantity="other">Programa sutrumpino „%1$s“. Jis buvo ilgesnis nei %2$d simboliai.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Programa pašalino %1$d paleidiklį, kurio klaviatūra negali stebėti. Jo fragmentas lieka sąraše.</item>
+        <item quantity="other">Programa pašalino %1$d paleidiklių, kurių klaviatūra negali stebėti. Jų fragmentai lieka sąraše.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Programos, kurioje rašote, pavadinimas</string>
     <string name="core_content_snippet_var_clip_info">Naujausias iškarpinės įrašas</string>

@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">കമ്പ്യൂട്ടറിൽ AltGr കീ ഉപയോഗിച്ച് ടൈപ്പ് ചെയ്യുന്ന അക്ഷരങ്ങൾ അതേ കീകൾ ദീർഘനേരം അമർത്തിപ്പിടിച്ചാൽ ലഭിക്കും.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d ഡെഡ് കീ കമ്പ്യൂട്ടറിൽ അടുത്ത അക്ഷരത്തിൽ ഒരു ആക്സന്റ് നൽകുന്നു. ഇവിടെ, ആ ആക്സന്റുള്ള അക്ഷരങ്ങൾ ഓരോ അക്ഷരത്തിലും അമർത്തിപ്പിടിച്ചാൽ ലഭിക്കും.</item>
+        <item quantity="other">%1$d ഡെഡ് കീകൾ കമ്പ്യൂട്ടറിൽ അടുത്ത അക്ഷരത്തിൽ ആക്സന്റുകൾ നൽകുന്നു. ഇവിടെ, ആ ആക്സന്റുകളുള്ള അക്ഷരങ്ങൾ ഓരോ അക്ഷരത്തിലും അമർത്തിപ്പിടിച്ചാൽ ലഭിക്കും.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">നിങ്ങൾ തുറക്കാത്ത %1$d മറ്റ് ഫയലിൽ (%2$s) നിന്നാണ് ഫയൽ നിർമ്മിച്ചിരിക്കുന്നത്. ആ ഫയൽ മാത്രം സജ്ജമാക്കുന്ന കീകൾ കാണാനില്ല.</item>
+        <item quantity="other">നിങ്ങൾ തുറക്കാത്ത %1$d മറ്റ് ഫയലുകളിൽ (%2$s) നിന്നാണ് ഫയൽ നിർമ്മിച്ചിരിക്കുന്നത്. ആ ഫയലുകൾ മാത്രം സജ്ജമാക്കുന്ന കീകൾ കാണാനില്ല.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">ഫുൾ സ്റ്റോപ്പിൽ അമർത്തിപ്പിടിക്കുമ്പോൾ അക്ഷരങ്ങളില്ലാത്ത കീയിൽ നിന്ന് %1$d ചിഹ്നം ലഭിക്കും.</item>
+        <item quantity="other">ഫുൾ സ്റ്റോപ്പിൽ അമർത്തിപ്പിടിക്കുമ്പോൾ അക്ഷരങ്ങളില്ലാത്ത കീകളിൽ നിന്ന് %1$d ചിഹ്നങ്ങൾ ലഭിക്കും.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">ഫയലിലെ %1$d അക്ഷരത്തിന്റെ പേര് ആപ്പിന് അറിയില്ല, അതിനാൽ അത് ഒഴിവാക്കി: %2$s.</item>
+        <item quantity="other">ഫയലിലെ %1$d അക്ഷരങ്ങളുടെ പേരുകൾ ആപ്പിന് അറിയില്ല, അതിനാൽ അവ ഒഴിവാക്കി: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">ഒരു കീയിൽ %1$d സ്വൈപ്പ് ചെയ്യുന്നതിന് ഇവിടെ സ്ഥാനമില്ല, കാരണം ഈ കീബോർഡ് ആ സ്വൈപ്പ് മറ്റൊരു ആവശ്യത്തിനായി ഉപയോഗിക്കുന്നു. ആപ്പ് അത് നീക്കം ചെയ്തു.</item>
+        <item quantity="other">കീകളിൽ %1$d സ്വൈപ്പുകൾ ചെയ്യുന്നതിന് ഇവിടെ സ്ഥാനമില്ല, കാരണം ഈ കീബോർഡ് ആ സ്വൈപ്പുകൾ മറ്റ് ആവശ്യങ്ങൾക്കായി ഉപയോഗിക്കുന്നു. ആപ്പ് അവ നീക്കം ചെയ്തു.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">ആപ്പ് %1$d കീ അതിന് ലഭ്യമായ ഏറ്റവും അടുത്ത കീയിലേക്ക് മാറ്റി.</item>
         <item quantity="other">ആപ്പ് %1$d കീകൾ അതിന് ലഭ്യമായ ഏറ്റവും അടുത്ത കീകളിലേക്ക് മാറ്റി.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">ഈ കീബോർഡ് എഴുതുന്ന രീതിയിലേക്ക് ആപ്പ് %1$d അക്ഷരങ്ങൾ മാറ്റി.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">ആപ്പ് നമ്പറുകളുടെ വരി നീക്കം ചെയ്തു. ഒന്ന് ലഭിക്കാൻ ലേഔട്ടിലും വലിപ്പത്തിലും നമ്പർ വരി ഓണാക്കുക.</string>
+    <string name="core_lang_foreign_number_row_kept">ഫയലിലെ നമ്പർ നിര ഈ ലേഔട്ടിന്റെ നമ്പർ നിരയാണ്. ലേഔട്ടും വലുപ്പവും ക്രമീകരണത്തിൽ നമ്പർ നിര ഓണായിരിക്കുമ്പോൾ ഇത് കാണിക്കുന്നു.</string>
+    <string name="core_lang_foreign_pages_kept">ഫയലിന്റെ അധിക പേജുകൾ, ഉദാഹരണത്തിന് AltGr, ഈ ലേഔട്ടിന്റെ പേജുകളാണ്. മറ്റ് കീബോർഡിൽ അവ തുറന്ന കീയിൽ നിന്ന് സ്വൈപ്പ് ചെയ്ത് ഇവിടെ തുറക്കുക.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d കീയിൽ പ്രസ്-ആൻഡ്-ഹോൾഡ് അക്ഷരങ്ങളില്ല. നിങ്ങൾ തുറക്കാത്ത രണ്ടാമതൊരു ഫയലിലാണ് അവ സൂക്ഷിച്ചിരിക്കുന്നത്.</item>
         <item quantity="other">%1$d കീകളിൽ പ്രസ്-ആൻഡ്-ഹോൾഡ് അക്ഷരങ്ങളില്ല. നിങ്ങൾ തുറക്കാത്ത രണ്ടാമതൊരു ഫയലിലാണ് അവ സൂക്ഷിച്ചിരിക്കുന്നത്.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">ഷിഫ്റ്റ് സ്റ്റേറ്റ് അല്ലെങ്കിൽ മറ്റ് കീബോർഡിലെ ഫീൽഡ് അനുസരിച്ച് %1$d കീ മാറുന്നു. ആപ്പ് അത് വിശ്രമാവസ്ഥയിലുള്ള രീതി നിലനിർത്തി.</item>
         <item quantity="other">ഷിഫ്റ്റ് സ്റ്റേറ്റ് അല്ലെങ്കിൽ മറ്റ് കീബോർഡിലെ ഫീൽഡ് അനുസരിച്ച് %1$d കീകൾ മാറുന്നു. ആപ്പ് അവ വിശ്രമാവസ്ഥയിലുള്ള രീതി നിലനിർത്തി.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">ഫയലിലെ %1$d ഷിഫ്റ്റ് ചെയ്ത പേജിന്റെ കീകൾ അത് ഷിഫ്റ്റ് ചെയ്യുന്ന പേജിന് പുറത്താണ്. ആപ്പ് അവിടെ വലിയ അക്ഷരങ്ങളാണ് ഉപയോഗിക്കുന്നത്.</item>
+        <item quantity="other">ഫയലിലെ %1$d ഷിഫ്റ്റ് ചെയ്ത പേജുകളുടെ കീകൾ അവ ഷിഫ്റ്റ് ചെയ്യുന്ന പേജുകൾക്ക് പുറത്താണ്. ആപ്പ് അവിടെ വലിയ അക്ഷരങ്ങളാണ് ഉപയോഗിക്കുന്നത്.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">മറ്റ് കീബോർഡിൽ ഷിഫ്റ്റ് അമർത്തിയിരിക്കുമ്പോൾ %1$d കീക്ക് വ്യത്യസ്തമായ പ്രസ്-ആൻഡ്-ഹോൾഡ് അക്ഷരങ്ങളുണ്ട്. ആപ്പ് ഷിഫ്റ്റ് ചെയ്യാത്തവ നിലനിർത്തി.</item>
+        <item quantity="other">മറ്റ് കീബോർഡിൽ ഷിഫ്റ്റ് അമർത്തിയിരിക്കുമ്പോൾ %1$d കീകൾക്ക് വ്യത്യസ്തമായ പ്രസ്-ആൻഡ്-ഹോൾഡ് അക്ഷരങ്ങളുണ്ട്. ആപ്പ് ഷിഫ്റ്റ് ചെയ്യാത്തവ നിലനിർത്തി.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">മറ്റ് കീബോർഡുകൾ കീയുടെ വീതി വ്യത്യസ്തമായാണ് അളക്കുന്നത്. ഈ ഗ്രിഡിന് അനുയോജ്യമാക്കാൻ ആപ്പ് വീതി മാറ്റിയിട്ടുണ്ട്.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

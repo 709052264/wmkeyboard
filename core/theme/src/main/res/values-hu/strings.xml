@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Mélytenger</string>
     <string name="core_theme_builtin_facet_label">Facet</string>
     <string name="core_theme_builtin_forest_label">Erdő</string>
+    <string name="core_theme_builtin_frost_label">Fagy</string>
+    <string name="core_theme_builtin_frost_light_label">Fagyos világos</string>
+    <string name="core_theme_builtin_frost_liquid_label">Fagyott folyadék</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Fagyos háttérkép</string>
     <string name="core_theme_builtin_glacier_label">Gleccser</string>
     <string name="core_theme_builtin_mint_label">Menta</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Hó</string>
     <string name="core_theme_builtin_sunset_drift_label">Naplemente sodrás</string>
     <string name="core_theme_builtin_sunset_label">Naplemente</string>
+    <string name="core_theme_family_frost_label">Fagy</string>
     <string name="core_theme_family_gradient_label">Színátmenetek</string>
     <string name="core_theme_family_ocean_label">Éjszaka</string>
     <string name="core_theme_family_snow_label">Pasztell</string>
+    <string name="core_theme_palette_style_expressive">Kifejező</string>
+    <string name="core_theme_palette_style_fidelity">Hűség</string>
+    <string name="core_theme_palette_style_fruit_salad">Gyümölcssaláta</string>
+    <string name="core_theme_palette_style_monochrome">Monokróm</string>
+    <string name="core_theme_palette_style_neutral">Semleges</string>
+    <string name="core_theme_palette_style_rainbow">Szivárvány</string>
+    <string name="core_theme_palette_style_tonal_spot">Tónusos folt</string>
+    <string name="core_theme_palette_style_vibrant">Élénk</string>
 </resources>

@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">Aplikacja odrzuciła \"%1$s\". Aplikacja nie może tego zapisać.</string>
     <string name="core_icons_repair_svg_unreadable">Aplikacja odrzuciła \"%1$s\". Aplikacja nie może odczytać pliku SVG.</string>
+    <string name="core_icons_slot_arrow_down_label">Strzałka w dół</string>
+    <string name="core_icons_slot_arrow_left_label">Strzałka w lewo</string>
+    <string name="core_icons_slot_arrow_right_label">Strzałka w prawo</string>
+    <string name="core_icons_slot_arrow_up_label">Strzałka w górę</string>
     <string name="core_icons_slot_backspace_label">Backspace</string>
+    <string name="core_icons_slot_caps_lock_key_label">Klawisz Caps Lock</string>
     <string name="core_icons_slot_caps_lock_label">Caps lock</string>
     <string name="core_icons_slot_emoji_activities_label">Aktywności</string>
     <string name="core_icons_slot_emoji_animals_label">Zwierzęta</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: wyślij</string>
     <string name="core_icons_slot_forward_delete_label">Usuń do przodu</string>
     <string name="core_icons_slot_globe_label">Zmień język</string>
+    <string name="core_icons_slot_hide_keys_label">Ukryj klawisze (klawiatura sprzętowa)</string>
     <string name="core_icons_slot_incognito_label">Ikona trybu incognito</string>
     <string name="core_icons_slot_input_method_picker_label">Przełącz klawiaturę</string>
     <string name="core_icons_slot_panel_back_label">Powrót do klawiszy</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Zamknij wyszukiwanie</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (włączony)</string>
+    <string name="core_icons_slot_show_keys_label">Pokaż klawisze (klawiatura sprzętowa)</string>
     <string name="core_icons_slot_suggestions_expand_label">Pokaż narzędzia</string>
+    <string name="core_icons_slot_tab_label">Klawisz Tab</string>
     <string name="core_icons_slot_toolbox_label">Przybornik</string>
 </resources>

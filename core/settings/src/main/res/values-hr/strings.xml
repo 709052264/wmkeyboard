@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Donji desni kut</string>
     <string name="core_settings_board_corner_top_left_label">Gore lijevo</string>
     <string name="core_settings_board_corner_top_right_label">Gore desno</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Lijevo prikvačuje, desno briše</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Oba smjera brišu</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Desno prikvači, lijevo briše</string>
     <string name="core_settings_clip_time_copied_label">Vrijeme kopiranja</string>
     <string name="core_settings_clip_time_expires_label">Preostalo vrijeme</string>
     <string name="core_settings_clip_time_off_label">Ništa</string>

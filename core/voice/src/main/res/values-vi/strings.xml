@@ -8,6 +8,12 @@
     <string name="core_voice_model_base_eu_body">Mô hình này sử dụng ngôn ngữ bạn nhập, giống như mô hình 40 ngôn ngữ. Nó chỉ bao gồm các ngôn ngữ châu Âu nên dung lượng tải xuống nhỏ hơn.</string>
     <string name="core_voice_model_base_multi_body">Mô hình này cân bằng giữa độ chính xác và tốc độ. Nó bao phủ mọi ngôn ngữ mà Whisper biết. Hãy chọn nó nếu mô hình Nhỏ quá chậm.</string>
     <string name="core_voice_model_base_world_body">Mô hình này sử dụng ngôn ngữ bạn nhập thay vì dự đoán. Các cụm từ ngắn trở nên đáng tin cậy hơn nhiều. Hãy chọn nó khi danh sách hiển thị ngôn ngữ của bạn.</string>
+    <string name="core_voice_model_cpp_base_body">Mô hình này cân bằng giữa độ chính xác và tốc độ. Nó sử dụng ngôn ngữ bạn đọc chính tả, trong bất kỳ ngôn ngữ nào trong số 99 ngôn ngữ mà Whisper biết và nó lắng nghe chính từ ngữ của bạn. Hãy chọn mô hình này nếu mô hình Nhỏ quá chậm.</string>
+    <string name="core_voice_model_cpp_large_body">Đây là mô hình Whisper chính xác nhất. Bản tải xuống là 1.1 GB. Chỉ thiết bị có dung lượng bộ nhớ lớn mới có thể tải nó. Mô hình Turbo gần như chính xác tương đương và có kích thước bằng một nửa.</string>
+    <string name="core_voice_model_cpp_medium_body">Mô hình này mang lại độ chính xác gần như máy tính để bàn. Mỗi cụm từ mất vài giây. Mô hình sử dụng gần một gigabyte bộ nhớ khi chạy.</string>
+    <string name="core_voice_model_cpp_small_body">Mô hình này mang lại độ chính xác tốt nhất mà vẫn chạy tốt trên điện thoại. Nó sử dụng ngôn ngữ bạn đọc chính tả, trong bất kỳ 99 ngôn ngữ nào mà Whisper biết và nó lắng nghe chính lời nói của bạn.</string>
+    <string name="core_voice_model_cpp_tiny_body">Đây là mô hình nhanh nhất. Nó hoạt động tốt với giọng nói rõ ràng, nhưng tiếng ồn làm giảm độ chính xác. Nó sử dụng ngôn ngữ bạn đọc chính tả và lắng nghe các từ của riêng bạn.</string>
+    <string name="core_voice_model_cpp_turbo_body">Mô hình này có độ chính xác gần bằng mô hình lớn nhất, với kích thước chỉ bằng một nửa. Mỗi cụm từ mất vài giây để xử lý và không thể dịch được.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d ngôn ngữ</item>
         <item quantity="other">%1$d ngôn ngữ</item>
@@ -32,4 +38,5 @@
     <string name="core_voice_whisper_module_downloading">Thành phần nhập liệu bằng giọng nói ngoại tuyến của bàn phím đang được tải xuống từ Google Play. Vui lòng thử lại sau một lát.</string>
     <string name="core_voice_whisper_module_restart">Thành phần nhập liệu bằng giọng nói ngoại tuyến vừa cài đặt xong. Hãy đóng và mở lại bàn phím để sử dụng.</string>
     <string name="core_voice_whisper_transcribe_error">Nhập liệu bằng giọng nói không hoạt động. Hãy thử lại hoặc chọn mô hình nhỏ hơn.</string>
+    <string name="core_voice_whistle_checksum_error">Mô hình đã tải xuống bị lỗi. Vui lòng tải xuống lại.</string>
 </resources>

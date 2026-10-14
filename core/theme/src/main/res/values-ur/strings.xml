@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">گہرا سمندر</string>
     <string name="core_theme_builtin_facet_label">فیسیٹ</string>
     <string name="core_theme_builtin_forest_label">جنگل</string>
+    <string name="core_theme_builtin_frost_label">فراسٹ</string>
+    <string name="core_theme_builtin_frost_light_label">فراسٹ لائٹ</string>
+    <string name="core_theme_builtin_frost_liquid_label">فراسٹ مائع</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">فراسٹ وال پیپر</string>
     <string name="core_theme_builtin_glacier_label">گلیشیر</string>
     <string name="core_theme_builtin_mint_label">پودینہ</string>
     <string name="core_theme_builtin_nebula_label">نیبولا</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">برف</string>
     <string name="core_theme_builtin_sunset_drift_label">غروب آفتاب کا بہاؤ</string>
     <string name="core_theme_builtin_sunset_label">غروب آفتاب</string>
+    <string name="core_theme_family_frost_label">فراسٹ</string>
     <string name="core_theme_family_gradient_label">گریڈینٹس</string>
     <string name="core_theme_family_ocean_label">نائٹ فال</string>
     <string name="core_theme_family_snow_label">پیسٹل</string>
+    <string name="core_theme_palette_style_expressive">اظہار پسند</string>
+    <string name="core_theme_palette_style_fidelity">وفاداری</string>
+    <string name="core_theme_palette_style_fruit_salad">فروٹ سلاد</string>
+    <string name="core_theme_palette_style_monochrome">مونوکروم</string>
+    <string name="core_theme_palette_style_neutral">غیر جانبدار</string>
+    <string name="core_theme_palette_style_rainbow">قوس قزح</string>
+    <string name="core_theme_palette_style_tonal_spot">ٹونل اسپاٹ</string>
+    <string name="core_theme_palette_style_vibrant">متحرک</string>
 </resources>

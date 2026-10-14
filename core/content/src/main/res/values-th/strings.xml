@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">รหัส</string>
     <string name="core_content_clip_entity_phone_label">หมายเลขโทรศัพท์</string>
     <string name="core_content_clip_entity_phone_tag">โทรศัพท์</string>
+    <string name="core_content_clip_entity_place_label">สถานที่</string>
+    <string name="core_content_clip_entity_place_tag">สถานที่</string>
     <string name="core_content_clip_entity_url_label">ลิงก์</string>
     <string name="core_content_clip_entity_url_tag">ลิงก์</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">แอปไม่สามารถอ่านฟอนต์เว็บ WOFF ได้ โปรดใช้ฟอนต์เวอร์ชัน .ttf หรือ .otf</string>
     <string name="core_content_font_error_woff2">แอปไม่สามารถอ่านฟอนต์เว็บ WOFF2 ได้ โปรดใช้ฟอนต์เวอร์ชัน .ttf หรือ .otf</string>
     <string name="core_content_font_error_zip">ไฟล์นี้เป็นไฟล์บีบอัด zip ไม่ใช่แบบอักษร</string>
+    <string name="core_content_note_tag_ideas">ไอเดีย</string>
+    <string name="core_content_note_tag_important">สำคัญ</string>
+    <string name="core_content_note_tag_personal">ส่วนตัว</string>
+    <string name="core_content_note_tag_school">โรงเรียน</string>
+    <string name="core_content_note_tag_study">การเรียน</string>
+    <string name="core_content_note_tag_work">งาน</string>
     <string name="core_content_selection_macro_add_contact">ผู้ติดต่อ</string>
     <string name="core_content_selection_macro_calendar">ปฏิทิน</string>
     <string name="core_content_selection_macro_call">โทร</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">พูด</string>
     <string name="core_content_selection_macro_replace">แทนที่</string>
+    <string name="core_content_selection_macro_save_note">บันทึกเป็นโน้ต</string>
     <string name="core_content_selection_macro_search">ค้นหา</string>
     <string name="core_content_selection_macro_share">แชร์</string>
     <string name="core_content_selection_macro_sms">ข้อความ</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">แปล</string>
     <string name="core_content_selection_macro_url_decode">ถอดรหัส</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">ไฟล์ยังมี %1$d คำที่ไม่มีทางลัด หากต้องการเพิ่มลงในคำของคุณ ให้เปิดไฟล์จากพจนานุกรมส่วนตัว</item>
+        <item quantity="other">ไฟล์ยังมี %1$d คำที่ไม่มีทางลัด หากต้องการเพิ่มลงในคำของคุณ ให้เปิดไฟล์จากพจนานุกรมส่วนตัว</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">แอปละเว้นส่วนขยาย %2$d รายการออกจาก \"%1$s\"</item>
         <item quantity="other">แอปละเว้นส่วนขยาย %2$d รายการออกจาก \"%1$s\"</item>
@@ -162,9 +175,17 @@
         <item quantity="one">แอปได้ลบรูปแบบออกจาก \"%1$s\" เนื่องจากมีความยาวเกิน %2$d อักขระ</item>
         <item quantity="other">แอปได้ลบรูปแบบออกจาก \"%1$s\" เนื่องจากมีความยาวเกิน %2$d อักขระ</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">แอปได้ลบ %1$d แถวที่ไม่มีข้อความออก</item>
+        <item quantity="other">แอปได้ลบ %1$d แถวที่ไม่มีข้อความออก</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">แอปย่อ \"%1$s\" แล้ว เนื่องจากมีความยาวเกิน %2$d ตัวอักษร</item>
         <item quantity="other">แอปย่อ \"%1$s\" แล้ว เนื่องจากมีความยาวเกิน %2$d ตัวอักษร</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">แอปได้ลบตัวกระตุ้น %1$d รายการที่แป้นพิมพ์ไม่สามารถตรวจสอบได้ ข้อความสั้นของมันยังคงอยู่ในรายการ</item>
+        <item quantity="other">แอปได้ลบตัวกระตุ้น %1$d รายการที่แป้นพิมพ์ไม่สามารถตรวจสอบได้ ข้อความสั้นของพวกมันยังคงอยู่ในรายการ</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">ชื่อของแอปที่คุณกำลังพิมพ์อยู่</string>
     <string name="core_content_snippet_var_clip_info">รายการคลิปบอร์ดล่าสุด</string>

@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">Appen tog bort \"%1$s\". Appen kan inte spara den.</string>
     <string name="core_icons_repair_svg_unreadable">Appen tappade \"%1$s\". Appen kan inte läsa dess SVG-fil.</string>
+    <string name="core_icons_slot_arrow_down_label">Pil nedåt</string>
+    <string name="core_icons_slot_arrow_left_label">Pil vänster</string>
+    <string name="core_icons_slot_arrow_right_label">Pil åt höger</string>
+    <string name="core_icons_slot_arrow_up_label">Pil upp</string>
     <string name="core_icons_slot_backspace_label">Backsteg</string>
+    <string name="core_icons_slot_caps_lock_key_label">Caps lock-tangent</string>
     <string name="core_icons_slot_caps_lock_label">Caps lock</string>
     <string name="core_icons_slot_emoji_activities_label">Aktiviteter</string>
     <string name="core_icons_slot_emoji_animals_label">Djur</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: skicka</string>
     <string name="core_icons_slot_forward_delete_label">Framåtradering</string>
     <string name="core_icons_slot_globe_label">Byt språk</string>
+    <string name="core_icons_slot_hide_keys_label">Dölj tangenterna (maskinvarutangentbord)</string>
     <string name="core_icons_slot_incognito_label">Inkognitomärke</string>
     <string name="core_icons_slot_input_method_picker_label">Byt tangentbord</string>
     <string name="core_icons_slot_panel_back_label">Tillbaka till tangenter</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Stäng sökning</string>
     <string name="core_icons_slot_shift_label">Skift</string>
     <string name="core_icons_slot_shift_on_label">Skift (på)</string>
+    <string name="core_icons_slot_show_keys_label">Visa tangenterna (hårdvarutangentbord)</string>
     <string name="core_icons_slot_suggestions_expand_label">Visa verktyg</string>
+    <string name="core_icons_slot_tab_label">Tabb-tangent</string>
     <string name="core_icons_slot_toolbox_label">Verktygslåda</string>
 </resources>

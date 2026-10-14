@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">深海</string>
     <string name="core_theme_builtin_facet_label">ファセット</string>
     <string name="core_theme_builtin_forest_label">フォレスト</string>
+    <string name="core_theme_builtin_frost_label">フロスト</string>
+    <string name="core_theme_builtin_frost_light_label">フロストライト</string>
+    <string name="core_theme_builtin_frost_liquid_label">フロストリキッド</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">フロスト壁紙</string>
     <string name="core_theme_builtin_glacier_label">グレイシャー</string>
     <string name="core_theme_builtin_mint_label">ミント</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">スノー</string>
     <string name="core_theme_builtin_sunset_drift_label">サンセット・ドリフト</string>
     <string name="core_theme_builtin_sunset_label">サンセット</string>
+    <string name="core_theme_family_frost_label">フロスト</string>
     <string name="core_theme_family_gradient_label">グラデーション</string>
     <string name="core_theme_family_ocean_label">Nightfall</string>
     <string name="core_theme_family_snow_label">パステル</string>
+    <string name="core_theme_palette_style_expressive">エクスプレッシブ</string>
+    <string name="core_theme_palette_style_fidelity">忠実度</string>
+    <string name="core_theme_palette_style_fruit_salad">フルーツサラダ</string>
+    <string name="core_theme_palette_style_monochrome">モノクロ</string>
+    <string name="core_theme_palette_style_neutral">ニュートラル</string>
+    <string name="core_theme_palette_style_rainbow">レインボー</string>
+    <string name="core_theme_palette_style_tonal_spot">トーナルスポット</string>
+    <string name="core_theme_palette_style_vibrant">鮮やか</string>
 </resources>

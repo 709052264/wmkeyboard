@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Derin deniz</string>
     <string name="core_theme_builtin_facet_label">Yüzey</string>
     <string name="core_theme_builtin_forest_label">Orman</string>
+    <string name="core_theme_builtin_frost_label">Don (Frost)</string>
+    <string name="core_theme_builtin_frost_light_label">Buz ışığı</string>
+    <string name="core_theme_builtin_frost_liquid_label">Buzlu sıvı</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Buzlu duvar kağıdı</string>
     <string name="core_theme_builtin_glacier_label">Buzul</string>
     <string name="core_theme_builtin_mint_label">Nane</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Kar</string>
     <string name="core_theme_builtin_sunset_drift_label">Gün batımı sürüklenişi</string>
     <string name="core_theme_builtin_sunset_label">Gün Batımı</string>
+    <string name="core_theme_family_frost_label">Don</string>
     <string name="core_theme_family_gradient_label">Gradyanlar</string>
     <string name="core_theme_family_ocean_label">Gün Batımı</string>
     <string name="core_theme_family_snow_label">Pastel</string>
+    <string name="core_theme_palette_style_expressive">Dışavurumcu</string>
+    <string name="core_theme_palette_style_fidelity">Aslına uygunluk</string>
+    <string name="core_theme_palette_style_fruit_salad">Meyve salatası</string>
+    <string name="core_theme_palette_style_monochrome">Tek renkli</string>
+    <string name="core_theme_palette_style_neutral">Nötr</string>
+    <string name="core_theme_palette_style_rainbow">Gökkuşağı</string>
+    <string name="core_theme_palette_style_tonal_spot">Ton noktası</string>
+    <string name="core_theme_palette_style_vibrant">Canlı</string>
 </resources>

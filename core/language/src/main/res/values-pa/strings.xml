@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">ਕੰਪਿਊਟਰ \'ਤੇ AltGr ਕੁੰਜੀ ਜੋ ਅੱਖਰ ਟਾਈਪ ਕਰਦੀ ਹੈ, ਉਹ ਉਸੇ ਕੁੰਜੀ ਨੂੰ ਦਬਾ ਕੇ ਰੱਖਣ ਨਾਲ ਮਿਲਦੇ ਹਨ।</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">ਇੱਕ ਡੈੱਡ ਕੀ ਕੰਪਿਊਟਰ \'ਤੇ ਅਗਲੇ ਅੱਖਰ \'ਤੇ ਇੱਕ ਲਹਿਜ਼ਾ ਪਾਉਂਦੀ ਹੈ। ਇੱਥੇ, ਉਸ ਲਹਿਜ਼ੇ ਵਾਲੇ ਅੱਖਰ ਹਰੇਕ ਅੱਖਰ ਨੂੰ ਦਬਾ ਕੇ ਰੱਖਣ \'ਤੇ ਮਿਲਦੇ ਹਨ।</item>
+        <item quantity="other">%1$d ਡੈੱਡ ਕੀਜ਼ ਕੰਪਿਊਟਰ \'ਤੇ ਅਗਲੇ ਅੱਖਰ \'ਤੇ ਲਹਿਜ਼ੇ ਪਾਉਂਦੀਆਂ ਹਨ। ਇੱਥੇ, ਉਹਨਾਂ ਲਹਿਜ਼ਿਆਂ ਵਾਲੇ ਅੱਖਰ ਹਰੇਕ ਅੱਖਰ ਨੂੰ ਦਬਾ ਕੇ ਰੱਖਣ \'ਤੇ ਮਿਲਦੇ ਹਨ।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">ਫਾਈਲ %1$d ਹੋਰ ਫਾਈਲ (%2$s) \'ਤੇ ਬਣੀ ਹੈ ਜੋ ਤੁਸੀਂ ਨਹੀਂ ਖੋਲ੍ਹੀ। ਉਹ ਕੁੰਜੀਆਂ ਜੋ ਸਿਰਫ਼ ਉਹ ਫਾਈਲ ਸੈੱਟ ਕਰਦੀ ਹੈ, ਗੁੰਮ ਹਨ।</item>
+        <item quantity="other">ਫਾਈਲ %1$d ਹੋਰ ਫਾਈਲਾਂ (%2$s) \'ਤੇ ਬਣੀ ਹੈ ਜੋ ਤੁਸੀਂ ਨਹੀਂ ਖੋਲ੍ਹੀਆਂ। ਉਹ ਕੁੰਜੀਆਂ ਜੋ ਸਿਰਫ਼ ਉਹ ਫਾਈਲਾਂ ਸੈੱਟ ਕਰਦੀਆਂ ਹਨ, ਗੁੰਮ ਹਨ।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">ਬਿਨਾਂ ਅੱਖਰਾਂ ਵਾਲੀ ਕੁੰਜੀ ਤੋਂ %1$d ਅੱਖਰ ਫੁੱਲ ਸਟਾਪ ਨੂੰ ਦਬਾ ਕੇ ਰੱਖਣ \'ਤੇ ਮਿਲਦਾ ਹੈ।</item>
+        <item quantity="other">ਬਿਨਾਂ ਅੱਖਰਾਂ ਵਾਲੀਆਂ ਕੁੰਜੀਆਂ ਤੋਂ %1$d ਅੱਖਰ ਫੁੱਲ ਸਟਾਪ ਨੂੰ ਦਬਾ ਕੇ ਰੱਖਣ \'ਤੇ ਮਿਲਦੇ ਹਨ।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">ਐਪ ਫਾਈਲ ਵਿੱਚ %1$d ਅੱਖਰ ਦਾ ਨਾਮ ਨਹੀਂ ਜਾਣਦੀ, ਇਸ ਲਈ ਇਸਨੇ ਇਸਨੂੰ ਛੱਡ ਦਿੱਤਾ: %2$s।</item>
+        <item quantity="other">ਐਪ ਫਾਈਲ ਵਿੱਚ %1$d ਅੱਖਰਾਂ ਦੇ ਨਾਮ ਨਹੀਂ ਜਾਣਦੀ, ਇਸ ਲਈ ਇਸਨੇ ਉਹਨਾਂ ਨੂੰ ਛੱਡ ਦਿੱਤਾ: %2$s।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">ਇੱਕ ਕੁੰਜੀ \'ਤੇ %1$d ਸਵਾਈਪ ਦੀ ਇੱਥੇ ਕੋਈ ਥਾਂ ਨਹੀਂ ਹੈ, ਕਿਉਂਕਿ ਇਹ ਕੀਬੋਰਡ ਉਸ ਸਵਾਈਪ ਨੂੰ ਕਿਸੇ ਹੋਰ ਕੰਮ ਲਈ ਵਰਤਦਾ ਹੈ। ਐਪ ਨੇ ਇਸਨੂੰ ਹਟਾ ਦਿੱਤਾ ਹੈ।</item>
+        <item quantity="other">ਕੁੰਜੀਆਂ \'ਤੇ %1$d ਸਵਾਈਪ ਦੀ ਇੱਥੇ ਕੋਈ ਥਾਂ ਨਹੀਂ ਹੈ, ਕਿਉਂਕਿ ਇਹ ਕੀਬੋਰਡ ਉਹਨਾਂ ਸਵਾਈਪਾਂ ਨੂੰ ਹੋਰ ਕੰਮਾਂ ਲਈ ਵਰਤਦਾ ਹੈ। ਐਪ ਨੇ ਉਹਨਾਂ ਨੂੰ ਹਟਾ ਦਿੱਤਾ ਹੈ।</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">ਐਪ ਨੇ %1$d ਕੁੰਜੀ ਨੂੰ ਇਸਦੇ ਸਭ ਤੋਂ ਨਜ਼ਦੀਕੀ ਕੁੰਜੀ ਵਿੱਚ ਬਦਲ ਦਿੱਤਾ ਹੈ।</item>
         <item quantity="other">ਐਪ ਨੇ %1$d ਕੁੰਜੀਆਂ ਨੂੰ ਉਹਨਾਂ ਦੀਆਂ ਸਭ ਤੋਂ ਨਜ਼ਦੀਕੀ ਕੁੰਜੀਆਂ ਵਿੱਚ ਬਦਲ ਦਿੱਤਾ ਹੈ।</item>
@@ -23,6 +44,8 @@
         <item quantity="other">ਐਪ ਨੇ %1$d ਅੱਖਰਾਂ ਨੂੰ ਉਸ ਰੂਪ ਵਿੱਚ ਬਦਲ ਦਿੱਤਾ ਹੈ ਜੋ ਇਹ ਕੀਬੋਰਡ ਲਿਖਦਾ ਹੈ।</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">ਐਪ ਨੇ ਨੰਬਰਾਂ ਦੀ ਕਤਾਰ ਹਟਾ ਦਿੱਤੀ ਹੈ। ਨੰਬਰ ਕਤਾਰ ਪ੍ਰਾਪਤ ਕਰਨ ਲਈ \'ਲੇਆਉਟ ਅਤੇ ਆਕਾਰ\' ਵਿੱਚ ਨੰਬਰ ਕਤਾਰ ਨੂੰ ਚਾਲੂ ਕਰੋ।</string>
+    <string name="core_lang_foreign_number_row_kept">ਫਾਈਲ ਦੀ ਨੰਬਰਾਂ ਵਾਲੀ ਕਤਾਰ ਹੀ ਇਸ ਲੇਆਉਟ ਦੀ ਨੰਬਰ ਕਤਾਰ ਹੈ। ਇਹ ਉਦੋਂ ਦਿਖਾਈ ਦਿੰਦੀ ਹੈ ਜਦੋਂ ਲੇਆਉਟ ਅਤੇ ਆਕਾਰ ਵਿੱਚ ਨੰਬਰ ਕਤਾਰ ਚਾਲੂ ਹੁੰਦੀ ਹੈ।</string>
+    <string name="core_lang_foreign_pages_kept">ਫਾਈਲ ਦੇ ਵਾਧੂ ਪੰਨੇ, ਜਿਵੇਂ ਕਿ AltGr, ਇਸ ਲੇਆਉਟ ਦੇ ਪੰਨੇ ਹਨ। ਉਹਨਾਂ ਨੂੰ ਇੱਥੇ ਖੋਲ੍ਹਣ ਲਈ ਉਸ ਕੁੰਜੀ ਤੋਂ ਸਵਾਈਪ ਕਰੋ ਜਿਸਨੇ ਉਹਨਾਂ ਨੂੰ ਦੂਜੇ ਕੀਬੋਰਡ ਵਿੱਚ ਖੋਲ੍ਹਿਆ ਸੀ।</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d ਕੁੰਜੀ ਵਿੱਚ ਕੋਈ ਪ੍ਰੈਸ-ਐਂਡ-ਹੋਲਡ ਅੱਖਰ ਨਹੀਂ ਹਨ। ਫਾਈਲ ਉਹਨਾਂ ਨੂੰ ਇੱਕ ਦੂਜੀ ਫਾਈਲ ਵਿੱਚ ਰੱਖਦੀ ਹੈ ਜੋ ਤੁਸੀਂ ਨਹੀਂ ਖੋਲ੍ਹੀ ਹੈ।</item>
         <item quantity="other">%1$d ਕੁੰਜੀਆਂ ਵਿੱਚ ਕੋਈ ਪ੍ਰੈਸ-ਐਂਡ-ਹੋਲਡ ਅੱਖਰ ਨਹੀਂ ਹਨ। ਫਾਈਲ ਉਹਨਾਂ ਨੂੰ ਇੱਕ ਦੂਜੀ ਫਾਈਲ ਵਿੱਚ ਰੱਖਦੀ ਹੈ ਜੋ ਤੁਸੀਂ ਨਹੀਂ ਖੋਲ੍ਹੀ ਹੈ।</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d ਕੁੰਜੀ ਸ਼ਿਫਟ ਸਥਿਤੀ ਜਾਂ ਦੂਜੇ ਕੀਬੋਰਡ ਵਿੱਚ ਖੇਤਰ ਦੇ ਨਾਲ ਬਦਲਦੀ ਹੈ। ਐਪ ਨੇ ਇਸਦੇ ਆਮ ਦਿੱਖ ਨੂੰ ਬਰਕਰਾਰ ਰੱਖਿਆ ਹੈ।</item>
         <item quantity="other">%1$d ਕੁੰਜੀਆਂ ਸ਼ਿਫਟ ਸਥਿਤੀ ਜਾਂ ਦੂਜੇ ਕੀਬੋਰਡ ਵਿੱਚ ਖੇਤਰ ਦੇ ਨਾਲ ਬਦਲਦੀਆਂ ਹਨ। ਐਪ ਨੇ ਉਹਨਾਂ ਦੀ ਆਮ ਦਿੱਖ ਨੂੰ ਬਰਕਰਾਰ ਰੱਖਿਆ ਹੈ।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">ਫਾਈਲ ਵਿੱਚ %1$d ਸ਼ਿਫਟ ਕੀਤੇ ਪੰਨੇ ਦੀਆਂ ਕੁੰਜੀਆਂ ਉਸ ਪੰਨੇ ਤੋਂ ਇਲਾਵਾ ਹੋਰ ਥਾਵਾਂ \'ਤੇ ਹਨ ਜਿਸ ਨੂੰ ਇਹ ਸ਼ਿਫਟ ਕਰਦਾ ਹੈ। ਐਪ ਉੱਥੇ ਵੱਡੇ ਅੱਖਰਾਂ ਦੀ ਵਰਤੋਂ ਕਰਦੀ ਹੈ।</item>
+        <item quantity="other">ਫਾਈਲ ਵਿੱਚ %1$d ਸ਼ਿਫਟ ਕੀਤੇ ਪੰਨਿਆਂ ਦੀਆਂ ਕੁੰਜੀਆਂ ਉਹਨਾਂ ਪੰਨਿਆਂ ਤੋਂ ਇਲਾਵਾ ਹੋਰ ਥਾਵਾਂ \'ਤੇ ਹਨ ਜਿਨ੍ਹਾਂ ਨੂੰ ਇਹ ਸ਼ਿਫਟ ਕਰਦੇ ਹਨ। ਐਪ ਉੱਥੇ ਵੱਡੇ ਅੱਖਰਾਂ ਦੀ ਵਰਤੋਂ ਕਰਦੀ ਹੈ।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">ਦੂਜੇ ਕੀਬੋਰਡ ਵਿੱਚ ਸ਼ਿਫਟ ਦਬਾਉਣ \'ਤੇ %1$d ਕੁੰਜੀ ਦੇ ਪ੍ਰੈੱਸ-ਐਂਡ-ਹੋਲਡ ਅੱਖਰ ਵੱਖਰੇ ਹੁੰਦੇ ਹਨ। ਐਪ ਨੇ ਬਿਨਾਂ ਸ਼ਿਫਟ ਵਾਲੇ ਅੱਖਰਾਂ ਨੂੰ ਬਰਕਰਾਰ ਰੱਖਿਆ ਹੈ।</item>
+        <item quantity="other">ਦੂਜੇ ਕੀਬੋਰਡ ਵਿੱਚ ਸ਼ਿਫਟ ਦਬਾਉਣ \'ਤੇ %1$d ਕੁੰਜੀਆਂ ਦੇ ਪ੍ਰੈੱਸ-ਐਂਡ-ਹੋਲਡ ਅੱਖਰ ਵੱਖਰੇ ਹੁੰਦੇ ਹਨ। ਐਪ ਨੇ ਬਿਨਾਂ ਸ਼ਿਫਟ ਵਾਲੇ ਅੱਖਰਾਂ ਨੂੰ ਬਰਕਰਾਰ ਰੱਖਿਆ ਹੈ।</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">ਦੂਜਾ ਕੀਬੋਰਡ ਕੁੰਜੀ ਦੀ ਚੌੜਾਈ ਨੂੰ ਵੱਖਰੇ ਤਰੀਕੇ ਨਾਲ ਮਾਪਦਾ ਹੈ। ਐਪ ਨੇ ਇਸ ਗਰਿੱਡ ਵਿੱਚ ਫਿੱਟ ਕਰਨ ਲਈ ਚੌੜਾਈ ਨੂੰ ਬਦਲ ਦਿੱਤਾ ਹੈ।</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

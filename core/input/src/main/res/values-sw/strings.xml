@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Kamusi ya kana hadi kanji ya Kijapani</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Jedwali la usomaji wa Jyutping kwa herufi za Hanzi, maingizo 163,000. Kibodi inahitaji kifurushi hiki kwa ubadilishaji wa Kikantoni.</string>
     <string name="core_input_cjk_pack_jyutping_title">Kamusi ya Jyutping ya Kikantoni</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Maneno gani yanafuata yapi, yaliyohesabiwa kutoka kwa wavuti ya Kichina na maandishi ya habari. Inakuja na kamusi ya Pinyin. Kwa hiyo, viini kama wbxh hutoa 我不喜欢 kwanza na si maneno mawili yasiyohusiana.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Jozi za maneno ya Kichina</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Herufi za Hanzi na misemo kutoka CC-CEDICT, viingilio 120,000. Kibodi inahitaji kifurushi hiki kwa ajili ya ubadilishaji wa Kichina.</string>
     <string name="core_input_cjk_pack_pinyin_title">Kamusi ya Kichina ya Pinyin</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Misemo kutoka OpenCC, maingizo 50,000, karibu 1 MB. Kwa vibambo vya Kienyeji vikiwa vimewashwa, kibodi huitumia kuandika umbo sahihi la neno, kama vile 頭髮 na sio 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Jedwali la misemo ya herufi za jadi</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Jedwali la mpangilio wa viboko kwa vibambo vya Hanzi. Kibodi inahitaji kifurushi hiki kwa ajili ya mpangilio wa viboko.</string>
     <string name="core_input_cjk_pack_stroke_title">Kamusi ya viboko vya Kichina (笔画)</string>
+    <string name="core_input_double_pinyin_custom_label">Maalum</string>
     <string name="core_input_double_pinyin_off_label">Zima (Pinyin kamili)</string>
+    <string name="core_input_im_note_candidates">Kwa funguo zingine mbinu hii inatoa orodha ya chaguo. Kibodi hutumia chaguo la kwanza kila wakati.</string>
+    <string name="core_input_im_note_missing_files">Faili hizi hazikuchaguliwa, kwa hivyo sehemu yao haipo: %1$s. Ili kuzijumuisha, leta tena na uzichague pamoja.</string>
+    <string name="core_input_im_note_module">Mbinu hii hutumia programu-jalizi, kama vile Anthy, ambayo kibodi haiwezi kuiendesha. Funguo zinazoitumia hazifanyi chochote hapa.</string>
+    <string name="core_input_im_note_other_method">Mbinu hii hutoa funguo fulani kwa mbinu nyingine ya kuingiza data. Sehemu hiyo haifanyi kazi hapa.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Programu haiwezi kusoma sheria %1$d ya tahajia, kwa hivyo inaipuuza.</item>
+        <item quantity="other">Programu haiwezi kusoma sheria %1$d za tahajia, kwa hivyo inazipuuza.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Mbinu hii hutumia upau wa nafasi kama ufunguo, kwa mfano kwa toni. Hapa upau wa nafasi huchapa nafasi kila wakati.</string>
+    <string name="core_input_im_note_truncated">Jedwali ni kubwa sana, kwa hivyo programu imehifadhi sehemu yake ya kwanza pekee.</string>
+    <string name="core_input_im_note_unused_files">Programu haikutumia faili hizi: %1$s.</string>
+    <string name="core_input_im_refused_broken">Faili ina hitilafu, kwa hivyo programu haiwezi kuisoma: %1$s</string>
+    <string name="core_input_im_refused_empty">Faili haina kitu cha kuandikia.</string>
+    <string name="core_input_im_refused_no_dictionary">Muundo unahitaji kamusi yake. Leta tena na pia chagua %1$s.</string>
+    <string name="core_input_im_refused_not_method">Programu haiwezi kusoma hicho kama mbinu ya ingizo. Inasoma majedwali ya .cin, miradi ya Rime na kamusi (.schema.yaml, .dict.yaml), na faili za m17n .mim.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Programu imesoma hii kama jedwali la .cin lenye ingizo %1$d. Chapa msimbo, kisha chagua herufi kutoka kwenye utepe wa mapendekezo.</item>
+        <item quantity="other">Programu imesoma hii kama jedwali la .cin lenye maingizo %1$d. Chapa msimbo, kisha chagua herufi kutoka kwenye utepe wa mapendekezo.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Programu imesoma hii kama mbinu ya uingizaji ya m17n yenye kanuni %1$d. Funguo huandika maandishi unapoandika.</item>
+        <item quantity="other">Programu imesoma hii kama mbinu ya uingizaji ya m17n yenye kanuni %1$d. Funguo huandika maandishi unapoandika.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Programu imesoma hii kama mpango wa Rime na ingizo %1$d la kamusi. Andika silabi, kisha chagua maneno kutoka kwenye utepe wa mapendekezo.</item>
+        <item quantity="other">Programu imesoma hii kama mpango wa Rime na maingizo %1$d ya kamusi. Andika silabi, kisha chagua maneno kutoka kwenye utepe wa mapendekezo.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Programu imesoma hii kama jedwali la msimbo wa Rime lenye ingizo %1$d. Chapa msimbo, kisha chagua mhusika kutoka kwenye mwambaa wa mapendekezo.</item>
+        <item quantity="other">Programu imesoma hii kama jedwali la msimbo wa Rime lenye maingizo %1$d. Chapa msimbo, kisha chagua mhusika kutoka kwenye mwambaa wa mapendekezo.</item>
+    </plurals>
 </resources>

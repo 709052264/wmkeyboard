@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">CODICE</string>
     <string name="core_content_clip_entity_phone_label">Numero di telefono</string>
     <string name="core_content_clip_entity_phone_tag">TELEFONO</string>
+    <string name="core_content_clip_entity_place_label">Luogo</string>
+    <string name="core_content_clip_entity_place_tag">LUOGO</string>
     <string name="core_content_clip_entity_url_label">Link</string>
     <string name="core_content_clip_entity_url_tag">LINK</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">L\'app non può leggere i font web WOFF. Utilizza la versione .ttf o .otf del font.</string>
     <string name="core_content_font_error_woff2">L\'app non può leggere i font web WOFF2. Usa la versione .ttf o .otf del font.</string>
     <string name="core_content_font_error_zip">Questo file è un archivio zip, non un carattere.</string>
+    <string name="core_content_note_tag_ideas">Idee</string>
+    <string name="core_content_note_tag_important">Importante</string>
+    <string name="core_content_note_tag_personal">Personale</string>
+    <string name="core_content_note_tag_school">Scuola</string>
+    <string name="core_content_note_tag_study">Studio</string>
+    <string name="core_content_note_tag_work">Lavoro</string>
     <string name="core_content_selection_macro_add_contact">Contatto</string>
     <string name="core_content_selection_macro_calendar">Calendario</string>
     <string name="core_content_selection_macro_call">Chiama</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Leggi</string>
     <string name="core_content_selection_macro_replace">Sostituisci</string>
+    <string name="core_content_selection_macro_save_note">Salva come nota</string>
     <string name="core_content_selection_macro_search">Cerca</string>
     <string name="core_content_selection_macro_share">Condividi</string>
     <string name="core_content_selection_macro_sms">Messaggio</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Traduci</string>
     <string name="core_content_selection_macro_url_decode">Decodifica</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Il file ha anche %1$d parola senza scorciatoia. Per aggiungerla alle tue parole, apri il file dal Dizionario personale.</item>
+        <item quantity="other">Il file ha anche %1$d parole senza scorciatoia. Per aggiungerle alle tue parole, apri il file dal Dizionario personale.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">L\'app ha escluso %2$d espansione da \"%1$s\".</item>
         <item quantity="other">L\'app ha escluso %2$d espansioni da \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">L\'app ha rimosso il pattern da \"%1$s\". Era più lungo di %2$d carattere.</item>
         <item quantity="other">L\'app ha rimosso il pattern da \"%1$s\". Era più lungo di %2$d caratteri.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">L\'app ha rimosso %1$d riga priva di testo.</item>
+        <item quantity="other">L\'app ha rimosso %1$d righe prive di testo.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">L\'app ha abbreviato \"%1$s\". Era più lungo di %2$d carattere.</item>
         <item quantity="other">L\'app ha abbreviato \"%1$s\". Era più lungo di %2$d caratteri.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">L\'app ha rimosso %1$d trigger che la tastiera non può monitorare. Il suo snippet rimane nell\'elenco.</item>
+        <item quantity="other">L\'app ha rimosso %1$d trigger che la tastiera non può monitorare. I loro snippet rimangono nell\'elenco.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Il nome dell\'app in cui stai scrivendo</string>
     <string name="core_content_snippet_var_clip_info">L\'elemento più recente negli appunti</string>

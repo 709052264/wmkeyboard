@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">కోడ్</string>
     <string name="core_content_clip_entity_phone_label">ఫోన్ నంబర్</string>
     <string name="core_content_clip_entity_phone_tag">ఫోన్</string>
+    <string name="core_content_clip_entity_place_label">ప్రదేశం</string>
+    <string name="core_content_clip_entity_place_tag">స్థలం</string>
     <string name="core_content_clip_entity_url_label">లింక్</string>
     <string name="core_content_clip_entity_url_tag">లింక్</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">యాప్ WOFF వెబ్ ఫాంట్‌లను చదవలేదు. ఫాంట్ యొక్క .ttf లేదా .otf వెర్షన్‌ను ఉపయోగించండి.</string>
     <string name="core_content_font_error_woff2">యాప్ WOFF2 వెబ్ ఫాంట్‌లను చదవలేదు. ఫాంట్ యొక్క .ttf లేదా .otf వెర్షన్‌ను ఉపయోగించండి.</string>
     <string name="core_content_font_error_zip">ఈ ఫైల్ జిప్ ఆర్కైవ్, ఫాంట్ కాదు.</string>
+    <string name="core_content_note_tag_ideas">ఆలోచనలు</string>
+    <string name="core_content_note_tag_important">ముఖ్యమైనది</string>
+    <string name="core_content_note_tag_personal">వ్యక్తిగతం</string>
+    <string name="core_content_note_tag_school">పాఠశాల</string>
+    <string name="core_content_note_tag_study">అధ్యయనం</string>
+    <string name="core_content_note_tag_work">పని</string>
     <string name="core_content_selection_macro_add_contact">కాంటాక్ట్</string>
     <string name="core_content_selection_macro_calendar">క్యాలెండర్</string>
     <string name="core_content_selection_macro_call">కాల్</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">మాట్లాడండి</string>
     <string name="core_content_selection_macro_replace">భర్తీ చేయి</string>
+    <string name="core_content_selection_macro_save_note">నోట్‌గా సేవ్ చేయి</string>
     <string name="core_content_selection_macro_search">శోధన</string>
     <string name="core_content_selection_macro_share">షేర్ చేయండి</string>
     <string name="core_content_selection_macro_sms">సందేశం</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">అనువదించు</string>
     <string name="core_content_selection_macro_url_decode">డీకోడ్</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">ఫైల్‌లో షార్ట్‌కట్ లేని %1$d పదం కూడా ఉంది. దీన్ని మీ పదాలకు జోడించడానికి, వ్యక్తిగత నిఘంటువు (Personal dictionary) నుండి ఫైల్‌ను తెరవండి.</item>
+        <item quantity="other">ఫైల్‌లో షార్ట్‌కట్ లేని %1$d పదాలు కూడా ఉన్నాయి. వీటిని మీ పదాలకు జోడించడానికి, వ్యక్తిగత నిఘంటువు (Personal dictionary) నుండి ఫైల్‌ను తెరవండి.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">యాప్ \"%1$s\" నుండి %2$d విస్తరణను వదిలివేసింది.</item>
         <item quantity="other">యాప్ \"%1$s\" నుండి %2$d విస్తరణలను వదిలివేసింది.</item>
@@ -162,9 +175,17 @@
         <item quantity="one">యాప్ \"%1$s\" నుండి ప్యాటర్న్‌ను తొలగించింది. ఇది %2$d అక్షరం కంటే ఎక్కువ పొడవు ఉంది.</item>
         <item quantity="other">యాప్ \"%1$s\" నుండి ప్యాటర్న్‌ను తొలగించింది. ఇది %2$d అక్షరాల కంటే ఎక్కువ పొడవు ఉంది.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">టెక్స్ట్ లేని %1$d అడ్డు వరుసను యాప్ తొలగించింది.</item>
+        <item quantity="other">టెక్స్ట్ లేని %1$d అడ్డు వరుసలను యాప్ తొలగించింది.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">యాప్ \"%1$s\"ని కుదించింది. ఇది %2$d అక్షరం కంటే ఎక్కువగా ఉంది.</item>
         <item quantity="other">యాప్ \"%1$s\"ని కుదించింది. ఇది %2$d అక్షరాల కంటే ఎక్కువగా ఉంది.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">కీబోర్డ్ పర్యవేక్షించలేని %1$d ట్రిగ్గర్‌ను యాప్ తొలగించింది. దాని స్నిప్పెట్ జాబితాలోనే ఉంటుంది.</item>
+        <item quantity="other">కీబోర్డ్ పర్యవేక్షించలేని %1$d ట్రిగ్గర్‌లను యాప్ తొలగించింది. వాటి స్నిప్పెట్‌లు జాబితాలోనే ఉంటాయి.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">మీరు టైప్ చేస్తున్న యాప్ పేరు</string>
     <string name="core_content_snippet_var_clip_info">అత్యంత కొత్త క్లిప్‌బోర్డ్ ఎంట్రీ</string>

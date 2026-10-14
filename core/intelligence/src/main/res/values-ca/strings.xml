@@ -11,6 +11,7 @@
     <string name="core_intel_llm_engine_error_gpu">El model ha fallat a la GPU. La memòria de la GPU és molt més petita que la memòria del sistema. El següent intent utilitzarà la CPU. Per utilitzar sempre la CPU, estableix el Càlcul a CPU a la configuració. També pots seleccionar un model més petit.</string>
     <string name="core_intel_llm_engine_error_load">El model no s\'ha carregat. Probablement el fitxer està malmès. Suprimiu el model a la configuració i torneu-lo a descarregar.</string>
     <string name="core_intel_llm_engine_error_memory">El model s\'ha quedat sense memòria o ha fallat. Selecciona un model més petit.</string>
+    <string name="core_intel_llm_engine_error_vision">Aquest model no pot llegir imatges. Gemma 4 sí que pot.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">Una Gemma petita de la generació anterior. Té bona qualitat i un context de 4K tokens.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">La Gemma més petita de Google. És ràpida en tots els dispositius.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">La generació Gemma més nova. Ofereix una qualitat superior al vostre dispositiu.</string>

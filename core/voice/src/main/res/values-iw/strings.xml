@@ -8,6 +8,12 @@
     <string name="core_voice_model_base_eu_body">מודל זה משתמש בשפה שבה אתה מקליד, בדומה למודל 40 השפות. הוא מכסה רק שפות אירופאיות, לכן ההורדה קטנה יותר.</string>
     <string name="core_voice_model_base_multi_body">מודל זה מאזן בין דיוק למהירות. הוא מכסה כל שפה ש-Whisper מכיר. בחר בו אם המודל הקטן איטי מדי.</string>
     <string name="core_voice_model_base_world_body">מודל זה משתמש בשפה שבה אתה מקליד במקום לנחש. ביטויים קצרים הופכים לאמינים הרבה יותר. בחר בו כאשר הרשימה שלו כוללת את השפות שלך.</string>
+    <string name="core_voice_model_cpp_base_body">מודל זה מאזן בין דיוק למהירות. הוא משתמש בשפה שבה אתה מכתיב, בכל אחת מ-99 השפות ש-Whisper מכיר, והוא מאזין למילים שלך. בחר בו אם המודל הקטן איטי מדי.</string>
+    <string name="core_voice_model_cpp_large_body">זהו מודל Whisper המדויק ביותר. ההורדה היא בגודל 1.1 ג\'יגה-בייט. רק מכשיר עם כמות גדולה של זיכרון יכול לטעון אותו. מודל ה-Turbo מדויק כמעט באותה מידה והוא חצי מהגודל.</string>
+    <string name="core_voice_model_cpp_medium_body">מודל זה מספק דיוק כמעט כמו במחשב שולחני. כל ביטוי לוקח מספר שניות. המודל משתמש בכמעט גיגה-בייט אחד של זיכרון בזמן שהוא פועל.</string>
+    <string name="core_voice_model_cpp_small_body">מודל זה מספק את הדיוק הטוב ביותר שעדיין פועל היטב בטלפון. הוא משתמש בשפה שבה אתה מכתיב, בכל אחת מ-99 השפות ש-Whisper מכיר, והוא מאזין למילים שלך.</string>
+    <string name="core_voice_model_cpp_tiny_body">זהו המודל המהיר ביותר. הוא עובד היטב עם דיבור ברור, אך רעש מפחית את הדיוק. הוא משתמש בשפה שבה אתה מכתיב ומקשיב למילים שלך.</string>
+    <string name="core_voice_model_cpp_turbo_body">מודל זה מדויק כמעט כמו המודל הגדול ביותר, בחצי מהגודל. כל משפט לוקח מספר שניות, והוא אינו יכול לתרגם.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d שפה</item>
         <item quantity="other">%1$d שפות</item>
@@ -32,4 +38,5 @@
     <string name="core_voice_whisper_module_downloading">רכיב הקלדת הקול הלא-מקוון של המקלדת יורד מ-Google Play. נסה שוב בעוד רגע.</string>
     <string name="core_voice_whisper_module_restart">התקנת רכיב ההקלדה הקולית הלא-מקוונת הסתיימה. סגור ופתח מחדש את המקלדת כדי להשתמש בו.</string>
     <string name="core_voice_whisper_transcribe_error">הקלדה קולית לא עבדה. נסה שוב, או בחר מודל קטן יותר.</string>
+    <string name="core_voice_whistle_checksum_error">המודל שהורד פגום. הורד אותו שוב.</string>
 </resources>

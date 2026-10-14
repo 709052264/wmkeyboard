@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">કમ્પ્યુટર પર AltGr કી જે અક્ષરો ટાઇપ કરે છે તે સમાન કીને દબાવી રાખવાથી ટાઇપ થાય છે.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d ડેડ કી કમ્પ્યુટર પર આગલા અક્ષર પર ઉચ્ચાર મૂકે છે. અહીં, તે ઉચ્ચારવાળા અક્ષરો દરેક અક્ષરને દબાવી રાખવાથી મળે છે.</item>
+        <item quantity="other">%1$d ડેડ કી કમ્પ્યુટર પર આગલા અક્ષર પર ઉચ્ચારો મૂકે છે. અહીં, તે ઉચ્ચારોવાળા અક્ષરો દરેક અક્ષરને દબાવી રાખવાથી મળે છે.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">ફાઇલ અન્ય %1$d ફાઇલ (%2$s) પર બનેલી છે જે તમે ખોલી નથી. ફક્ત તે ફાઇલ દ્વારા સેટ કરેલી કી ખૂટે છે.</item>
+        <item quantity="other">ફાઇલ અન્ય %1$d ફાઇલો (%2$s) પર બનેલી છે જે તમે ખોલી નથી. ફક્ત તે ફાઇલો દ્વારા સેટ કરેલી કી ખૂટે છે.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">કોઈ અક્ષરો વગરની કીમાંથી %1$d અક્ષર પૂર્ણવિરામને દબાવી રાખવાથી મળે છે.</item>
+        <item quantity="other">કોઈ અક્ષરો વગરની કીમાંથી %1$d અક્ષરો પૂર્ણવિરામને દબાવી રાખવાથી મળે છે.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">એપ ફાઇલમાં %1$d અક્ષરનું નામ જાણતી નથી, તેથી તેણે તેને બાકાત રાખ્યું છે: %2$s.</item>
+        <item quantity="other">એપ ફાઇલમાં %1$d અક્ષરોના નામ જાણતી નથી, તેથી તેણે તેમને બાકાત રાખ્યા છે: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">કી પર %1$d સ્વાઇપ અહીં કામ કરતું નથી, કારણ કે આ કીબોર્ડ તે સ્વાઇપનો ઉપયોગ બીજા કામ માટે કરે છે. એપ દ્વારા તેને દૂર કરવામાં આવ્યું છે.</item>
+        <item quantity="other">કી પર %1$d સ્વાઇપ અહીં કામ કરતા નથી, કારણ કે આ કીબોર્ડ તે સ્વાઇપનો ઉપયોગ બીજા કામ માટે કરે છે. એપ દ્વારા તેને દૂર કરવામાં આવ્યા છે.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">એપે %1$d કીને તેની પાસેની સૌથી નજીકની કીમાં બદલી છે.</item>
         <item quantity="other">એપે %1$d કીને તેની પાસેની સૌથી નજીકની કીઓમાં બદલી છે.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">એપ્લિકેશને %1$d અક્ષરોને તે સ્વરૂપમાં બદલ્યા છે જે આ કીબોર્ડ લખે છે.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">એપે નંબરની લાઇન દૂર કરી છે. નંબરની લાઇન મેળવવા માટે લેઆઉટ અને સાઇઝમાં તેને ચાલુ કરો.</string>
+    <string name="core_lang_foreign_number_row_kept">ફાઇલની નંબરની હરોળ આ લેઆઉટની નંબરની હરોળ છે. તે ત્યારે દેખાય છે જ્યારે લેઆઉટ અને કદમાં નંબરની હરોળ ચાલુ હોય.</string>
+    <string name="core_lang_foreign_pages_kept">ફાઇલના વધારાના પૃષ્ઠો, જેમ કે AltGr, આ લેઆઉટના પૃષ્ઠો છે. તેમને અહીં ખોલવા માટે અન્ય કીબોર્ડમાં જે કીથી તે ખુલ્યા હતા ત્યાંથી સ્વાઇપ કરો.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d કીમાં પ્રેસ-એન્ડ-હોલ્ડ અક્ષરો નથી. ફાઇલ તેમને બીજી ફાઇલમાં રાખે છે જે તમે ખોલી નથી.</item>
         <item quantity="other">%1$d કીમાં પ્રેસ-એન્ડ-હોલ્ડ અક્ષરો નથી. ફાઇલ તેમને બીજી ફાઇલમાં રાખે છે જે તમે ખોલી નથી.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d કી શિફ્ટ સ્ટેટ અથવા અન્ય કીબોર્ડના ફીલ્ડ સાથે બદલાય છે. એપે તે સ્થિર હોય ત્યારે જેવું દેખાય છે તે જાળવી રાખ્યું છે.</item>
         <item quantity="other">%1$d કીઓ શિફ્ટ સ્ટેટ અથવા અન્ય કીબોર્ડના ફીલ્ડ સાથે બદલાય છે. એપે તે સ્થિર હોય ત્યારે જેવું દેખાય છે તે જાળવી રાખ્યું છે.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">ફાઇલમાં %1$d શિફ્ટ થયેલ પેજની કી તે પેજ સિવાય અન્ય જગ્યાએ છે. એપ ત્યાં તેના બદલે કેપિટલ અક્ષરોનો ઉપયોગ કરે છે.</item>
+        <item quantity="other">ફાઇલમાં %1$d શિફ્ટ થયેલ પેજની કી તે પેજ સિવાય અન્ય જગ્યાએ છે. એપ ત્યાં તેના બદલે કેપિટલ અક્ષરોનો ઉપયોગ કરે છે.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">જ્યારે અન્ય કીબોર્ડમાં શિફ્ટ દબાવેલું હોય ત્યારે %1$d કીમાં અલગ પ્રેસ-એન્ડ-હોલ્ડ અક્ષરો હોય છે. એપ અનશિફ્ટ કરેલા અક્ષરો રાખ્યા છે.</item>
+        <item quantity="other">જ્યારે અન્ય કીબોર્ડમાં શિફ્ટ દબાવેલું હોય ત્યારે %1$d કીમાં અલગ પ્રેસ-એન્ડ-હોલ્ડ અક્ષરો હોય છે. એપ અનશિફ્ટ કરેલા અક્ષરો રાખ્યા છે.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">બીજું કીબોર્ડ કીની પહોળાઈને અલગ રીતે માપે છે. એપ્લિકેશને આ ગ્રીડમાં ફિટ કરવા માટે પહોળાઈ બદલી છે.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

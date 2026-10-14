@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">కుడివైపు కింద</string>
     <string name="core_settings_board_corner_top_left_label">ఎడమవైపు పైన</string>
     <string name="core_settings_board_corner_top_right_label">ఎగువ కుడి</string>
+    <string name="core_settings_clip_swipe_pin_left_label">ఎడమవైపు పిన్, కుడివైపు తొలగింపు</string>
+    <string name="core_settings_clip_swipe_pin_off_label">రెండు వైపులా తొలగింపు</string>
+    <string name="core_settings_clip_swipe_pin_right_label">కుడివైపు పిన్, ఎడమవైపు తొలగింపు</string>
     <string name="core_settings_clip_time_copied_label">కాపీ చేసిన సమయం</string>
     <string name="core_settings_clip_time_expires_label">మిగిలి ఉన్న సమయం</string>
     <string name="core_settings_clip_time_off_label">ఏదీ లేదు</string>

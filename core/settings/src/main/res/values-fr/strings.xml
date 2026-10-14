@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Bas droite</string>
     <string name="core_settings_board_corner_top_left_label">En haut à gauche</string>
     <string name="core_settings_board_corner_top_right_label">En haut à droite</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Gauche pour épingler, droite pour supprimer</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Supprimer dans les deux sens</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Épingler à droite, supprimer à gauche</string>
     <string name="core_settings_clip_time_copied_label">Heure de copie</string>
     <string name="core_settings_clip_time_expires_label">Temps restant</string>
     <string name="core_settings_clip_time_off_label">Aucun</string>

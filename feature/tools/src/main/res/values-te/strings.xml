@@ -3,8 +3,34 @@
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
     <string name="ftools_ai_stream_error">AI ప్రొవైడర్ ప్రతిస్పందనను ఎర్రర్‌తో ముగించింది</string>
+    <string name="ftools_ai_tool_failed">సాధనం విఫలమైంది: %1$s. అదే ఇన్‌పుట్‌తో దీన్ని మళ్లీ పిలవకండి.</string>
+    <string name="ftools_ai_tool_missing_argument">ఈ కాల్ అవసరమైన \"%1$s\" విలువను వదిలివేసింది.</string>
+    <string name="ftools_ai_tool_no_results">ఫలితాలు లేవు.</string>
+    <string name="ftools_ai_tool_no_search">ఈ కీబోర్డ్‌లో వెబ్ సెర్చ్ సెటప్ చేయబడలేదు, కాబట్టి సెర్చ్ చేయడం సాధ్యం కాదు. మీకు తెలిసిన దాని నుండి సమాధానం ఇవ్వండి మరియు మీరు సెర్చ్ చేయలేకపోయారని చెప్పండి.</string>
+    <string name="ftools_ai_tool_reason_bad_url">కీబోర్డ్ తెరిచే వెబ్ చిరునామా కాదు</string>
+    <string name="ftools_ai_tool_reason_missing">మోడల్ %1$sని వదిలివేసింది</string>
+    <string name="ftools_ai_tool_reason_no_search">వెబ్ శోధన సెటప్ చేయబడలేదు</string>
+    <string name="ftools_ai_tool_reason_unknown">మోడల్ లేని టూల్ కోసం అడిగింది</string>
+    <string name="ftools_ai_tool_truncated">[పేజీ ఈ పాయింట్ దాటి కొనసాగుతుంది మరియు కత్తిరించబడింది]</string>
+    <string name="ftools_ai_tool_unknown">%1$s అనే పేరుతో ఎటువంటి సాధనం లేదు.</string>
+    <string name="ftools_mcp_declined">వినియోగదారు ఈ కాల్‌ను అనుమతించలేదు. ఈ సమాధానంలో ఈ సాధనాన్ని మళ్ళీ పిలవకండి. దాని లేకుండా సమాధానం ఇవ్వండి మరియు మీరు ఏమి చేయలేకపోయారో చెప్పండి.</string>
+    <string name="ftools_mcp_empty">టూల్ రన్ అయ్యింది కానీ ఏమీ తిరిగి పంపలేదు.</string>
+    <string name="ftools_mcp_error_needs_input">సర్వర్ మరిన్ని ఇన్‌పుట్‌లను కోరింది, మరియు కీబోర్డ్ ఇంకా వాటిని ఇవ్వలేదు.</string>
+    <string name="ftools_mcp_error_no_version">ఈ సర్వర్ కీబోర్డ్‌కు తెలిసిన దానికంటే కొత్త వెర్షన్ MCPని ఉపయోగిస్తోంది.</string>
+    <string name="ftools_mcp_error_not_mcp">ఈ చిరునామా MCP సర్వర్ లాగా స్పందించలేదు. చిరునామా మరియు రకాన్ని తనిఖీ చేయండి.</string>
+    <string name="ftools_mcp_error_server">సర్వర్ ఒక లోపాన్ని పంపింది: %1$s</string>
+    <string name="ftools_mcp_error_sign_in">ఈ సర్వర్‌కు మీరు సైన్ ఇన్ అవ్వాలి, మరియు కీబోర్డ్ ఇంకా అలా చేయలేదు. సర్వర్ టోకెన్‌లు లేదా కీలను ఇస్తే, ఒకదాన్ని హెడర్‌గా జోడించండి.</string>
+    <string name="ftools_mcp_omitted">[ఈ టూల్ మీరు ఇక్కడ చదవలేని కంటెంట్‌ను కూడా పంపింది: %1$s]</string>
+    <string name="ftools_mcp_reason_declined">మీరు దీనిని అనుమతించలేదు</string>
+    <string name="ftools_mcp_reason_stopped">రన్ అవ్వకముందే ఆగిపోయింది</string>
+    <string name="ftools_mcp_reason_tool_error">టూల్ ఒక లోపాన్ని నివేదించింది</string>
+    <string name="ftools_mcp_stopped">కాల్ రన్ అవ్వకముందే రద్దు చేయబడింది.</string>
+    <string name="ftools_mcp_tool_error">టూల్ ఒక లోపాన్ని నివేదించింది: %1$s</string>
+    <string name="ftools_mcp_truncated">[సమాధానం ఈ పాయింట్ దాటి కొనసాగుతుంది మరియు కత్తిరించబడింది]</string>
     <string name="ftools_photo_error_failed">యాప్ ఫోటోలను పొందలేకపోయింది</string>
     <string name="ftools_photo_error_offline">యాప్ ఫోటో సేవను చేరుకోలేకపోతోంది. మీ నెట్‌వర్క్‌ను తనిఖీ చేసి, మళ్లీ ప్రయత్నించండి.</string>
     <string name="ftools_photo_error_timeout">ఫోటో సర్వీస్ సమాధానం ఇవ్వడానికి చాలా సమయం తీసుకుంది</string>
     <string name="ftools_search_error_json_disabled">ఈ SearXNG ఇన్‌స్టాన్స్ దాని JSON APIని ఎనేబుల్ చేయలేదు. దాని settings.ymlలో search.formatsకి &lt;b&gt;json&lt;/b&gt;ని జోడించండి లేదా మరొక ఇన్‌స్టాన్స్‌ని ఉపయోగించండి.</string>
+    <string name="ftools_search_error_searx_limited">ఈ SearXNG ఇన్‌స్టాన్స్ ప్రస్తుతం యాప్‌లను అనుమతించడం లేదు (HTTP 429). పబ్లిక్ ఇన్‌స్టాన్స్‌లు బ్రౌజర్ నుండి రాని అభ్యర్థనలను పరిమితం చేస్తాయి. తర్వాత మళ్లీ ప్రయత్నించండి, లేదా మీ స్వంత ఇన్‌స్టాన్స్‌ను ఉపయోగించండి లేదా దాని JSON APIని అనుమతించేదాన్ని ఎంచుకోండి.</string>
+    <string name="ftools_web_fetch_bad_url">ఇది ఈ కీబోర్డ్ తెరవలేని వెబ్ చిరునామా. పూర్తి http:// లేదా https:// చిరునామాను ఇవ్వండి.</string>
 </resources>

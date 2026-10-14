@@ -8,6 +8,12 @@
     <string name="core_voice_model_base_eu_body">See mudel kasutab keelt, milles kirjutad, täpselt nagu 40 keele mudel. See hõlmab ainult Euroopa keeli, seega on allalaaditav fail väiksem.</string>
     <string name="core_voice_model_base_multi_body">See mudel tasakaalustab täpsuse ja kiiruse. See hõlmab kõiki keeli, mida Whisper tunneb. Vali see, kui väike mudel on liiga aeglane.</string>
     <string name="core_voice_model_base_world_body">See mudel kasutab oletamise asemel keelt, milles kirjutad. Lühikesed fraasid muutuvad palju usaldusväärsemaks. Vali see, kui selle loendis on sinu keeled.</string>
+    <string name="core_voice_model_cpp_base_body">See mudel tasakaalustab täpsuse ja kiiruse. See kasutab keelt, milles dikteerite, mis tahes 99 keelest, mida Whisper tunneb, ja kuulab teie enda sõnu. Valige see, kui väike mudel on liiga aeglane.</string>
+    <string name="core_voice_model_cpp_large_body">See on kõige täpsem Whisperi mudel. Allalaadimine on 1,1 GB. Ainult suure mälumahuga seade suudab selle laadida. Turbo-mudel on peaaegu sama täpne ja poole väiksem.</string>
+    <string name="core_voice_model_cpp_medium_body">See mudel annab peaaegu lauaarvuti täpsuse. Iga fraas võtab mitu sekundit. Mudel kasutab töötades peaaegu ühe gigabaidi mälu.</string>
+    <string name="core_voice_model_cpp_small_body">See mudel pakub parimat täpsust, mis telefonis hästi töötab. See kasutab keelt, milles dikteerid, mis tahes 99 keelest, mida Whisper tunneb, ja kuulab sinu enda sõnu.</string>
+    <string name="core_voice_model_cpp_tiny_body">See on kõige kiirem mudel. See töötab hästi selge kõnega, kuid müra vähendab täpsust. See kasutab keelt, milles dikteerite, ja kuulab teie enda sõnu.</string>
+    <string name="core_voice_model_cpp_turbo_body">See mudel on peaaegu sama täpne kui suurim mudel, olles poole väiksem. Iga fraas võtab mitu sekundit ja see ei saa tõlkida.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d keel</item>
         <item quantity="other">%1$d keelt</item>
@@ -32,4 +38,5 @@
     <string name="core_voice_whisper_module_downloading">Klaviatuuri võrguühenduseta häälsisestuse osa laaditakse Google Playst alla. Proovige hetke pärast uuesti.</string>
     <string name="core_voice_whisper_module_restart">Võrguühenduseta häälkestamise komponendi installimine lõpetati. Selle kasutamiseks sulgege klaviatuur ja avage see uuesti.</string>
     <string name="core_voice_whisper_transcribe_error">Häälsisestus ei töötanud. Proovi uuesti või vali väiksem mudel.</string>
+    <string name="core_voice_whistle_checksum_error">Allalaaditud mudel on kahjustatud. Laadige see uuesti alla.</string>
 </resources>

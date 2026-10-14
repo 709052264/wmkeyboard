@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Dybt hav</string>
     <string name="core_theme_builtin_facet_label">Facet</string>
     <string name="core_theme_builtin_forest_label">Skov</string>
+    <string name="core_theme_builtin_frost_label">Frost</string>
+    <string name="core_theme_builtin_frost_light_label">Frostlys</string>
+    <string name="core_theme_builtin_frost_liquid_label">Frostvæske</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Frost-tapet</string>
     <string name="core_theme_builtin_glacier_label">Gletsjer</string>
     <string name="core_theme_builtin_mint_label">Mynte</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Sne</string>
     <string name="core_theme_builtin_sunset_drift_label">Solnedgangsdrift</string>
     <string name="core_theme_builtin_sunset_label">Solnedgang</string>
+    <string name="core_theme_family_frost_label">Frost</string>
     <string name="core_theme_family_gradient_label">Gradienter</string>
     <string name="core_theme_family_ocean_label">Skumring</string>
     <string name="core_theme_family_snow_label">Pastel</string>
+    <string name="core_theme_palette_style_expressive">Ekspressiv</string>
+    <string name="core_theme_palette_style_fidelity">Troskab</string>
+    <string name="core_theme_palette_style_fruit_salad">Frugtsalat</string>
+    <string name="core_theme_palette_style_monochrome">Monokrom</string>
+    <string name="core_theme_palette_style_neutral">Neutral</string>
+    <string name="core_theme_palette_style_rainbow">Regnbue</string>
+    <string name="core_theme_palette_style_tonal_spot">Tonal spot</string>
+    <string name="core_theme_palette_style_vibrant">Levende</string>
 </resources>

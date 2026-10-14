@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">右下</string>
     <string name="core_settings_board_corner_top_left_label">左上</string>
     <string name="core_settings_board_corner_top_right_label">右上</string>
+    <string name="core_settings_clip_swipe_pin_left_label">左スワイプでピン留め、右スワイプで削除</string>
+    <string name="core_settings_clip_swipe_pin_off_label">両方向で削除</string>
+    <string name="core_settings_clip_swipe_pin_right_label">右スワイプでピン留め、左スワイプで削除</string>
     <string name="core_settings_clip_time_copied_label">コピー日時</string>
     <string name="core_settings_clip_time_expires_label">残り時間</string>
     <string name="core_settings_clip_time_off_label">なし</string>

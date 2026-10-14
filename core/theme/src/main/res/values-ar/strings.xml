@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">أعماق البحار</string>
     <string name="core_theme_builtin_facet_label">الوجه</string>
     <string name="core_theme_builtin_forest_label">الغابة</string>
+    <string name="core_theme_builtin_frost_label">صقيع</string>
+    <string name="core_theme_builtin_frost_light_label">صقيع فاتح</string>
+    <string name="core_theme_builtin_frost_liquid_label">سائل متجمد</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">خلفية مثلجة</string>
     <string name="core_theme_builtin_glacier_label">نهر جليدي</string>
     <string name="core_theme_builtin_mint_label">النعناعي</string>
     <string name="core_theme_builtin_nebula_label">سديم</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">ثلج</string>
     <string name="core_theme_builtin_sunset_drift_label">انجراف الغروب</string>
     <string name="core_theme_builtin_sunset_label">غروب الشمس</string>
+    <string name="core_theme_family_frost_label">صقيع</string>
     <string name="core_theme_family_gradient_label">التدرجات اللونية</string>
     <string name="core_theme_family_ocean_label">غسق</string>
     <string name="core_theme_family_snow_label">باستيل</string>
+    <string name="core_theme_palette_style_expressive">تعبيري</string>
+    <string name="core_theme_palette_style_fidelity">الدقة</string>
+    <string name="core_theme_palette_style_fruit_salad">سلطة فواكه</string>
+    <string name="core_theme_palette_style_monochrome">أحادي اللون</string>
+    <string name="core_theme_palette_style_neutral">محايد</string>
+    <string name="core_theme_palette_style_rainbow">قوس قزح</string>
+    <string name="core_theme_palette_style_tonal_spot">بقعة لونية</string>
+    <string name="core_theme_palette_style_vibrant">نابض بالحياة</string>
 </resources>

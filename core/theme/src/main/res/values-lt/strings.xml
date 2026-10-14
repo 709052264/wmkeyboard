@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Gilioji jūra</string>
     <string name="core_theme_builtin_facet_label">Fasetė</string>
     <string name="core_theme_builtin_forest_label">Miškas</string>
+    <string name="core_theme_builtin_frost_label">Šerkšnas</string>
+    <string name="core_theme_builtin_frost_light_label">Šviesus šerkšnas</string>
+    <string name="core_theme_builtin_frost_liquid_label">Šerkšno skystis</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Šerkšno ekrano užsklanda</string>
     <string name="core_theme_builtin_glacier_label">Ledynas</string>
     <string name="core_theme_builtin_mint_label">Mėtinė</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Sniegas</string>
     <string name="core_theme_builtin_sunset_drift_label">Saulėlydžio dreifas</string>
     <string name="core_theme_builtin_sunset_label">Saulėlydis</string>
+    <string name="core_theme_family_frost_label">Šerkšnas</string>
     <string name="core_theme_family_gradient_label">Gradientai</string>
     <string name="core_theme_family_ocean_label">Sutemos</string>
     <string name="core_theme_family_snow_label">Pastelė</string>
+    <string name="core_theme_palette_style_expressive">Išraiškingas</string>
+    <string name="core_theme_palette_style_fidelity">Tikslumas</string>
+    <string name="core_theme_palette_style_fruit_salad">Vaisių salotos</string>
+    <string name="core_theme_palette_style_monochrome">Vienspalvis</string>
+    <string name="core_theme_palette_style_neutral">Neutralus</string>
+    <string name="core_theme_palette_style_rainbow">Vaivorykštė</string>
+    <string name="core_theme_palette_style_tonal_spot">Toninis taškas</string>
+    <string name="core_theme_palette_style_vibrant">Ryškus</string>
 </resources>

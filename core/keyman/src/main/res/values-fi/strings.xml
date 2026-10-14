@@ -10,6 +10,10 @@
         <item quantity="one">%1$d näppäin kirjoittaa siihen painetun merkin. Alkuperäinen näppäimistö käytti sääntöä päättääkseen, mitä se kirjoittaa.</item>
         <item quantity="other">%1$d näppäintä kirjoittavat niihin painetut merkit. Alkuperäinen näppäimistö käytti sääntöjä päättääkseen, mitä ne kirjoittavat.</item>
     </plurals>
+    <plurals name="core_keyman_multitap_unconverted">
+        <item quantity="one">Tässä näppäimistössä on %1$d näppäin, jota painamalla toistuvasti voit selata sivuja tai merkkejä. Sovellus ei pysty kopioimaan tätä kiertoa, joten jokainen napautus toimii kuin ensimmäinen napautus.</item>
+        <item quantity="other">Tässä näppäimistössä on %1$d näppäintä, joita painamalla toistuvasti voit selata sivuja tai merkkejä. Sovellus ei pysty kopioimaan näitä kiertoja, joten jokainen napautus toimii kuin ensimmäinen napautus.</item>
+    </plurals>
     <string name="core_keyman_rules_missing">Tämä näppäimistö käyttää sääntöjä päättääkseen, mitä näppäimet kirjoittavat. Sovelluksella ei ole näitä sääntöjä, joten jokainen näppäin kirjoittaa siihen painetun merkin.</string>
     <plurals name="core_keyman_special_keys_dropped">
         <item quantity="one">Sovellus poisti %1$d näppäimen. Tässä näppäimistössä ei ole näppäintä, joka tekee saman asian.</item>

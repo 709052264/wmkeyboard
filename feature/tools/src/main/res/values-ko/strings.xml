@@ -3,8 +3,34 @@
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
     <string name="ftools_ai_stream_error">AI 제공업체가 오류로 응답을 종료했습니다</string>
+    <string name="ftools_ai_tool_failed">도구 실행 실패: %1$s. 동일한 입력으로 다시 호출하지 마세요.</string>
+    <string name="ftools_ai_tool_missing_argument">호출 시 필수 \"%1$s\" 값이 누락되었습니다.</string>
+    <string name="ftools_ai_tool_no_results">결과 없음.</string>
+    <string name="ftools_ai_tool_no_search">이 키보드에는 웹 검색이 설정되어 있지 않아 검색이 불가능합니다. 이미 알고 있는 내용을 바탕으로 답변하고 검색할 수 없음을 알리세요.</string>
+    <string name="ftools_ai_tool_reason_bad_url">키보드에서 열 수 없는 웹 주소입니다</string>
+    <string name="ftools_ai_tool_reason_missing">모델이 %1$s을(를) 생략했습니다</string>
+    <string name="ftools_ai_tool_reason_no_search">웹 검색이 설정되지 않음</string>
+    <string name="ftools_ai_tool_reason_unknown">모델이 존재하지 않는 도구를 요청했습니다.</string>
+    <string name="ftools_ai_tool_truncated">[페이지가 이 지점 이후로 계속되며 잘렸습니다]</string>
+    <string name="ftools_ai_tool_unknown">%1$s라는 도구가 없습니다.</string>
+    <string name="ftools_mcp_declined">사용자가 이 호출을 허용하지 않았습니다. 이 답변에서 해당 도구를 다시 호출하지 마세요. 도구 없이 답변하고, 수행할 수 없었던 작업을 언급하세요.</string>
+    <string name="ftools_mcp_empty">도구가 실행되었으나 아무런 응답을 받지 못했습니다.</string>
+    <string name="ftools_mcp_error_needs_input">서버가 추가 입력을 요청했으나 키보드에서 아직 제공할 수 없습니다.</string>
+    <string name="ftools_mcp_error_no_version">이 서버는 키보드에서 지원하는 것보다 최신 버전의 MCP를 사용하고 있습니다.</string>
+    <string name="ftools_mcp_error_not_mcp">이 주소는 MCP 서버처럼 응답하지 않았습니다. 주소와 유형을 확인하세요.</string>
+    <string name="ftools_mcp_error_server">서버에서 오류를 보냈습니다: %1$s</string>
+    <string name="ftools_mcp_error_sign_in">이 서버는 로그인이 필요하지만 키보드에서 아직 지원하지 않습니다. 서버에서 토큰이나 키를 제공하는 경우 헤더로 추가하세요.</string>
+    <string name="ftools_mcp_omitted">[도구가 여기에서 읽을 수 없는 콘텐츠를 보냈습니다: %1$s]</string>
+    <string name="ftools_mcp_reason_declined">사용자가 허용하지 않았습니다</string>
+    <string name="ftools_mcp_reason_stopped">실행 전 중지됨</string>
+    <string name="ftools_mcp_reason_tool_error">도구에서 오류가 보고되었습니다.</string>
+    <string name="ftools_mcp_stopped">실행되기 전에 호출이 취소되었습니다.</string>
+    <string name="ftools_mcp_tool_error">도구에서 오류가 보고되었습니다: %1$s</string>
+    <string name="ftools_mcp_truncated">[답변이 이 지점을 넘어 계속되어 잘렸습니다]</string>
     <string name="ftools_photo_error_failed">앱이 사진을 가져올 수 없습니다.</string>
     <string name="ftools_photo_error_offline">앱이 사진 서비스에 연결할 수 없습니다. 네트워크를 확인하고 다시 시도하세요.</string>
     <string name="ftools_photo_error_timeout">사진 서비스가 응답하는 데 너무 오래 걸렸습니다</string>
     <string name="ftools_search_error_json_disabled">이 SearXNG 인스턴스는 JSON API를 활성화하지 않았습니다. settings.yml의 search.formats에 &lt;b&gt;json&lt;/b&gt;을 추가하거나 다른 인스턴스를 사용하세요.</string>
+    <string name="ftools_search_error_searx_limited">현재 이 SearXNG 인스턴스는 앱의 요청을 거부하고 있습니다(HTTP 429). 공개 인스턴스는 브라우저에서 오지 않는 요청을 제한합니다. 나중에 다시 시도하거나, 직접 인스턴스를 사용하거나 JSON API를 허용하는 인스턴스를 사용하세요.</string>
+    <string name="ftools_web_fetch_bad_url">이 키보드에서 열 수 없는 웹 주소입니다. 전체 http:// 또는 https:// 주소를 입력하세요.</string>
 </resources>

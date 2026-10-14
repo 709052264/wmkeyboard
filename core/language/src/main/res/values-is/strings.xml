@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Stafirnir sem AltGr-lykillinn skrifar á tölvu eru við að halda inni sömu lyklum.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d dauður takki setur kommu á næsta staf í tölvu. Hér eru stafirnir með þeirri kommu undir því að halda inni hverjum staf.</item>
+        <item quantity="other">%1$d dauðir takkar setja kommur á næsta staf í tölvu. Hér eru stafirnir með þeim kommum undir því að halda inni hverjum staf.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Skráin byggir á %1$d annarri skrá (%2$s) sem þú opnaðir ekki. Lyklar sem aðeins sú skrá setur vantar.</item>
+        <item quantity="other">Skráin byggir á %1$d öðrum skrám (%2$s) sem þú opnaðir ekki. Lyklar sem aðeins þær skrár setja vantar.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d tákn af lykli án bókstafa birtist þegar ýtt er á og haldið inni punktinum.</item>
+        <item quantity="other">%1$d tákn af lyklum án bókstafa birtast þegar ýtt er á og haldið inni punktinum.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Forritið þekkir ekki %1$d táknheiti í skránni, svo það sleppti því: %2$s.</item>
+        <item quantity="other">Forritið þekkir ekki %1$d táknheiti í skránni, svo það sleppti þeim: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d stroka á takka á ekki heima hér, því þetta lyklaborð notar þá stroku í annað. Forritið fjarlægði hana.</item>
+        <item quantity="other">%1$d strokur á takka eiga ekki heima hér, því þetta lyklaborð notar þær strokur í annað. Forritið fjarlægði þær.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Forritið breytti %1$d lykli í næsta lykil sem það hefur.</item>
         <item quantity="other">Forritið breytti %1$d lyklum í næstu lykla sem það hefur.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Forritið breytti %1$d stöfum í það form sem þetta lyklaborð skrifar.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Forritið fjarlægði talnaröðina. Kveiktu á talnaröðinni í Skipulag og stærð til að fá eina.</string>
+    <string name="core_lang_foreign_number_row_kept">Talnaröð skráarinnar er talnaröð þessa skipulags. Hún birtist á meðan talnaröðin er kveikt í Skipulag og stærð.</string>
+    <string name="core_lang_foreign_pages_kept">Aukasíður skráarinnar, eins og AltGr, eru síður þessa lyklaborðs. Strjúktu frá takkanum sem opnaði þær í hinu lyklaborðinu til að opna þær hér.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d lykill hefur enga stafi sem birtast við langt ýtingu. Skráin geymir þá í annarri skrá sem þú opnaðir ekki.</item>
         <item quantity="other">%1$d lyklar hafa enga stafi sem birtast við langt ýtingu. Skráin geymir þá í annarri skrá sem þú opnaðir ekki.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d takki breytist með hástafastöðu eða reitnum í hinu lyklaborðinu. Forritið hélt því hvernig hann lítur út í hvíld.</item>
         <item quantity="other">%1$d takkar breytast með hástafastöðu eða reitnum í hinu lyklaborðinu. Forritið hélt því hvernig þeir líta út í hvíld.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d færð síða í skránni hefur lyklana sína á öðrum stöðum en síðan sem hún færir. Forritið notar hástafi þar í staðinn.</item>
+        <item quantity="other">%1$d færðar síður í skránni hafa lyklana sína á öðrum stöðum en síðurnar sem þær færa. Forritið notar hástafi þar í staðinn.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d lykill hefur mismunandi stafi við langt ýtt á meðan shift er virkt á hinu lyklaborðinu. Forritið hélt þeim sem eru án shift.</item>
+        <item quantity="other">%1$d lyklar hafa mismunandi stafi við langt ýtt á meðan shift er virkt á hinu lyklaborðinu. Forritið hélt þeim sem eru án shift.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Hitt lyklaborðið mælir breidd takka á annan hátt. Forritið breytti breiddunum til að passa við þetta net.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

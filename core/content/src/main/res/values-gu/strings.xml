@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">કોડ</string>
     <string name="core_content_clip_entity_phone_label">ફોન નંબર</string>
     <string name="core_content_clip_entity_phone_tag">ફોન</string>
+    <string name="core_content_clip_entity_place_label">સ્થળ</string>
+    <string name="core_content_clip_entity_place_tag">સ્થળ</string>
     <string name="core_content_clip_entity_url_label">લિંક</string>
     <string name="core_content_clip_entity_url_tag">લિંક</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">એપ WOFF વેબ ફોન્ટ્સ વાંચી શકતી નથી. ફોન્ટના .ttf અથવા .otf વર્ઝનનો ઉપયોગ કરો.</string>
     <string name="core_content_font_error_woff2">એપ WOFF2 વેબ ફોન્ટ્સ વાંચી શકતી નથી. ફોન્ટના .ttf અથવા .otf વર્ઝનનો ઉપયોગ કરો.</string>
     <string name="core_content_font_error_zip">આ ફાઇલ ઝિપ આર્કાઇવ છે, ફોન્ટ નથી.</string>
+    <string name="core_content_note_tag_ideas">વિચારો</string>
+    <string name="core_content_note_tag_important">મહત્વપૂર્ણ</string>
+    <string name="core_content_note_tag_personal">વ્યક્તિગત</string>
+    <string name="core_content_note_tag_school">શાળા</string>
+    <string name="core_content_note_tag_study">અભ્યાસ</string>
+    <string name="core_content_note_tag_work">કામ</string>
     <string name="core_content_selection_macro_add_contact">સંપર્ક</string>
     <string name="core_content_selection_macro_calendar">કેલેન્ડર</string>
     <string name="core_content_selection_macro_call">કોલ કરો</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">બોલો</string>
     <string name="core_content_selection_macro_replace">બદલો</string>
+    <string name="core_content_selection_macro_save_note">નોટ તરીકે સાચવો</string>
     <string name="core_content_selection_macro_search">શોધો</string>
     <string name="core_content_selection_macro_share">શેર કરો</string>
     <string name="core_content_selection_macro_sms">મેસેજ</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">અનુવાદ કરો</string>
     <string name="core_content_selection_macro_url_decode">ડીકોડ</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">ફાઇલમાં શોર્ટકટ વગરનો %1$d શબ્દ પણ છે. તેને તમારા શબ્દોમાં ઉમેરવા માટે, પર્સનલ ડિક્શનરીમાંથી ફાઇલ ખોલો.</item>
+        <item quantity="other">ફાઇલમાં શોર્ટકટ વગરના %1$d શબ્દો પણ છે. તેમને તમારા શબ્દોમાં ઉમેરવા માટે, પર્સનલ ડિક્શનરીમાંથી ફાઇલ ખોલો.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">એપ્લિકેશને \"%1$s\" માંથી %2$d વિસ્તરણ બાકાત રાખ્યું છે.</item>
         <item quantity="other">એપ્લિકેશને \"%1$s\" માંથી %2$d વિસ્તરણો બાકાત રાખ્યા છે.</item>
@@ -162,9 +175,17 @@
         <item quantity="one">એપે \"%1$s\" માંથી પેટર્ન દૂર કરી છે. તે %2$d અક્ષર કરતા લાંબી હતી.</item>
         <item quantity="other">એપે \"%1$s\" માંથી પેટર્ન દૂર કરી છે. તે %2$d અક્ષરો કરતા લાંબી હતી.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">એપે %1$d પંક્તિ દૂર કરી છે જેમાં કોઈ લખાણ નથી.</item>
+        <item quantity="other">એપે %1$d પંક્તિઓ દૂર કરી છે જેમાં કોઈ લખાણ નથી.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">એપે \"%1$s\" ને ટૂંકું કર્યું. તે %2$d અક્ષર કરતા લાંબુ હતું.</item>
         <item quantity="other">એપે \"%1$s\" ને ટૂંકું કર્યું. તે %2$d અક્ષરો કરતા લાંબુ હતું.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">એપ્લિકેશને %1$d ટ્રિગર દૂર કર્યું છે જે કીબોર્ડ જોઈ શકતું નથી. તેનો સ્નિપેટ સૂચિમાં રહે છે.</item>
+        <item quantity="other">એપ્લિકેશને %1$d ટ્રિગર્સ દૂર કર્યા છે જે કીબોર્ડ જોઈ શકતું નથી. તેમના સ્નિપેટ્સ સૂચિમાં રહે છે.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">તમે જે એપમાં ટાઈપ કરો છો તેનું નામ</string>
     <string name="core_content_snippet_var_clip_info">સૌથી નવી ક્લિપબોર્ડ એન્ટ્રી</string>

@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Kamus kana ke kanji Jepang</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Tabel bacaan Jyutping ke karakter Hanzi, 163.000 entri. Papan ketik memerlukan paket ini untuk konversi bahasa Kanton.</string>
     <string name="core_input_cjk_pack_jyutping_title">Kamus Jyutping Kanton</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Kata mana yang mengikuti kata mana, dihitung dari teks web dan berita bahasa Mandarin. Disertakan dengan kamus Pinyin. Dengan ini, inisial seperti wbxh memberikan 我不喜欢 terlebih dahulu dan bukan dua kata yang tidak berhubungan.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Pasangan kata bahasa Mandarin</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Karakter dan frasa Hanzi dari CC-CEDICT, 120.000 entri. Papan ketik memerlukan paket ini untuk konversi bahasa Mandarin.</string>
     <string name="core_input_cjk_pack_pinyin_title">Kamus Pinyin Mandarin</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Frasa dari OpenCC, 50.000 entri, sekitar 1 MB. Dengan karakter Tradisional aktif, papan ketik menggunakannya untuk menulis bentuk yang benar untuk kata tersebut, seperti 頭髮 dan bukan 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Tabel frasa karakter tradisional</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Tabel urutan goresan untuk karakter Hanzi. Papan ketik memerlukan paket ini untuk tata letak goresan.</string>
     <string name="core_input_cjk_pack_stroke_title">Kamus goresan bahasa Mandarin (笔画)</string>
+    <string name="core_input_double_pinyin_custom_label">Kustom</string>
     <string name="core_input_double_pinyin_off_label">Nonaktif (Pinyin lengkap)</string>
+    <string name="core_input_im_note_candidates">Untuk beberapa tombol, metode ini memberikan daftar pilihan. Papan ketik selalu menggunakan pilihan pertama.</string>
+    <string name="core_input_im_note_missing_files">File-file ini tidak dipilih, jadi bagiannya hilang: %1$s. Untuk menyertakannya, impor lagi dan pilih bersama-sama.</string>
+    <string name="core_input_im_note_module">Metode ini menggunakan plug-in, seperti Anthy, yang tidak dapat dijalankan oleh keyboard. Tombol yang menggunakannya tidak berfungsi di sini.</string>
+    <string name="core_input_im_note_other_method">Metode ini memberikan beberapa tombol ke metode input lain. Bagian itu tidak berfungsi di sini.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Aplikasi tidak dapat membaca %1$d aturan ejaan, jadi aturan tersebut dilewati.</item>
+        <item quantity="other">Aplikasi tidak dapat membaca %1$d aturan ejaan, jadi aturan tersebut dilewati.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Metode ini menggunakan bilah spasi sebagai tombol, misalnya untuk nada. Di sini bilah spasi selalu mengetikkan spasi.</string>
+    <string name="core_input_im_note_truncated">Tabelnya terlalu besar, jadi aplikasi hanya menyimpan bagian pertamanya.</string>
+    <string name="core_input_im_note_unused_files">Aplikasi tidak menggunakan file-file ini: %1$s.</string>
+    <string name="core_input_im_refused_broken">File tersebut mengalami kesalahan, sehingga aplikasi tidak dapat membacanya: %1$s</string>
+    <string name="core_input_im_refused_empty">File tersebut tidak memiliki apa pun untuk diketik.</string>
+    <string name="core_input_im_refused_no_dictionary">Skema ini memerlukan kamusnya. Impor lagi dan pilih juga %1$s.</string>
+    <string name="core_input_im_refused_not_method">Aplikasi tidak dapat membacanya sebagai metode input. Aplikasi ini membaca tabel .cin, skema dan kamus Rime (.schema.yaml, .dict.yaml), serta file .mim m17n.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Aplikasi membaca ini sebagai tabel .cin dengan %1$d entri. Ketik kode, lalu pilih karakter dari bilah saran.</item>
+        <item quantity="other">Aplikasi membaca ini sebagai tabel .cin dengan %1$d entri. Ketik kode, lalu pilih karakter dari bilah saran.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Aplikasi membaca ini sebagai metode input m17n dengan %1$d aturan. Tombol-tombol menulis teks saat Anda mengetik.</item>
+        <item quantity="other">Aplikasi membaca ini sebagai metode input m17n dengan %1$d aturan. Tombol-tombol menulis teks saat Anda mengetik.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Aplikasi membaca ini sebagai skema Rime dengan %1$d entri kamus. Ketik suku kata, lalu pilih kata dari bilah saran.</item>
+        <item quantity="other">Aplikasi membaca ini sebagai skema Rime dengan %1$d entri kamus. Ketik suku kata, lalu pilih kata dari bilah saran.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Aplikasi membaca ini sebagai tabel kode Rime dengan %1$d entri. Ketik kode, lalu pilih karakter dari strip saran.</item>
+        <item quantity="other">Aplikasi membaca ini sebagai tabel kode Rime dengan %1$d entri. Ketik kode, lalu pilih karakter dari strip saran.</item>
+    </plurals>
 </resources>

@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">IKHODI</string>
     <string name="core_content_clip_entity_phone_label">Inombolo yocingo</string>
     <string name="core_content_clip_entity_phone_tag">IFONI</string>
+    <string name="core_content_clip_entity_place_label">Indawo</string>
+    <string name="core_content_clip_entity_place_tag">INDAWO</string>
     <string name="core_content_clip_entity_url_label">Isixhumanisi</string>
     <string name="core_content_clip_entity_url_tag">ISIXHUMANISI</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Uhlelo lokusebenza alukwazi ukufunda amafonti ewebhu e-WOFF. Sebenzisa inguqulo ye-.ttf noma .otf yefonti.</string>
     <string name="core_content_font_error_woff2">Uhlelo lokusebenza alukwazi ukufunda amafonti ewebhu e-WOFF2. Sebenzisa inguqulo ye-.ttf noma .otf yefonti.</string>
     <string name="core_content_font_error_zip">Leli fayela liyingobozi ye-zip, hhayi ifonti.</string>
+    <string name="core_content_note_tag_ideas">Imibono</string>
+    <string name="core_content_note_tag_important">Okubalulekile</string>
+    <string name="core_content_note_tag_personal">Okomuntu siqu</string>
+    <string name="core_content_note_tag_school">Isikole</string>
+    <string name="core_content_note_tag_study">Funda</string>
+    <string name="core_content_note_tag_work">Umsebenzi</string>
     <string name="core_content_selection_macro_add_contact">Oxhumana naye</string>
     <string name="core_content_selection_macro_calendar">Ikhalenda</string>
     <string name="core_content_selection_macro_call">Shaya ucingo</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Khuluma</string>
     <string name="core_content_selection_macro_replace">Faka esikhundleni</string>
+    <string name="core_content_selection_macro_save_note">Gcina njengenothi</string>
     <string name="core_content_selection_macro_search">Sesha</string>
     <string name="core_content_selection_macro_share">Yabelana</string>
     <string name="core_content_selection_macro_sms">Umlayezo</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Humusha</string>
     <string name="core_content_selection_macro_url_decode">Susa ukubethela</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Ifayela liphinde libe negama elilodwa elingu-%1$d elingenayo inqamuleli. Ukuze ulengeze emagameni akho, vula ifayela kusuka kusichazamazwi somuntu siqu.</item>
+        <item quantity="other">Ifayela liphinde libe namagama angu-%1$d angenayo inqamuleli. Ukuze uwangeze emagameni akho, vula ifayela kusuka kusichazamazwi somuntu siqu.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Uhlelo lokusebenza lushiye isandiso esingu-%2$d ngaphandle kwe-\"%1$s\".</item>
         <item quantity="other">Uhlelo lokusebenza lushiye izandiso ezingu-%2$d ngaphandle kwe-\"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Uhlelo lokusebenza lususe iphethini kokuthi \"%1$s\". Ibide kunezinhlamvu ezingu-%2$d.</item>
         <item quantity="other">Uhlelo lokusebenza lususe iphethini kokuthi \"%1$s\". Ibide kunezinhlamvu ezingu-%2$d.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Uhlelo lokusebenza lususe umugqa ongu-%1$d ongenalo umbhalo.</item>
+        <item quantity="other">Uhlelo lokusebenza lususe imigqa engu-%1$d engenalo umbhalo.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Uhlelo lokusebenza lufinyeze \"%1$s\". Belude kunezinhlamvu ezi-%2$d.</item>
         <item quantity="other">Uhlelo lokusebenza lufinyeze \"%1$s\". Belude kunezinhlamvu ezi-%2$d.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Uhlelo lokusebenza lususe i-trigger engu-%1$d ikhibhodi engakwazi ukuyibheka. Isiqeshana sayo sihlala ohlwini.</item>
+        <item quantity="other">Uhlelo lokusebenza lususe ama-trigger angu-%1$d ikhibhodi engakwazi ukuwabheka. Iziqeshana zazo zihlala ohlwini.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Igama lohlelo lokusebenza oluthayiphayo</string>
     <string name="core_content_snippet_var_clip_info">Okufakiwe kwakamuva ebhodini lokunamathisela</string>

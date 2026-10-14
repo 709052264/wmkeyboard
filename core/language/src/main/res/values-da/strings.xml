@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">De tegn, som AltGr-tasten skriver på en computer, findes ved at trykke og holde på de samme taster.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d død tast sætter en accent på det næste bogstav på en computer. Her er bogstaverne med den accent tilgængelige ved at trykke og holde på hvert bogstav.</item>
+        <item quantity="other">%1$d døde taster sætter accenter på det næste bogstav på en computer. Her er bogstaverne med de accenter tilgængelige ved at trykke og holde på hvert bogstav.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Filen bygger på %1$d anden fil (%2$s), som du ikke åbnede. Nøgler, som kun den fil angiver, mangler.</item>
+        <item quantity="other">Filen bygger på %1$d andre filer (%2$s), som du ikke åbnede. Nøgler, som kun de filer angiver, mangler.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d tegn fra en tast uden bogstaver på er ved tryk og hold på punktum.</item>
+        <item quantity="other">%1$d tegn fra taster uden bogstaver på er ved tryk og hold på punktum.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Appen kender ikke %1$d tegnnavn i filen, så den udelod det: %2$s.</item>
+        <item quantity="other">Appen kender ikke %1$d tegnnavne i filen, så den udelod dem: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d stryg på en tast har ingen plads her, fordi dette tastatur bruger det stryg til en anden opgave. Appen fjernede det.</item>
+        <item quantity="other">%1$d stryg på taster har ingen plads her, fordi dette tastatur bruger disse stryg til andre opgaver. Appen fjernede dem.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Appen ændrede %1$d tast til den tætteste tast, den har.</item>
         <item quantity="other">Appen ændrede %1$d taster til de tætteste taster, den har.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Appen ændrede %1$d bogstaver til den form, som dette tastatur skriver.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Appen fjernede talrækken. Slå talrækken til under Layout og størrelse for at få en.</string>
+    <string name="core_lang_foreign_number_row_kept">Filens talrække er dette layouts talrække. Den vises, mens talrækken er slået til under Layout og størrelse.</string>
+    <string name="core_lang_foreign_pages_kept">Filens ekstra sider, såsom AltGr, er sider fra dette layout. Stryg fra den tast, der åbnede dem i det andet tastatur, for at åbne dem her.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d tast har ingen tryk-og-hold-bogstaver. Filen gemmer dem i en anden fil, som du ikke har åbnet.</item>
         <item quantity="other">%1$d taster har ingen tryk-og-hold-bogstaver. Filen gemmer dem i en anden fil, som du ikke har åbnet.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d tast ændrer sig med skift-tilstanden eller feltet i det andet tastatur. Appen beholdt hvordan den ser ud i hvile.</item>
         <item quantity="other">%1$d taster ændrer sig med skift-tilstanden eller feltet i det andet tastatur. Appen beholdt hvordan de ser ud i hvile.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d forskudt side i filen har sine nøgler andre steder end den side, den forskubber. Appen bruger store bogstaver der i stedet.</item>
+        <item quantity="other">%1$d forskudte sider i filen har deres nøgler andre steder end de sider, de forskubber. Appen bruger store bogstaver der i stedet.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d tast har andre tryk-og-hold-bogstaver, mens skift er aktiveret på det andet tastatur. Appen beholdt de uskiftede.</item>
+        <item quantity="other">%1$d taster har andre tryk-og-hold-bogstaver, mens skift er aktiveret på det andet tastatur. Appen beholdt de uskiftede.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Det andet tastatur måler tastbredder forskelligt. Appen ændrede bredderne for at passe til dette gitter.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

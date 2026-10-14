@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Neðst til hægri</string>
     <string name="core_settings_board_corner_top_left_label">Efst til vinstri</string>
     <string name="core_settings_board_corner_top_right_label">Efst til hægri</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Vinstri festir, hægri eyðir</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Eyða í báðar áttir</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Hægri festir, vinstri eyðir</string>
     <string name="core_settings_clip_time_copied_label">Tími afritunar</string>
     <string name="core_settings_clip_time_expires_label">Tími eftir</string>
     <string name="core_settings_clip_time_off_label">Ekkert</string>

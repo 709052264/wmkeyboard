@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">In basso a destra</string>
     <string name="core_settings_board_corner_top_left_label">In alto a sinistra</string>
     <string name="core_settings_board_corner_top_right_label">In alto a destra</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Sinistra per fissare, destra per eliminare</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Elimina in entrambe le direzioni</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Fissa a destra, elimina a sinistra</string>
     <string name="core_settings_clip_time_copied_label">Tempo di copia</string>
     <string name="core_settings_clip_time_expires_label">Tempo rimanente</string>
     <string name="core_settings_clip_time_off_label">Nessuno</string>

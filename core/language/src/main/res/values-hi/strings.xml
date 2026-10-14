@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">कंप्यूटर पर AltGr कुंजी जिन वर्णों को टाइप करती है, वे उन्हीं कुंजियों को दबाकर रखने पर मिलते हैं।</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">कंप्यूटर पर %1$d डेड की अगले अक्षर पर एक्सेंट लगाती है। यहाँ, उन एक्सेंट वाले अक्षर प्रत्येक अक्षर को दबाकर रखने पर मिलते हैं।</item>
+        <item quantity="other">कंप्यूटर पर %1$d डेड की अगले अक्षर पर एक्सेंट लगाती हैं। यहाँ, उन एक्सेंट वाले अक्षर प्रत्येक अक्षर को दबाकर रखने पर मिलते हैं।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">यह फ़ाइल %1$d अन्य फ़ाइल (%2$s) पर आधारित है जिसे आपने नहीं खोला है। जो की (keys) केवल उस फ़ाइल में सेट हैं, वे गायब हैं।</item>
+        <item quantity="other">यह फ़ाइल %1$d अन्य फ़ाइलों (%2$s) पर आधारित है जिन्हें आपने नहीं खोला है। जो की (keys) केवल उन फ़ाइलों में सेट हैं, वे गायब हैं।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">बिना अक्षरों वाली कुंजी से %1$d वर्ण पूर्ण विराम को दबाकर रखने पर मिलता है।</item>
+        <item quantity="other">बिना अक्षरों वाली कुंजियों से %1$d वर्ण पूर्ण विराम को दबाकर रखने पर मिलते हैं।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">ऐप फ़ाइल में %1$d वर्ण नाम नहीं जानता है, इसलिए इसे छोड़ दिया गया: %2$s।</item>
+        <item quantity="other">ऐप फ़ाइल में %1$d वर्ण नाम नहीं जानता है, इसलिए उन्हें छोड़ दिया गया: %2$s।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">कुंजी पर %1$d स्वाइप का यहाँ कोई स्थान नहीं है, क्योंकि यह कीबोर्ड उस स्वाइप का उपयोग किसी अन्य कार्य के लिए करता है। ऐप ने इसे हटा दिया है।</item>
+        <item quantity="other">कुंजियों पर %1$d स्वाइप का यहाँ कोई स्थान नहीं है, क्योंकि यह कीबोर्ड उन स्वाइप का उपयोग अन्य कार्यों के लिए करता है। ऐप ने उन्हें हटा दिया है।</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">ऐप ने %1$d कुंजी को उसके पास मौजूद सबसे करीबी कुंजी में बदल दिया।</item>
         <item quantity="other">ऐप ने %1$d कुंजियों को उनके पास मौजूद सबसे करीबी कुंजियों में बदल दिया।</item>
@@ -23,6 +44,8 @@
         <item quantity="other">ऐप ने %1$d अक्षरों को उस रूप में बदल दिया जिसे यह कीबोर्ड लिखता है।</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">ऐप ने संख्याओं की पंक्ति हटा दी। संख्या पंक्ति प्राप्त करने के लिए लेआउट और आकार में संख्या पंक्ति चालू करें।</string>
+    <string name="core_lang_foreign_number_row_kept">फ़ाइल की संख्याओं की पंक्ति इस लेआउट की संख्या पंक्ति है। यह तब दिखाई देती है जब लेआउट और आकार में संख्या पंक्ति चालू होती है।</string>
+    <string name="core_lang_foreign_pages_kept">फ़ाइल के अतिरिक्त पेज, जैसे AltGr, इस लेआउट के पेज हैं। उन्हें यहाँ खोलने के लिए उस की से स्वाइप करें जिसने उन्हें दूसरे कीबोर्ड में खोला था।</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d कुंजी में कोई प्रेस-एंड-होल्ड अक्षर नहीं है। फ़ाइल उन्हें एक दूसरी फ़ाइल में रखती है जिसे आपने नहीं खोला है।</item>
         <item quantity="other">%1$d कुंजियों में कोई प्रेस-एंड-होल्ड अक्षर नहीं है। फ़ाइल उन्हें एक दूसरी फ़ाइल में रखती है जिसे आपने नहीं खोला है।</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d कुंजी शिफ्ट स्थिति या दूसरे कीबोर्ड के फ़ील्ड के साथ बदलती है। ऐप ने इसके स्थिर स्वरूप को बनाए रखा है।</item>
         <item quantity="other">%1$d कुंजियाँ शिफ्ट स्थिति या दूसरे कीबोर्ड के फ़ील्ड के साथ बदलती हैं। ऐप ने उनके स्थिर स्वरूप को बनाए रखा है।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">फ़ाइल में %1$d शिफ्ट किए गए पेज की कुंजियाँ उस पेज के अलावा अन्य स्थानों पर हैं जिसे वह शिफ्ट करता है। ऐप वहां बड़े अक्षरों का उपयोग करता है।</item>
+        <item quantity="other">फ़ाइल में %1$d शिफ्ट किए गए पेजों की कुंजियाँ उन पेजों के अलावा अन्य स्थानों पर हैं जिन्हें वे शिफ्ट करते हैं। ऐप वहां बड़े अक्षरों का उपयोग करता है।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">दूसरे कीबोर्ड में शिफ्ट दबाए जाने पर %1$d कुंजी में अलग प्रेस-एंड-होल्ड अक्षर होते हैं। ऐप ने बिना शिफ्ट वाले अक्षरों को बनाए रखा।</item>
+        <item quantity="other">दूसरे कीबोर्ड में शिफ्ट दबाए जाने पर %1$d कुंजियों में अलग प्रेस-एंड-होल्ड अक्षर होते हैं। ऐप ने बिना शिफ्ट वाले अक्षरों को बनाए रखा।</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">दूसरा कीबोर्ड कुंजी की चौड़ाई को अलग तरह से मापता है। ऐप ने इस ग्रिड में फिट होने के लिए चौड़ाई बदल दी है।</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

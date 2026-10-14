@@ -8,6 +8,12 @@
     <string name="core_voice_model_base_eu_body">Aquest model utilitza l\'idioma en què escriviu, igual que el model de 40 idiomes. Només cobreix els idiomes europeus, per la qual cosa la descàrrega és més petita.</string>
     <string name="core_voice_model_base_multi_body">Aquest model equilibra precisió i velocitat. Cobreix tots els idiomes que coneix Whisper. Selecciona\'l si el model petit és massa lent.</string>
     <string name="core_voice_model_base_world_body">Aquest model utilitza l\'idioma en què escrius en lloc d\'una suposició. Les frases curtes es tornen molt més fiables. Selecciona\'l quan la seva llista contingui els teus idiomes.</string>
+    <string name="core_voice_model_cpp_base_body">Aquest model equilibra precisió i velocitat. Utilitza l\'idioma en què dictes, en qualsevol dels 99 idiomes que coneix el Whisper, i escolta les teves pròpies paraules. Selecciona\'l si el model petit és massa lent.</string>
+    <string name="core_voice_model_cpp_large_body">Aquest és el model Whisper més precís. La descàrrega és d\'1,1 GB. Només un dispositiu amb una gran quantitat de memòria el pot carregar. El model Turbo és gairebé tan precís i té la meitat de la mida.</string>
+    <string name="core_voice_model_cpp_medium_body">Aquest model ofereix una precisió gairebé d\'escriptori. Cada frase triga uns quants segons. El model utilitza gairebé un gigabyte de memòria mentre s\'executa.</string>
+    <string name="core_voice_model_cpp_small_body">Aquest model ofereix la millor precisió que funciona bé en un telèfon. Utilitza l\'idioma en què dictes, en qualsevol dels 99 idiomes que coneix Whisper, i escolta les teves pròpies paraules.</string>
+    <string name="core_voice_model_cpp_tiny_body">Aquest és el model més ràpid. Funciona bé amb una parla clara, però el soroll en redueix la precisió. Utilitza l\'idioma en què dicteu i escolta les vostres pròpies paraules.</string>
+    <string name="core_voice_model_cpp_turbo_body">Aquest model és gairebé tan precís com el model més gran, amb la meitat de la mida. Cada frase triga uns quants segons i no pot traduir.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d idioma</item>
         <item quantity="other">%1$d idiomes</item>
@@ -32,4 +38,5 @@
     <string name="core_voice_whisper_module_downloading">La part d\'escriptura per veu fora de línia del teclat s\'està descarregant des de Google Play. Torneu-ho a provar en un moment.</string>
     <string name="core_voice_whisper_module_restart">La part d\'escriptura per veu fora de línia s\'acaba d\'instal·lar. Tanqueu i torneu a obrir el teclat per utilitzar-la.</string>
     <string name="core_voice_whisper_transcribe_error">L\'escriptura per veu no ha funcionat. Torna-ho a provar o selecciona un model més petit.</string>
+    <string name="core_voice_whistle_checksum_error">El model descarregat està malmès. Torneu-lo a descarregar.</string>
 </resources>

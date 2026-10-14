@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">Sovellus hylkäsi kohteen \"%1$s\". Sovellus ei voi tallentaa sitä.</string>
     <string name="core_icons_repair_svg_unreadable">Sovellus hylkäsi kohteen \"%1$s\". Sovellus ei voi lukea sen SVG-tiedostoa.</string>
+    <string name="core_icons_slot_arrow_down_label">Nuoli alas</string>
+    <string name="core_icons_slot_arrow_left_label">Nuoli vasemmalle</string>
+    <string name="core_icons_slot_arrow_right_label">Nuoli oikealle</string>
+    <string name="core_icons_slot_arrow_up_label">Nuoli ylös</string>
     <string name="core_icons_slot_backspace_label">Askelpalautin</string>
+    <string name="core_icons_slot_caps_lock_key_label">Caps lock -näppäin</string>
     <string name="core_icons_slot_caps_lock_label">Caps lock</string>
     <string name="core_icons_slot_emoji_activities_label">Aktiviteetit</string>
     <string name="core_icons_slot_emoji_animals_label">Eläimet</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: lähetä</string>
     <string name="core_icons_slot_forward_delete_label">Poista eteenpäin</string>
     <string name="core_icons_slot_globe_label">Vaihda kieltä</string>
+    <string name="core_icons_slot_hide_keys_label">Piilota näppäimet (laitteistonäppäimistö)</string>
     <string name="core_icons_slot_incognito_label">Incognito-merkki</string>
     <string name="core_icons_slot_input_method_picker_label">Vaihda näppäimistöä</string>
     <string name="core_icons_slot_panel_back_label">Takaisin näppäimiin</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Sulje haku</string>
     <string name="core_icons_slot_shift_label">Vaihto</string>
     <string name="core_icons_slot_shift_on_label">Vaihto (päällä)</string>
+    <string name="core_icons_slot_show_keys_label">Näytä näppäimet (laitteistonäppäimistö)</string>
     <string name="core_icons_slot_suggestions_expand_label">Näytä työkalut</string>
+    <string name="core_icons_slot_tab_label">Sarkainnäppäin</string>
     <string name="core_icons_slot_toolbox_label">Työkalupakki</string>
 </resources>

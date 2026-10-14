@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Từ điển kana sang kanji tiếng Nhật</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Bảng các cách đọc Việt bính (Jyutping) cho các ký tự Hán, 163.000 mục. Bàn phím cần gói này để chuyển đổi tiếng Quảng Đông.</string>
     <string name="core_input_cjk_pack_jyutping_title">Từ điển Jyutping tiếng Quảng Đông</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Từ nào theo sau từ nào, được đếm từ văn bản web và tin tức tiếng Trung. Đi kèm với từ điển Pinyin. Với nó, các chữ cái đầu như wbxh sẽ cho ra 我不喜欢 trước chứ không phải hai từ không liên quan.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Cặp từ tiếng Trung</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Các ký tự và cụm từ Hán tự từ CC-CEDICT, 120.000 mục. Bàn phím cần gói này để chuyển đổi tiếng Trung.</string>
     <string name="core_input_cjk_pack_pinyin_title">Từ điển Pinyin tiếng Trung</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Các cụm từ từ OpenCC, 50.000 mục, khoảng 1 MB. Khi bật ký tự Phồn thể, bàn phím sử dụng nó để viết đúng dạng cho từ, ví dụ như 頭髮 chứ không phải 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Bảng cụm từ chữ Hán phồn thể</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Bảng thứ tự nét cho các ký tự Hán tự. Bàn phím cần gói này cho bố cục nét.</string>
     <string name="core_input_cjk_pack_stroke_title">Từ điển nét chữ Hán (笔画)</string>
+    <string name="core_input_double_pinyin_custom_label">Tùy chỉnh</string>
     <string name="core_input_double_pinyin_off_label">Tắt (Pinyin đầy đủ)</string>
+    <string name="core_input_im_note_candidates">Đối với một số phím, phương thức này cung cấp danh sách các lựa chọn. Bàn phím luôn sử dụng lựa chọn đầu tiên.</string>
+    <string name="core_input_im_note_missing_files">Các tệp này không được chọn nên phần dữ liệu đó bị thiếu: %1$s. Để bao gồm chúng, hãy nhập lại và chọn tất cả cùng nhau.</string>
+    <string name="core_input_im_note_module">Phương thức này sử dụng một trình cắm, chẳng hạn như Anthy, mà bàn phím không thể chạy. Các phím sử dụng nó không có tác dụng ở đây.</string>
+    <string name="core_input_im_note_other_method">Phương thức này cung cấp một số phím cho phương thức nhập liệu khác. Phần đó không hoạt động ở đây.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Ứng dụng không thể đọc %1$d quy tắc chính tả, nên nó sẽ bỏ qua.</item>
+        <item quantity="other">Ứng dụng không thể đọc %1$d quy tắc chính tả, nên nó sẽ bỏ qua chúng.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Phương thức này sử dụng phím cách như một phím chức năng, ví dụ như cho dấu thanh. Ở đây, phím cách luôn dùng để nhập khoảng trắng.</string>
+    <string name="core_input_im_note_truncated">Bảng này rất lớn, vì vậy ứng dụng chỉ giữ lại phần đầu.</string>
+    <string name="core_input_im_note_unused_files">Ứng dụng không sử dụng các tệp này: %1$s.</string>
+    <string name="core_input_im_refused_broken">Tệp tin có lỗi nên ứng dụng không thể đọc được: %1$s</string>
+    <string name="core_input_im_refused_empty">Tệp không có nội dung để nhập liệu.</string>
+    <string name="core_input_im_refused_no_dictionary">Lược đồ cần có từ điển của nó. Hãy nhập lại và chọn %1$s.</string>
+    <string name="core_input_im_refused_not_method">Ứng dụng không thể đọc tệp đó dưới dạng phương thức nhập liệu. Nó đọc các bảng .cin, lược đồ và từ điển Rime (.schema.yaml, .dict.yaml) và các tệp .mim m17n.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Ứng dụng đã đọc tệp này dưới dạng bảng .cin với %1$d mục nhập. Nhập một mã, sau đó chọn ký tự từ dải gợi ý.</item>
+        <item quantity="other">Ứng dụng đã đọc tệp này dưới dạng bảng .cin với %1$d mục nhập. Nhập một mã, sau đó chọn ký tự từ dải gợi ý.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Ứng dụng đã đọc nội dung này dưới dạng phương thức nhập liệu m17n với %1$d quy tắc. Các phím sẽ viết văn bản khi bạn nhập.</item>
+        <item quantity="other">Ứng dụng đã đọc nội dung này dưới dạng phương thức nhập liệu m17n với %1$d quy tắc. Các phím sẽ viết văn bản khi bạn nhập.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Ứng dụng đã đọc nội dung này dưới dạng lược đồ Rime với %1$d mục từ điển. Nhập các âm tiết, sau đó chọn từ trên thanh gợi ý.</item>
+        <item quantity="other">Ứng dụng đã đọc nội dung này dưới dạng lược đồ Rime với %1$d mục từ điển. Nhập các âm tiết, sau đó chọn từ trên thanh gợi ý.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Ứng dụng đã đọc đây là bảng mã Rime với %1$d mục nhập. Nhập mã, sau đó chọn ký tự từ thanh gợi ý.</item>
+        <item quantity="other">Ứng dụng đã đọc đây là bảng mã Rime với %1$d mục nhập. Nhập mã, sau đó chọn ký tự từ thanh gợi ý.</item>
+    </plurals>
 </resources>

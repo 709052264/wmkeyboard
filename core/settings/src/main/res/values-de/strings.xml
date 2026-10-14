@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Unten rechts</string>
     <string name="core_settings_board_corner_top_left_label">Oben links</string>
     <string name="core_settings_board_corner_top_right_label">Oben rechts</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Links anheften, rechts löschen</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Beide Richtungen löschen</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Rechts anheften, links löschen</string>
     <string name="core_settings_clip_time_copied_label">Kopierzeit</string>
     <string name="core_settings_clip_time_expires_label">Verbleibende Zeit</string>
     <string name="core_settings_clip_time_off_label">Keine</string>

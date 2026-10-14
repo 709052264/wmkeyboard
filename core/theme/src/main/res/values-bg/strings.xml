@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Дълбоко море</string>
     <string name="core_theme_builtin_facet_label">Аспект</string>
     <string name="core_theme_builtin_forest_label">Гора</string>
+    <string name="core_theme_builtin_frost_label">Скреж</string>
+    <string name="core_theme_builtin_frost_light_label">Светла скреж</string>
+    <string name="core_theme_builtin_frost_liquid_label">Замръзнала течност</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Скрежен тапет</string>
     <string name="core_theme_builtin_glacier_label">Ледник</string>
     <string name="core_theme_builtin_mint_label">Ментово</string>
     <string name="core_theme_builtin_nebula_label">Мъглявина</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Сняг</string>
     <string name="core_theme_builtin_sunset_drift_label">Залез</string>
     <string name="core_theme_builtin_sunset_label">Залез</string>
+    <string name="core_theme_family_frost_label">Скреж</string>
     <string name="core_theme_family_gradient_label">Градиенти</string>
     <string name="core_theme_family_ocean_label">Здрач</string>
     <string name="core_theme_family_snow_label">Пастелни</string>
+    <string name="core_theme_palette_style_expressive">Експресивен</string>
+    <string name="core_theme_palette_style_fidelity">Вярност</string>
+    <string name="core_theme_palette_style_fruit_salad">Плодова салата</string>
+    <string name="core_theme_palette_style_monochrome">Монохромен</string>
+    <string name="core_theme_palette_style_neutral">Неутрален</string>
+    <string name="core_theme_palette_style_rainbow">Дъга</string>
+    <string name="core_theme_palette_style_tonal_spot">Тонално петно</string>
+    <string name="core_theme_palette_style_vibrant">Ярък</string>
 </resources>

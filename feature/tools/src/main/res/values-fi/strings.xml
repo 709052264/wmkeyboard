@@ -3,8 +3,34 @@
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
     <string name="ftools_ai_stream_error">AI-palveluntarjoaja lopetti vastauksen virheeseen</string>
+    <string name="ftools_ai_tool_failed">Työkalu epäonnistui: %1$s. Älä kutsu sitä uudelleen samalla syötteellä.</string>
+    <string name="ftools_ai_tool_missing_argument">Kutsusta puuttui vaadittu \"%1$s\"-arvo.</string>
+    <string name="ftools_ai_tool_no_results">Ei tuloksia.</string>
+    <string name="ftools_ai_tool_no_search">Verkkohakua ei ole määritetty tässä näppäimistössä, joten haku ei ole mahdollista. Vastaa sen perusteella, mitä jo tiedät, ja sano, ettet voinut hakea.</string>
+    <string name="ftools_ai_tool_reason_bad_url">Tämä ei ole verkko-osoite, jonka näppäimistö avaa</string>
+    <string name="ftools_ai_tool_reason_missing">Malli jätti pois kohdan %1$s</string>
+    <string name="ftools_ai_tool_reason_no_search">Verkkohakua ei ole määritetty</string>
+    <string name="ftools_ai_tool_reason_unknown">Malli pyysi työkalua, jota ei ole olemassa</string>
+    <string name="ftools_ai_tool_truncated">[sivu jatkuu tästä kohdasta ja se on katkaistu]</string>
+    <string name="ftools_ai_tool_unknown">Ei ole olemassa työkalua nimeltä %1$s.</string>
+    <string name="ftools_mcp_declined">Käyttäjä ei sallinut tätä kutsua. Älä kutsu tätä työkalua uudelleen tässä vastauksessa. Vastaa ilman sitä ja kerro, mitä et voinut tehdä.</string>
+    <string name="ftools_mcp_empty">Työkalu suoritettiin, mutta se ei palauttanut mitään.</string>
+    <string name="ftools_mcp_error_needs_input">Palvelin pyysi lisätietoja, eikä näppäimistö voi antaa niitä vielä.</string>
+    <string name="ftools_mcp_error_no_version">Tämä palvelin käyttää uudempaa MCP-versiota kuin näppäimistö tuntee.</string>
+    <string name="ftools_mcp_error_not_mcp">Tämä osoite ei vastannut MCP-palvelimena. Tarkista osoite ja tyyppi.</string>
+    <string name="ftools_mcp_error_server">Palvelin lähetti virheen: %1$s</string>
+    <string name="ftools_mcp_error_sign_in">Tämä palvelin vaatii kirjautumisen, eikä näppäimistö pysty siihen vielä. Jos palvelin antaa tokeneita tai avaimia, lisää yksi otsikkona.</string>
+    <string name="ftools_mcp_omitted">[työkalu lähetti takaisin myös sisältöä, jota et voi lukea tässä: %1$s]</string>
+    <string name="ftools_mcp_reason_declined">Et sallinut sitä</string>
+    <string name="ftools_mcp_reason_stopped">Pysäytetty ennen suoritusta</string>
+    <string name="ftools_mcp_reason_tool_error">Työkalu ilmoitti virheestä</string>
+    <string name="ftools_mcp_stopped">Puhelu peruttiin ennen kuin se alkoi.</string>
+    <string name="ftools_mcp_tool_error">Työkalu ilmoitti virheestä: %1$s</string>
+    <string name="ftools_mcp_truncated">[vastaus jatkuu tästä eteenpäin ja se katkaistiin]</string>
     <string name="ftools_photo_error_failed">Sovellus ei voinut hakea kuvia</string>
     <string name="ftools_photo_error_offline">Sovellus ei saa yhteyttä valokuvapalveluun. Tarkista verkkoyhteytesi ja yritä uudelleen.</string>
     <string name="ftools_photo_error_timeout">Valokuvapalvelun vastaaminen kesti liian kauan</string>
     <string name="ftools_search_error_json_disabled">Tämä SearXNG-instanssi ei ole ottanut käyttöön JSON-rajapintaansa. Lisää 3325b25&gt;json3325/b3325&gt; 3325b25&gt;search.formats3325/b3325&gt; sen settings.yml-tiedostoon tai käytä toista instanssia.</string>
+    <string name="ftools_search_error_searx_limited">Tämä SearXNG-instanssi hylkää sovellukset toistaiseksi (HTTP 429). Julkiset instanssit rajoittavat pyyntöjä, jotka eivät tule selaimesta. Yritä myöhemmin uudelleen tai käytä omaa instanssiasi tai sellaista, joka sallii JSON-rajapintansa.</string>
+    <string name="ftools_web_fetch_bad_url">Tämä ei ole verkko-osoite, jonka tämä näppäimistö avaa. Anna täydellinen http://- tai https://-osoite.</string>
 </resources>

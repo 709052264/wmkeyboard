@@ -3,8 +3,34 @@
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
     <string name="ftools_ai_stream_error">AI வழங்குநர் பிழையுடன் பதிலை முடித்துவிட்டார்</string>
+    <string name="ftools_ai_tool_failed">கருவி தோல்வியடைந்தது: %1$s. அதே உள்ளீட்டுடன் அதை மீண்டும் அழைக்க வேண்டாம்.</string>
+    <string name="ftools_ai_tool_missing_argument">இந்த அழைப்பில் தேவையான \"%1$s\" மதிப்பு விடுபட்டுள்ளது.</string>
+    <string name="ftools_ai_tool_no_results">முடிவுகள் இல்லை.</string>
+    <string name="ftools_ai_tool_no_search">இந்த விசைப்பலகையில் இணையத் தேடல் அமைக்கப்படவில்லை, எனவே தேட முடியாது. உங்களுக்கு ஏற்கனவே தெரிந்தவற்றிலிருந்து பதிலளித்து, உங்களால் தேட முடியவில்லை என்று கூறுங்கள்.</string>
+    <string name="ftools_ai_tool_reason_bad_url">இது கீபோர்டு திறக்கும் இணைய முகவரி அல்ல</string>
+    <string name="ftools_ai_tool_reason_missing">மாதிரி %1$s-ஐ விட்டுவிட்டது</string>
+    <string name="ftools_ai_tool_reason_no_search">இணையத் தேடல் அமைக்கப்படவில்லை</string>
+    <string name="ftools_ai_tool_reason_unknown">மாடல் இல்லாத ஒரு கருவியைக் கேட்டது</string>
+    <string name="ftools_ai_tool_truncated">[பக்கம் இந்த இடத்திற்கு அப்பால் தொடர்கிறது மற்றும் வெட்டப்பட்டது]</string>
+    <string name="ftools_ai_tool_unknown">%1$s என்ற பெயரில் எந்தக் கருவியும் இல்லை.</string>
+    <string name="ftools_mcp_declined">பயனர் இந்த அழைப்பை அனுமதிக்கவில்லை. இந்த பதிலில் மீண்டும் இந்தக் கருவியை அழைக்க வேண்டாம். அதைத் தவிர்த்துப் பதிலளிக்கவும், உங்களால் எதைச் செய்ய முடியவில்லை என்பதைக் குறிப்பிடவும்.</string>
+    <string name="ftools_mcp_empty">கருவி இயங்கியது, ஆனால் எதையும் திருப்பி அனுப்பவில்லை.</string>
+    <string name="ftools_mcp_error_needs_input">சர்வர் கூடுதல் உள்ளீட்டைக் கேட்டது, கீபோர்டால் அதை இன்னும் வழங்க முடியவில்லை.</string>
+    <string name="ftools_mcp_error_no_version">இந்தச் சேவையகம் விசைப்பலகைக்குத் தெரிந்ததை விட புதிய பதிப்பிலான MCP-ஐப் பயன்படுத்துகிறது.</string>
+    <string name="ftools_mcp_error_not_mcp">இந்த முகவரி MCP சர்வர் போல பதிலளிக்கவில்லை. முகவரியையும் வகையையும் சரிபார்க்கவும்.</string>
+    <string name="ftools_mcp_error_server">சர்வர் பிழையை அனுப்பியது: %1$s</string>
+    <string name="ftools_mcp_error_sign_in">இந்தச் சேவையகத்திற்கு நீங்கள் உள்நுழைய வேண்டும், விசைப்பலகையால் இன்னும் அதைச் செய்ய முடியாது. சேவையகம் டோக்கன்கள் அல்லது சாவிகளை வழங்கினால், அதை தலைப்பாக (header) சேர்க்கவும்.</string>
+    <string name="ftools_mcp_omitted">[இந்தக் கருவி நீங்கள் இங்கே படிக்க முடியாத உள்ளடக்கத்தையும் திருப்பி அனுப்பியது: %1$s]</string>
+    <string name="ftools_mcp_reason_declined">நீங்கள் இதை அனுமதிக்கவில்லை</string>
+    <string name="ftools_mcp_reason_stopped">இயங்குவதற்கு முன்பே நிறுத்தப்பட்டது</string>
+    <string name="ftools_mcp_reason_tool_error">கருவி ஒரு பிழையைப் புகாரளித்தது</string>
+    <string name="ftools_mcp_stopped">அழைப்பு இயங்குவதற்கு முன்பே ரத்து செய்யப்பட்டது.</string>
+    <string name="ftools_mcp_tool_error">கருவி ஒரு பிழையைப் புகாரளித்தது: %1$s</string>
+    <string name="ftools_mcp_truncated">[பதில் இந்த இடத்தைத் தாண்டித் தொடர்கிறது மற்றும் துண்டிக்கப்பட்டது]</string>
     <string name="ftools_photo_error_failed">பயன்பாட்டால் புகைப்படங்களைப் பெற முடியவில்லை</string>
     <string name="ftools_photo_error_offline">ஆப்ஸால் புகைப்படச் சேவையை அடைய முடியவில்லை. உங்கள் நெட்வொர்க்கைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.</string>
     <string name="ftools_photo_error_timeout">புகைப்பட சேவை பதிலளிக்க அதிக நேரம் எடுத்துக்கொண்டது</string>
     <string name="ftools_search_error_json_disabled">இந்த SearXNG நிகழ்வு அதன் JSON API-ஐ இயக்கவில்லை. அதன் settings.yml கோப்பில் search.formats-இல் &lt;b&gt;json&lt;/b&gt;-ஐச் சேர்க்கவும் அல்லது மற்றொரு நிகழ்வைப் பயன்படுத்தவும்.</string>
+    <string name="ftools_search_error_searx_limited">இந்த SearXNG நிகழ்வு தற்போது பயன்பாடுகளை நிராகரிக்கிறது (HTTP 429). பொது நிகழ்வுகள் உலாவியில் இருந்து வராத கோரிக்கைகளை மட்டுப்படுத்துகின்றன. பிறகு மீண்டும் முயற்சிக்கவும், அல்லது உங்களுடைய சொந்த நிகழ்வைப் பயன்படுத்தவும் அல்லது அதன் JSON API ஐ அனுமதிக்கும் ஒன்றைப் பயன்படுத்தவும்.</string>
+    <string name="ftools_web_fetch_bad_url">இது இந்த விசைப்பலகை திறக்கும் இணைய முகவரி அல்ல. முழுமையான http:// அல்லது https:// முகவரியைக் கொடுக்கவும்.</string>
 </resources>

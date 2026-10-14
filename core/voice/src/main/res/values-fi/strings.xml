@@ -8,6 +8,12 @@
     <string name="core_voice_model_base_eu_body">Tämä malli käyttää kieltä, jolla kirjoitat, samalla tavalla kuin 40 kielen malli. Se kattaa vain eurooppalaiset kielet, joten lataus on pienempi.</string>
     <string name="core_voice_model_base_multi_body">Tämä malli tasapainottaa tarkkuuden ja nopeuden. Se kattaa jokaisen kielen, jonka Whisper tuntee. Valitse tämä, jos Small-malli on liian hidas.</string>
     <string name="core_voice_model_base_world_body">Tämä malli käyttää kirjoittamaasi kieltä arvaamisen sijaan. Lyhyet ilmaisut muuttuvat paljon luotettavammiksi. Valitse tämä, kun luettelossa on kielesi.</string>
+    <string name="core_voice_model_cpp_base_body">Tämä malli tasapainottaa tarkkuuden ja nopeuden. Se käyttää kieltä, jolla sanelua teet, millä tahansa Whisperin tuntemalla 99 kielellä, ja se kuuntelee omia sanojasi. Valitse tämä, jos Small-malli on liian hidas.</string>
+    <string name="core_voice_model_cpp_large_body">Tämä on tarkin Whisper-malli. Latauskoko on 1,1 Gt. Vain laite, jossa on paljon muistia, voi ladata sen. Turbo-malli on lähes yhtä tarkka ja puolet pienempi.</string>
+    <string name="core_voice_model_cpp_medium_body">Tämä malli tarjoaa lähes työpöytätarkkuuden. Jokainen lause vie useita sekunteja. Malli käyttää lähes gigatavun muistia toimiessaan.</string>
+    <string name="core_voice_model_cpp_small_body">Tämä malli tarjoaa parhaan tarkkuuden, joka toimii silti hyvin puhelimella. Se käyttää kieltä, jolla sanelu tapahtuu, millä tahansa Whisperin tuntemalla 99 kielellä, ja se kuuntelee omia sanojasi.</string>
+    <string name="core_voice_model_cpp_tiny_body">Tämä on nopein malli. Se toimii hyvin selkeän puheen kanssa, mutta melu heikentää tarkkuutta. Se käyttää kieltä, jolla sanelu tapahtuu, ja kuuntelee omia sanojasi.</string>
+    <string name="core_voice_model_cpp_turbo_body">Tämä malli on lähes yhtä tarkka kuin suurin malli, mutta puolet pienempi. Jokainen lause vie useita sekunteja, eikä se voi kääntää.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d kieli</item>
         <item quantity="other">%1$d kieltä</item>
@@ -32,4 +38,5 @@
     <string name="core_voice_whisper_module_downloading">Näppäimistön offline-puheentunnistusosaa ladataan Google Playsta. Yritä hetken kuluttua uudelleen.</string>
     <string name="core_voice_whisper_module_restart">Offline-puhekirjoitusosan asennus on valmis. Sulje ja avaa näppäimistö uudelleen käyttääksesi sitä.</string>
     <string name="core_voice_whisper_transcribe_error">Puheella kirjoittaminen ei toiminut. Yritä uudelleen tai valitse pienempi malli.</string>
+    <string name="core_voice_whistle_checksum_error">Ladattu malli on vioittunut. Lataa se uudelleen.</string>
 </resources>

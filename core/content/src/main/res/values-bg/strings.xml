@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">КОД</string>
     <string name="core_content_clip_entity_phone_label">Телефонен номер</string>
     <string name="core_content_clip_entity_phone_tag">ТЕЛЕФОН</string>
+    <string name="core_content_clip_entity_place_label">Място</string>
+    <string name="core_content_clip_entity_place_tag">МЯСТО</string>
     <string name="core_content_clip_entity_url_label">Връзка</string>
     <string name="core_content_clip_entity_url_tag">ВРЪЗКА</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Приложението не може да чете уеб шрифтове WOFF. Използвайте версията на шрифта .ttf или .otf.</string>
     <string name="core_content_font_error_woff2">Приложението не може да чете уеб шрифтове WOFF2. Използвайте версията на шрифта .ttf или .otf.</string>
     <string name="core_content_font_error_zip">Този файл е ZIP архив, а не шрифт.</string>
+    <string name="core_content_note_tag_ideas">Идеи</string>
+    <string name="core_content_note_tag_important">Важно</string>
+    <string name="core_content_note_tag_personal">Лични</string>
+    <string name="core_content_note_tag_school">Училище</string>
+    <string name="core_content_note_tag_study">Учене</string>
+    <string name="core_content_note_tag_work">Работа</string>
     <string name="core_content_selection_macro_add_contact">Контакт</string>
     <string name="core_content_selection_macro_calendar">Календар</string>
     <string name="core_content_selection_macro_call">Извикване</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Изговаряне</string>
     <string name="core_content_selection_macro_replace">Замяна</string>
+    <string name="core_content_selection_macro_save_note">Запазване като бележка</string>
     <string name="core_content_selection_macro_search">Търсене</string>
     <string name="core_content_selection_macro_share">Споделяне</string>
     <string name="core_content_selection_macro_sms">Съобщение</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Превод</string>
     <string name="core_content_selection_macro_url_decode">Декодиране</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Файлът също съдържа %1$d дума без пряк път. За да я добавите към думите си, отворете файла от Личен речник.</item>
+        <item quantity="other">Файлът също съдържа %1$d думи без преки пътища. За да ги добавите към думите си, отворете файла от Личен речник.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Приложението пропусна %2$d разгръщане от \"%1$s\".</item>
         <item quantity="other">Приложението пропусна %2$d разгръщания от \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Приложението премахна шаблона от „%1$s“. Той беше по-дълъг от %2$d символ.</item>
         <item quantity="other">Приложението премахна шаблона от „%1$s“. Той беше по-дълъг от %2$d символа.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Приложението премахна %1$d ред, който няма текст.</item>
+        <item quantity="other">Приложението премахна %1$d реда, които нямат текст.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Приложението съкрати „%1$s“. Беше по-дълго от %2$d знак.</item>
         <item quantity="other">Приложението съкрати „%1$s“. Беше по-дълго от %2$d знака.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Приложението премахна %1$d тригер, който клавиатурата не може да следи. Неговият фрагмент остава в списъка.</item>
+        <item quantity="other">Приложението премахна %1$d тригера, които клавиатурата не може да следи. Техните фрагменти остават в списъка.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Името на приложението, в което пишете</string>
     <string name="core_content_snippet_var_clip_info">Най-новият запис в клипборда</string>

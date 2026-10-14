@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Справа внизу</string>
     <string name="core_settings_board_corner_top_left_label">Верхний левый угол</string>
     <string name="core_settings_board_corner_top_right_label">Справа сверху</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Слева — закрепить, справа — удалить</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Удаление в обе стороны</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Свайп вправо закрепляет, влево удаляет</string>
     <string name="core_settings_clip_time_copied_label">Время копирования</string>
     <string name="core_settings_clip_time_expires_label">Осталось времени</string>
     <string name="core_settings_clip_time_off_label">Нет</string>

@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Ezansi kwesokudla</string>
     <string name="core_settings_board_corner_top_left_label">Phezulu kwesobunxele</string>
     <string name="core_settings_board_corner_top_right_label">Phezulu kwesokudla</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Kwesobunxele kuphina, kwesokudla kususa</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Zombili izindlela ziyasusa</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Kwesokudla kuthinta, kwesobunxele kususwa</string>
     <string name="core_settings_clip_time_copied_label">Isikhathi esikopishwe ngaso</string>
     <string name="core_settings_clip_time_expires_label">Isikhathi esisele</string>
     <string name="core_settings_clip_time_off_label">Akukho</string>

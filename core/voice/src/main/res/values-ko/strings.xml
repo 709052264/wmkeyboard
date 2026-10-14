@@ -8,6 +8,12 @@
     <string name="core_voice_model_base_eu_body">이 모델은 40개 언어 모델과 동일하게 사용자가 입력하는 언어를 사용합니다. 유럽 언어만 지원하므로 다운로드 크기가 더 작습니다.</string>
     <string name="core_voice_model_base_multi_body">이 모델은 정확도와 속도의 균형을 맞춥니다. Whisper가 인식하는 모든 언어를 지원합니다. Small 모델이 너무 느린 경우 이 모델을 선택하세요.</string>
     <string name="core_voice_model_base_world_body">이 모델은 추측 대신 사용자가 입력하는 언어를 사용합니다. 짧은 문구의 정확도가 훨씬 높아집니다. 목록에 사용자의 언어가 포함되어 있을 때 선택하세요.</string>
+    <string name="core_voice_model_cpp_base_body">이 모델은 정확도와 속도의 균형을 맞춥니다. Whisper가 인식하는 99개 언어 중 받아쓰기하는 언어를 사용하며 사용자의 단어를 인식합니다. Small 모델이 너무 느리면 이 모델을 선택하세요.</string>
+    <string name="core_voice_model_cpp_large_body">가장 정확한 Whisper 모델입니다. 다운로드 크기는 1.1GB입니다. 메모리가 충분한 기기에서만 로드할 수 있습니다. Turbo 모델도 거의 동일한 정확도를 제공하며 크기는 절반입니다.</string>
+    <string name="core_voice_model_cpp_medium_body">이 모델은 데스크톱 수준에 가까운 정확도를 제공합니다. 각 문구마다 몇 초가 소요됩니다. 실행 시 약 1GB의 메모리를 사용합니다.</string>
+    <string name="core_voice_model_cpp_small_body">이 모델은 휴대폰에서 원활하게 실행되면서도 최고의 정확도를 제공합니다. Whisper가 인식하는 99개 언어 중 받아쓰기하는 언어를 사용하며, 사용자의 단어를 인식합니다.</string>
+    <string name="core_voice_model_cpp_tiny_body">가장 빠른 모델입니다. 또렷한 음성에서는 잘 작동하지만, 소음이 있으면 정확도가 떨어집니다. 받아쓰기하는 언어를 사용하며 사용자의 단어를 인식합니다.</string>
+    <string name="core_voice_model_cpp_turbo_body">이 모델은 가장 큰 모델과 거의 동일한 정확도를 가지면서 크기는 절반입니다. 각 구문은 몇 초가 걸리며 번역은 불가능합니다.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d개 언어</item>
         <item quantity="other">%1$d개 언어</item>
@@ -32,4 +38,5 @@
     <string name="core_voice_whisper_module_downloading">키보드의 오프라인 음성 입력 구성요소를 Google Play에서 다운로드하고 있습니다. 잠시 후 다시 시도하세요.</string>
     <string name="core_voice_whisper_module_restart">오프라인 음성 입력 모듈 설치가 완료되었습니다. 키보드를 닫았다가 다시 열어 사용하세요.</string>
     <string name="core_voice_whisper_transcribe_error">음성 입력이 작동하지 않았습니다. 다시 시도하거나 더 작은 모델을 선택하세요.</string>
+    <string name="core_voice_whistle_checksum_error">다운로드한 모델이 손상되었습니다. 다시 다운로드하세요.</string>
 </resources>

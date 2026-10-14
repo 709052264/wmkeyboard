@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">I caratteri digitati dal tasto AltGr su un computer si ottengono premendo e tenendo premuti gli stessi tasti.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d tasto morto aggiunge un accento alla lettera successiva su un computer. Qui, le lettere con quell\'accento si ottengono premendo e tenendo premuta ogni lettera.</item>
+        <item quantity="other">%1$d tasti morti aggiungono accenti alla lettera successiva su un computer. Qui, le lettere con quegli accenti si ottengono premendo e tenendo premuta ogni lettera.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Il file si basa su %1$d altro file (%2$s) che non hai aperto. Mancano le chiavi impostate solo da quel file.</item>
+        <item quantity="other">Il file si basa su %1$d altri file (%2$s) che non hai aperto. Mancano le chiavi impostate solo da quei file.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d carattere da un tasto senza lettere è disponibile con la pressione prolungata del punto.</item>
+        <item quantity="other">%1$d caratteri da tasti senza lettere sono disponibili con la pressione prolungata del punto.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">L\'app non conosce %1$d nome di carattere nel file, quindi lo ha escluso: %2$s.</item>
+        <item quantity="other">L\'app non conosce %1$d nomi di caratteri nel file, quindi li ha esclusi: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d scorrimento su un tasto non ha posto qui, perché questa tastiera usa quello scorrimento per un altro compito. L\'app lo ha rimosso.</item>
+        <item quantity="other">%1$d scorrimenti su tasti non hanno posto qui, perché questa tastiera usa quegli scorrimenti per altri compiti. L\'app li ha rimossi.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">L\'app ha modificato %1$d tasto con quello più simile disponibile.</item>
         <item quantity="other">L\'app ha modificato %1$d tasti con quelli più simili disponibili.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">L\'app ha cambiato %1$d lettere nella forma scritta da questa tastiera.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">L\'app ha rimosso la riga dei numeri. Attiva la riga dei numeri in Layout e dimensioni per ottenerne una.</string>
+    <string name="core_lang_foreign_number_row_kept">La riga dei numeri del file è la riga dei numeri di questo layout. Viene mostrata quando la riga dei numeri è attiva in Layout e dimensioni.</string>
+    <string name="core_lang_foreign_pages_kept">Le pagine extra del file, come AltGr, sono pagine di questo layout. Scorri dal tasto che le ha aperte nell\'altra tastiera per aprirle qui.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d tasto non ha lettere con pressione prolungata. Il file le conserva in un secondo file che non hai aperto.</item>
         <item quantity="other">%1$d tasti non hanno lettere con pressione prolungata. Il file le conserva in un secondo file che non hai aperto.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d tasto cambia con lo stato del maiusc o il campo nell\'altra tastiera. L\'app ha mantenuto il suo aspetto a riposo.</item>
         <item quantity="other">%1$d tasti cambiano con lo stato del maiusc o il campo nell\'altra tastiera. L\'app ha mantenuto il loro aspetto a riposo.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d pagina spostata nel file ha i suoi tasti in posti diversi rispetto alla pagina che sposta. L\'app usa lettere maiuscole lì.</item>
+        <item quantity="other">%1$d pagine spostate nel file hanno i loro tasti in posti diversi rispetto alle pagine che spostano. L\'app usa lettere maiuscole lì.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d tasto ha lettere diverse alla pressione prolungata mentre il tasto Maiusc è attivo nell\'altra tastiera. L\'app ha mantenuto quelle senza Maiusc.</item>
+        <item quantity="other">%1$d tasti hanno lettere diverse alla pressione prolungata mentre il tasto Maiusc è attivo nell\'altra tastiera. L\'app ha mantenuto quelle senza Maiusc.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">L\'altra tastiera misura le larghezze dei tasti in modo diverso. L\'app ha modificato le larghezze per adattarle a questa griglia.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

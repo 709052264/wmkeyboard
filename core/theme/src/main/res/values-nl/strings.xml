@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Diepzee</string>
     <string name="core_theme_builtin_facet_label">Facet</string>
     <string name="core_theme_builtin_forest_label">Bos</string>
+    <string name="core_theme_builtin_frost_label">Frost</string>
+    <string name="core_theme_builtin_frost_light_label">Frost licht</string>
+    <string name="core_theme_builtin_frost_liquid_label">Vorst vloeistof</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Vorst-achtergrond</string>
     <string name="core_theme_builtin_glacier_label">Gletsjer</string>
     <string name="core_theme_builtin_mint_label">Muntgroen</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Sneeuw</string>
     <string name="core_theme_builtin_sunset_drift_label">Sunset drift</string>
     <string name="core_theme_builtin_sunset_label">Zonsondergang</string>
+    <string name="core_theme_family_frost_label">Vorst</string>
     <string name="core_theme_family_gradient_label">Verlopen</string>
     <string name="core_theme_family_ocean_label">Nachtval</string>
     <string name="core_theme_family_snow_label">Pastel</string>
+    <string name="core_theme_palette_style_expressive">Expressief</string>
+    <string name="core_theme_palette_style_fidelity">Getrouwheid</string>
+    <string name="core_theme_palette_style_fruit_salad">Fruitsalade</string>
+    <string name="core_theme_palette_style_monochrome">Monochroom</string>
+    <string name="core_theme_palette_style_neutral">Neutraal</string>
+    <string name="core_theme_palette_style_rainbow">Regenboog</string>
+    <string name="core_theme_palette_style_tonal_spot">Tonal spot</string>
+    <string name="core_theme_palette_style_vibrant">Levendig</string>
 </resources>

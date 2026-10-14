@@ -10,6 +10,10 @@
         <item quantity="one">Ufunguo %1$d huandika herufi iliyochapishwa juu yake. Kibodi asili ilitumia sheria kuamua kile inachoandika.</item>
         <item quantity="other">Funguo %1$d huandika herufi zilizochapishwa juu yake. Kibodi asili ilitumia sheria kuamua kile zinachoandika.</item>
     </plurals>
+    <plurals name="core_keyman_multitap_unconverted">
+        <item quantity="one">Kibodi hii ina ufunguo %1$d unaougusa mara kwa mara ili kuzunguka kurasa au herufi. Programu haiwezi kunakili mzunguko huu, kwa hivyo kila mguso hufanya kazi kama mguso wa kwanza.</item>
+        <item quantity="other">Kibodi hii ina funguo %1$d unazozigusa mara kwa mara ili kuzunguka kurasa au herufi. Programu haiwezi kunakili mizunguko hii, kwa hivyo kila mguso hufanya kazi kama mguso wa kwanza.</item>
+    </plurals>
     <string name="core_keyman_rules_missing">Kibodi hii hutumia kanuni kuamua vitufe vyake vinachapa nini. Programu haina kanuni hizo, kwa hivyo kila kitufe huchapa herufi iliyochapishwa juu yake.</string>
     <plurals name="core_keyman_special_keys_dropped">
         <item quantity="one">Programu imeondoa ufunguo %1$d. Kibodi hii haina ufunguo unaofanya kazi sawa na huo.</item>

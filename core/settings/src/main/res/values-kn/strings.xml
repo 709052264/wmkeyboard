@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">ಕೆಳಬಲ</string>
     <string name="core_settings_board_corner_top_left_label">ಮೇಲಿನ ಎಡಭಾಗ</string>
     <string name="core_settings_board_corner_top_right_label">ಮೇಲಿನ ಬಲ</string>
+    <string name="core_settings_clip_swipe_pin_left_label">ಎಡಕ್ಕೆ ಪಿನ್ ಮಾಡಿ, ಬಲಕ್ಕೆ ಅಳಿಸಿ</string>
+    <string name="core_settings_clip_swipe_pin_off_label">ಎರಡೂ ಕಡೆ ಅಳಿಸಿ</string>
+    <string name="core_settings_clip_swipe_pin_right_label">ಬಲಕ್ಕೆ ಪಿನ್ ಮಾಡುತ್ತದೆ, ಎಡಕ್ಕೆ ಅಳಿಸುತ್ತದೆ</string>
     <string name="core_settings_clip_time_copied_label">ನಕಲು ಮಾಡಿದ ಸಮಯ</string>
     <string name="core_settings_clip_time_expires_label">ಉಳಿದಿರುವ ಸಮಯ</string>
     <string name="core_settings_clip_time_off_label">ಯಾವುದೂ ಇಲ್ಲ</string>

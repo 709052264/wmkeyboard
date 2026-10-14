@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">أسقط التطبيق \"%1$s\". لا يمكن للتطبيق حفظه.</string>
     <string name="core_icons_repair_svg_unreadable">أسقط التطبيق \"%1$s\". لا يمكن للتطبيق قراءة ملف SVG الخاص به.</string>
+    <string name="core_icons_slot_arrow_down_label">سهم لأسفل</string>
+    <string name="core_icons_slot_arrow_left_label">سهم لليسار</string>
+    <string name="core_icons_slot_arrow_right_label">سهم لليمين</string>
+    <string name="core_icons_slot_arrow_up_label">سهم للأعلى</string>
     <string name="core_icons_slot_backspace_label">مسافة للخلف</string>
+    <string name="core_icons_slot_caps_lock_key_label">مفتاح قفل الحروف الكبيرة</string>
     <string name="core_icons_slot_caps_lock_label">قفل الحروف الكبيرة</string>
     <string name="core_icons_slot_emoji_activities_label">الأنشطة</string>
     <string name="core_icons_slot_emoji_animals_label">حيوانات</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">إدخال: إرسال</string>
     <string name="core_icons_slot_forward_delete_label">حذف للأمام</string>
     <string name="core_icons_slot_globe_label">تبديل اللغة</string>
+    <string name="core_icons_slot_hide_keys_label">إخفاء المفاتيح (لوحة مفاتيح الأجهزة)</string>
     <string name="core_icons_slot_incognito_label">شارة التصفح المتخفي</string>
     <string name="core_icons_slot_input_method_picker_label">تبديل لوحة المفاتيح</string>
     <string name="core_icons_slot_panel_back_label">العودة إلى المفاتيح</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">إغلاق البحث</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (مفعل)</string>
+    <string name="core_icons_slot_show_keys_label">إظهار المفاتيح (لوحة مفاتيح خارجية)</string>
     <string name="core_icons_slot_suggestions_expand_label">إظهار الأدوات</string>
+    <string name="core_icons_slot_tab_label">مفتاح Tab</string>
     <string name="core_icons_slot_toolbox_label">صندوق الأدوات</string>
 </resources>

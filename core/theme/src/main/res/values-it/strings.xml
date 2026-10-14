@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Abisso marino</string>
     <string name="core_theme_builtin_facet_label">Sfaccettatura</string>
     <string name="core_theme_builtin_forest_label">Foresta</string>
+    <string name="core_theme_builtin_frost_label">Gelo</string>
+    <string name="core_theme_builtin_frost_light_label">Frost chiaro</string>
+    <string name="core_theme_builtin_frost_liquid_label">Liquido ghiacciato</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Sfondo Frost</string>
     <string name="core_theme_builtin_glacier_label">Ghiacciaio</string>
     <string name="core_theme_builtin_mint_label">Menta</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Neve</string>
     <string name="core_theme_builtin_sunset_drift_label">Sunset drift</string>
     <string name="core_theme_builtin_sunset_label">Tramonto</string>
+    <string name="core_theme_family_frost_label">Gelo</string>
     <string name="core_theme_family_gradient_label">Sfumature</string>
     <string name="core_theme_family_ocean_label">Nightfall</string>
     <string name="core_theme_family_snow_label">Pastello</string>
+    <string name="core_theme_palette_style_expressive">Espressivo</string>
+    <string name="core_theme_palette_style_fidelity">Fedeltà</string>
+    <string name="core_theme_palette_style_fruit_salad">Macedonia</string>
+    <string name="core_theme_palette_style_monochrome">Monocromatico</string>
+    <string name="core_theme_palette_style_neutral">Neutro</string>
+    <string name="core_theme_palette_style_rainbow">Arcobaleno</string>
+    <string name="core_theme_palette_style_tonal_spot">Tonal spot</string>
+    <string name="core_theme_palette_style_vibrant">Vivace</string>
 </resources>

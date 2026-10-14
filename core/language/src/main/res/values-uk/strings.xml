@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Символи, які клавіша AltGr вводить на комп\'ютері, вводяться шляхом натискання й утримання тих самих клавіш.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d мертва клавіша додає наголос до наступної літери на комп\'ютері. Тут літери з таким наголосом доступні при натисканні та утриманні кожної літери.</item>
+        <item quantity="other">%1$d мертвих клавіш додають наголоси до наступної літери на комп\'ютері. Тут літери з такими наголосами доступні при натисканні та утриманні кожної літери.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Файл базується на 1 іншому файлі (%2$s), який ви не відкрили. Клавіші, які задаються лише цим файлом, відсутні.</item>
+        <item quantity="other">Файл базується на %1$d інших файлах (%2$s), які ви не відкрили. Клавіші, які задаються лише цими файлами, відсутні.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d символ з клавіші без літер знаходиться при довгому натисканні на крапку.</item>
+        <item quantity="other">%1$d символів з клавіш без літер знаходяться при довгому натисканні на крапку.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Додаток не розпізнав %1$d назву символу у файлі, тому пропустив її: %2$s.</item>
+        <item quantity="other">Додаток не розпізнав %1$d назв символів у файлі, тому пропустив їх: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d жест проведення по клавіші тут не має місця, оскільки ця клавіатура використовує цей жест для іншого завдання. Додаток видалив його.</item>
+        <item quantity="other">%1$d жестів проведення по клавішах тут не мають місця, оскільки ця клавіатура використовує ці жести для інших завдань. Додаток видалив їх.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Додаток змінив %1$d клавішу на найближчу доступну.</item>
         <item quantity="other">Додаток змінив %1$d клавіш на найближчі доступні.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Додаток змінив %1$d літери на форму, яку використовує ця клавіатура.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Додаток видалив рядок цифр. Увімкніть рядок цифр у розділі \"Розкладка та розмір\", щоб отримати його.</string>
+    <string name="core_lang_foreign_number_row_kept">Рядок цифр файлу є рядком цифр цієї розкладки. Він відображається, коли ввімкнено рядок цифр у розділі \"Розкладка та розмір\".</string>
+    <string name="core_lang_foreign_pages_kept">Додаткові сторінки файлу, як-от AltGr, є сторінками цієї розкладки. Проведіть пальцем від клавіші, яка відкривала їх на іншій клавіатурі, щоб відкрити їх тут.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d клавіша не має символів при тривалому натисканні. Файл зберігає їх у другому файлі, який ви не відкрили.</item>
         <item quantity="other">%1$d клавіш не мають символів при тривалому натисканні. Файл зберігає їх у другому файлі, який ви не відкрили.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d клавіша змінюється залежно від стану регістру або поля в іншій клавіатурі. Додаток зберіг її вигляд у стані спокою.</item>
         <item quantity="other">%1$d клавіш змінюються залежно від стану регістру або поля в іншій клавіатурі. Додаток зберіг їхній вигляд у стані спокою.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d зміщена сторінка у файлі має клавіші в інших місцях, ніж сторінка, яку вона зміщує. Програма використовує там великі літери.</item>
+        <item quantity="other">%1$d зміщених сторінок у файлі мають клавіші в інших місцях, ніж сторінки, які вони зміщують. Програма використовує там великі літери.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d клавіша має інші літери при натисканні та утриманні, коли Shift натиснуто в іншій клавіатурі. Додаток зберіг незміщені.</item>
+        <item quantity="other">%1$d клавіш мають інші літери при натисканні та утриманні, коли Shift натиснуто в іншій клавіатурі. Додаток зберіг незміщені.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Інша клавіатура вимірює ширину клавіш інакше. Програма змінила ширину, щоб вона відповідала цій сітці.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

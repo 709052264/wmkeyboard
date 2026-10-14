@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">کد</string>
     <string name="core_content_clip_entity_phone_label">شماره تلفن</string>
     <string name="core_content_clip_entity_phone_tag">تلفن</string>
+    <string name="core_content_clip_entity_place_label">مکان</string>
+    <string name="core_content_clip_entity_place_tag">مکان</string>
     <string name="core_content_clip_entity_url_label">لینک</string>
     <string name="core_content_clip_entity_url_tag">لینک</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">برنامه نمی‌تواند فونت‌های وب WOFF را بخواند. از نسخه .ttf یا .otf فونت استفاده کنید.</string>
     <string name="core_content_font_error_woff2">برنامه نمی‌تواند فونت‌های وب WOFF2 را بخواند. از نسخه .ttf یا .otf فونت استفاده کنید.</string>
     <string name="core_content_font_error_zip">این فایل یک آرشیو فشرده (zip) است، نه یک فونت.</string>
+    <string name="core_content_note_tag_ideas">ایده‌ها</string>
+    <string name="core_content_note_tag_important">مهم</string>
+    <string name="core_content_note_tag_personal">شخصی</string>
+    <string name="core_content_note_tag_school">مدرسه</string>
+    <string name="core_content_note_tag_study">مطالعه</string>
+    <string name="core_content_note_tag_work">کار</string>
     <string name="core_content_selection_macro_add_contact">مخاطب</string>
     <string name="core_content_selection_macro_calendar">تقویم</string>
     <string name="core_content_selection_macro_call">تماس</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">خواندن</string>
     <string name="core_content_selection_macro_replace">جایگزینی</string>
+    <string name="core_content_selection_macro_save_note">ذخیره به عنوان یادداشت</string>
     <string name="core_content_selection_macro_search">جستجو</string>
     <string name="core_content_selection_macro_share">اشتراک‌گذاری</string>
     <string name="core_content_selection_macro_sms">پیام</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">ترجمه</string>
     <string name="core_content_selection_macro_url_decode">رمزگشایی</string>
     <string name="core_content_selection_macro_whatsapp">واتس‌اپ</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">این فایل همچنین دارای %1$d کلمه بدون میانبر است. برای افزودن آن به کلمات خود، فایل را از «فرهنگ لغت شخصی» باز کنید.</item>
+        <item quantity="other">این فایل همچنین دارای %1$d کلمه بدون میانبر است. برای افزودن آن‌ها به کلمات خود، فایل را از «فرهنگ لغت شخصی» باز کنید.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">برنامه %2$d بسط را از \"%1$s\" حذف کرد.</item>
         <item quantity="other">برنامه %2$d بسط را از \"%1$s\" حذف کرد.</item>
@@ -162,9 +175,17 @@
         <item quantity="one">برنامه الگو را از \"%1$s\" حذف کرد. طول آن بیش از %2$d کاراکتر بود.</item>
         <item quantity="other">برنامه الگو را از \"%1$s\" حذف کرد. طول آن بیش از %2$d کاراکتر بود.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">برنامه %1$d ردیف بدون متن را حذف کرد.</item>
+        <item quantity="other">برنامه %1$d ردیف بدون متن را حذف کرد.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">برنامه \"%1$s\" را کوتاه کرد. طول آن بیشتر از %2$d کاراکتر بود.</item>
         <item quantity="other">برنامه \"%1$s\" را کوتاه کرد. طول آن بیشتر از %2$d کاراکتر بود.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">برنامه %1$d محرکی را حذف کرد که صفحه‌کلید نمی‌تواند آن را نظارت کند. قطعه کد آن در لیست باقی می‌ماند.</item>
+        <item quantity="other">برنامه %1$d محرک را حذف کرد که صفحه‌کلید نمی‌تواند آن‌ها را نظارت کند. قطعه کدهای آن‌ها در لیست باقی می‌مانند.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">نام برنامه‌ای که در آن تایپ می‌کنید</string>
     <string name="core_content_snippet_var_clip_info">جدیدترین ورودی کلیپ‌بورد</string>

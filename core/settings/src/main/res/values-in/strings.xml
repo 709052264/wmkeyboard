@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Kanan bawah</string>
     <string name="core_settings_board_corner_top_left_label">Kiri atas</string>
     <string name="core_settings_board_corner_top_right_label">Kanan atas</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Geser kiri sematkan, geser kanan hapus</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Hapus kedua arah</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Sematkan ke kanan, hapus ke kiri</string>
     <string name="core_settings_clip_time_copied_label">Waktu disalin</string>
     <string name="core_settings_clip_time_expires_label">Sisa waktu</string>
     <string name="core_settings_clip_time_off_label">Tidak ada</string>

@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">ಕೋಡ್</string>
     <string name="core_content_clip_entity_phone_label">ಫೋನ್ ಸಂಖ್ಯೆ</string>
     <string name="core_content_clip_entity_phone_tag">ಫೋನ್</string>
+    <string name="core_content_clip_entity_place_label">ಸ್ಥಳ</string>
+    <string name="core_content_clip_entity_place_tag">ಸ್ಥಳ</string>
     <string name="core_content_clip_entity_url_label">ಲಿಂಕ್</string>
     <string name="core_content_clip_entity_url_tag">ಲಿಂಕ್</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">ಅಪ್ಲಿಕೇಶನ್ WOFF ವೆಬ್ ಫಾಂಟ್‌ಗಳನ್ನು ಓದಲು ಸಾಧ್ಯವಿಲ್ಲ. ಫಾಂಟ್‌ನ .ttf ಅಥವಾ .otf ಆವೃತ್ತಿಯನ್ನು ಬಳಸಿ.</string>
     <string name="core_content_font_error_woff2">ಅಪ್ಲಿಕೇಶನ್ WOFF2 ವೆಬ್ ಫಾಂಟ್‌ಗಳನ್ನು ಓದಲು ಸಾಧ್ಯವಿಲ್ಲ. ಫಾಂಟ್‌ನ .ttf ಅಥವಾ .otf ಆವೃತ್ತಿಯನ್ನು ಬಳಸಿ.</string>
     <string name="core_content_font_error_zip">ಈ ಫೈಲ್ ಜಿಪ್ ಆರ್ಕೈವ್ ಆಗಿದೆ, ಫಾಂಟ್ ಅಲ್ಲ.</string>
+    <string name="core_content_note_tag_ideas">ಆಲೋಚನೆಗಳು</string>
+    <string name="core_content_note_tag_important">ಪ್ರಮುಖ</string>
+    <string name="core_content_note_tag_personal">ವೈಯಕ್ತಿಕ</string>
+    <string name="core_content_note_tag_school">ಶಾಲೆ</string>
+    <string name="core_content_note_tag_study">ಅಧ್ಯಯನ</string>
+    <string name="core_content_note_tag_work">ಕೆಲಸ</string>
     <string name="core_content_selection_macro_add_contact">ಸಂಪರ್ಕ</string>
     <string name="core_content_selection_macro_calendar">ಕ್ಯಾಲೆಂಡರ್</string>
     <string name="core_content_selection_macro_call">ಕರೆ</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">ಮಾತನಾಡಿ</string>
     <string name="core_content_selection_macro_replace">ಬದಲಾಯಿಸಿ</string>
+    <string name="core_content_selection_macro_save_note">ಟಿಪ್ಪಣಿಯಾಗಿ ಉಳಿಸಿ</string>
     <string name="core_content_selection_macro_search">ಹುಡುಕಿ</string>
     <string name="core_content_selection_macro_share">ಹಂಚಿಕೊಳ್ಳಿ</string>
     <string name="core_content_selection_macro_sms">ಸಂದೇಶ</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">ಅನುವಾದಿಸಿ</string>
     <string name="core_content_selection_macro_url_decode">ಡಿಕೋಡ್ ಮಾಡಿ</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">ಫೈಲ್‌ನಲ್ಲಿ ಶಾರ್ಟ್‌ಕಟ್ ಇಲ್ಲದ %1$d ಪದವೂ ಇದೆ. ಅದನ್ನು ನಿಮ್ಮ ಪದಗಳಿಗೆ ಸೇರಿಸಲು, ವೈಯಕ್ತಿಕ ನಿಘಂಟಿನಿಂದ ಫೈಲ್ ಅನ್ನು ತೆರೆಯಿರಿ.</item>
+        <item quantity="other">ಫೈಲ್‌ನಲ್ಲಿ ಶಾರ್ಟ್‌ಕಟ್ ಇಲ್ಲದ %1$d ಪದಗಳಿವೆ. ಅವುಗಳನ್ನು ನಿಮ್ಮ ಪದಗಳಿಗೆ ಸೇರಿಸಲು, ವೈಯಕ್ತಿಕ ನಿಘಂಟಿನಿಂದ ಫೈಲ್ ಅನ್ನು ತೆರೆಯಿರಿ.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">ಆ್ಯಪ್ \"%1$s\" ನಿಂದ %2$d ವಿಸ್ತರಣೆಯನ್ನು ಬಿಟ್ಟಿದೆ.</item>
         <item quantity="other">ಆ್ಯಪ್ \"%1$s\" ನಿಂದ %2$d ವಿಸ್ತರಣೆಗಳನ್ನು ಬಿಟ್ಟಿದೆ.</item>
@@ -162,9 +175,17 @@
         <item quantity="one">ಆ್ಯಪ್ \"%1$s\" ನಿಂದ ಪ್ಯಾಟರ್ನ್ ಅನ್ನು ತೆಗೆದುಹಾಕಿದೆ. ಇದು %2$d ಅಕ್ಷರಕ್ಕಿಂತ ಉದ್ದವಾಗಿತ್ತು.</item>
         <item quantity="other">ಆ್ಯಪ್ \"%1$s\" ನಿಂದ ಪ್ಯಾಟರ್ನ್ ಅನ್ನು ತೆಗೆದುಹಾಕಿದೆ. ಇದು %2$d ಅಕ್ಷರಗಳಿಗಿಂತ ಉದ್ದವಾಗಿತ್ತು.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">ಅಪ್ಲಿಕೇಶನ್ ಪಠ್ಯವಿಲ್ಲದ %1$d ಸಾಲನ್ನು ಕೈಬಿಟ್ಟಿದೆ.</item>
+        <item quantity="other">ಅಪ್ಲಿಕೇಶನ್ ಪಠ್ಯವಿಲ್ಲದ %1$d ಸಾಲುಗಳನ್ನು ಕೈಬಿಟ್ಟಿದೆ.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">ಆ್ಯಪ್ \"%1$s\" ಅನ್ನು ಚಿಕ್ಕದಾಗಿಸಿದೆ. ಇದು %2$d ಅಕ್ಷರಕ್ಕಿಂತ ಉದ್ದವಾಗಿತ್ತು.</item>
         <item quantity="other">ಆ್ಯಪ್ \"%1$s\" ಅನ್ನು ಚಿಕ್ಕದಾಗಿಸಿದೆ. ಇದು %2$d ಅಕ್ಷರಗಳಿಗಿಂತ ಉದ್ದವಾಗಿತ್ತು.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">ಅಪ್ಲಿಕೇಶನ್ ಕೀಬೋರ್ಡ್ ವೀಕ್ಷಿಸಲು ಸಾಧ್ಯವಾಗದ %1$d ಟ್ರಿಗರ್ ಅನ್ನು ತೆಗೆದುಹಾಕಿದೆ. ಅದರ ಸ್ನಿಪ್ಪೆಟ್ ಪಟ್ಟಿಯಲ್ಲಿ ಉಳಿದಿದೆ.</item>
+        <item quantity="other">ಅಪ್ಲಿಕೇಶನ್ ಕೀಬೋರ್ಡ್ ವೀಕ್ಷಿಸಲು ಸಾಧ್ಯವಾಗದ %1$d ಟ್ರಿಗರ್‌ಗಳನ್ನು ತೆಗೆದುಹಾಕಿದೆ. ಅವುಗಳ ಸ್ನಿಪ್ಪೆಟ್‌ಗಳು ಪಟ್ಟಿಯಲ್ಲಿ ಉಳಿದಿವೆ.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">ನೀವು ಟೈಪ್ ಮಾಡುವ ಅಪ್ಲಿಕೇಶನ್‌ನ ಹೆಸರು</string>
     <string name="core_content_snippet_var_clip_info">ಅತ್ಯಂತ ಹೊಸ ಕ್ಲಿಪ್‌ಬೋರ್ಡ್ ನಮೂದು</string>

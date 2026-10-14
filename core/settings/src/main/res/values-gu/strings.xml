@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">નીચે જમણી બાજુ</string>
     <string name="core_settings_board_corner_top_left_label">ઉપર ડાબે</string>
     <string name="core_settings_board_corner_top_right_label">ઉપર જમણે</string>
+    <string name="core_settings_clip_swipe_pin_left_label">ડાબે પિન, જમણે ડિલીટ</string>
+    <string name="core_settings_clip_swipe_pin_off_label">બંને રીતે ડિલીટ કરો</string>
+    <string name="core_settings_clip_swipe_pin_right_label">જમણે પિન, ડાબે ડિલીટ</string>
     <string name="core_settings_clip_time_copied_label">કોપી કરવાનો સમય</string>
     <string name="core_settings_clip_time_expires_label">બાકી રહેલો સમય</string>
     <string name="core_settings_clip_time_off_label">કોઈ નહીં</string>

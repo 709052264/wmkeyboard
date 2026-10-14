@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">All paremal</string>
     <string name="core_settings_board_corner_top_left_label">Üleval vasakul</string>
     <string name="core_settings_board_corner_top_right_label">Üleval paremal</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Vasakule kinnitab, paremale kustutab</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Mõlemas suunas kustutamine</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Paremale kinnitab, vasakule kustutab</string>
     <string name="core_settings_clip_time_copied_label">Kopeerimise aeg</string>
     <string name="core_settings_clip_time_expires_label">Aega jäänud</string>
     <string name="core_settings_clip_time_off_label">Puudub</string>

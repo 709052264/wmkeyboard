@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">อักขระที่ปุ่ม AltGr พิมพ์บนคอมพิวเตอร์จะพิมพ์ได้โดยการกดปุ่มเดียวกันค้างไว้</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">dead key %1$d ตัวจะใส่เครื่องหมายกำกับบนตัวอักษรถัดไปบนคอมพิวเตอร์ ในที่นี้ ตัวอักษรที่มีเครื่องหมายกำกับดังกล่าวจะปรากฏขึ้นเมื่อกดค้างที่ตัวอักษรแต่ละตัว</item>
+        <item quantity="other">dead key %1$d ตัวจะใส่เครื่องหมายกำกับบนตัวอักษรถัดไปบนคอมพิวเตอร์ ในที่นี้ ตัวอักษรที่มีเครื่องหมายกำกับดังกล่าวจะปรากฏขึ้นเมื่อกดค้างที่ตัวอักษรแต่ละตัว</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">ไฟล์นี้สร้างขึ้นจากไฟล์อื่น %1$d ไฟล์ (%2$s) ที่คุณไม่ได้เปิด คีย์ที่กำหนดโดยไฟล์นั้นเท่านั้นจะหายไป</item>
+        <item quantity="other">ไฟล์นี้สร้างขึ้นจากไฟล์อื่น %1$d ไฟล์ (%2$s) ที่คุณไม่ได้เปิด คีย์ที่กำหนดโดยไฟล์เหล่านั้นเท่านั้นจะหายไป</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">มี %1$d อักขระจากปุ่มที่ไม่มีตัวอักษรอยู่ในการกดค้างที่ปุ่มจุด</item>
+        <item quantity="other">มี %1$d อักขระจากปุ่มที่ไม่มีตัวอักษรอยู่ในการกดค้างที่ปุ่มจุด</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">แอปไม่รู้จักชื่ออักขระ %1$d ตัวในไฟล์ จึงละเว้นไว้: %2$s</item>
+        <item quantity="other">แอปไม่รู้จักชื่ออักขระ %1$d ตัวในไฟล์ จึงละเว้นไว้: %2$s</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">การปัด %1$d ครั้งบนปุ่มไม่สามารถใช้ได้ที่นี่ เนื่องจากคีย์บอร์ดนี้ใช้การปัดนั้นสำหรับงานอื่น แอปจึงลบออกแล้ว</item>
+        <item quantity="other">การปัด %1$d ครั้งบนปุ่มไม่สามารถใช้ได้ที่นี่ เนื่องจากคีย์บอร์ดนี้ใช้การปัดเหล่านั้นสำหรับงานอื่น แอปจึงลบออกแล้ว</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">แอปได้เปลี่ยนปุ่ม %1$d ปุ่มเป็นปุ่มที่ใกล้เคียงที่สุดที่มี</item>
         <item quantity="other">แอปได้เปลี่ยนปุ่ม %1$d ปุ่มเป็นปุ่มที่ใกล้เคียงที่สุดที่มี</item>
@@ -23,6 +44,8 @@
         <item quantity="other">แอปเปลี่ยนตัวอักษร %1$d ตัวเป็นรูปแบบที่แป้นพิมพ์นี้เขียน</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">แอปได้ลบแถวตัวเลขออกแล้ว เปิดแถวตัวเลขในส่วนเค้าโครงและขนาดเพื่อใช้งาน</string>
+    <string name="core_lang_foreign_number_row_kept">แถวตัวเลขของไฟล์นี้คือแถวตัวเลขของเลย์เอาต์นี้ โดยจะแสดงเมื่อเปิดแถวตัวเลขในการตั้งค่าเลย์เอาต์และขนาด</string>
+    <string name="core_lang_foreign_pages_kept">หน้าเพิ่มเติมของไฟล์ เช่น AltGr เป็นหน้าของเค้าโครงนี้ ให้ปัดจากปุ่มที่เปิดหน้าเหล่านั้นในแป้นพิมพ์อื่นเพื่อเปิดที่นี่</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d ปุ่มไม่มีตัวอักษรสำหรับการกดค้างไว้ ไฟล์เก็บข้อมูลเหล่านั้นไว้ในไฟล์ที่สองที่คุณไม่ได้เปิด</item>
         <item quantity="other">%1$d ปุ่มไม่มีตัวอักษรสำหรับการกดค้างไว้ ไฟล์เก็บข้อมูลเหล่านั้นไว้ในไฟล์ที่สองที่คุณไม่ได้เปิด</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d ปุ่มเปลี่ยนตามสถานะ Shift หรือฟิลด์ในคีย์บอร์ดอื่น แอปคงรูปแบบที่แสดงในสถานะปกติไว้</item>
         <item quantity="other">%1$d ปุ่มเปลี่ยนตามสถานะ Shift หรือฟิลด์ในคีย์บอร์ดอื่น แอปคงรูปแบบที่แสดงในสถานะปกติไว้</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d หน้าที่ถูกเลื่อนในไฟล์มีปุ่มในตำแหน่งอื่นที่ไม่ใช่หน้าที่เลื่อน แอปจะใช้ตัวพิมพ์ใหญ่แทนในตำแหน่งนั้น</item>
+        <item quantity="other">%1$d หน้าที่ถูกเลื่อนในไฟล์มีปุ่มในตำแหน่งอื่นที่ไม่ใช่หน้าที่เลื่อน แอปจะใช้ตัวพิมพ์ใหญ่แทนในตำแหน่งนั้น</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d ปุ่มมีตัวอักษรสำหรับการกดค้างที่แตกต่างกันในขณะที่กด Shift ในแป้นพิมพ์อื่น แอปได้เก็บตัวอักษรที่ไม่ได้กด Shift ไว้</item>
+        <item quantity="other">%1$d ปุ่มมีตัวอักษรสำหรับการกดค้างที่แตกต่างกันในขณะที่กด Shift ในแป้นพิมพ์อื่น แอปได้เก็บตัวอักษรที่ไม่ได้กด Shift ไว้</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">แป้นพิมพ์อื่นวัดความกว้างของคีย์ต่างออกไป แอปได้ปรับความกว้างให้พอดีกับตารางนี้</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

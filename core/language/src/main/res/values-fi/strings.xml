@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Merkit, jotka AltGr-näppäin kirjoittaa tietokoneella, löytyvät painamalla ja pitämällä samoja näppäimiä.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d kuollut näppäin lisää aksentin seuraavaan kirjaimeen tietokoneella. Täällä aksentilliset kirjaimet löytyvät painamalla ja pitämällä kutakin kirjainta pohjassa.</item>
+        <item quantity="other">%1$d kuollutta näppäintä lisäävät aksentteja seuraavaan kirjaimeen tietokoneella. Täällä aksentilliset kirjaimet löytyvät painamalla ja pitämällä kutakin kirjainta pohjassa.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Tiedosto perustuu %1$d muuhun tiedostoon (%2$s), jota et avannut. Vain kyseisen tiedoston asettamat avaimet puuttuvat.</item>
+        <item quantity="other">Tiedosto perustuu %1$d muuhun tiedostoon (%2$s), joita et avannut. Vain kyseisten tiedostojen asettamat avaimet puuttuvat.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d merkki näppäimestä, jossa ei ole kirjaimia, on pisteen pitkässä painalluksessa.</item>
+        <item quantity="other">%1$d merkkiä näppäimistä, joissa ei ole kirjaimia, on pisteen pitkässä painalluksessa.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Sovellus ei tunnista %1$d merkin nimeä tiedostossa, joten se jätti sen pois: %2$s.</item>
+        <item quantity="other">Sovellus ei tunnista %1$d merkin nimeä tiedostossa, joten se jätti ne pois: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d pyyhkäisy näppäimellä ei sovi tähän, koska tämä näppäimistö käyttää kyseistä pyyhkäisyä toiseen tehtävään. Sovellus poisti sen.</item>
+        <item quantity="other">%1$d pyyhkäisyä näppäimillä eivät sovi tähän, koska tämä näppäimistö käyttää kyseisiä pyyhkäisyjä muihin tehtäviin. Sovellus poisti ne.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Sovellus vaihtoi %1$d näppäimen lähimpään käytettävissä olevaan näppäimeen.</item>
         <item quantity="other">Sovellus vaihtoi %1$d näppäintä lähimpiin käytettävissä oleviin näppäimiin.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Sovellus muutti %1$d kirjainta muotoon, jota tämä näppäimistö käyttää.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Sovellus poisti numerorivin. Ota numerorivi käyttöön kohdassa Asettelu ja koko saadaksesi sen takaisin.</string>
+    <string name="core_lang_foreign_number_row_kept">Tiedoston numerorivi on tämän asettelun numerorivi. Se näkyy, kun numerorivi on päällä kohdassa Asettelu ja koko.</string>
+    <string name="core_lang_foreign_pages_kept">Tiedoston ylimääräiset sivut, kuten AltGr, ovat tämän asettelun sivuja. Pyyhkäise näppäimestä, joka avasi ne toisessa näppäimistössä, avataksesi ne tässä.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d näppäimellä ei ole paina-ja-pidä-kirjaimia. Tiedosto säilyttää ne toisessa tiedostossa, jota et avannut.</item>
         <item quantity="other">%1$d näppäimellä ei ole paina-ja-pidä-kirjaimia. Tiedosto säilyttää ne toisessa tiedostossa, jota et avannut.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d näppäin muuttuu vaihtonäppäimen tilan tai toisen näppäimistön kentän mukaan. Sovellus säilytti sen ulkoasun lepotilassa.</item>
         <item quantity="other">%1$d näppäintä muuttuu vaihtonäppäimen tilan tai toisen näppäimistön kentän mukaan. Sovellus säilytti niiden ulkoasun lepotilassa.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">Tiedoston %1$d siirretyllä sivulla on näppäimet eri paikoissa kuin sivulla, jota se siirtää. Sovellus käyttää siellä sen sijaan isoja kirjaimia.</item>
+        <item quantity="other">Tiedoston %1$d siirretyllä sivulla on näppäimet eri paikoissa kuin sivuilla, joita ne siirtävät. Sovellus käyttää siellä sen sijaan isoja kirjaimia.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d näppäimellä on eri paina-ja-pidä-kirjaimet, kun vaihtonäppäin on pohjassa toisessa näppäimistössä. Sovellus säilytti alkuperäiset.</item>
+        <item quantity="other">%1$d näppäimellä on eri paina-ja-pidä-kirjaimet, kun vaihtonäppäin on pohjassa toisessa näppäimistössä. Sovellus säilytti alkuperäiset.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Toinen näppäimistö mittaa näppäinten leveydet eri tavalla. Sovellus muutti leveyksiä sopimaan tähän ruudukkoon.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

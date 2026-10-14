@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Rakstzīmes, kuras datorā ievada AltGr taustiņš, ir pieejamas, nospiežot un turot tos pašus taustiņus.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d miron taustiņš uzliek akcentu nākamajam burtam datorā. Šeit burti ar šādu akcentu tiek iegūti, nospiežot un turot attiecīgo burtu.</item>
+        <item quantity="other">%1$d mironi taustiņi uzliek akcentus nākamajam burtam datorā. Šeit burti ar šādiem akcentiem tiek iegūti, nospiežot un turot attiecīgo burtu.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Fails balstās uz %1$d citu failu (%2$s), kuru neatvērāt. Trūkst taustiņu, kurus iestata tikai šis fails.</item>
+        <item quantity="other">Fails balstās uz %1$d citiem failiem (%2$s), kurus neatvērāt. Trūkst taustiņu, kurus iestata tikai šie faili.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d rakstzīme no taustiņa bez burtiem atrodas uz punkta nospiešanas un turēšanas.</item>
+        <item quantity="other">%1$d rakstzīmes no taustiņiem bez burtiem atrodas uz punkta nospiešanas un turēšanas.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Lietotne nezina %1$d rakstzīmes nosaukumu failā, tāpēc tā to izlaida: %2$s.</item>
+        <item quantity="other">Lietotne nezina %1$d rakstzīmju nosaukumus failā, tāpēc tā tos izlaida: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d vilciens pa taustiņu šeit nav piemērots, jo šī tastatūra šo vilcienu izmanto citam darbam. Lietotne to noņēma.</item>
+        <item quantity="other">%1$d vilcieni pa taustiņiem šeit nav piemēroti, jo šī tastatūra šos vilcienus izmanto citiem darbiem. Lietotne tos noņēma.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Lietotne nomainīja %1$d taustiņu uz tuvāko pieejamo taustiņu.</item>
         <item quantity="other">Lietotne nomainīja %1$d taustiņus uz tuvākajiem pieejamajiem taustiņiem.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Lietotne mainīja %1$d burtus uz formu, kādā raksta šī tastatūra.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Lietotne noņēma skaitļu rindu. Lai to iegūtu, ieslēdziet skaitļu rindu sadaļā Izkārtojums un izmērs.</string>
+    <string name="core_lang_foreign_number_row_kept">Faila skaitļu rinda ir šī izkārtojuma skaitļu rinda. Tā tiek rādīta, kamēr skaitļu rinda ir ieslēgta sadaļā Izkārtojums un izmērs.</string>
+    <string name="core_lang_foreign_pages_kept">Faila papildu lapas, piemēram, AltGr, ir šī izkārtojuma lapas. Velciet no taustiņa, kas tās atvēra citā tastatūrā, lai atvērtu tās šeit.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d taustiņam nav nospiežamu un turamu burtu. Fails tos glabā otrajā failā, kuru jūs neatvērāt.</item>
         <item quantity="other">%1$d taustiņiem nav nospiežamu un turamu burtu. Fails tos glabā otrajā failā, kuru jūs neatvērāt.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d taustiņš mainās atkarībā no reģistra stāvokļa vai lauka citā tastatūrā. Lietotne saglabāja tā izskatu miera stāvoklī.</item>
         <item quantity="other">%1$d taustiņi mainās atkarībā no reģistra stāvokļa vai lauka citā tastatūrā. Lietotne saglabāja to izskatu miera stāvoklī.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d pārbīdītajā faila lapā taustiņi atrodas citās vietās nekā lapā, kuru tā pārbīda. Lietotne tur izmanto lielos burtus.</item>
+        <item quantity="other">%1$d pārbīdītajās faila lapās taustiņi atrodas citās vietās nekā lapās, kuras tās pārbīda. Lietotne tur izmanto lielos burtus.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d taustiņam ir atšķirīgi nospiešanas un turēšanas burti, kamēr citā tastatūrā ir nospiests Shift. Lietotne saglabāja tos, kas ir bez Shift.</item>
+        <item quantity="other">%1$d taustiņiem ir atšķirīgi nospiešanas un turēšanas burti, kamēr citā tastatūrā ir nospiests Shift. Lietotne saglabāja tos, kas ir bez Shift.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Otra tastatūra mēra taustiņu platumu atšķirīgi. Lietotne mainīja platumus, lai tie atbilstu šim režģim.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

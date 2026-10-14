@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Japonský slovník kana na kandži</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Tabuľka čítaní Jyutping pre znaky Hanzi, 163 000 záznamov. Klávesnica potrebuje tento balík na konverziu kantončiny.</string>
     <string name="core_input_cjk_pack_jyutping_title">Kantonský slovník Jyutping</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Ktoré slová nasledujú po ktorých, počítané z čínskych webových a spravodajských textov. Dodáva sa s Pinyin slovníkom. Vďaka nemu iniciály ako wbxh dajú najprv 我不喜欢 a nie dve nesúvisiace slová.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Čínske dvojice slov</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Znaky a frázy Hanzi z CC-CEDICT, 120 000 záznamov. Klávesnica potrebuje tento balík na čínsky prevod.</string>
     <string name="core_input_cjk_pack_pinyin_title">Čínsky slovník Pinyin</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Frázy z OpenCC, 50 000 záznamov, približne 1 MB. So zapnutými tradičnými znakmi ich klávesnica používa na napísanie správneho tvaru slova, napríklad 頭髮 a nie 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Tabuľka fráz tradičných znakov</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Tabuľka poradia ťahov pre znaky Hanzi. Klávesnica potrebuje tento balík pre rozloženie ťahov.</string>
     <string name="core_input_cjk_pack_stroke_title">Čínsky slovník podľa ťahov (笔画)</string>
+    <string name="core_input_double_pinyin_custom_label">Vlastné</string>
     <string name="core_input_double_pinyin_off_label">Vypnuté (úplný Pinyin)</string>
+    <string name="core_input_im_note_candidates">Pre niektoré klávesy táto metóda poskytuje zoznam možností. Klávesnica vždy používa prvú možnosť.</string>
+    <string name="core_input_im_note_missing_files">Tieto súbory neboli vybraté, takže ich časť chýba: %1$s. Ak ich chcete zahrnúť, importujte znova a vyberte ich spoločne.</string>
+    <string name="core_input_im_note_module">Táto metóda používa doplnok, ako napríklad Anthy, ktorý klávesnica nemôže spustiť. Klávesy, ktoré ho používajú, tu nič nerobia.</string>
+    <string name="core_input_im_note_other_method">Táto metóda poskytuje niektoré klávesy inej metóde vstupu. Táto časť tu nefunguje.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Aplikácia nedokáže prečítať %1$d pravidlo pravopisu, preto ho preskakuje.</item>
+        <item quantity="other">Aplikácia nedokáže prečítať %1$d pravidiel pravopisu, preto ich preskakuje.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Táto metóda používa medzerník ako kláves, napríklad pre tón. Tu medzerník vždy napíše medzeru.</string>
+    <string name="core_input_im_note_truncated">Tabuľka je veľmi veľká, preto aplikácia ponechala iba jej prvú časť.</string>
+    <string name="core_input_im_note_unused_files">Aplikácia nepoužila tieto súbory: %1$s.</string>
+    <string name="core_input_im_refused_broken">Súbor obsahuje chybu, takže ho aplikácia nemôže prečítať: %1$s</string>
+    <string name="core_input_im_refused_empty">Súbor neobsahuje nič, čo by sa dalo písať.</string>
+    <string name="core_input_im_refused_no_dictionary">Schéma potrebuje svoj slovník. Importujte znova a tiež vyberte %1$s.</string>
+    <string name="core_input_im_refused_not_method">Aplikácia to nedokáže prečítať ako metódu vstupu. Číta tabuľky .cin, schémy a slovníky Rime (.schema.yaml, .dict.yaml) a súbory m17n .mim.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Aplikácia to prečítala ako tabuľku .cin s %1$d záznamom. Zadajte kód a potom vyberte znak z panela návrhov.</item>
+        <item quantity="other">Aplikácia to prečítala ako tabuľku .cin s %1$d záznamami. Zadajte kód a potom vyberte znak z panela návrhov.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Aplikácia toto načítala ako metódu vstupu m17n s %1$d pravidlom. Klávesy píšu text tak, ako píšete.</item>
+        <item quantity="other">Aplikácia toto načítala ako metódu vstupu m17n s %1$d pravidlami. Klávesy píšu text tak, ako píšete.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Aplikácia to načítala ako schému Rime s %1$d položkou slovníka. Napíšte slabiky a potom vyberte slová z pruhu návrhov.</item>
+        <item quantity="other">Aplikácia to načítala ako schému Rime s %1$d položkami slovníka. Napíšte slabiky a potom vyberte slová z pruhu návrhov.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Aplikácia to načítala ako kódovú tabuľku Rime s %1$d záznamom. Zadajte kód a potom vyberte znak z lišty návrhov.</item>
+        <item quantity="other">Aplikácia to načítala ako kódovú tabuľku Rime s %1$d záznamami. Zadajte kód a potom vyberte znak z lišty návrhov.</item>
+    </plurals>
 </resources>

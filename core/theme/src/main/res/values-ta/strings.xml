@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">ஆழ்கடல்</string>
     <string name="core_theme_builtin_facet_label">Facet</string>
     <string name="core_theme_builtin_forest_label">காடு</string>
+    <string name="core_theme_builtin_frost_label">ஃப்ரோஸ்ட்</string>
+    <string name="core_theme_builtin_frost_light_label">ஃப்ரோஸ்ட் லைட்</string>
+    <string name="core_theme_builtin_frost_liquid_label">உறைபனி திரவம்</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">பனி வால்பேப்பர்</string>
     <string name="core_theme_builtin_glacier_label">பனிப்பாறை</string>
     <string name="core_theme_builtin_mint_label">மின்ட் (Mint)</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">பனி</string>
     <string name="core_theme_builtin_sunset_drift_label">சன்செட் டிரிஃப்ட்</string>
     <string name="core_theme_builtin_sunset_label">சூரிய அஸ்தமனம்</string>
+    <string name="core_theme_family_frost_label">ஃப்ரோஸ்ட்</string>
     <string name="core_theme_family_gradient_label">கிரேடியண்டுகள்</string>
     <string name="core_theme_family_ocean_label">நைட்ஃபால்</string>
     <string name="core_theme_family_snow_label">பேஸ்டல்</string>
+    <string name="core_theme_palette_style_expressive">வெளிப்படையானது</string>
+    <string name="core_theme_palette_style_fidelity">நம்பகத்தன்மை</string>
+    <string name="core_theme_palette_style_fruit_salad">பழ சாலட்</string>
+    <string name="core_theme_palette_style_monochrome">ஒற்றை நிறம்</string>
+    <string name="core_theme_palette_style_neutral">நடுநிலை</string>
+    <string name="core_theme_palette_style_rainbow">வானவில்</string>
+    <string name="core_theme_palette_style_tonal_spot">டோனல் ஸ்பாட்</string>
+    <string name="core_theme_palette_style_vibrant">துடிப்பான</string>
 </resources>

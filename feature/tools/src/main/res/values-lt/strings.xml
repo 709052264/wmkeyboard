@@ -3,8 +3,34 @@
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
     <string name="ftools_ai_stream_error">DI teikėjas užbaigė atsakymą su klaida</string>
+    <string name="ftools_ai_tool_failed">Įrankis nepavyko: %1$s. Nekvieskite jo dar kartą su ta pačia įvestimi.</string>
+    <string name="ftools_ai_tool_missing_argument">Iškvietime praleista būtina „%1$s“ reikšmė.</string>
+    <string name="ftools_ai_tool_no_results">Rezultatų nėra.</string>
+    <string name="ftools_ai_tool_no_search">Paieška internete šioje klaviatūroje nenustatyta, todėl ieškoti neįmanoma. Atsakykite remdamiesi tuo, ką jau žinote, ir pasakykite, kad negalėjote atlikti paieškos.</string>
+    <string name="ftools_ai_tool_reason_bad_url">Tai nėra žiniatinklio adresas, kurį klaviatūra atidarys</string>
+    <string name="ftools_ai_tool_reason_missing">Modelis praleido %1$s</string>
+    <string name="ftools_ai_tool_reason_no_search">Paieška internete nenustatyta</string>
+    <string name="ftools_ai_tool_reason_unknown">Modelis paprašė įrankio, kurio nėra</string>
+    <string name="ftools_ai_tool_truncated">[puslapis tęsiasi už šio taško ir buvo nukirptas]</string>
+    <string name="ftools_ai_tool_unknown">Nėra įrankio, vadinamo %1$s.</string>
+    <string name="ftools_mcp_declined">Vartotojas neleido atlikti šio skambučio. Daugiau nebekvieskite šio įrankio šiame atsakyme. Atsakykite be jo ir pasakykite, ko negalėjote padaryti.</string>
+    <string name="ftools_mcp_empty">Įrankis buvo paleistas ir nieko negrąžino.</string>
+    <string name="ftools_mcp_error_needs_input">Serveris paprašė papildomos įvesties, o klaviatūra jos dar negali suteikti.</string>
+    <string name="ftools_mcp_error_no_version">Šis serveris naudoja naujesnę MCP versiją, nei atpažįsta klaviatūra.</string>
+    <string name="ftools_mcp_error_not_mcp">Šis adresas neatsakė kaip MCP serveris. Patikrinkite adresą ir tipą.</string>
+    <string name="ftools_mcp_error_server">Serveris atsiuntė klaidą: %1$s</string>
+    <string name="ftools_mcp_error_sign_in">Šiam serveriui reikia, kad prisijungtumėte, o klaviatūra to dar negali padaryti. Jei serveris išduoda prieigos raktus ar raktus, pridėkite vieną kaip antraštę.</string>
+    <string name="ftools_mcp_omitted">[įrankis taip pat atsiuntė turinį, kurio čia negalite perskaityti: %1$s]</string>
+    <string name="ftools_mcp_reason_declined">Jūs neleidote</string>
+    <string name="ftools_mcp_reason_stopped">Sustabdyta prieš paleidžiant</string>
+    <string name="ftools_mcp_reason_tool_error">Įrankis pranešė apie klaidą</string>
+    <string name="ftools_mcp_stopped">Iškvietimas buvo atšauktas prieš jam įvykstant.</string>
+    <string name="ftools_mcp_tool_error">Įrankis pranešė apie klaidą: %1$s</string>
+    <string name="ftools_mcp_truncated">[atsakymas tęsiasi už šio taško ir buvo nukirptas]</string>
     <string name="ftools_photo_error_failed">Programai nepavyko gauti nuotraukų</string>
     <string name="ftools_photo_error_offline">Programėlė negali pasiekti nuotraukų paslaugos. Patikrinkite tinklo ryšį ir bandykite dar kartą.</string>
     <string name="ftools_photo_error_timeout">Nuotraukų paslauga atsakė per ilgai</string>
     <string name="ftools_search_error_json_disabled">Ši „SearXNG“ instancija neįgalino savo JSON API. Pridėkite 33b33json33/b33 prie 33b33search.formats33/b33 savo settings.yml faile arba naudokite kitą instanciją.</string>
+    <string name="ftools_search_error_searx_limited">Šis „SearXNG“ egzempliorius šiuo metu atmeta programas (HTTP 429). Vieši egzemplioriai riboja užklausas, kurios nėra siunčiamos iš naršyklės. Bandykite dar kartą vėliau arba naudokite savo egzempliorių, arba tokį, kuris leidžia naudoti JSON API.</string>
+    <string name="ftools_web_fetch_bad_url">Tai nėra žiniatinklio adresas, kurį ši klaviatūra atidarys. Įveskite visą http:// arba https:// adresą.</string>
 </resources>

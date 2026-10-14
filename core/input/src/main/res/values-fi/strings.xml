@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Japanin kana-kanji-sanakirja</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Taulukko Jyutping-lukutavoista Hanzi-merkkeihin, 163 000 merkintää. Näppäimistö tarvitsee tämän paketin kantoninkiinan muuntamiseen.</string>
     <string name="core_input_cjk_pack_jyutping_title">Kantoninkiinan Jyutping-sanakirja</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Mitkä sanat seuraavat toisiaan, laskettuna kiinalaisesta verkko- ja uutistekstistä. Tulee Pinyin-sanakirjan mukana. Sen avulla alkukirjaimet kuten wbxh antavat tulokseksi 我不喜欢 ensimmäisenä, eivätkä kahta toisiinsa liittymätöntä sanaa.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Kiinalaiset sanaparit</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Hanzi-merkit ja lauseet CC-CEDICT-tietokannasta, 120 000 merkintää. Näppäimistö tarvitsee tämän paketin kiinan kielen muuntamiseen.</string>
     <string name="core_input_cjk_pack_pinyin_title">Kiinalainen Pinyin-sanakirja</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">OpenCC-lausekkeet, 50 000 merkintää, noin 1 Mt. Kun perinteiset merkit ovat päällä, näppäimistö käyttää sitä kirjoittaakseen sanan oikean muodon, kuten 頭髮 eikä 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Perinteisten merkkien fraasitaulukko</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Hanzi-merkkien piirtojärjestystaulukko. Näppäimistö tarvitsee tämän paketin piirtoasettelua varten.</string>
     <string name="core_input_cjk_pack_stroke_title">Kiinalainen viivajärjestelmä (笔画) -sanakirja</string>
+    <string name="core_input_double_pinyin_custom_label">Mukautettu</string>
     <string name="core_input_double_pinyin_off_label">Pois päältä (täysi Pinyin)</string>
+    <string name="core_input_im_note_candidates">Joidenkin näppäinten kohdalla tämä menetelmä antaa valintaluettelon. Näppäimistö käyttää aina ensimmäistä vaihtoehtoa.</string>
+    <string name="core_input_im_note_missing_files">Näitä tiedostoja ei valittu, joten niiden osa puuttuu: %1$s. Jos haluat sisällyttää ne, tuo tiedostot uudelleen ja valitse ne yhdessä.</string>
+    <string name="core_input_im_note_module">Tämä menetelmä käyttää liitännäistä, kuten Anthyä, jota näppäimistö ei voi suorittaa. Sitä käyttävät näppäimet eivät tee tässä mitään.</string>
+    <string name="core_input_im_note_other_method">Tämä menetelmä antaa joitakin näppäimiä toiselle syöttötavalle. Se osa ei toimi täällä.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Sovellus ei voi lukea %1$d oikeinkirjoitussääntöä, joten se ohittaa sen.</item>
+        <item quantity="other">Sovellus ei voi lukea %1$d oikeinkirjoitussääntöä, joten se ohittaa ne.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Tämä menetelmä käyttää välilyöntiä näppäimenä, esimerkiksi sävylle. Tässä välilyönti kirjoittaa aina välilyönnin.</string>
+    <string name="core_input_im_note_truncated">Taulukko on erittäin suuri, joten sovellus säilytti vain sen alkuosan.</string>
+    <string name="core_input_im_note_unused_files">Sovellus ei käyttänyt näitä tiedostoja: %1$s.</string>
+    <string name="core_input_im_refused_broken">Tiedostossa on virhe, joten sovellus ei voi lukea sitä: %1$s</string>
+    <string name="core_input_im_refused_empty">Tiedostossa ei ole mitään, millä kirjoittaa.</string>
+    <string name="core_input_im_refused_no_dictionary">Skeema tarvitsee sanakirjansa. Tuo uudelleen ja valitse myös %1$s.</string>
+    <string name="core_input_im_refused_not_method">Sovellus ei voi lukea tuota syöttötapana. Se lukee .cin-taulukoita, Rime-skeemoja ja sanakirjoja (.schema.yaml, .dict.yaml) sekä m17n .mim-tiedostoja.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Sovellus luki tämän .cin-taulukkona, jossa on %1$d merkintä. Kirjoita koodi ja valitse sitten merkki ehdotuspalkista.</item>
+        <item quantity="other">Sovellus luki tämän .cin-taulukkona, jossa on %1$d merkintää. Kirjoita koodi ja valitse sitten merkki ehdotuspalkista.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Sovellus tunnisti tämän m17n-syöttötavaksi, jossa on %1$d sääntö. Näppäimet kirjoittavat tekstiä sitä mukaa kun kirjoitat.</item>
+        <item quantity="other">Sovellus tunnisti tämän m17n-syöttötavaksi, jossa on %1$d sääntöä. Näppäimet kirjoittavat tekstiä sitä mukaa kun kirjoitat.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Sovellus luki tämän Rime-skeemana, jossa on %1$d sanakirjamerkintä. Kirjoita tavut ja valitse sitten sanat ehdotuspalkista.</item>
+        <item quantity="other">Sovellus luki tämän Rime-skeemana, jossa on %1$d sanakirjamerkintää. Kirjoita tavut ja valitse sitten sanat ehdotuspalkista.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Sovellus luki tämän Rime-kooditaulukkona, jossa on %1$d merkintä. Kirjoita koodi ja valitse sitten merkki ehdotuspalkista.</item>
+        <item quantity="other">Sovellus luki tämän Rime-kooditaulukkona, jossa on %1$d merkintää. Kirjoita koodi ja valitse sitten merkki ehdotuspalkista.</item>
+    </plurals>
 </resources>

@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">संगणकावर AltGr की जी अक्षरे टाइप करते, तीच अक्षरे त्याच की दाबून धरल्यास टाइप होतात.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d डेड की संगणकावर पुढील अक्षरावर ॲक्सेंट ठेवते. येथे, त्या ॲक्सेंट असलेली अक्षरे प्रत्येक अक्षर दाबून धरल्यास मिळतात.</item>
+        <item quantity="other">%1$d डेड कीज संगणकावर पुढील अक्षरांवर ॲक्सेंट ठेवतात. येथे, त्या ॲक्सेंट असलेली अक्षरे प्रत्येक अक्षर दाबून धरल्यास मिळतात.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">ही फाईल इतर %1$d फाईलवर (%2$s) आधारित आहे जी तुम्ही उघडली नाही. फक्त त्या फाईलमध्ये सेट केलेल्या की गहाळ आहेत.</item>
+        <item quantity="other">ही फाईल इतर %1$d फाईल्सवर (%2$s) आधारित आहे ज्या तुम्ही उघडल्या नाहीत. फक्त त्या फाईल्समध्ये सेट केलेल्या की गहाळ आहेत.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">पूर्णविराम दाबून धरल्यास अक्षरे नसलेल्या की वरील %1$d अक्षर येते.</item>
+        <item quantity="other">पूर्णविराम दाबून धरल्यास अक्षरे नसलेल्या की वरील %1$d अक्षरे येतात.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">ॲपला फाइलमधील %1$d वर्णाचे नाव माहित नाही, म्हणून त्याने ते वगळले: %2$s.</item>
+        <item quantity="other">ॲपला फाइलमधील %1$d वर्णांची नावे माहित नाहीत, म्हणून त्याने ती वगळली: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">कीवर %1$d स्वाइपला येथे जागा नाही, कारण हा कीबोर्ड तो स्वाइप दुसऱ्या कामासाठी वापरतो. ॲपने ते काढून टाकले आहे.</item>
+        <item quantity="other">कीवर %1$d स्वाइपना येथे जागा नाही, कारण हा कीबोर्ड ते स्वाइप दुसऱ्या कामांसाठी वापरतो. ॲपने ते काढून टाकले आहेत.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">ॲपने %1$d की ला त्याच्या जवळच्या की मध्ये बदलले आहे.</item>
         <item quantity="other">ॲपने %1$d की ना त्यांच्या जवळच्या की मध्ये बदलले आहे.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">ॲपने %1$d अक्षरे अशा स्वरूपात बदलली आहेत जी हा कीबोर्ड लिहितो.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">ॲपने अंकांची ओळ काढून टाकली आहे. ती मिळवण्यासाठी \'लेआउट आणि आकार\' (Layout and size) मध्ये अंकांची ओळ चालू करा.</string>
+    <string name="core_lang_foreign_number_row_kept">फाइलची नंबर रो ही या लेआउटची नंबर रो आहे. \'लेआउट आणि आकार\' मध्ये नंबर रो चालू असताना ती दिसते.</string>
+    <string name="core_lang_foreign_pages_kept">फाईलची अतिरिक्त पाने, जसे की AltGr, या लेआउटची पाने आहेत. ती येथे उघडण्यासाठी दुसऱ्या कीबोर्डमध्ये ज्या की ने ती उघडली होती, तिथून स्वाइप करा.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d की ला प्रेस-अँड-होल्ड अक्षरे नाहीत. फाईल त्यांना दुसऱ्या फाईलमध्ये ठेवते जी तुम्ही उघडली नाही.</item>
         <item quantity="other">%1$d की ला प्रेस-अँड-होल्ड अक्षरे नाहीत. फाईल त्यांना दुसऱ्या फाईलमध्ये ठेवते जी तुम्ही उघडली नाही.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d की शिफ्ट स्थिती किंवा इतर कीबोर्डमधील फील्डसह बदलते. ॲपने ते स्थिर असताना कसे दिसते ते कायम ठेवले आहे.</item>
         <item quantity="other">%1$d कीज शिफ्ट स्थिती किंवा इतर कीबोर्डमधील फील्डसह बदलतात. ॲपने त्या स्थिर असताना कशा दिसतात ते कायम ठेवले आहे.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">फाईलमधील %1$d शिफ्ट केलेल्या पेजच्या की त्या शिफ्ट होणाऱ्या पेजपेक्षा वेगळ्या ठिकाणी आहेत. ॲप तिथे त्याऐवजी कॅपिटल अक्षरे वापरते.</item>
+        <item quantity="other">फाईलमधील %1$d शिफ्ट केलेल्या पेजेसच्या की त्या शिफ्ट होणाऱ्या पेजेसपेक्षा वेगळ्या ठिकाणी आहेत. ॲप तिथे त्याऐवजी कॅपिटल अक्षरे वापरते.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">दुसऱ्या कीबोर्डमध्ये शिफ्ट दाबलेले असताना %1$d की मध्ये वेगळी प्रेस-अँड-होल्ड अक्षरे आहेत. ॲपने अनशिफ्ट केलेली अक्षरे ठेवली आहेत.</item>
+        <item quantity="other">दुसऱ्या कीबोर्डमध्ये शिफ्ट दाबलेले असताना %1$d की मध्ये वेगळी प्रेस-अँड-होल्ड अक्षरे आहेत. ॲपने अनशिफ्ट केलेली अक्षरे ठेवली आहेत.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">दुसरा कीबोर्ड कीची रुंदी वेगळ्या प्रकारे मोजतो. ॲपने या ग्रिडमध्ये बसण्यासाठी रुंदी बदलली आहे.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

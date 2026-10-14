@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Глибоке море</string>
     <string name="core_theme_builtin_facet_label">Facet</string>
     <string name="core_theme_builtin_forest_label">Ліс</string>
+    <string name="core_theme_builtin_frost_label">Мороз</string>
+    <string name="core_theme_builtin_frost_light_label">Світлий іній</string>
+    <string name="core_theme_builtin_frost_liquid_label">Морозна рідина</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Морозні шпалери</string>
     <string name="core_theme_builtin_glacier_label">Льодовик</string>
     <string name="core_theme_builtin_mint_label">М\'ятний</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Сніг</string>
     <string name="core_theme_builtin_sunset_drift_label">Захід сонця</string>
     <string name="core_theme_builtin_sunset_label">Захід сонця</string>
+    <string name="core_theme_family_frost_label">Мороз</string>
     <string name="core_theme_family_gradient_label">Градієнти</string>
     <string name="core_theme_family_ocean_label">Настання ночі</string>
     <string name="core_theme_family_snow_label">Пастельний</string>
+    <string name="core_theme_palette_style_expressive">Виразний</string>
+    <string name="core_theme_palette_style_fidelity">Точність</string>
+    <string name="core_theme_palette_style_fruit_salad">Фруктовий салат</string>
+    <string name="core_theme_palette_style_monochrome">Монохромний</string>
+    <string name="core_theme_palette_style_neutral">Нейтральний</string>
+    <string name="core_theme_palette_style_rainbow">Веселка</string>
+    <string name="core_theme_palette_style_tonal_spot">Тональна пляма</string>
+    <string name="core_theme_palette_style_vibrant">Яскравий</string>
 </resources>

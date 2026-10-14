@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">КОД</string>
     <string name="core_content_clip_entity_phone_label">Номер телефону</string>
     <string name="core_content_clip_entity_phone_tag">ТЕЛЕФОН</string>
+    <string name="core_content_clip_entity_place_label">Місце</string>
+    <string name="core_content_clip_entity_place_tag">МІСЦЕ</string>
     <string name="core_content_clip_entity_url_label">Посилання</string>
     <string name="core_content_clip_entity_url_tag">ПОСИЛАННЯ</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Додаток не може зчитувати веб-шрифти WOFF. Використовуйте версію шрифту .ttf або .otf.</string>
     <string name="core_content_font_error_woff2">Додаток не може зчитувати веб-шрифти WOFF2. Використовуйте версію шрифту .ttf або .otf.</string>
     <string name="core_content_font_error_zip">Цей файл є zip-архівом, а не шрифтом.</string>
+    <string name="core_content_note_tag_ideas">Ідеї</string>
+    <string name="core_content_note_tag_important">Важливо</string>
+    <string name="core_content_note_tag_personal">Особисте</string>
+    <string name="core_content_note_tag_school">Навчання</string>
+    <string name="core_content_note_tag_study">Навчання</string>
+    <string name="core_content_note_tag_work">Робота</string>
     <string name="core_content_selection_macro_add_contact">Контакт</string>
     <string name="core_content_selection_macro_calendar">Календар</string>
     <string name="core_content_selection_macro_call">Виклик</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Прочитати</string>
     <string name="core_content_selection_macro_replace">Замінити</string>
+    <string name="core_content_selection_macro_save_note">Зберегти як нотатку</string>
     <string name="core_content_selection_macro_search">Пошук</string>
     <string name="core_content_selection_macro_share">Поділитися</string>
     <string name="core_content_selection_macro_sms">Повідомлення</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Перекласти</string>
     <string name="core_content_selection_macro_url_decode">Декодувати</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">У файлі також є %1$d слово без скорочення. Щоб додати його до своїх слів, відкрийте файл із Особистого словника.</item>
+        <item quantity="other">У файлі також є %1$d слів без скорочення. Щоб додати їх до своїх слів, відкрийте файл із Особистого словника.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Програма пропустила %2$d розширення з \"%1$s\".</item>
         <item quantity="other">Програма пропустила %2$d розширень з \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Додаток видалив шаблон з \"%1$s\". Він був довшим за %2$d символ.</item>
         <item quantity="other">Додаток видалив шаблон з \"%1$s\". Він був довшим за %2$d символів.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Додаток видалив %1$d рядок, у якому немає тексту.</item>
+        <item quantity="other">Додаток видалив %1$d рядків, у яких немає тексту.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Додаток скоротив \"%1$s\". Він був довшим за %2$d символ.</item>
         <item quantity="other">Додаток скоротив \"%1$s\". Він був довшим за %2$d символів.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Додаток видалив %1$d тригер, який клавіатура не може відстежувати. Його фрагмент залишається у списку.</item>
+        <item quantity="other">Додаток видалив %1$d тригерів, які клавіатура не може відстежувати. Їхні фрагменти залишаються у списку.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Назва програми, у якій ви вводите текст</string>
     <string name="core_content_snippet_var_clip_info">Останній запис буфера обміну</string>

@@ -3,8 +3,34 @@
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
     <string name="ftools_ai_stream_error">AI પ્રદાતાએ ભૂલ સાથે પ્રતિસાદ સમાપ્ત કર્યો</string>
+    <string name="ftools_ai_tool_failed">ટૂલ નિષ્ફળ ગયું: %1$s. તેને સમાન ઇનપુટ સાથે ફરીથી કૉલ કરશો નહીં.</string>
+    <string name="ftools_ai_tool_missing_argument">કોલમાં જરૂરી \"%1$s\" વેલ્યુ રહી ગઈ છે.</string>
+    <string name="ftools_ai_tool_no_results">કોઈ પરિણામ નથી.</string>
+    <string name="ftools_ai_tool_no_search">આ કીબોર્ડમાં વેબ સર્ચ સેટ કરેલ નથી, તેથી શોધવું શક્ય નથી. તમે જે પહેલેથી જાણો છો તેનાથી જવાબ આપો અને કહો કે તમે શોધી શક્યા નથી.</string>
+    <string name="ftools_ai_tool_reason_bad_url">આ એવું વેબ સરનામું નથી જે કીબોર્ડ ખોલશે</string>
+    <string name="ftools_ai_tool_reason_missing">મોડેલે %1$s ને બાકાત રાખ્યું છે</string>
+    <string name="ftools_ai_tool_reason_no_search">વેબ સર્ચ સેટઅપ કરેલ નથી</string>
+    <string name="ftools_ai_tool_reason_unknown">મોડેલે એવા ટૂલ માટે પૂછ્યું જે અસ્તિત્વમાં નથી</string>
+    <string name="ftools_ai_tool_truncated">[પૃષ્ઠ આ બિંદુથી આગળ વધે છે અને તેને કાપી નાખવામાં આવ્યું હતું]</string>
+    <string name="ftools_ai_tool_unknown">%1$s નામનું કોઈ સાધન નથી.</string>
+    <string name="ftools_mcp_declined">વપરાશકર્તાએ આ કૉલની મંજૂરી આપી નથી. આ જવાબમાં ફરીથી આ ટૂલને કૉલ કરશો નહીં. તેના વિના જવાબ આપો અને તમે શું કરી શક્યા નથી તે જણાવો.</string>
+    <string name="ftools_mcp_empty">ટૂલ ચાલ્યું અને કંઈપણ પાછું મોકલ્યું નથી.</string>
+    <string name="ftools_mcp_error_needs_input">સર્વરે વધુ ઇનપુટ માંગ્યું છે, અને કીબોર્ડ હજુ તે આપી શકતું નથી.</string>
+    <string name="ftools_mcp_error_no_version">આ સર્વર MCP ના એવા સંસ્કરણનો ઉપયોગ કરે છે જે કીબોર્ડ જાણતું નથી.</string>
+    <string name="ftools_mcp_error_not_mcp">આ સરનામે MCP સર્વરની જેમ જવાબ આપ્યો નથી. સરનામું અને પ્રકાર તપાસો.</string>
+    <string name="ftools_mcp_error_server">સર્વરે ભૂલ મોકલી: %1$s</string>
+    <string name="ftools_mcp_error_sign_in">આ સર્વરને તમારે સાઇન ઇન કરવાની જરૂર છે, અને કીબોર્ડ હજી તે કરી શકતું નથી. જો સર્વર ટોકન્સ અથવા કી આપે છે, તો હેડર તરીકે એક ઉમેરો.</string>
+    <string name="ftools_mcp_omitted">[ટૂલે એવી સામગ્રી પણ મોકલી છે જે તમે અહીં વાંચી શકતા નથી: %1$s]</string>
+    <string name="ftools_mcp_reason_declined">તમે તેને મંજૂરી આપી નથી</string>
+    <string name="ftools_mcp_reason_stopped">ચાલતા પહેલા અટકી ગયું</string>
+    <string name="ftools_mcp_reason_tool_error">ટૂલે ભૂલની જાણ કરી છે</string>
+    <string name="ftools_mcp_stopped">કૉલ ચાલે તે પહેલાં જ રદ કરવામાં આવ્યો હતો.</string>
+    <string name="ftools_mcp_tool_error">ટૂલે એક ભૂલ જણાવી: %1$s</string>
+    <string name="ftools_mcp_truncated">[જવાબ આ બિંદુથી આગળ વધે છે અને તેને કાપી નાખવામાં આવ્યો હતો]</string>
     <string name="ftools_photo_error_failed">એપ ફોટા મેળવી શકી નથી</string>
     <string name="ftools_photo_error_offline">એપ ફોટો સર્વિસ સુધી પહોંચી શકતી નથી. તમારું નેટવર્ક તપાસો અને ફરી પ્રયાસ કરો.</string>
     <string name="ftools_photo_error_timeout">ફોટો સેવાને જવાબ આપવામાં ઘણો સમય લાગ્યો</string>
     <string name="ftools_search_error_json_disabled">આ SearXNG ઇન્સ્ટન્સે તેનું JSON API સક્ષમ કર્યું નથી. તેની settings.yml ફાઇલમાં search.formats માં &lt;b&gt;json&lt;/b&gt; ઉમેરો, અથવા અન્ય ઇન્સ્ટન્સનો ઉપયોગ કરો.</string>
+    <string name="ftools_search_error_searx_limited">આ SearXNG ઇન્સ્ટન્સ અત્યારે એપ્સને નકારી રહ્યું છે (HTTP 429). સાર્વજનિક ઇન્સ્ટન્સ બ્રાઉઝર સિવાયની વિનંતીઓને મર્યાદિત કરે છે. પછીથી ફરી પ્રયાસ કરો, અથવા તમારા પોતાના ઇન્સ્ટન્સનો ઉપયોગ કરો અથવા જે તેના JSON API ને મંજૂરી આપે છે તેનો ઉપયોગ કરો.</string>
+    <string name="ftools_web_fetch_bad_url">આ એવું વેબ સરનામું નથી જે આ કીબોર્ડ ખોલી શકે. સંપૂર્ણ http:// અથવા https:// સરનામું આપો.</string>
 </resources>

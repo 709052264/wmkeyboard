@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">התווים שמקש AltGr מקליד במחשב זמינים על ידי לחיצה ממושכת על אותם המקשים.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d מקש מת מוסיף סימן דיאקריטי לאות הבאה במחשב. כאן, האותיות עם הסימן הזה נמצאות בלחיצה ארוכה על כל אות.</item>
+        <item quantity="other">%1$d מקשים מתים מוסיפים סימנים דיאקריטיים לאות הבאה במחשב. כאן, האותיות עם הסימנים האלה נמצאות בלחיצה ארוכה על כל אות.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">הקובץ מתבסס על קובץ אחד נוסף (%2$s) שלא פתחת. מפתחות שמוגדרים רק בקובץ ההוא חסרים.</item>
+        <item quantity="other">הקובץ מתבסס על %1$d קבצים נוספים (%2$s) שלא פתחת. מפתחות שמוגדרים רק בקבצים ההם חסרים.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d תו ממקש ללא אותיות עליו נמצא בלחיצה ארוכה על הנקודה.</item>
+        <item quantity="other">%1$d תווים ממקשים ללא אותיות עליהם נמצאים בלחיצה ארוכה על הנקודה.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">האפליקציה לא מזהה שם של תו אחד בקובץ, לכן הוא הושמט: %2$s.</item>
+        <item quantity="other">האפליקציה לא מזהה %1$d שמות של תווים בקובץ, לכן הם הושמטו: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">ל-%1$d החלקה על מקש אין מקום כאן, מכיוון שהמקלדת משתמשת בהחלקה זו למשימה אחרת. האפליקציה הסירה אותה.</item>
+        <item quantity="other">ל-%1$d החלקות על מקשים אין מקום כאן, מכיוון שהמקלדת משתמשת בהחלקות אלו למשימות אחרות. האפליקציה הסירה אותן.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">האפליקציה שינתה מקש %1$d למקש הקרוב ביותר שיש לה.</item>
         <item quantity="other">האפליקציה שינתה %1$d מקשים למקשים הקרובים ביותר שיש לה.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">האפליקציה שינתה %1$d אותיות לצורה שהמקלדת הזו כותבת.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">האפליקציה הסירה את שורת המספרים. הפעל את שורת המספרים ב\'פריסה וגודל\' כדי לקבל אחת.</string>
+    <string name="core_lang_foreign_number_row_kept">שורת המספרים של הקובץ היא שורת המספרים של פריסה זו. היא מוצגת כאשר שורת המספרים מופעלת ב\'פריסה וגודל\'.</string>
+    <string name="core_lang_foreign_pages_kept">הדפים הנוספים של הקובץ, כגון AltGr, הם דפים של פריסה זו. החלק מהמקש שפתח אותם במקלדת השנייה כדי לפתוח אותם כאן.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">ל-%1$d מקש אין אותיות בלחיצה ארוכה. הקובץ שומר אותן בקובץ שני שלא פתחת.</item>
         <item quantity="other">ל-%1$d מקשים אין אותיות בלחיצה ארוכה. הקובץ שומר אותן בקובץ שני שלא פתחת.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d מקש משתנה עם מצב ה-Shift או השדה במקלדת השנייה. האפליקציה שמרה על המראה שלו במצב מנוחה.</item>
         <item quantity="other">%1$d מקשים משתנים עם מצב ה-Shift או השדה במקלדת השנייה. האפליקציה שמרה על המראה שלהם במצב מנוחה.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">עמוד אחד מוסט בקובץ מכיל את המפתחות שלו במקומות אחרים מאשר העמוד שהוא מסיט. האפליקציה משתמשת שם באותיות גדולות במקום.</item>
+        <item quantity="other">%1$d עמודים מוסטים בקובץ מכילים את המפתחות שלהם במקומות אחרים מאשר העמודים שהם מסיטים. האפליקציה משתמשת שם באותיות גדולות במקום.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">ל-%1$d מקש יש אותיות לחיצה ממושכת שונות בזמן ש-Shift לחוץ במקלדת השנייה. האפליקציה שמרה על אלו ללא Shift.</item>
+        <item quantity="other">ל-%1$d מקשים יש אותיות לחיצה ממושכת שונות בזמן ש-Shift לחוץ במקלדת השנייה. האפליקציה שמרה על אלו ללא Shift.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">המקלדת האחרת מודדת רוחב מקשים בצורה שונה. האפליקציה שינתה את הרוחב כדי להתאים לרשת זו.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

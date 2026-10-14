@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">コンピュータでAltGrキーを使って入力する文字は、同じキーを長押しすることで入力できます。</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">コンピュータでは、%1$dつのデッドキーで次の文字にアクセントを付けます。ここでは、各文字を長押しすることでアクセント付き文字を入力できます。</item>
+        <item quantity="other">コンピュータでは、%1$dつのデッドキーで次の文字にアクセントを付けます。ここでは、各文字を長押しすることでアクセント付き文字を入力できます。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">このファイルは、開いていない他の1つのファイル(%2$s)に基づいています。そのファイルのみで設定されているキーが欠落しています。</item>
+        <item quantity="other">このファイルは、開いていない他の%1$d個のファイル(%2$s)に基づいています。それらのファイルのみで設定されているキーが欠落しています。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">ピリオドを長押しすると、文字が割り当てられていないキーから%1$d文字が入力されます。</item>
+        <item quantity="other">ピリオドを長押しすると、文字が割り当てられていないキーから%1$d文字が入力されます。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">ファイル内の%1$d個の文字名が不明なため、除外されました: %2$s。</item>
+        <item quantity="other">ファイル内の%1$d個の文字名が不明なため、除外されました: %2$s。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">キー上の1回のスワイプは、このキーボードでは別の機能に使用されているため、ここには配置できません。アプリによって削除されました。</item>
+        <item quantity="other">キー上の%1$d回のスワイプは、このキーボードでは他の機能に使用されているため、ここには配置できません。アプリによって削除されました。</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">アプリが%1$d個のキーを、利用可能な最も近いキーに変更しました。</item>
         <item quantity="other">アプリが%1$d個のキーを、利用可能な最も近いキーに変更しました。</item>
@@ -23,6 +44,8 @@
         <item quantity="other">アプリが %1$d 文字をこのキーボードの書き方に変更しました。</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">アプリが数字の列を削除しました。数字の列を表示するには、「レイアウトとサイズ」で数字の列をオンにしてください。</string>
+    <string name="core_lang_foreign_number_row_kept">ファイルの数字行は、このレイアウトの数字行です。「レイアウトとサイズ」で数字行がオンになっている間に表示されます。</string>
+    <string name="core_lang_foreign_pages_kept">AltGrなどのファイルの追加ページは、このレイアウトのページです。他のキーボードでそれらを開いたキーからスワイプすると、ここで開くことができます。</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d 個のキーに長押し用の文字がありません。それらは開いていない別のファイルに保存されています。</item>
         <item quantity="other">%1$d 個のキーに長押し用の文字がありません。それらは開いていない別のファイルに保存されています。</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d個のキーが、他のキーボードのシフト状態やフィールドに応じて変化します。アプリは静止時の見た目を維持しました。</item>
         <item quantity="other">%1$d個のキーが、他のキーボードのシフト状態やフィールドに応じて変化します。アプリは静止時の見た目を維持しました。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">ファイル内のシフトされたページ %1$d つにおいて、キーがシフト対象のページとは異なる場所にあります。代わりに大文字が使用されます。</item>
+        <item quantity="other">ファイル内のシフトされたページ %1$d つにおいて、キーがシフト対象のページとは異なる場所にあります。代わりに大文字が使用されます。</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">他のキーボードでShiftキーを押した際に、%1$d個のキーの長押し文字が異なります。アプリはShiftを押さない状態の文字を保持しました。</item>
+        <item quantity="other">他のキーボードでShiftキーを押した際に、%1$d個のキーの長押し文字が異なります。アプリはShiftを押さない状態の文字を保持しました。</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">他のキーボードはキー幅の測定方法が異なります。アプリはこのグリッドに合わせて幅を変更しました。</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

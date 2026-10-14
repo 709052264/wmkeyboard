@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">जापानी काना से कांजी शब्दकोश</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Hanzi वर्णों के लिए Jyutping रीडिंग की एक तालिका, 163,000 प्रविष्टियाँ। कैंटोनीज़ रूपांतरण के लिए कीबोर्ड को इस पैक की आवश्यकता है।</string>
     <string name="core_input_cjk_pack_jyutping_title">कैंटोनीज़ ज्युटपिंग शब्दकोश</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">चीनी वेब और समाचार टेक्स्ट से गिने गए शब्द, कि कौन सा शब्द किसके बाद आता है। यह पिनयिन शब्दकोश के साथ आता है। इसके साथ, wbxh जैसे शुरुआती अक्षर \'我不喜欢\' देते हैं, न कि दो असंबंधित शब्द।</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">चीनी शब्द जोड़े</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">CC-CEDICT से हन्ज़ी अक्षर और वाक्यांश, 120,000 प्रविष्टियाँ। चीनी रूपांतरण के लिए कीबोर्ड को इस पैक की आवश्यकता है।</string>
     <string name="core_input_cjk_pack_pinyin_title">चीनी पिनयिन शब्दकोश</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">OpenCC से वाक्यांश, 50,000 प्रविष्टियाँ, लगभग 1 MB। पारंपरिक वर्ण चालू होने पर, कीबोर्ड इसका उपयोग शब्द के सही रूप को लिखने के लिए करता है, जैसे कि 頭發 के बजाय 頭髮।</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">पारंपरिक वर्ण वाक्यांश तालिका</string>
     <string name="core_input_cjk_pack_stroke_subtitle">हांज़ी वर्णों के लिए स्ट्रोक क्रम की एक तालिका। कीबोर्ड को स्ट्रोक लेआउट के लिए इस पैक की आवश्यकता है।</string>
     <string name="core_input_cjk_pack_stroke_title">चीनी स्ट्रोक (笔画) शब्दकोश</string>
+    <string name="core_input_double_pinyin_custom_label">कस्टम</string>
     <string name="core_input_double_pinyin_off_label">बंद (पूर्ण पिनयिन)</string>
+    <string name="core_input_im_note_candidates">कुछ कुंजियों के लिए यह विधि विकल्पों की एक सूची देती है। कीबोर्ड हमेशा पहले विकल्प का उपयोग करता है।</string>
+    <string name="core_input_im_note_missing_files">ये फाइलें नहीं चुनी गई थीं, इसलिए उनका हिस्सा गायब है: %1$s। उन्हें शामिल करने के लिए, फिर से आयात करें और उन्हें एक साथ चुनें।</string>
+    <string name="core_input_im_note_module">यह विधि एक प्लग-इन का उपयोग करती है, जैसे कि Anthy, जिसे कीबोर्ड नहीं चला सकता। इसका उपयोग करने वाली कुंजियाँ यहाँ कुछ नहीं करती हैं।</string>
+    <string name="core_input_im_note_other_method">यह विधि कुछ कुंजियाँ किसी अन्य इनपुट विधि को देती है। वह भाग यहाँ काम नहीं करता है।</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">ऐप %1$d वर्तनी नियम नहीं पढ़ सकता, इसलिए यह इसे छोड़ देता है।</item>
+        <item quantity="other">ऐप %1$d वर्तनी नियम नहीं पढ़ सकता, इसलिए यह उन्हें छोड़ देता है।</item>
+    </plurals>
+    <string name="core_input_im_note_space">यह विधि स्पेस बार का उपयोग एक कुंजी के रूप में करती है, उदाहरण के लिए टोन के लिए। यहाँ स्पेस बार हमेशा एक स्पेस टाइप करता है।</string>
+    <string name="core_input_im_note_truncated">तालिका बहुत बड़ी है, इसलिए ऐप ने केवल उसका पहला भाग रखा है।</string>
+    <string name="core_input_im_note_unused_files">ऐप ने इन फ़ाइलों का उपयोग नहीं किया: %1$s।</string>
+    <string name="core_input_im_refused_broken">फ़ाइल में एक त्रुटि है, इसलिए ऐप इसे पढ़ नहीं सकता: %1$s</string>
+    <string name="core_input_im_refused_empty">फ़ाइल में टाइप करने के लिए कुछ भी नहीं है।</string>
+    <string name="core_input_im_refused_no_dictionary">स्कीमा को अपने शब्दकोश की आवश्यकता है। फिर से आयात करें और %1$s भी चुनें।</string>
+    <string name="core_input_im_refused_not_method">ऐप इसे इनपुट विधि के रूप में नहीं पढ़ सकता है। यह .cin टेबल, Rime स्कीमा और शब्दकोश (.schema.yaml, .dict.yaml), और m17n .mim फ़ाइलों को पढ़ता है।</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">ऐप ने इसे %1$d प्रविष्टि वाली .cin तालिका के रूप में पढ़ा। एक कोड टाइप करें, फिर सुझाव पट्टी से वर्ण चुनें।</item>
+        <item quantity="other">ऐप ने इसे %1$d प्रविष्टियों वाली .cin तालिका के रूप में पढ़ा। एक कोड टाइप करें, फिर सुझाव पट्टी से वर्ण चुनें।</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">ऐप ने इसे %1$d नियम के साथ m17n इनपुट विधि के रूप में पढ़ा। कुंजियाँ टाइप करते ही टेक्स्ट लिख देती हैं।</item>
+        <item quantity="other">ऐप ने इसे %1$d नियमों के साथ m17n इनपुट विधि के रूप में पढ़ा। कुंजियाँ टाइप करते ही टेक्स्ट लिख देती हैं।</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">ऐप ने इसे %1$d शब्दकोश प्रविष्टि वाले Rime स्कीमा के रूप में पढ़ा है। शब्दांश टाइप करें, फिर सुझाव पट्टी से शब्द चुनें।</item>
+        <item quantity="other">ऐप ने इसे %1$d शब्दकोश प्रविष्टियों वाले Rime स्कीमा के रूप में पढ़ा है। शब्दांश टाइप करें, फिर सुझाव पट्टी से शब्द चुनें।</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">ऐप ने इसे %1$d प्रविष्टि के साथ एक राइम कोड टेबल के रूप में पढ़ा। एक कोड टाइप करें, फिर सुझाव पट्टी से अक्षर चुनें।</item>
+        <item quantity="other">ऐप ने इसे %1$d प्रविष्टियों के साथ एक राइम कोड टेबल के रूप में पढ़ा। एक कोड टाइप करें, फिर सुझाव पट्टी से अक्षर चुनें。</item>
+    </plurals>
 </resources>

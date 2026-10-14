@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Alhaalla oikealla</string>
     <string name="core_settings_board_corner_top_left_label">Ylävasen</string>
     <string name="core_settings_board_corner_top_right_label">Oikea yläkulma</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Vasen kiinnittää, oikea poistaa</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Poisto molempiin suuntiin</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Oikealle kiinnitys, vasemmalle poisto</string>
     <string name="core_settings_clip_time_copied_label">Kopiointiaika</string>
     <string name="core_settings_clip_time_expires_label">Aikaa jäljellä</string>
     <string name="core_settings_clip_time_off_label">Ei mitään</string>

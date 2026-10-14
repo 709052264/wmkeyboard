@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Simboliai, kuriuos kompiuteryje įveda „AltGr“ klavišas, yra pasiekiami paspaudus ir palaikius tuos pačius klavišus.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d negyvas klavišas kompiuteryje uždeda akcentą ant kitos raidės. Čia raidės su tuo akcentu pasiekiamos paspaudus ir palaikius kiekvieną raidę.</item>
+        <item quantity="other">%1$d negyvų klavišų kompiuteryje uždeda akcentus ant kitos raidės. Čia raidės su tais akcentais pasiekiamos paspaudus ir palaikius kiekvieną raidę.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Failas remiasi %1$d kitu failu (%2$s), kurio neatidarėte. Trūksta klavišų, kuriuos nustato tik tas failas.</item>
+        <item quantity="other">Failas remiasi %1$d kitais failais (%2$s), kurių neatidarėte. Trūksta klavišų, kuriuos nustato tik tie failai.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d simbolis iš klavišo be raidžių yra paspaudus ir palaikius tašką.</item>
+        <item quantity="other">%1$d simboliai iš klavišų be raidžių yra paspaudus ir palaikius tašką.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Programa nežino %1$d simbolio pavadinimo faile, todėl jį praleido: %2$s.</item>
+        <item quantity="other">Programa nežino %1$d simbolių pavadinimų faile, todėl juos praleido: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d perbraukimas klavišu čia netinka, nes ši klaviatūra tą perbraukimą naudoja kitam veiksmui. Programa jį pašalino.</item>
+        <item quantity="other">%1$d perbraukimai klavišais čia netinka, nes ši klaviatūra tuos perbraukimus naudoja kitiems veiksmams. Programa juos pašalino.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Programa pakeitė %1$d klavišą į artimiausią turimą.</item>
         <item quantity="other">Programa pakeitė %1$d klavišų į artimiausius turimus.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Programa pakeitė %1$d raides į formą, kurią rašo ši klaviatūra.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Programa pašalino skaičių eilutę. Įjunkite skaičių eilutę skiltyje „Išdėstymas ir dydis“, kad ją gautumėte.</string>
+    <string name="core_lang_foreign_number_row_kept">Failo skaičių eilutė yra šio išdėstymo skaičių eilutė. Ji rodoma, kai skaičių eilutė įjungta skiltyje „Išdėstymas ir dydis“.</string>
+    <string name="core_lang_foreign_pages_kept">Papildomi failo puslapiai, pvz., „AltGr“, yra šio išdėstymo puslapiai. Braukite nuo klavišo, kuris juos atidarė kitoje klaviatūroje, kad atidarytumėte juos čia.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d klavišas neturi paspaudžiamų ir palaikomų raidžių. Failas jas saugo antrame faile, kurio neatidarėte.</item>
         <item quantity="other">%1$d klavišai neturi paspaudžiamų ir palaikomų raidžių. Failas jas saugo antrame faile, kurio neatidarėte.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d klavišas keičiasi priklausomai nuo didžiosios raidės būsenos arba lauko kitoje klaviatūroje. Programa išlaikė jų išvaizdą ramybės būsenoje.</item>
         <item quantity="other">%1$d klavišai keičiasi priklausomai nuo didžiosios raidės būsenos arba lauko kitoje klaviatūroje. Programa išlaikė jų išvaizdą ramybės būsenoje.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d paslinktas failo puslapis turi klavišus kitose vietose nei puslapis, kurį jis paslenka. Programa ten naudoja didžiąsias raides.</item>
+        <item quantity="other">%1$d paslinktų failo puslapių turi klavišus kitose vietose nei puslapiai, kuriuos jie paslenka. Programa ten naudoja didžiąsias raides.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d klavišas turi kitas paspaudimo ir palaikymo raides, kai kitoje klaviatūroje įjungtas „Shift“. Programa išsaugojo nepaslinktas raides.</item>
+        <item quantity="other">%1$d klavišai turi kitas paspaudimo ir palaikymo raides, kai kitoje klaviatūroje įjungtas „Shift“. Programa išsaugojo nepaslinktas raides.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Kita klaviatūra klavišų plotį matuoja kitaip. Programa pakeitė plotį, kad jis atitiktų šį tinklelį.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

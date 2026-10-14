@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Märgid, mida AltGr-klahv arvutis trükib, on samade klahvide all hoidmisel.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d surnud klahv lisab arvutis järgmisele tähele rõhumärgi. Siin on nende rõhumärkidega tähed saadaval iga tähe pika vajutusega.</item>
+        <item quantity="other">%1$d surnud klahvi lisavad arvutis järgmisele tähele rõhumärgid. Siin on nende rõhumärkidega tähed saadaval iga tähe pika vajutusega.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Fail põhineb %1$d muul failil (%2$s), mida te ei avanud. Võtmed, mida määrab ainult see fail, on puudu.</item>
+        <item quantity="other">Fail põhineb %1$d muul failil (%2$s), mida te ei avanud. Võtmed, mida määravad ainult need failid, on puudu.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d märk klahvilt, millel pole tähti, on punktiklahvi pika vajutuse all.</item>
+        <item quantity="other">%1$d märki klahvidelt, millel pole tähti, on punktiklahvi pika vajutuse all.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Rakendus ei tunne failis %1$d märgi nime, seega jättis selle välja: %2$s.</item>
+        <item quantity="other">Rakendus ei tunne failis %1$d märgi nime, seega jättis need välja: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d libistamine klahvil ei sobi siia, sest see klaviatuur kasutab seda libistamist muuks otstarbeks. Rakendus eemaldas selle.</item>
+        <item quantity="other">%1$d libistamist klahvidel ei sobi siia, sest see klaviatuur kasutab neid libistamisi muuks otstarbeks. Rakendus eemaldas need.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Rakendus muutis %1$d klahvi lähimaks olemasolevaks klahviks.</item>
         <item quantity="other">Rakendus muutis %1$d klahvi lähimateks olemasolevateks klahvideks.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Rakendus muutis %1$d tähte selliseks, mida see klaviatuur kirjutab.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Rakendus eemaldas numbrirea. Numbrirea saamiseks lülita see sisse Paigutuse ja suuruse all.</string>
+    <string name="core_lang_foreign_number_row_kept">Faili numbririda on selle paigutuse numbririda. See kuvatakse, kui numbririda on sätetes „Paigutus ja suurus“ sisse lülitatud.</string>
+    <string name="core_lang_foreign_pages_kept">Faili lisalehed, nagu AltGr, on selle paigutuse lehed. Nende siin avamiseks libistage sõrmega klahvilt, mis need teises klaviatuuris avas.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d klahvil pole vajutades-ja-hoides tähti. Fail hoiab neid teises failis, mida te ei avanud.</item>
         <item quantity="other">%1$d klahvil pole vajutades-ja-hoides tähti. Fail hoiab neid teises failis, mida te ei avanud.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d klahv muutub koos tõstuklahvi olekuga või väljaga teises klaviatuuris. Rakendus säilitas selle välimuse puhkeolekus.</item>
         <item quantity="other">%1$d klahvi muutuvad koos tõstuklahvi olekuga või väljaga teises klaviatuuris. Rakendus säilitas nende välimuse puhkeolekus.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d nihutatud lehel failis on klahvid mujal kui lehel, mida see nihutab. Rakendus kasutab seal selle asemel suurtähti.</item>
+        <item quantity="other">%1$d nihutatud lehel failis on klahvid mujal kui lehtedel, mida need nihutavad. Rakendus kasutab seal selle asemel suurtähti.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d klahvil on teises klaviatuuris Shift-klahvi all hoides erinevad pikalt vajutamise tähed. Rakendus säilitas nihutamata tähed.</item>
+        <item quantity="other">%1$d klahvil on teises klaviatuuris Shift-klahvi all hoides erinevad pikalt vajutamise tähed. Rakendus säilitas nihutamata tähed.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Teine klaviatuur mõõdab klahvide laiust teisiti. Rakendus muutis laiused selle ruudustikuga sobivaks.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

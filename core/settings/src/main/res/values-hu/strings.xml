@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Jobb alsó</string>
     <string name="core_settings_board_corner_top_left_label">Bal felső</string>
     <string name="core_settings_board_corner_top_right_label">Jobb felső</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Balra rögzítés, jobbra törlés</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Mindkét irányban törlés</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Jobbra rögzítés, balra törlés</string>
     <string name="core_settings_clip_time_copied_label">Másolás ideje</string>
     <string name="core_settings_clip_time_expires_label">Hátralévő idő</string>
     <string name="core_settings_clip_time_off_label">Nincs</string>

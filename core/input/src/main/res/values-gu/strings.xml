@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">જાપાનીઝ કાના થી કાંજી શબ્દકોશ</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Hanzi અક્ષરો માટે Jyutping રીડિંગ્સનું ટેબલ, 163,000 એન્ટ્રીઓ. કેન્ટોનીઝ રૂપાંતરણ માટે કીબોર્ડને આ પેકની જરૂર છે.</string>
     <string name="core_input_cjk_pack_jyutping_title">કેન્ટોનીઝ જ્યુટપિંગ શબ્દકોશ</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">ચાઇનીઝ વેબ અને ન્યૂઝ ટેક્સ્ટમાંથી ગણતરી કરેલા કયા શબ્દો પછી કયા શબ્દો આવે છે. પિનયિન ડિક્શનરી સાથે આવે છે. તેની સાથે, wbxh જેવા ઇનિશિયલ્સ પહેલા 我不喜欢 આપે છે, બે અસંબંધિત શબ્દો નહીં.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">ચાઇનીઝ શબ્દ જોડીઓ</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">CC-CEDICT માંથી હાનઝી અક્ષરો અને શબ્દસમૂહો, 120,000 એન્ટ્રીઓ. ચાઇનીઝ રૂપાંતરણ માટે કીબોર્ડને આ પેકની જરૂર છે.</string>
     <string name="core_input_cjk_pack_pinyin_title">ચાઈનીઝ પિનયિન ડિક્શનરી</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">OpenCC માંથી શબ્દસમૂહો, 50,000 એન્ટ્રીઓ, લગભગ 1 MB. પરંપરાગત અક્ષરો ચાલુ હોવાથી, કીબોર્ડ તેનો ઉપયોગ શબ્દ માટે સાચું સ્વરૂપ લખવા માટે કરે છે, જેમ કે 頭髮 અને 頭發 નહીં.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">પરંપરાગત અક્ષરોનું શબ્દસમૂહ કોષ્ટક</string>
     <string name="core_input_cjk_pack_stroke_subtitle">હાનઝી અક્ષરો માટે સ્ટ્રોક ઓર્ડરનું ટેબલ. કીબોર્ડને સ્ટ્રોક લેઆઉટ માટે આ પેકની જરૂર છે.</string>
     <string name="core_input_cjk_pack_stroke_title">ચાઇનીઝ સ્ટ્રોક (笔画) શબ્દકોશ</string>
+    <string name="core_input_double_pinyin_custom_label">કસ્ટમ</string>
     <string name="core_input_double_pinyin_off_label">બંધ (સંપૂર્ણ પિનયિન)</string>
+    <string name="core_input_im_note_candidates">કેટલીક કી માટે આ પદ્ધતિ પસંદગીઓની સૂચિ આપે છે. કીબોર્ડ હંમેશા પ્રથમ પસંદગીનો ઉપયોગ કરે છે.</string>
+    <string name="core_input_im_note_missing_files">આ ફાઇલો પસંદ કરવામાં આવી ન હતી, તેથી તેનો ભાગ ખૂટે છે: %1$s. તેને સામેલ કરવા માટે, ફરીથી આયાત કરો અને તેમને સાથે પસંદ કરો.</string>
+    <string name="core_input_im_note_module">આ પદ્ધતિ Anthy જેવા પ્લગ-ઇનનો ઉપયોગ કરે છે, જેને કીબોર્ડ ચલાવી શકતું નથી. જે કી તેનો ઉપયોગ કરે છે તે અહીં કંઈ કરતી નથી.</string>
+    <string name="core_input_im_note_other_method">આ પદ્ધતિ અન્ય ઇનપુટ પદ્ધતિને કેટલીક કી આપે છે. તે ભાગ અહીં કામ કરતું નથી.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">એપ %1$d સ્પેલિંગ નિયમ વાંચી શકતી નથી, તેથી તે તેને છોડી દે છે.</item>
+        <item quantity="other">એપ %1$d સ્પેલિંગ નિયમો વાંચી શકતી નથી, તેથી તે તેમને છોડી દે છે.</item>
+    </plurals>
+    <string name="core_input_im_note_space">આ પદ્ધતિ સ્પેસ બારનો ઉપયોગ કી તરીકે કરે છે, ઉદાહરણ તરીકે ટોન માટે. અહીં સ્પેસ બાર હંમેશા સ્પેસ ટાઈપ કરે છે.</string>
+    <string name="core_input_im_note_truncated">ટેબલ ખૂબ મોટું છે, તેથી એપ્લિકેશને ફક્ત તેનો પ્રથમ ભાગ જ રાખ્યો છે.</string>
+    <string name="core_input_im_note_unused_files">એપે આ ફાઇલોનો ઉપયોગ કર્યો નથી: %1$s.</string>
+    <string name="core_input_im_refused_broken">ફાઇલમાં ભૂલ છે, તેથી એપ્લિકેશન તેને વાંચી શકતી નથી: %1$s</string>
+    <string name="core_input_im_refused_empty">ફાઇલમાં ટાઇપ કરવા માટે કંઈ નથી.</string>
+    <string name="core_input_im_refused_no_dictionary">સ્કીમાને તેના શબ્દકોશની જરૂર છે. ફરીથી આયાત કરો અને %1$s પણ પસંદ કરો.</string>
+    <string name="core_input_im_refused_not_method">એપ તેને ઇનપુટ પદ્ધતિ તરીકે વાંચી શકતી નથી. તે .cin ટેબલ્સ, Rime સ્કીમા અને શબ્દકોશો (.schema.yaml, .dict.yaml), અને m17n .mim ફાઇલો વાંચે છે.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">એપે આને %1$d એન્ટ્રી સાથેની .cin ટેબલ તરીકે વાંચ્યું છે. કોડ ટાઈપ કરો, પછી સૂચન પટ્ટીમાંથી અક્ષર પસંદ કરો.</item>
+        <item quantity="other">એપે આને %1$d એન્ટ્રીઓ સાથેની .cin ટેબલ તરીકે વાંચ્યું છે. કોડ ટાઈપ કરો, પછી સૂચન પટ્ટીમાંથી અક્ષર પસંદ કરો.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">એપે આને %1$d નિયમ સાથે m17n ઇનપુટ પદ્ધતિ તરીકે વાંચ્યું છે. તમે ટાઇપ કરો તેમ કી લખાણ લખે છે.</item>
+        <item quantity="other">એપે આને %1$d નિયમો સાથે m17n ઇનપુટ પદ્ધતિ તરીકે વાંચ્યું છે. તમે ટાઇપ કરો તેમ કી લખાણ લખે છે.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">એપે આને %1$d ડિક્શનરી એન્ટ્રી સાથે Rime સ્કીમા તરીકે વાંચ્યું છે. સિલેબલ ટાઈપ કરો, પછી સૂચન પટ્ટીમાંથી શબ્દો પસંદ કરો.</item>
+        <item quantity="other">એપે આને %1$d ડિક્શનરી એન્ટ્રીઓ સાથે Rime સ્કીમા તરીકે વાંચ્યું છે. સિલેબલ ટાઈપ કરો, પછી સૂચન પટ્ટીમાંથી શબ્દો પસંદ કરો.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">એપે આને %1$d એન્ટ્રી સાથે Rime કોડ ટેબલ તરીકે વાંચ્યું છે. એક કોડ ટાઈપ કરો, પછી સૂચન પટ્ટીમાંથી અક્ષર પસંદ કરો.</item>
+        <item quantity="other">એપે આને %1$d એન્ટ્રીઓ સાથે Rime કોડ ટેબલ તરીકે વાંચ્યું છે. એક કોડ ટાઈપ કરો, પછી સૂચન પટ્ટીમાંથી અક્ષર પસંદ કરો.</item>
+    </plurals>
 </resources>

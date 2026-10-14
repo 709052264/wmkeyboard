@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Nederst til højre</string>
     <string name="core_settings_board_corner_top_left_label">Øverst til venstre</string>
     <string name="core_settings_board_corner_top_right_label">Øverst til højre</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Venstre fastgør, højre sletter</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Slet begge veje</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Højre fastgør, venstre sletter</string>
     <string name="core_settings_clip_time_copied_label">Tidspunkt for kopiering</string>
     <string name="core_settings_clip_time_expires_label">Tid tilbage</string>
     <string name="core_settings_clip_time_off_label">Ingen</string>

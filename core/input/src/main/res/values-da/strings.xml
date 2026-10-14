@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Japansk kana til kanji-ordbog</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">En tabel med Jyutping-læsninger til Hanzi-tegn, 163.000 poster. Tastaturet har brug for denne pakke til kantonesisk konvertering.</string>
     <string name="core_input_cjk_pack_jyutping_title">Kantonesisk Jyutping-ordbog</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Hvilke ord følger hvilke, talt fra kinesisk web- og nyhedstekst. Leveres med Pinyin-ordbogen. Med den giver initialer som wbxh 我不喜欢 først og ikke to urelaterede ord.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Kinesiske ordpar</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Hanzi-tegn og fraser fra CC-CEDICT, 120.000 indgange. Tastaturet har brug for denne pakke til kinesisk konvertering.</string>
     <string name="core_input_cjk_pack_pinyin_title">Kinesisk Pinyin-ordbog</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Fraser fra OpenCC, 50.000 poster, ca. 1 MB. Med traditionelle tegn slået til, bruger tastaturet det til at skrive den korrekte form for ordet, såsom 頭髮 og ikke 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Tabel for traditionelle tegn-fraser</string>
     <string name="core_input_cjk_pack_stroke_subtitle">En tabel over stregrækkefølge for Hanzi-tegn. Tastaturet skal bruge denne pakke til streglayoutet.</string>
     <string name="core_input_cjk_pack_stroke_title">Kinesisk streg (笔画) ordbog</string>
+    <string name="core_input_double_pinyin_custom_label">Brugerdefineret</string>
     <string name="core_input_double_pinyin_off_label">Fra (fuld Pinyin)</string>
+    <string name="core_input_im_note_candidates">For nogle taster giver denne metode en liste over valgmuligheder. Tastaturet bruger altid det første valg.</string>
+    <string name="core_input_im_note_missing_files">Disse filer blev ikke valgt, så deres del mangler: %1$s. For at inkludere dem skal du importere igen og vælge dem sammen.</string>
+    <string name="core_input_im_note_module">Denne metode bruger et plug-in, såsom Anthy, som tastaturet ikke kan køre. Tasterne, der bruger det, gør intet her.</string>
+    <string name="core_input_im_note_other_method">Denne metode giver nogle taster til en anden inputmetode. Den del virker ikke her.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Appen kan ikke læse %1$d stave-regel, så den springer den over.</item>
+        <item quantity="other">Appen kan ikke læse %1$d stave-regler, så den springer dem over.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Denne metode bruger mellemrumstasten som en tast, for eksempel til en tone. Her skriver mellemrumstasten altid et mellemrum.</string>
+    <string name="core_input_im_note_truncated">Tabellen er meget stor, så appen beholdt kun den første del.</string>
+    <string name="core_input_im_note_unused_files">Appen brugte ikke disse filer: %1$s.</string>
+    <string name="core_input_im_refused_broken">Filen indeholder en fejl, så appen kan ikke læse den: %1$s</string>
+    <string name="core_input_im_refused_empty">Filen har intet at skrive med.</string>
+    <string name="core_input_im_refused_no_dictionary">Skemaet har brug for sin ordbog. Importer igen og vælg også %1$s.</string>
+    <string name="core_input_im_refused_not_method">Appen kan ikke læse det som en inputmetode. Den læser .cin-tabeller, Rime-skemaer og ordbøger (.schema.yaml, .dict.yaml) samt m17n .mim-filer.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Appen læste dette som en .cin-tabel med %1$d post. Indtast en kode, og vælg derefter tegnet fra forslagsfeltet.</item>
+        <item quantity="other">Appen læste dette som en .cin-tabel med %1$d poster. Indtast en kode, og vælg derefter tegnet fra forslagsfeltet.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Appen læste dette som en m17n-inputmetode med %1$d regel. Tasterne skriver teksten, mens du skriver.</item>
+        <item quantity="other">Appen læste dette som en m17n-inputmetode med %1$d regler. Tasterne skriver teksten, mens du skriver.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Appen læste dette som et Rime-skema med %1$d ordbogspost. Skriv stavelserne, og vælg derefter ordene fra forslagslinjen.</item>
+        <item quantity="other">Appen læste dette som et Rime-skema med %1$d ordbogsposter. Skriv stavelserne, og vælg derefter ordene fra forslagslinjen.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Appen læste dette som en Rime-kodetabel med %1$d post. Indtast en kode, og vælg derefter tegnet fra forslagsstriben.</item>
+        <item quantity="other">Appen læste dette som en Rime-kodetabel med %1$d poster. Indtast en kode, og vælg derefter tegnet fra forslagsstriben.</item>
+    </plurals>
 </resources>

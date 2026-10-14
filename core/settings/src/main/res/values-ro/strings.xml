@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Dreapta jos</string>
     <string name="core_settings_board_corner_top_left_label">Stânga sus</string>
     <string name="core_settings_board_corner_top_right_label">Dreapta sus</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Fixare la stânga, ștergere la dreapta</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Ștergere în ambele direcții</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Fixare la dreapta, ștergere la stânga</string>
     <string name="core_settings_clip_time_copied_label">Timp copiat</string>
     <string name="core_settings_clip_time_expires_label">Timp rămas</string>
     <string name="core_settings_clip_time_off_label">Niciunul</string>

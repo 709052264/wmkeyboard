@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">ਜਾਪਾਨੀ ਕਾਨਾ ਤੋਂ ਕਾਂਜੀ ਸ਼ਬਦਕੋਸ਼</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">ਹਾਂਜ਼ੀ ਅੱਖਰਾਂ ਲਈ ਜਯੂਟਪਿੰਗ ਰੀਡਿੰਗਾਂ ਦੀ ਇੱਕ ਸਾਰਣੀ, 163,000 ਐਂਟਰੀਆਂ। ਕੀਬੋਰਡ ਨੂੰ ਕੈਂਟੋਨੀਜ਼ ਪਰਿਵਰਤਨ ਲਈ ਇਸ ਪੈਕ ਦੀ ਲੋੜ ਹੈ।</string>
     <string name="core_input_cjk_pack_jyutping_title">ਕੈਂਟੋਨੀਜ਼ ਜਿਊਟਪਿੰਗ ਡਿਕਸ਼ਨਰੀ</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">ਕਿਹੜੇ ਸ਼ਬਦ ਕਿਸ ਤੋਂ ਬਾਅਦ ਆਉਂਦੇ ਹਨ, ਚੀਨੀ ਵੈੱਬ ਅਤੇ ਖ਼ਬਰਾਂ ਦੇ ਟੈਕਸਟ ਤੋਂ ਗਿਣਿਆ ਗਿਆ। ਪਿਨਯਿਨ ਡਿਕਸ਼ਨਰੀ ਦੇ ਨਾਲ ਆਉਂਦਾ ਹੈ। ਇਸਦੇ ਨਾਲ, wbxh ਵਰਗੇ ਸ਼ੁਰੂਆਤੀ ਅੱਖਰ ਪਹਿਲਾਂ 我不喜欢 ਦਿੰਦੇ ਹਨ ਨਾ ਕਿ ਦੋ ਅਸੰਬੰਧਿਤ ਸ਼ਬਦ।</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">ਚੀਨੀ ਸ਼ਬਦ ਜੋੜੇ</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">CC-CEDICT ਤੋਂ ਹਾਨਜ਼ੀ ਅੱਖਰ ਅਤੇ ਵਾਕਾਂਸ਼, 120,000 ਐਂਟਰੀਆਂ। ਚੀਨੀ ਰੂਪਾਂਤਰਣ ਲਈ ਕੀਬੋਰਡ ਨੂੰ ਇਸ ਪੈਕ ਦੀ ਲੋੜ ਹੈ।</string>
     <string name="core_input_cjk_pack_pinyin_title">ਚੀਨੀ ਪਿਨਯਿਨ ਡਿਕਸ਼ਨਰੀ</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">OpenCC ਤੋਂ ਵਾਕਾਂਸ਼, 50,000 ਐਂਟਰੀਆਂ, ਲਗਭਗ 1 MB। ਪਰੰਪਰਾਗਤ ਅੱਖਰਾਂ ਦੇ ਚਾਲੂ ਹੋਣ ਨਾਲ, ਕੀਬੋਰਡ ਇਸਦੀ ਵਰਤੋਂ ਸ਼ਬਦ ਲਈ ਸਹੀ ਰੂਪ ਲਿਖਣ ਲਈ ਕਰਦਾ ਹੈ, ਜਿਵੇਂ ਕਿ 頭髮 ਅਤੇ ਨਾ ਕਿ 頭發।</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">ਰਵਾਇਤੀ ਅੱਖਰਾਂ ਦੀ ਵਾਕਾਂਸ਼ ਸਾਰਣੀ</string>
     <string name="core_input_cjk_pack_stroke_subtitle">ਹਾਨਜ਼ੀ ਅੱਖਰਾਂ ਲਈ ਸਟ੍ਰੋਕ ਆਰਡਰ ਦੀ ਇੱਕ ਸਾਰਣੀ। ਕੀਬੋਰਡ ਨੂੰ ਸਟ੍ਰੋਕ ਲੇਆਉਟ ਲਈ ਇਸ ਪੈਕ ਦੀ ਲੋੜ ਹੈ।</string>
     <string name="core_input_cjk_pack_stroke_title">ਚੀਨੀ ਸਟ੍ਰੋਕ (笔画) ਡਿਕਸ਼ਨਰੀ</string>
+    <string name="core_input_double_pinyin_custom_label">ਕਸਟਮ</string>
     <string name="core_input_double_pinyin_off_label">ਬੰਦ (ਪੂਰਾ ਪਿਨਯਿਨ)</string>
+    <string name="core_input_im_note_candidates">ਕੁਝ ਕੁੰਜੀਆਂ ਲਈ ਇਹ ਵਿਧੀ ਵਿਕਲਪਾਂ ਦੀ ਸੂਚੀ ਦਿੰਦੀ ਹੈ। ਕੀਬੋਰਡ ਹਮੇਸ਼ਾ ਪਹਿਲੇ ਵਿਕਲਪ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ।</string>
+    <string name="core_input_im_note_missing_files">ਇਹ ਫਾਈਲਾਂ ਨਹੀਂ ਚੁਣੀਆਂ ਗਈਆਂ ਸਨ, ਇਸ ਲਈ ਉਹਨਾਂ ਦਾ ਹਿੱਸਾ ਗੁੰਮ ਹੈ: %1$s। ਉਹਨਾਂ ਨੂੰ ਸ਼ਾਮਲ ਕਰਨ ਲਈ, ਦੁਬਾਰਾ ਇੰਪੋਰਟ ਕਰੋ ਅਤੇ ਉਹਨਾਂ ਨੂੰ ਇਕੱਠੇ ਚੁਣੋ।</string>
+    <string name="core_input_im_note_module">ਇਹ ਵਿਧੀ ਇੱਕ ਪਲੱਗ-ਇਨ ਦੀ ਵਰਤੋਂ ਕਰਦੀ ਹੈ, ਜਿਵੇਂ ਕਿ ਐਂਥੀ (Anthy), ਜਿਸਨੂੰ ਕੀਬੋਰਡ ਚਲਾ ਨਹੀਂ ਸਕਦਾ ਹੈ। ਜਿਹੜੀਆਂ ਕੁੰਜੀਆਂ ਇਸਦੀ ਵਰਤੋਂ ਕਰਦੀਆਂ ਹਨ ਉਹ ਇੱਥੇ ਕੋਈ ਕੰਮ ਨਹੀਂ ਕਰਦੀਆਂ।</string>
+    <string name="core_input_im_note_other_method">ਇਹ ਵਿਧੀ ਕੁਝ ਕੁੰਜੀਆਂ ਕਿਸੇ ਹੋਰ ਇਨਪੁਟ ਵਿਧੀ ਨੂੰ ਦਿੰਦੀ ਹੈ। ਉਹ ਹਿੱਸਾ ਇੱਥੇ ਕੰਮ ਨਹੀਂ ਕਰਦਾ।</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">ਐਪ %1$d ਸਪੈਲਿੰਗ ਨਿਯਮ ਨੂੰ ਪੜ੍ਹ ਨਹੀਂ ਸਕਦੀ, ਇਸ ਲਈ ਇਹ ਇਸਨੂੰ ਛੱਡ ਦਿੰਦੀ ਹੈ।</item>
+        <item quantity="other">ਐਪ %1$d ਸਪੈਲਿੰਗ ਨਿਯਮਾਂ ਨੂੰ ਪੜ੍ਹ ਨਹੀਂ ਸਕਦੀ, ਇਸ ਲਈ ਇਹ ਉਹਨਾਂ ਨੂੰ ਛੱਡ ਦਿੰਦੀ ਹੈ।</item>
+    </plurals>
+    <string name="core_input_im_note_space">ਇਹ ਵਿਧੀ ਸਪੇਸ ਬਾਰ ਨੂੰ ਇੱਕ ਕੁੰਜੀ ਵਜੋਂ ਵਰਤਦੀ ਹੈ, ਉਦਾਹਰਨ ਲਈ ਟੋਨ ਲਈ। ਇੱਥੇ ਸਪੇਸ ਬਾਰ ਹਮੇਸ਼ਾ ਇੱਕ ਸਪੇਸ ਟਾਈਪ ਕਰਦੀ ਹੈ।</string>
+    <string name="core_input_im_note_truncated">ਟੇਬਲ ਬਹੁਤ ਵੱਡਾ ਹੈ, ਇਸ ਲਈ ਐਪ ਨੇ ਸਿਰਫ਼ ਇਸਦਾ ਪਹਿਲਾ ਹਿੱਸਾ ਹੀ ਰੱਖਿਆ ਹੈ।</string>
+    <string name="core_input_im_note_unused_files">ਐਪ ਨੇ ਇਹਨਾਂ ਫਾਈਲਾਂ ਦੀ ਵਰਤੋਂ ਨਹੀਂ ਕੀਤੀ: %1$s।</string>
+    <string name="core_input_im_refused_broken">ਫਾਈਲ ਵਿੱਚ ਇੱਕ ਗਲਤੀ ਹੈ, ਇਸ ਲਈ ਐਪ ਇਸਨੂੰ ਪੜ੍ਹ ਨਹੀਂ ਸਕਦੀ: %1$s</string>
+    <string name="core_input_im_refused_empty">ਫਾਈਲ ਵਿੱਚ ਟਾਈਪ ਕਰਨ ਲਈ ਕੁਝ ਵੀ ਨਹੀਂ ਹੈ।</string>
+    <string name="core_input_im_refused_no_dictionary">ਸਕੀਮਾ ਨੂੰ ਇਸਦੇ ਸ਼ਬਦਕੋਸ਼ ਦੀ ਲੋੜ ਹੈ। ਦੁਬਾਰਾ ਆਯਾਤ ਕਰੋ ਅਤੇ %1$s ਵੀ ਚੁਣੋ।</string>
+    <string name="core_input_im_refused_not_method">ਐਪ ਇਸਨੂੰ ਇਨਪੁਟ ਵਿਧੀ ਵਜੋਂ ਨਹੀਂ ਪੜ੍ਹ ਸਕਦੀ। ਇਹ .cin ਟੇਬਲ, Rime ਸਕੀਮਾਂ ਅਤੇ ਡਿਕਸ਼ਨਰੀਆਂ (.schema.yaml, .dict.yaml), ਅਤੇ m17n .mim ਫਾਈਲਾਂ ਨੂੰ ਪੜ੍ਹਦੀ ਹੈ।</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">ਐਪ ਨੇ ਇਸਨੂੰ %1$d ਐਂਟਰੀ ਵਾਲੇ .cin ਟੇਬਲ ਵਜੋਂ ਪੜ੍ਹਿਆ। ਇੱਕ ਕੋਡ ਟਾਈਪ ਕਰੋ, ਫਿਰ ਸੁਝਾਅ ਪੱਟੀ ਵਿੱਚੋਂ ਅੱਖਰ ਚੁਣੋ।</item>
+        <item quantity="other">ਐਪ ਨੇ ਇਸਨੂੰ %1$d ਐਂਟਰੀਆਂ ਵਾਲੇ .cin ਟੇਬਲ ਵਜੋਂ ਪੜ੍ਹਿਆ। ਇੱਕ ਕੋਡ ਟਾਈਪ ਕਰੋ, ਫਿਰ ਸੁਝਾਅ ਪੱਟੀ ਵਿੱਚੋਂ ਅੱਖਰ ਚੁਣੋ।</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">ਐਪ ਨੇ ਇਸਨੂੰ %1$d ਨਿਯਮ ਦੇ ਨਾਲ ਇੱਕ m17n ਇਨਪੁਟ ਵਿਧੀ ਵਜੋਂ ਪੜ੍ਹਿਆ ਹੈ। ਜਿਵੇਂ ਤੁਸੀਂ ਟਾਈਪ ਕਰਦੇ ਹੋ, ਕੁੰਜੀਆਂ ਟੈਕਸਟ ਲਿਖਦੀਆਂ ਹਨ।</item>
+        <item quantity="other">ਐਪ ਨੇ ਇਸਨੂੰ %1$d ਨਿਯਮਾਂ ਦੇ ਨਾਲ ਇੱਕ m17n ਇਨਪੁਟ ਵਿਧੀ ਵਜੋਂ ਪੜ੍ਹਿਆ ਹੈ। ਜਿਵੇਂ ਤੁਸੀਂ ਟਾਈਪ ਕਰਦੇ ਹੋ, ਕੁੰਜੀਆਂ ਟੈਕਸਟ ਲਿਖਦੀਆਂ ਹਨ।</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">ਐਪ ਨੇ ਇਸਨੂੰ %1$d ਡਿਕਸ਼ਨਰੀ ਐਂਟਰੀ ਦੇ ਨਾਲ ਇੱਕ Rime ਸਕੀਮਾ ਵਜੋਂ ਪੜ੍ਹਿਆ ਹੈ। ਉਚਾਰਨ ਟਾਈਪ ਕਰੋ, ਫਿਰ ਸੁਝਾਅ ਪੱਟੀ ਵਿੱਚੋਂ ਸ਼ਬਦ ਚੁਣੋ।</item>
+        <item quantity="other">ਐਪ ਨੇ ਇਸਨੂੰ %1$d ਡਿਕਸ਼ਨਰੀ ਐਂਟਰੀਆਂ ਦੇ ਨਾਲ ਇੱਕ Rime ਸਕੀਮਾ ਵਜੋਂ ਪੜ੍ਹਿਆ ਹੈ। ਉਚਾਰਨ ਟਾਈਪ ਕਰੋ, ਫਿਰ ਸੁਝਾਅ ਪੱਟੀ ਵਿੱਚੋਂ ਸ਼ਬਦ ਚੁਣੋ।</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">ਐਪ ਨੇ ਇਸਨੂੰ %1$d ਐਂਟਰੀ ਵਾਲੀ Rime ਕੋਡ ਟੇਬਲ ਵਜੋਂ ਪੜ੍ਹਿਆ ਹੈ। ਇੱਕ ਕੋਡ ਟਾਈਪ ਕਰੋ, ਫਿਰ ਸੁਝਾਅ ਪੱਟੀ ਵਿੱਚੋਂ ਅੱਖਰ ਚੁਣੋ।</item>
+        <item quantity="other">ਐਪ ਨੇ ਇਸਨੂੰ %1$d ਐਂਟਰੀਆਂ ਵਾਲੀ Rime ਕੋਡ ਟੇਬਲ ਵਜੋਂ ਪੜ੍ਹਿਆ ਹੈ। ਇੱਕ ਕੋਡ ਟਾਈਪ ਕਰੋ, ਫਿਰ ਸੁਝਾਅ ਪੱਟੀ ਵਿੱਚੋਂ ਅੱਖਰ ਚੁਣੋ।</item>
+    </plurals>
 </resources>

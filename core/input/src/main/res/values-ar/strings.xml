@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">قاموس الكانا إلى الكانجي الياباني</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">جدول قراءات Jyutping إلى أحرف Hanzi، يحتوي على 163,000 إدخال. تحتاج لوحة المفاتيح إلى هذه الحزمة للتحويل إلى الكانتونية.</string>
     <string name="core_input_cjk_pack_jyutping_title">قاموس الكانتونية جيوتبينغ</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">تحدد الكلمات التي تتبع بعضها البعض، بناءً على نصوص الويب والأخبار الصينية. تأتي مع قاموس بينيين. بفضلها، تعطي الاختصارات مثل wbxh النتيجة 我不喜欢 أولاً وليس كلمتين غير مترابطتين.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">أزواج الكلمات الصينية</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">حروف وعبارات هانزي من CC-CEDICT، 120,000 مدخل. تحتاج لوحة المفاتيح إلى هذه الحزمة للتحويل إلى الصينية.</string>
     <string name="core_input_cjk_pack_pinyin_title">قاموس بينيين الصيني</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">عبارات من OpenCC، 50,000 مدخل، حوالي 1 ميجابايت. عند تفعيل الأحرف التقليدية، تستخدمها لوحة المفاتيح لكتابة الشكل الصحيح للكلمة، مثل 頭髮 وليس 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">جدول عبارات الأحرف التقليدية</string>
     <string name="core_input_cjk_pack_stroke_subtitle">جدول لترتيب ضربات أحرف الهانزي. تحتاج لوحة المفاتيح إلى هذه الحزمة لتخطيط الضربات.</string>
     <string name="core_input_cjk_pack_stroke_title">قاموس ضربات الكتابة الصينية (笔画)</string>
+    <string name="core_input_double_pinyin_custom_label">مخصص</string>
     <string name="core_input_double_pinyin_off_label">إيقاف (بينين كامل)</string>
+    <string name="core_input_im_note_candidates">بالنسبة لبعض المفاتيح، تعطي هذه الطريقة قائمة من الخيارات. تستخدم لوحة المفاتيح دائمًا الخيار الأول.</string>
+    <string name="core_input_im_note_missing_files">لم يتم اختيار هذه الملفات، لذا فإن جزءها مفقود: %1$s. لتضمينها، قم بالاستيراد مرة أخرى واخترها معًا.</string>
+    <string name="core_input_im_note_module">تستخدم هذه الطريقة مكونًا إضافيًا، مثل Anthy، لا يمكن للوحة المفاتيح تشغيله. المفاتيح التي تستخدمه لا تفعل شيئًا هنا.</string>
+    <string name="core_input_im_note_other_method">تمنح هذه الطريقة بعض المفاتيح لطريقة إدخال أخرى. هذا الجزء لا يعمل هنا.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">لا يمكن للتطبيق قراءة %1$d قاعدة إملائية، لذا تم تخطيها.</item>
+        <item quantity="other">لا يمكن للتطبيق قراءة %1$d قواعد إملائية، لذا تم تخطيها.</item>
+    </plurals>
+    <string name="core_input_im_note_space">تستخدم هذه الطريقة شريط المسافة كمفتاح، على سبيل المثال للنغمة. هنا يقوم شريط المسافة دائمًا بكتابة مسافة.</string>
+    <string name="core_input_im_note_truncated">الجدول كبير جداً، لذا احتفظ التطبيق بالجزء الأول منه فقط.</string>
+    <string name="core_input_im_note_unused_files">لم يستخدم التطبيق هذه الملفات: %1$s.</string>
+    <string name="core_input_im_refused_broken">يحتوي الملف على خطأ، لذا لا يمكن للتطبيق قراءته: %1$s</string>
+    <string name="core_input_im_refused_empty">الملف لا يحتوي على أي شيء للكتابة به.</string>
+    <string name="core_input_im_refused_no_dictionary">يحتاج المخطط إلى قاموسه. استورد مرة أخرى واختر أيضاً %1$s.</string>
+    <string name="core_input_im_refused_not_method">لا يمكن للتطبيق قراءة ذلك كطريقة إدخال. هو يقرأ جداول .cin، ومخططات وقواميس Rime (.schema.yaml, .dict.yaml)، وملفات .mim الخاصة بـ m17n.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">قرأ التطبيق هذا كجدول .cin يحتوي على %1$d إدخال. اكتب رمزًا، ثم اختر الحرف من شريط الاقتراحات.</item>
+        <item quantity="other">قرأ التطبيق هذا كجدول .cin يحتوي على %1$d إدخالات. اكتب رمزًا، ثم اختر الحرف من شريط الاقتراحات.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">قرأ التطبيق هذا كطريقة إدخال m17n بقاعدة واحدة %1$d. تكتب المفاتيح النص أثناء الكتابة.</item>
+        <item quantity="other">قرأ التطبيق هذا كطريقة إدخال m17n بـ %1$d قواعد. تكتب المفاتيح النص أثناء الكتابة.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">قرأ التطبيق هذا كمخطط Rime مع مدخل قاموس واحد (%1$d). اكتب المقاطع، ثم اختر الكلمات من شريط الاقتراحات.</item>
+        <item quantity="other">قرأ التطبيق هذا كمخطط Rime مع %1$d مدخل قاموس. اكتب المقاطع، ثم اختر الكلمات من شريط الاقتراحات.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">قرأ التطبيق هذا كجدول رموز Rime مع %1$d إدخال. اكتب رمزًا، ثم اختر الحرف من شريط الاقتراحات.</item>
+        <item quantity="other">قرأ التطبيق هذا كجدول رموز Rime مع %1$d إدخالات. اكتب رمزًا، ثم اختر الحرف من شريط الاقتراحات.</item>
+    </plurals>
 </resources>

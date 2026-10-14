@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">وہ حروف جو کمپیوٹر پر AltGr کلید ٹائپ کرتی ہے، انہی کلیدوں کو دبائے رکھنے پر ٹائپ ہوتے ہیں۔</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">کمپیوٹر پر %1$d ڈیڈ کی اگلی حرف پر ایکسنٹ لگاتی ہے۔ یہاں، ان ایکسنٹس والے حروف ہر حرف کو دبائے رکھنے پر آتے ہیں۔</item>
+        <item quantity="other">کمپیوٹر پر %1$d ڈیڈ کیز اگلی حرف پر ایکسنٹ لگاتی ہیں۔ یہاں، ان ایکسنٹس والے حروف ہر حرف کو دبائے رکھنے پر آتے ہیں۔</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">فائل %1$d دوسری فائل (%2$s) پر مبنی ہے جسے آپ نے نہیں کھولا۔ صرف اس فائل میں سیٹ کی گئی کیز غائب ہیں۔</item>
+        <item quantity="other">فائل %1$d دوسری فائلوں (%2$s) پر مبنی ہے جسے آپ نے نہیں کھولا۔ صرف ان فائلوں میں سیٹ کی گئی کیز غائب ہیں۔</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">فل اسٹاپ کو دبائے رکھنے پر بغیر حروف والی کلید سے %1$d کریکٹر موجود ہے۔</item>
+        <item quantity="other">فل اسٹاپ کو دبائے رکھنے پر بغیر حروف والی کلیدوں سے %1$d کریکٹرز موجود ہیں۔</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">ایپ فائل میں %1$d کریکٹر کا نام نہیں جانتی، اس لیے اسے چھوڑ دیا: %2$s۔</item>
+        <item quantity="other">ایپ فائل میں %1$d کریکٹرز کے نام نہیں جانتی، اس لیے انہیں چھوڑ دیا: %2$s۔</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">کلید پر %1$d سوائپ کی یہاں کوئی جگہ نہیں ہے، کیونکہ یہ کی بورڈ اس سوائپ کو کسی اور کام کے لیے استعمال کرتا ہے۔ ایپ نے اسے ہٹا دیا ہے۔</item>
+        <item quantity="other">کلیدوں پر %1$d سوائپس کی یہاں کوئی جگہ نہیں ہے، کیونکہ یہ کی بورڈ ان سوائپس کو دوسرے کاموں کے لیے استعمال کرتا ہے۔ ایپ نے انہیں ہٹا دیا ہے۔</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">ایپ نے %1$d کلید کو اس کے قریب ترین کلید میں تبدیل کر دیا جو اس کے پاس ہے۔</item>
         <item quantity="other">ایپ نے %1$d کلیدوں کو ان کے قریب ترین کلیدوں میں تبدیل کر دیا جو اس کے پاس ہیں۔</item>
@@ -23,6 +44,8 @@
         <item quantity="other">ایپ نے %1$d حروف کو اس شکل میں تبدیل کر دیا ہے جو یہ کی بورڈ لکھتا ہے۔</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">ایپ نے نمبروں کی قطار ہٹا دی ہے۔ اسے حاصل کرنے کے لیے لے آؤٹ اور سائز میں نمبر قطار کو آن کریں۔</string>
+    <string name="core_lang_foreign_number_row_kept">فائل کی نمبروں والی قطار اس لے آؤٹ کی نمبر قطار ہے۔ یہ تب دکھتی ہے جب لے آؤٹ اور سائز میں نمبر قطار آن ہو۔</string>
+    <string name="core_lang_foreign_pages_kept">فائل کے اضافی صفحات، جیسے AltGr، اس لے آؤٹ کے صفحات ہیں۔ انہیں یہاں کھولنے کے لیے اس کی سے سوائپ کریں جس نے انہیں دوسرے کی بورڈ میں کھولا تھا۔</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d کی میں کوئی پریس اینڈ ہولڈ حروف نہیں ہیں۔ فائل انہیں دوسری فائل میں رکھتی ہے جسے آپ نے نہیں کھولا۔</item>
         <item quantity="other">%1$d کیز میں کوئی پریس اینڈ ہولڈ حروف نہیں ہیں۔ فائل انہیں دوسری فائل میں رکھتی ہے جسے آپ نے نہیں کھولا۔</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d کلید شفٹ اسٹیٹ یا دوسرے کی بورڈ کے فیلڈ کے ساتھ تبدیل ہوتی ہے۔ ایپ نے اس کے آرام کی حالت کو برقرار رکھا ہے۔</item>
         <item quantity="other">%1$d کلیدیں شفٹ اسٹیٹ یا دوسرے کی بورڈ کے فیلڈ کے ساتھ تبدیل ہوتی ہیں۔ ایپ نے ان کے آرام کی حالت کو برقرار رکھا ہے۔</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">فائل میں %1$d شفٹ شدہ صفحہ کی کلیدیں اس صفحہ کے علاوہ دوسری جگہوں پر ہیں جسے وہ شفٹ کرتا ہے۔ ایپ وہاں اس کے بجائے بڑے حروف استعمال کرتی ہے۔</item>
+        <item quantity="other">فائل میں %1$d شفٹ شدہ صفحات کی کلیدیں ان صفحات کے علاوہ دوسری جگہوں پر ہیں جنہیں وہ شفٹ کرتے ہیں۔ ایپ وہاں اس کے بجائے بڑے حروف استعمال کرتی ہے۔</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">دوسرے کی بورڈ میں شفٹ دبانے پر %1$d کلید کے پریس اینڈ ہولڈ حروف مختلف ہیں۔ ایپ نے غیر شفٹ شدہ حروف کو برقرار رکھا ہے۔</item>
+        <item quantity="other">دوسرے کی بورڈ میں شفٹ دبانے پر %1$d کلیدوں کے پریس اینڈ ہولڈ حروف مختلف ہیں۔ ایپ نے غیر شفٹ شدہ حروف کو برقرار رکھا ہے۔</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">دوسرا کی بورڈ کلید کی چوڑائی کو مختلف طریقے سے ناپتا ہے۔ ایپ نے اس گرڈ کے مطابق چوڑائی کو تبدیل کر دیا ہے۔</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

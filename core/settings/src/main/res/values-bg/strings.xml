@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Долу вдясно</string>
     <string name="core_settings_board_corner_top_left_label">Горе вляво</string>
     <string name="core_settings_board_corner_top_right_label">Горе вдясно</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Закачане наляво, изтриване надясно</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Изтриване и в двете посоки</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Дясно закачане, ляво изтриване</string>
     <string name="core_settings_clip_time_copied_label">Време на копиране</string>
     <string name="core_settings_clip_time_expires_label">Оставащо време</string>
     <string name="core_settings_clip_time_off_label">Няма</string>

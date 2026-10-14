@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">Aplikacija je odbacila \"%1$s\". Aplikacija ga ne može spremiti.</string>
     <string name="core_icons_repair_svg_unreadable">Aplikacija je odbacila \"%1$s\". Aplikacija ne može pročitati njezinu SVG datoteku.</string>
+    <string name="core_icons_slot_arrow_down_label">Strelica dolje</string>
+    <string name="core_icons_slot_arrow_left_label">Strelica lijevo</string>
+    <string name="core_icons_slot_arrow_right_label">Strelica udesno</string>
+    <string name="core_icons_slot_arrow_up_label">Strelica prema gore</string>
     <string name="core_icons_slot_backspace_label">Backspace</string>
+    <string name="core_icons_slot_caps_lock_key_label">Tipka Caps lock</string>
     <string name="core_icons_slot_caps_lock_label">Caps lock</string>
     <string name="core_icons_slot_emoji_activities_label">Aktivnosti</string>
     <string name="core_icons_slot_emoji_animals_label">Životinje</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: pošalji</string>
     <string name="core_icons_slot_forward_delete_label">Brisanje unaprijed</string>
     <string name="core_icons_slot_globe_label">Promijeni jezik</string>
+    <string name="core_icons_slot_hide_keys_label">Sakrij tipke (hardverska tipkovnica)</string>
     <string name="core_icons_slot_incognito_label">Oznaka anonimnog načina rada</string>
     <string name="core_icons_slot_input_method_picker_label">Promijeni tipkovnicu</string>
     <string name="core_icons_slot_panel_back_label">Natrag na tipke</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Zatvori pretraživanje</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (uključeno)</string>
+    <string name="core_icons_slot_show_keys_label">Prikaži tipke (hardverska tipkovnica)</string>
     <string name="core_icons_slot_suggestions_expand_label">Prikaži alate</string>
+    <string name="core_icons_slot_tab_label">Tipka Tab</string>
     <string name="core_icons_slot_toolbox_label">Alatna traka</string>
 </resources>

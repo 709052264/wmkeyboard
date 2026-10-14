@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">קוד</string>
     <string name="core_content_clip_entity_phone_label">מספר טלפון</string>
     <string name="core_content_clip_entity_phone_tag">טלפון</string>
+    <string name="core_content_clip_entity_place_label">מקום</string>
+    <string name="core_content_clip_entity_place_tag">מקום</string>
     <string name="core_content_clip_entity_url_label">קישור</string>
     <string name="core_content_clip_entity_url_tag">קישור</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">האפליקציה אינה יכולה לקרוא גופני אינטרנט מסוג WOFF. השתמש בגרסת ה-.ttf או ה-.otf של הגופן.</string>
     <string name="core_content_font_error_woff2">האפליקציה אינה יכולה לקרוא גופני אינטרנט מסוג WOFF2. השתמש בגרסת .ttf או .otf של הגופן.</string>
     <string name="core_content_font_error_zip">קובץ זה הוא ארכיון zip, לא גופן.</string>
+    <string name="core_content_note_tag_ideas">רעיונות</string>
+    <string name="core_content_note_tag_important">חשוב</string>
+    <string name="core_content_note_tag_personal">אישי</string>
+    <string name="core_content_note_tag_school">בית ספר</string>
+    <string name="core_content_note_tag_study">לימודים</string>
+    <string name="core_content_note_tag_work">עבודה</string>
     <string name="core_content_selection_macro_add_contact">איש קשר</string>
     <string name="core_content_selection_macro_calendar">לוח שנה</string>
     <string name="core_content_selection_macro_call">שיחה</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">דבר</string>
     <string name="core_content_selection_macro_replace">החלף</string>
+    <string name="core_content_selection_macro_save_note">שמור כהערה</string>
     <string name="core_content_selection_macro_search">חיפוש</string>
     <string name="core_content_selection_macro_share">שיתוף</string>
     <string name="core_content_selection_macro_sms">הודעה</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">תרגם</string>
     <string name="core_content_selection_macro_url_decode">פענוח</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">בקובץ יש גם מילה אחת ללא קיצור דרך. כדי להוסיף אותה למילים שלך, פתח את הקובץ מתוך המילון האישי.</item>
+        <item quantity="other">בקובץ יש גם %1$d מילים ללא קיצור דרך. כדי להוסיף אותן למילים שלך, פתח את הקובץ מתוך המילון האישי.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">האפליקציה השאירה %2$d הרחבה מחוץ ל-\"%1$s\".</item>
         <item quantity="other">האפליקציה השאירה %2$d הרחבות מחוץ ל-\"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">האפליקציה הסירה את התבנית מ-\"%1$s\". היא הייתה ארוכה מ-%2$d תו.</item>
         <item quantity="other">האפליקציה הסירה את התבנית מ-\"%1$s\". היא הייתה ארוכה מ-%2$d תווים.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">האפליקציה הסירה שורה אחת ללא טקסט.</item>
+        <item quantity="other">האפליקציה הסירה %1$d שורות ללא טקסט.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">האפליקציה קיצרה את \"%1$s\". הוא היה ארוך יותר מ-%2$d תו.</item>
         <item quantity="other">האפליקציה קיצרה את \"%1$s\". הוא היה ארוך יותר מ-%2$d תווים.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">האפליקציה הסירה %1$d טריגר שהמקלדת אינה יכולה לנטר. הקטע שלו נשאר ברשימה.</item>
+        <item quantity="other">האפליקציה הסירה %1$d טריגרים שהמקלדת אינה יכולה לנטר. הקטעים שלהם נשארים ברשימה.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">שם האפליקציה שבה אתה מקליד</string>
     <string name="core_content_snippet_var_clip_info">הפריט החדש ביותר בלוח הגזירים</string>

@@ -47,6 +47,8 @@
     <string name="common_none">なし</string>
     <string name="common_notify_channel_backup_body">自動バックアップが失敗した場合のみ通知します。成功したバックアップは通知されません。</string>
     <string name="common_notify_channel_backup_title">バックアップの問題</string>
+    <string name="common_notify_channel_clock_body">動作中のタイマーとストップウォッチ。一時停止、1分追加、停止のボタンが表示されます。</string>
+    <string name="common_notify_channel_clock_title">タイマーとストップウォッチ</string>
     <string name="common_notify_channel_connect_body">キーボードが非表示の間に、KDE Connect経由でペアリングされたコンピュータから、ペアリング要求、ファイル送信、またはピング送信がありました。</string>
     <string name="common_notify_channel_connect_title">ペアリング済みのコンピューター</string>
     <string name="common_notify_channel_downloads_body">辞書、音声モデル、アドオンなど、キーボードが取得するファイルの進捗状況を表示し、完了または失敗した際に通知します。</string>
@@ -74,8 +76,12 @@
     <string name="common_permission_contact_emails_title">メール提案のための連絡先アクセス</string>
     <string name="common_permission_contact_names_body">WM Keyboardは連絡先の名前を読み取ります。入力時に名前が補完され、自動修正で変更されることはありません。キーボードは実行中に名前をメモリ内に保持しますが、ファイルには書き込みません。名前がデバイスから外部へ送信されることはありません。この設定は任意であり、有効にするまでオフのままです。</string>
     <string name="common_permission_contact_names_title">名前の提案のための連絡先アクセス</string>
+    <string name="common_permission_contact_phones_body">WM Keyboardは連絡先の名前と電話番号を読み取ります。連絡先の名前を入力すると、キーボードはその人への通話やテキスト送信を提案します。タップすると、番号が入力された状態で電話アプリやメッセージアプリが開きます。キーボード自体が通話を発信したりメッセージを送信したりすることはありません。キーボードは実行中に名前と番号をメモリ内に保持しますが、ファイルには書き込みません。データがデバイスから外部へ送信されることはありません。この設定は任意であり、有効にするまでオフのままです。</string>
+    <string name="common_permission_contact_phones_title">通話およびメッセージチップ用の連絡先へのアクセス</string>
     <string name="common_permission_images_body">WMキーボードは新しいスクリーンショットを監視し、クリップボードに配置します。アプリを離れることなく貼り付けることができます。Androidにはスクリーンショット専用の権限がないため、すべての写真へのアクセス権が付与されます。キーボードは新しいスクリーンショットのみを確認します。画像はデバイス上に保持されます。キーボードは、押されたときにのみ画像を挿入します。この設定はオプションです。オンにするまでオフのままです。</string>
     <string name="common_permission_images_title">クリップボード内のスクリーンショットへの写真アクセス</string>
+    <string name="common_permission_location_body">WMキーボードは、位置情報ツールで「現在地を表示」をタップしたとき、または天気やコンパスツールで「現在地を使用」を選択したときにのみ、お使いのスマートフォンの位置情報を読み取ります。位置情報を1回読み取ると停止します。キーボードがユーザーを追跡したり、バックグラウンドで位置情報を読み取ったりすることはありません。位置情報は短時間メモリに保持され、場所を保存した場合にのみ保存されます。住所を表示するために、キーボードは選択した住所サーバーに位置情報を送信します。住所表示はオフにできます。開発者にデータが送信されることはありません。次の画面では「今回のみ」を選択してください。キーボードは次回も再度確認します。このツールはオプションです。</string>
+    <string name="common_permission_location_title">位置情報ツール用の位置情報アクセス</string>
     <string name="common_permission_microphone_body">WMキーボードは、マイクボタンを押して話している間のみ音声を録音します。録音データは、Androidの設定で選択された音声認識サービスに送信されます。そのサービスが音声をテキストに変換します。ほとんどのスマートフォンではGoogleのサービスが使用されており、Googleがサーバー上で音声を処理する場合があります。オフラインモデルを使用すると、音声はデバイス内に留まります。キーボード自体は音声を保存しません。音声認識サービスのみがデータを受け取ります。音声入力はオプションであり、それ以外のキーボード機能は音声入力なしでも動作します。</string>
     <string name="common_permission_microphone_title">音声入力のためのマイクアクセス</string>
     <string name="common_permission_notifications_body">キーボードは、辞書や音声モデルのダウンロード完了、インストール待ちの更新、自動バックアップの失敗など、他の作業中に完了した処理を通知するために通知機能を使用します。ヒント、提案、広告などは一切送信されません。また、通知の種類ごとに「設定」›「通知」から個別にオフにすることができます。通知を拒否しても、キーボードの入力方法には影響しません。</string>
@@ -95,15 +101,24 @@
     <string name="common_skip">スキップ</string>
     <string name="common_special_access_accessibility_body">このサービスは、スクリーンリーダー実行中もキーボードジェスチャーを有効に保ちます。ジェスチャーには、スペースキーでのカーソル移動、バックスペースでの単語削除、スワイプ入力、手書き入力が含まれます。これらを実現できるのはアクセシビリティサービスのみです。このサービスはアクセシビリティイベントを購読せず、ウィンドウの内容を読み取ることもありません。キーボード独自のキーグリッド以外には何もマークせず、データも収集しません。Androidのアクセシビリティ画面ではこのカテゴリのフル権限について警告が表示されますが、本サービスはその権限を一切使用しません。</string>
     <string name="common_special_access_accessibility_title">キーボードジェスチャー用アクセシビリティサービス</string>
+    <string name="common_special_access_exact_alarms_body">この権限により、時計ツールで設定したアラームやタイマーが正確な分に鳴るようになります。この権限がない場合、アラームは鳴りますが、Androidがスリープ中に数分遅延させることがあります。キーボードは設定したアラームとタイマーのためにのみこの権限を使用します。データの読み取りや収集は行いません。いつでもオフにできます。</string>
+    <string name="common_special_access_exact_alarms_title">時計ツールの正確なアラーム</string>
+    <string name="common_special_access_full_screen_body">この権限を許可すると、アラームやタイマーが鳴った際に、ロック画面上に「スヌーズ」と「解除」ボタン付きの全画面表示が行われます。許可しない場合、アラームは鳴りますが、通知として表示されます。キーボードは、アラームやタイマーが鳴っている間のみこの権限を使用します。</string>
+    <string name="common_special_access_full_screen_title">時計ツール用のリング画面</string>
     <string name="common_special_access_install_updates_body">新しいバージョンをインストールするには、Androidでこのアプリによるアプリのインストールを許可する必要があります。この権限は、プロジェクトのリリースページからダウンロードして「インストール」を押した、アプリ自身の新しいバージョンのインストールにのみ使用されます。アプリはインストールを要求する前に、ファイルをリリースのチェックサムおよびこのインストールが署名されているキーと照合します。Androidは最初のアップデート時に独自の確認画面を表示します。このアプリが他のアプリをインストールすることはなく、ユーザーが「インストール」を押していないものをインストールすることもありません。</string>
     <string name="common_special_access_install_updates_title">アップデートのインストール権限</string>
     <string name="common_special_access_notification_codes_body">認証コードが通知に届いた際、キーボードはそれをキーの上のチップとして表示し、タップするだけで入力できるようにします。コードの到着を確認するために、キーボードには通知アクセス権が必要です。この機能がオンの間、キーボードはデバイス上の着信通知のテキストを読み取り、コードを探します。コードはメモリ内にのみ数分間保持され、どこにも送信されることはありません。同じアクセス権は、通知内容を読み取らないオプションのメディアツールにも使用されます。これから開くシステム画面には、この権限によって与えられるフルアクセス権について説明されています。このアプリはこれら2つの機能のためにのみこれを使用します。機能をオフにすると、キーボードは直ちに通知の読み取りを停止します。</string>
     <string name="common_special_access_notification_codes_title">ワンタイムコードの通知アクセス</string>
     <string name="common_special_access_notifications_body">Androidは、通知アクセス権を持つアプリにのみ、再生、一時停止、スキップの制御を許可します。メディアツールにはそのアクセス権が必要です。このツールにおいて、キーボードの通知リスナーは通知、タイトル、送信者、コンテンツを読み取りません。これは、Androidがツールに現在のメディアセッションを認識させるためだけに存在します。同じアクセス権は、タイピング設定のオプションであるワンタイムコードチップにも使用されます。それがオンになっている間のみ、リスナーはデバイス上の通知テキストを読み取り、認証コードを探します。キーボードは何も保存せず、デバイスから何も送信されません。これから開くシステム画面には、この権限が与えるフルアクセスについて説明されています。このアプリはこれら2つの機能のためにのみこれを使用し、他には使用しません。どちらもオプションです。</string>
     <string name="common_special_access_notifications_title">メディアコントロールの通知アクセス</string>
+    <string name="common_special_access_overlay_body">この権限により、キーボードが閉じている間、他のアプリの上に小さな丸いボタンを表示できるようになります。ボタンをタップするとキーボードが開くため、テキストフィールドがない画面でもキーやショートカットをそのアプリに送信できます。この権限を使用してキーボードが表示するのはこのボタンのみです。画面の内容を読み取ったり表示したりすることはなく、データも収集しません。Androidの設定画面にこの権限で許可されるすべての内容が記載されています。キーボードはこのボタンのためだけにこの権限を使用します。このボタンはオプションであり、有効にするまでオフの状態です。</string>
+    <string name="common_special_access_overlay_title">キーボードボタンのために他のアプリの上に表示</string>
     <string name="common_special_access_usage_body">使用状況へのアクセスを許可すると、キーボードはコピー時に前面にあったアプリを記録します。クリップを長押しすると、そのアプリが表示されます。キーボードはコピーした瞬間にのみ前面のアプリを読み取ります。履歴やアプリの使用時間は読み取りません。キーボードは、その情報をクリップと一緒にデバイス内のみに保持します。アプリの使用状況に関する情報がデバイスから外部へ送信されることはありません。この設定は任意であり、有効にするまでオフのままです。</string>
     <string name="common_special_access_usage_title">クリップボードソースアプリの使用状況へのアクセス</string>
+    <string name="common_type_setting_value_desc">%1$sの値を入力してください</string>
     <string name="common_undo">元に戻す</string>
     <string name="common_uninstall">アンインストール</string>
     <string name="common_update">更新</string>
+    <string name="common_value_range">%1$sから%2$sまで</string>
+    <string name="common_value_range_error">%1$s から %2$s までの数字を入力してください</string>
 </resources>

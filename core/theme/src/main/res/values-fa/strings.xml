@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">دریای عمیق</string>
     <string name="core_theme_builtin_facet_label">وجه</string>
     <string name="core_theme_builtin_forest_label">جنگلی</string>
+    <string name="core_theme_builtin_frost_label">یخ‌زده</string>
+    <string name="core_theme_builtin_frost_light_label">یخی روشن</string>
+    <string name="core_theme_builtin_frost_liquid_label">مایع یخی</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">تصویر زمینه یخی</string>
     <string name="core_theme_builtin_glacier_label">یخچال طبیعی</string>
     <string name="core_theme_builtin_mint_label">نعنایی</string>
     <string name="core_theme_builtin_nebula_label">سحابی (Nebula)</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">برف</string>
     <string name="core_theme_builtin_sunset_drift_label">غروب متحرک</string>
     <string name="core_theme_builtin_sunset_label">غروب</string>
+    <string name="core_theme_family_frost_label">یخ‌زده (Frost)</string>
     <string name="core_theme_family_gradient_label">گرادیان‌ها</string>
     <string name="core_theme_family_ocean_label">گرگ‌ومیش</string>
     <string name="core_theme_family_snow_label">پاستلی</string>
+    <string name="core_theme_palette_style_expressive">رسا</string>
+    <string name="core_theme_palette_style_fidelity">وفاداری</string>
+    <string name="core_theme_palette_style_fruit_salad">سالاد میوه</string>
+    <string name="core_theme_palette_style_monochrome">تک‌رنگ</string>
+    <string name="core_theme_palette_style_neutral">خنثی</string>
+    <string name="core_theme_palette_style_rainbow">رنگین‌کمان</string>
+    <string name="core_theme_palette_style_tonal_spot">نقطه رنگی</string>
+    <string name="core_theme_palette_style_vibrant">سرزنده</string>
 </resources>

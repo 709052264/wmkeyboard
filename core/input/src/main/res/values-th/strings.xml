@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">พจนานุกรมคานะเป็นคันจิภาษาญี่ปุ่น</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">ตารางการอ่าน Jyutping สำหรับตัวอักษรจีน (Hanzi) จำนวน 163,000 รายการ แป้นพิมพ์จำเป็นต้องใช้ชุดข้อมูลนี้สำหรับการแปลงภาษาจีนกวางตุ้ง</string>
     <string name="core_input_cjk_pack_jyutping_title">พจนานุกรมภาษากวางตุ้งเย้าพิง</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">ลำดับคำที่ใช้บ่อย ซึ่งนับจากข้อความบนเว็บและข่าวภาษาจีน มาพร้อมกับพจนานุกรมพินอิน ทำให้คำย่ออย่าง wbxh แสดงเป็น 我不喜欢 เป็นคำแรก แทนที่จะแสดงเป็นสองคำที่ไม่เกี่ยวข้องกัน</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">คู่คำภาษาจีน</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">ตัวอักษรและวลีภาษาจีนจาก CC-CEDICT จำนวน 120,000 รายการ แป้นพิมพ์จำเป็นต้องใช้ชุดข้อมูลนี้สำหรับการแปลงภาษาจีน</string>
     <string name="core_input_cjk_pack_pinyin_title">พจนานุกรมพินอินภาษาจีน</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">วลีจาก OpenCC จำนวน 50,000 รายการ ขนาดประมาณ 1 MB เมื่อเปิดใช้งานตัวอักษรจีนตัวเต็ม แป้นพิมพ์จะใช้สิ่งนี้เพื่อเขียนคำในรูปแบบที่ถูกต้อง เช่น 頭髮 ไม่ใช่ 頭發</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">ตารางวลีตัวอักษรจีนตัวเต็ม</string>
     <string name="core_input_cjk_pack_stroke_subtitle">ตารางลำดับขีดสำหรับตัวอักษรฮั่นจื่อ แป้นพิมพ์จำเป็นต้องใช้แพ็กนี้สำหรับรูปแบบการพิมพ์แบบลำดับขีด</string>
     <string name="core_input_cjk_pack_stroke_title">พจนานุกรมขีดเขียนภาษาจีน (笔画)</string>
+    <string name="core_input_double_pinyin_custom_label">กำหนดเอง</string>
     <string name="core_input_double_pinyin_off_label">ปิด (พินอินแบบเต็ม)</string>
+    <string name="core_input_im_note_candidates">สำหรับบางปุ่ม วิธีนี้จะแสดงรายการตัวเลือก แป้นพิมพ์จะใช้ตัวเลือกแรกเสมอ</string>
+    <string name="core_input_im_note_missing_files">ไฟล์เหล่านี้ไม่ถูกเลือก ทำให้ส่วนประกอบหายไป: %1$s หากต้องการรวมไฟล์เหล่านี้ โปรดนำเข้าอีกครั้งและเลือกไฟล์ทั้งหมดไปพร้อมกัน</string>
+    <string name="core_input_im_note_module">วิธีการนี้ใช้ปลั๊กอิน เช่น Anthy ซึ่งแป้นพิมพ์ไม่สามารถเรียกใช้งานได้ ปุ่มที่ใช้ปลั๊กอินนี้จะไม่มีผลใดๆ ที่นี่</string>
+    <string name="core_input_im_note_other_method">วิธีนี้กำหนดปุ่มบางปุ่มให้กับวิธีป้อนข้อมูลอื่น ส่วนนั้นจึงใช้งานไม่ได้ที่นี่</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">แอปไม่สามารถอ่านกฎการสะกดคำ %1$d ข้อ จึงข้ามไป</item>
+        <item quantity="other">แอปไม่สามารถอ่านกฎการสะกดคำ %1$d ข้อ จึงข้ามไป</item>
+    </plurals>
+    <string name="core_input_im_note_space">วิธีนี้ใช้ปุ่มเว้นวรรคเป็นปุ่มกด เช่น สำหรับเสียงวรรณยุกต์ ที่นี่ปุ่มเว้นวรรคจะพิมพ์เว้นวรรคเสมอ</string>
+    <string name="core_input_im_note_truncated">ตารางมีขนาดใหญ่มาก แอปจึงเก็บไว้เพียงส่วนแรกเท่านั้น</string>
+    <string name="core_input_im_note_unused_files">แอปไม่ได้ใช้ไฟล์เหล่านี้: %1$s</string>
+    <string name="core_input_im_refused_broken">ไฟล์มีข้อผิดพลาด แอปจึงไม่สามารถอ่านได้: %1$s</string>
+    <string name="core_input_im_refused_empty">ไฟล์ไม่มีข้อมูลสำหรับพิมพ์</string>
+    <string name="core_input_im_refused_no_dictionary">สคีมาต้องการพจนานุกรม โปรดนำเข้าอีกครั้งและเลือก %1$s ด้วย</string>
+    <string name="core_input_im_refused_not_method">แอปไม่สามารถอ่านไฟล์นั้นเป็นวิธีป้อนข้อมูลได้ แอปสามารถอ่านไฟล์ตาราง .cin, สกีมา Rime และพจนานุกรม (.schema.yaml, .dict.yaml) และไฟล์ m17n .mim ได้</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">แอปอ่านไฟล์นี้เป็นตาราง .cin ที่มี %1$d รายการ พิมพ์รหัสแล้วเลือกตัวอักษรจากแถบคำแนะนำ</item>
+        <item quantity="other">แอปอ่านไฟล์นี้เป็นตาราง .cin ที่มี %1$d รายการ พิมพ์รหัสแล้วเลือกตัวอักษรจากแถบคำแนะนำ</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">แอปอ่านสิ่งนี้เป็นวิธีการป้อนข้อมูล m17n ที่มี %1$d กฎ ปุ่มต่างๆ จะเขียนข้อความตามที่คุณพิมพ์</item>
+        <item quantity="other">แอปอ่านสิ่งนี้เป็นวิธีการป้อนข้อมูล m17n ที่มี %1$d กฎ ปุ่มต่างๆ จะเขียนข้อความตามที่คุณพิมพ์</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">แอปอ่านสิ่งนี้เป็นสคีมา Rime ที่มีรายการพจนานุกรม %1$d รายการ พิมพ์พยางค์แล้วเลือกคำจากแถบคำแนะนำ</item>
+        <item quantity="other">แอปอ่านสิ่งนี้เป็นสคีมา Rime ที่มีรายการพจนานุกรม %1$d รายการ พิมพ์พยางค์แล้วเลือกคำจากแถบคำแนะนำ</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">แอปอ่านข้อมูลนี้เป็นตารางรหัส Rime ที่มี %1$d รายการ พิมพ์รหัสแล้วเลือกตัวอักษรจากแถบคำแนะนำ</item>
+        <item quantity="other">แอปอ่านข้อมูลนี้เป็นตารางรหัส Rime ที่มี %1$d รายการ พิมพ์รหัสแล้วเลือกตัวอักษรจากแถบคำแนะนำ</item>
+    </plurals>
 </resources>

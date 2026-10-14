@@ -3,8 +3,34 @@
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
     <string name="ftools_ai_stream_error">AI ਪ੍ਰਦਾਤਾ ਨੇ ਇੱਕ ਗਲਤੀ ਨਾਲ ਜਵਾਬ ਖਤਮ ਕੀਤਾ</string>
+    <string name="ftools_ai_tool_failed">ਟੂਲ ਅਸਫਲ ਰਿਹਾ: %1$s। ਇਸੇ ਇਨਪੁਟ ਨਾਲ ਇਸਨੂੰ ਦੁਬਾਰਾ ਨਾ ਚਲਾਓ।</string>
+    <string name="ftools_ai_tool_missing_argument">ਕਾਲ ਵਿੱਚ ਲੋੜੀਂਦਾ \"%1$s\" ਮੁੱਲ ਸ਼ਾਮਲ ਨਹੀਂ ਸੀ।</string>
+    <string name="ftools_ai_tool_no_results">ਕੋਈ ਨਤੀਜਾ ਨਹੀਂ।</string>
+    <string name="ftools_ai_tool_no_search">ਇਸ ਕੀਬੋਰਡ ਵਿੱਚ ਵੈੱਬ ਖੋਜ ਸੈੱਟਅੱਪ ਨਹੀਂ ਕੀਤੀ ਗਈ ਹੈ, ਇਸ ਲਈ ਖੋਜ ਕਰਨਾ ਸੰਭਵ ਨਹੀਂ ਹੈ। ਜੋ ਤੁਸੀਂ ਪਹਿਲਾਂ ਹੀ ਜਾਣਦੇ ਹੋ ਉਸ ਤੋਂ ਜਵਾਬ ਦਿਓ ਅਤੇ ਕਹੋ ਕਿ ਤੁਸੀਂ ਖੋਜ ਨਹੀਂ ਕਰ ਸਕੇ।</string>
+    <string name="ftools_ai_tool_reason_bad_url">ਇਹ ਕੋਈ ਵੈੱਬ ਪਤਾ ਨਹੀਂ ਹੈ ਜਿਸਨੂੰ ਕੀਬੋਰਡ ਖੋਲ੍ਹੇਗਾ</string>
+    <string name="ftools_ai_tool_reason_missing">ਮਾਡਲ ਨੇ %1$s ਨੂੰ ਛੱਡ ਦਿੱਤਾ</string>
+    <string name="ftools_ai_tool_reason_no_search">ਵੈੱਬ ਖੋਜ ਸੈੱਟਅੱਪ ਨਹੀਂ ਕੀਤੀ ਗਈ ਹੈ</string>
+    <string name="ftools_ai_tool_reason_unknown">ਮਾਡਲ ਨੇ ਇੱਕ ਅਜਿਹੇ ਟੂਲ ਲਈ ਕਿਹਾ ਜੋ ਮੌਜੂਦ ਨਹੀਂ ਹੈ</string>
+    <string name="ftools_ai_tool_truncated">[ਪੰਨਾ ਇਸ ਬਿੰਦੂ ਤੋਂ ਅੱਗੇ ਜਾਰੀ ਹੈ ਅਤੇ ਕੱਟ ਦਿੱਤਾ ਗਿਆ ਸੀ]</string>
+    <string name="ftools_ai_tool_unknown">%1$s ਨਾਮ ਦਾ ਕੋਈ ਟੂਲ ਨਹੀਂ ਹੈ।</string>
+    <string name="ftools_mcp_declined">ਉਪਭੋਗਤਾ ਨੇ ਇਸ ਕਾਲ ਦੀ ਇਜਾਜ਼ਤ ਨਹੀਂ ਦਿੱਤੀ। ਇਸ ਜਵਾਬ ਵਿੱਚ ਇਸ ਟੂਲ ਨੂੰ ਦੁਬਾਰਾ ਕਾਲ ਨਾ ਕਰੋ। ਇਸ ਤੋਂ ਬਿਨਾਂ ਜਵਾਬ ਦਿਓ, ਅਤੇ ਦੱਸੋ ਕਿ ਤੁਸੀਂ ਕੀ ਨਹੀਂ ਕਰ ਸਕੇ।</string>
+    <string name="ftools_mcp_empty">ਟੂਲ ਚੱਲਿਆ ਅਤੇ ਵਾਪਸ ਕੁਝ ਨਹੀਂ ਭੇਜਿਆ।</string>
+    <string name="ftools_mcp_error_needs_input">ਸਰਵਰ ਨੇ ਹੋਰ ਇਨਪੁਟ ਮੰਗਿਆ ਹੈ, ਅਤੇ ਕੀਬੋਰਡ ਅਜੇ ਇਹ ਨਹੀਂ ਦੇ ਸਕਦਾ।</string>
+    <string name="ftools_mcp_error_no_version">ਇਹ ਸਰਵਰ MCP ਦੇ ਇੱਕ ਨਵੇਂ ਵਰਜਨ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ ਜਿਸ ਬਾਰੇ ਕੀਬੋਰਡ ਨੂੰ ਜਾਣਕਾਰੀ ਨਹੀਂ ਹੈ।</string>
+    <string name="ftools_mcp_error_not_mcp">ਇਸ ਪਤੇ ਨੇ MCP ਸਰਵਰ ਵਾਂਗ ਜਵਾਬ ਨਹੀਂ ਦਿੱਤਾ। ਪਤਾ ਅਤੇ ਕਿਸਮ ਦੀ ਜਾਂਚ ਕਰੋ।</string>
+    <string name="ftools_mcp_error_server">ਸਰਵਰ ਨੇ ਇੱਕ ਗਲਤੀ ਭੇਜੀ: %1$s</string>
+    <string name="ftools_mcp_error_sign_in">ਇਸ ਸਰਵਰ ਲਈ ਤੁਹਾਨੂੰ ਸਾਈਨ ਇਨ ਕਰਨ ਦੀ ਲੋੜ ਹੈ, ਅਤੇ ਕੀਬੋਰਡ ਅਜੇ ਅਜਿਹਾ ਨਹੀਂ ਕਰ ਸਕਦਾ। ਜੇਕਰ ਸਰਵਰ ਟੋਕਨ ਜਾਂ ਕੁੰਜੀਆਂ ਦਿੰਦਾ ਹੈ, ਤਾਂ ਇੱਕ ਨੂੰ ਹੈਡਰ ਵਜੋਂ ਸ਼ਾਮਲ ਕਰੋ।</string>
+    <string name="ftools_mcp_omitted">[ਟੂਲ ਨੇ ਅਜਿਹੀ ਸਮੱਗਰੀ ਵੀ ਵਾਪਸ ਭੇਜੀ ਹੈ ਜੋ ਤੁਸੀਂ ਇੱਥੇ ਨਹੀਂ ਪੜ੍ਹ ਸਕਦੇ: %1$s]</string>
+    <string name="ftools_mcp_reason_declined">ਤੁਸੀਂ ਇਸਦੀ ਇਜਾਜ਼ਤ ਨਹੀਂ ਦਿੱਤੀ</string>
+    <string name="ftools_mcp_reason_stopped">ਚੱਲਣ ਤੋਂ ਪਹਿਲਾਂ ਰੁਕ ਗਿਆ</string>
+    <string name="ftools_mcp_reason_tool_error">ਟੂਲ ਨੇ ਇੱਕ ਗਲਤੀ ਦੀ ਰਿਪੋਰਟ ਕੀਤੀ</string>
+    <string name="ftools_mcp_stopped">ਕਾਲ ਚੱਲਣ ਤੋਂ ਪਹਿਲਾਂ ਰੱਦ ਕਰ ਦਿੱਤੀ ਗਈ ਸੀ।</string>
+    <string name="ftools_mcp_tool_error">ਟੂਲ ਨੇ ਇੱਕ ਗਲਤੀ ਦੀ ਰਿਪੋਰਟ ਕੀਤੀ: %1$s</string>
+    <string name="ftools_mcp_truncated">[ਜਵਾਬ ਇਸ ਬਿੰਦੂ ਤੋਂ ਅੱਗੇ ਜਾਰੀ ਹੈ ਅਤੇ ਕੱਟ ਦਿੱਤਾ ਗਿਆ ਸੀ]</string>
     <string name="ftools_photo_error_failed">ਐਪ ਫੋਟੋਆਂ ਪ੍ਰਾਪਤ ਨਹੀਂ ਕਰ ਸਕੀ</string>
     <string name="ftools_photo_error_offline">ਐਪ ਫੋਟੋ ਸੇਵਾ ਤੱਕ ਨਹੀਂ ਪਹੁੰਚ ਸਕਦੀ। ਆਪਣਾ ਨੈੱਟਵਰਕ ਚੈੱਕ ਕਰੋ ਅਤੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
     <string name="ftools_photo_error_timeout">ਫੋਟੋ ਸੇਵਾ ਨੂੰ ਜਵਾਬ ਦੇਣ ਵਿੱਚ ਬਹੁਤ ਸਮਾਂ ਲੱਗਿਆ</string>
     <string name="ftools_search_error_json_disabled">ਇਸ SearXNG ਇੰਸਟੈਂਸ ਨੇ ਆਪਣੀ JSON API ਨੂੰ ਸਮਰੱਥ ਨਹੀਂ ਕੀਤਾ ਹੈ। ਇਸਦੀ settings.yml ਵਿੱਚ &lt;b&gt;search.formats&lt;/b&gt; ਵਿੱਚ &lt;b&gt;json&lt;/b&gt; ਸ਼ਾਮਲ ਕਰੋ, ਜਾਂ ਕਿਸੇ ਹੋਰ ਇੰਸਟੈਂਸ ਦੀ ਵਰਤੋਂ ਕਰੋ।</string>
+    <string name="ftools_search_error_searx_limited">ਇਹ SearXNG ਇੰਸਟੈਂਸ ਫਿਲਹਾਲ ਐਪਾਂ ਨੂੰ ਰੱਦ ਕਰ ਰਿਹਾ ਹੈ (HTTP 429)। ਜਨਤਕ ਇੰਸਟੈਂਸ ਉਹਨਾਂ ਬੇਨਤੀਆਂ ਨੂੰ ਸੀਮਤ ਕਰਦੇ ਹਨ ਜੋ ਬ੍ਰਾਊਜ਼ਰ ਤੋਂ ਨਹੀਂ ਆਉਂਦੀਆਂ। ਬਾਅਦ ਵਿੱਚ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ, ਜਾਂ ਆਪਣਾ ਖੁਦ ਦਾ ਇੰਸਟੈਂਸ ਵਰਤੋ ਜਾਂ ਕੋਈ ਅਜਿਹਾ ਇੰਸਟੈਂਸ ਵਰਤੋ ਜੋ ਇਸਦੇ JSON API ਦੀ ਇਜਾਜ਼ਤ ਦਿੰਦਾ ਹੋਵੇ।</string>
+    <string name="ftools_web_fetch_bad_url">ਇਹ ਉਹ ਵੈੱਬ ਪਤਾ ਨਹੀਂ ਹੈ ਜੋ ਇਹ ਕੀਬੋਰਡ ਖੋਲ੍ਹੇਗਾ। ਇੱਕ ਪੂਰਾ http:// ਜਾਂ https:// ਪਤਾ ਦਿਓ।</string>
 </resources>

@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">गहरा समुद्र</string>
     <string name="core_theme_builtin_facet_label">फैसेट</string>
     <string name="core_theme_builtin_forest_label">वन</string>
+    <string name="core_theme_builtin_frost_label">फ्रॉस्ट</string>
+    <string name="core_theme_builtin_frost_light_label">फ्रॉस्ट लाइट</string>
+    <string name="core_theme_builtin_frost_liquid_label">फ़्रॉस्ट लिक्विड</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">फ्रॉस्ट वॉलपेपर</string>
     <string name="core_theme_builtin_glacier_label">ग्लेशियर</string>
     <string name="core_theme_builtin_mint_label">मिंट</string>
     <string name="core_theme_builtin_nebula_label">नेबुला</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">बर्फ</string>
     <string name="core_theme_builtin_sunset_drift_label">सनसेट ड्रिफ्ट</string>
     <string name="core_theme_builtin_sunset_label">सनसेट</string>
+    <string name="core_theme_family_frost_label">फ्रॉस्ट</string>
     <string name="core_theme_family_gradient_label">ग्रेडिएंट्स</string>
     <string name="core_theme_family_ocean_label">नाइटफॉल</string>
     <string name="core_theme_family_snow_label">पेस्टल</string>
+    <string name="core_theme_palette_style_expressive">अभिव्यंजक</string>
+    <string name="core_theme_palette_style_fidelity">फिडेलिटी</string>
+    <string name="core_theme_palette_style_fruit_salad">फ्रूट सलाद</string>
+    <string name="core_theme_palette_style_monochrome">मोनोक्रोम</string>
+    <string name="core_theme_palette_style_neutral">तटस्थ</string>
+    <string name="core_theme_palette_style_rainbow">इंद्रधनुष</string>
+    <string name="core_theme_palette_style_tonal_spot">टोनल स्पॉट</string>
+    <string name="core_theme_palette_style_vibrant">वाइब्रेंट</string>
 </resources>

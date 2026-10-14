@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">KÓD</string>
     <string name="core_content_clip_entity_phone_label">Telefonní číslo</string>
     <string name="core_content_clip_entity_phone_tag">TELEFON</string>
+    <string name="core_content_clip_entity_place_label">Místo</string>
+    <string name="core_content_clip_entity_place_tag">MÍSTO</string>
     <string name="core_content_clip_entity_url_label">Odkaz</string>
     <string name="core_content_clip_entity_url_tag">ODKAZ</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Aplikace neumí číst webové fonty WOFF. Použijte verzi písma .ttf nebo .otf.</string>
     <string name="core_content_font_error_woff2">Aplikace nemůže číst webová písma WOFF2. Použijte verzi písma .ttf nebo .otf.</string>
     <string name="core_content_font_error_zip">Tento soubor je archiv zip, nikoliv písmo.</string>
+    <string name="core_content_note_tag_ideas">Nápady</string>
+    <string name="core_content_note_tag_important">Důležité</string>
+    <string name="core_content_note_tag_personal">Osobní</string>
+    <string name="core_content_note_tag_school">Škola</string>
+    <string name="core_content_note_tag_study">Studium</string>
+    <string name="core_content_note_tag_work">Práce</string>
     <string name="core_content_selection_macro_add_contact">Kontakt</string>
     <string name="core_content_selection_macro_calendar">Kalendář</string>
     <string name="core_content_selection_macro_call">Zavolat</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Přečíst</string>
     <string name="core_content_selection_macro_replace">Nahradit</string>
+    <string name="core_content_selection_macro_save_note">Uložit jako poznámku</string>
     <string name="core_content_selection_macro_search">Hledat</string>
     <string name="core_content_selection_macro_share">Sdílet</string>
     <string name="core_content_selection_macro_sms">Zpráva</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Přeložit</string>
     <string name="core_content_selection_macro_url_decode">Dekódovat</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Soubor také obsahuje %1$d slovo bez zkratky. Chcete-li jej přidat ke svým slovům, otevřete soubor z Osobního slovníku.</item>
+        <item quantity="other">Soubor také obsahuje %1$d slov bez zkratky. Chcete-li je přidat ke svým slovům, otevřete soubor z Osobního slovníku.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Aplikace vynechala %2$d rozšíření z „%1$s“.</item>
         <item quantity="other">Aplikace vynechala %2$d rozšíření z „%1$s“.</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Aplikace odstranila vzor z „%1$s“. Byl delší než %2$d znak.</item>
         <item quantity="other">Aplikace odstranila vzor z „%1$s“. Byl delší než %2$d znaků.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Aplikace zahodila %1$d řádek, který nemá žádný text.</item>
+        <item quantity="other">Aplikace zahodila %1$d řádků, které nemají žádný text.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Aplikace zkrátila „%1$s“. Bylo delší než %2$d znak.</item>
         <item quantity="other">Aplikace zkrátila „%1$s“. Bylo delší než %2$d znaků.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Aplikace odebrala %1$d spouštěč, který klávesnice nemůže sledovat. Jeho úryvek zůstává v seznamu.</item>
+        <item quantity="other">Aplikace odebrala %1$d spouštěčů, které klávesnice nemůže sledovat. Jejich úryvky zůstávají v seznamu.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Název aplikace, ve které píšete</string>
     <string name="core_content_snippet_var_clip_info">Nejnovější položka schránky</string>

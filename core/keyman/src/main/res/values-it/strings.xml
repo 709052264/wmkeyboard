@@ -10,6 +10,10 @@
         <item quantity="one">%1$d tasto digita il carattere stampato su di esso. La tastiera originale utilizzava una regola per decidere cosa digitare.</item>
         <item quantity="other">%1$d tasti digitano i caratteri stampati su di essi. La tastiera originale utilizzava regole per decidere cosa digitare.</item>
     </plurals>
+    <plurals name="core_keyman_multitap_unconverted">
+        <item quantity="one">Questa tastiera ha %1$d tasto che premi ripetutamente per scorrere tra pagine o caratteri. L\'app non può copiare questo ciclo, quindi ogni pressione agisce come la prima.</item>
+        <item quantity="other">Questa tastiera ha %1$d tasti che premi ripetutamente per scorrere tra pagine o caratteri. L\'app non può copiare questi cicli, quindi ogni pressione agisce come la prima.</item>
+    </plurals>
     <string name="core_keyman_rules_missing">Questa tastiera utilizza delle regole per decidere cosa digitare. L\'app non dispone di tali regole, quindi ogni tasto digita il carattere stampato su di esso.</string>
     <plurals name="core_keyman_special_keys_dropped">
         <item quantity="one">L\'app ha rimosso %1$d tasto. Questa tastiera non ha alcun tasto che esegua la stessa funzione.</item>

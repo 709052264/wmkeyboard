@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Duboko more</string>
     <string name="core_theme_builtin_facet_label">Faseta</string>
     <string name="core_theme_builtin_forest_label">Šuma</string>
+    <string name="core_theme_builtin_frost_label">Mraz</string>
+    <string name="core_theme_builtin_frost_light_label">Frost svjetla</string>
+    <string name="core_theme_builtin_frost_liquid_label">Frost liquid</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Frost pozadina</string>
     <string name="core_theme_builtin_glacier_label">Glacier</string>
     <string name="core_theme_builtin_mint_label">Metvica</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Snijeg</string>
     <string name="core_theme_builtin_sunset_drift_label">Zalazak sunca</string>
     <string name="core_theme_builtin_sunset_label">Zalazak sunca</string>
+    <string name="core_theme_family_frost_label">Mraz</string>
     <string name="core_theme_family_gradient_label">Gradijenti</string>
     <string name="core_theme_family_ocean_label">Sumrak</string>
     <string name="core_theme_family_snow_label">Pastelna</string>
+    <string name="core_theme_palette_style_expressive">Izražajno</string>
+    <string name="core_theme_palette_style_fidelity">Vjernost</string>
+    <string name="core_theme_palette_style_fruit_salad">Voćna salata</string>
+    <string name="core_theme_palette_style_monochrome">Monokromatski</string>
+    <string name="core_theme_palette_style_neutral">Neutralno</string>
+    <string name="core_theme_palette_style_rainbow">Duga</string>
+    <string name="core_theme_palette_style_tonal_spot">Tonalna točka</string>
+    <string name="core_theme_palette_style_vibrant">Živopisno</string>
 </resources>

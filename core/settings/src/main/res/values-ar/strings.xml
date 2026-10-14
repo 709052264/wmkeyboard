@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">أسفل اليمين</string>
     <string name="core_settings_board_corner_top_left_label">أعلى اليسار</string>
     <string name="core_settings_board_corner_top_right_label">أعلى اليمين</string>
+    <string name="core_settings_clip_swipe_pin_left_label">التثبيت لليسار، الحذف لليمين</string>
+    <string name="core_settings_clip_swipe_pin_off_label">كلا الاتجاهين للحذف</string>
+    <string name="core_settings_clip_swipe_pin_right_label">التثبيت لليمين، الحذف لليسار</string>
     <string name="core_settings_clip_time_copied_label">وقت النسخ</string>
     <string name="core_settings_clip_time_expires_label">الوقت المتبقي</string>
     <string name="core_settings_clip_time_off_label">لا يوجد</string>

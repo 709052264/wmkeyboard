@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Azok a karakterek, amelyeket a számítógépen az AltGr billentyű ír be, ugyanazon billentyűk hosszan tartó lenyomásával érhetők el.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d holt billentyű ékezetet tesz a következő betűre a számítógépen. Itt az ilyen ékezetes betűk az egyes betűk hosszan tartó lenyomásával érhetők el.</item>
+        <item quantity="other">%1$d holt billentyű ékezeteket tesz a következő betűre a számítógépen. Itt az ilyen ékezetes betűk az egyes betűk hosszan tartó lenyomásával érhetők el.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">A fájl %1$d másik fájlra (%2$s) épül, amelyet nem nyitott meg. A csak az által a fájl által beállított kulcsok hiányoznak.</item>
+        <item quantity="other">A fájl %1$d másik fájlra (%2$s) épül, amelyeket nem nyitott meg. A csak az általuk beállított kulcsok hiányoznak.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d karakter egy olyan billentyűről, amelyen nincsenek betűk, a pont hosszú megnyomásával érhető el.</item>
+        <item quantity="other">%1$d karakter olyan billentyűkről, amelyeken nincsenek betűk, a pont hosszú megnyomásával érhetők el.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Az alkalmazás nem ismeri a fájlban lévő %1$d karakternevet, ezért kihagyta: %2$s.</item>
+        <item quantity="other">Az alkalmazás nem ismeri a fájlban lévő %1$d karakternevet, ezért kihagyta őket: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d billentyűn végzett húzásnak itt nincs helye, mert ez a billentyűzet azt a húzást más feladatra használja. Az alkalmazás eltávolította.</item>
+        <item quantity="other">%1$d billentyűn végzett húzásnak itt nincs helye, mert ez a billentyűzet azokat a húzásokat más feladatokra használja. Az alkalmazás eltávolította őket.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Az alkalmazás %1$d billentyűt a legközelebbi elérhető billentyűre cserélt.</item>
         <item quantity="other">Az alkalmazás %1$d billentyűt a legközelebbi elérhető billentyűkre cserélt.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Az alkalmazás %1$d betűt módosított arra az alakra, amelyet ez a billentyűzet használ.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Az alkalmazás eltávolította a számsort. A számsor visszakapcsolásához lépjen a „Kiosztás és méret” menübe.</string>
+    <string name="core_lang_foreign_number_row_kept">A fájl számsora ennek a kiosztásnak a számsora. Akkor látható, ha a számsor be van kapcsolva az Elrendezés és méret menüben.</string>
+    <string name="core_lang_foreign_pages_kept">A fájl extra oldalai, mint például az AltGr, ennek az elrendezésnek az oldalai. Suhintson arról a billentyűről, amely megnyitotta őket a másik billentyűzeten, hogy itt is megnyissa őket.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d billentyűhöz nincsenek lenyomva tartható betűk. A fájl ezeket egy második fájlban tárolja, amelyet nem nyitottál meg.</item>
         <item quantity="other">%1$d billentyűhöz nincsenek lenyomva tartható betűk. A fájl ezeket egy második fájlban tárolja, amelyet nem nyitottál meg.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d billentyű változik a shift állapottól vagy a másik billentyűzet mezőjétől függően. Az alkalmazás megtartotta az alapállapotú megjelenést.</item>
         <item quantity="other">%1$d billentyű változik a shift állapottól vagy a másik billentyűzet mezőjétől függően. Az alkalmazás megtartotta az alapállapotú megjelenést.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">A fájlban lévő %1$d eltolt oldal kulcsai máshol találhatók, mint az oldal, amelyet eltolnak. Az alkalmazás helyette nagybetűket használ.</item>
+        <item quantity="other">A fájlban lévő %1$d eltolt oldal kulcsai máshol találhatók, mint az oldalak, amelyeket eltolnak. Az alkalmazás helyette nagybetűket használ.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d billentyűnek eltérő nyomva tartási betűi vannak, miközben a Shift le van nyomva a másik billentyűzeten. Az alkalmazás megtartotta a nem eltoltakat.</item>
+        <item quantity="other">%1$d billentyűnek eltérő nyomva tartási betűi vannak, miközben a Shift le van nyomva a másik billentyűzeten. Az alkalmazás megtartotta a nem eltoltakat.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">A másik billentyűzet eltérően méri a billentyűszélességeket. Az alkalmazás módosította a szélességeket, hogy illeszkedjenek ehhez a rácshoz.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

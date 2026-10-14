@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">অ্যাপটি \"%1$s\" ড্রপ করেছে। অ্যাপটি এটি সংরক্ষণ করতে পারছে না।</string>
     <string name="core_icons_repair_svg_unreadable">অ্যাপটি \"%1$s\" বাদ দিয়েছে। অ্যাপটি এর SVG ফাইলটি পড়তে পারছে না।</string>
+    <string name="core_icons_slot_arrow_down_label">নিচের দিকে তীর</string>
+    <string name="core_icons_slot_arrow_left_label">বাম অ্যারো</string>
+    <string name="core_icons_slot_arrow_right_label">ডান দিকে তীর</string>
+    <string name="core_icons_slot_arrow_up_label">তীর চিহ্ন উপরে</string>
     <string name="core_icons_slot_backspace_label">ব্যাকস্পেস</string>
+    <string name="core_icons_slot_caps_lock_key_label">ক্যাপস লক কী</string>
     <string name="core_icons_slot_caps_lock_label">ক্যাপস লক</string>
     <string name="core_icons_slot_emoji_activities_label">কার্যকলাপ</string>
     <string name="core_icons_slot_emoji_animals_label">প্রাণী</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">এন্টার: পাঠান</string>
     <string name="core_icons_slot_forward_delete_label">ফরোয়ার্ড ডিলিট</string>
     <string name="core_icons_slot_globe_label">ভাষা পরিবর্তন করুন</string>
+    <string name="core_icons_slot_hide_keys_label">কীগুলো লুকান (হার্ডওয়্যার কীবোর্ড)</string>
     <string name="core_icons_slot_incognito_label">ইনকগনিটো ব্যাজ</string>
     <string name="core_icons_slot_input_method_picker_label">কীবোর্ড পরিবর্তন করুন</string>
     <string name="core_icons_slot_panel_back_label">কি-গুলোতে ফিরে যান</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">অনুসন্ধান বন্ধ করুন</string>
     <string name="core_icons_slot_shift_label">শিফট</string>
     <string name="core_icons_slot_shift_on_label">শিফট (চালু)</string>
+    <string name="core_icons_slot_show_keys_label">কীগুলো দেখান (হার্ডওয়্যার কীবোর্ড)</string>
     <string name="core_icons_slot_suggestions_expand_label">টুলগুলো দেখান</string>
+    <string name="core_icons_slot_tab_label">ট্যাব কী</string>
     <string name="core_icons_slot_toolbox_label">টুলবক্স</string>
 </resources>

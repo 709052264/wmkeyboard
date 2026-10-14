@@ -3,8 +3,34 @@
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
     <string name="ftools_ai_stream_error">Yapay zeka sağlayıcısı yanıtı bir hatayla sonlandırdı</string>
+    <string name="ftools_ai_tool_failed">Araç başarısız oldu: %1$s. Aynı girdiyle tekrar çağırmayın.</string>
+    <string name="ftools_ai_tool_missing_argument">Çağrı, gerekli \"%1$s\" değerini dışarıda bıraktı.</string>
+    <string name="ftools_ai_tool_no_results">Sonuç yok.</string>
+    <string name="ftools_ai_tool_no_search">Bu klavyede web araması ayarlanmamıştır, bu nedenle arama yapmak mümkün değildir. Bildiklerinizden cevap verin ve arama yapamadığınızı belirtin.</string>
+    <string name="ftools_ai_tool_reason_bad_url">Klavyenin açacağı bir web adresi değil</string>
+    <string name="ftools_ai_tool_reason_missing">Model %1$s kısmını atladı</string>
+    <string name="ftools_ai_tool_reason_no_search">Web araması ayarlanmamış</string>
+    <string name="ftools_ai_tool_reason_unknown">Model var olmayan bir araç istedi</string>
+    <string name="ftools_ai_tool_truncated">[sayfa bu noktadan sonrasına devam ediyor ve kesildi]</string>
+    <string name="ftools_ai_tool_unknown">%1$s adında bir araç yok.</string>
+    <string name="ftools_mcp_declined">Kullanıcı bu çağrıya izin vermedi. Bu cevabın içinde bu aracı tekrar çağırmayın. Onsuz cevap verin ve neyi yapamadığınızı belirtin.</string>
+    <string name="ftools_mcp_empty">Araç çalıştı ancak hiçbir sonuç döndürmedi.</string>
+    <string name="ftools_mcp_error_needs_input">Sunucu daha fazla girdi istedi ancak klavye bunu henüz sağlayamıyor.</string>
+    <string name="ftools_mcp_error_no_version">Bu sunucu, klavyenin bildiğinden daha yeni bir MCP sürümü kullanıyor.</string>
+    <string name="ftools_mcp_error_not_mcp">Bu adres bir MCP sunucusu gibi yanıt vermedi. Adresi ve türü kontrol edin.</string>
+    <string name="ftools_mcp_error_server">Sunucu bir hata gönderdi: %1$s</string>
+    <string name="ftools_mcp_error_sign_in">Bu sunucu giriş yapmanızı gerektiriyor ve klavye bunu henüz yapamıyor. Sunucu jeton veya anahtar veriyorsa, bir başlık olarak ekleyin.</string>
+    <string name="ftools_mcp_omitted">[araç ayrıca burada okuyamayacağınız içerikler gönderdi: %1$s]</string>
+    <string name="ftools_mcp_reason_declined">İzin vermediniz</string>
+    <string name="ftools_mcp_reason_stopped">Çalıştırılmadan önce durduruldu</string>
+    <string name="ftools_mcp_reason_tool_error">Araç bir hata bildirdi</string>
+    <string name="ftools_mcp_stopped">Çağrı çalıştırılmadan önce iptal edildi.</string>
+    <string name="ftools_mcp_tool_error">Araç bir hata bildirdi: %1$s</string>
+    <string name="ftools_mcp_truncated">[cevap bu noktadan sonra devam ediyor ve kesildi]</string>
     <string name="ftools_photo_error_failed">Uygulama fotoğrafları alamadı</string>
     <string name="ftools_photo_error_offline">Uygulama fotoğraf hizmetine ulaşamıyor. Ağınızı kontrol edin ve tekrar deneyin.</string>
     <string name="ftools_photo_error_timeout">Fotoğraf hizmetinin yanıt vermesi çok uzun sürdü</string>
     <string name="ftools_search_error_json_disabled">Bu SearXNG örneği JSON API\'sini etkinleştirmemiş. Ayarlar dosyasındaki (settings.yml) search.formats kısmına &lt;b&gt;json&lt;/b&gt; ekleyin veya başka bir örnek kullanın.</string>
+    <string name="ftools_search_error_searx_limited">Bu SearXNG örneği şu an için uygulamaları reddediyor (HTTP 429). Genel örnekler, tarayıcıdan gelmeyen istekleri sınırlar. Daha sonra tekrar deneyin veya kendi örneğinizi ya da JSON API\'sine izin veren bir örneği kullanın.</string>
+    <string name="ftools_web_fetch_bad_url">Bu, klavyenin açacağı bir web adresi değil. Tam bir http:// veya https:// adresi verin.</string>
 </resources>

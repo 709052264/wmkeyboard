@@ -10,6 +10,10 @@
         <item quantity="one">%1$d 個のキーが、印字された文字を入力します。元のキーボードは、入力内容を決定するためにルールを使用していました。</item>
         <item quantity="other">%1$d 個のキーが、印字された文字を入力します。元のキーボードは、入力内容を決定するためにルールを使用していました。</item>
     </plurals>
+    <plurals name="core_keyman_multitap_unconverted">
+        <item quantity="one">このキーボードには、繰り返しタップしてページや文字を切り替えるキーが%1$dつあります。アプリはこのサイクルをコピーできないため、各タップは最初のタップとして動作します。</item>
+        <item quantity="other">このキーボードには、繰り返しタップしてページや文字を切り替えるキーが%1$dつあります。アプリはこのサイクルをコピーできないため、各タップは最初のタップとして動作します。</item>
+    </plurals>
     <string name="core_keyman_rules_missing">このキーボードはルールを使用してキーの入力内容を決定します。アプリにそのルールがないため、各キーは印字された文字を入力します。</string>
     <plurals name="core_keyman_special_keys_dropped">
         <item quantity="one">アプリが %1$d 個のキーを削除しました。このキーボードには同じ機能を持つキーがありません。</item>

@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">پایین سمت راست</string>
     <string name="core_settings_board_corner_top_left_label">بالا سمت چپ</string>
     <string name="core_settings_board_corner_top_right_label">بالا سمت راست</string>
+    <string name="core_settings_clip_swipe_pin_left_label">کشیدن به چپ برای پین، به راست برای حذف</string>
+    <string name="core_settings_clip_swipe_pin_off_label">حذف از هر دو جهت</string>
+    <string name="core_settings_clip_swipe_pin_right_label">سنجاق کردن به راست، حذف کردن به چپ</string>
     <string name="core_settings_clip_time_copied_label">زمان کپی‌شدن</string>
     <string name="core_settings_clip_time_expires_label">زمان باقی‌مانده</string>
     <string name="core_settings_clip_time_off_label">هیچکدام</string>

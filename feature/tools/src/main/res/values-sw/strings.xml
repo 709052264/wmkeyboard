@@ -3,8 +3,34 @@
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
     <string name="ftools_ai_stream_error">Mtoa huduma wa AI amemaliza jibu kwa hitilafu</string>
+    <string name="ftools_ai_tool_failed">Zana imeshindwa: %1$s. Usiitumie tena kwa ingizo lilelile.</string>
+    <string name="ftools_ai_tool_missing_argument">Wito uliacha thamani inayohitajika ya \"%1$s\".</string>
+    <string name="ftools_ai_tool_no_results">Hakuna matokeo.</string>
+    <string name="ftools_ai_tool_no_search">Utafutaji wa wavuti haujawekwa kwenye kibodi hii, kwa hivyo kutafuta hakuwezekani. Jibu kutoka kwa kile unachokijua tayari na sema kwamba hukuweza kutafuta.</string>
+    <string name="ftools_ai_tool_reason_bad_url">Si anwani ya wavuti ambayo kibodi itafungua</string>
+    <string name="ftools_ai_tool_reason_missing">Muundo umeacha %1$s</string>
+    <string name="ftools_ai_tool_reason_no_search">Utafutaji wa wavuti haujasanidiwa</string>
+    <string name="ftools_ai_tool_reason_unknown">Muundo umeomba zana ambayo haipo</string>
+    <string name="ftools_ai_tool_truncated">[ukurasa unaendelea zaidi ya hatua hii na umekatwa]</string>
+    <string name="ftools_ai_tool_unknown">Hakuna zana inayoitwa %1$s.</string>
+    <string name="ftools_mcp_declined">Mtumiaji hakuruhusu simu hii. Usipige simu hii tena katika jibu hili. Jibu bila hiyo, na useme kile ambacho hukuweza kufanya.</string>
+    <string name="ftools_mcp_empty">Zana ilifanya kazi na haikurejesha chochote.</string>
+    <string name="ftools_mcp_error_needs_input">Seva iliomba maelezo zaidi, na kibodi haiwezi kuyatoa bado.</string>
+    <string name="ftools_mcp_error_no_version">Seva hii inatumia toleo jipya zaidi la MCP kuliko kibodi inavyojua.</string>
+    <string name="ftools_mcp_error_not_mcp">Anwani hii haikujibu kama seva ya MCP. Angalia anwani na aina yake.</string>
+    <string name="ftools_mcp_error_server">Seva imetuma hitilafu: %1$s</string>
+    <string name="ftools_mcp_error_sign_in">Seva hii inahitaji uingie, na kibodi haiwezi kufanya hivyo bado. Ikiwa seva inatoa tokeni au funguo, ongeza moja kama kichwa.</string>
+    <string name="ftools_mcp_omitted">[zana pia ilituma maudhui ambayo huwezi kuyasoma hapa: %1$s]</string>
+    <string name="ftools_mcp_reason_declined">Hukuruhusu</string>
+    <string name="ftools_mcp_reason_stopped">Imesimamishwa kabla haijaanza</string>
+    <string name="ftools_mcp_reason_tool_error">Zana imeripoti hitilafu</string>
+    <string name="ftools_mcp_stopped">Simu ilighairiwa kabla haijaanza.</string>
+    <string name="ftools_mcp_tool_error">Zana imeripoti hitilafu: %1$s</string>
+    <string name="ftools_mcp_truncated">[jibu linaendelea kupita hatua hii na lilikatwa]</string>
     <string name="ftools_photo_error_failed">Programu haikuweza kupata picha</string>
     <string name="ftools_photo_error_offline">Programu haiwezi kufikia huduma ya picha. Angalia mtandao wako na ujaribu tena.</string>
     <string name="ftools_photo_error_timeout">Huduma ya picha ilichukua muda mrefu sana kujibu</string>
     <string name="ftools_search_error_json_disabled">Mfano huu wa SearXNG haujawasha API yake ya JSON. Ongeza &lt;b&gt;json&lt;/b&gt; kwenye &lt;b&gt;search.formats&lt;/b&gt; katika mipangilio yake ya settings.yml, au tumia mfano mwingine.</string>
+    <string name="ftools_search_error_searx_limited">Mfano huu wa SearXNG unakataa programu kwa sasa (HTTP 429). Mifano ya umma hupunguza maombi ambayo hayatoki kwenye kivinjari. Jaribu tena baadaye, au tumia mfano wako mwenyewe au ule unaoruhusu API yake ya JSON.</string>
+    <string name="ftools_web_fetch_bad_url">Hiyo si anwani ya wavuti ambayo kibodi hii itafungua. Toa anwani kamili ya http:// au https://.</string>
 </resources>

@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Znaky, ktoré na počítači píše kláves AltGr, sú dostupné po stlačení a podržaní rovnakých klávesov.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d mŕtva klávesa pridá akcent na nasledujúce písmeno v počítači. Tu sú písmená s týmto akcentom dostupné po stlačení a podržaní každého písmena.</item>
+        <item quantity="other">%1$d mŕtve klávesy pridajú akcenty na nasledujúce písmeno v počítači. Tu sú písmená s týmito akcentmi dostupné po stlačení a podržaní každého písmena.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Súbor stavia na 1 inom súbore (%2$s), ktorý ste neotvorili. Chýbajú kľúče, ktoré nastavuje iba tento súbor.</item>
+        <item quantity="other">Súbor stavia na %1$d iných súboroch (%2$s), ktoré ste neotvorili. Chýbajú kľúče, ktoré nastavujú iba tieto súbory.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d znak z klávesy bez písmen je dostupný po dlhom stlačení bodky.</item>
+        <item quantity="other">%1$d znakov z kláves bez písmen je dostupných po dlhom stlačení bodky.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Aplikácia nepozná %1$d názov znaku v súbore, preto ho vynechala: %2$s.</item>
+        <item quantity="other">Aplikácia nepozná %1$d názvov znakov v súbore, preto ich vynechala: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d potiahnutie na klávese tu nemá miesto, pretože táto klávesnica používa toto potiahnutie na inú úlohu. Aplikácia ho odstránila.</item>
+        <item quantity="other">%1$d potiahnutí na klávesoch tu nemá miesto, pretože táto klávesnica používa tieto potiahnutia na iné úlohy. Aplikácia ich odstránila.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Aplikácia zmenila %1$d kláves na najbližší, ktorý má.</item>
         <item quantity="other">Aplikácia zmenila %1$d klávesov na najbližšie, ktoré má.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Aplikácia zmenila %1$d písmen na tvar, ktorý táto klávesnica používa.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Aplikácia odstránila číselný riadok. Ak ho chcete získať, zapnite číselný riadok v časti Rozloženie a veľkosť.</string>
+    <string name="core_lang_foreign_number_row_kept">Číselný riadok súboru je číselným riadkom tohto rozloženia. Zobrazuje sa, keď je číselný riadok zapnutý v časti Rozloženie a veľkosť.</string>
+    <string name="core_lang_foreign_pages_kept">Ďalšie strany súboru, ako napríklad AltGr, sú strany tohto rozloženia. Potiahnutím prstom z klávesu, ktorý ich otvoril v druhej klávesnici, ich otvoríte tu.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d kláves nemá žiadne písmená pri dlhom stlačení. Súbor ich uchováva v druhom súbore, ktorý ste neotvorili.</item>
         <item quantity="other">%1$d klávesov nemá žiadne písmená pri dlhom stlačení. Súbor ich uchováva v druhom súbore, ktorý ste neotvorili.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d kláves sa mení podľa stavu klávesy Shift alebo poľa v inej klávesnici. Aplikácia zachovala ich vzhľad v pokoji.</item>
         <item quantity="other">%1$d klávesov sa mení podľa stavu klávesy Shift alebo poľa v inej klávesnici. Aplikácia zachovala ich vzhľad v pokoji.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d posunutá strana v súbore má svoje klávesy na iných miestach, než je strana, ktorú posúva. Aplikácia tam namiesto toho používa veľké písmená.</item>
+        <item quantity="other">%1$d posunutých strán v súbore má svoje klávesy na iných miestach, než sú strany, ktoré posúvajú. Aplikácia tam namiesto toho používa veľké písmená.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d kláves má v inej klávesnici iné písmená pri dlhom stlačení, keď je zapnutý Shift. Aplikácia ponechala tie bez Shiftu.</item>
+        <item quantity="other">%1$d klávesov má v inej klávesnici iné písmená pri dlhom stlačení, keď je zapnutý Shift. Aplikácia ponechala tie bez Shiftu.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Ostatné klávesnice merajú šírku klávesov inak. Aplikácia zmenila šírky tak, aby vyhovovali tejto mriežke.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

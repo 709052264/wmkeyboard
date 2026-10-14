@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">ജാപ്പനീസ് കാന മുതൽ കാഞ്ചി നിഘണ്ടു വരെ</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">ഹാൻസി അക്ഷരങ്ങളിലേക്കുള്ള ജ്യുത്പിംഗ് വായനകളുടെ ഒരു പട്ടിക, 163,000 എൻട്രികൾ. കാന്റണീസ് പരിവർത്തനത്തിനായി കീബോർഡിന് ഈ പാക്ക് ആവശ്യമാണ്.</string>
     <string name="core_input_cjk_pack_jyutping_title">കന്റോണീസ് ജ്യുത്പിംഗ് നിഘണ്ടു</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">ചൈനീസ് വെബ്, വാർത്താ ടെക്സ്റ്റുകളിൽ നിന്ന് കണക്കാക്കിയ ഏത് വാക്കിന് ശേഷം ഏത് വാക്ക് വരുന്നു എന്നത്. പിൻയിൻ നിഘണ്ടുവിനൊപ്പം വരുന്നു. ഇതുകൊണ്ട്, wbxh പോലുള്ളവ ടൈപ്പ് ചെയ്യുമ്പോൾ ബന്ധമില്ലാത്ത രണ്ട് വാക്കുകൾക്ക് പകരം \'我不喜欢\' എന്ന് ആദ്യം ലഭിക്കുന്നു.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">ചൈനീസ് വാക്ക് ജോഡികൾ</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">CC-CEDICT-ൽ നിന്നുള്ള ഹാൻസി അക്ഷരങ്ങളും ശൈലികളും, 120,000 എൻട്രികൾ. ചൈനീസ് പരിവർത്തനത്തിനായി കീബോർഡിന് ഈ പാക്ക് ആവശ്യമാണ്.</string>
     <string name="core_input_cjk_pack_pinyin_title">ചൈനീസ് പിൻയിൻ നിഘണ്ടു</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">OpenCC-ൽ നിന്നുള്ള ശൈലികൾ, 50,000 എൻട്രികൾ, ഏകദേശം 1 MB. പരമ്പരാഗത അക്ഷരങ്ങൾ ഓണായിരിക്കുമ്പോൾ, കീബോർഡ് അത് ഉപയോഗിച്ച് ശരിയായ പദരൂപം എഴുതുന്നു, ഉദാഹരണത്തിന് 頭發 എന്നതിന് പകരം 頭髮 എന്ന്.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">പരമ്പരാഗത അക്ഷരങ്ങളുടെ ശൈലി പട്ടിക</string>
     <string name="core_input_cjk_pack_stroke_subtitle">ഹാൻസി അക്ഷരങ്ങളുടെ സ്ട്രോക്ക് ഓർഡർ പട്ടിക. സ്ട്രോക്ക് ലേഔട്ടിനായി കീബോർഡിന് ഈ പാക്ക് ആവശ്യമാണ്.</string>
     <string name="core_input_cjk_pack_stroke_title">ചൈനീസ് സ്ട്രോക്ക് (笔画) നിഘണ്ടു</string>
+    <string name="core_input_double_pinyin_custom_label">ഇഷ്‌ടാനുസൃതം</string>
     <string name="core_input_double_pinyin_off_label">ഓഫ് (ഫുൾ പിൻയിൻ)</string>
+    <string name="core_input_im_note_candidates">ചില കീകൾക്കായി ഈ രീതി തിരഞ്ഞെടുപ്പുകളുടെ ഒരു ലിസ്റ്റ് നൽകുന്നു. കീബോർഡ് എല്ലായ്പ്പോഴും ആദ്യത്തെ തിരഞ്ഞെടുപ്പാണ് ഉപയോഗിക്കുന്നത്.</string>
+    <string name="core_input_im_note_missing_files">ഈ ഫയലുകൾ തിരഞ്ഞെടുക്കാത്തതിനാൽ അവയുടെ ഭാഗം ലഭ്യമല്ല: %1$s. അവ ഉൾപ്പെടുത്തുന്നതിന്, വീണ്ടും ഇംപോർട്ട് ചെയ്ത് അവ ഒരുമിച്ച് തിരഞ്ഞെടുക്കുക.</string>
+    <string name="core_input_im_note_module">ഈ രീതി കീബോർഡിന് പ്രവർത്തിപ്പിക്കാൻ കഴിയാത്ത Anthy പോലുള്ള ഒരു പ്ലഗ്-ഇൻ ഉപയോഗിക്കുന്നു. ഇത് ഉപയോഗിക്കുന്ന കീകൾ ഇവിടെ പ്രവർത്തിക്കില്ല.</string>
+    <string name="core_input_im_note_other_method">ഈ രീതി ചില കീകൾ മറ്റൊരു ഇൻപുട്ട് രീതിക്ക് നൽകുന്നു. ആ ഭാഗം ഇവിടെ പ്രവർത്തിക്കില്ല.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">ആപ്പിന് %1$d അക്ഷരവിന്യാസ നിയമം വായിക്കാൻ കഴിയാത്തതിനാൽ, അത് ഒഴിവാക്കുന്നു.</item>
+        <item quantity="other">ആപ്പിന് %1$d അക്ഷരവിന്യാസ നിയമങ്ങൾ വായിക്കാൻ കഴിയാത്തതിനാൽ, അത് അവ ഒഴിവാക്കുന്നു.</item>
+    </plurals>
+    <string name="core_input_im_note_space">ഈ രീതി സ്പേസ് ബാറിനെ ഒരു കീയായി ഉപയോഗിക്കുന്നു, ഉദാഹരണത്തിന് ഒരു ടോണിനായി. ഇവിടെ സ്പേസ് ബാർ എപ്പോഴും ഒരു സ്പേസ് ടൈപ്പ് ചെയ്യുന്നു.</string>
+    <string name="core_input_im_note_truncated">ടേബിൾ വളരെ വലുതാണ്, അതിനാൽ ആപ്പ് അതിന്റെ ആദ്യ ഭാഗം മാത്രം സൂക്ഷിച്ചു.</string>
+    <string name="core_input_im_note_unused_files">ആപ്പ് ഈ ഫയലുകൾ ഉപയോഗിച്ചില്ല: %1$s.</string>
+    <string name="core_input_im_refused_broken">ഫയലിൽ ഒരു പിശക് ഉള്ളതിനാൽ ആപ്പിന് അത് വായിക്കാൻ കഴിയില്ല: %1$s</string>
+    <string name="core_input_im_refused_empty">ടൈപ്പ് ചെയ്യാൻ ഫയലിൽ ഒന്നുമില്ല.</string>
+    <string name="core_input_im_refused_no_dictionary">ഈ സ്കീമയ്ക്ക് അതിന്റെ നിഘണ്ടു ആവശ്യമാണ്. വീണ്ടും ഇംപോർട്ട് ചെയ്ത് %1$s കൂടി തിരഞ്ഞെടുക്കുക.</string>
+    <string name="core_input_im_refused_not_method">ആപ്പിന് അത് ഒരു ഇൻപുട്ട് രീതിയായി വായിക്കാൻ കഴിയില്ല. ഇത് .cin ടേബിളുകൾ, Rime സ്കീമുകൾ, നിഘണ്ടുകൾ (.schema.yaml, .dict.yaml), m17n .mim ഫയലുകൾ എന്നിവ വായിക്കുന്നു.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">ആപ്പ് ഇതൊരു .cin ടേബിളായി വായിച്ചു, അതിൽ %1$d എൻട്രി ഉണ്ട്. ഒരു കോഡ് ടൈപ്പ് ചെയ്ത്, നിർദ്ദേശ ബാറിൽ നിന്ന് അക്ഷരം തിരഞ്ഞെടുക്കുക.</item>
+        <item quantity="other">ആപ്പ് ഇതൊരു .cin ടേബിളായി വായിച്ചു, അതിൽ %1$d എൻട്രികൾ ഉണ്ട്. ഒരു കോഡ് ടൈപ്പ് ചെയ്ത്, നിർദ്ദേശ ബാറിൽ നിന്ന് അക്ഷരം തിരഞ്ഞെടുക്കുക.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">ആപ്പ് ഇതിനെ %1$d റൂളുള്ള ഒരു m17n ഇൻപുട്ട് രീതിയായി വായിച്ചു. നിങ്ങൾ ടൈപ്പ് ചെയ്യുമ്പോൾ കീകൾ ടെക്സ്റ്റ് എഴുതുന്നു.</item>
+        <item quantity="other">ആപ്പ് ഇതിനെ %1$d റൂളുകളുള്ള ഒരു m17n ഇൻപുട്ട് രീതിയായി വായിച്ചു. നിങ്ങൾ ടൈപ്പ് ചെയ്യുമ്പോൾ കീകൾ ടെക്സ്റ്റ് എഴുതുന്നു.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">ആപ്പ് ഇതിനെ %1$d നിഘണ്ടു എൻട്രിയുള്ള ഒരു Rime സ്കീമായി വായിച്ചു. അക്ഷരങ്ങൾ ടൈപ്പ് ചെയ്യുക, തുടർന്ന് നിർദ്ദേശ സ്ട്രിപ്പിൽ നിന്ന് വാക്കുകൾ തിരഞ്ഞെടുക്കുക.</item>
+        <item quantity="other">ആപ്പ് ഇതിനെ %1$d നിഘണ്ടു എൻട്രികളുള്ള ഒരു Rime സ്കീമായി വായിച്ചു. അക്ഷരങ്ങൾ ടൈപ്പ് ചെയ്യുക, തുടർന്ന് നിർദ്ദേശ സ്ട്രിപ്പിൽ നിന്ന് വാക്കുകൾ തിരഞ്ഞെടുക്കുക.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">ആപ്പ് ഇതിനെ %1$d എൻട്രിയുള്ള ഒരു Rime കോഡ് ടേബിളായി വായിച്ചു. ഒരു കോഡ് ടൈപ്പ് ചെയ്യുക, തുടർന്ന് നിർദ്ദേശ സ്ട്രിപ്പിൽ നിന്ന് അക്ഷരം തിരഞ്ഞെടുക്കുക.</item>
+        <item quantity="other">ആപ്പ് ഇതിനെ %1$d എൻട്രികളുള്ള ഒരു Rime കോഡ് ടേബിളായി വായിച്ചു. ഒരു കോഡ് ടൈപ്പ് ചെയ്യുക, തുടർന്ന് നിർദ്ദേശ സ്ട്രിപ്പിൽ നിന്ന് അക്ഷരം തിരഞ്ഞെടുക്കുക.</item>
+    </plurals>
 </resources>

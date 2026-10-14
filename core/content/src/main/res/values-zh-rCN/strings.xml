@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">验证码</string>
     <string name="core_content_clip_entity_phone_label">电话号码</string>
     <string name="core_content_clip_entity_phone_tag">电话</string>
+    <string name="core_content_clip_entity_place_label">地点</string>
+    <string name="core_content_clip_entity_place_tag">地点</string>
     <string name="core_content_clip_entity_url_label">链接</string>
     <string name="core_content_clip_entity_url_tag">链接</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">应用无法读取 WOFF 网络字体。请使用 .ttf 或 .otf 版本的字体。</string>
     <string name="core_content_font_error_woff2">该应用无法读取 WOFF2 网络字体。请使用 .ttf 或 .otf 版本的字体。</string>
     <string name="core_content_font_error_zip">此文件是 zip 压缩包，而非字体文件。</string>
+    <string name="core_content_note_tag_ideas">想法</string>
+    <string name="core_content_note_tag_important">重要</string>
+    <string name="core_content_note_tag_personal">个人</string>
+    <string name="core_content_note_tag_school">学校</string>
+    <string name="core_content_note_tag_study">学习</string>
+    <string name="core_content_note_tag_work">工作</string>
     <string name="core_content_selection_macro_add_contact">联系人</string>
     <string name="core_content_selection_macro_calendar">日历</string>
     <string name="core_content_selection_macro_call">呼叫</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">二维码</string>
     <string name="core_content_selection_macro_read_aloud">朗读</string>
     <string name="core_content_selection_macro_replace">替换</string>
+    <string name="core_content_selection_macro_save_note">保存为笔记</string>
     <string name="core_content_selection_macro_search">搜索</string>
     <string name="core_content_selection_macro_share">分享</string>
     <string name="core_content_selection_macro_sms">短信</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">翻译</string>
     <string name="core_content_selection_macro_url_decode">解码</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">该文件中还有 %1$d 个没有快捷方式的单词。要将其添加到您的词库中，请从个人词典中打开该文件。</item>
+        <item quantity="other">该文件中还有 %1$d 个没有快捷方式的单词。要将其添加到您的词库中，请从个人词典中打开该文件。</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">应用从“%1$s”中遗漏了 %2$d 个扩展。</item>
         <item quantity="other">应用从“%1$s”中遗漏了 %2$d 个扩展。</item>
@@ -162,9 +175,17 @@
         <item quantity="one">应用已从“%1$s”中移除了该模式。它超过了 %2$d 个字符。</item>
         <item quantity="other">应用已从“%1$s”中移除了该模式。它超过了 %2$d 个字符。</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">应用丢弃了 %1$d 行没有文本的行。</item>
+        <item quantity="other">应用丢弃了 %1$d 行没有文本的行。</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">应用已缩短“%1$s”。它超过了 %2$d 个字符。</item>
         <item quantity="other">应用已缩短“%1$s”。它超过了 %2$d 个字符。</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">应用移除了 1 个键盘无法监视的触发器。其片段保留在列表中。</item>
+        <item quantity="other">应用移除了 %1$d 个键盘无法监视的触发器。它们的片段保留在列表中。</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">您正在输入的应用名称</string>
     <string name="core_content_snippet_var_clip_info">最新的剪贴板条目</string>

@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">ਕੋਡ</string>
     <string name="core_content_clip_entity_phone_label">ਫੋਨ ਨੰਬਰ</string>
     <string name="core_content_clip_entity_phone_tag">ਫੋਨ</string>
+    <string name="core_content_clip_entity_place_label">ਜਗ੍ਹਾ</string>
+    <string name="core_content_clip_entity_place_tag">ਸਥਾਨ</string>
     <string name="core_content_clip_entity_url_label">ਲਿੰਕ</string>
     <string name="core_content_clip_entity_url_tag">ਲਿੰਕ</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">ਐਪ WOFF ਵੈੱਬ ਫੌਂਟਾਂ ਨੂੰ ਪੜ੍ਹ ਨਹੀਂ ਸਕਦੀ। ਫੌਂਟ ਦੇ .ttf ਜਾਂ .otf ਵਰਜਨ ਦੀ ਵਰਤੋਂ ਕਰੋ।</string>
     <string name="core_content_font_error_woff2">ਐਪ WOFF2 ਵੈੱਬ ਫੌਂਟਾਂ ਨੂੰ ਨਹੀਂ ਪੜ੍ਹ ਸਕਦੀ। ਫੌਂਟ ਦੇ .ttf ਜਾਂ .otf ਸੰਸਕਰਣ ਦੀ ਵਰਤੋਂ ਕਰੋ।</string>
     <string name="core_content_font_error_zip">ਇਹ ਫਾਈਲ ਇੱਕ ਜ਼ਿਪ ਆਰਕਾਈਵ ਹੈ, ਫੌਂਟ ਨਹੀਂ।</string>
+    <string name="core_content_note_tag_ideas">ਵਿਚਾਰ</string>
+    <string name="core_content_note_tag_important">ਮਹੱਤਵਪੂਰਨ</string>
+    <string name="core_content_note_tag_personal">ਨਿੱਜੀ</string>
+    <string name="core_content_note_tag_school">ਸਕੂਲ</string>
+    <string name="core_content_note_tag_study">ਅਧਿਐਨ</string>
+    <string name="core_content_note_tag_work">ਕੰਮ</string>
     <string name="core_content_selection_macro_add_contact">ਸੰਪਰਕ</string>
     <string name="core_content_selection_macro_calendar">ਕੈਲੰਡਰ</string>
     <string name="core_content_selection_macro_call">ਕਾਲ ਕਰੋ</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">ਬੋਲੋ</string>
     <string name="core_content_selection_macro_replace">ਬਦਲੋ</string>
+    <string name="core_content_selection_macro_save_note">ਨੋਟ ਵਜੋਂ ਸੇਵ ਕਰੋ</string>
     <string name="core_content_selection_macro_search">ਖੋਜੋ</string>
     <string name="core_content_selection_macro_share">ਸਾਂਝਾ ਕਰੋ</string>
     <string name="core_content_selection_macro_sms">ਸੁਨੇਹਾ</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">ਅਨੁਵਾਦ ਕਰੋ</string>
     <string name="core_content_selection_macro_url_decode">ਡੀਕੋਡ ਕਰੋ</string>
     <string name="core_content_selection_macro_whatsapp">ਵਟਸਐਪ</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">ਫਾਈਲ ਵਿੱਚ %1$d ਸ਼ਬਦ ਵੀ ਹੈ ਜਿਸਦਾ ਕੋਈ ਸ਼ਾਰਟਕੱਟ ਨਹੀਂ ਹੈ। ਇਸਨੂੰ ਆਪਣੇ ਸ਼ਬਦਾਂ ਵਿੱਚ ਜੋੜਨ ਲਈ, ਨਿੱਜੀ ਡਿਕਸ਼ਨਰੀ ਤੋਂ ਫਾਈਲ ਖੋਲ੍ਹੋ।</item>
+        <item quantity="other">ਫਾਈਲ ਵਿੱਚ %1$d ਸ਼ਬਦ ਵੀ ਹਨ ਜਿਨ੍ਹਾਂ ਦਾ ਕੋਈ ਸ਼ਾਰਟਕੱਟ ਨਹੀਂ ਹੈ। ਉਹਨਾਂ ਨੂੰ ਆਪਣੇ ਸ਼ਬਦਾਂ ਵਿੱਚ ਜੋੜਨ ਲਈ, ਨਿੱਜੀ ਡਿਕਸ਼ਨਰੀ ਤੋਂ ਫਾਈਲ ਖੋਲ੍ਹੋ।</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">ਐਪ ਨੇ \"%1$s\" ਵਿੱਚੋਂ %2$d ਵਿਸਤਾਰ ਛੱਡ ਦਿੱਤਾ ਹੈ।</item>
         <item quantity="other">ਐਪ ਨੇ \"%1$s\" ਵਿੱਚੋਂ %2$d ਵਿਸਤਾਰ ਛੱਡ ਦਿੱਤੇ ਹਨ।</item>
@@ -162,9 +175,17 @@
         <item quantity="one">ਐਪ ਨੇ \"%1$s\" ਤੋਂ ਪੈਟਰਨ ਹਟਾ ਦਿੱਤਾ ਹੈ। ਇਹ %2$d ਅੱਖਰ ਤੋਂ ਵੱਡਾ ਸੀ।</item>
         <item quantity="other">ਐਪ ਨੇ \"%1$s\" ਤੋਂ ਪੈਟਰਨ ਹਟਾ ਦਿੱਤਾ ਹੈ। ਇਹ %2$d ਅੱਖਰਾਂ ਤੋਂ ਵੱਡਾ ਸੀ।</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">ਐਪ ਨੇ %1$d ਕਤਾਰ ਨੂੰ ਹਟਾ ਦਿੱਤਾ ਹੈ ਜਿਸ ਵਿੱਚ ਕੋਈ ਟੈਕਸਟ ਨਹੀਂ ਹੈ।</item>
+        <item quantity="other">ਐਪ ਨੇ %1$d ਕਤਾਰਾਂ ਨੂੰ ਹਟਾ ਦਿੱਤਾ ਹੈ ਜਿਨ੍ਹਾਂ ਵਿੱਚ ਕੋਈ ਟੈਕਸਟ ਨਹੀਂ ਹੈ।</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">ਐਪ ਨੇ \"%1$s\" ਨੂੰ ਛੋਟਾ ਕਰ ਦਿੱਤਾ ਹੈ। ਇਹ %2$d ਅੱਖਰ ਤੋਂ ਵੱਧ ਲੰਬਾ ਸੀ।</item>
         <item quantity="other">ਐਪ ਨੇ \"%1$s\" ਨੂੰ ਛੋਟਾ ਕਰ ਦਿੱਤਾ ਹੈ। ਇਹ %2$d ਅੱਖਰਾਂ ਤੋਂ ਵੱਧ ਲੰਬਾ ਸੀ।</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">ਐਪ ਨੇ %1$d ਟ੍ਰਿਗਰ ਹਟਾ ਦਿੱਤਾ ਹੈ ਜਿਸਨੂੰ ਕੀਬੋਰਡ ਨਹੀਂ ਦੇਖ ਸਕਦਾ। ਇਸਦਾ ਸਨਿੱਪਟ ਸੂਚੀ ਵਿੱਚ ਰਹਿੰਦਾ ਹੈ।</item>
+        <item quantity="other">ਐਪ ਨੇ %1$d ਟ੍ਰਿਗਰ ਹਟਾ ਦਿੱਤੇ ਹਨ ਜਿਨ੍ਹਾਂ ਨੂੰ ਕੀਬੋਰਡ ਨਹੀਂ ਦੇਖ ਸਕਦਾ। ਉਹਨਾਂ ਦੇ ਸਨਿੱਪਟ ਸੂਚੀ ਵਿੱਚ ਰਹਿੰਦੇ ਹਨ।</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">ਉਸ ਐਪ ਦਾ ਨਾਮ ਜਿਸ ਵਿੱਚ ਤੁਸੀਂ ਟਾਈਪ ਕਰਦੇ ਹੋ</string>
     <string name="core_content_snippet_var_clip_info">ਸਭ ਤੋਂ ਨਵੀਂ ਕਲਿੱਪਬੋਰਡ ਐਂਟਰੀ</string>

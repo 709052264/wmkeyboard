@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">برنامه \"%1$s\" را رها کرد. برنامه نمی‌تواند آن را ذخیره کند.</string>
     <string name="core_icons_repair_svg_unreadable">برنامه «%1$s» را حذف کرد. برنامه نمی‌تواند فایل SVG آن را بخواند.</string>
+    <string name="core_icons_slot_arrow_down_label">پیکان رو به پایین</string>
+    <string name="core_icons_slot_arrow_left_label">پیکان چپ</string>
+    <string name="core_icons_slot_arrow_right_label">پیکان راست</string>
+    <string name="core_icons_slot_arrow_up_label">پیکان رو به بالا</string>
     <string name="core_icons_slot_backspace_label">پس‌بر (Backspace)</string>
+    <string name="core_icons_slot_caps_lock_key_label">کلید Caps lock</string>
     <string name="core_icons_slot_caps_lock_label">Caps lock</string>
     <string name="core_icons_slot_emoji_activities_label">فعالیت‌ها</string>
     <string name="core_icons_slot_emoji_animals_label">حیوانات</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">اینتر: ارسال</string>
     <string name="core_icons_slot_forward_delete_label">حذف رو به جلو</string>
     <string name="core_icons_slot_globe_label">تغییر زبان</string>
+    <string name="core_icons_slot_hide_keys_label">پنهان کردن کلیدها (صفحه‌کلید سخت‌افزاری)</string>
     <string name="core_icons_slot_incognito_label">نشان ناشناس</string>
     <string name="core_icons_slot_input_method_picker_label">تغییر صفحه‌کلید</string>
     <string name="core_icons_slot_panel_back_label">بازگشت به کلیدها</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">بستن جستجو</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">شیفت (روشن)</string>
+    <string name="core_icons_slot_show_keys_label">نمایش کلیدها (صفحه‌کلید سخت‌افزاری)</string>
     <string name="core_icons_slot_suggestions_expand_label">نمایش ابزارها</string>
+    <string name="core_icons_slot_tab_label">کلید Tab</string>
     <string name="core_icons_slot_toolbox_label">جعبه‌ابزار</string>
 </resources>

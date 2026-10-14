@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">KODS</string>
     <string name="core_content_clip_entity_phone_label">Tālruņa numurs</string>
     <string name="core_content_clip_entity_phone_tag">TĀLRUNIS</string>
+    <string name="core_content_clip_entity_place_label">Vieta</string>
+    <string name="core_content_clip_entity_place_tag">VIETA</string>
     <string name="core_content_clip_entity_url_label">Saite</string>
     <string name="core_content_clip_entity_url_tag">SAITE</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Lietotne nevar nolasīt WOFF tīmekļa fontus. Izmantojiet fonta .ttf vai .otf versiju.</string>
     <string name="core_content_font_error_woff2">Lietotne nevar nolasīt WOFF2 tīmekļa fontus. Izmantojiet fonta .ttf vai .otf versiju.</string>
     <string name="core_content_font_error_zip">Šis fails ir zip arhīvs, nevis fonts.</string>
+    <string name="core_content_note_tag_ideas">Idejas</string>
+    <string name="core_content_note_tag_important">Svarīgi</string>
+    <string name="core_content_note_tag_personal">Personīgi</string>
+    <string name="core_content_note_tag_school">Skola</string>
+    <string name="core_content_note_tag_study">Mācības</string>
+    <string name="core_content_note_tag_work">Darbs</string>
     <string name="core_content_selection_macro_add_contact">Kontaktpersona</string>
     <string name="core_content_selection_macro_calendar">Kalendārs</string>
     <string name="core_content_selection_macro_call">Zvanīt</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Izrunāt</string>
     <string name="core_content_selection_macro_replace">Aizstāt</string>
+    <string name="core_content_selection_macro_save_note">Saglabāt kā piezīmi</string>
     <string name="core_content_selection_macro_search">Meklēt</string>
     <string name="core_content_selection_macro_share">Kopīgot</string>
     <string name="core_content_selection_macro_sms">Ziņa</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Tulkot</string>
     <string name="core_content_selection_macro_url_decode">Atkodēt</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Failā ir arī %1$d vārds bez saīsnes. Lai pievienotu to saviem vārdiem, atveriet failu no Personīgās vārdnīcas.</item>
+        <item quantity="other">Failā ir arī %1$d vārdi bez saīsnes. Lai pievienotu tos saviem vārdiem, atveriet failu no Personīgās vārdnīcas.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Lietotne izlaida %2$d paplašinājumu no \"%1$s\".</item>
         <item quantity="other">Lietotne izlaida %2$d paplašinājumus no \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Lietotne noņēma šablonu no \"%1$s\". Tas bija garāks par %2$d rakstzīmi.</item>
         <item quantity="other">Lietotne noņēma šablonu no \"%1$s\". Tas bija garāks par %2$d rakstzīmēm.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Lietotne izdzēsa %1$d rindu, kurā nav teksta.</item>
+        <item quantity="other">Lietotne izdzēsa %1$d rindas, kurās nav teksta.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Lietotne saīsināja \"%1$s\". Tas bija garāks par %2$d rakstzīmi.</item>
         <item quantity="other">Lietotne saīsināja \"%1$s\". Tas bija garāks par %2$d rakstzīmēm.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Lietotne noņēma %1$d aktivizētāju, kuru tastatūra nevar uzraudzīt. Tā fragments paliek sarakstā.</item>
+        <item quantity="other">Lietotne noņēma %1$d aktivizētājus, kurus tastatūra nevar uzraudzīt. To fragmenti paliek sarakstā.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Lietotnes nosaukums, kurā rakstāt</string>
     <string name="core_content_snippet_var_clip_info">Jaunākais starpliktuves ieraksts</string>

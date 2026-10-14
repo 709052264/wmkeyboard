@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Syvänmeri</string>
     <string name="core_theme_builtin_facet_label">Viiste</string>
     <string name="core_theme_builtin_forest_label">Metsä</string>
+    <string name="core_theme_builtin_frost_label">Huurre</string>
+    <string name="core_theme_builtin_frost_light_label">Huurre vaalea</string>
+    <string name="core_theme_builtin_frost_liquid_label">Huurteinen neste</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Huurre-taustakuva</string>
     <string name="core_theme_builtin_glacier_label">Jäätikkö</string>
     <string name="core_theme_builtin_mint_label">Minttu</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Lumi</string>
     <string name="core_theme_builtin_sunset_drift_label">Auringonlaskun ajelehdinta</string>
     <string name="core_theme_builtin_sunset_label">Auringonlasku</string>
+    <string name="core_theme_family_frost_label">Huurre</string>
     <string name="core_theme_family_gradient_label">Liukuvärit</string>
     <string name="core_theme_family_ocean_label">Nightfall</string>
     <string name="core_theme_family_snow_label">Pastelli</string>
+    <string name="core_theme_palette_style_expressive">Ilmeikäs</string>
+    <string name="core_theme_palette_style_fidelity">Uskollisuus</string>
+    <string name="core_theme_palette_style_fruit_salad">Hedelmäsalaatti</string>
+    <string name="core_theme_palette_style_monochrome">Yksivärinen</string>
+    <string name="core_theme_palette_style_neutral">Neutraali</string>
+    <string name="core_theme_palette_style_rainbow">Sateenkaari</string>
+    <string name="core_theme_palette_style_tonal_spot">Tonaalinen piste</string>
+    <string name="core_theme_palette_style_vibrant">Eloisa</string>
 </resources>

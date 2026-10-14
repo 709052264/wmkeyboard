@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">ਹੇਠਾਂ ਸੱਜੇ ਪਾਸੇ</string>
     <string name="core_settings_board_corner_top_left_label">ਉੱਪਰ ਖੱਬੇ</string>
     <string name="core_settings_board_corner_top_right_label">ਉੱਪਰ ਸੱਜੇ</string>
+    <string name="core_settings_clip_swipe_pin_left_label">ਖੱਬੇ ਪਾਸੇ ਪਿੰਨ, ਸੱਜੇ ਪਾਸੇ ਮਿਟਾਓ</string>
+    <string name="core_settings_clip_swipe_pin_off_label">ਦੋਵੇਂ ਪਾਸੇ ਮਿਟਾਓ</string>
+    <string name="core_settings_clip_swipe_pin_right_label">ਸੱਜੇ ਪਾਸੇ ਪਿੰਨ ਕਰੋ, ਖੱਬੇ ਪਾਸੇ ਮਿਟਾਓ</string>
     <string name="core_settings_clip_time_copied_label">ਕਾਪੀ ਕਰਨ ਦਾ ਸਮਾਂ</string>
     <string name="core_settings_clip_time_expires_label">ਬਾਕੀ ਸਮਾਂ</string>
     <string name="core_settings_clip_time_off_label">ਕੋਈ ਨਹੀਂ</string>

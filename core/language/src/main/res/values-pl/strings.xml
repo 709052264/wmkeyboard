@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Znaki wpisywane przez klawisz AltGr na komputerze znajdują się pod naciśnięciem i przytrzymaniem tych samych klawiszy.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d martwy klawisz dodaje akcent do następnej litery na komputerze. Tutaj litery z tym akcentem znajdują się pod naciśnięciem i przytrzymaniem każdej litery.</item>
+        <item quantity="other">%1$d martwych klawiszy dodaje akcenty do następnej litery na komputerze. Tutaj litery z tymi akcentami znajdują się pod naciśnięciem i przytrzymaniem każdej litery.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Plik opiera się na %1$d innym pliku (%2$s), którego nie otworzyłeś. Brakuje klawiszy, które ustawia tylko ten plik.</item>
+        <item quantity="other">Plik opiera się na %1$d innych plikach (%2$s), których nie otworzyłeś. Brakuje klawiszy, które ustawiają tylko te pliki.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d znak z klawisza bez liter znajduje się pod naciśnięciem i przytrzymaniem kropki.</item>
+        <item quantity="other">%1$d znaków z klawiszy bez liter znajduje się pod naciśnięciem i przytrzymaniem kropki.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Aplikacja nie zna %1$d nazwy znaku w pliku, więc została pominięta: %2$s.</item>
+        <item quantity="other">Aplikacja nie zna %1$d nazw znaków w pliku, więc zostały pominięte: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d przesunięcie na klawiszu nie ma tutaj zastosowania, ponieważ ta klawiatura używa tego gestu do innego zadania. Aplikacja je usunęła.</item>
+        <item quantity="other">%1$d przesunięć na klawiszach nie ma tutaj zastosowania, ponieważ ta klawiatura używa tych gestów do innych zadań. Aplikacja je usunęła.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Aplikacja zmieniła %1$d klawisz na najbliższy dostępny.</item>
         <item quantity="other">Aplikacja zmieniła %1$d klawiszy na najbliższe dostępne.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Aplikacja zmieniła %1$d liter na formę, którą zapisuje ta klawiatura.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Aplikacja usunęła wiersz liczb. Włącz wiersz liczb w Układzie i rozmiarze, aby go uzyskać.</string>
+    <string name="core_lang_foreign_number_row_kept">Rząd cyfr pliku jest rzędem cyfr tego układu. Wyświetla się, gdy rząd cyfr jest włączony w Układzie i rozmiarze.</string>
+    <string name="core_lang_foreign_pages_kept">Dodatkowe strony pliku, takie jak AltGr, są stronami tego układu. Przesuń palcem od klawisza, który otworzył je w innej klawiaturze, aby otworzyć je tutaj.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d klawisz nie ma liter dostępnych po przytrzymaniu. Plik przechowuje je w drugim pliku, którego nie otworzyłeś.</item>
         <item quantity="other">%1$d klawiszy nie ma liter dostępnych po przytrzymaniu. Plik przechowuje je w drugim pliku, którego nie otworzyłeś.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d klawisz zmienia się wraz ze stanem klawisza Shift lub polem w drugiej klawiaturze. Aplikacja zachowała jego wygląd w stanie spoczynku.</item>
         <item quantity="other">%1$d klawiszy zmienia się wraz ze stanem klawisza Shift lub polem w drugiej klawiaturze. Aplikacja zachowała ich wygląd w stanie spoczynku.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d przesunięta strona w pliku ma swoje klawisze w innych miejscach niż strona, którą przesuwa. Aplikacja używa tam wielkich liter.</item>
+        <item quantity="other">%1$d przesuniętych stron w pliku ma swoje klawisze w innych miejscach niż strony, które przesuwają. Aplikacja używa tam wielkich liter.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d klawisz ma inne litery przy naciśnięciu i przytrzymaniu, gdy włączony jest Shift w innej klawiaturze. Aplikacja zachowała te bez Shift.</item>
+        <item quantity="other">%1$d klawiszy ma inne litery przy naciśnięciu i przytrzymaniu, gdy włączony jest Shift w innej klawiaturze. Aplikacja zachowała te bez Shift.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Inna klawiatura mierzy szerokość klawiszy inaczej. Aplikacja zmieniła szerokości, aby dopasować je do tej siatki.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

@@ -3,8 +3,34 @@
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
     <string name="ftools_ai_stream_error">Провайдер ИИ завершил ответ с ошибкой</string>
+    <string name="ftools_ai_tool_failed">Ошибка инструмента: %1$s. Не вызывайте его снова с тем же вводом.</string>
+    <string name="ftools_ai_tool_missing_argument">В вызове пропущено обязательное значение \"%1$s\".</string>
+    <string name="ftools_ai_tool_no_results">Результатов нет.</string>
+    <string name="ftools_ai_tool_no_search">Поиск в Интернете не настроен на этой клавиатуре, поэтому поиск невозможен. Отвечайте на основе того, что вам уже известно, и сообщите, что не смогли выполнить поиск.</string>
+    <string name="ftools_ai_tool_reason_bad_url">Этот веб-адрес не может быть открыт клавиатурой</string>
+    <string name="ftools_ai_tool_reason_missing">Модель пропустила %1$s</string>
+    <string name="ftools_ai_tool_reason_no_search">Поиск в интернете не настроен</string>
+    <string name="ftools_ai_tool_reason_unknown">Модель запросила инструмент, которого не существует</string>
+    <string name="ftools_ai_tool_truncated">[страница продолжается после этой точки и была обрезана]</string>
+    <string name="ftools_ai_tool_unknown">Инструмента с названием %1$s не существует.</string>
+    <string name="ftools_mcp_declined">Пользователь не разрешил этот вызов. Не вызывайте этот инструмент снова в этом ответе. Ответьте без него и скажите, что вы не смогли сделать.</string>
+    <string name="ftools_mcp_empty">Инструмент выполнился и ничего не вернул.</string>
+    <string name="ftools_mcp_error_needs_input">Сервер запросил дополнительные данные, но клавиатура пока не может их предоставить.</string>
+    <string name="ftools_mcp_error_no_version">Этот сервер использует более новую версию MCP, чем известна клавиатуре.</string>
+    <string name="ftools_mcp_error_not_mcp">Этот адрес не ответил как MCP-сервер. Проверьте адрес и тип.</string>
+    <string name="ftools_mcp_error_server">Сервер отправил ошибку: %1$s</string>
+    <string name="ftools_mcp_error_sign_in">Этот сервер требует входа в систему, а клавиатура пока не умеет этого делать. Если сервер выдает токены или ключи, добавьте один из них в качестве заголовка.</string>
+    <string name="ftools_mcp_omitted">[инструмент также отправил содержимое, которое вы не можете прочитать здесь: %1$s]</string>
+    <string name="ftools_mcp_reason_declined">Вы не дали разрешение</string>
+    <string name="ftools_mcp_reason_stopped">Остановлено до запуска</string>
+    <string name="ftools_mcp_reason_tool_error">Инструмент сообщил об ошибке</string>
+    <string name="ftools_mcp_stopped">Вызов был отменен до его выполнения.</string>
+    <string name="ftools_mcp_tool_error">Инструмент сообщил об ошибке: %1$s</string>
+    <string name="ftools_mcp_truncated">[ответ продолжается после этой точки и был обрезан]</string>
     <string name="ftools_photo_error_failed">Приложению не удалось получить фотографии</string>
     <string name="ftools_photo_error_offline">Приложение не может подключиться к сервису фотографий. Проверьте сетевое соединение и повторите попытку.</string>
     <string name="ftools_photo_error_timeout">Фотосервис слишком долго отвечал</string>
     <string name="ftools_search_error_json_disabled">В этом экземпляре SearXNG не включен JSON API. Добавьте &lt;b&gt;json&lt;/b&gt; в &lt;b&gt;search.formats&lt;/b&gt; в файле settings.yml или используйте другой экземпляр.</string>
+    <string name="ftools_search_error_searx_limited">Этот экземпляр SearXNG временно отклоняет запросы от приложений (HTTP 429). Публичные экземпляры ограничивают запросы, которые поступают не из браузера. Попробуйте позже или используйте собственный экземпляр, либо тот, который разрешает использование своего JSON API.</string>
+    <string name="ftools_web_fetch_bad_url">Эта клавиатура не открывает такой веб-адрес. Введите полный адрес, начинающийся с http:// или https://.</string>
 </resources>

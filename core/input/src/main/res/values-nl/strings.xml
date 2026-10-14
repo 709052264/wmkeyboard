@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Japans kana-naar-kanji-woordenboek</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Een tabel met Jyutping-lezingen naar Hanzi-tekens, 163.000 vermeldingen. Het toetsenbord heeft dit pakket nodig voor Kantonese conversie.</string>
     <string name="core_input_cjk_pack_jyutping_title">Kantonees Jyutping-woordenboek</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Welke woorden volgen op elkaar, geteld op basis van Chinese web- en nieuwsteksten. Wordt geleverd met het Pinyin-woordenboek. Hiermee geven initialen zoals wbxh eerst 我不喜欢 en niet twee ongerelateerde woorden.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Chinese woordparen</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Hanzi-tekens en zinnen uit CC-CEDICT, 120.000 vermeldingen. Het toetsenbord heeft dit pakket nodig voor Chinese conversie.</string>
     <string name="core_input_cjk_pack_pinyin_title">Chinees Pinyin-woordenboek</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Woordenlijsten van OpenCC, 50.000 ingangen, ongeveer 1 MB. Met Traditionele karakters ingeschakeld, gebruikt het toetsenbord dit om de juiste vorm van het woord te schrijven, zoals 頭髮 in plaats van 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Zinstabel voor traditionele karakters</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Een tabel met streekvolgorde voor Hanzi-tekens. Het toetsenbord heeft dit pakket nodig voor de streekindeling.</string>
     <string name="core_input_cjk_pack_stroke_title">Chinees streepjes (笔画) woordenboek</string>
+    <string name="core_input_double_pinyin_custom_label">Aangepast</string>
     <string name="core_input_double_pinyin_off_label">Uit (volledige Pinyin)</string>
+    <string name="core_input_im_note_candidates">Voor sommige toetsen geeft deze methode een lijst met keuzes. Het toetsenbord gebruikt altijd de eerste keuze.</string>
+    <string name="core_input_im_note_missing_files">Deze bestanden zijn niet geselecteerd, dus hun onderdeel ontbreekt: %1$s. Om ze toe te voegen, importeer ze opnieuw en selecteer ze samen.</string>
+    <string name="core_input_im_note_module">Deze methode gebruikt een plug-in, zoals Anthy, die het toetsenbord niet kan uitvoeren. De toetsen die deze gebruiken, doen hier niets.</string>
+    <string name="core_input_im_note_other_method">Deze methode geeft sommige toetsen aan een andere invoermethode. Dat deel werkt hier niet.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">De app kan %1$d spellingsregel niet lezen, dus wordt deze overgeslagen.</item>
+        <item quantity="other">De app kan %1$d spellingsregels niet lezen, dus worden deze overgeslagen.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Deze methode gebruikt de spatiebalk als toets, bijvoorbeeld voor een toon. Hier typt de spatiebalk altijd een spatie.</string>
+    <string name="core_input_im_note_truncated">De tabel is erg groot, dus de app heeft alleen het eerste deel bewaard.</string>
+    <string name="core_input_im_note_unused_files">De app heeft deze bestanden niet gebruikt: %1$s.</string>
+    <string name="core_input_im_refused_broken">Het bestand bevat een fout, dus de app kan het niet lezen: %1$s</string>
+    <string name="core_input_im_refused_empty">Het bestand bevat niets om mee te typen.</string>
+    <string name="core_input_im_refused_no_dictionary">Het schema heeft zijn woordenboek nodig. Importeer opnieuw en kies ook %1$s.</string>
+    <string name="core_input_im_refused_not_method">De app kan dat niet lezen als invoermethode. Het leest .cin-tabellen, Rime-schema\'s en woordenboeken (.schema.yaml, .dict.yaml) en m17n .mim-bestanden.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">De app las dit als een .cin-tabel met %1$d invoer. Typ een code en kies vervolgens het teken uit de suggestiebalk.</item>
+        <item quantity="other">De app las dit als een .cin-tabel met %1$d invoeren. Typ een code en kies vervolgens het teken uit de suggestiebalk.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">De app las dit als een m17n-invoermethode met %1$d regel. De toetsen schrijven de tekst terwijl je typt.</item>
+        <item quantity="other">De app las dit als een m17n-invoermethode met %1$d regels. De toetsen schrijven de tekst terwijl je typt.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">De app heeft dit gelezen als een Rime-schema met %1$d woordenboekitem. Typ de lettergrepen en kies vervolgens de woorden uit de suggestiebalk.</item>
+        <item quantity="other">De app heeft dit gelezen als een Rime-schema met %1$d woordenboekitems. Typ de lettergrepen en kies vervolgens de woorden uit de suggestiebalk.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">De app las dit als een Rime-codetabel met %1$d item. Typ een code en kies vervolgens het teken uit de suggestiebalk.</item>
+        <item quantity="other">De app las dit als een Rime-codetabel met %1$d items. Typ een code en kies vervolgens het teken uit de suggestiebalk.</item>
+    </plurals>
 </resources>

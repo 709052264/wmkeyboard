@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">CODE</string>
     <string name="core_content_clip_entity_phone_label">தொலைபேசி எண்</string>
     <string name="core_content_clip_entity_phone_tag">தொலைபேசி</string>
+    <string name="core_content_clip_entity_place_label">இடம்</string>
+    <string name="core_content_clip_entity_place_tag">இடம்</string>
     <string name="core_content_clip_entity_url_label">இணைப்பு</string>
     <string name="core_content_clip_entity_url_tag">இணைப்பு</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">இந்த ஆப்ஸால் WOFF இணைய எழுத்துருக்களைப் படிக்க முடியாது. எழுத்துருவின் .ttf அல்லது .otf பதிப்பைப் பயன்படுத்தவும்.</string>
     <string name="core_content_font_error_woff2">பயன்பாட்டால் WOFF2 இணைய எழுத்துருக்களைப் படிக்க முடியாது. எழுத்துருவின் .ttf அல்லது .otf பதிப்பைப் பயன்படுத்தவும்.</string>
     <string name="core_content_font_error_zip">இந்தக் கோப்பு ஒரு ஜிப் ஆவணக் காப்பகம், எழுத்துரு அல்ல.</string>
+    <string name="core_content_note_tag_ideas">யோசனைகள்</string>
+    <string name="core_content_note_tag_important">முக்கியமானது</string>
+    <string name="core_content_note_tag_personal">தனிப்பட்டவை</string>
+    <string name="core_content_note_tag_school">பள்ளி</string>
+    <string name="core_content_note_tag_study">படிப்பு</string>
+    <string name="core_content_note_tag_work">வேலை</string>
     <string name="core_content_selection_macro_add_contact">தொடர்பு</string>
     <string name="core_content_selection_macro_calendar">நாட்காட்டி</string>
     <string name="core_content_selection_macro_call">அழை</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">பேசவும்</string>
     <string name="core_content_selection_macro_replace">மாற்றவும்</string>
+    <string name="core_content_selection_macro_save_note">குறிப்பாகச் சேமிக்கவும்</string>
     <string name="core_content_selection_macro_search">தேடு</string>
     <string name="core_content_selection_macro_share">பகிரவும்</string>
     <string name="core_content_selection_macro_sms">செய்தி</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">மொழிபெயர்க்கவும்</string>
     <string name="core_content_selection_macro_url_decode">டிகோட் செய்யவும்</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">கோப்பில் குறுக்குவழி இல்லாத %1$d சொல்லும் உள்ளது. அதை உங்கள் சொற்களில் சேர்க்க, தனிப்பட்ட அகராதியிலிருந்து கோப்பைத் திறக்கவும்.</item>
+        <item quantity="other">கோப்பில் குறுக்குவழி இல்லாத %1$d சொற்களும் உள்ளன. அவற்றை உங்கள் சொற்களில் சேர்க்க, தனிப்பட்ட அகராதியிலிருந்து கோப்பைத் திறக்கவும்.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">செயலி \"%1$s\" இலிருந்து %2$d விரிவாக்கத்தை விட்டுவிட்டது.</item>
         <item quantity="other">செயலி \"%1$s\" இலிருந்து %2$d விரிவாக்கங்களை விட்டுவிட்டது.</item>
@@ -162,9 +175,17 @@
         <item quantity="one">\"%1$s\" இலிருந்து பேட்டர்னை ஆப்ஸ் நீக்கியது. அது %2$d எழுத்தை விட நீளமாக இருந்தது.</item>
         <item quantity="other">\"%1$s\" இலிருந்து பேட்டர்னை ஆப்ஸ் நீக்கியது. அது %2$d எழுத்துகளை விட நீளமாக இருந்தது.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">உரை இல்லாத %1$d வரியை செயலி நீக்கிவிட்டது.</item>
+        <item quantity="other">உரை இல்லாத %1$d வரிகளை செயலி நீக்கிவிட்டது.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">பயன்பாடு \"%1$s\" என்பதைச் சுருக்கியது. இது %2$d எழுத்தை விட நீளமாக இருந்தது.</item>
         <item quantity="other">பயன்பாடு \"%1$s\" என்பதைச் சுருக்கியது. இது %2$d எழுத்துகளை விட நீளமாக இருந்தது.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">விசைப்பலகையால் கவனிக்க முடியாத %1$d தூண்டுதலைச் செயலி நீக்கியது. அதன் துணுக்கு பட்டியலில் இருக்கும்.</item>
+        <item quantity="other">விசைப்பலகையால் கவனிக்க முடியாத %1$d தூண்டுதல்களைச் செயலி நீக்கியது. அவற்றின் துணுக்குகள் பட்டியலில் இருக்கும்.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">நீங்கள் தட்டச்சு செய்யும் செயலியின் பெயர்</string>
     <string name="core_content_snippet_var_clip_info">மிகப் புதிய கிளிப்போர்டு உள்ளீடு</string>

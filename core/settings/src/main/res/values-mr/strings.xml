@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">तळ उजवीकडे</string>
     <string name="core_settings_board_corner_top_left_label">वरची डावी बाजू</string>
     <string name="core_settings_board_corner_top_right_label">वरच्या उजव्या कोपऱ्यात</string>
+    <string name="core_settings_clip_swipe_pin_left_label">डावीकडे पिन, उजवीकडे हटवा</string>
+    <string name="core_settings_clip_swipe_pin_off_label">दोन्ही मार्गांनी हटवा</string>
+    <string name="core_settings_clip_swipe_pin_right_label">उजवीकडे पिन, डावीकडे डिलीट</string>
     <string name="core_settings_clip_time_copied_label">कॉपी केल्याची वेळ</string>
     <string name="core_settings_clip_time_expires_label">उरलेला वेळ</string>
     <string name="core_settings_clip_time_off_label">काहीही नाही</string>

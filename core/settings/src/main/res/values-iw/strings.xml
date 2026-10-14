@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">ימין למטה</string>
     <string name="core_settings_board_corner_top_left_label">שמאל עליון</string>
     <string name="core_settings_board_corner_top_right_label">ימין למעלה</string>
+    <string name="core_settings_clip_swipe_pin_left_label">הצמדה שמאלה, מחיקה ימינה</string>
+    <string name="core_settings_clip_swipe_pin_off_label">מחיקה בשני הכיוונים</string>
+    <string name="core_settings_clip_swipe_pin_right_label">ימינה לנעיצה, שמאלה למחיקה</string>
     <string name="core_settings_clip_time_copied_label">זמן העתקה</string>
     <string name="core_settings_clip_time_expires_label">זמן שנותר</string>
     <string name="core_settings_clip_time_off_label">ללא</string>

@@ -10,6 +10,10 @@
         <item quantity="one">%1$d kláves píše znak, ktorý je na ňom zobrazený. Pôvodná klávesnica používala pravidlo na rozhodnutie, čo napíše.</item>
         <item quantity="other">%1$d klávesov píše znaky, ktoré sú na nich zobrazené. Pôvodná klávesnica používala pravidlá na rozhodnutie, čo napíšu.</item>
     </plurals>
+    <plurals name="core_keyman_multitap_unconverted">
+        <item quantity="one">Táto klávesnica obsahuje %1$d kláves, ktorý stláčate opakovane, aby ste prechádzali stránkami alebo znakmi. Aplikácia tento cyklus nedokáže replikovať, takže každé stlačenie funguje ako prvé.</item>
+        <item quantity="other">Táto klávesnica obsahuje %1$d klávesov, ktoré stláčate opakovane, aby ste prechádzali stránkami alebo znakmi. Aplikácia tieto cykly nedokáže replikovať, takže každé stlačenie funguje ako prvé.</item>
+    </plurals>
     <string name="core_keyman_rules_missing">Táto klávesnica používa pravidlá na určenie toho, čo jej klávesy píšu. Aplikácia tieto pravidlá nemá, takže každý kláves píše znak, ktorý je na ňom vytlačený.</string>
     <plurals name="core_keyman_special_keys_dropped">
         <item quantity="one">Aplikácia odstránila %1$d kláves. Táto klávesnica nemá kláves, ktorý robí to isté.</item>

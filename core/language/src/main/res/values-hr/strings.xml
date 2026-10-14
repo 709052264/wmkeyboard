@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Znakovi koje AltGr tipka upisuje na računalu nalaze se na pritisku i držanju istih tipki.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d mrtva tipka stavlja naglasak na sljedeće slovo na računalu. Ovdje se slova s tim naglaskom dobivaju pritiskom i držanjem svakog slova.</item>
+        <item quantity="other">%1$d mrtvih tipki stavlja naglaske na sljedeće slovo na računalu. Ovdje se slova s tim naglascima dobivaju pritiskom i držanjem svakog slova.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Datoteka se temelji na %1$d drugoj datoteci (%2$s) koju niste otvorili. Nedostaju ključevi koje postavlja samo ta datoteka.</item>
+        <item quantity="other">Datoteka se temelji na %1$d drugih datoteka (%2$s) koje niste otvorili. Nedostaju ključevi koje postavljaju samo te datoteke.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d znak s tipke bez slova nalazi se pri dugom pritisku na točku.</item>
+        <item quantity="other">%1$d znakova s tipki bez slova nalazi se pri dugom pritisku na točku.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Aplikacija ne prepoznaje %1$d naziv znaka u datoteci, pa ga je izostavila: %2$s.</item>
+        <item quantity="other">Aplikacija ne prepoznaje %1$d naziva znakova u datoteci, pa ih je izostavila: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d potez na tipki ovdje nema mjesta, jer ova tipkovnica koristi taj potez za drugi zadatak. Aplikacija ga je uklonila.</item>
+        <item quantity="other">%1$d poteza na tipkama ovdje nemaju mjesta, jer ova tipkovnica koristi te poteze za druge zadatke. Aplikacija ih je uklonila.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Aplikacija je promijenila %1$d tipku u najbližu tipku koju ima.</item>
         <item quantity="other">Aplikacija je promijenila %1$d tipki u najbliže tipke koje ima.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Aplikacija je promijenila %1$d slova u oblik koji ova tipkovnica piše.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Aplikacija je uklonila red brojeva. Uključite red brojeva u \"Raspored i veličina\" da biste ga dobili.</string>
+    <string name="core_lang_foreign_number_row_kept">Redak brojeva iz datoteke je redak brojeva ovog rasporeda. Prikazuje se dok je redak brojeva uključen u Raspored i veličina.</string>
+    <string name="core_lang_foreign_pages_kept">Dodatne stranice datoteke, kao što je AltGr, stranice su ovog rasporeda. Prijeđite prstom od tipke koja ih je otvorila na drugoj tipkovnici kako biste ih otvorili ovdje.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d tipka nema slova pri dugom pritisku. Datoteka ih drži u drugoj datoteci koju niste otvorili.</item>
         <item quantity="other">%1$d tipki nema slova pri dugom pritisku. Datoteka ih drži u drugoj datoteci koju niste otvorili.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d tipka se mijenja s promjenom stanja ili poljem na drugoj tipkovnici. Aplikacija je zadržala način na koji izgleda u stanju mirovanja.</item>
         <item quantity="other">%1$d tipki se mijenja s promjenom stanja ili poljem na drugoj tipkovnici. Aplikacija je zadržala način na koji izgledaju u stanju mirovanja.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d pomaknuta stranica u datoteci ima tipke na drugim mjestima od stranice koju pomiče. Aplikacija tamo umjesto toga koristi velika slova.</item>
+        <item quantity="other">%1$d pomaknutih stranica u datoteci ima tipke na drugim mjestima od stranica koje pomiču. Aplikacija tamo umjesto toga koristi velika slova.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d tipka ima drugačija slova pri dugom pritisku dok je Shift uključen na drugoj tipkovnici. Aplikacija je zadržala one bez Shift-a.</item>
+        <item quantity="other">%1$d tipki ima drugačija slova pri dugom pritisku dok je Shift uključen na drugoj tipkovnici. Aplikacija je zadržala one bez Shift-a.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Druga tipkovnica mjeri širinu tipki drugačije. Aplikacija je promijenila širine kako bi odgovarale ovoj mreži.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

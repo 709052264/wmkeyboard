@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">심해</string>
     <string name="core_theme_builtin_facet_label">면(Facet)</string>
     <string name="core_theme_builtin_forest_label">숲</string>
+    <string name="core_theme_builtin_frost_label">프로스트</string>
+    <string name="core_theme_builtin_frost_light_label">프로스트 라이트</string>
+    <string name="core_theme_builtin_frost_liquid_label">프로스트 리퀴드</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">서리 배경화면</string>
     <string name="core_theme_builtin_glacier_label">빙하</string>
     <string name="core_theme_builtin_mint_label">민트</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">눈</string>
     <string name="core_theme_builtin_sunset_drift_label">선셋 드리프트</string>
     <string name="core_theme_builtin_sunset_label">일몰</string>
+    <string name="core_theme_family_frost_label">프로스트</string>
     <string name="core_theme_family_gradient_label">그라데이션</string>
     <string name="core_theme_family_ocean_label">나이트폴</string>
     <string name="core_theme_family_snow_label">파스텔</string>
+    <string name="core_theme_palette_style_expressive">표현력 있는</string>
+    <string name="core_theme_palette_style_fidelity">충실도</string>
+    <string name="core_theme_palette_style_fruit_salad">과일 샐러드</string>
+    <string name="core_theme_palette_style_monochrome">단색</string>
+    <string name="core_theme_palette_style_neutral">중립</string>
+    <string name="core_theme_palette_style_rainbow">레인보우</string>
+    <string name="core_theme_palette_style_tonal_spot">토널 스팟</string>
+    <string name="core_theme_palette_style_vibrant">생동감</string>
 </resources>

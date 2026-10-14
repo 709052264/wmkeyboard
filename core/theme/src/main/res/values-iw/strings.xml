@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">מעמקי הים</string>
     <string name="core_theme_builtin_facet_label">Facet</string>
     <string name="core_theme_builtin_forest_label">יער</string>
+    <string name="core_theme_builtin_frost_label">כפור</string>
+    <string name="core_theme_builtin_frost_light_label">אור כפור</string>
+    <string name="core_theme_builtin_frost_liquid_label">נוזל כפור</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">טפט כפור</string>
     <string name="core_theme_builtin_glacier_label">קרחון</string>
     <string name="core_theme_builtin_mint_label">מנטה</string>
     <string name="core_theme_builtin_nebula_label">ערפילית</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">שלג</string>
     <string name="core_theme_builtin_sunset_drift_label">סחף שקיעה</string>
     <string name="core_theme_builtin_sunset_label">שקיעה</string>
+    <string name="core_theme_family_frost_label">כפור</string>
     <string name="core_theme_family_gradient_label">מעברי צבע</string>
     <string name="core_theme_family_ocean_label">דמדומים</string>
     <string name="core_theme_family_snow_label">פסטל</string>
+    <string name="core_theme_palette_style_expressive">אקספרסיבי</string>
+    <string name="core_theme_palette_style_fidelity">נאמנות</string>
+    <string name="core_theme_palette_style_fruit_salad">סלט פירות</string>
+    <string name="core_theme_palette_style_monochrome">מונוכרום</string>
+    <string name="core_theme_palette_style_neutral">נייטרלי</string>
+    <string name="core_theme_palette_style_rainbow">קשת בענן</string>
+    <string name="core_theme_palette_style_tonal_spot">נקודה טונאלית</string>
+    <string name="core_theme_palette_style_vibrant">תוסס</string>
 </resources>

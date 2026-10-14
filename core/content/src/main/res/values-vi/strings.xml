@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">MÃ</string>
     <string name="core_content_clip_entity_phone_label">Số điện thoại</string>
     <string name="core_content_clip_entity_phone_tag">ĐIỆN THOẠI</string>
+    <string name="core_content_clip_entity_place_label">Địa điểm</string>
+    <string name="core_content_clip_entity_place_tag">ĐỊA ĐIỂM</string>
     <string name="core_content_clip_entity_url_label">Liên kết</string>
     <string name="core_content_clip_entity_url_tag">LIÊN KẾT</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Ứng dụng không thể đọc phông chữ web WOFF. Hãy sử dụng phiên bản .ttf hoặc .otf của phông chữ.</string>
     <string name="core_content_font_error_woff2">Ứng dụng không thể đọc phông chữ web WOFF2. Hãy sử dụng phiên bản .ttf hoặc .otf của phông chữ.</string>
     <string name="core_content_font_error_zip">Tệp này là một tệp nén zip, không phải là phông chữ.</string>
+    <string name="core_content_note_tag_ideas">Ý tưởng</string>
+    <string name="core_content_note_tag_important">Quan trọng</string>
+    <string name="core_content_note_tag_personal">Cá nhân</string>
+    <string name="core_content_note_tag_school">Trường học</string>
+    <string name="core_content_note_tag_study">Học tập</string>
+    <string name="core_content_note_tag_work">Công việc</string>
     <string name="core_content_selection_macro_add_contact">Liên hệ</string>
     <string name="core_content_selection_macro_calendar">Lịch</string>
     <string name="core_content_selection_macro_call">Gọi</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Nói</string>
     <string name="core_content_selection_macro_replace">Thay thế</string>
+    <string name="core_content_selection_macro_save_note">Lưu dưới dạng ghi chú</string>
     <string name="core_content_selection_macro_search">Tìm kiếm</string>
     <string name="core_content_selection_macro_share">Chia sẻ</string>
     <string name="core_content_selection_macro_sms">Tin nhắn</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Dịch</string>
     <string name="core_content_selection_macro_url_decode">Giải mã</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Tệp cũng có %1$d từ không có phím tắt. Để thêm từ đó vào từ vựng của bạn, hãy mở tệp từ Từ điển cá nhân.</item>
+        <item quantity="other">Tệp cũng có %1$d từ không có phím tắt. Để thêm các từ đó vào từ vựng của bạn, hãy mở tệp từ Từ điển cá nhân.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Ứng dụng đã bỏ qua %2$d phần mở rộng khỏi \"%1$s\".</item>
         <item quantity="other">Ứng dụng đã bỏ qua %2$d phần mở rộng khỏi \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Ứng dụng đã xóa mẫu khỏi \"%1$s\". Mẫu này dài hơn %2$d ký tự.</item>
         <item quantity="other">Ứng dụng đã xóa mẫu khỏi \"%1$s\". Mẫu này dài hơn %2$d ký tự.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Ứng dụng đã loại bỏ %1$d hàng không có văn bản.</item>
+        <item quantity="other">Ứng dụng đã loại bỏ %1$d hàng không có văn bản.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Ứng dụng đã rút ngắn \"%1$s\". Nó dài hơn %2$d ký tự.</item>
         <item quantity="other">Ứng dụng đã rút ngắn \"%1$s\". Nó dài hơn %2$d ký tự.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Ứng dụng đã xóa %1$d trình kích hoạt mà bàn phím không thể theo dõi. Đoạn mã của nó vẫn nằm trong danh sách.</item>
+        <item quantity="other">Ứng dụng đã xóa %1$d trình kích hoạt mà bàn phím không thể theo dõi. Các đoạn mã của chúng vẫn nằm trong danh sách.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Tên của ứng dụng bạn đang nhập</string>
     <string name="core_content_snippet_var_clip_info">Mục nhập bộ nhớ tạm mới nhất</string>

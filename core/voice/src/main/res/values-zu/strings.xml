@@ -8,6 +8,12 @@
     <string name="core_voice_model_base_eu_body">Le modeli isebenzisa ulimi oluthayiphayo, olufana nemodeli yezilimi ezingama-40. Ihlanganisa izilimi zaseYurophu kuphela, ngakho ukulanda kuncane.</string>
     <string name="core_voice_model_base_multi_body">Le modeli ilinganisa ukunemba nesivinini. Ihlanganisa zonke izilimi ezaziwa yi-Whisper. Yikhethe uma imodeli encane ihamba kancane kakhulu.</string>
     <string name="core_voice_model_base_world_body">Le modeli isebenzisa ulimi oluthayiphayo esikhundleni sokuqagela. Imishwana emifushane iba ethembeke kakhulu. Yikhethe uma uhlu lwayo lunolimi lwakho.</string>
+    <string name="core_voice_model_cpp_base_body">Le modeli ilinganisa ukunemba nesivinini. Isebenzisa ulimi okhuluma ngalo, kunoma yiziphi izilimi ezingama-99 ezaziwa yi-Whisper, futhi ilalela amagama akho. Yikhethe uma imodeli encane ihamba kancane kakhulu.</string>
+    <string name="core_voice_model_cpp_large_body">Le yimodeli ye-Whisper enembe kakhulu. Ukulanda kungu-1.1 GB. Idivayisi enenani elikhulu lenkumbulo kuphela engayilayisha. Imodeli ye-Turbo icishe ibe nembe ngokufanayo futhi inguhhafu wosayizi.</string>
+    <string name="core_voice_model_cpp_medium_body">Le modeli inikeza ukunemba okucishe kufane nokwekhompyutha. Umusho ngamunye uthatha imizuzwana embalwa. Le modeli isebenzisa cishe i-gigabyte eyodwa yememori ngenkathi isebenza.</string>
+    <string name="core_voice_model_cpp_small_body">Le modeli inikeza ukunemba okungcono kakhulu okusasebenza kahle ocingweni. Isebenzisa ulimi okhuluma ngalo, kunoma yiziphi izilimi ezingama-99 ezaziwa yi-Whisper, futhi ilalela amagama akho.</string>
+    <string name="core_voice_model_cpp_tiny_body">Lesi yimodeli eshesha kakhulu. Isebenza kahle ngokukhuluma okucacile, kodwa umsindo unciphisa ukunemba. Isebenzisa ulimi okhuluma ngalo futhi ilalela amagama akho.</string>
+    <string name="core_voice_model_cpp_turbo_body">Le modeli icishe ibe neqiniso njengemodeli enkulu kunazo zonke, ngesigamu sosayizi. Umusho ngamunye uthatha imizuzwana embalwa, futhi awukwazi ukuhumusha.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">Ulimi olungu-%1$d</item>
         <item quantity="other">Izilimi ezingu-%1$d</item>
@@ -32,4 +38,5 @@
     <string name="core_voice_whisper_module_downloading">Ingxenye yokuthayipha ngezwi engaxhunyiwe ku-inthanethi yekhibhodi ilanda kusuka ku-Google Play. Zama futhi ngomzuzwana.</string>
     <string name="core_voice_whisper_module_restart">Ingxenye yokuthayipha ngezwi engaxhunyiwe ku-inthanethi isiqedile ukufakwa. Vala uphinde uvule ikhibhodi ukuze uyisebenzise.</string>
     <string name="core_voice_whisper_transcribe_error">Ukuthayipha ngezwi akusebenzanga. Zama futhi, noma khetha imodeli encane.</string>
+    <string name="core_voice_whistle_checksum_error">Imodeli elandiwe yonakele. Yilande futhi.</string>
 </resources>

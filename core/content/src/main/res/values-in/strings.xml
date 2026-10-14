@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">KODE</string>
     <string name="core_content_clip_entity_phone_label">Nomor telepon</string>
     <string name="core_content_clip_entity_phone_tag">TELEPON</string>
+    <string name="core_content_clip_entity_place_label">Tempat</string>
+    <string name="core_content_clip_entity_place_tag">TEMPAT</string>
     <string name="core_content_clip_entity_url_label">Tautan</string>
     <string name="core_content_clip_entity_url_tag">LINK</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Aplikasi tidak dapat membaca font web WOFF. Gunakan versi .ttf atau .otf dari font tersebut.</string>
     <string name="core_content_font_error_woff2">Aplikasi tidak dapat membaca font web WOFF2. Gunakan versi .ttf atau .otf dari font tersebut.</string>
     <string name="core_content_font_error_zip">File ini adalah arsip zip, bukan font.</string>
+    <string name="core_content_note_tag_ideas">Ide</string>
+    <string name="core_content_note_tag_important">Penting</string>
+    <string name="core_content_note_tag_personal">Pribadi</string>
+    <string name="core_content_note_tag_school">Sekolah</string>
+    <string name="core_content_note_tag_study">Belajar</string>
+    <string name="core_content_note_tag_work">Pekerjaan</string>
     <string name="core_content_selection_macro_add_contact">Kontak</string>
     <string name="core_content_selection_macro_calendar">Kalender</string>
     <string name="core_content_selection_macro_call">Panggil</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Ucapkan</string>
     <string name="core_content_selection_macro_replace">Ganti</string>
+    <string name="core_content_selection_macro_save_note">Simpan sebagai catatan</string>
     <string name="core_content_selection_macro_search">Cari</string>
     <string name="core_content_selection_macro_share">Bagikan</string>
     <string name="core_content_selection_macro_sms">Pesan</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Terjemahkan</string>
     <string name="core_content_selection_macro_url_decode">Dekode</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">File tersebut juga memiliki %1$d kata tanpa pintasan. Untuk menambahkannya ke kata-kata Anda, buka file dari Kamus pribadi.</item>
+        <item quantity="other">File tersebut juga memiliki %1$d kata tanpa pintasan. Untuk menambahkannya ke kata-kata Anda, buka file dari Kamus pribadi.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Aplikasi meninggalkan %2$d ekspansi dari \"%1$s\".</item>
         <item quantity="other">Aplikasi meninggalkan %2$d ekspansi dari \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Aplikasi menghapus pola dari \"%1$s\". Pola tersebut lebih panjang dari %2$d karakter.</item>
         <item quantity="other">Aplikasi menghapus pola dari \"%1$s\". Pola tersebut lebih panjang dari %2$d karakter.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Aplikasi menghapus %1$d baris yang tidak memiliki teks.</item>
+        <item quantity="other">Aplikasi menghapus %1$d baris yang tidak memiliki teks.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Aplikasi menyingkat \"%1$s\". Panjangnya lebih dari %2$d karakter.</item>
         <item quantity="other">Aplikasi menyingkat \"%1$s\". Panjangnya lebih dari %2$d karakter.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Aplikasi menghapus %1$d pemicu yang tidak dapat dipantau oleh keyboard. Cuplikannya tetap ada di daftar.</item>
+        <item quantity="other">Aplikasi menghapus %1$d pemicu yang tidak dapat dipantau oleh keyboard. Cuplikannya tetap ada di daftar.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Nama aplikasi tempat Anda mengetik</string>
     <string name="core_content_snippet_var_clip_info">Entri papan klip terbaru</string>

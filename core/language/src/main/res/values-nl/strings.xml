@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">De tekens die de AltGr-toets op een computer typt, staan op indrukken en vasthouden van dezelfde toetsen.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d dode toets plaatst een accent op de volgende letter op een computer. Hier staan de letters met dat accent onder \'ingedrukt houden\' van elke letter.</item>
+        <item quantity="other">%1$d dode toetsen plaatsen accenten op de volgende letter op een computer. Hier staan de letters met die accenten onder \'ingedrukt houden\' van elke letter.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Het bestand bouwt voort op %1$d ander bestand (%2$s) dat je niet hebt geopend. Toetsen die alleen door dat bestand worden ingesteld, ontbreken.</item>
+        <item quantity="other">Het bestand bouwt voort op %1$d andere bestanden (%2$s) die je niet hebt geopend. Toetsen die alleen door die bestanden worden ingesteld, ontbreken.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d teken van een toets zonder letters erop staat bij lang indrukken op de punt.</item>
+        <item quantity="other">%1$d tekens van toetsen zonder letters erop staan bij lang indrukken op de punt.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">De app kent %1$d tekennaam in het bestand niet, dus deze is weggelaten: %2$s.</item>
+        <item quantity="other">De app kent %1$d tekennamen in het bestand niet, dus deze zijn weggelaten: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d veegbeweging op een toets heeft hier geen plek, omdat dit toetsenbord die veegbeweging voor een andere taak gebruikt. De app heeft deze verwijderd.</item>
+        <item quantity="other">%1$d veegbewegingen op toetsen hebben hier geen plek, omdat dit toetsenbord die veegbewegingen voor andere taken gebruikt. De app heeft deze verwijderd.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">De app heeft %1$d toets gewijzigd naar de dichtstbijzijnde toets die beschikbaar is.</item>
         <item quantity="other">De app heeft %1$d toetsen gewijzigd naar de dichtstbijzijnde toetsen die beschikbaar zijn.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">De app heeft %1$d letters gewijzigd naar de vorm die dit toetsenbord schrijft.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">De app heeft de cijferrij verwijderd. Schakel de cijferrij in bij Indeling en grootte om er een te krijgen.</string>
+    <string name="core_lang_foreign_number_row_kept">De cijferrij van het bestand is de cijferrij van deze lay-out. Deze wordt getoond terwijl de cijferrij is ingeschakeld in Lay-out en grootte.</string>
+    <string name="core_lang_foreign_pages_kept">De extra pagina\'s van het bestand, zoals AltGr, zijn pagina\'s van deze lay-out. Veeg vanaf de toets die ze in het andere toetsenbord opende om ze hier te openen.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d toets heeft geen letters bij lang indrukken. Het bestand bewaart ze in een tweede bestand dat je niet hebt geopend.</item>
         <item quantity="other">%1$d toetsen hebben geen letters bij lang indrukken. Het bestand bewaart ze in een tweede bestand dat je niet hebt geopend.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d toets verandert met de shift-status of het veld in het andere toetsenbord. De app heeft de ruststand behouden.</item>
         <item quantity="other">%1$d toetsen veranderen met de shift-status of het veld in het andere toetsenbord. De app heeft de ruststand behouden.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d verschoven pagina in het bestand heeft toetsen op andere plaatsen dan de pagina die het verschuift. De app gebruikt daar in plaats daarvan hoofdletters.</item>
+        <item quantity="other">%1$d verschoven pagina\'s in het bestand hebben toetsen op andere plaatsen dan de pagina\'s die ze verschuiven. De app gebruikt daar in plaats daarvan hoofdletters.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d toets heeft andere letters bij ingedrukt houden terwijl shift is ingeschakeld in het andere toetsenbord. De app heeft de niet-verschoven letters behouden.</item>
+        <item quantity="other">%1$d toetsen hebben andere letters bij ingedrukt houden terwijl shift is ingeschakeld in het andere toetsenbord. De app heeft de niet-verschoven letters behouden.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Het andere toetsenbord meet toetsbreedtes anders. De app heeft de breedtes aangepast aan dit raster.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

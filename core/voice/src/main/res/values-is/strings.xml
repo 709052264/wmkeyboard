@@ -8,6 +8,12 @@
     <string name="core_voice_model_base_eu_body">Þetta líkan notar tungumálið sem þú skrifar á, sama og 40 tungumála líkanið. Það nær aðeins yfir evrópsk tungumál, svo niðurhalið er minna.</string>
     <string name="core_voice_model_base_multi_body">Þetta líkan jafnar nákvæmni og hraða. Það nær yfir öll tungumál sem Whisper þekkir. Veldu það ef litla líkanið er of hægt.</string>
     <string name="core_voice_model_base_world_body">Þetta líkan notar tungumálið sem þú skrifar á í stað þess að giska. Stuttar setningar verða mun áreiðanlegri. Veldu það þegar listinn inniheldur tungumálin þín.</string>
+    <string name="core_voice_model_cpp_base_body">Þetta líkan jafnar nákvæmni og hraða. Það notar tungumálið sem þú talar á, af þeim 99 tungumálum sem Whisper þekkir, og hlustar eftir þínum eigin orðum. Veldu þetta ef litla líkanið er of hægt.</string>
+    <string name="core_voice_model_cpp_large_body">Þetta er nákvæmasta Whisper-líkanið. Niðurhalið er 1,1 GB. Aðeins tæki með mikið minni geta hlaðið því. Turbo-líkanið er næstum jafn nákvæmt og er helmingi minna.</string>
+    <string name="core_voice_model_cpp_medium_body">Þetta líkan gefur næstum því nákvæmni eins og á borðtölvu. Hver setning tekur nokkrar sekúndur. Líkanið notar næstum eitt gígabæt af minni á meðan það keyrir.</string>
+    <string name="core_voice_model_cpp_small_body">Þetta líkan gefur bestu nákvæmnina sem keyrir samt vel í síma. Það notar tungumálið sem þú talar á, af þeim 99 tungumálum sem Whisper þekkir, og það hlustar eftir þínum eigin orðum.</string>
+    <string name="core_voice_model_cpp_tiny_body">Þetta er hraðasta líkanið. Það virkar vel með skýru tali, en hávaði dregur úr nákvæmninni. Það notar tungumálið sem þú talar inn á og hlustar eftir þínum eigin orðum.</string>
+    <string name="core_voice_model_cpp_turbo_body">Þetta líkan er næstum jafn nákvæmt og stærsta líkanið, á helmingi minni stærð. Hver setning tekur nokkrar sekúndur og það getur ekki þýtt.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d tungumál</item>
         <item quantity="other">%1$d tungumál</item>
@@ -32,4 +38,5 @@
     <string name="core_voice_whisper_module_downloading">Raddinnsláttarhluti lyklaborðsins án nettengingar er að sækjast frá Google Play. Reyndu aftur eftir augnablik.</string>
     <string name="core_voice_whisper_module_restart">Uppsetningu á eiginleika fyrir raddritun án nettengingar er lokið. Lokaðu lyklaborðinu og opnaðu það aftur til að nota hann.</string>
     <string name="core_voice_whisper_transcribe_error">Raddinnsláttur virkaði ekki. Reyndu aftur eða veldu minna líkan.</string>
+    <string name="core_voice_whistle_checksum_error">Niðurhalaða líkanið er skemmt. Sæktu það aftur.</string>
 </resources>

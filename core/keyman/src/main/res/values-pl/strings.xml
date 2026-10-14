@@ -10,6 +10,10 @@
         <item quantity="one">%1$d klawisz wpisuje znak na nim nadrukowany. Oryginalna klawiatura używała reguły do określenia, co wpisuje.</item>
         <item quantity="other">%1$d klawiszy wpisuje znaki na nich nadrukowane. Oryginalna klawiatura używała reguł do określenia, co wpisują.</item>
     </plurals>
+    <plurals name="core_keyman_multitap_unconverted">
+        <item quantity="one">Ta klawiatura ma %1$d klawisz, który należy naciskać wielokrotnie, aby przełączać strony lub znaki. Aplikacja nie może odwzorować tego cyklu, więc każde naciśnięcie działa jak pierwsze.</item>
+        <item quantity="other">Ta klawiatura ma %1$d klawiszy, które należy naciskać wielokrotnie, aby przełączać strony lub znaki. Aplikacja nie może odwzorować tych cykli, więc każde naciśnięcie działa jak pierwsze.</item>
+    </plurals>
     <string name="core_keyman_rules_missing">Ta klawiatura używa reguł do decydowania, co wpisują jej klawisze. Aplikacja nie posiada tych reguł, więc każdy klawisz wpisuje znak na nim nadrukowany.</string>
     <plurals name="core_keyman_special_keys_dropped">
         <item quantity="one">Aplikacja usunęła %1$d klawisz. Ta klawiatura nie ma klawisza, który wykonuje to samo działanie.</item>

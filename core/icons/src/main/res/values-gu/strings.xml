@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">એપે \"%1$s\" ને છોડી દીધું છે. એપ તેને સેવ કરી શકતી નથી.</string>
     <string name="core_icons_repair_svg_unreadable">ઍપે \"%1$s\" છોડી દીધું છે. ઍપ તેની SVG ફાઇલ વાંચી શકતી નથી.</string>
+    <string name="core_icons_slot_arrow_down_label">નીચે તરફનું તીર</string>
+    <string name="core_icons_slot_arrow_left_label">ડાબી તીર</string>
+    <string name="core_icons_slot_arrow_right_label">જમણી તીર</string>
+    <string name="core_icons_slot_arrow_up_label">ઉપર તરફનો એરો</string>
     <string name="core_icons_slot_backspace_label">બેકસ્પેસ</string>
+    <string name="core_icons_slot_caps_lock_key_label">કેપ્સ લોક કી</string>
     <string name="core_icons_slot_caps_lock_label">કેપ્સ લોક</string>
     <string name="core_icons_slot_emoji_activities_label">પ્રવૃત્તિઓ</string>
     <string name="core_icons_slot_emoji_animals_label">પ્રાણીઓ</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: મોકલો</string>
     <string name="core_icons_slot_forward_delete_label">ફોરવર્ડ ડિલીટ</string>
     <string name="core_icons_slot_globe_label">ભાષા બદલો</string>
+    <string name="core_icons_slot_hide_keys_label">કી છુપાવો (હાર્ડવેર કીબોર્ડ)</string>
     <string name="core_icons_slot_incognito_label">ઇન્કોગ્નિટો બેજ</string>
     <string name="core_icons_slot_input_method_picker_label">કીબોર્ડ બદલો</string>
     <string name="core_icons_slot_panel_back_label">કીઝ પર પાછા જાઓ</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">સર્ચ બંધ કરો</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (ચાલુ)</string>
+    <string name="core_icons_slot_show_keys_label">કી બતાવો (હાર્ડવેર કીબોર્ડ)</string>
     <string name="core_icons_slot_suggestions_expand_label">ટૂલ્સ બતાવો</string>
+    <string name="core_icons_slot_tab_label">Tab કી</string>
     <string name="core_icons_slot_toolbox_label">ટૂલબોક્સ</string>
 </resources>

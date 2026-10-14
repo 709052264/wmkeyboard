@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">نیچے دائیں طرف</string>
     <string name="core_settings_board_corner_top_left_label">اوپر بائیں</string>
     <string name="core_settings_board_corner_top_right_label">اوپر دائیں</string>
+    <string name="core_settings_clip_swipe_pin_left_label">بائیں پن، دائیں حذف</string>
+    <string name="core_settings_clip_swipe_pin_off_label">دونوں طریقے حذف کریں</string>
+    <string name="core_settings_clip_swipe_pin_right_label">دائیں پن، بائیں حذف</string>
     <string name="core_settings_clip_time_copied_label">کاپی کرنے کا وقت</string>
     <string name="core_settings_clip_time_expires_label">باقی وقت</string>
     <string name="core_settings_clip_time_off_label">کوئی نہیں</string>

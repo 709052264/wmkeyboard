@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Tiefsee</string>
     <string name="core_theme_builtin_facet_label">Facet</string>
     <string name="core_theme_builtin_forest_label">Wald</string>
+    <string name="core_theme_builtin_frost_label">Frost</string>
+    <string name="core_theme_builtin_frost_light_label">Frost hell</string>
+    <string name="core_theme_builtin_frost_liquid_label">Frost-Flüssigkeit</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Frost-Hintergrundbild</string>
     <string name="core_theme_builtin_glacier_label">Gletscher</string>
     <string name="core_theme_builtin_mint_label">Minze</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Schnee</string>
     <string name="core_theme_builtin_sunset_drift_label">Sunset Drift</string>
     <string name="core_theme_builtin_sunset_label">Sonnenuntergang</string>
+    <string name="core_theme_family_frost_label">Frost</string>
     <string name="core_theme_family_gradient_label">Verläufe</string>
     <string name="core_theme_family_ocean_label">Einbruch der Dunkelheit</string>
     <string name="core_theme_family_snow_label">Pastell</string>
+    <string name="core_theme_palette_style_expressive">Ausdrucksstark</string>
+    <string name="core_theme_palette_style_fidelity">Originaltreue</string>
+    <string name="core_theme_palette_style_fruit_salad">Obstsalat</string>
+    <string name="core_theme_palette_style_monochrome">Monochrom</string>
+    <string name="core_theme_palette_style_neutral">Neutral</string>
+    <string name="core_theme_palette_style_rainbow">Regenbogen</string>
+    <string name="core_theme_palette_style_tonal_spot">Tonaler Punkt</string>
+    <string name="core_theme_palette_style_vibrant">Lebhaft</string>
 </resources>

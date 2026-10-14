@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">ทะเลลึก</string>
     <string name="core_theme_builtin_facet_label">Facet</string>
     <string name="core_theme_builtin_forest_label">ป่าไม้</string>
+    <string name="core_theme_builtin_frost_label">น้ำค้างแข็ง</string>
+    <string name="core_theme_builtin_frost_light_label">Frost light</string>
+    <string name="core_theme_builtin_frost_liquid_label">Frost liquid</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">วอลเปเปอร์แบบฝ้า</string>
     <string name="core_theme_builtin_glacier_label">ธารน้ำแข็ง</string>
     <string name="core_theme_builtin_mint_label">มิ้นต์</string>
     <string name="core_theme_builtin_nebula_label">เนบิวลา</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">หิมะ</string>
     <string name="core_theme_builtin_sunset_drift_label">Sunset drift</string>
     <string name="core_theme_builtin_sunset_label">พระอาทิตย์ตก</string>
+    <string name="core_theme_family_frost_label">Frost</string>
     <string name="core_theme_family_gradient_label">การไล่ระดับสี</string>
     <string name="core_theme_family_ocean_label">ยามค่ำคืน</string>
     <string name="core_theme_family_snow_label">พาสเทล</string>
+    <string name="core_theme_palette_style_expressive">สื่ออารมณ์</string>
+    <string name="core_theme_palette_style_fidelity">ความเที่ยงตรง</string>
+    <string name="core_theme_palette_style_fruit_salad">สลัดผลไม้</string>
+    <string name="core_theme_palette_style_monochrome">ขาวดำ</string>
+    <string name="core_theme_palette_style_neutral">เป็นกลาง</string>
+    <string name="core_theme_palette_style_rainbow">สีรุ้ง</string>
+    <string name="core_theme_palette_style_tonal_spot">จุดโทนสี</string>
+    <string name="core_theme_palette_style_vibrant">สดใส</string>
 </resources>

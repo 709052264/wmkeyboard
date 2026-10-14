@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">KOODI</string>
     <string name="core_content_clip_entity_phone_label">Puhelinnumero</string>
     <string name="core_content_clip_entity_phone_tag">PUHELIN</string>
+    <string name="core_content_clip_entity_place_label">Paikka</string>
+    <string name="core_content_clip_entity_place_tag">PAIKKA</string>
     <string name="core_content_clip_entity_url_label">Linkki</string>
     <string name="core_content_clip_entity_url_tag">LINKKI</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Sovellus ei voi lukea WOFF-verkkofontteja. Käytä fontin .ttf- tai .otf-versiota.</string>
     <string name="core_content_font_error_woff2">Sovellus ei voi lukea WOFF2-verkkofontteja. Käytä fontin .ttf- tai .otf-versiota.</string>
     <string name="core_content_font_error_zip">Tämä tiedosto on zip-arkisto, ei fontti.</string>
+    <string name="core_content_note_tag_ideas">Ideat</string>
+    <string name="core_content_note_tag_important">Tärkeä</string>
+    <string name="core_content_note_tag_personal">Henkilökohtainen</string>
+    <string name="core_content_note_tag_school">Koulu</string>
+    <string name="core_content_note_tag_study">Opiskelu</string>
+    <string name="core_content_note_tag_work">Työ</string>
     <string name="core_content_selection_macro_add_contact">Yhteystieto</string>
     <string name="core_content_selection_macro_calendar">Kalenteri</string>
     <string name="core_content_selection_macro_call">Soita</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Puhu</string>
     <string name="core_content_selection_macro_replace">Korvaa</string>
+    <string name="core_content_selection_macro_save_note">Tallenna muistiinpanona</string>
     <string name="core_content_selection_macro_search">Hae</string>
     <string name="core_content_selection_macro_share">Jaa</string>
     <string name="core_content_selection_macro_sms">Viesti</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Käännä</string>
     <string name="core_content_selection_macro_url_decode">Pura koodaus</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Tiedostossa on myös %1$d sana ilman pikavalintaa. Lisää se sanoihisi avaamalla tiedosto Henkilökohtaisesta sanakirjasta.</item>
+        <item quantity="other">Tiedostossa on myös %1$d sanaa ilman pikavalintaa. Lisää ne sanoihisi avaamalla tiedosto Henkilökohtaisesta sanakirjasta.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Sovellus jätti %2$d laajennuksen pois kohdasta \"%1$s\".</item>
         <item quantity="other">Sovellus jätti %2$d laajennusta pois kohdasta \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Sovellus poisti mallin kohteesta \"%1$s\". Se oli pidempi kuin %2$d merkki.</item>
         <item quantity="other">Sovellus poisti mallin kohteesta \"%1$s\". Se oli pidempi kuin %2$d merkkiä.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Sovellus poisti %1$d rivin, jossa ei ole tekstiä.</item>
+        <item quantity="other">Sovellus poisti %1$d riviä, joissa ei ole tekstiä.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Sovellus lyhensi tekstin \"%1$s\". Se oli pidempi kuin %2$d merkki.</item>
         <item quantity="other">Sovellus lyhensi tekstin \"%1$s\". Se oli pidempi kuin %2$d merkkiä.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Sovellus poisti %1$d liipaisimen, jota näppäimistö ei voi valvoa. Sen tekstikatkelma pysyy luettelossa.</item>
+        <item quantity="other">Sovellus poisti %1$d liipaisinta, joita näppäimistö ei voi valvoa. Niiden tekstikatkelmat pysyvät luettelossa.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Sovelluksen nimi, johon kirjoitat</string>
     <string name="core_content_snippet_var_clip_info">Uusin leikepöydän kohde</string>

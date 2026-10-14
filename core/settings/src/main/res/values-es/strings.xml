@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Inferior derecha</string>
     <string name="core_settings_board_corner_top_left_label">Arriba a la izquierda</string>
     <string name="core_settings_board_corner_top_right_label">Arriba a la derecha</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Izquierda fija, derecha elimina</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Eliminar en ambas direcciones</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Derecha fija, izquierda elimina</string>
     <string name="core_settings_clip_time_copied_label">Tiempo copiado</string>
     <string name="core_settings_clip_time_expires_label">Tiempo restante</string>
     <string name="core_settings_clip_time_off_label">Ninguno</string>

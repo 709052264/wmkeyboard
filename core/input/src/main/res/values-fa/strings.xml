@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">فرهنگ لغت کانا به کانجی ژاپنی</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">جدولی از خوانش‌های Jyutping برای کاراکترهای هانزی، شامل ۱۶۳,۰۰۰ ورودی. صفحه‌کلید برای تبدیل کانتونی به این بسته نیاز دارد.</string>
     <string name="core_input_cjk_pack_jyutping_title">فرهنگ لغت کانتونی Jyutping</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">کدام کلمات به دنبال کدام می‌آیند، که از متن‌های وب و اخبار چینی شمارش شده‌اند. همراه با فرهنگ لغت پین‌یین ارائه می‌شود. با آن، حروف اول مانند wbxh ابتدا «我不喜欢» را می‌دهد و نه دو کلمه بی‌ربط.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">جفت کلمات چینی</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">کاراکترها و عبارات چینی از CC-CEDICT، شامل ۱۲۰,۰۰۰ ورودی. صفحه‌کلید برای تبدیل چینی به این بسته نیاز دارد.</string>
     <string name="core_input_cjk_pack_pinyin_title">فرهنگ لغت پین‌یین چینی</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">عبارات از OpenCC، ۵۰۰۰۰ مدخل، حدود ۱ مگابایت. با روشن بودن نویسه‌های سنتی، صفحه‌کلید از آن برای نوشتن شکل صحیح کلمه استفاده می‌کند، مانند 頭髮 و نه 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">جدول عبارات نویسه‌های سنتی</string>
     <string name="core_input_cjk_pack_stroke_subtitle">جدول ترتیب ضربات برای کاراکترهای هانزی. صفحه‌کلید برای طرح‌بندی ضربه‌ای به این بسته نیاز دارد.</string>
     <string name="core_input_cjk_pack_stroke_title">فرهنگ لغت ضربات چینی (笔画)</string>
+    <string name="core_input_double_pinyin_custom_label">سفارشی</string>
     <string name="core_input_double_pinyin_off_label">خاموش (پین‌یین کامل)</string>
+    <string name="core_input_im_note_candidates">برای برخی کلیدها، این روش لیستی از گزینه‌ها را ارائه می‌دهد. صفحه‌کلید همیشه از اولین گزینه استفاده می‌کند.</string>
+    <string name="core_input_im_note_missing_files">این فایل‌ها انتخاب نشدند، بنابراین بخشی از آن‌ها مفقود است: %1$s. برای گنجاندن آن‌ها، دوباره وارد کنید و آن‌ها را با هم انتخاب کنید.</string>
+    <string name="core_input_im_note_module">این روش از یک افزونه مانند Anthy استفاده می‌کند که صفحه‌کلید قادر به اجرای آن نیست. کلیدهایی که از آن استفاده می‌کنند در اینجا کار نمی‌کنند.</string>
+    <string name="core_input_im_note_other_method">این روش برخی کلیدها را به روش ورودی دیگری می‌دهد. آن بخش در اینجا کار نمی‌کند.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">برنامه نمی‌تواند %1$d قانون املایی را بخواند، بنابراین از آن صرف‌نظر می‌کند.</item>
+        <item quantity="other">برنامه نمی‌تواند %1$d قانون املایی را بخواند، بنابراین از آن‌ها صرف‌نظر می‌کند.</item>
+    </plurals>
+    <string name="core_input_im_note_space">این روش از کلید فاصله به عنوان یک کلید استفاده می‌کند، برای مثال برای یک لحن. در اینجا کلید فاصله همیشه یک فاصله تایپ می‌کند.</string>
+    <string name="core_input_im_note_truncated">جدول بسیار بزرگ است، بنابراین برنامه فقط بخش اول آن را نگه داشت.</string>
+    <string name="core_input_im_note_unused_files">برنامه از این فایل‌ها استفاده نکرد: %1$s.</string>
+    <string name="core_input_im_refused_broken">فایل دارای خطا است، بنابراین برنامه نمی‌تواند آن را بخواند: %1$s</string>
+    <string name="core_input_im_refused_empty">فایل هیچ متنی برای تایپ ندارد.</string>
+    <string name="core_input_im_refused_no_dictionary">این طرح‌واره به فرهنگ لغت خود نیاز دارد. دوباره وارد کنید و همچنین %1$s را انتخاب کنید.</string>
+    <string name="core_input_im_refused_not_method">برنامه نمی‌تواند آن را به عنوان یک روش ورودی بخواند. این برنامه جداول .cin، طرح‌واره‌ها و فرهنگ‌نامه‌های Rime (.schema.yaml, .dict.yaml) و فایل‌های m17n .mim را می‌خواند.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">برنامه این را به عنوان یک جدول .cin با %1$d ورودی خواند. یک کد تایپ کنید، سپس کاراکتر را از نوار پیشنهاد انتخاب کنید.</item>
+        <item quantity="other">برنامه این را به عنوان یک جدول .cin با %1$d ورودی خواند. یک کد تایپ کنید، سپس کاراکتر را از نوار پیشنهاد انتخاب کنید.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">برنامه این را به عنوان یک روش ورودی m17n با %1$d قانون خواند. کلیدها متن را هنگام تایپ شما می‌نویسند.</item>
+        <item quantity="other">برنامه این را به عنوان یک روش ورودی m17n با %1$d قانون خواند. کلیدها متن را هنگام تایپ شما می‌نویسند.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">برنامه این را به عنوان یک طرح‌واره Rime با %1$d ورودی فرهنگ لغت خواند. هجاها را تایپ کنید، سپس کلمات را از نوار پیشنهاد انتخاب کنید.</item>
+        <item quantity="other">برنامه این را به عنوان یک طرح‌واره Rime با %1$d ورودی فرهنگ لغت خواند. هجاها را تایپ کنید، سپس کلمات را از نوار پیشنهاد انتخاب کنید.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">برنامه این را به عنوان یک جدول کد Rime با %1$d ورودی خواند. یک کد تایپ کنید، سپس کاراکتر را از نوار پیشنهاد انتخاب کنید.</item>
+        <item quantity="other">برنامه این را به عنوان یک جدول کد Rime با %1$d ورودی خواند. یک کد تایپ کنید، سپس کاراکتر را از نوار پیشنهاد انتخاب کنید.</item>
+    </plurals>
 </resources>

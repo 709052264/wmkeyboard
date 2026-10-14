@@ -8,6 +8,12 @@
     <string name="core_voice_model_base_eu_body">Ta model uporablja jezik, v katerem tipkate, enako kot model za 40 jezikov. Zajema le evropske jezike, zato je prenos manjši.</string>
     <string name="core_voice_model_base_multi_body">Ta model uravnoteži natančnost in hitrost. Pokriva vse jezike, ki jih pozna Whisper. Izberite ga, če je model Small prepočasen.</string>
     <string name="core_voice_model_base_world_body">Ta model uporablja jezik, v katerem tipkate, namesto ugibanja. Kratke fraze postanejo veliko bolj zanesljive. Izberite ga, ko je na seznamu vaš jezik.</string>
+    <string name="core_voice_model_cpp_base_body">Ta model uravnoteži natančnost in hitrost. Uporablja jezik, v katerem narekujete, v katerem koli od 99 jezikov, ki jih Whisper pozna, in posluša vaše besede. Izberite ga, če je majhen model prepočasen.</string>
+    <string name="core_voice_model_cpp_large_body">To je najbolj natančen model Whisper. Prenos je velik 1,1 GB. Naloži ga lahko samo naprava z veliko količino pomnilnika. Model Turbo je skoraj tako natančen in je pol manjši.</string>
+    <string name="core_voice_model_cpp_medium_body">Ta model zagotavlja skoraj namizno natančnost. Vsaka fraza traja nekaj sekund. Model med delovanjem porabi skoraj en gigabajt pomnilnika.</string>
+    <string name="core_voice_model_cpp_small_body">Ta model zagotavlja najboljšo natančnost, ki še vedno dobro deluje na telefonu. Uporablja jezik, v katerem narekujete, v katerem koli od 99 jezikov, ki jih Whisper pozna, in posluša vaše lastne besede.</string>
+    <string name="core_voice_model_cpp_tiny_body">To je najhitrejši model. Dobro deluje pri jasnem govoru, vendar hrup zmanjša natančnost. Uporablja jezik, v katerem narekujete, in posluša vaše besede.</string>
+    <string name="core_voice_model_cpp_turbo_body">Ta model je skoraj tako natančen kot največji model, pri polovični velikosti. Vsaka fraza traja nekaj sekund in ne more prevajati.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d jezik</item>
         <item quantity="other">%1$d jezikov</item>
@@ -32,4 +38,5 @@
     <string name="core_voice_whisper_module_downloading">Del tipkovnice za glasovno tipkanje brez povezave se prenaša iz trgovine Google Play. Poskusite znova čez trenutek.</string>
     <string name="core_voice_whisper_module_restart">Namestitev dela za glasovno tipkanje brez povezave je končana. Zaprite in znova odprite tipkovnico, da jo uporabite.</string>
     <string name="core_voice_whisper_transcribe_error">Glasovno tipkanje ni delovalo. Poskusite znova ali izberite manjši model.</string>
+    <string name="core_voice_whistle_checksum_error">Preneseni model je poškodovan. Prenesite ga znova.</string>
 </resources>

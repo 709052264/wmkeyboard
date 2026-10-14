@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">താഴെ വലത് ഭാഗം</string>
     <string name="core_settings_board_corner_top_left_label">മുകളിൽ ഇടത്</string>
     <string name="core_settings_board_corner_top_right_label">മുകളിൽ വലത് വശം</string>
+    <string name="core_settings_clip_swipe_pin_left_label">ഇടത്തേക്ക് പിൻ ചെയ്യുക, വലത്തേക്ക് നീക്കം ചെയ്യുക</string>
+    <string name="core_settings_clip_swipe_pin_off_label">രണ്ട് വഴികളിലൂടെയും ഡിലീറ്റ് ചെയ്യാം</string>
+    <string name="core_settings_clip_swipe_pin_right_label">വലത്തേക്ക് പിൻ ചെയ്യുന്നു, ഇടത്തേക്ക് ഡിലീറ്റ് ചെയ്യുന്നു</string>
     <string name="core_settings_clip_time_copied_label">കോപ്പി ചെയ്ത സമയം</string>
     <string name="core_settings_clip_time_expires_label">ബാക്കിയുള്ള സമയം</string>
     <string name="core_settings_clip_time_off_label">ഒന്നുമില്ല</string>

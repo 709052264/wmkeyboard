@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">KOD</string>
     <string name="core_content_clip_entity_phone_label">Telefonski broj</string>
     <string name="core_content_clip_entity_phone_tag">TELEFON</string>
+    <string name="core_content_clip_entity_place_label">Mjesto</string>
+    <string name="core_content_clip_entity_place_tag">MJESTO</string>
     <string name="core_content_clip_entity_url_label">Poveznica</string>
     <string name="core_content_clip_entity_url_tag">POVEZNICA</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Aplikacija ne može čitati WOFF web fontove. Koristite .ttf ili .otf verziju fonta.</string>
     <string name="core_content_font_error_woff2">Aplikacija ne može čitati WOFF2 web fontove. Koristite .ttf ili .otf verziju fonta.</string>
     <string name="core_content_font_error_zip">Ova datoteka je zip arhiva, a ne font.</string>
+    <string name="core_content_note_tag_ideas">Ideje</string>
+    <string name="core_content_note_tag_important">Važno</string>
+    <string name="core_content_note_tag_personal">Osobno</string>
+    <string name="core_content_note_tag_school">Škola</string>
+    <string name="core_content_note_tag_study">Učenje</string>
+    <string name="core_content_note_tag_work">Posao</string>
     <string name="core_content_selection_macro_add_contact">Kontakt</string>
     <string name="core_content_selection_macro_calendar">Kalendar</string>
     <string name="core_content_selection_macro_call">Poziv</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Govori</string>
     <string name="core_content_selection_macro_replace">Zamijeni</string>
+    <string name="core_content_selection_macro_save_note">Spremi kao bilješku</string>
     <string name="core_content_selection_macro_search">Pretraži</string>
     <string name="core_content_selection_macro_share">Dijeli</string>
     <string name="core_content_selection_macro_sms">Poruka</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Prevedi</string>
     <string name="core_content_selection_macro_url_decode">Dekodiraj</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Datoteka također sadrži %1$d riječ bez prečaca. Da biste je dodali u svoje riječi, otvorite datoteku iz Osobni rječnik.</item>
+        <item quantity="other">Datoteka također sadrži %1$d riječi bez prečaca. Da biste ih dodali u svoje riječi, otvorite datoteku iz Osobni rječnik.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Aplikacija je izostavila %2$d proširenje iz \"%1$s\".</item>
         <item quantity="other">Aplikacija je izostavila %2$d proširenja iz \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Aplikacija je uklonila uzorak iz \"%1$s\". Bio je duži od %2$d znaka.</item>
         <item quantity="other">Aplikacija je uklonila uzorak iz \"%1$s\". Bio je duži od %2$d znakova.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Aplikacija je odbacila %1$d redak bez teksta.</item>
+        <item quantity="other">Aplikacija je odbacila %1$d redaka bez teksta.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Aplikacija je skratila „%1$s”. Bila je duža od %2$d znaka.</item>
         <item quantity="other">Aplikacija je skratila „%1$s”. Bila je duža od %2$d znakova.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Aplikacija je uklonila %1$d okidač koji tipkovnica ne može pratiti. Njegov isječak ostaje na popisu.</item>
+        <item quantity="other">Aplikacija je uklonila %1$d okidača koje tipkovnica ne može pratiti. Njihovi isječci ostaju na popisu.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Naziv aplikacije u kojoj tipkate</string>
     <string name="core_content_snippet_var_clip_info">Najnoviji unos u međuspremniku</string>

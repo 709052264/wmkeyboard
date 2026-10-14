@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">Додаток відхилив \"%1$s\". Додаток не може його зберегти.</string>
     <string name="core_icons_repair_svg_unreadable">Додаток відхилив \"%1$s\". Додаток не може прочитати його SVG-файл.</string>
+    <string name="core_icons_slot_arrow_down_label">Стрілка вниз</string>
+    <string name="core_icons_slot_arrow_left_label">Стрілка вліво</string>
+    <string name="core_icons_slot_arrow_right_label">Стрілка вправо</string>
+    <string name="core_icons_slot_arrow_up_label">Стрілка вгору</string>
     <string name="core_icons_slot_backspace_label">Backspace</string>
+    <string name="core_icons_slot_caps_lock_key_label">Клавіша Caps lock</string>
     <string name="core_icons_slot_caps_lock_label">Caps lock</string>
     <string name="core_icons_slot_emoji_activities_label">Активності</string>
     <string name="core_icons_slot_emoji_animals_label">Тварини</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: надіслати</string>
     <string name="core_icons_slot_forward_delete_label">Видалити вперед</string>
     <string name="core_icons_slot_globe_label">Змінити мову</string>
+    <string name="core_icons_slot_hide_keys_label">Приховати клавіші (апаратна клавіатура)</string>
     <string name="core_icons_slot_incognito_label">Значок режиму інкогніто</string>
     <string name="core_icons_slot_input_method_picker_label">Перемкнути клавіатуру</string>
     <string name="core_icons_slot_panel_back_label">Назад до клавіш</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Закрити пошук</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (увімкнено)</string>
+    <string name="core_icons_slot_show_keys_label">Показувати клавіші (апаратна клавіатура)</string>
     <string name="core_icons_slot_suggestions_expand_label">Показати інструменти</string>
+    <string name="core_icons_slot_tab_label">Клавіша Tab</string>
     <string name="core_icons_slot_toolbox_label">Панель інструментів</string>
 </resources>

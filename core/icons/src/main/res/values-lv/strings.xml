@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">Lietotne noraidīja \"%1$s\". Lietotne to nevar saglabāt.</string>
     <string name="core_icons_repair_svg_unreadable">Lietotne noraidīja \"%1$s\". Lietotne nevar nolasīt tās SVG failu.</string>
+    <string name="core_icons_slot_arrow_down_label">Bultiņa uz leju</string>
+    <string name="core_icons_slot_arrow_left_label">Bultiņa pa kreisi</string>
+    <string name="core_icons_slot_arrow_right_label">Bultiņa pa labi</string>
+    <string name="core_icons_slot_arrow_up_label">Bultiņa uz augšu</string>
     <string name="core_icons_slot_backspace_label">Atpakaļatkāpe</string>
+    <string name="core_icons_slot_caps_lock_key_label">Lielo burtu fiksatora taustiņš</string>
     <string name="core_icons_slot_caps_lock_label">Lielo burtu slēdzis</string>
     <string name="core_icons_slot_emoji_activities_label">Aktivitātes</string>
     <string name="core_icons_slot_emoji_animals_label">Dzīvnieki</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: sūtīt</string>
     <string name="core_icons_slot_forward_delete_label">Dzēst uz priekšu</string>
     <string name="core_icons_slot_globe_label">Mainīt valodu</string>
+    <string name="core_icons_slot_hide_keys_label">Paslēpt taustiņus (aparatūras tastatūra)</string>
     <string name="core_icons_slot_incognito_label">Inkognito nozīmīte</string>
     <string name="core_icons_slot_input_method_picker_label">Pārslēgt tastatūru</string>
     <string name="core_icons_slot_panel_back_label">Atpakaļ pie taustiņiem</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Aizvērt meklēšanu</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (ieslēgts)</string>
+    <string name="core_icons_slot_show_keys_label">Rādīt taustiņus (aparatūras tastatūra)</string>
     <string name="core_icons_slot_suggestions_expand_label">Rādīt rīkus</string>
+    <string name="core_icons_slot_tab_label">Tab taustiņš</string>
     <string name="core_icons_slot_toolbox_label">Rīkjosla</string>
 </resources>

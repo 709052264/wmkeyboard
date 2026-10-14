@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">KODA</string>
     <string name="core_content_clip_entity_phone_label">Telefonska številka</string>
     <string name="core_content_clip_entity_phone_tag">TELEFON</string>
+    <string name="core_content_clip_entity_place_label">Kraj</string>
+    <string name="core_content_clip_entity_place_tag">KRAJ</string>
     <string name="core_content_clip_entity_url_label">Povezava</string>
     <string name="core_content_clip_entity_url_tag">POVEZAVA</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Aplikacija ne more brati spletnih pisav WOFF. Uporabite različico pisave .ttf ali .otf.</string>
     <string name="core_content_font_error_woff2">Aplikacija ne more prebrati spletnih pisav WOFF2. Uporabite različico pisave .ttf ali .otf.</string>
     <string name="core_content_font_error_zip">Ta datoteka je arhiv zip, ne pisava.</string>
+    <string name="core_content_note_tag_ideas">Ideje</string>
+    <string name="core_content_note_tag_important">Pomembno</string>
+    <string name="core_content_note_tag_personal">Osebno</string>
+    <string name="core_content_note_tag_school">Šola</string>
+    <string name="core_content_note_tag_study">Študij</string>
+    <string name="core_content_note_tag_work">Delo</string>
     <string name="core_content_selection_macro_add_contact">Stik</string>
     <string name="core_content_selection_macro_calendar">Koledar</string>
     <string name="core_content_selection_macro_call">Klic</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Preberi</string>
     <string name="core_content_selection_macro_replace">Zamenjaj</string>
+    <string name="core_content_selection_macro_save_note">Shrani kot beležko</string>
     <string name="core_content_selection_macro_search">Išči</string>
     <string name="core_content_selection_macro_share">Deli</string>
     <string name="core_content_selection_macro_sms">Sporočilo</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Prevedi</string>
     <string name="core_content_selection_macro_url_decode">Dekodiraj</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Datoteka vsebuje tudi %1$d besedo brez bližnjice. Če jo želite dodati med svoje besede, odprite datoteko iz osebnega slovarja.</item>
+        <item quantity="other">Datoteka vsebuje tudi %1$d besed brez bližnjice. Če jih želite dodati med svoje besede, odprite datoteko iz osebnega slovarja.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Aplikacija je izpustila %2$d razširitev iz \"%1$s\".</item>
         <item quantity="other">Aplikacija je izpustila %2$d razširitev iz \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Aplikacija je odstranila vzorec iz \"%1$s\". Bil je daljši od %2$d znaka.</item>
         <item quantity="other">Aplikacija je odstranila vzorec iz \"%1$s\". Bil je daljši od %2$d znakov.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Aplikacija je opustila %1$d vrstico, ki nima besedila.</item>
+        <item quantity="other">Aplikacija je opustila %1$d vrstic, ki nimajo besedila.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Aplikacija je skrajšala \"%1$s\". Bila je daljša od %2$d znaka.</item>
         <item quantity="other">Aplikacija je skrajšala \"%1$s\". Bila je daljša od %2$d znakov.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Aplikacija je odstranila %1$d sprožilec, ki ga tipkovnica ne more spremljati. Njegov izrez ostane na seznamu.</item>
+        <item quantity="other">Aplikacija je odstranila %1$d sprožilcev, ki jih tipkovnica ne more spremljati. Njihovi izrezki ostanejo na seznamu.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Ime aplikacije, v kateri tipkate</string>
     <string name="core_content_snippet_var_clip_info">Najnovejši vnos v odložišču</string>

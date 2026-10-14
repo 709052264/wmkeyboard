@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">COD</string>
     <string name="core_content_clip_entity_phone_label">Număr de telefon</string>
     <string name="core_content_clip_entity_phone_tag">TELEFON</string>
+    <string name="core_content_clip_entity_place_label">Locație</string>
+    <string name="core_content_clip_entity_place_tag">LOCAȚIE</string>
     <string name="core_content_clip_entity_url_label">Link</string>
     <string name="core_content_clip_entity_url_tag">LINK</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Aplicația nu poate citi fonturi web WOFF. Utilizați versiunea .ttf sau .otf a fontului.</string>
     <string name="core_content_font_error_woff2">Aplicația nu poate citi fonturi web WOFF2. Utilizați versiunea .ttf sau .otf a fontului.</string>
     <string name="core_content_font_error_zip">Acest fișier este o arhivă zip, nu un font.</string>
+    <string name="core_content_note_tag_ideas">Idei</string>
+    <string name="core_content_note_tag_important">Important</string>
+    <string name="core_content_note_tag_personal">Personal</string>
+    <string name="core_content_note_tag_school">Școală</string>
+    <string name="core_content_note_tag_study">Studiu</string>
+    <string name="core_content_note_tag_work">Muncă</string>
     <string name="core_content_selection_macro_add_contact">Contact</string>
     <string name="core_content_selection_macro_calendar">Calendar</string>
     <string name="core_content_selection_macro_call">Apel</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Vorbește</string>
     <string name="core_content_selection_macro_replace">Înlocuire</string>
+    <string name="core_content_selection_macro_save_note">Salvează ca notă</string>
     <string name="core_content_selection_macro_search">Căutare</string>
     <string name="core_content_selection_macro_share">Distribuie</string>
     <string name="core_content_selection_macro_sms">Mesaj</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Traducere</string>
     <string name="core_content_selection_macro_url_decode">Decodifică</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Fișierul are, de asemenea, %1$d cuvânt fără scurtătură. Pentru a-l adăuga la cuvintele tale, deschide fișierul din Dicționar personal.</item>
+        <item quantity="other">Fișierul are, de asemenea, %1$d cuvinte fără scurtătură. Pentru a le adăuga la cuvintele tale, deschide fișierul din Dicționar personal.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Aplicația a omis %2$d expansiune din \"%1$s\".</item>
         <item quantity="other">Aplicația a omis %2$d expansiuni din \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Aplicația a eliminat modelul din „%1$s”. Era mai lung de %2$d caracter.</item>
         <item quantity="other">Aplicația a eliminat modelul din „%1$s”. Era mai lung de %2$d caractere.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Aplicația a eliminat %1$d rând care nu are text.</item>
+        <item quantity="other">Aplicația a eliminat %1$d rânduri care nu au text.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Aplicația a scurtat „%1$s”. Era mai lung de %2$d caracter.</item>
         <item quantity="other">Aplicația a scurtat „%1$s”. Era mai lung de %2$d caractere.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Aplicația a eliminat %1$d declanșator pe care tastatura nu îl poate monitoriza. Fragmentul său rămâne în listă.</item>
+        <item quantity="other">Aplicația a eliminat %1$d declanșatoare pe care tastatura nu le poate monitoriza. Fragmentele lor rămân în listă.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Numele aplicației în care scrii</string>
     <string name="core_content_snippet_var_clip_info">Cea mai recentă intrare din clipboard</string>

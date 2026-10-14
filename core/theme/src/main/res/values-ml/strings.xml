@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">ഡീപ് സീ</string>
     <string name="core_theme_builtin_facet_label">ഫാസെറ്റ്</string>
     <string name="core_theme_builtin_forest_label">ഫോറസ്റ്റ്</string>
+    <string name="core_theme_builtin_frost_label">ഫ്രോസ്റ്റ്</string>
+    <string name="core_theme_builtin_frost_light_label">ഫ്രോസ്റ്റ് ലൈറ്റ്</string>
+    <string name="core_theme_builtin_frost_liquid_label">ഫ്രോസ്റ്റ് ലിക്വിഡ്</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">ഫ്രോസ്റ്റ് വാൾപേപ്പർ</string>
     <string name="core_theme_builtin_glacier_label">ഗ്ലേഷ്യർ</string>
     <string name="core_theme_builtin_mint_label">മിന്റ്</string>
     <string name="core_theme_builtin_nebula_label">നെബുല</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">മഞ്ഞ്</string>
     <string name="core_theme_builtin_sunset_drift_label">സൺസെറ്റ് ഡ്രിഫ്റ്റ്</string>
     <string name="core_theme_builtin_sunset_label">സൺസെറ്റ്</string>
+    <string name="core_theme_family_frost_label">ഫ്രോസ്റ്റ്</string>
     <string name="core_theme_family_gradient_label">ഗ്രേഡിയന്റുകൾ</string>
     <string name="core_theme_family_ocean_label">നൈറ്റ്‌ഫോൾ</string>
     <string name="core_theme_family_snow_label">പാസ്റ്റൽ</string>
+    <string name="core_theme_palette_style_expressive">എക്സ്പ്രസീവ്</string>
+    <string name="core_theme_palette_style_fidelity">ഫിഡിലിറ്റി</string>
+    <string name="core_theme_palette_style_fruit_salad">ഫ്രൂട്ട് സാലഡ്</string>
+    <string name="core_theme_palette_style_monochrome">മോണോക്രോം</string>
+    <string name="core_theme_palette_style_neutral">ന്യൂട്രൽ</string>
+    <string name="core_theme_palette_style_rainbow">റെയിൻബോ</string>
+    <string name="core_theme_palette_style_tonal_spot">ടോണൽ സ്പോട്ട്</string>
+    <string name="core_theme_palette_style_vibrant">വൈബ്രന്റ്</string>
 </resources>

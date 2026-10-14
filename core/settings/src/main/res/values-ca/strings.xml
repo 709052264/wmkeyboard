@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Inferior dreta</string>
     <string name="core_settings_board_corner_top_left_label">Superior esquerra</string>
     <string name="core_settings_board_corner_top_right_label">Superior dret</string>
+    <string name="core_settings_clip_swipe_pin_left_label">L\'esquerra fixa, la dreta esborra</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Esborrar en ambdues direccions</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Fixa a la dreta, esborra a l\'esquerra</string>
     <string name="core_settings_clip_time_copied_label">Hora de còpia</string>
     <string name="core_settings_clip_time_expires_label">Temps restant</string>
     <string name="core_settings_clip_time_off_label">Cap</string>

@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">アプリが \"%1$s\" を破棄しました。保存できません。</string>
     <string name="core_icons_repair_svg_unreadable">アプリが \"%1$s\" を削除しました。SVGファイルを読み取れません。</string>
+    <string name="core_icons_slot_arrow_down_label">下矢印</string>
+    <string name="core_icons_slot_arrow_left_label">左矢印</string>
+    <string name="core_icons_slot_arrow_right_label">右矢印</string>
+    <string name="core_icons_slot_arrow_up_label">上矢印</string>
     <string name="core_icons_slot_backspace_label">バックスペース</string>
+    <string name="core_icons_slot_caps_lock_key_label">Caps Lockキー</string>
     <string name="core_icons_slot_caps_lock_label">Caps Lock</string>
     <string name="core_icons_slot_emoji_activities_label">アクティビティ</string>
     <string name="core_icons_slot_emoji_animals_label">動物</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: 送信</string>
     <string name="core_icons_slot_forward_delete_label">前方削除</string>
     <string name="core_icons_slot_globe_label">言語を切り替え</string>
+    <string name="core_icons_slot_hide_keys_label">キーを隠す（ハードウェアキーボード）</string>
     <string name="core_icons_slot_incognito_label">シークレットバッジ</string>
     <string name="core_icons_slot_input_method_picker_label">キーボードを切り替える</string>
     <string name="core_icons_slot_panel_back_label">キーに戻る</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">検索を閉じる</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (オン)</string>
+    <string name="core_icons_slot_show_keys_label">キーを表示 (ハードウェアキーボード)</string>
     <string name="core_icons_slot_suggestions_expand_label">ツールを表示</string>
+    <string name="core_icons_slot_tab_label">Tabキー</string>
     <string name="core_icons_slot_toolbox_label">ツールボックス</string>
 </resources>

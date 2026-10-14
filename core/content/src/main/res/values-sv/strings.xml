@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">KOD</string>
     <string name="core_content_clip_entity_phone_label">Telefonnummer</string>
     <string name="core_content_clip_entity_phone_tag">TELEFON</string>
+    <string name="core_content_clip_entity_place_label">Plats</string>
+    <string name="core_content_clip_entity_place_tag">PLATS</string>
     <string name="core_content_clip_entity_url_label">Länk</string>
     <string name="core_content_clip_entity_url_tag">LÄNK</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Appen kan inte läsa WOFF-webbtypsnitt. Använd .ttf- eller .otf-versionen av typsnittet.</string>
     <string name="core_content_font_error_woff2">Appen kan inte läsa WOFF2-webbtypsnitt. Använd .ttf- eller .otf-versionen av typsnittet.</string>
     <string name="core_content_font_error_zip">Den här filen är ett zip-arkiv, inte ett typsnitt.</string>
+    <string name="core_content_note_tag_ideas">Idéer</string>
+    <string name="core_content_note_tag_important">Viktigt</string>
+    <string name="core_content_note_tag_personal">Personligt</string>
+    <string name="core_content_note_tag_school">Skola</string>
+    <string name="core_content_note_tag_study">Studier</string>
+    <string name="core_content_note_tag_work">Arbete</string>
     <string name="core_content_selection_macro_add_contact">Kontakt</string>
     <string name="core_content_selection_macro_calendar">Kalender</string>
     <string name="core_content_selection_macro_call">Anropa</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Läs upp</string>
     <string name="core_content_selection_macro_replace">Ersätt</string>
+    <string name="core_content_selection_macro_save_note">Spara som anteckning</string>
     <string name="core_content_selection_macro_search">Sök</string>
     <string name="core_content_selection_macro_share">Dela</string>
     <string name="core_content_selection_macro_sms">Meddelande</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Översätt</string>
     <string name="core_content_selection_macro_url_decode">Avkoda</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Filen har också %1$d ord utan genväg. För att lägga till det i dina ord, öppna filen från Personlig ordbok.</item>
+        <item quantity="other">Filen har också %1$d ord utan genväg. För att lägga till dem i dina ord, öppna filen från Personlig ordbok.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Appen utelämnade %2$d expansion från \"%1$s\".</item>
         <item quantity="other">Appen utelämnade %2$d expansioner från \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Appen tog bort mönstret från \"%1$s\". Det var längre än %2$d tecken.</item>
         <item quantity="other">Appen tog bort mönstret från \"%1$s\". Det var längre än %2$d tecken.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Appen tog bort %1$d rad som saknar text.</item>
+        <item quantity="other">Appen tog bort %1$d rader som saknar text.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Appen förkortade \"%1$s\". Det var längre än %2$d tecken.</item>
         <item quantity="other">Appen förkortade \"%1$s\". Det var längre än %2$d tecken.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Appen tog bort %1$d utlösare som tangentbordet inte kan bevaka. Dess utdrag stannar kvar i listan.</item>
+        <item quantity="other">Appen tog bort %1$d utlösare som tangentbordet inte kan bevaka. Deras utdrag stannar kvar i listan.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Namnet på appen du skriver i</string>
     <string name="core_content_snippet_var_clip_info">Det senaste urklippet</string>

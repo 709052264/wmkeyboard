@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Głębiny morskie</string>
     <string name="core_theme_builtin_facet_label">Aspekt</string>
     <string name="core_theme_builtin_forest_label">Las</string>
+    <string name="core_theme_builtin_frost_label">Szron</string>
+    <string name="core_theme_builtin_frost_light_label">Jasny szron</string>
+    <string name="core_theme_builtin_frost_liquid_label">Mroźny płyn</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Mroźna tapeta</string>
     <string name="core_theme_builtin_glacier_label">Lodowiec</string>
     <string name="core_theme_builtin_mint_label">Miętowy</string>
     <string name="core_theme_builtin_nebula_label">Mgławica</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Śnieg</string>
     <string name="core_theme_builtin_sunset_drift_label">Zachód słońca</string>
     <string name="core_theme_builtin_sunset_label">Zachód słońca</string>
+    <string name="core_theme_family_frost_label">Szron</string>
     <string name="core_theme_family_gradient_label">Gradienty</string>
     <string name="core_theme_family_ocean_label">Zmierzch</string>
     <string name="core_theme_family_snow_label">Pastelowy</string>
+    <string name="core_theme_palette_style_expressive">Ekspresyjny</string>
+    <string name="core_theme_palette_style_fidelity">Wierność</string>
+    <string name="core_theme_palette_style_fruit_salad">Sałatka owocowa</string>
+    <string name="core_theme_palette_style_monochrome">Monochromatyczny</string>
+    <string name="core_theme_palette_style_neutral">Neutralny</string>
+    <string name="core_theme_palette_style_rainbow">Tęcza</string>
+    <string name="core_theme_palette_style_tonal_spot">Punkt tonalny</string>
+    <string name="core_theme_palette_style_vibrant">Żywy</string>
 </resources>

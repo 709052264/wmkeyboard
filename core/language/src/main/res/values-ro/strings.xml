@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Caracterele pe care tasta AltGr le introduce pe un computer sunt disponibile prin apăsarea și menținerea acelorași taste.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d tastă moartă pune un accent pe litera următoare pe un computer. Aici, literele cu acel accent se găsesc prin apăsare lungă pe fiecare literă.</item>
+        <item quantity="other">%1$d taste moarte pun accente pe litera următoare pe un computer. Aici, literele cu acele accente se găsesc prin apăsare lungă pe fiecare literă.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Fișierul se bazează pe %1$d alt fișier (%2$s) pe care nu l-ați deschis. Cheile setate doar de acel fișier lipsesc.</item>
+        <item quantity="other">Fișierul se bazează pe %1$d alte fișiere (%2$s) pe care nu le-ați deschis. Cheile setate doar de acele fișiere lipsesc.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d caracter de pe o tastă fără litere este disponibil prin apăsare lungă pe punct.</item>
+        <item quantity="other">%1$d caractere de pe taste fără litere sunt disponibile prin apăsare lungă pe punct.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Aplicația nu cunoaște numele a %1$d caracter din fișier, așa că l-a omis: %2$s.</item>
+        <item quantity="other">Aplicația nu cunoaște numele a %1$d caractere din fișier, așa că le-a omis: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d glisare pe o tastă nu are loc aici, deoarece această tastatură folosește acea glisare pentru o altă sarcină. Aplicația a eliminat-o.</item>
+        <item quantity="other">%1$d glisări pe taste nu au loc aici, deoarece această tastatură folosește acele glisări pentru alte sarcini. Aplicația le-a eliminat.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Aplicația a schimbat %1$d tastă cu cea mai apropiată tastă disponibilă.</item>
         <item quantity="other">Aplicația a schimbat %1$d taste cu cele mai apropiate taste disponibile.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Aplicația a schimbat %1$d litere în forma pe care o scrie această tastatură.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Aplicația a eliminat rândul de numere. Activează rândul de numere în Aspect și dimensiune pentru a obține unul.</string>
+    <string name="core_lang_foreign_number_row_kept">Rândul de numere al fișierului este rândul de numere al acestui layout. Acesta se afișează în timp ce rândul de numere este activat în Layout și dimensiune.</string>
+    <string name="core_lang_foreign_pages_kept">Paginile suplimentare ale fișierului, cum ar fi AltGr, sunt pagini ale acestui layout. Glisați de la tasta care le-a deschis în cealaltă tastatură pentru a le deschide aici.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d tastă nu are litere pentru apăsare lungă. Fișierul le păstrează într-un al doilea fișier pe care nu l-ați deschis.</item>
         <item quantity="other">%1$d taste nu au litere pentru apăsare lungă. Fișierul le păstrează într-un al doilea fișier pe care nu l-ați deschis.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d tastă se modifică în funcție de starea tastei Shift sau de câmpul din cealaltă tastatură. Aplicația a păstrat aspectul acesteia în repaus.</item>
         <item quantity="other">%1$d taste se modifică în funcție de starea tastei Shift sau de câmpul din cealaltă tastatură. Aplicația a păstrat aspectul acestora în repaus.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d pagină deplasată din fișier are tastele în alte locuri decât pagina pe care o deplasează. Aplicația folosește litere mari acolo.</item>
+        <item quantity="other">%1$d pagini deplasate din fișier au tastele în alte locuri decât paginile pe care le deplasează. Aplicația folosește litere mari acolo.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d tastă are litere diferite la apăsare lungă în timp ce tasta Shift este activată în cealaltă tastatură. Aplicația le-a păstrat pe cele fără Shift.</item>
+        <item quantity="other">%1$d taste au litere diferite la apăsare lungă în timp ce tasta Shift este activată în cealaltă tastatură. Aplicația le-a păstrat pe cele fără Shift.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Cealaltă tastatură măsoară lățimile tastelor diferit. Aplicația a modificat lățimile pentru a se potrivi acestei grile.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

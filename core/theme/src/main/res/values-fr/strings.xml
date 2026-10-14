@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Grand fond marin</string>
     <string name="core_theme_builtin_facet_label">Facet</string>
     <string name="core_theme_builtin_forest_label">Forêt</string>
+    <string name="core_theme_builtin_frost_label">Givre</string>
+    <string name="core_theme_builtin_frost_light_label">Givre clair</string>
+    <string name="core_theme_builtin_frost_liquid_label">Liquide givré</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Fond d\'écran givré</string>
     <string name="core_theme_builtin_glacier_label">Glacier</string>
     <string name="core_theme_builtin_mint_label">Menthe</string>
     <string name="core_theme_builtin_nebula_label">Nébuleuse</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Neige</string>
     <string name="core_theme_builtin_sunset_drift_label">Dérive du coucher de soleil</string>
     <string name="core_theme_builtin_sunset_label">Coucher de soleil</string>
+    <string name="core_theme_family_frost_label">Givre</string>
     <string name="core_theme_family_gradient_label">Dégradés</string>
     <string name="core_theme_family_ocean_label">Crépuscule</string>
     <string name="core_theme_family_snow_label">Pastel</string>
+    <string name="core_theme_palette_style_expressive">Expressif</string>
+    <string name="core_theme_palette_style_fidelity">Fidélité</string>
+    <string name="core_theme_palette_style_fruit_salad">Salade de fruits</string>
+    <string name="core_theme_palette_style_monochrome">Monochrome</string>
+    <string name="core_theme_palette_style_neutral">Neutre</string>
+    <string name="core_theme_palette_style_rainbow">Arc-en-ciel</string>
+    <string name="core_theme_palette_style_tonal_spot">Point tonal</string>
+    <string name="core_theme_palette_style_vibrant">Vibrant</string>
 </resources>

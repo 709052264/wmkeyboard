@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Prawy dolny</string>
     <string name="core_settings_board_corner_top_left_label">Lewy górny róg</string>
     <string name="core_settings_board_corner_top_right_label">Prawy górny róg</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Lewo przypina, prawo usuwa</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Usuwanie w obie strony</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Przypinanie w prawo, usuwanie w lewo</string>
     <string name="core_settings_clip_time_copied_label">Czas skopiowania</string>
     <string name="core_settings_clip_time_expires_label">Pozostały czas</string>
     <string name="core_settings_clip_time_off_label">Brak</string>

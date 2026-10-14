@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Rechtsonder</string>
     <string name="core_settings_board_corner_top_left_label">Linksboven</string>
     <string name="core_settings_board_corner_top_right_label">Rechtsboven</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Links vastzetten, rechts verwijderen</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Beide kanten verwijderen</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Rechts vastmaken, links verwijderen</string>
     <string name="core_settings_clip_time_copied_label">Tijd gekopieerd</string>
     <string name="core_settings_clip_time_expires_label">Resterende tijd</string>
     <string name="core_settings_clip_time_off_label">Geen</string>

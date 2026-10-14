@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">De app heeft \"%1$s\" verwijderd. De app kan het niet opslaan.</string>
     <string name="core_icons_repair_svg_unreadable">De app heeft \"%1$s\" verwijderd. De app kan het SVG-bestand niet lezen.</string>
+    <string name="core_icons_slot_arrow_down_label">Pijl omlaag</string>
+    <string name="core_icons_slot_arrow_left_label">Pijl naar links</string>
+    <string name="core_icons_slot_arrow_right_label">Pijl naar rechts</string>
+    <string name="core_icons_slot_arrow_up_label">Pijl omhoog</string>
     <string name="core_icons_slot_backspace_label">Backspace</string>
+    <string name="core_icons_slot_caps_lock_key_label">Caps lock-toets</string>
     <string name="core_icons_slot_caps_lock_label">Caps lock</string>
     <string name="core_icons_slot_emoji_activities_label">Activiteiten</string>
     <string name="core_icons_slot_emoji_animals_label">Dieren</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: verzenden</string>
     <string name="core_icons_slot_forward_delete_label">Vooruit verwijderen</string>
     <string name="core_icons_slot_globe_label">Taal wijzigen</string>
+    <string name="core_icons_slot_hide_keys_label">Toetsen verbergen (hardwaretoetsenbord)</string>
     <string name="core_icons_slot_incognito_label">Incognito-badge</string>
     <string name="core_icons_slot_input_method_picker_label">Toetsenbord wisselen</string>
     <string name="core_icons_slot_panel_back_label">Terug naar toetsen</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Zoeken sluiten</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (aan)</string>
+    <string name="core_icons_slot_show_keys_label">Toon de toetsen (hardwaretoetsenbord)</string>
     <string name="core_icons_slot_suggestions_expand_label">Toon tools</string>
+    <string name="core_icons_slot_tab_label">Tab-toets</string>
     <string name="core_icons_slot_toolbox_label">Gereedschapskist</string>
 </resources>

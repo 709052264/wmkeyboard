@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Biển sâu</string>
     <string name="core_theme_builtin_facet_label">Khía cạnh</string>
     <string name="core_theme_builtin_forest_label">Rừng</string>
+    <string name="core_theme_builtin_frost_label">Băng giá</string>
+    <string name="core_theme_builtin_frost_light_label">Frost light</string>
+    <string name="core_theme_builtin_frost_liquid_label">Chất lỏng đóng băng</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Hình nền sương giá</string>
     <string name="core_theme_builtin_glacier_label">Sông băng</string>
     <string name="core_theme_builtin_mint_label">Bạc hà</string>
     <string name="core_theme_builtin_nebula_label">Tinh vân</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Tuyết</string>
     <string name="core_theme_builtin_sunset_drift_label">Hoàng hôn trôi</string>
     <string name="core_theme_builtin_sunset_label">Hoàng hôn</string>
+    <string name="core_theme_family_frost_label">Frost</string>
     <string name="core_theme_family_gradient_label">Độ dốc màu</string>
     <string name="core_theme_family_ocean_label">Nightfall</string>
     <string name="core_theme_family_snow_label">Pastel</string>
+    <string name="core_theme_palette_style_expressive">Biểu cảm</string>
+    <string name="core_theme_palette_style_fidelity">Độ trung thực</string>
+    <string name="core_theme_palette_style_fruit_salad">Salad trái cây</string>
+    <string name="core_theme_palette_style_monochrome">Đơn sắc</string>
+    <string name="core_theme_palette_style_neutral">Trung tính</string>
+    <string name="core_theme_palette_style_rainbow">Cầu vồng</string>
+    <string name="core_theme_palette_style_tonal_spot">Điểm tông màu</string>
+    <string name="core_theme_palette_style_vibrant">Sống động</string>
 </resources>

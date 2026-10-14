@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Karakter yang diketik tombol AltGr di komputer ada pada tekan dan tahan tombol yang sama.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d tombol mati memberikan aksen pada huruf berikutnya di komputer. Di sini, huruf dengan aksen tersebut ada pada tekan dan tahan setiap huruf.</item>
+        <item quantity="other">%1$d tombol mati memberikan aksen pada huruf berikutnya di komputer. Di sini, huruf dengan aksen tersebut ada pada tekan dan tahan setiap huruf.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">File ini dibangun di atas %1$d file lain (%2$s) yang tidak Anda buka. Tombol yang hanya diatur oleh file itu hilang.</item>
+        <item quantity="other">File ini dibangun di atas %1$d file lain (%2$s) yang tidak Anda buka. Tombol yang hanya diatur oleh file-file tersebut hilang.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d karakter dari tombol tanpa huruf di atasnya ada pada tekan dan tahan titik.</item>
+        <item quantity="other">%1$d karakter dari tombol tanpa huruf di atasnya ada pada tekan dan tahan titik.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Aplikasi tidak mengenali %1$d nama karakter dalam file, jadi karakter tersebut tidak disertakan: %2$s.</item>
+        <item quantity="other">Aplikasi tidak mengenali %1$d nama karakter dalam file, jadi karakter tersebut tidak disertakan: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d usapan pada tombol tidak memiliki tempat di sini, karena papan ketik ini menggunakan usapan tersebut untuk tugas lain. Aplikasi telah menghapusnya.</item>
+        <item quantity="other">%1$d usapan pada tombol tidak memiliki tempat di sini, karena papan ketik ini menggunakan usapan tersebut untuk tugas lain. Aplikasi telah menghapusnya.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Aplikasi mengubah %1$d tombol ke tombol terdekat yang dimilikinya.</item>
         <item quantity="other">Aplikasi mengubah %1$d tombol ke tombol terdekat yang dimilikinya.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Aplikasi mengubah %1$d huruf ke bentuk yang ditulis oleh papan ketik ini.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Aplikasi menghapus baris angka. Aktifkan baris angka di Tata letak dan ukuran untuk mendapatkannya.</string>
+    <string name="core_lang_foreign_number_row_kept">Baris angka file adalah baris angka tata letak ini. Ini ditampilkan saat baris angka aktif di Tata letak dan ukuran.</string>
+    <string name="core_lang_foreign_pages_kept">Halaman tambahan file, seperti AltGr, adalah halaman dari tata letak ini. Geser dari tombol yang membukanya di papan ketik lain untuk membukanya di sini.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d tombol tidak memiliki huruf tekan-dan-tahan. File tersebut menyimpannya di file kedua yang tidak Anda buka.</item>
         <item quantity="other">%1$d tombol tidak memiliki huruf tekan-dan-tahan. File tersebut menyimpannya di file kedua yang tidak Anda buka.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d tombol berubah dengan status shift atau bidang di papan ketik lainnya. Aplikasi mempertahankan tampilannya saat diam.</item>
         <item quantity="other">%1$d tombol berubah dengan status shift atau bidang di papan ketik lainnya. Aplikasi mempertahankan tampilannya saat diam.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d halaman yang digeser dalam file memiliki kunci di tempat lain selain halaman yang digesernya. Aplikasi menggunakan huruf kapital di sana sebagai gantinya.</item>
+        <item quantity="other">%1$d halaman yang digeser dalam file memiliki kunci di tempat lain selain halaman yang digesernya. Aplikasi menggunakan huruf kapital di sana sebagai gantinya.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d tombol memiliki huruf tekan-dan-tahan yang berbeda saat shift ditekan di papan ketik lain. Aplikasi menyimpan yang tidak di-shift.</item>
+        <item quantity="other">%1$d tombol memiliki huruf tekan-dan-tahan yang berbeda saat shift ditekan di papan ketik lain. Aplikasi menyimpan yang tidak di-shift.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Papan ketik lain mengukur lebar tombol secara berbeda. Aplikasi mengubah lebar tersebut agar sesuai dengan kisi ini.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">Die App hat \"%1$s\" verworfen. Die App kann es nicht speichern.</string>
     <string name="core_icons_repair_svg_unreadable">Die App hat \"%1$s\" entfernt. Die App kann die zugehörige SVG-Datei nicht lesen.</string>
+    <string name="core_icons_slot_arrow_down_label">Pfeil nach unten</string>
+    <string name="core_icons_slot_arrow_left_label">Pfeil nach links</string>
+    <string name="core_icons_slot_arrow_right_label">Pfeil nach rechts</string>
+    <string name="core_icons_slot_arrow_up_label">Pfeil nach oben</string>
     <string name="core_icons_slot_backspace_label">Rücktaste</string>
+    <string name="core_icons_slot_caps_lock_key_label">Feststelltaste</string>
     <string name="core_icons_slot_caps_lock_label">Feststelltaste</string>
     <string name="core_icons_slot_emoji_activities_label">Aktivitäten</string>
     <string name="core_icons_slot_emoji_animals_label">Tiere</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Eingabetaste: Senden</string>
     <string name="core_icons_slot_forward_delete_label">Entf-Taste</string>
     <string name="core_icons_slot_globe_label">Sprache wechseln</string>
+    <string name="core_icons_slot_hide_keys_label">Tasten ausblenden (Hardware-Tastatur)</string>
     <string name="core_icons_slot_incognito_label">Inkognito-Badge</string>
     <string name="core_icons_slot_input_method_picker_label">Tastatur wechseln</string>
     <string name="core_icons_slot_panel_back_label">Zurück zu den Tasten</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Suche schließen</string>
     <string name="core_icons_slot_shift_label">Umschalt</string>
     <string name="core_icons_slot_shift_on_label">Umschalt (ein)</string>
+    <string name="core_icons_slot_show_keys_label">Tasten anzeigen (Hardware-Tastatur)</string>
     <string name="core_icons_slot_suggestions_expand_label">Werkzeuge anzeigen</string>
+    <string name="core_icons_slot_tab_label">Tab-Taste</string>
     <string name="core_icons_slot_toolbox_label">Werkzeugkasten</string>
 </resources>

@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Bir bilgisayarda AltGr tuşunun yazdığı karakterler, aynı tuşlara basılı tutulduğunda yazılır.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">Bilgisayarda %1$d ölü tuş, bir sonraki harfe aksan ekler. Burada, bu aksana sahip harfler her harfe basılı tutulduğunda görünür.</item>
+        <item quantity="other">Bilgisayarda %1$d ölü tuş, bir sonraki harfe aksan ekler. Burada, bu aksanlara sahip harfler her harfe basılı tutulduğunda görünür.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Dosya, açmadığınız %1$d diğer dosyaya (%2$s) dayanıyor. Yalnızca o dosyanın ayarladığı anahtarlar eksik.</item>
+        <item quantity="other">Dosya, açmadığınız %1$d diğer dosyaya (%2$s) dayanıyor. Yalnızca bu dosyaların ayarladığı anahtarlar eksik.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">Üzerinde harf olmayan bir tuştan %1$d karakter, nokta tuşuna basılı tutulduğunda görünür.</item>
+        <item quantity="other">Üzerinde harf olmayan tuşlardan %1$d karakter, nokta tuşuna basılı tutulduğunda görünür.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Uygulama dosyadaki %1$d karakter adını bilmiyor, bu yüzden dışarıda bıraktı: %2$s.</item>
+        <item quantity="other">Uygulama dosyadaki %1$d karakter adını bilmiyor, bu yüzden dışarıda bıraktı: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">Bir tuş üzerindeki %1$d kaydırma hareketinin burada yeri yok, çünkü bu klavye o kaydırmayı başka bir iş için kullanıyor. Uygulama bunu kaldırdı.</item>
+        <item quantity="other">Tuşlar üzerindeki %1$d kaydırma hareketinin burada yeri yok, çünkü bu klavye o kaydırmaları başka işler için kullanıyor. Uygulama bunları kaldırdı.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Uygulama %1$d tuşu sahip olduğu en yakın tuşla değiştirdi.</item>
         <item quantity="other">Uygulama %1$d tuşu sahip olduğu en yakın tuşlarla değiştirdi.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Uygulama %1$d harfi bu klavyenin yazdığı biçime dönüştürdü.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Uygulama sayı satırını kaldırdı. Bir tane edinmek için Düzen ve boyut ayarlarından sayı satırını açın.</string>
+    <string name="core_lang_foreign_number_row_kept">Dosyanın sayı satırı, bu düzenin sayı satırıdır. Düzen ve boyut içinde sayı satırı açıkken görünür.</string>
+    <string name="core_lang_foreign_pages_kept">Dosyanın AltGr gibi ekstra sayfaları, bu düzenin sayfalarıdır. Bunları burada açmak için diğer klavyede onları açan tuştan kaydırın.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d tuşun basılı tutma harfi yok. Dosya bunları açmadığınız ikinci bir dosyada tutuyor.</item>
         <item quantity="other">%1$d tuşun basılı tutma harfi yok. Dosya bunları açmadığınız ikinci bir dosyada tutuyor.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d tuş, shift durumu veya diğer klavyedeki alan ile değişir. Uygulama, tuşların boşta durduğu görünümü korudu.</item>
         <item quantity="other">%1$d tuş, shift durumu veya diğer klavyedeki alan ile değişir. Uygulama, tuşların boşta durduğu görünümü korudu.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">Dosyadaki %1$d kaydırılmış sayfanın tuşları, kaydırdığı sayfadan farklı yerlerde bulunuyor. Uygulama orada bunun yerine büyük harfler kullanıyor.</item>
+        <item quantity="other">Dosyadaki %1$d kaydırılmış sayfanın tuşları, kaydırdıkları sayfalardan farklı yerlerde bulunuyor. Uygulama orada bunun yerine büyük harfler kullanıyor.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">Diğer klavyede shift tuşuna basıldığında %1$d tuşun farklı basılı tutma harfleri var. Uygulama, shift tuşuna basılmamış olanları korudu.</item>
+        <item quantity="other">Diğer klavyede shift tuşuna basıldığında %1$d tuşun farklı basılı tutma harfleri var. Uygulama, shift tuşuna basılmamış olanları korudu.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Diğer klavye, tuş genişliklerini farklı ölçer. Uygulama, bu ızgaraya uyması için genişlikleri değiştirdi.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

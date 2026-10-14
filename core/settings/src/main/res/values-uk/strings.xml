@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">Нижній правий</string>
     <string name="core_settings_board_corner_top_left_label">Зверху зліва</string>
     <string name="core_settings_board_corner_top_right_label">Верхній правий кут</string>
+    <string name="core_settings_clip_swipe_pin_left_label">Ліворуч — закріпити, праворуч — видалити</string>
+    <string name="core_settings_clip_swipe_pin_off_label">Видалення в обох напрямках</string>
+    <string name="core_settings_clip_swipe_pin_right_label">Свайп вправо закріплює, вліво — видаляє</string>
     <string name="core_settings_clip_time_copied_label">Час скопійовано</string>
     <string name="core_settings_clip_time_expires_label">Залишилося часу</string>
     <string name="core_settings_clip_time_off_label">Немає</string>

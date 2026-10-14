@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Japönsk kana yfir í kanji-orðabók</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Tafla yfir Jyutping-framburð á Hanzi-táknum, 163.000 færslur. Lyklaborðið þarf þennan pakka fyrir kantónska umbreytingu.</string>
     <string name="core_input_cjk_pack_jyutping_title">Kantónsk Jyutping orðabók</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Hvaða orð fylgja hverju, talið út frá kínverskum vef- og fréttatexta. Fylgir með Pinyin-orðabókinni. Með því gefa upphafsstafir eins og wbxh 我不喜欢 fyrst en ekki tvö ótengd orð.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Kínversk orðapör</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Hanzi-tákn og orðasambönd úr CC-CEDICT, 120.000 færslur. Lyklaborðið þarf þennan pakka fyrir kínverska umbreytingu.</string>
     <string name="core_input_cjk_pack_pinyin_title">Kínversk Pinyin-orðabók</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Setningar frá OpenCC, 50.000 færslur, um 1 MB. Þegar hefðbundnir stafir eru virkir notar lyklaborðið þetta til að skrifa rétta mynd orðsins, svo sem 頭髮 en ekki 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Töflu yfir hefðbundin tákn</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Tafla yfir strokaröð fyrir Hanzi-tákn. Lyklaborðið þarf þennan pakka fyrir strokaskipanina.</string>
     <string name="core_input_cjk_pack_stroke_title">Kínversk strikaorðabók (笔画)</string>
+    <string name="core_input_double_pinyin_custom_label">Sérsniðið</string>
     <string name="core_input_double_pinyin_off_label">Slökkt (fullt Pinyin)</string>
+    <string name="core_input_im_note_candidates">Fyrir suma takka gefur þessi aðferð lista yfir valkosti. Lyklaborðið notar alltaf fyrsta valkostinn.</string>
+    <string name="core_input_im_note_missing_files">Þessar skrár voru ekki valdar, svo hluti þeirra vantar: %1$s. Til að taka þær með, flyttu inn aftur og veldu þær saman.</string>
+    <string name="core_input_im_note_module">Þessi aðferð notar viðbót, eins og Anthy, sem lyklaborðið getur ekki keyrt. Lyklarnir sem nota hana gera ekkert hér.</string>
+    <string name="core_input_im_note_other_method">Þessi aðferð gefur suma takka til annarrar innsláttaraðferðar. Sá hluti virkar ekki hér.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Forritið getur ekki lesið %1$d stafsetningarreglu, svo það sleppir henni.</item>
+        <item quantity="other">Forritið getur ekki lesið %1$d stafsetningarreglur, svo það sleppir þeim.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Þessi aðferð notar bilslána sem takka, til dæmis fyrir tón. Hér slær bilsláin alltaf inn bil.</string>
+    <string name="core_input_im_note_truncated">Taflan er mjög stór, svo forritið geymdi aðeins fyrsta hlutann.</string>
+    <string name="core_input_im_note_unused_files">Forritið notaði ekki þessar skrár: %1$s.</string>
+    <string name="core_input_im_refused_broken">Skráin inniheldur villu, svo forritið getur ekki lesið hana: %1$s</string>
+    <string name="core_input_im_refused_empty">Skráin inniheldur ekkert til að skrifa með.</string>
+    <string name="core_input_im_refused_no_dictionary">Skemað þarf orðabókina sína. Flyttu inn aftur og veldu einnig %1$s.</string>
+    <string name="core_input_im_refused_not_method">Forritið getur ekki lesið þetta sem innsláttaraðferð. Það les .cin töflur, Rime-skemu og orðabækur (.schema.yaml, .dict.yaml), og m17n .mim skrár.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Forritið las þetta sem .cin-töflu með %1$d færslu. Sláðu inn kóða og veldu síðan stafinn af tillögustikunni.</item>
+        <item quantity="other">Forritið las þetta sem .cin-töflu með %1$d færslum. Sláðu inn kóða og veldu síðan stafinn af tillögustikunni.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Forritið las þetta sem m17n-innsláttaraðferð með %1$d reglu. Lyklarnir skrifa textann um leið og þú slærð inn.</item>
+        <item quantity="other">Forritið las þetta sem m17n-innsláttaraðferð með %1$d reglum. Lyklarnir skrifa textann um leið og þú slærð inn.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Forritið las þetta sem Rime-skema með %1$d orðabókarfærslu. Sláðu inn atkvæðin og veldu síðan orðin af tillögustikunni.</item>
+        <item quantity="other">Forritið las þetta sem Rime-skema með %1$d orðabókarfærslum. Sláðu inn atkvæðin og veldu síðan orðin af tillögustikunni.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Forritið las þetta sem Rime kóðatöflu með %1$d færslu. Sláðu inn kóða og veldu síðan stafinn úr tillögustrimlinum.</item>
+        <item quantity="other">Forritið las þetta sem Rime kóðatöflu með %1$d færslum. Sláðu inn kóða og veldu síðan stafinn úr tillögustrimlinum.</item>
+    </plurals>
 </resources>

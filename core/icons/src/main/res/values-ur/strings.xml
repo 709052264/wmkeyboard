@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">ایپ نے \"%1$s\" کو چھوڑ دیا۔ ایپ اسے محفوظ نہیں کر سکتی۔</string>
     <string name="core_icons_repair_svg_unreadable">ایپ نے \"%1$s\" کو گرا دیا۔ ایپ اپنی SVG فائل کو پڑھ نہیں سکتی۔</string>
+    <string name="core_icons_slot_arrow_down_label">تیر نیچے</string>
+    <string name="core_icons_slot_arrow_left_label">بائیں تیر</string>
+    <string name="core_icons_slot_arrow_right_label">تیر دائیں</string>
+    <string name="core_icons_slot_arrow_up_label">تیر اوپر</string>
     <string name="core_icons_slot_backspace_label">بیک اسپیس</string>
+    <string name="core_icons_slot_caps_lock_key_label">کیپس لاک کی</string>
     <string name="core_icons_slot_caps_lock_label">کیپس لاک</string>
     <string name="core_icons_slot_emoji_activities_label">سرگرمیاں</string>
     <string name="core_icons_slot_emoji_animals_label">جانور</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">انٹر: بھیجیں</string>
     <string name="core_icons_slot_forward_delete_label">فارورڈ ڈیلیٹ</string>
     <string name="core_icons_slot_globe_label">زبان تبدیل کریں</string>
+    <string name="core_icons_slot_hide_keys_label">کلیدیں چھپائیں (ہارڈویئر کی بورڈ)</string>
     <string name="core_icons_slot_incognito_label">انکوگنیٹو بیج</string>
     <string name="core_icons_slot_input_method_picker_label">کی بورڈ تبدیل کریں</string>
     <string name="core_icons_slot_panel_back_label">کلیدوں پر واپس جائیں</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">تلاش بند کریں</string>
     <string name="core_icons_slot_shift_label">شفٹ</string>
     <string name="core_icons_slot_shift_on_label">شفٹ (آن)</string>
+    <string name="core_icons_slot_show_keys_label">کلیدیں دکھائیں (ہارڈ ویئر کی بورڈ)</string>
     <string name="core_icons_slot_suggestions_expand_label">ٹولز دکھائیں</string>
+    <string name="core_icons_slot_tab_label">ٹیب کلید</string>
     <string name="core_icons_slot_toolbox_label">ٹول باکس</string>
 </resources>

@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Os caracteres que a tecla AltGr digita em um computador estão disponíveis ao pressionar e segurar as mesmas teclas.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d tecla morta coloca um acento na próxima letra em um computador. Aqui, as letras com esse acento são obtidas ao pressionar e segurar cada letra.</item>
+        <item quantity="other">%1$d teclas mortas colocam acentos na próxima letra em um computador. Aqui, as letras com esses acentos são obtidas ao pressionar e segurar cada letra.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">O arquivo baseia-se em %1$d outro arquivo (%2$s) que você não abriu. Chaves que apenas aquele arquivo define estão faltando.</item>
+        <item quantity="other">O arquivo baseia-se em %1$d outros arquivos (%2$s) que você não abriu. Chaves que apenas aqueles arquivos definem estão faltando.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d caractere de uma tecla sem letras aparece ao manter pressionado o ponto final.</item>
+        <item quantity="other">%1$d caracteres de teclas sem letras aparecem ao manter pressionado o ponto final.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">O aplicativo não conhece %1$d nome de caractere no arquivo, então ele foi omitido: %2$s.</item>
+        <item quantity="other">O aplicativo não conhece %1$d nomes de caracteres no arquivo, então eles foram omitidos: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d deslize em uma tecla não tem lugar aqui, porque este teclado usa esse deslize para outra função. O aplicativo removeu-o.</item>
+        <item quantity="other">%1$d deslizes em teclas não têm lugar aqui, porque este teclado usa esses deslizes para outras funções. O aplicativo removeu-os.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">O aplicativo alterou %1$d tecla para a tecla mais próxima que possui.</item>
         <item quantity="other">O aplicativo alterou %1$d teclas para as teclas mais próximas que possui.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">O aplicativo alterou %1$d letras para a forma que este teclado escreve.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">O aplicativo removeu a linha de números. Ative a linha de números em Layout e tamanho para obter uma.</string>
+    <string name="core_lang_foreign_number_row_kept">A linha de números do arquivo é a linha de números deste layout. Ela aparece enquanto a linha de números está ativada em Layout e tamanho.</string>
+    <string name="core_lang_foreign_pages_kept">As páginas extras do arquivo, como AltGr, são páginas deste layout. Deslize a partir da tecla que as abriu no outro teclado para abri-las aqui.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d tecla não possui letras de pressão longa. O arquivo as mantém em um segundo arquivo que você não abriu.</item>
         <item quantity="other">%1$d teclas não possuem letras de pressão longa. O arquivo as mantém em um segundo arquivo que você não abriu.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d tecla muda com o estado de shift ou o campo no outro teclado. O aplicativo manteve a aparência em repouso.</item>
         <item quantity="other">%1$d teclas mudam com o estado de shift ou o campo no outro teclado. O aplicativo manteve a aparência delas em repouso.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d página deslocada no arquivo tem suas chaves em outros lugares que não a página que ela desloca. O aplicativo usa letras maiúsculas lá.</item>
+        <item quantity="other">%1$d páginas deslocadas no arquivo têm suas chaves em outros lugares que não as páginas que elas deslocam. O aplicativo usa letras maiúsculas lá.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d tecla tem letras diferentes ao pressionar e segurar enquanto o Shift está ativado no outro teclado. O aplicativo manteve as sem Shift.</item>
+        <item quantity="other">%1$d teclas têm letras diferentes ao pressionar e segurar enquanto o Shift está ativado no outro teclado. O aplicativo manteve as sem Shift.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">O outro teclado mede as larguras das teclas de forma diferente. O aplicativo alterou as larguras para se ajustar a esta grade.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

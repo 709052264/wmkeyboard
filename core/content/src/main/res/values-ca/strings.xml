@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">CODI</string>
     <string name="core_content_clip_entity_phone_label">Número de telèfon</string>
     <string name="core_content_clip_entity_phone_tag">TELÈFON</string>
+    <string name="core_content_clip_entity_place_label">Lloc</string>
+    <string name="core_content_clip_entity_place_tag">LLOC</string>
     <string name="core_content_clip_entity_url_label">Enllaç</string>
     <string name="core_content_clip_entity_url_tag">ENLLAÇ</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">L\'aplicació no pot llegir tipus de lletra web WOFF. Utilitzeu la versió .ttf o .otf del tipus de lletra.</string>
     <string name="core_content_font_error_woff2">L\'aplicació no pot llegir tipus de lletra web WOFF2. Utilitza la versió .ttf o .otf del tipus de lletra.</string>
     <string name="core_content_font_error_zip">Aquest fitxer és un arxiu zip, no un tipus de lletra.</string>
+    <string name="core_content_note_tag_ideas">Idees</string>
+    <string name="core_content_note_tag_important">Important</string>
+    <string name="core_content_note_tag_personal">Personal</string>
+    <string name="core_content_note_tag_school">Escola</string>
+    <string name="core_content_note_tag_study">Estudi</string>
+    <string name="core_content_note_tag_work">Feina</string>
     <string name="core_content_selection_macro_add_contact">Contacte</string>
     <string name="core_content_selection_macro_calendar">Calendari</string>
     <string name="core_content_selection_macro_call">Truca</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Parla</string>
     <string name="core_content_selection_macro_replace">Reemplaçar</string>
+    <string name="core_content_selection_macro_save_note">Desa com a nota</string>
     <string name="core_content_selection_macro_search">Cerca</string>
     <string name="core_content_selection_macro_share">Comparteix</string>
     <string name="core_content_selection_macro_sms">Missatge</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Tradueix</string>
     <string name="core_content_selection_macro_url_decode">Descodificar</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">El fitxer també té %1$d paraula sense drecera. Per afegir-la a les teves paraules, obre el fitxer des del Diccionari personal.</item>
+        <item quantity="other">El fitxer també té %1$d paraules sense drecera. Per afegir-les a les teves paraules, obre el fitxer des del Diccionari personal.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">L\'aplicació ha deixat fora %2$d expansió de \"%1$s\".</item>
         <item quantity="other">L\'aplicació ha deixat fora %2$d expansions de \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">L\'aplicació ha eliminat el patró de \"%1$s\". Era més llarg d\'1 caràcter.</item>
         <item quantity="other">L\'aplicació ha eliminat el patró de \"%1$s\". Era més llarg de %2$d caràcters.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">L\'aplicació ha descartat %1$d fila que no té text.</item>
+        <item quantity="other">L\'aplicació ha descartat %1$d files que no tenen text.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">L\'aplicació ha escurçat \"%1$s\". Era més llarg d\'1 caràcter.</item>
         <item quantity="other">L\'aplicació ha escurçat \"%1$s\". Era més llarg de %2$d caràcters.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">L\'aplicació ha eliminat %1$d activador que el teclat no pot vigilar. El seu fragment roman a la llista.</item>
+        <item quantity="other">L\'aplicació ha eliminat %1$d activadors que el teclat no pot vigilar. Els seus fragments romanen a la llista.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">El nom de l\'aplicació on escrius</string>
     <string name="core_content_snippet_var_clip_info">L\'entrada més recent del porta-retalls</string>

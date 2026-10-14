@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">جاپانی کانا سے کانجی لغت</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Jyutping ریڈنگز سے ہانزی حروف کی ایک جدول، 163,000 اندراجات۔ کی بورڈ کو کینٹونیز کنورژن کے لیے اس پیک کی ضرورت ہے۔</string>
     <string name="core_input_cjk_pack_jyutping_title">کینٹونیز جیوتپنگ لغت</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">کون سے الفاظ کس کے بعد آتے ہیں، چینی ویب اور نیوز ٹیکسٹ سے شمار کیے گئے۔ پینین ڈکشنری کے ساتھ آتا ہے۔ اس کے ساتھ، wbxh جیسے ابتدائی حروف پہلے 我不喜欢 دیتے ہیں نہ کہ دو غیر متعلقہ الفاظ۔</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">چینی الفاظ کے جوڑے</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">CC-CEDICT سے ہانزی حروف اور جملے، 120,000 اندراجات۔ کی بورڈ کو چینی کنورژن کے لیے اس پیک کی ضرورت ہے۔</string>
     <string name="core_input_cjk_pack_pinyin_title">چینی پینین لغت</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">OpenCC سے جملے، 50,000 اندراجات، تقریباً 1 MB۔ روایتی حروف آن ہونے کے ساتھ، کی بورڈ اسے لفظ کی درست شکل لکھنے کے لیے استعمال کرتا ہے، جیسے 頭髮 اور نہ کہ 頭發۔</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">روایتی حروف کا فقرہ ٹیبل</string>
     <string name="core_input_cjk_pack_stroke_subtitle">ہانزی حروف کے لیے اسٹروک آرڈر کی ایک میز۔ کی بورڈ کو اسٹروک لے آؤٹ کے لیے اس پیک کی ضرورت ہے۔</string>
     <string name="core_input_cjk_pack_stroke_title">چینی اسٹروک (笔画) لغت</string>
+    <string name="core_input_double_pinyin_custom_label">کسٹم</string>
     <string name="core_input_double_pinyin_off_label">آف (مکمل پینین)</string>
+    <string name="core_input_im_note_candidates">کچھ کلیدوں کے لیے یہ طریقہ انتخاب کی فہرست دیتا ہے۔ کی بورڈ ہمیشہ پہلا انتخاب استعمال کرتا ہے۔</string>
+    <string name="core_input_im_note_missing_files">یہ فائلیں منتخب نہیں کی گئی تھیں، اس لیے ان کا حصہ غائب ہے: %1$s۔ انہیں شامل کرنے کے لیے، دوبارہ درآمد کریں اور انہیں ایک ساتھ منتخب کریں۔</string>
+    <string name="core_input_im_note_module">یہ طریقہ ایک پلگ ان استعمال کرتا ہے، جیسے کہ Anthy، جسے کی بورڈ نہیں چلا سکتا۔ جو کلیدیں اسے استعمال کرتی ہیں وہ یہاں کچھ نہیں کرتیں۔</string>
+    <string name="core_input_im_note_other_method">یہ طریقہ کچھ کلیدیں کسی دوسرے ان پٹ طریقہ کو دیتا ہے۔ وہ حصہ یہاں کام نہیں کرتا۔</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">ایپ %1$d ہجے کا اصول نہیں پڑھ سکتی، اس لیے یہ اسے چھوڑ دیتی ہے۔</item>
+        <item quantity="other">ایپ %1$d ہجے کے اصول نہیں پڑھ سکتی، اس لیے یہ انہیں چھوڑ دیتی ہے۔</item>
+    </plurals>
+    <string name="core_input_im_note_space">یہ طریقہ اسپیس بار کو ایک کلید کے طور پر استعمال کرتا ہے، مثال کے طور پر لہجے کے لیے۔ یہاں اسپیس بار ہمیشہ ایک اسپیس ٹائپ کرتا ہے۔</string>
+    <string name="core_input_im_note_truncated">ٹیبل بہت بڑا ہے، اس لیے ایپ نے صرف اس کا پہلا حصہ رکھا ہے۔</string>
+    <string name="core_input_im_note_unused_files">ایپ نے ان فائلوں کا استعمال نہیں کیا: %1$s۔</string>
+    <string name="core_input_im_refused_broken">فائل میں ایک خرابی ہے، اس لیے ایپ اسے پڑھ نہیں سکتی: %1$s</string>
+    <string name="core_input_im_refused_empty">فائل میں ٹائپ کرنے کے لیے کچھ نہیں ہے۔</string>
+    <string name="core_input_im_refused_no_dictionary">اسکیما کو اپنی لغت کی ضرورت ہے۔ دوبارہ درآمد کریں اور %1$s بھی منتخب کریں۔</string>
+    <string name="core_input_im_refused_not_method">ایپ اسے ان پٹ طریقہ کے طور پر نہیں پڑھ سکتی۔ یہ .cin ٹیبلز، Rime اسکیمز اور ڈکشنریز (.schema.yaml, .dict.yaml)، اور m17n .mim فائلیں پڑھتی ہے۔</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">ایپ نے اسے %1$d اندراج کے ساتھ .cin ٹیبل کے طور پر پڑھا۔ ایک کوڈ ٹائپ کریں، پھر تجویز کی پٹی سے کریکٹر منتخب کریں۔</item>
+        <item quantity="other">ایپ نے اسے %1$d اندراجات کے ساتھ .cin ٹیبل کے طور پر پڑھا۔ ایک کوڈ ٹائپ کریں، پھر تجویز کی پٹی سے کریکٹر منتخب کریں۔</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">ایپ نے اسے %1$d اصول کے ساتھ m17n ان پٹ طریقہ کے طور پر پڑھا۔ آپ کے ٹائپ کرتے ہی کلیدیں متن لکھ دیتی ہیں۔</item>
+        <item quantity="other">ایپ نے اسے %1$d اصولوں کے ساتھ m17n ان پٹ طریقہ کے طور پر پڑھا۔ آپ کے ٹائپ کرتے ہی کلیدیں متن لکھ دیتی ہیں۔</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">ایپ نے اسے %1$d لغت اندراج کے ساتھ Rime اسکیم کے طور پر پڑھا۔ سلیبلز ٹائپ کریں، پھر تجویز کی پٹی سے الفاظ منتخب کریں۔</item>
+        <item quantity="other">ایپ نے اسے %1$d لغت اندراجات کے ساتھ Rime اسکیم کے طور پر پڑھا۔ سلیبلز ٹائپ کریں، پھر تجویز کی پٹی سے الفاظ منتخب کریں۔</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">ایپ نے اسے %1$d اندراج کے ساتھ Rime کوڈ ٹیبل کے طور پر پڑھا ہے۔ ایک کوڈ ٹائپ کریں، پھر تجویز کی پٹی سے حرف منتخب کریں۔</item>
+        <item quantity="other">ایپ نے اسے %1$d اندراجات کے ساتھ Rime کوڈ ٹیبل کے طور پر پڑھا ہے۔ ایک کوڈ ٹائپ کریں، پھر تجویز کی پٹی سے حرف منتخب کریں۔</item>
+    </plurals>
 </resources>

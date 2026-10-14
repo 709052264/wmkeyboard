@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Bahari kuu</string>
     <string name="core_theme_builtin_facet_label">Facet</string>
     <string name="core_theme_builtin_forest_label">Msitu</string>
+    <string name="core_theme_builtin_frost_label">Frost</string>
+    <string name="core_theme_builtin_frost_light_label">Frost light</string>
+    <string name="core_theme_builtin_frost_liquid_label">Frost liquid</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Mandhari ya barafu</string>
     <string name="core_theme_builtin_glacier_label">Glacier</string>
     <string name="core_theme_builtin_mint_label">Mindi</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Theluji</string>
     <string name="core_theme_builtin_sunset_drift_label">Sunset drift</string>
     <string name="core_theme_builtin_sunset_label">Machweo</string>
+    <string name="core_theme_family_frost_label">Frost</string>
     <string name="core_theme_family_gradient_label">Gradients</string>
     <string name="core_theme_family_ocean_label">Nightfall</string>
     <string name="core_theme_family_snow_label">Pastel</string>
+    <string name="core_theme_palette_style_expressive">Expressive</string>
+    <string name="core_theme_palette_style_fidelity">Uaminifu</string>
+    <string name="core_theme_palette_style_fruit_salad">Saladi ya matunda</string>
+    <string name="core_theme_palette_style_monochrome">Monokromu</string>
+    <string name="core_theme_palette_style_neutral">Isiyoegemea upande wowote</string>
+    <string name="core_theme_palette_style_rainbow">Upinde wa mvua</string>
+    <string name="core_theme_palette_style_tonal_spot">Eneo la toni</string>
+    <string name="core_theme_palette_style_vibrant">Changamfu</string>
 </resources>

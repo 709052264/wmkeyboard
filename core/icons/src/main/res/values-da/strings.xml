@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">Appen droppede \"%1$s\". Appen kan ikke gemme den.</string>
     <string name="core_icons_repair_svg_unreadable">Appen droppede \"%1$s\". Appen kan ikke læse dens SVG-fil.</string>
+    <string name="core_icons_slot_arrow_down_label">Pil ned</string>
+    <string name="core_icons_slot_arrow_left_label">Pil til venstre</string>
+    <string name="core_icons_slot_arrow_right_label">Pil til højre</string>
+    <string name="core_icons_slot_arrow_up_label">Pil op</string>
     <string name="core_icons_slot_backspace_label">Backspace</string>
+    <string name="core_icons_slot_caps_lock_key_label">Caps lock-tast</string>
     <string name="core_icons_slot_caps_lock_label">Caps lock</string>
     <string name="core_icons_slot_emoji_activities_label">Aktiviteter</string>
     <string name="core_icons_slot_emoji_animals_label">Dyr</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: send</string>
     <string name="core_icons_slot_forward_delete_label">Fremad-sletning</string>
     <string name="core_icons_slot_globe_label">Skift sprog</string>
+    <string name="core_icons_slot_hide_keys_label">Skjul tasterne (hardware-tastatur)</string>
     <string name="core_icons_slot_incognito_label">Inkognito-badge</string>
     <string name="core_icons_slot_input_method_picker_label">Skift tastatur</string>
     <string name="core_icons_slot_panel_back_label">Tilbage til taster</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Luk søgning</string>
     <string name="core_icons_slot_shift_label">Skift</string>
     <string name="core_icons_slot_shift_on_label">Skift (til)</string>
+    <string name="core_icons_slot_show_keys_label">Vis tasterne (hardware-tastatur)</string>
     <string name="core_icons_slot_suggestions_expand_label">Vis værktøjer</string>
+    <string name="core_icons_slot_tab_label">Tab-tast</string>
     <string name="core_icons_slot_toolbox_label">Værktøjskasse</string>
 </resources>

@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Mar profundo</string>
     <string name="core_theme_builtin_facet_label">Faceta</string>
     <string name="core_theme_builtin_forest_label">Bosque</string>
+    <string name="core_theme_builtin_frost_label">Escarcha</string>
+    <string name="core_theme_builtin_frost_light_label">Escarcha clara</string>
+    <string name="core_theme_builtin_frost_liquid_label">Líquido escarchado</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Fondo de pantalla escarchado</string>
     <string name="core_theme_builtin_glacier_label">Glaciar</string>
     <string name="core_theme_builtin_mint_label">Menta</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Nieve</string>
     <string name="core_theme_builtin_sunset_drift_label">Deriva del atardecer</string>
     <string name="core_theme_builtin_sunset_label">Atardecer</string>
+    <string name="core_theme_family_frost_label">Escarcha</string>
     <string name="core_theme_family_gradient_label">Degradados</string>
     <string name="core_theme_family_ocean_label">Anochecer</string>
     <string name="core_theme_family_snow_label">Pastel</string>
+    <string name="core_theme_palette_style_expressive">Expresivo</string>
+    <string name="core_theme_palette_style_fidelity">Fidelidad</string>
+    <string name="core_theme_palette_style_fruit_salad">Macedonia de frutas</string>
+    <string name="core_theme_palette_style_monochrome">Monocromo</string>
+    <string name="core_theme_palette_style_neutral">Neutral</string>
+    <string name="core_theme_palette_style_rainbow">Arcoíris</string>
+    <string name="core_theme_palette_style_tonal_spot">Punto tonal</string>
+    <string name="core_theme_palette_style_vibrant">Vibrante</string>
 </resources>

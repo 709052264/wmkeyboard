@@ -10,6 +10,10 @@
         <item quantity="one">%1$d taustiņš ievada uz tā uzdrukāto rakstzīmi. Sākotnējā tastatūra izmantoja noteikumu, lai izlemtu, ko tā ievada.</item>
         <item quantity="other">%1$d taustiņi ievada uz tiem uzdrukātās rakstzīmes. Sākotnējā tastatūra izmantoja noteikumus, lai izlemtu, ko tie ievada.</item>
     </plurals>
+    <plurals name="core_keyman_multitap_unconverted">
+        <item quantity="one">Šajā tastatūrā ir %1$d taustiņš, kuru nospiežat atkārtoti, lai pārvietotos pa lapām vai rakstzīmēm. Lietotne nevar kopēt šo ciklu, tāpēc katrs pieskāriens darbojas kā pirmais pieskāriens.</item>
+        <item quantity="other">Šajā tastatūrā ir %1$d taustiņi, kurus nospiežat atkārtoti, lai pārvietotos pa lapām vai rakstzīmēm. Lietotne nevar kopēt šos ciklus, tāpēc katrs pieskāriens darbojas kā pirmais pieskāriens.</item>
+    </plurals>
     <string name="core_keyman_rules_missing">Šī tastatūra izmanto noteikumus, lai noteiktu, kādus taustiņus tā ievada. Lietotnē šo noteikumu nav, tāpēc katrs taustiņš ievada uz tā uzdrukāto rakstzīmi.</string>
     <plurals name="core_keyman_special_keys_dropped">
         <item quantity="one">Lietotne noņēma %1$d taustiņu. Šai tastatūrai nav taustiņa, kas dara to pašu.</item>

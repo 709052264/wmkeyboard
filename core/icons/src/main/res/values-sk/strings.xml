@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">Aplikácia zahodila \"%1$s\". Aplikácia ho nemôže uložiť.</string>
     <string name="core_icons_repair_svg_unreadable">Aplikácia zahodila \"%1$s\". Aplikácia nedokáže prečítať jej súbor SVG.</string>
+    <string name="core_icons_slot_arrow_down_label">Šípka nadol</string>
+    <string name="core_icons_slot_arrow_left_label">Šípka doľava</string>
+    <string name="core_icons_slot_arrow_right_label">Šípka doprava</string>
+    <string name="core_icons_slot_arrow_up_label">Šípka nahor</string>
     <string name="core_icons_slot_backspace_label">Backspace</string>
+    <string name="core_icons_slot_caps_lock_key_label">Kláves Caps Lock</string>
     <string name="core_icons_slot_caps_lock_label">Caps lock</string>
     <string name="core_icons_slot_emoji_activities_label">Aktivity</string>
     <string name="core_icons_slot_emoji_animals_label">Zvieratá</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: odoslať</string>
     <string name="core_icons_slot_forward_delete_label">Odstrániť dopredu</string>
     <string name="core_icons_slot_globe_label">Zmeniť jazyk</string>
+    <string name="core_icons_slot_hide_keys_label">Skryť klávesy (hardvérová klávesnica)</string>
     <string name="core_icons_slot_incognito_label">Ikona inkognito</string>
     <string name="core_icons_slot_input_method_picker_label">Prepnúť klávesnicu</string>
     <string name="core_icons_slot_panel_back_label">Späť na klávesy</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Zavrieť vyhľadávanie</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (zapnutý)</string>
+    <string name="core_icons_slot_show_keys_label">Zobraziť klávesy (hardvérová klávesnica)</string>
     <string name="core_icons_slot_suggestions_expand_label">Zobraziť nástroje</string>
+    <string name="core_icons_slot_tab_label">Kláves Tab</string>
     <string name="core_icons_slot_toolbox_label">Panel nástrojov</string>
 </resources>

@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Các ký tự mà phím AltGr gõ trên máy tính nằm ở thao tác nhấn và giữ các phím tương tự.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d phím chết đặt dấu trên chữ cái tiếp theo trên máy tính. Tại đây, các chữ cái có dấu đó nằm ở thao tác nhấn và giữ mỗi chữ cái.</item>
+        <item quantity="other">%1$d phím chết đặt dấu trên chữ cái tiếp theo trên máy tính. Tại đây, các chữ cái có dấu đó nằm ở thao tác nhấn và giữ mỗi chữ cái.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Tệp này dựa trên %1$d tệp khác (%2$s) mà bạn chưa mở. Các khóa chỉ được thiết lập trong tệp đó sẽ bị thiếu.</item>
+        <item quantity="other">Tệp này dựa trên %1$d tệp khác (%2$s) mà bạn chưa mở. Các khóa chỉ được thiết lập trong những tệp đó sẽ bị thiếu.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d ký tự từ phím không có chữ cái nằm ở thao tác nhấn và giữ dấu chấm.</item>
+        <item quantity="other">%1$d ký tự từ các phím không có chữ cái nằm ở thao tác nhấn và giữ dấu chấm.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Ứng dụng không biết %1$d tên ký tự trong tệp, vì vậy nó đã bỏ qua: %2$s.</item>
+        <item quantity="other">Ứng dụng không biết %1$d tên ký tự trong tệp, vì vậy nó đã bỏ qua chúng: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d thao tác vuốt trên phím không có tác dụng ở đây, vì bàn phím này sử dụng thao tác vuốt đó cho một công việc khác. Ứng dụng đã xóa nó.</item>
+        <item quantity="other">%1$d thao tác vuốt trên phím không có tác dụng ở đây, vì bàn phím này sử dụng các thao tác vuốt đó cho các công việc khác. Ứng dụng đã xóa chúng.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Ứng dụng đã thay đổi %1$d phím thành phím gần nhất mà nó có.</item>
         <item quantity="other">Ứng dụng đã thay đổi %1$d phím thành các phím gần nhất mà nó có.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Ứng dụng đã thay đổi %1$d chữ cái sang dạng mà bàn phím này viết.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Ứng dụng đã xóa hàng số. Hãy bật hàng số trong phần Bố cục và kích thước để hiển thị hàng số.</string>
+    <string name="core_lang_foreign_number_row_kept">Hàng số của tệp là hàng số của bố cục này. Nó hiển thị khi hàng số được bật trong Bố cục và kích thước.</string>
+    <string name="core_lang_foreign_pages_kept">Các trang bổ sung của tệp, chẳng hạn như AltGr, là các trang của bố cục này. Vuốt từ phím đã mở chúng trong bàn phím khác để mở chúng ở đây.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d phím không có chữ cái khi nhấn và giữ. Tệp lưu chúng trong một tệp thứ hai mà bạn chưa mở.</item>
         <item quantity="other">%1$d phím không có chữ cái khi nhấn và giữ. Tệp lưu chúng trong một tệp thứ hai mà bạn chưa mở.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d phím thay đổi theo trạng thái phím shift hoặc trường trong bàn phím khác. Ứng dụng giữ nguyên cách hiển thị ở trạng thái nghỉ.</item>
         <item quantity="other">%1$d phím thay đổi theo trạng thái phím shift hoặc trường trong bàn phím khác. Ứng dụng giữ nguyên cách hiển thị ở trạng thái nghỉ.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d trang bị dịch chuyển trong tệp có các phím ở những vị trí khác với trang mà nó dịch chuyển. Ứng dụng sử dụng chữ in hoa ở đó thay thế.</item>
+        <item quantity="other">%1$d trang bị dịch chuyển trong tệp có các phím ở những vị trí khác với các trang mà chúng dịch chuyển. Ứng dụng sử dụng chữ in hoa ở đó thay thế.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d phím có các chữ cái nhấn giữ khác nhau khi phím shift được bật trong bàn phím khác. Ứng dụng đã giữ lại các chữ cái không có shift.</item>
+        <item quantity="other">%1$d phím có các chữ cái nhấn giữ khác nhau khi phím shift được bật trong bàn phím khác. Ứng dụng đã giữ lại các chữ cái không có shift.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Bàn phím khác đo chiều rộng phím theo cách khác. Ứng dụng đã thay đổi chiều rộng để phù hợp với lưới này.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

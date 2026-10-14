@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">KÓÐI</string>
     <string name="core_content_clip_entity_phone_label">Símanúmer</string>
     <string name="core_content_clip_entity_phone_tag">SÍMI</string>
+    <string name="core_content_clip_entity_place_label">Staður</string>
+    <string name="core_content_clip_entity_place_tag">STAÐUR</string>
     <string name="core_content_clip_entity_url_label">Tengill</string>
     <string name="core_content_clip_entity_url_tag">TENGILL</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Forritið getur ekki lesið WOFF-vefletur. Notaðu .ttf eða .otf útgáfu letursins.</string>
     <string name="core_content_font_error_woff2">Forritið getur ekki lesið WOFF2 vefleturgerðir. Notaðu .ttf eða .otf útgáfu af leturgerðinni.</string>
     <string name="core_content_font_error_zip">Þessi skrá er zip-skjalasafn, ekki leturgerð.</string>
+    <string name="core_content_note_tag_ideas">Hugmyndir</string>
+    <string name="core_content_note_tag_important">Mikilvægt</string>
+    <string name="core_content_note_tag_personal">Persónulegt</string>
+    <string name="core_content_note_tag_school">Skóli</string>
+    <string name="core_content_note_tag_study">Nám</string>
+    <string name="core_content_note_tag_work">Vinna</string>
     <string name="core_content_selection_macro_add_contact">Tengiliður</string>
     <string name="core_content_selection_macro_calendar">Dagatal</string>
     <string name="core_content_selection_macro_call">Kalla</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Tala</string>
     <string name="core_content_selection_macro_replace">Skipta út</string>
+    <string name="core_content_selection_macro_save_note">Vista sem minnismiða</string>
     <string name="core_content_selection_macro_search">Leita</string>
     <string name="core_content_selection_macro_share">Deila</string>
     <string name="core_content_selection_macro_sms">Skilaboð</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Þýða</string>
     <string name="core_content_selection_macro_url_decode">Afkóða</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Skráin inniheldur einnig %1$d orð án flýtileiðar. Til að bæta því við orðin þín, opnaðu skrána úr persónulegu orðabókinni.</item>
+        <item quantity="other">Skráin inniheldur einnig %1$d orð án flýtileiðar. Til að bæta þeim við orðin þín, opnaðu skrána úr persónulegu orðabókinni.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Forritið skildi %2$d stækkun eftir út úr \"%1$s\".</item>
         <item quantity="other">Forritið skildi %2$d stækkanir eftir út úr \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Forritið fjarlægði mynstrið úr \"%1$s\". Það var lengra en %2$d stafur.</item>
         <item quantity="other">Forritið fjarlægði mynstrið úr \"%1$s\". Það var lengra en %2$d stafir.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Forritið fjarlægði %1$d röð sem hefur engan texta.</item>
+        <item quantity="other">Forritið fjarlægði %1$d raðir sem hafa engan texta.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Forritið stytti „%1$s“. Það var lengra en %2$d stafur.</item>
         <item quantity="other">Forritið stytti „%1$s“. Það var lengra en %2$d stafir.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Forritið fjarlægði %1$d kveikju sem lyklaborðið getur ekki fylgst með. Búturinn verður áfram á listanum.</item>
+        <item quantity="other">Forritið fjarlægði %1$d kveikjur sem lyklaborðið getur ekki fylgst með. Bútarnir verða áfram á listanum.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Nafn forritsins sem þú skrifar í</string>
     <string name="core_content_snippet_var_clip_info">Nýjasta færslan á klemmuspjaldinu</string>

@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Słownik japońskiej kany na kanji</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Tabela odczytów Jyutping dla znaków Hanzi, 163 000 wpisów. Klawiatura potrzebuje tego pakietu do konwersji na kantoński.</string>
     <string name="core_input_cjk_pack_jyutping_title">Słownik kantoński Jyutping</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Które słowa następują po sobie, obliczone na podstawie chińskich tekstów internetowych i informacyjnych. Zawiera słownik Pinyin. Dzięki niemu inicjały takie jak wbxh dają najpierw 我不喜欢, a nie dwa niepowiązane słowa.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Pary chińskich słów</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Znaki Hanzi i frazy z CC-CEDICT, 120 000 wpisów. Klawiatura potrzebuje tego pakietu do konwersji na chiński.</string>
     <string name="core_input_cjk_pack_pinyin_title">Słownik chińskiego Pinyin</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Frazy z OpenCC, 50 000 wpisów, około 1 MB. Przy włączonych znakach tradycyjnych klawiatura używa ich do zapisywania poprawnej formy słowa, np. 頭髮, a nie 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Tabela fraz znaków tradycyjnych</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Tabela kolejności kresek dla znaków Hanzi. Klawiatura potrzebuje tego pakietu do układu kresek.</string>
     <string name="core_input_cjk_pack_stroke_title">Słownik kresek (笔画) języka chińskiego</string>
+    <string name="core_input_double_pinyin_custom_label">Niestandardowy</string>
     <string name="core_input_double_pinyin_off_label">Wyłączone (pełny Pinyin)</string>
+    <string name="core_input_im_note_candidates">W przypadku niektórych klawiszy metoda ta wyświetla listę opcji. Klawiatura zawsze używa pierwszego wyboru.</string>
+    <string name="core_input_im_note_missing_files">Te pliki nie zostały wybrane, więc ich część jest brakująca: %1$s. Aby je uwzględnić, zaimportuj ponownie i wybierz je razem.</string>
+    <string name="core_input_im_note_module">Ta metoda używa wtyczki, takiej jak Anthy, której klawiatura nie może uruchomić. Klawisze, które z niej korzystają, tutaj nie działają.</string>
+    <string name="core_input_im_note_other_method">Ta metoda przekazuje niektóre klawisze do innej metody wprowadzania. Ta część tutaj nie działa.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Aplikacja nie może odczytać %1$d reguły pisowni, więc ją pomija.</item>
+        <item quantity="other">Aplikacja nie może odczytać %1$d reguł pisowni, więc je pomija.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Ta metoda używa spacji jako klawisza, na przykład dla tonu. Tutaj spacja zawsze wpisuje spację.</string>
+    <string name="core_input_im_note_truncated">Tabela jest bardzo duża, więc aplikacja zachowała tylko jej pierwszą część.</string>
+    <string name="core_input_im_note_unused_files">Aplikacja nie użyła tych plików: %1$s.</string>
+    <string name="core_input_im_refused_broken">Plik zawiera błąd, więc aplikacja nie może go odczytać: %1$s</string>
+    <string name="core_input_im_refused_empty">Plik nie zawiera danych do pisania.</string>
+    <string name="core_input_im_refused_no_dictionary">Schemat wymaga słownika. Zaimportuj ponownie i wybierz również %1$s.</string>
+    <string name="core_input_im_refused_not_method">Aplikacja nie może odczytać tego jako metody wprowadzania. Odczytuje tabele .cin, schematy i słowniki Rime (.schema.yaml, .dict.yaml) oraz pliki .mim m17n.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Aplikacja odczytała to jako tabelę .cin z %1$d wpisem. Wpisz kod, a następnie wybierz znak z paska sugestii.</item>
+        <item quantity="other">Aplikacja odczytała to jako tabelę .cin z %1$d wpisami. Wpisz kod, a następnie wybierz znak z paska sugestii.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Aplikacja odczytała to jako metodę wprowadzania m17n z %1$d regułą. Klawisze wpisują tekst podczas pisania.</item>
+        <item quantity="other">Aplikacja odczytała to jako metodę wprowadzania m17n z %1$d regułami. Klawisze wpisują tekst podczas pisania.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Aplikacja odczytała to jako schemat Rime z %1$d wpisem w słowniku. Wpisz sylaby, a następnie wybierz słowa z paska sugestii.</item>
+        <item quantity="other">Aplikacja odczytała to jako schemat Rime z %1$d wpisami w słowniku. Wpisz sylaby, a następnie wybierz słowa z paska sugestii.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Aplikacja odczytała to jako tabelę kodów Rime z %1$d wpisem. Wpisz kod, a następnie wybierz znak z paska sugestii.</item>
+        <item quantity="other">Aplikacja odczytała to jako tabelę kodów Rime z %1$d wpisami. Wpisz kod, a następnie wybierz znak z paska sugestii.</item>
+    </plurals>
 </resources>

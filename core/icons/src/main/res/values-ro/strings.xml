@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">Aplicația a abandonat \"%1$s\". Aplicația nu o poate salva.</string>
     <string name="core_icons_repair_svg_unreadable">Aplicația a eliminat \"%1$s\". Aplicația nu poate citi fișierul SVG.</string>
+    <string name="core_icons_slot_arrow_down_label">Săgeată în jos</string>
+    <string name="core_icons_slot_arrow_left_label">Săgeată stânga</string>
+    <string name="core_icons_slot_arrow_right_label">Săgeată la dreapta</string>
+    <string name="core_icons_slot_arrow_up_label">Săgeată în sus</string>
     <string name="core_icons_slot_backspace_label">Backspace</string>
+    <string name="core_icons_slot_caps_lock_key_label">Tasta Caps Lock</string>
     <string name="core_icons_slot_caps_lock_label">Caps lock</string>
     <string name="core_icons_slot_emoji_activities_label">Activități</string>
     <string name="core_icons_slot_emoji_animals_label">Animale</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: trimite</string>
     <string name="core_icons_slot_forward_delete_label">Ștergere înainte</string>
     <string name="core_icons_slot_globe_label">Schimbă limba</string>
+    <string name="core_icons_slot_hide_keys_label">Ascunde tastele (tastatură hardware)</string>
     <string name="core_icons_slot_incognito_label">Insignă incognito</string>
     <string name="core_icons_slot_input_method_picker_label">Schimbă tastatura</string>
     <string name="core_icons_slot_panel_back_label">Înapoi la taste</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Închide căutarea</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Shift (activat)</string>
+    <string name="core_icons_slot_show_keys_label">Afișează tastele (tastatură hardware)</string>
     <string name="core_icons_slot_suggestions_expand_label">Afișează instrumentele</string>
+    <string name="core_icons_slot_tab_label">Tasta Tab</string>
     <string name="core_icons_slot_toolbox_label">Cutie cu instrumente</string>
 </resources>

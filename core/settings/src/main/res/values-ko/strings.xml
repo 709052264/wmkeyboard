@@ -11,6 +11,9 @@
     <string name="core_settings_board_corner_bottom_right_label">오른쪽 하단</string>
     <string name="core_settings_board_corner_top_left_label">왼쪽 상단</string>
     <string name="core_settings_board_corner_top_right_label">오른쪽 상단</string>
+    <string name="core_settings_clip_swipe_pin_left_label">왼쪽으로 고정, 오른쪽으로 삭제</string>
+    <string name="core_settings_clip_swipe_pin_off_label">양방향 삭제</string>
+    <string name="core_settings_clip_swipe_pin_right_label">오른쪽 고정, 왼쪽 삭제</string>
     <string name="core_settings_clip_time_copied_label">복사된 시간</string>
     <string name="core_settings_clip_time_expires_label">남은 시간</string>
     <string name="core_settings_clip_time_off_label">없음</string>

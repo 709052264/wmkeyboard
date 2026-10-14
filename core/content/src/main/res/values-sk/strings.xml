@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">KÓD</string>
     <string name="core_content_clip_entity_phone_label">Telefónne číslo</string>
     <string name="core_content_clip_entity_phone_tag">TELEFÓN</string>
+    <string name="core_content_clip_entity_place_label">Miesto</string>
+    <string name="core_content_clip_entity_place_tag">MIESTO</string>
     <string name="core_content_clip_entity_url_label">Odkaz</string>
     <string name="core_content_clip_entity_url_tag">ODKAZ</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Aplikácia nedokáže čítať webové fonty WOFF. Použite verziu fontu .ttf alebo .otf.</string>
     <string name="core_content_font_error_woff2">Aplikácia nedokáže čítať webové písma WOFF2. Použite verziu písma .ttf alebo .otf.</string>
     <string name="core_content_font_error_zip">Tento súbor je archív zip, nie písmo.</string>
+    <string name="core_content_note_tag_ideas">Nápady</string>
+    <string name="core_content_note_tag_important">Dôležité</string>
+    <string name="core_content_note_tag_personal">Osobné</string>
+    <string name="core_content_note_tag_school">Škola</string>
+    <string name="core_content_note_tag_study">Štúdium</string>
+    <string name="core_content_note_tag_work">Práca</string>
     <string name="core_content_selection_macro_add_contact">Kontakt</string>
     <string name="core_content_selection_macro_calendar">Kalendár</string>
     <string name="core_content_selection_macro_call">Zavolať</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Hovoriť</string>
     <string name="core_content_selection_macro_replace">Nahradiť</string>
+    <string name="core_content_selection_macro_save_note">Uložiť ako poznámku</string>
     <string name="core_content_selection_macro_search">Hľadať</string>
     <string name="core_content_selection_macro_share">Zdieľať</string>
     <string name="core_content_selection_macro_sms">Správa</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Preložiť</string>
     <string name="core_content_selection_macro_url_decode">Dekódovať</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Súbor obsahuje aj %1$d slovo bez skratky. Ak ho chcete pridať k svojim slovám, otvorte súbor v Osobnom slovníku.</item>
+        <item quantity="other">Súbor obsahuje aj %1$d slov bez skratky. Ak ich chcete pridať k svojim slovám, otvorte súbor v Osobnom slovníku.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Aplikácia vynechala %2$d rozšírenie z \"%1$s\".</item>
         <item quantity="other">Aplikácia vynechala %2$d rozšírení z \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Aplikácia odstránila vzor z „%1$s“. Bol dlhší ako %2$d znak.</item>
         <item quantity="other">Aplikácia odstránila vzor z „%1$s“. Bol dlhší ako %2$d znakov.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Aplikácia zahodila %1$d riadok, ktorý neobsahuje žiadny text.</item>
+        <item quantity="other">Aplikácia zahodila %1$d riadkov, ktoré neobsahujú žiadny text.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Aplikácia skrátila \"%1$s\". Bolo dlhšie ako %2$d znak.</item>
         <item quantity="other">Aplikácia skrátila \"%1$s\". Bolo dlhšie ako %2$d znakov.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Aplikácia odstránila %1$d spúšťač, ktorý klávesnica nedokáže sledovať. Jeho úryvok zostáva v zozname.</item>
+        <item quantity="other">Aplikácia odstránila %1$d spúšťačov, ktoré klávesnica nedokáže sledovať. Ich úryvky zostávajú v zozname.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Názov aplikácie, v ktorej píšete</string>
     <string name="core_content_snippet_var_clip_info">Najnovší záznam v schránke</string>

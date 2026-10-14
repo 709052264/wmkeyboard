@@ -10,6 +10,10 @@
         <item quantity="one">%1$d tipka upisuje znak otisnut na njoj. Izvorna tipkovnica koristila je pravilo za odlučivanje što upisuje.</item>
         <item quantity="other">%1$d tipki upisuje znakove otisnute na njima. Izvorna tipkovnica koristila je pravila za odlučivanje što upisuju.</item>
     </plurals>
+    <plurals name="core_keyman_multitap_unconverted">
+        <item quantity="one">Ova tipkovnica ima %1$d tipku koju uzastopno pritišćete za kruženje kroz stranice ili znakove. Aplikacija ne može kopirati ovaj ciklus, pa svaki pritisak djeluje kao prvi.</item>
+        <item quantity="other">Ova tipkovnica ima %1$d tipki koje uzastopno pritišćete za kruženje kroz stranice ili znakove. Aplikacija ne može kopirati ove cikluse, pa svaki pritisak djeluje kao prvi.</item>
+    </plurals>
     <string name="core_keyman_rules_missing">Ova tipkovnica koristi pravila za određivanje onoga što njezine tipke upisuju. Aplikacija nema ta pravila, pa svaka tipka upisuje znak koji je na njoj otisnut.</string>
     <plurals name="core_keyman_special_keys_dropped">
         <item quantity="one">Aplikacija je uklonila %1$d tipku. Ova tipkovnica nema tipku koja radi istu stvar.</item>

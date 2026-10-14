@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">Rakendus loobus failist \"%1$s\". Rakendus ei saa seda salvestada.</string>
     <string name="core_icons_repair_svg_unreadable">Rakendus loobus failist „%1$s“. Rakendus ei suuda selle SVG-faili lugeda.</string>
+    <string name="core_icons_slot_arrow_down_label">Nool alla</string>
+    <string name="core_icons_slot_arrow_left_label">Nool vasakule</string>
+    <string name="core_icons_slot_arrow_right_label">Nool paremale</string>
+    <string name="core_icons_slot_arrow_up_label">Nool üles</string>
     <string name="core_icons_slot_backspace_label">Tagasilükkeklahv</string>
+    <string name="core_icons_slot_caps_lock_key_label">Caps lock klahv</string>
     <string name="core_icons_slot_caps_lock_label">Suurtähelukk</string>
     <string name="core_icons_slot_emoji_activities_label">Tegevused</string>
     <string name="core_icons_slot_emoji_animals_label">Loomad</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Sisestus: saada</string>
     <string name="core_icons_slot_forward_delete_label">Kustuta edasi</string>
     <string name="core_icons_slot_globe_label">Vaheta keelt</string>
+    <string name="core_icons_slot_hide_keys_label">Peida klahvid (riistvaraline klaviatuur)</string>
     <string name="core_icons_slot_incognito_label">Inkognito-märk</string>
     <string name="core_icons_slot_input_method_picker_label">Vaheta klaviatuuri</string>
     <string name="core_icons_slot_panel_back_label">Tagasi klahvide juurde</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Sulge otsing</string>
     <string name="core_icons_slot_shift_label">Shift</string>
     <string name="core_icons_slot_shift_on_label">Tõstuklahv (sees)</string>
+    <string name="core_icons_slot_show_keys_label">Kuva klahvid (riistvaraline klaviatuur)</string>
     <string name="core_icons_slot_suggestions_expand_label">Näita tööriistu</string>
+    <string name="core_icons_slot_tab_label">Tab-klahv</string>
     <string name="core_icons_slot_toolbox_label">Tööriistakast</string>
 </resources>

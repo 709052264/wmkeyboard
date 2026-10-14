@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">কম্পিউটারে AltGr কী যে ক্যারেক্টারগুলো টাইপ করে, সেগুলো একই কী প্রেস এবং হোল্ড করে পাওয়া যায়।</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$dটি ডেড কী কম্পিউটারে পরবর্তী অক্ষরে অ্যাকসেন্ট যোগ করে। এখানে, সেই অ্যাকসেন্টযুক্ত অক্ষরগুলো প্রতিটি অক্ষর চেপে ধরে রাখলে পাওয়া যায়।</item>
+        <item quantity="other">%1$dটি ডেড কী কম্পিউটারে পরবর্তী অক্ষরে অ্যাকসেন্ট যোগ করে। এখানে, সেই অ্যাকসেন্টযুক্ত অক্ষরগুলো প্রতিটি অক্ষর চেপে ধরে রাখলে পাওয়া যায়।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">ফাইলটি অন্য %1$dটি ফাইলের (%2$s) উপর ভিত্তি করে তৈরি যা আপনি খোলেননি। শুধুমাত্র সেই ফাইলে থাকা কীগুলো অনুপস্থিত।</item>
+        <item quantity="other">ফাইলটি অন্য %1$dটি ফাইলের (%2$s) উপর ভিত্তি করে তৈরি যা আপনি খোলেননি। শুধুমাত্র সেই ফাইলগুলোতে থাকা কীগুলো অনুপস্থিত।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">ফুল স্টপ টিপে ধরে রাখলে কোনো অক্ষর নেই এমন একটি কি থেকে %1$dটি অক্ষর পাওয়া যায়।</item>
+        <item quantity="other">ফুল স্টপ টিপে ধরে রাখলে কোনো অক্ষর নেই এমন কিগুলো থেকে %1$dটি অক্ষর পাওয়া যায়।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">অ্যাপটি ফাইলে %1$d অক্ষরের নাম জানে না, তাই এটি বাদ দেওয়া হয়েছে: %2$s।</item>
+        <item quantity="other">অ্যাপটি ফাইলে %1$d অক্ষরের নাম জানে না, তাই সেগুলো বাদ দেওয়া হয়েছে: %2$s।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">একটি কি-তে %1$d সোয়াইপের এখানে কোনো জায়গা নেই, কারণ এই কিবোর্ড সেই সোয়াইপটি অন্য কাজের জন্য ব্যবহার করে। অ্যাপটি এটি সরিয়ে দিয়েছে।</item>
+        <item quantity="other">কি-গুলোতে %1$d সোয়াইপের এখানে কোনো জায়গা নেই, কারণ এই কিবোর্ড সেই সোয়াইপগুলো অন্য কাজের জন্য ব্যবহার করে। অ্যাপটি সেগুলো সরিয়ে দিয়েছে।</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">অ্যাপটি %1$d কি-কে তার কাছে থাকা সবচেয়ে কাছের কি-তে পরিবর্তন করেছে।</item>
         <item quantity="other">অ্যাপটি %1$d কি-কে তার কাছে থাকা সবচেয়ে কাছের কি-গুলোতে পরিবর্তন করেছে।</item>
@@ -23,6 +44,8 @@
         <item quantity="other">অ্যাপটি %1$d টি অক্ষরকে এমন রূপে পরিবর্তন করেছে যা এই কিবোর্ড লেখে।</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">অ্যাপটি সংখ্যার সারিটি সরিয়ে দিয়েছে। একটি পেতে লেআউট এবং সাইজ (Layout and size) সেকশনে গিয়ে সংখ্যার সারি চালু করুন।</string>
+    <string name="core_lang_foreign_number_row_kept">ফাইলের সংখ্যার সারিটি এই লেআউটের সংখ্যার সারি। লেআউট এবং সাইজে সংখ্যার সারি চালু থাকলে এটি প্রদর্শিত হয়।</string>
+    <string name="core_lang_foreign_pages_kept">ফাইলের অতিরিক্ত পেজগুলো, যেমন AltGr, এই লেআউটের পেজ। অন্য কিবোর্ডে যে কী দিয়ে সেগুলো খোলা হয়েছিল, এখানেও সেই কী থেকে সোয়াইপ করে সেগুলো খুলুন।</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d কী-তে কোনো প্রেস-অ্যান্ড-হোল্ড অক্ষর নেই। ফাইলটি সেগুলোকে দ্বিতীয় একটি ফাইলে রাখে যা আপনি খোলেননি।</item>
         <item quantity="other">%1$d কী-তে কোনো প্রেস-অ্যান্ড-হোল্ড অক্ষর নেই। ফাইলটি সেগুলোকে দ্বিতীয় একটি ফাইলে রাখে যা আপনি খোলেননি।</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d টি কী শিফট স্টেট বা অন্য কিবোর্ডের ফিল্ডের সাথে পরিবর্তিত হয়। অ্যাপটি সেটিকে স্থির অবস্থায় যেভাবে দেখায় সেভাবেই রেখেছে।</item>
         <item quantity="other">%1$d টি কী শিফট স্টেট বা অন্য কিবোর্ডের ফিল্ডের সাথে পরিবর্তিত হয়। অ্যাপটি সেগুলোকে স্থির অবস্থায় যেভাবে দেখায় সেভাবেই রেখেছে।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">ফাইলের %1$dটি শিফটেড পেজের কীগুলো সেই পেজের বাইরে অন্য জায়গায় আছে। অ্যাপ সেখানে বড় হাতের অক্ষর ব্যবহার করে।</item>
+        <item quantity="other">ফাইলের %1$dটি শিফটেড পেজের কীগুলো সেই পেজগুলোর বাইরে অন্য জায়গায় আছে। অ্যাপ সেখানে বড় হাতের অক্ষর ব্যবহার করে।</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">অন্য কিবোর্ডে শিফট চেপে রাখা অবস্থায় %1$d কি-এর ভিন্ন প্রেস-অ্যান্ড-হোল্ড অক্ষর রয়েছে। অ্যাপটি আনশিফটেড অক্ষরগুলো রেখেছে।</item>
+        <item quantity="other">অন্য কিবোর্ডে শিফট চেপে রাখা অবস্থায় %1$d কি-এর ভিন্ন প্রেস-অ্যান্ড-হোল্ড অক্ষর রয়েছে। অ্যাপটি আনশিফটেড অক্ষরগুলো রেখেছে।</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">অন্য কিবোর্ডগুলো কি-এর প্রস্থ ভিন্নভাবে পরিমাপ করে। অ্যাপটি এই গ্রিডের সাথে মানানসই করার জন্য প্রস্থ পরিবর্তন করেছে।</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

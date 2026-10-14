@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">ऐप ने \"%1$s\" को हटा दिया है। ऐप इसे सहेज नहीं सकता।</string>
     <string name="core_icons_repair_svg_unreadable">ऐप ने \"%1$s\" को हटा दिया। ऐप इसकी SVG फ़ाइल को पढ़ नहीं सकता।</string>
+    <string name="core_icons_slot_arrow_down_label">नीचे तीर</string>
+    <string name="core_icons_slot_arrow_left_label">बायां तीर</string>
+    <string name="core_icons_slot_arrow_right_label">दायां तीर</string>
+    <string name="core_icons_slot_arrow_up_label">तीर ऊपर</string>
     <string name="core_icons_slot_backspace_label">बैकस्पेस</string>
+    <string name="core_icons_slot_caps_lock_key_label">कैप्स लॉक कुंजी</string>
     <string name="core_icons_slot_caps_lock_label">कैप्स लॉक</string>
     <string name="core_icons_slot_emoji_activities_label">गतिविधियां</string>
     <string name="core_icons_slot_emoji_animals_label">जानवर</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Enter: भेजें</string>
     <string name="core_icons_slot_forward_delete_label">फॉरवर्ड डिलीट</string>
     <string name="core_icons_slot_globe_label">भाषा बदलें</string>
+    <string name="core_icons_slot_hide_keys_label">कुंजियाँ छिपाएँ (हार्डवेयर कीबोर्ड)</string>
     <string name="core_icons_slot_incognito_label">इन्कॉग्निटो बैज</string>
     <string name="core_icons_slot_input_method_picker_label">कीबोर्ड बदलें</string>
     <string name="core_icons_slot_panel_back_label">कुंजियों पर वापस जाएं</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">खोज बंद करें</string>
     <string name="core_icons_slot_shift_label">शिफ्ट</string>
     <string name="core_icons_slot_shift_on_label">शिफ्ट (चालू)</string>
+    <string name="core_icons_slot_show_keys_label">कुंजियाँ दिखाएं (हार्डवेयर कीबोर्ड)</string>
     <string name="core_icons_slot_suggestions_expand_label">टूल दिखाएं</string>
+    <string name="core_icons_slot_tab_label">टैब की (Tab key)</string>
     <string name="core_icons_slot_toolbox_label">टूलबॉक्स</string>
 </resources>

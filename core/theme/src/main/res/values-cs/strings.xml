@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Hluboké moře</string>
     <string name="core_theme_builtin_facet_label">Facet</string>
     <string name="core_theme_builtin_forest_label">Les</string>
+    <string name="core_theme_builtin_frost_label">Frost</string>
+    <string name="core_theme_builtin_frost_light_label">Mrazivě světlá</string>
+    <string name="core_theme_builtin_frost_liquid_label">Mrazivá tekutina</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Mrazivá tapeta</string>
     <string name="core_theme_builtin_glacier_label">Ledovec</string>
     <string name="core_theme_builtin_mint_label">Mátová</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Sníh</string>
     <string name="core_theme_builtin_sunset_drift_label">Západ slunce</string>
     <string name="core_theme_builtin_sunset_label">Západ slunce</string>
+    <string name="core_theme_family_frost_label">Mráz</string>
     <string name="core_theme_family_gradient_label">Přechody</string>
     <string name="core_theme_family_ocean_label">Soumrak</string>
     <string name="core_theme_family_snow_label">Pastelová</string>
+    <string name="core_theme_palette_style_expressive">Expresivní</string>
+    <string name="core_theme_palette_style_fidelity">Věrnost</string>
+    <string name="core_theme_palette_style_fruit_salad">Ovocný salát</string>
+    <string name="core_theme_palette_style_monochrome">Monochromatický</string>
+    <string name="core_theme_palette_style_neutral">Neutrální</string>
+    <string name="core_theme_palette_style_rainbow">Duhová</string>
+    <string name="core_theme_palette_style_tonal_spot">Tónový bod</string>
+    <string name="core_theme_palette_style_vibrant">Živý</string>
 </resources>

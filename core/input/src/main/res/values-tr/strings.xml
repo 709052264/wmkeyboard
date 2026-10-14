@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Japonca kana - kanji sözlüğü</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Hanzi karakterleri için 163.000 girişli bir Jyutping okuma tablosu. Klavye, Kantonca dönüşümü için bu pakete ihtiyaç duyar.</string>
     <string name="core_input_cjk_pack_jyutping_title">Kantonca Jyutping sözlüğü</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Çince web ve haber metinlerinden sayılan, hangi kelimelerin hangilerini takip ettiği. Pinyin sözlüğü ile birlikte gelir. Bununla, wbxh gibi baş harfler iki alakasız kelime yerine önce 我不喜欢 sonucunu verir.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Çince kelime çiftleri</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">CC-CEDICT\'ten 120.000 girişli Hanzi karakterleri ve ifadeleri. Klavye, Çince dönüştürme için bu pakete ihtiyaç duyar.</string>
     <string name="core_input_cjk_pack_pinyin_title">Çince Pinyin sözlüğü</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">OpenCC\'den ifadeler, 50.000 giriş, yaklaşık 1 MB. Geleneksel karakterler açıkken klavye bunu, 頭髮 yerine 頭發 gibi kelimenin doğru biçimini yazmak için kullanır.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Geleneksel karakterler ifade tablosu</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Hanzi karakterleri için vuruş sırası tablosu. Klavye, vuruş düzeni için bu pakete ihtiyaç duyar.</string>
     <string name="core_input_cjk_pack_stroke_title">Çince vuruş (笔画) sözlüğü</string>
+    <string name="core_input_double_pinyin_custom_label">Özel</string>
     <string name="core_input_double_pinyin_off_label">Kapalı (tam Pinyin)</string>
+    <string name="core_input_im_note_candidates">Bazı tuşlar için bu yöntem bir seçim listesi sunar. Klavye her zaman ilk seçeneği kullanır.</string>
+    <string name="core_input_im_note_missing_files">Bu dosyalar seçilmedi, bu yüzden kısımları eksik: %1$s. Bunları dahil etmek için tekrar içe aktarın ve birlikte seçin.</string>
+    <string name="core_input_im_note_module">Bu yöntem, klavyenin çalıştıramadığı Anthy gibi bir eklenti kullanır. Bunu kullanan tuşlar burada hiçbir şey yapmaz.</string>
+    <string name="core_input_im_note_other_method">Bu yöntem, bazı tuşları başka bir giriş yöntemine verir. O kısım burada çalışmaz.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Uygulama %1$d yazım kuralını okuyamıyor, bu yüzden atlıyor.</item>
+        <item quantity="other">Uygulama %1$d yazım kuralını okuyamıyor, bu yüzden onları atlıyor.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Bu yöntem, örneğin bir ton için boşluk çubuğunu bir tuş olarak kullanır. Burada boşluk çubuğu her zaman boşluk karakteri yazar.</string>
+    <string name="core_input_im_note_truncated">Tablo çok büyük, bu yüzden uygulama sadece ilk kısmını tuttu.</string>
+    <string name="core_input_im_note_unused_files">Uygulama şu dosyaları kullanmadı: %1$s.</string>
+    <string name="core_input_im_refused_broken">Dosyada bir hata var, bu yüzden uygulama onu okuyamıyor: %1$s</string>
+    <string name="core_input_im_refused_empty">Dosyada yazılacak bir içerik yok.</string>
+    <string name="core_input_im_refused_no_dictionary">Şemanın sözlüğüne ihtiyacı var. Tekrar içe aktarın ve ayrıca %1$s seçin.</string>
+    <string name="core_input_im_refused_not_method">Uygulama bunu bir giriş yöntemi olarak okuyamıyor. .cin tablolarını, Rime şemalarını ve sözlüklerini (.schema.yaml, .dict.yaml) ve m17n .mim dosyalarını okur.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Uygulama bunu %1$d girişli bir .cin tablosu olarak okudu. Bir kod yazın, ardından öneri şeridinden karakteri seçin.</item>
+        <item quantity="other">Uygulama bunu %1$d girişli bir .cin tablosu olarak okudu. Bir kod yazın, ardından öneri şeridinden karakteri seçin.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Uygulama bunu %1$d kurala sahip bir m17n giriş yöntemi olarak okudu. Tuşlar, siz yazdıkça metni yazar.</item>
+        <item quantity="other">Uygulama bunu %1$d kurala sahip bir m17n giriş yöntemi olarak okudu. Tuşlar, siz yazdıkça metni yazar.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Uygulama bunu %1$d sözlük girdisi içeren bir Rime şeması olarak okudu. Heceleri yazın, ardından öneri şeridinden kelimeleri seçin.</item>
+        <item quantity="other">Uygulama bunu %1$d sözlük girdisi içeren bir Rime şeması olarak okudu. Heceleri yazın, ardından öneri şeridinden kelimeleri seçin.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Uygulama bunu %1$d girişli bir Rime kod tablosu olarak okudu. Bir kod yazın, ardından öneri şeridinden karakteri seçin.</item>
+        <item quantity="other">Uygulama bunu %1$d girişli bir Rime kod tablosu olarak okudu. Bir kod yazın, ardından öneri şeridinden karakteri seçin.</item>
+    </plurals>
 </resources>

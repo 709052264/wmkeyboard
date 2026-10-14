@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">L\'application a abandonné \"%1$s\". L\'application ne peut pas l\'enregistrer.</string>
     <string name="core_icons_repair_svg_unreadable">L\'application a abandonné \"%1$s\". L\'application ne peut pas lire son fichier SVG.</string>
+    <string name="core_icons_slot_arrow_down_label">Flèche vers le bas</string>
+    <string name="core_icons_slot_arrow_left_label">Flèche gauche</string>
+    <string name="core_icons_slot_arrow_right_label">Flèche droite</string>
+    <string name="core_icons_slot_arrow_up_label">Flèche vers le haut</string>
     <string name="core_icons_slot_backspace_label">Retour arrière</string>
+    <string name="core_icons_slot_caps_lock_key_label">Touche de verrouillage des majuscules</string>
     <string name="core_icons_slot_caps_lock_label">Verrouillage majuscule</string>
     <string name="core_icons_slot_emoji_activities_label">Activités</string>
     <string name="core_icons_slot_emoji_animals_label">Animaux</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Entrée : envoyer</string>
     <string name="core_icons_slot_forward_delete_label">Supprimer vers l\'avant</string>
     <string name="core_icons_slot_globe_label">Changer de langue</string>
+    <string name="core_icons_slot_hide_keys_label">Masquer les touches (clavier physique)</string>
     <string name="core_icons_slot_incognito_label">Badge Incognito</string>
     <string name="core_icons_slot_input_method_picker_label">Changer de clavier</string>
     <string name="core_icons_slot_panel_back_label">Retour aux touches</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Fermer la recherche</string>
     <string name="core_icons_slot_shift_label">Maj</string>
     <string name="core_icons_slot_shift_on_label">Maj (activé)</string>
+    <string name="core_icons_slot_show_keys_label">Afficher les touches (clavier matériel)</string>
     <string name="core_icons_slot_suggestions_expand_label">Afficher les outils</string>
+    <string name="core_icons_slot_tab_label">Touche Tab</string>
     <string name="core_icons_slot_toolbox_label">Boîte à outils</string>
 </resources>

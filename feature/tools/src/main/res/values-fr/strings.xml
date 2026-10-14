@@ -3,8 +3,34 @@
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
     <string name="ftools_ai_stream_error">Le fournisseur d\'IA a terminé la réponse avec une erreur</string>
+    <string name="ftools_ai_tool_failed">L\'outil a échoué : %1$s. Ne l\'appelez plus avec la même entrée.</string>
+    <string name="ftools_ai_tool_missing_argument">L\'appel a omis la valeur requise \"%1$s\".</string>
+    <string name="ftools_ai_tool_no_results">Aucun résultat.</string>
+    <string name="ftools_ai_tool_no_search">La recherche Web n\'est pas configurée sur ce clavier, la recherche est donc impossible. Répondez à partir de ce que vous savez déjà et dites que vous n\'avez pas pu effectuer de recherche.</string>
+    <string name="ftools_ai_tool_reason_bad_url">Ce n\'est pas une adresse Web que le clavier peut ouvrir</string>
+    <string name="ftools_ai_tool_reason_missing">Le modèle a omis %1$s</string>
+    <string name="ftools_ai_tool_reason_no_search">La recherche Web n\'est pas configurée</string>
+    <string name="ftools_ai_tool_reason_unknown">Le modèle a demandé un outil qui n\'existe pas</string>
+    <string name="ftools_ai_tool_truncated">[la page continue au-delà de ce point et a été coupée]</string>
+    <string name="ftools_ai_tool_unknown">Il n\'y a aucun outil appelé %1$s.</string>
+    <string name="ftools_mcp_declined">L\'utilisateur n\'a pas autorisé cet appel. Ne rappelez pas cet outil dans cette réponse. Répondez sans lui et indiquez ce que vous n\'avez pas pu faire.</string>
+    <string name="ftools_mcp_empty">L\'outil a été exécuté et n\'a rien renvoyé.</string>
+    <string name="ftools_mcp_error_needs_input">Le serveur a demandé plus d\'informations, et le clavier ne peut pas encore les fournir.</string>
+    <string name="ftools_mcp_error_no_version">Ce serveur utilise une version de MCP plus récente que celle connue du clavier.</string>
+    <string name="ftools_mcp_error_not_mcp">Cette adresse n\'a pas répondu comme un serveur MCP. Vérifiez l\'adresse et le type.</string>
+    <string name="ftools_mcp_error_server">Le serveur a renvoyé une erreur : %1$s</string>
+    <string name="ftools_mcp_error_sign_in">Ce serveur nécessite une connexion, ce que le clavier ne peut pas encore faire. Si le serveur fournit des jetons ou des clés, ajoutez-en un en tant qu\'en-tête.</string>
+    <string name="ftools_mcp_omitted">[l\'outil a également renvoyé du contenu que vous ne pouvez pas lire ici : %1$s]</string>
+    <string name="ftools_mcp_reason_declined">Vous ne l\'avez pas autorisé</string>
+    <string name="ftools_mcp_reason_stopped">Arrêté avant son exécution</string>
+    <string name="ftools_mcp_reason_tool_error">L\'outil a signalé une erreur</string>
+    <string name="ftools_mcp_stopped">L\'appel a été annulé avant son exécution.</string>
+    <string name="ftools_mcp_tool_error">L\'outil a signalé une erreur : %1$s</string>
+    <string name="ftools_mcp_truncated">[la réponse continue au-delà de ce point et a été coupée]</string>
     <string name="ftools_photo_error_failed">L\'application n\'a pas pu récupérer les photos</string>
     <string name="ftools_photo_error_offline">L\'application ne peut pas atteindre le service photo. Vérifiez votre réseau et réessayez.</string>
     <string name="ftools_photo_error_timeout">Le service photo a mis trop de temps à répondre</string>
     <string name="ftools_search_error_json_disabled">Cette instance SearXNG n\'a pas activé son API JSON. Ajoutez 3bjson&lt;/b&gt; à 3bsearch.formats&lt;/b&gt; dans son fichier settings.yml, ou utilisez une autre instance.</string>
+    <string name="ftools_search_error_searx_limited">Cette instance SearXNG rejette les applications pour le moment (HTTP 429). Les instances publiques limitent les requêtes qui ne proviennent pas d\'un navigateur. Réessayez plus tard, ou utilisez votre propre instance ou une instance qui autorise son API JSON.</string>
+    <string name="ftools_web_fetch_bad_url">Ce n\'est pas une adresse Web que ce clavier peut ouvrir. Indiquez une adresse complète commençant par http:// ou https://.</string>
 </resources>

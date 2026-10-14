@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Rječnik japanske kana u kanji</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Tablica Jyutping očitanja za Hanzi znakove, 163.000 unosa. Tipkovnica treba ovaj paket za kantonsku konverziju.</string>
     <string name="core_input_cjk_pack_jyutping_title">Kantonski Jyutping rječnik</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Koje riječi slijede nakon kojih, izbrojeno iz kineskog weba i tekstova vijesti. Dolazi uz Pinyin rječnik. Uz njega, inicijali poput wbxh daju 我不喜欢 na prvom mjestu umjesto dvije nepovezane riječi.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Kineski parovi riječi</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Hanzi znakovi i fraze iz CC-CEDICT-a, 120.000 unosa. Tipkovnici je potreban ovaj paket za kinesku konverziju.</string>
     <string name="core_input_cjk_pack_pinyin_title">Kineski Pinyin rječnik</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Fraze iz OpenCC-a, 50.000 unosa, oko 1 MB. S uključenim tradicionalnim znakovima, tipkovnica ih koristi za pisanje ispravnog oblika riječi, kao što je 頭髮, a ne 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Tablica fraza tradicionalnih znakova</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Tablica redoslijeda poteza za Hanzi znakove. Tipkovnica treba ovaj paket za raspored poteza.</string>
     <string name="core_input_cjk_pack_stroke_title">Kineski rječnik poteza (笔画)</string>
+    <string name="core_input_double_pinyin_custom_label">Prilagođeno</string>
     <string name="core_input_double_pinyin_off_label">Isključeno (puni Pinyin)</string>
+    <string name="core_input_im_note_candidates">Za neke tipke ova metoda daje popis izbora. Tipkovnica uvijek koristi prvi izbor.</string>
+    <string name="core_input_im_note_missing_files">Ove datoteke nisu odabrane, pa njihov dio nedostaje: %1$s. Da biste ih uključili, uvezite ponovno i odaberite ih zajedno.</string>
+    <string name="core_input_im_note_module">Ova metoda koristi dodatak, kao što je Anthy, koji tipkovnica ne može pokrenuti. Tipke koje ga koriste ovdje ne rade ništa.</string>
+    <string name="core_input_im_note_other_method">Ova metoda dodjeljuje neke tipke drugom načinu unosa. Taj dio ovdje ne radi.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Aplikacija ne može pročitati %1$d pravilo pravopisa, pa ga preskače.</item>
+        <item quantity="other">Aplikacija ne može pročitati %1$d pravila pravopisa, pa ih preskače.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Ova metoda koristi razmaknicu kao tipku, na primjer za ton. Ovdje razmaknica uvijek upisuje razmak.</string>
+    <string name="core_input_im_note_truncated">Tablica je vrlo velika, pa je aplikacija zadržala samo njezin prvi dio.</string>
+    <string name="core_input_im_note_unused_files">Aplikacija nije koristila ove datoteke: %1$s.</string>
+    <string name="core_input_im_refused_broken">Datoteka ima pogrešku, pa je aplikacija ne može pročitati: %1$s</string>
+    <string name="core_input_im_refused_empty">Datoteka nema sadržaja za tipkanje.</string>
+    <string name="core_input_im_refused_no_dictionary">Shemi je potreban njezin rječnik. Uvezite ponovno i također odaberite %1$s.</string>
+    <string name="core_input_im_refused_not_method">Aplikacija to ne može pročitati kao metodu unosa. Čita .cin tablice, Rime sheme i rječnike (.schema.yaml, .dict.yaml) te m17n .mim datoteke.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Aplikacija je ovo učitala kao .cin tablicu s %1$d unosom. Upišite kod, a zatim odaberite znak iz trake prijedloga.</item>
+        <item quantity="other">Aplikacija je ovo učitala kao .cin tablicu s %1$d unosa. Upišite kod, a zatim odaberite znak iz trake prijedloga.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Aplikacija je ovo učitala kao m17n metodu unosa s %1$d pravilom. Tipke ispisuju tekst dok tipkate.</item>
+        <item quantity="other">Aplikacija je ovo učitala kao m17n metodu unosa s %1$d pravila. Tipke ispisuju tekst dok tipkate.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Aplikacija je ovo pročitala kao Rime shemu s %1$d unosom u rječniku. Upišite slogove, a zatim odaberite riječi iz trake s prijedlozima.</item>
+        <item quantity="other">Aplikacija je ovo pročitala kao Rime shemu s %1$d unosa u rječniku. Upišite slogove, a zatim odaberite riječi iz trake s prijedlozima.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Aplikacija je ovo učitala kao Rime tablicu kodova s %1$d unosom. Upišite kod, a zatim odaberite znak iz trake prijedloga.</item>
+        <item quantity="other">Aplikacija je ovo učitala kao Rime tablicu kodova s %1$d unosa. Upišite kod, a zatim odaberite znak iz trake prijedloga.</item>
+    </plurals>
 </resources>

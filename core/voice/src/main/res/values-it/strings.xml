@@ -8,6 +8,12 @@
     <string name="core_voice_model_base_eu_body">Questo modello utilizza la lingua in cui digiti, la stessa del modello a 40 lingue. Copre solo le lingue europee, quindi il download è più piccolo.</string>
     <string name="core_voice_model_base_multi_body">Questo modello bilancia precisione e velocità. Copre ogni lingua conosciuta da Whisper. Selezionalo se il modello Small è troppo lento.</string>
     <string name="core_voice_model_base_world_body">Questo modello utilizza la lingua in cui scrivi invece di indovinare. Le frasi brevi diventano molto più affidabili. Selezionalo quando il suo elenco contiene le tue lingue.</string>
+    <string name="core_voice_model_cpp_base_body">Questo modello bilancia precisione e velocità. Utilizza la lingua in cui detti, in una qualsiasi delle 99 lingue conosciute da Whisper, e ascolta le tue parole. Selezionalo se il modello Small è troppo lento.</string>
+    <string name="core_voice_model_cpp_large_body">Questo è il modello Whisper più accurato. Il download è di 1,1 GB. Solo un dispositivo con una grande quantità di memoria può caricarlo. Il modello Turbo è quasi altrettanto accurato ed è grande la metà.</string>
+    <string name="core_voice_model_cpp_medium_body">Questo modello offre una precisione quasi da desktop. Ogni frase richiede diversi secondi. Il modello utilizza quasi un gigabyte di memoria durante l\'esecuzione.</string>
+    <string name="core_voice_model_cpp_small_body">Questo modello offre la migliore precisione che funziona ancora bene su un telefono. Utilizza la lingua in cui detti, in una qualsiasi delle 99 lingue che Whisper conosce, e ascolta le tue parole.</string>
+    <string name="core_voice_model_cpp_tiny_body">Questo è il modello più veloce. Funziona bene con un parlato chiaro, ma il rumore riduce la precisione. Utilizza la lingua in cui detti e ascolta le tue parole.</string>
+    <string name="core_voice_model_cpp_turbo_body">Questo modello è quasi preciso quanto il modello più grande, ma con metà delle dimensioni. Ogni frase richiede diversi secondi e non è in grado di tradurre.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d lingua</item>
         <item quantity="other">%1$d lingue</item>
@@ -32,4 +38,5 @@
     <string name="core_voice_whisper_module_downloading">Il componente per la digitazione vocale offline della tastiera è in fase di download da Google Play. Riprova tra un momento.</string>
     <string name="core_voice_whisper_module_restart">L\'installazione del modulo di dettatura vocale offline è terminata. Chiudi e riapri la tastiera per utilizzarlo.</string>
     <string name="core_voice_whisper_transcribe_error">La digitazione vocale non ha funzionato. Riprova o seleziona un modello più piccolo.</string>
+    <string name="core_voice_whistle_checksum_error">Il modello scaricato è danneggiato. Scaricalo di nuovo.</string>
 </resources>

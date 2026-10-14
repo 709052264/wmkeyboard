@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Οι χαρακτήρες που πληκτρολογεί το πλήκτρο AltGr σε έναν υπολογιστή βρίσκονται στο παρατεταμένο πάτημα των ίδιων πλήκτρων.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d νεκρό πλήκτρο προσθέτει έναν τόνο στο επόμενο γράμμα σε έναν υπολογιστή. Εδώ, τα γράμματα με αυτόν τον τόνο εμφανίζονται με παρατεταμένο πάτημα κάθε γράμματος.</item>
+        <item quantity="other">%1$d νεκρά πλήκτρα προσθέτουν τόνους στο επόμενο γράμμα σε έναν υπολογιστή. Εδώ, τα γράμματα με αυτούς τους τόνους εμφανίζονται με παρατεταμένο πάτημα κάθε γράμματος.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Το αρχείο βασίζεται σε %1$d άλλο αρχείο (%2$s) που δεν ανοίξατε. Λείπουν κλειδιά που ορίζονται μόνο από αυτό το αρχείο.</item>
+        <item quantity="other">Το αρχείο βασίζεται σε %1$d άλλα αρχεία (%2$s) που δεν ανοίξατε. Λείπουν κλειδιά που ορίζονται μόνο από αυτά τα αρχεία.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d χαρακτήρας από πλήκτρο χωρίς γράμματα βρίσκεται στο παρατεταμένο πάτημα της τελείας.</item>
+        <item quantity="other">%1$d χαρακτήρες από πλήκτρα χωρίς γράμματα βρίσκονται στο παρατεταμένο πάτημα της τελείας.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Η εφαρμογή δεν γνωρίζει %1$d όνομα χαρακτήρα στο αρχείο, οπότε το παρέλειψε: %2$s.</item>
+        <item quantity="other">Η εφαρμογή δεν γνωρίζει %1$d ονόματα χαρακτήρων στο αρχείο, οπότε τα παρέλειψε: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">Η %1$d κίνηση σε ένα πλήκτρο δεν έχει θέση εδώ, επειδή αυτό το πληκτρολόγιο χρησιμοποιεί αυτή την κίνηση για άλλη εργασία. Η εφαρμογή την αφαίρεσε.</item>
+        <item quantity="other">Οι %1$d κινήσεις σε πλήκτρα δεν έχουν θέση εδώ, επειδή αυτό το πληκτρολόγιο χρησιμοποιεί αυτές τις κινήσεις για άλλες εργασίες. Η εφαρμογή τις αφαίρεσε.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Η εφαρμογή άλλαξε το %1$d πλήκτρο στο πλησιέστερο που διαθέτει.</item>
         <item quantity="other">Η εφαρμογή άλλαξε τα %1$d πλήκτρα στα πλησιέστερα που διαθέτει.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Η εφαρμογή άλλαξε %1$d γράμματα στη μορφή που γράφει αυτό το πληκτρολόγιο.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Η εφαρμογή αφαίρεσε τη σειρά αριθμών. Ενεργοποιήστε τη σειρά αριθμών στη Διάταξη και μέγεθος για να αποκτήσετε μία.</string>
+    <string name="core_lang_foreign_number_row_kept">Η σειρά αριθμών του αρχείου είναι η σειρά αριθμών αυτής της διάταξης. Εμφανίζεται όταν η σειρά αριθμών είναι ενεργοποιημένη στη Διάταξη και το μέγεθος.</string>
+    <string name="core_lang_foreign_pages_kept">Οι επιπλέον σελίδες του αρχείου, όπως το AltGr, είναι σελίδες αυτής της διάταξης. Σύρετε από το πλήκτρο που τις άνοιξε στο άλλο πληκτρολόγιο για να τις ανοίξετε εδώ.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d πλήκτρο δεν έχει γράμματα με παρατεταμένο πάτημα. Το αρχείο τα διατηρεί σε ένα δεύτερο αρχείο που δεν ανοίξατε.</item>
         <item quantity="other">%1$d πλήκτρα δεν έχουν γράμματα με παρατεταμένο πάτημα. Το αρχείο τα διατηρεί σε ένα δεύτερο αρχείο που δεν ανοίξατε.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d πλήκτρο αλλάζει με την κατάσταση shift ή το πεδίο στο άλλο πληκτρολόγιο. Η εφαρμογή διατήρησε την εμφάνισή του σε ηρεμία.</item>
         <item quantity="other">%1$d πλήκτρα αλλάζουν με την κατάσταση shift ή το πεδίο στο άλλο πληκτρολόγιο. Η εφαρμογή διατήρησε την εμφάνισή τους σε ηρεμία.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d μετατοπισμένη σελίδα στο αρχείο έχει τα κλειδιά της σε άλλα σημεία από τη σελίδα που μετατοπίζει. Η εφαρμογή χρησιμοποιεί κεφαλαία γράμματα εκεί.</item>
+        <item quantity="other">%1$d μετατοπισμένες σελίδες στο αρχείο έχουν τα κλειδιά τους σε άλλα σημεία από τις σελίδες που μετατοπίζουν. Η εφαρμογή χρησιμοποιεί κεφαλαία γράμματα εκεί.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d πλήκτρο έχει διαφορετικά γράμματα κατά το παρατεταμένο πάτημα ενώ το Shift είναι ενεργό στο άλλο πληκτρολόγιο. Η εφαρμογή διατήρησε αυτά χωρίς Shift.</item>
+        <item quantity="other">%1$d πλήκτρα έχουν διαφορετικά γράμματα κατά το παρατεταμένο πάτημα ενώ το Shift είναι ενεργό στο άλλο πληκτρολόγιο. Η εφαρμογή διατήρησε αυτά χωρίς Shift.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Το άλλο πληκτρολόγιο μετράει τα πλάτη των πλήκτρων διαφορετικά. Η εφαρμογή άλλαξε τα πλάτη για να ταιριάζουν σε αυτό το πλέγμα.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

@@ -10,6 +10,10 @@
     <string name="core_theme_builtin_deep_sea_label">Ulwandle olujulile</string>
     <string name="core_theme_builtin_facet_label">Facet</string>
     <string name="core_theme_builtin_forest_label">Ihlathi</string>
+    <string name="core_theme_builtin_frost_label">Frost</string>
+    <string name="core_theme_builtin_frost_light_label">Frost light</string>
+    <string name="core_theme_builtin_frost_liquid_label">Frost liquid</string>
+    <string name="core_theme_builtin_frost_wallpaper_label">Isithombe sangemuva se-Frost</string>
     <string name="core_theme_builtin_glacier_label">I-Glacier</string>
     <string name="core_theme_builtin_mint_label">Mint</string>
     <string name="core_theme_builtin_nebula_label">Nebula</string>
@@ -21,7 +25,16 @@
     <string name="core_theme_builtin_snow_label">Iqhwa</string>
     <string name="core_theme_builtin_sunset_drift_label">Ukushona kwelanga</string>
     <string name="core_theme_builtin_sunset_label">Ukushona kwelanga</string>
+    <string name="core_theme_family_frost_label">Frost</string>
     <string name="core_theme_family_gradient_label">Ama-gradient</string>
     <string name="core_theme_family_ocean_label">Nightfall</string>
     <string name="core_theme_family_snow_label">Pastel</string>
+    <string name="core_theme_palette_style_expressive">Okuzwakalayo</string>
+    <string name="core_theme_palette_style_fidelity">Ubuqotho</string>
+    <string name="core_theme_palette_style_fruit_salad">Isaladi yezithelo</string>
+    <string name="core_theme_palette_style_monochrome">Okumnyama nokumhlophe</string>
+    <string name="core_theme_palette_style_neutral">Okungathathi hlangothi</string>
+    <string name="core_theme_palette_style_rainbow">Utjhayi</string>
+    <string name="core_theme_palette_style_tonal_spot">Indawo enethoni</string>
+    <string name="core_theme_palette_style_vibrant">Ephilayo</string>
 </resources>

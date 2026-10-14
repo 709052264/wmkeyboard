@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">CÓDIGO</string>
     <string name="core_content_clip_entity_phone_label">Número de teléfono</string>
     <string name="core_content_clip_entity_phone_tag">TELÉFONO</string>
+    <string name="core_content_clip_entity_place_label">Lugar</string>
+    <string name="core_content_clip_entity_place_tag">LUGAR</string>
     <string name="core_content_clip_entity_url_label">Enlace</string>
     <string name="core_content_clip_entity_url_tag">ENLACE</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">La aplicación no puede leer fuentes web WOFF. Usa la versión .ttf o .otf de la fuente.</string>
     <string name="core_content_font_error_woff2">La aplicación no puede leer fuentes web WOFF2. Usa la versión .ttf o .otf de la fuente.</string>
     <string name="core_content_font_error_zip">Este archivo es un archivo zip, no una fuente.</string>
+    <string name="core_content_note_tag_ideas">Ideas</string>
+    <string name="core_content_note_tag_important">Importante</string>
+    <string name="core_content_note_tag_personal">Personal</string>
+    <string name="core_content_note_tag_school">Escuela</string>
+    <string name="core_content_note_tag_study">Estudio</string>
+    <string name="core_content_note_tag_work">Trabajo</string>
     <string name="core_content_selection_macro_add_contact">Contacto</string>
     <string name="core_content_selection_macro_calendar">Calendario</string>
     <string name="core_content_selection_macro_call">Llamar</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Hablar</string>
     <string name="core_content_selection_macro_replace">Reemplazar</string>
+    <string name="core_content_selection_macro_save_note">Guardar como nota</string>
     <string name="core_content_selection_macro_search">Buscar</string>
     <string name="core_content_selection_macro_share">Compartir</string>
     <string name="core_content_selection_macro_sms">Mensaje</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Traducir</string>
     <string name="core_content_selection_macro_url_decode">Decodificar</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">El archivo también tiene %1$d palabra sin atajo. Para añadirla a tus palabras, abre el archivo desde el Diccionario personal.</item>
+        <item quantity="other">El archivo también tiene %1$d palabras sin atajo. Para añadirlas a tus palabras, abre el archivo desde el Diccionario personal.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">La aplicación dejó fuera %2$d expansión de \"%1$s\".</item>
         <item quantity="other">La aplicación dejó fuera %2$d expansiones de \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">La aplicación eliminó el patrón de \"%1$s\". Era más largo de %2$d carácter.</item>
         <item quantity="other">La aplicación eliminó el patrón de \"%1$s\". Era más largo de %2$d caracteres.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">La aplicación eliminó %1$d fila que no tiene texto.</item>
+        <item quantity="other">La aplicación eliminó %1$d filas que no tienen texto.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">La aplicación acortó \"%1$s\". Era más largo que %2$d carácter.</item>
         <item quantity="other">La aplicación acortó \"%1$s\". Era más largo que %2$d caracteres.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">La aplicación eliminó %1$d desencadenante que el teclado no puede supervisar. Su fragmento permanece en la lista.</item>
+        <item quantity="other">La aplicación eliminó %1$d desencadenantes que el teclado no puede supervisar. Sus fragmentos permanecen en la lista.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">El nombre de la aplicación en la que escribes</string>
     <string name="core_content_snippet_var_clip_info">La entrada del portapapeles más reciente</string>

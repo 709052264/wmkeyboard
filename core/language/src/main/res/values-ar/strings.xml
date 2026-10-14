@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">الأحرف التي يكتبها مفتاح AltGr على الكمبيوتر موجودة عند الضغط المطول على نفس المفاتيح.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">مفتاح ميت واحد (%1$d) يضع علامة تشكيل على الحرف التالي على الكمبيوتر. هنا، الحروف التي تحمل علامة التشكيل تلك تظهر عند الضغط المطول على كل حرف.</item>
+        <item quantity="other">%1$d مفاتيح ميتة تضع علامات تشكيل على الحرف التالي على الكمبيوتر. هنا، الحروف التي تحمل علامات التشكيل تلك تظهر عند الضغط المطول على كل حرف.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">يعتمد الملف على %1$d ملف آخر (%2$s) لم تقم بفتحه. المفاتيح التي يحددها ذلك الملف فقط مفقودة.</item>
+        <item quantity="other">يعتمد الملف على %1$d ملفات أخرى (%2$s) لم تقم بفتحها. المفاتيح التي تحددها تلك الملفات فقط مفقودة.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d حرف من مفتاح لا يحتوي على أحرف يظهر عند الضغط المطول على النقطة.</item>
+        <item quantity="other">%1$d أحرف من مفاتيح لا تحتوي على أحرف تظهر عند الضغط المطول على النقطة.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">التطبيق لا يعرف اسم حرف واحد (%1$d) في الملف، لذا تم استبعاده: %2$s.</item>
+        <item quantity="other">التطبيق لا يعرف أسماء %1$d أحرف في الملف، لذا تم استبعادها: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">لا مكان هنا لـ %1$d سحبة على مفتاح، لأن لوحة المفاتيح هذه تستخدم تلك السحبة لوظيفة أخرى. قام التطبيق بإزالتها.</item>
+        <item quantity="other">لا مكان هنا لـ %1$d سحبات على مفاتيح، لأن لوحة المفاتيح هذه تستخدم تلك السحبات لوظائف أخرى. قام التطبيق بإزالتها.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">قام التطبيق بتغيير مفتاح واحد (%1$d) إلى أقرب مفتاح لديه.</item>
         <item quantity="other">قام التطبيق بتغيير %1$d مفاتيح إلى أقرب مفاتيح لديه.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">قام التطبيق بتغيير %1$d حرف إلى الشكل الذي تكتبه لوحة المفاتيح هذه.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">قام التطبيق بإزالة صف الأرقام. قم بتشغيل صف الأرقام في \"التخطيط والحجم\" للحصول على واحد.</string>
+    <string name="core_lang_foreign_number_row_kept">صف الأرقام الخاص بالملف هو صف الأرقام لهذا التخطيط. يظهر أثناء تشغيل صف الأرقام في التخطيط والحجم.</string>
+    <string name="core_lang_foreign_pages_kept">الصفحات الإضافية للملف، مثل AltGr، هي صفحات لهذا التخطيط. اسحب من المفتاح الذي فتحها في لوحة المفاتيح الأخرى لفتحها هنا.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">مفتاح واحد %1$d ليس له أحرف عند الضغط المطول. يحتفظ الملف بها في ملف ثانٍ لم تقم بفتحه.</item>
         <item quantity="other">%1$d مفاتيح ليس لها أحرف عند الضغط المطول. يحتفظ الملف بها في ملف ثانٍ لم تقم بفتحه.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">يتغير %1$d مفتاح مع حالة العالي (Shift) أو الحقل في لوحة المفاتيح الأخرى. احتفظ التطبيق بمظهره في حالة السكون.</item>
         <item quantity="other">تتغير %1$d مفاتيح مع حالة العالي (Shift) أو الحقل في لوحة المفاتيح الأخرى. احتفظ التطبيق بمظهرها في حالة السكون.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">صفحة واحدة مرحلة في الملف تحتوي على مفاتيحها في أماكن أخرى غير الصفحة التي تزيحها. يستخدم التطبيق أحرفًا كبيرة هناك بدلاً من ذلك.</item>
+        <item quantity="other">%1$d صفحات مرحلة في الملف تحتوي على مفاتيحها في أماكن أخرى غير الصفحات التي تزيحها. يستخدم التطبيق أحرفًا كبيرة هناك بدلاً من ذلك.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">يحتوي %1$d مفتاح على أحرف مختلفة عند الضغط المطول أثناء تفعيل مفتاح Shift في لوحة المفاتيح الأخرى. احتفظ التطبيق بالأحرف غير المعدلة.</item>
+        <item quantity="other">تحتوي %1$d مفاتيح على أحرف مختلفة عند الضغط المطول أثناء تفعيل مفتاح Shift في لوحة المفاتيح الأخرى. احتفظ التطبيق بالأحرف غير المعدلة.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">تقيس لوحة المفاتيح الأخرى عرض المفاتيح بشكل مختلف. قام التطبيق بتغيير العرض ليتناسب مع هذه الشبكة.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

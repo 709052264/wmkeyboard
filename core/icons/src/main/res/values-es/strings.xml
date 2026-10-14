@@ -14,7 +14,12 @@
     </plurals>
     <string name="core_icons_repair_not_saved">La aplicación descartó \"%1$s\". La aplicación no puede guardarlo.</string>
     <string name="core_icons_repair_svg_unreadable">La aplicación descartó \"%1$s\". La aplicación no puede leer su archivo SVG.</string>
+    <string name="core_icons_slot_arrow_down_label">Flecha hacia abajo</string>
+    <string name="core_icons_slot_arrow_left_label">Flecha hacia la izquierda</string>
+    <string name="core_icons_slot_arrow_right_label">Flecha derecha</string>
+    <string name="core_icons_slot_arrow_up_label">Flecha hacia arriba</string>
     <string name="core_icons_slot_backspace_label">Retroceso</string>
+    <string name="core_icons_slot_caps_lock_key_label">Tecla de bloqueo de mayúsculas</string>
     <string name="core_icons_slot_caps_lock_label">Bloqueo de mayúsculas</string>
     <string name="core_icons_slot_emoji_activities_label">Actividades</string>
     <string name="core_icons_slot_emoji_animals_label">Animales</string>
@@ -39,6 +44,7 @@
     <string name="core_icons_slot_enter_send_label">Intro: enviar</string>
     <string name="core_icons_slot_forward_delete_label">Suprimir hacia adelante</string>
     <string name="core_icons_slot_globe_label">Cambiar idioma</string>
+    <string name="core_icons_slot_hide_keys_label">Ocultar las teclas (teclado físico)</string>
     <string name="core_icons_slot_incognito_label">Insignia de incógnito</string>
     <string name="core_icons_slot_input_method_picker_label">Cambiar teclado</string>
     <string name="core_icons_slot_panel_back_label">Volver a las teclas</string>
@@ -46,6 +52,8 @@
     <string name="core_icons_slot_search_close_label">Cerrar búsqueda</string>
     <string name="core_icons_slot_shift_label">Mayús</string>
     <string name="core_icons_slot_shift_on_label">Mayús (activado)</string>
+    <string name="core_icons_slot_show_keys_label">Mostrar las teclas (teclado físico)</string>
     <string name="core_icons_slot_suggestions_expand_label">Mostrar herramientas</string>
+    <string name="core_icons_slot_tab_label">Tecla Tab</string>
     <string name="core_icons_slot_toolbox_label">Caja de herramientas</string>
 </resources>

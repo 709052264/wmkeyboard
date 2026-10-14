@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Jaapani kana-kanji sõnastik</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Jyutpingi lugemite tabel hanzi märkide jaoks, 163 000 kirjet. Klaviatuur vajab seda paketti kantoni keele teisendamiseks.</string>
     <string name="core_input_cjk_pack_jyutping_title">Kantoni keele Jyutpingi sõnastik</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Millised sõnad järgnevad millistele, loendatuna hiina veebi- ja uudistetekstidest. Kaasas Pinyini sõnastikuga. Sellega annavad initsiaalid nagu wbxh esimesena tulemuse 我不喜欢, mitte kaks omavahel mitteseotud sõna.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Hiina keele sõnapaarid</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Hanzi märgid ja fraasid CC-CEDICT-ist, 120 000 kirjet. Klaviatuur vajab seda paketti hiina keelde teisendamiseks.</string>
     <string name="core_input_cjk_pack_pinyin_title">Hiina Pinyini sõnastik</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Fraasid OpenCC-st, 50 000 kirjet, umbes 1 MB. Kui traditsioonilised tähemärgid on sisse lülitatud, kasutab klaviatuur seda sõna õige kuju kirjutamiseks, näiteks 頭髮 mitte 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Traditsionaalsete märkide fraasitabel</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Hanzi-märkide tõmmete järjekorra tabel. Klaviatuur vajab seda paketti tõmmete paigutuse jaoks.</string>
     <string name="core_input_cjk_pack_stroke_title">Hiina keele kriipsude (笔画) sõnastik</string>
+    <string name="core_input_double_pinyin_custom_label">Kohandatud</string>
     <string name="core_input_double_pinyin_off_label">Väljas (täielik Pinyin)</string>
+    <string name="core_input_im_note_candidates">Mõne klahvi puhul annab see meetod valikute loendi. Klaviatuur kasutab alati esimest valikut.</string>
+    <string name="core_input_im_note_missing_files">Neid faile ei valitud, seega on nende osa puudu: %1$s. Nende kaasamiseks importige uuesti ja valige need koos.</string>
+    <string name="core_input_im_note_module">See meetod kasutab pistikprogrammi, näiteks Anthy, mida klaviatuur ei saa käivitada. Klahvid, mis seda kasutavad, ei tee siin midagi.</string>
+    <string name="core_input_im_note_other_method">See meetod annab mõned klahvid teisele sisestusmeetodile. See osa siin ei tööta.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Rakendus ei suuda lugeda %1$d õigekirjareeglit, seega jätab selle vahele.</item>
+        <item quantity="other">Rakendus ei suuda lugeda %1$d õigekirjareeglit, seega jätab need vahele.</item>
+    </plurals>
+    <string name="core_input_im_note_space">See meetod kasutab tühikuklahvi võtmena, näiteks tooni jaoks. Siin trükib tühikuklahv alati tühiku.</string>
+    <string name="core_input_im_note_truncated">Tabel on väga suur, seega jättis rakendus alles vaid selle esimese osa.</string>
+    <string name="core_input_im_note_unused_files">Rakendus ei kasutanud neid faile: %1$s.</string>
+    <string name="core_input_im_refused_broken">Failis on viga, seega rakendus ei saa seda lugeda: %1$s</string>
+    <string name="core_input_im_refused_empty">Failis pole midagi, millega kirjutada.</string>
+    <string name="core_input_im_refused_no_dictionary">Skeem vajab oma sõnastikku. Importige uuesti ja valige ka %1$s.</string>
+    <string name="core_input_im_refused_not_method">Rakendus ei saa seda sisestusmeetodina lugeda. See loeb .cin-tabeleid, Rime\'i skeeme ja sõnastikke (.schema.yaml, .dict.yaml) ning m17n .mim-faile.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Rakendus luges seda kui .cin-tabelit, milles on %1$d kirje. Sisestage kood ja valige seejärel soovitusribalt märk.</item>
+        <item quantity="other">Rakendus luges seda kui .cin-tabelit, milles on %1$d kirjet. Sisestage kood ja valige seejärel soovitusribalt märk.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Rakendus luges seda kui m17n-sisestusmeetodit %1$d reegliga. Klahvid kirjutavad teksti tippimise ajal.</item>
+        <item quantity="other">Rakendus luges seda kui m17n-sisestusmeetodit %1$d reegliga. Klahvid kirjutavad teksti tippimise ajal.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Rakendus luges selle kui Rime’i skeemi %1$d sõnastiku kirje. Sisesta silbid, seejärel vali sõnad soovituste ribalt.</item>
+        <item quantity="other">Rakendus luges selle kui Rime’i skeemi %1$d sõnastiku kirjega. Sisesta silbid, seejärel vali sõnad soovituste ribalt.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Rakendus luges seda kui Rime kooditabelit, milles on %1$d kirje. Sisestage kood ja valige seejärel märk soovituste ribalt.</item>
+        <item quantity="other">Rakendus luges seda kui Rime kooditabelit, milles on %1$d kirjet. Sisestage kood ja valige seejärel märk soovituste ribalt.</item>
+    </plurals>
 </resources>

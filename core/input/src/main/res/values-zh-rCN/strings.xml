@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">日语假名转汉字词典</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">包含 163,000 条粤拼到汉字的对照表。键盘需要此包进行粤语转换。</string>
     <string name="core_input_cjk_pack_jyutping_title">粤语粤拼词典</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">根据中文网页和新闻文本统计的词语搭配。随拼音词典提供。有了它，输入 wbxh 等首字母时会优先显示“我不喜欢”，而不是两个不相关的词。</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">中文词对</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">来自 CC-CEDICT 的汉字和短语，共 120,000 条目。键盘需要此包进行中文转换。</string>
     <string name="core_input_cjk_pack_pinyin_title">中文拼音词典</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">来自 OpenCC 的短语，50,000 条词条，约 1 MB。开启繁体字后，键盘会使用它来输入正确的词汇形式，例如“頭髮”而不是“頭發”。</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">繁体中文短语表</string>
     <string name="core_input_cjk_pack_stroke_subtitle">汉字笔画顺序表。键盘需要此包以支持笔画布局。</string>
     <string name="core_input_cjk_pack_stroke_title">中文笔画词典</string>
+    <string name="core_input_double_pinyin_custom_label">自定义</string>
     <string name="core_input_double_pinyin_off_label">关闭（全拼）</string>
+    <string name="core_input_im_note_candidates">对于某些按键，此方法会提供一个选项列表。键盘始终使用第一个选项。</string>
+    <string name="core_input_im_note_missing_files">这些文件未被选中，因此缺少其部分内容：%1$s。要包含它们，请重新导入并一起选中。</string>
+    <string name="core_input_im_note_module">此输入法使用键盘无法运行的插件（例如 Anthy）。使用该插件的按键在此处无效。</string>
+    <string name="core_input_im_note_other_method">此方法将某些按键分配给了另一种输入法。该部分在此处无法使用。</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">应用无法读取 %1$d 条拼写规则，因此将其跳过。</item>
+        <item quantity="other">应用无法读取 %1$d 条拼写规则，因此将其跳过。</item>
+    </plurals>
+    <string name="core_input_im_note_space">此输入法将空格键用作功能键（例如用于声调）。在此模式下，空格键始终输入空格。</string>
+    <string name="core_input_im_note_truncated">表格过大，应用仅保留了其第一部分。</string>
+    <string name="core_input_im_note_unused_files">该应用未使用这些文件：%1$s。</string>
+    <string name="core_input_im_refused_broken">文件存在错误，应用无法读取：%1$s</string>
+    <string name="core_input_im_refused_empty">该文件没有任何可用于输入的内容。</string>
+    <string name="core_input_im_refused_no_dictionary">方案需要词典。请再次导入并选择 %1$s。</string>
+    <string name="core_input_im_refused_not_method">该应用无法将其读取为输入法。它支持读取 .cin 表格、Rime 方案和词典（.schema.yaml, .dict.yaml）以及 m17n .mim 文件。</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">应用已将其读取为包含 %1$d 条词条的 .cin 表。输入代码，然后从建议栏中选择字符。</item>
+        <item quantity="other">应用已将其读取为包含 %1$d 条词条的 .cin 表。输入代码，然后从建议栏中选择字符。</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">应用已将其读取为包含 %1$d 条规则的 m17n 输入法。按键会在您输入时写入文本。</item>
+        <item quantity="other">应用已将其读取为包含 %1$d 条规则的 m17n 输入法。按键会在您输入时写入文本。</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">应用已将其读取为包含 %1$d 个词典条目的 Rime 方案。输入音节，然后从建议栏中选择词语。</item>
+        <item quantity="other">应用已将其读取为包含 %1$d 个词典条目的 Rime 方案。输入音节，然后从建议栏中选择词语。</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">应用已将其识别为包含 %1$d 条词条的 Rime 码表。输入代码，然后从建议栏中选择字符。</item>
+        <item quantity="other">应用已将其识别为包含 %1$d 条词条的 Rime 码表。输入代码，然后从建议栏中选择字符。</item>
+    </plurals>
 </resources>

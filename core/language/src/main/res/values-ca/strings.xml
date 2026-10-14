@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Els caràcters que escriu la tecla AltGr en un ordinador s\'obtenen prement i mantenint premudes les mateixes tecles.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d tecla morta posa un accent a la lletra següent en un ordinador. Aquí, les lletres amb aquest accent s\'obtenen prement i mantenint premuda cada lletra.</item>
+        <item quantity="other">%1$d tecles mortes posen accents a la lletra següent en un ordinador. Aquí, les lletres amb aquests accents s\'obtenen prement i mantenint premuda cada lletra.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">El fitxer es basa en %1$d altre fitxer (%2$s) que no has obert. Falten les claus que només defineix aquest fitxer.</item>
+        <item quantity="other">El fitxer es basa en %1$d altres fitxers (%2$s) que no has obert. Falten les claus que només defineixen aquests fitxers.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d caràcter d\'una tecla sense lletres es troba en prémer i mantenir premut el punt.</item>
+        <item quantity="other">%1$d caràcters de tecles sense lletres es troben en prémer i mantenir premut el punt.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">L\'aplicació no coneix %1$d nom de caràcter al fitxer, així que l\'ha omès: %2$s.</item>
+        <item quantity="other">L\'aplicació no coneix %1$d noms de caràcters al fitxer, així que els ha omès: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d lliscament en una tecla no té lloc aquí, perquè aquest teclat utilitza aquest lliscament per a una altra tasca. L\'aplicació l\'ha eliminat.</item>
+        <item quantity="other">%1$d lliscaments en tecles no tenen lloc aquí, perquè aquest teclat utilitza aquests lliscaments per a altres tasques. L\'aplicació els ha eliminat.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">L\'aplicació ha canviat %1$d tecla per la més propera que té.</item>
         <item quantity="other">L\'aplicació ha canviat %1$d tecles per les més properes que té.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">L\'aplicació ha canviat %1$d lletres a la forma que escriu aquest teclat.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">L\'aplicació ha eliminat la fila de números. Activa la fila de números a Disposició i mida per obtenir-ne una.</string>
+    <string name="core_lang_foreign_number_row_kept">La fila de números del fitxer és la fila de números d\'aquesta disposició. Es mostra mentre la fila de números està activada a Disposició i mida.</string>
+    <string name="core_lang_foreign_pages_kept">Les pàgines addicionals del fitxer, com ara AltGr, són pàgines d\'aquest disseny. Llisca des de la tecla que les va obrir a l\'altre teclat per obrir-les aquí.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d tecla no té lletres en mantenir premut. El fitxer les guarda en un segon fitxer que no has obert.</item>
         <item quantity="other">%1$d tecles no tenen lletres en mantenir premut. El fitxer les guarda en un segon fitxer que no has obert.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d tecla canvia amb l\'estat de majúscules o el camp de l\'altre teclat. L\'aplicació ha mantingut l\'aspecte que té en repòs.</item>
         <item quantity="other">%1$d tecles canvien amb l\'estat de majúscules o el camp de l\'altre teclat. L\'aplicació ha mantingut l\'aspecte que tenen en repòs.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d pàgina desplaçada al fitxer té les seves tecles en llocs diferents de la pàgina que desplaça. L\'aplicació hi utilitza lletres majúscules.</item>
+        <item quantity="other">%1$d pàgines desplaçades al fitxer tenen les seves tecles en llocs diferents de les pàgines que desplacen. L\'aplicació hi utilitza lletres majúscules.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">%1$d tecla té lletres diferents en prémer i mantenir premut mentre la tecla de majúscules està activada en l\'altre teclat. L\'aplicació ha mantingut les que no tenen majúscules.</item>
+        <item quantity="other">%1$d tecles tenen lletres diferents en prémer i mantenir premut mentre la tecla de majúscules està activada en l\'altre teclat. L\'aplicació ha mantingut les que no tenen majúscules.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">L\'altre teclat mesura les amplades de les tecles de manera diferent. L\'aplicació ha canviat les amplades per ajustar-se a aquesta graella.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

@@ -10,6 +10,10 @@
         <item quantity="one">%1$d tombol mengetik karakter yang tercetak di atasnya. Papan ketik asli menggunakan aturan untuk menentukan apa yang diketiknya.</item>
         <item quantity="other">%1$d tombol mengetik karakter yang tercetak di atasnya. Papan ketik asli menggunakan aturan untuk menentukan apa yang diketiknya.</item>
     </plurals>
+    <plurals name="core_keyman_multitap_unconverted">
+        <item quantity="one">Papan tik ini memiliki %1$d tombol yang Anda ketuk berulang kali untuk menelusuri halaman atau karakter. Aplikasi tidak dapat menyalin siklus ini, sehingga setiap ketukan berfungsi sebagai ketukan pertama.</item>
+        <item quantity="other">Papan tik ini memiliki %1$d tombol yang Anda ketuk berulang kali untuk menelusuri halaman atau karakter. Aplikasi tidak dapat menyalin siklus ini, sehingga setiap ketukan berfungsi sebagai ketukan pertama.</item>
+    </plurals>
     <string name="core_keyman_rules_missing">Papan ketik ini menggunakan aturan untuk menentukan apa yang diketik oleh tombolnya. Aplikasi tidak memiliki aturan tersebut, jadi setiap tombol mengetikkan karakter yang tercetak di atasnya.</string>
     <plurals name="core_keyman_special_keys_dropped">
         <item quantity="one">Aplikasi menghapus %1$d tombol. Papan ketik ini tidak memiliki tombol yang melakukan hal yang sama.</item>

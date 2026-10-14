@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">Символы, которые на компьютере вводятся клавишей AltGr, доступны при нажатии и удержании тех же клавиш.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">%1$d мертвая клавиша добавляет акцент к следующей букве на компьютере. Здесь буквы с такими акцентами доступны при нажатии и удержании каждой клавиши.</item>
+        <item quantity="other">%1$d мертвых клавиш добавляют акценты к следующей букве на компьютере. Здесь буквы с такими акцентами доступны при нажатии и удержании каждой клавиши.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">Файл основан на %1$d другом файле (%2$s), который вы не открыли. Ключи, заданные только в этом файле, отсутствуют.</item>
+        <item quantity="other">Файл основан на %1$d других файлах (%2$s), которые вы не открыли. Ключи, заданные только в этих файлах, отсутствуют.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">%1$d символ с клавиши без букв находится при долгом нажатии на точку.</item>
+        <item quantity="other">%1$d символов с клавиш без букв находятся при долгом нажатии на точку.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">Приложение не знает название %1$d символа в файле, поэтому оно было пропущено: %2$s.</item>
+        <item quantity="other">Приложение не знает названия %1$d символов в файле, поэтому они были пропущены: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">%1$d жест смахивания по клавише здесь не подходит, так как эта клавиатура использует его для другой задачи. Приложение удалило его.</item>
+        <item quantity="other">%1$d жестов смахивания по клавишам здесь не подходят, так как эта клавиатура использует их для других задач. Приложение удалило их.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">Приложение заменило %1$d клавишу на наиболее подходящую из имеющихся.</item>
         <item quantity="other">Приложение заменило %1$d клавиш на наиболее подходящие из имеющихся.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">Приложение изменило %1$d букв на форму, которую использует эта клавиатура.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">Приложение удалило ряд цифр. Включите ряд цифр в разделе «Макет и размер», чтобы вернуть его.</string>
+    <string name="core_lang_foreign_number_row_kept">Ряд цифр файла — это ряд цифр данной раскладки. Он отображается, когда ряд цифр включен в разделе «Раскладка и размер».</string>
+    <string name="core_lang_foreign_pages_kept">Дополнительные страницы файла, такие как AltGr, являются страницами этой раскладки. Проведите пальцем от клавиши, которая открывала их на другой клавиатуре, чтобы открыть их здесь.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">У %1$d клавиши нет дополнительных символов при долгом нажатии. Они хранятся во втором файле, который вы не открыли.</item>
         <item quantity="other">У %1$d клавиш нет дополнительных символов при долгом нажатии. Они хранятся во втором файле, который вы не открыли.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d клавиша меняется в зависимости от состояния регистра или поля в другой клавиатуре. Приложение сохранило её вид в покое.</item>
         <item quantity="other">%1$d клавиш меняются в зависимости от состояния регистра или поля в другой клавиатуре. Приложение сохранило их вид в покое.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">%1$d смещенная страница в файле имеет клавиши в других местах, чем страница, которую она смещает. Вместо этого приложение использует там заглавные буквы.</item>
+        <item quantity="other">%1$d смещенных страниц в файле имеют клавиши в других местах, чем страницы, которые они смещают. Вместо этого приложение использует там заглавные буквы.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">У %1$d клавиши другие символы при долгом нажатии с зажатой клавишей Shift в другой раскладке. Приложение сохранило символы без Shift.</item>
+        <item quantity="other">У %1$d клавиш другие символы при долгом нажатии с зажатой клавишей Shift в другой раскладке. Приложение сохранило символы без Shift.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">Другая клавиатура измеряет ширину клавиш иначе. Приложение изменило ширину, чтобы соответствовать этой сетке.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

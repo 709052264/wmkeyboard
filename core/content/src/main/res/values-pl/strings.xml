@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">KOD</string>
     <string name="core_content_clip_entity_phone_label">Numer telefonu</string>
     <string name="core_content_clip_entity_phone_tag">TELEFON</string>
+    <string name="core_content_clip_entity_place_label">Miejsce</string>
+    <string name="core_content_clip_entity_place_tag">MIEJSCE</string>
     <string name="core_content_clip_entity_url_label">Link</string>
     <string name="core_content_clip_entity_url_tag">LINK</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">Aplikacja nie może odczytać czcionek internetowych WOFF. Użyj wersji czcionki .ttf lub .otf.</string>
     <string name="core_content_font_error_woff2">Aplikacja nie może odczytać czcionek internetowych WOFF2. Użyj wersji czcionki .ttf lub .otf.</string>
     <string name="core_content_font_error_zip">Ten plik jest archiwum zip, a nie czcionką.</string>
+    <string name="core_content_note_tag_ideas">Pomysły</string>
+    <string name="core_content_note_tag_important">Ważne</string>
+    <string name="core_content_note_tag_personal">Osobiste</string>
+    <string name="core_content_note_tag_school">Szkoła</string>
+    <string name="core_content_note_tag_study">Nauka</string>
+    <string name="core_content_note_tag_work">Praca</string>
     <string name="core_content_selection_macro_add_contact">Kontakt</string>
     <string name="core_content_selection_macro_calendar">Kalendarz</string>
     <string name="core_content_selection_macro_call">Zadzwoń</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Czytaj na głos</string>
     <string name="core_content_selection_macro_replace">Zastąp</string>
+    <string name="core_content_selection_macro_save_note">Zapisz jako notatkę</string>
     <string name="core_content_selection_macro_search">Szukaj</string>
     <string name="core_content_selection_macro_share">Udostępnij</string>
     <string name="core_content_selection_macro_sms">Wiadomość</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Przetłumacz</string>
     <string name="core_content_selection_macro_url_decode">Dekoduj</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Plik zawiera też %1$d słowo bez skrótu. Aby dodać je do swoich słów, otwórz plik w Słowniku osobistym.</item>
+        <item quantity="other">Plik zawiera też %1$d słów bez skrótu. Aby dodać je do swoich słów, otwórz plik w Słowniku osobistym.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">Aplikacja pominęła %2$d rozszerzenie z „%1$s”.</item>
         <item quantity="other">Aplikacja pominęła %2$d rozszerzeń z „%1$s”.</item>
@@ -162,9 +175,17 @@
         <item quantity="one">Aplikacja usunęła wzorzec z „%1$s”. Był dłuższy niż %2$d znak.</item>
         <item quantity="other">Aplikacja usunęła wzorzec z „%1$s”. Był dłuższy niż %2$d znaków.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">Aplikacja usunęła %1$d wiersz, który nie zawiera tekstu.</item>
+        <item quantity="other">Aplikacja usunęła %1$d wierszy, które nie zawierają tekstu.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">Aplikacja skróciła „%1$s”. Był dłuższy niż %2$d znak.</item>
         <item quantity="other">Aplikacja skróciła „%1$s”. Był dłuższy niż %2$d znaków.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">Aplikacja usunęła %1$d wyzwalacz, którego klawiatura nie może monitorować. Jego fragment pozostaje na liście.</item>
+        <item quantity="other">Aplikacja usunęła %1$d wyzwalaczy, których klawiatura nie może monitorować. Ich fragmenty pozostają na liście.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Nazwa aplikacji, w której piszesz</string>
     <string name="core_content_snippet_var_clip_info">Najnowszy wpis w schowku</string>

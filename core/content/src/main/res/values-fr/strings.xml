@@ -6,6 +6,8 @@
     <string name="core_content_clip_entity_otp_tag">CODE</string>
     <string name="core_content_clip_entity_phone_label">Numéro de téléphone</string>
     <string name="core_content_clip_entity_phone_tag">TÉLÉPHONE</string>
+    <string name="core_content_clip_entity_place_label">Lieu</string>
+    <string name="core_content_clip_entity_place_tag">LIEU</string>
     <string name="core_content_clip_entity_url_label">Lien</string>
     <string name="core_content_clip_entity_url_tag">LIEN</string>
     <plurals name="core_content_espanso_note_alternates">
@@ -102,6 +104,12 @@
     <string name="core_content_font_error_woff">L\'application ne peut pas lire les polices web WOFF. Utilisez la version .ttf ou .otf de la police.</string>
     <string name="core_content_font_error_woff2">L\'application ne peut pas lire les polices Web WOFF2. Utilisez la version .ttf ou .otf de la police.</string>
     <string name="core_content_font_error_zip">Ce fichier est une archive zip, pas une police.</string>
+    <string name="core_content_note_tag_ideas">Idées</string>
+    <string name="core_content_note_tag_important">Important</string>
+    <string name="core_content_note_tag_personal">Personnel</string>
+    <string name="core_content_note_tag_school">École</string>
+    <string name="core_content_note_tag_study">Étude</string>
+    <string name="core_content_note_tag_work">Travail</string>
     <string name="core_content_selection_macro_add_contact">Contact</string>
     <string name="core_content_selection_macro_calendar">Calendrier</string>
     <string name="core_content_selection_macro_call">Appeler</string>
@@ -131,6 +139,7 @@
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Lire</string>
     <string name="core_content_selection_macro_replace">Remplacer</string>
+    <string name="core_content_selection_macro_save_note">Enregistrer comme note</string>
     <string name="core_content_selection_macro_search">Rechercher</string>
     <string name="core_content_selection_macro_share">Partager</string>
     <string name="core_content_selection_macro_sms">Message</string>
@@ -143,6 +152,10 @@
     <string name="core_content_selection_macro_translate">Traduire</string>
     <string name="core_content_selection_macro_url_decode">Décoder</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <plurals name="core_content_snippet_gboard_words_skipped">
+        <item quantity="one">Le fichier contient également %1$d mot sans raccourci. Pour l\'ajouter à vos mots, ouvrez le fichier depuis le dictionnaire personnel.</item>
+        <item quantity="other">Le fichier contient également %1$d mots sans raccourci. Pour les ajouter à vos mots, ouvrez le fichier depuis le dictionnaire personnel.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_alternates_dropped">
         <item quantity="one">L\'application a omis %2$d extension de \"%1$s\".</item>
         <item quantity="other">L\'application a omis %2$d extensions de \"%1$s\".</item>
@@ -162,9 +175,17 @@
         <item quantity="one">L\'application a supprimé le motif de \"%1$s\". Il était plus long qu\'un caractère.</item>
         <item quantity="other">L\'application a supprimé le motif de \"%1$s\". Il était plus long que %2$d caractères.</item>
     </plurals>
+    <plurals name="core_content_snippet_repair_rows_no_text">
+        <item quantity="one">L\'application a supprimé %1$d ligne sans texte.</item>
+        <item quantity="other">L\'application a supprimé %1$d lignes sans texte.</item>
+    </plurals>
     <plurals name="core_content_snippet_repair_shortened">
         <item quantity="one">L\'application a raccourci \"%1$s\". Il faisait plus de %2$d caractère.</item>
         <item quantity="other">L\'application a raccourci \"%1$s\". Il faisait plus de %2$d caractères.</item>
+    </plurals>
+    <plurals name="core_content_snippet_repair_triggers_removed">
+        <item quantity="one">L\'application a supprimé %1$d déclencheur que le clavier ne peut pas surveiller. Son extrait reste dans la liste.</item>
+        <item quantity="other">L\'application a supprimé %1$d déclencheurs que le clavier ne peut pas surveiller. Leurs extraits restent dans la liste.</item>
     </plurals>
     <string name="core_content_snippet_var_app_info">Le nom de l\'application dans laquelle vous tapez</string>
     <string name="core_content_snippet_var_clip_info">La nouvelle entrée du presse-papiers</string>

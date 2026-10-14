@@ -2,6 +2,27 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_lang_foreign_desktop_altgr_on_hold">ಕಂಪ್ಯೂಟರ್‌ನಲ್ಲಿ AltGr ಕೀ ಟೈಪ್ ಮಾಡುವ ಅಕ್ಷರಗಳು ಅದೇ ಕೀಗಳನ್ನು ಒತ್ತಿ ಹಿಡಿದಾಗ ಬರುತ್ತವೆ.</string>
+    <plurals name="core_lang_foreign_desktop_dead_keys">
+        <item quantity="one">ಕಂಪ್ಯೂಟರ್‌ನಲ್ಲಿ %1$d ಡೆಡ್ ಕೀ ಮುಂದಿನ ಅಕ್ಷರದ ಮೇಲೆ ಉಚ್ಚಾರಣೆಯನ್ನು (accent) ಇರಿಸುತ್ತದೆ. ಇಲ್ಲಿ, ಆ ಉಚ್ಚಾರಣೆಯನ್ನು ಹೊಂದಿರುವ ಅಕ್ಷರಗಳು ಪ್ರತಿ ಅಕ್ಷರವನ್ನು ಒತ್ತಿ ಹಿಡಿದಾಗ ಲಭ್ಯವಿರುತ್ತವೆ.</item>
+        <item quantity="other">ಕಂಪ್ಯೂಟರ್‌ನಲ್ಲಿ %1$d ಡೆಡ್ ಕೀಗಳು ಮುಂದಿನ ಅಕ್ಷರದ ಮೇಲೆ ಉಚ್ಚಾರಣೆಗಳನ್ನು (accents) ಇರಿಸುತ್ತವೆ. ಇಲ್ಲಿ, ಆ ಉಚ್ಚಾರಣೆಗಳನ್ನು ಹೊಂದಿರುವ ಅಕ್ಷರಗಳು ಪ್ರತಿ ಅಕ್ಷರವನ್ನು ಒತ್ತಿ ಹಿಡಿದಾಗ ಲಭ್ಯವಿರುತ್ತವೆ.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_includes_missing">
+        <item quantity="one">ಈ ಫೈಲ್ ನೀವು ತೆರೆಯದ %1$d ಇತರ ಫೈಲ್ (%2$s) ಮೇಲೆ ನಿರ್ಮಿತವಾಗಿದೆ. ಆ ಫೈಲ್ ಮಾತ್ರ ಹೊಂದಿರುವ ಕೀಗಳು ಕಾಣೆಯಾಗಿವೆ.</item>
+        <item quantity="other">ಈ ಫೈಲ್ ನೀವು ತೆರೆಯದ %1$d ಇತರ ಫೈಲ್‌ಗಳ (%2$s) ಮೇಲೆ ನಿರ್ಮಿತವಾಗಿದೆ. ಆ ಫೈಲ್‌ಗಳು ಮಾತ್ರ ಹೊಂದಿರುವ ಕೀಗಳು ಕಾಣೆಯಾಗಿವೆ.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_symbols_on_period">
+        <item quantity="one">ಪೂರ್ಣ ವಿರಾಮವನ್ನು ಒತ್ತಿ ಹಿಡಿದಾಗ ಅಕ್ಷರಗಳಿಲ್ಲದ ಕೀಯಿಂದ %1$d ಅಕ್ಷರ ಬರುತ್ತದೆ.</item>
+        <item quantity="other">ಪೂರ್ಣ ವಿರಾಮವನ್ನು ಒತ್ತಿ ಹಿಡಿದಾಗ ಅಕ್ಷರಗಳಿಲ್ಲದ ಕೀಗಳಿಂದ %1$d ಅಕ್ಷರಗಳು ಬರುತ್ತವೆ.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_desktop_unknown_symbols">
+        <item quantity="one">ಅಪ್ಲಿಕೇಶನ್‌ಗೆ ಫೈಲ್‌ನಲ್ಲಿ %1$d ಅಕ್ಷರದ ಹೆಸರು ತಿಳಿದಿಲ್ಲ, ಆದ್ದರಿಂದ ಅದನ್ನು ಬಿಟ್ಟುಬಿಡಲಾಗಿದೆ: %2$s.</item>
+        <item quantity="other">ಅಪ್ಲಿಕೇಶನ್‌ಗೆ ಫೈಲ್‌ನಲ್ಲಿ %1$d ಅಕ್ಷರದ ಹೆಸರುಗಳು ತಿಳಿದಿಲ್ಲ, ಆದ್ದರಿಂದ ಅವುಗಳನ್ನು ಬಿಟ್ಟುಬಿಡಲಾಗಿದೆ: %2$s.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_gestures_dropped">
+        <item quantity="one">ಕೀಯ ಮೇಲೆ %1$d ಸ್ವೈಪ್‌ಗೆ ಇಲ್ಲಿ ಅವಕಾಶವಿಲ್ಲ, ಏಕೆಂದರೆ ಈ ಕೀಬೋರ್ಡ್ ಆ ಸ್ವೈಪ್ ಅನ್ನು ಬೇರೆ ಕೆಲಸಕ್ಕಾಗಿ ಬಳಸುತ್ತದೆ. ಆ್ಯಪ್ ಅದನ್ನು ತೆಗೆದುಹಾಕಿದೆ.</item>
+        <item quantity="other">ಕೀಗಳ ಮೇಲೆ %1$d ಸ್ವೈಪ್‌ಗಳಿಗೆ ಇಲ್ಲಿ ಅವಕಾಶವಿಲ್ಲ, ಏಕೆಂದರೆ ಈ ಕೀಬೋರ್ಡ್ ಆ ಸ್ವೈಪ್‌ಗಳನ್ನು ಇತರ ಕೆಲಸಗಳಿಗಾಗಿ ಬಳಸುತ್ತದೆ. ಆ್ಯಪ್ ಅವುಗಳನ್ನು ತೆಗೆದುಹಾಕಿದೆ.</item>
+    </plurals>
     <plurals name="core_lang_foreign_keys_approximated">
         <item quantity="one">ಅಪ್ಲಿಕೇಶನ್ %1$d ಕೀಯನ್ನು ಅದು ಹೊಂದಿರುವ ಹತ್ತಿರದ ಕೀಗೆ ಬದಲಾಯಿಸಿದೆ.</item>
         <item quantity="other">ಅಪ್ಲಿಕೇಶನ್ %1$d ಕೀಗಳನ್ನು ಅದು ಹೊಂದಿರುವ ಹತ್ತಿರದ ಕೀಗಳಿಗೆ ಬದಲಾಯಿಸಿದೆ.</item>
@@ -23,6 +44,8 @@
         <item quantity="other">ಆ್ಯಪ್ %1$d ಅಕ್ಷರಗಳನ್ನು ಈ ಕೀಬೋರ್ಡ್ ಬರೆಯುವ ರೂಪಕ್ಕೆ ಬದಲಾಯಿಸಿದೆ.</item>
     </plurals>
     <string name="core_lang_foreign_number_row_dropped">ಅಪ್ಲಿಕೇಶನ್ ಸಂಖ್ಯೆಗಳ ಸಾಲನ್ನು ತೆಗೆದುಹಾಕಿದೆ. ಒಂದನ್ನು ಪಡೆಯಲು ಲೇಔಟ್ ಮತ್ತು ಗಾತ್ರದಲ್ಲಿ ಸಂಖ್ಯೆಯ ಸಾಲನ್ನು ಆನ್ ಮಾಡಿ.</string>
+    <string name="core_lang_foreign_number_row_kept">ಫೈಲ್‌ನ ಸಂಖ್ಯೆಗಳ ಸಾಲು ಈ ಲೇಔಟ್‌ನ ಸಂಖ್ಯೆಯ ಸಾಲಾಗಿದೆ. ಲೇಔಟ್ ಮತ್ತು ಗಾತ್ರದಲ್ಲಿ ಸಂಖ್ಯೆಯ ಸಾಲು ಆನ್ ಆಗಿರುವಾಗ ಇದು ತೋರಿಸುತ್ತದೆ.</string>
+    <string name="core_lang_foreign_pages_kept">ಫೈಲ್‌ನ ಹೆಚ್ಚುವರಿ ಪುಟಗಳು, ಉದಾಹರಣೆಗೆ AltGr, ಈ ಲೇಔಟ್‌ನ ಪುಟಗಳಾಗಿವೆ. ಅವುಗಳನ್ನು ಇಲ್ಲಿ ತೆರೆಯಲು ಇತರ ಕೀಬೋರ್ಡ್‌ನಲ್ಲಿ ಅವುಗಳನ್ನು ತೆರೆದ ಕೀಯಿಂದ ಸ್ವೈಪ್ ಮಾಡಿ.</string>
     <plurals name="core_lang_foreign_popups_missing">
         <item quantity="one">%1$d ಕೀಯು ಯಾವುದೇ ಪ್ರೆಸ್-ಅಂಡ್-ಹೋಲ್ಡ್ ಅಕ್ಷರಗಳನ್ನು ಹೊಂದಿಲ್ಲ. ಫೈಲ್ ಅವುಗಳನ್ನು ನೀವು ತೆರೆಯದ ಎರಡನೇ ಫೈಲ್‌ನಲ್ಲಿ ಇರಿಸುತ್ತದೆ.</item>
         <item quantity="other">%1$d ಕೀಗಳು ಯಾವುದೇ ಪ್ರೆಸ್-ಅಂಡ್-ಹೋಲ್ಡ್ ಅಕ್ಷರಗಳನ್ನು ಹೊಂದಿಲ್ಲ. ಫೈಲ್ ಅವುಗಳನ್ನು ನೀವು ತೆರೆಯದ ಎರಡನೇ ಫೈಲ್‌ನಲ್ಲಿ ಇರಿಸುತ್ತದೆ.</item>
@@ -30,6 +53,14 @@
     <plurals name="core_lang_foreign_selectors_flattened">
         <item quantity="one">%1$d ಕೀಲಿಯು ಶಿಫ್ಟ್ ಸ್ಥಿತಿ ಅಥವಾ ಇತರ ಕೀಬೋರ್ಡ್‌ನಲ್ಲಿನ ಫೀಲ್ಡ್‌ನೊಂದಿಗೆ ಬದಲಾಗುತ್ತದೆ. ಆ್ಯಪ್ ಅದು ವಿಶ್ರಾಂತಿಯಲ್ಲಿರುವಾಗ ಹೇಗೆ ಕಾಣುತ್ತದೆಯೋ ಹಾಗೆಯೇ ಇರಿಸಿದೆ.</item>
         <item quantity="other">%1$d ಕೀಲಿಗಳು ಶಿಫ್ಟ್ ಸ್ಥಿತಿ ಅಥವಾ ಇತರ ಕೀಬೋರ್ಡ್‌ನಲ್ಲಿನ ಫೀಲ್ಡ್‌ನೊಂದಿಗೆ ಬದಲಾಗುತ್ತವೆ. ಆ್ಯಪ್ ಅವು ವಿಶ್ರಾಂತಿಯಲ್ಲಿರುವಾಗ ಹೇಗೆ ಕಾಣುತ್ತವೆಯೋ ಹಾಗೆಯೇ ಇರಿಸಿದೆ.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_pages_dropped">
+        <item quantity="one">ಫೈಲ್‌ನಲ್ಲಿನ %1$d ಶಿಫ್ಟ್ ಮಾಡಿದ ಪುಟವು ಅದು ಶಿಫ್ಟ್ ಮಾಡುವ ಪುಟಕ್ಕಿಂತ ಬೇರೆ ಸ್ಥಳಗಳಲ್ಲಿ ಕೀಲಿಗಳನ್ನು ಹೊಂದಿದೆ. ಅಪ್ಲಿಕೇಶನ್ ಅಲ್ಲಿ ದೊಡ್ಡ ಅಕ್ಷರಗಳನ್ನು ಬಳಸುತ್ತದೆ.</item>
+        <item quantity="other">ಫೈಲ್‌ನಲ್ಲಿನ %1$d ಶಿಫ್ಟ್ ಮಾಡಿದ ಪುಟಗಳು ಅವು ಶಿಫ್ಟ್ ಮಾಡುವ ಪುಟಗಳಿಗಿಂತ ಬೇರೆ ಸ್ಥಳಗಳಲ್ಲಿ ಕೀಲಿಗಳನ್ನು ಹೊಂದಿವೆ. ಅಪ್ಲಿಕೇಶನ್ ಅಲ್ಲಿ ದೊಡ್ಡ ಅಕ್ಷರಗಳನ್ನು ಬಳಸುತ್ತದೆ.</item>
+    </plurals>
+    <plurals name="core_lang_foreign_shifted_popups_dropped">
+        <item quantity="one">ಇತರ ಕೀಬೋರ್ಡ್‌ನಲ್ಲಿ ಶಿಫ್ಟ್ ಒತ್ತಿದಾಗ %1$d ಕೀಯು ವಿಭಿನ್ನ ಪ್ರೆಸ್-ಅಂಡ್-ಹೋಲ್ಡ್ ಅಕ್ಷರಗಳನ್ನು ಹೊಂದಿರುತ್ತದೆ. ಆ್ಯಪ್ ಶಿಫ್ಟ್ ಮಾಡದ ಕೀಗಳನ್ನು ಉಳಿಸಿಕೊಂಡಿದೆ.</item>
+        <item quantity="other">ಇತರ ಕೀಬೋರ್ಡ್‌ನಲ್ಲಿ ಶಿಫ್ಟ್ ಒತ್ತಿದಾಗ %1$d ಕೀಗಳು ವಿಭಿನ್ನ ಪ್ರೆಸ್-ಅಂಡ್-ಹೋಲ್ಡ್ ಅಕ್ಷರಗಳನ್ನು ಹೊಂದಿರುತ್ತವೆ. ಆ್ಯಪ್ ಶಿಫ್ಟ್ ಮಾಡದ ಕೀಗಳನ್ನು ಉಳಿಸಿಕೊಂಡಿದೆ.</item>
     </plurals>
     <string name="core_lang_foreign_widths_scaled">ಇತರ ಕೀಬೋರ್ಡ್ ಕೀ ಅಗಲವನ್ನು ವಿಭಿನ್ನವಾಗಿ ಅಳೆಯುತ್ತದೆ. ಈ ಗ್ರಿಡ್‌ಗೆ ಹೊಂದಿಕೊಳ್ಳಲು ಆ್ಯಪ್ ಅಗಲವನ್ನು ಬದಲಾಯಿಸಿದೆ.</string>
     <plurals name="core_lang_layout_bad_braille_dots_error">

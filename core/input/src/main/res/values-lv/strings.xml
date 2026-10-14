@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Japāņu kana uz kanji vārdnīca</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Džutpina lasījumu tabula hanzi rakstzīmēm, 163 000 ierakstu. Tastatūrai šī pakotne ir nepieciešama kantoniešu valodas konvertēšanai.</string>
     <string name="core_input_cjk_pack_jyutping_title">Kantoniešu valodas Jyutping vārdnīca</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Kuri vārdi seko kuriem, skaitīti no ķīniešu tīmekļa un ziņu tekstiem. Nāk komplektā ar Piņjiņa vārdnīcu. Ar to iniciāļi, piemēram, wbxh, vispirms dod 我不喜欢, nevis divus nesaistītus vārdus.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Ķīniešu vārdu pāri</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Hanu hieroglifu zīmes un frāzes no CC-CEDICT, 120 000 ierakstu. Tastatūrai ir nepieciešama šī pakotne ķīniešu valodas konvertēšanai.</string>
     <string name="core_input_cjk_pack_pinyin_title">Ķīniešu piņjiņa vārdnīca</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Frāzes no OpenCC, 50 000 ierakstu, aptuveni 1 MB. Kad ir ieslēgtas tradicionālās rakstzīmes, tastatūra to izmanto, lai uzrakstītu vārda pareizo formu, piemēram, 頭髮, nevis 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Tradicionālo rakstzīmju frāžu tabula</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Hanzi rakstzīmju vilkumu secības tabula. Tastatūrai šī pakotne ir nepieciešama vilkumu izkārtojumam.</string>
     <string name="core_input_cjk_pack_stroke_title">Ķīniešu vilcienu (笔画) vārdnīca</string>
+    <string name="core_input_double_pinyin_custom_label">Pielāgots</string>
     <string name="core_input_double_pinyin_off_label">Izslēgts (pilns Piņjiņs)</string>
+    <string name="core_input_im_note_candidates">Dažiem taustiņiem šī metode sniedz izvēles iespēju sarakstu. Tastatūra vienmēr izmanto pirmo izvēli.</string>
+    <string name="core_input_im_note_missing_files">Šie faili netika atlasīti, tāpēc to daļa trūkst: %1$s. Lai tos iekļautu, importējiet vēlreiz un atlasiet tos kopā.</string>
+    <string name="core_input_im_note_module">Šī metode izmanto spraudni, piemēram, Anthy, ko tastatūra nevar palaist. Taustiņi, kas to izmanto, šeit neko nedara.</string>
+    <string name="core_input_im_note_other_method">Šī metode piešķir dažus taustiņus citai ievades metodei. Šī daļa šeit nedarbojas.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Lietotne nevar nolasīt %1$d pareizrakstības noteikumu, tāpēc tā to izlaiž.</item>
+        <item quantity="other">Lietotne nevar nolasīt %1$d pareizrakstības noteikumus, tāpēc tā tos izlaiž.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Šī metode izmanto atstarpes taustiņu kā taustiņu, piemēram, tonim. Šeit atstarpes taustiņš vienmēr ievada atstarpi.</string>
+    <string name="core_input_im_note_truncated">Tabula ir ļoti liela, tāpēc lietotne saglabāja tikai tās pirmo daļu.</string>
+    <string name="core_input_im_note_unused_files">Lietotne neizmantoja šos failus: %1$s.</string>
+    <string name="core_input_im_refused_broken">Failā ir kļūda, tāpēc lietotne to nevar nolasīt: %1$s</string>
+    <string name="core_input_im_refused_empty">Failā nav nekā, ar ko rakstīt.</string>
+    <string name="core_input_im_refused_no_dictionary">Shēmai ir nepieciešama tās vārdnīca. Importējiet vēlreiz un atlasiet arī %1$s.</string>
+    <string name="core_input_im_refused_not_method">Lietotne to nevar nolasīt kā ievades metodi. Tā nolasa .cin tabulas, Rime shēmas un vārdnīcas (.schema.yaml, .dict.yaml), kā arī m17n .mim failus.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Lietotne nolasīja šo kā .cin tabulu ar %1$d ierakstu. Ievadiet kodu, pēc tam izvēlieties rakstzīmi no ieteikumu joslas.</item>
+        <item quantity="other">Lietotne nolasīja šo kā .cin tabulu ar %1$d ierakstiem. Ievadiet kodu, pēc tam izvēlieties rakstzīmi no ieteikumu joslas.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Lietotne to nolasīja kā m17n ievades metodi ar %1$d kārtulu. Taustiņi raksta tekstu, kamēr jūs rakstāt.</item>
+        <item quantity="other">Lietotne to nolasīja kā m17n ievades metodi ar %1$d kārtulām. Taustiņi raksta tekstu, kamēr jūs rakstāt.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Lietotne to nolasīja kā Rime shēmu ar %1$d vārdnīcas ierakstu. Ievadiet zilbes, pēc tam izvēlieties vārdus no ieteikumu joslas.</item>
+        <item quantity="other">Lietotne to nolasīja kā Rime shēmu ar %1$d vārdnīcas ierakstiem. Ievadiet zilbes, pēc tam izvēlieties vārdus no ieteikumu joslas.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Lietotne to nolasīja kā Rime kodu tabulu ar %1$d ierakstu. Ievadiet kodu, pēc tam izvēlieties rakstzīmi no ieteikumu joslas.</item>
+        <item quantity="other">Lietotne to nolasīja kā Rime kodu tabulu ar %1$d ierakstiem. Ievadiet kodu, pēc tam izvēlieties rakstzīmi no ieteikumu joslas.</item>
+    </plurals>
 </resources>

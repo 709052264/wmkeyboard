@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">ಜಪಾನೀಸ್ ಕಾನಾದಿಂದ ಕಾಂಜಿ ನಿಘಂಟು</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">ಹಂಜಿ ಅಕ್ಷರಗಳಿಗೆ ಜ್ಯುಟ್‌ಪಿಂಗ್ ಉಚ್ಚಾರಣೆಗಳ ಕೋಷ್ಟಕ, 163,000 ನಮೂದುಗಳು. ಕ್ಯಾಂಟನೀಸ್ ಪರಿವರ್ತನೆಗಾಗಿ ಕೀಬೋರ್ಡ್‌ಗೆ ಈ ಪ್ಯಾಕ್ ಅಗತ್ಯವಿದೆ.</string>
     <string name="core_input_cjk_pack_jyutping_title">ಕ್ಯಾಂಟನೀಸ್ ಜ್ಯುಟ್‌ಪಿಂಗ್ ನಿಘಂಟು</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">ಚೈನೀಸ್ ವೆಬ್ ಮತ್ತು ಸುದ್ದಿ ಪಠ್ಯದಿಂದ ಎಣಿಸಲಾದ ಯಾವ ಪದಗಳು ಯಾವುದನ್ನು ಅನುಸರಿಸುತ್ತವೆ. ಇದು ಪಿನ್ಯಿನ್ ನಿಘಂಟಿನೊಂದಿಗೆ ಬರುತ್ತದೆ. ಇದರೊಂದಿಗೆ, wbxh ನಂತಹ ಇನಿಷಿಯಲ್‌ಗಳು ಎರಡು ಸಂಬಂಧವಿಲ್ಲದ ಪದಗಳ ಬದಲಿಗೆ ಮೊದಲು 我不喜欢 ಎಂದು ನೀಡುತ್ತವೆ.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">ಚೈನೀಸ್ ಪದಗಳ ಜೋಡಿಗಳು</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">CC-CEDICT ನಿಂದ ಹಾಂಜಿ ಅಕ್ಷರಗಳು ಮತ್ತು ಪದಗುಚ್ಛಗಳು, 120,000 ನಮೂದುಗಳು. ಚೈನೀಸ್ ಪರಿವರ್ತನೆಗಾಗಿ ಕೀಬೋರ್ಡ್‌ಗೆ ಈ ಪ್ಯಾಕ್ ಅಗತ್ಯವಿದೆ.</string>
     <string name="core_input_cjk_pack_pinyin_title">ಚೈನೀಸ್ ಪಿನ್ಯಿನ್ ನಿಘಂಟು</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">OpenCC ನಿಂದ ನುಡಿಗಟ್ಟುಗಳು, 50,000 ನಮೂದುಗಳು, ಸುಮಾರು 1 MB. ಸಾಂಪ್ರದಾಯಿಕ ಅಕ್ಷರಗಳನ್ನು ಆನ್ ಮಾಡಿದಾಗ, ಕೀಬೋರ್ಡ್ ಪದಕ್ಕೆ ಸರಿಯಾದ ರೂಪವನ್ನು ಬರೆಯಲು ಇದನ್ನು ಬಳಸುತ್ತದೆ, ಉದಾಹರಣೆಗೆ 頭髮 ಮತ್ತು 頭發 ಅಲ್ಲ.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">ಸಾಂಪ್ರದಾಯಿಕ ಅಕ್ಷರಗಳ ಪದಗುಚ್ಛ ಕೋಷ್ಟಕ</string>
     <string name="core_input_cjk_pack_stroke_subtitle">ಹಂಜಿ ಅಕ್ಷರಗಳ ಸ್ಟ್ರೋಕ್ ಕ್ರಮದ ಕೋಷ್ಟಕ. ಸ್ಟ್ರೋಕ್ ಲೇಔಟ್‌ಗಾಗಿ ಕೀಬೋರ್ಡ್‌ಗೆ ಈ ಪ್ಯಾಕ್ ಅಗತ್ಯವಿದೆ.</string>
     <string name="core_input_cjk_pack_stroke_title">ಚೈನೀಸ್ ಸ್ಟ್ರೋಕ್ (笔画) ನಿಘಂಟು</string>
+    <string name="core_input_double_pinyin_custom_label">ಕಸ್ಟಮ್</string>
     <string name="core_input_double_pinyin_off_label">ಆಫ್ (ಪೂರ್ಣ ಪಿನ್ಯಿನ್)</string>
+    <string name="core_input_im_note_candidates">ಕೆಲವು ಕೀಲಿಗಳಿಗೆ ಈ ವಿಧಾನವು ಆಯ್ಕೆಗಳ ಪಟ್ಟಿಯನ್ನು ನೀಡುತ್ತದೆ. ಕೀಬೋರ್ಡ್ ಯಾವಾಗಲೂ ಮೊದಲ ಆಯ್ಕೆಯನ್ನು ಬಳಸುತ್ತದೆ.</string>
+    <string name="core_input_im_note_missing_files">ಈ ಫೈಲ್‌ಗಳನ್ನು ಆಯ್ಕೆ ಮಾಡಲಾಗಿಲ್ಲ, ಆದ್ದರಿಂದ ಅವುಗಳ ಭಾಗ ಕಾಣೆಯಾಗಿದೆ: %1$s. ಅವುಗಳನ್ನು ಸೇರಿಸಲು, ಮತ್ತೆ ಆಮದು ಮಾಡಿ ಮತ್ತು ಅವುಗಳನ್ನು ಒಟ್ಟಿಗೆ ಆಯ್ಕೆ ಮಾಡಿ.</string>
+    <string name="core_input_im_note_module">ಈ ವಿಧಾನವು ಆಂಥಿ (Anthy) ನಂತಹ ಪ್ಲಗ್-ಇನ್ ಅನ್ನು ಬಳಸುತ್ತದೆ, ಅದನ್ನು ಕೀಬೋರ್ಡ್ ರನ್ ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ. ಅದನ್ನು ಬಳಸುವ ಕೀಗಳು ಇಲ್ಲಿ ಏನನ್ನೂ ಮಾಡುವುದಿಲ್ಲ.</string>
+    <string name="core_input_im_note_other_method">ಈ ವಿಧಾನವು ಕೆಲವು ಕೀಲಿಗಳನ್ನು ಮತ್ತೊಂದು ಇನ್‌ಪುಟ್ ವಿಧಾನಕ್ಕೆ ನೀಡುತ್ತದೆ. ಆ ಭಾಗವು ಇಲ್ಲಿ ಕೆಲಸ ಮಾಡುವುದಿಲ್ಲ.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">ಆ್ಯಪ್ %1$d ಕಾಗುಣಿತ ನಿಯಮವನ್ನು ಓದಲು ಸಾಧ್ಯವಿಲ್ಲ, ಆದ್ದರಿಂದ ಅದನ್ನು ಬಿಟ್ಟುಬಿಡುತ್ತದೆ.</item>
+        <item quantity="other">ಆ್ಯಪ್ %1$d ಕಾಗುಣಿತ ನಿಯಮಗಳನ್ನು ಓದಲು ಸಾಧ್ಯವಿಲ್ಲ, ಆದ್ದರಿಂದ ಅವುಗಳನ್ನು ಬಿಟ್ಟುಬಿಡುತ್ತದೆ.</item>
+    </plurals>
+    <string name="core_input_im_note_space">ಈ ವಿಧಾನವು ಸ್ಪೇಸ್ ಬಾರ್ ಅನ್ನು ಕೀಲಿಯಾಗಿ ಬಳಸುತ್ತದೆ, ಉದಾಹರಣೆಗೆ ಟೋನ್ಗಾಗಿ. ಇಲ್ಲಿ ಸ್ಪೇಸ್ ಬಾರ್ ಯಾವಾಗಲೂ ಸ್ಪೇಸ್ ಅನ್ನು ಟೈಪ್ ಮಾಡುತ್ತದೆ.</string>
+    <string name="core_input_im_note_truncated">ಟೇಬಲ್ ತುಂಬಾ ದೊಡ್ಡದಾಗಿದೆ, ಆದ್ದರಿಂದ ಆ್ಯಪ್ ಅದರ ಮೊದಲ ಭಾಗವನ್ನು ಮಾತ್ರ ಉಳಿಸಿಕೊಂಡಿದೆ.</string>
+    <string name="core_input_im_note_unused_files">ಅಪ್ಲಿಕೇಶನ್ ಈ ಫೈಲ್‌ಗಳನ್ನು ಬಳಸಿಲ್ಲ: %1$s.</string>
+    <string name="core_input_im_refused_broken">ಫೈಲ್‌ನಲ್ಲಿ ದೋಷವಿದೆ, ಆದ್ದರಿಂದ ಅಪ್ಲಿಕೇಶನ್ ಅದನ್ನು ಓದಲು ಸಾಧ್ಯವಿಲ್ಲ: %1$s</string>
+    <string name="core_input_im_refused_empty">ಫೈಲ್‌ನಲ್ಲಿ ಟೈಪ್ ಮಾಡಲು ಏನೂ ಇಲ್ಲ.</string>
+    <string name="core_input_im_refused_no_dictionary">ಸ್ಕೀಮಾಗೆ ಅದರ ನಿಘಂಟಿನ ಅಗತ್ಯವಿದೆ. ಮತ್ತೆ ಆಮದು ಮಾಡಿ ಮತ್ತು %1$s ಅನ್ನು ಸಹ ಆಯ್ಕೆಮಾಡಿ.</string>
+    <string name="core_input_im_refused_not_method">ಅಪ್ಲಿಕೇಶನ್ ಅದನ್ನು ಇನ್‌ಪುಟ್ ವಿಧಾನವಾಗಿ ಓದಲು ಸಾಧ್ಯವಿಲ್ಲ. ಇದು .cin ಟೇಬಲ್‌ಗಳು, Rime ಸ್ಕೀಮಾಗಳು ಮತ್ತು ಡಿಕ್ಷನರಿಗಳು (.schema.yaml, .dict.yaml), ಮತ್ತು m17n .mim ಫೈಲ್‌ಗಳನ್ನು ಓದುತ್ತದೆ.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">ಅಪ್ಲಿಕೇಶನ್ ಇದನ್ನು %1$d ನಮೂದನ್ನು ಹೊಂದಿರುವ .cin ಟೇಬಲ್ ಎಂದು ಓದಿದೆ. ಕೋಡ್ ಟೈಪ್ ಮಾಡಿ, ನಂತರ ಸಲಹೆ ಪಟ್ಟಿಯಿಂದ ಅಕ್ಷರವನ್ನು ಆಯ್ಕೆಮಾಡಿ.</item>
+        <item quantity="other">ಅಪ್ಲಿಕೇಶನ್ ಇದನ್ನು %1$d ನಮೂದುಗಳನ್ನು ಹೊಂದಿರುವ .cin ಟೇಬಲ್ ಎಂದು ಓದಿದೆ. ಕೋಡ್ ಟೈಪ್ ಮಾಡಿ, ನಂತರ ಸಲಹೆ ಪಟ್ಟಿಯಿಂದ ಅಕ್ಷರವನ್ನು ಆಯ್ಕೆಮಾಡಿ.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">ಆ್ಯಪ್ ಇದನ್ನು %1$d ನಿಯಮದೊಂದಿಗೆ m17n ಇನ್‌ಪುಟ್ ಮೆಥಡ್ ಎಂದು ಓದಿದೆ. ನೀವು ಟೈಪ್ ಮಾಡುವಾಗ ಕೀಗಳು ಪಠ್ಯವನ್ನು ಬರೆಯುತ್ತವೆ.</item>
+        <item quantity="other">ಆ್ಯಪ್ ಇದನ್ನು %1$d ನಿಯಮಗಳೊಂದಿಗೆ m17n ಇನ್‌ಪುಟ್ ಮೆಥಡ್ ಎಂದು ಓದಿದೆ. ನೀವು ಟೈಪ್ ಮಾಡುವಾಗ ಕೀಗಳು ಪಠ್ಯವನ್ನು ಬರೆಯುತ್ತವೆ.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">ಅಪ್ಲಿಕೇಶನ್ ಇದನ್ನು %1$d ಡಿಕ್ಷನರಿ ಎಂಟ್ರಿಯೊಂದಿಗೆ Rime ಸ್ಕೀಮಾ ಎಂದು ಓದಿದೆ. ಉಚ್ಚಾರಣೆಗಳನ್ನು ಟೈಪ್ ಮಾಡಿ, ನಂತರ ಸಲಹೆ ಪಟ್ಟಿಯಿಂದ ಪದಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ.</item>
+        <item quantity="other">ಅಪ್ಲಿಕೇಶನ್ ಇದನ್ನು %1$d ಡಿಕ್ಷನರಿ ಎಂಟ್ರಿಗಳೊಂದಿಗೆ Rime ಸ್ಕೀಮಾ ಎಂದು ಓದಿದೆ. ಉಚ್ಚಾರಣೆಗಳನ್ನು ಟೈಪ್ ಮಾಡಿ, ನಂತರ ಸಲಹೆ ಪಟ್ಟಿಯಿಂದ ಪದಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">ಅಪ್ಲಿಕೇಶನ್ ಇದನ್ನು %1$d ನಮೂದಿನೊಂದಿಗೆ Rime ಕೋಡ್ ಟೇಬಲ್ ಎಂದು ಓದಿದೆ. ಕೋಡ್ ಅನ್ನು ಟೈಪ್ ಮಾಡಿ, ನಂತರ ಸಲಹೆ ಸ್ಟ್ರಿಪ್‌ನಿಂದ ಅಕ್ಷರವನ್ನು ಆರಿಸಿ.</item>
+        <item quantity="other">ಅಪ್ಲಿಕೇಶನ್ ಇದನ್ನು %1$d ನಮೂದುಗಳೊಂದಿಗೆ Rime ಕೋಡ್ ಟೇಬಲ್ ಎಂದು ಓದಿದೆ. ಕೋಡ್ ಅನ್ನು ಟೈಪ್ ಮಾಡಿ, ನಂತರ ಸಲಹೆ ಸ್ಟ್ರಿಪ್‌ನಿಂದ ಅಕ್ಷರವನ್ನು ಆರಿಸಿ.</item>
+    </plurals>
 </resources>

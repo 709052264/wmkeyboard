@@ -3,8 +3,34 @@
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
     <string name="ftools_ai_stream_error">AI-leverandøren avsluttet svaret med en feil</string>
+    <string name="ftools_ai_tool_failed">Verktøyet feilet: %1$s. Ikke kall det igjen med samme inndata.</string>
+    <string name="ftools_ai_tool_missing_argument">Kallet utelot den påkrevde \"%1$s\"-verdien.</string>
+    <string name="ftools_ai_tool_no_results">Ingen resultater.</string>
+    <string name="ftools_ai_tool_no_search">Nettsøk er ikke satt opp på dette tastaturet, så søking er ikke mulig. Svar ut fra det du allerede vet og si at du ikke kunne søke.</string>
+    <string name="ftools_ai_tool_reason_bad_url">Ikke en nettadresse tastaturet vil åpne</string>
+    <string name="ftools_ai_tool_reason_missing">Modellen utelot %1$s</string>
+    <string name="ftools_ai_tool_reason_no_search">Nettsøk er ikke konfigurert</string>
+    <string name="ftools_ai_tool_reason_unknown">Modellen ba om et verktøy som ikke eksisterer</string>
+    <string name="ftools_ai_tool_truncated">[siden fortsetter forbi dette punktet og ble kuttet]</string>
+    <string name="ftools_ai_tool_unknown">Det finnes ingen verktøy som heter %1$s.</string>
+    <string name="ftools_mcp_declined">Brukeren tillot ikke dette anropet. Ikke kall dette verktøyet igjen i dette svaret. Svar uten det, og si hva du ikke kunne gjøre.</string>
+    <string name="ftools_mcp_empty">Verktøyet kjørte og sendte ingenting tilbake.</string>
+    <string name="ftools_mcp_error_needs_input">Serveren ba om mer input, og tastaturet kan ikke gi det ennå.</string>
+    <string name="ftools_mcp_error_no_version">Denne serveren bruker en nyere versjon av MCP enn tastaturet kjenner til.</string>
+    <string name="ftools_mcp_error_not_mcp">Denne adressen svarte ikke som en MCP-tjener. Kontroller adressen og typen.</string>
+    <string name="ftools_mcp_error_server">Serveren sendte en feil: %1$s</string>
+    <string name="ftools_mcp_error_sign_in">Denne tjeneren krever at du logger inn, og tastaturet kan ikke gjøre det ennå. Hvis tjeneren utsteder tokener eller nøkler, legg til en som en overskrift.</string>
+    <string name="ftools_mcp_omitted">[verktøyet sendte også tilbake innhold du ikke kan lese her: %1$s]</string>
+    <string name="ftools_mcp_reason_declined">Du tillot det ikke</string>
+    <string name="ftools_mcp_reason_stopped">Stoppet før den kjørte</string>
+    <string name="ftools_mcp_reason_tool_error">Verktøyet rapporterte en feil</string>
+    <string name="ftools_mcp_stopped">Anropet ble avbrutt før det ble kjørt.</string>
+    <string name="ftools_mcp_tool_error">Verktøyet rapporterte en feil: %1$s</string>
+    <string name="ftools_mcp_truncated">[svaret fortsetter forbi dette punktet og ble kuttet]</string>
     <string name="ftools_photo_error_failed">Appen kunne ikke hente bildene</string>
     <string name="ftools_photo_error_offline">Appen kan ikke nå bildetjenesten. Sjekk nettverket ditt og prøv igjen.</string>
     <string name="ftools_photo_error_timeout">Bilde-tjenesten brukte for lang tid på å svare</string>
     <string name="ftools_search_error_json_disabled">Denne SearXNG-instansen har ikke aktivert sitt JSON-API. Legg til &lt;b&gt;json&lt;/b&gt; i &lt;b&gt;search.formats&lt;/b&gt; i sin settings.yml, eller bruk en annen instans.</string>
+    <string name="ftools_search_error_searx_limited">Denne SearXNG-instansen avviser apper for øyeblikket (HTTP 429). Offentlige instanser begrenser forespørsler som ikke kommer fra en nettleser. Prøv igjen senere, eller bruk din egen instans, eller en som tillater bruk av JSON-API-et sitt.</string>
+    <string name="ftools_web_fetch_bad_url">Dette er ikke en nettadresse som dette tastaturet vil åpne. Oppgi en fullstendig http://- eller https://-adresse.</string>
 </resources>

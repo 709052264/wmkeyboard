@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">Japonų kalbos kana į kandži žodynas</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">Jyutping skaitymų į Hanzi simbolius lentelė, 163 000 įrašų. Klaviatūrai šis paketas reikalingas kantonų kalbos konvertavimui.</string>
     <string name="core_input_cjk_pack_jyutping_title">Kantono kalbos „Jyutping“ žodynas</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">Kokie žodžiai seka po kitų, suskaičiuota iš kiniško interneto ir naujienų tekstų. Pateikiama kartu su „Pinyin“ žodynu. Naudojant jį, pradžios raidės, tokios kaip wbxh, pirmiausia pateikia 我不喜欢, o ne du nesusijusius žodžius.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">Kinų kalbos žodžių poros</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">Hanzi rašmenys ir frazės iš CC-CEDICT, 120 000 įrašų. Klaviatūrai šis paketas reikalingas kinų kalbos konvertavimui.</string>
     <string name="core_input_cjk_pack_pinyin_title">Kinų kalbos „Pinyin“ žodynas</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">Frazės iš „OpenCC“, 50 000 įrašų, apie 1 MB. Įjungus tradicinius rašmenis, klaviatūra naudoja tai, kad parašytų teisingą žodžio formą, pavyzdžiui, 頭髮, o ne 頭發.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">Tradicinių rašmenų frazių lentelė</string>
     <string name="core_input_cjk_pack_stroke_subtitle">Brūkšnių tvarkos ir hieroglifų atitikmenų lentelė. Klaviatūrai šis paketas reikalingas brūkšnių išdėstymui.</string>
     <string name="core_input_cjk_pack_stroke_title">Kinų kalbos brūkšnių (笔画) žodynas</string>
+    <string name="core_input_double_pinyin_custom_label">Pasirinktinis</string>
     <string name="core_input_double_pinyin_off_label">Išjungta (pilnas Pinyin)</string>
+    <string name="core_input_im_note_candidates">Kai kuriems klavišams šis metodas pateikia pasirinkimų sąrašą. Klaviatūra visada naudoja pirmąjį pasirinkimą.</string>
+    <string name="core_input_im_note_missing_files">Šie failai nebuvo pasirinkti, todėl jų dalis trūksta: %1$s. Norėdami juos įtraukti, importuokite dar kartą ir pasirinkite juos kartu.</string>
+    <string name="core_input_im_note_module">Šis metodas naudoja papildinį, pvz., „Anthy“, kurio klaviatūra negali paleisti. Klavišai, kurie jį naudoja, čia neveikia.</string>
+    <string name="core_input_im_note_other_method">Šis metodas suteikia tam tikrus klavišus kitam įvesties metodui. Ta dalis čia neveikia.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">Programa negali perskaityti %1$d rašybos taisyklės, todėl ją praleidžia.</item>
+        <item quantity="other">Programa negali perskaityti %1$d rašybos taisyklių, todėl jas praleidžia.</item>
+    </plurals>
+    <string name="core_input_im_note_space">Šis metodas naudoja tarpo klavišą kaip klavišą, pavyzdžiui, tonui. Čia tarpo klavišas visada įveda tarpą.</string>
+    <string name="core_input_im_note_truncated">Lentelė labai didelė, todėl programa išsaugojo tik pirmąją jos dalį.</string>
+    <string name="core_input_im_note_unused_files">Programa nenaudojo šių failų: %1$s.</string>
+    <string name="core_input_im_refused_broken">Faile yra klaida, todėl programa negali jo nuskaityti: %1$s</string>
+    <string name="core_input_im_refused_empty">Faile nėra nieko, ką būtų galima įvesti.</string>
+    <string name="core_input_im_refused_no_dictionary">Schemai reikia jos žodyno. Importuokite dar kartą ir pasirinkite %1$s.</string>
+    <string name="core_input_im_refused_not_method">Programa negali nuskaityti to kaip įvesties metodo. Ji nuskaito .cin lenteles, „Rime“ schemas ir žodynus (.schema.yaml, .dict.yaml) bei m17n .mim failus.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">Programa tai atpažino kaip .cin lentelę su %1$d įrašu. Įveskite kodą, tada pasirinkite simbolį iš pasiūlymų juostos.</item>
+        <item quantity="other">Programa tai atpažino kaip .cin lentelę su %1$d įrašais. Įveskite kodą, tada pasirinkite simbolį iš pasiūlymų juostos.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">Programa tai atpažino kaip m17n įvesties metodą su %1$d taisykle. Klavišai rašo tekstą jums spausdinant.</item>
+        <item quantity="other">Programa tai atpažino kaip m17n įvesties metodą su %1$d taisyklėmis. Klavišai rašo tekstą jums spausdinant.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">Programa tai perskaitė kaip „Rime“ schemą su %1$d žodyno įrašu. Įveskite skiemenis, tada pasirinkite žodžius iš pasiūlymų juostos.</item>
+        <item quantity="other">Programa tai perskaitė kaip „Rime“ schemą su %1$d žodyno įrašais. Įveskite skiemenis, tada pasirinkite žodžius iš pasiūlymų juostos.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">Programa atpažino tai kaip „Rime“ kodų lentelę su %1$d įrašu. Įveskite kodą, tada pasirinkite simbolį iš pasiūlymų juostos.</item>
+        <item quantity="other">Programa atpažino tai kaip „Rime“ kodų lentelę su %1$d įrašais. Įveskite kodą, tada pasirinkite simbolį iš pasiūlymų juostos.</item>
+    </plurals>
 </resources>

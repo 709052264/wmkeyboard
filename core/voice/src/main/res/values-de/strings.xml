@@ -8,6 +8,12 @@
     <string name="core_voice_model_base_eu_body">Dieses Modell verwendet die Sprache, in der Sie tippen, genau wie das 40-Sprachen-Modell. Es deckt nur europäische Sprachen ab, daher ist der Download kleiner.</string>
     <string name="core_voice_model_base_multi_body">Dieses Modell gleicht Genauigkeit und Geschwindigkeit aus. Es deckt jede Sprache ab, die Whisper kennt. Wähle es aus, wenn das kleine Modell zu langsam ist.</string>
     <string name="core_voice_model_base_world_body">Dieses Modell verwendet die Sprache, in der Sie tippen, anstatt zu raten. Kurze Sätze werden viel zuverlässiger. Wählen Sie es aus, wenn seine Liste Ihre Sprachen enthält.</string>
+    <string name="core_voice_model_cpp_base_body">Dieses Modell gleicht Genauigkeit und Geschwindigkeit aus. Es verwendet die Sprache, in der Sie diktieren, in einer der 99 Sprachen, die Whisper kennt, und es hört auf Ihre eigenen Wörter. Wählen Sie es aus, wenn das kleine Modell zu langsam ist.</string>
+    <string name="core_voice_model_cpp_large_body">Dies ist das genaueste Whisper-Modell. Der Download ist 1,1 GB groß. Nur ein Gerät mit viel Arbeitsspeicher kann es laden. Das Turbo-Modell ist fast genauso genau und halb so groß.</string>
+    <string name="core_voice_model_cpp_medium_body">Dieses Modell bietet nahezu Desktop-Genauigkeit. Jeder Satz dauert einige Sekunden. Das Modell verbraucht während der Ausführung fast ein Gigabyte Arbeitsspeicher.</string>
+    <string name="core_voice_model_cpp_small_body">Dieses Modell bietet die beste Genauigkeit, die auf einem Telefon noch gut läuft. Es verwendet die Sprache, in der Sie diktieren, aus einer der 99 Sprachen, die Whisper kennt, und hört auf Ihre eigenen Worte.</string>
+    <string name="core_voice_model_cpp_tiny_body">Dies ist das schnellste Modell. Es funktioniert gut bei klarer Sprache, aber Lärm verringert die Genauigkeit. Es verwendet die Sprache, in der Sie diktieren, und hört auf Ihre eigenen Wörter.</string>
+    <string name="core_voice_model_cpp_turbo_body">Dieses Modell ist fast so genau wie das größte Modell, bei halber Größe. Jeder Satz dauert einige Sekunden und es kann nicht übersetzen.</string>
     <plurals name="core_voice_model_language_count">
         <item quantity="one">%1$d Sprache</item>
         <item quantity="other">%1$d Sprachen</item>
@@ -32,4 +38,5 @@
     <string name="core_voice_whisper_module_downloading">Die Offline-Spracheingabekomponente der Tastatur wird von Google Play heruntergeladen. Versuchen Sie es in Kürze erneut.</string>
     <string name="core_voice_whisper_module_restart">Die Installation der Offline-Spracheingabe wurde abgeschlossen. Schließen Sie die Tastatur und öffnen Sie sie erneut, um sie zu verwenden.</string>
     <string name="core_voice_whisper_transcribe_error">Die Spracheingabe hat nicht funktioniert. Versuchen Sie es erneut oder wählen Sie ein kleineres Modell.</string>
+    <string name="core_voice_whistle_checksum_error">Das heruntergeladene Modell ist beschädigt. Laden Sie es erneut herunter.</string>
 </resources>

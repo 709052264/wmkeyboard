@@ -15,9 +15,45 @@
     <string name="core_input_cjk_pack_ja_kana_title">일본어 가나-한자 사전</string>
     <string name="core_input_cjk_pack_jyutping_subtitle">한자 문자에 대한 월병(Jyutping) 읽기 표, 163,000개 항목. 키보드에서 광둥어 변환을 위해 이 팩이 필요합니다.</string>
     <string name="core_input_cjk_pack_jyutping_title">광둥어 월병 사전</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_subtitle">중국어 웹 및 뉴스 텍스트를 기반으로 계산된 단어 연결 순서입니다. 병음 사전과 함께 제공됩니다. 이 기능을 사용하면 \'wbxh\'와 같은 이니셜 입력 시 관련 없는 두 단어가 아닌 \'我不喜欢(나는 좋아하지 않는다)\'이 먼저 표시됩니다.</string>
+    <string name="core_input_cjk_pack_pinyin_ngrams_title">중국어 단어 쌍</string>
     <string name="core_input_cjk_pack_pinyin_subtitle">CC-CEDICT 기반의 한자 및 구문, 120,000개 항목. 키보드에서 중국어 변환을 위해 이 팩이 필요합니다.</string>
     <string name="core_input_cjk_pack_pinyin_title">중국어 병음 사전</string>
+    <string name="core_input_cjk_pack_s2t_phrases_subtitle">OpenCC에서 제공하는 50,000개 항목의 문구 데이터(약 1MB)입니다. 번체자 모드가 켜져 있으면 키보드가 이를 사용하여 頭髮(머리카락)과 같이 올바른 형태의 단어를 작성합니다.</string>
+    <string name="core_input_cjk_pack_s2t_phrases_title">번체자 구문 표</string>
     <string name="core_input_cjk_pack_stroke_subtitle">한자 획순 표입니다. 획순 레이아웃을 사용하려면 키보드에 이 팩이 필요합니다.</string>
     <string name="core_input_cjk_pack_stroke_title">중국어 획(笔画) 사전</string>
+    <string name="core_input_double_pinyin_custom_label">사용자 지정</string>
     <string name="core_input_double_pinyin_off_label">끄기 (전체 병음)</string>
+    <string name="core_input_im_note_candidates">일부 키의 경우 이 방식은 선택지 목록을 제공합니다. 키보드는 항상 첫 번째 선택지를 사용합니다.</string>
+    <string name="core_input_im_note_missing_files">파일이 선택되지 않아 다음 부분이 누락되었습니다: %1$s. 포함하려면 다시 가져오기하여 파일을 함께 선택하세요.</string>
+    <string name="core_input_im_note_module">이 입력 방식은 키보드에서 실행할 수 없는 Anthy와 같은 플러그인을 사용합니다. 이 방식을 사용하는 키는 여기에서 아무런 동작도 하지 않습니다.</string>
+    <string name="core_input_im_note_other_method">이 방법은 다른 입력 방식에 일부 키를 제공합니다. 해당 부분은 여기에서 작동하지 않습니다.</string>
+    <plurals name="core_input_im_note_skipped_rules">
+        <item quantity="one">앱이 %1$d개의 맞춤법 규칙을 읽을 수 없어 건너뜁니다.</item>
+        <item quantity="other">앱이 %1$d개의 맞춤법 규칙을 읽을 수 없어 건너뜁니다.</item>
+    </plurals>
+    <string name="core_input_im_note_space">이 방식은 스페이스바를 키(예: 성조)로 사용합니다. 여기서는 스페이스바를 누르면 항상 공백이 입력됩니다.</string>
+    <string name="core_input_im_note_truncated">표가 너무 커서 앱이 앞부분만 유지했습니다.</string>
+    <string name="core_input_im_note_unused_files">앱에서 다음 파일을 사용하지 않았습니다: %1$s.</string>
+    <string name="core_input_im_refused_broken">파일에 오류가 있어 앱에서 읽을 수 없습니다: %1$s</string>
+    <string name="core_input_im_refused_empty">파일에 입력할 내용이 없습니다.</string>
+    <string name="core_input_im_refused_no_dictionary">스키마에 사전이 필요합니다. 다시 가져오고 %1$s도 선택하세요.</string>
+    <string name="core_input_im_refused_not_method">앱에서 해당 입력 방식을 읽을 수 없습니다. .cin 테이블, Rime 스키마 및 사전(.schema.yaml, .dict.yaml), m17n .mim 파일을 읽을 수 있습니다.</string>
+    <plurals name="core_input_im_summary_cin">
+        <item quantity="one">앱이 이를 %1$d개의 항목이 포함된 .cin 테이블로 읽었습니다. 코드를 입력한 다음 제안 스트립에서 문자를 선택하세요.</item>
+        <item quantity="other">앱이 이를 %1$d개의 항목이 포함된 .cin 테이블로 읽었습니다. 코드를 입력한 다음 제안 스트립에서 문자를 선택하세요.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_m17n">
+        <item quantity="one">앱이 이를 %1$d개의 규칙을 가진 m17n 입력 방식으로 읽었습니다. 키를 누르면 입력한 대로 텍스트가 작성됩니다.</item>
+        <item quantity="other">앱이 이를 %1$d개의 규칙을 가진 m17n 입력 방식으로 읽었습니다. 키를 누르면 입력한 대로 텍스트가 작성됩니다.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_reading">
+        <item quantity="one">앱이 이를 %1$d개의 사전 항목이 포함된 Rime 스키마로 읽었습니다. 음절을 입력한 다음 제안 줄에서 단어를 선택하세요.</item>
+        <item quantity="other">앱이 이를 %1$d개의 사전 항목이 포함된 Rime 스키마로 읽었습니다. 음절을 입력한 다음 제안 줄에서 단어를 선택하세요.</item>
+    </plurals>
+    <plurals name="core_input_im_summary_rime_table">
+        <item quantity="one">앱이 이를 %1$d개의 항목이 있는 Rime 코드 테이블로 읽었습니다. 코드를 입력한 다음 제안 스트립에서 문자를 선택하세요.</item>
+        <item quantity="other">앱이 이를 %1$d개의 항목이 있는 Rime 코드 테이블로 읽었습니다. 코드를 입력한 다음 제안 스트립에서 문자를 선택하세요.</item>
+    </plurals>
 </resources>

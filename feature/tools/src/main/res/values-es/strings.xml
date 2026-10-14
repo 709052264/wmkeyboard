@@ -3,8 +3,34 @@
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
     <string name="ftools_ai_stream_error">El proveedor de IA finalizó la respuesta con un error</string>
+    <string name="ftools_ai_tool_failed">La herramienta falló: %1$s. No la vuelvas a llamar con la misma entrada.</string>
+    <string name="ftools_ai_tool_missing_argument">La llamada omitió el valor requerido \"%1$s\".</string>
+    <string name="ftools_ai_tool_no_results">Sin resultados.</string>
+    <string name="ftools_ai_tool_no_search">La búsqueda web no está configurada en este teclado, por lo que no es posible buscar. Responde con lo que ya sabes y di que no pudiste buscar.</string>
+    <string name="ftools_ai_tool_reason_bad_url">No es una dirección web que el teclado pueda abrir</string>
+    <string name="ftools_ai_tool_reason_missing">El modelo omitió %1$s</string>
+    <string name="ftools_ai_tool_reason_no_search">La búsqueda web no está configurada</string>
+    <string name="ftools_ai_tool_reason_unknown">El modelo solicitó una herramienta que no existe</string>
+    <string name="ftools_ai_tool_truncated">[la página continúa más allá de este punto y fue recortada]</string>
+    <string name="ftools_ai_tool_unknown">No existe ninguna herramienta llamada %1$s.</string>
+    <string name="ftools_mcp_declined">El usuario no permitió esta llamada. No vuelvas a llamar a esta herramienta en esta respuesta. Responde sin ella y explica lo que no pudiste hacer.</string>
+    <string name="ftools_mcp_empty">La herramienta se ejecutó y no envió nada de vuelta.</string>
+    <string name="ftools_mcp_error_needs_input">El servidor solicitó más información y el teclado aún no puede proporcionarla.</string>
+    <string name="ftools_mcp_error_no_version">Este servidor utiliza una versión de MCP más reciente de la que conoce el teclado.</string>
+    <string name="ftools_mcp_error_not_mcp">Esta dirección no respondió como un servidor MCP. Verifica la dirección y el tipo.</string>
+    <string name="ftools_mcp_error_server">El servidor envió un error: %1$s</string>
+    <string name="ftools_mcp_error_sign_in">Este servidor requiere que inicies sesión, y el teclado aún no puede hacerlo. Si el servidor proporciona tokens o claves, añade uno como encabezado.</string>
+    <string name="ftools_mcp_omitted">[la herramienta también devolvió contenido que no puedes leer aquí: %1$s]</string>
+    <string name="ftools_mcp_reason_declined">No lo permitiste</string>
+    <string name="ftools_mcp_reason_stopped">Detenido antes de ejecutarse</string>
+    <string name="ftools_mcp_reason_tool_error">La herramienta informó de un error</string>
+    <string name="ftools_mcp_stopped">La llamada fue cancelada antes de ejecutarse.</string>
+    <string name="ftools_mcp_tool_error">La herramienta informó de un error: %1$s</string>
+    <string name="ftools_mcp_truncated">[la respuesta continúa más allá de este punto y fue cortada]</string>
     <string name="ftools_photo_error_failed">La aplicación no pudo obtener las fotos</string>
     <string name="ftools_photo_error_offline">La aplicación no puede acceder al servicio de fotos. Comprueba tu red e inténtalo de nuevo.</string>
     <string name="ftools_photo_error_timeout">El servicio de fotos tardó demasiado en responder</string>
     <string name="ftools_search_error_json_disabled">Esta instancia de SearXNG no ha habilitado su API JSON. Añade &lt;b&gt;json&lt;/b&gt; a &lt;b&gt;search.formats&lt;/b&gt; en su archivo settings.yml, o utiliza otra instancia.</string>
+    <string name="ftools_search_error_searx_limited">Esta instancia de SearXNG está rechazando aplicaciones por ahora (HTTP 429). Las instancias públicas limitan las solicitudes que no provienen de un navegador. Inténtalo de nuevo más tarde o utiliza una instancia propia o una que permita su API JSON.</string>
+    <string name="ftools_web_fetch_bad_url">Esa no es una dirección web que este teclado pueda abrir. Proporciona una dirección http:// o https:// completa.</string>
 </resources>
