@@ -66,7 +66,7 @@ Two of the per-event rows are odd ones out. **Click on key repeat** has nothing 
 | A pack per layout *(Sound pack only, with 2+ layouts enabled and a pack installed)* | List of layouts | Any installed pack, or "Same as the pack above" | Every layout follows the selected pack |
 | Sound volume | Slider | 5%–100% | 50% |
 
-Seven chips, not six. Click and Standard come from the device's own system sound pack; Pop, Thock and Chime are synthesized in-app and sound identical on every device. The last two both name something you've installed rather than a fixed waveform, so each reveals its own list when you pick it — and each also selects the first thing in that list as you tap the chip, so the keyboard changes sound straight away rather than clicking until you make a second choice. With nothing installed yet, the chip still selects: the list it reveals is where you install one.
+Seven chips, not six. Click and Standard come from the device's own system sound pack; Pop, Thock and Chime are synthesized in-app and sound identical on every device. The last two both name something you've installed rather than a fixed waveform, so each reveals its own list when you pick it. Each also selects the first thing in that list as you tap the chip, so the keyboard changes sound straight away rather than clicking until you make a second choice. With nothing installed yet, the chip still selects: the list it reveals is where you install one.
 
 Choosing **Custom** reveals your installed sound library and an **Import a sound file (.mp3)** button, and the label undersells it, since it also accepts `.ogg` and `.wav` files. The library holds up to 30 sounds between imports and installed sound addons.
 
@@ -76,7 +76,7 @@ Below that, with two or more layouts enabled, **A pack per layout** lists your l
 
 Installing a [Sound addon](/addons/overview/) highlights this **Sound style** row and offers to switch to it right after install, the same "Use it now?" flow other addon types use (see [Installing addons](/addons/installing/)).
 
-A theme can carry a key sound of its own, and where it does, it wins over everything on this row — that's the theme being the theme, the same way it wins on colours. It only wins with a sound it can actually make, though: a theme naming a sound or pack this device doesn't have falls back to whatever is picked here. See [Font and sound](/themes/editor/#font-and-sound).
+A theme can carry a key sound of its own, and where it does, it wins over everything on this row, the same way it wins on colours. It only wins with a sound it can make, though: a theme naming a sound or pack this device doesn't have falls back to whatever is picked here. See [Font and sound](/themes/editor/#font-and-sound).
 
 ### Key popup
 
@@ -191,7 +191,7 @@ The repeat interval is two sliders, because delete and space are held for opposi
 
 **Words stop at punctuation** and **Words stop at capitals** say what one word is, for the held delete key and for a backspace swipe set to words. With punctuation on, as it ships, `wmkeyboard.pages.dev` goes as `dev`, `.`, `pages` and so on; off, all of it goes in one step, up to the last space. With capitals on, `GrapheneOS` goes as `OS` and then `Graphene`. The word cursor tools have their own setting for this, under [Where a word ends](/tools/text-editing/#where-a-word-ends).
 
-**Repeating key interval** is the third of those speeds, and it belongs to the keys you set to repeat yourself — a row of arrow keys is the usual one. It ships at delete's 50 ms, because an arrow key and a backspace are held for the same reason: keep going until the cursor is where you want it. Delete and space keep their own numbers, so changing this one leaves them alone.
+**Repeating key interval** is the third of those speeds, and it belongs to the keys you set to repeat yourself, and a row of arrow keys is the usual one. It ships at delete's 50 ms, because an arrow key and a backspace are held for the same reason: keep going until the cursor is where you want it. Delete and space keep their own numbers, so changing this one leaves them alone.
 
 **Caps lock double press** is the window for two <KeyCap>Shift</KeyCap> taps to lock caps. It only matters on the way into caps lock. A single tap while Shift or Caps Lock is already on always turns it off, whatever the timing.
 
@@ -240,13 +240,13 @@ The repeat interval is two sliders, because delete and space are held for opposi
 
 **Slide from 🌐 for shortcuts** is off by default. On, pressing 🌐 and sliding onto one of the six shortcut keys runs that key's action when you lift, whether or not its hold shortcut is on. See [Switching languages](/languages/switching/#sliding-from--onto-a-shortcut).
 
-**Shortcut keys** is one row for all six bindings rather than six rows, and it appears whenever at least one of them, or the 🌐 slide, is on. The shipped `a c v x z y` is a QWERTY answer, so a layout without those letters (Bangla, Russian) needs the whole set moved onto keys it actually draws. The row's subtitle lists the keys currently bound. Tap it to open a dialog with one field per switched-on action, saved in one go.
+**Shortcut keys** is one row for all six bindings rather than six rows, and it appears whenever at least one of them, or the 🌐 slide, is on. The shipped `a c v x z y` is a QWERTY answer, so a layout without those letters (Bangla, Russian) needs the whole set moved onto keys it draws. The row's subtitle lists the keys currently bound. Tap it to open a dialog with one field per switched-on action, saved in one go.
 
 ## Details & edge cases
 
 - **The five per-event toggles fold away rather than grey out.** With Key press haptics off, Vibrate on space, Vibrate on delete swipe, Vibrate on key repeat, Follow the system touch feedback setting and Mute haptics in Do Not Disturb all leave the screen. Click on key repeat follows Key sound instead, not Key press haptics, so it disappears only when Key sound is off.
 - **Press and hold delay lives here only.** The Timing slider runs 100–800 ms and the stored value takes the whole range. Accessibility → Touch shows the current value and links back to this screen.
-- **A few rows on this screen aren't reachable from in-app settings search.** Haptic style, Click on key repeat, Follow the system touch feedback setting, Sound style, Key release sound, Time before a key repeats and Shortcut keys are all real, rendered rows here. They're just missing from the search index. Everything else is indexed, Key sound, Sound volume, Maximum popup duration, Popup shape, Popup corner radius and Press and hold ?123 among them.
+- **A few rows on this screen aren't reachable from in-app settings search.** Haptic style, Click on key repeat, Follow the system touch feedback setting, Sound style, Key release sound, Time before a key repeats and Shortcut keys are all real, rendered rows here. They're missing from the search index. Everything else is indexed, Key sound, Sound volume, Maximum popup duration, Popup shape, Popup corner radius and Press and hold ?123 among them.
 - **Most rows here grow a restore button once you move them, but four never do.** Change a toggle, a slider or the Shortcut keys row and a small restore control appears beside it, putting just that setting back. The two chip rows (Haptic style, Sound style), the Popup shape picker and the Currency keys field are hand-built controls with no restore of their own. Clearing Currency keys back to blank is how you get its built-in set again. See [Putting one setting back](/reference/settings/#putting-one-setting-back).
 - **The "Sound & haptics" toolbar tool isn't a separate settings surface.** Its page carries the Key sound switch, plus a nav row into the Haptics and sound page, so a change on either surface writes to the same settings. See [Sound & vibration](/typing/feedback/#a-toolbar-shortcut).
 - **Currency keys shows the built-in default even though the stored value is empty.** The field only starts writing your own list once you edit it. Clear it back to blank and you get the same default again, not an empty popup.

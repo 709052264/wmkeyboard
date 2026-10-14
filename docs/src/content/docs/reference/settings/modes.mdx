@@ -202,7 +202,7 @@ A mode you made has an ID of its own that only your install knows, so a link to 
 
 - **A brand-new mode isn't saved until its first edit.** Navigating into a freshly created mode's editor and backing out without changing anything leaves the modes list exactly as it was.
 - **Only the six shipped modes offer Reset to default**, matched by ID. Rename a built-in mode and it keeps its reset option. A mode you created from scratch never gets one.
-- **Off is not deleted.** A mode whose **Use this mode** switch is off keeps every binding and override and simply never reaches the keyboard. Resetting a built-in mode turns it back on, since the shipped copy is on.
+- **Off is not deleted.** A mode whose **Use this mode** switch is off keeps every binding and override and never reaches the keyboard. Resetting a built-in mode turns it back on, since the shipped copy is on.
 - **Both delete paths ask first.** The bin icon on a list row and **Delete mode** at the bottom of the editor open the same "Delete *name*?" dialog. Resetting a built-in mode confirms too.
 - **Hints beat field types beat apps when modes collide.** If two modes could both apply, the one that names a hint is preferred over one that names a field type, and that over one that only names apps: a password field inside a coding app still gets the Passwords mode, and a rename box whose hint reads "Extension" gets the mode bound to that word over one bound to every single-line field.
 - **The tool and symbol-set pickers only offer what's currently available.** A tool disabled globally, or unsupported in your build, is missing from a mode's own pinned-tools and toolbox-order chip lists too. A lite build, for instance, has no tools that need ML Kit or the grammar engine.

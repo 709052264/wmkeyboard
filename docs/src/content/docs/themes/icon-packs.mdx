@@ -35,7 +35,7 @@ One thing icon packs deliberately don't touch: the per-key glyphs a language lay
 
 **Colour.** An icon that sets no colour of its own (`none`, `currentColor`, or nothing at all) is drawn in the current theme's colour, and picks up that tool's own accent colour if **Colorful tool icons** (under <SettingsPath path="Tools" />) is on. An icon that sets real colours draws exactly as authored and stops following the theme. Most packs should lean on the first behaviour; only go colourful on purpose.
 
-**Vector or picture.** An icon can be an SVG or a picture — PNG, WebP, JPEG or GIF (issue #504). A vector is the better of the two where you have one: it scales to any key height, recolours cleanly and costs a few hundred bytes. A picture is what you have when you drew the icon in anything but a vector editor, and it is the only form a [Gboard theme's own key glyphs](/reference/importing-other-keyboards/#theme-glyphs-and-icon-packs) ever come in. The two behave the same everywhere else in this page, including which slot they fill and whether they follow the theme's colour; a picture counts as "sets no colour of its own" when every visible pixel in it is the same colour, which is what a glyph drawn on a transparent background looks like. A picture may be up to 512 KB and 2048 px on its longest edge; an SVG may be up to 256 KB.
+**Vector or picture.** An icon can be an SVG or a picture: PNG, WebP, JPEG or GIF (issue #504). A vector is the better of the two where you have one: it scales to any key height, recolours cleanly and costs a few hundred bytes. A picture is what you have when you drew the icon in anything but a vector editor, and it is the only form a [Gboard theme's own key glyphs](/reference/importing-other-keyboards/#theme-glyphs-and-icon-packs) ever come in. The two behave the same everywhere else in this page, including which slot they fill and whether they follow the theme's colour; a picture counts as "sets no colour of its own" when every visible pixel in it is the same colour, which is what a glyph drawn on a transparent background looks like. A picture may be up to 512 KB and 2048 px on its longest edge; an SVG may be up to 256 KB.
 
 A pack decides which of the two a file is by reading its first bytes, not by its name, so an SVG in a file called `.png` is stored and drawn as the SVG it is.
 
@@ -45,7 +45,7 @@ SVGs are read by a small built-in parser rather than a full SVG engine. It suppo
 
 <SettingsPath path="Appearance / Icons" />
 
-Tap any slot in the list to open its picker. Choose an icon from the built-in Material Symbols set, or tap **Use my own picture…** to import a file of your own — an SVG, or a PNG, WebP, JPEG or GIF.
+Tap any slot in the list to open its picker. Choose an icon from the built-in Material Symbols set, or tap **Use my own picture…** to import a file of your own: an SVG, or a PNG, WebP, JPEG or GIF.
 
 Shift is three separate slots (off, armed, locked) and Enter is one per wording, so "a different picture when caps lock is on" is a matter of filling two slots rather than one. The Caps Lock key a tablet board adds has a slot of its own, apart from the locked Shift: both keys sit on the same board, and each keeps its own face. A key that sends Tab, whether the tablet board's or one you built in the layout editor, draws from the Tab slot.
 
@@ -94,7 +94,7 @@ There are two ways to end up with a pack of your own. One suits a pack you're bu
 - **Import an icon pack** opens a `.wmicons` file someone shared, without going through a repository.
 - **Reset all icons** turns off the active pack and drops every per-slot override in one step. Installed packs stay on the device.
 - **Other looks** switches one slot to another drawing of the same icon, from the app or from the active pack. None by default.
-- **Use my own picture…** sets one slot from a file of your own — SVG, PNG, WebP, JPEG or GIF — from inside that slot's picker.
+- **Use my own picture…** sets one slot from a file of your own (SVG, PNG, WebP, JPEG or GIF) from inside that slot's picker.
 
 When a slot could be filled four different ways, a single icon you picked by hand wins over an active pack, an active pack wins over the glyphs the theme you are wearing brought with it, and those win over the app's own default. Overriding one icon from a pack you've installed sticks even after the pack updates or gets swapped out.
 

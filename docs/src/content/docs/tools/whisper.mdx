@@ -11,7 +11,7 @@ import Shot from '@components/Shot.astro';
 
 Offline Whisper is a second dictation engine that runs entirely on your phone. Instead of streaming audio to a speech-recognition service, it records what you say and transcribes it locally with an OpenAI Whisper model, so nothing ever leaves the device.
 
-For English, German, French, Spanish, Italian, Dutch and Polish there is also [offline Whistle](/tools/whistle/): one 17 MB model that answers faster, where Whisper offers a catalog that covers far more languages. For English alone, [offline Asr4All](/tools/asr4all/) writes the words while you are still speaking.
+For English, German, French, Spanish, Italian, Dutch and Polish there is also [offline Whistle](/tools/whistle/): one 17 MB model that answers faster, where Whisper has a catalog that covers far more languages. For English alone, [offline Asr4All](/tools/asr4all/) writes the words while you are still speaking.
 
 <PhoneFrame caption="Recognition engine choice on the Voice typing screen.">
 <Shot id="tools/whisper-engine-choice" alt="Recognition engine choice on the Voice typing screen." />
@@ -70,7 +70,7 @@ Every LiteRT model has to decide which language you're speaking, unless it was b
 For those languages, and Bangla is one of them, a model can decide you're speaking a bigger neighbouring language and hand back fluent sentences in the wrong one. Nothing errors, because as far as the model is concerned it did its job. Two things help:
 
 - The model-per-language list says so on any affected language, and points at Turbo and Large v3, which get the language right far more often than the small models do.
-- When the wrong language happens to be written in a different alphabet, WM Keyboard converts it back. Bangla read as Hindi is the common case: the model still transcribed the Bangla words it heard, it just spelled them in Devanagari, and the two alphabets line up closely enough to map across. You get readable Bangla instead of a line you can't read at all. It can't rescue a genuinely wrong language, only a wrong alphabet.
+- When the wrong language happens to be written in a different alphabet, WM Keyboard converts it back. Bangla read as Hindi is the common case: the model still transcribed the Bangla words it heard, it just spelled them in Devanagari, and the two alphabets line up closely enough to map across. You get readable Bangla instead of a line you can't read at all. It can't rescue a wrong language, only a wrong alphabet.
 
 Whisper itself has an "initial prompt" that biases spelling and vocabulary, and its own way of forcing a language. The whisper.cpp models use both. The LiteRT models can't: the community `.tflite` conversions were exported with the entire generation loop traced inside the graph. That leaves two inputs: the spectrogram, and on a grouped model a number selecting one of the languages it was built with.
 

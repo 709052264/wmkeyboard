@@ -42,7 +42,7 @@ Each tile dims the parts of the photo the keyboard crops away, leaving the strip
 
 ### The photo page
 
-Tapping a photo grows its tile into a page that shows it three ways: the photo itself, then a live keyboard mock-up with **this theme's** keys over **this photo**, and the photographer's name with a link back.
+Tapping a photo grows its tile into a page that shows it three ways: the photo itself, then a live keyboard mock-up with this theme's keys over this photo, and the photographer's name with a link back.
 
 - **Preview this photo for** switches the mock-up between portrait and landscape. It changes nothing on your theme.
 - **Use it for** decides which slot the photo lands in: portrait, landscape or both.
@@ -67,7 +67,7 @@ If the keys end up hard to read over a busy or bright photo, the page says so an
 
 Anything that becomes a background joins the collection, whether it came from a service or from your gallery. Two buttons at the top add more: **Find photos online** and **Add from this device**.
 
-Photos are **copied** into the collection rather than referenced. The file a theme holds is deleted the moment that theme takes a different picture, and a gallery URI stops working once the picker's permission lapses, so a reference would rot either way. A service photo is stored under its own id, so using one photo on two themes keeps one copy.
+Photos are copied into the collection rather than referenced. The file a theme holds is deleted the moment that theme takes a different picture, and a gallery URI stops working once the picker's permission lapses, so a reference would rot either way. A service photo is stored under its own id, so using one photo on two themes keeps one copy.
 
 Each tile's menu can use the photo as the current theme's background, match the theme colors to it, or delete it. A line at the top shows how much storage the collection is using.
 
@@ -84,7 +84,7 @@ Turned off, this screen is one explanation and one button. Turned on, it fills i
 - **How frequently**: every time the keyboard opens, every hour, every 6 hours, every day, every week, or only when you press Change.
 - **Change the background of**: the theme in use, every theme, or themes you select.
 
-Because the override happens as a theme is drawn rather than being written into it, a **built-in theme can rotate too**, even though a built-in has nowhere to store an image of its own.
+Because the override happens as a theme is drawn rather than being written into it, a built-in theme can rotate too, even though a built-in has nowhere to store an image of its own.
 
 **Sources**, both on to begin with
 
@@ -113,11 +113,11 @@ Your colours are safe from the first two rows. A rotation lays them over the the
 
 ## When the background actually changes
 
-The keyboard moves to the next photo **when a session starts**, never in the middle of one. A picture changing under your fingers while you type reads as a glitch rather than a feature, and a timer running inside an input method is a leak waiting to happen.
+The keyboard moves to the next photo when a session starts, never in the middle of one. A picture changing under your fingers while you type reads as a glitch rather than a feature, and a timer running inside an input method is a leak waiting to happen.
 
 So "every hour" means *at most* once an hour, applied the next time you open the keyboard. The swap itself is a local file read: the photo is already on disk, which is the whole reason the app keeps a few ready.
 
-Refilling happens as the keyboard goes away, so a download never competes with the first frame of a session. Refilling is skipped while the device is locked, under power saving, on mobile data unless you allow it, and when **High contrast keys** is on. **Rotation itself is never skipped for any of those.** A phone with no signal for a week still works through the photos it already has.
+Refilling happens as the keyboard goes away, so a download never competes with the first frame of a session. Refilling is skipped while the device is locked, under power saving, on mobile data unless you allow it, and when **High contrast keys** is on. Rotation itself is never skipped for any of those. A phone with no signal for a week still works through the photos it already has.
 
 ## Service keys
 

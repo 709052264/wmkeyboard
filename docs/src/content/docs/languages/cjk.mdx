@@ -43,7 +43,7 @@ Chinese carries six layouts. Adding it from the language catalogue turns on Piny
 | Cangjie Quick (速成) | Just the first and last radical of a character | Whole buffer |
 | Stroke (笔画) | Five stroke-class keys (一丨丿丶乙) plus a `＊` wildcard for an uncertain stroke | Whole buffer |
 
-Pinyin, T9 Pinyin, and Zhuyin are all **prefix-commit**: type `nihao` and the strip offers 你好 first, then leading-syllable candidates like 你 alone. Tapping one consumes only the part of the buffer it covers and re-converts the rest, so you don't have to clear the buffer between characters. Cangjie, Cangjie Quick, and Stroke are the opposite: shape and stroke codes map to exactly one character each, so a commit always consumes everything you've typed.
+Pinyin, T9 Pinyin, and Zhuyin are all prefix-commit: type `nihao` and the strip offers 你好 first, then leading-syllable candidates like 你 alone. Tapping one consumes only the part of the buffer it covers and re-converts the rest, so you don't have to clear the buffer between characters. Cangjie, Cangjie Quick, and Stroke are the opposite: shape and stroke codes map to exactly one character each, so a commit always consumes everything you've typed.
 
 Zhuyin and T9 Pinyin don't need their own dictionary. They reuse the Pinyin pack and translate each segmented syllable to its pinyin spelling. Cangjie and Cangjie Quick share one radical-code table. Stroke and Jyutping (below) each have their own pack.
 
@@ -107,7 +107,7 @@ A lot of Chinese isn't dictionary words. 我的 and 我不 are two single charac
 
 The **Chinese word pairs** pack fixes that. It counts which words follow which in a large body of everyday Chinese (film and TV subtitles, plus web and news text), so the keyboard can tell that 不 after 我 and 喜欢 after 不 are what people write. With it, `wbxh` leads with 我不喜欢, `wbxz` with 我不想再, `wdmm` with 我的妈妈, `nine` with 你呢 and `hd` with 好的. It comes with the Pinyin dictionary when you download that, and if you already had the dictionary, a chip on the strip offers it once: "Download Chinese word pairs for better candidates". It's about 11 MB. T9 Pinyin and Zhuyin use it too.
 
-Without the pairs, from three abbreviated letters up and only where no single entry covers everything you typed, the strip carries a few **stitched readings** right after its first answer: whole-buffer ways of reading the letters as separate words, so 我的妈妈 for `wdmm` is still a tap away.
+Without the pairs, from three abbreviated letters up and only where no single entry covers everything you typed, the strip carries a few stitched readings right after its first answer: whole-buffer ways of reading the letters as separate words, so 我的妈妈 for `wdmm` is still a tap away.
 
 Learning steers the search as well as the finished list. The characters you keep choosing for a reading are the ones paths get built out of, so the longer you type, the more the readings come out in your own words.
 
@@ -281,9 +281,9 @@ On a physical keyboard the candidates come up even though the on-screen keys sta
 
 ### The keyboard's own boxes
 
-The same thing happens in the keyboard's own text fields — the dictionary tool's search, the clipboard and emoji filters, the AI prompt, Find and replace, a plugin's box. They compose and convert exactly as the app's field does: romaji turns into kana as you type it, the 小゛゜ key cycles the last kana, the candidates appear in the strip above the keys, and a tap commits the part of the reading it covers and leaves the rest composing. Nothing reaches the app behind the panel, and a pick there is learned the same way a pick anywhere else is.
+The same thing happens in the keyboard's own text fields: the dictionary tool's search, the clipboard and emoji filters, the AI prompt, Find and replace, a plugin's box. They compose and convert exactly as the app's field does: romaji turns into kana as you type it, the 小゛゜ key cycles the last kana, the candidates appear in the strip above the keys, and a tap commits the part of the reading it covers and leaves the rest composing. Nothing reaches the app behind the panel, and a pick there is learned the same way a pick anywhere else is.
 
-These boxes used to take the keys straight: `ka` stayed `ka`, there was no way to add a dakuten, and no kanji was ever offered — so a Japanese user could not search the dictionary tool for anything.
+These boxes used to take the keys straight: `ka` stayed `ka`, there was no way to add a dakuten, and no kanji was ever offered, so a Japanese user could not search the dictionary tool for anything.
 
 The candidate bar is not the ordinary suggestion strip wearing a different coat, and it isn't switched off by the things that switch that strip off. Turning **Suggestions** off, or typing into a field that asks for a silent strip (search and filter boxes, address bars, email fields, password boxes), leaves the candidates exactly where they are. For a conversion method the candidate list *is* the input method, so hiding it wouldn't quiet a guess, it would stop you typing the language at all. Password boxes convert too, and what they don't do is remember the pick afterwards, which is the same rule the rest of the keyboard's learning follows.
 
@@ -299,7 +299,7 @@ In Pinyin it learns three more things:
 
 Nothing you taught it stays forever if you stop using it. After every 3,000 picks or so, each count that hasn't been used in that time is halved, and a count of one goes. A word you pick every day never fades, and one you picked a few times last year stops outranking it.
 
-Learning is scoped separately per reading system (pinyin, T9 Pinyin, zhuyin, jyutping, and Japanese kana readings each keep their own history), because the same word can be spelled several different ways depending on which Chinese scheme you're using. **Cangjie, Cangjie Quick, and Stroke don't participate in learning at all**: their radical and stroke codes map deterministically to one character, so there's no ambiguity to learn from.
+Learning is scoped separately per reading system (pinyin, T9 Pinyin, zhuyin, jyutping, and Japanese kana readings each keep their own history), because the same word can be spelled several different ways depending on which Chinese scheme you're using. Cangjie, Cangjie Quick, and Stroke don't participate in learning at all: their radical and stroke codes map deterministically to one character, so there's no ambiguity to learn from.
 
 This history is governed by the same setting as ordinary word learning:
 

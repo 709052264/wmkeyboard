@@ -87,7 +87,7 @@ Letters against digits, so the two pools cannot collide and editing one row neve
 | <KeyCap>Ctrl</KeyCap>+<KeyCap>Shift</KeyCap>+<KeyCap>Space</KeyCap> | Step back |
 | The dedicated 🌐 / language key, if your keyboard has one | Switch to the next layout |
 
-Keep <KeyCap>Ctrl</KeyCap> held and each press of <KeyCap>Space</KeyCap> walks a list on screen. Release <KeyCap>Ctrl</KeyCap> to commit whatever is highlighted, or press <KeyCap>Esc</KeyCap> to cancel. A quick tap and release is just a one-step switch. With only one layout enabled the chord falls through to the app untouched, so nothing is stolen for a switch that has nowhere to go. <KeyCap>Meta</KeyCap>+<KeyCap>Space</KeyCap> is left alone on purpose: that one belongs to Android's own keyboard rotation. The dedicated language key is claimed whatever this setting says, since no app wants it. See [Hardware keyboards](/typing/hardware-keyboard/) for the walkthrough.
+Keep <KeyCap>Ctrl</KeyCap> held and each press of <KeyCap>Space</KeyCap> walks a list on screen. Release <KeyCap>Ctrl</KeyCap> to commit whatever is highlighted, or press <KeyCap>Esc</KeyCap> to cancel. A quick tap and release is a one-step switch. With only one layout enabled the chord falls through to the app untouched, so nothing is stolen for a switch that has nowhere to go. <KeyCap>Meta</KeyCap>+<KeyCap>Space</KeyCap> is left alone on purpose: that one belongs to Android's own keyboard rotation. The dedicated language key is claimed whatever this setting says, since no app wants it. See [Hardware keyboards](/typing/hardware-keyboard/) for the walkthrough.
 
 ## macOS shortcuts
 
@@ -188,15 +188,15 @@ A related pair of settings lives in the same **Typing** screen's <SettingsPath p
 | Volume keys move the cursor | Off |
 | Release the keys while audio plays | On |
 
-With **Volume keys move the cursor** on, volume down and up move the text cursor one character left or right while the keyboard is open. Everywhere else, and as soon as the keyboard closes, the volume keys behave normally. **Release the keys while audio plays** (shown only while the setting above is on) gives the volume keys back to actual volume control whenever something is playing, so replying to a message never costs you the ability to turn the sound down.
+With **Volume keys move the cursor** on, volume down and up move the text cursor one character left or right while the keyboard is open. Everywhere else, and as soon as the keyboard closes, the volume keys behave normally. **Release the keys while audio plays** (shown only while the setting above is on) gives the volume keys back to volume control whenever something is playing, so replying to a message never costs you the ability to turn the sound down.
 
 ## Details and edge cases
 
-- **Reserved chords still work as a shortcut key, with a warning.** Capturing one of the eleven reserved combinations above just gets you a caution in the capture dialog. It isn't blocked.
+- **Reserved chords still work as a shortcut key, with a warning.** Capturing one of the eleven reserved combinations above only gets you a caution in the capture dialog. It isn't blocked.
 - **The double-tap fires on the second tap's release, not its press**, and any other key pressed in between resets it: Ctrl-tap, Ctrl+C, Ctrl-tap never arms the picker. A held, auto-repeating modifier doesn't count as a tap either.
 - **Process the physical keys only governs typed characters.** Turning it off stops physical keys from running through autocorrect and suggestions, but the leader, tool shortcuts, panel navigation and Esc keep working regardless.
 - **A letter can only ever open one tool.** Capturing a letter that's already bound offers to reassign it: the other tool loses that letter the moment you confirm, so two tools can never share one. A capture takes a digit too, not only a letter, and an X on the row unbinds a tool without opening the dialog.
-- **A tool you've turned off in Tools keeps its letter, but the letter does nothing.** The row in the shortcuts list still shows the binding, labeled "This tool is off in Tools," and pressing it from the picker just vibrates instead of opening anything. The letter also drops off the cheat sheet while the tool stays disabled. A tool whose API key is missing counts as off the same way.
+- **A tool you've turned off in Tools keeps its letter, but the letter does nothing.** The row in the shortcuts list still shows the binding, labeled "This tool is off in Tools," and pressing it from the picker only vibrates instead of opening anything. The letter also drops off the cheat sheet while the tool stays disabled. A tool whose API key is missing counts as off the same way.
 - **No edition split for the mechanism itself.** The leader, the default 25-letter table and panel navigation work identically on full and lite builds. Only the five tools gated to <Flavor edition="full" /> (handwriting, the three scanners, and grammar checking) are absent from the picker on lite, the same as everywhere else in the app.
 - **Presence detection is automatic.** WM Keyboard notices a physical keyboard attaching and detaching through the system's own configuration; nothing here needs to be told which mode it's in.
 

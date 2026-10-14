@@ -201,6 +201,7 @@ export const ROUTES: RouteSpec[] = [
 			{ name: 'word', hint: 'The word itself' },
 		],
 	},
+	{ pattern: 'clock', label: 'Clock', group: 'Tools' },
 	{ pattern: 'notes', label: 'Notes', group: 'Tools' },
 	{
 		pattern: 'notes/edit/{noteId}',
@@ -240,6 +241,7 @@ export const ROUTES: RouteSpec[] = [
 		group: 'Tools',
 		args: [{ name: 'actionId', hint: 'The id of one of your AI actions' }],
 	},
+	{ pattern: 'ai_reply_tones', label: 'AI reply tones', group: 'Tools' },
 	{ pattern: 'ai_history', label: 'AI history', group: 'Tools' },
 	{ pattern: 'ai_mcp', label: 'MCP servers for AI chat', group: 'Tools' },
 	{

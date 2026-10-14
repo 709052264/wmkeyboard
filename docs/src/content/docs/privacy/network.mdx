@@ -74,7 +74,7 @@ without any network of its own. It opens a draft in your mail app holding
 the generation and the text it ran on, and you read and send it, or don't.
 See [Reporting a result](/tools/ai/#reporting-a-result).
 
-A few of these are worth calling out. GIF and sticker search fetch a
+Some rows need a note. GIF and sticker search fetch a
 trending feed the instant you open the panel, before you've typed anything.
 See [GIFs](/emoji/gifs/) for that behavior in full. Currency, weather and
 location are the tools that touch the network without you typing a query first.
@@ -87,15 +87,15 @@ audio still leaves the device that way. See [Voice typing](/tools/voice/)
 for the full breakdown, or [Offline voice (Whisper)](/tools/whisper/) for
 the fully on-device alternative.
 
-**Photo backgrounds** are not a toolbox tool, but they do reach the network,
+Photo backgrounds are not a toolbox tool, but they do reach the network,
 so they belong in this list. Open the picker, type a word, and that word
 goes to Unsplash and Pexels along with the subject, color and orientation
 filters. Nothing else about you goes with it. Thumbnails load from each
 service's own servers rather than being copied through anything of ours,
 which is how a photographer is credited with the view. Choosing a photo
 downloads that one file at keyboard size, and tells Unsplash once that it
-was taken, which is how its download counts stay honest. A **rotating
-background** is the one part that fetches without you watching. It tops up a
+was taken, which is how its download counts stay honest. A rotating
+background is the one part that fetches without you watching. It tops up a
 small set of photos as the keyboard closes, never while you type, and skips
 that entirely while the device is locked, under power saving, on mobile data
 unless you allow it, and when High contrast keys is on. See
@@ -118,8 +118,7 @@ confirmations of that.
   <Shot id="privacy/ai-ollama-plain-http" alt="AI tool settings: a self-hosted Ollama or LM Studio server address, with the plain-HTTP disclosure below it." />
 </PhoneFrame>
 
-"Google Translate" is really two different endpoints, and it's worth being
-precise about which one you're using. With no key, WM Keyboard calls
+"Google Translate" is two different endpoints. With no key, WM Keyboard calls
 `translate.googleapis.com`, the same unofficial public endpoint browser
 translate extensions use. That's fine for personal volumes, but it's
 rate-limited and carries no uptime guarantee. Add a Cloud Translation API
@@ -137,8 +136,8 @@ what's already in the table above:
   is a conditional request, so an unchanged list of releases sends no data back
   and costs nothing against the limit GitHub applies to everyone sharing your
   IP address. Press **Download** and the APK comes from
-  **`github.com`** (which redirects to **`objects.githubusercontent.com`**),
-  and **`raw.githubusercontent.com`** serves the release notes when you press
+  `github.com` (which redirects to `objects.githubusercontent.com`),
+  and `raw.githubusercontent.com` serves the release notes when you press
   **What's new**, reading one markdown file out of the tag you are being
   offered and nothing else. That request is made only when you press the
   button. Play Store and F-Droid builds never make any of these
@@ -241,10 +240,10 @@ unconditionally. See
 for the full export mechanics, including the exact warning text the app
 shows you.
 
-:::note[One gap worth knowing about]
+:::note[One gap]
 Ollama and LM Studio server addresses aren't treated as secrets the way API
 keys are. They're not excluded from a manual export, even with "Include API
-keys" off. That's usually just a LAN address, but if you've folded a token
+keys" off. That's usually a LAN address, but if you've folded a token
 or password into that URL yourself, it travels in plain exports. Keep that
 in mind before sharing a backup file.
 :::
@@ -259,26 +258,26 @@ some are.
 |---|---|---|---|
 | Dictionaries and wordlists | the project's GitHub data repository | none beyond the gzip stream's own format check | Only from the "download everything for this language" button, which asks while [Data saver](/privacy/data-saver/) is on and its **Downloads** row is set to *Ask each time* (the default) |
 | Emoji keyword packs | same data repository | none beyond decode success | Same button, same setting |
-| CJK conversion tables (pinyin, kana, stroke, cangjie, jyutping, and the Traditional phrase table) | same data repository | **SHA-256 verified** before the file is used | No |
-| [Keyman typing rules](/languages/keyman/#typing-rules) | `downloads.keyman.com`, or the same data repository's copy when keyman.com can't serve them | the file must parse as a keyboard before it's kept, and the data repository's copy is also **SHA-256 verified** against the checksum listed beside it | No |
+| CJK conversion tables (pinyin, kana, stroke, cangjie, jyutping, and the Traditional phrase table) | same data repository | SHA-256 verified before the file is used | No |
+| [Keyman typing rules](/languages/keyman/#typing-rules) | `downloads.keyman.com`, or the same data repository's copy when keyman.com can't serve them | the file must parse as a keyboard before it's kept, and the data repository's copy is also SHA-256 verified against the checksum listed beside it | No |
 | Offline Whisper speech models | Hugging Face | SHA-256 for whisper.cpp models, from a fixed revision; a file-size floor only for LiteRT models | Yes, around 150 MB. See [Offline voice (Whisper)](/tools/whisper/#downloading-and-managing-models) |
-| Offline Whistle speech model <Flavor edition="full" /> | Hugging Face, pinned to one revision | **SHA-256 verified** before the file is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks. See [Offline voice (Whistle)](/tools/whistle/#setting-it-up) |
-| Offline Asr4All speech models | Hugging Face, pinned to one revision per size | **SHA-256 verified** for both files before the model is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks. See [Offline voice (Asr4All)](/tools/asr4all/#setting-it-up) |
-| Offline Parakeet and Moonshine speech models | Hugging Face, pinned to one revision each | **SHA-256 verified** for every file before the model is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks, and Parakeet's 719 MB also asks on mobile data. See [Parakeet](/tools/parakeet/#setting-it-up) and [Moonshine](/tools/moonshine/#setting-it-up) |
+| Offline Whistle speech model <Flavor edition="full" /> | Hugging Face, pinned to one revision | SHA-256 verified before the file is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks. See [Offline voice (Whistle)](/tools/whistle/#setting-it-up) |
+| Offline Asr4All speech models | Hugging Face, pinned to one revision per size | SHA-256 verified for both files before the model is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks. See [Offline voice (Asr4All)](/tools/asr4all/#setting-it-up) |
+| Offline Parakeet and Moonshine speech models | Hugging Face, pinned to one revision each | SHA-256 verified for every file before the model is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks, and Parakeet's 719 MB also asks on mobile data. See [Parakeet](/tools/parakeet/#setting-it-up) and [Moonshine](/tools/moonshine/#setting-it-up) |
 | Text scanner languages (Tesseract) <Flavor edition="full" /> | the Tesseract project's `tessdata_fast` 4.1.0 on GitHub | none beyond the file arriving at the length the server announced; a file Tesseract can't load is not read | Yes, from the scanner's button and from the settings page. See [Scanner](/tools/scanner/#which-languages-it-reads) |
 | On-device AI models | Hugging Face, per model | no checksum, a file-size floor only | Yes, at 500 MB. See [AI tools](/tools/ai/#local-models) |
-| Addons (themes, icon packs, plugins, sounds, layouts, sticker packs) | whichever repository you added | **SHA-256 verified when the manifest supplies one**, and mandatory for plugins specifically, since they run code | No |
+| Addons (themes, icon packs, plugins, sounds, layouts, sticker packs) | whichever repository you added | SHA-256 verified when the manifest supplies one, and mandatory for plugins specifically, since they run code | No |
 | [Signal sticker packs](/emoji/stickers/#signal-sticker-packs) | Signal's sticker storage, `cdn-ca.signal.org`. No Signal account is involved, and the request names the pack and nothing about you. The signalstickers.org gallery that the same screen links to opens in your browser, and the keyboard itself never contacts it | every file is checked against the key in the pack link (HMAC-SHA256) before it is opened, so a file that was changed on the way is refused | Yes. The pack preview asks before its first request while [Data saver](/privacy/data-saver/) is on and its **Downloads** row is set to *Ask each time* (the default) |
 | [Telegram sticker sets](/emoji/stickers/#telegram-sticker-sets) | Telegram's Bot API, `api.telegram.org`, through the bot you made. Every request carries your bot token, which is how the Bot API knows which bot is asking, and the name of the set. Your own Telegram account is never involved | none beyond the files arriving under the size cap; each is opened as an image, a Lottie animation or a video and dropped if it is none of those | Yes. The set preview asks before its first request while [Data saver](/privacy/data-saver/) is on and its **Downloads** row is set to *Ask each time* (the default) |
-| [Rboard themes](/reference/importing-other-keyboards/#gboard-themes-and-rboard-packs) | the Rboard repository on GitHub, `raw.githubusercontent.com/GboardThemes/PackRepoBeta`. The list is fetched when you open **Browse Rboard**, and a pack when you press it. The Google Play build has no Browse Rboard and never makes this request | each pack is **SHA-256 verified** against the checksum in the list before it is opened; the list itself is capped at 2 MB | Yes. The screen asks before its first request while [Data saver](/privacy/data-saver/) is on and its **Downloads** row is set to *Ask each time* (the default) |
+| [Rboard themes](/reference/importing-other-keyboards/#gboard-themes-and-rboard-packs) | the Rboard repository on GitHub, `raw.githubusercontent.com/GboardThemes/PackRepoBeta`. The list is fetched when you open **Browse Rboard**, and a pack when you press it. The Google Play build has no Browse Rboard and never makes this request | each pack is SHA-256 verified against the checksum in the list before it is opened; the list itself is capped at 2 MB | Yes. The screen asks before its first request while [Data saver](/privacy/data-saver/) is on and its **Downloads** row is set to *Ask each time* (the default) |
 | Addon repository manifests themselves | the repository URL you added | none: it's the trust root, so there's nothing to check it against. Capped at a fixed size instead | No |
-| App updates (GitHub builds only) | this project's GitHub releases | **SHA-256 verified** against the checksum published in the release, and then the APK's signing key is compared against the key your install is signed with. A release with no checksum is refused rather than installed on trust | Yes, and it names the size before it starts |
+| App updates (GitHub builds only) | this project's GitHub releases | SHA-256 verified against the checksum published in the release, and then the APK's signing key is compared against the key your install is signed with. A release with no checksum is refused rather than installed on trust | Yes, and it names the size before it starts |
 
 Only CJK packs, app updates, the data repository's copy of Keyman rules, Rboard
 theme packs, and addons with a declared hash get cryptographic verification. Wordlists, emoji
 packs, Whisper models, and on-device AI models rely on HTTPS transport
 integrity plus a basic size check rather than a checksum, and Keyman rules
-from keyman.com on HTTPS plus the check that they parse. That's worth knowing if you're deciding how much to trust a
+from keyman.com on HTTPS plus the check that they parse. That matters if you're deciding how much to trust a
 third-party addon repository versus the project's own data feed. See
 [Installing addons](/addons/installing/#where-each-type-lands) for how
 that mandatory plugin checksum is enforced.
@@ -287,7 +286,7 @@ that mandatory plugin checksum is enforced.
 
 Everything above is WM Keyboard's own code making its own request. Three
 Google libraries the app is built on top of talk to Google on their own
-schedule, and this is the honest list of them. None of them can see what you
+schedule, and this is the list of them. None of them can see what you
 type. None of them can be switched off from inside the app either, so the
 choice is whether to use the feature.
 

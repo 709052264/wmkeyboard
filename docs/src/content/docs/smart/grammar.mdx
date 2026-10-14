@@ -26,7 +26,7 @@ Harper checks English spelling, grammar, and style: agreement errors, punctuatio
 
 Any of those twenty can be switched off, either one at a time or a whole category at once. See [Filtering what you see](#filtering-what-you-see).
 
-Each issue also lints against a specific English dialect: **American** (the default), **British**, **Canadian**, or **Australian**. You pick that independently of whatever language or layout you're actually typing with, since Harper only understands English. See [Options](#options) below for where to change it.
+Each issue also lints against a specific English dialect: **American** (the default), **British**, **Canadian**, or **Australian**. You pick that independently of whatever language or layout you're typing with, since Harper only understands English. See [Options](#options) below for where to change it.
 
 ## Using the panel
 
@@ -36,7 +36,7 @@ Each issue also lints against a specific English dialect: **American** (the defa
 
 Open **Grammar check** from the toolbox to check whatever's in the field you're writing in. It isn't pinned to the toolbar by default, but two built-in [keyboard modes](/typing/modes/) (**Chat** and **Writing**) promote it to the front of the toolbox, since it's one of the first things worth reaching for in either.
 
-The panel sits in a fixed strip above the key rows rather than covering them, so you can fix an issue by editing the text directly just as easily as by tapping a fix chip. Open the panel and it checks the field's current text immediately, with no wait. After that, edits re-check after a short pause (see [Fully offline](#fully-offline-in-process) below).
+The panel sits in a fixed strip above the key rows rather than covering them, so you can fix an issue by editing the text directly as easily as by tapping a fix chip. Open the panel and it checks the field's current text immediately, with no wait. After that, edits re-check after a short pause (see [Fully offline](#fully-offline-in-process) below).
 
 Each issue is a card: a colored dot and category label, the flagged text struck through, an arrow to up to five suggested fixes, and Harper's explanation underneath. An issue Harper has no fix for shows the explanation in the chips' place instead. From there:
 
@@ -66,16 +66,16 @@ Harper is thorough, and thoroughness is not always what you want. If you don't c
 The filter is two levels deep:
 
 - **Tap a category row** (Correctness, Clarity, Engagement, Delivery) to switch every kind inside it at once.
-- **Tap the chevron** on a category to expand it onto its own kinds, then tap one to switch just that kind.
+- **Tap the chevron** on a category to expand it onto its own kinds, then tap one to switch only that kind.
 - A category shows a **tick** when all of its kinds are on, a **dash** when only some are, and nothing when they're all off. Turning one kind of an off category back on leaves the category dashed rather than quietly re-enabling the rest.
-- Every row carries **the number of issues of that kind in the current text**, filter or no filter, so you can see what you're hiding before you hide it.
+- Every row carries the number of issues of that kind in the current text, filter or no filter, so you can see what you're hiding before you hide it.
 - **Show every kind** at the bottom clears the filter in one tap. It only appears while something is hidden.
 
 The funnel turns accent-colored while any filter is active, so a panel that's hiding things says so from the header.
 
 Filtering is not the same as dismissing. A dismissed card comes back on the next re-check; a filtered kind stays gone until you turn it back on, and the choice is remembered across sessions and carried in your [backup](/reference/settings/backup/).
 
-A hidden kind is hidden from **everything the panel does**, not just the cards: it's left out of the issue count in the header, and **"Fix all" will not touch it**. Turning off a kind of suggestion you disagree with means "Fix all" stops applying it, which is usually the whole point.
+A hidden kind is hidden from everything the panel does, not only the cards: it's left out of the issue count in the header, and "Fix all" will not touch it. Turning off a kind of suggestion you disagree with means "Fix all" stops applying it, which is usually what you want.
 
 The same filter lives in settings, where the four categories are folds you can open onto their kinds. Changing it in either place changes it in both.
 
@@ -122,7 +122,7 @@ A **System-wide** group sits below these two, with a **Use Harper everywhere** b
 
 - **English only.** Apart from the optional [DeepL Write](#deepl-write) button, Harper doesn't check any other language, and the dialect setting is global. It applies no matter which typing language or layout is currently active. Grammar check has nothing to do while you're typing in a non-English language.
 - **Both editions.** Grammar check and the Harper spell checker are in full and lite alike. A build made without Harper's native library, which is what F-Droid builds, shows the tool as not in this build and keeps the spell checker out of Android's settings.
-- **A missing engine fails safely.** If `libharper_jni.so` somehow didn't load, the panel opens normally and says the grammar engine isn't in this build, rather than crashing or hanging on "checking."
+- **A missing engine fails safely.** If `libharper_jni.so` didn't load, the panel opens normally and says the grammar engine isn't in this build, rather than crashing or hanging on "checking."
 - **A fix only touches the words it flagged.** Applying a chip (or "Fix all") replaces the flagged spans and nothing else, so the rest of what you wrote isn't re-typed into the field. That's what keeps formatting alive in apps that have any: bold, colour, a checklist item in Google Keep. The one exception is an editor that won't tell the keyboard where its text starts. There's no way to address a span in one of those, so the fix falls back to rewriting the whole field, which flattens any styling it was carrying.
 - **Dismissing an issue is temporary.** A dismissed card comes back if you edit the text again and it re-lints to the same issue. There's no permanent "ignore this" list.
 - **"Fix all" only uses each issue's first suggestion.** For an issue with several possible fixes, use its individual fix chips instead if you want a different one applied.

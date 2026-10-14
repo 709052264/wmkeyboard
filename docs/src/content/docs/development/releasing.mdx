@@ -16,7 +16,7 @@ of it, so nothing here needs a branch or a patched source tree.
 
 | | GitHub release | F-Droid | Play Store |
 |---|---|---|---|
-| Flavor | `full` **and** `lite`, each in `intl` **and** `en` | `lite`, `intl` | `full`, `en` |
+| Flavor | `full` and `lite`, each in `intl` and `en` | `lite`, `intl` | `full`, `en` |
 | Gradle task | the four `assemble*Release` | `assembleLiteRelease`, an alias for `assembleLiteIntlRelease` | `bundleFullEnRelease` |
 | `wmkb.enablePlayStore` | `false` | `false` | `true` |
 | `wmkb.enableGms` | `true` | `false` | `true` |
@@ -57,7 +57,7 @@ APK and installs it. Two things follow. Play's Device and Network Abuse policy
 forbids an app distributed through Play from updating itself by any other
 route, so that code and its two permissions must never reach a Play build,
 which is what the source-set and manifest split below enforces. And a
-GitHub-channel build has to be **signed with the release key**, or it can
+GitHub-channel build has to be signed with the release key, or it can
 never install over the published APK: Android refuses an update signed with a
 different key, and the app checks for that itself so the refusal at least
 arrives as a sentence rather than a silent failure.
@@ -130,9 +130,9 @@ same way as its regular build; the publish job attaches a mapping only when the
 two differ, and warns when they do.
 
 The release also carries the files you need to read a crash report from those
-APKs. The `*-mapping.txt.gz` files are the R8 mappings — one per flavor
-combination (`full-intl`, `full-en`, `lite-intl`, `lite-en`), plus a fifth,
-`*-play-mapping.txt.gz` — and `*-full-intl-native-symbols.zip` and
+APKs. The `*-mapping.txt.gz` files are the R8 mappings, one per flavor
+combination (`full-intl`, `full-en`, `lite-intl`, `lite-en`) plus a fifth,
+`*-play-mapping.txt.gz`. The files `*-full-intl-native-symbols.zip` and
 `*-full-en-native-symbols.zip` hold the native debug symbols. The two language
 builds are separate R8 runs, so their mappings are not interchangeable even
 though the Kotlin that went in was identical. Retrace a stack trace with the
@@ -162,16 +162,16 @@ whole body, and comments the result.
 What makes the lookup deterministic rather than a guess is that the record
 names its build. `DebugLog` writes `version: 0.5.9 (24) fullEn (Play Store)`,
 and the flavor there is the whole two-dimension name, which `:app` hands the
-log on startup — `:core:common` compiles against `:core:config`, whose
+log on startup. `:core:common` compiles against `:core:config`, whose
 `BuildConfig.FLAVOR` carries the `capabilities` dimension alone and would say
-just `full`. A record from an F-Droid install is refused with a note instead: the
+only `full`. A record from an F-Droid install is refused with a note instead: the
 F-Droid build's mapping is not published. From 0.5.10 that build is
 identical to the release's `-fdroid.apk`, so its mapping could be.
 
 ### Why a mapping is checked before it is used
 
 A wrong mapping does not fail. It renames every frame, into names that read
-perfectly and mean nothing — [#271](https://github.com/wasi-master/wmkeyboard/issues/271)
+perfectly and mean nothing. [#271](https://github.com/wasi-master/wmkeyboard/issues/271)
 was a crash in the translate panel, from an F-Droid install, and the first
 version of this workflow retraced it into `WmSlider` and `SoundPack` because
 it picked whichever mapping renamed *more* frames, 57 against 56.
@@ -183,9 +183,9 @@ class alone proves nothing, because every mapping of this app holds thousands
 of two-letter class names. The method and line together are what a different
 R8 run cannot fake.
 
-The separation is absolute, and measured rather than assumed — across #252,
-#253, #237 and #271 the correct mapping accounts for **100%** of the frames
-and every wrong one for **0–20%**, with nothing in between. Below 60% nothing
+The separation is absolute, and measured rather than assumed. Across #252,
+#253, #237 and #271 the correct mapping accounts for 100% of the frames
+and every wrong one for 0–20%, with nothing in between. Below 60% nothing
 is posted but a note saying so, which is what #271 gets now.
 
 Commenting `/retrace` on an issue re-runs it against the issue body, which is
@@ -219,7 +219,7 @@ inside a fence long enough that no backtick run in it can escape.
 3. **Add the API-key secrets** you want baked into public builds:
    `WMKB_KLIPY_API_KEY`, `WMKB_GIPHY_API_KEY`, `WMKB_BRAVE_API_KEY`,
    `WMKB_TRANSLATE_API_KEY`, `WMKB_UNSPLASH_API_KEY`, `WMKB_PEXELS_API_KEY`,
-   `WMKB_DROPBOX_APP_KEY`, `WMKB_ONEDRIVE_CLIENT_ID`. Any you leave out just
+   `WMKB_DROPBOX_APP_KEY`, `WMKB_ONEDRIVE_CLIENT_ID`. Any you leave out
    make that tool show its "needs an API key" state, or leave that backup
    destination off the list, so a release without them still builds and runs.
 
@@ -473,7 +473,7 @@ instead.
    auto-provisioning switched off. Together that makes any `jvmToolchain(n)` in
    the tree fatal unless `n` is a JDK their image already carries.
    `:tools:dictc` asked for 17 and failed the build outright with
-   `Cannot find a Java installation ... matching {languageVersion=17}`. Set a **jvmTarget**
+   `Cannot find a Java installation ... matching {languageVersion=17}`. Set a `jvmTarget`
    instead: it fixes the bytecode level without demanding a particular JDK be
    installed.
    :::
@@ -576,8 +576,8 @@ The two editions are not the same app, so they do not share a description.
 
 | Tree | Read by | Holds |
 |---|---|---|
-| `fastlane/metadata/android/en-US/` | **F-Droid**, and the shared source for images and changelogs | the **lite** edition's `title.txt`, `short_description.txt` and `full_description.txt`, plus `images/` and `changelogs/` |
-| `fastlane/play/metadata/android/en-US/` | **Play**, via supply's `metadata_path` | the same three text files, written for the **full** edition, and nothing else |
+| `fastlane/metadata/android/en-US/` | **F-Droid**, and the shared source for images and changelogs | the lite edition's `title.txt`, `short_description.txt` and `full_description.txt`, plus `images/` and `changelogs/` |
+| `fastlane/play/metadata/android/en-US/` | **Play**, via supply's `metadata_path` | the same three text files, written for the full edition, and nothing else |
 
 F-Droid scans a fixed set of paths inside the source repo and there is no way
 to point it somewhere else, so the default tree has to be the F-Droid one.
@@ -627,8 +627,8 @@ non-UTF-8 locale otherwise raises rather than counting.
    - **Data safety**: this project collects nothing and shares nothing. The
      optional network tools send what you typed into that tool to the service
      you chose, which belongs under that tool's own disclosure rather than as
-     app-wide collection. **But the form covers bundled SDKs as well as your
-     own code**, and the full edition bundles ML Kit. Google
+     app-wide collection. But the form covers bundled SDKs as well as your
+     own code, and the full edition bundles ML Kit. Google
      [documents](https://developers.google.com/ml-kit/android-data-disclosure)
      that its SDKs send device and app information, a per-installation
      identifier, and performance and error data to Google for diagnostics and
@@ -655,7 +655,7 @@ non-UTF-8 locale otherwise raises rather than counting.
 
    | Surface | Console form? | What to say |
    |---|---|---|
-   | Accessibility API, from `TouchPassthroughService` binding `BIND_ACCESSIBILITY_SERVICE` | **Yes**, and because `isAccessibilityTool="true"` it also wants a **video** of the feature and the disability audience | It carves the key grid out of TalkBack's touch exploration so screen-reader users can still use the keyboard's gestures. It subscribes to no accessibility events, cannot read window content, and is inert unless pass-through is switched on. |
+   | Accessibility API, from `TouchPassthroughService` binding `BIND_ACCESSIBILITY_SERVICE` | **Yes**, and because `isAccessibilityTool="true"` it also wants a video of the feature and the disability audience | It carves the key grid out of TalkBack's touch exploration so screen-reader users can still use the keyboard's gestures. It subscribes to no accessibility events, cannot read window content, and is inert unless pass-through is switched on. |
    | Photo and video permissions, from `READ_MEDIA_IMAGES` | **Yes** | It feeds the screenshot observer that offers a just-taken screenshot on the strip. The Photo Picker cannot replace it: a picker returns a file the user chose, and this needs to notice that a new one appeared. FUTO Keyboard ships the same permission for the same reason on Play, so this is a well-trodden justification rather than a novel one. |
    | Notification access, from `MediaNotificationListener` | No form. Prominent disclosure plus Data safety is the whole requirement | Two jobs, both user-facing: the media-control tool needs the active media session, and one-time-code capture reads codes to offer them on the strip. Both are off until the user enables them, and `SpecialAccessActivity` shows the disclosure before the system screen opens. |
    | `PACKAGE_USAGE_STATS`, for the clipboard's "Show source app" setting | No form. Same as above | On a copy it reads which app was in the foreground in the ten seconds before, so the clip can say where it came from. It reads no history and no time-in-app, keeps the answer with the clip on the device, and the setting is off until the user turns it on. |
@@ -711,7 +711,7 @@ bundle install
 | `apks` | sideload APKs, full and lite in both language builds, one per ABI |
 | `internal` | checks the changelog, builds the AAB (or takes `aab:path`), uploads to the internal track. Only the build path checks signing, since a prebuilt `aab:` is assumed already signed |
 | `promote` | move the internal release to production (`to:`, `from:`, `rollout:` options) |
-| `listing` | push the **Play** store-listing text, from `fastlane/play/metadata/`, nothing else |
+| `listing` | push the Play store-listing text, from `fastlane/play/metadata/`, nothing else |
 | `graphics` | push the icon, feature graphic and screenshots to Play, nothing else |
 | `check_key` | validate the service-account key against the Play API |
 
@@ -730,7 +730,7 @@ files to Play. `play/store-listing/` and `play/store-listing-tablet10/` are
 the composed slides those copies come from.
 
 :::caution[Screenshot shape is a hard Play rule]
-A Play screenshot's long side may not be more than **twice** its short side.
+A Play screenshot's long side may not be more than twice its short side.
 The phone slides are composed on a 1080x2400 device canvas, which is 2.22x.
 The API refuses that, with an error naming neither the file nor the rule. Run
 `python3 play/pipeline/pad_phone_shots.py` after you regenerate the slides. It
@@ -771,7 +771,7 @@ and already fine.
 ## Deploying the docs
 
 The site at [wmkeyboard.pages.dev](https://wmkeyboard.pages.dev) is a
-Cloudflare **Pages** project connected to this repository, so a push to `main`
+Cloudflare Pages project connected to this repository, so a push to `main`
 that touches `docs/` deploys itself. The settings are:
 
 | Setting | Value |

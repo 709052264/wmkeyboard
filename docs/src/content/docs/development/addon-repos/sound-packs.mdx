@@ -17,7 +17,7 @@ twice, a <KeyCap>Space</KeyCap> bar with stabilizers under it doesn't sound like
 a letter key, and a mechanical switch makes a second, quieter noise when your
 finger comes off it. A pack carries all three.
 
-If you just want to install one, see
+If you want to install one, see
 [Sound &amp; vibration](/typing/feedback/#sound-packs). This page is for
 publishing them.
 
@@ -104,13 +104,13 @@ switch actuating under the finger, and the stem returning when it comes off.
 `press` is the first, `release` is the second, and the keyboard plays each at the
 moment it happens. Hold a key down and the second sound waits for you.
 
-An empty `release` means **silence on key-up**, not a fallback to `press`. Most
+An empty `release` means silence on key-up, not a fallback to `press`. Most
 sounds worth typing on are one event (a beep, a pop, an interface click), and
 inventing a second one for them would double every keystroke. So a pack with no
 `release` behaves exactly as packs did before the field existed.
 
 Roles and the split are independent. A role can fill `press`, `release`, both or
-neither, and each field falls back to the pack's top-level list **on its own**,
+neither, and each field falls back to the pack's top-level list on its own,
 so a `space` role that names only `press` still plays the pack's default key-up.
 
 The two lists are drawn from independently: `press[3]` and `release[3]` are not
@@ -130,7 +130,7 @@ split one, cut at the quietest point between the two events. Do not cut at a
 fixed delay: the gap varies by tens of milliseconds between recordings of the
 same switch, and a fixed cut clips the key-up's attack on the fast ones.
 
-Do not normalize the halves separately. A key-up is genuinely quieter than its
+Do not normalize the halves separately. A key-up is quieter than its
 key-down, a tenth to a half the level on real switches. Level the two to match
 and typing sounds like two keyboards.
 
@@ -161,7 +161,7 @@ recorded them together.
 
 ## Per-key sounds
 
-`keys` addresses individual keys, keyed by **the text the key types**:
+`keys` addresses individual keys, keyed by the text the key types:
 
 ```json
 "keys": {
@@ -177,18 +177,18 @@ This is what an [Animalese](https://github.com/joshxviii/animalese-typing-deskto
 voice pack needs: a syllable per letter rather than one click for the whole
 board.
 
-The key is the committed text, **lowercased**. `"a"` covers both `a` and a
-shifted `A` — one recording, because the keyboard has no way to say which of two
+The key is the committed text, lowercased. `"a"` covers both `a` and a
+shifted `A`. That is one recording, because the keyboard has no way to say which of two
 it meant and nobody has asked for two. Multi-character keys work too, which is
 the point of keying on text rather than on a key code: a key that commits `th`,
 or a Bengali conjunct, is one entry.
 
-Only keys that **type something** can be addressed this way. Shift, the layer
-switches, the globe, the tools — none of them commit text, and all of them are
+Only keys that type something can be addressed this way. Shift, the layer
+switches, the globe and the tools commit no text, and all of them are
 already reachable through `roles`, which is the grouping anyone can realistically
 record.
 
-Resolution is three deep and **per field**:
+Resolution is three deep and per field:
 
 ```
 keys[<what the key types>]  →  roles[<the key's role>]  →  the top-level set
@@ -199,7 +199,7 @@ So `keys.a.press` with no `keys.a.release` plays the pack's default key-up under
 names three letters and nothing else is legal: those three sound like themselves
 and the rest of the board sounds like the default set.
 
-`gain` resolves the same way — a key's own, then its role's, then the pack's.
+`gain` resolves the same way: a key's own, then its role's, then the pack's.
 
 **Ship a top-level `press` anyway.** A pack may be per-key only, and one is
 accepted, but a key it never named then falls back past the roles to nothing and
@@ -257,7 +257,7 @@ entry is truncated, and a single recording over 4 MB is dropped on its own. The
 pack still installs with what fits, so check the counts on the detail page after
 publishing a large pack.
 
-Per-key sets are resolved **last**, after the board-wide set and the roles, so a
+Per-key sets are resolved last, after the board-wide set and the roles, so a
 pack that runs out of file budget loses the keys it named rather than the set
 every other key falls back to.
 
@@ -320,7 +320,7 @@ Notes:
 
 - **`minAppVersion` won't rescue the oldest builds.** An app that has never
   heard of `sound_pack` reads the type as unknown and drops the whole entry
-  while decoding the manifest, before any version check runs, so the pack just
+  while decoding the manifest, before any version check runs, so the pack
   doesn't appear for those users. Set the floor anyway: a build that does know
   the type shows the addon and refuses the install with a note saying to update
   the app.
@@ -356,8 +356,8 @@ recordings, so that pack is deliberately left whole.
 ## Known gaps
 
 - **Keys are addressed by text, not by key code.** Mechvibes-style packs name
-  scan codes. A phone keyboard has no stable ones — the same cell types a
-  different letter on the next layout — so `keys` names what a key *types*
+  scan codes. A phone keyboard has no stable ones, because the same cell types a
+  different letter on the next layout, so `keys` names what a key *types*
   instead. The upshot is that one entry covers that character on every layout
   that can type it, which is usually what you want and occasionally not.
 - **One recording per key, not per case.** `"a"` and `"A"` are the same entry.

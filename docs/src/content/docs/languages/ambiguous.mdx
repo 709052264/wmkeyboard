@@ -126,7 +126,7 @@ Both layouts glide, and this is the part that surprises people, because it's rar
 
 It falls out of how glide already worked here. The decoder has always matched a stroke against *keys* rather than letters, because plenty of layouts put more than one character on a key already. Probhat, the Bengali layout, has ক and খ on the same key, and refusing the second one would make most aspirated Bengali words impossible to swipe. So a T9 key carrying `abc` is the same situation with more letters, and the existing decoder handles it without changes.
 
-Draw through the keys of a word and the candidates come back, ordered by the language model the same way tapped words are. On T9 a stroke is genuinely ambiguous (the same path spells "good", "gone" and "home"), so the strip earns its keep. The [glide ambiguity picker](/typing/glide-typing/) helps here too: when two readings are close, it holds the word until you lift so you can choose.
+Draw through the keys of a word and the candidates come back, ordered by the language model the same way tapped words are. On T9 a stroke is ambiguous (the same path spells "good", "gone" and "home"), so the strip earns its keep. The [glide ambiguity picker](/typing/glide-typing/) helps here too: when two readings are close, it holds the word until you lift so you can choose.
 
 Double letters have the old keypad problem, since a finger can't visit a key twice without leaving it. The decoder allows for it, the way it does on a normal layout.
 
@@ -134,7 +134,7 @@ Double letters have the old keypad problem, since a finger can't visit a key twi
 
 Straight talk about the trade:
 
-- **Common words are effortless.** "the", "and", "have", "there" come out of the top slot without a thought.
+- **Common words come easily.** "the", "and", "have", "there" come out of the top slot without a thought.
 - **The strip matters more.** On QWERTY you can ignore it for whole sentences. Here it's part of typing, especially on T9, where words like "home" and "good" share every key.
 - **Rare words take a moment.** Anything the dictionary hasn't got needs the long-press spelling, once.
 - **Typo correction still runs, quietly.** Hitting the key next door is still caught, but it's held to a much higher bar than usual: a reading that uses your keystrokes exactly as you pressed them beats one that assumes you slipped, unless the evidence is overwhelming.
@@ -162,4 +162,4 @@ The field is `letters` in the [raw JSON](/languages/custom-layouts/#reaching-the
 
 A file that gets the anchor wrong is repaired on import rather than accepted quietly, and the confirm dialog says what changed.
 
-Four keys, three keys, letters grouped however you like. If you've been meaning to try a layout nobody's built, this is the part that was missing.
+Four keys, three keys, letters grouped however you like.

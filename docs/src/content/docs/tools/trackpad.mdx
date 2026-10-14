@@ -33,7 +33,7 @@ Tap **Trackpad** on the toolbar, or in the toolbox if you haven't pinned it (see
 | Two finger drag | Move the cursor a word at a time |
 | Two finger tap | Type a space |
 
-The pad is **relative**. Where you put your finger down doesn't matter, only how far it travels from there, so you can start a drag anywhere on the surface, lift, and start again. A slow drag that covers less than a step per frame still adds up: the surface keeps the fraction and fires the step once the travel reaches it, and dragging back the way you came unwinds that fraction rather than firing a move.
+The pad is relative. Where you put your finger down doesn't matter, only how far it travels from there, so you can start a drag anywhere on the surface, lift, and start again. A slow drag that covers less than a step per frame still adds up: the surface keeps the fraction and fires the step once the travel reaches it, and dragging back the way you came unwinds that fraction rather than firing a move.
 
 Every move is a real arrow key sent to the field, the same event a hardware keyboard would send, through the same handler the [text-editing panel](/tools/text-editing/) uses. That has two consequences. The cursor behaves exactly as the app you're typing in wants it to, and the trackpad obeys whatever selection mode is armed, from wherever it was armed. Turn on the toolbar's [Selection mode](/tools/text-editing/#selection-mode) tool, or the panel's <KeyCap>Select</KeyCap> key, and every trackpad drag extends the selection until you turn it off again.
 

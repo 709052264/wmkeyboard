@@ -12,7 +12,7 @@ import Shot from '@components/Shot.astro';
 
 The Permissions screen is an inventory, not a setup wizard. Every feature that needs a permission still asks for it where the feature lives, so nothing funnels you through here. What this screen answers is "what can this keyboard reach, and what does it hold right now?", without you having to read a manifest. It's also the one place you can grant something ahead of the feature that wants it.
 
-This page is the field reference. For what each permission is actually used for, and what refusing costs you, see [Permissions](/privacy/permissions/).
+This page is the field reference. For what each permission is used for, and what refusing costs you, see [Permissions](/privacy/permissions/).
 
 <PhoneFrame caption="The Permissions screen: runtime permissions, special access, and the ones that come with the install.">
   <Shot id="reference/settings/permissions-screen" alt="The Permissions screen: runtime permissions, special access, and the ones that come with the install." />
@@ -41,7 +41,7 @@ The ones Android shows a prompt for. Each row reads **Granted** or **Not granted
 | Photos and images | Show your new screenshots in the clipboard | not in the Play Store build |
 | Storage | Save images from the keyboard to your gallery | Android 9 and older only |
 
-Tap a row that isn't granted and you get that permission's own explanation, then Android's prompt. It's exactly the flow the feature itself would run. Tap a row that *is* granted and the app's page opens in Android's Settings instead, since that's the only place a grant can be handed back.
+Tap a row that isn't granted and you get that permission's own explanation, then Android's prompt. It's the same flow the feature itself would run. Tap a row that *is* granted and the app's page opens in Android's Settings instead, since that's the only place a grant can be handed back.
 
 **Storage** is the one row that isn't always there. From Android 10 the app writes to your gallery with no permission at all, so the row would be a control wired to nothing. It isn't drawn.
 

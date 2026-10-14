@@ -15,13 +15,13 @@ individual developer.
 There are two builds of WM Keyboard and they are not the same app underneath,
 so they get one policy each rather than one policy with a page of footnotes.
 
-**This page is the lite edition.** That is what F-Droid builds from source, and the
+This page is the lite edition. That is what F-Droid builds from source, and the
 `lite` APK on the GitHub releases page. It is compiled with
 `wmkb.enablePlayStore=false` and `wmkb.enableGms=false` against the `lite`
-product flavour, which means **no Google library is on its compile classpath
-at all**.
+product flavour, which means no Google library is on its compile classpath
+at all.
 
-If you installed from **Google Play**, you have the full edition, which does
+If you installed from Google Play, you have the full edition, which does
 carry Google libraries. Read [Privacy policy (Google Play
 edition)](/privacy/policy/) instead. The app tells you which one you have
 under About: the version line names the edition.
@@ -35,8 +35,8 @@ project that the app sends anything to. What you type is processed on your
 device and stays there.
 
 In this edition there is no caveat to that. The full edition has to disclose
-Google's ML Kit reporting its own diagnostics; **this build does not contain
-ML Kit**, so there is nothing of that kind to disclose. The one Google-adjacent
+Google's ML Kit reporting its own diagnostics; this build does not contain
+ML Kit, so there is nothing of that kind to disclose. The one Google-adjacent
 code path that survives is downloadable fonts, and it is inert on a device
 without Google Play services. See [What this build does not
 contain](#what-this-build-does-not-contain) below for the exact list.
@@ -62,8 +62,8 @@ and the source it builds from.
 | **Whisper speech models** | offline dictation | offline voice typing. Android's own recognizer still works |
 | **Harper grammar engine** | grammar checking | the grammar tool |
 
-Only one Google code path is left, and it is worth being exact about it. The
-keyboard can ask **Android's downloadable-font provider** for a font: some
+Only one Google code path is left. The
+keyboard can ask Android's downloadable-font provider for a font: some
 scripts' default keyboard face, and every "Google font" choice in the theme
 editor, come from there rather than from the APK. That provider is part of
 Google Play services. On a device that does not have Play services or microG,
@@ -137,7 +137,7 @@ tools talk to are not free software. Every one of them is opt-in, and the
 keyboard is fully usable with all of them untouched. Most also have a free,
 self-hostable alternative you can switch to above.
 
-Voice typing is the one row worth reading twice. This edition has no offline
+Voice typing is the row to read carefully. This edition has no offline
 Whisper, so dictation goes through Android's own `SpeechRecognizer`. On most
 devices that is a Google component and your audio may leave the device. If
 that matters to you, do not use voice typing on this edition.
@@ -146,7 +146,7 @@ that matters to you, do not use voice typing on this edition.
 ### The update check
 
 One request in this build is not a tool. About once every six hours, and only
-while you have the settings app open, it asks **`f-droid.org`** which version
+while you have the settings app open, it asks `f-droid.org` which version
 of WM Keyboard F-Droid has. If that is newer than yours, a card offers to open
 F-Droid. It downloads nothing and installs nothing; the F-Droid client does
 that, the same as it would without this check. Turn the card off with **Ask me

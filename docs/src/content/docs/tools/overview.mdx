@@ -20,7 +20,7 @@ WM Keyboard ships 83 tools (panels, sensors, generators, and one-tap actions), b
 
 ## Pinning and reordering
 
-The toolbar is a strip of **pinned** tools. The toolbox, behind the grid button on the toolbar, holds every other **enabled** tool that isn't pinned, and a tool never sits in both places at once. Out of the box a phone pins three: **Emoji**, **Clipboard**, and **Settings**. A tablet starts wider, with five on a small tablet (GIF and Voice join the three) and seven on a large one (Translate and Text edit as well); see [Size & position](/typing/size-position/#on-a-tablet). Everything else starts in the toolbox, ranked roughly by how often people reach for it: expressive media first, then everyday text helpers, then keyboard tweaks, with the specialty and sensor tools last.
+The toolbar is a strip of pinned tools. The toolbox, behind the grid button on the toolbar, holds every other enabled tool that isn't pinned, and a tool never sits in both places at once. Out of the box a phone pins three: **Emoji**, **Clipboard**, and **Settings**. A tablet starts wider, with five on a small tablet (GIF and Voice join the three) and seven on a large one (Translate and Text edit as well); see [Size & position](/typing/size-position/#on-a-tablet). Everything else starts in the toolbox, ranked roughly by how often people reach for it: expressive media first, then everyday text helpers, then keyboard tweaks, with the specialty and sensor tools last.
 
 Open the toolbox and hold-and-drag a tool:
 
@@ -80,7 +80,7 @@ Inside a tool's panel, most buttons are bare icons: the clipboard's filter and l
 
 Two settings apply to pills only. **Pills per row** goes from 1 to 3: one gives every name the full width, and three really only fits in landscape. **Fill pills with the tool color** paints the whole pill in the tool's accent color and flips the icon and name to white, or to near-black where the accent is too pale for white to read on. It needs **Colorful tool icons** (under <SettingsPath path="Tools" />) on, since that's where the colors come from.
 
-Either layout still drags the same way: hold a tool to pick it up, drop it on the toolbar to pin it or elsewhere in the grid to reorder. The tool that follows your finger is drawn in the shape it will land in, and changes between them as you move: a full-width pill with its name over a pill toolbox, narrowing into the toolbar's circle as you carry it up to the bar, and widening again on the way back down. The grid closes up behind it as you go, and the drop keeps whatever arrangement you were looking at — the tool stays where you let go of it rather than flicking home and back.
+Either layout still drags the same way: hold a tool to pick it up, drop it on the toolbar to pin it or elsewhere in the grid to reorder. The tool that follows your finger is drawn in the shape it will land in, and changes between them as you move: a full-width pill with its name over a pill toolbox, narrowing into the toolbar's circle as you carry it up to the bar, and widening again on the way back down. The grid closes up behind it as you go, and the drop keeps whatever arrangement you were looking at. The tool stays where you let go of it rather than flicking home and back.
 
 ## Scrolling or pages
 
@@ -108,7 +108,7 @@ Related pages cover most of these tools in depth: [Clipboard manager](/tools/cli
 
 ## Panels and captured keys
 
-Most tools that need input open a panel that **captures the keyboard**: search boxes, the AI prompt, the typing-test scorer, a plugin's own text field. While that panel is focused, what you type goes into its box rather than into the app behind it. Backspace is where this matters most. Word-deleting the field behind an open panel would edit text you can't currently see, so the keyboard routes deletes into the panel for as long as it's open. Space and <KeyCap>Enter</KeyCap> stay in the box too: Enter runs the box's own action (search, next match, keep this spelling) rather than dropping a newline into the app behind the panel.
+Most tools that need input open a panel that captures the keyboard: search boxes, the AI prompt, the typing-test scorer, a plugin's own text field. While that panel is focused, what you type goes into its box rather than into the app behind it. Backspace is where this matters most. Word-deleting the field behind an open panel would edit text you can't currently see, so the keyboard routes deletes into the panel for as long as it's open. Space and <KeyCap>Enter</KeyCap> stay in the box too: Enter runs the box's own action (search, next match, keep this spelling) rather than dropping a newline into the app behind the panel.
 
 ### A captured box is a real text field
 
@@ -116,7 +116,7 @@ Those boxes type like the app's own field, not like a one-way buffer:
 
 - **A caret you can move.** Tap anywhere in the text to put the caret there, and the next letter, backspace or swipe lands at that spot rather than at the end. The spacebar scrub, a hardware keyboard's arrows, <KeyCap>Home</KeyCap> and <KeyCap>End</KeyCap>, and a layout's own arrow keys all move it, and <KeyCap>Del</KeyCap> deletes forward from it. Long text scrolls to follow the caret instead of trailing off behind an ellipsis.
 - **Selection.** Long-press a word to select it. A handle at each end drags the selection wider or narrower, and a bar over it offers **Cut**, **Copy**, **Paste** and **Select all**. Long-press where there is no word, or anywhere in an empty box, and the caret moves there with a **Paste** bar over it (plus **Select all** once there is text); a tap anywhere else puts it away. The toolbar's **Paste** tool and a layout's Paste key paste into the box too, at the caret, for as long as it has the keys. Typing, a swipe, a suggestion or backspace replaces the selected text, as in any field, and a tap puts the caret back. Shift with a hardware keyboard's arrows selects too. The handles and the bar are drawn inside the keyboard, never as a window of their own over the app.
-- **Glide typing.** Swipe a word into a search box the same way you swipe one into a message. Each swipe adds a word, spaced off the one before it; the last word of a query just waits for its space until the next swipe, so the results are never held back a word. A chained swipe through the spacebar lands one word per leg, exactly as it does in a field. The two numeric boxes — the calculator's expression and the converters' amount — are the exception: there is no word list to decode a stroke against on a keypad.
+- **Glide typing.** Swipe a word into a search box the same way you swipe one into a message. Each swipe adds a word, spaced off the one before it; the last word of a query just waits for its space until the next swipe, so the results are never held back a word. A chained swipe through the spacebar lands one word per leg, exactly as it does in a field. The two numeric boxes, the calculator's expression and the converters' amount, are the exception: there is no word list to decode a stroke against on a keypad.
 - **Voice.** A mic at the right end of the box's suggestion strip dictates into the box, at the caret. See [Dictating into the keyboard's own boxes](/tools/voice/#dictating-into-the-keyboards-own-boxes).
 - **Suggestions.** The box gets the suggestion strip in the row directly above the keys, with the same slots, the same size and the same words the field's own strip would offer. Tapping one replaces the word at the caret. The panel gives up that row rather than the keyboard growing one, so opening a search box doesn't move the keys under your thumbs. The emoji panel's search box is the one that reads differently: it's searching the emoji catalogue rather than writing prose, so its strip offers terms that catalogue can answer. See [Searching for an emoji](/emoji/picker/#searching-for-an-emoji).
 
@@ -124,7 +124,7 @@ On a short screen, a phone turned sideways most of all, the panel is what gives 
 
 ### Making a tool taller
 
-A tool that takes the keyboard's place — AI, AI reply, translate, the converters, the dictionary and the rest — has the same short bar across its top edge. Drag it up for a taller tool, down to go back to the height it opens at. Where you let go is kept, and it's one height for every such tool. The clipboard and the GIF and sticker panels keep their own bars and heights, described on their pages. With no room to grow, the bar isn't drawn.
+A tool that takes the keyboard's place (AI, AI reply, translate, the converters, the dictionary and the rest) has the same short bar across its top edge. Drag it up for a taller tool, down to go back to the height it opens at. Where you let go is kept, and it's one height for every such tool. The clipboard and the GIF and sticker panels keep their own bars and heights, described on their pages. With no room to grow, the bar isn't drawn.
 
 ### Making a panel over the keys taller
 

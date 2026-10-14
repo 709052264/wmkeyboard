@@ -68,7 +68,7 @@ Accept a pasted string and normalise to the raw manifest URL (§4 of the format 
 - any other `https` URL → read as a directory, with `wmkeyboard-repo.json` appended
 - a pasted address with no scheme at all → assumed `https`, then the rules above
 
-Keep the resolved **manifest URL's directory** as the base for resolving relative
+Keep the resolved manifest URL's directory as the base for resolving relative
 `path` / `previews` / `icon`. Enforce **`https` only**.
 
 ## 3. Persistence: a file-backed store, not DataStore
@@ -86,7 +86,7 @@ Keep the resolved **manifest URL's directory** as the base for resolving relativ
   without the manifest; `manifestUrl` lets the Installed list reopen the addon's own page. Drives
   the Installed / Update-available / Uninstall states.
 
-The store's directory getter returns **null** when `!DirectBoot.isUserUnlocked`, so it reads as
+The store's directory getter returns `null` when `!DirectBoot.isUserUnlocked`, so it reads as
 empty before first unlock; `attach(context)` re-points it afterwards. A `reconcile()` sweep drops
 entries whose local target the user has since deleted by hand.
 
@@ -163,7 +163,7 @@ the Themes gallery, a font from the font picker, an icon pack from the Icons scr
 those leaves `installed.json` still claiming the addon is there. That shows as *Uninstall* for
 something already gone, and later offers an *Update* for it. So `AddonReconciler.reconcile()`
 runs when each addon screen appears: it asks every record's own subsystem whether its
-`localRef` still resolves, and drops the ones that don't. It runs **before** the status
+`localRef` still resolves, and drops the ones that don't. It runs before the status
 recompute, so a deleted theme reads as available again rather than installed.
 
 ## 5b. Previewing without installing
@@ -193,7 +193,7 @@ stored version → show **Update**. Re-running install overwrites in place.
 
 ## 7. Security & privacy
 
-Every addon type but one is **pure data**, and no code runs. The exception is
+Every addon type but one is pure data, and no code runs. The exception is
 `plugin`, which ships Lua and is covered separately below. Residual surface and
 mitigations:
 

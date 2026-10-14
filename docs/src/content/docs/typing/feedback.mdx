@@ -37,9 +37,9 @@ With haptics on, **Haptic style** picks how the buzz is produced:
   <Shot id="typing/haptic-style-custom-sliders" alt="Haptic style chips, with the strength and intensity sliders shown for Custom." />
 </PhoneFrame>
 
-Tap and Key are the two to reach for first. They hand the buzz to the same platform call stock keyboards use, so a phone with vendor-tuned haptics (Samsung, Pixel) gives you that crafted click, and it follows the system's own haptic-intensity slider on its own.
+Tap and Key are the two to reach for first. They hand the buzz to the same platform call stock keyboards use, so a phone with vendor-tuned haptics (Samsung, Pixel) gives you that tuned click, and it follows the system's own haptic-intensity slider on its own.
 
-Tap is the default, and on most phones it's the one you want. Vendors usually tune a separate waveform for keyboards, and Tap is what their own keyboard plays, so it tends to feel crisper than Key even though the two are only one constant apart. On a Galaxy S25 Ultra, for instance, Tap and Key resolve to genuinely different Samsung effects, and Tap is the one Samsung Keyboard uses. Switch to Key if Tap feels wrong on your device. That happens on phones whose vendor never bothered to tune a keyboard-specific effect.
+Tap is the default, and on most phones it's the one you want. Vendors usually tune a separate waveform for keyboards, and Tap is what their own keyboard plays, so it tends to feel crisper than Key even though the two are only one constant apart. On a Galaxy S25 Ultra, for instance, Tap and Key resolve to different Samsung effects, and Tap is the one Samsung Keyboard uses. Switch to Key if Tap feels wrong on your device. That happens on phones whose vendor never bothered to tune a keyboard-specific effect.
 
 Click, Heavy, Sharp and Custom bypass the platform call and drive the motor more directly, which is useful if you want a feel the platform styles don't offer. When a style isn't available on a device, it falls back to a hardware Click and then to Custom, so every style produces some feedback everywhere.
 
@@ -116,7 +116,7 @@ Tap a pack in the list and it plays a whole keystroke (press, a short hold, rele
 
 ### Separate sounds per key
 
-A pack can also carry different recordings for different kinds of key: the <KeyCap>Space</KeyCap> bar, <KeyCap>Enter</KeyCap>, <KeyCap>⌫</KeyCap>, and the modifier row (<KeyCap>Shift</KeyCap>, <KeyCap>?123</KeyCap>, the globe and so on). On a real board those genuinely do sound different, mostly because of the stabilizers under the longer keys.
+A pack can also carry different recordings for different kinds of key: the <KeyCap>Space</KeyCap> bar, <KeyCap>Enter</KeyCap>, <KeyCap>⌫</KeyCap>, and the modifier row (<KeyCap>Shift</KeyCap>, <KeyCap>?123</KeyCap>, the globe and so on). On a real board those do sound different, mostly because of the stabilizers under the longer keys.
 
 Most packs don't fill those slots and don't need to. When a pack does, its row says so: "10 recordings • separate sounds for space, enter". A slot a pack leaves empty falls back to the pack's main recordings, so nothing ever goes silent. This is independent of the key-up recordings above. A spacebar recorded on its own still uses the pack's ordinary key-up sound unless it brought one.
 
@@ -134,8 +134,8 @@ alone.
 
 A pack addresses a key by **what it types**, not by where it sits, so one
 recording of `a` covers that letter on every layout that has it. Uppercase and
-lowercase share the one recording. Keys that type nothing — <KeyCap>Shift</KeyCap>,
-the layer switches, the globe — can't be named individually; they're covered by
+lowercase share the one recording. Keys that type nothing (<KeyCap>Shift</KeyCap>,
+the layer switches, the globe) can't be named individually; they're covered by
 the modifier slot above.
 
 Publishing one is [Per-key sounds](/development/addon-repos/sound-packs/#per-key-sounds).
@@ -158,13 +158,13 @@ like it.
 
 Same two routes as single sounds: import a `.wmsoundpack` file here, or install one from an addon repository. The [Monkeytype Key Sounds](https://github.com/wasi-master/wmkeyboard-monkeytype-sounds) repository ships pre-added and carries 26 packs built from monkeytype's own sound files, including recordings of Cherry MX, Kailh, Akko, Tealios and Razer switches. Twelve of them (the mechanical switch sets, the typewriter and the two boards) have their key-up sounds cut out of the recordings, so they behave like the keyboards they came from.
 
-Before installing, an addon's page offers a **Preview** that plays each recording in the pack separately, key-downs and key-ups on their own rows, so you can hear how much it actually varies rather than guessing from one sample.
+Before installing, an addon's page has a **Preview** that plays each recording in the pack separately, key-downs and key-ups on their own rows, so you can hear how much it actually varies rather than guessing from one sample.
 
 If a pack goes missing while it's selected, the key press falls back to the system click rather than going quiet, exactly as a missing single sound does.
 
 ## Silent and Do Not Disturb
 
-The ringer switch and Do Not Disturb are handled differently, and it's worth knowing which is which:
+The ringer switch and Do Not Disturb are handled differently:
 
 - **Key press sound follows the ringer switch automatically, with no setting for it.** It plays through the same system sound-effect stream the rest of Android uses, so silent and vibrate mode mute it the way they'd mute any other system sound. The toolbar "Sound & haptics" panel (see below) shows a live warning whenever the sound is on but the ringer would swallow it: "Your device is on vibrate. The key press sounds do not play.", or the same line with "silent" in place of "on vibrate".
 - **Haptics do not follow Do Not Disturb, by default.** DND targets notifications rather than touch feedback, so the keyboard keeps buzzing under DND unless you turn on **Mute haptics in Do Not Disturb**. With that on, every keyboard vibration stays silent for as long as DND is active, down to the long-press and per-event buzzes.
@@ -203,7 +203,7 @@ No onboarding answer switches it on, not even "Show me everything", so if you fi
 | Sound style | Click |
 | Sound volume | 50% |
 | Key release sound (packs that have it) | On |
-| A pack per layout | None — every layout follows the selected pack |
+| A pack per layout | None: every layout follows the selected pack |
 
 Open the **Key press** tile on the settings home grid, or search "Key press" in settings search. For the field-by-field breakdown, including the key popup and the long-press editing shortcuts that share this screen, see [Key press settings](/reference/settings/keypress/).
 

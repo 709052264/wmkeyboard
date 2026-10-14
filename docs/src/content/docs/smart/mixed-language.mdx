@@ -37,7 +37,7 @@ A run of words nobody recognises (typos, names, a third language entirely) still
 
 Detection starts every field from nothing, and nothing is exactly what an empty message box has. So the keyboard also keeps a tally, per app, of which of your languages the words you type there belong to, and starts detection in that app's fields from the tally: a new message in a chat app you write Banglish in leans Banglish before you have typed a word, and a new email starts out English.
 
-The lean is deliberately small. It is worth about one typed word of evidence at most, so the first word you actually type outweighs it and the second settles the matter. A chat app you also write English in is never fought: type an English word and the field is English. Apps with only a few dozen words of history lean less, the tally forgets slowly (roughly the last hundred words), and a word both languages know is credited to both and moves it nowhere, the same rule the field itself uses.
+The lean is deliberately small. It is worth about one typed word of evidence at most, so the first word you type outweighs it and the second settles the matter. A chat app you also write English in is never fought: type an English word and the field is English. Apps with only a few dozen words of history lean less, the tally forgets slowly (roughly the last hundred words), and a word both languages know is credited to both and moves it nowhere, the same rule the field itself uses.
 
 **Remember each app's language** under <SettingsPath path="Typing / Automatic corrections" /> turns this off. The tally is private storage, wiped with the rest of the learned data, and never leaves the device.
 
@@ -61,7 +61,7 @@ Whichever strength is set, the swing scales with the evidence. One classified wo
 
 A phonetic layout is the one place the two languages cannot share a keyboard the ordinary way. You type Latin letters and the layout turns them into Bangla, Devanagari or the Urdu script, so an English word has nowhere to go: `hello` comes out হ্যালো, and one English word in a Bangla message means switching layouts twice.
 
-Add English under **Also suggest from** on Bangla's, Hindi's or [Urdu's](/languages/urdu/) own screen — or that of any language with a [phonetic layout](/languages/phonetic/) — and that changes in two steps.
+Add English under **Also suggest from** on Bangla's, Hindi's or [Urdu's](/languages/urdu/) own screen (or that of any language with a [phonetic layout](/languages/phonetic/)), and that changes in two steps.
 
 **The strip always carries what you typed.** The word exactly as you typed it, in Latin letters, sits on the last visible chip of the strip. The Bangla or Hindi suggestions keep their usual places in front of it, so nothing you reach for moves. Tap the chip and the word is written in English. (If you would rather the typed word always sat on the left with the phonetic reading beside it, turn on **Keep the first two words in place** on the language's screen; see [Bangla](/languages/bengali/#options).) Once the field has turned English (you tapped that chip, or the text already there is English) the strip leans the same way: the Bangla word stays first, because that is still what the space bar writes, and English completions take the rest.
 
@@ -89,9 +89,9 @@ When the keyboard picks the wrong script for a word both languages have:
 
 The **English words** tool puts the switch on the toolbar, lit while it is on. It is there for the moment a Bangla word keeps coming out in English: tap it mid-word and the word in the field turns back before you press space. It switches the language you are typing at that moment. Tapped on a layout that is not phonetic, or with English missing from Also suggest from, it says so and changes nothing.
 
-The same switch also sits on the suggestion strip itself, as a small button beside the candidates, a size down from the toolbar's buttons and lit the same way. That is where it is actually needed: a word coming out in the wrong script is something you notice while it is being typed, which is exactly when the suggestions have taken the row and the toolbar is behind the chevron. It shows on a phonetic layout with English picked under **Also suggest from** for that language, and goes away on every other layout. Put the **English words** tool on a toolbar row of its own and the strip drops its copy, rather than showing you the same button twice.
+The same switch also sits on the suggestion strip itself, as a small button beside the candidates, a size down from the toolbar's buttons and lit the same way. That is where it is needed: a word coming out in the wrong script is something you notice while it is being typed, which is when the suggestions have taken the row and the toolbar is behind the chevron. It shows on a phonetic layout with English picked under **Also suggest from** for that language, and goes away on every other layout. Put the **English words** tool on a toolbar row of its own and the strip drops its copy, rather than showing you the same button twice.
 
-The strip's button is pinned, so it cannot be dragged off the way a tool can. **Switch on the suggestion strip**, the second row of the same group, takes it away instead. English words then simply stay the way you set them, with nothing on the keyboard to turn them off by accident.
+The strip's button is pinned, so it cannot be dragged off the way a tool can. **Switch on the suggestion strip**, the second row of the same group, takes it away instead. English words then stay the way you set them, with nothing on the keyboard to turn them off by accident.
 
 After an English word, the next-word predictions come from English too (your own pairs, the bundled ones, and the English word-pair pack if you downloaded it). Which language each app's fields start out leaning towards is the same per-app tally described above. Glide typing on these layouts still decodes Bangla or Hindi only.
 
@@ -109,7 +109,7 @@ Both rows sit under Automatic corrections rather than Suggestions, because detec
 
 ## Details & edge cases
 
-- **It is per field, and per field only.** Switching apps, or just tapping into a different box, starts the reading from scratch. There is no memory of "you write Banglish to this person". That's a different feature, the long-run per-language weighting described under [Suggestions & prediction](/smart/suggestions/#learning-from-what-you-type).
-- **Detection never changes the keyboard.** The layout, the language name on the spacebar and the script you're typing all stay exactly where you put them. Only ranking and autocorrect targets move. To actually switch language, see [Switching languages](/languages/switching/).
-- **A language has to clearly lead before it counts as the field's language.** For the learned-word weighting in particular, the detected language needs about a third more share than the language you're on before it takes over. A genuinely mixed field stays with the keyboard's own.
+- **It is per field, and per field only.** Switching apps, or tapping into a different box, starts the reading from scratch. There is no memory of "you write Banglish to this person". That's a different feature, the long-run per-language weighting described under [Suggestions & prediction](/smart/suggestions/#learning-from-what-you-type).
+- **Detection never changes the keyboard.** The layout, the language name on the spacebar and the script you're typing all stay exactly where you put them. Only ranking and autocorrect targets move. To switch language, see [Switching languages](/languages/switching/).
+- **A language has to clearly lead before it counts as the field's language.** For the learned-word weighting in particular, the detected language needs about a third more share than the language you're on before it takes over. A field with no clear leader stays with the keyboard's own.
 - **It's a different question from "which languages do you use".** The long-run mix moves over weeks and would never notice that this message switched to Banglish three words ago. This one is the fast signal, and the two run side by side.

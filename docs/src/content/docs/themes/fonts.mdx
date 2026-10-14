@@ -32,14 +32,14 @@ A font you pick here beats one that comes with a theme or a layout. A theme's ke
 
 ## Importing your own font file
 
-Every script section has an **Import a font file (.ttf or .otf)** button, and its own installed-fonts list once there's a font that fits it. The button adds the file to one shared library rather than overwriting a single slot, so importing a second font doesn't evict the first. Each list is filtered to the fonts that declare that script, plus any that declare no coverage at all. Import a Devanagari or Thai font from any section, or install one from an addon repository, and it turns up in that script's own picker. English and Bengali additionally keep a legacy single-file slot from older builds.
+Every script section has an **Import a font file (.ttf or .otf)** button, and its own installed-fonts list once there's a font that fits it. The button adds the file to one shared library rather than overwriting a single slot, so importing a second font doesn't evict the first. Each list is filtered to the fonts that declare that script, plus any that declare no coverage at all. Import a Devanagari or Thai font from any section, or install one from an addon repository, and it turns up in that script's own picker. English and Bengali also keep a legacy single-file slot from older builds.
 
 A picked file goes through two checks before it's accepted:
 
 1. A byte-signature sniff that gives a specific rejection message for common near-misses: WOFF/WOFF2 web fonts ("use the .ttf or .otf version"), zip archives, or HTML/XML files saved with the wrong extension.
 2. An actual font-load attempt, so a file with a plausible header but a broken internal table is still caught before it's registered.
 
-Two limits apply: **50 fonts** in the library at once, and **32 MB** per file. Hitting either shows a plain-language dialog instead of a silent failure. Imported fonts live in the app's private storage under a generated id, never the file's original name, and if two fonts share a display name the newer one becomes "Name (2)".
+Two limits apply: 50 fonts in the library at once, and 32 MB per file. Hitting either shows a plain-language dialog instead of a silent failure. Imported fonts live in the app's private storage under a generated id, never the file's original name, and if two fonts share a display name the newer one becomes "Name (2)".
 
 :::note
 Older builds stored one custom English file and one custom Bengali file directly, before the multi-font library existed. Those two legacy files still work, and they still show up as selectable rows for anyone who set one before upgrading. New imports always go into the library instead.
@@ -72,13 +72,13 @@ The font you pick here never touches emoji: key labels and emoji are two indepen
 <SettingsPath path="Appearance / Keyboard font" />
 
 - **English font** takes the system default, one of 20 Google Fonts, or an imported or installed file. It also governs Cyrillic and Greek. Default: system default.
-- **One section per enabled script**: the script's Automatic (Noto) face, one of its curated Google Fonts, or anything in the library that covers it. Default: Automatic (Noto). English and Bengali additionally keep a legacy single-file slot.
+- **One section per enabled script**: the script's Automatic (Noto) face, one of its curated Google Fonts, or anything in the library that covers it. Default: Automatic (Noto). English and Bengali also keep a legacy single-file slot.
 - **Installed fonts** is the shared library. A section lists the fonts that declare its script or declare no coverage at all, and the heading stays hidden when none of them fit. Delete a font from any section that lists it.
 
 A related but separate control: <SettingsPath path="Accessibility / Readable font" /> is a one-tap shortcut that sets the English font to Atkinson Hyperlegible, the Braille Institute's low-vision face where lookalike characters (capital I, lowercase l, digit 1) are drawn distinctly. It's the same setting as the English font picker above, just reached from Accessibility instead.
 
 :::note
-**Font face and font size are different settings.** The size of the labels on the keys (a 0.7×–2.0× scale, independent of typeface) lives on the main Appearance screen, not here.
+Font face and font size are different settings. The size of the labels on the keys (a 0.7×–2.0× scale, independent of typeface) lives on the main Appearance screen, not here.
 :::
 
 ## Details & edge cases

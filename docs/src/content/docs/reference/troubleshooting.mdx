@@ -14,14 +14,14 @@ Most keyboard problems trace back to one of a handful of causes: a permission An
 
 ## The keyboard doesn't appear, or won't stay selected
 
-The setup card on the app's Home screen covers this fully. It polls Android's own input-method state and tells you which of three situations you're in: not enabled, enabled but not selected, or active. See [Enable the keyboard](/start/setup/) for the exact steps. Only two buttons are involved, **Turn on keyboard** and **Switch keyboard**, and the card comes back whenever you need it rather than only on first run. Once WM Keyboard *is* the active keyboard the card shrinks to a one-line "WM Keyboard is your active keyboard" with no buttons at all, since there is nothing left to press.
+The setup card on the app's Home screen covers this fully. It polls Android's own input-method state and tells you which of three situations you're in: not enabled, enabled but not selected, or active. See [Enable the keyboard](/start/setup/) for the exact steps. Only two buttons are involved, **Turn on keyboard** and **Switch keyboard**, and the card comes back whenever you need it rather than only on first run. Once WM Keyboard is the active keyboard the card shrinks to a one-line "WM Keyboard is your active keyboard" with no buttons at all, since there is nothing left to press.
 
-If WM Keyboard *was* selected and something knocked you back to a different keyboard on its own, look for a crash rather than a setting. Android quietly swaps in another input method when an IME's process dies, with no visible error. Open [the Diagnostics screen](#the-diagnostics-screen) below and check the Crashes section.
+If WM Keyboard was selected and something knocked you back to a different keyboard on its own, look for a crash rather than a setting. Android quietly swaps in another input method when an IME's process dies, with no visible error. Open [the Diagnostics screen](#the-diagnostics-screen) below and check the Crashes section.
 
 ## A language's suggestions look empty
 
 <PhoneFrame side caption="A language with no built-in or downloaded dictionary yet. Suggestions come only from what you've typed.">
-  <Shot id="reference/troubleshooting-empty-dictionary-state" alt="A language with no built-in or downloaded dictionary yet — suggestions come only from what you've typed." />
+  <Shot id="reference/troubleshooting-empty-dictionary-state" alt="A language with no built-in or downloaded dictionary yet. Suggestions come only from what you've typed." />
 </PhoneFrame>
 
 This is almost always dictionary state. A language hasn't gone missing, because WM Keyboard can't drop your last enabled layout entirely from the [language settings](/languages/overview/). If suggestions vanish, look at the dictionary first.
@@ -46,7 +46,7 @@ If letters themselves are landing late rather than the strip just being slow to 
 - **Extras layered on top of the strip.** [Words on the keys](/typing/words-on-the-keys/) asks for a much deeper candidate list than the strip itself shows, and emoji prediction, [glide typing](/typing/glide-typing/) and an installed n-gram pack each add work per keystroke. Turning off the ones you don't use is cheaper than turning off suggestions entirely.
 - **Everything else the app is holding.** [Power saving mode](/typing/power-saving/) trims background work in one switch. The **Lite** edition leaves out the heavier optional subsystems altogether, which is worth trying on a phone that struggles with the Full build.
 
-To confirm it really is the suggestion pass before you start changing things, turn **Suggestions** off under <SettingsPath path="Typing / Suggestions" /> and type a line. If the lag goes away, it's the pass, and one of the levers above will help. If it doesn't, it's something else and worth [filing](#filing-a-useful-bug-report) with a diagnostics report attached.
+To confirm it is the suggestion pass before you start changing things, turn **Suggestions** off under <SettingsPath path="Typing / Suggestions" /> and type a line. If the lag goes away, it's the pass, and one of the levers above will help. If it doesn't, it's something else and worth [filing](#filing-a-useful-bug-report) with a diagnostics report attached.
 
 ## The settings app is slow to open screens
 
@@ -85,10 +85,10 @@ None of the Camera, Voice typing, Calendar, or Media controls grants above are k
 
 ## A tool panel isn't responding to key presses
 
-This one is by design. Most tools that need typed input (search boxes, the AI prompt, the typing-test scorer, a plugin's own field) open a panel that **captures the keyboard**: what you type goes into the panel's own box, not into the app behind it. Backspace works the same way, deliberately, so it can't word-delete text in the field behind a panel you can't currently see.
+This one is by design. Most tools that need typed input (search boxes, the AI prompt, the typing-test scorer, a plugin's own field) open a panel that captures the keyboard: what you type goes into the panel's own box, not into the app behind it. Backspace works the same way, deliberately, so it can't word-delete text in the field behind a panel you can't currently see.
 
 <PhoneFrame side caption="An open tool panel capturing input. The toolbox button has become a back arrow.">
-  <Shot id="reference/troubleshooting-panel-captures-input" alt="An open tool panel capturing input — the toolbox button has become a back arrow." />
+  <Shot id="reference/troubleshooting-panel-captures-input" alt="An open tool panel capturing input. The toolbox button has become a back arrow." />
 </PhoneFrame>
 
 Sensor and generator tools don't capture keys at all: Compass, Level, Moon phase, Weather, Calendar, Password generator, Media controls, Camera and the scanners replace the key rows entirely, so there's no letter row to intercept in the first place.
@@ -107,7 +107,7 @@ See [The toolbar](/tools/overview/#panels-and-captured-keys) for the full explan
 
 <SettingsPath path="About / Diagnostics" />
 
-Diagnostics is what the keyboard has recorded about itself, kept specifically because a keyboard's failures are usually invisible: a crash swaps in a different IME with no on-screen error, a panel comes up empty, a model silently fails to load. Nothing you actually type is ever recorded here. Every entry is what happened, not what you wrote.
+Diagnostics is what the keyboard has recorded about itself, kept because a keyboard's failures are usually invisible: a crash swaps in a different IME with no on-screen error, a panel comes up empty, a model silently fails to load. Nothing you type is ever recorded here. Every entry is what happened, not what you wrote.
 
 <PhoneFrame side caption="The Diagnostics screen: report actions at the top, the filterable app log below.">
   <Shot id="reference/troubleshooting-diagnostics-screen" alt="The Diagnostics screen: report actions at the top, the filterable app log below." />
@@ -116,8 +116,8 @@ Diagnostics is what the keyboard has recorded about itself, kept specifically be
 The screen has four parts:
 
 - **Report.** **Share diagnostics** hands the full report to Android's share sheet as a file rather than inline text. A report can run to tens of kilobytes, and many receiving apps silently drop a share intent that size. **Copy to clipboard** puts the same report on the clipboard as plain text instead. **Include the system log** (off by default) adds this process's own Android log, meaning everything printed by every library in the app, not only what the keyboard itself chose to record. That's the most useful attachment for a hard-to-reproduce bug, but read it before you send it anywhere, since the keyboard doesn't control what a dependency logs.
-- **Crashes.** Shown only when at least one exists. It keeps the last 10 crash records, each with its time, thread, build info, full stack trace, and the 40 log entries leading up to it. The records go to disk rather than memory, specifically so a crash survives the process that produced it. They're readable even before you've unlocked the device once after a restart. This section has its own **Delete crashes** button.
-- **App log.** A filter text field (it matches message or tag) plus a filter chip per severity level (Debug, Info, Warn, Error) that acts as a minimum floor. It defaults to Debug, so nothing is hidden until you narrow it. A **Refresh** button re-reads the log on demand. Entries show newest first, color-coded by severity.
+- **Crashes.** Shown only when at least one exists. It keeps the last 10 crash records, each with its time, thread, build info, full stack trace, and the 40 log entries leading up to it. The records go to disk rather than memory, so a crash survives the process that produced it. They're readable even before you've unlocked the device once after a restart. This section has its own **Delete crashes** button.
+- **App log.** A filter text field (it matches message or tag) plus a filter chip per severity level (Debug, Info, Warn, Error) that sets the lowest level shown. It defaults to Debug, so nothing is hidden until you narrow it. A **Refresh** button re-reads the log on demand. Entries show newest first, color-coded by severity.
 - **System log.** Appears only while "Include the system log" is on. It's the same content that gets attached to a shared or copied report, shown here so you can read it first.
 
 A **Delete the app log** button at the bottom empties the in-memory log (separate from **Delete crashes**, which only touches the crash file). The ring holds the last 500 entries and drops the oldest as new ones land.
@@ -128,7 +128,7 @@ The report itself always opens with the build version, edition, Android release 
 
 The **Feedback** group on the [About screen](/reference/settings/about/#reporting-a-bug) has both routes: **Report a bug** opens the GitHub issue tracker, and **Email the developer** opens a pre-filled draft to `arianmollik323@gmail.com` for anything you'd rather not post publicly. Export a report from Diagnostics first and take it along. See [the FAQ](/start/faq/#how-do-i-report-a-bug-or-request-a-feature) for the short version.
 
-A couple of things worth knowing beyond that quick answer:
+Beyond that short answer:
 
 - The report already includes version, edition, Android, and device info in its header. You don't need to hand-type any of that alongside it.
 - If a model wrote something wrong or offensive, don't file that as a bug. Use the **Report** button on the AI panel instead, described in [Reporting a result](/tools/ai/#reporting-a-result). It quotes the generation itself, which an issue about the keyboard wouldn't.

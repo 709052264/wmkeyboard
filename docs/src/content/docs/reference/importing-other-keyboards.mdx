@@ -36,7 +36,7 @@ Conversion is honest about being lossy. A layout import always ends on a confirm
 | `.zip` theme | Gboard, the Rboard community | One theme, with a look each for key borders on and off |
 | `.zip` or `.pack` theme pack | Rboard | Any or all of the themes inside, each its own theme |
 | `.keyman-touch-layout` | Keyman | A custom layout, without the keyboard's rules |
-| `.kmp` package | Keyman | A custom layout **and** its typing rules |
+| `.kmp` package | Keyman | A custom layout and its typing rules |
 | `.combined` word list | HeliBoard, LeanType, FUTO, any AOSP keyboard | A custom dictionary |
 | `.dict` dictionary | HeliBoard, LeanType, FUTO, OpenBoard, GApps | A custom dictionary |
 | `PersonalDictionary.zip`, or the `dictionary.txt` inside it | Gboard | Words in your personal dictionary, and shortcuts as snippets: see [Gboard's personal dictionary](#gboards-personal-dictionary) |
@@ -46,7 +46,7 @@ Conversion is honest about being lossy. A layout import always ends on a confirm
 
 HeliBoard's JSON layouts use FlorisBoard's format, so one reader handles both. LeanType is a HeliBoard fork, so its layouts and themes are HeliBoard's.
 
-**Keyman is a different story.** 862 Keyman key grids are already built into the app, so for most of them there's nothing to import. You can still open a `.keyman-touch-layout` file or a full `.kmp` package yourself, which is how you'd add a keyboard that isn't bundled or one you're writing. A `.kmp` brings its typing rules with it; a touch layout file does not. See [Keyman layouts](/languages/keyman/).
+Keyman is a different case. 862 Keyman key grids are already built into the app, so for most of them there's nothing to import. You can still open a `.keyman-touch-layout` file or a full `.kmp` package yourself, which is how you'd add a keyboard that isn't bundled or one you're writing. A `.kmp` brings its typing rules with it; a touch layout file does not. See [Keyman layouts](/languages/keyman/).
 
 ## Whole backups
 
@@ -213,11 +213,11 @@ The rest of the flags ask for a text style this keyboard has no form of, such as
 
 ### FUTO layouts
 
-FUTO Keyboard writes its layouts in YAML, and publishes its own as a repository of them. Pick one with the same **Import from another keyboard** button; the app tells a YAML layout from a JSON one by the document itself, not by the file name. Tapping one in a file manager works too — `.yaml` is not claimed by name, because that would offer WM Keyboard for every YAML file on your phone, but the YAML content types are, and the same `name:`-and-`rows:` test recognizes the file. Either way the language is confirmed before the layout is saved.
+FUTO Keyboard writes its layouts in YAML, and publishes its own as a repository of them. Pick one with the same **Import from another keyboard** button; the app tells a YAML layout from a JSON one by the document itself, not by the file name. Tapping one in a file manager works too. `.yaml` is not claimed by name, because that would offer WM Keyboard for every YAML file on your phone, but the YAML content types are, and the same `name:`-and-`rows:` test recognizes the file. Either way the language is confirmed before the layout is saved.
 
 Most of that format reads straight across, because FUTO's keyboard descends from AOSP's and so its key specs are the ones already read here: `a|b`, `!code/`, `!icon/` and the same `!autoColumnOrder!4` popup markers. A row written as `q w e r t`, as `[[a, ą], b]`, or as a list of `{type: base, spec: …}` objects all work, and so does `type: case`, which keeps both cases the way a FlorisBoard case selector does. When the key has no `shifted` branch, its `shiftedManually` one is the shifted letter. That is how a script with no capital letters writes its second layer: Korean ㅂ over ㅃ, and the Khmer, Myanmar and Bengali layouts.
 
-Four things are worth knowing:
+Four differences:
 
 - **It is the one format that states its language.** `languages: [lt]` seeds the language picker with a fact rather than a guess from the letters. A language this app does not have falls back to the guess.
 - **The number row is dropped**, because this app adds one from a setting and keeping the file's would give the layout two. A layout that sets `numberRowMode: AlwaysEnabled`, which is how the PC-style arrangements carry their backtick and bracket keys, keeps its own.
@@ -361,7 +361,7 @@ FlorisBoard's other kind of `.flex` is a language pack: an SQLite database of th
 
 The rows are written exactly where a download would have put them, so everything else on that screen keeps working on it: the row says Downloaded, the keyboard picks the table up at the next field you tap, and the trash icon removes it.
 
-Two things are worth knowing:
+Three things to know:
 
 - **Only Cangjie and stroke land.** A pack often holds Wubi, Zhengma, Boshiamy and others as well, and this keyboard has no way to type those, so a table for one would be a large file that changed nothing. The app names the tables it found back to you instead. Cangjie Quick needs no table of its own: it is the same codes queried differently.
 - **How common each character is survives the import.** The pack FlorisBoard ships stores that as a fraction between 0 and 1, in a column its own converter labels as a whole number, so it is read by what the file actually holds rather than by what the column claims. Without that every character imported as equally common, and which one a code offers first is decided by exactly this number.
@@ -398,9 +398,9 @@ Deleting the layout deletes the method's data with it, unless a copy of the layo
 
 A `.flex` file is FlorisBoard's theme package. Pick one and the app converts every theme inside it. You can also open a `.flex` straight from a file manager.
 
-A FlorisBoard extension that holds both a day and a night version becomes **one** theme with two looks, not two separate entries, and an extension with more themes than that becomes one theme with that many looks. The first look heads the family and the rest become variants of it. The family takes the title the extension declares for itself, or the first look's own name when it declares none. Auto theme addresses the looks individually, so you can still put the day one in one slot and the night one in the other under <SettingsPath path="Appearance / Keyboard themes / Auto theme" />. The result message says so too: "The app saved *name* with 2 looks."
+A FlorisBoard extension that holds both a day and a night version becomes one theme with two looks, not two separate entries, and an extension with more themes than that becomes one theme with that many looks. The first look heads the family and the rest become variants of it. The family takes the title the extension declares for itself, or the first look's own name when it declares none. Auto theme addresses the looks individually, so you can still put the day one in one slot and the night one in the other under <SettingsPath path="Appearance / Keyboard themes / Auto theme" />. The result message says so too: "The app saved *name* with 2 looks."
 
-**Converted themes are saved but not turned on.** They go into your themes list for you to look at first, and the theme editor is where you finish the parts that did not carry over.
+Converted themes are saved but not turned on. They go into your themes list for you to look at first, and the theme editor is where you finish the parts that did not carry over.
 
 ### How much comes across
 
@@ -424,11 +424,11 @@ Colours mostly land. These all have somewhere to go:
 - **Keys named the 0.5 way.** A newer stylesheet names a key by what it types (`key[output=\`@k3:action/enter\`]`) rather than by its key code, and FlorisBoard's own themes write both. A theme written only the newer way used to come across with no enter key colour at all.
 - **A font the theme ships with itself.** A `.flex` can carry its own typeface, declared as `@font \`ndot\`` and pointed at with `font-family`. Two of the six themes on the FlorisBoard addon store do exactly that, and for one of them the dot-matrix face *is* the theme. The file is installed as a font add-on of its own, under the name the stylesheet gave it, and the converted theme is set to use it. It then appears in <SettingsPath path="Appearance / Keyboard font" /> like any other installed font, and other themes can use it too.
 
-**Colours that follow the wallpaper are read too.** A FlorisBoard theme may name a Material You role, such as `dynamic-dark-color(surfaceContainerLow)`, instead of a fixed colour. On Android 12 and later the app resolves those against the same system palette FlorisBoard reads, so a theme written that way arrives with its colours rather than empty. Two of the most-used theme packs are written entirely this way.
+Colours that follow the wallpaper are read too. A FlorisBoard theme may name a Material You role, such as `dynamic-dark-color(surfaceContainerLow)`, instead of a fixed colour. On Android 12 and later the app resolves those against the same system palette FlorisBoard reads, so a theme written that way arrives with its colours rather than empty. Two of the most-used theme packs are written entirely this way.
 
-**On a phone below Android 12 there is no such palette**, so those colours resolve against stock Material instead and the dialog says that rather than claiming your wallpaper was read.
+On a phone below Android 12 there is no such palette, so those colours resolve against stock Material instead and the dialog says that rather than claiming your wallpaper was read.
 
-**And they keep following it.** The converted theme remembers which Material You colour each part came from, so when you change your wallpaper the keyboard moves those parts onto the new colours, the same as FlorisBoard does. The theme's **Follow wallpaper colors** switch in the [theme editor](/themes/editor/#following-your-wallpaper) is on after the import; turn it off to keep the colours you have today. A colour you change in the editor stays as you set it. A theme imported before version 0.5.13 has no such record: import it again to get this.
+And they keep following it. The converted theme remembers which Material You colour each part came from, so when you change your wallpaper the keyboard moves those parts onto the new colours, the same as FlorisBoard does. The theme's **Follow wallpaper colors** switch in the [theme editor](/themes/editor/#following-your-wallpaper) is on after the import; turn it off to keep the colours you have today. A colour you change in the editor stays as you set it. A theme imported before version 0.5.13 has no such record: import it again to get this.
 
 Themes from other keyboards, and FlorisBoard themes written in fixed colours, can follow the wallpaper as well. They start with the switch off, and when you turn it on each colour keeps its lightness and takes your wallpaper's hue.
 
@@ -440,7 +440,7 @@ FlorisBoard styles a much larger set of keyboard parts than this app draws, so t
 - **Text wrapping and alignment.** How many lines a label may take, where it is cut and how it is aligned are set by this app, not by the theme.
 - **The landscape text editor.** When a field fills the screen in landscape, Android draws that editor, not this app, so a theme cannot colour it here. The dialog names the parts it could not use rather than saying only that there were some, and for the usual theme packs this editor is most of that list.
 
-If a key's text colour would be genuinely unreadable on what sits behind it, the app drops the imported colour and picks a readable one, and says so. The test is made against what you actually see: a borderless theme's keys are transparent, so its labels are judged against the board showing through rather than against the empty key.
+If a key's text colour would be unreadable on what sits behind it, the app drops the imported colour and picks a readable one, and says so. The test is made against what you see: a borderless theme's keys are transparent, so its labels are judged against the board showing through rather than against the empty key.
 
 ### HeliBoard and LeanType themes
 
@@ -457,9 +457,9 @@ A colour that keyboard worked out for itself stays worked out. Its export marks 
 
 Two colours land on single keys rather than on the board: the spacebar's own background and label, and the shift key's icon colour, all of which become per-key styles you can see and change in the theme editor.
 
-The emoji board's own colours land too. That keyboard's *all colours* mode states seven values this app used to read and then drop — the emoji search field's fill and text, the emoji glyphs, the category tabs, the remove-suggestion icon, the second row of suggestions and the enter key's long-press sheet. Each of them now reaches the surface this keyboard draws the same thing with.
+The emoji board's own colours land too. That keyboard's *all colours* mode states seven values this app used to read and then drop: the emoji search field's fill and text, the emoji glyphs, the category tabs, the remove-suggestion icon, the second row of suggestions and the enter key's long-press sheet. Each of them now reaches the surface this keyboard draws the same thing with.
 
-The result message counts what landed: *"The app saved Midnight and used 19 of its 19 colours."* That count is the roles that actually reached a field, not the roles the app recognises — two of its roles may answer the same question here, and only the first one present is read. Under the count is the same list of what did not come across that the other two imports show: colours the file left for the keyboard to work out, colours stated for parts this keyboard has not got, and text that had to be replaced to stay readable.
+The result message counts what landed: *"The app saved Midnight and used 19 of its 19 colours."* That count is the roles that actually reached a field, not the roles the app recognises. Two of its roles may answer the same question here, and only the first one present is read. Under the count is the same list of what did not come across that the other two imports show: colours the file left for the keyboard to work out, colours stated for parts this keyboard has not got, and text that had to be replaced to stay readable.
 
 A theme is saved rather than switched on, the same as a FlorisBoard one, so you get to look at it first. Day or night is decided from the board colour, since neither shape records it.
 
@@ -533,7 +533,7 @@ The **Gboard** button offers two ways in:
 
 Either way, each theme ends on a dialog with a preview of it, a count (*"The app can use 29 of the 139 style rules in this theme"*), and a line for each loss below. Import saves it; nothing is switched on.
 
-**Key borders become two looks.** Gboard draws a theme with or without key borders by a setting of its own, and a theme ships a separate style sheet for the bordered version. Both come across, as two looks of one theme, the one the theme prefers first. A theme whose border sheet changes nothing this app draws comes across with one look.
+Key borders become two looks. Gboard draws a theme with or without key borders by a setting of its own, and a theme ships a separate style sheet for the bordered version. Both come across, as two looks of one theme, the one the theme prefers first. A theme whose border sheet changes nothing this app draws comes across with one look.
 
 What lands:
 
@@ -542,7 +542,7 @@ What lands:
 - Key outlines and their width, the corner size (a large one becomes a pill, and an empty shape means no key face at all), and the lift under the keys with the colour of its shadow.
 - Key text, the corner hint, the suggestion text and its dividers, the toolbar icons, the popup and its selected highlight, the glide trail and the accent. The face Gboard draws behind a suggestion becomes a chip colour here.
 - The background photo, and a separate landscape photo when the theme has one. A picture on the keys becomes a key texture.
-- **The theme's own key glyphs.** More than half the themes in the Rboard repository replace the delete, shift and enter pictures with PNGs of their own, and for those themes the glyphs *are* the theme. They arrive as part of the theme and draw on the keys the moment you wear it — delete, shift in each of its three states, the emoji key, the globe, and enter in each of its wordings. A glyph drawn in a single colour on a transparent background (three quarters of them are) follows your theme's colour the way a built-in icon does; one with real artwork in it draws as its author painted it. Each glyph is trimmed to what it actually draws and sized like the built-in icons, so a picture cropped tight to its edges no longer comes out bigger than the icon it replaces. See [the note on icon packs](#theme-glyphs-and-icon-packs) below.
+- **The theme's own key glyphs.** More than half the themes in the Rboard repository replace the delete, shift and enter pictures with PNGs of their own, and for those themes the glyphs *are* the theme. They arrive as part of the theme and draw on the keys the moment you wear it: delete, shift in each of its three states, the emoji key, the globe, and enter in each of its wordings. A glyph drawn in a single colour on a transparent background (three quarters of them are) follows your theme's colour the way a built-in icon does; one with real artwork in it draws as its author painted it. Each glyph is trimmed to what it actually draws and sized like the built-in icons, so a picture cropped tight to its edges no longer comes out bigger than the icon it replaces. See [the note on icon packs](#theme-glyphs-and-icon-packs) below.
 - **How faded a part is.** Gboard sets an element's opacity separately from its colour, and nearly every theme uses it to quiet the function keys' glyphs. Read without it they came across at full strength, which was the most visible difference between a converted theme and the original.
 - Light or dark, from the theme's own flag.
 
@@ -572,7 +572,7 @@ They also travel with the theme rather than with the keyboard. Switch theme and 
 - **Size caps.** A theme or pack is read up to 48 MB inflated, 4 MB per picture, 128 themes per pack; a downloaded Rboard pack is refused past 32 MB. Entry names are only ever looked up, never used as paths.
 - **A whole backup opens from a file manager by what is inside it.** HeliBoard, LeanType, FlorisBoard and CleverKeys backups are `.zip` files and FUTO's is a ZIP named `.backup`. Neither extension is claimed, but a ZIP holding one of their settings files is recognised however it is named. Each part is read up to 32 MB, and a backup is refused past 128 MB of the parts the app keeps; FUTO's language models are counted and skipped, never read into memory.
 - **Foreign layout files are not auto-detected from a file manager.** They carry no marker that identifies them, so they go through <SettingsPath path="Layout & size / Key layouts / Import from another keyboard" />, where you have already said what the file is. This app's own `.wmlayout.json` files do open from a file manager, because they carry a format tag.
-- **A foreign layout over 4 MB is refused.** The whole file is decoded as one string, so there is a cap, and the cap is 4 MB. Past it you get the same "The app cannot read that file as a layout" message a genuinely unreadable file gets, with nothing to say the size was the problem. No real grid is anywhere near it, so in practice this only catches a file that is not a layout at all.
+- **A foreign layout over 4 MB is refused.** The whole file is decoded as one string, so there is a cap, and the cap is 4 MB. Past it you get the same "The app cannot read that file as a layout" message an unreadable file gets, with nothing to say the size was the problem. No real grid is anywhere near it, so in practice this only catches a file that is not a layout at all.
 - **Input method files are capped** at 48 MB each and 128 MB together, and a table is cut at 500,000 rows for a `.cin` and 1,500,000 across a Rime dictionary and its imports. The confirm dialog says when a table was cut. `.cin` files in Big5 or GB18030 are read as well as UTF-8.
 - **Add-on repositories stay native.** Repository payloads are always WM Keyboard's own formats; conversion applies to files you pick yourself.
 - **Nothing is sent anywhere.** Conversion runs on the phone. There is no upload and no server. **Browse Rboard** is the exception to "no server": it downloads from GitHub, and sends nothing about you.

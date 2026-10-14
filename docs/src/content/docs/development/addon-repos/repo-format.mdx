@@ -13,9 +13,9 @@ import { FileTree, Steps } from '@astrojs/starlight/components';
 
 Version 1 · status: **implemented** and shipping in WM Keyboard
 
-WM Keyboard can install extra **themes, layouts, dictionaries, emoji keyword packs, snippet packs, sticker packs, icon packs, fonts, emoji fonts, key sounds, sound packs, vocabulary packs and plugins** from the web. Anyone can publish these by putting a small **manifest** and the addon files in a public Git repository (GitHub, GitLab, a raw host, or anything else that serves files over `https`). Users add a repository by pasting its URL into the app.
+WM Keyboard can install extra themes, layouts, dictionaries, emoji keyword packs, snippet packs, sticker packs, icon packs, fonts, emoji fonts, key sounds, sound packs, vocabulary packs and plugins from the web. Anyone can publish these by putting a small manifest and the addon files in a public Git repository (GitHub, GitLab, a raw host, or anything else that serves files over `https`). Users add a repository by pasting its URL into the app.
 
-A repository is nothing more than an **index over files the app already knows how to import**. The addon files are the same formats the app produces when you export a theme or a layout from the app itself. There is no packaging, signing or build step.
+A repository is nothing more than an index over files the app already knows how to import. The addon files are the same formats the app produces when you export a theme or a layout from the app itself. There is no packaging, signing or build step.
 
 :::tip[Start from the sample]
 The full, forkable sample lives at
@@ -165,7 +165,7 @@ deciding whether to install, not a licence check.
 
 `langIds` says which languages an addon is *for*. It matters most for fonts:
 plenty of faces carry Latin and nothing else, and offering one in the Bengali
-font picker offers a keyboard of empty boxes.
+font picker leaves a keyboard of empty boxes.
 
 ```json
 { "id": "caveat", "type": "font", "langIds": ["en"] }
@@ -174,7 +174,7 @@ font picker offers a keyboard of empty boxes.
 
 The app groups the pickers by script, so a font is offered wherever any of its
 languages is written: `en` reaches the English picker (which also drives Cyrillic
-and Greek), `bn` the Bengali one. **Omitting `langIds` makes no claim**, and the
+and Greek), `bn` the Bengali one. Omitting `langIds` makes no claim, and the
 font is offered everywhere. That is the right default for a face with broad
 coverage, and it is what every font published before this field existed gets.
 
@@ -183,9 +183,9 @@ one language. `langIds` is ignored for them.
 
 ## 4. Path & URL resolution (hybrid model)
 
-`path`, `previews[]` and `repo.icon` are each **either**:
+`path`, `previews[]` and `repo.icon` are each either:
 
-- a path **relative to the manifest URL's directory**, for example `themes/midnight.wmtheme.json`; or
+- a path relative to the manifest URL's directory, for example `themes/midnight.wmtheme.json`; or
 - an absolute `https://` URL, which can point anywhere (a GitHub Release asset, a CDN, another repo).
 
 The app derives the raw manifest URL from what the user pastes:
@@ -210,7 +210,7 @@ payload, preview and licence file it references.
 
 ## 5. Payload formats
 
-These **are** the app's native import/export formats. To make a theme, layout,
+These are the app's native import/export formats. To make a theme, layout,
 snippet, sticker or icon payload, export it from the app. Then drop the file
 into your repo.
 
@@ -223,7 +223,7 @@ into your repo.
 | `snippets` | `*.wmsnippets.json` | `{ "format":"wmkeyboard-snippets", "version":1, "snippets":[ { "id":1, "label":"…", "text":"…", "trigger":"…"?, "triggerPattern":"…"?, "triggerWords":3?, "confirm":true? }, … ] }`. Ids are reassigned on import. `trigger` is one exact word. `triggerPattern` is an anchored regular expression over the last `triggerWords` words before the cursor (default 3, max 8), whose captures reach `text` as `$1`…`$9`. See [Snippets](/tools/snippets/#pattern-triggers). A snippet carrying both keeps the word. `confirm` makes the trigger offer itself as a suggestion-bar chip instead of rewriting what the user typed, which is what a pack of canned replies should do. See [Ask before it expands](/tools/snippets/#ask-before-it-expands). `triggerPattern`, `triggerWords` and `confirm` are written only when set, so a pack of plain snippets looks exactly as it always did. Installing a pack puts every one of its snippets into a [folder](/tools/snippets/#folders) named after the addon's `name`, so the user can silence or find the whole pack in one gesture. The envelope's own optional `folders` array is honoured on a hand-imported file but flattened into the pack folder on install, because folders are one level deep. Pick a `name` that reads well as a folder. |
 | `espanso` | `*.yml`, `*.yaml`, `*.zip` | A match file or a package archive in [Espanso](https://espanso.org)'s own format, converted on the way in. A match file is YAML with a top-level `matches:` list; an archive holds `package.yml` and `_manifest.yml`, in either the layout the Espanso Hub publishes or the one you get by zipping a package directory. Serve a Hub package as it stands, with no conversion step. It installs into a folder exactly as `snippets` does, and uninstalls by the same rules. What the format cannot carry across is listed in [Importing from Espanso](/reference/importing-from-espanso/), and the app shows that list in the preview before the install button rather than after. `shell` and `script` variables are dropped and never run. The two types are deliberately separate so a mistyped entry is a clear rejection rather than a guess; a `.yml` filed as `snippets` is refused. To a user both browse under Snippets. |
 | `stickers` | `*.wmstickers` | ZIP archive containing a `pack.json` envelope (`"format":"wmkeyboard-stickers"`, `"version":1`, `pack` metadata with its `stickers[]`) and the image files under `stickers/`. See [Sticker packs](#sticker-packs). |
-| `icon_pack` | `*.wmicons` | ZIP archive containing a `pack.json` envelope (`"format":"wmkeyboard-icons"`, `"version":1`, `pack` metadata) and one icon per replaced slot under `icons/`, named for its slot — an SVG, or a PNG, WebP, JPEG or GIF. See [Icon packs](#icon-packs). |
+| `icon_pack` | `*.wmicons` | ZIP archive containing a `pack.json` envelope (`"format":"wmkeyboard-icons"`, `"version":1`, `pack` metadata) and one icon per replaced slot under `icons/`, named for its slot: an SVG, or a PNG, WebP, JPEG or GIF. See [Icon packs](#icon-packs). |
 | `font` | `*.ttf`, `*.otf` | Standard TrueType or OpenType font file used for keyboard key labels and text typography. Declare `langIds` when the face only covers some scripts. |
 | `emoji_font` | `*.ttf`, `*.otf` | A font whose glyphs are emoji, like Twemoji or OpenMoji. Same file format as `font`, kept a separate type because it is chosen in a different place (Emoji settings, not the key-label pickers) and because a colour emoji font on the key labels is not a choice anyone makes on purpose. Colour builds (`COLR`/`CBDT`) draw in colour on Android 8+. A monochrome outline build takes the keyboard's text colour. There is exactly one emoji slot, and the app offers to fill it once the font is installed. |
 | `sound` | `*.mp3` | A single short key-press sound. Keep it under ~300 ms and a few tens of KB: it is loaded into a `SoundPool` and replayed on every keystroke. |
@@ -308,7 +308,7 @@ rebuilds do not churn the index.
 }
 ```
 
-Unlike icon packs, sticker entry names **are** listed explicitly. `id` keys the sticker,
+Unlike icon packs, sticker entry names are listed explicitly. `id` keys the sticker,
 `fileName` locates the image inside the archive, `name` is the sticker's title, and
 `emojis` is its list of keywords. Despite the name, a keyword can be a word, a phrase or an
 emoji. The key is still called `emojis` because every pack already out there says so. A
@@ -317,7 +317,7 @@ merged. Both fields are optional. The title and the keywords are what the sticke
 search matches, and they're also what [offers the sticker while typing](/emoji/stickers/#stickers-as-you-type):
 the full title, or any one keyword.
 
-`stickers[]` belongs **inside `pack`**: that is what the app writes on export and what it
+`stickers[]` belongs inside `pack`: that is what the app writes on export and what it
 reads back. Three near-misses are accepted anyway, because they are what hand-written packs
 actually do: `stickers[]` beside `pack` rather than inside it, `file` instead of `fileName`,
 and a path (`stickers/airplane.png`) instead of a bare name. None of those values is ever
@@ -325,7 +325,7 @@ used as a path: every image is written under a name the app derives from a fresh
 id, so a `..` in one finds no image and is reported rather than escaping anywhere.
 
 A pack whose list is empty, or whose every entry names an image the archive doesn't hold, is
-**refused** with the reason for each. An empty pack would otherwise install, appear in the
+refused with the reason for each. An empty pack would otherwise install, appear in the
 list and contain nothing, which reads as the app having lost the images.
 
 `mime` is informational. Images are re-encoded into the app's own sticker storage on import,
@@ -417,7 +417,7 @@ icon for the slot, never to a built-in one. A variant without a plain file for
 its slot is allowed and is offered beside the app's own looks. Builds from
 before variants existed skip `@` files on import and report them as ignored.
 
-A pack does **not** have to be complete: any slot it leaves out keeps the app's
+A pack does not have to be complete: any slot it leaves out keeps the app's
 built-in icon. The `slots` list is advisory. The app walks the archive's
 entries and keeps every one whose name matches a slot it knows, so a pack
 assembled by hand still works if the manifest is out of date. Files naming a
@@ -434,7 +434,7 @@ nothing at all) is drawn in the theme's colour and picks up the per-tool accent
 colours, exactly like a built-in icon. One that sets real colours keeps them
 and stops following the theme. Prefer the first unless the pack is deliberately
 a colour set. A raster icon counts as declaring no colours when every pixel
-above half alpha is the same RGB — a glyph stencilled on transparency — which
+above half alpha is the same RGB (a glyph stencilled on transparency), which
 is judged from the pixels rather than from anything the file says.
 
 **Supported SVG.** `<path>`, `<rect>`, `<circle>`, `<ellipse>`, `<line>`,
@@ -450,14 +450,14 @@ header rather than by decoding the image. The archive must be under 24 MB with
 at most 400 entries.
 
 :::danger[No DOCTYPE declarations]
-A DOCTYPE causes the file to be **rejected outright**: packs are untrusted
+A DOCTYPE causes the file to be rejected outright: packs are untrusted
 input, and an external entity there would be a file-disclosure hole. Do not ship
 SVGs with one. Most exporters can be told to omit it.
 :::
 
 ### The registered-language constraint
 
-Dictionaries and layouts attach to a language by `langId` (e.g. `en`, `fr`, `bn`). The app can only accept a `langId` that is **already built into it**. A dictionary for a brand-new language the app has never heard of cannot be added as data alone today. That needs an app update that registers the language. So pick a `langId` the current app supports.
+Dictionaries and layouts attach to a language by `langId` (e.g. `en`, `fr`, `bn`). The app can only accept a `langId` that is already built into it. A dictionary for a brand-new language the app has never heard of cannot be added as data alone today. That needs an app update that registers the language. So pick a `langId` the current app supports.
 
 ## 6. Install links
 

@@ -20,33 +20,33 @@ Every height, width and gap on WM Keyboard is a slider rather than a fixed numbe
 
 <SettingsPath path="Layout & size / Size and position / Key height" />
 
-**Key height** sets the height of every key row and, with it, the overall input height. It's a slider from 32dp to 100dp, default **48dp**. The emoji, clipboard and snippet panels scale with this value too, so a taller keyboard means taller panels.
+**Key height** sets the height of every key row and, with it, the overall input height. It's a slider from 32dp to 100dp, default 48dp. The emoji, clipboard and snippet panels scale with this value too, so a taller keyboard means taller panels.
 
 **Bottom row height** gives the spacebar and <KeyCap>Enter</KeyCap> row its own height, independent of the letter rows: a slider from 0dp to 96dp. At 0, the default, it shows "Follow keys" and matches the letter rows. Raise it for an easier-to-hit spacebar without growing the whole keyboard. A custom layout that sets its own row heights ignores this slider.
 
-**Key spacing** adjusts the gap around every key, from 0% to 200%, default **100%**. Higher spreads the keys apart, and makes the keyboard a little taller, since the gap is part of each row. Lower packs them tighter.
+**Key spacing** adjusts the gap around every key, from 0% to 200%, default 100%. Higher spreads the keys apart, and makes the keyboard a little taller, since the gap is part of each row. Lower packs them tighter.
 
 <SettingsPath path="Layout & size / Size and position / Extend edge keys into the gaps" />
 
 **Extend edge keys into the gaps** is on by default. A row shorter than the keyboard, like QWERTY's A to L row, leaves blank space at both ends. With this on, a tap in that space types the key at that end of the row: left of **A** types A, right of **L** types L. The bottom row reaches down the same way, over the padding and the gesture bar room under it, so a tap just below the spacebar types a space, and one below **Enter** or **?123** presses that key. It follows whatever bottom row the layer has, custom layouts included, unless you have moved a bar row below the keys. The keys stay the size and in the place they are drawn, only the area you can tap grows. Turn it off to make taps in the gap do nothing.
 
-While <SettingsPath path="Layout & size / Number row / Number row" /> is on (its own group at the top of this same screen, above Size & position), it has its own **Number row height** slider too: 32dp to 100dp, default **42dp**, independent of the letter keys.
+While <SettingsPath path="Layout & size / Number row / Number row" /> is on (its own group at the top of this same screen, above Size & position), it has its own **Number row height** slider too: 32dp to 100dp, default 42dp, independent of the letter keys.
 
-The size of the labels printed on the keys is a separate slider, **Key label font size**, under <SettingsPath path="Appearance / Key label font size" />: 0.7× to 2.0×, default **1.0×**. It isn't part of this settings group, but the [per-screen sizing](#sizing-each-screen-shape) below can still override it per screen shape.
+The size of the labels printed on the keys is a separate slider, **Key label font size**, under <SettingsPath path="Appearance / Key label font size" />: 0.7× to 2.0×, default 1.0×. It isn't part of this settings group, but the [per-screen sizing](#sizing-each-screen-shape) below can still override it per screen shape.
 
 ## Narrowing and repositioning it
 
 <SettingsPath path="Layout & size / Size and position / Keyboard width" />
 
-**Keyboard width** shrinks the keyboard horizontally instead of spanning the full screen, from 50% to 100%, default **100%**. Below 100%, a **Keyboard position** choice appears (Left, Centre, or Right, with Centre the default) to pick which edge the narrowed keyboard hugs. This is a permanent dock. The slider's own info text calls [one-handed mode](#one-handed-mode) "a quick preset" that "replaces this value while it is on", and it leaves the stored width and position alone.
+**Keyboard width** shrinks the keyboard horizontally instead of spanning the full screen, from 50% to 100%, default 100%. Below 100%, a **Keyboard position** choice appears (Left, Centre, or Right, with Centre the default) to pick which edge the narrowed keyboard hugs. This is a permanent dock. The slider's own info text calls [one-handed mode](#one-handed-mode) "a quick preset" that "replaces this value while it is on", and it leaves the stored width and position alone.
 
-**Left padding** and **Right padding** narrow the keys toward the middle for thumb reach, without docking to one side the way one-handed mode does. Each is a slider from 0% to 30%, default **0%**, and both stack on top of keyboard width: the keyboard ends up at width × (1 − left − right) of the screen.
+**Left padding** and **Right padding** narrow the keys toward the middle for thumb reach, without docking to one side the way one-handed mode does. Each is a slider from 0% to 30%, default 0%, and both stack on top of keyboard width: the keyboard ends up at width × (1 − left − right) of the screen.
 
 Two sliders rather than one so the margins don't have to match. Set them equal for an even margin; set only the left one and the keys slide toward your right thumb without the keyboard docking to that edge.
 
 Each padding is claimed at its own edge before **Keyboard position** gets a say, so a margin you asked for is there whichever edge the keyboard hugs. Position then distributes whatever space the width slider left over on top of it. On Centre, equal paddings give exactly the even margin they always did.
 
-**Bottom padding** raises the whole keyboard away from the bottom edge and the gesture navigation bar, from 0dp to 160dp. Until you move it, the keyboard picks the amount itself: **32dp** on Android 15 and up with gesture navigation, where the keyboard reaches down to the thin gesture handle, and **8dp** with three-button navigation or on older versions, where the bar below is already tall enough to keep your thumb off the edge. The padding is counted from the top of the navigation bar, which the keyboard always keeps clear of on its own, so 0dp puts the space bar right on the bar, never under it or a row above it. Raise it if the bottom row feels cramped against the screen edge, or if you keep triggering system navigation by mistake. The slider runs so high because the inline **Resize** tool moves the same value, and that can push the keyboard a long way up the screen.
+**Bottom padding** raises the whole keyboard away from the bottom edge and the gesture navigation bar, from 0dp to 160dp. Until you move it, the keyboard picks the amount itself: 32dp on Android 15 and up with gesture navigation, where the keyboard reaches down to the thin gesture handle, and 8dp with three-button navigation or on older versions, where the bar below is already tall enough to keep your thumb off the edge. The padding is counted from the top of the navigation bar, which the keyboard always keeps clear of on its own, so 0dp puts the space bar right on the bar, never under it or a row above it. Raise it if the bottom row feels cramped against the screen edge, or if you keep triggering system navigation by mistake. The slider runs so high because the inline **Resize** tool moves the same value, and that can push the keyboard a long way up the screen.
 
 **Hide the system keyboard bar** removes the bar Android draws under the keyboard with gesture navigation, the one with a chevron that hides the keyboard and a button that switches to another keyboard. If the keys still sit higher than you like afterwards, lower **Bottom padding**. The keyboard already has both buttons' jobs covered: Back hides it, and the 🌐 key switches keyboards. It needs Android 16 or later, the first version that lets a keyboard ask for this; on older versions the switch is greyed out, and some phones may keep the bar even on 16. It is off by default.
 
@@ -64,7 +64,7 @@ Portrait is the base size: everything in the two sections above. Three other scr
 
 Landscape is the one exception, and it starts shorter rather than following portrait. A phone turned sideways keeps its width but has less than half the height, so a portrait-sized board would take the whole screen. See [what landscape starts at](#what-landscape-starts-at) below.
 
-"Unfolded" isn't read from a fold sensor. It's decided by the screen's smallest dimension being at least 600dp, checked live as the configuration changes. That deliberately reads a phone turned sideways as still "not unfolded", since it's wide but still a phone. A genuinely large screen counts as "unfolded" however it's held, whether that's an opened foldable's inner display or a tablet that never folded at all. There's no separate "folded" state in the code. Portrait's values are what a folded or ordinary phone always used, which is why the settings screen's own caption calls portrait your "folded" size.
+"Unfolded" isn't read from a fold sensor. It's decided by the screen's smallest dimension being at least 600dp, checked live as the configuration changes. That deliberately reads a phone turned sideways as still "not unfolded", since it's wide but still a phone. A large screen counts as "unfolded" however it's held, whether that's an opened foldable's inner display or a tablet that never folded at all. There's no separate "folded" state in the code. Portrait's values are what a folded or ordinary phone always used, which is why the settings screen's own caption calls portrait your "folded" size.
 
 Tap a shape's row to expand its editor:
 
@@ -78,7 +78,7 @@ Everything in [one-handed, split and floating](#one-handed-mode) below is set ap
 
 ## What landscape starts at
 
-A phone turned sideways has roughly 360dp of height where portrait has 750dp. Left to follow portrait, the board came out taller than the window it had to fit in, and the bottom rows — the shift row and the spacebar — were drawn past the bottom of the screen and cut off. So landscape starts from its own numbers instead, measured against what Gboard does on the same screen:
+A phone turned sideways has roughly 360dp of height where portrait has 750dp. Left to follow portrait, the board came out taller than the window it had to fit in, and the bottom rows (the shift row and the spacebar) were drawn past the bottom of the screen and cut off. So landscape starts from its own numbers instead, measured against what Gboard does on the same screen:
 
 | | Portrait | Landscape |
 | --- | --- | --- |
@@ -128,13 +128,13 @@ The extra keys are added to whatever layout you're using, so every shipped langu
 
 <SettingsPath path="Layout & size / One-handed, split and floating / One-handed mode" />
 
-**One-handed mode** shrinks the keyboard toward one edge for reach with a single thumb: Off (the default), Left, or Right. Unlike the per-shape sizing above, it's tuned separately per **orientation**, Portrait and Landscape, rather than per fold state. A one-handed keyboard cares about which way you're holding the phone, not whether it's unfolded.
+**One-handed mode** shrinks the keyboard toward one edge for reach with a single thumb: Off (the default), Left, or Right. Unlike the per-shape sizing above, it's tuned separately per orientation, Portrait and Landscape, rather than per fold state. A one-handed keyboard cares about which way you're holding the phone, not whether it's unfolded.
 
 Each orientation gets its own three controls:
 
-- **Width** is the keyboard's share of the screen while one-handed is active, 40% to 85%. The default is **78% in portrait** and **55% in landscape**. Landscape starts narrower because a landscape keyboard is already very wide, so 78% there would barely help.
-- **Height** scales the key height down for reach, 60% to 100%, default **100%** in both orientations.
-- **Side** is which edge it docks to, Left or Right, default **Right** in both orientations.
+- **Width** is the keyboard's share of the screen while one-handed is active, 40% to 85%. The default is 78% in portrait and 55% in landscape. Landscape starts narrower because a landscape keyboard is already very wide, so 78% there would barely help.
+- **Height** scales the key height down for reach, 60% to 100%, default 100% in both orientations.
+- **Side** is which edge it docks to, Left or Right, default Right in both orientations.
 
 **Portrait only**, off by default and shown while the mode is on, holds one-handed mode back when the phone is sideways. The mode is one setting for both orientations, so a keyboard made small for a thumb in portrait stayed small after a turn, where the width is usually wanted for a [split keyboard](#splitting-the-keyboard-in-half) instead. With it on, the keyboard is one-handed upright and whole in landscape, and comes back as soon as you turn the phone back. The One-handed tool on the toolbar says so if you press it sideways.
 
@@ -150,7 +150,7 @@ Pin the **One-handed** tool to your toolbar and tapping it toggles one-handed on
 
 <SettingsPath path="Layout & size / One-handed, split and floating / Split keyboard" />
 
-**Split keyboard** divides every row down the middle with a gap between the halves, so your thumbs travel less on a wide screen. It's most useful on tablets, foldables, and phones turned to landscape. It's off by default, and turning it on reveals two more controls. **Split gap** runs from 5% to 40% of the keyboard's width, default **12%**; a bigger gap pushes the halves further toward the edges but narrows each key. By default the spacebar splits between the two halves along with everything else. Turn off **Split the spacebar** to keep it as one key that runs across the gap, so both thumbs land on it where they meet; the rest of the bottom row stays in its halves. Like one-handed mode, split is global rather than tied to a screen shape.
+**Split keyboard** divides every row down the middle with a gap between the halves, so your thumbs travel less on a wide screen. It's most useful on tablets, foldables, and phones turned to landscape. It's off by default, and turning it on reveals two more controls. **Split gap** runs from 5% to 40% of the keyboard's width, default 12%; a bigger gap pushes the halves further toward the edges but narrows each key. By default the spacebar splits between the two halves along with everything else. Turn off **Split the spacebar** to keep it as one key that runs across the gap, so both thumbs land on it where they meet; the rest of the bottom row stays in its halves. Like one-handed mode, split is global rather than tied to a screen shape.
 
 **Split only on wide screens** is the second one, off by default. Split is a single global switch, so turning it on in landscape leaves the keyboard split after you rotate back, where half a phone-width keyboard is close to unusable. Turn this on and the split only happens in landscape or on an unfolded screen. Portrait on an ordinary phone stays whole.
 
@@ -172,7 +172,7 @@ Both of these are shared rules. For a finer answer, each shape under [per-screen
 
 Portrait and landscape each remember their own answer, the way Gboard does. **Floating keyboard** is the portrait switch and **Floating in landscape** the sideways one, so you can float the keyboard sideways and keep it docked upright: turn the phone and it changes on its own. The **Floating** tool on the toolbar and the panel's dock button change only the orientation the phone is held in. Until you change either one, landscape follows the portrait switch, so a keyboard that already floated before this setting existed still floats both ways.
 
-With either one on, two sliders appear: **Floating keyboard width**, 240dp to 500dp, default **320dp**, and **Floating keyboard height**, 60% to 160% of the keyboard's normal height, default **100%**. The resize grip on the panel drives the same two values, and shares the 240dp floor and the 60–160% height range. It doesn't share the width ceiling: see the edge case below. A **Reset the floating panel** row appears below the sliders once you've moved or resized the panel, and puts its size and position back.
+With either one on, two sliders appear: **Floating keyboard width**, 240dp to 500dp, default 320dp, and **Floating keyboard height**, 60% to 160% of the keyboard's normal height, default 100%. The resize grip on the panel drives the same two values, and shares the 240dp floor and the 60–160% height range. It doesn't share the width ceiling: see the edge case below. A **Reset the floating panel** row appears below the sliders once you've moved or resized the panel, and puts its size and position back.
 
 **Handle bar position** puts the handle bar **Under the keys**, the default, where your thumb already is, or **Above the keys**. The handle bar carries three controls, left to right:
 

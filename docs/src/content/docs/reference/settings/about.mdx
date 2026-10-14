@@ -114,7 +114,7 @@ GitHub builds only. An F-Droid build has a page to send you to and no notes behi
 
 ### What a GitHub build checks before it installs
 
-Downloading an APK and handing it to Android is the one thing in this app that replaces the app, so it's worth knowing exactly what's checked and in what order:
+Downloading an APK and handing it to Android is the one thing in this app that replaces the app, so here is exactly what's checked, and in what order:
 
 1. The file name has to match the release and your phone: the right edition, the same languages build as yours (every language, or English only), and the right CPU, falling back to the universal build if your CPU has no build of its own.
 2. The downloaded bytes are hashed and compared against the checksum published in the release. A file that doesn't match is deleted, not installed. A release that publishes no checksum at all is refused rather than trusted.
@@ -147,7 +147,7 @@ The figures come from Android's own storage stats rather than from adding up fil
 
 Tap a row to open that piece on its own: what it holds, how big each item in it is, and a delete button per item. **Free up N MB** at the top, which names the amount it would recover, clears every cache in one go and never touches anything you made. Deleting anything else asks first, in wording that matches what you'd lose. A cache is free to delete. A download can be fetched again. Something you made, or the keyboard learned, is gone for good.
 
-A few rows worth knowing about:
+Notes on a few rows:
 
 - **Sticker packs** lists one row per pack, plus **Images you made stickers from**, the photos the [sticker editor](/emoji/stickers/#the-sticker-editor) keeps so you can edit a sticker again later. Deleting that row keeps every sticker and only costs you the ability to resume those edits.
 - **Downloads** covers the things the app fetched and can fetch again: word lists, CJK dictionaries, emoji keyword packs, and (on the full build) the speech and AI models, which are usually the biggest rows on the screen.
@@ -215,7 +215,7 @@ That makes 23 bundled components on a full Play build and 15 on a lite F-Droid o
 
 ## Diagnosing a problem
 
-**Diagnostics** is where you go if something's misbehaving and you want to send in what the keyboard recorded, or just look at it yourself. It never contains anything you typed. That's a hard design rule stated in the logging code's own documentation, not only a promise in the UI copy.
+**Diagnostics** is where you go if something's misbehaving and you want to send in what the keyboard recorded, or look at it yourself. It never contains anything you typed. That's a hard design rule stated in the logging code's own documentation, not only a promise in the UI copy.
 
 <PhoneFrame side caption="Diagnostics: report actions, the app log with its filter and level chips, and Clear app log at the bottom.">
   <Shot id="reference/settings/diagnostics-screen" alt="Diagnostics: report actions, the app log with its filter and level chips, and Clear app log at the bottom." />
@@ -239,22 +239,22 @@ There are only four switches and two pickers in this whole tree. Everything else
 
 | Setting | Control | Default |
 |---|---|---|
-| Short app name | Toggle | **Off** |
-| App language | Choice | **System default** (on the English-only build, an offer to switch) |
+| Short app name | Toggle | Off |
+| App language | Choice | System default (on the English-only build, an offer to switch) |
 
 <SettingsPath path="About / Documentation" />
 
 | Setting | Control | Default |
 |---|---|---|
-| Setting links | Choice: Off, Hold, Button | **Off** |
+| Setting links | Choice: Off, Hold, Button | Off |
 
 <SettingsPath path="About / Updates" />
 
 | Setting | Control | Default |
 |---|---|---|
-| Check for updates automatically | Toggle | **On** |
-| Ask me about updates | Toggle | **On** |
-| Include pre-releases | Toggle | **Off** (GitHub builds only) |
+| Check for updates automatically | Toggle | On |
+| Ask me about updates | Toggle | On |
+| Include pre-releases | Toggle | Off (GitHub builds only) |
 
 <SettingsPath path="About / Diagnostics" />
 
@@ -266,7 +266,7 @@ See [Privacy at a glance](/privacy/overview/) and [Network policy](/privacy/netw
 
 ## Details & edge cases
 
-- **The licence-text screen's title is always "Licence," never the specific component's name.** Tapping into AndroidX's Apache-2.0 text or the app's own MIT text lands on a top bar that just says "Licence" either way, so rely on the row you tapped (or the text itself) to know which one you're reading.
+- **The licence-text screen's title is always "Licence," never the specific component's name.** Tapping into AndroidX's Apache-2.0 text or the app's own MIT text lands on a top bar that says "Licence" either way, so rely on the row you tapped (or the text itself) to know which one you're reading.
 - **Several bundled components share one licence asset.** Every Apache-2.0 entry opens the same Apache-2.0 text rather than a per-project copy: AndroidX, Kotlin, Coil, OkHttp & Okio, ZXing, OpenCC, and, on a full build, Harper and LiteRT/LiteRT-LM. The per-project attribution (name, what it's used for, copyright line) is what you saw on the list row before tapping in.
 - **Licence texts don't reflow.** They're hard-wrapped at a fixed column width and rendered monospaced, so long lines scroll sideways instead of wrapping to the screen width.
 - **The word-list attribution splits by kind, not by download status.** The three word lists that ship as source (seed bigrams, loanword map, offensive-word list) are covered by the app's own MIT licence. Every wordlist you download separately keeps its own upstream licence, listed under Open-source licences whether or not you've actually downloaded it yet.

@@ -182,7 +182,7 @@ the word afterward.
 The clipboard tool treats password-shaped clips two different ways,
 depending on whether you're copying or pasting.
 
-When you **copy** something, a clip can be flagged sensitive two ways. The
+When you copy something, a clip can be flagged sensitive two ways. The
 app it came from can mark it: Android lets an app label what it puts on the
 clipboard, and a password manager does exactly that when you copy a login.
 Or, while **Let the keyboard find them** is on, an on-device check can flag
@@ -203,7 +203,7 @@ explicit "keep this."
   {/* shot: privacy/clipboard-sensitive-masked */}
 </PhoneFrame>
 
-**Pasting** is the other half, and it ignores the sensitivity detection
+Pasting is the other half, and it ignores the sensitivity detection
 above entirely. Paste anything into a password field (from the clipboard
 panel, the paste chip, hold-<KeyCap>V</KeyCap>, or
 <KeyCap>Ctrl</KeyCap>+<KeyCap>V</KeyCap>)
@@ -229,8 +229,8 @@ field or while incognito's clipboard pause applies.
 
 Incognito and secure fields are local-processing decisions: pause learning,
 pause clipboard capture, hide a strip. Neither one stops text you type from
-reaching the app you typed it into. That was never their job. Two things are
-worth knowing specifically:
+reaching the app you typed it into. That was never their job. Two things to
+know:
 
 - **Network tools aren't gated by either.** Translate, web and image search,
   GIF and sticker search, and the AI tool all send whatever you type into

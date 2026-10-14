@@ -16,7 +16,7 @@ WM Keyboard is an ordinary Gradle/AGP Android project. There's no bootstrap scri
 
 1. **Install a JDK.** JDK 17 or newer is enough to launch the `gradlew` script. Gradle then runs on a JDK 21 toolchain, which it downloads from [Foojay](https://foojay.io/) on your first build, per `gradle/gradle-daemon-jvm.properties`. You do not have to install JDK 21 yourself.
 
-2. **Install the Android SDK** with `compileSdk` **36.1** available. AGP asks for it as `release(36) { minorApiLevel = 1 }`, so platform 36 on its own is not enough. Android Studio's SDK Manager handles this, or use `sdkmanager` on the command line. `minSdk` is 24 (Android 7.0). `targetSdk` is 36.
+2. **Install the Android SDK** with `compileSdk` 36.1 available. AGP asks for it as `release(36) { minorApiLevel = 1 }`, so platform 36 on its own is not enough. Android Studio's SDK Manager handles this, or use `sdkmanager` on the command line. `minSdk` is 24 (Android 7.0). `targetSdk` is 36.
 
 3. **Clone the repo and build.**
 
@@ -49,7 +49,7 @@ Both flavors exist on every module so the project builds uniformly across varian
 
 ## The languages dimension
 
-`:app` carries a second flavour dimension that the library modules do not. `intl` packages the app's own text in 48 languages besides English; `en` packages English alone. So `:app`'s variants are `fullIntlDebug`, `fullEnDebug`, `liteIntlDebug` and `liteEnDebug`, while every `core/*` and `feature/*` module is still just `fullDebug` and `liteDebug`.
+`:app` carries a second flavour dimension that the library modules do not. `intl` packages the app's own text in 48 languages besides English; `en` packages English alone. So `:app`'s variants are `fullIntlDebug`, `fullEnDebug`, `liteIntlDebug` and `liteEnDebug`, while every `core/*` and `feature/*` module is still `fullDebug` and `liteDebug`.
 
 Nothing about the Kotlin differs between `intl` and `en`. The whole of it is one line in `app/build.gradle.kts` that sets `localeFilters` on the `en` variants, which tells AGP to keep the unqualified `res/values` and drop every `res/values-xx` beside it, the dependencies' translations included. That is worth about 41 MB, because `resources.arsc` is stored uncompressed and a single APK carries every language it offers.
 
@@ -89,7 +89,7 @@ The released APKs declare precise and approximate location for the [Location too
 
 Both editions ship the grammar checker's native library.
 
-The grammar tool's linter is a Rust `cdylib` (`native/harper-jni/`) that wraps [Harper](https://github.com/automattic/harper)'s `harper-core` behind a small JNI surface. `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/grammar/HarperNative.kt` is the Kotlin entry point. The prebuilt `.so` files are committed under `core/intelligence/src/main/jniLibs/<abi>/`, so **a normal build never touches Rust or the NDK.** Rebuild the library only if you edit `native/harper-jni/src/lib.rs` or bump the `harper-core` version:
+The grammar tool's linter is a Rust `cdylib` (`native/harper-jni/`) that wraps [Harper](https://github.com/automattic/harper)'s `harper-core` behind a small JNI surface. `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/grammar/HarperNative.kt` is the Kotlin entry point. The prebuilt `.so` files are committed under `core/intelligence/src/main/jniLibs/<abi>/`, so a normal build never touches Rust or the NDK. Rebuild the library only if you edit `native/harper-jni/src/lib.rs` or bump the `harper-core` version:
 
 ```sh
 # One-time setup
@@ -164,7 +164,7 @@ It reports what could be removed, what is declared `api` but only used internall
 
 ## Details & edge cases
 
-- **No `local.properties` is required to build.** API keys for the network tools (GIF/sticker search, web search, translation, and the Unsplash/Pexels photo backgrounds) are read from `local.properties`, falling back to environment variables, falling back to an empty string. The Dropbox and OneDrive backup destinations read their OAuth client ids the same way. A missing key never fails the build. The affected tool just shows a "needs API key" panel at runtime, and a backup destination with no client id is left out of the list instead.
+- **No `local.properties` is required to build.** API keys for the network tools (GIF/sticker search, web search, translation, and the Unsplash/Pexels photo backgrounds) are read from `local.properties`, falling back to environment variables, falling back to an empty string. The Dropbox and OneDrive backup destinations read their OAuth client ids the same way. A missing key never fails the build. The affected tool shows a "needs API key" panel at runtime, and a backup destination with no client id is left out of the list instead.
 - **A missing release keystore doesn't fail a release build, but it doesn't sign it either.** If `RELEASE_STORE_FILE` isn't set or the file doesn't exist, `assembleFullRelease` drops the signing config and emits an *unsigned* release APK. There's no debug-key fallback, and that's deliberate: a debug-signed "release" looks shippable and isn't, because Play rejects the debug key and nothing installed from such a build could ever be updated by the real one.
 - **Module build files can't declare their own repositories.** `settings.gradle.kts` sets `repositoriesMode = FAIL_ON_PROJECT_REPOS`, so only the `google()`/`mavenCentral()` repositories declared centrally are allowed. Adding a `repositories { }` block inside any module's `build.gradle.kts` hard-fails the build rather than silently working.
 - **Dictionaries compile automatically.** Every build variant wires in a `compileBundledDictionaries` task that runs the `:tools:dictc` compiler over `dictionaries-src/*.txt` and produces the `.wmdict` assets bundled into the APK. There's no separate manual compilation step. See [the dictionary pipeline](/development/dictionaries/) for the format and how to add or edit a wordlist.

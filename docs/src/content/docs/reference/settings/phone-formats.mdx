@@ -11,7 +11,7 @@ import Shot from '@components/Shot.astro';
 
 <SettingsPath path="Clipboard / Phone number formats" />
 
-The clipboard's [entity chips](/tools/clipboard/#pulling-codes-and-links-out-of-a-clip) pull one-time codes, links and phone numbers out of what you copy. A code has a shape and a link has a scheme, but a phone number is just digits, so with nothing to go on the detector keeps every run of 7 to 15 of them. That's how an invoice total, an order reference or a column out of a spreadsheet ends up wearing a phone chip. This screen is where you tell it what your numbers look like, and it stops guessing.
+The clipboard's [entity chips](/tools/clipboard/#pulling-codes-and-links-out-of-a-clip) pull one-time codes, links and phone numbers out of what you copy. A code has a shape and a link has a scheme, but a phone number is only digits, so with nothing to go on the detector keeps every run of 7 to 15 of them. That's how an invoice total, an order reference or a column out of a spreadsheet ends up wearing a phone chip. This screen is where you tell it what your numbers look like, and it stops guessing.
 
 The list is not empty to begin with. It starts with one mask for your own country, read off your phone's region the same way the calendar tool picks its alternate calendars: a phone in Bangladesh opens on `+880 XXXX-XXXXXX`, one in the US on `+1 XXX-XXX-XXXX`. The table covers about 110 regions, and it's mobile numbers, so a country whose landlines run to a different length will drop those. Edit the mask, add a second one, or delete it and go back to catching every number. A region the table doesn't know, and one it deliberately leaves out because its numbers have no single length (Germany and Austria), start with nothing.
 

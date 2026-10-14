@@ -8,7 +8,7 @@ sidebar:
 import { LinkCard, CardGrid } from '@astrojs/starlight/components';
 
 WM Keyboard has CI but no formal contribution process, issue templates or
-`CODEOWNERS` yet. Mostly there's just a codebase to fit into cleanly. This page
+`CODEOWNERS` yet. Mostly there's a codebase to fit into cleanly. This page
 covers how the repository is organized and styled, and where a first change is
 easiest to land, so your pull request needs as little back-and-forth as
 possible.
@@ -35,7 +35,7 @@ than a convention people remember to follow:
 - The rest of `:core:*` is one engine or store per feature area, each
   depending on only the lower modules it actually needs. `:core:settings`
   depends on eleven other `:core:*` modules because the settings screens
-  surface controls for all of them, while `:core:feedback` needs just
+  surface controls for all of them, while `:core:feedback` needs only
   `:core:settings` and `:core:common`.
 - `:feature:*` sits above `:core:settings`, since the feature modules read
   the settings repository. `:feature:ime` (the keyboard runtime itself)
@@ -81,7 +81,7 @@ Static analysis runs in two layers, both configured under `config/`:
   are deliberately uneven. Complexity, comment and deprecation rules are turned
   down to zero weight, while correctness rules stay at full weight, because
   those are the ones that catch actual bugs. The input-dispatch and
-  layout-resolution code is genuinely branchy, so style metrics like cyclomatic
+  layout-resolution code is branchy, so style metrics like cyclomatic
   complexity aren't a useful signal there.
 - **Android Lint** (`config/lint/lint.xml`). The app module turns on
   `checkAllWarnings` (roughly 200 checks that are off by default) and
@@ -198,7 +198,7 @@ instead, per the "Picking a first contribution" section above.
 ## Details & edge cases
 
 - **Lite-flavor detekt only runs where lite actually differs.** `staticAnalysis`
-  runs a separate lite-flavor detekt pass for just `:core:voice`,
+  runs a separate lite-flavor detekt pass for only `:core:voice`,
   `:core:intelligence` and `:feature:ime`, the only modules whose `src/lite`
   source set replaces real implementations (ML Kit, LiteRT) with stubs. Every
   other module's full and lite sources are identical, so a second pass over

@@ -51,7 +51,7 @@ Espanso trigger words nearly always start with a colon or a semicolon, and that 
 
 Every one of these is reported in the import dialog with a count, so you know what a package lost before you accept it.
 
-- **Commands.** A `shell` or `script` variable runs a program on a computer. It is read, discarded and **never run**, in either direction. A snippet that was only a command comes in with that part empty.
+- **Commands.** A `shell` or `script` variable runs a program on a computer. It is read, discarded and never run, in either direction. A snippet that was only a command comes in with that part empty.
 - **Forms.** A `form` match keeps its layout as ordinary text, with the cursor parked in the first blank and the remaining `[[fields]]` left visible so you can see what belongs where.
 - **Rich text.** A `markdown` or `html` match keeps its words and loses its formatting, because a snippet goes into the field you are typing in as plain characters.
 - **Pictures.** An `image_path` match is skipped.
@@ -62,7 +62,7 @@ Every one of these is reported in the import dialog with a count, so you know wh
 - **Other files.** `imports` cannot follow a file onto a phone. Inside a package archive they are resolved within the archive.
 - **Slow patterns.** A regular expression WM Keyboard will not run (see [pattern triggers](/tools/snippets/#pattern-triggers)) is removed and the snippet kept.
 
-One more thing worth knowing: a snippet whose text already contains something in braces that this app expands, like a template package containing a literal `{date}`, will expand it rather than write it out. The dialog counts those too.
+One more case: a snippet whose text already contains something in braces that this app expands, like a template package containing a literal `{date}`, will expand it rather than write it out. The dialog counts those too.
 
 ## Sending snippets out
 

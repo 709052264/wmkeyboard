@@ -29,7 +29,7 @@ time, and no runtime code is involved. They only exist on Android 7.1
 long-pressing the icon does nothing extra.
 
 <PhoneFrame caption="A settings screen reached from a launcher shortcut. This one opened straight to Themes.">
-  <Shot id="reference/settings-deep-link-destination" alt="A settings screen reached from a launcher shortcut — this one opened straight to Themes." />
+  <Shot id="reference/settings-deep-link-destination" alt="A settings screen reached from a launcher shortcut. This one opened straight to Themes." />
 </PhoneFrame>
 
 ## Opening a settings screen with a link
@@ -169,7 +169,7 @@ About screen:
 | The link says your version already has it | An update does not help: the link has a mistake in it, or the setting moved or was removed. |
 | No update source, as in a debug build | The version to look for, and a **Releases** button for GitHub's list. |
 
-A link without `since=` gets the same dialog. It just cannot say which version
+A link without `since=` gets the same dialog. It cannot say which version
 to wait for, so it says the link may be for an unreleased version or may be
 mistyped. An F-Droid build asks before it checks, because it never checks for
 updates on its own. On the other builds, opening the dialog is the check.
@@ -301,6 +301,7 @@ your bot token as it opens, and is kept behind the same kind of link.
 | `vocab/review` | Review. |
 | `vocab/browse` | Browse words. |
 | `vocab/word/{packId}/{word}` | One word's page in the vocabulary browser. |
+| `clock` | Clock. |
 | `notes` | Notes. |
 | `notes/edit/{noteId}` | One note, open in the editor. `notes/edit/0` opens an empty new one. |
 | `notes/tags` | Note tags. |
@@ -315,6 +316,7 @@ your bot token as it opens, and is kept behind the same kind of link.
 | `kdeconnect/devices` | KDE Connect: paired computers and the ones nearby. |
 | `ai_actions` | AI actions. |
 | `ai_action_edit/{actionId}` | One AI action. |
+| `ai_reply_tones` | AI reply tones. |
 | `ai_history` | AI history. |
 | `ai_mcp` | MCP servers for AI chat. |
 | `ai_mcp_edit/{serverId}` | One MCP server. |
@@ -421,7 +423,7 @@ resolve, or an `addon` link is missing its `repo` or `id` parameter, the link
 goes nowhere rather than opening a broken screen.
 
 <PhoneFrame side caption="Following a wmkeyboard://repo?url=… link pre-fills the add-repository dialog, but nothing is fetched until you tap Add.">
-  <Shot id="reference/addon-link-prefilled-repo" alt="Following a wmkeyboard://repo?url=… link pre-fills the add-repository dialog — nothing is fetched until you tap Add." />
+  <Shot id="reference/addon-link-prefilled-repo" alt="Following a wmkeyboard://repo?url=… link pre-fills the add-repository dialog, but nothing is fetched until you tap Add." />
 </PhoneFrame>
 
 Where a custom scheme cannot be a link at all, such as most chat apps, put
@@ -569,10 +571,10 @@ Opening a `.wmplugin` file doesn't install it the way the other formats do;
 it's gated twice:
 
 <PhoneFrame caption="Opening a plugin file while the Plugins subsystem is off: nothing installs or runs.">
-  <Shot id="reference/plugin-import-gate" alt="Opening a plugin file while the Plugins subsystem is off — nothing installs or runs." />
+  <Shot id="reference/plugin-import-gate" alt="Opening a plugin file while the Plugins subsystem is off: nothing installs or runs." />
 </PhoneFrame>
 
-1. If the Plugins subsystem is off, the dialog just says plugins are turned
+1. If the Plugins subsystem is off, the dialog says plugins are turned
    off and how to enable them. It doesn't show the plugin's name or
    anything else about it, and nothing installs.
 2. If it's on, the dialog reads the plugin's manifest. It shows the name,
@@ -619,7 +621,7 @@ addon repository.
 - **A repeated link is harmless.** Because the app launches in single-top
   mode, tapping the same addon link twice, or tapping one while the app is
   already open, delivers it to the running instance rather than opening a
-  second copy. Pasting a repository you've already added just reopens it.
+  second copy. Pasting a repository you've already added reopens it.
 - **A backup that isn't one fails safely.** If a `.wmconfig.json` or
   `.wmsettings.json` file's content doesn't actually decode as a backup, or a
   settings backup can't be applied, the dialog says so and nothing changes on

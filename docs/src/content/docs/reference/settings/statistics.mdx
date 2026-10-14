@@ -11,7 +11,7 @@ import Shot from '@components/Shot.astro';
 
 <SettingsPath path="About / Statistics" />
 
-**Statistics** is the running tally of how much you type: characters, words, backspaces, time spent typing, and a speed figure worked out from those. On top of the counts sit a level that climbs as you type, a set of achievements in the style of SwiftKey's, and a heatmap of where your thumbs land. It's counted on the device and stored on the device. Nothing you actually typed is kept, only the totals.
+**Statistics** is the running tally of how much you type: characters, words, backspaces, time spent typing, and a speed figure worked out from those. On top of the counts sit a level that climbs as you type, a set of achievements in the style of SwiftKey's, and a heatmap of where your thumbs land. It's counted on the device and stored on the device. Nothing you typed is kept, only the totals.
 
 <PhoneFrame caption="Statistics: the all-time tiles, the history chart with its period and metric chips, and the hour-of-day chart.">
   <Shot id="reference/settings/statistics-screen" alt="Statistics: the all-time tiles, the history chart with its period and metric chips, and the hour-of-day chart." />
@@ -25,9 +25,9 @@ A keystroke counts when its text reaches your text field. Soft keys, a physical 
 
 Insertions aren't typing, and they're left out on purpose: voice input, handwriting, and anything a panel puts in the field, whether that's emoji, a clipboard entry or a translation. Backspaces are counted separately and never subtract, because the statistic is work done rather than text that survived. A word-delete swipe counts as one backspace.
 
-Time is measured in bursts. The gap between two keystrokes joins your typing time only when it's **5 seconds or shorter**. Anything longer is you thinking, switching apps, or putting the phone down, and it adds nothing. Speed is then the usual arithmetic: characters ÷ 5, over the minutes of typing time.
+Time is measured in bursts. The gap between two keystrokes joins your typing time only when it's 5 seconds or shorter. Anything longer is you thinking, switching apps, or putting the phone down, and it adds nothing. Speed is then the usual arithmetic: characters ÷ 5, over the minutes of typing time.
 
-What lands on disk is only ever aggregate: one bucket per calendar day, the lifetime sums, the achievement counts, a lifetime hour-of-day histogram, and for each layout a count of taps per quarter-key cell. No text, no per-app split, no timestamp finer than the day, and nothing that says which key followed which. Day buckets are kept for **370 days**, counted back from the newest day recorded. Pruning them costs you nothing at the top of the screen, because the all-time totals are stored separately.
+What lands on disk is only ever aggregate: one bucket per calendar day, the lifetime sums, the achievement counts, a lifetime hour-of-day histogram, and for each layout a count of taps per quarter-key cell. No text, no per-app split, no timestamp finer than the day, and nothing that says which key followed which. Day buckets are kept for 370 days, counted back from the newest day recorded. Pruning them costs you nothing at the top of the screen, because the all-time totals are stored separately.
 
 ## Your level
 
@@ -90,7 +90,7 @@ The map itself is hidden from screen readers, and the "Most tapped" line is its 
 
 ## Reading the screen
 
-After the level, the achievements and the heatmap, the screen shows its counts. **All time** is five tiles, three to a row: Characters, Words, Average speed, Time typing, and Backspaces. Average speed shows a dash until there's at least **30 seconds** of recorded typing time behind it. Below that, a words-per-minute number is noise rather than a measurement.
+After the level, the achievements and the heatmap, the screen shows its counts. **All time** is five tiles, three to a row: Characters, Words, Average speed, Time typing, and Backspaces. Average speed shows a dash until there's at least 30 seconds of recorded typing time behind it. Below that, a words-per-minute number is noise rather than a measurement.
 
 **History** is a chart with two rows of chips. The first picks the window: **Days** for the last 14, **Weeks** for the last 12, **Months** for the last 12. The second picks what's plotted: **Words**, **Characters** or **Speed**. Words and Characters draw bars. Speed draws a line over a light grid. Quiet buckets still get a tick, so the axis reads as a run of days rather than a chart full of holes. Under the chart is one row per bucket that has something in it, newest first: the date, "N words · N characters", and the bucket's speed on the right whenever the bucket recorded any typing time at all. The 30-second floor applies to the all-time tile only, so a row can show a speed the tile still refuses to.
 
@@ -126,7 +126,7 @@ The same data can also go from <SettingsPath path="About / Storage / Typing stat
 
 | Setting | Control | Default |
 |---|---|---|
-| Count typing statistics | Toggle | **On** |
+| Count typing statistics | Toggle | On |
 
 The row carries an info button repeating the privacy terms. The counts stay on your device, nothing you type is saved, nothing leaves the device, and counting pauses while incognito pauses learning. Turn it off and the screen keeps whatever it already has, with "Statistics are off. Turn them on to start counting." underneath. It's a normal settings row, so it has the restore control described in [Putting one setting back](/reference/settings/#putting-one-setting-back).
 

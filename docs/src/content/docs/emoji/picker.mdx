@@ -57,7 +57,7 @@ Typing `:cat:` is a different feature entirely: it searches or auto-commits an e
   {/* shot: emoji/panel-search */}
 </PhoneFrame>
 
-Tap the magnifying-glass tab at the start of the tab strip. The panel switches into search mode and a search pill appears. With the full-screen panel on (the default) the pill takes the header row beside the back button, in place of the tab strip. With it off, the pill sits under the results instead, just above the keys that type into it, so the emoji stay at the top of the panel where your thumb left them.
+Tap the magnifying-glass tab at the start of the tab strip. The panel switches into search mode and a search pill appears. With the full-screen panel on (the default) the pill takes the header row beside the back button, in place of the tab strip. With it off, the pill sits under the results instead, right above the keys that type into it, so the emoji stay at the top of the panel where your thumb left them.
 
 The pill is not a text field you type into directly. Tap it, and the letter keys underneath become a query editor: what you type appends to the pill instead of going to your document, and the keyboard's own backspace key deletes from the pill. A small backspace icon inside the pill deletes from your actual text field instead, without leaving search. Tapping the pill again unlatches typing, and the tab strip returns once the query is empty, so backspacing your query away is the way back to browsing.
 
@@ -76,7 +76,7 @@ English and Bangla keywords are merged into the same index, so a query never nee
 
 ### The strip completes your query
 
-While the search box has the keys, the suggestion strip sits in the row directly above them, and what it offers comes from the emoji catalogue rather than from your language's word list. Type `ca` and it offers `car`, `cat`, `card`, `cash` — not `cable` or `cathedral`, which are perfectly good words that no emoji is tagged with and that would leave you staring at an empty grid. Everything on the strip finds at least one emoji.
+While the search box has the keys, the suggestion strip sits in the row directly above them, and what it offers comes from the emoji catalogue rather than from your language's word list. Type `ca` and it offers `car`, `cat`, `card`, `cash`, but not `cable` or `cathedral`, which are perfectly good words that no emoji is tagged with and that would leave you staring at an empty grid. Everything on the strip finds at least one emoji.
 
 It completes against everything the search itself understands: keywords in every language you've got a pack for, shortcode names like `tada`, and the curated synonyms above. A second word narrows to terms that share an emoji with the first, so `red hea` offers `heart` ahead of `headphone`. Tapping a term replaces the word at the caret and leaves a space, ready for the next one.
 
@@ -130,11 +130,11 @@ Off by default. Turn it on to add a "Clear recents" button to the Recent tab. It
 
 <SettingsPath path="Emoji / Emoji panel / Emoji categories" />
 
-The panel ships its category tabs in Unicode's own order. **Emoji categories** is where you change it: drag a category to move its tab, press the eye to hide a tab you never open, and press a category to open its emoji and arrange those too — press and hold one, then drag it where you want it.
+The panel ships its category tabs in Unicode's own order. **Emoji categories** is where you change it: drag a category to move its tab, press the eye to hide a tab you never open, and press a category to open its emoji and arrange those too: press and hold one, then drag it where you want it.
 
 Hiding a category hides only its tab. Those emoji are still found by search and still offered in the suggestion strip.
 
-The history tab is not in that list: it orders itself, with your favourites pinned first as above. The Kaomoji and Emoticons tabs are not either — they are switched on and off by their own toggle, and always sit at the end.
+The history tab is not in that list: it orders itself, with your favourites pinned first as above. The Kaomoji and Emoticons tabs are not either. They are switched on and off by their own toggle, and always sit at the end.
 
 Full reference: [Emoji categories](/reference/settings/emoji/#emoji-categories).
 
@@ -195,6 +195,6 @@ The animations are **Noto Animated Emoji** by Google, licensed [CC BY 4.0](https
 
 ### Coverage
 
-The bundled catalog covers **1,914 base emoji** across ten categories (activities, animals, flags, food, nature, objects, people, smileys, symbols, travel). Of those, 330 carry Fitzpatrick skin-tone variants, five uniform tones each, and 19 of that 330 also support independently-toned pairs like 🤝. Together that's 2,030 additional toned sequences on top of the base count.
+The bundled catalog covers 1,914 base emoji across ten categories (activities, animals, flags, food, nature, objects, people, smileys, symbols, travel). Of those, 330 carry Fitzpatrick skin-tone variants, five uniform tones each, and 19 of that 330 also support independently-toned pairs like 🤝. Together that's 2,030 additional toned sequences on top of the base count.
 
 For the settings that shape all of this (which font draws the emoji, keyword packs for other languages, word-typing predictions, and the emoji row), see [Emoji customization](/emoji/customization/).

@@ -29,7 +29,7 @@ The screen has four groups, top to bottom: Row order, Fancy text, Dictionary bar
 |---|---|---|
 | Fancy text | Toggle | Off |
 
-**Fancy text** reads On while the fancy keyboard is the active layout, however it got there. Switching it on adds Fancy Text to your language list if it isn't there and makes it the active keyboard, so the styles row appears above the keys. Switching it off returns to the first other language in your list and takes Fancy Text back out of it, unless the Fancy text tool's **Keep the language after you turn it off** option is on. That is exactly what the toolbar tool does, so the two never disagree about what "off" leaves behind. The row of styles starts with **Normal**, which types plain letters without leaving the fancy keyboard. See [Fancy Text](/languages/fancy-text/) for the styles themselves.
+**Fancy text** reads On while the fancy keyboard is the active layout, however it got there. Switching it on adds Fancy Text to your language list if it isn't there and makes it the active keyboard, so the styles row appears above the keys. Switching it off returns to the first other language in your list and takes Fancy Text back out of it, unless the Fancy text tool's **Keep the language after you turn it off** option is on. That is what the toolbar tool does, so the two never disagree about what "off" leaves behind. The row of styles starts with **Normal**, which types plain letters without leaving the fancy keyboard. See [Fancy Text](/languages/fancy-text/) for the styles themselves.
 
 ### Dictionary bar
 
@@ -60,7 +60,7 @@ The switches behind the chips are the same ones on each language's own screen (*
 
 **Lines of symbols** stacks the row up to four lines tall, each one a full symbol-row height showing the next entries of the set, so more of a set is on screen without a scroll. Past one line, **Scrolling** appears: **Together** moves every line as one grid, and **Each line alone** lets each line scroll on its own, so one line can sit at its start while another sits at its end.
 
-One thing about the row has no setting behind it, so it's worth saying here rather than leaving you to look for a control that isn't there. **The row takes itself off screen while the Symbols panel is open**, and while any panel running full-bleed has claimed the strip above the keys. A row of symbols on top of a panel of symbols is just noise. The height it gives up goes to the panel rather than shrinking the window, so nothing jumps as the panel opens or closes, and the row comes straight back when you close the panel.
+One thing about the row has no setting behind it, so it's worth saying here rather than leaving you to look for a control that isn't there. The row takes itself off screen while the Symbols panel is open, and while any panel running full-bleed has claimed the strip above the keys. A row of symbols on top of a panel of symbols is just noise. The height it gives up goes to the panel rather than shrinking the window, so nothing jumps as the panel opens or closes, and the row comes straight back when you close the panel.
 
 ### Row order
 
@@ -128,7 +128,7 @@ Editing a built-in set doesn't overwrite the shipped version. Your edit is store
 - **Keyboard modes can override the switch.** A mode that sets the symbol row (or, on the Emoji screen, the emoji row) to a different value than the global one is listed under the row's setting as a chip, such as "Email: On", that opens the mode's editor. The row's line in Row order adds "Changed by *N* modes". See [Row order](/typing/modes/#row-order).
 
 - **A hidden row keeps its slot.** Turning the emoji or symbol row back on after hiding it drops it back into the same position in the stack, not the top or bottom.
-- **You can't uncheck the last enabled symbol set.** The checkbox for the only remaining checked set silently does nothing when tapped: there's no error message, it just won't go to zero.
+- **You can't uncheck the last enabled symbol set.** The checkbox for the only remaining checked set silently does nothing when tapped: there's no error message, it won't go to zero.
 - **Entries can be removed from the keyboard too.** Holding an entry on the symbol row opens a menu with **Remove**, and on a set you made, **Delete the set**, which asks first. On a built-in set a removal is stored as the same override the editor writes, so Reset set undoes it. See [Holding an entry](/typing/modes/#holding-an-entry).
 - **Editing a built-in set is non-destructive.** The edit is stored as an override under the built-in's own ID, so nothing else needs to be told about it, and Reset set removes the override cleanly.
 - **Leaving Name blank on save doesn't leave the set unnamed.** It falls back to the built-in's own name when you're editing a shipped set, or "My set" for a brand-new one.

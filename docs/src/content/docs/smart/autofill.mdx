@@ -30,7 +30,7 @@ Focus a login field with a password manager set as your system autofill service,
 
 There's a dismiss button (✕) at the end of the row if you'd rather ignore the chips and type or search normally. Tapping it clears the chips until the next response comes in, which in practice usually means the next field you focus.
 
-The keyboard asks for up to six chips and sizes them to the strip's height, and no single chip may be wider than half the screen — a long address is ellipsized rather than taking the whole row, so you can always see that there's another entry beside it. The row scrolls horizontally for the rest.
+The keyboard asks for up to six chips and sizes them to the strip's height, and no single chip may be wider than half the screen. A long address is ellipsized rather than taking the whole row, so you can always see that there's another entry beside it. The row scrolls horizontally for the rest.
 
 Chips are also cleared automatically the moment you leave the field, so a login suggestion for one app never lingers into the next field you tap, in this app or another one.
 
@@ -38,9 +38,9 @@ Chips are also cleared automatically the moment you leave the field, so a login 
 
 There's no allowlist of specific apps. Inline autofill chips use Android's standard inline-suggestions API, so any password manager that supports it and is set as your device's autofill service can offer chips this way: Google's built-in password manager, Bitwarden, 1Password, Dashlane, and others that implement the same platform API. The keyboard requests a chip size and count from whatever service is active. It doesn't know or care which one it's talking to.
 
-The feature needs Android 11 (API 30) or newer. On older versions, the setting doesn't appear and the suggestion strip behaves exactly as it always has. Your password manager's own autofill dropdown still works, it just isn't drawn inline.
+The feature needs Android 11 (API 30) or newer. On older versions, the setting doesn't appear and the suggestion strip behaves exactly as it always has. Your password manager's own autofill dropdown still works, but it isn't drawn inline.
 
-Both sides have to opt in. The keyboard declares that it can host inline suggestions, and your password manager has to support them too — if either half is missing, Android falls back to the manager's own dropdown drawn over the keyboard.
+Both sides have to opt in. The keyboard declares that it can host inline suggestions, and your password manager has to support them too. If either half is missing, Android falls back to the manager's own dropdown drawn over the keyboard.
 
 ## Smart replies
 
@@ -66,9 +66,9 @@ Replies aren't the only thing this lane can carry. The system also sends action 
 
 Both toggles are on by default, and both only show up in the Typing screen on Android 11 and newer.
 
-**Password manager suggestions** off stops the keyboard requesting inline suggestions at all. Your password manager's normal autofill dropdown still applies — it just draws over the keyboard the way it did before this feature existed, instead of inside the strip. The setting has no effect until a password manager is actually set as your system autofill service, since without one there's nothing to request chips from either way.
+**Password manager suggestions** off stops the keyboard requesting inline suggestions at all. Your password manager's normal autofill dropdown still applies. It draws over the keyboard the way it did before this feature existed, instead of inside the strip. The setting has no effect until a password manager is set as your system autofill service, since without one there's nothing to request chips from either way.
 
-Turning it off also turns off smart replies, whatever that toggle says. Android makes one inline request per field and both kinds of chip come back down it, so asking for replies is also what sends your saved logins into the strip instead of into your manager's dropdown — there's no way to accept one and decline the other. Off means the keyboard asks for nothing, and your manager draws its own UI again.
+Turning it off also turns off smart replies, whatever that toggle says. Android makes one inline request per field and both kinds of chip come back down it, so asking for replies is also what sends your saved logins into the strip instead of into your manager's dropdown, so there's no way to accept one and decline the other. Off means the keyboard asks for nothing, and your manager draws its own UI again.
 
 **Smart replies** off stops the keyboard asking the system for replies. Nothing else about the strip changes, and login chips are unaffected. (The reverse isn't true, as above: login chips off takes replies with it.)
 
@@ -77,14 +77,14 @@ Turning both off means the keyboard doesn't ask for inline suggestions at all.
 ## Details & edge cases
 
 - **The keyboard never sees a chip's contents.** Chips are drawn by the password manager or by the system, not by the keyboard. The keyboard only says how much space is available, a size and a chip count, and gets back an opaque view it displays as-is. Whatever username, password or suggested reply sits behind a chip stays inside the other process the whole time.
-- **Chips follow the keyboard's theme.** The request names the strip's own chip background and text colors, so a saved login looks like the word suggestions it sits among instead of a system-default pill dropped onto a dark board. Only colors are set — the sender still decides the text, the icon and the layout — and the very first request after the keyboard's process starts goes out without them, because the theme isn't resolved until the board has drawn once. Your password manager can ignore all of it, in which case you get its own styling, which is always legible.
+- **Chips follow the keyboard's theme.** The request names the strip's own chip background and text colors, so a saved login looks like the word suggestions it sits among instead of a system-default pill dropped onto a dark board. Only colors are set (the sender still decides the text, the icon and the layout), and the very first request after the keyboard's process starts goes out without them, because the theme isn't resolved until the board has drawn once. Your password manager can ignore all of it, in which case you get its own styling, which is always legible.
 - **Arriving chips wake the strip up.** The bar above the keys rests on the toolbar (tool icons) when there's nothing to suggest, and chips from either lane count as something to suggest, so the strip takes the row when they land. That matters because neither kind of chip arrives while you're typing. A password field has no word candidates, and a smart reply comes before you've written anything.
 - **Login chips stay on in incognito.** The saved-login chips keep appearing while [incognito mode](/privacy/incognito/) is on, whether you switched it on manually or it engaged automatically because the field asked for no personalized learning. They record nothing, the keyboard never sees what's in them, and a private browsing tab is exactly where you log in. Smart replies are the one kind that incognito does block: a proposed reply means the system read the conversation on screen.
 - **Password fields are exactly where these belong.** Secure and password fields aren't specially blocked from autofill, and neither is incognito. They're where you'd expect a password manager to have something to offer. (Password fields do suppress the ordinary word-suggestion strip, which is a separate and unrelated behavior. See [incognito & secure fields](/privacy/incognito/).)
 - **Independent of the general suggestions toggle.** Turning off the main **Suggestions** toggle, the one for word predictions above the keyboard, doesn't affect either kind of chip. They're checked separately, so you can have one without the other.
 - **Tapping a chip vibrates and clicks like a key**, following your haptics and key sound settings. The chip is drawn by another app, so the keyboard never sees the tap itself; it notices the chips being taken away just before the field fills, and buzzes then. A password manager that asks you to unlock it first opens its unlock screen instead, and that tap doesn't vibrate.
 - **The ✕ clears both lanes.** Dismissing chips means "stop offering me things about this field", and both lanes are answering the same field, so both go until the next response.
-- **Requires Android 11 or newer.** Login chips additionally need a password manager currently set as the system autofill service. Anything missing means the strip just behaves as if the feature weren't there.
+- **Requires Android 11 or newer.** Login chips also need a password manager currently set as the system autofill service. Anything missing means the strip behaves as if the feature weren't there.
 
 Available identically on both editions of the keyboard.
 

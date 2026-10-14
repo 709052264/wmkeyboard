@@ -13,7 +13,7 @@ Selecting a phone number in a chat and then dialling it usually means copying it
 
 Select `01712345678` and the bar reads **Select all, Call, Message, WhatsApp, Contact, Copy, Cut, Paste, Delete, Share, Format, Find, Replace**. Select a sentence and it reads **Select all, Copy, Cut, Paste, Delete, Share, Save as note, Format, Find, Replace, Grammar, AI, Bangla, Fancy** and so on, with the actions that only make sense for what you selected (Sort on several lines, Colour on `#336699`, Zones on `5pm`) appearing when they do.
 
-This is **off by default**. It adds a bar that appears out of a gesture you already make for other reasons, so you have to ask for it.
+This is off by default. It adds a bar that appears out of a gesture you already make for other reasons, so you have to ask for it.
 
 <PhoneFrame caption="A selected phone number, and the bar the keyboard offers for it.">
   <Shot id="smart/selection-actions-phone" alt="A selected phone number, and the bar the keyboard offers for it." />
@@ -29,7 +29,7 @@ To switch it on and off without opening settings, add the **Selection actions** 
 
 ## What the keyboard reads
 
-The keyboard reads your selection **as a whole**. That is the rule behind every result on this page, and it is deliberate:
+The keyboard reads your selection as a whole. That is the rule behind every result on this page, and it is deliberate:
 
 - `01712345678` is a phone number.
 - `call me on 01712345678 tomorrow` is plain text. You selected the sentence, not the number in it.
@@ -40,7 +40,7 @@ Pulling a fragment out of a longer span is a different job, and the [clipboard](
 
 Phone numbers use the same formats as the clipboard, under [Phone formats](/reference/settings/phone-formats/). With a format saved, a number has to match it, which is what keeps an invoice total or a row of figures from offering to dial itself. With no format saved, the plain shape rules apply.
 
-On top of that reading, a few actions look at what the text *holds*: whether it has several lines, Bengali or Latin letters, digits in another script, a colour code, a date or time, a place. Those checks are cheap, and the dearer ones (dates, places) only run while an action that needs them is switched on.
+On top of that reading, a few actions look at what the text holds: whether it has several lines, Bengali or Latin letters, digits in another script, a colour code, a date or time, a place. Those checks are cheap, and the dearer ones (dates, places) only run while an action that needs them is switched on.
 
 ## The bar
 
@@ -204,7 +204,7 @@ None of these send anything anywhere themselves: each hands the text to an app y
 | AI buttons | Screen | None |
 | Time zones | Screen | UTC and your own |
 
-**Show on every selection** keeps the bar up on a selection too long to read. The keyboard does not read a selection past about 4,000 characters, so by default such a selection takes the whole bar away — Copy and Paste included, even though neither of those ever needed the text read, because the app does that work itself. Turn this on and the bar stays, carrying Select all, Copy, Cut, Paste and Delete, whichever of them you have switched on. Everything else still waits for a shorter selection, since every other action begins by reading the text.
+**Show on every selection** keeps the bar up on a selection too long to read. The keyboard does not read a selection past about 4,000 characters, so by default such a selection takes the whole bar away, Copy and Paste included, even though neither of those ever needed the text read, because the app does that work itself. Turn this on and the bar stays, carrying Select all, Copy, Cut, Paste and Delete, whichever of them you have switched on. Everything else still waits for a shorter selection, since every other action begins by reading the text.
 
 **Read what is selected** is the entity half of the feature. Turn it off and every selection is read as plain text: you keep the edits, the case options and the conversions, and lose Call, Email, Open, QR and Contact. It is worth turning off if you find the guesses wrong more often than right, since the generic half is the half that always applies.
 
@@ -212,7 +212,7 @@ None of these send anything anywhere themselves: each hands the text to an app y
 
 ## Details and edge cases
 
-- **The bar never appears over a password field.** Putting a password in front of a Share chooser is exactly the mistake this feature should not make.
+- **The bar never appears over a password field.** Putting a password in front of a Share chooser is the mistake this feature should not make.
 - **An action is only offered when it can work.** WhatsApp is hidden when WhatsApp is not installed. Search, Translate, QR, Grammar and AI are hidden when their tools are switched off, which includes the tools that [power saving](/typing/power-saving/) and the lock screen have already taken away, and AI is hidden until a provider is set up. Hiding a tool from the toolbox is not switching it off: turn off **Show in toolbox** on the tool's own page to keep, say, the AI chip here while the AI tool stays out of the toolbox grid.
 - **Nothing is stored and nothing is sent by the keyboard.** Every action either edits the field you are already in, or hands the text to an app you picked. Grammar and the Bengali conversions run on the device. The one exception is DeepL Write, which you set up yourself: it sends the selection to DeepL.
 - **Before your first unlock**, only the actions that touch the current field survive: the edits, the rewrites and Find. Paste needs a clipboard that is still locked, Speak needs a speech engine, and everything under Open in would have to start another app.

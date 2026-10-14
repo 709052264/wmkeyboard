@@ -9,7 +9,7 @@ import SettingsPath from '@components/SettingsPath.astro';
 import PhoneFrame from '@components/PhoneFrame.astro';
 import Shot from '@components/Shot.astro';
 
-An addon repository is just a URL (a GitHub repo or any `https://` host) that
+An addon repository is a URL (a GitHub repo or any `https://` host) that
 points at a small JSON index of themes, layouts, dictionaries and the rest.
 You add the repository once, browse what it offers in a searchable grid, and
 install one addon at a time.
@@ -43,7 +43,7 @@ address resolves.
 
 If the address doesn't resolve, or the resulting page can't be read as an
 addon repository, you get an error dialog rather than a half-added entry.
-Pasting a repository you've already added isn't an error either: it just
+Pasting a repository you've already added isn't an error either: it
 opens the existing one, so following the same link twice is harmless.
 
 :::tip[You can also share the link]
@@ -99,7 +99,7 @@ Installing three themes while you're comparing them should not repaint your
 keyboard three times.
 
 The question only appears the first time you install something with a slot to
-fill: updating an addon that wasn't already active just updates it quietly.
+fill: updating an addon that wasn't already active updates it quietly.
 If the addon you're updating *was* the one you had active, it's automatically
 re-applied under its new id instead of asking you to re-confirm a choice you
 never revoked.
@@ -184,7 +184,7 @@ addons in each and a three-dot menu for **Refresh**, **Open homepage** (when
 the manifest declares one), and **Remove**.
 
 Removing a repository only removes it from that list. Anything you already
-installed from it keeps working. You just stop getting update checks for it.
+installed from it keeps working. You only stop getting update checks for it.
 The app adds two repositories automatically the first time you open the Addons
 screen (a sample one and a repository of typing sounds), so there's something
 to browse before you've found one of your own. Removing either is permanent,
