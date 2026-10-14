@@ -3272,6 +3272,13 @@ data class KeyboardUiState(
      */
     val recentClipsOpen: Boolean = false,
     /**
+     * The [ClipItem.id] of the copy whose parts no longer hold the strip
+     * (#612, `fragmentsOnStrip`): typing or the row's ✕ put them away. Kept
+     * as an id rather than a flag so a field change does not bring them back,
+     * and the next copy does.
+     */
+    val clipFragmentsDoneId: Long? = null,
+    /**
      * One-time code lifted from a just-arrived notification, offered as a chip
      * on the suggestion strip. Null when there is none, it expired, it was
      * used or dismissed, or the current field fails the feature's gates

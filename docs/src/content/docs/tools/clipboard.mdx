@@ -166,11 +166,13 @@ With **Show the found parts as icons on each clip** on, the chips give way to ic
 
 With **Copy picked parts to the clipboard** on, a part you pick, from a chip, an icon or **Extract**, is copied as a clip of its own instead of typed, ready to paste wherever you need it.
 
+With **Show the found parts on the suggestion strip** on, you don't have to open the panel at all. Copy something with a code, a number or a link in it, and the suggestion strip shows the whole copy as a chip followed by a dashed chip for each part, the way FlorisBoard and FUTO Keyboard do. Tap a part to paste just it. The chips hold the strip until you type something or press the ✕ at its end; after that the words come back, with the usual chip for the copy beside them. It's off by default.
+
 <PhoneFrame side caption="Entity chips above the history grid: an OTP and a phone number pulled out of a longer message.">
   <Shot id="tools/clipboard-entity-chips" alt="Entity chips above the history grid: an OTP and a phone number pulled out of a longer message." />
 </PhoneFrame>
 
-Detection is conservative on purpose. A 4-digit year is never mistaken for a code, and a run of digits after a currency symbol or a `#` is never mistaken for a phone number. Google's `G-123456` verification prefix is stripped, so only the code itself pastes. Pulling a fragment out of a longer message is the panel's job alone. The suggestion strip only ever offers a copied code when the clip *is* the bare code, which is the **Suggest copied codes** rule under [Options](#options).
+Detection is conservative on purpose. A 4-digit year is never mistaken for a code, and a run of digits after a currency symbol or a `#` is never mistaken for a phone number. Google's `G-123456` verification prefix is stripped, so only the code itself pastes. Unless **Show the found parts on the suggestion strip** is on, pulling a fragment out of a longer message is the panel's job. The suggestion strip only ever offers a copied code when the clip *is* the bare code, which is the **Suggest copied codes** rule under [Options](#options).
 
 Phone numbers are the one fragment with no shape of their own, so they get an extra setting. Without it, anything with 7 to 15 digits counts, which is how an invoice total or a tracking number ends up wearing a phone chip. The list starts with one format for your own country, worked out from your phone's region. Open **Phone number formats** from the clipboard settings to change it, or to add the second country you copy numbers from. Give it a number you copy often. The screen turns that into a format like `+880 1XXX-XXXXXX`: it keeps the dial code and makes the rest wildcards, and you can type digits back over a wildcard to pin it. After that, only numbers matching one of your formats become chips.
 

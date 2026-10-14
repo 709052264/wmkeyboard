@@ -360,6 +360,7 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipEntityKind
 import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
 import com.wasimaster.wmkeyboard.core.clipboard.ClipKind
 import com.wasimaster.wmkeyboard.core.clipboard.ClipLinks
+import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtp
 import com.wasimaster.wmkeyboard.core.emoji.EmojiNames
 import com.wasimaster.wmkeyboard.core.emoji.EmojiVariantIndex
@@ -4421,6 +4422,70 @@ private fun TopBar(
                     }
                     return@StripSlot
                 }
+                // The parts of a fresh copy take the strip (#612, opt-in): the
+                // copy itself, then a dashed chip per part, so a number in a
+                // message pastes from here rather than from the panel. Over
+                // the words, like the row of recent copies, until a key is
+                // typed or the ✕; the plain chip below carries on after that.
+                val fragmentClip = recentClip?.takeIf {
+                    recentClipChip && smart == null &&
+                        state.settings.clipboard.fragmentsOnStrip &&
+                        state.settings.clipboard.detectEntities &&
+                        state.clipFragmentsDoneId != it.id
+                }
+                val phoneFormats = state.settings.clipboard.phoneFormats
+                val stripFragments = if (fragmentClip != null) {
+                    remember(fragmentClip.id, fragmentClip.text, phoneFormats) {
+                        ClipEntities.byClip(listOf(fragmentClip), PhoneFormats.parseAll(phoneFormats))[fragmentClip.id]
+                            .orEmpty()
+                    }
+                } else {
+                    emptyList()
+                }
+                if (fragmentClip != null && stripFragments.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .horizontalScroll(rememberScrollState())
+                            .padding(horizontal = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        ClipboardSuggestionChip(
+                            clip = fragmentClip,
+                            onPaste = { onClipboardSuggestion(fragmentClip) },
+                            onDismiss = {},
+                            dismissible = false,
+                            modifier = Modifier.widthIn(max = 160.dp),
+                        )
+                        for (part in stripFragments) {
+                            ClipboardSuggestionChip(
+                                clip = fragmentClip,
+                                otp = part,
+                                onPaste = { onClipboardEntity(part) },
+                                onDismiss = {},
+                                dismissible = false,
+                                modifier = Modifier.widthIn(max = 200.dp),
+                            )
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .clickable { onClipboardSuggestionDismiss() }
+                            .padding(horizontal = 8.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            Icons.Outlined.Close,
+                            contentDescription = stringResource(R.string.ime_clip_chip_dismiss_desc),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                    return@StripSlot
+                }
                 if (recentClipChip && smart == null) {
                     val clipChip = @Composable { chipModifier: Modifier ->
                         ClipboardSuggestionChip(
@@ -5788,7 +5853,11 @@ private fun ClipboardSuggestionChip(
     onPaste: () -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
-    /** Set when the chip offers a code out of [clip] rather than all of it. */
+    /**
+     * Set when the chip offers a part of [clip] rather than all of it: the
+     * code out of a verification message, or any part in the row of a fresh
+     * copy's parts (#612).
+     */
     otp: ClipEntity? = null,
     /** False for a chip in the row of recent copies (#414), which shares one ✕ for the row. */
     dismissible: Boolean = true,
@@ -5872,7 +5941,7 @@ private fun ClipboardSuggestionChip(
                 ) {
                     Icon(
                         when {
-                            otp != null -> Icons.Outlined.Password
+                            otp != null -> clipEntityIcon(otp.kind)
                             clip.kind == ClipKind.IMAGE -> Icons.Outlined.Image
                             else -> Icons.Outlined.ContentPaste
                         },
@@ -5887,7 +5956,9 @@ private fun ClipboardSuggestionChip(
                 // number, and the user has no way to tell it was lifted out of
                 // the message rather than being the whole copy.
                 Text(
-                    text = stringResource(R.string.ime_clip_chip_code_badge),
+                    text = stringResource(
+                        if (otp.kind == ClipEntityKind.OTP) R.string.ime_clip_chip_code_badge else otp.kind.tagRes,
+                    ),
                     color = tint.copy(alpha = 0.85f),
                     fontSize = 9.sp,
                     letterSpacing = 0.8.sp,

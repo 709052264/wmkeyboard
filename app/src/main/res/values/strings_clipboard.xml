@@ -121,6 +121,9 @@
     <string name="clipboard_entity_icons_info">Each clip shows a small icon for each kind of part found in it: a link, a phone number or a code. A number on the icon says how many there are. Press an icon to see the parts and pick one. The chips above the history go away while this is on. Press and hold a clip and press Extract to do the same from its menu.</string>
     <string name="clipboard_entity_to_clipboard_title">Copy picked parts to the clipboard</string>
     <string name="clipboard_entity_to_clipboard_subtitle">A picked link, number or code becomes a clip, and is not typed</string>
+    <string name="clipboard_fragments_on_strip_title">Show the found parts on the suggestion strip</string>
+    <string name="clipboard_fragments_on_strip_subtitle">After a copy, its codes, numbers and links take the strip as chips</string>
+    <string name="clipboard_fragments_on_strip_info">When you copy something that has a code, a phone number or a link in it, the suggestion strip shows the whole copy as a chip and then a dashed chip for each part. A press pastes that part, so you do not have to open the clipboard. The chips stay until you type something or press the ✕, and then the strip shows words again with the usual chip for the copy. This setting is off by default.</string>
     <string name="clipboard_entities_info">The chips sit above the history in dashed outlines, so they read as parts of a clip and not as clips of their own. Press and hold a chip to see it marked inside the clip that it comes from. A press pastes only that part, and the clip stays in the history. The keyboard finds these parts on your device.</string>
     <string name="clipboard_phone_formats_title">Phone number formats</string>
     <string name="clipboard_phone_formats_subtitle">Keep only the numbers that look like the ones you copy. Every number becomes a chip now</string>

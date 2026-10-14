@@ -6380,6 +6380,14 @@ data class ClipboardSettings(
      */
     val entityToClipboard: Boolean = false,
     /**
+     * A fresh copy that has parts in it (a code, a number, a link) takes the
+     * whole suggestion strip (#612): the copy's own chip, then a dashed chip
+     * for each part, so a part pastes without opening the clipboard. Until
+     * something is typed or its ✕; the ordinary chip stays after that. Off
+     * by default; only while [detectEntities] is on.
+     */
+    val fragmentsOnStrip: Boolean = false,
+    /**
      * The phone-number shapes to keep, as masks (`+880 1XXX-XXXXXX`). Empty
      * means every number-shaped run counts, which is where the detector's false
      * positives come from — an invoice total and a tracking id have the shape
@@ -9508,6 +9516,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_SWIPE_RIGHT_PINS = booleanPreferencesKey("clipboard_swipe_right_pins")
         private val CLIPBOARD_SWIPE_PIN = stringPreferencesKey("clipboard_swipe_pin")
         private val CLIPBOARD_ENTITY_STRIP_HIDDEN = booleanPreferencesKey("clipboard_entity_strip_hidden")
+        private val CLIPBOARD_FRAGMENTS_ON_STRIP = booleanPreferencesKey("clipboard_fragments_on_strip")
         private val CLIPBOARD_LINE_SPACING = intPreferencesKey("clipboard_line_spacing")
         private val CLIPBOARD_PRIVATE_COPIES = booleanPreferencesKey("clipboard_private_copies")
         private val CLIPBOARD_COPY_RULES = stringPreferencesKey("clipboard_copy_rules")
@@ -11126,6 +11135,7 @@ class SettingsRepository(private val context: Context) {
             detectEntities = p[CLIPBOARD_DETECT_ENTITIES] ?: defaults.clipboard.detectEntities,
             entityIcons = p[CLIPBOARD_ENTITY_ICONS] ?: defaults.clipboard.entityIcons,
             entityToClipboard = p[CLIPBOARD_ENTITY_TO_CLIPBOARD] ?: defaults.clipboard.entityToClipboard,
+            fragmentsOnStrip = p[CLIPBOARD_FRAGMENTS_ON_STRIP] ?: defaults.clipboard.fragmentsOnStrip,
             phoneFormats = p[CLIPBOARD_PHONE_FORMATS] ?: seededPhoneFormats(),
             fullBleed = p[CLIPBOARD_FULL_BLEED] ?: defaults.clipboard.fullBleed,
             keyRow = p[CLIPBOARD_KEY_ROW] ?: defaults.clipboard.keyRow,
@@ -17795,6 +17805,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardEntityStripHidden(value: Boolean) =
         editPrefs { it[CLIPBOARD_ENTITY_STRIP_HIDDEN] = value }
+
+    suspend fun setClipboardFragmentsOnStrip(value: Boolean) =
+        editPrefs { it[CLIPBOARD_FRAGMENTS_ON_STRIP] = value }
 
     suspend fun setClipboardLineSpacing(value: Int) =
         editPrefs { it[CLIPBOARD_LINE_SPACING] = value.coerceIn(ClipLineSpacingRange) }

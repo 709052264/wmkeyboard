@@ -38463,9 +38463,16 @@ open class WMKeyboardService : InputMethodService() {
         _uiState.update { it.copy(recentClipsOpen = !it.recentClipsOpen) }
     }
 
-    /** Typing puts the row of recent copies away (#612): the strip is the word's again. */
+    /**
+     * Typing puts the row of recent copies away (#612): the strip is the word's
+     * again. The parts of a fresh copy go the same way, for good for that copy.
+     */
     private fun closeRecentClips() {
         if (_uiState.value.recentClipsOpen) _uiState.update { it.copy(recentClipsOpen = false) }
+        val clipId = _uiState.value.clipboardSuggestion?.id ?: return
+        if (_uiState.value.clipFragmentsDoneId != clipId) {
+            _uiState.update { it.copy(clipFragmentsDoneId = clipId) }
+        }
     }
 
     // ---- one-time code chip ----

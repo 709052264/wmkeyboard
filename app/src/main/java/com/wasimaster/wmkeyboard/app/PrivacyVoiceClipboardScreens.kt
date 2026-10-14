@@ -1019,6 +1019,15 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.entityToClipboard,
             ) { scope.launch { repository.setClipboardEntityToClipboard(it) } }
         }
+        item(visible = detectEntities) {
+            ToggleSetting(
+                R.string.clipboard_fragments_on_strip_title,
+                stringResource(R.string.clipboard_fragments_on_strip_subtitle),
+                settings.watch { it.clipboard.fragmentsOnStrip },
+                info = stringResource(R.string.clipboard_fragments_on_strip_info),
+                default = SettingsDefaults.clipboard.fragmentsOnStrip,
+            ) { scope.launch { repository.setClipboardFragmentsOnStrip(it) } }
+        }
         // The number chips are the ones that go wrong, because a phone
         // number is the one fragment with no shape of its own. This row
         // is where the user gives it one.
