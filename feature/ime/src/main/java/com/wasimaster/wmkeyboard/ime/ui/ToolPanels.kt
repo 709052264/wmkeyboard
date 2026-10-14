@@ -1783,14 +1783,17 @@ internal fun ThemesPanel(
             )
         },
     ) {
-        ThemesPanelBody(
-            state, kb, tab, locked, selectedId, auto, themes,
-            packs, packStore, packRevision, faces,
-            scriptTabs, fontScript, { fontScript = it }, fontStore, fontRevision,
-            modeTheme, autoOn, darkSlot, randomSlot,
-            onThemeSelect, onAppColorPick, onAppColorStyle,
-            onIconPackSelect, onEmojiFontSelect, onFontSelect, onOpenRoute,
-        )
+        val tabs = ThemesPanelTab.entries
+        Box(Modifier.fillMaxSize().swipeTabs(tab.ordinal, tabs.size) { tab = tabs[it] }) {
+            ThemesPanelBody(
+                state, kb, tab, locked, selectedId, auto, themes,
+                packs, packStore, packRevision, faces,
+                scriptTabs, fontScript, { fontScript = it }, fontStore, fontRevision,
+                modeTheme, autoOn, darkSlot, randomSlot,
+                onThemeSelect, onAppColorPick, onAppColorStyle,
+                onIconPackSelect, onEmojiFontSelect, onFontSelect, onOpenRoute,
+            )
+        }
     }
 }
 

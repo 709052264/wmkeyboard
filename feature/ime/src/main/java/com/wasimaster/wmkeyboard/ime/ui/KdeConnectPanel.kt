@@ -517,7 +517,14 @@ private fun Connected(kb: KbTheme, state: KeyboardUiState, device: KdeDevice, ca
             }
         }
         Notice(kb, state)
-        Box(Modifier.fillMaxWidth().weight(1f)) {
+        // The touchpads inside take every move they see, so a swipe only
+        // changes the tab off them.
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .swipeTabs(tabs.indexOf(tab), tabs.size, enabled = !typing) { onKde(KdeAction.SetTab(tabs[it])) },
+        ) {
             when (tab) {
                 KdeTab.INPUT -> InputTab(kb, state, device, engine, capture)
                 KdeTab.MEDIA -> MediaTab(kb, device, engine)

@@ -174,7 +174,14 @@ internal fun VocabPanel(
     callbacks: VocabCallbacks,
     onOpenRoute: (String) -> Unit,
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
+    val tabs = VocabTab.entries
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .swipeTabs(state.vocab.tab.ordinal, tabs.size, enabled = !state.mediaSearchActive) {
+                callbacks.onTab(tabs[it])
+            },
+    ) {
         if (state.mediaSearchActive) return@Box
         val vocab = state.vocab
         if (!vocab.available) {

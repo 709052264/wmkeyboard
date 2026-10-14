@@ -203,7 +203,18 @@ internal fun MediaPanelHost(
     val fields: @Composable (PanelFieldKind) -> Unit = { field ->
         when (field) {
             PanelFieldKind.MEDIA_TABS -> MediaTabsField(state, callbacks.onPanelChange)
-            kind.requiredField -> browser(fullBleed, true, if (fullBleed) null else pill)
+            kind.requiredField -> {
+                // A sideways swipe across the GIFs or stickers steps to the
+                // panel beside it on the switch; the chip rows keep theirs.
+                val tabs = mediaTabs(state.settings)
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .swipeTabs(tabs.indexOf(state.panel), tabs.size) { callbacks.onPanelChange(tabs[it]) },
+                ) {
+                    browser(fullBleed, true, if (fullBleed) null else pill)
+                }
+            }
             else -> Unit
         }
     }

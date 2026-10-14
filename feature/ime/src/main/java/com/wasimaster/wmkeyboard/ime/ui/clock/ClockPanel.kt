@@ -83,6 +83,7 @@ import com.wasimaster.wmkeyboard.ime.ui.chipBorder
 import com.wasimaster.wmkeyboard.ime.ui.chipShape
 import com.wasimaster.wmkeyboard.ime.ui.focusRing
 import com.wasimaster.wmkeyboard.ime.ui.frostGlass
+import com.wasimaster.wmkeyboard.ime.ui.swipeTabs
 import kotlinx.coroutines.delay
 
 /**
@@ -126,7 +127,12 @@ internal fun ClockPanel(
             }
         },
     ) {
-        Box(Modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                // A sideways swipe steps through the tabs, not while the keys type into one.
+                .swipeTabs(ui.tab.ordinal, tabs.size, enabled = typing == null) { act(ClockAction.Tab(tabs[it])) },
+        ) {
             val reduce = state.settings.reduceMotion
             AnimatedContent(
                 targetState = ui.tab,

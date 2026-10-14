@@ -186,10 +186,13 @@ internal fun LocationPanel(
         onClose = onClose,
         headerActions = { Header(ui, settings, precision, callbacks) },
     ) {
-        when (ui.tab) {
-            LocationTab.HERE -> HereBody(state, ui, settings, precision, format, callbacks)
-            LocationTab.PLACES -> PlacesBody(state, ui, settings, precision, format, callbacks)
-            LocationTab.FOUND -> FoundBody(state, ui, settings, format, callbacks)
+        val tabs = LocationTab.entries
+        Box(Modifier.fillMaxSize().swipeTabs(ui.tab.ordinal, tabs.size) { callbacks.onTab(tabs[it]) }) {
+            when (ui.tab) {
+                LocationTab.HERE -> HereBody(state, ui, settings, precision, format, callbacks)
+                LocationTab.PLACES -> PlacesBody(state, ui, settings, precision, format, callbacks)
+                LocationTab.FOUND -> FoundBody(state, ui, settings, format, callbacks)
+            }
         }
     }
 }

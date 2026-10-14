@@ -269,8 +269,17 @@ private fun WikiArticle(
         }
     }
     val context = LocalContext.current
+    val select: (WikiTab) -> Unit = { wikiTab ->
+        tab = wikiTab
+        when (wikiTab) {
+            WikiTab.LINKS -> if (wiki.links == null) onLoadLinks()
+            WikiTab.FULL -> if (wiki.fullText == null) onLoadFull()
+            WikiTab.SUMMARY -> {}
+        }
+    }
+    val tabs = WikiTab.entries
 
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().swipeTabs(tab.ordinal, tabs.size) { select(tabs[it]) }) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -350,14 +359,7 @@ private fun WikiArticle(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             for (wikiTab in WikiTab.entries) {
-                ToolPanelChip(stringResource(wikiTab.labelRes), selected = tab == wikiTab) {
-                    tab = wikiTab
-                    when (wikiTab) {
-                        WikiTab.LINKS -> if (wiki.links == null) onLoadLinks()
-                        WikiTab.FULL -> if (wiki.fullText == null) onLoadFull()
-                        WikiTab.SUMMARY -> {}
-                    }
-                }
+                ToolPanelChip(stringResource(wikiTab.labelRes), selected = tab == wikiTab) { select(wikiTab) }
             }
             Spacer(Modifier.width(8.dp))
             AskAiChip(askLabel) { AskAiContext.wikipedia(wiki.summary, wiki.fullText) }

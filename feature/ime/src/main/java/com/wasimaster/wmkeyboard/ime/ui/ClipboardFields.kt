@@ -836,7 +836,19 @@ private fun ClipboardListField(
             if (!reordering && (session.filtersOpen.value || session.filter.value != ClipFilter.ALL || session.oldest.value)) {
                 ClipFilterRow(session)
             }
-            Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+            // A clip's own swipe (delete, pin) wins on the clip; elsewhere a
+            // sideways swipe changes the tab.
+            val tabs = ClipTab.entries
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .swipeTabs(
+                        session.tab.value.ordinal,
+                        tabs.size,
+                        enabled = session.tabbed && selection == null && !reordering,
+                    ) { session.tab.value = tabs[it] },
+            ) {
                 if (reordering) {
                     ClipReorderList(state, session, callbacks.actions.onMove)
                 } else {
