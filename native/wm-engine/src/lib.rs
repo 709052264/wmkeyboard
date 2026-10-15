@@ -55,6 +55,7 @@
 //! upstream revision they run.
 
 pub mod accents;
+pub mod apostrophes;
 pub mod arabic;
 pub mod arabic_script;
 pub mod assamese;
@@ -65,6 +66,8 @@ pub mod bengali_index;
 pub mod bengali_romanizer;
 pub mod bijoy;
 pub mod bijoy_tables;
+pub mod correction_memory;
+pub mod correction_stats;
 pub mod devanagari_romanizer;
 pub mod freq_codec;
 pub mod fuzzy;

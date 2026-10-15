@@ -7,13 +7,17 @@
 //! or leave it alone. The scores, gates and boosts are the phone's.
 //!
 //! Left on the phone: the phonetic layouts' strips, contacts and app names,
-//! glide, touch positions, the per-field language mix, register priors, the
-//! apostrophe and hyphen readings, taught fixes and the model reranker. The
-//! user's lexicon and the correction pair memory are held in memory here;
-//! storing them is the caller's business.
+//! glide, touch positions, the per-field language mix, the elision and
+//! hyphen readings and the model reranker. The user's lexicon, the
+//! correction pair memory ([`CorrectionStats`]) and the fixes the user
+//! taught ([`CorrectionMemory`]) are held in memory here; storing them is
+//! the caller's business.
 
+pub use crate::correction_memory::{CorrectionMemory, LearnedHabits};
+pub use crate::correction_stats::{CorrectionStats, Penalty, UndoMemory};
 use crate::freq_codec;
-use crate::fuzzy::{self, EditHabits, ScoredCandidate, Tier, WalkSource, Workspace, NO_HABITS};
+use crate::fuzzy::{self, EditHabits, ScoredCandidate, Tier, WalkSource, Workspace};
+use crate::{apostrophes, correction_memory};
 use crate::proximity::KeyProximity;
 use crate::wmdict::{self, Dict, PackedTrie};
 use crate::wmng::Pack;
@@ -76,6 +80,114 @@ fn app_recency_boost() -> f64 {
 fn lang_mismatch_damp() -> f64 {
     3f64.ln()
 }
+fn casual_informal_boost() -> f64 {
+    1.5f64.ln()
+}
+fn formal_informal_damp() -> f64 {
+    2.5f64.ln()
+}
+/// A contraction leads the typed spelling in the strip by this much.
+const CONTRACTION_LEAD: f64 = 7.0;
+/// A declared contraction trails the typed word's count by this factor.
+const DECLARED_TRAIL: f64 = 2.0;
+/// ...and always stops just short of the typed word.
+const DECLARED_BEHIND: f64 = 1e-3;
+/// A confusable sibling must out-evidence the typed word this many times.
+const ADVISE_DOMINANCE: f64 = 8.0;
+/// What the context must say for a taught fix of a real word to fire.
+const TAUGHT_DOMINANCE: f64 = 3.0;
+const MIN_USER_COUNT: i32 = 3;
+const MIN_CORPUS_COUNT: i32 = 25;
+
+/// The register of the field being typed into: chat-speak rises in a
+/// messaging app and sinks in email. Neutral changes nothing.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Register {
+    #[default]
+    Neutral,
+    Casual,
+    Formal,
+}
+
+/// The closed class the register acts on: chat initialisms, relaxed
+/// spellings, shorthand and casual fillers.
+pub const INFORMAL: &[&str] = &[
+    "lol", "lmao", "rofl", "omg", "idk", "idc", "btw", "fyi", "imo", "imho", "tbh", "irl", "nvm",
+    "brb", "afk", "smh", "ikr", "ffs", "wtf", "tf", "rn", "atm", "dm", "ily", "ngl", "fr", "bc",
+    "cuz", "bff", "gg", "wp", "thx", "ty", "tysm", "np", "pls", "plz", "omw", "ttyl", "hbu", "wyd",
+    "wbu", "lmk", "asap", "jk", "istg", "fomo", "yolo", "gonna", "wanna", "gotta", "kinda",
+    "sorta", "outta", "lemme", "gimme", "dunno", "aint", "cmon", "gotcha", "betcha", "coulda",
+    "shoulda", "woulda", "tryna", "finna", "bout", "til", "cos", "u", "ur", "r", "y", "k", "kk",
+    "im", "ive", "dont", "cant", "wont", "didnt", "isnt", "hasnt", "havent", "wasnt", "couldnt",
+    "shouldnt", "wouldnt", "yall", "yeah", "yep", "yup", "nah", "nope", "haha", "hahaha", "hehe",
+    "huh", "hmm", "umm", "uhh", "ooh", "yay", "woo", "whoa", "damn", "dang", "welp", "meh",
+    "bruh", "bro", "dude", "sup", "yo", "hey", "heya", "okay", "ok", "okey", "alright", "awesome",
+    "cool", "sweet", "sick", "legit", "lowkey", "highkey", "deadass", "based", "cringe", "sus",
+    "vibes", "vibe", "bestie", "fam", "squad", "goat", "slay", "stan", "simp", "flex", "salty",
+    "shook", "snacc", "yeet", "oof", "rip",
+];
+
+fn informal(word: &str) -> bool {
+    INFORMAL.contains(&word.to_lowercase().as_str())
+}
+
+/// The classic English confusables the word after can settle.
+const CONFUSABLES: &[&[&str]] = &[
+    &["their", "there", "they're"],
+    &["your", "you're"],
+    &["its", "it's"],
+    &["whose", "who's"],
+    &["were", "we're", "where"],
+    &["then", "than"],
+    &["lose", "loose"],
+    &["affect", "effect"],
+];
+
+/// The rhythm of the word being typed, as a factor on the autocorrect gate:
+/// the Kotlin `KeystrokeTiming`. Fast bursts correct more eagerly, slow
+/// deliberate keys less. Callers pass timestamps from any monotonic clock.
+#[derive(Clone, Debug, Default)]
+pub struct KeystrokeTiming {
+    last_ms: i64,
+    gaps: u32,
+    total_ms: i64,
+}
+
+impl KeystrokeTiming {
+    const FAST_MS: f64 = 150.0;
+    const SLOW_MS: f64 = 450.0;
+    const MAX_GAP_MS: i64 = 2_000;
+    const MIN_GAPS: u32 = 2;
+    const MAX_SHIFT: f64 = 0.5;
+
+    /// One composing keystroke at `now_ms`.
+    pub fn keystroke(&mut self, now_ms: i64) {
+        if self.last_ms != 0 {
+            let gap = now_ms - self.last_ms;
+            if (1..=Self::MAX_GAP_MS).contains(&gap) {
+                self.gaps += 1;
+                self.total_ms += gap;
+            }
+        }
+        self.last_ms = now_ms;
+    }
+
+    /// A word boundary: the next word's rhythm starts fresh.
+    pub fn reset(&mut self) {
+        *self = KeystrokeTiming::default();
+    }
+
+    /// The factor at `strength` (0 off, to 1): exactly 1 with too few gaps.
+    pub fn multiplier(&self, strength: f64) -> f64 {
+        if strength <= 0.0 || self.gaps < Self::MIN_GAPS {
+            return 1.0;
+        }
+        let mean = self.total_ms as f64 / self.gaps as f64;
+        let t = ((mean - Self::FAST_MS) / (Self::SLOW_MS - Self::FAST_MS)).clamp(0.0, 1.0) * 2.0
+            - 1.0;
+        1.0 + t * Self::MAX_SHIFT * strength.min(1.0)
+    }
+}
 fn ln1p(v: f64) -> f64 {
     (1.0 + v).ln()
 }
@@ -94,7 +206,10 @@ pub struct WordList {
 
 impl WordList {
     pub fn open(bytes: Vec<u8>) -> Option<WordList> {
-        Dict::open(bytes).map(|dict| WordList { dict, codes: OnceCell::new() })
+        Dict::open(bytes).map(|dict| WordList {
+            dict,
+            codes: OnceCell::new(),
+        })
     }
 
     pub fn of<S: AsRef<str>>(entries: &[(S, i32)]) -> WordList {
@@ -123,7 +238,12 @@ impl WordList {
             return 0;
         }
         let codes = self.codes.get_or_init(|| {
-            let mut c: Vec<u16> = self.dict.entries().into_iter().map(|(_, f)| freq_codec::encode(f)).collect();
+            let mut c: Vec<u16> = self
+                .dict
+                .entries()
+                .into_iter()
+                .map(|(_, f)| freq_codec::encode(f))
+                .collect();
             c.sort_unstable();
             c
         });
@@ -141,7 +261,12 @@ impl Followers {
     fn bump(&mut self, next: &str, n: i32) {
         *self.counts.entry(next.to_string()).or_insert(0) += n;
         if self.counts.len() > MAX_FOLLOWERS {
-            if let Some(low) = self.counts.iter().min_by(|a, b| a.1.cmp(b.1).then_with(|| b.0.cmp(a.0))).map(|(k, _)| k.clone()) {
+            if let Some(low) = self
+                .counts
+                .iter()
+                .min_by(|a, b| a.1.cmp(b.1).then_with(|| b.0.cmp(a.0)))
+                .map(|(k, _)| k.clone())
+            {
                 self.counts.remove(&low);
             }
         }
@@ -150,7 +275,10 @@ impl Followers {
     fn ordered(&self, limit: usize) -> Vec<String> {
         let mut all: Vec<(&String, &i32)> = self.counts.iter().collect();
         all.sort_by(|a, b| b.1.cmp(a.1).then_with(|| a.0.cmp(b.0)));
-        all.into_iter().take(limit).map(|(w, _)| w.clone()).collect()
+        all.into_iter()
+            .take(limit)
+            .map(|(w, _)| w.clone())
+            .collect()
     }
 
     fn count(&self, next: &str) -> i32 {
@@ -194,7 +322,8 @@ impl Lexicon {
         if count <= 0 || !learnable(&key) {
             return false;
         }
-        let next = (*self.words.get(&key).unwrap_or(&0) as i64 + count as i64).min(MAX_COUNT as i64) as i32;
+        let next = (*self.words.get(&key).unwrap_or(&0) as i64 + count as i64).min(MAX_COUNT as i64)
+            as i32;
         self.words.insert(key.clone(), next);
         if !language.is_empty() {
             self.languages.insert(key.clone(), language.to_string());
@@ -307,27 +436,43 @@ impl Lexicon {
     }
 
     pub fn next_words(&self, previous: &str, limit: usize) -> Vec<String> {
-        self.bigrams.get(&key_of(previous)).map(|f| f.ordered(limit)).unwrap_or_default()
+        self.bigrams
+            .get(&key_of(previous))
+            .map(|f| f.ordered(limit))
+            .unwrap_or_default()
     }
 
     pub fn next_words_after(&self, prev2: &str, prev1: &str, limit: usize) -> Vec<String> {
-        self.trigrams.get(&(key_of(prev2), key_of(prev1))).map(|f| f.ordered(limit)).unwrap_or_default()
+        self.trigrams
+            .get(&(key_of(prev2), key_of(prev1)))
+            .map(|f| f.ordered(limit))
+            .unwrap_or_default()
     }
 
     pub fn skip1_followers(&self, prev2: &str, limit: usize) -> Vec<String> {
-        self.skip1.get(&key_of(prev2)).map(|f| f.ordered(limit)).unwrap_or_default()
+        self.skip1
+            .get(&key_of(prev2))
+            .map(|f| f.ordered(limit))
+            .unwrap_or_default()
     }
 
     pub fn skip2_followers(&self, prev3: &str, limit: usize) -> Vec<String> {
-        self.skip2.get(&key_of(prev3)).map(|f| f.ordered(limit)).unwrap_or_default()
+        self.skip2
+            .get(&key_of(prev3))
+            .map(|f| f.ordered(limit))
+            .unwrap_or_default()
     }
 
     pub fn bigram_count(&self, previous: &str, next: &str) -> i32 {
-        self.bigrams.get(&key_of(previous)).map_or(0, |f| f.count(&key_of(next)))
+        self.bigrams
+            .get(&key_of(previous))
+            .map_or(0, |f| f.count(&key_of(next)))
     }
 
     pub fn trigram_count(&self, prev2: &str, prev1: &str, next: &str) -> i32 {
-        self.trigrams.get(&(key_of(prev2), key_of(prev1))).map_or(0, |f| f.count(&key_of(next)))
+        self.trigrams
+            .get(&(key_of(prev2), key_of(prev1)))
+            .map_or(0, |f| f.count(&key_of(next)))
     }
 
     /// Every learned word and its count.
@@ -338,8 +483,13 @@ impl Lexicon {
     /// Rebuilds the walk trie after learning; cheap for a personal list.
     fn refresh(&mut self) {
         if self.stale || (self.trie.is_none() && !self.words.is_empty()) {
-            let entries: Vec<(&str, i32)> = self.words.iter().map(|(w, n)| (w.as_str(), *n)).collect();
-            self.trie = if entries.is_empty() { None } else { Some(WordList::of(&entries)) };
+            let entries: Vec<(&str, i32)> =
+                self.words.iter().map(|(w, n)| (w.as_str(), *n)).collect();
+            self.trie = if entries.is_empty() {
+                None
+            } else {
+                Some(WordList::of(&entries))
+            };
             self.stale = false;
         }
     }
@@ -370,8 +520,15 @@ impl SeedBigrams {
             }
             let frequency = parts.get(2).and_then(|f| f.parse().ok()).unwrap_or(1);
             let token = parts[0].to_lowercase();
-            let previous = if token == "<s>" { SENTENCE_START.to_string() } else { token };
-            pairs.entry(previous).or_default().push((parts[1].to_string(), frequency));
+            let previous = if token == "<s>" {
+                SENTENCE_START.to_string()
+            } else {
+                token
+            };
+            pairs
+                .entry(previous)
+                .or_default()
+                .push((parts[1].to_string(), frequency));
         }
         for list in pairs.values_mut() {
             list.sort_by_key(|e| std::cmp::Reverse(e.1));
@@ -380,50 +537,24 @@ impl SeedBigrams {
     }
 
     pub fn next_words(&self, previous: &str) -> Vec<String> {
-        self.pairs.get(previous).map(|l| l.iter().map(|(w, _)| w.clone()).collect()).unwrap_or_default()
+        self.pairs
+            .get(previous)
+            .map(|l| l.iter().map(|(w, _)| w.clone()).collect())
+            .unwrap_or_default()
     }
 
     pub fn follows(&self, previous: &str, next: &str) -> bool {
-        self.pairs.get(previous).is_some_and(|l| l.iter().any(|(w, _)| w == next))
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Penalty {
-    None,
-    /// Rejected once, indirectly: still ranks, fights with a handicap.
-    Penalized,
-    /// Retired long ago: may be offered again, never applied.
-    Probation,
-    /// Undone on purpose: never a target, never a runner-up.
-    Blocked,
-}
-
-/// What the user has said about corrections: the pair memory the Kotlin
-/// `CorrectionStats` keeps, and the gate's adaptive multiplier.
-#[derive(Default)]
-pub struct CorrectionStats {
-    pairs: HashMap<(String, String), Penalty>,
-    /// How far reverts have tightened the gate; 1 leaves it at the slider.
-    pub confidence_multiplier: Option<f64>,
-}
-
-impl CorrectionStats {
-    pub fn penalty(&self, typed: &str, fixed: &str) -> Penalty {
-        self.pairs.get(&(key_of(typed), key_of(fixed))).copied().unwrap_or(Penalty::None)
+        self.pairs
+            .get(previous)
+            .is_some_and(|l| l.iter().any(|(w, _)| w == next))
     }
 
-    pub fn set(&mut self, typed: &str, fixed: &str, penalty: Penalty) {
-        let key = (key_of(typed), key_of(fixed));
-        if penalty == Penalty::None {
-            self.pairs.remove(&key);
-        } else {
-            self.pairs.insert(key, penalty);
-        }
-    }
-
-    fn multiplier(&self) -> f64 {
-        self.confidence_multiplier.unwrap_or(1.0)
+    /// The pair's frequency, 0 when it is not listed.
+    pub fn count(&self, previous: &str, next: &str) -> i32 {
+        self.pairs
+            .get(previous)
+            .and_then(|l| l.iter().find(|(w, _)| w == next))
+            .map_or(0, |(_, f)| *f)
     }
 }
 
@@ -482,6 +613,14 @@ pub struct Predictor {
     pub digit_slips: bool,
     pub learned_word_min_count: i32,
     pub stats: CorrectionStats,
+    /// The fixes the user taught by hand.
+    pub memory: CorrectionMemory,
+    /// The slips the user's hand makes on this layout, from [`Self::memory`].
+    pub habits: LearnedHabits,
+    /// Where the field is: chat-speak's standing in the strip.
+    pub register: Register,
+    /// Fix missing apostrophes: the contraction readings and [`Self::elide`].
+    pub apostrophe_fixes: bool,
     ws: RefCell<Workspace>,
 }
 
@@ -510,6 +649,10 @@ impl Default for Predictor {
             digit_slips: false,
             learned_word_min_count: 1,
             stats: CorrectionStats::default(),
+            memory: CorrectionMemory::default(),
+            habits: LearnedHabits::default(),
+            register: Register::Neutral,
+            apostrophe_fixes: true,
             ws: RefCell::new(Workspace::new()),
         }
     }
@@ -523,15 +666,26 @@ struct Scales {
 
 fn scaled_weight(top: i32, weight: f64, target: f64) -> f64 {
     let effective = top as f64 * weight;
-    if top <= 0 || effective <= target * SCALE_TOLERANCE { weight } else { target / top as f64 }
+    if top <= 0 || effective <= target * SCALE_TOLERANCE {
+        weight
+    } else {
+        target / top as f64
+    }
 }
 
 fn scaled(frequency: i32, weight: f64) -> i32 {
-    if frequency <= 0 || weight <= 0.0 { 0 } else { (frequency as f64 * weight).clamp(1.0, i32::MAX as f64) as i32 }
+    if frequency <= 0 || weight <= 0.0 {
+        0
+    } else {
+        (frequency as f64 * weight).clamp(1.0, i32::MAX as f64) as i32
+    }
 }
 
 fn by_score(a: &ScoredCandidate, b: &ScoredCandidate) -> Ordering {
-    b.score.partial_cmp(&a.score).unwrap_or(Ordering::Equal).then_with(|| a.word.cmp(&b.word))
+    b.score
+        .partial_cmp(&a.score)
+        .unwrap_or(Ordering::Equal)
+        .then_with(|| a.word.cmp(&b.word))
 }
 
 impl Predictor {
@@ -547,16 +701,27 @@ impl Predictor {
         let active = scaled_weight(active_top, 1.0, REFERENCE_TOP_FREQUENCY);
         let custom = scaled_weight(custom_top, CUSTOM_WORD_WEIGHT, REFERENCE_TOP_FREQUENCY);
         let primary_top = (active_top as f64 * active).max(custom_top as f64 * custom);
-        let primary_top = if primary_top > 0.0 { primary_top } else { REFERENCE_TOP_FREQUENCY };
+        let primary_top = if primary_top > 0.0 {
+            primary_top
+        } else {
+            REFERENCE_TOP_FREQUENCY
+        };
         let secondary = self
             .secondaries
             .iter()
             .map(|(lang, list)| {
-                scaled_weight(list.top(), SECONDARY_WORD_WEIGHT, primary_top * SECONDARY_SCALE_SHARE)
-                    * self.secondary_confidence.get(lang).copied().unwrap_or(1.0)
+                scaled_weight(
+                    list.top(),
+                    SECONDARY_WORD_WEIGHT,
+                    primary_top * SECONDARY_SCALE_SHARE,
+                ) * self.secondary_confidence.get(lang).copied().unwrap_or(1.0)
             })
             .collect();
-        Scales { active, custom, secondary }
+        Scales {
+            active,
+            custom,
+            secondary,
+        }
     }
 
     /// Every dictionary-tier list with its multiplier.
@@ -581,10 +746,18 @@ impl Predictor {
         let mut out: Vec<WalkSource> = self
             .dictionary_tier()
             .into_iter()
-            .map(|(list, w)| WalkSource { walker: list.dict(), log_weight: w.ln(), tier: Tier::Dictionary })
+            .map(|(list, w)| WalkSource {
+                walker: list.dict(),
+                log_weight: w.ln(),
+                tier: Tier::Dictionary,
+            })
             .collect();
         if let Some(t) = &self.lexicon.trie {
-            out.push(WalkSource { walker: t.dict(), log_weight: USER_WORD_WEIGHT.ln(), tier: Tier::User });
+            out.push(WalkSource {
+                walker: t.dict(),
+                log_weight: USER_WORD_WEIGHT.ln(),
+                tier: Tier::User,
+            });
         }
         out
     }
@@ -603,7 +776,11 @@ impl Predictor {
     }
 
     fn dictionary_frequency_of(&self, word: &str) -> i32 {
-        self.dictionary_tier().into_iter().map(|(list, w)| scaled(list.frequency_of(word), w)).max().unwrap_or(0)
+        self.dictionary_tier()
+            .into_iter()
+            .map(|(list, w)| scaled(list.frequency_of(word), w))
+            .max()
+            .unwrap_or(0)
     }
 
     fn dictionary_score(&self, lower: &str) -> f64 {
@@ -627,19 +804,34 @@ impl Predictor {
     }
 
     fn rank_offset(&self, word: &str) -> f64 {
-        self.rank_offsets.get(&key_of(word)).map_or(0.0, |s| *s as f64 * RANK_OFFSET_STEP)
+        self.rank_offsets
+            .get(&key_of(word))
+            .map_or(0.0, |s| *s as f64 * RANK_OFFSET_STEP)
     }
 
     // ---- the walk ----
 
     fn ranked(&self, lower: &str, limit: usize) -> Vec<ScoredCandidate> {
-        self.ranked_with(lower, limit, &NO_HABITS)
+        self.ranked_with(lower, limit, &self.habits)
     }
 
-    fn ranked_with(&self, lower: &str, limit: usize, habits: &dyn EditHabits) -> Vec<ScoredCandidate> {
+    fn ranked_with(
+        &self,
+        lower: &str,
+        limit: usize,
+        habits: &dyn EditHabits,
+    ) -> Vec<ScoredCandidate> {
         let k = (limit * 2).max(WALK_K);
         let sources = self.walk_sources();
-        let walked = fuzzy::search(&sources, lower, &self.proximity, k / 2, &mut self.ws.borrow_mut(), None, habits);
+        let walked = fuzzy::search(
+            &sources,
+            lower,
+            &self.proximity,
+            k / 2,
+            &mut self.ws.borrow_mut(),
+            None,
+            habits,
+        );
         self.damp_mismatched_languages(walked)
     }
 
@@ -653,8 +845,14 @@ impl Predictor {
         let mut out: Vec<ScoredCandidate> = ranked
             .into_iter()
             .map(|mut c| {
-                let pure_user = c.dict_score == f64::NEG_INFINITY && c.user_score != f64::NEG_INFINITY;
-                if pure_user && self.lexicon.language_of(&c.word).is_some_and(|t| t != active) {
+                let pure_user =
+                    c.dict_score == f64::NEG_INFINITY && c.user_score != f64::NEG_INFINITY;
+                if pure_user
+                    && self
+                        .lexicon
+                        .language_of(&c.word)
+                        .is_some_and(|t| t != active)
+                {
                     c.score -= lang_mismatch_damp();
                     c.user_score -= lang_mismatch_damp();
                     changed = true;
@@ -694,7 +892,9 @@ impl Predictor {
         if fix == f64::NEG_INFINITY || fix - typed < TYPO_SHADOW_RATIO.ln() {
             return false;
         }
-        holders.iter().all(|(list, f)| list.rank_of_frequency(*f) > TYPO_SHADOW_MIN_RANK)
+        holders
+            .iter()
+            .all(|(list, f)| list.rank_of_frequency(*f) > TYPO_SHADOW_MIN_RANK)
     }
 
     /// A spelling far rarer than its own accented twin: `zle` for `źle`.
@@ -718,7 +918,9 @@ impl Predictor {
         }
         let parts: Vec<&str> = lower.split('-').collect();
         (2..=MAX_COMPOUND_PARTS).contains(&parts.len())
-            && parts.iter().all(|p| !p.is_empty() && (self.in_dictionaries(p) || self.lexicon.contains(p)))
+            && parts
+                .iter()
+                .all(|p| !p.is_empty() && (self.in_dictionaries(p) || self.lexicon.contains(p)))
     }
 
     // ---- the strip ----
@@ -731,7 +933,8 @@ impl Predictor {
             return self.next_words(previous, limit);
         }
         let lower = composing.to_lowercase();
-        let known = (self.in_dictionaries(&lower) || self.lexicon.contains(&lower)) && !self.typo_shadowed(&lower)
+        let known = (self.in_dictionaries(&lower) || self.lexicon.contains(&lower))
+            && !self.typo_shadowed(&lower)
             || self.known_compound(&lower);
         let mut merged: HashMap<String, f64> = HashMap::new();
         let put = |merged: &mut HashMap<String, f64>, w: String, s: f64| {
@@ -748,6 +951,9 @@ impl Predictor {
             for (text, score) in self.split_candidates(&lower) {
                 put(&mut merged, text, score);
             }
+        }
+        if let Some((spelling, score, _)) = self.apostrophe_reading(&lower) {
+            put(&mut merged, spelling, score);
         }
         if let Some(prev) = previous.first().map(|p| p.to_lowercase()) {
             let prev2 = previous.get(1).map(|p| p.to_lowercase());
@@ -771,6 +977,18 @@ impl Predictor {
                 }
             }
         }
+        if self.register != Register::Neutral {
+            let shift = if self.register == Register::Casual {
+                casual_informal_boost()
+            } else {
+                -formal_informal_damp()
+            };
+            for (word, score) in merged.iter_mut() {
+                if informal(word) {
+                    *score += shift;
+                }
+            }
+        }
         if !self.rank_offsets.is_empty() {
             for (word, score) in merged.iter_mut() {
                 *score += self.rank_offset(word);
@@ -787,13 +1005,23 @@ impl Predictor {
             }
         }
         let mut ranked: Vec<(String, f64)> = by_key.into_values().collect();
-        ranked.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(Ordering::Equal).then_with(|| a.0.cmp(&b.0)));
+        ranked.sort_by(|a, b| {
+            b.1.partial_cmp(&a.1)
+                .unwrap_or(Ordering::Equal)
+                .then_with(|| a.0.cmp(&b.0))
+        });
         ranked
             .into_iter()
             .map(|(w, _)| w)
             .filter(|w| !self.suppressed(w))
             .take(limit)
-            .map(|w| if w.contains('@') { w } else { match_case(composing, &self.display_of(&w)) })
+            .map(|w| {
+                if w.contains('@') {
+                    w
+                } else {
+                    match_case(composing, &self.display_of(&w))
+                }
+            })
             .collect()
     }
 
@@ -805,7 +1033,10 @@ impl Predictor {
         if let Some(own) = self.lexicon.display_of(word) {
             return own.to_string();
         }
-        self.capitals.as_ref().and_then(|c| list_spelling(c, word)).unwrap_or_else(|| word.to_string())
+        self.capitals
+            .as_ref()
+            .and_then(|c| list_spelling(c, word))
+            .unwrap_or_else(|| word.to_string())
     }
 
     fn context_count(&self, prev: &str, prev2: Option<&str>, candidate: &str) -> i32 {
@@ -868,13 +1099,23 @@ impl Predictor {
                 }
             }
         }
-        let mut result: Vec<String> =
-            ordered.into_iter().filter(|w| !self.suppressed(w) && !is_sentinel(w)).take(limit).collect();
+        let mut result: Vec<String> = ordered
+            .into_iter()
+            .filter(|w| !self.suppressed(w) && !is_sentinel(w))
+            .take(limit)
+            .collect();
+        if self.register == Register::Formal {
+            result.sort_by_key(|w| informal(w));
+        }
         if !self.rank_offsets.is_empty() {
             result.sort_by_key(|w| -self.rank_offsets.get(&key_of(w)).copied().unwrap_or(0));
         }
         let mut keys = HashSet::new();
-        result.into_iter().map(|w| self.display_of(&w)).filter(|w| keys.insert(key_of(w))).collect()
+        result
+            .into_iter()
+            .map(|w| self.display_of(&w))
+            .filter(|w| keys.insert(key_of(w)))
+            .collect()
     }
 
     /// `previous` + `composing` as one word, when that word is far commoner
@@ -896,8 +1137,10 @@ impl Predictor {
             return None;
         }
         let freq = |w: &str| {
-            self.dictionary_frequency_of(w)
-                .max((self.lexicon.frequency_of(w) as f64 * USER_WORD_WEIGHT).min(i32::MAX as f64) as i32)
+            self.dictionary_frequency_of(w).max(
+                (self.lexicon.frequency_of(w) as f64 * USER_WORD_WEIGHT).min(i32::MAX as f64)
+                    as i32,
+            )
         };
         let joined_freq = freq(&joined);
         if joined_freq < JOIN_MIN_FREQ {
@@ -917,8 +1160,12 @@ impl Predictor {
             return Vec::new();
         }
         let freq = |part: &str| {
-            let learned = if self.lexicon.is_established(part, self.learned_word_min_count) {
-                (self.lexicon.frequency_of(part) as f64 * USER_WORD_WEIGHT).min(i32::MAX as f64) as i32
+            let learned = if self
+                .lexicon
+                .is_established(part, self.learned_word_min_count)
+            {
+                (self.lexicon.frequency_of(part) as f64 * USER_WORD_WEIGHT).min(i32::MAX as f64)
+                    as i32
             } else {
                 0
             };
@@ -938,14 +1185,19 @@ impl Predictor {
             let right: String = chars[i..].iter().collect();
             let right_freq = freq(&right);
             if right_freq > 0 {
-                out.push((format!("{left} {right}"), ln1p(left_freq.min(right_freq) as f64 * WEIGHT_SPLIT)));
+                out.push((
+                    format!("{left} {right}"),
+                    ln1p(left_freq.min(right_freq) as f64 * WEIGHT_SPLIT),
+                ));
             }
         }
         out
     }
 
     fn known_phrase(&self, left: &str, right: &str) -> bool {
-        self.ngrams.as_ref().is_some_and(|p| p.bigram_count(left, right) > 0)
+        self.ngrams
+            .as_ref()
+            .is_some_and(|p| p.bigram_count(left, right) > 0)
             || (self.english_sources && self.seeds.follows(left, right))
             || self.lexicon.bigram_count(left, right) >= SPLIT_PAIR_MIN_USES
     }
@@ -960,6 +1212,12 @@ impl Predictor {
     /// What to do with `word`, which a space is about to commit.
     /// `timing` scales the gate: under 1 for fast bursts, over for slow.
     pub fn decide(&mut self, word: &str, timing: f64) -> Decision {
+        self.decide_after(word, timing, None)
+    }
+
+    /// [`Self::decide`] with the word before it, which a fix the user taught
+    /// for a spelling that is itself a word needs as a second witness.
+    pub fn decide_after(&mut self, word: &str, timing: f64, previous: Option<&str>) -> Decision {
         self.lexicon.refresh();
         let lower = word.to_lowercase();
         if lower.chars().count() < 3 {
@@ -968,24 +1226,241 @@ impl Predictor {
         if self.skip_all_caps && is_all_caps(word) {
             return Decision::default();
         }
-        self.decide_ordinary(word, &lower, timing)
+        let ordinary = self.decide_ordinary(word, &lower, timing);
+        self.with_taught_fix(word, &lower, previous, ordinary)
+    }
+
+    /// Lays what the user has taught about `lower` over the engine's own
+    /// decision: fixed by hand twice is applied, once is offered, and a
+    /// spelling that is a word gives way only after three fixes with the
+    /// context agreeing.
+    fn with_taught_fix(
+        &self,
+        word: &str,
+        lower: &str,
+        previous: Option<&str>,
+        ordinary: Decision,
+    ) -> Decision {
+        let Some(taught) = self.memory.fix_for(lower) else {
+            return ordinary;
+        };
+        let fixed = taught.fixed;
+        if fixed == lower || fixed.split(' ').any(|p| self.suppressed(p)) {
+            return ordinary;
+        }
+        if self.stats.penalty(lower, &fixed) != Penalty::None {
+            return ordinary;
+        }
+        let known_typed = self.in_dictionaries(lower)
+            || self
+                .lexicon
+                .is_established(lower, self.learned_word_min_count);
+        let applied = || {
+            let edits = correction_memory::distance(lower, &fixed) as f64;
+            let shape = (edits / 2.0).clamp(0.0, 1.0);
+            let length = ((lower.encode_utf16().count() as f64 - PLAIN_WORD_LENGTH)
+                / PLAIN_WORD_SPAN)
+                .clamp(0.0, 1.0);
+            Decision {
+                apply: Some(match_case(word, &fixed)),
+                certainty: taught.count as f64 / (taught.count as f64 + 1.0),
+                complexity: COMPLEXITY_SHAPE_WEIGHT * shape
+                    + (1.0 - COMPLEXITY_SHAPE_WEIGHT) * length,
+                ..Decision::default()
+            }
+        };
+        let offered = || Decision {
+            offer: Some(match_case(word, &fixed)),
+            ..Decision::default()
+        };
+        if known_typed {
+            if taught.count < correction_memory::APPLY_AT || !self.precedes(previous, lower, &fixed)
+            {
+                return ordinary;
+            }
+            return if taught.count >= correction_memory::APPLY_KNOWN_AT {
+                applied()
+            } else {
+                offered()
+            };
+        }
+        if taught.count >= correction_memory::APPLY_AT {
+            return applied();
+        }
+        if ordinary
+            .apply
+            .as_ref()
+            .is_some_and(|a| a.eq_ignore_ascii_case(&fixed))
+        {
+            return ordinary;
+        }
+        offered()
     }
 
     /// The user undid `fixed` back to `typed`. `deliberate` is a backspace
-    /// on the fix itself; otherwise only a known `typed` is believed.
+    /// on the fix itself or the undo chip; otherwise only a word that is
+    /// known is believed.
     pub fn reject_correction(&mut self, typed: &str, fixed: &str, deliberate: bool) {
+        self.reject_correction_for(typed, fixed, deliberate, typed);
+    }
+
+    /// [`Self::reject_correction`] where the user rewrote the fix into a
+    /// third word, `survivor`, rather than back into what was typed.
+    pub fn reject_correction_for(
+        &mut self,
+        typed: &str,
+        fixed: &str,
+        deliberate: bool,
+        survivor: &str,
+    ) {
         if typed.is_empty() || fixed.is_empty() {
             return;
         }
-        if deliberate {
-            self.stats.set(typed, fixed, Penalty::Blocked);
-        } else if self.is_known_word(typed) && self.stats.penalty(typed, fixed) == Penalty::None {
-            self.stats.set(typed, fixed, Penalty::Penalized);
+        if !deliberate && self.stats.memory != UndoMemory::Strict && !self.is_known_word(survivor)
+        {
+            return;
+        }
+        self.stats.record_revert(typed, fixed, deliberate);
+        self.memory.unteach(typed, fixed);
+    }
+
+    /// The user let the correction of `typed` into `fixed` stand.
+    pub fn record_kept(&mut self, typed: &str, fixed: &str) {
+        self.stats.record_kept(typed, fixed);
+    }
+
+    /// The apostrophe `word` was typed without, when the space should put it
+    /// in: "thats" -> "that's". None for a spelling that is a word of its own
+    /// (offered on the strip instead), or one whose repair was undone.
+    pub fn elide(&self, word: &str) -> Option<String> {
+        let (spelling, _, shadowed) = self.apostrophe_reading(&word.to_lowercase())?;
+        if !shadowed {
+            return None;
+        }
+        let out = match_case(word, &spelling);
+        (out != word).then_some(out)
+    }
+
+    /// `lower` read as a contraction: the spelling, its strip score, and
+    /// whether it is the one to commit.
+    fn apostrophe_reading(&self, lower: &str) -> Option<(String, f64, bool)> {
+        if !self.apostrophe_fixes || !apostrophes::serves_language(self.language_or_english()) {
+            return None;
+        }
+        let language = self.language_or_english();
+        let Some(fixed) = apostrophes::fix(lower, language) else {
+            return self.declared_reading(lower, apostrophes::offer(lower, language));
+        };
+        if self.stats.penalty(lower, &fixed) != Penalty::None {
+            return self.declared_reading(lower, Some(fixed));
+        }
+        let finite = |w: &str| {
+            let s = self.dictionary_score(w);
+            if s.is_finite() {
+                s
+            } else {
+                0.0
+            }
+        };
+        let scored = finite(&fixed.to_lowercase()).max(finite(lower));
+        Some((fixed, scored + CONTRACTION_LEAD, true))
+    }
+
+    fn declared_reading(&self, lower: &str, fixed: Option<String>) -> Option<(String, f64, bool)> {
+        let fixed = fixed?;
+        let typed = self.dictionary_score(lower);
+        let own = self.dictionary_score(&fixed.to_lowercase());
+        let score = if typed == f64::NEG_INFINITY {
+            own
+        } else {
+            own.max(typed - DECLARED_TRAIL.ln()).min(typed - DECLARED_BEHIND)
+        };
+        (score != f64::NEG_INFINITY).then_some((fixed, score, false))
+    }
+
+    fn language_or_english(&self) -> &str {
+        if self.primary_language.is_empty() {
+            "en"
+        } else {
+            &self.primary_language
         }
     }
 
+    /// The word `previous` should have been, given that `follower` came
+    /// next: "their going" -> "they're". For a chip, never applied.
+    pub fn advise(&self, previous: &str, follower: &str) -> Option<String> {
+        let p = previous.to_lowercase();
+        let f = follower.to_lowercase();
+        if is_sentinel(&p) || is_sentinel(&f) || f.is_empty() || !f.chars().all(char::is_alphabetic)
+        {
+            return None;
+        }
+        let set = CONFUSABLES.iter().find(|s| s.contains(&p.as_str()))?;
+        let mut best: Option<(&str, f64)> = None;
+        for alt in set.iter().copied().filter(|a| *a != p) {
+            let ratio = self.dominance(&p, alt, &f);
+            if best.is_none_or(|(_, r)| ratio > r) {
+                best = Some((alt, ratio));
+            }
+        }
+        best.filter(|(_, r)| *r >= ADVISE_DOMINANCE)
+            .map(|(alt, _)| match_case(previous, alt))
+    }
+
+    /// Whether the word before says `fixed` was meant where `typed` stands.
+    fn precedes(&self, previous: Option<&str>, typed: &str, fixed: &str) -> bool {
+        let Some(p) = previous.map(str::to_lowercase) else {
+            return false;
+        };
+        if p.is_empty() || is_sentinel(&p) {
+            return false;
+        }
+        let t = typed.to_lowercase();
+        let f = fixed.to_lowercase();
+        let f = f.split(' ').next().unwrap_or("");
+        if t.is_empty() || f.is_empty() {
+            return false;
+        }
+        self.ratio_over_sources(|count| (count(&p, f), count(&p, &t))) >= TAUGHT_DOMINANCE
+    }
+
+    fn dominance(&self, prev: &str, alt: &str, follower: &str) -> f64 {
+        self.ratio_over_sources(|count| (count(alt, follower), count(prev, follower)))
+    }
+
+    /// The best add-one ratio any one source gives, each source held to its
+    /// own minimum: user counts and corpus counts never mix.
+    fn ratio_over_sources(&self, pick: impl Fn(&dyn Fn(&str, &str) -> i32) -> (i32, i32)) -> f64 {
+        let mut best = 0.0f64;
+        let mut consider = |(win, lose): (i32, i32), min: i32| {
+            if win >= min {
+                best = best.max((win + 1) as f64 / (lose + 1) as f64);
+            }
+        };
+        consider(
+            pick(&|a: &str, b: &str| self.lexicon.bigram_count(a, b)),
+            MIN_USER_COUNT,
+        );
+        if let Some(pack) = &self.ngrams {
+            consider(
+                pick(&|a: &str, b: &str| pack.bigram_count(a, b)),
+                MIN_CORPUS_COUNT,
+            );
+        }
+        if self.english_sources {
+            consider(
+                pick(&|a: &str, b: &str| self.seeds.count(a, b)),
+                MIN_CORPUS_COUNT,
+            );
+        }
+        best
+    }
+
     fn decide_ordinary(&self, word: &str, lower: &str, timing: f64) -> Decision {
-        let known = self.in_dictionaries(lower) || self.lexicon.is_established(lower, self.learned_word_min_count);
+        let known = self.in_dictionaries(lower)
+            || self
+                .lexicon
+                .is_established(lower, self.learned_word_min_count);
         if known && !self.accent_shadowed(lower) && !self.typo_shadowed(lower) {
             return Decision::default();
         }
@@ -1011,7 +1486,9 @@ impl Predictor {
                     1 => c.completed_chars == 0,
                     _ => false,
                 };
-                shape && !self.suppressed(&c.word) && (digits == 0 || digit_sub_shape(lower, &c.word))
+                shape
+                    && !self.suppressed(&c.word)
+                    && (digits == 0 || digit_sub_shape(lower, &c.word))
             })
             .map(|mut c| {
                 // A one-letter completion is the old insert-at-end edit.
@@ -1043,8 +1520,16 @@ impl Predictor {
             .collect();
         shaped.sort_by(by_score);
         // A reading that only puts accents back explains every keystroke.
-        let accented: Vec<ScoredCandidate> = shaped.iter().filter(|c| c.edits == 0 && c.accents > 0).cloned().collect();
-        let candidates = if accented.is_empty() { shaped } else { accented };
+        let accented: Vec<ScoredCandidate> = shaped
+            .iter()
+            .filter(|c| c.edits == 0 && c.accents > 0)
+            .cloned()
+            .collect();
+        let candidates = if accented.is_empty() {
+            shaped
+        } else {
+            accented
+        };
 
         let mut best_dict: Option<&ScoredCandidate> = None;
         let mut best_user: Option<&ScoredCandidate> = None;
@@ -1067,7 +1552,11 @@ impl Predictor {
             }
         }
 
-        let multiplier = if self.adaptive_confidence { self.stats.multiplier() } else { 1.0 };
+        let multiplier = if self.adaptive_confidence {
+            self.stats.multiplier()
+        } else {
+            1.0
+        };
         let effective = (self.autocorrect_confidence * multiplier * timing)
             .clamp(MIN_AUTOCORRECT_CONFIDENCE, MAX_AUTOCORRECT_CONFIDENCE);
         let gate = effective.ln();
@@ -1095,15 +1584,33 @@ impl Predictor {
             };
         }
         if let Some(split) = self.split_correction(lower, top.map(|t| t.score), effective) {
-            return Decision { apply: Some(match_case(word, &split)), certainty: 1.0, complexity: 1.0, ..Decision::default() };
+            return Decision {
+                apply: Some(match_case(word, &split)),
+                certainty: 1.0,
+                complexity: 1.0,
+                ..Decision::default()
+            };
         }
         let may_offer = probation || !penalized;
-        let offer = top.filter(|_| may_offer && margin >= gate * OFFER_MARGIN_FRACTION).map(|t| match_case(word, &t.word));
-        Decision { offer, ..Decision::default() }
+        let offer = top
+            .filter(|_| may_offer && margin >= gate * OFFER_MARGIN_FRACTION)
+            .map(|t| match_case(word, &t.word));
+        Decision {
+            offer,
+            ..Decision::default()
+        }
     }
 
-    fn split_correction(&self, lower: &str, best_word: Option<f64>, effective: f64) -> Option<String> {
-        if !self.autocorrect_splits || lower.chars().count() < SPLIT_AUTOCORRECT_MIN_LENGTH || self.lexicon.contains(lower) {
+    fn split_correction(
+        &self,
+        lower: &str,
+        best_word: Option<f64>,
+        effective: f64,
+    ) -> Option<String> {
+        if !self.autocorrect_splits
+            || lower.chars().count() < SPLIT_AUTOCORRECT_MIN_LENGTH
+            || self.lexicon.contains(lower)
+        {
             return None;
         }
         let mut splits: Vec<(String, f64)> = self
@@ -1111,10 +1618,17 @@ impl Predictor {
             .into_iter()
             .filter(|(text, _)| {
                 let halves: Vec<&str> = text.split(' ').collect();
-                halves.iter().all(|h| h.chars().count() >= 2 && !self.suppressed(h)) && self.known_phrase(halves[0], halves[1])
+                halves
+                    .iter()
+                    .all(|h| h.chars().count() >= 2 && !self.suppressed(h))
+                    && self.known_phrase(halves[0], halves[1])
             })
             .collect();
-        splits.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(Ordering::Equal).then_with(|| a.0.cmp(&b.0)));
+        splits.sort_by(|a, b| {
+            b.1.partial_cmp(&a.1)
+                .unwrap_or(Ordering::Equal)
+                .then_with(|| a.0.cmp(&b.0))
+        });
         let best = splits.first()?;
         if self.stats.penalty(lower, &best.0) != Penalty::None {
             return None;
@@ -1143,13 +1657,23 @@ pub fn list_spelling(capitals: &Dict, key: &str) -> Option<String> {
     Some(
         key.chars()
             .enumerate()
-            .map(|(i, c)| if i < MASK_BITS && shape & (1 << i) != 0 { c.to_uppercase().next().unwrap_or(c) } else { c })
+            .map(|(i, c)| {
+                if i < MASK_BITS && shape & (1 << i) != 0 {
+                    c.to_uppercase().next().unwrap_or(c)
+                } else {
+                    c
+                }
+            })
             .collect(),
     )
 }
 
 fn context_boost(count: i32) -> f64 {
-    if count > 0 { ln1p(CONTEXT_BIGRAM_BETA * ln1p(count as f64)).min(max_context_boost()) } else { 0.0 }
+    if count > 0 {
+        ln1p(CONTEXT_BIGRAM_BETA * ln1p(count as f64)).min(max_context_boost())
+    } else {
+        0.0
+    }
 }
 
 fn certainty_of(margin: f64, gate: f64) -> f64 {
@@ -1159,7 +1683,8 @@ fn certainty_of(margin: f64, gate: f64) -> f64 {
 
 fn complexity_of(lower: &str, edit_cost: f64) -> f64 {
     let shape = (edit_cost / fuzzy::cost_sub_far()).clamp(0.0, 1.0);
-    let length = ((lower.encode_utf16().count() as f64 - PLAIN_WORD_LENGTH) / PLAIN_WORD_SPAN).clamp(0.0, 1.0);
+    let length = ((lower.encode_utf16().count() as f64 - PLAIN_WORD_LENGTH) / PLAIN_WORD_SPAN)
+        .clamp(0.0, 1.0);
     COMPLEXITY_SHAPE_WEIGHT * shape + (1.0 - COMPLEXITY_SHAPE_WEIGHT) * length
 }
 
@@ -1168,7 +1693,13 @@ fn digit_sub_shape(typed: &str, candidate: &str) -> bool {
     let t: Vec<char> = typed.chars().collect();
     let c: Vec<char> = candidate.chars().collect();
     t.len() == c.len()
-        && t.iter().zip(&c).all(|(t, c)| if t.is_ascii_digit() { !c.is_ascii_digit() } else { t == c })
+        && t.iter().zip(&c).all(|(t, c)| {
+            if t.is_ascii_digit() {
+                !c.is_ascii_digit()
+            } else {
+                t == c
+            }
+        })
 }
 
 fn letters_all_upper(word: &str) -> bool {
@@ -1204,17 +1735,147 @@ pub fn match_case(typed: &str, suggestion: &str) -> String {
 const MIN_STEM: usize = 3;
 const VOWELS: &[u8] = b"aeiouy";
 const IRREGULAR: &[&str] = &[
-    "arise", "awake", "bear", "beat", "become", "begin", "bend", "bet", "bind", "bite", "bleed", "blow", "break",
-    "breed", "bring", "build", "burst", "buy", "cast", "catch", "choose", "cling", "come", "cost", "creep", "cut",
-    "deal", "dig", "draw", "drink", "drive", "eat", "fall", "feed", "feel", "fight", "find", "flee", "fling", "fly",
-    "forbid", "forget", "forgive", "freeze", "get", "give", "grind", "grow", "hang", "have", "hear", "hide", "hit",
-    "hold", "hurt", "keep", "kneel", "know", "lay", "lead", "leave", "lend", "let", "lie", "light", "lose", "make",
-    "mean", "meet", "mistake", "overcome", "pay", "put", "quit", "read", "ride", "ring", "rise", "run", "say", "see",
-    "seek", "sell", "send", "set", "shake", "shed", "shine", "shoot", "shrink", "shut", "sing", "sink", "sit", "slay",
-    "sleep", "slide", "sling", "slit", "speak", "speed", "spend", "spin", "spit", "split", "spread", "spring", "stand",
-    "steal", "stick", "sting", "stink", "stride", "strike", "string", "strive", "swear", "sweep", "swim", "swing",
-    "take", "teach", "tear", "tell", "think", "throw", "thrust", "tread", "understand", "undertake", "undo", "upset",
-    "wake", "wear", "weave", "weep", "win", "wind", "withdraw", "wring", "write",
+    "arise",
+    "awake",
+    "bear",
+    "beat",
+    "become",
+    "begin",
+    "bend",
+    "bet",
+    "bind",
+    "bite",
+    "bleed",
+    "blow",
+    "break",
+    "breed",
+    "bring",
+    "build",
+    "burst",
+    "buy",
+    "cast",
+    "catch",
+    "choose",
+    "cling",
+    "come",
+    "cost",
+    "creep",
+    "cut",
+    "deal",
+    "dig",
+    "draw",
+    "drink",
+    "drive",
+    "eat",
+    "fall",
+    "feed",
+    "feel",
+    "fight",
+    "find",
+    "flee",
+    "fling",
+    "fly",
+    "forbid",
+    "forget",
+    "forgive",
+    "freeze",
+    "get",
+    "give",
+    "grind",
+    "grow",
+    "hang",
+    "have",
+    "hear",
+    "hide",
+    "hit",
+    "hold",
+    "hurt",
+    "keep",
+    "kneel",
+    "know",
+    "lay",
+    "lead",
+    "leave",
+    "lend",
+    "let",
+    "lie",
+    "light",
+    "lose",
+    "make",
+    "mean",
+    "meet",
+    "mistake",
+    "overcome",
+    "pay",
+    "put",
+    "quit",
+    "read",
+    "ride",
+    "ring",
+    "rise",
+    "run",
+    "say",
+    "see",
+    "seek",
+    "sell",
+    "send",
+    "set",
+    "shake",
+    "shed",
+    "shine",
+    "shoot",
+    "shrink",
+    "shut",
+    "sing",
+    "sink",
+    "sit",
+    "slay",
+    "sleep",
+    "slide",
+    "sling",
+    "slit",
+    "speak",
+    "speed",
+    "spend",
+    "spin",
+    "spit",
+    "split",
+    "spread",
+    "spring",
+    "stand",
+    "steal",
+    "stick",
+    "sting",
+    "stink",
+    "stride",
+    "strike",
+    "string",
+    "strive",
+    "swear",
+    "sweep",
+    "swim",
+    "swing",
+    "take",
+    "teach",
+    "tear",
+    "tell",
+    "think",
+    "throw",
+    "thrust",
+    "tread",
+    "understand",
+    "undertake",
+    "undo",
+    "upset",
+    "wake",
+    "wear",
+    "weave",
+    "weep",
+    "win",
+    "wind",
+    "withdraw",
+    "wring",
+    "write",
 ];
 
 fn vowel(b: u8) -> bool {
@@ -1292,7 +1953,10 @@ fn drops_e(stem: &str) -> bool {
 }
 
 fn takes_es(stem: &str) -> bool {
-    stem.len() >= MIN_STEM && (matches!(last(stem), b's' | b'x' | b'z' | b'o') || stem.ends_with("ch") || stem.ends_with("sh"))
+    stem.len() >= MIN_STEM
+        && (matches!(last(stem), b's' | b'x' | b'z' | b'o')
+            || stem.ends_with("ch")
+            || stem.ends_with("sh"))
 }
 
 fn third_person(lower: &str, known: &dyn Fn(&str) -> bool) -> bool {
@@ -1370,13 +2034,23 @@ mod tests {
     /// SuggestionEngineTest's engine: six English words.
     fn engine() -> Predictor {
         Predictor {
-            dictionary: list(&[("the", 100), ("they", 90), ("them", 80), ("hello", 70), ("help", 60), ("world", 50)]),
+            dictionary: list(&[
+                ("the", 100),
+                ("they", 90),
+                ("them", 80),
+                ("hello", 70),
+                ("help", 60),
+                ("world", 50),
+            ]),
             ..Predictor::default()
         }
     }
 
     fn with(entries: &[(&str, i32)]) -> Predictor {
-        Predictor { dictionary: list(entries), ..Predictor::default() }
+        Predictor {
+            dictionary: list(entries),
+            ..Predictor::default()
+        }
     }
 
     fn near_miss() -> Predictor {
@@ -1428,7 +2102,11 @@ mod tests {
         let mut e = engine();
         e.blacklist.insert("they".into());
         let s = e.suggest("th", &[], 5);
-        assert!(!s.contains(&"they".to_string()) && s.contains(&"the".to_string()) && s.contains(&"them".to_string()));
+        assert!(
+            !s.contains(&"they".to_string())
+                && s.contains(&"the".to_string())
+                && s.contains(&"them".to_string())
+        );
         assert!(!e.suggest("Th", &[], 5).contains(&"They".to_string()));
         let mut e = engine();
         e.blacklist.insert("world".into());
@@ -1518,7 +2196,10 @@ mod tests {
         let mut clear = with(&[("test", 100), ("tear", 5)]);
         clear.autocorrect_confidence = 1.5;
         let (a, b) = (close.decide("tesr", 1.0), clear.decide("tesr", 1.0));
-        assert_eq!((Some("test".into()), Some("test".into())), (a.apply.clone(), b.apply.clone()));
+        assert_eq!(
+            (Some("test".into()), Some("test".into())),
+            (a.apply.clone(), b.apply.clone())
+        );
         assert!(b.certainty > a.certainty);
     }
 
@@ -1543,8 +2224,14 @@ mod tests {
 
     #[test]
     fn adjacent_slips_win_and_close_calls_stay_quiet() {
-        assert_eq!(Some("cat".into()), with(&[("cat", 100), ("cut", 100)]).should_autocorrect("cst"));
-        assert_eq!(None, with(&[("test", 100), ("tear", 95)]).should_autocorrect("tesr"));
+        assert_eq!(
+            Some("cat".into()),
+            with(&[("cat", 100), ("cut", 100)]).should_autocorrect("cst")
+        );
+        assert_eq!(
+            None,
+            with(&[("test", 100), ("tear", 95)]).should_autocorrect("tesr")
+        );
         let mut e = with(&[("cat", 100), ("car", 90)]);
         e.lexicon.learn_word("cat", 1, "");
         assert_eq!(Some("cat".into()), e.should_autocorrect("caz"));
@@ -1570,7 +2257,9 @@ mod tests {
         let mut e = engine();
         e.autocorrect_splits = true;
         assert_eq!(None, e.should_autocorrect("theworld"));
-        assert!(e.suggest("theworld", &[], 5).contains(&"the world".to_string()));
+        assert!(e
+            .suggest("theworld", &[], 5)
+            .contains(&"the world".to_string()));
         e.lexicon.learn_bigram("the", "world");
         assert_eq!(None, e.should_autocorrect("theworld"));
         e.lexicon.learn_bigram("the", "world");
@@ -1585,7 +2274,12 @@ mod tests {
 
     #[test]
     fn a_split_never_ends_on_one_letter() {
-        let mut e = with(&[("that", 10_203_742), ("s", 110_199), ("a", 14_484_562), ("lot", 200_000)]);
+        let mut e = with(&[
+            ("that", 10_203_742),
+            ("s", 110_199),
+            ("a", 14_484_562),
+            ("lot", 200_000),
+        ]);
         e.autocorrect_splits = true;
         assert!(!e.suggest("thats", &[], 5).contains(&"that s".to_string()));
         assert_ne!(Some("that s".into()), e.should_autocorrect("thats"));
@@ -1639,14 +2333,19 @@ mod tests {
         e.lexicon.learn_bigram("good", "morning");
         e.lexicon.learn_bigram("good", "morning");
         e.lexicon.learn_bigram("good", "night");
-        assert_eq!(vec!["morning", "night"], e.suggest("", &["good"], 5)[..2].to_vec());
+        assert_eq!(
+            vec!["morning", "night"],
+            e.suggest("", &["good"], 5)[..2].to_vec()
+        );
 
         let mut e = Predictor::new();
         for _ in 0..3 {
             e.lexicon.learn_bigram("met", "yesterday");
         }
         assert!(e.suggest("", &["priya"], 5).is_empty());
-        assert!(e.suggest("", &["priya", "met"], 5).contains(&"yesterday".to_string()));
+        assert!(e
+            .suggest("", &["priya", "met"], 5)
+            .contains(&"yesterday".to_string()));
 
         let mut e = Predictor::new();
         e.lexicon.learn_bigram("someone", "else");
@@ -1656,7 +2355,10 @@ mod tests {
         for _ in 0..3 {
             e.lexicon.learn_skip2gram("how", "please");
         }
-        assert_eq!(vec!["else", "help", "please"], e.suggest("", &["someone", "can", "how"], 5));
+        assert_eq!(
+            vec!["else", "help", "please"],
+            e.suggest("", &["someone", "can", "how"], 5)
+        );
         assert_eq!(vec!["else"], e.suggest("", &["someone"], 5));
 
         let mut e = Predictor::new();
@@ -1671,11 +2373,17 @@ mod tests {
 
     #[test]
     fn seeds_cold_start_below_learned_pairs() {
-        let mut e = Predictor { seeds: SeedBigrams::parse("good morning 100\ngood night 90\nthank you 100\n"), ..Predictor::default() };
+        let mut e = Predictor {
+            seeds: SeedBigrams::parse("good morning 100\ngood night 90\nthank you 100\n"),
+            ..Predictor::default()
+        };
         assert_eq!(vec!["morning", "night"], e.suggest("", &["good"], 5));
         assert_eq!(vec!["you"], e.suggest("", &["Thank"], 5));
         e.lexicon.learn_bigram("good", "game");
-        assert_eq!(vec!["game", "morning", "night"], e.suggest("", &["good"], 5));
+        assert_eq!(
+            vec!["game", "morning", "night"],
+            e.suggest("", &["good"], 5)
+        );
         let s = SeedBigrams::parse("<s> i 10\n");
         assert_eq!(vec!["i"], s.next_words(SENTENCE_START));
     }
@@ -1708,8 +2416,18 @@ mod tests {
 
     #[test]
     fn join_candidate_guards() {
-        let mut e = with(&[("some", 5000), ("thing", 3000), ("something", 8000), ("a", 90000), ("nd", 60), ("and", 50000)]);
-        assert_eq!(Some("something".into()), e.join_candidate(Some("some"), "thing"));
+        let mut e = with(&[
+            ("some", 5000),
+            ("thing", 3000),
+            ("something", 8000),
+            ("a", 90000),
+            ("nd", 60),
+            ("and", 50000),
+        ]);
+        assert_eq!(
+            Some("something".into()),
+            e.join_candidate(Some("some"), "thing")
+        );
         assert_eq!(None, e.join_candidate(None, "thing"));
         assert_eq!(None, e.join_candidate(Some(SENTENCE_START), "thing"));
         assert_eq!(None, e.join_candidate(Some("some"), "t"));
@@ -1723,10 +2441,12 @@ mod tests {
     fn secondary_lists_suggest_and_protect() {
         let mut e = engine();
         e.english_sources = false;
-        e.secondaries.push(("es".into(), WordList::of(&[("gato", 1), ("gata", 1)])));
+        e.secondaries
+            .push(("es".into(), WordList::of(&[("gato", 1), ("gata", 1)])));
         assert!(e.suggest("gat", &[], 5).contains(&"gato".to_string()));
         let mut e = engine();
-        e.secondaries.push(("es".into(), WordList::of(&[("worl", 1)])));
+        e.secondaries
+            .push(("es".into(), WordList::of(&[("worl", 1)])));
         assert_eq!(None, e.should_autocorrect("worl"));
         assert_eq!(Some("world".into()), engine().should_autocorrect("worl"));
     }
@@ -1755,7 +2475,18 @@ mod tests {
 
     #[test]
     fn verb_forms_the_list_left_out_are_words() {
-        let words = ["correct", "corrected", "fix", "fixed", "stop", "stopped", "the", "admit", "admitted", "admited"];
+        let words = [
+            "correct",
+            "corrected",
+            "fix",
+            "fixed",
+            "stop",
+            "stopped",
+            "the",
+            "admit",
+            "admitted",
+            "admited",
+        ];
         let known = |w: &str| words.contains(&w);
         assert!(is_verb_form("corrects", &known));
         assert!(is_verb_form("correcting", &known));
@@ -1764,5 +2495,99 @@ mod tests {
         assert!(!is_verb_form("thes", &known));
         assert!(!is_verb_form("stoped", &known));
         assert!(is_verb_form("stopping", &known));
+    }
+
+    #[test]
+    fn chat_speak_rises_in_chats_and_sinks_in_email() {
+        let mut e = with(&[("lol", 50), ("lollipop", 60), ("lots", 55)]);
+        assert_ne!("lol", e.suggest("lo", &[], 3)[0]);
+        e.register = Register::Casual;
+        assert_eq!("lol", e.suggest("lo", &[], 3)[0]);
+        e.register = Register::Formal;
+        assert_eq!("lol", e.suggest("lo", &[], 3)[2]);
+    }
+
+    #[test]
+    fn a_fix_taught_twice_is_made_and_once_is_offered() {
+        let mut e = with(&[("the", 100), ("thy", 1)]);
+        e.memory.teach("thw", "thy", "qwerty", correction_memory::Kind::PairOnly);
+        let d = e.decide("thw", 1.0);
+        assert_eq!((None, Some("thy".into())), (d.apply, d.offer));
+        e.memory.teach("thw", "thy", "qwerty", correction_memory::Kind::PairOnly);
+        let d = e.decide("Thw", 1.0);
+        assert_eq!(Some("Thy".into()), d.apply);
+        assert!(d.certainty < 1.0);
+        e.reject_correction("thw", "thy", true);
+        assert_ne!(Some("thy".into()), e.decide("thw", 1.0).apply);
+        assert_eq!(None, e.memory.fix_for("thw").filter(|t| t.count >= 2));
+    }
+
+    #[test]
+    fn a_taught_fix_of_a_real_word_needs_the_context() {
+        let mut e = with(&[("form", 50), ("from", 100), ("came", 80)]);
+        for _ in 0..3 {
+            e.memory.teach("form", "from", "qwerty", correction_memory::Kind::PairOnly);
+        }
+        assert_eq!(None, e.decide_after("form", 1.0, Some("came")).apply);
+        for _ in 0..3 {
+            e.lexicon.learn_bigram("came", "from");
+        }
+        assert_eq!(Some("from".into()), e.decide_after("form", 1.0, Some("came")).apply);
+        assert_eq!(None, e.decide("form", 1.0).apply);
+    }
+
+    #[test]
+    fn missing_apostrophes() {
+        let mut e = with(&[("that's", 80), ("thats", 90), ("its", 100), ("it's", 90)]);
+        e.primary_language = "en".into();
+        assert_eq!(Some("that's".into()), e.elide("thats"));
+        assert_eq!(Some("That's".into()), e.elide("Thats"));
+        assert_eq!("that's", e.suggest("thats", &[], 3)[0]);
+        assert_eq!(None, e.elide("its"), "a word of its own is only offered");
+        let strip = e.suggest("its", &[], 3);
+        assert_eq!(vec!["its", "it's"], strip[..2].to_vec());
+        e.reject_correction("thats", "that's", true);
+        assert_eq!(None, e.elide("thats"));
+        e.apostrophe_fixes = false;
+        assert_eq!(None, e.elide("dont"));
+        e.apostrophe_fixes = true;
+        e.primary_language = "fr".into();
+        assert_eq!(None, e.elide("dont"));
+    }
+
+    #[test]
+    fn the_word_after_settles_a_confusable() {
+        let mut e = with(&[("their", 100), ("they're", 50)]);
+        assert_eq!(None, e.advise("their", "going"));
+        for _ in 0..3 {
+            e.lexicon.learn_bigram("they're", "going");
+        }
+        assert_eq!(None, e.advise("their", "going"), "4 to 1 is not enough");
+        for _ in 0..4 {
+            e.lexicon.learn_bigram("they're", "going");
+        }
+        assert_eq!(Some("They're".into()), e.advise("Their", "going"));
+        assert_eq!(None, e.advise("hello", "going"));
+    }
+
+    #[test]
+    fn typing_rhythm() {
+        let mut t = KeystrokeTiming::default();
+        assert_eq!(1.0, t.multiplier(1.0));
+        for at in [1000, 1080, 1160, 1240] {
+            t.keystroke(at);
+        }
+        assert_eq!(0.5, t.multiplier(1.0));
+        assert_eq!(1.0, t.multiplier(0.0));
+        t.reset();
+        for at in [1000, 1600, 2200] {
+            t.keystroke(at);
+        }
+        assert_eq!(1.25, t.multiplier(0.5));
+        t.reset();
+        for at in [1000, 5000, 5100] {
+            t.keystroke(at);
+        }
+        assert_eq!(1.0, t.multiplier(1.0), "a pause is not rhythm");
     }
 }
