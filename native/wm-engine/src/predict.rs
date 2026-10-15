@@ -138,8 +138,8 @@ struct Followers {
 }
 
 impl Followers {
-    fn bump(&mut self, next: &str) {
-        *self.counts.entry(next.to_string()).or_insert(0) += 1;
+    fn bump(&mut self, next: &str, n: i32) {
+        *self.counts.entry(next.to_string()).or_insert(0) += n;
         if self.counts.len() > MAX_FOLLOWERS {
             if let Some(low) = self.counts.iter().min_by(|a, b| a.1.cmp(b.1).then_with(|| b.0.cmp(a.0))).map(|(k, _)| k.clone()) {
                 self.counts.remove(&low);
@@ -226,32 +226,57 @@ impl Lexicon {
     }
 
     pub fn learn_bigram(&mut self, previous: &str, next: &str) {
-        let (p, n) = (key_of(previous), key_of(next));
-        if fits(&p) && fits(&n) {
-            self.bigrams.entry(p).or_default().bump(&n);
-        }
+        self.add_bigram(previous, next, 1);
     }
 
     pub fn learn_trigram(&mut self, prev2: &str, prev1: &str, next: &str) {
-        let (a, b, c) = (key_of(prev2), key_of(prev1), key_of(next));
-        if fits(&a) && fits(&b) && fits(&c) {
-            self.trigrams.entry((a, b)).or_default().bump(&c);
-        }
+        self.add_trigram(prev2, prev1, next, 1);
     }
 
     /// `prev2` stood two words before `next`, anything between.
     pub fn learn_skip1gram(&mut self, prev2: &str, next: &str) {
-        let (p, n) = (key_of(prev2), key_of(next));
-        if fits(&p) && fits(&n) {
-            self.skip1.entry(p).or_default().bump(&n);
-        }
+        self.add_skip1gram(prev2, next, 1);
     }
 
     /// `prev3` stood three words before `next`.
     pub fn learn_skip2gram(&mut self, prev3: &str, next: &str) {
+        self.add_skip2gram(prev3, next, 1);
+    }
+
+    /// The pair counted `count` more times, as a stored file reads back.
+    pub fn add_bigram(&mut self, previous: &str, next: &str, count: i32) {
+        let (p, n) = (key_of(previous), key_of(next));
+        if fits(&p) && fits(&n) && count > 0 {
+            self.bigrams.entry(p).or_default().bump(&n, count);
+        }
+    }
+
+    pub fn add_trigram(&mut self, prev2: &str, prev1: &str, next: &str, count: i32) {
+        let (a, b, c) = (key_of(prev2), key_of(prev1), key_of(next));
+        if fits(&a) && fits(&b) && fits(&c) && count > 0 {
+            self.trigrams.entry((a, b)).or_default().bump(&c, count);
+        }
+    }
+
+    pub fn add_skip1gram(&mut self, prev2: &str, next: &str, count: i32) {
+        let (p, n) = (key_of(prev2), key_of(next));
+        if fits(&p) && fits(&n) && count > 0 {
+            self.skip1.entry(p).or_default().bump(&n, count);
+        }
+    }
+
+    pub fn add_skip2gram(&mut self, prev3: &str, next: &str, count: i32) {
         let (p, n) = (key_of(prev3), key_of(next));
-        if fits(&p) && fits(&n) {
-            self.skip2.entry(p).or_default().bump(&n);
+        if fits(&p) && fits(&n) && count > 0 {
+            self.skip2.entry(p).or_default().bump(&n, count);
+        }
+    }
+
+    /// The spelling the user writes `key` in, from their case memory.
+    pub fn set_case(&mut self, key: &str, spelling: &str) {
+        let key = key_of(key);
+        if key_of(spelling) == key && spelling != key {
+            self.cases.insert(key, spelling.to_string());
         }
     }
 
@@ -441,6 +466,11 @@ pub struct Predictor {
     pub proximity: KeyProximity,
     /// Never suggested, never a correction target. Keys.
     pub blacklist: HashSet<String>,
+    /// The language's offensive words, kept out the same way. Keys.
+    pub offensive: HashSet<String>,
+    /// The capitals the word list writes its words with (#481), as the
+    /// phone's `DictionaryCapitals` trie: a shape per key.
+    pub capitals: Option<Dict>,
     /// The user's rank steps per key (#99).
     pub rank_offsets: HashMap<String, i32>,
     /// Words recently typed in this app. Keys.
@@ -469,6 +499,8 @@ impl Default for Predictor {
             primary_language: String::new(),
             proximity: KeyProximity::qwerty(false),
             blacklist: HashSet::new(),
+            offensive: HashSet::new(),
+            capitals: None,
             rank_offsets: HashMap::new(),
             context_words: HashSet::new(),
             autocorrect_confidence: DEFAULT_AUTOCORRECT_CONFIDENCE,
@@ -587,7 +619,11 @@ impl Predictor {
     }
 
     fn suppressed(&self, word: &str) -> bool {
-        !self.blacklist.is_empty() && self.blacklist.contains(&key_of(word))
+        if self.blacklist.is_empty() && self.offensive.is_empty() {
+            return false;
+        }
+        let key = key_of(word);
+        self.blacklist.contains(&key) || self.offensive.contains(&key)
     }
 
     fn rank_offset(&self, word: &str) -> f64 {
@@ -766,7 +802,10 @@ impl Predictor {
         if word.is_empty() || key_of(word) != word {
             return word.to_string();
         }
-        self.lexicon.display_of(word).unwrap_or(word).to_string()
+        if let Some(own) = self.lexicon.display_of(word) {
+            return own.to_string();
+        }
+        self.capitals.as_ref().and_then(|c| list_spelling(c, word)).unwrap_or_else(|| word.to_string())
     }
 
     fn context_count(&self, prev: &str, prev2: Option<&str>, candidate: &str) -> i32 {
@@ -1086,6 +1125,27 @@ impl Predictor {
             .max(SOLO_RUNNER_UP_SCORE);
         (best.1 - rival >= effective.ln()).then(|| best.0.clone())
     }
+}
+
+/// Capitals past the eleventh letter are not kept.
+const MASK_BITS: usize = 11;
+const ALL_CAPS: i32 = (1 << MASK_BITS) - 1;
+
+/// `key` as a capitals trie spells it, if it has a capital there.
+pub fn list_spelling(capitals: &Dict, key: &str) -> Option<String> {
+    let shape = capitals.frequency_of(key);
+    if shape <= 0 {
+        return None;
+    }
+    if shape == ALL_CAPS {
+        return Some(key.to_uppercase());
+    }
+    Some(
+        key.chars()
+            .enumerate()
+            .map(|(i, c)| if i < MASK_BITS && shape & (1 << i) != 0 { c.to_uppercase().next().unwrap_or(c) } else { c })
+            .collect(),
+    )
 }
 
 fn context_boost(count: i32) -> f64 {
@@ -1669,6 +1729,28 @@ mod tests {
         e.secondaries.push(("es".into(), WordList::of(&[("worl", 1)])));
         assert_eq!(None, e.should_autocorrect("worl"));
         assert_eq!(Some("world".into()), engine().should_autocorrect("worl"));
+    }
+
+    #[test]
+    fn list_capitals_and_case_memory_spell_the_strip() {
+        let mut e = with(&[("haus", 100), ("hauses", 10)]);
+        e.capitals = Dict::open(wmdict::write(&PackedTrie::of(&[("haus", 1)])));
+        assert_eq!("Haus", e.suggest("hau", &[], 5)[0]);
+        e.lexicon.learn_word("hauses", 1, "");
+        e.lexicon.set_case("hauses", "HAUSES");
+        assert!(e.suggest("hause", &[], 5).contains(&"HAUSES".to_string()));
+        e.offensive.insert("haus".into());
+        assert!(!e.suggest("hau", &[], 5).contains(&"Haus".to_string()));
+    }
+
+    #[test]
+    fn stored_pairs_load_with_their_counts() {
+        let mut e = Predictor::new();
+        e.lexicon.add_bigram("good", "night", 3);
+        e.lexicon.add_bigram("good", "morning", 2);
+        e.lexicon.add_trigram("very", "good", "morning", 2);
+        assert_eq!(vec!["night", "morning"], e.suggest("", &["good"], 5));
+        assert_eq!("morning", e.suggest("", &["good", "very"], 5)[0]);
     }
 
     #[test]
