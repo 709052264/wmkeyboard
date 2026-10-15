@@ -13606,9 +13606,9 @@ private const val SpaceCursorEdgeLineRepeatMs = 200L
 
 /**
  * How far up a spacebar swipe goes before it opens the 2-D touchpad (#444):
- * twice the swipe slop, the debounce that keeps a tap rolling upward a space.
+ * Increased from 24 dp to 80 dp to provide more room for downward cursor movement.
  */
-private const val SpaceSwipeUpTouchpadDp = 24
+private const val SpaceSwipeUpTouchpadDp = 80
 
 /**
  * How long a cursor drag must rest, held away from where it began, before the
@@ -24587,6 +24587,8 @@ private fun Modifier.pointerInputKey(
                     // sizes the echo after it (see [languageEchoMs]).
                     var lastStepAt = 0L
                     var liftAt = 0L
+                    // When the touchpad was activated, used to delay gesture processing until longPressDelayMs has elapsed.
+                    var touchpadActivatedAt = 0L
                     // With language switching on the short-swipe slot, holding
                     // the spacebar just past a normal tap shows the language
                     // picker without needing any initial swipe. The action is
@@ -24822,6 +24824,7 @@ private fun Modifier.pointerInputKey(
                             // keeps a rolled tap a space.
                             if (textEditing.spaceSwipeUpTouchpad && -totalDy > abs(totalDx)) {
                                 if (-totalDy > swipeUpPx) {
+                                    touchpadActivatedAt = change.uptimeMillis
                                     action = SpaceSwipeAction.CURSOR
                                     padVertical = true
                                     if (holdPreviewShown) {
@@ -24905,6 +24908,18 @@ private fun Modifier.pointerInputKey(
                                 }
                                 change.consume()
                             }
+                            continue
+                        }
+                        // Ignore cursor movement until longPressDelayMs has elapsed after touchpad activation.
+                        // It preventing the activation gesture from moving the cursor.
+                        if (touchpadActivatedAt != 0L &&
+                            change.uptimeMillis - touchpadActivatedAt < longPressDelayMs) {
+                            lastX = change.position.x
+                            lastY = change.position.y
+                            accumulated = 0f
+                            accumulatedY = 0f
+                            edgeDir = 0
+                            edgeDirY = 0
                             continue
                         }
                         // 2-D touchpad: while sliding the cursor, a vertical drag
