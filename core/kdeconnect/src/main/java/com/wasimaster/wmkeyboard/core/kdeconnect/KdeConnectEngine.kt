@@ -123,9 +123,11 @@ class KdeConnectEngine(
     val battery = BatteryPlugin(host)
     val findDevice = FindDevicePlugin(host)
     val lockDevice = LockPlugin(host)
+    val codes = CodesPlugin(host)
 
     private val plugins: List<KdePlugin> = listOf(
         mousepad, clipboard, mpris, phoneMedia, volume, commands, presenter, share, ping, battery, findDevice, lockDevice,
+        codes,
     )
     private val byIncoming: Map<String, List<KdePlugin>> =
         plugins.flatMap { p -> p.incoming.map { it to p } }.groupBy({ it.first }, { it.second })

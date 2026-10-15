@@ -10047,6 +10047,7 @@ class SettingsRepository(private val context: Context) {
         private val KDE_TAP_TO_CLICK = booleanPreferencesKey("kde_tap_to_click")
         private val KDE_PAD_HAPTICS = booleanPreferencesKey("kde_pad_haptics")
         private val KDE_BATTERY_REPORT = booleanPreferencesKey("kde_battery_report")
+        private val KDE_SEND_CODES = booleanPreferencesKey("kde_send_codes")
         private val KDE_EXPOSE_MEDIA = booleanPreferencesKey("kde_expose_media")
         private val KDE_SHARE_SHEET = booleanPreferencesKey("kde_share_sheet")
         private val KDE_RECEIVE_FILES = booleanPreferencesKey("kde_receive_files")
@@ -12323,6 +12324,7 @@ class SettingsRepository(private val context: Context) {
             tapToClick = p[KDE_TAP_TO_CLICK] ?: defaults.kdeConnect.tapToClick,
             padHaptics = p[KDE_PAD_HAPTICS] ?: defaults.kdeConnect.padHaptics,
             batteryReport = p[KDE_BATTERY_REPORT] ?: defaults.kdeConnect.batteryReport,
+            sendCodes = p[KDE_SEND_CODES] ?: defaults.kdeConnect.sendCodes,
             exposeMedia = p[KDE_EXPOSE_MEDIA] ?: defaults.kdeConnect.exposeMedia,
             shareSheet = p[KDE_SHARE_SHEET] ?: defaults.kdeConnect.shareSheet,
             receiveFiles = p[KDE_RECEIVE_FILES] ?: defaults.kdeConnect.receiveFiles,
@@ -12594,6 +12596,8 @@ class SettingsRepository(private val context: Context) {
     suspend fun setKdeTapToClick(value: Boolean) = editPrefs { it[KDE_TAP_TO_CLICK] = value }
     suspend fun setKdePadHaptics(value: Boolean) = editPrefs { it[KDE_PAD_HAPTICS] = value }
     suspend fun setKdeBatteryReport(value: Boolean) = editPrefs { it[KDE_BATTERY_REPORT] = value }
+
+    suspend fun setKdeSendCodes(value: Boolean) = editPrefs { it[KDE_SEND_CODES] = value }
     suspend fun setKdeExposeMedia(value: Boolean) = editPrefs { it[KDE_EXPOSE_MEDIA] = value }
     suspend fun setKdeShareSheet(value: Boolean) = editPrefs { it[KDE_SHARE_SHEET] = value }
     suspend fun setKdeReceiveFiles(value: Boolean) = editPrefs { it[KDE_RECEIVE_FILES] = value }

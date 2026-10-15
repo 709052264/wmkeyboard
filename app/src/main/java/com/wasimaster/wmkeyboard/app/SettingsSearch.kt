@@ -1404,6 +1404,7 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.KDE_CONNECT, R.string.kdeconnect_receive_files_title, R.string.kdeconnect_receive_files_subtitle),
     toolEntry(ToolbarTool.KDE_CONNECT, R.string.kdeconnect_share_sheet_title, R.string.kdeconnect_share_sheet_subtitle),
     toolEntry(ToolbarTool.KDE_CONNECT, R.string.kdeconnect_battery_title, R.string.kdeconnect_battery_subtitle),
+    toolEntry(ToolbarTool.KDE_CONNECT, R.string.kdeconnect_codes_title, R.string.kdeconnect_codes_subtitle),
     toolEntry(ToolbarTool.KDE_CONNECT, R.string.kdeconnect_media_title, R.string.kdeconnect_media_subtitle),
     // Subtitle left off: the drawn one says whether the grant is in place.
     toolEntry(ToolbarTool.KDE_CONNECT, R.string.kdeconnect_media_access_title),

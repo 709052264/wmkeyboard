@@ -67,6 +67,43 @@ class BatteryPlugin internal constructor(host: KdePluginHost) : KdePlugin(host) 
     }
 }
 
+/**
+ * One-time codes, out only: a code found in one of the phone's notifications
+ * goes to the computer as a `kdeconnect.notification`, so a computer typing
+ * with WM Keyboard can offer it the way the phone does. The code rides in
+ * `wmkOtp` beside the ordinary fields, and the text is the code itself rather
+ * than the message it came in, so the message never leaves the phone and a
+ * plain KDE Connect desktop still shows something useful.
+ */
+class CodesPlugin internal constructor(host: KdePluginHost) : KdePlugin(host) {
+    override val incoming = emptySet<String>()
+    override val outgoing = setOf(KdeTypes.NOTIFICATION)
+    override val key = KdePluginKeys.CODES
+
+    fun send(code: String, sourceApp: String, postedAt: Long) {
+        if (!host.config.sendCodes || code.isBlank()) return
+        for (id in host.connectedIds()) {
+            if (!enabledFor(id)) continue
+            host.send(
+                id,
+                kdePacket(KdeTypes.NOTIFICATION) {
+                    put("id", "wmk-otp-$postedAt")
+                    put("appName", sourceApp)
+                    put("title", sourceApp)
+                    put("text", code)
+                    put("ticker", code)
+                    put("isClearable", true)
+                    put("silent", false)
+                    put("wmkOtp", code)
+                    put("wmkOtpTime", postedAt)
+                },
+            )
+        }
+    }
+
+    override fun onPacket(deviceId: String, packet: KdePacket) = Unit
+}
+
 /** Makes the PC ring. The protocol names the packet for phones; desktops answer it too. */
 class FindDevicePlugin internal constructor(host: KdePluginHost) : KdePlugin(host) {
     override val incoming = emptySet<String>()

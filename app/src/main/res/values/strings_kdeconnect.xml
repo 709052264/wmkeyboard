@@ -72,6 +72,9 @@
     <string name="kdeconnect_share_sheet_subtitle">Other apps can share to the computer. Only shown once a computer is paired</string>
     <string name="kdeconnect_battery_title">Report battery level</string>
     <string name="kdeconnect_battery_subtitle">The computer shows this phone\'s charge</string>
+    <string name="kdeconnect_codes_title">Send one-time codes</string>
+    <string name="kdeconnect_codes_subtitle">A verification code that arrives here is offered on the computer too</string>
+    <string name="kdeconnect_codes_info">When a code arrives in a notification, the phone sends the code alone to the paired computer, never the message it came in. WM Keyboard on the computer offers it above the cursor, and a KDE Connect desktop shows it as a notification. Everything stays on your local network. This needs Codes from notifications on, under Typing, because that is what reads the notifications.</string>
     <string name="kdeconnect_media_title">Offer this phone\'s media</string>
     <string name="kdeconnect_media_subtitle">The computer can pause and skip what plays here</string>
     <string name="kdeconnect_media_access_title">Notification access</string>

@@ -21,6 +21,8 @@ data class KdeEngineConfig(
     val clipboardSend: Boolean = true,
     val remoteTyping: Boolean = true,
     val batteryReport: Boolean = true,
+    /** Send one-time codes from the phone's notifications to the computer. */
+    val sendCodes: Boolean = false,
     val exposeMedia: Boolean = true,
     val receiveFiles: Boolean = true,
 )

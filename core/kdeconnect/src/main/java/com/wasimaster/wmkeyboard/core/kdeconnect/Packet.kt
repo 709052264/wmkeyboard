@@ -159,6 +159,7 @@ object KdeTypes {
     const val SHARE_REQUEST_UPDATE = "kdeconnect.share.request.update"
     const val FINDMYPHONE_REQUEST = "kdeconnect.findmyphone.request"
     const val LOCK = "kdeconnect.lock"
+    const val NOTIFICATION = "kdeconnect.notification"
     const val LOCK_REQUEST = "kdeconnect.lock.request"
 
     /** The two types every peer accepts whatever its capability lists say. */

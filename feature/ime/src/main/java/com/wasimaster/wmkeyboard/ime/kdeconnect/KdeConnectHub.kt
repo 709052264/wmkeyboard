@@ -30,6 +30,7 @@ import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.notify.NotificationIds
 import com.wasimaster.wmkeyboard.core.notify.NotificationKind
 import com.wasimaster.wmkeyboard.core.notify.WmNotifications
+import com.wasimaster.wmkeyboard.core.otp.NotificationOtpBus
 import com.wasimaster.wmkeyboard.core.settings.KdeConnectSettings
 import com.wasimaster.wmkeyboard.core.settings.KdeLinkLifetime
 import com.wasimaster.wmkeyboard.ime.R
@@ -246,6 +247,12 @@ object KdeConnectHub {
         collectors = listOf(
             main.launch { made.state.collect { _state.value = it } },
             main.launch { made.events.collect(::onEvent) },
+            // A code from a notification goes to the computer as it arrives.
+            main.launch {
+                NotificationOtpBus.latest.collect { otp ->
+                    if (otp != null) made.codes.send(otp.code, otp.sourceApp, otp.postedAt)
+                }
+            },
         )
         return made
     }
@@ -509,6 +516,7 @@ object KdeConnectHub {
             clipboardSend = clipboardSend,
             remoteTyping = remoteTyping,
             batteryReport = batteryReport,
+            sendCodes = sendCodes,
             exposeMedia = exposeMedia,
             receiveFiles = receiveFiles,
         )

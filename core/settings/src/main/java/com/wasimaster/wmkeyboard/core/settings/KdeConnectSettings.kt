@@ -63,6 +63,12 @@ data class KdeConnectSettings(
     val padHaptics: Boolean = true,
     /** Tell the computer the phone's charge. */
     val batteryReport: Boolean = true,
+    /**
+     * Send the one-time codes found in notifications to the computer. Off by
+     * default: a code is a secret for the minutes it is valid. Needs the
+     * phone's own Codes from notifications on, which is what reads them.
+     */
+    val sendCodes: Boolean = false,
     /** Offer what the phone is playing to the computer as a media player. Needs notification access. */
     val exposeMedia: Boolean = true,
     /** Show "Send to computer" in other apps' share sheets once something is paired. */

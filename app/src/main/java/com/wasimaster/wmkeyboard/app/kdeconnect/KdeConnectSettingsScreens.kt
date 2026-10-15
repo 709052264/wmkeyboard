@@ -316,6 +316,15 @@ internal fun KdeConnectToolSettings(
         }
         item {
             ToggleSetting(
+                R.string.kdeconnect_codes_title,
+                stringResource(R.string.kdeconnect_codes_subtitle),
+                settings.watch { it.kdeConnect.sendCodes },
+                info = stringResource(R.string.kdeconnect_codes_info),
+                default = defaults.sendCodes,
+            ) { scope.launch { repository.setKdeSendCodes(it) } }
+        }
+        item {
+            ToggleSetting(
                 R.string.kdeconnect_media_title,
                 stringResource(R.string.kdeconnect_media_subtitle),
                 exposeMedia,
