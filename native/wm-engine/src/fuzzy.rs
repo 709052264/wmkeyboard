@@ -164,7 +164,11 @@ const ZWNJ: u16 = 0x200C;
 const NO_LABEL: u16 = 0;
 
 pub fn default_max_edits(typed_len: usize) -> u32 {
-    if typed_len >= 5 { 2 } else { 1 }
+    if typed_len >= 5 {
+        2
+    } else {
+        1
+    }
 }
 
 fn ln1p(v: i32) -> f64 {
@@ -209,7 +213,18 @@ impl Workspace {
     }
 
     #[allow(clippy::too_many_arguments)]
-    fn record(&mut self, node: u32, pos: usize, cost: f64, edit: f64, edits: u32, comp: u32, accents: u32, parent: i32, via: u16) -> i32 {
+    fn record(
+        &mut self,
+        node: u32,
+        pos: usize,
+        cost: f64,
+        edit: f64,
+        edits: u32,
+        comp: u32,
+        accents: u32,
+        parent: i32,
+        via: u16,
+    ) -> i32 {
         let id = self.node.len() as i32;
         self.node.push(node);
         self.pos.push(pos as u16);
@@ -225,7 +240,19 @@ impl Workspace {
     }
 
     #[allow(clippy::too_many_arguments)]
-    fn state(&mut self, node: u32, pos: usize, cost: f64, edit: f64, edits: u32, comp: u32, accents: u32, parent: i32, via: u16, bound: f64) {
+    fn state(
+        &mut self,
+        node: u32,
+        pos: usize,
+        cost: f64,
+        edit: f64,
+        edits: u32,
+        comp: u32,
+        accents: u32,
+        parent: i32,
+        via: u16,
+        bound: f64,
+    ) {
         let id = self.record(node, pos, cost, edit, edits, comp, accents, parent, via);
         self.bound[id as usize] = bound;
         // Max-heap on bound.
@@ -289,7 +316,11 @@ fn find(children: &[(u16, u32)], label: u16) -> Option<u32> {
 }
 
 fn discounted(base: f64, shrink: f64) -> f64 {
-    if shrink <= 0.0 { base } else { habit_floor().max(base * (1.0 - shrink)) }
+    if shrink <= 0.0 {
+        base
+    } else {
+        habit_floor().max(base * (1.0 - shrink))
+    }
 }
 
 /// The search: up to `max(limit * 2, AUTOCORRECT_K)` candidates, best first
@@ -326,10 +357,25 @@ pub fn search(
         if root_bound < floor - EPS {
             continue;
         }
-        floor = search_one(src, &typed, proximity, max_edits, k, &mut results, floor, ws, habits);
+        floor = search_one(
+            src,
+            &typed,
+            proximity,
+            max_edits,
+            k,
+            &mut results,
+            floor,
+            ws,
+            habits,
+        );
     }
     let mut out: Vec<ScoredCandidate> = results.into_values().collect();
-    out.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal).then_with(|| a.word.cmp(&b.word)));
+    out.sort_by(|a, b| {
+        b.score
+            .partial_cmp(&a.score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.word.cmp(&b.word))
+    });
     out.truncate(k);
     out
 }
@@ -351,7 +397,18 @@ fn search_one(
     let n = typed.len();
     ws.reset();
     let root = w.root();
-    ws.state(root, 0, 0.0, 0.0, 0, 0, 0, -1, NO_LABEL, src.log_weight + ln1p(w.max_subtree(root)));
+    ws.state(
+        root,
+        0,
+        0.0,
+        0.0,
+        0,
+        0,
+        0,
+        -1,
+        NO_LABEL,
+        src.log_weight + ln1p(w.max_subtree(root)),
+    );
     let mut pops = 0;
     let mut children = std::mem::take(&mut ws.children);
     macro_rules! push {
@@ -360,7 +417,9 @@ fn search_one(
             let cost = $cost;
             let bound = src.log_weight + ln1p(w.max_subtree(node)) - cost;
             if bound >= floor - EPS {
-                ws.state(node, $pos, cost, $edit, $edits, $comp, $acc, $parent, $via, bound);
+                ws.state(
+                    node, $pos, cost, $edit, $edits, $comp, $acc, $parent, $via, bound,
+                );
             }
         }};
     }
@@ -383,17 +442,40 @@ fn search_one(
             if w.is_word(node) {
                 let score = src.log_weight + ln1p(w.frequency(node)) - cost;
                 if score > floor - EPS || results.len() < k {
-                    emit(ws.materialize(s), score, edit, edits, comp, acc, src.tier, results);
+                    emit(
+                        ws.materialize(s),
+                        score,
+                        edit,
+                        edits,
+                        comp,
+                        acc,
+                        src.tier,
+                        results,
+                    );
                     if results.len() >= k {
                         floor = kth_best(results, k);
                     }
                 }
             }
             // Completion: free on a clean prefix, charged after an edit.
-            let step = if edits > 0 { cost_completion_after_edit() } else { COMPLETION_STEP };
+            let step = if edits > 0 {
+                cost_completion_after_edit()
+            } else {
+                COMPLETION_STEP
+            };
             w.children_into(node, &mut children);
             for &(label, child) in &children {
-                push!(child, n, cost + step, edit, edits, comp + 1, acc, parent, label);
+                push!(
+                    child,
+                    n,
+                    cost + step,
+                    edit,
+                    edits,
+                    comp + 1,
+                    acc,
+                    parent,
+                    label
+                );
             }
             continue;
         }
@@ -403,43 +485,128 @@ fn search_one(
         // A half-space the word is spelled with and the typing left out.
         if expected != ZWNJ {
             if let Some(joined) = find(&children, ZWNJ) {
-                push!(joined, pos, cost + cost_accent(), edit, edits, comp, acc + 1, parent, ZWNJ);
+                push!(
+                    joined,
+                    pos,
+                    cost + cost_accent(),
+                    edit,
+                    edits,
+                    comp,
+                    acc + 1,
+                    parent,
+                    ZWNJ
+                );
             }
         }
         // The typed character itself.
         if let Some(matched) = find(&children, expected) {
-            push!(matched, pos + 1, cost, edit, edits, comp, acc, parent, expected);
+            push!(
+                matched,
+                pos + 1,
+                cost,
+                edit,
+                edits,
+                comp,
+                acc,
+                parent,
+                expected
+            );
         }
         // The same key with its accent left off.
         for &(label, child) in &children {
             if accents::is_accent_of(label, expected) {
-                push!(child, pos + 1, cost + cost_accent(), edit, edits, comp, acc + 1, parent, label);
+                push!(
+                    child,
+                    pos + 1,
+                    cost + cost_accent(),
+                    edit,
+                    edits,
+                    comp,
+                    acc + 1,
+                    parent,
+                    label
+                );
             }
         }
 
         if edits < max_edits && edit < MAX_EDIT_COST {
-            let surcharge = if edits + 1 >= 2 { SECOND_EDIT_SURCHARGE } else { 0.0 };
+            let surcharge = if edits + 1 >= 2 {
+                SECOND_EDIT_SURCHARGE
+            } else {
+                0.0
+            };
             // Deletion: the typed character was an extra keypress.
-            let doubled = (pos + 1 < n && typed[pos + 1] == expected) || (pos > 0 && typed[pos - 1] == expected);
-            let del = discounted(if doubled { cost_delete_doubled() } else { cost_deletion() }, habits.deletion(expected));
+            let doubled = (pos + 1 < n && typed[pos + 1] == expected)
+                || (pos > 0 && typed[pos - 1] == expected);
+            let del = discounted(
+                if doubled {
+                    cost_delete_doubled()
+                } else {
+                    cost_deletion()
+                },
+                habits.deletion(expected),
+            );
             if edit + del <= MAX_EDIT_COST {
-                push!(node, pos + 1, cost + del + surcharge, edit + del, edits + 1, comp, acc, parent, NO_LABEL);
+                push!(
+                    node,
+                    pos + 1,
+                    cost + del + surcharge,
+                    edit + del,
+                    edits + 1,
+                    comp,
+                    acc,
+                    parent,
+                    NO_LABEL
+                );
             }
             for &(label, child) in &children {
                 let accented = accents::is_accent_of(label, expected);
                 if label != expected && !accented {
-                    let base = if proximity.are_adjacent(expected, label) { cost_sub_adjacent() } else { cost_sub_far() };
+                    let base = if proximity.are_adjacent(expected, label) {
+                        cost_sub_adjacent()
+                    } else {
+                        cost_sub_far()
+                    };
                     let sub = discounted(base, habits.substitution(expected, label));
                     if edit + sub <= MAX_EDIT_COST {
-                        push!(child, pos + 1, cost + sub + surcharge, edit + sub, edits + 1, comp, acc, parent, label);
+                        push!(
+                            child,
+                            pos + 1,
+                            cost + sub + surcharge,
+                            edit + sub,
+                            edits + 1,
+                            comp,
+                            acc,
+                            parent,
+                            label
+                        );
                     }
                 }
                 // Insertion: the word has `label` here and the typing missed it.
                 let adjacent = proximity.are_adjacent(expected, label)
-                    || (pos > 0 && (typed[pos - 1] == label || proximity.are_adjacent(typed[pos - 1], label)));
-                let ins = discounted(if adjacent { cost_insert_adjacent() } else { cost_insert_far() }, habits.insertion(label));
+                    || (pos > 0
+                        && (typed[pos - 1] == label
+                            || proximity.are_adjacent(typed[pos - 1], label)));
+                let ins = discounted(
+                    if adjacent {
+                        cost_insert_adjacent()
+                    } else {
+                        cost_insert_far()
+                    },
+                    habits.insertion(label),
+                );
                 if edit + ins <= MAX_EDIT_COST {
-                    push!(child, pos, cost + ins + surcharge, edit + ins, edits + 1, comp, acc, parent, label);
+                    push!(
+                        child,
+                        pos,
+                        cost + ins + surcharge,
+                        edit + ins,
+                        edits + 1,
+                        comp,
+                        acc,
+                        parent,
+                        label
+                    );
                 }
             }
             // Transposition of the next two typed characters, priced by hand.
@@ -451,8 +618,28 @@ fn search_one(
             if pos + 1 < n && typed[pos] != typed[pos + 1] && edit + transpose <= MAX_EDIT_COST {
                 if let Some(first) = find(&children, typed[pos + 1]) {
                     if let Some(second) = w.child(first, typed[pos]) {
-                        let link = ws.record(first, pos + 1, cost, edit, edits, comp, acc, parent, typed[pos + 1]);
-                        push!(second, pos + 2, cost + transpose + surcharge, edit + transpose, edits + 1, comp, acc, link, typed[pos]);
+                        let link = ws.record(
+                            first,
+                            pos + 1,
+                            cost,
+                            edit,
+                            edits,
+                            comp,
+                            acc,
+                            parent,
+                            typed[pos + 1],
+                        );
+                        push!(
+                            second,
+                            pos + 2,
+                            cost + transpose + surcharge,
+                            edit + transpose,
+                            edits + 1,
+                            comp,
+                            acc,
+                            link,
+                            typed[pos]
+                        );
                     }
                 }
             }
@@ -463,13 +650,50 @@ fn search_one(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn emit(word: String, score: f64, edit_cost: f64, edits: u32, completed: u32, accents: u32, tier: Tier, results: &mut HashMap<String, ScoredCandidate>) {
+fn emit(
+    word: String,
+    score: f64,
+    edit_cost: f64,
+    edits: u32,
+    completed: u32,
+    accents: u32,
+    tier: Tier,
+    results: &mut HashMap<String, ScoredCandidate>,
+) {
     let existing = results.get(&word);
-    let dict_score = existing.map_or(f64::NEG_INFINITY, |e| e.dict_score).max(if tier == Tier::Dictionary { score } else { f64::NEG_INFINITY });
-    let user_score = existing.map_or(f64::NEG_INFINITY, |e| e.user_score).max(if tier == Tier::User { score } else { f64::NEG_INFINITY });
+    let dict_score =
+        existing
+            .map_or(f64::NEG_INFINITY, |e| e.dict_score)
+            .max(if tier == Tier::Dictionary {
+                score
+            } else {
+                f64::NEG_INFINITY
+            });
+    let user_score =
+        existing
+            .map_or(f64::NEG_INFINITY, |e| e.user_score)
+            .max(if tier == Tier::User {
+                score
+            } else {
+                f64::NEG_INFINITY
+            });
     let next = match existing {
-        Some(e) if score <= e.score => ScoredCandidate { dict_score, user_score, ..e.clone() },
-        _ => ScoredCandidate { word: word.clone(), score, edit_cost, edits, completed_chars: completed, tier, dict_score, user_score, accents },
+        Some(e) if score <= e.score => ScoredCandidate {
+            dict_score,
+            user_score,
+            ..e.clone()
+        },
+        _ => ScoredCandidate {
+            word: word.clone(),
+            score,
+            edit_cost,
+            edits,
+            completed_chars: completed,
+            tier,
+            dict_score,
+            user_score,
+            accents,
+        },
     };
     results.insert(word, next);
 }
@@ -492,16 +716,37 @@ mod tests {
         Dict::open(wmdict::write(&PackedTrie::of(entries))).unwrap()
     }
 
-    fn run(sources: &[WalkSource], typed: &str, limit: usize, max_edits: Option<u32>) -> Vec<ScoredCandidate> {
-        search(sources, typed, &KeyProximity::qwerty(false), limit, &mut Workspace::new(), max_edits, &NO_HABITS)
+    fn run(
+        sources: &[WalkSource],
+        typed: &str,
+        limit: usize,
+        max_edits: Option<u32>,
+    ) -> Vec<ScoredCandidate> {
+        search(
+            sources,
+            typed,
+            &KeyProximity::qwerty(false),
+            limit,
+            &mut Workspace::new(),
+            max_edits,
+            &NO_HABITS,
+        )
     }
 
     fn src(d: &Dict, w: f64) -> WalkSource<'_> {
-        WalkSource { walker: d, log_weight: w, tier: Tier::Dictionary }
+        WalkSource {
+            walker: d,
+            log_weight: w,
+            tier: Tier::Dictionary,
+        }
     }
 
     fn real() -> Vec<(String, i32)> {
-        let text = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../../app/dictionaries-src/en.txt")).expect("the app's en.txt");
+        let text = std::fs::read_to_string(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../app/dictionaries-src/en.txt"
+        ))
+        .expect("the app's en.txt");
         crate::wordlist::parse(&text)
     }
 
@@ -527,8 +772,16 @@ mod tests {
         let d = Dict::open(wmdict::write(&PackedTrie::of(&entries))).unwrap();
         for prefix in ["th", "he", "wo", "pre", "a"] {
             let classic: Vec<String> = d.complete(prefix, 10).into_iter().map(|s| s.word).collect();
-            let beam: Vec<String> = run(&[src(&d, 0.0)], prefix, 10, Some(0)).into_iter().map(|c| c.word).filter(|w| w.starts_with(prefix)).collect();
-            assert_eq!(classic, beam[..classic.len()].to_vec(), "completion parity for '{prefix}'");
+            let beam: Vec<String> = run(&[src(&d, 0.0)], prefix, 10, Some(0))
+                .into_iter()
+                .map(|c| c.word)
+                .filter(|w| w.starts_with(prefix))
+                .collect();
+            assert_eq!(
+                classic,
+                beam[..classic.len()].to_vec(),
+                "completion parity for '{prefix}'"
+            );
         }
     }
 
@@ -560,12 +813,20 @@ mod tests {
                 }
                 let mut v = w.clone();
                 v[i] = c;
-                put(v.iter().collect(), if p.are_adjacent(u(w[i]), u(c)) { 0.9 } else { 0.2 });
+                put(
+                    v.iter().collect(),
+                    if p.are_adjacent(u(w[i]), u(c)) {
+                        0.9
+                    } else {
+                        0.2
+                    },
+                );
             }
         }
         for i in 0..=w.len() {
             for c in 'a'..='z' {
-                let near = (i > 0 && p.are_adjacent(u(w[i - 1]), u(c))) || (i < w.len() && p.are_adjacent(u(w[i]), u(c)));
+                let near = (i > 0 && p.are_adjacent(u(w[i - 1]), u(c)))
+                    || (i < w.len() && p.are_adjacent(u(w[i]), u(c)));
                 let mut v = w.clone();
                 v.insert(i, c);
                 put(v.iter().collect(), if near { 0.7 } else { 0.25 });
@@ -580,16 +841,29 @@ mod tests {
         let d = Dict::open(wmdict::write(&PackedTrie::of(&entries))).unwrap();
         let q = KeyProximity::qwerty(false);
         for typed in ["helo", "wrold", "teh", "beleive", "recieve", "adress"] {
-            let beam: HashMap<String, ScoredCandidate> = run(&[src(&d, 0.0)], typed, 400, Some(1)).into_iter().map(|c| (c.word.clone(), c)).collect();
+            let beam: HashMap<String, ScoredCandidate> = run(&[src(&d, 0.0)], typed, 400, Some(1))
+                .into_iter()
+                .map(|c| (c.word.clone(), c))
+                .collect();
             for (cand, weight) in norvig(typed, &q) {
                 let freq = d.frequency_of(&cand);
                 if freq <= 0 || cand == typed {
                     continue;
                 }
-                let expected_cost = if cand.starts_with(typed) { 0.0 } else { -weight.ln() };
+                let expected_cost = if cand.starts_with(typed) {
+                    0.0
+                } else {
+                    -weight.ln()
+                };
                 let expected = (1.0 + freq as f64).ln() - expected_cost;
-                let got = beam.get(&cand).unwrap_or_else(|| panic!("'{typed}' -> '{cand}' missing"));
-                assert!(got.score >= expected - 1e-6, "'{typed}' -> '{cand}' {} < {expected}", got.score);
+                let got = beam
+                    .get(&cand)
+                    .unwrap_or_else(|| panic!("'{typed}' -> '{cand}' missing"));
+                assert!(
+                    got.score >= expected - 1e-6,
+                    "'{typed}' -> '{cand}' {} < {expected}",
+                    got.score
+                );
             }
         }
     }
@@ -611,7 +885,10 @@ mod tests {
     #[test]
     fn correction_and_completion_unify() {
         let d = dict(&[("the", 100), ("thermometer", 40)]);
-        let words: Vec<String> = run(&[src(&d, 0.0)], "teh", 5, None).into_iter().map(|c| c.word).collect();
+        let words: Vec<String> = run(&[src(&d, 0.0)], "teh", 5, None)
+            .into_iter()
+            .map(|c| c.word)
+            .collect();
         assert!(words.contains(&"the".to_string()) && words.contains(&"thermometer".to_string()));
     }
 
@@ -619,15 +896,24 @@ mod tests {
     fn non_ascii_corrections_come_from_trie_edges() {
         let d = dict(&[("привет", 50)]);
         let r = run(&[src(&d, 0.0)], "правет", 5, None);
-        assert_eq!(vec!["привет".to_string()], r.into_iter().map(|c| c.word).collect::<Vec<_>>());
+        assert_eq!(
+            vec!["привет".to_string()],
+            r.into_iter().map(|c| c.word).collect::<Vec<_>>()
+        );
     }
 
     #[test]
     fn source_order_does_not_change_results() {
         let a = dict(&[("hello", 70), ("help", 60)]);
         let b = dict(&[("helm", 40), ("hell", 30)]);
-        let f: Vec<(String, f64)> = run(&[src(&a, 0.0), src(&b, 2f64.ln())], "helo", 8, None).into_iter().map(|c| (c.word, c.score)).collect();
-        let r: Vec<(String, f64)> = run(&[src(&b, 2f64.ln()), src(&a, 0.0)], "helo", 8, None).into_iter().map(|c| (c.word, c.score)).collect();
+        let f: Vec<(String, f64)> = run(&[src(&a, 0.0), src(&b, 2f64.ln())], "helo", 8, None)
+            .into_iter()
+            .map(|c| (c.word, c.score))
+            .collect();
+        let r: Vec<(String, f64)> = run(&[src(&b, 2f64.ln()), src(&a, 0.0)], "helo", 8, None)
+            .into_iter()
+            .map(|c| (c.word, c.score))
+            .collect();
         assert_eq!(f, r);
     }
 
@@ -635,7 +921,19 @@ mod tests {
     fn max_merge_across_sources_keeps_best_score_and_tier() {
         let d = dict(&[("hello", 10)]);
         let user = dict(&[("hello", 10)]);
-        let r = run(&[src(&d, 0.0), WalkSource { walker: &user, log_weight: 500f64.ln(), tier: Tier::User }], "hello", 4, None);
+        let r = run(
+            &[
+                src(&d, 0.0),
+                WalkSource {
+                    walker: &user,
+                    log_weight: 500f64.ln(),
+                    tier: Tier::User,
+                },
+            ],
+            "hello",
+            4,
+            None,
+        );
         let hello = r.iter().find(|c| c.word == "hello").unwrap();
         assert_eq!(Tier::User, hello.tier);
         assert!((hello.score - (500f64.ln() + 11f64.ln())).abs() < 1e-9);
@@ -651,7 +949,11 @@ mod tests {
     struct Habit;
     impl EditHabits for Habit {
         fn substitution(&self, typed: u16, meant: u16) -> f64 {
-            if typed == 'x' as u16 && meant == 'u' as u16 { 0.6 } else { 0.0 }
+            if typed == 'x' as u16 && meant == 'u' as u16 {
+                0.6
+            } else {
+                0.0
+            }
         }
     }
 
@@ -660,7 +962,15 @@ mod tests {
         let d = dict(&[("hullo", 100)]);
         let q = KeyProximity::qwerty(false);
         let plain = &run(&[src(&d, 0.0)], "hxllo", 5, None)[0];
-        let learned = &search(&[src(&d, 0.0)], "hxllo", &q, 5, &mut Workspace::new(), None, &Habit)[0];
+        let learned = &search(
+            &[src(&d, 0.0)],
+            "hxllo",
+            &q,
+            5,
+            &mut Workspace::new(),
+            None,
+            &Habit,
+        )[0];
         assert!((plain.edit_cost - cost_sub_far()).abs() < 1e-9);
         assert!(learned.edit_cost < plain.edit_cost && learned.edit_cost >= habit_floor());
     }

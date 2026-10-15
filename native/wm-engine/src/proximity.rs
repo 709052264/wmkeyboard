@@ -26,14 +26,19 @@ impl PartialEq for KeyProximity {
 impl KeyProximity {
     /// From the layout's letter rows, one string per row.
     pub fn of_rows<S: AsRef<str>>(rows: &[S]) -> KeyProximity {
-        let rows: Vec<Vec<u16>> = rows.iter().map(|r| r.as_ref().encode_utf16().collect()).collect();
+        let rows: Vec<Vec<u16>> = rows
+            .iter()
+            .map(|r| r.as_ref().encode_utf16().collect())
+            .collect();
         let width = rows.iter().map(Vec::len).max().unwrap_or(0);
         let split = width.div_ceil(2);
         let mut hands = HashMap::new();
         let mut neighbors = HashMap::new();
         for (r, row) in rows.iter().enumerate() {
             for (i, &key) in row.iter().enumerate() {
-                hands.entry(key).or_insert(if i < split { LEFT } else { RIGHT });
+                hands
+                    .entry(key)
+                    .or_insert(if i < split { LEFT } else { RIGHT });
                 let mut adj = Vec::new();
                 if i > 0 {
                     adj.push(row[i - 1]);
