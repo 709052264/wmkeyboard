@@ -47,6 +47,10 @@
 //!   its offer, certainty and complexity, missing-space splits, and an
 //!   in-memory user lexicon.
 //!
+//! - [`cjk`]: Chinese Pinyin (full, Double, Jianpin, fuzzy), Cantonese
+//!   Jyutping and Japanese romaji/kana conversion over one lattice decoder,
+//!   with the Simplified → Traditional tables and the user's pick history.
+//!
 //! Still Kotlin: Avro's dictionary walk, the phonetic strips, touch scoring
 //! and glide.
 //!
@@ -66,6 +70,7 @@ pub mod bengali_index;
 pub mod bengali_romanizer;
 pub mod bijoy;
 pub mod bijoy_tables;
+pub mod cjk;
 pub mod correction_memory;
 pub mod correction_stats;
 pub mod devanagari_romanizer;
