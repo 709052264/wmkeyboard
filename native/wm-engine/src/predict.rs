@@ -14,6 +14,7 @@
 //! the caller's business.
 
 pub use crate::correction_memory::{CorrectionMemory, LearnedHabits};
+pub use crate::language_mix::{AppLanguageMix, FieldLanguageMix, Prior};
 pub use crate::correction_stats::{CorrectionStats, Penalty, UndoMemory};
 use crate::freq_codec;
 use crate::fuzzy::{self, EditHabits, ScoredCandidate, Tier, WalkSource, Workspace};
@@ -98,6 +99,8 @@ const ADVISE_DOMINANCE: f64 = 8.0;
 const TAUGHT_DOMINANCE: f64 = 3.0;
 const MIN_USER_COUNT: i32 = 3;
 const MIN_CORPUS_COUNT: i32 = 25;
+/// Share lead a mix language needs to be the field's language.
+const DETECTED_MARGIN: f64 = 0.34;
 
 /// The register of the field being typed into: chat-speak rises in a
 /// messaging app and sinks in email. Neutral changes nothing.
@@ -621,6 +624,11 @@ pub struct Predictor {
     pub register: Register,
     /// Fix missing apostrophes: the contraction readings and [`Self::elide`].
     pub apostrophe_fixes: bool,
+    /// The language the field is being written in, from its words.
+    pub field_mix: FieldLanguageMix,
+    /// How far that detection may shift the mix; 0 is off. See
+    /// [`crate::language_mix::FIELD_SHIFT_BALANCED`].
+    pub field_detection_shift: f64,
     ws: RefCell<Workspace>,
 }
 
@@ -653,6 +661,8 @@ impl Default for Predictor {
             habits: LearnedHabits::default(),
             register: Register::Neutral,
             apostrophe_fixes: true,
+            field_mix: FieldLanguageMix::default(),
+            field_detection_shift: 0.0,
             ws: RefCell::new(Workspace::new()),
         }
     }
@@ -727,19 +737,141 @@ impl Predictor {
     /// Every dictionary-tier list with its multiplier.
     fn dictionary_tier(&self) -> Vec<(&WordList, f64)> {
         let s = self.scales();
+        let factors = self.field_factors();
+        let factor = |lang: &str| factors.get(lang).copied().unwrap_or(1.0);
+        let primary = factor(&self.primary_language);
         let mut out = Vec::new();
         if let Some(d) = &self.dictionary {
-            out.push((d, s.active));
+            out.push((d, s.active * primary));
         }
         if let Some(c) = &self.custom {
-            out.push((c, s.custom));
+            out.push((c, s.custom * primary));
         }
-        for ((_, list), w) in self.secondaries.iter().zip(s.secondary) {
+        for ((lang, list), w) in self.secondaries.iter().zip(s.secondary) {
             if w > 0.0 {
-                out.push((list, w));
+                out.push((list, w * factor(lang)));
             }
         }
         out
+    }
+
+    // ---- the field's language ----
+
+    fn mix_languages(&self) -> Vec<&str> {
+        let mut out = vec![self.primary_language.as_str()];
+        out.extend(self.secondaries.iter().map(|(l, _)| l.as_str()));
+        out.retain(|l| !l.is_empty());
+        out
+    }
+
+    /// The languages of the mix that know `word`; empty without a mix, so a
+    /// keyboard with one language records nothing.
+    pub fn owning_languages(&self, word: &str) -> HashSet<String> {
+        let mut out = HashSet::new();
+        if self.secondaries.is_empty() {
+            return out;
+        }
+        let key = key_of(word);
+        if !self.primary_language.is_empty()
+            && (self.dictionary.as_ref().is_some_and(|d| d.contains(&key))
+                || self.custom.as_ref().is_some_and(|d| d.contains(&key)))
+        {
+            out.insert(self.primary_language.clone());
+        }
+        for (lang, list) in &self.secondaries {
+            if list.contains(&key) {
+                out.insert(lang.clone());
+            }
+        }
+        if let Some(l) = self.lexicon.language_of(&key) {
+            if !l.is_empty() {
+                out.insert(l.to_string());
+            }
+        }
+        out
+    }
+
+    /// A fresh field: the app's habit first, then the words already there,
+    /// oldest first.
+    pub fn seed_field(&mut self, words: &[&str], prior: Option<&Prior>) {
+        self.field_mix.reset();
+        if self.secondaries.is_empty() {
+            return;
+        }
+        if let Some(p) = prior {
+            self.field_mix.seed_prior(p);
+        }
+        for w in words {
+            let owners = self.owning_languages(w);
+            self.field_mix.record(&owners);
+        }
+    }
+
+    /// One word committed in the field.
+    pub fn record_field(&mut self, word: &str) {
+        if self.secondaries.is_empty() {
+            return;
+        }
+        let owners = self.owning_languages(word);
+        self.field_mix.record(&owners);
+    }
+
+    /// One weight factor per mix language from the field's shares:
+    /// `e^(shift·ramp·delta)` against its strongest rival; none while the
+    /// field says nothing.
+    fn field_factors(&self) -> HashMap<String, f64> {
+        let mut out = HashMap::new();
+        if self.field_detection_shift <= 0.0 {
+            return out;
+        }
+        let Some(shares) = self.field_mix.shares() else {
+            return out;
+        };
+        let langs = self.mix_languages();
+        if langs.len() < 2 {
+            return out;
+        }
+        for lang in &langs {
+            let rival = langs
+                .iter()
+                .filter(|o| *o != lang)
+                .map(|o| shares.share_of(o))
+                .fold(0.0, f64::max);
+            let delta = shares.share_of(lang) - rival;
+            if delta != 0.0 {
+                out.insert(
+                    lang.to_string(),
+                    (self.field_detection_shift * shares.ramp * delta).exp(),
+                );
+            }
+        }
+        out
+    }
+
+    /// The language the field is written in: the primary unless detection
+    /// is on and another mix language clearly leads its words.
+    pub fn detected_language(&self) -> &str {
+        let active = self.primary_language.as_str();
+        if active.is_empty() || self.field_detection_shift <= 0.0 {
+            return active;
+        }
+        let Some(shares) = self.field_mix.shares() else {
+            return active;
+        };
+        let mut top = active;
+        let mut top_share = shares.share_of(active);
+        for lang in self.mix_languages() {
+            let share = shares.share_of(lang);
+            if share > top_share {
+                top = lang;
+                top_share = share;
+            }
+        }
+        if top_share - shares.share_of(active) >= DETECTED_MARGIN {
+            top
+        } else {
+            active
+        }
     }
 
     fn walk_sources(&self) -> Vec<WalkSource<'_>> {
@@ -837,7 +969,7 @@ impl Predictor {
 
     /// Learned-only words tagged with another language yield to this one's.
     fn damp_mismatched_languages(&self, ranked: Vec<ScoredCandidate>) -> Vec<ScoredCandidate> {
-        let active = self.primary_language.as_str();
+        let active = self.detected_language();
         if active.is_empty() {
             return ranked;
         }
@@ -2589,5 +2721,21 @@ mod tests {
             t.keystroke(at);
         }
         assert_eq!(1.0, t.multiplier(1.0), "a pause is not rhythm");
+    }
+
+    #[test]
+    fn the_field_leans_towards_the_language_it_is_written_in() {
+        let mut e = with(&[("tomake", 1), ("tomato", 3)]);
+        e.primary_language = "en".into();
+        e.secondaries.push(("bn_rom".into(), list(&[("tomake", 50), ("ami", 80), ("bhalo", 60)]).unwrap()));
+        e.field_detection_shift = crate::language_mix::FIELD_SHIFT_AGGRESSIVE;
+        assert_eq!("en", e.detected_language());
+        let before = e.suggest("toma", &[], 2);
+        e.seed_field(&["ami", "bhalo", "ami"], None);
+        assert_eq!("bn_rom", e.detected_language());
+        let after = e.suggest("toma", &[], 2);
+        assert_eq!("tomake", after[0], "{before:?} -> {after:?}");
+        e.field_detection_shift = 0.0;
+        assert_eq!("en", e.detected_language());
     }
 }

@@ -81,6 +81,7 @@ pub mod indic_script;
 pub mod kannada;
 pub mod khipro;
 pub mod khipro_romanizer;
+pub mod language_mix;
 pub mod malayalam;
 pub mod marathi;
 pub mod odia;
