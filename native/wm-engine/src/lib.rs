@@ -39,12 +39,17 @@
 //!   the text lists they are compiled from; [`freq_codec`] is the minifloat
 //!   both store counts in.
 //!
-//! Still Kotlin: Avro's dictionary walk, prediction and glide.
+//! - [`fuzzy`]: the trie-guided correction and completion walk, with the
+//!   key [`proximity`] model and the [`accents`] fold it prices edits by.
+//!
+//! Still Kotlin: Avro's dictionary walk, the rest of prediction (ranking,
+//! n-grams, autocorrect decisions) and glide.
 //!
 //! The crate does no I/O. Its tables are compiled in from the Android app's
 //! own resource and asset files, so the two never disagree about which
 //! upstream revision they run.
 
+pub mod accents;
 pub mod arabic;
 pub mod arabic_script;
 pub mod assamese;
@@ -57,6 +62,7 @@ pub mod bijoy;
 pub mod bijoy_tables;
 pub mod devanagari_romanizer;
 pub mod freq_codec;
+pub mod fuzzy;
 pub mod gujarati;
 pub mod hindi;
 pub mod hindi_index;
@@ -73,6 +79,7 @@ pub mod odia;
 pub mod persian;
 pub mod phonetic_index;
 pub mod phonetic_key_map;
+pub mod proximity;
 pub mod punjabi;
 pub mod sexp;
 pub mod tamil;

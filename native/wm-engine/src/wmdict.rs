@@ -569,6 +569,15 @@ impl<B: AsRef<[u8]>> Dict<B> {
             .collect()
     }
 
+    /// `children` into a caller-owned buffer, cleared first: the fuzzy walk
+    /// reads a node's edges once per state and must not allocate for it.
+    pub fn children_into(&self, node: u32, out: &mut Vec<(u16, u32)>) {
+        out.clear();
+        let start = self.child_start(node as usize);
+        let count = self.child_count(node as usize);
+        out.extend((start..start + count).map(|e| (self.edge_label(e), Self::edge_child(e))));
+    }
+
     /// Edge index of `node`'s child labelled `unit`: binary search, the edges
     /// of a node being contiguous and sorted by label.
     fn child_edge(&self, node: usize, unit: u16) -> Option<usize> {
