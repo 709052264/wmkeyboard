@@ -42,8 +42,13 @@
 //! - [`fuzzy`]: the trie-guided correction and completion walk, with the
 //!   key [`proximity`] model and the [`accents`] fold it prices edits by.
 //!
-//! Still Kotlin: Avro's dictionary walk, the rest of prediction (ranking,
-//! n-grams, autocorrect decisions) and glide.
+//! - [`predict`]: the typed path of the suggestion engine on top of it:
+//!   strip ranking with context, next words, the autocorrect decision with
+//!   its offer, certainty and complexity, missing-space splits, and an
+//!   in-memory user lexicon.
+//!
+//! Still Kotlin: Avro's dictionary walk, the phonetic strips, touch scoring
+//! and glide.
 //!
 //! The crate does no I/O. Its tables are compiled in from the Android app's
 //! own resource and asset files, so the two never disagree about which
@@ -79,6 +84,7 @@ pub mod odia;
 pub mod persian;
 pub mod phonetic_index;
 pub mod phonetic_key_map;
+pub mod predict;
 pub mod proximity;
 pub mod punjabi;
 pub mod sexp;
