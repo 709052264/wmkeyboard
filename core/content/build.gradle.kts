@@ -87,6 +87,7 @@ dependencies {
     // Numeral tables, FancyStyles and the Avro rules for the selection macros.
     api(project(":core:language"))
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.exifinterface)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
     // Reading Espanso match files. Loader only, always under SafeConstructor;

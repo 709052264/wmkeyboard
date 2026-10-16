@@ -3510,6 +3510,8 @@ data class KeyboardSettings(
     val vocabulary: VocabularySettings = VocabularySettings(),
     /** The Notes tool (#560): sort, trash retention, what Save as note does (see [NotesSettings]). */
     val notes: NotesSettings = NotesSettings(),
+    /** The gallery tool (#708): grid, quality, privacy, sending (see [GallerySettings]). */
+    val gallery: GallerySettings = GallerySettings(),
     /**
      * Which features are given up to save battery, and what switches that on
      * (see [PowerSavingSettings]). Read the *config*; what is actually in force
@@ -10666,6 +10668,7 @@ class SettingsRepository(private val context: Context) {
             trackpad = readTrackpad(p, defaults),
             vocabulary = readVocabulary(p, defaults),
             notes = readNotes(p, defaults),
+            gallery = GalleryPrefs.read(p, defaults.gallery),
             powerSaving = readPowerSaving(p, defaults),
             dataSaver = dataSaverFromPrefs(p, defaults),
             numpadCalculatorLayout = p[NUMPAD_CALCULATOR_LAYOUT]
@@ -13402,6 +13405,16 @@ class SettingsRepository(private val context: Context) {
     /** Days a trashed note waits; 0 keeps it until the user deletes it. */
     suspend fun setNotesTrashDays(value: Int) =
         editPrefs { it[NOTES_TRASH_DAYS] = value.coerceIn(0, NotesSettings.MAX_TRASH_DAYS) }
+
+    /**
+     * One change to the gallery tool's settings (#708), applied to what is
+     * stored rather than to the caller's copy, so two quick changes cannot
+     * undo each other. Only the keys that changed are written.
+     */
+    suspend fun updateGallery(change: (GallerySettings) -> GallerySettings) = editPrefs { p ->
+        val old = GalleryPrefs.read(p, storedDefaults.gallery)
+        GalleryPrefs.write(p, old, change(old))
+    }
 
     /**
      * Tells the running keyboard that notes.json was rewritten under it (a
