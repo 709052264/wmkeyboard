@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.settings
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -48,5 +49,27 @@ class AutoBackupScheduleTest {
     fun `the default is a daily backup`() {
         assertFalse(AutoBackupRunner.isDue(AutoBackupSettings(lastRunAtMs = now - 23 * hour), now))
         assertTrue(AutoBackupRunner.isDue(AutoBackupSettings(lastRunAtMs = now - 25 * hour), now))
+    }
+
+    private val mb = 1024L * 1024L
+
+    @Test
+    fun `only the largest heavy sections are left out`() {
+        // Issue #692: big sticker packs used to take the word lists and the
+        // vocabulary out with them.
+        val sizes = mapOf(
+            ConfigBackup.Section.STICKERS to 40 * mb,
+            ConfigBackup.Section.ICONS to 3 * mb,
+            ConfigBackup.Section.WORDLISTS to 1 * mb,
+            ConfigBackup.Section.VOCAB to 0L,
+        )
+        val dropped = AutoBackupRunner.sectionsToDrop(sizes.keys, 16 * mb) { sizes.getValue(it) }
+        assertEquals(setOf(ConfigBackup.Section.STICKERS), dropped)
+    }
+
+    @Test
+    fun `nothing is left out under the limit`() {
+        val sizes = mapOf(ConfigBackup.Section.STICKERS to 10 * mb, ConfigBackup.Section.ICONS to 5 * mb)
+        assertEquals(emptySet<ConfigBackup.Section>(), AutoBackupRunner.sectionsToDrop(sizes.keys, 16 * mb) { sizes.getValue(it) })
     }
 }

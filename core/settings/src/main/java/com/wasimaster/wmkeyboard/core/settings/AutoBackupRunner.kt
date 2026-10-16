@@ -58,12 +58,45 @@ import kotlinx.coroutines.withContext
 object AutoBackupRunner {
 
     /**
-     * The point past which the image sections are dropped rather than embedded.
+     * The least the embedded files may take before sections are dropped.
      *
-     * Not a tuning knob so much as a ceiling on how much of the heap one export
-     * may ask for. See [SettingsRepository.embeddedByteEstimate].
+     * Not a tuning knob so much as a floor under [maxEmbeddedBytes], the
+     * ceiling on how much of the heap one export may ask for. See
+     * [SettingsRepository.embeddedByteEstimate].
      */
-    private const val MAX_EMBEDDED_BYTES = 16L * 1024 * 1024
+    private const val MIN_EMBEDDED_BYTES = 16L * 1024 * 1024
+
+    /**
+     * How much embedded file data one export may carry: an eighth of the heap
+     * this process may grow to, never under [MIN_EMBEDDED_BYTES]. The bundle is
+     * built as one string and, when encrypted, copied again, so the eighth
+     * leaves room for those copies and for the keyboard itself.
+     */
+    private fun maxEmbeddedBytes(): Long = maxOf(MIN_EMBEDDED_BYTES, Runtime.getRuntime().maxMemory() / 8)
+
+    /**
+     * The heavy sections to leave out of a bundle of [requested] so the rest
+     * fits under [limit]: the largest first, one at a time, until it does.
+     *
+     * Issue #692: every heavy section went at once when their sum was over the
+     * line, so a big sticker collection also took the word lists and the
+     * vocabulary with it, though those were a few hundred kilobytes.
+     */
+    fun sectionsToDrop(
+        requested: Set<ConfigBackup.Section>,
+        limit: Long,
+        estimate: (ConfigBackup.Section) -> Long,
+    ): Set<ConfigBackup.Section> {
+        val sizes = (requested intersect HEAVY_SECTIONS).associateWith(estimate)
+        var total = sizes.values.sum()
+        val dropped = LinkedHashSet<ConfigBackup.Section>()
+        for ((section, size) in sizes.entries.sortedByDescending { it.value }) {
+            if (total <= limit) break
+            dropped += section
+            total -= size
+        }
+        return dropped
+    }
 
     /** Sections that carry whole files, and so are the ones worth dropping. */
     private val HEAVY_SECTIONS = setOf(
@@ -256,10 +289,8 @@ object AutoBackupRunner {
         // Drop the bulky sections before building anything, not after: the
         // failure being avoided is an allocation, so noticing it in the
         // finished string would be noticing it too late.
-        val skipped = if (repository.embeddedByteEstimate(requested) > MAX_EMBEDDED_BYTES) {
-            requested intersect HEAVY_SECTIONS
-        } else {
-            emptySet()
+        val skipped = sectionsToDrop(requested, maxEmbeddedBytes()) { section ->
+            repository.embeddedByteEstimate(setOf(section))
         }
         val sections = requested - skipped
         if (sections.isEmpty()) return Outcome.Skipped

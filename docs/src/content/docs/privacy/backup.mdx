@@ -174,10 +174,12 @@ packs is not, and it goes out every interval, which is why Wi-Fi is the
 default. Turn it off and a backup uploads over mobile data as soon as it's
 due. The Wi-Fi toggle only appears while a ticked location needs a
 connection. A **Folder** is storage on your own device, so it backs up offline
-either way. There is one ceiling you don't set: when the sticker packs, icon
-packs and imported word lists would push the file past 16 MB, an automatic
-run drops those three sections and backs up everything else. A manual export
-never does.
+either way. There is one ceiling you don't set, on how much
+of the phone's memory one backup may take: an eighth of what the app may use,
+and never under 16 MB. When the sticker packs, icon packs and imported word
+lists would push the file past it, an automatic run leaves out the largest of
+them first, one at a time, until the rest fits, and backs up everything else.
+The message after the run names what it left out. A manual export never does.
 
 Turning **Only while charging** off is worth knowing about for the opposite
 reason. A phone that's only ever charged in the car may never be plugged in
