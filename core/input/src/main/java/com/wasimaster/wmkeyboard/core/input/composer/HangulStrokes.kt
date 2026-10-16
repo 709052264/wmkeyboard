@@ -52,12 +52,23 @@ object HangulStrokes {
         return if (pairs) buffer.replacedAt(joined, STROKE.getValue(buffer[joined])) else null
     }
 
-    /** [buffer] with its last consonant doubled, or undoubled; null when it has no pair. */
-    fun doubleConsonant(buffer: CharSequence): String? {
+    /**
+     * [buffer] with its last consonant doubled, or undoubled; null when it has
+     * no pair.
+     *
+     * On a vowel the key gives the y-form, the way 나랏글 pads do (issue #685):
+     * ㅏ ㅑ, ㅓ ㅕ, ㅗ ㅛ, ㅜ ㅠ, and with [vowelPairs] ㅐ ㅒ and ㅔ ㅖ. That is the
+     * stroke key's answer for a vowel, so both keys reach it.
+     */
+    fun doubleConsonant(buffer: CharSequence, vowelPairs: Boolean = false): String? {
         val last = buffer.lastIndex
         if (last < 0) return null
-        return DOUBLE[buffer[last]]?.let { buffer.replacedAt(last, it) }
+        DOUBLE[buffer[last]]?.let { return buffer.replacedAt(last, it) }
+        return if (buffer[last] in VOWELS) addStroke(buffer, vowelPairs) else null
     }
+
+    /** The vowels [STROKE] has a y-form for, and the ㅣ that ends ㅐ or ㅔ. */
+    private const val VOWELS = "ㅏㅑㅓㅕㅗㅛㅜㅠㅣ"
 
     private fun CharSequence.replacedAt(index: Int, c: Char): String =
         StringBuilder(this).apply { setCharAt(index, c) }.toString()

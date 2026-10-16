@@ -5,7 +5,7 @@
     "id": "asset_ko_danmoeum",
     "name": "단모음 (Danmoeum)",
     "langId": "ko",
-    "version": 2,
+    "version": 3,
     "layers": {
       "letters": {
         "rows": [
@@ -15,35 +15,50 @@
               "longPress": [
                 "ㅃ"
               ],
-              "shiftLabel": "ㅃ"
+              "shiftLabel": "ㅃ",
+              "multitap": [
+                "ㅃ"
+              ]
             },
             {
               "label": "ㅈ",
               "longPress": [
                 "ㅉ"
               ],
-              "shiftLabel": "ㅉ"
+              "shiftLabel": "ㅉ",
+              "multitap": [
+                "ㅉ"
+              ]
             },
             {
               "label": "ㄷ",
               "longPress": [
                 "ㄸ"
               ],
-              "shiftLabel": "ㄸ"
+              "shiftLabel": "ㄸ",
+              "multitap": [
+                "ㄸ"
+              ]
             },
             {
               "label": "ㄱ",
               "longPress": [
                 "ㄲ"
               ],
-              "shiftLabel": "ㄲ"
+              "shiftLabel": "ㄲ",
+              "multitap": [
+                "ㄲ"
+              ]
             },
             {
               "label": "ㅅ",
               "longPress": [
                 "ㅆ"
               ],
-              "shiftLabel": "ㅆ"
+              "shiftLabel": "ㅆ",
+              "multitap": [
+                "ㅆ"
+              ]
             },
             {
               "label": "ㅗ",
@@ -57,7 +72,10 @@
               "longPress": [
                 "ㅒ"
               ],
-              "shiftLabel": "ㅒ"
+              "shiftLabel": "ㅒ",
+              "multitap": [
+                "ㅒ"
+              ]
             },
             {
               "label": "ㅔ",
@@ -91,14 +109,20 @@
               "longPress": [
                 "ㅕ"
               ],
-              "shiftLabel": "ㅕ"
+              "shiftLabel": "ㅕ",
+              "multitap": [
+                "ㅕ"
+              ]
             },
             {
               "label": "ㅏ",
               "longPress": [
                 "ㅑ"
               ],
-              "shiftLabel": "ㅑ"
+              "shiftLabel": "ㅑ",
+              "multitap": [
+                "ㅑ"
+              ]
             },
             {
               "label": "ㅣ",

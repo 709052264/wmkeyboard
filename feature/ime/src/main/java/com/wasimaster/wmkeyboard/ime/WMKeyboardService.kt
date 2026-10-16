@@ -7947,7 +7947,9 @@ open class WMKeyboardService : InputMethodService() {
             KeyAction.AddStroke -> rewriteLastJamo { buffer, composer ->
                 HangulStrokes.addStroke(buffer, vowelPairs = composer === NaratgeulComposer)
             }
-            KeyAction.DoubleConsonant -> rewriteLastJamo { buffer, _ -> HangulStrokes.doubleConsonant(buffer) }
+            KeyAction.DoubleConsonant -> rewriteLastJamo { buffer, composer ->
+                HangulStrokes.doubleConsonant(buffer, vowelPairs = composer === NaratgeulComposer)
+            }
             // A syllable picked from a 九宫格 pad's reading column (#635).
             KeyAction.ReadingColumn -> pickConversionReading(key.output.orEmpty())
             KeyAction.Fn -> onFn()

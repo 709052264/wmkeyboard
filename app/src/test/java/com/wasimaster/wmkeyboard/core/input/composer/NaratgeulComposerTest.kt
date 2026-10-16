@@ -24,7 +24,7 @@ class NaratgeulComposerTest {
     }
 
     private val stroke = { b: String -> HangulStrokes.addStroke(b, vowelPairs = true) }
-    private val double = { b: String -> HangulStrokes.doubleConsonant(b) }
+    private val double = { b: String -> HangulStrokes.doubleConsonant(b, vowelPairs = true) }
 
     @Test fun `it is a transliterating input method`() {
         assertTrue(NaratgeulComposer.isTransliterating)
@@ -67,8 +67,16 @@ class NaratgeulComposerTest {
             assertEquals(pair[0].toString(), double(pair[1].toString()))
         }
         assertNull("ㅋ has no tense twin of its own", double("ㅋ"))
-        assertNull("a vowel is never doubled", double("ㅏ"))
         assertNull(double(""))
+    }
+
+    @Test fun `double consonant on a vowel gives its y-form`() {
+        // Issue #685: ㅏ ㅐ ㅓ and the double key make ㅑ ㅒ ㅕ.
+        assertEquals("갸", compose(double("ㄱㅏ")!!))
+        assertEquals("걔", compose(double("ㄱㅏㅣ")!!))
+        assertEquals("겨", compose(double("ㄱㅓ")!!))
+        assertEquals("계", compose(double("ㄱㅓㅣ")!!))
+        assertNull("ㅡ has no y-form", double("ㅡ"))
     }
 
     @Test fun `add stroke on built syllables follows the issue's examples`() {
