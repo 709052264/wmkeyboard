@@ -40,7 +40,11 @@ class GlideWorkspace {
     /** Cost accumulated outside the alignment: doubled letters, for now. */
     var extra = FloatArray(INITIAL); private set
 
-    /** Best (lowest) value in this state's column — the admissible remainder. */
+    /**
+     * The least alignment cost any word through this state can finish on: the
+     * lowest of its column plus [remain] from each sample on. What the bound
+     * subtracts, so it must never overstate what a word will really pay.
+     */
     var floorCost = FloatArray(INITIAL); private set
 
     var bound = DoubleArray(INITIAL); private set
@@ -67,6 +71,18 @@ class GlideWorkspace {
 
     /** `pointCost[i * keyCount + k]`, filled per decode by [GlideBeam]. */
     var pointCost = FloatArray(SAMPLE_POINTS * INITIAL_KEYS); private set
+
+    /**
+     * `remain[i * keyCount + k]`: the least the rest of the stroke can cost a
+     * word whose latest letter sits on key `k` at sample `i`, over every key
+     * sequence the grid allows and ignoring the dictionary. Zero at the last
+     * sample for a key the stroke can end on. Filled per decode by [GlideBeam].
+     */
+    var remain = FloatArray(SAMPLE_POINTS * INITIAL_KEYS); private set
+
+    /** The keys the stroke passes near, as a list, for the passes that only care about those. */
+    var nearList = IntArray(INITIAL_KEYS); private set
+    var nearCount = 0
 
     /**
      * The pauses, as events: the sample each hold sits on, how still the
@@ -209,6 +225,9 @@ class GlideWorkspace {
         loopCount = 0
         val needed = SAMPLE_POINTS * keyCount
         if (pointCost.size < needed) pointCost = FloatArray(needed)
+        if (remain.size < needed) remain = FloatArray(needed)
+        if (nearList.size < keyCount) nearList = IntArray(keyCount)
+        nearCount = 0
     }
 
     /**
@@ -349,14 +368,20 @@ class GlideWorkspace {
         const val SAMPLE_POINTS = 48
 
         /**
-         * Frontier cap, worth ~590 KB of columns once the pool has grown into
+         * Frontier cap, worth ~1.5 MB of columns once the pool has grown into
          * it (MAX_STATES × SAMPLE_POINTS × 4 bytes). Best-first order means the
          * states that matter are expanded first, so hitting this is a backstop
          * rather than a bound anyone should reach; [saturated] records when it
          * happened so the harness can see it rather than reading a quietly
          * worse number.
+         *
+         * It was 3072, and on a long word it was reached every time: a German
+         * stroke of fifteen letters or more saturated the pool on every one of
+         * 300 synthetic strokes, and the word drawn was never pushed (issue
+         * #714). At 8192 none of them do, and the walk ends on its pop budget
+         * or its floor instead, in the same time per decode.
          */
-        const val MAX_STATES = 3072
+        const val MAX_STATES = 8192
 
         /** Longest key sequence a candidate's ideal path can have. */
         const val MAX_IDEAL_POINTS = 32

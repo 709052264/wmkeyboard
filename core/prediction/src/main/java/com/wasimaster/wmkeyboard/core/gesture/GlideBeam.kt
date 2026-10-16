@@ -42,12 +42,13 @@ import kotlin.math.sqrt
  * column)` and advancing one letter is one bounded pass over the column.
  *
  * **Why the bound is admissible.** Both terms are non-negative and the DP takes
- * a minimum over predecessors, so no extension of a prefix can finish below that
- * prefix column's lowest value. Expanding in order of
- * `logWeight + ln(1 + maxSubtree(node)) - shapeWeight * minCol` therefore never
- * discards a word that would have finished in the top K — the same argument
- * `FuzzyBeamSearch` makes for typing, with the alignment floor standing in for
- * the edit cost.
+ * a minimum over predecessors, so no extension of a prefix can finish below the
+ * lowest of its column plus the cheapest any key sequence could explain the rest
+ * of the stroke from there ([buildRemain]). Expanding in order of
+ * `logWeight + ln(1 + maxSubtree(node)) - shapeWeight * thatFloor` therefore
+ * never discards a word that would have finished in the top K — the same
+ * argument `FuzzyBeamSearch` makes for typing, with the alignment floor standing
+ * in for the edit cost.
  *
  * **One thing that was tried and did not work.** Weighting each sample by how
  * deliberate the finger looked there — letters sit at velocity minima and
@@ -545,6 +546,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         buildDwell(keys, ws)
         if (ws.arcStep <= 0f) return emptyList()
         buildLoops(path, keyWidth, keys, ws)
+        buildRemain(keys, ws)
 
         val k = maxOf(limit * 2, RESULT_K)
         val results = HashMap<String, Candidate>()
@@ -1073,10 +1075,12 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         val cost = ws.pointCost
         val out = ws.scratch
 
+        val remain = ws.remain
+
         if (prevColumn < 0) {
             out[0] = cost[key]
             for (j in 1 until n) out[j] = GlideWorkspace.UNREACHABLE
-            return out[0]
+            return if (remain[key] >= GlideWorkspace.UNREACHABLE) GlideWorkspace.UNREACHABLE else out[0] + remain[key]
         }
 
         val prev = ws.cols
@@ -1114,9 +1118,78 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
                 bestPrev + cost[j * keyCount + key]
             }
             out[j] = value
-            if (value < best) best = value
+            val rest = remain[j * keyCount + key]
+            if (value < GlideWorkspace.UNREACHABLE && rest < GlideWorkspace.UNREACHABLE && value + rest < best) {
+                best = value + rest
+            }
         }
         return best
+    }
+
+    /**
+     * Fills [GlideWorkspace.remain]: for every sample and every key the stroke
+     * passes near, the cheapest way to explain the rest of the stroke from a
+     * letter sitting there, over any sequence of keys at all. The same two
+     * terms and the same band as [advance], run backwards from the last sample,
+     * with the dictionary left out — which is what makes it a lower bound on
+     * what any real word will pay.
+     *
+     * Without it the walk's bound was a prefix column's lowest value alone, and
+     * a prefix's lowest value is almost always early in the stroke, where its
+     * few letters fit well — it says nothing about the length of stroke still
+     * unexplained. On a short stroke that hardly matters. On a long one every
+     * two- and three-letter prefix in the dictionary looked as good as the word
+     * being drawn, the walk spent its whole state pool on them, and the word
+     * was never reached: a nineteen-letter German compound came back as some
+     * six-letter word that fit a third of the stroke (issue #714). Charging
+     * each prefix for the stroke ahead of it turns the walk from breadth-first
+     * in disguise into an A* search, and since the remainder never overstates
+     * it the bound stays admissible and the top K are still exact.
+     */
+    @Suppress("NestedBlockDepth")
+    private fun buildRemain(keys: GlideKeyMap, ws: GlideWorkspace) {
+        val n = GlideWorkspace.SAMPLE_POINTS
+        val keyCount = keys.keyCount
+        val cost = ws.pointCost
+        val remain = ws.remain
+        val arc = ws.arcAt
+        val step = ws.arcStep
+        val near = ws.nearList
+        for (k in 0 until keyCount) if (ws.nearKey[k]) near[ws.nearCount++] = k
+        val count = ws.nearCount
+        val last = (n - 1) * keyCount
+        for (k in 0 until keyCount) {
+            remain[last + k] = if (ws.endKey[k]) 0f else GlideWorkspace.UNREACHABLE
+        }
+        for (j in n - 2 downTo 0) {
+            val base = j * keyCount
+            val arcJ = arc[j]
+            for (a in 0 until keyCount) remain[base + a] = GlideWorkspace.UNREACHABLE
+            for (x in 0 until count) {
+                val from = near[x]
+                var best = GlideWorkspace.UNREACHABLE
+                for (y in 0 until count) {
+                    val to = near[y]
+                    val span = keys.distance(from, to)
+                    val expected = span / step
+                    val lo = maxOf(1, (expected - tuning.gapWindow).toInt())
+                    val hi = maxOf(lo, (expected + tuning.gapWindow).toInt() + 1) + ws.collapsedSamples
+                    val end = minOf(n - 1, j + hi)
+                    var i = j + lo
+                    while (i <= end) {
+                        val rest = remain[i * keyCount + to]
+                        if (rest < GlideWorkspace.UNREACHABLE) {
+                            val gap = arc[i] - arcJ - span
+                            val v = tuning.gapWeight * (if (gap < 0f) -gap else gap) +
+                                cost[i * keyCount + to] + rest
+                            if (v < best) best = v
+                        }
+                        i++
+                    }
+                }
+                remain[base + from] = best
+            }
+        }
     }
 
     // ---- per-decode preparation ----
