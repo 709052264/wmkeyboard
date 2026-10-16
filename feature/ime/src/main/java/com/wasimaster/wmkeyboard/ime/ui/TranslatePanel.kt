@@ -199,6 +199,12 @@ internal fun TranslateTool(
 ) {
     val menus = remember { TranslateMenus() }
     val sideBySide = shortLandscape()
+    // Issue #695: sideways, with the keys back under the panel, the panel is
+    // cut down to its header and the text box below it got no height at all,
+    // so what was typed never showed. While typing, the header carries the
+    // text and its translation instead, and the language chips move down into
+    // whatever room the body has left.
+    val typingSideways = sideBySide && state.mediaSearchActive
     FullBleedTool(
         state,
         title = if (sideBySide) "" else stringResource(R.string.ime_tool_translate),
@@ -208,7 +214,33 @@ internal fun TranslateTool(
         // several lines in the panel itself rather than the header's one-line
         // search bar: room for both over the keys.
         compactHeight = translateCompactHeight(),
-        headerActions = if (sideBySide) {
+        headerActions = if (typingSideways) {
+            {
+                TranslateQueryBox(
+                    state = state,
+                    focused = state.focusedIndex(FocusRegion.SEARCH) == 0,
+                    onQueryTap = onQueryTap,
+                    onPaste = callbacks.onPaste,
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(max = FullBleedHeaderHeight),
+                    singleLine = true,
+                )
+                TranslateResult(
+                    state,
+                    Modifier
+                        .weight(1f)
+                        .heightIn(max = FullBleedHeaderHeight)
+                        .padding(start = 8.dp),
+                )
+                TranslateActionRow(
+                    state,
+                    callbacks,
+                    Modifier.padding(start = 8.dp),
+                    actionModifier = Modifier.widthIn(min = TranslateHeaderActionMinWidth),
+                )
+            }
+        } else if (sideBySide) {
             {
                 TranslateLanguageRow(state, callbacks, menus, Modifier.weight(1f))
                 TranslateActionRow(
@@ -222,7 +254,11 @@ internal fun TranslateTool(
             null
         },
     ) {
-        TranslatePanel(state, callbacks, onQueryTap, menus, sideBySide)
+        if (typingSideways) {
+            TranslateLanguageRow(state, callbacks, menus, Modifier.fillMaxWidth().padding(horizontal = 8.dp))
+        } else {
+            TranslatePanel(state, callbacks, onQueryTap, menus, sideBySide)
+        }
     }
 }
 
@@ -688,13 +724,15 @@ private fun TranslateQueryBox(
     onQueryTap: () -> Unit,
     onPaste: () -> Unit,
     modifier: Modifier,
+    /** In the header's one row: no room for more than a line, nor for the margins. */
+    singleLine: Boolean = false,
 ) {
     val kb = LocalKbTheme.current
     val shape = kb.cardShape()
     val hint = stringResource(R.string.ime_translate_hint)
     Box(
         modifier = modifier
-            .padding(top = 2.dp, bottom = 6.dp)
+            .padding(top = if (singleLine) 4.dp else 2.dp, bottom = if (singleLine) 4.dp else 6.dp)
             .clip(shape)
             .frostGlass(kb, shape, FrostSurface.CHIPS)
             .background(kb.chip)
@@ -702,7 +740,12 @@ private fun TranslateQueryBox(
             .focusRing(focused, shape)
             .clickable(enabled = !state.mediaSearchActive) { onQueryTap() }
             // Room on the right for the paste button below.
-            .padding(start = 12.dp, end = 12.dp + TranslatePasteSize, top = 8.dp, bottom = 8.dp),
+            .padding(
+                start = 12.dp,
+                end = 12.dp + TranslatePasteSize,
+                top = if (singleLine) 4.dp else 8.dp,
+                bottom = if (singleLine) 4.dp else 8.dp,
+            ),
     ) {
         if (state.mediaSearchActive) {
             ClipEditText(
@@ -712,7 +755,7 @@ private fun TranslateQueryBox(
                 placeholderColor = kb.secondaryText,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 20.dp, max = TranslateQueryMaxHeight),
+                    .heightIn(min = 20.dp, max = if (singleLine) 28.dp else TranslateQueryMaxHeight),
             )
         } else {
             Text(
@@ -720,7 +763,7 @@ private fun TranslateQueryBox(
                 color = if (state.mediaQuery.isEmpty()) kb.secondaryText else kb.chipText,
                 fontSize = 14.sp,
                 lineHeight = 19.sp,
-                maxLines = 3,
+                maxLines = if (singleLine) 1 else 3,
                 overflow = TextOverflow.Ellipsis,
             )
         }
