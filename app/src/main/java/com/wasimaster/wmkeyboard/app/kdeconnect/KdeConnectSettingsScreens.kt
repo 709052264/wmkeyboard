@@ -422,7 +422,7 @@ internal fun KdeDevicesScreen(repository: SettingsRepository, settings: LiveSett
         }
     }
 
-    SettingsGroup(stringResource(R.string.kdeconnect_devices_nearby)) {
+    SettingsGroup(stringResource(R.string.kdeconnect_devices_nearby), info = stringResource(R.string.kdeconnect_devices_pair_code_info)) {
         if (hub.nearby.isEmpty()) {
             item {
                 Column(Modifier.fillMaxWidth().padding(16.dp)) {
@@ -561,4 +561,5 @@ private val DEVICE_SWITCHES = listOf(
     KdePluginKeys.SHARE to R.string.kdeconnect_device_files,
     KdePluginKeys.MEDIA to R.string.kdeconnect_device_media,
     KdePluginKeys.BATTERY to R.string.kdeconnect_device_battery,
+    KdePluginKeys.SYNC to R.string.kdeconnect_device_sync,
 )

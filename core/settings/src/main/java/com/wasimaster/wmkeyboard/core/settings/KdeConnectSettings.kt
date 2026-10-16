@@ -31,10 +31,12 @@ enum class KdeLinkLifetime {
  */
 data class KdeConnectSettings(
     /**
-     * The master switch, off until the user presses Turn on in the panel.
-     * Nothing announces itself on the network, or listens to it, before that.
+     * The master switch. On by default, so a computer with WM Keyboard can be
+     * paired by scanning its code and then sync with this phone. On costs
+     * nothing by itself: the engine opens no socket until something is
+     * paired or the user is looking for a device (see KdeConnectHub).
      */
-    val enabled: Boolean = false,
+    val enabled: Boolean = true,
     /** The name computers show for this phone; blank uses the phone's model. */
     val deviceName: String = "",
     val lifetime: KdeLinkLifetime = KdeLinkLifetime.KEYBOARD,

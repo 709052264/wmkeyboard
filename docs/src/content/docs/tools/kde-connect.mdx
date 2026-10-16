@@ -19,7 +19,7 @@ You do not need the KDE Connect app on the phone. The keyboard shows up on the c
 
 ## Turning it on
 
-Open **KDE Connect** from the toolbox and press **Turn on**. Until you do, the tool does nothing at all on your network: it sends nothing and listens for nothing.
+**Use KDE Connect** is on from the start, but being on sends nothing by itself. The keyboard only goes on your network once a computer is paired, or while a device list is open in the panel or in settings. Turn the switch off under <SettingsPath path="Tools / KDE Connect" /> and it does nothing at all on your network: it sends nothing and listens for nothing.
 
 After that the panel lists the computers it can see. On the computer, KDE Connect (or GSConnect, or Valent) has to be running.
 
@@ -32,6 +32,12 @@ After that the panel lists the computers it can see. On the computer, KDE Connec
 You can also start from the computer: pick the phone there, press pair, and accept on the phone. That only works while the keyboard's device list is open, because that is the only time the keyboard talks to computers it has not paired with.
 
 The code is what makes pairing safe. It is calculated from both devices' keys, so a match means the computer on your screen is the one in front of you and not something else on the Wi-Fi. After pairing, the computer's certificate is remembered and nothing else is accepted under its name.
+
+### Pairing with WM Keyboard on a computer
+
+WMK Desktop, WM Keyboard for the Mac, shows a pairing code under **Backup & restore › Sync devices › Pair a phone**, and on its setup page. Point the phone's camera, or any QR scanner, at the code and open the link it shows. WM Keyboard opens on the devices screen and pairs with that computer, with no code to compare. The link holds the computer's address and its certificate fingerprint, so the phone pairs only with the computer that showed it, and its one-time token works once.
+
+Once paired, the two sync through each other: see [Sync between devices](/privacy/backup/#sync-between-devices).
 
 ### If the computer does not show up
 
@@ -108,9 +114,9 @@ Big **previous** and **next** buttons for a presentation, **Start** (F5) and **E
 
 <SettingsPath path="Tools / KDE Connect" />
 
-**Use KDE Connect**: off by default. The master switch.
+**Use KDE Connect**: on by default. The master switch. Nothing goes on the network until a computer is paired or a device list is open.
 
-**Devices**: paired computers and the ones nearby, with a switch per computer for clipboard, typing, files, phone media and battery. Also the list of addresses added by hand, and this phone's certificate fingerprint.
+**Devices**: paired computers and the ones nearby, with a switch per computer for clipboard, typing, files, phone media, battery and sync. Also the list of addresses added by hand, and this phone's certificate fingerprint.
 
 **Name shown on the computer**: blank uses the phone's model followed by *WM Keyboard*, shortened to *WMK* when the model name is long. Up to 32 characters, and the protocol does not allow punctuation.
 

@@ -336,6 +336,8 @@
                 <data android:scheme="wmkeyboard" android:host="addons" />
                 <data android:scheme="wmkeyboard" android:host="repo" />
                 <data android:scheme="wmkeyboard" android:host="addon" />
+                <!-- A computer's pairing code (WMK Desktop): KdeConnectHub.pairByCode. -->
+                <data android:scheme="wmkeyboard" android:host="pair" />
             </intent-filter>
 
             <!--

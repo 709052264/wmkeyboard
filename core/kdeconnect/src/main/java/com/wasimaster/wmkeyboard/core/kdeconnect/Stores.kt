@@ -165,6 +165,7 @@ object KdePluginKeys {
     const val SHARE = "share"
     const val BATTERY = "battery"
     const val CODES = "codes"
+    const val SYNC = "sync"
 }
 
 /** Write-then-rename, so a crash mid-write cannot leave half a private key behind. */

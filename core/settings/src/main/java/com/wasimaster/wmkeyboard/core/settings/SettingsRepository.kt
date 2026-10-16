@@ -3856,6 +3856,14 @@ enum class BackupDestination(
 
     /** A folder of messages in a mail account. See [ImapConfig]. */
     IMAP("imap"),
+
+    /**
+     * A computer with WM Keyboard, paired over KDE Connect: sync files go to
+     * it and come from it directly while both are on one network. A sync
+     * location only, never a backup destination; made when the computer is
+     * paired, not from the add sheet. See [BackupLocation.nearbyDeviceId].
+     */
+    NEARBY("nearby"),
 }
 
 /**
@@ -4167,6 +4175,13 @@ data class SyncSettings(
      */
     val includeSecrets: Boolean = false,
     /**
+     * Sync with paired devices: a computer with WM Keyboard paired over KDE
+     * Connect becomes a Nearby device location, and sync starts with it. On
+     * by default, unlike every other trigger here, because pairing is already
+     * the user asking for the two to work together.
+     */
+    val withPairedDevices: Boolean = true,
+    /**
      * Groups of settings this device keeps to itself, by
      * [com.wasimaster.wmkeyboard.core.settings.sync.SyncKeys.LocalGroup.id].
      * None by default: everything in Settings syncs until the user says a
@@ -4339,7 +4354,8 @@ val AutoBackupSettings.destinationConfigured: Boolean
         BackupDestination.FTP -> ftp.host.isNotEmpty() && ftp.user.isNotEmpty()
         // Only ever a location in the list. The single destination these
         // settings describe predates them and cannot name one.
-        BackupDestination.SFTP, BackupDestination.SMB, BackupDestination.GIT, BackupDestination.IMAP -> false
+        BackupDestination.SFTP, BackupDestination.SMB, BackupDestination.GIT, BackupDestination.IMAP,
+        BackupDestination.NEARBY -> false
     }
 
 /**
@@ -4352,7 +4368,7 @@ val AutoBackupSettings.destinationConfigured: Boolean
  * own terms, and we cannot see which case we are in.
  */
 val BackupDestination.needsNetwork: Boolean
-    get() = this != BackupDestination.FOLDER
+    get() = this != BackupDestination.FOLDER && this != BackupDestination.NEARBY
 
 /**
  * Whether access is an account sign-in rather than a folder grant or typed
@@ -9698,6 +9714,7 @@ class SettingsRepository(private val context: Context) {
         private val SYNC_LOCATION_IDS = stringSetPreferencesKey(SettingsBackup.SYNC_LOCATION_IDS)
         private val SYNC_SECTIONS = stringSetPreferencesKey(SettingsBackup.SYNC_SECTIONS)
         private val SYNC_INCLUDE_SECRETS = booleanPreferencesKey(SettingsBackup.SYNC_INCLUDE_SECRETS)
+        private val SYNC_WITH_PAIRED_DEVICES = booleanPreferencesKey(SettingsBackup.SYNC_WITH_PAIRED_DEVICES)
         private val SYNC_KEEP_LOCAL = stringSetPreferencesKey(SettingsBackup.SYNC_KEEP_LOCAL)
         private val SYNC_LAST_RUN_AT = longPreferencesKey(SettingsBackup.SYNC_LAST_RUN_AT)
         private val SYNC_LAST_ERROR = stringPreferencesKey(SettingsBackup.SYNC_LAST_ERROR)
@@ -11385,6 +11402,7 @@ class SettingsRepository(private val context: Context) {
                 locationIds = defaults.autoBackup.sync.locationIds,
                 sections = p[SYNC_SECTIONS] ?: defaults.autoBackup.sync.sections,
                 includeSecrets = p[SYNC_INCLUDE_SECRETS] ?: defaults.autoBackup.sync.includeSecrets,
+                withPairedDevices = p[SYNC_WITH_PAIRED_DEVICES] ?: defaults.autoBackup.sync.withPairedDevices,
                 keepLocal = p[SYNC_KEEP_LOCAL] ?: defaults.autoBackup.sync.keepLocal,
                 lastRunAtMs = p[SYNC_LAST_RUN_AT] ?: defaults.autoBackup.sync.lastRunAtMs,
                 lastError = p[SYNC_LAST_ERROR] ?: defaults.autoBackup.sync.lastError,
@@ -18298,6 +18316,31 @@ class SettingsRepository(private val context: Context) {
         editPrefs { prefs -> prefs[SYNC_SECTIONS] = value.mapTo(HashSet()) { it.id } }
 
     suspend fun setSyncIncludeSecrets(value: Boolean) = editPrefs { it[SYNC_INCLUDE_SECRETS] = value }
+
+    suspend fun setSyncWithPairedDevices(value: Boolean) = editPrefs { it[SYNC_WITH_PAIRED_DEVICES] = value }
+
+    /**
+     * A computer with WM Keyboard was paired over KDE Connect, or came within
+     * reach: with Sync with paired devices on, it becomes a Nearby device
+     * location, ticked for sync, and sync is turned on. Never a backup
+     * destination. True when that changed anything.
+     */
+    suspend fun adoptNearbyDevice(deviceId: String, deviceName: String): Boolean {
+        val auto = settings.first().autoBackup
+        if (!auto.sync.withPairedDevices || deviceId.isEmpty()) return false
+        if (auto.locations.any { it.type == BackupDestination.NEARBY && it.nearbyDeviceId == deviceId }) return false
+        val location = BackupLocation(
+            id = BackupLocation.newId(),
+            type = BackupDestination.NEARBY,
+            name = deviceName,
+            backup = false,
+            nearbyDeviceId = deviceId,
+        )
+        upsertBackupLocation(location)
+        setSyncLocation(location.id, true)
+        setSyncEnabled(true)
+        return true
+    }
 
     /** Keeps one group of settings on this device, or lets it sync again. */
     suspend fun setSyncKeepLocal(group: com.wasimaster.wmkeyboard.core.settings.sync.SyncKeys.LocalGroup, on: Boolean) =

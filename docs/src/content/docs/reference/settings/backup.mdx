@@ -47,6 +47,7 @@ A location is one place backups can go: a folder, a server, or a cloud account. 
 | Windows share (SMB) | **Server**, **Share**, **Folder**, **User name**, **Password**, **Domain**, **Port** (default 445), **Encrypt the connection** (toggle, default **on**) | SMB 2 and 3, signed after the sign-in. Encryption needs SMB 3, and with the toggle on, a server that can't encrypt is refused. Turning it off puts a warning under the toggle. A server that answers a wrong password with a guest session is refused as a wrong password. The folder is made on first use |
 | Git repository | **Host** (GitHub, GitLab, or Gitea / Forgejo), **Server**, **Repository**, **Access token**, **Branch**, **Folder**, **Commit message**, **Commit author name**, **Commit author email**, **Add [skip ci]** (toggle, default **on**), **Allow a public repository** (toggle, default off) | Leave **Server** empty for github.com, gitlab.com or codeberg.org; type an address for your own server or GitHub Enterprise. You can paste the whole repository address into **Repository**. Empty **Branch** is the default branch. The commit message takes `{action}`, `{file}`, `{device}` and `{date}`. Each backup, and each deleted old backup, is a commit, and the history keeps all of them, so a public repository is refused unless you allow it. Sync through a Git location commits its sync file each time it changes |
 | Email (IMAP) | **Server**, **Security** (TLS, STARTTLS or None; default TLS), **Port** (993, or 143), **User name**, **Password**, **Mail folder** (default "WM Keyboard backups") | Each backup is one email in its own folder, made on first use. Most services want an app password. Some, such as Gmail, keep a deleted email in another folder, so old backups can still count against your quota |
+| Nearby device | **Name** | Not added by hand: pairing a computer that runs WM Keyboard over KDE Connect makes it, when **Sync with paired devices** is on. It only syncs; backups never go there. Remove it to stop syncing with that computer, and unpair it under KDE Connect |
 
 Three of these only appear when the build can reach them, and all three conditions are decided when the APK is built. Google Drive needs the Google Play services library, which the F-Droid build leaves out. Dropbox and OneDrive each need a client id compiled in. A kind with nothing behind it is left off the list rather than shown and then refused.
 
@@ -93,6 +94,7 @@ Sync keeps your devices the same. Each device keeps one sync file at the locatio
 | How often | Slider, the same stops as the backup interval | 6 hours | Sync on, On a schedule |
 | Sync API keys and passwords | Toggle | Off | Sync on |
 | **Sync through** | A tick box per location | the first location, when you turn sync on | always |
+| **Sync through**: Sync with paired devices | Toggle | On | always |
 | **What syncs** | The fifteen section switches, with their own settings | Settings, Themes, Snippets, Notes | always |
 | **Keep on this device**: Toolbar and toolbox | Toggle | Off | always (needs Settings ticked in What syncs) |
 | **Keep on this device**: Languages and layouts | Toggle | Off | always (needs Settings ticked in What syncs) |
@@ -101,6 +103,8 @@ Sync keeps your devices the same. Each device keeps one sync file at the locatio
 **Soon after a change** pushes about a minute after you stop changing things, and pulls every hour and each time the app starts. **On a schedule** runs at the interval you set. **Only when I ask** runs only when you tap **Sync now**. Turning sync on runs the first sync straight away, and on that first sync the settings of your other devices win. Anything only this device has goes to the others.
 
 Your devices must share at least one ticked location. Tick more than one and the sync file goes to each, so sync keeps working while one service is down.
+
+With **Sync with paired devices** on, a computer running WM Keyboard that you pair over [KDE Connect](/tools/kde-connect/#pairing-with-wm-keyboard-on-a-computer) is added as a **Nearby device** location, ticked here, and sync is turned on. Backups never go to it. The files cross directly over the local network, while both devices are on it and the keyboard is open.
 
 Some settings never sync, because they only fit one device: the keyboard size and position on each screen, one-handed mode, the floating keyboard, the hardware keyboard, paired KDE Connect computers, the app lock, what's installed or downloaded on the device, and this screen's own settings. Everything else in a ticked section syncs, including settings added in later versions.
 

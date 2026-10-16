@@ -124,10 +124,11 @@ class KdeConnectEngine(
     val findDevice = FindDevicePlugin(host)
     val lockDevice = LockPlugin(host)
     val codes = CodesPlugin(host)
+    val sync = WmkSyncPlugin(host)
 
     private val plugins: List<KdePlugin> = listOf(
         mousepad, clipboard, mpris, phoneMedia, volume, commands, presenter, share, ping, battery, findDevice, lockDevice,
-        codes,
+        codes, sync,
     )
     private val byIncoming: Map<String, List<KdePlugin>> =
         plugins.flatMap { p -> p.incoming.map { it to p } }.groupBy({ it.first }, { it.second })
@@ -279,6 +280,46 @@ class KdeConnectEngine(
 
     // ---- pairing ----
 
+    /** The computer whose pairing code was scanned, until its link comes up. */
+    @Volatile private var pendingCode: KdePairCode? = null
+
+    /**
+     * Pairs with the computer a scanned code names: dials it straight at the
+     * address in the code (no discovery needed), and once the link is up and
+     * its certificate is the one the code vouches for, asks to pair carrying
+     * the code's token, which the computer accepts without asking. Turns
+     * discovery on, as any pairing needs; the caller turns it off again.
+     */
+    fun pairByCode(code: KdePairCode): Boolean {
+        val lan = transport ?: return false
+        if (!running) return false
+        pendingCode = code
+        setDiscovering(true)
+        scope.launch {
+            runCatching { lan.dial(InetAddress.getByName(code.host), code.port, code.deviceId, KDE_PROTOCOL_VERSION) }
+                .onFailure { log("pair by code: ${it.brief()}") }
+        }
+        return true
+    }
+
+    private fun requestPairWithToken(deviceId: String, token: String) {
+        val record = synchronized(lock) { records[deviceId] } ?: return
+        val effects = synchronized(record.pairing) { record.pairing.request(now()) }.map { effect ->
+            if (effect is KdePairing.Effect.Send && effect.packet.type == KdeTypes.PAIR) {
+                KdePairing.Effect.Send(
+                    effect.packet.copy(
+                        body = kotlinx.serialization.json.JsonObject(
+                            effect.packet.body + ("wmkToken" to kotlinx.serialization.json.JsonPrimitive(token)),
+                        ),
+                    ),
+                )
+            } else {
+                effect
+            }
+        }
+        runEffects(deviceId, record, effects)
+    }
+
     fun requestPair(deviceId: String) {
         val record = synchronized(lock) { records[deviceId] }
         if (record?.link?.isOpen != true) {
@@ -413,6 +454,19 @@ class KdeConnectEngine(
         }
         link.start()
         if (paired) plugins.forEach { p -> runCatching { p.onConnected(info.id) } }
+        // The computer a scanned code named: pair, carrying its token, if it
+        // is the very certificate the code vouched for.
+        val code = pendingCode
+        if (!paired && code != null && code.deviceId == info.id) {
+            pendingCode = null
+            if (KdePairCode.sameFingerprint(code.fingerprint, fingerprint)) {
+                requestPairWithToken(info.id, code.token)
+            } else {
+                log("pair by code: ${info.id} is not the computer the code named")
+                update(info.id) { it.copy(pairFailure = KdePairFailure.REJECTED) }
+                _events.tryEmit(KdeEvent.PairFailed(info.id, KdePairFailure.REJECTED))
+            }
+        }
     }
 
     private fun onLinkClosed(link: KdeLink) {

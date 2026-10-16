@@ -381,6 +381,7 @@
     <string name="backup_auto_dest_smb_desc">A shared folder on a Windows computer or a NAS</string>
     <string name="backup_auto_dest_git_desc">A private repository on GitHub, GitLab, Gitea or Forgejo. It needs a token</string>
     <string name="backup_auto_dest_imap_desc">A folder in your email account. It needs the IMAP server and a password</string>
+    <string name="backup_auto_dest_nearby_desc">A computer with WM Keyboard, over KDE Connect on the same network. Made when you pair it</string>
     <string name="backup_auto_dest_folder">Folder</string>
     <string name="backup_auto_dest_webdav">WebDAV</string>
     <string name="backup_auto_dest_drive">Google Drive</string>
@@ -413,6 +414,7 @@
     <string name="backup_auto_dest_smb">Windows share (SMB)</string>
     <string name="backup_auto_dest_git">Git repository</string>
     <string name="backup_auto_dest_imap">Email (IMAP)</string>
+    <string name="backup_auto_dest_nearby">Nearby device</string>
 
     <string name="backup_auto_s3_endpoint_label">Endpoint</string>
     <string name="backup_auto_s3_endpoint_hint">Leave this empty for Amazon S3. For other services, put their address here, for example https://your-account.r2.cloudflarestorage.com or the address of your own MinIO server.</string>
@@ -489,6 +491,7 @@
     <string name="backup_location_name_hint_smb">Optional. For example, NAS or Office PC.</string>
     <string name="backup_location_name_hint_git">Optional. For example, Private repo.</string>
     <string name="backup_location_name_hint_imap">Optional. For example, Mail archive.</string>
+    <string name="backup_location_name_hint_nearby">Optional. For example, My laptop.</string>
     <string name="backup_location_not_backed_up">Automatic backups do not go here</string>
     <!-- %1$s is the location's backup state, such as "Last backup: 2 hours ago". -->
     <string name="backup_location_state_syncs"><xliff:g id="state">%1$s</xliff:g>. Syncs here.</string>
@@ -497,6 +500,9 @@
     <string name="backup_auto_targets_none">Add a location on the Backup &amp; restore screen first.</string>
     <string name="backup_sync_targets_title">Sync through</string>
     <string name="backup_sync_targets_info">Your devices must share at least one of these locations. If you tick more than one, the app writes the sync file to each of them, so sync keeps working while one service is down. That uses a little more data.</string>
+    <string name="backup_sync_paired_title">Sync with paired devices</string>
+    <string name="backup_sync_paired_subtitle">A computer with WM Keyboard that you pair over KDE Connect syncs with this phone</string>
+    <string name="backup_sync_paired_info">A paired computer becomes a location here, Nearby device, and is ticked. Sync this device is turned on with it. The two send each other their sync files while both are on the same network and the keyboard is open.</string>
     <string name="backup_auto_needs_target">Tick a location in Back up to.</string>
     <string name="backup_sync_needs_target">Tick a location in Sync through.</string>
     <string name="backup_sync_secrets_unprotected">We strongly suggest that you turn on Protect with a passphrase in Automatic backup first</string>

@@ -138,7 +138,8 @@ export type Explanation =
 	| { kind: 'addons' }
 	| { kind: 'repo'; input: string; manifest: string }
 	| { kind: 'addon'; input: string; manifest: string; id: string }
-	| { kind: 'oauth' };
+	| { kind: 'oauth' }
+	| { kind: 'pair'; name: string };
 
 /** `SettingsRoutes.resolve`: the graph's spelling for a raw link path, or null. */
 export function resolveRoute(path: string): { route: string; pattern: string; label: string } | null {
@@ -306,8 +307,18 @@ export function explain(link: string): Explanation {
 
 	if (hostLower === 'oauth') return { kind: 'oauth' };
 
+	// A computer's pairing code, from WMK Desktop: KDE Connect pairs the two
+	// and they sync. Its address, port and token stay in the link as written.
+	if (hostLower === 'pair') {
+		const name = decode(rawParam(query, 'n') ?? '') ?? '';
+		if (rawParam(query, 'h') === null || rawParam(query, 't') === null) {
+			return { kind: 'nowhere', reason: 'A pairing code needs the computer\'s address (h=) and its token (t=).' };
+		}
+		return { kind: 'pair', name };
+	}
+
 	return {
 		kind: 'invalid',
-		reason: `No part of the app listens for wmkeyboard://${host}. The hosts are settings, setting, addons, repo and addon.`,
+		reason: `No part of the app listens for wmkeyboard://${host}. The hosts are settings, setting, addons, repo, addon and pair.`,
 	};
 }

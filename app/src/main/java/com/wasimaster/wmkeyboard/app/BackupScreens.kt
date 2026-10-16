@@ -364,6 +364,7 @@ internal fun destinationDescRes(destination: BackupDestination): Int = when (des
     BackupDestination.SMB -> R.string.backup_auto_dest_smb_desc
     BackupDestination.GIT -> R.string.backup_auto_dest_git_desc
     BackupDestination.IMAP -> R.string.backup_auto_dest_imap_desc
+    BackupDestination.NEARBY -> R.string.backup_auto_dest_nearby_desc
 }
 
 /** One sentence for whatever a backup run turned out to be. */
@@ -1386,6 +1387,17 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                     scope.launch { repository.setSyncLocation(location.id, on) }
                 }
             }
+        }
+        // A computer paired over KDE Connect turns into a location above,
+        // ticked; this is the one switch for whether that happens.
+        item {
+            ToggleSetting(
+                R.string.backup_sync_paired_title,
+                stringResource(R.string.backup_sync_paired_subtitle),
+                settings.watch { it.autoBackup.sync.withPairedDevices },
+                info = stringResource(R.string.backup_sync_paired_info),
+                default = SettingsDefaults.autoBackup.sync.withPairedDevices,
+            ) { on -> scope.launch { repository.setSyncWithPairedDevices(on) } }
         }
     }
 

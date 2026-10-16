@@ -267,6 +267,12 @@ const head: { tag: 'meta'; attrs: Record<string, string> }[] = [
 					title: 'Cloud backup',
 					detail: 'This address carries a sign-in code and does nothing when opened by hand.',
 				};
+			case 'pair':
+				return {
+					kicker: 'Pairs WM Keyboard with a computer',
+					title: x.name || 'A computer with WM Keyboard',
+					detail: 'The phone and the computer pair over KDE Connect and keep the same settings and words. Both must be on the same network.',
+				};
 			case 'nowhere':
 				return { kicker: 'Nothing to open', title: 'This link goes nowhere', detail: x.reason };
 			case 'invalid':

@@ -162,6 +162,15 @@ object KdeTypes {
     const val NOTIFICATION = "kdeconnect.notification"
     const val LOCK_REQUEST = "kdeconnect.lock.request"
 
+    /**
+     * WM Keyboard's own, between the phone and WM Keyboard on a computer: a
+     * sync file (`name`, and `data` = base64 of its gzip) for a Nearby device
+     * sync location, and a request for the other side's. A plain KDE Connect
+     * peer never lists them, so they are never sent to one.
+     */
+    const val WMK_SYNC = "kdeconnect.wmkeyboard.sync"
+    const val WMK_SYNC_REQUEST = "kdeconnect.wmkeyboard.sync.request"
+
     /** The two types every peer accepts whatever its capability lists say. */
     val PROTOCOL = setOf(IDENTITY, PAIR)
 }

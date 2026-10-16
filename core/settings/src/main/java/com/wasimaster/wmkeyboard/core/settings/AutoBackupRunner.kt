@@ -222,6 +222,9 @@ object AutoBackupRunner {
             BackupDestination.SMB -> SmbSink(location.smb)
             BackupDestination.GIT -> GitSink(location.git, BackupInstall.deviceLabel(context))
             BackupDestination.IMAP -> ImapSink(location.imap)
+            BackupDestination.NEARBY -> com.wasimaster.wmkeyboard.core.settings.sink.NearbySync
+                .dir(context, location.nearbyDeviceId)
+                ?.let { com.wasimaster.wmkeyboard.core.settings.sink.NearbySink(it, location.nearbyDeviceId) }
         }
 
     /**

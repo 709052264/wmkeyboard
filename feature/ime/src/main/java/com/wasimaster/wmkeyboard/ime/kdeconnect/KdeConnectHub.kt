@@ -22,6 +22,7 @@ import com.wasimaster.wmkeyboard.core.kdeconnect.KdeDeviceType
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeEngineConfig
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeEvent
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeMediaAction
+import com.wasimaster.wmkeyboard.core.kdeconnect.KdePairCode
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdePhoneMedia
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeState
 import com.wasimaster.wmkeyboard.core.media.MediaControlManager
@@ -32,7 +33,13 @@ import com.wasimaster.wmkeyboard.core.notify.NotificationKind
 import com.wasimaster.wmkeyboard.core.notify.WmNotifications
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtpBus
 import com.wasimaster.wmkeyboard.core.settings.KdeConnectSettings
+import com.wasimaster.wmkeyboard.core.settings.BackupDestination
+import com.wasimaster.wmkeyboard.core.settings.BackupInstall
 import com.wasimaster.wmkeyboard.core.settings.KdeLinkLifetime
+import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.sink.NearbySync
+import com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming
+import com.wasimaster.wmkeyboard.core.settings.sync.SyncRunner
 import com.wasimaster.wmkeyboard.ime.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -86,6 +93,9 @@ object KdeConnectHub {
     }
 
     private val main = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    /** Sync passes and mailbox files: disk and network, never the main thread. */
+    private val io = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val worker = Dispatchers.IO.limitedParallelism(1)
 
     private val _state = MutableStateFlow(KdeState())
@@ -181,6 +191,25 @@ object KdeConnectHub {
     /** True once a computer has been paired; false before the first unlock, when that cannot be known. */
     fun hasPairedDevices(): Boolean = engineOrNull()?.hasPairedDevices() == true
 
+    /**
+     * Pairs with the computer whose pairing code was scanned
+     * (`wmkeyboard://pair?...`): dials it directly and pairs without a prompt
+     * on the computer. Hold [Reason.SETTINGS] while it runs; the engine comes
+     * up for it even with nothing paired yet. False for a link that is not a
+     * pairing code, or when the engine cannot run.
+     */
+    fun pairByCode(link: String): Boolean {
+        val code = KdePairCode.parse(link) ?: return false
+        reasons += Reason.SETTINGS
+        browsers += Reason.SETTINGS
+        reconcile()
+        val current = engineOrNull() ?: return false
+        main.launch(worker) {
+            if (current.start()) current.pairByCode(code)
+        }
+        return true
+    }
+
     /** Announce now. The keyboard just came up, the network changed, Refresh was pressed. */
     fun refresh() {
         engine?.announce()
@@ -250,6 +279,8 @@ object KdeConnectHub {
             traffic = KdeNetMeter,
         )
         engine = made
+        // A Nearby device location's writes go out through this engine.
+        NearbySync.transport = NearbySync.Transport { id, name, bytes -> made.sync.send(id, name, bytes) }
         collectors = listOf(
             main.launch { made.state.collect { _state.value = it } },
             main.launch { made.events.collect(::onEvent) },
@@ -425,6 +456,9 @@ object KdeConnectHub {
             is KdeEvent.PairRequested -> if (Reason.PANEL !in reasons && Reason.SETTINGS !in reasons) notifyPairRequest(context, event)
             is KdeEvent.PairFailed -> WmNotifications.cancel(context, NotificationIds.CONNECT_PAIR)
             is KdeEvent.FileReceived -> if (!keyboardUp) notifyFile(context, event)
+            is KdeEvent.SyncReachable -> io.launch { syncWith(context, event.deviceId, event.deviceName, ask = true) }
+            is KdeEvent.SyncRequested -> io.launch { syncWith(context, event.deviceId, null, ask = false) }
+            is KdeEvent.SyncFile -> io.launch { received(context, event) }
             is KdeEvent.Ping -> if (!keyboardUp) notifyText(
                 context,
                 context.getString(R.string.ime_kde_notify_ping_title, event.deviceName),
@@ -433,6 +467,54 @@ object KdeConnectHub {
             else -> Unit
         }
         _events.emit(event)
+    }
+
+    // ---- sync with a nearby computer ----
+
+    /**
+     * A computer with WM Keyboard is in reach (or asked): with Sync with
+     * paired devices on it becomes a Nearby device location, our file in its
+     * mailbox goes to it, we ask for its file when [ask], and a pass runs.
+     */
+    private suspend fun syncWith(context: Context, deviceId: String, deviceName: String?, ask: Boolean) {
+        val repository = SettingsRepository(context)
+        if (deviceName != null) repository.adoptNearbyDevice(deviceId, deviceName)
+        if (!isSyncLocation(repository, deviceId)) return
+        sendOwn(context, deviceId)
+        if (ask) engine?.sync?.request(deviceId)
+        SyncRunner.run(context, repository)
+        // A pass that found nothing new writes nothing, so nothing went out:
+        // the file already in the mailbox is the one to send.
+        sendOwn(context, deviceId)
+    }
+
+    private suspend fun isSyncLocation(repository: SettingsRepository, deviceId: String): Boolean {
+        val auto = repository.settings.first().autoBackup
+        return auto.sync.enabled && auto.locations.any {
+            it.type == BackupDestination.NEARBY && it.nearbyDeviceId == deviceId && it.id in auto.sync.locationIds
+        }
+    }
+
+    private fun sendOwn(context: Context, deviceId: String) {
+        val dir = NearbySync.dir(context, deviceId) ?: return
+        val me = BackupInstall.id(context)
+        val sync = engine?.sync ?: return
+        dir.listFiles().orEmpty()
+            .filter { it.isFile && SyncNaming.installId(it.name) == me }
+            .forEach { file -> runCatching { sync.send(deviceId, file.name, file.readBytes()) } }
+    }
+
+    /** The computer's sync file: into its mailbox, its older copies out, then a pass. */
+    private suspend fun received(context: Context, event: KdeEvent.SyncFile) {
+        val repository = SettingsRepository(context)
+        if (!isSyncLocation(repository, event.deviceId)) return
+        val dir = NearbySync.dir(context, event.deviceId) ?: return
+        val owner = SyncNaming.installId(event.fileName) ?: return
+        dir.listFiles().orEmpty()
+            .filter { it.name != event.fileName && SyncNaming.installId(it.name) == owner }
+            .forEach { it.delete() }
+        runCatching { File(dir, event.fileName).writeBytes(event.bytes) }.onFailure { return }
+        SyncRunner.run(context, repository)
     }
 
     private fun notifyPairRequest(context: Context, event: KdeEvent.PairRequested) {

@@ -180,6 +180,7 @@ import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictDownloadManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.RowScope
@@ -420,6 +421,19 @@ class MainActivity : FragmentActivity() {
         // An https /open/ address is one of ours wearing a web page's
         // clothes; unwrap it first and everything below treats it the same.
         val link = WebOpenLink.appLink(intent.data) ?: intent.data?.toString()
+        // A computer's pairing code: KDE Connect on, pairing under way, and
+        // the devices screen open to watch it happen. The code only pairs with
+        // the computer whose certificate it names; see KdeConnectHub.pairByCode.
+        if (link != null && com.wasimaster.wmkeyboard.core.kdeconnect.KdePairCode.parse(link) != null) {
+            val repository = com.wasimaster.wmkeyboard.core.settings.SettingsRepository(applicationContext)
+            lifecycleScope.launch {
+                repository.setKdeEnabled(true)
+                com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub.attach(applicationContext)
+                com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub.applySettings(repository.settings.first().kdeConnect)
+                com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub.pairByCode(link)
+            }
+            return PendingNav(route = com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub.DEVICES_ROUTE)
+        }
         AddonDeepLink.routeFor(link)?.let { return PendingNav(route = it) }
         SettingsDeepLink.parse(link)?.let { target -> return pendingFor(target) }
         // One of ours, naming a screen this build does not have: most likely

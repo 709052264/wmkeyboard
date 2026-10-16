@@ -250,6 +250,15 @@ sealed interface KdeEvent {
     data class Unpaired(override val deviceId: String) : KdeEvent
     data class LockResult(override val deviceId: String, val success: Boolean) : KdeEvent
 
+    /** A paired device with WM Keyboard on it came within reach: time to swap sync files. */
+    data class SyncReachable(override val deviceId: String, val deviceName: String) : KdeEvent
+
+    /** The device sent its sync file, for its Nearby device location. */
+    class SyncFile(override val deviceId: String, val deviceName: String, val fileName: String, val bytes: ByteArray) : KdeEvent
+
+    /** The device asks for a sync pass and our file. */
+    data class SyncRequested(override val deviceId: String) : KdeEvent
+
     /** The PC pressed a transport button on the phone's media. */
     data class PhoneMediaCommand(
         override val deviceId: String,

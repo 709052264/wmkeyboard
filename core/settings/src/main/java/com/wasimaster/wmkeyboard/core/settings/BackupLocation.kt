@@ -66,6 +66,8 @@ data class BackupLocation(
     val driveFolder: String = DriveSpace.DEFAULT_FOLDER,
     /** Dropbox or OneDrive refresh token. Empty means signed out. */
     val refreshToken: String = "",
+    /** [BackupDestination.NEARBY]: the paired device's KDE Connect id. */
+    val nearbyDeviceId: String = "",
 ) {
 
     /**
@@ -88,6 +90,7 @@ data class BackupLocation(
             BackupDestination.SMB -> smb.configured
             BackupDestination.GIT -> git.configured
             BackupDestination.IMAP -> imap.configured
+            BackupDestination.NEARBY -> nearbyDeviceId.isNotEmpty()
         }
 
     /** Enabled and configured: what a run actually writes to. */
@@ -231,6 +234,7 @@ data class BackupLocation(
                 driveSpace = DriveSpace.of(o.str("driveSpace")),
                 driveFolder = o.str("driveFolder").ifEmpty { DriveSpace.DEFAULT_FOLDER },
                 refreshToken = o.str("refreshToken"),
+                nearbyDeviceId = o.str("nearbyDeviceId"),
             )
         }
 
@@ -335,6 +339,7 @@ data class BackupLocation(
                 )
                 BackupDestination.DROPBOX, BackupDestination.ONEDRIVE ->
                     put("refreshToken", JsonPrimitive(l.refreshToken))
+                BackupDestination.NEARBY -> put("nearbyDeviceId", JsonPrimitive(l.nearbyDeviceId))
                 BackupDestination.DRIVE -> {
                     put("driveSpace", JsonPrimitive(l.driveSpace.id))
                     if (l.driveSpace == DriveSpace.FOLDER) put("driveFolder", JsonPrimitive(l.driveFolder))

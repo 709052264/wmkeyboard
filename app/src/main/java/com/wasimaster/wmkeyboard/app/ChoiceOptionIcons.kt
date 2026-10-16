@@ -10,6 +10,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Layers
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mail
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OutlinedFlag
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Phonelink
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.RecordVoiceOver
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.School
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
@@ -502,6 +503,7 @@ internal object ChoiceOptionIcons {
         put(BackupDestination.SMB) { Icons.Outlined.Lan }
         put(BackupDestination.GIT) { Icons.Outlined.AccountTree }
         put(BackupDestination.IMAP) { Icons.Outlined.Mail }
+        put(BackupDestination.NEARBY) { Icons.Outlined.Phonelink }
 
         put(MeteredPolicy.ALLOW) { Icons.Outlined.AllInclusive }
         put(MeteredPolicy.ASK) { Icons.Outlined.HelpOutline }

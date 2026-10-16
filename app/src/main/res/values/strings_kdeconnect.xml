@@ -95,6 +95,7 @@
     <string name="kdeconnect_devices_paired">Paired</string>
     <string name="kdeconnect_devices_nearby">Nearby</string>
     <string name="kdeconnect_devices_nearby_empty">Looking… Open KDE Connect on the computer</string>
+    <string name="kdeconnect_devices_pair_code_info">A computer with WMK Desktop shows a pairing code under Backup &amp; restore › Sync devices › Pair a phone. Point this phone\'s camera at it and open the link: WM Keyboard opens here and pairs, with no code to compare.</string>
     <string name="kdeconnect_device_connected">Connected</string>
     <string name="kdeconnect_device_unreachable">Not reachable</string>
     <string name="kdeconnect_device_pair">Pair</string>
@@ -103,6 +104,7 @@
     <string name="kdeconnect_device_typing">Typing from it</string>
     <string name="kdeconnect_device_media">Phone media</string>
     <string name="kdeconnect_device_files">Files and text</string>
+    <string name="kdeconnect_device_sync">Sync</string>
     <string name="kdeconnect_device_battery">Battery report</string>
     <string name="kdeconnect_pairing_outgoing">Waiting for %1$s. Accept on the computer if it shows this code</string>
     <string name="kdeconnect_pairing_incoming">%1$s wants to pair. Accept only if it shows this code</string>
