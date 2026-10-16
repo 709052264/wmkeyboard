@@ -7380,6 +7380,11 @@ open class WMKeyboardService : InputMethodService() {
         }
         windowOnScreen = true
         syncSummonButton()
+        // Up over the settings app with no field there: it opens its test
+        // field, the way its keyboard button would.
+        KeyboardControls.setUpOverOwnApp(
+            isNullField() && currentInputEditorInfo?.packageName == packageName,
+        )
         // The summon that asked for this got what it wanted.
         if (summonedNow()) {
             summonHeld = true
@@ -7429,6 +7434,7 @@ open class WMKeyboardService : InputMethodService() {
         summonButtonDismissed = false
         aiButtonDismissed = false
         syncSummonButton()
+        KeyboardControls.setUpOverOwnApp(false)
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {

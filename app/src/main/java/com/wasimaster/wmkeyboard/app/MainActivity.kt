@@ -162,6 +162,7 @@ import androidx.navigation.navArgument
 import androidx.window.core.layout.WindowWidthSizeClass
 import android.os.Build
 import com.wasimaster.wmkeyboard.core.util.PlayServices
+import com.wasimaster.wmkeyboard.ime.KeyboardControls
 import com.wasimaster.wmkeyboard.ime.ui.LocalIconSet
 import com.wasimaster.wmkeyboard.ime.ui.rememberIconSet
 import kotlinx.coroutines.Dispatchers
@@ -670,6 +671,14 @@ private fun SettingsNavHost(
     val preview = remember { KeyboardPreviewState() }
     val previewWanted = settings.watch { it.appUi.keyboardPreviewButton }
     LaunchedEffect(previewWanted) { if (!previewWanted) preview.open = false }
+    // The keyboard came up over these screens with no field to type into:
+    // pinned, or summoned by the floating button or the shade. Open the test
+    // field as its button would, so the keys have somewhere to type and the
+    // screen is padded clear of them rather than hiding its bottom rows.
+    val upWithoutField by KeyboardControls.upOverOwnApp.collectAsStateWithLifecycle()
+    LaunchedEffect(upWithoutField, previewWanted) {
+        if (upWithoutField && previewWanted) preview.open = true
+    }
     CloseOrphanedKeyboardPreview(preview)
     val context = LocalContext.current
     LaunchedEffect(layoutWanted) {
