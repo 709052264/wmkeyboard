@@ -300,16 +300,22 @@ internal fun ColorRow(colors: List<Int>, selected: Int, modifier: Modifier = Mod
 
 /** A badge-sized dot pinned to a box's corner. */
 @Composable
-internal fun BoxScope.CornerMark(icon: ImageVector, alignment: Alignment, modifier: Modifier = Modifier) {
+internal fun BoxScope.CornerMark(
+    icon: ImageVector,
+    alignment: Alignment,
+    modifier: Modifier = Modifier,
+    background: Color = Color.Black.copy(alpha = 0.5f),
+    tint: Color = OnPhoto,
+) {
     Box(
         modifier
             .align(alignment)
             .padding(4.dp)
             .size(18.dp)
             .clip(CircleShape)
-            .background(Color.Black.copy(alpha = 0.5f)),
+            .background(background),
         contentAlignment = Alignment.Center,
-    ) { Icon(icon, contentDescription = null, tint = OnPhoto, modifier = Modifier.size(11.dp)) }
+    ) { Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(11.dp)) }
 }
 
 /**

@@ -310,11 +310,14 @@ private fun GridCell(item: GalleryItem, order: Int, sent: Boolean, edited: Boole
     val kb = LocalKbTheme.current
     val loader = rememberGalleryImageLoader()
     val picked = order > 0
-    val inset by animateDpAsState(
+    // The spring overshoots past 0 on the way back out, and a negative
+    // padding throws out of layout: unpicking a photo killed the keyboard.
+    val springInset by animateDpAsState(
         targetValue = if (picked) 6.dp else 0.dp,
         animationSpec = if (kb.reduceMotion) tween(0) else spring(dampingRatio = 0.6f, stiffness = 600f),
         label = "inset",
     )
+    val inset = springInset.coerceAtLeast(0.dp)
     val px = with(LocalDensity.current) { (360.dp / columns.coerceAtLeast(1)).roundToPx() * 2 }
     val description = when (item.kind) {
         GalleryKind.VIDEO -> stringResource(R.string.ime_gallery_cell_video, durationText(item.durationMs))

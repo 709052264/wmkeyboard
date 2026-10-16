@@ -223,7 +223,16 @@ private fun PickStrip(ui: GalleryUi, act: (GalleryAction) -> Unit) {
                         .background(kb.accent)
                         .padding(horizontal = 5.dp),
                 )
-                if (edited) CornerMark(Icons.Outlined.Edit, Alignment.BottomEnd)
+                // Every photo carries the pencil, so a tap reads as "edit"; an edited one wears the accent.
+                if (item.kind == GalleryKind.IMAGE) {
+                    if (edited) {
+                        CornerMark(Icons.Outlined.Edit, Alignment.BottomEnd, background = kb.accent, tint = onAccent(kb.accent))
+                    } else {
+                        CornerMark(Icons.Outlined.Edit, Alignment.BottomEnd)
+                    }
+                } else if (edited) {
+                    CornerMark(Icons.Outlined.Edit, Alignment.BottomEnd)
+                }
                 val remove = stringResource(R.string.ime_gallery_remove_desc)
                 Box(
                     Modifier
@@ -286,8 +295,17 @@ private fun QualityChip(ui: GalleryUi, act: (GalleryAction) -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val fg = if (q == GalleryQuality.ORIGINAL || q == GalleryQuality.HD) kb.chipActiveText else kb.chipText
-        Text(stringResource(qualityLabel(q)), color = fg, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-        if (total > 0) Text(stringResource(R.string.ime_gallery_size_estimate, sizeText(total)), color = fg.copy(alpha = 0.75f), fontSize = 9.sp, maxLines = 1)
+        // Own line heights: the inherited 24 sp line box held the two lines a line apart.
+        Text(stringResource(qualityLabel(q)), color = fg, fontSize = 12.sp, lineHeight = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+        if (total > 0) {
+            Text(
+                stringResource(R.string.ime_gallery_size_estimate, sizeText(total)),
+                color = fg.copy(alpha = 0.75f),
+                fontSize = 9.sp,
+                lineHeight = 10.sp,
+                maxLines = 1,
+            )
+        }
     }
 }
 

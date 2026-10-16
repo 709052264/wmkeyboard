@@ -151,12 +151,13 @@ internal fun EditorControls(
     pictureRatio: Float,
     source: Bitmap?,
     callbacks: GalleryCallbacks,
+    onBrushSizing: (held: Boolean) -> Unit,
 ) {
     val act = callbacks.onAction
     Column(Modifier.fillMaxWidth().height(CONTROLS_HEIGHT), verticalArrangement = Arrangement.Center) {
         when (editor.tool) {
             EditorTool.CROP -> CropControls(editor, edit, pictureRatio, act)
-            EditorTool.DRAW -> DrawControls(editor, act)
+            EditorTool.DRAW -> DrawControls(editor, act, onBrushSizing)
             EditorTool.TEXT -> TextControls(editor, edit, act)
             EditorTool.STICKER -> StickerControls(callbacks)
             EditorTool.FILTER -> FilterControls(edit, source, act)
@@ -255,7 +256,7 @@ private fun aspectLabel(a: CropAspect): Int = when (a) {
 // ---- Draw -------------------------------------------------------------------
 
 @Composable
-private fun DrawControls(editor: EditorUi, act: (GalleryAction) -> Unit) {
+private fun DrawControls(editor: EditorUi, act: (GalleryAction) -> Unit, onSizing: (held: Boolean) -> Unit) {
     ChipRow {
         BrushKind.entries.forEach { b ->
             DarkChip(stringResource(brushLabel(b)), selected = editor.brush == b, icon = brushIcon(b)) { act(GalleryAction.Brush(b)) }
@@ -273,8 +274,14 @@ private fun DrawControls(editor: EditorUi, act: (GalleryAction) -> Unit) {
             range = MIN_BRUSH..MAX_BRUSH,
             description = stringResource(R.string.ime_gallery_brush_size),
             modifier = Modifier.width(110.dp).padding(end = 10.dp),
-            onChange = { act(GalleryAction.BrushSize(it)) },
-            onDone = { act(GalleryAction.BrushSize(it)) },
+            onChange = {
+                onSizing(true)
+                act(GalleryAction.BrushSize(it))
+            },
+            onDone = {
+                onSizing(false)
+                act(GalleryAction.BrushSize(it))
+            },
         )
     }
 }

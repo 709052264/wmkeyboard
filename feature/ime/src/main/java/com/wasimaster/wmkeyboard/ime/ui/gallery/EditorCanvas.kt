@@ -84,6 +84,7 @@ internal fun EditorCanvas(
     onDragging: (Long?) -> Unit,
     stickers: PreviewStickers,
     showWhole: Boolean,
+    sizingBrush: Boolean,
     act: (GalleryAction) -> Unit,
 ) {
     val density = LocalDensity.current
@@ -320,7 +321,10 @@ internal fun EditorCanvas(
             if (editor.comparing) return@Canvas
             when (editor.tool) {
                 EditorTool.CROP -> drawCrop(edit.crop, ::toScreen, dst, cropping)
-                EditorTool.DRAW -> drawLive(live, editor, ::toScreen, editor.brushSize * short * perPx)
+                EditorTool.DRAW -> {
+                    drawLive(live, editor, ::toScreen, editor.brushSize * short * perPx)
+                    if (sizingBrush) drawBrushPreview(editor, dst.center, editor.brushSize * short * perPx)
+                }
                 EditorTool.TEXT, EditorTool.STICKER -> {
                     // The layer under the finger, live, in the turned picture's own frame.
                     val moving = dragging
@@ -456,6 +460,31 @@ private fun DrawScope.drawLive(points: List<NPoint>, editor: EditorUi, toScreen:
         )
         BrushKind.PEN, BrushKind.ARROW -> drawPath(path, color, style = Stroke(w, cap = StrokeCap.Round, join = StrokeJoin.Round))
     }
+}
+
+/**
+ * The brush at its true size on the picture, while its slider is in hand:
+ * a dot of the stroke's own width, in its colour, with a ring around it so
+ * it reads on any photo.
+ */
+private fun DrawScope.drawBrushPreview(editor: EditorUi, center: Offset, width: Float) {
+    val scale = when (editor.brush) {
+        BrushKind.MARKER -> PhotoEditRenderer.MARKER_WIDTH
+        BrushKind.NEON -> 2.4f
+        BrushKind.ERASER -> PhotoEditRenderer.ERASER_WIDTH
+        BrushKind.BLUR, BrushKind.PIXELATE -> PhotoEditRenderer.HIDE_WIDTH
+        BrushKind.PEN, BrushKind.ARROW -> 1f
+    }
+    val r = max(1f, width) * scale / 2f
+    val fill = when (editor.brush) {
+        BrushKind.ERASER -> Color.White.copy(alpha = 0.35f)
+        BrushKind.BLUR, BrushKind.PIXELATE -> Color.Gray.copy(alpha = 0.55f)
+        BrushKind.MARKER -> Color(editor.color).copy(alpha = 0.45f)
+        else -> Color(editor.color)
+    }
+    drawCircle(fill, r, center)
+    drawCircle(Color.Black.copy(alpha = 0.45f), r + 1.5.dp.toPx(), center, style = Stroke(1.5.dp.toPx()))
+    drawCircle(Color.White, r + 0.5.dp.toPx(), center, style = Stroke(1.dp.toPx()))
 }
 
 /** A dashed frame around the picked text or sticker, turned with it. */

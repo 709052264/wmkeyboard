@@ -17,7 +17,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -53,6 +55,7 @@ import com.wasimaster.wmkeyboard.ime.gallery.GalleryTextField
 import com.wasimaster.wmkeyboard.ime.gallery.GalleryUi
 import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 /**
@@ -80,6 +83,16 @@ internal fun GalleryEditor(state: KeyboardUiState, ui: GalleryUi, editor: Editor
 
     // The layer a finger is moving: left out of the rendered picture and drawn live.
     var dragging by remember { mutableStateOf<Long?>(null) }
+
+    // The brush-size slider in hand: the canvas shows the brush at that size,
+    // and keeps it up a moment after the finger lifts so a tap shows it too.
+    var sizing by remember { mutableStateOf(false) }
+    var sizingLetGo by remember { mutableIntStateOf(0) }
+    LaunchedEffect(sizingLetGo) {
+        if (sizingLetGo == 0) return@LaunchedEffect
+        delay(BRUSH_PREVIEW_LINGER_MS)
+        sizing = false
+    }
 
     val baseKey = edit.copy(crop = CropRect.FULL, aspect = com.wasimaster.wmkeyboard.core.media.gallery.edit.CropAspect.FREE,
         strokes = emptyList(), texts = emptyList(), stickers = emptyList())
@@ -116,6 +129,7 @@ internal fun GalleryEditor(state: KeyboardUiState, ui: GalleryUi, editor: Editor
                     onDragging = { dragging = it },
                     stickers = stickers,
                     showWhole = editor.tool == EditorTool.CROP || editor.comparing,
+                    sizingBrush = sizing && editor.tool == EditorTool.DRAW,
                     act = act,
                 )
             }
@@ -127,6 +141,10 @@ internal fun GalleryEditor(state: KeyboardUiState, ui: GalleryUi, editor: Editor
                 pictureRatio = base?.let { it.width.toFloat() / it.height } ?: 1f,
                 source = source,
                 callbacks = callbacks,
+                onBrushSizing = { held ->
+                    sizing = true
+                    if (!held) sizingLetGo++
+                },
             )
             ToolRail(editor.tool, act)
         }
@@ -201,3 +219,6 @@ private fun EditorTopBar(
 
 /** The editor preview's longest side, in px: sharp at screen width, never the full camera frame. */
 private const val PREVIEW_EDGE = 2048
+
+/** How long the brush preview stays up after the size slider is let go. */
+private const val BRUSH_PREVIEW_LINGER_MS = 700L
