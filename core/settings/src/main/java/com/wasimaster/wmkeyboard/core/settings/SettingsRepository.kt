@@ -1276,10 +1276,15 @@ enum class ShiftGlideMode { WORD, LETTER }
  *
  * [SPACE] is Nintype's model: every tap and swipe joins the word in progress,
  * which is re-read after each one, until space or punctuation. [ALL_UP] keeps
- * the feel of ordinary glide: the word is typed, with its space, the moment
- * no finger is down any more, so the thumbs have to overlap to share a word.
+ * the feel of ordinary glide: the word is typed, with its space, once no
+ * finger has been down for [GestureSettings.twoThumbPauseMs]. The pause is
+ * what lets the thumbs take turns inside one word (issue #674), and what lets
+ * a word of taps alone end the same way (#676).
  */
 enum class TwoThumbWordEnd { SPACE, ALL_UP }
+
+/** The range [GestureSettings.twoThumbPauseMs] is held to, in ms. */
+val TWO_THUMB_PAUSE_RANGE: IntRange = 100..1500
 
 /** The character each [GlideApostropheKey] borrows, or null for [GlideApostropheKey.OFF]/SPACE. */
 val GlideApostropheKey.sourceChar: Char?
@@ -6896,6 +6901,13 @@ data class GestureSettings(
     /** What finishes a two-thumb word. See [TwoThumbWordEnd]. */
     val twoThumbWordEnd: TwoThumbWordEnd = TwoThumbWordEnd.SPACE,
     /**
+     * Under [TwoThumbWordEnd.ALL_UP], how long no finger has to be down before
+     * the word is typed (issues #674, #676). A thumb landing sooner carries
+     * the word on, so `T`, lift, `o` is still "To", and thumbs that take turns
+     * never need to overlap. Clamped to [TWO_THUMB_PAUSE_RANGE].
+     */
+    val twoThumbPauseMs: Int = 350,
+    /**
      * Two, three or four fingers swiped together across the keys run an
      * action instead of typing (issue #647). On by default: the swipe is
      * claimed only once every finger down has moved the same way, which a
@@ -9181,6 +9193,7 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_SHIFT_MODE = stringPreferencesKey("gesture_shift_glide_mode")
         private val GESTURE_TWO_THUMB = booleanPreferencesKey("gesture_two_thumb")
         private val GESTURE_TWO_THUMB_WORD_END = stringPreferencesKey("gesture_two_thumb_word_end")
+        private val GESTURE_TWO_THUMB_PAUSE_MS = intPreferencesKey("gesture_two_thumb_pause_ms")
         private val GESTURE_MULTI_FINGER = booleanPreferencesKey("gesture_multi_finger_swipes")
         private val GESTURE_FINGER_SWIPES = stringPreferencesKey("gesture_finger_swipes")
         private val GESTURE_SWIPE_CONTINUES_TYPED = booleanPreferencesKey("gesture_swipe_continues_typed")
@@ -10892,6 +10905,8 @@ class SettingsRepository(private val context: Context) {
             twoThumbWordEnd = p[GESTURE_TWO_THUMB_WORD_END]
                 ?.let { runCatching { TwoThumbWordEnd.valueOf(it) }.getOrNull() }
                 ?: defaults.gesture.twoThumbWordEnd,
+            twoThumbPauseMs = p[GESTURE_TWO_THUMB_PAUSE_MS]?.coerceIn(TWO_THUMB_PAUSE_RANGE)
+                ?: defaults.gesture.twoThumbPauseMs,
             multiFingerSwipes = p[GESTURE_MULTI_FINGER] ?: defaults.gesture.multiFingerSwipes,
             fingerSwipes = p[GESTURE_FINGER_SWIPES]?.let(FingerSwipeCodec::decode)
                 ?: defaults.gesture.fingerSwipes,
@@ -16772,6 +16787,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGestureTwoThumbWordEnd(value: TwoThumbWordEnd) =
         editPrefs { it[GESTURE_TWO_THUMB_WORD_END] = value.name }
+
+    suspend fun setGestureTwoThumbPauseMs(value: Int) =
+        editPrefs { it[GESTURE_TWO_THUMB_PAUSE_MS] = value.coerceIn(TWO_THUMB_PAUSE_RANGE) }
 
     suspend fun setMultiFingerSwipes(value: Boolean) =
         editPrefs { it[GESTURE_MULTI_FINGER] = value }

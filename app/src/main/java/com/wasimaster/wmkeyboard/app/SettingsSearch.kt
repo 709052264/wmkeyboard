@@ -468,6 +468,7 @@ private fun SearchStrings.typingGesturesRows(): List<SettingsSearchEntry> {
         row(R.string.typing_space_glide_multiword_title, R.string.typing_space_glide_multiword_subtitle),
         row(R.string.typing_two_thumb_title, R.string.typing_two_thumb_subtitle),
         row(R.string.typing_two_thumb_word_end_title, R.string.typing_two_thumb_word_end_subtitle),
+        row(R.string.typing_two_thumb_pause_title, R.string.typing_two_thumb_pause_subtitle),
         row(R.string.typing_swipe_continues_typed_title, R.string.typing_swipe_continues_typed_subtitle),
         row(R.string.typing_shift_glide_capitals_title, R.string.typing_shift_glide_capitals_subtitle),
         row(R.string.typing_shift_glide_mode_title, R.string.typing_shift_glide_mode_subtitle),

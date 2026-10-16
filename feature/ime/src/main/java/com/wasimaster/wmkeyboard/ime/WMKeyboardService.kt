@@ -350,6 +350,7 @@ import com.wasimaster.wmkeyboard.core.settings.GLIDE_OUTCOMES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SHAPES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SANDBOX_FILE
 import com.wasimaster.wmkeyboard.core.settings.GestureSettings
+import com.wasimaster.wmkeyboard.core.settings.TWO_THUMB_PAUSE_RANGE
 import com.wasimaster.wmkeyboard.core.settings.TwoThumbWordEnd
 import com.wasimaster.wmkeyboard.core.settings.glideTuning
 import com.wasimaster.wmkeyboard.core.settings.floatingFor
@@ -1371,6 +1372,21 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var duetJob: Job? = null
 
+    /**
+     * The all-thumbs-up word end waiting out its pause (#674, #676). A thumb
+     * landing before it is over cancels it, and the word carries on.
+     */
+    private var allUpJob: Job? = null
+
+    /**
+     * Whether a letter tap or a swipe went into the composing word since
+     * anything else changed it, so the all-thumbs-up pause may type it. A
+     * backspace or a new word clears it: a word the user has just corrected is
+     * not one they have finished, and a word re-armed from the field was never
+     * typed with the thumbs at all.
+     */
+    private var allUpArmed = false
+
     /** How the word [duetWord] builds is cased: the shift it started under. */
     private var duetShift = ShiftState.OFF
 
@@ -1405,6 +1421,7 @@ open class WMKeyboardService : InputMethodService() {
                 duetGeneration++
                 duetJob?.cancel()
                 duetWord.clear()
+                allUpArmed = false
             }
             // Any wholesale replacement (commit, field change, re-arm from the
             // field) invalidates the per-character tap positions: a re-armed
@@ -10150,6 +10167,8 @@ open class WMKeyboardService : InputMethodService() {
             consumeShift()
         } else if (isWordChar && composingMode && !elisionBreak) {
             appendComposing(text)
+            // A tapped word ends at the all-thumbs-up pause too (#676).
+            allUpArmed = true
             updateComposingText(ic)
             refreshSuggestions()
             consumeShift()
@@ -11057,6 +11076,9 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private fun onDelete() {
+        // A word being corrected is not finished: the all-thumbs-up pause
+        // waits for the next letter before it types anything (#676).
+        allUpArmed = false
         // Backspace is the answer "no" to an add-word chip: the user is taking
         // the word back rather than keeping it, so the offer goes with it. The
         // near-miss chip goes for the plainer reason that the word it is about
@@ -22054,10 +22076,10 @@ open class WMKeyboardService : InputMethodService() {
     ) {
         val state = _uiState.value
         if (!glideAllowed(state)) return
-        // The two-thumb loop's signal that the last finger lifted (#638): no
-        // stroke, so nothing to preview.
+        // The two-thumb loop's signals that the last finger lifted (#638) or
+        // the first one landed (#674): no stroke, so nothing to preview.
         if (points.isEmpty()) {
-            onAllThumbsUp()
+            if (keyWidthPx == DUET_PING_DOWN) onThumbDown() else onAllThumbsUp()
             return
         }
         if (keys.isEmpty()) return
@@ -22320,6 +22342,7 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
         duetWord.addSwipe(points, keys, keyWidthPx)
+        allUpArmed = true
         // Ordinary glide with #595 types the word at the lift, as any glide
         // does; two-thumb typing keeps it open until the word end it uses.
         redecodeDuet(commit = !state.settings.gesture.twoThumbGlide)
@@ -22342,6 +22365,7 @@ open class WMKeyboardService : InputMethodService() {
         pendingTouch = null
         pendingKeyLetters = null
         pendingKeyHint = null
+        allUpArmed = true
         redecodeDuet(commit = false)
         return true
     }
@@ -22364,11 +22388,26 @@ open class WMKeyboardService : InputMethodService() {
         return true
     }
 
-    /** The two-thumb loop saw the last finger lift: under [TwoThumbWordEnd.ALL_UP], the word is typed. */
+    /**
+     * The two-thumb loop saw the last finger lift: under
+     * [TwoThumbWordEnd.ALL_UP], the word is typed once no thumb has landed for
+     * [GestureSettings.twoThumbPauseMs].
+     *
+     * Not at once: thumbs that take turns lift one before the other lands, so
+     * a word typed that way — "movement", "probably", the second e of "heed"
+     * off the other thumb — used to end at the first gap between them and come
+     * out in pieces (#674). And a word of taps alone ends here too, as a space
+     * would end it (#676); `T`, lift, `o` stays "To" because the `o` lands
+     * inside the pause.
+     */
     private fun onAllThumbsUp() {
         val gesture = _uiState.value.settings.gesture
         if (!gesture.twoThumbGlide || gesture.twoThumbWordEnd != TwoThumbWordEnd.ALL_UP) return
-        serviceScope.launch {
+        allUpJob?.cancel()
+        if (!allUpArmed) return
+        val pause = gesture.twoThumbPauseMs.coerceIn(TWO_THUMB_PAUSE_RANGE).toLong()
+        allUpJob = serviceScope.launch {
+            delay(pause)
             // The lift that sent this may still be decoding, and a newer
             // decode may have replaced it meanwhile: wait for whichever is last.
             // Waiting is only the cheap way; the commit settles anything still
@@ -22378,10 +22417,22 @@ open class WMKeyboardService : InputMethodService() {
                 if (!job.isActive) break
                 job.join()
             }
-            if (!duetWord.active) return@launch
-            val ic = currentInputConnection ?: return@launch
-            commitDuet(ic)
+            if (!allUpArmed || composing.isEmpty()) return@launch
+            if (duetWord.active) {
+                val ic = currentInputConnection ?: return@launch
+                commitDuet(ic)
+            } else {
+                // Taps alone: the word ends the way a space tap would end it,
+                // correction and all.
+                onSpace()
+            }
         }
+    }
+
+    /** The first thumb landed: a word waiting out its all-up pause carries on instead (#674). */
+    private fun onThumbDown() {
+        allUpJob?.cancel()
+        allUpJob = null
     }
 
     /** Types the two-thumb word on screen and its space, the way a glided word is. */

@@ -329,6 +329,8 @@ import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.OctopusBoard
+import com.wasimaster.wmkeyboard.ime.DUET_PING_ALL_UP
+import com.wasimaster.wmkeyboard.ime.DUET_PING_DOWN
 import com.wasimaster.wmkeyboard.ime.CaretDragSource
 import com.wasimaster.wmkeyboard.ime.top
 import com.wasimaster.wmkeyboard.ime.glideAnchor
@@ -19000,6 +19002,8 @@ internal class ThumbStroke(val down: Offset, val downAt: Long, var owned: Boolea
  * When the last finger lifts, an empty preview is the signal: the word end
  * that waits for all thumbs up (`TwoThumbWordEnd.ALL_UP`) listens for it, and
  * it is posted on [scope] so it arrives after the key's own lift has typed.
+ * The first finger down sends one too, which holds that word end off while
+ * the thumbs take turns.
  *
  * Left out, against the one-finger loop: the ambiguity picker, spacebar word
  * chains, shift-crossing capitals and the flicks off a key. Each of them reads
@@ -19028,6 +19032,12 @@ private suspend fun PointerInputScope.twoThumbGlide(
             var lifted = false
             for (change in event.changes) {
                 if (change.changedToDownIgnoreConsumed()) {
+                    // The first thumb down holds off a word end that was
+                    // waiting for both to stay up (#674). Sent at once, ahead
+                    // of anything this finger types.
+                    if (strokes.isEmpty()) {
+                        onGesturePreview(emptyList(), emptyList(), DUET_PING_DOWN, GlideCase.None)
+                    }
                     strokes[change.id] = ThumbStroke(change.position, change.uptimeMillis, ownsStroke(change.position))
                     continue
                 }
@@ -19091,7 +19101,7 @@ private suspend fun PointerInputScope.twoThumbGlide(
             }
             if (lifted && strokes.isEmpty()) {
                 // After this event's dispatch, so a tap's own lift has typed first.
-                scope.launch { onGesturePreview(emptyList(), emptyList(), 0f, GlideCase.None) }
+                scope.launch { onGesturePreview(emptyList(), emptyList(), DUET_PING_ALL_UP, GlideCase.None) }
             }
         }
     }

@@ -6,6 +6,14 @@ import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.prediction.TouchPoint
 
 /**
+ * The two-thumb loop's signals to the service, each sent as a preview with no
+ * stroke and this as its key width: the last finger lifted (#638), or the
+ * first one landed while none was down (#674).
+ */
+internal const val DUET_PING_ALL_UP = 0f
+internal const val DUET_PING_DOWN = -1f
+
+/**
  * The gestures behind a word built from more than one of them: taps and
  * swipes from both thumbs (issue #638), or typed letters a swipe finished
  * (#595). The composing buffer holds the word they were last read as; this

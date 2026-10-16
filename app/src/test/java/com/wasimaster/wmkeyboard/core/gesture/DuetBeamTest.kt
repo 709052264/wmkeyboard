@@ -25,6 +25,8 @@ class DuetBeamTest {
         "hello" to 900, "help" to 700, "hell" to 200, "held" to 300, "ho" to 400,
         "together" to 700, "gather" to 300, "tether" to 100, "the" to 1000,
         "keep" to 500, "kept" to 400, "moms" to 50, "mose" to 10,
+        "movement" to 300, "moment" to 400, "probably" to 300, "probable" to 100,
+        "heed" to 100, "head" to 600,
     )
 
     private val sources: List<FuzzyBeamSearch.WalkSource> = run {
@@ -134,6 +136,41 @@ class DuetBeamTest {
         assertTrue(beam.decode(tokens, grid, keyWidth, sources, workspace).isEmpty())
         val started = beam.decode(tokens, grid, keyWidth, sources, workspace, partial = true).map { it.word }
         assertEquals("som", started.firstOrNull())
+    }
+
+    // Issue #674: words the thumbs take turns on, with gaps between them.
+
+    @Test
+    fun `thumbs taking turns spell movement`() {
+        // m-o right, v-e left, m right, e left, n-t right: never overlapping.
+        val words = decode(
+            swipe("mo", 0L),
+            swipe("ve", 220L),
+            tap('m', 420L),
+            tap('e', 520L),
+            swipe("nt", 640L),
+        )
+        assertEquals("movement", words.firstOrNull())
+    }
+
+    @Test
+    fun `thumbs taking turns spell probably, the b from both`() {
+        val words = decode(
+            tap('p', 0L),
+            tap('r', 120L),
+            tap('o', 240L),
+            swipe("ba", 360L),
+            swipe("bly", 620L),
+        )
+        assertEquals("probably", words.firstOrNull())
+    }
+
+    @Test
+    fun `a doubled letter split between the thumbs`() {
+        // h-e swiped, the second e tapped by the other thumb after it lifted.
+        assertEquals("heed", decode(swipe("he", 0L), tap('e', 260L), tap('d', 400L)).firstOrNull())
+        // h-e-d swiped, the second e tapped as the swipe sits on its e.
+        assertEquals("heed", decode(swipe("hed", 0L), tap('e', 170L)).firstOrNull())
     }
 
     @Test

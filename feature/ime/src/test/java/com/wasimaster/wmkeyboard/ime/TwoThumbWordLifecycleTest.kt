@@ -1,18 +1,23 @@
 package com.wasimaster.wmkeyboard.ime
 
+import android.os.Looper
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
+import com.wasimaster.wmkeyboard.core.gesture.GlideCase
 import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.settings.GestureSettings
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.TwoThumbWordEnd
 import com.wasimaster.wmkeyboard.ime.ui.GlideVerdict
+import java.time.Duration
 import kotlinx.coroutines.Job
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 
 /**
  * Issue #640: the service side of a two-thumb word (#638), gesture by gesture.
@@ -30,10 +35,14 @@ class TwoThumbWordLifecycleTest {
     private val grid = glideKeyGrid()
     private val space = Key(label = " ", action = KeyAction.Space)
 
-    private fun keyboard(): Pair<WMKeyboardService, RecordingEditor> {
+    private fun keyboard(allUp: Boolean = false): Pair<WMKeyboardService, RecordingEditor> {
         val settings = KeyboardSettings(
             learnFromTyping = false,
-            gesture = GestureSettings(twoThumbGlide = true),
+            gesture = GestureSettings(
+                twoThumbGlide = true,
+                twoThumbWordEnd = if (allUp) TwoThumbWordEnd.ALL_UP else TwoThumbWordEnd.SPACE,
+                twoThumbPauseMs = PAUSE_MS.toInt(),
+            ),
         )
         val (service, editor, _) = glideKeyboard(glideReadyState(settings = settings))
         return service to editor
@@ -47,6 +56,16 @@ class TwoThumbWordLifecycleTest {
         field.isAccessible = true
         return field.get(service)
     }
+
+    /** The two-thumb loop's pings: the last finger lifted, and the first one landed. */
+    private fun thumbsUp(service: WMKeyboardService) =
+        service.onGesturePreview(emptyList(), emptyList(), DUET_PING_ALL_UP, GlideCase.None)
+
+    private fun thumbDown(service: WMKeyboardService) =
+        service.onGesturePreview(emptyList(), emptyList(), DUET_PING_DOWN, GlideCase.None)
+
+    /** Lets [ms] of the main looper's clock go by, running whatever falls due. */
+    private fun wait(ms: Long) = shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(ms))
 
     private fun gestures(service: WMKeyboardService): Int = (field(service, "duetWord") as DuetWord).snapshot().size
 
@@ -107,7 +126,51 @@ class TwoThumbWordLifecycleTest {
         assertEquals("the word did not end with its space", 0, gestures(service))
     }
 
+    @Test
+    fun `under all thumbs up, thumbs taking turns keep building one word`() {
+        // Issue #674: one thumb lifts before the other lands. The gap between
+        // them used to end the word, so it came out in two pieces.
+        val (service, editor) = keyboard(allUp = true)
+        val first = literalOf(straightStroke(0))
+        val both = first + literalOf(straightStroke(1))
+
+        swipe(service, 0)
+        settle { editor.text.toString() == first }
+        thumbsUp(service)
+        wait(PAUSE_MS / 2)
+        thumbDown(service)
+        swipe(service, 1)
+        settle { editor.text.toString() == both }
+        assertTrue("the gap between the thumbs ended the word: ${editor.commits}", editor.commits.isEmpty())
+
+        thumbsUp(service)
+        wait(PAUSE_MS + PAUSE_SLACK_MS)
+        settle { editor.text.toString() == "$both " }
+        assertEquals("the pause did not type the word with its space", "$both ", editor.text.toString())
+    }
+
+    @Test
+    fun `under all thumbs up, a tapped word ends after the pause, and a lift inside it does not split it`() {
+        // Issue #676: T, lift, o is still one word, and it gets its space.
+        val (service, editor) = keyboard(allUp = true)
+
+        service.onKey(Key(label = "t"))
+        thumbsUp(service)
+        wait(PAUSE_MS / 2)
+        thumbDown(service)
+        service.onKey(Key(label = "o"))
+        thumbsUp(service)
+        settle { true }
+        assertEquals("the lift between the taps ended the word", "to", editor.text.toString().lowercase())
+
+        wait(PAUSE_MS + PAUSE_SLACK_MS)
+        settle { editor.text.endsWith(" ") }
+        assertEquals("the tapped word did not get its space", "to ", editor.text.toString().lowercase())
+    }
+
     private companion object {
+        const val PAUSE_MS = 200L
+        const val PAUSE_SLACK_MS = 50L
         const val LATE_ROUNDS = 20
         const val LATE_STEP_MS = 10L
     }
