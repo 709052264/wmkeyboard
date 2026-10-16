@@ -21,6 +21,7 @@ import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.PhotoSearchEngine
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
+import com.wasimaster.wmkeyboard.core.util.runCancellable
 import com.wasimaster.wmkeyboard.core.vocab.VocabIndexCache
 import com.wasimaster.wmkeyboard.core.vocab.VocabLanguages
 import com.wasimaster.wmkeyboard.tools.feature.R
@@ -735,7 +736,9 @@ class AiToolRunner(
         val fix = fixer.lastKnown(QUICK_FIX_MS)
             ?: runBlocking {
                 var best: LocationFix? = null
-                runCatching { fixer.fixes().collect { best = it } }
+                // A provider that threw is a reading that did not come; a
+                // cancelled run still has to stop.
+                runCancellable { fixer.fixes().collect { best = it } }
                 best
             }
             ?: fixer.lastKnown(STALE_FIX_MS)
