@@ -6122,8 +6122,7 @@
     <string name="shortcut_themes_short">Motywy</string>
     <string name="shortcut_tools_long">Narzędzia klawiatury</string>
     <string name="shortcut_tools_short">Narzędzia</string>
-    <string name="spell_checker_name">Klawiatura WM (Harper)</string>
-    <string name="spell_checker_subtype_english">Angielski</string>
+    <string name="spell_checker_name">Klawiatura WM</string>
     <string name="statistics_achievement_completed_subtitle">Dokończone z sugestii po kilku literach</string>
     <string name="statistics_achievement_completed_title">Ukończone słowa</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

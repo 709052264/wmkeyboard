@@ -6114,8 +6114,7 @@
     <string name="shortcut_themes_short">Temalar</string>
     <string name="shortcut_tools_long">Klavye araçları</string>
     <string name="shortcut_tools_short">Araçlar</string>
-    <string name="spell_checker_name">WM Klavye (Harper)</string>
-    <string name="spell_checker_subtype_english">İngilizce</string>
+    <string name="spell_checker_name">WM Klavye</string>
     <string name="statistics_achievement_completed_subtitle">Birkaç harften sonra önerilerden tamamlandı</string>
     <string name="statistics_achievement_completed_title">Tamamlanan kelimeler</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

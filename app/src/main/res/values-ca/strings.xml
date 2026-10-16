@@ -6118,8 +6118,7 @@
     <string name="shortcut_themes_short">Temes</string>
     <string name="shortcut_tools_long">Eines del teclat</string>
     <string name="shortcut_tools_short">Eines</string>
-    <string name="spell_checker_name">Teclat WM (Harper)</string>
-    <string name="spell_checker_subtype_english">Anglès</string>
+    <string name="spell_checker_name">Teclat WM</string>
     <string name="statistics_achievement_completed_subtitle">Completat a partir dels suggeriments després d\'unes quantes lletres</string>
     <string name="statistics_achievement_completed_title">Paraules completades</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

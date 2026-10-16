@@ -7,7 +7,6 @@ sidebar:
 
 import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
-import Flavor from '@components/Flavor.astro';
 import Shot from '@components/Shot.astro';
 
 WM Keyboard can complete names and email addresses straight out of your contacts, and app names straight out of your launcher, so `"was"` completes to Wasi and `"john"` completes to `john.doe@gmail.com`. All three sources are off by default, and everything they read stays in memory on the device. Nothing is written to disk and nothing is sent anywhere.
@@ -71,11 +70,9 @@ Turning any of these three off clears its in-memory index immediately. There's n
 
 ## Contact names in the system spell checker
 
-<Flavor edition="full" />
+WM Keyboard can also act as Android's system-wide spell checker, the service other apps' text fields use for the red squiggly underline. It's a separate component that you select yourself, under Android's own **Settings → System → Languages & input → Spell checker**, where it's listed as "WM Keyboard spell checker". Installing the app doesn't switch it on automatically.
 
-WM Keyboard can also act as Android's system-wide spell checker, the service other apps' text fields use for the red squiggly underline. It's a separate component that you select yourself, under Android's own **Settings → System → Languages & input → Spell checker**, where it's listed as "WM Keyboard (Harper)". Installing the app doesn't switch it on automatically, and it isn't available in the lite edition at all.
-
-When selected, it reads the same **Suggest contact names** setting described above (there's no separate toggle for it) to decide whether to load your contacts. If that's on, the spell checker treats known contact names and emails as correctly spelled, so no red squiggle appears under a name it recognizes. It also puts a matching contact name first in the correction menu when you've mistyped one, ahead of ordinary grammar suggestions. Because it runs in its own process, it works this way in any app, even while WM Keyboard isn't the active keyboard. See the [system spell checker](/smart/spell-checker/) page for the rest of what it catches.
+When selected, it reads the same **Suggest contact names** setting described above (there's no separate toggle for it) to decide whether to load your contacts. If that's on, the spell checker treats known contact names and emails as correctly spelled, so no red squiggle appears under a name it recognizes. It also puts a matching contact name first in the correction menu when you've mistyped one, ahead of the word-list fixes. Because it runs in its own process, it works this way in any app, even while WM Keyboard isn't the active keyboard. See the [system spell checker](/smart/spell-checker/) page for the rest of what it catches.
 
 ## Details & edge cases
 

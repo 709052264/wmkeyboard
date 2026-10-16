@@ -6124,8 +6124,7 @@
     <string name="shortcut_themes_short">థీమ్‌లు</string>
     <string name="shortcut_tools_long">కీబోర్డ్ సాధనాలు</string>
     <string name="shortcut_tools_short">టూల్స్</string>
-    <string name="spell_checker_name">WM కీబోర్డ్ (హార్పర్)</string>
-    <string name="spell_checker_subtype_english">ఇంగ్లీష్</string>
+    <string name="spell_checker_name">WM కీబోర్డ్</string>
     <string name="statistics_achievement_completed_subtitle">కొన్ని అక్షరాల తర్వాత సూచనల నుండి పూర్తి చేయబడింది</string>
     <string name="statistics_achievement_completed_title">పూర్తయిన పదాలు</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

@@ -3,18 +3,14 @@ title: "System spell checker"
 description: "WM Keyboard as your Android spell-check service, in every app."
 sidebar:
   order: 8
-  badge:
-    text: "Full"
-    variant: note
 ---
 
 import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
-import Flavor from '@components/Flavor.astro';
 import { Steps } from '@astrojs/starlight/components';
 import Shot from '@components/Shot.astro';
 
-WM Keyboard can also stand in as Android's own spell-check service, the one that draws the red underline in any app's text field, no matter which on-screen keyboard is active at the time. <Flavor edition="full" /> It's built on Harper, the same offline grammar engine behind the in-keyboard [Grammar check](/smart/grammar/) tool. Turn it on and the same fixes reach every app, not only WM Keyboard's own suggestion strip.
+WM Keyboard can also stand in as Android's own spell-check service, the one that draws the red underline in any app's text field, no matter which on-screen keyboard is active at the time. Spelling comes from the same word lists the suggestion strip reads, in every language you have a list for. For English, Harper, the offline engine behind the in-keyboard [Grammar check](/smart/grammar/) tool, adds grammar marks on top.
 
 <PhoneFrame caption="A misspelled word underlined by the system spell checker in another app, with a contact-name correction offered first.">
   {/* shot: smart/spell-checker-underline */}
@@ -30,25 +26,31 @@ Installing WM Keyboard doesn't make it your spell checker. That's a separate, OS
 
 2. Tap **Use Harper everywhere**, under the **System-wide** group. Android's own Spell checker screen opens. On OEM builds that hide that screen, the input-method settings screen opens instead.
 
-3. Select **WM Keyboard (Harper)**.
+3. Select **WM Keyboard spell checker**.
 
 </Steps>
 
-<PhoneFrame caption="Android's own Spell checker picker, with WM Keyboard (Harper) listed as an option.">
+<PhoneFrame caption="Android's own Spell checker picker, with WM Keyboard spell checker listed as an option.">
   {/* shot: smart/spell-checker-picker */}
 </PhoneFrame>
 
-WM Keyboard offers one subtype here, **English**, whatever other languages you type in day to day. Harper itself only checks English. Dialect (American, British, Canadian, Australian) isn't a separate subtype on that screen. It follows the same **English dialect** setting the in-keyboard Grammar tool uses, so the underlines you see in other apps match what the panel would have flagged.
+The same screen also opens from your phone's **Settings** directly: search for **Spell checker** (usually under System, Languages & input). There's one entry for WM Keyboard, offering a language for each word list it can download.
 
-The whole feature is full-edition only: the settings entry, the service, and the picker listing. Lite builds ship neither Harper's native library nor the manifest entry that advertises the service, so there's nothing to turn on.
+## What it checks
+
+- **Spelling, every language.** Each word is checked against the word list you downloaded for that language (English has a built-in one), plus the words the keyboard has learned from you. Case doesn't count against a word: "github" passes because "GitHub" is in the list. The fixes offered are the ones autocorrect and the strip would give. A language with no word list on the phone gets no underlines at all, rather than every word marked wrong.
+- **Grammar, English only.** Harper checks the sentence around the words and marks what it finds, such as a wrong "their" or a doubled word. On Android 12 and up these are reported as grammar marks rather than typos, and apps that tell the two apart draw them differently. Harper's own spelling rules are left out here, so the word lists stay the only judge of spelling, and a grammar mark never sits on top of a misspelt word.
+- **Every edition.** A build made without Harper's native library, which is what F-Droid builds are, still checks spelling; only the grammar marks are missing.
+
+Dialect (American, British, Canadian, Australian) isn't a separate choice on Android's screen. It follows the same **English dialect** setting the in-keyboard Grammar tool uses, so the grammar marks in other apps match what the panel would have flagged.
+
+Earlier versions listed two entries under the same name, one for each half. If you had picked the word-list one, pick **WM Keyboard spell checker** again after updating; if you had picked the other, nothing changes.
 
 ## How it differs from typing suggestions
 
-The system spell checker and WM Keyboard's own suggestion strip are separate mechanisms that happen to share the same Harper engine underneath. They don't always agree, and one can be available when the other isn't:
+The system spell checker and WM Keyboard's own suggestion strip are separate mechanisms that share the same word lists and the same Harper engine underneath:
 
 - **Where it runs.** The spell checker is a service of its own inside the WM Keyboard app, wired to Android's text-service framework rather than to the keyboard. It works in any app, with any input method, and keeps working when WM Keyboard isn't your current keyboard at all. In-keyboard [autocorrect and suggestions](/smart/autocorrect/) only run while WM Keyboard itself is the active keyboard.
-- **Language coverage.** The spell checker is English-only, because Harper is English-only. Typing suggestions and autocorrect work in every language you've enabled, each with its own dictionary.
-- **Editions.** The spell checker is full-edition only. Typing suggestions and autocorrect ship in both full and lite. Dropping Harper on lite doesn't touch ordinary typing prediction.
 - **Reactive vs. proactive.** The spell checker only answers when the host app's text-service framework asks it to, underlining and offering fixes on request. [Autocorrect](/smart/autocorrect/) works the other way round. It fixes typos the moment you press space and offers next-word predictions as you type, gated by its own confidence threshold.
 - **What triggers an underline.** Harper's lints carry a span, an offset and a length, and the spell checker only reports one whose span covers text. A pure insertion, like a missing comma, has zero length and gets silently dropped here, even though the same lint would show up as a fixable chip in the in-keyboard Grammar tool.
 
@@ -57,7 +59,7 @@ The system spell checker and WM Keyboard's own suggestion strip are separate mec
 Turn on **Suggest contact names** under Typing settings and the spell checker loads the same contact index the in-keyboard suggestion strip uses. It then treats that index specially in two ways:
 
 - A word that matches a contact's name or a contact's email address is never flagged as a typo. No underline appears under a name it recognizes, in any app.
-- A mistyped word close to a contact's name (a one-letter typo, or a prefix of one) is offered first in the correction menu, ahead of Harper's own grammar-based suggestions. Addresses are only used to suppress the underline. A mistyped address is never corrected toward the right one.
+- A mistyped word close to a contact's name (a one-letter typo, or a prefix of one) is offered first in the correction menu, ahead of the word-list fixes. Addresses are only used to suppress the underline. A mistyped address is never corrected toward the right one.
 
 One toggle covers both: **Suggest contact names** loads names and email addresses for the spell checker. The separate **Suggest contact emails** toggle, also under Typing, only affects the in-keyboard suggestion strip. It has no effect here, which is easy to miss when the two settings sound like they'd overlap. See [Contact-aware typing](/smart/contacts/) for both toggles in full, including what gets read and how.
 
@@ -71,7 +73,7 @@ One toggle covers both: **Suggest contact names** loads names and email addresse
 
 | Setting | Default | Notes |
 | --- | --- | --- |
-| Use Harper everywhere | Action row | Opens Android's Spell checker picker; only shown on full builds |
+| Use Harper everywhere | Action row | Opens Android's Spell checker picker; only shown where the build has Harper |
 | English dialect | American | Shared with the in-keyboard Grammar tool; changing it here changes both |
 | Underline only, no fix popup | Off | Android 12 (API 31) and up only |
 
@@ -80,7 +82,7 @@ One toggle covers both: **Suggest contact names** loads names and email addresse
 ## Details & edge cases
 
 - **Re-check delay doesn't apply here.** The Grammar check screen also has a **Re-check delay** slider (100–1500 ms, default 350 ms). That only paces how often the in-panel Grammar tool re-lints while you're actively writing. The system spell checker has no debounce. It answers synchronously whenever the host app's framework calls in.
-- **Runs even when WM Keyboard isn't your keyboard.** The checker loads Harper (and, if enabled, your contacts) itself, on its own schedule, rather than borrowing anything the IME set up, so it keeps working with any other keyboard app in front. It only needs to be selected as the system spell checker. Which on-screen keyboard you're using doesn't matter.
-- **Runs locally, like everything else.** Harper is a native library loaded on-device, and there's no network client anywhere in the spell-checker code path. Contacts are read into memory the moment the toggle is on and dropped again the moment it's off, never written to disk. See [Privacy at a glance](/privacy/overview/) for what does and doesn't touch the network elsewhere in the app.
+- **Runs even when WM Keyboard isn't your keyboard.** The checker loads its word lists, Harper and, if enabled, your contacts itself, on its own schedule, rather than borrowing anything the IME set up, so it keeps working with any other keyboard app in front. It only needs to be selected as the system spell checker. Which on-screen keyboard you're using doesn't matter.
+- **Runs locally, like everything else.** The word lists are files on the phone and Harper is a native library loaded on-device, and there's no network client anywhere in the spell-checker code path. Contacts are read into memory the moment the toggle is on and dropped again the moment it's off, never written to disk. See [Privacy at a glance](/privacy/overview/) for what does and doesn't touch the network elsewhere in the app.
 - **The Grammar check rows are in Settings search.** "English dialect," "Re-check delay," "Use Harper everywhere," "Underline only, no fix popup," and the four issue-type switches ("Correctness issues" and its three siblings) each turn up there, and each search result lands on the Grammar check screen.
-- **Lite has none of this.** The manifest entry, the service, and the picker listing are all absent on lite builds, not shipped rather than hidden, because lite doesn't include Harper's native library at all.
+- **Tapping a marked word in a browser hides the keyboard.** Chrome, Brave and other Chromium browsers open their own correction menu when you tap a marked word, and while that menu is open Android takes the keyboard down. Every tap on the word opens the menu again. Pick a fix from the menu, or tap just past the word to put the cursor there instead.

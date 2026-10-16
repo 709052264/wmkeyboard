@@ -6117,8 +6117,7 @@
     <string name="shortcut_themes_short">テーマ</string>
     <string name="shortcut_tools_long">キーボードツール</string>
     <string name="shortcut_tools_short">ツール</string>
-    <string name="spell_checker_name">WM Keyboard (Harper)</string>
-    <string name="spell_checker_subtype_english">英語</string>
+    <string name="spell_checker_name">WM Keyboard</string>
     <string name="statistics_achievement_completed_subtitle">数文字入力したあとのサジェストから完了しました</string>
     <string name="statistics_achievement_completed_title">完了した単語</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

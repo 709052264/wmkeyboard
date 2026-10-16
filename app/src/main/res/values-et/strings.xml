@@ -6129,8 +6129,7 @@
     <string name="shortcut_themes_short">Teemad</string>
     <string name="shortcut_tools_long">Klaviatuuri tööriistad</string>
     <string name="shortcut_tools_short">Tööriistad</string>
-    <string name="spell_checker_name">WM-klaviatuur (Harper)</string>
-    <string name="spell_checker_subtype_english">Inglise keel</string>
+    <string name="spell_checker_name">WM-klaviatuur</string>
     <string name="statistics_achievement_completed_subtitle">Lõpetatud soovituste põhjal pärast mõnda tähte</string>
     <string name="statistics_achievement_completed_title">Lõpetatud sõnad</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

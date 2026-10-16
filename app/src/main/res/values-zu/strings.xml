@@ -6133,8 +6133,7 @@
     <string name="shortcut_themes_short">Izindikimba</string>
     <string name="shortcut_tools_long">Amathuluzi ekhibhodi</string>
     <string name="shortcut_tools_short">Amathuluzi</string>
-    <string name="spell_checker_name">WM Keyboard (Harper)</string>
-    <string name="spell_checker_subtype_english">IsiNgisi</string>
+    <string name="spell_checker_name">WM Keyboard</string>
     <string name="statistics_achievement_completed_subtitle">Kuqedwe kusuka eziphakamisweni ngemva kwezinhlamvu ezimbalwa</string>
     <string name="statistics_achievement_completed_title">Amagama asuqediwe</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

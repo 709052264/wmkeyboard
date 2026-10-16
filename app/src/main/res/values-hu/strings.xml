@@ -6115,8 +6115,7 @@
     <string name="shortcut_themes_short">Témák</string>
     <string name="shortcut_tools_long">Billentyűzeteszközök</string>
     <string name="shortcut_tools_short">Eszközök</string>
-    <string name="spell_checker_name">WM Billentyűzet (Harper)</string>
-    <string name="spell_checker_subtype_english">Angol</string>
+    <string name="spell_checker_name">WM Billentyűzet</string>
     <string name="statistics_achievement_completed_subtitle">Néhány betű után a javaslatokból befejezve</string>
     <string name="statistics_achievement_completed_title">Befejezett szavak</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

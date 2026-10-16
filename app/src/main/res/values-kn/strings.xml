@@ -6139,8 +6139,7 @@
     <string name="shortcut_themes_short">ಥೀಮ್‌ಗಳು</string>
     <string name="shortcut_tools_long">ಕೀಬೋರ್ಡ್ ಟೂಲ್‌ಗಳು</string>
     <string name="shortcut_tools_short">ಪರಿಕರಗಳು</string>
-    <string name="spell_checker_name">WM ಕೀಬೋರ್ಡ್ (ಹಾರ್ಪರ್)</string>
-    <string name="spell_checker_subtype_english">ಇಂಗ್ಲಿಷ್</string>
+    <string name="spell_checker_name">WM ಕೀಬೋರ್ಡ್</string>
     <string name="statistics_achievement_completed_subtitle">ಕೆಲವು ಅಕ್ಷರಗಳ ನಂತರ ಸಲಹೆಗಳಿಂದ ಪೂರ್ಣಗೊಂಡಿದೆ</string>
     <string name="statistics_achievement_completed_title">ಪೂರ್ಣಗೊಂಡ ಪದಗಳು</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

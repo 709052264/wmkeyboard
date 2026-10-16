@@ -6117,8 +6117,7 @@
     <string name="shortcut_themes_short">Teemat</string>
     <string name="shortcut_tools_long">Näppäimistötyökalut</string>
     <string name="shortcut_tools_short">Työkalut</string>
-    <string name="spell_checker_name">WM-näppäimistö (Harper)</string>
-    <string name="spell_checker_subtype_english">Englanti</string>
+    <string name="spell_checker_name">WM-näppäimistö</string>
     <string name="statistics_achievement_completed_subtitle">Viimeistelty ehdotuksista muutaman kirjaimen jälkeen</string>
     <string name="statistics_achievement_completed_title">Sanat suoritettu</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

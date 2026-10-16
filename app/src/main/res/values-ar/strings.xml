@@ -6126,8 +6126,7 @@
     <string name="shortcut_themes_short">السمات</string>
     <string name="shortcut_tools_long">أدوات لوحة المفاتيح</string>
     <string name="shortcut_tools_short">أدوات</string>
-    <string name="spell_checker_name">لوحة مفاتيح WM (هاربر)</string>
-    <string name="spell_checker_subtype_english">الإنجليزية</string>
+    <string name="spell_checker_name">لوحة مفاتيح WM</string>
     <string name="statistics_achievement_completed_subtitle">تم الانتهاء من الاقتراحات بعد بضعة أحرف</string>
     <string name="statistics_achievement_completed_title">الكلمات المكتملة</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

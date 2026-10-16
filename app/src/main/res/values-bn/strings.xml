@@ -6140,8 +6140,7 @@
     <string name="shortcut_themes_short">থিম</string>
     <string name="shortcut_tools_long">কীবোর্ড টুলস</string>
     <string name="shortcut_tools_short">টুলস</string>
-    <string name="spell_checker_name">ডাব্লিউএম কিবোর্ড (হার্পার)</string>
-    <string name="spell_checker_subtype_english">ইংরেজি</string>
+    <string name="spell_checker_name">ডাব্লিউএম কিবোর্ড</string>
     <string name="statistics_achievement_completed_subtitle">কয়েকটি অক্ষর টাইপ করার পর সাজেশন থেকে সম্পন্ন হয়েছে</string>
     <string name="statistics_achievement_completed_title">শব্দ সম্পন্ন হয়েছে</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

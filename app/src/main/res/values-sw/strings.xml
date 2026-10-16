@@ -6134,8 +6134,7 @@
     <string name="shortcut_themes_short">Mandhari</string>
     <string name="shortcut_tools_long">Zana za kibodi</string>
     <string name="shortcut_tools_short">Zana</string>
-    <string name="spell_checker_name">Kibodi ya WM (Harper)</string>
-    <string name="spell_checker_subtype_english">Kiingereza</string>
+    <string name="spell_checker_name">Kibodi ya WM</string>
     <string name="statistics_achievement_completed_subtitle">Imekamilika kutoka kwa mapendekezo baada ya herufi chache</string>
     <string name="statistics_achievement_completed_title">Maneno yamekamilika</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

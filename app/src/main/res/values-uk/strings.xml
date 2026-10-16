@@ -6118,8 +6118,7 @@
     <string name="shortcut_themes_short">Теми</string>
     <string name="shortcut_tools_long">Інструменти клавіатури</string>
     <string name="shortcut_tools_short">Інструменти</string>
-    <string name="spell_checker_name">Клавіатура WM (Harper)</string>
-    <string name="spell_checker_subtype_english">Англійська</string>
+    <string name="spell_checker_name">Клавіатура WM</string>
     <string name="statistics_achievement_completed_subtitle">Завершено з пропозицій після кількох літер</string>
     <string name="statistics_achievement_completed_title">Слів завершено</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

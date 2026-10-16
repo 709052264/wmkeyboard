@@ -6114,8 +6114,7 @@
     <string name="shortcut_themes_short">테마</string>
     <string name="shortcut_tools_long">키보드 도구</string>
     <string name="shortcut_tools_short">도구</string>
-    <string name="spell_checker_name">WM 키보드 (Harper)</string>
-    <string name="spell_checker_subtype_english">영어</string>
+    <string name="spell_checker_name">WM 키보드</string>
     <string name="statistics_achievement_completed_subtitle">몇 글자 입력 후 제안에서 완성됨</string>
     <string name="statistics_achievement_completed_title">완성된 단어</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

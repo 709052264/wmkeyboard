@@ -6119,8 +6119,7 @@
     <string name="shortcut_themes_short">தீம்கள்</string>
     <string name="shortcut_tools_long">விசைப்பலகை கருவிகள்</string>
     <string name="shortcut_tools_short">கருவிகள்</string>
-    <string name="spell_checker_name">WM விசைப்பலகை (Harper)</string>
-    <string name="spell_checker_subtype_english">ஆங்கிலம்</string>
+    <string name="spell_checker_name">WM விசைப்பலகை</string>
     <string name="statistics_achievement_completed_subtitle">சில எழுத்துகளுக்குப் பிறகு பரிந்துரைகளிலிருந்து முடிக்கப்பட்டது</string>
     <string name="statistics_achievement_completed_title">முடிக்கப்பட்ட சொற்கள்</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

@@ -62,13 +62,11 @@ open class WMApplication : Application() {
         NetLog.attach(this)
         // The Play gates of the LiteRT interpreter (WhisperEngine,
         // LocalSubjectCutout), ML Kit's ink recogniser (HandwritingModels) and
-        // the whisper.cpp, ExecuTorch, Whistle, Harper and Tesseract libraries. Before the spell
-        // checker's sync below, which asks the grammar gate whether this build
-        // has Harper at all.
+        // the whisper.cpp, ExecuTorch, Whistle, Harper and Tesseract libraries.
         installOnDemandDelivery(this)
-        // The spell checker is declared in every edition; off where the
-        // library it needs was left out of the build.
-        com.wasimaster.wmkeyboard.spell.HarperSpellChecker.syncAvailability(this)
+        // Builds without Harper used to switch the spell checker off, and that
+        // state outlives the update; the merged checker answers everywhere.
+        com.wasimaster.wmkeyboard.spell.SpellCheckerComponent.restore(this)
         // Publishes the Drive token provider, if this build has one at all, so
         // the backup job can find it. Here rather than in the activity or the
         // keyboard because either of those may be what started the process, and

@@ -6123,8 +6123,7 @@
     <string name="shortcut_themes_short">थीम्स</string>
     <string name="shortcut_tools_long">कीबोर्ड टूल्स</string>
     <string name="shortcut_tools_short">टूल्स</string>
-    <string name="spell_checker_name">WM कीबोर्ड (हार्पर)</string>
-    <string name="spell_checker_subtype_english">इंग्रजी</string>
+    <string name="spell_checker_name">WM कीबोर्ड</string>
     <string name="statistics_achievement_completed_subtitle">काही अक्षरांनंतर सूचनांमधून पूर्ण केले</string>
     <string name="statistics_achievement_completed_title">पूर्ण झालेले शब्द</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

@@ -6128,8 +6128,7 @@
     <string name="shortcut_themes_short">Teme</string>
     <string name="shortcut_tools_long">Alati tipkovnice</string>
     <string name="shortcut_tools_short">Alati</string>
-    <string name="spell_checker_name">WM tipkovnica (Harper)</string>
-    <string name="spell_checker_subtype_english">Engleski</string>
+    <string name="spell_checker_name">WM tipkovnica</string>
     <string name="statistics_achievement_completed_subtitle">Dovršeno iz prijedloga nakon nekoliko slova</string>
     <string name="statistics_achievement_completed_title">Dovršene riječi</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

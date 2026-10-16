@@ -6120,8 +6120,7 @@
     <string name="shortcut_themes_short">Tema</string>
     <string name="shortcut_tools_long">Alat papan ketik</string>
     <string name="shortcut_tools_short">Alat</string>
-    <string name="spell_checker_name">Papan Ketik WM (Harper)</string>
-    <string name="spell_checker_subtype_english">Bahasa Inggris</string>
+    <string name="spell_checker_name">Papan Ketik WM</string>
     <string name="statistics_achievement_completed_subtitle">Diselesaikan dari saran setelah beberapa huruf</string>
     <string name="statistics_achievement_completed_title">Kata selesai</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

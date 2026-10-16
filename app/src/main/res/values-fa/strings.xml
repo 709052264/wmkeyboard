@@ -6128,8 +6128,7 @@
     <string name="shortcut_themes_short">تم‌ها</string>
     <string name="shortcut_tools_long">ابزارهای صفحه‌کلید</string>
     <string name="shortcut_tools_short">ابزارها</string>
-    <string name="spell_checker_name">صفحه‌کلید WM (هارپر)</string>
-    <string name="spell_checker_subtype_english">انگلیسی</string>
+    <string name="spell_checker_name">صفحه‌کلید WM</string>
     <string name="statistics_achievement_completed_subtitle">تکمیل شده از پیشنهادات پس از تایپ چند حرف</string>
     <string name="statistics_achievement_completed_title">واژه‌های تکمیل‌شده</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

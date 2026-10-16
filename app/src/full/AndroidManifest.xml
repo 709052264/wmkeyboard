@@ -3,9 +3,9 @@
     Full-build-only additions.
 
     The Harper spell checker used to live here, when lite shipped no
-    libharper_jni.so. Every edition has it now, so it is declared in the main
-    manifest, and HarperSpellChecker.syncAvailability turns it off on a build
-    made without the library.
+    libharper_jni.so. The spell checker is declared in the main manifest now,
+    in every edition, and its grammar half simply stays quiet on a build made
+    without the library.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">

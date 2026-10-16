@@ -6122,8 +6122,7 @@
     <string name="shortcut_themes_short">Thema\'s</string>
     <string name="shortcut_tools_long">Toetsenbordtools</string>
     <string name="shortcut_tools_short">Tools</string>
-    <string name="spell_checker_name">WM-toetsenbord (Harper)</string>
-    <string name="spell_checker_subtype_english">Engels</string>
+    <string name="spell_checker_name">WM-toetsenbord</string>
     <string name="statistics_achievement_completed_subtitle">Voltooid op basis van suggesties na een paar letters</string>
     <string name="statistics_achievement_completed_title">Voltooide woorden</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

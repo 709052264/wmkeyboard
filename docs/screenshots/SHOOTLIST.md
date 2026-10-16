@@ -996,7 +996,7 @@ python3 docs/screenshots/import.py keyboard
 
 **Shot:** A misspelled word underlined by the system spell checker in another app, with a contact-name correction offered first.
 
-- First select WM Keyboard (Harper) as the system spell checker via Android's own Spell checker picker (see the spell-checker-picker shot's setup)
+- First select WM Keyboard spell checker as the system spell checker via Android's own Spell checker picker (see the spell-checker-picker shot's setup)
 - Grant the Contacts permission and turn on Suggest contact names under Typing settings so a real contact is available to demonstrate the correction-menu priority
 - adb shell am start -n com.wasimaster.wmkeyboard/.app.DocsShotActivity --es mode field --es kind text
 - Type a misspelled word (ideally close to the test contact's name) into the field and wait for the underline to appear, then trigger the correction menu
@@ -1401,12 +1401,12 @@ python3 docs/screenshots/import.py manual
 
 ### 13. `smart/spell-checker-picker`
 
-**Shot:** Android's own Spell checker picker, with WM Keyboard (Harper) listed as an option.
+**Shot:** Android's own Spell checker picker, with WM Keyboard spell checker listed as an option.
 
 - am start -n com.android.settings/.Settings\$SpellCheckersSettingsActivity
 - If that component doesn't resolve on this OS image, fall back to: am start -a android.settings.INPUT_METHOD_SETTINGS, then open Spell checker from there (mirrors the app's own fallback in MainActivity.kt's openSpellCheckerSettings())
 
-> This is Android's own system Settings screen, not WM Keyboard's app settings. Entry shows as 'WM Keyboard (Harper)' with one 'English' subtype (spell_checker_name / spell_checker_subtype_english strings in app/src/full/res/values/strings.xml). Only present on full-flavor installs.
+> This is Android's own system Settings screen, not WM Keyboard's app settings. Entry shows as 'WM Keyboard spell checker' (spell_checker_name in app/src/main/res/values/strings.xml), with a language per downloadable word list. Present in every edition.
 
 ### 14. `development/diagnostics-screen`
 

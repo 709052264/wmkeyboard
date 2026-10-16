@@ -6113,8 +6113,7 @@
     <string name="shortcut_themes_short">ธีม</string>
     <string name="shortcut_tools_long">เครื่องมือคีย์บอร์ด</string>
     <string name="shortcut_tools_short">เครื่องมือ</string>
-    <string name="spell_checker_name">WM Keyboard (Harper)</string>
-    <string name="spell_checker_subtype_english">ภาษาอังกฤษ</string>
+    <string name="spell_checker_name">WM Keyboard</string>
     <string name="statistics_achievement_completed_subtitle">เสร็จสิ้นจากคำแนะนำหลังจากพิมพ์ไปไม่กี่ตัวอักษร</string>
     <string name="statistics_achievement_completed_title">คำที่พิมพ์เสร็จสมบูรณ์</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

@@ -6121,8 +6121,7 @@
     <string name="shortcut_themes_short">Temos</string>
     <string name="shortcut_tools_long">Klaviatūros įrankiai</string>
     <string name="shortcut_tools_short">Įrankiai</string>
-    <string name="spell_checker_name">WM klaviatūra (Harper)</string>
-    <string name="spell_checker_subtype_english">Anglų</string>
+    <string name="spell_checker_name">WM klaviatūra</string>
     <string name="statistics_achievement_completed_subtitle">Užbaigta iš pasiūlymų po kelių raidžių</string>
     <string name="statistics_achievement_completed_title">Užbaigti žodžiai</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

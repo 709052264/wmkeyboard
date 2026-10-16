@@ -6121,8 +6121,7 @@
     <string name="shortcut_themes_short">ערכות נושא</string>
     <string name="shortcut_tools_long">כלי מקלדת</string>
     <string name="shortcut_tools_short">כלים</string>
-    <string name="spell_checker_name">מקלדת WM (הארפר)</string>
-    <string name="spell_checker_subtype_english">אנגלית</string>
+    <string name="spell_checker_name">מקלדת WM</string>
     <string name="statistics_achievement_completed_subtitle">הושלם מההצעות לאחר כמה אותיות</string>
     <string name="statistics_achievement_completed_title">מילים הושלמו</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

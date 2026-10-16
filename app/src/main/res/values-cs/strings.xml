@@ -6118,8 +6118,7 @@
     <string name="shortcut_themes_short">Motivy</string>
     <string name="shortcut_tools_long">Nástroje klávesnice</string>
     <string name="shortcut_tools_short">Nástroje</string>
-    <string name="spell_checker_name">Klávesnice WM (Harper)</string>
-    <string name="spell_checker_subtype_english">Angličtina</string>
+    <string name="spell_checker_name">Klávesnice WM</string>
     <string name="statistics_achievement_completed_subtitle">Dokončeno z návrhů po několika písmenech</string>
     <string name="statistics_achievement_completed_title">Dokončená slova</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

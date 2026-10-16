@@ -6127,8 +6127,7 @@
     <string name="shortcut_themes_short">Motīvi</string>
     <string name="shortcut_tools_long">Tastatūras rīki</string>
     <string name="shortcut_tools_short">Rīki</string>
-    <string name="spell_checker_name">WM tastatūra (Harper)</string>
-    <string name="spell_checker_subtype_english">Angļu</string>
+    <string name="spell_checker_name">WM tastatūra</string>
     <string name="statistics_achievement_completed_subtitle">Pabeigts no ieteikumiem pēc dažiem burtiem</string>
     <string name="statistics_achievement_completed_title">Vārdi pabeigti</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

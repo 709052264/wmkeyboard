@@ -6110,8 +6110,7 @@
     <string name="shortcut_themes_short">主题</string>
     <string name="shortcut_tools_long">键盘工具</string>
     <string name="shortcut_tools_short">工具</string>
-    <string name="spell_checker_name">WM 键盘 (Harper)</string>
-    <string name="spell_checker_subtype_english">英语</string>
+    <string name="spell_checker_name">WM 键盘</string>
     <string name="statistics_achievement_completed_subtitle">输入几个字母后通过建议完成</string>
     <string name="statistics_achievement_completed_title">已完成的单词</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

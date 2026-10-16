@@ -6125,8 +6125,7 @@
     <string name="shortcut_themes_short">Teme</string>
     <string name="shortcut_tools_long">Orodja tipkovnice</string>
     <string name="shortcut_tools_short">Orodja</string>
-    <string name="spell_checker_name">WM tipkovnica (Harper)</string>
-    <string name="spell_checker_subtype_english">Angleščina</string>
+    <string name="spell_checker_name">WM tipkovnica</string>
     <string name="statistics_achievement_completed_subtitle">Dokončano iz predlogov po nekaj črkah</string>
     <string name="statistics_achievement_completed_title">Dopolnjene besede</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

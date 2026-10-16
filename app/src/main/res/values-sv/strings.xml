@@ -6127,8 +6127,7 @@
     <string name="shortcut_themes_short">Teman</string>
     <string name="shortcut_tools_long">Tangentbordsverktyg</string>
     <string name="shortcut_tools_short">Verktyg</string>
-    <string name="spell_checker_name">WM-tangentbord (Harper)</string>
-    <string name="spell_checker_subtype_english">Engelska</string>
+    <string name="spell_checker_name">WM-tangentbord</string>
     <string name="statistics_achievement_completed_subtitle">Slutförda från förslagen efter några få bokstäver</string>
     <string name="statistics_achievement_completed_title">Ord avklarade</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

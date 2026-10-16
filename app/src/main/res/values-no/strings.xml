@@ -6124,8 +6124,7 @@
     <string name="shortcut_themes_short">Temaer</string>
     <string name="shortcut_tools_long">Tastaturverktøy</string>
     <string name="shortcut_tools_short">Verktøy</string>
-    <string name="spell_checker_name">WM-tastatur (Harper)</string>
-    <string name="spell_checker_subtype_english">Engelsk</string>
+    <string name="spell_checker_name">WM-tastatur</string>
     <string name="statistics_achievement_completed_subtitle">Fullført fra forslagene etter noen få bokstaver</string>
     <string name="statistics_achievement_completed_title">Fullførte ord</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

@@ -6114,8 +6114,7 @@
     <string name="shortcut_themes_short">Chủ đề</string>
     <string name="shortcut_tools_long">Công cụ bàn phím</string>
     <string name="shortcut_tools_short">Công cụ</string>
-    <string name="spell_checker_name">Bàn phím WM (Harper)</string>
-    <string name="spell_checker_subtype_english">Tiếng Anh</string>
+    <string name="spell_checker_name">Bàn phím WM</string>
     <string name="statistics_achievement_completed_subtitle">Hoàn thành từ các gợi ý sau một vài chữ cái</string>
     <string name="statistics_achievement_completed_title">Từ đã hoàn thành</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

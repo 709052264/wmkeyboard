@@ -6129,8 +6129,7 @@
     <string name="shortcut_themes_short">തീമുകൾ</string>
     <string name="shortcut_tools_long">കീബോർഡ് ടൂളുകൾ</string>
     <string name="shortcut_tools_short">ടൂളുകൾ</string>
-    <string name="spell_checker_name">WM കീബോർഡ് (ഹാർപ്പർ)</string>
-    <string name="spell_checker_subtype_english">ഇംഗ്ലീഷ്</string>
+    <string name="spell_checker_name">WM കീബോർഡ്</string>
     <string name="statistics_achievement_completed_subtitle">കുറച്ച് അക്ഷരങ്ങൾക്ക് ശേഷം നിർദ്ദേശങ്ങളിൽ നിന്ന് പൂർത്തിയാക്കി</string>
     <string name="statistics_achievement_completed_title">വാക്കുകൾ പൂർത്തിയായി</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

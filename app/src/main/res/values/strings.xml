@@ -19,8 +19,6 @@
     <!-- Android's name for the keyboard as a spell checker (#511), under the
          system's spell checker setting. -->
     <string name="spell_checker_name">WM Keyboard spell checker</string>
-    <!-- The Harper spell checker's one subtype (res/xml/spellchecker.xml). -->
-    <string name="spell_checker_subtype_english">English</string>
     <!-- Play's name for the on-demand AI-runtime module (:feature:llm);
          surfaces in Play's download UI and settings. Lives here because a
          dist:title must resolve from the BASE module's resources. -->

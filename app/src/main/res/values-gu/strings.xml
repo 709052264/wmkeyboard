@@ -6119,8 +6119,7 @@
     <string name="shortcut_themes_short">થીમ્સ</string>
     <string name="shortcut_tools_long">કીબોર્ડ ટૂલ્સ</string>
     <string name="shortcut_tools_short">સાધનો</string>
-    <string name="spell_checker_name">WM કીબોર્ડ (Harper)</string>
-    <string name="spell_checker_subtype_english">અંગ્રેજી</string>
+    <string name="spell_checker_name">WM કીબોર્ડ</string>
     <string name="statistics_achievement_completed_subtitle">થોડા અક્ષરો પછી સૂચનોમાંથી પૂર્ણ કરેલ</string>
     <string name="statistics_achievement_completed_title">પૂર્ણ થયેલા શબ્દો</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

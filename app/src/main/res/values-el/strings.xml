@@ -6119,8 +6119,7 @@
     <string name="shortcut_themes_short">Θέματα</string>
     <string name="shortcut_tools_long">Εργαλεία πληκτρολογίου</string>
     <string name="shortcut_tools_short">Εργαλεία</string>
-    <string name="spell_checker_name">Πληκτρολόγιο WM (Harper)</string>
-    <string name="spell_checker_subtype_english">Αγγλικά</string>
+    <string name="spell_checker_name">Πληκτρολόγιο WM</string>
     <string name="statistics_achievement_completed_subtitle">Ολοκληρώθηκε από τις προτάσεις μετά από λίγα γράμματα</string>
     <string name="statistics_achievement_completed_title">Ολοκληρωμένες λέξεις</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

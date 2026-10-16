@@ -6121,8 +6121,7 @@
     <string name="shortcut_themes_short">Designs</string>
     <string name="shortcut_tools_long">Tastatur-Werkzeuge</string>
     <string name="shortcut_tools_short">Werkzeuge</string>
-    <string name="spell_checker_name">WM Tastatur (Harper)</string>
-    <string name="spell_checker_subtype_english">Englisch</string>
+    <string name="spell_checker_name">WM Tastatur</string>
     <string name="statistics_achievement_completed_subtitle">Nach wenigen Buchstaben aus den Vorschlägen fertiggestellt</string>
     <string name="statistics_achievement_completed_title">Wörter abgeschlossen</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

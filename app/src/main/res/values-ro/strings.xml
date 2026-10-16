@@ -6125,8 +6125,7 @@
     <string name="shortcut_themes_short">Teme</string>
     <string name="shortcut_tools_long">Instrumente tastatură</string>
     <string name="shortcut_tools_short">Instrumente</string>
-    <string name="spell_checker_name">Tastatură WM (Harper)</string>
-    <string name="spell_checker_subtype_english">Engleză</string>
+    <string name="spell_checker_name">Tastatură WM</string>
     <string name="statistics_achievement_completed_subtitle">Finalizat din sugestii după câteva litere</string>
     <string name="statistics_achievement_completed_title">Cuvinte finalizate</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

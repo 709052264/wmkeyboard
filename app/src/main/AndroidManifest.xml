@@ -1092,26 +1092,6 @@
         </service>
 
         <!--
-             The keyboard's word lists as Android's spell checker (#511). Only
-             runs once the user picks it under the system's spell checker
-             setting. Its metadata file must not be named spellchecker.xml:
-             the full flavour's Harper service owns that name, and a flavour
-             resource replaces main's by name.
-        -->
-        <service
-            android:name="com.wasimaster.wmkeyboard.app.spell.WMSpellCheckerService"
-            android:exported="true"
-            android:label="@string/spell_checker_name"
-            android:permission="android.permission.BIND_TEXT_SERVICE">
-            <intent-filter>
-                <action android:name="android.service.textservice.SpellCheckerService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.view.textservice.scs"
-                android:resource="@xml/spellchecker_words" />
-        </service>
-
-        <!--
              Carves the keyboard's own window out of TalkBack's touch handling
              so the keyboard's gestures (spacebar cursor slide, backspace word
              swipe, glide typing, handwriting) still work while a screen reader
@@ -1330,10 +1310,11 @@
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
-        <!-- The Harper spell checker, in every edition. A build made without
-             libharper_jni.so (F-Droid) has it switched off at startup by
-             HarperSpellChecker.syncAvailability, so Android's settings never
-             list one that cannot answer. -->
+        <!-- The spell checker, in every edition: the keyboard's word lists for
+             spelling in each language (#511), Harper for English grammar where
+             the build carries it. Keeps the Harper component's name, because
+             Android remembers the chosen checker by component and a rename
+             would switch spell checking off for everyone who picked it. -->
         <service
             android:name="com.wasimaster.wmkeyboard.spell.HarperSpellCheckerService"
             android:exported="true"
@@ -1344,7 +1325,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.view.textservice.scs"
-                android:resource="@xml/spellchecker" />
+                android:resource="@xml/spellchecker_words" />
         </service>
     </application>
 

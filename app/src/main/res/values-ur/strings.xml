@@ -6119,8 +6119,7 @@
     <string name="shortcut_themes_short">تھیمز</string>
     <string name="shortcut_tools_long">کی بورڈ ٹولز</string>
     <string name="shortcut_tools_short">ٹولز</string>
-    <string name="spell_checker_name">WM کی بورڈ (ہارپر)</string>
-    <string name="spell_checker_subtype_english">انگریزی</string>
+    <string name="spell_checker_name">WM کی بورڈ</string>
     <string name="statistics_achievement_completed_subtitle">چند حروف کے بعد تجاویز سے مکمل ہوا</string>
     <string name="statistics_achievement_completed_title">الفاظ مکمل ہو گئے</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

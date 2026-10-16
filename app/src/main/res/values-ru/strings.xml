@@ -6123,8 +6123,7 @@
     <string name="shortcut_themes_short">Темы</string>
     <string name="shortcut_tools_long">Инструменты клавиатуры</string>
     <string name="shortcut_tools_short">Инструменты</string>
-    <string name="spell_checker_name">WM Keyboard (Harper)</string>
-    <string name="spell_checker_subtype_english">Английский</string>
+    <string name="spell_checker_name">WM Keyboard</string>
     <string name="statistics_achievement_completed_subtitle">Завершено с помощью подсказок после ввода нескольких букв</string>
     <string name="statistics_achievement_completed_title">Слов завершено</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>

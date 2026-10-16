@@ -6132,8 +6132,7 @@
     <string name="shortcut_themes_short">ਥੀਮ</string>
     <string name="shortcut_tools_long">ਕੀਬੋਰਡ ਟੂਲ</string>
     <string name="shortcut_tools_short">ਟੂਲ</string>
-    <string name="spell_checker_name">WM ਕੀਬੋਰਡ (ਹਾਰਪਰ)</string>
-    <string name="spell_checker_subtype_english">ਅੰਗਰੇਜ਼ੀ</string>
+    <string name="spell_checker_name">WM ਕੀਬੋਰਡ</string>
     <string name="statistics_achievement_completed_subtitle">ਕੁਝ ਅੱਖਰਾਂ ਤੋਂ ਬਾਅਦ ਸੁਝਾਵਾਂ ਵਿੱਚੋਂ ਪੂਰਾ ਕੀਤਾ ਗਿਆ</string>
     <string name="statistics_achievement_completed_title">ਪੂਰੇ ਕੀਤੇ ਸ਼ਬਦ</string>
     <string name="statistics_achievement_count">%1$s/%2$s</string>
