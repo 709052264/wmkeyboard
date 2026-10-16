@@ -256,6 +256,7 @@ import com.wasimaster.wmkeyboard.core.prediction.WordSource
 import com.wasimaster.wmkeyboard.core.settings.EmojiFontChoice
 import com.wasimaster.wmkeyboard.core.settings.EmojiInsertMode
 import com.wasimaster.wmkeyboard.core.accessibility.KeyboardPassthrough
+import com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService
 import com.wasimaster.wmkeyboard.core.settings.HardwareKeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.KeySoundStyle
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
@@ -462,6 +463,7 @@ import com.wasimaster.wmkeyboard.core.tools.MediaCategoryCache
 import com.wasimaster.wmkeyboard.core.aichat.AiChatMessage
 import com.wasimaster.wmkeyboard.core.aichat.AiChatStore
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
+import com.wasimaster.wmkeyboard.ime.aichat.AskAiLaunch
 import com.wasimaster.wmkeyboard.ime.aichat.KeyboardAiToolHost
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeEvent
@@ -5494,6 +5496,7 @@ open class WMKeyboardService : InputMethodService() {
             boardTopOnScreen()?.let {
                 noteBoardTop(it)
                 noteBoardGrowth(it)
+                liftFloatingButtons(it)
             }
             // Resize mode's band is the app, dimmed, under a scrim that eats
             // every touch, and a top handle dragged taller than the keyboard
@@ -5825,36 +5828,130 @@ open class WMKeyboardService : InputMethodService() {
     private val summonButtonDelegate = lazy {
         SummonButton(
             context = this,
-            onTap = ::summonKeyboard,
+            glyph = R.drawable.ic_summon_keyboard,
+            label = R.string.ime_summon_button_label,
+            windowTitle = "WM Keyboard button",
+            onTap = ::onSummonButtonTap,
             onMoved = { x, y ->
                 serviceScope.launch { settingsRepository.setSummonButtonPosition(x, y) }
             },
             onDismiss = {
                 summonButtonDismissed = true
                 syncSummonButton()
-                Toast.makeText(this, R.string.ime_summon_button_hidden_toast, Toast.LENGTH_SHORT).show()
+                val toast = if (windowOnScreen) {
+                    R.string.ime_summon_button_hidden_open_toast
+                } else {
+                    R.string.ime_summon_button_hidden_toast
+                }
+                Toast.makeText(this, toast, Toast.LENGTH_SHORT).show()
             },
         )
     }
     private val summonButton by summonButtonDelegate
 
-    /** A long press put the floating button away until the keyboard next opens. */
-    private var summonButtonDismissed = false
+    /**
+     * The floating AI button (#697): a second overlay button, on screen
+     * whether the keyboard is up or not, that opens an AI chat about the
+     * screen. Same lazy shape as [summonButtonDelegate].
+     */
+    private val aiButtonDelegate = lazy {
+        SummonButton(
+            context = this,
+            glyph = R.drawable.ic_summon_ai,
+            label = R.string.ime_ai_button_label,
+            windowTitle = "WM Keyboard AI button",
+            onTap = ::askAiAboutScreen,
+            onMoved = { x, y ->
+                serviceScope.launch { settingsRepository.setAiButtonPosition(x, y) }
+            },
+            onDismiss = {
+                aiButtonDismissed = true
+                syncSummonButton()
+                val toast = if (windowOnScreen) {
+                    R.string.ime_ai_button_hidden_open_toast
+                } else {
+                    R.string.ime_ai_button_hidden_toast
+                }
+                Toast.makeText(this, toast, Toast.LENGTH_SHORT).show()
+            },
+        )
+    }
+    private val aiButton by aiButtonDelegate
 
     /**
-     * Puts the floating keyboard button (issue #374) on screen or takes it
-     * off: on while its switch is on, the overlay grant is held and the
-     * keyboard is closed; off while the keyboard is open, since then it is
-     * the one thing the button cannot do anything about. The lock screen needs
-     * no check of its own — Android draws it over every app overlay.
+     * A long press put a floating button away until the keyboard next opens
+     * or closes, whichever comes first: both reset on every change of the
+     * window's visibility.
+     */
+    private var summonButtonDismissed = false
+    private var aiButtonDismissed = false
+
+    /**
+     * Puts the floating keyboard button (issue #374) and the floating AI
+     * button (#697) on screen or takes them off: each on while its switch is
+     * on and the overlay grant is held. The lock screen needs no check of its
+     * own — Android draws it over every app overlay.
+     *
+     * Both stay up while the keyboard is (#697). Overlay windows sit below the
+     * keyboard's, so a docked keyboard lifts them clear of itself
+     * ([SummonButton.keepAbove]), and the keyboard button turns into the way
+     * to put the keyboard away: a field-less screen, where it was summoned,
+     * often has no other.
      */
     private fun syncSummonButton(setting: SummonButtonSettings = _uiState.value.settings.summonButton) {
-        val wanted = setting.enabled && !windowOnScreen && !summonButtonDismissed &&
-            Settings.canDrawOverlays(this)
-        when {
-            wanted -> summonButton.show(setting.xFraction, setting.yFraction)
-            summonButtonDelegate.isInitialized() -> summonButton.hide()
+        val canDraw = Settings.canDrawOverlays(this)
+        val ceiling = if (windowOnScreen) boardTopOnScreen() else null
+        if (setting.enabled && !summonButtonDismissed && canDraw) {
+            if (windowOnScreen) {
+                summonButton.setGlyph(R.drawable.ic_summon_keyboard_hide, R.string.ime_summon_button_hide_label)
+            } else {
+                summonButton.setGlyph(R.drawable.ic_summon_keyboard, R.string.ime_summon_button_label)
+            }
+            summonButton.keepAbove(ceiling)
+            summonButton.show(setting.xFraction, setting.yFraction)
+        } else if (summonButtonDelegate.isInitialized()) {
+            summonButton.hide()
         }
+        if (setting.aiButton && !aiButtonDismissed && canDraw) {
+            aiButton.keepAbove(ceiling)
+            aiButton.show(setting.aiXFraction, setting.aiYFraction)
+        } else if (aiButtonDelegate.isInitialized()) {
+            aiButton.hide()
+        }
+    }
+
+    /** The docked keyboard's top moved: lift the floating buttons clear of it. */
+    private fun liftFloatingButtons(topPx: Int?) {
+        if (summonButtonDelegate.isInitialized()) summonButton.keepAbove(topPx)
+        if (aiButtonDelegate.isInitialized()) aiButton.keepAbove(topPx)
+    }
+
+    /** The keyboard button's tap: up when it is down, down when it is up (#697). */
+    private fun onSummonButtonTap() {
+        if (windowOnScreen) requestHideSelf(0) else summonKeyboard()
+    }
+
+    /**
+     * The floating AI button's tap (#697): reads the app on screen, when the
+     * screen reading service is on, and opens the Ask AI sheet with it. Read
+     * here and now, before the sheet opens, because once it is up the screen
+     * in front is the sheet. The text travels as an extra; the service caps
+     * it well under what an intent can carry.
+     */
+    private fun askAiAboutScreen() {
+        val screen = runCatching { ScreenContextService.current?.read() }.getOrNull()
+        val intent = Intent()
+            .setClassName(packageName, AskAiLaunch.ACTIVITY)
+            // A fresh sheet every press: a sheet still open from the last one
+            // would be about the last screen.
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            .putExtra(AskAiLaunch.EXTRA_FROM_BUTTON, true)
+        if (screen != null && screen.text.isNotBlank()) {
+            intent.putExtra(AskAiLaunch.EXTRA_SCREEN_TEXT, screen.text)
+                .putExtra(AskAiLaunch.EXTRA_SCREEN_PACKAGE, screen.packageName)
+        }
+        runCatching { startActivity(intent) }
+            .onFailure { DebugLog.w("ime", "ask ai sheet failed to open: ${it.message}") }
     }
 
     /**
@@ -5942,6 +6039,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         // A rotation or a fold changes the room the floating button has.
         if (summonButtonDelegate.isInitialized()) summonButton.relayout()
+        if (aiButtonDelegate.isInitialized()) aiButton.relayout()
     }
 
     /** Push the current hardware-keyboard presence into the UI state. */
@@ -7272,10 +7370,15 @@ open class WMKeyboardService : InputMethodService() {
      * the first one on a given device.
      */
     private fun onScreenAgain() {
+        // The floating buttons lift above the keyboard and the keyboard
+        // button turns into a hide button (#697); a long press that put
+        // either away lasted until exactly now. Only on a real arrival: this
+        // also runs for every new field while the keyboard stays up.
+        if (!windowOnScreen) {
+            summonButtonDismissed = false
+            aiButtonDismissed = false
+        }
         windowOnScreen = true
-        // The floating button steps aside while the keyboard is up, and a
-        // long press that put it away lasted until exactly now.
-        summonButtonDismissed = false
         syncSummonButton()
         // The summon that asked for this got what it wanted.
         if (summonedNow()) {
@@ -7322,6 +7425,9 @@ open class WMKeyboardService : InputMethodService() {
         forcedShowUp = false
         lifecycleOwner.onStop()
         jankMonitor.stop()
+        // A long press made while the keyboard was up lasted until now.
+        summonButtonDismissed = false
+        aiButtonDismissed = false
         syncSummonButton()
     }
 
@@ -7492,6 +7598,7 @@ open class WMKeyboardService : InputMethodService() {
         // So is the floating button: it is the keyboard's, and another one is
         // in charge now.
         if (summonButtonDelegate.isInitialized()) summonButton.hide()
+        if (aiButtonDelegate.isInitialized()) aiButton.hide()
         summonJob?.cancel()
         pluginRuntime?.shutdown()
         pluginRuntime = null

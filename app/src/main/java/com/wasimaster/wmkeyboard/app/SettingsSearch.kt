@@ -911,6 +911,7 @@ private fun SearchStrings.layoutOnehandedRows(): List<SettingsSearchEntry> {
         row(R.string.layout_floating_width_title, R.string.layout_floating_width_subtitle),
         row(R.string.layout_persistent_title, R.string.layout_persistent_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.layout_summon_button_title, R.string.layout_summon_button_subtitle, weight = EntryWeight.PRIMARY),
+        row(R.string.layout_ai_button_title, R.string.layout_ai_button_subtitle, weight = EntryWeight.PRIMARY),
     )
 }
 
@@ -1997,6 +1998,10 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             )
         } else {
             null
+        permission(
+            R.string.privacy_permissions_screen_content_title,
+            R.string.privacy_permissions_screen_content_subtitle,
+        ).takeIf { ChannelFeatures.SCREEN_CONTEXT },
         },
         permission(R.string.privacy_permissions_internet_title, R.string.privacy_permissions_internet_subtitle),
         permission(R.string.privacy_permissions_vibrate_title, R.string.privacy_permissions_vibrate_subtitle),

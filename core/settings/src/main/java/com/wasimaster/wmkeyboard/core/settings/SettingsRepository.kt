@@ -9014,6 +9014,9 @@ class SettingsRepository(private val context: Context) {
         // names rather than spelled out, so the four screen shapes times six
         // settings stay in step with each other by construction.
         private fun variantKey(base: String, variant: ScreenVariant) = "${base}_${variant.suffix}"
+        private val AI_BUTTON = booleanPreferencesKey("ai_button")
+        private val AI_BUTTON_X = floatPreferencesKey("ai_button_x")
+        private val AI_BUTTON_Y = floatPreferencesKey("ai_button_y")
 
         private fun keyHeightKey(v: ScreenVariant) = intPreferencesKey(variantKey("key_height", v))
         private fun numberRowHeightKey(v: ScreenVariant) =
@@ -10514,6 +10517,9 @@ class SettingsRepository(private val context: Context) {
             sizingOverrides = readSizingOverrides(p, defaults),
             keyFontId = p[KEY_FONT_ID] ?: defaults.keyFontId,
             customFontName = p[CUSTOM_FONT_NAME] ?: defaults.customFontName,
+                aiButton = p[AI_BUTTON] ?: defaults.summonButton.aiButton,
+                aiXFraction = p[AI_BUTTON_X] ?: defaults.summonButton.aiXFraction,
+                aiYFraction = p[AI_BUTTON_Y] ?: defaults.summonButton.aiYFraction,
             scriptFontIds = scriptFontIdsFromPrefs(p, defaults),
             customScriptFontNames = customScriptFontNamesFromPrefs(p, defaults),
             lexiconVersion = p[LEXICON_VERSION] ?: defaults.lexiconVersion,
@@ -14580,6 +14586,17 @@ class SettingsRepository(private val context: Context) {
     suspend fun setFloatingSize(widthDp: Int, heightScale: Float) =
         editPrefs {
             it[FLOATING_WIDTH] = widthDp.coerceIn(240, 500)
+    /** The floating AI button (#697); see [SummonButtonSettings.aiButton]. */
+    suspend fun setAiButton(value: Boolean) =
+        editPrefs { it[AI_BUTTON] = value }
+
+    /** Where a drag of the floating AI button left it. */
+    suspend fun setAiButtonPosition(x: Float, y: Float) =
+        editPrefs {
+            it[AI_BUTTON_X] = x.coerceIn(0f, 1f)
+            it[AI_BUTTON_Y] = y.coerceIn(0f, 1f)
+        }
+
             it[FLOATING_HEIGHT_SCALE] = heightScale.coerceIn(0.6f, 1.6f)
         }
 

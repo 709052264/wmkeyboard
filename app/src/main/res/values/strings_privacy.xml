@@ -288,7 +288,7 @@
     <string name="privacy_permissions_usage_subtitle">Show which app a clipboard entry was copied from</string>
 
     <string name="privacy_permissions_overlay_title">Display over other apps</string>
-    <string name="privacy_permissions_overlay_subtitle">The floating button that opens the keyboard without a text field</string>
+    <string name="privacy_permissions_overlay_subtitle">The floating buttons that open the keyboard and the AI chat</string>
     <string name="privacy_permissions_exact_alarms_title">Alarms and reminders</string>
     <string name="privacy_permissions_exact_alarms_subtitle">Clock tool alarms and timers ring at the exact minute</string>
     <string name="privacy_permissions_full_screen_title">Full-screen notifications</string>
@@ -298,6 +298,8 @@
     <string name="privacy_permissions_accessibility_subtitle">Keep the keyboard gestures while TalkBack is on</string>
 
     <!-- Direct-download builds only. The keyboard can install a new version of itself. -->
+    <string name="privacy_permissions_screen_content_title">Accessibility service for the AI button</string>
+    <string name="privacy_permissions_screen_content_subtitle">Let the floating AI button read the screen when you press it</string>
     <string name="privacy_permissions_install_updates_title">Install updates</string>
     <string name="privacy_permissions_install_updates_subtitle">Install a new version of this app that you downloaded from its release page</string>
 

@@ -2,6 +2,14 @@
 <resources>
     <style name="Theme.WMKeyboard" parent="Theme.AppCompat.DayNight.NoActionBar" />
 
+    <!-- The Ask AI sheet (#697): see-through, so the app it was opened over
+         stays visible around the sheet the activity draws itself. -->
+    <style name="Theme.WMKeyboard.Sheet" parent="Theme.WMKeyboard">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
+
     <!--
         Opening a keyboard file shows one dialog, not a screen. The window
         itself is invisible so whatever the user was looking at stays behind

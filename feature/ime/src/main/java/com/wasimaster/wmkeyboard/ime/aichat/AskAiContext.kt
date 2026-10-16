@@ -37,6 +37,25 @@ object AskAiContext {
         }
     }
 
+    /**
+     * The text of the screen the user asked about from the floating AI button
+     * (#697), read off the app's window in screen order. Said to be a screen
+     * read, not a document, because a model reading a list of button labels
+     * and headlines as prose answers nonsense.
+     */
+    fun screen(appName: String, text: String): String = buildString {
+        append("The text on my screen in ").append(appName.ifBlank { "an app" })
+        append(", read from the app's window in screen order (labels, buttons and content mixed together):\n\n")
+        append(text.trim())
+    }
+
+    /** Text the user selected in another app and sent here with Ask AI in the selection menu (#697). */
+    fun selectedText(selected: String, appName: String): String = buildString {
+        append("Text I selected")
+        if (appName.isNotBlank()) append(" in ").append(appName)
+        append(":\n\n").append(selected.trim())
+    }
+
     /** A whole Wikipedia article: the full text when it has been loaded, else the summary. */
     fun wikipedia(summary: WikipediaClient.Summary, fullText: String?): String = buildString {
         append("Wikipedia article: ").append(summary.title).append('\n')
