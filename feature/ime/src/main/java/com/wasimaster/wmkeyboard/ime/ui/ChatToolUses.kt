@@ -567,6 +567,66 @@ private val builtInLabels: Map<String, ToolLabels> = mapOf(
         R.string.ime_ai_tool_calculate_running,
         R.string.ime_ai_tool_calculate_done,
     ),
+    AiTools.CALENDAR_EVENTS to ToolLabels(
+        R.string.ime_ai_tool_name_calendar_events,
+        R.string.ime_ai_tool_calendar_events_running,
+        R.string.ime_ai_tool_calendar_events_done,
+    ),
+    AiTools.SEARCH_NOTES to ToolLabels(
+        R.string.ime_ai_tool_name_search_notes,
+        R.string.ime_ai_tool_search_notes_running,
+        R.string.ime_ai_tool_search_notes_done,
+    ),
+    AiTools.CURRENT_LOCATION to ToolLabels(
+        R.string.ime_ai_tool_name_current_location,
+        R.string.ime_ai_chat_tool_builtin_running,
+        R.string.ime_ai_chat_tool_builtin_done,
+    ),
+    AiTools.ADD_CALENDAR_EVENT to ToolLabels(
+        R.string.ime_ai_tool_name_add_calendar_event,
+        R.string.ime_ai_tool_add_calendar_event_running,
+        R.string.ime_ai_tool_add_calendar_event_done,
+    ),
+    AiTools.ADD_NOTE to ToolLabels(
+        R.string.ime_ai_tool_name_add_note,
+        R.string.ime_ai_tool_add_note_running,
+        R.string.ime_ai_tool_add_note_done,
+    ),
+    AiTools.SET_ALARM to ToolLabels(
+        R.string.ime_ai_tool_name_set_alarm,
+        R.string.ime_ai_tool_set_alarm_running,
+        R.string.ime_ai_tool_set_alarm_done,
+    ),
+    AiTools.START_TIMER to ToolLabels(
+        R.string.ime_ai_tool_name_start_timer,
+        R.string.ime_ai_tool_start_timer_running,
+        R.string.ime_ai_tool_start_timer_done,
+    ),
+    AiTools.OPEN_APP to ToolLabels(
+        R.string.ime_ai_tool_name_open_app,
+        R.string.ime_ai_tool_open_app_running,
+        R.string.ime_ai_tool_open_app_done,
+    ),
+    AiTools.MEDIA_CONTROL to ToolLabels(
+        R.string.ime_ai_tool_name_media_control,
+        R.string.ime_ai_chat_tool_builtin_running,
+        R.string.ime_ai_chat_tool_builtin_done,
+    ),
+    AiTools.SEND_TO_PC to ToolLabels(
+        R.string.ime_ai_tool_name_send_to_pc,
+        R.string.ime_ai_tool_send_to_pc_running,
+        R.string.ime_ai_tool_send_to_pc_done,
+    ),
+    AiTools.READ_IMAGE_TEXT to ToolLabels(
+        R.string.ime_ai_tool_name_read_image_text,
+        R.string.ime_ai_tool_read_image_text_running,
+        R.string.ime_ai_tool_read_image_text_done,
+    ),
+    AiTools.REVERSE_IMAGE_SEARCH to ToolLabels(
+        R.string.ime_ai_tool_name_reverse_image_search,
+        R.string.ime_ai_tool_reverse_image_search_running,
+        R.string.ime_ai_tool_reverse_image_search_done,
+    ),
 )
 
 /** The search tools, whose record wears the search mark. */
@@ -589,11 +649,13 @@ private fun builtInLine(use: AiToolActivity, labels: ToolLabels): String {
     } else {
         use.target
     }
+    // Labels that are the generic pair take the tool's name, not a target.
+    val generic = labels.running == R.string.ime_ai_chat_tool_builtin_running
     return when {
         use.awaitingApproval -> stringResource(R.string.ime_ai_chat_tool_builtin_waiting, name)
         use.failed -> stringResource(R.string.ime_ai_chat_tool_use_failed, name)
-        target.isEmpty() && use.running -> stringResource(R.string.ime_ai_chat_tool_builtin_running, name)
-        target.isEmpty() -> stringResource(R.string.ime_ai_chat_tool_builtin_done, name)
+        (target.isEmpty() || generic) && use.running -> stringResource(R.string.ime_ai_chat_tool_builtin_running, name)
+        target.isEmpty() || generic -> stringResource(R.string.ime_ai_chat_tool_builtin_done, name)
         use.running -> stringResource(labels.running, target)
         else -> stringResource(labels.done, target)
     }

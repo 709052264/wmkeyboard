@@ -212,6 +212,41 @@
     <string name="toolai_ai_builtin_convert_units_subtitle">Converts lengths, weights, temperatures and other measurements</string>
     <string name="toolai_ai_builtin_calculate_title">Calculator</string>
     <string name="toolai_ai_builtin_calculate_subtitle">Works sums out exactly, on your device, instead of guessing</string>
+    <string name="toolai_ai_builtin_calendar_events_title">Read your calendar</string>
+    <string name="toolai_ai_builtin_calendar_events_subtitle">Lists your events for the days the model asks about. Needs the calendar tool\'s access.</string>
+    <string name="toolai_ai_builtin_search_notes_title">Read your notes</string>
+    <string name="toolai_ai_builtin_search_notes_subtitle">Searches your notes and reads the ones that match. A locked note\'s text stays hidden.</string>
+    <string name="toolai_ai_builtin_current_location_title">Your location</string>
+    <string name="toolai_ai_builtin_current_location_subtitle">Reads where your phone is, at the precision the location tool shares, with the address if you have that on</string>
+    <string name="toolai_ai_builtin_add_calendar_event_title">Add to your calendar</string>
+    <string name="toolai_ai_builtin_add_calendar_event_subtitle">Adds an event. It can\'t change or delete one.</string>
+    <string name="toolai_ai_builtin_add_note_title">Save a note</string>
+    <string name="toolai_ai_builtin_add_note_subtitle">Adds a new note to your notes. It can\'t change or delete one.</string>
+    <string name="toolai_ai_builtin_set_alarm_title">Set an alarm</string>
+    <string name="toolai_ai_builtin_set_alarm_subtitle">Sets an alarm in the clock tool, once or on repeat days</string>
+    <string name="toolai_ai_builtin_start_timer_title">Start a timer</string>
+    <string name="toolai_ai_builtin_start_timer_subtitle">Starts a countdown in the clock tool</string>
+    <string name="toolai_ai_builtin_open_app_title">Open an app</string>
+    <string name="toolai_ai_builtin_open_app_subtitle">Opens an app you have installed, by its name</string>
+    <string name="toolai_ai_builtin_media_control_title">Control media</string>
+    <string name="toolai_ai_builtin_media_control_subtitle">Plays, pauses or skips what is playing, or says what it is. Needs the media tool\'s notification access.</string>
+    <string name="toolai_ai_builtin_send_to_pc_title">Send to your computer</string>
+    <string name="toolai_ai_builtin_send_to_pc_subtitle">Sends text or a link to a computer paired through KDE Connect</string>
+    <string name="toolai_ai_builtin_calendar_mode_title">How events are added</string>
+    <string name="toolai_ai_builtin_calendar_mode_subtitle">Open the calendar app with the event filled in, for you to save. Or add it directly, which needs calendar access.</string>
+    <string name="toolai_ai_builtin_calendar_mode_open_label">Open the app</string>
+    <string name="toolai_ai_builtin_calendar_mode_direct_label">Add directly</string>
+    <string name="toolai_ai_builtin_calendar_allow_action">Allow adding events</string>
+    <string name="toolai_ai_builtin_calendar_none">No calendar on this phone can take new events.</string>
+    <string name="toolai_ai_builtin_read_image_text_title">Read text in a picture</string>
+    <string name="toolai_ai_builtin_read_image_text_subtitle">For a model that can\'t see pictures: reads the text in one you sent, on your device, or with the scan text tool\'s online engine if you picked that</string>
+    <string name="toolai_ai_builtin_reverse_image_search_title">Search by picture</string>
+    <string name="toolai_ai_builtin_reverse_image_search_subtitle">Uploads a picture you sent to the camera tool\'s search site and gives you the link to the results</string>
+
+    <!-- Pictures in the AI chat (#698). -->
+    <string name="ai_chat_attach_picture_desc">Add a picture</string>
+    <string name="ai_chat_picture_desc">Picture</string>
+    <string name="ai_chat_picture_remove_desc">Remove the picture</string>
 
     <!--
       MCP servers (#573): tools that run on a server the user adds. MCP is

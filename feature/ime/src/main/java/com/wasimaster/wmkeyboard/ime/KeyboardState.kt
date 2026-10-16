@@ -1723,6 +1723,15 @@ data class AiChatUi(
     val attachment: AiChatAttachment? = null,
     /** [com.wasimaster.wmkeyboard.ime.aichat.AiChatController.ModelChoice.key]. */
     val modelKey: String = "",
+    /**
+     * Pictures to send with the next message (#698), by the names
+     * [com.wasimaster.wmkeyboard.ime.aichat.AiChatImages.import] gave them.
+     */
+    val images: List<String> = emptyList(),
+    /** The row offering where a picture can come from is up over the composer. */
+    val pictureSources: Boolean = false,
+    /** Why the last picture asked for did not arrive, as a string resource; null when it did. */
+    val pictureNotice: Int? = null,
 )
 
 /**
@@ -1773,6 +1782,12 @@ sealed interface AiChatAction {
     data class OpenInApp(val list: Boolean = false) : AiChatAction
     /** The answer at [index] of the conversation, reported (Play builds). */
     data class Report(val index: Int) : AiChatAction
+    /** Shows or hides where a picture for the next message can come from (#698). */
+    data object TogglePictureSources : AiChatAction
+    /** The clipboard's newest picture, or else the newest screenshot, for the next message. */
+    data class AddPicture(val fromClipboard: Boolean) : AiChatAction
+    /** Takes a picture back off the next message. */
+    data class RemovePicture(val name: String) : AiChatAction
 
     /**
      * Ask AI from another tool (#352): the AI panel opens on a new chat with

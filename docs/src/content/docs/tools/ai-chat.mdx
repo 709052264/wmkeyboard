@@ -46,6 +46,14 @@ It's greyed out over an empty field, and it never reads a password field.
 
 The clipboard button next to it pastes your latest clip at the caret.
 
+### Adding a picture
+
+The picture button beside the paperclip brings up two chips over the message box. **Copied picture** takes the newest picture in your [clipboard history](/tools/clipboard/). **Newest screenshot** takes the last screenshot on the phone, whenever you took it; the first time, it asks for access to your photos, and the screenshot is added once you come back from allowing it. These are the [AI reply tool's](/tools/ai-reply/) sources rather than the photo picker the app's chat uses, because a keyboard that opens a picker loses the field you were typing in.
+
+Up to four pictures can go with one message. They wait above the message box with a cross on each to take it off, and a message can be pictures alone. Sent, they show at the top of your bubble, on the keyboard and in the app alike. What the model does with them is the same as in the app: see [Sending pictures](#sending-pictures).
+
+The picture button isn't there while [incognito](/privacy/incognito/) is on, or over a password field. Play Store builds offer **Copied picture** only, since they don't ask for the photos permission a screenshot needs.
+
 An empty chat offers a few openers: **Reply to this** and **Explain this** quote the field for you, **Help me write** starts the sentence. They only fill the message box. Nothing is sent until you send it.
 
 ### Asking about another tool's text
@@ -83,6 +91,23 @@ The list is your saved conversations, most recently updated first. Each row is t
 Nothing saved yet? You skip the empty list entirely and land in a new chat, because an empty list with one button on it isn't worth a screen. A chat is only written down on your first send, so opening one and backing straight out leaves no row behind.
 
 Titles aren't something you type. The first line of your first message becomes the title, cut to 48 characters on a word boundary.
+
+### Sending pictures
+
+The picture button left of the message box opens the system photo picker, which needs no permission. Pick up to four for one message; they wait above the message box, each with a cross to take it off again, and a message can be pictures alone. In a sent message they show above its text.
+
+What the model does with them depends on what it can take:
+
+- **A cloud or self-hosted model that reads pictures** (Claude, OpenAI, Gemini, Grok, Ollama, LM Studio, any OpenAI-compatible service) is sent the pictures with your newest message. Older pictures aren't sent again with every reply after it; the model remembers what it said about them.
+- **An on-device model, or a provider with no place for pictures** (Brave and DeepSeek among them) can't take one. It is told each one is there, numbered, and can use **Read text in a picture** from the [keyboard's own tools](/tools/ai/#the-keyboards-own-tools) to read what it says.
+
+Either way, with **Search by picture** turned on the model can look a picture up on the web through the [camera tool's](/tools/camera/) search site, and hands you the link to the results.
+
+The keyboard's chat adds pictures its own way, from the clipboard or your newest screenshot: see [Adding a picture](#adding-a-picture).
+
+## Chatting over another app
+
+Two ways in open the chat as a sheet over whatever app you're in, with the app still showing above it. The [floating AI button](/typing/size-position/#floating-ai-button) brings the text on screen along when its screen reading is on. **Ask AI** in any app's text selection menu brings the selected text. Either way it waits above the message box, where **View** shows all of it and **Delete** drops it, and the first message you send carries it. The conversation lands in the same list as the rest.
 
 ## Picking the model
 
@@ -142,6 +167,8 @@ Three caps keep the file from growing without limit:
 
 Text you attached from a field is saved with its message, under the same 20,000-character cap, because the conversation wouldn't make sense to the model without it on the next turn.
 
+Pictures are kept as files next to the conversations, scaled down to 1,280 pixels on the long side first, and are deleted when nothing refers to them any more: when the conversation is deleted, for example. With **Keep your conversations** off they go in the app's cache instead.
+
 Deleting a conversation from the list removes it for good. There's no undo, which is why the dialog names the chat first.
 
 ## What leaves your phone
@@ -149,7 +176,7 @@ Deleting a conversation from the list removes it for good. There's no undo, whic
 Exactly what the AI tool sends, and only when you hit send:
 
 - **An on-device model** sends nothing. The whole conversation stays on the phone.
-- **Any other provider** gets the conversation so far, because that's what makes a reply follow on from the last one. That includes any field text you attached with the paperclip, and only the text you attached: the keyboard's chat never reads the field on its own. A fixed instruction rides along with it: answer in plain text, and keep it as short as the question allows. Your API keys stay on the device.
+- **Any other provider** gets the conversation so far, because that's what makes a reply follow on from the last one. Pictures you sent go with your newest message, to a provider that takes them. That includes any field text you attached with the paperclip, and only the text you attached: the keyboard's chat never reads the field on its own. A fixed instruction rides along with it: answer in plain text, and keep it as short as the question allows. Your API keys stay on the device.
 - **The transcript itself** goes nowhere. It's deliberately left out of settings backups, the same as the [AI history](/tools/ai/#history) and for the same reason: your own conversations shouldn't ride along in a file you export and mail to yourself. See [Your data](/privacy/data/).
 
 ## Details & edge cases

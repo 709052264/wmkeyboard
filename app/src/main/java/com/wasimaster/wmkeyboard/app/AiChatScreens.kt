@@ -4,6 +4,20 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.text.format.DateUtils
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
+import com.wasimaster.wmkeyboard.ime.aichat.AiChatImages
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +26,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,6 +49,7 @@ import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Stop
@@ -44,6 +64,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -245,6 +267,22 @@ internal fun AiChatScreen(
     conversationId: Long,
     onBack: () -> Unit,
     onOpenAiSettings: () -> Unit,
+    /**
+     * Text the first message carries: the screen the floating AI button was
+     * pressed over, or a selection sent with Ask AI (#697). Shown above the
+     * composer, where it can be read or removed before anything is sent.
+     */
+    initialAttachment: String = "",
+    /** What the attachment is, for its line above the composer; blank for the plain count. */
+    attachmentLabel: String = "",
+    /**
+     * Drawn as the Ask AI sheet over another app (#697) rather than as a
+     * settings screen: no status-bar padding at the top, a close glyph
+     * rather than a back arrow.
+     */
+    inSheet: Boolean = false,
+    /** A line under the model chips, such as why no screen came along. */
+    notice: (@Composable () -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val store = AiChatController.store(context)
@@ -269,7 +307,27 @@ internal fun AiChatScreen(
     // Text that came with a message from the keyboard's chat, where the field
     // being written in can be quoted (#280). This screen has no field to quote
     // from, but a message taken back for editing keeps what it carried.
-    var draftAttachment by rememberSaveable { mutableStateOf("") }
+    var draftAttachment by rememberSaveable { mutableStateOf(initialAttachment) }
+    var attachmentOpen by rememberSaveable { mutableStateOf(false) }
+    // Pictures to send with the next message (#698), by the names the chat
+    // keeps them under, one per line so the list survives a rotation.
+    var draftImagesText by rememberSaveable { mutableStateOf("") }
+    val draftImages = draftImagesText.lines().filter { it.isNotEmpty() }
+    val scope = rememberCoroutineScope()
+    val pickImages = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(AiChatStore.MAX_IMAGES),
+    ) { uris ->
+        if (uris.isEmpty()) return@rememberLauncherForActivityResult
+        val room = AiChatStore.MAX_IMAGES - draftImages.size
+        scope.launch {
+            // Scaled and copied in off the main thread: a phone photo takes
+            // a moment to decode.
+            val added = withContext(Dispatchers.IO) {
+                uris.take(room).mapNotNull { AiChatImages.import(context, it, keep = store.persist) }
+            }
+            draftImagesText = (draftImages + added).joinToString("\n")
+        }
+    }
     val listState = rememberLazyListState()
 
     // The session mirrors the native KV cache; keep it only while some chat
@@ -300,14 +358,30 @@ internal fun AiChatScreen(
                 title = { Text(chatName, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = stringResource(CommonR.string.common_back),
-                        )
+                        if (inSheet) {
+                            Icon(
+                                Icons.Outlined.Close,
+                                contentDescription = stringResource(CommonR.string.common_close),
+                            )
+                        } else {
+                            Icon(
+                                Icons.AutoMirrored.Outlined.ArrowBack,
+                                contentDescription = stringResource(CommonR.string.common_back),
+                            )
+                        }
                     }
                 },
+                windowInsets = if (inSheet) WindowInsets(0) else TopAppBarDefaults.windowInsets,
             )
         },
+        // A sheet starts below the status bar already; only the sides and
+        // the navigation bar under it are still the window's to pad.
+        contentWindowInsets = if (inSheet) {
+            WindowInsets.navigationBars
+        } else {
+            ScaffoldDefaults.contentWindowInsets
+        },
+        containerColor = if (inSheet) Color.Transparent else MaterialTheme.colorScheme.background,
     ) { padding ->
         // The app targets SDK 36, so from Android 15 the window is drawn edge to
         // edge and no longer resizes for the keyboard. Without imePadding nothing
@@ -336,6 +410,7 @@ internal fun AiChatScreen(
                 enabled = run == null,
                 onPick = { choice = it },
             )
+            notice?.invoke()
             // Only the newest turn can be redone or taken back: doing either
             // mid-transcript would answer out of order.
             val idle = run == null
@@ -366,6 +441,7 @@ internal fun AiChatScreen(
                         AiChatController.editLast(context, activeId)?.let { taken ->
                             draft = taken.content
                             draftAttachment = taken.attachment
+                            draftImagesText = taken.images.joinToString("\n")
                         }
                     }
                     MessageBubble(
@@ -388,7 +464,11 @@ internal fun AiChatScreen(
                         ),
                     )
                 }
-                if (messages.isEmpty() && run == null) {
+                if (messages.isEmpty() && run == null && draftAttachment.isNotEmpty()) {
+                    // Something to ask about already (#697): the keyboard's
+                    // Ask AI openings, one tap from a question.
+                    item { AskStarters { draft = it } }
+                } else if (messages.isEmpty() && run == null) {
                     item {
                         Text(
                             stringResource(ImeR.string.ime_ai_chat_empty_hint),
@@ -405,33 +485,75 @@ internal fun AiChatScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        pluralStringResource(
-                            ImeR.plurals.ime_ai_chat_attachment_sent,
-                            draftAttachment.length,
-                            draftAttachment.length,
-                        ),
+                        attachmentLabel.ifBlank {
+                            pluralStringResource(
+                                ImeR.plurals.ime_ai_chat_attachment_sent,
+                                draftAttachment.length,
+                                draftAttachment.length,
+                            )
+                        },
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),
                     )
-                    BubbleAction(CommonR.string.common_delete) { draftAttachment = "" }
+                    BubbleAction(if (attachmentOpen) R.string.ask_ai_attachment_less else R.string.ask_ai_attachment_view) {
+                        attachmentOpen = !attachmentOpen
+                    }
+                    BubbleAction(CommonR.string.common_delete) {
+                        draftAttachment = ""
+                        attachmentOpen = false
+                    }
                 }
+                // What is about to be sent, readable in full before it is.
+                if (attachmentOpen) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier = Modifier
+                            .padding(horizontal = 12.dp, vertical = 4.dp)
+                            .fillMaxWidth()
+                            .heightIn(max = 180.dp),
+                    ) {
+                        Text(
+                            draftAttachment,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .verticalScroll(rememberScrollState())
+                                .padding(12.dp),
+                        )
+                    }
+                }
+            }
+            if (draftImages.isNotEmpty()) {
+                ChatPictures(
+                    names = draftImages,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    onRemove = { name -> draftImagesText = (draftImages - name).joinToString("\n") },
+                )
             }
             Composer(
                 draft = draft,
                 onDraft = { draft = it },
                 generating = run != null,
-                canSend = choice != null && draft.isNotBlank(),
+                canSend = choice != null && (draft.isNotBlank() || draftImages.isNotEmpty()),
                 onSend = {
                     val picked = choice ?: return@Composer
                     val id = activeId.takeIf { it >= 0 }
                         ?: store.newConversation(System.currentTimeMillis()).id
                             .also { activeId = it }
-                    AiChatController.send(context, settings.value, id, picked, draft, draftAttachment)
+                    AiChatController.send(context, settings.value, id, picked, draft, draftAttachment, draftImages)
                     draft = ""
                     draftAttachment = ""
+                    draftImagesText = ""
+                    attachmentOpen = false
                 },
                 onStop = { AiChatController.stop(context) },
+                onAttach = {
+                    pickImages.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                }.takeIf { run == null && draftImages.size < AiChatStore.MAX_IMAGES },
             )
         }
     }
@@ -592,6 +714,9 @@ private fun MessageBubble(
             modifier = Modifier.widthIn(max = 320.dp),
         ) {
             Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                if (message.images.isNotEmpty()) {
+                    ChatPictures(message.images, Modifier.padding(bottom = 6.dp))
+                }
                 // What the answer was built on, over the answer — kept on a
                 // failed turn too, since a run that died after searching
                 // still searched.
@@ -783,6 +908,52 @@ private fun StreamingBubble(run: AiChatController.ChatRun, showThinking: Boolean
     }
 }
 
+/**
+ * Pictures in a row (#698): the ones about to be sent, each with a way to take
+ * it back off, or the ones a sent message carried. A picture whose file has
+ * gone shows as an empty tile rather than not at all, so the numbers a model
+ * uses still line up with what is on screen.
+ */
+@Composable
+private fun ChatPictures(names: List<String>, modifier: Modifier = Modifier, onRemove: ((String) -> Unit)? = null) {
+    val context = LocalContext.current
+    LazyRow(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        items(names) { name ->
+            Box {
+                AsyncImage(
+                    model = AiChatImages.file(context, name),
+                    contentDescription = stringResource(R.string.ai_chat_picture_desc),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(PICTURE_SIZE)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                )
+                onRemove?.let { remove ->
+                    IconButton(
+                        onClick = { remove(name) },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .size(28.dp),
+                    ) {
+                        Icon(
+                            Icons.Outlined.Close,
+                            contentDescription = stringResource(R.string.ai_chat_picture_remove_desc),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private val PICTURE_SIZE = 72.dp
+
 @Composable
 private fun Composer(
     draft: String,
@@ -791,6 +962,8 @@ private fun Composer(
     canSend: Boolean,
     onSend: () -> Unit,
     onStop: () -> Unit,
+    /** Opens the picture picker; null when no more pictures fit. */
+    onAttach: (() -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
@@ -798,6 +971,9 @@ private fun Composer(
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.Bottom,
     ) {
+        IconButton(onClick = { onAttach?.invoke() }, enabled = onAttach != null) {
+            Icon(Icons.Outlined.Image, contentDescription = stringResource(R.string.ai_chat_attach_picture_desc))
+        }
         OutlinedTextField(
             value = draft,
             onValueChange = onDraft,
@@ -819,6 +995,36 @@ private fun Composer(
                     Icons.AutoMirrored.Outlined.Send,
                     contentDescription = stringResource(ImeR.string.ime_ai_chat_send),
                 )
+            }
+        }
+    }
+}
+
+/**
+ * Openings for a chat that starts with something to ask about (#697): the
+ * keyboard's Ask AI chips, which put their question in the composer rather
+ * than sending it, so it can still be changed.
+ */
+@Composable
+private fun AskStarters(onPick: (String) -> Unit) {
+    val starters = listOf(
+        ImeR.string.ime_ai_chat_ask_explain to ImeR.string.ime_ai_chat_ask_explain_prompt,
+        ImeR.string.ime_ai_chat_ask_summary to ImeR.string.ime_ai_chat_ask_summary_prompt,
+        ImeR.string.ime_ai_chat_ask_words to ImeR.string.ime_ai_chat_ask_words_prompt,
+    ).map { (label, prompt) -> stringResource(label) to stringResource(prompt) }
+    Column(Modifier.padding(horizontal = 4.dp, vertical = 8.dp)) {
+        Text(
+            stringResource(ImeR.string.ime_ai_chat_ask_hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 12.dp),
+        )
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(starters) { (label, prompt) ->
+                FilterChip(selected = false, onClick = { onPick(prompt) }, label = { Text(label) })
             }
         }
     }

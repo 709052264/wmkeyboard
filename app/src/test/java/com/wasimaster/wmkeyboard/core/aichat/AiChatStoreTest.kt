@@ -221,4 +221,35 @@ class AiChatStoreTest {
         assertNotNull(reopened.get(kept.id))
         assertNull(reopened.get(secret.id))
     }
+    @Test
+    fun `pictures are numbered across the conversation for the model (#698)`() {
+        val store = AiChatStore(null)
+        val c = store.newConversation(now = 1)
+        store.appendMessage(c.id, user("Two of these").copy(images = listOf("a.jpg", "b.jpg")))
+        store.appendMessage(c.id, assistant("Nice."))
+        store.appendMessage(c.id, user("And this").copy(images = listOf("c.jpg")))
+        val conversation = store.get(c.id)!!
+
+        assertEquals(listOf("a.jpg", "b.jpg", "c.jpg"), conversation.images)
+        assertEquals(3, conversation.firstImageOf(2))
+        assertEquals("And this\n<image n=\"3\"/>", conversation.messages[2].promptText(conversation.firstImageOf(2)))
+        assertEquals(setOf("a.jpg", "b.jpg", "c.jpg"), store.imageNames())
+    }
+
+    @Test
+    fun `a message of pictures alone still reads as something`() {
+        val message = user("").copy(images = listOf("a.jpg"))
+        assertEquals("<image n=\"1\"/>", message.promptText())
+    }
+
+    @Test
+    fun `a failed turn's pictures do not count toward the numbering`() {
+        val store = AiChatStore(null)
+        val c = store.newConversation(now = 1)
+        store.appendMessage(c.id, user("x").copy(images = listOf("gone.jpg"), error = "failed"))
+        store.appendMessage(c.id, user("y").copy(images = listOf("kept.jpg")))
+        val conversation = store.get(c.id)!!
+        assertEquals(listOf("kept.jpg"), conversation.images)
+        assertEquals(1, conversation.firstImageOf(1))
+    }
 }

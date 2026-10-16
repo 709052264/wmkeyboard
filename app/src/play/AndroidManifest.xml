@@ -72,6 +72,16 @@
             android:name="com.wasimaster.wmkeyboard.core.accessibility.TouchPassthroughService"
             tools:node="remove" />
 
+        <!--
+           The floating AI button's screen reading, for the same reason as the
+           service above: Play wants an AccessibilityService to be the app's
+           core purpose. The AI button still opens its chat there, without the
+           screen's text; ChannelFeatures.SCREEN_CONTEXT hides the grant row.
+        -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService"
+            tools:node="remove" />
+
         <!-- See the permission above. -->
         <service
             android:name="com.wasimaster.wmkeyboard.core.clock.ClockRingService"

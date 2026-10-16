@@ -256,6 +256,7 @@ import com.wasimaster.wmkeyboard.core.prediction.WordSource
 import com.wasimaster.wmkeyboard.core.settings.EmojiFontChoice
 import com.wasimaster.wmkeyboard.core.settings.EmojiInsertMode
 import com.wasimaster.wmkeyboard.core.accessibility.KeyboardPassthrough
+import com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService
 import com.wasimaster.wmkeyboard.core.settings.HardwareKeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.KeySoundStyle
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
@@ -429,6 +430,8 @@ import com.wasimaster.wmkeyboard.ime.ui.hardwareKeysToggleable
 import com.wasimaster.wmkeyboard.core.tools.page
 import com.wasimaster.wmkeyboard.core.tools.step
 import com.wasimaster.wmkeyboard.core.util.PlayServices
+import com.wasimaster.wmkeyboard.core.util.lowercaseKeepingLength
+import com.wasimaster.wmkeyboard.core.util.uppercaseKeepingLength
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import com.wasimaster.wmkeyboard.ime.ui.KeyGridFocus
 import com.wasimaster.wmkeyboard.ime.ui.PanelFocusController
@@ -462,6 +465,8 @@ import com.wasimaster.wmkeyboard.core.tools.MediaCategoryCache
 import com.wasimaster.wmkeyboard.core.aichat.AiChatMessage
 import com.wasimaster.wmkeyboard.core.aichat.AiChatStore
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
+import com.wasimaster.wmkeyboard.ime.aichat.AiChatImages
+import com.wasimaster.wmkeyboard.ime.aichat.AskAiLaunch
 import com.wasimaster.wmkeyboard.ime.aichat.KeyboardAiToolHost
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeEvent
@@ -3163,6 +3168,9 @@ open class WMKeyboardService : InputMethodService() {
     /** The reply panel's Screenshot button sent the user to grant images access. */
     private var replyShotsAfterGrant = false
 
+    /** The same for the AI chat's Newest screenshot (#698): add it once the grant comes back. */
+    private var chatShotAfterGrant = false
+
     /** The docked keyboard's top inside its window, from the last [onComputeInsets]. */
     private var boardTopInWindow = 0
     private var screenshotObserver: android.database.ContentObserver? = null
@@ -5494,6 +5502,7 @@ open class WMKeyboardService : InputMethodService() {
             boardTopOnScreen()?.let {
                 noteBoardTop(it)
                 noteBoardGrowth(it)
+                liftFloatingButtons(it)
             }
             // Resize mode's band is the app, dimmed, under a scrim that eats
             // every touch, and a top handle dragged taller than the keyboard
@@ -5825,36 +5834,130 @@ open class WMKeyboardService : InputMethodService() {
     private val summonButtonDelegate = lazy {
         SummonButton(
             context = this,
-            onTap = ::summonKeyboard,
+            glyph = R.drawable.ic_summon_keyboard,
+            label = R.string.ime_summon_button_label,
+            windowTitle = "WM Keyboard button",
+            onTap = ::onSummonButtonTap,
             onMoved = { x, y ->
                 serviceScope.launch { settingsRepository.setSummonButtonPosition(x, y) }
             },
             onDismiss = {
                 summonButtonDismissed = true
                 syncSummonButton()
-                Toast.makeText(this, R.string.ime_summon_button_hidden_toast, Toast.LENGTH_SHORT).show()
+                val toast = if (windowOnScreen) {
+                    R.string.ime_summon_button_hidden_open_toast
+                } else {
+                    R.string.ime_summon_button_hidden_toast
+                }
+                Toast.makeText(this, toast, Toast.LENGTH_SHORT).show()
             },
         )
     }
     private val summonButton by summonButtonDelegate
 
-    /** A long press put the floating button away until the keyboard next opens. */
-    private var summonButtonDismissed = false
+    /**
+     * The floating AI button (#697): a second overlay button, on screen
+     * whether the keyboard is up or not, that opens an AI chat about the
+     * screen. Same lazy shape as [summonButtonDelegate].
+     */
+    private val aiButtonDelegate = lazy {
+        SummonButton(
+            context = this,
+            glyph = R.drawable.ic_summon_ai,
+            label = R.string.ime_ai_button_label,
+            windowTitle = "WM Keyboard AI button",
+            onTap = ::askAiAboutScreen,
+            onMoved = { x, y ->
+                serviceScope.launch { settingsRepository.setAiButtonPosition(x, y) }
+            },
+            onDismiss = {
+                aiButtonDismissed = true
+                syncSummonButton()
+                val toast = if (windowOnScreen) {
+                    R.string.ime_ai_button_hidden_open_toast
+                } else {
+                    R.string.ime_ai_button_hidden_toast
+                }
+                Toast.makeText(this, toast, Toast.LENGTH_SHORT).show()
+            },
+        )
+    }
+    private val aiButton by aiButtonDelegate
 
     /**
-     * Puts the floating keyboard button (issue #374) on screen or takes it
-     * off: on while its switch is on, the overlay grant is held and the
-     * keyboard is closed; off while the keyboard is open, since then it is
-     * the one thing the button cannot do anything about. The lock screen needs
-     * no check of its own — Android draws it over every app overlay.
+     * A long press put a floating button away until the keyboard next opens
+     * or closes, whichever comes first: both reset on every change of the
+     * window's visibility.
+     */
+    private var summonButtonDismissed = false
+    private var aiButtonDismissed = false
+
+    /**
+     * Puts the floating keyboard button (issue #374) and the floating AI
+     * button (#697) on screen or takes them off: each on while its switch is
+     * on and the overlay grant is held. The lock screen needs no check of its
+     * own — Android draws it over every app overlay.
+     *
+     * Both stay up while the keyboard is (#697). Overlay windows sit below the
+     * keyboard's, so a docked keyboard lifts them clear of itself
+     * ([SummonButton.keepAbove]), and the keyboard button turns into the way
+     * to put the keyboard away: a field-less screen, where it was summoned,
+     * often has no other.
      */
     private fun syncSummonButton(setting: SummonButtonSettings = _uiState.value.settings.summonButton) {
-        val wanted = setting.enabled && !windowOnScreen && !summonButtonDismissed &&
-            Settings.canDrawOverlays(this)
-        when {
-            wanted -> summonButton.show(setting.xFraction, setting.yFraction)
-            summonButtonDelegate.isInitialized() -> summonButton.hide()
+        val canDraw = Settings.canDrawOverlays(this)
+        val ceiling = if (windowOnScreen) boardTopOnScreen() else null
+        if (setting.enabled && !summonButtonDismissed && canDraw) {
+            if (windowOnScreen) {
+                summonButton.setGlyph(R.drawable.ic_summon_keyboard_hide, R.string.ime_summon_button_hide_label)
+            } else {
+                summonButton.setGlyph(R.drawable.ic_summon_keyboard, R.string.ime_summon_button_label)
+            }
+            summonButton.keepAbove(ceiling)
+            summonButton.show(setting.xFraction, setting.yFraction)
+        } else if (summonButtonDelegate.isInitialized()) {
+            summonButton.hide()
         }
+        if (setting.aiButton && !aiButtonDismissed && canDraw) {
+            aiButton.keepAbove(ceiling)
+            aiButton.show(setting.aiXFraction, setting.aiYFraction)
+        } else if (aiButtonDelegate.isInitialized()) {
+            aiButton.hide()
+        }
+    }
+
+    /** The docked keyboard's top moved: lift the floating buttons clear of it. */
+    private fun liftFloatingButtons(topPx: Int?) {
+        if (summonButtonDelegate.isInitialized()) summonButton.keepAbove(topPx)
+        if (aiButtonDelegate.isInitialized()) aiButton.keepAbove(topPx)
+    }
+
+    /** The keyboard button's tap: up when it is down, down when it is up (#697). */
+    private fun onSummonButtonTap() {
+        if (windowOnScreen) requestHideSelf(0) else summonKeyboard()
+    }
+
+    /**
+     * The floating AI button's tap (#697): reads the app on screen, when the
+     * screen reading service is on, and opens the Ask AI sheet with it. Read
+     * here and now, before the sheet opens, because once it is up the screen
+     * in front is the sheet. The text travels as an extra; the service caps
+     * it well under what an intent can carry.
+     */
+    private fun askAiAboutScreen() {
+        val screen = runCatching { ScreenContextService.current?.read() }.getOrNull()
+        val intent = Intent()
+            .setClassName(packageName, AskAiLaunch.ACTIVITY)
+            // A fresh sheet every press: a sheet still open from the last one
+            // would be about the last screen.
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            .putExtra(AskAiLaunch.EXTRA_FROM_BUTTON, true)
+        if (screen != null && screen.text.isNotBlank()) {
+            intent.putExtra(AskAiLaunch.EXTRA_SCREEN_TEXT, screen.text)
+                .putExtra(AskAiLaunch.EXTRA_SCREEN_PACKAGE, screen.packageName)
+        }
+        runCatching { startActivity(intent) }
+            .onFailure { DebugLog.w("ime", "ask ai sheet failed to open: ${it.message}") }
     }
 
     /**
@@ -5942,6 +6045,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         // A rotation or a fold changes the room the floating button has.
         if (summonButtonDelegate.isInitialized()) summonButton.relayout()
+        if (aiButtonDelegate.isInitialized()) aiButton.relayout()
     }
 
     /** Push the current hardware-keyboard presence into the UI state. */
@@ -6027,6 +6131,11 @@ open class WMKeyboardService : InputMethodService() {
         // changed under it; nothing about it can be trusted from here.
         revision = null
         if (!restarting) {
+            // The conversions backspace can re-pick (#711) were written into
+            // the field that just went.
+            recentConversions.clear()
+            conversionDeleted = ""
+            conversionRepick = null
             // Chips withdrawn because focus moved here were not tapped.
             inlineFieldStartedAt = SystemClock.uptimeMillis()
             // The rewrites the bar remembered were about the old field, and a
@@ -6607,6 +6716,8 @@ open class WMKeyboardService : InputMethodService() {
         // Same for the images permission the reply panel's screenshot button
         // asked for: open the picker it was pressed for.
         resumeReplyShotsAfterGrant()
+        // And the AI chat's, for the screenshot it was asking for.
+        resumeChatShotAfterGrant()
         // Pages from a just-finished document scan: the scanner activity
         // ran while the keyboard was down, so they can only insert now,
         // as the target field regains the input connection.
@@ -7277,11 +7388,21 @@ open class WMKeyboardService : InputMethodService() {
      * the first one on a given device.
      */
     private fun onScreenAgain() {
+        // The floating buttons lift above the keyboard and the keyboard
+        // button turns into a hide button (#697); a long press that put
+        // either away lasted until exactly now. Only on a real arrival: this
+        // also runs for every new field while the keyboard stays up.
+        if (!windowOnScreen) {
+            summonButtonDismissed = false
+            aiButtonDismissed = false
+        }
         windowOnScreen = true
-        // The floating button steps aside while the keyboard is up, and a
-        // long press that put it away lasted until exactly now.
-        summonButtonDismissed = false
         syncSummonButton()
+        // Up over the settings app with no field there: it opens its test
+        // field, the way its keyboard button would.
+        KeyboardControls.setUpOverOwnApp(
+            isNullField() && currentInputEditorInfo?.packageName == packageName,
+        )
         // The summon that asked for this got what it wanted.
         if (summonedNow()) {
             summonHeld = true
@@ -7327,7 +7448,11 @@ open class WMKeyboardService : InputMethodService() {
         forcedShowUp = false
         lifecycleOwner.onStop()
         jankMonitor.stop()
+        // A long press made while the keyboard was up lasted until now.
+        summonButtonDismissed = false
+        aiButtonDismissed = false
         syncSummonButton()
+        KeyboardControls.setUpOverOwnApp(false)
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
@@ -7499,6 +7624,7 @@ open class WMKeyboardService : InputMethodService() {
         // So is the floating button: it is the keyboard's, and another one is
         // in charge now.
         if (summonButtonDelegate.isInitialized()) summonButton.hide()
+        if (aiButtonDelegate.isInitialized()) aiButton.hide()
         summonJob?.cancel()
         pluginRuntime?.shutdown()
         pluginRuntime = null
@@ -7531,6 +7657,8 @@ open class WMKeyboardService : InputMethodService() {
         // The deferred buzz used to be cancelled by serviceScope.cancel() below;
         // on a Handler it has to be taken off the queue by hand.
         feedbackHandler.removeCallbacks(deferredVibrate)
+        // Lets a press already queued play out, then ends the thread.
+        feedbackPlayerThread.quitSafely()
         // The link to a paired computer is this service's to hold; the hub
         // outlives it only for as long as a settings screen still wants it.
         KdeConnectHub.release(KdeConnectHub.Reason.PANEL)
@@ -11161,8 +11289,9 @@ open class WMKeyboardService : InputMethodService() {
      * letter, which is the whole of what a shift has always meant. A word the
      * caret only came back to is not being typed.
      *
-     * The case forms must keep the word's length (they do outside a handful
-     * of letters such as ß), because the caret goes back to the same offset.
+     * The case forms must keep the word's length, because the caret goes back
+     * to the same offset; [nextCaseForm] promises it, and the guard below stays
+     * as the backstop.
      */
     private fun recapitalizeWordAtCaret(ic: InputConnection): Boolean {
         if (composing.isNotEmpty() && composing.toString() != resumedWord) return false
@@ -11226,10 +11355,13 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var shiftFromRecase: ShiftState? = null
 
-    /** Advances [s] one step through lower → Title → UPPER → lower. */
+    /**
+     * Advances [s] one step through lower → Title → UPPER → lower. Every form
+     * keeps the spelling, so `ß` steps to `ẞ` and back rather than to `SS` (#715).
+     */
     private fun nextCaseForm(s: String): String {
-        val lower = s.lowercase()
-        val upper = s.uppercase()
+        val lower = s.lowercaseKeepingLength()
+        val upper = s.uppercaseKeepingLength()
         val title = toTitleCase(s)
         return when {
             s == lower -> title
@@ -11618,7 +11750,9 @@ open class WMKeyboardService : InputMethodService() {
                 val left = before.subSequence(0, before.length - deleteLength)
                 setContextFrom(left)
                 rebuildRecentWords(left)
+                if (state.composer.isConversion) noteConversionDeleted(before, left)
             } else {
+                conversionDeleted = ""
                 syncPreviousWordFromField(ic)
             }
             refreshSuggestions()
@@ -16018,7 +16152,12 @@ open class WMKeyboardService : InputMethodService() {
             composing.delete(0, consumed)
             val rest = composer.remainderAfterCommit(composing.toString())
             if (rest.length != composing.length) composing = StringBuilder(rest)
-            if (top != null) CjkContext.committed(chosen) else CjkContext.before = ""
+            if (top != null) {
+                CjkContext.committed(chosen)
+                rememberConversion(chosen, buf.substring(0, consumed))
+            } else {
+                CjkContext.before = ""
+            }
             converted = top != null
         }
         afterConversionFlushed(predict = converted)
@@ -16060,6 +16199,151 @@ open class WMKeyboardService : InputMethodService() {
     private var conversionPredictions: Pair<String, List<String>>? = null
 
     /**
+     * Conversions committed into this field lately, oldest first: what went
+     * in, and the reading that spelled it. Backspace taking one back out puts
+     * that reading's other conversions on the strip (#711), the pick the user
+     * would have made had the right one been first. Never kept for a password
+     * box, and dropped with the field.
+     */
+    private val recentConversions = ArrayDeque<Pair<String, String>>()
+
+    /** What consecutive backspaces have taken out of the field, in field order (#711). */
+    private var conversionDeleted = ""
+
+    /** The Han text the last of those backspaces left in front of the caret. */
+    private var conversionDeletedLeft = ""
+
+    /** Other conversions of [reading] on the strip, offered with [left] before the caret. */
+    private class ConversionRepick(val reading: String, val left: String, val words: List<String>)
+
+    /** The re-pick the strip shows, while it shows one. */
+    private var conversionRepick: ConversionRepick? = null
+
+    private fun rememberConversion(written: String, reading: String) {
+        conversionDeleted = ""
+        conversionRepick = null
+        if (_uiState.value.secureField || reading.isEmpty()) return
+        recentConversions.addLast(written to reading)
+        while (recentConversions.size > RECENT_CONVERSIONS) recentConversions.removeFirst()
+    }
+
+    /**
+     * Adds what one backspace took ([before] less [left]) to the run being
+     * deleted. A backspace anywhere else than where the last one left the
+     * caret starts the run again.
+     */
+    private fun noteConversionDeleted(before: CharSequence, left: CharSequence) {
+        val gone = before.subSequence(left.length, before.length).toString()
+        val continues = conversionDeleted.isNotEmpty() && CjkContext.hanTail(before) == conversionDeletedLeft
+        conversionDeleted = (if (continues) gone + conversionDeleted else gone).take(CONVERSION_DELETED_MAX)
+        conversionDeletedLeft = CjkContext.hanTail(left)
+    }
+
+    /**
+     * The reading of the conversion backspace has just taken out whole, while
+     * the caret is still where that left it. Null otherwise: a word only half
+     * deleted is still partly in the field, and its reading would write the
+     * half that stayed a second time.
+     */
+    private fun repickReading(left: String): String? {
+        if (conversionDeleted.isEmpty() || left != conversionDeletedLeft) return null
+        return recentConversions.lastOrNull { it.first == conversionDeleted }?.second
+    }
+
+    /**
+     * The conversion strip with nothing composing, worked out from the field
+     * rather than from the keystroke that led there: a caret moved, a
+     * backspace, or the echo of the keyboard's own commit.
+     *
+     * The echo is the one that mattered. It comes back after a candidate is
+     * committed and used to empty the strip under the 联想 that commit had just
+     * put up, before anyone could tap one (#710). The field now says what is
+     * behind the caret and the strip follows on from it (#711): the other
+     * conversions of a word backspace has just taken out, or what comes next.
+     */
+    private fun refreshConversionStripAtCaret(state: KeyboardUiState) {
+        // An editor that will not say keeps whatever the last commit put up.
+        val before = currentInputConnection?.getTextBeforeCursor(CjkContext.KEEP, 0) ?: return
+        val left = CjkContext.hanTail(before)
+        CjkContext.before = left
+        val reading = repickReading(left)
+        if (reading == null) {
+            conversionRepick = null
+            showConversionPredictions(left)
+            return
+        }
+        // The echo of the backspace that put it up.
+        if (conversionRepick?.let { it.reading == reading && it.left == left } == true) return
+        val composer = state.composer
+        suggestionJob = serviceScope.launch {
+            // Only the conversions that spell the whole reading: one that
+            // covers its first syllable would leave the rest unwritten.
+            val words = withContext(suggestionDispatcher) {
+                val all = composer.candidates(reading)
+                all.filterIndexed { i, _ -> composer.consumedForIndex(reading, i) == reading.length }
+            }
+            if (composing.isNotEmpty() || _uiState.value.composer !== composer) return@launch
+            if (words.isEmpty()) {
+                showConversionPredictions(left)
+                return@launch
+            }
+            conversionRepick = ConversionRepick(reading, left, words)
+            conversionPredictions = null
+            _uiState.update {
+                it.copy(
+                    suggestions = words,
+                    emojiSuggestions = emptyList(),
+                    conversionReadings = emptyList(),
+                    autocorrectWord = null,
+                    punctuationSuggestions = emptyList(),
+                    inlineEmoji = false,
+                )
+            }
+        }
+    }
+
+    /** What follows [left] on the strip, the word engine's next words when the composer has none. */
+    private fun showConversionPredictions(left: String) {
+        // The echo of a commit asks about the context that commit has already
+        // answered, and the strip it put up stays as it is.
+        if (left.isNotEmpty() && conversionPredictions?.first == left) return
+        val predicted = conversionPredictions(left)
+        val (nextWords, nextEmojis) = if (predicted.isEmpty()) nextWordStrip() else emptyList<String>() to emptyList()
+        _uiState.update {
+            it.copy(
+                suggestions = predicted.ifEmpty { nextWords },
+                emojiSuggestions = nextEmojis,
+                conversionReadings = emptyList(),
+                autocorrectWord = null,
+                punctuationSuggestions = emptyList(),
+                inlineEmoji = false,
+            )
+        }
+    }
+
+    /**
+     * A re-pick tapped (#711): it goes in where the backspaced word was, and
+     * is taught under the reading the way a pick while composing is. False
+     * when [chosen] is not one of them.
+     */
+    private fun commitConversionRepick(ic: InputConnection, chosen: String): Boolean {
+        val offer = conversionRepick ?: return false
+        if (chosen !in offer.words) return false
+        val composer = _uiState.value.composer
+        ic.commitText(chosen, 1)
+        val index = composer.candidates(offer.reading, CANDIDATE_GRID_LIMIT).indexOf(chosen)
+        if (index >= 0 && learningAllowed) composer.learnChoice(offer.reading, index)
+        CjkContext.before = offer.left + chosen
+        rememberConversion(chosen, offer.reading)
+        val next = conversionPredictions(CjkContext.before)
+        _uiState.update {
+            it.copy(suggestions = next, emojiSuggestions = emptyList(), autocorrectWord = null, candidateCursor = -1)
+        }
+        CjkLearning.store?.let { store -> serviceScope.launch(Dispatchers.IO) { store.save() } }
+        return true
+    }
+
+    /**
      * A prediction tapped with nothing composing: it goes in as it stands,
      * no space, and the strip predicts again from the longer context. False
      * when [chosen] is not one of the strip's predictions.
@@ -16069,6 +16353,7 @@ open class WMKeyboardService : InputMethodService() {
         if (chosen !in words) return false
         val composer = _uiState.value.composer
         ic.commitText(chosen, 1)
+        conversionDeleted = ""
         if (learningAllowed) composer.learnPrediction(context, chosen)
         CjkContext.before = context + chosen
         val next = conversionPredictions(CjkContext.before)
@@ -16110,7 +16395,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun commitConversionPrefix(ic: InputConnection, chosen: String, index: Int = -1, piece: String? = null) {
         if (composing.isEmpty()) {
-            commitConversionPrediction(ic, chosen)
+            if (!commitConversionRepick(ic, chosen)) commitConversionPrediction(ic, chosen)
             return
         }
         val composer = _uiState.value.composer
@@ -16138,6 +16423,9 @@ open class WMKeyboardService : InputMethodService() {
         if (rest.length != composing.length) composing = StringBuilder(rest)
         // The raw reading is no Chinese for the next buffer to follow on from.
         if (index >= 0 || piece != null) CjkContext.committed(written) else CjkContext.before = ""
+        // A single character of a word (以词定字) does not spell the reading
+        // it consumed, so backspace has nothing to re-pick it from.
+        if (index >= 0 && piece == null) rememberConversion(written, buf.substring(0, consumed))
         consumeShift()
         if (composing.isEmpty()) {
             val (nextWords, nextEmojis) = nextWordStrip()
@@ -19388,7 +19676,6 @@ open class WMKeyboardService : InputMethodService() {
         commitResolution = null
         val typed = composing.toString()
         val composer = state.composer
-        conversionPredictions = null
         // A new reading: what is written before it is the context its first
         // word is scored after (#580 follow-up). Read once per reading, from
         // the field, since the caret may have moved since the last commit.
@@ -19407,6 +19694,15 @@ open class WMKeyboardService : InputMethodService() {
         // pressed in between has already moved on to the new list.
         if (state.candidateCursor != -1) _uiState.update { it.copy(candidateCursor = -1) }
         syncHardwareCandidateWindow()
+        if (typed.isEmpty()) {
+            refreshConversionStripAtCaret(state)
+            return
+        }
+        conversionPredictions = null
+        // A reading is being typed, so whatever backspace took out is not
+        // being picked again.
+        conversionRepick = null
+        conversionDeleted = ""
         // The lattice decode runs off the main thread, with no debounce: the
         // candidates are how this language is typed at all, so they must not
         // wait. A key typed meanwhile cancels the job, and one still queued
@@ -20256,6 +20552,12 @@ open class WMKeyboardService : InputMethodService() {
     /** Fewest predictions asked for after a conversion commit; the strip scrolls. */
     private val CONVERSION_PREDICTIONS = 12
 
+    /** Conversions a field remembers for backspace to re-pick (#711). */
+    private val RECENT_CONVERSIONS = 32
+
+    /** Longest run of backspaced text kept to match against them. */
+    private val CONVERSION_DELETED_MAX = 32
+
     /** How many conversions keep their places ahead of the English words, at most. */
     private val CONVERSION_ENGLISH_AFTER = 3
 
@@ -20341,6 +20643,9 @@ open class WMKeyboardService : InputMethodService() {
             onSuggestionTapped(candidate)
             return
         }
+        // The same tick a word picked from the strip gets in onSuggestionTapped,
+        // which a conversion pick never passes through (#710).
+        vibrate()
         // The strip is filled off the main thread and can be a keystroke
         // behind the buffer. A position is only good for the list it came
         // from, so it is trusted while the buffer's own ranking still has this
@@ -22447,7 +22752,7 @@ open class WMKeyboardService : InputMethodService() {
         keyWidthPx: Float,
     ): String {
         val based = when (shift) {
-            ShiftState.CAPS_LOCK -> word.uppercase()
+            ShiftState.CAPS_LOCK -> word.uppercaseKeepingLength()
             ShiftState.ON -> word.replaceFirstChar { it.uppercase() }
             ShiftState.OFF -> word
         }
@@ -22765,7 +23070,7 @@ open class WMKeyboardService : InputMethodService() {
     /** Puts [shown] in the composing region as the reading of [generation]. */
     private fun showDuet(ic: InputConnection, shown: DuetShown, generation: Int) {
         val word = when (duetShift) {
-            ShiftState.CAPS_LOCK -> shown.word.uppercase()
+            ShiftState.CAPS_LOCK -> shown.word.uppercaseKeepingLength()
             ShiftState.ON -> shown.word.replaceFirstChar { it.uppercase() }
             ShiftState.OFF -> shown.word
         }
@@ -30722,6 +31027,9 @@ open class WMKeyboardService : InputMethodService() {
                             draft = taken.content,
                             attachment = taken.attachment.takeIf(String::isNotEmpty)
                                 ?.let { text -> AiChatAttachment(text, fromSelection = false) },
+                            // Its pictures come back with its words; the
+                            // clear-out's grace keeps their files.
+                            images = taken.images,
                             composing = true,
                         ),
                     )
@@ -30785,8 +31093,121 @@ open class WMKeyboardService : InputMethodService() {
                     if (action.list || chat.conversationId < 0) "ai_chat" else "ai_chat/${chat.conversationId}",
                 )
             is AiChatAction.Report -> aiChatReport(action.index)
+            AiChatAction.TogglePictureSources ->
+                _uiState.update {
+                    it.copy(aiChat = it.aiChat.copy(pictureSources = !it.aiChat.pictureSources, pictureNotice = null))
+                }
+            is AiChatAction.AddPicture -> aiChatAddPicture(action.fromClipboard)
+            is AiChatAction.RemovePicture -> {
+                chatPictureFrom.remove(action.name)
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(images = it.aiChat.images - action.name)) }
+            }
             is AiChatAction.AskAbout, is AiChatAction.ToolApproval -> Unit
         }
+    }
+
+    /**
+     * Where each picture waiting in the chat's composer came from (a clip's
+     * file, a screenshot's address), so asking for the same one twice adds it
+     * once. Each import gets a fresh name, so the names alone cannot tell.
+     */
+    private val chatPictureFrom = HashMap<String, String>()
+
+    /**
+     * A picture for the chat's next message (#698), from the sources the reply
+     * tool reads: the newest image in the clipboard history, or the newest
+     * screenshot in the gallery. Never in incognito or in a password field,
+     * where the panel does not offer it either.
+     */
+    private fun aiChatAddPicture(fromClipboard: Boolean) {
+        val state = _uiState.value
+        if (state.incognitoOn || state.secureField) return
+        if (state.aiChat.images.size >= AiChatStore.MAX_IMAGES) return
+        // A Play build declares no photos permission to read screenshots with.
+        if (!fromClipboard && !com.wasimaster.wmkeyboard.app.ChannelFeatures.SCREENSHOT_CLIPS) return
+        val clipFile = if (fromClipboard) {
+            val item = if (isClipboardAccessible()) {
+                clipboardStore.items().firstOrNull { it.kind == ClipKind.IMAGE && !it.sensitive }
+            } else {
+                null
+            }
+            val file = item?.imagePath?.let(::File)?.takeIf { it.isFile }
+            if (file == null) {
+                aiChatPictureNotice(R.string.ime_ai_chat_picture_no_clip)
+                return
+            }
+            file
+        } else {
+            if (!canReadImages()) {
+                // Asked straight away, as the reply tool's Screenshot does:
+                // pressing the chip is the request.
+                aiChatPictureNotice(R.string.ime_ai_chat_picture_no_permission)
+                chatShotAfterGrant = true
+                startActivity(
+                    Intent(this, com.wasimaster.wmkeyboard.app.ImagesPermissionActivity::class.java).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    },
+                )
+                return
+            }
+            null
+        }
+        val keep = AiChatController.store(this).persist
+        serviceScope.launch {
+            val shot = if (clipFile == null) {
+                withContext(Dispatchers.IO) { ReplyShots.recent(this@WMKeyboardService, limit = 1).firstOrNull() }
+            } else {
+                null
+            }
+            val source = clipFile?.absolutePath ?: shot?.uri?.toString()
+            if (source == null) {
+                aiChatPictureNotice(R.string.ime_ai_chat_picture_no_shot)
+                return@launch
+            }
+            // Already waiting above the composer: nothing to add.
+            if (_uiState.value.aiChat.images.any { chatPictureFrom[it] == source }) {
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(pictureSources = false, pictureNotice = null)) }
+                return@launch
+            }
+            // Scaled and copied in off the main thread: a screenshot takes a
+            // moment to decode.
+            val name = withContext(Dispatchers.IO) {
+                if (clipFile != null) {
+                    AiChatImages.import(this@WMKeyboardService, clipFile, keep)
+                } else {
+                    shot?.let { AiChatImages.import(this@WMKeyboardService, it.uri, keep) }
+                }
+            }
+            if (name == null) {
+                aiChatPictureNotice(R.string.ime_ai_chat_picture_unreadable)
+                return@launch
+            }
+            chatPictureFrom[name] = source
+            _uiState.update {
+                val images = it.aiChat.images
+                if (images.size >= AiChatStore.MAX_IMAGES) return@update it
+                it.copy(aiChat = it.aiChat.copy(images = images + name, pictureSources = false, pictureNotice = null))
+            }
+        }
+    }
+
+    private fun aiChatPictureNotice(@StringRes res: Int) {
+        _uiState.update { it.copy(aiChat = it.aiChat.copy(pictureSources = true, pictureNotice = res)) }
+    }
+
+    /** The other half of [aiChatAddPicture]'s permission request, from [onStartInputView]. */
+    private fun resumeChatShotAfterGrant() {
+        if (!chatShotAfterGrant) return
+        val state = _uiState.value
+        if (state.panel != PanelMode.AI || !state.aiChat.open) {
+            chatShotAfterGrant = false
+            return
+        }
+        // Refused: leave the flag set, so a second try that succeeds still
+        // adds the screenshot.
+        if (!canReadImages()) return
+        chatShotAfterGrant = false
+        aiChatAddPicture(fromClipboard = false)
     }
 
     /**
@@ -30827,14 +31248,16 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         val chat = state.aiChat
         val text = chat.draft.trim()
-        if (text.isEmpty() || AiChatController.isGenerating) return
+        // Pictures alone are a message, as on the chat screen.
+        if ((text.isEmpty() && chat.images.isEmpty()) || AiChatController.isGenerating) return
         val choice = aiChatChoice() ?: return
         val store = AiChatController.store(this)
         // Written on the first send and not before, like the chat screen: a
         // chat opened and left leaves no row behind.
         val id = chat.conversationId.takeIf { it >= 0 && store.get(it) != null }
             ?: store.newConversation(System.currentTimeMillis(), ephemeral = state.incognitoOn).id
-        AiChatController.send(this, state.settings, id, choice, text, chat.attachment?.text.orEmpty())
+        AiChatController.send(this, state.settings, id, choice, text, chat.attachment?.text.orEmpty(), chat.images)
+        chatPictureFrom.clear()
         _uiState.update {
             it.copy(
                 aiChat = it.aiChat.copy(
@@ -30842,6 +31265,9 @@ open class WMKeyboardService : InputMethodService() {
                     draft = "",
                     attachment = null,
                     modelKey = choice.key,
+                    images = emptyList(),
+                    pictureSources = false,
+                    pictureNotice = null,
                 ),
             )
         }
@@ -31132,11 +31558,13 @@ open class WMKeyboardService : InputMethodService() {
     /** A shipped action's translated name, or the name the user gave it. */
     /**
      * What the keyboard lends the AI's own tools (#698): its on-device
-     * translator, reading the languages the user types in as its hints.
+     * translator, reading the languages the user types in as its hints, the
+     * app launcher's list, and the KDE Connect link.
      */
     private fun aiToolHost(settings: KeyboardSettings): KeyboardAiToolHost = KeyboardAiToolHost(
         applicationContext,
         hints = listOf(_uiState.value.language.id) + settings.enabledLanguages.map { it.id },
+        kdeConnect = settings.kdeConnect,
     )
 
     private fun aiActionLabel(spec: AiActionSpec): String =
@@ -42302,6 +42730,22 @@ open class WMKeyboardService : InputMethodService() {
      * costs nothing and the coalescing is unchanged.
      */
     private val feedbackHandler = Handler(Looper.getMainLooper())
+
+    /**
+     * Where the vibrator and the speaker are actually driven. Both are binder
+     * calls into system_server — `performHapticFeedback` goes through the
+     * window session, `vibrate` through the vibrator service, the system click
+     * through the audio service — and they ran inside the pointer-down handler,
+     * so a busy system_server held up the main thread on every keystroke. That
+     * stall is most of why power saving (which turns both off) made typing feel
+     * faster. Deciding whether to play, and what, stays on the main thread; only
+     * the call that blocks moves here.
+     */
+    private val feedbackPlayerThread = android.os.HandlerThread(
+        "wm-key-feedback",
+        Process.THREAD_PRIORITY_URGENT_DISPLAY,
+    ).apply { start() }
+    private val feedbackPlayer = Handler(feedbackPlayerThread.looper)
     private val deferredVibrate = Runnable {
         vibratePending = false
         lastVibrateAt = SystemClock.uptimeMillis()
@@ -42392,14 +42836,10 @@ open class WMKeyboardService : InputMethodService() {
             } else {
                 settings.sound.customId
             }
-        KeySoundPlayer.play(
-            this,
-            resolved,
-            volume ?: settings.sound.volume,
-            resolvedId,
-            target,
-            phase,
-        )
+        val playVolume = volume ?: settings.sound.volume
+        feedbackPlayer.post {
+            KeySoundPlayer.play(this, resolved, playVolume, resolvedId, target, phase)
+        }
     }
 
     // The resolved theme sound is cached per settings instance and clock
@@ -42407,7 +42847,8 @@ open class WMKeyboardService : InputMethodService() {
     // auto-theme triggers the active slot is a function of the time — a
     // keystroke is too hot a path to re-answer either on.
     private var themeSoundSettings: KeyboardSettings? = null
-    private var themeSoundMinute: Int = -1
+    // Wall-clock start of the minute the cached answer was resolved in.
+    private var themeSoundMinuteStart: Long = Long.MIN_VALUE / 2
     // The two sound stores' revisions join that cache key, because the answer
     // also depends on what is installed: a theme naming a sound the user has
     // just deleted has to stop overriding their own pick at that moment, not
@@ -42428,16 +42869,22 @@ open class WMKeyboardService : InputMethodService() {
     private fun themeKeySound(
         settings: KeyboardSettings,
     ): Pair<com.wasimaster.wmkeyboard.core.settings.KeySoundStyle, String>? {
-        val minute = java.util.Calendar.getInstance().let {
-            it.get(java.util.Calendar.HOUR_OF_DAY) * 60 + it.get(java.util.Calendar.MINUTE)
-        }
+        // The wall clock against the end of the cached minute rather than a
+        // Calendar per keystroke: building one allocates and resolves the time
+        // zone, on the main thread, for an answer that changes once a minute.
+        // Zone offsets are whole minutes, so the UTC minute's end is the local one's.
+        val now = System.currentTimeMillis()
         val soundRevision = SoundStore.get(this).revision.value
         val packRevision = SoundPackStore.get(this).revision.value
-        if (settings === themeSoundSettings && minute == themeSoundMinute &&
+        if (settings === themeSoundSettings && now in themeSoundMinuteStart until themeSoundMinuteStart + 60_000L &&
             soundRevision == themeSoundRevision && packRevision == themeSoundPackRevision
         ) {
             return themeSoundValue
         }
+        val minute = java.util.Calendar.getInstance().let {
+            it.get(java.util.Calendar.HOUR_OF_DAY) * 60 + it.get(java.util.Calendar.MINUTE)
+        }
+        themeSoundMinuteStart = now - now % 60_000L
         val resolved = settings.activeThemeSpec(activeDarkSlot(settings, minute))
             ?.keySound()
             // A theme may name a sound this device does not have: its addon was
@@ -42448,7 +42895,6 @@ open class WMKeyboardService : InputMethodService() {
             // theme whose sound is missing defers to that pick instead.
             ?.takeIf { KeySoundPlayer.canPlay(this, it.first, it.second) }
         themeSoundSettings = settings
-        themeSoundMinute = minute
         themeSoundRevision = soundRevision
         themeSoundPackRevision = packRevision
         themeSoundValue = resolved
@@ -42503,14 +42949,22 @@ open class WMKeyboardService : InputMethodService() {
         val settings = _uiState.value.settings
         if (!settings.haptics.enabled) return
         if (settings.feedback.hapticsRespectDnd && dndActive) return
-        HapticPlayer.play(
-            this,
-            settings.haptics.style,
-            settings.haptics.amplitude,
-            settings.haptics.strengthMs,
-            inputRootView,
-            respectSystemSetting = settings.feedback.respectSystemTouchFeedback,
-        )
+        val haptics = settings.haptics
+        val view = inputRootView
+        val respectSystem = settings.feedback.respectSystemTouchFeedback
+        // Off the main thread; see [feedbackPlayer]. A view detached in the
+        // meantime makes the system route report false, and the player falls
+        // back to the vibrator, so a press is never silent for it.
+        feedbackPlayer.post {
+            HapticPlayer.play(
+                this,
+                haptics.style,
+                haptics.amplitude,
+                haptics.strengthMs,
+                view,
+                respectSystemSetting = respectSystem,
+            )
+        }
     }
 
     /**
@@ -43396,12 +43850,13 @@ internal fun toTitleCase(s: String): String {
  * shift, not the lock: its own cycle is only `a` and `A`.
  */
 internal fun shiftStateForCase(text: String): ShiftState? {
-    val lower = text.lowercase()
-    if (lower == text.uppercase()) return null
+    val lower = text.lowercaseKeepingLength()
+    val upper = text.uppercaseKeepingLength()
+    if (lower == upper) return null
     return when (text) {
         lower -> ShiftState.OFF
         toTitleCase(text) -> ShiftState.ON
-        text.uppercase() -> ShiftState.CAPS_LOCK
+        upper -> ShiftState.CAPS_LOCK
         else -> null
     }
 }

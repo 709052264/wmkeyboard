@@ -247,6 +247,14 @@
          is what a screen reader says for the button. -->
     <string name="ime_summon_button_label">Show keyboard</string>
     <string name="ime_summon_button_hidden_toast">Keyboard button hidden until the keyboard next opens</string>
+    <string name="ime_summon_button_hide_label">Hide keyboard</string>
+    <string name="ime_summon_button_hidden_open_toast">Keyboard button hidden until the keyboard closes</string>
+
+    <!-- The floating AI button over other apps (#697). The label is what a
+         screen reader says for the button; the toasts follow a long press. -->
+    <string name="ime_ai_button_label">Ask AI about this screen</string>
+    <string name="ime_ai_button_hidden_toast">AI button hidden until the keyboard next opens</string>
+    <string name="ime_ai_button_hidden_open_toast">AI button hidden until the keyboard closes</string>
 
     <!-- Toasts when the user presses their pick-mode key on a physical keyboard. In pick mode the number keys select suggestions. -->
     <string name="ime_hw_pick_mode_on_toast">Pick mode on: number keys select suggestions, Shift types the number</string>

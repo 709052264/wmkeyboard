@@ -158,4 +158,54 @@
     <!-- %1$s is an expression, such as 18% of 2450. -->
     <string name="ime_ai_tool_calculate_running">Working out %1$s…</string>
     <string name="ime_ai_tool_calculate_done">Worked out %1$s</string>
+    <string name="ime_ai_tool_name_calendar_events">Your calendar</string>
+    <string name="ime_ai_tool_name_search_notes">Your notes</string>
+    <string name="ime_ai_tool_name_current_location">Your location</string>
+    <string name="ime_ai_tool_name_add_calendar_event">Add to calendar</string>
+    <string name="ime_ai_tool_name_add_note">New note</string>
+    <string name="ime_ai_tool_name_set_alarm">Alarm</string>
+    <string name="ime_ai_tool_name_start_timer">Timer</string>
+    <string name="ime_ai_tool_name_open_app">Open an app</string>
+    <string name="ime_ai_tool_name_media_control">Media control</string>
+    <string name="ime_ai_tool_name_send_to_pc">Send to computer</string>
+    <!-- %1$s is a date, or two joined by a dash. -->
+    <string name="ime_ai_tool_calendar_events_running">Reading your calendar for %1$s…</string>
+    <string name="ime_ai_tool_calendar_events_done">Read your calendar for %1$s</string>
+    <string name="ime_ai_tool_search_notes_running">Searching your notes for “%1$s”…</string>
+    <string name="ime_ai_tool_search_notes_done">Searched your notes for “%1$s”</string>
+    <!-- %1$s is the event's title. -->
+    <string name="ime_ai_tool_add_calendar_event_running">Adding “%1$s” to your calendar…</string>
+    <string name="ime_ai_tool_add_calendar_event_done">Added “%1$s” to your calendar</string>
+    <!-- %1$s is the note's title. -->
+    <string name="ime_ai_tool_add_note_running">Saving the note “%1$s”…</string>
+    <string name="ime_ai_tool_add_note_done">Saved the note “%1$s”</string>
+    <!-- %1$s is a time of day, such as 07:30. -->
+    <string name="ime_ai_tool_set_alarm_running">Setting an alarm for %1$s…</string>
+    <string name="ime_ai_tool_set_alarm_done">Set an alarm for %1$s</string>
+    <!-- %1$s is a length of time, such as 10m. -->
+    <string name="ime_ai_tool_start_timer_running">Starting a %1$s timer…</string>
+    <string name="ime_ai_tool_start_timer_done">Started a %1$s timer</string>
+    <!-- %1$s is an app's name. -->
+    <string name="ime_ai_tool_open_app_running">Opening %1$s…</string>
+    <string name="ime_ai_tool_open_app_done">Opened %1$s</string>
+    <!-- %1$s is the start of what was sent. -->
+    <string name="ime_ai_tool_send_to_pc_running">Sending “%1$s” to your computer…</string>
+    <string name="ime_ai_tool_send_to_pc_done">Sent “%1$s” to your computer</string>
+    <string name="ime_ai_tool_name_read_image_text">Reading a picture</string>
+    <string name="ime_ai_tool_name_reverse_image_search">Search by picture</string>
+    <!-- %1$s is the picture's number in the chat, such as 2. -->
+    <string name="ime_ai_tool_read_image_text_running">Reading the text in picture %1$s…</string>
+    <string name="ime_ai_tool_read_image_text_done">Read the text in picture %1$s</string>
+    <string name="ime_ai_tool_reverse_image_search_running">Searching the web by picture %1$s…</string>
+    <string name="ime_ai_tool_reverse_image_search_done">Searched the web by picture %1$s</string>
+    <!-- The chat composer's picture button (#698). -->
+    <string name="ime_ai_chat_picture_desc">Add a picture</string>
+    <string name="ime_ai_chat_picture_clipboard">Copied picture</string>
+    <string name="ime_ai_chat_picture_screenshot">Newest screenshot</string>
+    <string name="ime_ai_chat_picture_no_clip">No picture in the clipboard history</string>
+    <string name="ime_ai_chat_picture_no_shot">No screenshot on this phone</string>
+    <string name="ime_ai_chat_picture_no_permission">Allow access to your pictures to add a screenshot</string>
+    <string name="ime_ai_chat_picture_unreadable">That picture could not be read</string>
+    <string name="ime_ai_chat_picture_item_desc">Picture</string>
+    <string name="ime_ai_chat_picture_remove_desc">Remove picture</string>
 </resources>

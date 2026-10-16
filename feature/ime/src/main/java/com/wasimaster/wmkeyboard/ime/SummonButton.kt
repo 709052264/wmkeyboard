@@ -17,13 +17,16 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.widget.ImageView
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
  * The floating keyboard button (issue #374): a small round button over every
- * app while the keyboard is closed. Tapping it brings the keyboard up, field or
- * no field.
+ * app. Tapping it brings the keyboard up, field or no field, and while the
+ * keyboard is up the same tap puts it away (#697). The floating AI button is a
+ * second one of these with its own glyph and tap.
  *
  * This is what the "Display over other apps" grant buys, and the reason it is
  * worth asking for. The shade's "Show keyboard" ([KeyboardControls]) has to
@@ -36,15 +39,25 @@ import kotlin.math.roundToInt
  * looking at.
  *
  * A plain View rather than Compose: the keyboard's lifecycle owner is stopped
- * whenever the keyboard is hidden, which is the only time this is on screen.
+ * whenever the keyboard is hidden, which is when this is most often on screen.
  *
- * Tap to show the keyboard, drag to move (it settles against the nearer side
- * and remembers where), press and hold to put it away until the keyboard next
- * opens.
+ * An overlay window sits below the keyboard's own window, so while the
+ * keyboard is docked the button is lifted clear of it ([keepAbove]); where it
+ * was dragged to is kept, and it drops back there when the keyboard goes.
+ *
+ * Tap to act, drag to move (it settles against the nearer side and remembers
+ * where), press and hold to put it away until the keyboard next opens or
+ * closes.
  */
 internal class SummonButton(
     private val context: Context,
-    /** The tap: bring the keyboard up. */
+    /** The glyph drawn first; see [setGlyph]. */
+    @DrawableRes private var glyph: Int,
+    /** What a screen reader calls the button. */
+    @StringRes private var label: Int,
+    /** The window's title, which only shows in the system's window dumps. */
+    private val windowTitle: String,
+    /** The tap. */
     private val onTap: () -> Unit,
     /** A drag ended here, as fractions of the room the screen leaves the button. */
     private val onMoved: (xFraction: Float, yFraction: Float) -> Unit,
@@ -56,6 +69,9 @@ internal class SummonButton(
     private var params: WindowManager.LayoutParams? = null
     private var xFraction = 1f
     private var yFraction = 0.6f
+
+    /** The docked keyboard's top edge on screen, which the button stays above; null while it is down. */
+    private var ceilingPx: Int? = null
 
     /**
      * A context Android lets draw an overlay window. From API 30 a window
@@ -110,7 +126,7 @@ internal class SummonButton(
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            title = "WM Keyboard button"
+            title = windowTitle
         }
         params = layout
         positionFromFractions(layout)
@@ -125,6 +141,26 @@ internal class SummonButton(
         params = null
         current.cancelPress()
         runCatching { windowManager.removeViewImmediate(current) }
+    }
+
+    /**
+     * Keeps the button above [topPx], the docked keyboard's top edge on screen,
+     * or lets it go back to where it was dragged when null. The resting place
+     * itself is untouched: this moves the button, it does not remember it.
+     */
+    fun keepAbove(topPx: Int?) {
+        if (topPx == ceilingPx) return
+        ceilingPx = topPx
+        val current = view ?: return
+        if (!current.dragging) place()
+    }
+
+    /** Swaps the glyph and its spoken name, for a button whose tap changes meaning. */
+    fun setGlyph(@DrawableRes glyph: Int, @StringRes label: Int) {
+        if (glyph == this.glyph && label == this.label) return
+        this.glyph = glyph
+        this.label = label
+        view?.applyGlyph()
     }
 
     /** The screen changed shape (rotation, fold): put the button back on it. */
@@ -142,7 +178,10 @@ internal class SummonButton(
     private fun positionFromFractions(layout: WindowManager.LayoutParams) {
         val (roomX, roomY) = room()
         layout.x = (xFraction.coerceIn(0f, 1f) * roomX).roundToInt()
-        layout.y = (yFraction.coerceIn(0f, 1f) * roomY).roundToInt()
+        val rest = (yFraction.coerceIn(0f, 1f) * roomY).roundToInt()
+        val gap = (KEYBOARD_GAP_DP * context.resources.displayMetrics.density).roundToInt()
+        val ceiling = ceilingPx?.let { it - sizePx - gap }
+        layout.y = if (ceiling != null && rest > ceiling) ceiling.coerceAtLeast(0) else rest
     }
 
     /** How far the button's top-left corner can travel on each axis. */
@@ -197,15 +236,19 @@ internal class SummonButton(
                 setColor(FILL)
                 setStroke((density).roundToInt().coerceAtLeast(1), STROKE)
             }
-            setImageResource(R.drawable.ic_summon_keyboard)
+            applyGlyph()
             imageTintList = ColorStateList.valueOf(GLYPH)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
             val pad = (GLYPH_PADDING_DP * density).roundToInt()
             setPadding(pad, pad, pad, pad)
             alpha = REST_ALPHA
-            contentDescription = context.getString(R.string.ime_summon_button_label)
             isClickable = true
             isFocusable = false
+        }
+
+        fun applyGlyph() {
+            setImageResource(glyph)
+            contentDescription = context.getString(label)
         }
 
         fun cancelPress() {
@@ -267,19 +310,26 @@ internal class SummonButton(
             return true
         }
 
-        /** Ends a drag against the nearer side, and remembers it there. */
+        /**
+         * Ends a drag against the nearer side, and remembers it there. A drop
+         * behind the keyboard is pushed back above it, and remembered where it
+         * was let go.
+         */
         private fun settle(layout: WindowManager.LayoutParams) {
             val (roomX, roomY) = room()
             layout.x = if (layout.x + sizePx / 2 < (roomX + sizePx) / 2) 0 else roomX
-            runCatching { windowManager.updateViewLayout(this, layout) }
             xFraction = if (roomX == 0) 0f else layout.x.toFloat() / roomX
             yFraction = if (roomY == 0) 0f else layout.y.toFloat() / roomY
+            positionFromFractions(layout)
+            runCatching { windowManager.updateViewLayout(this, layout) }
             onMoved(xFraction, yFraction)
         }
     }
 
     private companion object {
         const val BUTTON_DP = 48
+        /** Room left between the button and the top of a docked keyboard. */
+        const val KEYBOARD_GAP_DP = 8
         const val GLYPH_PADDING_DP = 12
         const val REST_ALPHA = 0.85f
         const val FILL = 0xE6202124.toInt()

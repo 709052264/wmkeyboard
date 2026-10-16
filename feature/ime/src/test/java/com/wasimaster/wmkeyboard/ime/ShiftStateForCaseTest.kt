@@ -22,6 +22,13 @@ class ShiftStateForCaseTest {
     }
 
     @Test
+    fun `a word with sharp s walks the same steps (#715)`() {
+        assertEquals(ShiftState.OFF, shiftStateForCase("spaß"))
+        assertEquals(ShiftState.ON, shiftStateForCase("Spaß"))
+        assertEquals(ShiftState.CAPS_LOCK, shiftStateForCase("SPAẞ"))
+    }
+
+    @Test
     fun `several words follow the same three steps`() {
         assertEquals(ShiftState.OFF, shiftStateForCase("hello there world"))
         assertEquals(ShiftState.ON, shiftStateForCase("Hello There World"))

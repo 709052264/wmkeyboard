@@ -9,6 +9,9 @@ import com.wasimaster.wmkeyboard.core.notify.NotificationIds
 import com.wasimaster.wmkeyboard.core.notify.NotificationKind
 import com.wasimaster.wmkeyboard.core.notify.WmNotifications
 import com.wasimaster.wmkeyboard.ime.R
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * The keyboard's own controls, in the notification shade.
@@ -54,6 +57,24 @@ object KeyboardControls {
      */
     @Volatile
     var host: Host? = null
+
+    private val _upOverOwnApp = MutableStateFlow(false)
+
+    /**
+     * True while the keyboard is on screen over this app's own settings with
+     * no text field under it: summoned by the floating button or the shade,
+     * or kept up by pinning. The settings app answers by opening its keyboard
+     * test field, as if its button had been pressed, so the keys have a field
+     * to type into and the frame pads the screen clear of them; without that,
+     * the bottom rows of a screen sat behind the keyboard out of reach. Same
+     * process, so a plain flow carries it.
+     */
+    val upOverOwnApp: StateFlow<Boolean> = _upOverOwnApp.asStateFlow()
+
+    /** Set by the keyboard as it shows, changes field and hides; see [upOverOwnApp]. */
+    fun setUpOverOwnApp(value: Boolean) {
+        _upOverOwnApp.value = value
+    }
 
     /** Intent action: put the keyboard back on screen. */
     const val ACTION_SHOW = "com.wasimaster.wmkeyboard.action.SHOW_KEYBOARD"

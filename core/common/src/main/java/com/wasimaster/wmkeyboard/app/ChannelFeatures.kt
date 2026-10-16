@@ -27,6 +27,13 @@ object ChannelFeatures {
     val GESTURE_PASSTHROUGH: Boolean = !BuildConfig.ENABLE_PLAY_STORE
 
     /**
+     * The floating AI button's screen reading (#697), behind
+     * ScreenContextService. Same Play rule as the pass-through service. The
+     * button itself stays: its chat opens without the screen's text.
+     */
+    val SCREEN_CONTEXT: Boolean = !BuildConfig.ENABLE_PLAY_STORE
+
+    /**
      * The clock tool's ring service, a foreground service of type
      * systemExempted that plays an alarm while it rings. Play keeps that type
      * for apps whose core job is an alarm clock, and a keyboard is not one.

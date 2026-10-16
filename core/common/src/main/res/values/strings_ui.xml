@@ -37,7 +37,10 @@
     <string name="common_permission_location_body">WM Keyboard reads where your phone is only when you tap Locate me in the location tool, or Use my location for the weather and compass tools. It reads one position and then stops. The keyboard does not track you and does not read your location in the background. It keeps the position in memory for a short time, and saves it only if you save a place. To show an address, the keyboard sends the position to the address server that you selected. You can turn the address off. Nothing goes to the developer. On the next screen, Only this time works: the keyboard asks again next time. The tool is optional.</string>
 
     <string name="common_permission_calendar_title">Calendar access for the calendar tool</string>
-    <string name="common_permission_calendar_body">WM Keyboard reads your events. The calendar tool lists them, and you can insert one as text. The keyboard reads your calendar only while that tool is open. The keyboard never writes to your calendar. Your events stay on your device. The tool is optional.</string>
+    <string name="common_permission_calendar_body">WM Keyboard reads your events. The calendar tool lists them, and you can insert one as text. If you let the AI read your calendar, it reads the days the model asks for, and those events go to the AI provider you chose. Otherwise the keyboard reads your calendar only while the calendar tool is open, and your events stay on your device. This permission does not let the keyboard change your calendar. The tool is optional.</string>
+
+    <string name="common_permission_calendar_write_title">Calendar access for the AI</string>
+    <string name="common_permission_calendar_write_body">WM Keyboard adds events to your calendar when the AI asks to and you have set it to add them directly. It only adds events: it never changes or deletes one. Unless you set that tool to Run, the AI shows you each event before it is added. The events stay in your calendar on your device. This is optional; without it, the AI opens your calendar app with the event filled in for you to save.</string>
 
     <string name="common_permission_contact_names_title">Contacts access for name suggestions</string>
     <string name="common_permission_contact_names_body">WM Keyboard reads the names in your contacts. The names then complete as you type, and autocorrect does not change them. The keyboard keeps the names in memory while it runs, and writes them to no file. The names never leave your device. The setting is optional. It stays off until you turn it on.</string>
@@ -89,6 +92,8 @@
 
     <!-- ================================================================== -->
     <!-- Crash report screen. Diagnostic builds only. It replaces the        -->
+    <string name="common_special_access_screen_content_title">Accessibility service for the AI button</string>
+    <string name="common_special_access_screen_content_body">With this service on, pressing the floating AI button reads the text of the app on screen once and opens an AI chat with that text attached. You see it before anything is sent, and you can remove it. The service reads nothing at any other time. It skips password fields, performs no actions, does not watch what you type and keeps no copy. The chat goes to the AI provider you picked in the AI settings, or stays on the phone with an on-device model. Android\'s accessibility screen warns about everything a service like this could do. This one only reads the screen when you press the button. Without it, the AI button still opens a chat, just without the screen\'s text.</string>
     <!-- platform crash dialog and shows the stack trace instead.            -->
     <!-- ================================================================== -->
 

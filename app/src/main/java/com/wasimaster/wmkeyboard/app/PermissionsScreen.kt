@@ -22,6 +22,7 @@ import androidx.core.net.toUri
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.updates.UpdateChannel
 import com.wasimaster.wmkeyboard.core.accessibility.KeyboardPassthrough
+import com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService
 import com.wasimaster.wmkeyboard.core.location.LocationAccess
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
 
@@ -85,6 +86,13 @@ internal fun PermissionsSettings() {
                 R.string.privacy_permissions_calendar_title,
                 R.string.privacy_permissions_calendar_subtitle,
                 PermissionDisclosures.CALENDAR,
+            )
+        }
+        item {
+            RuntimePermissionRow(
+                R.string.privacy_permissions_calendar_write_title,
+                R.string.privacy_permissions_calendar_write_subtitle,
+                PermissionDisclosures.CALENDAR_WRITE,
             )
         }
         // Not declared in the Play build at all; see [ChannelFeatures].
@@ -162,6 +170,14 @@ internal fun PermissionsSettings() {
             SpecialAccessRow(
                 R.string.privacy_permissions_install_updates_title,
                 R.string.privacy_permissions_install_updates_subtitle,
+        item(visible = ChannelFeatures.SCREEN_CONTEXT) {
+            SpecialAccessRow(
+                R.string.privacy_permissions_screen_content_title,
+                R.string.privacy_permissions_screen_content_subtitle,
+                SpecialAccess.SCREEN_CONTENT,
+                { ScreenContextService.isEnabled(it) },
+            )
+        }
                 SpecialAccess.INSTALL_UPDATES,
             ) { it.packageManager.canRequestPackageInstalls() }
         }

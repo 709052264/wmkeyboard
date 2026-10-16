@@ -707,6 +707,8 @@ internal object SettingsRowIcons {
         put(R.string.layout_persistent_title) { Icons.Outlined.PushPin }
         put(R.string.layout_summon_button_title) { Icons.Outlined.Keyboard }
         put(R.string.layout_summon_button_permission_title) { Icons.Outlined.Layers }
+        put(R.string.layout_ai_button_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.layout_ai_button_screen_title) { Icons.Outlined.Preview }
         put(R.string.layout_reset_sizing_title) { Icons.Outlined.Restore }
         put(R.string.layout_comma_emoji_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.layout_symbols_numpad_key_title) { Icons.Outlined.Dialpad }
@@ -835,6 +837,7 @@ internal object SettingsRowIcons {
         put(R.string.privacy_permissions_notifications_title) { Icons.Outlined.Notifications }
         put(R.string.privacy_permissions_usage_title) { Icons.Outlined.DataUsage }
         put(R.string.privacy_permissions_accessibility_title) { Icons.Outlined.Accessibility }
+        put(R.string.privacy_permissions_screen_content_title) { Icons.Outlined.Preview }
         put(R.string.privacy_permissions_install_updates_title) { Icons.Outlined.InstallMobile }
         put(R.string.privacy_permissions_overlay_title) { Icons.Outlined.Layers }
         put(R.string.privacy_permissions_internet_title) { Icons.Outlined.Public }

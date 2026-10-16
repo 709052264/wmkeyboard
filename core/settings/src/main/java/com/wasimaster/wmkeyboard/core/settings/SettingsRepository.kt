@@ -115,6 +115,7 @@ import com.wasimaster.wmkeyboard.core.tools.McpHeader
 import com.wasimaster.wmkeyboard.core.tools.McpServerCodec
 import com.wasimaster.wmkeyboard.core.tools.McpServerSpec
 import com.wasimaster.wmkeyboard.core.tools.McpToolPolicy
+import com.wasimaster.wmkeyboard.core.tools.AiCalendarMode
 import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
 import com.wasimaster.wmkeyboard.core.tools.BuiltInAiActions
 import com.wasimaster.wmkeyboard.core.tools.BuiltInAiReplyTones
@@ -4602,6 +4603,14 @@ data class AiSettings(
      */
     val toolPolicies: Map<String, McpToolPolicy> = emptyMap(),
     /**
+     * How the model's `add_calendar_event` adds an event (#698): the calendar
+     * app's editor filled in for the user to save, which needs no permission,
+     * or written directly, which needs WRITE_CALENDAR.
+     */
+    val toolCalendarMode: AiCalendarMode = AiCalendarMode.OPEN_APP,
+    /** The calendar a direct add writes to; -1 is the first writable one, primary first. */
+    val toolCalendarId: Long = -1L,
+    /**
      * MCP servers whose tools a model may call (#573). Each tool has its own
      * Allow / Ask / Off policy inside its server; see `McpServerSpec`.
      */
@@ -9016,6 +9025,9 @@ class SettingsRepository(private val context: Context) {
         // names rather than spelled out, so the four screen shapes times six
         // settings stay in step with each other by construction.
         private fun variantKey(base: String, variant: ScreenVariant) = "${base}_${variant.suffix}"
+        private val AI_BUTTON = booleanPreferencesKey("ai_button")
+        private val AI_BUTTON_X = floatPreferencesKey("ai_button_x")
+        private val AI_BUTTON_Y = floatPreferencesKey("ai_button_y")
 
         private fun keyHeightKey(v: ScreenVariant) = intPreferencesKey(variantKey("key_height", v))
         private fun numberRowHeightKey(v: ScreenVariant) =
@@ -10257,6 +10269,8 @@ class SettingsRepository(private val context: Context) {
         private val AI_TOOL_WEB_FETCH = booleanPreferencesKey("ai_tool_web_fetch")
         private val AI_TOOL_MAX_ROUNDS = intPreferencesKey("ai_tool_max_rounds")
         private val AI_TOOL_POLICIES = stringPreferencesKey("ai_tool_policies")
+        private val AI_TOOL_CALENDAR_MODE = stringPreferencesKey("ai_tool_calendar_mode")
+        private val AI_TOOL_CALENDAR_ID = longPreferencesKey("ai_tool_calendar_id")
         private val AI_MCP_SERVERS = stringPreferencesKey("ai_mcp_servers")
         private val AI_MCP_HEADERS = stringPreferencesKey("ai_mcp_headers")
         private val AI_PROVIDER_HEADERS = stringPreferencesKey("ai_provider_headers")
@@ -10516,6 +10530,9 @@ class SettingsRepository(private val context: Context) {
             sizingOverrides = readSizingOverrides(p, defaults),
             keyFontId = p[KEY_FONT_ID] ?: defaults.keyFontId,
             customFontName = p[CUSTOM_FONT_NAME] ?: defaults.customFontName,
+                aiButton = p[AI_BUTTON] ?: defaults.summonButton.aiButton,
+                aiXFraction = p[AI_BUTTON_X] ?: defaults.summonButton.aiXFraction,
+                aiYFraction = p[AI_BUTTON_Y] ?: defaults.summonButton.aiYFraction,
             scriptFontIds = scriptFontIdsFromPrefs(p, defaults),
             customScriptFontNames = customScriptFontNamesFromPrefs(p, defaults),
             lexiconVersion = p[LEXICON_VERSION] ?: defaults.lexiconVersion,
@@ -12363,6 +12380,10 @@ class SettingsRepository(private val context: Context) {
             toolWebFetch = p[AI_TOOL_WEB_FETCH] ?: defaults.ai.toolWebFetch,
             toolMaxRounds = p[AI_TOOL_MAX_ROUNDS] ?: defaults.ai.toolMaxRounds,
             toolPolicies = McpServerCodec.decodePolicies(p[AI_TOOL_POLICIES].orEmpty()),
+            toolCalendarMode = p[AI_TOOL_CALENDAR_MODE]
+                ?.let { runCatching { AiCalendarMode.valueOf(it) }.getOrNull() }
+                ?: defaults.ai.toolCalendarMode,
+            toolCalendarId = p[AI_TOOL_CALENDAR_ID] ?: defaults.ai.toolCalendarId,
             mcpServers = McpServerCodec.decodeServers(p[AI_MCP_SERVERS].orEmpty()),
             mcpHeaders = McpServerCodec.decodeHeaders(p[AI_MCP_HEADERS].orEmpty()),
             providerHeaders = McpServerCodec.decodeHeaders(p[AI_PROVIDER_HEADERS].orEmpty()),
@@ -14593,6 +14614,17 @@ class SettingsRepository(private val context: Context) {
     suspend fun setFloatingSize(widthDp: Int, heightScale: Float) =
         editPrefs {
             it[FLOATING_WIDTH] = widthDp.coerceIn(240, 500)
+    /** The floating AI button (#697); see [SummonButtonSettings.aiButton]. */
+    suspend fun setAiButton(value: Boolean) =
+        editPrefs { it[AI_BUTTON] = value }
+
+    /** Where a drag of the floating AI button left it. */
+    suspend fun setAiButtonPosition(x: Float, y: Float) =
+        editPrefs {
+            it[AI_BUTTON_X] = x.coerceIn(0f, 1f)
+            it[AI_BUTTON_Y] = y.coerceIn(0f, 1f)
+        }
+
             it[FLOATING_HEIGHT_SCALE] = heightScale.coerceIn(0.6f, 1.6f)
         }
 
@@ -16614,6 +16646,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiToolMaxRounds(value: Int) =
         editPrefs { it[AI_TOOL_MAX_ROUNDS] = value.coerceIn(AiToolRoundsRange) }
+
+    suspend fun setAiToolCalendarMode(value: AiCalendarMode) =
+        editPrefs { it[AI_TOOL_CALENDAR_MODE] = value.name }
+
+    suspend fun setAiToolCalendarId(value: Long) =
+        editPrefs { it[AI_TOOL_CALENDAR_ID] = value }
 
     /** Sets what a model may do with one of the keyboard's own tools (#698). */
     suspend fun setAiToolPolicy(tool: String, policy: McpToolPolicy) =

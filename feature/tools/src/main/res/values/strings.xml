@@ -52,6 +52,31 @@
     <string name="ftools_ai_tool_units_mismatch">%1$s and %2$s measure different things, so one cannot be converted to the other.</string>
     <!-- The calculator could not work the expression out; %1$s is its own message. -->
     <string name="ftools_ai_tool_calc_failed">The expression could not be worked out: %1$s</string>
+    <!-- A date the calendar tools could not read; %1$s is what the model wrote. -->
+    <string name="ftools_ai_tool_bad_date">\"%1$s\" is not a date the tool reads. Write it as YYYY-MM-DD, or YYYY-MM-DDTHH:MM with a time.</string>
+    <string name="ftools_ai_tool_no_calendar_access">The user has not let the keyboard read their calendar. Tell them they can allow it in the keyboard\'s calendar tool.</string>
+    <string name="ftools_ai_tool_no_calendar_write">The keyboard is not allowed to add events to the calendar. Tell the user they can allow it under Keyboard tools in the keyboard\'s AI settings.</string>
+    <string name="ftools_ai_tool_no_calendar_app">No calendar app on this phone could take the event.</string>
+    <string name="ftools_ai_tool_no_writable_calendar">There is no calendar on this phone that events can be added to.</string>
+    <string name="ftools_ai_tool_calendar_refused">The calendar did not accept the event.</string>
+    <!-- The notes live in storage that opens only once the phone has been unlocked after it started. -->
+    <string name="ftools_ai_tool_locked">The phone has not been unlocked since it started, so the user\'s notes cannot be read yet.</string>
+    <string name="ftools_ai_tool_no_location_access">The user has not let the keyboard read their location. Tell them they can allow it in the keyboard\'s location tool.</string>
+    <string name="ftools_ai_tool_location_off">Location is turned off on this phone.</string>
+    <string name="ftools_ai_tool_no_fix">The phone could not find where it is right now.</string>
+    <!-- %1$s is what the model wrote. -->
+    <string name="ftools_ai_tool_bad_time">\"%1$s\" is not a time the clock reads. Write it as HH:MM on a 24-hour clock.</string>
+    <string name="ftools_ai_tool_bad_days">\"%1$s\" is not a list of days the clock reads. Write days such as mon,wed,fri, or weekdays.</string>
+    <string name="ftools_ai_tool_bad_duration">\"%1$s\" is not a length of time the timer reads. Write it such as 10m, 1h30m or 90s, up to a day.</string>
+    <string name="ftools_ai_tool_no_app">No app installed on this phone is called \"%1$s\".</string>
+    <string name="ftools_ai_tool_no_media_access">The keyboard does not have notification access, which it needs to see and control what is playing. Tell the user they can allow it from the keyboard\'s media tool.</string>
+    <string name="ftools_ai_tool_nothing_playing">Nothing is playing on the phone right now.</string>
+    <!-- %1$s is what the model wrote, %2$s the answers it may choose from. -->
+    <string name="ftools_ai_tool_bad_choice">\"%1$s\" is not one of: %2$s.</string>
+    <!-- %1$s is why, in a few words, or empty. -->
+    <string name="ftools_ai_tool_pc_failed">The text could not be sent to the computer: %1$s</string>
+    <!-- A picture tool named a picture that is not there. %1$s is what the model wrote, %2$d how many pictures there are. -->
+    <string name="ftools_ai_tool_no_picture">There is no picture \"%1$s\". The user has sent %2$d. Name one by its number, from 1.</string>
 
     <!-- Why a tool call failed, as the AI chat and the AI panel show it under
          the answer. Unlike the strings above, these are for the user. -->
@@ -79,6 +104,30 @@
     <string name="ftools_ai_tool_reason_unknown_unit">Not a unit the converter knows: %1$s</string>
     <!-- %1$s and %2$s are two unit symbols, such as kg and km. -->
     <string name="ftools_ai_tool_reason_units_mismatch">%1$s and %2$s measure different things</string>
+    <!-- %1$s is the date the model wrote. -->
+    <string name="ftools_ai_tool_reason_bad_date">Not a date: %1$s</string>
+    <string name="ftools_ai_tool_reason_no_calendar_access">No access to your calendar</string>
+    <string name="ftools_ai_tool_reason_no_calendar_write">Not allowed to add calendar events</string>
+    <string name="ftools_ai_tool_reason_no_calendar_app">No calendar app</string>
+    <string name="ftools_ai_tool_reason_no_writable_calendar">No calendar to add to</string>
+    <string name="ftools_ai_tool_reason_calendar_refused">The calendar refused the event</string>
+    <string name="ftools_ai_tool_reason_locked">Unlock the phone first</string>
+    <string name="ftools_ai_tool_reason_no_location_access">No access to your location</string>
+    <string name="ftools_ai_tool_reason_location_off">Location is off</string>
+    <string name="ftools_ai_tool_reason_no_fix">Could not find the location</string>
+    <!-- %1$s is what the model wrote. -->
+    <string name="ftools_ai_tool_reason_bad_time">Not a time: %1$s</string>
+    <string name="ftools_ai_tool_reason_bad_days">Not a list of days: %1$s</string>
+    <string name="ftools_ai_tool_reason_bad_duration">Not a length of time: %1$s</string>
+    <string name="ftools_ai_tool_reason_no_app">No app called %1$s</string>
+    <string name="ftools_ai_tool_reason_no_media_access">No notification access</string>
+    <string name="ftools_ai_tool_reason_nothing_playing">Nothing is playing</string>
+    <!-- %1$s is what the model wrote, %2$s the answers it may choose from. -->
+    <string name="ftools_ai_tool_reason_bad_choice">Not an option: %1$s. The options are %2$s.</string>
+    <!-- %1$s is why, in a few words, or empty. -->
+    <string name="ftools_ai_tool_reason_pc_failed">Not sent to the computer. %1$s</string>
+    <!-- %1$s is the picture the model named, %2$d how many there are. -->
+    <string name="ftools_ai_tool_reason_no_picture">No picture %1$s, of %2$d</string>
 
     <!-- MCP servers the user added to the AI tool (#573). For the model:
          handed back as the result of a call. -->

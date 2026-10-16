@@ -45,6 +45,9 @@
     <string name="passthrough_service_label">WM Keyboard gestures</string>
     <string name="passthrough_service_summary">Keeps WM Keyboard\'s gestures working with a screen reader</string>
     <string name="passthrough_service_description">This service keeps the keyboard gestures available while a screen reader runs. The gestures are the spacebar cursor slide, the backspace word swipe, glide typing and handwriting.\n\nThe service reads nothing. It receives no accessibility events. It cannot see the screen content. Its only action is to mark the keyboard window to pass touches straight through. Every touch outside the keyboard still goes to your screen reader as usual.</string>
+    <string name="screen_context_service_label">WM Keyboard AI screen reading</string>
+    <string name="screen_context_service_summary">Lets the floating AI button read the text on screen when you press it</string>
+    <string name="screen_context_service_description">When you press WM Keyboard\'s floating AI button, this service reads the text of the app on screen once and puts it in a new AI chat, where you see it before anything is sent.\n\nIt reads nothing at any other time. It does not perform actions, does not watch what you type and keeps no copy. Text in password fields is skipped. Where the chat is sent depends on the AI provider you chose in WM Keyboard\'s settings, or it stays on the phone with an on-device model.</string>
     <!--
       Shown in the "open with" chooser for the keyboard's own files
       (.wmtheme.json, .wmlayout.json, .wmconfig.json, .wmstickers, …), so it

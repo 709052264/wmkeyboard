@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- The Ask AI sheet (#697): an AI chat over another app, opened by the
+         floating AI button or by Ask AI in the text selection menu. The label
+         is what the selection menu shows. -->
+    <string name="ask_ai_label">Ask AI</string>
+    <!-- Above the composer, naming the text the first message carries. -->
+    <string name="ask_ai_attachment_screen">With the text on screen in <xliff:g id="app" example="Chrome">%1$s</xliff:g></string>
+    <string name="ask_ai_attachment_screen_unnamed">With the text on screen</string>
+    <plurals name="ask_ai_attachment_selection">
+        <item quantity="one">With the text you selected (<xliff:g id="count" example="1">%1$d</xliff:g> character)</item>
+        <item quantity="other">With the text you selected (<xliff:g id="count" example="240">%1$d</xliff:g> characters)</item>
+    </plurals>
+    <string name="ask_ai_attachment_view">View</string>
+    <string name="ask_ai_attachment_less">Hide</string>
+    <!-- Under the model chips when the AI button opened the chat with no screen text. -->
+    <string name="ask_ai_screen_off">Turn on screen reading to ask about what is on screen</string>
+    <string name="ask_ai_screen_off_action">Turn on</string>
+</resources>

@@ -274,10 +274,35 @@ Each tool has its own **Run**, **Ask** or **Off**, the same three choices an [MC
 | **Currency converter** | Converts money at live rates from the [currency tool's](/tools/utilities/#converting-units-and-currencies) sources, coins included. | Run |
 | **Unit converter** | Converts lengths, weights, temperatures and other measurements. | Run |
 | **Calculator** | Works an expression out exactly, on your phone, with the [calculator's](/tools/utilities/#doing-the-math) degree and precision settings. | Run |
+| **Read your calendar** | Lists your events for the days the model asks about, up to a month at a time. Needs the [calendar tool's](/tools/calendar/) access. | Ask |
+| **Read your notes** | Searches your [notes](/tools/notes/) and reads up to five that match. A locked note's text stays hidden. | Ask |
+| **Your location** | Reads where your phone is, rounded to the precision the [location tool](/tools/location/) shares at, with the address if you have that on. | Ask |
+| **Add to your calendar** | Adds an event, see [Adding calendar events](#adding-calendar-events). | Ask |
+| **Save a note** | Adds a new note. | Ask |
+| **Set an alarm** | Sets an alarm in the [clock](/tools/clock/), once or on repeat days. | Ask |
+| **Start a timer** | Starts a countdown in the [clock](/tools/clock/). | Ask |
+| **Open an app** | Opens an installed app by its name, from the [app launcher's](/tools/app-launcher/) list. | Ask |
+| **Control media** | Plays, pauses or skips what is playing, or says what it is. Needs the [media tool's](/tools/media/) notification access. | Ask |
+| **Send to your computer** | Sends text or a link to a computer paired through [KDE Connect](/tools/kde-connect/). Only listed while KDE Connect is on. | Ask |
+| **Read text in a picture** | For a model that can't see pictures: reads the text in one you [sent in the chat](/tools/ai-chat/#sending-pictures), with ML Kit on your device <Flavor edition="full" />, or the [scan text tool's](/tools/scanner/) online engine if you picked that. | Run |
+| **Search by picture** | Uploads a picture you sent to the [camera tool's](/tools/camera/) search site (Google Lens unless you changed it) and gives you the link to the results. The model can't read that page itself. | Off |
+
+The tools that read what's on your phone, and the ones that change something, start on **Ask**. A web page the model reads could carry instructions of its own, and **Ask** means nothing it says reaches your calendar or your notes without you seeing the request first. None of the tools can delete or edit anything: they only read, add or start. **Always allow** on the request card switches that tool to **Run**.
+
+The calendar tools, and the alarm, are told today's date and your time zone, so "tomorrow at five" lands on the right day.
 
 Every tool that is on is described to the model in every request, whether it gets used or not. That costs a little each time, and a small model on your device copes best with a short list, so turn off what you don't want it reaching for.
 
 While one runs, the line over the answer says what it is doing: **Checking the weather in Dhaka…**, **Converting 12 USD → EUR…**. Unfolded, a Wikipedia lookup lists the article it read, and an image search the pages its pictures came from.
+
+### Adding calendar events
+
+<SettingsPath path="Tools / AI writing tools / Keyboard tools / How events are added" />
+
+**Add to your calendar** works one of two ways:
+
+- **Open the app**, the default: your calendar app opens with the event filled in, and nothing is saved until you press its own Save. It needs no permission. The model is told the event isn't saved yet, so it says so.
+- **Add directly**: the keyboard writes the event into your calendar itself. Picking it asks for permission to add calendar events, with the usual explanation first, then lets you choose which calendar they go in. The first writable one, primary first, is used until you pick.
 
 ## MCP servers
 
@@ -381,6 +406,8 @@ API keys are never part of a record. It carries the model's name and nothing abo
 
 <SettingsPath path="Tools / AI writing tools" />
 
+Two more ways in work from any app. The [floating AI button](/typing/size-position/#floating-ai-button) opens a chat as a sheet over the screen you're on, with that screen's text attached when screen reading is on. **Ask AI** in the text selection menu opens the same sheet with the selected text.
+
 Like every tool, AI has an **Enabled** toggle (on by default) and, if [colorful tool icons](/reference/settings/tools/) are on, a per-tool icon color override. Below that:
 
 - **Keyword**: the word that offers this tool on the suggestion strip when you type it alone. Defaults to `ai`.
@@ -437,7 +464,8 @@ The panel itself sends nothing until you actually tap an action chip: opening th
 - **Report**: builds a draft in your mail app and hands it over. The app has no reporting server and sends nothing itself, so a report only exists if you send the mail. API keys are never part of it.
 - **History**: goes nowhere. It's a file in the app's private storage, off unless you turn it on, never written from a password field or in incognito, and deleted when you turn it off. It's deliberately left out of the backup file too, so it can't ride along in something you export and mail to yourself. There's no section for it to travel in, unlike the learned dictionary, which is a section of its own that you tick or leave alone. See [Your data](/privacy/data/).
 - **A lookup the model asked for**: goes to the service that answers it, and only when the model actually asks. A search carries the query the model wrote, not your field text, to whichever search backend you set up. A page fetch carries nothing but the request for that page. Both show in the [network activity log](/privacy/network-activity/) under **AI tool use**, and both are off entirely while [Data saver](/privacy/data-saver/) is holding web search back.
-- **One of the keyboard's own tools**: goes where that tool always sends it, and only when the model calls it. The weather goes to Open-Meteo, a translation to the translate tool's service (or nowhere, on your device), a rate lookup to the currency tool's sources, and so on. The calculator and the unit converter send nothing. Each request shows in the [network activity log](/privacy/network-activity/) under the tool it belongs to.
+- **Search by picture**: uploads the picture to the search site picked in the camera tool, and only when the model calls it, which it can't until you turn the tool on.
+- **One of the keyboard's own tools**: goes where that tool always sends it, and only when the model calls it. The weather goes to Open-Meteo, a translation to the translate tool's service (or nowhere, on your device), a rate lookup to the currency tool's sources, and so on. The calculator and the unit converter send nothing. Each request shows in the [network activity log](/privacy/network-activity/) under the tool it belongs to. What the tool hands back goes to your AI provider with the rest of the conversation: your events, a note, your location. That is why the tools that read your things start on **Ask**.
 - **A tool on an MCP server**: goes to the server you added, and only when the model calls that tool or you press Connect. A call carries the tool's name and the values the model wrote for it, with your headers. See [MCP servers](#mcp-servers).
 - **The changes view**: is computed on your phone. Comparing two pieces of text is arithmetic, not a request, so nothing is sent to build it.
 

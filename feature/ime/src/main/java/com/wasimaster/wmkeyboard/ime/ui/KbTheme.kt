@@ -10,7 +10,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -1850,10 +1849,10 @@ fun autoKbTheme(settings: KeyboardSettings): KbTheme {
  * failed to stop.
  */
 @Composable
-fun themeAnimationPhase(animation: ThemeAnimation, speed: Float, reduceMotion: Boolean): Float {
-    if (animation == ThemeAnimation.NONE || reduceMotion) return 0f
+fun themeAnimationPhase(animation: ThemeAnimation, speed: Float, reduceMotion: Boolean): () -> Float {
+    if (animation == ThemeAnimation.NONE || reduceMotion) return NoThemePhase
     val transition = rememberInfiniteTransition(label = "themeAnim")
-    val phase by transition.animateFloat(
+    val phase = transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
@@ -1865,8 +1864,13 @@ fun themeAnimationPhase(animation: ThemeAnimation, speed: Float, reduceMotion: B
         ),
         label = "phase",
     )
-    return phase
+    // Handed out as a reader rather than the value, so the frame-by-frame
+    // change lands in the draw that asks for it. Read here, it recomposed
+    // [BoardBackground] on every frame for as long as the keyboard was up.
+    return remember(phase) { { phase.value } }
 }
+
+private val NoThemePhase: () -> Float = { 0f }
 
 /**
  * The most of the screen the board is ever assumed to take, used to size the
@@ -1969,18 +1973,23 @@ fun BoxScope.BoardBackground(kb: KbTheme) {
     val opacityFloor = frost?.takeIf { it.windowBlur && !blurLive && kind == null }?.fallbackOpacity
     val phase = themeAnimationPhase(kb.animation, kb.animationSpeed, kb.reduceMotion)
     val gradient = kb.boardGradient?.let { if (opacityFloor == null) it else it.withAlphaFloor(opacityFloor) }
+    val animation = kb.animation
     if (gradient != null) {
         Box(
-            modifier = boardModifier.background(gradient.brush(kb.animation, phase)),
+            modifier = boardModifier.drawBehind { drawRect(gradient.brush(animation, phase())) },
         )
     } else {
-        val tinted = if (kb.animation == ThemeAnimation.HUE_CYCLE) {
-            hueShift(kb.board, phase * 360f)
-        } else {
-            kb.board
-        }
-        val board = if (opacityFloor == null) tinted else tinted.copy(alpha = max(tinted.alpha, opacityFloor))
-        Box(modifier = boardModifier.background(board))
+        val base = kb.board
+        Box(
+            modifier = boardModifier.drawBehind {
+                val tinted = if (animation == ThemeAnimation.HUE_CYCLE) {
+                    hueShift(base, phase() * 360f)
+                } else {
+                    base
+                }
+                drawRect(if (opacityFloor == null) tinted else tinted.copy(alpha = max(tinted.alpha, opacityFloor)))
+            },
+        )
     }
 }
 
