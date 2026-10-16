@@ -18596,55 +18596,25 @@ private fun KeyRows(
             } else if (padLeft > 0.dp) {
                 Spacer(modifier = Modifier.height(padLeft))
             }
-            for ((blockIndex, block) in bodyBlocks.withIndex()) {
-                val blockBelow = if (!arrowRow && blockIndex == bodyBlocks.lastIndex) touchBelow else 0.dp
-                if (lane > 0.dp) {
-                    // A band stands for several rows, so it reserves several
-                    // lanes — the words above its second row need somewhere to
-                    // go as much as the ones above its first.
-                    val rows = when (block) {
-                        is KeyGridBlock.Row -> 1
-                        is KeyGridBlock.Band -> block.band.rowHeights.size.coerceAtLeast(1)
-                    }
-                    Spacer(modifier = Modifier.height(lane * rows))
-                }
-                when (block) {
-                    is KeyGridBlock.Row -> KeyRow(
-                        row = block.row,
-                        settings = settings,
-                        split = split,
-                        numericField = numericField,
-                        layoutId = state.layoutId,
-                        keyPreview = keyPreview,
-                        onKey = keyTapOnKey,
-                        onText = stampedOnText,
-                        onCursorMove = onCursorMove,
-                        onLayoutSelect = onLayoutSelect,
-                        onKeyPositioned = onKeyPositioned,
-                        onSpacePositioned = onSpacePositioned,
-                        smartResolve = smartResolve,
-                        onBurst = onBurst,
-                        touchBelow = blockBelow,
-                    )
-
-                    is KeyGridBlock.Band -> KeyBand(
-                        band = block.band,
-                        settings = settings,
-                        numericField = numericField,
-                        layoutId = state.layoutId,
-                        keyPreview = keyPreview,
-                        onKey = keyTapOnKey,
-                        onText = stampedOnText,
-                        onCursorMove = onCursorMove,
-                        onLayoutSelect = onLayoutSelect,
-                        onKeyPositioned = onKeyPositioned,
-                        onSpacePositioned = onSpacePositioned,
-                        smartResolve = smartResolve,
-                        onBurst = onBurst,
-                        touchBelow = blockBelow,
-                    )
-                }
-            }
+            KeyGridBlocks(
+                bodyBlocks = bodyBlocks,
+                arrowRow = arrowRow,
+                touchBelow = touchBelow,
+                lane = lane,
+                settings = settings,
+                split = split,
+                numericField = numericField,
+                layoutId = state.layoutId,
+                keyPreview = keyPreview,
+                onKey = keyTapOnKey,
+                onText = stampedOnText,
+                onCursorMove = onCursorMove,
+                onLayoutSelect = onLayoutSelect,
+                onKeyPositioned = onKeyPositioned,
+                onSpacePositioned = onSpacePositioned,
+                smartResolve = smartResolve,
+                onBurst = onBurst,
+            )
             if (arrowRow) {
                 ArrowKeyRow(
                     state = gridState,
@@ -18829,41 +18799,7 @@ private fun KeyRows(
         // finger. Unlike the glide trail these stay put until they commit,
         // so the user can see the whole letter or word taking shape.
         if (handwriteSwipe && state.handwriting.status == HandwritingStatus.READY) {
-            val inkColor = LocalKbTheme.current.accent
-            Canvas(modifier = Modifier.matchParentSize()) {
-                val inkWidth = 5.dp.toPx()
-                for (stroke in state.handwriting.strokes) {
-                    val pts = stroke.points
-                    // A tapped dot or cross is a one-point stroke: it has no
-                    // segment to draw, so it needs a blob of its own or the
-                    // mark on an i/j/t is invisible until the glyph commits.
-                    if (pts.size == 1) {
-                        drawCircle(
-                            color = inkColor,
-                            radius = inkWidth / 2f,
-                            center = Offset(pts[0].x, pts[0].y),
-                        )
-                    }
-                    for (i in 1 until pts.size) {
-                        drawLine(
-                            color = inkColor,
-                            start = Offset(pts[i - 1].x, pts[i - 1].y),
-                            end = Offset(pts[i].x, pts[i].y),
-                            strokeWidth = inkWidth,
-                            cap = StrokeCap.Round,
-                        )
-                    }
-                }
-                for (i in 1 until hwActiveStroke.size) {
-                    drawLine(
-                        color = inkColor,
-                        start = hwActiveStroke[i - 1],
-                        end = hwActiveStroke[i],
-                        strokeWidth = inkWidth,
-                        cap = StrokeCap.Round,
-                    )
-                }
-            }
+            HandwritingInkOverlay(state.handwriting.strokes, hwActiveStroke)
         }
 
         // The stroke's floating layer: the word pill and the picker.
@@ -18881,6 +18817,130 @@ private fun KeyRows(
         )
 
         SpaceTouchpadShield(spaceTouchpad)
+    }
+}
+
+/**
+ * The body rows of [KeyRows]' grid, each a [KeyRow] or a [KeyBand]. A function
+ * of its own because [KeyRows] is inlined through its Box and Column, and these
+ * calls, each carrying the whole callback set, took it past the 9,000
+ * instructions the method-size check allows on the typing path.
+ */
+@Composable
+private fun KeyGridBlocks(
+    bodyBlocks: List<KeyGridBlock>,
+    arrowRow: Boolean,
+    touchBelow: Dp,
+    lane: Dp,
+    settings: KeyboardSettings,
+    split: Boolean,
+    numericField: Boolean,
+    layoutId: String,
+    keyPreview: KeyPreviewState,
+    onKey: (Key) -> Unit,
+    onText: (String) -> Unit,
+    onCursorMove: (Int) -> Unit,
+    onLayoutSelect: (String) -> Unit,
+    onKeyPositioned: (Key, LayoutCoordinates) -> Unit,
+    onSpacePositioned: (LayoutCoordinates) -> Unit,
+    smartResolve: (Key, PointerId) -> Key,
+    onBurst: ((Rect, String?) -> Unit)?,
+) {
+    for ((blockIndex, block) in bodyBlocks.withIndex()) {
+        val blockBelow = if (!arrowRow && blockIndex == bodyBlocks.lastIndex) touchBelow else 0.dp
+        if (lane > 0.dp) {
+            // A band stands for several rows, so it reserves several
+            // lanes — the words above its second row need somewhere to
+            // go as much as the ones above its first.
+            val rows = when (block) {
+                is KeyGridBlock.Row -> 1
+                is KeyGridBlock.Band -> block.band.rowHeights.size.coerceAtLeast(1)
+            }
+            Spacer(modifier = Modifier.height(lane * rows))
+        }
+        when (block) {
+            is KeyGridBlock.Row -> KeyRow(
+                row = block.row,
+                settings = settings,
+                split = split,
+                numericField = numericField,
+                layoutId = layoutId,
+                keyPreview = keyPreview,
+                onKey = onKey,
+                onText = onText,
+                onCursorMove = onCursorMove,
+                onLayoutSelect = onLayoutSelect,
+                onKeyPositioned = onKeyPositioned,
+                onSpacePositioned = onSpacePositioned,
+                smartResolve = smartResolve,
+                onBurst = onBurst,
+                touchBelow = blockBelow,
+            )
+
+            is KeyGridBlock.Band -> KeyBand(
+                band = block.band,
+                settings = settings,
+                numericField = numericField,
+                layoutId = layoutId,
+                keyPreview = keyPreview,
+                onKey = onKey,
+                onText = onText,
+                onCursorMove = onCursorMove,
+                onLayoutSelect = onLayoutSelect,
+                onKeyPositioned = onKeyPositioned,
+                onSpacePositioned = onSpacePositioned,
+                smartResolve = smartResolve,
+                onBurst = onBurst,
+                touchBelow = blockBelow,
+            )
+        }
+    }
+}
+
+/**
+ * Handwriting ink over the keys: the finished [strokes] still waiting to be
+ * recognised, plus the [active] one under the finger. Out of [KeyRows] for the
+ * reason [KeyGridBlocks] is.
+ */
+@Composable
+private fun BoxScope.HandwritingInkOverlay(
+    strokes: List<com.wasimaster.wmkeyboard.core.handwriting.HwStroke>,
+    active: List<Offset>,
+) {
+    val inkColor = LocalKbTheme.current.accent
+    Canvas(modifier = Modifier.matchParentSize()) {
+        val inkWidth = 5.dp.toPx()
+        for (stroke in strokes) {
+            val pts = stroke.points
+            // A tapped dot or cross is a one-point stroke: it has no
+            // segment to draw, so it needs a blob of its own or the
+            // mark on an i/j/t is invisible until the glyph commits.
+            if (pts.size == 1) {
+                drawCircle(
+                    color = inkColor,
+                    radius = inkWidth / 2f,
+                    center = Offset(pts[0].x, pts[0].y),
+                )
+            }
+            for (i in 1 until pts.size) {
+                drawLine(
+                    color = inkColor,
+                    start = Offset(pts[i - 1].x, pts[i - 1].y),
+                    end = Offset(pts[i].x, pts[i].y),
+                    strokeWidth = inkWidth,
+                    cap = StrokeCap.Round,
+                )
+            }
+        }
+        for (i in 1 until active.size) {
+            drawLine(
+                color = inkColor,
+                start = active[i - 1],
+                end = active[i],
+                strokeWidth = inkWidth,
+                cap = StrokeCap.Round,
+            )
+        }
     }
 }
 

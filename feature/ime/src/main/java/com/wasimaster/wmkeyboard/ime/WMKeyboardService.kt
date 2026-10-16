@@ -9770,69 +9770,12 @@ open class WMKeyboardService : InputMethodService() {
             recordCaptureEdit(key, before, after)
         }
         if (after.text != before.text) {
-            when (target) {
-                CaptureTarget.TYPING_TEST, CaptureTarget.WORD_SPELL -> return
-                CaptureTarget.AI_CUSTOM -> aiCustomInputEdit { after.text }
-                CaptureTarget.AI_CHAT -> aiChatDraft(after.text)
-                CaptureTarget.AI_REPLY -> aiReplyTyped(after.text)
-                CaptureTarget.KDE_HOST ->
-                    _uiState.update { it.copy(kde = it.kde.copy(hostDraft = after.text.take(KDE_HOST_MAX))) }
-                CaptureTarget.KDE_REMOTE -> kdeRemoteLine(after.text)
-                CaptureTarget.KDE_COMPOSE ->
-                    _uiState.update { it.copy(kde = it.kde.copy(line = after.text.take(KdeConnectHub.LINE_MAX))) }
-                CaptureTarget.PLUGIN -> pluginInputEdit { after.text }
-                CaptureTarget.FIND_QUERY, CaptureTarget.FIND_REPLACEMENT -> findReplaceEdit { after.text }
-                CaptureTarget.LEARN_EDIT -> learnEdit { after.text }
-                CaptureTarget.CALC -> calcEdit { after.text }
-                CaptureTarget.CONVERTER -> converterEdit { after.text }
-                CaptureTarget.EMOJI_SEARCH -> {
-                    updateQuery { it.copy(emojiQuery = after.text) }
-                    refreshKarContext()
-                    refreshEmojiResults()
-                }
-                CaptureTarget.MEDIA_SEARCH -> {
-                    updateQuery { it.copy(mediaQuery = after.text) }
-                    refreshKarContext()
-                    // QR encodes locally as you type — no network search to schedule.
-                    if (_uiState.value.panel != PanelMode.QR_GEN) scheduleMediaLiveSearch()
-                }
-                CaptureTarget.DICTIONARY_SEARCH -> updateQuery { it.copy(dictionaryQuery = after.text) }
-                CaptureTarget.CLIPBOARD_SEARCH -> updateQuery { it.copy(clipboardQuery = after.text) }
-                CaptureTarget.CLIP_EDIT -> clipEditDraft { after.text }
-                CaptureTarget.CLIP_JOINER, CaptureTarget.CLIP_BASE, CaptureTarget.CLIP_APPEND ->
-                    _uiState.update { state ->
-                        state.copy(clipCombine = state.clipCombine?.withFocusedText(after.text))
-                    }
-                CaptureTarget.SNIPPET_SEARCH -> updateQuery { it.copy(snippetQuery = after.text) }
-                // The search filters as it is typed; the drafts are written to
-                // the store a moment after the typing pauses (see noteEditDraft).
-                CaptureTarget.NOTE_SEARCH -> publishNotes { it.copy(query = after.text, held = null) }
-                CaptureTarget.NOTE_TITLE ->
-                    noteEditDraft { it.copy(titleDraft = after.text.replace("\n", " ").take(NoteStore.MAX_TITLE_LENGTH)) }
-                CaptureTarget.NOTE_BODY -> noteEditDraft { it.copy(bodyDraft = after.text.take(NoteEdit.EDITOR_MAX_LENGTH)) }
-                CaptureTarget.NOTE_TAG -> noteEditDraft { it.copy(tagDraft = after.text.trimStart().take(NoteStore.MAX_TAG_LENGTH)) }
-                CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> {
-                    val limit = com.wasimaster.wmkeyboard.ime.clock.ClockController.LABEL_MAX
-                    val entry = _uiState.value.clockText?.copy(text = after.text.replace("\n", " ").take(limit))
-                    _uiState.update { it.copy(clockText = entry) }
-                    entry?.let(clockTool::onText)
-                }
-                CaptureTarget.GALLERY_TEXT -> {
-                    val limit = com.wasimaster.wmkeyboard.ime.gallery.GalleryController.CAPTION_MAX
-                    val entry = _uiState.value.galleryText?.copy(text = after.text.take(limit))
-                    _uiState.update { it.copy(galleryText = entry) }
-                    entry?.let(galleryTool::onText)
-                }
-                CaptureTarget.TOOLBOX_SEARCH ->
-                    updateQuery { it.copy(toolboxView = it.toolboxView.copy(query = after.text)) }
-                CaptureTarget.TOOLBOX_FOLDER_NAME -> _uiState.update {
-                    it.copy(
-                        toolboxView = it.toolboxView.copy(
-                            nameDraft = after.text.replace("\n", " ").take(TOOLBOX_FOLDER_NAME_MAX),
-                        ),
-                    )
-                }
-            }
+            if (target == CaptureTarget.TYPING_TEST || target == CaptureTarget.WORD_SPELL) return
+            // Two halves rather than one `when`: each branch that copies the ui
+            // state inlines a call carrying every one of its fields, and the
+            // single `when` took this method past the 10,000 dex instructions
+            // at which ART stops compiling it.
+            if (!captureWriteTools(target, after.text)) captureWriteLists(target, after.text)
         }
         val written = _uiState.value.captureBuffer()
         val at = if (written == after.text) after.at else written.length
@@ -9850,6 +9793,81 @@ open class WMKeyboardService : InputMethodService() {
         // publish once themselves, rather than flipping the flag twice — and
         // with it the key grid's `remember` — on every keystroke.
         if (!keepsComposing) publishKanaVariantReady()
+    }
+
+    /** [captureWrite]'s tool fields. False when [target] is not one of them. */
+    private fun captureWriteTools(target: CaptureTarget, text: String): Boolean {
+        when (target) {
+            CaptureTarget.AI_CUSTOM -> aiCustomInputEdit { text }
+            CaptureTarget.AI_CHAT -> aiChatDraft(text)
+            CaptureTarget.AI_REPLY -> aiReplyTyped(text)
+            CaptureTarget.KDE_HOST ->
+                _uiState.update { it.copy(kde = it.kde.copy(hostDraft = text.take(KDE_HOST_MAX))) }
+            CaptureTarget.KDE_REMOTE -> kdeRemoteLine(text)
+            CaptureTarget.KDE_COMPOSE ->
+                _uiState.update { it.copy(kde = it.kde.copy(line = text.take(KdeConnectHub.LINE_MAX))) }
+            CaptureTarget.PLUGIN -> pluginInputEdit { text }
+            CaptureTarget.FIND_QUERY, CaptureTarget.FIND_REPLACEMENT -> findReplaceEdit { text }
+            CaptureTarget.LEARN_EDIT -> learnEdit { text }
+            CaptureTarget.CALC -> calcEdit { text }
+            CaptureTarget.CONVERTER -> converterEdit { text }
+            CaptureTarget.EMOJI_SEARCH -> {
+                updateQuery { it.copy(emojiQuery = text) }
+                refreshKarContext()
+                refreshEmojiResults()
+            }
+            CaptureTarget.MEDIA_SEARCH -> {
+                updateQuery { it.copy(mediaQuery = text) }
+                refreshKarContext()
+                // QR encodes locally as you type — no network search to schedule.
+                if (_uiState.value.panel != PanelMode.QR_GEN) scheduleMediaLiveSearch()
+            }
+            CaptureTarget.DICTIONARY_SEARCH -> updateQuery { it.copy(dictionaryQuery = text) }
+            CaptureTarget.CLIPBOARD_SEARCH -> updateQuery { it.copy(clipboardQuery = text) }
+            else -> return false
+        }
+        return true
+    }
+
+    /** [captureWrite]'s search, clipboard, note, clock, gallery and toolbox fields. */
+    private fun captureWriteLists(target: CaptureTarget, text: String) {
+        when (target) {
+            CaptureTarget.CLIP_EDIT -> clipEditDraft { text }
+            CaptureTarget.CLIP_JOINER, CaptureTarget.CLIP_BASE, CaptureTarget.CLIP_APPEND ->
+                _uiState.update { state ->
+                    state.copy(clipCombine = state.clipCombine?.withFocusedText(text))
+                }
+            CaptureTarget.SNIPPET_SEARCH -> updateQuery { it.copy(snippetQuery = text) }
+            // The search filters as it is typed; the drafts are written to
+            // the store a moment after the typing pauses (see noteEditDraft).
+            CaptureTarget.NOTE_SEARCH -> publishNotes { it.copy(query = text, held = null) }
+            CaptureTarget.NOTE_TITLE ->
+                noteEditDraft { it.copy(titleDraft = text.replace("\n", " ").take(NoteStore.MAX_TITLE_LENGTH)) }
+            CaptureTarget.NOTE_BODY -> noteEditDraft { it.copy(bodyDraft = text.take(NoteEdit.EDITOR_MAX_LENGTH)) }
+            CaptureTarget.NOTE_TAG -> noteEditDraft { it.copy(tagDraft = text.trimStart().take(NoteStore.MAX_TAG_LENGTH)) }
+            CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> {
+                val limit = com.wasimaster.wmkeyboard.ime.clock.ClockController.LABEL_MAX
+                val entry = _uiState.value.clockText?.copy(text = text.replace("\n", " ").take(limit))
+                _uiState.update { it.copy(clockText = entry) }
+                entry?.let(clockTool::onText)
+            }
+            CaptureTarget.GALLERY_TEXT -> {
+                val limit = com.wasimaster.wmkeyboard.ime.gallery.GalleryController.CAPTION_MAX
+                val entry = _uiState.value.galleryText?.copy(text = text.take(limit))
+                _uiState.update { it.copy(galleryText = entry) }
+                entry?.let(galleryTool::onText)
+            }
+            CaptureTarget.TOOLBOX_SEARCH ->
+                updateQuery { it.copy(toolboxView = it.toolboxView.copy(query = text)) }
+            CaptureTarget.TOOLBOX_FOLDER_NAME -> _uiState.update {
+                it.copy(
+                    toolboxView = it.toolboxView.copy(
+                        nameDraft = text.replace("\n", " ").take(TOOLBOX_FOLDER_NAME_MAX),
+                    ),
+                )
+            }
+            else -> Unit
+        }
     }
 
     /**
