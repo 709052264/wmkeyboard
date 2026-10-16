@@ -57,6 +57,8 @@ const PLAIN_WORD_SPAN: f64 = 6.0;
 const COMPLEXITY_SHAPE_WEIGHT: f64 = 0.7;
 const CONTEXT_BIGRAM_BETA: f64 = 0.5;
 const PACK_COUNT_SCALE: i32 = 50;
+/// How many of the strip's head the context rerank reorders.
+const RERANK_POOL: usize = 8;
 const RANK_OFFSET_STEP: f64 = 1.0;
 const JOIN_MAX_LENGTH: usize = 24;
 const JOIN_MIN_FREQ: i32 = 50;
@@ -466,6 +468,18 @@ impl Lexicon {
             .unwrap_or_default()
     }
 
+    pub fn skip1gram_count(&self, prev2: &str, next: &str) -> i32 {
+        self.skip1
+            .get(&key_of(prev2))
+            .map_or(0, |f| f.count(&key_of(next)))
+    }
+
+    pub fn skip2gram_count(&self, prev3: &str, next: &str) -> i32 {
+        self.skip2
+            .get(&key_of(prev3))
+            .map_or(0, |f| f.count(&key_of(next)))
+    }
+
     pub fn bigram_count(&self, previous: &str, next: &str) -> i32 {
         self.bigrams
             .get(&key_of(previous))
@@ -609,6 +623,12 @@ pub struct Predictor {
     pub rank_offsets: HashMap<String, i32>,
     /// Words recently typed in this app. Keys.
     pub context_words: HashSet<String>,
+    /// Context rerank (the phone's `NgramReranker`, behind its Context
+    /// rerank setting): the head of the strip reordered by the phrases
+    /// that end in each candidate.
+    pub context_rerank: bool,
+    /// The words last committed in the field, for the rerank's recency.
+    pub recent_words: Vec<String>,
     pub autocorrect_confidence: f64,
     pub adaptive_confidence: bool,
     pub autocorrect_splits: bool,
@@ -650,6 +670,8 @@ impl Default for Predictor {
             capitals: None,
             rank_offsets: HashMap::new(),
             context_words: HashSet::new(),
+            context_rerank: false,
+            recent_words: Vec::new(),
             autocorrect_confidence: DEFAULT_AUTOCORRECT_CONFIDENCE,
             adaptive_confidence: true,
             autocorrect_splits: false,
@@ -1142,10 +1164,23 @@ impl Predictor {
                 .unwrap_or(Ordering::Equal)
                 .then_with(|| a.0.cmp(&b.0))
         });
-        ranked
+        let mut ranked: Vec<String> = ranked
             .into_iter()
             .map(|(w, _)| w)
             .filter(|w| !self.suppressed(w))
+            .take(limit.max(RERANK_POOL))
+            .collect();
+        let head = if self.context_rerank {
+            self.rerank(previous, &ranked[..ranked.len().min(RERANK_POOL)])
+        } else {
+            None
+        };
+        if let Some(head) = head {
+            let rest: Vec<String> = ranked.into_iter().filter(|w| !head.contains(w)).collect();
+            ranked = head.into_iter().chain(rest).collect();
+        }
+        ranked
+            .into_iter()
             .take(limit)
             .map(|w| {
                 if w.contains('@') {
@@ -1155,6 +1190,80 @@ impl Predictor {
                 }
             })
             .collect()
+    }
+
+    /// The phone's `NgramReranker`: each candidate's rank, less a step per
+    /// place, plus the bounded evidence of the phrases it would end — the
+    /// user's trigram, bigram and skip-grams, the pack's, the seed pairs,
+    /// the field's recent words. None when no candidate has any.
+    fn rerank(&self, previous: &[&str], candidates: &[String]) -> Option<Vec<String>> {
+        let prev = previous.first()?.to_lowercase();
+        if is_sentinel(&prev) || candidates.is_empty() {
+            return None;
+        }
+        let prev2 = previous.get(1).map(|p| p.to_lowercase());
+        let prev3 = previous.get(2).map(|p| p.to_lowercase());
+        let recent: HashSet<String> = self.recent_words.iter().map(|w| w.to_lowercase()).collect();
+        let lex = &self.lexicon;
+        let pack_bigram =
+            |a: &str, b: &str| self.ngrams.as_ref().map_or(0, |p| p.bigram_count(a, b));
+        let pack_trigram = |a: &str, b: &str, c: &str| {
+            self.ngrams.as_ref().map_or(0, |p| p.trigram_count(a, b, c))
+        };
+        let frequency = self
+            .dictionary
+            .as_ref()
+            .map_or(0, |d| d.frequency_of(&prev));
+        // An unknown word before: the word before it speaks instead.
+        let skip = prev2
+            .as_deref()
+            .filter(|_| frequency == 0 && !lex.contains(&prev));
+        let term = |weight: f64, count: i32, cap: f64| {
+            (weight * (1.0 + count.max(0) as f64).ln()).min(cap)
+        };
+        let mut any = false;
+        let mut scored: Vec<(usize, &String, f64)> = candidates
+            .iter()
+            .enumerate()
+            .map(|(i, word)| {
+                let w = word.to_lowercase();
+                let user3 = prev2
+                    .as_deref()
+                    .map_or(0, |p2| lex.trigram_count(p2, &prev, &w));
+                let user2 = lex.bigram_count(&prev, &w);
+                let skip1 = prev2.as_deref().map_or(0, |p2| lex.skip1gram_count(p2, &w));
+                let skip2 = prev3.as_deref().map_or(0, |p3| lex.skip2gram_count(p3, &w));
+                let pack3 = prev2.as_deref().map_or(0, |p2| pack_trigram(p2, &prev, &w));
+                let pack2 = pack_bigram(&prev, &w);
+                let seed = self.seeds.count(&prev, &w);
+                let skip_user = skip.map_or(0, |s| lex.bigram_count(s, &w));
+                let skip_pack = skip.map_or(0, |s| pack_bigram(s, &w));
+                let evidence = term(1.2, user3, 2.5)
+                    + term(0.8, user2, 2.0)
+                    + term(0.5, skip1, 1.2)
+                    + term(0.4, skip2, 1.1)
+                    + term(0.6, pack3 / PACK_COUNT_SCALE, 1.5)
+                    + term(0.45, pack2 / PACK_COUNT_SCALE, 1.2)
+                    + term(0.4, seed, 1.5)
+                    + term(0.5, skip_user, 1.2)
+                    + term(0.3, skip_pack / PACK_COUNT_SCALE, 0.8)
+                    + if recent.contains(&w) { 0.3 } else { 0.0 };
+                if evidence > 0.0 {
+                    any = true;
+                }
+                (i, word, -(i as f64) + evidence)
+            })
+            .collect();
+        if !any {
+            return None;
+        }
+        // Kotlin's sortedByDescending is stable: a tie keeps the rank order.
+        scored.sort_by(|a, b| {
+            b.2.partial_cmp(&a.2)
+                .unwrap_or(Ordering::Equal)
+                .then(a.0.cmp(&b.0))
+        });
+        Some(scored.into_iter().map(|(_, w, _)| w.clone()).collect())
     }
 
     /// The spelling a lower-case candidate is offered in.
@@ -2533,6 +2642,19 @@ mod tests {
             e.lexicon.learn_bigram("hello", "world");
         }
         assert_eq!("words", e.suggest("wor", &["hello"], 5)[0]);
+    }
+
+    #[test]
+    fn context_rerank_lifts_the_word_the_phrase_wants() {
+        let mut e = with(&[("world", 100), ("words", 500)]);
+        // "hello <anything> world": a skip-gram, which only the rerank reads.
+        e.lexicon.add_skip1gram("hello", "world", 20);
+        assert_eq!("words", e.suggest("wor", &["big", "hello"], 5)[0]);
+        e.context_rerank = true;
+        assert_eq!("world", e.suggest("wor", &["big", "hello"], 5)[0]);
+        // No evidence, no reorder; and never at a sentence start.
+        assert_eq!("words", e.suggest("wor", &["big", "goodbye"], 5)[0]);
+        assert_eq!("words", e.suggest("wor", &[SENTENCE_START, "hello"], 5)[0]);
     }
 
     #[test]
