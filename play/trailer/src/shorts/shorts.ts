@@ -17,6 +17,11 @@ const PAGE: Focus = { zoom: 1.2, y: 0.4, toZoom: 1.26, toY: 0.5 };
 // Theme editor: the live preview pinned at the top of the screen.
 const PREVIEW: Focus = { zoom: 1.45, y: 0.12, toZoom: 1.55, toY: 0.12 };
 const STRIP: [number, number, number, number] = [0, 1355, 1080, 90];
+// Emoji and clipboard panels open above the keys: keep the field and the whole
+// panel in frame (bottom two thirds of the screen).
+const PANEL: Focus = { zoom: 1.5, y: 1, toZoom: 1.56, toY: 1 };
+// Theme editor scrolled to the sliders: preview at the top, sliders below it.
+const SLIDERS: Focus = { zoom: 1.1, y: 0.35, toZoom: 1.16, toY: 0.4 };
 
 export const SHORTS: ShortSpec[] = [
   {
@@ -144,20 +149,20 @@ export const SHORTS: ShortSpec[] = [
       {
         caption: "all of it in «one editor»",
         carousel: [
-          { label: "Search millions", clip: "shorts/clips/s05-photos.mp4", sec: 1.5, from: 15, rate: 3, focus: PAGE },
-          { label: "Use it", clip: "shorts/clips/s05-photos.mp4", sec: 1.5, from: 48, rate: 3, focus: PAGE },
-          { label: "Match the colors", clip: "shorts/clips/s05-photos.mp4", sec: 1.5, from: 58, rate: 3, focus: PAGE },
-          { label: "Blur it", clip: "shorts/clips/s05-photos.mp4", sec: 1.5, from: 104, rate: 3, focus: PREVIEW },
-          { label: "Fade it", clip: "shorts/clips/s05-photos.mp4", sec: 1.5, from: 115, rate: 3, focus: PREVIEW },
-          { label: "Tint it", clip: "shorts/clips/s05-photos.mp4", sec: 1.5, from: 160, rate: 4, focus: PREVIEW },
-          { label: "Light or dark", clip: "shorts/clips/s05-photos.mp4", sec: 1.5, from: 172, rate: 2, focus: PREVIEW },
-          { label: "A new one every day", clip: "shorts/clips/s05-photos.mp4", sec: 1.5, from: 228, rate: 1.5, focus: PAGE },
+          { label: "Search millions", clip: "shorts/clips/s05-photos.mp4", sec: 1.5, from: 16.5, rate: 2.5, focus: PAGE },
+          { label: "Use it", clip: "shorts/clips/s05-photos.mp4", sec: 1.5, from: 54.5, rate: 1.5, focus: PAGE },
+          { label: "Match the colors", clip: "shorts/clips/s05-photos.mp4", sec: 1.5, from: 69.5, rate: 1, focus: PAGE },
+          { label: "Blur it", clip: "shorts/clips/s05-photos.mp4", sec: 1.5, from: 118, rate: 1.8, focus: SLIDERS },
+          { label: "Fade it", clip: "shorts/clips/s05-photos.mp4", sec: 1.5, from: 121.75, rate: 2, focus: SLIDERS },
+          { label: "Tint it", clip: "shorts/clips/s05-photos.mp4", sec: 1.5, from: 165.5, rate: 4.5, focus: PREVIEW },
+          { label: "Light or dark", clip: "shorts/clips/s05-photos.mp4", sec: 1.5, from: 173.5, rate: 2.5, focus: PREVIEW },
+          { label: "A new one every day", clip: "shorts/clips/s05-photos.mp4", sec: 1.5, from: 227.5, rate: 1.5, focus: PAGE },
         ],
       },
       {
         clip: "shorts/clips/s05-photos.mp4",
         sec: 2.5,
-        from: 130,
+        from: 140,
         caption: "your keyboard, «your photo»",
         focus: PREVIEW,
       },
@@ -178,12 +183,12 @@ export const SHORTS: ShortSpec[] = [
         from: 8,
         rate: 1.6,
         caption: "«party»",
-        focus: "keyboard",
-        zoom: { at: 0.5, to: [0, 1490, 1080, 170], hold: 1 },
+        focus: PANEL,
+        zoom: { at: 0.5, to: [0, 1150, 1080, 280], hold: 1 },
       },
-      { clip: "shorts/clips/s06-emoji.mp4", sec: 2, from: 13, rate: 1.6, caption: "typo? «birthdy» still works", focus: "keyboard" },
-      { clip: "shorts/clips/s06-emoji.mp4", sec: 2, from: 16, rate: 1.6, caption: "Banglish «jonmodin»", focus: "keyboard" },
-      { clip: "shorts/clips/s06-emoji.mp4", sec: 2, from: 21, rate: 1.5, caption: "Spanish «fiesta»", focus: "keyboard" },
+      { clip: "shorts/clips/s06-emoji.mp4", sec: 2, from: 13.6, rate: 1.4, caption: "typo? «birthdy» still works", focus: PANEL },
+      { clip: "shorts/clips/s06-emoji.mp4", sec: 2, from: 17.2, rate: 1.2, caption: "Banglish «jonmodin»", focus: PANEL },
+      { clip: "shorts/clips/s06-emoji.mp4", sec: 2, from: 21.6, rate: 1.3, caption: "Spanish «fiesta»", focus: PANEL },
       { clip: "shorts/clips/s06-emoji.mp4", sec: 2, from: 24.5, caption: "125 languages. typos «forgiven»", focus: CHAT },
     ],
   },
@@ -197,18 +202,18 @@ export const SHORTS: ShortSpec[] = [
     vo: { file: "shorts/vo/d07.wav", words: "shorts/vo/d07.json" },
     beats: [
       { clip: "shorts/clips/s07-clipboard.mp4", sec: 2, focus: CHAT },
-      { clip: "shorts/clips/s07-clipboard.mp4", sec: 3, from: 1, rate: 2, focus: "keyboard" },
-      { clip: "shorts/clips/s07-clipboard.mp4", sec: 3, from: 15, rate: 1.2, focus: "keyboard" },
+      { clip: "shorts/clips/s07-clipboard.mp4", sec: 3, from: 1, rate: 2, focus: PANEL },
+      { clip: "shorts/clips/s07-clipboard.mp4", sec: 3, from: 15, rate: 1.2, focus: PANEL },
       {
         clip: "shorts/clips/s07-clipboard.mp4",
         sec: 3,
         from: 18,
         rate: 1.2,
-        focus: "keyboard",
+        focus: PANEL,
         zoom: { at: 0.3, to: [20, 1500, 520, 260], hold: 1.2 },
       },
       { clip: "shorts/clips/s07-clipboard.mp4", sec: 3, from: 20.5, focus: CHAT },
-      { clip: "shorts/clips/s07-clipboard.mp4", sec: 2, from: 34, focus: CHAT },
+      { clip: "shorts/clips/s07-clipboard.mp4", sec: 2.5, from: 35.5, focus: CHAT },
     ],
   },
   {
@@ -231,8 +236,8 @@ export const SHORTS: ShortSpec[] = [
         focus: "full",
         zoom: { at: 0.6, to: [40, 1850, 320, 110], hold: 0.8 },
       },
-      { clip: "shorts/clips/s09-arcade.mp4", sec: 3, from: 1, rate: 1.2, caption: "«ready player one»", focus: "keyboard" },
-      { clip: "shorts/clips/s09-arcade.mp4", sec: 2, from: 4, caption: "or build your «own»", focus: "keyboard" },
+      { clip: "shorts/clips/s09-arcade.mp4", sec: 2.5, from: 1, rate: 1.4, caption: "«ready player one»", focus: "keyboard" },
+      { clip: "shorts/clips/s09-arcade.mp4", sec: 2.5, from: 4.5, caption: "or build your «own»", focus: "keyboard" },
     ],
   },
   {
@@ -256,7 +261,7 @@ export const SHORTS: ShortSpec[] = [
         focus: { zoom: 1.3, y: 1 },
         zoom: { at: 1, to: [40, 1870, 1000, 190], hold: 2 },
       },
-      { clip: "shorts/clips/s10-netlog.mp4", sec: 2.5, focus: "full" },
+      { clip: "shorts/clips/s10-netlog.mp4", sec: 2.5, from: 16, rate: 0.8, focus: { zoom: 1.3, y: 1, toZoom: 1.4 } },
     ],
   },
   {
