@@ -30,11 +30,11 @@ body:
   - type: input
     id: app-version
     attributes:
-      label: App version
-      description: As shown in Settings › About
-      placeholder: "0.6.0"
+      label: Build (optional)
+      description: Only if it is not the plain release, for example an F-Droid, Play or nightly build. The full name is in Settings › About
+      placeholder: "0.6.0 from F-Droid"
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: bug-description
