@@ -154,9 +154,28 @@ internal fun spacesBeforeGlidedWord(
  * The line is the unit rather than the whole field because an unclosed quote in
  * a paragraph above must not flip every quote below it, and because a field can
  * hold more text than the caller wants to read to answer this.
+ *
+ * A straight quote also closes a curly one. Editors with smart quotes (a notes
+ * app, a word processor) turn the `"` that opens a quotation into `“` as it
+ * lands, and a plain count of `"` then found nothing open and read the closing
+ * one as a second opener, with no space after it (#679).
  */
-internal fun closesQuote(textBefore: String, quote: Char): Boolean =
-    textBefore.substringAfterLast('\n').count { it == quote } % 2 == 1
+internal fun closesQuote(textBefore: String, quote: Char): Boolean {
+    if (quote != '"') return textBefore.substringAfterLast('\n').count { it == quote } % 2 == 1
+    var open = false
+    for (c in textBefore.substringAfterLast('\n')) {
+        when (c) {
+            '"' -> open = !open
+            CURLY_OPENING_QUOTE -> open = true
+            CLOSING_QUOTE -> open = false
+        }
+    }
+    return open
+}
+
+/** The curly quote that opens what [CLOSING_QUOTE] closes. */
+private const val CURLY_OPENING_QUOTE = '“'
+
 
 /**
  * The quote that can only close a quotation, which the auto-space after

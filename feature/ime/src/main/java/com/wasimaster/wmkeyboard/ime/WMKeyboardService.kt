@@ -3128,6 +3128,13 @@ open class WMKeyboardService : InputMethodService() {
         val added = clipboardStore.add(tidied) ?: return
         saveClipboardSoon()
         _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+        // The chip the listener would have put up for a system copy: the one
+        // sign on the strip that the copy happened (#679).
+        // Never a secret, read the way the listener reads one.
+        val secret = state.settings.clipboard.detectSensitive && ClipSensitivity.looksSensitive(tidied)
+        if (added.kind.isTextual && !added.sensitive && !secret && state.settings.clipboard.suggestRecent) {
+            showClipboardSuggestion(added)
+        }
         if (added.kind == ClipKind.LINK) fetchLinkPreviews()
     }
 
@@ -6735,6 +6742,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         expectedSelStart = newSelStart
         expectedSelEnd = newSelEnd
+        if (newSelStart != lastRevealedCaret || newSelEnd != lastRevealedCaret) lastRevealedCaret = -1
         if (selectionAnchor != newSelStart && selectionAnchor != newSelEnd) selectionAnchor = -1
         trackCaretAtFieldStart(newSelStart, newSelEnd)
         caretMagnifier.onSelection(newSelStart, newSelEnd)
@@ -10237,10 +10245,11 @@ open class WMKeyboardService : InputMethodService() {
             // there steps over it instead of doubling it. Before every spacing
             // rule below, because nothing is being typed: the caret moves and
             // the field is left exactly as it stands.
-            if (typeOverCloser(ic, text, state)) {
+            val steppedOver = typeOverCloser(ic, text, state)
+            if (steppedOver != null) {
                 // Stepping over ")" closes the bracket as surely as typing it
                 // does, so the space after punctuation follows it the same way.
-                if (shouldAutoSpaceAfterPunctuation(ic, state, text)) insertPunctuationSpace(ic)
+                if (steppedOver) insertPunctuationSpace(ic)
                 consumeShift()
                 return
             }
@@ -10363,11 +10372,19 @@ open class WMKeyboardService : InputMethodService() {
      * quote that closes `"exact phrase"` is followed by the next word, the same
      * as in a message. Marks keep out of it: a full stop or a colon typed there
      * is far more often part of an address.
+     *
+     * [overCloser] is for a closer the caret is about to step over rather
+     * than type ([typeOverCloser]), asked before the step, with the text
+     * after the closer read one character on. Asked after the step, the
+     * answer hung on the editor having moved the caret already, and a
+     * browser applies a `setSelection` later than the next read: the read
+     * still found the `)` in front of the caret and no space followed (#679).
      */
     private fun shouldAutoSpaceAfterPunctuation(
         ic: InputConnection,
         state: KeyboardUiState,
         text: String,
+        overCloser: Boolean = false,
     ): Boolean {
         if (!state.settings.autoText.spaceAfterPunctuation || state.composer.isConversion || text.length != 1) {
             return false
@@ -10384,7 +10401,8 @@ open class WMKeyboardService : InputMethodService() {
             if (mark != SPACED_CLOSER && !closingQuoteTakesSpace(mark, ::before)) return false
             // No number test: "(page 5)" ends on a digit and is still a
             // closed bracket, not part of the number.
-            return closerTakesSpace(ic.getTextAfterCursor(1, 0))
+            val skip = if (overCloser) 1 else 0
+            return closerTakesSpace(ic.getTextAfterCursor(1 + skip, 0)?.drop(skip))
         }
         return state.allowsTypingIntelligence &&
             mark in AUTO_SPACE_PUNCTUATION &&
@@ -10624,17 +10642,22 @@ open class WMKeyboardService : InputMethodService() {
      * "(" then ")" would otherwise read "())". Nothing is inserted or deleted,
      * so no spacing, pattern or learning rule has anything to act on — hence
      * the early return at the call site.
+     *
+     * Null when it did not step. Otherwise whether the space after
+     * punctuation follows the closer, decided before the caret moves (see
+     * the `overCloser` note on [shouldAutoSpaceAfterPunctuation]).
      */
-    private fun typeOverCloser(ic: InputConnection, text: String, state: KeyboardUiState): Boolean {
+    private fun typeOverCloser(ic: InputConnection, text: String, state: KeyboardUiState): Boolean? {
         if (!state.settings.textEditing.autoCloseBrackets || !state.allowsBracketPairs) {
-            return false
+            return null
         }
-        if (text.length != 1 || text[0] !in AUTO_CLOSE_CLOSERS) return false
-        if (!typesOverCloser(text[0], ic.getTextAfterCursor(1, 0))) return false
-        val end = caretOffset(ic) ?: return false
+        if (text.length != 1 || text[0] !in AUTO_CLOSE_CLOSERS) return null
+        if (!typesOverCloser(text[0], ic.getTextAfterCursor(1, 0))) return null
+        val end = caretOffset(ic) ?: return null
+        val spaced = shouldAutoSpaceAfterPunctuation(ic, state, text, overCloser = true)
         invalidateExpectedSelection()
         ic.setSelection(end + 1, end + 1)
-        return true
+        return spaced
     }
 
     /**
@@ -35586,6 +35609,15 @@ open class WMKeyboardService : InputMethodService() {
     private var revealDetourEnd = -1
 
     /**
+     * The caret [noteBoardGrowth] last nudged into view, or -1. The same
+     * caret is not nudged twice in a row: in an editor that answers the nudge
+     * with a re-layout (a code editor, #679), the board can shrink and grow
+     * again on the nudge's own echo, and every round moved the caret again.
+     * Cleared when the caret goes anywhere else.
+     */
+    private var lastRevealedCaret = -1
+
+    /**
      * Puts the caret back on screen when the keyboard grows under it (#662).
      *
      * A caret placed by a tap starts the strip for the word it landed on, the
@@ -35610,6 +35642,14 @@ open class WMKeyboardService : InputMethodService() {
         val start = expectedSelStart
         val end = expectedSelEnd
         if (start < 0 || end < 0) return
+        // A selection is one the user just made on screen, by hand or with
+        // Select all, and the bar that arrives for it reveals it its own way
+        // ([revealCaretAfterGrowth]). Nudging it here as well sent arrow keys
+        // into a web page with the selection still live, which a code editor
+        // took as a move: Select all lit up and went straight out (#679).
+        if (start != end) return
+        if (start == lastRevealedCaret) return
+        lastRevealedCaret = start
         scheduleCaretReveal(start, end)
     }
 
@@ -35655,6 +35695,10 @@ open class WMKeyboardService : InputMethodService() {
             }
             return
         }
+        // The mirror can trail the editor: a Select all whose echo has not
+        // landed still reads as a caret here, and the arrow below would
+        // collapse it. Asked of the editor before anything is sent.
+        if (web && !runCatching { ic.getSelectedText(0) }.getOrNull().isNullOrEmpty()) return
         val back = start > 0
         val step = if (back) {
             val before = ic.getTextBeforeCursor(2, 0) ?: return
@@ -35693,6 +35737,11 @@ open class WMKeyboardService : InputMethodService() {
      * alone.
      */
     private fun revealCaretAfterGrowth(selStart: Int, selEnd: Int) {
+        // A web page does not scroll for a selection set from the keyboard
+        // (see [revealCaret]), so the round trip below bought nothing there,
+        // and an editor that keeps its own model of the selection (a code
+        // editor in a page, #679) could read the reversed half as a new one.
+        if (isWebEditField()) return
         caretRevealJob?.cancel()
         caretRevealJob = serviceScope.launch {
             delay(MACRO_ROW_REVEAL_DELAY_MS)
@@ -36248,14 +36297,54 @@ open class WMKeyboardService : InputMethodService() {
 
     fun onFindPrevious() = stepMatch(-1)
 
+    /**
+     * Next or previous match. The field is read again first: an editor that
+     * draws only the part of a long text on screen (a code editor, a notes
+     * app's) re-draws when a match is selected, and the offsets taken when
+     * the panel opened then point at other text. Every step after the first
+     * landed further off the word (#679).
+     */
     private fun stepMatch(delta: Int) {
         val fr = _uiState.value.findReplace ?: return
-        val origin = findOrigin ?: return
-        if (fr.matches.isEmpty()) return
+        if (findOrigin == null || fr.matches.isEmpty()) return
         vibrate()
         recordFindQuery()
-        val selStart = if (expectedSelStart < 0 || expectedSelEnd < 0) 0 else minOf(expectedSelStart, expectedSelEnd) - origin
-        selectMatch(FindReplaceGlue.stepIndex(fr.matches, fr.current, selStart, delta))
+        findJob?.cancel()
+        val seq = ++findSeq
+        findJob = serviceScope.launch {
+            val text = extractFieldText()
+            val origin = fieldTextOrigin ?: return@launch refreshFindMatches(reselect = false)
+            var matches = fr.matches
+            var current = fr.current
+            if (text != findText || origin != findOrigin) {
+                findText = text
+                findOrigin = origin
+                val result = withContext(Dispatchers.Default) {
+                    FindReplace.find(text, fr.query, fr.options(), FIND_BUDGET_MS)
+                }
+                if (seq != findSeq || _uiState.value.panel != PanelMode.FIND_REPLACE) return@launch
+                matches = (result as? FindResult.Matches)?.ranges.orEmpty()
+                current = if (expectedSelStart < 0 || expectedSelEnd < 0) {
+                    -1
+                } else {
+                    FindReplaceGlue.currentMatchIndex(
+                        matches, minOf(expectedSelStart, expectedSelEnd) - origin, maxOf(expectedSelStart, expectedSelEnd) - origin,
+                    )
+                }
+                _uiState.update {
+                    it.copy(
+                        findReplace = it.findReplace?.copy(
+                            matches = matches, current = current,
+                            truncated = (result as? FindResult.Matches)?.truncated == true,
+                            preview = findPreview(current, matches),
+                        ),
+                    )
+                }
+                if (matches.isEmpty()) return@launch
+            }
+            val selStart = if (expectedSelStart < 0 || expectedSelEnd < 0) 0 else minOf(expectedSelStart, expectedSelEnd) - origin
+            selectMatch(FindReplaceGlue.stepIndex(matches, current, selStart, delta))
+        }
     }
 
     /**
@@ -36325,14 +36414,68 @@ open class WMKeyboardService : InputMethodService() {
         val range = fr.matches.getOrNull(index) ?: return
         val ic = currentInputConnection ?: return
         ic.finishComposingText()
-        ic.setSelection(origin + range.first, origin + range.last + 1)
-        expectedSelStart = origin + range.first
-        expectedSelEnd = origin + range.last + 1
+        selectFieldMatch(ic, origin + range.first, origin + range.last + 1, findText.substring(range.first, range.last + 1))
+        _uiState.update { it.copy(findReplace = it.findReplace?.copy(current = index, preview = findPreview(index, fr.matches))) }
+    }
+
+    /**
+     * Selects [start]..[end] in the editor, where [wanted] is expected to be,
+     * brings it into view, and then checks that it is [wanted] that ended up
+     * selected.
+     *
+     * Not every editor counts offsets the way it extracts its text. A web
+     * editor that keeps its document in a model of its own (CodeMirror,
+     * ProseMirror) can hand over text whose line breaks or hidden parts do
+     * not line up with the offsets its selection takes, and the highlight
+     * came out a few characters to the side of the word, or on another line
+     * altogether (#679). So the selection is read back after the editor has
+     * had a moment, and when it holds something else, [wanted] is looked for
+     * in the text around where it landed, measured from the editor's own
+     * caret, and selected there instead. Once: a second miss is left as it is.
+     */
+    private fun selectFieldMatch(ic: InputConnection, start: Int, end: Int, wanted: String) {
+        ic.setSelection(start, end)
+        expectedSelStart = start
+        expectedSelEnd = end
         // Many editors leave a selection set from outside where it is, off
         // screen or under the keyboard, so the match is brought into view the
         // way a caret the board grew over is (#662).
-        scheduleCaretReveal(expectedSelStart, expectedSelEnd)
-        _uiState.update { it.copy(findReplace = it.findReplace?.copy(current = index, preview = findPreview(index, fr.matches))) }
+        scheduleCaretReveal(start, end)
+        if (wanted.isEmpty()) return
+        findVerifyJob?.cancel()
+        findVerifyJob = serviceScope.launch {
+            delay(FIND_VERIFY_DELAY_MS)
+            val live = currentInputConnection ?: return@launch
+            // The user, or the reveal's own step, has moved on from it.
+            if (minOf(expectedSelStart, expectedSelEnd) != start || maxOf(expectedSelStart, expectedSelEnd) != end) return@launch
+            val selected = runCatching { live.getSelectedText(0)?.toString() }.getOrNull() ?: return@launch
+            if (selected == wanted) return@launch
+            val before = runCatching { live.getTextBeforeCursor(FIND_VERIFY_WINDOW, 0)?.toString() }.getOrNull() ?: return@launch
+            val after = runCatching { live.getTextAfterCursor(FIND_VERIFY_WINDOW, 0)?.toString() }.getOrNull() ?: return@launch
+            val window = before + selected + after
+            val at = nearestOccurrence(window, wanted, before.length)
+            if (at < 0) return@launch
+            val fixed = start - before.length + at
+            if (fixed < 0 || fixed == start) return@launch
+            live.setSelection(fixed, fixed + wanted.length)
+            expectedSelStart = fixed
+            expectedSelEnd = fixed + wanted.length
+            scheduleCaretReveal(expectedSelStart, expectedSelEnd)
+        }
+    }
+
+    /** The match check [selectFieldMatch] has out, cancelled by the next selection. */
+    private var findVerifyJob: Job? = null
+
+    /** Where [needle] occurs in [text] closest to [near], or -1. */
+    private fun nearestOccurrence(text: String, needle: String, near: Int): Int {
+        var best = -1
+        var i = text.indexOf(needle)
+        while (i >= 0) {
+            if (best < 0 || kotlin.math.abs(i - near) < kotlin.math.abs(best - near)) best = i
+            i = text.indexOf(needle, i + 1)
+        }
+        return best
     }
 
     /**
@@ -36447,13 +36590,7 @@ open class WMKeyboardService : InputMethodService() {
             ?: return toast(R.string.ime_selection_macro_find_none_toast)
         if (origin + range.first == selStart) return toast(R.string.ime_selection_macro_find_none_toast)
         ic.finishComposingText()
-        ic.setSelection(origin + range.first, origin + range.last + 1)
-        expectedSelStart = origin + range.first
-        expectedSelEnd = origin + range.last + 1
-        // Many editors leave a selection set from outside where it is, off
-        // screen or under the keyboard, so the match is brought into view the
-        // way a caret the board grew over is (#662).
-        scheduleCaretReveal(expectedSelStart, expectedSelEnd)
+        selectFieldMatch(ic, origin + range.first, origin + range.last + 1, field.substring(range.first, range.last + 1))
     }
 
     /** Runs the grammar checker over the selection alone and commits every first suggestion. */
@@ -36787,6 +36924,13 @@ open class WMKeyboardService : InputMethodService() {
      * selection is read and kept in [KeyboardClipboard] instead, and a cut
      * deletes it by committing nothing over it. False when that mode is off,
      * and the caller asks the editor as usual.
+     *
+     * A private copy has none of the feedback a system one gets: no system
+     * "Copied" bubble, no clipboard listener putting the paste chip on the
+     * strip. So the selection is let go after it, the caret left at its end,
+     * the way FlorisBoard does it; the chip comes from [recordPrivateCopy].
+     * Without either, a copy that worked looked like a tap that did nothing
+     * (#679).
      */
     private fun privateCopy(ic: InputConnection, cut: Boolean): Boolean {
         if (!KeyboardClipboard.isPrivate) return false
@@ -36795,9 +36939,32 @@ open class WMKeyboardService : InputMethodService() {
         val selected = ic.getSelectedText(0)
         if (!selected.isNullOrEmpty()) {
             KeyboardClipboard.copy(this, selected)
-            if (cut) ic.commitText("", 1)
+            if (cut) ic.commitText("", 1) else collapseSelectionToEnd(ic)
         }
         return true
+    }
+
+    /**
+     * Drops the selection, leaving the caret where it ended. The offset comes
+     * from the selection mirror, then from the editor; an editor that gives
+     * neither gets a right arrow, which every text view and web page reads as
+     * "collapse to the end".
+     */
+    private fun collapseSelectionToEnd(ic: InputConnection) {
+        val end = if (expectedSelStart >= 0 && expectedSelEnd >= 0 && expectedSelStart != expectedSelEnd) {
+            maxOf(expectedSelStart, expectedSelEnd)
+        } else {
+            ic.getExtractedText(ExtractedTextRequest(), 0)
+                ?.takeIf { it.selectionStart >= 0 && it.selectionEnd >= 0 }
+                ?.let { it.startOffset + maxOf(it.selectionStart, it.selectionEnd) }
+        }
+        if (end == null) {
+            sendDownUpKeyEvents(KeyEvent.KEYCODE_DPAD_RIGHT)
+            return
+        }
+        ic.setSelection(end, end)
+        expectedSelStart = end
+        expectedSelEnd = end
     }
 
     /**
@@ -43148,6 +43315,16 @@ private const val MAX_EVENT_TITLE = 100
 private const val FIND_MAX_QUERY = 500
 private const val FIND_BUDGET_MS = 50L
 private const val FIND_DEBOUNCE_MS = 200L
+
+/**
+ * How long [WMKeyboardService.selectFieldMatch] gives an editor to apply a
+ * selection before reading it back. Under the reveal's own wait, so a fix
+ * lands before the reveal and is the selection it reveals.
+ */
+private const val FIND_VERIFY_DELAY_MS = 120L
+
+/** Characters either side of a selected match searched for it when it landed elsewhere. */
+private const val FIND_VERIFY_WINDOW = 400
 
 /** How many words' synonyms are kept for the sheet to reopen with (#321). */
 private const val SYNONYMS_CACHE_SIZE = 32
