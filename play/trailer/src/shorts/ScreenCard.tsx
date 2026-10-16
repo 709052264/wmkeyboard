@@ -130,6 +130,9 @@ export const ScreenCard: React.FC<{
         playbackRate={rate}
         muted
         style={{
+          // Tailwind preflight caps video at max-width 100%, which would
+          // letterbox any crop wider than the card
+          maxWidth: "none",
           position: "absolute",
           left: offsetX,
           top: offsetY - STATUS_BAR * scale,

@@ -66,6 +66,7 @@ const Frame: React.FC<{
         startFrom={Math.round(from * fps)}
         muted
         style={{
+          maxWidth: "none", // beat Tailwind preflight's max-width 100% on video
           position: "absolute",
           width: CLIP_W * scale,
           height: CLIP_H * scale,
@@ -81,7 +82,7 @@ const Badge: React.FC<{ size: number }> = ({ size }) => {
   const look = useLook();
   return (
     <div style={{ display: "flex", alignItems: "center", gap: size * 0.4 }}>
-      <Img src={staticFile("logo-mark.png")} style={{ width: size * 1.6, height: size * 1.6 }} />
+      <Img src={staticFile("logo-app.png")} style={{ width: size * 1.7, height: size * 1.7 }} />
       <span style={{ fontFamily: INTER, fontWeight: 700, fontSize: size, color: look.ink, letterSpacing: "0.02em" }}>
         WM Keyboard
       </span>
