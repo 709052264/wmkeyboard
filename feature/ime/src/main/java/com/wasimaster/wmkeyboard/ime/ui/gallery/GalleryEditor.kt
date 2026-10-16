@@ -198,3 +198,6 @@ private fun EditorTopBar(
         }
     }
 }
+
+/** The editor preview's longest side, in px: sharp at screen width, never the full camera frame. */
+private const val PREVIEW_EDGE = 2048

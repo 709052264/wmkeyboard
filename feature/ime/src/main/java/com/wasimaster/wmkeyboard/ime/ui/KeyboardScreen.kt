@@ -4616,7 +4616,9 @@ private fun RowScope.StripAnswerChips(
         }
         return true
     }
-    if (recentClipChip && smart == null) {
+    // [recentClipChip] already says the clip is there; the null check is for
+    // the compiler, which cannot see through a parameter.
+    if (recentClip != null && recentClipChip && smart == null) {
         val clipChip = @Composable { chipModifier: Modifier ->
             ClipboardSuggestionChip(
                 clip = recentClip,

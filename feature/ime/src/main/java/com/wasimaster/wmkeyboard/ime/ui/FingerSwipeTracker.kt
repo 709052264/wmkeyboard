@@ -4,8 +4,8 @@ import com.wasimaster.wmkeyboard.core.layout.FingerSwipe
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCounts
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.SwipeDirection
-import com.wasimaster.wmkeyboard.core.layout.TextEditAction
-import com.wasimaster.wmkeyboard.core.layout.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.TextEditAction
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.ime.CaptureSelectionAction
 import kotlin.math.abs
 
