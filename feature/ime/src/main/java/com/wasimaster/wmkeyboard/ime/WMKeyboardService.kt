@@ -6131,6 +6131,11 @@ open class WMKeyboardService : InputMethodService() {
         // changed under it; nothing about it can be trusted from here.
         revision = null
         if (!restarting) {
+            // The conversions backspace can re-pick (#711) were written into
+            // the field that just went.
+            recentConversions.clear()
+            conversionDeleted = ""
+            conversionRepick = null
             // Chips withdrawn because focus moved here were not tapped.
             inlineFieldStartedAt = SystemClock.uptimeMillis()
             // The rewrites the bar remembered were about the old field, and a
@@ -11730,7 +11735,9 @@ open class WMKeyboardService : InputMethodService() {
                 val left = before.subSequence(0, before.length - deleteLength)
                 setContextFrom(left)
                 rebuildRecentWords(left)
+                if (state.composer.isConversion) noteConversionDeleted(before, left)
             } else {
+                conversionDeleted = ""
                 syncPreviousWordFromField(ic)
             }
             refreshSuggestions()
@@ -16130,7 +16137,12 @@ open class WMKeyboardService : InputMethodService() {
             composing.delete(0, consumed)
             val rest = composer.remainderAfterCommit(composing.toString())
             if (rest.length != composing.length) composing = StringBuilder(rest)
-            if (top != null) CjkContext.committed(chosen) else CjkContext.before = ""
+            if (top != null) {
+                CjkContext.committed(chosen)
+                rememberConversion(chosen, buf.substring(0, consumed))
+            } else {
+                CjkContext.before = ""
+            }
             converted = top != null
         }
         afterConversionFlushed(predict = converted)
@@ -16172,6 +16184,151 @@ open class WMKeyboardService : InputMethodService() {
     private var conversionPredictions: Pair<String, List<String>>? = null
 
     /**
+     * Conversions committed into this field lately, oldest first: what went
+     * in, and the reading that spelled it. Backspace taking one back out puts
+     * that reading's other conversions on the strip (#711), the pick the user
+     * would have made had the right one been first. Never kept for a password
+     * box, and dropped with the field.
+     */
+    private val recentConversions = ArrayDeque<Pair<String, String>>()
+
+    /** What consecutive backspaces have taken out of the field, in field order (#711). */
+    private var conversionDeleted = ""
+
+    /** The Han text the last of those backspaces left in front of the caret. */
+    private var conversionDeletedLeft = ""
+
+    /** Other conversions of [reading] on the strip, offered with [left] before the caret. */
+    private class ConversionRepick(val reading: String, val left: String, val words: List<String>)
+
+    /** The re-pick the strip shows, while it shows one. */
+    private var conversionRepick: ConversionRepick? = null
+
+    private fun rememberConversion(written: String, reading: String) {
+        conversionDeleted = ""
+        conversionRepick = null
+        if (_uiState.value.secureField || reading.isEmpty()) return
+        recentConversions.addLast(written to reading)
+        while (recentConversions.size > RECENT_CONVERSIONS) recentConversions.removeFirst()
+    }
+
+    /**
+     * Adds what one backspace took ([before] less [left]) to the run being
+     * deleted. A backspace anywhere else than where the last one left the
+     * caret starts the run again.
+     */
+    private fun noteConversionDeleted(before: CharSequence, left: CharSequence) {
+        val gone = before.subSequence(left.length, before.length).toString()
+        val continues = conversionDeleted.isNotEmpty() && CjkContext.hanTail(before) == conversionDeletedLeft
+        conversionDeleted = (if (continues) gone + conversionDeleted else gone).take(CONVERSION_DELETED_MAX)
+        conversionDeletedLeft = CjkContext.hanTail(left)
+    }
+
+    /**
+     * The reading of the conversion backspace has just taken out whole, while
+     * the caret is still where that left it. Null otherwise: a word only half
+     * deleted is still partly in the field, and its reading would write the
+     * half that stayed a second time.
+     */
+    private fun repickReading(left: String): String? {
+        if (conversionDeleted.isEmpty() || left != conversionDeletedLeft) return null
+        return recentConversions.lastOrNull { it.first == conversionDeleted }?.second
+    }
+
+    /**
+     * The conversion strip with nothing composing, worked out from the field
+     * rather than from the keystroke that led there: a caret moved, a
+     * backspace, or the echo of the keyboard's own commit.
+     *
+     * The echo is the one that mattered. It comes back after a candidate is
+     * committed and used to empty the strip under the 联想 that commit had just
+     * put up, before anyone could tap one (#710). The field now says what is
+     * behind the caret and the strip follows on from it (#711): the other
+     * conversions of a word backspace has just taken out, or what comes next.
+     */
+    private fun refreshConversionStripAtCaret(state: KeyboardUiState) {
+        // An editor that will not say keeps whatever the last commit put up.
+        val before = currentInputConnection?.getTextBeforeCursor(CjkContext.KEEP, 0) ?: return
+        val left = CjkContext.hanTail(before)
+        CjkContext.before = left
+        val reading = repickReading(left)
+        if (reading == null) {
+            conversionRepick = null
+            showConversionPredictions(left)
+            return
+        }
+        // The echo of the backspace that put it up.
+        if (conversionRepick?.let { it.reading == reading && it.left == left } == true) return
+        val composer = state.composer
+        suggestionJob = serviceScope.launch {
+            // Only the conversions that spell the whole reading: one that
+            // covers its first syllable would leave the rest unwritten.
+            val words = withContext(suggestionDispatcher) {
+                val all = composer.candidates(reading)
+                all.filterIndexed { i, _ -> composer.consumedForIndex(reading, i) == reading.length }
+            }
+            if (composing.isNotEmpty() || _uiState.value.composer !== composer) return@launch
+            if (words.isEmpty()) {
+                showConversionPredictions(left)
+                return@launch
+            }
+            conversionRepick = ConversionRepick(reading, left, words)
+            conversionPredictions = null
+            _uiState.update {
+                it.copy(
+                    suggestions = words,
+                    emojiSuggestions = emptyList(),
+                    conversionReadings = emptyList(),
+                    autocorrectWord = null,
+                    punctuationSuggestions = emptyList(),
+                    inlineEmoji = false,
+                )
+            }
+        }
+    }
+
+    /** What follows [left] on the strip, the word engine's next words when the composer has none. */
+    private fun showConversionPredictions(left: String) {
+        // The echo of a commit asks about the context that commit has already
+        // answered, and the strip it put up stays as it is.
+        if (left.isNotEmpty() && conversionPredictions?.first == left) return
+        val predicted = conversionPredictions(left)
+        val (nextWords, nextEmojis) = if (predicted.isEmpty()) nextWordStrip() else emptyList<String>() to emptyList()
+        _uiState.update {
+            it.copy(
+                suggestions = predicted.ifEmpty { nextWords },
+                emojiSuggestions = nextEmojis,
+                conversionReadings = emptyList(),
+                autocorrectWord = null,
+                punctuationSuggestions = emptyList(),
+                inlineEmoji = false,
+            )
+        }
+    }
+
+    /**
+     * A re-pick tapped (#711): it goes in where the backspaced word was, and
+     * is taught under the reading the way a pick while composing is. False
+     * when [chosen] is not one of them.
+     */
+    private fun commitConversionRepick(ic: InputConnection, chosen: String): Boolean {
+        val offer = conversionRepick ?: return false
+        if (chosen !in offer.words) return false
+        val composer = _uiState.value.composer
+        ic.commitText(chosen, 1)
+        val index = composer.candidates(offer.reading, CANDIDATE_GRID_LIMIT).indexOf(chosen)
+        if (index >= 0 && learningAllowed) composer.learnChoice(offer.reading, index)
+        CjkContext.before = offer.left + chosen
+        rememberConversion(chosen, offer.reading)
+        val next = conversionPredictions(CjkContext.before)
+        _uiState.update {
+            it.copy(suggestions = next, emojiSuggestions = emptyList(), autocorrectWord = null, candidateCursor = -1)
+        }
+        CjkLearning.store?.let { store -> serviceScope.launch(Dispatchers.IO) { store.save() } }
+        return true
+    }
+
+    /**
      * A prediction tapped with nothing composing: it goes in as it stands,
      * no space, and the strip predicts again from the longer context. False
      * when [chosen] is not one of the strip's predictions.
@@ -16181,6 +16338,7 @@ open class WMKeyboardService : InputMethodService() {
         if (chosen !in words) return false
         val composer = _uiState.value.composer
         ic.commitText(chosen, 1)
+        conversionDeleted = ""
         if (learningAllowed) composer.learnPrediction(context, chosen)
         CjkContext.before = context + chosen
         val next = conversionPredictions(CjkContext.before)
@@ -16222,7 +16380,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun commitConversionPrefix(ic: InputConnection, chosen: String, index: Int = -1, piece: String? = null) {
         if (composing.isEmpty()) {
-            commitConversionPrediction(ic, chosen)
+            if (!commitConversionRepick(ic, chosen)) commitConversionPrediction(ic, chosen)
             return
         }
         val composer = _uiState.value.composer
@@ -16250,6 +16408,9 @@ open class WMKeyboardService : InputMethodService() {
         if (rest.length != composing.length) composing = StringBuilder(rest)
         // The raw reading is no Chinese for the next buffer to follow on from.
         if (index >= 0 || piece != null) CjkContext.committed(written) else CjkContext.before = ""
+        // A single character of a word (以词定字) does not spell the reading
+        // it consumed, so backspace has nothing to re-pick it from.
+        if (index >= 0 && piece == null) rememberConversion(written, buf.substring(0, consumed))
         consumeShift()
         if (composing.isEmpty()) {
             val (nextWords, nextEmojis) = nextWordStrip()
@@ -19500,7 +19661,6 @@ open class WMKeyboardService : InputMethodService() {
         commitResolution = null
         val typed = composing.toString()
         val composer = state.composer
-        conversionPredictions = null
         // A new reading: what is written before it is the context its first
         // word is scored after (#580 follow-up). Read once per reading, from
         // the field, since the caret may have moved since the last commit.
@@ -19519,6 +19679,15 @@ open class WMKeyboardService : InputMethodService() {
         // pressed in between has already moved on to the new list.
         if (state.candidateCursor != -1) _uiState.update { it.copy(candidateCursor = -1) }
         syncHardwareCandidateWindow()
+        if (typed.isEmpty()) {
+            refreshConversionStripAtCaret(state)
+            return
+        }
+        conversionPredictions = null
+        // A reading is being typed, so whatever backspace took out is not
+        // being picked again.
+        conversionRepick = null
+        conversionDeleted = ""
         // The lattice decode runs off the main thread, with no debounce: the
         // candidates are how this language is typed at all, so they must not
         // wait. A key typed meanwhile cancels the job, and one still queued
@@ -20368,6 +20537,12 @@ open class WMKeyboardService : InputMethodService() {
     /** Fewest predictions asked for after a conversion commit; the strip scrolls. */
     private val CONVERSION_PREDICTIONS = 12
 
+    /** Conversions a field remembers for backspace to re-pick (#711). */
+    private val RECENT_CONVERSIONS = 32
+
+    /** Longest run of backspaced text kept to match against them. */
+    private val CONVERSION_DELETED_MAX = 32
+
     /** How many conversions keep their places ahead of the English words, at most. */
     private val CONVERSION_ENGLISH_AFTER = 3
 
@@ -20453,6 +20628,9 @@ open class WMKeyboardService : InputMethodService() {
             onSuggestionTapped(candidate)
             return
         }
+        // The same tick a word picked from the strip gets in onSuggestionTapped,
+        // which a conversion pick never passes through (#710).
+        vibrate()
         // The strip is filled off the main thread and can be a keystroke
         // behind the buffer. A position is only good for the list it came
         // from, so it is trusted while the buffer's own ranking still has this
