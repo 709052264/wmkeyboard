@@ -4,6 +4,8 @@ import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.content.R
 import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
+import com.wasimaster.wmkeyboard.core.util.lowercaseKeepingLength
+import com.wasimaster.wmkeyboard.core.util.uppercaseKeepingLength
 
 /**
  * What a selection turned out to be, which decides the macros offered for it.
@@ -669,8 +671,9 @@ object SelectionMacros {
         // Nothing lower-cased anywhere, and at least one letter to judge by.
         val allCaps = selection.any { it.isLetter() } && selection.none { it.isLowerCase() }
         val result = when (macro) {
-            SelectionMacro.CASE_LOWER -> selection.lowercase()
-            SelectionMacro.CASE_UPPER -> selection.uppercase()
+            // Spelling-keeping forms, so ß goes to ẞ and back rather than to SS (#715).
+            SelectionMacro.CASE_LOWER -> selection.lowercaseKeepingLength()
+            SelectionMacro.CASE_UPPER -> selection.uppercaseKeepingLength()
             SelectionMacro.CASE_TITLE -> recase(selection, everyWord = true, keepAcronyms = !allCaps)
             SelectionMacro.CASE_SENTENCE -> recase(selection, everyWord = false, keepAcronyms = !allCaps)
             SelectionMacro.CASE_CAMEL -> CodeCases.camel(selection) ?: return null
@@ -711,8 +714,8 @@ object SelectionMacros {
             out.append(
                 when {
                     acronym -> word
-                    everyWord || startOfSentence -> word[0].uppercaseChar() + word.substring(1).lowercase()
-                    else -> word.lowercase()
+                    everyWord || startOfSentence -> word[0].uppercaseChar() + word.substring(1).lowercaseKeepingLength()
+                    else -> word.lowercaseKeepingLength()
                 },
             )
             startOfSentence = false

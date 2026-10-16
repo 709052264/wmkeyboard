@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.gesture
 
+import com.wasimaster.wmkeyboard.core.util.uppercaseKeepingLength
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -62,16 +63,15 @@ sealed interface GlideCase {
          */
         fun caseWord(word: String, alignment: GlideBeam.Alignment?): String {
             if (word.isEmpty()) return word
-            if (shout) return word.uppercase()
+            if (shout) return word.uppercaseKeepingLength()
             if (cuts.isEmpty()) return word
             val ranges = cuts.map { cut -> letterRangeAt(word, alignment, cut) }
                 .distinct()
                 .sortedByDescending { it.first }
             val out = StringBuilder(word)
-            // Back to front, so an uppercase that changes length (ß → SS)
-            // never moves a range still to be replaced.
+            // Capitals that keep the spelling (ß → ẞ, #715), so no range moves.
             for ((start, end) in ranges) {
-                out.replace(start, end, word.substring(start, end).uppercase())
+                out.replace(start, end, word.substring(start, end).uppercaseKeepingLength())
             }
             return out.toString()
         }

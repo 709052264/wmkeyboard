@@ -430,6 +430,8 @@ import com.wasimaster.wmkeyboard.ime.ui.hardwareKeysToggleable
 import com.wasimaster.wmkeyboard.core.tools.page
 import com.wasimaster.wmkeyboard.core.tools.step
 import com.wasimaster.wmkeyboard.core.util.PlayServices
+import com.wasimaster.wmkeyboard.core.util.lowercaseKeepingLength
+import com.wasimaster.wmkeyboard.core.util.uppercaseKeepingLength
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import com.wasimaster.wmkeyboard.ime.ui.KeyGridFocus
 import com.wasimaster.wmkeyboard.ime.ui.PanelFocusController
@@ -11267,8 +11269,9 @@ open class WMKeyboardService : InputMethodService() {
      * letter, which is the whole of what a shift has always meant. A word the
      * caret only came back to is not being typed.
      *
-     * The case forms must keep the word's length (they do outside a handful
-     * of letters such as ß), because the caret goes back to the same offset.
+     * The case forms must keep the word's length, because the caret goes back
+     * to the same offset; [nextCaseForm] promises it, and the guard below stays
+     * as the backstop.
      */
     private fun recapitalizeWordAtCaret(ic: InputConnection): Boolean {
         if (composing.isNotEmpty() && composing.toString() != resumedWord) return false
@@ -11332,10 +11335,13 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var shiftFromRecase: ShiftState? = null
 
-    /** Advances [s] one step through lower → Title → UPPER → lower. */
+    /**
+     * Advances [s] one step through lower → Title → UPPER → lower. Every form
+     * keeps the spelling, so `ß` steps to `ẞ` and back rather than to `SS` (#715).
+     */
     private fun nextCaseForm(s: String): String {
-        val lower = s.lowercase()
-        val upper = s.uppercase()
+        val lower = s.lowercaseKeepingLength()
+        val upper = s.uppercaseKeepingLength()
         val title = toTitleCase(s)
         return when {
             s == lower -> title
@@ -22553,7 +22559,7 @@ open class WMKeyboardService : InputMethodService() {
         keyWidthPx: Float,
     ): String {
         val based = when (shift) {
-            ShiftState.CAPS_LOCK -> word.uppercase()
+            ShiftState.CAPS_LOCK -> word.uppercaseKeepingLength()
             ShiftState.ON -> word.replaceFirstChar { it.uppercase() }
             ShiftState.OFF -> word
         }
@@ -22871,7 +22877,7 @@ open class WMKeyboardService : InputMethodService() {
     /** Puts [shown] in the composing region as the reading of [generation]. */
     private fun showDuet(ic: InputConnection, shown: DuetShown, generation: Int) {
         val word = when (duetShift) {
-            ShiftState.CAPS_LOCK -> shown.word.uppercase()
+            ShiftState.CAPS_LOCK -> shown.word.uppercaseKeepingLength()
             ShiftState.ON -> shown.word.replaceFirstChar { it.uppercase() }
             ShiftState.OFF -> shown.word
         }
@@ -43550,12 +43556,13 @@ internal fun toTitleCase(s: String): String {
  * shift, not the lock: its own cycle is only `a` and `A`.
  */
 internal fun shiftStateForCase(text: String): ShiftState? {
-    val lower = text.lowercase()
-    if (lower == text.uppercase()) return null
+    val lower = text.lowercaseKeepingLength()
+    val upper = text.uppercaseKeepingLength()
+    if (lower == upper) return null
     return when (text) {
         lower -> ShiftState.OFF
         toTitleCase(text) -> ShiftState.ON
-        text.uppercase() -> ShiftState.CAPS_LOCK
+        upper -> ShiftState.CAPS_LOCK
         else -> null
     }
 }

@@ -411,6 +411,13 @@ class SelectionMacrosTest {
     }
 
     @Test
+    fun `upper case keeps a sharp s and lower case brings it back (#715)`() {
+        assertEquals("GROẞBUCHSTABEN", SelectionMacros.applyCase("Großbuchstaben", SelectionMacro.CASE_UPPER))
+        assertEquals("großbuchstaben", SelectionMacros.applyCase("GROẞBUCHSTABEN", SelectionMacro.CASE_LOWER))
+        assertEquals("Großbuchstaben", SelectionMacros.applyCase("GROẞBUCHSTABEN", SelectionMacro.CASE_TITLE))
+    }
+
+    @Test
     fun `title case capitalises each word and sentence case only the first`() {
         assertEquals(
             "The Quick Brown Fox",
