@@ -198,4 +198,14 @@
     <string name="ime_ai_tool_read_image_text_done">Read the text in picture %1$s</string>
     <string name="ime_ai_tool_reverse_image_search_running">Searching the web by picture %1$s…</string>
     <string name="ime_ai_tool_reverse_image_search_done">Searched the web by picture %1$s</string>
+    <!-- The chat composer's picture button (#698). -->
+    <string name="ime_ai_chat_picture_desc">Add a picture</string>
+    <string name="ime_ai_chat_picture_clipboard">Copied picture</string>
+    <string name="ime_ai_chat_picture_screenshot">Newest screenshot</string>
+    <string name="ime_ai_chat_picture_no_clip">No picture in the clipboard history</string>
+    <string name="ime_ai_chat_picture_no_shot">No screenshot on this phone</string>
+    <string name="ime_ai_chat_picture_no_permission">Allow access to your pictures to add a screenshot</string>
+    <string name="ime_ai_chat_picture_unreadable">That picture could not be read</string>
+    <string name="ime_ai_chat_picture_item_desc">Picture</string>
+    <string name="ime_ai_chat_picture_remove_desc">Remove picture</string>
 </resources>

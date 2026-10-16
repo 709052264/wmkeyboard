@@ -463,6 +463,7 @@ import com.wasimaster.wmkeyboard.core.tools.MediaCategoryCache
 import com.wasimaster.wmkeyboard.core.aichat.AiChatMessage
 import com.wasimaster.wmkeyboard.core.aichat.AiChatStore
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
+import com.wasimaster.wmkeyboard.ime.aichat.AiChatImages
 import com.wasimaster.wmkeyboard.ime.aichat.AskAiLaunch
 import com.wasimaster.wmkeyboard.ime.aichat.KeyboardAiToolHost
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
@@ -3164,6 +3165,9 @@ open class WMKeyboardService : InputMethodService() {
 
     /** The reply panel's Screenshot button sent the user to grant images access. */
     private var replyShotsAfterGrant = false
+
+    /** The same for the AI chat's Newest screenshot (#698): add it once the grant comes back. */
+    private var chatShotAfterGrant = false
 
     /** The docked keyboard's top inside its window, from the last [onComputeInsets]. */
     private var boardTopInWindow = 0
@@ -6700,6 +6704,8 @@ open class WMKeyboardService : InputMethodService() {
         // Same for the images permission the reply panel's screenshot button
         // asked for: open the picker it was pressed for.
         resumeReplyShotsAfterGrant()
+        // And the AI chat's, for the screenshot it was asking for.
+        resumeChatShotAfterGrant()
         // Pages from a just-finished document scan: the scanner activity
         // ran while the keyboard was down, so they can only insert now,
         // as the target field regains the input connection.
@@ -30813,6 +30819,9 @@ open class WMKeyboardService : InputMethodService() {
                             draft = taken.content,
                             attachment = taken.attachment.takeIf(String::isNotEmpty)
                                 ?.let { text -> AiChatAttachment(text, fromSelection = false) },
+                            // Its pictures come back with its words; the
+                            // clear-out's grace keeps their files.
+                            images = taken.images,
                             composing = true,
                         ),
                     )
@@ -30876,8 +30885,121 @@ open class WMKeyboardService : InputMethodService() {
                     if (action.list || chat.conversationId < 0) "ai_chat" else "ai_chat/${chat.conversationId}",
                 )
             is AiChatAction.Report -> aiChatReport(action.index)
+            AiChatAction.TogglePictureSources ->
+                _uiState.update {
+                    it.copy(aiChat = it.aiChat.copy(pictureSources = !it.aiChat.pictureSources, pictureNotice = null))
+                }
+            is AiChatAction.AddPicture -> aiChatAddPicture(action.fromClipboard)
+            is AiChatAction.RemovePicture -> {
+                chatPictureFrom.remove(action.name)
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(images = it.aiChat.images - action.name)) }
+            }
             is AiChatAction.AskAbout, is AiChatAction.ToolApproval -> Unit
         }
+    }
+
+    /**
+     * Where each picture waiting in the chat's composer came from (a clip's
+     * file, a screenshot's address), so asking for the same one twice adds it
+     * once. Each import gets a fresh name, so the names alone cannot tell.
+     */
+    private val chatPictureFrom = HashMap<String, String>()
+
+    /**
+     * A picture for the chat's next message (#698), from the sources the reply
+     * tool reads: the newest image in the clipboard history, or the newest
+     * screenshot in the gallery. Never in incognito or in a password field,
+     * where the panel does not offer it either.
+     */
+    private fun aiChatAddPicture(fromClipboard: Boolean) {
+        val state = _uiState.value
+        if (state.incognitoOn || state.secureField) return
+        if (state.aiChat.images.size >= AiChatStore.MAX_IMAGES) return
+        // A Play build declares no photos permission to read screenshots with.
+        if (!fromClipboard && !com.wasimaster.wmkeyboard.app.ChannelFeatures.SCREENSHOT_CLIPS) return
+        val clipFile = if (fromClipboard) {
+            val item = if (isClipboardAccessible()) {
+                clipboardStore.items().firstOrNull { it.kind == ClipKind.IMAGE && !it.sensitive }
+            } else {
+                null
+            }
+            val file = item?.imagePath?.let(::File)?.takeIf { it.isFile }
+            if (file == null) {
+                aiChatPictureNotice(R.string.ime_ai_chat_picture_no_clip)
+                return
+            }
+            file
+        } else {
+            if (!canReadImages()) {
+                // Asked straight away, as the reply tool's Screenshot does:
+                // pressing the chip is the request.
+                aiChatPictureNotice(R.string.ime_ai_chat_picture_no_permission)
+                chatShotAfterGrant = true
+                startActivity(
+                    Intent(this, com.wasimaster.wmkeyboard.app.ImagesPermissionActivity::class.java).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    },
+                )
+                return
+            }
+            null
+        }
+        val keep = AiChatController.store(this).persist
+        serviceScope.launch {
+            val shot = if (clipFile == null) {
+                withContext(Dispatchers.IO) { ReplyShots.recent(this@WMKeyboardService, limit = 1).firstOrNull() }
+            } else {
+                null
+            }
+            val source = clipFile?.absolutePath ?: shot?.uri?.toString()
+            if (source == null) {
+                aiChatPictureNotice(R.string.ime_ai_chat_picture_no_shot)
+                return@launch
+            }
+            // Already waiting above the composer: nothing to add.
+            if (_uiState.value.aiChat.images.any { chatPictureFrom[it] == source }) {
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(pictureSources = false, pictureNotice = null)) }
+                return@launch
+            }
+            // Scaled and copied in off the main thread: a screenshot takes a
+            // moment to decode.
+            val name = withContext(Dispatchers.IO) {
+                if (clipFile != null) {
+                    AiChatImages.import(this@WMKeyboardService, clipFile, keep)
+                } else {
+                    shot?.let { AiChatImages.import(this@WMKeyboardService, it.uri, keep) }
+                }
+            }
+            if (name == null) {
+                aiChatPictureNotice(R.string.ime_ai_chat_picture_unreadable)
+                return@launch
+            }
+            chatPictureFrom[name] = source
+            _uiState.update {
+                val images = it.aiChat.images
+                if (images.size >= AiChatStore.MAX_IMAGES) return@update it
+                it.copy(aiChat = it.aiChat.copy(images = images + name, pictureSources = false, pictureNotice = null))
+            }
+        }
+    }
+
+    private fun aiChatPictureNotice(@StringRes res: Int) {
+        _uiState.update { it.copy(aiChat = it.aiChat.copy(pictureSources = true, pictureNotice = res)) }
+    }
+
+    /** The other half of [aiChatAddPicture]'s permission request, from [onStartInputView]. */
+    private fun resumeChatShotAfterGrant() {
+        if (!chatShotAfterGrant) return
+        val state = _uiState.value
+        if (state.panel != PanelMode.AI || !state.aiChat.open) {
+            chatShotAfterGrant = false
+            return
+        }
+        // Refused: leave the flag set, so a second try that succeeds still
+        // adds the screenshot.
+        if (!canReadImages()) return
+        chatShotAfterGrant = false
+        aiChatAddPicture(fromClipboard = false)
     }
 
     /**
@@ -30918,14 +31040,16 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         val chat = state.aiChat
         val text = chat.draft.trim()
-        if (text.isEmpty() || AiChatController.isGenerating) return
+        // Pictures alone are a message, as on the chat screen.
+        if ((text.isEmpty() && chat.images.isEmpty()) || AiChatController.isGenerating) return
         val choice = aiChatChoice() ?: return
         val store = AiChatController.store(this)
         // Written on the first send and not before, like the chat screen: a
         // chat opened and left leaves no row behind.
         val id = chat.conversationId.takeIf { it >= 0 && store.get(it) != null }
             ?: store.newConversation(System.currentTimeMillis(), ephemeral = state.incognitoOn).id
-        AiChatController.send(this, state.settings, id, choice, text, chat.attachment?.text.orEmpty())
+        AiChatController.send(this, state.settings, id, choice, text, chat.attachment?.text.orEmpty(), chat.images)
+        chatPictureFrom.clear()
         _uiState.update {
             it.copy(
                 aiChat = it.aiChat.copy(
@@ -30933,6 +31057,9 @@ open class WMKeyboardService : InputMethodService() {
                     draft = "",
                     attachment = null,
                     modelKey = choice.key,
+                    images = emptyList(),
+                    pictureSources = false,
+                    pictureNotice = null,
                 ),
             )
         }

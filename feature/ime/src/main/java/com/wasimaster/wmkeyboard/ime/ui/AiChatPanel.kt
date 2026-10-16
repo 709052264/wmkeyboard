@@ -32,8 +32,10 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenIn
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AttachFile
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Stop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -43,6 +45,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -52,17 +55,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import com.wasimaster.wmkeyboard.app.ChannelFeatures
 import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.aichat.AiChatConversation
 import com.wasimaster.wmkeyboard.core.aichat.AiChatMessage
+import com.wasimaster.wmkeyboard.core.aichat.AiChatStore
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
@@ -75,6 +83,7 @@ import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController.ModelChoice
+import com.wasimaster.wmkeyboard.ime.aichat.AiChatImages
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.wasimaster.wmkeyboard.common.R as CommonR
@@ -250,7 +259,8 @@ internal fun AiChatPanel(
                 Composer(
                     state = state,
                     generating = run != null,
-                    canSend = choice != null && chat.draft.isNotBlank() && run == null,
+                    // Pictures alone are a message, as on the chat screen.
+                    canSend = choice != null && (chat.draft.isNotBlank() || chat.images.isNotEmpty()) && run == null,
                     onChat = onChat,
                 )
             }
@@ -477,6 +487,10 @@ private fun MessageBubble(
                     .combinedClickable(onClick = onTap, onLongClick = { onCopy(message.content) })
                     .padding(horizontal = 10.dp, vertical = 7.dp),
             ) {
+                // The pictures a message carried, over its words (#698).
+                if (message.images.isNotEmpty()) {
+                    ChatPictures(message.images, MESSAGE_PICTURE_SIZE, Modifier.padding(bottom = 5.dp))
+                }
                 // What the answer was built on, over the answer.
                 if (message.toolUses.isNotEmpty()) {
                     ToolUses(message.toolUses, colors, onChat, Modifier.padding(bottom = 4.dp))
@@ -485,7 +499,10 @@ private fun MessageBubble(
                     message.failed -> Text(message.error, color = kb.accent, fontSize = 13.sp, lineHeight = 18.sp)
                     // The user's own words are drawn as written: an asterisk
                     // they typed is an asterisk.
-                    fromUser -> Text(message.content, color = ink, fontSize = 13.sp, lineHeight = 18.sp)
+                    // A message of pictures alone has no words to draw.
+                    fromUser -> if (message.content.isNotEmpty()) {
+                        Text(message.content, color = ink, fontSize = 13.sp, lineHeight = 18.sp)
+                    }
                     else -> ChatMarkdown(message.content, colors) { block ->
                         CodeAction(stringResource(CommonR.string.common_copy), colors) { onCopy(block.code) }
                         CodeAction(stringResource(R.string.ime_ai_insert), colors) {
@@ -741,17 +758,148 @@ private fun EmptyChat(state: KeyboardUiState, onChat: (AiChatAction) -> Unit) {
     }
 }
 
-/** What Enter does on each of the composer's four ring slots. Mirrors [Composer]. */
+/**
+ * Pictures can be added here (#698): never in incognito, whose chats are not
+ * kept, and never over a password field, the same rule the paperclip keeps.
+ */
+private fun picturesOffered(state: KeyboardUiState): Boolean = !state.incognitoOn && !state.secureField
+
+/**
+ * The composer's ring slots, in the order [Composer] draws them. The picture
+ * button is left out where pictures are not offered, and its two sources
+ * follow the send button while their row is up; -1 is a slot not on screen.
+ */
+private class ComposerSlots(state: KeyboardUiState) {
+    val pictures = picturesOffered(state)
+    private val shift = if (pictures) 1 else 0
+    val attach = 0
+    val picture = if (pictures) 1 else -1
+    val paste = 1 + shift
+    val field = 2 + shift
+    val send = 3 + shift
+    val sourcesOpen = pictures && state.aiChat.pictureSources
+    val clipboard = if (sourcesOpen) 4 + shift else -1
+    /** A Play build declares no photos permission, so it has no screenshots to offer. */
+    val screenshot = if (sourcesOpen && ChannelFeatures.SCREENSHOT_CLIPS) 5 + shift else -1
+}
+
+/** What Enter does on each of the composer's ring slots. Mirrors [ComposerSlots]. */
 private fun composerTargets(
     state: KeyboardUiState,
     generating: Boolean,
     onChat: (AiChatAction) -> Unit,
-): List<() -> Unit> = listOf(
-    { onChat(AiChatAction.ToggleAttachment) },
-    { onChat(AiChatAction.Paste) },
-    { onChat(if (state.aiChat.composing) AiChatAction.BlurComposer else AiChatAction.FocusComposer) },
-    { onChat(if (generating) AiChatAction.Stop else AiChatAction.Send) },
-)
+): List<() -> Unit> = buildList<() -> Unit> {
+    val slots = ComposerSlots(state)
+    add { onChat(AiChatAction.ToggleAttachment) }
+    if (slots.pictures) add { onChat(AiChatAction.TogglePictureSources) }
+    add { onChat(AiChatAction.Paste) }
+    add { onChat(if (state.aiChat.composing) AiChatAction.BlurComposer else AiChatAction.FocusComposer) }
+    add { onChat(if (generating) AiChatAction.Stop else AiChatAction.Send) }
+    if (slots.sourcesOpen) {
+        add { onChat(AiChatAction.AddPicture(fromClipboard = true)) }
+        if (slots.screenshot >= 0) add { onChat(AiChatAction.AddPicture(fromClipboard = false)) }
+    }
+}
+
+/**
+ * Pictures in a row (#698): the ones waiting to go with the next message, each
+ * with a cross to take it back off, or the ones a sent message carried. A
+ * picture whose file has gone shows as an empty tile rather than not at all,
+ * so the numbers a model uses still line up with what is on screen.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ChatPictures(
+    names: List<String>,
+    size: Dp,
+    modifier: Modifier = Modifier,
+    onRemove: ((String) -> Unit)? = null,
+) {
+    val kb = LocalKbTheme.current
+    val context = LocalContext.current
+    FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        names.forEach { name ->
+            key(name) {
+                val file = remember(name) { AiChatImages.file(context, name) }
+                Box {
+                    AsyncImage(
+                        model = file,
+                        contentDescription = stringResource(R.string.ime_ai_chat_picture_item_desc),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(size)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(kb.chip),
+                    )
+                    onRemove?.let { remove ->
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(2.dp)
+                                .size(22.dp)
+                                .clip(CircleShape)
+                                .background(kb.chip)
+                                .clickable { remove(name) },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                Icons.Outlined.Close,
+                                contentDescription = stringResource(R.string.ime_ai_chat_picture_remove_desc),
+                                tint = kb.chipText,
+                                modifier = Modifier.size(14.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Where a picture can come from, over the composer: the keyboard cannot open
+ * the photo picker the chat screen uses, since an input method that starts an
+ * activity loses its field. So these are the reply tool's two sources, and the
+ * line beside them says why the last one asked for did not arrive.
+ */
+@Composable
+private fun PictureSources(state: KeyboardUiState, slots: ComposerSlots, onChat: (AiChatAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    val focused = state.focusedIndex(FocusRegion.CHIPS)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 5.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        ToolPanelChip(
+            stringResource(R.string.ime_ai_chat_picture_clipboard),
+            modifier = Modifier.focusRing(focused == slots.clipboard),
+        ) { onChat(AiChatAction.AddPicture(fromClipboard = true)) }
+        if (slots.screenshot >= 0) {
+            ToolPanelChip(
+                stringResource(R.string.ime_ai_chat_picture_screenshot),
+                modifier = Modifier.focusRing(focused == slots.screenshot),
+            ) { onChat(AiChatAction.AddPicture(fromClipboard = false)) }
+        }
+        state.aiChat.pictureNotice?.let { notice ->
+            Text(
+                stringResource(notice),
+                color = kb.secondaryText,
+                fontSize = 10.sp,
+                lineHeight = 13.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
 
 @Composable
 private fun Composer(
@@ -763,107 +911,133 @@ private fun Composer(
     val kb = LocalKbTheme.current
     val chat = state.aiChat
     val focused = state.focusedIndex(FocusRegion.CHIPS)
+    val slots = ComposerSlots(state)
     val shape = kb.cardShape()
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 5.dp),
-        verticalAlignment = Alignment.Bottom,
     ) {
-        ChatIconButton(
-            Icons.Outlined.AttachFile,
-            stringResource(
-                if (chat.attachment != null) {
-                    R.string.ime_ai_chat_attach_remove_desc
-                } else {
-                    R.string.ime_ai_chat_attach_desc
-                },
-            ),
-            active = chat.attachment != null,
-            // Nothing to quote from an empty field, and never from a password.
-            enabled = chat.attachment != null || (state.aiHasText && !state.secureField),
-            modifier = Modifier.focusRing(focused == 0, CircleShape),
-        ) { onChat(AiChatAction.ToggleAttachment) }
-        Spacer(Modifier.width(4.dp))
-        ChatIconButton(
-            Icons.Outlined.ContentPaste,
-            stringResource(CommonR.string.common_paste),
-            modifier = Modifier.focusRing(focused == 1, CircleShape),
-        ) { onChat(AiChatAction.Paste) }
-        Spacer(Modifier.width(6.dp))
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .clip(shape)
-                .focusRing(focused == 2, shape)
-                .background(kb.chip)
-                .chipBorder(kb, shape)
-                .clickable(enabled = !chat.composing) { onChat(AiChatAction.FocusComposer) }
-                .padding(horizontal = 10.dp, vertical = 7.dp),
-        ) {
-            chat.attachment?.let { attachment ->
-                Text(
-                    when {
-                        // A tool's text is named by the tool it came from (#352).
-                        attachment.label.isNotEmpty() -> stringResource(
-                            if (attachment.fromSelection) {
-                                R.string.ime_ai_chat_attached_tool_selection
-                            } else {
-                                R.string.ime_ai_chat_attached_tool
-                            },
-                            attachment.label,
-                        )
-                        else -> pluralStringResource(
-                            if (attachment.fromSelection) {
-                                R.plurals.ime_ai_chat_attached_selection
-                            } else {
-                                R.plurals.ime_ai_chat_attached_field
-                            },
-                            attachment.text.length,
-                            attachment.text.length,
-                        )
-                    },
-                    color = kb.accent,
-                    fontSize = 10.sp,
-                    lineHeight = 13.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(bottom = 3.dp),
-                )
-            }
-            val hint = stringResource(R.string.ime_ai_chat_composer_hint)
-            if (chat.composing) {
-                // The caret, and a tap that moves it, come from the capture
-                // ladder's own editor; this field is one of its buffers.
-                ClipEditText(
-                    text = chat.draft,
-                    placeholder = hint,
-                    textColor = kb.chipText,
-                    placeholderColor = kb.secondaryText,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 20.dp, max = COMPOSER_MAX_HEIGHT),
-                )
-            } else {
-                Text(
-                    chat.draft.ifEmpty { hint },
-                    color = if (chat.draft.isEmpty()) kb.secondaryText else kb.chipText,
-                    fontSize = 14.sp,
-                    lineHeight = 19.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+        if (slots.sourcesOpen) PictureSources(state, slots, onChat)
+        // Shown wherever they were picked: a picture already chosen is not taken
+        // back because the field behind turned into a password.
+        if (chat.images.isNotEmpty()) {
+            ChatPictures(
+                chat.images,
+                DRAFT_PICTURE_SIZE,
+                Modifier.padding(bottom = 5.dp),
+                onRemove = { onChat(AiChatAction.RemovePicture(it)) },
+            )
         }
-        Spacer(Modifier.width(6.dp))
-        ChatIconButton(
-            if (generating) Icons.Outlined.Stop else Icons.AutoMirrored.Outlined.Send,
-            stringResource(if (generating) R.string.ime_ai_chat_stop else R.string.ime_ai_chat_send),
-            active = true,
-            enabled = generating || canSend,
-            size = 36.dp,
-            modifier = Modifier.focusRing(focused == 3, CircleShape),
-        ) { onChat(if (generating) AiChatAction.Stop else AiChatAction.Send) }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            ChatIconButton(
+                Icons.Outlined.AttachFile,
+                stringResource(
+                    if (chat.attachment != null) {
+                        R.string.ime_ai_chat_attach_remove_desc
+                    } else {
+                        R.string.ime_ai_chat_attach_desc
+                    },
+                ),
+                active = chat.attachment != null,
+                // Nothing to quote from an empty field, and never from a password.
+                enabled = chat.attachment != null || (state.aiHasText && !state.secureField),
+                modifier = Modifier.focusRing(focused == slots.attach, CircleShape),
+            ) { onChat(AiChatAction.ToggleAttachment) }
+            Spacer(Modifier.width(4.dp))
+            if (slots.pictures) {
+                ChatIconButton(
+                    Icons.Outlined.Image,
+                    stringResource(R.string.ime_ai_chat_picture_desc),
+                    active = chat.pictureSources,
+                    enabled = chat.pictureSources || chat.images.size < AiChatStore.MAX_IMAGES,
+                    modifier = Modifier.focusRing(focused == slots.picture, CircleShape),
+                ) { onChat(AiChatAction.TogglePictureSources) }
+                Spacer(Modifier.width(4.dp))
+            }
+            ChatIconButton(
+                Icons.Outlined.ContentPaste,
+                stringResource(CommonR.string.common_paste),
+                modifier = Modifier.focusRing(focused == slots.paste, CircleShape),
+            ) { onChat(AiChatAction.Paste) }
+            Spacer(Modifier.width(6.dp))
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(shape)
+                    .focusRing(focused == slots.field, shape)
+                    .background(kb.chip)
+                    .chipBorder(kb, shape)
+                    .clickable(enabled = !chat.composing) { onChat(AiChatAction.FocusComposer) }
+                    .padding(horizontal = 10.dp, vertical = 7.dp),
+            ) {
+                chat.attachment?.let { attachment ->
+                    Text(
+                        when {
+                            // A tool's text is named by the tool it came from (#352).
+                            attachment.label.isNotEmpty() -> stringResource(
+                                if (attachment.fromSelection) {
+                                    R.string.ime_ai_chat_attached_tool_selection
+                                } else {
+                                    R.string.ime_ai_chat_attached_tool
+                                },
+                                attachment.label,
+                            )
+                            else -> pluralStringResource(
+                                if (attachment.fromSelection) {
+                                    R.plurals.ime_ai_chat_attached_selection
+                                } else {
+                                    R.plurals.ime_ai_chat_attached_field
+                                },
+                                attachment.text.length,
+                                attachment.text.length,
+                            )
+                        },
+                        color = kb.accent,
+                        fontSize = 10.sp,
+                        lineHeight = 13.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(bottom = 3.dp),
+                    )
+                }
+                val hint = stringResource(R.string.ime_ai_chat_composer_hint)
+                if (chat.composing) {
+                    // The caret, and a tap that moves it, come from the capture
+                    // ladder's own editor; this field is one of its buffers.
+                    ClipEditText(
+                        text = chat.draft,
+                        placeholder = hint,
+                        textColor = kb.chipText,
+                        placeholderColor = kb.secondaryText,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 20.dp, max = COMPOSER_MAX_HEIGHT),
+                    )
+                } else {
+                    Text(
+                        chat.draft.ifEmpty { hint },
+                        color = if (chat.draft.isEmpty()) kb.secondaryText else kb.chipText,
+                        fontSize = 14.sp,
+                        lineHeight = 19.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            Spacer(Modifier.width(6.dp))
+            ChatIconButton(
+                if (generating) Icons.Outlined.Stop else Icons.AutoMirrored.Outlined.Send,
+                stringResource(if (generating) R.string.ime_ai_chat_stop else R.string.ime_ai_chat_send),
+                active = true,
+                enabled = generating || canSend,
+                size = 36.dp,
+                modifier = Modifier.focusRing(focused == slots.send, CircleShape),
+            ) { onChat(if (generating) AiChatAction.Stop else AiChatAction.Send) }
+        }
     }
 }
 
@@ -1043,5 +1217,7 @@ private fun bubbleShape(fromUser: Boolean) = RoundedCornerShape(
 /** Kept clear on a bubble's far side, so whose turn it is reads from the margin. */
 private val BUBBLE_INSET = 36.dp
 private val COMPOSER_MAX_HEIGHT = 78.dp
+private val DRAFT_PICTURE_SIZE = 48.dp
+private val MESSAGE_PICTURE_SIZE = 56.dp
 private const val COPIED_FLASH_MS = 1200L
 private const val DELETE_CONFIRM_MS = 3000L

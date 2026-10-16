@@ -41,6 +41,19 @@ object AiChatImages {
      */
     fun import(context: Context, uri: Uri, keep: Boolean): String? {
         val encoded = ReplyShots.encode(context, uri) ?: return null
+        return store(context, encoded, keep)
+    }
+
+    /**
+     * The same for a file the keyboard already holds: a clipboard image, or a
+     * screenshot's own copy. Blocking.
+     */
+    fun import(context: Context, file: File, keep: Boolean): String? {
+        val encoded = ReplyShots.encode(file) ?: return null
+        return store(context, encoded, keep)
+    }
+
+    private fun store(context: Context, encoded: ReplyShots.Encoded, keep: Boolean): String? {
         val bytes = runCatching { Base64.decode(encoded.base64, Base64.NO_WRAP) }.getOrNull() ?: return null
         val name = UUID.randomUUID().toString() + ".jpg"
         return runCatching {
