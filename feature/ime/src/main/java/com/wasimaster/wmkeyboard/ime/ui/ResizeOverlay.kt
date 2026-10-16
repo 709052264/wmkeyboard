@@ -1,5 +1,9 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.os.Build
+import android.view.WindowManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,6 +44,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -269,7 +275,8 @@ internal fun Modifier.resizeHeadroom(session: ResizeSession): Modifier = layout 
  * Latches the frame's reserved height from the keyboard's own height on the
  * session's first layout: the keyboard as it stood on entry plus every dp it
  * could still grow, capped at [maxPx] so a tall keyboard on a short screen
- * leaves the host app some room.
+ * leaves the host app some room, and so the window can hold it at all (see
+ * [rememberImeWindowMaxHeightPx]).
  */
 internal fun ResizeSession.latchReserved(keyboardHeightPx: Int, headroomPx: Int, maxPx: Int) {
     keyboardPx.intValue = keyboardHeightPx
@@ -279,6 +286,42 @@ internal fun ResizeSession.latchReserved(keyboardHeightPx: Int, headroomPx: Int,
         .coerceAtMost(maxPx)
         .coerceAtLeast(keyboardHeightPx)
 }
+
+/**
+ * The tallest the keyboard's window can ever be: the display less the status
+ * bar and any cutout across its top, which an input method's window never
+ * covers.
+ *
+ * The resize mode's reserved frame has to fit under it with everything else
+ * the window holds (#669). Capped only at 80% of the display, the frame plus
+ * the key-preview band above it asked for 2310px of a window that can be
+ * 2293px at most (CPH2481, measured): the window did not grow at all, and the
+ * frame was drawn from the top of the keyboard's old window, its held band
+ * filling where the keys had been and the keys below the screen's edge, only
+ * the toolbar left showing over the navigation bar.
+ */
+@Composable
+internal fun rememberImeWindowMaxHeightPx(): Int {
+    val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    return remember(context, configuration) { imeWindowMaxHeightPx(context) }
+}
+
+@SuppressLint("DiscouragedApi", "InternalInsetResource")
+private fun imeWindowMaxHeightPx(context: Context): Int = runCatching {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        val metrics = context.getSystemService(WindowManager::class.java).currentWindowMetrics
+        val top = metrics.windowInsets.getInsetsIgnoringVisibility(
+            android.view.WindowInsets.Type.statusBars() or android.view.WindowInsets.Type.displayCutout(),
+        ).top
+        metrics.bounds.height() - top
+    } else {
+        val resources = context.resources
+        val id = resources.getIdentifier("status_bar_height", "dimen", "android")
+        val statusBar = if (id == 0) 0 else resources.getDimensionPixelSize(id)
+        resources.displayMetrics.heightPixels - statusBar
+    }
+}.getOrDefault(Int.MAX_VALUE)
 
 /**
  * How much of the frame's top is window rather than keyboard: from the frame's

@@ -2057,9 +2057,12 @@ private fun DockedKeyboardFrame(
     var frameSize by remember { mutableStateOf(IntSize.Zero) }
     val configuration = LocalConfiguration.current
     val headroomPx = resize?.let { with(density) { it.headroomDp.dp.roundToPx() } } ?: 0
+    // The key-preview band sits above the reserved frame in the same window,
+    // so the two together have to fit the tallest window there can be (#669).
+    val windowMaxPx = rememberImeWindowMaxHeightPx()
     val maxReservedPx = with(density) {
         (configuration.screenHeightDp * RESIZE_MAX_SCREEN_SHARE).dp.roundToPx()
-    }
+    }.coerceAtMost(windowMaxPx - previewHeadroomPx)
     // A bar row growing in or shrinking away is held the same way, for as long
     // as it is moving (see [RowRevealHeadroom]). The rows hear of it through a
     // local, since the body is the keyboard's movable content and its parameter
