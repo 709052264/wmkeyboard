@@ -14324,11 +14324,10 @@ private const val SpaceCursorEdgeLineRepeatMs = 200L
 
 /**
  * How far up a spacebar swipe goes before it opens the 2-D touchpad (#444):
-<<<<<<< HEAD
- * well past the swipe slop, so a tap rolling upward stays a space and a swipe
- * that only meant to move the caret sideways does not open the pad (#682).
+ * well past the swipe slop, so a tap rolling upward stays a space, with room
+ * left above the spacebar for the cursor to move down again (#682, PR #683).
  */
-private const val SpaceSwipeUpTouchpadDp = 36
+private const val SpaceSwipeUpTouchpadDp = 80
 
 /**
  * How long the finger that opened the touchpad with a swipe up must rest
@@ -14336,11 +14335,6 @@ private const val SpaceSwipeUpTouchpadDp = 36
  * it turns down, the rest of that swipe is the swipe, not a line up.
  */
 private const val SpaceTouchpadSettleMs = 250L
-=======
- * Increased from 24 dp to 80 dp to provide more room for downward cursor movement.
- */
-private const val SpaceSwipeUpTouchpadDp = 80
->>>>>>> origin/main
 
 /**
  * How long a cursor drag must rest, held away from where it began, before the
