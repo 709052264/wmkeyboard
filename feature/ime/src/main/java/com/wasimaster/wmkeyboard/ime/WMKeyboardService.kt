@@ -22111,7 +22111,27 @@ open class WMKeyboardService : InputMethodService() {
                     request.tokens?.let { duetReading(it, request.points, request.keys, request.keyWidthPx) }
                         ?: glideDecode(request.points, request.keys, request.keyWidthPx)
                 }
-                if (reading.words.isEmpty()) continue
+                if (reading.words.isEmpty()) {
+                    // A two-thumb word whose gestures finish no word yet: the
+                    // floating word shows how far it has got, the way the
+                    // composing text does between gestures, instead of
+                    // holding on to a reading from before (#678).
+                    val tokens = request.tokens ?: continue
+                    val prefix = withContext(Dispatchers.Default) {
+                        duetPrefix(tokens, request.keys, request.keyWidthPx)
+                    } ?: continue
+                    if (request.generation != gestureGeneration.get()) continue
+                    _uiState.update {
+                        it.copy(
+                            glideWord = prefix,
+                            glideCase = GlideCase.None,
+                            glideCased = emptyMap(),
+                            glideChoices = emptyList(),
+                            glideCloseCall = false,
+                        )
+                    }
+                    continue
+                }
                 // Re-checked after the decode: the finger may have lifted and
                 // the word committed while this was running.
                 if (request.generation != gestureGeneration.get()) continue
@@ -22466,16 +22486,19 @@ open class WMKeyboardService : InputMethodService() {
             duetReading(tokens, null, keys, keyWidthPx)
         }
         reading.words.firstOrNull()?.let { return DuetShown(it, reading.words, complete = true) }
-        val prefix = suggestionEngine?.glideTokens(
+        val shown = duetPrefix(tokens, keys, keyWidthPx) ?: literal.takeIf { it.isNotEmpty() } ?: return null
+        return DuetShown(shown, emptyList(), complete = false)
+    }
+
+    /** The start of a word [tokens] are on their way to, when they finish none yet (#640); safe off the main thread. */
+    private fun duetPrefix(tokens: List<GlideToken>, keys: List<KeyCenter>, keyWidthPx: Float): String? =
+        suggestionEngine?.glideTokens(
             tokens = tokens,
             keys = keyMapFor(keys, keyWidthPx),
             keyWidth = keyWidthPx,
             limit = 1,
             partial = true,
         )?.firstOrNull()?.word
-        val shown = prefix ?: literal.takeIf { it.isNotEmpty() } ?: return null
-        return DuetShown(shown, emptyList(), complete = false)
-    }
 
     /**
      * Reads the word's gestures again, off the main thread, and puts the best
@@ -22488,11 +22511,18 @@ open class WMKeyboardService : InputMethodService() {
         val keyWidthPx = duetWord.keyWidthPx
         val lone = duetWord.loneSwipe()
         val literal = duetWord.literal()
+        // The other thumb is still drawing a stroke, whose preview is on
+        // screen: this tap joins the word under it, and the stroke's next
+        // preview already reads it in. Clearing that preview here, and putting
+        // a reading without the stroke on the strip, is what made the two
+        // thumbs' feedback flicker against each other (#678). Previews from
+        // before this tap are still retired by the generation below.
+        val strokeLive = !commit && _uiState.value.glideWord != null
         val generation = ++duetGeneration
         gestureGeneration.incrementAndGet()
         suggestionJob?.cancel()
         duetJob?.cancel()
-        clearGlidePreview()
+        if (!strokeLive) clearGlidePreview()
         duetJob = serviceScope.launch {
             val shown = withContext(Dispatchers.Default) { readDuet(tokens, lone, keys, keyWidthPx, literal) }
             if (generation != duetGeneration) return@launch
@@ -22516,10 +22546,14 @@ open class WMKeyboardService : InputMethodService() {
             // shows what it has, and only its end decides what is typed.
             shown ?: return@launch
             showDuet(ic, shown, generation)
-            if (commit) {
-                commitDuet(ic)
-            } else {
-                _uiState.update { it.copy(suggestions = shown.alternates) }
+            when {
+                commit -> commitDuet(ic)
+                strokeLive && _uiState.value.glideWord != null -> Unit
+                shown.complete -> _uiState.update { it.copy(suggestions = shown.alternates) }
+                // Nothing finishes yet: the strip offers what the start on
+                // screen completes to, as it does for typed letters, rather
+                // than going blank until a gesture makes a word (#678).
+                else -> refreshSuggestions()
             }
         }
     }
