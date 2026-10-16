@@ -13606,9 +13606,17 @@ private const val SpaceCursorEdgeLineRepeatMs = 200L
 
 /**
  * How far up a spacebar swipe goes before it opens the 2-D touchpad (#444):
- * twice the swipe slop, the debounce that keeps a tap rolling upward a space.
+ * well past the swipe slop, so a tap rolling upward stays a space and a swipe
+ * that only meant to move the caret sideways does not open the pad (#682).
  */
-private const val SpaceSwipeUpTouchpadDp = 24
+private const val SpaceSwipeUpTouchpadDp = 36
+
+/**
+ * How long the finger that opened the touchpad with a swipe up must rest
+ * before going on upward moves the caret a line (#682). Until then, or until
+ * it turns down, the rest of that swipe is the swipe, not a line up.
+ */
+private const val SpaceTouchpadSettleMs = 250L
 
 /**
  * How long a cursor drag must rest, held away from where it began, before the
@@ -24593,6 +24601,10 @@ private fun Modifier.pointerInputKey(
                     // 2-D pad's switch, or a swipe up that opened the pad
                     // for this drag alone (#444).
                     var padVertical = spaceCursor2d
+                    // Set when a swipe up opened the pad (#682): the finger is
+                    // still travelling up from that swipe, and the caret should
+                    // not take it as a line up. Cleared by a pause or a turn.
+                    var padSettling = false
                     var langIndex = enabledLayoutIds.indexOf(currentLayoutId).coerceAtLeast(0)
                     // The stops the language swipe walks: the layouts, plus the
                     // switcher's extra stop once a hold has put the preview up
@@ -24853,6 +24865,7 @@ private fun Modifier.pointerInputKey(
                                 if (-totalDy > swipeUpPx) {
                                     action = SpaceSwipeAction.CURSOR
                                     padVertical = true
+                                    padSettling = true
                                     if (holdPreviewShown) {
                                         holdPreviewShown = false
                                         setLanguagePreview(null)
@@ -24941,6 +24954,11 @@ private fun Modifier.pointerInputKey(
                         // horizontal step below, so a diagonal drag moves both axes.
                         if (padVertical && action == SpaceSwipeAction.CURSOR) {
                             val dy = change.position.y - lastY
+                            if (padSettling && (dy > 0f ||
+                                    change.uptimeMillis - change.previousUptimeMillis >= SpaceTouchpadSettleMs)
+                            ) {
+                                padSettling = false
+                            }
                             // A sideways drag drifts up and down a little all
                             // the way along, and that drift added up into line
                             // jumps nobody asked for (#505). Vertical travel
@@ -24948,7 +24966,9 @@ private fun Modifier.pointerInputKey(
                             // up or down more than sideways; while it moves
                             // sideways, what had built up drains away.
                             val dxNow = change.position.x - lastX
-                            if (abs(dy) >= abs(dxNow) * SpaceCursorVerticalShare) {
+                            if (padSettling) {
+                                accumulatedY = 0f
+                            } else if (abs(dy) >= abs(dxNow) * SpaceCursorVerticalShare) {
                                 accumulatedY += dy
                             } else {
                                 accumulatedY *= 0.5f
@@ -24972,7 +24992,9 @@ private fun Modifier.pointerInputKey(
                             // band the drag began in does not count, so a
                             // spacebar in the bottom band never sets it off.
                             val grid = spaceTouchpad?.gridBounds
-                            val dirY = if (textEditing.spaceCursorEdgeRepeat && grid != null && grid.height > 0f) {
+                            val dirY = if (!padSettling && textEditing.spaceCursorEdgeRepeat && grid != null &&
+                                grid.height > 0f
+                            ) {
                                 val origin = keyBounds().top
                                 val topEdge = grid.top - origin + touchpadEdgePx
                                 val bottomEdge = grid.bottom - origin - touchpadEdgePx
