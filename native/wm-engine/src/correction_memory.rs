@@ -76,13 +76,19 @@ pub struct CorrectionMemory {
 pub enum Op {
     Match(char),
     /// `typed` stood where `intended` was meant.
-    Sub { typed: char, intended: char },
+    Sub {
+        typed: char,
+        intended: char,
+    },
     /// `intended` was meant and never typed.
     Ins(char),
     /// A stray keypress.
     Del(char),
     /// The pair was meant the other way round: `first` then `second`.
-    Swap { first: char, second: char },
+    Swap {
+        first: char,
+        second: char,
+    },
 }
 
 fn swappable(t: &[char], m: &[char], i: usize, j: usize) -> bool {
@@ -452,10 +458,7 @@ impl CorrectionMemory {
         }
         let mut habits = Map::new();
         for (layout, counts) in &self.habits {
-            let m: Map<String, Value> = counts
-                .iter()
-                .map(|(k, n)| (k.clone(), json!(n)))
-                .collect();
+            let m: Map<String, Value> = counts.iter().map(|(k, n)| (k.clone(), json!(n))).collect();
             habits.insert(layout.clone(), Value::Object(m));
         }
         json!({"pairs": pairs, "habits": habits, "generation": self.generation}).to_string()
@@ -549,7 +552,11 @@ mod tests {
         m.teach("teh", "ten", "qwerty", Kind::PairAndHabits);
         assert_eq!("the", m.fix_for("teh").unwrap().fixed);
         m.teach("teh", "ten", "qwerty", Kind::PairAndHabits);
-        assert_eq!(None, m.fix_for("teh"), "two fixes of one spelling, neither leads");
+        assert_eq!(
+            None,
+            m.fix_for("teh"),
+            "two fixes of one spelling, neither leads"
+        );
         m.unteach("teh", "ten");
         m.unteach("teh", "ten");
         assert_eq!("the", m.fix_for("teh").unwrap().fixed);

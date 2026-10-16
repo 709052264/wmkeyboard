@@ -929,11 +929,6 @@
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
-        <!-- Same trampoline pattern for the screenshot setting's
-             android.permission.READ_MEDIA_IMAGES (or READ_EXTERNAL_STORAGE). -->
-        <activity
-            android:name="com.wasimaster.wmkeyboard.app.ImagesPermissionActivity"
-            android:excludeFromRecents="true"
         <!--
              The AI chat as a sheet over the app the user was in (#697). Opened
              by the floating AI button with the screen's text, and by "Ask AI"
@@ -956,6 +951,11 @@
             </intent-filter>
         </activity>
 
+        <!-- Same trampoline pattern for the screenshot setting's
+             android.permission.READ_MEDIA_IMAGES (or READ_EXTERNAL_STORAGE). -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.ImagesPermissionActivity"
+            android:excludeFromRecents="true"
             android:exported="false"
             android:noHistory="true"
             android:taskAffinity=""
@@ -1136,11 +1136,6 @@
                 android:resource="@xml/passthrough_service" />
         </service>
 
-        <!-- Notification listener with two jobs, both user-visible. The
-             media-control tool needs it because the platform hands the active
-             media session only to an enabled listener. One-time-code capture
-             then reads posted notifications to offer the code on the
-             suggestion strip, and only while its own setting is on
         <!--
              The floating AI button's screen reading (#697). Reads the text of
              the app on screen once per press of that button, and at no other
@@ -1162,6 +1157,11 @@
                 android:resource="@xml/screen_context_service" />
         </service>
 
+        <!-- Notification listener with two jobs, both user-visible. The
+             media-control tool needs it because the platform hands the active
+             media session only to an enabled listener. One-time-code capture
+             then reads posted notifications to offer the code on the
+             suggestion strip, and only while its own setting is on
              (NotificationOtpCapture.isEnabled gates onNotificationPosted).
              The label must keep naming both, since this string is what the
              user reads in Settings › Notification access before granting.

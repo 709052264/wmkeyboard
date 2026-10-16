@@ -14,14 +14,14 @@
 //! the caller's business.
 
 pub use crate::correction_memory::{CorrectionMemory, LearnedHabits};
-pub use crate::language_mix::{AppLanguageMix, FieldLanguageMix, Prior};
 pub use crate::correction_stats::{CorrectionStats, Penalty, UndoMemory};
 use crate::freq_codec;
 use crate::fuzzy::{self, EditHabits, ScoredCandidate, Tier, WalkSource, Workspace};
-use crate::{apostrophes, correction_memory};
+pub use crate::language_mix::{AppLanguageMix, FieldLanguageMix, Prior};
 use crate::proximity::KeyProximity;
 use crate::wmdict::{self, Dict, PackedTrie};
 use crate::wmng::Pack;
+use crate::{apostrophes, correction_memory};
 use std::cell::{OnceCell, RefCell};
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
@@ -123,11 +123,11 @@ pub const INFORMAL: &[&str] = &[
     "shoulda", "woulda", "tryna", "finna", "bout", "til", "cos", "u", "ur", "r", "y", "k", "kk",
     "im", "ive", "dont", "cant", "wont", "didnt", "isnt", "hasnt", "havent", "wasnt", "couldnt",
     "shouldnt", "wouldnt", "yall", "yeah", "yep", "yup", "nah", "nope", "haha", "hahaha", "hehe",
-    "huh", "hmm", "umm", "uhh", "ooh", "yay", "woo", "whoa", "damn", "dang", "welp", "meh",
-    "bruh", "bro", "dude", "sup", "yo", "hey", "heya", "okay", "ok", "okey", "alright", "awesome",
-    "cool", "sweet", "sick", "legit", "lowkey", "highkey", "deadass", "based", "cringe", "sus",
-    "vibes", "vibe", "bestie", "fam", "squad", "goat", "slay", "stan", "simp", "flex", "salty",
-    "shook", "snacc", "yeet", "oof", "rip",
+    "huh", "hmm", "umm", "uhh", "ooh", "yay", "woo", "whoa", "damn", "dang", "welp", "meh", "bruh",
+    "bro", "dude", "sup", "yo", "hey", "heya", "okay", "ok", "okey", "alright", "awesome", "cool",
+    "sweet", "sick", "legit", "lowkey", "highkey", "deadass", "based", "cringe", "sus", "vibes",
+    "vibe", "bestie", "fam", "squad", "goat", "slay", "stan", "simp", "flex", "salty", "shook",
+    "snacc", "yeet", "oof", "rip",
 ];
 
 fn informal(word: &str) -> bool {
@@ -186,8 +186,8 @@ impl KeystrokeTiming {
             return 1.0;
         }
         let mean = self.total_ms as f64 / self.gaps as f64;
-        let t = ((mean - Self::FAST_MS) / (Self::SLOW_MS - Self::FAST_MS)).clamp(0.0, 1.0) * 2.0
-            - 1.0;
+        let t =
+            ((mean - Self::FAST_MS) / (Self::SLOW_MS - Self::FAST_MS)).clamp(0.0, 1.0) * 2.0 - 1.0;
         1.0 + t * Self::MAX_SHIFT * strength.min(1.0)
     }
 }
@@ -1448,8 +1448,7 @@ impl Predictor {
         if typed.is_empty() || fixed.is_empty() {
             return;
         }
-        if !deliberate && self.stats.memory != UndoMemory::Strict && !self.is_known_word(survivor)
-        {
+        if !deliberate && self.stats.memory != UndoMemory::Strict && !self.is_known_word(survivor) {
             return;
         }
         self.stats.record_revert(typed, fixed, deliberate);
@@ -1505,7 +1504,8 @@ impl Predictor {
         let score = if typed == f64::NEG_INFINITY {
             own
         } else {
-            own.max(typed - DECLARED_TRAIL.ln()).min(typed - DECLARED_BEHIND)
+            own.max(typed - DECLARED_TRAIL.ln())
+                .min(typed - DECLARED_BEHIND)
         };
         (score != f64::NEG_INFINITY).then_some((fixed, score, false))
     }
@@ -2642,10 +2642,12 @@ mod tests {
     #[test]
     fn a_fix_taught_twice_is_made_and_once_is_offered() {
         let mut e = with(&[("the", 100), ("thy", 1)]);
-        e.memory.teach("thw", "thy", "qwerty", correction_memory::Kind::PairOnly);
+        e.memory
+            .teach("thw", "thy", "qwerty", correction_memory::Kind::PairOnly);
         let d = e.decide("thw", 1.0);
         assert_eq!((None, Some("thy".into())), (d.apply, d.offer));
-        e.memory.teach("thw", "thy", "qwerty", correction_memory::Kind::PairOnly);
+        e.memory
+            .teach("thw", "thy", "qwerty", correction_memory::Kind::PairOnly);
         let d = e.decide("Thw", 1.0);
         assert_eq!(Some("Thy".into()), d.apply);
         assert!(d.certainty < 1.0);
@@ -2658,13 +2660,17 @@ mod tests {
     fn a_taught_fix_of_a_real_word_needs_the_context() {
         let mut e = with(&[("form", 50), ("from", 100), ("came", 80)]);
         for _ in 0..3 {
-            e.memory.teach("form", "from", "qwerty", correction_memory::Kind::PairOnly);
+            e.memory
+                .teach("form", "from", "qwerty", correction_memory::Kind::PairOnly);
         }
         assert_eq!(None, e.decide_after("form", 1.0, Some("came")).apply);
         for _ in 0..3 {
             e.lexicon.learn_bigram("came", "from");
         }
-        assert_eq!(Some("from".into()), e.decide_after("form", 1.0, Some("came")).apply);
+        assert_eq!(
+            Some("from".into()),
+            e.decide_after("form", 1.0, Some("came")).apply
+        );
         assert_eq!(None, e.decide("form", 1.0).apply);
     }
 
@@ -2727,7 +2733,10 @@ mod tests {
     fn the_field_leans_towards_the_language_it_is_written_in() {
         let mut e = with(&[("tomake", 1), ("tomato", 3)]);
         e.primary_language = "en".into();
-        e.secondaries.push(("bn_rom".into(), list(&[("tomake", 50), ("ami", 80), ("bhalo", 60)]).unwrap()));
+        e.secondaries.push((
+            "bn_rom".into(),
+            list(&[("tomake", 50), ("ami", 80), ("bhalo", 60)]).unwrap(),
+        ));
         e.field_detection_shift = crate::language_mix::FIELD_SHIFT_AGGRESSIVE;
         assert_eq!("en", e.detected_language());
         let before = e.suggest("toma", &[], 2);
