@@ -380,6 +380,12 @@ enum class CaptureTarget(
 
     /** A label in the Clock panel: an alarm's, a timer's, a countdown's, a city's own name. */
     CLOCK_LABEL(takesWords = true),
+
+    /** The toolbox's search (#687): matches tool names as it is typed, Enter opens the first. */
+    TOOLBOX_SEARCH(takesWords = true),
+
+    /** A toolbox folder's name (#709): one line, Enter keeps it. */
+    TOOLBOX_FOLDER_NAME(takesWords = true),
     ;
 
     /**
@@ -404,7 +410,7 @@ enum class CaptureTarget(
     val isSearch: Boolean
         get() = this == EMOJI_SEARCH || this == MEDIA_SEARCH || this == DICTIONARY_SEARCH ||
             this == CLIPBOARD_SEARCH || this == FIND_QUERY || this == SNIPPET_SEARCH ||
-            this == NOTE_SEARCH || this == NOTE_TAG || this == CLOCK_SEARCH
+            this == NOTE_SEARCH || this == NOTE_TAG || this == CLOCK_SEARCH || this == TOOLBOX_SEARCH
 }
 
 /**

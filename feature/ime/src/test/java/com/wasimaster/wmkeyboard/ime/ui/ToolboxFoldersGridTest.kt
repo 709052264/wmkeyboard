@@ -1,0 +1,51 @@
+package com.wasimaster.wmkeyboard.ime.ui
+
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.ToolboxFolder
+import com.wasimaster.wmkeyboard.ime.KeyboardUiState
+import com.wasimaster.wmkeyboard.ime.ToolboxUi
+import org.junit.Assert.assertEquals
+import org.junit.Test
+
+/** The toolbox grid's folders (#709) and search (#687). */
+class ToolboxFoldersGridTest {
+
+    private val d = ToolbarTool.DICTIONARY
+    private val g = ToolbarTool.GRAMMAR
+    private val t = ToolbarTool.TRANSLATE
+    private val c = ToolbarTool.CLIPBOARD
+
+    @Test
+    fun aFolderTakesTheCellOfItsFirstTool() {
+        val folder = ToolboxFolder("f1", "Language", listOf(g, d))
+        val cells = toolboxCells(listOf(c, d, t, g), listOf(folder))
+        assertEquals(
+            listOf(ToolboxCell.Tool(c), ToolboxCell.Folder(folder, listOf(g, d)), ToolboxCell.Tool(t)),
+            cells,
+        )
+    }
+
+    @Test
+    fun aFolderShowsOnlyItsVisibleTools() {
+        val folder = ToolboxFolder("f1", "Language", listOf(g, d))
+        // Grammar pinned to the bar: the folder is still there, holding one.
+        assertEquals(listOf(ToolboxCell.Folder(folder, listOf(d))), toolboxCells(listOf(d), listOf(folder)))
+        assertEquals(listOf(ToolboxCell.Tool(c)), toolboxCells(listOf(c), listOf(folder)))
+    }
+
+    @Test
+    fun searchPutsNamesThatStartWithTheQueryFirst() {
+        val e = ToolbarTool.EMOJI
+        // Made-up names, so the ranking is the only thing under test.
+        val names = mapOf(d to "Dictionary", e to "Spell check", c to "Clipboard")
+        val base = KeyboardUiState()
+        val state = base.copy(
+            settings = base.settings.copy(toolbarTools = emptyList(), toolboxOrder = listOf(d, e, c)),
+            toolboxView = ToolboxUi(searchActive = true, query = "C"),
+        )
+        // Starts with it, then a word that does, then the rest; case ignored.
+        assertEquals(listOf(c, e, d), toolboxSearchMatches(state) { names[it].orEmpty() })
+        val none = state.copy(toolboxView = ToolboxUi(searchActive = true, query = "zz"))
+        assertEquals(emptyList<ToolbarTool>(), toolboxSearchMatches(none) { names[it].orEmpty() })
+    }
+}

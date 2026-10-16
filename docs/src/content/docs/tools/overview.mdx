@@ -27,6 +27,7 @@ Open the toolbox and hold-and-drag a tool:
 - Drag a toolbox tool up onto the toolbar to pin it.
 - Drag a tool around inside the toolbox grid to reorder it there.
 - Drag a pinned toolbar tool back down into the toolbox to unpin it.
+- Drop a tool on the middle of another tool to put the two in a folder. See [Folders](#folders).
 
 It's the same drag-to-pin model Gboard uses. The first time you open the toolbox, a hint explains the drag. Dismiss it and it only resurfaces occasionally as a reminder.
 
@@ -89,6 +90,24 @@ By default the toolbox is one grid that scrolls up and down. Turn on **Swipe the
 The trade is muscle memory against reach. Paging keeps every tool at the same spot on the same page every time, so you learn where things are instead of hunting for them mid-scroll. Scrolling gets you to the far end faster. Paging works with both layouts.
 
 Pick a page size that's a multiple of your row size and every page comes out with full rows. Ask for more tools than fit the panel's height and the page will scroll as well as swipe, which rather defeats the point.
+
+## Folders
+
+A long toolbox is easier to scan in groups. Hold a tool, drag it over the middle of another one, and let go when that tool lights up: the two become a folder in that tool's place. The edges of a tool still mean "put it beside this one", so reordering works as before; only the middle files it. Drop more tools on the folder to add them, and drop a toolbar tool there to unpin it straight into the folder.
+
+A new folder is called **Folder**. Tap it to open it in the toolbox, and the header shows what you can do with it:
+
+- Tap the name to rename it. The keys come back under a shorter toolbox, the way they do for the other search boxes on the keyboard, and Enter or the check button keeps the name. Dictionary and Grammar might become "Language", for example.
+- Drag the tools inside to change their order in the folder.
+- Drag a tool onto the header to take it out of the folder. The header turns into a drop target while you drag.
+- The pin button puts the folder on the toolbar, after your pinned tools. A tap on it there opens the toolbox at that folder. Tap the pin again to take it off. You can also drag the whole folder up onto the toolbar to pin it.
+- The ungroup button breaks the folder up, and its tools go back to cells of their own.
+
+Hold a folder and drag it to move the whole folder around the grid. Back, the arrow in the header, or the system back gesture leaves the folder before it closes the toolbox. A folder left with a single tool is no longer a folder, and that last tool goes back to a cell of its own. Folders are saved with your settings, so a backup and restore brings them back. One set of folders is shared by every [keyboard mode](/typing/modes/); a mode with its own tool order just moves each folder to where its first tool falls.
+
+## Searching the toolbox
+
+The magnifier at the top right of the toolbox searches it by tool name. The toolbox shrinks, the keys come back underneath, and you type the name with the keyboard itself. Every tool that matches is listed, including the ones inside folders, with names that start with what you typed first. Tap one to use it, or press Enter to open the first match. Close the search with its X button or with back, and the toolbox is the way you left it.
 
 ## Browsing every tool
 
@@ -192,6 +211,8 @@ The leader is one switch in a broader hardware-keyboard group. Arrow-key navigat
 - **Reset toolbox order** puts the grid back in the order it shipped in, after a confirmation. It sits under <SettingsPath path="Appearance / Toolbar" /> right below Reset pinned tools, and only appears once you have actually dragged something. It leaves the pinned row and which tools are enabled alone. **Reset pinned tools** is the mirror of it.
 - Toolbar reordering is per-installation, not per-language. Pinning a tool applies everywhere, not only while a particular language is active. A keyboard mode's own toolbar override is the one exception. See [above](#pinning-and-reordering).
 - The toolbox shows only tools that are both enabled *and* not already pinned, so enabling a tool that's already pinned won't create a second entry in the toolbox.
+- A tool pinned to the toolbar stays a member of its folder but isn't shown inside it. Unpin it and it is back in the folder. A folder whose tools are all pinned or hidden disappears from the grid until one of them comes back.
+- The search lists results only. While it is open you can tap a result or hold it for its settings, but nothing can be dragged in a filtered grid.
 - With paging on, a drag reorders within the page you're holding it over. The pages don't flip under your finger, so moving a tool to another page means dragging it onto the toolbar first, then off again on the page you want. Dragging up onto the toolbar to pin works from any page.
 - The pill layout's arrow follows what the tool actually does, not what kind of tool it is. **Document scanner** gets one because it opens Google's full-screen scanner, and **Settings** gets one because it opens the settings app, even though neither is a keyboard panel.
 - Tool icon colors only apply in the toolbox and the settings list, and only when **Colorful tool icons** is on. With it off, those icons use the theme's plain foreground color, whatever per-tool override you've set.

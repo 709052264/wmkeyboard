@@ -291,6 +291,13 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.core.settings.ThemeSelectionTarget
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.TOOLBOX_FOLDER_MIN_TOOLS
+import com.wasimaster.wmkeyboard.core.settings.TOOLBOX_FOLDER_NAME_MAX
+import com.wasimaster.wmkeyboard.core.settings.folderById
+import com.wasimaster.wmkeyboard.core.settings.folderOf
+import com.wasimaster.wmkeyboard.core.settings.withAdded
+import com.wasimaster.wmkeyboard.core.settings.withMerge
+import com.wasimaster.wmkeyboard.core.settings.withoutTool
 import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
 import com.wasimaster.wmkeyboard.core.settings.interactiveTyping
 import com.wasimaster.wmkeyboard.core.settings.plainTyping
@@ -6449,6 +6456,13 @@ open class WMKeyboardService : InputMethodService() {
                 clipboardQuery = if (restarting) it.clipboardQuery else "",
                 snippetSearchActive = restarting && it.snippetSearchActive,
                 snippetQuery = if (restarting) it.snippetQuery else "",
+                // The toolbox's search and an open folder's name box are per
+                // field, like the snippets search above (#687, #709).
+                toolboxView = if (restarting) it.toolboxView else it.toolboxView.copy(
+                    searchActive = false,
+                    query = "",
+                    nameDraft = null,
+                ),
                 // A clip half-edited survives the same field restarting, the
                 // way a selection mode does; another field closes the editor,
                 // and Combine with it (#612).
@@ -9310,6 +9324,9 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.CLIP_JOINER -> captureTyped("\n")
             CaptureTarget.CLIP_BASE -> onClipCombineFocus(ClipCombineField.APPEND)
             CaptureTarget.CLIP_APPEND -> onClipCombineSave()
+            // The search opens its first match (#687); a folder's name is kept (#709).
+            CaptureTarget.TOOLBOX_SEARCH -> onToolboxSearchEnter()
+            CaptureTarget.TOOLBOX_FOLDER_NAME -> onToolboxFolderRenameDone(keep = true)
         }
         return true
     }
@@ -9544,6 +9561,15 @@ open class WMKeyboardService : InputMethodService() {
                     val entry = _uiState.value.clockText?.copy(text = after.text.replace("\n", " ").take(limit))
                     _uiState.update { it.copy(clockText = entry) }
                     entry?.let(clockTool::onText)
+                }
+                CaptureTarget.TOOLBOX_SEARCH ->
+                    updateQuery { it.copy(toolboxView = it.toolboxView.copy(query = after.text)) }
+                CaptureTarget.TOOLBOX_FOLDER_NAME -> _uiState.update {
+                    it.copy(
+                        toolboxView = it.toolboxView.copy(
+                            nameDraft = after.text.replace("\n", " ").take(TOOLBOX_FOLDER_NAME_MAX),
+                        ),
+                    )
                 }
             }
         }
@@ -23652,6 +23678,8 @@ open class WMKeyboardService : InputMethodService() {
                 snippetPicker = null,
                 snippetSearchActive = false,
                 snippetQuery = "",
+                // The toolbox opens at its top level every time, search closed.
+                toolboxView = ToolboxUi(),
                 // The strip is behind the panel, so its chips go with it for
                 // the reason [smart] does.
                 snippetOffers = null,
@@ -31692,6 +31720,171 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    // ---- toolbox search and folders (#687, #709) ----
+
+    private fun toolboxCallbacks() = com.wasimaster.wmkeyboard.ime.ui.ToolboxCallbacks(
+        onSearchToggle = ::onToolboxSearchToggle,
+        onFolderOpen = ::onToolboxFolderOpen,
+        onRename = ::onToolboxFolderRename,
+        onRenameDone = { onToolboxFolderRenameDone(keep = true) },
+        onPinToggle = ::onToolboxFolderPinToggle,
+        onUngroup = ::onToolboxFolderUngroup,
+        onMerge = ::onToolboxMerge,
+        onAddToFolder = ::onToolboxAddToFolder,
+        onTakeOut = ::onToolboxFolderTakeOut,
+        onFolderOrder = ::onToolboxFolderOrder,
+    )
+
+    /** The toolbox's search tapped (#687): route keys into [ToolboxUi.query], or close and clear it. */
+    fun onToolboxSearchToggle() {
+        vibrate()
+        _uiState.update {
+            val active = !it.toolboxView.searchActive
+            // Searching lists every tool, folders or not, so it starts from the
+            // top level; closing it puts the grid back the way the panel opened.
+            it.copy(
+                toolboxView = ToolboxUi(searchActive = active),
+                panelFocus = null,
+            )
+        }
+    }
+
+    /** Enter in the toolbox search: close it and run the first tool it lists. */
+    private fun onToolboxSearchEnter() {
+        val first = com.wasimaster.wmkeyboard.ime.ui.toolboxSearchMatches(_uiState.value) { tool ->
+            getString(com.wasimaster.wmkeyboard.ime.ui.toolLabelRes(tool))
+        }.firstOrNull() ?: return
+        _uiState.update { it.copy(toolboxView = ToolboxUi(), panelFocus = null) }
+        onToolTap(first)
+    }
+
+    /**
+     * Opens a toolbox folder (#709), from its cell in the grid or its button on
+     * the toolbar, which opens the toolbox first; null goes back up a level.
+     */
+    fun onToolboxFolderOpen(id: String?) {
+        if (id != null && _uiState.value.panel != PanelMode.TOOLBOX) {
+            onPanelChange(PanelMode.TOOLBOX)
+            if (_uiState.value.panel != PanelMode.TOOLBOX) return
+        } else {
+            vibrate()
+        }
+        _uiState.update { it.copy(toolboxView = ToolboxUi(folderOpen = id), panelFocus = null) }
+    }
+
+    /** The open folder's name tapped: the keys type a new one into it. */
+    fun onToolboxFolderRename() {
+        val state = _uiState.value
+        val folder = state.settings.toolbox.folders.folderById(state.toolboxView.folderOpen) ?: return
+        vibrate()
+        _uiState.update {
+            it.copy(
+                toolboxView = it.toolboxView.copy(nameDraft = folder.name, searchActive = false, query = ""),
+                panelFocus = null,
+            )
+        }
+    }
+
+    /** Ends a rename: [keep] saves the typed name unless it is blank; back drops it. */
+    private fun onToolboxFolderRenameDone(keep: Boolean) {
+        val state = _uiState.value
+        val draft = state.toolboxView.nameDraft ?: return
+        val id = state.toolboxView.folderOpen
+        _uiState.update { it.copy(toolboxView = it.toolboxView.copy(nameDraft = null)) }
+        val name = draft.trim().take(TOOLBOX_FOLDER_NAME_MAX)
+        if (!keep || name.isEmpty() || id == null) return
+        vibrate()
+        serviceScope.launch {
+            settingsRepository.updateToolboxFolders { folders ->
+                folders.map { if (it.id == id) it.copy(name = name) else it }
+            }
+        }
+    }
+
+    /** Puts the folder on the toolbar, or takes it off. The tools inside stay where they are. */
+    fun onToolboxFolderPinToggle(id: String) {
+        vibrate()
+        serviceScope.launch {
+            settingsRepository.updateToolboxFolders { folders ->
+                folders.map { if (it.id == id) it.copy(pinned = !it.pinned) else it }
+            }
+        }
+    }
+
+    /** Ungroups the folder: its tools go back to cells of their own, in the order they had. */
+    fun onToolboxFolderUngroup(id: String) {
+        vibrate()
+        _uiState.update {
+            if (it.toolboxView.folderOpen == id) it.copy(toolboxView = ToolboxUi(), panelFocus = null) else it
+        }
+        serviceScope.launch { settingsRepository.updateToolboxFolders { folders -> folders.filterNot { it.id == id } } }
+    }
+
+    /**
+     * A tool dropped on another tool in the toolbox grid: the two become a
+     * folder, or [dropped] joins [target]'s. The drag has already unpinned a
+     * tool that came off the toolbar.
+     */
+    fun onToolboxMerge(dropped: ToolbarTool, target: ToolbarTool) {
+        val name = getString(R.string.ime_toolbox_folder_default_name)
+        placeToolboxToolAfter(dropped, target)
+        serviceScope.launch {
+            settingsRepository.updateToolboxFolders { it.withMerge(dropped, target, name) }
+        }
+    }
+
+    /** A tool dropped on a folder's cell: filed at the end of that folder. */
+    fun onToolboxAddToFolder(dropped: ToolbarTool, folderId: String) {
+        val folder = _uiState.value.settings.toolbox.folders.folderById(folderId) ?: return
+        placeToolboxToolAfter(dropped, folder.tools.last())
+        serviceScope.launch { settingsRepository.updateToolboxFolders { it.withAdded(dropped, folderId) } }
+    }
+
+    /**
+     * Moves [tool] to just after [anchor] in the toolbox order. A folder sits
+     * where its first tool ranks, so without this a tool that ranked above the
+     * one it was dropped on would carry the whole folder up to its own old
+     * place, away from where the finger let go.
+     */
+    private fun placeToolboxToolAfter(tool: ToolbarTool, anchor: ToolbarTool) {
+        val order = _uiState.value.settings.toolboxOrder
+        val next = order.toMutableList().apply {
+            remove(tool)
+            val at = indexOf(anchor)
+            add(if (at < 0) size else at + 1, tool)
+        }
+        if (next != order) onToolboxOrderChange(next) else vibrate()
+    }
+
+    /** A tool dragged out of the open folder onto its header: back to a cell of its own. */
+    fun onToolboxFolderTakeOut(tool: ToolbarTool) {
+        vibrate()
+        val folders = _uiState.value.settings.toolbox.folders
+        val folder = folders.folderOf(tool) ?: return
+        // The last tool but one leaving dissolves the folder, so there is no
+        // folder left to be standing in.
+        if (folder.tools.size - 1 < TOOLBOX_FOLDER_MIN_TOOLS) {
+            _uiState.update { it.copy(toolboxView = ToolboxUi(), panelFocus = null) }
+        }
+        serviceScope.launch { settingsRepository.updateToolboxFolders { it.withoutTool(tool) } }
+    }
+
+    /** The open folder's tools rearranged by a drag inside it. */
+    fun onToolboxFolderOrder(id: String, tools: List<ToolbarTool>) {
+        vibrate()
+        serviceScope.launch {
+            settingsRepository.updateToolboxFolders { folders ->
+                folders.map { folder ->
+                    if (folder.id != id) return@map folder
+                    // Only the folder's own tools, each once, and none lost: a
+                    // tool pinned to the bar is in the folder but not in the drag.
+                    val kept = tools.filter { it in folder.tools }.distinct()
+                    folder.copy(tools = kept + (folder.tools - kept.toSet()))
+                }
+            }
+        }
+    }
+
     /** Clipboard panel search bar tapped: route keys into [clipboardQuery]. */
     fun onClipboardSearchToggle() {
         vibrate()
@@ -34097,6 +34290,7 @@ open class WMKeyboardService : InputMethodService() {
             notes = notesCallbacks(),
             location = locationTool.callbacks,
             clock = clockTool.callbacks,
+            toolbox = toolboxCallbacks(),
             stickerOffer = com.wasimaster.wmkeyboard.ime.ui.StickerOfferCallbacks(
                 onPick = ::onStickerOfferPick,
                 onExpand = ::onStickerOfferExpand,
@@ -39708,6 +39902,13 @@ open class WMKeyboardService : InputMethodService() {
                 ::onSnippetPickerBack
             state.panel == PanelMode.SNIPPETS && state.snippetFolderOpen != null ->
                 ({ onSnippetFolderOpen(null) })
+            // The toolbox's layers (#687, #709): a folder name being typed,
+            // the search, then the open folder, before the toolbox itself.
+            state.panel == PanelMode.TOOLBOX && state.toolboxView.nameDraft != null ->
+                ({ onToolboxFolderRenameDone(keep = false) })
+            state.panel == PanelMode.TOOLBOX && state.toolboxView.searchActive -> ::onToolboxSearchToggle
+            state.panel == PanelMode.TOOLBOX && state.toolboxView.folderOpen != null ->
+                ({ onToolboxFolderOpen(null) })
             // The spelling editor closes before the Learn from text panel under it.
             state.learnEditActive -> ::onLearnEditCancel
             // The Notes panel's layers, innermost first (#560): a tag being

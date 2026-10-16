@@ -117,6 +117,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Description
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Download
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FolderOpen
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
@@ -464,6 +465,9 @@ import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
 import com.wasimaster.wmkeyboard.core.settings.ToolboxLayout
 import com.wasimaster.wmkeyboard.core.settings.ToolboxPageSizeRange
 import com.wasimaster.wmkeyboard.core.settings.ToolboxSettings
+import com.wasimaster.wmkeyboard.core.settings.ToolboxFolder
+import com.wasimaster.wmkeyboard.core.settings.folderById
+import com.wasimaster.wmkeyboard.core.settings.folderOf
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.isUsableTool
 import com.wasimaster.wmkeyboard.core.settings.usableTools
@@ -8036,6 +8040,26 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
 private class ToolDragController {
     var dragging by mutableStateOf<ToolbarTool?>(null)
         private set
+    /**
+     * The toolbox folder being dragged (#709), or null. Exclusive with
+     * [dragging]: a folder moves around the grid, or onto the toolbar to pin
+     * it, and is never filed into anything.
+     */
+    var draggingFolder by mutableStateOf<ToolboxFolder?>(null)
+        private set
+    /** Whether a tool or a folder is in flight. */
+    val active: Boolean get() = dragging != null || draggingFolder != null
+    /**
+     * The cell a dragged tool is held over the middle of (#709). Letting go
+     * there files the tool with that cell's tool in a new folder, or into that
+     * folder. While it is set there is no [boxSlot]: nothing makes room, so the
+     * cell stays put under the finger and lights up instead.
+     */
+    var boxMerge by mutableStateOf<ToolboxCell?>(null)
+        private set
+    /** Over the open folder's header (#709), where a drop takes the tool out of it. */
+    var overFolderExit by mutableStateOf(false)
+        private set
     var position by mutableStateOf(Offset.Zero)
         private set
     /** Toolbar insertion slot under the finger, or null when off the bar. */
@@ -8158,10 +8182,21 @@ private class ToolDragController {
      * rather than at the end of the toolbox.
      */
     var toolboxPageLength: Int = Int.MAX_VALUE
-    /** The tools the toolbox grid is showing, in toolbox order. */
-    var toolboxTools: List<ToolbarTool> = emptyList()
-    /** Complete ordering over every tool; reorders rewrite this. */
+    /** The cells the toolbox grid is showing, in toolbox order: tools, and folders of them (#709). */
+    var toolboxCells: List<ToolboxCell> = emptyList()
+    /**
+     * Complete ordering over every tool; reorders rewrite this. Inside an open
+     * folder it is that folder's own tools, and a reorder rewrites the folder.
+     */
     var toolboxOrder: List<ToolbarTool> = emptyList()
+    /** The folder open in the toolbox (#709), or null at the top level. */
+    var folderView: ToolboxFolder? = null
+    /** The open folder's header, in root coordinates: the take-out target. */
+    var folderExitBounds: Rect? = null
+    /** True while the toolbox lists search results (#687): no drop lands in a filtered grid. */
+    var toolboxSearching: Boolean = false
+    /** The folder side of the toolbox (#709, #687), handed down from the service. */
+    var toolbox: ToolboxCallbacks = ToolboxCallbacks()
     /**
      * Tools the user hid from the grid. The grid is no drop target for them:
      * it would show a slot and then never draw the tool in it. Dragged off the
@@ -8182,43 +8217,97 @@ private class ToolDragController {
         dragging = tool
         fromToolbar = fromBar
         position = at
-        barSlot = slotAt(at)
-        boxSlot = if (barSlot == null) toolboxSlotAt(at) else null
+        retarget(at)
+    }
+
+    /** Picks up a toolbox folder (#709); see [draggingFolder]. */
+    fun startFolder(folder: ToolboxFolder, at: Offset) {
+        draggingFolder = folder
+        fromToolbar = false
+        position = at
+        retarget(at)
     }
 
     fun move(to: Offset) {
         position = to
-        val bar = slotAt(to)
-        val box = if (bar == null) toolboxSlotAt(to) else null
-        if (bar != barSlot || box != boxSlot) {
-            barSlot = bar
-            boxSlot = box
-            onSnap()
-        }
+        if (retarget(to)) onSnap()
+    }
+
+    /**
+     * Works out every drop target under [at] at once, in the order they win:
+     * the open folder's header, the toolbar, the middle of a toolbox cell, a
+     * slot between cells. True when any of them changed.
+     */
+    private fun retarget(at: Offset): Boolean {
+        val exit = folderExitAt(at)
+        val bar = if (exit) null else slotAt(at)
+        val merge = if (exit || bar != null) null else mergeAt(at)
+        val box = if (exit || bar != null || merge != null) null else toolboxSlotAt(at)
+        val changed = bar != barSlot || box != boxSlot || merge?.key != boxMerge?.key || exit != overFolderExit
+        barSlot = bar
+        boxSlot = box
+        boxMerge = merge
+        overFolderExit = exit
+        return changed
     }
 
     fun cancel() {
         dragging = null
+        draggingFolder = null
         barSlot = null
         boxSlot = null
+        boxMerge = null
+        overFolderExit = false
     }
 
     fun end() {
-        val tool = dragging ?: return
-        val bar = slotAt(position)
-        val box = if (bar == null) toolboxSlotAt(position) else null
+        val folder = draggingFolder
+        val tool = dragging
+        if (folder == null && tool == null) return
+        retarget(position)
+        val bar = barSlot
+        val box = boxSlot
+        val merge = boxMerge
+        val exit = overFolderExit
         cancel()
-        if (bar != null) {
+        if (folder != null) {
+            // A folder goes on the toolbar as a whole, after the pinned tools,
+            // or to another place in the grid as a whole.
+            if (bar != null) {
+                if (!folder.pinned) toolbox.onPinToggle(folder.id)
+            } else if (box != null) {
+                val next = folderOrderWith(folder, box)
+                onOrderPreview(next)
+                onOrderCommit(next)
+            }
+            return
+        }
+        tool ?: return
+        val view = folderView
+        if (exit) {
+            toolbox.onTakeOut(tool)
+        } else if (bar != null) {
             onCommit(barWith(tool, bar))
+        } else if (merge != null) {
+            if (fromToolbar) onCommit(currentTools - tool)
+            when (merge) {
+                is ToolboxCell.Tool -> toolbox.onMerge(tool, merge.tool)
+                is ToolboxCell.Folder -> toolbox.onAddToFolder(tool, merge.folder.id)
+            }
         } else if (box != null) {
             // Dropped on the grid: place it at that spot in the toolbox
             // order — and off the bar first, when that's where it came from.
             if (fromToolbar) onCommit(currentTools - tool)
+            if (view != null && tool !in view.tools) {
+                // Off the bar into an open folder: filed in it.
+                toolbox.onAddToFolder(tool, view.id)
+                return
+            }
             val next = orderWith(tool, box)
             // Shown first, saved second. Both from the same list, so the grid
             // never draws an arrangement the storage will not agree with.
             onOrderPreview(next)
-            onOrderCommit(next)
+            if (view != null) toolbox.onFolderOrder(view.id, next) else onOrderCommit(next)
         } else if (fromToolbar && toolboxViewport != null) {
             // Off-bar drops unpin only while the toolbox is open (its
             // viewport is registered) — a reorder drag that wanders off the
@@ -8232,9 +8321,11 @@ private class ToolDragController {
      * box is inflated so a drop just above/below it still counts.
      */
     private fun slotAt(at: Offset): Int? {
-        val tool = dragging ?: return null
         val bar = toolbarBounds?.inflate(30f) ?: return null
         if (!bar.contains(at)) return null
+        // A folder lands after the pinned tools, wherever it is let go (#709).
+        if (draggingFolder != null) return visibleTools.size
+        val tool = dragging ?: return null
         val without = visibleTools - tool
         if (without.isEmpty()) return 0
         // Measured from the edge the row starts its tools at — the right one
@@ -8261,14 +8352,28 @@ private class ToolDragController {
         return bar
     }
 
+    /** The cell being dragged, as the grid lists it; null for a tool coming off the bar. */
+    private fun draggedCell(): ToolboxCell? {
+        val folder = draggingFolder
+        if (folder != null) return toolboxCells.firstOrNull { it is ToolboxCell.Folder && it.folder.id == folder.id }
+        val tool = dragging ?: return null
+        return toolboxCells.firstOrNull { it is ToolboxCell.Tool && it.tool == tool }
+    }
+
+    /** The grid as the drop preview draws it: without the cell in flight. */
+    private fun cellsWithout(): List<ToolboxCell> {
+        val key = draggedCell()?.key ?: return toolboxCells
+        return toolboxCells.filterNot { it.key == key }
+    }
+
     /**
-     * Toolbox grid slot under [at], or null when off the visible panel. The
-     * grid scrolls, so the position converts through the content column's
+     * The page-local cell under [at], with how far across it the finger is
+     * from the side the grid starts at (0 to 1), or null when off the grid.
+     * The grid scrolls, so the position converts through the content column's
      * live coordinates rather than a captured rect.
      */
-    private fun toolboxSlotAt(at: Offset): Int? {
-        val tool = dragging ?: return null
-        if (tool in toolboxHidden) return null
+    private fun toolboxCellAt(at: Offset): Pair<Int, Float>? {
+        if (toolboxSearching) return null
         val viewport = toolboxViewport ?: return null
         if (!viewport.contains(at)) return null
         val coords = toolboxContentCoords?.takeIf { it.isAttached } ?: return null
@@ -8276,31 +8381,105 @@ private class ToolDragController {
         if (cell.width <= 0f || cell.height <= 0f) return null
         val origin = coords.positionInRoot()
         val columns = toolboxColumns.coerceAtLeast(1)
-        val count = (toolboxTools - tool).size
-        val across = ((at.x - origin.x) / cell.width).toInt().coerceIn(0, columns - 1)
+        val x = (at.x - origin.x) / cell.width
+        val across = x.toInt().coerceIn(0, columns - 1)
+        val within = (x - across).coerceIn(0f, 1f)
         // The grid fills from the right under RTL, so the leftmost cell of a
         // full row is its last column, not its first.
         val col = if (boxRtl) columns - 1 - across else across
         val row = ((at.y - origin.y) / cell.height).toInt().coerceAtLeast(0)
+        return (row * columns + col) to (if (boxRtl) 1f - within else within)
+    }
+
+    /** Whether a tool held here can be filed with the cell under it (#709). */
+    private fun mergesHere(): Boolean {
+        val tool = dragging ?: return false
+        return folderView == null && tool !in toolboxHidden
+    }
+
+    /**
+     * The cell whose middle a dragged tool is held over (#709), or null. Only
+     * the middle: the outer parts of a cell are still the slots either side of
+     * it, so a reorder never needs to aim around anything.
+     */
+    private fun mergeAt(at: Offset): ToolboxCell? {
+        if (!mergesHere()) return null
+        val (local, within) = toolboxCellAt(at) ?: return null
+        if (within !in ToolboxMergeZone || local >= toolboxPageLength) return null
+        return cellsWithout().getOrNull(toolboxPageStart + local)
+    }
+
+    /**
+     * Toolbox grid slot under [at], or null when off the visible panel. Where a
+     * tool can be filed into a cell, the cell's start side is the slot before
+     * it and its end side the slot after; the middle is [mergeAt]'s.
+     */
+    private fun toolboxSlotAt(at: Offset): Int? {
+        val tool = dragging
+        if (tool == null && draggingFolder == null) return null
+        if (tool != null && tool in toolboxHidden) return null
+        val (local, within) = toolboxCellAt(at) ?: return null
+        val count = cellsWithout().size
+        val after = if (mergesHere() && within > ToolboxMergeZone.endInclusive) 1 else 0
         // The cell is local to whatever registered the coords: the whole grid
         // when the toolbox scrolls, one page when it paginates.
-        val local = (row * columns + col).coerceIn(0, toolboxPageLength)
-        return (toolboxPageStart + local).coerceIn(0, count)
+        val slot = (local + after).coerceIn(0, toolboxPageLength)
+        return (toolboxPageStart + slot).coerceIn(0, count)
+    }
+
+    /** The tool a cell stands at in the toolbox order: itself, or a folder's first. */
+    private fun anchorOf(cell: ToolboxCell?): ToolbarTool? = when (cell) {
+        null -> null
+        is ToolboxCell.Tool -> cell.tool
+        is ToolboxCell.Folder -> cell.folder.tools.minByOrNull { tool ->
+            toolboxOrder.indexOf(tool).takeIf { it >= 0 } ?: Int.MAX_VALUE
+        }
     }
 
     /** The full tool order with [tool] moved to display slot [slot] of the grid. */
     private fun orderWith(tool: ToolbarTool, slot: Int): List<ToolbarTool> {
-        // The grid previews the drop with the dragged tool removed, so the
-        // slot indexes that list; the displayed tool it lands in front of
+        // The grid previews the drop with the dragged cell removed, so the
+        // slot indexes that list; the displayed cell it lands in front of
         // anchors the position in the complete order.
-        val displayed = toolboxTools - tool
-        val successor = displayed.getOrNull(slot.coerceIn(0, displayed.size))
+        val displayed = cellsWithout()
+        val successor = anchorOf(displayed.getOrNull(slot.coerceIn(0, displayed.size)))
         val order = toolboxOrder.toMutableList().apply { remove(tool) }
         val at = successor?.let { order.indexOf(it) }?.takeIf { it >= 0 } ?: order.size
         order.add(at, tool)
         return order
     }
+
+    /**
+     * The full tool order with every tool of [folder] moved, as one block in
+     * the order they already had, to display slot [slot] of the grid (#709).
+     */
+    private fun folderOrderWith(folder: ToolboxFolder, slot: Int): List<ToolbarTool> {
+        val members = folder.tools.toSet()
+        val block = toolboxOrder.filter { it in members }
+        val displayed = cellsWithout()
+        val successor = anchorOf(displayed.getOrNull(slot.coerceIn(0, displayed.size)))
+        val order = toolboxOrder.filterNot { it in members }.toMutableList()
+        val at = successor?.let { order.indexOf(it) }?.takeIf { it >= 0 } ?: order.size
+        order.addAll(at, block)
+        return order
+    }
+
+    /** Over the open folder's header with a tool from inside it: the take-out drop (#709). */
+    private fun folderExitAt(at: Offset): Boolean {
+        val view = folderView ?: return false
+        val tool = dragging ?: return false
+        if (fromToolbar || tool !in view.tools) return false
+        return folderExitBounds?.contains(at) == true
+    }
 }
+
+/**
+ * The part of a toolbox cell, across from the side the grid starts at, where a
+ * dragged tool is filed with the cell rather than put beside it (#709). The
+ * middle half or so: wide enough to aim at with a thumb, with a quarter either
+ * side left for reordering.
+ */
+private val ToolboxMergeZone = 0.28f..0.72f
 
 /**
  * Distance a held tool has to travel before the gesture counts as a move
@@ -9731,6 +9910,7 @@ private fun RowScope.ToolbarRow(
     // sake, so a mirrored list flipped it a second time and every drag landed
     // on the slot opposite the finger (issue #79).
     val tools = visibleToolbarTools(state)
+    val pinnedFolders = state.settings.toolbox.folders.filter { it.pinned }
     // The D-pad ring reaches the bar as well as the keys: without it a remote
     // could type but never open a tool, change a setting or start voice input.
     // Each button registers where it is while it is drawn (see [dpadTarget]).
@@ -9999,6 +10179,23 @@ private fun RowScope.ToolbarRow(
                 }
             }
         }
+        // Folders the user pinned (#709), after the tools: a folder has no
+        // place in the bar's own stored list, so it cannot sit between them.
+        for (folder in pinnedFolders) {
+            key("folder:${folder.id}") {
+                Box(
+                    if (greedy) Modifier.weight(1f).fillMaxHeight() else Modifier.padding(horizontal = 3.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    PinnedFolderButton(
+                        folder = folder,
+                        state = state,
+                        open = customizing && state.toolboxView.folderOpen == folder.id,
+                        onOpen = { drag.toolbox.onFolderOpen(folder.id) },
+                    )
+                }
+            }
+        }
     }
     if (greedy) {
         Row(
@@ -10022,7 +10219,7 @@ private fun RowScope.ToolbarRow(
             CompositionLocalProvider(LocalLayoutDirection provides toolsDirection) {
                 Row(
                     modifier = Modifier
-                        .weight(displayTools.size.coerceAtLeast(1).toFloat())
+                        .weight((displayTools.size + pinnedFolders.size).coerceAtLeast(1).toFloat())
                         .fillMaxHeight()
                         .onGloballyPositioned { drag.toolbarBounds = it.boundsInRoot() },
                     verticalAlignment = Alignment.CenterVertically,
@@ -10137,6 +10334,11 @@ private data class ToolboxOrderPreview(
  * or [ToolPill] rows. Either can scroll as one long grid or break into swiped
  * pages; that is [ToolboxSettings.paginate], and the cells are the same
  * [ToolboxGrid] either way.
+ *
+ * A tool held over the middle of another and let go there makes a folder of
+ * the two (#709), which takes one cell and opens in place onto its own grid.
+ * The header's search (#687) lists the tools whose names match what the keys
+ * type, folders or not, with the keys under a shorter panel.
  */
 @Composable
 private fun ToolboxPanel(
@@ -10145,7 +10347,25 @@ private fun ToolboxPanel(
     onHintDismiss: () -> Unit,
     drag: ToolDragController,
 ) {
-    val height = keyRowsHeight(state)
+    val view = state.toolboxView
+    val callbacks = drag.toolbox
+    val openFolder = state.settings.toolbox.folders.folderById(view.folderOpen)
+    val searching = view.searchActive
+    // While the search or a folder's name has the keys, the panel gives up
+    // its height so they fit under it: to the clipboard search's height, as
+    // the snippets' search does, since the matches are the point of it.
+    val typing = state.captureTarget().let {
+        it == CaptureTarget.TOOLBOX_SEARCH || it == CaptureTarget.TOOLBOX_FOLDER_NAME
+    }
+    val height = if (typing) {
+        toolPanelHeight(
+            state,
+            wanted = ClipboardSearchHeight - captureStripHeight(state),
+            floor = ToolboxHeaderHeight,
+        )
+    } else {
+        keyRowsHeight(state)
+    }
     // First open: always show the drag hint. After it was dismissed once,
     // resurface it only rarely as a reminder. Rolled once per panel open.
     val rareReminder = remember { Random.nextFloat() < 0.03f }
@@ -10161,6 +10381,9 @@ private fun ToolboxPanel(
             drag.toolboxContentCoords = null
             drag.toolboxPageStart = 0
             drag.toolboxPageLength = Int.MAX_VALUE
+            drag.folderView = null
+            drag.folderExitBounds = null
+            drag.toolboxSearching = false
         }
     }
     Column(
@@ -10172,53 +10395,37 @@ private fun ToolboxPanel(
         // A slim header carrying the drag hint until it's dismissed. Resetting
         // the pinned tools now lives in Settings → Appearance ("Reset pinned
         // tools"), so the toolbox no longer shows its own reset control.
-        if (hintVisible) {
-            val activeMode = state.settings.keyboardModes
-                .firstOrNull { it.id == state.activeModeId }
-                ?.takeIf { state.settings.modeToolOrderEdits && it.ownsToolOrder }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 24.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // With a mode on, the arrangement being edited is that mode's
-                // own — say so, or the same keyboard looking different in the
-                // next app reads as the drag being lost.
-                val dragHint = stringResource(R.string.ime_toolbox_hint_drag)
-                Text(
-                    if (activeMode != null) {
-                        stringResource(R.string.ime_toolbox_hint_mode, activeMode.name) +
-                            " " + dragHint
-                    } else {
-                        dragHint
-                    },
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1f),
+        when {
+            searching -> ToolboxHeaderRow {
+                HeaderSearchPill(
+                    query = view.query,
+                    placeholder = stringResource(R.string.ime_toolbox_search_hint),
+                    clearDescription = stringResource(R.string.ime_toolbox_search_clear_desc),
+                    onClose = callbacks.onSearchToggle,
                 )
-                IconHint(stringResource(R.string.ime_toolbox_hint_dismiss_desc)) {
-                    IconButton(
-                        onClick = {
-                            hintVisible = false
-                            onHintDismiss()
-                        },
-                        modifier = Modifier.size(28.dp),
-                    ) {
-                        Icon(
-                            Icons.Outlined.Close,
-                            contentDescription = stringResource(R.string.ime_toolbox_hint_dismiss_desc),
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
             }
+            openFolder != null -> ToolboxFolderHeader(state, openFolder, drag)
+            else -> ToolboxTopHeader(
+                state = state,
+                hintVisible = hintVisible,
+                onHintDismiss = {
+                    hintVisible = false
+                    onHintDismiss()
+                },
+                onSearch = callbacks.onSearchToggle,
+            )
         }
         // Toolbox order is a complete ranking over every tool; the grid
         // shows the available subset in that order.
-        val settledTools = visibleToolboxTools(state)
+        val context = LocalContext.current
+        val settledTools = when {
+            // A search lists tools from every folder, so it draws no folders.
+            searching -> toolboxSearchMatches(state) { context.getString(toolLabelRes(it)) }
+            openFolder != null -> visibleToolboxTools(state).toSet().let { shown ->
+                openFolder.tools.filter { it in shown }
+            }
+            else -> visibleToolboxTools(state)
+        }
         // The order the last drop committed, drawn until the settings flow
         // comes back with it.
         //
@@ -10250,8 +10457,17 @@ private fun ToolboxPanel(
         } else {
             state.settings.toolboxColumns.coerceAtLeast(1)
         }
-        drag.toolboxTools = available
-        drag.toolboxOrder = state.settings.toolboxOrder
+        // Folders gather at the top level only; inside one, and in a search,
+        // every cell is a tool.
+        val cells = if (openFolder == null && !searching) {
+            toolboxCells(available, toolbox.folders)
+        } else {
+            available.map { ToolboxCell.Tool(it) }
+        }
+        drag.toolboxCells = cells
+        drag.toolboxOrder = openFolder?.tools ?: state.settings.toolboxOrder
+        drag.folderView = openFolder
+        drag.toolboxSearching = searching
         drag.toolboxHidden = toolbox.hiddenTools
         drag.toolboxColumns = columns
         // The grid takes the ambient direction (it has no script of its own to
@@ -10274,43 +10490,61 @@ private fun ToolboxPanel(
         // Removing the tool means its cell is disposed mid-gesture, which is
         // why the drag is no longer hosted there — see the pointerInput on the
         // grid below. The cells are pure visuals now.
-        val dragTool = drag.dragging
         val boxSlot = drag.boxSlot
+        // What the ghost draws as: the tool in flight, or the folder.
+        val dragCell: ToolboxCell? = drag.dragging?.let { ToolboxCell.Tool(it) }
+            ?: drag.draggingFolder?.let { folder ->
+                cells.firstOrNull { it.key == "folder:${folder.id}" } ?: ToolboxCell.Folder(folder, folder.tools)
+            }
         // Identifies the settled order, and changes only when it does — never
-        // during a drag, where the settings are untouched and `available` is
-        // the same list frame after frame. See [ToolboxGrid]'s cell keys for
-        // what it is for.
-        val orderKey = available.hashCode()
-        val display: List<ToolbarTool?> = if (dragTool != null && boxSlot != null) {
-            // `available - dragTool` is a no-op when the drag came from the
-            // toolbar, so both origins land on one ghost and one hole.
-            val without = available - dragTool
-            ArrayList<ToolbarTool?>(without).apply {
+        // during a drag, where the settings are untouched and `cells` is the
+        // same list frame after frame. See [ToolboxGrid]'s cell keys for what
+        // it is for. The folders ride in it too: a merge settles as a new cell.
+        val orderKey = cells.hashCode()
+        // Removing a cell that is not there is a no-op when the drag came from
+        // the toolbar, so both origins land on one ghost and one hole. Held over
+        // the middle of a cell (#709) there is a hole and no ghost: the cell it
+        // is held over stays exactly where the finger found it.
+        val without = if (dragCell != null) cells.filterNot { it.key == dragCell.key } else cells
+        val display: List<ToolboxCell?> = when {
+            drag.active && boxSlot != null -> ArrayList<ToolboxCell?>(without).apply {
                 add(boxSlot.coerceIn(0, without.size), null)
             }
-        } else {
-            available
+            drag.active && drag.boxMerge != null -> without
+            else -> cells
         }
         if (display.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    stringResource(R.string.ime_toolbox_empty),
+                    when {
+                        searching -> stringResource(R.string.ime_toolbox_search_no_match, view.query.trim())
+                        openFolder != null -> stringResource(R.string.ime_toolbox_folder_empty)
+                        else -> stringResource(R.string.ime_toolbox_empty)
+                    },
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 )
             }
             return@Column
         }
-        // Indexed against `available`, never `display`: the drop preview inserts
+        // Indexed against `cells`, never `display`: the drop preview inserts
         // a null ghost slot into `display`, which would shift every index past it
         // and open the wrong tool. The ring is hidden mid-drag anyway (below),
         // but the count published here must match what Enter will resolve.
         PanelFocusTarget(
             panel = PanelMode.TOOLBOX,
-            count = available.size,
+            count = cells.size,
             columns = columns,
-            onActivate = { index -> available.getOrNull(index)?.let(onToolTap) },
+            onActivate = { index ->
+                when (val cell = cells.getOrNull(index)) {
+                    is ToolboxCell.Tool -> onToolTap(cell.tool)
+                    is ToolboxCell.Folder -> callbacks.onFolderOpen(cell.folder.id)
+                    null -> Unit
+                }
+            },
         )
-        val focusedTool = state.focusedIndex().takeIf { drag.dragging == null }
+        val focusedTool = state.focusedIndex().takeIf { !drag.active }
         if (!toolbox.paginate) {
             // One long grid the user scrolls: every cell is at its absolute
             // slot, so the drop math needs no page offset.
@@ -10323,7 +10557,9 @@ private fun ToolboxPanel(
                 pageStart = 0,
                 columns = columns,
                 pills = pills,
-                dragTool = dragTool,
+                dragCell = dragCell,
+                dragEnabled = !searching,
+                mergeKey = drag.boxMerge?.key,
                 orderKey = orderKey,
                 focusedSlot = focusedTool,
                 registerGeometry = true,
@@ -10343,8 +10579,8 @@ private fun ToolboxPanel(
         // only ever measured against the page in front, and the grid's own
         // handler swallows the swipe a turn would otherwise take.
         val edgePx = with(LocalDensity.current) { ToolboxPageTurnEdge.toPx() }
-        LaunchedEffect(dragTool) {
-            if (dragTool == null) return@LaunchedEffect
+        LaunchedEffect(drag.active) {
+            if (!drag.active) return@LaunchedEffect
             var heldDir = 0
             var heldSince = 0L
             while (true) {
@@ -10389,7 +10625,7 @@ private fun ToolboxPanel(
             // Except mid-drag: the gesture lives in the pointerInput of the page
             // the tool was picked up from, and turning away from that page would
             // dispose it and drop the tool wherever the finger happened to be.
-            beyondViewportPageCount = if (dragTool != null) pageCount else 0,
+            beyondViewportPageCount = if (drag.active) pageCount else 0,
         ) { page ->
             // Only the page in front publishes to the drag controller: its
             // neighbours stay composed through a swipe, and two pages claiming
@@ -10406,7 +10642,9 @@ private fun ToolboxPanel(
                 pageStart = page * pageSize,
                 columns = columns,
                 pills = pills,
-                dragTool = dragTool,
+                dragCell = dragCell,
+                dragEnabled = !searching,
+                mergeKey = drag.boxMerge?.key,
                 orderKey = orderKey,
                 focusedSlot = focusedTool.takeIf { current },
                 registerGeometry = current,
@@ -10439,13 +10677,18 @@ private fun ToolboxPanel(
 private fun ToolboxGrid(
     state: KeyboardUiState,
     drag: ToolDragController,
-    /** This page's cells: tools, with a null where the drop ghost goes. */
-    display: List<ToolbarTool?>,
+    /** This page's cells: tools and folders, with a null where the drop ghost goes. */
+    display: List<ToolboxCell?>,
     /** Absolute slot of this page's first cell; 0 for the scrolling toolbox. */
     pageStart: Int,
     columns: Int,
     pills: Boolean,
-    dragTool: ToolbarTool?,
+    /** What the ghost draws as, while something is in flight. */
+    dragCell: ToolboxCell?,
+    /** False while the grid lists search results (#687): a hold opens a tool's settings, nothing moves. */
+    dragEnabled: Boolean,
+    /** The cell a dragged tool is held over the middle of (#709), drawn lit. */
+    mergeKey: String?,
     /** Identifies the settled toolbox order; see the cell keys below. */
     orderKey: Int,
     /** Absolute slot the hardware focus ring is on, or null. */
@@ -10467,7 +10710,12 @@ private fun ToolboxGrid(
     // for one answer. Null with no picker armed, and during a drag — a drag
     // inserts a ghost into `display`, and every slot past it would then be
     // labelled with its neighbour's key.
-    val hints = if (dragTool == null) armedHintPlan(state) else null
+    val hints = if (dragCell == null) armedHintPlan(state) else null
+    // The plan numbers the toolbox's tools in toolbox order, folders or not,
+    // so a cell's badge is found by its tool rather than by where it sits.
+    val hintSlots = hints?.let { visibleToolboxTools(state).withIndex().associate { (i, tool) -> tool to i } }
+    val dragEnabledNow by rememberUpdatedState(dragEnabled)
+    val openFolder by rememberUpdatedState(drag.toolbox.onFolderOpen)
     val scope = rememberCoroutineScope()
     val tapTool by rememberUpdatedState(onToolTap)
     // Read through holders, and key the handler on nothing. `display` is a
@@ -10521,8 +10769,10 @@ private fun ToolboxGrid(
                     // grid is the rightmost one.
                     val col = if (drag.boxRtl) cols - 1 - across else across
                     val row = (down.position.y / cell.height).toInt()
-                    val tool = cellsNow.getOrNull(row * cols + col)
+                    val hit = cellsNow.getOrNull(row * cols + col)
                         ?: return@awaitEachGesture
+                    val tool = (hit as? ToolboxCell.Tool)?.tool
+                    val folder = (hit as? ToolboxCell.Folder)?.folder
                     // Root coordinates throughout: the grid reflows around the
                     // drop preview while the finger is down, and a node that
                     // moves under a still finger reports deltas of its own.
@@ -10532,12 +10782,14 @@ private fun ToolboxGrid(
                     var dragged = false
                     var released = false
                     var scrolled = false
+                    // A hold that travels where nothing can move (a search).
+                    var wandered = false
                     // Resolved with the tool, from the set as it stands now. A
                     // tool the user opted in repeats here exactly as it does on
                     // the toolbar, and gives up this grid's hold-for-settings
                     // to do it; every other tool keeps it.
-                    val holdRepeatMs =
-                        repeatMsNow.takeIf { tool in toolboxRepeatNow && tool in HoldRepeatCursorTools }
+                    val repeatTool = tool?.takeIf { it in toolboxRepeatNow && it in HoldRepeatCursorTools }
+                    val holdRepeatMs = repeatMsNow.takeIf { repeatTool != null }
                     val timer = scope.launch {
                         delay(viewConfiguration.longPressTimeoutMillis)
                         feedback()
@@ -10546,9 +10798,9 @@ private fun ToolboxGrid(
                         // toolbar: starting it here parked a drag ghost and the
                         // scope pill under a finger that was only holding a
                         // cell down — for its settings page, or for a repeat.
-                        if (holdRepeatMs != null) {
+                        if (holdRepeatMs != null && repeatTool != null) {
                             while (true) {
-                                tapTool(tool)
+                                tapTool(repeatTool)
                                 delay(holdRepeatMs)
                             }
                         }
@@ -10573,13 +10825,18 @@ private fun ToolboxGrid(
                                 }
                             } else {
                                 change.consume()
-                                if (travel > dragSlop && !dragged) {
-                                    dragged = true
+                                if (travel > dragSlop && !dragged && !wandered) {
                                     // Travel means a reorder after all, so the
                                     // tool picks itself up from here (and a
                                     // repeating one stops repeating).
                                     timer.cancel()
-                                    drag.start(tool, false, rootPos)
+                                    if (!dragEnabledNow) {
+                                        wandered = true
+                                    } else {
+                                        dragged = true
+                                        if (folder != null) drag.startFolder(folder, rootPos)
+                                        else if (tool != null) drag.start(tool, false, rootPos)
+                                    }
                                 }
                                 // Nothing to move until the finger has travelled:
                                 // no drag has been started, and drag.move would
@@ -10592,17 +10849,20 @@ private fun ToolboxGrid(
                         when {
                             !longPressed -> {
                                 drag.cancel()
-                                if (released && !scrolled) tapTool(tool)
+                                if (released && !scrolled) {
+                                    if (folder != null) openFolder(folder.id) else if (tool != null) tapTool(tool)
+                                }
                             }
                             dragged -> drag.end()
                             // A repeating hold has already done its work, and
                             // there is nothing to drop.
-                            holdRepeatMs != null -> drag.cancel()
+                            holdRepeatMs != null || wandered -> drag.cancel()
                             // A hold that never travelled past the slop is a
-                            // distinct gesture: open the tool's settings.
+                            // distinct gesture: open the tool's settings. A
+                            // folder has none, so the hold opens the folder.
                             else -> {
                                 drag.cancel()
-                                drag.onOpenSettings(tool)
+                                if (folder != null) openFolder(folder.id) else if (tool != null) drag.onOpenSettings(tool)
                             }
                         }
                     }
@@ -10610,7 +10870,7 @@ private fun ToolboxGrid(
             },
         maxItemsInEachRow = columns,
     ) {
-        display.forEachIndexed { slot, tool ->
+        display.forEachIndexed { slot, cell ->
             // The ghost's key encodes its slot so a move is a structural
             // remove+add, not a same-key reorder. FlowRow re-measures and
             // re-places its children on a structural change, but on a pure
@@ -10633,7 +10893,7 @@ private fun ToolboxGrid(
             // around the ghost; a settled reorder costs one rebuild of a cell
             // each, and lands with no animation, which is right — the drag has
             // already shown the move.
-            key(tool?.let { "$it@$orderKey" } ?: "box-ghost-${pageStart + slot}") {
+            key(cell?.let { "${it.key}@$orderKey" } ?: "box-ghost-${pageStart + slot}") {
                 // Where this cell's tool name is drawn: a panel opened from
                 // the cell grows out of it and lifts that name into its header.
                 val nameAnchor = remember { PanelLabelAnchor() }
@@ -10655,15 +10915,16 @@ private fun ToolboxGrid(
                     // Pure visuals — the grid's own pointerInput owns the
                     // gesture, so nothing here has to survive the dragged
                     // tool leaving the list.
-                    val ghost = tool == null
-                    // dragTool is never null when a ghost entry exists.
-                    val shown = tool ?: dragTool ?: return@Box
+                    val ghost = cell == null
+                    // dragCell is never null when a ghost entry exists.
+                    val shownCell = cell ?: dragCell ?: return@Box
                     // `slot` indexes this page, which holds the plain tools
                     // whenever the ring is drawn at all — focusedSlot is null
                     // for the whole of a drag, and only a drag inserts a ghost.
-                    val focused = focusedSlot == pageStart + slot
-                    val paint = toolAccentPaint(shown, state.settings)
-                    val hint = hints?.label(HintSurface.TOOLBOX, pageStart + slot)
+                    // A cell a tool is held over the middle of wears the same
+                    // ring: it is the one the drop will go into (#709).
+                    val merging = !ghost && shownCell.key == mergeKey
+                    val focused = focusedSlot == pageStart + slot || merging
                     // Anchored at the scrolling content (see gridCoords), NOT
                     // the keyboard body: body-relative, every scroll frame
                     // moved every icon and restarted its spring — a per-frame
@@ -10675,11 +10936,35 @@ private fun ToolboxGrid(
                     // every reorder the grid ever made. Read from the live cell
                     // size inside the placement pass, so it is the size the row
                     // actually got rather than one guessed from the settings.
+                    val mergeScale by animateFloatAsState(
+                        if (merging) ToolboxMergeScale else 1f,
+                        animationSpec = if (state.settings.reduceMotion) snap() else spring(),
+                        label = "mergeScale",
+                    )
                     val placement = Modifier
                         .animatePlacement(
                             enabled = !state.settings.reduceMotion,
                             cap = { toolboxSlideCap(columns, drag.toolboxCellSize) },
                         ) { gridCoords }
+                        .graphicsLayer {
+                            scaleX = mergeScale
+                            scaleY = mergeScale
+                        }
+                    if (shownCell is ToolboxCell.Folder) {
+                        ToolboxFolderCell(
+                            state = state,
+                            cell = shownCell,
+                            pills = pills,
+                            ghost = ghost,
+                            focused = focused,
+                            nameAnchor = nameAnchor,
+                            modifier = placement,
+                        )
+                        return@Box
+                    }
+                    val shown = (shownCell as ToolboxCell.Tool).tool
+                    val paint = toolAccentPaint(shown, state.settings)
+                    val hint = hints?.let { plan -> hintSlots?.get(shown)?.let { plan.label(HintSurface.TOOLBOX, it) } }
                     if (pills) {
                         ToolPill(
                             tool = shown,
@@ -10747,6 +11032,432 @@ private fun ToolboxGrid(
                     }
                 }
             }
+        }
+    }
+}
+
+/** The toolbox header's floor: one row of its small buttons with room around them. */
+private val ToolboxHeaderHeight = 40.dp
+
+/** How much a toolbox cell grows while a dragged tool is held over its middle (#709). */
+private const val ToolboxMergeScale = 1.1f
+
+/** The toolbox's slim header row; what it carries depends on what the panel is showing. */
+@Composable
+private fun ToolboxHeaderRow(modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = ToolboxHeaderHeight)
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        content = content,
+    )
+}
+
+/** A small round button in the toolbox header, with its name as the hold tooltip. */
+@Composable
+private fun ToolboxHeaderButton(description: String, onClick: () -> Unit, icon: @Composable () -> Unit) {
+    IconHint(description) {
+        IconButton(onClick = onClick, modifier = Modifier.size(32.dp)) { icon() }
+    }
+}
+
+/**
+ * The toolbox header at its top level: the drag hint until it is dismissed,
+ * and the search (#687) at the end, always.
+ */
+@Composable
+private fun ToolboxTopHeader(
+    state: KeyboardUiState,
+    hintVisible: Boolean,
+    onHintDismiss: () -> Unit,
+    onSearch: () -> Unit,
+) {
+    val tint = MaterialTheme.colorScheme.onSurfaceVariant
+    ToolboxHeaderRow {
+        if (hintVisible) {
+            val activeMode = state.settings.keyboardModes
+                .firstOrNull { it.id == state.activeModeId }
+                ?.takeIf { state.settings.modeToolOrderEdits && it.ownsToolOrder }
+            // With a mode on, the arrangement being edited is that mode's
+            // own — say so, or the same keyboard looking different in the
+            // next app reads as the drag being lost.
+            val dragHint = stringResource(R.string.ime_toolbox_hint_drag)
+            Text(
+                if (activeMode != null) {
+                    stringResource(R.string.ime_toolbox_hint_mode, activeMode.name) + " " + dragHint
+                } else {
+                    dragHint
+                },
+                fontSize = 12.sp,
+                color = tint,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 16.dp, top = 2.dp, bottom = 2.dp),
+            )
+            ToolboxHeaderButton(stringResource(R.string.ime_toolbox_hint_dismiss_desc), onHintDismiss) {
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = stringResource(R.string.ime_toolbox_hint_dismiss_desc),
+                    modifier = Modifier.size(16.dp),
+                    tint = tint,
+                )
+            }
+        } else {
+            Spacer(Modifier.weight(1f))
+        }
+        ToolboxHeaderButton(stringResource(R.string.ime_toolbox_search_desc), onSearch) {
+            Icon(
+                Icons.Outlined.Search,
+                contentDescription = stringResource(R.string.ime_toolbox_search_desc),
+                modifier = Modifier.size(18.dp),
+                tint = tint,
+            )
+        }
+    }
+}
+
+/**
+ * The header of an open toolbox folder (#709): back up a level, the name (a
+ * tap types a new one), pin to the toolbar, ungroup. While one of the folder's
+ * tools is being dragged it is the drop that takes the tool out instead.
+ */
+@Composable
+private fun ToolboxFolderHeader(state: KeyboardUiState, folder: ToolboxFolder, drag: ToolDragController) {
+    val kb = LocalKbTheme.current
+    val callbacks = drag.toolbox
+    val tint = MaterialTheme.colorScheme.onSurfaceVariant
+    val draft = state.toolboxView.nameDraft
+    val dragged = drag.dragging
+    ToolboxHeaderRow(Modifier.onGloballyPositioned { drag.folderExitBounds = it.boundsInRoot() }) {
+        if (dragged != null && dragged in folder.tools) {
+            val armed = drag.overFolderExit
+            val shape = RoundedCornerShape(18.dp)
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(32.dp)
+                    .clip(shape)
+                    .background(if (armed) kb.toolCircleActive else kb.chip, shape)
+                    .border(1.dp, kb.toolbarIcon.copy(alpha = 0.35f), shape)
+                    .padding(horizontal = 12.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    stringResource(R.string.ime_toolbox_folder_take_out),
+                    fontSize = 12.sp,
+                    color = if (armed) kb.toolCircleActiveIcon else kb.modifierKeyText,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            return@ToolboxHeaderRow
+        }
+        ToolboxHeaderButton(stringResource(R.string.ime_panel_back_desc), { callbacks.onFolderOpen(null) }) {
+            SlotIcon(
+                IconSlots.CHROME_PANEL_BACK,
+                contentDescription = stringResource(R.string.ime_panel_back_desc),
+                modifier = Modifier.size(18.dp),
+                tint = tint,
+            )
+        }
+        if (draft != null) {
+            HeaderSearchPill(
+                query = draft,
+                placeholder = stringResource(R.string.ime_toolbox_folder_name_hint),
+                clearDescription = stringResource(R.string.ime_toolbox_folder_rename_done_desc),
+                onClose = callbacks.onRenameDone,
+                leadingIcon = Icons.Outlined.Edit,
+                closeIcon = Icons.Outlined.Check,
+            )
+            return@ToolboxHeaderRow
+        }
+        val renameDesc = stringResource(R.string.ime_toolbox_folder_rename_desc)
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(8.dp))
+                .clickable(onClickLabel = renameDesc, onClick = callbacks.onRename)
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                folder.name,
+                color = kb.secondaryText,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
+            )
+            Spacer(Modifier.width(6.dp))
+            Icon(Icons.Outlined.Edit, contentDescription = renameDesc, modifier = Modifier.size(14.dp), tint = tint)
+        }
+        val pinDesc = stringResource(
+            if (folder.pinned) R.string.ime_toolbox_folder_unpin_desc else R.string.ime_toolbox_folder_pin_desc,
+        )
+        ToolboxHeaderButton(pinDesc, { callbacks.onPinToggle(folder.id) }) {
+            Icon(
+                if (folder.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                contentDescription = pinDesc,
+                modifier = Modifier.size(18.dp),
+                tint = if (folder.pinned) kb.toolCircleActiveIcon else tint,
+            )
+        }
+        val ungroupDesc = stringResource(R.string.ime_toolbox_folder_ungroup_desc)
+        ToolboxHeaderButton(ungroupDesc, { callbacks.onUngroup(folder.id) }) {
+            Icon(Icons.Outlined.FolderOpen, contentDescription = ungroupDesc, modifier = Modifier.size(18.dp), tint = tint)
+        }
+    }
+}
+
+/**
+ * A header-row text field typed through the keyboard's own keys: the snippets
+ * search (#471), the toolbox search (#687), a toolbox folder's name (#709).
+ * Takes the row's free width; [onClose] is its end button.
+ */
+@Composable
+private fun RowScope.HeaderSearchPill(
+    query: String,
+    placeholder: String,
+    clearDescription: String,
+    onClose: () -> Unit,
+    leadingIcon: ImageVector = Icons.Outlined.Search,
+    closeIcon: ImageVector = Icons.Outlined.Close,
+) {
+    val kb = LocalKbTheme.current
+    Row(
+        modifier = Modifier
+            .weight(1f)
+            .padding(start = 6.dp, end = 4.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .frostGlass(kb, RoundedCornerShape(18.dp), FrostSurface.CHIPS)
+            .background(kb.chip)
+            .padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            leadingIcon,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = kb.toolbarIcon,
+        )
+        Spacer(Modifier.width(8.dp))
+        SearchQueryText(
+            query = query,
+            placeholder = placeholder,
+            active = true,
+            textColor = kb.modifierKeyText,
+            placeholderColor = kb.toolbarIcon,
+            fontSize = 13.sp,
+            modifier = Modifier.weight(1f),
+        )
+        IconHint(clearDescription) {
+            IconButton(onClick = onClose, modifier = Modifier.size(30.dp)) {
+                Icon(
+                    closeIcon,
+                    contentDescription = clearDescription,
+                    modifier = Modifier.size(16.dp),
+                    tint = kb.toolbarIcon,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * The face of a toolbox folder (#709): up to four of its tools' icons, small,
+ * two by two inside one tool circle. A folder whose tools are all elsewhere
+ * (pinned, hidden) shows the folder glyph instead.
+ */
+@Composable
+private fun FolderFace(
+    tools: List<ToolbarTool>,
+    state: KeyboardUiState,
+    ghost: Boolean,
+    size: Dp = 38.dp,
+    active: Boolean = false,
+) {
+    val kb = LocalKbTheme.current
+    val shape = kb.toolShape()
+    val fade = if (ghost) 0.45f else 1f
+    Box(
+        modifier = Modifier
+            .size(size)
+            .background(
+                when {
+                    ghost -> kb.toolCircleActive.copy(alpha = 0.22f)
+                    active -> kb.toolCircleActive
+                    else -> kb.toolCircle
+                },
+                shape,
+            )
+            .then(if (ghost) Modifier.border(1.dp, kb.toolbarIcon.copy(alpha = 0.35f), shape) else Modifier),
+        contentAlignment = Alignment.Center,
+    ) {
+        val faces = tools.take(4)
+        if (faces.isEmpty()) {
+            Icon(
+                Icons.Outlined.Folder,
+                contentDescription = null,
+                modifier = Modifier.size(kb.toolIconSizeDp.dp),
+                tint = kb.toolbarIcon.copy(alpha = fade),
+            )
+            return@Box
+        }
+        Column(
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            for (row in faces.chunked(2)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    for (tool in row) {
+                        val paint = toolAccentPaint(tool, state.settings)
+                        SlotIcon(
+                            IconSlots.forTool(tool),
+                            contentDescription = null,
+                            modifier = Modifier.size(size * 0.34f),
+                            tint = (if (active) kb.toolCircleActiveIcon else paint?.color ?: kb.toolbarIcon)
+                                .copy(alpha = fade),
+                            brush = if (ghost || active) null else paint?.brush,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * A folder's cell in the toolbox grid (#709), the same size as a tool's, so
+ * the grid's tap and drop arithmetic holds for it: [FolderFace] over a two-line
+ * name, or a pill with the face, the name and how many tools it holds.
+ */
+@Composable
+private fun ToolboxFolderCell(
+    state: KeyboardUiState,
+    cell: ToolboxCell.Folder,
+    pills: Boolean,
+    ghost: Boolean,
+    focused: Boolean,
+    nameAnchor: PanelLabelAnchor,
+    modifier: Modifier,
+) {
+    val kb = LocalKbTheme.current
+    val count = cell.tools.size
+    val description = pluralStringResource(R.plurals.ime_toolbox_folder_desc, count, cell.folder.name, count)
+    val fade = if (ghost) 0.5f else 1f
+    if (pills) {
+        val shape = RoundedCornerShape(pillRadius())
+        Row(
+            modifier = modifier
+                .padding(horizontal = 3.dp, vertical = 3.dp)
+                .focusRing(focused, shape)
+                .fillMaxWidth()
+                .height(PillHeight)
+                .clip(shape)
+                .frostGlass(kb, shape, FrostSurface.TOOLS)
+                .background(if (ghost) kb.toolCircleActive.copy(alpha = 0.22f) else kb.toolCircle, shape)
+                .then(if (ghost) Modifier.border(1.dp, kb.toolbarIcon.copy(alpha = 0.35f), shape) else Modifier)
+                .padding(start = 6.dp, end = 8.dp)
+                .clearAndSetSemantics { contentDescription = description },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            FolderFace(cell.tools, state, ghost, size = 32.dp)
+            Text(
+                cell.folder.name,
+                fontSize = toolboxLabelSize(state),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = kb.toolbarIcon.copy(alpha = fade),
+                onTextLayout = nameAnchor::onTextLayout,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp)
+                    .panelOriginLabel(nameAnchor),
+            )
+            Text(
+                count.toString(),
+                fontSize = 11.sp,
+                color = kb.toolbarIcon.copy(alpha = if (ghost) 0.3f else 0.6f),
+            )
+        }
+        return
+    }
+    Column(
+        modifier = modifier
+            .focusRing(focused, RoundedCornerShape(12.dp))
+            .padding(vertical = 10.dp)
+            .clearAndSetSemantics { contentDescription = description },
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        FolderFace(cell.tools, state, ghost)
+        Text(
+            cell.folder.name,
+            fontSize = toolboxLabelSize(state),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = fade),
+            textAlign = TextAlign.Center,
+            // Two lines exactly, as every tool's name is: see the tool cell.
+            minLines = 2,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            onTextLayout = nameAnchor::onTextLayout,
+            modifier = Modifier
+                .padding(top = 4.dp, start = 2.dp, end = 2.dp)
+                .fillMaxWidth()
+                .panelOriginLabel(nameAnchor),
+        )
+    }
+}
+
+/** A toolbox folder in flight (#709): its face under the finger, the size a tool's ghost is. */
+@Composable
+private fun FolderDragGhost(folder: ToolboxFolder, at: Offset, state: KeyboardUiState) {
+    Box(
+        modifier = Modifier.offset {
+            IntOffset(
+                (at.x - GhostSize.toPx() / 2f).roundToInt(),
+                (at.y - GhostSize.toPx() / 2f).roundToInt(),
+            )
+        },
+    ) {
+        FolderFace(folder.tools, state, ghost = false, size = GhostSize, active = true)
+    }
+}
+
+/**
+ * A folder pinned to the toolbar (#709), after the pinned tools. A tap opens
+ * the toolbox at the folder; it comes off the bar from the folder's own header.
+ */
+@Composable
+private fun PinnedFolderButton(
+    folder: ToolboxFolder,
+    state: KeyboardUiState,
+    open: Boolean,
+    onOpen: () -> Unit,
+) {
+    val labels = state.settings.toolbarLabels
+    val count = folder.tools.size
+    val description = pluralStringResource(R.plurals.ime_toolbox_folder_desc, count, folder.name, count)
+    Column(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(onClickLabel = description, onClick = onOpen)
+            .semantics { contentDescription = description },
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        FolderFace(folder.tools, state, ghost = false, active = open)
+        if (labels) {
+            Text(
+                folder.name,
+                fontSize = state.settings.toolbarLabelSize.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = LocalKbTheme.current.toolbarIcon,
+                modifier = Modifier.widthIn(max = 72.dp),
+            )
         }
     }
 }
@@ -11543,6 +12254,7 @@ private fun KeyboardBody(
     drag.onTrackpadHold = toolHold.onTrackpadHold
     drag.onVoiceModePick = toolHold.onVoiceModePick
     drag.onHardwareKeysToggle = toolHold.onHardwareKeysToggle
+    drag.toolbox = toolHold.toolbox
     // A remapped hold runs the bound tool through the service's own dispatcher
     // rather than [onToolTap]: that one refuses any tool the toolbar does not
     // list, and the tool the user bound a hold to is very often one they never
@@ -12657,6 +13369,7 @@ private fun KeyboardBody(
             // too and the keyboard never changes height.
             for (row in barRowsBelowKeys(barOrder)) BarRowSlot(row)
         }
+        drag.draggingFolder?.let { FolderDragGhost(it, drag.position - bodyOrigin, state) }
         drag.dragging?.let { tool ->
             val kb = LocalKbTheme.current
             val ghost = drag.position - bodyOrigin
@@ -20376,6 +21089,99 @@ internal fun mediaAutoPinned(state: KeyboardUiState): Boolean =
     state.mediaPinned && ToolbarTool.MEDIA_CONTROL !in state.settings.toolbarTools
 
 /**
+ * The toolbox's search (#687) and folders (#709). The drag controller carries
+ * them to the grid and the toolbar, so neither needs a parameter of its own.
+ */
+data class ToolboxCallbacks(
+    /** The search button or its close button: open the search, or close and clear it. */
+    val onSearchToggle: () -> Unit = {},
+    /** A folder cell or a pinned folder tapped: open it; null goes back up a level. */
+    val onFolderOpen: (String?) -> Unit = {},
+    /** The open folder's name tapped: type a new one. */
+    val onRename: () -> Unit = {},
+    /** The rename's done button: keep the name typed. */
+    val onRenameDone: () -> Unit = {},
+    /** Puts a folder on the toolbar or takes it off, by id. */
+    val onPinToggle: (String) -> Unit = {},
+    /** Ungroups a folder, by id: its tools go back to cells of their own. */
+    val onUngroup: (String) -> Unit = {},
+    /** A tool (first) dropped on another tool (second): a folder of the two. */
+    val onMerge: (ToolbarTool, ToolbarTool) -> Unit = { _, _ -> },
+    /** A tool dropped on a folder, by id: filed in it. */
+    val onAddToFolder: (ToolbarTool, String) -> Unit = { _, _ -> },
+    /** A tool dragged out of the open folder onto its header. */
+    val onTakeOut: (ToolbarTool) -> Unit = {},
+    /** The open folder's tools in their new order, by folder id. */
+    val onFolderOrder: (String, List<ToolbarTool>) -> Unit = { _, _ -> },
+)
+
+/** One cell of the toolbox grid: a tool, or a folder of them (#709). */
+internal sealed interface ToolboxCell {
+    /** Identity across settles: for the grid's keys and for finding the cell in flight. */
+    val key: String
+
+    data class Tool(val tool: ToolbarTool) : ToolboxCell {
+        override val key: String get() = "tool:${tool.name}"
+    }
+
+    /** [tools] are the folder's tools the toolbox would show, in the folder's own order. */
+    data class Folder(val folder: ToolboxFolder, val tools: List<ToolbarTool>) : ToolboxCell {
+        override val key: String get() = "folder:${folder.id}"
+    }
+}
+
+/**
+ * The top level of the toolbox: [tools], the visible ones in toolbox order,
+ * with each folder's tools gathered into one cell drawn where the first of
+ * them falls (#709). A folder none of whose tools is visible (all of them
+ * pinned, hidden or switched off) draws nothing.
+ */
+internal fun toolboxCells(tools: List<ToolbarTool>, folders: List<ToolboxFolder>): List<ToolboxCell> {
+    if (folders.isEmpty()) return tools.map { ToolboxCell.Tool(it) }
+    val shown = tools.toHashSet()
+    val placed = HashSet<String>()
+    val cells = ArrayList<ToolboxCell>(tools.size)
+    for (tool in tools) {
+        val folder = folders.folderOf(tool)
+        if (folder == null) {
+            cells += ToolboxCell.Tool(tool)
+        } else if (placed.add(folder.id)) {
+            cells += ToolboxCell.Folder(folder, folder.tools.filter { it in shown })
+        }
+    }
+    return cells
+}
+
+/**
+ * The tools the toolbox search lists (#687): every toolbox tool, folders or
+ * not, whose name as [label] spells it contains the query, ignoring case. The
+ * names that start with it come first, then the ones with a word that does,
+ * then the rest, each group in toolbox order. Everything, unsorted, while the
+ * query is empty.
+ *
+ * [label] is a parameter so the service, which has no composition, can ask the
+ * same question when Enter opens the first match.
+ */
+internal fun toolboxSearchMatches(state: KeyboardUiState, label: (ToolbarTool) -> String): List<ToolbarTool> {
+    val tools = visibleToolboxTools(state)
+    val query = state.toolboxView.query.trim()
+    if (query.isEmpty()) return tools
+    return tools
+        .mapNotNull { tool ->
+            val name = label(tool)
+            val at = name.indexOf(query, ignoreCase = true)
+            when {
+                at < 0 -> null
+                at == 0 -> tool to 0
+                !name[at - 1].isLetterOrDigit() -> tool to 1
+                else -> tool to 2
+            }
+        }
+        .sortedBy { it.second }
+        .map { it.first }
+}
+
+/**
  * What the toolbox has to show: everything enabled that is not already pinned
  * — the transient media pin included, so the tool is never in both places at
  * once and a drag has one cell to start from — less the tools the user hid
@@ -26935,6 +27741,8 @@ data class ToolHoldCallbacks(
     val vocab: VocabCallbacks = VocabCallbacks(),
     /** The stickers offered while typing (#329); here for the same reason as [dictionaryBar]. */
     val stickerOffer: StickerOfferCallbacks = StickerOfferCallbacks(),
+    /** The toolbox's search and folders (#687, #709); here for the same reason as [dictionaryBar]. */
+    val toolbox: ToolboxCallbacks = ToolboxCallbacks(),
     /**
      * The selection bar's callbacks (a chip, a ladder pick, an AI button).
      * Ride this bundle for the reason [dictionaryBar] does: it is the nearest
@@ -27140,44 +27948,12 @@ private fun SnippetsPanel(
  */
 @Composable
 private fun RowScope.SnippetHeaderSearchBar(state: KeyboardUiState, onToggle: () -> Unit) {
-    val kb = LocalKbTheme.current
-    Row(
-        modifier = Modifier
-            .weight(1f)
-            .padding(start = 6.dp, end = 4.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .frostGlass(kb, RoundedCornerShape(18.dp), FrostSurface.CHIPS)
-            .background(kb.chip)
-            .padding(start = 12.dp, end = 4.dp, top = 2.dp, bottom = 2.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            Icons.Outlined.Search,
-            contentDescription = null,
-            modifier = Modifier.size(16.dp),
-            tint = kb.toolbarIcon,
-        )
-        Spacer(Modifier.width(8.dp))
-        SearchQueryText(
-            query = state.snippetQuery,
-            placeholder = stringResource(R.string.ime_snippets_search_hint),
-            active = true,
-            textColor = kb.modifierKeyText,
-            placeholderColor = kb.toolbarIcon,
-            fontSize = 13.sp,
-            modifier = Modifier.weight(1f),
-        )
-        IconHint(stringResource(R.string.ime_snippets_search_clear_desc)) {
-            IconButton(onClick = onToggle, modifier = Modifier.size(30.dp)) {
-                Icon(
-                    Icons.Outlined.Close,
-                    contentDescription = stringResource(R.string.ime_snippets_search_clear_desc),
-                    modifier = Modifier.size(16.dp),
-                    tint = kb.toolbarIcon,
-                )
-            }
-        }
-    }
+    HeaderSearchPill(
+        query = state.snippetQuery,
+        placeholder = stringResource(R.string.ime_snippets_search_hint),
+        clearDescription = stringResource(R.string.ime_snippets_search_clear_desc),
+        onClose = onToggle,
+    )
 }
 
 /**

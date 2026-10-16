@@ -2099,6 +2099,12 @@ data class ToolboxSettings(
      * outright. A hidden tool that is pinned stays on the bar.
      */
     val hiddenTools: Set<ToolbarTool> = emptySet(),
+    /**
+     * Named groups of toolbox tools (#709), made by dropping one tool on
+     * another in the grid. See [ToolboxFolder]. Shared by every mode: a mode
+     * owns an order, and a folder sits wherever its first tool falls in it.
+     */
+    val folders: List<ToolboxFolder> = emptyList(),
 ) {
     /** The caption size to draw at, resolving 0 against the toolbar's setting. */
     fun labelSizeOr(toolbarLabelSize: Int): Int =
@@ -9955,6 +9961,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBOX_PAGE_SIZE = intPreferencesKey("toolbox_page_size")
         private val TOOLBOX_LABEL_SIZE = intPreferencesKey("toolbox_label_size")
         private val TOOLBOX_HIDDEN_TOOLS = stringPreferencesKey("toolbox_hidden_tools")
+        private val TOOLBOX_FOLDERS = stringPreferencesKey("toolbox_folders")
         private val SUGGESTION_TEXT_SCALE = floatPreferencesKey("suggestion_text_scale")
         private val LEARNED_WORD_MIN_COUNT = intPreferencesKey("learned_word_min_count")
         private val NEW_WORD_SIGHTINGS = intPreferencesKey("new_word_sightings")
@@ -11739,6 +11746,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.toolbox.pageSize,
             labelSizeSp = p[TOOLBOX_LABEL_SIZE] ?: defaults.toolbox.labelSizeSp,
             hiddenTools = decodeToolNames(p[TOOLBOX_HIDDEN_TOOLS]).toSet(),
+            folders = decodeToolboxFolders(p[TOOLBOX_FOLDERS]),
         )
 
     private fun readSensorTools(p: Preferences, defaults: KeyboardSettings) =
@@ -12391,6 +12399,19 @@ class SettingsRepository(private val context: Context) {
             val next = if (hidden) (current + tool).distinct() else current - tool
             if (next.isEmpty()) prefs.remove(TOOLBOX_HIDDEN_TOOLS)
             else prefs[TOOLBOX_HIDDEN_TOOLS] = next.joinToString(",") { it.name }
+        }
+
+    /**
+     * Rewrites the toolbox folders (#709) through [edit], applied to what is
+     * stored at the time of the write rather than to what the caller last
+     * saw, so two quick drops in a row cannot undo each other. See
+     * [ToolboxFolder] for the merge, take-out and rename helpers [edit] uses.
+     */
+    suspend fun updateToolboxFolders(edit: (List<ToolboxFolder>) -> List<ToolboxFolder>) =
+        editPrefs { prefs ->
+            val next = edit(decodeToolboxFolders(prefs[TOOLBOX_FOLDERS])).normalizedFolders()
+            val encoded = encodeToolboxFolders(next)
+            if (encoded == null) prefs.remove(TOOLBOX_FOLDERS) else prefs[TOOLBOX_FOLDERS] = encoded
         }
 
     /** Replaces the whole enabled set at once (the onboarding tools page). */
