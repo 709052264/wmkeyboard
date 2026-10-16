@@ -174,6 +174,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CUT -> ImeR.string.ime_tool_cut
     ToolbarTool.PASTE -> ImeR.string.ime_tool_paste
     ToolbarTool.HIDE_KEYBOARD -> R.string.fonts_tool_hide_keyboard_title
+    ToolbarTool.LANGUAGE -> R.string.fonts_tool_language_title
 }
 /** The one-line description under a tool's name, as a string resource. */
 @StringRes
@@ -260,6 +261,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CUT -> R.string.fonts_tool_cut_desc
     ToolbarTool.PASTE -> R.string.fonts_tool_paste_desc
     ToolbarTool.HIDE_KEYBOARD -> R.string.fonts_tool_hide_keyboard_desc
+    ToolbarTool.LANGUAGE -> R.string.fonts_tool_language_desc
 }
 internal fun toolIconFor(tool: ToolbarTool): androidx.compose.ui.graphics.vector.ImageVector =
     IconDefaults.forTool(tool)
@@ -580,7 +582,7 @@ internal val ToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildList {
             ToolbarTool.UNDO, ToolbarTool.REDO,
             ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
             ToolbarTool.AUTOCORRECT, ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH,
-            ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.INCOGNITO, ToolbarTool.SOUND_HAPTICS,
+            ToolbarTool.LANGUAGE, ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.INCOGNITO, ToolbarTool.SOUND_HAPTICS,
             ToolbarTool.THEMES, ToolbarTool.POWER_SAVING, ToolbarTool.SETTINGS, ToolbarTool.STATISTICS,
         ),
     )

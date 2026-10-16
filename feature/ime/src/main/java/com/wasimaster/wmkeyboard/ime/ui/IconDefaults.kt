@@ -207,6 +207,7 @@ object IconDefaults {
         ToolbarTool.CURSOR_HOME -> Icons.Outlined.FirstPage
         ToolbarTool.CURSOR_END -> Icons.AutoMirrored.Outlined.LastPage
         ToolbarTool.HIDE_KEYBOARD -> Icons.Outlined.KeyboardHide
+        ToolbarTool.LANGUAGE -> Icons.Outlined.Language
         ToolbarTool.PAGE_UP -> Icons.Outlined.KeyboardDoubleArrowUp
         ToolbarTool.PAGE_DOWN -> Icons.Outlined.KeyboardDoubleArrowDown
         ToolbarTool.SELECT_WORD -> Icons.Outlined.HighlightAlt

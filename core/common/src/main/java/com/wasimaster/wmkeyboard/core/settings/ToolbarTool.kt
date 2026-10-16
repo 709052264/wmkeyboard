@@ -117,6 +117,9 @@ enum class ToolbarTool {
     // before the first unlock, but the panel itself waits for the unlock like
     // the other tools that keep files.
     CLOCK,
+    // The next language, as the 🌐 key switches it (issue #667): for a bottom
+    // row with no globe key, or one whose globe sits where a comma is meant.
+    LANGUAGE,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -198,6 +201,8 @@ fun isDirectBootSafeTool(tool: ToolbarTool): Boolean = when (tool) {
     // left out: the clipboard is credential-encrypted, so before the first
     // unlock the button would be there and do nothing.
     ToolbarTool.COPY, ToolbarTool.CUT,
+    // Languages are settings, mirrored into the pre-unlock store.
+    ToolbarTool.LANGUAGE,
     -> true
     // The cursor moves only touch the input connection.
     else -> tool in CursorTools
@@ -222,7 +227,7 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.FLASHLIGHT, ToolbarTool.UNDO, ToolbarTool.REDO,
     ToolbarTool.INCOGNITO, ToolbarTool.POWER_SAVING, ToolbarTool.AUTOCORRECT,
     ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.HIDE_KEYBOARD,
-    ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH,
+    ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.LANGUAGE,
     -> false
     // The cursor moves nudge the caret and nothing else, and the clipboard trio
     // acts on the selection in place.
@@ -320,7 +325,7 @@ val ToolTopUps: Set<ToolbarTool> = setOf(ToolbarTool.WIKIPEDIA, ToolbarTool.POWE
 private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH, ToolbarTool.AI_REPLY,
     ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.TYPING_TEST, ToolbarTool.STATISTICS, ToolbarTool.PLUGINS,
-    ToolbarTool.CUSTOM_LAYOUT,
+    ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.LANGUAGE,
     ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,
     ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,

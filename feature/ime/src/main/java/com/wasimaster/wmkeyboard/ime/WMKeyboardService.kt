@@ -23449,6 +23449,8 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.CUT -> onTextEdit(TextEditAction.CUT)
             ToolbarTool.PASTE -> onTextEdit(TextEditAction.PASTE)
             ToolbarTool.HIDE_KEYBOARD -> onHideKeyboard()
+            // The 🌐 key's own switch (#667).
+            ToolbarTool.LANGUAGE -> switchLanguage()
         }
     }
 
