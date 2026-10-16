@@ -52,7 +52,8 @@ object GlideCoverage {
     /**
      * Share of the [sample] most frequent words across [walkers] that [alphabet]
      * can spell. 0 when there are no words to measure — an unknown language is
-     * not a covered one.
+     * not a covered one. A word spelled with punctuation the grid does not
+     * carry is not counted either way; see [asksTheLetters].
      *
      * The alphabet rather than a laid-out [GlideKeyMap], because coverage is a
      * question about which characters the layout holds and not about where they
@@ -76,11 +77,51 @@ object GlideCoverage {
             for (suggestion in TrieCompleter.top(walker, sample)) {
                 val word = suggestion.word
                 if (word.codePointCount(0, word.length) < MIN_WORD) continue
+                if (!asksTheLetters(word, alphabet)) continue
                 seen++
                 if (spells(word, alphabet)) drawable++
             }
         }
         return if (seen == 0) 0f else drawable.toFloat() / seen
+    }
+
+    /**
+     * Whether [word] is a question about the letters at all: false when it holds
+     * a character that is neither a letter nor a combining mark and that the grid
+     * does not carry either, which in practice is the apostrophe of an elision
+     * and the hyphen of a compound (#707).
+     *
+     * No grid draws those. Punctuation reaches the glide grid only as the one key
+     * the apostrophe setting names, so `c'est`, `d'un`, `qu'il` and `lui-même`
+     * are out of every layout's reach alike, and French puts about one word in
+     * eleven of its top 1,500 there. Counted, they spent nearly all of the
+     * threshold's slack before a single letter was asked about: a French grid
+     * that carried é è ê à ù ç but not â î ô measured 0.897 and lost glide
+     * outright, though it spells 98 % of the words made of letters alone.
+     * Left out, they neither pass nor fail. A grid that does carry the
+     * character (Klingon's apostrophe, which [alphabet] holds there) still
+     * has its words asked as usual.
+     */
+    fun asksTheLetters(word: String, alphabet: Set<Int>): Boolean {
+        var at = 0
+        while (at < word.length) {
+            val codePoint = word.codePointAt(at)
+            if (!Character.isLetter(codePoint) && !isMark(codePoint) &&
+                Character.toLowerCase(codePoint) !in alphabet
+            ) {
+                return false
+            }
+            at += Character.charCount(codePoint)
+        }
+        return true
+    }
+
+    private fun isMark(codePoint: Int): Boolean = when (Character.getType(codePoint)) {
+        Character.NON_SPACING_MARK.toInt(),
+        Character.COMBINING_SPACING_MARK.toInt(),
+        Character.ENCLOSING_MARK.toInt(),
+        -> true
+        else -> false
     }
 
     /**
@@ -102,9 +143,9 @@ object GlideCoverage {
      * True when [alphabet] covers enough of the language to decode honestly.
      *
      * The threshold is deliberately short of 1.0. Real word lists carry a few
-     * per cent of entries no sane layout has keys for — hyphenated forms,
-     * abbreviations with full stops, the odd Latin loanword in a non-Latin list
-     * — and demanding perfection would switch glide off for languages it serves
+     * per cent of entries no sane layout has keys for — the odd Latin loanword
+     * in a non-Latin list, a letter from a neighbouring language — and
+     * demanding perfection would switch glide off for languages it serves
      * perfectly well.
      */
     fun sufficient(
