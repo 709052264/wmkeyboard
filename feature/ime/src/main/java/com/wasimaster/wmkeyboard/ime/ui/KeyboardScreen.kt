@@ -17381,7 +17381,10 @@ private fun KeyRows(
             }
             // Hoisted out of the render loop so the digit row resolves in the
             // same pass as the body rows below; null when it is not shown.
-            val extraRow = if (numberRow) rememberExtraRow(state, fillRow) else null
+            // Issue #673: "symbols on shift" follows the finger on shift, not
+            // the shift latch, so a tap for one capital (or the board's own
+            // sentence-start capital) leaves the digits where they are.
+            val extraRow = if (numberRow) rememberExtraRow(state, fillRow, chordDrag.shifted) else null
             // Layers shorter than the reserved span (the symbols pages under a
             // six-row alphabet, a keypad under a five-row board) fill it the way
             // Gboard's do: every row but the bottom one grows by an equal share,
@@ -17774,7 +17777,7 @@ private fun BoxScope.SpaceTouchpadShield(pad: SpaceTouchpad) {
  * 10,000-instruction limit above which ART compiles nothing, AOT or JIT.
  */
 @Composable
-private fun rememberExtraRow(state: KeyboardUiState, fillRow: List<Key>): List<Key> {
+private fun rememberExtraRow(state: KeyboardUiState, fillRow: List<Key>, shiftHeld: Boolean): List<Key> {
     // Follows the same guard as the pad itself, so a search box
     // opened over a number field gets its digit row back.
     val kind = if (numericPadActive(state)) state.fieldKind else FieldKind.TEXT
@@ -17798,7 +17801,7 @@ private fun rememberExtraRow(state: KeyboardUiState, fillRow: List<Key>): List<K
         kind,
         authored,
         state.layoutMode,
-        state.shiftState,
+        shiftHeld,
         shiftSymbols,
         fillRow,
         tabletRow,
@@ -17823,7 +17826,7 @@ private fun rememberExtraRow(state: KeyboardUiState, fillRow: List<Key>): List<K
             // digits into the symbol layer's bracket/math fill row,
             // so symbols are reachable without switching layers.
             state.layoutMode == LayoutMode.LETTERS &&
-                state.shiftState != ShiftState.OFF && shiftSymbols -> fillRow
+                shiftHeld && shiftSymbols -> fillRow
             // A layout can supply its own row for this layer.
             authored != null -> authored
             // Symbols-2 reuses the number-row slot for the arrow and
