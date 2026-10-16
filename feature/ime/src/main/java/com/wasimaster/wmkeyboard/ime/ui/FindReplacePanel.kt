@@ -21,7 +21,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -156,9 +156,11 @@ internal fun FindReplacePanel(state: KeyboardUiState, callbacks: FindReplaceCall
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            // Less the row the focused field's own suggestion strip takes
-            // below this panel (#161), so the window does not grow one.
-            .height(FindReplacePanelHeight - captureStripHeight(state))
+            // Never less than its rows need (#688). Taking the field's own
+            // suggestion strip (#161) out of this height kept the window from
+            // growing a row, but cut the toggles and the match line in half;
+            // a larger font or display size cut them off outright.
+            .heightIn(min = FindReplacePanelHeight)
             .padding(horizontal = 10.dp, vertical = 6.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
