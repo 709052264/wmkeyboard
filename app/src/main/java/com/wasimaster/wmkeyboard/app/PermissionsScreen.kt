@@ -88,6 +88,13 @@ internal fun PermissionsSettings() {
                 PermissionDisclosures.CALENDAR,
             )
         }
+        item {
+            RuntimePermissionRow(
+                R.string.privacy_permissions_calendar_write_title,
+                R.string.privacy_permissions_calendar_write_subtitle,
+                PermissionDisclosures.CALENDAR_WRITE,
+            )
+        }
         // Not declared in the Play build at all; see [ChannelFeatures].
         item(visible = ChannelFeatures.SCREENSHOT_CLIPS) {
             RuntimePermissionRow(

@@ -1711,6 +1711,13 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
             screenParent = R.string.home_tools_title,
         )
     }.toTypedArray(),
+    entry(
+        R.string.toolai_ai_builtin_calendar_mode_title,
+        R.string.toolai_ai_builtin_calendar_mode_subtitle,
+        R.string.toolai_ai_builtin_screen_title,
+        AI_BUILT_IN_TOOLS_ROUTE,
+        screenParent = R.string.home_tools_title,
+    ),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_mcp_title, R.string.toolai_ai_mcp_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_tool_rounds_title, R.string.toolai_ai_tool_rounds_subtitle),
     // The MCP server list's own row. Indexed on that screen: the tool page
@@ -1978,6 +1985,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         permission(R.string.privacy_permissions_camera_title, R.string.privacy_permissions_camera_subtitle),
         permission(R.string.privacy_permissions_contacts_title, R.string.privacy_permissions_contacts_subtitle),
         permission(R.string.privacy_permissions_calendar_title, R.string.privacy_permissions_calendar_subtitle),
+        permission(R.string.privacy_permissions_calendar_write_title, R.string.privacy_permissions_calendar_write_subtitle),
         permission(R.string.privacy_permissions_images_title, R.string.privacy_permissions_images_subtitle)
             .takeIf { ChannelFeatures.SCREENSHOT_CLIPS },
         permission(

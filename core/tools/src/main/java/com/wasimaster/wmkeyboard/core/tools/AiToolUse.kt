@@ -243,6 +243,13 @@ data class AiToolActivity(
 enum class AiToolGroup { INFO, DATA, PICTURE, ACTION }
 
 /**
+ * How `add_calendar_event` adds an event (#698). [OPEN_APP] fills in the
+ * calendar app's own editor and leaves Save to the user, which needs no
+ * permission; [DIRECT] writes the event itself, which needs WRITE_CALENDAR.
+ */
+enum class AiCalendarMode { OPEN_APP, DIRECT }
+
+/**
  * One of the keyboard's own tools a model may call beyond search and fetch
  * (#698), with the Run / Ask / Off policy it starts on.
  *
@@ -279,6 +286,25 @@ object AiTools {
     const val CONVERT_CURRENCY = "convert_currency"
     const val CONVERT_UNITS = "convert_units"
     const val CALCULATE = "calculate"
+    const val CALENDAR_EVENTS = "calendar_events"
+    const val SEARCH_NOTES = "search_notes"
+    const val CURRENT_LOCATION = "current_location"
+    const val ADD_CALENDAR_EVENT = "add_calendar_event"
+    const val ADD_NOTE = "add_note"
+    const val SET_ALARM = "set_alarm"
+    const val START_TIMER = "start_timer"
+    const val OPEN_APP = "open_app"
+    const val MEDIA_CONTROL = "media_control"
+    const val SEND_TO_PC = "send_to_pc"
+
+    /**
+     * The tools whose description ends with today's date, since a model has
+     * no clock of its own and "tomorrow at five" means nothing without one.
+     * The day only: the description is part of the prompt an on-device chat
+     * session is keyed by, and a clock in it would rebuild the session every
+     * minute.
+     */
+    val DATED: Set<String> = setOf(CALENDAR_EVENTS, ADD_CALENDAR_EVENT, SET_ALARM)
 
     /** Rounds of tool calls one run may take before the model has to answer. */
     const val DEFAULT_MAX_ROUNDS = 3
@@ -371,6 +397,77 @@ object AiTools {
                 "Supports + - * / ^ %, brackets, sqrt, sin, cos, tan, log, ln, pi and e.",
             param("expression", "The expression, such as (12.5 * 4) / 3 or 18% of 2450."),
         ),
+        // What the user keeps on the phone. These ask first: a page the model
+        // read could carry instructions, and the user should see a request
+        // for their calendar before it is answered.
+        data(
+            CALENDAR_EVENTS,
+            "List the events in the user's calendar from one date to another.",
+            param("from", "The first day, as YYYY-MM-DD."),
+            param("to", "The last day, as YYYY-MM-DD. Leave it out for one day.", required = false),
+        ),
+        data(
+            SEARCH_NOTES,
+            "Search the user's notes for words in their title, tags or text, and read the ones that match.",
+            param("query", "Words to look for. Leave it out for the most recent notes.", required = false),
+        ),
+        data(
+            CURRENT_LOCATION,
+            "Where the user's phone is now: its coordinates and, when it can be found, the address.",
+        ),
+        // Things that change something. None of them deletes anything, and
+        // none edits what is already there: they only add or start.
+        action(
+            ADD_CALENDAR_EVENT,
+            "Add an event to the user's calendar. Times are the user's local time.",
+            param("title", "What the event is called."),
+            param("start", "When it starts: YYYY-MM-DD for an all-day event, or YYYY-MM-DDTHH:MM."),
+            param("end", "When it ends, in the same form. Leave it out for an hour, or one day.", required = false),
+            param("location", "Where it is.", required = false),
+            param("notes", "A description to keep with it.", required = false),
+        ),
+        action(
+            ADD_NOTE,
+            "Save a new note in the user's notes.",
+            param("text", "What the note says."),
+            param("title", "A short title.", required = false),
+        ),
+        action(
+            SET_ALARM,
+            "Set an alarm in the keyboard's clock.",
+            param("time", "When it rings, as HH:MM on a 24-hour clock."),
+            param("label", "A label to show when it rings.", required = false),
+            param(
+                "days",
+                "The days it repeats on, such as mon,wed,fri, weekdays, weekends or every day. Leave it out to ring once.",
+                required = false,
+            ),
+        ),
+        action(
+            START_TIMER,
+            "Start a countdown timer in the keyboard's clock.",
+            param("duration", "How long, such as 10m, 1h30m or 90s."),
+            param("label", "A label to show when it ends.", required = false),
+        ),
+        action(
+            OPEN_APP,
+            "Open an app installed on the user's phone.",
+            param("name", "The app's name, as the user calls it."),
+        ),
+        action(
+            MEDIA_CONTROL,
+            "Control the music or video playing on the phone, or read what is playing.",
+            param(
+                "action",
+                "What to do.",
+                choices = listOf("play", "pause", "next", "previous", "now_playing"),
+            ),
+        ),
+        action(
+            SEND_TO_PC,
+            "Send text or a link to the user's computer through KDE Connect.",
+            param("text", "The text or the link to send."),
+        ),
     )
 
     /** One of [builtIns] by its name, or null for search, fetch or a name nobody gave out. */
@@ -403,8 +500,20 @@ object AiTools {
         CONVERT_CURRENCY -> conversion(call, "amount")
         CONVERT_UNITS -> conversion(call, "value")
         CALCULATE -> call.argument("expression")
+        CALENDAR_EVENTS -> call.argument("from")?.let { from -> call.argument("to")?.let { "$from – $it" } ?: from }
+        SEARCH_NOTES -> call.argument("query")
+        ADD_NOTE -> call.argument("title")
+        ADD_CALENDAR_EVENT -> call.argument("title")
+        SET_ALARM -> call.argument("time")
+        START_TIMER -> call.argument("duration")
+        OPEN_APP -> call.argument("name")
+        MEDIA_CONTROL -> call.argument("action")
+        SEND_TO_PC -> call.argument("text")?.let { if (it.length > TARGET_CHARS) it.take(TARGET_CHARS - 1) + "…" else it }
         else -> null
     }.orEmpty()
+
+    /** Longest bit of free text a one-line record repeats. */
+    private const val TARGET_CHARS = 48
 
     /** "12 USD → EUR", or null when the model left out either end. */
     private fun conversion(call: AiToolCall, amountKey: String): String? {
@@ -416,6 +525,12 @@ object AiTools {
 
     private fun info(name: String, description: String, vararg params: Param) =
         AiBuiltInTool(AiToolSpec(name, description, schema(*params)), AiToolGroup.INFO, McpToolPolicy.ALLOW)
+
+    private fun data(name: String, description: String, vararg params: Param) =
+        AiBuiltInTool(AiToolSpec(name, description, schema(*params)), AiToolGroup.DATA, McpToolPolicy.ASK)
+
+    private fun action(name: String, description: String, vararg params: Param) =
+        AiBuiltInTool(AiToolSpec(name, description, schema(*params)), AiToolGroup.ACTION, McpToolPolicy.ASK)
 
     /** One argument of a tool, as the schema describes it to a model. */
     private class Param(

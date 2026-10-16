@@ -116,6 +116,17 @@ object PermissionDisclosures {
         bodyRes = R.string.common_permission_calendar_body,
     )
 
+    /**
+     * The AI's "add it directly" for calendar events (#698). Read is asked for
+     * alongside, since choosing which calendar to add to means listing them.
+     */
+    val CALENDAR_WRITE = PermissionDisclosure(
+        permission = Manifest.permission.WRITE_CALENDAR,
+        titleRes = R.string.common_permission_calendar_write_title,
+        bodyRes = R.string.common_permission_calendar_write_body,
+        alsoRequests = listOf(Manifest.permission.READ_CALENDAR),
+    )
+
     val CONTACT_NAMES = PermissionDisclosure(
         permission = Manifest.permission.READ_CONTACTS,
         titleRes = R.string.common_permission_contact_names_title,

@@ -19,4 +19,24 @@ interface AiToolHost {
      */
     fun translateOnDevice(text: String, target: String, source: String): Result<Translation> =
         Result.failure(UnsupportedOperationException("no on-device translator here"))
+
+    /** Whether [openApp] can launch anything from this surface. */
+    val canOpenApps: Boolean get() = false
+
+    /**
+     * Opens the installed app best matching [name], and gives back its label.
+     * A [NoSuchElementException] means no app matched. Blocking.
+     */
+    fun openApp(name: String): Result<String> =
+        Result.failure(UnsupportedOperationException("no app launcher here"))
+
+    /** Whether [sendToPc] has KDE Connect to send through. */
+    val canSendToPc: Boolean get() = false
+
+    /**
+     * Sends [text] to the user's connected computer over KDE Connect, and
+     * gives back the computer's name. Blocking: it waits for the link.
+     */
+    fun sendToPc(text: String): Result<String> =
+        Result.failure(UnsupportedOperationException("no KDE Connect here"))
 }

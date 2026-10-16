@@ -550,7 +550,7 @@ object AiChatController {
 
     /** What the keyboard module lends the chat's tools (#698). */
     private fun toolHost(context: Context, settings: KeyboardSettings): KeyboardAiToolHost =
-        KeyboardAiToolHost(context, hints = settings.enabledLanguages.map { it.id })
+        KeyboardAiToolHost(context, hints = settings.enabledLanguages.map { it.id }, kdeConnect = settings.kdeConnect)
 
     /**
      * The user's answer to the call asking now. False when none is, which

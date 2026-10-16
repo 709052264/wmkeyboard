@@ -31217,11 +31217,13 @@ open class WMKeyboardService : InputMethodService() {
     /** A shipped action's translated name, or the name the user gave it. */
     /**
      * What the keyboard lends the AI's own tools (#698): its on-device
-     * translator, reading the languages the user types in as its hints.
+     * translator, reading the languages the user types in as its hints, the
+     * app launcher's list, and the KDE Connect link.
      */
     private fun aiToolHost(settings: KeyboardSettings): KeyboardAiToolHost = KeyboardAiToolHost(
         applicationContext,
         hints = listOf(_uiState.value.language.id) + settings.enabledLanguages.map { it.id },
+        kdeConnect = settings.kdeConnect,
     )
 
     private fun aiActionLabel(spec: AiActionSpec): String =

@@ -64,9 +64,14 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-    <!-- Only used by the optional calendar tool to list the day's events;
-         read-only, never written, and only queried while the tool is open. -->
+    <!-- Used by the optional calendar tool to list the day's events while it
+         is open, and by the AI's calendar tool (#698) when the user allows it. -->
     <uses-permission android:name="android.permission.READ_CALENDAR" />
+
+    <!-- Only used by the AI's "add it directly" for calendar events (#698),
+         which is off until the user picks it and grants this. Adds events
+         only; nothing in the app edits or deletes one. -->
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
 
     <!-- Only used by the optional "Add words to the system dictionary" setting.
          Since API 23 the provider grants the active IME access without a

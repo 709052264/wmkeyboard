@@ -115,6 +115,7 @@ import com.wasimaster.wmkeyboard.core.tools.McpHeader
 import com.wasimaster.wmkeyboard.core.tools.McpServerCodec
 import com.wasimaster.wmkeyboard.core.tools.McpServerSpec
 import com.wasimaster.wmkeyboard.core.tools.McpToolPolicy
+import com.wasimaster.wmkeyboard.core.tools.AiCalendarMode
 import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
 import com.wasimaster.wmkeyboard.core.tools.BuiltInAiActions
 import com.wasimaster.wmkeyboard.core.tools.BuiltInAiReplyTones
@@ -4599,6 +4600,14 @@ data class AiSettings(
      * `AiTools.policyOf`.
      */
     val toolPolicies: Map<String, McpToolPolicy> = emptyMap(),
+    /**
+     * How the model's `add_calendar_event` adds an event (#698): the calendar
+     * app's editor filled in for the user to save, which needs no permission,
+     * or written directly, which needs WRITE_CALENDAR.
+     */
+    val toolCalendarMode: AiCalendarMode = AiCalendarMode.OPEN_APP,
+    /** The calendar a direct add writes to; -1 is the first writable one, primary first. */
+    val toolCalendarId: Long = -1L,
     /**
      * MCP servers whose tools a model may call (#573). Each tool has its own
      * Allow / Ask / Off policy inside its server; see `McpServerSpec`.
@@ -10258,6 +10267,8 @@ class SettingsRepository(private val context: Context) {
         private val AI_TOOL_WEB_FETCH = booleanPreferencesKey("ai_tool_web_fetch")
         private val AI_TOOL_MAX_ROUNDS = intPreferencesKey("ai_tool_max_rounds")
         private val AI_TOOL_POLICIES = stringPreferencesKey("ai_tool_policies")
+        private val AI_TOOL_CALENDAR_MODE = stringPreferencesKey("ai_tool_calendar_mode")
+        private val AI_TOOL_CALENDAR_ID = longPreferencesKey("ai_tool_calendar_id")
         private val AI_MCP_SERVERS = stringPreferencesKey("ai_mcp_servers")
         private val AI_MCP_HEADERS = stringPreferencesKey("ai_mcp_headers")
         private val AI_PROVIDER_HEADERS = stringPreferencesKey("ai_provider_headers")
@@ -12366,6 +12377,10 @@ class SettingsRepository(private val context: Context) {
             toolWebFetch = p[AI_TOOL_WEB_FETCH] ?: defaults.ai.toolWebFetch,
             toolMaxRounds = p[AI_TOOL_MAX_ROUNDS] ?: defaults.ai.toolMaxRounds,
             toolPolicies = McpServerCodec.decodePolicies(p[AI_TOOL_POLICIES].orEmpty()),
+            toolCalendarMode = p[AI_TOOL_CALENDAR_MODE]
+                ?.let { runCatching { AiCalendarMode.valueOf(it) }.getOrNull() }
+                ?: defaults.ai.toolCalendarMode,
+            toolCalendarId = p[AI_TOOL_CALENDAR_ID] ?: defaults.ai.toolCalendarId,
             mcpServers = McpServerCodec.decodeServers(p[AI_MCP_SERVERS].orEmpty()),
             mcpHeaders = McpServerCodec.decodeHeaders(p[AI_MCP_HEADERS].orEmpty()),
             providerHeaders = McpServerCodec.decodeHeaders(p[AI_PROVIDER_HEADERS].orEmpty()),
@@ -16618,6 +16633,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiToolMaxRounds(value: Int) =
         editPrefs { it[AI_TOOL_MAX_ROUNDS] = value.coerceIn(AiToolRoundsRange) }
+
+    suspend fun setAiToolCalendarMode(value: AiCalendarMode) =
+        editPrefs { it[AI_TOOL_CALENDAR_MODE] = value.name }
+
+    suspend fun setAiToolCalendarId(value: Long) =
+        editPrefs { it[AI_TOOL_CALENDAR_ID] = value }
 
     /** Sets what a model may do with one of the keyboard's own tools (#698). */
     suspend fun setAiToolPolicy(tool: String, policy: McpToolPolicy) =

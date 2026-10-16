@@ -1,7 +1,21 @@
 package com.wasimaster.wmkeyboard.core.tools
 
 import android.content.Context
+import android.content.Intent
 import android.os.UserManager
+import android.provider.CalendarContract
+import com.wasimaster.wmkeyboard.core.clock.Alarm
+import com.wasimaster.wmkeyboard.core.clock.AlarmMath
+import com.wasimaster.wmkeyboard.core.clock.ClockActions
+import com.wasimaster.wmkeyboard.core.clock.ClockEngine
+import com.wasimaster.wmkeyboard.core.location.LocationAccess
+import com.wasimaster.wmkeyboard.core.location.LocationFix
+import com.wasimaster.wmkeyboard.core.location.LocationFixer
+import com.wasimaster.wmkeyboard.core.location.LocationGrant
+import com.wasimaster.wmkeyboard.core.location.ReverseGeocoder
+import com.wasimaster.wmkeyboard.core.media.MediaControlManager
+import com.wasimaster.wmkeyboard.core.media.MediaSnapshot
+import com.wasimaster.wmkeyboard.core.notes.NoteStore
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -9,6 +23,11 @@ import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
 import com.wasimaster.wmkeyboard.core.vocab.VocabIndexCache
 import com.wasimaster.wmkeyboard.core.vocab.VocabLanguages
 import com.wasimaster.wmkeyboard.tools.feature.R
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 
@@ -74,7 +93,18 @@ class AiToolRunner(
     fun tools(): List<AiToolSpec> = AiTools.enabled(
         search = settings.ai.toolWebSearch && ToolApiKeys.searchBackend(settings) != null,
         fetch = settings.ai.toolWebFetch,
-    ) + builtIns.values.map { it.spec } + mcp.values.map { it.spec }
+    ) + builtIns.values.map { specOf(it) } + mcp.values.map { it.spec }
+
+    /**
+     * [tool]'s spec as this run offers it: a dated tool's description ends
+     * with today's date, since a model has no clock.
+     */
+    private fun specOf(tool: AiBuiltInTool): AiToolSpec =
+        if (tool.name in AiTools.DATED) {
+            tool.spec.copy(description = tool.spec.description + " " + AiCalendarArgs.today())
+        } else {
+            tool.spec
+        }
 
     /**
      * How a call is shown while it runs. An MCP call is named by its tool's
@@ -100,6 +130,10 @@ class AiToolRunner(
      */
     private fun available(tool: AiBuiltInTool): Boolean = when (tool.name) {
         AiTools.IMAGE_SEARCH -> ToolApiKeys.searchBackend(settings) != null
+        // A build made without location has no permission to ask for.
+        AiTools.CURRENT_LOCATION -> LocationAccess.declared(context)
+        AiTools.OPEN_APP -> host?.canOpenApps == true
+        AiTools.SEND_TO_PC -> host?.canSendToPc == true && settings.kdeConnect.enabled
         else -> true
     }
 
@@ -241,6 +275,16 @@ class AiToolRunner(
         AiTools.CONVERT_CURRENCY -> convertCurrency(call)
         AiTools.CONVERT_UNITS -> convertUnits(call)
         AiTools.CALCULATE -> calculate(call)
+        AiTools.CALENDAR_EVENTS -> calendarEvents(call)
+        AiTools.SEARCH_NOTES -> searchNotes(call)
+        AiTools.CURRENT_LOCATION -> currentLocation(call)
+        AiTools.ADD_CALENDAR_EVENT -> addCalendarEvent(call)
+        AiTools.ADD_NOTE -> addNote(call)
+        AiTools.SET_ALARM -> setAlarm(call)
+        AiTools.START_TIMER -> startTimer(call)
+        AiTools.OPEN_APP -> openApp(call)
+        AiTools.MEDIA_CONTROL -> mediaControl(call)
+        AiTools.SEND_TO_PC -> sendToPc(call)
         else -> refused(
             call,
             context.getString(R.string.ftools_ai_tool_unknown, call.name),
@@ -569,6 +613,250 @@ class AiToolRunner(
         }
     }
 
+    /** A refusal whose two texts are a model string and a user string, each taking [args]. */
+    private fun refusedWith(call: AiToolCall, model: Int, user: Int, vararg args: Any) = refused(
+        call,
+        context.getString(model, *args),
+        context.getString(user, *args),
+    )
+
+    private fun badDate(call: AiToolCall, text: String) =
+        refusedWith(call, R.string.ftools_ai_tool_bad_date, R.string.ftools_ai_tool_reason_bad_date, text)
+
+    /** Whether files in credential-encrypted storage, like the notes, can be read yet. */
+    private fun unlocked(): Boolean = context.getSystemService(UserManager::class.java)?.isUserUnlocked != false
+
+    /** The user's events from one date to another, at most a month of them. */
+    private fun calendarEvents(call: AiToolCall): AiToolResult {
+        val fromText = call.argument("from") ?: return missing(call, "from")
+        val from = AiCalendarArgs.parse(fromText) ?: return badDate(call, fromText)
+        val to = call.argument("to")?.let { AiCalendarArgs.parse(it) ?: return badDate(call, it) } ?: from
+        if (!DeviceCalendar.canRead(context)) {
+            return refusedWith(call, R.string.ftools_ai_tool_no_calendar_access, R.string.ftools_ai_tool_reason_no_calendar_access)
+        }
+        val start = AiCalendarArgs.dayRange(from).first
+        val until = (AiCalendarArgs.dayRange(to).last + 1)
+            .coerceIn(start + AiCalendarArgs.DAY_MS, start + MAX_CALENDAR_DAYS * AiCalendarArgs.DAY_MS)
+        val events = DeviceCalendar.eventsBetween(context, start, until)
+        return AiToolResult(call, formatEvents(events).ifEmpty { "No events." })
+    }
+
+    /**
+     * Adds an event the way the user chose: the calendar app's editor filled
+     * in for them to save, or straight into the calendar.
+     */
+    private fun addCalendarEvent(call: AiToolCall): AiToolResult {
+        val title = call.argument("title") ?: return missing(call, "title")
+        val startText = call.argument("start") ?: return missing(call, "start")
+        val span = AiCalendarArgs.span(startText, call.argument("end")) ?: return badDate(call, startText)
+        val location = call.argument("location")
+        val notes = call.argument("notes")
+        val summary = "$title, ${formatSpan(span.begin, span.end, span.allDay)}" +
+            (location?.let { ", at $it" } ?: "")
+        if (settings.ai.toolCalendarMode == AiCalendarMode.OPEN_APP) {
+            val intent = Intent(Intent.ACTION_INSERT)
+                .setData(CalendarContract.Events.CONTENT_URI)
+                .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, span.begin)
+                .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, span.end)
+                .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, span.allDay)
+                .putExtra(CalendarContract.Events.TITLE, title)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            location?.let { intent.putExtra(CalendarContract.Events.EVENT_LOCATION, it) }
+            notes?.let { intent.putExtra(CalendarContract.Events.DESCRIPTION, it) }
+            if (runCatching { context.startActivity(intent) }.isFailure) {
+                return refusedWith(call, R.string.ftools_ai_tool_no_calendar_app, R.string.ftools_ai_tool_reason_no_calendar_app)
+            }
+            return AiToolResult(
+                call,
+                "The calendar app is now open with this event filled in: $summary. " +
+                    "It is not saved until the user presses Save there, so tell them to check it and save it.",
+            )
+        }
+        if (!DeviceCalendar.canWrite(context)) {
+            return refusedWith(call, R.string.ftools_ai_tool_no_calendar_write, R.string.ftools_ai_tool_reason_no_calendar_write)
+        }
+        val calendars = DeviceCalendar.writableCalendars(context)
+        val target = calendars.firstOrNull { it.id == settings.ai.toolCalendarId } ?: calendars.firstOrNull()
+            ?: return refusedWith(call, R.string.ftools_ai_tool_no_writable_calendar, R.string.ftools_ai_tool_reason_no_writable_calendar)
+        DeviceCalendar.insertEvent(context, target.id, title, span.begin, span.end, span.allDay, location, notes)
+            ?: return refusedWith(call, R.string.ftools_ai_tool_calendar_refused, R.string.ftools_ai_tool_reason_calendar_refused)
+        return AiToolResult(call, "Added to the calendar \"${target.name.ifBlank { target.account }}\": $summary.")
+    }
+
+    /** Notes matching the model's words, or the newest ones; a locked note's text stays hidden. */
+    private fun searchNotes(call: AiToolCall): AiToolResult {
+        if (!unlocked()) return refusedWith(call, R.string.ftools_ai_tool_locked, R.string.ftools_ai_tool_reason_locked)
+        val store = NoteStore(File(context.filesDir, NoteStore.FILE_PATH))
+        val found = store.search(call.argument("query").orEmpty()).take(MAX_NOTES)
+        if (found.isEmpty()) return AiToolResult(call, "No notes found.")
+        return AiToolResult(
+            call,
+            found.joinToString("\n\n") { note ->
+                val body = if (note.locked) "[locked: its text is hidden]" else note.body.take(NOTE_CHARS)
+                note.displayTitle() + "\n" + body.trim()
+            },
+        )
+    }
+
+    /**
+     * A new note, written straight to the notes file. The keyboard's notes
+     * panel and the app each re-read the file when they open, which is the
+     * store's contract for every writer.
+     */
+    private fun addNote(call: AiToolCall): AiToolResult {
+        val text = call.argument("text") ?: return missing(call, "text")
+        if (!unlocked()) return refusedWith(call, R.string.ftools_ai_tool_locked, R.string.ftools_ai_tool_reason_locked)
+        val store = NoteStore(File(context.filesDir, NoteStore.FILE_PATH))
+        val note = store.add(body = text, title = call.argument("title").orEmpty())
+        store.save()
+        return AiToolResult(call, "Saved the note \"${note.displayTitle()}\".")
+    }
+
+    /**
+     * One reading of where the phone is, as the location tool takes it:
+     * Android's recent fix if there is one, else a fresh one, then rounded to
+     * the precision the user shares at, and an address when they want one.
+     */
+    private fun currentLocation(call: AiToolCall): AiToolResult {
+        if (LocationAccess.grant(context) == LocationGrant.NONE) {
+            return refusedWith(call, R.string.ftools_ai_tool_no_location_access, R.string.ftools_ai_tool_reason_no_location_access)
+        }
+        if (!LocationAccess.servicesOn(context)) {
+            return refusedWith(call, R.string.ftools_ai_tool_location_off, R.string.ftools_ai_tool_reason_location_off)
+        }
+        val fixer = LocationFixer(context)
+        val fix = fixer.lastKnown(QUICK_FIX_MS)
+            ?: runBlocking {
+                var best: LocationFix? = null
+                runCatching { fixer.fixes().collect { best = it } }
+                best
+            }
+            ?: fixer.lastKnown(STALE_FIX_MS)
+            ?: return refusedWith(call, R.string.ftools_ai_tool_no_fix, R.string.ftools_ai_tool_reason_no_fix)
+        val precision = settings.location.precision
+        val point = precision.apply(fix.point)
+        val language = context.resources.configuration.locales[0]?.language?.ifBlank { null } ?: "en"
+        val address = if (settings.location.lookupAddress) {
+            runCatching { ReverseGeocoder.lookup(point, precision, language) }.getOrNull()
+        } else {
+            null
+        }
+        val digits = "%.${precision.decimals}f"
+        return AiToolResult(
+            call,
+            buildString {
+                append("Coordinates: ")
+                append(String.format(Locale.ROOT, "$digits, $digits", point.latitude, point.longitude))
+                fix.accuracyM?.let { append("\nAccurate to about ").append(it.toInt()).append(" m") }
+                address?.let { append("\nAddress: ").append(it) }
+            },
+        )
+    }
+
+    /** An alarm in the keyboard's own clock, once or on repeat days. */
+    private fun setAlarm(call: AiToolCall): AiToolResult {
+        val timeText = call.argument("time") ?: return missing(call, "time")
+        val (hour, minute) = AiClockArgs.time(timeText)
+            ?: return refusedWith(call, R.string.ftools_ai_tool_bad_time, R.string.ftools_ai_tool_reason_bad_time, timeText)
+        val daysText = call.argument("days")
+        val days = AiClockArgs.days(daysText)
+            ?: return refusedWith(call, R.string.ftools_ai_tool_bad_days, R.string.ftools_ai_tool_reason_bad_days, daysText.orEmpty())
+        val label = call.argument("label").orEmpty()
+        var added: Alarm? = null
+        ClockEngine.update(context) { data ->
+            val (alarm, next) = ClockActions.addAlarm(data, Alarm(id = 0, hour = hour, minute = minute, days = days, label = label))
+            added = alarm
+            next
+        }
+        val rings = added?.let { AlarmMath.nextFire(it, System.currentTimeMillis()) }
+        return AiToolResult(
+            call,
+            buildString {
+                append("Set an alarm for ").append(String.format(Locale.ROOT, "%02d:%02d", hour, minute))
+                if (label.isNotEmpty()) append(", labelled \"").append(label).append('"')
+                append(if (days == 0) ", ringing once." else ", repeating.")
+                rings?.let { append(" It rings next at ").append(formatInstant(it)).append('.') }
+                if (!ClockEngine.canScheduleExact(context)) {
+                    append(" The phone does not let the keyboard set exact alarms, so it may ring a little late.")
+                }
+            },
+        )
+    }
+
+    /** A countdown in the keyboard's own clock. */
+    private fun startTimer(call: AiToolCall): AiToolResult {
+        val durationText = call.argument("duration") ?: return missing(call, "duration")
+        val ms = AiClockArgs.duration(durationText)
+            ?: return refusedWith(call, R.string.ftools_ai_tool_bad_duration, R.string.ftools_ai_tool_reason_bad_duration, durationText)
+        val label = call.argument("label").orEmpty()
+        val now = System.currentTimeMillis()
+        ClockEngine.update(context) { ClockActions.startTimer(it, label, ms, now).second }
+        return AiToolResult(call, "Started a timer for $durationText. It ends at ${formatInstant(now + ms)}.")
+    }
+
+    private fun openApp(call: AiToolCall): AiToolResult {
+        val name = call.argument("name") ?: return missing(call, "name")
+        val opener = host ?: return refusedWith(call, R.string.ftools_ai_tool_no_app, R.string.ftools_ai_tool_reason_no_app, name)
+        return opener.openApp(name).fold(
+            onSuccess = { label -> AiToolResult(call, "Opened $label.") },
+            onFailure = { failure ->
+                if (failure is NoSuchElementException) {
+                    refusedWith(call, R.string.ftools_ai_tool_no_app, R.string.ftools_ai_tool_reason_no_app, name)
+                } else {
+                    throw failure
+                }
+            },
+        )
+    }
+
+    /**
+     * Play, pause, skip, or say what is playing, through the session the
+     * media tool controls. Bound for this one call and let go after it.
+     */
+    private fun mediaControl(call: AiToolCall): AiToolResult {
+        val action = call.argument("action")?.lowercase(Locale.ROOT) ?: return missing(call, "action")
+        if (action !in MEDIA_ACTIONS) {
+            return refusedWith(
+                call, R.string.ftools_ai_tool_bad_choice, R.string.ftools_ai_tool_reason_bad_choice,
+                action, MEDIA_ACTIONS.joinToString(", "),
+            )
+        }
+        val manager = MediaControlManager(context)
+        if (!manager.hasAccess()) {
+            return refusedWith(call, R.string.ftools_ai_tool_no_media_access, R.string.ftools_ai_tool_reason_no_media_access)
+        }
+        var snapshot: MediaSnapshot? = null
+        manager.start { snapshot = it }
+        try {
+            val now = snapshot
+                ?: return refusedWith(call, R.string.ftools_ai_tool_nothing_playing, R.string.ftools_ai_tool_reason_nothing_playing)
+            val what = listOf(now.title, now.artist).filter { it.isNotBlank() }.joinToString(" by ")
+                .ifEmpty { "something" } + (now.appLabel.takeIf { it.isNotBlank() }?.let { " in $it" } ?: "")
+            val done = when (action) {
+                "play" -> if (now.playing) "It was already playing: $what." else { manager.playPause(); "Playing $what." }
+                "pause" -> if (!now.playing) "It was already paused: $what." else { manager.playPause(); "Paused $what." }
+                "next" -> { manager.next(); "Skipped to the next track after $what." }
+                "previous" -> { manager.previous(); "Went back to the track before $what." }
+                else -> (if (now.playing) "Playing now: " else "Paused: ") + "$what."
+            }
+            return AiToolResult(call, done)
+        } finally {
+            manager.stop()
+        }
+    }
+
+    private fun sendToPc(call: AiToolCall): AiToolResult {
+        val text = call.argument("text") ?: return missing(call, "text")
+        val sender = host ?: return refusedWith(call, R.string.ftools_ai_tool_pc_failed, R.string.ftools_ai_tool_reason_pc_failed, "")
+        return sender.sendToPc(text).fold(
+            onSuccess = { device -> AiToolResult(call, "Sent to $device.") },
+            onFailure = { failure ->
+                val why = failure.message.orEmpty()
+                refusedWith(call, R.string.ftools_ai_tool_pc_failed, R.string.ftools_ai_tool_reason_pc_failed, why)
+            },
+        )
+    }
+
     companion object {
 
         /**
@@ -597,6 +885,54 @@ class AiToolRunner(
         private const val UNIT_DIGITS = 6
 
         private val PERCENT_OF = Regex("""%\s*of\b""", RegexOption.IGNORE_CASE)
+
+        /** The longest span the calendar tool lists in one call. */
+        private const val MAX_CALENDAR_DAYS = 31
+
+        /** Notes handed back per search, and how much of each. */
+        private const val MAX_NOTES = 5
+        private const val NOTE_CHARS = 1_500
+
+        /** Android's own reading is used when it is this fresh; past it a new one is taken. */
+        private const val QUICK_FIX_MS = 60_000L
+
+        /** The oldest reading still worth giving when a new one did not come. */
+        private const val STALE_FIX_MS = 15 * 60_000L
+
+        private val MEDIA_ACTIONS = listOf("play", "pause", "next", "previous", "now_playing")
+
+        /** An instant as the local date and time, "2026-10-17 17:00". */
+        internal fun formatInstant(millis: Long, zone: TimeZone = TimeZone.getDefault()): String =
+            SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ROOT).apply { timeZone = zone }.format(Date(millis))
+
+        /**
+         * A span as one phrase: "2026-10-17 17:00 to 18:00", or for all-day
+         * "all day on 2026-10-17" (its ends are UTC midnights, the end one past).
+         */
+        internal fun formatSpan(begin: Long, end: Long, allDay: Boolean, zone: TimeZone = TimeZone.getDefault()): String {
+            if (allDay) {
+                val utc = TimeZone.getTimeZone("UTC")
+                val first = formatInstant(begin, utc).substringBefore(' ')
+                val last = formatInstant(end - 1, utc).substringBefore(' ')
+                return if (first == last) "all day on $first" else "all day from $first to $last"
+            }
+            val from = formatInstant(begin, zone)
+            val to = formatInstant(end, zone)
+            return if (from.substringBefore(' ') == to.substringBefore(' ')) {
+                "$from to ${to.substringAfter(' ')}"
+            } else {
+                "$from to $to"
+            }
+        }
+
+        /** Events as one line each, all-day first, the way the calendar tool lists a day. */
+        internal fun formatEvents(events: List<DeviceCalendarEvent>, zone: TimeZone = TimeZone.getDefault()): String =
+            events.joinToString("\n") { event ->
+                buildString {
+                    append(formatSpan(event.begin, event.end, event.allDay, zone)).append(": ").append(event.title)
+                    event.location?.let { append(", at ").append(it) }
+                }
+            }
 
         /**
          * The fiat table, kept for as long as the currency tool keeps its own,

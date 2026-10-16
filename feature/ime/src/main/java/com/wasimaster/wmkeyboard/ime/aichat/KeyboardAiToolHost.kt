@@ -1,11 +1,18 @@
 package com.wasimaster.wmkeyboard.ime.aichat
 
 import android.content.Context
+import android.content.Intent
+import android.os.Handler
+import android.os.Looper
+import com.wasimaster.wmkeyboard.core.settings.KdeConnectSettings
 import com.wasimaster.wmkeyboard.core.tools.AiToolHost
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
 import com.wasimaster.wmkeyboard.core.tools.Translation
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslateResult
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
+import com.wasimaster.wmkeyboard.ime.AppCatalog
+import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -19,6 +26,7 @@ import kotlinx.coroutines.runBlocking
 class KeyboardAiToolHost(
     private val context: Context,
     private val hints: List<String> = emptyList(),
+    private val kdeConnect: KdeConnectSettings? = null,
 ) : AiToolHost {
 
     override val canTranslateOnDevice: Boolean get() = OnDeviceTranslator.AVAILABLE
@@ -48,4 +56,58 @@ class KeyboardAiToolHost(
     }
 
     private fun failure(message: String): Result<Translation> = Result.failure(IllegalStateException(message))
+
+    override val canOpenApps: Boolean get() = true
+
+    /**
+     * The launcher tool's list of apps, best match first: a label equal to
+     * [name], then one that starts with it, then any that contains it.
+     */
+    override fun openApp(name: String): Result<String> = runCatching {
+        val pm = context.packageManager
+        val wanted = name.trim()
+        val matches = AppCatalog.filterApps(runBlocking { AppCatalog.loadApps(pm) }, wanted)
+        val app = matches.firstOrNull { it.label.equals(wanted, ignoreCase = true) }
+            ?: matches.firstOrNull { it.label.startsWith(wanted, ignoreCase = true) }
+            ?: matches.firstOrNull()
+            ?: throw NoSuchElementException(wanted)
+        val intent = pm.getLaunchIntentForPackage(app.packageName) ?: Intent().setComponent(app.component)
+        context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        app.label
+    }
+
+    override val canSendToPc: Boolean get() = kdeConnect?.enabled == true
+
+    /**
+     * Holds the link up the way a share from another app does, sends to the
+     * first computer that connects, and lets the link go a little later,
+     * once the text is on its way.
+     */
+    override fun sendToPc(text: String): Result<String> = runCatching {
+        val settings = requireNotNull(kdeConnect) { "KDE Connect is off" }
+        runBlocking(Dispatchers.Main) {
+            KdeConnectHub.attach(context)
+            KdeConnectHub.applySettings(settings)
+            KdeConnectHub.hold(KdeConnectHub.Reason.SHARE)
+            try {
+                val device = KdeConnectHub.awaitConnected(CONNECT_TIMEOUT_MS).firstOrNull()
+                    ?: error("no paired computer is connected")
+                KdeConnectHub.send(context.applicationContext, device.id, emptyList(), text)
+                device.name
+            } finally {
+                Handler(Looper.getMainLooper()).postDelayed(
+                    { KdeConnectHub.release(KdeConnectHub.Reason.SHARE) },
+                    RELEASE_DELAY_MS,
+                )
+            }
+        }
+    }
+
+    private companion object {
+        /** How long a send waits for a computer to connect, as a share does. */
+        const val CONNECT_TIMEOUT_MS = 10_000L
+
+        /** How long the link stays held after a send, for the text to go out. */
+        const val RELEASE_DELAY_MS = 5_000L
+    }
 }

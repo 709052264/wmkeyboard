@@ -1,15 +1,32 @@
 package com.wasimaster.wmkeyboard.app
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.location.LocationAccess
+import com.wasimaster.wmkeyboard.core.tools.AiCalendarMode
+import com.wasimaster.wmkeyboard.core.tools.DeviceCalendar
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.hasSearchKey
 import com.wasimaster.wmkeyboard.core.tools.AiBuiltInTool
@@ -58,6 +75,46 @@ internal val builtInToolText: Map<String, BuiltInToolText> = mapOf(
         R.string.toolai_ai_builtin_calculate_title,
         R.string.toolai_ai_builtin_calculate_subtitle,
     ),
+    AiTools.CALENDAR_EVENTS to BuiltInToolText(
+        R.string.toolai_ai_builtin_calendar_events_title,
+        R.string.toolai_ai_builtin_calendar_events_subtitle,
+    ),
+    AiTools.SEARCH_NOTES to BuiltInToolText(
+        R.string.toolai_ai_builtin_search_notes_title,
+        R.string.toolai_ai_builtin_search_notes_subtitle,
+    ),
+    AiTools.CURRENT_LOCATION to BuiltInToolText(
+        R.string.toolai_ai_builtin_current_location_title,
+        R.string.toolai_ai_builtin_current_location_subtitle,
+    ),
+    AiTools.ADD_CALENDAR_EVENT to BuiltInToolText(
+        R.string.toolai_ai_builtin_add_calendar_event_title,
+        R.string.toolai_ai_builtin_add_calendar_event_subtitle,
+    ),
+    AiTools.ADD_NOTE to BuiltInToolText(
+        R.string.toolai_ai_builtin_add_note_title,
+        R.string.toolai_ai_builtin_add_note_subtitle,
+    ),
+    AiTools.SET_ALARM to BuiltInToolText(
+        R.string.toolai_ai_builtin_set_alarm_title,
+        R.string.toolai_ai_builtin_set_alarm_subtitle,
+    ),
+    AiTools.START_TIMER to BuiltInToolText(
+        R.string.toolai_ai_builtin_start_timer_title,
+        R.string.toolai_ai_builtin_start_timer_subtitle,
+    ),
+    AiTools.OPEN_APP to BuiltInToolText(
+        R.string.toolai_ai_builtin_open_app_title,
+        R.string.toolai_ai_builtin_open_app_subtitle,
+    ),
+    AiTools.MEDIA_CONTROL to BuiltInToolText(
+        R.string.toolai_ai_builtin_media_control_title,
+        R.string.toolai_ai_builtin_media_control_subtitle,
+    ),
+    AiTools.SEND_TO_PC to BuiltInToolText(
+        R.string.toolai_ai_builtin_send_to_pc_title,
+        R.string.toolai_ai_builtin_send_to_pc_subtitle,
+    ),
 )
 
 /** Each group's heading and the "?" under it. */
@@ -87,22 +144,120 @@ internal fun AiBuiltInToolSettings(
     settings: LiveSettings,
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     val searchReady = settings.watch { hasSearchKey(it) }
+    val kdeOn = settings.watch { it.kdeConnect.enabled }
+    val locationBuilt = remember { LocationAccess.declared(context) }
+    val calendarAddOn = settings.watch { s ->
+        AiTools.builtIn(AiTools.ADD_CALENDAR_EVENT)?.let { AiTools.policyOf(it, s.ai.toolPolicies) } != McpToolPolicy.OFF
+    }
     for (group in AiToolGroup.entries) {
         val tools = AiTools.builtIns.filter { it.group == group && it.name in builtInToolText }
         if (tools.isEmpty()) continue
         SettingsGroup(stringResource(group.titleRes), info = stringResource(group.infoRes)) {
             for (tool in tools) {
-                item(visible = tool.name != AiTools.IMAGE_SEARCH || searchReady, key = tool.name) {
+                // The same test the runner makes: a tool with nothing behind
+                // it is not offered, so it gets no row either.
+                val shown = when (tool.name) {
+                    AiTools.IMAGE_SEARCH -> searchReady
+                    AiTools.SEND_TO_PC -> kdeOn
+                    AiTools.CURRENT_LOCATION -> locationBuilt
+                    else -> true
+                }
+                item(visible = shown, key = tool.name) {
                     val policy = settings.watch { AiTools.policyOf(tool, it.ai.toolPolicies) }
                     BuiltInToolRow(tool, policy) { picked ->
                         scope.launch { repository.setAiToolPolicy(tool.name, picked) }
+                    }
+                }
+                if (tool.name == AiTools.ADD_CALENDAR_EVENT) {
+                    item(visible = calendarAddOn, key = "calendar_mode") {
+                        CalendarModeRows(repository, settings)
                     }
                 }
             }
         }
     }
 }
+
+/**
+ * How the model's calendar adds land (#698): in the calendar app's own editor
+ * for the user to save, or straight in the calendar. The second asks for
+ * WRITE_CALENDAR, through the disclosure, and then which calendar to use.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CalendarModeRows(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val mode = settings.watch { it.ai.toolCalendarMode }
+    val canWrite = rememberGrantState { DeviceCalendar.canWrite(it) }
+    var granted by remember { mutableStateOf(false) }
+    val request = rememberDisclosedPermissionRequest(PermissionDisclosures.CALENDAR_WRITE) { granted = true }
+    val writable = canWrite || granted
+    WmRow(
+        title = stringResource(R.string.toolai_ai_builtin_calendar_mode_title),
+        highlightKey = R.string.toolai_ai_builtin_calendar_mode_title,
+        supporting = {
+            Column {
+                Text(stringResource(R.string.toolai_ai_builtin_calendar_mode_subtitle))
+                val modes = AiCalendarMode.entries
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                ) {
+                    modes.forEachIndexed { index, choice ->
+                        SegmentedButton(
+                            selected = mode == choice,
+                            onClick = {
+                                scope.launch { repository.setAiToolCalendarMode(choice) }
+                                if (choice == AiCalendarMode.DIRECT && !writable) request()
+                            },
+                            shape = SegmentedButtonDefaults.itemShape(index, modes.size),
+                            label = { Text(stringResource(choice.labelRes), maxLines = 1) },
+                        )
+                    }
+                }
+                if (mode == AiCalendarMode.DIRECT && !writable) {
+                    TextButton(onClick = request) {
+                        Text(stringResource(R.string.toolai_ai_builtin_calendar_allow_action))
+                    }
+                }
+                if (mode == AiCalendarMode.DIRECT && writable) {
+                    val calendars = remember(writable) { DeviceCalendar.writableCalendars(context) }
+                    val chosen = settings.watch { it.ai.toolCalendarId }
+                    val shownId = calendars.firstOrNull { it.id == chosen }?.id ?: calendars.firstOrNull()?.id
+                    if (calendars.isEmpty()) {
+                        Text(
+                            stringResource(R.string.toolai_ai_builtin_calendar_none),
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                    } else {
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.padding(top = 8.dp),
+                        ) {
+                            for (calendar in calendars) {
+                                FilterChip(
+                                    selected = calendar.id == shownId,
+                                    onClick = { scope.launch { repository.setAiToolCalendarId(calendar.id) } },
+                                    label = { Text(calendar.name.ifBlank { calendar.account }, maxLines = 1) },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+    )
+}
+
+private val AiCalendarMode.labelRes: Int
+    @StringRes get() = when (this) {
+        AiCalendarMode.OPEN_APP -> R.string.toolai_ai_builtin_calendar_mode_open_label
+        AiCalendarMode.DIRECT -> R.string.toolai_ai_builtin_calendar_mode_direct_label
+    }
 
 /** How many of the keyboard's own tools a model is offered: the count on the row that opens the screen. */
 internal fun builtInToolsOn(policies: Map<String, McpToolPolicy>): Int =
