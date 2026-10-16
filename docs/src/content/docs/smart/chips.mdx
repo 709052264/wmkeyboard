@@ -11,6 +11,8 @@ import Shot from '@components/Shot.astro';
 
 Smart chips watch the last 48 characters before your cursor. The moment that text looks like something a tool can answer, the answer lands on the suggestion strip in place of word candidates. Tap the chip to type the answer, or its gear button to open the full tool with the same numbers already loaded. A few chips have nothing to type and only ever open a tool. Those carry no gear, and the whole chip is the door. The gear also stays hidden while its tool is switched off under Tools, since there would be nothing for it to open.
 
+The gear takes the text it answered out of your message on its way into the tool, because the tool types its own result in that spot. If you change your mind, close the tool without inserting anything and press backspace once: the first backspace puts `150 usd`, or `calculator`, back where it was. Typing anything first, or moving the cursor, gives up that undo. To keep the text every time, turn on **Keep the text when a chip opens its tool**; the tool's result then lands after your text.
+
 <PhoneFrame caption="Typing 12*8 puts a calc chip on the suggestion strip.">
   {/* shot: smart/calc-chip */}
 </PhoneFrame>
@@ -151,6 +153,7 @@ Each detector has guards against the shapes of text that look like a trigger but
 - **Group long numbers**: default **on**.
 - **Grouping style**: **Automatic**, **Thousands** or **Lakh and crore**, default **Automatic**, which follows the language you're typing in.
 - **Call or text a contact**: default **off**. Needs the contacts permission. See [Calling or texting a contact](#calling-or-texting-a-contact).
+- **Keep the text when a chip opens its tool**: default **off**. Leaves the typed amount, sum or tool keyword in place when the gear opens the tool.
 
 Each tool's own page (Calculator, Unit converter, Currency converter) links back here with a **Suggestion chip** row that shows whether its chip is on. The switches themselves live only under Smart chips.
 

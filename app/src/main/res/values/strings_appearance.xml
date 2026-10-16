@@ -184,5 +184,9 @@
     <string name="appearance_reset_toolbox_order_confirm">The tools in the toolbox grid go back to the order they shipped in. Which tools are switched on, and which are pinned to the toolbar, are not affected.</string>
     <string name="appearance_toolbar_drag_title">Rearrange by dragging</string>
     <string name="appearance_toolbar_drag_subtitle">Press and hold a tool on the toolbar, then drag it to a new place</string>
+    <string name="appearance_toolbar_hold_delay_title">Press and hold delay</string>
+    <string name="appearance_toolbar_hold_delay_subtitle">How long you hold a tool before the hold counts</string>
+    <string name="appearance_toolbar_hold_delay_info">This sets how long you press a tool on the toolbar or in the toolbox before the press counts as a hold. A hold runs the action you chose under Press and hold on the toolbar on the tool\'s own settings page, opens that settings page, or picks the tool up to move it. At System, the keyboard uses the touch and hold delay from your phone\'s accessibility settings.</string>
+    <string name="appearance_toolbar_hold_delay_system">System</string>
     <string name="appearance_toolbar_drag_info">When this is on, a press and hold that moves picks the tool up so you can drop it elsewhere on the toolbar. When it is off, a press and hold that moves stays a press and hold, and the toolbox is where you rearrange the toolbar. Turn it off if a hold keeps turning into a drag by accident.</string>
 </resources>

@@ -290,3 +290,32 @@
 .sl-markdown-content :is(h2, .sl-heading-wrapper.level-h2) {
 	clear: both;
 }
+
+/* starlight-theme-black hides the whole search box below 48rem, so on a phone
+   the header had no way into search at all (#665). Bring it back as an icon
+   button beside the menu, the way Starlight itself draws it on narrow screens. */
+@media (max-width: 47.99rem) {
+	site-search {
+		display: flex;
+		width: auto;
+	}
+
+	site-search::after {
+		display: none;
+	}
+
+	site-search > button[data-open-modal] {
+		background-color: transparent;
+		padding-inline: 0.5rem;
+	}
+
+	site-search > button[data-open-modal] svg {
+		display: block;
+		width: 1.125rem;
+		height: 1.125rem;
+	}
+
+	site-search > button > span {
+		display: none;
+	}
+}

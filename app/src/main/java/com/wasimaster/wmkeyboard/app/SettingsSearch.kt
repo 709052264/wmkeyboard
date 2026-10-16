@@ -427,6 +427,7 @@ private fun SearchStrings.typingChipsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_smart_gifs_title, R.string.typing_smart_gifs_subtitle),
         row(R.string.typing_smart_numbers_title, R.string.typing_smart_numbers_subtitle),
         row(R.string.typing_smart_contacts_title, R.string.typing_smart_contacts_subtitle),
+        row(R.string.typing_smart_keep_text_title, R.string.typing_smart_keep_text_subtitle),
         row(
             R.string.typing_smart_number_grouping_title,
             R.string.typing_smart_number_grouping_subtitle,
@@ -779,6 +780,7 @@ private fun SearchStrings.appearanceToolbarRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_toolbar_show_strip_title, R.string.appearance_toolbar_show_strip_subtitle),
         row(R.string.appearance_toolbar_swipe_down_title, R.string.appearance_toolbar_swipe_down_subtitle),
         row(R.string.appearance_toolbar_drag_title, R.string.appearance_toolbar_drag_subtitle),
+        row(R.string.appearance_toolbar_hold_delay_title, R.string.appearance_toolbar_hold_delay_subtitle),
         row(R.string.appearance_toolbar_hardware_only_title, R.string.appearance_toolbar_hardware_only_subtitle),
         row(R.string.appearance_toolbar_hardware_auto_hide_title, R.string.appearance_toolbar_hardware_auto_hide_subtitle),
         row(R.string.appearance_toolbar_rtl_title, R.string.appearance_toolbar_rtl_subtitle),

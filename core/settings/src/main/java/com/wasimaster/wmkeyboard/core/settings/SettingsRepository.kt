@@ -1871,6 +1871,13 @@ data class ToolbarBehavior(
      * strip's far end, rather than before them at its start (the default).
      */
     val stripShortcutsAtEnd: Boolean = false,
+    /**
+     * How long a pinned tool is held before the hold counts, in ms: the bound
+     * hold action, the settings page, the pick-up for a reorder (#665). 0
+     * follows the system's own touch-and-hold delay, which is what the bar
+     * always used, so nothing changes for anyone who never touches it.
+     */
+    val holdDelayMs: Int = 0,
 )
 
 /**
@@ -4859,6 +4866,14 @@ data class SmartChipSettings(
      * reads the address book, which needs the contacts permission.
      */
     val contacts: Boolean = false,
+    /**
+     * Whether the text a chip answered stays in the field when its gear opens
+     * the tool: "150 usd", or a keyword such as "calculator" (#665). Off by
+     * default, which is how the chips have always worked: the tool is about to
+     * type its own result there. Either way a backspace straight after the
+     * panel closes puts back what the gear took out.
+     */
+    val keepTextOnOpen: Boolean = false,
 )
 
 /**
@@ -9651,6 +9666,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_GREEDY = booleanPreferencesKey("toolbar_greedy")
         private val TOOLBAR_ENABLED = booleanPreferencesKey("toolbar_enabled")
         private val TOOLBAR_SWIPE_DOWN_HIDE = booleanPreferencesKey("toolbar_swipe_down_hide")
+        private val TOOLBAR_HOLD_DELAY = intPreferencesKey("toolbar_hold_delay")
         private val TOOLBAR_ONLY_HW_KEYBOARD = booleanPreferencesKey("toolbar_only_hw_keyboard")
 
         // `hw_`, so sync leaves both on the device the keyboard is attached to.
@@ -10096,6 +10112,7 @@ class SettingsRepository(private val context: Context) {
         private val SMART_CHIP_NUMBERS = booleanPreferencesKey("smart_chip_numbers")
         private val SMART_CHIP_NUMBER_GROUPING = stringPreferencesKey("smart_chip_number_grouping")
         private val SMART_CHIP_CONTACTS = booleanPreferencesKey("smart_chip_contacts")
+        private val SMART_CHIP_KEEP_TEXT = booleanPreferencesKey("smart_chip_keep_text")
 
         private val SELECTION_MACROS_ENABLED = booleanPreferencesKey("selection_macros_enabled")
         private val SELECTION_MACROS_PLACEMENT = stringPreferencesKey("selection_macros_placement")
@@ -11684,6 +11701,7 @@ class SettingsRepository(private val context: Context) {
             stripToolWidthDp = p[TOOLBAR_STRIP_TOOL_WIDTH] ?: defaults.toolbarBehavior.stripToolWidthDp,
             stripIconSizeDp = p[TOOLBAR_STRIP_ICON_SIZE] ?: defaults.toolbarBehavior.stripIconSizeDp,
             stripShortcutsAtEnd = p[TOOLBAR_STRIP_AT_END] ?: defaults.toolbarBehavior.stripShortcutsAtEnd,
+            holdDelayMs = p[TOOLBAR_HOLD_DELAY] ?: defaults.toolbarBehavior.holdDelayMs,
         )
 
     private fun readEmoji(p: Preferences, defaults: KeyboardSettings) =
@@ -12167,6 +12185,7 @@ class SettingsRepository(private val context: Context) {
                 ?.let { runCatching { NumberGrouping.valueOf(it) }.getOrNull() }
                 ?: defaults.smartChips.numberGrouping,
             contacts = p[SMART_CHIP_CONTACTS] ?: defaults.smartChips.contacts,
+            keepTextOnOpen = p[SMART_CHIP_KEEP_TEXT] ?: defaults.smartChips.keepTextOnOpen,
         )
 
     private fun readSelectionMacros(p: Preferences, defaults: KeyboardSettings) =
@@ -13542,6 +13561,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setToolbarEnabled(value: Boolean) =
         editPrefs { it[TOOLBAR_ENABLED] = value }
+
+    /** 0 follows the system's touch-and-hold delay; see [ToolbarBehavior.holdDelayMs]. */
+    suspend fun setToolbarHoldDelayMs(value: Int) =
+        editPrefs { it[TOOLBAR_HOLD_DELAY] = value.coerceIn(0, 2000) }
 
     suspend fun setToolbarSwipeDownHide(value: Boolean) =
         editPrefs { it[TOOLBAR_SWIPE_DOWN_HIDE] = value }
@@ -18801,6 +18824,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSmartChipContacts(value: Boolean) =
         editPrefs { it[SMART_CHIP_CONTACTS] = value }
+
+    suspend fun setSmartChipKeepText(value: Boolean) =
+        editPrefs { it[SMART_CHIP_KEEP_TEXT] = value }
 
     /** Which grouping a number chip offers; [NumberGrouping.AUTO] follows the language. */
     suspend fun setSmartChipNumberGrouping(value: NumberGrouping) =

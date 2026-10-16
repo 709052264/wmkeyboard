@@ -254,6 +254,7 @@
     <!-- Screen reader name for the chip that takes an autocorrect back. The
          word on the chip is read after this, so it says what pressing does. -->
     <string name="ime_undo_correction_desc">Put back the word you typed</string>
+    <string name="ime_capture_undo_desc">Undo the last change</string>
 
     <!-- Shown under a glide's word picker once the finger has slid down away
          from the words: lifting now types nothing. -->

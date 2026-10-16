@@ -406,6 +406,28 @@ internal fun AppearanceToolbarSettings(
                     default = SettingsDefaults.toolbarBehavior.dragToRearrange,
                 ) { scope.launch { repository.setToolbarDragToRearrange(it) } }
             }
+            // One wait for every hold on a tool (#665): the bound action, the
+            // settings page and the pick-up all start from it. The bottom of
+            // the track is the system's own delay, which is the default.
+            item {
+                val context = LocalContext.current
+                SliderSetting(
+                    R.string.appearance_toolbar_hold_delay_title,
+                    subtitle = stringResource(R.string.appearance_toolbar_hold_delay_subtitle),
+                    value = settings.watch { it.toolbarBehavior.holdDelayMs }.toFloat(),
+                    range = 0f..1500f,
+                    display = {
+                        val ms = toolbarHoldDelayStep(it)
+                        if (ms == 0) {
+                            context.getString(R.string.appearance_toolbar_hold_delay_system)
+                        } else {
+                            context.getString(R.string.keypress_value_ms, ms)
+                        }
+                    },
+                    info = stringResource(R.string.appearance_toolbar_hold_delay_info),
+                    default = SettingsDefaults.toolbarBehavior.holdDelayMs.toFloat(),
+                ) { scope.launch { repository.setToolbarHoldDelayMs(toolbarHoldDelayStep(it)) } }
+            }
         }
         item {
             ToggleSetting(
@@ -1894,3 +1916,11 @@ private val DefaultToolbarFit = when {
     SettingsDefaults.toolbarBehavior.greedy -> ToolbarFit.SPREAD
     else -> ToolbarFit.FIXED
 }
+
+/**
+ * The toolbar hold delay a slider position stands for: 50 ms steps, with the
+ * first stretch of the track kept for the system's own delay (0), since a
+ * hold shorter than a tenth of a second is a tap.
+ */
+private fun toolbarHoldDelayStep(value: Float): Int =
+    if (value < 100f) 0 else ((value / 50f).roundToInt() * 50).coerceAtMost(1500)

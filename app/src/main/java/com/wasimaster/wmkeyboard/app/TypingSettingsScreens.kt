@@ -1598,6 +1598,17 @@ internal fun TypingSmartChipsSettings(
                     }
                 }
             }
+            // #665: the gear on a chip takes the text it answered out of the
+            // field; this keeps it there instead.
+            item {
+                ToggleSetting(
+                    R.string.typing_smart_keep_text_title,
+                    stringResource(R.string.typing_smart_keep_text_subtitle),
+                    settings.watch { it.smartChips.keepTextOnOpen },
+                    info = stringResource(R.string.typing_smart_keep_text_info),
+                    default = SettingsDefaults.smartChips.keepTextOnOpen,
+                ) { scope.launch { repository.setSmartChipKeepText(it) } }
+            }
         }
     }
 }

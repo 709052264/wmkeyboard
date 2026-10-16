@@ -3670,6 +3670,8 @@ data class KeyboardUiState(
      * can leak into it and nothing of it can leak out.
      */
     val captureSuggestions: List<String> = emptyList(),
+    /** The focused keyboard-owned field's undo history, while it has one (#665). */
+    val captureUndo: CaptureUndoMark? = null,
 ) {
     /**
      * Whether incognito is in force right now, from either source: the

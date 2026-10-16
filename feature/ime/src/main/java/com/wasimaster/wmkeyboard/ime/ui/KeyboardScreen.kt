@@ -528,6 +528,7 @@ import com.wasimaster.wmkeyboard.ime.ModifierState
 import com.wasimaster.wmkeyboard.ime.authoredNumberRow
 import com.wasimaster.wmkeyboard.ime.LayoutMode
 import com.wasimaster.wmkeyboard.ime.CaptureTarget
+import com.wasimaster.wmkeyboard.ime.CaptureSelectionAction
 import com.wasimaster.wmkeyboard.ime.CaptureVoiceAction
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
@@ -8580,6 +8581,13 @@ private fun holdOpensTrackpad(
  * exclude each other. Toolbar only: in the toolbox a hold reaches every tool's
  * settings page, and there is nothing to select behind an open panel anyway.
  */
+/**
+ * The wait before a hold on a tool counts: the toolbar's own setting when it
+ * has one (#665), else the system's touch-and-hold delay.
+ */
+private fun toolHoldDelay(settingMs: Int, systemMs: Long): Long =
+    if (settingMs > 0) settingMs.toLong() else systemMs
+
 private fun holdArmsSelection(
     tool: ToolbarTool,
     fromToolbar: Boolean,
@@ -8649,6 +8657,8 @@ private fun DraggableTool(
      */
     holdMenu: Boolean = false,
     onHoldMenu: () -> Unit = {},
+    /** How long the hold takes, in ms; 0 is the system's touch-and-hold delay (#665). */
+    holdDelayMs: Int = 0,
     content: @Composable (Modifier) -> Unit,
 ) {
     var origin by remember { mutableStateOf(Offset.Zero) }
@@ -8665,7 +8675,7 @@ private fun DraggableTool(
             // Keyed on the interval too: it comes from a setting, so the handler
             // has to be rebuilt when it changes. A Long changes far more rarely
             // than the lambda above, which is why that one goes through a holder.
-            .pointerInput(enabled, tool, holdRepeatMs, holdArms, holdPanel, holdMenu, dragEnabled) {
+            .pointerInput(enabled, tool, holdRepeatMs, holdArms, holdPanel, holdMenu, dragEnabled, holdDelayMs) {
                 if (!enabled) return@pointerInput
                 // Raw press-and-hold, mirroring the key rows' handler, instead
                 // of detectDragGesturesAfterLongPress: its long-press never
@@ -8692,7 +8702,7 @@ private fun DraggableTool(
                     // its release, and never by a release that did not open it.
                     var held = false
                     val timer = scope.launch {
-                        delay(viewConfiguration.longPressTimeoutMillis)
+                        delay(toolHoldDelay(holdDelayMs, viewConfiguration.longPressTimeoutMillis))
                         // The buzz tells the user the long-press registered.
                         // The pick-up itself waits for travel (see the drag
                         // slop below), for every kind of hold: starting it here
@@ -10112,6 +10122,7 @@ private fun RowScope.ToolbarRow(
                             holdOpensTrackpad(tool, fromToolbar = true, state = state),
                         holdMenu = holdPicksVoiceMode(tool, fromToolbar = true, state = state),
                         onHoldMenu = { voiceMenuOpen = true },
+                        holdDelayMs = state.settings.toolbarBehavior.holdDelayMs,
                     ) { dragModifier ->
                         ToolCircle(
                             slot = IconSlots.forTool(tool),
@@ -10837,6 +10848,8 @@ private fun ToolboxGrid(
     // not a reason to be the one thing that restarts it mid-gesture.
     val toolboxRepeatNow by rememberUpdatedState(state.settings.textEditing.toolboxRepeatTools)
     val repeatMsNow by rememberUpdatedState(state.settings.textEditing.repeatMs.toLong())
+    // The bar's hold delay holds in the grid too: one wait for every hold on a tool.
+    val holdDelayNow by rememberUpdatedState(state.settings.toolbarBehavior.holdDelayMs)
     val gridScroll = rememberScrollState()
     // No lazy state to scroll by index, so scroll by row: every cell reports
     // the same size, and the drag controller already collects it.
@@ -10899,7 +10912,7 @@ private fun ToolboxGrid(
                     val repeatTool = tool?.takeIf { it in toolboxRepeatNow && it in HoldRepeatCursorTools }
                     val holdRepeatMs = repeatMsNow.takeIf { repeatTool != null }
                     val timer = scope.launch {
-                        delay(viewConfiguration.longPressTimeoutMillis)
+                        delay(toolHoldDelay(holdDelayNow, viewConfiguration.longPressTimeoutMillis))
                         feedback()
                         longPressed = true
                         // Pick-up held back until the finger travels, as on the
@@ -12253,11 +12266,43 @@ private fun CaptureStrip(state: KeyboardUiState, capture: CaptureCallbacks) {
                 overflow = state.settings.suggestionStrip.overflow,
             )
         }
+        // One step back through this field's edits (#665), while it has any.
+        // Matched on the text as well as the field, so a box reopened on other
+        // text never offers to undo into the last one.
+        val undo = state.captureUndo
+        if (undo != null && undo.key == state.captureKey() && undo.text == state.captureBuffer()) {
+            CaptureUndoButton { capture.onSelectionAction(CaptureSelectionAction.UNDO) }
+        }
         if (dictation) {
             FieldVoiceMic(state.voice, mine = state.voice.field == state.captureKey()) {
                 capture.onVoice(CaptureVoiceAction.TOGGLE)
             }
         }
+    }
+}
+
+/** The undo button at the end of a keyboard-owned field's strip (#665). */
+@Composable
+private fun CaptureUndoButton(onUndo: () -> Unit) {
+    val kb = LocalKbTheme.current
+    val description = stringResource(R.string.ime_capture_undo_desc)
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .padding(start = 2.dp, end = 4.dp)
+            .size(28.dp)
+            .clip(CircleShape)
+            .frostGlass(kb, CircleShape, FrostSurface.CHIPS)
+            .background(kb.chip)
+            // The service buzzes for this press itself.
+            .clickable(onClickLabel = description) { onUndo() },
+    ) {
+        Icon(
+            Icons.AutoMirrored.Outlined.Undo,
+            contentDescription = description,
+            tint = kb.chipText,
+            modifier = Modifier.size(16.dp),
+        )
     }
 }
 
@@ -12950,13 +12995,13 @@ private fun KeyboardBody(
                     callbacks = toolHold.clock,
                     onClose = { onPanelChange(PanelMode.CLOCK) },
                 )
-                // The month grid and the selected day's event list are fighting
-                // over the same rows, so the calendar buys itself another band
-                // of height the way the grammar strip and the typing test do.
+                // At the keyboard's own height, like the calculator (#665): the
+                // month grid gives up row height before the day's summary does,
+                // and the bar every full-bleed tool shares drags all of them
+                // taller together, so no tool opens at a size of its own.
                 PanelMode.CALENDAR -> FullBleedTool(
                     state, stringResource(R.string.ime_tool_calendar),
                     onClose = { onPanelChange(PanelMode.CALENDAR) },
-                    extraHeight = 140.dp,
                 ) {
                     CalendarPanel(
                         state,
@@ -13282,15 +13327,16 @@ private fun KeyboardBody(
                     state, stringResource(R.string.ime_tool_calculator),
                     onClose = { onPanelChange(PanelMode.CALCULATOR) },
                 ) { CalculatorPanel(state, onToolInsert, converter) }
+                // The converters open at the calculator's height too (#665): their
+                // keypad is the flexible part and shrinks to fit under the unit
+                // rows, the way the calculator's does under its functions.
                 PanelMode.UNIT_CONVERT -> FullBleedTool(
                     state, stringResource(R.string.ime_unit_convert_title),
                     onClose = { onPanelChange(PanelMode.UNIT_CONVERT) },
-                    extraHeight = 120.dp,
                 ) { UnitConverterPanel(state, onToolInsert, converter, onToolPrefillConsumed) }
                 PanelMode.CURRENCY -> FullBleedTool(
                     state, stringResource(R.string.ime_tool_currency),
                     onClose = { onPanelChange(PanelMode.CURRENCY) },
-                    extraHeight = 120.dp,
                 ) {
                     CurrencyPanel(
                         state = state,

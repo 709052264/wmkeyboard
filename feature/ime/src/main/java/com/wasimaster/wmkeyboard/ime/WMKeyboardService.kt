@@ -6072,6 +6072,7 @@ open class WMKeyboardService : InputMethodService() {
             // What should outlive it is in the persisted pair counts by now.
             correctionStats.endFieldSession()
             declinedSpots.clear()
+            chipOpenRestore = null
             clearLearnOffer()
             clearCorrectionOffer()
             // A genuinely different field. Whatever a plugin was collecting
@@ -6090,6 +6091,17 @@ open class WMKeyboardService : InputMethodService() {
             } else if (summonedAt != 0L) {
                 summonPackage = pkg
             }
+        }
+        // The toolbar's incognito badge describes the field that has focus
+        // now. It used to be worked out in onStartInputView alone, so a start
+        // that never drew the keys (a window with no field, a pinned or
+        // summoned keyboard, the round trip through another keyboard) left
+        // the last private tab's badge standing on the bar until some other
+        // field brought the keys up (#665). Same answer startInputView gives.
+        val fieldIncognito = (baseSettings ?: _uiState.value.settings).autoIncognito &&
+            attribute.requestsNoPersonalizedLearning()
+        if (_uiState.value.fieldIncognito != fieldIncognito) {
+            _uiState.update { it.copy(fieldIncognito = fieldIncognito) }
         }
         // A forced show that outlived its summon does not get to follow the
         // user onto a screen with no field.
@@ -6772,6 +6784,15 @@ open class WMKeyboardService : InputMethodService() {
                 undoChipCaret == -1 -> undoChipCaret = newSelStart
                 newSelStart < undoChipCaret ||
                     newSelStart > undoChipCaret + UNDO_CHIP_LOOKBEHIND -> clearUndoChip()
+            }
+        }
+        // Same rule for the text a chip's gear took out: only at the caret the
+        // delete left, recorded from its echo when it was not known up front.
+        chipOpenRestore?.let { restore ->
+            when {
+                newSelStart != newSelEnd -> chipOpenRestore = null
+                restore.caret == -1 -> chipOpenRestore = restore.copy(caret = newSelStart)
+                newSelStart != restore.caret -> chipOpenRestore = null
             }
         }
         // Immediate-revert states are only valid at the caret position their
@@ -9466,7 +9487,67 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
             CaptureSelectionAction.PASTE -> capturePaste()
+            CaptureSelectionAction.UNDO -> captureUndo(target, before)
         }
+    }
+
+    /**
+     * What each keyboard-owned field looked like before its recent edits (#665),
+     * by field key, oldest first, and the text the field held after the last
+     * edit this history saw. A field whose text has since changed some other
+     * way — a tool's prefill, the same box opened on another note — no longer
+     * matches [CaptureHistory.lastText], and its history is dropped rather
+     * than undone onto text it never described.
+     */
+    private class CaptureHistory(val steps: ArrayDeque<CaretText>, var lastText: String)
+
+    private val captureHistories = HashMap<String, CaptureHistory>()
+
+    /** When the last edit was recorded, so a burst of typing undoes as one step. */
+    private var captureHistoryAt = 0L
+
+    /** True while an undo writes, which must not record itself as an edit. */
+    private var captureUndoing = false
+
+    /**
+     * Notes [before] as the state an undo goes back to, unless it belongs to the
+     * same burst of typing as the step before it: keys pressed less than
+     * [CAPTURE_UNDO_GROUP_MS] apart undo together, the way a word does in a
+     * text editor. A change of more than one character (a paste, a suggestion,
+     * a cut) is always a step of its own.
+     */
+    private fun recordCaptureEdit(key: String, before: CaretText, after: CaretText) {
+        if (captureUndoing) return
+        val now = SystemClock.uptimeMillis()
+        val history = captureHistories[key]
+            ?.takeIf { it.lastText == before.text }
+            ?: CaptureHistory(ArrayDeque(), before.text).also { captureHistories[key] = it }
+        val big = kotlin.math.abs(after.text.length - before.text.length) > 1
+        if (history.steps.isEmpty() || big || now - captureHistoryAt > CAPTURE_UNDO_GROUP_MS) {
+            history.steps.addLast(before)
+            while (history.steps.size > CAPTURE_UNDO_MAX) history.steps.removeFirst()
+        }
+        // A big change closes its step, so the next key starts a new one.
+        captureHistoryAt = if (big) 0L else now
+    }
+
+    /** The undo button on a keyboard-owned field's strip (#665): one step back. */
+    private fun captureUndo(target: CaptureTarget, now: CaretText) {
+        val key = _uiState.value.captureKey() ?: return
+        val history = captureHistories[key]
+        val previous = history?.takeIf { it.lastText == now.text }?.steps?.removeLastOrNull()
+        if (previous == null) {
+            captureHistories.remove(key)
+            if (_uiState.value.captureUndo != null) _uiState.update { it.copy(captureUndo = null) }
+            return
+        }
+        captureUndoing = true
+        try {
+            captureWrite(target, now, previous)
+        } finally {
+            captureUndoing = false
+        }
+        captureHistoryAt = 0L
     }
 
     /**
@@ -9522,6 +9603,11 @@ open class WMKeyboardService : InputMethodService() {
         // it again straight after (see [rewriteCaptureComposition]).
         captureComposition = null
         val key = _uiState.value.captureKey()
+        if (after.text != before.text && key != null &&
+            target != CaptureTarget.TYPING_TEST && target != CaptureTarget.WORD_SPELL
+        ) {
+            recordCaptureEdit(key, before, after)
+        }
         if (after.text != before.text) {
             when (target) {
                 CaptureTarget.TYPING_TEST, CaptureTarget.WORD_SPELL -> return
@@ -9584,7 +9670,14 @@ open class WMKeyboardService : InputMethodService() {
         val written = _uiState.value.captureBuffer()
         val at = if (written == after.text) after.at else written.length
         val anchor = if (written == after.text) after.anchorAt else at
-        _uiState.update { it.copy(captureCaret = key?.let { k -> CaptureCaret(k, at, written, anchor) }) }
+        // The history follows the field to whatever its setter kept, so the
+        // next edit, or an undo, still recognises it as the same text.
+        val history = key?.let { captureHistories[it] }
+        history?.lastText = written
+        val undo = if (key != null && history != null && history.steps.isNotEmpty()) CaptureUndoMark(key, written) else null
+        _uiState.update {
+            it.copy(captureCaret = key?.let { k -> CaptureCaret(k, at, written, anchor) }, captureUndo = undo)
+        }
         // The run was just let go, so the 小゛゜ key goes back to what it was
         // (#527). The callers that set a new run straight afterwards say so and
         // publish once themselves, rather than flipping the flag twice — and
@@ -11229,6 +11322,17 @@ open class WMKeyboardService : InputMethodService() {
             invalidateExpectedSelection()
             ic.commitText("", 1)
             return
+        }
+        // The text a chip's gear took out comes back on the first backspace
+        // after its tool, while nothing has been typed since (#665).
+        chipOpenRestore?.let { restore ->
+            chipOpenRestore = null
+            if (composing.isEmpty() && (restore.caret < 0 || restore.caret == expectedSelStart)) {
+                ic.commitText(restore.text, 1)
+                syncPreviousWordFromField(ic)
+                refreshSuggestions()
+                return
+            }
         }
         // Backspace straight after a glide removes the whole swiped word —
         // a wrong swipe shouldn't cost a letter-by-letter cleanup. Unless the
@@ -18392,6 +18496,18 @@ open class WMKeyboardService : InputMethodService() {
     private var smartMutedAfter: String? = null
 
     /**
+     * What a chip's gear took out of the field on its way into the tool, and
+     * where that left the caret (-1 until the delete's own echo says). The
+     * first backspace while the caret is still there puts the text back
+     * instead of deleting (#665), the way backspace takes back an autocorrect.
+     * Anything that moves the caret first — the tool typing its answer, a
+     * letter, a tap elsewhere — drops it.
+     */
+    private var chipOpenRestore: ChipOpenRestore? = null
+
+    private data class ChipOpenRestore(val text: String, val caret: Int)
+
+    /**
      * Intent chips this field has already shown and moved past. An intent
      * chip is a hint, and a hint repeated is a nag: once the chip stops
      * matching (the user typed on, opened the tool, or a panel came up), the
@@ -18685,13 +18801,30 @@ open class WMKeyboardService : InputMethodService() {
             intentChipsRetired += hit.tool
         }
         if (hit.kind == SmartSuggest.Kind.VOCAB) retireVocabNudge(hit.query)
+        chipOpenRestore = null
         val ic = currentInputConnection
         if (ic != null) {
+            // Kept on request (#665): "150 usd" or "calculator" stays where it
+            // was typed, and the tool's answer lands after it.
+            val keep = _uiState.value.settings.smartChips.keepTextOnOpen
             ic.beginBatchEdit()
             commitComposing(ic, autocorrect = false)
             // A vocabulary chip opens the card *about* the typed word; the word stays.
-            if (hit.kind != SmartSuggest.Kind.VOCAB && hit.replaceSpan > 0) ic.deleteSurroundingText(hit.replaceSpan, 0)
+            if (hit.kind != SmartSuggest.Kind.VOCAB && hit.replaceSpan > 0 && !keep) {
+                val removed = ic.getTextBeforeCursor(hit.replaceSpan, 0)?.toString()
+                ic.deleteSurroundingText(hit.replaceSpan, 0)
+                if (!removed.isNullOrEmpty()) {
+                    val caret = expectedSelStart
+                        .takeIf { it >= removed.length && expectedSelEnd == it }
+                        ?.minus(removed.length) ?: -1
+                    chipOpenRestore = ChipOpenRestore(removed, caret)
+                }
+            }
             ic.endBatchEdit()
+            // The text that raised the chip is still there; the chip it raised
+            // has been answered, and must not come straight back over the
+            // panel's close.
+            if (keep) smartMutedAfter = ic.getTextBeforeCursor(SmartSuggest.LOOKBEHIND, 0)?.toString()
         }
         revision = null
         composing = StringBuilder()
@@ -42517,6 +42650,12 @@ open class WMKeyboardService : InputMethodService() {
 
         /** The same, for a keyboard-owned field's own suggestion row (#161). */
         private const val CAPTURE_SUGGEST_DEBOUNCE_MS = 24L
+
+        /** Keys typed closer together than this in a keyboard-owned field undo as one step. */
+        private const val CAPTURE_UNDO_GROUP_MS = 1_000L
+
+        /** Steps each keyboard-owned field keeps for its undo button. */
+        private const val CAPTURE_UNDO_MAX = 50
 
         /** The settings app's Statistics screen, as its NavHost names it. */
         private const val STATISTICS_ROUTE = "statistics"
