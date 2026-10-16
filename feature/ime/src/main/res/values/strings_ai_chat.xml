@@ -122,4 +122,40 @@
     <string name="ime_ai_chat_tool_mcp_allow_once">Allow once</string>
     <!-- Allows this call, and lets the tool run without asking from now on. -->
     <string name="ime_ai_chat_tool_mcp_allow_always">Always allow</string>
+
+    <!-- The keyboard's own tools the AI can use (#698). %1$s in the next four
+         is the tool's name, one of ime_ai_tool_name_*. -->
+    <string name="ime_ai_chat_tool_builtin_running">Using %1$s…</string>
+    <string name="ime_ai_chat_tool_builtin_done">Used %1$s</string>
+    <string name="ime_ai_chat_tool_builtin_waiting">%1$s is waiting for you</string>
+    <!-- The question on the card before the call runs. -->
+    <string name="ime_ai_chat_tool_builtin_ask">Let the AI use %1$s?</string>
+    <!-- Each tool's name, as the chat and the settings show it. -->
+    <string name="ime_ai_tool_name_image_search">Image search</string>
+    <string name="ime_ai_tool_name_weather">Weather</string>
+    <string name="ime_ai_tool_name_wikipedia">Wikipedia</string>
+    <string name="ime_ai_tool_name_define_word">Dictionary</string>
+    <string name="ime_ai_tool_name_translate">Translate</string>
+    <string name="ime_ai_tool_name_convert_currency">Currency converter</string>
+    <string name="ime_ai_tool_name_convert_units">Unit converter</string>
+    <string name="ime_ai_tool_name_calculate">Calculator</string>
+    <!-- While each tool runs, and after. %1$s is what it was asked about. -->
+    <string name="ime_ai_tool_image_search_running">Searching for images of “%1$s”…</string>
+    <string name="ime_ai_tool_image_search_done">Searched for images of “%1$s”</string>
+    <!-- %1$s is a place, such as Dhaka. -->
+    <string name="ime_ai_tool_weather_running">Checking the weather in %1$s…</string>
+    <string name="ime_ai_tool_weather_done">Checked the weather in %1$s</string>
+    <string name="ime_ai_tool_wikipedia_running">Looking up “%1$s” on Wikipedia…</string>
+    <string name="ime_ai_tool_wikipedia_done">Looked up “%1$s” on Wikipedia</string>
+    <string name="ime_ai_tool_define_word_running">Looking up “%1$s” in the dictionary…</string>
+    <string name="ime_ai_tool_define_word_done">Looked up “%1$s” in the dictionary</string>
+    <!-- %1$s is a language, such as Bengali. -->
+    <string name="ime_ai_tool_translate_running">Translating into %1$s…</string>
+    <string name="ime_ai_tool_translate_done">Translated into %1$s</string>
+    <!-- %1$s is a conversion, such as "12 USD → EUR" or "5 mi → km". -->
+    <string name="ime_ai_tool_convert_running">Converting %1$s…</string>
+    <string name="ime_ai_tool_convert_done">Converted %1$s</string>
+    <!-- %1$s is an expression, such as 18% of 2450. -->
+    <string name="ime_ai_tool_calculate_running">Working out %1$s…</string>
+    <string name="ime_ai_tool_calculate_done">Worked out %1$s</string>
 </resources>

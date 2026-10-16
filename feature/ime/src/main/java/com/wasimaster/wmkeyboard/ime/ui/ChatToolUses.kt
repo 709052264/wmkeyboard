@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.ime.ui
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
@@ -73,6 +74,7 @@ import com.wasimaster.wmkeyboard.core.tools.AiToolActivity
 import com.wasimaster.wmkeyboard.core.tools.AiToolApproval
 import com.wasimaster.wmkeyboard.core.tools.AiToolSource
 import com.wasimaster.wmkeyboard.core.tools.AiTools
+import com.wasimaster.wmkeyboard.core.tools.TranslateClient
 import com.wasimaster.wmkeyboard.ime.R
 
 /**
@@ -150,9 +152,9 @@ fun ChatToolUses(
     val mark = when {
         running != null -> null
         allFailed -> Icons.Outlined.ErrorOutline
-        uses.all { it.isMcp } -> Icons.Outlined.Handyman
         uses.all { it.tool == AiTools.WEB_FETCH && !it.isMcp } -> Icons.Outlined.Language
-        else -> Icons.Outlined.Search
+        uses.all { !it.isMcp && it.tool in WEB_TOOLS } -> Icons.Outlined.Search
+        else -> Icons.Outlined.Handyman
     }
     // Only a record that turns up with a call already running is the live
     // one; a stored answer scrolled back into view is just there.
@@ -397,7 +399,7 @@ private fun ToolUseLines(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        use.tool == AiTools.WEB_SEARCH && use.sources.isEmpty() -> Text(
+        (use.tool == AiTools.WEB_SEARCH || use.tool == AiTools.IMAGE_SEARCH) && use.sources.isEmpty() -> Text(
             stringResource(R.string.ime_ai_chat_tool_no_results),
             color = colors.dim,
             fontSize = small,
@@ -477,6 +479,7 @@ internal fun toolLine(use: AiToolActivity): String {
             else -> stringResource(R.string.ime_ai_chat_tool_mcp_done, use.tool, use.server)
         }
     }
+    builtInLabels[use.tool]?.let { return builtInLine(use, it) }
     val target = use.target
     val page = when {
         use.tool != AiTools.WEB_FETCH -> ""
@@ -514,6 +517,88 @@ internal fun toolLine(use: AiToolActivity): String {
     }
 }
 
+/** What the chat calls one of the keyboard's own tools (#698), and says while and after it runs. */
+private class ToolLabels(
+    @StringRes val name: Int,
+    /** While it runs; %1$s is [AiToolActivity.target]. */
+    @StringRes val running: Int,
+    /** Once it has run; %1$s is [AiToolActivity.target]. */
+    @StringRes val done: Int,
+)
+
+private val builtInLabels: Map<String, ToolLabels> = mapOf(
+    AiTools.IMAGE_SEARCH to ToolLabels(
+        R.string.ime_ai_tool_name_image_search,
+        R.string.ime_ai_tool_image_search_running,
+        R.string.ime_ai_tool_image_search_done,
+    ),
+    AiTools.WEATHER to ToolLabels(
+        R.string.ime_ai_tool_name_weather,
+        R.string.ime_ai_tool_weather_running,
+        R.string.ime_ai_tool_weather_done,
+    ),
+    AiTools.WIKIPEDIA to ToolLabels(
+        R.string.ime_ai_tool_name_wikipedia,
+        R.string.ime_ai_tool_wikipedia_running,
+        R.string.ime_ai_tool_wikipedia_done,
+    ),
+    AiTools.DEFINE_WORD to ToolLabels(
+        R.string.ime_ai_tool_name_define_word,
+        R.string.ime_ai_tool_define_word_running,
+        R.string.ime_ai_tool_define_word_done,
+    ),
+    AiTools.TRANSLATE to ToolLabels(
+        R.string.ime_ai_tool_name_translate,
+        R.string.ime_ai_tool_translate_running,
+        R.string.ime_ai_tool_translate_done,
+    ),
+    AiTools.CONVERT_CURRENCY to ToolLabels(
+        R.string.ime_ai_tool_name_convert_currency,
+        R.string.ime_ai_tool_convert_running,
+        R.string.ime_ai_tool_convert_done,
+    ),
+    AiTools.CONVERT_UNITS to ToolLabels(
+        R.string.ime_ai_tool_name_convert_units,
+        R.string.ime_ai_tool_convert_running,
+        R.string.ime_ai_tool_convert_done,
+    ),
+    AiTools.CALCULATE to ToolLabels(
+        R.string.ime_ai_tool_name_calculate,
+        R.string.ime_ai_tool_calculate_running,
+        R.string.ime_ai_tool_calculate_done,
+    ),
+)
+
+/** The search tools, whose record wears the search mark. */
+private val WEB_TOOLS = setOf(AiTools.WEB_SEARCH, AiTools.WEB_FETCH, AiTools.IMAGE_SEARCH)
+
+/**
+ * One of the keyboard's own tools as people call it: "Weather", "Calculator".
+ * The name the model used, for anything this keyboard did not hand out.
+ */
+@Composable
+fun aiToolName(tool: String): String = builtInLabels[tool]?.let { stringResource(it.name) } ?: tool
+
+/** [toolLine] for one of the keyboard's own tools. */
+@Composable
+private fun builtInLine(use: AiToolActivity, labels: ToolLabels): String {
+    val name = stringResource(labels.name)
+    // A model writes the language as a code; the line reads it as a name.
+    val target = if (use.tool == AiTools.TRANSLATE && use.target.isNotEmpty()) {
+        TranslateClient.languageName(use.target)
+    } else {
+        use.target
+    }
+    return when {
+        use.awaitingApproval -> stringResource(R.string.ime_ai_chat_tool_builtin_waiting, name)
+        use.failed -> stringResource(R.string.ime_ai_chat_tool_use_failed, name)
+        target.isEmpty() && use.running -> stringResource(R.string.ime_ai_chat_tool_builtin_running, name)
+        target.isEmpty() -> stringResource(R.string.ime_ai_chat_tool_builtin_done, name)
+        use.running -> stringResource(labels.running, target)
+        else -> stringResource(labels.done, target)
+    }
+}
+
 /**
  * The question an MCP call asks before it runs (#573): which tool, on which
  * server, with which values, and the three answers. The values are shown in
@@ -539,7 +624,11 @@ private fun ApprovalCard(
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(
-            stringResource(R.string.ime_ai_chat_tool_mcp_ask, use.tool, use.server),
+            if (use.isMcp) {
+                stringResource(R.string.ime_ai_chat_tool_mcp_ask, use.tool, use.server)
+            } else {
+                stringResource(R.string.ime_ai_chat_tool_builtin_ask, aiToolName(use.tool))
+            },
             color = colors.text,
             fontSize = fontSize,
             lineHeight = fontSize * LINE_HEIGHT,

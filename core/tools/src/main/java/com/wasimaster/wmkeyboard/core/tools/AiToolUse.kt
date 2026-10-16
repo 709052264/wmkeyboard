@@ -47,6 +47,21 @@ data class AiToolCall(
             (Json.parseToJsonElement(arguments).jsonObject[key] as? JsonPrimitive)
                 ?.content?.trim()?.takeIf { it.isNotEmpty() }
         }.getOrNull()
+
+    /**
+     * One numeric argument. Read through [argument], so a model that quotes
+     * its number ("12.5") is understood as well as one that does not, and a
+     * thousands separator it wrote out of habit does not sink the call.
+     */
+    fun number(key: String): Double? =
+        argument(key)?.replace(",", "")?.replace("_", "")?.toDoubleOrNull()?.takeIf { it.isFinite() }
+
+    /** One yes/no argument; anything but a recognisable answer is null. */
+    fun flag(key: String): Boolean? = when (argument(key)?.lowercase()) {
+        "true", "yes", "1" -> true
+        "false", "no", "0" -> false
+        else -> null
+    }
 }
 
 /**
@@ -160,11 +175,7 @@ data class AiToolActivity(
         /** A call the model just asked for, before it has run. */
         fun started(call: AiToolCall): AiToolActivity = AiToolActivity(
             tool = call.name,
-            target = when (call.name) {
-                AiTools.WEB_SEARCH -> call.argument("query")
-                AiTools.WEB_FETCH -> call.argument("url")
-                else -> null
-            }.orEmpty(),
+            target = AiTools.targetOf(call),
             running = true,
         )
 
@@ -224,15 +235,50 @@ data class AiToolActivity(
 }
 
 /**
+ * Where one of the keyboard's own tools sits on the settings screen, which is
+ * also a rough measure of what it touches: [INFO] reads the outside world,
+ * [DATA] reads the user's own, [PICTURE] works on a picture the user sent, and
+ * [ACTION] changes something on the phone (#698).
+ */
+enum class AiToolGroup { INFO, DATA, PICTURE, ACTION }
+
+/**
+ * One of the keyboard's own tools a model may call beyond search and fetch
+ * (#698), with the Run / Ask / Off policy it starts on.
+ *
+ * The policy enum is the MCP one on purpose. To the user a tool is a tool,
+ * wherever it runs, and "this one asks first" should look and behave the same
+ * for a server's tool and for ours: one choice row, one approval card.
+ */
+data class AiBuiltInTool(
+    val spec: AiToolSpec,
+    val group: AiToolGroup,
+    val defaultPolicy: McpToolPolicy,
+) {
+    val name: String get() = spec.name
+}
+
+/**
  * The tools the AI tool can offer, and the catalogue the settings rows switch
- * on. Deliberately a very short list: every tool costs tokens in the system
- * prompt of every single run, whether it is ever called or not, and a small
- * on-device model reading a long catalogue answers worse than one reading none.
+ * on.
+ *
+ * Every tool costs tokens in the system prompt of every single run, whether it
+ * is ever called or not, and a small on-device model reading a long catalogue
+ * answers worse than one reading a short one. So each has its own Off, and the
+ * descriptions are one sentence where one sentence will do.
  */
 object AiTools {
 
     const val WEB_SEARCH = "web_search"
     const val WEB_FETCH = "web_fetch"
+    const val IMAGE_SEARCH = "image_search"
+    const val WEATHER = "weather"
+    const val WIKIPEDIA = "wikipedia"
+    const val DEFINE_WORD = "define_word"
+    const val TRANSLATE = "translate"
+    const val CONVERT_CURRENCY = "convert_currency"
+    const val CONVERT_UNITS = "convert_units"
+    const val CALCULATE = "calculate"
 
     /** Rounds of tool calls one run may take before the model has to answer. */
     const val DEFAULT_MAX_ROUNDS = 3
@@ -265,24 +311,152 @@ object AiTools {
         ),
     )
 
+    /**
+     * The keyboard's own tools beyond search and fetch, in the order the
+     * settings screen lists them and a model reads them.
+     *
+     * The information tools start on Run: they read the outside world, and an
+     * answer built on a real exchange rate beats one remembered from training.
+     */
+    val builtIns: List<AiBuiltInTool> = listOf(
+        info(
+            IMAGE_SEARCH,
+            "Search the web for images. Returns each image's address and the page it is on.",
+            param("query", "What to search for."),
+        ),
+        info(
+            WEATHER,
+            "Current weather, and today's and tomorrow's forecast, for a place.",
+            param("place", "A city or place name. Leave it out for the user's own place.", required = false),
+        ),
+        info(
+            WIKIPEDIA,
+            "Look a topic up on Wikipedia and read the summary of the best-matching article.",
+            param("query", "The topic or article title."),
+        ),
+        info(
+            DEFINE_WORD,
+            "Look a word up in the dictionary: its meanings, part of speech and examples.",
+            param("word", "The word to look up."),
+        ),
+        info(
+            TRANSLATE,
+            "Translate text with the keyboard's translator.",
+            param("text", "The text to translate."),
+            param(
+                "to",
+                "The language to translate into, as a code such as en, bn or fr. " +
+                    "Leave it out for the user's usual target language.",
+                required = false,
+            ),
+            param("from", "The language of the text, as a code. Leave it out to detect it.", required = false),
+        ),
+        info(
+            CONVERT_CURRENCY,
+            "Convert an amount of money between currencies at live exchange rates.",
+            param("amount", "The amount to convert.", type = "number"),
+            param("from", "The currency it is in, as a code such as USD, EUR or BTC."),
+            param("to", "The currency to convert to, as a code."),
+        ),
+        info(
+            CONVERT_UNITS,
+            "Convert a measurement between units of length, mass, temperature, volume, area, speed, time or data.",
+            param("value", "The number to convert.", type = "number"),
+            param("from", "The unit it is in, such as km, lb, °F or GB."),
+            param("to", "The unit to convert to."),
+        ),
+        info(
+            CALCULATE,
+            "Work out an arithmetic expression exactly, instead of in your head. " +
+                "Supports + - * / ^ %, brackets, sqrt, sin, cos, tan, log, ln, pi and e.",
+            param("expression", "The expression, such as (12.5 * 4) / 3 or 18% of 2450."),
+        ),
+    )
+
+    /** One of [builtIns] by its name, or null for search, fetch or a name nobody gave out. */
+    fun builtIn(name: String): AiBuiltInTool? = builtIns.firstOrNull { it.name == name }
+
+    /** The policy in force for [tool]: what the user set, or what it starts on. */
+    fun policyOf(tool: AiBuiltInTool, policies: Map<String, McpToolPolicy>): McpToolPolicy =
+        policies[tool.name] ?: tool.defaultPolicy
+
+    /** Every name the keyboard's own tools answer to, which no MCP tool may take. */
+    val reservedNames: Set<String> by lazy { setOf(WEB_SEARCH, WEB_FETCH) + builtIns.map { it.name } }
+
     /** The enabled tools, in the order a model sees them. */
     fun enabled(search: Boolean, fetch: Boolean): List<AiToolSpec> = buildList {
         if (search) add(webSearch)
         if (fetch) add(webFetch)
     }
 
+    /**
+     * What one call is about, in a few words: the query searched for, the page
+     * read, the place whose weather was asked for. Blank when the model left
+     * the argument out, or for a tool with nothing short to say.
+     */
+    fun targetOf(call: AiToolCall): String = when (call.name) {
+        WEB_SEARCH, IMAGE_SEARCH, WIKIPEDIA -> call.argument("query")
+        WEB_FETCH -> call.argument("url")
+        WEATHER -> call.argument("place")
+        DEFINE_WORD -> call.argument("word")
+        TRANSLATE -> call.argument("to")
+        CONVERT_CURRENCY -> conversion(call, "amount")
+        CONVERT_UNITS -> conversion(call, "value")
+        CALCULATE -> call.argument("expression")
+        else -> null
+    }.orEmpty()
+
+    /** "12 USD → EUR", or null when the model left out either end. */
+    private fun conversion(call: AiToolCall, amountKey: String): String? {
+        val from = call.argument("from") ?: return null
+        val to = call.argument("to") ?: return null
+        val amount = call.argument(amountKey)
+        return listOfNotNull(amount, from).joinToString(" ") + " → " + to
+    }
+
+    private fun info(name: String, description: String, vararg params: Param) =
+        AiBuiltInTool(AiToolSpec(name, description, schema(*params)), AiToolGroup.INFO, McpToolPolicy.ALLOW)
+
+    /** One argument of a tool, as the schema describes it to a model. */
+    private class Param(
+        val name: String,
+        val description: String,
+        val type: String,
+        val required: Boolean,
+        val choices: List<String>,
+    )
+
+    private fun param(
+        name: String,
+        description: String,
+        type: String = "string",
+        required: Boolean = true,
+        choices: List<String> = emptyList(),
+    ) = Param(name, description, type, required, choices)
+
     /** A one-object schema whose every named property is a required string. */
-    private fun schema(vararg properties: Pair<String, String>): JsonObject = buildJsonObject {
+    private fun schema(vararg properties: Pair<String, String>): JsonObject =
+        schema(*properties.map { (name, description) -> param(name, description) }.toTypedArray())
+
+    /**
+     * A one-object schema. Optional arguments stay out of `required`, which is
+     * how every provider tells a model it may leave one out; a fixed set of
+     * answers becomes an `enum`.
+     */
+    private fun schema(vararg params: Param): JsonObject = buildJsonObject {
         put("type", "object")
         putJsonObject("properties") {
-            for ((name, description) in properties) {
-                putJsonObject(name) {
-                    put("type", "string")
-                    put("description", description)
+            for (param in params) {
+                putJsonObject(param.name) {
+                    put("type", param.type)
+                    put("description", param.description)
+                    if (param.choices.isNotEmpty()) {
+                        put("enum", buildJsonArray { param.choices.forEach { add(JsonPrimitive(it)) } })
+                    }
                 }
             }
         }
-        put("required", buildJsonArray { for ((name, _) in properties) add(JsonPrimitive(name)) })
+        put("required", buildJsonArray { params.filter { it.required }.forEach { add(JsonPrimitive(it.name)) } })
     }
 }
 

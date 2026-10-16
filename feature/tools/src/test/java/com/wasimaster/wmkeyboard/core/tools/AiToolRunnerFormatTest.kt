@@ -54,4 +54,36 @@ class AiToolRunnerFormatTest {
         val page = WebFetchClient.Page("", "Body.", truncated = false)
         assertEquals("https://a.test\n\nBody.", AiToolRunner.formatPage(page, "https://a.test", "[cut]"))
     }
+    @Test
+    fun `an image result gives the picture and the page it is on`() {
+        val text = AiToolRunner.formatImages(
+            listOf(ImageResult("Capybara", "https://t.test/s.jpg", "https://i.test/c.jpg", "image/jpeg", "https://p.test/zoo")),
+            "nothing",
+        )
+        assertTrue(text.startsWith("1. Capybara"))
+        assertTrue("Image: https://i.test/c.jpg" in text)
+        assertTrue("Page: https://p.test/zoo" in text)
+        assertEquals("nothing", AiToolRunner.formatImages(emptyList(), "nothing"))
+    }
+
+    @Test
+    fun `a definition keeps its part of speech, senses and an example`() {
+        val entry = DictEntry(
+            word = "tide",
+            phonetic = "/taɪd/",
+            audioUrl = null,
+            meanings = listOf(
+                DictMeaning(
+                    partOfSpeech = "noun",
+                    definitions = listOf(DictDefinition("The rise and fall of the sea.", "The tide is out.", emptyList())),
+                    synonyms = listOf("flow"),
+                    antonyms = emptyList(),
+                ),
+            ),
+        )
+        val text = AiToolRunner.formatDefinitions(listOf(entry))
+        assertTrue(text.startsWith("tide /taɪd/"))
+        assertTrue("noun:\n1. The rise and fall of the sea. (e.g. \"The tide is out.\")" in text)
+        assertTrue("Synonyms: flow" in text)
+    }
 }

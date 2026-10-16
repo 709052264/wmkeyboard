@@ -84,6 +84,8 @@ internal fun AiToolSettings(
     // MCP servers (#573): a turned-on server's tools take rounds like the
     // built-in two, so the rounds slider shows for them too.
     val mcpOn = settings.watch { s -> s.ai.mcpServers.any { it.enabled } }
+    // The keyboard's own tools (#698), counted the way the runner offers them.
+    val builtInsOn = settings.watch { builtInToolsOn(it.ai.toolPolicies) }
     // What the chosen provider needs, and where the text goes, both ride on
     // the heading's "?" rather than as paragraphs between the controls.
     val setupNote = when (aiProvider) {
@@ -441,6 +443,15 @@ internal fun AiToolSettings(
             ) { scope.launch { repository.setAiToolWebFetch(it) } }
         }
         item {
+            NavRow(
+                title = R.string.toolai_ai_builtin_title,
+                subtitle = stringResource(R.string.toolai_ai_builtin_subtitle),
+                value = numberFormat.format(builtInsOn),
+                route = AI_BUILT_IN_TOOLS_ROUTE,
+                onClick = { onNavigate(AI_BUILT_IN_TOOLS_ROUTE) },
+            )
+        }
+        item {
             // The count is of the servers that are on, which is what decides
             // whether the model is offered anything from them at all.
             val enabledServers = settings.watch { s -> s.ai.mcpServers.count { it.enabled } }
@@ -452,7 +463,7 @@ internal fun AiToolSettings(
                 onClick = { onNavigate("ai_mcp") },
             )
         }
-        item(visible = toolFetch || (toolSearch && searchReady) || mcpOn) {
+        item(visible = toolFetch || (toolSearch && searchReady) || mcpOn || builtInsOn > 0) {
             SliderSetting(
                 R.string.toolai_ai_tool_rounds_title,
                 subtitle = stringResource(R.string.toolai_ai_tool_rounds_subtitle),

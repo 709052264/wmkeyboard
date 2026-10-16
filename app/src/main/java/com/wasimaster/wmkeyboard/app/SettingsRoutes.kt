@@ -184,6 +184,7 @@ internal object SettingsRoutes {
         "ai_chat",
         "ai_chat/{conversationId}",
         "ai_action_edit/{actionId}",
+        "ai_tools",
         "ai_mcp",
         "ai_mcp_edit/{serverId}",
         "symbol_set_edit/{setId}",

@@ -4563,6 +4563,13 @@ data class AiSettings(
      */
     val toolMaxRounds: Int = 3,
     /**
+     * What a model may do with each of the keyboard's own tools beyond search
+     * and fetch (#698): Run, Ask first, or Off, by tool name. Holds only what
+     * the user changed; a tool with no entry gets its catalogue default from
+     * `AiTools.policyOf`.
+     */
+    val toolPolicies: Map<String, McpToolPolicy> = emptyMap(),
+    /**
      * MCP servers whose tools a model may call (#573). Each tool has its own
      * Allow / Ask / Off policy inside its server; see `McpServerSpec`.
      */
@@ -10200,6 +10207,7 @@ class SettingsRepository(private val context: Context) {
         private val AI_TOOL_WEB_SEARCH = booleanPreferencesKey("ai_tool_web_search")
         private val AI_TOOL_WEB_FETCH = booleanPreferencesKey("ai_tool_web_fetch")
         private val AI_TOOL_MAX_ROUNDS = intPreferencesKey("ai_tool_max_rounds")
+        private val AI_TOOL_POLICIES = stringPreferencesKey("ai_tool_policies")
         private val AI_MCP_SERVERS = stringPreferencesKey("ai_mcp_servers")
         private val AI_MCP_HEADERS = stringPreferencesKey("ai_mcp_headers")
         private val AI_PROVIDER_HEADERS = stringPreferencesKey("ai_provider_headers")
@@ -12297,6 +12305,7 @@ class SettingsRepository(private val context: Context) {
             toolWebSearch = p[AI_TOOL_WEB_SEARCH] ?: defaults.ai.toolWebSearch,
             toolWebFetch = p[AI_TOOL_WEB_FETCH] ?: defaults.ai.toolWebFetch,
             toolMaxRounds = p[AI_TOOL_MAX_ROUNDS] ?: defaults.ai.toolMaxRounds,
+            toolPolicies = McpServerCodec.decodePolicies(p[AI_TOOL_POLICIES].orEmpty()),
             mcpServers = McpServerCodec.decodeServers(p[AI_MCP_SERVERS].orEmpty()),
             mcpHeaders = McpServerCodec.decodeHeaders(p[AI_MCP_HEADERS].orEmpty()),
             providerHeaders = McpServerCodec.decodeHeaders(p[AI_PROVIDER_HEADERS].orEmpty()),
@@ -16538,6 +16547,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiToolMaxRounds(value: Int) =
         editPrefs { it[AI_TOOL_MAX_ROUNDS] = value.coerceIn(AiToolRoundsRange) }
+
+    /** Sets what a model may do with one of the keyboard's own tools (#698). */
+    suspend fun setAiToolPolicy(tool: String, policy: McpToolPolicy) =
+        editPrefs { prefs ->
+            val current = McpServerCodec.decodePolicies(prefs[AI_TOOL_POLICIES].orEmpty())
+            prefs[AI_TOOL_POLICIES] = McpServerCodec.encodePolicies(current + (tool to policy))
+        }
 
     /**
      * Saves one MCP server (#573), replacing the one with the same id, and its

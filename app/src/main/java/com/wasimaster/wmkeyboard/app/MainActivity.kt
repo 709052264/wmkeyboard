@@ -2229,6 +2229,15 @@ private fun SettingsNavGraph(
                 AiActionEditor(repository, settings, actionId) { navController.popBackStack() }
             }
         }
+        composable(AI_BUILT_IN_TOOLS_ROUTE) {
+            SettingsScreen(
+                stringResource(R.string.toolai_ai_builtin_screen_title),
+                { navController.popBackStack() },
+                route = AI_BUILT_IN_TOOLS_ROUTE,
+            ) {
+                AiBuiltInToolSettings(repository, settings)
+            }
+        }
         composable("ai_mcp") {
             SettingsScreen(
                 stringResource(R.string.toolai_ai_mcp_screen_title),

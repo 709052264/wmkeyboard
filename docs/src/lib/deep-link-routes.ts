@@ -243,6 +243,7 @@ export const ROUTES: RouteSpec[] = [
 	},
 	{ pattern: 'ai_reply_tones', label: 'AI reply tones', group: 'Tools' },
 	{ pattern: 'ai_history', label: 'AI history', group: 'Tools' },
+	{ pattern: 'ai_tools', label: "The keyboard's own tools the AI can use", group: 'Tools' },
 	{ pattern: 'ai_mcp', label: 'MCP servers for AI chat', group: 'Tools' },
 	{
 		pattern: 'ai_mcp_edit/{serverId}',
@@ -352,7 +353,7 @@ export const TOOL_NAMES = [
 	'CURSOR_RIGHT', 'CURSOR_UP', 'CURSOR_DOWN', 'CURSOR_HOME', 'CURSOR_END', 'PAGE_UP', 'PAGE_DOWN',
 	'CURSOR_WORD_LEFT', 'CURSOR_WORD_RIGHT', 'SELECT_WORD', 'SELECT_LINE', 'SELECT_ALL', 'SELECT_MODE', 'COPY',
 	'CUT', 'PASTE', 'HIDE_KEYBOARD', 'PERSISTENT', 'SELECTION_ACTIONS', 'LEARN_FROM_TEXT',
-	'PHONETIC_ENGLISH', 'KDE_CONNECT', 'STATISTICS', 'FIND_REPLACE', 'NOTES', 'AI_REPLY', 'LOCATION', 'CLOCK',
+	'PHONETIC_ENGLISH', 'KDE_CONNECT', 'STATISTICS', 'FIND_REPLACE', 'NOTES', 'AI_REPLY', 'LOCATION', 'CLOCK', 'LANGUAGE',
 ];
 
 /**

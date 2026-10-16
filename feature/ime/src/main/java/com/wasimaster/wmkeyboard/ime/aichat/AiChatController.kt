@@ -363,7 +363,7 @@ object AiChatController {
             ?: throw java.io.IOException(
                 context.getString(R.string.ime_ai_chat_error_no_model),
             )
-        val runner = AiToolRunner(context, settings, toolApprover(seq))
+        val runner = AiToolRunner(context, settings, toolApprover(seq), toolHost(context, settings))
         val tools = runner.tools()
         // A local model has no function calling, so the sentinel protocol has
         // to be part of the session's own system prompt — the session is built
@@ -486,7 +486,7 @@ object AiChatController {
                 )
             }
         var lastPartialAt = 0L
-        val runner = AiToolRunner(context, settings, toolApprover(seq))
+        val runner = AiToolRunner(context, settings, toolApprover(seq), toolHost(context, settings))
         val completion = AiClient.completeWithTools(
             config = config,
             system = AiPrompts.chatPrompt(),
@@ -547,6 +547,10 @@ object AiChatController {
         show = { ask -> postToolShown(seq, ask) },
         shown = { done -> postToolShown(seq, done) },
     )
+
+    /** What the keyboard module lends the chat's tools (#698). */
+    private fun toolHost(context: Context, settings: KeyboardSettings): KeyboardAiToolHost =
+        KeyboardAiToolHost(context, hints = settings.enabledLanguages.map { it.id })
 
     /**
      * The user's answer to the call asking now. False when none is, which

@@ -36,6 +36,22 @@
     <string name="ftools_ai_tool_no_results">No results.</string>
     <!-- Appended to a fetched page that was cut at the character budget. -->
     <string name="ftools_ai_tool_truncated">[the page continues past this point and was cut]</string>
+    <!-- The keyboard's own tools (#698). A lookup found nothing; %1$s is what was looked up. -->
+    <string name="ftools_ai_tool_not_found">Nothing was found for \"%1$s\".</string>
+    <!-- The weather tool was asked for no place, and none is saved in its settings. -->
+    <string name="ftools_ai_tool_weather_no_place">No place was given, and the user has not saved one in the weather tool. Ask the user which place they mean.</string>
+    <!-- Every dictionary source is switched off in the dictionary tool's settings. -->
+    <string name="ftools_ai_tool_no_dictionary">Every dictionary source is turned off in this keyboard, so the word cannot be looked up. Answer from what you already know.</string>
+    <!-- The translator does not know the language; %1$s is what the model wrote. -->
+    <string name="ftools_ai_tool_unknown_language">\"%1$s\" is not a language the translator knows. Use a language code such as en, bn or fr.</string>
+    <!-- The exchange rates do not cover the currency; %1$s is its code. -->
+    <string name="ftools_ai_tool_unknown_currency">%1$s is not a currency the exchange rates cover. Use a three-letter code such as USD or EUR.</string>
+    <!-- The unit converter does not know the unit; %1$s is what the model wrote. -->
+    <string name="ftools_ai_tool_unknown_unit">\"%1$s\" is not a unit the converter knows.</string>
+    <!-- Two units that measure different things; %1$s and %2$s are their symbols. -->
+    <string name="ftools_ai_tool_units_mismatch">%1$s and %2$s measure different things, so one cannot be converted to the other.</string>
+    <!-- The calculator could not work the expression out; %1$s is its own message. -->
+    <string name="ftools_ai_tool_calc_failed">The expression could not be worked out: %1$s</string>
 
     <!-- Why a tool call failed, as the AI chat and the AI panel show it under
          the answer. Unlike the strings above, these are for the user. -->
@@ -47,6 +63,22 @@
     <string name="ftools_ai_tool_reason_missing">The model left out the %1$s</string>
     <!-- The model asked to read something that is not an http or https address. -->
     <string name="ftools_ai_tool_reason_bad_url">Not a web address the keyboard will open</string>
+    <!-- A lookup by one of the keyboard's own tools (#698) found nothing. -->
+    <string name="ftools_ai_tool_reason_not_found">Nothing found</string>
+    <!-- The weather was asked for with no place, and none is saved. -->
+    <string name="ftools_ai_tool_reason_no_place">No place given, and none saved in the weather tool</string>
+    <!-- Every dictionary source is off. -->
+    <string name="ftools_ai_tool_reason_no_dictionary">Every dictionary source is turned off</string>
+    <!-- No dictionary source could be reached. -->
+    <string name="ftools_ai_tool_reason_dictionary_offline">No dictionary could be reached</string>
+    <!-- %1$s is the language the model asked for. -->
+    <string name="ftools_ai_tool_reason_unknown_language">Not a language the translator knows: %1$s</string>
+    <!-- %1$s is the currency code the model asked for. -->
+    <string name="ftools_ai_tool_reason_unknown_currency">Not a currency the rates cover: %1$s</string>
+    <!-- %1$s is the unit the model asked for. -->
+    <string name="ftools_ai_tool_reason_unknown_unit">Not a unit the converter knows: %1$s</string>
+    <!-- %1$s and %2$s are two unit symbols, such as kg and km. -->
+    <string name="ftools_ai_tool_reason_units_mismatch">%1$s and %2$s measure different things</string>
 
     <!-- MCP servers the user added to the AI tool (#573). For the model:
          handed back as the result of a call. -->

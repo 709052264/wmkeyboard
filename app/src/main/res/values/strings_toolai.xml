@@ -180,6 +180,40 @@
     <string name="toolai_ai_tool_rounds_info">Each round is another request to the model, carrying everything it has found so far. Higher digs deeper into a question and costs more; lower keeps one answer cheap and quick.</string>
 
     <!--
+      The keyboard's own tools the model can use (#698): the weather, the
+      dictionary, the converters and so on. Each has Run / Ask / Off.
+    -->
+    <string name="toolai_ai_builtin_title">Keyboard tools</string>
+    <string name="toolai_ai_builtin_subtitle">Let the model use the keyboard\'s own tools, such as the weather, the calculator and the translator</string>
+    <!-- Title of the screen that lists them. -->
+    <string name="toolai_ai_builtin_screen_title">Keyboard tools</string>
+    <string name="toolai_ai_builtin_info">Run lets the model use a tool whenever it needs to. Ask shows you each request first, with what it will send, and you allow it or not. Off keeps the tool out of the model\'s reach. Each tool that is on is described to the model in every request, which costs a little each time, and a small model on your device copes best with only a few.</string>
+    <string name="toolai_ai_builtin_info_group_title">Look things up</string>
+    <string name="toolai_ai_builtin_info_group_info">These read the outside world, the way the tools on the toolbar do, through the same services and settings.</string>
+    <string name="toolai_ai_builtin_data_group_title">Your things</string>
+    <string name="toolai_ai_builtin_data_group_info">These read what is on your phone: your calendar, your notes, where you are. They ask first until you say otherwise, so text the model read on a web page cannot reach them without you seeing it.</string>
+    <string name="toolai_ai_builtin_picture_group_title">Pictures you send</string>
+    <string name="toolai_ai_builtin_picture_group_info">These work on a picture you attached in the chat.</string>
+    <string name="toolai_ai_builtin_action_group_title">Do things</string>
+    <string name="toolai_ai_builtin_action_group_info">These change something on your phone. None of them can delete anything. They ask first until you say otherwise.</string>
+    <string name="toolai_ai_builtin_image_search_title">Image search</string>
+    <string name="toolai_ai_builtin_image_search_subtitle">Finds pictures through the search tool\'s service</string>
+    <string name="toolai_ai_builtin_weather_title">Weather</string>
+    <string name="toolai_ai_builtin_weather_subtitle">Today\'s and tomorrow\'s weather for any place, or for the place saved in the weather tool</string>
+    <string name="toolai_ai_builtin_wikipedia_title">Wikipedia</string>
+    <string name="toolai_ai_builtin_wikipedia_subtitle">Reads the summary of an article, in the Wikipedia language that the encyclopedia tool uses</string>
+    <string name="toolai_ai_builtin_define_word_title">Dictionary</string>
+    <string name="toolai_ai_builtin_define_word_subtitle">Looks a word up in the dictionary tool\'s sources</string>
+    <string name="toolai_ai_builtin_translate_title">Translate</string>
+    <string name="toolai_ai_builtin_translate_subtitle">Translates with the translate tool\'s engine, on your device or online as you set it there</string>
+    <string name="toolai_ai_builtin_convert_currency_title">Currency converter</string>
+    <string name="toolai_ai_builtin_convert_currency_subtitle">Converts money at live exchange rates from the currency tool\'s sources</string>
+    <string name="toolai_ai_builtin_convert_units_title">Unit converter</string>
+    <string name="toolai_ai_builtin_convert_units_subtitle">Converts lengths, weights, temperatures and other measurements</string>
+    <string name="toolai_ai_builtin_calculate_title">Calculator</string>
+    <string name="toolai_ai_builtin_calculate_subtitle">Works sums out exactly, on your device, instead of guessing</string>
+
+    <!--
       MCP servers (#573): tools that run on a server the user adds. MCP is
       short for Model Context Protocol, a product name. Keep "MCP" in English.
     -->

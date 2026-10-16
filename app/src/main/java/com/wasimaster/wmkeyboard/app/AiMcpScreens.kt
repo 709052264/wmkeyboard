@@ -793,24 +793,33 @@ private fun McpToolRow(tool: McpTool, policy: McpToolPolicy, onPick: (McpToolPol
                         }
                     }
                 }
-                val choices = McpToolPolicy.entries
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                ) {
-                    choices.forEachIndexed { index, choice ->
-                        SegmentedButton(
-                            selected = policy == choice,
-                            onClick = { onPick(choice) },
-                            shape = SegmentedButtonDefaults.itemShape(index, choices.size),
-                            label = { Text(stringResource(choice.labelRes()), maxLines = 1) },
-                        )
-                    }
-                }
+                ToolPolicyChoices(policy, onPick, Modifier.padding(top = 8.dp))
             }
         },
     )
+}
+
+/**
+ * Run / Ask / Off for one tool, as a row of three. Shared by a server's tools
+ * and the keyboard's own (#698), which carry the same choice.
+ */
+@Composable
+internal fun ToolPolicyChoices(
+    policy: McpToolPolicy,
+    onPick: (McpToolPolicy) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val choices = McpToolPolicy.entries
+    SingleChoiceSegmentedButtonRow(modifier = modifier.fillMaxWidth()) {
+        choices.forEachIndexed { index, choice ->
+            SegmentedButton(
+                selected = policy == choice,
+                onClick = { onPick(choice) },
+                shape = SegmentedButtonDefaults.itemShape(index, choices.size),
+                label = { Text(stringResource(choice.labelRes()), maxLines = 1) },
+            )
+        }
+    }
 }
 
 @Composable

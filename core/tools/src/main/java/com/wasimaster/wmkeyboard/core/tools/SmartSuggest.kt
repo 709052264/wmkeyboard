@@ -819,6 +819,13 @@ object SmartSuggest {
     }
 
     /**
+     * A unit by any name the chips understand ("km", "miles", "°F", "light
+     * years"), for the AI's converter (#698). Read as the glued form, so the
+     * one-letter abbreviations count: a model naming a unit means a unit.
+     */
+    fun unitNamed(name: String): UnitConvert.ConvUnit? = resolveUnit(name.trim().replace(" ", ""), spaced = false)
+
+    /**
      * A typed unit token → catalog unit. [spaced] is false for the glued
      * "30c" form, which is the only place the one-letter temperature and
      * mass abbreviations are safe — "30 c" is far more likely to be prose.

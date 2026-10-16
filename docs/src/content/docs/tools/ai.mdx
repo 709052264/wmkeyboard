@@ -252,6 +252,33 @@ In [AI chat](/tools/ai-chat/) the record is saved with the answer, so reopening 
 
 Every search and every page fetch is also a row in the [network activity log](/privacy/network-activity/), filed under **AI tool use** rather than **Web search**: you didn't run that search, the model did, and the log should say which.
 
+## The keyboard's own tools
+
+<SettingsPath path="Tools / AI writing tools / Keyboard tools" />
+
+Besides searching and reading pages, the model can use the keyboard's own tools, the same ones on your toolbar, through the same services and with the same settings. Ask "what's 18% of 2,450 in euros?" and it works the sum out on the calculator and converts it at a live rate instead of guessing either.
+
+Each tool has its own **Run**, **Ask** or **Off**, the same three choices an [MCP server's tools](#run-ask-or-off) have:
+
+- **Run**: the model uses it whenever it needs to.
+- **Ask**: the model's request stops and waits for you, with what it is about to do and the values it will send. See [Allowing a call](#allowing-a-call).
+- **Off**: the model isn't told the tool exists.
+
+| Tool | What it does | Starts on |
+|---|---|---|
+| **Image search** | Finds pictures through the [search tool's](/tools/search/) service. Only listed once one is set up. | Run |
+| **Weather** | Today's and tomorrow's weather for any place, or the place saved in the [weather tool](/tools/instruments/#weather) when the model names none. | Run |
+| **Wikipedia** | Reads the summary of the best-matching article, in the Wikipedia language the [encyclopedia tool](/tools/search/#reading-wikipedia) uses. | Run |
+| **Dictionary** | Looks a word up in the [dictionary tool's](/tools/search/#looking-up-definitions) sources, in your order. | Run |
+| **Translate** | Translates with the [translate tool's](/tools/translate/) engine: on your device, online, or on your device first, as set there. | Run |
+| **Currency converter** | Converts money at live rates from the [currency tool's](/tools/utilities/#converting-units-and-currencies) sources, coins included. | Run |
+| **Unit converter** | Converts lengths, weights, temperatures and other measurements. | Run |
+| **Calculator** | Works an expression out exactly, on your phone, with the [calculator's](/tools/utilities/#doing-the-math) degree and precision settings. | Run |
+
+Every tool that is on is described to the model in every request, whether it gets used or not. That costs a little each time, and a small model on your device copes best with a short list, so turn off what you don't want it reaching for.
+
+While one runs, the line over the answer says what it is doing: **Checking the weather in Dhaka…**, **Converting 12 USD → EUR…**. Unfolded, a Wikipedia lookup lists the article it read, and an image search the pages its pictures came from.
+
 ## MCP servers
 
 <SettingsPath path="Tools / AI writing tools / MCP servers" />
@@ -365,6 +392,7 @@ Like every tool, AI has an **Enabled** toggle (on by default) and, if [colorful 
 - **Model picker on the panel**: on by default. Adds a horizontally-scrolling row to the panel itself for switching between every configured provider and downloaded local model in one tap. It's hidden automatically whenever there are fewer than two to choose from.
 - **Show a changes view**: on by default, see [Seeing what changed](#seeing-what-changed). **Open a result on the changes** below it is off.
 - **Let the model search the web**: on by default, and only shown once a search service is set up. **Let the model read a web page** below it is off, and **Lookups per answer** defaults to 3. See [Letting the model look things up](#letting-the-model-look-things-up).
+- **Keyboard tools**: Run, Ask or Off for each of the keyboard's own tools the model can use, see [The keyboard's own tools](#the-keyboards-own-tools). The information tools start on Run.
 - **MCP servers**: the servers whose tools the model can use, see [MCP servers](#mcp-servers). None are set up to start with.
 - **Chat with the model**: opens the conversation screen, see [AI chat](/tools/ai-chat/).
 - **Enter sends the message**: off by default. In the chat on the keyboard, Enter starts a new line and the send button sends. Turn this on to send with Enter instead.
@@ -409,6 +437,7 @@ The panel itself sends nothing until you actually tap an action chip: opening th
 - **Report**: builds a draft in your mail app and hands it over. The app has no reporting server and sends nothing itself, so a report only exists if you send the mail. API keys are never part of it.
 - **History**: goes nowhere. It's a file in the app's private storage, off unless you turn it on, never written from a password field or in incognito, and deleted when you turn it off. It's deliberately left out of the backup file too, so it can't ride along in something you export and mail to yourself. There's no section for it to travel in, unlike the learned dictionary, which is a section of its own that you tick or leave alone. See [Your data](/privacy/data/).
 - **A lookup the model asked for**: goes to the service that answers it, and only when the model actually asks. A search carries the query the model wrote, not your field text, to whichever search backend you set up. A page fetch carries nothing but the request for that page. Both show in the [network activity log](/privacy/network-activity/) under **AI tool use**, and both are off entirely while [Data saver](/privacy/data-saver/) is holding web search back.
+- **One of the keyboard's own tools**: goes where that tool always sends it, and only when the model calls it. The weather goes to Open-Meteo, a translation to the translate tool's service (or nowhere, on your device), a rate lookup to the currency tool's sources, and so on. The calculator and the unit converter send nothing. Each request shows in the [network activity log](/privacy/network-activity/) under the tool it belongs to.
 - **A tool on an MCP server**: goes to the server you added, and only when the model calls that tool or you press Connect. A call carries the tool's name and the values the model wrote for it, with your headers. See [MCP servers](#mcp-servers).
 - **The changes view**: is computed on your phone. Comparing two pieces of text is arithmetic, not a request, so nothing is sent to build it.
 

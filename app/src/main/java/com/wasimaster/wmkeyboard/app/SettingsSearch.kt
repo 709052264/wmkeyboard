@@ -1696,6 +1696,17 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_diff_first_title, R.string.toolai_ai_diff_first_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_tool_search_title, R.string.toolai_ai_tool_search_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_tool_fetch_title, R.string.toolai_ai_tool_fetch_subtitle),
+    toolEntry(ToolbarTool.AI, R.string.toolai_ai_builtin_title, R.string.toolai_ai_builtin_subtitle),
+    // The keyboard's own tools (#698), on their own screen, one row each.
+    *builtInToolText.values.map { text ->
+        entry(
+            text.title,
+            text.subtitle,
+            R.string.toolai_ai_builtin_screen_title,
+            AI_BUILT_IN_TOOLS_ROUTE,
+            screenParent = R.string.home_tools_title,
+        )
+    }.toTypedArray(),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_mcp_title, R.string.toolai_ai_mcp_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_tool_rounds_title, R.string.toolai_ai_tool_rounds_subtitle),
     // The MCP server list's own row. Indexed on that screen: the tool page

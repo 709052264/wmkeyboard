@@ -109,4 +109,21 @@ object McpServerCodec {
         if (value.isBlank()) return emptyMap()
         return runCatching { json.decodeFromString(headersSerializer, value) }.getOrDefault(emptyMap())
     }
+
+    /**
+     * The policies the user set on the keyboard's own AI tools (#698), by tool
+     * name. Same shape and same enum as a server's [McpServerSpec.toolPolicies],
+     * so one choice row and one approval path serve both. A name no longer in
+     * the catalogue is kept rather than dropped: a downgrade and an upgrade
+     * again should not forget it.
+     */
+    fun encodePolicies(policies: Map<String, McpToolPolicy>): String =
+        json.encodeToString(policiesSerializer, policies)
+
+    fun decodePolicies(value: String): Map<String, McpToolPolicy> {
+        if (value.isBlank()) return emptyMap()
+        return runCatching { json.decodeFromString(policiesSerializer, value) }.getOrDefault(emptyMap())
+    }
+
+    private val policiesSerializer = MapSerializer(String.serializer(), McpToolPolicy.serializer())
 }

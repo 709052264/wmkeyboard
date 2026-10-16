@@ -443,8 +443,7 @@ import com.wasimaster.wmkeyboard.core.tools.LinkPreviewClient
 import com.wasimaster.wmkeyboard.core.tools.GifSources
 import com.wasimaster.wmkeyboard.core.tools.CommonsClient
 import com.wasimaster.wmkeyboard.core.tools.DeepLClient
-import com.wasimaster.wmkeyboard.core.tools.LibreTranslateClient
-import com.wasimaster.wmkeyboard.core.tools.TranslateServerClient
+import com.wasimaster.wmkeyboard.core.tools.OnlineTranslate
 import com.wasimaster.wmkeyboard.core.tools.GiphyClient
 import com.wasimaster.wmkeyboard.core.tools.SearxClient
 import com.wasimaster.wmkeyboard.core.tools.SearchBackend
@@ -458,6 +457,7 @@ import com.wasimaster.wmkeyboard.core.tools.MediaCategoryCache
 import com.wasimaster.wmkeyboard.core.aichat.AiChatMessage
 import com.wasimaster.wmkeyboard.core.aichat.AiChatStore
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
+import com.wasimaster.wmkeyboard.ime.aichat.KeyboardAiToolHost
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeEvent
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeModifiers
@@ -30932,7 +30932,7 @@ open class WMKeyboardService : InputMethodService() {
             // Tools reach the network on their own account (#470), so a user
             // who is holding web search back on mobile data is holding the
             // model's searches back with it — the run itself still goes.
-            val runner = AiToolRunner(applicationContext, settings, aiToolApprover(seq))
+            val runner = AiToolRunner(applicationContext, settings, aiToolApprover(seq), aiToolHost(settings))
             val tools = if (dataSaverStatus.decide(MeteredFeature.WEB_SEARCH) == MeteredDecision.ALLOWED) {
                 runner.tools()
             } else {
@@ -31103,6 +31103,15 @@ open class WMKeyboardService : InputMethodService() {
      * the response as it forms. Call under [Dispatchers.IO].
      */
     /** A shipped action's translated name, or the name the user gave it. */
+    /**
+     * What the keyboard lends the AI's own tools (#698): its on-device
+     * translator, reading the languages the user types in as its hints.
+     */
+    private fun aiToolHost(settings: KeyboardSettings): KeyboardAiToolHost = KeyboardAiToolHost(
+        applicationContext,
+        hints = listOf(_uiState.value.language.id) + settings.enabledLanguages.map { it.id },
+    )
+
     private fun aiActionLabel(spec: AiActionSpec): String =
         BuiltInAiActions.labelRes(spec)?.let { getString(it) } ?: spec.name
 
@@ -33511,76 +33520,22 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
-    /**
-     * Language pairs DeepL turned down this session, as "source>target", so a
-     * language it does not have costs one refused request rather than one per
-     * keystroke. Forgotten with the process, since DeepL keeps adding languages.
-     */
-    private val deeplRefusedPairs = HashSet<String>()
-
+    /** The online chain (#435, #331), shared with the AI's translate tool (#698). */
     private suspend fun translateOnline(
         settings: KeyboardSettings,
         source: String,
         target: String,
         sourceLang: String,
     ): Result<Translation> = withContext(Dispatchers.IO) {
-        // The user's own server outranks every service (#435). It has no
-        // fallback: whatever it answers, error included, is the answer, since
-        // the point of running it is that the text goes nowhere else.
-        val server = settings.translate.server
-        if (server.configured) {
-            val job = coroutineContext[Job]
-            return@withContext runCancellable {
-                TranslateServerClient.translate(
-                    text = source,
-                    target = target,
-                    url = server.url,
-                    model = server.model,
-                    apiKey = server.apiKey,
-                    source = sourceLang.ifBlank { TranslateClient.AUTO },
-                    isActive = { job?.isActive != false },
-                )
-            }
-        }
-        // DeepL first while the user has set it up (#331). A 400 is DeepL not
-        // having the language, so that pair goes to the usual service instead;
-        // any other failure is the answer, since it is the service they chose.
-        val deepl = settings.translate.deepl
-        val pair = sourceLang.ifBlank { TranslateClient.AUTO } + ">" + target
-        if (deepl.translateActive && pair !in deeplRefusedPairs) {
-            val viaDeepL = runCancellable {
-                DeepLClient.translate(
-                    text = source,
-                    target = target,
-                    apiKey = deepl.apiKey,
-                    endpoint = deepl.endpoint,
-                    source = sourceLang.ifBlank { TranslateClient.AUTO },
-                )
-            }
-            val failure = viaDeepL.exceptionOrNull()
-            if (failure !is ToolHttpException || failure.status != HTTP_BAD_REQUEST) return@withContext viaDeepL
-            deeplRefusedPairs += pair
-        }
+        val job = coroutineContext[Job]
         runCancellable {
-            // Configured instance wins. Without one the F-Droid build
-            // still translates through the keyless public endpoint,
-            // which is a working feature and not worth removing.
-            if (settings.selfHosted.libreTranslateUrl.isNotBlank()) {
-                LibreTranslateClient.translate(
-                    text = source,
-                    target = target,
-                    endpoint = settings.selfHosted.libreTranslateUrl,
-                    apiKey = settings.selfHosted.libreTranslateApiKey,
-                    source = sourceLang.ifBlank { TranslateClient.AUTO },
-                )
-            } else {
-                TranslateClient.translate(
-                    text = source,
-                    targetLang = target,
-                    apiKey = ToolApiKeys.translate(settings),
-                    sourceLang = sourceLang.ifBlank { TranslateClient.AUTO },
-                )
-            }
+            OnlineTranslate.translate(
+                settings = settings,
+                text = source,
+                target = target,
+                source = sourceLang,
+                isActive = { job?.isActive != false },
+            )
         }
     }
 
@@ -42383,9 +42338,6 @@ open class WMKeyboardService : InputMethodService() {
          * many animated cells to lay out.
          */
         private const val OFFLINE_GIF_LIMIT = 240
-
-        /** What DeepL answers for a language it does not have; see [translateOnline]. */
-        private const val HTTP_BAD_REQUEST = 400
 
         /**
          * The glide sandbox row, by its title's resource name. A string, not
