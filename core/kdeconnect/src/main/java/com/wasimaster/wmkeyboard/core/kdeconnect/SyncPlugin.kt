@@ -108,6 +108,13 @@ data class KdePairCode(
     companion object {
         fun parse(link: String): KdePairCode? {
             val uri = runCatching { java.net.URI(link.trim()) }.getOrNull() ?: return null
+            // The web form the computer's QR code holds, which a phone camera
+            // opens: https://<docs>/open/#wmkeyboard://pair?... (the fragment
+            // comes back decoded once).
+            if (uri.scheme.equals("https", ignoreCase = true) && uri.rawPath.orEmpty().trimEnd('/') == "/open") {
+                val inner = uri.fragment?.trim().orEmpty()
+                return if (inner.startsWith("wmkeyboard://pair")) parse(inner) else null
+            }
             if (uri.scheme != "wmkeyboard" || uri.host != "pair") return null
             val query = uri.rawQuery ?: return null
             val q = query.split('&').mapNotNull { part ->

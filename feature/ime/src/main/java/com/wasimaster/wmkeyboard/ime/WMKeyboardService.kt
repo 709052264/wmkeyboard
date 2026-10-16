@@ -24706,6 +24706,7 @@ open class WMKeyboardService : InputMethodService() {
             is KdeAction.Notice -> kdeNotice(action.text)
             KdeAction.OpenSettings -> openToolSettings(ToolbarTool.KDE_CONNECT)
             KdeAction.OpenDevices -> openRoute(KdeConnectHub.DEVICES_ROUTE)
+            KdeAction.ScanPairCode -> if (BuildConfig.ENABLE_ML_KIT_SCANNERS) onPanelChange(PanelMode.QR_SCAN)
         }
     }
 

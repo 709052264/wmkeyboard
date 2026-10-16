@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- The KDE Connect tool's panel (issue #285). "KDE Connect" itself is a name and is not translated. -->
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- Off -->
     <string name="ime_kde_intro_title">Use your computer from here</string>
     <string name="ime_kde_intro_body">Pair a computer that runs KDE Connect, GSConnect or Valent. Then move its mouse, type on it, control its music, and share the clipboard and files. It can type into your phone too.</string>
@@ -18,6 +18,10 @@
     <string name="ime_kde_pair">Pair</string>
     <string name="ime_kde_refresh">Refresh</string>
     <string name="ime_kde_add_by_address">Add by address</string>
+    <string name="ime_kde_scan_code">Scan a code</string>
+    <!-- %1$s is the computer's name. -->
+    <string name="ime_kde_pairing_by_code">Pairing with <xliff:g id="name">%1$s</xliff:g>…</string>
+    <string name="ime_kde_pairing_by_code_unnamed">the computer</string>
     <string name="ime_kde_address_placeholder">IP address or host name</string>
     <string name="ime_kde_address_add">Add</string>
     <string name="ime_kde_help_title">Nothing shows up?</string>

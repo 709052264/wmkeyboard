@@ -117,6 +117,8 @@ import com.wasimaster.wmkeyboard.ime.KeyboardClipboard
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
+import com.wasimaster.wmkeyboard.core.kdeconnect.KdePairCode
 import java.io.File
 import java.util.Locale
 import java.util.concurrent.Executors
@@ -1091,6 +1093,9 @@ private fun QrScanContent(
     val feedback = LocalKeyPressFeedback.current
 
     var result by remember { mutableStateOf<ScannedCode?>(null) }
+    // A computer's pairing code (WMK Desktop): pairs straight away rather
+    // than typing the link. The name it shows while that happens.
+    var pairingWith by remember { mutableStateOf<String?>(null) }
     var camera by remember { mutableStateOf<Camera?>(null) }
     var torchOn by remember { mutableStateOf(false) }
     // Current zoom, driven by pinch and shown as a pill. Zooming into a
@@ -1161,7 +1166,13 @@ private fun QrScanContent(
                             // auto-insert the text is already committed and
                             // the card shows what went in (Rescan re-arms).
                             result = ScannedCode(raw, barcodeFormatLabelRes(hit.format))
-                            if (autoInsert) onInsert(raw)
+                            val pair = KdePairCode.parse(raw)
+                            if (pair != null) {
+                                KdeConnectHub.attach(context)
+                                if (KdeConnectHub.pairByCode(raw)) pairingWith = pair.name
+                            } else if (autoInsert) {
+                                onInsert(raw)
+                            }
                         }
                     }
                     .addOnCompleteListener { busy = false }
@@ -1206,7 +1217,7 @@ private fun QrScanContent(
                 val slot = if (url != null) index else index + 1
                 when (slot) {
                     0 -> url?.let { feedback(); onOpenUrl(it) }
-                    1 -> { feedback(); result = null }
+                    1 -> { feedback(); result = null; pairingWith = null }
                     2 -> {
                         feedback()
                         copyPlainText(context, code.value)
@@ -1228,7 +1239,17 @@ private fun QrScanContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                LinkPreviewCard(linkPreviews && url != null, preview)
+                LinkPreviewCard(linkPreviews && url != null && pairingWith == null, preview)
+                pairingWith?.let { name ->
+                    Text(
+                        stringResource(R.string.ime_kde_pairing_by_code, name.ifEmpty { stringResource(R.string.ime_kde_pairing_by_code_unnamed) }),
+                        color = kb.suggestionText,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                }
                 // Easter egg: the one link every QR scanner eventually meets.
                 // Matched on the raw payload, not on `url` — ClipLinks.asUrl
                 // only accepts a bare URL and a rickroll deserves recognition
@@ -1288,6 +1309,7 @@ private fun QrScanContent(
                     ) {
                         feedback()
                         result = null
+                        pairingWith = null
                     }
                     CaptureActionButton(
                         icon = Icons.Outlined.ContentCopy,

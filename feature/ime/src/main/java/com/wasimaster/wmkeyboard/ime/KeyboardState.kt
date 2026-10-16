@@ -2006,6 +2006,9 @@ sealed interface KdeAction {
     data class Notice(val text: String) : KdeAction
     data object OpenSettings : KdeAction
     data object OpenDevices : KdeAction
+
+    /** Open the QR scanner for a computer's pairing code (full builds). */
+    data object ScanPairCode : KdeAction
 }
 
 /** Weather panel state, owned by the service (it does the fetching). */
