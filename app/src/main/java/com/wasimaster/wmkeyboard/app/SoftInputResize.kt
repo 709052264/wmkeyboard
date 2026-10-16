@@ -3,9 +3,15 @@ package com.wasimaster.wmkeyboard.app
 import android.os.Build
 import android.view.Window
 import android.view.WindowManager
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import java.util.WeakHashMap
 
 /**
@@ -39,6 +45,35 @@ internal fun ResizeForKeyboard() {
     DisposableEffect(window) {
         SoftInputResize.acquire(window)
         onDispose { SoftInputResize.release(window) }
+    }
+}
+
+/**
+ * Re-pans the window whenever the keyboard changes height, so a focused field
+ * that was cleared once stays cleared (#679).
+ *
+ * The pan is ViewRootImpl's: on each draw it checks whether the focused view is
+ * behind the keyboard, and for Compose that view is the whole AndroidComposeView,
+ * whose getFocusedRect reports the focused node (the text field). But it only
+ * re-checks after a layout pass; a draw with no layout keeps the old offset.
+ * A field gets its first pan because focusing it lays out for a while (cursor,
+ * label, ripple) while the keyboard comes up. Once that settles, a keyboard that
+ * grows afterwards, a suggestion strip or toolbar row arriving with the field's
+ * input, or one that came up late, changes the window's visible insets without
+ * any layout, and the field stays where the old pan left it, under the keys.
+ *
+ * Asking the root view for a layout on every change of the keyboard's inset
+ * makes ViewRootImpl look again. Nothing in Compose is dirty, so the pass is a
+ * no-op apart from that. Harmless under [ResizeForKeyboard]: with adjustNothing
+ * there are no visible insets to pan for.
+ */
+@Composable
+internal fun RepanOnKeyboardResize() {
+    val view = LocalView.current
+    val density = LocalDensity.current
+    val ime = WindowInsets.ime
+    LaunchedEffect(view, density, ime) {
+        snapshotFlow { ime.getBottom(density) }.collect { view.requestLayout() }
     }
 }
 

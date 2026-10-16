@@ -352,6 +352,9 @@ class MainActivity : FragmentActivity() {
                         pending = pending,
                         onPendingHandled = { pendingNav.value = null },
                     )
+                    // Settings fields rely on the window panning; keep it in
+                    // step with a keyboard that changes height under them.
+                    RepanOnKeyboardResize()
                     // The app lock's own PIN, password or pattern sheet. Once,
                     // up here, like the system prompt it stands in for.
                     AppLockSecretPrompt(appLock)
