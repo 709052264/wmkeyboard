@@ -1,0 +1,303 @@
+[
+ {
+  "text": "Your",
+  "startMs": 0,
+  "endMs": 231,
+  "timestampMs": 116,
+  "confidence": null
+ },
+ {
+  "text": " keyboard",
+  "startMs": 231,
+  "endMs": 617,
+  "timestampMs": 424,
+  "confidence": null
+ },
+ {
+  "text": " can",
+  "startMs": 617,
+  "endMs": 810,
+  "timestampMs": 713,
+  "confidence": null
+ },
+ {
+  "text": " do",
+  "startMs": 810,
+  "endMs": 964,
+  "timestampMs": 887,
+  "confidence": null
+ },
+ {
+  "text": " math.",
+  "startMs": 964,
+  "endMs": 1234,
+  "timestampMs": 1099,
+  "confidence": null
+ },
+ {
+  "text": " Type",
+  "startMs": 1354,
+  "endMs": 1621,
+  "timestampMs": 1487,
+  "confidence": null
+ },
+ {
+  "text": " forty-seven",
+  "startMs": 1621,
+  "endMs": 2200,
+  "timestampMs": 1911,
+  "confidence": null
+ },
+ {
+  "text": " plus",
+  "startMs": 2200,
+  "endMs": 2468,
+  "timestampMs": 2334,
+  "confidence": null
+ },
+ {
+  "text": " fifteen,",
+  "startMs": 2468,
+  "endMs": 2913,
+  "timestampMs": 2691,
+  "confidence": null
+ },
+ {
+  "text": " and",
+  "startMs": 2913,
+  "endMs": 3136,
+  "timestampMs": 3025,
+  "confidence": null
+ },
+ {
+  "text": " the",
+  "startMs": 3136,
+  "endMs": 3359,
+  "timestampMs": 3248,
+  "confidence": null
+ },
+ {
+  "text": " answer",
+  "startMs": 3359,
+  "endMs": 3715,
+  "timestampMs": 3537,
+  "confidence": null
+ },
+ {
+  "text": " is",
+  "startMs": 3715,
+  "endMs": 3894,
+  "timestampMs": 3805,
+  "confidence": null
+ },
+ {
+  "text": " already",
+  "startMs": 3894,
+  "endMs": 4295,
+  "timestampMs": 4094,
+  "confidence": null
+ },
+ {
+  "text": " in",
+  "startMs": 4295,
+  "endMs": 4473,
+  "timestampMs": 4384,
+  "confidence": null
+ },
+ {
+  "text": " the",
+  "startMs": 4473,
+  "endMs": 4696,
+  "timestampMs": 4584,
+  "confidence": null
+ },
+ {
+  "text": " strip.",
+  "startMs": 4696,
+  "endMs": 5052,
+  "timestampMs": 4874,
+  "confidence": null
+ },
+ {
+  "text": " No",
+  "startMs": 5172,
+  "endMs": 5395,
+  "timestampMs": 5283,
+  "confidence": null
+ },
+ {
+  "text": " calculator",
+  "startMs": 5395,
+  "endMs": 6062,
+  "timestampMs": 5728,
+  "confidence": null
+ },
+ {
+  "text": " app.",
+  "startMs": 6062,
+  "endMs": 6395,
+  "timestampMs": 6228,
+  "confidence": null
+ },
+ {
+  "text": " No",
+  "startMs": 6395,
+  "endMs": 6618,
+  "timestampMs": 6506,
+  "confidence": null
+ },
+ {
+  "text": " switching",
+  "startMs": 6618,
+  "endMs": 7229,
+  "timestampMs": 6923,
+  "confidence": null
+ },
+ {
+  "text": " apps.",
+  "startMs": 7229,
+  "endMs": 7618,
+  "timestampMs": 7424,
+  "confidence": null
+ },
+ {
+  "text": " It",
+  "startMs": 7738,
+  "endMs": 7908,
+  "timestampMs": 7823,
+  "confidence": null
+ },
+ {
+  "text": " handles",
+  "startMs": 7908,
+  "endMs": 8291,
+  "timestampMs": 8100,
+  "confidence": null
+ },
+ {
+  "text": " currency",
+  "startMs": 8291,
+  "endMs": 8717,
+  "timestampMs": 8504,
+  "confidence": null
+ },
+ {
+  "text": " and",
+  "startMs": 8717,
+  "endMs": 8929,
+  "timestampMs": 8823,
+  "confidence": null
+ },
+ {
+  "text": " units",
+  "startMs": 8929,
+  "endMs": 9227,
+  "timestampMs": 9078,
+  "confidence": null
+ },
+ {
+  "text": " too.",
+  "startMs": 9227,
+  "endMs": 9482,
+  "timestampMs": 9355,
+  "confidence": null
+ },
+ {
+  "text": " And",
+  "startMs": 9602,
+  "endMs": 9816,
+  "timestampMs": 9709,
+  "confidence": null
+ },
+ {
+  "text": " it",
+  "startMs": 9816,
+  "endMs": 9987,
+  "timestampMs": 9902,
+  "confidence": null
+ },
+ {
+  "text": " glides,",
+  "startMs": 9987,
+  "endMs": 10373,
+  "timestampMs": 10180,
+  "confidence": null
+ },
+ {
+  "text": " learns",
+  "startMs": 10373,
+  "endMs": 10715,
+  "timestampMs": 10544,
+  "confidence": null
+ },
+ {
+  "text": " how",
+  "startMs": 10715,
+  "endMs": 10929,
+  "timestampMs": 10822,
+  "confidence": null
+ },
+ {
+  "text": " you",
+  "startMs": 10929,
+  "endMs": 11143,
+  "timestampMs": 11036,
+  "confidence": null
+ },
+ {
+  "text": " type,",
+  "startMs": 11143,
+  "endMs": 11443,
+  "timestampMs": 11293,
+  "confidence": null
+ },
+ {
+  "text": " and",
+  "startMs": 11443,
+  "endMs": 11657,
+  "timestampMs": 11550,
+  "confidence": null
+ },
+ {
+  "text": " keeps",
+  "startMs": 11657,
+  "endMs": 11956,
+  "timestampMs": 11806,
+  "confidence": null
+ },
+ {
+  "text": " it",
+  "startMs": 11956,
+  "endMs": 12127,
+  "timestampMs": 12042,
+  "confidence": null
+ },
+ {
+  "text": " all",
+  "startMs": 12127,
+  "endMs": 12341,
+  "timestampMs": 12234,
+  "confidence": null
+ },
+ {
+  "text": " on",
+  "startMs": 12341,
+  "endMs": 12513,
+  "timestampMs": 12427,
+  "confidence": null
+ },
+ {
+  "text": " your",
+  "startMs": 12513,
+  "endMs": 12769,
+  "timestampMs": 12641,
+  "confidence": null
+ },
+ {
+  "text": " phone.",
+  "startMs": 12769,
+  "endMs": 13112,
+  "timestampMs": 12941,
+  "confidence": null
+ }
+]

@@ -1,0 +1,73 @@
+import React from "react";
+import { AbsoluteFill, Easing, Sequence, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { GradientHeadline } from "../components/GradientHeadline";
+import { SAFE, SAFE_W, TEXT_ZONE, beatFrames, beatStarts, hookFrames } from "./layout";
+import type { ShortSpec } from "./types";
+
+const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+
+// Box for one line in the top text band. It keeps drifting in scale for as
+// long as it is up, then flicks out upward in its last 5 frames.
+export const TextBand: React.FC<{ children: React.ReactNode; top?: number; height?: number }> = ({
+  children,
+  top = TEXT_ZONE.top,
+  height = TEXT_ZONE.height,
+}) => {
+  const frame = useCurrentFrame();
+  const { durationInFrames: d } = useVideoConfig();
+  return (
+    <AbsoluteFill
+      style={{
+        top,
+        height,
+        left: SAFE.left,
+        width: SAFE_W,
+        alignItems: "center",
+        justifyContent: "center",
+        scale: interpolate(frame, [0, d], [1, 1.05], clamp),
+        opacity: interpolate(frame, [d - 5, d], [1, 0], clamp),
+        translate: `0px ${interpolate(frame, [d - 5, d], [0, -50], { ...clamp, easing: Easing.in(Easing.cubic) })}px`,
+      }}
+    >
+      {children}
+    </AbsoluteFill>
+  );
+};
+
+// Hook first, then each beat's caption, all in the top band. A beat's
+// caption starts once the hook is down.
+export const HookThenCaptions: React.FC<{
+  spec: ShortSpec;
+  render: (text: string, isHook: boolean) => React.ReactNode;
+  captions?: boolean;
+}> = ({ spec, render, captions = true }) => {
+  const hook = hookFrames(spec);
+  const starts = beatStarts(spec.beats);
+  return (
+    <>
+      <Sequence durationInFrames={hook} name="Hook">
+        <TextBand>{render(spec.hook, true)}</TextBand>
+      </Sequence>
+      {captions
+        ? spec.beats.map((b, i) => {
+            const from = Math.max(starts[i], hook);
+            const to = starts[i] + beatFrames(b);
+            if (!b.caption || to - from < 12) {
+              return null;
+            }
+            return (
+              <Sequence key={i} from={from} durationInFrames={to - from} name={`Caption ${i + 1}`}>
+                <TextBand>{render(b.caption, false)}</TextBand>
+              </Sequence>
+            );
+          })
+        : null}
+    </>
+  );
+};
+
+export const Kinetic: React.FC<{ text: string; size: number }> = ({ text, size }) => (
+  <div style={{ maxWidth: SAFE_W - 40 }}>
+    <GradientHeadline text={text} size={size} align="center" />
+  </div>
+);

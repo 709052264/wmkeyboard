@@ -11,6 +11,7 @@ import { SceneModes } from "./scenes/SceneModes";
 import { SceneOutro } from "./scenes/SceneOutro";
 import { SceneThemes } from "./scenes/SceneThemes";
 import { SceneTools } from "./scenes/SceneTools";
+import { ShortsFolder } from "./shorts";
 
 const size = { fps: FPS, width: WIDTH, height: HEIGHT };
 
@@ -36,6 +37,7 @@ export const RemotionRoot: React.FC = () => {
         <Composition id="Addons" component={SceneAddons} durationInFrames={130} {...size} />
         <Composition id="Outro" component={SceneOutro} durationInFrames={120} {...size} />
       </Folder>
+      <ShortsFolder />
     </>
   );
 };
