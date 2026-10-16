@@ -16468,6 +16468,7 @@ private fun KeyRows(
                         onGesture = onGesture,
                         onGesturePreview = onGesturePreview,
                         swipeClaimed = { fingerGate.claimed },
+                        alternatesOpen = { alternatesGate.open },
                     )
                     return@pointerInput
                 }
@@ -18954,7 +18955,7 @@ private fun nearLetterKey(
  * moves, the other thumb can tap meanwhile, and a swipe that seemed to start
  * when it moved would come *after* that tap and lose the letter it began on.
  */
-internal class ThumbStroke(val down: Offset, val downAt: Long, val owned: Boolean) {
+internal class ThumbStroke(val down: Offset, val downAt: Long, var owned: Boolean) {
     /** Where and when the swipe began: the landing, not the first move past the slop. */
     fun firstPoint(): GesturePoint = GesturePoint(down.x, down.y, downAt)
 
@@ -19000,6 +19001,8 @@ private suspend fun PointerInputScope.twoThumbGlide(
     onGesture: (List<GesturePoint>, List<KeyCenter>, Float, GlideVerdict) -> Unit,
     onGesturePreview: (List<GesturePoint>, List<KeyCenter>, Float, GlideCase) -> Unit,
     swipeClaimed: () -> Boolean,
+    /** A key's alternates popup is open: the finger that opened it is choosing in it. */
+    alternatesOpen: () -> Boolean,
 ) {
     val strokes = HashMap<PointerId, ThumbStroke>()
     awaitPointerEventScope {
@@ -19035,6 +19038,14 @@ private suspend fun PointerInputScope.twoThumbGlide(
                 }
                 if (stroke.owned) continue
                 if (!stroke.swiping) {
+                    // Issue #671: the finger held a key until its alternates
+                    // opened and is sliding into them. The ordinary loop lets
+                    // such a stroke go; this one has to as well, for the rest
+                    // of the stroke, or the slide is read as a swipe.
+                    if (alternatesOpen()) {
+                        stroke.owned = true
+                        continue
+                    }
                     val kw = keyWidth.value
                     if (kw <= 0f || (change.position - stroke.down).getDistance() <= slopPx) continue
                     if (!nearLetter(stroke.down)) continue
