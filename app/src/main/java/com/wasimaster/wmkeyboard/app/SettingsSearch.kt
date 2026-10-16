@@ -1998,6 +1998,10 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             R.string.privacy_permissions_accessibility_title,
             R.string.privacy_permissions_accessibility_subtitle,
         ).takeIf { ChannelFeatures.GESTURE_PASSTHROUGH },
+        permission(
+            R.string.privacy_permissions_screen_content_title,
+            R.string.privacy_permissions_screen_content_subtitle,
+        ).takeIf { ChannelFeatures.SCREEN_CONTEXT },
         // Only the channel that installs its own updates asks for this one.
         if (UpdateChannel.GITHUB) {
             permission(
@@ -2006,10 +2010,6 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             )
         } else {
             null
-        permission(
-            R.string.privacy_permissions_screen_content_title,
-            R.string.privacy_permissions_screen_content_subtitle,
-        ).takeIf { ChannelFeatures.SCREEN_CONTEXT },
         },
         permission(R.string.privacy_permissions_internet_title, R.string.privacy_permissions_internet_subtitle),
         permission(R.string.privacy_permissions_vibrate_title, R.string.privacy_permissions_vibrate_subtitle),

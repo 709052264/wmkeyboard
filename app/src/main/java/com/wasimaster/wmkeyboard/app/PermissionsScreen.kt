@@ -163,13 +163,6 @@ internal fun PermissionsSettings() {
                 KeyboardPassthrough::isServiceEnabled,
             )
         }
-        // Only where the app can install a new version of itself, and only
-        // where Android has a per-app switch to send anyone to. Below API 26
-        // it is one global setting the system installer raises by itself.
-        item(visible = UpdateChannel.GITHUB && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            SpecialAccessRow(
-                R.string.privacy_permissions_install_updates_title,
-                R.string.privacy_permissions_install_updates_subtitle,
         item(visible = ChannelFeatures.SCREEN_CONTEXT) {
             SpecialAccessRow(
                 R.string.privacy_permissions_screen_content_title,
@@ -178,6 +171,13 @@ internal fun PermissionsSettings() {
                 { ScreenContextService.isEnabled(it) },
             )
         }
+        // Only where the app can install a new version of itself, and only
+        // where Android has a per-app switch to send anyone to. Below API 26
+        // it is one global setting the system installer raises by itself.
+        item(visible = UpdateChannel.GITHUB && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            SpecialAccessRow(
+                R.string.privacy_permissions_install_updates_title,
+                R.string.privacy_permissions_install_updates_subtitle,
                 SpecialAccess.INSTALL_UPDATES,
             ) { it.packageManager.canRequestPackageInstalls() }
         }

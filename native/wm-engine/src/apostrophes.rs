@@ -119,9 +119,7 @@ fn lookup(table: &[(&str, &str)], lower: &str) -> Option<String> {
 
 fn german(lower: &str) -> Option<String> {
     let verb = lower.strip_suffix('s')?;
-    GERMAN_VERBS
-        .contains(&verb)
-        .then(|| format!("{verb}'s"))
+    GERMAN_VERBS.contains(&verb).then(|| format!("{verb}'s"))
 }
 
 fn with_case(word: &str, fixed: String) -> Option<String> {

@@ -59,8 +59,8 @@ The system screens for all of them carry broad, alarming warnings, because the *
 | Full-screen notifications | The [Clock](/tools/clock/) ring screen, Android 14 and later. Not in the Play Store build, which doesn't declare it | Lets a ringing alarm or timer put its screen, with Snooze and Dismiss, over the lock screen. Without it, the ring shows as a notification. Used only while one of your alarms rings. |
 | Usage access | "Show source app" on clipboard entries | Reads which app was in front at the moment you copied something, so the clip can show where it came from. Not your history, not time spent anywhere. Kept with the clip, on this device. |
 | Accessibility service | Keyboard gestures under a screen reader | Marks the key grid as bypassing TalkBack's touch handling, which is the only way an app can keep its own gestures there. It subscribes to no accessibility events, can't read window content, and covers nothing outside the keys. See [Screen readers](/reference/settings/accessibility/). The Play Store build doesn't contain the service, so there it's one fewer. |
-
 | Accessibility service | Screen reading for the [floating AI button](/typing/size-position/#floating-ai-button) | A second, separate service. Each time you tap the AI button it reads the text of the app on screen once and puts it in the chat that opens, where you see it before anything is sent. It reads nothing at any other time, skips password fields, performs no actions and keeps nothing. Where the chat goes depends on the AI provider you picked. Not in the Play Store build. |
+
 All of them are revoked the same way they were granted, from the relevant system Settings screen, and the features fall back cleanly: media controls show their "needs access" panel, clips are saved with no source app, the floating buttons stop appearing, the AI button's chat opens without the screen's text, and the gestures mode behaves like Explore by touch.
 
 ## Options
