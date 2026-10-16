@@ -119,6 +119,7 @@
     <string name="kdeconnect_share_none">No paired computer is reachable</string>
     <string name="kdeconnect_share_off">KDE Connect is off in WM Keyboard</string>
     <string name="kdeconnect_share_choose">Send to</string>
+    <string name="kdeconnect_share_choose_waiting">%1$s (connecting…)</string>
     <string name="kdeconnect_share_sending">Sending to %1$s…</string>
     <string name="kdeconnect_share_sent">Sent to %1$s</string>
     <string name="kdeconnect_share_failed">Could not send</string>

@@ -5,6 +5,10 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,6 +17,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeDevice
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -43,8 +48,12 @@ abstract class KdeSendActivity : ComponentActivity() {
     }
 
     /**
-     * Sends to [deviceId] if given and connected, else to the one connected
-     * computer, else asks which. Finishes the activity when done.
+     * Sends to [deviceId] if given, else to the only paired computer, else asks
+     * which. Finishes the activity when done.
+     *
+     * The link comes up one computer at a time, so the first to connect is not
+     * the only one there (#703): with several paired, the picker lists them all
+     * and enables each as it connects, rather than sending to whichever won.
      */
     protected fun deliver(uris: List<Uri>, text: String?, deviceId: String?) {
         lifecycleScope.launch {
@@ -54,23 +63,61 @@ abstract class KdeSendActivity : ComponentActivity() {
             // arrive in a process where it has not run yet.
             KdeConnectHub.applySettings(settings)
             progress(getString(R.string.kdeconnect_share_connecting))
+            if (deviceId != null) {
+                KdeConnectHub.awaitConnected(deviceId, CONNECT_TIMEOUT_MS)?.let { return@launch send(it, uris, text) }
+            }
             val connected = KdeConnectHub.awaitConnected(CONNECT_TIMEOUT_MS)
-            val target = connected.firstOrNull { it.id == deviceId } ?: connected.singleOrNull()
+            val paired = KdeConnectHub.state.value.paired
             when {
                 connected.isEmpty() -> done(getString(R.string.kdeconnect_share_none))
-                target != null -> send(target, uris, text)
-                else -> choose(connected) { send(it, uris, text) }
+                paired.size <= 1 && connected.size == 1 -> send(connected.single(), uris, text)
+                else -> choose { send(it, uris, text) }
             }
         }
     }
 
-    private fun choose(devices: List<KdeDevice>, onPick: (KdeDevice) -> Unit) {
+    /**
+     * Every paired computer, in a stable order so a row never moves under the
+     * finger; the ones not connected yet are greyed and fill in live.
+     */
+    private fun choose(onPick: (KdeDevice) -> Unit) {
         dialog?.dismiss()
+        val adapter = DeviceAdapter()
+        var watch: Job? = null
         dialog = AlertDialog.Builder(this)
             .setTitle(R.string.kdeconnect_share_choose)
-            .setItems(devices.map { it.name }.toTypedArray()) { _, which -> onPick(devices[which]) }
+            .setAdapter(adapter) { _, which ->
+                watch?.cancel()
+                adapter.getItem(which)?.let(onPick)
+            }
             .setOnCancelListener { finish() }
             .show()
+        watch = lifecycleScope.launch {
+            KdeConnectHub.state.collect { state -> adapter.show(state.paired) }
+        }
+    }
+
+    private inner class DeviceAdapter : ArrayAdapter<KdeDevice>(this, android.R.layout.select_dialog_item) {
+        fun show(devices: List<KdeDevice>) {
+            setNotifyOnChange(false)
+            clear()
+            addAll(devices)
+            notifyDataSetChanged()
+        }
+
+        override fun areAllItemsEnabled(): Boolean = false
+
+        override fun isEnabled(position: Int): Boolean = getItem(position)?.reachable == true
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val view = super.getView(position, convertView, parent) as TextView
+            val device = getItem(position) ?: return view
+            val ready = isEnabled(position)
+            view.text = if (ready) device.name else getString(R.string.kdeconnect_share_choose_waiting, device.name)
+            view.isEnabled = ready
+            view.alpha = if (ready) 1f else 0.5f
+            return view
+        }
     }
 
     private fun send(device: KdeDevice, uris: List<Uri>, text: String?) {

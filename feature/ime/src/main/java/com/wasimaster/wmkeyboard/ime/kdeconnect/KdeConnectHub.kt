@@ -196,6 +196,12 @@ object KdeConnectHub {
             state.first { it.connected.isNotEmpty() }
         }?.connected.orEmpty()
 
+    /** [deviceId] once it is connected, or null if it is not within [timeoutMs]. */
+    suspend fun awaitConnected(deviceId: String, timeoutMs: Long): com.wasimaster.wmkeyboard.core.kdeconnect.KdeDevice? =
+        kotlinx.coroutines.withTimeoutOrNull(timeoutMs) {
+            state.first { s -> s.connected.any { it.id == deviceId } }
+        }?.device(deviceId)
+
     /**
      * Sends [uris] (and [text], if any) to [deviceId]. Returns how many files
      * were queued; the caller keeps whatever granted it the URIs alive until
