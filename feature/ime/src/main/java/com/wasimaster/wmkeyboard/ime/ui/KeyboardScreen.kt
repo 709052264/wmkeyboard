@@ -5196,203 +5196,221 @@ private fun RowScope.LatinSuggestionChips(
             if (baseStyle.fontSize.isSpecified) baseStyle.fontSize else SuggestionFontSize
             ) * textScale
         val shaper = LocalEmojiShaper.current
-        // Scroll mode: a fresh set of candidates starts at the left edge again,
-        // otherwise the strip could be sitting at the far end of the previous
-        // word's overflow and show nothing of the new primary.
-        val scrollState = rememberScrollState()
-        if (scrollable) {
-            LaunchedEffect(shown) { scrollState.scrollTo(0) }
-        }
-        Row(
-            modifier = if (scrollable) {
-                Modifier.fillMaxSize().horizontalScroll(scrollState)
-            } else {
-                Modifier.fillMaxSize()
-            },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            shown.forEachIndexed { index, suggestion ->
-                if (index > 0) {
-                    // Drawn clear beside an empty slot rather than left out, so
-                    // every slot keeps the same width.
-                    VerticalDivider(
-                        modifier = Modifier.height(20.dp),
-                        thickness = SuggestionDividerWidth,
-                        color = if (!tinted && suggestion != null && shown[index - 1] != null) {
-                            MaterialTheme.colorScheme.outlineVariant
-                        } else {
-                            Color.Transparent
-                        },
-                    )
-                }
-                if (suggestion == null) {
-                    Box(modifier = Modifier.weight(1f).fillMaxHeight())
-                    return@forEachIndexed
-                }
-                // Fixed mode splits the width by weight. Scroll mode cannot
-                // (weights are meaningless under unbounded width), so each
-                // slot floors at the equal share and grows with its word.
-                val slotModifier = if (scrollable) {
-                    Modifier.widthIn(min = slotWidth)
-                } else {
-                    Modifier.weight(1f)
-                }
-                Box(
-                    modifier = slotModifier
-                        .fillMaxHeight()
-                        .then(
-                            if (tinted) {
-                                val (accent, dark) = tint
-                                val strong = index == primaryIndex
-                                Modifier
-                                    .padding(horizontal = 2.dp, vertical = 5.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(
-                                        accent.copy(
-                                            alpha = when {
-                                                strong && dark -> 0.34f
-                                                strong -> 0.24f
-                                                dark -> 0.16f
-                                                else -> 0.10f
-                                            },
-                                        ),
-                                    )
-                            } else {
-                                Modifier
-                            },
-                        )
-                        // Reachable by remote: a suggestion taken with one
-                        // button press is the difference between typing a word
-                        // and walking a ring across ten keys to spell it.
-                        // Registered by slot, not by word — the words change on
-                        // every keystroke and the slots do not.
-                        .then(
-                            if (dpadRing) {
-                                Modifier.dpadTarget(SuggestionRingId(index)) {
-                                    onSuggestion(suggestion)
-                                }
-                            } else {
-                                Modifier
-                            },
-                        )
-                        .combinedClickable(
-                            enabled = enabled,
-                            onLongClickLabel = holdLabel,
-                            // Held rather than tapped: the strip is where a
-                            // wrong suggestion is seen, so it is where the user
-                            // should be able to say never again (#28). The word
-                            // is remembered rather than acted on, because a
-                            // silent unrecoverable edit off a long press is not
-                            // something to do without asking.
-                            onLongClick = {
-                                heldFacts = suggestionHold.facts(suggestion)
-                                heldWord = suggestion
-                            },
-                        ) { onSuggestion(suggestion) },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    // Counted by slot, so the strip always reads 1 2 3 from the
-                    // left even with the primary centred. The plan holds the
-                    // rank each slot is drawing (see [suggestionDisplayOrder]).
-                    // By word, not by slot, when empty slots sit among them.
-                    val hint = hints?.label(
-                        HintSurface.SUGGESTION,
-                        if (fixed) shown.subList(0, index).count { it != null } else index,
-                    )
-                    if (hint != null) {
-                        HintBadge(hint, modifier = Modifier.align(Alignment.BottomCenter))
-                    }
-                    // A chip is sometimes an emoji rather than a word — a learned
-                    // bigram can predict one ("you" → ❤️). Those have to be drawn
-                    // in the chosen emoji font, and in the spelling that font
-                    // wants, or they fall back to the system emoji.
-                    val isEmoji = remember(suggestion) { EmojiGraphemes.isEmojiOnly(suggestion) }
-                    // Follows the live shift state, so pressing shift re-cases
-                    // the strip (matching the committed word).
-                    val display = if (isEmoji) {
-                        shaper.shape(suggestion)
+        // One slot: its divider, then the word. A lambda so the two row shapes
+        // below draw identical slots.
+        val slot: @Composable RowScope.(Int, String?) -> Unit = slot@{ index, suggestion ->
+            if (index > 0) {
+                // Drawn clear beside an empty slot rather than left out, so
+                // every slot keeps the same width.
+                VerticalDivider(
+                    modifier = Modifier.height(20.dp),
+                    thickness = SuggestionDividerWidth,
+                    color = if (!tinted && suggestion != null && shown[index - 1] != null) {
+                        MaterialTheme.colorScheme.outlineVariant
                     } else {
-                        casedWords[suggestion] ?: displayCaseForShift(suggestion, shiftState)
-                    }
-                    val primary = index == primaryIndex
-                    // See the colour note on the Text below. The other
-                    // suggestions take the theme's own colour and size for
-                    // them (#504), which are the strip's until a theme says.
-                    val textColor = when {
-                        primaryColor != null &&
-                            suggestion.equals(autocorrectWord, ignoreCase = true) -> primaryColor
-                        !primary -> kb.secondarySuggestionText
-                        else -> MaterialTheme.colorScheme.onSurface
-                    }
-                    val slotSize = if (primary) baseSize else baseSize * kb.secondarySuggestionScale
-                    val label = expansions[suggestion]
-                        ?.takeIf { !isEmoji }
-                        ?.let { glideExpansionLabel(display, it.previewFor(display), textColor) }
-                        ?: AnnotatedString(display)
-                    val family = if (isEmoji) emojiFamilyFor(suggestion) else null
-                    val weight = if (primary) FontWeight.SemiBold else FontWeight.Normal
-                    // Re-measured only when the word, its styling or the slot
-                    // width actually change — not on every keystroke that leaves
-                    // this chip alone.
-                    val fit = if (scrollable) {
-                        // Natural width: nothing to fit, the row scrolls instead.
-                        SuggestionTextFit(1f, 1f)
-                    } else remember(label, family, weight, textWidth, slotSize, baseStyle) {
-                        val measured = measurer.measure(
-                            text = label,
-                            style = baseStyle.merge(
-                                TextStyle(
-                                    fontSize = slotSize,
-                                    fontFamily = family,
-                                    fontWeight = weight,
-                                ),
-                            ),
-                            maxLines = 1,
-                            softWrap = false,
-                        ).size.width
-                        fitSuggestionText(
-                            measuredWidthPx = measured.toFloat(),
-                            availableWidthPx = with(density) { textWidth.toPx() },
-                        )
-                    }
-                    Text(
-                        text = label,
-                        modifier = Modifier.padding(horizontal = textPadding),
-                        // The user's own colour on the word the commit will
-                        // really put in, and on no other: the primary is only
-                        // the top guess until autocorrect has decided, and "Th"
-                        // bold beside a coloured "The" would promise a fix that
-                        // never comes (#90). A glide claims the same field for
-                        // the word a lift would type (#121), so the promise
-                        // reads the same whether it is a space or a fingertip
-                        // about to keep it. The bold stays on the primary
-                        // either way.
-                        color = textColor,
-                        fontSize = slotSize * fit.fontScale,
-                        softWrap = false,
-                        // The default 0.5sp tracking is dead width once a word is
-                        // already being squeezed.
-                        letterSpacing = if (fit.condensed) 0.sp else baseStyle.letterSpacing,
-                        fontFamily = family,
-                        fontWeight = weight,
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        // Cutting the middle keeps the word's ending, which is
-                        // what tells "international" from "internationally".
-                        overflow = when (overflow) {
-                            SuggestionOverflow.MIDDLE -> TextOverflow.MiddleEllipsis
-                            SuggestionOverflow.END -> TextOverflow.Ellipsis
-                        },
-                        style = if (fit.condensed) {
-                            baseStyle.copy(
-                                textGeometricTransform =
-                                    TextGeometricTransform(scaleX = fit.scaleX),
-                            )
+                        Color.Transparent
+                    },
+                )
+            }
+            if (suggestion == null) {
+                Box(modifier = Modifier.weight(1f).fillMaxHeight())
+                return@slot
+            }
+            // Fixed mode splits the width by weight. Scroll mode cannot
+            // (weights are meaningless under unbounded width), so each
+            // slot floors at the equal share and grows with its word.
+            val slotModifier = if (scrollable) {
+                Modifier.widthIn(min = slotWidth)
+            } else {
+                Modifier.weight(1f)
+            }
+            Box(
+                modifier = slotModifier
+                    .fillMaxHeight()
+                    .then(
+                        if (tinted) {
+                            val (accent, dark) = tint
+                            val strong = index == primaryIndex
+                            Modifier
+                                .padding(horizontal = 2.dp, vertical = 5.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(
+                                    accent.copy(
+                                        alpha = when {
+                                            strong && dark -> 0.34f
+                                            strong -> 0.24f
+                                            dark -> 0.16f
+                                            else -> 0.10f
+                                        },
+                                    ),
+                                )
                         } else {
-                            baseStyle
+                            Modifier
                         },
                     )
+                    // Reachable by remote: a suggestion taken with one
+                    // button press is the difference between typing a word
+                    // and walking a ring across ten keys to spell it.
+                    // Registered by slot, not by word — the words change on
+                    // every keystroke and the slots do not.
+                    .then(
+                        if (dpadRing) {
+                            Modifier.dpadTarget(SuggestionRingId(index)) {
+                                onSuggestion(suggestion)
+                            }
+                        } else {
+                            Modifier
+                        },
+                    )
+                    .combinedClickable(
+                        enabled = enabled,
+                        onLongClickLabel = holdLabel,
+                        // Held rather than tapped: the strip is where a
+                        // wrong suggestion is seen, so it is where the user
+                        // should be able to say never again (#28). The word
+                        // is remembered rather than acted on, because a
+                        // silent unrecoverable edit off a long press is not
+                        // something to do without asking.
+                        onLongClick = {
+                            heldFacts = suggestionHold.facts(suggestion)
+                            heldWord = suggestion
+                        },
+                    ) { onSuggestion(suggestion) },
+                contentAlignment = Alignment.Center,
+            ) {
+                // Counted by slot, so the strip always reads 1 2 3 from the
+                // left even with the primary centred. The plan holds the
+                // rank each slot is drawing (see [suggestionDisplayOrder]).
+                // By word, not by slot, when empty slots sit among them.
+                val hint = hints?.label(
+                    HintSurface.SUGGESTION,
+                    if (fixed) shown.subList(0, index).count { it != null } else index,
+                )
+                if (hint != null) {
+                    HintBadge(hint, modifier = Modifier.align(Alignment.BottomCenter))
                 }
+                // A chip is sometimes an emoji rather than a word — a learned
+                // bigram can predict one ("you" → ❤️). Those have to be drawn
+                // in the chosen emoji font, and in the spelling that font
+                // wants, or they fall back to the system emoji.
+                val isEmoji = remember(suggestion) { EmojiGraphemes.isEmojiOnly(suggestion) }
+                // Follows the live shift state, so pressing shift re-cases
+                // the strip (matching the committed word).
+                val display = if (isEmoji) {
+                    shaper.shape(suggestion)
+                } else {
+                    casedWords[suggestion] ?: displayCaseForShift(suggestion, shiftState)
+                }
+                val primary = index == primaryIndex
+                // See the colour note on the Text below. The other
+                // suggestions take the theme's own colour and size for
+                // them (#504), which are the strip's until a theme says.
+                val textColor = when {
+                    primaryColor != null &&
+                        suggestion.equals(autocorrectWord, ignoreCase = true) -> primaryColor
+                    !primary -> kb.secondarySuggestionText
+                    else -> MaterialTheme.colorScheme.onSurface
+                }
+                val slotSize = if (primary) baseSize else baseSize * kb.secondarySuggestionScale
+                val label = expansions[suggestion]
+                    ?.takeIf { !isEmoji }
+                    ?.let { glideExpansionLabel(display, it.previewFor(display), textColor) }
+                    ?: AnnotatedString(display)
+                val family = if (isEmoji) emojiFamilyFor(suggestion) else null
+                val weight = if (primary) FontWeight.SemiBold else FontWeight.Normal
+                // Re-measured only when the word, its styling or the slot
+                // width actually change — not on every keystroke that leaves
+                // this chip alone.
+                val fit = if (scrollable) {
+                    // Natural width: nothing to fit, the row scrolls instead.
+                    SuggestionTextFit(1f, 1f)
+                } else remember(label, family, weight, textWidth, slotSize, baseStyle) {
+                    val measured = measurer.measure(
+                        text = label,
+                        style = baseStyle.merge(
+                            TextStyle(
+                                fontSize = slotSize,
+                                fontFamily = family,
+                                fontWeight = weight,
+                            ),
+                        ),
+                        maxLines = 1,
+                        softWrap = false,
+                    ).size.width
+                    fitSuggestionText(
+                        measuredWidthPx = measured.toFloat(),
+                        availableWidthPx = with(density) { textWidth.toPx() },
+                    )
+                }
+                Text(
+                    text = label,
+                    modifier = Modifier.padding(horizontal = textPadding),
+                    // The user's own colour on the word the commit will
+                    // really put in, and on no other: the primary is only
+                    // the top guess until autocorrect has decided, and "Th"
+                    // bold beside a coloured "The" would promise a fix that
+                    // never comes (#90). A glide claims the same field for
+                    // the word a lift would type (#121), so the promise
+                    // reads the same whether it is a space or a fingertip
+                    // about to keep it. The bold stays on the primary
+                    // either way.
+                    color = textColor,
+                    fontSize = slotSize * fit.fontScale,
+                    softWrap = false,
+                    // The default 0.5sp tracking is dead width once a word is
+                    // already being squeezed.
+                    letterSpacing = if (fit.condensed) 0.sp else baseStyle.letterSpacing,
+                    fontFamily = family,
+                    fontWeight = weight,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    // Cutting the middle keeps the word's ending, which is
+                    // what tells "international" from "internationally".
+                    overflow = when (overflow) {
+                        SuggestionOverflow.MIDDLE -> TextOverflow.MiddleEllipsis
+                        SuggestionOverflow.END -> TextOverflow.Ellipsis
+                    },
+                    style = if (fit.condensed) {
+                        baseStyle.copy(
+                            textGeometricTransform =
+                                TextGeometricTransform(scaleX = fit.scaleX),
+                        )
+                    } else {
+                        baseStyle
+                    },
+                )
+            }
+        }
+        if (scrollable) {
+            // Lazy, because a scrolling strip is handed the deep list (24 words)
+            // and a plain scrolling Row composed, measured and laid out the text
+            // of every one of them on every keystroke, to show three. That text
+            // layout was most of the keyboard's frame time while typing.
+            // A fresh set of candidates starts at the left edge again, otherwise
+            // the strip could be sitting at the far end of the previous word's
+            // overflow and show nothing of the new primary.
+            val listState = rememberLazyListState()
+            LaunchedEffect(shown) { listState.scrollToItem(0) }
+            LazyRow(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                itemsIndexed(shown) { index, suggestion ->
+                    Row(
+                        modifier = Modifier.fillMaxHeight(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        slot(index, suggestion)
+                    }
+                }
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                shown.forEachIndexed { index, suggestion -> slot(index, suggestion) }
             }
         }
         val held = heldWord

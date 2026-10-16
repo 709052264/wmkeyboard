@@ -6860,6 +6860,17 @@ open class WMKeyboardService : InputMethodService() {
     private var gluedCheckedAt = -1
 
     /**
+     * The caret offset just behind a space this keyboard committed, taken from
+     * that commit's own echo, or -1. A word whose composing region starts here
+     * starts after a space, so [absorbGluedWord] has nothing to look for and
+     * skips its read into the app.
+     */
+    private var ownSpaceEndsAt = -1
+
+    /** Set by [onSpace]; the next echo with no composing region records [ownSpaceEndsAt]. */
+    private var ownSpaceEchoPending = false
+
+    /**
      * Takes the rest of the word into the composition when the letters being
      * typed went on straight from the end of a word already in the field.
      *
@@ -6884,6 +6895,12 @@ open class WMKeyboardService : InputMethodService() {
     private fun absorbGluedWord(selStart: Int, selEnd: Int, candidatesStart: Int, candidatesEnd: Int) {
         if (composing.isEmpty() || candidatesStart < 0 || selStart != selEnd || selEnd != candidatesEnd) return
         if (candidatesStart == gluedCheckedAt) return
+        // Started right behind the keyboard's own space: not glued to anything,
+        // and known without asking the editor (see [ownSpaceEndsAt]).
+        if (candidatesStart == ownSpaceEndsAt) {
+            gluedCheckedAt = candidatesStart
+            return
+        }
         val state = _uiState.value
         if (state.composer.isTransliterating || state.layouts.ambiguousKeys ||
             !state.allowsTypingIntelligence || duetWord.active || inlineEmojiQuery() != null ||
@@ -6950,6 +6967,12 @@ open class WMKeyboardService : InputMethodService() {
         }
         expectedSelStart = newSelStart
         expectedSelEnd = newSelEnd
+        // The space commit's echo is the first one with no composing region:
+        // the letter echoes still queued ahead of it all carry the word's.
+        if (ownSpaceEchoPending && candidatesStart < 0) {
+            ownSpaceEchoPending = false
+            ownSpaceEndsAt = if (newSelStart == newSelEnd && newSelStart > 0) newSelStart else -1
+        }
         if (newSelStart != lastRevealedCaret || newSelEnd != lastRevealedCaret) lastRevealedCaret = -1
         if (selectionAnchor != newSelStart && selectionAnchor != newSelEnd) selectionAnchor = -1
         trackCaretAtFieldStart(newSelStart, newSelEnd)
@@ -7135,7 +7158,16 @@ open class WMKeyboardService : InputMethodService() {
         ) {
             cancelVoice()
         }
-        refreshShiftForContext()
+        // The caret right behind a letter of the word being composed: no caps
+        // mode asks for a capital there (TextUtils.getCapsMode answers 0 for a
+        // letter before the caret, sentence and word modes alike), so the shift
+        // can be settled without the round trip into the app. This is the
+        // echo of almost every keystroke.
+        val composedNow = if (composing.isNotEmpty()) composedPreview(_uiState.value, composing.toString()) else ""
+        val caretAfterLetter = composedNow.isNotEmpty() && newSelStart == newSelEnd &&
+            candidatesEnd >= 0 && newSelEnd == candidatesEnd &&
+            Character.isLetterOrDigit(composedNow.codePointBefore(composedNow.length))
+        refreshShiftForContext(caretAfterLetter)
         refreshKarContext()
         // Tool chips and the word strip both read the text around the cursor, so
         // they have to be re-derived after a cursor jump or an edit made from
@@ -13402,6 +13434,9 @@ open class WMKeyboardService : InputMethodService() {
         recordStat { onSeparator(now, SystemClock.uptimeMillis()) }
         if (batched) ic.endBatchEdit()
         lastSpaceTime = now
+        // Only for a real space: the ideographic one is a character
+        // [isComposingWordChar] may not treat as a break.
+        ownSpaceEchoPending = space == " "
         maybeAutoCapitalize()
         // Next-word predictions (learned bigrams, including word → emoji)
         // appear once the word is committed.
@@ -42684,7 +42719,7 @@ open class WMKeyboardService : InputMethodService() {
      * changed: turns shift on at a sentence start, off when no longer at
      * one. Caps lock is never touched.
      */
-    private fun refreshShiftForContext() {
+    private fun refreshShiftForContext(caretAfterLetter: Boolean = false) {
         // Both of these end in "leave the shift alone", so the target is worked
         // out and thrown away — and working it out costs
         // [InputConnection.getCursorCapsMode], a blocking round-trip into the
@@ -42712,7 +42747,12 @@ open class WMKeyboardService : InputMethodService() {
         ) {
             return
         }
-        val target = autoCapitalizeShift()
+        // [caretAfterLetter]: the caller has seen a letter right before the
+        // caret, where every caps mode but the whole-field one says no
+        // capital. That one is answered from the EditorInfo, with no read.
+        val capCharacters = (currentInputEditorInfo?.inputType ?: 0) and
+            InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS != 0
+        val target = if (caretAfterLetter && !capCharacters) ShiftState.OFF else autoCapitalizeShift()
         _uiState.update {
             when {
                 it.shiftState == ShiftState.CAPS_LOCK -> it
