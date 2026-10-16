@@ -9,7 +9,7 @@ import com.wasimaster.wmkeyboard.config.BuildConfig
  * grant the installed APK cannot hold. The keyboard side needs no gate: both
  * features already check the grant at runtime and stand aside without it.
  *
- * Both came out of Play's review of version code 26 (2026-09-28).
+ * The first two came out of Play's review of version code 26 (2026-09-28).
  */
 object ChannelFeatures {
     /**
@@ -43,4 +43,13 @@ object ChannelFeatures {
      * whose tap opens the ring screen.
      */
     val CLOCK_FULL_SCREEN: Boolean = !BuildConfig.ENABLE_PLAY_STORE
+
+    /**
+     * The gallery tool's own grid of the photo library (#708), behind
+     * READ_MEDIA_IMAGES and READ_MEDIA_VIDEO: the same permissions Play
+     * refused for the screenshot watcher. Without them the tool opens
+     * Android's photo picker instead, which needs no permission at all, and
+     * sends what is picked the same way.
+     */
+    val GALLERY_BROWSER: Boolean = !BuildConfig.ENABLE_PLAY_STORE
 }

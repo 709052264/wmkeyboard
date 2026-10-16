@@ -1545,6 +1545,35 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
 )
 
 /** Rows on the tool pages, from Translate through the AI tool. */
+/** The gallery tool's page (#708); the browsing rows only where the build has the grid. */
+private fun SearchStrings.galleryRows(): List<SettingsSearchEntry> {
+    val grid = ChannelFeatures.GALLERY_BROWSER
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, gridOnly: Boolean = false) =
+        toolEntry(ToolbarTool.GALLERY, title, subtitle).takeIf { grid || !gridOnly }
+    return listOfNotNull(
+        row(R.string.gallery_access_title, R.string.gallery_access_group, gridOnly = true),
+        row(R.string.gallery_tap_title, R.string.gallery_tap_subtitle, gridOnly = true),
+        row(R.string.gallery_columns_title, R.string.gallery_columns_subtitle, gridOnly = true),
+        row(R.string.gallery_camera_tile_title, R.string.gallery_camera_tile_subtitle, gridOnly = true),
+        row(R.string.gallery_show_videos_title, R.string.gallery_show_videos_subtitle, gridOnly = true),
+        row(R.string.gallery_scrubber_title, R.string.gallery_scrubber_subtitle, gridOnly = true),
+        row(R.string.gallery_start_expanded_title, R.string.gallery_start_expanded_subtitle, gridOnly = true),
+        row(R.string.gallery_remember_album_title, R.string.gallery_remember_album_subtitle, gridOnly = true),
+        row(R.string.gallery_haptics_title, R.string.gallery_haptics_subtitle, gridOnly = true),
+        row(R.string.gallery_quality_title, R.string.gallery_quality_subtitle),
+        row(R.string.gallery_max_selection_title, R.string.gallery_max_selection_subtitle),
+        row(R.string.gallery_caption_title, R.string.gallery_caption_subtitle, gridOnly = true),
+        row(R.string.gallery_fallback_title, R.string.gallery_fallback_subtitle),
+        row(R.string.gallery_close_after_send_title, R.string.gallery_close_after_send_subtitle, gridOnly = true),
+        row(R.string.gallery_save_edited_title, R.string.gallery_save_edited_subtitle, gridOnly = true),
+        row(R.string.gallery_strip_location_title, R.string.gallery_strip_location_subtitle),
+        row(R.string.gallery_strip_all_title, R.string.gallery_strip_all_subtitle),
+        row(R.string.gallery_random_names_title, R.string.gallery_random_names_subtitle),
+        row(R.string.gallery_history_title, R.string.gallery_history_subtitle, gridOnly = true),
+        row(R.string.gallery_history_clear_title, R.string.gallery_history_clear_subtitle, gridOnly = true),
+    )
+}
+
 private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_sticker_packs_title, R.string.tooldetail_sticker_packs_subtitle),
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_sticker_suggest_title, R.string.tooldetail_sticker_suggest_subtitle),
@@ -2522,7 +2551,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         layoutSizeRows() +
         layoutOnehandedRows() + languageRows() + emojiRows() +
         emojiPanelRows() +
-        voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + vocabRows() + notesRows() + storageRows() + otherRows()
+        voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + vocabRows() + notesRows() + storageRows() + otherRows()
     all.filterNot { it.route in unsupported }.distinctBy { it.key }
 }
 

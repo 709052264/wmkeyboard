@@ -1,0 +1,124 @@
+---
+title: "Gallery"
+description: "Your photos and videos inside the keyboard: albums, multi-select, a full-screen viewer, a photo editor, and a send that hands the app only a copy."
+sidebar:
+  order: 7.5
+---
+
+import PhoneFrame from '@components/PhoneFrame.astro';
+import SettingsPath from '@components/SettingsPath.astro';
+import Flavor from '@components/Flavor.astro';
+
+The Gallery tool puts your photo library in a sheet over the keys, the way a chat app's attach button does. Pick a few photos or videos, caption them, edit one if you like, and send. The app you are typing in never sees your library: it gets a copy of what you picked and nothing else, with the location taken out by default. <Flavor edition="both" />.
+
+<PhoneFrame caption="The gallery at the keyboard's height: the album chip and filters on top, the grid, and the send bar after two picks.">
+  {/* shot: tools/gallery-grid */}
+</PhoneFrame>
+
+## Opening it
+
+Open **Gallery** from the toolbar or the [toolbox](/tools/overview/). Typing *gallery*, *photos* or *pics* also offers it as a [suggestion chip](/smart/chips/).
+
+The first time, the panel asks for access to your photos and videos. The keyboard shows its own explanation before Android's dialog, and you can refuse. Without access, **Pick instead** opens Android's photo picker, which needs no permission. On Android 14 and later you can also allow only some photos; the panel then says so, and **Choose more** asks again.
+
+The sheet opens at the keyboard's own height. Drag the bar on top of it, or press the expand button in its header, to make it nearly as tall as the screen. **Open at full height** under <SettingsPath path="Tools / Gallery" /> makes that the starting size. The viewer and the editor always use the full height.
+
+### In the Google Play build
+
+The Play Store build cannot hold the photo library permission, so there the tool has no grid of its own. A tap on **Gallery** opens Android's photo picker straight away. Whatever you pick is prepared with the same size and privacy settings and sent the moment the keyboard is back in the text box. The rest of this page describes the grid in the GitHub and F-Droid builds.
+
+## Albums and filters
+
+The chip at the start of the header names the album you are in. Tap it for the list of albums, each with its newest photo and a count:
+
+- **Recents**: everything, newest first.
+- **Sent from the keyboard**: what you sent through this tool before, the most recent send first.
+- **Favorites**: what your gallery app has starred, on Android 11 and later.
+- **Camera**, **Screenshots**, **Videos** and **GIFs**, when they have anything in them.
+- Then every folder on the phone, the biggest first.
+
+Next to it, **All**, **Photos**, **Videos** and **GIFs** narrow whatever album is open. **Open the last album** brings you back to the album you left; with it off, the panel always opens on Recents.
+
+## The grid
+
+The first square is a camera tile, which opens the [Camera tool](/tools/camera/). Every other square is a photo or a video. Videos show their length, GIFs say GIF, starred photos carry a star, and a photo you have sent before carries a small send mark.
+
+- **Pinch** the grid to change the number of columns, from two to six. The setting remembers it.
+- **Drag the handle** on the right edge to move through years of photos fast. A bubble shows the month under your finger.
+- New photos appear by themselves: a screenshot taken while the panel is open joins the top of the grid.
+
+## Picking
+
+- **Tap the round check** in a photo's corner to pick it. Picked photos shrink a little, get an accent ring, and show their place in the send order.
+- **Tap the photo itself** to open it full size. Set **Tap on a photo** to **Pick it** if you would rather a tap picked, as Signal does; the corner check and the viewer still work.
+- **Hold a photo** to peek at it big. Lift, and it goes away.
+- **Hold, then slide** across the grid to pick every photo you pass, the way Google Photos does. Slide back and they drop out again. Near the top or bottom edge the grid scrolls under your finger. A slide that starts on a picked photo unpicks instead.
+
+You can pick up to 20 at once; **Pick up to** changes that, from 1 to 100.
+
+## The send bar
+
+As soon as something is picked, a bar rises from the bottom:
+
+- **The picks in order.** Hold one and drag it sideways to move it. Tap a photo to edit it, a video to watch it. The cross takes one out.
+- **The caption.** Tap it and type. What you type goes into the message box after the pictures, or before them, as **Caption** says. Turn the box off there if you never use it.
+- **The size chip.** **Original**, **HD** (2560 px on the long side), **SD** (1280 px) or **Small** (800 px), with an estimate of the total under it. Tap to step through them. The starting size is **Picture size** in settings. Videos always go at their own size.
+- **Send.** Hold it for the other ways out: **Send at full size**, **Send without the caption**, **Share to this app**, **Share to another app**, **Copy to the clipboard**, **Save a copy to the gallery** and **Clear the selection**.
+
+Each item goes into the text box in turn, a moment apart, so the chat app has time to take each one. If you switch to another text box partway, the rest stop.
+
+### When the app does not take pictures
+
+Some text boxes accept pictures from a keyboard and some do not, and fewer accept videos. What happens to the ones a box refuses is up to **When the app does not take pictures**:
+
+- **Share them to that app** (the default): Android's share screen opens for the app you were typing in, with the pictures and the caption. Most chat apps then ask which chat they go to.
+- **Copy them to the clipboard**, to paste yourself.
+- **Ask each time**, with Share and Copy on a card.
+
+## The viewer
+
+<PhoneFrame caption="The viewer: the counter and the check on top, the picks and Send along the bottom.">
+  {/* shot: tools/gallery-viewer */}
+</PhoneFrame>
+
+The viewer pages through the album you opened it from, or through your picks when you open it from the send bar.
+
+- **Swipe** sideways for the next or the previous one, **pinch** or **double-tap** to zoom, and drag a zoomed photo to look around it.
+- **Drag down** to put the viewer away.
+- **Tap** the picture to hide the bars for a clear look, and again to bring them back.
+- Videos play while they are on screen and loop. Tap pause, or drag the line under them to seek. This is a preview: what is sent is the video file itself.
+- The **check** at the top right picks or unpicks what you are looking at. **Send** with nothing picked sends just this one.
+- **Details** shows when it was taken, its size in pixels and in bytes, its length and its folder.
+
+## The editor
+
+<PhoneFrame caption="The editor's Draw tool: the brushes, the colours and the size slider over the tool rail.">
+  {/* shot: tools/gallery-editor */}
+</PhoneFrame>
+
+Tap a picked photo in the send bar, or **Edit** in the viewer, to edit it. Editing never changes the photo in your library. Every step can be undone and redone, **Remove every edit** starts over, and holding the compare button, or holding the picture in Filters and Adjust, shows the original. An edited photo carries a pencil mark in the bar and goes out with its edits at the chosen size.
+
+- **Crop.** Drag the corners or the sides, or drag inside the frame to move it. Shapes: **Free**, **Original**, **Square**, **4:3**, **3:4**, **16:9**, **9:16**, **3:2** and **2:3**. **Turn a quarter** rotates it, **Mirror** flips it, and the **Straighten** slider tilts it up to 45 degrees either way while it zooms just enough to keep the corners filled.
+- **Draw.** **Pen**, **Marker**, **Neon** and **Arrow** draw in any of twelve colours at the size you set. **Eraser** takes back drawing, never the photo. **Blur** and **Pixelate** paint over a face, a number plate or an address so it cannot be read.
+- **Text.** Tap the photo where the text should go, or **Add text**, and type with the keyboard. **Plain**, **Outline**, **Box** and **Glass** styles, three alignments, and the colour row. Drag a text to move it, pinch to resize it and turn two fingers to rotate it. Tap it again to change the words. Drag it onto the bin that appears at the bottom to delete it.
+- **Stickers.** Thirty-two popular emoji, then your own [sticker packs](/emoji/stickers/). They move, resize, rotate and delete the way text does.
+- **Filters.** Fourteen looks, each previewed on your photo: Original, Vivid, Warm, Cool, Mono, Noir, Fade, Sepia, Chrome, Dramatic, Matte, Retro, Lush and Dusk. Tap one, then set how strongly it applies.
+- **Adjust.** Brightness, contrast, saturation, warmth, tint, exposure, highlights, shadows, fade, vignette, grain and sharpen, each on its own slider. A dot marks the ones you changed. Double-tap a slider to put it back.
+
+**Keep edited photos** also saves each edited photo to your gallery, under Pictures/WM Keyboard.
+
+## Privacy
+
+What the app you type in receives is a copy in the keyboard's own storage, offered through Android's content system. It cannot see your library, other photos in the album, or the file the copy came from.
+
+- **Remove the location** (on) takes the GPS position out of every photo and video sent. On Android 10 and later the keyboard never reads the location in the first place, because Android hides it from apps without a separate permission that this one does not ask for.
+- **Remove the camera details** (on) also takes out the camera's make and model, the serial numbers, the owner's name and the time the photo was taken. A photo sent at a smaller size is re-encoded, which leaves all metadata behind anyway. A video is copied into a new container, which keeps its picture, sound and rotation and nothing else.
+- **Random file names** (on) sends copies under a random name such as IMG_3f9a01c2d4.jpg, not the photo's own.
+- **Remember what you sent** (on) keeps a list of the library ids you sent, for the Sent album and the send mark. It holds no pictures and no names, it stays on the phone, an incognito text box adds nothing to it, and **Clear the sent list** empties it.
+- The copies are deleted from the keyboard's storage a day after they were made.
+
+The library is read only while the panel is open. Nothing is uploaded: the tool works the same with no internet at all.
+
+## Settings
+
+Everything above is under <SettingsPath path="Tools / Gallery" />: access, **Tap on a photo**, **Columns**, **Camera tile**, **Show videos**, **Fast scroll by month**, **Open at full height**, **Open the last album**, **Vibrate on each pick**, **Picture size**, **Pick up to**, **Caption**, **When the app does not take pictures**, **Close after sending**, **Keep edited photos**, and the privacy switches. The Play Store build shows only the ones that apply to the picker.

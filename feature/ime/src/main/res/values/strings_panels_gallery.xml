@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Gallery tool panel (#708) -->
+    <string name="ime_gallery_camera">Camera</string>
+    <string name="ime_gallery_empty_album">Nothing here yet.</string>
+    <string name="ime_gallery_expand_desc">Make the gallery taller</string>
+    <string name="ime_gallery_collapse_desc">Make the gallery shorter</string>
+    <string name="ime_gallery_more_desc">More gallery options</string>
+    <string name="ime_gallery_browse_all">Pick with the system picker</string>
+    <string name="ime_gallery_files">Send a file</string>
+    <string name="ime_gallery_settings">Gallery settings</string>
+    <string name="ime_gallery_done">Done</string>
+
+    <!-- Albums and filters -->
+    <string name="ime_gallery_album_recents">Recents</string>
+    <string name="ime_gallery_album_favorites">Favorites</string>
+    <string name="ime_gallery_album_videos">Videos</string>
+    <string name="ime_gallery_album_gifs">GIFs</string>
+    <string name="ime_gallery_album_screenshots">Screenshots</string>
+    <string name="ime_gallery_album_camera">Camera</string>
+    <string name="ime_gallery_album_sent">Sent from the keyboard</string>
+    <string name="ime_gallery_album_unnamed">Unnamed folder</string>
+    <string name="ime_gallery_filter_all">All</string>
+    <string name="ime_gallery_filter_photos">Photos</string>
+    <string name="ime_gallery_filter_videos">Videos</string>
+    <string name="ime_gallery_filter_gifs">GIFs</string>
+
+    <!-- Access -->
+    <string name="ime_gallery_access_title">See your photos here</string>
+    <string name="ime_gallery_access_body">Allow photos and videos to browse them inside the keyboard. Or pick them with the system picker, which needs no permission.</string>
+    <string name="ime_gallery_access_allow">Allow</string>
+    <string name="ime_gallery_access_pick">Pick instead</string>
+    <string name="ime_gallery_partial_body">You allowed only some photos.</string>
+    <string name="ime_gallery_partial_action">Choose more</string>
+
+    <!-- Grid cells, for screen readers -->
+    <string name="ime_gallery_cell_photo">Photo</string>
+    <string name="ime_gallery_cell_gif">GIF</string>
+    <string name="ime_gallery_cell_video">Video, %1$s</string>
+    <string name="ime_gallery_cell_picked">picked, number %1$d</string>
+    <string name="ime_gallery_badge_gif">GIF</string>
+
+    <!-- Send bar -->
+    <string name="ime_gallery_caption_hint">Add a caption</string>
+    <string name="ime_gallery_remove_desc">Remove from the selection</string>
+    <string name="ime_gallery_sending">Sending %1$d of %2$d</string>
+    <string name="ime_gallery_size_estimate">about %1$s</string>
+    <string name="ime_gallery_quality_original">Original</string>
+    <string name="ime_gallery_quality_hd">HD</string>
+    <string name="ime_gallery_quality_standard">SD</string>
+    <string name="ime_gallery_quality_small">Small</string>
+    <plurals name="ime_gallery_send_desc">
+        <item quantity="one">Send %d item. Hold for more ways to send.</item>
+        <item quantity="other">Send %d items. Hold for more ways to send.</item>
+    </plurals>
+    <string name="ime_gallery_send">Send</string>
+    <string name="ime_gallery_send_count">Send %1$d</string>
+    <string name="ime_gallery_send_as_file">Send at full size</string>
+    <string name="ime_gallery_send_without_caption">Send without the caption</string>
+    <string name="ime_gallery_share_to_app">Share to this app</string>
+    <string name="ime_gallery_share">Share to another app</string>
+    <string name="ime_gallery_copy">Copy to the clipboard</string>
+    <string name="ime_gallery_save">Save a copy to the gallery</string>
+    <string name="ime_gallery_clear_selection">Clear the selection</string>
+
+    <!-- When the app does not take pictures from the keyboard -->
+    <plurals name="ime_gallery_fallback_title">
+        <item quantity="one">The app did not take %d item</item>
+        <item quantity="other">The app did not take %d items</item>
+    </plurals>
+    <string name="ime_gallery_fallback_body">This text box does not accept pictures or videos from a keyboard. Share them to the app through the share screen, or copy them and paste.</string>
+    <string name="ime_gallery_fallback_share">Share</string>
+    <string name="ime_gallery_fallback_copy">Copy</string>
+    <string name="ime_gallery_fallback_cancel">Cancel</string>
+
+    <!-- Notices -->
+    <plurals name="ime_gallery_notice_limit">
+        <item quantity="one">You can pick %d item at a time</item>
+        <item quantity="other">You can pick up to %d items at a time</item>
+    </plurals>
+    <string name="ime_gallery_notice_not_accepted">This app does not take pictures from the keyboard</string>
+    <plurals name="ime_gallery_notice_shared">
+        <item quantity="one">Opened the share screen for %d item</item>
+        <item quantity="other">Opened the share screen for %d items</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_copied">
+        <item quantity="one">Copied %d item</item>
+        <item quantity="other">Copied %d items</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_saved">
+        <item quantity="one">Saved %d copy to the gallery</item>
+        <item quantity="other">Saved %d copies to the gallery</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_failed">
+        <item quantity="one">Could not read %d item</item>
+        <item quantity="other">Could not read %d items</item>
+    </plurals>
+    <plurals name="ime_gallery_notice_sent">
+        <item quantity="one">Sent %d item</item>
+        <item quantity="other">Sent %d items</item>
+    </plurals>
+    <string name="ime_gallery_notice_no_videos">This text box takes pictures only. Videos go through the share screen.</string>
+
+    <!-- Viewer -->
+    <string name="ime_gallery_viewer_close">Close the viewer</string>
+    <string name="ime_gallery_viewer_counter">%1$d of %2$d</string>
+    <string name="ime_gallery_viewer_info">Details</string>
+    <string name="ime_gallery_edit">Edit</string>
+    <string name="ime_gallery_play">Play</string>
+    <string name="ime_gallery_pause">Pause</string>
+    <string name="ime_gallery_info_taken">Taken</string>
+    <string name="ime_gallery_info_size">Size</string>
+    <string name="ime_gallery_info_dimensions" tools:ignore="PluralsCandidate">%1$d × %2$d px</string>
+    <string name="ime_gallery_info_bytes">File</string>
+    <string name="ime_gallery_info_length">Length</string>
+    <string name="ime_gallery_info_album">Folder</string>
+    <string name="ime_gallery_info_privacy">The app gets a copy, not this file. The keyboard removes the location, and with the privacy setting on, the camera details too.</string>
+
+    <!-- Editor -->
+    <string name="ime_gallery_editor_close">Close the editor</string>
+    <string name="ime_gallery_editor_undo">Undo</string>
+    <string name="ime_gallery_editor_redo">Redo</string>
+    <string name="ime_gallery_editor_compare">Hold to see the original</string>
+    <string name="ime_gallery_editor_reset">Remove every edit</string>
+    <string name="ime_gallery_editor_done">Done</string>
+    <string name="ime_gallery_tool_crop">Crop</string>
+    <string name="ime_gallery_tool_draw">Draw</string>
+    <string name="ime_gallery_tool_text">Text</string>
+    <string name="ime_gallery_tool_stickers">Stickers</string>
+    <string name="ime_gallery_tool_filters">Filters</string>
+    <string name="ime_gallery_tool_adjust">Adjust</string>
+    <string name="ime_gallery_crop_rotate">Turn a quarter</string>
+    <string name="ime_gallery_crop_mirror">Mirror</string>
+    <string name="ime_gallery_crop_straighten">Straighten</string>
+    <string name="ime_gallery_degrees" tools:ignore="PluralsCandidate">%1$d°</string>
+    <string name="ime_gallery_aspect_free">Free</string>
+    <string name="ime_gallery_aspect_original">Original</string>
+    <string name="ime_gallery_aspect_square">Square</string>
+    <string name="ime_gallery_aspect_4_3">4:3</string>
+    <string name="ime_gallery_aspect_3_4">3:4</string>
+    <string name="ime_gallery_aspect_16_9">16:9</string>
+    <string name="ime_gallery_aspect_9_16">9:16</string>
+    <string name="ime_gallery_aspect_3_2">3:2</string>
+    <string name="ime_gallery_aspect_2_3">2:3</string>
+    <string name="ime_gallery_brush_pen">Pen</string>
+    <string name="ime_gallery_brush_marker">Marker</string>
+    <string name="ime_gallery_brush_neon">Neon</string>
+    <string name="ime_gallery_brush_arrow">Arrow</string>
+    <string name="ime_gallery_brush_eraser">Eraser</string>
+    <string name="ime_gallery_brush_blur">Blur</string>
+    <string name="ime_gallery_brush_pixelate">Pixelate</string>
+    <string name="ime_gallery_brush_size">Brush size</string>
+    <string name="ime_gallery_text_add">Add text</string>
+    <string name="ime_gallery_text_edit">Edit text</string>
+    <string name="ime_gallery_text_plain">Plain</string>
+    <string name="ime_gallery_text_outline">Outline</string>
+    <string name="ime_gallery_text_box">Box</string>
+    <string name="ime_gallery_text_glass">Glass</string>
+    <string name="ime_gallery_layer_delete">Delete</string>
+    <string name="ime_gallery_stickers_none">Your own sticker packs show here once you make one.</string>
+    <string name="ime_gallery_filter_original">Original</string>
+    <string name="ime_gallery_filter_vivid">Vivid</string>
+    <string name="ime_gallery_filter_warm">Warm</string>
+    <string name="ime_gallery_filter_cool">Cool</string>
+    <string name="ime_gallery_filter_mono">Mono</string>
+    <string name="ime_gallery_filter_noir">Noir</string>
+    <string name="ime_gallery_filter_fade">Fade</string>
+    <string name="ime_gallery_filter_sepia">Sepia</string>
+    <string name="ime_gallery_filter_chrome">Chrome</string>
+    <string name="ime_gallery_filter_dramatic">Dramatic</string>
+    <string name="ime_gallery_filter_matte">Matte</string>
+    <string name="ime_gallery_filter_retro">Retro</string>
+    <string name="ime_gallery_filter_lush">Lush</string>
+    <string name="ime_gallery_filter_dusk">Dusk</string>
+    <string name="ime_gallery_filter_strength">Filter strength</string>
+    <string name="ime_gallery_adjust_brightness">Brightness</string>
+    <string name="ime_gallery_adjust_contrast">Contrast</string>
+    <string name="ime_gallery_adjust_saturation">Saturation</string>
+    <string name="ime_gallery_adjust_warmth">Warmth</string>
+    <string name="ime_gallery_adjust_tint">Tint</string>
+    <string name="ime_gallery_adjust_exposure">Exposure</string>
+    <string name="ime_gallery_adjust_highlights">Highlights</string>
+    <string name="ime_gallery_adjust_shadows">Shadows</string>
+    <string name="ime_gallery_adjust_fade">Fade</string>
+    <string name="ime_gallery_adjust_vignette">Vignette</string>
+    <string name="ime_gallery_adjust_grain">Grain</string>
+    <string name="ime_gallery_adjust_sharpen">Sharpen</string>
+</resources>

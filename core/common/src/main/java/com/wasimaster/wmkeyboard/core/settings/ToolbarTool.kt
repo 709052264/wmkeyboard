@@ -117,6 +117,11 @@ enum class ToolbarTool {
     // before the first unlock, but the panel itself waits for the unlock like
     // the other tools that keep files.
     CLOCK,
+    // The phone's photos and videos inside the keyboard, Telegram's attach
+    // sheet: albums, multi-select, a viewer, an editor, and a send that hands
+    // the app only a copy of what was picked (#708). Play builds open
+    // Android's photo picker instead of the grid; see ChannelFeatures.
+    GALLERY,
     // The next language, as the 🌐 key switches it (issue #667): for a bottom
     // row with no globe key, or one whose globe sits where a comma is meant.
     LANGUAGE,
@@ -299,7 +304,8 @@ val RecommendedTools: Set<ToolbarTool> = MinimalTools + setOf(
  * their converters and their calendar already on.
  */
 val PowerTools: Set<ToolbarTool> = RecommendedTools + setOf(
-    ToolbarTool.WIKIPEDIA, ToolbarTool.VOCABULARY, ToolbarTool.NOTES, ToolbarTool.POWER_SAVING, ToolbarTool.MODES,
+    ToolbarTool.WIKIPEDIA, ToolbarTool.VOCABULARY, ToolbarTool.NOTES, ToolbarTool.GALLERY, ToolbarTool.POWER_SAVING,
+    ToolbarTool.MODES,
     ToolbarTool.NUMPAD,
     ToolbarTool.SYMBOLS, ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.CURRENCY,
     ToolbarTool.PASSWORD_GEN, ToolbarTool.CALENDAR, ToolbarTool.CLOCK, ToolbarTool.WEATHER, ToolbarTool.LOCATION,

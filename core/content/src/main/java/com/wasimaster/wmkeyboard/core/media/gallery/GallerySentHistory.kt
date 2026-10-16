@@ -13,8 +13,6 @@ import java.io.File
  */
 class GallerySentHistory(private val file: File) {
 
-    constructor(context: Context) : this(File(context.filesDir, FILE_NAME))
-
     private var cache: List<Long>? = null
 
     /** Ids, most recent send first. */
@@ -49,6 +47,18 @@ class GallerySentHistory(private val file: File) {
 
     companion object {
         const val FILE_NAME = "gallery_sent.txt"
+
+        @Volatile
+        private var shared: GallerySentHistory? = null
+
+        /**
+         * The one history of the process: the keyboard and the settings app
+         * share a process, and a clear from the settings screen has to reach
+         * the keyboard's copy of the list.
+         */
+        fun get(context: Context): GallerySentHistory = shared ?: synchronized(this) {
+            shared ?: GallerySentHistory(File(context.applicationContext.filesDir, FILE_NAME)).also { shared = it }
+        }
 
         /** How many sends are remembered. */
         const val MAX = 200

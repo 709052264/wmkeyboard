@@ -74,6 +74,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudSync
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudUpload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Code
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Collections
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Videocam
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ColorLens
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Colorize
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Contacts
@@ -1153,6 +1154,27 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_weather_refresh_title) { Icons.Outlined.Schedule }
         put(R.string.tooldetail_calendar_hijri_title) { Icons.Outlined.CalendarMonth }
         put(R.string.toolai_weekend_title) { Icons.Outlined.Weekend }
+        // Gallery (#708).
+        put(R.string.gallery_access_title) { Icons.Outlined.PhotoLibrary }
+        put(R.string.gallery_tap_title) { Icons.Outlined.TouchApp }
+        put(R.string.gallery_columns_title) { Icons.Outlined.GridView }
+        put(R.string.gallery_camera_tile_title) { Icons.Outlined.PhotoCamera }
+        put(R.string.gallery_show_videos_title) { Icons.Outlined.Videocam }
+        put(R.string.gallery_scrubber_title) { Icons.Outlined.Timeline }
+        put(R.string.gallery_start_expanded_title) { Icons.Outlined.OpenInFull }
+        put(R.string.gallery_remember_album_title) { Icons.Outlined.Collections }
+        put(R.string.gallery_haptics_title) { Icons.Outlined.Vibration }
+        put(R.string.gallery_quality_title) { Icons.Outlined.Compress }
+        put(R.string.gallery_max_selection_title) { Icons.Outlined.Checklist }
+        put(R.string.gallery_caption_title) { Icons.Outlined.Subtitles }
+        put(R.string.gallery_fallback_title) { Icons.Outlined.Share }
+        put(R.string.gallery_close_after_send_title) { Icons.Outlined.KeyboardHide }
+        put(R.string.gallery_save_edited_title) { Icons.Outlined.Save }
+        put(R.string.gallery_strip_location_title) { Icons.Outlined.PrivacyTip }
+        put(R.string.gallery_strip_all_title) { Icons.Outlined.Fingerprint }
+        put(R.string.gallery_random_names_title) { Icons.Outlined.Shuffle }
+        put(R.string.gallery_history_title) { Icons.Outlined.History }
+        put(R.string.gallery_history_clear_title) { Icons.Outlined.DeleteSweep }
         put(R.string.tooldetail_camera_front_title) { Icons.Outlined.Cameraswitch }
         put(R.string.tooldetail_camera_mirror_title) { Icons.Outlined.Flip }
         put(R.string.tooldetail_camera_fullframe_title) { Icons.Outlined.AspectRatio }

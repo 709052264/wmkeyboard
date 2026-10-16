@@ -92,11 +92,17 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
 
-    <!-- Only used by the optional "User screenshots" clipboard setting. -->
+    <!-- The optional "User screenshots" clipboard setting, and the gallery
+         tool's grid of photos and videos (#708). Photos and videos are two
+         grants from Android 13; from 14 the dialog can grant only the photos
+         the user picks, which READ_MEDIA_VISUAL_USER_SELECTED is. All asked
+         for only after the in-app disclosure, never at install. -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
 
     <!-- Only used by the optional fingerprint lock in Privacy, which puts a
          BiometricPrompt in front of the settings screens and destructive
@@ -925,6 +931,27 @@
             android:excludeFromRecents="true"
             android:exported="false"
             android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- The gallery tool's photos and videos (#708), same trampoline. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.GalleryPermissionActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- The gallery tool's system pickers (#708): Android's photo picker
+             (the whole tool in a Play build) and the document picker. No
+             noHistory, for the scanner's reason below: the picker's result
+             comes back to this activity. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.GalleryPickActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 

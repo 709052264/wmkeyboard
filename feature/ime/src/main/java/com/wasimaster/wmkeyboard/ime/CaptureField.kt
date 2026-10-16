@@ -381,6 +381,12 @@ enum class CaptureTarget(
     /** A label in the Clock panel: an alarm's, a timer's, a countdown's, a city's own name. */
     CLOCK_LABEL(takesWords = true),
 
+    /**
+     * The gallery panel's text (#708): the caption that goes with what is
+     * sent, or a text box being written on a photo in the editor.
+     */
+    GALLERY_TEXT(takesWords = true),
+
     /** The toolbox's search (#687): matches tool names as it is typed, Enter opens the first. */
     TOOLBOX_SEARCH(takesWords = true),
 

@@ -7890,6 +7890,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.NOTES -> R.string.ime_tool_notes
     ToolbarTool.LOCATION -> R.string.ime_tool_location
     ToolbarTool.CLOCK -> R.string.ime_tool_clock
+    ToolbarTool.GALLERY -> R.string.ime_tool_gallery
     ToolbarTool.PLUGINS -> R.string.ime_tool_plugins
     ToolbarTool.APP_LAUNCHER -> R.string.ime_tool_app_launcher
     ToolbarTool.AI -> R.string.ime_tool_ai
@@ -7984,6 +7985,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.NOTES -> state.panel == PanelMode.NOTES
     ToolbarTool.LOCATION -> state.panel == PanelMode.LOCATION
     ToolbarTool.CLOCK -> state.panel == PanelMode.CLOCK
+    ToolbarTool.GALLERY -> state.panel == PanelMode.GALLERY
     ToolbarTool.VOICE -> state.panel == PanelMode.VOICE || state.voice.strip || state.voice.bar
     ToolbarTool.GRAMMAR -> state.panel == PanelMode.GRAMMAR
     ToolbarTool.WIKIPEDIA -> state.panel == PanelMode.WIKIPEDIA
@@ -11923,6 +11925,7 @@ private val FullBleedPanels = setOf(
     PanelMode.VOCABULARY, PanelMode.LEARN_FROM_TEXT, PanelMode.NOTES,
     PanelMode.APP_LAUNCHER, PanelMode.THEMES, PanelMode.SNIPPETS, PanelMode.WIKIPEDIA,
     PanelMode.AI_REPLY, PanelMode.LOCATION, PanelMode.CLOCK,
+    PanelMode.GALLERY,
 )
 
 /**
@@ -12996,6 +12999,11 @@ private fun KeyboardBody(
                     state = state,
                     callbacks = toolHold.clock,
                     onClose = { onPanelChange(PanelMode.CLOCK) },
+                )
+                PanelMode.GALLERY -> com.wasimaster.wmkeyboard.ime.ui.gallery.GalleryPanel(
+                    state = state,
+                    callbacks = toolHold.gallery,
+                    onClose = { onPanelChange(PanelMode.GALLERY) },
                 )
                 // At the keyboard's own height, like the calculator (#665): the
                 // month grid gives up row height before the day's summary does,
@@ -28055,6 +28063,8 @@ data class ToolHoldCallbacks(
     val location: LocationCallbacks = LocationCallbacks(),
     /** The Clock panel's callbacks and state; here for the same reason as [dictionaryBar]. */
     val clock: com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks = com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks(),
+    /** The gallery tool (#708); its state is the controller's, like [clock]. */
+    val gallery: com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks = com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks(),
     /** The clipboard panel's editor and view switch; here for the same reason as [dictionaryBar]. */
     val clipboard: ClipboardPanelActions = ClipboardPanelActions(),
     /** The caret magnifier (discussion #303); here for the same reason as [dictionaryBar]. */

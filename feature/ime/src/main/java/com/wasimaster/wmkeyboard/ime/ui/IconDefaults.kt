@@ -19,6 +19,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.TextSn
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.VolumeUp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Apps
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BarChart
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BatterySaver
@@ -190,6 +191,7 @@ object IconDefaults {
         ToolbarTool.NOTES -> Icons.Outlined.StickyNote2
         ToolbarTool.LOCATION -> Icons.Outlined.LocationOn
         ToolbarTool.CLOCK -> Icons.Outlined.Schedule
+        ToolbarTool.GALLERY -> Icons.Outlined.PhotoLibrary
         ToolbarTool.MEDIA_CONTROL -> Icons.Outlined.MusicNote
         ToolbarTool.KDE_CONNECT -> Icons.Outlined.Phonelink
         ToolbarTool.PLUGINS -> Icons.Outlined.Extension

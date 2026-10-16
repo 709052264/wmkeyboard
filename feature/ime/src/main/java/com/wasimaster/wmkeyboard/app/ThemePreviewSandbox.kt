@@ -285,6 +285,7 @@ internal fun panelForTool(tool: ToolbarTool): PanelMode? = when (tool) {
     ToolbarTool.NOTES -> PanelMode.NOTES
     ToolbarTool.LOCATION -> PanelMode.LOCATION
     ToolbarTool.CLOCK -> PanelMode.CLOCK
+    ToolbarTool.GALLERY -> PanelMode.GALLERY
     ToolbarTool.TRANSLATE -> PanelMode.TRANSLATE
     ToolbarTool.GIF -> PanelMode.GIF
     ToolbarTool.STICKER -> PanelMode.STICKER

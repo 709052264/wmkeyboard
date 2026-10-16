@@ -6599,6 +6599,11 @@ open class WMKeyboardService : InputMethodService() {
         locationTool.onKeyboardShown()
         // And a clock grant (exact alarms, full screen) given on a system screen.
         if (clockToolDelegate.isInitialized()) clockTool.onKeyboardShown()
+        // The gallery's grant, or what its system picker handed back (#708):
+        // the picks join the open panel, or in a Play build go straight out.
+        if (galleryToolDelegate.isInitialized() || com.wasimaster.wmkeyboard.app.GalleryPickActivity.hasPending()) {
+            galleryTool.onKeyboardShown()
+        }
         // Same for the images permission the reply panel's screenshot button
         // asked for: open the picker it was pressed for.
         resumeReplyShotsAfterGrant()
@@ -7338,6 +7343,8 @@ open class WMKeyboardService : InputMethodService() {
         lastMicNotice = null
         // The drag that put it up cannot finish with the keyboard gone.
         caretMagnifier.stop()
+        // Sent copies the app has long since read go from the media cache.
+        if (galleryToolDelegate.isInitialized()) galleryTool.onFinish()
         // The ring belongs to the board that is going away: a new session gets
         // a fresh one, seeded where [KeyGridFocus.show] puts it rather than on
         // whatever key the last field was left pointing at.
@@ -9352,6 +9359,8 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.NOTE_TAG -> onNoteTagCommit()
             // Search adds its best match; a label is kept. Either way the keys go back.
             CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> state.clockText?.let(clockTool::onTextEnter)
+            // A caption, or words on a photo, can run over lines; Done finishes them.
+            CaptureTarget.GALLERY_TEXT -> captureTyped("\n")
             // A clip is free text, so Enter is a line break in it; saving is
             // the editor's own button.
             CaptureTarget.CLIP_EDIT -> captureTyped("\n")
@@ -9662,6 +9671,12 @@ open class WMKeyboardService : InputMethodService() {
                     val entry = _uiState.value.clockText?.copy(text = after.text.replace("\n", " ").take(limit))
                     _uiState.update { it.copy(clockText = entry) }
                     entry?.let(clockTool::onText)
+                }
+                CaptureTarget.GALLERY_TEXT -> {
+                    val limit = com.wasimaster.wmkeyboard.ime.gallery.GalleryController.CAPTION_MAX
+                    val entry = _uiState.value.galleryText?.copy(text = after.text.take(limit))
+                    _uiState.update { it.copy(galleryText = entry) }
+                    entry?.let(galleryTool::onText)
                 }
                 CaptureTarget.TOOLBOX_SEARCH ->
                     updateQuery { it.copy(toolboxView = it.toolboxView.copy(query = after.text)) }
@@ -23691,6 +23706,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.NOTES -> onPanelChange(PanelMode.NOTES)
             ToolbarTool.LOCATION -> onPanelChange(PanelMode.LOCATION)
             ToolbarTool.CLOCK -> onPanelChange(PanelMode.CLOCK)
+            ToolbarTool.GALLERY -> openGalleryTool()
             ToolbarTool.MEDIA_CONTROL -> onPanelChange(PanelMode.MEDIA_CONTROL)
             ToolbarTool.KDE_CONNECT -> onPanelChange(PanelMode.KDE_CONNECT)
             ToolbarTool.PLUGINS -> onPanelChange(PanelMode.PLUGINS)
@@ -23789,6 +23805,11 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.panel == PanelMode.CLOCK) {
             clockTool.onPanelClose()
             _uiState.update { it.copy(clockText = null) }
+        }
+        // Leaving the gallery: its caption box gives the keys back (#708).
+        if (_uiState.value.panel == PanelMode.GALLERY) {
+            galleryTool.onPanelClose()
+            _uiState.update { it.copy(galleryText = null) }
         }
         // Leaving the reply panel, by closing it or opening another: the
         // screenshot watcher goes back to what the clipboard setting says (#234).
@@ -23946,6 +23967,7 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.WEATHER -> refreshWeather()
             PanelMode.LOCATION -> locationTool.onPanelOpen()
             PanelMode.CLOCK -> clockTool.onPanelOpen()
+            PanelMode.GALLERY -> galleryTool.onPanelOpen()
             PanelMode.VOCABULARY -> {
                 val prefill = _uiState.value.toolPrefill as? ToolPrefill.Vocab
                 if (prefill != null) onToolPrefillConsumed()
@@ -34462,6 +34484,7 @@ open class WMKeyboardService : InputMethodService() {
             notes = notesCallbacks(),
             location = locationTool.callbacks,
             clock = clockTool.callbacks,
+            gallery = galleryTool.callbacks,
             toolbox = toolboxCallbacks(),
             stickerOffer = com.wasimaster.wmkeyboard.ime.ui.StickerOfferCallbacks(
                 onPick = ::onStickerOfferPick,
@@ -34550,6 +34573,99 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val clockTool by clockToolDelegate
+
+    // ---- Gallery tool (#708) ----
+
+    /**
+     * The gallery tool. Built on first use, like [clockTool]: by the panel
+     * opening, or by a system picker handing something back.
+     */
+    private val galleryToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.gallery.GalleryController(
+            context = this,
+            scope = serviceScope,
+            host = object : com.wasimaster.wmkeyboard.ime.gallery.GalleryController.Host {
+                override val settings get() = _uiState.value.settings.gallery
+                override fun updateSettings(
+                    change: (com.wasimaster.wmkeyboard.core.settings.GallerySettings) -> com.wasimaster.wmkeyboard.core.settings.GallerySettings,
+                ) {
+                    serviceScope.launch { settingsRepository.updateGallery(change) }
+                }
+                override fun haptic() = vibrate()
+                override fun incognito() = _uiState.value.incognitoOn
+                override fun field() = currentInputEditorInfo?.let {
+                    com.wasimaster.wmkeyboard.ime.gallery.GalleryController.FieldKey(it.packageName, it.fieldId)
+                }
+                override fun acceptedMimes(): List<String> =
+                    currentInputEditorInfo?.let { EditorInfoCompat.getContentMimeTypes(it).toList() }.orEmpty()
+                override fun commit(file: File, mime: String) = commitGalleryFile(file, mime)
+                override fun insertText(text: String) = onToolTextInsert(text)
+                override fun openCamera() = onPanelChange(PanelMode.CAMERA)
+                override fun closePanel() {
+                    if (_uiState.value.panel == PanelMode.GALLERY) onPanelChange(PanelMode.GALLERY, haptic = false)
+                }
+                override fun openSettings() = openToolSettings(ToolbarTool.GALLERY)
+                override fun beginText(entry: com.wasimaster.wmkeyboard.ime.gallery.GalleryTextEntry) {
+                    _uiState.update {
+                        it.copy(
+                            galleryText = entry,
+                            panelFocus = null,
+                            captureCaret = CaptureCaret(CaptureTarget.GALLERY_TEXT.name, entry.text.length, entry.text),
+                        )
+                    }
+                }
+                override fun endText() = _uiState.update { it.copy(galleryText = null) }
+                override fun currentText() = _uiState.value.galleryText
+                override fun saveToGallery(file: File, mime: String) = saveToGalleryIfEnabled(file, mime, true, "IMG")
+                override fun stickers() = stickerPackStore.packs().flatMap { pack ->
+                    pack.stickers.mapNotNull { sticker ->
+                        stickerPackStore.fileFor(pack.id, sticker)?.takeIf { it.isFile }?.let {
+                            com.wasimaster.wmkeyboard.ime.gallery.StickerChoice("${pack.id}/${sticker.id}", it.absolutePath)
+                        }
+                    }
+                }
+                override fun fileUri(file: File): Uri? =
+                    runCatching { FileProvider.getUriForFile(this@WMKeyboardService, clipboardFileProviderAuthority, file) }.getOrNull()
+            },
+        )
+    }
+    private val galleryTool by galleryToolDelegate
+
+    /**
+     * The gallery tool from the toolbar: the in-keyboard grid, or in a Play
+     * build (no library permission) Android's photo picker, whose picks are
+     * sent as soon as the keyboard is back.
+     */
+    private fun openGalleryTool() {
+        if (com.wasimaster.wmkeyboard.app.ChannelFeatures.GALLERY_BROWSER) {
+            onPanelChange(PanelMode.GALLERY)
+            return
+        }
+        vibrate()
+        if (_uiState.value.panel != PanelMode.NONE) _uiState.update { it.copy(panel = PanelMode.NONE) }
+        runCatching {
+            startActivity(
+                com.wasimaster.wmkeyboard.app.GalleryPickActivity.intent(
+                    this,
+                    files = false,
+                    limit = _uiState.value.settings.gallery.maxSelection,
+                ),
+            )
+        }
+    }
+
+    /**
+     * One gallery copy into the field, when the field takes its type: true
+     * when it went. No clipboard fallback here; the gallery's own setting
+     * decides where a refused copy goes.
+     */
+    private fun commitGalleryFile(file: File, mime: String): Boolean {
+        val editorInfo = currentInputEditorInfo ?: return false
+        val accepted = EditorInfoCompat.getContentMimeTypes(editorInfo).toList()
+        if (accepted.none { ClipDescription.compareMimeTypes(mime, it) }) return false
+        DebugLog.d("gallery", "commit ${file.name} as $mime field=${accepted.joinToString()}")
+        return tryCommit(file, mime)
+    }
 
     private val locationTool by lazy {
         com.wasimaster.wmkeyboard.ime.location.LocationController(

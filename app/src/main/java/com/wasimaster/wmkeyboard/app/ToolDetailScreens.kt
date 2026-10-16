@@ -3230,6 +3230,7 @@ internal fun ToolDetailSettings(
         ToolbarTool.NOTES -> NotesToolSettings(repository, settings, onNavigate)
         ToolbarTool.LOCATION -> LocationToolSettings(repository, settings)
         ToolbarTool.CLOCK -> ClockToolSettings(onNavigate)
+        ToolbarTool.GALLERY -> GalleryToolSettings(repository, settings)
         ToolbarTool.MODES -> SettingsGroup(stringResource(R.string.tooldetail_modes_group)) {
             item {
                 NavRow(

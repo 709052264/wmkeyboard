@@ -763,6 +763,14 @@ enum class PanelMode {
      * text box takes the keys through the `CLOCK_*` capture targets.
      */
     CLOCK,
+
+    /**
+     * The gallery tool (#708): the phone's photos and videos, picked, viewed,
+     * edited and sent. Its state is the controller's, see
+     * `ime.gallery.GalleryUi`; its caption box and the editor's text take the
+     * keys through [CaptureTarget.GALLERY_TEXT].
+     */
+    GALLERY,
 }
 
 /**
@@ -934,6 +942,8 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     PanelMode.LOCATION -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     // The tab row; each tab's own controls are touch, and typing reaches its box.
     PanelMode.CLOCK -> listOf(FocusRegion.CHIPS)
+    // The album and filter chips, the grid, then the send bar.
+    PanelMode.GALLERY -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     PanelMode.PASSWORD_GEN ->
         listOf(FocusRegion.CHIPS, FocusRegion.ACTIONS, FocusRegion.RESULTS)
     // The dialect and Fix-all chips, then the lint cards. Seed-only (see
@@ -3523,6 +3533,11 @@ data class KeyboardUiState(
      * label. The rest of the panel's state is the controller's.
      */
     val clockText: com.wasimaster.wmkeyboard.ime.clock.ClockTextEntry? = null,
+    /**
+     * The gallery panel's text box while it has the keys: the caption, or a
+     * text layer in the editor. The rest of the panel's state is the controller's.
+     */
+    val galleryText: com.wasimaster.wmkeyboard.ime.gallery.GalleryTextEntry? = null,
     val weather: WeatherUi = WeatherUi.NoLocation,
     val dictionary: DictionaryUi = DictionaryUi.Idle,
     /** Word in the dictionary panel's search field. */
@@ -3959,6 +3974,10 @@ data class KeyboardUiState(
     val clockTypingActive: Boolean
         get() = panel == PanelMode.CLOCK && clockText != null
 
+    /** Whether the gallery panel's text box has the keys; panel *and* box, as [clockTypingActive]. */
+    val galleryTypingActive: Boolean
+        get() = panel == PanelMode.GALLERY && galleryText != null
+
     /**
      * Whether keystrokes belong to the clipboard panel's clip editor. Panel
      * *and* an open edit, like [learnEditActive], so an edit left behind by a
@@ -4037,6 +4056,7 @@ data class KeyboardUiState(
             } else {
                 CaptureTarget.CLOCK_LABEL
             }
+        galleryTypingActive -> CaptureTarget.GALLERY_TEXT
         calcTypingActive -> CaptureTarget.CALC
         converterTypingActive -> CaptureTarget.CONVERTER
         wordSpellActive -> CaptureTarget.WORD_SPELL
@@ -4097,6 +4117,7 @@ data class KeyboardUiState(
         CaptureTarget.NOTE_BODY -> notes.editing?.bodyDraft.orEmpty()
         CaptureTarget.NOTE_TAG -> notes.editing?.tagDraft.orEmpty()
         CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> clockText?.text.orEmpty()
+        CaptureTarget.GALLERY_TEXT -> galleryText?.text.orEmpty()
         CaptureTarget.TOOLBOX_SEARCH -> toolboxView.query
         CaptureTarget.TOOLBOX_FOLDER_NAME -> toolboxView.nameDraft.orEmpty()
     }

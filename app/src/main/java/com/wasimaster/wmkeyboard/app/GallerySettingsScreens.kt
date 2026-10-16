@@ -1,0 +1,256 @@
+package com.wasimaster.wmkeyboard.app
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.media.gallery.GallerySentHistory
+import com.wasimaster.wmkeyboard.core.media.gallery.GalleryQuality
+import com.wasimaster.wmkeyboard.core.media.gallery.GalleryStore
+import com.wasimaster.wmkeyboard.core.settings.GalleryCaption
+import com.wasimaster.wmkeyboard.core.settings.GalleryFallback
+import com.wasimaster.wmkeyboard.core.settings.GallerySettings
+import com.wasimaster.wmkeyboard.core.settings.GalleryTapAction
+import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
+import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.wasimaster.wmkeyboard.common.R as CommonR
+
+/**
+ * Tools → Gallery (#708): the photo access, how the grid behaves, how a send
+ * is sized and where it goes, and what of a photo stays behind. A Play build
+ * has no grid (it opens Android's picker), so its browsing rows are left out.
+ */
+@Composable
+internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val d = SettingsDefaults.gallery
+    fun update(change: (GallerySettings) -> GallerySettings) {
+        scope.launch { repository.updateGallery(change) }
+    }
+
+    if (ChannelFeatures.GALLERY_BROWSER) {
+        var access by remember { mutableStateOf(GalleryStore.access(context)) }
+        LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { access = GalleryStore.access(context) }
+        val ask = rememberDisclosedPermissionRequest(PermissionDisclosures.GALLERY) { access = GalleryStore.access(context) }
+        SettingsGroup(stringResource(R.string.gallery_access_group)) {
+            item {
+                ActionRow(
+                    R.string.gallery_access_title,
+                    subtitle = stringResource(
+                        when (access) {
+                            GalleryStore.Access.FULL -> R.string.gallery_access_full
+                            GalleryStore.Access.PARTIAL -> R.string.gallery_access_partial
+                            GalleryStore.Access.NONE -> R.string.gallery_access_none
+                        },
+                    ),
+                    action = stringResource(
+                        if (access == GalleryStore.Access.FULL) R.string.gallery_access_change else R.string.gallery_access_allow,
+                    ),
+                ) { ask() }
+            }
+        }
+        SettingsGroup(stringResource(R.string.gallery_browse_group)) {
+            item {
+                ChoiceSetting(
+                    R.string.gallery_tap_title,
+                    subtitle = stringResource(R.string.gallery_tap_subtitle),
+                    options = listOf(
+                        GalleryTapAction.OPEN to stringResource(R.string.gallery_tap_open),
+                        GalleryTapAction.SELECT to stringResource(R.string.gallery_tap_select),
+                    ),
+                    selected = settings.watch { it.gallery.tapAction },
+                    default = d.tapAction,
+                ) { v -> update { it.copy(tapAction = v) } }
+            }
+            item {
+                ChoiceSetting(
+                    R.string.gallery_columns_title,
+                    subtitle = stringResource(R.string.gallery_columns_subtitle),
+                    options = (GallerySettings.MIN_COLUMNS..GallerySettings.MAX_COLUMNS).map { it to it.toString() },
+                    selected = settings.watch { it.gallery.columns },
+                    default = d.columns,
+                ) { v -> update { it.copy(columns = v) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.gallery_camera_tile_title,
+                    stringResource(R.string.gallery_camera_tile_subtitle),
+                    settings.watch { it.gallery.cameraTile },
+                    default = d.cameraTile,
+                ) { v -> update { it.copy(cameraTile = v) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.gallery_show_videos_title,
+                    stringResource(R.string.gallery_show_videos_subtitle),
+                    settings.watch { it.gallery.showVideos },
+                    default = d.showVideos,
+                ) { v -> update { it.copy(showVideos = v) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.gallery_scrubber_title,
+                    stringResource(R.string.gallery_scrubber_subtitle),
+                    settings.watch { it.gallery.dateScrubber },
+                    default = d.dateScrubber,
+                ) { v -> update { it.copy(dateScrubber = v) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.gallery_start_expanded_title,
+                    stringResource(R.string.gallery_start_expanded_subtitle),
+                    settings.watch { it.gallery.startExpanded },
+                    default = d.startExpanded,
+                ) { v -> update { it.copy(startExpanded = v) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.gallery_remember_album_title,
+                    stringResource(R.string.gallery_remember_album_subtitle),
+                    settings.watch { it.gallery.rememberAlbum },
+                    default = d.rememberAlbum,
+                ) { v -> update { it.copy(rememberAlbum = v) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.gallery_haptics_title,
+                    stringResource(R.string.gallery_haptics_subtitle),
+                    settings.watch { it.gallery.haptics },
+                    default = d.haptics,
+                ) { v -> update { it.copy(haptics = v) } }
+            }
+        }
+    }
+
+    SettingsGroup(stringResource(R.string.gallery_send_group)) {
+        item {
+            ChoiceSetting(
+                R.string.gallery_quality_title,
+                subtitle = stringResource(R.string.gallery_quality_subtitle),
+                options = listOf(
+                    GalleryQuality.ORIGINAL to stringResource(R.string.gallery_quality_original),
+                    GalleryQuality.HD to stringResource(R.string.gallery_quality_hd),
+                    GalleryQuality.STANDARD to stringResource(R.string.gallery_quality_standard),
+                    GalleryQuality.SMALL to stringResource(R.string.gallery_quality_small),
+                ),
+                selected = settings.watch { it.gallery.quality },
+                default = d.quality,
+            ) { v -> update { it.copy(quality = v) } }
+        }
+        item {
+            ChoiceSetting(
+                R.string.gallery_max_selection_title,
+                subtitle = stringResource(R.string.gallery_max_selection_subtitle),
+                options = GallerySettings.SELECTION_CHOICES.map { it to it.toString() },
+                selected = settings.watch { it.gallery.maxSelection }.let { n ->
+                    GallerySettings.SELECTION_CHOICES.minByOrNull { kotlin.math.abs(it - n) } ?: d.maxSelection
+                },
+                default = d.maxSelection,
+            ) { v -> update { it.copy(maxSelection = v) } }
+        }
+        if (ChannelFeatures.GALLERY_BROWSER) {
+            item {
+                ChoiceSetting(
+                    R.string.gallery_caption_title,
+                    subtitle = stringResource(R.string.gallery_caption_subtitle),
+                    options = listOf(
+                        GalleryCaption.AFTER to stringResource(R.string.gallery_caption_after),
+                        GalleryCaption.BEFORE to stringResource(R.string.gallery_caption_before),
+                        GalleryCaption.OFF to stringResource(R.string.gallery_caption_off),
+                    ),
+                    selected = settings.watch { it.gallery.caption },
+                    default = d.caption,
+                ) { v -> update { it.copy(caption = v) } }
+            }
+        }
+        item {
+            ChoiceSetting(
+                R.string.gallery_fallback_title,
+                subtitle = stringResource(R.string.gallery_fallback_subtitle),
+                options = listOf(
+                    GalleryFallback.SHARE_TO_APP to stringResource(R.string.gallery_fallback_share),
+                    GalleryFallback.CLIPBOARD to stringResource(R.string.gallery_fallback_clipboard),
+                    GalleryFallback.ASK to stringResource(R.string.gallery_fallback_ask),
+                ),
+                selected = settings.watch { it.gallery.fallback },
+                default = d.fallback,
+            ) { v -> update { it.copy(fallback = v) } }
+        }
+        if (ChannelFeatures.GALLERY_BROWSER) {
+            item {
+                ToggleSetting(
+                    R.string.gallery_close_after_send_title,
+                    stringResource(R.string.gallery_close_after_send_subtitle),
+                    settings.watch { it.gallery.closeAfterSend },
+                    default = d.closeAfterSend,
+                ) { v -> update { it.copy(closeAfterSend = v) } }
+            }
+            item {
+                ToggleSetting(
+                    R.string.gallery_save_edited_title,
+                    stringResource(R.string.gallery_save_edited_subtitle),
+                    settings.watch { it.gallery.saveEdited },
+                    default = d.saveEdited,
+                ) { v -> update { it.copy(saveEdited = v) } }
+            }
+        }
+    }
+
+    SettingsGroup(stringResource(R.string.gallery_privacy_group)) {
+        item {
+            ToggleSetting(
+                R.string.gallery_strip_location_title,
+                stringResource(R.string.gallery_strip_location_subtitle),
+                settings.watch { it.gallery.stripLocation },
+                default = d.stripLocation,
+            ) { v -> update { it.copy(stripLocation = v) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.gallery_strip_all_title,
+                stringResource(R.string.gallery_strip_all_subtitle),
+                settings.watch { it.gallery.stripAllMetadata },
+                default = d.stripAllMetadata,
+            ) { v -> update { it.copy(stripAllMetadata = v) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.gallery_random_names_title,
+                stringResource(R.string.gallery_random_names_subtitle),
+                settings.watch { it.gallery.randomFileNames },
+                default = d.randomFileNames,
+            ) { v -> update { it.copy(randomFileNames = v) } }
+        }
+        if (ChannelFeatures.GALLERY_BROWSER) {
+            item {
+                ToggleSetting(
+                    R.string.gallery_history_title,
+                    stringResource(R.string.gallery_history_subtitle),
+                    settings.watch { it.gallery.keepHistory },
+                    default = d.keepHistory,
+                ) { v -> update { it.copy(keepHistory = v) } }
+            }
+            item {
+                ActionRow(
+                    R.string.gallery_history_clear_title,
+                    subtitle = stringResource(R.string.gallery_history_clear_subtitle),
+                    action = stringResource(CommonR.string.common_delete),
+                    confirm = stringResource(R.string.gallery_history_clear_confirm),
+                ) {
+                    scope.launch { withContext(Dispatchers.IO) { GallerySentHistory.get(context).clear() } }
+                }
+            }
+        }
+    }
+}

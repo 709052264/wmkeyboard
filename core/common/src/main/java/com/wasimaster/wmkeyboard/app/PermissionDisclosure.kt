@@ -151,6 +151,30 @@ object PermissionDisclosures {
     )
 
     /**
+     * The gallery tool's photos and videos (#708). From Android 13 they are
+     * two permissions, asked for together; from 14 the system dialog also
+     * offers "Select photos", which the keyboard honours as a partial grant.
+     * Asking again with only part granted is how the user picks more.
+     */
+    val GALLERY = PermissionDisclosure(
+        permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        },
+        titleRes = R.string.common_permission_gallery_title,
+        bodyRes = R.string.common_permission_gallery_body,
+        alsoRequests = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> listOf(
+                Manifest.permission.READ_MEDIA_VIDEO,
+                Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED,
+            )
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> listOf(Manifest.permission.READ_MEDIA_VIDEO)
+            else -> emptyList()
+        },
+    )
+
+    /**
      * The shade. Not a data permission at all — nothing is read, only posted —
      * but it goes through the same disclosure as the rest so there stays
      * exactly one way this app asks Android for anything, and so the user

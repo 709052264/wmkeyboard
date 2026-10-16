@@ -108,6 +108,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.LOCATION -> Color(0xFFE53935)
     // An evening indigo: a clock face at night, and apart from the calendar's red.
     ToolbarTool.CLOCK -> Color(0xFF5C6BC0)
+    // A sunset's coral: the colour a photo library opens on, apart from the camera's.
+    ToolbarTool.GALLERY -> Color(0xFFFF7043)
     ToolbarTool.MOON_PHASE -> Color(0xFF7986CB)
 
     // Cursor keys — one neutral so they read as a set

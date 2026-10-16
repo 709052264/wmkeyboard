@@ -17,11 +17,12 @@
 
     <!--
        Play rejected version code 26 over these (2026-09-28), so the Play APK
-       does not declare them. The photos pair backs only the clipboard's
+       does not declare them. The photos pair backs the clipboard's
        screenshot watcher, which Play ruled should use the photo picker; the
        picker cannot watch for new screenshots, so the feature is left out
-       instead. READ_MEDIA_VIDEO is never declared by the app, and is removed
-       here so a library update cannot bring it back. ChannelFeatures in
+       instead. The gallery tool's grid (#708) needs the whole set, video and
+       the Android 14 partial grant too; in a Play build the tool opens the
+       photo picker instead, which needs none of them. ChannelFeatures in
        :core:common hides the matching settings rows.
     -->
     <uses-permission
@@ -32,6 +33,9 @@
         tools:node="remove" />
     <uses-permission
         android:name="android.permission.READ_MEDIA_VIDEO"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED"
         tools:node="remove" />
 
     <!--

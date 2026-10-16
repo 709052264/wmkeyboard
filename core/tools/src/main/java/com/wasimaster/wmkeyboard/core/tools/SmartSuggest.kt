@@ -1777,6 +1777,8 @@ object SmartSuggest {
         ToolbarTool.LOCATION to listOf("location", "gps"),
         // Not "time" or "watch": those are ordinary prose far too often to offer a chip for.
         ToolbarTool.CLOCK to listOf("clock", "alarm", "timer", "stopwatch", "countdown", "planner", "date"),
+        // Not "photo" or "picture" alone: said in passing far more often than meant as "send one".
+        ToolbarTool.GALLERY to listOf("gallery", "photos", "pics"),
         ToolbarTool.LEVEL to listOf("level"),
         ToolbarTool.THEMES to listOf("theme", "themes"),
         ToolbarTool.MODES to listOf("modes"),

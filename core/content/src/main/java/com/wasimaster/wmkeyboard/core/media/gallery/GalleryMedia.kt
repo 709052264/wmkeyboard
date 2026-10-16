@@ -34,9 +34,18 @@ data class GalleryItem(
     val bucketId: String,
     val bucketName: String,
     val favorite: Boolean,
+    /**
+     * Where the bytes are when this did not come from the library: a photo
+     * picker or document picker result, read through that picker's grant.
+     * Such an item has a negative [id].
+     */
+    val sourceUri: Uri? = null,
 ) {
-    /** The row's content URI, under its own type's table. Not part of equality: it follows from [id] and [kind]. */
-    val uri: Uri by lazy(LazyThreadSafetyMode.NONE) { GalleryStore.uriOf(id, kind) }
+    /** The content URI to read: [sourceUri], or the library row's own under its type's table. */
+    val uri: Uri by lazy(LazyThreadSafetyMode.NONE) { sourceUri ?: GalleryStore.uriOf(id, kind) }
+
+    /** Picked through a system picker rather than read from the library. */
+    val isPicked: Boolean get() = id < 0
 
     /** The size the picture is seen at, with [orientation] applied. */
     val shownWidth: Int get() = if (orientation % 180 == 0) width else height

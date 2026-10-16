@@ -51,6 +51,8 @@
          photo library. The body has to say so. Do not narrow it in translation. -->
     <string name="common_permission_images_title">Photo access for screenshots in the clipboard</string>
     <string name="common_permission_images_body">WM Keyboard watches for new screenshots and puts them in the clipboard. You can insert one without leaving the app you are in. Android has no permission for screenshots alone, so it gives access to all of your photos. The keyboard looks only at new screenshots. The images stay on your device. The keyboard inserts an image only when you press it. The setting is optional. It stays off until you turn it on.</string>
+    <string name="common_permission_gallery_title">Photos and videos for the gallery tool</string>
+    <string name="common_permission_gallery_body">The gallery tool shows your photos and videos inside the keyboard, so you can send them without leaving the app you are in. The keyboard reads the library only while the tool is open. Nothing leaves your device until you press Send. Then the app you are typing in gets a copy of what you picked and nothing else, with the location removed by default. You can also choose only some photos, or refuse and pick each time with the system picker.</string>
 
     <!-- Only asked for on Android 9 and older, where saving to the gallery needs it. -->
     <string name="common_permission_storage_title">Storage access to save to your gallery</string>
