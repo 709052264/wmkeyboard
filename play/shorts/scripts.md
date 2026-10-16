@@ -163,7 +163,9 @@ back to **you**. Afterwards, Settings › Layout & size › "Reset the floating 
 
 ### Day 15 · #9 · Autocorrect undo chip · T · 12 s
 **Hook:** "Autocorrect changed your word?"
-**Beats:** type a slang word or name that gets corrected → the strip shows the original as a chip
+**Beats (as captured):** friend: "sent you the photos from last night 📸" · type `thx` → autocorrect
+makes it "the" → the strip shows ↶ thx · tap → "thx so much!!" · next message "thx again" stays as typed
+(the chip only appears for corrections that were a guess, by design) · was: type a slang word or name that gets corrected → the strip shows the original as a chip
 → tap, word back · zoom in on the chip · "One tap. And it remembers." · "Fix it twice and it learns the fix." · end card.
 **Shots:** adb `input text`. Find a word that actually gets rewritten on a dry run before filming.
 

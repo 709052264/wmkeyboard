@@ -12,21 +12,21 @@ Style: V voiceover · T text + music · H meme hook.
 
 | Day | Date | # | Feature | Pillar | Style | Script | Footage | VO | Render | OK | YT | X | Reddit | TG | IG | TikTok |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 10-20 | 1 | Works offline, no account | Privacy | V | ok | | | | | | | | | | |
+| 1 | 10-20 | 1 | Works offline, no account | Privacy | V | ok | partial: shots 1, 3 (airplane shot left) | | | | | | | | | |
 | 2 | 10-21 | 7 | Glide typing | Typing | T | ok | | | | | | | | | | |
 | 3 | 10-22 | 17 | Bangla Avro phonetic | Languages | H | ok | ✓ | | | | | | | | | |
-| 4 | 10-23 | 47 | Calculator in the chat | Tools | H | ok | | | | | | | | | | |
+| 4 | 10-23 | 47 | Calculator in the chat | Tools | H | ok | ✓ | | | | | | | | | |
 | 5 | 10-24 | 31 | Photo backgrounds, all features | Looks | H | ok | | | | | | | | | | |
 | 6 | 10-25 | 39 | Emoji search, 125 languages | Emoji | H | ok | ✓ | | | | | | | | | |
-| 7 | 10-26 | 48 | Clipboard history | Tools | V | ok | | | | | | | | | | |
+| 7 | 10-26 | 48 | Clipboard history | Tools | V | ok | blocked: needs clipboard history cleared (ask) | | | | | | | | | |
 | 8 | 10-27 | 11 | Spacebar cursor gestures | Typing | H | ok | | | | | | | | | | |
 | 9 | 10-28 | 29 | Theme speed-run + addon repos | Looks | T | ok | | | | | | | | | | |
-| 10 | 10-29 | 2 | Network activity log | Privacy | V | ok | | | | | | | | | | |
+| 10 | 10-29 | 2 | Network activity log | Privacy | V | ok | ✓ | | | | | | | | | |
 | 11 | 10-30 | 24 | Hundreds of languages | Languages | T | ok | ✓ | | | | | | | | | |
 | 12 | 10-31 | 58 | Offline Whisper voice | Tools | V | ok | | | | | | | | | | |
 | 13 | 11-01 | 45 | Custom sticker packs | Emoji | V | ok | | | | | | | | | | |
 | 14 | 11-02 | 26 | One-handed / split / floating | Languages | T | ok | | | | | | | | | | |
-| 15 | 11-03 | 9 | Autocorrect undo chip | Typing | T | ok | | | | | | | | | | |
+| 15 | 11-03 | 9 | Autocorrect undo chip | Typing | T | ok | ✓ | | | | | | | | | |
 | 16 | 11-04 | 49 | OTP code chip | Tools | V |  | | | | | | | | | | |
 | 17 | 11-05 | 18 | Hindi phonetic | Languages | H |  | | | | | | | | | | |
 | 18 | 11-06 | 50 | Snippets / text expansion | Tools | T |  | | | | | | | | | | |
@@ -99,3 +99,8 @@ Style: V voiceover · T text + music · H meme hook.
   user's keyboard for this; English QWERTY was unticked by a stray tap and re-ticked (it now sits after
   ja in the ring until the extra languages are removed). Day 6 Bangla query became Banglish `jonmodin`;
   day 11 phrases adjusted to what adb can type. Next: session D (privacy and text: days 7, 10, 15, 4, 1).
+- 2026-10-17: the six extra layouts removed; ring back to Avro, Banglish, English. Session D done except
+  day 7: clips s04-calc (15 s), s15-undo (16 s; "yeet" stopped triggering after one take, "thx" → "the"
+  shows the chip; the undo leaves a double space before "so"), s10-netlog (18 s), s01-typing (17 s),
+  s01-privacy (17 s). Watch the strip for the user's own learned words (one take showed "MyParkMB"
+  after "my"; retaken). Day 7 waits on the user's OK to clear the clipboard history.
