@@ -10066,6 +10066,7 @@ class SettingsRepository(private val context: Context) {
         private val KDE_AUTO_CONNECT = booleanPreferencesKey("kde_auto_connect")
         private val KDE_CLIPBOARD_RECEIVE = booleanPreferencesKey("kde_clipboard_receive")
         private val KDE_CLIPBOARD_SEND = booleanPreferencesKey("kde_clipboard_send")
+        private val KDE_CLEAR_SECRETS_MINUTES = intPreferencesKey("kde_clear_secrets_minutes")
         private val KDE_REMOTE_TYPING = booleanPreferencesKey("kde_remote_typing")
         private val KDE_REMOTE_TYPING_PIPELINE = booleanPreferencesKey("kde_remote_typing_pipeline")
         private val KDE_PAD_SENSITIVITY = floatPreferencesKey("kde_pad_sensitivity")
@@ -12346,6 +12347,7 @@ class SettingsRepository(private val context: Context) {
             autoConnect = p[KDE_AUTO_CONNECT] ?: defaults.kdeConnect.autoConnect,
             clipboardReceive = p[KDE_CLIPBOARD_RECEIVE] ?: defaults.kdeConnect.clipboardReceive,
             clipboardSend = p[KDE_CLIPBOARD_SEND] ?: defaults.kdeConnect.clipboardSend,
+            clearSecretsMinutes = p[KDE_CLEAR_SECRETS_MINUTES] ?: defaults.kdeConnect.clearSecretsMinutes,
             remoteTyping = p[KDE_REMOTE_TYPING] ?: defaults.kdeConnect.remoteTyping,
             remoteTypingPipeline = p[KDE_REMOTE_TYPING_PIPELINE]
                 ?: defaults.kdeConnect.remoteTypingPipeline,
@@ -12623,6 +12625,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setKdeAutoConnect(value: Boolean) = editPrefs { it[KDE_AUTO_CONNECT] = value }
     suspend fun setKdeClipboardReceive(value: Boolean) = editPrefs { it[KDE_CLIPBOARD_RECEIVE] = value }
     suspend fun setKdeClipboardSend(value: Boolean) = editPrefs { it[KDE_CLIPBOARD_SEND] = value }
+    suspend fun setKdeClearSecretsMinutes(value: Int) = editPrefs {
+        it[KDE_CLEAR_SECRETS_MINUTES] = value.coerceIn(0, KdeConnectSettings.MAX_CLEAR_SECRETS_MINUTES)
+    }
     suspend fun setKdeRemoteTyping(value: Boolean) = editPrefs { it[KDE_REMOTE_TYPING] = value }
     suspend fun setKdeRemoteTypingPipeline(value: Boolean) =
         editPrefs { it[KDE_REMOTE_TYPING_PIPELINE] = value }

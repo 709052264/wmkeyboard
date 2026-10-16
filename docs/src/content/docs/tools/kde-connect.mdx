@@ -123,6 +123,8 @@ Big **previous** and **next** buttons for a presentation, **Start** (F5) and **E
 
 **Receive the computer's clipboard** and **Send this phone's clipboard**: both default on.
 
+**Clear received passwords**: default **1 minute**, up to 30, or *Never*. Text from the computer that looks like a password or a one-time code is taken off the phone's clipboard after this long, along with its unpinned copy in clipboard history. It is only cleared if it is still the latest clip, so something you copied since stays. Ordinary text from the computer is never cleared.
+
 **Let the computer type here**: default on.
 
 **Use the keyboard language**: default off. Off, what the computer sends is typed exactly. On, its keys go through the keyboard's layout the way a [hardware keyboard's](/typing/hardware-keyboard/) do, so a Latin keyboard on your desk can write Bengali through Avro, with suggestions and autocorrect.
@@ -145,6 +147,7 @@ Notifications for a pair request, a file or a ping that arrives while the keyboa
 
 - Everything stays on your local network. There is no account and no server. Both ends encrypt the connection with TLS, and each side pins the other's certificate at pairing.
 - Passwords and one-time codes are never sent on their own, even with clipboard sending on. Nothing is sent from a password field, or while [incognito](/privacy/incognito/) pauses the clipboard. **Send › Clipboard** still sends whatever is there, because you asked.
+- A password or code from the computer is marked sensitive on the phone, the way a password manager marks one, so Android 13 and later hide it in the copy preview and clipboard history treats it as a secret.
 - Clipboard sync is separate from clipboard history. Turning history off does not stop the sync, and the other way round.
 - Computers you have not paired with are only contacted while a device list is open, in the panel or in settings. The rest of the time the keyboard only talks to computers it already knows.
 - The tool is hidden on the lock screen and before the first unlock after a restart. A computer cannot type into a locked phone.

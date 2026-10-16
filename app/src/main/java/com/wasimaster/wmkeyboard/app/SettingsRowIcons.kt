@@ -1241,6 +1241,7 @@ internal object SettingsRowIcons {
         put(R.string.kdeconnect_lifetime_title) { Icons.Outlined.Link }
         put(R.string.kdeconnect_auto_connect_title) { Icons.Outlined.Sync }
         put(R.string.kdeconnect_clipboard_receive_title) { Icons.Outlined.ContentPaste }
+        put(R.string.kdeconnect_clear_secrets_title) { Icons.Outlined.Timer }
         put(R.string.kdeconnect_clipboard_send_title) { Icons.Outlined.ContentCopy }
         put(R.string.kdeconnect_remote_typing_title) { Icons.Outlined.Keyboard }
         put(R.string.kdeconnect_pipeline_title) { Icons.Outlined.Translate }

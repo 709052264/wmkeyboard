@@ -24183,17 +24183,71 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /** Clears the last password received from the computer, once its time is up (#704). */
+    private var kdeSecretClearJob: Job? = null
+
     /**
      * Text from the computer's clipboard. The engine has already recorded it as
      * the current content, so the listener that fires for the write below finds
      * nothing new to send back.
+     *
+     * A clip that looks like a password or a code is marked sensitive, which is
+     * what a password manager on the phone would do: Android 13 hides it from
+     * the copy preview, and clipboard history handles it as a secret. It is also
+     * cleared after the `clearSecretsMinutes` setting (#704): it came over
+     * for one paste, and every app can read the clipboard while it sits there.
      */
     private fun kdeClipboardArrived(text: String, from: String) {
         if (text.isEmpty() || !isClipboardAccessible()) return
+        val secret = ClipSensitivity.looksSensitive(text)
         runCatching {
-            (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
-                .setPrimaryClip(android.content.ClipData.newPlainText(from, text))
+            val clip = android.content.ClipData.newPlainText(from, text)
+            if (secret) {
+                clip.description.extras = android.os.PersistableBundle().apply {
+                    putBoolean(EXTRA_IS_SENSITIVE, true)
+                }
+            }
+            (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(clip)
         }
+        // A newer clip from the computer replaces the old one, so the old timer
+        // has nothing left to clear.
+        kdeSecretClearJob?.cancel()
+        kdeSecretClearJob = null
+        val minutes = _uiState.value.settings.kdeConnect.clearSecretsMinutes
+        if (!secret || minutes <= 0) return
+        kdeSecretClearJob = serviceScope.launch {
+            delay(minutes * 60_000L)
+            clearKdeSecret(text)
+        }
+    }
+
+    /**
+     * Takes [text] off the system clipboard and out of clipboard history. Only
+     * while the clipboard still holds it: whatever was copied since is the
+     * user's and stays. A pinned history copy stays too, since a pin says keep.
+     */
+    private fun clearKdeSecret(text: String) {
+        kdeSecretClearJob = null
+        val manager = runCatching {
+            getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        }.getOrNull() ?: return
+        val current = runCatching { manager.primaryClip?.getItemAt(0)?.text?.toString() }.getOrNull()
+        if (current != text) return
+        runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                manager.clearPrimaryClip()
+            } else {
+                manager.setPrimaryClip(android.content.ClipData.newPlainText("", ""))
+            }
+        }
+        val stored = text.trim()
+        val gone = clipboardStore.items().filter { it.kind.isTextual && !it.pinned && it.text.trim() == stored }
+        if (gone.isNotEmpty()) {
+            gone.forEach { clipboardStore.remove(it.id) }
+            saveClipboardSoon()
+            _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+        }
+        if (_uiState.value.clipboardSuggestion?.text?.trim() == stored) clearClipboardSuggestion()
     }
 
     /**

@@ -44,6 +44,13 @@ data class KdeConnectSettings(
     val clipboardReceive: Boolean = true,
     /** Text copied on the phone is sent to the computer. Sensitive clips never are, by themselves. */
     val clipboardSend: Boolean = true,
+    /**
+     * Minutes a password or code received from the computer stays on the
+     * phone's clipboard before it is cleared (#704); 0 leaves it there. The
+     * computer's copy is wanted for one paste, and every app can read the
+     * clipboard for as long as it sits there.
+     */
+    val clearSecretsMinutes: Int = 1,
     /** The computer's keyboard may type into the focused field while this keyboard is showing. */
     val remoteTyping: Boolean = true,
     /**
@@ -85,5 +92,6 @@ data class KdeConnectSettings(
     companion object {
         val PAD_SPEED_RANGE = 0.3f..3f
         const val MAX_HOSTS = 12
+        const val MAX_CLEAR_SECRETS_MINUTES = 30
     }
 }

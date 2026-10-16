@@ -1394,6 +1394,7 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.KDE_CONNECT, R.string.kdeconnect_lifetime_title, R.string.kdeconnect_lifetime_keyboard_detail),
     toolEntry(ToolbarTool.KDE_CONNECT, R.string.kdeconnect_auto_connect_title, R.string.kdeconnect_auto_connect_subtitle),
     toolEntry(ToolbarTool.KDE_CONNECT, R.string.kdeconnect_clipboard_receive_title, R.string.kdeconnect_clipboard_receive_subtitle),
+    toolEntry(ToolbarTool.KDE_CONNECT, R.string.kdeconnect_clear_secrets_title, R.string.kdeconnect_clear_secrets_subtitle),
     toolEntry(ToolbarTool.KDE_CONNECT, R.string.kdeconnect_clipboard_send_title, R.string.kdeconnect_clipboard_send_subtitle),
     toolEntry(ToolbarTool.KDE_CONNECT, R.string.kdeconnect_remote_typing_title, R.string.kdeconnect_remote_typing_subtitle),
     toolEntry(ToolbarTool.KDE_CONNECT, R.string.kdeconnect_pipeline_title, R.string.kdeconnect_pipeline_subtitle),

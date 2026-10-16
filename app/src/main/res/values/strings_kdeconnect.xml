@@ -40,6 +40,10 @@
     <string name="kdeconnect_group_clipboard">Clipboard</string>
     <string name="kdeconnect_clipboard_receive_title">Receive the computer\'s clipboard</string>
     <string name="kdeconnect_clipboard_receive_subtitle">Text copied there is ready to paste here</string>
+    <string name="kdeconnect_clear_secrets_title">Clear received passwords</string>
+    <string name="kdeconnect_clear_secrets_subtitle">A password or code copied on the computer leaves this phone\'s clipboard after this long</string>
+    <string name="kdeconnect_clear_secrets_info">Only text that looks like a password or a one-time code counts, the same check clipboard history uses. It is cleared only if it is still on the clipboard, and its copy in clipboard history goes too unless pinned. Other text from the computer stays.</string>
+    <string name="kdeconnect_clear_secrets_off">Never</string>
     <string name="kdeconnect_clipboard_send_title">Send this phone\'s clipboard</string>
     <string name="kdeconnect_clipboard_send_subtitle">Text copied here is ready to paste there</string>
     <string name="kdeconnect_clipboard_send_info">Passwords and codes are never sent by themselves. Nothing is sent from a password field, or while incognito pauses the clipboard. The Send tab can still send the clipboard when you ask.</string>
