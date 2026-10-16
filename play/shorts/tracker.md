@@ -12,21 +12,21 @@ Style: V voiceover · T text + music · H meme hook.
 
 | Day | Date | # | Feature | Pillar | Style | Script | Footage | VO | Render | OK | YT | X | Reddit | TG | IG | TikTok |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 10-20 | 1 | Works offline, no account | Privacy | V | ok | partial: shots 1, 3 (airplane shot left) | | | | | | | | | |
+| 1 | 10-20 | 1 | Works offline, no account | Privacy | V | ok | partial: shots 1, 3 (airplane shot left) | placeholder | draft | | | | | | | |
 | 2 | 10-21 | 7 | Glide typing | Typing | T | ok | | | | | | | | | | |
-| 3 | 10-22 | 17 | Bangla Avro phonetic | Languages | H | ok | ✓ | | | | | | | | | |
-| 4 | 10-23 | 47 | Calculator in the chat | Tools | H | ok | ✓ | | | | | | | | | |
-| 5 | 10-24 | 31 | Photo backgrounds, all features | Looks | H | ok | partial: GIF beat, shuffle, crop pinch left | | | | | | | | | |
-| 6 | 10-25 | 39 | Emoji search, 125 languages | Emoji | H | ok | ✓ | | | | | | | | | |
-| 7 | 10-26 | 48 | Clipboard history | Tools | V | ok | ✓ | | | | | | | | | |
+| 3 | 10-22 | 17 | Bangla Avro phonetic | Languages | H | ok | ✓ | | draft | | | | | | | |
+| 4 | 10-23 | 47 | Calculator in the chat | Tools | H | ok | ✓ | | draft | | | | | | | |
+| 5 | 10-24 | 31 | Photo backgrounds, all features | Looks | H | ok | partial: GIF beat, shuffle, crop pinch left | | draft | | | | | | | |
+| 6 | 10-25 | 39 | Emoji search, 125 languages | Emoji | H | ok | ✓ | | draft | | | | | | | |
+| 7 | 10-26 | 48 | Clipboard history | Tools | V | ok | ✓ | placeholder | draft | | | | | | | |
 | 8 | 10-27 | 11 | Spacebar cursor gestures | Typing | H | ok | | | | | | | | | | |
-| 9 | 10-28 | 29 | Theme speed-run + addon repos | Looks | T | ok | ✓ | | | | | | | | | |
-| 10 | 10-29 | 2 | Network activity log | Privacy | V | ok | ✓ | | | | | | | | | |
-| 11 | 10-30 | 24 | Hundreds of languages | Languages | T | ok | ✓ | | | | | | | | | |
+| 9 | 10-28 | 29 | Theme speed-run + addon repos | Looks | T | ok | ✓ | | draft | | | | | | | |
+| 10 | 10-29 | 2 | Network activity log | Privacy | V | ok | ✓ | placeholder | draft | | | | | | | |
+| 11 | 10-30 | 24 | Hundreds of languages | Languages | T | ok | ✓ | | draft | | | | | | | |
 | 12 | 10-31 | 58 | Offline Whisper voice | Tools | V | ok | | | | | | | | | | |
 | 13 | 11-01 | 45 | Custom sticker packs | Emoji | V | ok | | | | | | | | | | |
 | 14 | 11-02 | 26 | One-handed / split / floating | Languages | T | ok | | | | | | | | | | |
-| 15 | 11-03 | 9 | Autocorrect undo chip | Typing | T | ok | ✓ | | | | | | | | | |
+| 15 | 11-03 | 9 | Autocorrect undo chip | Typing | T | ok | ✓ | | draft | | | | | | | |
 | 16 | 11-04 | 49 | OTP code chip | Tools | V |  | | | | | | | | | | |
 | 17 | 11-05 | 18 | Hindi phonetic | Languages | H |  | | | | | | | | | | |
 | 18 | 11-06 | 50 | Snippets / text expansion | Tools | T |  | | | | | | | | | | |
@@ -119,3 +119,8 @@ Style: V voiceover · T text + music · H meme hook.
   photo) exists; rotation turned back OFF; active theme restored to Default (system).
   Notes: the Appearance tool (toolbox › Appearance) applies a theme on tap, live. Editing a theme in
   settings draws it on the live keyboard while the editor is open.
+- 2026-10-17: first cut rendered for days 1, 3, 4, 5, 6, 7, 9, 10, 11, 15 (compositions DayNN, specs in
+  src/shorts/shorts.ts, masters in play/trailer/out/shorts, gitignored). Review page:
+  https://claude.ai/artifact/D7nimEH4V2UxuSm8MZGMkq. VO voice locked by the TTS session: Chatterbox
+  clone of Kokoro am_puck (exaggeration 0.6, cfg 0.4, seed 7); real d01/d07/d10 asked for, placeholders
+  until then. Stems not rendered yet.
