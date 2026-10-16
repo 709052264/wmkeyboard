@@ -1403,8 +1403,9 @@ fun KeyboardThemeProvider(
     // picked for it, or its dedicated Noto face, so its glyphs stay correct even
     // when the key font is a Latin-only display face. Latin (and Cyrillic/Greek,
     // which ride the Latin faces) use the user's key font. Bengali is no
-    // different from the rest — its faces simply also carry Latin glyphs, which
-    // is what keeps Avro's romanized keys and mixed strips in one face.
+    // different from the rest. Its faces also carry Latin glyphs, but the Latin
+    // on such a board (Avro's romanized keys, an English suggestion) still comes
+    // from the English font, chained in front below.
     val scriptId = settings.script.id
     // A theme may carry its own key font, by id. It sits below both the
     // per-script face and the user's own English pick: script correctness still
@@ -1460,9 +1461,12 @@ fun KeyboardThemeProvider(
     // looks for a glyph in another font, so every Latin character on it — an
     // English suggestion, a copied word in the clipboard chip — lost the user's
     // English font (#591). Where there is both a Latin pick (the user's, else
-    // the theme's) and a script face, the two are chained per glyph instead,
-    // Latin first. Built off the main thread: a Google face is a provider
-    // round trip. Until it lands, and below Android 10, the script face alone.
+    // the theme's, else the system's own Latin font) and a script face, the two
+    // are chained per glyph instead, Latin first. System default counts too: a
+    // ROM or font app may have replaced the system's Latin font, and an Avro
+    // board drew its keys in the Bengali face's Latin instead (#670). Built off
+    // the main thread: a Google face is a provider round trip. Until it lands,
+    // and below Android 10 (12 for the system font), the script face alone.
     val latinFirstIds = remember(
         scriptId,
         layoutFontId,
@@ -1478,7 +1482,7 @@ fun KeyboardThemeProvider(
         val latinId = settings.keyFontId.takeIf {
             it != KeyboardFonts.DEFAULT_ID && KeyboardFonts.family(context, it) != null
         } ?: themeFontId?.takeIf { KeyboardFonts.family(context, it) != null }
-            ?: return@remember null
+            ?: KeyboardFonts.DEFAULT_ID
         val scriptFontId = KeyboardFonts.scriptFontId(
             context,
             scriptId,

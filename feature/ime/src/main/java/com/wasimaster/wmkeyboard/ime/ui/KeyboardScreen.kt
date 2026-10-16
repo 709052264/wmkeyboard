@@ -442,6 +442,7 @@ import com.wasimaster.wmkeyboard.core.settings.FloatingHandlePosition
 import com.wasimaster.wmkeyboard.core.settings.BoardCorner
 import com.wasimaster.wmkeyboard.core.settings.BoardCornerRadiusRange
 import com.wasimaster.wmkeyboard.core.settings.LayoutBehaviorSettings
+import com.wasimaster.wmkeyboard.core.settings.TopRowHolds
 import com.wasimaster.wmkeyboard.core.settings.OneHandedSide
 import com.wasimaster.wmkeyboard.core.settings.LetterSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.SpaceSwipeAction
@@ -20431,10 +20432,20 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
         state.layoutMode == LayoutMode.LETTERS
     // 🌐 → emoji key: language switching lives on spacebar swipes instead.
     val globeAsEmoji = state.settings.globeAsEmoji && !tabletGrid && !laidOut
-    // With the dedicated number row on, the digits duplicated on the top-row
-    // letters' long press are redundant — drop them so those keys go straight
-    // to their accents (or lose their popup entirely).
-    val stripDigits = state.settings.numberRow && state.layoutMode == LayoutMode.LETTERS
+    // What the digits on the letters' long press become (issue #672). Auto is
+    // the long-standing rule: with the dedicated number row on they are
+    // redundant, so they go and those keys lead with their accents (or lose
+    // their popup entirely). The user can keep them, drop them, or trade them
+    // for the number row's shifted symbols whatever the row is doing.
+    val topRowChoice = state.settings.layoutBehavior.topRowHolds
+    val topRowHolds = when {
+        state.layoutMode != LayoutMode.LETTERS -> TopRowHolds.DIGITS
+        topRowChoice != TopRowHolds.AUTO -> topRowChoice
+        state.settings.numberRow -> TopRowHolds.NONE
+        else -> TopRowHolds.DIGITS
+    }
+    val stripDigits = topRowHolds == TopRowHolds.NONE
+    val digitSymbols = topRowHolds == TopRowHolds.SYMBOLS
     // A44: user-chosen currency glyphs replace the $ key's built-in popup.
     val currencyKeys = state.settings.layoutBehavior.currencyKeys
     // Issue #57: the spacebar's long press, for a user who has no use for the
@@ -20522,7 +20533,7 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     val kanaVariantKeys = state.kanaVariantReady
     // Fancy Text: every digit key holds the digit's styled forms.
     val fancyDigits = fancyStyleFor(state) != null
-    if (!commaAsEmoji && !globeAsEmoji && !stripDigits &&
+    if (!commaAsEmoji && !globeAsEmoji && !stripDigits && !digitSymbols &&
         clipboardKeys.isEmpty() && fieldKey == null && domainAlternates.isEmpty() &&
         currencyKeys.isEmpty() && !allAccents && !noAccents && !shiftedKeys && fullStop == null &&
         !newlineAlternate && !emojiAlternate && spaceHoldKeys.isEmpty() &&
@@ -20618,6 +20629,14 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
             }
             if (stripDigits && mapped.longPress.any { it.isSingleDigit() }) {
                 mapped = mapped.copy(longPress = mapped.longPress.filterNot { it.isSingleDigit() })
+            }
+            // In the digit's place, so 1 on q becomes ! at the front of the
+            // popup and the corner hint with it. A key that is a digit itself
+            // keeps the digits its popup offers.
+            if (digitSymbols && mapped.longPress.any { it.isSingleDigit() } &&
+                !(mapped.output ?: mapped.label).isSingleDigit()
+            ) {
+                mapped = mapped.copy(longPress = mapped.longPress.map { it.asNumberRowSymbol() }.distinct())
             }
             if (fancyDigits) mapped = mapped.withFancyDigitForms()
             // A44: the $ key takes the user's currency glyphs as its popup. On
@@ -20803,6 +20822,13 @@ private fun numericPadActive(state: KeyboardUiState): Boolean =
 
 
 private fun String.isSingleDigit(): Boolean = length == 1 && this[0].isDigit()
+
+/** The shifted symbol over each digit of a US number row, indexed by the digit. */
+private const val NumberRowSymbols = ")!@#\$%^&*("
+
+/** A lone digit as the symbol over it on the number row (issue #672); anything else as it is. */
+private fun String.asNumberRowSymbol(): String =
+    if (isSingleDigit()) this[0].digitToIntOrNull()?.let { NumberRowSymbols[it].toString() } ?: this else this
 
 /**
  * Issue #423: this symbols page with a 1234 key straight after its ABC key,

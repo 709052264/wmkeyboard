@@ -5576,6 +5576,18 @@ fun WhisperSettings.dictationLanguages(keyboardId: String): List<String> = when 
 enum class BackspaceSwipeUnit { WORD, CHARACTER }
 
 /**
+ * What the digits on the letters' long press become (issue #672). The
+ * built-in layouts put 1-0 on Q-P, and the number row used to be the only
+ * thing that decided whether they stayed.
+ *
+ * [AUTO] is that long-standing rule: the digits while the number row is off,
+ * nothing once the row carries them. [DIGITS] keeps them with the row on too,
+ * [SYMBOLS] puts the number row's shifted symbols (`! @ # $ % ^ & * ( )`) in
+ * their place either way, and [NONE] drops them either way.
+ */
+enum class TopRowHolds { AUTO, DIGITS, SYMBOLS, NONE }
+
+/**
  * Where the word cursor moves (Word left, Word right) stop, and what Select
  * word takes (#662).
  *
@@ -7846,6 +7858,8 @@ data class LayoutBehaviorSettings(
      * by default; wins over [showAllPopupKeys] when both are on.
      */
     val noLetterAccents: Boolean = false,
+    /** What the digit holds on the letters become. See [TopRowHolds]. */
+    val topRowHolds: TopRowHolds = TopRowHolds.AUTO,
     /**
      * Lift the letters of the typing language ahead of the digit or symbol that
      * leads a key's long-press popup: on German QWERTZ a hold on `u` gives `ü`
@@ -9355,6 +9369,7 @@ class SettingsRepository(private val context: Context) {
         private val SHIFT_CAPS_LOCK_MS = intPreferencesKey("shift_caps_lock_ms")
         private val SHOW_ALL_POPUP_KEYS = booleanPreferencesKey("show_all_popup_keys")
         private val NO_LETTER_ACCENTS = booleanPreferencesKey("no_letter_accents")
+        private val TOP_ROW_HOLDS = stringPreferencesKey("top_row_holds")
         private val NATIVE_LETTERS_FIRST = booleanPreferencesKey("native_letters_first")
         private val SHIFTED_POPUP_KEYS = booleanPreferencesKey("shifted_popup_keys")
         private val CURRENCY_KEYS = stringPreferencesKey("currency_keys")
@@ -11657,6 +11672,9 @@ class SettingsRepository(private val context: Context) {
             shiftCapsLockMs = p[SHIFT_CAPS_LOCK_MS] ?: defaults.layoutBehavior.shiftCapsLockMs,
             showAllPopupKeys = p[SHOW_ALL_POPUP_KEYS] ?: defaults.layoutBehavior.showAllPopupKeys,
             noLetterAccents = p[NO_LETTER_ACCENTS] ?: defaults.layoutBehavior.noLetterAccents,
+            topRowHolds = p[TOP_ROW_HOLDS]
+                ?.let { runCatching { TopRowHolds.valueOf(it) }.getOrNull() }
+                ?: defaults.layoutBehavior.topRowHolds,
             nativeLettersFirst = p[NATIVE_LETTERS_FIRST]
                 ?: defaults.layoutBehavior.nativeLettersFirst,
             shiftedPopupKeys = p[SHIFTED_POPUP_KEYS]
@@ -16662,6 +16680,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setNoLetterAccents(value: Boolean) =
         editPrefs { it[NO_LETTER_ACCENTS] = value }
+
+    suspend fun setTopRowHolds(value: TopRowHolds) =
+        editPrefs { it[TOP_ROW_HOLDS] = value.name }
 
     suspend fun setNativeLettersFirst(value: Boolean) =
         editPrefs { it[NATIVE_LETTERS_FIRST] = value }

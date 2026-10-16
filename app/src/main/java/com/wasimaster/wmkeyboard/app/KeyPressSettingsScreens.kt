@@ -19,6 +19,7 @@ import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.settings.AlternateGroup
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.BackspaceSwipeUnit
+import com.wasimaster.wmkeyboard.core.settings.TopRowHolds
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.AlertDialog
@@ -1508,6 +1509,34 @@ internal fun KeyPressShortcutsSettings(
                 info = stringResource(R.string.keypress_no_accents_info),
                 default = SettingsDefaults.layoutBehavior.noLetterAccents,
             ) { scope.launch { repository.setNoLetterAccents(it) } }
+        }
+        item {
+            // Issue #672: the digits on Q-P, decided apart from the number row.
+            ChoiceSetting(
+                R.string.keypress_top_row_holds_title,
+                subtitle = stringResource(R.string.keypress_top_row_holds_subtitle),
+                info = stringResource(R.string.keypress_top_row_holds_info),
+                options = listOf(
+                    TopRowHolds.AUTO to stringResource(R.string.keypress_top_row_holds_auto),
+                    TopRowHolds.DIGITS to stringResource(R.string.keypress_top_row_holds_digits),
+                    TopRowHolds.SYMBOLS to stringResource(R.string.keypress_top_row_holds_symbols),
+                    TopRowHolds.NONE to stringResource(R.string.keypress_top_row_holds_none),
+                ),
+                selected = settings.watch { it.layoutBehavior.topRowHolds },
+                default = SettingsDefaults.layoutBehavior.topRowHolds,
+                detail = { holds ->
+                    ChoiceDetail(
+                        stringResource(
+                            when (holds) {
+                                TopRowHolds.AUTO -> R.string.keypress_top_row_holds_auto_desc
+                                TopRowHolds.DIGITS -> R.string.keypress_top_row_holds_digits_desc
+                                TopRowHolds.SYMBOLS -> R.string.keypress_top_row_holds_symbols_desc
+                                TopRowHolds.NONE -> R.string.keypress_top_row_holds_none_desc
+                            },
+                        ),
+                    )
+                },
+            ) { scope.launch { repository.setTopRowHolds(it) } }
         }
         item {
             // Discussion #382: ü ahead of 7 on German's u.

@@ -123,6 +123,7 @@ import com.wasimaster.wmkeyboard.core.script.NumeralCommitScope
 import com.wasimaster.wmkeyboard.core.settings.AppSortOrder
 import com.wasimaster.wmkeyboard.core.settings.AutoThemeTrigger
 import com.wasimaster.wmkeyboard.core.settings.BackspaceSwipeUnit
+import com.wasimaster.wmkeyboard.core.settings.TopRowHolds
 import com.wasimaster.wmkeyboard.core.settings.CopiedCodeChip
 import com.wasimaster.wmkeyboard.core.settings.DataSaverTrigger
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarContent
@@ -176,6 +177,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.InvertColors
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LocationCity
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Numbers
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tag
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Place
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Storage
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
@@ -367,6 +369,11 @@ internal object ChoiceOptionIcons {
 
         put(BackspaceSwipeUnit.WORD) { Icons.AutoMirrored.Outlined.ShortText }
         put(BackspaceSwipeUnit.CHARACTER) { Icons.Outlined.Abc }
+
+        put(TopRowHolds.AUTO) { Icons.Outlined.AutoAwesome }
+        put(TopRowHolds.DIGITS) { Icons.Outlined.Numbers }
+        put(TopRowHolds.SYMBOLS) { Icons.Outlined.Tag }
+        put(TopRowHolds.NONE) { Icons.Outlined.Block }
 
         put(LetterSwipeAction.TYPE_WORDS) { Icons.Outlined.Gesture }
         put(LetterSwipeAction.HANDWRITE) { Icons.Outlined.Draw }

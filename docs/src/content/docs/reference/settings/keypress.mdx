@@ -204,6 +204,7 @@ The repeat interval is two sliders, because delete and space are held for opposi
 | Press and hold hints | Toggle | On / Off | On |
 | All accents on press and hold | Toggle | On / Off | Off |
 | No accents on press and hold | Toggle | On / Off | Off |
+| Top row press and hold | Segmented | Auto / Digits / Symbols / None | Auto |
 | Your language's letters first | Toggle | On / Off | On |
 | Shifted letter on press and hold | Toggle | On / Off | Off |
 | Press and hold ?123 for the number pad | Toggle | On / Off | On |
@@ -224,6 +225,8 @@ The repeat interval is two sliders, because delete and space are held for opposi
 **All accents on press and hold** adds the complete accent set to every Latin letter's popup, on top of whatever the layout already lists. Letters only.
 
 **No accents on press and hold** takes the accented forms of each Latin letter (à á â ä and the rest) out of its popup, whether the layout listed them or the setting above added them, so a hold on <KeyCap>e</KeyCap> offers its digit or symbol and nothing else. To drop the accents from a single key instead, edit its alternates in the [layout editor](/reference/settings/keymaps/).
+
+**Top row press and hold** decides what a hold on <KeyCap>q</KeyCap> to <KeyCap>p</KeyCap> types, apart from the number row. The built-in layouts put the digits 1 to 0 there. **Auto**, the default, keeps them while the [number row](/typing/basics/#number-row-and-numerals) is off and drops them while it's on, because the row already has them. **Digits** keeps them with the row on as well. **Symbols** swaps each digit for the symbol above it on a number row, so the top row holds `! @ # $ % ^ & * ( )` and the corner hints show them, with the number row on or off. **None** drops the digits either way, and those keys open with their accents or have no popup. It applies to any layout that puts digits on its letters, QWERTZ and AZERTY included. To put a different character on one key, edit its alternates in the [layout editor](/reference/settings/keymaps/).
 
 **Your language's letters first** is on out of the box. Most letter keys open their popup with a number or symbol (7 on <KeyCap>u</KeyCap>, @ on <KeyCap>a</KeyCap>), and this moves the letters of the language you're typing in front of it. On German, a hold on <KeyCap>u</KeyCap> types ü, <KeyCap>o</KeyCap> gives ö, <KeyCap>a</KeyCap> gives ä and <KeyCap>s</KeyCap> gives ß, and those are the corner hints too. The number stays in the popup, right behind them. Which letters count comes from each language's standard alphabet, so an accent your language doesn't use stays where it was, and English, which has no accented letters, doesn't change at all. It follows the active language, and works with **All accents on press and hold** too. A key whose popup you wrote yourself in the layout editor, or any key of a layout you made or imported, keeps the order you wrote: put the number first there and it stays first. Turn it off to get the number first again everywhere.
 
