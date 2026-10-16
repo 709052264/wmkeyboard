@@ -1500,6 +1500,16 @@ internal fun KeyPressShortcutsSettings(
             ) { scope.launch { repository.setShowAllPopupKeys(it) } }
         }
         item {
+            // Issue #677: the accents out of every letter's popup at once.
+            ToggleSetting(
+                R.string.keypress_no_accents_title,
+                stringResource(R.string.keypress_no_accents_subtitle),
+                settings.watch { it.layoutBehavior.noLetterAccents },
+                info = stringResource(R.string.keypress_no_accents_info),
+                default = SettingsDefaults.layoutBehavior.noLetterAccents,
+            ) { scope.launch { repository.setNoLetterAccents(it) } }
+        }
+        item {
             // Discussion #382: ü ahead of 7 on German's u.
             ToggleSetting(
                 R.string.keypress_native_letters_title,

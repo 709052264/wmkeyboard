@@ -19450,7 +19450,9 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // on the letters and does nothing on the symbols is worse than neither.
     val spaceHoldKeys = state.settings.layoutBehavior.spaceHoldKeys
     // A43: merge the full accent set into each Latin letter's long-press popup.
-    val allAccents = state.settings.layoutBehavior.showAllPopupKeys &&
+    // Issue #677: the reverse, every Latin letter's accents out of its popup.
+    val noAccents = state.settings.layoutBehavior.noLetterAccents
+    val allAccents = state.settings.layoutBehavior.showAllPopupKeys && !noAccents &&
         state.layoutMode == LayoutMode.LETTERS && !state.composer.isClusterShaping
     // Discussion #382: the language's own letters ahead of the digit or symbol
     // hint, so a hold on u types ü on German. Empty — and so a no-op — for a
@@ -19530,7 +19532,7 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     val fancyDigits = fancyStyleFor(state) != null
     if (!commaAsEmoji && !globeAsEmoji && !stripDigits &&
         clipboardKeys.isEmpty() && fieldKey == null && domainAlternates.isEmpty() &&
-        currencyKeys.isEmpty() && !allAccents && !shiftedKeys && fullStop == null &&
+        currencyKeys.isEmpty() && !allAccents && !noAccents && !shiftedKeys && fullStop == null &&
         !newlineAlternate && !emojiAlternate && spaceHoldKeys.isEmpty() &&
         punctuationAlternates.isEmpty() && !kanaVariantKeys && nativeLetters.isEmpty() &&
         questionMark == null && questionSwap == null && periodAlternates.isEmpty() &&
@@ -19668,6 +19670,12 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                     LatinAccents[letter.lowercase().first()]?.let { extra ->
                         mapped = mapped.copy(longPress = (mapped.longPress + extra).distinct())
                     }
+                }
+            }
+            if (noAccents && mapped.action == KeyAction.Text) {
+                val letter = (mapped.output ?: mapped.label).lowercase()
+                LatinAccents[letter.singleOrNull() ?: ' ']?.let { accents ->
+                    mapped = mapped.copy(longPress = mapped.longPress.filterNot { it.lowercase() in accents })
                 }
             }
             // After the accent merge, so an umlaut that pass added moves up too,

@@ -7770,6 +7770,13 @@ data class LayoutBehaviorSettings(
      */
     val showAllPopupKeys: Boolean = false,
     /**
+     * Takes the accented forms of a Latin letter (the [LatinAccents] set) out
+     * of its long-press popup, the layout's own and the merged ones alike,
+     * leaving digits, symbols and shortcuts where they are (issue #677). Off
+     * by default; wins over [showAllPopupKeys] when both are on.
+     */
+    val noLetterAccents: Boolean = false,
+    /**
      * Lift the letters of the typing language ahead of the digit or symbol that
      * leads a key's long-press popup: on German QWERTZ a hold on `u` gives `ü`
      * rather than `7`, and `ü` is the corner hint (discussion #382). Which
@@ -9276,6 +9283,7 @@ class SettingsRepository(private val context: Context) {
         private val SPLIT_SPACEBAR = booleanPreferencesKey("split_spacebar")
         private val SHIFT_CAPS_LOCK_MS = intPreferencesKey("shift_caps_lock_ms")
         private val SHOW_ALL_POPUP_KEYS = booleanPreferencesKey("show_all_popup_keys")
+        private val NO_LETTER_ACCENTS = booleanPreferencesKey("no_letter_accents")
         private val NATIVE_LETTERS_FIRST = booleanPreferencesKey("native_letters_first")
         private val SHIFTED_POPUP_KEYS = booleanPreferencesKey("shifted_popup_keys")
         private val CURRENCY_KEYS = stringPreferencesKey("currency_keys")
@@ -11564,6 +11572,7 @@ class SettingsRepository(private val context: Context) {
             splitSpacebar = p[SPLIT_SPACEBAR] ?: defaults.layoutBehavior.splitSpacebar,
             shiftCapsLockMs = p[SHIFT_CAPS_LOCK_MS] ?: defaults.layoutBehavior.shiftCapsLockMs,
             showAllPopupKeys = p[SHOW_ALL_POPUP_KEYS] ?: defaults.layoutBehavior.showAllPopupKeys,
+            noLetterAccents = p[NO_LETTER_ACCENTS] ?: defaults.layoutBehavior.noLetterAccents,
             nativeLettersFirst = p[NATIVE_LETTERS_FIRST]
                 ?: defaults.layoutBehavior.nativeLettersFirst,
             shiftedPopupKeys = p[SHIFTED_POPUP_KEYS]
@@ -16534,6 +16543,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setShowAllPopupKeys(value: Boolean) =
         editPrefs { it[SHOW_ALL_POPUP_KEYS] = value }
+
+    suspend fun setNoLetterAccents(value: Boolean) =
+        editPrefs { it[NO_LETTER_ACCENTS] = value }
 
     suspend fun setNativeLettersFirst(value: Boolean) =
         editPrefs { it[NATIVE_LETTERS_FIRST] = value }
