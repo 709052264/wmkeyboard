@@ -115,6 +115,8 @@ internal fun HandwritingFullScreen(
     onClose: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
+    // The candidates move with every stroke: read live (see [withLiveTyping]).
+    val words = withLiveTyping(state).suggestions
     val hw = state.handwriting
     val controls = LocalHandwritingFullScreen.current
     val feedback = LocalKeyPressFeedback.current
@@ -159,7 +161,7 @@ internal fun HandwritingFullScreen(
                     Box(modifier = Modifier.fillMaxWidth().height(150.dp)) {
                         HandwritingStatusBody(state, onStroke, onDownloadModel)
                     }
-                } else if (!manual && hw.strokes.isEmpty() && state.suggestions.isEmpty()) {
+                } else if (!manual && hw.strokes.isEmpty() && words.isEmpty()) {
                     Text(
                         stringResource(R.string.ime_handwriting_stylus_hint),
                         color = kb.secondaryText,
@@ -167,8 +169,8 @@ internal fun HandwritingFullScreen(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                     )
                 }
-                if (state.suggestions.isNotEmpty()) {
-                    CandidateRow(state.suggestions, onSuggestion)
+                if (words.isNotEmpty()) {
+                    CandidateRow(words, onSuggestion)
                 }
                 Row(modifier = Modifier.fillMaxWidth().height(48.dp)) {
                     val key = Modifier.weight(1f).fillMaxHeight()

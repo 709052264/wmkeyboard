@@ -216,6 +216,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.runtime.withFrameNanos
@@ -1435,13 +1437,7 @@ fun KeyboardScreen(
             LocalOctopusWords provides rememberUpdatedState(bodyState.octopus),
             // Only while something is composing, so a list the service has not
             // cleared yet never outlives the reading it was for.
-            LocalConversionReadings provides rememberUpdatedState(
-                if (bodyState.composingPreview.isEmpty() && bodyState.captureSuggestions.isEmpty()) {
-                    emptyList()
-                } else {
-                    bodyState.conversionReadings
-                },
-            ),
+            LocalConversionReadings provides rememberConversionReadings(bodyState),
             LocalTransliterationPreview provides rememberTransliterationPreview(bodyState),
             LocalMirrorBrackets provides (bodyState.script.direction == TextDirection.RTL),
             // Whether a D-pad ring can land on the toolbar and the strip. The
@@ -1665,6 +1661,7 @@ fun KeyboardScreen(
         LocalPassthroughService provides
             KeyboardPassthrough.serviceConnected.collectAsState().value,
         LocalPanelFocus provides panelFocus,
+        LocalLiveUiState provides stateHolder,
     ) {
         KeyboardScreenFrame(
             stateHolder = stateHolder,
@@ -1694,6 +1691,98 @@ fun KeyboardScreen(
             onSuggestion = onSuggestion,
             onPanelChange = onPanelChange,
         )
+    }
+}
+
+/**
+ * The ui state as the service last published it, for the composables that
+ * draw the per-keystroke fields ([withLiveTyping]). Null outside the
+ * keyboard itself (a preview), where the state handed down is all there is.
+ */
+internal val LocalLiveUiState = staticCompositionLocalOf<State<KeyboardUiState>?> { null }
+
+/**
+ * This state with the fields that change on almost every keystroke cleared:
+ * the strip's words and emoji, the composing preview, the next-letter bias and
+ * the word a space would commit. Measured on device, these were the only
+ * fields that differ between frames while typing a word, and every one of
+ * those frames recomposed the whole keyboard. Readers of them go through
+ * [withLiveTyping]. The same instance when there is nothing to clear.
+ */
+internal fun KeyboardUiState.withoutTypingFields(): KeyboardUiState =
+    if (suggestions.isEmpty() && emojiSuggestions.isEmpty() && composingPreview.isEmpty() &&
+        nextLetterBias.isEmpty() && autocorrectWord == null
+    ) {
+        this
+    } else {
+        copy(
+            suggestions = emptyList(),
+            emojiSuggestions = emptyList(),
+            composingPreview = "",
+            nextLetterBias = emptyMap(),
+            autocorrectWord = null,
+        )
+    }
+
+/** [this] with [live]'s per-keystroke fields put back; see [withoutTypingFields]. */
+private fun KeyboardUiState.withTypingFrom(live: KeyboardUiState): KeyboardUiState =
+    copy(
+        suggestions = live.suggestions,
+        emojiSuggestions = live.emojiSuggestions,
+        composingPreview = live.composingPreview,
+        nextLetterBias = live.nextLetterBias,
+        autocorrectWord = live.autocorrectWord,
+    )
+
+/**
+ * [state] with the per-keystroke fields read live. Calling this subscribes the
+ * caller, and only the caller, to every publish of the state: use it at the
+ * top of the composables that draw those fields, never above them.
+ */
+@Composable
+internal fun withLiveTyping(state: KeyboardUiState): KeyboardUiState {
+    val live = LocalLiveUiState.current ?: return state
+    // A board drawn as a picture inside the keyboard (a theme or layout card)
+    // shows its own sample words, not what is being typed.
+    if (LocalKeyboardPreviewHost.current) return state
+    val now = live.value
+    return remember(
+        state, now.suggestions, now.emojiSuggestions, now.composingPreview,
+        now.nextLetterBias, now.autocorrectWord,
+    ) {
+        val same = state.suggestions === now.suggestions &&
+            state.emojiSuggestions === now.emojiSuggestions &&
+            state.composingPreview == now.composingPreview &&
+            state.nextLetterBias === now.nextLetterBias &&
+            state.autocorrectWord == now.autocorrectWord
+        if (same) state else state.withTypingFrom(now)
+    }
+}
+
+/** [LocalConversionReadings]'s value, read from the live state; see [withLiveTyping]. */
+@Composable
+private fun rememberConversionReadings(state: KeyboardUiState): State<List<String>> {
+    val live = LocalLiveUiState.current
+    if (live == null) {
+        return rememberUpdatedState(
+            if (state.composingPreview.isEmpty() && state.captureSuggestions.isEmpty()) {
+                emptyList()
+            } else {
+                state.conversionReadings
+            },
+        )
+    }
+    // Derived, and read where the readings are drawn: the composing preview
+    // moves with every key, and reading it here would recompose the body.
+    return remember(live) {
+        derivedStateOf {
+            val now = live.value
+            if (now.composingPreview.isEmpty() && now.captureSuggestions.isEmpty()) {
+                emptyList()
+            } else {
+                now.conversionReadings
+            }
+        }
     }
 }
 
@@ -1739,7 +1828,15 @@ private fun KeyboardScreenFrame(
         delay(shown.ms)
         if (languageSwitchEcho.shown == shown) languageSwitchEcho.clear()
     }
-    val rawState by stateHolder
+    // The frame, and everything under it that takes the state, reads the state
+    // with its per-keystroke fields left out ([withoutTypingFields]): typing a
+    // letter changes nothing else, so the whole keyboard is no longer composed
+    // again for it. The few composables that draw those fields read them live
+    // ([withLiveTyping]), and only they recompose as you type.
+    val structural = remember(stateHolder) {
+        derivedStateOf(structuralEqualityPolicy()) { stateHolder.value.withoutTypingFields() }
+    }
+    val rawState by structural
 
     // Sizing is resolved once, here, for the screen shape we are actually
     // drawing on: a folded phone in landscape can want a shorter key than
@@ -3295,7 +3392,7 @@ private class HeldCandidates(state: KeyboardUiState) {
 
 @Composable
 private fun TopBar(
-    state: KeyboardUiState,
+    barState: KeyboardUiState,
     /**
      * Whether the tools' own row is open, when the placement gives them one. The
      * bar reads the placement off the settings itself; only the row's open state
@@ -3348,6 +3445,8 @@ private fun TopBar(
     /** Downward flick on the strip: dismiss the keyboard (opt-in). */
     onSwipeDownHide: () -> Unit = {},
 ) {
+    // The strip is what typing changes: this is where the live fields come in.
+    val state = withLiveTyping(barState)
     // "Show the toolbar instead" while suggestions are up; resets once the
     // suggestions go away so the bar returns to candidates next time.
     var toolbarOverride by remember { mutableStateOf(false) }
@@ -6766,7 +6865,7 @@ private fun EmojiBarStrip(
             // (slot-relative) and converted back, so a large system font scale
             // can't push emoji wider than their slot.
             val fontSize = minOf(24f, slot.value * 0.74f / fontScale).sp
-            val hints = armedHintPlan(state)
+            val hints = armedHintPlan(if (state.toolPicker != null) withLiveTyping(state) else state)
             if (scrollable) {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
@@ -7037,7 +7136,7 @@ private fun SymbolRowStrip(
                 }
             }
         }
-        val hints = armedHintPlan(state)
+        val hints = armedHintPlan(if (state.toolPicker != null) withLiveTyping(state) else state)
         val lines = symbolRowLines(settings.rows)
         val lineHeight = settings.rows.symbolRowHeightDp.dp
         val cell: @Composable (Int) -> Unit = { index ->
@@ -7416,7 +7515,8 @@ internal fun phoneticCandidateBarShown(state: KeyboardUiState): Boolean =
  * Avro highlights the candidate it has selected.
  */
 @Composable
-private fun PhoneticCandidateBar(state: KeyboardUiState, onPick: (String) -> Unit) {
+private fun PhoneticCandidateBar(barState: KeyboardUiState, onPick: (String) -> Unit) {
+    val state = withLiveTyping(barState)
     val words = if (state.composingPreview.isEmpty()) emptyList() else state.phoneticCandidates
     val committing = state.autocorrectWord ?: state.suggestions.firstOrNull()
     val kb = LocalKbTheme.current
@@ -10977,7 +11077,7 @@ private fun ToolboxGrid(
     // for one answer. Null with no picker armed, and during a drag — a drag
     // inserts a ghost into `display`, and every slot past it would then be
     // labelled with its neighbour's key.
-    val hints = if (dragCell == null) armedHintPlan(state) else null
+    val hints = if (dragCell == null && state.toolPicker != null) armedHintPlan(withLiveTyping(state)) else null
     // The plan numbers the toolbox's tools in toolbox order, folders or not,
     // so a cell's badge is found by its tool rather than by where it sits.
     val hintSlots = hints?.let { visibleToolboxTools(state).withIndex().associate { (i, tool) -> tool to i } }
@@ -16815,7 +16915,22 @@ private fun KeyRows(
         state.panel == PanelMode.NONE
     // Live next-letter distribution; read fresh inside the down-observer, which
     // must not restart on every keystroke.
-    val nextBias = rememberUpdatedState(if (smartHit) state.nextLetterBias else emptyMap())
+    // From the live state, not [state]: the bias changes with every key, and the
+    // grid no longer recomposes for it (see [withLiveTyping]). A State whose
+    // read happens in the touch handler subscribes nothing.
+    val smartHitLive = rememberUpdatedState(smartHit)
+    val liveUi = LocalLiveUiState.current
+    val gridBias = rememberUpdatedState(state.nextLetterBias)
+    val nextBias: State<Map<Char, Float>> = remember(liveUi) {
+        object : State<Map<Char, Float>> {
+            override val value: Map<Char, Float>
+                get() = when {
+                    !smartHitLive.value -> emptyMap()
+                    liveUi != null -> liveUi.value.nextLetterBias
+                    else -> gridBias.value
+                }
+        }
+    }
     // The user's autopilot strength, as the multiplier the hit test wants. Read
     // through a State for the same reason as the bias above: the down-observer
     // is keyed on `smartHit` alone and must not restart when the slider moves.
@@ -18668,7 +18783,7 @@ private fun KeyRows(
 
         // Autopilot's drawn letters and the octopus words over the keys.
         KeyGridWordOverlays(
-            state = state,
+            gridState = state,
             smartHit = smartHit,
             keyCenters = keyCenters,
             keyBounds = keyBounds,
@@ -19152,7 +19267,7 @@ private val ArrowGlyphs = setOf("←", "↑", "↓", "→", "⇥")
  */
 @Composable
 private fun BoxScope.KeyGridWordOverlays(
-    state: KeyboardUiState,
+    gridState: KeyboardUiState,
     smartHit: Boolean,
     keyCenters: Map<Int, Offset>,
     keyBounds: Map<Int, Rect>,
@@ -19167,6 +19282,9 @@ private fun BoxScope.KeyGridWordOverlays(
     pickerOpen: Boolean,
     octopusRects: OctopusRects,
 ) {
+    // The expected letters and the promised word change with every key: read
+    // live, so only this overlay recomposes for them (see [withLiveTyping]).
+    val state = withLiveTyping(gridState)
     // Autopilot, made visible: the letters the dictionary expects next drawn
     // at the size their touch area has grown to, and the boundary each one
     // claimed. Both halves are off by default — the feature is meant to be
@@ -19247,11 +19365,12 @@ private fun BoxScope.KeyGridWordOverlays(
  */
 @Composable
 private fun GlideStrokeOverlay(
-    state: KeyboardUiState,
+    gridState: KeyboardUiState,
     trail: GlideTrail,
     picker: GlidePickerState,
     boxSize: IntSize,
 ) {
+    val state = withLiveTyping(gridState)
     // The stroke's floating layer: the word pill riding above the finger
     // and, when a stroke stops to ask, the picker's targets. Its own
     // window, with room above the grid — see [GlideOverlay]. The pill
