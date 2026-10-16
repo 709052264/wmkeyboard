@@ -12,21 +12,21 @@ Style: V voiceover · T text + music · H meme hook.
 
 | Day | Date | # | Feature | Pillar | Style | Script | Footage | VO | Render | OK | YT | X | Reddit | TG | IG | TikTok |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 10-20 | 1 | Works offline, no account | Privacy | V | draft | | | | | | | | | | |
-| 2 | 10-21 | 7 | Glide typing | Typing | T | draft | | | | | | | | | | |
-| 3 | 10-22 | 17 | Bangla Avro phonetic | Languages | H | draft | | | | | | | | | | |
-| 4 | 10-23 | 47 | Calculator in the chat | Tools | H | draft | | | | | | | | | | |
-| 5 | 10-24 | 31 | Photo backgrounds, all features | Looks | H | draft | | | | | | | | | | |
-| 6 | 10-25 | 39 | Emoji search, 125 languages | Emoji | H | draft | | | | | | | | | | |
-| 7 | 10-26 | 48 | Clipboard history | Tools | V | draft | | | | | | | | | | |
-| 8 | 10-27 | 11 | Spacebar cursor gestures | Typing | H | draft | | | | | | | | | | |
-| 9 | 10-28 | 29 | Theme speed-run + addon repos | Looks | T | draft | | | | | | | | | | |
-| 10 | 10-29 | 2 | Network activity log | Privacy | V | draft | | | | | | | | | | |
-| 11 | 10-30 | 24 | Hundreds of languages | Languages | T | draft | | | | | | | | | | |
-| 12 | 10-31 | 58 | Offline Whisper voice | Tools | V | draft | | | | | | | | | | |
-| 13 | 11-01 | 45 | Custom sticker packs | Emoji | V | draft | | | | | | | | | | |
-| 14 | 11-02 | 26 | One-handed / split / floating | Languages | T | draft | | | | | | | | | | |
-| 15 | 11-03 | 9 | Autocorrect undo chip | Typing | T | draft | | | | | | | | | | |
+| 1 | 10-20 | 1 | Works offline, no account | Privacy | V | ok | | | | | | | | | | |
+| 2 | 10-21 | 7 | Glide typing | Typing | T | ok | | | | | | | | | | |
+| 3 | 10-22 | 17 | Bangla Avro phonetic | Languages | H | ok | ✓ | | | | | | | | | |
+| 4 | 10-23 | 47 | Calculator in the chat | Tools | H | ok | | | | | | | | | | |
+| 5 | 10-24 | 31 | Photo backgrounds, all features | Looks | H | ok | | | | | | | | | | |
+| 6 | 10-25 | 39 | Emoji search, 125 languages | Emoji | H | ok | ✓ | | | | | | | | | |
+| 7 | 10-26 | 48 | Clipboard history | Tools | V | ok | | | | | | | | | | |
+| 8 | 10-27 | 11 | Spacebar cursor gestures | Typing | H | ok | | | | | | | | | | |
+| 9 | 10-28 | 29 | Theme speed-run + addon repos | Looks | T | ok | | | | | | | | | | |
+| 10 | 10-29 | 2 | Network activity log | Privacy | V | ok | | | | | | | | | | |
+| 11 | 10-30 | 24 | Hundreds of languages | Languages | T | ok | ✓ | | | | | | | | | |
+| 12 | 10-31 | 58 | Offline Whisper voice | Tools | V | ok | | | | | | | | | | |
+| 13 | 11-01 | 45 | Custom sticker packs | Emoji | V | ok | | | | | | | | | | |
+| 14 | 11-02 | 26 | One-handed / split / floating | Languages | T | ok | | | | | | | | | | |
+| 15 | 11-03 | 9 | Autocorrect undo chip | Typing | T | ok | | | | | | | | | | |
 | 16 | 11-04 | 49 | OTP code chip | Tools | V |  | | | | | | | | | | |
 | 17 | 11-05 | 18 | Hindi phonetic | Languages | H |  | | | | | | | | | | |
 | 18 | 11-06 | 50 | Snippets / text expansion | Tools | T |  | | | | | | | | | | |
@@ -73,8 +73,29 @@ Style: V voiceover · T text + music · H meme hook.
 | 59 | 12-17 | 46 | Sticker editor cutout | Emoji | H |  | | | | | | | | | | |
 | 60 | 12-18 | 60 | AI writing actions | Tools | V |  | | | | | | | | | | |
 
+## Capture notes (read before the next session)
+
+- The phone runs the **release** build, so the debug `DocsShotActivity` doesn't exist. The canvas is
+  `play/shorts/canvas/chat.html`, served from the Mac on 127.0.0.1:8791 (`python3 -m http.server
+  8791 --bind 127.0.0.1` in that folder) and reached through `adb reverse tcp:8791 tcp:8791`. Re-run the
+  reverse after any adb reconnect. Chrome's toolbar stays visible (full screen doesn't engage), so
+  clips need the top ~280 px cropped.
+- Switch layouts with the automation broadcast, not the spacebar: `am broadcast -a
+  com.wasimaster.wmkeyboard.action.SET_LAYOUT -p com.wasimaster.wmkeyboard --es layout <id>`
+  (LIST_LAYOUTS prints the ids). adb can't swipe the spacebar or glide.
+- `input text` works for Latin, Avro, Hindi/Arabic phonetic and Japanese romaji. Russian phonetic and
+  Korean need key taps (rows y=1700/1857/2014, space 540,2171; ru bottom row з=271 в=560).
+- With suggestions in the strip, the toolbar icons hide behind "›"; open emoji from the bottom-row
+  key (220,2171), not the toolbar.
+- Clips: raw takes in `play/trailer/footage/` (gitignored), trims in `play/trailer/public/shorts/clips/`.
+
 ## Log
 
 - 2026-10-17: plan approved (60 shorts, 1/day). Batch 1 scripts drafted; user revised days 4, 5, 9
   and 11 and asked for zoom punch-ins. Capture order: hands-free sessions first, the user's last.
   TTS shootout session running (Kokoro, Chatterbox; Gemini waits on a free key).
+- 2026-10-17: capture session B done. Clips: s03-avro (25 s), s06-emoji (27 s), s11-langs (72 s,
+  eight languages). Added hi phonetic, ja romaji, ar phonetic, ru phonetic, es, ko layouts to the
+  user's keyboard for this; English QWERTY was unticked by a stray tap and re-ticked (it now sits after
+  ja in the ring until the extra languages are removed). Day 6 Bangla query became Banglish `jonmodin`;
+  day 11 phrases adjusted to what adb can type. Next: session D (privacy and text: days 7, 10, 15, 4, 1).

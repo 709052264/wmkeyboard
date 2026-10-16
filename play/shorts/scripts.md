@@ -78,7 +78,9 @@ stock search needs the build's Unsplash/Pexels keys; check the grid loads before
 
 ### Day 6 · #39 · Emoji search in 125 languages · H · 15 s
 **Hook:** "Searching emoji in your own language? Finally."
-**Beats:** search `party` → 🎉 · typo `birthdy` still finds 🎂 · `জন্মদিন` → 🎂 · `fiesta` → 🎉 · zoom in on the results row ·
+**Beats (as captured):** friend asks "guess what day it is tomorrow 👀" · reply "wait is it your
+birthday??" · emoji search `party` → 🥳🎉 · typo `birthdy` still finds 🎂 · Banglish `jonmodin`
+(জন্মদিন) → 🎈 · Spanish `fiesta` → 🪅 · send · zoom in on the results row ·
 "125 languages. Typos forgiven." · end card.
 **Shots:** adb. Before filming: the bn and es keyword packs are downloaded (auto-download for
 enabled languages).
@@ -126,8 +128,8 @@ rows. Open the screen › scrub the chart › tap a row › request sheet, with 
 layout, then a whole sentence typing itself in that language with its own suggestions. The
 language name rides in a chip at the top of the frame:
 English "See you tomorrow!" → বাংলা "কাল দেখা হবে!" → हिन्दी "कल मिलते हैं!" →
-日本語 "また明日!" → العربية "أراك غدًا!" → Русский "До завтра!" → Español "¡Hasta mañana!" →
-한국어 "내일 봐요!"
+日本語 "またあした!" → العربية "مرحبا!" → Русский "До завтра!" → Español "hasta luego!" →
+한국어 "내일 봐요!" (as captured: each one sent as its own bubble in a group chat)
 Last beat: the language search screen scrolling fast through the list → "Switch with one swipe." ·
 end card.
 **Shots:** adb. Enable the eight layouts beforehand. Latin and Avro text goes through `input text`;
