@@ -108,8 +108,8 @@ fall back to **you**.
 **Hook:** "Pick a vibe."
 **Beats:** fast cuts timed to the beat, one theme per cut: Catppuccin Mocha, Dracula, Nord, Tokyo
 Night, Solarized, Pitch black, Aurora (animated), Cyberpunk (animated) · "28 looks built in." ·
-Settings › Addons: scroll the repository's theme list, tap Install, apply it → "Hundreds more
-from addon repos" · zoom in on the Install button · "Or build your own." · end card.
+Settings › Add-ons › WM Keyboard Official Addons (47 add-ons): open Arcade Cabinet, Install, "Download all"
+(it brings its font), Switch to it, then type "ready player one" with its particle bursts → "More from addon repos" · zoom in on the Install button · "Or build your own." · end card.
 **Shots:** adb via the keyboard's Themes tool over the chat canvas. Card names in that tool are
 variant names (Ocean, Snow…), so check the label before each take. Addons: one of the 2
 pre-added repos; check what themes it actually lists before claiming a number on screen (the

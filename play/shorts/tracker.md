@@ -16,11 +16,11 @@ Style: V voiceover · T text + music · H meme hook.
 | 2 | 10-21 | 7 | Glide typing | Typing | T | ok | | | | | | | | | | |
 | 3 | 10-22 | 17 | Bangla Avro phonetic | Languages | H | ok | ✓ | | | | | | | | | |
 | 4 | 10-23 | 47 | Calculator in the chat | Tools | H | ok | ✓ | | | | | | | | | |
-| 5 | 10-24 | 31 | Photo backgrounds, all features | Looks | H | ok | | | | | | | | | | |
+| 5 | 10-24 | 31 | Photo backgrounds, all features | Looks | H | ok | partial: GIF beat, shuffle, crop pinch left | | | | | | | | | |
 | 6 | 10-25 | 39 | Emoji search, 125 languages | Emoji | H | ok | ✓ | | | | | | | | | |
 | 7 | 10-26 | 48 | Clipboard history | Tools | V | ok | ✓ | | | | | | | | | |
 | 8 | 10-27 | 11 | Spacebar cursor gestures | Typing | H | ok | | | | | | | | | | |
-| 9 | 10-28 | 29 | Theme speed-run + addon repos | Looks | T | ok | | | | | | | | | | |
+| 9 | 10-28 | 29 | Theme speed-run + addon repos | Looks | T | ok | ✓ | | | | | | | | | |
 | 10 | 10-29 | 2 | Network activity log | Privacy | V | ok | ✓ | | | | | | | | | |
 | 11 | 10-30 | 24 | Hundreds of languages | Languages | T | ok | ✓ | | | | | | | | | |
 | 12 | 10-31 | 58 | Offline Whisper voice | Tools | V | ok | | | | | | | | | | |
@@ -108,3 +108,14 @@ Style: V voiceover · T text + music · H meme hook.
   clipboard history was cleared (7 unpinned clips, no pinned ones) via the temporarily enabled Clear
   button, then seeded with fake clips; afterwards the fakes were cleared and the Clear button turned
   back off. The user's Sensitive clips setting ("Keep it like any other clip") was left alone.
+- 2026-10-17: session C. Day 9 clips: s09-themes (Appearance panel speed-run, 32 s), s09-addons
+  (official repo: 47 add-ons, so the caption says "more from addon repos", not "hundreds"; Arcade
+  Cabinet installed with its Press Start 2P font), s09-arcade (typing "ready player one" with particle
+  bursts). Day 5: s05-photos is the whole 238 s take (stock search "cat", preview, use as background,
+  match colours, blur 0→20, opacity 100→23%, seed swatches, dark/light flip, rotation turned on); cut
+  carousel beats from it. Missing: animated GIF background, visible shuffle (Change did nothing while
+  the pool was still fetching 6 of 8), the crop pinch (user's hands).
+  State left on the phone: Arcade Cabinet + Press Start 2P installed; a test theme "My theme" (cat
+  photo) exists; rotation turned back OFF; active theme restored to Default (system).
+  Notes: the Appearance tool (toolbox › Appearance) applies a theme on tap, live. Editing a theme in
+  settings draws it on the live keyboard while the editor is open.
