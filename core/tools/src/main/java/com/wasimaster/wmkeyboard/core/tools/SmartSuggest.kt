@@ -1768,8 +1768,8 @@ object SmartSuggest {
         ToolbarTool.MOON_PHASE to listOf("moon"),
         ToolbarTool.COMPASS to listOf("compass"),
         ToolbarTool.LOCATION to listOf("location", "gps"),
-        // Not "time": that one is ordinary prose far too often to offer a chip for.
-        ToolbarTool.CLOCK to listOf("clock", "alarm", "timer", "stopwatch"),
+        // Not "time" or "watch": those are ordinary prose far too often to offer a chip for.
+        ToolbarTool.CLOCK to listOf("clock", "alarm", "timer", "stopwatch", "countdown", "planner", "date"),
         ToolbarTool.LEVEL to listOf("level"),
         ToolbarTool.THEMES to listOf("theme", "themes"),
         ToolbarTool.MODES to listOf("modes"),
