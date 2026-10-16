@@ -7285,6 +7285,8 @@ open class WMKeyboardService : InputMethodService() {
         // keyboard pads itself clear of is read from them, and a window coming
         // back from another keyboard must not keep the ones it left with.
         inputRootView?.requestApplyInsets()
+        // Nor a height hold learned while it was last up (#669).
+        (inputRootView?.parent as? StableMeasureFrame)?.onShownAgain()
     }
 
     /**

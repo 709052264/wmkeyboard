@@ -10,6 +10,8 @@ import android.view.WindowInsets
 import android.view.WindowInsetsAnimation
 import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
+import androidx.core.view.WindowInsetsCompat
+import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import kotlin.math.abs
 
 /**
@@ -55,7 +57,11 @@ import kotlin.math.abs
  * below what the frame just reported is therefore a [ceiling], not an echo:
  * the room drops to it in that pass, and every later traversal under the same
  * first offer starts from it, so both passes agree again from then on. A new
- * first offer (a rotation, a resized window) forgets it.
+ * first offer (a rotation, a resized window) forgets it, and so does every
+ * new showing of the window (#669): a hold learned from one passing frame
+ * kept the window short for good, its bottom cut off under the same first
+ * offer, until the screen turned. A real limit is learned again within the
+ * first traversal of the new showing.
  *
  * Exact specs are passed through untouched: they cannot differ between passes
  * in a way this could smooth over.
@@ -189,6 +195,37 @@ internal class StableMeasureFrame(
         // less than the content took has already lowered the room to it (see
         // stableHeightSpec), so this only trims an echo, never the keys.
         setMeasuredDimension(measuredWidth, View.resolveSize(measuredHeight, heightMeasureSpec))
+        logClipping()
+    }
+
+    /** The last cut-off logged, so a held window is logged once, not every frame. */
+    private var loggedClip = 0
+
+    /**
+     * Records in Diagnostics when the keyboard is taller than the window it is
+     * given, the bottom rows and padding then being cut off (#669).
+     */
+    private fun logClipping() {
+        val content = getChildAt(0)?.measuredHeight ?: return
+        val clip = content - measuredHeight
+        if (clip == loggedClip) return
+        loggedClip = clip
+        if (clip > 0) {
+            DebugLog.w(
+                LOG_TAG,
+                "keyboard ${content}px cut to ${measuredHeight}px (room $roomSize, ceiling $ceiling under $ceilingUnder)",
+            )
+        }
+    }
+
+    /**
+     * The window is on screen again: a [ceiling] learned in an earlier showing
+     * no longer holds; see the class comment.
+     */
+    fun onShownAgain() {
+        if (ceiling > 0) DebugLog.i(LOG_TAG, "forgot the window hold of ${ceiling}px")
+        ceiling = 0
+        ceilingUnder = 0
     }
 
     private fun stableHeightSpec(offered: Int): Int {
@@ -202,6 +239,9 @@ internal class StableMeasureFrame(
             }
             // Held below what was just reported: the window's real limit.
             size < roomSize && size < measuredHeight -> {
+                if (size != ceiling) {
+                    DebugLog.i(LOG_TAG, "window held at ${size}px under ${firstOffer}px (wanted $measuredHeight)")
+                }
                 ceiling = size
                 ceilingUnder = firstOffer
                 size
@@ -250,11 +290,33 @@ internal class StableMeasureFrame(
     // bar already padded for, a row-high gap below the space bar (#569).
     override fun dispatchApplyWindowInsets(insets: WindowInsets): WindowInsets {
         navigationBars?.update(insets, this)
+        logInsets(insets)
         return super.dispatchApplyWindowInsets(insets)
+    }
+
+    /** The last insets logged, so an unchanged dispatch is not logged again. */
+    private var loggedInsets = ""
+
+    /**
+     * Records the bottom insets the keyboard pads by in Diagnostics, with what
+     * the bar would be were it shown, so a report of the bottom row on the
+     * navigation bar (#669) shows which of the two went missing.
+     */
+    private fun logInsets(insets: WindowInsets) {
+        val compat = WindowInsetsCompat.toWindowInsetsCompat(insets, this)
+        val nav = WindowInsetsCompat.Type.navigationBars()
+        val line = "nav bottom ${compat.getInsets(nav).bottom}px" +
+            " (shown ${compat.isVisible(nav)}, full ${compat.getInsetsIgnoringVisibility(nav).bottom}px)" +
+            ", caption ${compat.getInsets(WindowInsetsCompat.Type.captionBar()).bottom}px" +
+            ", gestures ${compat.getInsets(WindowInsetsCompat.Type.mandatorySystemGestures()).bottom}px"
+        if (line == loggedInsets) return
+        loggedInsets = line
+        DebugLog.i(LOG_TAG, "insets: $line")
     }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        onShownAgain()
         requestApplyInsets()
     }
 
@@ -281,6 +343,8 @@ internal class StableMeasureFrame(
     override fun dispatchWindowInsetsAnimationEnd(animation: WindowInsetsAnimation) = Unit
 
     private companion object {
+        const val LOG_TAG = "window"
+
         /** How far in from a side a touch may start and still be an edge swipe. */
         const val EDGE_WIDTH_DP = 16f
 
