@@ -18,7 +18,7 @@ Style: V voiceover · T text + music · H meme hook.
 | 4 | 10-23 | 47 | Calculator in the chat | Tools | H | ok | ✓ | | | | | | | | | |
 | 5 | 10-24 | 31 | Photo backgrounds, all features | Looks | H | ok | | | | | | | | | | |
 | 6 | 10-25 | 39 | Emoji search, 125 languages | Emoji | H | ok | ✓ | | | | | | | | | |
-| 7 | 10-26 | 48 | Clipboard history | Tools | V | ok | blocked: needs clipboard history cleared (ask) | | | | | | | | | |
+| 7 | 10-26 | 48 | Clipboard history | Tools | V | ok | ✓ | | | | | | | | | |
 | 8 | 10-27 | 11 | Spacebar cursor gestures | Typing | H | ok | | | | | | | | | | |
 | 9 | 10-28 | 29 | Theme speed-run + addon repos | Looks | T | ok | | | | | | | | | | |
 | 10 | 10-29 | 2 | Network activity log | Privacy | V | ok | ✓ | | | | | | | | | |
@@ -104,3 +104,7 @@ Style: V voiceover · T text + music · H meme hook.
   shows the chip; the undo leaves a double space before "so"), s10-netlog (18 s), s01-typing (17 s),
   s01-privacy (17 s). Watch the strip for the user's own learned words (one take showed "MyParkMB"
   after "my"; retaken). Day 7 waits on the user's OK to clear the clipboard history.
+- 2026-10-17: day 7 captured (s07-clipboard, 39 s, long holds to cut). With the user's OK the real
+  clipboard history was cleared (7 unpinned clips, no pinned ones) via the temporarily enabled Clear
+  button, then seeded with fake clips; afterwards the fakes were cleared and the Clear button turned
+  back off. The user's Sensitive clips setting ("Keep it like any other clip") was left alone.

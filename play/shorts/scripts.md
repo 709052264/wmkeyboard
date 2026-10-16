@@ -88,11 +88,13 @@ enabled languages).
 ### Day 7 · #48 · Clipboard history · V · 22 s · STAGED
 **Hook:** "Copied it an hour ago. Need it again."
 **VO:** You copied it an hour ago, and now you need it again. WM Keyboard keeps your clipboard
-history: text, links, even screenshots. Pin what matters and swipe away what doesn't. Copy a
-password and it shows up as dots, then disappears in five minutes. All of it stays on your phone.
-**Shots:** adb. **Clear the real clipboard history first**, then seed fake clips: an address, a
-link, a short note, a fake password from a password-manager style copy. Open the panel › pin a card
-› swipe one away › hold for the info popup › show the masked password card, with a zoom in on the dots.
+history: text, links, even screenshots. Pin what matters and swipe away what doesn't. All of it
+stays on your phone.
+**Shots (as captured):** friend asks "whats the address again?" · open the clipboard panel (five
+seeded fake clips) · hold the flight clip for the info popup · swipe the shopping list away ("Clip
+deleted · Undo") · pin the address · tap it to paste · send. Zoom in on the pin. The masked-password
+beat was dropped: the in-app default keeps sensitive clips like any other (FEATURES.md says the
+default is short-lived; one of the two is stale).
 
 ### Day 8 · #11 · Spacebar cursor gestures · H · 12 s
 **Hook:** "You've been fixing typos wrong your whole life."
