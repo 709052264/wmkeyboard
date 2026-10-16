@@ -137,6 +137,27 @@ jobs:
             name=${name%-release}
             cp "$apk" "dist/wmkeyboard-${version}-vc${code}-${name}.apk"
           done
+          # The baseline profile, as dex metadata the installer compiles with.
+          # The in-app updater stages it beside the APK, so a GitHub update is
+          # compiled at install the way a Play install is, instead of running
+          # interpreted until Android's overnight maintenance gets to it (11.5%
+          # janky frames against 2.5% on a CPH2481). One per variant and API
+          # range, named by output-metadata.json: the ABI splits of a variant
+          # carry the same dex, so they share one.
+          for meta in app/build/outputs/apk/*/release/output-metadata.json; do
+            dir=$(dirname "$meta")
+            variant=$(basename "$(dirname "$dir")")   # fullIntl
+            capability=${variant%%[A-Z]*}             # full
+            language=$(echo "${variant#"$capability"}" | tr '[:upper:]' '[:lower:]')
+            jq -r '.baselineProfiles[]? | "\(.minApi) \(.baselineProfiles[0])"' "$meta" \
+              | while read -r api dm; do
+                if [ -f "$dir/$dm" ]; then
+                  cp "$dir/$dm" "dist/wmkeyboard-${version}-vc${code}-${capability}-${language}-api${api}.dm"
+                else
+                  echo "::warning::No dex metadata at $dir/$dm"
+                fi
+              done
+          done
           # R8 mappings, one per variant (ABI splits share one). Taken from this
           # job's build, not the bundle job's: the Play flags change what R8
           # renames, so the AAB's map does not retrace these APKs. The AAB
@@ -172,7 +193,7 @@ jobs:
           # nullglob: with no symbols zip, a literal `*.zip` would reach
           # sha256sum and fail the step under the runner's `bash -e`.
           shopt -s nullglob
-          cd dist && sha256sum *.apk *.gz *.zip > SHA256SUMS.txt && cat SHA256SUMS.txt
+          cd dist && sha256sum *.apk *.dm *.gz *.zip > SHA256SUMS.txt && cat SHA256SUMS.txt
 
       - name: Wipe keystore
         if: always()
@@ -657,7 +678,7 @@ jobs:
           TITLE: WM Keyboard ${{ needs.verify.outputs.version }}
         run: |
           shopt -s nullglob
-          files=(dist/*.apk dist/*-mapping.txt.gz dist/*-native-symbols.zip dist/SHA256SUMS.txt)
+          files=(dist/*.apk dist/*.dm dist/*-mapping.txt.gz dist/*-native-symbols.zip dist/SHA256SUMS.txt)
           if [ ${#files[@]} -eq 0 ]; then
             echo "::error::Nothing in dist/ to attach"
             exit 1

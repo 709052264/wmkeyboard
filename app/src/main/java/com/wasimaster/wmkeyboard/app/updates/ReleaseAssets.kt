@@ -72,12 +72,54 @@ internal object ReleaseAssets {
 
     private val SHA256 = Regex("""^[0-9a-f]{64}$""")
 
+    /**
+     * The dex metadata the release workflow publishes beside the APKs:
+     * `wmkeyboard-<versionName>-vc<versionCode>-<flavor>-<languages>-api<minApi>.dm`,
+     * one per variant and API range (the ABI splits share one dex).
+     */
+    private val DEX_METADATA = Regex(
+        """^wmkeyboard-(.+?)-vc(\d+)-(full|lite)-(intl|en)-api(\d+)\.dm$""",
+    )
+
+    /**
+     * The first API level each published profile is for, newest first. AGP
+     * writes one for 31 and up and one for 28 to 30; below 28 there is nothing
+     * Android would compile with.
+     */
+    private val DEX_METADATA_MIN_APIS = listOf(31, 28)
+
+    /** The "abi" a parsed dex metadata name reports, so it never matches an APK's. */
+    const val DEX_METADATA_ABI = "dm"
+
     /** What [name] says about itself, or null when it is not one of our APKs. */
     fun parseAssetName(name: String): AssetName? {
         val match = ASSET.matchEntire(name) ?: return null
         val (versionName, versionCode, flavor, languages, abi) = match.destructured
         val code = versionCode.toIntOrNull() ?: return null
         return AssetName(versionName, code, flavor, abi, languages.ifEmpty { LANGUAGES_EN })
+    }
+
+    /** What a dex metadata name says about itself, or null when it is not one of ours. */
+    fun parseDexMetadataName(name: String): AssetName? {
+        val match = DEX_METADATA.matchEntire(name) ?: return null
+        val (versionName, versionCode, flavor, languages) = match.destructured
+        val code = versionCode.toIntOrNull() ?: return null
+        return AssetName(versionName, code, flavor, DEX_METADATA_ABI, languages)
+    }
+
+    /**
+     * The dex metadata that goes with [apkAssetName] on a device at [sdkInt],
+     * or null when there is none to want: an APK name this app does not
+     * write, or an Android older than any published profile.
+     *
+     * Derived from the APK's name rather than read off the release, so the
+     * updater needs nothing more than it already has; a release published
+     * before these existed simply answers the download with a 404.
+     */
+    fun dexMetadataName(apkAssetName: String, sdkInt: Int): String? {
+        val apk = parseAssetName(apkAssetName) ?: return null
+        val api = DEX_METADATA_MIN_APIS.firstOrNull { sdkInt >= it } ?: return null
+        return "wmkeyboard-${apk.versionName}-vc${apk.versionCode}-${apk.flavor}-${apk.languages}-api$api.dm"
     }
 
     /**

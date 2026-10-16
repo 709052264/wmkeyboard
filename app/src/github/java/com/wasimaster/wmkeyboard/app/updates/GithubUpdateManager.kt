@@ -315,6 +315,7 @@ internal object GithubUpdateManager {
                 _state.value = UpdateState.Failed(false, UpdateFailure.NO_SPACE)
                 return
             }
+            stageDexMetadata(context, target)
             _state.value = UpdateState.Downloaded
         } catch (cancelled: CancellationException) {
             // The part file stays: cancelling is "not now", and the next press
@@ -327,6 +328,45 @@ internal object GithubUpdateManager {
         } catch (error: Exception) {
             DebugLog.w(TAG, "update download failed: ${error.message.orEmpty()}")
             _state.value = UpdateState.Failed(false, UpdateFailure.NETWORK)
+        }
+    }
+
+    /**
+     * Fetches the dex metadata that goes with [target], best effort.
+     *
+     * A few tens of kilobytes, and nothing depends on it: without it the
+     * update installs exactly as before and Android compiles the keyboard
+     * later, on its own schedule. So any failure (an older release that never
+     * published one, a network blip, a checksum that does not match) leaves
+     * nothing staged and says nothing. The checksum is still required: the
+     * file goes into the same install session as the APK.
+     */
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun stageDexMetadata(context: Context, target: UpdateCandidate) {
+        val file = ApkStaging.dexMetadataFile(context, target) ?: return
+        val part = File(file.path + ".part")
+        val asset = target.copy(
+            assetName = file.name,
+            url = target.url.substringBeforeLast('/') + "/" + file.name,
+            sizeBytes = 0L,
+            sha256 = null,
+        )
+        try {
+            part.delete()
+            ApkDownload.transfer(asset, part) { _, _ -> }
+            val expected = fetchChecksum(asset)
+            if (expected == null || !ApkDownload.verify(part, asset, expected)) {
+                part.delete()
+                return
+            }
+            file.delete()
+            if (!part.renameTo(file)) part.delete()
+        } catch (cancelled: CancellationException) {
+            part.delete()
+            throw cancelled
+        } catch (error: Exception) {
+            part.delete()
+            DebugLog.d(TAG, "no dex metadata for ${target.assetName}: ${error.message.orEmpty()}")
         }
     }
 
@@ -387,7 +427,11 @@ internal object GithubUpdateManager {
                         System.currentTimeMillis(),
                         languageSwitch = _switching.value,
                     )
-                    val session = ApkInstall.commit(context, apk)
+                    val session = ApkInstall.commit(
+                        context,
+                        apk,
+                        ApkStaging.dexMetadataFile(context, target),
+                    )
                     if (session == null) {
                         _state.value = UpdateState.Failed(false, UpdateFailure.INSTALL_FAILED)
                     } else {
@@ -431,10 +475,17 @@ internal object GithubUpdateManager {
         if (outcome.state is UpdateState.Failed) {
             DebugLog.w(TAG, "install failed with status $status: ${message.orEmpty()}")
         }
+        val target = candidate ?: GithubUpdateChecker.decodeCandidate(prefs.knownCandidate)
         if (outcome.disposition == FileDisposition.DELETE) {
-            val target = candidate
-                ?: GithubUpdateChecker.decodeCandidate(prefs.knownCandidate)
             target?.let { ApkStaging.apkFile(app, it).delete() }
+        }
+        if (status != android.content.pm.PackageInstaller.STATUS_SUCCESS &&
+            status != android.content.pm.PackageInstaller.STATUS_PENDING_USER_ACTION
+        ) {
+            // A failed install goes again without the dex metadata: it is the
+            // one optional thing in the session, so it is never the reason an
+            // update cannot be retried.
+            target?.let { ApkStaging.dexMetadataFile(app, it)?.delete() }
         }
         if (status == android.content.pm.PackageInstaller.STATUS_SUCCESS) {
             // The new version is running. Nothing staged belongs to it, and

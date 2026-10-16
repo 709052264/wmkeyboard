@@ -29,6 +29,36 @@ class ReleaseAssetsTest {
     }
 
     @Test
+    fun `names the dex metadata that goes with an APK`() {
+        val apk = "wmkeyboard-0.6.1-vc34-full-intl-arm64-v8a.apk"
+        assertEquals("wmkeyboard-0.6.1-vc34-full-intl-api31.dm", ReleaseAssets.dexMetadataName(apk, 35))
+        assertEquals("wmkeyboard-0.6.1-vc34-full-intl-api31.dm", ReleaseAssets.dexMetadataName(apk, 31))
+        assertEquals("wmkeyboard-0.6.1-vc34-full-intl-api28.dm", ReleaseAssets.dexMetadataName(apk, 30))
+        assertEquals("wmkeyboard-0.6.1-vc34-full-intl-api28.dm", ReleaseAssets.dexMetadataName(apk, 28))
+        // Below 28 there is no profile Android would compile with.
+        assertNull(ReleaseAssets.dexMetadataName(apk, 27))
+        // A pre-languages name reads as English, the same as the APK it names.
+        assertEquals(
+            "wmkeyboard-0.5.3-vc14-lite-en-api31.dm",
+            ReleaseAssets.dexMetadataName("wmkeyboard-0.5.3-vc14-lite-arm64-v8a.apk", 34),
+        )
+        assertNull(ReleaseAssets.dexMetadataName("something-else.apk", 34))
+    }
+
+    @Test
+    fun `reads a dex metadata name back, and never as an APK`() {
+        val name = "wmkeyboard-0.6.0-beta.1-vc15-lite-en-api28.dm"
+        val parsed = ReleaseAssets.parseDexMetadataName(name)
+        assertEquals("0.6.0-beta.1", parsed?.versionName)
+        assertEquals(15, parsed?.versionCode)
+        assertEquals("lite", parsed?.flavor)
+        assertEquals("en", parsed?.languages)
+        assertEquals(ReleaseAssets.DEX_METADATA_ABI, parsed?.abi)
+        assertNull(ReleaseAssets.parseAssetName(name))
+        assertNull(ReleaseAssets.parseDexMetadataName("wmkeyboard-0.6.0-vc15-lite-en-arm64-v8a.apk"))
+    }
+
+    @Test
     fun `a hyphenated pre-release version splits at the right hyphen`() {
         val parsed = ReleaseAssets.parseAssetName("wmkeyboard-0.6.0-beta.1-vc15-lite-x86_64.apk")
         assertEquals("0.6.0-beta.1", parsed?.versionName)

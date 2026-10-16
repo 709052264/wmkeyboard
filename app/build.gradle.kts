@@ -1297,6 +1297,9 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    // GalleryCoreTest builds ExifInterface tag lists; :core:content keeps the
+    // library to itself (implementation), so the tests here need their own.
+    testImplementation(libs.androidx.exifinterface)
     // The plugin tests drive the Lua sandbox through luaj types directly.
     testImplementation(libs.luaj.jse)
     androidTestImplementation(libs.androidx.junit)

@@ -83,7 +83,7 @@ internal object ApkInstall {
      * only warning they get before the keyboard restarts.
      */
     @Suppress("ReturnCount")
-    fun commit(context: Context, apk: File): Int? {
+    fun commit(context: Context, apk: File, dexMetadata: File? = null): Int? {
         val installer = context.packageManager.packageInstaller
         val params = PackageInstaller.SessionParams(
             PackageInstaller.SessionParams.MODE_FULL_INSTALL,
@@ -108,6 +108,17 @@ internal object ApkInstall {
                     // Without this the staged bytes may never reach the disk
                     // and the commit fails with nothing useful to say.
                     session.fsync(output)
+                }
+                // The baseline profile, under the APK's own name with `.dm`:
+                // Android pairs them by name and compiles the keyboard with
+                // it during the install, rather than leaving it interpreted
+                // until its overnight maintenance. Optional, so a staged one
+                // that is missing changes nothing.
+                if (dexMetadata != null && dexMetadata.isFile) {
+                    session.openWrite(apk.nameWithoutExtension + ".dm", 0, dexMetadata.length()).use { output ->
+                        dexMetadata.inputStream().use { input -> input.copyTo(output) }
+                        session.fsync(output)
+                    }
                 }
                 session.commit(statusSender(context, sessionId))
             }

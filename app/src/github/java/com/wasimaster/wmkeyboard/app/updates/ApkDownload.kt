@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app.updates
 
 import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import android.content.Context
+import android.os.Build
 import android.os.StatFs
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
@@ -43,6 +44,14 @@ internal object ApkStaging {
     fun partFile(context: Context, candidate: UpdateCandidate): File =
         File(dir(context), candidate.assetName + ".part")
 
+    /**
+     * Where [candidate]'s dex metadata is kept, or null when this device has
+     * no use for one (see [ReleaseAssets.dexMetadataName]).
+     */
+    fun dexMetadataFile(context: Context, candidate: UpdateCandidate): File? =
+        ReleaseAssets.dexMetadataName(candidate.assetName, Build.VERSION.SDK_INT)
+            ?.let { File(dir(context), it) }
+
     fun listCache(context: Context): File = File(dir(context), "releases.json")
 
     /**
@@ -57,7 +66,8 @@ internal object ApkStaging {
         val keep = listCache(context).name
         dir(context).listFiles()?.forEach { file ->
             if (file.name == keep) return@forEach
-            val parsed = ReleaseAssets.parseAssetName(file.name.removeSuffix(".part"))
+            val name = file.name.removeSuffix(".part")
+            val parsed = ReleaseAssets.parseAssetName(name) ?: ReleaseAssets.parseDexMetadataName(name)
             val used = parsed != null && (
                 parsed.versionCode > installedVersionCode ||
                     (parsed.versionCode == installedVersionCode && parsed.languages != installedLanguages)
