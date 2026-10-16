@@ -14,19 +14,23 @@ import java.io.OutputStream
  * [file], so a prebuilt table is byte for byte what the device would have
  * built over the same list.
  *
- * Bengali and Assamese are not here: [BengaliPhoneticIndex] keeps its own
- * compact arrays and is built over the bundled list as well as a download.
+ * Bangla's published table is filed over the download with the bundled list's
+ * ranking laid over it ([BengaliPhoneticIndex.withBundledRanking]); that is
+ * the caller's to do, here as on the device, and the entries handed in are
+ * already ranked.
  */
 object PhoneticTables {
 
     private enum class Fold(val id: Int, val revision: Int) {
         HINDI(HindiPhoneticIndex.FOLD, HindiPhoneticIndex.REVISION),
         URDU(UrduPhoneticIndex.FOLD, UrduPhoneticIndex.REVISION),
+        BENGALI(BengaliPhoneticIndex.FOLD, BengaliPhoneticIndex.REVISION),
     }
 
     private fun foldOf(languageId: String): Fold? = when {
         languageId == "hi" || IndicProfiles.forLanguage(languageId) != null -> Fold.HINDI
         languageId == "ur" || languageId == "fa" || languageId == "ar" -> Fold.URDU
+        languageId == "bn" || languageId == "as" -> Fold.BENGALI
         else -> null
     }
 
@@ -78,6 +82,8 @@ object PhoneticTables {
         when {
             languageId == "hi" -> HindiPhoneticIndex.file(builder, entries)
             languageId == "ur" -> UrduPhoneticIndex.file(builder, entries)
+            languageId == "bn" -> BengaliPhoneticIndex.file(builder, entries)
+            languageId == "as" -> AssamesePhoneticIndex.file(builder, entries)
             profile != null -> {
                 val prep = IndicProfiles.devanagariPrep(languageId)
                 HindiPhoneticIndex.file(builder, boundedEntries(entries)) { prep(profile.script.toDevanagari(it)) }
@@ -93,6 +99,8 @@ object PhoneticTables {
         return when {
             languageId == "hi" -> HindiPhoneticIndex(table)
             languageId == "ur" -> UrduPhoneticIndex(table)
+            languageId == "bn" -> BengaliPhoneticIndex(table)
+            languageId == "as" -> AssamesePhoneticIndex(table)
             profile != null -> IndicPhoneticIndex(
                 table = table,
                 spellingOf = profile.script::toDevanagari,

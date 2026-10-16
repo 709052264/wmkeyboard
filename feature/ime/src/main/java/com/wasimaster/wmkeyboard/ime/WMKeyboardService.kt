@@ -2483,7 +2483,7 @@ open class WMKeyboardService : InputMethodService() {
      * of the list, or another catalog entry's) is not what it was built over,
      * and is folded on the phone instead.
      */
-    private fun prebuiltPhoneticTable(langId: String): PhoneticTable? {
+    private fun prebuiltPhoneticTable(langId: String, alsoKeep: (String) -> Boolean = { false }): PhoneticTable? {
         if (!userUnlocked || !shippedDictionaryEnabled(langId)) return null
         val list = MappedTrie.open(DictionaryStore.downloadedFile(filesDir, langId)) ?: return null
         val table = PhoneticIndexDownloads.open(filesDir, langId)
@@ -2493,7 +2493,7 @@ open class WMKeyboardService : InputMethodService() {
             return null
         }
         if (table.sourceTag != source || list.wordCount > table.sourceWords) return null
-        return if (list.wordCount == table.sourceWords) table else PhoneticTable.filter(table, list::contains)
+        return if (list.wordCount == table.sourceWords) table else PhoneticTable.filter(table) { list.contains(it) || alsoKeep(it) }
     }
 
     /** The files [phoneticIndex] reads, as [PhoneticIndexCache] compares them. */
@@ -3855,6 +3855,11 @@ open class WMKeyboardService : InputMethodService() {
         // built again, from the mapped table this time.
         serviceScope.launch {
             PhoneticIndexDownloads.completions.collect { langId ->
+                if (langId == PhoneticSchemes.BENGALI.languageId) {
+                    suggestionEngine?.let { engine ->
+                        engine.bengaliIndex = withContext(Dispatchers.Default) { buildBengaliIndex() }
+                    }
+                }
                 if (suggestionEngine != null && loadedExtraPhonetic.any { it.removeSuffix(WITH_SPELLING_MAP) == langId }) {
                     loadExtraPhonetic()
                 }
@@ -42585,14 +42590,26 @@ open class WMKeyboardService : InputMethodService() {
      * imported words are reachable by transliteration and not only by prefix.
      * A downloaded list with no frequencies of its own gets the bundled list's
      * ranking put back over it (see [BengaliPhoneticIndex.withBundledRanking]).
+     *
+     * For the downloaded list that is the table the data repo published,
+     * mapped, with the ranking already in it (#716): only the imports are
+     * folded here. A smaller tier keeps the bundled words as well as its own,
+     * since the ranking brought every one of them in. Until the table is here,
+     * or when it does not fit the list, every word is folded on the phone.
      */
     private fun buildBengaliIndex(): BengaliPhoneticIndex {
-        val primary = BengaliPhoneticIndex.withBundledRanking(bengaliDictionary?.entries().orEmpty()) {
-            DictionaryStore.ensureBundled(dictionaryContext, "bn")?.let { MappedTrie.open(it) }?.entries().orEmpty()
+        val bundled = { DictionaryStore.ensureBundled(dictionaryContext, "bn")?.let { MappedTrie.open(it) } }
+        val imported = if (userUnlocked) CustomDictionaries.entries(filesDir, "bn") else emptyList()
+        val bundledTrie by lazy(bundled)
+        val prebuilt = prebuiltPhoneticTable("bn") { bundledTrie?.contains(it) == true }
+        if (prebuilt != null) {
+            val own = if (imported.isEmpty()) PhoneticTable.EMPTY else PhoneticTables.build("bn", imported)
+            return BengaliPhoneticIndex(PhoneticTable.combine(listOf(prebuilt, own)))
         }
-        return BengaliPhoneticIndex(
-            if (userUnlocked) primary + CustomDictionaries.entries(filesDir, "bn") else primary,
-        )
+        val primary = BengaliPhoneticIndex.withBundledRanking(bengaliDictionary?.entries().orEmpty()) {
+            bundledTrie?.entries().orEmpty()
+        }
+        return BengaliPhoneticIndex(primary + imported)
     }
 
     fun openSettings() {

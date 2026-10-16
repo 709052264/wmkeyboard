@@ -64,6 +64,43 @@ class PhoneticTableTest {
         assertEquals(answers(HindiPhoneticIndex(words + imported)), answers(PhoneticTables.index("hi", combined)))
     }
 
+    private val bangla = listOf(
+        "আমি" to 9000, "আম" to 1500, "আমার" to 7000, "আমরা" to 5000, "আছি" to 6900, "আসি" to 2300,
+        "তাকে" to 4850, "থাকে" to 1750, "কথা" to 286, "কথাও" to 993, "ভালো" to 6500, "ভাল" to 1900,
+    )
+
+    /** Bangla's index also walks the table's words: Khipro's completions and desktop Avro's search. */
+    private fun banglaAnswers(index: PhoneticIndex): List<Any> {
+        val words = index.sortedWords!!
+        return listOf("ami", "amar", "asi", "thake", "kotha", "kothao", "valo").map { index.lookup(it) to index.matchStrength(it) } +
+            listOf("আ", "আম", "ক", "ভ").map { index.completions(it, 3) } +
+            (0 until words.size).map { words.word(it) to words.rank(it) } +
+            bangla.map { index.frequencyOf(it.first) } + index.maxFrequency
+    }
+
+    @Test fun banglaWrittenFilteredAndCombinedAnswerAsOneTable() {
+        val file = File.createTempFile("phonetic", ".wmpi")
+        try {
+            file.outputStream().use { PhoneticTables.write("bn", bangla, it, sourceTag = "bn", sourceWords = bangla.size) }
+            val mapped = PackedPhoneticTable.open(file)!!
+            assertTrue(PhoneticTables.fits("bn", mapped))
+            assertEquals(banglaAnswers(BengaliPhoneticIndex(bangla)), banglaAnswers(PhoneticTables.index("bn", mapped)))
+            val tier = bangla.filter { it.second >= 2000 }
+            val kept = tier.map { it.first }.toSet()
+            assertEquals(
+                banglaAnswers(BengaliPhoneticIndex(tier)),
+                banglaAnswers(BengaliPhoneticIndex(PhoneticTable.filter(mapped) { it in kept })),
+            )
+            // An imported word already listed is one word, at its higher frequency.
+            val imported = listOf("আমি" to 100, "আমড়া" to 400, "কথাও" to 5000)
+            val merged = (bangla + imported).groupBy { it.first }.map { (word, rows) -> word to rows.maxOf { it.second } }
+            val combined = BengaliPhoneticIndex(PhoneticTable.combine(listOf(mapped, PhoneticTables.build("bn", imported))))
+            assertEquals(banglaAnswers(BengaliPhoneticIndex(merged)).drop(7), banglaAnswers(combined).drop(7))
+        } finally {
+            file.delete()
+        }
+    }
+
     @Test fun anEmptyTableIsEmpty() {
         assertTrue(PhoneticTables.index("hi", PhoneticTables.build("hi", emptyList())).isEmpty)
         assertTrue(PhoneticTable.combine(emptyList()).isEmpty)

@@ -47,6 +47,14 @@ interface PhoneticTable {
     /** Every row filed under [key], commonest first, ties in the order they were filed. */
     fun rows(key: String): List<PhoneticRow>
 
+    /**
+     * Every word with a frequency, once each, in [String.compareTo] order and
+     * ranked by that frequency: what desktop Avro's search and Khipro's
+     * completions walk ([BengaliPhoneticIndex]). The same object every time it
+     * is read, so a caller can tell the list has not changed.
+     */
+    val words: SortedWords
+
     companion object {
         val EMPTY: PhoneticTable = object : PhoneticTable {
             override val isEmpty: Boolean get() = true
@@ -54,6 +62,15 @@ interface PhoneticTable {
             override val minFrequency: Int get() = 0
             override fun frequencyOf(word: String): Int = 0
             override fun rows(key: String): List<PhoneticRow> = emptyList()
+            override val words: SortedWords get() = NO_WORDS
+        }
+
+        private val NO_WORDS: SortedWords = object : SortedWords {
+            override val size: Int get() = 0
+            override fun length(i: Int): Int = throw IndexOutOfBoundsException()
+            override fun charAt(i: Int, at: Int): Char = throw IndexOutOfBoundsException()
+            override fun word(i: Int): String = throw IndexOutOfBoundsException()
+            override fun rank(i: Int): Long = throw IndexOutOfBoundsException()
         }
 
         /**
@@ -93,6 +110,62 @@ private class CombinedTable(private val parts: List<PhoneticTable>) : PhoneticTa
         // so within one frequency each part keeps its own order.
         return if (all.size > 1) all.sortedByDescending { it.frequency } else all
     }
+
+    /**
+     * The parts' word lists merged, a word in more than one part once, with
+     * its highest frequency. Worked out the first time it is read, which only
+     * desktop Avro's search and Khipro do: two ints a word.
+     */
+    override val words: SortedWords by lazy { merge() }
+
+    private fun merge(): SortedWords {
+        val lists = parts.map { it.words }
+        val total = lists.sumOf { it.size }
+        val partOf = ByteArray(total)
+        val indexOf = IntArray(total)
+        val at = IntArray(lists.size)
+        var n = 0
+        while (true) {
+            // The smallest word at the head of any list; ties go to the list
+            // that ranks it best, and the others step past it.
+            var best = -1
+            for (p in lists.indices) {
+                if (at[p] >= lists[p].size) continue
+                if (best < 0) {
+                    best = p
+                    continue
+                }
+                val cmp = compare(lists[p], at[p], lists[best], at[best])
+                if (cmp < 0 || cmp == 0 && lists[p].rank(at[p]) < lists[best].rank(at[best])) best = p
+            }
+            if (best < 0) break
+            val i = at[best]
+            for (p in lists.indices) {
+                if (p != best && at[p] < lists[p].size && compare(lists[p], at[p], lists[best], i) == 0) at[p]++
+            }
+            partOf[n] = best.toByte()
+            indexOf[n] = i
+            n++
+            at[best]++
+        }
+        return object : SortedWords {
+            override val size: Int get() = n
+            override fun length(i: Int): Int = lists[partOf[i].toInt()].length(indexOf[i])
+            override fun charAt(i: Int, at: Int): Char = lists[partOf[i].toInt()].charAt(indexOf[i], at)
+            override fun word(i: Int): String = lists[partOf[i].toInt()].word(indexOf[i])
+            override fun rank(i: Int): Long = lists[partOf[i].toInt()].rank(indexOf[i])
+        }
+    }
+
+    private fun compare(a: SortedWords, i: Int, b: SortedWords, j: Int): Int {
+        val aLength = a.length(i)
+        val bLength = b.length(j)
+        for (k in 0 until minOf(aLength, bLength)) {
+            val diff = a.charAt(i, k) - b.charAt(j, k)
+            if (diff != 0) return diff
+        }
+        return aLength - bLength
+    }
 }
 
 private class FilteredTable(private val inner: PhoneticTable, private val keep: (String) -> Boolean) : PhoneticTable {
@@ -104,6 +177,21 @@ private class FilteredTable(private val inner: PhoneticTable, private val keep: 
     override val minFrequency: Int get() = inner.minFrequency
     override fun frequencyOf(word: String): Int = if (keep(word)) inner.frequencyOf(word) else 0
     override fun rows(key: String): List<PhoneticRow> = inner.rows(key).filter { keep(it.word) }
+
+    /** The kept words' places in [inner]'s list, worked out the first time it is read. */
+    override val words: SortedWords by lazy {
+        val all = inner.words
+        val kept = IntArray(all.size)
+        var n = 0
+        for (i in 0 until all.size) if (keep(all.word(i))) kept[n++] = i
+        object : SortedWords {
+            override val size: Int get() = n
+            override fun length(i: Int): Int = all.length(kept[i])
+            override fun charAt(i: Int, at: Int): Char = all.charAt(kept[i], at)
+            override fun word(i: Int): String = all.word(kept[i])
+            override fun rank(i: Int): Long = all.rank(kept[i])
+        }
+    }
 }
 
 /**
@@ -327,6 +415,19 @@ class PackedPhoneticTable private constructor(
             )
         }
         return out
+    }
+
+    /** The word section as it is: sorted, each word once with its highest frequency. */
+    override val words: SortedWords = object : SortedWords {
+        override val size: Int get() = wordCount
+
+        override fun length(i: Int): Int = buf.getInt(wordIndexOff + (i + 1) * 4) - buf.getInt(wordIndexOff + i * 4)
+
+        override fun charAt(i: Int, at: Int): Char = buf.getChar(wordCharsOff + 2 * (buf.getInt(wordIndexOff + i * 4) + at))
+
+        override fun word(i: Int): String = wordAt(i)
+
+        override fun rank(i: Int): Long = -buf.getInt(wordFreqOff + i * 4).toLong()
     }
 
     override fun frequencyOf(word: String): Int {

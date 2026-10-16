@@ -25,34 +25,32 @@ object AssamesePhonetic {
 
 /**
  * Reverse-phonetic lookup for Assamese: [BengaliPhoneticIndex] over the list
- * spelled in Bangla letters ([AssamesePhonetic.toBengali]), answering in the
- * list's own Assamese spelling.
+ * folded in Bangla letters ([AssamesePhonetic.toBengali]), its rows keeping
+ * the list's own Assamese spelling, so a lookup answers in it directly.
  */
-class AssamesePhoneticIndex(entries: List<Pair<String, Int>>) : PhoneticIndex {
+class AssamesePhoneticIndex(private val table: PhoneticTable) : PhoneticIndex {
 
-    private val native = HashMap<String, String>()
+    /** An index built on the device over [entries], `word to frequency`. */
+    constructor(entries: List<Pair<String, Int>>) : this(table(entries))
 
-    private val inner: BengaliPhoneticIndex
-
-    init {
-        val kept = boundedEntries(entries)
-        val converted = ArrayList<Pair<String, Int>>(kept.size)
-        for ((word, frequency) in kept) {
-            val bn = AssamesePhonetic.toBengali(word)
-            native.putIfAbsent(bn, word)
-            converted += bn to frequency
-        }
-        inner = BengaliPhoneticIndex(converted)
-    }
+    private val inner = BengaliPhoneticIndex(table)
 
     override val isEmpty: Boolean get() = inner.isEmpty
 
-    override fun lookup(input: String): List<String> =
-        inner.lookup(input.replace('x', 's')).mapNotNull { native[it] }.distinct()
+    override fun lookup(input: String): List<String> = inner.lookup(input.replace('x', 's')).distinct()
 
-    override fun frequencyOf(word: String): Int = inner.frequencyOf(AssamesePhonetic.toBengali(word))
+    override fun frequencyOf(word: String): Int = table.frequencyOf(word)
 
     override fun matchStrength(input: String): Int = inner.matchStrength(input.replace('x', 's'))
 
     override val maxFrequency: Int get() = inner.maxFrequency
+
+    companion object {
+        /** Files [entries] into [builder] by the Bengali fold, read in Bangla letters. */
+        fun file(builder: PhoneticTableBuilder, entries: List<Pair<String, Int>>) =
+            BengaliPhoneticIndex.file(builder, boundedEntries(entries), AssamesePhonetic::toBengali)
+
+        fun table(entries: List<Pair<String, Int>>): PhoneticTable =
+            BengaliPhoneticIndex.table(boundedEntries(entries), AssamesePhonetic::toBengali)
+    }
 }

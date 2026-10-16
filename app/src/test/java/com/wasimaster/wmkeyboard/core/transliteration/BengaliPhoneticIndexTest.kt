@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.transliteration
 
+import java.io.File
+import java.security.MessageDigest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -114,6 +116,20 @@ class BengaliPhoneticIndexTest {
         val merged = BengaliPhoneticIndex.withBundledRanking(ranked) { opened = true; emptyList() }
         assertEquals(ranked, merged)
         assertEquals(false, opened)
+    }
+
+    /**
+     * The published Bangla table (#716) has the bundled list's ranking baked
+     * in, so editing `dictionaries-src/bn.txt` leaves every installed table
+     * ranking by the old list. Bump [BengaliPhoneticIndex.REVISION], rerun the
+     * data repo's `scripts/build_phonetic_indexes.sh` for bn, and update the
+     * digest below together.
+     */
+    @Test fun theBundledListIsTheOneThePublishedTableRanksBy() {
+        val list = listOf(File("dictionaries-src/bn.txt"), File("app/dictionaries-src/bn.txt")).first { it.isFile }
+        val digest = MessageDigest.getInstance("SHA-256").digest(list.readBytes()).joinToString("") { "%02x".format(it) }
+        assertEquals(1, BengaliPhoneticIndex.REVISION)
+        assertEquals("145c1f751f8244ed9f87b41a3be815c4a3a188ca3fe5ba6f78742690b31d6df9", digest)
     }
 
     @Test fun unknownInputHasNoSiblings() {
