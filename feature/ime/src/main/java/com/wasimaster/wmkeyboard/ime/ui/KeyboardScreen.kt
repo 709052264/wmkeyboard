@@ -283,6 +283,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -3796,7 +3799,13 @@ private fun TopBar(
     } else {
         LayoutDirection.Ltr
     }
-    CompositionLocalProvider(LocalLayoutDirection provides stripDirection) {
+    // One layout cache for every word and emoji the strip draws, kept for as
+    // long as the bar is up: see [CachedTextLine].
+    val stripMeasurer = rememberTextMeasurer(cacheSize = StripTextCacheSize)
+    CompositionLocalProvider(
+        LocalLayoutDirection provides stripDirection,
+        LocalStripTextMeasurer provides stripMeasurer,
+    ) {
     // The bar's size is fixed by this box rather than by the row itself. The
     // row's children change as you type — the strip and the toolbar trade
     // places, the chevron comes and goes — and Compose walks a change to a
@@ -4159,6 +4168,75 @@ private fun TopBar(
 @Composable
 private fun RowScope.StripSlot(content: @Composable RowScope.() -> Unit) {
     content()
+}
+
+/** The strip's shared text layouts; see [CachedTextLine]. */
+private val LocalStripTextMeasurer = staticCompositionLocalOf<TextMeasurer?> { null }
+
+/**
+ * How many laid-out words the strip keeps. Typing a word cycles through a few
+ * dozen candidates, most of them seen again a keystroke later ("th", "the",
+ * "then"), and an entry is one line of text.
+ */
+private const val StripTextCacheSize = 96
+
+/** Label layouts the key bubbles keep: every key on a layer, with room for shift. */
+private const val BubbleLabelCacheSize = 128
+
+/**
+ * One line of the strip's text: a word or an emoji candidate, laid out through
+ * [LocalStripTextMeasurer]'s cache and drawn directly.
+ *
+ * A `Text` builds its layout afresh whenever it is composed with a new string,
+ * and the strip composes new strings on every keystroke. Each layout is a
+ * StaticLayout, and on some phones creating one is expensive by itself (the
+ * OnePlus font hook parses font-variation settings in every Paint it makes):
+ * about half a millisecond a word, several words a keystroke. The words come
+ * round again constantly, so here a repeat is a cache hit. The text is still
+ * exposed to accessibility the way a `Text` would expose it.
+ */
+@Composable
+private fun CachedTextLine(
+    text: AnnotatedString,
+    style: TextStyle,
+    color: Color,
+    overflow: TextOverflow,
+    modifier: Modifier = Modifier,
+    // The cache to lay out through, for a caller outside the strip; the
+    // strip's own by default.
+    cache: TextMeasurer? = null,
+) {
+    val measurer = cache ?: LocalStripTextMeasurer.current ?: rememberTextMeasurer()
+    // The composition's density, not the layout scope's: the cache compares
+    // density by equality, and every node's scope is an object of its own, so
+    // passing the scope made every lookup a miss.
+    val density = LocalDensity.current
+    val laidOut = remember { arrayOfNulls<TextLayoutResult>(1) }
+    Spacer(
+        modifier
+            .semantics { this.text = text }
+            .layout { measurable, constraints ->
+                val result = measurer.measure(
+                    text = text,
+                    style = style,
+                    overflow = overflow,
+                    softWrap = false,
+                    maxLines = 1,
+                    constraints = Constraints(maxWidth = constraints.maxWidth),
+                    layoutDirection = layoutDirection,
+                    density = density,
+                )
+                // Read here so a font still loading invalidates this layout
+                // when it lands; the cache never hands back a stale one.
+                result.multiParagraph.intrinsics.hasStaleResolvedFonts
+                laidOut[0] = result
+                val width = constraints.constrainWidth(result.size.width)
+                val height = constraints.constrainHeight(result.size.height)
+                val placeable = measurable.measure(Constraints.fixed(width, height))
+                layout(width, height) { placeable.place(0, 0) }
+            }
+            .drawBehind { laidOut[0]?.let { drawText(it, color = color) } },
+    )
 }
 
 // The candidate surface's body, in three functions rather than written
@@ -5021,10 +5099,13 @@ private fun RowScope.StripWords(
                     .padding(horizontal = 5.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = LocalEmojiShaper.current.shape(emoji),
-                    fontSize = 22.sp,
-                    fontFamily = emojiFamilyFor(emoji),
+                CachedTextLine(
+                    text = AnnotatedString(LocalEmojiShaper.current.shape(emoji)),
+                    style = LocalTextStyle.current.merge(
+                        TextStyle(fontSize = 22.sp, fontFamily = emojiFamilyFor(emoji)),
+                    ),
+                    color = LocalContentColor.current,
+                    overflow = TextOverflow.Clip,
                 )
             }
         }
@@ -5286,7 +5367,7 @@ private fun RowScope.LatinSuggestionChips(
             (maxWidth - SuggestionDividerWidth * (shares - 1)) / shares
         }
         val textWidth = (slotWidth - textPadding * 2).coerceAtLeast(0.dp)
-        val measurer = rememberTextMeasurer()
+        val measurer = LocalStripTextMeasurer.current ?: rememberTextMeasurer()
         val density = LocalDensity.current
         val baseStyle = LocalTextStyle.current
         // The user's own text scale rides on whichever base is in force, so a
@@ -5441,7 +5522,7 @@ private fun RowScope.LatinSuggestionChips(
                         availableWidthPx = with(density) { textWidth.toPx() },
                     )
                 }
-                Text(
+                CachedTextLine(
                     text = label,
                     modifier = Modifier.padding(horizontal = textPadding),
                     // The user's own colour on the word the commit will
@@ -5454,28 +5535,31 @@ private fun RowScope.LatinSuggestionChips(
                     // about to keep it. The bold stays on the primary
                     // either way.
                     color = textColor,
-                    fontSize = slotSize * fit.fontScale,
-                    softWrap = false,
-                    // The default 0.5sp tracking is dead width once a word is
-                    // already being squeezed.
-                    letterSpacing = if (fit.condensed) 0.sp else baseStyle.letterSpacing,
-                    fontFamily = family,
-                    fontWeight = weight,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
+                    style = (
+                        if (fit.condensed) {
+                            baseStyle.copy(
+                                textGeometricTransform =
+                                    TextGeometricTransform(scaleX = fit.scaleX),
+                            )
+                        } else {
+                            baseStyle
+                        }
+                        ).merge(
+                        TextStyle(
+                            fontSize = slotSize * fit.fontScale,
+                            // The default 0.5sp tracking is dead width once a
+                            // word is already being squeezed.
+                            letterSpacing = if (fit.condensed) 0.sp else TextUnit.Unspecified,
+                            fontFamily = family,
+                            fontWeight = weight,
+                            textAlign = TextAlign.Center,
+                        ),
+                    ),
                     // Cutting the middle keeps the word's ending, which is
                     // what tells "international" from "internationally".
                     overflow = when (overflow) {
                         SuggestionOverflow.MIDDLE -> TextOverflow.MiddleEllipsis
                         SuggestionOverflow.END -> TextOverflow.Ellipsis
-                    },
-                    style = if (fit.condensed) {
-                        baseStyle.copy(
-                            textGeometricTransform =
-                                TextGeometricTransform(scaleX = fit.scaleX),
-                        )
-                    } else {
-                        baseStyle
                     },
                 )
             }
@@ -16554,6 +16638,8 @@ internal fun KeyPreviewOverlay(
     val onKeyLabelLanePx = with(density) { onKeyLabelLanePx(popup) }
     val headroomPx = if (virtualHeadroom) keyPreviewHeadroomPx(settings) else 0
     val bubbles = state.shown.toList()
+    // The bubbles' label layouts, kept across presses; see [KeyPreviewBubble].
+    val labelCache = rememberTextMeasurer(cacheSize = BubbleLabelCacheSize)
     // In the tree even while nothing is previewing, with no children. Taking
     // the node out on release and putting it back on the next press changed
     // the frame's own child list twice a keystroke, and the frame is sized by
@@ -16584,7 +16670,7 @@ internal fun KeyPreviewOverlay(
                         } else {
                             bubbleHeightPx
                         }
-                        KeyPreviewBubble(preview, popup, onKeyStyle, heightPx)
+                        KeyPreviewBubble(preview, popup, onKeyStyle, heightPx, labelCache)
                     }
                 }
             },
@@ -16635,6 +16721,7 @@ private fun KeyPreviewBubble(
     popup: KeyPopupSettings,
     onKeyStyle: Boolean,
     heightPx: Int,
+    labelCache: TextMeasurer,
 ) {
     val kb = LocalKbTheme.current
     val density = LocalDensity.current
@@ -16666,13 +16753,20 @@ private fun KeyPreviewBubble(
             .padding(horizontal = 14.dp),
         contentAlignment = if (onKeyStyle) Alignment.TopCenter else Alignment.Center,
     ) {
-        Text(
-            text = preview.label,
+        // Through the overlay's cache: a bubble is composed for every press
+        // and gone a moment later, and its label is nearly always one the
+        // keyboard has shown before. See [CachedTextLine].
+        CachedTextLine(
+            text = AnnotatedString(preview.label),
             modifier = if (onKeyStyle) Modifier.padding(top = OnKeyLabelTopPadding) else Modifier,
-            fontSize = ((if (onKeyStyle) OnKeyLabelSp else FloatingLabelSp) * popup.fontScale).sp,
+            style = LocalTextStyle.current.merge(
+                TextStyle(fontSize = ((if (onKeyStyle) OnKeyLabelSp else FloatingLabelSp) * popup.fontScale).sp),
+            ),
             color = preview.popupText
                 ?: popup.textColor?.let { Color(it.toInt()) }
                 ?: kb.popupText,
+            overflow = TextOverflow.Clip,
+            cache = labelCache,
         )
     }
 }
