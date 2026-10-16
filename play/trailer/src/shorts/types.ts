@@ -54,6 +54,7 @@ export type CarouselBeat = {
 export type Beat = ClipBeat | CarouselBeat;
 
 export type ShortSpec = {
+  day?: number; // posting day; the composition becomes DayNN
   id: string; // slug, also the out/shorts/<id>-*.mp4 file stem
   style: ShortStyle;
   hook: string; // must read in the first 1.5 s

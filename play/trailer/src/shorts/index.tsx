@@ -14,7 +14,12 @@ const TEMPLATES: Record<ShortStyle, React.FC<ShortProps>> = {
   hook: HookShort,
 };
 
-export const shortCompositionId = (i: number) => `Short${String(i + 1).padStart(2, "0")}`;
+export const shortCompositionId = (i: number) => {
+  const day = SHORTS[i].day;
+  return day !== undefined
+    ? `Day${String(day).padStart(2, "0")}`
+    : `Short${String(i + 1).padStart(2, "0")}`;
+};
 
 // Short01..ShortNN, one per SHORTS entry. Render the stem master with
 // --props='{"bed":false}', the safe-zone check with '{"safeZone":true}'.

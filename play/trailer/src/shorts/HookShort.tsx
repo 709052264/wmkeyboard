@@ -34,7 +34,8 @@ const MemeBox: React.FC<{ text: string; accent: string; cuts: number[] }> = ({ t
   // Small bump on every cut after the first so the box breathes with the edit.
   const lastCut = [...cuts].reverse().find((c) => c <= frame && c > 0);
   const bump = lastCut === undefined ? 0 : interpolate(frame - lastCut, [0, 3, 8], [0, 0.035, 0], clamp);
-  const [lead, ...rest] = text.split(":");
+  // The meme box is plain black-on-white by design, so «accent» marks just go.
+  const [lead, ...rest] = text.replace(/[«»]/g, "").split(":");
   const hasLead = rest.length > 0;
   return (
     <AbsoluteFill
@@ -65,7 +66,7 @@ const MemeBox: React.FC<{ text: string; accent: string; cuts: number[] }> = ({ t
         }}
       >
         {hasLead ? <span style={{ fontWeight: 800 }}>{lead}:</span> : null}
-        {hasLead ? rest.join(":") : text}
+        {hasLead ? rest.join(":") : text.replace(/[«»]/g, "")}
       </div>
     </AbsoluteFill>
   );

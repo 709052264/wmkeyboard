@@ -1,0 +1,387 @@
+[
+ {
+  "text": "Most",
+  "startMs": 0,
+  "endMs": 320,
+  "timestampMs": 160,
+  "confidence": null
+ },
+ {
+  "text": " apps",
+  "startMs": 320,
+  "endMs": 620,
+  "timestampMs": 470,
+  "confidence": null
+ },
+ {
+  "text": " ask",
+  "startMs": 620,
+  "endMs": 900,
+  "timestampMs": 760,
+  "confidence": null
+ },
+ {
+  "text": " you",
+  "startMs": 900,
+  "endMs": 1100,
+  "timestampMs": 1000,
+  "confidence": null
+ },
+ {
+  "text": " to",
+  "startMs": 1100,
+  "endMs": 1220,
+  "timestampMs": 1160,
+  "confidence": null
+ },
+ {
+  "text": " trust",
+  "startMs": 1220,
+  "endMs": 1500,
+  "timestampMs": 1360,
+  "confidence": null
+ },
+ {
+  "text": " them.",
+  "startMs": 1500,
+  "endMs": 1840,
+  "timestampMs": 1670,
+  "confidence": null
+ },
+ {
+  "text": " This",
+  "startMs": 2200,
+  "endMs": 2360,
+  "timestampMs": 2280,
+  "confidence": null
+ },
+ {
+  "text": " keyboard",
+  "startMs": 2360,
+  "endMs": 2780,
+  "timestampMs": 2570,
+  "confidence": null
+ },
+ {
+  "text": " shows",
+  "startMs": 2780,
+  "endMs": 3120,
+  "timestampMs": 2950,
+  "confidence": null
+ },
+ {
+  "text": " you",
+  "startMs": 3120,
+  "endMs": 3340,
+  "timestampMs": 3230,
+  "confidence": null
+ },
+ {
+  "text": " its",
+  "startMs": 3340,
+  "endMs": 3500,
+  "timestampMs": 3420,
+  "confidence": null
+ },
+ {
+  "text": " receipts.",
+  "startMs": 3500,
+  "endMs": 3880,
+  "timestampMs": 3690,
+  "confidence": null
+ },
+ {
+  "text": " Every",
+  "startMs": 4540,
+  "endMs": 4740,
+  "timestampMs": 4640,
+  "confidence": null
+ },
+ {
+  "text": " request",
+  "startMs": 4740,
+  "endMs": 5220,
+  "timestampMs": 4980,
+  "confidence": null
+ },
+ {
+  "text": " WM",
+  "startMs": 5220,
+  "endMs": 6080,
+  "timestampMs": 5650,
+  "confidence": null
+ },
+ {
+  "text": " Keyboard's",
+  "startMs": 6080,
+  "endMs": 6640,
+  "timestampMs": 6360,
+  "confidence": null
+ },
+ {
+  "text": " own",
+  "startMs": 6640,
+  "endMs": 6860,
+  "timestampMs": 6750,
+  "confidence": null
+ },
+ {
+  "text": " code",
+  "startMs": 6860,
+  "endMs": 7180,
+  "timestampMs": 7020,
+  "confidence": null
+ },
+ {
+  "text": " makes",
+  "startMs": 7180,
+  "endMs": 7420,
+  "timestampMs": 7300,
+  "confidence": null
+ },
+ {
+  "text": " is",
+  "startMs": 7420,
+  "endMs": 7700,
+  "timestampMs": 7560,
+  "confidence": null
+ },
+ {
+  "text": " logged",
+  "startMs": 7700,
+  "endMs": 7940,
+  "timestampMs": 7820,
+  "confidence": null
+ },
+ {
+  "text": " right",
+  "startMs": 7940,
+  "endMs": 8260,
+  "timestampMs": 8100,
+  "confidence": null
+ },
+ {
+  "text": " on",
+  "startMs": 8260,
+  "endMs": 8440,
+  "timestampMs": 8350,
+  "confidence": null
+ },
+ {
+  "text": " your",
+  "startMs": 8440,
+  "endMs": 8560,
+  "timestampMs": 8500,
+  "confidence": null
+ },
+ {
+  "text": " phone:",
+  "startMs": 8560,
+  "endMs": 8800,
+  "timestampMs": 8680,
+  "confidence": null
+ },
+ {
+  "text": " which",
+  "startMs": 9280,
+  "endMs": 9440,
+  "timestampMs": 9360,
+  "confidence": null
+ },
+ {
+  "text": " server,",
+  "startMs": 9440,
+  "endMs": 9820,
+  "timestampMs": 9630,
+  "confidence": null
+ },
+ {
+  "text": " why",
+  "startMs": 10100,
+  "endMs": 10340,
+  "timestampMs": 10220,
+  "confidence": null
+ },
+ {
+  "text": " it",
+  "startMs": 10340,
+  "endMs": 10440,
+  "timestampMs": 10390,
+  "confidence": null
+ },
+ {
+  "text": " happened,",
+  "startMs": 10440,
+  "endMs": 10780,
+  "timestampMs": 10610,
+  "confidence": null
+ },
+ {
+  "text": " how",
+  "startMs": 11000,
+  "endMs": 11180,
+  "timestampMs": 11090,
+  "confidence": null
+ },
+ {
+  "text": " much",
+  "startMs": 11180,
+  "endMs": 11360,
+  "timestampMs": 11270,
+  "confidence": null
+ },
+ {
+  "text": " data.",
+  "startMs": 11360,
+  "endMs": 11680,
+  "timestampMs": 11520,
+  "confidence": null
+ },
+ {
+  "text": " Never",
+  "startMs": 12300,
+  "endMs": 12440,
+  "timestampMs": 12370,
+  "confidence": null
+ },
+ {
+  "text": " what",
+  "startMs": 12440,
+  "endMs": 12700,
+  "timestampMs": 12570,
+  "confidence": null
+ },
+ {
+  "text": " you",
+  "startMs": 12700,
+  "endMs": 12880,
+  "timestampMs": 12790,
+  "confidence": null
+ },
+ {
+  "text": " typed.",
+  "startMs": 12880,
+  "endMs": 13180,
+  "timestampMs": 13030,
+  "confidence": null
+ },
+ {
+  "text": " And",
+  "startMs": 13700,
+  "endMs": 13820,
+  "timestampMs": 13760,
+  "confidence": null
+ },
+ {
+  "text": " if",
+  "startMs": 13820,
+  "endMs": 13940,
+  "timestampMs": 13880,
+  "confidence": null
+ },
+ {
+  "text": " new",
+  "startMs": 13940,
+  "endMs": 14160,
+  "timestampMs": 14050,
+  "confidence": null
+ },
+ {
+  "text": " code",
+  "startMs": 14160,
+  "endMs": 14440,
+  "timestampMs": 14300,
+  "confidence": null
+ },
+ {
+  "text": " ever",
+  "startMs": 14440,
+  "endMs": 14800,
+  "timestampMs": 14620,
+  "confidence": null
+ },
+ {
+  "text": " tries",
+  "startMs": 14800,
+  "endMs": 15140,
+  "timestampMs": 14970,
+  "confidence": null
+ },
+ {
+  "text": " to",
+  "startMs": 15140,
+  "endMs": 15360,
+  "timestampMs": 15250,
+  "confidence": null
+ },
+ {
+  "text": " skip",
+  "startMs": 15360,
+  "endMs": 15540,
+  "timestampMs": 15450,
+  "confidence": null
+ },
+ {
+  "text": " the",
+  "startMs": 15540,
+  "endMs": 15740,
+  "timestampMs": 15640,
+  "confidence": null
+ },
+ {
+  "text": " log,",
+  "startMs": 15740,
+  "endMs": 16000,
+  "timestampMs": 15870,
+  "confidence": null
+ },
+ {
+  "text": " the",
+  "startMs": 16400,
+  "endMs": 16560,
+  "timestampMs": 16480,
+  "confidence": null
+ },
+ {
+  "text": " build",
+  "startMs": 16560,
+  "endMs": 16780,
+  "timestampMs": 16670,
+  "confidence": null
+ },
+ {
+  "text": " fails.",
+  "startMs": 16780,
+  "endMs": 17200,
+  "timestampMs": 16990,
+  "confidence": null
+ },
+ {
+  "text": " Settings,",
+  "startMs": 18260,
+  "endMs": 18260,
+  "timestampMs": 18260,
+  "confidence": null
+ },
+ {
+  "text": " Privacy,",
+  "startMs": 18580,
+  "endMs": 18760,
+  "timestampMs": 18670,
+  "confidence": null
+ },
+ {
+  "text": " Network",
+  "startMs": 19180,
+  "endMs": 19300,
+  "timestampMs": 19240,
+  "confidence": null
+ },
+ {
+  "text": " activity.",
+  "startMs": 19300,
+  "endMs": 19680,
+  "timestampMs": 19490,
+  "confidence": null
+ }
+]

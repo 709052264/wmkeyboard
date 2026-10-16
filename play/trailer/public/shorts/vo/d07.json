@@ -1,0 +1,261 @@
+[
+ {
+  "text": "You",
+  "startMs": 0,
+  "endMs": 120,
+  "timestampMs": 60,
+  "confidence": null
+ },
+ {
+  "text": " copied",
+  "startMs": 120,
+  "endMs": 460,
+  "timestampMs": 290,
+  "confidence": null
+ },
+ {
+  "text": " it",
+  "startMs": 460,
+  "endMs": 620,
+  "timestampMs": 540,
+  "confidence": null
+ },
+ {
+  "text": " an",
+  "startMs": 620,
+  "endMs": 800,
+  "timestampMs": 710,
+  "confidence": null
+ },
+ {
+  "text": " hour",
+  "startMs": 800,
+  "endMs": 980,
+  "timestampMs": 890,
+  "confidence": null
+ },
+ {
+  "text": " ago,",
+  "startMs": 980,
+  "endMs": 1300,
+  "timestampMs": 1140,
+  "confidence": null
+ },
+ {
+  "text": " and",
+  "startMs": 1700,
+  "endMs": 1780,
+  "timestampMs": 1740,
+  "confidence": null
+ },
+ {
+  "text": " now",
+  "startMs": 1780,
+  "endMs": 1940,
+  "timestampMs": 1860,
+  "confidence": null
+ },
+ {
+  "text": " you",
+  "startMs": 1940,
+  "endMs": 2080,
+  "timestampMs": 2010,
+  "confidence": null
+ },
+ {
+  "text": " need",
+  "startMs": 2080,
+  "endMs": 2220,
+  "timestampMs": 2150,
+  "confidence": null
+ },
+ {
+  "text": " it",
+  "startMs": 2220,
+  "endMs": 2340,
+  "timestampMs": 2280,
+  "confidence": null
+ },
+ {
+  "text": " again.",
+  "startMs": 2340,
+  "endMs": 2700,
+  "timestampMs": 2520,
+  "confidence": null
+ },
+ {
+  "text": " WM",
+  "startMs": 3420,
+  "endMs": 3560,
+  "timestampMs": 3490,
+  "confidence": null
+ },
+ {
+  "text": " Keyboard",
+  "startMs": 3560,
+  "endMs": 4000,
+  "timestampMs": 3780,
+  "confidence": null
+ },
+ {
+  "text": " keeps",
+  "startMs": 4000,
+  "endMs": 4480,
+  "timestampMs": 4240,
+  "confidence": null
+ },
+ {
+  "text": " your",
+  "startMs": 4480,
+  "endMs": 4680,
+  "timestampMs": 4580,
+  "confidence": null
+ },
+ {
+  "text": " clipboard",
+  "startMs": 4680,
+  "endMs": 4980,
+  "timestampMs": 4830,
+  "confidence": null
+ },
+ {
+  "text": " history:",
+  "startMs": 4980,
+  "endMs": 5480,
+  "timestampMs": 5230,
+  "confidence": null
+ },
+ {
+  "text": " text,",
+  "startMs": 6120,
+  "endMs": 6220,
+  "timestampMs": 6170,
+  "confidence": null
+ },
+ {
+  "text": " links,",
+  "startMs": 6760,
+  "endMs": 6920,
+  "timestampMs": 6840,
+  "confidence": null
+ },
+ {
+  "text": " even",
+  "startMs": 7400,
+  "endMs": 7520,
+  "timestampMs": 7460,
+  "confidence": null
+ },
+ {
+  "text": " screenshots.",
+  "startMs": 7520,
+  "endMs": 8060,
+  "timestampMs": 7790,
+  "confidence": null
+ },
+ {
+  "text": " Pin",
+  "startMs": 8740,
+  "endMs": 8880,
+  "timestampMs": 8810,
+  "confidence": null
+ },
+ {
+  "text": " what",
+  "startMs": 8880,
+  "endMs": 9080,
+  "timestampMs": 8980,
+  "confidence": null
+ },
+ {
+  "text": " matters",
+  "startMs": 9080,
+  "endMs": 9420,
+  "timestampMs": 9250,
+  "confidence": null
+ },
+ {
+  "text": " and",
+  "startMs": 9420,
+  "endMs": 9840,
+  "timestampMs": 9630,
+  "confidence": null
+ },
+ {
+  "text": " swipe",
+  "startMs": 9840,
+  "endMs": 10160,
+  "timestampMs": 10000,
+  "confidence": null
+ },
+ {
+  "text": " away",
+  "startMs": 10160,
+  "endMs": 10420,
+  "timestampMs": 10290,
+  "confidence": null
+ },
+ {
+  "text": " what",
+  "startMs": 10420,
+  "endMs": 10640,
+  "timestampMs": 10530,
+  "confidence": null
+ },
+ {
+  "text": " doesn't.",
+  "startMs": 10640,
+  "endMs": 11140,
+  "timestampMs": 10890,
+  "confidence": null
+ },
+ {
+  "text": " All",
+  "startMs": 11380,
+  "endMs": 11600,
+  "timestampMs": 11490,
+  "confidence": null
+ },
+ {
+  "text": " of",
+  "startMs": 11600,
+  "endMs": 11720,
+  "timestampMs": 11660,
+  "confidence": null
+ },
+ {
+  "text": " it",
+  "startMs": 11720,
+  "endMs": 11860,
+  "timestampMs": 11790,
+  "confidence": null
+ },
+ {
+  "text": " stays",
+  "startMs": 11860,
+  "endMs": 12080,
+  "timestampMs": 11970,
+  "confidence": null
+ },
+ {
+  "text": " on",
+  "startMs": 12080,
+  "endMs": 12300,
+  "timestampMs": 12190,
+  "confidence": null
+ },
+ {
+  "text": " your",
+  "startMs": 12300,
+  "endMs": 12440,
+  "timestampMs": 12370,
+  "confidence": null
+ },
+ {
+  "text": " phone.",
+  "startMs": 12440,
+  "endMs": 12700,
+  "timestampMs": 12570,
+  "confidence": null
+ }
+]

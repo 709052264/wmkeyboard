@@ -1,0 +1,345 @@
+[
+ {
+  "text": "Your",
+  "startMs": 0,
+  "endMs": 100,
+  "timestampMs": 50,
+  "confidence": null
+ },
+ {
+  "text": " keyboard",
+  "startMs": 100,
+  "endMs": 420,
+  "timestampMs": 260,
+  "confidence": null
+ },
+ {
+  "text": " sees",
+  "startMs": 420,
+  "endMs": 720,
+  "timestampMs": 570,
+  "confidence": null
+ },
+ {
+  "text": " every",
+  "startMs": 720,
+  "endMs": 1100,
+  "timestampMs": 910,
+  "confidence": null
+ },
+ {
+  "text": " password,",
+  "startMs": 1100,
+  "endMs": 1500,
+  "timestampMs": 1300,
+  "confidence": null
+ },
+ {
+  "text": " every",
+  "startMs": 1760,
+  "endMs": 1900,
+  "timestampMs": 1830,
+  "confidence": null
+ },
+ {
+  "text": " message,",
+  "startMs": 1900,
+  "endMs": 2280,
+  "timestampMs": 2090,
+  "confidence": null
+ },
+ {
+  "text": " every",
+  "startMs": 2540,
+  "endMs": 2620,
+  "timestampMs": 2580,
+  "confidence": null
+ },
+ {
+  "text": " search.",
+  "startMs": 2620,
+  "endMs": 3040,
+  "timestampMs": 2830,
+  "confidence": null
+ },
+ {
+  "text": " So",
+  "startMs": 3660,
+  "endMs": 3740,
+  "timestampMs": 3700,
+  "confidence": null
+ },
+ {
+  "text": " where",
+  "startMs": 3740,
+  "endMs": 3900,
+  "timestampMs": 3820,
+  "confidence": null
+ },
+ {
+  "text": " does",
+  "startMs": 3900,
+  "endMs": 4060,
+  "timestampMs": 3980,
+  "confidence": null
+ },
+ {
+  "text": " it",
+  "startMs": 4060,
+  "endMs": 4180,
+  "timestampMs": 4120,
+  "confidence": null
+ },
+ {
+  "text": " all",
+  "startMs": 4180,
+  "endMs": 4320,
+  "timestampMs": 4250,
+  "confidence": null
+ },
+ {
+  "text": " go?",
+  "startMs": 4320,
+  "endMs": 4600,
+  "timestampMs": 4460,
+  "confidence": null
+ },
+ {
+  "text": " With",
+  "startMs": 5160,
+  "endMs": 5280,
+  "timestampMs": 5220,
+  "confidence": null
+ },
+ {
+  "text": " WM",
+  "startMs": 5280,
+  "endMs": 5700,
+  "timestampMs": 5490,
+  "confidence": null
+ },
+ {
+  "text": " Keyboard,",
+  "startMs": 5700,
+  "endMs": 6080,
+  "timestampMs": 5890,
+  "confidence": null
+ },
+ {
+  "text": " nowhere.",
+  "startMs": 6580,
+  "endMs": 6840,
+  "timestampMs": 6710,
+  "confidence": null
+ },
+ {
+  "text": " There's",
+  "startMs": 7480,
+  "endMs": 7680,
+  "timestampMs": 7580,
+  "confidence": null
+ },
+ {
+  "text": " no",
+  "startMs": 7680,
+  "endMs": 7900,
+  "timestampMs": 7790,
+  "confidence": null
+ },
+ {
+  "text": " account",
+  "startMs": 7900,
+  "endMs": 8200,
+  "timestampMs": 8050,
+  "confidence": null
+ },
+ {
+  "text": " to",
+  "startMs": 8200,
+  "endMs": 8440,
+  "timestampMs": 8320,
+  "confidence": null
+ },
+ {
+  "text": " make.",
+  "startMs": 8440,
+  "endMs": 8680,
+  "timestampMs": 8560,
+  "confidence": null
+ },
+ {
+  "text": " Prediction,",
+  "startMs": 9560,
+  "endMs": 9560,
+  "timestampMs": 9560,
+  "confidence": null
+ },
+ {
+  "text": " autocorrect",
+  "startMs": 9940,
+  "endMs": 10400,
+  "timestampMs": 10170,
+  "confidence": null
+ },
+ {
+  "text": " and",
+  "startMs": 10400,
+  "endMs": 10700,
+  "timestampMs": 10550,
+  "confidence": null
+ },
+ {
+  "text": " learning",
+  "startMs": 10700,
+  "endMs": 10960,
+  "timestampMs": 10830,
+  "confidence": null
+ },
+ {
+  "text": " all",
+  "startMs": 10960,
+  "endMs": 11260,
+  "timestampMs": 11110,
+  "confidence": null
+ },
+ {
+  "text": " run",
+  "startMs": 11260,
+  "endMs": 11560,
+  "timestampMs": 11410,
+  "confidence": null
+ },
+ {
+  "text": " on",
+  "startMs": 11560,
+  "endMs": 11780,
+  "timestampMs": 11670,
+  "confidence": null
+ },
+ {
+  "text": " your",
+  "startMs": 11780,
+  "endMs": 11920,
+  "timestampMs": 11850,
+  "confidence": null
+ },
+ {
+  "text": " phone.",
+  "startMs": 11920,
+  "endMs": 12180,
+  "timestampMs": 12050,
+  "confidence": null
+ },
+ {
+  "text": " Switch",
+  "startMs": 12640,
+  "endMs": 12840,
+  "timestampMs": 12740,
+  "confidence": null
+ },
+ {
+  "text": " on",
+  "startMs": 12840,
+  "endMs": 13040,
+  "timestampMs": 12940,
+  "confidence": null
+ },
+ {
+  "text": " airplane",
+  "startMs": 13040,
+  "endMs": 13340,
+  "timestampMs": 13190,
+  "confidence": null
+ },
+ {
+  "text": " mode",
+  "startMs": 13340,
+  "endMs": 13700,
+  "timestampMs": 13520,
+  "confidence": null
+ },
+ {
+  "text": " and",
+  "startMs": 13700,
+  "endMs": 13940,
+  "timestampMs": 13820,
+  "confidence": null
+ },
+ {
+  "text": " it",
+  "startMs": 13940,
+  "endMs": 14040,
+  "timestampMs": 13990,
+  "confidence": null
+ },
+ {
+  "text": " types",
+  "startMs": 14040,
+  "endMs": 14380,
+  "timestampMs": 14210,
+  "confidence": null
+ },
+ {
+  "text": " exactly",
+  "startMs": 14380,
+  "endMs": 14920,
+  "timestampMs": 14650,
+  "confidence": null
+ },
+ {
+  "text": " the",
+  "startMs": 14920,
+  "endMs": 15180,
+  "timestampMs": 15050,
+  "confidence": null
+ },
+ {
+  "text": " same.",
+  "startMs": 15180,
+  "endMs": 15480,
+  "timestampMs": 15330,
+  "confidence": null
+ },
+ {
+  "text": " WM",
+  "startMs": 15980,
+  "endMs": 16320,
+  "timestampMs": 16150,
+  "confidence": null
+ },
+ {
+  "text": " Keyboard,",
+  "startMs": 16320,
+  "endMs": 16720,
+  "timestampMs": 16520,
+  "confidence": null
+ },
+ {
+  "text": " free",
+  "startMs": 17020,
+  "endMs": 17220,
+  "timestampMs": 17120,
+  "confidence": null
+ },
+ {
+  "text": " on",
+  "startMs": 17220,
+  "endMs": 17520,
+  "timestampMs": 17370,
+  "confidence": null
+ },
+ {
+  "text": " Google",
+  "startMs": 17520,
+  "endMs": 17700,
+  "timestampMs": 17610,
+  "confidence": null
+ },
+ {
+  "text": " Play.",
+  "startMs": 17700,
+  "endMs": 18040,
+  "timestampMs": 17870,
+  "confidence": null
+ }
+]
