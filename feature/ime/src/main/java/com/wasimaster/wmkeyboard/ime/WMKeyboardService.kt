@@ -16215,8 +16215,20 @@ open class WMKeyboardService : InputMethodService() {
                 if (langId != null) t = t * 31 + conversionListsToken(langId)
                 return loadedCjkTables.put(packId, t) != t
             }
+            // Issue #691: a pack on disk that came out empty failed to parse,
+            // most likely for memory at a bad moment (the Japanese one is
+            // 40 MB). Its token was already recorded, so nothing tried again
+            // until the file changed, and the language sat without candidates
+            // until the pack was deleted and downloaded again. Forgetting the
+            // token makes the next showing of the keyboard read it afresh.
+            fun retryIfEmpty(packId: String, empty: Boolean) {
+                if (empty && CjkDictStore.downloadedFileFor(filesDir, packId) != null) {
+                    loadedCjkTables.remove(packId)
+                }
+            }
             if (stale("pinyin", "zh")) {
                 CjkDictionaries.pinyin = conversionTable("pinyin", "zh")
+                retryIfEmpty("pinyin", CjkDictionaries.pinyin.isEmpty)
                 // A new table is new swipe spellings (#580); the gate rebuilds them.
                 glideSourcesEpoch.update { it + 1 }
             }
@@ -16226,8 +16238,12 @@ open class WMKeyboardService : InputMethodService() {
                 CjkDictionaries.pinyinNgrams = CjkDictStore.downloadedFileFor(filesDir, "pinyin_ngrams")
                     ?.let { file -> runCatching { file.bufferedReader().useLines(CjkNgrams::parse) }.getOrNull() }
                     ?: CjkNgrams.EMPTY
+                retryIfEmpty("pinyin_ngrams", CjkDictionaries.pinyinNgrams.isEmpty)
             }
-            if (stale("ja_kana", "ja")) CjkDictionaries.japanese = conversionTable("ja_kana", "ja")
+            if (stale("ja_kana", "ja")) {
+                CjkDictionaries.japanese = conversionTable("ja_kana", "ja")
+                retryIfEmpty("ja_kana", CjkDictionaries.japanese.isEmpty)
+            }
             if (stale("stroke", null)) {
                 CjkDictionaries.stroke = CjkDictStore.downloadedFileFor(filesDir, "stroke")
                     ?.let { file ->
@@ -16238,8 +16254,12 @@ open class WMKeyboardService : InputMethodService() {
                         }.getOrNull()
                     }
                     ?: CodeTableDictionary.EMPTY
+                retryIfEmpty("stroke", CjkDictionaries.stroke.isEmpty)
             }
-            if (stale("jyutping", "yue")) CjkDictionaries.jyutping = conversionTable("jyutping", "yue")
+            if (stale("jyutping", "yue")) {
+                CjkDictionaries.jyutping = conversionTable("jyutping", "yue")
+                retryIfEmpty("jyutping", CjkDictionaries.jyutping.isEmpty)
+            }
             if (stale("cangjie", null)) {
                 CjkDictionaries.cangjie = CjkDictStore.downloadedFileFor(filesDir, "cangjie")
                     ?.let { file ->
@@ -16250,6 +16270,7 @@ open class WMKeyboardService : InputMethodService() {
                         }.getOrNull()
                     }
                     ?: CodeTableDictionary.EMPTY
+                retryIfEmpty("cangjie", CjkDictionaries.cangjie.isEmpty)
             }
             // A pack change can be the phrase pack arriving or going. Only read
             // once Traditional output has asked for its tables; until then
