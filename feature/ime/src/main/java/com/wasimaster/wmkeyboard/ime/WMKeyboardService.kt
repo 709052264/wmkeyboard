@@ -6871,6 +6871,20 @@ open class WMKeyboardService : InputMethodService() {
     private var ownSpaceEchoPending = false
 
     /**
+     * The caret [commitComposing] just left behind a word ending in a letter,
+     * or -1. Read by [onSpace] straight after the commit.
+     */
+    private var plainCommitEnd = -1
+
+    /**
+     * Where [onSpace] expects the caret after "word ", with the caps mode the
+     * field gives that spot ([capsAfterWordAndSpace]), or -1. The echo landing
+     * exactly there takes the answer instead of asking the editor again.
+     */
+    private var ownSpaceCaret = -1
+    private var ownSpaceCaps = 0
+
+    /**
      * Takes the rest of the word into the composition when the letters being
      * typed went on straight from the end of a word already in the field.
      *
@@ -6969,9 +6983,12 @@ open class WMKeyboardService : InputMethodService() {
         expectedSelEnd = newSelEnd
         // The space commit's echo is the first one with no composing region:
         // the letter echoes still queued ahead of it all carry the word's.
+        var ownSpaceEcho = false
         if (ownSpaceEchoPending && candidatesStart < 0) {
             ownSpaceEchoPending = false
             ownSpaceEndsAt = if (newSelStart == newSelEnd && newSelStart > 0) newSelStart else -1
+            ownSpaceEcho = ownSpaceCaret >= 0 && newSelStart == newSelEnd && newSelStart == ownSpaceCaret
+            ownSpaceCaret = -1
         }
         if (newSelStart != lastRevealedCaret || newSelEnd != lastRevealedCaret) lastRevealedCaret = -1
         if (selectionAnchor != newSelStart && selectionAnchor != newSelEnd) selectionAnchor = -1
@@ -7167,7 +7184,7 @@ open class WMKeyboardService : InputMethodService() {
         val caretAfterLetter = composedNow.isNotEmpty() && newSelStart == newSelEnd &&
             candidatesEnd >= 0 && newSelEnd == candidatesEnd &&
             Character.isLetterOrDigit(composedNow.codePointBefore(composedNow.length))
-        refreshShiftForContext(caretAfterLetter)
+        refreshShiftForContext(caretAfterLetter, knownCaps = if (ownSpaceEcho) ownSpaceCaps else null)
         refreshKarContext()
         // Tool chips and the word strip both read the text around the cursor, so
         // they have to be re-derived after a cursor jump or an edit made from
@@ -13437,7 +13454,16 @@ open class WMKeyboardService : InputMethodService() {
         // Only for a real space: the ideographic one is a character
         // [isComposingWordChar] may not treat as a break.
         ownSpaceEchoPending = space == " "
-        maybeAutoCapitalize()
+        // "word " just went in, and the commit knows where it ended: the caps
+        // mode there needs no read, here or in the echo that follows.
+        val wordEnd = if (committed && space == " ") plainCommitEnd else -1
+        ownSpaceCaret = if (wordEnd >= 0) wordEnd + 1 else -1
+        if (ownSpaceCaret >= 0) {
+            ownSpaceCaps = capsAfterWordAndSpace()
+            maybeAutoCapitalize(knownCaps = ownSpaceCaps)
+        } else {
+            maybeAutoCapitalize()
+        }
         // Next-word predictions (learned bigrams, including word → emoji)
         // appear once the word is committed.
         refreshSuggestions()
@@ -14806,6 +14832,7 @@ open class WMKeyboardService : InputMethodService() {
         // the caret must not leave a stale one behind for the next.
         swallowTerminatorAfterCommit = false
         patternFiredAtCommit = false
+        plainCommitEnd = -1
         if (composing.isEmpty()) return false
         // A hyphen the word ended on was typed to start a compound that never
         // came ("well-" then a space). The word in front of it commits the way
@@ -15186,6 +15213,15 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
         composing = StringBuilder()
+        // Where the caret now sits, for [onSpace]'s caps answer: known only
+        // when the word's start was, and only for a word ending in a letter.
+        plainCommitEnd = if (wordStart >= 0 && output.isNotEmpty() &&
+            Character.isLetterOrDigit(output.codePointBefore(output.length))
+        ) {
+            wordStart + output.length
+        } else {
+            -1
+        }
         // Whatever was resolving belonged to the word just committed.
         pendingResolution = null
         // Refill the strip in the same frame the word commits. Blanking it
@@ -42719,7 +42755,7 @@ open class WMKeyboardService : InputMethodService() {
      * changed: turns shift on at a sentence start, off when no longer at
      * one. Caps lock is never touched.
      */
-    private fun refreshShiftForContext(caretAfterLetter: Boolean = false) {
+    private fun refreshShiftForContext(caretAfterLetter: Boolean = false, knownCaps: Int? = null) {
         // Both of these end in "leave the shift alone", so the target is worked
         // out and thrown away — and working it out costs
         // [InputConnection.getCursorCapsMode], a blocking round-trip into the
@@ -42752,7 +42788,11 @@ open class WMKeyboardService : InputMethodService() {
         // capital. That one is answered from the EditorInfo, with no read.
         val capCharacters = (currentInputEditorInfo?.inputType ?: 0) and
             InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS != 0
-        val target = if (caretAfterLetter && !capCharacters) ShiftState.OFF else autoCapitalizeShift()
+        val target = if (caretAfterLetter && !capCharacters) {
+            ShiftState.OFF
+        } else {
+            autoCapitalizeShift(knownCaps = knownCaps)
+        }
         _uiState.update {
             when {
                 it.shiftState == ShiftState.CAPS_LOCK -> it
@@ -42788,6 +42828,9 @@ open class WMKeyboardService : InputMethodService() {
     private fun autoCapitalizeShift(
         script: ScriptDef = _uiState.value.script,
         language: LanguageDef = _uiState.value.language,
+        // The caps mode when the caller already knows it (see
+        // [capsAfterWordAndSpace]), in place of the editor round trip.
+        knownCaps: Int? = null,
     ): ShiftState {
         val state = _uiState.value
         if (!state.settings.autoText.capitalize) return ShiftState.OFF
@@ -42807,7 +42850,7 @@ open class WMKeyboardService : InputMethodService() {
             return ShiftState.CAPS_LOCK
         }
         val ic = currentInputConnection
-        val caps = ic?.getCursorCapsMode(info.inputType) ?: info.initialCapsMode
+        val caps = knownCaps ?: ic?.getCursorCapsMode(info.inputType) ?: info.initialCapsMode
         if (caps == 0) return ShiftState.OFF
         // A sentence capital only, and the mark that earned it ended a quotation
         // or a bracket inside the sentence: `An "exclamation!" is` goes on in
@@ -42850,8 +42893,23 @@ open class WMKeyboardService : InputMethodService() {
         return autoCapitalizeShift(script, language)
     }
 
-    private fun maybeAutoCapitalize() {
-        val target = autoCapitalizeShift()
+    /**
+     * What [android.text.TextUtils.getCapsMode] answers with the caret right
+     * after "word " — a word ending in a letter or digit, then one space — which
+     * is a function of the field's flags alone: the text before the space is
+     * not a sentence end, so sentence mode says no, and word mode says yes
+     * unless sentence mode was also asked for (that branch returns before
+     * adding it). Whole-field capitals are answered before caps is read.
+     */
+    private fun capsAfterWordAndSpace(): Int {
+        val type = currentInputEditorInfo?.inputType ?: return 0
+        val words = type and InputType.TYPE_TEXT_FLAG_CAP_WORDS != 0
+        val sentences = type and InputType.TYPE_TEXT_FLAG_CAP_SENTENCES != 0
+        return if (words && !sentences) InputType.TYPE_TEXT_FLAG_CAP_WORDS else 0
+    }
+
+    private fun maybeAutoCapitalize(knownCaps: Int? = null) {
+        val target = autoCapitalizeShift(knownCaps = knownCaps)
         _uiState.update {
             if (target != ShiftState.OFF && it.shiftState == ShiftState.OFF) {
                 it.copy(shiftState = target, shiftPressedByUser = false)
