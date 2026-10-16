@@ -44,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import kotlinx.coroutines.delay
@@ -66,8 +67,15 @@ internal class KeyboardPreviewState {
     /** Whether the field is up. */
     var open by mutableStateOf(false)
 
-    /** What the user has typed into it. */
-    var text by mutableStateOf("")
+    /**
+     * What the user has typed into it, with the caret and the keyboard's
+     * composing region: the whole value, not only the text. Every screen's
+     * frame draws its own field, and the String overload keeps the caret
+     * inside each one, starting at 0, so after a screen change the next
+     * letters went in front of what was there (#684). Held here, the field the
+     * user arrives at carries on from where the one they left stopped.
+     */
+    var value by mutableStateOf(TextFieldValue())
 
     /**
      * How many screens are drawing the field right now. Two while a screen
@@ -188,18 +196,18 @@ internal fun KeyboardPreviewBar(state: KeyboardPreviewState) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             OutlinedTextField(
-                value = state.text,
-                onValueChange = { state.text = it },
+                value = state.value,
+                onValueChange = { state.value = it },
                 modifier = Modifier
                     .weight(1f)
                     .focusRequester(focus),
                 placeholder = { Text(stringResource(R.string.keyboard_preview_hint)) },
                 maxLines = 4,
-                trailingIcon = if (state.text.isEmpty()) {
+                trailingIcon = if (state.value.text.isEmpty()) {
                     null
                 } else {
                     {
-                        IconButton(onClick = { state.text = "" }) {
+                        IconButton(onClick = { state.value = TextFieldValue() }) {
                             Icon(Icons.Outlined.Close, stringResource(R.string.keyboard_preview_clear))
                         }
                     }
