@@ -27,6 +27,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 1,
     id: "d01-offline",
+    look: "card",
+    thumb: { clip: "shorts/clips/s01-typing.mp4", from: 5, title: "No account. «Nothing leaves.»" },
     style: "vo",
     hook: "Your keyboard reads «everything» you type",
     accent: CYAN,
@@ -63,6 +65,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 3,
     id: "d03-avro",
+    look: "device",
+    thumb: { clip: "shorts/clips/s03-avro.mp4", from: 5, title: "Banglish in, «বাংলা» out" },
     style: "hook",
     hook: "POV: you text in Banglish but your friends want real «বাংলা»",
     accent: MAGENTA,
@@ -105,6 +109,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 4,
     id: "d04-calc",
+    look: "bleed",
+    thumb: { clip: "shorts/clips/s04-calc.mp4", from: 3.5, title: "Split the bill «in the chat»", zoom: [40, 1130, 820, 820] },
     style: "hook",
     hook: "When the group chat asks you to «split the bill»",
     accent: AMBER,
@@ -140,6 +146,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 5,
     id: "d05-photos",
+    look: "paper",
+    thumb: { clip: "shorts/clips/s05-photos.mp4", from: 140, title: "Your «cat» on your keyboard", zoom: [140, 440, 800, 780] },
     style: "hook",
     hook: "POV: your keyboard, but it's your «cat»",
     accent: LIME,
@@ -171,6 +179,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 6,
     id: "d06-emoji",
+    look: "device",
+    thumb: { clip: "shorts/clips/s06-emoji.mp4", from: 10.5, title: "Emoji search in «125 languages»" },
     style: "hook",
     hook: "Searching emoji in your own language? «Finally.»",
     accent: AMBER,
@@ -195,6 +205,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 7,
     id: "d07-clipboard",
+    look: "bleed",
+    thumb: { clip: "shorts/clips/s07-clipboard.mp4", from: 5, title: "Your clipboard, «remembered»", zoom: [0, 1180, 1080, 900] },
     style: "vo",
     hook: "Copied it an hour ago. «Need it again.»",
     accent: VIOLET,
@@ -219,6 +231,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 9,
     id: "d09-themes",
+    look: "card",
+    thumb: { clip: "shorts/clips/s09-arcade.mp4", from: 5.5, title: "«28» looks built in" },
     style: "text",
     hook: "Pick a «vibe».",
     accent: MAGENTA,
@@ -243,6 +257,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 10,
     id: "d10-netlog",
+    look: "paper",
+    thumb: { clip: "shorts/clips/s10-netlog.mp4", from: 15, title: "See «every request» it makes" },
     style: "vo",
     hook: "This keyboard shows its «receipts»",
     accent: LIME,
@@ -267,6 +283,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 11,
     id: "d11-languages",
+    look: "bleed",
+    thumb: { clip: "shorts/clips/s11-langs.mp4", from: 52, title: "«8 languages.» One chat.", zoom: [0, 430, 1080, 1080] },
     style: "text",
     hook: "One keyboard. «Hundreds» of languages.",
     accent: CYAN,
@@ -297,6 +315,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 15,
     id: "d15-undo",
+    look: "device",
+    thumb: { clip: "shorts/clips/s15-undo.mp4", from: 2.5, title: "Undo autocorrect in «one tap»" },
     style: "text",
     hook: "Autocorrect changed your «word»?",
     accent: VIOLET,

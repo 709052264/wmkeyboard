@@ -117,19 +117,14 @@ export const Thumb: React.FC<ThumbProps> = ({ spec, look: lookProp }) => {
     if (look.frame === "bleed") {
       return (
         <AbsoluteFill>
-          {/* vertical: the whole screen fills the frame; wide: the crop */}
-          <Frame
-            clip={t.clip}
-            from={t.from}
-            rect={wide ? t.zoom : [0, STATUS_BAR, 1080, CLIP_H - STATUS_BAR]}
-            w={width}
-            h={height}
-          />
+          {/* The crop fills the frame (wide) or its top 1080 px (vertical), so
+              the title's scrim never sits on the thing the cover is about. */}
+          <Frame clip={t.clip} from={t.from} rect={t.zoom} w={width} h={wide ? height : 1080} />
           <AbsoluteFill
             style={{
               background: wide
                 ? "linear-gradient(90deg, rgba(5,7,12,0.95) 0%, rgba(5,7,12,0.8) 45%, transparent 75%)"
-                : "linear-gradient(180deg, transparent 30%, rgba(5,7,12,0.85) 55%, rgba(5,7,12,0.95) 100%)",
+                : "linear-gradient(180deg, transparent 42%, rgba(5,7,12,0.9) 56%, rgba(5,7,12,1) 100%)",
             }}
           />
           <AbsoluteFill
