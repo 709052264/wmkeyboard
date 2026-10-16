@@ -39,4 +39,20 @@ interface AiToolHost {
      */
     fun sendToPc(text: String): Result<String> =
         Result.failure(UnsupportedOperationException("no KDE Connect here"))
+
+    /** How many pictures the user has sent in this conversation (#698). */
+    val imageCount: Int get() = 0
+
+    /** Whether the model reads pictures itself, which makes [readImageText] needless. */
+    val modelSeesImages: Boolean get() = false
+
+    /** Picture [number], counted from 1, as JPEG bytes; null when it is gone. */
+    fun imageJpeg(number: Int): ByteArray? = null
+
+    /** Whether [readImageText] has a reader in this build and setup. */
+    val canReadImageText: Boolean get() = false
+
+    /** The text in picture [number], counted from 1; empty when it has none. Blocking. */
+    fun readImageText(number: Int): Result<String> =
+        Result.failure(UnsupportedOperationException("no picture reader here"))
 }

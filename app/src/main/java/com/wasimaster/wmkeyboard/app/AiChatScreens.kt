@@ -4,6 +4,20 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.text.format.DateUtils
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
+import com.wasimaster.wmkeyboard.ime.aichat.AiChatImages
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.foundation.layout.Arrangement
@@ -295,6 +309,25 @@ internal fun AiChatScreen(
     // from, but a message taken back for editing keeps what it carried.
     var draftAttachment by rememberSaveable { mutableStateOf(initialAttachment) }
     var attachmentOpen by rememberSaveable { mutableStateOf(false) }
+    // Pictures to send with the next message (#698), by the names the chat
+    // keeps them under, one per line so the list survives a rotation.
+    var draftImagesText by rememberSaveable { mutableStateOf("") }
+    val draftImages = draftImagesText.lines().filter { it.isNotEmpty() }
+    val scope = rememberCoroutineScope()
+    val pickImages = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(AiChatStore.MAX_IMAGES),
+    ) { uris ->
+        if (uris.isEmpty()) return@rememberLauncherForActivityResult
+        val room = AiChatStore.MAX_IMAGES - draftImages.size
+        scope.launch {
+            // Scaled and copied in off the main thread: a phone photo takes
+            // a moment to decode.
+            val added = withContext(Dispatchers.IO) {
+                uris.take(room).mapNotNull { AiChatImages.import(context, it, keep = store.persist) }
+            }
+            draftImagesText = (draftImages + added).joinToString("\n")
+        }
+    }
     val listState = rememberLazyListState()
 
     // The session mirrors the native KV cache; keep it only while some chat
@@ -408,6 +441,7 @@ internal fun AiChatScreen(
                         AiChatController.editLast(context, activeId)?.let { taken ->
                             draft = taken.content
                             draftAttachment = taken.attachment
+                            draftImagesText = taken.images.joinToString("\n")
                         }
                     }
                     MessageBubble(
@@ -493,22 +527,33 @@ internal fun AiChatScreen(
                     }
                 }
             }
+            if (draftImages.isNotEmpty()) {
+                ChatPictures(
+                    names = draftImages,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    onRemove = { name -> draftImagesText = (draftImages - name).joinToString("\n") },
+                )
+            }
             Composer(
                 draft = draft,
                 onDraft = { draft = it },
                 generating = run != null,
-                canSend = choice != null && draft.isNotBlank(),
+                canSend = choice != null && (draft.isNotBlank() || draftImages.isNotEmpty()),
                 onSend = {
                     val picked = choice ?: return@Composer
                     val id = activeId.takeIf { it >= 0 }
                         ?: store.newConversation(System.currentTimeMillis()).id
                             .also { activeId = it }
-                    AiChatController.send(context, settings.value, id, picked, draft, draftAttachment)
+                    AiChatController.send(context, settings.value, id, picked, draft, draftAttachment, draftImages)
                     draft = ""
                     draftAttachment = ""
+                    draftImagesText = ""
                     attachmentOpen = false
                 },
                 onStop = { AiChatController.stop(context) },
+                onAttach = {
+                    pickImages.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                }.takeIf { run == null && draftImages.size < AiChatStore.MAX_IMAGES },
             )
         }
     }
@@ -669,6 +714,9 @@ private fun MessageBubble(
             modifier = Modifier.widthIn(max = 320.dp),
         ) {
             Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                if (message.images.isNotEmpty()) {
+                    ChatPictures(message.images, Modifier.padding(bottom = 6.dp))
+                }
                 // What the answer was built on, over the answer — kept on a
                 // failed turn too, since a run that died after searching
                 // still searched.
@@ -860,6 +908,52 @@ private fun StreamingBubble(run: AiChatController.ChatRun, showThinking: Boolean
     }
 }
 
+/**
+ * Pictures in a row (#698): the ones about to be sent, each with a way to take
+ * it back off, or the ones a sent message carried. A picture whose file has
+ * gone shows as an empty tile rather than not at all, so the numbers a model
+ * uses still line up with what is on screen.
+ */
+@Composable
+private fun ChatPictures(names: List<String>, modifier: Modifier = Modifier, onRemove: ((String) -> Unit)? = null) {
+    val context = LocalContext.current
+    LazyRow(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        items(names) { name ->
+            Box {
+                AsyncImage(
+                    model = AiChatImages.file(context, name),
+                    contentDescription = stringResource(R.string.ai_chat_picture_desc),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(PICTURE_SIZE)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                )
+                onRemove?.let { remove ->
+                    IconButton(
+                        onClick = { remove(name) },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .size(28.dp),
+                    ) {
+                        Icon(
+                            Icons.Outlined.Close,
+                            contentDescription = stringResource(R.string.ai_chat_picture_remove_desc),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private val PICTURE_SIZE = 72.dp
+
 @Composable
 private fun Composer(
     draft: String,
@@ -868,6 +962,8 @@ private fun Composer(
     canSend: Boolean,
     onSend: () -> Unit,
     onStop: () -> Unit,
+    /** Opens the picture picker; null when no more pictures fit. */
+    onAttach: (() -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
@@ -875,6 +971,9 @@ private fun Composer(
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.Bottom,
     ) {
+        IconButton(onClick = { onAttach?.invoke() }, enabled = onAttach != null) {
+            Icon(Icons.Outlined.Image, contentDescription = stringResource(R.string.ai_chat_attach_picture_desc))
+        }
         OutlinedTextField(
             value = draft,
             onValueChange = onDraft,

@@ -41,15 +41,28 @@ data class AiChatMessage(
      * Defaulted, so a file written before tool calls were recorded decodes.
      */
     val toolUses: List<AiToolActivity> = emptyList(),
+    /**
+     * Pictures the user sent with this message (#698), as file names in the
+     * chat's picture folder; the chat controller knows where that is. Kept by
+     * name rather than inline, since a conversation is rewritten whole on
+     * every save. Defaulted, so a file from before pictures still decodes.
+     */
+    val images: List<String> = emptyList(),
 ) {
     val failed: Boolean get() = error.isNotEmpty()
 
     /**
      * What the model reads for this message: [content], then the attachment
-     * inside tags so the model can tell the question from the quoted text.
+     * inside tags so the model can tell the question from the quoted text,
+     * then a mark for each picture, numbered across the conversation from
+     * [firstImage]. The mark is how a model that cannot see pictures knows
+     * one is there, and which number to hand the picture tools.
      */
-    fun promptText(): String =
-        if (attachment.isBlank()) content else "$content\n\n<text>\n$attachment\n</text>"
+    fun promptText(firstImage: Int = 1): String = buildString {
+        append(content)
+        if (attachment.isNotBlank()) append("\n\n<text>\n").append(attachment).append("\n</text>")
+        images.indices.forEach { append(if (isEmpty()) "" else "\n").append("<image n=\"").append(firstImage + it).append("\"/>") }
+    }
 
     companion object {
         const val ROLE_USER = "USER"
@@ -69,7 +82,13 @@ data class AiChatConversation(
     /** Last on-device model id used, when [provider] is ON_DEVICE. */
     val localModelId: String = "",
     val messages: List<AiChatMessage> = emptyList(),
-)
+) {
+    /** Every picture sent in this conversation, in order: picture 1 first. */
+    val images: List<String> get() = messages.filter { !it.failed }.flatMap { it.images }
+
+    /** The number the first picture of the message at [index] carries. */
+    fun firstImageOf(index: Int): Int = 1 + messages.take(index).filter { !it.failed }.sumOf { it.images.size }
+}
 
 /**
  * The chat screen's conversations, kept on the device only. Same
@@ -224,6 +243,16 @@ class AiChatStore(private val storageFile: File?) {
         conversations[index] = old.copy(messages = old.messages.dropLast(1))
     }
 
+    /** Whether [id] is a conversation [save] leaves out; see [newConversation]. */
+    @Synchronized
+    fun isEphemeral(id: Long): Boolean = id in ephemeralIds
+
+    /** Every picture any conversation in memory still refers to, for clearing out the rest. */
+    @Synchronized
+    fun imageNames(): Set<String> = conversations.flatMapTo(HashSet()) { conversation ->
+        conversation.messages.flatMap { it.images }
+    }
+
     @Synchronized
     fun delete(id: Long) {
         conversations.removeAll { it.id == id }
@@ -313,6 +342,9 @@ class AiChatStore(private val storageFile: File?) {
         const val MAX_MESSAGES = 200
         const val MAX_TEXT = 20_000
         const val MAX_TITLE = 48
+
+        /** Pictures one message may carry. */
+        const val MAX_IMAGES = 4
 
         /** [lastModelKey] prefix for an on-device model. */
         const val ON_DEVICE_KEY_PREFIX = "ON_DEVICE:"

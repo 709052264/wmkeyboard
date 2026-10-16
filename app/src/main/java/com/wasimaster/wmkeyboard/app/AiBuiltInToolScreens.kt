@@ -115,6 +115,14 @@ internal val builtInToolText: Map<String, BuiltInToolText> = mapOf(
         R.string.toolai_ai_builtin_send_to_pc_title,
         R.string.toolai_ai_builtin_send_to_pc_subtitle,
     ),
+    AiTools.READ_IMAGE_TEXT to BuiltInToolText(
+        R.string.toolai_ai_builtin_read_image_text_title,
+        R.string.toolai_ai_builtin_read_image_text_subtitle,
+    ),
+    AiTools.REVERSE_IMAGE_SEARCH to BuiltInToolText(
+        R.string.toolai_ai_builtin_reverse_image_search_title,
+        R.string.toolai_ai_builtin_reverse_image_search_subtitle,
+    ),
 )
 
 /** Each group's heading and the "?" under it. */

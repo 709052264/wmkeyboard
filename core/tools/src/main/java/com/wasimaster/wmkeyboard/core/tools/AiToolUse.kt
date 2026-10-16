@@ -296,6 +296,8 @@ object AiTools {
     const val OPEN_APP = "open_app"
     const val MEDIA_CONTROL = "media_control"
     const val SEND_TO_PC = "send_to_pc"
+    const val READ_IMAGE_TEXT = "read_image_text"
+    const val REVERSE_IMAGE_SEARCH = "reverse_image_search"
 
     /**
      * The tools whose description ends with today's date, since a model has
@@ -415,6 +417,28 @@ object AiTools {
             CURRENT_LOCATION,
             "Where the user's phone is now: its coordinates and, when it can be found, the address.",
         ),
+        // The pictures the user sent in the chat. Reading one's text happens on
+        // the phone; searching by one uploads it to a search site, which is
+        // why that one starts off.
+        AiBuiltInTool(
+            AiToolSpec(
+                READ_IMAGE_TEXT,
+                "Read the text in a picture the user sent, when you cannot see pictures yourself.",
+                schema(param("image", "The picture's number, from its <image n=\"…\"/> mark.", type = "integer")),
+            ),
+            AiToolGroup.PICTURE,
+            McpToolPolicy.ALLOW,
+        ),
+        AiBuiltInTool(
+            AiToolSpec(
+                REVERSE_IMAGE_SEARCH,
+                "Search the web by a picture the user sent, to find where it comes from or what it shows. " +
+                    "Returns a link to the results for the user to open.",
+                schema(param("image", "The picture's number, from its <image n=\"…\"/> mark.", type = "integer")),
+            ),
+            AiToolGroup.PICTURE,
+            McpToolPolicy.OFF,
+        ),
         // Things that change something. None of them deletes anything, and
         // none edits what is already there: they only add or start.
         action(
@@ -508,6 +532,7 @@ object AiTools {
         START_TIMER -> call.argument("duration")
         OPEN_APP -> call.argument("name")
         MEDIA_CONTROL -> call.argument("action")
+        READ_IMAGE_TEXT, REVERSE_IMAGE_SEARCH -> call.argument("image")
         SEND_TO_PC -> call.argument("text")?.let { if (it.length > TARGET_CHARS) it.take(TARGET_CHARS - 1) + "…" else it }
         else -> null
     }.orEmpty()

@@ -5,9 +5,11 @@ import android.content.Context
 import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.core.aichat.AiChatConversation
 import com.wasimaster.wmkeyboard.core.aichat.AiChatMessage
 import com.wasimaster.wmkeyboard.core.aichat.AiChatStore
 import com.wasimaster.wmkeyboard.core.localllm.ChatReplay
+import com.wasimaster.wmkeyboard.core.reply.ReplyShots
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmCatalog
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmEngine
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
@@ -182,12 +184,14 @@ object AiChatController {
         text: String,
         /** Text quoted along with the message: a selection, or a field's text. */
         attachment: String = "",
+        /** Pictures sent with it (#698), by the names [AiChatImages.import] gave them. */
+        images: List<String> = emptyList(),
     ) {
         if (isGenerating) return
         val appContext = context.applicationContext
         val store = store(appContext)
         val user = text.trim()
-        if (user.isEmpty()) return
+        if (user.isEmpty() && images.isEmpty()) return
 
         val now = System.currentTimeMillis()
         val message = AiChatMessage(
@@ -195,12 +199,26 @@ object AiChatController {
             content = user,
             timestamp = now,
             attachment = attachment.trim(),
+            images = images.take(AiChatStore.MAX_IMAGES),
         )
-        val stored = store.appendMessage(conversationId, message)?.messages?.lastOrNull() ?: return
+        val updated = store.appendMessage(conversationId, message) ?: return
         store.setLastModelKey(choice.key)
         store.save()
         touchStore()
-        launchGeneration(appContext, settings, conversationId, choice, stored.promptText())
+        launchGeneration(appContext, settings, conversationId, choice, promptAt(updated, updated.messages.lastIndex))
+    }
+
+    /**
+     * What the model reads for the message at [index]: its text, and its
+     * pictures numbered across the whole conversation, so "picture 3" means
+     * the same picture to every turn and every tool.
+     */
+    private fun promptAt(conversation: AiChatConversation, index: Int): String =
+        conversation.messages[index].promptText(conversation.firstImageOf(index))
+
+    /** Clears out the pictures nothing refers to any more. */
+    private fun pruneImages(context: Context, store: AiChatStore) {
+        runCatching { AiChatImages.prune(context, store.imageNames()) }
     }
 
     /**
@@ -218,11 +236,12 @@ object AiChatController {
         val appContext = context.applicationContext
         val store = store(appContext)
         store.dropLastFailedMessage(conversationId)
-        val user = store.get(conversationId)?.messages
-            ?.lastOrNull { it.role == AiChatMessage.ROLE_USER } ?: return
+        val conversation = store.get(conversationId) ?: return
+        val lastUser = conversation.messages.indexOfLast { it.role == AiChatMessage.ROLE_USER }
+        if (lastUser < 0) return
         store.save()
         touchStore()
-        launchGeneration(appContext, settings, conversationId, choice, user.promptText())
+        launchGeneration(appContext, settings, conversationId, choice, promptAt(conversation, lastUser))
     }
 
     /**
@@ -240,7 +259,8 @@ object AiChatController {
         if (isGenerating) return
         val appContext = context.applicationContext
         val store = store(appContext)
-        val messages = store.get(conversationId)?.messages ?: return
+        val conversation = store.get(conversationId) ?: return
+        val messages = conversation.messages
         val lastUser = messages.indexOfLast { it.role == AiChatMessage.ROLE_USER }
         // Nothing after the question means there is no answer to write again.
         if (lastUser < 0 || lastUser == messages.lastIndex) return
@@ -249,7 +269,7 @@ object AiChatController {
         store.setLastModelKey(choice.key)
         store.save()
         touchStore()
-        launchGeneration(appContext, settings, conversationId, choice, messages[lastUser].promptText())
+        launchGeneration(appContext, settings, conversationId, choice, promptAt(conversation, lastUser))
     }
 
     /**
@@ -267,6 +287,8 @@ object AiChatController {
         store.dropFrom(conversationId, lastUser)
         store.save()
         touchStore()
+        // The pictures go back to the composer with the words, so they are
+        // still wanted; the grace in [AiChatImages.prune] keeps them.
         return messages[lastUser]
     }
 
@@ -275,6 +297,7 @@ object AiChatController {
         closeSessionFor(conversationId)
         store.delete(conversationId)
         store.save()
+        pruneImages(context.applicationContext, store)
         touchStore()
     }
 
@@ -363,7 +386,7 @@ object AiChatController {
             ?: throw java.io.IOException(
                 context.getString(R.string.ime_ai_chat_error_no_model),
             )
-        val runner = AiToolRunner(context, settings, toolApprover(seq), toolHost(context, settings))
+        val runner = AiToolRunner(context, settings, toolApprover(seq), toolHost(context, settings, conversationId, choice))
         val tools = runner.tools()
         // A local model has no function calling, so the sentinel protocol has
         // to be part of the session's own system prompt — the session is built
@@ -442,15 +465,15 @@ object AiChatController {
      * seeding it as well would put it in front of the model twice.
      */
     private fun transcriptOf(context: Context, conversationId: Long): List<ChatReplay.Turn> {
-        val messages = store(context).get(conversationId)?.messages.orEmpty()
-            .filter { !it.failed }
-        val settled = if (messages.lastOrNull()?.role == AiChatMessage.ROLE_USER) {
+        val conversation = store(context).get(conversationId) ?: return emptyList()
+        val messages = conversation.messages.withIndex().filter { !it.value.failed }
+        val settled = if (messages.lastOrNull()?.value?.role == AiChatMessage.ROLE_USER) {
             messages.dropLast(1)
         } else {
             messages
         }
-        return settled.map {
-            ChatReplay.Turn(fromUser = it.role == AiChatMessage.ROLE_USER, text = it.promptText())
+        return settled.map { (index, message) ->
+            ChatReplay.Turn(fromUser = message.role == AiChatMessage.ROLE_USER, text = promptAt(conversation, index))
         }
     }
 
@@ -473,20 +496,27 @@ object AiChatController {
             netSource = NetSource.AI_CHAT,
             sessionId = UUID.nameUUIDFromBytes("wmkb-chat-$conversationId".toByteArray()).toString(),
         )
-        val turns = store(context).get(conversationId)?.messages.orEmpty()
-            .filter { !it.failed }
-            .map {
-                AiClient.ChatTurn(
-                    if (it.role == AiChatMessage.ROLE_USER) {
-                        AiClient.ChatRole.USER
-                    } else {
-                        AiClient.ChatRole.ASSISTANT
-                    },
-                    it.promptText(),
-                )
-            }
+        val conversation = store(context).get(conversationId)
+        val kept = conversation?.messages.orEmpty().withIndex().filter { !it.value.failed }
+        // Pictures travel with the newest question only, and only to a
+        // provider with somewhere to put them (#698). Older ones stay marks:
+        // sending every picture again with every turn would cost the user
+        // for pictures the model has already answered about.
+        val newestUser = kept.lastOrNull { it.value.role == AiChatMessage.ROLE_USER }?.index
+        val sendsPictures = AiClient.supportsImages(choice.provider)
+        val turns = kept.map { (index, message) ->
+            AiClient.ChatTurn(
+                if (message.role == AiChatMessage.ROLE_USER) {
+                    AiClient.ChatRole.USER
+                } else {
+                    AiClient.ChatRole.ASSISTANT
+                },
+                promptAt(requireNotNull(conversation), index),
+                images = if (sendsPictures && index == newestUser) pictures(context, message.images) else emptyList(),
+            )
+        }
         var lastPartialAt = 0L
-        val runner = AiToolRunner(context, settings, toolApprover(seq), toolHost(context, settings))
+        val runner = AiToolRunner(context, settings, toolApprover(seq), toolHost(context, settings, conversationId, choice))
         val completion = AiClient.completeWithTools(
             config = config,
             system = AiPrompts.chatPrompt(),
@@ -508,6 +538,11 @@ object AiChatController {
             isActive = { seq == runSeq },
         )
         return completion.text
+    }
+
+    /** [names] read back and encoded for a request; one that is gone is left out. */
+    private fun pictures(context: Context, names: List<String>): List<AiClient.AiImage> = names.mapNotNull { name ->
+        AiChatImages.file(context, name)?.let { ReplyShots.encode(it) }?.let { AiClient.AiImage(it.mimeType, it.base64) }
     }
 
     private fun postPhase(seq: Int, phase: AiPhase) {
@@ -548,9 +583,24 @@ object AiChatController {
         shown = { done -> postToolShown(seq, done) },
     )
 
-    /** What the keyboard module lends the chat's tools (#698). */
-    private fun toolHost(context: Context, settings: KeyboardSettings): KeyboardAiToolHost =
-        KeyboardAiToolHost(context, hints = settings.enabledLanguages.map { it.id }, kdeConnect = settings.kdeConnect)
+    /**
+     * What the keyboard module lends the chat's tools (#698), with the
+     * conversation's pictures. Only a remote provider that takes pictures sees
+     * them; an on-device chat is text, and reads them through the tools.
+     */
+    private fun toolHost(
+        context: Context,
+        settings: KeyboardSettings,
+        conversationId: Long,
+        choice: ModelChoice,
+    ): KeyboardAiToolHost = KeyboardAiToolHost(
+        context,
+        hints = settings.enabledLanguages.map { it.id },
+        kdeConnect = settings.kdeConnect,
+        images = store(context).get(conversationId)?.images.orEmpty(),
+        seesImages = choice.provider != AiProvider.ON_DEVICE && AiClient.supportsImages(choice.provider),
+        scanner = settings.scanner,
+    )
 
     /**
      * The user's answer to the call asking now. False when none is, which

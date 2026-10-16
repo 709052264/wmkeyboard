@@ -18,6 +18,7 @@ import com.wasimaster.wmkeyboard.core.media.MediaSnapshot
 import com.wasimaster.wmkeyboard.core.notes.NoteStore
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.PhotoSearchEngine
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
 import com.wasimaster.wmkeyboard.core.vocab.VocabIndexCache
@@ -134,6 +135,10 @@ class AiToolRunner(
         AiTools.CURRENT_LOCATION -> LocationAccess.declared(context)
         AiTools.OPEN_APP -> host?.canOpenApps == true
         AiTools.SEND_TO_PC -> host?.canSendToPc == true && settings.kdeConnect.enabled
+        // Only with a picture in the chat, and the reader only for a model
+        // that cannot look at the picture itself.
+        AiTools.READ_IMAGE_TEXT -> host.let { it != null && it.imageCount > 0 && it.canReadImageText && !it.modelSeesImages }
+        AiTools.REVERSE_IMAGE_SEARCH -> (host?.imageCount ?: 0) > 0
         else -> true
     }
 
@@ -285,6 +290,8 @@ class AiToolRunner(
         AiTools.OPEN_APP -> openApp(call)
         AiTools.MEDIA_CONTROL -> mediaControl(call)
         AiTools.SEND_TO_PC -> sendToPc(call)
+        AiTools.READ_IMAGE_TEXT -> readImageText(call)
+        AiTools.REVERSE_IMAGE_SEARCH -> reverseImageSearch(call)
         else -> refused(
             call,
             context.getString(R.string.ftools_ai_tool_unknown, call.name),
@@ -854,6 +861,55 @@ class AiToolRunner(
                 val why = failure.message.orEmpty()
                 refusedWith(call, R.string.ftools_ai_tool_pc_failed, R.string.ftools_ai_tool_reason_pc_failed, why)
             },
+        )
+    }
+
+    /**
+     * The picture a call names, counted from 1. A model with one picture in
+     * front of it often leaves the number out, which can only mean that one.
+     */
+    private fun pictureNumber(call: AiToolCall): Int? {
+        val count = host?.imageCount ?: 0
+        val asked = call.number("image")?.toInt() ?: return if (count == 1) 1 else null
+        return asked.takeIf { it in 1..count }
+    }
+
+    private fun noPicture(call: AiToolCall) = refusedWith(
+        call, R.string.ftools_ai_tool_no_picture, R.string.ftools_ai_tool_reason_no_picture,
+        call.argument("image").orEmpty(), host?.imageCount ?: 0,
+    )
+
+    /** The text in one of the user's pictures, read on the phone or by the scan tool's online engine. */
+    private fun readImageText(call: AiToolCall): AiToolResult {
+        val number = pictureNumber(call) ?: return noPicture(call)
+        val text = requireNotNull(host).readImageText(number).getOrThrow()
+        return AiToolResult(call, if (text.isBlank()) "Picture $number has no text in it." else "The text in picture $number:\n$text")
+    }
+
+    /**
+     * Uploads one of the user's pictures to the camera tool's search site,
+     * and hands back the results page. The page is for a browser: it runs
+     * scripts and has nothing a fetch could read, so the model is told to
+     * pass the link on.
+     */
+    private fun reverseImageSearch(call: AiToolCall): AiToolResult {
+        val number = pictureNumber(call) ?: return noPicture(call)
+        val jpeg = requireNotNull(host).imageJpeg(number) ?: return noPicture(call)
+        val camera = settings.camera
+        val (site, page) = when (camera.searchEngine) {
+            PhotoSearchEngine.GOOGLE_LENS -> "Google Lens" to ReverseImageClient.googleLens(jpeg, Locale.getDefault().toLanguageTag())
+            PhotoSearchEngine.BING -> "Bing" to ReverseImageClient.bing(jpeg)
+            PhotoSearchEngine.YANDEX -> "Yandex" to ReverseImageClient.yandex(jpeg)
+            PhotoSearchEngine.TINEYE -> "TinEye" to ReverseImageClient.tinEye(jpeg)
+            PhotoSearchEngine.CUSTOM -> AiToolActivity.domainOf(camera.searchCustomUrl) to
+                ReverseImageClient.custom(jpeg, camera.searchCustomUrl, camera.searchCustomField)
+        }
+        return AiToolResult(
+            call = call,
+            content = "Picture $number was searched on $site, which made a results page: $page\n" +
+                "That page only works in a browser and you cannot read it, so give the user the link to open. " +
+                "If you can see the picture, say what you can tell from it as well.",
+            sources = listOf(AiToolSource(site, page)),
         )
     }
 

@@ -238,6 +238,15 @@
     <string name="toolai_ai_builtin_calendar_mode_direct_label">Add directly</string>
     <string name="toolai_ai_builtin_calendar_allow_action">Allow adding events</string>
     <string name="toolai_ai_builtin_calendar_none">No calendar on this phone can take new events.</string>
+    <string name="toolai_ai_builtin_read_image_text_title">Read text in a picture</string>
+    <string name="toolai_ai_builtin_read_image_text_subtitle">For a model that can\'t see pictures: reads the text in one you sent, on your device, or with the scan text tool\'s online engine if you picked that</string>
+    <string name="toolai_ai_builtin_reverse_image_search_title">Search by picture</string>
+    <string name="toolai_ai_builtin_reverse_image_search_subtitle">Uploads a picture you sent to the camera tool\'s search site and gives you the link to the results</string>
+
+    <!-- Pictures in the AI chat (#698). -->
+    <string name="ai_chat_attach_picture_desc">Add a picture</string>
+    <string name="ai_chat_picture_desc">Picture</string>
+    <string name="ai_chat_picture_remove_desc">Remove the picture</string>
 
     <!--
       MCP servers (#573): tools that run on a server the user adds. MCP is

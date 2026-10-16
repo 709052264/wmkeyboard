@@ -75,6 +75,8 @@
     <string name="ftools_ai_tool_bad_choice">\"%1$s\" is not one of: %2$s.</string>
     <!-- %1$s is why, in a few words, or empty. -->
     <string name="ftools_ai_tool_pc_failed">The text could not be sent to the computer: %1$s</string>
+    <!-- A picture tool named a picture that is not there. %1$s is what the model wrote, %2$d how many pictures there are. -->
+    <string name="ftools_ai_tool_no_picture">There is no picture \"%1$s\". The user has sent %2$d. Name one by its number, from 1.</string>
 
     <!-- Why a tool call failed, as the AI chat and the AI panel show it under
          the answer. Unlike the strings above, these are for the user. -->
@@ -124,6 +126,8 @@
     <string name="ftools_ai_tool_reason_bad_choice">Not an option: %1$s. The options are %2$s.</string>
     <!-- %1$s is why, in a few words, or empty. -->
     <string name="ftools_ai_tool_reason_pc_failed">Not sent to the computer. %1$s</string>
+    <!-- %1$s is the picture the model named, %2$d how many there are. -->
+    <string name="ftools_ai_tool_reason_no_picture">No picture %1$s, of %2$d</string>
 
     <!-- MCP servers the user added to the AI tool (#573). For the model:
          handed back as the result of a call. -->

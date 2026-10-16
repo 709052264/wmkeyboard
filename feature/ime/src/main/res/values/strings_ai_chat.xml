@@ -191,4 +191,11 @@
     <!-- %1$s is the start of what was sent. -->
     <string name="ime_ai_tool_send_to_pc_running">Sending “%1$s” to your computer…</string>
     <string name="ime_ai_tool_send_to_pc_done">Sent “%1$s” to your computer</string>
+    <string name="ime_ai_tool_name_read_image_text">Reading a picture</string>
+    <string name="ime_ai_tool_name_reverse_image_search">Search by picture</string>
+    <!-- %1$s is the picture's number in the chat, such as 2. -->
+    <string name="ime_ai_tool_read_image_text_running">Reading the text in picture %1$s…</string>
+    <string name="ime_ai_tool_read_image_text_done">Read the text in picture %1$s</string>
+    <string name="ime_ai_tool_reverse_image_search_running">Searching the web by picture %1$s…</string>
+    <string name="ime_ai_tool_reverse_image_search_done">Searched the web by picture %1$s</string>
 </resources>
