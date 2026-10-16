@@ -16998,10 +16998,17 @@ private fun KeyRows(
     // Two-thumb typing (#638) runs its own pointer loop. Only on the app's
     // field: a test run and the keyboard's own boxes keep the one-finger glide.
     val twoThumbOn = gesture.twoThumbGlide && state.panel == PanelMode.NONE && !state.typingTestActive
-    // Multi-finger swipes (#647), on the same terms: the letters, not a panel
-    // or a typing test. The bindings are read live inside the loop.
-    val fingerSwipesOn = gesture.multiFingerSwipes && state.panel == PanelMode.NONE && !state.typingTestActive
+    // Multi-finger swipes (#647): the letters, and since #712 the keys under a
+    // tool whose own box has them (the translator, a search, a note), never a
+    // typing test. The bindings are read live inside the loop, and so is the
+    // box: its selection actions take select all, copy, cut, paste and undo.
+    val keysInBox = state.keysTakenByKeyboard
+    val fingerSwipesOn = gesture.multiFingerSwipes && !state.typingTestActive &&
+        (state.panel == PanelMode.NONE || keysInBox)
     val fingerSwipeMap = rememberUpdatedState(gesture.fingerSwipes)
+    val boxSelection = rememberUpdatedState(
+        if (keysInBox) LocalCaptureCaret.current.onSelectionAction else null,
+    )
     // Drawing through the shift key capitalizes the word the stroke is writing
     // (#115). Read live for the same reason the apostrophe key is: the stroke's
     // loop outlives this composition.
@@ -17173,6 +17180,12 @@ private fun KeyRows(
                     for (slot in slots.values) fingerTrails[slot].release()
                     val swipe = tracker.result() ?: return@awaitEachGesture
                     val binding = fingerSwipeMap.value.actionOf(swipe) ?: return@awaitEachGesture
+                    val inBox = boxSelection.value?.let { onBox -> binding.action.inCaptureBox()?.let { onBox to it } }
+                    if (inBox != null) {
+                        val (onBox, meant) = inBox
+                        if (meant is CaptureSwipe.Selection) onBox(meant.action)
+                        return@awaitEachGesture
+                    }
                     if (hapticOn.value) pickerHaptic()
                     if (binding.action == KeyAction.Text) {
                         if (binding.label.isNotEmpty()) stampedOnText(binding.label)

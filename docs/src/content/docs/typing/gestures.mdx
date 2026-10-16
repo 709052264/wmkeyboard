@@ -263,6 +263,8 @@ Tap any of the twelve rows to change it. The list is the same one the [layout ed
 
 A line follows each finger while the swipe is on, in the [glide typing](/typing/glide-typing/) trail's colour, width and length, and fades once you lift.
 
+The swipes also work on the keys under a tool that types into a box of its own, such as [Translate](/tools/translate/), a search box or a note. There select all, copy, cut, paste and undo act on that box's text, the way its own selection bar does, and not on the app behind the keyboard. Redo has nothing to undo back in those boxes, so it does nothing there.
+
 Fast typing is never mistaken for a swipe. Nothing is decided until every finger on the keys has travelled about 28&nbsp;dp, all of them the same way. A typist rolling from one key to the next lifts long before that, and the keys type as they always did. Lifting any finger before the swipe is recognised hands the whole touch back to the keys.
 
 ## Volume keys as a cursor control
@@ -342,6 +344,7 @@ Open the **Typing** tile in settings, or search "Gestures", "Delete keys" or "Vo
 - **Swiping the wrong way on a delete key cancels the repeat and does nothing else.** Either key claims a drag past the slop in either direction, so the hold stops as soon as your finger travels. Only travel in the key's own direction takes text: leftward on <KeyCap>⌫</KeyCap>, rightward on <KeyCap>⌦</KeyCap>.
 - **Backspace's word-delete acceleration resets on a reversal, not on release.** Dragging right mid-swipe doesn't bring back a deleted word. It only means the *next* leftward word costs full travel again instead of the shrunk amount.
 - **A multi-finger swipe takes the whole touch once it is recognised.** A word you had started gliding with the first finger is dropped, a key press under any of the fingers types nothing, and a chord or layer drag fires nothing at the lift. The swipe is counted by the most fingers that were down at once, so a third finger that lands a moment late still makes it a three-finger swipe.
+- **Not inside a typing test, and not over a panel without typing keys.** The test counts every keystroke in order, so it keeps the keys to itself; a panel such as emoji or the numpad has no letters to swipe on.
 - **Two-finger swipes stand aside while [two-thumb typing](/typing/glide-typing/) is on.** There two thumbs moving together are two halves of a word, so only three and four finger swipes run. The two-finger rows say so.
 - **A swipe that leans more than about 35° off straight up, down, left or right is no swipe at all**, and neither is one where the fingers head different ways, such as a pinch. Those fall through to the keys.
 - **Volume-key cursor control re-checks "is audio playing" on every key press**, not once at the start of the drag, so control passes back and forth live as playback starts and stops.

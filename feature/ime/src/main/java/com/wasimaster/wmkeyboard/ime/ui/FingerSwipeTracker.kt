@@ -2,7 +2,11 @@ package com.wasimaster.wmkeyboard.ime.ui
 
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipe
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCounts
+import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.SwipeDirection
+import com.wasimaster.wmkeyboard.core.layout.TextEditAction
+import com.wasimaster.wmkeyboard.core.layout.ToolbarTool
+import com.wasimaster.wmkeyboard.ime.CaptureSelectionAction
 import kotlin.math.abs
 
 /**
@@ -137,4 +141,41 @@ internal const val FingerSwipeClaimDp = 28f
  */
 internal class FingerSwipeGate {
     var claimed = false
+}
+
+/**
+ * What a swipe's bound action means while one of the keyboard's own boxes has
+ * the keys (issue #712): the translator's text, a search, a note. Select all,
+ * copy, cut, paste and undo act on that box, as its selection bar does, rather
+ * than on the app behind the panel. [Unbound] is an action the box has no
+ * counterpart for and that would otherwise reach that app (redo); null is one
+ * that already finds the box on its own way through the service (arrows,
+ * backspace) or has nothing to do with text, and runs as the key it is.
+ */
+internal sealed interface CaptureSwipe {
+    data class Selection(val action: CaptureSelectionAction) : CaptureSwipe
+    data object Unbound : CaptureSwipe
+}
+
+internal fun KeyAction.inCaptureBox(): CaptureSwipe? {
+    val selection = when (this) {
+        is KeyAction.Edit -> when (op) {
+            TextEditAction.SELECT_ALL -> CaptureSelectionAction.SELECT_ALL
+            TextEditAction.COPY -> CaptureSelectionAction.COPY
+            TextEditAction.CUT -> CaptureSelectionAction.CUT
+            TextEditAction.PASTE -> CaptureSelectionAction.PASTE
+            else -> null
+        }
+        is KeyAction.Tool -> when (tool) {
+            ToolbarTool.SELECT_ALL -> CaptureSelectionAction.SELECT_ALL
+            ToolbarTool.COPY -> CaptureSelectionAction.COPY
+            ToolbarTool.CUT -> CaptureSelectionAction.CUT
+            ToolbarTool.PASTE -> CaptureSelectionAction.PASTE
+            ToolbarTool.UNDO -> CaptureSelectionAction.UNDO
+            ToolbarTool.REDO -> return CaptureSwipe.Unbound
+            else -> null
+        }
+        else -> null
+    }
+    return selection?.let(CaptureSwipe::Selection)
 }
