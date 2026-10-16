@@ -124,3 +124,9 @@ Style: V voiceover · T text + music · H meme hook.
   https://claude.ai/artifact/D7nimEH4V2UxuSm8MZGMkq. VO voice locked by the TTS session: Chatterbox
   clone of Kokoro am_puck (exaggeration 0.6, cfg 0.4, seed 7); real d01/d07/d10 asked for, placeholders
   until then. Stems not rendered yet.
+- 2026-10-17: second cut. Templates (8613041e1, 076b8a3c5): centred layout, looks card/bleed/device/
+  paper, covers (DayNN-thumb 9:16, DayNN-thumb-yt 16:9, `record.sh shorts thumb DayNN`), store badges +
+  launcher icon on the end card. Cuts realigned with play/trailer/beatsheet.mjs (writes
+  out/shorts/DayNN-beats.png: frames per beat with crop and zoom marked; run it after any spec edit).
+  Looks rotate so neighbours differ. Real VO on 1/7/10. Review page v2 has videos + covers.
+  Next: user review, then the hands-on capture sessions (A and E), stems, captions CSV.
