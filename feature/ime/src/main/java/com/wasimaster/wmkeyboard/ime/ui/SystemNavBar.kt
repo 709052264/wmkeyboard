@@ -143,7 +143,34 @@ private fun navigationMode(resources: Resources): Int? = runCatching {
     if (id == 0) null else resources.getInteger(id)
 }.getOrNull()
 
-/** The bottom padding [settings] asks for here, the automatic one while unset (#343). */
+/**
+ * True when this phone draws its keyboard bar (hide chevron and switch
+ * button) inside the keyboard's own window, the only case where a keyboard
+ * can hide it (#582): Android 16 or later, gesture navigation, and a build
+ * that leaves `config_imeDrawsImeNavBar` on. With three-button navigation, or
+ * on a build that turns that flag off, the bar belongs to the system's own
+ * navigation bar and no keyboard can take it away (#681).
+ */
+fun keyboardCanHideSystemKeyboardBar(resources: Resources): Boolean {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.BAKLAVA) return false
+    if (navigationMode(resources)?.let { it != NAV_MODE_GESTURAL } == true) return false
+    return imeDrawsImeNavBar(resources) != false
+}
+
+/** `config_imeDrawsImeNavBar`, or null when this build does not publish it. */
+@SuppressLint("DiscouragedApi")
+private fun imeDrawsImeNavBar(resources: Resources): Boolean? = runCatching {
+    val id = resources.getIdentifier("config_imeDrawsImeNavBar", "bool", "android")
+    if (id == 0) null else resources.getBoolean(id)
+}.getOrNull()
+
+/**
+ * The bottom padding [settings] asks for here, the automatic one while unset
+ * (#343). The automatic 32dp over a gesture handle is there to clear the
+ * system's keyboard bar, so once that bar is hidden it is the small one (#681).
+ */
 @Composable
-fun bottomPaddingDp(settings: KeyboardSettings): Int =
-    settings.bottomPaddingOr(gestureBarAtBottom())
+fun bottomPaddingDp(settings: KeyboardSettings): Int {
+    val barHidden = LocalImeNavigationBars.current?.keyboardBarHidden == true
+    return settings.bottomPaddingOr(!barHidden && gestureBarAtBottom())
+}

@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -40,6 +41,7 @@ import com.wasimaster.wmkeyboard.core.icons.IconPackStore
 import com.wasimaster.wmkeyboard.ime.ui.KeyboardFonts
 import com.wasimaster.wmkeyboard.ime.ui.arrowRowKey
 import com.wasimaster.wmkeyboard.ime.ui.gestureBarAtBottom
+import com.wasimaster.wmkeyboard.ime.ui.keyboardCanHideSystemKeyboardBar
 import com.wasimaster.wmkeyboard.core.settings.autoBottomPaddingDp
 import com.wasimaster.wmkeyboard.core.settings.KeyboardAlignment
 import com.wasimaster.wmkeyboard.core.settings.FloatingHandlePosition
@@ -1321,15 +1323,22 @@ internal fun LayoutSizeSettings(
             ) { scope.launch { repository.setBottomPaddingDp(it.toInt()) } }
         }
         item {
-            // Android has no way for a keyboard to ask for this before 16 (#582).
-            val supported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.BAKLAVA
+            // Android has no way for a keyboard to ask for this before 16
+            // (#582), and none at all where the bar is part of the system's
+            // own navigation bar: three buttons, or a build that draws it
+            // there (#681).
+            val newEnough = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.BAKLAVA
+            val resources = LocalContext.current.resources
+            val supported = remember(resources, LocalConfiguration.current) {
+                keyboardCanHideSystemKeyboardBar(resources)
+            }
             ToggleSetting(
                 R.string.layout_hide_system_keyboard_bar_title,
                 stringResource(
-                    if (supported) {
-                        R.string.layout_hide_system_keyboard_bar_subtitle
-                    } else {
-                        R.string.layout_hide_system_keyboard_bar_unsupported
+                    when {
+                        supported -> R.string.layout_hide_system_keyboard_bar_subtitle
+                        newEnough -> R.string.layout_hide_system_keyboard_bar_system_drawn
+                        else -> R.string.layout_hide_system_keyboard_bar_unsupported
                     },
                 ),
                 settings.watch { it.layoutBehavior.hideSystemKeyboardBar },
