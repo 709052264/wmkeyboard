@@ -1,25 +1,28 @@
 import React from "react";
 import { AbsoluteFill, Easing, Sequence, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import { GradientHeadline } from "../components/GradientHeadline";
-import { SAFE, SAFE_W, TEXT_ZONE, beatFrames, beatStarts, hookFrames } from "./layout";
+import { Headline } from "./Headline";
+import { useLook } from "./looks";
+import { SAFE, SAFE_W, beatFrames, beatStarts, hookFrames } from "./layout";
 import type { ShortSpec } from "./types";
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
-// Box for one line in the top text band. It keeps drifting in scale for as
+// Box for one headline in the look's head band (top on card/device/paper,
+// low on the scrim for bleed). It keeps drifting in scale for as
 // long as it is up, then flicks out upward in its last 5 frames.
 export const TextBand: React.FC<{ children: React.ReactNode; top?: number; height?: number }> = ({
   children,
-  top = TEXT_ZONE.top,
-  height = TEXT_ZONE.height,
+  top,
+  height,
 }) => {
   const frame = useCurrentFrame();
+  const look = useLook();
   const { durationInFrames: d } = useVideoConfig();
   return (
     <AbsoluteFill
       style={{
-        top,
-        height,
+        top: top ?? look.head.top,
+        height: height ?? look.head.height,
         left: SAFE.left,
         width: SAFE_W,
         alignItems: "center",
@@ -34,7 +37,7 @@ export const TextBand: React.FC<{ children: React.ReactNode; top?: number; heigh
   );
 };
 
-// Hook first, then each beat's caption, all in the top band. A beat's
+// Hook first, then each beat's caption, all in the head band. A beat's
 // caption starts once the hook is down.
 export const HookThenCaptions: React.FC<{
   spec: ShortSpec;
@@ -67,7 +70,7 @@ export const HookThenCaptions: React.FC<{
 };
 
 export const Kinetic: React.FC<{ text: string; size: number }> = ({ text, size }) => (
-  <div style={{ maxWidth: SAFE_W - 40 }}>
-    <GradientHeadline text={text} size={size} align="center" />
+  <div style={{ maxWidth: SAFE_W }}>
+    <Headline text={text} size={size} />
   </div>
 );

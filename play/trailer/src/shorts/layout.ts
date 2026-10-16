@@ -2,13 +2,15 @@ import { FPS } from "../theme";
 import type { Beat, CarouselItem, ClipBeat, Focus, ShortSpec } from "./types";
 
 // Feed UI overlays on TikTok / Reels / Shorts: tabs on top, caption and
-// music ticker at the bottom, like/share rail on the right. Every line of
-// text sits inside the box these leave.
-export const SAFE = { top: 220, bottom: 420, right: 140, left: 60 } as const;
-export const SAFE_W = 1080 - SAFE.left - SAFE.right; // 880
-export const SAFE_CX = SAFE.left + SAFE_W / 2; // 500
+// music ticker at the bottom, like/share rail on the right. The side insets
+// are kept symmetric (the rail's 140 on both sides) so every text block,
+// card and chip centres on the frame at x 540.
+export const SAFE = { top: 220, bottom: 420, right: 140, left: 140 } as const;
+export const SAFE_W = 1080 - SAFE.left - SAFE.right; // 800
+export const SAFE_CX = 540;
 export const SAFE_BOTTOM_Y = 1920 - SAFE.bottom; // 1500
 
+// Card-look geometry; the other looks set their own in looks.ts.
 // Headline / hook band at the top of the safe box.
 export const TEXT_ZONE = { top: SAFE.top + 10, height: 340 } as const;
 // Screen card below it.

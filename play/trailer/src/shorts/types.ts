@@ -68,6 +68,25 @@ export type ShortSpec = {
   accent?: string;
   accentB?: string;
   outroSec?: number; // default 2
+  look?: Look; // visual format, default "card"
+  thumb?: Thumb; // default: first clip beat, title = hook
+};
+
+// Visual formats. Every look keeps text inside the symmetric safe box.
+// card   - rounded screen card on the dark Ink & Neon canvas (the original)
+// bleed  - footage fills the frame, text on gradient scrims, slide cuts
+// device - tilted phone with bezel under big type, swing cuts, pill captions
+// paper  - light cream palette, ink type with highlighter accents, drop cuts
+export type Look = "card" | "bleed" | "device" | "paper";
+
+// Cover image. `zoom` is a [x, y, w, h] crop in source-clip pixels
+// (1080x2400) for a crisp, close frame of the feature; default is the lower
+// half of the screen (strip + keyboard).
+export type Thumb = {
+  clip: string;
+  from: number; // seconds into the clip
+  title?: string; // defaults to the hook; «word» gets the accent
+  zoom?: [number, number, number, number];
 };
 
 // `bed: false` renders the stem master (VO + SFX only) from the same comp.
@@ -75,4 +94,5 @@ export type ShortProps = {
   spec: ShortSpec;
   bed: boolean;
   safeZone: boolean;
+  look?: Look; // overrides spec.look, e.g. --props='{"look":"paper"}'
 };

@@ -1,9 +1,11 @@
 import React from "react";
 import { AbsoluteFill, Easing, Sequence, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import { INTER, MANROPE } from "../fonts";
+import { INTER } from "../fonts";
 import { INK, VIOLET, WHITE } from "../theme";
 import { ShortScaffold } from "./ShortScaffold";
-import { LOWER_BAND, SAFE, SAFE_W, TEXT_ZONE, beatFrames, beatStarts } from "./layout";
+import { captionStyle } from "./Headline";
+import { SAFE, SAFE_W, TEXT_ZONE, beatFrames, beatStarts } from "./layout";
+import { useLook } from "./looks";
 import type { ShortProps } from "./types";
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
@@ -75,13 +77,13 @@ const MemeBox: React.FC<{ text: string; accent: string; cuts: number[] }> = ({ t
 const Reaction: React.FC<{ text: string; index: number }> = ({ text, index }) => {
   const frame = useCurrentFrame();
   const { durationInFrames: d } = useVideoConfig();
+  const look = useLook();
   const tilt = index % 2 === 0 ? -3 : 3;
   return (
     <AbsoluteFill
       style={{
-        top: undefined,
-        bottom: LOWER_BAND.bottom,
-        height: LOWER_BAND.height,
+        top: look.low.top,
+        height: look.low.height,
         left: SAFE.left,
         width: SAFE_W,
         alignItems: "center",
@@ -91,16 +93,8 @@ const Reaction: React.FC<{ text: string; index: number }> = ({ text, index }) =>
     >
       <div
         style={{
-          fontFamily: MANROPE,
-          fontWeight: 800,
-          fontSize: 74,
-          maxWidth: SAFE_W - 90,
-          lineHeight: 1.1,
-          color: WHITE,
-          textAlign: "center",
-          paintOrder: "stroke fill",
-          WebkitTextStroke: "14px rgba(5,7,12,0.95)",
-          textShadow: "0 10px 30px rgba(0,0,0,0.6)",
+          ...captionStyle(look, 72),
+          maxWidth: SAFE_W,
           scale: interpolate(frame, [0, 5, d], [0.3, 1.04, 1.08], {
             ...clamp,
             easing: Easing.out(Easing.back(2.4)),

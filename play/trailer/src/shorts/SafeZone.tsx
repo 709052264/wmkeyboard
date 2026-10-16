@@ -15,7 +15,8 @@ const band: React.CSSProperties = {
   color: "rgba(255,255,255,0.85)",
 };
 
-// Debug overlay: red bands are where the feed UI covers the video. Toggle
+// Debug overlay: red bands are where the feed UI covers the video (the
+// left band mirrors the right rail so layouts stay centred). Toggle
 // with the `safeZone` prop; never on in a master.
 export const SafeZone: React.FC = () => (
   <AbsoluteFill style={{ pointerEvents: "none" }}>
@@ -36,6 +37,18 @@ export const SafeZone: React.FC = () => (
       }}
     >
       right {SAFE.right}
+    </div>
+    <div
+      style={{
+        ...band,
+        top: SAFE.top,
+        bottom: SAFE.bottom,
+        left: 0,
+        width: SAFE.left,
+        writingMode: "vertical-rl",
+      }}
+    >
+      left {SAFE.left}
     </div>
     <div
       style={{

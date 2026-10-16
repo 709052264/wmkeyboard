@@ -11,9 +11,9 @@ import {
 } from "remotion";
 import { createTikTokStyleCaptions } from "@remotion/captions";
 import type { Caption, TikTokPage } from "@remotion/captions";
-import { MANROPE } from "../fonts";
-import { WHITE } from "../theme";
-import { LOWER_BAND, SAFE, SAFE_W } from "./layout";
+import { captionStyle } from "./Headline";
+import { SAFE, SAFE_W } from "./layout";
+import { useLook } from "./looks";
 
 // How long a page of words stays up before the next one replaces it.
 const SWITCH_EVERY_MS = 900;
@@ -91,34 +91,21 @@ const CaptionPage: React.FC<{ page: TikTokPage; accent: string }> = ({
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const look = useLook();
   const nowMs = page.startMs + (frame / fps) * 1000;
+  const base = captionStyle(look, 84);
   return (
     <AbsoluteFill
       style={{
-        top: undefined,
-        bottom: LOWER_BAND.bottom,
-        height: LOWER_BAND.height,
+        top: look.low.top,
+        height: look.low.height,
         left: SAFE.left,
         width: SAFE_W,
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <div
-        style={{
-          fontFamily: MANROPE,
-          fontWeight: 800,
-          fontSize: 92,
-          lineHeight: 1.1,
-          textAlign: "center",
-          whiteSpace: "pre-wrap",
-          color: WHITE,
-          letterSpacing: "-0.01em",
-          paintOrder: "stroke fill",
-          WebkitTextStroke: "14px rgba(5,7,12,0.92)",
-          textShadow: "0 10px 30px rgba(0,0,0,0.6)",
-        }}
-      >
+      <div style={{ ...base, whiteSpace: "pre-wrap", maxWidth: SAFE_W }}>
         {page.tokens.map((t) => {
           const since = ((nowMs - t.fromMs) / 1000) * fps; // frames since the word began
           const active = t.fromMs <= nowMs && t.toMs > nowMs;
@@ -134,7 +121,10 @@ const CaptionPage: React.FC<{ page: TikTokPage; accent: string }> = ({
                 // grow rightward: the newest word has nothing after it yet, so the
                 // pop overshoot never eats the space before it
                 transformOrigin: "0% 60%",
-                  color: active ? accent : WHITE,
+                  color: active && !look.light ? accent : base.color,
+                  ...(active && look.light
+                    ? { background: `linear-gradient(180deg, transparent 55%, ${accent}AA 55%, ${accent}AA 95%, transparent 95%)` }
+                    : {}),
                   opacity: interpolate(since, [0, 2], [0, 1], clamp),
                   scale: interpolate(since, [0, 5], [0.55, active ? 1.08 : 1], {
                     ...clamp,

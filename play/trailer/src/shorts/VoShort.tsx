@@ -17,7 +17,7 @@ export const VoShort: React.FC<ShortProps> = (props) => {
         spec={props.spec}
         render={(text, isHook) =>
           isHook ? (
-            <Kinetic text={text} size={86} />
+            <Kinetic text={text} size={80} />
           ) : (
             <Chip label={text.replace(/[«»]/g, "")} accent={accent} size={46} />
           )

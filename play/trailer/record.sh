@@ -10,7 +10,7 @@
 #   ./record.sh manifest                 # regenerate src/clips.ts
 #   ./record.sh demo on|off              # SystemUI demo mode (clean statusbar)
 #   ./record.sh shorts trim <name> <ss> <to>  # footage -> public/shorts/clips
-#   ./record.sh shorts manifest|vo|render|sheet  # see the shorts) block
+#   ./record.sh shorts manifest|vo|render|sheet|thumb  # see the shorts) block
 set -euo pipefail
 cd "$(dirname "$0")"
 mkdir -p footage public/clips
@@ -132,8 +132,18 @@ case "${1:-}" in
         rm "out/shorts/$ID-safezone.mp4"
         echo "wrote out/shorts/$ID-sheet.png"
         ;;
+      thumb)
+        # Cover stills: <comp>-thumb (1080x1920) and <comp>-thumb-yt (1280x720).
+        # Optional look overrides spec.look for a quick comparison.
+        COMP="${3:?DayNN}"; LOOK="${4:-}"
+        PROPS=(); SUFFIX=""
+        [ -n "$LOOK" ] && PROPS=(--props="{\"look\":\"$LOOK\"}") && SUFFIX="-$LOOK"
+        mkdir -p out/shorts/thumbs
+        npx remotion still "$COMP-thumb" "out/shorts/thumbs/$COMP$SUFFIX.png" ${PROPS[@]+"${PROPS[@]}"}
+        npx remotion still "$COMP-thumb-yt" "out/shorts/thumbs/$COMP$SUFFIX-yt.png" ${PROPS[@]+"${PROPS[@]}"}
+        ;;
       *)
-        echo "usage: record.sh shorts trim|manifest|vo|render|sheet" >&2; exit 1
+        echo "usage: record.sh shorts trim|manifest|vo|render|sheet|thumb" >&2; exit 1
         ;;
     esac
     ;;
