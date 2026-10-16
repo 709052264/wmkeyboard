@@ -39,6 +39,7 @@ import com.wasimaster.wmkeyboard.core.tools.DefaultLeader
 import com.wasimaster.wmkeyboard.core.tools.cheatSheetRows
 import com.wasimaster.wmkeyboard.core.tools.leaderLabel
 import com.wasimaster.wmkeyboard.core.tools.parseLeader
+import com.wasimaster.wmkeyboard.core.tools.parsePickModeKey
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
 
@@ -74,6 +75,12 @@ internal fun ToolPickerOverlay(
         } else {
             stringResource(leaderParts.templateRes, leaderParts.text)
         }
+        // Spelled the same way as the leader: a chord names itself, a double
+        // tap needs its wording around the modifier.
+        val pickModeKeyText = parsePickModeKey(config.pickModeKey)?.let { trigger ->
+            val parts = leaderLabel(trigger)
+            if (parts.templateRes == 0) parts.text else stringResource(parts.templateRes, parts.text)
+        }
         Box(
             modifier = Modifier
                 .padding(6.dp)
@@ -92,6 +99,9 @@ internal fun ToolPickerOverlay(
                         config.suggestionHotkeys == SuggestionHotkeyMode.ALT_DIGIT,
                     languageSwitchChord = config.languageSwitchChord,
                     keysToggle = hardwareKeysToggleable(state),
+                    pickModeKey = pickModeKeyText,
+                    pickMode = state.hardwarePickMode,
+                    functionKeys = functionKeysPressToolbar(state),
                 ),
                 leader = leader,
                 onClose = onClose,

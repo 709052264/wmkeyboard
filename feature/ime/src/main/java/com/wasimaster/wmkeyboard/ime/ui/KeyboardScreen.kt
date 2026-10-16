@@ -450,6 +450,7 @@ import com.wasimaster.wmkeyboard.core.settings.SpacebarDisplay
 import com.wasimaster.wmkeyboard.core.settings.SwitcherExtraStop
 import com.wasimaster.wmkeyboard.core.settings.TransliterationHintMode
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
+import com.wasimaster.wmkeyboard.core.settings.FunctionKeyToolbarMode
 import com.wasimaster.wmkeyboard.core.settings.SuggestionOverflow
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPlacement
 import com.wasimaster.wmkeyboard.core.settings.ToolHoldAction
@@ -21475,7 +21476,9 @@ internal fun visibleEmojiBarItems(state: KeyboardUiState): List<String> =
  */
 internal fun keyboardHintPlan(state: KeyboardUiState): HintPlan {
     val hw = state.settings.hardwareKeyboard
-    if (!hw.shortcutsEnabled) return HintPlan()
+    // Pick mode (#701) stands on its own: the shortcuts switched off still
+    // leave its digits needing their badges.
+    if (!hw.shortcutsEnabled && !state.hardwarePickMode) return HintPlan()
     val symbols = if (symbolRowVisible(state)) activeSymbolSet(state).chars.size else 0
     val emoji = if (emojiRowVisible(state)) {
         minOf(
@@ -21495,9 +21498,22 @@ internal fun keyboardHintPlan(state: KeyboardUiState): HintPlan {
         digitChord = hw.toolbarDigitChord,
         leaderDigitsPickSuggestions = hw.suggestionHotkeys == SuggestionHotkeyMode.LEADER_DIGIT,
         suggestionAltDigits = hw.suggestionHotkeys == SuggestionHotkeyMode.ALT_DIGIT,
+        pickMode = state.hardwarePickMode,
+        functionKeyToolbar = functionKeysPressToolbar(state),
         modifiers = HintModifiers.of(hw.hintModifierWords),
     )
 }
+
+/**
+ * Whether F1 … F10 press the toolbar buttons right now (#701). Shared with the
+ * service, so the `F2` under a button is the key that presses it.
+ */
+internal fun functionKeysPressToolbar(state: KeyboardUiState): Boolean =
+    when (state.settings.hardwareKeyboard.functionKeyToolbar) {
+        FunctionKeyToolbarMode.OFF -> false
+        FunctionKeyToolbarMode.PICK_MODE -> state.hardwarePickMode
+        FunctionKeyToolbarMode.ALWAYS -> true
+    }
 
 /**
  * Which engine rank each suggestion slot is drawing, left to right.
@@ -21544,6 +21560,9 @@ internal fun armedHintPlan(state: KeyboardUiState): HintPlan? =
  */
 internal fun suggestionHintPlan(state: KeyboardUiState): HintPlan? {
     val hw = state.settings.hardwareKeyboard
+    // Pick mode's bare digits are the standing hint above all others: the mode
+    // exists so the strip can be read off by number.
+    if (state.hardwarePickMode) return keyboardHintPlan(state)
     if (!hw.shortcutsEnabled) return null
     val standing = state.hardwareKeyboardPresent &&
         hw.suggestionHintsAlways &&

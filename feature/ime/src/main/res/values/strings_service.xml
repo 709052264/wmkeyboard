@@ -248,4 +248,7 @@
     <string name="ime_summon_button_label">Show keyboard</string>
     <string name="ime_summon_button_hidden_toast">Keyboard button hidden until the keyboard next opens</string>
 
+    <!-- Toasts when the user presses their pick-mode key on a physical keyboard. In pick mode the number keys select suggestions. -->
+    <string name="ime_hw_pick_mode_on_toast">Pick mode on: number keys select suggestions, Shift types the number</string>
+    <string name="ime_hw_pick_mode_off_toast">Pick mode off</string>
 </resources>

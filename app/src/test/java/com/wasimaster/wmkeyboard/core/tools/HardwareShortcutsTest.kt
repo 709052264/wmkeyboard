@@ -329,4 +329,63 @@ class HardwareShortcutsTest {
         assertTrue(off.none { it.trigger == "Space" })
         assertTrue(on.any { it.trigger == "Space" && it.group == CheatGroup.ACTIONS })
     }
+
+    // --------------------------------------------------------- pick mode ----
+
+    @Test
+    fun `pick mode turns the bare number row into suggestion slots`() {
+        assertEquals(PickModeKey.Pick(0), pickModeKeyFor(KeyEvent.KEYCODE_1, 0))
+        assertEquals(PickModeKey.Pick(8), pickModeKeyFor(KeyEvent.KEYCODE_9, 0))
+        // Zero counts as the tenth, the way the toolbar digits do.
+        assertEquals(PickModeKey.Pick(9), pickModeKeyFor(KeyEvent.KEYCODE_0, 0))
+        // Caps Lock is a lock, not a held key.
+        assertEquals(PickModeKey.Pick(2), pickModeKeyFor(KeyEvent.KEYCODE_3, KeyEvent.META_CAPS_LOCK_ON))
+    }
+
+    @Test
+    fun `shift types the digit and shift alt the symbol in pick mode`() {
+        assertEquals(PickModeKey.TypeDigit('4'), pickModeKeyFor(KeyEvent.KEYCODE_4, KeyEvent.META_SHIFT_ON))
+        assertEquals(
+            PickModeKey.TypeSymbol,
+            pickModeKeyFor(KeyEvent.KEYCODE_4, KeyEvent.META_SHIFT_ON or KeyEvent.META_ALT_ON),
+        )
+    }
+
+    @Test
+    fun `pick mode leaves app chords and other keys alone`() {
+        assertNull(pickModeKeyFor(KeyEvent.KEYCODE_1, KeyEvent.META_CTRL_ON))
+        assertNull(pickModeKeyFor(KeyEvent.KEYCODE_1, KeyEvent.META_META_ON))
+        // Alt alone belongs to the Alt-digit suggestion mode.
+        assertNull(pickModeKeyFor(KeyEvent.KEYCODE_1, KeyEvent.META_ALT_ON))
+        assertNull(pickModeKeyFor(KeyEvent.KEYCODE_NUMPAD_1, 0))
+        assertNull(pickModeKeyFor(KeyEvent.KEYCODE_A, 0))
+    }
+
+    @Test
+    fun `a pick mode key may be a bare key only when it types nothing`() {
+        assertTrue(pickModeChordAllowed(KeyChord(KeyEvent.KEYCODE_F12)))
+        assertTrue(pickModeChordAllowed(KeyChord(KeyEvent.KEYCODE_INSERT)))
+        assertTrue(pickModeChordAllowed(KeyChord(KeyEvent.KEYCODE_P, ctrl = true)))
+        assertFalse(pickModeChordAllowed(KeyChord(KeyEvent.KEYCODE_P)))
+        assertFalse(pickModeChordAllowed(KeyChord(KeyEvent.KEYCODE_SPACE)))
+    }
+
+    @Test
+    fun `the stored pick mode key reads back, and empty means none`() {
+        assertNull(parsePickModeKey(""))
+        assertEquals(LeaderTrigger.Chord(KeyChord(KeyEvent.KEYCODE_F12)), parsePickModeKey("F12"))
+        assertEquals(LeaderTrigger.DoubleTap(TapModifier.SHIFT), parsePickModeKey("doubletap:shift"))
+        // A bare letter could never have been stored through the dialog.
+        assertNull(parsePickModeKey("P"))
+    }
+
+    @Test
+    fun `F1 to F10 map to the toolbar slots, unmodified only`() {
+        assertEquals(0, functionKeyToolbarSlot(KeyEvent.KEYCODE_F1, 0))
+        assertEquals(9, functionKeyToolbarSlot(KeyEvent.KEYCODE_F10, 0))
+        assertEquals(-1, functionKeyToolbarSlot(KeyEvent.KEYCODE_F11, 0))
+        assertEquals(-1, functionKeyToolbarSlot(KeyEvent.KEYCODE_F2, KeyEvent.META_ALT_ON))
+        assertEquals(-1, functionKeyToolbarSlot(KeyEvent.KEYCODE_2, 0))
+        assertEquals("F3", functionKeyLabel(2))
+    }
 }

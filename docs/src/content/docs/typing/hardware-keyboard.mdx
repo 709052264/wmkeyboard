@@ -172,6 +172,20 @@ In **Alt + number** mode the strip is the one surface that wears its badges all 
 
 The numbers count slots, left to right, not the engine's ranking. That matters if you use <SettingsPath path="Typing / Suggestions / Best suggestion in the middle" />, which draws the runner-up first: the strip still reads 1, 2, 3 across, and <KeyCap>Alt</KeyCap>+<KeyCap>1</KeyCap> commits the leftmost word you can see rather than the one the engine ranked first.
 
+### Pick mode
+
+<SettingsPath path="Typing / Physical keyboard / Pick mode key" />
+
+Pick mode drops the modifier altogether. Choose a **Pick mode key**, press it once, and the bare number row picks suggestions: <KeyCap>1</KeyCap> takes the leftmost word, <KeyCap>2</KeyCap> the next, and <KeyCap>0</KeyCap> the tenth. To type a number while pick mode is on, hold <KeyCap>Shift</KeyCap> with it. <KeyCap>Shift</KeyCap>+<KeyCap>Alt</KeyCap> with a number types the symbol printed on that key, the one plain <KeyCap>Shift</KeyCap> would normally give you, read from your keyboard's own layout. Press the pick mode key again to turn the mode off. A short message says which way it went, and the strip numbers its words with bare digits for as long as the mode is on.
+
+The key can be any chord with <KeyCap>Ctrl</KeyCap>, <KeyCap>Alt</KeyCap>, <KeyCap>Shift</KeyCap> or <KeyCap>Meta</KeyCap>, a double-tapped modifier, or <KeyCap>F1</KeyCap> to <KeyCap>F12</KeyCap> or <KeyCap>Insert</KeyCap> on its own. It can't be the shortcut key that opens the tools. There's no pick mode key until you set one.
+
+Since a physical keyboard normally hides the on-screen keyboard, the suggestion strip comes up on its own while pick mode is on, without the keys. A number whose slot is empty types itself, so a PIN or phone-number field, which has no suggestions at all, still takes digits. Holding a number down picks once rather than once per repeat. Pick mode stays on as you move between text fields and switches off when the keyboard restarts.
+
+<SettingsPath path="Typing / Physical keyboard / F-keys press the toolbar" />
+
+**F-keys press the toolbar** gives the function row the job of the <KeyCap>Ctrl</KeyCap>+number chord: <KeyCap>F1</KeyCap> opens all tools and <KeyCap>F2</KeyCap> to <KeyCap>F10</KeyCap> press the toolbar buttons from the left. On **In pick mode**, the default, the F-keys stay with the app until pick mode is on. **Always** keeps them all the time, which gets in the way of terminals and code editors. **Off** never takes them. While the F-keys work, the toolbar badges read `F1`, `F2` and so on.
+
 ### Chinese and Japanese candidates
 
 Typing Chinese or Japanese, the candidate strip comes up on its own while a reading is waiting to convert, with the on-screen keys still hidden, and the keys work it the way a desktop input method does. The arrow keys move a highlight along the candidates, <KeyCap>Space</KeyCap> or <KeyCap>Enter</KeyCap> types the highlighted one, and once one is highlighted <KeyCap>1</KeyCap> to <KeyCap>9</KeyCap> pick by position and <KeyCap>Esc</KeyCap> goes back to the reading. To have the space bar step through the candidates rather than type the first one, turn on **Space steps through candidates** for that language. See [picking with space, the arrows and Enter](/languages/cjk/#picking-with-space-the-arrows-and-enter).
@@ -192,6 +206,8 @@ Typing Chinese or Japanese, the candidate strip comes up on its own while a read
 | Esc closes the tool | On |
 | Number keys select suggestions | Alt + number |
 | Show the suggestion numbers | On |
+| Pick mode key | Off |
+| F-keys press the toolbar | In pick mode |
 | macOS shortcuts | Off |
 | Ctrl+Space changes the language | On |
 | Show the keyboard for shortcuts | On |

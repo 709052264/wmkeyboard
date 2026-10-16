@@ -285,6 +285,80 @@ class DoubleTapDetector(private val modifier: TapModifier, private val windowMs:
     }
 }
 
+// ------------------------------------------------------------- pick mode ----
+
+/**
+ * Whether [chord] may turn pick mode on and off (#701). Unlike the leader, a bare
+ * key is allowed when it types nothing: F1 … F12 and Insert are what most
+ * people reach for, and a key that never produces text cannot swallow any.
+ */
+fun pickModeChordAllowed(chord: KeyChord): Boolean =
+    formatChord(chord) != null &&
+        (chord.hasModifier || chord.keyCode in KeyEvent.KEYCODE_F1..KeyEvent.KEYCODE_F12 ||
+            chord.keyCode == KeyEvent.KEYCODE_INSERT)
+
+/** The stored pick-mode key, or null when there is none or it cannot be read. */
+fun parsePickModeKey(raw: String): LeaderTrigger? {
+    if (raw.isBlank()) return null
+    return when (val trigger = parseLeader(raw)) {
+        is LeaderTrigger.Chord -> trigger.takeIf { pickModeChordAllowed(it.chord) }
+        else -> trigger
+    }
+}
+
+/** What a number key does while pick mode is on. */
+sealed interface PickModeKey {
+    /** Select the suggestion in this display slot, counted from the left. */
+    data class Pick(val slot: Int) : PickModeKey
+
+    /** Type the digit itself, which is what Shift is for in pick mode. */
+    data class TypeDigit(val digit: Char) : PickModeKey
+
+    /** Type the symbol the layout prints on the key, which Shift+Alt reaches. */
+    data object TypeSymbol : PickModeKey
+}
+
+/**
+ * The meaning of [keyCode] under [metaState] while pick mode is on, or null to
+ * treat the key as normal.
+ *
+ * Only the number row: the numeric keypad already types numbers and is what a
+ * pick-mode user has left for them. Ctrl and Meta disqualify the key so the
+ * app's own chords still reach it, and Alt alone is left to the Alt-digit
+ * suggestion mode. Lock bits are ignored — Caps Lock on must not stop a pick.
+ */
+fun pickModeKeyFor(keyCode: Int, metaState: Int): PickModeKey? {
+    if (keyCode !in KeyEvent.KEYCODE_0..KeyEvent.KEYCODE_9) return null
+    val state = metaState and LOCK_BITS.inv()
+    if (state and (KeyEvent.META_CTRL_ON or KeyEvent.META_META_ON) != 0) return null
+    val shift = state and KeyEvent.META_SHIFT_ON != 0
+    val alt = state and KeyEvent.META_ALT_ON != 0
+    val digit = '0' + (keyCode - KeyEvent.KEYCODE_0)
+    return when {
+        shift && alt -> PickModeKey.TypeSymbol
+        shift -> PickModeKey.TypeDigit(digit)
+        alt -> null
+        // Zero is the tenth slot, the way the toolbar counts it.
+        else -> PickModeKey.Pick(ToolbarHintDigits.indexOf(digit))
+    }
+}
+
+/**
+ * The toolbar button F1 … F10 presses, counting from the toolbox launcher the
+ * way `Ctrl`+1 does, or -1 for any other key. F11 and F12 are left alone:
+ * there are only ten digit slots, and F11 is the browser's full-screen key.
+ */
+fun functionKeyToolbarSlot(keyCode: Int, metaState: Int): Int {
+    if (keyCode !in KeyEvent.KEYCODE_F1..KeyEvent.KEYCODE_F10) return -1
+    val state = metaState and LOCK_BITS.inv()
+    val held = KeyEvent.META_CTRL_ON or KeyEvent.META_ALT_ON or KeyEvent.META_SHIFT_ON or KeyEvent.META_META_ON
+    if (state and held != 0) return -1
+    return keyCode - KeyEvent.KEYCODE_F1
+}
+
+/** How an F-key reads on a badge, for toolbar slot [slot]. */
+fun functionKeyLabel(slot: Int): String = "F" + (slot + 1)
+
 // ---------------------------------------------------------------- picker ----
 
 /**
@@ -546,6 +620,10 @@ data class CheatRow(
  *   chord legend.
  * @param keysToggle whether the toolbar-only view is up, so Space after the
  *   leader brings the keys up or puts them away (#642).
+ * @param pickModeKey the pick-mode key spelled for a human, or null when none
+ *   is set (#701).
+ * @param pickMode whether pick mode is on, so the bare digits pick.
+ * @param functionKeys whether F1 … F10 press the toolbar buttons right now.
  */
 fun cheatSheetRows(
     letters: Map<Char, ToolbarTool>,
@@ -555,8 +633,12 @@ fun cheatSheetRows(
     altSuggestionDigits: Boolean = false,
     languageSwitchChord: Boolean = false,
     keysToggle: Boolean = false,
+    pickModeKey: String? = null,
+    pickMode: Boolean = false,
+    functionKeys: Boolean = false,
 ): List<CheatRow> = buildList {
     fun digit(slot: Int): String {
+        if (functionKeys) return functionKeyLabel(slot)
         val key = ToolbarHintDigits[slot].toString()
         return if (digitChord) CtrlHintPrefix + key else key
     }
@@ -587,11 +669,20 @@ fun cheatSheetRows(
     )
     add(
         CheatRow(
-            if (altSuggestionDigits) AltHintPrefix + "1–9" else "1–9",
+            if (altSuggestionDigits && !pickMode) AltHintPrefix + "1–9" else "1–9",
             labelRes = R.string.core_tools_shortcut_cheat_select_suggestion,
             group = CheatGroup.ACTIONS,
         ),
     )
+    if (pickModeKey != null) {
+        add(
+            CheatRow(
+                pickModeKey,
+                labelRes = R.string.core_tools_shortcut_cheat_pick_mode,
+                group = CheatGroup.ACTIONS,
+            ),
+        )
+    }
     if (languageSwitchChord) {
         add(
             CheatRow(

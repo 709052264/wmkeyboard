@@ -179,6 +179,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Numbers
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Place
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Storage
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ToggleOn
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Functions
 import com.wasimaster.wmkeyboard.core.input.composer.DoublePinyinScheme
 import com.wasimaster.wmkeyboard.core.script.NumeralSystem
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
@@ -191,6 +193,7 @@ import com.wasimaster.wmkeyboard.core.settings.GrammarDialect
 import com.wasimaster.wmkeyboard.core.settings.LanguageDetectionStrength
 import com.wasimaster.wmkeyboard.core.settings.MeteredPolicy
 import com.wasimaster.wmkeyboard.core.settings.QrEccLevel
+import com.wasimaster.wmkeyboard.core.settings.FunctionKeyToolbarMode
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.script.ComposerType
@@ -375,6 +378,10 @@ internal object ChoiceOptionIcons {
         put(SuggestionHotkeyMode.OFF) { Icons.Outlined.Block }
         put(SuggestionHotkeyMode.LEADER_DIGIT) { Icons.Outlined.KeyboardCommandKey }
         put(SuggestionHotkeyMode.ALT_DIGIT) { Icons.Outlined.KeyboardAlt }
+
+        put(FunctionKeyToolbarMode.OFF) { Icons.Outlined.Block }
+        put(FunctionKeyToolbarMode.PICK_MODE) { Icons.Outlined.ToggleOn }
+        put(FunctionKeyToolbarMode.ALWAYS) { Icons.Outlined.Functions }
 
         // ---- Languages ----
         put(NumeralCommitScope.TEXT_ONLY) { Icons.Outlined.TextFields }

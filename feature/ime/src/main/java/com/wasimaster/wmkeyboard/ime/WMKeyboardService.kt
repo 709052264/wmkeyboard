@@ -402,6 +402,10 @@ import com.wasimaster.wmkeyboard.core.tools.languageSwitchDelta
 import com.wasimaster.wmkeyboard.core.tools.macBindingFor
 import com.wasimaster.wmkeyboard.core.tools.matches
 import com.wasimaster.wmkeyboard.core.tools.parseLeader
+import com.wasimaster.wmkeyboard.core.tools.PickModeKey
+import com.wasimaster.wmkeyboard.core.tools.functionKeyToolbarSlot
+import com.wasimaster.wmkeyboard.core.tools.parsePickModeKey
+import com.wasimaster.wmkeyboard.core.tools.pickModeKeyFor
 import com.wasimaster.wmkeyboard.core.tools.pickerLetter
 import com.wasimaster.wmkeyboard.core.tools.toolbarHintButtons
 import com.wasimaster.wmkeyboard.ime.ui.StableMeasureFrame
@@ -417,6 +421,7 @@ import com.wasimaster.wmkeyboard.ime.ui.SymbolRowAction
 import com.wasimaster.wmkeyboard.ime.ui.activeSymbolSet
 import com.wasimaster.wmkeyboard.ime.ui.trimMediaImageMemory
 import com.wasimaster.wmkeyboard.ime.ui.keyboardHintPlan
+import com.wasimaster.wmkeyboard.ime.ui.functionKeysPressToolbar
 import com.wasimaster.wmkeyboard.ime.ui.suggestionDisplayOrder
 import com.wasimaster.wmkeyboard.ime.ui.visibleEmojiBarItems
 import com.wasimaster.wmkeyboard.ime.ui.visibleToolbarTools
@@ -40350,6 +40355,7 @@ open class WMKeyboardService : InputMethodService() {
         // Swallow the UP of any DOWN this IME consumed, so the focused app
         // never sees half a physical keypress. Checked before the BACK/volume
         // handling, which never registers its keys here.
+        pickModeOneShotKeys.remove(keyCode)
         if (consumedHardwareKeys.remove(keyCode)) return true
         // Releasing Ctrl lands a language browse on the highlighted layout.
         // Never consumed: the app saw the bare Ctrl DOWN, and eating half a
@@ -40363,8 +40369,12 @@ open class WMKeyboardService : InputMethodService() {
         // that the letter after it arrives with no modifier held. Never consumed:
         // a lone Ctrl means nothing on its own, and eating it would break the
         // chord it might still have been starting.
+        // The pick-mode key first: set to the same double tap as the leader, it
+        // wins, rather than both toggling pick mode and arming the picker.
+        val pickToggled = feedPickModeDetector(event)
+        if (pickToggled) togglePickMode()
         if (_uiState.value.settings.hardwareKeyboard.shortcutsEnabled &&
-            feedLeaderDetector(event)
+            feedLeaderDetector(event) && !pickToggled
         ) {
             armToolPicker()
         }
@@ -40409,7 +40419,9 @@ open class WMKeyboardService : InputMethodService() {
     /** Nothing physical is half-pressed and nothing is armed. */
     private fun resetHardwareKeyState() {
         consumedHardwareKeys.clear()
+        pickModeOneShotKeys.clear()
         leaderDetector?.reset()
+        pickModeDetector?.reset()
         if (_uiState.value.toolPicker != null) disarmToolPicker()
         // A browse whose Ctrl-up went to another window can never commit.
         if (_uiState.value.languageSwitch != null) cancelLanguageBrowse()
@@ -40453,6 +40465,127 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Recognises a double-tapped pick-mode key (#701), the same way
+     * [leaderDetector] does for the leader. Its own detector, because the two
+     * may watch different modifiers and each must see every key.
+     */
+    private var pickModeDetector: DoubleTapDetector? = null
+    private var pickModeDetectorFor: String? = null
+
+    /** Like [feedLeaderDetector], for the pick-mode key. True on the release that toggles it. */
+    private fun feedPickModeDetector(event: KeyEvent): Boolean {
+        val stored = hardwareShortcutSettings().pickModeKey
+        val trigger = parsePickModeKey(stored)
+        if (trigger !is LeaderTrigger.DoubleTap) {
+            pickModeDetector = null
+            pickModeDetectorFor = null
+            return false
+        }
+        val detector = pickModeDetector?.takeIf { pickModeDetectorFor == stored }
+            ?: DoubleTapDetector(trigger.modifier).also {
+                pickModeDetector = it
+                pickModeDetectorFor = stored
+            }
+        return detector.onEvent(
+            keyCode = event.keyCode,
+            down = event.action == KeyEvent.ACTION_DOWN,
+            repeat = event.repeatCount,
+            eventTime = event.eventTime,
+        )
+    }
+
+    /**
+     * Turns pick mode on or off (#701). The strip comes up with it, the way it
+     * does for a conversion reading, because a hardware keyboard otherwise hides
+     * the very suggestions the number keys are now choosing between.
+     */
+    private fun togglePickMode() {
+        val on = !_uiState.value.hardwarePickMode
+        _uiState.update { it.copy(hardwarePickMode = on) }
+        syncHardwareCandidateWindow()
+        toast(if (on) R.string.ime_hw_pick_mode_on_toast else R.string.ime_hw_pick_mode_off_toast)
+    }
+
+    /**
+     * The pick-mode key itself, the number row while pick mode is on, and the
+     * F-key row (#701). Null when the key is none of this function's business,
+     * so [handleHardwareNav] carries on with it.
+     *
+     * A number with no suggestion in its slot falls through and types itself:
+     * a phone-number or PIN field has no suggestions at all, and pick mode
+     * left on must not make it untypable.
+     */
+    private fun handlePickModeKey(event: KeyEvent): Boolean? {
+        val keyCode = event.keyCode
+        // Held down: the press already did its one thing. Repeating a pick
+        // would commit one predicted word after another, and a held toggle
+        // would flicker the mode.
+        if (event.repeatCount > 0 && keyCode in pickModeOneShotKeys) return true
+        val toggle = parsePickModeKey(hardwareShortcutSettings().pickModeKey)
+        if (toggle is LeaderTrigger.Chord && toggle.chord.matches(keyCode, event.metaState)) {
+            togglePickMode()
+            return consumeOneShotKey(keyCode)
+        }
+        val state = _uiState.value
+        val slot = functionKeyToolbarSlot(keyCode, event.metaState)
+        if (slot >= 0 && functionKeysPressToolbar(state)) {
+            val action = toolbarHintButtons(visibleToolbarTools(state)).getOrNull(slot)
+            if (action != null && runHintAction(action)) return consumeOneShotKey(keyCode)
+        }
+        if (!state.hardwarePickMode) return null
+        // A field change can have taken the strip down since the toggle.
+        syncHardwareCandidateWindow()
+        val typed = when (val key = pickModeKeyFor(keyCode, event.metaState) ?: return null) {
+            is PickModeKey.Pick -> return if (pickSuggestion(key.slot)) consumeOneShotKey(keyCode) else null
+            is PickModeKey.TypeDigit -> key.digit.toString()
+            // The symbol the layout puts on Shift, read off the physical keymap
+            // so an AZERTY or a German keyboard types what its keycap shows.
+            PickModeKey.TypeSymbol -> {
+                val unicode = event.getUnicodeChar(KeyEvent.META_SHIFT_ON)
+                if (unicode == 0 || unicode and KeyCharacterMap.COMBINING_ACCENT != 0) return null
+                String(Character.toChars(unicode))
+            }
+        }
+        return if (typeHardwareText(typed)) consumeHardwareKey(keyCode) else null
+    }
+
+    /**
+     * Keys [handlePickModeKey] acted on whose auto-repeat must do nothing. Kept
+     * apart from [consumedHardwareKeys], which also holds every typed letter
+     * and Backspace, whose repeats are the whole point of holding them.
+     */
+    private val pickModeOneShotKeys = HashSet<Int>()
+
+    private fun consumeOneShotKey(keyCode: Int): Boolean {
+        pickModeOneShotKeys.add(keyCode)
+        return consumeHardwareKey(keyCode)
+    }
+
+    /**
+     * Types [text] as though a physical key had produced it: through the
+     * composing pipeline when the IME owns hardware input in this field, and
+     * straight into the field when it does not.
+     */
+    private fun typeHardwareText(text: String): Boolean {
+        val ic = currentInputConnection ?: return false
+        val state = _uiState.value
+        if (state.settings.hardwareKeyboardInput && hardwareIntercepts(state)) {
+            stopVoiceForManualInput()
+            clearForHardwareTyping()
+            hardwareKeyTyping = true
+            try {
+                processTypedText(text, applyDeadKeys = false)
+            } finally {
+                hardwareKeyTyping = false
+            }
+        } else {
+            if (composing.isNotEmpty()) commitComposing(ic, autocorrect = false)
+            ic.commitText(text, 1)
+        }
+        return true
+    }
+
+    /**
      * Everything a physical keyboard can do that isn't typing: the leader, the
      * armed picker, Escape, the focus ring, and the suggestion hotkeys.
      *
@@ -40469,6 +40602,7 @@ open class WMKeyboardService : InputMethodService() {
         // apart from someone holding Ctrl to use a shortcut. Arming itself
         // happens on the release, in [onKeyUp].
         if (config.shortcutsEnabled) feedLeaderDetector(event)
+        feedPickModeDetector(event)
         val keyCode = event.keyCode
 
         // Bare modifiers are never consumed and never cancel: reaching '?' means
@@ -40486,6 +40620,9 @@ open class WMKeyboardService : InputMethodService() {
             }
             if (_uiState.value.toolPicker != null) return handleArmedKey(event)
         }
+        // After the armed picker, which owns the next key whatever it is, and
+        // before the Alt-digit block below, which would take Shift+Alt+1.
+        handlePickModeKey(event)?.let { return it }
 
         if (keyCode == KeyEvent.KEYCODE_ESCAPE && config.escClosesPanel) {
             // Only ours when we actually have something open. A bare Escape stops
@@ -41358,7 +41495,9 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun syncHardwareCandidateWindow() {
         val state = _uiState.value
-        val wanted = composing.isNotEmpty() && state.composer.isConversion &&
+        // Pick mode (#701) wants the strip for the same reason: its number keys
+        // choose from suggestions the user otherwise could not see.
+        val wanted = (composing.isNotEmpty() && state.composer.isConversion || state.hardwarePickMode) &&
             state.captureTarget() == null && hasHardwareKeyboard()
         if (wanted == candidateInputView) return
         if (wanted && isInputViewShown) return

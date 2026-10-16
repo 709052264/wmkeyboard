@@ -119,6 +119,20 @@ The two modes reach different depths. **Alt + number** stops at nine, so a tenth
 
 The numbers count slots from the left, not the engine's ranking, so with <SettingsPath path="Typing / Best suggestion in the middle" /> on the strip still reads 1 2 3 across and <KeyCap>1</KeyCap> commits the leftmost word.
 
+### Pick mode
+
+<SettingsPath path="Typing / Physical keyboard / Pick mode key" />
+
+| Keys, while pick mode is on | Does |
+| --- | --- |
+| The pick mode key | Turns pick mode on or off |
+| <KeyCap>1</KeyCap>–<KeyCap>9</KeyCap>, <KeyCap>0</KeyCap> | Picks the suggestion in that slot, or types the number if the slot is empty |
+| <KeyCap>Shift</KeyCap>+number | Types the number |
+| <KeyCap>Shift</KeyCap>+<KeyCap>Alt</KeyCap>+number | Types the symbol on that key |
+| <KeyCap>F1</KeyCap>–<KeyCap>F10</KeyCap> | Opens all tools, then the toolbar buttons from the left, while **F-keys press the toolbar** is on **In pick mode** (the default) or **Always** |
+
+There's no pick mode key until you set one. It can be a chord, a double-tapped modifier, or <KeyCap>F1</KeyCap>–<KeyCap>F12</KeyCap> or <KeyCap>Insert</KeyCap> alone, but not the shortcut key that opens the tools.
+
 ## Driving an open panel
 
 <SettingsPath path="Typing / Physical keyboard / Arrow keys move a highlight" />
@@ -177,6 +191,8 @@ The physical-key behavior WM Keyboard adds on top is all on this page: the leade
 | Esc closes the tool | On |
 | Number keys select suggestions | Alt + number |
 | Show the suggestion numbers | On |
+| Pick mode key | Off |
+| F-keys press the toolbar | In pick mode |
 | macOS shortcuts | Off |
 | Ctrl+Space changes the language | On |
 | Show the keyboard for shortcuts | On |

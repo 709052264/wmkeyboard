@@ -2813,6 +2813,12 @@ data class KeyboardUiState(
      */
     val hardwareCandidateWindow: Boolean = false,
     /**
+     * Pick mode is on (#701): the physical number row selects suggestions,
+     * Shift with a number types the number. Toggled by the user's pick-mode
+     * key and kept until they press it again, across fields, but never saved.
+     */
+    val hardwarePickMode: Boolean = false,
+    /**
      * The conversion candidate the arrow keys (or a stepping space bar) have
      * moved to, as an index into [suggestions]; -1 while nobody has moved, when
      * the space bar's pick is simply the first one. What Enter and the space bar

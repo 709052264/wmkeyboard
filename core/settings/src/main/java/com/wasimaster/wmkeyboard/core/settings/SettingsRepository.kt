@@ -2144,6 +2144,24 @@ enum class SuggestionHotkeyMode(@StringRes val labelRes: Int) {
 }
 
 /**
+ * When F1 … F10 press the toolbar buttons (#701), counting from the toolbox
+ * launcher exactly as `Ctrl`+digit does.
+ */
+enum class FunctionKeyToolbarMode(@StringRes val labelRes: Int) {
+    OFF(CommonR.string.common_off),
+
+    /**
+     * Only while pick mode is on. The default: pick mode is the user saying "the
+     * keyboard owns this row for now", so the row above it can follow, and with
+     * pick mode off every app keeps its F-keys.
+     */
+    PICK_MODE(R.string.core_settings_function_keys_pick_mode_label),
+
+    /** All the time. Terminals and IDEs use the F-keys, so this is a deliberate choice. */
+    ALWAYS(R.string.core_settings_function_keys_always_label),
+}
+
+/**
  * How long the armed picker may wait, in milliseconds. The floor is about as
  * fast as anyone can read one badge; the ceiling is half a minute, past which
  * "armed" stops meaning anything and the next digit typed opens a tool.
@@ -2257,6 +2275,18 @@ data class HardwareKeyboardSettings(
      * knew and nowhere near enough to read a bar full of new ones.
      */
     val pickerTimeoutMs: Int = 8000,
+    /**
+     * The key that turns pick mode on and off (#701), in the same text form as
+     * [leader], or empty for none. While pick mode is on, the bare number keys
+     * select suggestions, Shift with a number types the number, and Shift+Alt
+     * with a number types the symbol printed on it.
+     *
+     * Empty by default: any key chosen for the user would be taken from an app
+     * that wanted it, and pick mode is a way of typing only some people want.
+     */
+    val pickModeKey: String = "",
+    /** When F1 … F10 press the toolbar buttons. */
+    val functionKeyToolbar: FunctionKeyToolbarMode = FunctionKeyToolbarMode.PICK_MODE,
     /**
      * Letter → the tool it opens, the complete map rather than a delta: the
      * default is non-empty, so "absent means default" could never express the
@@ -9425,6 +9455,8 @@ class SettingsRepository(private val context: Context) {
         private val HW_LEADER = stringPreferencesKey("hw_leader")
         private val HW_PICKER_TIMEOUT_MS = intPreferencesKey("hw_picker_timeout_ms")
         private val HW_TOOL_LETTERS = stringPreferencesKey("hw_tool_letters")
+        private val HW_PICK_MODE_KEY = stringPreferencesKey("hw_pick_mode_key")
+        private val HW_FUNCTION_KEY_TOOLBAR = stringPreferencesKey("hw_function_key_toolbar")
         private val VOLUME_CURSOR = booleanPreferencesKey("volume_cursor")
         private val VOLUME_CURSOR_MEDIA_AWARE = booleanPreferencesKey("volume_cursor_media_aware")
         private val GLOBE_AS_EMOJI = booleanPreferencesKey("globe_as_emoji")
@@ -11044,6 +11076,10 @@ class SettingsRepository(private val context: Context) {
             autoShowUi = p[HW_AUTO_SHOW_UI] ?: defaults.hardwareKeyboard.autoShowUi,
             leader = p[HW_LEADER] ?: defaults.hardwareKeyboard.leader,
             pickerTimeoutMs = p[HW_PICKER_TIMEOUT_MS] ?: defaults.hardwareKeyboard.pickerTimeoutMs,
+            pickModeKey = p[HW_PICK_MODE_KEY] ?: defaults.hardwareKeyboard.pickModeKey,
+            functionKeyToolbar = p[HW_FUNCTION_KEY_TOOLBAR]
+                ?.let { raw -> runCatching { FunctionKeyToolbarMode.valueOf(raw) }.getOrNull() }
+                ?: defaults.hardwareKeyboard.functionKeyToolbar,
             // Absent, not empty, means "never edited": an empty stored map is
             // a user who unbound every letter, and must stay empty.
             toolByLetter = p[HW_TOOL_LETTERS]?.let(::decodeToolLetters)
@@ -17435,6 +17471,22 @@ class SettingsRepository(private val context: Context) {
         val canonical = parseLeader(value)?.let(::formatLeader) ?: return
         editPrefs { it[HW_LEADER] = canonical }
     }
+
+    /**
+     * Stores the pick-mode key in the leader's canonical text form, or clears it
+     * when [value] is empty. Junk is refused, not persisted.
+     */
+    suspend fun setHwPickModeKey(value: String) {
+        if (value.isBlank()) {
+            editPrefs { it[HW_PICK_MODE_KEY] = "" }
+            return
+        }
+        val canonical = parseLeader(value)?.let(::formatLeader) ?: return
+        editPrefs { it[HW_PICK_MODE_KEY] = canonical }
+    }
+
+    suspend fun setHwFunctionKeyToolbar(value: FunctionKeyToolbarMode) =
+        editPrefs { it[HW_FUNCTION_KEY_TOOLBAR] = value.name }
 
     /** The whole table at once — the shortcut editor's save and its reset button. */
     suspend fun setHwToolLetters(map: Map<Char, ToolbarTool>) =

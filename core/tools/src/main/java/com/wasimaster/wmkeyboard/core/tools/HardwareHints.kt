@@ -202,6 +202,10 @@ data class HintPlan(
  *   toolbar badge is *spelled* — the chord itself is dispatched outside the picker.
  * @param leaderDigitsPickSuggestions true in the leader-digit suggestion mode.
  * @param suggestionAltDigits true in the Alt-digit suggestion mode.
+ * @param pickMode pick mode is on (#701), so the bare digits select
+ *   suggestions with no leader at all, whatever the suggestion mode says.
+ * @param functionKeyToolbar F1 … F10 press the toolbar buttons right now, so
+ *   the toolbar badges are spelled as those keys.
  * @param modifiers which hint tiers to build.
  */
 @Suppress("LongParameterList")
@@ -215,6 +219,8 @@ fun buildHintPlan(
     digitChord: Boolean = false,
     leaderDigitsPickSuggestions: Boolean = false,
     suggestionAltDigits: Boolean = false,
+    pickMode: Boolean = false,
+    functionKeyToolbar: Boolean = false,
     modifiers: HintModifiers = HintModifiers.Words,
 ): HintPlan {
     val labels = mutableMapOf<HintTarget, String>()
@@ -229,6 +235,8 @@ fun buildHintPlan(
         // few seconds after the leader. A button with no route at all (chord
         // off *and* the digits given to suggestions) gets no badge.
         val label = when {
+            // The one key that needs no modifier and no leader wins the badge.
+            functionKeyToolbar -> functionKeyLabel(index)
             digitChord -> modifiers.ctrl + digit
             !leaderDigitsPickSuggestions -> digit.toString()
             else -> null
@@ -280,7 +288,7 @@ fun buildHintPlan(
     // and the caller resolves one to the other in exactly one place
     // (`pickSuggestion`). Conflating them is how a badge reading 1 commits the
     // middle word.
-    if (suggestionAltDigits || leaderDigitsPickSuggestions) {
+    if (suggestionAltDigits || leaderDigitsPickSuggestions || pickMode) {
         val slots = minOf(suggestions, ToolbarHintDigits.size)
         for (slot in 0 until slots) {
             val digit = ToolbarHintDigits[slot]
@@ -288,7 +296,7 @@ fun buildHintPlan(
                 strokes[HintStroke(digit)] = HintAction.PickSuggestion(slot)
             }
             labels[HintTarget(HintSurface.SUGGESTION, slot)] =
-                if (suggestionAltDigits) modifiers.alt + digit else digit.toString()
+                if (suggestionAltDigits && !pickMode) modifiers.alt + digit else digit.toString()
         }
     }
 

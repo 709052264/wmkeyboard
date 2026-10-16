@@ -169,6 +169,8 @@
     <!-- Opens the toolbox, which lists every tool. -->
     <string name="core_tools_shortcut_cheat_all_tools">All tools</string>
     <string name="core_tools_shortcut_cheat_select_suggestion">Select a suggestion</string>
+    <!-- Cheat sheet row for the key that turns pick mode on and off. In pick mode the number keys select suggestions. -->
+    <string name="core_tools_shortcut_cheat_pick_mode">Pick mode on or off</string>
     <string name="core_tools_shortcut_cheat_language_switch">Change the language</string>
     <!-- Brings the on-screen keys up over the toolbar-only view, or puts them away. -->
     <string name="core_tools_shortcut_cheat_toggle_keys">Show or hide the keys</string>

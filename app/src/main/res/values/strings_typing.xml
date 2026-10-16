@@ -842,7 +842,18 @@
     <string name="typing_hw_suggestion_hotkeys_leader_desc">The safe choice. Nothing else uses the shortcut key</string>
     <string name="typing_hw_suggestion_hotkeys_alt_desc">One key less, but many apps use Alt with a number for their tabs</string>
     <!-- The two quoted names are the choice labels of this same setting. -->
-    <string name="typing_hw_suggestion_hotkeys_info">You cannot press the suggestion strip while you type on a physical keyboard. A number key selects a suggestion instead.\n\n\"After the shortcut key\" is the safe choice, because nothing else uses it. \"Alt + number\" needs one key less, but browsers, editors and chat apps use a modifier with a number to switch tabs and workspaces.</string>
+    <string name="typing_hw_suggestion_hotkeys_info">You cannot press the suggestion strip while you type on a physical keyboard. A number key selects a suggestion instead.\n\n\"After the shortcut key\" is the safe choice, because nothing else uses it. \"Alt + number\" needs one key less, but browsers, editors and chat apps use a modifier with a number to switch tabs and workspaces.\n\nFor no extra key at all, set a pick mode key below. While pick mode is on, the number keys select suggestions on their own, Shift with a number types the number, and Shift+Alt with a number types the symbol on that key.</string>
+
+    <!-- Issue #701. "Pick mode" is a mode the user turns on with a key of their choice; while it is on, the number keys select suggestions. -->
+    <string name="typing_hw_pick_mode_key_title">Pick mode key</string>
+    <string name="typing_hw_pick_mode_key_subtitle">A key that makes the number keys select suggestions until you press it again</string>
+    <string name="typing_hw_pick_mode_key_capture_body">Or press a key on the attached keyboard. A key with Ctrl, Alt, Shift or Meta works, and so do F1 to F12 and Insert on their own.</string>
+    <!-- %1$s is a key combination, such as Ctrl+K. -->
+    <string name="typing_hw_pick_mode_key_leader_error">%1$s already opens the tools. Choose another key.</string>
+    <string name="typing_hw_pick_mode_key_clear_action">No key</string>
+    <string name="typing_hw_function_keys_title">F-keys press the toolbar</string>
+    <string name="typing_hw_function_keys_subtitle">F1 opens all tools and F2 to F10 press the toolbar buttons</string>
+    <string name="typing_hw_function_keys_info">F1 to F10 work like Ctrl+1 to Ctrl+0: F1 opens all tools, and F2 presses the first button on the toolbar. While this works, the toolbar shows F1, F2 and so on under its buttons when you press the shortcut key.\n\n\"In pick mode\" leaves the F-keys to the app until you turn pick mode on. \"Always\" takes them all the time, which gets in the way of terminals and code editors that use them.</string>
 
     <string name="typing_hw_auto_show_title">Show the keyboard for shortcuts</string>
     <string name="typing_hw_auto_show_subtitle">A shortcut that opens a tool also shows the keyboard</string>

@@ -305,6 +305,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwipeRightAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Texture
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.UnfoldMore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Verified
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ToggleOn
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Functions
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.CompareArrows
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.FormatAlignLeft
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Rule
@@ -1068,6 +1070,8 @@ internal object SettingsRowIcons {
         put(R.string.typing_hw_picker_timeout_title) { Icons.Outlined.Timer }
         put(R.string.typing_hw_suggestion_hotkeys_title) { Icons.Outlined.Numbers }
         put(R.string.typing_hw_suggestion_hints_title) { Icons.Outlined.Tag }
+        put(R.string.typing_hw_pick_mode_key_title) { Icons.Outlined.ToggleOn }
+        put(R.string.typing_hw_function_keys_title) { Icons.Outlined.Functions }
         put(R.string.typing_hw_lang_chord_title) { Icons.Outlined.Language }
         put(R.string.typing_hw_mac_title) { Icons.Outlined.KeyboardCommandKey }
         put(R.string.typing_hw_auto_show_title) { Icons.Outlined.Visibility }

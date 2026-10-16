@@ -568,6 +568,8 @@ private fun SearchStrings.typingHardwareRows(): List<SettingsSearchEntry> {
         row(R.string.typing_hw_picker_timeout_title, R.string.typing_hw_picker_timeout_subtitle),
         row(R.string.typing_hw_suggestion_hotkeys_title, R.string.typing_hw_suggestion_hotkeys_subtitle),
         row(R.string.typing_hw_suggestion_hints_title, R.string.typing_hw_suggestion_hints_subtitle),
+        row(R.string.typing_hw_pick_mode_key_title, R.string.typing_hw_pick_mode_key_subtitle),
+        row(R.string.typing_hw_function_keys_title, R.string.typing_hw_function_keys_subtitle),
         row(R.string.typing_hw_mac_title, R.string.typing_hw_mac_subtitle),
         row(R.string.typing_hw_auto_show_title, R.string.typing_hw_auto_show_subtitle),
     )

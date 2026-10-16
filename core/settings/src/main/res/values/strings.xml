@@ -132,6 +132,9 @@
     <string name="core_settings_suggestion_hotkey_leader_digit_label">After the shortcut key</string>
     <!-- Alt is the name of the key on a physical keyboard. -->
     <string name="core_settings_suggestion_hotkey_alt_digit_label">Alt + number</string>
+    <!-- When F1 to F10 press the toolbar buttons. "Pick mode" is the mode where the number keys select suggestions. -->
+    <string name="core_settings_function_keys_pick_mode_label">In pick mode</string>
+    <string name="core_settings_function_keys_always_label">Always</string>
 
     <!-- ================================================================== -->
     <!-- Clipboard: what the history does with a clip that holds a secret.  -->

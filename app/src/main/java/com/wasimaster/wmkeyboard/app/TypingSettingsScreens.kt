@@ -70,6 +70,8 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.settings.usableTools
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
 import com.wasimaster.wmkeyboard.core.tools.leaderLabel
+import com.wasimaster.wmkeyboard.core.tools.parsePickModeKey
+import com.wasimaster.wmkeyboard.core.tools.pickModeChordAllowed
 import androidx.compose.ui.unit.dp
 import android.os.Build
 import com.wasimaster.wmkeyboard.core.settings.PickerTimeoutRange
@@ -116,6 +118,7 @@ import com.wasimaster.wmkeyboard.core.settings.WordMenuItem
 import com.wasimaster.wmkeyboard.core.settings.LanguagePickerStyle
 import com.wasimaster.wmkeyboard.core.settings.SpacebarDisplay
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.FunctionKeyToolbarMode
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Block
@@ -2633,6 +2636,8 @@ internal fun TypingHardwareSettings(
     val shortcutsOn = settings.watch { it.hardwareKeyboard.shortcutsEnabled }
     val altDigitHotkeys =
         settings.watch { it.hardwareKeyboard.suggestionHotkeys == SuggestionHotkeyMode.ALT_DIGIT }
+    val pickModeKey = parsePickModeKey(settings.watch { it.hardwareKeyboard.pickModeKey })
+    var editingPickModeKey by remember { mutableStateOf(false) }
     SettingsGroup(stringResource(R.string.typing_group_hardware_title)) {
         item {
             ToggleSetting(
@@ -2751,6 +2756,25 @@ internal fun TypingHardwareSettings(
             ) { scope.launch { repository.setHwSuggestionHintsAlways(it) } }
         }
         item {
+            // Issue #701: one key that hands the number row to the suggestions.
+            NavRow(
+                R.string.typing_hw_pick_mode_key_title,
+                stringResource(R.string.typing_hw_pick_mode_key_subtitle),
+                value = pickModeKey?.let { leaderText(it) } ?: stringResource(CommonR.string.common_off),
+                onClick = { editingPickModeKey = true },
+            )
+        }
+        item {
+            ChoiceSetting(
+                R.string.typing_hw_function_keys_title,
+                subtitle = stringResource(R.string.typing_hw_function_keys_subtitle),
+                info = stringResource(R.string.typing_hw_function_keys_info),
+                options = FunctionKeyToolbarMode.entries.map { it to stringResource(it.labelRes) },
+                selected = settings.watch { it.hardwareKeyboard.functionKeyToolbar },
+                default = SettingsDefaults.hardwareKeyboard.functionKeyToolbar,
+            ) { scope.launch { repository.setHwFunctionKeyToolbar(it) } }
+        }
+        item {
             ToggleSetting(
                 R.string.typing_hw_mac_title,
                 stringResource(R.string.typing_hw_mac_subtitle),
@@ -2778,6 +2802,34 @@ internal fun TypingHardwareSettings(
             ) { scope.launch { repository.setHwAutoShowUi(it) } }
         }
     }
+    if (editingPickModeKey) {
+        // The leader is off limits: the same key cannot both arm the tool
+        // picker and toggle pick mode.
+        val leader = parseLeader(settings.watch { it.hardwareKeyboard.leader }) ?: DefaultLeader
+        LeaderCaptureDialog(
+            current = pickModeKey,
+            title = R.string.typing_hw_pick_mode_key_title,
+            intro = R.string.typing_hw_pick_mode_key_capture_body,
+            acceptChord = ::pickModeChordAllowed,
+            forbidden = leader.takeIf { settings.watch { it.hardwareKeyboard.shortcutsEnabled } },
+            onClear = {
+                editingPickModeKey = false
+                scope.launch { repository.setHwPickModeKey("") }
+            },
+            onDismiss = { editingPickModeKey = false },
+            onPick = { picked ->
+                editingPickModeKey = false
+                scope.launch { repository.setHwPickModeKey(formatLeader(picked)) }
+            },
+        )
+    }
+}
+
+/** A shortcut key spelled for a human: a chord names itself, a double tap needs its wording. */
+@Composable
+private fun leaderText(trigger: LeaderTrigger): String {
+    val parts = leaderLabel(trigger)
+    return if (parts.templateRes == 0) parts.text else stringResource(parts.templateRes, parts.text)
 }
 /**
  * The letter that opens each tool from a physical keyboard, plus the shortcut key
@@ -2910,21 +2962,31 @@ internal fun HardwareShortcutsSettings(repository: SettingsRepository, settings:
  */
 @Composable
 private fun LeaderCaptureDialog(
-    current: LeaderTrigger,
+    current: LeaderTrigger?,
     onDismiss: () -> Unit,
     onPick: (LeaderTrigger) -> Unit,
+    @StringRes title: Int = R.string.hardware_shortcuts_leader_title,
+    @StringRes intro: Int = R.string.hardware_shortcuts_capture_body,
+    // A bare key would swallow ordinary typing, and a chord this app cannot
+    // name cannot be stored.
+    acceptChord: (KeyChord) -> Boolean = { it.hasModifier && formatChord(it) != null },
+    // Another shortcut's key, which this one may not take.
+    forbidden: LeaderTrigger? = null,
+    // Offers a way to have no key at all, for a shortcut that may be unset.
+    onClear: (() -> Unit)? = null,
 ) {
     var captured by remember { mutableStateOf<KeyChord?>(null) }
     val requester = remember { FocusRequester() }
     LaunchedEffect(Unit) { runCatching { requester.requestFocus() } }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.hardware_shortcuts_leader_title)) },
+        title = { Text(stringResource(title)) },
         text = {
             Column {
                 CaptionText(stringResource(R.string.hardware_shortcuts_double_tap_body))
                 for (modifier in TapModifier.entries) {
                     val trigger = LeaderTrigger.DoubleTap(modifier)
+                    if (trigger == forbidden) continue
                     // The same wording the row on the settings screen shows, and
                     // a double tap always carries a template to fill.
                     val spec = leaderLabel(trigger)
@@ -2944,7 +3006,7 @@ private fun LeaderCaptureDialog(
                     )
                 }
                 Spacer(Modifier.height(8.dp))
-                CaptionText(stringResource(R.string.hardware_shortcuts_capture_body))
+                CaptionText(stringResource(intro))
                 // A real focusable window, unlike the keyboard's own, so Compose
                 // focus is the right tool here.
                 Column(
@@ -2965,9 +3027,7 @@ private fun LeaderCaptureDialog(
                                 shift = native.isShiftPressed,
                                 meta = native.isMetaPressed,
                             )
-                            // A bare key would swallow ordinary typing, and a
-                            // chord this app cannot name cannot be stored.
-                            captured = chord.takeIf { it.hasModifier && formatChord(it) != null }
+                            captured = chord.takeIf(acceptChord)
                             true
                         },
                 ) {
@@ -2978,7 +3038,12 @@ private fun LeaderCaptureDialog(
                     )
                 }
                 captured?.let { chord ->
-                    if (chord in ReservedChords) {
+                    if (forbidden == LeaderTrigger.Chord(chord)) {
+                        CaptionText(
+                            stringResource(R.string.typing_hw_pick_mode_key_leader_error, describeChord(chord)),
+                            error = true,
+                        )
+                    } else if (chord in ReservedChords) {
                         CaptionText(
                             stringResource(
                                 R.string.hardware_shortcuts_reserved_error,
@@ -2992,12 +3057,17 @@ private fun LeaderCaptureDialog(
         },
         confirmButton = {
             TextButton(
-                enabled = captured != null,
+                enabled = captured != null && forbidden != captured?.let(LeaderTrigger::Chord),
                 onClick = { captured?.let { onPick(LeaderTrigger.Chord(it)) } },
             ) { Text(stringResource(R.string.hardware_shortcuts_use_action)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
+            Row {
+                if (onClear != null && current != null) {
+                    TextButton(onClick = onClear) { Text(stringResource(R.string.typing_hw_pick_mode_key_clear_action)) }
+                }
+                TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
+            }
         },
     )
 }

@@ -264,4 +264,24 @@ class HardwareHintsTest {
         assertNotEquals(plan.action(key, shift = true), plan.action(key, shift = false))
         assertTrue(plan.action(key, shift = false) != null)
     }
+
+    @Test
+    fun `pick mode badges the suggestions with bare digits, even in the Alt mode`() {
+        val plan = buildHintPlan(suggestions = 3, suggestionAltDigits = true, pickMode = true)
+        assertEquals("1", plan.label(HintSurface.SUGGESTION, 0))
+        assertEquals("3", plan.label(HintSurface.SUGGESTION, 2))
+        // Without pick mode or a suggestion mode, no badge promises anything.
+        assertNull(buildHintPlan(suggestions = 3).label(HintSurface.SUGGESTION, 0))
+    }
+
+    @Test
+    fun `the toolbar badges spell the F-keys while they press the buttons`() {
+        val plan = buildHintPlan(
+            toolbarTools = listOf(ToolbarTool.EMOJI),
+            digitChord = true,
+            functionKeyToolbar = true,
+        )
+        assertEquals("F1", plan.label(HintSurface.TOOLBAR, 0))
+        assertEquals("F2", plan.label(HintSurface.TOOLBAR, 1))
+    }
 }
