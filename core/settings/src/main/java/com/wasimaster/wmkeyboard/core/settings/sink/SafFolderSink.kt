@@ -126,7 +126,12 @@ class SafFolderSink(
                     // Only once the new file is whole: the old one stays until
                     // there is something to take its place.
                     replaceExisting(name)
-                    renameTo(target, name) ?: copyInto(target, name, mimeType)
+                    renameTo(target, name)
+                        // A provider whose document ids are not paths renames
+                        // in place and hands back no new uri. Copying then made
+                        // a second file and deleted the renamed one under it.
+                        ?: target.takeIf { describe(it)?.name == name }
+                        ?: copyInto(target, name, mimeType)
                 } else {
                     target
                 }
