@@ -361,6 +361,10 @@ private fun GridCell(item: GalleryItem, order: Int, sent: Boolean, edited: Boole
  * The handle down the grid's right edge: drag it to fly through years of
  * photos, with the month under it in a bubble. Fades in while the grid
  * scrolls and while held, and away a moment after.
+ *
+ * Only a narrow track takes touches, and only while the handle shows: it sits
+ * over the last column, and a full-height catcher there swallowed every tap
+ * on that column's corner check (#721).
  */
 @Composable
 private fun FastScroller(state: LazyGridState, ui: GalleryUi, lead: Int, modifier: Modifier) {
@@ -386,21 +390,29 @@ private fun FastScroller(state: LazyGridState, ui: GalleryUi, lead: Int, modifie
     Box(
         modifier
             .fillMaxHeight()
-            .width(64.dp)
+            .width(SCRUBBER_WIDTH)
             .onSizeChanged { trackPx = it.height.toFloat() }
-            .graphicsLayer { this.alpha = alpha }
-            .pointerInput(total) {
-                detectVerticalDragGestures(
-                    onDragStart = { held = true },
-                    onDragEnd = { held = false },
-                    onDragCancel = { held = false },
-                ) { change, _ ->
-                    change.consume()
-                    val f = (change.position.y / trackPx).coerceIn(0f, 1f)
-                    scope.launch { state.scrollToItem((f * (total - 1)).toInt()) }
-                }
-            },
+            .graphicsLayer { this.alpha = alpha },
     ) {
+        if (visible || held) {
+            Box(
+                Modifier
+                    .align(Alignment.TopEnd)
+                    .fillMaxHeight()
+                    .width(SCRUBBER_TOUCH_WIDTH)
+                    .pointerInput(total) {
+                        detectVerticalDragGestures(
+                            onDragStart = { held = true },
+                            onDragEnd = { held = false },
+                            onDragCancel = { held = false },
+                        ) { change, _ ->
+                            change.consume()
+                            val f = (change.position.y / trackPx).coerceIn(0f, 1f)
+                            scope.launch { state.scrollToItem((f * (total - 1)).toInt()) }
+                        }
+                    },
+            )
+        }
         val thumbPx = with(density) { thumbDp.toPx() }
         val y = ((trackPx - thumbPx) * fraction).toInt()
         Box(
@@ -448,4 +460,8 @@ private val EDGE = 56.dp
 private const val EDGE_SPEED = 0.35f
 
 private const val SCRUBBER_MIN = 60
+
+/** The scroller's drawing width (room for the month bubble) and the strip of it that takes a drag. */
+private val SCRUBBER_WIDTH = 160.dp
+private val SCRUBBER_TOUCH_WIDTH = 24.dp
 private const val SCRUBBER_LINGER_MS = 1100L
