@@ -28,11 +28,11 @@ com.wasimaster.wmkeyboard.app.ThemeKeyboardPreviewKt.ThemeKeyboardPreview  3400 
 # ---- Keyboard, but off the per-keystroke path ----
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen  14500  4032  # outer keyboard composable: collects the state without reading it, so it recomposes only when the service recomposes the root (see its opening comment)
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$155  500  3904  # the stable composition locals around KeyboardScreenFrame: recomposes with KeyboardScreen, not per key
-com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.TopBar$lambda$60$0$1$9  9200  1280  # toolbar content: recomposes on tool and strip changes, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.restorePersistentSurface  1300  3904  # once per show
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.openDictionary  1000  3904  # opening the dictionary tool
 com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshEmojiResults$1.invokeSuspend  1100  3904  # emoji panel search, debounced
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.captureWrite  6700  3968  # typing into a keyboard-owned field (#161), not into apps
+com.wasimaster.wmkeyboard.ime.WMKeyboardService.captureWrite  8100  4032  # typing into a keyboard-owned field (#161), not into apps
+com.wasimaster.wmkeyboard.core.settings.KeyboardModesKt.applyMode  1200  3136  # once per settings or mode change: one register per KeyboardSettings field, like its copy
 
 # ---- On the typing path: known debt, each with the fix it needs ----
 # Under both limits for insns, so the JIT and the baseline profile compile them;

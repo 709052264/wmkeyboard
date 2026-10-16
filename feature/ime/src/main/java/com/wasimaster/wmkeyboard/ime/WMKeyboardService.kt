@@ -7643,6 +7643,8 @@ open class WMKeyboardService : InputMethodService() {
         // The deferred buzz used to be cancelled by serviceScope.cancel() below;
         // on a Handler it has to be taken off the queue by hand.
         feedbackHandler.removeCallbacks(deferredVibrate)
+        // Lets a press already queued play out, then ends the thread.
+        feedbackPlayerThread.quitSafely()
         // The link to a paired computer is this service's to hold; the hub
         // outlives it only for as long as a settings screen still wants it.
         KdeConnectHub.release(KdeConnectHub.Reason.PANEL)
@@ -42428,6 +42430,22 @@ open class WMKeyboardService : InputMethodService() {
      * costs nothing and the coalescing is unchanged.
      */
     private val feedbackHandler = Handler(Looper.getMainLooper())
+
+    /**
+     * Where the vibrator and the speaker are actually driven. Both are binder
+     * calls into system_server — `performHapticFeedback` goes through the
+     * window session, `vibrate` through the vibrator service, the system click
+     * through the audio service — and they ran inside the pointer-down handler,
+     * so a busy system_server held up the main thread on every keystroke. That
+     * stall is most of why power saving (which turns both off) made typing feel
+     * faster. Deciding whether to play, and what, stays on the main thread; only
+     * the call that blocks moves here.
+     */
+    private val feedbackPlayerThread = android.os.HandlerThread(
+        "wm-key-feedback",
+        Process.THREAD_PRIORITY_URGENT_DISPLAY,
+    ).apply { start() }
+    private val feedbackPlayer = Handler(feedbackPlayerThread.looper)
     private val deferredVibrate = Runnable {
         vibratePending = false
         lastVibrateAt = SystemClock.uptimeMillis()
@@ -42518,14 +42536,10 @@ open class WMKeyboardService : InputMethodService() {
             } else {
                 settings.sound.customId
             }
-        KeySoundPlayer.play(
-            this,
-            resolved,
-            volume ?: settings.sound.volume,
-            resolvedId,
-            target,
-            phase,
-        )
+        val playVolume = volume ?: settings.sound.volume
+        feedbackPlayer.post {
+            KeySoundPlayer.play(this, resolved, playVolume, resolvedId, target, phase)
+        }
     }
 
     // The resolved theme sound is cached per settings instance and clock
@@ -42533,7 +42547,8 @@ open class WMKeyboardService : InputMethodService() {
     // auto-theme triggers the active slot is a function of the time — a
     // keystroke is too hot a path to re-answer either on.
     private var themeSoundSettings: KeyboardSettings? = null
-    private var themeSoundMinute: Int = -1
+    // Wall-clock start of the minute the cached answer was resolved in.
+    private var themeSoundMinuteStart: Long = Long.MIN_VALUE / 2
     // The two sound stores' revisions join that cache key, because the answer
     // also depends on what is installed: a theme naming a sound the user has
     // just deleted has to stop overriding their own pick at that moment, not
@@ -42554,16 +42569,22 @@ open class WMKeyboardService : InputMethodService() {
     private fun themeKeySound(
         settings: KeyboardSettings,
     ): Pair<com.wasimaster.wmkeyboard.core.settings.KeySoundStyle, String>? {
-        val minute = java.util.Calendar.getInstance().let {
-            it.get(java.util.Calendar.HOUR_OF_DAY) * 60 + it.get(java.util.Calendar.MINUTE)
-        }
+        // The wall clock against the end of the cached minute rather than a
+        // Calendar per keystroke: building one allocates and resolves the time
+        // zone, on the main thread, for an answer that changes once a minute.
+        // Zone offsets are whole minutes, so the UTC minute's end is the local one's.
+        val now = System.currentTimeMillis()
         val soundRevision = SoundStore.get(this).revision.value
         val packRevision = SoundPackStore.get(this).revision.value
-        if (settings === themeSoundSettings && minute == themeSoundMinute &&
+        if (settings === themeSoundSettings && now in themeSoundMinuteStart until themeSoundMinuteStart + 60_000L &&
             soundRevision == themeSoundRevision && packRevision == themeSoundPackRevision
         ) {
             return themeSoundValue
         }
+        val minute = java.util.Calendar.getInstance().let {
+            it.get(java.util.Calendar.HOUR_OF_DAY) * 60 + it.get(java.util.Calendar.MINUTE)
+        }
+        themeSoundMinuteStart = now - now % 60_000L
         val resolved = settings.activeThemeSpec(activeDarkSlot(settings, minute))
             ?.keySound()
             // A theme may name a sound this device does not have: its addon was
@@ -42574,7 +42595,6 @@ open class WMKeyboardService : InputMethodService() {
             // theme whose sound is missing defers to that pick instead.
             ?.takeIf { KeySoundPlayer.canPlay(this, it.first, it.second) }
         themeSoundSettings = settings
-        themeSoundMinute = minute
         themeSoundRevision = soundRevision
         themeSoundPackRevision = packRevision
         themeSoundValue = resolved
@@ -42629,14 +42649,22 @@ open class WMKeyboardService : InputMethodService() {
         val settings = _uiState.value.settings
         if (!settings.haptics.enabled) return
         if (settings.feedback.hapticsRespectDnd && dndActive) return
-        HapticPlayer.play(
-            this,
-            settings.haptics.style,
-            settings.haptics.amplitude,
-            settings.haptics.strengthMs,
-            inputRootView,
-            respectSystemSetting = settings.feedback.respectSystemTouchFeedback,
-        )
+        val haptics = settings.haptics
+        val view = inputRootView
+        val respectSystem = settings.feedback.respectSystemTouchFeedback
+        // Off the main thread; see [feedbackPlayer]. A view detached in the
+        // meantime makes the system route report false, and the player falls
+        // back to the vibrator, so a press is never silent for it.
+        feedbackPlayer.post {
+            HapticPlayer.play(
+                this,
+                haptics.style,
+                haptics.amplitude,
+                haptics.strengthMs,
+                view,
+                respectSystemSetting = respectSystem,
+            )
+        }
     }
 
     /**

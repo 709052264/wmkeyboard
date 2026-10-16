@@ -3986,293 +3986,12 @@ private fun TopBar(
                 if (!state.settings.toolbarBehavior.stripShortcutsAtEnd) {
                     StripTools(state, toolsRowVisible, drag, onToolTap)
                 }
-                // Bengali's ANSI button: on every Bengali layout once Bengali's
-                // screen allows ANSI output, lit while the layouts write it. Beside
-                // the words for the reason the switch above is: the field that
-                // wants ANSI is the one being typed in, and that is when it is
-                // reached for.
-                if (state.language.id == "bn" && state.settings.suggestionStrip.bengaliAnsiAllowed) {
-                    AnsiToggle(active = state.settings.suggestionStrip.bengaliAnsiOn) {
-                        onStripOfferAction(StripOfferAction.ToggleAnsi)
-                    }
-                }
-                // Autofill chips take the whole strip while they are up: they
-                // answer the field directly ("use this saved login"), which beats
-                // any word the dictionary could offer, and they are transient —
-                // dismissed, or gone as soon as the field is left. Smart replies
-                // off the same API do *not* get this treatment; they are handled
-                // further down, beside the words.
-                if (state.autofillChips.isNotEmpty()) {
-                    InlineChipRow(
-                        chips = state.autofillChips,
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                if (StripOfferChips(
+                        state, suggestionsShowing, onStripOfferAction, onDismissInlineSuggestions,
+                        onOtpAccept, onOtpDismiss, stickerOffer,
                     )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .clickable { onDismissInlineSuggestions() }
-                            .padding(horizontal = 8.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            Icons.Outlined.Close,
-                            contentDescription = stringResource(R.string.ime_autofill_dismiss_desc),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                    return@StripSlot
-                }
-                // A dead key is armed: show which accent the next letter will
-                // take, otherwise the keyboard looks like it swallowed a press.
-                state.pendingDeadKey?.let { accent ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .padding(horizontal = 6.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = accent,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    }
-                }
-                // The morse sequence being tapped out, plus the letter it spells so
-                // far — the same "show the armed input" job as the dead-key hint
-                // above, sized up because it is the primary feedback while typing
-                // morse (the keys themselves all look alike).
-                if (state.morsePending.isNotEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        val spelled = MorseCode.decode(
-                            state.morsePending.map { if (it == '·') '.' else '-' }.joinToString(""),
-                        )
-                        Text(
-                            text = if (spelled != null) {
-                                "${state.morsePending}   $spelled"
-                            } else {
-                                state.morsePending
-                            },
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 18.sp,
-                        )
-                    }
-                    return@StripSlot
-                }
-                // Easter egg: S, O, S was just keyed. Below the live readout on
-                // purpose — feedback for the letter being tapped outranks a joke —
-                // so it shows in the pauses and retires by itself after a few
-                // seconds.
-                if (state.morseSosEgg) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.ime_morse_sos_egg_info),
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = 13.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    return@StripSlot
-                }
-                // A one-time code lifted from a just-arrived notification. It
-                // outranks every chip below: the code is the reason the user is on
-                // this field, and it expires while everything else can wait. Only
-                // the autofill lane above beats it — the platform may be offering
-                // the same code with more context than the keyboard has.
-                val otpSuggestion = state.otpSuggestion
-                if (otpSuggestion != null) {
-                    val otpShares = suggestionsShowing || state.smartReplyChips.isNotEmpty()
-                    OtpSuggestionChip(
-                        otp = otpSuggestion,
-                        onAccept = { onOtpAccept(otpSuggestion) },
-                        onDismiss = onOtpDismiss,
-                        stretch = !otpShares,
-                        modifier = if (otpShares) {
-                            Modifier.widthIn(max = 180.dp).padding(horizontal = 4.dp)
-                        } else {
-                            Modifier.weight(1f).padding(horizontal = 4.dp)
-                        },
-                    )
-                    if (!otpShares) return@StripSlot
-                }
-                // A snippet whose trigger matched but which was told to ask first.
-                // It shares the row rather than taking it: what the user typed is
-                // still perfectly good text, and the word candidates are how they
-                // carry on typing it if the answer is no.
-                val snippetOffer = state.snippetOffers
-                if (snippetOffer != null) {
-                    val offerShares = suggestionsShowing || state.smart != null
-                    val single = snippetOffer.isSingle()
-                    SnippetOfferRow(
-                        offers = snippetOffer,
-                        onAction = onStripOfferAction,
-                        stretch = !offerShares && single,
-                        modifier = if (offerShares) {
-                            Modifier
-                                .widthIn(max = if (single) 200.dp else 280.dp)
-                                .padding(horizontal = 4.dp)
-                        } else {
-                            Modifier.weight(1f).padding(horizontal = 4.dp)
-                        },
-                    )
-                    if (!offerShares) return@StripSlot
-                }
-                // A word nothing recognises, asking whether it belongs in the
-                // dictionary. Shares the row like the snippet offer above and for
-                // the same reason: the word is already typed and perfectly good
-                // text either way, so the candidates keep working while it waits.
-                val learnOffer = state.learnOffer
-                if (snippetOffer == null && learnOffer != null) {
-                    val learnShares = suggestionsShowing || state.smart != null
-                    LearnWordChip(
-                        word = learnOffer,
-                        onAccept = { onStripOfferAction(StripOfferAction.Accept()) },
-                        onDecline = { onStripOfferAction(StripOfferAction.Decline) },
-                        stretch = !learnShares,
-                        modifier = if (learnShares) {
-                            Modifier.widthIn(max = 210.dp).padding(horizontal = 4.dp)
-                        } else {
-                            Modifier.weight(1f).padding(horizontal = 4.dp)
-                        },
-                    )
-                    if (!learnShares) return@StripSlot
-                }
-                // The sandbox ladder asking whether to climb a rung. Behind the
-                // other two: it is about a setting rather than about the text on
-                // screen, so it waits until nothing more immediate is asking.
-                val sandboxOffer = state.sandboxOffer
-                if (snippetOffer == null && learnOffer == null && sandboxOffer != null) {
-                    val sandboxShares = suggestionsShowing || state.smart != null
-                    OfferChip(
-                        label = stringResource(
-                            when (sandboxOffer) {
-                                GlideSandboxPolicy.LEARNED_ONLY -> R.string.ime_sandbox_offer_only
-                                else -> R.string.ime_sandbox_offer_prefer
-                            }
-                        ),
-                        icon = Icons.Outlined.AutoAwesome,
-                        declineDescription = stringResource(R.string.ime_sandbox_offer_never_desc),
-                        onAccept = { onStripOfferAction(StripOfferAction.Accept()) },
-                        onDecline = { onStripOfferAction(StripOfferAction.Decline) },
-                        onExplain = { onStripOfferAction(StripOfferAction.Explain) },
-                        stretch = !sandboxShares,
-                        modifier = if (sandboxShares) {
-                            Modifier.widthIn(max = 210.dp).padding(horizontal = 4.dp)
-                        } else {
-                            Modifier.weight(1f).padding(horizontal = 4.dp)
-                        },
-                    )
-                    if (!sandboxShares) return@StripSlot
-                }
-                // A language with no word list cannot glide, and a swipe going
-                // nowhere looks like a broken keyboard (#219). Behind the other
-                // chips for the sandbox chip's reason: it is about a download,
-                // not about the text on screen. Tapping it opens the language's
-                // page, where the list downloads.
-                val wordListOffer = state.glideWordListOffer
-                if (snippetOffer == null && learnOffer == null && sandboxOffer == null && wordListOffer != null) {
-                    val wordListShares = suggestionsShowing || state.smart != null
-                    OfferChip(
-                        label = stringResource(
-                            if (state.wordListOfferIsPhonetic) {
-                                R.string.ime_phonetic_word_list_offer
-                            } else {
-                                R.string.ime_glide_word_list_offer
-                            },
-                            wordListOffer.englishName,
-                        ),
-                        icon = Icons.Outlined.Download,
-                        declineDescription = stringResource(R.string.ime_glide_word_list_offer_dismiss_desc),
-                        onAccept = { onStripOfferAction(StripOfferAction.Accept()) },
-                        onDecline = { onStripOfferAction(StripOfferAction.Decline) },
-                        stretch = !wordListShares,
-                        modifier = if (wordListShares) {
-                            Modifier.widthIn(max = 260.dp).padding(horizontal = 4.dp)
-                        } else {
-                            Modifier.weight(1f).padding(horizontal = 4.dp)
-                        },
-                    )
-                    if (!wordListShares) return@StripSlot
-                }
-                // The same chip for the other missing download: a conversion IME
-                // whose pack was never fetched types the reading and offers no
-                // character for it, which reads as a broken keyboard exactly the
-                // way a swipe going nowhere does (#260). The two cannot both be up
-                // — the one above is only raised for a composer that does not
-                // convert — so they share the row's precedence slot.
-                val packOffer = state.conversionPackOffer?.let { CjkDictCatalog.byId(it) }
-                if (snippetOffer == null && learnOffer == null && sandboxOffer == null &&
-                    wordListOffer == null && packOffer != null
                 ) {
-                    val packShares = suggestionsShowing || state.smart != null
-                    OfferChip(
-                        label = stringResource(
-                            // The word pairs improve conversion; it works without them.
-                            if (packOffer.alongside != null) {
-                                R.string.ime_conversion_pack_improve_offer
-                            } else {
-                                R.string.ime_conversion_pack_offer
-                            },
-                            stringResource(packOffer.displayNameRes),
-                        ),
-                        icon = Icons.Outlined.Download,
-                        declineDescription = stringResource(R.string.ime_conversion_pack_offer_dismiss_desc),
-                        onAccept = { onStripOfferAction(StripOfferAction.Accept()) },
-                        onDecline = { onStripOfferAction(StripOfferAction.Decline) },
-                        stretch = !packShares,
-                        modifier = if (packShares) {
-                            Modifier.widthIn(max = 260.dp).padding(horizontal = 4.dp)
-                        } else {
-                            Modifier.weight(1f).padding(horizontal = 4.dp)
-                        },
-                    )
-                    if (!packShares) return@StripSlot
-                }
-                // A word a swipe wrote, being read back: the chip hands that
-                // stroke to every word list at once, which is what the sandbox
-                // and the vocabulary cap keep the ordinary decode away from
-                // (#135). Last of the chips — it is about text already in the
-                // field, where the others are about what is being typed now — and
-                // the one chip with no sentence on it: the words it shares the
-                // strip with are the ones it is offering to improve on, and
-                // spelling the offer out took half the row from them (#264).
-                val searchChip = state.glideSearchChip
-                if (snippetOffer == null && learnOffer == null && sandboxOffer == null &&
-                    wordListOffer == null && searchChip != null
-                ) {
-                    StripIconChip(
-                        icon = Icons.Outlined.Search,
-                        description = stringResource(R.string.ime_glide_search_all_offer),
-                        dismissDescription = stringResource(R.string.ime_glide_search_all_dismiss_desc),
-                        onAccept = { onStripOfferAction(StripOfferAction.Accept()) },
-                        onDismiss = { onStripOfferAction(StripOfferAction.Decline) },
-                    )
-                }
-                // Stickers of the user's own that the text before the cursor asked
-                // for (#329), in the two styles that put them here rather than in
-                // the tray above. Narrow, like a keyword chip: the word that asked
-                // may simply be a word, so the candidates keep their place.
-                val stickerOfferNow = state.stickerOffer
-                if (stickerOfferNow != null && stickerStripShows(state)) {
-                    StickerStripOffer(
-                        offer = stickerOfferNow,
-                        style = state.settings.gif.stickerSuggestStyle,
-                        callbacks = stickerOffer,
-                        modifier = Modifier.padding(start = 4.dp),
-                    )
+                    return@StripSlot
                 }
                 // A recognised sum/conversion answers the text directly, so it
                 // takes the whole strip the way autofill chips do. A keyword
@@ -4286,551 +4005,38 @@ private fun TopBar(
                     !state.settings.suggestionStrip.scrollable &&
                     !state.composer.isConversion && !shownInlineEmoji && !glideStripOnly
                 val keywordInSlot = fixedStrip && keywordChip
-                if (smart != null) {
-                    // Opening runs in two halves: the service clears the trigger
-                    // text and stages the prefill, then the tool is tapped the
-                    // ordinary way so panel routing stays in one place.
-                    val contactChip = smart.kind == SmartSuggest.Kind.CONTACT
-                    val open = {
-                        onSmartOpen()
-                        // A contact chip's button texts the contact; the
-                        // service does that alone, with no panel to open.
-                        if (!contactChip) onToolTap(smart.tool)
-                    }
-                    // A vocabulary nudge has two doors: the card and the swap. The
-                    // setting says which one the tap is; the hold is the other.
-                    val vocabSwap = smart.kind == SmartSuggest.Kind.VOCAB && smart.insert != null
-                    val vocabTapSwaps = vocabSwap &&
-                        state.settings.vocabulary.chipTapAction == com.wasimaster.wmkeyboard.core.vocab.VocabChipTap.REPLACE
-                    SmartSuggestionChip(
-                        hit = smart,
-                        reduceMotion = state.settings.reduceMotion,
-                        icon = if (contactChip) Icons.Outlined.Call else toolIcon(smart.tool),
-                        // An answer chip still shows with its tool switched off,
-                        // and onToolTap would drop the gear's press without a word.
-                        canOpen = contactChip || smart.tool in state.settings.enabledTools &&
-                            isSupportedTool(smart.tool) && isUsableTool(smart.tool, state.settings),
-                        // The tool it opens grows out of the chip.
-                        modifier = Modifier.panelOrigin().then(
-                            if (keywordInSlot) {
-                                Modifier.weight(1f).padding(horizontal = 4.dp)
-                            } else if (keywordChip) {
-                                Modifier.padding(start = 4.dp)
-                            } else {
-                                Modifier
-                                    .weight(1f)
-                                    .padding(horizontal = 4.dp)
-                            },
+                if (StripAnswerChips(
+                        state, suggestionsShowing, recentClipChip, recentClipsBar, smart, keywordChip, keywordInSlot,
+                        StripAnswerCallbacks(
+                            onToolTap, onSmartOpen, onSmartAccept, vocab, onDismissInlineSuggestions,
+                            onClipboardSuggestion, onClipboardSuggestionDismiss, onClipboardEntity,
+                            onRecentClipsToggle,
                         ),
-                        // A wide chip with nothing to type (the weather answer)
-                        // opens its tool instead: the whole face is one door.
-                        onAccept = {
-                            when {
-                                // The face calls; the service starts the dialer.
-                                contactChip -> onSmartAccept()
-                                vocabTapSwaps -> onSmartAccept()
-                                // Rates it may fetch only on a tap: this is that tap.
-                                smart.awaitingTap -> onSmartAccept()
-                                keywordChip || smart.insert == null -> open()
-                                else -> onSmartAccept()
-                            }
-                        },
-                        onOpen = open,
-                        onLongPress = if (vocabSwap) {
-                            { if (vocabTapSwaps) open() else onSmartAccept() }
-                        } else {
-                            null
-                        },
                     )
-                }
-                if (smart != null && !keywordChip) return@StripSlot
-                // The once-a-day word chip sits where a smart chip would, when none is up.
-                val daily = state.vocabDaily
-                if (smart == null && daily != null) {
-                    VocabDailyChip(
-                        word = daily.word,
-                        hourly = state.settings.vocabulary.wordInterval != com.wasimaster.wmkeyboard.core.vocab.VocabWordInterval.DAILY,
-                        modifier = Modifier.padding(start = 4.dp).panelOrigin(),
-                        onOpen = {
-                            vocab.onDailyOpen()
-                            onToolTap(ToolbarTool.VOCABULARY)
-                        },
-                        onDismiss = vocab.onDailyDismiss,
-                    )
-                }
-                // Platform smart replies. They share the row rather than claiming
-                // it: a proposed reply is a suggestion like any other, and the user
-                // may well be about to type something else entirely.
-                val smartReplies = state.smartReplyChips
-                // Recently-copied paste chip (Gboard style): takes the idle strip
-                // when there are no candidates, one tap from pasting the last copy.
-                // Word candidates always win the row, so it never hides a suggestion.
-                val recentClip = state.clipboardSuggestion
-                // A verification SMS is the one copy where the whole clip is not
-                // what you want pasted, so the chip offers the code out of it
-                // instead — dashed, to say it is a piece of the clip and not the
-                // clip. Only codes get this: a copied link or number is already
-                // exactly what the ordinary chip would paste.
-                val chipOtp = if (recentClip != null && state.settings.clipboard.detectEntities) {
-                    remember(recentClip.id, recentClip.text) {
-                        ClipEntities.extract(recentClip.text, recentClip.id)
-                            .firstOrNull { it.kind == ClipEntityKind.OTP }
-                            ?.takeIf { it.value != recentClip.text.trim() }
-                    }
-                } else {
-                    null
-                }
-                // Replies crowd the row the same way word candidates do, so the
-                // paste chip gives way to its narrow form when both are present
-                // rather than stretching across a strip it now shares.
-                val clipChipShares = suggestionsShowing || smartReplies.isNotEmpty()
-                // The last few copies as a row of chips (#414), newest first
-                // whatever is pinned (#612). Asked for by hand, so it holds the
-                // strip over any words until something is typed or its ✕.
-                // Text clips only, never a secret, the same gates as the
-                // single chip's.
-                val clipBarChips = if (recentClipsBar && smart == null) {
-                    state.clipboardItems
-                        .filter { it.kind.isTextual && !it.sensitive && it.text.isNotBlank() }
-                        .sortedByDescending { it.timestamp }
-                        .take(recentClipsRowCount(state.settings.clipboard.recentChips))
-                } else {
-                    emptyList()
-                }
-                if (clipBarChips.isNotEmpty()) {
-                    Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .horizontalScroll(rememberScrollState())
-                            .padding(horizontal = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        for (chip in clipBarChips) {
-                            ClipboardSuggestionChip(
-                                clip = chip,
-                                onPaste = { onClipboardSuggestion(chip) },
-                                onDismiss = {},
-                                dismissible = false,
-                                modifier = Modifier.widthIn(max = 200.dp),
-                            )
-                        }
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .clickable { onClipboardSuggestionDismiss() }
-                            .padding(horizontal = 8.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            Icons.Outlined.Close,
-                            contentDescription = stringResource(R.string.ime_clip_chip_dismiss_desc),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
+                ) {
                     return@StripSlot
                 }
-                // The parts of a fresh copy take the strip (#612, opt-in): the
-                // copy itself, then a dashed chip per part, so a number in a
-                // message pastes from here rather than from the panel. Over
-                // the words, like the row of recent copies, until a key is
-                // typed or the ✕; the plain chip below carries on after that.
-                val fragmentClip = recentClip?.takeIf {
-                    recentClipChip && smart == null &&
-                        state.settings.clipboard.fragmentsOnStrip &&
-                        state.settings.clipboard.detectEntities &&
-                        state.clipFragmentsDoneId != it.id
-                }
-                val phoneFormats = state.settings.clipboard.phoneFormats
-                val stripFragments = if (fragmentClip != null) {
-                    remember(fragmentClip.id, fragmentClip.text, phoneFormats) {
-                        ClipEntities.byClip(listOf(fragmentClip), PhoneFormats.parseAll(phoneFormats))[fragmentClip.id]
-                            .orEmpty()
-                    }
-                } else {
-                    emptyList()
-                }
-                if (fragmentClip != null && stripFragments.isNotEmpty()) {
-                    Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .horizontalScroll(rememberScrollState())
-                            .padding(horizontal = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        ClipboardSuggestionChip(
-                            clip = fragmentClip,
-                            onPaste = { onClipboardSuggestion(fragmentClip) },
-                            onDismiss = {},
-                            dismissible = false,
-                            modifier = Modifier.widthIn(max = 160.dp),
-                        )
-                        for (part in stripFragments) {
-                            ClipboardSuggestionChip(
-                                clip = fragmentClip,
-                                otp = part,
-                                onPaste = { onClipboardEntity(part) },
-                                onDismiss = {},
-                                dismissible = false,
-                                modifier = Modifier.widthIn(max = 200.dp),
-                            )
-                        }
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .clickable { onClipboardSuggestionDismiss() }
-                            .padding(horizontal = 8.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            Icons.Outlined.Close,
-                            contentDescription = stringResource(R.string.ime_clip_chip_dismiss_desc),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                    return@StripSlot
-                }
-                if (recentClipChip && smart == null) {
-                    val clipChip = @Composable { chipModifier: Modifier ->
-                        ClipboardSuggestionChip(
-                            clip = recentClip,
-                            otp = chipOtp,
-                            onPaste = {
-                                if (chipOtp != null) onClipboardEntity(chipOtp)
-                                else onClipboardSuggestion(recentClip)
-                            },
-                            onDismiss = onClipboardSuggestionDismiss,
-                            // More than the last copy, from a button on the
-                            // chip (#612), when the row is set to hold more.
-                            onMore = if (state.settings.clipboard.recentChips > 1) {
-                                onRecentClipsToggle
-                            } else null,
-                            modifier = chipModifier,
-                        )
-                    }
-                    if (clipChipShares) {
-                        clipChip(Modifier.widthIn(max = 160.dp).padding(horizontal = 4.dp))
-                    } else {
-                        // Alone on the strip it still sizes to what it holds
-                        // (#519): a four-letter copy is a short pill, not a bar
-                        // with the ✕ a screen away. The Box keeps the rest of
-                        // the row where a full-width chip would have left it.
-                        Box(
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
-                            contentAlignment = Alignment.CenterStart,
-                        ) {
-                            clipChip(Modifier.widthIn(max = ClipChipMaxWidth).padding(horizontal = 4.dp))
-                        }
-                        return@StripSlot
-                    }
-                }
-                // Nothing typed yet: the replies are the strip, so they take the
-                // rest of the row and carry the dismiss ✕ the way the autofill lane
-                // does. This is the case they exist for — the message is on screen,
-                // the field is empty, and the reply is the whole answer.
-                if (smartReplies.isNotEmpty() && !suggestionsShowing) {
-                    InlineChipRow(
-                        chips = smartReplies,
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                    )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .clickable { onDismissInlineSuggestions() }
-                            .padding(horizontal = 8.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            Icons.Outlined.Close,
-                            contentDescription = stringResource(R.string.ime_smart_replies_dismiss_desc),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                    return@StripSlot
-                }
-                // Latin gets three wide chips; a conversion IME gets a scrolling
-                // row. Three is the right number when the engine is choosing for you
-                // and you only overrule it now and then, but a pinyin reading is
-                // genuinely ambiguous — the composer offers a dozen candidates and
-                // picking among them *is* the typing. Splitting here rather than
-                // widening the shared row keeps the Latin strip exactly as it was.
-                // Issue #413: with the setting on, an emoji candidate is one of
-                // the slots the count asks for rather than a chip after them,
-                // so the strip never shows more than that number. The words
-                // give up one slot and the emoji takes it at the same width.
-                // Never beside a conversion's candidates: those scroll in a row
-                // weighted to the whole strip, and a weighted emoji slot would
-                // take half of it (#633).
-                val emojiInSlot = (state.settings.suggestionStrip.emojiTakesSlot || fixedStrip) &&
-                    shownEmojiSuggestions.isNotEmpty() && !shownInlineEmoji && !glideStripOnly && !held.conversion
-                // The marks and the emoji never show together (the service
-                // leaves one list empty), so they share the one last slot.
-                val punctuationInSlot = fixedStrip && !emojiInSlot && shownPunctuation.isNotEmpty()
-                val rewriteInSlot = fixedStrip && suggestionsShowing && (
-                    state.joinSuggestion ?: state.revisionSuggestion
-                        ?: state.correctionOffer ?: state.correctionUndo
-                    ) != null
-                // Slots ahead of the words, so the primary can still land in
-                // the strip's own second slot.
-                val leadSlots = (if (keywordInSlot) 1 else 0) + (if (rewriteInSlot) 1 else 0)
-                val tailSlots = if (emojiInSlot || punctuationInSlot) 1 else 0
-                val wordSlots = (state.settings.suggestionStrip.slotCount - leadSlots - tailSlots)
-                    .coerceAtLeast(1)
-                if (shownInlineEmoji) {
-                    // A ":tada" buffer: emoji, in the emoji font, as many as fit
-                    // the scroll rather than the three slots words get.
-                    InlineEmojiChips(
-                        emojis = shownSuggestions,
-                        enabled = suggestionsShowing,
-                        alpha = stripContentFade,
-                        onEmoji = onSuggestion,
-                    )
-                } else if (held.conversion) {
-                    CandidateStrip(
-                        candidates = shownSuggestions,
-                        enabled = suggestionsShowing,
-                        alpha = stripContentFade,
-                        textScale = state.settings.suggestionStrip.textScale,
-                        hints = if (suggestionsShowing) suggestionHintPlan(state) else null,
-                        highlighted = state.candidateCursor,
-                        adjustable = state.composer.adjustsChoices,
-                        onCandidate = onCandidate,
-                        onExpand = onCandidatesExpand,
-                        onAdjust = suggestionHold.onCandidateAdjust,
-                    )
-                } else {
-                    // The join chip leads the row, visually apart from the three
-                    // word slots: it rewrites text already in the field, which a
-                    // plain suggestion never does. The revision chip shares the
-                    // slot (they can't coexist: join needs a composing word,
-                    // revision needs an empty one) and the same look, for the
-                    // same reason — both rewrite committed text on tap. So does
-                    // the near-miss correction chip, behind both: a confusable the
-                    // follower has already proved wrong is better evidence than a
-                    // correction that only came close.
-                    // Behind all three sits the undo chip, which is the odd one
-                    // out: it puts back a word the keyboard already replaced,
-                    // rather than rewriting one the user typed. Last because
-                    // everything above it is about the word at the caret, and the
-                    // correction it takes back may be several words old.
-                    val join = state.joinSuggestion
-                    val revision = state.revisionSuggestion
-                    val undo = state.correctionUndo
-                    val rewriteChip = join ?: revision ?: state.correctionOffer ?: undo
-                    if (rewriteChip != null && suggestionsShowing && !glideStripOnly) {
-                        val undoing = join == null && revision == null &&
-                            state.correctionOffer == null && undo != null
-                        Box(
-                            modifier = Modifier
-                                .then(if (rewriteInSlot) Modifier.weight(1f) else Modifier)
-                                .fillMaxHeight()
-                                .graphicsLayer { alpha = stripContentFade() }
-                                .padding(vertical = 8.dp, horizontal = 2.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(MaterialTheme.colorScheme.secondaryContainer)
-                                .clickable {
-                                    if (join != null) onJoinSuggestion() else onRevisionSuggestion()
-                                }
-                                .padding(horizontal = 10.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            ) {
-                                // The arrow is what separates "put this back" from
-                                // the three chips that read as plain words. An icon
-                                // rather than an arrow glyph because the strip is
-                                // drawn in whatever font the theme picked, and half
-                                // of those have no arrows in them.
-                                if (undoing) {
-                                    Icon(
-                                        Icons.AutoMirrored.Outlined.Undo,
-                                        // Named, unlike the chip's own word: the
-                                        // three chips above this one read as
-                                        // "replace with X", and a screen reader
-                                        // has nothing else to tell it this one
-                                        // goes the other way.
-                                        contentDescription = stringResource(
-                                            R.string.ime_undo_correction_desc,
-                                        ),
-                                        modifier = Modifier.size(16.dp),
-                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    )
-                                }
-                                Text(
-                                    text = rewriteChip,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    maxLines = 1,
-                                )
-                            }
-                        }
-                    }
-                    LatinSuggestionChips(
-                        // One slot, so the word sits centred across the whole strip
-                        // rather than in the first of three (see [glideStripOnly]).
-                        candidates = if (glideStripOnly) {
-                            listOfNotNull(state.glideWord)
-                        } else {
-                            shownSuggestions
-                        },
-                        enabled = suggestionsShowing,
-                        alpha = stripContentFade,
-                        slotCount = wordSlots,
-                        weight = wordSlots.toFloat(),
-                        textScale = state.settings.suggestionStrip.textScale,
-                        scrollable = state.settings.suggestionStrip.scrollable,
-                        textPadding = state.settings.suggestionStrip.chipPadding.dp,
-                        centerPrimaryEnabled = state.settings.suggestionStrip.suggestionPrimaryCenter &&
-                            !state.fixedPhoneticStrip(),
-                        primaryColor = state.settings.suggestionStrip.primaryColor?.let { Color(it.toInt()) },
-                        autocorrectWord = state.autocorrectWord,
-                        // A fixed phonetic strip leads with the word as typed, not
-                        // with what a space writes; the bold follows the latter.
-                        primaryWord = if (state.fixedPhoneticStrip()) state.autocorrectWord.orEmpty() else null,
-                        // Mid-stroke, the shift the lift will commit under (#162):
-                        // a glide through the shift key previews its capital on
-                        // the strip as well as in the pill. Zero crossings between
-                        // strokes, so this is the board's own shift then.
-                        shiftState = shiftForGlide(state.shiftState, state.glideCase),
-                        // Per-letter capitals a stroke drew (#163), which no one
-                        // shift state can say; empty under the whole-word reading.
-                        casedWords = state.glideCased,
-                        // A glided trigger shows what the lift types for it (#205).
-                        expansions = state.glideExpansions,
-                        // Only while the live candidates are the ones on screen: the
-                        // strip holds the last set behind alpha 0, and a key promised
-                        // against a faded word would commit something else.
-                        hints = if (suggestionsShowing) suggestionHintPlan(state) else null,
-                        onSuggestion = onSuggestion,
-                        suggestionHold = suggestionHold,
-                        menuItems = state.settings.suggestionStrip.wordMenuItems,
-                        overflow = state.settings.suggestionStrip.overflow,
-                        fixedSlots = fixedStrip,
-                        primarySlot = (1 - leadSlots).coerceAtLeast(0),
-                        tinted = state.settings.suggestionStrip.tintedSlots,
-                    )
-                    // The word card (#99) is a window over the whole keyboard, so
-                    // where it is composed does not matter; it lives beside the
-                    // strip that opens it. It steps aside while its own spelling
-                    // editor is up (#138): that window covers the keys the
-                    // respelling is typed on.
-                    // Composed with a null value too, so the popup can play its
-                    // way out after the service has closed it.
-                    WordCardPopup(
-                        card = state.wordCard?.takeIf { state.wordSpell == null },
-                        onAction = suggestionHold.onCard,
-                    )
-                    // The synonyms a held word asked for (#321), a window over the
-                    // keyboard like the card.
-                    SynonymsPopup(sheet = state.synonyms, onAction = suggestionHold.onSynonyms)
-                }
-                // Emoji candidates ride along after the words: typing "birthday"
-                // puts 🎂 🎉 🥳 🎁 one tap away. Held set, so they fade out with
-                // the words rather than vanishing; taps gated to the live ones.
-                //
-                // Holding one runs the *other* insert mode: the setting decides
-                // which of "replace the word" and "keep the word" a tap does, and
-                // the hold is the escape hatch for the one time you want the other,
-                // without a trip to settings. The label says which, read from the
-                // live setting, so TalkBack announces the action rather than "long
-                // press".
-                //
-                // The label is resolved inside the guard, not above it: the strip
-                // recomposes on every keystroke, and most of those have no emoji
-                // candidates to label.
-                if (shownEmojiSuggestions.isNotEmpty()) {
-                    val holdLabel = stringResource(
-                        if (state.settings.emojiInsertMode == EmojiInsertMode.APPEND) {
-                            R.string.ime_emoji_suggestion_hold_replace
-                        } else {
-                            R.string.ime_emoji_suggestion_hold_keep
-                        },
-                    )
-                    val emojiShown = if (emojiInSlot) 1 else state.settings.suggestionStrip.emojiCount
-                    for (emoji in shownEmojiSuggestions.take(emojiShown)) {
-                        Box(
-                            modifier = Modifier
-                                // A slot of its own, the width of a word's (#413).
-                                .then(if (emojiInSlot) Modifier.weight(1f) else Modifier)
-                                .fillMaxHeight()
-                                .graphicsLayer { alpha = stripContentFade() }
-                                .combinedClickable(
-                                    enabled = suggestionsShowing,
-                                    onLongClickLabel = holdLabel,
-                                    onLongClick = { onEmojiSuggestion(emoji, true) },
-                                    onClick = { onEmojiSuggestion(emoji, false) },
-                                )
-                                .padding(horizontal = 5.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = LocalEmojiShaper.current.shape(emoji),
-                                fontSize = 22.sp,
-                                fontFamily = emojiFamilyFor(emoji),
-                            )
-                        }
-                    }
-                }
-                // Replies ride the tail once there are words to share with, capped
-                // in width so the candidates keep their three slots — the weighted
-                // word row is measured after unweighted children, so an unbounded
-                // scroll row here would quietly eat the whole strip.
-                if (smartReplies.isNotEmpty()) {
-                    VerticalDivider(
-                        modifier = Modifier.height(20.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-                    InlineChipRow(
-                        chips = smartReplies,
-                        modifier = Modifier.widthIn(max = 180.dp).fillMaxHeight(),
-                    )
-                }
-                // Quick-punctuation chips ride the tail (the service leaves the list
-                // empty whenever an emoji prediction claimed it, so the two never
-                // fight for the row). A leading divider sets them off from the words.
-                if (shownPunctuation.isNotEmpty()) {
-                    VerticalDivider(
-                        modifier = Modifier
-                            .height(20.dp)
-                            .graphicsLayer { alpha = stripContentFade() },
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-                    // In a slot of their own (#513) the marks share the last
-                    // slot's width between them instead of each taking its own.
-                    Row(
-                        modifier = if (punctuationInSlot) Modifier.weight(1f) else Modifier,
-                        horizontalArrangement = Arrangement.Center,
-                    ) {
-                        for (mark in shownPunctuation) {
-                            Box(
-                                modifier = Modifier
-                                    .then(if (punctuationInSlot) Modifier.weight(1f) else Modifier)
-                                    .fillMaxHeight()
-                                    .graphicsLayer { alpha = stripContentFade() }
-                                    .clickable(enabled = suggestionsShowing) { onPunctuation(mark) }
-                                    .padding(horizontal = if (punctuationInSlot) 2.dp else 8.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = mark,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = FontWeight.Medium,
-                                )
-                            }
-                        }
-                    }
-                }
+                StripWords(
+                    state = state,
+                    held = held,
+                    suggestionsShowing = suggestionsShowing,
+                    shownSuggestions = shownSuggestions,
+                    shownEmojiSuggestions = shownEmojiSuggestions,
+                    shownInlineEmoji = shownInlineEmoji,
+                    shownPunctuation = shownPunctuation,
+                    glideStripOnly = glideStripOnly,
+                    fixedStrip = fixedStrip,
+                    keywordInSlot = keywordInSlot,
+                    stripContentFade = stripContentFade,
+                    onSuggestion = onSuggestion,
+                    suggestionHold = suggestionHold,
+                    onJoinSuggestion = onJoinSuggestion,
+                    onRevisionSuggestion = onRevisionSuggestion,
+                    onCandidate = onCandidate,
+                    onCandidatesExpand = onCandidatesExpand,
+                    onEmojiSuggestion = onEmojiSuggestion,
+                    onPunctuation = onPunctuation,
+                )
             }
             // The same buttons at the strip's far end instead, after the words,
             // when the user put them there.
@@ -4851,6 +4057,923 @@ private fun TopBar(
 @Composable
 private fun RowScope.StripSlot(content: @Composable RowScope.() -> Unit) {
     content()
+}
+
+// The candidate surface's body, in three functions rather than written
+// straight into [StripSlot]'s lambda. That lambda had grown back to 10,172
+// dex instructions, past the 10,000 at which ART stops compiling a method
+// at all, so the code the strip runs on every keystroke was interpreted
+// forever. Each of these compiles on its own, well under the limit; the two
+// that can claim the row say so by returning true.
+
+/** The offers that come before the words: autofill, the morse readout, the code and download chips. */
+@Composable
+private fun RowScope.StripOfferChips(
+    state: KeyboardUiState,
+    suggestionsShowing: Boolean,
+    onStripOfferAction: (StripOfferAction) -> Unit,
+    onDismissInlineSuggestions: () -> Unit,
+    onOtpAccept: (NotificationOtp) -> Unit,
+    onOtpDismiss: () -> Unit,
+    stickerOffer: StickerOfferCallbacks,
+): Boolean {
+    // Bengali's ANSI button: on every Bengali layout once Bengali's
+    // screen allows ANSI output, lit while the layouts write it. Beside
+    // the words for the reason the switch above is: the field that
+    // wants ANSI is the one being typed in, and that is when it is
+    // reached for.
+    if (state.language.id == "bn" && state.settings.suggestionStrip.bengaliAnsiAllowed) {
+        AnsiToggle(active = state.settings.suggestionStrip.bengaliAnsiOn) {
+            onStripOfferAction(StripOfferAction.ToggleAnsi)
+        }
+    }
+    // Autofill chips take the whole strip while they are up: they
+    // answer the field directly ("use this saved login"), which beats
+    // any word the dictionary could offer, and they are transient —
+    // dismissed, or gone as soon as the field is left. Smart replies
+    // off the same API do *not* get this treatment; they are handled
+    // further down, beside the words.
+    if (state.autofillChips.isNotEmpty()) {
+        InlineChipRow(
+            chips = state.autofillChips,
+            modifier = Modifier.weight(1f).fillMaxHeight(),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .clickable { onDismissInlineSuggestions() }
+                .padding(horizontal = 8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Outlined.Close,
+                contentDescription = stringResource(R.string.ime_autofill_dismiss_desc),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+        return true
+    }
+    // A dead key is armed: show which accent the next letter will
+    // take, otherwise the keyboard looks like it swallowed a press.
+    state.pendingDeadKey?.let { accent ->
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(horizontal = 6.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = accent,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+    }
+    // The morse sequence being tapped out, plus the letter it spells so
+    // far — the same "show the armed input" job as the dead-key hint
+    // above, sized up because it is the primary feedback while typing
+    // morse (the keys themselves all look alike).
+    if (state.morsePending.isNotEmpty()) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            contentAlignment = Alignment.Center,
+        ) {
+            val spelled = MorseCode.decode(
+                state.morsePending.map { if (it == '·') '.' else '-' }.joinToString(""),
+            )
+            Text(
+                text = if (spelled != null) {
+                    "${state.morsePending}   $spelled"
+                } else {
+                    state.morsePending
+                },
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 18.sp,
+            )
+        }
+        return true
+    }
+    // Easter egg: S, O, S was just keyed. Below the live readout on
+    // purpose — feedback for the letter being tapped outranks a joke —
+    // so it shows in the pauses and retires by itself after a few
+    // seconds.
+    if (state.morseSosEgg) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = stringResource(R.string.ime_morse_sos_egg_info),
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 13.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        return true
+    }
+    // A one-time code lifted from a just-arrived notification. It
+    // outranks every chip below: the code is the reason the user is on
+    // this field, and it expires while everything else can wait. Only
+    // the autofill lane above beats it — the platform may be offering
+    // the same code with more context than the keyboard has.
+    val otpSuggestion = state.otpSuggestion
+    if (otpSuggestion != null) {
+        val otpShares = suggestionsShowing || state.smartReplyChips.isNotEmpty()
+        OtpSuggestionChip(
+            otp = otpSuggestion,
+            onAccept = { onOtpAccept(otpSuggestion) },
+            onDismiss = onOtpDismiss,
+            stretch = !otpShares,
+            modifier = if (otpShares) {
+                Modifier.widthIn(max = 180.dp).padding(horizontal = 4.dp)
+            } else {
+                Modifier.weight(1f).padding(horizontal = 4.dp)
+            },
+        )
+        if (!otpShares) return true
+    }
+    // A snippet whose trigger matched but which was told to ask first.
+    // It shares the row rather than taking it: what the user typed is
+    // still perfectly good text, and the word candidates are how they
+    // carry on typing it if the answer is no.
+    val snippetOffer = state.snippetOffers
+    if (snippetOffer != null) {
+        val offerShares = suggestionsShowing || state.smart != null
+        val single = snippetOffer.isSingle()
+        SnippetOfferRow(
+            offers = snippetOffer,
+            onAction = onStripOfferAction,
+            stretch = !offerShares && single,
+            modifier = if (offerShares) {
+                Modifier
+                    .widthIn(max = if (single) 200.dp else 280.dp)
+                    .padding(horizontal = 4.dp)
+            } else {
+                Modifier.weight(1f).padding(horizontal = 4.dp)
+            },
+        )
+        if (!offerShares) return true
+    }
+    // A word nothing recognises, asking whether it belongs in the
+    // dictionary. Shares the row like the snippet offer above and for
+    // the same reason: the word is already typed and perfectly good
+    // text either way, so the candidates keep working while it waits.
+    val learnOffer = state.learnOffer
+    if (snippetOffer == null && learnOffer != null) {
+        val learnShares = suggestionsShowing || state.smart != null
+        LearnWordChip(
+            word = learnOffer,
+            onAccept = { onStripOfferAction(StripOfferAction.Accept()) },
+            onDecline = { onStripOfferAction(StripOfferAction.Decline) },
+            stretch = !learnShares,
+            modifier = if (learnShares) {
+                Modifier.widthIn(max = 210.dp).padding(horizontal = 4.dp)
+            } else {
+                Modifier.weight(1f).padding(horizontal = 4.dp)
+            },
+        )
+        if (!learnShares) return true
+    }
+    // The sandbox ladder asking whether to climb a rung. Behind the
+    // other two: it is about a setting rather than about the text on
+    // screen, so it waits until nothing more immediate is asking.
+    val sandboxOffer = state.sandboxOffer
+    if (snippetOffer == null && learnOffer == null && sandboxOffer != null) {
+        val sandboxShares = suggestionsShowing || state.smart != null
+        OfferChip(
+            label = stringResource(
+                when (sandboxOffer) {
+                    GlideSandboxPolicy.LEARNED_ONLY -> R.string.ime_sandbox_offer_only
+                    else -> R.string.ime_sandbox_offer_prefer
+                }
+            ),
+            icon = Icons.Outlined.AutoAwesome,
+            declineDescription = stringResource(R.string.ime_sandbox_offer_never_desc),
+            onAccept = { onStripOfferAction(StripOfferAction.Accept()) },
+            onDecline = { onStripOfferAction(StripOfferAction.Decline) },
+            onExplain = { onStripOfferAction(StripOfferAction.Explain) },
+            stretch = !sandboxShares,
+            modifier = if (sandboxShares) {
+                Modifier.widthIn(max = 210.dp).padding(horizontal = 4.dp)
+            } else {
+                Modifier.weight(1f).padding(horizontal = 4.dp)
+            },
+        )
+        if (!sandboxShares) return true
+    }
+    // A language with no word list cannot glide, and a swipe going
+    // nowhere looks like a broken keyboard (#219). Behind the other
+    // chips for the sandbox chip's reason: it is about a download,
+    // not about the text on screen. Tapping it opens the language's
+    // page, where the list downloads.
+    val wordListOffer = state.glideWordListOffer
+    if (snippetOffer == null && learnOffer == null && sandboxOffer == null && wordListOffer != null) {
+        val wordListShares = suggestionsShowing || state.smart != null
+        OfferChip(
+            label = stringResource(
+                if (state.wordListOfferIsPhonetic) {
+                    R.string.ime_phonetic_word_list_offer
+                } else {
+                    R.string.ime_glide_word_list_offer
+                },
+                wordListOffer.englishName,
+            ),
+            icon = Icons.Outlined.Download,
+            declineDescription = stringResource(R.string.ime_glide_word_list_offer_dismiss_desc),
+            onAccept = { onStripOfferAction(StripOfferAction.Accept()) },
+            onDecline = { onStripOfferAction(StripOfferAction.Decline) },
+            stretch = !wordListShares,
+            modifier = if (wordListShares) {
+                Modifier.widthIn(max = 260.dp).padding(horizontal = 4.dp)
+            } else {
+                Modifier.weight(1f).padding(horizontal = 4.dp)
+            },
+        )
+        if (!wordListShares) return true
+    }
+    // The same chip for the other missing download: a conversion IME
+    // whose pack was never fetched types the reading and offers no
+    // character for it, which reads as a broken keyboard exactly the
+    // way a swipe going nowhere does (#260). The two cannot both be up
+    // — the one above is only raised for a composer that does not
+    // convert — so they share the row's precedence slot.
+    val packOffer = state.conversionPackOffer?.let { CjkDictCatalog.byId(it) }
+    if (snippetOffer == null && learnOffer == null && sandboxOffer == null &&
+        wordListOffer == null && packOffer != null
+    ) {
+        val packShares = suggestionsShowing || state.smart != null
+        OfferChip(
+            label = stringResource(
+                // The word pairs improve conversion; it works without them.
+                if (packOffer.alongside != null) {
+                    R.string.ime_conversion_pack_improve_offer
+                } else {
+                    R.string.ime_conversion_pack_offer
+                },
+                stringResource(packOffer.displayNameRes),
+            ),
+            icon = Icons.Outlined.Download,
+            declineDescription = stringResource(R.string.ime_conversion_pack_offer_dismiss_desc),
+            onAccept = { onStripOfferAction(StripOfferAction.Accept()) },
+            onDecline = { onStripOfferAction(StripOfferAction.Decline) },
+            stretch = !packShares,
+            modifier = if (packShares) {
+                Modifier.widthIn(max = 260.dp).padding(horizontal = 4.dp)
+            } else {
+                Modifier.weight(1f).padding(horizontal = 4.dp)
+            },
+        )
+        if (!packShares) return true
+    }
+    // A word a swipe wrote, being read back: the chip hands that
+    // stroke to every word list at once, which is what the sandbox
+    // and the vocabulary cap keep the ordinary decode away from
+    // (#135). Last of the chips — it is about text already in the
+    // field, where the others are about what is being typed now — and
+    // the one chip with no sentence on it: the words it shares the
+    // strip with are the ones it is offering to improve on, and
+    // spelling the offer out took half the row from them (#264).
+    val searchChip = state.glideSearchChip
+    if (snippetOffer == null && learnOffer == null && sandboxOffer == null &&
+        wordListOffer == null && searchChip != null
+    ) {
+        StripIconChip(
+            icon = Icons.Outlined.Search,
+            description = stringResource(R.string.ime_glide_search_all_offer),
+            dismissDescription = stringResource(R.string.ime_glide_search_all_dismiss_desc),
+            onAccept = { onStripOfferAction(StripOfferAction.Accept()) },
+            onDismiss = { onStripOfferAction(StripOfferAction.Decline) },
+        )
+    }
+    // Stickers of the user's own that the text before the cursor asked
+    // for (#329), in the two styles that put them here rather than in
+    // the tray above. Narrow, like a keyword chip: the word that asked
+    // may simply be a word, so the candidates keep their place.
+    val stickerOfferNow = state.stickerOffer
+    if (stickerOfferNow != null && stickerStripShows(state)) {
+        StickerStripOffer(
+            offer = stickerOfferNow,
+            style = state.settings.gif.stickerSuggestStyle,
+            callbacks = stickerOffer,
+            modifier = Modifier.padding(start = 4.dp),
+        )
+    }
+    return false
+}
+
+/** What [StripAnswerChips] calls back into, bundled to keep its parameter list short. */
+private class StripAnswerCallbacks(
+    val onToolTap: (ToolbarTool) -> Unit,
+    val onSmartOpen: () -> Unit,
+    val onSmartAccept: () -> Unit,
+    val vocab: VocabCallbacks,
+    val onDismissInlineSuggestions: () -> Unit,
+    val onClipboardSuggestion: (ClipItem) -> Unit,
+    val onClipboardSuggestionDismiss: () -> Unit,
+    val onClipboardEntity: (ClipEntity) -> Unit,
+    val onRecentClipsToggle: () -> Unit,
+)
+
+/** The smart chip, the daily word, the clipboard chips and the smart replies. */
+@Composable
+private fun RowScope.StripAnswerChips(
+    state: KeyboardUiState,
+    suggestionsShowing: Boolean,
+    recentClipChip: Boolean,
+    recentClipsBar: Boolean,
+    smart: SmartSuggest.SmartHit?,
+    keywordChip: Boolean,
+    keywordInSlot: Boolean,
+    callbacks: StripAnswerCallbacks,
+): Boolean {
+    val onToolTap = callbacks.onToolTap
+    val onSmartOpen = callbacks.onSmartOpen
+    val onSmartAccept = callbacks.onSmartAccept
+    val vocab = callbacks.vocab
+    val onDismissInlineSuggestions = callbacks.onDismissInlineSuggestions
+    val onClipboardSuggestion = callbacks.onClipboardSuggestion
+    val onClipboardSuggestionDismiss = callbacks.onClipboardSuggestionDismiss
+    val onClipboardEntity = callbacks.onClipboardEntity
+    val onRecentClipsToggle = callbacks.onRecentClipsToggle
+    if (smart != null) {
+        // Opening runs in two halves: the service clears the trigger
+        // text and stages the prefill, then the tool is tapped the
+        // ordinary way so panel routing stays in one place.
+        val contactChip = smart.kind == SmartSuggest.Kind.CONTACT
+        val open = {
+            onSmartOpen()
+            // A contact chip's button texts the contact; the
+            // service does that alone, with no panel to open.
+            if (!contactChip) onToolTap(smart.tool)
+        }
+        // A vocabulary nudge has two doors: the card and the swap. The
+        // setting says which one the tap is; the hold is the other.
+        val vocabSwap = smart.kind == SmartSuggest.Kind.VOCAB && smart.insert != null
+        val vocabTapSwaps = vocabSwap &&
+            state.settings.vocabulary.chipTapAction == com.wasimaster.wmkeyboard.core.vocab.VocabChipTap.REPLACE
+        SmartSuggestionChip(
+            hit = smart,
+            reduceMotion = state.settings.reduceMotion,
+            icon = if (contactChip) Icons.Outlined.Call else toolIcon(smart.tool),
+            // An answer chip still shows with its tool switched off,
+            // and onToolTap would drop the gear's press without a word.
+            canOpen = contactChip || smart.tool in state.settings.enabledTools &&
+                isSupportedTool(smart.tool) && isUsableTool(smart.tool, state.settings),
+            // The tool it opens grows out of the chip.
+            modifier = Modifier.panelOrigin().then(
+                if (keywordInSlot) {
+                    Modifier.weight(1f).padding(horizontal = 4.dp)
+                } else if (keywordChip) {
+                    Modifier.padding(start = 4.dp)
+                } else {
+                    Modifier
+                        .weight(1f)
+                        .padding(horizontal = 4.dp)
+                },
+            ),
+            // A wide chip with nothing to type (the weather answer)
+            // opens its tool instead: the whole face is one door.
+            onAccept = {
+                when {
+                    // The face calls; the service starts the dialer.
+                    contactChip -> onSmartAccept()
+                    vocabTapSwaps -> onSmartAccept()
+                    // Rates it may fetch only on a tap: this is that tap.
+                    smart.awaitingTap -> onSmartAccept()
+                    keywordChip || smart.insert == null -> open()
+                    else -> onSmartAccept()
+                }
+            },
+            onOpen = open,
+            onLongPress = if (vocabSwap) {
+                { if (vocabTapSwaps) open() else onSmartAccept() }
+            } else {
+                null
+            },
+        )
+    }
+    if (smart != null && !keywordChip) return true
+    // The once-a-day word chip sits where a smart chip would, when none is up.
+    val daily = state.vocabDaily
+    if (smart == null && daily != null) {
+        VocabDailyChip(
+            word = daily.word,
+            hourly = state.settings.vocabulary.wordInterval != com.wasimaster.wmkeyboard.core.vocab.VocabWordInterval.DAILY,
+            modifier = Modifier.padding(start = 4.dp).panelOrigin(),
+            onOpen = {
+                vocab.onDailyOpen()
+                onToolTap(ToolbarTool.VOCABULARY)
+            },
+            onDismiss = vocab.onDailyDismiss,
+        )
+    }
+    // Platform smart replies. They share the row rather than claiming
+    // it: a proposed reply is a suggestion like any other, and the user
+    // may well be about to type something else entirely.
+    val smartReplies = state.smartReplyChips
+    // Recently-copied paste chip (Gboard style): takes the idle strip
+    // when there are no candidates, one tap from pasting the last copy.
+    // Word candidates always win the row, so it never hides a suggestion.
+    val recentClip = state.clipboardSuggestion
+    // A verification SMS is the one copy where the whole clip is not
+    // what you want pasted, so the chip offers the code out of it
+    // instead — dashed, to say it is a piece of the clip and not the
+    // clip. Only codes get this: a copied link or number is already
+    // exactly what the ordinary chip would paste.
+    val chipOtp = if (recentClip != null && state.settings.clipboard.detectEntities) {
+        remember(recentClip.id, recentClip.text) {
+            ClipEntities.extract(recentClip.text, recentClip.id)
+                .firstOrNull { it.kind == ClipEntityKind.OTP }
+                ?.takeIf { it.value != recentClip.text.trim() }
+        }
+    } else {
+        null
+    }
+    // Replies crowd the row the same way word candidates do, so the
+    // paste chip gives way to its narrow form when both are present
+    // rather than stretching across a strip it now shares.
+    val clipChipShares = suggestionsShowing || smartReplies.isNotEmpty()
+    // The last few copies as a row of chips (#414), newest first
+    // whatever is pinned (#612). Asked for by hand, so it holds the
+    // strip over any words until something is typed or its ✕.
+    // Text clips only, never a secret, the same gates as the
+    // single chip's.
+    val clipBarChips = if (recentClipsBar && smart == null) {
+        state.clipboardItems
+            .filter { it.kind.isTextual && !it.sensitive && it.text.isNotBlank() }
+            .sortedByDescending { it.timestamp }
+            .take(recentClipsRowCount(state.settings.clipboard.recentChips))
+    } else {
+        emptyList()
+    }
+    if (clipBarChips.isNotEmpty()) {
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            for (chip in clipBarChips) {
+                ClipboardSuggestionChip(
+                    clip = chip,
+                    onPaste = { onClipboardSuggestion(chip) },
+                    onDismiss = {},
+                    dismissible = false,
+                    modifier = Modifier.widthIn(max = 200.dp),
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .clickable { onClipboardSuggestionDismiss() }
+                .padding(horizontal = 8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Outlined.Close,
+                contentDescription = stringResource(R.string.ime_clip_chip_dismiss_desc),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+        return true
+    }
+    // The parts of a fresh copy take the strip (#612, opt-in): the
+    // copy itself, then a dashed chip per part, so a number in a
+    // message pastes from here rather than from the panel. Over
+    // the words, like the row of recent copies, until a key is
+    // typed or the ✕; the plain chip below carries on after that.
+    val fragmentClip = recentClip?.takeIf {
+        recentClipChip && smart == null &&
+            state.settings.clipboard.fragmentsOnStrip &&
+            state.settings.clipboard.detectEntities &&
+            state.clipFragmentsDoneId != it.id
+    }
+    val phoneFormats = state.settings.clipboard.phoneFormats
+    val stripFragments = if (fragmentClip != null) {
+        remember(fragmentClip.id, fragmentClip.text, phoneFormats) {
+            ClipEntities.byClip(listOf(fragmentClip), PhoneFormats.parseAll(phoneFormats))[fragmentClip.id]
+                .orEmpty()
+        }
+    } else {
+        emptyList()
+    }
+    if (fragmentClip != null && stripFragments.isNotEmpty()) {
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            ClipboardSuggestionChip(
+                clip = fragmentClip,
+                onPaste = { onClipboardSuggestion(fragmentClip) },
+                onDismiss = {},
+                dismissible = false,
+                modifier = Modifier.widthIn(max = 160.dp),
+            )
+            for (part in stripFragments) {
+                ClipboardSuggestionChip(
+                    clip = fragmentClip,
+                    otp = part,
+                    onPaste = { onClipboardEntity(part) },
+                    onDismiss = {},
+                    dismissible = false,
+                    modifier = Modifier.widthIn(max = 200.dp),
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .clickable { onClipboardSuggestionDismiss() }
+                .padding(horizontal = 8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Outlined.Close,
+                contentDescription = stringResource(R.string.ime_clip_chip_dismiss_desc),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+        return true
+    }
+    if (recentClipChip && smart == null) {
+        val clipChip = @Composable { chipModifier: Modifier ->
+            ClipboardSuggestionChip(
+                clip = recentClip,
+                otp = chipOtp,
+                onPaste = {
+                    if (chipOtp != null) onClipboardEntity(chipOtp)
+                    else onClipboardSuggestion(recentClip)
+                },
+                onDismiss = onClipboardSuggestionDismiss,
+                // More than the last copy, from a button on the
+                // chip (#612), when the row is set to hold more.
+                onMore = if (state.settings.clipboard.recentChips > 1) {
+                    onRecentClipsToggle
+                } else null,
+                modifier = chipModifier,
+            )
+        }
+        if (clipChipShares) {
+            clipChip(Modifier.widthIn(max = 160.dp).padding(horizontal = 4.dp))
+        } else {
+            // Alone on the strip it still sizes to what it holds
+            // (#519): a four-letter copy is a short pill, not a bar
+            // with the ✕ a screen away. The Box keeps the rest of
+            // the row where a full-width chip would have left it.
+            Box(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                contentAlignment = Alignment.CenterStart,
+            ) {
+                clipChip(Modifier.widthIn(max = ClipChipMaxWidth).padding(horizontal = 4.dp))
+            }
+            return true
+        }
+    }
+    // Nothing typed yet: the replies are the strip, so they take the
+    // rest of the row and carry the dismiss ✕ the way the autofill lane
+    // does. This is the case they exist for — the message is on screen,
+    // the field is empty, and the reply is the whole answer.
+    if (smartReplies.isNotEmpty() && !suggestionsShowing) {
+        InlineChipRow(
+            chips = smartReplies,
+            modifier = Modifier.weight(1f).fillMaxHeight(),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .clickable { onDismissInlineSuggestions() }
+                .padding(horizontal = 8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Outlined.Close,
+                contentDescription = stringResource(R.string.ime_smart_replies_dismiss_desc),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+        return true
+    }
+    return false
+}
+
+/** The words themselves (or a conversion's candidates), then the emoji, replies and marks after them. */
+@Composable
+private fun RowScope.StripWords(
+    state: KeyboardUiState,
+    held: HeldCandidates,
+    suggestionsShowing: Boolean,
+    shownSuggestions: List<String>,
+    shownEmojiSuggestions: List<String>,
+    shownInlineEmoji: Boolean,
+    shownPunctuation: List<String>,
+    glideStripOnly: Boolean,
+    fixedStrip: Boolean,
+    keywordInSlot: Boolean,
+    stripContentFade: () -> Float,
+    onSuggestion: (String) -> Unit,
+    suggestionHold: SuggestionHoldCallbacks,
+    onJoinSuggestion: () -> Unit,
+    onRevisionSuggestion: () -> Unit,
+    onCandidate: (String, Int) -> Unit,
+    onCandidatesExpand: () -> Unit,
+    onEmojiSuggestion: (String, Boolean) -> Unit,
+    onPunctuation: (String) -> Unit,
+) {
+    val smartReplies = state.smartReplyChips
+    // Latin gets three wide chips; a conversion IME gets a scrolling
+    // row. Three is the right number when the engine is choosing for you
+    // and you only overrule it now and then, but a pinyin reading is
+    // genuinely ambiguous — the composer offers a dozen candidates and
+    // picking among them *is* the typing. Splitting here rather than
+    // widening the shared row keeps the Latin strip exactly as it was.
+    // Issue #413: with the setting on, an emoji candidate is one of
+    // the slots the count asks for rather than a chip after them,
+    // so the strip never shows more than that number. The words
+    // give up one slot and the emoji takes it at the same width.
+    // Never beside a conversion's candidates: those scroll in a row
+    // weighted to the whole strip, and a weighted emoji slot would
+    // take half of it (#633).
+    val emojiInSlot = (state.settings.suggestionStrip.emojiTakesSlot || fixedStrip) &&
+        shownEmojiSuggestions.isNotEmpty() && !shownInlineEmoji && !glideStripOnly && !held.conversion
+    // The marks and the emoji never show together (the service
+    // leaves one list empty), so they share the one last slot.
+    val punctuationInSlot = fixedStrip && !emojiInSlot && shownPunctuation.isNotEmpty()
+    val rewriteInSlot = fixedStrip && suggestionsShowing && (
+        state.joinSuggestion ?: state.revisionSuggestion
+            ?: state.correctionOffer ?: state.correctionUndo
+        ) != null
+    // Slots ahead of the words, so the primary can still land in
+    // the strip's own second slot.
+    val leadSlots = (if (keywordInSlot) 1 else 0) + (if (rewriteInSlot) 1 else 0)
+    val tailSlots = if (emojiInSlot || punctuationInSlot) 1 else 0
+    val wordSlots = (state.settings.suggestionStrip.slotCount - leadSlots - tailSlots)
+        .coerceAtLeast(1)
+    if (shownInlineEmoji) {
+        // A ":tada" buffer: emoji, in the emoji font, as many as fit
+        // the scroll rather than the three slots words get.
+        InlineEmojiChips(
+            emojis = shownSuggestions,
+            enabled = suggestionsShowing,
+            alpha = stripContentFade,
+            onEmoji = onSuggestion,
+        )
+    } else if (held.conversion) {
+        CandidateStrip(
+            candidates = shownSuggestions,
+            enabled = suggestionsShowing,
+            alpha = stripContentFade,
+            textScale = state.settings.suggestionStrip.textScale,
+            hints = if (suggestionsShowing) suggestionHintPlan(state) else null,
+            highlighted = state.candidateCursor,
+            adjustable = state.composer.adjustsChoices,
+            onCandidate = onCandidate,
+            onExpand = onCandidatesExpand,
+            onAdjust = suggestionHold.onCandidateAdjust,
+        )
+    } else {
+        // The join chip leads the row, visually apart from the three
+        // word slots: it rewrites text already in the field, which a
+        // plain suggestion never does. The revision chip shares the
+        // slot (they can't coexist: join needs a composing word,
+        // revision needs an empty one) and the same look, for the
+        // same reason — both rewrite committed text on tap. So does
+        // the near-miss correction chip, behind both: a confusable the
+        // follower has already proved wrong is better evidence than a
+        // correction that only came close.
+        // Behind all three sits the undo chip, which is the odd one
+        // out: it puts back a word the keyboard already replaced,
+        // rather than rewriting one the user typed. Last because
+        // everything above it is about the word at the caret, and the
+        // correction it takes back may be several words old.
+        val join = state.joinSuggestion
+        val revision = state.revisionSuggestion
+        val undo = state.correctionUndo
+        val rewriteChip = join ?: revision ?: state.correctionOffer ?: undo
+        if (rewriteChip != null && suggestionsShowing && !glideStripOnly) {
+            val undoing = join == null && revision == null &&
+                state.correctionOffer == null && undo != null
+            Box(
+                modifier = Modifier
+                    .then(if (rewriteInSlot) Modifier.weight(1f) else Modifier)
+                    .fillMaxHeight()
+                    .graphicsLayer { alpha = stripContentFade() }
+                    .padding(vertical = 8.dp, horizontal = 2.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .clickable {
+                        if (join != null) onJoinSuggestion() else onRevisionSuggestion()
+                    }
+                    .padding(horizontal = 10.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    // The arrow is what separates "put this back" from
+                    // the three chips that read as plain words. An icon
+                    // rather than an arrow glyph because the strip is
+                    // drawn in whatever font the theme picked, and half
+                    // of those have no arrows in them.
+                    if (undoing) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.Undo,
+                            // Named, unlike the chip's own word: the
+                            // three chips above this one read as
+                            // "replace with X", and a screen reader
+                            // has nothing else to tell it this one
+                            // goes the other way.
+                            contentDescription = stringResource(
+                                R.string.ime_undo_correction_desc,
+                            ),
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        )
+                    }
+                    Text(
+                        text = rewriteChip,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        maxLines = 1,
+                    )
+                }
+            }
+        }
+        LatinSuggestionChips(
+            // One slot, so the word sits centred across the whole strip
+            // rather than in the first of three (see [glideStripOnly]).
+            candidates = if (glideStripOnly) {
+                listOfNotNull(state.glideWord)
+            } else {
+                shownSuggestions
+            },
+            enabled = suggestionsShowing,
+            alpha = stripContentFade,
+            slotCount = wordSlots,
+            weight = wordSlots.toFloat(),
+            textScale = state.settings.suggestionStrip.textScale,
+            scrollable = state.settings.suggestionStrip.scrollable,
+            textPadding = state.settings.suggestionStrip.chipPadding.dp,
+            centerPrimaryEnabled = state.settings.suggestionStrip.suggestionPrimaryCenter &&
+                !state.fixedPhoneticStrip(),
+            primaryColor = state.settings.suggestionStrip.primaryColor?.let { Color(it.toInt()) },
+            autocorrectWord = state.autocorrectWord,
+            // A fixed phonetic strip leads with the word as typed, not
+            // with what a space writes; the bold follows the latter.
+            primaryWord = if (state.fixedPhoneticStrip()) state.autocorrectWord.orEmpty() else null,
+            // Mid-stroke, the shift the lift will commit under (#162):
+            // a glide through the shift key previews its capital on
+            // the strip as well as in the pill. Zero crossings between
+            // strokes, so this is the board's own shift then.
+            shiftState = shiftForGlide(state.shiftState, state.glideCase),
+            // Per-letter capitals a stroke drew (#163), which no one
+            // shift state can say; empty under the whole-word reading.
+            casedWords = state.glideCased,
+            // A glided trigger shows what the lift types for it (#205).
+            expansions = state.glideExpansions,
+            // Only while the live candidates are the ones on screen: the
+            // strip holds the last set behind alpha 0, and a key promised
+            // against a faded word would commit something else.
+            hints = if (suggestionsShowing) suggestionHintPlan(state) else null,
+            onSuggestion = onSuggestion,
+            suggestionHold = suggestionHold,
+            menuItems = state.settings.suggestionStrip.wordMenuItems,
+            overflow = state.settings.suggestionStrip.overflow,
+            fixedSlots = fixedStrip,
+            primarySlot = (1 - leadSlots).coerceAtLeast(0),
+            tinted = state.settings.suggestionStrip.tintedSlots,
+        )
+        // The word card (#99) is a window over the whole keyboard, so
+        // where it is composed does not matter; it lives beside the
+        // strip that opens it. It steps aside while its own spelling
+        // editor is up (#138): that window covers the keys the
+        // respelling is typed on.
+        // Composed with a null value too, so the popup can play its
+        // way out after the service has closed it.
+        WordCardPopup(
+            card = state.wordCard?.takeIf { state.wordSpell == null },
+            onAction = suggestionHold.onCard,
+        )
+        // The synonyms a held word asked for (#321), a window over the
+        // keyboard like the card.
+        SynonymsPopup(sheet = state.synonyms, onAction = suggestionHold.onSynonyms)
+    }
+    // Emoji candidates ride along after the words: typing "birthday"
+    // puts 🎂 🎉 🥳 🎁 one tap away. Held set, so they fade out with
+    // the words rather than vanishing; taps gated to the live ones.
+    //
+    // Holding one runs the *other* insert mode: the setting decides
+    // which of "replace the word" and "keep the word" a tap does, and
+    // the hold is the escape hatch for the one time you want the other,
+    // without a trip to settings. The label says which, read from the
+    // live setting, so TalkBack announces the action rather than "long
+    // press".
+    //
+    // The label is resolved inside the guard, not above it: the strip
+    // recomposes on every keystroke, and most of those have no emoji
+    // candidates to label.
+    if (shownEmojiSuggestions.isNotEmpty()) {
+        val holdLabel = stringResource(
+            if (state.settings.emojiInsertMode == EmojiInsertMode.APPEND) {
+                R.string.ime_emoji_suggestion_hold_replace
+            } else {
+                R.string.ime_emoji_suggestion_hold_keep
+            },
+        )
+        val emojiShown = if (emojiInSlot) 1 else state.settings.suggestionStrip.emojiCount
+        for (emoji in shownEmojiSuggestions.take(emojiShown)) {
+            Box(
+                modifier = Modifier
+                    // A slot of its own, the width of a word's (#413).
+                    .then(if (emojiInSlot) Modifier.weight(1f) else Modifier)
+                    .fillMaxHeight()
+                    .graphicsLayer { alpha = stripContentFade() }
+                    .combinedClickable(
+                        enabled = suggestionsShowing,
+                        onLongClickLabel = holdLabel,
+                        onLongClick = { onEmojiSuggestion(emoji, true) },
+                        onClick = { onEmojiSuggestion(emoji, false) },
+                    )
+                    .padding(horizontal = 5.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = LocalEmojiShaper.current.shape(emoji),
+                    fontSize = 22.sp,
+                    fontFamily = emojiFamilyFor(emoji),
+                )
+            }
+        }
+    }
+    // Replies ride the tail once there are words to share with, capped
+    // in width so the candidates keep their three slots — the weighted
+    // word row is measured after unweighted children, so an unbounded
+    // scroll row here would quietly eat the whole strip.
+    if (smartReplies.isNotEmpty()) {
+        VerticalDivider(
+            modifier = Modifier.height(20.dp),
+            color = MaterialTheme.colorScheme.outlineVariant,
+        )
+        InlineChipRow(
+            chips = smartReplies,
+            modifier = Modifier.widthIn(max = 180.dp).fillMaxHeight(),
+        )
+    }
+    // Quick-punctuation chips ride the tail (the service leaves the list
+    // empty whenever an emoji prediction claimed it, so the two never
+    // fight for the row). A leading divider sets them off from the words.
+    if (shownPunctuation.isNotEmpty()) {
+        VerticalDivider(
+            modifier = Modifier
+                .height(20.dp)
+                .graphicsLayer { alpha = stripContentFade() },
+            color = MaterialTheme.colorScheme.outlineVariant,
+        )
+        // In a slot of their own (#513) the marks share the last
+        // slot's width between them instead of each taking its own.
+        Row(
+            modifier = if (punctuationInSlot) Modifier.weight(1f) else Modifier,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            for (mark in shownPunctuation) {
+                Box(
+                    modifier = Modifier
+                        .then(if (punctuationInSlot) Modifier.weight(1f) else Modifier)
+                        .fillMaxHeight()
+                        .graphicsLayer { alpha = stripContentFade() }
+                        .clickable(enabled = suggestionsShowing) { onPunctuation(mark) }
+                        .padding(horizontal = if (punctuationInSlot) 2.dp else 8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = mark,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
+            }
+        }
+    }
 }
 
 /**
