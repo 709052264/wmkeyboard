@@ -2113,6 +2113,12 @@ data class ToolboxSettings(
      * owns an order, and a folder sits wherever its first tool falls in it.
      */
     val folders: List<ToolboxFolder> = emptyList(),
+    /**
+     * The search button beside the back button on the toolbar while the
+     * toolbox is open (#687). Off leaves the toolbox with no search at all,
+     * for someone who finds every tool by where it sits.
+     */
+    val searchButton: Boolean = true,
 ) {
     /** The caption size to draw at, resolving 0 against the toolbar's setting. */
     fun labelSizeOr(toolbarLabelSize: Int): Int =
@@ -10063,6 +10069,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBOX_LABEL_SIZE = intPreferencesKey("toolbox_label_size")
         private val TOOLBOX_HIDDEN_TOOLS = stringPreferencesKey("toolbox_hidden_tools")
         private val TOOLBOX_FOLDERS = stringPreferencesKey("toolbox_folders")
+        private val TOOLBOX_SEARCH_BUTTON = booleanPreferencesKey("toolbox_search_button")
         private val SUGGESTION_TEXT_SCALE = floatPreferencesKey("suggestion_text_scale")
         private val LEARNED_WORD_MIN_COUNT = intPreferencesKey("learned_word_min_count")
         private val NEW_WORD_SIGHTINGS = intPreferencesKey("new_word_sightings")
@@ -11866,6 +11873,7 @@ class SettingsRepository(private val context: Context) {
             labelSizeSp = p[TOOLBOX_LABEL_SIZE] ?: defaults.toolbox.labelSizeSp,
             hiddenTools = decodeToolNames(p[TOOLBOX_HIDDEN_TOOLS]).toSet(),
             folders = decodeToolboxFolders(p[TOOLBOX_FOLDERS]),
+            searchButton = p[TOOLBOX_SEARCH_BUTTON] ?: defaults.toolbox.searchButton,
         )
 
     private fun readSensorTools(p: Preferences, defaults: KeyboardSettings) =
@@ -13595,6 +13603,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setToolboxPaginate(value: Boolean) =
         editPrefs { it[TOOLBOX_PAGINATE] = value }
+
+    suspend fun setToolboxSearchButton(value: Boolean) =
+        editPrefs { it[TOOLBOX_SEARCH_BUTTON] = value }
 
     suspend fun setToolboxPageSize(value: Int) =
         editPrefs { it[TOOLBOX_PAGE_SIZE] = value.coerceIn(ToolboxPageSizeRange) }
@@ -16605,6 +16616,7 @@ class SettingsRepository(private val context: Context) {
         it.remove(TOOLBOX_PAGINATE)
         it.remove(TOOLBOX_PAGE_SIZE)
         it.remove(TOOLBOX_LABEL_SIZE)
+        it.remove(TOOLBOX_SEARCH_BUTTON)
     }
 
     suspend fun setHoldToTalkMs(value: Int) = editPrefs {

@@ -1623,7 +1623,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Folder sits where its first tool ranks — toolboxOrder stays a ranking of tools, so mode-owned orders keep working; one set of folders for every mode
     - Dissolves at one tool — normalizedFolders drops folders under TOOLBOX_FOLDER_MIN_TOOLS
     - Pinnable — A pinned folder draws after the bar's tools and opens the toolbox at itself; drag a folder onto the bar to pin it
-  - Toolbox search `RARE` (#687) — Header magnifier; TOOLBOX_SEARCH capture field with the keys under a shorter panel; matches names across folders, starts-with first; Enter opens the first
+  - Toolbox search `RARE` (#687) — Magnifier beside the toolbar back button while the toolbox is open (ToolboxSettings.searchButton, key toolbox_search_button), opens full-bleed with its own back button; TOOLBOX_SEARCH capture field with the keys under a shorter panel; matches names across folders, starts-with first; Enter opens the first
   - Tools on their own row `uncommon` — ToolbarPlacement: STRIP (default, shares the suggestion strip), ON_DEMAND_ROW (the chevron opens a tools row above it, FUTO-style), ALWAYS_ROW (that row stays open, LeanType-style)
     - Strip stops flipping — With a row of their own the strip is only ever candidates, so the surface swap, the emoji handoff and the settle beat all rest
     - Chevron changes job — Opens and closes the row on ON_DEMAND_ROW, and disappears on ALWAYS_ROW where it would do nothing

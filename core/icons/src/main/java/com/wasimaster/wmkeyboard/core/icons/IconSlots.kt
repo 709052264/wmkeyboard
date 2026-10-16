@@ -111,6 +111,7 @@ object IconSlots {
     /** The toolbar-only view's button for a physical keyboard (#642), each way. */
     const val CHROME_SHOW_KEYS = "chrome.show_keys"
     const val CHROME_HIDE_KEYS = "chrome.hide_keys"
+    const val CHROME_TOOLBOX_SEARCH = "chrome.toolbox_search"
 
     // ---- emoji tab slots ----
 
@@ -184,6 +185,7 @@ object IconSlots {
         IconSlot(CHROME_POWER_SAVING, IconSlotGroup.CHROME, R.string.core_icons_slot_power_saving_label),
         IconSlot(CHROME_SHOW_KEYS, IconSlotGroup.CHROME, R.string.core_icons_slot_show_keys_label),
         IconSlot(CHROME_HIDE_KEYS, IconSlotGroup.CHROME, R.string.core_icons_slot_hide_keys_label),
+        IconSlot(CHROME_TOOLBOX_SEARCH, IconSlotGroup.CHROME, R.string.core_icons_slot_toolbox_search_label),
     )
 
     private val emojiTabSlots: List<IconSlot> = buildList {

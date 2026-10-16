@@ -757,6 +757,15 @@ internal fun AppearanceToolboxSettings(
                 default = SettingsDefaults.toolbox.labelSizeSp.toFloat(),
             ) { scope.launch { repository.setToolboxLabelSize(it.roundToInt()) } }
         }
+        item {
+            ToggleSetting(
+                R.string.appearance_toolbox_search_button_title,
+                stringResource(R.string.appearance_toolbox_search_button_subtitle),
+                settings.watch { it.toolbox.searchButton },
+                info = stringResource(R.string.appearance_toolbox_search_button_info),
+                default = SettingsDefaults.toolbox.searchButton,
+            ) { scope.launch { repository.setToolboxSearchButton(it) } }
+        }
         // Drawn only once something has actually moved, like the group reset on
         // Layout & size. The order of the tools has its own reset above.
         item(visible = toolboxMoved) {

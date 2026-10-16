@@ -318,6 +318,7 @@ object IconDefaults {
         put(IconSlots.CHROME_POWER_SAVING, Icons.Outlined.BatterySaver)
         put(IconSlots.CHROME_SHOW_KEYS, Icons.Outlined.Keyboard)
         put(IconSlots.CHROME_HIDE_KEYS, Icons.Outlined.KeyboardHide)
+        put(IconSlots.CHROME_TOOLBOX_SEARCH, Icons.Outlined.Search)
 
         put(IconSlots.EMOJI_TAB_SEARCH, Icons.Outlined.Search)
         put(IconSlots.EMOJI_TAB_RECENT, Icons.Outlined.Schedule)

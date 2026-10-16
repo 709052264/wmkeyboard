@@ -10363,6 +10363,19 @@ private fun RowScope.ToolbarRow(
                 }
             }
         }
+        // The toolbox's search sits beside the way back while the toolbox is
+        // open (#687), and opens over the whole keyboard (see [barFullBleed]).
+        if (customizing && state.settings.toolbox.searchButton && !state.toolboxView.searchActive) {
+            Box(cell, contentAlignment = Alignment.Center) {
+                ToolCircle(
+                    slot = IconSlots.CHROME_TOOLBOX_SEARCH,
+                    description = stringResource(R.string.ime_toolbox_search_desc),
+                    active = false,
+                    longPressLabel = stringResource(R.string.ime_toolbox_search_desc),
+                    wide = true,
+                ) { drag.toolbox.onSearchToggle() }
+            }
+        }
         Box(cell, contentAlignment = Alignment.Center) {
             ToolCircle(
                 slot = IconSlots.CHROME_TOOLBOX,
@@ -10695,8 +10708,9 @@ private data class ToolboxOrderPreview(
  *
  * A tool held over the middle of another and let go there makes a folder of
  * the two (#709), which takes one cell and opens in place onto its own grid.
- * The header's search (#687) lists the tools whose names match what the keys
- * type, folders or not, with the keys under a shorter panel.
+ * The search (#687), opened from the toolbar beside the back button, takes the
+ * whole keyboard and lists the tools whose names match what the keys type,
+ * folders or not, with the keys under a shorter panel.
  */
 @Composable
 private fun ToolboxPanel(
@@ -10713,7 +10727,7 @@ private fun ToolboxPanel(
     // Which level of the toolbox is showing. Moving between them is one
     // transition (#709, #687): into a folder its grid grows out of the cell
     // that was tapped, back out it settles down into that same spot, and the
-    // search grows from the magnifier in the corner. The header crossfades
+    // search grows from the corner its button sat over. The header crossfades
     // with it, on the same clock.
     val level = when {
         searching -> "search"
@@ -10733,7 +10747,7 @@ private fun ToolboxPanel(
         val box = drag.toolboxViewport
         val from = drag.folderOrigin
         levelPivot = when {
-            level == "search" || leaving == "search" -> TransformOrigin(1f, 0f)
+            level == "search" || leaving == "search" -> TransformOrigin(0f, 0f)
             box != null && from != null && box.width > 0f && box.height > 0f -> TransformOrigin(
                 ((from.x - box.left) / box.width).coerceIn(0f, 1f),
                 ((from.y - box.top) / box.height).coerceIn(0f, 1f),
@@ -10769,14 +10783,17 @@ private fun ToolboxPanel(
     val typing = state.captureTarget().let {
         it == CaptureTarget.TOOLBOX_SEARCH || it == CaptureTarget.TOOLBOX_FOLDER_NAME
     }
+    // The search is full-bleed: the toolbar and the rows with it hide, and
+    // the panel takes their height so the window keeps its size.
+    val bled = if (searching) fullBleedHiddenRows(state, macroRowAtPanelOpen(state)) else 0.dp
     val height = if (typing) {
         toolPanelHeight(
             state,
-            wanted = ClipboardSearchHeight - captureStripHeight(state),
+            wanted = ClipboardSearchHeight - captureStripHeight(state) + bled,
             floor = ToolboxHeaderHeight,
         )
     } else {
-        keyRowsHeight(state)
+        keyRowsHeight(state) + bled
     }
     // First open: always show the drag hint. After it was dismissed once,
     // resurface it only rarely as a reminder. Rolled once per panel open.
@@ -10817,7 +10834,13 @@ private fun ToolboxPanel(
                 },
         ) {
             when {
-                searching -> ToolboxHeaderRow {
+                searching -> ToolboxHeaderRow(Modifier.height(FullBleedHeaderHeight)) {
+                    ToolCircle(
+                        slot = IconSlots.CHROME_PANEL_BACK,
+                        description = stringResource(R.string.ime_panel_back_desc),
+                        active = false,
+                        onClick = callbacks.onSearchToggle,
+                    )
                     HeaderSearchPill(
                         query = view.query,
                         placeholder = stringResource(R.string.ime_toolbox_search_hint),
@@ -10826,14 +10849,12 @@ private fun ToolboxPanel(
                     )
                 }
                 openFolder != null -> ToolboxFolderHeader(state, openFolder, drag)
-                else -> ToolboxTopHeader(
+                hintVisible -> ToolboxTopHeader(
                     state = state,
-                    hintVisible = hintVisible,
                     onHintDismiss = {
                         hintVisible = false
                         onHintDismiss()
                     },
-                    onSearch = callbacks.onSearchToggle,
                 )
             }
         }
@@ -11574,55 +11595,41 @@ private fun ToolboxHeaderButton(description: String, onClick: () -> Unit, icon: 
 }
 
 /**
- * The toolbox header at its top level: the drag hint until it is dismissed,
- * and the search (#687) at the end, always.
+ * The toolbox header at its top level: the drag hint, until it is dismissed.
+ * The search (#687) is on the toolbar, beside the back button.
  */
 @Composable
 private fun ToolboxTopHeader(
     state: KeyboardUiState,
-    hintVisible: Boolean,
     onHintDismiss: () -> Unit,
-    onSearch: () -> Unit,
 ) {
     val tint = MaterialTheme.colorScheme.onSurfaceVariant
     ToolboxHeaderRow {
-        if (hintVisible) {
-            val activeMode = state.settings.keyboardModes
-                .firstOrNull { it.id == state.activeModeId }
-                ?.takeIf { state.settings.modeToolOrderEdits && it.ownsToolOrder }
-            // With a mode on, the arrangement being edited is that mode's
-            // own — say so, or the same keyboard looking different in the
-            // next app reads as the drag being lost.
-            val dragHint = stringResource(R.string.ime_toolbox_hint_drag)
-            Text(
-                if (activeMode != null) {
-                    stringResource(R.string.ime_toolbox_hint_mode, activeMode.name) + " " + dragHint
-                } else {
-                    dragHint
-                },
-                fontSize = 12.sp,
-                color = tint,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 16.dp, top = 2.dp, bottom = 2.dp),
-            )
-            ToolboxHeaderButton(stringResource(R.string.ime_toolbox_hint_dismiss_desc), onHintDismiss) {
-                Icon(
-                    Icons.Outlined.Close,
-                    contentDescription = stringResource(R.string.ime_toolbox_hint_dismiss_desc),
-                    modifier = Modifier.size(16.dp),
-                    tint = tint,
-                )
-            }
-        } else {
-            Spacer(Modifier.weight(1f))
-        }
-        ToolboxHeaderButton(stringResource(R.string.ime_toolbox_search_desc), onSearch) {
+        val activeMode = state.settings.keyboardModes
+            .firstOrNull { it.id == state.activeModeId }
+            ?.takeIf { state.settings.modeToolOrderEdits && it.ownsToolOrder }
+        // With a mode on, the arrangement being edited is that mode's
+        // own — say so, or the same keyboard looking different in the
+        // next app reads as the drag being lost.
+        val dragHint = stringResource(R.string.ime_toolbox_hint_drag)
+        Text(
+            if (activeMode != null) {
+                stringResource(R.string.ime_toolbox_hint_mode, activeMode.name) + " " + dragHint
+            } else {
+                dragHint
+            },
+            fontSize = 12.sp,
+            color = tint,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 16.dp, top = 2.dp, bottom = 2.dp),
+        )
+        ToolboxHeaderButton(stringResource(R.string.ime_toolbox_hint_dismiss_desc), onHintDismiss) {
             Icon(
-                Icons.Outlined.Search,
-                contentDescription = stringResource(R.string.ime_toolbox_search_desc),
-                modifier = Modifier.size(18.dp),
+                Icons.Outlined.Close,
+                contentDescription = stringResource(R.string.ime_toolbox_hint_dismiss_desc),
+                modifier = Modifier.size(16.dp),
                 tint = tint,
             )
         }
@@ -21767,7 +21774,11 @@ internal fun clipboardStacked(state: KeyboardUiState): Boolean =
 
 /** A panel is claiming the strip's height, so the rows above the keys are gone. */
 internal fun barFullBleed(state: KeyboardUiState): Boolean =
-    isFullBleedPanel(state.panel, state.settings) && !barClipboardSearching(state)
+    (isFullBleedPanel(state.panel, state.settings) || toolboxSearchBleeds(state)) && !barClipboardSearching(state)
+
+/** The toolbox's search takes the whole keyboard, with its own way back (#687). */
+private fun toolboxSearchBleeds(state: KeyboardUiState): Boolean =
+    state.panel == PanelMode.TOOLBOX && state.toolboxView.searchActive
 
 internal fun emojiRowVisible(state: KeyboardUiState): Boolean =
     !barFullBleed(state) &&

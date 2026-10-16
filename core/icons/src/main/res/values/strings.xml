@@ -64,6 +64,7 @@
     <string name="core_icons_slot_suggestions_expand_label">Show tools</string>
     <string name="core_icons_slot_emoji_shortcut_label">Emoji shortcut</string>
     <string name="core_icons_slot_search_close_label">Close search</string>
+    <string name="core_icons_slot_toolbox_search_label">Toolbox search</string>
     <!-- The badge that marks the keyboard as incognito, so it learns nothing. -->
     <string name="core_icons_slot_incognito_label">Incognito badge</string>
     <string name="core_icons_slot_power_saving_label">Power saving badge</string>
