@@ -2403,10 +2403,16 @@ open class WMKeyboardService : InputMethodService() {
                 val scheme = PhoneticSchemes.forLanguage(token.removeSuffix(WITH_SPELLING_MAP))
                     ?: return@mapNotNull null
                 val spellings = if (token.endsWith(WITH_SPELLING_MAP)) loadSpellingMap(scheme) else SpellingMap.EMPTY
-                val index = scheme.buildIndex(phoneticEntries(scheme.languageId))
+                // Shared across service instances: the system recreates the
+                // service every few seconds at times, and each one building its
+                // own index is what ran the heap out (#716).
+                val index = PhoneticIndexCache.get(scheme.languageId, phoneticSignature(scheme.languageId)) {
+                    scheme.buildIndex(phoneticEntries(scheme.languageId))
+                }
                 scheme.languageId to PhoneticBackend(scheme, index, spellings)
             }.toMap()
         }
+        PhoneticIndexCache.retain(backends.keys)
         engine.extraPhonetic = backends
         romanizedGlides = romanizedGlides.filterKeys {
             it == PhoneticSchemes.BENGALI.languageId || it == KHIPRO_GLIDE || it == PINYIN_GLIDE
@@ -2445,6 +2451,17 @@ open class WMKeyboardService : InputMethodService() {
             emptyList()
         }
         return downloaded + CustomDictionaries.entries(filesDir, langId)
+    }
+
+    /** The files [phoneticEntries] reads, as [PhoneticIndexCache] compares them. */
+    private fun phoneticSignature(langId: String): PhoneticIndexCache.Signature {
+        if (!userUnlocked) return PhoneticIndexCache.Signature(emptyList())
+        val downloaded = if (shippedDictionaryEnabled(langId)) {
+            listOf(DictionaryStore.downloadedFile(filesDir, langId))
+        } else {
+            emptyList()
+        }
+        return PhoneticIndexCache.Signature.of(downloaded + CustomDictionaries.lists(filesDir, langId))
     }
 
     /** Whether Bengali is on *and* has kept its fixed-spelling map switched on. */
