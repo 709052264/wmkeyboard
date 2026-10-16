@@ -13,6 +13,7 @@ import com.wasimaster.wmkeyboard.core.dictionaries.KhiproGlideDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackDownloadManager
 import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackEntry
+import com.wasimaster.wmkeyboard.core.dictionaries.PhoneticIndexDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.WordlistDownloadManager
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictCatalog
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictDownloadManager
@@ -259,6 +260,12 @@ internal object OfflineImport {
             return attempt(name, busy = KhiproGlideDownloads.isBusy) {
                 KhiproGlideDownloads.install(filesDir, file)
                 Outcome(name, true, R.string.offline_import_khipro_glide_done)
+            }
+        }
+        PhoneticIndexDownloads.languageOfPublishedName(name)?.let { langId ->
+            return attempt(name, busy = PhoneticIndexDownloads.isBusy(langId)) {
+                PhoneticIndexDownloads.install(filesDir, langId, file)
+                Outcome(name, true, R.string.offline_import_phonetic_index_done, listOf(languageName(langId)))
             }
         }
         if (name == CutoutModel.FILE_NAME) {

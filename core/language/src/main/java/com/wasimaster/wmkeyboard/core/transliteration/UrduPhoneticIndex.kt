@@ -55,47 +55,20 @@ package com.wasimaster.wmkeyboard.core.transliteration
  * The curated spelling map (`ur_rom.tsv`) sits in front of all of it for the
  * words people type most often.
  */
-class UrduPhoneticIndex(entries: List<Pair<String, Int>>) : PhoneticIndex {
+class UrduPhoneticIndex(private val table: PhoneticTable) : PhoneticIndex {
 
-    private val byKey = HashMap<String, MutableList<Entry>>()
-    private val freqByWord = HashMap<String, Int>()
+    /** An index built on the device over [entries], `word to frequency`. */
+    constructor(entries: List<Pair<String, Int>>) : this(table(entries))
 
-    private class Entry(
-        val word: String,
-        val frequency: Int,
-        val detail: String,
-        /** Filed with a closing ہ or a ں undone, which costs it a little. */
-        val relaxed: Boolean,
-    )
-
-    init {
-        for ((word, frequency) in entries) {
-            // Compiled and scraped lists both carry tokens that are not words:
-            // ur_full spells its compounds with an underscore (آؤ_بھگت), and the
-            // fold would file those under the first word's key.
-            if (!word.all(::isWordChar)) continue
-            val slots = urduSlots(word)
-            if (slots.isEmpty()) continue
-            val seen = HashSet<String>(4)
-            for ((relaxed, variant) in relaxations(slots)) {
-                val folded = fold(variant)
-                if (folded.key.isEmpty() || !seen.add(folded.key)) continue
-                byKey.getOrPut(folded.key) { ArrayList(1) }
-                    .add(Entry(word, frequency, folded.detail, relaxed))
-            }
-            freqByWord.merge(word, frequency, ::maxOf)
-        }
-    }
-
-    override val isEmpty: Boolean get() = byKey.isEmpty()
+    override val isEmpty: Boolean get() = table.isEmpty
 
     override fun lookup(input: String): List<String> {
         val typed = fold(romanSlots(input))
-        val bucket = byKey[typed.key].orEmpty()
+        val bucket = table.rows(typed.key)
         if (bucket.size <= 1) return bucket.map { it.word }
         return bucket
             .sortedWith(
-                compareByDescending<Entry> {
+                compareByDescending<PhoneticRow> {
                     it.frequency.toLong() * SCALE / handicap(it, typed)
                 }
                     .thenBy { it.word.length }
@@ -105,24 +78,24 @@ class UrduPhoneticIndex(entries: List<Pair<String, Int>>) : PhoneticIndex {
             .distinct()
     }
 
-    override fun frequencyOf(word: String): Int = freqByWord[word] ?: 0
+    override fun frequencyOf(word: String): Int = table.frequencyOf(word)
 
     override fun matchStrength(input: String): Int {
         val typed = fold(romanSlots(input))
-        val best = byKey[typed.key].orEmpty()
+        val best = table.rows(typed.key)
             .maxOfOrNull { it.frequency / handicap(it, typed) }
             ?: 0L
         return best.toInt()
     }
 
-    override val maxFrequency: Int = freqByWord.values.maxOrNull() ?: 0
+    override val maxFrequency: Int get() = table.maxFrequency
 
     /**
      * What to divide [entry]'s frequency by for disagreeing with what was
      * typed. 1 means it agrees on every count.
      */
-    private fun handicap(entry: Entry, typed: Folded): Long {
-        var divisor = if (entry.relaxed) RELAXED else 1L
+    private fun handicap(entry: PhoneticRow, typed: Folded): Long {
+        var divisor = if (entry.flags and FLAG_RELAXED != 0) RELAXED else 1L
         // Same key means the same number of slots, so the masks line up.
         if (entry.detail.length != typed.detail.length) return MAX_HANDICAP
         val last = typed.detail.lastIndex
@@ -198,6 +171,46 @@ class UrduPhoneticIndex(entries: List<Pair<String, Int>>) : PhoneticIndex {
             (a == VOWEL_O && b == VOWEL_U) || (a == VOWEL_U && b == VOWEL_O)
 
     companion object {
+
+        /** [PhoneticTable] fold id of this index's tables. */
+        const val FOLD = 2
+
+        /**
+         * Version of the fold and of how words are filed. Bumped whenever either
+         * changes, which makes every prebuilt table of the old one read as
+         * absent (the data repo publishes the new one under a new name).
+         */
+        const val REVISION = 1
+
+        /** Filed with a closing ہ or a ں undone, which costs it a little. */
+        private const val FLAG_RELAXED = 1
+
+        /** Files [entries] by the skeleton fold. */
+        fun table(entries: List<Pair<String, Int>>): PhoneticTable {
+            val builder = PhoneticTableBuilder(FOLD, REVISION)
+            file(builder, entries)
+            return builder.build()
+        }
+
+        /** Files [entries] into [builder]; see [table]. */
+        fun file(builder: PhoneticTableBuilder, entries: List<Pair<String, Int>>) {
+            for ((word, frequency) in entries) {
+                // Compiled and scraped lists both carry tokens that are not words:
+                // ur_full spells its compounds with an underscore (آؤ_بھگت), and the
+                // fold would file those under the first word's key.
+                if (!word.all(::isWordChar)) continue
+                val slots = urduSlots(word)
+                if (slots.isEmpty()) continue
+                val seen = HashSet<String>(4)
+                for ((relaxed, variant) in relaxations(slots)) {
+                    val folded = fold(variant)
+                    if (folded.key.isEmpty() || !seen.add(folded.key)) continue
+                    builder.add(folded.key, word, frequency, folded.detail, if (relaxed) FLAG_RELAXED else 0)
+                }
+                // Known to frequencyOf even when it folds to no key at all (آ).
+                builder.addWord(word, frequency)
+            }
+        }
 
         private const val SCALE = 1024L
         private const val MAX_HANDICAP = 1L shl 20

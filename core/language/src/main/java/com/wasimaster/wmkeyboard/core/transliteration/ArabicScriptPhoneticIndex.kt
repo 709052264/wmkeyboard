@@ -19,11 +19,17 @@ package com.wasimaster.wmkeyboard.core.transliteration
  * [boundedEntries] budget is filed.
  */
 class ArabicScriptPhoneticIndex(
-    entries: List<Pair<String, Int>>,
+    table: PhoneticTable,
     private val readings: (String) -> List<String> = { listOf(it) },
 ) : PhoneticIndex {
 
-    private val inner = UrduPhoneticIndex(boundedEntries(entries))
+    /** An index built on the device over [entries], `word to frequency`. */
+    constructor(
+        entries: List<Pair<String, Int>>,
+        readings: (String) -> List<String> = { listOf(it) },
+    ) : this(table(entries), readings)
+
+    private val inner = UrduPhoneticIndex(table)
 
     override val isEmpty: Boolean get() = inner.isEmpty
 
@@ -45,6 +51,9 @@ class ArabicScriptPhoneticIndex(
     override val maxFrequency: Int get() = inner.maxFrequency
 
     companion object {
+
+        /** Files [entries], at most the [boundedEntries] budget of them, by the skeleton fold. */
+        fun table(entries: List<Pair<String, Int>>): PhoneticTable = UrduPhoneticIndex.table(boundedEntries(entries))
 
         /** Persian: "gh" is ق as readily as غ. */
         fun persianReadings(input: String): List<String> =

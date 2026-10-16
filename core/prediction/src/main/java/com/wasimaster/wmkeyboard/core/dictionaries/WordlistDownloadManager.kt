@@ -157,6 +157,10 @@ object WordlistDownloadManager {
                 DictionaryStore.writeSourceEntryId(filesDir, entry.languageId, entry.id)
                 DictionaryStore.writeDownloadedSize(filesDir, entry.languageId, size.name)
                 set(entry.id, DownloadStatus.Downloaded(trie.wordCount, final.length(), size))
+                // The phonetic index the data repo built over this list, so the
+                // keyboard maps it rather than folding the list itself (#716).
+                // Only for the list it was built over, the language's own.
+                if (entry.id == entry.languageId) PhoneticIndexDownloads.start(filesDir, entry.languageId)
                 // A language can have several catalog entries (pt); the one
                 // just replaced must stop claiming the file.
                 refresh(filesDir)

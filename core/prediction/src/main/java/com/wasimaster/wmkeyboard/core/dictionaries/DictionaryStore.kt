@@ -27,6 +27,7 @@ object DictionaryStore {
     private const val FILE_NAME = "main.wmdict"
     private const val CAPITALS_NAME = "caps.wmdict"
     private const val SPELLINGS_NAME = "spellings.wmdict"
+    private const val PHONETIC_NAME = "phonetic.wmpi"
     private const val BUNDLED_DIR = "bundled"
 
     private fun root(filesDir: File) = File(filesDir, "dict")
@@ -55,6 +56,14 @@ object DictionaryStore {
      */
     fun spellingsFile(filesDir: File, langId: String): File =
         File(File(root(filesDir), langId), SPELLINGS_NAME)
+
+    /**
+     * The phonetic index the data repo built over [langId]'s published list,
+     * fetched beside the downloaded one ([PhoneticIndexDownloads]). Kept
+     * inflated so it can be memory-mapped.
+     */
+    fun phoneticFile(filesDir: File, langId: String): File =
+        File(File(root(filesDir), langId), PHONETIC_NAME)
 
     /**
      * Whether this build can actually read [langId]'s downloaded dictionary.
@@ -98,6 +107,8 @@ object DictionaryStore {
         File(dir, "$FILE_NAME.part").delete()
         File(dir, CAPITALS_NAME).delete()
         File(dir, SPELLINGS_NAME).delete()
+        File(dir, PHONETIC_NAME).delete()
+        File(dir, "$PHONETIC_NAME.part").delete()
         File(dir, "source").delete()
         File(dir, "size").delete()
     }

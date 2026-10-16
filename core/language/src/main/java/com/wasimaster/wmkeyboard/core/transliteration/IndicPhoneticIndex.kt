@@ -26,39 +26,42 @@ package com.wasimaster.wmkeyboard.core.transliteration
  *    same and is full of tokens that only share a key with the real word.
  */
 class IndicPhoneticIndex(
-    entries: List<Pair<String, Int>>,
-    private val script: IndicScript,
+    table: PhoneticTable,
+    /**
+     * A word's plain Devanagari ([IndicScript.toDevanagari]), without the
+     * language's prep: what tells two spellings of one word from two words.
+     * Malayalam's prep folds voicing, which would make അപു and അബു one word.
+     */
+    private val spellingOf: (String) -> String,
     private val romanPrep: (String) -> String = { it },
-    private val devanagariPrep: (String) -> String = { it },
     private val rerankBy: ((String) -> String)? = null,
 ) : PhoneticIndex {
 
-    /** Devanagari spelling to the list's own word, for every word filed. */
-    private val native = HashMap<String, String>(entries.size)
+    /** An index built on the device over [entries], `word to frequency`. */
+    constructor(
+        entries: List<Pair<String, Int>>,
+        script: IndicScript,
+        romanPrep: (String) -> String = { it },
+        devanagariPrep: (String) -> String = { it },
+        rerankBy: ((String) -> String)? = null,
+    ) : this(table(entries, script, devanagariPrep), script::toDevanagari, romanPrep, rerankBy)
 
-    private val inner: HindiPhoneticIndex
+    // Rows keep the word as the list spells it and are filed by its
+    // Devanagari, so the Hindi index answers in the list's own script.
+    private val inner = HindiPhoneticIndex(table)
 
     /** Every word at the same count: no frequency to rank by. */
-    private val flat: Boolean
-
-    init {
-        val kept = boundedEntries(entries)
-        flat = kept.isNotEmpty() && kept.all { it.second == kept[0].second }
-        val converted = ArrayList<Pair<String, Int>>(kept.size)
-        for ((word, frequency) in kept) {
-            val dev = devanagariPrep(script.toDevanagari(word))
-            // Two spellings of one word can meet in Devanagari (a precomposed
-            // and a decomposed nukta letter); the first, commoner one answers.
-            native.putIfAbsent(dev, word)
-            converted += dev to frequency
-        }
-        inner = HindiPhoneticIndex(converted)
-    }
+    private val flat: Boolean = !table.isEmpty && table.maxFrequency == table.minFrequency
 
     override val isEmpty: Boolean get() = inner.isEmpty
 
     override fun lookup(input: String): List<String> {
-        val found = inner.lookup(romanPrep(input)).mapNotNull { native[it] }.distinct()
+        // Two spellings of one word can meet in Devanagari (a precomposed and
+        // a decomposed nukta letter, a chillu and its consonant with a
+        // virama): the better-ranked one, the commoner, answers for both.
+        val found = inner.lookup(romanPrep(input)).let { all ->
+            if (all.size < 2) all else all.distinctBy(spellingOf)
+        }
         val rules = rerankBy
         if (!flat || rules == null || found.size < 2) return found
         val reference = rules(input)
@@ -68,17 +71,28 @@ class IndicPhoneticIndex(
         return head + found.drop(RERANK_DEPTH)
     }
 
-    override fun frequencyOf(word: String): Int = inner.frequencyOf(devanagariPrep(script.toDevanagari(word)))
+    override fun frequencyOf(word: String): Int = inner.frequencyOf(word)
 
     override fun matchStrength(input: String): Int = inner.matchStrength(romanPrep(input))
 
     override val maxFrequency: Int get() = inner.maxFrequency
 
-    private companion object {
-        /** How many of the fold's candidates the re-rank reorders. */
-        const val RERANK_DEPTH = 30
+    companion object {
 
-        fun editDistance(a: String, b: String): Int {
+        /**
+         * Files [entries], at most the [boundedEntries] budget of them, by the
+         * Hindi fold over each word's Devanagari spelling.
+         */
+        fun table(
+            entries: List<Pair<String, Int>>,
+            script: IndicScript,
+            devanagariPrep: (String) -> String = { it },
+        ): PhoneticTable = HindiPhoneticIndex.table(boundedEntries(entries)) { devanagariPrep(script.toDevanagari(it)) }
+
+        /** How many of the fold's candidates the re-rank reorders. */
+        private const val RERANK_DEPTH = 30
+
+        private fun editDistance(a: String, b: String): Int {
             var previous = IntArray(b.length + 1) { it }
             for (i in a.indices) {
                 val current = IntArray(b.length + 1)

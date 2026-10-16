@@ -199,6 +199,7 @@ import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCapitals
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryStore
 import com.wasimaster.wmkeyboard.core.dictionaries.KhiproGlideDownloads
+import com.wasimaster.wmkeyboard.core.dictionaries.PhoneticIndexDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.WordlistDownloadManager
 import com.wasimaster.wmkeyboard.core.prediction.CompositeWordSource
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
@@ -625,6 +626,9 @@ import com.wasimaster.wmkeyboard.core.settings.isWhisperEnabled
 import com.wasimaster.wmkeyboard.core.transliteration.BijoyAnsi
 import com.wasimaster.wmkeyboard.core.transliteration.BengaliGraphemes
 import com.wasimaster.wmkeyboard.core.transliteration.BengaliPhoneticIndex
+import com.wasimaster.wmkeyboard.core.transliteration.PhoneticIndex
+import com.wasimaster.wmkeyboard.core.transliteration.PhoneticTable
+import com.wasimaster.wmkeyboard.core.transliteration.PhoneticTables
 import com.wasimaster.wmkeyboard.core.transliteration.SortedWords
 import com.wasimaster.wmkeyboard.core.transliteration.Khipro
 import com.wasimaster.wmkeyboard.core.transliteration.KhiproRomanizer
@@ -2407,7 +2411,7 @@ open class WMKeyboardService : InputMethodService() {
                 // service every few seconds at times, and each one building its
                 // own index is what ran the heap out (#716).
                 val index = PhoneticIndexCache.get(scheme.languageId, phoneticSignature(scheme.languageId)) {
-                    scheme.buildIndex(phoneticEntries(scheme.languageId))
+                    phoneticIndex(scheme)
                 }
                 scheme.languageId to PhoneticBackend(scheme, index, spellings)
             }.toMap()
@@ -2453,11 +2457,50 @@ open class WMKeyboardService : InputMethodService() {
         return downloaded + CustomDictionaries.entries(filesDir, langId)
     }
 
-    /** The files [phoneticEntries] reads, as [PhoneticIndexCache] compares them. */
+    /**
+     * [scheme]'s index over the user's lists: the table the data repo built
+     * over the downloaded list when it is here and fits that list, with only
+     * the imported lists folded on the phone (#716); otherwise every word
+     * folded on the phone, as before, while the table is fetched.
+     */
+    private fun phoneticIndex(scheme: PhoneticScheme): PhoneticIndex {
+        val langId = scheme.languageId
+        if (!PhoneticTables.supports(langId)) return scheme.buildIndex(phoneticEntries(langId))
+        val prebuilt = prebuiltPhoneticTable(langId) ?: return scheme.buildIndex(phoneticEntries(langId))
+        val imported = CustomDictionaries.entries(filesDir, langId)
+        val own = if (imported.isEmpty()) PhoneticTable.EMPTY else PhoneticTables.build(langId, imported)
+        return PhoneticTables.index(langId, PhoneticTable.combine(listOf(prebuilt, own)))
+    }
+
+    /**
+     * The prebuilt table of [langId]'s downloaded list, read against the tier
+     * the user downloaded of it, or null when there is none that fits — and
+     * then it is asked for, unless it is on its way or could not be had.
+     *
+     * The table is built over the whole published list. A smaller tier is a
+     * prefix of that list, so the table is filtered to the words the download
+     * kept; a list holding words the table never saw (an older or newer copy
+     * of the list, or another catalog entry's) is not what it was built over,
+     * and is folded on the phone instead.
+     */
+    private fun prebuiltPhoneticTable(langId: String): PhoneticTable? {
+        if (!userUnlocked || !shippedDictionaryEnabled(langId)) return null
+        val list = MappedTrie.open(DictionaryStore.downloadedFile(filesDir, langId)) ?: return null
+        val table = PhoneticIndexDownloads.open(filesDir, langId)
+        val source = DictionaryStore.sourceEntryId(filesDir, langId) ?: langId
+        if (table == null) {
+            if (source == langId) PhoneticIndexDownloads.start(filesDir, langId)
+            return null
+        }
+        if (table.sourceTag != source || list.wordCount > table.sourceWords) return null
+        return if (list.wordCount == table.sourceWords) table else PhoneticTable.filter(table, list::contains)
+    }
+
+    /** The files [phoneticIndex] reads, as [PhoneticIndexCache] compares them. */
     private fun phoneticSignature(langId: String): PhoneticIndexCache.Signature {
         if (!userUnlocked) return PhoneticIndexCache.Signature(emptyList())
         val downloaded = if (shippedDictionaryEnabled(langId)) {
-            listOf(DictionaryStore.downloadedFile(filesDir, langId))
+            listOf(DictionaryStore.downloadedFile(filesDir, langId), DictionaryStore.phoneticFile(filesDir, langId))
         } else {
             emptyList()
         }
@@ -3805,6 +3848,16 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch {
             _uiState.map { it.composer }.distinctUntilChanged().collect { composer ->
                 if (composer.isConversion) refreshConversionPackOffer(_uiState.value) else clearConversionPackOffer()
+            }
+        }
+
+        // A prebuilt phonetic index landed (#716): the language's backend is
+        // built again, from the mapped table this time.
+        serviceScope.launch {
+            PhoneticIndexDownloads.completions.collect { langId ->
+                if (suggestionEngine != null && loadedExtraPhonetic.any { it.removeSuffix(WITH_SPELLING_MAP) == langId }) {
+                    loadExtraPhonetic()
+                }
             }
         }
 

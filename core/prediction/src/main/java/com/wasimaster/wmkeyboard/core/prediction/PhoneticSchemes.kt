@@ -1,7 +1,6 @@
 package com.wasimaster.wmkeyboard.core.prediction
 
 import com.wasimaster.wmkeyboard.core.transliteration.ArabicPhonetic
-import com.wasimaster.wmkeyboard.core.transliteration.ArabicScriptPhoneticIndex
 import com.wasimaster.wmkeyboard.core.transliteration.AssamesePhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.AssamesePhoneticIndex
 import com.wasimaster.wmkeyboard.core.transliteration.AvroPhonetic
@@ -17,6 +16,7 @@ import com.wasimaster.wmkeyboard.core.transliteration.IndicProfile
 import com.wasimaster.wmkeyboard.core.transliteration.IndicProfiles
 import com.wasimaster.wmkeyboard.core.transliteration.PersianPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.PhoneticIndex
+import com.wasimaster.wmkeyboard.core.transliteration.PhoneticTables
 import com.wasimaster.wmkeyboard.core.transliteration.UrduPhonetic
 import com.wasimaster.wmkeyboard.core.transliteration.UrduPhoneticIndex
 import com.wasimaster.wmkeyboard.core.transliteration.UrduRomanizer
@@ -137,15 +137,7 @@ object PhoneticSchemes {
             spellingAssets = listOf("dictionaries/en_$id.tsv", "dictionaries/${id}_rom.tsv"),
             transliterate = engine::transliterate,
             variants = engine::variants,
-            buildIndex = {
-                IndicPhoneticIndex(
-                    entries = it,
-                    script = script,
-                    romanPrep = IndicProfiles.romanPrep(id),
-                    devanagariPrep = IndicProfiles.devanagariPrep(id),
-                    rerankBy = if (IndicProfiles.rerankFlatList(id)) engine::transliterate else null,
-                )
-            },
+            buildIndex = { PhoneticTables.index(id, PhoneticTables.build(id, it)) },
             isNative = script::isNative,
             normalize = { Normalizer.normalize(it, Normalizer.Form.NFC) },
             romanizeWord = { DevanagariRomanizer.romanizeWord(script.toDevanagari(it)) },
@@ -175,7 +167,7 @@ object PhoneticSchemes {
         spellingAssets = listOf("dictionaries/en_fa.tsv", "dictionaries/fa_rom.tsv"),
         transliterate = PersianPhonetic::transliterate,
         variants = PersianPhonetic::variants,
-        buildIndex = { ArabicScriptPhoneticIndex(it, ArabicScriptPhoneticIndex::persianReadings) },
+        buildIndex = { PhoneticTables.index("fa", PhoneticTables.build("fa", it)) },
         isNative = UrduRomanizer::isUrdu,
         normalize = UrduRomanizer::normalize,
         romanizeWord = UrduRomanizer::romanizeWord,
@@ -188,7 +180,7 @@ object PhoneticSchemes {
         spellingAssets = listOf("dictionaries/en_ar.tsv", "dictionaries/ar_rom.tsv"),
         transliterate = ArabicPhonetic::transliterate,
         variants = ArabicPhonetic::variants,
-        buildIndex = { ArabicScriptPhoneticIndex(it, ArabicScriptPhoneticIndex::arabicReadings) },
+        buildIndex = { PhoneticTables.index("ar", PhoneticTables.build("ar", it)) },
         isNative = UrduRomanizer::isUrdu,
         normalize = UrduRomanizer::normalize,
         romanizeWord = UrduRomanizer::romanizeWord,

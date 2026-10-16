@@ -41,53 +41,23 @@ package com.wasimaster.wmkeyboard.core.transliteration
  * "ladka" and "larka"), and nasalisation left off altogether (नहीं is "nahi",
  * हाँ is "ha").
  */
-class HindiPhoneticIndex(entries: List<Pair<String, Int>>) : PhoneticIndex {
+class HindiPhoneticIndex(private val table: PhoneticTable) : PhoneticIndex {
 
-    private val byKey = HashMap<String, MutableList<Entry>>()
-    private val freqByWord = HashMap<String, Int>()
+    /** An index built on the device over [entries], `word to frequency`. */
+    constructor(entries: List<Pair<String, Int>>) : this(table(entries))
 
-    private class Entry(
-        val word: String,
-        val frequency: Int,
-        val detail: String,
-        /** Filed here with its nasalisation dropped, which costs it a little. */
-        val nasalDropped: Boolean,
-    )
-
-    init {
-        for ((word, frequency) in entries) {
-            // Scraped lists carry tokens that are not words — है। with its
-            // danda still attached outranks है in the list this was written
-            // against — and the fold would file them under the real word's key,
-            // where the commoner token wins and the danda gets committed.
-            if (!word.all(::isWordChar)) continue
-            val slots = devanagariSlots(word)
-            if (slots.isEmpty()) continue
-            val seen = HashSet<String>(4)
-            for (dropNasals in BOTH) {
-                for (flapAsR in BOTH) {
-                    val folded = fold(slots, dropNasals, flapAsR)
-                    if (folded.key.isEmpty() || !seen.add(folded.key)) continue
-                    byKey.getOrPut(folded.key) { ArrayList(1) }
-                        .add(Entry(word, frequency, folded.detail, dropNasals))
-                }
-            }
-            freqByWord.merge(word, frequency, ::maxOf)
-        }
-        byKey.values.forEach { list -> list.sortByDescending { it.frequency } }
-    }
-
-    override val isEmpty: Boolean get() = byKey.isEmpty()
+    override val isEmpty: Boolean get() = table.isEmpty
 
     override fun lookup(input: String): List<String> {
         val typed = foldRoman(input)
-        val bucket = byKey[typed.key].orEmpty()
+        val bucket = table.rows(typed.key)
         val spoken = spokenFinalA(typed)
         if (spoken.isEmpty()) {
             if (bucket.size <= 1) return bucket.map { it.word }
             return bucket
                 .sortedByDescending { it.frequency.toLong() * SCALE / handicap(it, typed.detail) }
                 .map { it.word }
+                .distinct()
         }
         val bare = typed.detail.dropLast(1)
         val scored = bucket.map { it.word to it.frequency.toLong() * SCALE / handicap(it, typed.detail) } +
@@ -101,37 +71,35 @@ class HindiPhoneticIndex(entries: List<Pair<String, Int>>) : PhoneticIndex {
      * final vowel there and says one all the same, because the word ends on a
      * conjunct that cannot be said without it. Only a conjunct closing on य, र
      * or व is like that: खर्च is said "kharch", so "kharcha" stays खर्चा, and
-     * "kama" does not start finding कम.
+     * "kama" does not start finding कम. Which words end that way is decided
+     * when they are filed ([FLAG_SPOKEN_A]), from their Devanagari spelling.
      */
-    private fun spokenFinalA(typed: Folded): List<Entry> {
+    private fun spokenFinalA(typed: Folded): List<PhoneticRow> {
         val key = typed.key
         if (key.length < 3 || key.last() != 'a') return emptyList()
         if ((typed.detail.last().code - DETAIL_BASE) and TAIL_MASK == TAIL_LONG) return emptyList()
-        return byKey[key.dropLast(1)].orEmpty().filter { entry ->
-            val word = entry.word
-            word.length >= 3 && word[word.length - 2] == VIRAMA && word.last() in "यरव"
-        }
+        return table.rows(key.dropLast(1)).filter { it.flags and FLAG_SPOKEN_A != 0 }
     }
 
-    override fun frequencyOf(word: String): Int = freqByWord[word] ?: 0
+    override fun frequencyOf(word: String): Int = table.frequencyOf(word)
 
     override fun matchStrength(input: String): Int {
         val typed = foldRoman(input)
-        val direct = byKey[typed.key].orEmpty().maxOfOrNull { it.frequency / handicap(it, typed.detail) } ?: 0L
+        val direct = table.rows(typed.key).maxOfOrNull { it.frequency / handicap(it, typed.detail) } ?: 0L
         val spoken = spokenFinalA(typed)
         if (spoken.isEmpty()) return direct.toInt()
         val bare = typed.detail.dropLast(1)
         return maxOf(direct, spoken.maxOf { it.frequency / (handicap(it, bare) * SPOKEN_FINAL_A) }).toInt()
     }
 
-    override val maxFrequency: Int = freqByWord.values.maxOrNull() ?: 0
+    override val maxFrequency: Int get() = table.maxFrequency
 
     /**
      * What to divide [entry]'s frequency by for disagreeing with what was
      * typed. 1 means it agrees on every count.
      */
-    private fun handicap(entry: Entry, typed: String): Long {
-        var divisor = if (entry.nasalDropped) NASAL_DROPPED else 1L
+    private fun handicap(entry: PhoneticRow, typed: String): Long {
+        var divisor = if (entry.flags and FLAG_NASAL_DROPPED != 0) NASAL_DROPPED else 1L
         // Same key means same length, so the two masks line up.
         for (i in typed.indices) {
             divisor *= mismatch(typed[i].code - DETAIL_BASE, entry.detail[i].code - DETAIL_BASE, i == typed.lastIndex)
@@ -173,6 +141,61 @@ class HindiPhoneticIndex(entries: List<Pair<String, Int>>) : PhoneticIndex {
     }
 
     companion object {
+
+        /** [PhoneticTable] fold id of this index's tables. */
+        const val FOLD = 1
+
+        /**
+         * Version of the fold and of how words are filed. Bumped whenever either
+         * changes, which makes every prebuilt table of the old one read as
+         * absent (the data repo publishes the new one under a new name).
+         */
+        const val REVISION = 1
+
+        /** Filed here with its nasalisation dropped, which costs it a little. */
+        private const val FLAG_NASAL_DROPPED = 1
+
+        /** Ends on a conjunct closing in य, र or व; see [spokenFinalA]. */
+        private const val FLAG_SPOKEN_A = 2
+
+        /**
+         * Files [entries] by the Hindi fold. [spelling] gives the Devanagari a
+         * word is folded from, for a language written in another Indic script
+         * ([IndicPhoneticIndex]); the row keeps the word as the list spells it.
+         */
+        fun table(
+            entries: List<Pair<String, Int>>,
+            spelling: ((String) -> String)? = null,
+        ): PhoneticTable {
+            val builder = PhoneticTableBuilder(FOLD, REVISION)
+            file(builder, entries, spelling)
+            return builder.build()
+        }
+
+        /** Files [entries] into [builder]; see [table]. */
+        fun file(builder: PhoneticTableBuilder, entries: List<Pair<String, Int>>, spelling: ((String) -> String)? = null) {
+            for ((word, frequency) in entries) {
+                val dev = spelling?.invoke(word) ?: word
+                // Scraped lists carry tokens that are not words — है। with its
+                // danda still attached outranks है in the list this was written
+                // against — and the fold would file them under the real word's key,
+                // where the commoner token wins and the danda gets committed.
+                if (!dev.all(::isWordChar)) continue
+                val slots = devanagariSlots(dev)
+                if (slots.isEmpty()) continue
+                val spokenA = dev.length >= 3 && dev[dev.length - 2] == VIRAMA && dev.last() in "यरव"
+                val seen = HashSet<String>(4)
+                for (dropNasals in BOTH) {
+                    for (flapAsR in BOTH) {
+                        val folded = fold(slots, dropNasals, flapAsR)
+                        if (folded.key.isEmpty() || !seen.add(folded.key)) continue
+                        val flags = (if (dropNasals) FLAG_NASAL_DROPPED else 0) or (if (spokenA) FLAG_SPOKEN_A else 0)
+                        builder.add(folded.key, word, frequency, folded.detail, flags)
+                    }
+                }
+                builder.addWord(word, frequency)
+            }
+        }
 
         private val BOTH = booleanArrayOf(false, true)
 
