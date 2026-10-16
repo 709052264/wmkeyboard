@@ -14817,7 +14817,13 @@ internal fun keyVisual(
     }
     return KeyVisual(
         key = key.withEnterHoldFor(state),
-        label = displayLabel(key, state),
+        // Issue #689: on a right-to-left board a bracket key draws the glyph
+        // the text will show, the way its hint already does (#645). What it
+        // commits is unchanged, so `(` still opens and `)` still closes.
+        label = rtlMirrored(
+            displayLabel(key, state),
+            action == KeyAction.Text && state.script.direction == TextDirection.RTL,
+        ),
         spoken = spokenLabel(key, state),
         latch = latch,
         background = background,
@@ -24035,7 +24041,8 @@ internal class TransliterationPreview(
  * `(`; typed into the right-to-left text it is for, the same character is
  * mirrored and reads as `)`. The hint and the popup preview what a hold
  * types, so on these boards they draw the glyph the text will show (issue
- * #645). What is committed is unchanged.
+ * #645), and so does the key's own label ([keyVisual], #689). What is
+ * committed is unchanged.
  */
 internal val LocalMirrorBrackets = staticCompositionLocalOf { false }
 
