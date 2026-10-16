@@ -89,7 +89,6 @@ internal class XmlSearchStrings(
             ),
             valuesDirs = listOf(
                 File("src/main/res/values"),
-                File("src/full/res/values"),
                 File("../core/common/src/main/res/values"),
                 File("../feature/ime/src/main/res/values"),
             ),
