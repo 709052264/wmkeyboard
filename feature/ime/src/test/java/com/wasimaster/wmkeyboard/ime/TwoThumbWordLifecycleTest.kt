@@ -65,7 +65,7 @@ class TwoThumbWordLifecycleTest {
         service.onGesturePreview(emptyList(), emptyList(), DUET_PING_DOWN, GlideCase.None)
 
     /** Lets [ms] of the main looper's clock go by, running whatever falls due. */
-    private fun wait(ms: Long) = shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(ms))
+    private fun letTimePass(ms: Long) = shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(ms))
 
     private fun gestures(service: WMKeyboardService): Int = (field(service, "duetWord") as DuetWord).snapshot().size
 
@@ -137,14 +137,14 @@ class TwoThumbWordLifecycleTest {
         swipe(service, 0)
         settle { editor.text.toString() == first }
         thumbsUp(service)
-        wait(PAUSE_MS / 2)
+        letTimePass(PAUSE_MS / 2)
         thumbDown(service)
         swipe(service, 1)
         settle { editor.text.toString() == both }
         assertTrue("the gap between the thumbs ended the word: ${editor.commits}", editor.commits.isEmpty())
 
         thumbsUp(service)
-        wait(PAUSE_MS + PAUSE_SLACK_MS)
+        letTimePass(PAUSE_MS + PAUSE_SLACK_MS)
         settle { editor.text.toString() == "$both " }
         assertEquals("the pause did not type the word with its space", "$both ", editor.text.toString())
     }
@@ -156,14 +156,14 @@ class TwoThumbWordLifecycleTest {
 
         service.onKey(Key(label = "t"))
         thumbsUp(service)
-        wait(PAUSE_MS / 2)
+        letTimePass(PAUSE_MS / 2)
         thumbDown(service)
         service.onKey(Key(label = "o"))
         thumbsUp(service)
         settle { true }
         assertEquals("the lift between the taps ended the word", "to", editor.text.toString().lowercase())
 
-        wait(PAUSE_MS + PAUSE_SLACK_MS)
+        letTimePass(PAUSE_MS + PAUSE_SLACK_MS)
         settle { editor.text.endsWith(" ") }
         assertEquals("the tapped word did not get its space", "to ", editor.text.toString().lowercase())
     }
