@@ -13,6 +13,7 @@ export const SHORT_CLIPS: Record<string, number> = {
   "clips/voice.mp4": 1.733,
   "shorts/clips/s01-privacy.mp4": 13.333,
   "shorts/clips/s01-typing.mp4": 17.000,
+  "shorts/clips/s02-glide.mp4": 17.567,
   "shorts/clips/s03-avro.mp4": 25.033,
   "shorts/clips/s04-calc.mp4": 15.000,
   "shorts/clips/s05-photos.mp4": 238.033,
