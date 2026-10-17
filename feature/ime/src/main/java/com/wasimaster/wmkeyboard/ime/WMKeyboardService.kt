@@ -7544,10 +7544,15 @@ open class WMKeyboardService : InputMethodService() {
         }
         windowOnScreen = true
         syncSummonButton()
-        // Up over the settings app with no field there: it opens its test
-        // field, the way its keyboard button would.
+        // Held up over the settings app with no field there (pinned or
+        // summoned): it opens its test field, the way its keyboard button
+        // would. Only then: a keyboard that is merely still on screen while
+        // one of its own buttons opens the settings app (a tool's hold, the
+        // plugins manager) also lands on a null field of this package for a
+        // moment, and opening the test field under it made the keyboard
+        // bounce up and down (#725).
         KeyboardControls.setUpOverOwnApp(
-            isNullField() && currentInputEditorInfo?.packageName == packageName,
+            pinnedNow() && isNullField() && currentInputEditorInfo?.packageName == packageName,
         )
         // The summon that asked for this got what it wanted.
         if (summonedNow()) {
