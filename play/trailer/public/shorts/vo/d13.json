@@ -1,0 +1,191 @@
+[
+ {
+  "text": "Make",
+  "startMs": 0,
+  "endMs": 180,
+  "timestampMs": 90,
+  "confidence": null
+ },
+ {
+  "text": " stickers",
+  "startMs": 180,
+  "endMs": 520,
+  "timestampMs": 350,
+  "confidence": null
+ },
+ {
+  "text": " from",
+  "startMs": 520,
+  "endMs": 760,
+  "timestampMs": 640,
+  "confidence": null
+ },
+ {
+  "text": " your",
+  "startMs": 760,
+  "endMs": 920,
+  "timestampMs": 840,
+  "confidence": null
+ },
+ {
+  "text": " own",
+  "startMs": 920,
+  "endMs": 1100,
+  "timestampMs": 1010,
+  "confidence": null
+ },
+ {
+  "text": " photos.",
+  "startMs": 1100,
+  "endMs": 1580,
+  "timestampMs": 1340,
+  "confidence": null
+ },
+ {
+  "text": " WM",
+  "startMs": 2100,
+  "endMs": 2360,
+  "timestampMs": 2230,
+  "confidence": null
+ },
+ {
+  "text": " Keyboard",
+  "startMs": 2360,
+  "endMs": 2820,
+  "timestampMs": 2590,
+  "confidence": null
+ },
+ {
+  "text": " cuts",
+  "startMs": 2820,
+  "endMs": 3120,
+  "timestampMs": 2970,
+  "confidence": null
+ },
+ {
+  "text": " out",
+  "startMs": 3120,
+  "endMs": 3320,
+  "timestampMs": 3220,
+  "confidence": null
+ },
+ {
+  "text": " the",
+  "startMs": 3320,
+  "endMs": 3460,
+  "timestampMs": 3390,
+  "confidence": null
+ },
+ {
+  "text": " background,",
+  "startMs": 3460,
+  "endMs": 3880,
+  "timestampMs": 3670,
+  "confidence": null
+ },
+ {
+  "text": " adds",
+  "startMs": 4140,
+  "endMs": 4360,
+  "timestampMs": 4250,
+  "confidence": null
+ },
+ {
+  "text": " a",
+  "startMs": 4360,
+  "endMs": 4520,
+  "timestampMs": 4440,
+  "confidence": null
+ },
+ {
+  "text": " clean",
+  "startMs": 4520,
+  "endMs": 4800,
+  "timestampMs": 4660,
+  "confidence": null
+ },
+ {
+  "text": " border,",
+  "startMs": 4800,
+  "endMs": 5140,
+  "timestampMs": 4970,
+  "confidence": null
+ },
+ {
+  "text": " and",
+  "startMs": 5400,
+  "endMs": 5460,
+  "timestampMs": 5430,
+  "confidence": null
+ },
+ {
+  "text": " keeps",
+  "startMs": 5460,
+  "endMs": 5660,
+  "timestampMs": 5560,
+  "confidence": null
+ },
+ {
+  "text": " them",
+  "startMs": 5660,
+  "endMs": 5860,
+  "timestampMs": 5760,
+  "confidence": null
+ },
+ {
+  "text": " in",
+  "startMs": 5860,
+  "endMs": 5980,
+  "timestampMs": 5920,
+  "confidence": null
+ },
+ {
+  "text": " packs",
+  "startMs": 5980,
+  "endMs": 6200,
+  "timestampMs": 6090,
+  "confidence": null
+ },
+ {
+  "text": " you",
+  "startMs": 6200,
+  "endMs": 6400,
+  "timestampMs": 6300,
+  "confidence": null
+ },
+ {
+  "text": " send",
+  "startMs": 6400,
+  "endMs": 6620,
+  "timestampMs": 6510,
+  "confidence": null
+ },
+ {
+  "text": " straight",
+  "startMs": 6620,
+  "endMs": 6960,
+  "timestampMs": 6790,
+  "confidence": null
+ },
+ {
+  "text": " from",
+  "startMs": 6960,
+  "endMs": 7160,
+  "timestampMs": 7060,
+  "confidence": null
+ },
+ {
+  "text": " the",
+  "startMs": 7160,
+  "endMs": 7300,
+  "timestampMs": 7230,
+  "confidence": null
+ },
+ {
+  "text": " keyboard.",
+  "startMs": 7300,
+  "endMs": 7600,
+  "timestampMs": 7450,
+  "confidence": null
+ }
+]

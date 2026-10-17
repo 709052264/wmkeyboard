@@ -1,0 +1,261 @@
+[
+ {
+  "text": "Voice",
+  "startMs": 0,
+  "endMs": 160,
+  "timestampMs": 80,
+  "confidence": null
+ },
+ {
+  "text": " typing",
+  "startMs": 160,
+  "endMs": 480,
+  "timestampMs": 320,
+  "confidence": null
+ },
+ {
+  "text": " usually",
+  "startMs": 480,
+  "endMs": 700,
+  "timestampMs": 590,
+  "confidence": null
+ },
+ {
+  "text": " sends",
+  "startMs": 700,
+  "endMs": 1100,
+  "timestampMs": 900,
+  "confidence": null
+ },
+ {
+  "text": " your",
+  "startMs": 1100,
+  "endMs": 1260,
+  "timestampMs": 1180,
+  "confidence": null
+ },
+ {
+  "text": " voice",
+  "startMs": 1260,
+  "endMs": 1420,
+  "timestampMs": 1340,
+  "confidence": null
+ },
+ {
+  "text": " to",
+  "startMs": 1420,
+  "endMs": 1620,
+  "timestampMs": 1520,
+  "confidence": null
+ },
+ {
+  "text": " a",
+  "startMs": 1620,
+  "endMs": 1720,
+  "timestampMs": 1670,
+  "confidence": null
+ },
+ {
+  "text": " server.",
+  "startMs": 1720,
+  "endMs": 2020,
+  "timestampMs": 1870,
+  "confidence": null
+ },
+ {
+  "text": " Not",
+  "startMs": 2720,
+  "endMs": 2780,
+  "timestampMs": 2750,
+  "confidence": null
+ },
+ {
+  "text": " here.",
+  "startMs": 2780,
+  "endMs": 3200,
+  "timestampMs": 2990,
+  "confidence": null
+ },
+ {
+  "text": " WM",
+  "startMs": 3640,
+  "endMs": 3920,
+  "timestampMs": 3780,
+  "confidence": null
+ },
+ {
+  "text": " Keyboard",
+  "startMs": 3920,
+  "endMs": 4300,
+  "timestampMs": 4110,
+  "confidence": null
+ },
+ {
+  "text": " turns",
+  "startMs": 4300,
+  "endMs": 4680,
+  "timestampMs": 4490,
+  "confidence": null
+ },
+ {
+  "text": " speech",
+  "startMs": 4680,
+  "endMs": 4980,
+  "timestampMs": 4830,
+  "confidence": null
+ },
+ {
+  "text": " into",
+  "startMs": 4980,
+  "endMs": 5320,
+  "timestampMs": 5150,
+  "confidence": null
+ },
+ {
+  "text": " text",
+  "startMs": 5320,
+  "endMs": 5620,
+  "timestampMs": 5470,
+  "confidence": null
+ },
+ {
+  "text": " right",
+  "startMs": 5620,
+  "endMs": 5960,
+  "timestampMs": 5790,
+  "confidence": null
+ },
+ {
+  "text": " on",
+  "startMs": 5960,
+  "endMs": 6120,
+  "timestampMs": 6040,
+  "confidence": null
+ },
+ {
+  "text": " your",
+  "startMs": 6120,
+  "endMs": 6240,
+  "timestampMs": 6180,
+  "confidence": null
+ },
+ {
+  "text": " phone,",
+  "startMs": 6240,
+  "endMs": 6480,
+  "timestampMs": 6360,
+  "confidence": null
+ },
+ {
+  "text": " and",
+  "startMs": 6780,
+  "endMs": 6900,
+  "timestampMs": 6840,
+  "confidence": null
+ },
+ {
+  "text": " it",
+  "startMs": 6900,
+  "endMs": 7000,
+  "timestampMs": 6950,
+  "confidence": null
+ },
+ {
+  "text": " keeps",
+  "startMs": 7000,
+  "endMs": 7200,
+  "timestampMs": 7100,
+  "confidence": null
+ },
+ {
+  "text": " working",
+  "startMs": 7200,
+  "endMs": 7600,
+  "timestampMs": 7400,
+  "confidence": null
+ },
+ {
+  "text": " in",
+  "startMs": 7600,
+  "endMs": 7820,
+  "timestampMs": 7710,
+  "confidence": null
+ },
+ {
+  "text": " airplane",
+  "startMs": 7820,
+  "endMs": 8140,
+  "timestampMs": 7980,
+  "confidence": null
+ },
+ {
+  "text": " mode.",
+  "startMs": 8140,
+  "endMs": 8520,
+  "timestampMs": 8330,
+  "confidence": null
+ },
+ {
+  "text": " It",
+  "startMs": 9000,
+  "endMs": 9100,
+  "timestampMs": 9050,
+  "confidence": null
+ },
+ {
+  "text": " can",
+  "startMs": 9100,
+  "endMs": 9200,
+  "timestampMs": 9150,
+  "confidence": null
+ },
+ {
+  "text": " even",
+  "startMs": 9200,
+  "endMs": 9480,
+  "timestampMs": 9340,
+  "confidence": null
+ },
+ {
+  "text": " translate",
+  "startMs": 9480,
+  "endMs": 9940,
+  "timestampMs": 9710,
+  "confidence": null
+ },
+ {
+  "text": " what",
+  "startMs": 9940,
+  "endMs": 10200,
+  "timestampMs": 10070,
+  "confidence": null
+ },
+ {
+  "text": " you",
+  "startMs": 10200,
+  "endMs": 10380,
+  "timestampMs": 10290,
+  "confidence": null
+ },
+ {
+  "text": " say",
+  "startMs": 10380,
+  "endMs": 10700,
+  "timestampMs": 10540,
+  "confidence": null
+ },
+ {
+  "text": " into",
+  "startMs": 10700,
+  "endMs": 11100,
+  "timestampMs": 10900,
+  "confidence": null
+ },
+ {
+  "text": " English.",
+  "startMs": 11100,
+  "endMs": 11460,
+  "timestampMs": 11280,
+  "confidence": null
+ }
+]
