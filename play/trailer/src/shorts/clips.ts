@@ -18,6 +18,7 @@ export const SHORT_CLIPS: Record<string, number> = {
   "shorts/clips/s05-photos.mp4": 238.033,
   "shorts/clips/s06-emoji.mp4": 27.100,
   "shorts/clips/s07-clipboard.mp4": 39.133,
+  "shorts/clips/s08-spacebar.mp4": 7.033,
   "shorts/clips/s09-addons.mp4": 36.033,
   "shorts/clips/s09-arcade.mp4": 10.066,
   "shorts/clips/s09-themes.mp4": 32.067,
