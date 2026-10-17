@@ -61,6 +61,7 @@
   {"title":"Copy rules","name":"clipboard_copy_rules_title","route":"cliprules","screens":["Clipboard"],"screen":true,"description":"Tidy every copy with patterns before it is kept"},
   {"title":"Tool shortcuts list","name":"typing_hw_shortcuts_list_title","route":"hwshortcuts","screens":["Typing","Physical keyboard"],"screen":true,"description":"Which letter opens which tool"},
   {"title":"Open-source licences","name":"about_licences_title","route":"licenses","screens":["About"],"screen":true,"description":"The libraries and the data inside this build"},
+  {"title":"Supporters","name":"about_supporters_title","route":"supporters","screens":["About"],"screen":true,"description":"The people who chipped in on SupportKori"},
   {"title":"Storage","name":"about_storage_title","route":"storage","screens":["About"],"screen":true,"description":"See what the app keeps on your device, and delete it"},
   {"title":"Statistics","name":"statistics_title","route":"statistics","screens":["About"],"screen":true,"description":"How much you type, day by day"},
   {"title":"Permissions","name":"privacy_permissions_title","route":"permissions","screens":["Privacy"],"screen":true,"description":"See what the keyboard can reach, and give or take back a permission"},
