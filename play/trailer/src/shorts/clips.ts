@@ -23,5 +23,9 @@ export const SHORT_CLIPS: Record<string, number> = {
   "shorts/clips/s09-themes.mp4": 32.067,
   "shorts/clips/s10-netlog.mp4": 18.067,
   "shorts/clips/s11-langs.mp4": 72.100,
+  "shorts/clips/s14-float.mp4": 29.967,
+  "shorts/clips/s14-onehand.mp4": 39.566,
+  "shorts/clips/s14-split.mp4": 24.800,
+  "shorts/clips/s14-split2.mp4": 16.000,
   "shorts/clips/s15-undo.mp4": 16.067,
 };
