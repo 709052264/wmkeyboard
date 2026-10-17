@@ -13,19 +13,19 @@ Style: V voiceover · T text + music · H meme hook.
 | Day | Date | # | Feature | Pillar | Style | Script | Footage | VO | Render | OK | YT | X | Reddit | TG | IG | TikTok |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | 10-20 | 1 | Works offline, no account | Privacy | V | ok | partial: shots 1, 3 (airplane shot left) | placeholder | draft | | | | | | | |
-| 2 | 10-21 | 7 | Glide typing | Typing | T | ok | | | | | | | | | | |
+| 2 | 10-21 | 7 | Glide typing | Typing | T | ok | ✓ | | | | | | | | | |
 | 3 | 10-22 | 17 | Bangla Avro phonetic | Languages | H | ok | ✓ | | draft | | | | | | | |
 | 4 | 10-23 | 47 | Calculator in the chat | Tools | H | ok | ✓ | | draft | | | | | | | |
 | 5 | 10-24 | 31 | Photo backgrounds, all features | Looks | H | ok | partial: GIF beat, shuffle, crop pinch left | | draft | | | | | | | |
 | 6 | 10-25 | 39 | Emoji search, 125 languages | Emoji | H | ok | ✓ | | draft | | | | | | | |
 | 7 | 10-26 | 48 | Clipboard history | Tools | V | ok | ✓ | placeholder | draft | | | | | | | |
-| 8 | 10-27 | 11 | Spacebar cursor gestures | Typing | H | ok | | | | | | | | | | |
+| 8 | 10-27 | 11 | Spacebar cursor gestures | Typing | H | ok | ✓ | | | | | | | | | |
 | 9 | 10-28 | 29 | Theme speed-run + addon repos | Looks | T | ok | ✓ | | draft | | | | | | | |
 | 10 | 10-29 | 2 | Network activity log | Privacy | V | ok | ✓ | placeholder | draft | | | | | | | |
 | 11 | 10-30 | 24 | Hundreds of languages | Languages | T | ok | ✓ | | draft | | | | | | | |
 | 12 | 10-31 | 58 | Offline Whisper voice | Tools | V | ok | | | | | | | | | | |
 | 13 | 11-01 | 45 | Custom sticker packs | Emoji | V | ok | | | | | | | | | | |
-| 14 | 11-02 | 26 | One-handed / split / floating | Languages | T | ok | | | | | | | | | | |
+| 14 | 11-02 | 26 | One-handed / split / floating | Languages | T | ok | ✓ | | | | | | | | | |
 | 15 | 11-03 | 9 | Autocorrect undo chip | Typing | T | ok | ✓ | | draft | | | | | | | |
 | 16 | 11-04 | 49 | OTP code chip | Tools | V |  | | | | | | | | | | |
 | 17 | 11-05 | 18 | Hindi phonetic | Languages | H |  | | | | | | | | | | |
@@ -142,3 +142,9 @@ Style: V voiceover · T text + music · H meme hook.
   all reset after (floating panel reset + off, split off). s14-split's last seconds show a clipboard
   chip from the user's Mac (KDE Connect clipboard sync): use s14-split2 for typing. Day 8: adb
   motionevent hold-drag on the spacebar reads as a language swipe; needs the user's finger.
+- 2026-10-17: days 2 and 8 captured with the user's hands (s02-glide: word-by-word "See you
+  tomorrow" + "Good" with a loop; one-stroke across the spacebar decodes badly, user's call. s08:
+  spacebar slide to "adress", one-line text per user; touchpad swipe-up not in the take).
+  The user's gestures were glide off, quick swipe Language, hold-swipe Language, touchpad off:
+  temporarily changed for the takes and restored afterwards, checked on screen.
+  Left with the user: day 12 (voice), 13 (sticker crop), 1 (airplane-mode shot), 5 (crop pinch, GIF).
