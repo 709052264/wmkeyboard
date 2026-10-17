@@ -24,7 +24,7 @@ Style: V voiceover · T text + music · H meme hook.
 | 10 | 10-29 | 2 | Network activity log | Privacy | V | ok | ✓ | placeholder | draft | | | | | | | |
 | 11 | 10-30 | 24 | Hundreds of languages | Languages | T | ok | ✓ | | draft | | | | | | | |
 | 12 | 10-31 | 58 | Offline Whisper voice | Tools | V | ok | | | | | | | | | | |
-| 13 | 11-01 | 45 | Custom sticker packs | Emoji | V | ok | | | | | | | | | | |
+| 13 | 11-01 | 45 | Custom sticker packs | Emoji | V | ok | ✓ | | | | | | | | | |
 | 14 | 11-02 | 26 | One-handed / split / floating | Languages | T | ok | ✓ | | | | | | | | | |
 | 15 | 11-03 | 9 | Autocorrect undo chip | Typing | T | ok | ✓ | | draft | | | | | | | |
 | 16 | 11-04 | 49 | OTP code chip | Tools | V |  | | | | | | | | | | |
@@ -148,3 +148,12 @@ Style: V voiceover · T text + music · H meme hook.
   The user's gestures were glide off, quick swipe Language, hold-swipe Language, touchpad off:
   temporarily changed for the takes and restored afterwards, checked on screen.
   Left with the user: day 12 (voice), 13 (sticker crop), 1 (airplane-mode shot), 5 (crop pinch, GIF).
+- 2026-10-17: day 13 captured (s13-editor: corgi crop by user, remove background, white border 8,
+  save; s13-send: harness chat, emoji › stickers › My stickers › corgi lands). Pack "My 🐱" on the
+  phone holds the corgi cutout plus the cat and terrier as plain squares (multi-select added them).
+  Stock photos pushed to /sdcard/Pictures/WMShorts (pet1-3); remove when done.
+  HARNESS BUILD: the phone runs a local release-signed fullIntlFast with DocsShotActivity
+  (uncommitted app/build.gradle.kts edit, -Pwmkb.fastHarness=true). Same key as the installed
+  release (SHA-256 D6:C1:...:7C:AD), installed with -r, data kept. Revert the gradle edit and
+  reinstall a normal build when capture ends.
+  Left with the user: day 12 (voice), day 1 (airplane shot), day 5 (crop pinch, GIF).
