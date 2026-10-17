@@ -23,5 +23,5 @@
   //   paste the id it prints below and uncomment the block
   //   npx wrangler pages secret put SUPPORTKORI_SECRET --project-name wmkeyboard
   // Until then both endpoints answer 503 and the page shows its snapshot.
-  // ,"kv_namespaces": [{ "binding": "SUPPORTERS", "id": "<namespace id>" }]
+  ,"kv_namespaces": [{ "binding": "SUPPORTERS", "id": "5a902d8ba91c4cfb9b9066a0acfee8d8" }]
 }
