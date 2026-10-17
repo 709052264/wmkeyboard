@@ -2326,6 +2326,7 @@ private fun SettingsNavGraph(
                     repository = repository,
                     persona = settings.watch { it.onboarding },
                     onOpenLicenses = { navController.navigate("licenses") },
+                    onOpenSupporters = { navController.navigate("supporters") },
                     onOpenLicenseText = { navController.navigate("license_text/$it") },
                     onOpenDebugLog = { navController.navigate("debug_log") },
                     onOpenStorage = { navController.navigate("storage") },
@@ -2401,6 +2402,15 @@ private fun SettingsNavGraph(
                 route = "licenses",
             ) {
                 LicensesScreen { navController.navigate("license_text/$it") }
+            }
+        }
+        composable("supporters") {
+            SettingsScreen(
+                stringResource(R.string.about_supporters_title),
+                { navController.popBackStack() },
+                route = "supporters",
+            ) {
+                SupportersScreen()
             }
         }
         composable("license_text/{asset}") { backStackEntry ->

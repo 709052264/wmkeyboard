@@ -2427,6 +2427,10 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.home_about_title, "licenses", R.string.search_kw_licenses,
         ),
         under(
+            R.string.about_supporters_title, R.string.about_supporters_subtitle,
+            R.string.home_about_title, "supporters", R.string.search_kw_supporters,
+        ),
+        under(
             R.string.about_storage_title, R.string.about_storage_subtitle,
             R.string.home_about_title, "storage", R.string.search_kw_storage,
         ),

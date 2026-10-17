@@ -197,6 +197,7 @@ internal object SettingsRoutes {
         "statistics",
         "debug_log",
         "licenses",
+        "supporters",
         "license_text/{asset}",
     )
 

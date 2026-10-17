@@ -433,6 +433,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "backup/contents" to Color(0xFF78909C),
     "about" to Color(0xFF90A4AE),
     "licenses" to Color(0xFF90A4AE),
+    "supporters" to Color(0xFFFFB300),
     // Behind the version row's seven taps, so it keeps About's grey.
     "egg_game" to Color(0xFF90A4AE),
     "debug_log" to Color(0xFF607D8B),

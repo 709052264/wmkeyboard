@@ -238,4 +238,26 @@
     <!-- Used by every bring-your-own-key AI provider row. -->
     <string name="about_service_byok_used">The optional AI tool, with your own key</string>
 
+    <!-- About › Supporters -->
+    <string name="about_supporters_title">Supporters</string>
+    <string name="about_supporters_subtitle">The people who chipped in on SupportKori</string>
+    <string name="supporters_intro">WM Keyboard is free, with no ads and no paid tier. These people supported it anyway. Only the name each one gave is shown, never an amount.</string>
+    <string name="supporters_support_title">Support WM Keyboard</string>
+    <string name="supporters_support_subtitle">Send a tip or join the membership on SupportKori</string>
+    <string name="supporters_list_title">Thank you</string>
+    <string name="supporters_empty">No one yet. You could be the first.</string>
+    <string name="supporters_kind_tip">Tip</string>
+    <string name="supporters_kind_member">Member</string>
+    <!-- %1$s: "Tip" or "Member", %2$s: the date -->
+    <string name="supporters_row_subtitle">%1$s · %2$s</string>
+    <string name="supporters_check_button">Check for new supporters</string>
+    <string name="supporters_check_hint">This is the list this version shipped with. Nothing is fetched until you press the button.</string>
+    <string name="supporters_checking">Checking…</string>
+    <string name="supporters_check_failed">Couldn\'t reach the list. Check your connection and try again.</string>
+    <string name="supporters_none_new">No one new since this version was built.</string>
+    <plurals name="supporters_added">
+        <item quantity="one">%d new supporter added.</item>
+        <item quantity="other">%d new supporters added.</item>
+    </plurals>
+
 </resources>

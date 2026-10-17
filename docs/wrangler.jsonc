@@ -15,4 +15,13 @@
   "name": "wmkeyboard",
   "compatibility_date": "2026-08-10",
   "pages_build_output_dir": "./dist"
+
+  // The supporters list (functions/api/supportkori.ts, supporters.ts). Off
+  // until the namespace exists, because a binding with a made-up id fails the
+  // deploy. To turn it on:
+  //   npx wrangler kv namespace create SUPPORTERS
+  //   paste the id it prints below and uncomment the block
+  //   npx wrangler pages secret put SUPPORTKORI_SECRET --project-name wmkeyboard
+  // Until then both endpoints answer 503 and the page shows its snapshot.
+  // ,"kv_namespaces": [{ "binding": "SUPPORTERS", "id": "<namespace id>" }]
 }

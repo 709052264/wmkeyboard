@@ -236,6 +236,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwipeDown
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwipeDownAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwipeUp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SystemUpdate
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VolunteerActivism
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tab
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TabletAndroid
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tag
@@ -347,6 +348,7 @@ internal object SettingsRowIcons {
         put(R.string.about_version_title) { Icons.Outlined.Info }
         put(R.string.about_licence_title) { Icons.Outlined.Gavel }
         put(R.string.about_licences_title) { Icons.Outlined.Gavel }
+        put(R.string.about_supporters_title) { Icons.Outlined.VolunteerActivism }
         put(R.string.about_source_title) { Icons.Outlined.Code }
         put(R.string.about_launcher_name_title) { Icons.AutoMirrored.Outlined.ShortText }
         put(R.string.about_launcher_shown_title) { Icons.Outlined.VisibilityOff }

@@ -99,6 +99,9 @@ enum class NetSource(
     LINK_IMPORT("link_import"),
     BACKUP("backup"),
     UPDATES("updates", background = true),
+
+    /** About › Supporters, when its refresh button is pressed. */
+    SUPPORTERS("supporters"),
     KDE_CONNECT("kde_connect", ToolbarTool.KDE_CONNECT),
     OTHER("other"),
     ;

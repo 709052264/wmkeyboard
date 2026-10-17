@@ -18,6 +18,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Save
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SystemUpdate
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VolunteerActivism
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -143,6 +144,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.LINK_IMPORT -> R.string.netlog_source_link_import to R.string.netlog_sent_link_import
     NetSource.BACKUP -> R.string.netlog_source_backup to R.string.netlog_sent_backup
     NetSource.UPDATES -> R.string.netlog_source_updates to R.string.netlog_sent_updates
+    NetSource.SUPPORTERS -> R.string.netlog_source_supporters to R.string.netlog_sent_supporters
     NetSource.KDE_CONNECT -> R.string.netlog_source_kde_connect to R.string.netlog_sent_kde_connect
     NetSource.OTHER -> R.string.netlog_source_other to R.string.netlog_sent_other
 }
@@ -160,6 +162,7 @@ private fun ownerRoute(source: NetSource): String? = when (source) {
     NetSource.RBOARD_THEMES -> "themes"
     NetSource.BACKUP -> "backup"
     NetSource.UPDATES -> "about"
+    NetSource.SUPPORTERS -> "supporters"
     else -> null
 }
 
@@ -178,6 +181,7 @@ private fun fallbackIcon(source: NetSource): ImageVector = when (source) {
     NetSource.BACKUP -> Icons.Outlined.Save
     NetSource.SYNONYMS -> Icons.Outlined.SwapHoriz
     NetSource.UPDATES -> Icons.Outlined.SystemUpdate
+    NetSource.SUPPORTERS -> Icons.Outlined.VolunteerActivism
     NetSource.OTHER -> Icons.Outlined.Public
     else -> Icons.Outlined.CloudDownload
 }
@@ -188,6 +192,8 @@ private fun fallbackIcon(source: NetSource): ImageVector = when (source) {
  */
 private val DataSaverSources = NetSource.entries.toSet() - setOf(
     NetSource.TRANSLATE, NetSource.DEEPL_WRITE, NetSource.BACKUP, NetSource.UPDATES, NetSource.KDE_CONNECT,
+    // One small list, fetched only when its button is pressed.
+    NetSource.SUPPORTERS,
     // One small request per share the user pressed; its own switch is on the Location page.
     NetSource.LOCATION,
     NetSource.LINK_IMPORT, NetSource.SYNONYMS, NetSource.OCR_ONLINE, NetSource.OTHER,

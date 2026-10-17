@@ -1,0 +1,152 @@
+---
+/**
+ * The supporters list, credited by name, newest first.
+ *
+ * Fetched from /api/supporters when the site builds, so a deploy always prints
+ * the list as it stood then. Offline, the build falls back to the snapshot in
+ * src/data/supporters.json (refreshed by `npm run supporters`). Nothing is
+ * fetched when a reader opens the page: the button below asks for anyone who
+ * has supported since the build, and only when pressed.
+ */
+import snapshot from '@data/supporters.json';
+import { fetchSupporters } from '../lib/supporters.mjs';
+
+type Supporter = { name: string; kind: 'tip' | 'member'; at: string };
+
+let list: { updated: string; supporters: Supporter[] } = snapshot as typeof list;
+try {
+	list = await fetchSupporters();
+} catch (error) {
+	console.warn(`[supporters] using the snapshot: ${(error as Error).message}`);
+}
+
+const dateOf = (iso: string) =>
+	new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+---
+
+<div class="wm-supporters not-content" data-updated={list.updated}>
+	<ul data-list>
+		{list.supporters.map((s) => (
+			<li data-key={`${s.at}|${s.name}`}>
+				<span class="name">{s.name}</span>
+				<span class="meta">
+					{s.kind === 'member' ? 'Member' : 'Tip'} · <time datetime={s.at}>{dateOf(s.at)}</time>
+				</span>
+			</li>
+		))}
+	</ul>
+	<p class="empty" data-empty hidden={list.supporters.length > 0}>No one yet. You could be the first.</p>
+	<div class="actions">
+		<button type="button" data-refresh>Check for new supporters</button>
+		<span class="status" data-status aria-live="polite">List as of {dateOf(list.updated)}.</span>
+	</div>
+</div>
+
+<script>
+	type Supporter = { name: string; kind: 'tip' | 'member'; at: string };
+
+	const fmt = (iso: string) =>
+		new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+	for (const root of document.querySelectorAll<HTMLElement>('.wm-supporters')) {
+		const list = root.querySelector<HTMLUListElement>('[data-list]')!;
+		const empty = root.querySelector<HTMLElement>('[data-empty]')!;
+		const status = root.querySelector<HTMLElement>('[data-status]')!;
+		const button = root.querySelector<HTMLButtonElement>('[data-refresh]')!;
+
+		button.addEventListener('click', async () => {
+			button.disabled = true;
+			status.textContent = 'Checking…';
+			try {
+				const response = await fetch('/api/supporters', { cache: 'no-store' });
+				if (!response.ok) throw new Error(String(response.status));
+				const body: { supporters: Supporter[] } = await response.json();
+				const known = new Set([...list.children].map((li) => (li as HTMLElement).dataset.key));
+				const fresh = body.supporters.filter((s) => !known.has(`${s.at}|${s.name}`));
+				// Newest first, so the new ones go on top in the order they came.
+				for (const s of [...fresh].reverse()) {
+					const li = document.createElement('li');
+					li.dataset.key = `${s.at}|${s.name}`;
+					li.className = 'fresh';
+					const name = document.createElement('span');
+					name.className = 'name';
+					name.textContent = s.name;
+					const meta = document.createElement('span');
+					meta.className = 'meta';
+					meta.textContent = `${s.kind === 'member' ? 'Member' : 'Tip'} · ${fmt(s.at)}`;
+					li.append(name, meta);
+					list.prepend(li);
+				}
+				empty.hidden = list.children.length > 0;
+				status.textContent =
+					fresh.length === 0
+						? 'No one new since this page was built.'
+						: `${fresh.length} new ${fresh.length === 1 ? 'supporter' : 'supporters'} added.`;
+			} catch {
+				status.textContent = "Couldn't reach the list. Try again in a moment.";
+			} finally {
+				button.disabled = false;
+			}
+		});
+	}
+</script>
+
+<style>
+	.wm-supporters ul {
+		list-style: none;
+		padding: 0;
+		margin: 1rem 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+		gap: 0.5rem;
+	}
+	.wm-supporters li {
+		display: flex;
+		flex-direction: column;
+		padding: 0.6rem 0.8rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.6rem;
+		background: var(--sl-color-gray-7, var(--sl-color-black));
+	}
+	.wm-supporters li.fresh {
+		border-color: var(--sl-color-accent);
+	}
+	.wm-supporters .name {
+		font-weight: 600;
+		color: var(--sl-color-white);
+		overflow-wrap: anywhere;
+	}
+	.wm-supporters .meta {
+		font-size: var(--sl-text-xs);
+		color: var(--sl-color-gray-3);
+	}
+	.wm-supporters .actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem;
+		margin-top: 1rem;
+	}
+	.wm-supporters button {
+		font: inherit;
+		font-size: var(--sl-text-sm);
+		padding: 0.45rem 0.9rem;
+		border-radius: 999px;
+		border: 1px solid var(--sl-color-gray-4);
+		background: transparent;
+		color: var(--sl-color-white);
+		cursor: pointer;
+	}
+	.wm-supporters button:hover:not(:disabled) {
+		border-color: var(--sl-color-accent);
+	}
+	.wm-supporters button:disabled {
+		opacity: 0.6;
+		cursor: progress;
+	}
+	.wm-supporters .status,
+	.wm-supporters .empty {
+		font-size: var(--sl-text-sm);
+		color: var(--sl-color-gray-3);
+	}
+</style>

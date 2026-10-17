@@ -839,6 +839,7 @@ internal fun AboutSettings(
     repository: SettingsRepository,
     persona: OnboardingSettings,
     onOpenLicenses: () -> Unit,
+    onOpenSupporters: () -> Unit = {},
     onOpenLicenseText: (String) -> Unit,
     onOpenDebugLog: () -> Unit = {},
     onOpenStorage: () -> Unit = {},
@@ -1080,6 +1081,14 @@ internal fun AboutSettings(
     ) {
         item { TelegramRow { uriHandler.openUri(Support.TELEGRAM_URL) } }
         item { SocialStrip() }
+        item {
+            NavRow(
+                R.string.about_supporters_title,
+                stringResource(R.string.about_supporters_subtitle),
+                route = "supporters",
+                onClick = onOpenSupporters,
+            )
+        }
     }
 
     SettingsGroup(stringResource(R.string.about_documentation_title)) {

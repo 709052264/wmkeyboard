@@ -218,4 +218,6 @@
     <string name="netlog_sent_updates">The app\'s version. Nothing about you.</string>
     <string name="netlog_sent_kde_connect">What you use the tool for, to a computer you paired on your own network.</string>
     <string name="netlog_sent_other">A request the log could not put under a feature.</string>
+    <string name="netlog_source_supporters">Supporters list</string>
+    <string name="netlog_sent_supporters">Nothing. It only asks for the public list.</string>
 </resources>
