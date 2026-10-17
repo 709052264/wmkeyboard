@@ -135,3 +135,10 @@ Style: V voiceover · T text + music · H meme hook.
   0.35 on hooks, garage-nver at 0.12 under VO, up-atlas/groove-groza provisional on text days.
   Hook videos now measure about -23 LUFS integrated (music is their only audio); VO days -16.
   Review page v3. Phone's wireless adb refused connection; needs re-pairing before capture.
+- 2026-10-17: user asked why music repeats: three picks were spread over ten videos. Rule now: one
+  bed per video. Round-two audition (36 tracks, phonk/garage/dark/synth/dnb/house/trap/club/ambient):
+  https://claude.ai/artifact/CNq9JPnnjZEkMMhnynKA6a. Day 14 captured over adb (s14-onehand, s14-split,
+  s14-split2, s14-float); toolbox One-handed/Split tiles and Settings › One-handed, split and floating;
+  all reset after (floating panel reset + off, split off). s14-split's last seconds show a clipboard
+  chip from the user's Mac (KDE Connect clipboard sync): use s14-split2 for typing. Day 8: adb
+  motionevent hold-drag on the spacebar reads as a language swipe; needs the user's finger.
