@@ -49,5 +49,6 @@
     <string name="core_pred_wordlist_http_error">The server did not send the file. The error code is HTTP <xliff:g id="status_code" example="404">%1$s</xliff:g>.</string>
     <string name="core_pred_wordlist_malformed_error">That word list is empty or unreadable.</string>
     <string name="core_pred_wordlist_save_error">The app cannot save the word list. Try again.</string>
+    <string name="core_pred_wordlist_memory_error">This device does not have enough memory for a word list of this size. Choose a smaller size.</string>
 
 </resources>

@@ -192,6 +192,20 @@ object WordlistDownloadManager {
                         kept = downloadedByThisEntry(filesDir, entry),
                     ),
                 )
+            } catch (_: OutOfMemoryError) {
+                // A large list on a device with a small heap (seen on an
+                // Android TV set): the trie is built in memory, and running
+                // out took the whole app down. The arrays that failed
+                // are garbage by now, so saying so is safe.
+                part.delete()
+                set(
+                    entry.id,
+                    DownloadStatus.Failed(
+                        FailReason.OTHER,
+                        R.string.core_pred_wordlist_memory_error,
+                        kept = downloadedByThisEntry(filesDir, entry),
+                    ),
+                )
             } finally {
                 activeId = null
             }

@@ -8,7 +8,7 @@ import android.graphics.fonts.FontFamily as PlatformFontFamily
 import android.graphics.text.TextRunShaper
 import android.os.Build
 import android.os.Handler
-import android.os.Looper
+import android.os.HandlerThread
 import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.core.provider.FontRequest
@@ -804,10 +804,18 @@ object KeyboardFonts {
                         if (continuation.isActive) continuation.resume(null)
                     }
                 },
-                Handler(Looper.getMainLooper()),
+                // The handler the fetch itself runs on, a provider query over
+                // Binder, not where the callback lands. The main looper here was
+                // an "input dispatching timed out" ANR whenever Play Services
+                // answered slowly.
+                fontFetchHandler,
             )
         }
         return fetched?.also { notoEmoji = it }
+    }
+
+    private val fontFetchHandler: Handler by lazy {
+        Handler(HandlerThread("emoji-font-fetch").apply { start() }.looper)
     }
 
     @Volatile

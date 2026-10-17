@@ -94,8 +94,9 @@ import com.wasimaster.wmkeyboard.core.feedback.KeySoundPlayer
 import com.wasimaster.wmkeyboard.core.fonts.FontStore
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
-import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
+import com.wasimaster.wmkeyboard.core.layout.resolveLayoutLanguage
+import com.wasimaster.wmkeyboard.core.layout.resolveLayoutName
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.settings.DefaultToolOrder
@@ -304,12 +305,15 @@ internal fun LanguagesPage(repository: SettingsRepository, settings: LiveSetting
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 4.dp),
         )
+        // From the layout index, never a parse: this runs for every enabled
+        // layout under every enabled language on each recomposition, and
+        // parsing them here was a main-thread ANR on low-end phones.
         val layoutIds = enabledLayoutIds.filter {
-            resolveLayout(customLayouts, it).language().id == language.id
+            resolveLayoutLanguage(customLayouts, it).id == language.id
         }
         for (layoutId in layoutIds) {
             ListItem(
-                headlineContent = { Text(resolveLayout(customLayouts, layoutId).name) },
+                headlineContent = { Text(resolveLayoutName(customLayouts, layoutId)) },
                 trailingContent = {
                     Switch(
                         checked = layoutId in enabledLayoutIds,
@@ -392,7 +396,7 @@ private fun AddLanguageSection(repository: SettingsRepository, settings: LiveSet
         val customLayouts = settings.watch { it.customLayouts }
         LayoutPickerDialog(
             language = language,
-            layoutName = { resolveLayout(customLayouts, it).name },
+            layoutName = { resolveLayoutName(customLayouts, it) },
             layoutSpec = { resolveLayout(customLayouts, it) },
             onConfirm = { chosen ->
                 layoutChoice = null

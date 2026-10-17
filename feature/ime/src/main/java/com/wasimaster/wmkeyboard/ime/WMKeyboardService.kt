@@ -4812,9 +4812,13 @@ open class WMKeyboardService : InputMethodService() {
             loadedDictToken = withContext(Dispatchers.Default) {
                 if (userUnlocked) DictionaryStore.stateToken(filesDir) else Int.MIN_VALUE
             }
+            // Folding the Bengali list is hundreds of milliseconds on a slow
+            // phone, and this coroutine runs on the main thread: built here it
+            // was an "input dispatching timed out" ANR at keyboard start.
+            val bengaliIndex = withContext(Dispatchers.Default) { buildBengaliIndex() }
             suggestionEngine = SuggestionEngine(
                 english ?: PackedTrie.EMPTY,
-                buildBengaliIndex(),
+                bengaliIndex,
                 userLexicon,
                 loanwords,
                 seedBigrams,
@@ -5625,6 +5629,24 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             super.onEvaluateFullscreenMode()
         }
+
+    /**
+     * The platform sizes the soft-input window here on every show, and on some
+     * Android TV builds (Chromecast with Google TV and Skyworth sets, Android
+     * 14, Play vitals for 0.5.14) that window has already been detached when
+     * `showWindow` gets to it: `Window.setLayout` stores the size, then
+     * `WindowManagerGlobal.updateViewLayout` throws "View not attached to
+     * window manager" and takes the process down. The size is kept on the
+     * window's attributes before the throw and applied when it is added again,
+     * so dropping that one dispatch loses nothing.
+     */
+    override fun onConfigureWindow(win: android.view.Window, isFullscreen: Boolean, isCandidatesOnly: Boolean) {
+        try {
+            super.onConfigureWindow(win, isFullscreen, isCandidatesOnly)
+        } catch (detached: IllegalArgumentException) {
+            DebugLog.w("ime", "IME window not attached while configuring it: ${detached.message}")
+        }
+    }
 
     /**
      * The focused window has no editor: the framework serves it through a
@@ -42353,7 +42375,14 @@ open class WMKeyboardService : InputMethodService() {
         val lists = if (ConversionWordLists.readingFor(langId) != null) {
             PackedTrie.EMPTY
         } else {
-            CustomDictionaries.trie(filesDir, langId)
+            // An imported list too large for this device's heap is skipped
+            // rather than taking the keyboard down with it at every start.
+            try {
+                CustomDictionaries.trie(filesDir, langId)
+            } catch (_: OutOfMemoryError) {
+                DebugLog.w("ime", "imported lists for $langId do not fit in memory, skipped")
+                PackedTrie.EMPTY
+            }
         }
         imported[langId] = lists
         // Dropped for a language set to read imported lists alone (#28) —
