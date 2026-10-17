@@ -141,9 +141,9 @@ sentence while the typing is sped up. Check with a dry run which of the two read
 
 ### Day 12 · #58 · Offline Whisper voice typing · V · 22 s
 **Hook:** "Voice typing without sending your voice anywhere."
-**VO:** Voice typing usually sends your voice to a server. Not here. WM Keyboard can transcribe
-with Whisper, right on your phone. Pick a model, from tiny to turbo, and it keeps working in
-airplane mode. It can even translate what you say into English.
+**VO:** Voice typing usually sends your voice to a server. Not here. WM Keyboard turns speech into
+text right on your phone, and it keeps working in airplane mode. It can even translate what you
+say into English. (Filmed with the Offline Whistle engine, so the line names no engine.)
 **Shots:** adb for the settings catalog. **You** speak into the phone (or play a clip from the Mac
 next to it). Prerequisites: RECORD_AUDIO granted, a model downloaded beforehand. Let the mic chip
 go idle before any shot that needs the status bar.
