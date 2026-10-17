@@ -12,7 +12,7 @@ Style: V voiceover · T text + music · H meme hook.
 
 | Day | Date | # | Feature | Pillar | Style | Script | Footage | VO | Render | OK | YT | X | Reddit | TG | IG | TikTok |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 10-20 | 1 | Works offline, no account | Privacy | V | ok | partial: shots 1, 3 (airplane shot left) | placeholder | draft | | | | | | | |
+| 1 | 10-20 | 1 | Works offline, no account | Privacy | V | ok | ✓ | placeholder | draft | | | | | | | |
 | 2 | 10-21 | 7 | Glide typing | Typing | T | ok | ✓ | | | | | | | | | |
 | 3 | 10-22 | 17 | Bangla Avro phonetic | Languages | H | ok | ✓ | | draft | | | | | | | |
 | 4 | 10-23 | 47 | Calculator in the chat | Tools | H | ok | ✓ | | draft | | | | | | | |
@@ -23,7 +23,7 @@ Style: V voiceover · T text + music · H meme hook.
 | 9 | 10-28 | 29 | Theme speed-run + addon repos | Looks | T | ok | ✓ | | draft | | | | | | | |
 | 10 | 10-29 | 2 | Network activity log | Privacy | V | ok | ✓ | placeholder | draft | | | | | | | |
 | 11 | 10-30 | 24 | Hundreds of languages | Languages | T | ok | ✓ | | draft | | | | | | | |
-| 12 | 10-31 | 58 | Offline Whisper voice | Tools | V | ok | | | | | | | | | | |
+| 12 | 10-31 | 58 | Offline Whisper voice | Tools | V | ok | ✓ | | | | | | | | | |
 | 13 | 11-01 | 45 | Custom sticker packs | Emoji | V | ok | ✓ | | | | | | | | | |
 | 14 | 11-02 | 26 | One-handed / split / floating | Languages | T | ok | ✓ | | | | | | | | | |
 | 15 | 11-03 | 9 | Autocorrect undo chip | Typing | T | ok | ✓ | | draft | | | | | | | |
@@ -161,3 +161,11 @@ Style: V voiceover · T text + music · H meme hook.
   animating behind the keyboard). No crop step exists for device photos (they apply directly), so the
   pinch beat is dropped. Test themes left on the phone: two "My theme" (cat photo, night GIF); the
   active theme was switched back to Default (system).
+- 2026-10-17: day 12 captured in the harness chat with the user's Offline Whistle engine (retake:
+  "Same spot, but this time we are staying the whole weekend", word-perfect). Script names Whisper:
+  change the VO to say "offline" without the engine name. Day 1 airplane shot filmed by the user with
+  the phone's recorder (720x1600, upscaled; s01-airplane: Wi-Fi off, airplane on, "Hello how are
+  you?" with suggestions). All of batch 1 is now filmed.
+  STILL TO DO on the phone: revert the app/build.gradle.kts harness edit and reinstall a normal
+  build; delete /sdcard/Pictures/WMShorts; optionally delete the two test "My theme" themes and the
+  "My 🐱" sticker pack; the user's own Record_*.mp4 files are theirs to keep or delete.
