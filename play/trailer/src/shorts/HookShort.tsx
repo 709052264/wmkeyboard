@@ -3,7 +3,7 @@ import { AbsoluteFill, Easing, Sequence, interpolate, useCurrentFrame, useVideoC
 import { INTER } from "../fonts";
 import { INK, VIOLET, WHITE } from "../theme";
 import { ShortScaffold } from "./ShortScaffold";
-import { captionStyle } from "./Headline";
+import { NoBreak, captionStyle } from "./Headline";
 import { SAFE, SAFE_W, TEXT_ZONE, beatFrames, beatStarts } from "./layout";
 import { useLook } from "./looks";
 import type { ShortProps } from "./types";
@@ -36,9 +36,11 @@ const MemeBox: React.FC<{ text: string; accent: string; cuts: number[] }> = ({ t
   // Small bump on every cut after the first so the box breathes with the edit.
   const lastCut = [...cuts].reverse().find((c) => c <= frame && c > 0);
   const bump = lastCut === undefined ? 0 : interpolate(frame - lastCut, [0, 3, 8], [0, 0.035, 0], clamp);
-  // The meme box is plain black-on-white by design, so «accent» marks just go.
-  const [lead, ...rest] = text.replace(/[«»]/g, "").split(":");
-  const hasLead = rest.length > 0;
+  // The meme box is plain black-on-white by design, so «accent» marks only
+  // keep their phrase on one line.
+  const colon = text.indexOf(":");
+  const lead = colon >= 0 ? text.slice(0, colon + 1) : "";
+  const rest = colon >= 0 ? text.slice(colon + 1) : text;
   return (
     <AbsoluteFill
       style={{
@@ -63,12 +65,14 @@ const MemeBox: React.FC<{ text: string; accent: string; cuts: number[] }> = ({ t
           fontSize: 58,
           lineHeight: 1.18,
           textAlign: "left",
+          textWrap: "balance",
           scale: interpolate(frame, [0, 4], [1.25, 1], { ...clamp, easing: Easing.out(Easing.back(2)) }) + bump,
           rotate: `${interpolate(frame, [0, 4, 7, 10], [-4, 1.5, -0.8, 0], clamp)}deg`,
         }}
       >
-        {hasLead ? <span style={{ fontWeight: 800 }}>{lead}:</span> : null}
-        {hasLead ? rest.join(":") : text.replace(/[«»]/g, "")}
+        {lead ? <span style={{ fontWeight: 800 }}>{lead.replace(/[«»]/g, "")}</span> : null}
+        {lead ? " " : null}
+        <NoBreak text={rest} />
       </div>
     </AbsoluteFill>
   );
@@ -102,7 +106,7 @@ const Reaction: React.FC<{ text: string; index: number }> = ({ text, index }) =>
           rotate: `${interpolate(frame, [0, 5, d], [tilt * 3, tilt, tilt * 0.5], clamp)}deg`,
         }}
       >
-        {text.replace(/[«»]/g, "")}
+        <NoBreak text={text} />
       </div>
     </AbsoluteFill>
   );

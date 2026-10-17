@@ -12,12 +12,18 @@ export type LookDef = {
   card: { top: number; height: number; maxWidth: number; radius: number };
   head: Band; // hook and beat headlines
   low: Band; // spoken words and meme reactions
+  // Where a VO short puts its hook and feature chips when head and low
+  // share the same band (bleed); defaults to head.
+  voHead?: Band;
   light: boolean;
   ink: string; // headline colour
   soft: string; // secondary text
   caption: "outline" | "pill" | "highlight";
   cut: "punch" | "slide" | "swing" | "drop";
   headScale: number; // headline size multiplier
+  // Zoom punch-ins: target centre as a fraction of the frame height, and its
+  // largest height as a fraction. Keeps the target above the low band.
+  zoom: { at: number; maxH: number };
 };
 
 const lowFromBottom = (bottom: number, height: number): Band => ({ top: 1920 - bottom - height, height });
@@ -35,21 +41,25 @@ export const LOOKS: Record<Look, LookDef> = {
     caption: "outline",
     cut: "punch",
     headScale: 1,
+    zoom: { at: 0.38, maxH: 0.36 }, // centre ~y 928, captions from 1190
   },
-  // Footage edge to edge; headlines sit low on a dark scrim, spoken words
-  // ride mid-frame like native captions.
+  // Footage edge to edge. Headlines, reactions and spoken words share the
+  // lower third on a dark scrim; a VO short's hook and chips go to the top.
+  // Zoom targets land between the two.
   bleed: {
     name: "bleed",
     frame: "bleed",
     card: { top: 0, height: 1920, maxWidth: 1080, radius: 0 },
-    head: { top: 1140, height: 340 },
-    low: { top: 820, height: 260 },
+    head: { top: 1250, height: 240 },
+    low: { top: 1250, height: 240 },
+    voHead: { top: SAFE.top + 20, height: 320 },
     light: false,
     ink: WHITE,
     soft: "rgba(255,255,255,0.8)",
     caption: "outline",
     cut: "slide",
     headScale: 1.05,
+    zoom: { at: 0.45, maxH: 0.26 }, // y ~615-1115, between the bands
   },
   // A tilted phone below oversized type; captions as solid pills.
   device: {
@@ -64,6 +74,7 @@ export const LOOKS: Record<Look, LookDef> = {
     caption: "pill",
     cut: "swing",
     headScale: 1.22,
+    zoom: { at: 0.34, maxH: 0.3 }, // y ~840-1160, pills from 1220
   },
   // Cream paper, ink type, highlighter accents, soft shadows.
   paper: {
@@ -78,6 +89,7 @@ export const LOOKS: Record<Look, LookDef> = {
     caption: "highlight",
     cut: "drop",
     headScale: 1,
+    zoom: { at: 0.36, maxH: 0.33 }, // y ~780-1050, captions from 1190
   },
 };
 

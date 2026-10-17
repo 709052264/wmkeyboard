@@ -11,13 +11,13 @@ import {
   useVideoConfig,
 } from "remotion";
 import { INTER } from "../fonts";
-import { BODY, CLIP_H, CLIP_W, INK_HI, STATUS_BAR } from "../theme";
+import { BODY, CLIP_H, CLIP_W, INK_HI } from "../theme";
+import { cropTop } from "./crops";
 import { SHORT_CLIPS } from "./clips";
 import { SAFE_CX, resolveFocus, sec } from "./layout";
 import { useLook } from "./looks";
 import type { ClipBeat } from "./types";
 
-const SCREEN_RATIO = (CLIP_H - STATUS_BAR) / CLIP_W; // 2260 / 1080
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
 // One beat's footage, framed by the current look: a rounded card (card,
@@ -48,7 +48,9 @@ export const ScreenCard: React.FC<{
     easing: Easing.inOut(Easing.cubic),
   });
 
-  const fitW = C.height / SCREEN_RATIO; // whole screen visible at this width
+  // Rows above `top` (status bar, Chrome's toolbar on chat clips) never show.
+  const top = cropTop(beat);
+  const fitW = (C.height * CLIP_W) / (CLIP_H - top); // whole visible screen at this width
   const zoomFill = C.maxWidth / fitW;
   const zoom =
     look.frame === "device"
@@ -64,7 +66,8 @@ export const ScreenCard: React.FC<{
   const offsetY = -(videoH - C.height) * y;
 
   // Zoom punch-in: target rect from source pixels into card space, then a
-  // scale about the card's origin that brings its centre to the card centre.
+  // scale about the card's origin that brings its centre to the look's zoom
+  // anchor, horizontally centred.
   const z = beat.zoom;
   let zoomStyle: React.CSSProperties = {};
   let ring: React.ReactNode = null;
@@ -81,18 +84,20 @@ export const ScreenCard: React.FC<{
       });
     const [zx, zy, zw, zh] = z.to;
     const tx = offsetX + zx * scale;
-    const ty = offsetY + (zy - STATUS_BAR) * scale;
+    const ty = offsetY + (zy - top) * scale;
     const tw = zw * scale;
     const th = zh * scale;
     const target = Math.min(
-      Math.max(Math.min((cardW * 0.88) / tw, (C.height * 0.45) / th), 1.3),
+      Math.max(Math.min((cardW * 0.88) / tw, (C.height * look.zoom.maxH) / th), 1.3),
       5,
     );
     const s = 1 + (target - 1) * p;
     const cx = tx + tw / 2;
     const cy = ty + th / 2;
     const dx = cx + (cardW / 2 - cx) * p - s * cx;
-    const dy = cy + (C.height / 2 - cy) * p - s * cy;
+    // The target lands in the upper part of the frame (look.zoom.at), so
+    // captions in the look's low band never cover it.
+    const dy = cy + (C.height * look.zoom.at - cy) * p - s * cy;
     zoomStyle = {
       transformOrigin: "0 0",
       transform: `translate(${dx}px, ${dy}px) scale(${s})`,
@@ -135,7 +140,7 @@ export const ScreenCard: React.FC<{
           maxWidth: "none",
           position: "absolute",
           left: offsetX,
-          top: offsetY - STATUS_BAR * scale,
+          top: offsetY - top * scale,
           width: videoW,
           height: CLIP_H * scale,
         }}

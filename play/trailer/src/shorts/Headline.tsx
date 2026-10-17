@@ -3,10 +3,32 @@ import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { MANROPE } from "../fonts";
 import { useLook } from "./looks";
 
+// Groups words into runs: plain words one by one, «marked» spans whole, so
+// an accent phrase animates and wraps as one unit.
+const runs = (text: string) => {
+  const out: { text: string; accent: boolean }[] = [];
+  let inAccent = false;
+  for (const word of text.split(" ").filter(Boolean)) {
+    const opens = word.includes("«");
+    const accent = inAccent || opens;
+    const clean = word.replace(/[«»]/g, "");
+    const last = out[out.length - 1];
+    if (accent && !opens && last?.accent) {
+      last.text += ` ${clean}`;
+    } else {
+      out.push({ text: clean, accent });
+    }
+    if (opens) inAccent = true;
+    if (word.includes("»")) inAccent = false;
+  }
+  return out;
+};
+
 // Kinetic headline in the current look: words spring up with a stagger,
 // «marked» words take the accent (gradient on dark looks, a highlighter
-// stroke on paper). Words sit in a centred flex row with a gap, so the
-// block centres exactly instead of carrying a trailing word margin.
+// stroke on paper). Inline flow with text-wrap balance, so lines come out
+// even and no word is left alone on the last line; an accent span never
+// breaks.
 export const Headline: React.FC<{ text: string; size: number; delay?: number; still?: boolean }> = ({
   text,
   size,
@@ -16,34 +38,23 @@ export const Headline: React.FC<{ text: string; size: number; delay?: number; st
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const look = useLook();
-  const words = text.split(" ").filter(Boolean);
-  // «two words» spans: track open/close across words
-  let inAccent = false;
+  const parts = runs(text);
   return (
     <div
       style={{
-        display: "flex",
-        flexWrap: "wrap",
-        justifyContent: "center",
-        columnGap: "0.26em",
-        rowGap: "0.02em",
         fontFamily: MANROPE,
         fontWeight: 800,
         fontSize: size * look.headScale,
-        lineHeight: 1.08,
+        lineHeight: 1.1,
         letterSpacing: "-0.02em",
         color: look.ink,
         textAlign: "center",
+        textWrap: "balance",
       }}
     >
-      {words.map((word, i) => {
-        const opens = word.includes("«");
-        const accent = inAccent || opens;
-        if (opens) inAccent = true;
-        if (word.includes("»")) inAccent = false;
-        const clean = word.replace(/[«»]/g, "");
+      {parts.map((part, i) => {
         const s = still ? 1 : spring({ frame: frame - delay - i * 3, fps, config: { damping: 200, stiffness: 140 } });
-        const accentStyle: React.CSSProperties = !accent
+        const accentStyle: React.CSSProperties = !part.accent
           ? {}
           : look.light
             ? {
@@ -58,23 +69,39 @@ export const Headline: React.FC<{ text: string; size: number; delay?: number; st
                 filter: `drop-shadow(0 0 ${size / 6}px ${look.accent}66)`,
               };
         return (
-          <span
-            key={i}
-            style={{
-              display: "inline-block",
-              opacity: s,
-              translate: `0px ${interpolate(s, [0, 1], [40, 0])}px`,
-              ...(look.frame === "bleed" ? { textShadow: "0 6px 24px rgba(0,0,0,0.65)" } : {}),
-              ...accentStyle,
-            }}
-          >
-            {clean}
-          </span>
+          <React.Fragment key={i}>
+            {i > 0 ? " " : null}
+            <span
+              style={{
+                display: "inline-block",
+                whiteSpace: "nowrap",
+                opacity: s,
+                translate: `0px ${interpolate(s, [0, 1], [40, 0])}px`,
+                ...(look.frame === "bleed" ? { textShadow: "0 6px 24px rgba(0,0,0,0.65)" } : {}),
+                ...accentStyle,
+              }}
+            >
+              {part.text}
+            </span>
+          </React.Fragment>
         );
       })}
     </div>
   );
 };
+
+// Plain text with «marked» phrases kept on one line (marks dropped), for
+// boxes that don't animate per word: meme box, reactions.
+export const NoBreak: React.FC<{ text: string }> = ({ text }) => (
+  <>
+    {runs(text).map((part, i) => (
+      <React.Fragment key={i}>
+        {i > 0 ? " " : null}
+        {part.accent ? <span style={{ whiteSpace: "nowrap" }}>{part.text}</span> : part.text}
+      </React.Fragment>
+    ))}
+  </>
+);
 
 // Text treatment for spoken captions and reactions in the current look.
 export const captionStyle = (look: ReturnType<typeof useLook>, size: number): React.CSSProperties => {
@@ -85,6 +112,7 @@ export const captionStyle = (look: ReturnType<typeof useLook>, size: number): Re
     lineHeight: 1.12,
     textAlign: "center",
     letterSpacing: "-0.01em",
+    textWrap: "balance",
   };
   if (look.caption === "pill") {
     return {

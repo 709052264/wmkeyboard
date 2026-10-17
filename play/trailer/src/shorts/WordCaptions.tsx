@@ -9,14 +9,64 @@ import {
   useDelayRender,
   useVideoConfig,
 } from "remotion";
-import { createTikTokStyleCaptions } from "@remotion/captions";
 import type { Caption, TikTokPage } from "@remotion/captions";
 import { captionStyle } from "./Headline";
 import { SAFE, SAFE_W } from "./layout";
 import { useLook } from "./looks";
 
-// How long a page of words stays up before the next one replaces it.
-const SWITCH_EVERY_MS = 900;
+// Phrase pages: words split at punctuation and pauses into phrases; a
+// phrase of up to KEEP_WORDS stays whole, a longer one breaks into even
+// chunks of at most MAX_WORDS (6 -> 3+3, 7 -> 4+3). A lone trailing word
+// joins the page before it unless a sentence ends there.
+const MAX_WORDS = 4;
+const KEEP_WORDS = 5;
+const PAUSE_MS = 320;
+const ENDS_PHRASE = /[.,!?;:…—–)"”]$/;
+const ENDS_SENTENCE = /[.!?…]["”)]?$/;
+
+export const phrasePages = (captions: Caption[]): TikTokPage[] => {
+  const phrases: Caption[][] = [];
+  let cur: Caption[] = [];
+  captions.forEach((c, i) => {
+    cur.push(c);
+    const next = captions[i + 1];
+    const pause = next ? next.startMs - c.endMs : Infinity;
+    if (!next || ENDS_PHRASE.test(c.text.trim()) || pause > PAUSE_MS) {
+      phrases.push(cur);
+      cur = [];
+    }
+  });
+  const groups = phrases.flatMap((ph) => {
+    if (ph.length <= KEEP_WORDS) return [ph];
+    const n = Math.ceil(ph.length / MAX_WORDS);
+    const size = Math.ceil(ph.length / n);
+    const out: Caption[][] = [];
+    for (let k = 0; k < ph.length; k += size) out.push(ph.slice(k, k + size));
+    return out;
+  });
+  const merged: Caption[][] = [];
+  for (const g of groups) {
+    const prev = merged[merged.length - 1];
+    const prevEnd = prev?.[prev.length - 1]?.text.trim() ?? "";
+    if (g.length === 1 && prev && prev.length < KEEP_WORDS && !ENDS_SENTENCE.test(prevEnd)) {
+      prev.push(...g);
+    } else {
+      merged.push(g);
+    }
+  }
+  return merged.map((g) => ({
+    text: g.map((c) => c.text).join(""),
+    startMs: g[0].startMs,
+    durationMs: g[g.length - 1].endMs - g[0].startMs,
+    tokens: g.map((c, k) => ({
+      // each page starts flush: drop the first word's leading space
+      text: k === 0 ? c.text.trimStart() : c.text.startsWith(" ") ? c.text : ` ${c.text}`,
+      fromMs: c.startMs,
+      toMs: c.endMs,
+    })),
+  }));
+};
+
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
 // Spoken captions from a Caption[] JSON (word timestamps). Pages of a few
@@ -45,16 +95,7 @@ export const WordCaptions: React.FC<{ src: string; accent: string }> = ({
     load();
   }, [load]);
 
-  const pages = useMemo(
-    () =>
-      captions
-        ? createTikTokStyleCaptions({
-            captions,
-            combineTokensWithinMilliseconds: SWITCH_EVERY_MS,
-          }).pages
-        : [],
-    [captions],
-  );
+  const pages = useMemo(() => (captions ? phrasePages(captions) : []), [captions]);
 
   return (
     <>

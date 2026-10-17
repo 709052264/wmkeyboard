@@ -36,6 +36,9 @@ export type ClipBeat = {
   rate?: number; // playback rate
   focus?: Focus | FocusPreset;
   zoom?: Zoom;
+  // First source row to show (1080x2400 px). Default: crops.ts per clip
+  // (280 for the Chrome-over-chat clips), else just below the status bar.
+  cropTop?: number;
 };
 
 // One cut of a carousel: a short clip beat with its own label chip on top
@@ -84,6 +87,7 @@ export type Look = "card" | "bleed" | "device" | "paper";
 // half of the screen (strip + keyboard).
 export type Thumb = {
   clip: string;
+  cropTop?: number; // as on a beat; crops.ts applies otherwise
   from: number; // seconds into the clip
   title?: string; // defaults to the hook; «word» gets the accent
   zoom?: [number, number, number, number];

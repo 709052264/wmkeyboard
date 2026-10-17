@@ -24,6 +24,11 @@ import type { ShortProps } from "./types";
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
+// Transition whoosh level (a third of the first cut's 0.35) and the shortest
+// shot that earns one.
+const WHOOSH = 0.12;
+const MIN_WHOOSH_SHOT = 45; // 1.5 s
+
 // Shared body of every short: drifting backdrop, one ScreenCard per beat,
 // whoosh on each cut, outro card, the music bed (only when `bed`), the VO,
 // and the safe-zone overlay. Templates pass their text layers as children;
@@ -59,10 +64,14 @@ export const ShortScaffold: React.FC<
           />
         ) : null}
         {spec.vo ? <Audio src={staticFile(spec.vo.file)} /> : null}
-        {starts.slice(1).map((s) => (
-          <Sfx key={s} name="whoosh" at={s - 3} volume={0.35} />
-        ))}
-        <Sfx name="whoosh" at={body - 3} volume={0.4} />
+        {/* soft whoosh on real cuts only: a shot under 1.5 s (carousels,
+            quick inserts) cuts in silence so rapid edits never stack */}
+        {starts.map((s, i) =>
+          i > 0 && beatFrames(spec.beats[i]) >= MIN_WHOOSH_SHOT && !("carousel" in spec.beats[i]) ? (
+            <Sfx key={s} name="whoosh" at={s - 3} volume={WHOOSH} />
+          ) : null,
+        )}
+        <Sfx name="whoosh" at={body - 3} volume={WHOOSH * 1.15} />
 
         <Sequence durationInFrames={body} name="Beats">
           {spec.beats.map((b, i) => (
@@ -162,7 +171,6 @@ export const Canvas: React.FC<{ children?: React.ReactNode }> = ({ children }) =
 
 // Bleed look: dark gradients top and bottom so type reads over footage.
 const Scrims: React.FC = () => {
-  const look = useLook();
   return (
     <>
       <AbsoluteFill
@@ -173,18 +181,10 @@ const Scrims: React.FC = () => {
       />
       <AbsoluteFill
         style={{
-          top: 760,
-          background: `linear-gradient(180deg, transparent 0%, rgba(5,7,12,0.7) 35%, rgba(5,7,12,0.92) 100%)`,
-        }}
-      />
-      <AbsoluteFill
-        style={{
-          top: look.head.top - 30,
-          height: 6,
-          left: SAFE_CX - 60,
-          width: 120,
-          borderRadius: 3,
-          background: `linear-gradient(90deg, ${look.accent}, ${look.accentB})`,
+          // lower third only: zoom targets sit above it, in the clear
+          top: 1000,
+          height: 920,
+          background: `linear-gradient(180deg, transparent 0%, rgba(5,7,12,0.72) 30%, rgba(5,7,12,0.92) 100%)`,
         }}
       />
     </>

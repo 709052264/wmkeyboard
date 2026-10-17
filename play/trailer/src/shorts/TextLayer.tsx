@@ -43,13 +43,18 @@ export const HookThenCaptions: React.FC<{
   spec: ShortSpec;
   render: (text: string, isHook: boolean) => React.ReactNode;
   captions?: boolean;
-}> = ({ spec, render, captions = true }) => {
+  vo?: boolean; // use the look's voHead band (clear of spoken words)
+}> = ({ spec, render, captions = true, vo = false }) => {
+  const look = useLook();
+  const band = vo && look.voHead ? look.voHead : look.head;
   const hook = hookFrames(spec);
   const starts = beatStarts(spec.beats);
   return (
     <>
       <Sequence durationInFrames={hook} name="Hook">
-        <TextBand>{render(spec.hook, true)}</TextBand>
+        <TextBand top={band.top} height={band.height}>
+          {render(spec.hook, true)}
+        </TextBand>
       </Sequence>
       {captions
         ? spec.beats.map((b, i) => {
@@ -60,7 +65,9 @@ export const HookThenCaptions: React.FC<{
             }
             return (
               <Sequence key={i} from={from} durationInFrames={to - from} name={`Caption ${i + 1}`}>
-                <TextBand>{render(b.caption, false)}</TextBand>
+                <TextBand top={band.top} height={band.height}>
+                  {render(b.caption, false)}
+                </TextBand>
               </Sequence>
             );
           })

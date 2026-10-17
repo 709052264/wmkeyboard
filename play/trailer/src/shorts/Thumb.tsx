@@ -1,7 +1,8 @@
 import React from "react";
 import { AbsoluteFill, Img, OffthreadVideo, staticFile, useVideoConfig } from "remotion";
 import { INTER } from "../fonts";
-import { CLIP_H, CLIP_W, CYAN, STATUS_BAR, VIOLET } from "../theme";
+import { CLIP_H, CLIP_W, CYAN, VIOLET } from "../theme";
+import { cropTop } from "./crops";
 import { Canvas } from "./ShortScaffold";
 import { Headline } from "./Headline";
 import { itemBeat } from "./layout";
@@ -19,6 +20,12 @@ const DEFAULT_CROP: [number, number, number, number] = [0, 1240, 1080, 1060];
 // spec.thumb, else the first beat with a zoom (the moment the script calls
 // out), framed around its target, else the first clip beat at from + 1 s.
 export const resolveThumb = (spec: ShortSpec): Required<ThumbSpec> => {
+  const t = resolveThumbFrame(spec);
+  // Rows above this (status bar, Chrome's toolbar) never reach a cover.
+  return { ...t, cropTop: cropTop({ clip: t.clip, cropTop: spec.thumb?.cropTop }) };
+};
+
+const resolveThumbFrame = (spec: ShortSpec): Omit<Required<ThumbSpec>, "cropTop"> => {
   const title = spec.thumb?.title ?? spec.hook;
   if (spec.thumb) {
     return { clip: spec.thumb.clip, from: spec.thumb.from, title, zoom: spec.thumb.zoom ?? DEFAULT_CROP };
@@ -48,17 +55,24 @@ const titleSize = (text: string, wide: boolean) => {
 };
 
 // One crisp frame of the clip, cropped to `rect` (source pixels) and scaled
-// to cover a w x h box.
+// to cover a w x h box. Rows above `minY` never show: when the box needs
+// more height than the rect, the window slides down instead of up.
 const Frame: React.FC<{
   clip: string;
   from: number;
   rect: [number, number, number, number];
   w: number;
   h: number;
-}> = ({ clip, from, rect, w, h }) => {
+  minY: number;
+}> = ({ clip, from, rect, w, h, minY }) => {
   const { fps } = useVideoConfig();
-  const [x, y, rw, rh] = rect;
+  const [x, ry, rw, rh0] = rect;
+  const y = Math.max(ry, minY);
+  const rh = Math.max(1, rh0 - (y - ry));
   const scale = Math.max(w / rw, h / rh);
+  // source rows shown: centred on the rect, then kept inside [minY, CLIP_H]
+  const shown = h / scale;
+  const srcTop = Math.min(Math.max(y + rh / 2 - shown / 2, minY), CLIP_H - shown);
   return (
     <div style={{ position: "relative", width: w, height: h, overflow: "hidden", backgroundColor: "#05070C" }}>
       <OffthreadVideo
@@ -71,7 +85,7 @@ const Frame: React.FC<{
           width: CLIP_W * scale,
           height: CLIP_H * scale,
           left: -x * scale + (w - rw * scale) / 2,
-          top: -y * scale + (h - rh * scale) / 2,
+          top: -srcTop * scale,
         }}
       />
     </div>
@@ -119,7 +133,7 @@ export const Thumb: React.FC<ThumbProps> = ({ spec, look: lookProp }) => {
         <AbsoluteFill>
           {/* The crop fills the frame (wide) or its top 1080 px (vertical), so
               the title's scrim never sits on the thing the cover is about. */}
-          <Frame clip={t.clip} from={t.from} rect={t.zoom} w={width} h={wide ? height : 1080} />
+          <Frame clip={t.clip} from={t.from} rect={t.zoom} w={width} h={wide ? height : 1080} minY={t.cropTop} />
           <AbsoluteFill
             style={{
               background: wide
@@ -155,12 +169,12 @@ export const Thumb: React.FC<ThumbProps> = ({ spec, look: lookProp }) => {
         }}
       >
         <div style={{ borderRadius: 46, overflow: "hidden" }}>
-          <Frame clip={t.clip} from={t.from} rect={[0, STATUS_BAR, 1080, CLIP_H - STATUS_BAR]} w={box.w} h={box.h} />
+          <Frame clip={t.clip} from={t.from} rect={[0, t.cropTop, 1080, CLIP_H - t.cropTop]} w={box.w} h={box.h} minY={t.cropTop} />
         </div>
       </div>
     ) : (
       <div style={{ borderRadius: wide ? 36 : 48, overflow: "hidden", rotate: look.light ? "-1.5deg" : "0deg", ...ring }}>
-        <Frame clip={t.clip} from={t.from} rect={t.zoom} w={box.w} h={box.h} />
+        <Frame clip={t.clip} from={t.from} rect={t.zoom} w={box.w} h={box.h} minY={t.cropTop} />
       </div>
     );
     if (wide) {

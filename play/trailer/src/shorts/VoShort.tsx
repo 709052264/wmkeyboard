@@ -15,6 +15,7 @@ export const VoShort: React.FC<ShortProps> = (props) => {
     <ShortScaffold {...props} bedVolume={0.22}>
       <HookThenCaptions
         spec={props.spec}
+        vo
         render={(text, isHook) =>
           isHook ? (
             <Kinetic text={text} size={80} />

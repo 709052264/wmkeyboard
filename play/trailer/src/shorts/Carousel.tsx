@@ -1,14 +1,14 @@
 import React from "react";
 import { AbsoluteFill, Sequence, interpolate, useCurrentFrame } from "remotion";
 import { Chip } from "../components/Chip";
-import { Sfx } from "../components/Sfx";
 import { ScreenCard } from "./ScreenCard";
 import { SAFE, SAFE_CX, SAFE_W, itemBeat, sec } from "./layout";
 import { useLook } from "./looks";
 import type { CarouselBeat } from "./types";
 
 // Rapid cuts, one item every 1-1.5 s, each with its label chip riding on
-// top of the card. A soft whoosh marks every cut inside the carousel.
+// top of the card. Cuts inside a carousel are silent: at this pace whooshes
+// would stack into a wash.
 export const Carousel: React.FC<{
   beat: CarouselBeat;
   index: number;
@@ -21,9 +21,6 @@ export const Carousel: React.FC<{
   );
   return (
     <>
-      {starts.slice(1).map((s) => (
-        <Sfx key={s} name="whoosh" at={s - 2} volume={0.18} />
-      ))}
       {items.map((item, i) => (
         <Sequence
           key={i}
