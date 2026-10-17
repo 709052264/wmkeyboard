@@ -130,3 +130,8 @@ Style: V voiceover · T text + music · H meme hook.
   out/shorts/DayNN-beats.png: frames per beat with crop and zoom marked; run it after any spec edit).
   Looks rotate so neighbours differ. Real VO on 1/7/10. Review page v2 has videos + covers.
   Next: user review, then the hands-on capture sessions (A and E), stems, captions CSV.
+- 2026-10-17: third cut. Template fixes f8f35c4fe (Chrome bar crop, captions clear of zooms, balanced
+  wrapping, quieter whooshes). Music beds picked by ear (CREDITS.md): phonk-brazil/phonk-subclair at
+  0.35 on hooks, garage-nver at 0.12 under VO, up-atlas/groove-groza provisional on text days.
+  Hook videos now measure about -23 LUFS integrated (music is their only audio); VO days -16.
+  Review page v3. Phone's wireless adb refused connection; needs re-pairing before capture.
