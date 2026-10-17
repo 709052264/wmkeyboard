@@ -16,7 +16,7 @@ Style: V voiceover · T text + music · H meme hook.
 | 2 | 10-21 | 7 | Glide typing | Typing | T | ok | ✓ | | | | | | | | | |
 | 3 | 10-22 | 17 | Bangla Avro phonetic | Languages | H | ok | ✓ | | draft | | | | | | | |
 | 4 | 10-23 | 47 | Calculator in the chat | Tools | H | ok | ✓ | | draft | | | | | | | |
-| 5 | 10-24 | 31 | Photo backgrounds, all features | Looks | H | ok | partial: GIF beat, shuffle, crop pinch left | | draft | | | | | | | |
+| 5 | 10-24 | 31 | Photo backgrounds, all features | Looks | H | ok | ✓ | | draft | | | | | | | |
 | 6 | 10-25 | 39 | Emoji search, 125 languages | Emoji | H | ok | ✓ | | draft | | | | | | | |
 | 7 | 10-26 | 48 | Clipboard history | Tools | V | ok | ✓ | placeholder | draft | | | | | | | |
 | 8 | 10-27 | 11 | Spacebar cursor gestures | Typing | H | ok | ✓ | | | | | | | | | |
@@ -157,3 +157,7 @@ Style: V voiceover · T text + music · H meme hook.
   release (SHA-256 D6:C1:...:7C:AD), installed with -r, data kept. Revert the gradle edit and
   reinstall a normal build when capture ends.
   Left with the user: day 12 (voice), day 1 (airplane shot), day 5 (crop pinch, GIF).
+- 2026-10-17: day 5 GIF beat captured (s05-gif: Pixabay night-city GIF as a new theme's background,
+  animating behind the keyboard). No crop step exists for device photos (they apply directly), so the
+  pinch beat is dropped. Test themes left on the phone: two "My theme" (cat photo, night GIF); the
+  active theme was switched back to Default (system).
