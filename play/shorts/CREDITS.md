@@ -26,3 +26,34 @@ Chatterbox (Resemble AI, MIT) cloning Kokoro's am_puck voice (Apache 2.0). Setti
 
 Google Play badge (Google), F-Droid badge (F-Droid artwork, CC-BY-SA), "Get it on GitHub"
 badge (Kunzisoft/Github-badge). Used unmodified.
+
+## Round two (2026-10-17), accepted by the user
+
+Not yet cut into beds. Source files and cut points are in the session scratchpad (`music2/list.tsv`,
+`starts.tsv`); re-fetch from Pixabay by title if needed.
+
+| id | Track | Artist |
+|---|---|---|
+| phonk-alex-drift | Phonk Aggressive Drift Night | alex-morgan |
+| phonk-absolute | Hard Phonk | AbsoluteSound |
+| drift-subclair | Drift Phonk | Sub_Clair |
+| drift-zephira | Drift Phonk | ZephiraMusic |
+| drift-kulakovka | Drift Phonk | Kulakovka |
+| fg-alex | Future Garage | alex-morgan |
+| fg-berry | Beautiful Future Garage | BerryDeep |
+| dark-vaitsez | Dark Beat | vaitsez |
+| dark-lumen | Dark Trap Beat Atmosphere | echoes_of_lumen |
+| darktrap-vaitsez | Dark Trap Beat | vaitsez |
+| synth-mountain | Synthwave | The_Mountain |
+| synth-alex | Neon Drive Horizon | alex-morgan |
+| synth-atlas | 80s Synthwave | AtlasAudio |
+| house-mountain | Deep House | The_Mountain |
+| trap-vaitsez | Trap Beat | vaitsez |
+| trap-groza | Trap Beat | GR0ZA |
+| aggr-vaitsez | Aggressive Trap Beat | vaitsez |
+
+Rejected in round two: Phonk (Sub_Clair, second), Drift Phonk short (Sub_Clair), The Future
+Garage (BerryDeep), So Fresh (Cosmonkey), Electronic (Sub_Clair), Synthwave (prettyjohn1), every
+drum & bass track, Deep House (Aurec), both Deep House (Kulakovka), Trap Beat (AtlasAudio), GOAT,
+every ambient track. With round one's three picks that is 20 tracks, one per video for the
+first 20 days; more rounds needed for 60.
