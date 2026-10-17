@@ -27,6 +27,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 1,
     id: "d01-offline",
+    bed: "shorts/beds/garage-nver.mp3",
+    bedVolume: 0.12,
     look: "card",
     thumb: { clip: "shorts/clips/s01-typing.mp4", from: 5, title: "No account. «Nothing leaves.»" },
     style: "vo",
@@ -65,6 +67,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 3,
     id: "d03-avro",
+    bed: "shorts/beds/phonk-brazil.mp3",
+    bedVolume: 0.35,
     look: "device",
     thumb: { clip: "shorts/clips/s03-avro.mp4", from: 5, title: "Banglish in, «বাংলা» out" },
     style: "hook",
@@ -109,6 +113,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 4,
     id: "d04-calc",
+    bed: "shorts/beds/phonk-subclair.mp3",
+    bedVolume: 0.35,
     look: "bleed",
     thumb: { clip: "shorts/clips/s04-calc.mp4", from: 3.5, title: "Split the bill «in the chat»", zoom: [40, 1130, 820, 820] },
     style: "hook",
@@ -146,6 +152,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 5,
     id: "d05-photos",
+    bed: "shorts/beds/phonk-brazil.mp3",
+    bedVolume: 0.35,
     look: "paper",
     thumb: { clip: "shorts/clips/s05-photos.mp4", from: 140, title: "Your «cat» on your keyboard", zoom: [140, 440, 800, 780] },
     style: "hook",
@@ -179,6 +187,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 6,
     id: "d06-emoji",
+    bed: "shorts/beds/phonk-subclair.mp3",
+    bedVolume: 0.35,
     look: "device",
     thumb: { clip: "shorts/clips/s06-emoji.mp4", from: 10.5, title: "Emoji search in «125 languages»" },
     style: "hook",
@@ -205,6 +215,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 7,
     id: "d07-clipboard",
+    bed: "shorts/beds/garage-nver.mp3",
+    bedVolume: 0.12,
     look: "bleed",
     thumb: { clip: "shorts/clips/s07-clipboard.mp4", from: 5, title: "Your clipboard, «remembered»", zoom: [0, 1180, 1080, 900] },
     style: "vo",
@@ -231,6 +243,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 9,
     id: "d09-themes",
+    bed: "shorts/beds/up-atlas.mp3",
+    bedVolume: 0.5,
     look: "card",
     thumb: { clip: "shorts/clips/s09-arcade.mp4", from: 5.5, title: "«28» looks built in" },
     style: "text",
@@ -257,6 +271,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 10,
     id: "d10-netlog",
+    bed: "shorts/beds/garage-nver.mp3",
+    bedVolume: 0.12,
     look: "paper",
     thumb: { clip: "shorts/clips/s10-netlog.mp4", from: 15, title: "See «every request» it makes" },
     style: "vo",
@@ -283,6 +299,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 11,
     id: "d11-languages",
+    bed: "shorts/beds/groove-groza.mp3",
+    bedVolume: 0.5,
     look: "bleed",
     thumb: { clip: "shorts/clips/s11-langs.mp4", from: 52, title: "«8 languages.» One chat.", zoom: [0, 430, 1080, 1080] },
     style: "text",
@@ -315,6 +333,8 @@ export const SHORTS: ShortSpec[] = [
   {
     day: 15,
     id: "d15-undo",
+    bed: "shorts/beds/up-atlas.mp3",
+    bedVolume: 0.5,
     look: "device",
     thumb: { clip: "shorts/clips/s15-undo.mp4", from: 2.5, title: "Undo autocorrect in «one tap»" },
     style: "text",

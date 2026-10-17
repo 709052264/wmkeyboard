@@ -43,7 +43,9 @@ export const ShortScaffold: React.FC<
   const look = { ...resolveLook(lookProp ?? spec.look), accent, accentB };
   const starts = beatStarts(spec.beats);
   const body = beatsFrames(spec);
-  const outroBed = Math.max(bedVolume, 0.6);
+  // A spec's own bedVolume (a track picked to sit low) also caps the outro lift.
+  const bedLevel = spec.bedVolume ?? bedVolume;
+  const outroBed = spec.bedVolume !== undefined ? Math.min(1, bedLevel * 1.5) : Math.max(bedLevel, 0.6);
 
   return (
     <LookContext.Provider value={look}>
@@ -57,7 +59,7 @@ export const ShortScaffold: React.FC<
               interpolate(
                 f,
                 [0, 8, body - 6, body + 4, durationInFrames - 20, durationInFrames - 2],
-                [0, bedVolume, bedVolume, outroBed, outroBed, 0],
+                [0, bedLevel, bedLevel, outroBed, outroBed, 0],
                 clamp,
               )
             }

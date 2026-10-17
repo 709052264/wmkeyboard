@@ -68,6 +68,7 @@ export type ShortSpec = {
     words: string; // Caption[] JSON under public/
   };
   bed?: string; // music file under public/, default "music.mp3"
+  bedVolume?: number; // 0-1, overrides the style default (hook/text 0.7, vo 0.22)
   accent?: string;
   accentB?: string;
   outroSec?: number; // default 2
