@@ -14,9 +14,14 @@ import com.wasimaster.wmkeyboard.tools.R
  * channel: KLIPY and GIPHY both want an API key that build cannot carry. Its
  * corpus is educational rather than reactive, which the panel says out loud
  * rather than leaving the user to conclude the search is broken.
+ *
+ * [GIFCITIES] is the Internet Archive's search over old GeoCities GIFs. It
+ * needs no key, so any build can offer it, but only once the user turns it
+ * on: the corpus is a curiosity rather than a reaction-GIF catalogue, and it
+ * carries no content rating.
  */
 enum class GifSource {
-    KLIPY, GIPHY, LOCAL, COMMONS, OFFLINE;
+    KLIPY, GIPHY, LOCAL, COMMONS, OFFLINE, GIFCITIES;
 
     /** Files on the device rather than a provider: its own grid, never interleaved, never metered. */
     val onDevice: Boolean get() = this == LOCAL || this == OFFLINE
@@ -70,6 +75,7 @@ object GifSources {
         GifSource.LOCAL -> R.string.core_tools_gif_source_local
         GifSource.COMMONS -> R.string.core_tools_gif_source_commons
         GifSource.OFFLINE -> R.string.core_tools_gif_source_offline
+        GifSource.GIFCITIES -> R.string.core_tools_gif_source_gifcities
     }
 
     /**

@@ -2111,7 +2111,12 @@ internal fun ToolDetailSettings(
                             default = SettingsDefaults.selfHosted.commonsUrl,
                         ) { repository.setCommonsUrl(it) }
                     }
-                    serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.KLIPY, ServiceEndpoint.GIPHY))
+                    serverItems(repository, settings, endpoints = listOf(
+                        ServiceEndpoint.KLIPY,
+                        ServiceEndpoint.GIPHY,
+                        ServiceEndpoint.GIFCITIES,
+                        ServiceEndpoint.WAYBACK_MACHINE,
+                    ))
                 }
             }
             if (tool == ToolbarTool.STICKER) {
@@ -2368,6 +2373,18 @@ internal fun ToolDetailSettings(
                     ) {
                         repository.setGiphyApiKey(it)
                         MediaCategoryCache.clear()
+                    }
+                }
+                // Keyless and GIF-only: the sticker panel never offers it.
+                if (tool == ToolbarTool.GIF) {
+                    item {
+                        ToggleSetting(
+                            R.string.tooldetail_media_gifcities_title,
+                            stringResource(R.string.tooldetail_media_gifcities_subtitle),
+                            settings.watch { it.gif.gifCities },
+                            info = stringResource(R.string.tooldetail_media_gifcities_info),
+                            default = SettingsDefaults.gif.gifCities,
+                        ) { on -> scope.launch { repository.setGifCities(on) } }
                     }
                 }
             }

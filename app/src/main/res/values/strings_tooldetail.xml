@@ -482,6 +482,9 @@
     <string name="tooldetail_media_klipy_hint">Free from partner.klipy.com. The Tenor API closed in the middle of 2026</string>
     <string name="tooldetail_media_giphy_label">GIPHY API key</string>
     <string name="tooldetail_media_giphy_hint">Free from developers.giphy.com</string>
+    <string name="tooldetail_media_gifcities_title">GifCities</string>
+    <string name="tooldetail_media_gifcities_subtitle">Search the Internet Archive\'s GeoCities GIFs too. No key needed</string>
+    <string name="tooldetail_media_gifcities_info">GifCities holds the GIFs the Internet Archive saved from GeoCities home pages before 2009: under construction signs, spinning globes, small animated clip art. Your search goes to gifcities.archive.org and the GIFs load from web.archive.org. These GIFs have no content rating, so the content filter does not apply to them. GIFs only, never stickers.</string>
     <string name="tooldetail_media_info">The GIF and sticker tools share all of this, and the content filter below. Any one key is enough. Every source that has a key shows up in the panel.</string>
     <string name="tooldetail_media_sending_group">Sending</string>
     <string name="tooldetail_media_sticker_send_title">Send stickers as</string>

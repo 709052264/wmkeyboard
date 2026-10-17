@@ -10,7 +10,7 @@ import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
 import Shot from '@components/Shot.astro';
 
-The GIF tool searches KLIPY and GIPHY from a panel inside the keyboard, then sends the result straight into the field you're typing in. No switching apps, no copy-paste. On the F-Droid build it also searches Wikimedia Commons without any key at all, an educational corpus rather than reaction GIFs. Every other build needs a KLIPY or GIPHY key before the tool can search anything online. [Offline GIF packs](#offline-gif-packs) need neither a key nor a connection.
+The GIF tool searches KLIPY and GIPHY from a panel inside the keyboard, then sends the result straight into the field you're typing in. No switching apps, no copy-paste. On the F-Droid build it also searches Wikimedia Commons without any key at all, an educational corpus rather than reaction GIFs. Every other build needs a KLIPY or GIPHY key before the tool can search anything online, unless you turn on [GifCities](#gifcities), which needs no key. [Offline GIF packs](#offline-gif-packs) need neither a key nor a connection.
 
 <PhoneFrame caption="The GIF panel, showing trending results on open.">
   <Shot id="emoji/gif-panel-trending" alt="The GIF panel, showing trending results on open." />
@@ -102,6 +102,7 @@ Saving to a pack is sticker-only, since a GIF can't become one. That row shows o
 |---|---|---|
 | KLIPY API key | Empty | Paste a free key from `partner.klipy.com`. KLIPY replaced Tenor as the primary provider after Google retired Tenor's third-party API in mid-2026. |
 | GIPHY API key | Empty | Paste a free key from `developers.giphy.com`, as a second source. |
+| GifCities | Off | Adds the Internet Archive's GeoCities GIF search as a source. No key needed. See [GifCities](#gifcities). |
 | Full-screen picker | On | The toolbar, emoji row and symbol row step aside so the GIF grid gets the full keyboard height, with search moved up next to a back button. Shared with the sticker tool. |
 | GIFs per row | 3 | A slider from 1 to 6: the most GIFs side by side in a row. Fewer makes each one bigger. A row of wide GIFs can hold fewer than this. The sticker tool has its own. |
 | Gap between cells | 4 dp | A slider from 0 to 12 dp: the space around each result. Shared with the sticker tool. |
@@ -116,7 +117,17 @@ Saving to a pack is sticker-only, since a GIF can't become one. That row shows o
 | Content filter | Medium | Four levels (Off, Low, Medium, High) mapped to each provider's own content rating (High maps to G-rated results, Off to R). Shared with the sticker tool. |
 | Results for each search | 24 | A slider from 6 to 48. How many GIFs one search or the trending view loads. Shared with the sticker tool. |
 
-You only need one working key, KLIPY or GIPHY, for the tool to work, except on the F-Droid build, which already has Commons. Configuring both KLIPY and GIPHY adds a second source to search. **Send GIFs as** is only shown here, and the sticker tool's **Send stickers as** only on its own page. Each governs the panel it sits under, so neither page offers the other's setting. See [Stickers](/emoji/stickers/) for that one.
+You only need one working key, KLIPY or GIPHY, for the tool to work, except on the F-Droid build, which already has Commons, or with GifCities turned on. Configuring both KLIPY and GIPHY adds a second source to search. **Send GIFs as** is only shown here, and the sticker tool's **Send stickers as** only on its own page. Each governs the panel it sits under, so neither page offers the other's setting. See [Stickers](/emoji/stickers/) for that one.
+
+## GifCities
+
+GifCities is the Internet Archive's search over the GIFs it saved from GeoCities home pages before GeoCities closed in 2009. Turn on **GifCities** under <SettingsPath path="Tools / GIFs / GifCities" /> and it joins the panel as one more source, with a chip of its own in Tabs mode or mixed into the Online grid. It needs no key and no account, so it works on every build.
+
+Expect the 1990s web rather than reaction GIFs: under construction signs, spinning globes, dancing figures, animated email icons. Results smaller than 32 pixels on a side (bullets, spacers) are left out. GifCities has no trending feed, so with the search box empty it shows a search for a different classic term each day.
+
+- **What it sends.** Your search goes to `gifcities.archive.org`. Previews and the file you send load from the Wayback Machine at `web.archive.org`.
+- **No content filter.** These GIFs carry no rating, so **Content filter** has nothing to apply to them.
+- **GIFs only.** The sticker panel never offers it, and it has no category list of its own, so the panel's built-in categories stay up.
 
 ## Details & edge cases
 

@@ -47,6 +47,8 @@
     <string name="servers_tavily">Tavily Search API</string>
     <string name="servers_klipy">KLIPY</string>
     <string name="servers_giphy">GIPHY</string>
+    <string name="servers_gifcities" translatable="false">GifCities</string>
+    <string name="servers_wayback_machine">Wayback Machine</string>
     <string name="servers_signal_sticker_cdn">Signal sticker storage</string>
     <string name="servers_telegram_bot_api">Telegram Bot API</string>
     <string name="servers_unsplash">Unsplash</string>

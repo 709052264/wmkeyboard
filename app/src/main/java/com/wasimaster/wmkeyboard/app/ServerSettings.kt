@@ -305,6 +305,8 @@ internal val ServiceEndpoint.labelRes: Int
         ServiceEndpoint.TAVILY -> R.string.servers_tavily
         ServiceEndpoint.KLIPY -> R.string.servers_klipy
         ServiceEndpoint.GIPHY -> R.string.servers_giphy
+        ServiceEndpoint.GIFCITIES -> R.string.servers_gifcities
+        ServiceEndpoint.WAYBACK_MACHINE -> R.string.servers_wayback_machine
         ServiceEndpoint.SIGNAL_STICKER_CDN -> R.string.servers_signal_sticker_cdn
         ServiceEndpoint.TELEGRAM_BOT_API -> R.string.servers_telegram_bot_api
         ServiceEndpoint.UNSPLASH -> R.string.servers_unsplash

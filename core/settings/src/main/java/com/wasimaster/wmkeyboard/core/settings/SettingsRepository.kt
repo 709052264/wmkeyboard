@@ -2914,6 +2914,12 @@ data class GifSettings(
      * show and send with no connection and survive a provider dropping them.
      */
     val favouritesOffline: Boolean = false,
+    /**
+     * Search GifCities, the Internet Archive's GeoCities GIFs, as one more
+     * source. No key needed. Off by default: the corpus is 1990s web clip art
+     * rather than reactions, and it has no content rating for the filter.
+     */
+    val gifCities: Boolean = false,
 )
 
 /** Bounds for [GifSettings.gifPerRow] and [GifSettings.stickerPerRow]; the settings sliders share them. */
@@ -10121,6 +10127,7 @@ class SettingsRepository(private val context: Context) {
         private val MEDIA_HIDE_HEADER_ON_SCROLL = booleanPreferencesKey("media_hide_header_on_scroll")
         private val GIF_RECENT = booleanPreferencesKey("gif_recent")
         private val GIF_FAVOURITES_OFFLINE = booleanPreferencesKey("gif_favourites_offline")
+        private val GIF_CITIES = booleanPreferencesKey("gif_cities")
         private val SEARCH_SAFE = booleanPreferencesKey("search_safe")
         private val SEARCH_RESULT_COUNT = intPreferencesKey("search_result_count")
         private val SEARCH_SHOW_ANSWER = booleanPreferencesKey("search_show_answer")
@@ -12053,6 +12060,7 @@ class SettingsRepository(private val context: Context) {
             hideHeaderOnScroll = p[MEDIA_HIDE_HEADER_ON_SCROLL] ?: defaults.gif.hideHeaderOnScroll,
             recentGifs = p[GIF_RECENT] ?: defaults.gif.recentGifs,
             favouritesOffline = p[GIF_FAVOURITES_OFFLINE] ?: defaults.gif.favouritesOffline,
+            gifCities = p[GIF_CITIES] ?: defaults.gif.gifCities,
         )
 
     private fun readTextEditing(p: Preferences, defaults: KeyboardSettings) =
@@ -18691,6 +18699,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setRecentGifs(value: Boolean) =
         editPrefs { it[GIF_RECENT] = value }
+
+    suspend fun setGifCities(value: Boolean) =
+        editPrefs { it[GIF_CITIES] = value }
 
     suspend fun setGifFavouritesOffline(value: Boolean) =
         editPrefs { it[GIF_FAVOURITES_OFFLINE] = value }

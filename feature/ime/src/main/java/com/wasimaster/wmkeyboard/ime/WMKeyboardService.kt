@@ -33247,6 +33247,10 @@ open class WMKeyboardService : InputMethodService() {
                 limit = settings.gif.resultLimit,
                 endpoint = settings.selfHosted.commonsUrl,
             )
+        // GIF-only: never offered on the sticker panel (see ToolApiKeys.stickerSources).
+        GifSource.GIFCITIES ->
+            if (sticker) emptyList()
+            else com.wasimaster.wmkeyboard.core.tools.GifCitiesClient.search(query, limit = settings.gif.resultLimit)
     }
 
     /** Provider chip on the GIF/sticker panel (tabs mode). */
@@ -33325,6 +33329,8 @@ open class WMKeyboardService : InputMethodService() {
         GifSource.LOCAL -> emptyList()
         // No category endpoint: Commons is a search index, not a curated feed.
         GifSource.COMMONS -> emptyList()
+        // No categories either; the bundled row stands in.
+        GifSource.GIFCITIES -> emptyList()
         GifSource.OFFLINE -> com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks.categories()
     }
 

@@ -36,6 +36,8 @@ object ToolApiKeys {
         if (klipy(settings).isNotBlank()) add(GifSource.KLIPY)
         if (giphy(settings).isNotBlank()) add(GifSource.GIPHY)
         if (BuildConfig.ENABLE_FDROID) add(GifSource.COMMONS)
+        // Keyless, so it needs only the user's say-so.
+        if (settings.gif.gifCities) add(GifSource.GIFCITIES)
         // Imported packs need no key and no network, so they are what keeps
         // the panel working in a build that has neither.
         if (OfflineGifPacks.hasPacks) add(GifSource.OFFLINE)
@@ -47,7 +49,7 @@ object ToolApiKeys {
      * state the way the GIF panel can.
      */
     fun stickerSources(settings: KeyboardSettings): List<GifSource> =
-        gifSources(settings).filterNot { it == GifSource.OFFLINE } + GifSource.LOCAL
+        gifSources(settings).filterNot { it == GifSource.OFFLINE || it == GifSource.GIFCITIES } + GifSource.LOCAL
 
     fun brave(settings: KeyboardSettings): String =
         settings.webSearch.braveApiKey.ifBlank { BuildConfig.BRAVE_API_KEY }

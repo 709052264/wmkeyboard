@@ -263,6 +263,8 @@
          rather than as the search being broken. -->
     <string name="core_tools_gif_source_commons">Commons</string>
     <string name="core_tools_photo_source_commons">Wikimedia Commons</string>
+    <!-- The Internet Archive's GeoCities GIF search. A proper name. -->
+    <string name="core_tools_gif_source_gifcities" translatable="false">GifCities</string>
 
     <!-- ================================================================== -->
     <!-- Synonyms (#321): the places a held word's synonyms come from, as   -->

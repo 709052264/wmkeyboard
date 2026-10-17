@@ -1353,6 +1353,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_media_spacing_title) { Icons.Outlined.Padding }
         put(R.string.tooldetail_media_hide_header_title) { Icons.Outlined.SwipeUp }
         put(R.string.tooldetail_gif_recent_title) { Icons.Outlined.History }
+        put(R.string.tooldetail_media_gifcities_title) { Icons.Outlined.History }
         put(R.string.tooldetail_gif_favourites_offline_title) { Icons.Outlined.Download }
         put(R.string.tooldetail_media_sticker_send_title) { Icons.AutoMirrored.Outlined.Send }
         put(R.string.tooldetail_media_gif_send_title) { Icons.AutoMirrored.Outlined.Send }

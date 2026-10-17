@@ -42,6 +42,12 @@ enum class ServiceEndpoint(
     KLIPY("klipy", "https://api.klipy.com", ServiceGroup.MEDIA),
     GIPHY("giphy", "https://api.giphy.com", ServiceGroup.MEDIA),
 
+    /** The Internet Archive's GeoCities GIF search; answers with archive paths, not files. */
+    GIFCITIES("gifcities", "https://gifcities.archive.org", ServiceGroup.MEDIA),
+
+    /** Where GifCities results are fetched from: the Wayback Machine's raw-file replay. */
+    WAYBACK_MACHINE("wayback_machine", "https://web.archive.org", ServiceGroup.MEDIA),
+
     /**
      * Signal's sticker storage. `cdn-ca` and not `cdn`: the two serve the same
      * objects, and `cdn.signal.org` answers with a certificate from Signal's

@@ -1598,6 +1598,7 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_media_klipy_label, R.string.tooldetail_media_klipy_hint),
     toolEntry(ToolbarTool.GIF, R.string.tooldetail_media_giphy_label, R.string.tooldetail_media_giphy_hint),
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_media_giphy_label, R.string.tooldetail_media_giphy_hint),
+    toolEntry(ToolbarTool.GIF, R.string.tooldetail_media_gifcities_title, R.string.tooldetail_media_gifcities_subtitle),
     // Each send mode is indexed under the one tool whose panel it governs; the
     // other page no longer draws it.
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_media_sticker_send_title, R.string.tooldetail_media_sticker_send_subtitle),
