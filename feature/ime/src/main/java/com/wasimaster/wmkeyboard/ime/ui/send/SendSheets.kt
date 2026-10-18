@@ -56,6 +56,7 @@ import com.wasimaster.wmkeyboard.ime.send.SendSheet
 import com.wasimaster.wmkeyboard.ime.send.SendUi
 import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
 import com.wasimaster.wmkeyboard.ime.ui.SwipeToDeleteCard
+import com.wasimaster.wmkeyboard.ime.ui.chipShape
 import com.wasimaster.wmkeyboard.ime.ui.ToolPanelChip
 import com.wasimaster.wmkeyboard.ime.ui.clock.EmptyState
 import com.wasimaster.wmkeyboard.ime.ui.clock.PillButton

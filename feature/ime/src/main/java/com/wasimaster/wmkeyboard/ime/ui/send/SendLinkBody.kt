@@ -77,11 +77,13 @@ import com.wasimaster.wmkeyboard.ime.ui.MotionCrossfade
 import com.wasimaster.wmkeyboard.ime.ui.SearchQueryText
 import com.wasimaster.wmkeyboard.ime.ui.ToolPanelChip
 import com.wasimaster.wmkeyboard.ime.ui.blockTouches
+import com.wasimaster.wmkeyboard.ime.ui.cardShape
+import com.wasimaster.wmkeyboard.ime.ui.chipShape
 import com.wasimaster.wmkeyboard.ime.ui.chipBorder
 import com.wasimaster.wmkeyboard.ime.ui.clock.ClockCard
 import com.wasimaster.wmkeyboard.ime.ui.clock.PillButton
 import com.wasimaster.wmkeyboard.ime.ui.frostGlass
-import com.wasimaster.wmkeyboard.ime.ui.FrostSurface
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import kotlinx.coroutines.delay
 
 /**

@@ -4090,6 +4090,10 @@ data class KeyboardUiState(
     val galleryTypingActive: Boolean
         get() = panel == PanelMode.GALLERY && galleryText != null
 
+    /** Whether the Send files panel's text box has the keys; panel *and* box, as [galleryTypingActive]. */
+    val sendTypingActive: Boolean
+        get() = panel == PanelMode.SEND_FILES && sendText != null
+
     /**
      * Whether keystrokes belong to the clipboard panel's clip editor. Panel
      * *and* an open edit, like [learnEditActive], so an edit left behind by a

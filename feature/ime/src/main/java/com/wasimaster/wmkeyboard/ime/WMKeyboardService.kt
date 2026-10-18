@@ -97,6 +97,7 @@ import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
 import com.wasimaster.wmkeyboard.core.settings.LauncherSplitCombo
 import com.wasimaster.wmkeyboard.core.settings.BlacklistScope
 import android.provider.DocumentsContract
+import android.provider.OpenableColumns
 import android.provider.Settings
 import com.wasimaster.wmkeyboard.core.clipboard.ClipEntityKind
 import com.wasimaster.wmkeyboard.core.selection.SelectionKind
@@ -36029,7 +36030,7 @@ open class WMKeyboardService : InputMethodService() {
      * The Send files tool (#729). Built on first use, like [galleryTool]: by
      * the panel opening, a link chip, or the file picker handing something back.
      */
-    private val sendToolDelegate = lazy {
+    private val sendToolDelegate: Lazy<com.wasimaster.wmkeyboard.ime.send.SendController> = lazy {
         com.wasimaster.wmkeyboard.ime.send.SendController(
             context = this,
             scope = serviceScope,
@@ -36114,7 +36115,7 @@ open class WMKeyboardService : InputMethodService() {
             },
         )
     }
-    private val sendTool by sendToolDelegate
+    private val sendTool: com.wasimaster.wmkeyboard.ime.send.SendController by sendToolDelegate
 
     /** The Wi-Fi Direct group and hotspot plumbing behind the Nearby mode's direct link. */
     private val directWifi by lazy { com.wasimaster.wmkeyboard.ime.send.DirectWifi(this) }

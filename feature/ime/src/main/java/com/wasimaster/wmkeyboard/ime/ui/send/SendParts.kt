@@ -93,10 +93,12 @@ import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.send.SendDraftFile
 import com.wasimaster.wmkeyboard.ime.send.SendLinkOffer
 import com.wasimaster.wmkeyboard.ime.send.SendNotice
-import com.wasimaster.wmkeyboard.ime.ui.FrostSurface
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.ui.KbTheme
 import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
 import com.wasimaster.wmkeyboard.ime.ui.LocalKeyPressFeedback
+import com.wasimaster.wmkeyboard.ime.ui.cardShape
+import com.wasimaster.wmkeyboard.ime.ui.chipShape
 import com.wasimaster.wmkeyboard.ime.ui.chipBorder
 import com.wasimaster.wmkeyboard.ime.ui.frostGlass
 import java.util.Locale
