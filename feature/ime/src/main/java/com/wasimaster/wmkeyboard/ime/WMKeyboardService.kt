@@ -5147,8 +5147,14 @@ open class WMKeyboardService : InputMethodService() {
      * Both halves are behind [KeyboardSettings.autoDownloadLanguageData]: with
      * it off nothing arrives unless the user asked for it, either on the
      * prompt shown as the language was added or from the rows under Settings ›
-     * Languages. Word lists are never fetched here at all — they are the big
-     * ones, and they stay a deliberate choice.
+     * Languages.
+     *
+     * Word lists too, but only off a metered connection: they are the big
+     * ones. Without them a language has no glide typing and no suggestions,
+     * and one that never arrived — the second of two languages added in the
+     * wizard used to be dropped while the first downloaded — stayed missing
+     * until the user found the row to press (#661). A list the user deleted
+     * stays deleted.
      */
     private fun refreshLanguageDataDownloads(settings: KeyboardSettings) {
         if (!userUnlocked || !settings.autoDownloadLanguageData) return
@@ -5157,6 +5163,19 @@ open class WMKeyboardService : InputMethodService() {
             EmojiDictDownloadManager.ensure(filesDir, languages)
         }
         NgramPackDownloadManager.ensure(filesDir, languages)
+        val metered = runCatching {
+            getSystemService(ConnectivityManager::class.java)?.isActiveNetworkMetered
+        }.getOrNull() ?: true
+        if (!metered) {
+            serviceScope.launch(Dispatchers.IO) {
+                WordlistDownloadManager.ensure(
+                    filesDir,
+                    languages,
+                    bundledListLanguages,
+                    DictionaryCatalog.DictionarySize.LARGE,
+                )
+            }
+        }
     }
 
     private suspend fun reloadEmojiCatalog() {
