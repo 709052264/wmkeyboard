@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.plugins.R
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 
 /**
  * A line of text for the user that this module cannot put into words itself.
@@ -119,8 +120,15 @@ object PluginManifestCodec {
     /** Container format version this build writes and understands. */
     const val VERSION = 1
 
-    /** The `wm.*` API level this build provides. */
-    const val API_VERSION = 1
+    /**
+     * The `wm.*` API level this build provides.
+     *
+     * 2 added `wm.reminders` (behind the `reminders` permission), the `ui.date`
+     * widget and `os.time(table)`. A plugin that uses any of them says 2, so an
+     * older build refuses it with "needs a newer version" rather than drawing a
+     * panel with a widget missing.
+     */
+    const val API_VERSION = 2
 
     const val DEFAULT_ENTRY = "main.lua"
 
@@ -154,8 +162,14 @@ object PluginManifestCodec {
 
     @Suppress("ReturnCount")
     fun read(text: String): PluginManifestResult {
-        val raw = runCatching { json.decodeFromString<PluginManifest>(text) }.getOrNull()
+        val element = runCatching { json.parseToJsonElement(text) as? JsonObject }.getOrNull()
             ?: return PluginManifestResult.NotAPlugin
+        val decoded = runCatching { json.decodeFromJsonElement(PluginManifest.serializer(), element) }.getOrNull()
+            ?: return PluginManifestResult.NotAPlugin
+        // The class defaults to this build's level, which is right for a
+        // manifest built in code. A file that leaves the field out was written
+        // against the first level, before the field mattered, so it says 1.
+        val raw = if ("apiVersion" in element) decoded else decoded.copy(apiVersion = 1)
         if (raw.format != FORMAT) return PluginManifestResult.NotAPlugin
         problems(raw).firstOrNull()?.let { return PluginManifestResult.Rejected(it.text) }
 
@@ -234,8 +248,9 @@ object PluginManifestCodec {
     }
 
     /**
-     * A missing apiVersion counts as 1. The field postdates nothing yet, and a
-     * beginner who omits it meant the only level that exists.
+     * Zero or less counts as 1, the level every plugin written before the
+     * field mattered was written against. [read] treats a missing field the
+     * same way.
      */
     private fun apiLevel(manifest: PluginManifest): Int =
         if (manifest.apiVersion <= 0) 1 else manifest.apiVersion
@@ -255,7 +270,7 @@ object PluginManifestCodec {
      * delete every emoji and every non-BMP script from a name. Whole pairs are
      * kept and only *lone* surrogates — which are malformed anyway — are dropped.
      */
-    private fun displayText(raw: String, max: Int): String {
+    internal fun displayText(raw: String, max: Int): String {
         val trimmed = raw.trim()
         val out = StringBuilder()
         var i = 0

@@ -24,6 +24,9 @@
     <!-- ================================================================== -->
 
     <string name="core_plugins_permission_storage_label">Save data on your device</string>
+    <!-- The plugin can ask the app to show a notification at a time it sets,
+         for example when a task on a to-do list is due. -->
+    <string name="core_plugins_permission_reminders_label">Show reminders at times that you set in it</string>
 
     <!-- ================================================================== -->
     <!-- Install refused: the manifest. Each of these replaces the install,  -->
@@ -104,5 +107,34 @@
     <string name="core_plugins_ui_tab_default_title">Tab %1$d</string>
     <!-- The button under a plugin's result that types the result into the text the user is writing. -->
     <string name="core_plugins_ui_insert_action">Insert</string>
+
+    <!-- ================================================================== -->
+    <!-- The date widget a plugin can draw: a day, an optional time, and     -->
+    <!-- buttons that move them.                                            -->
+    <!-- ================================================================== -->
+
+    <!-- Shown where the date goes when the plugin has none yet. -->
+    <string name="core_plugins_ui_date_none">No date</string>
+    <string name="core_plugins_ui_date_set">Set date</string>
+    <string name="core_plugins_ui_date_today">Today</string>
+    <string name="core_plugins_ui_date_clear">Clear</string>
+    <!-- Read aloud for the arrow buttons either side of the date. -->
+    <string name="core_plugins_ui_date_previous_day">Previous day</string>
+    <string name="core_plugins_ui_date_next_day">Next day</string>
+    <!-- Read aloud for the arrow buttons either side of the time. %1$d is a
+         number of minutes. Not a plural: "min" is a unit symbol. -->
+    <string name="core_plugins_ui_date_earlier" tools:ignore="PluralsCandidate">%1$d min earlier</string>
+    <string name="core_plugins_ui_date_later" tools:ignore="PluralsCandidate">%1$d min later</string>
+    <!-- Short buttons that move the time one hour. "h" is the unit symbol for hours. -->
+    <string name="core_plugins_ui_date_hour_earlier">−1 h</string>
+    <string name="core_plugins_ui_date_hour_later">+1 h</string>
+
+    <!-- ================================================================== -->
+    <!-- Reminders a plugin set, shown by the app in the notification shade. -->
+    <!-- ================================================================== -->
+
+    <!-- The name of the notification channel, in Android's settings for this app. -->
+    <string name="core_plugins_reminders_channel_title">Plugin reminders</string>
+    <string name="core_plugins_reminders_channel_body">Reminders that a plugin asked the app to show, at times that you set in the plugin. The title of each one is the name of the plugin.</string>
 
 </resources>

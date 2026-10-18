@@ -68,6 +68,7 @@ enum class LuaDiagnosticCode(val severity: LuaSeverity) {
     LUA51_GONE(LuaSeverity.WARNING),
     STRING_DUMP(LuaSeverity.WARNING),
     STORAGE_NOT_DECLARED(LuaSeverity.WARNING),
+    REMINDERS_NOT_DECLARED(LuaSeverity.WARNING),
     FRONTIER_PATTERN(LuaSeverity.WARNING),
 
     // ---- the plugin contract -----------------------------------------------
@@ -133,7 +134,7 @@ data class LuaDiagnostic(
 }
 
 /** What the manifest being edited declares, for the checks that depend on it. */
-data class LuaHostShape(val storage: Boolean)
+data class LuaHostShape(val storage: Boolean, val reminders: Boolean = false)
 
 /**
  * Everything wrong with a script, as the plugin editor shows it.

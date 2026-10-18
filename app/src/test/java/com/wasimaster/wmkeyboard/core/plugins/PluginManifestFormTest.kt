@@ -56,6 +56,8 @@ class PluginManifestFormTest {
             manifest(apiVersion = 0),
             manifest(apiVersion = -3),
             manifest(apiVersion = 2),
+            manifest(apiVersion = 3),
+            manifest(permissions = listOf("storage", "reminders")),
             manifest(permissions = listOf("storage")),
             manifest(permissions = listOf("storage", "storage")),
             manifest(permissions = listOf(" storage ")),
@@ -82,7 +84,7 @@ class PluginManifestFormTest {
 
     @Test
     fun `each problem names the field it belongs to`() {
-        assertEquals(listOf(Field.API_VERSION), fields(manifest(apiVersion = 2)))
+        assertEquals(listOf(Field.API_VERSION), fields(manifest(apiVersion = PluginManifestCodec.API_VERSION + 1)))
         assertEquals(listOf(Field.ID), fields(manifest(id = "no spaces allowed")))
         assertEquals(listOf(Field.NAME), fields(manifest(name = " ")))
         assertEquals(listOf(Field.VERSION), fields(manifest(version = "")))

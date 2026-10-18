@@ -445,13 +445,14 @@ internal fun PluginIdeScreen(draftId: String, onBack: () -> Unit, reduceMotion: 
             if (id.isNotBlank() && store.plugins().any { it.id == id }) store.storageFile(id)?.let { PluginStorage(it) } else null
         }
     }
-    // The storage check follows the manifest as it is edited, not as it was saved.
+    // The permission checks follow the manifest as it is edited, not as it was saved.
     val storage = PluginPermission.Storage.wire in ide.manifest.permissions
-    val inspection by produceState(IdeInspection.None, text, storage) {
+    val reminders = PluginPermission.Reminders.wire in ide.manifest.permissions
+    val inspection by produceState(IdeInspection.None, text, storage, reminders) {
         delay(250)
         val previous = value
         value = withContext(Dispatchers.Default) {
-            val found = LuaCode.diagnostics(text, LuaHostShape(storage))
+            val found = LuaCode.diagnostics(text, LuaHostShape(storage, reminders))
             // The same document the checks just built, so this is not a second parse.
             val outline = LuaDocuments.of(text).analysis?.let(LuaNavigation::outline) ?: previous.outline
             IdeInspection(found, outline)
@@ -1257,7 +1258,11 @@ private fun PluginDetailsDialog(manifest: PluginManifest, onDismiss: () -> Unit,
     var version by rememberSaveable { mutableStateOf(manifest.pluginVersion) }
     var author by rememberSaveable { mutableStateOf(manifest.author) }
     var description by rememberSaveable { mutableStateOf(manifest.description) }
-    var storage by rememberSaveable { mutableStateOf(PluginPermission.Storage.wire in manifest.permissions) }
+    // The declared permissions as their wire strings, comma-joined so the state
+    // saves without a custom saver. Every permission this build knows gets a
+    // box, so saving the form never drops one the draft already declared.
+    var declared by rememberSaveable { mutableStateOf(manifest.permissions.joinToString(",")) }
+    val granted = declared.split(',').filter { it.isNotEmpty() }.toSet()
     val edited = manifest.copy(
         format = PluginManifestCodec.FORMAT,
         name = name,
@@ -1265,7 +1270,7 @@ private fun PluginDetailsDialog(manifest: PluginManifest, onDismiss: () -> Unit,
         pluginVersion = version,
         author = author,
         description = description,
-        permissions = if (storage) listOf(PluginPermission.Storage.wire) else emptyList(),
+        permissions = PluginPermission.all.map { it.wire }.filter { it in granted },
     )
     val problems = remember(edited) { PluginManifestCodec.problems(edited) }
     AlertDialog(
@@ -1278,9 +1283,16 @@ private fun PluginDetailsDialog(manifest: PluginManifest, onDismiss: () -> Unit,
                 OutlinedTextField(version, { version = it }, label = { Text(stringResource(R.string.plugin_ide_details_version_label)) }, singleLine = true)
                 OutlinedTextField(author, { author = it }, label = { Text(stringResource(R.string.plugin_ide_details_author_label)) }, singleLine = true)
                 OutlinedTextField(description, { description = it }, label = { Text(stringResource(R.string.plugin_ide_details_description_label)) })
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = storage, onCheckedChange = { storage = it })
-                    Text(stringResource(PluginPermission.Storage.labelRes))
+                for (permission in PluginPermission.all) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = permission.wire in granted,
+                            onCheckedChange = { on ->
+                                declared = (if (on) granted + permission.wire else granted - permission.wire).joinToString(",")
+                            },
+                        )
+                        Text(stringResource(permission.labelRes))
+                    }
                 }
                 for (problem in problems) {
                     Text(

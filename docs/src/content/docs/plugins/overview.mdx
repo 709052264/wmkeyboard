@@ -68,7 +68,9 @@ Compute things, and draw its own panel. That is genuinely the whole list.
 - **Use the internet.** No HTTP, no sockets, no URLs.
 - **Reach Android.** No files, no reflection, no other apps, no device
   information, no permissions of its own.
-- **Run in the background.** A plugin only runs while its panel is open.
+- **Run in the background.** A plugin only runs while its panel is open. A
+  plugin with the `reminders` permission can ask the app to show a line of text
+  at a set time, and the app shows it; the plugin does not run for that.
 
 :::note[These are absences, not settings]
 No version of a plugin gets around them. The sandbox has no function for any of
@@ -90,7 +92,7 @@ are meant to be read:
 |---|---|
 | **Cipher Tool** | Tabs, inputs, buttons, insertable output. The getting-started build. |
 | **UI Kitchen Sink** | Every widget and every event, with a live event log. |
-| **Todo List** | `wm.storage`. The one capability a plugin can ask for. |
+| **Todo List** | `wm.storage`, `wm.reminders` and the date widget: items with due dates, and a reminder when one is due. |
 | **Text Tools** | The paste-in, transform, insert-out flow. |
 | **Math Mode** | A real text engine: a tokenizer, symbol tables, a live result on every keystroke, and options kept in `wm.storage`. |
 

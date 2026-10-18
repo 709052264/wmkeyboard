@@ -85,6 +85,8 @@ class PluginPreviewSession(
     /** The storage a draft's runs share. One instance per draft: two over one file would disagree. */
     private var storageOwner: String? = null
     private var sharedStorage: PluginStorage? = null
+    private var remindersOwner: String? = null
+    private var sharedReminders: PluginReminders? = null
 
     private val runtime = PluginRuntime(store, RuntimeListener(), limits, post, RuntimeObserver())
 
@@ -114,6 +116,7 @@ class PluginPreviewSession(
             permissions = permissions.map { it.wire },
         )
         val storage = if (PluginPermission.Storage in permissions) storageOf(draftId) else null
+        val reminders = if (PluginPermission.Reminders in permissions) remindersOf(draftId) else null
         runStartedAt = clock()
         lastRepairs = emptyList()
         _state.update {
@@ -127,7 +130,9 @@ class PluginPreviewSession(
             )
         }
         append(ConsoleEntry(0, ConsoleEntry.Kind.STARTED))
-        runtime.open(PluginRuntime.Draft(plugin, source, PluginLog(workspace.previewLogFile(draftId)), storage))
+        runtime.open(
+            PluginRuntime.Draft(plugin, source, PluginLog(workspace.previewLogFile(draftId)), storage, reminders = reminders),
+        )
     }
 
     /** Hands [event] to the running draft. Text typed into a preview input is kept for the input to show. */
@@ -158,6 +163,20 @@ class PluginPreviewSession(
             sharedStorage = workspace.previewStorageFile(draftId)?.let { PluginStorage(it) }
         }
         return sharedStorage
+    }
+
+    /**
+     * The reminders preview runs of [draftId] set. Kept in memory and never
+     * shown in the shade: a draft is not installed, and a half-written script
+     * that set a reminder every second would otherwise be a notification storm.
+     */
+    @Synchronized
+    fun remindersOf(draftId: String): PluginReminders {
+        if (remindersOwner != draftId) {
+            remindersOwner = draftId
+            sharedReminders = PluginReminders(null)
+        }
+        return sharedReminders ?: PluginReminders(null).also { sharedReminders = it }
     }
 
     fun console(): List<ConsoleEntry> = synchronized(consoleLock) { entries.toList() }

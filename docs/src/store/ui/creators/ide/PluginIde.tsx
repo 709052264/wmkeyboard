@@ -12,7 +12,7 @@ import { CopyButton } from '../../common';
 import { fmtBytes } from '../../../lib/net';
 import { sha256Hex, slugify } from '../../../lib/util';
 import { saveBytes } from '../shared';
-import { PluginPreviewSession, renderOnce, type ConsoleEntry, type PluginEvent, type PluginTargets, type PluginWidget, type PreviewState, type RenderedUi, type Usage, MAIN_CHUNK, PRELUDE_CHUNK, PRELUDE_SOURCE, PreviewStorage, targetsEmpty } from '../../../lib/plugin-runtime';
+import { PluginPreviewSession, renderOnce, type ConsoleEntry, type PluginEvent, type PluginTargets, type PluginWidget, type PreviewState, type RenderedUi, type Usage, MAIN_CHUNK, PRELUDE_CHUNK, PRELUDE_SOURCE, PreviewStorage, Dates, targetsEmpty } from '../../../lib/plugin-runtime';
 import { cachedDocument } from '../../../lua/document';
 import { diagnosticsOf, severityOf, textOf, type LuaDiagnostic, type LuaHostShape } from '../../../lua/diagnostics';
 import { definitionAt, outline, renameProblem, renameSpans, type LuaOutlineItem } from '../../../lua/navigation';
@@ -24,7 +24,7 @@ import * as Api from '../../../lua/api';
 import { E, CodeSurface, SHORTCUT, type CodeDecorations, type CodeEditorController, type ScreenCommand, type Severity, NO_DECORATIONS } from './CodeSurface';
 import { CodeFindBar, initialFind, type CodeFindState } from './CodeFindBar';
 import { CodeAccessoryRow, LUA_ACCESSORY_KEYS, arrangeKeys } from './CodeAccessoryRow';
-import { ID_PATTERN, MAX_NAME, MAX_SCRIPT_BYTES, STORAGE_PERMISSION, blankManifest, editorPrefs, fileNameOf, keyPrefs, sanitise, sanitised, takenIds, uniquePluginId, workspace, type PluginDraft, type PluginManifest, type PluginSnapshot, type SnapshotReason } from './ide-store';
+import { ID_PATTERN, MAX_NAME, MAX_SCRIPT_BYTES, PERMISSIONS, REMINDERS_PERMISSION, STORAGE_PERMISSION, blankManifest, editorPrefs, fileNameOf, keyPrefs, sanitise, sanitised, takenIds, uniquePluginId, workspace, type PluginDraft, type PluginManifest, type PluginSnapshot, type SnapshotReason } from './ide-store';
 import { TEMPLATES, type PluginTemplate } from './templates';
 import { S, relativeTime } from './strings';
 import './ide.css';
@@ -126,7 +126,7 @@ function ProjectsScreen({ onOpen }: { onOpen: (draftId: string) => void }) {
 
 	const create = (template: PluginTemplate, name: string) => {
 		setCreating(null);
-		const manifest: PluginManifest = { ...blankManifest(), id: uniquePluginId(name, takenIds()), name: sanitise(name, 'NAME'), pluginVersion: '0.1.0', permissions: template.storage ? [STORAGE_PERMISSION] : [] };
+		const manifest: PluginManifest = { ...blankManifest(), id: uniquePluginId(name, takenIds()), name: sanitise(name, 'NAME'), pluginVersion: '0.1.0', permissions: [...template.permissions] };
 		const draft = workspace.create(manifest, template.script, `template:${template.id.toLowerCase()}`);
 		if (draft) onOpen(draft.draftId);
 		else showToast(S.newError);
@@ -219,7 +219,7 @@ function TemplateCard({ template, onClick }: { template: PluginTemplate; onClick
 		const idle = (cb: () => void) => ('requestIdleCallback' in window ? (window as Window & { requestIdleCallback: (cb: () => void) => number }).requestIdleCallback(cb) : setTimeout(cb, 0));
 		idle(() => {
 			if (!live) return;
-			setDrawn(renderOnce({ id: `template.${template.id.toLowerCase()}`, name: template.name, version: '0.1.0', storage: template.storage }, template.script));
+			setDrawn(renderOnce({ id: `template.${template.id.toLowerCase()}`, name: template.name, version: '0.1.0', storage: template.permissions.includes(STORAGE_PERMISSION), reminders: template.permissions.includes(REMINDERS_PERMISSION) }, template.script));
 		});
 		return () => {
 			live = false;
@@ -320,6 +320,7 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 	const keyboard = useMemo(hardwareKeyboardAttached, []);
 	const suggestionBar = useMemo(() => ({ shown: signal(null as import('../../../lua/completion').LuaCompletions | null), choose: (item: import('../../../lua/completion').LuaCompletionItem) => controller.value?.choose(item) }), [controller]);
 	const storage = manifest.permissions.includes(STORAGE_PERMISSION);
+	const reminders = manifest.permissions.includes(REMINDERS_PERMISSION);
 
 	const c = controller.value;
 	// Read for its subscription: the screen re-renders on every change of the text or the caret.
@@ -349,7 +350,7 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 		}, PERIODIC_VERSION_MS);
 		return () => clearInterval(t);
 	}, [draftId, save, controller]);
-	const identity = useCallback(() => ({ id: sanitise(manifest.id, 'ID') || draftId, name: manifest.name, version: manifest.pluginVersion, storage }), [manifest, draftId, storage]);
+	const identity = useCallback(() => ({ id: sanitise(manifest.id, 'ID') || draftId, name: manifest.name, version: manifest.pluginVersion, storage, reminders }), [manifest, draftId, storage, reminders]);
 	const runPlugin = useCallback(() => {
 		const current = controller.value?.text ?? savedText.current;
 		lastRun.current = current;
@@ -382,11 +383,11 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 	useEffect(() => {
 		const t = setTimeout(() => {
 			const document = cachedDocument(text);
-			const found = diagnosticsOf(document, { storage } as LuaHostShape);
+			const found = diagnosticsOf(document, { storage, reminders } as LuaHostShape);
 			setInspection((previous) => ({ diagnostics: found, outline: document.analysis ? outline(document.analysis) : previous.outline, analysis: document.analysis ?? previous.analysis }));
 		}, DIAGNOSTICS_MS);
 		return () => clearTimeout(t);
-	}, [text, storage]);
+	}, [text, storage, reminders]);
 	useEffect(() => {
 		if (!findOpen || !find.query) {
 			setMatches([]);
@@ -566,7 +567,7 @@ function IdeBody({ draftId, onBack }: { draftId: string; onBack: () => void }) {
 			{keyboard && command && SHORTCUT[command] && <kbd>{SHORTCUT[command]}</kbd>}
 		</button>
 	);
-	const surfaceOptions = useMemo(() => ({ onCommand, onGutterPress: (line: number) => { setPanel('PROBLEMS'); controller.value?.moveTo(E.offsetOfLine(controller.value.text, line)); }, host: () => ({ storage } as LuaHostShape), analysis: () => inspectionRef.current.analysis, suggestionBar, completions: true }), [storage, suggestionBar]);
+	const surfaceOptions = useMemo(() => ({ onCommand, onGutterPress: (line: number) => { setPanel('PROBLEMS'); controller.value?.moveTo(E.offsetOfLine(controller.value.text, line)); }, host: () => ({ storage, reminders } as LuaHostShape), analysis: () => inspectionRef.current.analysis, suggestionBar, completions: true }), [storage, reminders, suggestionBar]);
 	const arrangedKeys = useMemo(() => arrangeKeys(LUA_ACCESSORY_KEYS, keys.order, new Set(keys.hidden)), [keys]);
 
 	const previewPane = <PreviewPane preview={preview} state={previewState} autoRun={autoRun} onAutoRun={setAutoRun} history={renderHistory} onCopied={() => showToast(S.copied)} />;
@@ -864,6 +865,11 @@ function injectableEvents(targets: PluginTargets): Injectable[] {
 	for (const b of targets.buttons) out.push({ event: { type: 'click', id: b.id }, widgetEnabled: b.enabled });
 	for (const t of targets.toggles) out.push({ event: { type: 'toggle', id: t.id, value: !t.checked }, widgetEnabled: true });
 	for (const tabs of targets.tabs) for (let i = 0; i < tabs.pages; i++) out.push({ event: { type: 'tab_selected', id: tabs.id, index: i }, widgetEnabled: true });
+	for (const d of targets.dates) {
+		const next = d.value !== null ? Dates.addDays(d.value, 1) : Dates.initial(Date.now(), d.time);
+		out.push({ event: { type: 'date_changed', id: d.id, value: next }, widgetEnabled: true });
+		out.push({ event: { type: 'date_changed', id: d.id, value: null }, widgetEnabled: true });
+	}
 	return out;
 }
 
@@ -874,6 +880,7 @@ function eventLabel(item: Injectable): string {
 		case 'toggle': return e.value ? S.eventToggleOn(e.id) : S.eventToggleOff(e.id);
 		case 'tab_selected': return S.eventTab(e.id, e.index + 1);
 		case 'input_changed': return e.id;
+		case 'date_changed': return e.value === null ? S.eventDateClear(e.id) : S.eventDate(e.id, new Date(e.value * 1000).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }));
 	}
 }
 
@@ -885,6 +892,10 @@ function customEvent(type: string, id: string, value: string): PluginEvent | nul
 		case 'toggle': return { type: 'toggle', id: name, value: value.trim().toLowerCase() === 'true' };
 		case 'input_changed': return { type: 'input_changed', id: name, value };
 		case 'tab_selected': return { type: 'tab_selected', id: name, index: Number.parseInt(value.trim(), 10) || 0 };
+		case 'date_changed': {
+			const n = Number.parseInt(value.trim(), 10);
+			return { type: 'date_changed', id: name, value: Number.isFinite(n) ? n : null };
+		}
 		default: return null;
 	}
 }
@@ -993,7 +1004,21 @@ function DetailsPane({ manifest, script, onManifest, onExport }: { manifest: Plu
 				{field(S.detailsAuthor, 'author')}
 			</div>
 			<label class="st-field"><span>{S.detailsDescription}</span><textarea class="st-input" rows={2} value={draft.description} onInput={(e) => commit({ ...draft, description: (e.target as HTMLTextAreaElement).value })} /></label>
-			<label class="wm-w-toggle"><input type="checkbox" checked={draft.permissions.includes(STORAGE_PERMISSION)} onChange={(e) => commit({ ...draft, permissions: (e.target as HTMLInputElement).checked ? [STORAGE_PERMISSION] : [] })} /><span>{S.permissionStorage}</span></label>
+			{PERMISSIONS.map((p) => (
+				<label key={p} class="wm-w-toggle">
+					<input
+						type="checkbox"
+						checked={draft.permissions.includes(p)}
+						onChange={(e) => {
+							const on = (e.target as HTMLInputElement).checked;
+							const next = new Set(draft.permissions.filter((x) => x !== p));
+							if (on) next.add(p);
+							commit({ ...draft, permissions: PERMISSIONS.filter((x) => next.has(x)) });
+						}}
+					/>
+					<span>{p === STORAGE_PERMISSION ? S.permissionStorage : S.permissionReminders}</span>
+				</label>
+			))}
 			{problems.map((p, i) => <div key={i} class="wm-error-text">{p}</div>)}
 			<hr class="wm-w-divider" />
 			<div class="wm-caption">{fmtBytes(zip.byteLength)} · 2 entries · Lua {fmtBytes(luaBytes)}{luaBytes > MAX_SCRIPT_BYTES ? ` · ${S.rejectScriptTooLarge(draft.name, MAX_SCRIPT_BYTES / 1024)}` : ''}</div>
@@ -1045,6 +1070,7 @@ function Widget({ w, inputs, onEvent, onInsert, onCopy, still }: { w: PluginWidg
 				<input class="st-input" placeholder={w.placeholder} value={still ? '' : inputs[w.id] ?? ''} readOnly={still} onInput={(e) => onEvent({ type: 'input_changed', id: w.id, value: (e.target as HTMLInputElement).value })} />
 			</div>
 		);
+		case 'date': return <DateWidget w={w} onEvent={onEvent} />;
 		case 'spacer': return <div style={{ height: `${w.height}px` }} />;
 		case 'divider': return <hr class="wm-w-divider" />;
 		case 'progress': return <div class="wm-w-progress"><i /></div>;
@@ -1064,6 +1090,45 @@ function Widget({ w, inputs, onEvent, onInsert, onCopy, still }: { w: PluginWidg
 			);
 		}
 	}
+}
+
+/** A plugin's ui.date, drawn with the same buttons the keyboard draws (PluginWidgets.kt DateWidget). */
+function DateWidget({ w, onEvent }: { w: Extract<PluginWidget, { kind: 'date' }>; onEvent: (e: PluginEvent) => void }) {
+	const send = (value: number | null) => onEvent({ type: 'date_changed', id: w.id, value });
+	const value = w.value;
+	const step = (label: string, aria: string, onClick: () => void) => <button type="button" class="wm-w-button" aria-label={aria} onClick={onClick}>{label}</button>;
+	return (
+		<div class="wm-w-input">
+			{w.label && <label>{w.label}</label>}
+			{value === null ? (
+				<div class="wm-w-row">
+					<span class="wm-w-label wm-w-label-caption" style="flex:1 1 auto">{S.dateNone}</span>
+					<button type="button" class="wm-w-button" onClick={() => send(Dates.initial(Date.now(), w.time))}>{S.dateSet}</button>
+				</div>
+			) : (
+				<>
+					<div class="wm-w-row">
+						{step('‹', S.datePreviousDay, () => send(Dates.addDays(value, -1)))}
+						<span class="wm-w-label" style="flex:1 1 auto;text-align:center">{new Date(value * 1000).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
+						{step('›', S.dateNextDay, () => send(Dates.addDays(value, 1)))}
+					</div>
+					{w.time && (
+						<div class="wm-w-row">
+							{step(S.dateHourEarlier, S.dateHourEarlier, () => send(Dates.addMinutes(value, -60)))}
+							{step('‹', S.dateEarlier(w.step), () => send(Dates.addMinutes(value, -w.step)))}
+							<span class="wm-w-label" style="flex:1 1 auto;text-align:center">{new Date(value * 1000).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}</span>
+							{step('›', S.dateLater(w.step), () => send(Dates.addMinutes(value, w.step)))}
+							{step(S.dateHourLater, S.dateHourLater, () => send(Dates.addMinutes(value, 60)))}
+						</div>
+					)}
+					<div class="wm-w-row">
+						<button type="button" class="wm-w-button" onClick={() => send(Dates.today(value, Date.now()))}>{S.dateToday}</button>
+						<button type="button" class="wm-w-button" onClick={() => send(null)}>{S.dateClear}</button>
+					</div>
+				</>
+			)}
+		</div>
+	);
 }
 
 // ---------------------------------------------------------------------------

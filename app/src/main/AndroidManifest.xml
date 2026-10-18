@@ -149,6 +149,8 @@
 
     <!-- The clock tool's alarms and timers. All of it only after the user
          sets an alarm or starts a timer; none of it does anything otherwise.
+         SCHEDULE_EXACT_ALARM also lets a reminder that a plugin set (a to-do
+         item that is due) show at its minute; the same grant, asked once. 
          - SCHEDULE_EXACT_ALARM: an alarm set for 6:30 rings at 6:30, not at
            whatever minute Doze lets through. From Android 12 a special grant
            the user gives on a system screen, asked after a disclosure; without
@@ -1301,6 +1303,14 @@
                 <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
+
+        <!-- The wake-up for reminders that plugins set (wm.reminders). Not
+             exported: only the app's own alarm sends it. Not direct-boot aware:
+             plugins live in storage that stays locked until the first unlock,
+             and the unlock re-arms (PluginReminderAlarms.rearmOnStart). -->
+        <receiver
+            android:name="com.wasimaster.wmkeyboard.core.plugins.PluginReminderReceiver"
+            android:exported="false" />
 
         <!-- Plays an alarm or a timer while it rings, and only then. -->
         <service

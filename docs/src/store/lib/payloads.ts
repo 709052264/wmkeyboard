@@ -640,8 +640,8 @@ export interface PluginRead {
 	problems: string[];
 }
 
-export const PLUGIN_API_VERSION = 1;
-export const PLUGIN_PERMISSIONS = ['storage'] as const;
+export const PLUGIN_API_VERSION = 2;
+export const PLUGIN_PERMISSIONS = ['storage', 'reminders'] as const;
 export const PLUGIN_ID_PATTERN = /^[a-z0-9][a-z0-9._-]{2,63}$/;
 
 export function readPlugin(bytes: Uint8Array): PluginRead {

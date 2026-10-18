@@ -9,6 +9,7 @@ local checked = false
 local disabled = false
 local typed = ""
 local working = false
+local picked = nil  -- seconds since the epoch, or nil
 
 --- Keeps the last few events, newest first.
 local function note(line)
@@ -36,6 +37,11 @@ function on_event(e)
 
   elseif e.type == "tab_selected" then
     note("tab " .. e.id .. " #" .. e.index)
+
+  elseif e.type == "date_changed" then
+    -- value is seconds, as os.time() gives, or nil when the date was cleared.
+    note("date " .. e.id .. " = " .. (e.value and os.date("%Y-%m-%d %H:%M", e.value) or "nil"))
+    picked = e.value
   end
 end
 
@@ -81,6 +87,19 @@ function render()
       ui.label {
         text = "The keyboard owns this box. Tap it, then use the keys; Paste puts " ..
           "the clipboard in it.",
+        style = "caption",
+      },
+    },
+
+    ui.page {
+      title = "Date",
+      ui.date { id = "when", label = "A date and time", value = picked, time = true },
+      ui.label {
+        text = picked and ("Picked: " .. os.date("%A %d %B %Y, %H:%M", picked)) or "Nothing picked yet.",
+      },
+      ui.label {
+        text = "The keyboard draws the buttons. You get each new value in on_event " ..
+          "and draw whatever you keep. Leave out time for a date alone.",
         style = "caption",
       },
     },

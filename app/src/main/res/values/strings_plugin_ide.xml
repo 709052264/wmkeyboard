@@ -189,6 +189,10 @@
     <string name="plugin_ide_event_toggle_off">Switch %1$s off</string>
     <!-- %1$s is the id of a tab strip, %2$d the number of a page, counting from 1. -->
     <string name="plugin_ide_event_tab">Page %2$d of %1$s</string>
+    <!-- %1$s is the id of a date widget, %2$s the date and time the event sets it to. -->
+    <string name="plugin_ide_event_date">Set %1$s to %2$s</string>
+    <!-- %1$s is the id of a date widget. -->
+    <string name="plugin_ide_event_date_clear">Clear %1$s</string>
     <!-- %1$s is the id of a text box. -->
     <string name="plugin_ide_event_input_label">Text for %1$s</string>
     <string name="plugin_ide_event_send">Send</string>

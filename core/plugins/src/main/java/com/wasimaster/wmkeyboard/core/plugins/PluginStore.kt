@@ -57,6 +57,7 @@ sealed interface PluginAdoptResult {
  *     ├── plugin.json             the manifest as accepted
  *     ├── main.lua                the script as imported
  *     ├── storage.json            wm.storage, if the plugin declared it
+ *     ├── reminders.json          wm.reminders still to show, if it declared that
  *     └── log.txt                 print() output and script errors
  * ```
  *
@@ -135,6 +136,7 @@ class PluginStore(private var baseDir: File?) {
         const val SCRIPT_FILE = "main.lua"
         const val STORAGE_FILE = "storage.json"
         const val LOG_FILE = "log.txt"
+        const val REMINDERS_FILE = "reminders.json"
 
         private const val INDEX_FILE = "plugins.json"
 
@@ -222,6 +224,8 @@ class PluginStore(private var baseDir: File?) {
     fun storageFile(id: String): File? = dirFor(id)?.let { File(it, STORAGE_FILE) }
 
     fun logFile(id: String): File? = dirFor(id)?.let { File(it, LOG_FILE) }
+
+    fun remindersFile(id: String): File? = dirFor(id)?.let { File(it, REMINDERS_FILE) }
 
     /** The Lua source, or null if it has gone missing — which the reconciler treats as uninstalled. */
     fun script(id: String): String? {

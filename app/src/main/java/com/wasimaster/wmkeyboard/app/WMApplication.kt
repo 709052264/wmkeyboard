@@ -105,5 +105,8 @@ open class WMApplication : Application() {
         // Free for anyone who never set one (one file-exists check), and off
         // the main thread for those who did.
         com.wasimaster.wmkeyboard.core.clock.ClockEngine.rearmOnStart(this)
+        // The same for the reminders plugins set, for the same reason. Free
+        // for anyone with no plugin that declares reminders.
+        com.wasimaster.wmkeyboard.core.plugins.PluginReminderAlarms.rearmOnStart(this)
     }
 }

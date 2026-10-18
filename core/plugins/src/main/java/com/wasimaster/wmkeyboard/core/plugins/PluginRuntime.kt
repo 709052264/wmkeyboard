@@ -60,6 +60,11 @@ class PluginRuntime(
     private val post: (() -> Unit) -> Unit = { it() },
     /** Extra signal for the plugin editor. The keyboard passes none. */
     private val observer: Observer? = null,
+    /**
+     * Runs on the plugin thread after an installed plugin changed its
+     * reminders, so the host can move its wake-up. Must not block.
+     */
+    private val onRemindersChanged: () -> Unit = {},
 ) {
 
     /**
@@ -132,6 +137,8 @@ class PluginRuntime(
         val storage: PluginStorage?,
         /** Runaway strikes belong to installed plugins. A draft never earns one. */
         val recordStrikes: Boolean = false,
+        /** `wm.reminders`, when the manifest declares it. The editor's never reach the shade. */
+        val reminders: PluginReminders? = null,
     )
 
     data class Limits(
@@ -182,7 +189,12 @@ class PluginRuntime(
         } else {
             null
         }
-        start(Draft(plugin, script, log, storage, recordStrikes = true))
+        val reminders = if (plugin.grants(PluginPermission.Reminders)) {
+            PluginReminders(store.remindersFile(pluginId), onRemindersChanged)
+        } else {
+            null
+        }
+        start(Draft(plugin, script, log, storage, recordStrikes = true, reminders = reminders))
     }
 
     /** Loads a script the caller supplies, installed or not, and renders it. Replaces whatever was open. */
@@ -219,7 +231,7 @@ class PluginRuntime(
     }
 
     private fun start(draft: Draft) {
-        val fresh = Session(draft.plugin, draft.log, draft.storage, draft.recordStrikes)
+        val fresh = Session(draft.plugin, draft.log, draft.storage, draft.recordStrikes, draft.reminders)
         session = fresh
         fresh.watch = watchdog.scheduleWithFixedDelay(
             { patrol(fresh) },
@@ -244,6 +256,7 @@ class PluginRuntime(
             setInput = { id, text -> current.pendingInputs.add(id to text) },
             revoked = { current.revoked },
             onLine = { line -> observer?.onPrint(current.plugin.id, line) },
+            reminders = current.reminders,
         )
         globals.set("wm", api.table())
         PluginSandbox.compile(globals, PluginPrelude.SOURCE, PluginPrelude.CHUNK_NAME).call()
@@ -325,6 +338,12 @@ class PluginRuntime(
             is PluginEvent.TabSelected -> {
                 table.set("type", "tab_selected")
                 table.set("index", event.index)
+            }
+
+            is PluginEvent.DateChanged -> {
+                table.set("type", "date_changed")
+                // nil for a cleared date, which is how a script tells "no date".
+                table.set("value", event.value?.let { LuaValue.valueOf(it.toDouble()) } ?: LuaValue.NIL)
             }
         }
         return table
@@ -507,6 +526,7 @@ class PluginRuntime(
         val log: PluginLog,
         val storage: PluginStorage?,
         val recordStrikes: Boolean,
+        val reminders: PluginReminders?,
     ) {
         val budget = PluginBudget()
 

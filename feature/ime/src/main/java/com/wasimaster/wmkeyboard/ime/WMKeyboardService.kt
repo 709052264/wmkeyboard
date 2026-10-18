@@ -294,6 +294,7 @@ import com.wasimaster.wmkeyboard.core.settings.OctopusDuringGlide
 import com.wasimaster.wmkeyboard.core.settings.OneHandedMode
 import com.wasimaster.wmkeyboard.core.settings.OneHandedSide
 import com.wasimaster.wmkeyboard.core.plugins.PluginEvent
+import com.wasimaster.wmkeyboard.core.plugins.PluginReminderAlarms
 import com.wasimaster.wmkeyboard.core.plugins.PluginRuntime
 import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.plugins.PluginText
@@ -4778,6 +4779,11 @@ open class WMKeyboardService : InputMethodService() {
         SoundStore.attach(this)
         com.wasimaster.wmkeyboard.core.feedback.SoundPackStore.attach(this)
         com.wasimaster.wmkeyboard.core.addons.AddonStore.attach(this)
+        // Plugins too, and then their reminders: a phone that rebooted
+        // overnight started this process locked, when there was no list to
+        // read, so the wake-up for the next reminder is registered only now.
+        PluginStore.attach(this)
+        PluginReminderAlarms.rearmOnStart(this)
         stickerPackStore = com.wasimaster.wmkeyboard.core.stickers.StickerPackStore.get(this)
         gifCollections = com.wasimaster.wmkeyboard.core.tools.GifCollections.get(this)
         com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks.attach(filesDir)
@@ -30212,6 +30218,7 @@ open class WMKeyboardService : InputMethodService() {
             store = PluginStore.get(this),
             listener = pluginListener,
             post = { body -> serviceScope.launch { body() } },
+            onRemindersChanged = { PluginReminderAlarms.requestRearm(this) },
         ).also { pluginRuntime = it }
 
     private val pluginListener = object : PluginRuntime.Listener {

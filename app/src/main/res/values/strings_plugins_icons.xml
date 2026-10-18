@@ -33,6 +33,7 @@
     <string name="plugins_fact_no_internet">It cannot use the internet</string>
     <string name="plugins_fact_own_panel">It can draw its own panel and do its own maths</string>
     <string name="plugins_fact_own_storage">It can save its own data, if it tells you before you install it</string>
+    <string name="plugins_fact_reminders">It can show a reminder at a time that you set in it, if it tells you before you install it</string>
     <!-- Insert is the button inside a plugin panel that sends a result to the text field. -->
     <string name="plugins_facts_info">These are not settings. A plugin has no way to ask for them. You give text to a plugin when you type or paste it into its own box. The results come back to you when you press Insert.</string>
 
@@ -82,6 +83,15 @@
     <string name="plugins_storage_used_label" tools:ignore="PluralsCandidate">Uses %1$d KB of %2$d KB</string>
     <string name="plugins_storage_subtitle">Saved on your device only</string>
     <string name="plugins_storage_clear_action">Delete the stored data</string>
+
+    <!-- The reminders a plugin set and the app has not shown yet. -->
+    <string name="plugins_reminders_title">Reminders</string>
+    <string name="plugins_reminders_info">The plugin gives the app a time and a line of text. At that time the app shows the text in a notification, with the name of the plugin as its title. The plugin does not run to do this. When you turn the plugin off, its reminders stop.</string>
+    <string name="plugins_reminders_empty">No reminders are set.</string>
+    <string name="plugins_reminders_cancel_all_action">Cancel all reminders</string>
+    <!-- Shown when Android does not let the app post notifications. A tap asks for the permission. -->
+    <string name="plugins_reminders_blocked_title">Notifications are off</string>
+    <string name="plugins_reminders_blocked_subtitle">The app cannot show these reminders. Tap to let it post notifications.</string>
 
     <string name="plugins_log_title">Log</string>
     <string name="plugins_log_info">The log shows what the plugin printed, and its errors. This helps when you write a plugin.</string>

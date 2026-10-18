@@ -64,7 +64,7 @@ class PluginManifestCodecTest {
     }
 
     @Test
-    fun `a missing apiVersion is treated as the only level that exists`() {
+    fun `a missing apiVersion is treated as the first level`() {
         val text = """
             {"format":"${PluginManifestCodec.FORMAT}","id":"com.example.a",
              "name":"A","pluginVersion":"1.0.0"}
@@ -104,8 +104,16 @@ class PluginManifestCodecTest {
 
     @Test
     fun `a newer api version is refused`() {
-        val read = PluginManifestCodec.read(manifest(apiVersion = 2))
+        val read = PluginManifestCodec.read(manifest(apiVersion = PluginManifestCodec.API_VERSION + 1))
         assertTrue(read is PluginManifestResult.Rejected)
+    }
+
+    @Test
+    fun `the current api version is accepted with the reminders permission`() {
+        val read = PluginManifestCodec.read(
+            manifest(apiVersion = PluginManifestCodec.API_VERSION, permissions = """["storage", "reminders"]"""),
+        ) as PluginManifestResult.Ok
+        assertEquals(listOf(PluginPermission.Storage, PluginPermission.Reminders), read.permissions)
     }
 
     @Test

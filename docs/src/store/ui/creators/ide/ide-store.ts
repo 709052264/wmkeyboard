@@ -40,8 +40,11 @@ export const MAX_SNAPSHOTS = 30;
 export const MAX_SNAPSHOT_CHARACTERS = 512 * 1024;
 export const MAX_SCRIPT_BYTES = 256 * 1024;
 export const MANIFEST_FORMAT = 'wmkeyboard-plugin';
-export const API_VERSION = 1;
+export const API_VERSION = 2;
 export const STORAGE_PERMISSION = 'storage';
+export const REMINDERS_PERMISSION = 'reminders';
+/** Every permission the app knows, in the order the manifest form lists them (PluginPermission.all). */
+export const PERMISSIONS = [STORAGE_PERMISSION, REMINDERS_PERMISSION];
 export const ID_PATTERN = /^[a-z0-9][a-z0-9._-]{2,63}$/;
 export const MAX_NAME = 40;
 const MAX_VERSION = 32;

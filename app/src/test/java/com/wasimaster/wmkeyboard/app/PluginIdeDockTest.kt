@@ -31,6 +31,28 @@ class PluginIdeDockTest {
     }
 
     @Test
+    fun `a date offers its next day and a clear, or a first date when it has none`() {
+        val targets = PluginTargets(
+            buttons = emptyList(),
+            toggles = emptyList(),
+            inputs = emptyList(),
+            tabs = emptyList(),
+            dates = listOf(
+                PluginWidget.DatePicker("due", "", 1_790_000_000L, time = true, step = 15),
+                PluginWidget.DatePicker("start", "", null, time = false, step = 15),
+            ),
+        )
+        val events = injectableEvents(targets, now = 1_790_000_000_000L).map { it.event }
+        assertEquals(4, events.size)
+        assertEquals(PluginEvent.DateChanged("due", null), events[1])
+        assertEquals(PluginEvent.DateChanged("start", null), events[3])
+        assertTrue((events[0] as PluginEvent.DateChanged).value!! > 1_790_000_000L)
+        assertTrue((events[2] as PluginEvent.DateChanged).value != null)
+        assertEquals(PluginEvent.DateChanged("due", 42L), customEvent("date_changed", "due", "42"))
+        assertEquals(PluginEvent.DateChanged("due", null), customEvent("date_changed", "due", ""))
+    }
+
+    @Test
     fun `budget shares stay between nothing and all of it`() {
         assertEquals(listOf(0f, 0.5f, 1f), budgetShares(listOf(0, 2_000_000, 9_000_000), 4_000_000))
         assertEquals(listOf(0f), budgetShares(listOf(5), 0))

@@ -23,7 +23,8 @@ import com.wasimaster.wmkeyboard.plugins.R
  * because the user did it on purpose and can see exactly what they shared.
  *
  * What remains is local scratch space, which cannot leak anywhere because
- * nothing in the sandbox has anywhere to leak to.
+ * nothing in the sandbox has anywhere to leak to, and reminders: a line of the
+ * plugin's own text that the app shows in the shade at a time the plugin set.
  *
  * A permission string this build does not recognise is a **refused install**,
  * not an ignored line — see [PluginManifestCodec]. A capability that cannot be
@@ -61,9 +62,31 @@ sealed interface PluginPermission {
         override val labelRes: Int = R.string.core_plugins_permission_storage_label
     }
 
+    /**
+     * Reminders the app shows at a time the plugin chose, exposed to the script
+     * as `wm.reminders`.
+     *
+     * A reminder is data, not code: the plugin hands over an id, a time and a
+     * line of text, and when the time comes **the app** posts the notification.
+     * No plugin code runs in the background to do it, and none runs when the
+     * reminder fires. The notification always carries the plugin's name as its
+     * title, so a reminder cannot pass itself off as the system or another app,
+     * and tapping it opens that plugin's settings page, where every pending
+     * reminder is listed and can be cancelled.
+     *
+     * Not gated at runtime, for the same reason as [Storage]: the user sees it
+     * before install, and the notification itself names who asked for it.
+     */
+    data object Reminders : PluginPermission {
+        override val wire: String = "reminders"
+
+        @StringRes
+        override val labelRes: Int = R.string.core_plugins_permission_reminders_label
+    }
+
     companion object {
         /** Every permission this build understands. */
-        val all: List<PluginPermission> = listOf(Storage)
+        val all: List<PluginPermission> = listOf(Storage, Reminders)
 
         /** The permission [wire] names, or null if this build does not know it. */
         fun parse(wire: String): PluginPermission? {

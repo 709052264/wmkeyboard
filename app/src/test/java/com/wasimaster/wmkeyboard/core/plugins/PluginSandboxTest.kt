@@ -298,6 +298,20 @@ class PluginSandboxTest {
     }
 
     @Test
+    fun `os time reads a date table in local time and rolls fields over`() {
+        val expected = java.util.Calendar.getInstance().apply {
+            clear()
+            set(2026, java.util.Calendar.NOVEMBER, 1, 9, 30, 0)
+        }.timeInMillis / 1000
+        // Day 32 of October is the first of November.
+        assertEquals(expected.toDouble(), run("return os.time { year = 2026, month = 10, day = 32, hour = 9, min = 30 }").todouble(), 0.0)
+        // hour defaults to noon, as in standard Lua.
+        assertEquals("12", run("return os.date('%H', os.time { year = 2026, month = 1, day = 5 })").tojstring())
+        val missing = runCatching { run("return os.time { year = 2026 }") }.exceptionOrNull()
+        assertTrue(missing.toString(), missing is org.luaj.vm2.LuaError)
+    }
+
+    @Test
     fun `print goes to the plugin log rather than anywhere else`() {
         val budget = PluginBudget()
         val globals = sandbox(budget)

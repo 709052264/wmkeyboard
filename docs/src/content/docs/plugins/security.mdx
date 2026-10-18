@@ -37,7 +37,10 @@ could be configured differently. Each has a test.
    identifiers, no location, contacts, camera, microphone, SMS or
    accessibility.
 8. **Plugins cannot run in the background.** Execution exists only while the
-   plugin's panel is open. No timers, no callbacks that outlive it.
+   plugin's panel is open. No timers, no callbacks that outlive it. A plugin
+   with the `reminders` permission can leave a time and a line of text with the
+   app; at that time the app, not the plugin, shows the text in a notification
+   titled with the plugin's name. No plugin code runs for it.
 9. **Plugins cannot change the app.** They render inside their own panel below a
    host-drawn title bar, and cannot alter keyboard behaviour, request
    permissions, or affect any other feature.

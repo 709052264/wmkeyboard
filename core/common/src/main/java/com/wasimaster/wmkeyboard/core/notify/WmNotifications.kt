@@ -277,4 +277,15 @@ object NotificationIds {
 
     private const val DOWNLOAD_BASE = 1000
     private const val DOWNLOAD_MASK = 0xFFFF
+
+    /**
+     * One per pending plugin reminder, from the plugin's id and the reminder's.
+     * Derived for the same reason as [forDownload]: setting the reminder again
+     * replaces the one in the shade rather than adding a second. Above the
+     * download range, so the two never share a row.
+     */
+    fun forPluginReminder(pluginId: String, reminderId: String): Int =
+        REMINDER_BASE + ("$pluginId/$reminderId".hashCode() and DOWNLOAD_MASK)
+
+    private const val REMINDER_BASE = 70_000
 }
