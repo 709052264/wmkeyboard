@@ -53,6 +53,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Deselect
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileDownload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashlightOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashlightOn
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
 import androidx.compose.material3.CircularProgressIndicator
@@ -119,6 +120,9 @@ import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdePairCode
+import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
+import com.wasimaster.wmkeyboard.app.GalleryPickActivity
+import android.net.Uri
 import java.io.File
 import java.util.Locale
 import java.util.concurrent.Executors
@@ -1025,7 +1029,9 @@ private class ScannedCode(val value: String, @StringRes val formatLabelRes: Int)
  * Barcode & QR scanner: a live viewfinder that decodes continuously
  * (ML Kit, on-device); the first hit freezes into a result card with
  * insert and copy actions. Insert types the barcode's text into the
- * editor, like any other key press.
+ * editor, like any other key press. The button in the bottom-left corner
+ * reads a code off a saved picture instead, picked with Android's photo
+ * picker, and lands on the same card.
  */
 @Composable
 internal fun QrScanPanel(
@@ -1091,11 +1097,14 @@ private fun QrScanContent(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val feedback = LocalKeyPressFeedback.current
+    val scope = rememberCoroutineScope()
 
     var result by remember { mutableStateOf<ScannedCode?>(null) }
     // A computer's pairing code (WMK Desktop): pairs straight away rather
     // than typing the link. The name it shows while that happens.
     var pairingWith by remember { mutableStateOf<String?>(null) }
+    // A picked picture being decoded and read.
+    var readingPicture by remember { mutableStateOf(false) }
     var camera by remember { mutableStateOf<Camera?>(null) }
     var torchOn by remember { mutableStateOf(false) }
     // Current zoom, driven by pinch and shown as a pill. Zooming into a
@@ -1121,6 +1130,45 @@ private fun QrScanContent(
             implementationMode = PreviewView.ImplementationMode.COMPATIBLE
         }
     }
+
+    // A decoded code, from the camera or a picture: freeze into the result
+    // card either way. With auto-insert the text is already committed and
+    // the card shows what went in (Rescan re-arms).
+    fun found(hit: Barcode) {
+        val raw = hit.rawValue
+        if (raw.isNullOrEmpty() || result != null) return
+        if (haptics) feedback()
+        result = ScannedCode(raw, barcodeFormatLabelRes(hit.format))
+        val pair = KdePairCode.parse(raw)
+        if (pair != null) {
+            KdeConnectHub.attach(context)
+            if (KdeConnectHub.pairByCode(raw)) pairingWith = pair.name
+        } else if (autoInsert) {
+            onInsert(raw)
+        }
+    }
+
+    // A picture back from the photo picker. Collected on every resume: the
+    // picker is its own activity, so the keyboard comes back with the pick.
+    fun readPicture(uri: Uri) {
+        readingPicture = true
+        scope.launch {
+            val hit = withContext(Dispatchers.Default) {
+                val bitmap = MediaPrep.decode(context, uri, QR_PICTURE_MAX_SIDE) ?: return@withContext null
+                runCancellable {
+                    scanner.process(InputImage.fromBitmap(bitmap, 0)).await()
+                        .firstOrNull { !it.rawValue.isNullOrEmpty() }
+                }.getOrNull()
+            }
+            readingPicture = false
+            if (hit == null) {
+                Toast.makeText(context, R.string.ime_scanner_qr_picture_none, Toast.LENGTH_SHORT).show()
+            } else {
+                found(hit)
+            }
+        }
+    }
+    PermissionRecheck { GalleryPickActivity.consumeQr()?.let(::readPicture) }
 
     // Decode frames only while there's no result on screen. A frame is
     // skipped when the previous one is still being decoded (busy flag)
@@ -1158,22 +1206,7 @@ private fun QrScanContent(
                 proxy.close()
                 scanner.process(InputImage.fromBitmap(bitmap, rotation))
                     .addOnSuccessListener { barcodes ->
-                        val hit = barcodes.firstOrNull { !it.rawValue.isNullOrEmpty() }
-                        val raw = hit?.rawValue
-                        if (hit != null && raw != null && result == null) {
-                            if (haptics) feedback()
-                            // Freeze into the result card either way — with
-                            // auto-insert the text is already committed and
-                            // the card shows what went in (Rescan re-arms).
-                            result = ScannedCode(raw, barcodeFormatLabelRes(hit.format))
-                            val pair = KdePairCode.parse(raw)
-                            if (pair != null) {
-                                KdeConnectHub.attach(context)
-                                if (KdeConnectHub.pairByCode(raw)) pairingWith = pair.name
-                            } else if (autoInsert) {
-                                onInsert(raw)
-                            }
-                        }
+                        barcodes.firstOrNull { !it.rawValue.isNullOrEmpty() }?.let(::found)
                     }
                     .addOnCompleteListener { busy = false }
             }
@@ -1386,11 +1419,30 @@ private fun QrScanContent(
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 10.dp)
+                // Clear of the picture button in the corner.
+                .padding(start = 60.dp, end = 60.dp, bottom = 10.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .background(Color.Black.copy(alpha = 0.35f))
                 .padding(horizontal = 10.dp, vertical = 4.dp),
         )
+        Box(modifier = Modifier.align(Alignment.BottomStart).padding(8.dp)) {
+            CameraChipButton(
+                icon = Icons.Outlined.PhotoLibrary,
+                description = stringResource(R.string.ime_scanner_qr_picture_desc),
+                active = false,
+            ) {
+                feedback()
+                runCatching { context.startActivity(GalleryPickActivity.qrIntent(context)) }
+            }
+        }
+        if (readingPicture) {
+            Box(
+                modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(color = Color.White)
+            }
+        }
         if (camera?.cameraInfo?.hasFlashUnit() == true) {
             Box(modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)) {
                 CameraChipButton(
@@ -1406,6 +1458,9 @@ private fun QrScanContent(
         }
     }
 }
+
+/** The longest side a picked picture is read at: plenty for a code, and never the full camera frame. */
+private const val QR_PICTURE_MAX_SIDE = 2048
 
 /**
  * The fetched page title/site/description for a scanned link, shown above
