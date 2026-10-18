@@ -23312,9 +23312,9 @@ open class WMKeyboardService : InputMethodService() {
      * Not at once: thumbs that take turns lift one before the other lands, so
      * a word typed that way — "movement", "probably", the second e of "heed"
      * off the other thumb — used to end at the first gap between them and come
-     * out in pieces (#674). And a word of taps alone ends here too, as a space
-     * would end it (#676); `T`, lift, `o` stays "To" because the `o` lands
-     * inside the pause.
+     * out in pieces (#674). And a word of taps alone ends here too, with the
+     * same automatic space (#676, #734); `T`, lift, `o` stays "To" because the
+     * `o` lands inside the pause.
      */
     private fun onAllThumbsUp() {
         val gesture = _uiState.value.settings.gesture
@@ -23334,15 +23334,43 @@ open class WMKeyboardService : InputMethodService() {
                 job.join()
             }
             if (!allUpArmed || composing.isEmpty()) return@launch
-            if (duetWord.active) {
-                val ic = currentInputConnection ?: return@launch
-                commitDuet(ic)
-            } else {
-                // Taps alone: the word ends the way a space tap would end it,
-                // correction and all.
-                onSpace()
-            }
+            val ic = currentInputConnection ?: return@launch
+            if (duetWord.active) commitDuet(ic) else endTappedWordAtPause(ic)
         }
+    }
+
+    /**
+     * Ends a word of taps alone at the all-thumbs-up pause (#676) the way a
+     * swiped word ends there: corrected as a Space would correct it, then
+     * followed by [commitGestureSpace]. That space is the keyboard's own, so a
+     * mode with automatic spaces off gets none, and a habitual Space press or a
+     * full stop straight afterwards takes it back. Not [onSpace]: that is the
+     * user's own press, which types a space in every mode and arms the
+     * double-space full stop (#734).
+     */
+    private fun endTappedWordAtPause(ic: InputConnection) {
+        val state = _uiState.value
+        pendingWordSpace = false
+        // The word and its space are one edit, as in [onSpace], which keeps a
+        // correction's backspace-to-revert window armed.
+        ic.beginBatchEdit()
+        val committed = commitComposing(
+            ic,
+            autocorrect = state.settings.correction.enabled,
+            fixApostrophes = state.settings.autoText.apostrophe,
+            expandPatterns = true,
+        )
+        if (swallowTerminatorAfterCommit) {
+            // An expansion left the caret at its {cursor} marker, inside the
+            // text it inserted: a space there would split the snippet.
+            swallowTerminatorAfterCommit = false
+        } else if (committed) {
+            commitGestureSpace(ic, state)
+            if (pendingWordSpace) recordStat { onSeparator(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
+        }
+        ic.endBatchEdit()
+        maybeAutoCapitalize()
+        refreshSuggestions()
     }
 
     /** The first thumb landed: a word waiting out its all-up pause carries on instead (#674). */
