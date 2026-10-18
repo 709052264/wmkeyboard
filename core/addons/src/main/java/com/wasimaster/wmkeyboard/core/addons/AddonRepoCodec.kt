@@ -47,9 +47,27 @@ object AddonRepoCodec {
         // tracked, and an unknown type has no importer. Dropping them beats
         // rejecting the repository over one malformed row.
         val usable = manifest.addons.filter {
-            it.id.isNotBlank() && it.path.isNotBlank() && it.type != AddonType.Unknown
+            it.id.isNotBlank() && it.path.isNotBlank() && it.type != AddonType.Unknown &&
+                !it.id.contains(AddonLocalization.SEPARATOR)
         }
-        return manifest.copy(addons = usable)
+        return manifest.copy(addons = usable.map { it.copy(localizations = usableLocalizations(it)) })
+    }
+
+    /** `es`, `es-419`, `pt-BR`, `bn_rom-BD`: a language id, then an optional region. */
+    private val LOCALE = Regex("""[a-z]{2,3}(_[a-z0-9]+)*(-[A-Za-z0-9]{2,8})?""")
+
+    /**
+     * The localizations worth offering: well-formed, with a payload, one per
+     * locale, and none repeating the base list's own language. Same reasoning
+     * as the entry filter above — one bad row drops, the addon stays.
+     */
+    private fun usableLocalizations(entry: AddonEntry): List<AddonLocalization> {
+        if (!entry.type.perLanguage) return emptyList()
+        val seen = HashSet<String>()
+        entry.langId?.takeIf { it.isNotBlank() }?.let { seen += it.lowercase() }
+        return entry.localizations.filter {
+            it.path.isNotBlank() && LOCALE.matches(it.locale) && seen.add(it.locale.lowercase())
+        }
     }
 
     /**

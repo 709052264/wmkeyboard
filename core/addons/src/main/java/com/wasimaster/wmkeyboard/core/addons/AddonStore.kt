@@ -59,6 +59,12 @@ data class InstalledAddon(
     /** Also kept for the offline page, which has no manifest to read it from. */
     val description: String = "",
     val author: String = "",
+    /**
+     * Which language of a localized addon this is (`es-419`), blank for an
+     * addon with one payload. The same addon installed in two languages is
+     * two records, and this is what tells them apart in the Installed list.
+     */
+    val locale: String = "",
 )
 
 /**

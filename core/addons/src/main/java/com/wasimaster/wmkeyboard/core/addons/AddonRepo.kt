@@ -106,9 +106,58 @@ data class AddonEntry(
      * carry is ignored.
      */
     val requires: List<String> = emptyList(),
+    /**
+     * The same addon in other languages, for the types that install into one
+     * language's folder (see [AddonType.perLanguage]).
+     *
+     * A medical dictionary is one idea with a word list per language, and
+     * publishing it as `en-medical`, `es-medical`, `pt-medical`… fills the
+     * catalogue with near-identical cards and repeats every field but four. So
+     * the entry itself is the base list (its own [path] and [langId]) and each
+     * localization adds another, optionally narrowed to a region (`es-419`,
+     * `pt-BR`). Each one installs, updates and uninstalls on its own, tracked
+     * under [AddonLocalization.key]; an older build ignores the field and sees
+     * the base list alone, which is exactly what it offered before.
+     */
+    val localizations: List<AddonLocalization> = emptyList(),
 ) {
     /** `"<repoId>/<addonId>"` — how an install is tracked in [AddonStore]. */
     fun key(repoId: String): String = "$repoId/$id"
+
+    /** True when this entry offers its payload in more than one language. */
+    val isLocalized: Boolean
+        get() = type.perLanguage && localizations.isNotEmpty()
+
+    /**
+     * The base list followed by every localization, each as an installable
+     * entry of its own. Just `[this]` for an entry without localizations.
+     */
+    val variants: List<AddonEntry>
+        get() = if (isLocalized) listOf(this) + localizations.map(::localized) else listOf(this)
+
+    /**
+     * [localization] as a standalone entry: its own payload and language, the
+     * rest inherited. The id carries the locale after [AddonLocalization.SEPARATOR]
+     * so the install key differs per language and the pipeline that installs
+     * a plain dictionary needs no second path.
+     */
+    fun localized(localization: AddonLocalization): AddonEntry = copy(
+        id = "$id${AddonLocalization.SEPARATOR}${localization.locale}",
+        version = localization.version?.takeIf { it.isNotBlank() } ?: version,
+        name = localization.name?.takeIf { it.isNotBlank() } ?: name,
+        description = localization.description?.takeIf { it.isNotBlank() } ?: description,
+        path = localization.path,
+        sha256 = localization.sha256,
+        sizeBytes = localization.sizeBytes,
+        langId = localization.langId,
+        langIds = emptyList(),
+        localizations = emptyList(),
+    )
+
+    /** The locale this entry stands for: a localization's tag, or the base [langId]. */
+    val locale: String
+        get() = id.substringAfter(AddonLocalization.SEPARATOR, missingDelimiterValue = "")
+            .ifEmpty { langId.orEmpty() }
 
     /** [langId] and [langIds] as one list, deduplicated and blank-free. */
     val languages: List<String>
@@ -122,6 +171,58 @@ data class AddonEntry(
         get() = !license.isNullOrBlank() ||
             !licenseText.isNullOrBlank() ||
             !licenseFile.isNullOrBlank()
+}
+
+/**
+ * One language of a localized addon; see [AddonEntry.localizations].
+ *
+ * Carries only what differs between languages. Everything else (type, author,
+ * licence, tags, previews) is the parent entry's.
+ */
+@Serializable
+data class AddonLocalization(
+    /**
+     * A registered language id (§5 of the format), optionally followed by a
+     * region after a hyphen: `es`, `es-419`, `pt-BR`. The language part picks
+     * the folder the payload installs into; the region only tells two lists
+     * for the same language apart.
+     */
+    val locale: String = "",
+    /** Payload location, resolved like [AddonEntry.path]. */
+    val path: String = "",
+    val sha256: String? = null,
+    val sizeBytes: Long? = null,
+    /** The addon's name in this language. Falls back to the parent's. */
+    val name: String? = null,
+    val description: String? = null,
+    /** Own semver, for a translation updated on its own schedule. Falls back to the parent's. */
+    val version: String? = null,
+) {
+    /** The registered language id: [locale] up to its region. */
+    val langId: String
+        get() = locale.substringBefore('-')
+
+    /** Upper-cased region (`419`, `BR`), or blank for a language-wide list. */
+    val region: String
+        get() = locale.substringAfter('-', missingDelimiterValue = "").uppercase()
+
+    companion object {
+        /**
+         * Joins a parent id to a locale in a variant's id and install key. Not
+         * a character a publisher puts in an id: ids are file-name-like.
+         */
+        const val SEPARATOR = "@"
+    }
+}
+
+/**
+ * The entry [id] names: a top-level entry, or one localization of one, as
+ * [AddonEntry.localized] spells it. Null when neither exists.
+ */
+fun List<AddonEntry>.findVariant(id: String): AddonEntry? {
+    firstOrNull { it.id == id }?.let { return it }
+    val parent = firstOrNull { it.id == id.substringBefore(AddonLocalization.SEPARATOR) } ?: return null
+    return parent.variants.firstOrNull { it.id == id }
 }
 
 /**
@@ -258,6 +359,14 @@ enum class AddonType {
      */
     val isExecutable: Boolean
         get() = this == Plugin
+
+    /**
+     * Whether a payload of this type belongs to exactly one language, which is
+     * what makes [AddonEntry.localizations] meaningful for it: each localized
+     * payload installs into its own language's folder by the same importer.
+     */
+    val perLanguage: Boolean
+        get() = this == Dictionary || this == EmojiKeywords || this == Vocabulary
 
     /**
      * The type this one is browsed under.

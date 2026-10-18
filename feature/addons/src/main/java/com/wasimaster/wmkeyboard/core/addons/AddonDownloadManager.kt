@@ -255,7 +255,8 @@ object AddonDownloadManager {
     fun refresh(store: AddonStore, repoId: String, manifest: AddonRepoManifest) {
         val installed = store.installed()
         _states.update { current ->
-            current + manifest.addons.associate { entry ->
+            // Every language of a localized addon is tracked on its own key.
+            current + manifest.addons.flatMap { it.variants }.associate { entry ->
                 val key = entry.key(repoId)
                 key to when {
                     key == activeKey && isBusy -> current[key] ?: AddonStatus.NotInstalled
@@ -429,6 +430,7 @@ object AddonDownloadManager {
                             manifestUrl = manifestUrl,
                             description = entry.description,
                             author = entry.author,
+                            locale = entry.id.substringAfter(AddonLocalization.SEPARATOR, ""),
                         )
                         store.markInstalled(key, record)
                         val questionRes = AddonApply.questionRes(entry.type)

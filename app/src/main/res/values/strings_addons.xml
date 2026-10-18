@@ -99,6 +99,21 @@
         <item quantity="one">Language</item>
         <item quantity="other">Languages</item>
     </plurals>
+    <!-- Section on the page of an add-on that has one word list per language.
+         Each row is one language, with its own Install or Uninstall button. -->
+    <string name="addon_languages_section_title">Languages</string>
+    <string name="addon_languages_section_info">This add-on has a different list for each language. Install the languages that you type in. Each one goes into the custom dictionaries of its language, and updates and uninstalls on its own.</string>
+    <!-- Content description of the button that installs one language of an add-on.
+         %1$s is the language, for example "Spanish (Latin America)". -->
+    <string name="addon_language_install_desc">Install %1$s</string>
+    <!-- Content description of the button that uninstalls one language of an add-on.
+         %1$s is the language. -->
+    <string name="addon_language_uninstall_desc">Uninstall %1$s</string>
+    <!-- Status line of one language of an add-on that is installed. %1$s is its version. -->
+    <string name="addon_language_installed_status">Installed, version %1$s</string>
+    <!-- Status line of one language of an add-on that has a newer version.
+         %1$s is the installed version, %2$s the newer one. -->
+    <string name="addon_language_update_status">Version %1$s installed. Version %2$s is available.</string>
     <!-- Shown for a repository the user reached from a link but did not add. -->
     <string name="addon_detail_repo_not_added">This repository is not in your list. Installing adds it.</string>
     <!-- Name shown for a repository that states no name of its own. -->
