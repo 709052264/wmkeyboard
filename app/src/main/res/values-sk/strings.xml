@@ -8770,11 +8770,9 @@
     <string name="typing_trail_opacity_title">Nepriehľadnosť stopy</string>
     <string name="typing_trail_width_subtitle">Hrúbka stopy pri písaní ťahom</string>
     <string name="typing_trail_width_title">Šírka stopy</string>
-    <string name="typing_two_thumb_info">Použite oba palce naraz. Každý palec môže klepnúť alebo potiahnuť v rovnakom čase ako druhý a každé klepnutie a potiahnutie sa pridá k tomu istému slovu. Napríklad klepnite na S ľavým palcom, potiahnite O na M pravým, klepnite na E ľavým, potom potiahnite T H I N G pravým a dostanete niečo. Klepnutie, ktoré dopadne, zatiaľ čo druhý palec stále ťahá, sa v tom bode vloží do slova, takže potiahnutie cez H E L O a klepnutie na L dá hello. Backspace odstráni posledné klepnutie alebo potiahnutie zo slova.</string>
     <string name="typing_two_thumb_subtitle">Klepnutím a potiahnutím oboma palcami naraz vytvoríte jedno slovo</string>
     <string name="typing_two_thumb_title">Písanie dvoma palcami</string>
     <string name="typing_two_thumb_word_end_all_up_label">Všetky palce hore</string>
-    <string name="typing_two_thumb_word_end_info">S medzerou zostáva slovo otvorené, zatiaľ čo ťukáte a posúvate, a klávesnica ho po každom z nich znova prečíta. Ťuknite na medzeru alebo interpunkciu, aby ste ju napísali. Keď sú všetky palce hore, slovo sa napíše s medzerou hneď, ako sa žiadny palec nedotýka klávesnice, podobne ako pri bežnom kĺzaní, takže vaše palce sa musia prekrývať, aby zdieľali slovo.</string>
     <string name="typing_two_thumb_word_end_space_label">Medzera</string>
     <string name="typing_two_thumb_word_end_subtitle">Čo píše slovo, ktoré práve vytvárate</string>
     <string name="typing_two_thumb_word_end_title">Dokončiť slovo dvoma palcami</string>

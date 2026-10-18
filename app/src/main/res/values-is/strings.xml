@@ -8772,11 +8772,9 @@
     <string name="typing_trail_opacity_title">Gegnsæi slóðar</string>
     <string name="typing_trail_width_subtitle">Þykkt rennislóðarinnar</string>
     <string name="typing_trail_width_title">Breidd slóðar</string>
-    <string name="typing_two_thumb_info">Notaðu báða þumalfingurna saman. Hver þumalfingur getur pikkað eða strjúkt, á sama tíma og hinn, og hvert pikki og strok bætist við sama orðið. Til dæmis, pikkaðu S með vinstri þumalfingri, strjúktu O til M með hægri, pikkaðu E með vinstri, strjúktu síðan T H I N G með hægri, og þú færð eitthvað. Pikk sem lendir á meðan hinn þumalfingurinn er enn að strjúka fer inn í orðið á þeim stað, svo strok yfir H E L O og pikk á L gefur hello. Baklykill fjarlægir síðasta pikkið eða strokið úr orðinu.</string>
     <string name="typing_two_thumb_subtitle">Pikkaðu og strjúktu með báðum þumalfingrum í einu til að mynda eitt orð</string>
     <string name="typing_two_thumb_title">Tveggja þumla ritun</string>
     <string name="typing_two_thumb_word_end_all_up_label">Allt í lagi</string>
-    <string name="typing_two_thumb_word_end_info">Með bili helst orðið opið á meðan þú bankar og strýkur, og lyklaborðið les það aftur eftir hvert skipti. Bankaðu á bil eða greinarmerki til að slá það inn. Þegar báðir þumlar eru teknir af, er orðið slegið inn með bili um leið og enginn þumall snertir lyklaborðið, eins og venjuleg strjúkinnsláttur, svo þumlar þínir verða að skarast til að deila orði.</string>
     <string name="typing_two_thumb_word_end_space_label">Bil</string>
     <string name="typing_two_thumb_word_end_subtitle">Hvað skrifar orðið sem þú ert að byggja</string>
     <string name="typing_two_thumb_word_end_title">Ljúka orði með tveimur þumalfingrum</string>

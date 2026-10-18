@@ -8760,11 +8760,9 @@
     <string name="typing_trail_opacity_title">Độ mờ của đường dẫn</string>
     <string name="typing_trail_width_subtitle">Độ dày của đường trượt</string>
     <string name="typing_trail_width_title">Độ rộng vệt kéo</string>
-    <string name="typing_two_thumb_info">Sử dụng cả hai ngón cái cùng lúc. Mỗi ngón cái có thể chạm hoặc vuốt đồng thời với ngón kia, và mọi thao tác chạm và vuốt đều góp phần tạo nên cùng một từ. Ví dụ: chạm S bằng ngón cái trái, vuốt O đến M bằng ngón phải, chạm E bằng ngón trái, sau đó vuốt T H I N G bằng ngón phải, và bạn sẽ có từ something. Một thao tác chạm diễn ra trong khi ngón cái kia vẫn đang vuốt sẽ được thêm vào từ tại vị trí đó, vì vậy vuốt qua H E L O và chạm vào L sẽ cho ra từ hello. Phím xóa lùi sẽ xóa thao tác chạm hoặc vuốt cuối cùng khỏi từ.</string>
     <string name="typing_two_thumb_subtitle">Chạm và vuốt bằng cả hai ngón cái cùng lúc để tạo một từ</string>
     <string name="typing_two_thumb_title">Gõ bằng hai ngón cái</string>
     <string name="typing_two_thumb_word_end_all_up_label">Tất cả ngón cái hướng lên</string>
-    <string name="typing_two_thumb_word_end_info">Với dấu cách, từ vẫn mở trong khi bạn chạm và vuốt, và bàn phím sẽ đọc lại từ đó sau mỗi lần. Chạm vào dấu cách hoặc dấu câu để nhập từ đó. Khi nhấc cả hai ngón cái lên, từ sẽ được nhập kèm dấu cách ngay khi không còn ngón cái nào chạm vào bàn phím, giống như kiểu lướt thông thường, vì vậy các ngón cái của bạn phải chồng lên nhau để chia sẻ một từ.</string>
     <string name="typing_two_thumb_word_end_space_label">Dấu cách</string>
     <string name="typing_two_thumb_word_end_subtitle">Điều gì nhập từ bạn đang xây dựng</string>
     <string name="typing_two_thumb_word_end_title">Hoàn thành một từ bằng hai ngón cái</string>

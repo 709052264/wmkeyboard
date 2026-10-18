@@ -8780,11 +8780,9 @@
     <string name="typing_trail_opacity_title">Pēdas necaurredzamība</string>
     <string name="typing_trail_width_subtitle">Slīdēšanas takas biezums</string>
     <string name="typing_trail_width_title">Takas platums</string>
-    <string name="typing_two_thumb_info">Izmantojiet abus īkšķus kopā. Katrs īkšķis var pieskarties vai pārvilkt vienlaikus ar otru, un katrs pieskāriens un pārvilkšana papildina to pašu vārdu. Piemēram, pieskarieties S ar kreiso īkšķi, pārvelciet O uz M ar labo, pieskarieties E ar kreiso, tad pārvelciet T H I N G ar labo, un jūs iegūsiet kaut ko. Pieskāriens, kas notiek, kamēr otrs īkšķis vēl velk, tiek ievietots vārdā tajā punktā, tāpēc pārvilkšana pāri H E L O un pieskāriens uz L dod hello. Atpakaļatkāpes taustiņš noņem pēdējo pieskārienu vai pārvilkšanu no vārda.</string>
     <string name="typing_two_thumb_subtitle">Pieskarieties un velciet ar abiem īkšķiem vienlaikus, lai izveidotu vienu vārdu</string>
     <string name="typing_two_thumb_title">Rakstīšana ar diviem īkšķiem</string>
     <string name="typing_two_thumb_word_end_all_up_label">Viss kārtībā</string>
-    <string name="typing_two_thumb_word_end_info">Ar atstarpi vārds paliek atvērts, kamēr jūs pieskaraties un velkat, un tastatūra to nolasa vēlreiz pēc katras darbības. Pieskarieties atstarpei vai pieturzīmei, lai to ievadītu. Kad abi īkšķi ir pacelti, vārds tiek ievadīts ar atstarpi, tiklīdz neviens īkšķis vairs nepieskaras tastatūrai, līdzīgi kā parastajā slīdošajā ievadē, tāpēc īkšķiem ir jāpārklājas, lai kopīgotu vārdu.</string>
     <string name="typing_two_thumb_word_end_space_label">Atstarpe</string>
     <string name="typing_two_thumb_word_end_subtitle">Kas ieraksta vārdu, kuru veidojat</string>
     <string name="typing_two_thumb_word_end_title">Pabeigt vārdu ar diviem īkšķiem</string>

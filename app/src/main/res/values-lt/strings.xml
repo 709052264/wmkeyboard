@@ -8768,11 +8768,9 @@
     <string name="typing_trail_opacity_title">Pėdsako neskaidrumas</string>
     <string name="typing_trail_width_subtitle">Braukimo pėdsako storis</string>
     <string name="typing_trail_width_title">Pėdsako plotis</string>
-    <string name="typing_two_thumb_info">Naudokite abu nykščius kartu. Kiekvienas nykštys gali bakstelėti arba braukti tuo pačiu metu kaip ir kitas, o kiekvienas bakstelėjimas ir braukimas papildo tą patį žodį. Pavyzdžiui, bakstelėkite S kairiuoju nykščiu, braukite O į M dešiniuoju, bakstelėkite E kairiuoju, tada braukite T H I N G dešiniuoju, ir gausite kažką. Bakstelėjimas, kuris įvyksta, kol kitas nykštys vis dar braukia, įterpiamas į žodį toje vietoje, todėl braukimas per H E L O ir bakstelėjimas ant L duoda „hello“. „Backspace“ pašalina paskutinį bakstelėjimą ar braukimą iš žodžio.</string>
     <string name="typing_two_thumb_subtitle">Bakstelėkite ir braukite abiem nykščiais vienu metu, kad sudarytumėte vieną žodį</string>
     <string name="typing_two_thumb_title">Spausdinimas dviem nykščiais</string>
     <string name="typing_two_thumb_word_end_all_up_label">Viskas puiku</string>
-    <string name="typing_two_thumb_word_end_info">Su tarpu žodis lieka atviras, kol bakstelite ir braukiate, o klaviatūra jį vėl perskaito po kiekvieno veiksmo. Bakstelkite tarpą arba skyrybos ženklą, kad įvestumėte. Kai visi nykščiai pakelti, žodis įvedamas su tarpu, kai tik joks nykštys neliečia klaviatūros, kaip įprasto braukimo atveju, todėl jūsų nykščiai turi persidengti, kad pasidalintų žodžiu.</string>
     <string name="typing_two_thumb_word_end_space_label">Tarpas</string>
     <string name="typing_two_thumb_word_end_subtitle">Kas įveda žodį, kurį kuriate</string>
     <string name="typing_two_thumb_word_end_title">Užbaigti dviejų nykščių žodį</string>

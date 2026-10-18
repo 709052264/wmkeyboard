@@ -8782,11 +8782,9 @@
     <string name="typing_trail_opacity_title">Spårets opacitet</string>
     <string name="typing_trail_width_subtitle">Tjocklek på glidspåret</string>
     <string name="typing_trail_width_title">Spårbredd</string>
-    <string name="typing_two_thumb_info">Använd båda tummarna samtidigt. Varje tumme kan trycka eller svepa, samtidigt som den andra, och varje tryckning och svep läggs till i samma ord. Till exempel, tryck på S med vänster tumme, svep O till M med höger, tryck på E med vänster, svep sedan T H I N G med höger, så får du något. Ett tryck som landar medan den andra tummen fortfarande sveper hamnar i ordet vid den punkten, så ett svep över H E L O och ett tryck på L ger hello. Backsteg tar bort den senaste tryckningen eller svepet från ordet.</string>
     <string name="typing_two_thumb_subtitle">Tryck och svep med båda tummarna samtidigt för att bygga ett ord</string>
     <string name="typing_two_thumb_title">Skriva med två tummar</string>
     <string name="typing_two_thumb_word_end_all_up_label">Tummen upp för allt</string>
-    <string name="typing_two_thumb_word_end_info">Med mellanslag förblir ordet öppet medan du trycker och sveper, och tangentbordet läser det igen efter varje tryck. Tryck på mellanslag eller skiljetecken för att skriva det. När du lyfter båda tummarna skrivs ordet med ett mellanslag så fort ingen tumme rör vid tangentbordet, precis som vid vanlig svepskrivning, så dina tummar måste överlappa för att dela på ett ord.</string>
     <string name="typing_two_thumb_word_end_space_label">Blanksteg</string>
     <string name="typing_two_thumb_word_end_subtitle">Vad som skriver ordet du bygger</string>
     <string name="typing_two_thumb_word_end_title">Avsluta ett tvåtumsord</string>

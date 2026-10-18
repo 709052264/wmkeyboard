@@ -8773,11 +8773,9 @@
     <string name="typing_trail_opacity_title">Opacidad del rastro</string>
     <string name="typing_trail_width_subtitle">Grosor del trazo de deslizamiento</string>
     <string name="typing_trail_width_title">Ancho del rastro</string>
-    <string name="typing_two_thumb_info">Usa ambos pulgares a la vez. Cada pulgar puede tocar o deslizar al mismo tiempo que el otro, y cada toque y deslizamiento se añade a la misma palabra. Por ejemplo, toca la S con el pulgar izquierdo, desliza de la O a la M con el derecho, toca la E con el izquierdo, luego desliza T H I N G con el derecho, y obtendrás algo. Un toque que ocurre mientras el otro pulgar sigue deslizando se inserta en la palabra en ese punto, así que un deslizamiento sobre H E L O y un toque en L dan hello. Retroceso elimina el último toque o deslizamiento de la palabra.</string>
     <string name="typing_two_thumb_subtitle">Toca y desliza con ambos pulgares a la vez para formar una palabra</string>
     <string name="typing_two_thumb_title">Escritura con dos pulgares</string>
     <string name="typing_two_thumb_word_end_all_up_label">Todos los pulgares arriba</string>
-    <string name="typing_two_thumb_word_end_info">Con el espacio, la palabra permanece abierta mientras tocas y deslizas, y el teclado la vuelve a leer después de cada uno. Toca el espacio o la puntuación para escribirla. Con todos los pulgares arriba, la palabra se escribe con un espacio tan pronto como ningún pulgar toca el teclado, como el deslizamiento ordinario, por lo que tus pulgares tienen que superponerse para compartir una palabra.</string>
     <string name="typing_two_thumb_word_end_space_label">Espacio</string>
     <string name="typing_two_thumb_word_end_subtitle">Lo que escribe la palabra que estás formando</string>
     <string name="typing_two_thumb_word_end_title">Terminar una palabra con dos pulgares</string>

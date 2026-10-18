@@ -8770,11 +8770,9 @@
     <string name="typing_trail_opacity_title">Przezroczystość śladu</string>
     <string name="typing_trail_width_subtitle">Grubość śladu pisania</string>
     <string name="typing_trail_width_title">Szerokość śladu</string>
-    <string name="typing_two_thumb_info">Używaj obu kciuków jednocześnie. Każdy kciuk może stukać lub przesuwać w tym samym czasie co drugi, a każde stuknięcie i przesunięcie dodaje się do tego samego słowa. Na przykład, stuknij S lewym kciukiem, przesuń O do M prawym, stuknij E lewym, a następnie przesuń T H I N G prawym, a otrzymasz coś. Stuknięcie, które nastąpi, gdy drugi kciuk jeszcze przesuwa, trafia do słowa w tym punkcie, więc przesunięcie po H E L O i stuknięcie w L daje hello. Backspace usuwa ostatnie stuknięcie lub przesunięcie ze słowa.</string>
     <string name="typing_two_thumb_subtitle">Stukaj i przesuwaj oboma kciukami jednocześnie, aby utworzyć jedno słowo</string>
     <string name="typing_two_thumb_title">Pisanie dwoma kciukami</string>
     <string name="typing_two_thumb_word_end_all_up_label">Wszystkie kciuki w górę</string>
-    <string name="typing_two_thumb_word_end_info">Dzięki spacji słowo pozostaje otwarte podczas stukania i przesuwania, a klawiatura odczytuje je ponownie po każdym znaku. Stuknij spację lub znak interpunkcyjny, aby je wpisać. Gdy oba kciuki są uniesione, słowo jest wpisywane ze spacją, gdy tylko żaden kciuk nie dotyka klawiatury, podobnie jak w zwykłym pisaniu ślizgowym, więc kciuki muszą się nakładać, aby współdzielić słowo.</string>
     <string name="typing_two_thumb_word_end_space_label">Spacja</string>
     <string name="typing_two_thumb_word_end_subtitle">Co wpisuje słowo, które tworzysz</string>
     <string name="typing_two_thumb_word_end_title">Zakończ słowo dwoma kciukami</string>

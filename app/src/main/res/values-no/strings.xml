@@ -8779,11 +8779,9 @@
     <string name="typing_trail_opacity_title">Gjennomsiktighet for skrivespor</string>
     <string name="typing_trail_width_subtitle">Tykkelse på glide-sporet</string>
     <string name="typing_trail_width_title">Bredde på spor</string>
-    <string name="typing_two_thumb_info">Bruk begge tomlene samtidig. Hver tommel kan trykke eller sveipe samtidig som den andre, og hvert trykk og sveip legges til samme ord. For eksempel: Trykk på S med venstre tommel, sveip O til M med høyre, trykk E med venstre, sveip deretter T H I N G med høyre, så får du «something». Et trykk som lander mens den andre tommelen fortsatt sveiper, legges inn i ordet på det punktet, så et sveip over H E L O og et trykk på L gir «hello». Tilbake-tasten fjerner det siste trykket eller sveipet fra ordet.</string>
     <string name="typing_two_thumb_subtitle">Trykk og sveip med begge tomlene samtidig for å bygge ett ord</string>
     <string name="typing_two_thumb_title">Skriving med to tomler</string>
     <string name="typing_two_thumb_word_end_all_up_label">Begge tomler opp</string>
-    <string name="typing_two_thumb_word_end_info">Med mellomrom forblir ordet åpent mens du trykker og sveiper, og tastaturet leser det på nytt etter hver gang. Trykk på mellomrom eller tegnsetting for å skrive det. Når ingen tomler berører tastaturet, skrives ordet med et mellomrom, som ved vanlig sveiping, så tomlene dine må overlappe for å dele et ord.</string>
     <string name="typing_two_thumb_word_end_space_label">Mellomrom</string>
     <string name="typing_two_thumb_word_end_subtitle">Hva som skriver ordet du bygger</string>
     <string name="typing_two_thumb_word_end_title">Fullfør et ord med tommel</string>

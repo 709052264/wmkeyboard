@@ -8766,11 +8766,9 @@
     <string name="typing_trail_opacity_title">Průhlednost stopy</string>
     <string name="typing_trail_width_subtitle">Tloušťka stopy při psaní gesty</string>
     <string name="typing_trail_width_title">Šířka stopy</string>
-    <string name="typing_two_thumb_info">Používejte oba palce současně. Každý palec může klepnout nebo přejet, ve stejnou chvíli jako ten druhý, a každé klepnutí a přejetí se přidá ke stejnému slovu. Například klepněte levým palcem na S, pravým přejeďte z O na M, levým klepněte na E, pak pravým přejeďte T H I N G a dostanete něco. Klepnutí, které dopadne, zatímco druhý palec stále přejíždí, se v daném bodě vloží do slova, takže přejetí přes H E L O a klepnutí na L dá hello. Backspace odstraní ze slova poslední klepnutí nebo přejetí.</string>
     <string name="typing_two_thumb_subtitle">Klepněte a přejeďte oběma palci najednou, abyste vytvořili jedno slovo</string>
     <string name="typing_two_thumb_title">Psaní dvěma palci</string>
     <string name="typing_two_thumb_word_end_all_up_label">Všechny palce nahoru</string>
-    <string name="typing_two_thumb_word_end_info">S mezerou zůstane slovo otevřené, zatímco klepete a přejíždíte, a klávesnice ho po každém úkonu znovu přečte. Klepnutím na mezeru nebo interpunkci jej napíšete. Se všemi palci nahoře se slovo napíše s mezerou, jakmile se žádný palec nedotýká klávesnice, podobně jako u běžného psaní tahem, takže vaše palce se musí překrývat, aby sdílely slovo.</string>
     <string name="typing_two_thumb_word_end_space_label">Mezera</string>
     <string name="typing_two_thumb_word_end_subtitle">Co napíše slovo, které právě vytváříte</string>
     <string name="typing_two_thumb_word_end_title">Dokončit slovo dvěma palci</string>

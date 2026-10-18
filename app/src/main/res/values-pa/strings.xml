@@ -8789,11 +8789,9 @@
     <string name="typing_trail_opacity_title">ਟ੍ਰੇਲ ਧੁੰਦਲਾਪਨ</string>
     <string name="typing_trail_width_subtitle">ਗਲਾਈਡ ਟ੍ਰੇਲ ਦੀ ਮੋਟਾਈ</string>
     <string name="typing_trail_width_title">ਟ੍ਰੇਲ ਦੀ ਚੌੜਾਈ</string>
-    <string name="typing_two_thumb_info">ਦੋਵੇਂ ਅੰਗੂਠਿਆਂ ਦੀ ਵਰਤੋਂ ਇਕੱਠੇ ਕਰੋ। ਹਰ ਅੰਗੂਠਾ ਦੂਜੇ ਦੇ ਨਾਲ ਹੀ ਟੈਪ ਜਾਂ ਸਵਾਈਪ ਕਰ ਸਕਦਾ ਹੈ, ਅਤੇ ਹਰ ਟੈਪ ਅਤੇ ਸਵਾਈਪ ਇੱਕੋ ਸ਼ਬਦ ਵਿੱਚ ਜੁੜ ਜਾਂਦਾ ਹੈ। ਉਦਾਹਰਨ ਲਈ, ਖੱਬੇ ਅੰਗੂਠੇ ਨਾਲ S ਨੂੰ ਟੈਪ ਕਰੋ, ਸੱਜੇ ਨਾਲ O ਤੋਂ M ਤੱਕ ਸਵਾਈਪ ਕਰੋ, ਖੱਬੇ ਨਾਲ E ਨੂੰ ਟੈਪ ਕਰੋ, ਫਿਰ ਸੱਜੇ ਨਾਲ T H I N G ਨੂੰ ਸਵਾਈਪ ਕਰੋ, ਅਤੇ ਤੁਹਾਨੂੰ ਕੁਝ ਮਿਲ ਜਾਵੇਗਾ। ਇੱਕ ਟੈਪ ਜੋ ਉਦੋਂ ਹੁੰਦਾ ਹੈ ਜਦੋਂ ਦੂਜਾ ਅੰਗੂਠਾ ਅਜੇ ਵੀ ਸਵਾਈਪ ਕਰ ਰਿਹਾ ਹੁੰਦਾ ਹੈ, ਉਸ ਬਿੰਦੂ \'ਤੇ ਸ਼ਬਦ ਵਿੱਚ ਚਲਾ ਜਾਂਦਾ ਹੈ, ਇਸ ਲਈ H E L O ਉੱਤੇ ਇੱਕ ਸਵਾਈਪ ਅਤੇ L ਉੱਤੇ ਇੱਕ ਟੈਪ \'hello\' ਦਿੰਦਾ ਹੈ। ਬੈਕਸਪੇਸ ਸ਼ਬਦ ਵਿੱਚੋਂ ਆਖਰੀ ਟੈਪ ਜਾਂ ਸਵਾਈਪ ਨੂੰ ਹਟਾ ਦਿੰਦਾ ਹੈ।</string>
     <string name="typing_two_thumb_subtitle">ਇੱਕ ਸ਼ਬਦ ਬਣਾਉਣ ਲਈ ਇੱਕੋ ਸਮੇਂ ਦੋਵਾਂ ਅੰਗੂਠਿਆਂ ਨਾਲ ਟੈਪ ਅਤੇ ਸਵਾਈਪ ਕਰੋ</string>
     <string name="typing_two_thumb_title">ਦੋ-ਅੰਗੂਠਿਆਂ ਨਾਲ ਟਾਈਪਿੰਗ</string>
     <string name="typing_two_thumb_word_end_all_up_label">ਸਾਰੇ ਅੰਗੂਠੇ ਉੱਪਰ</string>
-    <string name="typing_two_thumb_word_end_info">ਸਪੇਸ ਦੇ ਨਾਲ, ਸ਼ਬਦ ਖੁੱਲ੍ਹਾ ਰਹਿੰਦਾ ਹੈ ਜਦੋਂ ਤੁਸੀਂ ਟੈਪ ਅਤੇ ਸਵਾਈਪ ਕਰਦੇ ਹੋ, ਅਤੇ ਕੀਬੋਰਡ ਹਰ ਇੱਕ ਤੋਂ ਬਾਅਦ ਇਸਨੂੰ ਦੁਬਾਰਾ ਪੜ੍ਹਦਾ ਹੈ। ਇਸਨੂੰ ਟਾਈਪ ਕਰਨ ਲਈ ਸਪੇਸ ਜਾਂ ਵਿਰਾਮ ਚਿੰਨ੍ਹ ਨੂੰ ਟੈਪ ਕਰੋ। ਸਾਰੇ ਅੰਗੂਠੇ ਉੱਪਰ ਹੋਣ ਦੇ ਨਾਲ, ਸ਼ਬਦ ਸਪੇਸ ਦੇ ਨਾਲ ਟਾਈਪ ਕੀਤਾ ਜਾਂਦਾ ਹੈ ਜਿਵੇਂ ਹੀ ਕੋਈ ਅੰਗੂਠਾ ਕੀਬੋਰਡ ਨੂੰ ਨਹੀਂ ਛੂਹਦਾ, ਆਮ ਗਲਾਈਡ ਵਾਂਗ, ਇਸ ਲਈ ਤੁਹਾਡੇ ਅੰਗੂਠਿਆਂ ਨੂੰ ਇੱਕ ਸ਼ਬਦ ਸਾਂਝਾ ਕਰਨ ਲਈ ਓਵਰਲੈਪ ਕਰਨਾ ਪੈਂਦਾ ਹੈ।</string>
     <string name="typing_two_thumb_word_end_space_label">ਸਪੇਸ</string>
     <string name="typing_two_thumb_word_end_subtitle">ਜੋ ਤੁਸੀਂ ਸ਼ਬਦ ਬਣਾ ਰਹੇ ਹੋ ਉਸਨੂੰ ਕੀ ਟਾਈਪ ਕਰਦਾ ਹੈ</string>
     <string name="typing_two_thumb_word_end_title">ਦੋ-ਅੰਗੂਠੇ ਵਾਲਾ ਸ਼ਬਦ ਪੂਰਾ ਕਰੋ</string>

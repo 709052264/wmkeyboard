@@ -8794,11 +8794,9 @@
     <string name="typing_trail_opacity_title">ट्रेल अस्पष्टता</string>
     <string name="typing_trail_width_subtitle">ग्लाइड ट्रेल की मोटाई</string>
     <string name="typing_trail_width_title">ट्रेल की चौड़ाई</string>
-    <string name="typing_two_thumb_info">दोनों अंगूठों का एक साथ उपयोग करें। प्रत्येक अंगूठा दूसरे के साथ ही टैप या स्वाइप कर सकता है, और हर टैप और स्वाइप एक ही शब्द में जुड़ जाता है। उदाहरण के लिए, बाएं अंगूठे से S पर टैप करें, दाएं से O से M तक स्वाइप करें, बाएं से E पर टैप करें, फिर दाएं से T H I N G स्वाइप करें, और आपको \'something\' मिलेगा। एक टैप जो तब होता है जब दूसरा अंगूठा अभी भी स्वाइप कर रहा हो, उस बिंदु पर शब्द में चला जाता है, इसलिए H E L O पर स्वाइप और L पर टैप करने से \'hello\' मिलता है। बैकस्पेस शब्द से अंतिम टैप या स्वाइप को हटा देता है।</string>
     <string name="typing_two_thumb_subtitle">एक शब्द बनाने के लिए एक साथ दोनों अंगूठों से टैप और स्वाइप करें</string>
     <string name="typing_two_thumb_title">दो अंगूठों से टाइपिंग</string>
     <string name="typing_two_thumb_word_end_all_up_label">सभी अंगूठे ऊपर</string>
-    <string name="typing_two_thumb_word_end_info">स्पेस के साथ, शब्द खुला रहता है जबकि आप टैप और स्वाइप करते हैं, और कीबोर्ड हर बार इसे फिर से पढ़ता है। इसे टाइप करने के लिए स्पेस या विराम चिह्न टैप करें। दोनों अंगूठों के साथ, जैसे ही कोई अंगूठा कीबोर्ड को नहीं छूता है, शब्द एक स्पेस के साथ टाइप हो जाता है, जैसे सामान्य ग्लाइड, इसलिए एक शब्द साझा करने के लिए आपके अंगूठों को ओवरलैप करना होगा।</string>
     <string name="typing_two_thumb_word_end_space_label">स्पेस</string>
     <string name="typing_two_thumb_word_end_subtitle">आप जो शब्द बना रहे हैं उसे क्या टाइप करता है</string>
     <string name="typing_two_thumb_word_end_title">दो-अंगूठे वाले शब्द को पूरा करें</string>

@@ -8761,11 +8761,9 @@
     <string name="typing_trail_opacity_title">İz opaklığı</string>
     <string name="typing_trail_width_subtitle">Kaydırma izinin kalınlığı</string>
     <string name="typing_trail_width_title">İz genişliği</string>
-    <string name="typing_two_thumb_info">Her iki baş parmağınızı birlikte kullanın. Her baş parmak, diğeriyle aynı anda dokunabilir veya kaydırabilir ve her dokunuş ve kaydırma aynı kelimeye eklenir. Örneğin, sol baş parmağınızla S\'ye dokunun, sağ ile O\'dan M\'ye kaydırın, sol ile E\'ye dokunun, ardından sağ ile T H I N G\'yi kaydırın ve \'something\' kelimesini elde edin. Diğer baş parmak hala kaydırırken gerçekleşen bir dokunuş, o noktada kelimeye eklenir, bu nedenle H E L O üzerinde bir kaydırma ve L üzerinde bir dokunuş \'hello\' sonucunu verir. Geri silme tuşu, kelimeden son dokunuşu veya kaydırmayı kaldırır.</string>
     <string name="typing_two_thumb_subtitle">Tek bir kelime oluşturmak için her iki baş parmağınızla aynı anda dokunun ve kaydırın</string>
     <string name="typing_two_thumb_title">İki başparmakla yazma</string>
     <string name="typing_two_thumb_word_end_all_up_label">Tüm başparmaklar yukarı</string>
-    <string name="typing_two_thumb_word_end_info">Boşluk tuşuyla, siz dokunup kaydırdıkça kelime açık kalır ve klavye her işlemden sonra onu tekrar okur. Yazmak için boşluk tuşuna veya noktalama işaretine dokunun. Tüm parmaklar kalktığında, kelime normal kaydırmada olduğu gibi hiçbir parmak klavyeye dokunmadığı anda boşlukla yazılır, bu nedenle bir kelimeyi paylaşmak için parmaklarınızın örtüşmesi gerekir.</string>
     <string name="typing_two_thumb_word_end_space_label">Boşluk</string>
     <string name="typing_two_thumb_word_end_subtitle">Oluşturduğunuz kelimeyi neyin yazdığı</string>
     <string name="typing_two_thumb_word_end_title">İki başparmaklı kelimeyi bitir</string>

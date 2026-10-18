@@ -8778,11 +8778,9 @@
     <string name="typing_trail_opacity_title">Motnost sledi</string>
     <string name="typing_trail_width_subtitle">Debelina sledi drsenja</string>
     <string name="typing_trail_width_title">Širina sledi</string>
-    <string name="typing_two_thumb_info">Uporabite oba palca hkrati. Vsak palec lahko tapne ali podrsne, hkrati z drugim, in vsak tap ali podrs prispeva k isti besedi. Na primer, tapnite S z levim palcem, podrsnite O do M z desnim, tapnite E z levim, nato podrsnite T H I N G z desnim in dobili boste nekaj. Tap, ki se zgodi, medtem ko drugi palec še drsi, se v besedo vpiše na tisti točki, zato podrs čez H E L O in tap na L dasta hello. Vračalka odstrani zadnji tap ali podrs iz besede.</string>
     <string name="typing_two_thumb_subtitle">Tapnite in povlecite z obema palcema hkrati, da sestavite besedo</string>
     <string name="typing_two_thumb_title">Tipkanje z dvema palcema</string>
     <string name="typing_two_thumb_word_end_all_up_label">Vsi palci gor</string>
-    <string name="typing_two_thumb_word_end_info">S presledkom beseda ostane odprta, medtem ko tapkate in vlečete, tipkovnica pa jo po vsakem dejanju znova prebere. Tapnite presledek ali ločilo, da ga vnesete. Ko dvignete vse palce, se beseda vpiše s presledkom takoj, ko noben palec ne zaznava tipkovnice, kot pri običajnem drsenju, zato se morata palca prekrivati, da si delita besedo.</string>
     <string name="typing_two_thumb_word_end_space_label">Presledek</string>
     <string name="typing_two_thumb_word_end_subtitle">Kaj natipka besedo, ki jo sestavljate</string>
     <string name="typing_two_thumb_word_end_title">Dokončaj besedo z dvema palcema</string>

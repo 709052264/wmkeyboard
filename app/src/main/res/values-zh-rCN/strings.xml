@@ -8756,11 +8756,9 @@
     <string name="typing_trail_opacity_title">轨迹不透明度</string>
     <string name="typing_trail_width_subtitle">滑动轨迹的粗细</string>
     <string name="typing_trail_width_title">轨迹宽度</string>
-    <string name="typing_two_thumb_info">同时使用两个拇指。每个拇指都可以点击或滑动，并且可以同时进行，每次点击和滑动都会添加到同一个单词中。例如，左拇指点击 S，右拇指从 O 滑动到 M，左拇指点击 E，然后右拇指滑动 T H I N G，你就会得到 something。当另一个拇指还在滑动时落下的点击会插入到该位置的单词中，因此在 H E L O 上滑动并点击 L 会得到 hello。退格键会从单词中删除最后一次点击或滑动。</string>
     <string name="typing_two_thumb_subtitle">同时用两个拇指点击和滑动以拼写一个单词</string>
     <string name="typing_two_thumb_title">双拇指输入</string>
     <string name="typing_two_thumb_word_end_all_up_label">全部大拇指向上</string>
-    <string name="typing_two_thumb_word_end_info">使用空格键时，单词在您点击和滑动时保持打开状态，键盘会在每次操作后重新读取它。点击空格或标点符号即可输入。当所有拇指抬起时，只要没有拇指接触键盘，单词就会立即连同空格一起输入，就像普通的滑动输入一样，因此您的拇指必须重叠才能共享一个单词。</string>
     <string name="typing_two_thumb_word_end_space_label">空格</string>
     <string name="typing_two_thumb_word_end_subtitle">输入您正在构建的单词</string>
     <string name="typing_two_thumb_word_end_title">完成双拇指输入单词</string>

@@ -8768,11 +8768,9 @@
     <string name="typing_trail_opacity_title">Opasitas jejak</string>
     <string name="typing_trail_width_subtitle">Ketebalan jejak luncur</string>
     <string name="typing_trail_width_title">Lebar jejak</string>
-    <string name="typing_two_thumb_info">Gunakan kedua ibu jari secara bersamaan. Setiap ibu jari dapat mengetuk atau mengusap, pada saat yang sama dengan yang lain, dan setiap ketukan serta usapan akan menambah kata yang sama. Misalnya, ketuk S dengan ibu jari kiri, usap O ke M dengan ibu jari kanan, ketuk E dengan kiri, lalu usap T H I N G dengan kanan, dan Anda mendapatkan sesuatu. Ketukan yang mendarat saat ibu jari lainnya masih mengusap akan masuk ke dalam kata pada titik tersebut, jadi usapan di atas H E L O dan ketukan pada L menghasilkan hello. Backspace menghapus ketukan atau usapan terakhir dari kata tersebut.</string>
     <string name="typing_two_thumb_subtitle">Ketuk dan geser dengan kedua ibu jari sekaligus untuk membentuk satu kata</string>
     <string name="typing_two_thumb_title">Mengetik dengan dua jempol</string>
     <string name="typing_two_thumb_word_end_all_up_label">Semua jempol ke atas</string>
-    <string name="typing_two_thumb_word_end_info">Dengan spasi, kata tetap terbuka saat Anda mengetuk dan menggeser, dan keyboard membacanya lagi setelah setiap ketukan. Ketuk spasi atau tanda baca untuk mengetiknya. Dengan semua jempol terangkat, kata diketik dengan spasi segera setelah tidak ada jempol yang menyentuh keyboard, seperti glide biasa, sehingga jempol Anda harus tumpang tindih untuk berbagi kata.</string>
     <string name="typing_two_thumb_word_end_space_label">Spasi</string>
     <string name="typing_two_thumb_word_end_subtitle">Apa yang mengetik kata yang sedang Anda susun</string>
     <string name="typing_two_thumb_word_end_title">Selesaikan kata dengan dua jempol</string>

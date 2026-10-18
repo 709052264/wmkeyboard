@@ -8777,11 +8777,9 @@
     <string name="typing_trail_opacity_title">Spor-opacitet</string>
     <string name="typing_trail_width_subtitle">Tykkelse af glide-sporet</string>
     <string name="typing_trail_width_title">Stibredde</string>
-    <string name="typing_two_thumb_info">Brug begge tommelfingre sammen. Hver tommelfinger kan trykke eller swipe, samtidig med den anden, og hvert tryk og swipe tilføjes til det samme ord. For eksempel, tryk på S med venstre tommelfinger, swipe O til M med højre, tryk på E med venstre, og swipe derefter T H I N G med højre, så får du noget. Et tryk, der lander, mens den anden tommelfinger stadig swiper, indsættes i ordet på det punkt, så et swipe over H E L O og et tryk på L giver hello. Backspace fjerner det sidste tryk eller swipe fra ordet.</string>
     <string name="typing_two_thumb_subtitle">Tryk og swipe med begge tommelfingre på én gang for at danne et ord</string>
     <string name="typing_two_thumb_title">Skrivning med to tommelfingre</string>
     <string name="typing_two_thumb_word_end_all_up_label">Begge tommelfingre op</string>
-    <string name="typing_two_thumb_word_end_info">Med mellemrum forbliver ordet åbent, mens du trykker og swiper, og tastaturet læser det igen efter hver gang. Tryk på mellemrum eller tegnsætning for at skrive det. Med begge tommelfingre løftet skrives ordet med et mellemrum, så snart ingen tommelfinger rører tastaturet, ligesom almindelig glide-skrivning, så dine tommelfingre skal overlappe for at dele et ord.</string>
     <string name="typing_two_thumb_word_end_space_label">Mellemrum</string>
     <string name="typing_two_thumb_word_end_subtitle">Hvad der skriver det ord, du er ved at bygge</string>
     <string name="typing_two_thumb_word_end_title">Afslut et ord med to tommelfingre</string>

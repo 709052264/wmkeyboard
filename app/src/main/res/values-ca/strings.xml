@@ -8765,11 +8765,9 @@
     <string name="typing_trail_opacity_title">Opacitat del rastre</string>
     <string name="typing_trail_width_subtitle">Gruix del rastre de lliscament</string>
     <string name="typing_trail_width_title">Amplada del rastre</string>
-    <string name="typing_two_thumb_info">Utilitza els dos polzes alhora. Cada polze pot tocar o lliscar, al mateix temps que l\'altre, i cada toc i lliscament s\'afegeix a la mateixa paraula. Per exemple, toca la S amb el polze esquerre, llisca de la O a la M amb el dret, toca la E amb l\'esquerre, després llisca T H I N G amb el dret, i obtindràs \"something\". Un toc que es produeix mentre l\'altre polze encara està lliscant s\'afegeix a la paraula en aquest punt, de manera que un lliscament sobre H E L O i un toc a la L donen \"hello\". El retrocés elimina l\'últim toc o lliscament de la paraula.</string>
     <string name="typing_two_thumb_subtitle">Toca i llisca amb els dos polzes alhora per formar una paraula</string>
     <string name="typing_two_thumb_title">Escriptura amb dos polzes</string>
     <string name="typing_two_thumb_word_end_all_up_label">Tot polzes amunt</string>
-    <string name="typing_two_thumb_word_end_info">Amb l\'espai, la paraula es manté oberta mentre toques i llisques, i el teclat la torna a llegir després de cada acció. Toca l\'espai o la puntuació per escriure-la. Amb tots els polzes aixecats, la paraula s\'escriu amb un espai tan bon punt cap polze toca el teclat, com el lliscament normal, de manera que els teus polzes s\'han de superposar per compartir una paraula.</string>
     <string name="typing_two_thumb_word_end_space_label">Espai</string>
     <string name="typing_two_thumb_word_end_subtitle">Què escriu la paraula que estàs creant</string>
     <string name="typing_two_thumb_word_end_title">Acaba una paraula amb dos polzes</string>

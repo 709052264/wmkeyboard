@@ -8786,11 +8786,9 @@
     <string name="typing_trail_opacity_title">Uwazi wa njia</string>
     <string name="typing_trail_width_subtitle">Unene wa njia ya kutelezesha</string>
     <string name="typing_trail_width_title">Upana wa njia</string>
-    <string name="typing_two_thumb_info">Tumia gumba zote mbili pamoja. Kila gumba kinaweza kugonga au kutelezesha, kwa wakati mmoja na kingine, na kila mguso na kutelezesha huongeza kwenye neno lilelile. Kwa mfano, gonga S kwa gumba la kushoto, telezesha O hadi M kwa la kulia, gonga E kwa la kushoto, kisha telezesha T H I N G kwa la kulia, na utapata kitu. Mguso unaotua wakati gumba lingine bado linatelezesha huenda kwenye neno wakati huo, kwa hivyo kutelezesha juu ya H E L O na mguso kwenye L hutoa hello. Backspace huondoa mguso au kutelezesha kwa mwisho kutoka kwa neno.</string>
     <string name="typing_two_thumb_subtitle">Gusa na utelezeshe kwa vidole gumba vyote viwili kwa wakati mmoja ili kuunda neno moja</string>
     <string name="typing_two_thumb_title">Kuandika kwa gumba mbili</string>
     <string name="typing_two_thumb_word_end_all_up_label">Gumba zote juu</string>
-    <string name="typing_two_thumb_word_end_info">Kwa nafasi, neno linabaki wazi unapogonga na kutelezesha, na kibodi inalisoma tena baada ya kila moja. Gonga nafasi au alama za uakifishaji ili kuliandika. Kwa vidole gumba vyote juu, neno huandikwa na nafasi mara tu kidole gumba kisipogusa kibodi, kama kutelezesha kwa kawaida, kwa hivyo vidole gumba vyako lazima viingiliane ili kushiriki neno.</string>
     <string name="typing_two_thumb_word_end_space_label">Nafasi</string>
     <string name="typing_two_thumb_word_end_subtitle">Inachoandika neno unalolijenga</string>
     <string name="typing_two_thumb_word_end_title">Maliza neno la vidole viwili</string>

@@ -8759,11 +8759,9 @@
     <string name="typing_trail_opacity_title">ความทึบของเส้นลาก</string>
     <string name="typing_trail_width_subtitle">ความหนาของเส้นลากนิ้ว</string>
     <string name="typing_trail_width_title">ความกว้างของเส้นลาก</string>
-    <string name="typing_two_thumb_info">ใช้นิ้วโป้งทั้งสองข้างพร้อมกัน นิ้วโป้งแต่ละข้างสามารถแตะหรือปัดได้ในเวลาเดียวกันกับอีกข้าง และทุกการแตะและปัดจะเพิ่มเข้าไปในคำเดียวกัน ตัวอย่างเช่น แตะ S ด้วยนิ้วโป้งซ้าย ปัด O ไป M ด้วยนิ้วโป้งขวา แตะ E ด้วยนิ้วโป้งซ้าย จากนั้นปัด T H I N G ด้วยนิ้วโป้งขวา แล้วคุณจะได้คำว่า something การแตะที่เกิดขึ้นในขณะที่นิ้วโป้งอีกข้างยังคงปัดอยู่จะเข้าไปอยู่ในคำ ณ จุดนั้น ดังนั้นการปัดผ่าน H E L O และการแตะที่ L จะได้คำว่า hello ปุ่ม Backspace จะลบการแตะหรือการปัดครั้งล่าสุดออกจากคำ</string>
     <string name="typing_two_thumb_subtitle">แตะและปัดด้วยนิ้วโป้งทั้งสองข้างพร้อมกันเพื่อสร้างคำ</string>
     <string name="typing_two_thumb_title">การพิมพ์ด้วยสองนิ้วโป้ง</string>
     <string name="typing_two_thumb_word_end_all_up_label">ยกนิ้วโป้งขึ้นทั้งหมด</string>
-    <string name="typing_two_thumb_word_end_info">เมื่อใช้เว้นวรรค คำจะยังคงเปิดอยู่ขณะที่คุณแตะและปัด และคีย์บอร์ดจะอ่านคำนั้นอีกครั้งหลังจากแต่ละครั้ง ให้แตะเว้นวรรคหรือเครื่องหมายวรรคตอนเพื่อพิมพ์คำนั้น เมื่อยกนิ้วโป้งขึ้นทั้งหมด คำจะถูกพิมพ์พร้อมเว้นวรรคทันทีที่ไม่มีนิ้วโป้งสัมผัสคีย์บอร์ด เหมือนกับการเลื่อนนิ้วปกติ ดังนั้นนิ้วโป้งของคุณจะต้องทับซ้อนกันเพื่อแชร์คำ</string>
     <string name="typing_two_thumb_word_end_space_label">เว้นวรรค</string>
     <string name="typing_two_thumb_word_end_subtitle">สิ่งที่พิมพ์คำที่คุณกำลังสร้าง</string>
     <string name="typing_two_thumb_word_end_title">จบคำด้วยสองนิ้วโป้ง</string>
