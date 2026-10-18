@@ -1,12 +1,12 @@
 ---
 title: "Privacy policy (Google Play edition)"
-description: "The formal policy for the full edition from Google Play: what WM Keyboard collects (nothing), what stays on your device, what optional tools send where, and what Google's own libraries report."
+description: "The formal policy for the full edition from Google Play: what WM Keyboard collects (nothing, beyond a name a tipper asks to have listed), what stays on your device, what optional tools send where, and what Google's own libraries report."
 sidebar:
   label: "Privacy policy (Play)"
   order: 8
 ---
 
-**Effective 10 August 2026.** This policy covers the WM Keyboard Android app
+**Effective 19 October 2026.** This policy covers the WM Keyboard Android app
 (`com.wasimaster.wmkeyboard`) and this documentation site. WM Keyboard is
 written and published by Wasi Master, an individual developer.
 
@@ -33,9 +33,10 @@ links to.
 ## The summary
 
 WM Keyboard collects nothing. There is no account, no advertising, no
-tracking, no analytics or crash reporting that this project receives, and no
-server belonging to this project that the app sends anything to. What you
-type is processed on your device and stays there.
+tracking, and no analytics or crash reporting that this project receives. What
+you type is processed on your device and stays there. The one thing the app
+ever sends to a server of this project is a name you typed yourself, after you
+chose to tip and asked to be listed; see [Tips](#tips).
 
 One caveat: some features are built on
 Google's ML Kit and on Google Play services, and those libraries send their
@@ -43,8 +44,8 @@ own diagnostics to Google when you use the features they power. That is
 Google's collection, not this project's, and it is spelled out in full under
 [Google components inside the app](#google-components-inside-the-app).
 
-The app does not sell, rent or share personal information, because it does not
-receive any in the first place.
+The app does not sell, rent or share personal information. Apart from a
+tipper's chosen name, it does not receive any in the first place.
 
 ## What stays on your device
 
@@ -105,6 +106,23 @@ When you use one of these tools, your data is handled by that service under
 its own privacy policy, not this one. The app ships no key for the AI
 providers: those only work if you supply your own.
 
+## Tips
+
+The Google Play build can take a tip through Google Play billing, under
+About › Supporters. Google Play handles the payment, under
+[Google's privacy policy](https://policies.google.com/privacy). This project
+never sees your card, your Google account or your email address.
+
+If you type a name to be listed, then once Google Play confirms the payment
+the app sends that name and the purchase receipt (the product and Google
+Play's purchase token) to `wmkeyboard.pages.dev/api/play-tip`. The site asks
+Google whether the receipt is a real, paid order and, if it is, adds the name,
+the word "Tip" and the date to the public [Supporters](/start/supporters/)
+list. The amount is not stored. With the name left empty, nothing is sent.
+Until the site has answered, the app keeps the name and receipt on your device
+and tries again when you next open Supporters, for up to 30 days. To have a
+name removed, email the address under [Contact](#contact).
+
 ## Backups
 
 Backups are optional and written to the destination you choose. That can be
@@ -118,8 +136,8 @@ developer. See [Backup and restore](/privacy/backup/).
 ## Children
 
 WM Keyboard is not directed at children and collects no data from anyone,
-including children. There is nothing to delete on request because nothing is
-ever received.
+including children. The only thing ever received is the name a tipper chose to
+have listed, described under [Tips](#tips), and it is removed on request.
 
 ## Google components inside the app
 
@@ -143,8 +161,9 @@ inside the app either, so your only choice is whether to use the feature.
 - **Downloadable fonts.** Some scripts' default keyboard font, and every
   Google font in the theme editor, are fetched by Google Play services' font
   provider. It receives the font name and this app's package name.
-- **Google Play libraries** in the Play Store build check for app updates and
-  fetch the on-device AI runtime when you first use it.
+- **Google Play libraries** in the Play Store build check for app updates,
+  fetch the on-device AI runtime when you first use it, and take a tip
+  through Google Play billing if you choose to leave one.
 
 Connecting Google Drive as a backup destination adds a Google sign-in and
 ordinary Drive API calls, and only if you connect it.

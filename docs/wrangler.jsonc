@@ -23,5 +23,18 @@
   //   paste the id it prints below and uncomment the block
   //   npx wrangler pages secret put SUPPORTKORI_SECRET --project-name wmkeyboard
   // Until then both endpoints answer 503 and the page shows its snapshot.
+  //
+  // Tips from the Play build (functions/api/play-tip.ts) are checked with
+  // Google before they are listed, which needs a service account that may
+  // read this app's orders:
+  //   Google Cloud console › IAM › Service accounts › create one, then Keys ›
+  //     Add key › JSON (the project linked in Play Console › Setup › API access)
+  //   Play Console › Users and permissions › invite its email, app-level
+  //     permission "View financial data, orders, and cancellation survey responses"
+  //   npx wrangler pages secret put PLAY_SERVICE_ACCOUNT --project-name wmkeyboard
+  //     and paste the whole JSON file
+  // Until then /api/play-tip answers 503 and the app keeps each credit queued.
+  // PLAY_TIPS_ALLOW_TEST=true (a plain variable) lists license testers' orders
+  // too, for an end to end test; unset it again afterwards.
   ,"kv_namespaces": [{ "binding": "SUPPORTERS", "id": "5a902d8ba91c4cfb9b9066a0acfee8d8" }]
 }
