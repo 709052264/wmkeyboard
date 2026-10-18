@@ -5729,14 +5729,22 @@ data class TextEditingSettings(
      */
     val recapitalizeSelectionWithShift: Boolean = true,
     /**
-     * Shift with nothing selected changes the case of the word the cursor
-     * touches, as on SwiftKey (#662): `cursor| touching` or `cur|sor`. Not while
-     * a word is being typed, where shift is for the next letter.
+     * Shift with nothing selected changes the case of the word that ends at
+     * the cursor, as on SwiftKey (#662): `cursor| touching`. Not a word that
+     * only starts there (`|touching`), and not while a word is being typed,
+     * where shift is for the next letter. The keyboard's own shift follows the
+     * word's new case, the way it does for a selection (#525).
      *
      * Off by default, because it changes what shift does next to any word.
      * Only acts with [recapitalizeSelectionWithShift] on.
      */
     val shiftRecasesWordAtCaret: Boolean = false,
+    /**
+     * The same, for the word the cursor is inside: `cur|sor` (#662). Its own
+     * switch, because a cursor parked mid-word to type a capital there is the
+     * other thing shift can mean.
+     */
+    val shiftRecasesWordAroundCaret: Boolean = false,
     /** See [CursorWordSteps]. The app's own word moves by default. */
     val cursorWordSteps: CursorWordSteps = CursorWordSteps.APP,
     /**
@@ -5745,6 +5753,8 @@ data class TextEditingSettings(
      * so not under [CursorWordSteps.APP].
      */
     val cursorWordStopsAtCapitals: Boolean = false,
+    /** Same, between letters and digits: "word|1" (#662). */
+    val cursorWordStopsAtDigits: Boolean = false,
     /**
      * How long after a space another space still counts as a double space, for
      * the ". " and tab rules.
@@ -5897,6 +5907,8 @@ data class TextEditingSettings(
     val deleteWordStopsAtPunctuation: Boolean = true,
     /** Same, at a capital inside a word: "GrapheneOS" goes "OS", then "Graphene" (#662). */
     val deleteWordStopsAtCapitals: Boolean = false,
+    /** Same, between letters and digits: "word1" goes "1", then "word" (#662). */
+    val deleteWordStopsAtDigits: Boolean = false,
     /**
      * Dragging sideways on the ⌦ key deletes forward, the way the same drag on
      * backspace deletes behind (issue #226).
@@ -10082,6 +10094,9 @@ class SettingsRepository(private val context: Context) {
         private val DELETE_WORD_STOPS_AT_PUNCTUATION = booleanPreferencesKey("delete_word_stops_at_punctuation")
         private val DELETE_WORD_STOPS_AT_CAPITALS = booleanPreferencesKey("delete_word_stops_at_capitals")
         private val SHIFT_RECASES_WORD_AT_CARET = booleanPreferencesKey("shift_recases_word_at_caret")
+        private val SHIFT_RECASES_WORD_AROUND_CARET = booleanPreferencesKey("shift_recases_word_around_caret")
+        private val DELETE_WORD_STOPS_AT_DIGITS = booleanPreferencesKey("delete_word_stops_at_digits")
+        private val CURSOR_WORD_STOPS_AT_DIGITS = booleanPreferencesKey("cursor_word_stops_at_digits")
         private val CURSOR_WORD_STEPS = stringPreferencesKey("cursor_word_steps")
         private val CURSOR_WORD_STOPS_AT_CAPITALS = booleanPreferencesKey("cursor_word_stops_at_capitals")
         private val PUNCTUATION_CHIPS = stringPreferencesKey("punctuation_chips")
@@ -12178,11 +12193,18 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.textEditing.recapitalizeSelectionWithShift,
             shiftRecasesWordAtCaret = p[SHIFT_RECASES_WORD_AT_CARET]
                 ?: defaults.textEditing.shiftRecasesWordAtCaret,
+            // One switch covered both until #662 split them; whoever had it on
+            // keeps the inside half too.
+            shiftRecasesWordAroundCaret = p[SHIFT_RECASES_WORD_AROUND_CARET]
+                ?: p[SHIFT_RECASES_WORD_AT_CARET]
+                ?: defaults.textEditing.shiftRecasesWordAroundCaret,
             cursorWordSteps = p[CURSOR_WORD_STEPS]
                 ?.let { runCatching { CursorWordSteps.valueOf(it) }.getOrNull() }
                 ?: defaults.textEditing.cursorWordSteps,
             cursorWordStopsAtCapitals = p[CURSOR_WORD_STOPS_AT_CAPITALS]
                 ?: defaults.textEditing.cursorWordStopsAtCapitals,
+            cursorWordStopsAtDigits = p[CURSOR_WORD_STOPS_AT_DIGITS]
+                ?: defaults.textEditing.cursorWordStopsAtDigits,
             doubleSpaceWindowMs = p[DOUBLE_SPACE_WINDOW_MS]
                 ?: defaults.textEditing.doubleSpaceWindowMs,
             spaceCursorStepDp = p[SPACE_CURSOR_STEP_DP]
@@ -12214,6 +12236,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.textEditing.deleteWordStopsAtPunctuation,
             deleteWordStopsAtCapitals = p[DELETE_WORD_STOPS_AT_CAPITALS]
                 ?: defaults.textEditing.deleteWordStopsAtCapitals,
+            deleteWordStopsAtDigits = p[DELETE_WORD_STOPS_AT_DIGITS]
+                ?: defaults.textEditing.deleteWordStopsAtDigits,
             forwardDeleteSwipe = p[FORWARD_DELETE_SWIPE]
                 ?: defaults.textEditing.forwardDeleteSwipe,
             webBackspaceKeyEvents = p[WEB_BACKSPACE_KEY_EVENTS]
@@ -13487,6 +13511,15 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setShiftRecasesWordAtCaret(value: Boolean) =
         editPrefs { it[SHIFT_RECASES_WORD_AT_CARET] = value }
+
+    suspend fun setShiftRecasesWordAroundCaret(value: Boolean) =
+        editPrefs { it[SHIFT_RECASES_WORD_AROUND_CARET] = value }
+
+    suspend fun setDeleteWordStopsAtDigits(value: Boolean) =
+        editPrefs { it[DELETE_WORD_STOPS_AT_DIGITS] = value }
+
+    suspend fun setCursorWordStopsAtDigits(value: Boolean) =
+        editPrefs { it[CURSOR_WORD_STOPS_AT_DIGITS] = value }
 
     suspend fun setCursorWordSteps(value: CursorWordSteps) =
         editPrefs { it[CURSOR_WORD_STEPS] = value.name }

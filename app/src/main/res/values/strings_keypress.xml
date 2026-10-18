@@ -175,6 +175,8 @@
     <string name="keypress_word_stops_punctuation_info">This is for each delete that takes whole words: the held delete key, and the backspace swipe when it takes words.\n\nOn, \"wmkeyboard.pages.dev\" goes in steps: \"dev\", then \".\", then \"pages\". Off, all of it goes in one step, up to the last space.</string>
     <string name="keypress_word_stops_capitals_title">Words stop at capitals</string>
     <string name="keypress_word_stops_capitals_subtitle">\"GrapheneOS\" goes as \"OS\", then \"Graphene\"</string>
+    <string name="keypress_word_stops_digits_title">Words stop at numbers</string>
+    <string name="keypress_word_stops_digits_subtitle">\"word1\" goes as \"1\", then \"word\"</string>
 
     <string name="keypress_word_delete_repeat_title">Word delete interval</string>
     <string name="keypress_word_delete_repeat_subtitle">How fast a held delete key clears words</string>

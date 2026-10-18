@@ -1050,6 +1050,14 @@ internal fun KeyPressSettings(
                 default = SettingsDefaults.textEditing.deleteWordStopsAtCapitals,
             ) { scope.launch { repository.setDeleteWordStopsAtCapitals(it) } }
         }
+        item(visible = holdDeletesWords || (swipeDelete && swipeUnit == BackspaceSwipeUnit.WORD)) {
+            ToggleSetting(
+                R.string.keypress_word_stops_digits_title,
+                stringResource(R.string.keypress_word_stops_digits_subtitle),
+                settings.watch { it.textEditing.deleteWordStopsAtDigits },
+                default = SettingsDefaults.textEditing.deleteWordStopsAtDigits,
+            ) { scope.launch { repository.setDeleteWordStopsAtDigits(it) } }
+        }
         item(visible = holdDeletesWords) {
             SliderSetting(
                 R.string.keypress_word_delete_repeat_title,

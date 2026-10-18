@@ -5,14 +5,18 @@ package com.wasimaster.wmkeyboard.core.text
  * (#662).
  *
  * [punctuation]: a run of letters and a run of marks are separate words, so
- * "wmkeyboard.pages.dev" is five of them and "don't" three. Off, everything
+ * "wmkeyboard.pages.dev" is five of them and "don't" three. The underscore is
+ * a mark like any other, so "wordtwo_wordthree" is three. Off, everything
  * between two spaces is one word, an address included.
  *
  * [capitals]: a capital letter after a small one starts a new word, and so
  * does the last capital of a run that a small letter follows, so "GrapheneOS"
  * is "Graphene" and "OS", and "HTMLParser" is "HTML" and "Parser".
+ *
+ * [digits]: a run of digits and a run of letters are separate words, so
+ * "word1" is "word" and "1", and "mp3player" is three.
  */
-data class WordBreaks(val punctuation: Boolean, val capitals: Boolean) {
+data class WordBreaks(val punctuation: Boolean, val capitals: Boolean, val digits: Boolean = false) {
     companion object {
         /** What the delete keys have always used: punctuation, not capitals. */
         val DELETE_DEFAULT = WordBreaks(punctuation = true, capitals = false)
@@ -97,9 +101,9 @@ object WordDelete {
         ) {
             end++
         }
-        // A capital boundary at the cursor itself: the cursor belongs to the
-        // word it starts, the same as in front of any word.
-        if (breaks.capitals && start < at && at < end &&
+        // A capital or digit boundary at the cursor itself: the cursor belongs
+        // to the word it starts, the same as in front of any word.
+        if (start < at && at < end &&
             breaksBetween(text[at - 1], text[at], text.getOrNull(at + 1), breaks)
         ) {
             start = at
@@ -127,6 +131,7 @@ object WordDelete {
             if (left.isLowerCase() && right.isUpperCase()) return true
             if (left.isUpperCase() && right.isUpperCase() && next?.isLowerCase() == true) return true
         }
+        if (breaks.digits && (left.isLetter() && right.isDigit() || left.isDigit() && right.isLetter())) return true
         return false
     }
 }

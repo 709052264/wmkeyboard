@@ -312,6 +312,7 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_auto_close_brackets_title, R.string.typing_auto_close_brackets_subtitle),
         row(R.string.typing_shift_recase_title, R.string.typing_shift_recase_subtitle),
         row(R.string.typing_shift_recase_caret_title, R.string.typing_shift_recase_caret_subtitle),
+        row(R.string.typing_shift_recase_inside_title, R.string.typing_shift_recase_inside_subtitle),
     )
 }
 
@@ -612,6 +613,7 @@ private fun SearchStrings.keyPressRows(): List<SettingsSearchEntry> {
         row(R.string.keypress_hold_words_title, R.string.keypress_hold_words_subtitle),
         row(R.string.keypress_word_stops_punctuation_title, R.string.keypress_word_stops_punctuation_subtitle),
         row(R.string.keypress_word_stops_capitals_title, R.string.keypress_word_stops_capitals_subtitle),
+        row(R.string.keypress_word_stops_digits_title, R.string.keypress_word_stops_digits_subtitle),
         row(R.string.keypress_word_delete_repeat_title, R.string.keypress_word_delete_repeat_subtitle),
         row(R.string.keypress_space_repeat_title, R.string.keypress_space_repeat_subtitle),
         row(R.string.keypress_custom_repeat_title, R.string.keypress_custom_repeat_subtitle),
@@ -1332,6 +1334,11 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
         ToolbarTool.CURSOR_WORD_LEFT,
         R.string.tooldetail_word_steps_capitals_title,
         R.string.tooldetail_word_steps_capitals_subtitle,
+    ),
+    toolEntry(
+        ToolbarTool.CURSOR_WORD_LEFT,
+        R.string.tooldetail_word_steps_digits_title,
+        R.string.tooldetail_word_steps_digits_subtitle,
     ),
     toolEntry(
         ToolbarTool.SELECT_MODE,

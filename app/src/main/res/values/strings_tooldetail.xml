@@ -207,9 +207,11 @@
     <string name="tooldetail_word_steps_spaces">At spaces</string>
     <string name="tooldetail_word_steps_spaces_desc">The cursor stops only at spaces. An address is one word.</string>
     <string name="tooldetail_word_steps_punctuation">At spaces and punctuation</string>
-    <string name="tooldetail_word_steps_punctuation_desc">The cursor also stops at a dot, a slash or another mark, so it can stop at \"wmkeyboard.|\".</string>
+    <string name="tooldetail_word_steps_punctuation_desc">The cursor also stops at a dot, a slash, an underscore or another mark, so it can stop at \"wmkeyboard.|\".</string>
     <string name="tooldetail_word_steps_capitals_title">Stop at capitals</string>
     <string name="tooldetail_word_steps_capitals_subtitle">\"GrapheneOS\" is two words: \"Graphene\" and \"OS\"</string>
+    <string name="tooldetail_word_steps_digits_title">Stop at numbers</string>
+    <string name="tooldetail_word_steps_digits_subtitle">\"word1\" is two words: \"word\" and \"1\"</string>
     <string name="tooldetail_select_mode_info">While selection mode is on, every cursor move selects text: the cursor tools, the text editing panel, the spacebar cursor swipe and the volume keys. Turn it off to keep what you selected and stop selecting more.</string>
 
     <!-- Trackpad tool on the toolbar (issue #39). -->
