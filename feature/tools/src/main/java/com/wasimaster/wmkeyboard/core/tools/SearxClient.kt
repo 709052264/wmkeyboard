@@ -76,16 +76,27 @@ object SearxClient {
      *
      * A 429 is the bot limiter public instances run, not a quota, so it gets
      * its own wording too.
+     *
+     * A web page where JSON was asked for is a check the request did not pass:
+     * the limiter's redirect to the home page, or a proxy's challenge page
+     * (Anubis and the like) in front of the instance. Parsing it would only
+     * surface a JSON error with the page's first bytes in it (#592).
      */
-    private fun get(url: String, source: NetSource): String = try {
-        ToolHttp.get(url, headers = requestHeaders(), source = source, route = NetLog.pathOf(url))
-    } catch (e: ToolHttpException) {
-        when (e.status) {
-            HTTP_FORBIDDEN -> throw ToolHttpException(R.string.ftools_search_error_json_disabled)
-            HTTP_TOO_MANY_REQUESTS -> throw ToolHttpException(R.string.ftools_search_error_searx_limited)
+    private fun get(url: String, source: NetSource): String {
+        val body = try {
+            ToolHttp.get(url, headers = requestHeaders(), source = source, route = NetLog.pathOf(url))
+        } catch (e: ToolHttpException) {
+            when (e.status) {
+                HTTP_FORBIDDEN -> throw ToolHttpException(R.string.ftools_search_error_json_disabled)
+                HTTP_TOO_MANY_REQUESTS -> throw ToolHttpException(R.string.ftools_search_error_searx_limited)
+            }
+            throw e
         }
-        throw e
+        if (isWebPage(body)) throw ToolHttpException(R.string.ftools_search_error_searx_web_page)
+        return body
     }
+
+    internal fun isWebPage(body: String): Boolean = body.trimStart().startsWith('<')
 
     /**
      * The headers a browser sends, which is what SearXNG's limiter (on by
@@ -94,6 +105,12 @@ object SearxClient {
      * no `Accept-Language` at all, whatever the rate, so `Accept:
      * application/json` alone was refused by every instance that runs it.
      * JSON still comes first; the format is asked for in the URL anyway.
+     *
+     * `Sec-Fetch-*` because [ToolHttp.USER_AGENT] reads as Chrome, and the
+     * limiter's `http_sec_fetch` check sends any Chrome 80+ that lacks them
+     * back to the home page with a 302, which HttpURLConnection follows into
+     * a 200 HTML page. These are the values Chrome sends for an address
+     * typed into its bar.
      * `Accept-Encoding` is left to HttpURLConnection, which offers gzip and
      * unpacks it only while the header is its own.
      */
@@ -107,6 +124,10 @@ object SearxClient {
         return mapOf(
             "Accept" to "application/json,text/html;q=0.9,*/*;q=0.8",
             "Accept-Language" to language,
+            "Sec-Fetch-Mode" to "navigate",
+            "Sec-Fetch-Site" to "none",
+            "Sec-Fetch-Dest" to "document",
+            "Sec-Fetch-User" to "?1",
         )
     }
 

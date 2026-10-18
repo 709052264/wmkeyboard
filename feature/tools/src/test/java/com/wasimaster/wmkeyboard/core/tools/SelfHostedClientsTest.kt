@@ -45,6 +45,24 @@ class SelfHostedClientsTest {
     }
 
     @Test
+    fun `searx passes the limiter's sec-fetch check for a chrome agent`() {
+        // SearXNG's http_sec_fetch sends a Chrome 80+ agent without these back
+        // to the home page, which arrives as a 200 HTML page (#592).
+        val headers = SearxClient.requestHeaders()
+        assertEquals("navigate", headers["Sec-Fetch-Mode"])
+        assertEquals("none", headers["Sec-Fetch-Site"])
+        assertEquals("document", headers["Sec-Fetch-Dest"])
+        assertTrue(headers.getValue("Accept").contains("text/html"))
+    }
+
+    @Test
+    fun `searx tells a web page from json`() {
+        assertTrue(SearxClient.isWebPage("<!DOCTYPE html>\n<html class=\"no-js\">"))
+        assertTrue(SearxClient.isWebPage("\n  <html>"))
+        assertEquals(false, SearxClient.isWebPage("""{"results":[]}"""))
+    }
+
+    @Test
     fun `searx reads web results and shortens the host`() {
         val body = """
             {"results":[
