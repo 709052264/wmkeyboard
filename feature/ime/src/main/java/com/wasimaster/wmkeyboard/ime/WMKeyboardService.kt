@@ -1,6 +1,8 @@
 package com.wasimaster.wmkeyboard.ime
 
 import androidx.annotation.StringRes
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import android.app.AppOpsManager
 import android.app.KeyguardManager
 import android.app.NotificationManager
@@ -33028,7 +33030,8 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
         val settings = _uiState.value.settings
-        val sources = settings.dictionarySources.filter { it.enabled }.map { it.source }
+        // The Dictionary tool's provider list, rows that are off or cannot be asked left out.
+        val sources = settings.resolveProviders(ProviderTool.DICTIONARY).mapNotNull { DictionarySource.of(it.typeId) }
         if (sources.isEmpty()) {
             _uiState.update { it.copy(dictionary = DictionaryUi.NoSources) }
             return
@@ -39923,7 +39926,8 @@ open class WMKeyboardService : InputMethodService() {
     private fun lookUpSynonyms(word: String) {
         synonymsJob?.cancel()
         val settings = _uiState.value.settings
-        val sources = settings.suggestionStrip.synonymSources.filter { it.enabled }.map { it.source }
+        // The synonym provider list, rows that are off or cannot be asked left out.
+        val sources = settings.resolveProviders(ProviderTool.SYNONYMS).mapNotNull { SynonymSource.of(it.typeId) }
         if (sources.isEmpty()) {
             publishSynonyms(word, SynonymsStatus.NoSources)
             return

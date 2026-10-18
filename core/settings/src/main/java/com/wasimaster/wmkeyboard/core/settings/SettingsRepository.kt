@@ -12914,7 +12914,7 @@ class SettingsRepository(private val context: Context) {
             val tool = change.tool
             val chain = change.chain
             if (tool != null && chain != null) {
-                val chains: Map<ProviderTool, ProviderChain> = ProviderCodec.decodeChains(prefs[PROVIDER_CHAINS]) + (tool to chain)
+                val chains: Map<ProviderTool, ProviderChain> = ProviderCodec.decodeChains(prefs[PROVIDER_CHAINS]) + (tool to chain.stamped(tool))
                 prefs[PROVIDER_CHAINS] = ProviderCodec.encodeChains(chains)
             }
             change.credentials?.let { prefs[PROVIDER_CREDENTIALS] = ProviderCodec.encodeCredentials(it) }

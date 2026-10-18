@@ -86,7 +86,7 @@ fun KeyboardSettings.providerCredential(id: String): ProviderCredential? =
 fun KeyboardSettings.providerChain(
     tool: ProviderTool,
     env: ProviderEnv = ProviderEnvironment.current(),
-): ProviderChain = providers.chains[tool] ?: LegacyProviders.chain(this, tool, env)
+): ProviderChain = providers.chains[tool]?.withNewTypes(tool) ?: LegacyProviders.chain(this, tool, env)
 
 /**
  * [tool]'s list resolved: every row with its credential and, when it cannot

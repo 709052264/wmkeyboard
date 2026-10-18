@@ -1,6 +1,8 @@
 package com.wasimaster.wmkeyboard.core.tools
 
 import android.content.Context
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import android.content.Intent
 import android.os.UserManager
 import android.provider.CalendarContract
@@ -454,7 +456,7 @@ class AiToolRunner(
      */
     private fun defineWord(call: AiToolCall): AiToolResult {
         val word = call.argument("word") ?: return missing(call, "word")
-        val sources = settings.dictionarySources.filter { it.enabled }.map { it.source }
+        val sources = settings.resolveProviders(ProviderTool.DICTIONARY).mapNotNull { DictionarySource.of(it.typeId) }
         if (sources.isEmpty()) {
             return refused(
                 call,

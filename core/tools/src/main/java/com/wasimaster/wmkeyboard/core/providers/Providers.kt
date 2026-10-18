@@ -338,6 +338,12 @@ data class ProviderEntry(
 data class ProviderChain(
     val entries: List<ProviderEntry> = emptyList(),
     val mode: ChainMode = ChainMode.FALLBACK,
+    /**
+     * The type ids this tool could list when the list was saved. A type a
+     * later build adds is not among them, which is how [withNewTypes] tells
+     * a source that is new from one the user removed.
+     */
+    val known: List<String> = emptyList(),
 ) {
     fun has(key: String): Boolean = entries.any { it.key == key }
 
@@ -348,6 +354,27 @@ data class ProviderChain(
 
     fun toggled(key: String, on: Boolean): ProviderChain =
         copy(entries = entries.map { if (it.key == key) it.copy(enabled = on) else it })
+
+    /** Stamped on saving: every type [tool] can list in this build. */
+    fun stamped(tool: ProviderTool): ProviderChain = copy(known = ProviderTypes.serving(tool).map { it.id })
+
+    /**
+     * The word sources (dictionary, synonyms, vocabulary) a later build added
+     * join the end of a saved list, switched on, as they did before the lists
+     * were provider lists: an update adds a backup rather than hiding it.
+     * Only kinds that need nothing set up, and never one the user removed.
+     */
+    fun withNewTypes(tool: ProviderTool): ProviderChain {
+        if (tool !in APPENDING || known.isEmpty()) return this
+        val added = ProviderTypes.serving(tool)
+            .filter { it.id !in known && it.credential.none && !it.multiInstance }
+            .filter { type -> entries.none { it.typeId == type.id } }
+        return if (added.isEmpty()) this else copy(entries = entries + added.map { ProviderEntry(it.id) })
+    }
+
+    private companion object {
+        val APPENDING = setOf(ProviderTool.DICTIONARY, ProviderTool.SYNONYMS, ProviderTool.VOCAB_AUTOFILL)
+    }
 }
 
 /**

@@ -29,8 +29,7 @@ import com.wasimaster.wmkeyboard.core.settings.FlickDistanceRange
 import com.wasimaster.wmkeyboard.core.settings.MAX_STOP_AFTER_DECLINES
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
-import com.wasimaster.wmkeyboard.core.thesaurus.SynonymSource
-import com.wasimaster.wmkeyboard.core.thesaurus.SynonymSourceChoice
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.tools.CheatSheetLetter
 import com.wasimaster.wmkeyboard.core.tools.DefaultLeader
 import com.wasimaster.wmkeyboard.core.tools.DefaultToolLetters
@@ -1111,48 +1110,6 @@ internal fun TypingSuggestionsSettings(
             ) { scope.launch { repository.setWordMenuItems(it) } }
         }
         item {
-            // Where Synonyms looks (#321), in the order it asks: a source is
-            // only asked when those above it had nothing or were unreachable.
-            val sources = settings.watch { it.suggestionStrip.synonymSources }
-            val save: (List<SynonymSourceChoice>) -> Unit = { scope.launch { repository.setSynonymSources(it) } }
-            ControlSetting(
-                R.string.typing_synonym_sources_title,
-                subtitle = stringResource(R.string.typing_synonym_sources_subtitle),
-                info = stringResource(R.string.typing_synonym_sources_info),
-            ) {
-                val names = SynonymSource.entries.associateWith { stringResource(it.labelRes) }
-                ReorderableColumn(
-                    items = sources,
-                    label = { names[it.source].orEmpty() },
-                    onReorder = save,
-                    modifier = Modifier.padding(top = 8.dp),
-                    rowHeight = SynonymSourceRowHeight,
-                ) { choice ->
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            names[choice.source].orEmpty(),
-                            style = MaterialTheme.typography.bodyLarge,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            stringResource(choice.source.descriptionRes),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    Switch(
-                        checked = choice.enabled,
-                        onCheckedChange = { on ->
-                            save(sources.map { if (it.source == choice.source) it.copy(enabled = on) else it })
-                        },
-                    )
-                }
-            }
-        }
-        item {
             val weight = stringResource(R.string.typing_rank_control_weight_label)
             val offset = stringResource(R.string.typing_rank_control_offset_label)
             val both = stringResource(R.string.typing_rank_control_both_label)
@@ -1192,6 +1149,15 @@ internal fun TypingSuggestionsSettings(
             ) { scope.launch { repository.setDeleteEditsImportedLists(it) } }
         }
     }
+    // Where Synonyms looks (#321), in the order it asks: a provider is only
+    // asked when those above it had nothing or were unreachable.
+    ProvidersGroup(
+        repository,
+        settings,
+        ProviderTool.SYNONYMS,
+        titleRes = R.string.typing_synonym_sources_title,
+        info = stringResource(R.string.typing_synonym_sources_info),
+    )
 }
 
 /**
@@ -3583,4 +3549,3 @@ private fun SettingsGroupScope.glideIntentRows(
 }
 
 /** Two lines per source: its name and what it knows. */
-private val SynonymSourceRowHeight = 64.dp

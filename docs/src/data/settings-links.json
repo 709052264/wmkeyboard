@@ -761,6 +761,7 @@
   {"title":"Repeat a nudge","name":"tooldetail_vocab_cooldown_title","route":"tool/VOCABULARY","screens":["Tools","Vocabulary"],"screen":false},
   {"title":"Tapping a synonym or antonym","name":"tooldetail_vocab_related_title","route":"tool/VOCABULARY","screens":["Tools","Vocabulary"],"screen":false,"description":"Holding one always types it"},
   {"title":"Translation languages","name":"tooldetail_vocab_translations_title","route":"tool/VOCABULARY","screens":["Tools","Vocabulary"],"screen":false,"description":"Your keyboard languages"},
+  {"title":"Providers","name":"providers_group_title","route":"tool/VOCABULARY","screens":["Tools","Vocabulary"],"screen":false,"description":"A service, your own server, or files on the phone"},
   {"title":"Voice","name":"tooldetail_vocab_audio_source_title","route":"tool/VOCABULARY","screens":["Tools","Vocabulary"],"screen":false},
   {"title":"Accent","name":"tooldetail_vocab_accent_title","route":"tool/VOCABULARY","screens":["Tools","Vocabulary"],"screen":false,"description":"The pronunciation shown and spoken"},
   {"title":"Speech speed","name":"tooldetail_vocab_tts_rate_title","route":"tool/VOCABULARY","screens":["Tools","Vocabulary"],"screen":false},

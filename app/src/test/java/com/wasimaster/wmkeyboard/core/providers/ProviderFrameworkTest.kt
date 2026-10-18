@@ -252,6 +252,16 @@ class ProviderFrameworkTest {
         assertEquals(stored, s.providerChain(ProviderTool.GIF, play))
     }
 
+    @Test
+    fun `a word source a later build adds joins a saved list, a removed one stays out`() {
+        val known = ProviderTypes.serving(ProviderTool.SYNONYMS).map { it.id } - "similar_words"
+        val saved = ProviderChain(listOf(ProviderEntry("datamuse")), known = known)
+        val s = KeyboardSettings(providers = ProviderSettings(chains = mapOf(ProviderTool.SYNONYMS to saved)))
+        assertEquals(listOf("datamuse", "similar_words"), ids(s.providerChain(ProviderTool.SYNONYMS, play)))
+        val stamped = saved.stamped(ProviderTool.SYNONYMS)
+        assertEquals(listOf("datamuse"), ids(stamped.withNewTypes(ProviderTool.SYNONYMS)))
+    }
+
     // ---- resolution ----
 
     @Test
