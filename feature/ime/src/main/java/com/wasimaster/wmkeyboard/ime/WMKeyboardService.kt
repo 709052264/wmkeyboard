@@ -4515,10 +4515,13 @@ open class WMKeyboardService : InputMethodService() {
         // a panel marked "Keep this layer open" is open, and back still belongs
         // to the system while it is (issue #227).
         // A pinned keyboard takes Back too, with nothing open, so the hide it
-        // asks for is seen as the user's (#665); see [onPinnedBack].
+        // asks for is seen as the user's (#665); see [onPinnedBack]. So does
+        // one the floating button summoned (#756): Back left it to come
+        // straight back the same way.
         serviceScope.launch {
-            uiState
-                .map { backClosesLayer(it) || it.settings.persistentKeyboard }
+            combine(uiState, summonHolding) { state, summoned ->
+                backClosesLayer(state) || state.settings.persistentKeyboard || summoned
+            }
                 .distinctUntilChanged()
                 .collect { updatePanelBackCallback(it) }
         }
@@ -5860,6 +5863,18 @@ open class WMKeyboardService : InputMethodService() {
 
     /** The summon got the keyboard on screen; it now lasts until a hide. */
     private var summonHeld = false
+        set(value) {
+            field = value
+            summonHolding.value = value
+        }
+
+    /**
+     * [summonHeld] as a flow, for the Back callback: from Android 14 Back
+     * hides through a private overload, never the [requestHideSelf] override,
+     * so a summoned keyboard took the user's Back for an app's hide and
+     * [reshowPinned] put it back (#756). See [onPinnedBack].
+     */
+    private val summonHolding = MutableStateFlow(false)
 
     /** The app a held summon belongs to; switching to another one ends it. */
     private var summonPackage: String? = null
