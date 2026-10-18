@@ -1134,6 +1134,13 @@ open class WMKeyboardService : InputMethodService() {
      * listener does not record it as a new copy (see [restoreSystemClipOnUndo]).
      */
     private var restoringSystemClipText: String? = null
+    /**
+     * The last copy Remove trackers from copied links changed (#762): the
+     * copy as it came, and the clean text it became. Undo with the clean text
+     * just pasted in front of the caret swaps the original back, in case the
+     * cleaning broke the link. Replaced by the next copy, used once.
+     */
+    private var lastCleanedCopy: Pair<String, String>? = null
 
     /**
      * The character-by-character run that types a code (see
@@ -3144,6 +3151,8 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             null
         }
+        // Undo right after pasting the clean link puts this one back (#762).
+        lastCleanedCopy = cleaned?.let { ruled to it }
         val text = cleaned ?: ruled
         val tidied = text != copied
         if (tidied && text.isNotBlank() && (state.settings.clipboard.copyRulesToSystem || cleaned != null)) {
@@ -28168,6 +28177,7 @@ open class WMKeyboardService : InputMethodService() {
         vibrate()
         commitComposing(ic, autocorrect = false)
         lastGestureWord = null
+        if (!redo && unCleanPastedLink(ic)) return
         val settings = _uiState.value.settings
         val code = if (redo && settings.redoUsesCtrlY) KeyEvent.KEYCODE_Y else KeyEvent.KEYCODE_Z
         var meta = KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_LEFT_ON
@@ -28177,6 +28187,29 @@ open class WMKeyboardService : InputMethodService() {
         val time = SystemClock.uptimeMillis()
         ic.sendKeyEvent(KeyEvent(time, time, KeyEvent.ACTION_DOWN, code, 0, meta))
         ic.sendKeyEvent(KeyEvent(time, time, KeyEvent.ACTION_UP, code, 0, meta))
+    }
+
+    /**
+     * Undo on a link the copy listener cleaned (#762): when the clean text is
+     * what sits right before the caret, it is swapped for the link as copied,
+     * which goes back on the system clipboard too, so the next paste is the
+     * original as well. Anything else leaves Undo to the editor.
+     */
+    private fun unCleanPastedLink(ic: InputConnection): Boolean {
+        val (original, clean) = lastCleanedCopy ?: return false
+        if (!ic.getSelectedText(0).isNullOrEmpty()) return false
+        if (ic.getTextBeforeCursor(clean.length, 0)?.toString() != clean) return false
+        lastCleanedCopy = null
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(clean.length, 0)
+        ic.commitText(original, 1)
+        ic.endBatchEdit()
+        restoringSystemClipText = original
+        runCatching {
+            (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+                .setPrimaryClip(android.content.ClipData.newPlainText(null, original))
+        }
+        return true
     }
 
     /** Incognito tool: pause learning + clipboard capture with one tap. */
