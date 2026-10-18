@@ -355,7 +355,6 @@ import com.wasimaster.wmkeyboard.core.stickers.StickerAddResult
 import com.wasimaster.wmkeyboard.core.support.Support
 import com.wasimaster.wmkeyboard.core.stickers.StickerImage
 import com.wasimaster.wmkeyboard.core.stickers.StickerTriggerIndex
-import com.wasimaster.wmkeyboard.core.settings.GifSourceMode
 import com.wasimaster.wmkeyboard.core.settings.GlideApostropheKey
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_OUTCOMES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SHAPES_FILE
@@ -516,7 +515,11 @@ import com.wasimaster.wmkeyboard.core.tools.CurrencyClient
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
 import com.wasimaster.wmkeyboard.core.tools.QrCodeGen
 import com.wasimaster.wmkeyboard.core.tools.CalcEngine
+import com.wasimaster.wmkeyboard.core.tools.MediaProviders
+import com.wasimaster.wmkeyboard.core.tools.MediaTarget
 import com.wasimaster.wmkeyboard.core.tools.ToolApiKeys
+import com.wasimaster.wmkeyboard.core.providers.ChainMode
+import com.wasimaster.wmkeyboard.core.providers.ProviderRunner
 import com.wasimaster.wmkeyboard.core.tools.ToolPrefill
 import com.wasimaster.wmkeyboard.core.tools.TypingHeatmapMath
 import com.wasimaster.wmkeyboard.core.tools.TypingStatsMath
@@ -1135,6 +1138,13 @@ open class WMKeyboardService : InputMethodService() {
      * listener does not record it as a new copy (see [restoreSystemClipOnUndo]).
      */
     private var restoringSystemClipText: String? = null
+    /**
+     * The last copy Remove trackers from copied links changed (#762): the
+     * copy as it came, and the clean text it became. Undo with the clean text
+     * just pasted in front of the caret swaps the original back, in case the
+     * cleaning broke the link. Replaced by the next copy, used once.
+     */
+    private var lastCleanedCopy: Pair<String, String>? = null
 
     /**
      * The character-by-character run that types a code (see
@@ -1412,6 +1422,12 @@ open class WMKeyboardService : InputMethodService() {
 
     /** How the word [duetWord] builds is cased: the shift it started under. */
     private var duetShift = ShiftState.OFF
+
+    /**
+     * The other readings of the word [duetShownGeneration] put on screen, kept
+     * for the strip once that word is typed (#733).
+     */
+    private var duetShownAlternates: List<String> = emptyList()
 
     private var composing = StringBuilder()
         set(value) {
@@ -3144,6 +3160,8 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             null
         }
+        // Undo right after pasting the clean link puts this one back (#762).
+        lastCleanedCopy = cleaned?.let { ruled to it }
         val text = cleaned ?: ruled
         val tidied = text != copied
         if (tidied && text.isNotBlank() && (state.settings.clipboard.copyRulesToSystem || cleaned != null)) {
@@ -11987,8 +12005,10 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
         }
-        // A two-thumb word takes back its latest tap or swipe (#638).
-        if (composing.isNotEmpty() && duetBackspace(ic)) return
+        // A two-thumb word takes back its latest tap or swipe (#638) — even
+        // before its first reading lands, while the buffer is still empty and
+        // this press would otherwise delete the text in front of it (#732).
+        if (duetWord.active && duetBackspace(ic)) return
         if (composing.isNotEmpty()) {
             // A correction re-armed as the composing word and backspaced is
             // being deleted all the same; the buffer path just never reaches
@@ -23301,6 +23321,19 @@ open class WMKeyboardService : InputMethodService() {
                     else -> ShiftState.OFF
                 }
             } else {
+                // A new word. What Backspace or the strip would still take back
+                // belongs to the word before it, and goes as after a typed
+                // letter: left armed, a Backspace before this word's first
+                // reading lands would undo that word instead (#732).
+                lastGestureWord = null
+                lastGestureStroke = null
+                lastRevertible = null
+                clearSwapOffer()
+                pendingWordSpace = false
+                // The space in front of a glided word goes in front of this one
+                // too, so it is not glued to the text before it ("Hi,there")
+                // (#735). A word that starts with taps keeps typing rules.
+                currentInputConnection?.let { commitGestureLeadingSpace(it, state) }
                 duetWord.clear()
                 duetShift = shift
                 consumeShift()
@@ -23338,9 +23371,24 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * Backspace on a two-thumb word takes back its latest tap or swipe. When
      * no swipe is left, what remains is the letters as they were typed.
+     *
+     * With "Backspace undoes swipe" off (#455) the word stops being gestures
+     * instead, and the press takes one letter of it, as after a glide (#732):
+     * false, so the caller's buffer delete runs.
      */
     private fun duetBackspace(ic: InputConnection): Boolean {
         if (!duetWord.active) return false
+        if (!_uiState.value.settings.gesture.backspaceUndoesGlide) {
+            // Settled first, so a swipe still being read is not lost; dropped
+            // without the setter, which would take the word's text and its
+            // all-up pause with the gestures.
+            if (duetShownGeneration != duetGeneration) settleDuet(ic)
+            duetJob?.cancel()
+            duetGeneration++
+            duetWord.clear()
+            // Nothing could be shown at all: the gestures were the whole word.
+            return composing.isEmpty()
+        }
         duetWord.removeLast()
         if (duetWord.active) {
             redecodeDuet(commit = false)
@@ -23361,9 +23409,9 @@ open class WMKeyboardService : InputMethodService() {
      * Not at once: thumbs that take turns lift one before the other lands, so
      * a word typed that way — "movement", "probably", the second e of "heed"
      * off the other thumb — used to end at the first gap between them and come
-     * out in pieces (#674). And a word of taps alone ends here too, as a space
-     * would end it (#676); `T`, lift, `o` stays "To" because the `o` lands
-     * inside the pause.
+     * out in pieces (#674). And a word of taps alone ends here too, with the
+     * same automatic space (#676, #734); `T`, lift, `o` stays "To" because the
+     * `o` lands inside the pause.
      */
     private fun onAllThumbsUp() {
         val gesture = _uiState.value.settings.gesture
@@ -23383,15 +23431,43 @@ open class WMKeyboardService : InputMethodService() {
                 job.join()
             }
             if (!allUpArmed || composing.isEmpty()) return@launch
-            if (duetWord.active) {
-                val ic = currentInputConnection ?: return@launch
-                commitDuet(ic)
-            } else {
-                // Taps alone: the word ends the way a space tap would end it,
-                // correction and all.
-                onSpace()
-            }
+            val ic = currentInputConnection ?: return@launch
+            if (duetWord.active) commitDuet(ic) else endTappedWordAtPause(ic)
         }
+    }
+
+    /**
+     * Ends a word of taps alone at the all-thumbs-up pause (#676) the way a
+     * swiped word ends there: corrected as a Space would correct it, then
+     * followed by [commitGestureSpace]. That space is the keyboard's own, so a
+     * mode with automatic spaces off gets none, and a habitual Space press or a
+     * full stop straight afterwards takes it back. Not [onSpace]: that is the
+     * user's own press, which types a space in every mode and arms the
+     * double-space full stop (#734).
+     */
+    private fun endTappedWordAtPause(ic: InputConnection) {
+        val state = _uiState.value
+        pendingWordSpace = false
+        // The word and its space are one edit, as in [onSpace], which keeps a
+        // correction's backspace-to-revert window armed.
+        ic.beginBatchEdit()
+        val committed = commitComposing(
+            ic,
+            autocorrect = state.settings.correction.enabled,
+            fixApostrophes = state.settings.autoText.apostrophe,
+            expandPatterns = true,
+        )
+        if (swallowTerminatorAfterCommit) {
+            // An expansion left the caret at its {cursor} marker, inside the
+            // text it inserted: a space there would split the snippet.
+            swallowTerminatorAfterCommit = false
+        } else if (committed) {
+            commitGestureSpace(ic, state)
+            if (pendingWordSpace) recordStat { onSeparator(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
+        }
+        ic.endBatchEdit()
+        maybeAutoCapitalize()
+        refreshSuggestions()
     }
 
     /** The first thumb landed: a word waiting out its all-up pause carries on instead (#674). */
@@ -23400,12 +23476,40 @@ open class WMKeyboardService : InputMethodService() {
         allUpJob = null
     }
 
-    /** Types the two-thumb word on screen and its space, the way a glided word is. */
+    /**
+     * Types the two-thumb word on screen and its space, the way a glided word
+     * is — and under two-thumb typing leaves it the way a glided word is left
+     * (#733): Backspace straight afterwards takes it back with its space, and a
+     * pick from its alternates on the strip replaces it. No stroke rides with
+     * it, as with handwriting ink: undo has nothing to re-read, and the hand
+     * model learned nothing an undo should take back.
+     */
     private fun commitDuet(ic: InputConnection) {
         val state = _uiState.value
+        // Settled here rather than inside the commit, so the word and the
+        // alternates kept below are the ones about to be typed.
+        if (duetWord.active && duetShownGeneration != duetGeneration) settleDuet(ic)
+        val word = composing.toString()
+        val alternates = duetShownAlternates
         commitComposing(ic, autocorrect = false, fixApostrophes = state.settings.autoText.apostrophe)
+        val undoable = state.settings.gesture.twoThumbGlide && word.isNotEmpty()
+        if (undoable) {
+            // Armed before the space, as the glide commit arms it (#113).
+            lastGestureWord = word
+            lastGestureStroke = null
+            lastHandAdjustment = null
+            // Only while the strip shows this word's alternates may a pick
+            // there replace it; otherwise it offers the next word (#175).
+            stripReplacesGestureWord = alternates.isNotEmpty()
+        }
         commitGestureSpace(ic, state)
-        refreshSuggestions()
+        if (undoable) armRevertGuard()
+        if (undoable && alternates.isNotEmpty()) {
+            glideReadings.remember(word, alternates)
+            _uiState.update { it.copy(suggestions = alternates) }
+        } else {
+            refreshSuggestions()
+        }
     }
 
     /**
@@ -23517,6 +23621,7 @@ open class WMKeyboardService : InputMethodService() {
             keepDuet = false
         }
         duetShownGeneration = generation
+        duetShownAlternates = shown.alternates
         composingCaseTrusted = duetShift == ShiftState.OFF
         updateComposingText(ic)
     }
@@ -28240,6 +28345,7 @@ open class WMKeyboardService : InputMethodService() {
         vibrate()
         commitComposing(ic, autocorrect = false)
         lastGestureWord = null
+        if (!redo && unCleanPastedLink(ic)) return
         val settings = _uiState.value.settings
         val code = if (redo && settings.redoUsesCtrlY) KeyEvent.KEYCODE_Y else KeyEvent.KEYCODE_Z
         var meta = KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_LEFT_ON
@@ -28249,6 +28355,29 @@ open class WMKeyboardService : InputMethodService() {
         val time = SystemClock.uptimeMillis()
         ic.sendKeyEvent(KeyEvent(time, time, KeyEvent.ACTION_DOWN, code, 0, meta))
         ic.sendKeyEvent(KeyEvent(time, time, KeyEvent.ACTION_UP, code, 0, meta))
+    }
+
+    /**
+     * Undo on a link the copy listener cleaned (#762): when the clean text is
+     * what sits right before the caret, it is swapped for the link as copied,
+     * which goes back on the system clipboard too, so the next paste is the
+     * original as well. Anything else leaves Undo to the editor.
+     */
+    private fun unCleanPastedLink(ic: InputConnection): Boolean {
+        val (original, clean) = lastCleanedCopy ?: return false
+        if (!ic.getSelectedText(0).isNullOrEmpty()) return false
+        if (ic.getTextBeforeCursor(clean.length, 0)?.toString() != clean) return false
+        lastCleanedCopy = null
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(clean.length, 0)
+        ic.commitText(original, 1)
+        ic.endBatchEdit()
+        restoringSystemClipText = original
+        runCatching {
+            (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+                .setPrimaryClip(android.content.ClipData.newPlainText(null, original))
+        }
+        return true
     }
 
     /** Incognito tool: pause learning + clipboard capture with one tap. */
@@ -28989,9 +29118,21 @@ open class WMKeyboardService : InputMethodService() {
             base.keyboardModes, currentPackage, currentModeFields, manualModeId,
             currentFieldHint,
         )
+        val settings = base.applyMode(mode)
+        // A mode that turns the swipes or two-thumb typing off ends an open
+        // two-thumb word as it stands, under the settings it was begun with:
+        // left open, nothing under the new mode would ever end it (#753).
+        if (duetWord.active && (!settings.gestureTyping || !settings.gesture.twoThumbGlide)) {
+            currentInputConnection?.let { ic ->
+                allUpJob?.cancel()
+                allUpJob = null
+                settleDuet(ic)
+                commitDuet(ic)
+            }
+        }
         _uiState.update {
             it.copy(
-                settings = base.applyMode(mode),
+                settings = settings,
                 activeModeId = mode?.id,
                 // The mode brings its own default set; drop the session pick.
                 activeSymbolSetId = null,
@@ -33468,18 +33609,19 @@ open class WMKeyboardService : InputMethodService() {
                 return
             }
         }
-        // Stickers add the user's own packs, which need no key — so only the
-        // GIF tool can end up with nothing to ask.
-        val sources = if (sticker) ToolApiKeys.stickerSources(settings) else ToolApiKeys.gifSources(settings)
+        // The user's list for the tool, rows that are off or cannot be asked
+        // left out. Stickers start with the user's own packs, which need no
+        // key, so it is usually the GIF tool that can end up with nothing.
+        val sources = MediaProviders.targets(settings, sticker)
         if (sources.isEmpty()) {
             setUi(MediaUi.NeedKey)
             return
         }
-        val tabs = settings.gif.sourceMode == GifSourceMode.TABS
-        val targets = GifSources.targets(sources, state.mediaSource, tabs)
-        if (tabs) {
-            val selected = targets.first()
-            if (selected != state.mediaSource) _uiState.update { it.copy(mediaSource = selected) }
+        val mode = MediaProviders.mode(settings, sticker)
+        val targets = GifSources.targets(sources, state.mediaProvider, mode)
+        if (mode == ChainMode.TABS) {
+            val selected = targets.first().key
+            if (selected != state.mediaProvider) _uiState.update { it.copy(mediaProvider = selected) }
         }
         // Data saving. Only the online providers count: the user's own sticker
         // packs and imported GIF packs are files on disk, and a panel that
@@ -33496,11 +33638,32 @@ open class WMKeyboardService : InputMethodService() {
         setUi(MediaUi.Loading)
         val panel = state.panel
         mediaFetchJob = serviceScope.launch {
-            val results = withContext(Dispatchers.IO) {
-                targets.map { source ->
-                    async { runCatching { fetchGifs(source, query, sticker, settings) } }
-                }.awaitAll()
+            // One at a time: the first provider with something to show is the
+            // grid, and the next is asked only when it fails or has nothing.
+            if (mode == ChainMode.FALLBACK && targets.size > 1) {
+                val outcome = withContext(Dispatchers.IO) {
+                    ProviderRunner.fallback(
+                        targets,
+                        key = { it.key },
+                        isEmpty = { items: List<GifItem> -> items.isEmpty() },
+                    ) { target -> fetchGifs(target, query, sticker, settings) }
+                }
+                if (_uiState.value.panel != panel) return@launch
+                setUi(
+                    when (outcome) {
+                        is ProviderRunner.Outcome.Found -> MediaUi.Ready(outcome.value.take(settings.gif.resultLimit), query)
+                        ProviderRunner.Outcome.NotFound -> MediaUi.Ready(emptyList(), query)
+                        is ProviderRunner.Outcome.Failed -> MediaUi.Error(
+                            outcome.error?.let { ToolHttp.friendlyMessage(this@WMKeyboardService, it) }
+                                ?: getString(R.string.ime_service_media_fetch_error),
+                        )
+                    },
+                )
+                return@launch
             }
+            val results = withContext(Dispatchers.IO) {
+                ProviderRunner.all(targets, key = { it.key }) { target -> fetchGifs(target, query, sticker, settings) }
+            }.map { it.second }
             if (_uiState.value.panel != panel) return@launch
             val successes = results.mapNotNull { it.getOrNull() }
             setUi(
@@ -33528,17 +33691,17 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Blocking provider dispatch; call on an IO dispatcher. */
     private fun fetchGifs(
-        source: GifSource,
+        target: MediaTarget,
         query: String,
         sticker: Boolean,
         settings: com.wasimaster.wmkeyboard.core.settings.KeyboardSettings,
-    ): List<GifItem> = when (source) {
+    ): List<GifItem> = when (target.source) {
         GifSource.KLIPY -> KlipyClient.search(
-            query, ToolApiKeys.klipy(settings), sticker, settings.gif.contentFilter,
+            query, target.apiKey, sticker, settings.gif.contentFilter,
             limit = settings.gif.resultLimit,
         )
         GifSource.GIPHY -> GiphyClient.search(
-            query, ToolApiKeys.giphy(settings), sticker, settings.gif.contentFilter,
+            query, target.apiKey, sticker, settings.gif.contentFilter,
             limit = settings.gif.resultLimit,
         )
         GifSource.LOCAL ->
@@ -33553,19 +33716,20 @@ open class WMKeyboardService : InputMethodService() {
             else CommonsClient.searchGifs(
                 query,
                 limit = settings.gif.resultLimit,
-                endpoint = settings.selfHosted.commonsUrl,
+                // Blank is Wikimedia Commons itself; a row of its own is another wiki.
+                endpoint = target.url,
             )
-        // GIF-only: never offered on the sticker panel (see ToolApiKeys.stickerSources).
+        // GIF-only: the sticker list never offers it.
         GifSource.GIFCITIES ->
             if (sticker) emptyList()
             else com.wasimaster.wmkeyboard.core.tools.GifCitiesClient.search(query, limit = settings.gif.resultLimit)
     }
 
-    /** Provider chip on the GIF/sticker panel (tabs mode). */
-    fun onGifSourceSelect(source: GifSource) {
+    /** Provider chip on the GIF/sticker panel; [key] is the provider row's. */
+    fun onGifSourceSelect(key: String) {
         vibrate()
-        if (_uiState.value.mediaSource == source) return
-        _uiState.update { it.copy(mediaSource = source, mediaAction = null, stickerPackId = null) }
+        if (_uiState.value.mediaProvider == key) return
+        _uiState.update { it.copy(mediaProvider = key, mediaAction = null, stickerPackId = null) }
         refreshMedia(_uiState.value.mediaQuery.trim())
         // Categories belong to a provider, so the row follows the chip.
         refreshMediaCategories()
@@ -33588,14 +33752,13 @@ open class WMKeyboardService : InputMethodService() {
         val sticker = state.panel == PanelMode.STICKER
         if (!sticker && state.panel != PanelMode.GIF) return
         val settings = state.settings
-        val sources =
-            if (sticker) ToolApiKeys.stickerSources(settings) else ToolApiKeys.gifSources(settings)
-        val tabs = settings.gif.sourceMode == GifSourceMode.TABS
+        val sources = MediaProviders.targets(settings, sticker)
+        val mode = MediaProviders.mode(settings, sticker)
         // One provider, not every target: two taxonomies interleaved are a
         // row of near-duplicates for twice the requests. Local packs have no
         // categories at all — the pack chips are their equivalent.
-        val target = GifSources.targets(sources, state.mediaSource, tabs)
-            .firstOrNull { it != GifSource.LOCAL }
+        val target = GifSources.targets(sources, state.mediaProvider, mode)
+            .firstOrNull { it.source != GifSource.LOCAL }
         if (target == null) {
             _uiState.update { it.copy(mediaCategories = emptyList(), mediaCategory = null) }
             return
@@ -33606,18 +33769,18 @@ open class WMKeyboardService : InputMethodService() {
         mediaCategoryJob = serviceScope.launch {
             // Imported packs change under the cache's day-long lifetime, and
             // reading their categories costs a query, not a request.
-            val cached = if (target == GifSource.OFFLINE) {
+            val cached = if (target.source == GifSource.OFFLINE) {
                 null
             } else {
-                MediaCategoryCache.get(target, sticker, System.currentTimeMillis())
+                MediaCategoryCache.get(target.source, sticker, System.currentTimeMillis())
             }
             val fetched = cached ?: withContext(Dispatchers.IO) {
-                runCatching { fetchCategories(target, sticker, settings) }
+                runCatching { fetchCategories(target, sticker) }
             }.onSuccess {
                 // Cache the empty answer too: a provider with no categories
                 // endpoint is then asked once a day, not once per open. Only
                 // on success — a cancelled fetch must not poison the entry.
-                MediaCategoryCache.put(target, sticker, it, System.currentTimeMillis())
+                MediaCategoryCache.put(target.source, sticker, it, System.currentTimeMillis())
             }.getOrNull()
             if (_uiState.value.panel != panel) return@launch
             _uiState.update {
@@ -33628,12 +33791,11 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Blocking provider dispatch; call on an IO dispatcher. */
     private fun fetchCategories(
-        source: GifSource,
+        target: MediaTarget,
         sticker: Boolean,
-        settings: com.wasimaster.wmkeyboard.core.settings.KeyboardSettings,
-    ): List<MediaCategory> = when (source) {
-        GifSource.KLIPY -> KlipyClient.categories(ToolApiKeys.klipy(settings), sticker)
-        GifSource.GIPHY -> GiphyClient.categories(ToolApiKeys.giphy(settings), sticker)
+    ): List<MediaCategory> = when (target.source) {
+        GifSource.KLIPY -> KlipyClient.categories(target.apiKey, sticker)
+        GifSource.GIPHY -> GiphyClient.categories(target.apiKey, sticker)
         GifSource.LOCAL -> emptyList()
         // No category endpoint: Commons is a search index, not a curated feed.
         GifSource.COMMONS -> emptyList()

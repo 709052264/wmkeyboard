@@ -1603,11 +1603,9 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_media_hide_header_title, R.string.tooldetail_media_hide_header_subtitle),
     toolEntry(ToolbarTool.GIF, R.string.tooldetail_gif_recent_title, R.string.tooldetail_gif_recent_subtitle),
     toolEntry(ToolbarTool.GIF, R.string.tooldetail_gif_favourites_offline_title, R.string.tooldetail_gif_favourites_offline_subtitle),
-    toolEntry(ToolbarTool.GIF, R.string.tooldetail_media_klipy_label, R.string.tooldetail_media_klipy_hint),
-    toolEntry(ToolbarTool.STICKER, R.string.tooldetail_media_klipy_label, R.string.tooldetail_media_klipy_hint),
-    toolEntry(ToolbarTool.GIF, R.string.tooldetail_media_giphy_label, R.string.tooldetail_media_giphy_hint),
-    toolEntry(ToolbarTool.STICKER, R.string.tooldetail_media_giphy_label, R.string.tooldetail_media_giphy_hint),
-    toolEntry(ToolbarTool.GIF, R.string.tooldetail_media_gifcities_title, R.string.tooldetail_media_gifcities_subtitle),
+    // KLIPY, GIPHY, Commons, GifCities and the packs are rows of the provider list now.
+    toolEntry(ToolbarTool.GIF, R.string.providers_group_title, R.string.providers_add_subtitle),
+    toolEntry(ToolbarTool.STICKER, R.string.providers_group_title, R.string.providers_add_subtitle),
     // Each send mode is indexed under the one tool whose panel it governs; the
     // other page no longer draws it.
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_media_sticker_send_title, R.string.tooldetail_media_sticker_send_subtitle),

@@ -49,6 +49,8 @@ Every override here defaults to **Inherit** (unset, so the mode falls through to
 | Automatic capitals | Inherit / On / Off |
 | Suggestions | Inherit / On / Off |
 | Automatic spaces | Inherit / On / Off |
+| Glide typing | Inherit / On / Off |
+| Two-thumb typing | Inherit / On / Off |
 | Layout | Inherit, or any layout you currently have switched on |
 | Theme | Inherit, or any built-in or custom theme |
 | Custom pinned tools | Off, or a toolbar tool list of its own |
@@ -59,9 +61,11 @@ Every override here defaults to **Inherit** (unset, so the mode falls through to
   <Shot id="reference/settings/mode-editor-custom-tools" alt="A mode's Custom pinned tools turned on, with its own tool chips and reorder option." />
 </PhoneFrame>
 
-**Autocorrect**, **Automatic capitals**, **Suggestions** and **Automatic spaces** are the four typing overrides, and they're why a Coding mode is worth having: a mode that only redressed the keyboard would still correct your identifiers into English words.
+**Autocorrect**, **Automatic capitals**, **Suggestions**, **Automatic spaces**, **Glide typing** and **Two-thumb typing** are the six typing overrides, and they're why a Coding mode is worth having: a mode that only redressed the keyboard would still correct your identifiers into English words.
 
 **Automatic spaces** is one switch over every space the keyboard puts in that you didn't press for: the space [after punctuation](/reference/settings/typing/), the one [after a suggestion](/reference/settings/typing/) you pick from the strip, and the ones before and [after a glided word](/typing/glide-typing/) (the one in front has no switch of its own; only a mode turns it off). Off means every space in the field is one you typed, which is what you want when you're renaming a file extension, typing a command, or filling a structured field. On turns all three on, including the space after punctuation, which is off by default everywhere else.
+
+**Glide typing** off keeps a drifting tap from starting a swipe, and **Two-thumb typing** off stops a pause from ending a tapped word with a space. Turn glide, autocorrect, suggestions and automatic spaces off together and you have a peck mode, where every tap types exactly its key. Switching to such a mode in the middle of a two-thumb word types that word as it stands first.
 
 **Layout** pins the mode to one layout while it's on, whichever layout you were typing on before. Only layouts you've switched on are offered, and the spacebar swipe order is left alone. Switch that layout off later and the mode falls back to Inherit, since the keyboard won't pin itself to something it can't draw.
 
@@ -166,6 +170,8 @@ Tool order can differ per app: whichever mode an app resolves to decides the arr
 | Automatic capitals | Inherit, on every built-in too |
 | Suggestions | Inherit, on every built-in too |
 | Automatic spaces | Inherit, on every built-in too |
+| Glide typing | Inherit, on every built-in too |
+| Two-thumb typing | Inherit, on every built-in too |
 | Layout | Inherit, on every built-in too |
 | Theme | Inherit, on every built-in too |
 | Custom pinned tools | Off, except Passwords/Chat/Writing |

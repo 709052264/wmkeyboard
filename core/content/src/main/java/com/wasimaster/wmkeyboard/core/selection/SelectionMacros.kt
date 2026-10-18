@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.content.R
 import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
 import com.wasimaster.wmkeyboard.core.util.lowercaseKeepingLength
 import com.wasimaster.wmkeyboard.core.util.uppercaseKeepingLength
+import java.net.URLDecoder
 
 /**
  * What a selection turned out to be, which decides the macros offered for it.
@@ -66,6 +67,12 @@ enum class SelectionMacro {
     LINES_DEDUPE,
     LINES_NUMBER,
     LINES_BULLET,
+    /** A box in front of every line, a to-do list (#679); a toggle like the two above. */
+    LINES_CHECKBOX,
+    /** The lines the selection covers swap places with the line above them (#679). */
+    LINES_UP,
+    /** The same, with the line below. */
+    LINES_DOWN,
     SEARCH,
     TRANSLATE,
     /** Correct the selection with the grammar checker, in place. */
@@ -159,6 +166,9 @@ enum class SelectionMacro {
             LINES_DEDUPE -> R.string.core_content_selection_macro_lines_dedupe
             LINES_NUMBER -> R.string.core_content_selection_macro_lines_number
             LINES_BULLET -> R.string.core_content_selection_macro_lines_bullet
+            LINES_CHECKBOX -> R.string.core_content_selection_macro_lines_checkbox
+            LINES_UP -> R.string.core_content_selection_macro_lines_up
+            LINES_DOWN -> R.string.core_content_selection_macro_lines_down
             SEARCH -> R.string.core_content_selection_macro_search
             TRANSLATE -> R.string.core_content_selection_macro_translate
             GRAMMAR_FIX -> R.string.core_content_selection_macro_grammar
@@ -204,7 +214,9 @@ enum class SelectionMacro {
     val category: MacroCategory
         get() = when (this) {
             UNDO, SELECT_ALL, COPY, CUT, PASTE, DELETE, FIND, REPLACE, SAVE_NOTE -> MacroCategory.EDITING
-            LINES_SORT, LINES_DEDUPE, LINES_NUMBER, LINES_BULLET -> MacroCategory.LINES
+            LINES_SORT, LINES_DEDUPE, LINES_NUMBER, LINES_BULLET,
+            LINES_CHECKBOX, LINES_UP, LINES_DOWN,
+            -> MacroCategory.LINES
             FORMAT, FANCY, CHAT_BOLD, CHAT_ITALIC, CHAT_STRIKE, CHAT_MONO,
             CASE_LOWER, CASE_TITLE, CASE_UPPER, CASE_SENTENCE,
             CASE_CAMEL, CASE_SNAKE, CASE_KEBAB, CASE_CONSTANT -> MacroCategory.FORMAT
@@ -337,10 +349,167 @@ object SelectionMacros {
         "_openstat", "vero_id", "vero_conv", "oly_enc_id", "oly_anon_id", "spm",
         "_hsenc", "_hsmi", "mkt_tok", "srsltid", "epik", "rb_clickid", "s_cid", "sc_cid",
         "pk_campaign", "pk_kwd", "pk_source", "pk_medium", "pk_content",
+        "_ga", "_gl", "gad_source", "gad_campaignid", "gclsrc", "irclickid", "irgwc", "_kx",
+        "ml_subscriber", "ml_subscriber_hash", "ss_source", "ss_campaign_id", "wickedid",
+        "trk_contact", "trk_msg", "trk_module", "trk_sid", "__hssc", "__hstc", "__hsfp",
+        "hsctatracking", "_branch_match_id", "_branch_referrer", "li_fat_id", "s_kwcid", "ef_id",
+        "cjevent", "cjdata", "_bta_tid", "_bta_c", "sms_click", "sms_source", "sms_uph", "rtd_cid",
+        "ocid", "__s",
     )
 
-    /** Google Analytics, Matomo and HubSpot ad campaigns: a family each. */
-    private val TRACKING_PREFIXES = listOf("utm_", "mtm_", "hsa_")
+    /** Google Analytics, Matomo, Piwik, HubSpot and Oracle campaigns: a family each. */
+    private val TRACKING_PREFIXES = listOf("utm_", "mtm_", "matomo_", "pk_", "hsa_", "oft_")
+
+    /**
+     * Trackers one site adds, taken only on that site (#762). Names that mean
+     * something elsewhere live here and not in [TRACKING_PARAMS]: `feature`,
+     * `t` and `source` are page settings on plenty of sites, and tracking
+     * only on YouTube, X and Medium.
+     */
+    private class SiteRule(
+        val domains: List<String>,
+        val params: Set<String> = emptySet(),
+        val prefixes: List<String> = emptyList(),
+        /** Only links under this path, for a host whose other pages use the same names. */
+        val path: String = "/",
+        /** A tracking segment at the end of the path, taken off with the parameters. */
+        val pathJunk: Regex? = null,
+    ) {
+        fun matches(host: String, linkPath: String): Boolean =
+            domains.any { hostMatches(host, it) } && linkPath.startsWith(path)
+
+        fun takes(name: String): Boolean = name in params || prefixes.any { name.startsWith(it) }
+
+        fun cleanPath(url: String): String {
+            val junk = pathJunk ?: return url
+            val authority = url.indexOf("://").let { if (it < 0) 0 else it + 3 }
+            val end = url.indexOfAny(charArrayOf('?', '#'), authority).let { if (it < 0) url.length else it }
+            val start = url.indexOf('/', authority)
+            if (start < 0 || start >= end) return url
+            val path = url.substring(start, end)
+            val cleaned = junk.replace(path, "")
+            return if (cleaned == path) url else url.substring(0, start) + cleaned + url.substring(end)
+        }
+    }
+
+    private val SITE_RULES = listOf(
+        SiteRule(
+            listOf("amazon.", "amzn."),
+            params = setOf(
+                "content-id", "crid", "sprefix", "dib", "dib_tag", "qid", "sr", "ref_", "_encoding",
+                "linkcode", "linkid", "camp", "creative", "creativeasin", "ascsubtag", "spla", "spia",
+                "social_share", "starsleft", "skipredirect", "smid_share",
+            ),
+            prefixes = listOf("pd_rd_", "pf_rd_"),
+            pathJunk = Regex("/ref=[^/]*$"),
+        ),
+        SiteRule(
+            listOf("youtube.com", "youtu.be"),
+            params = setOf("feature", "pp", "embeds_referring_euri", "embeds_referring_origin", "source_ve_path"),
+        ),
+        SiteRule(listOf("twitter.com", "x.com"), params = setOf("s", "t", "cn", "ref_src", "ref_url")),
+        SiteRule(listOf("instagram.com"), params = setOf("igsh", "igshid", "ig_rid")),
+        SiteRule(listOf("threads.net", "threads.com"), params = setOf("xmt", "slof")),
+        SiteRule(
+            listOf("facebook.com", "fb.com", "fb.watch", "messenger.com"),
+            params = setOf("mibextid", "rdid", "share_url", "sfnsn", "extid", "paipv", "eav", "comment_tracking"),
+            prefixes = listOf("__tn__", "__cft__", "__xts__", "__eep__"),
+        ),
+        SiteRule(
+            listOf("tiktok.com"),
+            params = setOf(
+                "_r", "_t", "is_from_webapp", "sender_device", "sender_web_id", "share_app_id",
+                "share_link_id", "share_item_id", "share_author_id", "tt_from", "u_code", "timestamp",
+                "user_id", "social_sharing", "checksum", "sec_user_id", "enter_from", "is_copy_url",
+                "web_id", "refer",
+            ),
+        ),
+        SiteRule(
+            listOf("reddit.com", "redd.it"),
+            params = setOf("share_id", "rdt", "\$deep_link", "\$3p", "correlation_id", "ref_campaign", "ref_source"),
+        ),
+        SiteRule(listOf("spotify.com"), params = setOf("si", "nd", "pi", "dl_branch")),
+        SiteRule(
+            listOf("linkedin.com"),
+            params = setOf(
+                "trk", "trkinfo", "trackingid", "lipi", "midtoken", "midsig", "eid", "otptoken",
+                "refid", "originalsubdomain", "rcm", "lici",
+            ),
+        ),
+        SiteRule(
+            listOf("aliexpress."),
+            params = setOf(
+                "scm", "pvid", "algo_pvid", "algo_exp_id", "btsid", "ws_ab_test", "terminal_id",
+                "gatewayadapt", "_randl_currency", "_randl_shipto", "gps-id", "pdp_npi", "pdp_ext_f",
+                "utparam", "sk", "af", "cv", "cn", "dp", "src", "sourcetype",
+            ),
+            prefixes = listOf("aff_"),
+        ),
+        SiteRule(
+            listOf("ebay."),
+            params = setOf(
+                "_trkparms", "_trksid", "amdata", "hash", "mkcid", "mkevt", "mkrid", "campid", "toolid",
+                "customid", "_from", "ssspo", "sssrc", "ssuid", "widget_ver", "itmmeta",
+            ),
+        ),
+        SiteRule(
+            listOf("etsy.com"),
+            params = setOf(
+                "click_key", "click_sum", "ref", "pro", "frs", "sts", "organic_search_click", "plkey",
+                "external", "sr_prefetch", "pf_from", "sca", "bes", "content_source", "pop",
+            ),
+            prefixes = listOf("ga_"),
+        ),
+        SiteRule(listOf("medium.com"), params = setOf("source")),
+        SiteRule(listOf("pinterest.", "pin.it"), params = setOf("invite_code", "sender", "sfo")),
+        SiteRule(
+            listOf("google."),
+            params = setOf(
+                "ved", "ei", "sca_esv", "sca_upv", "oq", "gs_lcrp", "gs_lp", "gs_lcp", "gs_ssp", "sourceid",
+                "sxsrf", "iflsig", "sclient", "rlz", "bih", "biw", "dpr", "uact", "aqs", "client", "stick",
+                "sei", "mstk", "csui", "prmd", "fbs", "vet", "sa", "source", "ie",
+            ),
+            path = "/search",
+        ),
+        SiteRule(
+            listOf("bing.com"),
+            params = setOf("form", "cvid", "pq", "sk", "sc", "qs", "sp", "ghc", "lq", "ghsh", "ghacc", "ghpl"),
+            path = "/search",
+        ),
+    )
+
+    /**
+     * Links that only send the browser on somewhere else, and the parameter
+     * that holds where (#762). Unwrapped only when that parameter is a whole
+     * `http(s)` link, so a wrapper that encodes its target is left alone.
+     */
+    private class Redirect(val domain: String, val path: String, val params: Set<String>)
+
+    private val REDIRECTS = listOf(
+        Redirect("google.", "/url", setOf("q", "url")),
+        Redirect("l.facebook.com", "/", setOf("u")),
+        Redirect("lm.facebook.com", "/", setOf("u")),
+        Redirect("l.messenger.com", "/", setOf("u")),
+        Redirect("l.instagram.com", "/", setOf("u")),
+        Redirect("l.threads.net", "/", setOf("u")),
+        Redirect("l.threads.com", "/", setOf("u")),
+        Redirect("youtube.com", "/redirect", setOf("q")),
+        Redirect("out.reddit.com", "/", setOf("url")),
+        Redirect("steamcommunity.com", "/linkfilter", setOf("url", "u")),
+        Redirect("safelinks.protection.outlook.com", "/", setOf("url")),
+        Redirect("slack-redir.net", "/link", setOf("url")),
+        Redirect("disq.us", "/url", setOf("url")),
+        Redirect("vk.com", "/away.php", setOf("to")),
+        Redirect("t.umblr.com", "/redirect", setOf("z")),
+        Redirect("duckduckgo.com", "/l/", setOf("uddg")),
+        Redirect("linkedin.com", "/redir/redirect", setOf("url")),
+        Redirect("click.linksynergy.com", "/", setOf("murl")),
+        Redirect("go.redirectingat.com", "/", setOf("url")),
+        Redirect("exit.sc", "/", setOf("url")),
+    )
+
+    /** Wrappers wrapped in wrappers, unwrapped this many deep at most. */
+    private const val MAX_REDIRECT_DEPTH = 3
 
     /** The four fixed cases: never configurable, always inside the Format ladder. */
     val fixedCaseMacros: List<SelectionMacro> = listOf(
@@ -393,6 +562,7 @@ object SelectionMacros {
         SelectionMacro.SAVE_NOTE,
         SelectionMacro.FORMAT, SelectionMacro.FIND, SelectionMacro.REPLACE,
         SelectionMacro.LINES_SORT, SelectionMacro.LINES_DEDUPE, SelectionMacro.LINES_NUMBER, SelectionMacro.LINES_BULLET,
+        SelectionMacro.LINES_CHECKBOX, SelectionMacro.LINES_UP, SelectionMacro.LINES_DOWN,
         SelectionMacro.GRAMMAR_FIX, SelectionMacro.DEEPL_WRITE, SelectionMacro.TRANSLATE, SelectionMacro.AI,
         SelectionMacro.TO_BANGLA, SelectionMacro.TO_BANGLISH,
         SelectionMacro.TO_HINDI, SelectionMacro.TO_HINGLISH,
@@ -537,7 +707,12 @@ object SelectionMacros {
         SelectionMacro.PASTE -> gates.clipboardHasText
         SelectionMacro.UNDO -> gates.undoAvailable
         SelectionMacro.LINES_SORT, SelectionMacro.LINES_DEDUPE,
-        SelectionMacro.LINES_NUMBER, SelectionMacro.LINES_BULLET -> gates.content.multiLine
+        SelectionMacro.LINES_NUMBER, SelectionMacro.LINES_BULLET,
+        SelectionMacro.LINES_CHECKBOX,
+        -> gates.content.multiLine
+        // One line moves as well as several; there is nowhere to move the
+        // whole text to.
+        SelectionMacro.LINES_UP, SelectionMacro.LINES_DOWN -> !gates.wholeField
         SelectionMacro.GRAMMAR_FIX -> gates.grammarAvailable
         SelectionMacro.DEEPL_WRITE -> gates.deeplWriteAvailable
         SelectionMacro.AI -> gates.aiAvailable
@@ -641,42 +816,112 @@ object SelectionMacros {
     /**
      * [url] without its tracking parameters, or null when it carries none.
      *
-     * Only the query is touched. Rewriting a path, a fragment or a host is how
-     * a "clean this link" feature quietly breaks the link, and the parameters
-     * are the part that is provably not about where the page is. Nor is a
-     * scheme added: the link keeps the shape it was written in.
+     * Three things, all of them provably not about which page it is (#762):
+     * a redirect wrapper (Google's `/url?q=`, Facebook's `l.php?u=`, an
+     * Outlook safe link) is unwrapped to the link inside it; the query loses
+     * the global trackers plus the ones a known site adds ([SITE_RULES]); and
+     * on the few sites that keep their tracking in the path (Amazon's
+     * `/ref=…`) that segment goes. Anything else in a path, the fragment and
+     * the host stay, because rewriting those is how a "clean this link"
+     * feature quietly breaks the link. Nor is a scheme added: the link keeps
+     * the shape it was written in.
      */
     fun stripTrackers(url: String, extra: Collection<String> = emptyList()): String? {
         val trimmed = url.trim()
-        val queryStart = trimmed.indexOf('?')
+        var link = trimmed
+        // A wrapper can wrap another (an Outlook safe link round a Google
+        // one), so unwrap until the link stands on its own, a few times at most.
+        for (i in 0 until MAX_REDIRECT_DEPTH) link = unwrapRedirect(link) ?: break
+        val host = hostOf(link)
+        val path = pathOf(link)
+        val sites = SITE_RULES.filter { it.matches(host, path) }
+        link = stripQuery(link, extra, sites) ?: link
+        for (site in sites) link = site.cleanPath(link)
+        return link.takeIf { it != trimmed }
+    }
+
+    /** [url] without the query parameters [isTracker] names, or null when there are none. */
+    private fun stripQuery(url: String, extra: Collection<String>, sites: List<SiteRule>): String? {
+        val queryStart = url.indexOf('?')
         if (queryStart < 0) return null
-        val fragmentStart = trimmed.indexOf('#', queryStart)
+        // A `?` inside the fragment is not a query.
+        val hash = url.indexOf('#')
+        if (hash in 0 until queryStart) return null
+        val fragmentStart = url.indexOf('#', queryStart)
         val query = if (fragmentStart < 0) {
-            trimmed.substring(queryStart + 1)
+            url.substring(queryStart + 1)
         } else {
-            trimmed.substring(queryStart + 1, fragmentStart)
+            url.substring(queryStart + 1, fragmentStart)
         }
-        val fragment = if (fragmentStart < 0) "" else trimmed.substring(fragmentStart)
+        val fragment = if (fragmentStart < 0) "" else url.substring(fragmentStart)
         val parts = query.split('&')
         val kept = parts.filter { part ->
             val name = part.substringBefore('=').lowercase()
-            name.isNotEmpty() && !isTracker(name, extra)
+            name.isNotEmpty() && !isTracker(name, extra, sites)
         }
         // Empty pieces (`a=1&&b=2`, a trailing `?`) go too, but on their own
         // they are not trackers and do not make a link worth offering to clean.
         if (kept.size == parts.count { it.substringBefore('=').isNotEmpty() }) return null
-        val base = trimmed.substring(0, queryStart)
+        val base = url.substring(0, queryStart)
         return if (kept.isEmpty()) base + fragment else "$base?${kept.joinToString("&")}$fragment"
     }
 
     /**
-     * Whether the query parameter [name] (lower case) is a tracker: one of the
-     * built-in names or families, or one of the user's own [extra] names
-     * (#665). An extra name ending in `*` is a family: `abc_*` takes every
-     * parameter starting `abc_`.
+     * The link [url] wraps, when it is one of the [REDIRECTS] and the wrapped
+     * value really is an `http(s)` link; null otherwise.
      */
-    private fun isTracker(name: String, extra: Collection<String>): Boolean {
+    private fun unwrapRedirect(url: String): String? {
+        val host = hostOf(url)
+        val path = pathOf(url)
+        val rule = REDIRECTS.firstOrNull { hostMatches(host, it.domain) && path.startsWith(it.path) } ?: return null
+        val query = url.substringAfter('?', "").substringBefore('#')
+        if (query.isEmpty()) return null
+        for (part in query.split('&')) {
+            if (part.substringBefore('=').lowercase() !in rule.params) continue
+            val target = runCatching {
+                URLDecoder.decode(part.substringAfter('=', ""), "UTF-8").trim()
+            }.getOrNull() ?: continue
+            val isLink = target.startsWith("https://", ignoreCase = true) ||
+                target.startsWith("http://", ignoreCase = true)
+            if (isLink && target.none { it.isWhitespace() }) return target
+        }
+        return null
+    }
+
+    /** [url]'s host, lower case and without a leading `www.`; the link need not have a scheme. */
+    private fun hostOf(url: String): String {
+        val authority = url.substringAfter("://", url).takeWhile { it != '/' && it != '?' && it != '#' }
+        return authority.substringAfterLast('@').substringBefore(':').lowercase().removePrefix("www.")
+    }
+
+    /** [url]'s path, `/` when it has none. */
+    private fun pathOf(url: String): String {
+        val rest = url.substringAfter("://", url)
+        val start = rest.indexOfFirst { it == '/' || it == '?' || it == '#' }
+        if (start < 0 || rest[start] != '/') return "/"
+        return rest.substring(start).takeWhile { it != '?' && it != '#' }
+    }
+
+    /**
+     * Whether [host] is [domain] or under it. A domain ending in `.` is the
+     * brand under any country's ending: `amazon.` takes amazon.de,
+     * amazon.co.uk and smile.amazon.com.
+     */
+    private fun hostMatches(host: String, domain: String): Boolean = if (domain.endsWith('.')) {
+        host.startsWith(domain) || host.contains(".$domain")
+    } else {
+        host == domain || host.endsWith(".$domain")
+    }
+
+    /**
+     * Whether the query parameter [name] (lower case) is a tracker: one of the
+     * built-in names or families, one a matching site rule names, or one of
+     * the user's own [extra] names (#665). An extra name ending in `*` is a
+     * family: `abc_*` takes every parameter starting `abc_`.
+     */
+    private fun isTracker(name: String, extra: Collection<String>, sites: List<SiteRule>): Boolean {
         if (TRACKING_PREFIXES.any { name.startsWith(it) } || name in TRACKING_PARAMS) return true
+        if (sites.any { it.takes(name) }) return true
         for (raw in extra) {
             val entry = raw.trim().lowercase()
             if (entry.isEmpty()) continue
@@ -696,11 +941,11 @@ object SelectionMacros {
      * Everything else in the text is left exactly as it was.
      */
     fun stripTrackersInText(text: String, extra: Collection<String> = emptyList()): String? {
-        if (!text.contains('?')) return null
+        if (!mayCarryTrackers(text)) return null
         var changed = false
         val out = NON_SPACE_RUN.replace(text) { match ->
             val run = match.value
-            if (!run.contains('?')) return@replace run
+            if (!mayCarryTrackers(run)) return@replace run
             val core = run.trimEnd { it in LINK_TRAILING_PUNCTUATION }
             val tail = run.substring(core.length)
             if (core.length > MAX_URL_LENGTH || !isUrl(core)) return@replace run
@@ -710,6 +955,12 @@ object SelectionMacros {
         }
         return out.takeIf { changed }
     }
+
+    /**
+     * The cheap test before the real one: every tracker [stripTrackers] takes
+     * sits in a query, except the path segment of [SITE_RULES] like Amazon's.
+     */
+    private fun mayCarryTrackers(text: String): Boolean = text.contains('?') || text.contains("/ref=")
 
     private val NON_SPACE_RUN = Regex("""\S+""")
 
@@ -862,7 +1113,7 @@ object SelectionMacros {
         val jsonShape = if (JsonReformat.looksStructured(trimmed)) JsonReformat.shape(trimmed) else JsonReformat.Shape.NONE
         val base64 = single && trimmed.length >= 8 && TextCodecs.looksBase64(trimmed)
         val urlEncoded = TextCodecs.isUrlEncoded(trimmed)
-        val hasTrackers = trimmed.contains('?') && stripTrackersInText(trimmed, options.extraTrackers) != null
+        val hasTrackers = mayCarryTrackers(trimmed) && stripTrackersInText(trimmed, options.extraTrackers) != null
         val couldBeMoment = single && trimmed.length <= DateTimes.MAX_LENGTH &&
             (hasDigit || trimmed.firstOrNull()?.isLetter() == true)
         val dateTime = if (options.dateTime && couldBeMoment) {

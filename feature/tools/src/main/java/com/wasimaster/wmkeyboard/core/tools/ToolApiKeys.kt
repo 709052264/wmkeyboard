@@ -3,7 +3,9 @@ package com.wasimaster.wmkeyboard.core.tools
 import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.hasSearchKey
-import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
+import com.wasimaster.wmkeyboard.core.providers.ProviderType
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
+import com.wasimaster.wmkeyboard.core.settings.providerCredential
 
 /**
  * Resolves the effective API key for each network tool: a key the user
@@ -15,41 +17,24 @@ import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
  */
 object ToolApiKeys {
 
-    fun klipy(settings: KeyboardSettings): String =
-        settings.gif.klipyApiKey.ifBlank { BuildConfig.KLIPY_API_KEY }
+    fun klipy(settings: KeyboardSettings): String = key(settings, ProviderTypes.KLIPY)
 
-    fun giphy(settings: KeyboardSettings): String =
-        settings.gif.giphyApiKey.ifBlank { BuildConfig.GIPHY_API_KEY }
+    fun giphy(settings: KeyboardSettings): String = key(settings, ProviderTypes.GIPHY)
 
     /**
-     * Which GIF/sticker providers can actually serve requests.
-     *
-     * Commons joins the list on the F-Droid build rather than replacing the
-     * other two. It needs no key, so it is the one that works out of the box
-     * there — but a user who has their own GIPHY or KLIPY key should still be
-     * able to use it, and taking that away would buy nothing: F-Droid's rule
-     * asks that a free alternative be *offered*, not that the others be
-     * removed. It goes last so the keyed providers, when configured, are what
-     * the panel opens on.
+     * The key in force for a single-instance provider: the one the user set
+     * up (shared by every tool that lists it), else the one this build carries.
      */
-    fun gifSources(settings: KeyboardSettings): List<GifSource> = buildList {
-        if (klipy(settings).isNotBlank()) add(GifSource.KLIPY)
-        if (giphy(settings).isNotBlank()) add(GifSource.GIPHY)
-        if (BuildConfig.ENABLE_FDROID) add(GifSource.COMMONS)
-        // Keyless, so it needs only the user's say-so.
-        if (settings.gif.gifCities) add(GifSource.GIFCITIES)
-        // Imported packs need no key and no network, so they are what keeps
-        // the panel working in a build that has neither.
-        if (OfflineGifPacks.hasPacks) add(GifSource.OFFLINE)
-    }
+    fun key(settings: KeyboardSettings, type: ProviderType): String =
+        settings.providerCredential(type.id)?.apiKey?.trim().orEmpty().ifBlank { type.builtInKey }
 
-    /**
-     * Sources the sticker tool can offer. The user's own packs need no key,
-     * so this is never empty — the sticker panel can't reach a "needs a key"
-     * state the way the GIF panel can.
-     */
+    /** Which GIF providers can serve requests, in the user's order; see [MediaProviders]. */
+    fun gifSources(settings: KeyboardSettings): List<GifSource> =
+        MediaProviders.targets(settings, sticker = false).map { it.source }.distinct()
+
+    /** The same for the sticker tool. */
     fun stickerSources(settings: KeyboardSettings): List<GifSource> =
-        gifSources(settings).filterNot { it == GifSource.OFFLINE || it == GifSource.GIFCITIES } + GifSource.LOCAL
+        MediaProviders.targets(settings, sticker = true).map { it.source }.distinct()
 
     fun brave(settings: KeyboardSettings): String =
         settings.webSearch.braveApiKey.ifBlank { BuildConfig.BRAVE_API_KEY }

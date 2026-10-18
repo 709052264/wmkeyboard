@@ -1,0 +1,54 @@
+---
+title: "Providers"
+description: "How tools that can ask more than one service keep a list of providers you add, order, switch off and set up, with fallback between them."
+sidebar:
+  order: 30
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+Some tools can get the same thing from more than one service. GIFs can come from KLIPY, GIPHY, Wikimedia Commons, GifCities or packs on your phone. Each of these tools keeps a **Providers** list at the top of its settings page, and every list works the same way, much like the locations of [backups](/privacy/backup/).
+
+## The list
+
+Each row is one provider: its name, what it is using (your key, the key in this build, a server address, or files on the phone), a switch, and a menu.
+
+- **Drag a row** to change the order. The tool asks the providers in this order.
+- **Switch a row off** to skip it without losing its setup.
+- **Edit** in the row's menu opens the provider's setup: its key, its server address, a model, or a name for the server.
+- **Remove** takes the provider out of this tool's list. If no other tool uses its key or server, the key and address are deleted too, and the dialog says so first.
+- **Add a provider** opens a sheet of every kind this build can use. A kind that needs nothing typed in is added at once. The rest open the setup first.
+- **Reset to default** appears once you have changed the list, and puts it back to the list this build starts with.
+
+A row with a problem says what it needs in red: an API key, a server address, or an imported GIF pack. Such a row is skipped until it is fixed.
+
+## Shared keys and servers
+
+A provider is set up once, and every tool that lists it uses the same setup. A KLIPY key added on the GIF page also works for stickers. The setup sheet says which other tools use it, under **Also used by**. Edit it on either page and both change.
+
+Server kinds can be added more than once, each with its own address and name: two Wikimedia wikis, say. When you add one on another tool's page, the add sheet offers the servers you already set up, under **Use**, so you don't type the address twice.
+
+## How a tool uses its list
+
+Most tools ask **One at a time**: the first provider that is on, and the next one only if the first fails or has nothing. The GIF and sticker panels can also show their providers as **Tabs** (a chip for each) or **Mixed** (all of them at once, in one grid). Packs on your phone always get a chip of their own, and GIPHY keeps its own chip in Mixed mode, because its terms do not allow mixing its results with another service's.
+
+A provider that can't be reached (no answer, a server error, too many requests) is skipped for a minute, so the next one answers at once instead of after a timeout. If every provider is in that state, they are all asked anyway. Editing a provider clears this, so a fixed key is tried straight away.
+
+## What each build offers
+
+Every build can add every kind it can run, your own servers included. What changes is the order of the add sheet and the list a fresh install starts with.
+
+| Build | Suggested first | Starts with |
+|---|---|---|
+| Google Play and GitHub | Kinds that work with nothing typed in: no key, or a key the build carries | The services this build has keys for |
+| F-Droid | Free software and open data, such as Wikimedia Commons | Services that need no proprietary key |
+| No internet | Only what runs on the phone | Only what runs on the phone |
+
+Updating the app does not change your lists. Until you edit a list, it is worked out from your earlier settings, so the same providers are asked in the same order with the same keys.
+
+## Tools with a provider list
+
+| Tool | Kinds | Settings |
+|---|---|---|
+| [GIFs](/emoji/gifs/) | KLIPY, GIPHY, Wikimedia Commons or another MediaWiki, GifCities, offline GIF packs | <SettingsPath path="Tools / GIFs / Providers" /> |
+| [Stickers](/emoji/stickers/) | KLIPY, GIPHY, your sticker packs | <SettingsPath path="Tools / Stickers / Providers" /> |

@@ -3647,9 +3647,11 @@ data class KeyboardUiState(
      * order they will go out. A cell shows its place in this line.
      */
     val mediaQueue: List<String> = emptyList(),
-    /** Selected provider chip on the GIF/sticker panel (tabs mode). */
-    val mediaSource: com.wasimaster.wmkeyboard.core.tools.GifSource =
-        com.wasimaster.wmkeyboard.core.tools.GifSource.KLIPY,
+    /**
+     * Selected provider chip on the GIF/sticker panel: the provider row's key
+     * (`ProviderEntry.key`). Blank, or a row since removed, is the first chip.
+     */
+    val mediaProvider: String = "",
     val gif: MediaUi = MediaUi.Loading,
     val sticker: MediaUi = MediaUi.Loading,
     /** The user's own sticker packs, mirrored for the sticker panel. */

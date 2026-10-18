@@ -565,6 +565,56 @@ class KeyboardModeTest {
     }
 
     @Test
+    fun `glide off turns gesture typing off`() {
+        val base = KeyboardSettings(gestureTyping = true)
+        assertFalse(base.applyMode(email.copy(glide = false)).gestureTyping)
+        assertTrue(KeyboardSettings(gestureTyping = false).applyMode(email.copy(glide = true)).gestureTyping)
+    }
+
+    @Test
+    fun `two-thumb off turns two-thumb glide off`() {
+        val base = KeyboardSettings(gesture = GestureSettings(twoThumbGlide = true))
+        assertFalse(base.applyMode(email.copy(twoThumb = false)).gesture.twoThumbGlide)
+    }
+
+    @Test
+    fun `a mode with no glide or two-thumb override inherits both`() {
+        val on = KeyboardSettings(gestureTyping = true, gesture = GestureSettings(twoThumbGlide = true))
+        assertTrue(on.applyMode(email).gestureTyping)
+        assertTrue(on.applyMode(email).gesture.twoThumbGlide)
+        val off = KeyboardSettings(gestureTyping = false, gesture = GestureSettings(twoThumbGlide = false))
+        assertFalse(off.applyMode(email).gestureTyping)
+        assertFalse(off.applyMode(email).gesture.twoThumbGlide)
+    }
+
+    @Test
+    fun `autospace and two-thumb share the gesture group without clobbering`() {
+        val base = KeyboardSettings(
+            gesture = GestureSettings(
+                autoSpaceAfterGlide = true, autoSpaceBeforeGlide = true, twoThumbGlide = true,
+            ),
+        )
+        val applied = base.applyMode(email.copy(autoSpace = false, twoThumb = false))
+        assertFalse(applied.gesture.autoSpaceAfterGlide)
+        assertFalse(applied.gesture.autoSpaceBeforeGlide)
+        assertFalse(applied.gesture.twoThumbGlide)
+    }
+
+    @Test
+    fun `glide and two-thumb survive the codec, and an old mode without them decodes null`() {
+        val peck = email.copy(glide = false, twoThumb = false)
+        assertEquals(peck, KeyboardModeCodec.decodeList(KeyboardModeCodec.encodeList(listOf(peck))).single())
+        val legacy = KeyboardModeCodec.encodeList(listOf(email))
+            .replace(",\"glide\":null", "").replace(",\"twoThumb\":null", "")
+        assertFalse(legacy.contains("glide"))
+        assertFalse(legacy.contains("twoThumb"))
+        val decoded = KeyboardModeCodec.decodeList(legacy).single()
+        assertNull(decoded.glide)
+        assertNull(decoded.twoThumb)
+        assertEquals(email, decoded)
+    }
+
+    @Test
     fun `a mode with no theme leaves the theme settings alone`() {
         val base = KeyboardSettings(
             keyboardThemeId = "custom_1",

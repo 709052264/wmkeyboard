@@ -85,6 +85,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -98,7 +99,6 @@ import com.wasimaster.wmkeyboard.core.util.runCancellable
 import com.wasimaster.wmkeyboard.ime.WMKeyboardService
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import com.wasimaster.wmkeyboard.core.settings.GifContentFilter
-import com.wasimaster.wmkeyboard.core.settings.GifSourceMode
 import com.wasimaster.wmkeyboard.core.settings.GrammarCategory
 import com.wasimaster.wmkeyboard.core.settings.GrammarDialect
 import com.wasimaster.wmkeyboard.core.settings.GrammarLintKind
@@ -2141,19 +2141,22 @@ internal fun ToolDetailSettings(
             DeepLSettingsGroup(repository, settings)
         }
         ToolbarTool.GIF, ToolbarTool.STICKER -> {
+            // Who the panel asks: KLIPY, GIPHY, Commons or another wiki,
+            // GifCities, packs on the phone. Keys are shared between the two
+            // tools, so a key set up here works on the other page too.
+            ProvidersGroup(
+                repository,
+                settings,
+                if (tool == ToolbarTool.STICKER) ProviderTool.STICKER else ProviderTool.GIF,
+                info = stringResource(R.string.tooldetail_media_providers_info),
+                // Categories were fetched with the old key; they are not the new key's answer.
+                onChanged = { MediaCategoryCache.clear() },
+            )
             if (BuildConfig.ENABLE_FDROID && tool == ToolbarTool.GIF) {
                 SettingsGroup(
-                    stringResource(R.string.tooldetail_media_wiki_group),
-                    info = stringResource(R.string.tooldetail_media_wiki_info),
+                    stringResource(R.string.servers_group_title),
+                    info = stringResource(R.string.servers_group_info),
                 ) {
-                    item {
-                        TextFieldSetting(
-                            label = stringResource(R.string.tooldetail_media_wiki_label),
-                            value = settings.watch { it.selfHosted.commonsUrl },
-                            hint = stringResource(R.string.tooldetail_media_wiki_hint),
-                            default = SettingsDefaults.selfHosted.commonsUrl,
-                        ) { repository.setCommonsUrl(it) }
-                    }
                     serverItems(repository, settings, endpoints = listOf(
                         ServiceEndpoint.KLIPY,
                         ServiceEndpoint.GIPHY,
@@ -2390,47 +2393,6 @@ internal fun ToolDetailSettings(
                 }
                 OfflineGifPacksGroup()
             }
-            SettingsGroup(
-                stringResource(R.string.tooldetail_media_keys_group),
-                info = stringResource(R.string.tooldetail_media_info),
-            ) {
-                item {
-                    ApiKeyField(
-                        label = stringResource(R.string.tooldetail_media_klipy_label),
-                        value = settings.watch { it.gif.klipyApiKey },
-                        builtInAvailable = ToolApiKeys.builtInKlipy,
-                        emptyHint = stringResource(R.string.tooldetail_media_klipy_hint),
-                    ) {
-                        repository.setKlipyApiKey(it)
-                        // Categories were fetched with the old key; they are
-                        // not this key's answer.
-                        MediaCategoryCache.clear()
-                    }
-                }
-                item {
-                    ApiKeyField(
-                        label = stringResource(R.string.tooldetail_media_giphy_label),
-                        value = settings.watch { it.gif.giphyApiKey },
-                        builtInAvailable = ToolApiKeys.builtInGiphy,
-                        emptyHint = stringResource(R.string.tooldetail_media_giphy_hint),
-                    ) {
-                        repository.setGiphyApiKey(it)
-                        MediaCategoryCache.clear()
-                    }
-                }
-                // Keyless and GIF-only: the sticker panel never offers it.
-                if (tool == ToolbarTool.GIF) {
-                    item {
-                        ToggleSetting(
-                            R.string.tooldetail_media_gifcities_title,
-                            stringResource(R.string.tooldetail_media_gifcities_subtitle),
-                            settings.watch { it.gif.gifCities },
-                            info = stringResource(R.string.tooldetail_media_gifcities_info),
-                            default = SettingsDefaults.gif.gifCities,
-                        ) { on -> scope.launch { repository.setGifCities(on) } }
-                    }
-                }
-            }
             // Resolved out here: the group builder lambda is not composable.
             val stickerOption = stringResource(R.string.tooldetail_media_send_sticker_option)
             val imageOption = stringResource(R.string.tooldetail_media_send_image_option)
@@ -2490,18 +2452,6 @@ internal fun ToolDetailSettings(
                     }
                 }
             }
-            SectionHeader(stringResource(R.string.tooldetail_media_sources_header))
-            ChoiceControl(
-                options = GifSourceMode.entries.map { mode ->
-                    mode to when (mode) {
-                        GifSourceMode.TABS -> stringResource(R.string.tooldetail_media_source_tabs)
-                        GifSourceMode.MIX -> stringResource(R.string.tooldetail_media_source_mixed)
-                    }
-                },
-                selected = settings.watch { it.gif.sourceMode },
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                detail = { mode -> ChoiceDetail(stringResource(gifSourceDescRes(mode))) },
-            ) { mode -> scope.launch { repository.setGifSourceMode(mode) } }
             SectionHeader(
                 stringResource(R.string.tooldetail_media_filter_header),
                 info = stringResource(R.string.tooldetail_media_filter_info),
@@ -4534,10 +4484,6 @@ private fun powerTriggerDescRes(trigger: PowerSavingTrigger): Int = when (trigge
 }
 
 /** How the GIF panel arranges its sources, one line, for the picker sheet. */
-private fun gifSourceDescRes(mode: GifSourceMode): Int = when (mode) {
-    GifSourceMode.TABS -> R.string.tooldetail_media_source_tabs_desc
-    GifSourceMode.MIX -> R.string.tooldetail_media_source_mixed_desc
-}
 
 /**
  * What each filter level hides, with the rating it maps to. The level names

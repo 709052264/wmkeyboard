@@ -1919,6 +1919,25 @@ internal fun KeyLayoutEditorScreen(
         return spec.copy(layers = spec.layers + (layer.key to laidOut))
     }
 
+    /**
+     * [spec] with this layer handed back to the Bottom row settings: the flag
+     * off, and, where the layer is nothing but the inherited grid written down
+     * as drawn, the layer copy dropped (#769). Turning the switch on and off
+     * again on a layer nobody had otherwise touched used to leave that copy
+     * behind, a grid the settings no longer recognised as theirs to change.
+     */
+    fun notLaidOut(spec: LayoutSpec): LayoutSpec {
+        val own = spec.layer(layer) ?: return spec
+        val cleared = own.copy(bottomRowAsLaidOut = false)
+        val without = spec.copy(layers = spec.layers - layer.key)
+        if (BuiltInLayouts.default.layer(layer) != null) {
+            val inherited = without.compile(layer)
+            val drawn = inherited.arrangedBy(editorBottomRowRules(settings.value, layer, spec.secondary)).layout
+            if (cleared == LayerSpec(rows = drawn.rows, rowHeights = inherited.rowHeights)) return without
+        }
+        return spec.copy(layers = spec.layers + (layer.key to cleared))
+    }
+
     /** [editRows], on this layer as drawn when [asDrawn] says the edit needs it. */
     fun editDrawnRows(asDrawn: Boolean, transform: (List<List<Key>>) -> List<List<Key>>) {
         edit { spec ->
@@ -2018,8 +2037,14 @@ internal fun KeyLayoutEditorScreen(
     // that stops them. Right under the grid, because the grid is where the
     // difference shows; the editor used to say nothing, and a row that the
     // settings rearranged looked like a row the editor could not change.
-    if (panelKind == null && (arranged.applied.isNotEmpty() || laidOut)) {
-        if (!laidOut) {
+    // Shown while any of those settings is on for this layer, not only while
+    // one of them changes it (#769). Turned on, the switch writes the row down
+    // as drawn, after which no rule has anything left to change; keyed on
+    // "changes something", the switch vanished the moment it was turned off
+    // again and could not be found to turn back on.
+    val anyBottomRule = bottomRules != BottomRowRules()
+    if (panelKind == null && (arranged.applied.isNotEmpty() || laidOut || anyBottomRule)) {
+        if (!laidOut && arranged.applied.isNotEmpty()) {
             val names = BottomRowRule.entries.filter { it in arranged.applied }.map { rule ->
                 val title = stringResource(rule.titleRes())
                 if (rule == BottomRowRule.HIDE_GLOBE) {
@@ -2048,7 +2073,7 @@ internal fun KeyLayoutEditorScreen(
                     laidOut,
                     info = stringResource(R.string.layout_editor_bottom_row_laid_out_info),
                 ) { on ->
-                    if (on) edit { laidOutAsDrawn(it) } else editLayer { it.copy(bottomRowAsLaidOut = false) }
+                    if (on) edit { laidOutAsDrawn(it) } else edit { notLaidOut(it) }
                 }
             }
             item {

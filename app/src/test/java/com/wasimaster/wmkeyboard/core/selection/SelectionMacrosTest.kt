@@ -395,6 +395,42 @@ class SelectionMacrosTest {
     }
 
     @Test
+    fun `remove trackers unwraps redirects and knows what each site adds`() {
+        assertEquals(
+            "https://example.com/a?id=1",
+            SelectionMacros.stripTrackers(
+                "https://www.google.com/url?sa=t&q=https%3A%2F%2Fexample.com%2Fa%3Fid%3D1%26utm_source%3Dx&usg=AOv",
+            ),
+        )
+        assertEquals(
+            "https://example.com/p",
+            SelectionMacros.stripTrackers("https://l.facebook.com/l.php?u=https%3A%2F%2Fexample.com%2Fp%3Ffbclid%3D9&h=AT0"),
+        )
+        // A wrapper whose value is not a whole link is left alone.
+        assertNull(SelectionMacros.stripTrackers("https://www.google.com/url?q=hello"))
+
+        assertEquals(
+            "https://www.amazon.co.uk/dp/B0ABC?th=1",
+            SelectionMacros.stripTrackers("https://www.amazon.co.uk/dp/B0ABC/ref=sr_1_3?th=1&qid=17&sr=8-3&pd_rd_w=x"),
+        )
+        assertEquals("amazon.com/dp/B0ABC", SelectionMacros.stripTrackers("amazon.com/dp/B0ABC/ref=cm_sw_r"))
+        assertEquals("https://youtu.be/abc?t=42", SelectionMacros.stripTrackers("https://youtu.be/abc?si=Q&feature=shared&t=42"))
+        assertEquals("https://x.com/u/status/1", SelectionMacros.stripTrackers("https://x.com/u/status/1?s=20&t=AbC"))
+        assertEquals(
+            "https://www.google.com/search?q=cats",
+            SelectionMacros.stripTrackers("https://www.google.com/search?q=cats&sca_esv=1&ei=Z&ved=0a"),
+        )
+        // Names only one site tracks with stay everywhere else.
+        assertNull(SelectionMacros.stripTrackers("https://example.com/v?feature=dark&t=42&source=hp"))
+        assertNull(SelectionMacros.stripTrackers("https://example.com/a#x?utm_source=y"))
+
+        assertEquals(
+            "look: amazon.com/dp/B0ABC.",
+            SelectionMacros.stripTrackersInText("look: amazon.com/dp/B0ABC/ref=cm_sw_r."),
+        )
+    }
+
+    @Test
     fun `remove trackers keeps the link's own shape and only offers itself when there is something to take`() {
         assertEquals(
             "example.com/watch?v=abc#t",
