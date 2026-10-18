@@ -75,7 +75,9 @@ installed theme is in Themes, an installed icon pack is in Icon packs. See
 Tap **Import a file**. A file picker opens, and the app reads your chosen
 file before it touches anything. A confirmation dialog lists exactly what's
 inside, for example "Themes: 3 custom themes". If the file isn't a WM
-Keyboard backup, the app refuses it outright.
+Keyboard backup, the app refuses it outright. A passphrase-protected backup
+(`.wmconfig.enc`) asks for the passphrase first, then shows the same
+confirmation once it opens.
 
 Opening a `.wmconfig.json` file from a file manager works the same way. It
 launches the same confirmation dialog rather than importing silently.

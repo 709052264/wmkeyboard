@@ -67,6 +67,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.wasimaster.wmkeyboard.BuildConfig
+import com.wasimaster.wmkeyboard.core.settings.BackupCrypto
 import com.wasimaster.wmkeyboard.core.settings.ConfigBackup
 import com.wasimaster.wmkeyboard.core.settings.SettingsBackup
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupIntervals
@@ -89,6 +90,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
+import com.wasimaster.wmkeyboard.core.util.requireInputStream
 import com.wasimaster.wmkeyboard.core.util.requireOutputStream
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
@@ -795,14 +797,39 @@ internal fun BackupSettings(
         }
     }
 
+    // Another keyboard's backup goes through the same dialog an opened file
+    // does, which reads it and lists what is inside before anything is written.
+    // A passphrase-protected bundle of our own goes there too: that dialog
+    // already asks for the passphrase and decrypts.
+    var foreignUri by remember { mutableStateOf<Uri?>(null) }
     // Import reads the file first and asks before writing: restoring is not
     // something to discover you have done. Both the full-config bundle and the
-    // older settings-only file are accepted.
+    // older settings-only file are accepted, plain or encrypted.
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument(),
     ) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch {
+            // Before the text read, which would decode the ciphertext as UTF-8
+            // and then call it not a backup.
+            val encrypted = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.requireInputStream(uri).use { input ->
+                        val head = ByteArray(BackupCrypto.MAGIC_SIZE)
+                        var read = 0
+                        while (read < head.size) {
+                            val n = input.read(head, read, head.size - read)
+                            if (n <= 0) break
+                            read += n
+                        }
+                        BackupCrypto.looksEncrypted(head.copyOf(read))
+                    }
+                }.getOrDefault(false)
+            }
+            if (encrypted) {
+                foreignUri = uri
+                return@launch
+            }
             val text = withContext(Dispatchers.IO) {
                 runCatching {
                     context.contentResolver.readTextCapped(uri)
@@ -820,9 +847,6 @@ internal fun BackupSettings(
             }
         }
     }
-    // Another keyboard's backup goes through the same dialog an opened file
-    // does, which reads it and lists what is inside before anything is written.
-    var foreignUri by remember { mutableStateOf<Uri?>(null) }
     val foreignLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument(),
     ) { uri -> foreignUri = uri }
