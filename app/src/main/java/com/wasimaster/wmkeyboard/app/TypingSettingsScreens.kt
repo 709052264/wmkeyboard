@@ -81,6 +81,7 @@ import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import com.wasimaster.wmkeyboard.core.settings.GlideApostropheKey
 import com.wasimaster.wmkeyboard.core.settings.ShiftGlideMode
 import com.wasimaster.wmkeyboard.core.settings.TWO_THUMB_PAUSE_RANGE
+import com.wasimaster.wmkeyboard.core.settings.TWO_THUMB_RETRACT_RANGE
 import com.wasimaster.wmkeyboard.core.settings.TwoThumbWordEnd
 import com.wasimaster.wmkeyboard.core.settings.GlidePickerChoicesRange
 import com.wasimaster.wmkeyboard.core.settings.GlideRadiusRange
@@ -1930,6 +1931,54 @@ internal fun TypingGesturesSettings(
                         info = stringResource(R.string.typing_two_thumb_pause_info),
                         default = SettingsDefaults.gesture.twoThumbPauseMs.toFloat(),
                     ) { scope.launch { repository.setGestureTwoThumbPauseMs(it.roundToInt()) } }
+                }
+                // The tapped-word pause, the one-letter floor, the space taken
+                // back and the band over the pause (#747): all-up only too.
+                item(visible = twoThumb && twoThumbWordEnd == TwoThumbWordEnd.ALL_UP) {
+                    val msFormat = stringResource(R.string.typing_value_milliseconds)
+                    SliderSetting(
+                        R.string.typing_two_thumb_tap_pause_title,
+                        subtitle = stringResource(R.string.typing_two_thumb_tap_pause_subtitle),
+                        value = settings.watch { it.gesture.twoThumbTapPauseMs }.toFloat(),
+                        range = TWO_THUMB_PAUSE_RANGE.first.toFloat()..TWO_THUMB_PAUSE_RANGE.last.toFloat(),
+                        display = { msFormat.format(it.roundToInt()) },
+                        info = stringResource(R.string.typing_two_thumb_tap_pause_info),
+                        default = SettingsDefaults.gesture.twoThumbTapPauseMs.toFloat(),
+                    ) { scope.launch { repository.setGestureTwoThumbTapPauseMs(it.roundToInt()) } }
+                }
+                item(visible = twoThumb && twoThumbWordEnd == TwoThumbWordEnd.ALL_UP) {
+                    val msFormat = stringResource(R.string.typing_value_milliseconds)
+                    SliderSetting(
+                        R.string.typing_two_thumb_one_letter_pause_title,
+                        subtitle = stringResource(R.string.typing_two_thumb_one_letter_pause_subtitle),
+                        value = settings.watch { it.gesture.twoThumbOneLetterPauseMs }.toFloat(),
+                        range = TWO_THUMB_PAUSE_RANGE.first.toFloat()..TWO_THUMB_PAUSE_RANGE.last.toFloat(),
+                        display = { msFormat.format(it.roundToInt()) },
+                        info = stringResource(R.string.typing_two_thumb_one_letter_pause_info),
+                        default = SettingsDefaults.gesture.twoThumbOneLetterPauseMs.toFloat(),
+                    ) { scope.launch { repository.setGestureTwoThumbOneLetterPauseMs(it.roundToInt()) } }
+                }
+                item(visible = twoThumb && twoThumbWordEnd == TwoThumbWordEnd.ALL_UP) {
+                    val msFormat = stringResource(R.string.typing_value_milliseconds)
+                    val off = stringResource(R.string.typing_two_thumb_retract_off)
+                    SliderSetting(
+                        R.string.typing_two_thumb_retract_title,
+                        subtitle = stringResource(R.string.typing_two_thumb_retract_subtitle),
+                        value = settings.watch { it.gesture.twoThumbRetractWindowMs }.toFloat(),
+                        range = TWO_THUMB_RETRACT_RANGE.first.toFloat()..TWO_THUMB_RETRACT_RANGE.last.toFloat(),
+                        display = { if (it.roundToInt() == 0) off else msFormat.format(it.roundToInt()) },
+                        info = stringResource(R.string.typing_two_thumb_retract_info),
+                        default = SettingsDefaults.gesture.twoThumbRetractWindowMs.toFloat(),
+                    ) { scope.launch { repository.setGestureTwoThumbRetractWindowMs(it.roundToInt()) } }
+                }
+                item(visible = twoThumb && twoThumbWordEnd == TwoThumbWordEnd.ALL_UP) {
+                    ToggleSetting(
+                        R.string.typing_two_thumb_pause_band_title,
+                        stringResource(R.string.typing_two_thumb_pause_band_subtitle),
+                        settings.watch { it.gesture.twoThumbPauseBand },
+                        info = stringResource(R.string.typing_two_thumb_pause_band_info),
+                        default = SettingsDefaults.gesture.twoThumbPauseBand,
+                    ) { scope.launch { repository.setGestureTwoThumbPauseBand(it) } }
                 }
                 item(visible = !twoThumb) {
                     ToggleSetting(

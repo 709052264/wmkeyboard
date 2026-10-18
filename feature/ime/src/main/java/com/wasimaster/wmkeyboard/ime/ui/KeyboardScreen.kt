@@ -13159,7 +13159,15 @@ private fun KeyboardBody(
             fun BarRowSlot(row: BarRow) {
                 Column(
                     modifier = Modifier.barRowFill(if (row == BarRow.TOOLS) toolsFill else barFill)
-                        .duetBarTouch(state, onGesturePreview),
+                        .duetBarTouch(state, onGesturePreview)
+                        // The all-thumbs-up pause, shrinking along the strip (#747).
+                        .then(
+                            if (row == BarRow.TOPBAR) {
+                                Modifier.allUpBand(state.allUpCountdown, state.settings.reduceMotion)
+                            } else {
+                                Modifier
+                            },
+                        ),
                 ) {
                     when (row) {
                         BarRow.TOPBAR -> when {

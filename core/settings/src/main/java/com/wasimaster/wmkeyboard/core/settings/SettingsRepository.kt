@@ -1289,8 +1289,17 @@ enum class ShiftGlideMode { WORD, LETTER }
  */
 enum class TwoThumbWordEnd { SPACE, ALL_UP }
 
-/** The range [GestureSettings.twoThumbPauseMs] is held to, in ms. */
+/**
+ * The range [GestureSettings.twoThumbPauseMs], [GestureSettings.twoThumbTapPauseMs]
+ * and [GestureSettings.twoThumbOneLetterPauseMs] are held to, in ms.
+ */
 val TWO_THUMB_PAUSE_RANGE: IntRange = 100..1500
+
+/**
+ * The range [GestureSettings.twoThumbRetractWindowMs] is held to, in ms. Zero
+ * is the retraction switched off.
+ */
+val TWO_THUMB_RETRACT_RANGE: IntRange = 0..3000
 
 /** The character each [GlideApostropheKey] borrows, or null for [GlideApostropheKey.OFF]/SPACE. */
 val GlideApostropheKey.sourceChar: Char?
@@ -7225,6 +7234,34 @@ data class GestureSettings(
      */
     val twoThumbPauseMs: Int = 350,
     /**
+     * [twoThumbPauseMs] for a word of taps alone (#747). Tapping leaves longer
+     * gaps inside a word than swiping does, so a typist who stops to think
+     * mid-word may want more room here than after a swipe. Read as
+     * [twoThumbPauseMs] until it is set, so nothing changes until someone
+     * moves it. Clamped to [TWO_THUMB_PAUSE_RANGE].
+     */
+    val twoThumbTapPauseMs: Int = 350,
+    /**
+     * The least a one-letter word waits under [TwoThumbWordEnd.ALL_UP] (#747),
+     * whichever of the two pauses it would otherwise take: a lone letter is
+     * far more often the start of a word than a word. Read as
+     * [twoThumbPauseMs] until it is set. Clamped to [TWO_THUMB_PAUSE_RANGE].
+     */
+    val twoThumbOneLetterPauseMs: Int = 350,
+    /**
+     * How long after an all-thumbs-up space a letter may still take it back
+     * and carry on the word before it, when the two together still lead to a
+     * dictionary word (#747): `car`, the space, `pet` is "carpet", and `car`,
+     * the space, `dog` stays "car dog". Read as twice [twoThumbPauseMs] until
+     * it is set; 0 never takes a space back. Clamped to [TWO_THUMB_RETRACT_RANGE].
+     */
+    val twoThumbRetractWindowMs: Int = 700,
+    /**
+     * A band on the suggestion strip that shrinks over the all-thumbs-up
+     * pause, so the wait before the space is visible (#747).
+     */
+    val twoThumbPauseBand: Boolean = true,
+    /**
      * Two, three or four fingers swiped together across the keys run an
      * action instead of typing (issue #647). On by default: the swipe is
      * claimed only once every finger down has moved the same way, which a
@@ -9570,6 +9607,11 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_TWO_THUMB = booleanPreferencesKey("gesture_two_thumb")
         private val GESTURE_TWO_THUMB_WORD_END = stringPreferencesKey("gesture_two_thumb_word_end")
         private val GESTURE_TWO_THUMB_PAUSE_MS = intPreferencesKey("gesture_two_thumb_pause_ms")
+        private val GESTURE_TWO_THUMB_TAP_PAUSE_MS = intPreferencesKey("gesture_two_thumb_tap_pause_ms")
+        private val GESTURE_TWO_THUMB_ONE_LETTER_PAUSE_MS =
+            intPreferencesKey("gesture_two_thumb_one_letter_pause_ms")
+        private val GESTURE_TWO_THUMB_RETRACT_MS = intPreferencesKey("gesture_two_thumb_retract_window_ms")
+        private val GESTURE_TWO_THUMB_PAUSE_BAND = booleanPreferencesKey("gesture_two_thumb_pause_band")
         private val GESTURE_MULTI_FINGER = booleanPreferencesKey("gesture_multi_finger_swipes")
         private val GESTURE_FINGER_SWIPES = stringPreferencesKey("gesture_finger_swipes")
         private val GESTURE_SWIPE_CONTINUES_TYPED = booleanPreferencesKey("gesture_swipe_continues_typed")
@@ -11374,6 +11416,22 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.gesture.twoThumbWordEnd,
             twoThumbPauseMs = p[GESTURE_TWO_THUMB_PAUSE_MS]?.coerceIn(TWO_THUMB_PAUSE_RANGE)
                 ?: defaults.gesture.twoThumbPauseMs,
+            // The three below began as the one pause above (#747), and follow
+            // it until they are set, so a pause the user had already moved
+            // still holds for every word.
+            twoThumbTapPauseMs = (p[GESTURE_TWO_THUMB_TAP_PAUSE_MS] ?: p[GESTURE_TWO_THUMB_PAUSE_MS])
+                ?.coerceIn(TWO_THUMB_PAUSE_RANGE)
+                ?: defaults.gesture.twoThumbTapPauseMs,
+            twoThumbOneLetterPauseMs =
+                (p[GESTURE_TWO_THUMB_ONE_LETTER_PAUSE_MS] ?: p[GESTURE_TWO_THUMB_PAUSE_MS])
+                    ?.coerceIn(TWO_THUMB_PAUSE_RANGE)
+                    ?: defaults.gesture.twoThumbOneLetterPauseMs,
+            twoThumbRetractWindowMs = (
+                p[GESTURE_TWO_THUMB_RETRACT_MS]
+                    ?: p[GESTURE_TWO_THUMB_PAUSE_MS]?.coerceIn(TWO_THUMB_PAUSE_RANGE)?.let { it * 2 }
+                )?.coerceIn(TWO_THUMB_RETRACT_RANGE)
+                ?: defaults.gesture.twoThumbRetractWindowMs,
+            twoThumbPauseBand = p[GESTURE_TWO_THUMB_PAUSE_BAND] ?: defaults.gesture.twoThumbPauseBand,
             multiFingerSwipes = p[GESTURE_MULTI_FINGER] ?: defaults.gesture.multiFingerSwipes,
             fingerSwipes = p[GESTURE_FINGER_SWIPES]?.let(FingerSwipeCodec::decode)
                 ?: defaults.gesture.fingerSwipes,
@@ -17709,6 +17767,18 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGestureTwoThumbPauseMs(value: Int) =
         editPrefs { it[GESTURE_TWO_THUMB_PAUSE_MS] = value.coerceIn(TWO_THUMB_PAUSE_RANGE) }
+
+    suspend fun setGestureTwoThumbTapPauseMs(value: Int) =
+        editPrefs { it[GESTURE_TWO_THUMB_TAP_PAUSE_MS] = value.coerceIn(TWO_THUMB_PAUSE_RANGE) }
+
+    suspend fun setGestureTwoThumbOneLetterPauseMs(value: Int) =
+        editPrefs { it[GESTURE_TWO_THUMB_ONE_LETTER_PAUSE_MS] = value.coerceIn(TWO_THUMB_PAUSE_RANGE) }
+
+    suspend fun setGestureTwoThumbRetractWindowMs(value: Int) =
+        editPrefs { it[GESTURE_TWO_THUMB_RETRACT_MS] = value.coerceIn(TWO_THUMB_RETRACT_RANGE) }
+
+    suspend fun setGestureTwoThumbPauseBand(value: Boolean) =
+        editPrefs { it[GESTURE_TWO_THUMB_PAUSE_BAND] = value }
 
     suspend fun setMultiFingerSwipes(value: Boolean) =
         editPrefs { it[GESTURE_MULTI_FINGER] = value }

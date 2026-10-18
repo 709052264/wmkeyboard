@@ -1768,6 +1768,39 @@ class SuggestionEngine(
     }
 
     /**
+     * Whether some word the keyboard knows starts with [prefix], or is it: the
+     * loaded dictionaries and the personal lexicon. The two-thumb keyboard asks
+     * it before taking back the space it typed after a word, so a letter typed
+     * straight after "car" carries the word on only when "car" and that letter
+     * still lead somewhere ("carp…" does, "cardo…" does not) (#747).
+     *
+     * One descent per source and no completion walk, so it is cheap enough for
+     * the main thread on every keystroke. A source without walkers is asked
+     * for one completion instead.
+     */
+    fun isLivePrefix(prefix: String): Boolean {
+        if (prefix.isEmpty()) return false
+        val lower = prefix.lowercase()
+        fun descends(walkers: List<TrieWalker>): Boolean = walkers.any { walker ->
+            var node = walker.root
+            for (ch in lower) {
+                node = walker.child(node, ch)
+                if (node < 0) return@any false
+            }
+            true
+        }
+        fun leads(source: WordSource): Boolean {
+            val walkers = source.walkers()
+            if (walkers.isEmpty()) return source.contains(lower) || source.complete(lower, 1).isNotEmpty()
+            return descends(walkers)
+        }
+        return leads(activeDictionary) || leads(customDictionary) || leads(systemDictionary) ||
+            (englishAsSecondary && !englishSources && leads(dictionary)) ||
+            secondaryDictionaries.any { leads(it.source) } ||
+            descends(userLexicon.walkers())
+    }
+
+    /**
      * Whether a loaded wordlist spells [word] in lower case, which is what
      * lets the case vote treat it as a known lower-case word rather than a new
      * one waiting for its first capital (#154). A platform dictionary entry

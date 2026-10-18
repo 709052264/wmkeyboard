@@ -223,6 +223,29 @@ internal class DuetWord {
         other.keyWidthPx = keyWidthPx
     }
 
+    /**
+     * Drops the first [count] gestures, the letters of a word that turned out
+     * to be one of its own (#747). False, and nothing changed, when there are
+     * not more gestures than that.
+     */
+    fun dropFirst(count: Int): Boolean {
+        if (count < 0 || count >= tokens.size) return false
+        repeat(count) {
+            tokens.removeAt(0)
+            letters.removeAt(0)
+        }
+        return true
+    }
+
+    /** Becomes a copy of [other], gestures, grid and all. */
+    fun restore(other: DuetWord) {
+        clear()
+        tokens.addAll(other.tokens)
+        letters.addAll(other.letters)
+        keys = other.keys
+        keyWidthPx = other.keyWidthPx
+    }
+
     /** The letters the taps typed, in order, when no swipe is left in the word. */
     fun typedText(): String? = if (active) null else letters.joinToString("") { it.orEmpty() }
 

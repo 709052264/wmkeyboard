@@ -1034,6 +1034,10 @@ internal object SettingsRowIcons {
         put(R.string.typing_finger_swipes_reset_title) { Icons.Outlined.RestartAlt }
         put(R.string.typing_two_thumb_word_end_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.typing_two_thumb_pause_title) { Icons.Outlined.Timer }
+        put(R.string.typing_two_thumb_tap_pause_title) { Icons.Outlined.Timer }
+        put(R.string.typing_two_thumb_one_letter_pause_title) { Icons.Outlined.Timer }
+        put(R.string.typing_two_thumb_retract_title) { Icons.AutoMirrored.Outlined.Undo }
+        put(R.string.typing_two_thumb_pause_band_title) { Icons.Outlined.HorizontalRule }
         put(R.string.typing_swipe_continues_typed_title) { Icons.Outlined.Swipe }
         put(R.string.typing_shift_glide_capitals_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.typing_shift_glide_mode_title) { Icons.Outlined.KeyboardCapslock }
