@@ -22,6 +22,10 @@ import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
 import com.wasimaster.wmkeyboard.core.endpoints.repoLocationFromFields
 import com.wasimaster.wmkeyboard.core.endpoints.toFields
+import com.wasimaster.wmkeyboard.core.providers.ProviderChain
+import com.wasimaster.wmkeyboard.core.providers.ProviderCodec
+import com.wasimaster.wmkeyboard.core.providers.ProviderRunner
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import com.wasimaster.wmkeyboard.core.settings.sink.S3Sink
@@ -3511,6 +3515,8 @@ data class KeyboardSettings(
     val scanner: ScannerSettings = ScannerSettings(),
     /** The GIF and sticker search tools (see [GifSettings]). */
     val gif: GifSettings = GifSettings(),
+    /** Every tool's provider list and the credentials they share (see [ProviderSettings]). */
+    val providers: ProviderSettings = ProviderSettings(),
     /** Dictionary tool looks up the word at the cursor when it opens. */
     val dictionaryAutoLookup: Boolean = true,
     /** Where the Dictionary tool looks, in the order it asks, each on or off. */
@@ -10190,6 +10196,8 @@ class SettingsRepository(private val context: Context) {
         private val SELF_HOSTED_COMMONS_URL = stringPreferencesKey("self_hosted_commons_url")
         private val SELF_HOSTED_ENDPOINTS = stringPreferencesKey("self_hosted_endpoints")
         private val SELF_HOSTED_REPOS = stringPreferencesKey("self_hosted_repos")
+        private val PROVIDER_CREDENTIALS = stringPreferencesKey(SettingsBackup.PROVIDER_CREDENTIALS)
+        private val PROVIDER_CHAINS = stringPreferencesKey("provider_chains")
         // Absent means "never chosen", which takes the seeded defaults; an
         // empty set is a real choice (nothing counts as music) and is kept.
         private val MEDIA_MUSIC_APPS = stringSetPreferencesKey("media_music_apps")
@@ -10728,6 +10736,10 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.stickerSendMode,
             scanner = readScanner(p, defaults),
             gif = readGif(p, defaults),
+            providers = ProviderSettings(
+                credentials = ProviderCodec.decodeCredentials(p[PROVIDER_CREDENTIALS]),
+                chains = ProviderCodec.decodeChains(p[PROVIDER_CHAINS]),
+            ),
             dictionaryAutoLookup = p[DICTIONARY_AUTO_LOOKUP] ?: defaults.dictionaryAutoLookup,
             dictionarySources = p[DICTIONARY_SOURCES]?.let(DictionarySources::decode) ?: defaults.dictionarySources,
             textEditing = readTextEditing(p, defaults),
@@ -12854,6 +12866,31 @@ class SettingsRepository(private val context: Context) {
             val next = if (location == null) current - repo.id else current + (repo.id to location)
             if (next.isEmpty()) prefs.remove(SELF_HOSTED_REPOS) else prefs[SELF_HOSTED_REPOS] = encodeRepoMap(next)
         }
+
+    /**
+     * Writes one provider edit ([ProviderEdits]) in a single transaction: the
+     * tool's whole list, the whole credential list, or both. Cooldowns are
+     * forgotten, so a provider the user just fixed is asked straight away.
+     */
+    suspend fun saveProviders(change: ProviderEdits.Change) {
+        if (change.chain == null && change.credentials == null) return
+        editPrefs { prefs ->
+            val tool = change.tool
+            val chain = change.chain
+            if (tool != null && chain != null) {
+                val chains: Map<ProviderTool, ProviderChain> = ProviderCodec.decodeChains(prefs[PROVIDER_CHAINS]) + (tool to chain)
+                prefs[PROVIDER_CHAINS] = ProviderCodec.encodeChains(chains)
+            }
+            change.credentials?.let { prefs[PROVIDER_CREDENTIALS] = ProviderCodec.encodeCredentials(it) }
+        }
+        ProviderRunner.reset()
+    }
+
+    /** Puts [tool]'s list back on what the build and the old settings make, by forgetting the stored one. */
+    suspend fun resetProviderChain(tool: ProviderTool) = editPrefs { prefs ->
+        val chains = ProviderCodec.decodeChains(prefs[PROVIDER_CHAINS]) - tool
+        if (chains.isEmpty()) prefs.remove(PROVIDER_CHAINS) else prefs[PROVIDER_CHAINS] = ProviderCodec.encodeChains(chains)
+    }
 
     suspend fun setSearxUrl(value: String) =
         editPrefs { it[SELF_HOSTED_SEARX_URL] = value.trim() }

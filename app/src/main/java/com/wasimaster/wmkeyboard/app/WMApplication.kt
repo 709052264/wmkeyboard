@@ -10,9 +10,11 @@ import com.wasimaster.wmkeyboard.app.llm.llmSplitCompat
 import com.wasimaster.wmkeyboard.app.modules.installOnDemandDelivery
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
+import com.wasimaster.wmkeyboard.core.providers.ProviderEnvironment
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.sink.BackupClients
 import com.wasimaster.wmkeyboard.core.settings.sync.SyncWatcher
+import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
 
 /**
  * Exists for one reason: to install the crash handler before anything else in
@@ -85,6 +87,9 @@ open class WMApplication : Application() {
             dropbox = BuildConfig.DROPBOX_APP_KEY,
             oneDrive = BuildConfig.ONEDRIVE_CLIENT_ID,
         )
+        // Whether the translate list can offer the on-device engine: ML Kit
+        // sits above the module that keeps the provider lists.
+        ProviderEnvironment.install(onDeviceTranslate = OnDeviceTranslator.AVAILABLE)
         // Sync between devices: keeps its jobs in step with the settings and
         // pushes shortly after a synced setting changes. Here because the
         // keyboard and the settings app share this process, and either may be
