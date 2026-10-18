@@ -1474,6 +1474,13 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var duetShownAlternates: List<String> = emptyList()
 
+    /**
+     * Whether the reading [duetShownGeneration] put on screen is a word, or
+     * only the start of one or the letters under the gestures (#640). A word
+     * nobody spelled is not learned as one (#741).
+     */
+    private var duetShownComplete = true
+
     private var composing = StringBuilder()
         set(value) {
             // A word the user came back to and edited in the buffer ends here,
@@ -15560,7 +15567,14 @@ open class WMKeyboardService : InputMethodService() {
             ic.endBatchEdit()
             return true
         }
-        if (duetWord.active) recordDuetWord()
+        // The gestures behind a two-thumb word, kept past the setter below
+        // that clears them: they are what this word teaches (#741).
+        val duetGestures = if (duetWord.active) {
+            recordDuetWord()
+            DuetGestures(duetWord.snapshot(), duetWord.keys, duetWord.keyWidthPx, duetShownComplete)
+        } else {
+            null
+        }
         // A strip refresh still debounced for this word must not land after
         // the commit and repaint candidates for text that is no longer being
         // composed (the tail of this function publishes the next-word strip).
@@ -15914,11 +15928,14 @@ open class WMKeyboardService : InputMethodService() {
                 output,
                 reinforcement = if (corrected != null) 0 else 1,
                 caseTrusted = composingCaseTrusted && corrected == null,
+                origin = if (duetGestures != null) WordOrigin.DUET else WordOrigin.TYPED,
                 replaces = replaces,
                 typed = typed,
                 taps = taps,
                 keys = tapKeys,
+                unspelled = duetGestures?.complete == false,
             )
+            duetGestures?.let { learnDuetGestures(output, it) }
         }
         composing = StringBuilder()
         // Where the caret now sits, for [onSpace]'s caps answer: known only
@@ -18204,6 +18221,14 @@ open class WMKeyboardService : InputMethodService() {
         typed: String? = null,
         taps: List<TouchPoint?>? = null,
         keys: KeyTouchModel? = null,
+        /**
+         * Whether [word] is letters no one spelled: a two-thumb word whose
+         * gestures finished no word, shown as the keys under them (#741). It
+         * still lands in the run of words, but an unknown one is never parked
+         * in the waiting room, where a few sightings of `qy` would make it a
+         * word.
+         */
+        unspelled: Boolean = false,
     ) {
         val parts = word.split(' ')
         // The pattern gate follows what went into the field, not what the
@@ -18283,7 +18308,7 @@ open class WMKeyboardService : InputMethodService() {
                         keys = keys,
                     )
                 }
-            } else if (!byHand && !blacklisted && state.composer.isPlausibleWord(cleaned)) {
+            } else if (!byHand && !blacklisted && !unspelled && state.composer.isPlausibleWord(cleaned)) {
                 // Nothing recognises this word. It goes into the waiting room
                 // instead of the dictionary, and only earns its way in once
                 // the user has typed it — and left it alone — enough times.
@@ -18985,11 +19010,7 @@ open class WMKeyboardService : InputMethodService() {
         if (!CorrectionMemory.accepts(original, revised, ::isKnownWord)) return
         val blacklist = _uiState.value.let { it.settings.suggestionSources.blacklistFor(it.language.id) }
         if (original.lowercase() in blacklist || revised.lowercase().split(' ').any { it in blacklist }) return
-        val kind = if (entry.replacesOrigin == WordOrigin.TYPED && !isKnownWord(original)) {
-            CorrectionMemory.Kind.PAIR_AND_HABITS
-        } else {
-            CorrectionMemory.Kind.PAIR_ONLY
-        }
+        val kind = revisionKind(entry.replacesOrigin) { isKnownWord(original) }
         correctionMemory.teach(original, revised, _uiState.value.layoutId, kind)
         pushLearnedHabits()
     }
@@ -22539,15 +22560,80 @@ open class WMKeyboardService : InputMethodService() {
         word: String,
     ): KeyOffsets.Adjustment? {
         if (!_uiState.value.settings.gesture.learnSwipeStyle) return null
+        val observations = handObservations(points, keys, keyWidthPx, word) ?: return null
+        return keyOffsets.observe(observations)
+    }
+
+    /** Where the finger went for each letter of [word] along [points], against the grid as drawn. */
+    private fun handObservations(
+        points: List<GesturePoint>,
+        keys: List<KeyCenter>,
+        keyWidthPx: Float,
+        word: String,
+    ): List<KeyOffsets.Observation>? {
         val engine = suggestionEngine ?: return null
         val raw = rawKeyMapFor(keys, keyWidthPx)
         val aligned = engine.alignGlide(word, points, raw, keyWidthPx) ?: return null
-        val observations = List(aligned.size) { i ->
+        return List(aligned.size) { i ->
             val k = aligned.keys[i]
             KeyOffsets.Observation(raw.keyX[k], raw.keyY[k], aligned.x[i], aligned.y[i])
         }
-        return keyOffsets.observe(observations)
     }
+
+    /** The gestures a two-thumb [word] was read off, as [commitComposing] found them. */
+    private class DuetGestures(
+        val tokens: List<GlideToken>,
+        val keys: List<KeyCenter>,
+        val keyWidthPx: Float,
+        val complete: Boolean,
+    )
+
+    /**
+     * What a two-thumb [word] teaches the gesture models, the way a kept
+     * glide does (#741): each swipe teaches the hand model where the finger
+     * went for the part of the word it drew, all of it as one adjustment an
+     * undo takes back, and a word that is one swipe and nothing else teaches
+     * the shape store too, riding the word to its settle as a glide's shape
+     * does. A swipe that is only part of the word files no shape: the store
+     * keeps shapes of whole words, and a piece of one would take a slot.
+     *
+     * The taps teach the touch model nothing. They are real touches, but they
+     * do not line up one to one with the word's letters (one tap can be a
+     * doubled letter, a swipe sits between two of them), and the touch model
+     * learns by pairing each tap with the letter it typed.
+     *
+     * Nothing for a word nobody spelled: laid over letters the decoder only
+     * fell back to, the swipes would teach the hand to miss.
+     */
+    private fun learnDuetGestures(word: String, gestures: DuetGestures) {
+        if (!gestures.complete || !swipeStyleLearning) return
+        val swipes = gestures.tokens.filterIsInstance<GlideToken.Swipe>()
+        if (swipes.isEmpty()) return
+        val keys = gestures.keys
+        val keyWidthPx = gestures.keyWidthPx
+        val lone = gestures.tokens.size == 1
+        serviceScope.launch {
+            val (hand, shape) = withContext(Dispatchers.Default) {
+                if (lone) {
+                    learnGlideStroke(swipes[0].points, keys, keyWidthPx, word, drawn = null)
+                } else {
+                    val map = rawKeyMapFor(keys, keyWidthPx)
+                    val observations = swipes.flatMap { swipe ->
+                        duetSwipeSpan(word, swipe.points.first(), swipe.points.last(), map)
+                            ?.let { handObservations(swipe.points, keys, keyWidthPx, it) }
+                            .orEmpty()
+                    }
+                    observations.takeIf { it.isNotEmpty() }?.let { keyOffsets.observe(it) } to null
+                }
+            }
+            duetLearned?.invoke(word, hand, shape)
+            lastHandAdjustment = hand
+            shape?.let { learningBuffer.attachGlide(word, it) }
+        }
+    }
+
+    /** Test seam: what each two-thumb word taught the hand model and the shape store (#741). */
+    internal var duetLearned: ((String, KeyOffsets.Adjustment?, GlideShapeSample?) -> Unit)? = null
 
     /**
      * What a kept glide teaches: the hand model, on the spot, and the shape
@@ -24068,8 +24154,8 @@ open class WMKeyboardService : InputMethodService() {
      * is — and under two-thumb typing leaves it the way a glided word is left
      * (#733): Backspace straight afterwards takes it back with its space, and a
      * pick from its alternates on the strip replaces it. No stroke rides with
-     * it, as with handwriting ink: undo has nothing to re-read, and the hand
-     * model learned nothing an undo should take back.
+     * it: undo has no one stroke to re-read. What its swipes taught the hand
+     * model is taken back by the undo, as a glide's is (#741).
      */
     private fun commitDuet(ic: InputConnection) {
         val state = _uiState.value
@@ -24084,7 +24170,8 @@ open class WMKeyboardService : InputMethodService() {
             // Armed before the space, as the glide commit arms it (#113).
             lastGestureWord = word
             lastGestureStroke = null
-            lastHandAdjustment = null
+            // Not [lastHandAdjustment]: what the swipes taught the hand is on
+            // its way from the commit above, for an undo to take back (#741).
             // Only while the strip shows this word's alternates may a pick
             // there replace it; otherwise it offers the next word (#175).
             stripReplacesGestureWord = alternates.isNotEmpty()
@@ -24209,6 +24296,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         duetShownGeneration = generation
         duetShownAlternates = shown.alternates
+        duetShownComplete = shown.complete
         composingCaseTrusted = duetShift == ShiftState.OFF
         updateComposingText(ic)
     }
@@ -46229,6 +46317,18 @@ open class WMKeyboardService : InputMethodService() {
 
     }
 }
+
+/**
+ * What fixing a word teaches. Only a word typed key by key and spelled as no
+ * word ([originalKnown] false) can show a typing habit; a glided or two-thumb
+ * word was the decoder's answer, so its fix teaches the pair alone (#741).
+ */
+internal fun revisionKind(replacesOrigin: WordOrigin, originalKnown: () -> Boolean): CorrectionMemory.Kind =
+    if (replacesOrigin == WordOrigin.TYPED && !originalKnown()) {
+        CorrectionMemory.Kind.PAIR_AND_HABITS
+    } else {
+        CorrectionMemory.Kind.PAIR_ONLY
+    }
 
 /** "hELLO wORLD" → "Hello World": first letter of each word up, rest down. */
 internal fun toTitleCase(s: String): String {

@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.ime
 
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
+import com.wasimaster.wmkeyboard.core.gesture.GlideKeyMap
 import com.wasimaster.wmkeyboard.core.gesture.GlideToken
 import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.prediction.TouchPoint
@@ -19,6 +20,45 @@ internal const val DUET_PING_DOWN = -1f
  */
 internal const val DUET_PING_BAR_DOWN = -2f
 internal const val DUET_PING_BAR_UP = -3f
+
+/**
+ * The part of [word] a swipe from [start] to [end] drew, for the hand model
+ * to measure it against (#741): the run of two or more letters whose first
+ * key is nearest where the swipe began and whose last is nearest where it
+ * ended. The decoder places each swipe in the word but keeps no record of
+ * where, and this is enough for the hand model, which drops any letter the
+ * finger came nowhere near. Null when the word has a letter off [keys] or
+ * is too short to hold a swipe.
+ */
+internal fun duetSwipeSpan(word: String, start: GesturePoint, end: GesturePoint, keys: GlideKeyMap): String? {
+    val letters = word.lowercase().codePoints().toArray()
+    if (letters.size < 2) return null
+    val at = IntArray(letters.size)
+    for (i in letters.indices) {
+        at[i] = keys.keyIndex(letters[i])
+        if (at[i] < 0) return null
+    }
+    fun distance(i: Int, p: GesturePoint): Float {
+        val dx = keys.keyX[at[i]] - p.x
+        val dy = keys.keyY[at[i]] - p.y
+        return dx * dx + dy * dy
+    }
+    var best = Float.MAX_VALUE
+    var from = 0
+    var to = 1
+    for (i in 0 until letters.size - 1) {
+        val head = distance(i, start)
+        for (j in i + 1 until letters.size) {
+            val cost = head + distance(j, end)
+            if (cost < best) {
+                best = cost
+                from = i
+                to = j
+            }
+        }
+    }
+    return String(letters, from, to - from + 1)
+}
 
 /**
  * The gestures behind a word built from more than one of them: taps and
