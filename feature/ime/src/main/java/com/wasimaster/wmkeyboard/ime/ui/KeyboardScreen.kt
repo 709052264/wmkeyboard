@@ -544,6 +544,7 @@ import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
 import com.wasimaster.wmkeyboard.core.tools.SymbolCatalog
 import com.wasimaster.wmkeyboard.ime.PwSettingAction
+import com.wasimaster.wmkeyboard.ime.TextRepeatAction
 import com.wasimaster.wmkeyboard.ime.TypingTestAction
 import com.wasimaster.wmkeyboard.ime.VoiceBarAction
 import com.wasimaster.wmkeyboard.ime.fieldVoiceSpeaks
@@ -1359,6 +1360,7 @@ fun KeyboardScreen(
     /** The AI reply tool's own controls (#234), bundled for the same reason. */
     reply: ReplyCallbacks = ReplyCallbacks(),
     onPwSetting: (PwSettingAction) -> Unit = {},
+    onTextRepeat: (TextRepeatAction) -> Unit = {},
     onTypingTestAction: (TypingTestAction) -> Unit = {},
     onQrSend: () -> Unit = {},
     onAiAction: (com.wasimaster.wmkeyboard.core.tools.AiActionSpec) -> Unit = {},
@@ -1574,6 +1576,7 @@ fun KeyboardScreen(
                 converter = converter,
                 capture = capture,
                 onPwSetting = onPwSetting,
+                onTextRepeat = onTextRepeat,
                 onTypingTestAction = onTypingTestAction,
                 onQrSend = onQrSend,
                 onAiAction = onAiAction,
@@ -8257,6 +8260,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CURRENCY -> R.string.ime_tool_currency
     ToolbarTool.QR_GEN -> R.string.ime_tool_qr_gen
     ToolbarTool.PASSWORD_GEN -> R.string.ime_tool_password_gen
+    ToolbarTool.TEXT_REPEAT -> R.string.ime_tool_text_repeat
     ToolbarTool.TYPING_TEST -> R.string.ime_tool_typing_test
     ToolbarTool.MEDIA_CONTROL -> R.string.ime_tool_media_control
     ToolbarTool.KDE_CONNECT -> R.string.ime_tool_kde_connect
@@ -8373,6 +8377,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.CURRENCY -> state.panel == PanelMode.CURRENCY
     ToolbarTool.QR_GEN -> state.panel == PanelMode.QR_GEN
     ToolbarTool.PASSWORD_GEN -> state.panel == PanelMode.PASSWORD_GEN
+    ToolbarTool.TEXT_REPEAT -> state.panel == PanelMode.TEXT_REPEAT
     ToolbarTool.TYPING_TEST -> state.panel == PanelMode.TYPING_TEST
     ToolbarTool.MEDIA_CONTROL -> state.panel == PanelMode.MEDIA_CONTROL
     ToolbarTool.KDE_CONNECT -> state.panel == PanelMode.KDE_CONNECT
@@ -12871,6 +12876,7 @@ private fun KeyboardBody(
     converter: ConverterCallbacks,
     capture: CaptureCallbacks,
     onPwSetting: (PwSettingAction) -> Unit,
+    onTextRepeat: (TextRepeatAction) -> Unit,
     onTypingTestAction: (TypingTestAction) -> Unit,
     onQrSend: () -> Unit,
     onAiAction: (com.wasimaster.wmkeyboard.core.tools.AiActionSpec) -> Unit,
@@ -13766,6 +13772,16 @@ private fun KeyboardBody(
                     )
                 }
                 PanelMode.QR_GEN -> QrGeneratorPanel(state, onQrSend)
+                PanelMode.TEXT_REPEAT -> FullBleedTool(
+                    state, title = "",
+                    onClose = { onPanelChange(PanelMode.TEXT_REPEAT) },
+                    // Like the password generator: the key rows stay below for
+                    // the text box, so the panel takes the rows' height.
+                    compact = true,
+                    compactHeight = keyRowsHeight(state),
+                    showBack = false,
+                    headerActions = { TextRepeatHeaderTabs(state, onTextRepeat) },
+                ) { TextRepeatPanel(state, onTextRepeat) }
                 PanelMode.FIND_REPLACE -> FindReplacePanel(state, toolHold.findReplace)
                 PanelMode.NOTES -> NotesPanelHost(state, toolHold.notes, onPanelChange, onOpenRoute)
                 PanelMode.LEARN_FROM_TEXT -> LearnFromTextPanel(

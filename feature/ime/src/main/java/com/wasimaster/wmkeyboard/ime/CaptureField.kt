@@ -419,6 +419,12 @@ enum class CaptureTarget(
 
     /** A kaomoji tag's name: a new one in the editor, or a rename. Enter keeps it. */
     KAOMOJI_TAG(takesWords = true),
+
+    /** The Text repeat panel's text: free text, newlines and all, like [CLIP_EDIT]. */
+    REPEAT_TEXT(takesWords = true),
+
+    /** The Text repeat panel's custom separator: punctuation and spaces, not words. */
+    REPEAT_SEPARATOR(takesWords = false),
     ;
 
     /**

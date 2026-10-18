@@ -784,6 +784,13 @@ enum class PanelMode {
      * keys through [CaptureTarget.GALLERY_TEXT].
      */
     GALLERY,
+
+    /**
+     * The Text repeat tool: a piece of text written out many times. Its text
+     * and custom separator take the keys through [CaptureTarget.REPEAT_TEXT]
+     * and [CaptureTarget.REPEAT_SEPARATOR]; see [TextRepeatUi].
+     */
+    TEXT_REPEAT,
 }
 
 /**
@@ -961,6 +968,9 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     PanelMode.GALLERY -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     PanelMode.PASSWORD_GEN ->
         listOf(FocusRegion.CHIPS, FocusRegion.ACTIONS, FocusRegion.RESULTS)
+    // The mode tabs, the text pills, Insert/Copy/Undo, then the option chips.
+    PanelMode.TEXT_REPEAT ->
+        listOf(FocusRegion.CHIPS, FocusRegion.SEARCH, FocusRegion.ACTIONS, FocusRegion.RESULTS)
     // The dialect and Fix-all chips, then the lint cards. Seed-only (see
     // [panelFocusSeedOnly]): the panel accompanies live field editing, so the
     // arrows keep moving the caret until the ring is asked for.
@@ -3317,6 +3327,8 @@ data class KeyboardUiState(
     val stickerOffer: StickerOffer? = null,
     /** Input a chip loaded into the tool it is about to open; consumed once. */
     val toolPrefill: ToolPrefill? = null,
+    /** The Text repeat panel's text, boxes and undo; see [TextRepeatUi]. */
+    val textRepeat: TextRepeatUi = TextRepeatUi(),
     /** The word-of-the-day chip, offered once on the first field of the day. */
     val vocabDaily: VocabDailyChip? = null,
     /**
@@ -4101,6 +4113,10 @@ data class KeyboardUiState(
     val kaomojiTypingActive: Boolean
         get() = panel == PanelMode.EMOJI && kaomojiText != null
 
+    /** Whether keystrokes belong to one of the Text repeat panel's boxes. */
+    val textRepeatTypingActive: Boolean
+        get() = panel == PanelMode.TEXT_REPEAT && textRepeat.focused != null
+
     /**
      * Whether keystrokes belong to the clipboard panel's clip editor. Panel
      * *and* an open edit, like [learnEditActive], so an edit left behind by a
@@ -4185,6 +4201,12 @@ data class KeyboardUiState(
             com.wasimaster.wmkeyboard.ime.homeassistant.HaTextField.ASSIST -> CaptureTarget.HA_ASSIST
             else -> CaptureTarget.HA_TEXT
         }
+        textRepeatTypingActive ->
+            if (textRepeat.focused == TextRepeatField.SEPARATOR) {
+                CaptureTarget.REPEAT_SEPARATOR
+            } else {
+                CaptureTarget.REPEAT_TEXT
+            }
         calcTypingActive -> CaptureTarget.CALC
         converterTypingActive -> CaptureTarget.CONVERTER
         wordSpellActive -> CaptureTarget.WORD_SPELL
@@ -4253,6 +4275,8 @@ data class KeyboardUiState(
         CaptureTarget.NOTE_TAG -> notes.editing?.tagDraft.orEmpty()
         CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> clockText?.text.orEmpty()
         CaptureTarget.HA_SEARCH, CaptureTarget.HA_ASSIST, CaptureTarget.HA_TEXT -> haText?.text.orEmpty()
+        CaptureTarget.REPEAT_TEXT -> textRepeat.text
+        CaptureTarget.REPEAT_SEPARATOR -> textRepeat.customSeparator
         CaptureTarget.GALLERY_TEXT -> galleryText?.text.orEmpty()
         CaptureTarget.TOOLBOX_SEARCH -> toolboxView.query
         CaptureTarget.TOOLBOX_FOLDER_NAME -> toolboxView.nameDraft.orEmpty()

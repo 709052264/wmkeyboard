@@ -11,7 +11,7 @@ import Shot from '@components/Shot.astro';
 
 Selecting a phone number in a chat and then dialling it usually means copying it, leaving the app, opening the dialler and pasting. The keyboard already knows what you selected, so it can offer the things that shape of text is for, and a good deal more: the everyday edits, a find and replace, line tools, case and chat formatting, conversions, and a way to hand the text to your contacts, maps or calendar.
 
-Select `01712345678` and the bar reads **Select all, Call, Message, WhatsApp, Contact, Copy, Cut, Paste, Delete, Share, Format, Find, Replace**. Select a sentence and it reads **Select all, Copy, Cut, Paste, Delete, Share, Save as note, Format, Find, Replace, Grammar, AI, Bangla, Fancy** and so on, with the actions that only make sense for what you selected (Sort on several lines, Colour on `#336699`, Zones on `5pm`) appearing when they do.
+Select `01712345678` and the bar reads **Select all, Call, Message, WhatsApp, Contact, Copy, Cut, Paste, Delete, Share, Format, Find, Replace**. Select a sentence and it reads **Select all, Copy, Cut, Paste, Delete, Share, Save as note, Format, Find, Replace, Repeat, Grammar, AI, Bangla, Fancy** and so on, with the actions that only make sense for what you selected (Sort on several lines, Colour on `#336699`, Zones on `5pm`) appearing when they do.
 
 This is off by default. It adds a bar that appears out of a gesture you already make for other reasons, so you have to ask for it.
 
@@ -58,6 +58,7 @@ Two things sit outside the order. **Undo** is always first while there is someth
 | Format | A number, link or address the rewrite would change; any text | On |
 | Find | Anything, when the field could hold another copy | On |
 | Replace | Anything | On |
+| Repeat | Anything, while the Text repeat tool is enabled | On |
 | Sort, Unique, Number, Bullets, Check boxes | Two or more lines | On (Check boxes off) |
 | Move up, Move down | Anything short of the whole field | Off |
 | Grammar | Text, with the [Grammar](/smart/grammar/) tool on | On |
@@ -110,6 +111,8 @@ The memory ends with the selection. Move it onto other text, clear it, or leave 
 Three toggles: **Aa** matches case, **[ab]** matches whole words only (in any script, so a Bengali word is a whole word too), and **.\*** reads the find field as a regular expression, with `$1` in the replacement standing for the first group. A pattern that is not valid says so under the toggles, and one that takes too long on the text is stopped rather than left to hang.
 
 **Replace** swaps the current match and moves to the next. **All** replaces every match in one go, which Undo takes back in one go too. A field that does not report where its text is (a few web views) still lets you find, but not replace in place.
+
+**Repeat** opens the [Text repeat](/tools/utilities/#repeating-text) panel with the selection as the text to repeat: pick a count and a separator there and Insert writes the copies at the cursor. It appears only while the Text repeat tool is enabled.
 
 ## Lines
 

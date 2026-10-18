@@ -490,6 +490,7 @@
     <string name="ime_tool_currency">Currency</string>
     <string name="ime_tool_qr_gen">QR code</string>
     <string name="ime_tool_password_gen">Password</string>
+    <string name="ime_tool_text_repeat">Repeat</string>
     <string name="ime_tool_typing_test">Typing speed</string>
     <string name="ime_tool_statistics">Statistics</string>
     <string name="ime_tool_media_control">Media</string>
@@ -941,6 +942,10 @@
     <string name="ime_smart_gif_offer">Find a GIF</string>
     <!-- The message button on a contact chip, for screen readers. %1$s is the contact's name. -->
     <string name="ime_smart_contact_message">Text <xliff:g id="name" example="Jane Doe">%1$s</xliff:g></string>
+    <!-- The repeat chip: the same text typed several times in a row. %1$s is that text. -->
+    <string name="ime_smart_repeat_offer">Repeat “<xliff:g id="text" example="no">%1$s</xliff:g>”</string>
+    <!-- The small count beside it. %1$s is how many copies are in the field so far. -->
+    <string name="ime_smart_repeat_count">×<xliff:g id="count" example="3">%1$s</xliff:g></string>
 
     <!-- Badge on the preview of a theme that moves while you type. -->
     <string name="ime_theme_animated_badge">Animated</string>

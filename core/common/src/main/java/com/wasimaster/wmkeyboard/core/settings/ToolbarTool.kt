@@ -134,6 +134,10 @@ enum class ToolbarTool {
     // The clipboard opened straight into its search (#612), for a flick, a
     // key or a hold: the query is one gesture away instead of two taps.
     CLIPBOARD_SEARCH,
+    // A piece of text written out many times: "ha" fifty times, a numbered
+    // list of one line, "no" with its last letter stretched. Opened by its
+    // chip when the same thing has just been typed a few times in a row.
+    TEXT_REPEAT,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -209,6 +213,9 @@ fun isDirectBootSafeTool(tool: ToolbarTool): Boolean = when (tool) {
     // Reads and edits only the field. Its search history is credential-
     // protected and simply reads empty before the first unlock.
     ToolbarTool.FIND_REPLACE,
+    // Writes into the field only; its recent texts are credential-protected
+    // and read empty before the first unlock, like Find and replace's history.
+    ToolbarTool.TEXT_REPEAT,
     ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.PASSWORD_GEN, ToolbarTool.QR_GEN,
     ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
     // Copy and cut only touch the field the user is already typing in. Paste is
@@ -317,7 +324,8 @@ val PowerTools: Set<ToolbarTool> = RecommendedTools + setOf(
     ToolbarTool.MODES,
     ToolbarTool.NUMPAD,
     ToolbarTool.SYMBOLS, ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.CURRENCY,
-    ToolbarTool.PASSWORD_GEN, ToolbarTool.CALENDAR, ToolbarTool.CLOCK, ToolbarTool.WEATHER, ToolbarTool.LOCATION,
+    ToolbarTool.PASSWORD_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.CALENDAR, ToolbarTool.CLOCK, ToolbarTool.WEATHER,
+    ToolbarTool.LOCATION,
     ToolbarTool.MEDIA_CONTROL, ToolbarTool.KDE_CONNECT, ToolbarTool.HOME_ASSISTANT, ToolbarTool.APP_LAUNCHER,
     ToolbarTool.HIDE_KEYBOARD,
 )
@@ -344,7 +352,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.LANGUAGE,
     ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,
-    ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
+    ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
     ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
     // The one-tap cursor moves last: useful, but they would otherwise push
     // every other tool a full row down in the toolbox.

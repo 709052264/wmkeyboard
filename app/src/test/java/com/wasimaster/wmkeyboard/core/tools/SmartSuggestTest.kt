@@ -719,7 +719,8 @@ class SmartSuggestTest {
     fun ordinaryTypingIsLeftAlone() {
         for (typed in listOf(
             "hello there", "see you at 5", "call me", "", "i have 2 cats",
-            "version 1.2.3", "room 101", "he said so",
+            "version 1.2.3", "room 101", "he said so", "that that", "bye bye",
+            "yesss", "hmm hmm",
         )) {
             assertNull("\"$typed\" should not raise a chip", hit(typed))
         }
@@ -926,6 +927,62 @@ class SmartSuggestTest {
         assertNull(hit("I'm at", ctx.copy(enabledTools = ToolbarTool.entries - ToolbarTool.LOCATION)))
     }
 
+    // ---- repeated text ----
+
+    @Test
+    fun theSameTextThreeTimesOffersTheRepeatTool() {
+        val h = hit("no no no")
+        assertEquals(SmartSuggest.Kind.REPEAT, h?.kind)
+        assertEquals(ToolbarTool.TEXT_REPEAT, h?.tool)
+        assertEquals("no", h?.query)
+        assertEquals("3", h?.result)
+        assertNull(h?.insert)
+        // The text stays; the tool decides what happens to the copies.
+        assertEquals(0, h?.replaceSpan)
+        assertEquals(ToolPrefill.TextRepeat("no", " ", 3, 8), h?.prefill)
+        // The count follows the typing, and so does the separator.
+        assertEquals("4", hit("no no no no ")?.result)
+        assertEquals(ToolPrefill.TextRepeat("ok", "\n", 3, 8), hit("ok\nok\nok")?.prefill)
+        assertEquals(ToolPrefill.TextRepeat("ha", "", 3, 6), hit("hahaha")?.prefill)
+        assertEquals("😂", hit("😂 😂 😂")?.query)
+    }
+
+    @Test
+    fun repeatsStayQuietForShortRunsAndStretchedGlyphs() {
+        for (typed in listOf("no no", "haha", "!!!!!!", "😂😂😂", "aaaaaa", "no no no x", "xhahaha")) {
+            assertNull("\"$typed\" should not raise a repeat chip", hit(typed))
+        }
+        // The threshold is a setting.
+        assertEquals(SmartSuggest.Kind.REPEAT, hit("no no", ctx.copy(repeatAfter = 2))?.kind)
+        assertNull(hit("no no no", ctx.copy(repeatAfter = 4)))
+    }
+
+    @Test
+    fun repeatsRespectTheirSwitchesAndRetire() {
+        assertNull(hit("no no no", ctx.copy(repeatChips = false)))
+        assertNull(hit("no no no", ctx.copy(enabledTools = ToolbarTool.entries - ToolbarTool.TEXT_REPEAT)))
+        assertNull(hit("No No No", ctx.copy(repeatRetired = setOf("no"))))
+        assertEquals(SmartSuggest.Kind.REPEAT, hit("ok ok ok", ctx.copy(repeatRetired = setOf("no")))?.kind)
+    }
+
+    @Test
+    fun repeatsLoseToKeywordsAndWinOverNames() {
+        // "wiki wiki wiki" is still a keyword being typed.
+        assertEquals(SmartSuggest.Kind.TOOL, hit("wiki wiki wiki")?.kind)
+        val book = ContactPhones.from(listOf(ContactPhones.Entry("Mom", "01711-000000", contactId = 1)))
+        assertEquals(SmartSuggest.Kind.REPEAT, hit("Mom Mom Mom", ctx.copy(contacts = book))?.kind)
+        assertEquals(SmartSuggest.Kind.CONTACT, hit("Mom", ctx.copy(contacts = book))?.kind)
+    }
+
+    @Test
+    fun aCutOffWindowDoesNotCountItsFirstCopy() {
+        // Sixteen copies fill the 48-char window exactly; one more character in
+        // front cuts the window inside the run, and the copy at its edge is doubted.
+        val copies = "no ".repeat(16)
+        assertEquals("16", hit(copies)?.result)
+        assertEquals("15", hit("x$copies")?.result)
+    }
+
     // ---- the tools behind each family (#176) ----
 
     /** A trigger per family, with the context its chip shows in while every tool is on. */
@@ -939,6 +996,7 @@ class SmartSuggestTest {
         SmartSuggest.Family.LOOKUPS -> "define serendipity" to ctx
         SmartSuggest.Family.TRANSLATE -> "how do you say" to ctx
         SmartSuggest.Family.GIFS -> "happy birthday" to ctx
+        SmartSuggest.Family.REPEATS -> "no no no" to ctx
     }
 
     @Test

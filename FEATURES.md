@@ -1604,7 +1604,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 ## Toolbar and the tool set
 
-- **Toolbar & toolbox mechanics** `uncommon` — 84 tools in ToolbarTool enum; 3 pinned by default (Emoji, Clipboard, Settings)
+- **Toolbar & toolbox mechanics** `uncommon` — 86 tools in ToolbarTool enum; 3 pinned by default (Emoji, Clipboard, Settings)
   - Pinned bar vs toolbox — A tool is on the bar or in the toolbox grid, never both
     - Default pinned row — Emoji, Clipboard, Settings (DefaultToolbarTools)
     - Tablet-aware default pin set — 5 pinned on small tablets, 7 on large, applied only if user never rearranged
@@ -1661,7 +1661,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Tool background radius and shape — toolCircleRadiusDp default 20, toolShape shares the key shapes; 0 removes it
     - Tool button width 38dp default — toolWidthDp stretches the circle into a pill
     - Tool icon size 22dp default (14–30) — toolbarBehavior.iconSizeDp, glyph only, button stays 38dp; toolbar + toolbox grid
-  - Per-tool settings screen `RARE` — Every one of the 84 tools has its own screen under Settings → Tools
+  - Per-tool settings screen `RARE` — Every one of the 86 tools has its own screen under Settings → Tools
     - Eight groups plus an Other catch-all — Panels, Scanners, Online, Create & convert, Modes, Cursor, Quick actions, Utilities
     - Tune icon marks tools with real options — toolHasOptions; toggle-only tools show just the switch
     - One switch controls bar, toolbox and leader key — setToolEnabled hides the tool everywhere at once
@@ -1670,7 +1670,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Per-tool colour override — toolColorOverrides map, reset-all button when any override exists
     - Two-colour gradient icons — toolIconGradients off by default, with its own end-colour override map
     - Icon-pack glyph substitution — IconSlots.forTool resolves an installed icon pack's glyph
-  - Direct-boot tool filter `RARE` — 49 of 84 tools work before the first unlock after reboot
+  - Direct-boot tool filter `RARE` — 50 of 86 tools work before the first unlock after reboot
     - Rule is what the tool reads — Arithmetic, sensors and keyboard-own state stay; disk, credentials, providers, activities go
     - All 14 cursor tools stay usable — They only touch the input connection
     - Not a user toggle — isDirectBootSafeTool is automatic and only applies pre-first-unlock
@@ -1679,7 +1679,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Toolbox and cheat-sheet letters — T opens the toolbox; ? expands a two-column legend of every binding
     - Badges drawn on the tools themselves — HintPlan badges replaced the old floating legend line
     - Disabled tools lose their letter too — usableTools filters the shortcut map
-  - Type-a-word tool access `RARE` — 36 tools have default suggestion-strip keywords
+  - Type-a-word tool access `RARE` — 37 tools have default suggestion-strip keywords
     - Editable per tool — Keyword shortcut field on each tool's settings screen; clearable
     - Chip replaces the typed word — replaceSpan drops the keyword when the tool opens
   - Mode-scoped toolbars `RARE` — A keyboard mode can carry its own pinned row and toolbox order
@@ -1873,7 +1873,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Optional run history — Off by default; blocked in password fields, incognito, and pre-unlock
     - Report button — Pre-filled mail draft; nothing uploaded, no reporting server
     - Panel model picker — Switch provider or local model in one tap; hidden below two choices
-- **Create & convert tools** `uncommon` — 6 tools in the Create & convert group
+- **Create & convert tools** `uncommon` — 7 tools in the Create & convert group
   - Special symbols `uncommon` — Tap-to-type picker for characters that are otherwise a hunt
     - 369 symbols in 9 categories — Fractions 19, Math 63, Greek 49, Arrows 40, Currency 26, Super/subscript 35, Punctuation 34, Shapes 46, Misc 57
     - Recents chip — Capped at 24, most recent first; a repeat tap re-fronts rather than duplicates
@@ -1909,6 +1909,15 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Passphrases from the bundled English dictionary — 4–8 letter lowercase distinct words; no separate wordlist download
     - Passphrase options — 2–10 words, free-text separator, capitalise, append a digit
     - Entropy estimate in bits — Shown for both modes
+  - Text repeat `RARE` — A piece of text written out many times: Repeat, Stretch ("no" → "nooooo") and Stairs ("ha", "haha", "hahaha") modes
+    - Count 1–1000 with a hold-to-step stepper and 2/3/5/10/25/50/100 chips — Default 10; the panel's options persist as the tool's settings
+    - Separator None/Space/New line/Comma/Custom (≤8 chars) — Stairs with None switches to New line
+    - Number each copy and alternate case toggles — "1. ha 2. HA"
+    - Live preview card with copies and character count — Insert pulses it; Undo takes the last insert back while the field still ends with it
+    - Longest result 500–20,000 chars (default 5,000) — Cut at the last whole copy, never mid-word
+    - Recent texts (10) in their own prefs file — Off in incognito, secure and no-learning fields; never backed up
+    - Repeated-text smart chip — "no no no" (configurable 2–6 copies) raises "Repeat “no” ×3"; opens the tool with separator and count set; Insert replaces or appends to the typed run per setting; once per text per field
+    - Selection action Repeat — Opens the panel on the selection; on by default (LIST_VERSION 4)
   - Learn from text `RARE` — Lists the words in the field or selection the keyboard does not know, to add to the personal dictionary in one go (#174)
     - Selection, else the whole field — Password fields refused; a partial read or a list past 2,000 words says so
     - Unknown means every source the engine asks — Active language mix, imported lists, personal and Android dictionaries, contacts, apps; blacklisted words, numbers, links and spaceless scripts skipped
@@ -2154,7 +2163,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Voice typing | needs microphone permission; audio may reach the OS recognizer service unless the on-device language model is installed |
 | Clipboard link previews and QR link details and dictionary auto-lookup | network, and force-disabled by power saving's background-network toggle |
 | 35 tools of 83 are unavailable before the first unlock after reboot | direct-boot filter; the other 48 (arithmetic, sensors, keyboard-own state, all 14 cursor tools) stay usable |
-| Lite edition tool count | 79 of 84 tools; the 5 ML Kit / Harper tools are compiled out, not just hidden |
+| Lite edition tool count | 81 of 86 tools; the 5 ML Kit / Harper tools are compiled out, not just hidden |
 
 ## Clipboard, snippets, text expansion
 

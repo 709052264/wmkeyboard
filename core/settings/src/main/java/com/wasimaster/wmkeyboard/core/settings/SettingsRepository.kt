@@ -42,6 +42,7 @@ import com.wasimaster.wmkeyboard.core.icons.IconOverrides
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog
 import com.wasimaster.wmkeyboard.core.tools.QrCodeGen
+import com.wasimaster.wmkeyboard.core.tools.TextRepeat
 import com.wasimaster.wmkeyboard.core.tools.rememberLayoutSwitch
 import com.wasimaster.wmkeyboard.core.input.composer.DoublePinyinScheme
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
@@ -3722,6 +3723,8 @@ data class KeyboardSettings(
     val currencyTo: String = "BDT",
     /** Password/passphrase generator defaults (the panel tweaks these live). */
     val passwordGenerator: PasswordGeneratorSettings = PasswordGeneratorSettings(),
+    /** The Text repeat tool's options; the panel edits them live, like the generator's. */
+    val textRepeat: TextRepeatSettings = TextRepeatSettings(),
     /** Typing-speed test: its options and its records; see [TypingTestSettings]. */
     val typingTest: TypingTestSettings = TypingTestSettings(),
     /**
@@ -4707,6 +4710,12 @@ data class ToolLimitSettings(
      * repeatedly instead of narrowing it once.
      */
     val passwordSymbols: String = "",
+    /**
+     * Longest text the Text repeat tool will write in one go. The panel cuts
+     * at the last whole copy that fits and says so; apps choke on a paste of
+     * tens of thousands of characters long before the keyboard does.
+     */
+    val textRepeatMaxChars: Int = TextRepeat.DEFAULT_MAX_CHARS,
 )
 
 /** How the app-launcher grid orders its apps. */
@@ -4892,6 +4901,26 @@ data class PasswordGeneratorSettings(
 )
 
 /**
+ * The Text repeat tool's options, grouped for the same ceiling reason as
+ * [PasswordGeneratorSettings]. The panel edits them live, so they are both
+ * the tool's settings and the memory of how it was last left. DataStore keys
+ * stay flat (`text_repeat_*`).
+ */
+data class TextRepeatSettings(
+    val count: Int = TextRepeat.DEFAULT_COUNT,
+    val mode: TextRepeat.Mode = TextRepeat.Mode.REPEAT,
+    val separator: TextRepeat.Separator = TextRepeat.Separator.SPACE,
+    /** What [TextRepeat.Separator.CUSTOM] writes between the copies. */
+    val customSeparator: String = "",
+    /** "1. x", "2. x" … in front of each copy. */
+    val numbered: Boolean = false,
+    /** Every second copy in capitals. */
+    val alternateCase: Boolean = false,
+    /** What Insert does with the copies the chip found already typed. */
+    val chipInsert: TextRepeat.ChipInsert = TextRepeat.ChipInsert.REPLACE_RUN,
+)
+
+/**
  * The typing-speed test's settings and records, grouped for the same
  * ceiling reason as [PasswordGeneratorSettings]. The panel edits the
  * options live, so they double as the tool's own settings and as the memory
@@ -4965,6 +4994,10 @@ data class SmartChipSettings(
      * panel closes puts back what the gear took out.
      */
     val keepTextOnOpen: Boolean = false,
+    /** "no no no" → the Text repeat tool, opened on that text. */
+    val repeats: Boolean = true,
+    /** How many copies in a row before that chip shows. */
+    val repeatAfter: Int = TextRepeat.DEFAULT_REPEAT_AFTER,
 )
 
 /**
@@ -10416,6 +10449,8 @@ class SettingsRepository(private val context: Context) {
         private val SMART_CHIP_NUMBER_GROUPING = stringPreferencesKey("smart_chip_number_grouping")
         private val SMART_CHIP_CONTACTS = booleanPreferencesKey("smart_chip_contacts")
         private val SMART_CHIP_KEEP_TEXT = booleanPreferencesKey("smart_chip_keep_text")
+        private val SMART_CHIP_REPEATS = booleanPreferencesKey("smart_chip_repeats")
+        private val SMART_CHIP_REPEAT_AFTER = intPreferencesKey("smart_chip_repeat_after")
 
         private val SELECTION_MACROS_ENABLED = booleanPreferencesKey("selection_macros_enabled")
         private val SELECTION_MACROS_PLACEMENT = stringPreferencesKey("selection_macros_placement")
@@ -10459,6 +10494,14 @@ class SettingsRepository(private val context: Context) {
         private val PP_SEPARATOR = stringPreferencesKey("pp_separator")
         private val PP_CAPITALIZE = booleanPreferencesKey("pp_capitalize")
         private val PP_INCLUDE_DIGIT = booleanPreferencesKey("pp_include_digit")
+        private val TEXT_REPEAT_COUNT = intPreferencesKey("text_repeat_count")
+        private val TEXT_REPEAT_MODE = stringPreferencesKey("text_repeat_mode")
+        private val TEXT_REPEAT_SEPARATOR = stringPreferencesKey("text_repeat_separator")
+        private val TEXT_REPEAT_CUSTOM_SEPARATOR = stringPreferencesKey("text_repeat_custom_separator")
+        private val TEXT_REPEAT_NUMBERED = booleanPreferencesKey("text_repeat_numbered")
+        private val TEXT_REPEAT_ALTERNATE_CASE = booleanPreferencesKey("text_repeat_alternate_case")
+        private val TEXT_REPEAT_CHIP_INSERT = stringPreferencesKey("text_repeat_chip_insert")
+        private val TEXT_REPEAT_MAX_CHARS = intPreferencesKey("text_repeat_max_chars")
         private val TT_MODE = stringPreferencesKey("tt_mode")
         private val TT_DURATION = intPreferencesKey("tt_duration")
         private val TT_WORD_COUNT = intPreferencesKey("tt_word_count")
@@ -10990,6 +11033,7 @@ class SettingsRepository(private val context: Context) {
             // The keys stay flat across the grouping, so a user's stored
             // generator settings survive the refactor untouched.
             passwordGenerator = readPasswordGenerator(p, defaults),
+            textRepeat = readTextRepeat(p, defaults),
             typingTest = readTypingTest(p, defaults),
             typingStatsEnabled = p[TYPING_STATS_ENABLED] ?: defaults.typingStatsEnabled,
             statsVersion = p[STATS_VERSION] ?: defaults.statsVersion,
@@ -11409,6 +11453,7 @@ class SettingsRepository(private val context: Context) {
             wikiLinkLimit = p[WIKI_LINK_LIMIT] ?: defaults.toolLimits.wikiLinkLimit,
             qrMaxChars = p[QR_MAX_CHARS] ?: defaults.toolLimits.qrMaxChars,
             passwordSymbols = p[PASSWORD_SYMBOLS] ?: defaults.toolLimits.passwordSymbols,
+            textRepeatMaxChars = p[TEXT_REPEAT_MAX_CHARS] ?: defaults.toolLimits.textRepeatMaxChars,
         )
 
     private fun readRows(p: Preferences, defaults: KeyboardSettings) =
@@ -12543,6 +12588,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.smartChips.numberGrouping,
             contacts = p[SMART_CHIP_CONTACTS] ?: defaults.smartChips.contacts,
             keepTextOnOpen = p[SMART_CHIP_KEEP_TEXT] ?: defaults.smartChips.keepTextOnOpen,
+            repeats = p[SMART_CHIP_REPEATS] ?: defaults.smartChips.repeats,
+            repeatAfter = p[SMART_CHIP_REPEAT_AFTER] ?: defaults.smartChips.repeatAfter,
         )
 
     private fun readSelectionMacros(p: Preferences, defaults: KeyboardSettings) =
@@ -12579,6 +12626,22 @@ class SettingsRepository(private val context: Context) {
             ppSeparator = p[PP_SEPARATOR] ?: defaults.passwordGenerator.ppSeparator,
             ppCapitalize = p[PP_CAPITALIZE] ?: defaults.passwordGenerator.ppCapitalize,
             ppIncludeDigit = p[PP_INCLUDE_DIGIT] ?: defaults.passwordGenerator.ppIncludeDigit,
+        )
+
+    private fun readTextRepeat(p: Preferences, defaults: KeyboardSettings) =
+        TextRepeatSettings(
+            count = p[TEXT_REPEAT_COUNT] ?: defaults.textRepeat.count,
+            mode = p[TEXT_REPEAT_MODE]?.let { runCatching { TextRepeat.Mode.valueOf(it) }.getOrNull() }
+                ?: defaults.textRepeat.mode,
+            separator = p[TEXT_REPEAT_SEPARATOR]
+                ?.let { runCatching { TextRepeat.Separator.valueOf(it) }.getOrNull() }
+                ?: defaults.textRepeat.separator,
+            customSeparator = p[TEXT_REPEAT_CUSTOM_SEPARATOR] ?: defaults.textRepeat.customSeparator,
+            numbered = p[TEXT_REPEAT_NUMBERED] ?: defaults.textRepeat.numbered,
+            alternateCase = p[TEXT_REPEAT_ALTERNATE_CASE] ?: defaults.textRepeat.alternateCase,
+            chipInsert = p[TEXT_REPEAT_CHIP_INSERT]
+                ?.let { runCatching { TextRepeat.ChipInsert.valueOf(it) }.getOrNull() }
+                ?: defaults.textRepeat.chipInsert,
         )
 
     private fun readTypingTest(p: Preferences, defaults: KeyboardSettings) =
@@ -18226,6 +18289,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setQrMaxChars(value: Int) =
         editPrefs { it[QR_MAX_CHARS] = value.coerceIn(500, 4_000) }
 
+    suspend fun setTextRepeatMaxChars(value: Int) =
+        editPrefs { it[TEXT_REPEAT_MAX_CHARS] = value.coerceIn(TextRepeat.MIN_MAX_CHARS, TextRepeat.MAX_MAX_CHARS) }
+
     /** Blank restores the built-in pool; duplicates and whitespace are dropped. */
     suspend fun setPasswordSymbols(value: String) = editPrefs {
         it[PASSWORD_SYMBOLS] = value.filterNot { c -> c.isWhitespace() }
@@ -19609,6 +19675,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun setSmartChipKeepText(value: Boolean) =
         editPrefs { it[SMART_CHIP_KEEP_TEXT] = value }
 
+    suspend fun setSmartChipRepeats(value: Boolean) =
+        editPrefs { it[SMART_CHIP_REPEATS] = value }
+
+    suspend fun setSmartChipRepeatAfter(value: Int) =
+        editPrefs { it[SMART_CHIP_REPEAT_AFTER] = value.coerceIn(TextRepeat.MIN_REPEAT_AFTER, TextRepeat.MAX_REPEAT_AFTER) }
+
     /** Which grouping a number chip offers; [NumberGrouping.AUTO] follows the language. */
     suspend fun setSmartChipNumberGrouping(value: NumberGrouping) =
         editPrefs { it[SMART_CHIP_NUMBER_GROUPING] = value.name }
@@ -19732,6 +19804,27 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPpIncludeDigit(value: Boolean) =
         editPrefs { it[PP_INCLUDE_DIGIT] = value }
+
+    suspend fun setTextRepeatCount(value: Int) =
+        editPrefs { it[TEXT_REPEAT_COUNT] = value.coerceIn(TextRepeat.MIN_COUNT, TextRepeat.MAX_COUNT) }
+
+    suspend fun setTextRepeatMode(value: TextRepeat.Mode) =
+        editPrefs { it[TEXT_REPEAT_MODE] = value.name }
+
+    suspend fun setTextRepeatSeparator(value: TextRepeat.Separator) =
+        editPrefs { it[TEXT_REPEAT_SEPARATOR] = value.name }
+
+    suspend fun setTextRepeatCustomSeparator(value: String) =
+        editPrefs { it[TEXT_REPEAT_CUSTOM_SEPARATOR] = value.take(TextRepeat.MAX_SEPARATOR_LENGTH) }
+
+    suspend fun setTextRepeatNumbered(value: Boolean) =
+        editPrefs { it[TEXT_REPEAT_NUMBERED] = value }
+
+    suspend fun setTextRepeatAlternateCase(value: Boolean) =
+        editPrefs { it[TEXT_REPEAT_ALTERNATE_CASE] = value }
+
+    suspend fun setTextRepeatChipInsert(value: TextRepeat.ChipInsert) =
+        editPrefs { it[TEXT_REPEAT_CHIP_INSERT] = value.name }
 
     suspend fun setTypingTestMode(value: TypingTestMode) =
         editPrefs { it[TT_MODE] = value.name }
