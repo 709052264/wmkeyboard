@@ -66,6 +66,9 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteSweep
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sell
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCode2
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PushPin
@@ -227,6 +230,8 @@ data class ClipboardPanelActions(
     val onTags: (ClipItem) -> Unit = {},
     /** A tag already in the history, pressed under the tags editor (#612). */
     val onTagAdd: (String) -> Unit = {},
+    /** A text clip's QR code: the QR tool, on the clip's text (#766). */
+    val onQr: (ClipItem) -> Unit = {},
 )
 
 /**
@@ -340,6 +345,32 @@ internal fun clipTagsIn(items: List<ClipItem>): List<String> {
     }
     return counts.values.sortedByDescending { it.second }.map { it.first }
 }
+
+/** A folder of pinned clips (#768): a tag, and how many pinned clips carry it. */
+@Immutable
+internal data class ClipFolder(val name: String, val count: Int)
+
+/**
+ * The folders the pinned clips in [items] are filed in (#768): one per tag,
+ * each once whatever its case, in alphabetical order so a folder keeps its
+ * place as clips come and go.
+ */
+internal fun pinnedClipFolders(items: List<ClipItem>): List<ClipFolder> {
+    val counts = LinkedHashMap<String, ClipFolder>()
+    for (item in items) {
+        if (!item.pinned) continue
+        for (tag in item.tags.distinctBy { it.lowercase() }) {
+            val key = tag.lowercase()
+            val seen = counts[key]
+            counts[key] = ClipFolder(seen?.name ?: tag, (seen?.count ?: 0) + 1)
+        }
+    }
+    return counts.values.sortedBy { it.name.lowercase() }
+}
+
+/** [items] without the pinned clips that are filed in a folder (#768). */
+internal fun withoutFiledPins(items: List<ClipItem>): List<ClipItem> =
+    items.filterNot { it.pinned && it.tags.isNotEmpty() }
 
 /**
  * [items] oldest first instead of newest, inside each run of pinned or
@@ -479,6 +510,13 @@ internal class ClipboardPanelSession(
     val gridItems: List<ClipItem> = shownItems,
     /** The ids in [gridItems] that are empty slots. */
     val emptySlots: Set<Long> = emptySet(),
+    /**
+     * The folders over the pinned clips (#768), whose clips [shownItems] leaves
+     * out. Empty with the setting off, inside a folder, or with none to show.
+     */
+    val folders: List<ClipFolder> = emptyList(),
+    /** The pinned clips are a folder's (#768): its name and a way back are over them. */
+    val inFolder: Boolean = false,
 ) {
     /** The question is on screen: asked, and there is still something to delete. */
     val confirmingClear: Boolean get() = showClear && clearAsking.value
@@ -522,7 +560,22 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     val reordering = remember { mutableStateOf(false) }
     val pinNotice = remember { mutableStateOf<ClipItem?>(null) }
     val kindFilter = filter.value
-    val tagged = if (tagShown == null) inTab else inTab.filter { item -> item.tags.any { it.equals(tagShown, ignoreCase = true) } }
+    // Pinned folders (#768): where the pinned clips are drawn, outside a
+    // search, each tag they carry is a folder, and its clips are in there
+    // rather than among the rest. A folder is opened by the tag filter.
+    val pinnedPage = !tabbed || tab.value == ClipTab.PINNED
+    val foldersOn = state.settings.clipboard.pinnedFolders && !pinsInPlace && !state.clipboardSearchActive && pinnedPage
+    val folders = if (foldersOn && tagShown == null) {
+        remember(state.clipboardItems) { pinnedClipFolders(state.clipboardItems) }
+    } else {
+        emptyList()
+    }
+    val inFolder = foldersOn && tagShown != null
+    val tagged = when {
+        tagShown != null -> inTab.filter { item -> item.tags.any { it.equals(tagShown, ignoreCase = true) } }
+        folders.isNotEmpty() -> withoutFiledPins(inTab)
+        else -> inTab
+    }
     val filtered = when (kindFilter) {
         ClipFilter.ALL -> tagged
         ClipFilter.DUPLICATES -> remember(tagged) { duplicateGroups(tagged) }
@@ -546,7 +599,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     // A slot kept for each clip deleted in this view of the history (#612).
     // A new view, by a filter, a tag, a tab, the search or the order, starts
     // from the clips as they are.
-    val gridMemory = remember(kindFilter, tagShown, tab.value, query, oldest.value, searching, tabbed) { ClipGridMemory() }
+    val gridMemory = remember(kindFilter, tagShown, tab.value, query, oldest.value, searching, tabbed, folders.isEmpty()) { ClipGridMemory() }
     val live = remember(state.clipboardItems) { state.clipboardItems.mapTo(HashSet()) { it.id } }
     val gridItems = withDeletedSlots(gridMemory.drawn, shownItems, live)
     androidx.compose.runtime.SideEffect { gridMemory.drawn = gridItems }
@@ -619,7 +672,7 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     return remember(
         shownItems, entities, showSearch, query, gridState, list, numbers,
         tabbed, pinnedCount, unpinnedCount, showClear, ocr, perClip, entityIcons, confirmPinned,
-        hiddenFragments, regexSearch, tidy, pinsInPlace, allTags, gridItems,
+        hiddenFragments, regexSearch, tidy, pinsInPlace, allTags, gridItems, folders, inFolder,
     ) {
         ClipboardPanelSession(
             shownItems, entities, showSearch, query, gridState, list, numbers,
@@ -643,6 +696,8 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
             tag = tag,
             gridItems = gridItems,
             emptySlots = emptySlots,
+            folders = folders,
+            inFolder = inFolder,
         )
     }
 }
@@ -1029,6 +1084,13 @@ private fun ClipboardListField(
                     )
                 }
             }
+            if (!reordering && selection == null) {
+                if (session.inFolder) {
+                    ClipFolderHeader(session.tag.value.orEmpty(), onBack = { session.tag.value = null })
+                } else if (session.folders.isNotEmpty()) {
+                    ClipFolderRow(session.folders, onOpen = { session.tag.value = it.name })
+                }
+            }
             if (!reordering && (session.filtersOpen.value || session.filtered)) {
                 ClipFilterRow(session)
             }
@@ -1203,6 +1265,86 @@ private fun ClipSelectionBar(
                 color = if (picked.isNotEmpty()) MaterialTheme.colorScheme.error else kb.popupText.copy(alpha = 0.4f),
             )
         }
+    }
+}
+
+/**
+ * The folders over the pinned clips (#768): one chip per tag, with a folder
+ * glyph and how many clips it holds. A press opens it, which is the tag filter
+ * set to that tag.
+ */
+@Composable
+private fun ClipFolderRow(folders: List<ClipFolder>, onOpen: (ClipFolder) -> Unit) {
+    val kb = LocalKbTheme.current
+    val shape = kb.chipShape()
+    androidx.compose.foundation.lazy.LazyRow(
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 2.dp),
+        contentPadding = PaddingValues(horizontal = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        items(folders, key = { "folder-${it.name.lowercase()}" }) { folder ->
+            val description = pluralStringResource(R.plurals.ime_clip_folder_open_desc, folder.count, folder.name, folder.count)
+            Row(
+                modifier = Modifier
+                    .height(32.dp)
+                    .clip(shape)
+                    .frostGlass(kb, shape, FrostSurface.CHIPS)
+                    .background(kb.chip)
+                    .chipBorder(kb, shape)
+                    .clearAndSetSemantics {
+                        role = Role.Button
+                        contentDescription = description
+                    }
+                    .clickable { onOpen(folder) }
+                    .padding(horizontal = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Outlined.Folder, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.width(6.dp))
+                Text(folder.name, fontSize = 12.sp, lineHeight = 14.sp, maxLines = 1, color = MaterialTheme.colorScheme.onSurface)
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    folder.count.toString(),
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
+                    maxLines = 1,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+/** An open folder of pinned clips (#768): a back button and the folder's name. */
+@Composable
+private fun ClipFolderHeader(name: String, onBack: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 2.dp, end = 8.dp, top = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        val back = stringResource(R.string.ime_clip_folder_back_desc)
+        IconHint(back) {
+            IconButton(onClick = onBack, modifier = Modifier.size(36.dp)) {
+                Icon(
+                    Icons.AutoMirrored.Outlined.ArrowBack,
+                    contentDescription = back,
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        Icon(Icons.Outlined.Folder, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+        Spacer(Modifier.width(6.dp))
+        Text(
+            name,
+            fontSize = 13.sp,
+            lineHeight = 16.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
     }
 }
 
@@ -1941,6 +2083,9 @@ private fun ClipHoldPopup(
                 onTags = if (hold.picked == null) {
                     { onDismiss(); callbacks.actions.onTags(item) }
                 } else null,
+                onQr = if (clipQrable(item) && hold.picked == null) {
+                    { onDismiss(); callbacks.actions.onQr(item) }
+                } else null,
                 onEdit = if (item.clipEditable) {
                     { onDismiss(); callbacks.actions.onEdit(item) }
                 } else null,
@@ -2016,6 +2161,8 @@ private class ClipTextActions(
     val onKeepOnly: (() -> Unit)? = null,
     /** The clip's tags, in the editor (#612). */
     val onTags: (() -> Unit)? = null,
+    /** The clip as a QR code (#766). */
+    val onQr: (() -> Unit)? = null,
     val onEdit: (() -> Unit)? = null,
     val onOpenLink: (() -> Unit)? = null,
     val onExtractParts: (() -> Unit)? = null,
@@ -2118,6 +2265,9 @@ private fun ClipFullTextPopup(
                             }
                             actions.onTags?.let {
                                 ClipTextActionIcon(Icons.Outlined.Sell, stringResource(R.string.ime_clip_tags), tint, it)
+                            }
+                            actions.onQr?.let {
+                                ClipTextActionIcon(Icons.Outlined.QrCode2, stringResource(R.string.ime_clip_qr), tint, it)
                             }
                             actions.onOpenLink?.let {
                                 ClipTextActionIcon(
@@ -2307,7 +2457,11 @@ private fun clipShortcut(item: ClipItem, hold: ClipHold): Boolean = when (hold.s
     ClipCardShortcut.NONE -> false
     ClipCardShortcut.EDIT -> item.clipEditable && hold.picked == null
     ClipCardShortcut.SELECT -> hold.picked == null
+    ClipCardShortcut.QR -> clipQrable(item) && hold.picked == null
 }
+
+/** Whether [item] can be shown as a QR code (#766): text the panel shows, so not a secret's. */
+private fun clipQrable(item: ClipItem): Boolean = item.kind.isTextual && !item.sensitive && item.text.isNotBlank()
 
 /** The shortcut [clipShortcut] said [item] shows. */
 @Composable
@@ -2323,6 +2477,11 @@ private fun ClipShortcutButton(item: ClipItem, hold: ClipHold, callbacks: Clipbo
             description = stringResource(R.string.ime_clip_select),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         ) { hold.onPick() }
+        ClipCardShortcut.QR -> ClipActionCircle(
+            icon = Icons.Outlined.QrCode2,
+            description = stringResource(R.string.ime_clip_qr),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        ) { callbacks.actions.onQr(item) }
         else -> ClipEditedMark()
     }
 }

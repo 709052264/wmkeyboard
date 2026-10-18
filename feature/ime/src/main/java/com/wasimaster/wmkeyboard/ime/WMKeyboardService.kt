@@ -41285,6 +41285,7 @@ open class WMKeyboardService : InputMethodService() {
         onTidy = ::onClipboardTidy,
         onTags = ::onClipTagsStart,
         onTagAdd = ::onClipTagAdd,
+        onQr = ::onClipboardQr,
     )
 
     /**
@@ -41380,6 +41381,20 @@ open class WMKeyboardService : InputMethodService() {
         val path = item.imagePath?.takeIf { File(it).exists() } ?: return
         onPanelChange(PanelMode.OCR)
         _uiState.update { it.copy(ocrImage = path) }
+    }
+
+    /**
+     * A clip as a QR code (#766): the QR tool opens on the clip's text instead
+     * of the field's, where it can be sent as a picture or edited first. Not a
+     * secret's text, which the panel never shows.
+     */
+    fun onClipboardQr(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
+        if (!isClipboardAccessible() || !item.kind.isTextual || item.sensitive) return
+        val current = clipboardStore.items().firstOrNull { it.id == item.id } ?: return
+        val text = current.text.trim().takeIf { it.isNotEmpty() } ?: return
+        onPanelChange(PanelMode.QR_GEN)
+        if (_uiState.value.panel != PanelMode.QR_GEN) return
+        _uiState.update { it.copy(mediaQuery = text) }
     }
 
     /** The panel's grid / list switch: the same setting the settings screen writes. */
