@@ -545,6 +545,7 @@ private fun SearchStrings.typingGesturesRows(): List<SettingsSearchEntry> {
         row(R.string.typing_capital_flick_title, R.string.typing_capital_flick_subtitle),
         row(R.string.typing_flick_hints_title, R.string.typing_flick_hints_subtitle),
         row(R.string.typing_flick_popup_title, R.string.typing_flick_popup_subtitle),
+        row(R.string.typing_swipe_only_tap_title, R.string.typing_swipe_only_tap_subtitle),
         row(R.string.typing_flick_distance_title, R.string.typing_flick_distance_subtitle),
         row(R.string.typing_flick_reach_title, R.string.typing_flick_reach_subtitle),
         row(R.string.typing_flick_onto_letter_title, R.string.typing_flick_onto_letter_subtitle),

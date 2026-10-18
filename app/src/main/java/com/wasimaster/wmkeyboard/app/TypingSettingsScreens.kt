@@ -2500,6 +2500,16 @@ internal fun TypingGesturesSettings(
             ) { scope.launch { repository.setFlickPopup(it) } }
         }
         item {
+            // Issue #410: a key with arms and no centre types nothing on a tap.
+            ToggleSetting(
+                R.string.typing_swipe_only_tap_title,
+                stringResource(R.string.typing_swipe_only_tap_subtitle),
+                settings.watch { it.layoutBehavior.swipeOnlyTapShowsArms },
+                info = stringResource(R.string.typing_swipe_only_tap_info),
+                default = SettingsDefaults.layoutBehavior.swipeOnlyTapShowsArms,
+            ) { scope.launch { repository.setSwipeOnlyTapShowsArms(it) } }
+        }
+        item {
             val dpFormat = stringResource(R.string.typing_value_dp)
             SliderSetting(
                 R.string.typing_flick_distance_title,

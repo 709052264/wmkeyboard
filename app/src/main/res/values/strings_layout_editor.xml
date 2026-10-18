@@ -297,6 +297,8 @@
     <!-- Switch on a key's sheet. On: holding the key fires it again and again, the way holding delete does. -->
     <string name="layout_editor_flick_add_action">Add flick directions</string>
     <string name="layout_editor_flick_add_subtitle">A short swipe from the key in any of eight directions types something else, so one key can carry nine characters</string>
+    <string name="layout_editor_flick_swipe_only_title">Swipes only</string>
+    <string name="layout_editor_flick_swipe_only_subtitle">No centre character. A tap on this key types nothing; only its swipes do.</string>
     <string name="layout_editor_flick_caption">Tap a cell of the pad to set what a swipe that way types. A tap on the key still types the output. The keyboard draws the arms small on the key, and a swipe out to an arm and back types its capital.</string>
     <string name="layout_editor_flick_left_label">Flick left</string>
     <string name="layout_editor_flick_up_label">Flick up</string>

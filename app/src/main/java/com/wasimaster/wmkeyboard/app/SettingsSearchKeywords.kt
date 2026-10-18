@@ -193,6 +193,7 @@ internal val SettingsSearchKeywords: Map<Int, Int> = buildMap {
     put(R.string.typing_capital_flick_title, R.string.search_kw_typing_capital_flick)
     put(R.string.typing_flick_hints_title, R.string.search_kw_typing_flick_hints)
     put(R.string.typing_flick_popup_title, R.string.search_kw_typing_flick_popup)
+    put(R.string.typing_swipe_only_tap_title, R.string.search_kw_typing_swipe_only_tap)
     put(R.string.typing_flick_distance_title, R.string.search_kw_typing_flick_distance)
     put(R.string.typing_flick_reach_title, R.string.search_kw_typing_flick_reach)
     put(R.string.typing_flick_onto_letter_title, R.string.search_kw_typing_flick_onto_letter)

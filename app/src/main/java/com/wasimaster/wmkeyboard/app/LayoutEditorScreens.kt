@@ -59,6 +59,7 @@ import com.wasimaster.wmkeyboard.core.layout.KeyRole
 import com.wasimaster.wmkeyboard.core.layout.FlickArm
 import com.wasimaster.wmkeyboard.core.layout.flickArm
 import com.wasimaster.wmkeyboard.core.layout.hasFlicks
+import com.wasimaster.wmkeyboard.core.layout.isSwipeOnly
 import com.wasimaster.wmkeyboard.core.layout.takesFlickActions
 import com.wasimaster.wmkeyboard.core.layout.arrangedBy
 import com.wasimaster.wmkeyboard.core.layout.FlickDirection
@@ -5674,6 +5675,25 @@ private fun FlickFields(
     CaptionText(
         stringResource(if (typesText) R.string.layout_editor_flick_caption else R.string.layout_editor_flick_caption_action),
     )
+    // Issue #410: a key that is all swipes, with nothing in the middle. The
+    // switch empties the centre; turning it off gives the centre the first
+    // text arm back, so the key types something on a tap again.
+    if (typesText && key.hasFlicks()) {
+        val swipeOnly = key.isSwipeOnly()
+        fun setSwipeOnly(on: Boolean) = onChange {
+            if (on) {
+                it.copy(label = "", output = null, shiftLabel = null)
+            } else {
+                it.copy(label = it.flick.values.firstOrNull { text -> text.isNotEmpty() } ?: it.label)
+            }
+        }
+        WmRow(
+            title = stringResource(R.string.layout_editor_flick_swipe_only_title),
+            subtitle = stringResource(R.string.layout_editor_flick_swipe_only_subtitle),
+            trailing = { Switch(checked = swipeOnly, onCheckedChange = ::setSwipeOnly) },
+            onClick = { setSwipeOnly(!swipeOnly) },
+        )
+    }
     fun setArm(direction: FlickDirection, alternate: KeyAlternate) = onChange {
         it.copy(
             flickActions = (it.flickActions + (direction to alternate)).inFlickOrder(),

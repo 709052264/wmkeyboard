@@ -1092,6 +1092,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_capital_flick_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.typing_flick_hints_title) { Icons.Outlined.OpenWith }
         put(R.string.typing_flick_popup_title) { Icons.Outlined.Preview }
+        put(R.string.typing_swipe_only_tap_title) { Icons.Outlined.TouchApp }
         put(R.string.typing_flick_distance_title) { Icons.Outlined.Straighten }
         put(R.string.typing_flick_reach_title) { Icons.Outlined.Gesture }
         put(R.string.typing_flick_onto_letter_title) { Icons.Outlined.Swipe }

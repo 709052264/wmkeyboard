@@ -997,6 +997,16 @@ fun Key.hasFlicks(): Boolean =
     activeFlick.isNotEmpty() || (flickActions.isNotEmpty() && takesFlickActions())
 
 /**
+ * Whether this key is all swipes and no tap (issue #410): a text key with no
+ * centre to draw or type, only flick arms. Unexpected Keyboard has these, a key
+ * with corner swipes and no `c`, and the layout editor makes one when the
+ * label is left empty on a key that has arms. A tap on it types nothing; the
+ * swipes are the key.
+ */
+fun Key.isSwipeOnly(): Boolean =
+    action == KeyAction.Text && label.isEmpty() && output.isNullOrEmpty() && hasFlicks()
+
+/**
  * Whether a finger held on this flick arm runs it again and again: the arms
  * that move the caret or delete, which repeat the same way the keys for them do.
  * Asked of the key [flickKey] hands back.

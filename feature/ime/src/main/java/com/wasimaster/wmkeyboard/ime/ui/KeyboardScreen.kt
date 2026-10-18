@@ -217,6 +217,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.structuralEqualityPolicy
@@ -569,6 +570,7 @@ import com.wasimaster.wmkeyboard.core.layout.flickArmRepeats
 import com.wasimaster.wmkeyboard.core.layout.hasHoldAction
 import com.wasimaster.wmkeyboard.core.layout.holdActionKey
 import com.wasimaster.wmkeyboard.core.layout.hasFlicks
+import com.wasimaster.wmkeyboard.core.layout.isSwipeOnly
 import com.wasimaster.wmkeyboard.core.layout.takesFlickActions
 import com.wasimaster.wmkeyboard.core.layout.arrangedBy
 import com.wasimaster.wmkeyboard.core.layout.asEmojiKey
@@ -22568,6 +22570,9 @@ internal fun KeyButton(
     // The finger went out to that arm and came back more than halfway, so the
     // lift types the arm's capital (issue #410); the popup lights that instead.
     val flickReturned = remember { mutableStateOf(false) }
+    // A tap on a swipe-only key asked to see its arms (#410): the cross stays up
+    // for a moment after the lift, since there is no centre for the tap to type.
+    val flickPeek = remember { mutableStateOf(false) }
     // Full tappable language picker (a list or, by setting, a carousel):
     // opened by a long-press on the globe key or by holding the spacebar when
     // more than two languages are enabled (a swipe through a long ring is
@@ -22625,7 +22630,9 @@ internal fun KeyButton(
         settings.popup.enabled &&
             (settings.popup.inNumericFields || !numericField) &&
             key.action == KeyAction.Text &&
-            !(settings.layoutBehavior.flickPopup && key.hasFlicks()),
+            !(settings.layoutBehavior.flickPopup && key.hasFlicks()) &&
+            // A swipe-only key (#410) has no centre for the bubble to show.
+            !key.isSwipeOnly(),
     )
     val previewLabel = rememberUpdatedState(visual.label)
     // Same staleness rule as the label: the pointer input holds its lambdas
@@ -22882,6 +22889,8 @@ internal fun KeyButton(
                     setFlickDirection = { flickDirection.value = it },
                     setFlickReturned = { flickReturned.value = it },
                     flickDistanceDp = settings.layoutBehavior.flickDistanceDp,
+                    swipeOnlyTapPeeks = settings.layoutBehavior.swipeOnlyTapShowsArms,
+                    peekFlicks = { flickPeek.value = true },
                     onKey = debounced,
                     // Repeat ticks bypass the debounce (raw onKey), taps don't.
                     onKeyRepeat = onKey,
@@ -23095,6 +23104,7 @@ internal fun KeyButton(
             pressed = pressed,
             flickDirection = flickDirection,
             flickReturned = flickReturned,
+            peek = flickPeek,
             shiftOn = visual.flickShiftOn,
             shiftCases = visual.flickShiftCases,
         )
@@ -24584,12 +24594,19 @@ private fun KeyFlickPopup(
     flickDirection: State<FlickDirection?>,
     /** The finger is back from the lit arm far enough that the lift types its capital. */
     flickReturned: State<Boolean>,
+    /**
+     * A tap on a swipe-only key asked to see the arms (#410). Shown for
+     * [FlickPeekMs] after the lift, then cleared here.
+     */
+    peek: MutableState<Boolean>,
     /** [KeyVisual.flickShiftOn]. */
     shiftOn: Boolean,
     /** [KeyVisual.flickShiftCases]. */
     shiftCases: Boolean,
 ) {
-    if (!enabled || !key.hasFlicks()) return
+    // A peek is asked for by its own setting, so it shows with the hold's
+    // cross turned off as well.
+    if (!key.hasFlicks() || (!enabled && !peek.value)) return
     // Not on the touch itself (#769): a tap on a key that also carries a few
     // flicks flashed every arm up like a long-press popup. The cross waits for
     // the finger to move into an arm, or for a hold long enough to be someone
@@ -24603,7 +24620,14 @@ private fun KeyFlickPopup(
             held = true
         }
     }
-    if (!alternatesOpen && down && (held || flickDirection.value != null)) {
+    val peeking = peek.value
+    LaunchedEffect(peeking) {
+        if (peeking) {
+            delay(FlickPeekMs)
+            peek.value = false
+        }
+    }
+    if (!alternatesOpen && (peeking || (enabled && down && (held || flickDirection.value != null)))) {
         Popup(popupPositionProvider = FlickPopupPositionProvider) {
             FlickCrossPopup(key, flickDirection.value, flickReturned.value, fontScale, shiftOn, shiftCases)
         }
@@ -24612,6 +24636,9 @@ private fun KeyFlickPopup(
 
 /** How long a still finger holds a flick key before its cross comes up; a tap is over well before. */
 private const val FlickPopupRevealMs = 250L
+
+/** How long a tap on a swipe-only key leaves its cross up, when that is asked for (#410). */
+private const val FlickPeekMs = 1200L
 
 /**
  * The flick preview shown while a flick key is held: the centre with its
@@ -26365,6 +26392,10 @@ private fun Modifier.pointerInputKey(
     setFlickReturned: (Boolean) -> Unit = {},
     /** [LayoutBehaviorSettings.flickDistanceDp]: the travel that turns a press on a flick key into a flick. */
     flickDistanceDp: Int = 22,
+    /** [LayoutBehaviorSettings.swipeOnlyTapShowsArms]: a tap on a swipe-only key shows its arms. */
+    swipeOnlyTapPeeks: Boolean = false,
+    /** Holds a swipe-only key's cross up for a moment after a tap (#410). */
+    peekFlicks: () -> Unit = {},
     onKey: (Key) -> Unit,
     /**
      * Un-debounced sink for auto-repeat ticks (held backspace/space). The
@@ -27295,7 +27326,7 @@ private fun Modifier.pointerInputKey(
         // opens the alternates popup.
         Modifier.pointerInput(
             key, longPressDelayMs, hapticOnLongPress, hapticOnLongPressRelease, alternates,
-            keyRepeat, textEditing, vibrateOnRepeat, soundOnRepeat, flickDistanceDp,
+            keyRepeat, textEditing, vibrateOnRepeat, soundOnRepeat, flickDistanceDp, swipeOnlyTapPeeks,
         ) {
             val slopPx = flickDistanceDp.dp.toPx()
             val reachPx = AlternatesReachDp.toPx()
@@ -27430,6 +27461,9 @@ private fun Modifier.pointerInputKey(
                         alternates?.commit()
                         if (hapticOnLongPressRelease) onKeyPress()
                     }
+                    // All swipes and no centre (#410): a tap types nothing, and
+                    // may put the arms up for a look instead.
+                    key.isSwipeOnly() -> if (swipeOnlyTapPeeks) peekFlicks()
                     else -> onKey(key)
                 }
             }

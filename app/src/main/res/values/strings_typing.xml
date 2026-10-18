@@ -725,6 +725,9 @@
     <string name="typing_flick_popup_subtitle">Holding a flick key shows its characters in a cross, with the one under your finger lit</string>
     <string name="typing_flick_popup_info">While you hold a key that has flick directions, a popup over the key shows the centre character and all its flick characters in a 3×3 grid. The one your finger is moving towards is lit, so you can check before you lift. Turn this off if the keys already show their flick arms and you do not want a popup covering the keys around them. On by default.</string>
 
+    <string name="typing_swipe_only_tap_title">Tap a swipe-only key to see its swipes</string>
+    <string name="typing_swipe_only_tap_subtitle">A key with flick characters and no centre shows them for a moment when tapped</string>
+    <string name="typing_swipe_only_tap_info">A key can have flick characters and nothing in the middle: leave its label empty in the layout editor, or import an Unexpected Keyboard layout with keys like that. Only the swipes type anything. Off, the default, a tap on such a key does nothing. On, the tap brings up the key\'s flick popup for a moment so you can see what each swipe types, even if Flick popup is turned off.</string>
     <string name="typing_flick_distance_title">Flick distance</string>
     <string name="typing_flick_distance_subtitle">How far your finger moves before a press on a flick key becomes a flick</string>
     <string name="typing_flick_reach_title">Flick reach</string>
