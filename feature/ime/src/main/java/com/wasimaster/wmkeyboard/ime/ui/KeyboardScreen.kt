@@ -563,6 +563,7 @@ import com.wasimaster.wmkeyboard.core.layout.BottomRowRules
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCounts
 import com.wasimaster.wmkeyboard.core.layout.actionOf
+import com.wasimaster.wmkeyboard.core.layout.effectiveChords
 import com.wasimaster.wmkeyboard.core.layout.PAD_SPACE_LABEL
 import com.wasimaster.wmkeyboard.core.layout.FlickArm
 import com.wasimaster.wmkeyboard.core.layout.flickArm
@@ -1741,6 +1742,8 @@ fun KeyboardScreen(
         LocalClipboardKeyAction provides onClipboardKey,
         LocalAlternatesGate provides remember { AlternatesGate() },
         LocalRestGate provides remember { RestGate() },
+        // The ?123 chords (#754): where the held ?123 and the tapped key meet.
+        LocalChordGate provides remember { ChordGate() },
         // Text selection over the tools' text and the keyboard's own
         // fields (#352): the one selection up, and what its bar calls.
         LocalSelectionOverlay provides remember { SelectionOverlayState() },
@@ -17528,6 +17531,25 @@ private fun KeyRows(
     val stampedOnText = remember(onText) {
         { t: String -> lastKeyPressTime.longValue = SystemClock.uptimeMillis(); onText(t) }
     }
+    // Issue #754: hold ?123 still and tap a key to run its chord. The keys meet
+    // in the gate; the grid says which chords are in force (none during a typing
+    // test, whose taps are the score) and runs one the way a multi-finger swipe
+    // runs its binding.
+    val chordGate = LocalChordGate.current
+    val chordsInForce = remember(gesture.symbolChords, gesture.chords, state.typingTestActive) {
+        if (gesture.symbolChords && !state.typingTestActive) gesture.chords.effectiveChords() else emptyMap()
+    }
+    SideEffect {
+        chordGate.chords = chordsInForce
+        chordGate.run = { binding ->
+            if (hapticOn.value) pickerHaptic()
+            if (binding.action == KeyAction.Text) {
+                if (binding.label.isNotEmpty()) stampedOnText(binding.label)
+            } else {
+                stampedOnKey(Key(label = binding.label, action = binding.action))
+            }
+        }
+    }
     // What the drawn keys commit through: a letter tapped under a held shift
     // comes out a capital (issue #367). The grid's own gestures keep calling
     // [stampedOnKey] directly; a chord drag has already decided its key.
@@ -22930,6 +22952,8 @@ internal fun KeyButton(
     val alternatesHold = remember(alternatesGate) { AlternatesHold(alternatesGate) }
     // Resting thumbs under two-thumb typing (#737), whose long press does nothing.
     val restGate = LocalRestGate.current
+    // The ?123 chords (#754): this key may be the held ?123 or the tapped key.
+    val chordGate = LocalChordGate.current
     val holdToSelect = settings.popup.alternatesHoldToSelect
     // Assigned rather than passed down: the gesture handlers take the hold and
     // nothing else, and this closes over the key and the callbacks as they are
@@ -23319,6 +23343,7 @@ internal fun KeyButton(
                     smartResolve = smartResolve,
                     alternates = alternatesHold.takeIf { holdToSelect },
                     restGate = restGate,
+                    chordGate = chordGate,
                 )
             )
             .then(if (touchBelow > 0.dp) Modifier.padding(bottom = touchBelow) else Modifier)
@@ -23438,6 +23463,8 @@ internal fun KeyButton(
         contentAlignment = Alignment.Center,
     ) {
         KeyLabel(visual, settings, pressed)
+        // What this key does as a ?123 chord, while ?123 is held still (#754).
+        ChordFaceLabel(key, visual.popupBackground ?: kb.popup, visual.popupText ?: kb.popupText)
         // The `&&` reaches [hasFlicks] on no key but one with arms; every other
         // key stays a single test off this path (issue #410).
         if (settings.layoutBehavior.flickHints && key.hasFlicks()) FlickFaceArms(visual, settings)
@@ -26858,6 +26885,12 @@ private fun Modifier.pointerInputKey(
      * leaves to the key while the finger stays still.
      */
     restGate: RestGate? = null,
+    /**
+     * The `?123` chords (#754): a `?123` press is the trigger, any other key's
+     * press tells it a partner landed, and a tap asks it first whether it was
+     * a chord rather than a keystroke.
+     */
+    chordGate: ChordGate? = null,
 ): Modifier = this.then(
     if (key.action == KeyAction.Space &&
         (spaceShortSwipe != SpaceSwipeAction.NONE || spaceLongSwipe != SpaceSwipeAction.NONE ||
@@ -27718,7 +27751,7 @@ private fun Modifier.pointerInputKey(
         Modifier.pointerInput(
             key, longPressDelayMs, hapticOnLongPress, hapticOnLongPressRelease, alternates,
             keyRepeat, textEditing, vibrateOnRepeat, soundOnRepeat, flickDistanceDp, swipeOnlyTapPeeks,
-            restGate,
+            restGate, chordGate,
         ) {
             val slopPx = flickDistanceDp.dp.toPx()
             val reachPx = AlternatesReachDp.toPx()
@@ -27728,6 +27761,8 @@ private fun Modifier.pointerInputKey(
                 val down = awaitFirstDown()
                 setPressed(true)
                 onKeyPress()
+                // A ?123 held for a chord (#754) holds its own press back now.
+                chordGate?.otherDown()
                 var dir: FlickDirection? = null
                 // The finger went out to [dir] and came back more than halfway:
                 // the lift types the arm's capital, FlickBoard's swipe-and-return.
@@ -27858,6 +27893,8 @@ private fun Modifier.pointerInputKey(
                     // All swipes and no centre (#410): a tap types nothing, and
                     // may put the arms up for a look instead.
                     key.isSwipeOnly() -> if (swipeOnlyTapPeeks) peekFlicks()
+                    // Tapped while ?123 is held: its chord, if it has one (#754).
+                    chordGate?.tap(key) == true -> Unit
                     else -> onKey(key)
                 }
             }
@@ -27869,7 +27906,7 @@ private fun Modifier.pointerInputKey(
         // toggle was turned off).
         Modifier.pointerInput(key, spaceShortSwipe, spaceLongSwipe, longPressDelayMs, keyRepeat,
             hapticOnLongPress, hapticOnLongPressRelease, vibrateOnSpace, vibrateOnRepeat,
-            soundOnRepeat, alternates, restGate) {
+            soundOnRepeat, alternates, restGate, chordGate) {
             val reachPx = AlternatesReachDp.toPx()
             val steerPx = AlternatesSteerDp.toPx()
             // Raw per-pointer tracking rather than detectTapGestures, which
@@ -27892,7 +27929,11 @@ private fun Modifier.pointerInputKey(
                  * below checks it — a stolen pointer as much as a clean lift.
                  */
                 var armedSelection = false
+                /** Puts the chords up on the keys once ?123 has been held still a moment (#754). */
+                var chordLabels: Job? = null
             }
+            // ?123 is a chord's trigger (#754); every other key may be its partner.
+            val chordTrigger = key.action == KeyAction.Symbols
             val presses = HashMap<PointerId, Press>()
             awaitPointerEventScope {
                 while (true) {
@@ -27921,6 +27962,16 @@ private fun Modifier.pointerInputKey(
                                 if (key.action is KeyAction.BrailleDot) {
                                     onKeyRepeat(key)
                                     continue
+                                }
+                                if (chordTrigger && chordGate?.active == true) {
+                                    val trigger = change.id
+                                    chordGate.triggerDown(trigger)
+                                    p.chordLabels = scope.launch {
+                                        delay(CHORD_LABEL_DELAY_MS)
+                                        chordGate.showLabels(trigger)
+                                    }
+                                } else if (!chordTrigger) {
+                                    chordGate?.otherDown()
                                 }
                                 // One timer, two meanings: on a repeating key it
                                 // is how long before the repeat starts, and on
@@ -27954,6 +28005,19 @@ private fun Modifier.pointerInputKey(
                                     // two-thumb loop takes even that away if the
                                     // thumb rests on to its lift.
                                     if (restGate?.quiets(id) == true) return@launch
+                                    // ?123 held for a chord (#754). A finger that
+                                    // landed on another key meanwhile is the chord
+                                    // under way, so no popup and no number pad. And
+                                    // with nothing else for the hold to do, it
+                                    // waits for the lift to switch layer, rather
+                                    // than switching under a partner about to tap.
+                                    if (chordGate?.isTrigger(id) == true &&
+                                        (chordGate.partnerLanded ||
+                                            (!key.opensAlternatesPopup() && !key.hasHoldAction() &&
+                                                !symbolsLongPressNumpad))
+                                    ) {
+                                        return@launch
+                                    }
                                     restGate?.longPressed(id)
                                     p.longPressFired = true
                                     if (repeats) {
@@ -28103,6 +28167,9 @@ private fun Modifier.pointerInputKey(
                             // press must not commit.
                             press != null && change.isConsumed -> {
                                 press.job?.cancel()
+                                // A layer peek took ?123 (#108): no longer a chord's trigger.
+                                press.chordLabels?.cancel()
+                                chordGate?.triggerUp(change.id)
                                 if (press.holdsAlternates) alternates?.cancel()
                                 if (press.armedSelection) onSelectionHold(false)
                                 presses.remove(change.id)
@@ -28118,6 +28185,10 @@ private fun Modifier.pointerInputKey(
                             press != null && change.changedToUp() -> {
                                 change.consume()
                                 press.job?.cancel()
+                                press.chordLabels?.cancel()
+                                // ?123 let go after a chord ran: that was the
+                                // chord's, not a tap switching layer (#754).
+                                val chorded = chordGate?.triggerUp(change.id) == true
                                 if (press.armedSelection) onSelectionHold(false)
                                 presses.remove(change.id)
                                 if (presses.isEmpty()) setPressed(false)
@@ -28140,10 +28211,15 @@ private fun Modifier.pointerInputKey(
                                         change.position.y > -size.height * 0.5f &&
                                         change.position.y < size.height * 1.5f
                                 when {
+                                    chorded -> Unit
                                     // Smart key-hit may swap in a likelier
                                     // neighbour chosen when this pointer went down.
+                                    // Tapped while ?123 is held, a key runs its
+                                    // chord instead, if it has one (#754).
                                     !press.longPressFired ->
-                                        if (inBounds) onKey(smartResolve(key, change.id))
+                                        if (inBounds && chordGate?.tap(key) != true) {
+                                            onKey(smartResolve(key, change.id))
+                                        }
                                     // The lift chooses: whatever the popup has
                                     // highlighted, which is the first entry when
                                     // the finger never moved off the key. No

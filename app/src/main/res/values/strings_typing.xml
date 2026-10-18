@@ -1078,4 +1078,15 @@
     <string name="typing_finger_swipe_broadcast_title">Broadcast action</string>
     <string name="typing_finger_swipes_reset_title">Reset swipe actions</string>
     <string name="typing_finger_swipes_reset_subtitle">Put every multi-finger swipe back to its default</string>
+    <string name="typing_group_symbol_chords_title">Chords with ?123</string>
+    <string name="typing_symbol_chords_title">Chords with ?123</string>
+    <string name="typing_symbol_chords_subtitle">Hold ?123 still and tap a key to run an action</string>
+    <string name="typing_symbol_chords_info">Hold ?123 still with one finger and tap a key with another. Instead of typing that key, the keyboard runs the action you chose for it, and letting go of ?123 leaves you on the letters. Out of the box, ?123 and L switches to your next language. Hold ?123 a moment and each key with a chord shows it on its face. A key with no chord types as usual, and a drag off ?123 still shows the symbols. The chord needs ?123 held first: rolling off ?123 straight onto the next key is too quick to count. It works with two-thumb typing, where a held key never becomes part of a swipe.</string>
+    <string name="typing_symbol_chord_row_title">?123 + %1$s</string>
+    <string name="typing_symbol_chord_add_title">Add a chord</string>
+    <string name="typing_symbol_chord_add_subtitle">Pick a key, then what it does</string>
+    <string name="typing_symbol_chord_key_title">Key to tap</string>
+    <string name="typing_symbol_chord_key_hint">The one character the key types</string>
+    <string name="typing_symbol_chords_reset_title">Reset chords</string>
+    <string name="typing_symbol_chords_reset_subtitle">Put the chords back to the default</string>
 </resources>

@@ -56,9 +56,8 @@ internal fun FingerSwipeSettings(
     }
     val bound = settings.watch { it.gesture.fingerSwipes }
     val layouts = secondaryLayouts(settings.watch { it.customLayouts })
-    // The slot whose action is being picked, then the follow-up it needs.
+    // The slot whose action is being picked.
     var picking by remember { mutableStateOf<FingerSwipe?>(null) }
-    var followUp by remember { mutableStateOf<Pair<FingerSwipe, KeyAction>?>(null) }
     fun bind(swipe: FingerSwipe, binding: KeyAlternate?) {
         scope.launch { repository.setFingerSwipe(swipe, binding) }
     }
@@ -102,84 +101,87 @@ internal fun FingerSwipeSettings(
     }
 
     picking?.let { swipe ->
-        KeyActionPickerDialog(
-            current = bound.actionOf(swipe)?.action ?: KeyAction.None,
-            options = FingerSwipeActionCatalog,
-            onPick = { action ->
-                picking = null
-                // Half an answer until it names its text, tool, layout or keyboard.
-                val needsMore = action == KeyAction.Text || action is KeyAction.Tool ||
-                    action is KeyAction.Edit || action is KeyAction.Layout ||
-                    action is KeyAction.SwitchInputMethod || action is KeyAction.Broadcast
-                if (needsMore) followUp = swipe to action else bind(swipe, KeyAlternate(action))
-            },
+        KeyBindingPicker(
+            current = bound.actionOf(swipe),
+            layouts = layouts,
             onDismiss = { picking = null },
-        )
-    }
-
-    followUp?.let { (swipe, action) ->
-        val done = { followUp = null }
-        when (action) {
-            is KeyAction.Tool -> ToolPickerDialog(
-                title = stringResource(R.string.layout_editor_tool_picker_title),
-                current = (bound.actionOf(swipe)?.action as? KeyAction.Tool)?.tool,
-                options = ToolbarTool.entries.filter(::isSupportedTool),
-                onDismiss = done,
-                onPick = { picked ->
-                    done()
-                    picked?.let { bind(swipe, KeyAlternate(KeyAction.Tool(it))) }
-                },
-            )
-            is KeyAction.Edit -> TextEditActionPickerDialog(
-                current = (bound.actionOf(swipe)?.action as? KeyAction.Edit)?.op,
-                onDismiss = done,
-                onPick = { op ->
-                    done()
-                    bind(swipe, KeyAlternate(KeyAction.Edit(op)))
-                },
-            )
-            is KeyAction.Layout -> SecondaryLayoutPickerDialog(
-                current = (bound.actionOf(swipe)?.action as? KeyAction.Layout)?.id,
-                options = layouts,
-                onDismiss = done,
-                onPick = { picked ->
-                    done()
-                    bind(swipe, KeyAlternate(KeyAction.Layout(picked.id), label = picked.name))
-                },
-            )
-            is KeyAction.SwitchInputMethod -> InputMethodPickerDialog(
-                current = (bound.actionOf(swipe)?.action as? KeyAction.SwitchInputMethod)?.id,
-                onDismiss = done,
-                onPick = { id, name ->
-                    done()
-                    bind(swipe, KeyAlternate(KeyAction.SwitchInputMethod(id), label = name))
-                },
-            )
-            is KeyAction.Broadcast -> FingerSwipeTextDialog(
-                title = stringResource(R.string.typing_finger_swipe_broadcast_title),
-                initial = (bound.actionOf(swipe)?.action as? KeyAction.Broadcast)?.action.orEmpty(),
-                onDismiss = done,
-                onDone = { text ->
-                    done()
-                    bind(swipe, KeyAlternate(KeyAction.Broadcast(text)))
-                },
-            )
-            else -> FingerSwipeTextDialog(
-                title = stringResource(R.string.typing_finger_swipe_text_title),
-                initial = bound.actionOf(swipe)?.takeIf { it.action == KeyAction.Text }?.label.orEmpty(),
-                onDismiss = done,
-                onDone = { text ->
-                    done()
-                    bind(swipe, KeyAlternate(KeyAction.Text, label = text))
-                },
-            )
+        ) { binding ->
+            picking = null
+            bind(swipe, binding)
         }
     }
 }
 
-/** What a row says its swipe does: the typed text in quotes, else the action's name. */
+/**
+ * Picks what a gesture runs: the layout editor's action picker, then for an
+ * action that names something (its text, tool, layout, keyboard or broadcast)
+ * the same follow-up a key's action gets. Shared by the multi-finger swipes
+ * (issue #647) and the `?123` chords (issue #754). [onBind] gets the finished
+ * binding; dismissing either step gives none.
+ */
 @Composable
-private fun fingerSwipeBindingName(binding: KeyAlternate, layouts: List<LayoutSpec>): String =
+internal fun KeyBindingPicker(
+    current: KeyAlternate?,
+    layouts: List<LayoutSpec>,
+    onDismiss: () -> Unit,
+    onBind: (KeyAlternate) -> Unit,
+) {
+    // The action picked, while its follow-up is open.
+    var followUp by remember { mutableStateOf<KeyAction?>(null) }
+    when (val action = followUp) {
+        null -> KeyActionPickerDialog(
+            current = current?.action ?: KeyAction.None,
+            options = FingerSwipeActionCatalog,
+            onPick = { picked ->
+                // Half an answer until it names its text, tool, layout or keyboard.
+                val needsMore = picked == KeyAction.Text || picked is KeyAction.Tool ||
+                    picked is KeyAction.Edit || picked is KeyAction.Layout ||
+                    picked is KeyAction.SwitchInputMethod || picked is KeyAction.Broadcast
+                if (needsMore) followUp = picked else onBind(KeyAlternate(picked))
+            },
+            onDismiss = onDismiss,
+        )
+        is KeyAction.Tool -> ToolPickerDialog(
+            title = stringResource(R.string.layout_editor_tool_picker_title),
+            current = (current?.action as? KeyAction.Tool)?.tool,
+            options = ToolbarTool.entries.filter(::isSupportedTool),
+            onDismiss = onDismiss,
+            onPick = { picked -> if (picked != null) onBind(KeyAlternate(KeyAction.Tool(picked))) else onDismiss() },
+        )
+        is KeyAction.Edit -> TextEditActionPickerDialog(
+            current = (current?.action as? KeyAction.Edit)?.op,
+            onDismiss = onDismiss,
+            onPick = { op -> onBind(KeyAlternate(KeyAction.Edit(op))) },
+        )
+        is KeyAction.Layout -> SecondaryLayoutPickerDialog(
+            current = (current?.action as? KeyAction.Layout)?.id,
+            options = layouts,
+            onDismiss = onDismiss,
+            onPick = { picked -> onBind(KeyAlternate(KeyAction.Layout(picked.id), label = picked.name)) },
+        )
+        is KeyAction.SwitchInputMethod -> InputMethodPickerDialog(
+            current = (current?.action as? KeyAction.SwitchInputMethod)?.id,
+            onDismiss = onDismiss,
+            onPick = { id, name -> onBind(KeyAlternate(KeyAction.SwitchInputMethod(id), label = name)) },
+        )
+        is KeyAction.Broadcast -> FingerSwipeTextDialog(
+            title = stringResource(R.string.typing_finger_swipe_broadcast_title),
+            initial = (current?.action as? KeyAction.Broadcast)?.action.orEmpty(),
+            onDismiss = onDismiss,
+            onDone = { text -> onBind(KeyAlternate(KeyAction.Broadcast(text))) },
+        )
+        else -> FingerSwipeTextDialog(
+            title = stringResource(R.string.typing_finger_swipe_text_title),
+            initial = current?.takeIf { it.action == KeyAction.Text }?.label.orEmpty(),
+            onDismiss = onDismiss,
+            onDone = { text -> onBind(KeyAlternate(KeyAction.Text, label = text)) },
+        )
+    }
+}
+
+/** What a row says its swipe or chord does: the typed text in quotes, else the action's name. */
+@Composable
+internal fun fingerSwipeBindingName(binding: KeyAlternate, layouts: List<LayoutSpec>): String =
     when (binding.action) {
         KeyAction.Text -> stringResource(R.string.typing_finger_swipe_text_value, binding.label)
         is KeyAction.SwitchInputMethod -> binding.label.ifBlank { actionAlternateName(binding, layouts) }
@@ -195,7 +197,7 @@ private fun directionLabel(direction: SwipeDirection): Int = when (direction) {
 
 /** One line of text for a swipe that types it, or the action a broadcast sends. */
 @Composable
-private fun FingerSwipeTextDialog(
+internal fun FingerSwipeTextDialog(
     title: String,
     initial: String,
     onDismiss: () -> Unit,

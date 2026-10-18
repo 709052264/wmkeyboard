@@ -2728,6 +2728,8 @@ internal fun TypingGesturesSettings(
     }
     // Issue #647: two, three and four finger swipes over the keys.
     FingerSwipeSettings(repository, settings)
+    // Issue #754: hold ?123 still and tap a key to run an action.
+    SymbolChordSettings(repository, settings)
 }
 
 @Composable

@@ -63,6 +63,7 @@ import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.DefaultFingerSwipes
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipe
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCodec
+import com.wasimaster.wmkeyboard.core.layout.SymbolChordCodec
 import com.wasimaster.wmkeyboard.core.layout.KeyAlternate
 import com.wasimaster.wmkeyboard.core.layout.actionOf
 import com.wasimaster.wmkeyboard.core.layout.LayoutCodec
@@ -7277,6 +7278,20 @@ data class GestureSettings(
      */
     val fingerSwipes: Map<FingerSwipe, KeyAlternate> = emptyMap(),
     /**
+     * Holding `?123` still and tapping a key runs the action bound to that key
+     * instead of typing it (issue #754). On by default: a tap that lands while
+     * `?123` is down has typed a letter off the wrong layer until now, and a
+     * finger rolling off `?123` onto the next key lands too soon to count.
+     */
+    val symbolChords: Boolean = true,
+    /**
+     * The user's chords for [symbolChords], keyed by the tapped key's
+     * character, over [com.wasimaster.wmkeyboard.core.layout.DefaultSymbolChords];
+     * read through `chordOf`. A key bound to `KeyAction.None` is a default the
+     * user cleared.
+     */
+    val chords: Map<String, KeyAlternate> = emptyMap(),
+    /**
      * A swipe right after typed letters finishes them as one word, so "to"
      * typed and "gether" swiped give "together" (issue #595). Two-thumb
      * typing always does this; this switch is for ordinary glide, where the
@@ -9614,6 +9629,8 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_TWO_THUMB_PAUSE_BAND = booleanPreferencesKey("gesture_two_thumb_pause_band")
         private val GESTURE_MULTI_FINGER = booleanPreferencesKey("gesture_multi_finger_swipes")
         private val GESTURE_FINGER_SWIPES = stringPreferencesKey("gesture_finger_swipes")
+        private val GESTURE_SYMBOL_CHORDS = booleanPreferencesKey("gesture_symbol_chords")
+        private val GESTURE_CHORDS = stringPreferencesKey("gesture_chords")
         private val GESTURE_SWIPE_CONTINUES_TYPED = booleanPreferencesKey("gesture_swipe_continues_typed")
         private val GESTURE_AMBIGUITY_PICKER = booleanPreferencesKey("gesture_ambiguity_picker")
         private val GESTURE_PICKER_DWELL_MS = intPreferencesKey("gesture_picker_dwell_ms")
@@ -11435,6 +11452,8 @@ class SettingsRepository(private val context: Context) {
             multiFingerSwipes = p[GESTURE_MULTI_FINGER] ?: defaults.gesture.multiFingerSwipes,
             fingerSwipes = p[GESTURE_FINGER_SWIPES]?.let(FingerSwipeCodec::decode)
                 ?: defaults.gesture.fingerSwipes,
+            symbolChords = p[GESTURE_SYMBOL_CHORDS] ?: defaults.gesture.symbolChords,
+            chords = p[GESTURE_CHORDS]?.let(SymbolChordCodec::decode) ?: defaults.gesture.chords,
             swipeContinuesTyped = p[GESTURE_SWIPE_CONTINUES_TYPED] ?: defaults.gesture.swipeContinuesTyped,
             ambiguityPicker = p[GESTURE_AMBIGUITY_PICKER] ?: defaults.gesture.ambiguityPicker,
             // Coerced on the way in as well as on the way out: a value
@@ -17794,6 +17813,26 @@ class SettingsRepository(private val context: Context) {
             if (next.isEmpty()) prefs.remove(GESTURE_FINGER_SWIPES)
             else prefs[GESTURE_FINGER_SWIPES] = FingerSwipeCodec.encode(next)
         }
+
+    suspend fun setSymbolChords(value: Boolean) =
+        editPrefs { it[GESTURE_SYMBOL_CHORDS] = value }
+
+    /**
+     * Binds a `?123` chord on the key typing [token] to [binding] (issue #754).
+     * Null puts it back to its default (none, for most keys); `KeyAction.None`
+     * clears it, default or not.
+     */
+    suspend fun setSymbolChord(token: String, binding: KeyAlternate?) =
+        editPrefs { prefs ->
+            val current = SymbolChordCodec.decode(prefs[GESTURE_CHORDS])
+            val next = if (binding == null) current - token else current + (token to binding)
+            if (next.isEmpty()) prefs.remove(GESTURE_CHORDS)
+            else prefs[GESTURE_CHORDS] = SymbolChordCodec.encode(next)
+        }
+
+    /** Every chord back to its default (issue #754). */
+    suspend fun resetSymbolChords() =
+        editPrefs { it.remove(GESTURE_CHORDS) }
 
     suspend fun setGestureSwipeContinuesTyped(value: Boolean) =
         editPrefs { it[GESTURE_SWIPE_CONTINUES_TYPED] = value }
