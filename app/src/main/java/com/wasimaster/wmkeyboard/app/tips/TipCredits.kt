@@ -33,27 +33,42 @@ internal class TipCredits(context: Context) {
         get() = prefs.getString(KEY_NAME, null).orEmpty()
         set(value) = prefs.edit { putString(KEY_NAME, value.trim()) }
 
+    /** Whether the last tip stayed off the list, so the switch opens the way it was left. */
+    var anonymous: Boolean
+        get() = prefs.getBoolean(KEY_ANONYMOUS, false)
+        set(value) = prefs.edit { putBoolean(KEY_ANONYMOUS, value) }
+
     /**
      * Remembers the name meant for a tier's next order before Play's sheet
      * opens. The order can come back after the screen, or the whole process,
      * is gone: Play hands an unfinished purchase back on the next connection,
      * and this is how it gets its name.
      */
-    fun intend(tier: TipTier, name: String) = prefs.edit { putString(KEY_INTENT + tier.productId, name.trim()) }
+    fun intend(tier: TipTier, name: String, message: String) = prefs.edit {
+        putString(KEY_INTENT + tier.productId, name.trim())
+        putString(KEY_INTENT_MESSAGE + tier.productId, message.trim())
+    }
 
     fun intendedName(tier: TipTier): String = prefs.getString(KEY_INTENT + tier.productId, null).orEmpty()
 
+    fun intendedMessage(tier: TipTier): String =
+        prefs.getString(KEY_INTENT_MESSAGE + tier.productId, null).orEmpty()
+
     /**
      * Queues the credit for one paid order, once, and forgets the intent. A
-     * blank name queues nothing: the user chose to stay off the list.
+     * blank name queues nothing, message and all: the user chose to stay off
+     * the list, and an anonymous tip sends nothing anywhere.
      */
     @Synchronized
-    fun enqueue(tier: TipTier, purchaseToken: String, name: String) {
-        prefs.edit { remove(KEY_INTENT + tier.productId) }
+    fun enqueue(tier: TipTier, purchaseToken: String, name: String, message: String) {
+        prefs.edit {
+            remove(KEY_INTENT + tier.productId)
+            remove(KEY_INTENT_MESSAGE + tier.productId)
+        }
         if (name.isBlank()) return
         val queue = read()
         if (queue.any { it.token == purchaseToken }) return
-        write(queue + Credit(tier.productId, purchaseToken, name.trim(), System.currentTimeMillis()))
+        write(queue + Credit(tier.productId, purchaseToken, name.trim(), message.trim(), System.currentTimeMillis()))
     }
 
     /**
@@ -80,6 +95,7 @@ internal class TipCredits(context: Context) {
             .put("productId", credit.productId)
             .put("purchaseToken", credit.token)
             .put("name", credit.name)
+            .put("message", credit.message)
             .toString()
         val reply = ToolHttp.postJson(
             PLAY_TIP_URL,
@@ -102,20 +118,29 @@ internal class TipCredits(context: Context) {
         Outcome.RETRY
     }
 
-    private data class Credit(val productId: String, val token: String, val name: String, val queuedAt: Long)
+    private data class Credit(
+        val productId: String,
+        val token: String,
+        val name: String,
+        val message: String,
+        val queuedAt: Long,
+    )
 
     private fun read(): List<Credit> = runCatching {
         val array = JSONArray(prefs.getString(KEY_QUEUE, null) ?: return emptyList())
         (0 until array.length()).map { i ->
             val item = array.getJSONObject(i)
-            Credit(item.getString("p"), item.getString("t"), item.getString("n"), item.optLong("q"))
+            Credit(item.getString("p"), item.getString("t"), item.getString("n"), item.optString("m"), item.optLong("q"))
         }
     }.getOrDefault(emptyList())
 
     private fun write(queue: List<Credit>) {
         val array = JSONArray()
         queue.forEach {
-            array.put(JSONObject().put("p", it.productId).put("t", it.token).put("n", it.name).put("q", it.queuedAt))
+            array.put(
+                JSONObject().put("p", it.productId).put("t", it.token).put("n", it.name)
+                    .put("m", it.message).put("q", it.queuedAt),
+            )
         }
         prefs.edit { if (queue.isEmpty()) remove(KEY_QUEUE) else putString(KEY_QUEUE, array.toString()) }
     }
@@ -124,7 +149,9 @@ internal class TipCredits(context: Context) {
 private const val PLAY_TIP_URL = "$DOCS_URL/api/play-tip"
 private const val PREFS = "tips"
 private const val KEY_NAME = "name"
+private const val KEY_ANONYMOUS = "anonymous"
 private const val KEY_INTENT = "intent_"
+private const val KEY_INTENT_MESSAGE = "intent_message_"
 private const val KEY_QUEUE = "queue"
 
 /** A credit the server still has not taken after this long is dropped, not carried forever. */

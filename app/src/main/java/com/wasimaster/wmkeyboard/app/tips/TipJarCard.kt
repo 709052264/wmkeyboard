@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.app.tips
 import android.os.Build
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
@@ -19,8 +20,10 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -45,6 +48,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -56,6 +60,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -93,7 +98,10 @@ import com.wasimaster.wmkeyboard.app.ConfettiOverlay
 import com.wasimaster.wmkeyboard.app.LocalReduceMotion
 import com.wasimaster.wmkeyboard.app.StateBanner
 import com.wasimaster.wmkeyboard.app.rememberSettingsHaptics
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChatBubbleOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Person
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Visibility
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
 import kotlinx.coroutines.launch
 
 /**
@@ -144,13 +152,16 @@ private fun cardSwap(): ContentTransform =
 private fun Jar(
     offers: List<TipOffer>?,
     purchase: TipPurchase,
-    onBuy: (TipTier, String) -> Unit,
+    onBuy: (TipTier, String, String) -> Unit,
 ) {
     val context = LocalContext.current
     val credits = remember { TipCredits(context) }
     var selected by rememberSaveable { mutableStateOf(TipTier.DEFAULT) }
+    var anonymous by rememberSaveable { mutableStateOf(credits.anonymous) }
     var name by rememberSaveable { mutableStateOf(credits.name) }
+    var message by rememberSaveable { mutableStateOf("") }
     val focus = LocalFocusManager.current
+    val haptics = rememberSettingsHaptics()
     val busy = purchase is TipPurchase.Paying
 
     Column(Modifier.padding(vertical = 20.dp).animateContentSize()) {
@@ -170,22 +181,58 @@ private fun Jar(
 
         TierRow(offers, selected) { selected = it }
 
-        Spacer(Modifier.height(16.dp))
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it.take(NAME_LIMIT) },
-            label = { Text(stringResource(R.string.tips_name_label)) },
-            supportingText = { Text(stringResource(R.string.tips_name_hint)) },
-            leadingIcon = { Icon(Icons.Outlined.Person, contentDescription = null) },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Words,
-                imeAction = ImeAction.Done,
-            ),
-            enabled = !busy,
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-        )
+        Spacer(Modifier.height(12.dp))
+        AnonymousSwitch(anonymous, enabled = !busy) {
+            haptics.toggle(it)
+            anonymous = it
+        }
+
+        // The name and the message only mean something to a tip that is
+        // listed, so they fold away under the switch rather than sit there
+        // disabled, asking for text that would be thrown away.
+        AnimatedVisibility(
+            visible = !anonymous,
+            enter = expandVertically(tween(260)) + fadeIn(tween(220, delayMillis = 60)),
+            exit = shrinkVertically(tween(220)) + fadeOut(tween(120)),
+        ) {
+            Column {
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it.take(NAME_LIMIT) },
+                    label = { Text(stringResource(R.string.tips_name_label)) },
+                    supportingText = { Text(stringResource(R.string.tips_name_hint)) },
+                    leadingIcon = { Icon(Icons.Outlined.Person, contentDescription = null) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        imeAction = ImeAction.Next,
+                    ),
+                    enabled = !busy,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                )
+                Spacer(Modifier.height(4.dp))
+                OutlinedTextField(
+                    value = message,
+                    onValueChange = { message = it.take(MESSAGE_LIMIT) },
+                    label = { Text(stringResource(R.string.tips_message_label)) },
+                    supportingText = {
+                        Row {
+                            Text(stringResource(R.string.tips_message_hint), modifier = Modifier.weight(1f))
+                            Text("${message.length}/$MESSAGE_LIMIT")
+                        }
+                    },
+                    leadingIcon = { Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null) },
+                    minLines = 2,
+                    maxLines = 5,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                    enabled = !busy,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                )
+            }
+        }
 
         Spacer(Modifier.height(12.dp))
         val price = offers?.firstOrNull { it.tier == selected }?.price
@@ -196,7 +243,11 @@ private fun Jar(
             enabled = price != null && !busy,
             onClick = {
                 focus.clearFocus()
-                onBuy(selected, name)
+                credits.anonymous = anonymous
+                if (!anonymous) credits.name = name
+                // Anonymous sends a blank name, which is what keeps a tip off
+                // the list and its credit from being queued at all.
+                if (anonymous) onBuy(selected, "", "") else onBuy(selected, name, message)
             },
         )
 
@@ -213,6 +264,42 @@ private fun Jar(
                 modifier = Modifier.padding(horizontal = 20.dp),
             )
         }
+    }
+}
+
+/** "Stay anonymous": a switch row inside the card, pressable along its whole width. */
+@Composable
+private fun AnonymousSwitch(checked: Boolean, enabled: Boolean, onChange: (Boolean) -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onChange)
+            .padding(horizontal = 20.dp, vertical = 6.dp),
+    ) {
+        AnimatedContent(
+            targetState = checked,
+            transitionSpec = { (fadeIn() + scaleIn(initialScale = 0.6f)).togetherWith(fadeOut()) },
+            label = "anonymous-icon",
+        ) { hidden ->
+            Icon(
+                if (hidden) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.width(16.dp))
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.tips_anonymous_title), style = MaterialTheme.typography.bodyLarge)
+            Text(
+                stringResource(R.string.tips_anonymous_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.width(12.dp))
+        // The row owns the toggle; the switch only shows it.
+        Switch(checked = checked, onCheckedChange = null, enabled = enabled)
     }
 }
 
@@ -511,8 +598,9 @@ internal fun heartPath(width: Float, height: Float): Path {
     }
 }
 
-/** Same cut as the server's NAME_LIMIT, so what is typed is what is listed. */
+/** Same cuts as the server's NAME_LIMIT and MESSAGE_LIMIT, so what is typed is what is listed. */
 private const val NAME_LIMIT = 60
+private const val MESSAGE_LIMIT = 280
 
 private val TILE_WIDTH = 96.dp
 private val TILE_HEIGHT = 112.dp

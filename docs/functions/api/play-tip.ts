@@ -3,23 +3,37 @@
  *
  * The Play build of the app cannot link to SupportKori (Play's Payments
  * policy), so it sells a few consumable "tip" products instead and, after
- * the purchase, sends `{ productId, purchaseToken, name }` here. Nothing in
+ * the purchase, sends `{ productId, purchaseToken, name, message }` here. Nothing in
  * that body is trusted: the token is looked up with Google through the Play
  * Developer API, and only an order Google says is paid reaches the list. A
  * made-up token gets a 400, so the list cannot be filled by anyone with curl.
  *
  * The entry joins the same KV namespace the SupportKori webhook writes, keyed
  * by the Play order id, so a retry (the app resends until it hears back)
- * writes the same key again rather than a second entry. Like the webhook, the
- * amount is not stored and a blank or "anonymous" name is not listed.
+ * writes the same key again rather than a second entry. Like the webhook, a
+ * blank or "anonymous" name is not listed. The amount stored is the tier's
+ * list price in US dollars from [PRICES], never a figure the app sends: Play
+ * prices each tier per country, and an amount from the client could be made
+ * up, so the website shows the tier's price rather than the local charge.
  *
  * Needs the PLAY_SERVICE_ACCOUNT secret; see wrangler.jsonc. Without it the
  * endpoint answers 503 and the app keeps the credit queued to try later.
  */
-import { type Env, KEY_PREFIX, cleanName, json } from './_supporters';
+import { type Env, KEY_PREFIX, asMetadata, cleanMessage, cleanName, json } from './_supporters';
 
 const PACKAGE = 'com.wasimaster.wmkeyboard';
 const PRODUCT = /^tip_\d{1,3}$/;
+
+/** Each tier's base price in Play Console, kept in step with TipTier.usd in the app. */
+const PRICES: Record<string, number> = {
+	tip_1: 0.99,
+	tip_2: 1.99,
+	tip_5: 4.99,
+	tip_10: 9.99,
+	tip_20: 19.99,
+	tip_50: 49.99,
+	tip_100: 99.99,
+};
 const SCOPE = 'https://www.googleapis.com/auth/androidpublisher';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
@@ -40,7 +54,7 @@ interface ProductPurchase {
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	if (!env.SUPPORTERS || !env.PLAY_SERVICE_ACCOUNT) return json({ status: 'not-configured' }, { status: 503 });
 
-	let body: { productId?: unknown; purchaseToken?: unknown; name?: unknown };
+	let body: { productId?: unknown; purchaseToken?: unknown; name?: unknown; message?: unknown };
 	try {
 		body = await request.json();
 	} catch {
@@ -48,7 +62,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	}
 	const productId = typeof body.productId === 'string' ? body.productId : '';
 	const token = typeof body.purchaseToken === 'string' ? body.purchaseToken : '';
-	if (!PRODUCT.test(productId) || token.length < 16 || token.length > 4096) {
+	if (!PRODUCT.test(productId) || !(productId in PRICES) || token.length < 16 || token.length > 4096) {
 		return json({ status: 'bad-request' }, { status: 400 });
 	}
 
@@ -85,10 +99,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	}
 
 	const at = isoFromMillis(purchase.purchaseTimeMillis);
-	await env.SUPPORTERS.put(`${KEY_PREFIX}${at}:play-${purchase.orderId}`, '', {
-		metadata: { name, kind: 'tip', at },
+	const supporter = asMetadata({
+		name,
+		kind: 'tip',
+		at,
+		amount: PRICES[productId],
+		currency: 'USD',
+		message: cleanMessage(body.message),
 	});
-	return json({ status: 'ok', supporter: { name, kind: 'tip', at } });
+	await env.SUPPORTERS.put(`${KEY_PREFIX}${at}:play-${purchase.orderId}`, '', { metadata: supporter });
+	return json({ status: 'ok' });
 };
 
 /** A cached OAuth access token, reused until a minute before it expires. */

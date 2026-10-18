@@ -39,8 +39,10 @@ internal interface TipJar {
     /**
      * Opens Play's purchase sheet for [tier]. [name] is what the Supporters
      * list should show once Play says the order is paid; blank stays off it.
+     * [message] goes with the name onto the website's list (the app's list
+     * shows names only) and is dropped with it.
      */
-    fun buy(tier: TipTier, name: String)
+    fun buy(tier: TipTier, name: String, message: String)
 
     /** Back to [TipPurchase.Idle], after the thank-you has been seen. */
     fun reset()
@@ -112,6 +114,6 @@ internal sealed interface TipPurchase {
 internal object NoTipJar : TipJar {
     override val offers: StateFlow<TipOffers> = MutableStateFlow(TipOffers.Unavailable)
     override val purchase: StateFlow<TipPurchase> = MutableStateFlow(TipPurchase.Idle)
-    override fun buy(tier: TipTier, name: String) = Unit
+    override fun buy(tier: TipTier, name: String, message: String) = Unit
     override fun reset() = Unit
 }

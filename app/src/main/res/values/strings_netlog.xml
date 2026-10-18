@@ -222,5 +222,5 @@
     <string name="netlog_sent_kde_connect">What you use the tool for, to a computer you paired on your own network.</string>
     <string name="netlog_sent_other">A request the log could not put under a feature.</string>
     <string name="netlog_source_supporters">Supporters list</string>
-    <string name="netlog_sent_supporters">Nothing when it asks for the public list. After a tip through Google Play, the name you typed and the purchase receipt, so the server can check the tip with Google and list you.</string>
+    <string name="netlog_sent_supporters">Nothing when it asks for the public list. After a tip through Google Play, the name and message you typed and the purchase receipt, so the server can check the tip with Google and list you. Nothing at all for an anonymous tip.</string>
 </resources>

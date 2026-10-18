@@ -36,7 +36,8 @@ WM Keyboard collects nothing. There is no account, no advertising, no
 tracking, and no analytics or crash reporting that this project receives. What
 you type is processed on your device and stays there. The one thing the app
 ever sends to a server of this project is a name you typed yourself, after you
-chose to tip and asked to be listed; see [Tips](#tips).
+chose to tip and asked to be listed, with a message if you wrote one; see
+[Tips](#tips).
 
 One caveat: some features are built on
 Google's ML Kit and on Google Play services, and those libraries send their
@@ -114,11 +115,13 @@ About › Supporters. Google Play handles the payment, under
 never sees your card, your Google account or your email address.
 
 If you type a name to be listed, then once Google Play confirms the payment
-the app sends that name and the purchase receipt (the product and Google
-Play's purchase token) to `wmkeyboard.pages.dev/api/play-tip`. The site asks
-Google whether the receipt is a real, paid order and, if it is, adds the name,
-the word "Tip" and the date to the public [Supporters](/start/supporters/)
-list. The amount is not stored. With the name left empty, nothing is sent.
+the app sends that name, the message you typed (if any) and the purchase
+receipt (the product and Google Play's purchase token) to
+`wmkeyboard.pages.dev/api/play-tip`. The site asks Google whether the receipt
+is a real, paid order and, if it is, adds the name, the message, the word
+"Tip", the tier's list price in US dollars and the date to the public
+[Supporters](/start/supporters/) page. The app's own list shows the name only.
+With **Stay anonymous** on, or the name left empty, nothing is sent.
 Until the site has answered, the app keeps the name and receipt on your device
 and tries again when you next open Supporters, for up to 30 days. To have a
 name removed, email the address under [Contact](#contact).
@@ -136,8 +139,9 @@ developer. See [Backup and restore](/privacy/backup/).
 ## Children
 
 WM Keyboard is not directed at children and collects no data from anyone,
-including children. The only thing ever received is the name a tipper chose to
-have listed, described under [Tips](#tips), and it is removed on request.
+including children. The only thing ever received is the name and message a
+tipper chose to have listed, described under [Tips](#tips), and both are
+removed on request.
 
 ## Google components inside the app
 

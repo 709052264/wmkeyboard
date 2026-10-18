@@ -119,15 +119,14 @@ private class PlayTipJar(private val activity: Activity) : TipJar {
         client.endConnection()
     }
 
-    override fun buy(tier: TipTier, name: String) {
+    override fun buy(tier: TipTier, name: String, message: String) {
         val product = details[tier] ?: return
         val offer = product.oneTimePurchaseOfferDetailsList?.firstOrNull()
         val params = BillingFlowParams.ProductDetailsParams.newBuilder()
             .setProductDetails(product)
             .apply { offer?.offerToken?.let { setOfferToken(it) } }
             .build()
-        credits.name = name
-        credits.intend(tier, name)
+        credits.intend(tier, name, message)
         _purchase.value = TipPurchase.Paying(tier)
         val result = client.launchBillingFlow(
             activity,
@@ -223,7 +222,7 @@ private class PlayTipJar(private val activity: Activity) : TipJar {
                 return@consumeAsync
             }
             val name = credits.intendedName(tier)
-            credits.enqueue(tier, token, name)
+            credits.enqueue(tier, token, name, credits.intendedMessage(tier))
             if (celebrate) _purchase.value = TipPurchase.Thanked(tier, name.ifBlank { null })
             scope.launch(Dispatchers.IO) { credits.flush() }
         }

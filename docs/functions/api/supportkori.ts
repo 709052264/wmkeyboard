@@ -10,7 +10,7 @@
  * SupportKori retries a failed delivery once, so a repeat is expected: the key
  * includes the delivery id, and writing it twice stores the same entry.
  */
-import { type Env, type SupporterKind, KEY_PREFIX, cleanName } from './_supporters';
+import { type Env, type SupporterKind, KEY_PREFIX, asMetadata, cleanMessage, cleanName, positive } from './_supporters';
 
 const KINDS: Record<string, SupporterKind> = {
 	'support.created': 'tip',
@@ -33,7 +33,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 		event?: string;
 		createdAt?: string;
 		livemode?: boolean;
-		data?: { buyerName?: string };
+		data?: Record<string, unknown> & { buyerName?: string };
 	};
 	try {
 		payload = JSON.parse(raw);
@@ -49,8 +49,22 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	const name = cleanName(payload.data?.buyerName);
 	if (name === null) return new Response('anonymous');
 
+	const data = payload.data ?? {};
+	// SupportKori publishes no schema for these, so each is read under the
+	// names it plausibly uses, and the keys that arrived are logged once per
+	// delivery (Workers & Pages › the project › Logs) to settle which.
+	console.log(`supportkori ${payload.event} data keys: ${Object.keys(data).join(', ')}`);
 	const at = isoOr(payload.createdAt);
-	await env.SUPPORTERS.put(`${KEY_PREFIX}${at}:${payload.id}`, '', { metadata: { name, kind, at } });
+	const supporter = asMetadata({
+		name,
+		kind,
+		at,
+		amount: positive(data.amount ?? data.totalAmount ?? data.total),
+		currency: typeof data.currency === 'string' ? data.currency.toUpperCase() : 'BDT',
+		quantity: kind === 'tip' ? positive(data.quantity ?? data.coffees ?? data.count) : undefined,
+		message: cleanMessage(data.message ?? data.note ?? data.supportMessage),
+	});
+	await env.SUPPORTERS.put(`${KEY_PREFIX}${at}:${payload.id}`, '', { metadata: supporter });
 	return new Response('ok');
 };
 

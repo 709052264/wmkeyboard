@@ -51,7 +51,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -59,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.tips.Heart
+import com.wasimaster.wmkeyboard.app.tips.SupportKoriCard
 import com.wasimaster.wmkeyboard.app.tips.TipJarCard
 import com.wasimaster.wmkeyboard.app.tips.TipPurchase
 import com.wasimaster.wmkeyboard.app.tips.heartPath
@@ -92,10 +92,12 @@ import kotlin.math.sin
  * How the screen asks for support depends on the channel. Play's Payments
  * policy forbids linking out to SupportKori from the Play build, so that build
  * gets the Play billing tip jar instead ([ChannelFeatures.SUPPORTKORI_LINK]).
+ *
+ * The list here is names only. Amounts and messages come back from the API
+ * too, for the website's list, and are deliberately not parsed.
  */
 private const val SUPPORTERS_URL = "$DOCS_URL/api/supporters"
 private const val SUPPORTERS_ASSET = "supporters.json"
-private const val SUPPORTKORI_URL = "https://www.supportkori.com/wasimaster"
 
 internal data class Supporter(val name: String, val member: Boolean, val at: String)
 
@@ -128,7 +130,6 @@ private fun dateOf(iso: String): String = runCatching {
 @Composable
 internal fun SupportersScreen() {
     val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
     val jar = rememberTipJar()
     var supporters by remember { mutableStateOf<List<Supporter>?>(null) }
@@ -151,18 +152,7 @@ internal fun SupportersScreen() {
     val shown = list?.let { known -> justAdded.filterNot { new -> known.any { it.name == new.name } } + known }
     SupportersHero(count = shown?.size)
 
-    if (ChannelFeatures.SUPPORTKORI_LINK) {
-        SettingsGroup {
-            item {
-                NavRow(
-                    R.string.supporters_support_title,
-                    stringResource(R.string.supporters_support_subtitle),
-                ) { uriHandler.openUri(SUPPORTKORI_URL) }
-            }
-        }
-    } else {
-        TipJarCard(jar)
-    }
+    if (ChannelFeatures.SUPPORTKORI_LINK) SupportKoriCard() else TipJarCard(jar)
 
     shown ?: return
     SettingsGroup(stringResource(R.string.supporters_list_title), info = stringResource(R.string.supporters_intro)) {

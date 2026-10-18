@@ -9,9 +9,12 @@
  * per entry. A key's metadata is capped at 1 KiB, which is why names are cut
  * to [NAME_LIMIT].
  *
- * Amounts are not stored. The page credits people, it does not rank them.
- * To take someone off the list, delete their key in the Cloudflare dashboard
- * (Workers & Pages › KV › the namespace bound as SUPPORTERS).
+ * The amount, the coffee count and the supporter's message are stored too,
+ * for the website's list. The app's list shows names only and ignores them,
+ * and scripts/sync-supporters.mjs strips them from the copy the APK ships.
+ * To take someone off the list, or a message that should not be public,
+ * delete their key in the Cloudflare dashboard (Workers & Pages › KV › the
+ * namespace bound as SUPPORTERS).
  */
 
 export interface Env {
@@ -39,10 +42,22 @@ export interface Supporter {
 	kind: SupporterKind;
 	/** ISO timestamp from SupportKori's `createdAt`, or the Play order's purchase time. */
 	at: string;
+	/** What was paid, in [currency]'s major unit (300 for ৳300). */
+	amount?: number;
+	/** ISO 4217, "BDT" or "USD". */
+	currency?: string;
+	/** SupportKori's coffee count for a tip; absent for a membership or a Play tip. */
+	quantity?: number;
+	/** The supporter's own note, shown on the website only. */
+	message?: string;
 }
 
 export const KEY_PREFIX = 's:';
 export const NAME_LIMIT = 60;
+export const MESSAGE_LIMIT = 280;
+
+/** KV's cap on a key's metadata, less a little room for the JSON around it. */
+const METADATA_BYTES = 1000;
 
 /** Names that mean "do not list me", compared after [cleanName]. */
 const ANONYMOUS = new Set(['', 'anonymous', 'anon', 'someone']);
@@ -51,6 +66,38 @@ const ANONYMOUS = new Set(['', 'anonymous', 'anon', 'someone']);
 export function cleanName(raw: string | undefined): string | null {
 	const name = (raw ?? '').replace(/\s+/g, ' ').trim().slice(0, NAME_LIMIT);
 	return ANONYMOUS.has(name.toLowerCase()) ? null : name;
+}
+
+/** Collapses runs of blank lines and spaces and cuts to [MESSAGE_LIMIT]; undefined when empty. */
+export function cleanMessage(raw: unknown): string | undefined {
+	if (typeof raw !== 'string') return undefined;
+	const message = raw
+		.replace(/[ \t]+/g, ' ')
+		.replace(/\n{3,}/g, '\n\n')
+		.trim()
+		.slice(0, MESSAGE_LIMIT);
+	return message || undefined;
+}
+
+/**
+ * [supporter] as KV metadata, shortening the message until the whole entry
+ * fits KV's 1 KiB limit. A long note in Bengali is three bytes a letter, so
+ * [MESSAGE_LIMIT] alone does not guarantee it.
+ */
+export function asMetadata(supporter: Supporter): Supporter {
+	const entry = { ...supporter };
+	const size = () => new TextEncoder().encode(JSON.stringify(entry)).length;
+	while (entry.message && size() > METADATA_BYTES) {
+		entry.message = entry.message.slice(0, -10).trimEnd() + '…';
+		if (entry.message.length < 4) delete entry.message;
+	}
+	return entry;
+}
+
+/** A positive finite number out of a number or numeric string, else undefined. */
+export function positive(value: unknown): number | undefined {
+	const number = typeof value === 'string' ? Number(value) : value;
+	return typeof number === 'number' && Number.isFinite(number) && number > 0 ? number : undefined;
 }
 
 export const CORS = {
