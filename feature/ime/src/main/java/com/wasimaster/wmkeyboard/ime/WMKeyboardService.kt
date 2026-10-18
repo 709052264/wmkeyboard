@@ -23056,6 +23056,10 @@ open class WMKeyboardService : InputMethodService() {
                     else -> ShiftState.OFF
                 }
             } else {
+                // The space in front of a glided word goes in front of this one
+                // too, so it is not glued to the text before it ("Hi,there")
+                // (#735). A word that starts with taps keeps typing rules.
+                currentInputConnection?.let { commitGestureLeadingSpace(it, state) }
                 duetWord.clear()
                 duetShift = shift
                 consumeShift()
