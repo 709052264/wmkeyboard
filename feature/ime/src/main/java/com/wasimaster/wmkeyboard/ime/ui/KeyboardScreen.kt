@@ -2230,7 +2230,10 @@ private fun DockedKeyboardFrame(
     }
     Box(modifier = outerFrameModifier) {
         Box(modifier = innerFrameModifier) {
-            if (resize != null) ResizeHeadroomScrim()
+            if (resize != null) {
+                ResizeHeadroomScrim()
+                ResizeWindowFit(resize)
+            }
             // Rounded corners cut out of the whole board, the app showing
             // through them. Not on a television, whose card rounds itself, and
             // not while resizing, whose outline chrome runs to the corners.

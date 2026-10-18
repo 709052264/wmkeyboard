@@ -10,6 +10,7 @@ import android.view.WindowInsets
 import android.view.WindowInsetsAnimation
 import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.core.view.WindowInsetsCompat
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import kotlin.math.abs
@@ -202,6 +203,13 @@ internal class StableMeasureFrame(
     private var loggedClip = 0
 
     /**
+     * How far the keyboard last measured past the window it was let have, or 0
+     * while it fits. Watched by the resize tool, whose held frame gives this
+     * much back (#724; see [ResizeWindowFit]).
+     */
+    val overflowPx = mutableIntStateOf(0)
+
+    /**
      * Records in Diagnostics when the keyboard is taller than the window it is
      * given, the bottom rows and padding then being cut off (#669).
      */
@@ -210,6 +218,7 @@ internal class StableMeasureFrame(
         val clip = content - measuredHeight
         if (clip == loggedClip) return
         loggedClip = clip
+        overflowPx.intValue = clip.coerceAtLeast(0)
         if (clip > 0) {
             DebugLog.w(
                 LOG_TAG,
