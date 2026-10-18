@@ -665,6 +665,7 @@ import com.wasimaster.wmkeyboard.core.layout.ModifierKey
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.commitsNoText
+import com.wasimaster.wmkeyboard.core.layout.deletesBackward
 import com.wasimaster.wmkeyboard.core.layout.opensAlternatesPopup
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.input.composer.resolvedComposer
@@ -2218,6 +2219,22 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private var lastRevertible: RevertibleCommit? = null
+
+    /**
+     * An autocorrect a backspace just took back, waiting to find out whether
+     * the user keeps the word it put back.
+     *
+     * The undo backspace is also the first press of a held backspace or a run
+     * of them wiping the text, and that run says nothing about the correction:
+     * it used to retire `i` → `I` for good because someone cleared a test
+     * field. So the rejection is only recorded once the restored word survives
+     * the next key ([settlePendingUndo]), and dropped if the next backspaces
+     * eat into it. [tail] is what followed the word when it came back: the
+     * space, or a mark and its space.
+     */
+    private class PendingUndo(val revert: RevertibleCommit, val tail: String)
+
+    private var pendingUndo: PendingUndo? = null
 
     /**
      * The ANSI encoding a Bengali layout on screen writes, or null while it
@@ -6447,7 +6464,9 @@ open class WMKeyboardService : InputMethodService() {
             flushLearningBuffer(verifyCorrections = false)
             // A different field is a different run of typing, and the blocks an
             // undo puts on a correction are scoped to the run that earned them.
-            // What should outlive it is in the persisted pair counts by now.
+            // What should outlive it is in the persisted pair counts by now,
+            // an undo still waiting included: the user left with it standing.
+            settlePendingUndo(kept = true)
             correctionStats.endFieldSession()
             declinedSpots.clear()
             chipOpenRestore = null
@@ -8363,6 +8382,9 @@ open class WMKeyboardService : InputMethodService() {
     fun onKey(key: Key) = trace(ImeTrace.KEY) { handleKey(key) }
 
     private fun handleKey(key: Key) {
+        // Before the key runs: a space must find the rejection already
+        // recorded, or it corrects the restored word straight back.
+        if (!key.action.deletesBackward()) settlePendingUndoOnKey(key.action)
         // The strip's remembered numbers were about the caret before this key
         // (#431); its echo re-reads them. A space or an enter ends the run of
         // digits, which is the moment it is worth remembering.
@@ -12061,6 +12083,7 @@ open class WMKeyboardService : InputMethodService() {
         if (runKeymanFrameKey(VK_BACKSPACE)) return
         val state = _uiState.value
         val ic = currentInputConnection ?: return
+        settlePendingUndoOnDelete()
         recordStat { onBackspace(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
         // The mid-word strip describes the field as it was before this delete.
         clearCaretWord()
@@ -12189,7 +12212,7 @@ open class WMKeyboardService : InputMethodService() {
                     ic.deleteSurroundingText(probe.length, 0)
                     ic.commitText(revert.original + tail, 1)
                     ic.endBatchEdit()
-                    revertCommitted(ic, revert, state)
+                    revertCommitted(ic, revert, state, tail)
                     return
                 }
                 // Nothing followed the commit after all — a mark that hugged
@@ -12203,7 +12226,7 @@ open class WMKeyboardService : InputMethodService() {
                     ic.deleteSurroundingText(revert.committed.length, 0)
                     ic.commitText(revert.original, 1)
                     ic.endBatchEdit()
-                    revertCommitted(ic, revert, state)
+                    revertCommitted(ic, revert, state, tail = "")
                     return
                 }
             }
@@ -12364,18 +12387,21 @@ open class WMKeyboardService : InputMethodService() {
      * taking back a snippet expansion says nothing about anybody's vocabulary,
      * so it teaches nothing and only puts the context back where it was.
      */
-    private fun revertCommitted(ic: InputConnection, revert: RevertibleCommit, state: KeyboardUiState) {
+    private fun revertCommitted(
+        ic: InputConnection,
+        revert: RevertibleCommit,
+        state: KeyboardUiState,
+        tail: String,
+    ) {
         // A stale precompute for this word would hand the old answer to the
         // next commit before the strip catches up.
         commitResolution = null
         when (revert.kind) {
             RevertibleCommit.Kind.AUTOCORRECT -> {
-                // Undoing the correction retires that exact pair: without
-                // this the very next space corrected the word straight back.
-                // Unconditional, unlike the personal dictionary entry below —
-                // a rejection has to hold in incognito and with learning off
-                // too. Other corrections of the same typed word stay live.
-                suggestionEngine?.rejectCorrection(revert.original, revert.committed)
+                // The rejection itself waits for the next key: see
+                // [PendingUndo]. An older one still waiting was kept.
+                settlePendingUndo(kept = true)
+                pendingUndo = PendingUndo(revert, tail)
                 declinedSpots.undone(revert.original)
                 // Judged here and now, so the settle pass must not judge it
                 // again on the way out and count the rejection twice.
@@ -12383,21 +12409,6 @@ open class WMKeyboardService : InputMethodService() {
                 // The chip was about this correction, and this correction is
                 // no longer in the field.
                 clearUndoChip()
-                if (state.settings.learnFromTyping &&
-                    !(state.incognitoOn && state.settings.incognitoPausesLearning) &&
-                    !state.secureField
-                ) {
-                    // Counted, not learned outright. Reaching for backspace is
-                    // strong evidence — worth several ordinary sightings — but
-                    // it is not proof: undoing a correction is also what you do
-                    // when the correction was simply not the word you wanted,
-                    // and this used to be the shortest path from one stray
-                    // swipe to a misspelling nailed into the dictionary
-                    // forever. Nothing is lost by waiting either, because
-                    // [rejectCorrection] above has already stopped this exact
-                    // correction from firing again.
-                    noteRevertedWord(revert.original, state)
-                }
                 previousWord = revert.original.trim { !WordContext.isWordChar(it) }
                     .lowercase().ifEmpty { null }
                 invalidateRecentWords()
@@ -12436,6 +12447,73 @@ open class WMKeyboardService : InputMethodService() {
                 syncPreviousWordFromField(ic)
             }
         }
+    }
+
+    /**
+     * Records the rejection [pendingUndo] holds when [kept], drops it otherwise.
+     */
+    private fun settlePendingUndo(kept: Boolean) {
+        val revert = pendingUndo?.revert ?: return
+        pendingUndo = null
+        if (!kept) return
+        // Undoing the correction retires that exact pair: without this the
+        // next space corrected the word straight back. Unconditional, unlike
+        // the personal dictionary entry below — a rejection has to hold in
+        // incognito and with learning off too. Other corrections of the same
+        // typed word stay live.
+        suggestionEngine?.rejectCorrection(revert.original, revert.committed)
+        val state = _uiState.value
+        if (state.settings.learnFromTyping &&
+            !(state.incognitoOn && state.settings.incognitoPausesLearning) &&
+            !state.secureField
+        ) {
+            // Counted, not learned outright. Reaching for backspace is strong
+            // evidence — worth several ordinary sightings — but it is not
+            // proof: undoing a correction is also what you do when the
+            // correction was simply not the word you wanted, and this used to
+            // be the shortest path from one stray swipe to a misspelling nailed
+            // into the dictionary forever. Nothing is lost by waiting either,
+            // because [rejectCorrection] above has already stopped this exact
+            // correction from firing again.
+            noteRevertedWord(revert.original, state)
+        }
+    }
+
+    /**
+     * How much of [PendingUndo.tail] still follows the restored word right
+     * behind the caret, or -1 when the word itself is no longer there whole.
+     */
+    private fun pendingUndoTailLeft(pending: PendingUndo): Int {
+        val word = pending.revert.original
+        val before = currentInputConnection
+            ?.getTextBeforeCursor(word.length + pending.tail.length, 0)
+            ?.toString() ?: return -1
+        for (left in pending.tail.length downTo 0) {
+            if (before.endsWith(word + pending.tail.take(left))) return left
+        }
+        return -1
+    }
+
+    /**
+     * A key other than backspace after an undo. The word is kept when the user
+     * moves on from it; a letter typed straight onto its end is editing it into
+     * another word, which says nothing about the correction.
+     */
+    private fun settlePendingUndoOnKey(action: KeyAction) {
+        val pending = pendingUndo ?: return
+        val left = pendingUndoTailLeft(pending)
+        val endsWord = action == KeyAction.Space || action == KeyAction.Enter ||
+            action == KeyAction.Newline || action == KeyAction.EditorAction
+        settlePendingUndo(kept = left > 0 || (left == 0 && endsWord))
+    }
+
+    /**
+     * A backspace after an undo. Taking off the space behind the word leaves
+     * it standing; reaching the word means it is being deleted, not kept.
+     */
+    private fun settlePendingUndoOnDelete() {
+        val pending = pendingUndo ?: return
+        if (pendingUndoTailLeft(pending) <= 0) settlePendingUndo(kept = false)
     }
 
     /**
