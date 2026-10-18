@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -59,7 +58,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -162,9 +160,6 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TimerOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoSizeSelectActual
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoSizeSelectLarge
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoSizeSelectSmall
-import com.wasimaster.wmkeyboard.core.ui.ScrollRailBox
-import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
-import androidx.compose.foundation.lazy.rememberLazyListState
 
 /**
  * What a press and hold on this tool does while it is pinned to the toolbar.
@@ -254,6 +249,7 @@ private fun ToolHoldRow(
                 editing = false
                 scope.launch { repository.setToolHoldAction(tool, ToolHoldAction.None) }
             },
+            memoryKey = "tool-hold",
         )
     }
 }
@@ -288,66 +284,81 @@ internal fun ToolPickerDialog(
     settingsSubtitle: String? = null,
     settingsSelected: Boolean = false,
     onPickSettings: () -> Unit = {},
+    /** Which remembered folds and scroll the page opens with; see [ActionPickerPage]. */
+    memoryKey: String = "tools",
 ) {
-    val list = rememberLazyListState()
-    val rail = rememberScrollRailState(list)
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            ScrollRailBox(state = rail, modifier = Modifier.heightIn(max = 420.dp)) { rows ->
-                LazyColumn(state = list, modifier = rows) {
-                    if (noneSubtitle != null) item {
-                        WmRow(
-                            title = noneTitle ?: stringResource(CommonR.string.common_none),
-                            supporting = { CaptionText(noneSubtitle) },
-                            trailing = {
-                                RadioButton(
-                                    selected = current == null && !nothingSelected && !settingsSelected,
-                                    onClick = { onPick(null) },
-                                )
-                            },
-                            onClick = { onPick(null) },
-                        )
-                    }
-                    if (nothingSubtitle != null) item {
-                        WmRow(
-                            title = stringResource(R.string.tooldetail_hold_nothing_value),
-                            supporting = { CaptionText(nothingSubtitle) },
-                            trailing = {
-                                RadioButton(selected = nothingSelected, onClick = onPickNothing)
-                            },
-                            onClick = onPickNothing,
-                        )
-                    }
-                    if (settingsSubtitle != null) item {
-                        WmRow(
-                            title = stringResource(R.string.tooldetail_hold_settings_title),
-                            supporting = { CaptionText(settingsSubtitle) },
-                            trailing = {
-                                RadioButton(selected = settingsSelected, onClick = onPickSettings)
-                            },
-                            onClick = onPickSettings,
-                        )
-                    }
-                    items(options, key = { it.name }) { tool ->
-                        WmRow(
-                            title = stringResource(toolTitle(tool)),
-                            leading = { SlotIcon(IconSlots.forTool(tool), contentDescription = null) },
-                            trailing = {
-                                RadioButton(selected = current == tool, onClick = { onPick(tool) })
-                            },
-                            onClick = { onPick(tool) },
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
-        },
-    )
+    // A page of its own now (#665), grouped the way the Tools screen groups
+    // them, with the answers that are not a tool above the groups.
+    val special = buildList {
+        if (noneSubtitle != null) {
+            add(
+                PickerRow(
+                    key = "none",
+                    title = noneTitle ?: stringResource(CommonR.string.common_none),
+                    subtitle = noneSubtitle,
+                    selected = current == null && !nothingSelected && !settingsSelected,
+                    onPick = { onPick(null) },
+                ),
+            )
+        }
+        if (nothingSubtitle != null) {
+            add(
+                PickerRow(
+                    key = "nothing",
+                    title = stringResource(R.string.tooldetail_hold_nothing_value),
+                    subtitle = nothingSubtitle,
+                    selected = nothingSelected,
+                    onPick = onPickNothing,
+                ),
+            )
+        }
+        if (settingsSubtitle != null) {
+            add(
+                PickerRow(
+                    key = "settings",
+                    title = stringResource(R.string.tooldetail_hold_settings_title),
+                    subtitle = settingsSubtitle,
+                    selected = settingsSelected,
+                    onPick = onPickSettings,
+                ),
+            )
+        }
+    }
+    val offered = options.toSet()
+    val grouped = ToolGroups.map { (titleRes, tools) -> titleRes to tools.filter { it in offered } }
+    val placed = grouped.flatMapTo(HashSet()) { it.second }
+    val leftovers = options.filter { it !in placed }
+    val groups = buildList {
+        if (special.isNotEmpty()) add(PickerGroup("special", null, special))
+        for ((titleRes, tools) in grouped) {
+            if (tools.isEmpty()) continue
+            add(PickerGroup("group-$titleRes", stringResource(titleRes), tools.map { toolPickerRow(it, current, onPick) }))
+        }
+        if (leftovers.isNotEmpty()) {
+            add(
+                PickerGroup(
+                    "group-other",
+                    stringResource(R.string.tools_group_other_title),
+                    leftovers.map { toolPickerRow(it, current, onPick) },
+                ),
+            )
+        }
+    }
+    ActionPickerPage(memoryKey = memoryKey, title = title, groups = groups, onDismiss = onDismiss)
 }
+
+/** One tool as a picker row: its name, what it does, and its glyph. */
+@Composable
+private fun toolPickerRow(tool: ToolbarTool, current: ToolbarTool?, onPick: (ToolbarTool?) -> Unit): PickerRow =
+    PickerRow(
+        key = tool.name,
+        title = stringResource(toolTitle(tool)),
+        subtitle = stringResource(toolDescription(tool)),
+        selected = current == tool,
+        leading = { SlotIcon(IconSlots.forTool(tool), contentDescription = null) },
+        onPick = { onPick(tool) },
+    )
+
 /** One tool's screen: the enable switch plus every setting the tool has. */
 /**
  * Where Word left, Word right and Select word stop (#662): the app's own idea

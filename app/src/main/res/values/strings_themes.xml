@@ -501,6 +501,8 @@
     <string name="theme_pick_start_title">Pick on the keyboard</string>
     <string name="theme_pick_start_subtitle">Press a key, a tool or the suggestion strip on the preview to style it</string>
     <string name="theme_pick_start_desc">Pick a part of the keyboard to style</string>
+    <string name="theme_editor_undo_desc">Undo the last change to this theme</string>
+    <string name="theme_editor_redo_desc">Redo the change you undid</string>
     <string name="theme_pick_hint">Press a key, a tool or the strip</string>
     <!-- Words the preview's suggestion strip shows while the strip is being styled, separated by commas. -->
     <string name="theme_pick_strip_sample_words">Hello,Thanks,Okay</string>
