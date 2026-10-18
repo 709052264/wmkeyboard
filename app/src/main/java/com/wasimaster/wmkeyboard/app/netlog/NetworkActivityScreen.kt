@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.app.netlog
 
 import android.content.Context
+import com.wasimaster.wmkeyboard.core.settings.providerCredentials
 import android.content.Intent
 import android.text.format.DateUtils
 import android.text.format.Formatter
@@ -885,6 +886,8 @@ private fun ownHosts(settings: KeyboardSettings): Set<String> {
         add(settings.whisper.serverUrl)
         add(settings.translate.deepl.endpoint)
         add(settings.translate.server.url)
+        // Every server set up in a tool's provider list.
+        addAll(settings.providerCredentials().map { it.url })
         // Every backup location's server, not only the one the screen had
         // before there could be several.
         for (location in settings.autoBackup.locations) {

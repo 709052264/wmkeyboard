@@ -20,6 +20,9 @@
     <string name="core_tools_provider_mode_tabs">Tabs</string>
     <string name="core_tools_provider_mode_tabs_desc">Each provider gets its own chip. Tap a chip to see its results.</string>
 
+    <!-- A tool whose list has nothing switched on -->
+    <string name="core_tools_provider_none_on">No provider is on. Turn one on in this tool\'s settings.</string>
+
     <!-- Provider types -->
     <string name="core_tools_provider_klipy_desc">GIFs and stickers. Needs a KLIPY API key, unless this build has one.</string>
     <string name="core_tools_provider_giphy_desc">GIFs and stickers. Always in its own tab: GIPHY does not let apps mix its results with others.</string>

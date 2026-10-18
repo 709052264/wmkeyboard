@@ -1544,13 +1544,8 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
         R.string.tooldetail_layout_nav_one_handed_subtitle,
         weight = EntryWeight.MIRROR,
     ),
-    toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_translate_key_label, R.string.tooldetail_translate_key_hint),
-    toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_deepl_key_label, R.string.tooldetail_deepl_key_hint),
-    toolEntry(
-        ToolbarTool.TRANSLATE,
-        R.string.tooldetail_translate_server_url_label,
-        R.string.tooldetail_translate_server_group,
-    ),
+    // Google, DeepL, LibreTranslate and the user's own server are rows of the provider list now.
+    toolEntry(ToolbarTool.TRANSLATE, R.string.providers_group_title, R.string.providers_add_subtitle),
 )
 
 /** Rows on the tool pages, from Translate through the AI tool. */

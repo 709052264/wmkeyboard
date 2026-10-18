@@ -1,87 +1,126 @@
 package com.wasimaster.wmkeyboard.core.tools
 
+import com.wasimaster.wmkeyboard.core.providers.ProviderEnv
+import com.wasimaster.wmkeyboard.core.providers.ProviderEnvironment
+import com.wasimaster.wmkeyboard.core.providers.ProviderRunner
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
+import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
+import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import java.util.Collections
 
 /**
- * The translate tool's online services in the order the user's setup asks for
- * them, shared by the tool's panel and the AI's `translate` tool (#698) so the
- * two never disagree about where a sentence goes.
+ * The translate list as the engine switch cuts it. On device takes only the
+ * rows that run on the phone, Online only the rest, and Automatic the whole
+ * list in its order.
+ */
+object TranslateProviders {
+
+    fun rows(
+        settings: KeyboardSettings,
+        engine: TranslateEngine,
+        env: ProviderEnv = ProviderEnvironment.current(),
+    ): List<ResolvedProvider> = settings.resolveProviders(ProviderTool.TRANSLATE, env).filter { row ->
+        val device = row.type?.onDevice == true
+        when (engine) {
+            TranslateEngine.ON_DEVICE -> device
+            TranslateEngine.ONLINE -> !device
+            TranslateEngine.AUTO -> true
+        }
+    }
+}
+
+/**
+ * The translate tool's online providers in the user's order, shared by the
+ * tool's panel and the AI's `translate` tool (#698) so the two never disagree
+ * about where a sentence goes. The first that answers is the answer; one that
+ * fails hands the text to the next row that is on. A row the user switched
+ * off is never asked, which is how "my own server and nothing else" is said.
  *
- * Blocking; call on an IO dispatcher. Throws whatever the service that
- * answered threw.
+ * Blocking; call on an IO dispatcher. Throws the last provider's failure
+ * when none answers.
  */
 object OnlineTranslate {
 
     /**
-     * Language pairs DeepL turned down this process, as "source>target", so a
-     * language it does not have costs one refused request rather than one per
-     * keystroke. Forgotten with the process, since DeepL keeps adding languages.
+     * Language pairs DeepL turned down this process, as "row>source>target",
+     * so a language it does not have costs one refused request rather than one
+     * per keystroke. Forgotten with the process, since DeepL keeps adding languages.
      */
     private val deeplRefusedPairs: MutableSet<String> = Collections.synchronizedSet(HashSet())
 
+    /** The online rows of the user's list, in order. */
     fun translate(
         settings: KeyboardSettings,
         text: String,
         target: String,
         source: String = TranslateClient.AUTO,
         isActive: () -> Boolean = { true },
+    ): Translation = translate(TranslateProviders.rows(settings, TranslateEngine.ONLINE), text, target, source, isActive)
+
+    fun translate(
+        rows: List<ResolvedProvider>,
+        text: String,
+        target: String,
+        source: String = TranslateClient.AUTO,
+        isActive: () -> Boolean = { true },
     ): Translation {
         val from = source.ifBlank { TranslateClient.AUTO }
-        // The user's own server outranks every service (#435). It has no
-        // fallback: whatever it answers, error included, is the answer, since
-        // the point of running it is that the text goes nowhere else.
-        val server = settings.translate.server
-        if (server.configured) {
-            return TranslateServerClient.translate(
+        val online = rows.filter { it.type?.onDevice != true }
+        if (online.isEmpty()) throw NoProviderException()
+        return when (val outcome = ProviderRunner.fallback(online, key = { it.key }) { row -> ask(row, text, target, from, isActive) }) {
+            is ProviderRunner.Outcome.Found -> outcome.value
+            ProviderRunner.Outcome.NotFound -> throw NoProviderException()
+            is ProviderRunner.Outcome.Failed -> throw outcome.error ?: NoProviderException()
+        }
+    }
+
+    private fun ask(row: ResolvedProvider, text: String, target: String, from: String, isActive: () -> Boolean): Translation =
+        when (row.typeId) {
+            ProviderTypes.TRANSLATE_SERVER.id -> TranslateServerClient.translate(
                 text = text,
                 target = target,
-                url = server.url,
-                model = server.model,
-                apiKey = server.apiKey,
+                url = row.url,
+                model = row.model,
+                apiKey = row.apiKey,
                 source = from,
                 isActive = isActive,
             )
-        }
-        // DeepL first while the user has set it up (#331). A 400 is DeepL not
-        // having the language, so that pair goes to the usual service instead;
-        // any other failure is the answer, since it is the service they chose.
-        val deepl = settings.translate.deepl
-        val pair = "$from>$target"
-        if (deepl.translateActive && pair !in deeplRefusedPairs) {
-            try {
-                return DeepLClient.translate(
-                    text = text,
-                    target = target,
-                    apiKey = deepl.apiKey,
-                    endpoint = deepl.endpoint,
-                    source = from,
-                )
-            } catch (failure: ToolHttpException) {
-                if (failure.status != HTTP_BAD_REQUEST) throw failure
-                deeplRefusedPairs += pair
+            // A 400 is DeepL not having the language: that pair skips DeepL
+            // from then on and goes to the next row.
+            ProviderTypes.DEEPL.id -> {
+                val pair = "${row.key}>$from>$target"
+                if (pair in deeplRefusedPairs) throw DeepLRefusedException()
+                try {
+                    DeepLClient.translate(text = text, target = target, apiKey = row.apiKey, endpoint = row.url, source = from)
+                } catch (failure: ToolHttpException) {
+                    if (failure.status == HTTP_BAD_REQUEST) deeplRefusedPairs += pair
+                    throw failure
+                }
             }
-        }
-        // Configured instance wins. Without one the F-Droid build still
-        // translates through the keyless public endpoint, which is a working
-        // feature and not worth removing.
-        return if (settings.selfHosted.libreTranslateUrl.isNotBlank()) {
-            LibreTranslateClient.translate(
+            ProviderTypes.LIBRETRANSLATE.id -> LibreTranslateClient.translate(
                 text = text,
                 target = target,
-                endpoint = settings.selfHosted.libreTranslateUrl,
-                apiKey = settings.selfHosted.libreTranslateApiKey,
+                endpoint = row.url,
+                apiKey = row.apiKey,
                 source = from,
             )
-        } else {
-            TranslateClient.translate(
+            // The keyless public endpoint, or Cloud Translation with a key.
+            ProviderTypes.GOOGLE_TRANSLATE.id -> TranslateClient.translate(
                 text = text,
                 targetLang = target,
-                apiKey = ToolApiKeys.translate(settings),
+                apiKey = row.apiKey,
                 sourceLang = from,
             )
+            else -> throw NoProviderException()
         }
-    }
+
+    /** No online provider is on, or none of those that are on knows how to translate. */
+    class NoProviderException : IllegalStateException("No translate provider is on")
+
+    private class DeepLRefusedException : IllegalStateException("DeepL has no model for this pair")
 
     private const val HTTP_BAD_REQUEST = 400
 }

@@ -40,7 +40,8 @@ object ProviderRunner {
     @Volatile
     var clock: () -> Long = { System.nanoTime() / 1_000_000 }
 
-    private val failedAt = ConcurrentHashMap<String, Long>()
+    @PublishedApi
+    internal val failedAt = ConcurrentHashMap<String, Long>()
 
     /** Whether a failure says the service is away, rather than that this one request was wrong. */
     fun unreachable(t: Throwable): Boolean =
@@ -61,13 +62,16 @@ object ProviderRunner {
     /**
      * The first answer that is not [isEmpty], from [providers] in order.
      * A provider that throws or answers empty falls through to the next.
+     *
+     * Inline so the same walk serves blocking clients and suspending ones:
+     * [call] runs in the caller's own context, whichever that is.
      */
-    suspend fun <P, T> fallback(
+    inline fun <P, T> fallback(
         providers: List<P>,
         key: (P) -> String,
         isEmpty: (T) -> Boolean = { false },
         cool: (Throwable) -> Boolean = ::unreachable,
-        call: suspend (P) -> T,
+        call: (P) -> T,
     ): Outcome<T> {
         if (providers.isEmpty()) return Outcome.Failed(null)
         val now = clock()

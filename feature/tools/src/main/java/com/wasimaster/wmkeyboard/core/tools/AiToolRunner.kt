@@ -499,7 +499,10 @@ class AiToolRunner(
             languageCode(asked) ?: return unknownLanguage(call, asked)
         } ?: TranslateClient.AUTO
         val clipped = text.take(TranslateClient.MAX_CHARS)
-        val onDevice = host?.takeIf { it.canTranslateOnDevice }
+        // On the device only while the translate list keeps its on-device row on.
+        val onDevice = host?.takeIf {
+            it.canTranslateOnDevice && TranslateProviders.rows(settings, TranslateEngine.ON_DEVICE).isNotEmpty()
+        }
         val engine = if (onDevice != null) settings.translate.engine else TranslateEngine.ONLINE
         val translation = when (engine) {
             TranslateEngine.ONLINE -> OnlineTranslate.translate(settings, clipped, target, source)

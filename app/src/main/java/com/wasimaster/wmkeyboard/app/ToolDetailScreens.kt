@@ -86,6 +86,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.settings.deeplLive
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -1315,6 +1316,8 @@ internal fun ToolDetailSettings(
                     endpoints = listOf(ServiceEndpoint.KAIKKI, ServiceEndpoint.WIKTIONARY, ServiceEndpoint.DICTIONARY_API),
                 )
             }
+            // The words the packs above do not know, with no network (#665).
+            OfflineDictionariesGroup(settings)
         }
         ToolbarTool.TEXT_EDIT -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
             item {
@@ -2097,48 +2100,24 @@ internal fun ToolDetailSettings(
                 }
             }
             if (onDevice) TranslateModelManager(settings)
+            // Who translates, in order: on the device, the user's own server,
+            // DeepL, LibreTranslate, Google. The engine switch above decides
+            // which part of the list a translation asks.
+            ProvidersGroup(
+                repository,
+                settings,
+                ProviderTool.TRANSLATE,
+                info = stringResource(R.string.tooldetail_translate_providers_info),
+            )
             if (BuildConfig.ENABLE_FDROID) {
-                // This build translates against a LibreTranslate server the
-                // user runs or trusts, so the field is an address rather than
-                // a key. The key below it is optional and often unused.
                 SettingsGroup(
-                    stringResource(R.string.tooldetail_translate_instance_group),
-                    info = stringResource(R.string.tooldetail_translate_instance_info),
+                    stringResource(R.string.servers_group_title),
+                    info = stringResource(R.string.servers_group_info),
                 ) {
-                    item {
-                        TextFieldSetting(
-                            label = stringResource(R.string.tooldetail_translate_instance_label),
-                            value = settings.watch { it.selfHosted.libreTranslateUrl },
-                            hint = stringResource(R.string.tooldetail_translate_instance_hint),
-                            default = SettingsDefaults.selfHosted.libreTranslateUrl,
-                        ) { repository.setLibreTranslateUrl(it) }
-                    }
-                    item {
-                        ApiKeyField(
-                            label = stringResource(R.string.tooldetail_translate_instance_key_label),
-                            value = settings.watch { it.selfHosted.libreTranslateApiKey },
-                            builtInAvailable = false,
-                            emptyHint = stringResource(R.string.tooldetail_translate_instance_key_hint),
-                        ) { repository.setLibreTranslateApiKey(it) }
-                    }
                     serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.TRANSLATE_GOOGLE, ServiceEndpoint.TRANSLATE_CLOUD))
                 }
             }
-            SettingsGroup(
-                stringResource(R.string.tooldetail_translate_key_group),
-                info = stringResource(R.string.tooldetail_translate_info),
-            ) {
-                item {
-                    ApiKeyField(
-                        label = stringResource(R.string.tooldetail_translate_key_label),
-                        value = settings.watch { it.translateApiKey },
-                        builtInAvailable = ToolApiKeys.builtInTranslate,
-                        emptyHint = stringResource(R.string.tooldetail_translate_key_hint),
-                    ) { repository.setTranslateApiKey(it) }
-                }
-            }
-            TranslateServerSettingsGroup(repository, settings)
-            DeepLSettingsGroup(repository, settings)
+            DeepLWriteSettingsGroup(repository, settings)
         }
         ToolbarTool.GIF, ToolbarTool.STICKER -> {
             // Who the panel asks: KLIPY, GIPHY, Commons or another wiki,
@@ -3711,84 +3690,24 @@ private fun ToolKeywordSetting(
         StateBanner(stringResource(R.string.toolai_keyword_off_info))
     }
 }
-/**
- * A translation server the user runs that answers OpenAI chat-completions
- * requests (#435). The address is the switch: blank, the tool is as it was.
- */
-@Composable
-private fun TranslateServerSettingsGroup(repository: SettingsRepository, settings: LiveSettings) {
-    val defaults = SettingsDefaults.translate.server
-    SettingsGroup(
-        stringResource(R.string.tooldetail_translate_server_group),
-        info = stringResource(R.string.tooldetail_translate_server_info),
-    ) {
-        item {
-            TextFieldSetting(
-                label = stringResource(R.string.tooldetail_translate_server_url_label),
-                value = settings.watch { it.translate.server.url },
-                hint = stringResource(R.string.tooldetail_translate_server_url_hint),
-                default = defaults.url,
-            ) { repository.setTranslateServerUrl(it) }
-        }
-        item {
-            TextFieldSetting(
-                label = stringResource(R.string.tooldetail_translate_server_model_label),
-                value = settings.watch { it.translate.server.model },
-                hint = stringResource(R.string.tooldetail_translate_server_model_hint),
-                default = defaults.model,
-            ) { repository.setTranslateServerModel(it) }
-        }
-        item {
-            ApiKeyField(
-                label = stringResource(R.string.tooldetail_translate_server_key_label),
-                value = settings.watch { it.translate.server.apiKey },
-                builtInAvailable = false,
-                emptyHint = stringResource(R.string.tooldetail_translate_server_key_hint),
-            ) { repository.setTranslateServerKey(it) }
-        }
-    }
-}
 
 /**
- * DeepL, the user's own opt-in service (#331): a key or a server, and then
- * what to use it for. Until one of the two fields is filled in the switches
- * stay out of sight, because they would switch nothing.
+ * DeepL Write (#331), for the grammar panel and the selection bar. Its key
+ * and proxy are the DeepL provider of the translate list, so the group only
+ * shows once that is set up; the rows here are what DeepL is used for
+ * besides translating.
  */
 @Composable
-private fun DeepLSettingsGroup(repository: SettingsRepository, settings: LiveSettings) {
+private fun DeepLWriteSettingsGroup(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     val defaults = SettingsDefaults.translate.deepl
     // What decides which rows the group holds; each row reads its own value.
-    val configured = settings.watch { it.translate.deepl.configured }
-    val writeActive = settings.watch { it.translate.deepl.writeActive }
+    val configured = settings.watch { it.deeplLive.configured }
+    val writeActive = settings.watch { it.deeplLive.writeActive }
     SettingsGroup(
         stringResource(R.string.tooldetail_deepl_group),
-        info = stringResource(R.string.tooldetail_deepl_info),
+        info = stringResource(R.string.tooldetail_deepl_write_group_info),
     ) {
-        item {
-            ApiKeyField(
-                label = stringResource(R.string.tooldetail_deepl_key_label),
-                value = settings.watch { it.translate.deepl.apiKey },
-                builtInAvailable = false,
-                emptyHint = stringResource(R.string.tooldetail_deepl_key_hint),
-            ) { repository.setDeepLApiKey(it) }
-        }
-        item {
-            TextFieldSetting(
-                label = stringResource(R.string.tooldetail_deepl_endpoint_label),
-                value = settings.watch { it.translate.deepl.endpoint },
-                hint = stringResource(R.string.tooldetail_deepl_endpoint_hint),
-                default = defaults.endpoint,
-            ) { repository.setDeepLEndpoint(it) }
-        }
-        item(visible = configured) {
-            ToggleSetting(
-                R.string.tooldetail_deepl_translate_title,
-                stringResource(R.string.tooldetail_deepl_translate_subtitle),
-                settings.watch { it.translate.deepl.translate },
-                default = defaults.translate,
-            ) { scope.launch { repository.setDeepLTranslate(it) } }
-        }
         item(visible = configured) {
             ToggleSetting(
                 R.string.tooldetail_deepl_write_title,

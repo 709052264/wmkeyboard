@@ -7,6 +7,10 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderType
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.GifContentFilter
 import com.wasimaster.wmkeyboard.core.tools.CommonsClient
+import com.wasimaster.wmkeyboard.core.tools.DeepLClient
+import com.wasimaster.wmkeyboard.core.tools.LibreTranslateClient
+import com.wasimaster.wmkeyboard.core.tools.TranslateClient
+import com.wasimaster.wmkeyboard.core.tools.TranslateServerClient
 import com.wasimaster.wmkeyboard.core.tools.GiphyClient
 import com.wasimaster.wmkeyboard.core.tools.KlipyClient
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +44,36 @@ internal object ProviderProbes {
             ProviderTypes.COMMONS.id -> {
                 { CommonsClient.searchGifs(PROBE_WORD, limit = 1, endpoint = credential.url) }
             }
+            ProviderTypes.GOOGLE_TRANSLATE.id -> {
+                { TranslateClient.translate(text = PROBE_WORD, targetLang = PROBE_TARGET, apiKey = key, sourceLang = PROBE_SOURCE) }
+            }
+            ProviderTypes.DEEPL.id -> {
+                {
+                    DeepLClient.translate(
+                        text = PROBE_WORD, target = PROBE_TARGET, apiKey = key, endpoint = credential.url, source = PROBE_SOURCE,
+                    )
+                }
+            }
+            ProviderTypes.LIBRETRANSLATE.id -> {
+                {
+                    LibreTranslateClient.translate(
+                        text = PROBE_WORD, target = PROBE_TARGET, endpoint = credential.url, apiKey = key, source = PROBE_SOURCE,
+                    )
+                }
+            }
+            ProviderTypes.TRANSLATE_SERVER.id -> {
+                {
+                    TranslateServerClient.translate(
+                        text = PROBE_WORD,
+                        target = PROBE_TARGET,
+                        url = credential.url,
+                        model = credential.model,
+                        apiKey = key,
+                        source = PROBE_SOURCE,
+                        isActive = { true },
+                    )
+                }
+            }
             else -> null
         }
         return call?.let { blocking -> { withContext(Dispatchers.IO) { blocking() } } }
@@ -47,4 +81,6 @@ internal object ProviderProbes {
 
     /** A word every provider has something for. */
     private const val PROBE_WORD = "hello"
+    private const val PROBE_SOURCE = "en"
+    private const val PROBE_TARGET = "es"
 }

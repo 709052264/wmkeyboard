@@ -454,6 +454,9 @@ import com.wasimaster.wmkeyboard.core.tools.GifSources
 import com.wasimaster.wmkeyboard.core.tools.CommonsClient
 import com.wasimaster.wmkeyboard.core.tools.DeepLClient
 import com.wasimaster.wmkeyboard.core.tools.OnlineTranslate
+import com.wasimaster.wmkeyboard.core.tools.TranslateProviders
+import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
+import com.wasimaster.wmkeyboard.core.settings.deeplLive
 import com.wasimaster.wmkeyboard.core.tools.GiphyClient
 import com.wasimaster.wmkeyboard.core.tools.SearxClient
 import com.wasimaster.wmkeyboard.core.tools.SearchBackend
@@ -34674,48 +34677,71 @@ open class WMKeyboardService : InputMethodService() {
             }
             val target = targetOverride ?: state.settings.translateTargetLang
             val sourceLang = state.translate.sourceOverride
+            val engine = engineOverride ?: translateEngine(state.settings)
             val outcome: (TranslateUi) -> TranslateUi =
-                when (engineOverride ?: translateEngine(state.settings)) {
-                    TranslateEngine.ONLINE ->
-                        onlineOrStandInTranslateUi(state, source, target, sourceLang)
-                    TranslateEngine.ON_DEVICE ->
-                        offlineTranslateUi(source, translateOnDevice(state, source, target, sourceLang))
-                    TranslateEngine.AUTO -> {
-                        val offline = translateOnDevice(state, source, target, sourceLang)
-                        if (offline is OfflineTranslateResult.Success) {
-                            offlineTranslateUi(source, offline)
-                        } else {
-                            val online = translateOnline(state.settings, source, target, sourceLang)
-                            // Both failed. A pair that only needs its models
-                            // (or the engine its module) is the one failure
-                            // the user can fix from here, so that offer
-                            // outranks "no connection".
-                            val fixable = offline is OfflineTranslateResult.NeedsModels ||
-                                offline is OfflineTranslateResult.ModuleMissing
-                            if (online.isFailure && fixable) {
-                                offlineTranslateUi(source, offline)
-                            } else {
-                                onlineTranslateUi(source, online)
-                            }
-                        }
-                    }
+                if (engine == TranslateEngine.ONLINE) {
+                    onlineOrStandInTranslateUi(state, source, target, sourceLang)
+                } else {
+                    translateChainUi(state, TranslateProviders.rows(state.settings, engine), source, target, sourceLang)
                 }
             if (_uiState.value.panel != PanelMode.TRANSLATE) return@launch
             _uiState.update { it.copy(translate = outcome(it.translate)) }
         }
     }
 
-    /** The online chain (#435, #331), shared with the AI's translate tool (#698). */
+    /**
+     * The translate list in the user's order, cut by the engine switch: on
+     * the device where the list says so, and each run of online rows as one
+     * fallback walk. The first that translates is the answer.
+     *
+     * When nothing translates, a pair that only needs its models (or the
+     * engine its module) is the one failure the user can fix from here, so
+     * that offer outranks "no connection".
+     */
+    private suspend fun translateChainUi(
+        state: KeyboardUiState,
+        rows: List<ResolvedProvider>,
+        source: String,
+        target: String,
+        sourceLang: String,
+    ): (TranslateUi) -> TranslateUi {
+        var offline: OfflineTranslateResult? = null
+        var online: Result<Translation>? = null
+        var index = 0
+        while (index < rows.size) {
+            if (rows[index].type?.onDevice == true) {
+                val local = translateOnDevice(state, source, target, sourceLang)
+                if (local is OfflineTranslateResult.Success) return offlineTranslateUi(source, local)
+                if (offline == null) offline = local
+                index++
+                continue
+            }
+            val run = rows.drop(index).takeWhile { it.type?.onDevice != true }
+            val answer = translateOnline(state.settings, source, target, sourceLang, run)
+            if (answer.isSuccess) return onlineTranslateUi(source, answer)
+            online = answer
+            index += run.size
+        }
+        val fixable = offline is OfflineTranslateResult.NeedsModels || offline is OfflineTranslateResult.ModuleMissing
+        return when {
+            offline != null && (online == null || fixable) -> offlineTranslateUi(source, offline)
+            online != null -> onlineTranslateUi(source, online)
+            else -> onlineTranslateUi(source, Result.failure(OnlineTranslate.NoProviderException()))
+        }
+    }
+
+    /** The online part of the list (#435, #331), shared with the AI's translate tool (#698). */
     private suspend fun translateOnline(
         settings: KeyboardSettings,
         source: String,
         target: String,
         sourceLang: String,
+        rows: List<ResolvedProvider> = TranslateProviders.rows(settings, TranslateEngine.ONLINE),
     ): Result<Translation> = withContext(Dispatchers.IO) {
         val job = coroutineContext[Job]
         runCancellable {
             OnlineTranslate.translate(
-                settings = settings,
+                rows = rows,
                 text = source,
                 target = target,
                 source = sourceLang,
@@ -34795,7 +34821,11 @@ open class WMKeyboardService : InputMethodService() {
                         translating = false,
                         missingModels = emptyList(),
                         moduleMissing = false,
-                        error = requestErrorText(e, R.string.ime_service_translate_error),
+                        error = if (e is OnlineTranslate.NoProviderException) {
+                            getString(com.wasimaster.wmkeyboard.tools.R.string.core_tools_provider_none_on)
+                        } else {
+                            requestErrorText(e, R.string.ime_service_translate_error)
+                        },
                     )
                 },
             )
@@ -35319,7 +35349,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onGrammarRephrase() {
         val state = _uiState.value
-        val deepl = state.settings.translate.deepl
+        val deepl = state.settings.deeplLive
         if (!deepl.writeActive || state.grammar.rephrase?.working == true) return
         // The whole field goes to DeepL, so a password field is refused here
         // the same way the AI actions and chat refuse it.
@@ -37226,7 +37256,7 @@ open class WMKeyboardService : InputMethodService() {
             aiAvailable = aiReady,
             // DeepL Write only when the user set it up, and only for what one
             // request carries: a longer selection would come back cut short.
-            deeplWriteAvailable = settings.translate.deepl.writeActive &&
+            deeplWriteAvailable = settings.deeplLive.writeActive &&
                 text.trim().length <= DeepLClient.MAX_CHARS,
             bengaliLoaded = suggestionEngine != null && bengaliListLoaded(),
             hindiLoaded = suggestionEngine?.extraPhonetic?.containsKey(PhoneticSchemes.HINDI.languageId) == true,
@@ -38027,7 +38057,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /** DeepL Write over the selection alone, committed in place (#331). */
     private fun rephraseSelection(offer: SelectionMacroOffer) {
-        val deepl = _uiState.value.settings.translate.deepl
+        val deepl = _uiState.value.settings.deeplLive
         if (!deepl.writeActive || offer.busy != null) return
         val text = offer.text.trim()
         if (text.isEmpty()) return
