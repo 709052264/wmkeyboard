@@ -286,6 +286,7 @@ internal fun panelForTool(tool: ToolbarTool): PanelMode? = when (tool) {
     ToolbarTool.LOCATION -> PanelMode.LOCATION
     ToolbarTool.CLOCK -> PanelMode.CLOCK
     ToolbarTool.HOME_ASSISTANT -> PanelMode.HOME_ASSISTANT
+    ToolbarTool.SEND_FILES -> PanelMode.SEND_FILES
     ToolbarTool.GALLERY -> PanelMode.GALLERY
     ToolbarTool.TRANSLATE -> PanelMode.TRANSLATE
     ToolbarTool.GIF -> PanelMode.GIF

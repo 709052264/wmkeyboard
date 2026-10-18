@@ -229,6 +229,12 @@ val Icons.Outlined.Backup: ImageVector
         .also { _backup = it }
 private var _backup: ImageVector? = null
 
+/** Material Symbols `badge`. */
+val Icons.Outlined.Badge: ImageVector
+    get() = _badge ?: symbolVector("Outlined.Badge", """M240-240h240v-18q0-17-9.5-31.5T444-312q-20-9-40.5-13.5T360-330q-23 0-43.5 4.5T276-312q-17 8-26.5 22.5T240-258v18Zm350-60h100q13 0 21.5-8.5T720-330q0-13-8.5-21.5T690-360H590q-13 0-21.5 8.5T560-330q0 13 8.5 21.5T590-300Zm-187.5-77.5Q420-395 420-420t-17.5-42.5Q385-480 360-480t-42.5 17.5Q300-445 300-420t17.5 42.5Q335-360 360-360t42.5-17.5ZM590-420h100q13 0 21.5-8.5T720-450q0-13-8.5-21.5T690-480H590q-13 0-21.5 8.5T560-450q0 13 8.5 21.5T590-420ZM160-80q-33 0-56.5-23.5T80-160v-440q0-33 23.5-56.5T160-680h200v-120q0-33 23.5-56.5T440-880h80q33 0 56.5 23.5T600-800v120h200q33 0 56.5 23.5T880-600v440q0 33-23.5 56.5T800-80H160Zm0-80h640v-440H600q0 33-23.5 56.5T520-520h-80q-33 0-56.5-23.5T360-600H160v440Zm280-440h80v-200h-80v200Zm40 220Z""", autoMirror = false)
+        .also { _badge = it }
+private var _badge: ImageVector? = null
+
 /** Material Symbols `bar_chart`. */
 val Icons.Outlined.BarChart: ImageVector
     get() = _barChart ?: symbolVector("Outlined.BarChart", """M680-160q-17 0-28.5-11.5T640-200v-200q0-17 11.5-28.5T680-440h80q17 0 28.5 11.5T800-400v200q0 17-11.5 28.5T760-160h-80Zm-240 0q-17 0-28.5-11.5T400-200v-560q0-17 11.5-28.5T440-800h80q17 0 28.5 11.5T560-760v560q0 17-11.5 28.5T520-160h-80Zm-240 0q-17 0-28.5-11.5T160-200v-360q0-17 11.5-28.5T200-600h80q17 0 28.5 11.5T320-560v360q0 17-11.5 28.5T280-160h-80Z""", autoMirror = false)
@@ -1123,6 +1129,12 @@ val Icons.Outlined.FolderOpen: ImageVector
         .also { _folderOpen = it }
 private var _folderOpen: ImageVector? = null
 
+/** Material Symbols `folder_zip`. */
+val Icons.Outlined.FolderZip: ImageVector
+    get() = _folderZip ?: symbolVector("Outlined.FolderZip", """M640-480v-80h80v80h-80Zm0 80h-80v-80h80v80Zm0 80v-80h80v80h-80ZM447-640l-80-80H160v480h400v-80h80v80h160v-400H640v80h-80v-80H447ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h207q16 0 30.5 6t25.5 17l57 57h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80v-480 480Z""", autoMirror = false)
+        .also { _folderZip = it }
+private var _folderZip: ImageVector? = null
+
 /** Material Symbols `font_download`. */
 val Icons.Outlined.FontDownload: ImageVector
     get() = _fontDownload ?: symbolVector("Outlined.FontDownload", """M384-362h192l35 97q4 11 14 18t22 7q20 0 32.5-16.5T684-293L532-695q-5-11-15-18t-22-7h-30q-12 0-22 7t-15 18L276-293q-8 19 4 36t32 17q13 0 22.5-7t14.5-19l35-96Zm24-70 70-198h4l70 198H408ZM160-80q-33 0-56.5-23.5T80-160v-640q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v640q0 33-23.5 56.5T800-80H160Zm0-80h640v-640H160v640Zm0-640v640-640Z""", autoMirror = false)
@@ -1716,6 +1728,12 @@ val Icons.Outlined.Mouse: ImageVector
     get() = _mouse ?: symbolVector("Outlined.Mouse", """M480-80q-116 0-198-82t-82-198v-240q0-116 82-198t198-82q116 0 198 82t82 198v240q0 116-82 198T480-80Zm40-520h160q0-72-45.5-127T520-796v196Zm-240 0h160v-196q-69 14-114.5 69T280-600Zm200 440q83 0 141.5-58.5T680-360v-160H280v160q0 83 58.5 141.5T480-160Zm0-360Zm40-80Zm-80 0Zm40 80Z""", autoMirror = false)
         .also { _mouse = it }
 private var _mouse: ImageVector? = null
+
+/** Material Symbols `movie`. */
+val Icons.Outlined.Movie: ImageVector
+    get() = _movie ?: symbolVector("Outlined.Movie", """m160-800 65 130q7 14 20 22t28 8q30 0 46-25.5t2-52.5l-41-82h80l65 130q7 14 20 22t28 8q30 0 46-25.5t2-52.5l-41-82h80l65 130q7 14 20 22t28 8q30 0 46-25.5t2-52.5l-41-82h120q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800Zm0 240v320h640v-320H160Zm0 0v320-320Z""", autoMirror = false)
+        .also { _movie = it }
+private var _movie: ImageVector? = null
 
 /** Material Symbols `music_note`. */
 val Icons.Outlined.MusicNote: ImageVector
@@ -2970,6 +2988,12 @@ val Icons.Outlined.Wifi: ImageVector
     get() = _wifi ?: symbolVector("Outlined.Wifi", """M409-149q-29-29-29-71t29-71q29-29 71-29t71 29q29 29 29 71t-29 71q-29 29-71 29t-71-29Zm213.5-387Q690-512 745-470q20 15 20.5 39.5T748-388q-17 17-42 17.5T661-384q-38-26-84-41t-97-15q-51 0-97 15t-84 41q-20 14-45 13t-42-18q-17-18-17-42.5t20-39.5q55-42 122.5-65.5T480-560q75 0 142.5 24Zm93-223Q826-718 914-643q20 17 21 42t-17 43q-17 17-42 17.5T831-556q-72-59-161.5-91.5T480-680q-100 0-189.5 32.5T129-556q-20 16-45 15.5T42-558q-18-18-17-43t21-42q88-75 198.5-116T480-800q125 0 235.5 41Z""", autoMirror = false)
         .also { _wifi = it }
 private var _wifi: ImageVector? = null
+
+/** Material Symbols `wifi_tethering`. */
+val Icons.Outlined.WifiTethering: ImageVector
+    get() = _wifiTethering ?: symbolVector("Outlined.WifiTethering", """M233-179q-12 12-29 12t-28-13q-45-53-70.5-119T80-440q0-83 31.5-156T197-723q54-54 127-85.5T480-840q83 0 156 31.5T763-723q54 54 85.5 127T880-440q0 75-25.5 141T784-180q-11 13-27.5 13.5T728-178q-11-11-11-28t11-30q34-42 53-94t19-110q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 58 19 109.5t54 93.5q11 13 11.5 29.5T233-179Zm113-113q-12 12-29 12.5T290-293q-23-31-36.5-68T240-440q0-100 70-170t170-70q100 0 170 70t70 170q0 42-13.5 79.5T670-293q-10 13-27 13.5T614-291q-11-11-11.5-28t9.5-31q13-20 20.5-42.5T640-440q0-66-47-113t-113-47q-66 0-113 47t-47 113q0 26 7.5 48t20.5 42q10 14 9.5 30.5T346-292Zm77.5-91.5Q400-407 400-440t23.5-56.5Q447-520 480-520t56.5 23.5Q560-473 560-440t-23.5 56.5Q513-360 480-360t-56.5-23.5Z""", autoMirror = false)
+        .also { _wifiTethering = it }
+private var _wifiTethering: ImageVector? = null
 
 /** Material Symbols `window`. */
 val Icons.Outlined.Window: ImageVector

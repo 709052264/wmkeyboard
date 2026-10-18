@@ -37,6 +37,7 @@ internal val LuaDiagnosticCode.messageRes: Int
         LuaDiagnosticCode.LUA51_GONE -> R.string.lua_diag_lua51_gone
         LuaDiagnosticCode.STRING_DUMP -> R.string.lua_diag_string_dump
         LuaDiagnosticCode.STORAGE_NOT_DECLARED -> R.string.lua_diag_storage_not_declared
+        LuaDiagnosticCode.REMINDERS_NOT_DECLARED -> R.string.lua_diag_reminders_not_declared
         LuaDiagnosticCode.FRONTIER_PATTERN -> R.string.lua_diag_frontier_pattern
         LuaDiagnosticCode.MISSING_RENDER -> R.string.lua_diag_missing_render
         LuaDiagnosticCode.RENDER_RETURNS_NOTHING -> R.string.lua_diag_render_returns_nothing

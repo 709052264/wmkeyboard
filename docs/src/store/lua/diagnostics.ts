@@ -33,6 +33,7 @@ export const CODES = {
 	LUA51_GONE: ['WARNING', '%1 is from Lua 5.1, and Lua 5.2 has nothing in its place.'],
 	STRING_DUMP: ['WARNING', 'string.dump always fails in a plugin.'],
 	STORAGE_NOT_DECLARED: ['WARNING', 'wm.storage is nil because the manifest does not declare the storage permission.'],
+	REMINDERS_NOT_DECLARED: ['WARNING', 'wm.reminders is nil because the manifest does not declare the reminders permission.'],
 	FRONTIER_PATTERN: ['WARNING', 'Frontier patterns stop the plugin with an error on this keyboard.'],
 	MISSING_RENDER: ['ERROR', 'The script has no render function, so the panel stays empty.'],
 	RENDER_RETURNS_NOTHING: ['WARNING', 'render returns nothing, so the panel stays empty.'],
@@ -78,6 +79,7 @@ export function textOf(d: LuaDiagnostic): string {
 
 export interface LuaHostShape {
 	storage: boolean;
+	reminders?: boolean;
 }
 
 export const MAX_DIAGNOSTICS = 200;

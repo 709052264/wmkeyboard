@@ -47,7 +47,7 @@ object LuaApiDocs {
         "bit32" to "Bitwise operations on 32-bit numbers.",
         "os" to "A reduced os library: time, clock and date only.",
         "ui" to "Builds the widgets render() returns. Each function returns a plain table; you can write the table yourself.",
-        "wm" to "The whole host API: log, json, ui and, with the storage permission, storage. There is no way to read text, the clipboard, files or the network.",
+        "wm" to "The whole host API: log, json, ui and, with their permissions, storage and reminders. There is no way to read text, the clipboard, files or the network.",
 
         "string.byte" to "The character codes of s from i to j.",
         "string.char" to "A string made of the given character codes.",
@@ -116,9 +116,9 @@ object LuaApiDocs {
 
         "os.clock" to "Seconds since this plugin session started.",
         "os.date" to "The date as text, or as a table with \"*t\". Understands %Y %y %m %d %H %M %S %j %p %A %a %B %b %c %x %X and %%, and a leading ! for UTC.",
-        "os.time" to "The time now, in seconds. It always gives the time now and does not read a table.",
+        "os.time" to "The time now, in seconds. Given a table { year, month, day, hour, min, sec }, that moment in the phone's time zone instead; hour is 12 when not given, and a field past its range rolls over, so day = 32 is the next month.",
 
-        "wm.api_version" to "The API level this keyboard gives plugins. Now 1.",
+        "wm.api_version" to "The API level this keyboard gives plugins. Now 2.",
         "wm.plugin_id" to "The id from your manifest.",
         "wm.plugin_version" to "The pluginVersion from your manifest.",
         "wm.log" to "Writes message as one line of your plugin log, readable in Settings and in the editor console.",
@@ -132,6 +132,10 @@ object LuaApiDocs {
         "wm.storage.set" to "Saves value under key. Returns true, or nil and a reason when over the quota: 128 keys, 64 characters a key, 8 KB a value, 64 KB in all.",
         "wm.storage.remove" to "Deletes key.",
         "wm.storage.keys" to "A list of every saved key.",
+        "wm.reminders" to "Reminders the app shows in a notification at a time you set, with your plugin's name as the title. Only there when the manifest declares the reminders permission; otherwise nil.",
+        "wm.reminders.set" to "Shows text at time, in seconds as os.time gives, setting or replacing the reminder id. Returns true, or nil and a reason: a time already past, no text, or over 64 reminders. Text up to 200 characters.",
+        "wm.reminders.cancel" to "Cancels the reminder id. Returns true when there was one.",
+        "wm.reminders.list" to "Every reminder not shown yet, soonest first: a list of { id, time, text }. A reminder is gone from the list once it is shown.",
 
         "ui.column" to "Widgets stacked top to bottom. Put the children in the table: ui.column { ui.label { text = \"a\" }, ui.label { text = \"b\" } }.",
         "ui.row" to "Widgets side by side, sharing the width equally.",
@@ -140,6 +144,7 @@ object LuaApiDocs {
         "ui.button" to "A button. on_event hears { type = \"click\", id = id }. style = \"primary\" highlights it; enabled = false greys it out.",
         "ui.toggle" to "A switch. on_event hears { type = \"toggle\", id = id, value = true or false }.",
         "ui.input" to "A text box the keyboard owns. on_event hears { type = \"input_changed\", id = id, value = text } after each change. Write to it with wm.ui.set_input.",
+        "ui.date" to "A date the user picks with the keyboard's own buttons. value is seconds as os.time gives, or nil for none yet. time = true picks a time of day too; step is the minutes the smaller time buttons move, 15 when not given. on_event hears { type = \"date_changed\", id = id, value = seconds or nil }.",
         "ui.spacer" to "Empty space, height from 0 to 64. 8 when not given.",
         "ui.divider" to "A line across the panel.",
         "ui.progress" to "An indeterminate bar that shows something is happening.",

@@ -121,6 +121,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.VOCABULARY -> R.string.netlog_source_vocabulary to R.string.netlog_sent_vocabulary
     NetSource.SYNONYMS -> R.string.netlog_source_synonyms to R.string.netlog_sent_synonyms
     NetSource.WEATHER -> R.string.netlog_source_weather to R.string.netlog_sent_weather
+    NetSource.SEND -> R.string.netlog_source_send to R.string.netlog_sent_send
     NetSource.LOCATION -> R.string.netlog_source_location to R.string.netlog_sent_location
     NetSource.CURRENCY -> R.string.netlog_source_currency to R.string.netlog_sent_currency
     NetSource.PHOTOS -> R.string.netlog_source_photos to R.string.netlog_sent_photos

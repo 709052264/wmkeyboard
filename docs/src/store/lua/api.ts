@@ -8,7 +8,7 @@ export interface LuaApiEntry {
 	/** How it is called, `decode(text)`, or null for a table or a constant. */
 	signature: string | null;
 	/** Present only when the manifest declares this permission. */
-	permission: 'storage' | null;
+	permission: 'storage' | 'reminders' | null;
 	name: string;
 	parent: string;
 }
@@ -44,7 +44,7 @@ export const never: ReadonlySet<string> = new Set(['text', 'clipboard', 'http', 
 
 export const labelStyles = ['title', 'body', 'caption'];
 export const buttonStyles = ['primary'];
-export const eventTypes = ['click', 'toggle', 'input_changed', 'tab_selected'];
+export const eventTypes = ['click', 'toggle', 'input_changed', 'tab_selected', 'date_changed'];
 
 const shape = (constructor: string, fields: string[], takesChildren: boolean, widgetType: string | null, values: Record<string, string[]> = {}, needsId = false): LuaUiShape => ({ constructor, fields, takesChildren, widgetType, values, needsId });
 
@@ -57,6 +57,7 @@ export const uiShapes: Record<string, LuaUiShape> = Object.fromEntries(
 		shape('button', ['id', 'text', 'style', 'enabled'], false, 'button', { style: buttonStyles }, true),
 		shape('toggle', ['id', 'label', 'checked'], false, 'toggle', {}, true),
 		shape('input', ['id', 'label', 'placeholder'], false, 'input', {}, true),
+		shape('date', ['id', 'label', 'value', 'time', 'step'], false, 'date', {}, true),
 		shape('spacer', ['height'], false, 'spacer'),
 		shape('divider', [], false, 'divider'),
 		shape('progress', [], false, 'progress'),
@@ -68,14 +69,14 @@ export const uiShapes: Record<string, LuaUiShape> = Object.fromEntries(
 /** Every `type` string the renderer draws. */
 export const widgetTypes: ReadonlySet<string> = new Set(Object.values(uiShapes).map((s) => s.widgetType).filter((t): t is string => !!t));
 
-function entry(path: string, kind: LuaApiKind, signature: string | null = null, permission: 'storage' | null = null): LuaApiEntry {
+function entry(path: string, kind: LuaApiKind, signature: string | null = null, permission: 'storage' | 'reminders' | null = null): LuaApiEntry {
 	const dot = path.lastIndexOf('.');
 	return { path, kind, signature, permission, name: dot < 0 ? path : path.slice(dot + 1), parent: dot < 0 ? '' : path.slice(0, dot) };
 }
 
 const list: LuaApiEntry[] = [];
-const fn = (path: string, signature: string, permission: 'storage' | null = null) => list.push(entry(path, 'FUNCTION', signature, permission));
-const table = (path: string, permission: 'storage' | null = null) => list.push(entry(path, 'TABLE', null, permission));
+const fn = (path: string, signature: string, permission: 'storage' | 'reminders' | null = null) => list.push(entry(path, 'FUNCTION', signature, permission));
+const table = (path: string, permission: 'storage' | 'reminders' | null = null) => list.push(entry(path, 'TABLE', null, permission));
 const constant = (path: string) => list.push(entry(path, 'CONSTANT'));
 
 table('_G');
@@ -134,7 +135,7 @@ for (const [name, params] of [
 
 fn('os.clock', 'clock()');
 fn('os.date', 'date(format, time)');
-fn('os.time', 'time()');
+fn('os.time', 'time(table)');
 
 constant('wm.api_version');
 constant('wm.plugin_id');
@@ -150,6 +151,10 @@ fn('wm.storage.get', 'get(key)', 'storage');
 fn('wm.storage.set', 'set(key, value)', 'storage');
 fn('wm.storage.remove', 'remove(key)', 'storage');
 fn('wm.storage.keys', 'keys()', 'storage');
+table('wm.reminders', 'reminders');
+fn('wm.reminders.set', 'set(id, time, text)', 'reminders');
+fn('wm.reminders.cancel', 'cancel(id)', 'reminders');
+fn('wm.reminders.list', 'list()', 'reminders');
 
 for (const s of Object.values(uiShapes)) {
 	const fields = s.fields.map((f) => `${f} = ...`).join(', ');

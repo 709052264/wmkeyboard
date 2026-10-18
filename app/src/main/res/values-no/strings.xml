@@ -7647,12 +7647,6 @@
     <string name="tooldetail_ocr_info">Gjenkjenning kjører på enheten din med ML Kit. Ingen bilder eller tekst forlater enheten din, og det fungerer offline. Den leser tekst med latinske bokstaver, for eksempel engelsk. Tekstgjenkjenneren i ML Kit støtter ikke bengali ennå. Etter et opptak, trykk på ord for å velge nøyaktig hva tastaturet skal skrive eller kopiere.</string>
     <string name="tooldetail_ocr_online_group">Tekstleser på nett</string>
     <string name="tooldetail_ocr_online_info">Bildet går til en modell som kan lese bilder, på en adresse du velger, og modellen skriver ut teksten den ser. Den leser ethvert skript og trenger ingen språkdata. Enhver tjeneste med et OpenAI-kompatibelt API fungerer: OpenAI, OpenRouter, Gemini, Mistral, eller en modell på din egen datamaskin med Ollama eller LM Studio. Hver skanning sender bildet til den tjenesten, og tjenesten kan ta betalt for det.</string>
-    <string name="tooldetail_ocr_online_key_hint">La stå tom for en server som ikke krever nøkkel</string>
-    <string name="tooldetail_ocr_online_key_label">API-nøkkel</string>
-    <string name="tooldetail_ocr_online_model_hint">En modell som leser bilder, for eksempel gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Modell</string>
-    <string name="tooldetail_ocr_online_url_hint">For eksempel https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Adresse</string>
     <string name="tooldetail_ocr_packs_header">Tesseract-språk</string>
     <string name="tooldetail_ocr_packs_info">Tesseract kan kun lese et språk når dataene for språket er lagret på enheten. Det er én nedlasting per språk du skriver inn, fra 0,4 MB til 12 MB. Dataene hentes fra tessdata_fast-settet i Tesseract-prosjektet på GitHub. Du kan også laste ned et språk direkte fra skanneren.</string>
     <string name="tooldetail_ocr_packs_none_info">Ingen av språkene du har aktivert har Tesseract-data. Legg til et språk på skjermbildet Språk. Dataene vil deretter vises her.</string>

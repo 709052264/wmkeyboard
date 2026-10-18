@@ -22,9 +22,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Dns
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VolunteerActivism
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Devices
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Adjust
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Dns
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notifications
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoStories
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteSweep
@@ -586,6 +587,9 @@ internal object SettingsRouteIcons {
         "musicapps" to { Icons.Outlined.MusicNote },
         "launchercombos" to { Icons.Outlined.VerticalSplit },
         "kdeconnect/devices" to { Icons.Outlined.Devices },
+        "send/instances" to { Icons.Outlined.Dns },
+        "send/history" to { Icons.Outlined.History },
+        "supporters" to { Icons.Outlined.VolunteerActivism },
     )
 
     operator fun get(route: String): ImageVector? = map[route]?.invoke()

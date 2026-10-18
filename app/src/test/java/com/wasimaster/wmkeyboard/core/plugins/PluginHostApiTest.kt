@@ -25,6 +25,8 @@ class PluginHostApiTest {
         permissions = permissions,
     )
 
+    private val reminders = PluginReminders(null)
+
     private fun sandbox(
         permissions: List<String> = emptyList(),
         storageFile: File? = null,
@@ -37,6 +39,7 @@ class PluginHostApiTest {
             storage = if ("storage" in permissions) PluginStorage(storageFile) else null,
             setInput = { id, text -> writes += id to text },
             revoked = { revoked },
+            reminders = if ("reminders" in permissions) reminders else null,
         )
         globals.set("wm", api.table())
         budget.begin(PluginLimit.LOAD)
@@ -63,10 +66,10 @@ class PluginHostApiTest {
             table.sort(names)
             return table.concat(names, ',')
             """.trimIndent(),
-            permissions = listOf("storage"),
+            permissions = listOf("storage", "reminders"),
         ).tojstring()
 
-        assertEquals("api_version,json,log,plugin_id,plugin_version,storage,ui", keys)
+        assertEquals("api_version,json,log,plugin_id,plugin_version,reminders,storage,ui", keys)
     }
 
     @Test
@@ -89,7 +92,7 @@ class PluginHostApiTest {
     fun `a plugin can see its own identity`() {
         assertEquals(LuaValue.valueOf("com.example.demo"), run("return wm.plugin_id"))
         assertEquals(LuaValue.valueOf("1.0.0"), run("return wm.plugin_version"))
-        assertEquals(1, run("return wm.api_version").toint())
+        assertEquals(PluginManifestCodec.API_VERSION, run("return wm.api_version").toint())
     }
 
     // ---- storage ----------------------------------------------------------
@@ -137,6 +140,51 @@ class PluginHostApiTest {
             file = file,
         )
         assertEquals(LuaValue.valueOf("b"), result)
+    }
+
+    // ---- reminders --------------------------------------------------------
+
+    @Test
+    fun `reminders are absent unless the manifest declared them`() {
+        assertEquals(LuaValue.TRUE, run("return wm.reminders == nil", permissions = listOf("storage")))
+        assertEquals(LuaValue.TRUE, run("return wm.reminders ~= nil", permissions = listOf("reminders")))
+    }
+
+    @Test
+    fun `a reminder is set in seconds, listed, replaced and cancelled`() {
+        val result = run(
+            """
+            local at = os.time() + 3600
+            assert(wm.reminders.set('milk', at, 'Buy milk'))
+            assert(wm.reminders.set('milk', at + 60, 'Buy oat milk'))
+            assert(wm.reminders.set('call', at + 30, 'Call mum'))
+            local list = wm.reminders.list()
+            local first = list[1]
+            local ok = #list == 2 and first.id == 'call' and first.time == at + 30 and list[2].text == 'Buy oat milk'
+            local cancelled = wm.reminders.cancel('call')
+            return ok and cancelled and not wm.reminders.cancel('call') and #wm.reminders.list() == 1
+            """.trimIndent(),
+            permissions = listOf("reminders"),
+        )
+        assertEquals(LuaValue.TRUE, result)
+        assertEquals(listOf("milk"), reminders.list().map { it.id })
+    }
+
+    @Test
+    fun `a reminder in the past, with no text or with no time is refused with a reason`() {
+        val result = run(
+            """
+            local a, past = wm.reminders.set('a', os.time() - 10, 'late')
+            local b, empty = wm.reminders.set('b', os.time() + 60, '   ')
+            local c, notime = wm.reminders.set('c', 'tomorrow', 'x')
+            local d, huge = wm.reminders.set('d', 1e300, 'x')
+            return a == nil and b == nil and c == nil and d == nil
+              and past ~= nil and empty ~= nil and notime ~= nil and huge ~= nil
+            """.trimIndent(),
+            permissions = listOf("reminders"),
+        )
+        assertEquals(LuaValue.TRUE, result)
+        assertTrue(reminders.list().isEmpty())
     }
 
     // ---- json -------------------------------------------------------------

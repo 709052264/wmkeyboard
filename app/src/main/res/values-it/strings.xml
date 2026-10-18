@@ -7636,12 +7636,6 @@
     <string name="tooldetail_ocr_info">Il riconoscimento viene eseguito sul tuo dispositivo con ML Kit. Nessuna foto e nessun testo lascia il tuo dispositivo, e funziona offline. Legge testo in alfabeto latino, ad esempio l\'inglese. Il riconoscitore di testo di ML Kit non supporta ancora il bengalese. Dopo un\'acquisizione, premi sulle parole per selezionare esattamente ciò che la tastiera deve digitare o copiare.</string>
     <string name="tooldetail_ocr_online_group">Lettore di testo online</string>
     <string name="tooldetail_ocr_online_info">La foto viene inviata a un modello in grado di leggere le immagini, a un indirizzo a tua scelta, e il modello scrive il testo che vede. Legge qualsiasi script e non necessita di dati linguistici. Funziona qualsiasi servizio con API compatibile con OpenAI: OpenAI, OpenRouter, Gemini, Mistral o un modello sul tuo computer con Ollama o LM Studio. Ogni scansione invia la foto a quel servizio, che potrebbe addebitare un costo.</string>
-    <string name="tooldetail_ocr_online_key_hint">Lasciare vuoto per un server che non richiede alcuna chiave</string>
-    <string name="tooldetail_ocr_online_key_label">Chiave API</string>
-    <string name="tooldetail_ocr_online_model_hint">Un modello che legge le immagini, ad esempio gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Modello</string>
-    <string name="tooldetail_ocr_online_url_hint">Per esempio https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Indirizzo</string>
     <string name="tooldetail_ocr_packs_header">Lingue Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract legge una lingua solo dopo che i dati per quella lingua sono sul tuo dispositivo. C\'è un download per ogni lingua che digiti, da 0,4 MB a 12 MB. I dati provengono dal set tessdata_fast del progetto Tesseract su GitHub. Puoi anche scaricare una lingua dallo scanner stesso.</string>
     <string name="tooldetail_ocr_packs_none_info">Nessuna delle lingue attivate dispone di dati Tesseract. Aggiungi una lingua nella schermata Lingue. I relativi dati verranno quindi visualizzati qui.</string>

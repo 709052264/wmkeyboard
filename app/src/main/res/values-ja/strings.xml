@@ -7638,12 +7638,6 @@
     <string name="tooldetail_ocr_info">認識はML Kitを使用してデバイス上で実行されます。写真やテキストがデバイスから送信されることはなく、オフラインで動作します。英語などのラテン文字テキストを読み取ります。ML Kitのテキスト認識機能は、現時点ではベンガル語をサポートしていません。キャプチャ後、単語を押してキーボードで入力またはコピーする内容を選択してください。</string>
     <string name="tooldetail_ocr_online_group">オンラインテキストリーダー</string>
     <string name="tooldetail_ocr_online_info">写真は画像読み取り可能なモデル（選択したアドレス）に送信され、モデルが認識したテキストを書き出します。あらゆるスクリプトを読み取ることができ、言語データは不要です。OpenAI互換APIを持つサービス（OpenAI、OpenRouter、Gemini、Mistral、またはOllamaやLM Studioを使用したローカルモデルなど）が利用可能です。スキャンごとに写真がそのサービスに送信され、サービス側で料金が発生する場合があります。</string>
-    <string name="tooldetail_ocr_online_key_hint">キーを必要としないサーバーの場合は空白のままにしてください</string>
-    <string name="tooldetail_ocr_online_key_label">APIキー</string>
-    <string name="tooldetail_ocr_online_model_hint">画像を読み取るモデル（例: gpt-4o-mini）</string>
-    <string name="tooldetail_ocr_online_model_label">モデル</string>
-    <string name="tooldetail_ocr_online_url_hint">例: https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">アドレス</string>
     <string name="tooldetail_ocr_packs_header">Tesseract言語</string>
     <string name="tooldetail_ocr_packs_info">Tesseractは、その言語のデータがデバイス上にある場合にのみ言語を読み取ることができます。入力する言語ごとに0.4MBから12MBのダウンロードが必要です。データはGitHubのTesseractプロジェクトのtessdata_fastセットから提供されます。スキャナー自体から言語をダウンロードすることもできます。</string>
     <string name="tooldetail_ocr_packs_none_info">有効にした言語にはTesseractデータが含まれていません。「言語」画面で言語を追加してください。追加すると、ここにデータが表示されます。</string>

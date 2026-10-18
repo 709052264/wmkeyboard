@@ -17,14 +17,14 @@ export interface PluginTemplate {
 	name: string;
 	description: string;
 	script: string;
-	/** Whether the script uses wm.storage, so the new manifest declares it. */
-	storage: boolean;
+	/** What the script uses beyond its panel, so the new manifest declares it. */
+	permissions: string[];
 }
 
 export const TEMPLATES: PluginTemplate[] = [
-	{ id: 'BLANK', name: S.templateBlankName, description: S.templateBlankDescription, script: BLANK_PLUGIN_SCRIPT, storage: false },
-	{ id: 'TEXT_TOOLS', name: S.templateTextToolsName, description: S.templateTextToolsDescription, script: textTools, storage: false },
-	{ id: 'CIPHER', name: S.templateCipherName, description: S.templateCipherDescription, script: cipher, storage: false },
-	{ id: 'TODO', name: S.templateTodoName, description: S.templateTodoDescription, script: todo, storage: true },
-	{ id: 'KITCHEN_SINK', name: S.templateKitchenSinkName, description: S.templateKitchenSinkDescription, script: kitchenSink, storage: false },
+	{ id: 'BLANK', name: S.templateBlankName, description: S.templateBlankDescription, script: BLANK_PLUGIN_SCRIPT, permissions: [] },
+	{ id: 'TEXT_TOOLS', name: S.templateTextToolsName, description: S.templateTextToolsDescription, script: textTools, permissions: [] },
+	{ id: 'CIPHER', name: S.templateCipherName, description: S.templateCipherDescription, script: cipher, permissions: [] },
+	{ id: 'TODO', name: S.templateTodoName, description: S.templateTodoDescription, script: todo, permissions: ['storage', 'reminders'] },
+	{ id: 'KITCHEN_SINK', name: S.templateKitchenSinkName, description: S.templateKitchenSinkDescription, script: kitchenSink, permissions: [] },
 ];

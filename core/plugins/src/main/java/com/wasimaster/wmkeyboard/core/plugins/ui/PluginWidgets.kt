@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.plugins.ui
 
+import android.text.format.DateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -32,19 +33,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.plugins.PluginDates
 import com.wasimaster.wmkeyboard.core.plugins.PluginEvent
 import com.wasimaster.wmkeyboard.core.plugins.PluginLabelStyle
 import com.wasimaster.wmkeyboard.core.plugins.PluginWidget
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import com.wasimaster.wmkeyboard.plugins.R
 import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.TimeZone
 
 /**
  * How a plugin's widgets look, supplied by whichever screen draws them.
@@ -194,6 +203,8 @@ private fun PluginWidgetView(
             InputWidget(widget, host)
         }
 
+        is PluginWidget.DatePicker -> DateWidget(widget, onEvent)
+
         is PluginWidget.Spacer -> Spacer(modifier = Modifier.height(widget.height.dp))
 
         PluginWidget.Divider -> Box(
@@ -341,6 +352,152 @@ private fun InputWidget(widget: PluginWidget.Input, host: PluginInputHost) {
         }
     }
 }
+
+/**
+ * A plugin's date: the day with a button either side, the time with buttons
+ * that move it, and Today and Clear.
+ *
+ * Buttons rather than a date picker dialog because the keyboard cannot open a
+ * dialog: an input method has no activity to show one from, and a window of
+ * its own over the app would fight the field the user is typing in. The same
+ * buttons draw in the editor's preview, so an author sees what a user gets.
+ *
+ * Holds nothing. Each press sends the new value, and the date drawn is the one
+ * the script handed back on its next render.
+ */
+@Composable
+private fun DateWidget(widget: PluginWidget.DatePicker, onEvent: (PluginEvent) -> Unit) {
+    val style = LocalPluginPanelStyle.current
+    val context = LocalContext.current
+    val locale = context.resources.configuration.locales[0]
+    val zone = TimeZone.getDefault()
+    val dateFormat = remember(locale, zone) {
+        SimpleDateFormat(DateFormat.getBestDateTimePattern(locale, DATE_SKELETON), locale).apply { timeZone = zone }
+    }
+    val timeFormat = remember(locale, zone) {
+        DateFormat.getTimeFormat(context).apply { timeZone = zone }
+    }
+    fun send(value: Long?) = onEvent(PluginEvent.DateChanged(widget.id, value))
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        if (widget.label.isNotEmpty()) {
+            Text(widget.label, color = style.secondaryText, fontSize = 11.sp)
+        }
+        val value = widget.value
+        if (value == null) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    stringResource(R.string.core_plugins_ui_date_none),
+                    color = style.secondaryText,
+                    fontSize = 13.sp,
+                    modifier = Modifier.weight(1f),
+                )
+                style.chip(stringResource(R.string.core_plugins_ui_date_set), false, true, Modifier) {
+                    send(PluginDates.initial(System.currentTimeMillis(), widget.time, zone))
+                }
+            }
+        } else {
+            DateSteps(widget, value, dateFormat, timeFormat, zone, ::send)
+        }
+    }
+}
+
+@Composable
+private fun DateSteps(
+    widget: PluginWidget.DatePicker,
+    value: Long,
+    dateFormat: java.text.DateFormat,
+    timeFormat: java.text.DateFormat,
+    zone: TimeZone,
+    send: (Long?) -> Unit,
+) {
+    val style = LocalPluginPanelStyle.current
+    val date = Date(value * MILLIS)
+    StepRow(
+        text = dateFormat.format(date),
+        back = stringResource(R.string.core_plugins_ui_date_previous_day) to {
+            send(PluginDates.addDays(value, -1, zone))
+        },
+        forward = stringResource(R.string.core_plugins_ui_date_next_day) to {
+            send(PluginDates.addDays(value, 1, zone))
+        },
+    )
+    if (widget.time) {
+        StepRow(
+            text = timeFormat.format(date),
+            back = stringResource(R.string.core_plugins_ui_date_earlier, widget.step) to {
+                send(PluginDates.addMinutes(value, -widget.step))
+            },
+            forward = stringResource(R.string.core_plugins_ui_date_later, widget.step) to {
+                send(PluginDates.addMinutes(value, widget.step))
+            },
+            farBack = stringResource(R.string.core_plugins_ui_date_hour_earlier) to {
+                send(PluginDates.addMinutes(value, -MINUTES_PER_HOUR))
+            },
+            farForward = stringResource(R.string.core_plugins_ui_date_hour_later) to {
+                send(PluginDates.addMinutes(value, MINUTES_PER_HOUR))
+            },
+        )
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        style.chip(stringResource(R.string.core_plugins_ui_date_today), false, true, Modifier) {
+            send(PluginDates.today(value, System.currentTimeMillis(), zone))
+        }
+        style.chip(stringResource(R.string.core_plugins_ui_date_clear), false, true, Modifier) { send(null) }
+    }
+}
+
+/**
+ * A value between buttons that move it. [back] and [forward] are drawn as
+ * arrows and named for TalkBack by their first part; [farBack] and
+ * [farForward], when given, are drawn outside them with their words showing.
+ */
+@Composable
+private fun StepRow(
+    text: String,
+    back: Pair<String, () -> Unit>,
+    forward: Pair<String, () -> Unit>,
+    farBack: Pair<String, () -> Unit>? = null,
+    farForward: Pair<String, () -> Unit>? = null,
+) {
+    val style = LocalPluginPanelStyle.current
+    @Composable
+    fun arrow(glyph: String, action: Pair<String, () -> Unit>) {
+        val name = action.first
+        style.chip(glyph, false, true, Modifier.semantics(mergeDescendants = true) { contentDescription = name }, action.second)
+    }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        farBack?.let { style.chip(it.first, false, true, Modifier, it.second) }
+        arrow("‹", back)
+        Text(
+            text,
+            color = style.text,
+            fontSize = 13.sp,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        arrow("›", forward)
+        farForward?.let { style.chip(it.first, false, true, Modifier, it.second) }
+    }
+}
+
+/** Weekday, day, month and year, in whatever order and words the user's language uses. */
+private const val DATE_SKELETON = "EEEdMMMyyyy"
+private const val MILLIS = 1000L
+private const val MINUTES_PER_HOUR = 60
 
 @Composable
 private fun TabsWidget(

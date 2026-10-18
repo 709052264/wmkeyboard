@@ -16,14 +16,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Languages, scripts, layouts, transliteration | 11 | 64 | 213 |
 | Themes and appearance | 14 | 73 | 183 |
 | Emoji, GIFs, stickers, kaomoji | 16 | 96 | 94 |
-| Toolbar and the tool set | 10 | 87 | 352 |
+| Toolbar and the tool set | 10 | 88 | 364 |
 | Clipboard, snippets, text expansion | 7 | 37 | 191 |
 | AI, voice, handwriting, scanning | 11 | 71 | 167 |
 | Privacy, backup, storage, statistics | 14 | 69 | 173 |
 | Accessibility, form factors, platform integration | 13 | 61 | 111 |
 | Extensibility: addons, plugins, imports, formats | 5 | 35 | 164 |
 | Modes, rows, field adaptation, runtime | 12 | 97 | 203 |
-| **Total** | **133** | **817** | **2260** |
+| **Total** | **133** | **818** | **2272** |
 
 ## Typing core: prediction, autocorrect, learning, spell check
 
@@ -2011,6 +2011,16 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Warns when nothing is configured to drop — Separate toast when the profile drops nothing
   - Settings — Opens the settings app from the keyboard
 - **Clock** `RARE` — World clocks, alarms, timers, stopwatch, meeting planner, date maths and history in one keyboard panel, with a full Clock screen in the settings app on the same store
+- **Send files** (#729) `RARE` — Files to anyone as an end-to-end encrypted link through a Send instance (the Firefox Send fork), or straight to a device nearby; links received too
+  - Link mode — Pick from four sources (document picker, the Gallery tool, the clipboard, the field's text as a .txt), set expiry and download limit from the instance's own `/config`, add or generate a password, upload with one progress ring (encryption streams through the upload)
+    - Send protocol client in `:core:send` — HKDF/PBKDF2 keys, RFC 8188 aes128gcm records, encrypted metadata envelope, WebSocket upload, nonce-signed metadata/download, owner calls (delete, download limit, info); JVM-tested against the RFC vectors and a mock server
+    - Finished link — Inserted, copied or shown per setting (hold the button to choose per upload), QR code, share, Manage (change downloads, delete from the server), confetti under tool-result motion
+    - Instance catalogue — timvisee/send-instances list with limits and live probe dots, plus the user's own instances; too-big uploads suggest instances with room
+  - Receiving — A Send link typed or pasted raises a strip chip (longer smart lookbehind), a copied one raises an offer chip; the panel checks the file, asks for its password, warns on the final download, decrypts into Downloads/WM Keyboard, inserts a picture into the field or opens/shares anything else
+  - Nearby — Devices on the same Wi-Fi through the KDE Connect engine (pair, send with live transfer rows, receive); a direct Wi-Fi link between two phones (Wi-Fi Direct group or local hotspot on the host, per-app network join on the sender) carried by one QR code with the Wi-Fi credentials and a one-time pairing token
+  - Share sheet — `Send with WM Keyboard` activity-alias, enabled while the tool and its setting are on; a card with the same limits, progress and the link with its QR
+  - History — Uploads with time left and downloads used (`/info`), delete from the server, received files; `filesDir/send` is excluded from backups (owner tokens)
+  - Data saving — `MeteredFeature.FILE_SEND` asks before a whole file moves on mobile data; traffic logged under `NetSource.SEND`
   - World clocks — Home clock with seconds, an analog face light by day and dark by night, sunrise and sunset from the tz database's own coordinates; a card per city with offset delta and today/tomorrow
     - Offline city search — ~420 tz zones, ICU city and country names in the user's language, word-start, accent-folded, abbreviations (IST, PST) and offsets (+5:30, utc-3)
     - Insert any time — Time, date and time, full date, time and place, ISO 8601, relative, Discord timestamp, Unix time; each chip previews what it types; hold sets the default
@@ -2738,6 +2748,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | System speech recognition without the on-device language pack | sends audio to the OS recognizer service; the on-device model download itself needs network |
 | Camera tool, OCR and QR scanner | need the CAMERA runtime permission (shared trampoline) |
 | Location tool and Use my location | need ACCESS_FINE_LOCATION or ACCESS_COARSE_LOCATION, asked together through a trampoline; never background |
+| Send files direct link (host or join a Wi-Fi) | needs NEARBY_WIFI_DEVICES (API 33+, neverForLocation) or ACCESS_FINE_LOCATION before that, asked through a trampoline only when Receive here or Scan a code is pressed; same-Wi-Fi Nearby needs nothing |
 | QR scanner link previews | network; force-disabled by Power Saving's background-network option |
 | Whisper engine and handwrite-with-swipes | silently downgraded by Power Saving's "drop on-device models" option (Whisper → system recognizer, handwrite → glide typing) |
 | AI tool, handwriting, all three scanners and the camera tool | not direct-boot safe — unavailable until the device has been unlocked once after a restart |

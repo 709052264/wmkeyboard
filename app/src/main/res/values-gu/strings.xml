@@ -7640,12 +7640,6 @@
     <string name="tooldetail_ocr_info">ઓળખ તમારા ઉપકરણ પર ML Kit સાથે ચાલે છે. કોઈ ફોટો અને કોઈ ટેક્સ્ટ તમારા ઉપકરણમાંથી બહાર જતું નથી, અને તે ઓફલાઇન કામ કરે છે. તે લેટિન લિપિના ટેક્સ્ટને વાંચે છે, ઉદાહરણ તરીકે અંગ્રેજી. ML Kit નું ટેક્સ્ટ રેકગ્નાઇઝર હજુ સુધી બંગાળીને સપોર્ટ કરતું નથી. કેપ્ચર કર્યા પછી, કીબોર્ડ શું ટાઇપ કરે છે અથવા કોપી કરે છે તે બરાબર પસંદ કરવા માટે શબ્દો પર દબાવો.</string>
     <string name="tooldetail_ocr_online_group">ઓનલાઇન ટેક્સ્ટ રીડર</string>
     <string name="tooldetail_ocr_online_info">ફોટો એક એવા મોડેલ પર જાય છે જે છબીઓ વાંચી શકે છે, તમે પસંદ કરેલા સરનામે, અને મોડેલ તે જે ટેક્સ્ટ જુએ છે તે લખે છે. તે કોઈપણ લિપિ વાંચે છે અને તેને ભાષાના ડેટાની જરૂર નથી. OpenAI-સુસંગત API સાથેની કોઈપણ સેવા કામ કરે છે: OpenAI, OpenRouter, Gemini, Mistral, અથવા Ollama અથવા LM Studio સાથે તમારા પોતાના કમ્પ્યુટર પરનું મોડેલ. દરેક સ્કેન ફોટોને તે સેવા પર મોકલે છે, અને સેવા તેના માટે શુલ્ક લઈ શકે છે.</string>
-    <string name="tooldetail_ocr_online_key_hint">જે સર્વરને કીની જરૂર નથી તેના માટે ખાલી છોડો</string>
-    <string name="tooldetail_ocr_online_key_label">API કી</string>
-    <string name="tooldetail_ocr_online_model_hint">એક મોડેલ જે છબીઓ વાંચે છે, ઉદાહરણ તરીકે gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">મોડેલ</string>
-    <string name="tooldetail_ocr_online_url_hint">ઉદાહરણ તરીકે https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">સરનામું</string>
     <string name="tooldetail_ocr_packs_header">Tesseract ભાષાઓ</string>
     <string name="tooldetail_ocr_packs_info">Tesseract કોઈ ભાષા ત્યારે જ વાંચે છે જ્યારે તે ભાષાનો ડેટા તમારા ઉપકરણ પર હોય. તમે જે ભાષામાં ટાઇપ કરો છો તેના માટે એક ડાઉનલોડ છે, જે 0.4 MB થી 12 MB સુધીનો હોય છે. ડેટા GitHub પર Tesseract પ્રોજેક્ટના tessdata_fast સેટમાંથી આવે છે. તમે સ્કેનરથી પણ ભાષા ડાઉનલોડ કરી શકો છો.</string>
     <string name="tooldetail_ocr_packs_none_info">તમે ચાલુ કરેલી કોઈ પણ ભાષામાં ટેસેરેક્ટ ડેટા નથી. ભાષાઓ સ્ક્રીન પર એક ભાષા ઉમેરો. તેનો ડેટા પછી અહીં દેખાશે.</string>

@@ -7657,12 +7657,6 @@
     <string name="tooldetail_ocr_info">पहचान आपके डिवाइस पर ML Kit के साथ चलती है। कोई भी फोटो और कोई भी टेक्स्ट आपके डिवाइस से बाहर नहीं जाता है, और यह ऑफ़लाइन काम करता है। यह लैटिन लिपि के टेक्स्ट को पढ़ता है, उदाहरण के लिए अंग्रेजी। ML Kit का टेक्स्ट रिकॉग्नाइज़र अभी तक बंगाली का समर्थन नहीं करता है। कैप्चर के बाद, कीबोर्ड जो टाइप या कॉपी करता है उसे सटीक रूप से चुनने के लिए शब्दों को दबाएं।</string>
     <string name="tooldetail_ocr_online_group">ऑनलाइन टेक्स्ट रीडर</string>
     <string name="tooldetail_ocr_online_info">फोटो एक ऐसे मॉडल के पास जाती है जो छवियों को पढ़ सकता है, आपके द्वारा चुने गए पते पर, और मॉडल उस टेक्स्ट को लिखता है जिसे वह देखता है। यह किसी भी स्क्रिप्ट को पढ़ता है और इसे किसी भाषा डेटा की आवश्यकता नहीं होती है। OpenAI-संगत API वाली कोई भी सेवा काम करती है: OpenAI, OpenRouter, Gemini, Mistral, या Ollama या LM Studio के साथ आपके अपने कंप्यूटर पर कोई मॉडल। प्रत्येक स्कैन फोटो को उस सेवा को भेजता है, और सेवा इसके लिए शुल्क ले सकती है।</string>
-    <string name="tooldetail_ocr_online_key_hint">ऐसे सर्वर के लिए खाली छोड़ें जिसे किसी कुंजी की आवश्यकता नहीं है</string>
-    <string name="tooldetail_ocr_online_key_label">API कुंजी</string>
-    <string name="tooldetail_ocr_online_model_hint">एक मॉडल जो छवियों को पढ़ता है, उदाहरण के लिए gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">मॉडल</string>
-    <string name="tooldetail_ocr_online_url_hint">उदाहरण के लिए https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">पता</string>
     <string name="tooldetail_ocr_packs_header">Tesseract भाषाएं</string>
     <string name="tooldetail_ocr_packs_info">Tesseract किसी भाषा को केवल तभी पढ़ता है जब उस भाषा का डेटा आपके डिवाइस पर हो। आपके द्वारा टाइप की जाने वाली प्रत्येक भाषा के लिए एक डाउनलोड होता है, जिसका आकार 0.4 MB से 12 MB तक होता है। डेटा GitHub पर Tesseract प्रोजेक्ट के tessdata_fast सेट से आता है। आप स्कैनर से भी कोई भाषा डाउनलोड कर सकते हैं।</string>
     <string name="tooldetail_ocr_packs_none_info">आपके द्वारा चालू की गई किसी भी भाषा में टेसेरैक्ट (Tesseract) डेटा नहीं है। भाषा स्क्रीन पर एक भाषा जोड़ें। उसका डेटा फिर यहाँ दिखाई देगा।</string>

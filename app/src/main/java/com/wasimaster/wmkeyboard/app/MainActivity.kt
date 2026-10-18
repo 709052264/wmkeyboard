@@ -1288,6 +1288,26 @@ private fun SettingsNavGraph(
                 com.wasimaster.wmkeyboard.app.kdeconnect.KdeDevicesScreen(repository, settings)
             }
         }
+        composable("send/instances") {
+            SettingsScreen(
+                stringResource(R.string.send_instances_screen_title),
+                { navController.popBackStack() },
+                route = "send/instances",
+                subtitle = stringResource(R.string.send_instances_screen_subtitle),
+            ) {
+                com.wasimaster.wmkeyboard.app.send.SendInstancesScreen(repository, settings)
+            }
+        }
+        composable("send/history") {
+            SettingsScreen(
+                stringResource(R.string.send_history_screen_title),
+                { navController.popBackStack() },
+                route = "send/history",
+                subtitle = stringResource(R.string.send_history_screen_subtitle),
+            ) {
+                com.wasimaster.wmkeyboard.app.send.SendHistoryScreen(repository, settings)
+            }
+        }
         composable("cliprules") {
             SettingsScreen(
                 stringResource(R.string.clipboard_copy_rules_title),

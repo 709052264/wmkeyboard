@@ -42,6 +42,9 @@ enum class ProviderProblem {
     /** A server address is needed. */
     NEEDS_SERVER,
 
+    /** A model name is needed: a vision server for the OCR tool. */
+    NEEDS_MODEL,
+
     /** Offline GIF packs with no pack imported. */
     NEEDS_PACKS,
 
@@ -97,16 +100,44 @@ fun KeyboardSettings.providerChain(
  * [tool]'s list resolved: every row with its credential and, when it cannot
  * be asked, why. [all] keeps the rows that are off or cannot be asked, for
  * the settings list; without it only what a fetch should ask is left, in order.
+ *
+ * [pick] is the panel's choice, for a list in [ChainMode.PICK]: then only the
+ * row with that key is left, or the first row when the choice is gone (or
+ * was never made, ""). Null is a caller with no panel, the AI's tools, which
+ * walk the whole list whatever the mode.
  */
 fun KeyboardSettings.resolveProviders(
     tool: ProviderTool,
     env: ProviderEnv = ProviderEnvironment.current(),
     all: Boolean = false,
+    pick: String? = null,
 ): List<ResolvedProvider> {
     val credentials = providerCredentials()
-    val resolved = providerChain(tool, env).entries.map { ProviderResolution.resolve(it, credentials, env) }
+    val chain = providerChain(tool, env)
+    val resolved = chain.entries.map { ProviderResolution.resolve(it, credentials, env) }
     if (all) return resolved
-    return resolved.filter { it.entry.enabled && it.usable }
+    val asked = resolved.filter { it.entry.enabled && it.usable }
+    if (pick == null || chain.mode != ChainMode.PICK) return asked
+    return listOfNotNull(asked.firstOrNull { it.key == pick } ?: asked.firstOrNull())
+}
+
+/** The rows a panel in [ChainMode.PICK] offers, and which of them is chosen. */
+data class ProviderChoices(val rows: List<ResolvedProvider>, val chosen: String) {
+    /** Worth a chooser: the list is in pick mode and more than one row is on. */
+    val shown: Boolean get() = rows.size > 1
+}
+
+/** [tool]'s chooser for a panel, or null when the list does not ask the panel to choose. */
+fun KeyboardSettings.providerChoices(
+    tool: ProviderTool,
+    pick: String?,
+    env: ProviderEnv = ProviderEnvironment.current(),
+): ProviderChoices? {
+    if (providerMode(tool, env) != ChainMode.PICK) return null
+    val rows = resolveProviders(tool, env)
+    if (rows.isEmpty()) return null
+    val chosen = rows.firstOrNull { it.key == pick }?.key ?: rows.first().key
+    return ProviderChoices(rows, chosen)
 }
 
 /**
@@ -152,6 +183,7 @@ object ProviderResolution {
             type.credential.url == Need.REQUIRED && url.isBlank() -> ProviderProblem.NEEDS_SERVER
             // A home's key is a pairing or a sign-in, which the row says in its own words.
             HomeKind.of(type.id) != null -> homeProblem(entry, type, credential)
+            type.credential.modelRequired && model.isBlank() -> ProviderProblem.NEEDS_MODEL
             type.credential.key == Need.REQUIRED && apiKey.isBlank() -> ProviderProblem.NEEDS_KEY
             else -> null
         }
@@ -256,6 +288,19 @@ object LegacyProviders {
         if (hosted.commonsUrl.isNotBlank()) {
             add(ProviderCredential(id = ProviderTypes.COMMONS.id, typeId = ProviderTypes.COMMONS.id, url = hosted.commonsUrl.trim()))
         }
+        // The OCR tool's one online reader, from before it kept a list (#469).
+        val scanner = s.scanner
+        if (scanner.ocrOnlineUrl.isNotBlank()) {
+            add(
+                ProviderCredential(
+                    id = ProviderTypes.VISION_OCR.id,
+                    typeId = ProviderTypes.VISION_OCR.id,
+                    apiKey = scanner.ocrOnlineKey.trim(),
+                    url = scanner.ocrOnlineUrl.trim(),
+                    model = scanner.ocrOnlineModel.trim(),
+                ),
+            )
+        }
     }
 
     fun chain(s: KeyboardSettings, tool: ProviderTool, env: ProviderEnv): ProviderChain {
@@ -324,6 +369,13 @@ object LegacyProviders {
                 currencyChain(s.rateSources.cryptoProviders, tool, CurrencyClient.Provider.cryptoDefaults(fdroid))
             // Nothing came before the list: a home is only ever added by the user.
             ProviderTool.SMART_HOME -> ProviderChain(emptyList(), ChainMode.MIX)
+            // Only the reader the user set up: nothing reads a photo online
+            // that the user did not name.
+            ProviderTool.OCR -> ProviderChain(
+                buildList { if (has(ProviderTypes.VISION_OCR)) add(entry(ProviderTypes.VISION_OCR)) },
+            )
+            // New with #727: empty until a Rens server is added.
+            ProviderTool.PHOTO_TRANSLATE -> ProviderChain()
         }
     }
 

@@ -5,6 +5,7 @@ import com.wasimaster.wmkeyboard.core.settings.fiatRateProviders
 import com.wasimaster.wmkeyboard.core.settings.cryptoRateProviders
 import com.wasimaster.wmkeyboard.core.tools.NoRateProviderException
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.settings.providerMode
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import android.app.AppOpsManager
 import android.app.KeyguardManager
@@ -96,6 +97,7 @@ import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
 import com.wasimaster.wmkeyboard.core.settings.LauncherSplitCombo
 import com.wasimaster.wmkeyboard.core.settings.BlacklistScope
 import android.provider.DocumentsContract
+import android.provider.OpenableColumns
 import android.provider.Settings
 import com.wasimaster.wmkeyboard.core.clipboard.ClipEntityKind
 import com.wasimaster.wmkeyboard.core.selection.SelectionKind
@@ -108,6 +110,7 @@ import com.wasimaster.wmkeyboard.core.selection.DetectOptions
 import com.wasimaster.wmkeyboard.core.selection.DigitScripts
 import com.wasimaster.wmkeyboard.core.selection.FindOptions
 import com.wasimaster.wmkeyboard.core.selection.FindReplace
+import com.wasimaster.wmkeyboard.core.selection.ListContinuation
 import com.wasimaster.wmkeyboard.core.selection.FindResult
 import com.wasimaster.wmkeyboard.core.selection.JsonReformat
 import com.wasimaster.wmkeyboard.core.selection.LineEdits
@@ -291,6 +294,7 @@ import com.wasimaster.wmkeyboard.core.settings.OctopusDuringGlide
 import com.wasimaster.wmkeyboard.core.settings.OneHandedMode
 import com.wasimaster.wmkeyboard.core.settings.OneHandedSide
 import com.wasimaster.wmkeyboard.core.plugins.PluginEvent
+import com.wasimaster.wmkeyboard.core.plugins.PluginReminderAlarms
 import com.wasimaster.wmkeyboard.core.plugins.PluginRuntime
 import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.plugins.PluginText
@@ -1172,6 +1176,15 @@ open class WMKeyboardService : InputMethodService() {
      * one field that takes the whole code.
      */
     private var inputStarts = 0
+
+    /**
+     * [inputStarts] as the keys last came up. Still equal at the next
+     * onStartInputView means the keyboard is being shown again over the same
+     * input, with no onStartInput in between: the platform hands back the
+     * EditorInfo from when the field was first started, whose initial
+     * selection is wherever the caret was *then* (#718).
+     */
+    private var inputStartsAtLastView = -1
 
     /**
      * The clip whose code has already been typed, so
@@ -3149,6 +3162,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         val state = _uiState.value
         kdeClipboardChanged(state)
+        sendLinkClipboardChanged(state)
         noteCopyForReply(state)
         if (!isClipboardAccessible() ||
             !state.settings.clipboard.history ||
@@ -3741,6 +3755,8 @@ open class WMKeyboardService : InputMethodService() {
                 jankMonitor.screen(it.panel.name)
             }
         }
+        // A provider chosen in a panel's chooser: that panel's work again, asked of it.
+        serviceScope.launch { ProviderPicks.changes.collect { onProviderPicked(it) } }
         // Dictation holds the audio focus while it listens, which is what
         // pauses a player (#485). Given back a moment after the microphone
         // closes rather than at once: a continuous session reopens it between
@@ -4425,6 +4441,10 @@ open class WMKeyboardService : InputMethodService() {
                 syncMediaTracking()
                 syncKdeConnect()
                 syncHomeAssistant()
+                com.wasimaster.wmkeyboard.ime.send.SendShareAlias.sync(
+                    this@WMKeyboardService,
+                    ToolbarTool.SEND_FILES in settings.enabledTools && settings.send.shareSheet,
+                )
                 // Switching the swipe action to handwriting (or turning the
                 // gesture on) while the keyboard is up checks the model now, so
                 // the first swipe writes rather than nagging.
@@ -4770,6 +4790,11 @@ open class WMKeyboardService : InputMethodService() {
         SoundStore.attach(this)
         com.wasimaster.wmkeyboard.core.feedback.SoundPackStore.attach(this)
         com.wasimaster.wmkeyboard.core.addons.AddonStore.attach(this)
+        // Plugins too, and then their reminders: a phone that rebooted
+        // overnight started this process locked, when there was no list to
+        // read, so the wake-up for the next reminder is registered only now.
+        PluginStore.attach(this)
+        PluginReminderAlarms.rearmOnStart(this)
         stickerPackStore = com.wasimaster.wmkeyboard.core.stickers.StickerPackStore.get(this)
         gifCollections = com.wasimaster.wmkeyboard.core.tools.GifCollections.get(this)
         com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks.attach(filesDir)
@@ -5133,8 +5158,14 @@ open class WMKeyboardService : InputMethodService() {
      * Both halves are behind [KeyboardSettings.autoDownloadLanguageData]: with
      * it off nothing arrives unless the user asked for it, either on the
      * prompt shown as the language was added or from the rows under Settings ›
-     * Languages. Word lists are never fetched here at all — they are the big
-     * ones, and they stay a deliberate choice.
+     * Languages.
+     *
+     * Word lists too, but only off a metered connection: they are the big
+     * ones. Without them a language has no glide typing and no suggestions,
+     * and one that never arrived — the second of two languages added in the
+     * wizard used to be dropped while the first downloaded — stayed missing
+     * until the user found the row to press (#661). A list the user deleted
+     * stays deleted.
      */
     private fun refreshLanguageDataDownloads(settings: KeyboardSettings) {
         if (!userUnlocked || !settings.autoDownloadLanguageData) return
@@ -5143,6 +5174,19 @@ open class WMKeyboardService : InputMethodService() {
             EmojiDictDownloadManager.ensure(filesDir, languages)
         }
         NgramPackDownloadManager.ensure(filesDir, languages)
+        val metered = runCatching {
+            getSystemService(ConnectivityManager::class.java)?.isActiveNetworkMetered
+        }.getOrNull() ?: true
+        if (!metered) {
+            serviceScope.launch(Dispatchers.IO) {
+                WordlistDownloadManager.ensure(
+                    filesDir,
+                    languages,
+                    bundledListLanguages,
+                    DictionaryCatalog.DictionarySize.LARGE,
+                )
+            }
+        }
     }
 
     private suspend fun reloadEmojiCatalog() {
@@ -6578,8 +6622,20 @@ open class WMKeyboardService : InputMethodService() {
         // Covers the OEMs where `zen_mode` is unreadable and the observer never
         // fires — see refreshDndState.
         refreshDndState()
-        expectedSelStart = info?.initialSelStart ?: -1
-        expectedSelEnd = info?.initialSelEnd ?: -1
+        // Shown again over the same input (hidden with Back, then the field
+        // tapped): the EditorInfo is the one the field started with, and its
+        // initial selection is the caret from before anything was typed — 0
+        // in a chat box that started empty. The editor kept reporting the
+        // caret while the keys were down, so the cached one is the live one.
+        // Taken from the stale EditorInfo, the resume below read the word
+        // behind the real caret and placed it at the old one (#718). A cache
+        // some edit invalidated stays unknown (-1) rather than going stale.
+        val reshown = inputStarts == inputStartsAtLastView
+        inputStartsAtLastView = inputStarts
+        if (!reshown) {
+            expectedSelStart = info?.initialSelStart ?: -1
+            expectedSelEnd = info?.initialSelEnd ?: -1
+        }
         trackCaretAtFieldStart(expectedSelStart, expectedSelEnd)
         // A job debounced against the previous field must not land its strip
         // (or commit resolution) on this one — the secure-field gates in
@@ -6602,6 +6658,14 @@ open class WMKeyboardService : InputMethodService() {
         if (restarting) {
             reattachComposing(info?.initialSelStart ?: -1, info?.initialSelEnd ?: -1)
         } else {
+            // A buffer still here is a word the caret re-armed while the keys
+            // were down: the hide's own finishComposingText echoes back after
+            // onFinishInputView, and that echo resumes the word behind the
+            // caret like any other. Dropped without its region, the next letter
+            // replaced the whole word and a backspace took the character in
+            // front of it instead (#718). Finishing never changes the text, and
+            // the entry read below re-arms the word properly.
+            if (composing.isNotEmpty()) currentInputConnection?.finishComposingText()
             composing = StringBuilder()
             previousWord = null
             invalidateRecentWords()
@@ -6992,11 +7056,10 @@ open class WMKeyboardService : InputMethodService() {
         // state built for an empty field.
         currentInputConnection?.let { ic ->
             // Same collapsed-caret gate as the onUpdateSelection call site: a
-            // range selection has no word to resume.
-            if (info != null && info.initialSelStart >= 0 &&
-                info.initialSelStart == info.initialSelEnd
-            ) {
-                restartSuggestionsAtCursor(ic, info.initialSelStart)
+            // range selection has no word to resume. The caret settled above:
+            // the field's initial one, or the live one on a re-show (#718).
+            if (info != null && expectedSelStart >= 0 && expectedSelStart == expectedSelEnd) {
+                restartSuggestionsAtCursor(ic, expectedSelStart)
             } else {
                 syncPreviousWordFromField(ic)
                 refreshSuggestions()
@@ -7018,6 +7081,10 @@ open class WMKeyboardService : InputMethodService() {
         // the picks join the open panel, or in a Play build go straight out.
         if (galleryToolDelegate.isInitialized() || com.wasimaster.wmkeyboard.app.GalleryPickActivity.hasPending()) {
             galleryTool.onKeyboardShown()
+        }
+        // The Send files tool's picks, or its Nearby permission answered (#729).
+        if (sendToolDelegate.isInitialized() || com.wasimaster.wmkeyboard.app.SendPickActivity.hasPending()) {
+            sendTool.onKeyboardShown()
         }
         // Same for the images permission the reply panel's screenshot button
         // asked for: open the picker it was pressed for.
@@ -9932,6 +9999,9 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.CALENDAR_TITLE, CaptureTarget.CALENDAR_LOCATION, CaptureTarget.CALENDAR_GUEST ->
                 state.calendarText?.let(calendarTool::onTextEnter)
             CaptureTarget.CALENDAR_NOTES -> captureTyped("\n")
+            // A password, a link or an address is one line; Enter hands it in.
+            CaptureTarget.SEND_PASSWORD, CaptureTarget.SEND_LINK, CaptureTarget.SEND_INSTANCE ->
+                state.sendText?.let(sendTool::onTextEnter)
             // A clip is free text, so Enter is a line break in it; saving is
             // the editor's own button.
             // The tags editor is one list: Enter keeps it (#612).
@@ -10344,6 +10414,16 @@ open class WMKeyboardService : InputMethodService() {
                 val entry = _uiState.value.galleryText?.copy(text = text.take(limit))
                 _uiState.update { it.copy(galleryText = entry) }
                 entry?.let(galleryTool::onText)
+            }
+            CaptureTarget.SEND_PASSWORD, CaptureTarget.SEND_LINK, CaptureTarget.SEND_INSTANCE -> {
+                val limit = when (target) {
+                    CaptureTarget.SEND_PASSWORD -> com.wasimaster.wmkeyboard.ime.send.SendController.PASSWORD_MAX
+                    CaptureTarget.SEND_LINK -> com.wasimaster.wmkeyboard.ime.send.SendController.LINK_MAX
+                    else -> com.wasimaster.wmkeyboard.ime.send.SendController.INSTANCE_MAX
+                }
+                val entry = _uiState.value.sendText?.copy(text = text.replace("\n", "").take(limit))
+                _uiState.update { it.copy(sendText = entry) }
+                entry?.let(sendTool::onText)
             }
             CaptureTarget.TOOLBOX_SEARCH ->
                 updateQuery { it.copy(toolboxView = it.toolboxView.copy(query = text)) }
@@ -14120,6 +14200,15 @@ open class WMKeyboardService : InputMethodService() {
         // actionLabel. Null means "no action": type a real newline.
         val fieldAction = currentInputEditorInfo.editorActionId()
         val action = if (forceNewline) null else fieldAction
+        // A line break on a list line carries the list on (#694); on an empty
+        // item it ends the list, and that is all this Enter does.
+        val listStep = if (action == null) listStepAtCaret(ic, state) else null
+        if (listStep is ListContinuation.Step.End) {
+            ic.deleteSurroundingText(listStep.length, 0)
+            maybeAutoCapitalize()
+            return
+        }
+        val listMarker = (listStep as? ListContinuation.Step.Continue)?.marker
         if (action != null) {
             ic.performEditorAction(action)
             // The action is the app's to answer, and a message box answers it by
@@ -14137,6 +14226,7 @@ open class WMKeyboardService : InputMethodService() {
             // raw event sent the WhatsApp message the override had just decided
             // not to send. commitText has nothing to intercept it.
             typeNewline(ic)
+            listMarker?.let { ic.commitText(it, 1) }
             // The shift deliberately survives, unlike the letter case that
             // spends it: it is being held down as a modifier for as long as the
             // user wants line breaks, so a second Enter must break the line too
@@ -14159,6 +14249,7 @@ open class WMKeyboardService : InputMethodService() {
             // every desktop chat client do — is entitled to keep telling them
             // apart.
             typeNewline(ic)
+            listMarker?.let { ic.commitText(it, 1) }
             maybeAutoCapitalize()
         } else {
             // No action declared at all: a genuinely multi-line field, a web
@@ -14177,8 +14268,26 @@ open class WMKeyboardService : InputMethodService() {
                 ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
                 ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
             }
+            listMarker?.let { ic.commitText(it, 1) }
             maybeAutoCapitalize()
         }
+    }
+
+    /**
+     * What Enter does to the list on the caret's line ([ListContinuation]),
+     * when "Continue lists" is on and the field is plain text. Null with a
+     * selection, which Enter replaces, and on a line longer than the
+     * look-back, whose start this cannot see.
+     */
+    private fun listStepAtCaret(ic: InputConnection, state: KeyboardUiState): ListContinuation.Step? {
+        if (!state.settings.autoText.continueLists) return null
+        if (state.secureField || state.nullField || state.fieldKind != FieldKind.TEXT) return null
+        if (!ic.getSelectedText(0).isNullOrEmpty()) return null
+        val before = ic.getTextBeforeCursor(LIST_LINE_LOOKBACK, 0)?.toString() ?: return null
+        val lineStart = before.lastIndexOf('\n')
+        if (lineStart < 0 && before.length >= LIST_LINE_LOOKBACK) return null
+        val after = ic.getTextAfterCursor(LIST_LINE_LOOKBACK, 0)?.toString().orEmpty()
+        return ListContinuation.onEnter(before.substring(lineStart + 1), after.substringBefore('\n'))
     }
 
     /**
@@ -19726,7 +19835,7 @@ open class WMKeyboardService : InputMethodService() {
             val ctx = smartContext(_uiState.value)
             val muted = smartMutedAfter
             val detected = withContext(Dispatchers.Default) {
-                val before = ic.getTextBeforeCursor(SmartSuggest.LOOKBEHIND, 0)?.toString().orEmpty()
+                val before = ic.getTextBeforeCursor(smartLookbehind(), 0)?.toString().orEmpty()
                 before to if (before == muted) null else SmartSuggest.detect(before, ctx)
             }
             if (detected.first == smartMutedAfter) {
@@ -19778,6 +19887,7 @@ open class WMKeyboardService : InputMethodService() {
             cryptoEnabled = state.settings.rateSources.cryptoEnabled,
             cryptoTickers = state.settings.rateSources.cryptoTickers,
             cryptoDecimals = state.settings.rateSources.cryptoDecimals,
+            sendLinkChips = state.settings.send.detectLinks && ToolbarTool.SEND_FILES in state.settings.enabledTools,
             cryptoUnavailable = (state.currency as? CurrencyUi.Ready)?.cryptoFailed == true,
             // Fetching left to the tap: a chip missing its rates asks for one,
             // unless the fetch a tap started is still running.
@@ -19872,6 +19982,12 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onSmartSuggestionTapped() {
         val hit = _uiState.value.smart ?: return
+        // A link chip has nothing to type; its face opens the panel on receiving (#729).
+        if (hit.kind == SmartSuggest.Kind.SEND_LINK) {
+            onSmartSuggestionOpen()
+            onToolTap(ToolbarTool.SEND_FILES)
+            return
+        }
         if (hit.awaitingTap) {
             fetchForChip(hit)
             return
@@ -19890,7 +20006,7 @@ open class WMKeyboardService : InputMethodService() {
         if (hit.replaceSpan > 0) ic.deleteSurroundingText(hit.replaceSpan, 0)
         ic.commitText(insert, 1)
         ic.endBatchEdit()
-        smartMutedAfter = ic.getTextBeforeCursor(SmartSuggest.LOOKBEHIND, 0)?.toString()
+        smartMutedAfter = ic.getTextBeforeCursor(smartLookbehind(), 0)?.toString()
         revision = null
         composing = StringBuilder()
         lastGestureWord = null
@@ -19945,7 +20061,7 @@ open class WMKeyboardService : InputMethodService() {
             // The text that raised the chip is still there; the chip it raised
             // has been answered, and must not come straight back over the
             // panel's close.
-            if (keep) smartMutedAfter = ic.getTextBeforeCursor(SmartSuggest.LOOKBEHIND, 0)?.toString()
+            if (keep) smartMutedAfter = ic.getTextBeforeCursor(smartLookbehind(), 0)?.toString()
         }
         revision = null
         composing = StringBuilder()
@@ -24992,6 +25108,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.CLOCK -> onPanelChange(PanelMode.CLOCK)
             ToolbarTool.HOME_ASSISTANT -> onPanelChange(PanelMode.HOME_ASSISTANT)
             ToolbarTool.GALLERY -> openGalleryTool()
+            ToolbarTool.SEND_FILES -> openSendTool()
             ToolbarTool.MEDIA_CONTROL -> onPanelChange(PanelMode.MEDIA_CONTROL)
             ToolbarTool.KDE_CONNECT -> onPanelChange(PanelMode.KDE_CONNECT)
             ToolbarTool.PLUGINS -> onPanelChange(PanelMode.PLUGINS)
@@ -25114,6 +25231,11 @@ open class WMKeyboardService : InputMethodService() {
         // Leaving Text repeat: its boxes give the keys back and the chip's run
         // is forgotten; the text itself stays for the next visit.
         if (_uiState.value.panel == PanelMode.TEXT_REPEAT) textRepeatLeavePanel()
+        // Leaving the Send files panel: its boxes give the keys back (#729).
+        if (_uiState.value.panel == PanelMode.SEND_FILES) {
+            sendTool.onPanelClose()
+            _uiState.update { it.copy(sendText = null) }
+        }
         // Leaving the reply panel, by closing it or opening another: the
         // screenshot watcher goes back to what the clipboard setting says (#234).
         if (_uiState.value.panel == PanelMode.AI_REPLY) {
@@ -25286,6 +25408,14 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
             PanelMode.GALLERY -> galleryTool.onPanelOpen()
+            PanelMode.SEND_FILES -> {
+                // A link chip staged the link; the panel opens on receiving it (#729).
+                (_uiState.value.toolPrefill as? ToolPrefill.SendLink)?.let {
+                    sendTool.receive(it.url)
+                    onToolPrefillConsumed()
+                }
+                sendTool.onPanelOpen()
+            }
             PanelMode.VOCABULARY -> {
                 val prefill = _uiState.value.toolPrefill as? ToolPrefill.Vocab
                 if (prefill != null) onToolPrefillConsumed()
@@ -30137,6 +30267,7 @@ open class WMKeyboardService : InputMethodService() {
             store = PluginStore.get(this),
             listener = pluginListener,
             post = { body -> serviceScope.launch { body() } },
+            onRemindersChanged = { PluginReminderAlarms.requestRearm(this) },
         ).also { pluginRuntime = it }
 
     private val pluginListener = object : PluginRuntime.Listener {
@@ -33650,8 +33781,10 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
         val settings = _uiState.value.settings
-        // The Dictionary tool's provider list, rows that are off or cannot be asked left out.
-        val sources = settings.resolveProviders(ProviderTool.DICTIONARY).mapNotNull { DictionarySource.of(it.typeId) }
+        // The Dictionary tool's provider list, rows that are off or cannot be asked left out;
+        // in pick mode, only the row the panel's chooser is on.
+        val sources = settings.resolveProviders(ProviderTool.DICTIONARY, pick = ProviderPicks.of(ProviderTool.DICTIONARY))
+            .mapNotNull { DictionarySource.of(it.typeId) }
         if (sources.isEmpty()) {
             _uiState.update { it.copy(dictionary = DictionaryUi.NoSources) }
             return
@@ -34615,6 +34748,19 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /** A panel's chooser moved to another provider: ask it what the panel last asked. */
+    private fun onProviderPicked(tool: ProviderTool) {
+        val state = _uiState.value
+        when {
+            tool == ProviderTool.TRANSLATE && state.panel == PanelMode.TRANSLATE ->
+                scheduleTranslate(immediate = true, force = true)
+            tool == ProviderTool.SEARCH && state.panel == PanelMode.WEB_SEARCH -> runWebSearch(state.mediaQuery.trim())
+            tool == ProviderTool.SEARCH && state.panel == PanelMode.IMAGE_SEARCH -> runImageSearch(state.mediaQuery.trim())
+            tool == ProviderTool.DICTIONARY && state.panel == PanelMode.DICTIONARY &&
+                state.dictionaryQuery.isNotBlank() -> onDictionaryLookup(state.dictionaryQuery)
+        }
+    }
+
     private fun runWebSearch(query: String) {
         if (query.isBlank()) return
         val settings = _uiState.value.settings
@@ -34647,6 +34793,7 @@ open class WMKeyboardService : InputMethodService() {
                         settings.webSearch.resultCount,
                         settings.webSearch.safe,
                         answer = settings.webSearch.showAnswer,
+                        pick = ProviderPicks.of(ProviderTool.SEARCH),
                     )
                 }
             }
@@ -34698,7 +34845,13 @@ open class WMKeyboardService : InputMethodService() {
         imageSearchJob = serviceScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
-                    SearchProviders.images(settings, query, settings.webSearch.resultCount, settings.webSearch.safe)
+                    SearchProviders.images(
+                        settings,
+                        query,
+                        settings.webSearch.resultCount,
+                        settings.webSearch.safe,
+                        pick = ProviderPicks.of(ProviderTool.SEARCH),
+                    )
                 }
             }
             _uiState.update {
@@ -35297,8 +35450,13 @@ open class WMKeyboardService : InputMethodService() {
             val target = targetOverride ?: state.settings.translateTargetLang
             val sourceLang = state.translate.sourceOverride
             val engine = engineOverride ?: translateEngine(state.settings)
+            // Pick mode: the provider the panel's chooser is on, alone, whatever the engine.
+            val picking = state.settings.providerMode(ProviderTool.TRANSLATE) == ChainMode.PICK
             val outcome: (TranslateUi) -> TranslateUi =
-                if (engine == TranslateEngine.ONLINE) {
+                if (picking) {
+                    val pick = ProviderPicks.of(ProviderTool.TRANSLATE)
+                    translateChainUi(state, TranslateProviders.rows(state.settings, engine, pick = pick), source, target, sourceLang)
+                } else if (engine == TranslateEngine.ONLINE) {
                     onlineOrStandInTranslateUi(state, source, target, sourceLang)
                 } else {
                     translateChainUi(state, TranslateProviders.rows(state.settings, engine), source, target, sourceLang)
@@ -36296,6 +36454,7 @@ open class WMKeyboardService : InputMethodService() {
             kaomoji = kaomojiTool.callbacks,
             homeAssistant = haTool.callbacks,
             gallery = galleryTool.callbacks,
+            send = sendTool.callbacks,
             toolbox = toolboxCallbacks(),
             stickerOffer = com.wasimaster.wmkeyboard.ime.ui.StickerOfferCallbacks(
                 onPick = ::onStickerOfferPick,
@@ -36566,6 +36725,10 @@ open class WMKeyboardService : InputMethodService() {
                 override fun endText() = _uiState.update { it.copy(galleryText = null) }
                 override fun currentText() = _uiState.value.galleryText
                 override fun saveToGallery(file: File, mime: String) = saveToGalleryIfEnabled(file, mime, true, "IMG")
+                override fun sendAsLink(files: List<Pair<File, String>>) {
+                    sendTool.addPrepared(files)
+                    onPanelChange(PanelMode.SEND_FILES)
+                }
                 override fun stickers() = stickerPackStore.packs().flatMap { pack ->
                     pack.stickers.mapNotNull { sticker ->
                         stickerPackStore.fileFor(pack.id, sticker)?.takeIf { it.isFile }?.let {
@@ -36579,6 +36742,225 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val galleryTool by galleryToolDelegate
+
+    /**
+     * The Send files tool (#729). Built on first use, like [galleryTool]: by
+     * the panel opening, a link chip, or the file picker handing something back.
+     */
+    private val sendToolDelegate: Lazy<com.wasimaster.wmkeyboard.ime.send.SendController> = lazy {
+        com.wasimaster.wmkeyboard.ime.send.SendController(
+            context = this,
+            scope = serviceScope,
+            host = object : com.wasimaster.wmkeyboard.ime.send.SendController.Host {
+                override val settings get() = _uiState.value.settings.send
+                override fun updateSettings(
+                    change: (com.wasimaster.wmkeyboard.core.settings.SendSettings) -> com.wasimaster.wmkeyboard.core.settings.SendSettings,
+                ) {
+                    serviceScope.launch { settingsRepository.updateSend(change) }
+                }
+                override fun haptic() = vibrate()
+                override fun incognito() = _uiState.value.incognitoOn
+                override fun keyboardVisible() = keyboardVisible
+                override fun hasField() = currentInputConnection != null && currentInputStarted
+                override fun fieldPackage() = currentInputEditorInfo?.packageName
+                override fun fieldText(): String {
+                    val ic = currentInputConnection ?: return ""
+                    return ic.getSelectedText(0)?.toString()?.takeIf { it.isNotEmpty() } ?: extractFieldText()
+                }
+                override fun fieldAcceptsImages(): Boolean = currentInputEditorInfo?.let { info ->
+                    EditorInfoCompat.getContentMimeTypes(info).any {
+                        ClipDescription.compareMimeTypes(MediaMime.PNG, it) || ClipDescription.compareMimeTypes(MediaMime.JPEG, it)
+                    }
+                } == true
+                override fun commitUri(uri: Uri, mime: String, name: String) = commitSendUri(uri, mime, name)
+                override fun insertText(text: String) = onToolTextInsert(text)
+                override fun copyText(text: String) {
+                    KeyboardClipboard.copy(this@WMKeyboardService, text)
+                    maybeToastCopied()
+                }
+                override fun openPanel() {
+                    if (_uiState.value.panel != PanelMode.SEND_FILES) onPanelChange(PanelMode.SEND_FILES, haptic = false)
+                }
+                override fun closePanel() {
+                    if (_uiState.value.panel == PanelMode.SEND_FILES) onPanelChange(PanelMode.SEND_FILES, haptic = false)
+                }
+                override fun openSettings() = openToolSettings(ToolbarTool.SEND_FILES)
+                override fun openRoute(route: String) = this@WMKeyboardService.openRoute(route)
+                override fun openScanner() {
+                    if (BuildConfig.ENABLE_ML_KIT_SCANNERS) onPanelChange(PanelMode.QR_SCAN)
+                }
+                override fun openGallery() {
+                    if (com.wasimaster.wmkeyboard.app.ChannelFeatures.GALLERY_BROWSER) {
+                        galleryTool.openForLink()
+                        onPanelChange(PanelMode.GALLERY)
+                    } else {
+                        // No library grant on Play: the document picker stands in.
+                        runCatching { startActivity(com.wasimaster.wmkeyboard.app.SendPickActivity.intent(this@WMKeyboardService)) }
+                    }
+                }
+                override fun startActivity(intent: Intent) = this@WMKeyboardService.startActivity(intent)
+                override fun beginText(entry: com.wasimaster.wmkeyboard.ime.send.SendTextEntry) {
+                    _uiState.update {
+                        it.copy(
+                            sendText = entry,
+                            panelFocus = null,
+                            captureCaret = CaptureCaret(entry.field.captureTarget.name, entry.text.length, entry.text),
+                        )
+                    }
+                }
+                override fun endText() = _uiState.update { it.copy(sendText = null) }
+                override fun currentText() = _uiState.value.sendText
+                override fun metered() = dataSaverStatus.decide(MeteredFeature.FILE_SEND)
+                override fun grantMetered() = this@WMKeyboardService.grantMetered(MeteredFeature.FILE_SEND)
+                override fun httpClient() = sendHttpClient
+                override fun clipboardFiles() = sendClipboardFiles()
+                override fun fileUri(file: File): Uri? =
+                    runCatching { FileProvider.getUriForFile(this@WMKeyboardService, clipboardFileProviderAuthority, file) }.getOrNull()
+                override fun directLink() = directWifi
+                override fun hasNearbyPermission() = com.wasimaster.wmkeyboard.ime.send.DirectWifi.hasPermission(this@WMKeyboardService)
+                override fun askNearbyPermission() {
+                    runCatching {
+                        startActivity(
+                            Intent(this@WMKeyboardService, com.wasimaster.wmkeyboard.app.SendNearbyPermissionActivity::class.java)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }
+                }
+                override fun canScan() = BuildConfig.ENABLE_ML_KIT_SCANNERS
+                override fun openLinkOffer() = onSendLinkOfferOpen()
+                override fun clearLinkOffer() = clearSendLinkOffer()
+            },
+        )
+    }
+    private val sendTool: com.wasimaster.wmkeyboard.ime.send.SendController by sendToolDelegate
+
+    /** The Wi-Fi Direct group and hotspot plumbing behind the Nearby mode's direct link. */
+    private val directWifi by lazy { com.wasimaster.wmkeyboard.ime.send.DirectWifi(this) }
+
+    /** The Send protocol's client: gated by the internet permission, logged as the tool's traffic. */
+    private val sendHttpClient: okhttp3.OkHttpClient by lazy {
+        okhttp3.OkHttpClient.Builder()
+            .addInterceptor(com.wasimaster.wmkeyboard.core.net.InternetGate)
+            .addNetworkInterceptor(com.wasimaster.wmkeyboard.core.net.NetLogInterceptor(com.wasimaster.wmkeyboard.core.netlog.NetSource.SEND))
+            .connectTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+            .build()
+    }
+
+    /** The Send files tool from the toolbar: its panel, which picks files itself. */
+    private fun openSendTool() = onPanelChange(PanelMode.SEND_FILES)
+
+    /**
+     * A received file into the field as content, when the field takes its
+     * type. The file is this app's own row in Downloads, so the grant is ours
+     * to give; false when the field would not take it.
+     */
+    private fun commitSendUri(uri: Uri, mime: String, name: String): Boolean {
+        val ic = currentInputConnection ?: return false
+        val editorInfo = currentInputEditorInfo ?: return false
+        val accepted = EditorInfoCompat.getContentMimeTypes(editorInfo)
+        if (accepted.none { ClipDescription.compareMimeTypes(mime, it) }) return false
+        return runCatching {
+            InputConnectionCompat.commitContent(
+                ic,
+                editorInfo,
+                InputContentInfoCompat(uri, ClipDescription(name, arrayOf(mime)), null),
+                InputConnectionCompat.INPUT_CONTENT_GRANT_READ_URI_PERMISSION,
+                null,
+            )
+        }.getOrDefault(false)
+    }
+
+    /**
+     * What the clipboard holds that can travel as a file: every content URI on
+     * it, or, with none, its text saved as a `.txt`. Sizes are measured later by
+     * the controller when the clipboard did not say.
+     */
+    private fun sendClipboardFiles(): List<com.wasimaster.wmkeyboard.ime.send.SendDraftFile> {
+        if (!isClipboardAccessible()) return emptyList()
+        val clip = (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip
+            ?.takeIf { it.itemCount > 0 } ?: return emptyList()
+        val out = ArrayList<com.wasimaster.wmkeyboard.ime.send.SendDraftFile>()
+        for (i in 0 until clip.itemCount) {
+            val uri = clip.getItemAt(i)?.uri ?: continue
+            if (uri.authority == clipboardFileProviderAuthority) continue
+            var name = uri.lastPathSegment?.substringAfterLast('/')?.ifBlank { null } ?: "file"
+            var size = -1L
+            runCatching {
+                contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)?.use { c ->
+                    if (c.moveToFirst()) {
+                        val n = c.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                        val s = c.getColumnIndex(OpenableColumns.SIZE)
+                        if (n >= 0 && !c.isNull(n)) c.getString(n)?.takeIf { it.isNotBlank() }?.let { name = it }
+                        if (s >= 0 && !c.isNull(s)) size = c.getLong(s)
+                    }
+                }
+            }
+            val mime = runCatching { contentResolver.getType(uri) }.getOrNull() ?: "application/octet-stream"
+            out += com.wasimaster.wmkeyboard.ime.send.SendDraftFile(0, name, size, mime, uri = uri)
+        }
+        if (out.isNotEmpty()) return out
+        val text = clip.getItemAt(0)?.coerceToText(this)?.toString()?.takeIf { it.isNotBlank() } ?: return emptyList()
+        val dir = File(cacheDir, "send").apply { mkdirs() }
+        val stamp = java.text.SimpleDateFormat("yyyy-MM-dd HH.mm", java.util.Locale.US).format(java.util.Date())
+        val file = File(dir, "Clipboard $stamp.txt")
+        return runCatching { file.writeText(text) }.map {
+            listOf(com.wasimaster.wmkeyboard.ime.send.SendDraftFile(0, file.name, file.length(), "text/plain", file = file))
+        }.getOrDefault(emptyList())
+    }
+
+    // ---- a Send link on the clipboard (#729) ----
+
+    private var sendLinkOfferJob: Job? = null
+
+    /**
+     * Runs beside [kdeClipboardChanged], before the history gate: a share
+     * link copied anywhere gets a chip offering to receive it, whether or not
+     * the clipboard history is on. Links this keyboard made itself are skipped.
+     */
+    private fun sendLinkClipboardChanged(state: KeyboardUiState) {
+        val send = state.settings.send
+        if (!send.detectLinks || ToolbarTool.SEND_FILES !in state.settings.enabledTools) return
+        if (!isClipboardAccessible() || clipCapturePaused(state)) return
+        val clip = (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip
+            ?.takeIf { it.itemCount > 0 } ?: return
+        val text = clip.getItemAt(0)?.text?.toString().orEmpty()
+        val link = com.wasimaster.wmkeyboard.core.send.SendLink.find(text) ?: return
+        if (sendToolDelegate.isInitialized() && sendTool.ownsLink(link.url)) return
+        sendLinkOfferJob?.cancel()
+        _uiState.update { it.copy(sendLinkOffer = com.wasimaster.wmkeyboard.ime.send.SendLinkOffer(link.url, System.currentTimeMillis())) }
+        val seconds = state.settings.clipboard.pasteChipSeconds.takeIf { it > 0 } ?: SEND_LINK_OFFER_DEFAULT_SECONDS
+        sendLinkOfferJob = serviceScope.launch {
+            delay(seconds * 1000L)
+            clearSendLinkOffer()
+        }
+    }
+
+    private fun clearSendLinkOffer() {
+        sendLinkOfferJob?.cancel()
+        sendLinkOfferJob = null
+        if (_uiState.value.sendLinkOffer != null) _uiState.update { it.copy(sendLinkOffer = null) }
+    }
+
+    /** The chip was tapped: the panel opens on receiving the link. */
+    fun onSendLinkOfferOpen() {
+        val offer = _uiState.value.sendLinkOffer ?: return
+        vibrate()
+        clearSendLinkOffer()
+        sendTool.receive(offer.url)
+        if (_uiState.value.panel != PanelMode.SEND_FILES) onPanelChange(PanelMode.SEND_FILES, haptic = false)
+    }
+
+    /** The lookbehind for smart chips: longer while Send links are watched for, since a link is seventy characters. */
+    private fun smartLookbehind(): Int {
+        val settings = _uiState.value.settings
+        return if (settings.send.detectLinks && ToolbarTool.SEND_FILES in settings.enabledTools) {
+            SmartSuggest.LINK_LOOKBEHIND
+        } else {
+            SmartSuggest.LOOKBEHIND
+        }
+    }
 
     /**
      * The gallery tool from the toolbar: the in-keyboard grid, or in a Play
@@ -45038,6 +45420,8 @@ open class WMKeyboardService : InputMethodService() {
 
         /** The Text repeat panel's boxes; the output limit is the one that matters. */
         private const val TEXT_REPEAT_BOX_MAX = TextRepeat.MAX_TEXT_LENGTH
+        /** How long a copied Send link stays offered when the paste chip's own timer is off (#729). */
+        private const val SEND_LINK_OFFER_DEFAULT_SECONDS = 300
 
         /**
          * Packages that host input fields on behalf of other apps — in
@@ -45312,6 +45696,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** Enough to hold the longest number [TypedNumbers] keeps, and what stands in front of it. */
         private const val NUMBER_RUN_LOOKBEHIND = TypedNumbers.MAX_LENGTH + 1
+
+        /** How far back [listStepAtCaret] looks for the start of the caret's line. */
+        private const val LIST_LINE_LOOKBACK = 256
 
         /** Shortest token before the cursor that triggers an email completion. */
         private const val EMAIL_FIELD_MIN_PREFIX = 2

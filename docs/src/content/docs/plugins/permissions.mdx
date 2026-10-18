@@ -1,6 +1,6 @@
 ---
 title: "Permissions"
-description: "The one permission a plugin can declare, and what it grants."
+description: "The two permissions a plugin can declare, and what they grant."
 sidebar:
   label: "Permissions"
   order: 4
@@ -8,10 +8,10 @@ sidebar:
 
 import SettingsPath from '@components/SettingsPath.astro';
 
-There is one.
+There are two.
 
 ```json title="plugin.json (excerpt)"
-"permissions": ["storage"]
+"permissions": ["storage", "reminders"]
 ```
 
 Most plugins declare `[]` and need nothing.
@@ -39,6 +39,28 @@ local saved = wm.storage.get("items")
 lose the user's data quietly.
 :::
 
+## `reminders`
+
+Gives you `wm.reminders`: ask the app to show a line of text in a notification
+at a time you set. Needs `"apiVersion": 2`.
+
+```lua
+wm.reminders.set("item:7", due, "Buy milk")
+wm.reminders.cancel("item:7")
+```
+
+- The app shows it, not your script. It keeps the id, the time and the text,
+  and when the time comes it posts the notification. No plugin code runs in the
+  background, and none runs when it fires.
+- The title is always your plugin's name. You choose the words under it, never
+  the name, so a reminder cannot pretend to come from the system or another app.
+- Tapping it opens your plugin's page in
+  <SettingsPath path="Tools / Plugins / Manage plugins / your plugin" />, which
+  lists every pending reminder with a button to cancel them all.
+- Nothing shows while plugins, or your plugin, are turned off, or while the user
+  has the app's notifications off.
+- 64 pending, 200 characters of text, up to ten years ahead.
+
 Declared permissions are shown to the user *before* they install, on the addon
 page and in the file-import confirmation. There is no runtime prompt. With no
 way for data to leave the device, a prompt would have nothing to protect, and a
@@ -59,7 +81,7 @@ no API at all:
 | Files | No paths, no filesystem. |
 | Other apps, or the device | No package list, no identifiers, no sensors. |
 | Android permissions | A plugin cannot request any; it does not have that reach. |
-| Background work | No timers. Execution stops when the panel closes. |
+| Background work | No timers. Execution stops when the panel closes. A reminder is text the app shows, not code that runs. |
 
 :::note[Unknown permissions refuse the install]
 Adding `"permissions": ["network"]` to your manifest enables nothing. It makes

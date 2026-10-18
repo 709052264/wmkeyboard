@@ -117,6 +117,29 @@ object WordlistDownloadManager {
     private var activeJob: Job? = null
     private var activeId: String? = null
 
+    /** A [start] that came in while another download was running. */
+    private class Queued(val filesDir: File, val entry: DictionaryEntry, val size: DictionaryCatalog.DictionarySize)
+
+    /**
+     * Downloads waiting their turn, oldest first. One runs at a time — every
+     * download of a language writes the same `.part` — but a second one asked
+     * for meanwhile waits here rather than being dropped: adding two languages
+     * in the wizard used to fetch the first one's list and silently lose the
+     * second's, which left glide typing dead in that language (#661).
+     */
+    private val queue = ArrayDeque<Queued>()
+    private val lock = Any()
+
+    /**
+     * Entries [ensure] started whose download then failed. Not retried by
+     * [ensure] again this process, so a dead network is not hammered on every
+     * settings change; a [start] from the user clears it.
+     */
+    private val givenUp = HashSet<String>()
+
+    /** Name of the marker a user's Delete leaves, so [ensure] does not undo it. */
+    private const val DECLINED_NAME = "declined"
+
     private val _states = MutableStateFlow<Map<String, DownloadStatus>>(emptyMap())
 
     /** Entry id -> status for every catalog entry touched so far. */
@@ -131,6 +154,7 @@ object WordlistDownloadManager {
                 entry.id to when {
                     entry.id == activeId && isBusy && current[entry.id] != null ->
                         current.getValue(entry.id)
+                    isQueued(entry.id) && current[entry.id] != null -> current.getValue(entry.id)
                     downloadedByThisEntry(filesDir, entry) -> downloadedStatus(filesDir, entry)
                     else -> DownloadStatus.NotDownloaded
                 }
@@ -138,8 +162,77 @@ object WordlistDownloadManager {
         }
     }
 
+    /**
+     * Fetches [entry] at [size] because something asked for it by name: a tap
+     * on Download, the add-a-language prompt, the wizard. Starts now, or after
+     * the download already running. Asking by hand undoes an earlier Delete
+     * and an earlier give-up, so [ensure] may fetch it again later.
+     */
     fun start(filesDir: File, entry: DictionaryEntry, size: DictionaryCatalog.DictionarySize) {
-        if (isBusy) return
+        synchronized(lock) { givenUp.remove(entry.id) }
+        declinedFile(filesDir, entry.languageId).delete()
+        enqueue(filesDir, entry, size)
+    }
+
+    /**
+     * Fetches the word list of every language in [langIds] that has none: not
+     * on disk, not in [bundled] (the lists in the APK), not deleted by the user,
+     * not already on its way and not given up on earlier this process. The
+     * keyboard calls this as its enabled languages change, so a language whose
+     * list never arrived — added while another was downloading, or on an
+     * install that predates this — catches up by itself (#661).
+     */
+    fun ensure(
+        filesDir: File,
+        langIds: Collection<String>,
+        bundled: Set<String>,
+        size: DictionaryCatalog.DictionarySize,
+    ) {
+        for (langId in langIds.distinct()) {
+            if (langId in bundled) continue
+            val entry = DictionaryCatalog.preferred(langId) ?: continue
+            val skip = synchronized(lock) {
+                entry.id in givenUp || entry.id == activeId || isQueued(entry.id)
+            }
+            if (skip) continue
+            if (DictionaryStore.isDownloaded(filesDir, langId)) continue
+            if (declinedFile(filesDir, langId).exists()) continue
+            enqueue(filesDir, entry, size)
+        }
+    }
+
+    private fun enqueue(filesDir: File, entry: DictionaryEntry, size: DictionaryCatalog.DictionarySize) {
+        synchronized(lock) {
+            if (entry.id == activeId) return
+            // One language, one `.part`: a newer ask for the same language
+            // (another size, another region) replaces the one still waiting.
+            queue.removeAll { it.entry.languageId == entry.languageId }
+            // [activeId] rather than [isBusy]: it is cleared under [lock] by
+            // the same block that starts the next download, so nothing can
+            // land in the queue after that block looked and found it empty.
+            if (activeId != null) {
+                queue.addLast(Queued(filesDir, entry, size))
+                set(entry.id, DownloadStatus.Downloading(0, entry.approxGzBytes))
+            } else {
+                begin(filesDir, entry, size)
+            }
+        }
+    }
+
+    private fun isQueued(entryId: String): Boolean =
+        synchronized(lock) { queue.any { it.entry.id == entryId } }
+
+    private fun declinedFile(filesDir: File, langId: String): File =
+        File(DictionaryStore.downloadedFile(filesDir, langId).parentFile, DECLINED_NAME)
+
+    /** Runs the next waiting download, if any. Called with [lock] held. */
+    private fun beginNext() {
+        val next = queue.removeFirstOrNull() ?: return
+        begin(next.filesDir, next.entry, next.size)
+    }
+
+    /** Called with [lock] held, so the job cannot finish before it is recorded. */
+    private fun begin(filesDir: File, entry: DictionaryEntry, size: DictionaryCatalog.DictionarySize) {
         activeId = entry.id
         set(entry.id, DownloadStatus.Downloading(0, entry.approxGzBytes))
         activeJob = scope.launch {
@@ -167,12 +260,14 @@ object WordlistDownloadManager {
             } catch (e: kotlinx.coroutines.CancellationException) {
                 part.delete()
                 // Nothing was replaced — the rename is the last step — so the
-                // list this one was going to replace is still there.
-                activeId = null
+                // list this one was going to replace is still there. A
+                // cancelled job is no longer active, so refresh reads it from
+                // disk; [activeId] is cleared below, with the queue's turn.
                 refresh(filesDir)
                 throw e
             } catch (e: FailedException) {
                 part.delete()
+                synchronized(lock) { givenUp += entry.id }
                 set(
                     entry.id,
                     DownloadStatus.Failed(
@@ -184,6 +279,7 @@ object WordlistDownloadManager {
                 )
             } catch (_: Exception) {
                 part.delete()
+                synchronized(lock) { givenUp += entry.id }
                 set(
                     entry.id,
                     DownloadStatus.Failed(
@@ -198,6 +294,7 @@ object WordlistDownloadManager {
                 // out took the whole app down. The arrays that failed
                 // are garbage by now, so saying so is safe.
                 part.delete()
+                synchronized(lock) { givenUp += entry.id }
                 set(
                     entry.id,
                     DownloadStatus.Failed(
@@ -207,7 +304,10 @@ object WordlistDownloadManager {
                     ),
                 )
             } finally {
-                activeId = null
+                synchronized(lock) {
+                    activeId = null
+                    beginNext()
+                }
             }
         }
     }
@@ -226,7 +326,7 @@ object WordlistDownloadManager {
         check(!isBusy) { "a download is running" }
         val part = DictionaryStore.partFile(filesDir, entry.languageId)
         part.parentFile?.mkdirs()
-        activeId = entry.id
+        synchronized(lock) { activeId = entry.id }
         try {
             set(entry.id, DownloadStatus.Processing)
             val list = openList(file).use { input ->
@@ -240,7 +340,11 @@ object WordlistDownloadManager {
             return trie.wordCount
         } finally {
             part.delete()
-            activeId = null
+            // A download asked for meanwhile queued behind this one.
+            synchronized(lock) {
+                activeId = null
+                beginNext()
+            }
             refresh(filesDir)
         }
     }
@@ -392,13 +496,33 @@ object WordlistDownloadManager {
         return if (gzip) GZIPInputStream(raw, 32 * 1024) else raw
     }
 
-    fun cancel() {
-        activeJob?.cancel()
+    /**
+     * Stops [entryId]'s download: drops it from the queue when it is still
+     * waiting there, cancels it when it is the one running. With no id, the
+     * running one. The rest of the queue carries on either way.
+     */
+    fun cancel(entryId: String? = null) {
+        val dropped = synchronized(lock) {
+            queue.firstOrNull { it.entry.id == entryId }?.also { queue.remove(it) }
+        }
+        if (dropped != null) {
+            refresh(dropped.filesDir)
+            return
+        }
+        if (entryId == null || entryId == activeId) activeJob?.cancel()
     }
 
+    /**
+     * Deletes [entry]'s list because the user asked, and remembers that they
+     * did, so [ensure] does not fetch it straight back.
+     */
     fun delete(filesDir: File, entry: DictionaryEntry) {
-        if (entry.id == activeId) cancel()
+        cancel(entry.id)
         DictionaryStore.delete(filesDir, entry.languageId)
+        declinedFile(filesDir, entry.languageId).let { marker ->
+            marker.parentFile?.mkdirs()
+            runCatching { marker.createNewFile() }
+        }
         refresh(filesDir)
     }
 

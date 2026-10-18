@@ -7641,12 +7641,6 @@
     <string name="tooldetail_ocr_info">Pengenalan berjalan di perangkat Anda dengan ML Kit. Tidak ada foto dan tidak ada teks yang meninggalkan perangkat Anda, dan ini berfungsi secara offline. Ini membaca teks skrip Latin, misalnya bahasa Inggris. Pengenal teks ML Kit belum mendukung bahasa Bengali. Setelah menangkap, tekan kata untuk memilih dengan tepat apa yang diketik atau disalin oleh keyboard.</string>
     <string name="tooldetail_ocr_online_group">Pembaca teks daring</string>
     <string name="tooldetail_ocr_online_info">Foto dikirim ke model yang dapat membaca gambar, di alamat yang Anda pilih, dan model tersebut menuliskan teks yang dilihatnya. Ini membaca skrip apa pun dan tidak memerlukan data bahasa. Layanan apa pun dengan API yang kompatibel dengan OpenAI akan berfungsi: OpenAI, OpenRouter, Gemini, Mistral, atau model di komputer Anda sendiri dengan Ollama atau LM Studio. Setiap pemindaian mengirimkan foto ke layanan tersebut, dan layanan mungkin mengenakan biaya untuk itu.</string>
-    <string name="tooldetail_ocr_online_key_hint">Biarkan kosong untuk server yang tidak meminta kunci</string>
-    <string name="tooldetail_ocr_online_key_label">Kunci API</string>
-    <string name="tooldetail_ocr_online_model_hint">Model yang membaca gambar, contohnya gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Model</string>
-    <string name="tooldetail_ocr_online_url_hint">Contohnya https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Alamat</string>
     <string name="tooldetail_ocr_packs_header">Bahasa Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract membaca bahasa hanya setelah data untuk bahasa tersebut ada di perangkat Anda. Terdapat satu unduhan untuk setiap bahasa yang Anda ketik, mulai dari 0,4 MB hingga 12 MB. Data tersebut berasal dari set tessdata_fast proyek Tesseract di GitHub. Anda juga dapat mengunduh bahasa dari pemindai itu sendiri.</string>
     <string name="tooldetail_ocr_packs_none_info">Tidak ada bahasa yang Anda aktifkan memiliki data Tesseract. Tambahkan bahasa di layar Bahasa. Datanya kemudian akan muncul di sini.</string>

@@ -195,6 +195,14 @@ internal fun DataSaverSettingsScreen(
                 SettingsDefaults.dataSaver.cloudVoice,
             ) { scope.launch { repository.setDataSaverCloudVoice(it) } }
         }
+        item {
+            policyRow(
+                R.string.datasaver_send_title,
+                R.string.datasaver_send_subtitle,
+                settings.watch { it.dataSaver.fileSend },
+                SettingsDefaults.dataSaver.fileSend,
+            ) { scope.launch { repository.setDataSaverFileSend(it) } }
+        }
     }
 
     // Not data saving: what the server-backed tools do with no connection at

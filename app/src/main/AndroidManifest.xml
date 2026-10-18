@@ -65,6 +65,19 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
+    <!-- The Send files tool's direct link (#729): a Wi-Fi Direct group or a
+         local-only hotspot one phone opens for the other to join. From Android
+         13 that is the Nearby devices permission, declared never for location;
+         before it the same calls sit behind the location permission above.
+         The two normal permissions let the app open the group and ask for the
+         per-app network it joins. -->
+    <uses-permission
+        android:name="android.permission.NEARBY_WIFI_DEVICES"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="s" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+
     <!-- Used by the optional calendar tool to list the day's events while it
          is open, and by the AI's calendar tool (#698) when the user allows it. -->
     <uses-permission android:name="android.permission.READ_CALENDAR" />
@@ -136,6 +149,8 @@
 
     <!-- The clock tool's alarms and timers. All of it only after the user
          sets an alarm or starts a timer; none of it does anything otherwise.
+         SCHEDULE_EXACT_ALARM also lets a reminder that a plugin set (a to-do
+         item that is due) show at its minute; the same grant, asked once. 
          - SCHEDULE_EXACT_ALARM: an alarm set for 6:30 rings at 6:30, not at
            whatever minute Doze lets through. From Android 12 a special grant
            the user gives on a system screen, asked after a disclosure; without
@@ -895,9 +910,39 @@
             </intent-filter>
         </activity-alias>
 
+        <!-- "Send with WM Keyboard" from another app's share sheet (#729): an
+             encrypted link through a Send instance, or a device nearby. The
+             alias is switched on by the keyboard while the tool and its share
+             sheet setting are on; never rename it, share targets remember
+             component names. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.send.SendShareActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.app.SendShareAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:label="@string/send_share_label"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.send.SendShareActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity-alias>
+
         <!-- Accept / Reject on a pair-request notification. -->
         <receiver
             android:name="com.wasimaster.wmkeyboard.ime.kdeconnect.KdeActionReceiver"
+            android:exported="false" />
+
+        <!-- Copy link / Open on the Send files tool's notifications (#729). -->
+        <receiver
+            android:name="com.wasimaster.wmkeyboard.ime.send.SendActionReceiver"
             android:exported="false" />
 
         <!-- Same trampoline pattern for the voice input tool's
@@ -999,12 +1044,30 @@
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
+        <!-- The Send files tool's Nearby devices (or location) grant for a direct link (#729), same trampoline. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.SendNearbyPermissionActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
         <!-- The gallery tool's system pickers (#708): Android's photo picker
              (the whole tool in a Play build) and the document picker. No
              noHistory, for the scanner's reason below: the picker's result
              comes back to this activity. -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.GalleryPickActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- The Send files tool's document picker (#729), the same shape. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.SendPickActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleTask"
@@ -1246,6 +1309,14 @@
                 <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
+
+        <!-- The wake-up for reminders that plugins set (wm.reminders). Not
+             exported: only the app's own alarm sends it. Not direct-boot aware:
+             plugins live in storage that stays locked until the first unlock,
+             and the unlock re-arms (PluginReminderAlarms.rearmOnStart). -->
+        <receiver
+            android:name="com.wasimaster.wmkeyboard.core.plugins.PluginReminderReceiver"
+            android:exported="false" />
 
         <!-- Plays an alarm or a timer while it rings, and only then. -->
         <service

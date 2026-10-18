@@ -313,6 +313,8 @@ private fun narrowChipLabel(hit: SmartSuggest.SmartHit): String = when (hit.kind
     SmartSuggest.Kind.CONTACT -> hit.query
     // "Repeat “no”", with the count in its own pill after it.
     SmartSuggest.Kind.REPEAT -> stringResource(R.string.ime_smart_repeat_offer, hit.query.replace("\n", "↵"))
+    // A share link in the text: the face opens the panel on receiving it (#729).
+    SmartSuggest.Kind.SEND_LINK -> stringResource(R.string.ime_smart_send_link)
     else -> stringResource(R.string.ime_smart_open_tool, toolLabel(hit.tool))
 }
 

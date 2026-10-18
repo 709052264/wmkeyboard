@@ -26,7 +26,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.core.plugins.InstalledPlugin
-import com.wasimaster.wmkeyboard.core.plugins.PluginPermission
 import com.wasimaster.wmkeyboard.core.plugins.PluginThumbnail
 import com.wasimaster.wmkeyboard.core.plugins.RenderedUi
 import com.wasimaster.wmkeyboard.core.plugins.ui.LocalPluginPanelStyle
@@ -56,7 +55,7 @@ internal fun TemplateCard(template: PluginTemplate, onClick: () -> Unit) {
                 id = "template.${template.name.lowercase()}",
                 name = name,
                 version = "0.1.0",
-                permissions = if (template.storage) listOf(PluginPermission.Storage.wire) else emptyList(),
+                permissions = template.permissions.map { it.wire },
             )
             PluginThumbnail.render(plugin, template.script(context))
         }

@@ -129,6 +129,8 @@ class Checks {
 				}
 				if (full === 'wm.storage') {
 					if (this.host && !this.host.storage) this.add('STORAGE_NOT_DECLARED', t.span(member));
+				} else if (full === 'wm.reminders') {
+					if (this.host && !this.host.reminders) this.add('REMINDERS_NOT_DECLARED', t.span(member));
 				} else if (full === 'string.dump') this.add('STRING_DUMP', t.span(member));
 				path = full;
 				at = member;

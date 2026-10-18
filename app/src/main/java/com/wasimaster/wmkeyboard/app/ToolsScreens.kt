@@ -110,6 +110,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.LOCATION -> ImeR.string.ime_tool_location
     ToolbarTool.CLOCK -> ImeR.string.ime_tool_clock
     ToolbarTool.HOME_ASSISTANT -> ImeR.string.ime_tool_home_assistant
+    ToolbarTool.SEND_FILES -> ImeR.string.ime_tool_send_files
     ToolbarTool.GALLERY -> ImeR.string.ime_tool_gallery
     ToolbarTool.CALENDAR -> ImeR.string.ime_tool_calendar
     ToolbarTool.INCOGNITO -> ImeR.string.ime_tool_incognito
@@ -201,6 +202,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.LOCATION -> R.string.fonts_tool_location_desc
     ToolbarTool.CLOCK -> R.string.fonts_tool_clock_desc
     ToolbarTool.HOME_ASSISTANT -> R.string.fonts_tool_home_assistant_desc
+    ToolbarTool.SEND_FILES -> R.string.fonts_tool_send_files_desc
     ToolbarTool.GALLERY -> R.string.fonts_tool_gallery_desc
     ToolbarTool.CALENDAR -> R.string.fonts_tool_calendar_desc
     ToolbarTool.INCOGNITO -> R.string.fonts_tool_incognito_desc
@@ -562,7 +564,7 @@ internal val ToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildList {
             ToolbarTool.TEXT_EDIT, ToolbarTool.TRACKPAD, ToolbarTool.NUMPAD, ToolbarTool.HANDWRITING,
             ToolbarTool.VOICE, ToolbarTool.CAMERA, ToolbarTool.GALLERY, ToolbarTool.DICTIONARY, ToolbarTool.VOCABULARY,
             ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.GRAMMAR, ToolbarTool.APP_LAUNCHER, ToolbarTool.MEDIA_CONTROL,
-            ToolbarTool.KDE_CONNECT,
+            ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES,
         ),
     )
     add(

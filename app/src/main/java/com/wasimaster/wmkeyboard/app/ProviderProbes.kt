@@ -17,6 +17,7 @@ import com.wasimaster.wmkeyboard.core.tools.DeepLClient
 import com.wasimaster.wmkeyboard.core.tools.LibreTranslateClient
 import com.wasimaster.wmkeyboard.core.tools.LingvaClient
 import com.wasimaster.wmkeyboard.core.tools.MozhiClient
+import com.wasimaster.wmkeyboard.core.tools.RensClient
 import com.wasimaster.wmkeyboard.core.tools.SimplyTranslateClient
 import com.wasimaster.wmkeyboard.core.tools.TransliteClient
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
@@ -98,6 +99,10 @@ internal object ProviderProbes {
             }
             ProviderTypes.TRANSLITE.id -> {
                 { TransliteClient.translate(text = PROBE_WORD, target = PROBE_TARGET, endpoint = credential.url, source = PROBE_SOURCE) }
+            }
+            // Rens has no request that costs nothing but a photo; its page having the form is the check.
+            ProviderTypes.RENS.id -> {
+                { RensClient.ping(credential.url) }
             }
             ProviderTypes.TRANSLATE_SERVER.id -> {
                 {

@@ -61,6 +61,24 @@ sealed interface PluginWidget {
      */
     data class Input(val id: String, val label: String, val placeholder: String) : PluginWidget
 
+    /**
+     * A date, and with [time] a time of day, the user picks with the host's own
+     * buttons: a day back or forward, earlier or later, today, clear.
+     *
+     * [value] is seconds since the epoch, the unit `os.time` gives, or null for
+     * no date yet. Like [Input], the widget keeps nothing: each press sends the
+     * new value to the script as `date_changed`, and the next render draws
+     * whatever the script kept. Without [time] the value is the start of a day.
+     * [step] is how many minutes the smaller time buttons move, 1 to 60.
+     */
+    data class DatePicker(
+        val id: String,
+        val label: String,
+        val value: Long?,
+        val time: Boolean,
+        val step: Int,
+    ) : PluginWidget
+
     data class Spacer(val height: Int) : PluginWidget
 
     data object Divider : PluginWidget
@@ -117,6 +135,9 @@ sealed interface PluginEvent {
     data class InputChanged(override val id: String, val value: String) : PluginEvent
 
     data class TabSelected(override val id: String, val index: Int) : PluginEvent
+
+    /** A date widget moved to [value], seconds since the epoch, or was cleared (null). */
+    data class DateChanged(override val id: String, val value: Long?) : PluginEvent
 }
 
 /** The ids of every input widget in this tree, so the host knows which buffers to keep. */
@@ -136,6 +157,7 @@ fun RenderedUi.inputIds(): Set<String> {
                 is PluginWidget.Output,
                 is PluginWidget.Button,
                 is PluginWidget.Toggle,
+                is PluginWidget.DatePicker,
                 is PluginWidget.Spacer,
                 PluginWidget.Divider,
                 PluginWidget.Progress,
@@ -153,9 +175,10 @@ data class PluginTargets(
     val toggles: List<PluginWidget.Toggle>,
     val inputs: List<PluginWidget.Input>,
     val tabs: List<PluginWidget.Tabs>,
+    val dates: List<PluginWidget.DatePicker> = emptyList(),
 ) {
     val isEmpty: Boolean
-        get() = buttons.isEmpty() && toggles.isEmpty() && inputs.isEmpty() && tabs.isEmpty()
+        get() = buttons.isEmpty() && toggles.isEmpty() && inputs.isEmpty() && tabs.isEmpty() && dates.isEmpty()
 
     companion object {
         val EMPTY = PluginTargets(emptyList(), emptyList(), emptyList(), emptyList())
@@ -163,7 +186,7 @@ data class PluginTargets(
 }
 
 /**
- * Every button, toggle, input and tab strip in this tree, in document order. What
+ * Every button, toggle, input, tab strip and date in this tree, in document order. What
  * the plugin editor's event injector offers to fire.
  *
  * Disabled buttons are included. The keyboard can never fire one, and that is the
@@ -179,10 +202,12 @@ fun RenderedUi.targets(): PluginTargets {
     val toggles = ArrayList<PluginWidget.Toggle>()
     val inputs = ArrayList<PluginWidget.Input>()
     val tabs = ArrayList<PluginWidget.Tabs>()
+    val dates = ArrayList<PluginWidget.DatePicker>()
     fun walk(widgets: List<PluginWidget>) {
         for (widget in widgets) {
             when (widget) {
                 is PluginWidget.Button -> buttons.add(widget)
+                is PluginWidget.DatePicker -> dates.add(widget)
                 is PluginWidget.Toggle -> toggles.add(widget)
                 is PluginWidget.Input -> inputs.add(widget)
                 is PluginWidget.Tabs -> {
@@ -202,5 +227,5 @@ fun RenderedUi.targets(): PluginTargets {
         }
     }
     walk(root)
-    return PluginTargets(buttons, toggles, inputs, tabs)
+    return PluginTargets(buttons, toggles, inputs, tabs, dates)
 }

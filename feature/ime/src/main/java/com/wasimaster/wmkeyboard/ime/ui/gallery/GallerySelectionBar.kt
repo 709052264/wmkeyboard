@@ -62,6 +62,7 @@ import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Description
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Deselect
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
@@ -419,6 +420,7 @@ internal fun SendMenu(hasCaption: Boolean, canShareToApp: Boolean, act: (Gallery
         if (canShareToApp) entry(Icons.Outlined.OpenInNew, R.string.ime_gallery_share_to_app, SendMode.SHARE_TO_APP)
         entry(Icons.Outlined.Share, R.string.ime_gallery_share, SendMode.SHARE)
         entry(Icons.Outlined.ContentCopy, R.string.ime_gallery_copy, SendMode.COPY)
+        entry(Icons.Outlined.Link, R.string.ime_gallery_send_as_link, SendMode.AS_LINK)
         entry(Icons.Outlined.SaveAlt, R.string.ime_gallery_save, SendMode.SAVE)
         entry(Icons.Outlined.Deselect, R.string.ime_gallery_clear_selection, null)
     }

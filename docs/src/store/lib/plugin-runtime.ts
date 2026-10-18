@@ -42,6 +42,9 @@ end
 function ui.input(t)
   return { type = "input", id = t.id, label = t.label, placeholder = t.placeholder }
 end
+function ui.date(t)
+  return { type = "date", id = t.id, label = t.label, value = t.value, time = t.time, step = t.step }
+end
 function ui.spacer(t) return { type = "spacer", height = t and t.height } end
 function ui.divider() return { type = "divider" } end
 function ui.progress() return { type = "progress" } end
@@ -178,6 +181,7 @@ export type PluginWidget =
 	| { kind: 'button'; id: string; text: string; primary: boolean; enabled: boolean }
 	| { kind: 'toggle'; id: string; label: string; checked: boolean }
 	| { kind: 'input'; id: string; label: string; placeholder: string }
+	| { kind: 'date'; id: string; label: string; value: number | null; time: boolean; step: number }
 	| { kind: 'spacer'; height: number }
 	| { kind: 'divider' }
 	| { kind: 'progress' }
@@ -288,6 +292,7 @@ class Walk {
 			case 'button': return { kind: 'button', id: this.id(table), text: this.text(table, 'text'), primary: optString(field(table, 'style'), '') === 'primary', enabled: optBoolean(field(table, 'enabled'), true) };
 			case 'toggle': return { kind: 'toggle', id: this.id(table), label: this.text(table, 'label'), checked: toBoolean(field(table, 'checked')) };
 			case 'input': return { kind: 'input', id: this.id(table), label: this.text(table, 'label'), placeholder: this.text(table, 'placeholder') };
+			case 'date': return { kind: 'date', id: this.id(table), label: this.text(table, 'label'), value: seconds(field(table, 'value')), time: toBoolean(field(table, 'time')), step: Math.min(Math.max(optInt(field(table, 'step'), 15), 1), 60) };
 			case 'spacer': return { kind: 'spacer', height: Math.min(Math.max(optInt(field(table, 'height'), 8), 0), UI.MAX_SPACER) };
 			case 'divider': return { kind: 'divider' };
 			case 'progress': return { kind: 'progress' };
@@ -342,6 +347,12 @@ class Walk {
 	}
 }
 
+/** Whole seconds within the years 1 to 9999, or null for no date (PluginUiCodec.seconds). */
+function seconds(v: unknown): number | null {
+	if (typeof v !== 'number' || !Number.isFinite(v) || v < -62_135_596_800 || v > 253_402_300_799) return null;
+	return Math.floor(v);
+}
+
 function labelStyle(table: LuaTable): LabelStyle {
 	switch (optString(field(table, 'style'), '')) {
 		case 'title': return 'TITLE';
@@ -361,15 +372,16 @@ export interface PluginTargets {
 	toggles: { id: string; checked: boolean }[];
 	inputs: { id: string }[];
 	tabs: { id: string; pages: number }[];
+	dates: { id: string; value: number | null; time: boolean }[];
 }
 
-export const EMPTY_TARGETS: PluginTargets = { buttons: [], toggles: [], inputs: [], tabs: [] };
+export const EMPTY_TARGETS: PluginTargets = { buttons: [], toggles: [], inputs: [], tabs: [], dates: [] };
 
-export const targetsEmpty = (t: PluginTargets) => !t.buttons.length && !t.toggles.length && !t.inputs.length && !t.tabs.length;
+export const targetsEmpty = (t: PluginTargets) => !t.buttons.length && !t.toggles.length && !t.inputs.length && !t.tabs.length && !t.dates.length;
 
 /** Every button, toggle, input and tab strip in this tree, in document order. */
 export function targetsOf(ui: RenderedUi): PluginTargets {
-	const out: PluginTargets = { buttons: [], toggles: [], inputs: [], tabs: [] };
+	const out: PluginTargets = { buttons: [], toggles: [], inputs: [], tabs: [], dates: [] };
 	const walk = (list: PluginWidget[]) => {
 		for (const w of list) {
 			switch (w.kind) {
@@ -378,6 +390,7 @@ export function targetsOf(ui: RenderedUi): PluginTargets {
 				case 'button': out.buttons.push({ id: w.id, enabled: w.enabled }); break;
 				case 'toggle': out.toggles.push({ id: w.id, checked: w.checked }); break;
 				case 'input': out.inputs.push({ id: w.id }); break;
+				case 'date': out.dates.push({ id: w.id, value: w.value, time: w.time }); break;
 				case 'tabs':
 					out.tabs.push({ id: w.id, pages: w.pages.length });
 					for (const p of w.pages) walk(p.children);
@@ -398,7 +411,70 @@ export type PluginEvent =
 	| { type: 'click'; id: string }
 	| { type: 'toggle'; id: string; value: boolean }
 	| { type: 'input_changed'; id: string; value: string }
-	| { type: 'tab_selected'; id: string; index: number };
+	| { type: 'tab_selected'; id: string; index: number }
+	| { type: 'date_changed'; id: string; value: number | null };
+
+// ---------------------------------------------------------------------------
+// Dates (PluginDates.kt): what each button on a ui.date does, in local time
+// ---------------------------------------------------------------------------
+
+export const Dates = {
+	initial(nowMillis: number, time: boolean): number {
+		const d = new Date(nowMillis);
+		if (!time) return Math.floor(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() / 1000);
+		d.setMinutes(0, 0, 0);
+		d.setHours(d.getHours() + 1);
+		return Math.floor(d.getTime() / 1000);
+	},
+	addDays(value: number, days: number): number {
+		const d = new Date(value * 1000);
+		d.setDate(d.getDate() + days);
+		return Math.floor(d.getTime() / 1000);
+	},
+	addMinutes: (value: number, minutes: number): number => value + minutes * 60,
+	today(value: number, nowMillis: number): number {
+		const from = new Date(value * 1000);
+		const d = new Date(nowMillis);
+		d.setHours(from.getHours(), from.getMinutes(), from.getSeconds(), 0);
+		return Math.floor(d.getTime() / 1000);
+	},
+};
+
+// ---------------------------------------------------------------------------
+// Reminders (PluginReminders.kt): kept in memory, never shown, as in the app's editor
+// ---------------------------------------------------------------------------
+
+export const REMINDERS = { MAX_REMINDERS: 64, MAX_ID_LENGTH: 64, MAX_TEXT_LENGTH: 200, MAX_AHEAD_SECONDS: 10 * 366 * 24 * 60 * 60 };
+
+export class PreviewReminders {
+	private list: { id: string; time: number; text: string }[] = [];
+
+	set(id: string, time: number, text: string, now = Date.now() / 1000): string | null {
+		if (!id) return "a reminder id can't be empty";
+		if (id.length > REMINDERS.MAX_ID_LENGTH) return `reminder ids can't be longer than ${REMINDERS.MAX_ID_LENGTH} characters`;
+		const shown = text.replace(/[\p{Cc}\p{Cf}\p{Co}]/gu, '').trim().substring(0, REMINDERS.MAX_TEXT_LENGTH).trim();
+		if (!shown) return 'a reminder needs some text to show';
+		const whole = Math.floor(time);
+		if (whole <= now) return 'that time has already passed';
+		if (whole - now > REMINDERS.MAX_AHEAD_SECONDS) return "a reminder can't be more than ten years ahead";
+		const at = this.list.findIndex((r) => r.id === id);
+		if (at < 0 && this.list.length >= REMINDERS.MAX_REMINDERS) return `this plugin already has the maximum of ${REMINDERS.MAX_REMINDERS} reminders`;
+		const reminder = { id, time: whole, text: shown };
+		if (at >= 0) this.list[at] = reminder;
+		else this.list.push(reminder);
+		return null;
+	}
+
+	cancel(id: string): boolean {
+		const before = this.list.length;
+		this.list = this.list.filter((r) => r.id !== id);
+		return this.list.length !== before;
+	}
+
+	all() {
+		return [...this.list].sort((a, b) => a.time - b.time);
+	}
+}
 
 // ---------------------------------------------------------------------------
 // Storage (PluginStorage.kt)
@@ -480,6 +556,7 @@ export interface PluginIdentity {
 	name: string;
 	version: string;
 	storage: boolean;
+	reminders?: boolean;
 }
 
 /** A Lua error: the virtual machine's own words, as luaj's LuaError carries them. */
@@ -497,7 +574,12 @@ class Sandbox {
 	private pendingInputs: [string, string][] = [];
 	private logLines = 0;
 
-	constructor(private readonly plugin: PluginIdentity, private readonly storage: PreviewStorage | null, private readonly host: SandboxHost) {
+	constructor(
+		private readonly plugin: PluginIdentity,
+		private readonly storage: PreviewStorage | null,
+		private readonly host: SandboxHost,
+		private readonly reminders: PreviewReminders | null = null,
+	) {
 		const L = lauxlib.luaL_newstate();
 		this.L = L;
 		lualib.luaL_openlibs(L);
@@ -717,6 +799,32 @@ class Sandbox {
 			});
 			lua.lua_setfield(L, -2, to_luastring('storage'));
 		}
+		const reminders = this.reminders;
+		if (reminders) {
+			lua.lua_newtable(L);
+			set('set', (L) => {
+				const id = lua.lua_type(L, 1) === lua.LUA_TSTRING ? to_jsstring(lua.lua_tostring(L, 1)) : '';
+				const time = lua.lua_type(L, 2) === lua.LUA_TNUMBER ? lua.lua_tonumber(L, 2) : NaN;
+				const text = lua.lua_type(L, 3) === lua.LUA_TSTRING ? to_jsstring(lua.lua_tostring(L, 3)) : '';
+				const refused = Number.isFinite(time) ? reminders.set(id, time, text) : 'the time must be a number of seconds, as os.time() gives';
+				if (refused) {
+					lua.lua_pushnil(L);
+					lua.lua_pushstring(L, to_luastring(refused));
+					return 2;
+				}
+				lua.lua_pushboolean(L, true);
+				return 1;
+			});
+			set('cancel', (L) => {
+				lua.lua_pushboolean(L, reminders.cancel(lua.lua_type(L, 1) === lua.LUA_TSTRING ? to_jsstring(lua.lua_tostring(L, 1)) : ''));
+				return 1;
+			});
+			set('list', () => {
+				this.pushJsValue(reminders.all());
+				return 1;
+			});
+			lua.lua_setfield(L, -2, to_luastring('reminders'));
+		}
 		lua.lua_setglobal(L, to_luastring('wm'));
 	}
 
@@ -887,6 +995,8 @@ export class PluginPreviewSession {
 	private current: Session | null = null;
 	private storageOwner: string | null = null;
 	private sharedStorage: PreviewStorage | null = null;
+	private remindersOwner: string | null = null;
+	private sharedReminders: PreviewReminders | null = null;
 
 	constructor(private readonly storageKeyOf: (draftId: string) => string | null) {}
 
@@ -906,10 +1016,15 @@ export class PluginPreviewSession {
 		this.append({ at: 0, kind: 'STARTED', text: '' });
 		let sandbox: Sandbox;
 		try {
-			sandbox = new Sandbox(plugin, storage, {
-				onPrint: (line) => this.append({ at: this.elapsed(), kind: 'PRINT', text: line }),
-				onSetInput: (id, text) => this.update((s) => ({ inputs: { ...s.inputs, [id]: text.substring(0, MAX_INPUT) } })),
-			});
+			sandbox = new Sandbox(
+				plugin,
+				storage,
+				{
+					onPrint: (line) => this.append({ at: this.elapsed(), kind: 'PRINT', text: line }),
+					onSetInput: (id, text) => this.update((s) => ({ inputs: { ...s.inputs, [id]: text.substring(0, MAX_INPUT) } })),
+				},
+				plugin.reminders ? this.remindersOf(draftId) : null,
+			);
 		} catch (e) {
 			this.append({ at: this.elapsed(), kind: 'ERROR', text: String((e as Error).message ?? e), failure: 'UNEXPECTED' });
 			this.update({ status: 'FAILED' });
@@ -968,6 +1083,15 @@ export class PluginPreviewSession {
 		this.current = null;
 		if (replaced) this.append({ at: this.elapsed(), kind: 'CANCELLED', text: '', failure: 'CANCELLED' });
 		c.sandbox.close();
+	}
+
+	/** The reminders preview runs of a draft set: in memory, and never shown. */
+	remindersOf(draftId: string): PreviewReminders {
+		if (this.remindersOwner !== draftId || !this.sharedReminders) {
+			this.remindersOwner = draftId;
+			this.sharedReminders = new PreviewReminders();
+		}
+		return this.sharedReminders;
 	}
 
 	storageOf(draftId: string): PreviewStorage {
@@ -1111,7 +1235,7 @@ class CompileFailure extends Error {
 export function renderOnce(plugin: PluginIdentity, script: string): RenderedUi | null {
 	let sandbox: Sandbox | null = null;
 	try {
-		sandbox = new Sandbox(plugin, plugin.storage ? new PreviewStorage(null) : null, { onPrint: () => {}, onSetInput: () => {} });
+		sandbox = new Sandbox(plugin, plugin.storage ? new PreviewStorage(null) : null, { onPrint: () => {}, onSetInput: () => {} }, plugin.reminders ? new PreviewReminders() : null);
 		sandbox.budget.begin(LIMITS.LOAD);
 		sandbox.compile(script, '@' + MAIN_CHUNK);
 		sandbox.call(0, 0);

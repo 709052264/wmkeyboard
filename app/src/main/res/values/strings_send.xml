@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Send files tool (#729): its settings pages, its two screens, and the share sheet entry. -->
+<resources>
+    <string name="send_share_label">Send with WM Keyboard</string>
+
+    <!-- Tool page -->
+    <string name="send_server_group">Send server</string>
+    <string name="send_instance_title">Instance</string>
+    <string name="send_instance_subtitle">Where uploads go. The maintainer of Send runs the default.</string>
+    <string name="send_defaults_group">Defaults for a new link</string>
+    <string name="send_expire_title">Link expires after</string>
+    <string name="send_expire_subtitle">The server deletes the file then, downloaded or not. Each instance has its own longest allowed time.</string>
+    <string name="send_expire_5min">5 minutes</string>
+    <string name="send_expire_1hour">1 hour</string>
+    <string name="send_expire_1day">1 day</string>
+    <string name="send_expire_7days">7 days</string>
+    <string name="send_downloads_title">Downloads allowed</string>
+    <string name="send_downloads_subtitle">The server deletes the file after the last one.</string>
+    <string name="send_password_title">Password</string>
+    <string name="send_password_subtitle">A second lock on the link: the server checks it before it hands the file over. The file is encrypted either way.</string>
+    <string name="send_password_off">Off</string>
+    <string name="send_password_ask">Ask each time</string>
+    <string name="send_password_generate">Generate one</string>
+    <string name="send_after_title">After the upload</string>
+    <string name="send_after_subtitle">What happens to the link the moment it is ready.</string>
+    <string name="send_after_insert">Insert it</string>
+    <string name="send_after_copy">Copy it</string>
+    <string name="send_after_show">Show it</string>
+    <string name="send_after_ask">Ask</string>
+    <string name="send_receive_group">Receiving</string>
+    <string name="send_detect_title">Offer to receive links</string>
+    <string name="send_detect_subtitle">A Send link typed, pasted or copied gets a chip on the suggestion strip that downloads and decrypts the file.</string>
+    <string name="send_open_after_title">Open after download</string>
+    <string name="send_open_after_subtitle">A single received file opens as soon as it is saved.</string>
+    <string name="send_nearby_group">Nearby</string>
+    <string name="send_nearby_title">Send to devices nearby</string>
+    <string name="send_nearby_subtitle">Phones and computers on the same Wi-Fi, through the KDE Connect engine, and a direct link between two phones with no Wi-Fi between them.</string>
+    <string name="send_keep_direct_title">Keep a direct link up</string>
+    <string name="send_keep_direct_subtitle">After a transfer, stay on the other phone\'s Wi-Fi for the next one.</string>
+    <string name="send_nearby_name_title">Device name</string>
+    <string name="send_nearby_name_subtitle">What other devices see. Shared with the KDE Connect tool.</string>
+    <string name="send_nearby_permission_missing">A direct link between two phones needs the Nearby devices permission.</string>
+    <string name="send_nearby_permission_missing_location">A direct link between two phones needs the location permission on this Android version.</string>
+    <string name="send_nearby_permission_allow">Allow</string>
+    <string name="send_sharing_group">Sharing and history</string>
+    <string name="send_share_sheet_title">Show in other apps\' share sheets</string>
+    <string name="send_share_sheet_subtitle">Send with WM Keyboard, beside the apps you share to.</string>
+    <string name="send_history_title">Keep a history</string>
+    <string name="send_history_subtitle">Links you made, with how long they have left, and files you received.</string>
+    <string name="send_history_open_title">History</string>
+    <string name="send_history_open_subtitle">Links this phone made and files it received</string>
+
+    <!-- Instances screen -->
+    <string name="send_instances_screen_title">Send instances</string>
+    <string name="send_instances_screen_subtitle">Public servers and your own</string>
+    <string name="send_instances_own_group">Yours</string>
+    <string name="send_instances_add_label">Address</string>
+    <string name="send_instances_add">Add</string>
+    <string name="send_instances_remove">Remove</string>
+    <string name="send_instances_public_group">Public instances</string>
+    <string name="send_instances_public_info">Run by volunteers, with no promises. An instance sees a file\'s size and when it arrived, never its contents or its name: both are encrypted before the upload, with a key that stays in the link.</string>
+    <string name="send_instance_reference">Run by the maintainer of Send</string>
+    <string name="send_instance_check">Check</string>
+    <string name="send_instance_check_all">Check them all</string>
+    <string name="send_instance_checking">Checking</string>
+    <string name="send_instance_ok">Answering</string>
+    <string name="send_instance_unreachable">Not answering</string>
+    <plurals name="send_days">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+    <plurals name="send_downloads_n">
+        <item quantity="one">%1$d download</item>
+        <item quantity="other">%1$d downloads</item>
+    </plurals>
+
+    <!-- History screen -->
+    <string name="send_history_screen_title">Send history</string>
+    <string name="send_history_screen_subtitle">Links this phone made and files it received</string>
+    <string name="send_history_sent">Links sent</string>
+    <string name="send_history_received">Files received</string>
+    <string name="send_history_empty">Nothing yet</string>
+    <string name="send_history_left">%1$s left</string>
+    <string name="send_history_copy">Copy link</string>
+    <string name="send_history_delete">Delete from the server</string>
+    <string name="send_history_deleted">Deleted</string>
+    <string name="send_history_copied">Link copied</string>
+    <string name="send_history_open">Open</string>
+    <string name="send_history_forget">Forget</string>
+    <string name="send_history_clear_confirm">Forget every received file in this list? The files themselves stay in Downloads.</string>
+    <string name="send_history_clear_received">Clear the list</string>
+    <string name="send_history_password">Password set</string>
+    <plurals name="send_downloads_used">
+        <item quantity="one">%1$d of %2$d download used</item>
+        <item quantity="other">%1$d of %2$d downloads used</item>
+    </plurals>
+
+    <!-- Share sheet -->
+    <string name="send_share_title">Send with WM Keyboard</string>
+    <plurals name="send_share_files">
+        <item quantity="one">%1$d file, %2$s</item>
+        <item quantity="other">%1$d files, %2$s</item>
+    </plurals>
+    <string name="send_share_mode_link">Link</string>
+    <string name="send_share_mode_nearby">Nearby</string>
+    <string name="send_share_to">To %1$s</string>
+    <string name="send_share_upload">Upload</string>
+    <string name="send_share_uploading">Encrypting and uploading</string>
+    <string name="send_share_done">Link ready</string>
+    <string name="send_share_copy">Copy</string>
+    <string name="send_share_share">Share</string>
+    <string name="send_share_close">Done</string>
+    <string name="send_share_cancel">Cancel</string>
+    <string name="send_share_off">The Send files tool is off. Turn it on under Tools.</string>
+    <string name="send_share_password_hint">Password (optional)</string>
+    <string name="send_share_failed">Did not upload: %1$s</string>
+    <string name="send_share_nearby_none">No paired device is in reach. Open the Send files tool on the keyboard to pair one.</string>
+    <string name="send_share_nearby_waiting">Looking for %1$s</string>
+    <string name="send_share_sending">Sending to %1$s</string>
+    <string name="send_share_sent">Sent to %1$s</string>
+    <string name="send_share_unreadable">Those files could not be read.</string>
+    <string name="send_share_error_offline">the server could not be reached</string>
+    <string name="send_share_error_too_big">the file is too big for this instance</string>
+    <string name="send_share_error_other">the server refused</string>
+
+    <!-- Privacy › Permissions -->
+    <string name="privacy_permissions_nearby_title">Nearby devices</string>
+    <string name="privacy_permissions_nearby_subtitle">The Send files tool opens or joins a Wi-Fi between two phones for a direct transfer; nothing else uses it</string>
+</resources>

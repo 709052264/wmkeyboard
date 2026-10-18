@@ -83,6 +83,9 @@ internal class GalleryController(
         fun endText()
         fun currentText(): GalleryTextEntry?
         fun saveToGallery(file: File, mime: String)
+
+        /** The picks to the Send files tool (#729), as prepared copies with their types; it opens its panel. */
+        fun sendAsLink(files: List<Pair<File, String>>)
         fun stickers(): List<StickerChoice>
 
         /** A FileProvider URI for a copy in the media cache, for share and copy. */
@@ -165,6 +168,7 @@ internal class GalleryController(
                 sendMenuOpen = false,
                 askFallback = 0,
                 notice = null,
+                forLink = false,
                 selection = if (keep || it.sending != null) it.selection else emptyList(),
                 edits = if (keep || it.sending != null) it.edits else emptyMap(),
                 caption = if (keep) it.caption else "",
@@ -766,9 +770,15 @@ internal class GalleryController(
         }
     }
 
-    private fun send(mode: SendMode) {
+    /** The Send files tool opened this panel: the Send button hands the picks to it (#729). */
+    fun openForLink() {
+        _state.update { it.copy(forLink = true) }
+    }
+
+    private fun send(requested: SendMode) {
         val s = _state.value
         if (s.selection.isEmpty() || sendJob?.isActive == true) return
+        val mode = if (requested == SendMode.NORMAL && s.forLink) SendMode.AS_LINK else requested
         endTextIfAny()
         host.haptic()
         val captionSetting = host.settings.caption
@@ -797,6 +807,10 @@ internal class GalleryController(
                     SendMode.SAVE -> {
                         prepared.forEach { (_, p) -> host.saveToGallery(p.file, p.mime) }
                         notice(GalleryNotice.Kind.SAVED, prepared.size)
+                        false
+                    }
+                    SendMode.AS_LINK -> {
+                        host.sendAsLink(prepared.map { (_, p) -> p.file to p.mime })
                         false
                     }
                     else -> commitAll(prepared, caption, captionSetting, field, items.size)

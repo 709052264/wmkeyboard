@@ -105,6 +105,8 @@ enum class NetSource(
 
     /** About › Supporters, when its refresh button is pressed. */
     SUPPORTERS("supporters"),
+    /** A file sent or received by the Send files tool (#729): a link or a device nearby. */
+    SEND("send", ToolbarTool.SEND_FILES),
     KDE_CONNECT("kde_connect", ToolbarTool.KDE_CONNECT),
 
     /** The user's own Home Assistant server: its socket, its REST calls, a camera picture. */

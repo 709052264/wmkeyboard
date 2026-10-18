@@ -181,6 +181,7 @@
     <string name="netlog_source_link_import">Import from a link</string>
     <string name="netlog_source_backup">Backup</string>
     <string name="netlog_source_updates">Update check</string>
+    <string name="netlog_source_send">Send files</string>
     <string name="netlog_source_kde_connect">KDE Connect</string>
     <string name="netlog_source_home_assistant">Home Assistant</string>
     <string name="netlog_source_smartthings" translatable="false">SmartThings</string>
@@ -225,6 +226,7 @@
     <string name="netlog_sent_smartthings">The commands you give and the states it shows, to Samsung\'s SmartThings cloud with your key; the device list is asked for every few seconds while the panel is open.</string>
     <string name="netlog_sent_hue">The commands you give and the states it shows, to the Hue bridge on your own network and nowhere else.</string>
     <string name="netlog_sent_openhab">The commands you give and the states it shows, to your own openHAB server and nowhere else.</string>
+    <string name="netlog_sent_send">A file you chose, encrypted on the phone before it leaves, to the Send instance you picked; and a link you opened, to fetch and decrypt its file. The server never sees the key, which stays in the link.</string>
     <string name="netlog_sent_kde_connect">What you use the tool for, to a computer you paired on your own network.</string>
     <string name="netlog_sent_other">A request the log could not put under a feature.</string>
     <string name="netlog_source_supporters">Supporters list</string>

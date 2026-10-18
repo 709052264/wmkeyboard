@@ -7643,12 +7643,6 @@
     <string name="tooldetail_ocr_info">זיהוי פועל על המכשיר שלך עם ML Kit. אף תמונה ואף טקסט לא עוזבים את המכשיר שלך, וזה עובד במצב לא מקוון. הוא קורא טקסט בכתב לטיני, למשל אנגלית. מזהה הטקסט של ML Kit עדיין לא תומך בבנגלית. לאחר צילום, לחץ על מילים כדי לבחור בדיוק מה המקלדת מקלידה או מעתיקה.</string>
     <string name="tooldetail_ocr_online_group">קורא טקסט מקוון</string>
     <string name="tooldetail_ocr_online_info">התמונה נשלחת למודל שיכול לקרוא תמונות, בכתובת שתבחר, והמודל כותב את הטקסט שהוא רואה. הוא קורא כל כתב ואינו זקוק לנתוני שפה. כל שירות עם API תואם OpenAI עובד: OpenAI, OpenRouter, Gemini, Mistral, או מודל על המחשב שלך עם Ollama או LM Studio. כל סריקה שולחת את התמונה לשירות זה, והשירות עשוי לגבות תשלום עבורה.</string>
-    <string name="tooldetail_ocr_online_key_hint">השאר ריק עבור שרת שאינו דורש מפתח</string>
-    <string name="tooldetail_ocr_online_key_label">מפתח API</string>
-    <string name="tooldetail_ocr_online_model_hint">מודל שקורא תמונות, למשל gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">מודל</string>
-    <string name="tooldetail_ocr_online_url_hint">לדוגמה https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">כתובת</string>
     <string name="tooldetail_ocr_packs_header">שפות Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract קורא שפה רק לאחר שהנתונים עבור אותה שפה נמצאים במכשיר שלך. יש הורדה אחת לכל שפה שבה את/ה מקליד/ה, בין 0.4MB ל-12MB. הנתונים מגיעים מסט ה-tessdata_fast של פרויקט Tesseract ב-GitHub. ניתן להוריד שפה גם מהסורק עצמו.</string>
     <string name="tooldetail_ocr_packs_none_info">לאף אחת מהשפות שהפעלת אין נתוני Tesseract. הוסף שפה במסך השפות. לאחר מכן הנתונים שלה יוצגו כאן.</string>

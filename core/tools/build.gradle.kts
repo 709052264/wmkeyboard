@@ -51,6 +51,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(project(":core:send"))
     api(project(":core:common"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)

@@ -62,6 +62,8 @@ data class GalleryUi(
     /** Whether the open field takes pictures, and videos, through the keyboard at all. */
     val fieldTakesImages: Boolean = true,
     val fieldTakesVideos: Boolean = false,
+    /** Opened by the Send files tool to pick for a link (#729): Send hands the picks to it instead of the field. */
+    val forLink: Boolean = false,
 ) {
     val selectedIds: Set<Long> get() = selection.mapTo(HashSet()) { it.id }
 
@@ -179,6 +181,9 @@ enum class SendMode {
 
     /** Into the phone's gallery: an edited copy kept. */
     SAVE,
+
+    /** To the Send files tool (#729), to go out as an encrypted link or to a device nearby. */
+    AS_LINK,
 }
 
 /** Everything the panel can ask for, as one type, so the callback bundle stays one field. */

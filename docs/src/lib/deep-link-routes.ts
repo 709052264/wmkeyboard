@@ -238,6 +238,8 @@ export const ROUTES: RouteSpec[] = [
 	{ pattern: 'musicapps', label: 'Music players', group: 'Tools' },
 	{ pattern: 'launchercombos', label: 'Split screen pairs, for the app launcher', group: 'Tools' },
 	{ pattern: 'kdeconnect/devices', label: 'KDE Connect devices', group: 'Tools' },
+	{ pattern: 'send/instances', label: 'Send instances', group: 'Tools' },
+	{ pattern: 'send/history', label: 'Send history', group: 'Tools' },
 	{ pattern: 'ai_actions', label: 'AI actions', group: 'Tools' },
 	{
 		pattern: 'ai_action_edit/{actionId}',
@@ -361,7 +363,7 @@ export const TOOL_NAMES = [
 	'CURSOR_WORD_LEFT', 'CURSOR_WORD_RIGHT', 'SELECT_WORD', 'SELECT_LINE', 'SELECT_ALL', 'SELECT_MODE', 'COPY',
 	'CUT', 'PASTE', 'HIDE_KEYBOARD', 'PERSISTENT', 'SELECTION_ACTIONS', 'LEARN_FROM_TEXT',
 	'PHONETIC_ENGLISH', 'KDE_CONNECT', 'STATISTICS', 'FIND_REPLACE', 'NOTES', 'AI_REPLY', 'LOCATION', 'CLOCK', 'HOME_ASSISTANT', 'GALLERY', 'LANGUAGE', 'CLIPBOARD_SEARCH',
-	'TEXT_REPEAT',
+	'TEXT_REPEAT', 'SEND_FILES',
 ];
 
 /**

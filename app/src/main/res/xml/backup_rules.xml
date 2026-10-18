@@ -17,6 +17,7 @@
     <exclude domain="file" path="docscan" />
     <exclude domain="file" path="clipboard/images" />
     <exclude domain="file" path="stickers/.originals" />
+    <exclude domain="file" path="send" />
     <exclude domain="file" path="kdeconnect" />
     <exclude domain="file" path="homeassistant" />
     <exclude domain="file" path="netlog" />

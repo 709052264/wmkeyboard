@@ -10,6 +10,7 @@ import com.wasimaster.wmkeyboard.core.settings.ProviderEdits
 import com.wasimaster.wmkeyboard.core.settings.ProviderProblem
 import com.wasimaster.wmkeyboard.core.settings.ProviderSettings
 import com.wasimaster.wmkeyboard.core.settings.RateSourceSettings
+import com.wasimaster.wmkeyboard.core.settings.ScannerSettings
 import com.wasimaster.wmkeyboard.core.settings.SelfHostedSettings
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
 import com.wasimaster.wmkeyboard.core.settings.TranslateServerSettings
@@ -18,6 +19,7 @@ import com.wasimaster.wmkeyboard.core.settings.WebSearchSettings
 import com.wasimaster.wmkeyboard.core.settings.assistHome
 import com.wasimaster.wmkeyboard.core.settings.homes
 import com.wasimaster.wmkeyboard.core.settings.providerChain
+import com.wasimaster.wmkeyboard.core.settings.providerChoices
 import com.wasimaster.wmkeyboard.core.settings.providerCredentials
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import com.wasimaster.wmkeyboard.core.tools.DictionarySource
@@ -365,6 +367,57 @@ class ProviderFrameworkTest {
             s.resolveProviders(ProviderTool.GIF, play, all = true).first { it.typeId == "offline_gif_packs" }.problem,
         )
         assertTrue(s.resolveProviders(ProviderTool.TRANSLATE, fdroid).any { it.typeId == "deepl" })
+    }
+
+    // ---- pick mode (#727) ----
+
+    @Test
+    fun `pick mode asks only the chosen row, and the first when the choice is gone`() {
+        val chain = ProviderChain(
+            listOf(ProviderEntry("deepl"), ProviderEntry("google_translate"), ProviderEntry("mozhi", "mozhi:01", enabled = false)),
+            ChainMode.PICK,
+        )
+        val s = KeyboardSettings(
+            providers = ProviderSettings(
+                listOf(
+                    ProviderCredential("deepl", "deepl", apiKey = "d"),
+                    ProviderCredential("mozhi:01", "mozhi", url = "https://mozhi"),
+                ),
+                mapOf(ProviderTool.TRANSLATE to chain),
+            ),
+        )
+        val picked = { pick: String? -> s.resolveProviders(ProviderTool.TRANSLATE, play, pick = pick).map { it.key } }
+        assertEquals(listOf("google_translate"), picked("google_translate"))
+        assertEquals(listOf("deepl"), picked(""))
+        // A row that is off cannot be chosen; the first that is on stands in.
+        assertEquals(listOf("deepl"), picked("mozhi:01"))
+        // No panel (the AI's tools): the whole list, in order.
+        assertEquals(listOf("deepl", "google_translate"), picked(null))
+        val choices = s.providerChoices(ProviderTool.TRANSLATE, "google_translate", play)!!
+        assertEquals("google_translate", choices.chosen)
+        assertTrue(choices.shown)
+        // In fallback mode the panel has no chooser.
+        val fallback = s.copy(providers = s.providers.copy(chains = mapOf(ProviderTool.TRANSLATE to chain.copy(mode = ChainMode.FALLBACK))))
+        assertNull(fallback.providerChoices(ProviderTool.TRANSLATE, "", play))
+        assertEquals(listOf("deepl", "google_translate"), fallback.resolveProviders(ProviderTool.TRANSLATE, play, pick = "google_translate").map { it.key })
+    }
+
+    @Test
+    fun `a pick mode a tool does not offer reads as its default`() {
+        val chains = ProviderCodec.decodeChains(
+            ProviderCodec.encodeChains(mapOf(ProviderTool.CURRENCY_FIAT to ProviderChain(mode = ChainMode.PICK))),
+        )
+        assertEquals(ChainMode.FALLBACK, chains.getValue(ProviderTool.CURRENCY_FIAT).mode)
+    }
+
+    @Test
+    fun `the OCR tool's old online reader becomes its list, and a vision reader needs a model`() {
+        val s = KeyboardSettings(scanner = ScannerSettings(ocrOnlineUrl = "https://api", ocrOnlineModel = "", ocrOnlineKey = "k"))
+        assertEquals(listOf("vision_ocr"), ids(s.providerChain(ProviderTool.OCR, play)))
+        val row = s.resolveProviders(ProviderTool.OCR, play, all = true).single()
+        assertEquals(ProviderProblem.NEEDS_MODEL, row.problem)
+        assertEquals("k", row.apiKey)
+        assertTrue(KeyboardSettings().providerChain(ProviderTool.PHOTO_TRANSLATE, play).entries.isEmpty())
     }
 
     // ---- edits ----

@@ -236,6 +236,8 @@ For those two the keyboard falls back to explaining the tools to the model in wo
 
 It works, and a capable local model will use it, but a small one still ignores the format sometimes, or asks you to narrow a request it could have searched as written. The settings group says so when you're on one of those providers. If lookups matter to you, a provider with real tool support is far more reliable.
 
+Thinking models add one more rule. Before a model calls a tool it may reason, and several providers make the keyboard hand that reasoning back, untouched, along with the tool's answer: Gemini 3 attaches a signature to every call, Claude signs its thinking blocks, DeepSeek wants its reasoning text, and Gemini reached through OpenRouter or an OpenAI-compatible address hides the same signature in other fields. The keyboard keeps each model's turn exactly as it arrived and sends it back that way. Some providers reject the request if anything is missing.
+
 ### Seeing what it looked up
 
 An answer that used a tool says so. A line sits over the result, in the panel and in every chat answer: **Searched the web for "…"** or **Read example.com** for a single lookup, or **Used tools 3 times** when there were several. No line means the model answered from what it already knew.

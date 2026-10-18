@@ -38,6 +38,12 @@ object PluginUiCodec {
     private const val MAX_REPAIRS = 8
     private const val MAX_ID = 64
     private const val MAX_SPACER = 64
+    private const val DEFAULT_STEP = 15
+    private const val MAX_STEP = 60
+
+    /** 0001-01-01 and 9999-12-31, UTC, in seconds. */
+    private const val MIN_SECONDS = -62_135_596_800.0
+    private const val MAX_SECONDS = 253_402_300_799.0
 
     fun fromLua(value: LuaValue): RenderedUi {
         val state = Walk()
@@ -126,6 +132,15 @@ object PluginUiCodec {
                     placeholder = text(table, "placeholder"),
                 )
 
+                "date" -> PluginWidget.DatePicker(
+                    id = id(table),
+                    label = text(table, "label"),
+                    value = seconds(table.get("value")),
+                    time = table.get("time").toboolean(),
+                    step = table.get("step").let { if (it.isnumber()) it.toint() else DEFAULT_STEP }
+                        .coerceIn(1, MAX_STEP),
+                )
+
                 "spacer" -> PluginWidget.Spacer(
                     table.get("height").optint(8).coerceIn(0, MAX_SPACER),
                 )
@@ -190,6 +205,18 @@ object PluginUiCodec {
             }
 
         private fun id(table: LuaTable): String = table.get("id").optjstring("").take(MAX_ID)
+
+        /**
+         * A time in whole seconds, or null for none. Anything that is not a
+         * number, or is outside the years 1 to 9999, is no date rather than a
+         * date the formatter cannot draw.
+         */
+        private fun seconds(value: LuaValue): Long? {
+            if (!value.isnumber()) return null
+            val number = value.todouble()
+            if (!number.isFinite() || number < MIN_SECONDS || number > MAX_SECONDS) return null
+            return kotlin.math.floor(number).toLong()
+        }
 
         /**
          * Reads one string field, capped twice: once so a single node cannot be

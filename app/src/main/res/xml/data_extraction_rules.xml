@@ -51,6 +51,9 @@
            phone they would put two devices on the network under one identity,
            and hand the second one every pairing the first ever made.
         -->
+        <!-- The Send files tool's uploads: each link carries the file's secret and
+             the owner token that can delete it. One device's business. -->
+        <exclude domain="file" path="send" />
         <exclude domain="file" path="kdeconnect" />
         <!-- The Home Assistant tool's cached states: this house's, read back from the server anyway. -->
         <exclude domain="file" path="homeassistant" />
@@ -74,6 +77,9 @@
         <exclude domain="file" path="docscan" />
         <exclude domain="file" path="clipboard/images" />
         <exclude domain="file" path="stickers/.originals" />
+        <!-- The Send files tool's uploads: each link carries the file's secret and
+             the owner token that can delete it. One device's business. -->
+        <exclude domain="file" path="send" />
         <exclude domain="file" path="kdeconnect" />
         <!-- The Home Assistant tool's cached states: this house's, read back from the server anyway. -->
         <exclude domain="file" path="homeassistant" />

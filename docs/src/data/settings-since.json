@@ -37,6 +37,8 @@
 		"selection_macros/actions": "0.5.8",
 		"selection_macros/ai": "0.5.8",
 		"selection_macros/zones": "0.5.8",
+		"send/history": "0.6.2",
+		"send/instances": "0.6.2",
 		"servers": "0.5.7",
 		"signal_stickers": "0.5.11",
 		"sticker_pack/{packId}/add": "0.5.11",

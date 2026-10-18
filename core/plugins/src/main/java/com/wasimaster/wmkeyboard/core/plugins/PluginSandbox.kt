@@ -219,8 +219,11 @@ object PluginSandbox {
         val started = System.nanoTime()
         val os = LuaTable()
         os.set("time", object : VarArgFunction() {
-            override fun invoke(args: Varargs): Varargs =
-                LuaValue.valueOf((System.currentTimeMillis() / MILLIS_PER_SECOND).toDouble())
+            override fun invoke(args: Varargs): Varargs {
+                val fields = args.arg1()
+                if (fields.istable()) return timeOf(fields.checktable())
+                return LuaValue.valueOf((System.currentTimeMillis() / MILLIS_PER_SECOND).toDouble())
+            }
         })
         os.set("clock", object : VarArgFunction() {
             override fun invoke(args: Varargs): Varargs =
@@ -247,6 +250,38 @@ object PluginSandbox {
         if (seconds != null) calendar.timeInMillis = seconds * MILLIS_PER_SECOND
         if (spec == "*t") return dateTable(calendar)
         return LuaValue.valueOf(strftime(spec, calendar))
+    }
+
+    /**
+     * `os.time { year = 2026, month = 10, day = 20, hour = 9 }`: that moment in
+     * the phone's time zone, as standard Lua reads the table. `hour` defaults to
+     * 12, `min` and `sec` to 0, and a field past its range rolls into the next
+     * one, so `day = d + 1` on the last day of a month is the first of the next.
+     * That roll-over is what makes "tomorrow" and "in a week" one line of Lua.
+     */
+    private fun timeOf(fields: LuaTable): Varargs {
+        fun field(name: String, default: Int?): Int {
+            val value = fields.get(name)
+            if (value.isnil() && default != null) return default
+            if (!value.isnumber()) LuaValue.error("field '$name' missing in date table")
+            val number = value.todouble()
+            if (!number.isFinite() || kotlin.math.abs(number) > MAX_DATE_FIELD) {
+                LuaValue.error("field '$name' is out of range")
+            }
+            return number.toInt()
+        }
+        val calendar = Calendar.getInstance(Locale.ROOT)
+        calendar.isLenient = true
+        calendar.clear()
+        calendar.set(
+            field("year", null),
+            field("month", null) - 1,
+            field("day", null),
+            field("hour", NOON),
+            field("min", 0),
+            field("sec", 0),
+        )
+        return LuaValue.valueOf((calendar.timeInMillis / MILLIS_PER_SECOND).toDouble())
     }
 
     private fun dateTable(calendar: Calendar): LuaTable {
@@ -475,6 +510,10 @@ object PluginSandbox {
     private const val MILLIS_PER_SECOND = 1000L
     private const val NANOS_PER_SECOND = 1_000_000_000.0
     private const val MAX_DATE_FORMAT = 64
+    private const val NOON = 12
+
+    /** Far past any real date field; keeps every sum inside an Int. */
+    private const val MAX_DATE_FIELD = 1_000_000.0
 
     private val PATTERN_FUNCTIONS = arrayOf("find", "match", "gmatch", "gsub")
 

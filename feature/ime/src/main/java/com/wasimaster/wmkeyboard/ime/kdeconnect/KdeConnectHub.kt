@@ -90,6 +90,9 @@ object KdeConnectHub {
 
         /** The tool's panel is open, a settings screen is showing devices, or a share is in flight. Always enough. */
         PANEL, SETTINGS, SHARE,
+
+        /** The Send files tool's Nearby mode is up: its device list, or a direct link between two phones. Always enough. */
+        NEARBY,
     }
 
     private val main = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -258,7 +261,7 @@ object KdeConnectHub {
         if (!settings.enabled || !DirectBoot.isUserUnlocked(context)) return false
         // Every KDE Connect socket needs the internet permission, LAN or not (#292).
         if (!InternetPermission.granted) return false
-        if (reasons.any { it == Reason.PANEL || it == Reason.SETTINGS || it == Reason.SHARE }) return true
+        if (reasons.any { it == Reason.PANEL || it == Reason.SETTINGS || it == Reason.SHARE || it == Reason.NEARBY }) return true
         val lingering = System.currentTimeMillis() - keyboardLeftAtMs < KEYBOARD_LINGER_MS
         return when (settings.lifetime) {
             KdeLinkLifetime.PANEL -> false

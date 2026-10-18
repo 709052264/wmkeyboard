@@ -44,6 +44,8 @@
     <string name="datasaver_ai_title">Cloud AI</string>
     <string name="datasaver_ai_subtitle">Chat and AI actions that run on a provider\'s servers. On-device models are never held.</string>
     <string name="datasaver_voice_title">Transcription server</string>
+    <string name="datasaver_send_title">Send files</string>
+    <string name="datasaver_send_subtitle">Files the Send files tool uploads to a Send instance or fetches from a link. Whole files, as large as you pick.</string>
     <string name="datasaver_voice_subtitle">Voice typing that sends each phrase to your transcription server. About a megabyte for every 30 seconds of speech.</string>
 
     <!-- Issue #452: what the server-backed tools do with no connection. -->

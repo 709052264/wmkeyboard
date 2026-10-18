@@ -7638,12 +7638,6 @@
     <string name="tooldetail_ocr_info">Розпізнавання виконується на вашому пристрої за допомогою ML Kit. Жодне фото чи текст не залишають ваш пристрій, і це працює офлайн. Він зчитує текст латиницею, наприклад, англійською. Розпізнавач тексту ML Kit поки що не підтримує бенгальську мову. Після захоплення натисніть на слова, щоб вибрати саме те, що клавіатура має надрукувати або скопіювати.</string>
     <string name="tooldetail_ocr_online_group">Онлайн-зчитувач тексту</string>
     <string name="tooldetail_ocr_online_info">Фотографія надсилається до моделі, яка вміє читати зображення, за обраною вами адресою, і модель записує текст, який бачить. Вона читає будь-який шрифт і не потребує мовних даних. Працює будь-який сервіс із API, сумісним з OpenAI: OpenAI, OpenRouter, Gemini, Mistral або модель на вашому комп\'ютері з Ollama чи LM Studio. Кожне сканування надсилає фотографію до цього сервісу, і сервіс може стягувати за це плату.</string>
-    <string name="tooldetail_ocr_online_key_hint">Залиште порожнім для сервера, який не потребує ключа</string>
-    <string name="tooldetail_ocr_online_key_label">Ключ API</string>
-    <string name="tooldetail_ocr_online_model_hint">Модель, яка зчитує зображення, наприклад gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Модель</string>
-    <string name="tooldetail_ocr_online_url_hint">Наприклад, https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Адреса</string>
     <string name="tooldetail_ocr_packs_header">Мови Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract зчитує мову лише після того, як дані для цієї мови з\'являться на вашому пристрої. Для кожної мови, якою ви друкуєте, потрібно завантажити файл розміром від 0,4 МБ до 12 МБ. Дані взяті з набору tessdata_fast проєкту Tesseract на GitHub. Ви також можете завантажити мову безпосередньо зі сканера.</string>
     <string name="tooldetail_ocr_packs_none_info">Жодна з увімкнених вами мов не має даних Tesseract. Додайте мову на екрані «Мови». Після цього її дані з\'являться тут.</string>

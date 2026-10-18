@@ -118,6 +118,7 @@ dependencies {
     api(project(":core:kdeconnect"))
     api(project(":core:homeassistant"))
     api(project(":core:smarthome"))
+    api(project(":core:send"))
     api(project(":core:settings"))
     api(project(":core:addons"))
     api(project(":core:voice"))

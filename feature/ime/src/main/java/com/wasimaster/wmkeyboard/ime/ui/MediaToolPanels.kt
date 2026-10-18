@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import android.content.Context
 import android.os.Build
 import androidx.compose.animation.core.LinearEasing
@@ -1877,6 +1878,12 @@ internal fun WebSearchPanel(
 ) {
     val kb = LocalKbTheme.current
     Column(modifier = Modifier.fillMaxSize()) {
+        // Pick mode (#727): which search provider answers, over the results.
+        ProviderChooser(
+            ProviderTool.SEARCH,
+            state.settings,
+            Modifier.align(Alignment.End).padding(horizontal = 8.dp, vertical = 2.dp),
+        )
         when (val ui = state.webSearch) {
             WebSearchUi.NeedKey -> PanelNotice(
                 stringResource(R.string.ime_web_search_need_key_body),
@@ -2067,6 +2074,11 @@ internal fun ImageSearchPanel(
     onOpenToolSettings: (ToolbarTool) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
+        ProviderChooser(
+            ProviderTool.SEARCH,
+            state.settings,
+            Modifier.align(Alignment.End).padding(horizontal = 8.dp, vertical = 2.dp),
+        )
         when (val ui = state.imageSearch) {
             ImageSearchUi.NeedKey -> PanelNotice(
                 stringResource(R.string.ime_image_search_need_key_body),

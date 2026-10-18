@@ -22,13 +22,13 @@ import kotlinx.serialization.json.Json
 enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes val labelRes: Int) {
     GIF("gif", listOf(ChainMode.TABS, ChainMode.MIX, ChainMode.FALLBACK), R.string.core_tools_provider_tool_gif),
     STICKER("sticker", listOf(ChainMode.TABS, ChainMode.MIX, ChainMode.FALLBACK), R.string.core_tools_provider_tool_sticker),
-    TRANSLATE("translate", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_translate),
-    DICTIONARY("dictionary", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_dictionary),
+    TRANSLATE("translate", listOf(ChainMode.FALLBACK, ChainMode.PICK), R.string.core_tools_provider_tool_translate),
+    DICTIONARY("dictionary", listOf(ChainMode.FALLBACK, ChainMode.PICK), R.string.core_tools_provider_tool_dictionary),
     SYNONYMS("synonyms", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_synonyms),
     VOCAB_AUTOFILL("vocab_autofill", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_vocab),
 
     /** The web and the image search tools: today one service answers both. */
-    SEARCH("search", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_search),
+    SEARCH("search", listOf(ChainMode.FALLBACK, ChainMode.PICK), R.string.core_tools_provider_tool_search),
     /** Always mixed: the photo grid pages through every provider at once and keeps what answered. */
     PHOTOS("photos", listOf(ChainMode.MIX), R.string.core_tools_provider_tool_photos),
     CURRENCY_FIAT("currency_fiat", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_currency_fiat),
@@ -36,6 +36,11 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
 
     /** The smart home panel: every home on the list is connected at once, in list order. */
     SMART_HOME("smart_home", listOf(ChainMode.MIX), R.string.core_tools_provider_tool_smart_home),
+    /** The OCR tool's online readers, asked when its engine is Online. The on-device engines stay a setting. */
+    OCR("ocr", listOf(ChainMode.FALLBACK, ChainMode.PICK), R.string.core_tools_provider_tool_ocr),
+
+    /** The camera tool's Translate button (#727): the photo comes back with its text translated. */
+    PHOTO_TRANSLATE("photo_translate", listOf(ChainMode.FALLBACK, ChainMode.PICK), R.string.core_tools_provider_tool_photo_translate),
     ;
 
     companion object {
@@ -50,12 +55,17 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
  * that one fails or knows nothing. [MIX] asks all of them at once and
  * interleaves the answers, keeping what came back when some fail. [TABS] gives
  * each provider a chip of its own, and a fetch asks the one whose chip is on.
+ * [PICK] is [TABS] for the tools with one answer rather than a grid: the
+ * panel has a chooser of the providers that are on, and only the chosen one
+ * is asked. It is stored by name, so a list saved by a later build with a
+ * mode this one lacks falls back to the tool's default ([ProviderCodec]).
  */
 @Serializable
 enum class ChainMode(@StringRes val labelRes: Int, @StringRes val descRes: Int) {
     FALLBACK(R.string.core_tools_provider_mode_fallback, R.string.core_tools_provider_mode_fallback_desc),
     MIX(R.string.core_tools_provider_mode_mix, R.string.core_tools_provider_mode_mix_desc),
     TABS(R.string.core_tools_provider_mode_tabs, R.string.core_tools_provider_mode_tabs_desc),
+    PICK(R.string.core_tools_provider_mode_pick, R.string.core_tools_provider_mode_pick_desc),
 }
 
 /** Whether a provider's form asks for a field, and whether it may stay blank. */
@@ -69,6 +79,8 @@ data class CredentialSpec(
     val key: Need = Need.NONE,
     val url: Need = Need.NONE,
     val model: Boolean = false,
+    /** [model] must be filled in: a vision server cannot guess which model reads images. */
+    val modelRequired: Boolean = false,
     /**
      * The services a front end can pass the text on to, the default first.
      * The pick is stored in [ProviderCredential.model]: like a model, it says
@@ -240,6 +252,25 @@ object ProviderTypes {
         CredentialSpec(url = Need.REQUIRED), multiInstance = true, freeSoftware = true,
     )
 
+    /**
+     * Rens (#727), a free front end to Google Lens: reads the text in a photo
+     * for the OCR tool, and gives the photo back translated for the camera.
+     */
+    val RENS = ProviderType(
+        "rens", setOf(ProviderTool.OCR, ProviderTool.PHOTO_TRANSLATE),
+        R.string.core_tools_provider_rens, R.string.core_tools_provider_rens_desc,
+        CredentialSpec(url = Need.REQUIRED), multiInstance = true, freeSoftware = true,
+        toolDescRes = mapOf(ProviderTool.PHOTO_TRANSLATE to R.string.core_tools_provider_rens_translate_desc),
+    )
+
+    /** A model that reads images through an OpenAI-compatible API (#469), the OCR tool's first online reader. */
+    val VISION_OCR = ProviderType(
+        "vision_ocr", setOf(ProviderTool.OCR),
+        R.string.core_tools_provider_vision_ocr, R.string.core_tools_provider_vision_ocr_desc,
+        CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED, model = true, modelRequired = true),
+        multiInstance = true, selfHosted = true,
+    )
+
     /** Google's keyless endpoint, or Cloud Translation v2 once a key is set. */
     val GOOGLE_TRANSLATE = ProviderType(
         "google_translate", setOf(ProviderTool.TRANSLATE),
@@ -388,6 +419,7 @@ object ProviderTypes {
         UNSPLASH, PEXELS,
         ER_API, FRANKFURTER, COINBASE, CURRENCY_API, COINGECKO,
         HOME_ASSISTANT, GOOGLE_HOME, SMARTTHINGS, HUE, OPENHAB,
+        VISION_OCR, RENS,
     )
 
     private val byId: Map<String, ProviderType> = all.associateBy { it.id }

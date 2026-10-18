@@ -12,7 +12,8 @@ import com.wasimaster.wmkeyboard.core.settings.HomeAssistantSettings
 import com.wasimaster.wmkeyboard.core.settings.KdeConnectSettings
 import com.wasimaster.wmkeyboard.core.settings.OcrEngine
 import com.wasimaster.wmkeyboard.core.settings.ScannerSettings
-import com.wasimaster.wmkeyboard.core.tools.VisionOcrClient
+import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
+import com.wasimaster.wmkeyboard.core.tools.OnlineOcr
 import com.wasimaster.wmkeyboard.core.tools.AiToolHost
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
 import com.wasimaster.wmkeyboard.core.tools.Translation
@@ -32,7 +33,8 @@ import kotlinx.coroutines.runBlocking
  * on-device translator falls back on when a few words are not enough to tell
  * the language by. [images] are the chat's pictures in order, by the names
  * [AiChatImages] keeps them under, and [seesImages] says the model is sent
- * them itself. [scanner] carries the scan text tool's online engine.
+ * them itself. [scanner] carries the scan text tool's settings and
+ * [ocrReaders] its online readers, when Online is its engine.
  */
 class KeyboardAiToolHost(
     private val context: Context,
@@ -44,6 +46,7 @@ class KeyboardAiToolHost(
     private val images: List<String> = emptyList(),
     private val seesImages: Boolean = false,
     private val scanner: ScannerSettings? = null,
+    private val ocrReaders: List<ResolvedProvider> = emptyList(),
 ) : AiToolHost {
 
     override val canTranslateOnDevice: Boolean get() = OnDeviceTranslator.AVAILABLE
@@ -194,13 +197,11 @@ class KeyboardAiToolHost(
     override fun imageJpeg(number: Int): ByteArray? =
         images.getOrNull(number - 1)?.let { AiChatImages.jpeg(context, it) }
 
-    /** The scan text tool's online engine, when the user set one up. */
-    private val onlineReader: ScannerSettings?
-        get() = scanner?.takeIf {
-            it.ocrEngine == OcrEngine.ONLINE && it.ocrOnlineUrl.isNotBlank() && it.ocrOnlineModel.isNotBlank()
-        }
+    /** The scan text tool's online readers, when that is its engine and one is set up. */
+    private val onlineReaders: List<ResolvedProvider>
+        get() = ocrReaders.takeIf { scanner?.ocrEngine == OcrEngine.ONLINE }.orEmpty()
 
-    override val canReadImageText: Boolean get() = onlineReader != null || ChatImageOcr.available
+    override val canReadImageText: Boolean get() = onlineReaders.isNotEmpty() || ChatImageOcr.available
 
     /**
      * The scan text tool's online engine when that is what the user picked,
@@ -208,10 +209,10 @@ class KeyboardAiToolHost(
      */
     override fun readImageText(number: Int): Result<String> = runCatching {
         val name = images.getOrNull(number - 1) ?: throw NoSuchElementException("picture $number")
-        val online = onlineReader
-        if (online != null) {
+        val online = onlineReaders
+        if (online.isNotEmpty()) {
             val jpeg = AiChatImages.jpeg(context, name) ?: error("the picture is gone")
-            return@runCatching VisionOcrClient.read(online.ocrOnlineUrl, online.ocrOnlineModel, online.ocrOnlineKey, jpeg).trim()
+            return@runCatching OnlineOcr.read(online, jpeg).trim()
         }
         val file = AiChatImages.file(context, name) ?: error("the picture is gone")
         val bitmap = ReplyShots.bitmap(file) ?: error("the picture could not be read")

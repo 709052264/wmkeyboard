@@ -427,6 +427,7 @@
     <string name="ime_tool_location">Location</string>
     <string name="ime_tool_clock">Clock</string>
     <string name="ime_tool_home_assistant">Smart home</string>
+    <string name="ime_tool_send_files">Send files</string>
     <string name="ime_tool_gallery">Gallery</string>
     <!-- Learn from text (#174): the panel that lists words the keyboard does not know yet. -->
     <string name="ime_learn_select_all_action">Select all</string>
@@ -929,6 +930,7 @@
     <string name="ime_language_picker_language_settings">Language settings</string>
 
     <!-- The chip the suggestion strip shows for a tool. %1$s is a tool name. -->
+    <string name="ime_smart_send_link">Receive the file</string>
     <string name="ime_smart_open_tool">Open %1$s</string>
     <!-- Where a currency chip's converted amount would be, while the exchange
          rates wait for a tap before they are fetched. -->

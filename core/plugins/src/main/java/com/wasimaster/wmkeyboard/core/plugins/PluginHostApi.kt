@@ -18,8 +18,9 @@ import kotlin.math.floor
 /**
  * The `wm` table — everything a plugin can reach outside its own arithmetic.
  *
- * The complete list is `wm.storage` (only when declared), `wm.json`, `wm.log`
- * and `wm.ui.set_input`. That is not an abridged summary; it is the whole API.
+ * The complete list is `wm.storage` and `wm.reminders` (each only when
+ * declared), `wm.json`, `wm.log` and `wm.ui.set_input`. That is not an
+ * abridged summary; it is the whole API.
  *
  * There is no `wm.text`, no `wm.clipboard` and no `wm.http`, and their absence
  * is the security model rather than a backlog. A keyboard plugin that could read
@@ -42,6 +43,8 @@ class PluginHostApi(
     private val revoked: () -> Boolean,
     /** Hears every `wm.log` line as it is written, for the plugin editor's console. */
     private val onLine: (String) -> Unit = {},
+    /** Present only when the manifest declared `reminders`. */
+    private val reminders: PluginReminders? = null,
 ) {
 
     companion object {
@@ -51,6 +54,7 @@ class PluginHostApi(
         private const val MAX_JSON_DEPTH = 24
         private const val MAX_JSON_CHARS = 256 * 1024
         private const val MAX_INPUT_CHARS = 8 * 1024
+        private const val MILLIS_PER_SECOND = 1000L
 
         /** 2^53: past this a double can no longer hold every integer exactly. */
         private const val MAX_EXACT_INTEGER = 9007199254740992.0
@@ -67,6 +71,7 @@ class PluginHostApi(
         wm.set("json", jsonTable())
         wm.set("ui", uiTable())
         if (storage != null) wm.set("storage", storageTable(storage))
+        if (reminders != null) wm.set("reminders", remindersTable(reminders))
         return wm
     }
 
@@ -123,6 +128,56 @@ class PluginHostApi(
             keys
         })
         return table
+    }
+
+    // ---- wm.reminders ----------------------------------------------------
+
+    /**
+     * Times are seconds since the epoch, the unit `os.time` gives, so a script
+     * never converts. The host keeps milliseconds; whole seconds are what cross.
+     */
+    private fun remindersTable(list: PluginReminders): LuaTable {
+        val table = LuaTable()
+        table.set("set", function { args ->
+            guard()
+            val id = args.arg(1).optjstring("")
+            val time = args.arg(2)
+            val text = args.arg(3).optjstring("")
+            val failure = if (!time.isnumber() || !time.todouble().isFinite()) {
+                "the time must be a number of seconds, as os.time() gives"
+            } else {
+                list.set(id, secondsToMillis(time.todouble()), text)
+            }
+            if (failure == null) LuaValue.TRUE else LuaValue.varargsOf(LuaValue.NIL, LuaValue.valueOf(failure))
+        })
+        table.set("cancel", function { args ->
+            guard()
+            LuaValue.valueOf(list.cancel(args.arg(1).optjstring("")))
+        })
+        table.set("list", function {
+            guard()
+            val out = LuaTable()
+            list.list().forEachIndexed { index, reminder ->
+                val entry = LuaTable()
+                entry.set("id", reminder.id)
+                entry.set("time", LuaValue.valueOf((reminder.at / MILLIS_PER_SECOND).toDouble()))
+                entry.set("text", reminder.text)
+                out.set(index + 1, entry)
+            }
+            out
+        })
+        return table
+    }
+
+    /** Whole seconds to milliseconds, saturating rather than wrapping: a far-off time is refused, not moved. */
+    private fun secondsToMillis(seconds: Double): Long {
+        val whole = floor(seconds)
+        val limit = Long.MAX_VALUE / MILLIS_PER_SECOND
+        return when {
+            whole >= limit -> Long.MAX_VALUE
+            whole <= -limit -> Long.MIN_VALUE
+            else -> whole.toLong() * MILLIS_PER_SECOND
+        }
     }
 
     // ---- wm.json ---------------------------------------------------------

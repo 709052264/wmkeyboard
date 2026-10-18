@@ -7,6 +7,7 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginHostApi
 import com.wasimaster.wmkeyboard.core.plugins.PluginLimit
 import com.wasimaster.wmkeyboard.core.plugins.PluginLog
 import com.wasimaster.wmkeyboard.core.plugins.PluginPrelude
+import com.wasimaster.wmkeyboard.core.plugins.PluginReminders
 import com.wasimaster.wmkeyboard.core.plugins.PluginRepair
 import com.wasimaster.wmkeyboard.core.plugins.PluginSandbox
 import com.wasimaster.wmkeyboard.core.plugins.PluginStorage
@@ -27,8 +28,13 @@ class LuaApiDriftTest {
     private fun sandbox(): Globals {
         val budget = PluginBudget()
         val globals = PluginSandbox.create(budget) {}
-        val plugin = InstalledPlugin(id = "com.example.drift", name = "Drift", version = "1", permissions = listOf("storage"))
-        val api = PluginHostApi(plugin, PluginLog(null), PluginStorage(null), { _, _ -> }, { false })
+        val plugin = InstalledPlugin(
+            id = "com.example.drift",
+            name = "Drift",
+            version = "1",
+            permissions = listOf("storage", "reminders"),
+        )
+        val api = PluginHostApi(plugin, PluginLog(null), PluginStorage(null), { _, _ -> }, { false }, reminders = PluginReminders(null))
         globals.set("wm", api.table())
         budget.begin(PluginLimit.LOAD)
         PluginSandbox.compile(globals, PluginPrelude.SOURCE, PluginPrelude.CHUNK_NAME).call()
@@ -49,7 +55,8 @@ class LuaApiDriftTest {
     fun `every table in the sandbox holds exactly the names the API lists`() {
         val globals = sandbox()
         val tables = listOf("_G" to "", "string" to "string", "table" to "table", "math" to "math", "bit32" to "bit32",
-            "os" to "os", "ui" to "ui", "wm" to "wm", "wm.json" to "wm.json", "wm.ui" to "wm.ui", "wm.storage" to "wm.storage")
+            "os" to "os", "ui" to "ui", "wm" to "wm", "wm.json" to "wm.json", "wm.ui" to "wm.ui", "wm.storage" to "wm.storage",
+            "wm.reminders" to "wm.reminders")
         val drift = tables.mapNotNull { (lua, parent) ->
             val actual = keysOf(globals, lua)
             val listed = LuaApi.children(parent).map { it.name }.toSet()
@@ -95,6 +102,7 @@ class LuaApiDriftTest {
         val sample = mapOf(
             "id" to "'x'", "text" to "'t'", "mono" to "false", "insertable" to "true", "copyable" to "true",
             "enabled" to "true", "label" to "'l'", "checked" to "false", "placeholder" to "'p'", "height" to "8",
+            "value" to "os.time()", "time" to "true", "step" to "15",
         )
         for (shape in LuaApi.uiShapes.values.filter { it.widgetType != null && it.constructor != "tabs" }) {
             val fields = shape.fields.joinToString(", ") { field ->

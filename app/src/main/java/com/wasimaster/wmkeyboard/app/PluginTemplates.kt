@@ -26,18 +26,28 @@ internal enum class PluginTemplate(
     @StringRes val descriptionRes: Int,
     /** The script's file under assets/plugin-templates, or null for the blank plugin. */
     val asset: String?,
-    /** Whether the script uses wm.storage, so the new manifest declares it. */
-    val storage: Boolean,
+    /** What the script uses beyond its panel, so the new manifest declares it. */
+    val permissions: List<PluginPermission>,
 ) {
-    BLANK(R.string.plugin_ide_template_blank_name, R.string.plugin_ide_template_blank_description, null, false),
-    TEXT_TOOLS(R.string.plugin_ide_template_text_tools_name, R.string.plugin_ide_template_text_tools_description, "text-tools.lua", false),
-    CIPHER(R.string.plugin_ide_template_cipher_name, R.string.plugin_ide_template_cipher_description, "cipher-tool.lua", false),
-    TODO(R.string.plugin_ide_template_todo_name, R.string.plugin_ide_template_todo_description, "todo-list.lua", true),
+    BLANK(R.string.plugin_ide_template_blank_name, R.string.plugin_ide_template_blank_description, null, emptyList()),
+    TEXT_TOOLS(
+        R.string.plugin_ide_template_text_tools_name,
+        R.string.plugin_ide_template_text_tools_description,
+        "text-tools.lua",
+        emptyList(),
+    ),
+    CIPHER(R.string.plugin_ide_template_cipher_name, R.string.plugin_ide_template_cipher_description, "cipher-tool.lua", emptyList()),
+    TODO(
+        R.string.plugin_ide_template_todo_name,
+        R.string.plugin_ide_template_todo_description,
+        "todo-list.lua",
+        listOf(PluginPermission.Storage, PluginPermission.Reminders),
+    ),
     KITCHEN_SINK(
         R.string.plugin_ide_template_kitchen_sink_name,
         R.string.plugin_ide_template_kitchen_sink_description,
         "ui-kitchen-sink.lua",
-        false,
+        emptyList(),
     ),
     ;
 
@@ -65,7 +75,7 @@ internal fun newDraftFromTemplate(
         id = uniquePluginId(name, taken),
         name = PluginManifestCodec.sanitise(name, PluginManifestCodec.Field.NAME),
         pluginVersion = "0.1.0",
-        permissions = if (template.storage) listOf(PluginPermission.Storage.wire) else emptyList(),
+        permissions = template.permissions.map { it.wire },
     )
     return workspace.create(manifest, template.script(context), "template:${template.name.lowercase()}")
 }

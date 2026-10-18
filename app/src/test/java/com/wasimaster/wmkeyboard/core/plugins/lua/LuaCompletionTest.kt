@@ -24,7 +24,11 @@ class LuaCompletionTest {
 
     @Test
     fun `a dot after wm lists exactly its members`() {
-        assertEquals(setOf("api_version", "json", "log", "plugin_id", "plugin_version", "storage", "ui"), labels("wm.|").toSet())
+        assertEquals(
+            setOf("api_version", "json", "log", "plugin_id", "plugin_version", "reminders", "storage", "ui"),
+            labels("wm.|").toSet(),
+        )
+        assertEquals(setOf("set", "cancel", "list"), labels("wm.reminders.|").toSet())
         assertEquals(setOf("get", "set", "remove", "keys"), labels("wm.storage.|").toSet())
         assertEquals(setOf("decode", "encode"), labels("wm.json.|").toSet())
     }

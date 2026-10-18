@@ -60,6 +60,15 @@ object PluginPrelude {
           return { type = "input", id = t.id, label = t.label, placeholder = t.placeholder }
         end
 
+        -- A date the user picks with the keyboard's own buttons. value is
+        -- seconds since the epoch, as os.time() gives, or nil for none yet.
+        -- time = true picks a time of day as well; step is how many minutes
+        -- the smaller time buttons move. You are told each change through
+        -- on_event as date_changed, and draw whatever you kept.
+        function ui.date(t)
+          return { type = "date", id = t.id, label = t.label, value = t.value, time = t.time, step = t.step }
+        end
+
         function ui.spacer(t) return { type = "spacer", height = t and t.height } end
         function ui.divider() return { type = "divider" } end
         function ui.progress() return { type = "progress" } end

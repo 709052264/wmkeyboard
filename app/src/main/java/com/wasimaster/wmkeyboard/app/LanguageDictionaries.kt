@@ -429,7 +429,7 @@ private fun WordListRow(
                 }
             is WordlistDownloadManager.DownloadStatus.Downloading,
             WordlistDownloadManager.DownloadStatus.Processing,
-            -> IconButton(onClick = { WordlistDownloadManager.cancel() }) {
+            -> IconButton(onClick = { WordlistDownloadManager.cancel(entry?.id) }) {
                 Icon(
                     Icons.Outlined.Close,
                     contentDescription = stringResource(R.string.languages_cancel_download_desc),

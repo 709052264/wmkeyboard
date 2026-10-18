@@ -50,7 +50,7 @@ dependencies {
     listOf(
         ":core:config", ":core:common", ":core:language", ":core:input", ":core:keyman",
         ":core:prediction", ":core:emoji", ":core:theme", ":core:icons", ":core:tools",
-        ":core:kdeconnect", ":core:content", ":core:addons", ":core:voice", ":core:settings",
+        ":core:kdeconnect", ":core:send", ":core:content", ":core:addons", ":core:voice", ":core:settings",
         ":core:feedback", ":core:plugins", ":core:intelligence",
         ":feature:tools", ":feature:addons", ":feature:ime",
     ).forEach { kover(project(it)) }

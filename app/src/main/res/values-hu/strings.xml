@@ -7637,12 +7637,6 @@
     <string name="tooldetail_ocr_info">A felismerés az eszközödön fut az ML Kit segítségével. Semmilyen fénykép vagy szöveg nem hagyja el az eszközt, és offline is működik. Latin betűs szövegeket olvas, például angolt. Az ML Kit szövegfelismerője még nem támogatja a bengáli nyelvet. Rögzítés után koppints a szavakra, hogy pontosan kiválaszd, mit gépeljen vagy másoljon a billentyűzet.</string>
     <string name="tooldetail_ocr_online_group">Online szövegolvasó</string>
     <string name="tooldetail_ocr_online_info">A fénykép egy olyan modellhez kerül, amely képes képeket olvasni az Ön által választott címen, és a modell kiírja a látott szöveget. Bármilyen írásrendszert elolvas, és nincs szüksége nyelvi adatokra. Bármely OpenAI-kompatibilis API-val rendelkező szolgáltatás működik: OpenAI, OpenRouter, Gemini, Mistral, vagy egy saját számítógépen futó modell az Ollama vagy az LM Studio segítségével. Minden szkennelés elküldi a fényképet az adott szolgáltatásnak, és a szolgáltatás díjat számíthat fel érte.</string>
-    <string name="tooldetail_ocr_online_key_hint">Hagyja üresen olyan szerverhez, amely nem kér kulcsot</string>
-    <string name="tooldetail_ocr_online_key_label">API-kulcs</string>
-    <string name="tooldetail_ocr_online_model_hint">Képeket olvasó modell, például gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Modell</string>
-    <string name="tooldetail_ocr_online_url_hint">Például: https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Cím</string>
     <string name="tooldetail_ocr_packs_header">Tesseract nyelvek</string>
     <string name="tooldetail_ocr_packs_info">A Tesseract csak akkor olvassa a nyelvet, ha a nyelvi adatfájl a készülékén van. Minden begépelt nyelvhez külön letöltés szükséges, mely 0,4 MB és 12 MB közötti méretű. Az adatok a Tesseract projekt GitHubon található tessdata_fast készletéből származnak. A nyelvet közvetlenül a lapolvasóból is letöltheti.</string>
     <string name="tooldetail_ocr_packs_none_info">Egyik bekapcsolt nyelv sem rendelkezik Tesseract-adatokkal. Adjon hozzá egy nyelvet a Nyelvek képernyőn. Az adatai ezután itt fognak megjelenni.</string>

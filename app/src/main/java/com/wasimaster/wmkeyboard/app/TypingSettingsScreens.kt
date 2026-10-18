@@ -665,6 +665,15 @@ internal fun TypingCorrectionsSettings(
         }
         item {
             ToggleSetting(
+                R.string.typing_continue_lists_title,
+                stringResource(R.string.typing_continue_lists_subtitle),
+                settings.watch { it.autoText.continueLists },
+                info = stringResource(R.string.typing_continue_lists_info),
+                default = SettingsDefaults.autoText.continueLists,
+            ) { scope.launch { repository.setContinueLists(it) } }
+        }
+        item {
+            ToggleSetting(
                 R.string.typing_shift_recase_title,
                 stringResource(R.string.typing_shift_recase_subtitle),
                 recaseOn,

@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.plugins.PluginBudget
+import com.wasimaster.wmkeyboard.core.plugins.PluginDates
 import com.wasimaster.wmkeyboard.core.plugins.PluginEvent
 import com.wasimaster.wmkeyboard.core.plugins.PluginStorage
 import com.wasimaster.wmkeyboard.core.plugins.PluginTargets
@@ -71,15 +72,24 @@ internal data class InjectableEvent(val event: PluginEvent, val widgetEnabled: B
 
 /**
  * Every event the last draw's widgets could send, in the order they came:
- * presses, switch flips, and a pick of each page. A button that is turned off
- * is listed too, because a handler has to cope with an event the user cannot
- * send. Text boxes are typed into separately.
+ * presses, switch flips, a pick of each page, and for each date the next day
+ * (or the first date, when it has none) and a clear. A button that is turned
+ * off is listed too, because a handler has to cope with an event the user
+ * cannot send. Text boxes are typed into separately.
  */
-internal fun injectableEvents(targets: PluginTargets): List<InjectableEvent> = buildList {
+internal fun injectableEvents(
+    targets: PluginTargets,
+    now: Long = System.currentTimeMillis(),
+): List<InjectableEvent> = buildList {
     for (button in targets.buttons) add(InjectableEvent(PluginEvent.Click(button.id), button.enabled))
     for (toggle in targets.toggles) add(InjectableEvent(PluginEvent.ToggleChanged(toggle.id, !toggle.checked)))
     for (tabs in targets.tabs) {
         for (index in tabs.pages.indices) add(InjectableEvent(PluginEvent.TabSelected(tabs.id, index)))
+    }
+    for (date in targets.dates) {
+        val next = date.value?.let { PluginDates.addDays(it, 1) } ?: PluginDates.initial(now, date.time)
+        add(InjectableEvent(PluginEvent.DateChanged(date.id, next)))
+        add(InjectableEvent(PluginEvent.DateChanged(date.id, null)))
     }
 }
 
@@ -91,7 +101,11 @@ internal fun budgetShares(values: List<Long>, limit: Long): List<Float> =
 internal fun shouldRunAsTyped(enabled: Boolean, text: String, lastRun: String?, parses: Boolean): Boolean =
     enabled && parses && text != lastRun
 
-/** The event an author built by hand, or null without an id. A switch is on for `true`, a page is a number counting from 0. */
+/**
+ * The event an author built by hand, or null without an id. A switch is on for
+ * `true`, a page is a number counting from 0, and a date is seconds since the
+ * epoch, with an empty or unreadable value clearing it.
+ */
 internal fun customEvent(type: String, id: String, value: String): PluginEvent? {
     val name = id.trim()
     if (name.isEmpty()) return null
@@ -100,6 +114,7 @@ internal fun customEvent(type: String, id: String, value: String): PluginEvent? 
         "toggle" -> PluginEvent.ToggleChanged(name, value.trim().equals("true", ignoreCase = true))
         "input_changed" -> PluginEvent.InputChanged(name, value)
         "tab_selected" -> PluginEvent.TabSelected(name, value.trim().toIntOrNull() ?: 0)
+        "date_changed" -> PluginEvent.DateChanged(name, value.trim().toLongOrNull())
         else -> null
     }
 }
@@ -234,6 +249,11 @@ private fun eventLabel(item: InjectableEvent): String = when (val event = item.e
     )
     is PluginEvent.TabSelected -> stringResource(R.string.plugin_ide_event_tab, event.id, event.index + 1)
     is PluginEvent.InputChanged -> event.id
+    is PluginEvent.DateChanged -> event.value?.let { seconds ->
+        val shown = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT)
+            .format(java.util.Date(seconds * 1000L))
+        stringResource(R.string.plugin_ide_event_date, event.id, shown)
+    } ?: stringResource(R.string.plugin_ide_event_date_clear, event.id)
 }
 
 /**

@@ -29,6 +29,19 @@ class PluginUiCodecTest {
     // ---- the vocabulary ---------------------------------------------------
 
     @Test
+    fun `a date keeps whole seconds, its time switch and a step in range`() {
+        val date = render("return ui.date { id = 'due', label = 'Due', value = 1790000000.7, time = true, step = 500 }")
+            .root.single() as PluginWidget.DatePicker
+        assertEquals(PluginWidget.DatePicker("due", "Due", 1_790_000_000L, time = true, step = 60), date)
+
+        val none = render("return ui.date { id = 'due', value = 'tomorrow' }").root.single() as PluginWidget.DatePicker
+        assertEquals(null, none.value)
+        assertEquals(15, none.step)
+        assertFalse(none.time)
+        assertEquals(null, (render("return ui.date { id = 'd', value = 1e300 }").root.single() as PluginWidget.DatePicker).value)
+    }
+
+    @Test
     fun `every widget the prelude offers survives the round trip`() {
         val ui = render(
             """

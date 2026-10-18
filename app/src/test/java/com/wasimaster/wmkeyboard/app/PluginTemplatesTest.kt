@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.plugins.PluginPermission
 import com.wasimaster.wmkeyboard.core.plugins.lua.LuaDiagnostics
 import com.wasimaster.wmkeyboard.core.plugins.lua.LuaDocument
 import com.wasimaster.wmkeyboard.core.plugins.lua.LuaHostShape
@@ -38,16 +39,21 @@ class PluginTemplatesTest {
     }
 
     @Test
-    fun `a template declares storage exactly when it uses it`() {
+    fun `a template declares each permission exactly when it uses it`() {
         for (template in PluginTemplate.entries) {
-            assertEquals(template.name, "wm.storage" in script(template), template.storage)
+            assertEquals(template.name, "wm.storage" in script(template), PluginPermission.Storage in template.permissions)
+            assertEquals(template.name, "wm.reminders" in script(template), PluginPermission.Reminders in template.permissions)
         }
     }
 
     @Test
     fun `no template draws an error or a warning from the checks`() {
         val problems = PluginTemplate.entries.flatMap { template ->
-            LuaDiagnostics.of(LuaDocument.of(script(template)), LuaHostShape(template.storage))
+            val host = LuaHostShape(
+                storage = PluginPermission.Storage in template.permissions,
+                reminders = PluginPermission.Reminders in template.permissions,
+            )
+            LuaDiagnostics.of(LuaDocument.of(script(template)), host)
                 .filter { it.severity != LuaSeverity.INFO }
                 .map { "${template.name} ${it.code} ${it.arg1.orEmpty()}" }
         }

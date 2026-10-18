@@ -31,10 +31,14 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginFile
 import com.wasimaster.wmkeyboard.core.plugins.PluginImportResult
 import com.wasimaster.wmkeyboard.core.plugins.PluginLog
 import com.wasimaster.wmkeyboard.core.plugins.PluginManifestResult
+import com.wasimaster.wmkeyboard.core.plugins.PluginPermission
+import com.wasimaster.wmkeyboard.core.plugins.PluginReminderAlarms
+import com.wasimaster.wmkeyboard.core.plugins.PluginReminders
 import com.wasimaster.wmkeyboard.core.plugins.PluginStorage
 import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.plugins.PluginWorkspace
 import com.wasimaster.wmkeyboard.core.plugins.resolve
+import com.wasimaster.wmkeyboard.core.notify.WmNotifications
 import com.wasimaster.wmkeyboard.core.util.requireInputStream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -130,6 +134,7 @@ internal fun PluginsScreen(onNavigate: (String) -> Unit) {
         item { PluginFact(stringResource(R.string.plugins_fact_no_internet), allowed = false) }
         item { PluginFact(stringResource(R.string.plugins_fact_own_panel), allowed = true) }
         item { PluginFact(stringResource(R.string.plugins_fact_own_storage), allowed = true) }
+        item { PluginFact(stringResource(R.string.plugins_fact_reminders), allowed = true) }
     }
 
     // Outside the master switch on purpose: writing and previewing a plugin runs
@@ -370,6 +375,10 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
         }
     }
 
+    if (plugin.grants(PluginPermission.Reminders)) {
+        PluginRemindersGroup(PluginReminders(store.remindersFile(pluginId)) { PluginReminderAlarms.requestRearm(context) })
+    }
+
     if (log.isNotEmpty()) {
         SettingsGroup(
             stringResource(R.string.plugins_log_title),
@@ -423,6 +432,54 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
 
 /** Log lines shown before the list is more scrolling than reading. */
 private const val LOG_LINES = 40
+
+/**
+ * The reminders a plugin has set and not yet shown, each with its time, and a
+ * way to cancel them all. A notification from a plugin opens this page, so it
+ * is also where the user stops one that has become a nuisance.
+ *
+ * Says so when the app may not post notifications, since that is the one thing
+ * here the keyboard cannot fix by itself: an input method has no screen to ask
+ * for the permission from.
+ */
+@Composable
+private fun PluginRemindersGroup(reminders: PluginReminders) {
+    val context = LocalContext.current
+    var refresh by remember { mutableIntStateOf(0) }
+    var canPost by remember { mutableStateOf(WmNotifications.canPost(context)) }
+    val pending = remember(refresh) { reminders.list() }
+    val askPermission = rememberNotificationPermissionRequest { canPost = WmNotifications.canPost(context) }
+    val format = remember { java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT) }
+
+    SettingsGroup(
+        stringResource(R.string.plugins_reminders_title),
+        info = stringResource(R.string.plugins_reminders_info),
+    ) {
+        if (!canPost) {
+            item {
+                WmRow(
+                    title = stringResource(R.string.plugins_reminders_blocked_title),
+                    subtitle = stringResource(R.string.plugins_reminders_blocked_subtitle),
+                    onClick = askPermission,
+                )
+            }
+        }
+        if (pending.isEmpty()) {
+            item { CaptionText(stringResource(R.string.plugins_reminders_empty)) }
+        } else {
+            for (reminder in pending) {
+                item(key = "reminder:${reminder.id}") {
+                    WmRow(title = reminder.text, subtitle = format.format(java.util.Date(reminder.at)))
+                }
+            }
+            item {
+                TextButton(onClick = { reminders.clear(); refresh++ }) {
+                    Text(stringResource(R.string.plugins_reminders_cancel_all_action))
+                }
+            }
+        }
+    }
+}
 
 /**
  * Confirms installing a picked `.wmplugin`, showing what it claims to be and

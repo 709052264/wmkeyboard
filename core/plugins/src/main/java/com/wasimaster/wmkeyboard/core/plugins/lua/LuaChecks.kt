@@ -140,6 +140,7 @@ internal class LuaChecks(
                 }
                 when (full) {
                     "wm.storage" -> if (host != null && !host.storage) add(Code.STORAGE_NOT_DECLARED, tokens.span(member))
+                    "wm.reminders" -> if (host != null && !host.reminders) add(Code.REMINDERS_NOT_DECLARED, tokens.span(member))
                     "string.dump" -> add(Code.STRING_DUMP, tokens.span(member))
                 }
                 path = full

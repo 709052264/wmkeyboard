@@ -21,7 +21,7 @@ Everything a plugin can use. If it is not here, it does not exist.
 | `pluginVersion` | yes | Your version, e.g. `"1.2.0"`. |
 | `author` | no | Shown on the install screen. |
 | `description` | no | One or two sentences. |
-| `apiVersion` | no | The API level you need. `1`. A higher number than the app knows is refused. |
+| `apiVersion` | no | The API level you need: `2` for `wm.reminders`, `ui.date` or `os.time(table)`, otherwise `1`. Left out, it counts as `1`. A higher number than the app knows is refused. |
 | `entry` | no | The script inside the archive. Defaults to `main.lua`. |
 | `permissions` | no | See [Permissions](/plugins/permissions/). Usually `[]`. |
 
@@ -112,6 +112,28 @@ ui.tabs {
 Top level only, up to 8 pages. Which page is showing is the keyboard's business.
 You get a `tab_selected` event if you care.
 
+### Date
+
+```lua
+ui.date {
+  id = "due",
+  label = "Due",
+  value = due,     -- seconds, as os.time() gives, or nil for no date yet
+  time = true,     -- pick a time of day too (default false)
+  step = 15,       -- minutes the smaller time buttons move, 1-60 (default 15)
+}
+```
+
+The keyboard draws the date between a back and a forward arrow, the time (with
+`time = true`) between buttons that move it by `step` minutes and by an hour,
+and **Today** and **Clear** under them. With no `value` it shows **Set date**,
+which picks today, or the next whole hour when `time` is on.
+
+Like `ui.input`, the widget keeps nothing. Each press sends a `date_changed`
+event with the new value, and the next render draws whatever you kept. Without
+`time` the value is the start of a day. Days move on the calendar in the phone's
+time zone, so 9:00 stays 9:00 across a clock change.
+
 ### Progress
 
 ```lua
@@ -128,6 +150,7 @@ ui.progress()   -- an indeterminate bar
 | `"toggle"` | `e.value` (boolean) | A toggle was flipped. |
 | `"input_changed"` | `e.value` (string) | The contents of one of *your* boxes changed. |
 | `"tab_selected"` | `e.index` (number, 0-based) | A tab was picked. |
+| `"date_changed"` | `e.value` (number of seconds, or `nil`) | A date widget moved, or was cleared. |
 
 `tab_selected` counts from 0, not from 1 the way the rest of Lua does. The
 first page is 0.
@@ -143,7 +166,7 @@ The complete host API.
 ### Always available
 
 ```lua
-wm.api_version      -- 1
+wm.api_version      -- 2
 wm.plugin_id        -- your manifest id
 wm.plugin_version   -- your manifest pluginVersion
 wm.log(message)     -- a line in your log, readable in Settings
@@ -180,6 +203,31 @@ silently.
 
 If the manifest did not declare `storage`, `wm.storage` is `nil`.
 
+### With the `reminders` permission
+
+```lua
+wm.reminders.set(id, time, text) --> true, or nil + reason
+wm.reminders.cancel(id)          --> true when there was one
+wm.reminders.list()              --> { { id = ..., time = ..., text = ... }, ... }
+```
+
+At `time`, in seconds as `os.time()` gives, the app shows `text` in a
+notification with your plugin's name as its title. Setting an `id` that is
+already set replaces it. `list` gives every reminder not yet shown, soonest
+first; a reminder leaves the list once it is shown.
+
+Your script does not run to show it. The app keeps the id, the time and the
+text, and posts the notification itself, so a reminder fires with the keyboard
+closed. It does not fire while plugins, or your plugin, are switched off; a
+reminder that comes due then is dropped.
+
+`set` returns `nil` and a reason for a time already past, for empty text, or
+past 64 reminders. Text is cut to 200 characters, with control and
+direction-override characters removed.
+
+If the manifest did not declare `reminders`, `wm.reminders` is `nil`. A plugin
+can check for that and work without it.
+
 ### Not present, and never will be
 
 `wm.text`, `wm.clipboard`, `wm.http`, `wm.net`, `wm.files`. None of these exists.
@@ -195,8 +243,11 @@ Lua 5.2 via [LuaJ](https://github.com/luaj/luaj), with these libraries:
 `xpcall`, `rawget`, `rawset`, `rawequal`, `rawlen`, `select`, `tonumber`,
 `tostring`, `type`, `_G`, `_VERSION`), `print`, and a reduced `os`.
 
-**`os`** has `os.time()`, `os.clock()` and `os.date(format, time)`. `os.date`
-takes `"*t"` and a strftime subset
+**`os`** has `os.time()`, `os.clock()` and `os.date(format, time)`. Given a
+table, `os.time { year = 2026, month = 10, day = 20, hour = 9 }` is that moment
+in the phone's time zone. `hour` defaults to 12, `min` and `sec` to 0, and a
+field past its range rolls over, so `day = d + 1` on the last of the month is
+the first of the next. `os.date` takes `"*t"` and a strftime subset
 (`%Y %y %m %d %H %M %S %j %p %A %a %B %b %c %x %X %%`), plus a leading `!` for
 UTC. Nothing else: no `getenv`, `execute`, `exit`, `remove`, `rename` or
 `tmpname`.
@@ -230,6 +281,7 @@ the panel saying what had to be dropped. Two are quiet, and the table says which
 | Pattern subject / pattern | 256 KB / 256 bytes |
 | `table.concat` output | 1 MB |
 | Storage | 128 keys, 64 chars per key, 8 KB per value, 64 KB total |
+| Reminders | 64 pending, 64 chars per id, 200 chars of text, up to ten years ahead |
 | Log | 200 lines of 512 characters *(truncated quietly)* |
 | Input box | 8 KB *(truncated quietly)* |
 

@@ -7646,12 +7646,6 @@
     <string name="tooldetail_ocr_info">Prepoznavanje poteka v vaši napravi z ML Kit. Nobena fotografija in nobeno besedilo ne zapusti vaše naprave in deluje brez povezave. Bere besedilo v latinični pisavi, na primer angleščino. Prepoznavalnik besedila ML Kit še ne podpira bengalščine. Po zajemu pritisnite besede, da izberete točno to, kar tipkovnica vtipka ali kopira.</string>
     <string name="tooldetail_ocr_online_group">Spletni bralnik besedila</string>
     <string name="tooldetail_ocr_online_info">Fotografija gre do modela, ki zna brati slike, na naslovu, ki ga izberete, in model zapiše besedilo, ki ga vidi. Bere katero koli pisavo in ne potrebuje jezikovnih podatkov. Deluje katera koli storitev z API-jem, združljivim z OpenAI: OpenAI, OpenRouter, Gemini, Mistral ali model na vašem računalniku z Ollama ali LM Studio. Vsako skeniranje pošlje fotografijo tej storitvi in storitev lahko to zaračuna.</string>
-    <string name="tooldetail_ocr_online_key_hint">Pustite prazno za strežnik, ki ne zahteva ključa</string>
-    <string name="tooldetail_ocr_online_key_label">Ključ API</string>
-    <string name="tooldetail_ocr_online_model_hint">Model, ki bere slike, na primer gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Model</string>
-    <string name="tooldetail_ocr_online_url_hint">Na primer https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Naslov</string>
     <string name="tooldetail_ocr_packs_header">Jeziki Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract bere jezik šele, ko so podatki za ta jezik v vaši napravi. Za vsak jezik, v katerem tipkate, je potreben en prenos, od 0,4 MB do 12 MB. Podatki prihajajo iz nabora tessdata_fast projekta Tesseract na GitHubu. Jezik lahko prenesete tudi iz samega optičnega bralnika.</string>
     <string name="tooldetail_ocr_packs_none_info">Noben od jezikov, ki ste jih vklopili, nima podatkov Tesseract. Dodajte jezik na zaslonu Jeziki. Njegovi podatki se bodo nato prikazali tukaj.</string>

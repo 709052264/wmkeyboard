@@ -112,6 +112,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     // Home Assistant's own sky blue, so the tile reads as the house it controls.
     ToolbarTool.HOME_ASSISTANT -> Color(0xFF18BCF2)
     // A sunset's coral: the colour a photo library opens on, apart from the camera's.
+    // A clear sky blue: a link that travels, apart from the clipboard's and KDE Connect's blues.
+    ToolbarTool.SEND_FILES -> Color(0xFF26A69A)
     ToolbarTool.GALLERY -> Color(0xFFFF7043)
     ToolbarTool.MOON_PHASE -> Color(0xFF7986CB)
 

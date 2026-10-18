@@ -182,6 +182,9 @@
     <string name="ime_camera_send_action">Send</string>
     <!-- Confirm step: search the web with this photo instead of sending it (#349). -->
     <string name="ime_camera_search_action">Search</string>
+    <string name="ime_camera_translate_action">Translate</string>
+    <string name="ime_camera_translate_metered_ask">You are on a metered connection. Press Translate again to send the photo.</string>
+    <string name="ime_camera_translate_blocked">Data saver stops photo translation on this connection.</string>
     <!-- Screen reader labels for the controls over the viewfinder. -->
     <string name="ime_camera_close_desc">Close the camera</string>
     <string name="ime_camera_captured_photo_desc">The photo you took</string>
@@ -310,4 +313,6 @@
     <!-- Second line of a plugin row when the plugin gives no description. %1$s is its version. -->
     <string name="ime_plugin_version_label">Version <xliff:g id="version" example="1.2.0">%1$s</xliff:g></string>
 
+    <!-- The chooser of providers in a panel, for a list in pick mode (#727) -->
+    <string name="ime_provider_choose_desc">Choose the provider</string>
 </resources>

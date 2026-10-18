@@ -50,6 +50,9 @@ sealed interface ToolPrefill {
     /** A vocabulary word whose card the panel opens on. */
     data class Vocab(val word: String) : ToolPrefill
 
+    /** A Send share link seen in the field (#729): the panel opens on receiving it. */
+    data class SendLink(val url: String) : ToolPrefill
+
     /**
      * The person a contact chip offers to call or text. Not a panel's input:
      * the service reads it to start the dialer or the messaging app.
@@ -87,10 +90,10 @@ object SmartSuggest {
      * with a call face and a message button, and so is [REPEAT] (the same
      * text typed several times over), which opens the Text repeat tool.
      */
-    enum class Kind { CALC, CURRENCY, UNIT, NUMBER, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB, CONTACT, REPEAT }
+    enum class Kind { CALC, CURRENCY, UNIT, NUMBER, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB, CONTACT, REPEAT, SEND_LINK }
 
     /** The kinds that only claim the space their label needs. */
-    val narrowKinds: Set<Kind> = setOf(Kind.TOOL, Kind.LOOKUP, Kind.INTENT, Kind.VOCAB, Kind.CONTACT, Kind.REPEAT)
+    val narrowKinds: Set<Kind> = setOf(Kind.TOOL, Kind.LOOKUP, Kind.INTENT, Kind.VOCAB, Kind.CONTACT, Kind.REPEAT, Kind.SEND_LINK)
 
     /**
      * A switch under Smart chips, as far as the tools behind it go. The
@@ -282,6 +285,8 @@ object SmartSuggest {
          * Names and numbers from the address book, for the call/message chip
          * (#656). Null while the switch is off or nothing is loaded.
          */
+        /** Offer to receive a Send share link typed or pasted into the field (#729). */
+        val sendLinkChips: Boolean = false,
         val contacts: ContactPhones? = null,
         // ---- repeated text ----
         /** "no no no" → the Text repeat tool, opened on that text. */
@@ -296,6 +301,13 @@ object SmartSuggest {
     const val LOOKBEHIND = 48
 
     /**
+     * Characters fetched when Send links are watched for (#729): a share link
+     * is some seventy characters, and only the link scanner reads past
+     * [LOOKBEHIND]; the rest still see the same tail.
+     */
+    const val LINK_LOOKBEHIND = 160
+
+    /**
      * The first trigger that matches the tail of [text], in priority order:
      * the answer chips first (currency, units, arithmetic — phrase forms
      * before symbol forms — dates, weather), then the narrow ones (lookups,
@@ -308,6 +320,8 @@ object SmartSuggest {
      */
     fun detect(text: String, ctx: Context): SmartHit? {
         if (text.isEmpty()) return null
+        // A share link is recognised anywhere in the window, not only at its tail.
+        if (ctx.sendLinkChips) detectSendLink(text)?.let { return it }
         val tail = text.takeLast(LOOKBEHIND)
         if (ctx.currencyEnabled) detectCurrency(tail, ctx)?.let { return it }
         if (ctx.unitsEnabled) detectUnit(tail, ctx)?.let { return it }
@@ -334,6 +348,23 @@ object SmartSuggest {
     }
 
     private fun toolOn(tool: ToolbarTool, ctx: Context): Boolean = tool in ctx.enabledTools
+
+    /**
+     * A Send share link (#729): opens the Send files tool on receiving it. The
+     * link stays in the field (span 0), since it was probably meant to be sent on.
+     */
+    private fun detectSendLink(text: String): SmartHit? {
+        val link = com.wasimaster.wmkeyboard.core.send.SendLink.find(text) ?: return null
+        return SmartHit(
+            kind = Kind.SEND_LINK,
+            query = link.url,
+            result = null,
+            insert = null,
+            replaceSpan = 0,
+            tool = ToolbarTool.SEND_FILES,
+            prefill = ToolPrefill.SendLink(link.url),
+        )
+    }
 
     // ---- numbers ----
 
@@ -1873,6 +1904,8 @@ object SmartSuggest {
         ToolbarTool.FIND_REPLACE to listOf("replace"),
         ToolbarTool.NOTES to listOf("note", "notes"),
         ToolbarTool.TRACKPAD to listOf("trackpad"),
+        // Not "send" alone: it is the commonest verb in a chat. The compound forms are meant.
+        ToolbarTool.SEND_FILES to listOf("sendfile", "sendfiles", "fileshare", "wetransfer"),
         ToolbarTool.KDE_CONNECT to listOf("kdeconnect", "kde"),
         ToolbarTool.APP_LAUNCHER to listOf("apps", "launch"),
         ToolbarTool.TEXT_REPEAT to listOf("repeat"),

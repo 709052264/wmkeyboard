@@ -16,6 +16,7 @@
     <string name="providers_status_needs_grant">No home chosen. Edit to choose one.</string>
     <string name="providers_status_signed_in">Signed in</string>
     <string name="providers_status_needs_server">Needs a server address</string>
+    <string name="providers_status_needs_model">Needs a model name</string>
     <string name="providers_status_needs_packs">Import a GIF pack first</string>
     <string name="providers_status_unavailable">Not available in this build</string>
     <string name="providers_status_unknown">Added by a newer version of the app</string>
@@ -25,7 +26,8 @@
     <string name="providers_status_your_key">Uses your key</string>
     <string name="providers_status_no_key">No key needed</string>
 
-    <string name="providers_more">More options for %1$s</string>
+    <string name="providers_move_up">Move up</string>
+    <string name="providers_move_down">Move down</string>
     <string name="providers_edit">Edit</string>
     <string name="providers_remove">Remove</string>
     <string name="providers_remove_title">Remove %1$s?</string>
@@ -57,6 +59,7 @@
     <string name="providers_field_key_required_hint">Required.</string>
     <string name="providers_field_model">Model</string>
     <string name="providers_field_model_hint">Optional. Leave it empty if the server runs one model.</string>
+    <string name="providers_field_model_required_hint">Required. A model that can read images, for example qwen2.5vl:7b.</string>
     <string name="providers_field_engine">Engine</string>
     <string name="providers_field_engine_hint">The service that this server sends your text to. If the server does not have it, the next provider is asked.</string>
     <string name="providers_used_by">Also used by %1$s. A change here changes it there too.</string>

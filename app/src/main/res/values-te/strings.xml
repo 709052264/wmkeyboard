@@ -7647,12 +7647,6 @@
     <string name="tooldetail_ocr_info">గుర్తింపు మీ పరికరంలో ML కిట్‌తో నడుస్తుంది. ఏ ఫోటో మరియు ఏ వచనం మీ పరికరాన్ని వదిలి వెళ్ళదు, మరియు ఇది ఆఫ్‌లైన్‌లో పనిచేస్తుంది. ఇది లాటిన్ స్క్రిప్ట్ వచనాన్ని చదువుతుంది, ఉదాహరణకు ఇంగ్లీష్. ML కిట్ యొక్క టెక్స్ట్ రికగ్నైజర్ ఇంకా బెంగాలీకి మద్దతు ఇవ్వదు. క్యాప్చర్ చేసిన తర్వాత, కీబోర్డ్ టైప్ చేసే లేదా కాపీ చేసే వాటిని ఖచ్చితంగా ఎంచుకోవడానికి పదాలను నొక్కండి.</string>
     <string name="tooldetail_ocr_online_group">ఆన్‌లైన్ టెక్స్ట్ రీడర్</string>
     <string name="tooldetail_ocr_online_info">ఫోటో చిత్రాలను చదవగల మోడల్‌కు, మీరు ఎంచుకున్న చిరునామాకు వెళుతుంది మరియు మోడల్ అది చూసే వచనాన్ని రాస్తుంది. ఇది ఏదైనా లిపిని చదువుతుంది మరియు భాషా డేటా అవసరం లేదు. OpenAI-అనుకూల API ఉన్న ఏదైనా సేవ పనిచేస్తుంది: OpenAI, OpenRouter, Gemini, Mistral లేదా Ollama లేదా LM Studioతో మీ స్వంత కంప్యూటర్‌లోని మోడల్. ప్రతి స్కాన్ ఫోటోను ఆ సేవకు పంపుతుంది మరియు ఆ సేవ దానికి ఛార్జ్ చేయవచ్చు.</string>
-    <string name="tooldetail_ocr_online_key_hint">కీ అవసరం లేని సర్వర్ కోసం ఖాళీగా వదిలేయండి</string>
-    <string name="tooldetail_ocr_online_key_label">API కీ</string>
-    <string name="tooldetail_ocr_online_model_hint">చిత్రాలను చదివే మోడల్, ఉదాహరణకు gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">మోడల్</string>
-    <string name="tooldetail_ocr_online_url_hint">ఉదాహరణకు https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">చిరునామా</string>
     <string name="tooldetail_ocr_packs_header">టెసెరాక్ట్ భాషలు</string>
     <string name="tooldetail_ocr_packs_info">టెసెరాక్ట్ ఒక భాషను చదవాలంటే ఆ భాషకు సంబంధించిన డేటా మీ పరికరంలో ఉండాలి. మీరు టైప్ చేసే ప్రతి భాషకు 0.4 MB నుండి 12 MB వరకు ఒక డౌన్‌లోడ్ అవసరం. ఈ డేటా GitHubలోని టెసెరాక్ట్ ప్రాజెక్ట్ యొక్క tessdata_fast సెట్ నుండి వస్తుంది. మీరు స్కానర్ నుండే భాషను డౌన్‌లోడ్ చేసుకోవచ్చు.</string>
     <string name="tooldetail_ocr_packs_none_info">మీరు ఆన్ చేసిన భాషల్లో దేనికీ టెసెరాక్ట్ డేటా లేదు. భాషల స్క్రీన్‌లో ఒక భాషను జోడించండి. అప్పుడు దాని డేటా ఇక్కడ కనిపిస్తుంది.</string>

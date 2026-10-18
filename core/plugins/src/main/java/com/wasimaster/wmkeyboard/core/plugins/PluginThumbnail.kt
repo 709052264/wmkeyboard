@@ -5,8 +5,8 @@ package com.wasimaster.wmkeyboard.core.plugins
  *
  * The script runs in the same sandbox, with the same prelude and the same load
  * and render budgets, as it would in the keyboard, but on the calling thread
- * and once: loaded, then drawn. Storage, when the plugin declares it, lives in
- * memory and is gone afterwards. Nothing is logged and nothing is kept. Meant
+ * and once: loaded, then drawn. Storage and reminders, when the plugin declares
+ * them, live in memory and are gone afterwards. Nothing is logged and nothing is kept. Meant
  * for scripts that ship with the app; an unknown script belongs in
  * [PluginRuntime], whose watchdog can abandon a thread that stops counting.
  */
@@ -17,12 +17,14 @@ object PluginThumbnail {
         val budget = PluginBudget()
         val globals = PluginSandbox.create(budget) { }
         val storage = if (PluginPermission.Storage.wire in plugin.permissions) PluginStorage(null) else null
+        val reminders = if (PluginPermission.Reminders.wire in plugin.permissions) PluginReminders(null) else null
         val api = PluginHostApi(
             plugin = plugin,
             log = PluginLog(null),
             storage = storage,
             setInput = { _, _ -> },
             revoked = { false },
+            reminders = reminders,
         )
         globals.set("wm", api.table())
         budget.begin(PluginLimit.LOAD)

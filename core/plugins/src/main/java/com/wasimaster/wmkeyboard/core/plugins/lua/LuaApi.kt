@@ -75,7 +75,7 @@ object LuaApi {
 
     val labelStyles: List<String> = listOf("title", "body", "caption")
     val buttonStyles: List<String> = listOf("primary")
-    val eventTypes: List<String> = listOf("click", "toggle", "input_changed", "tab_selected")
+    val eventTypes: List<String> = listOf("click", "toggle", "input_changed", "tab_selected", "date_changed")
 
     val uiShapes: Map<String, LuaUiShape> = listOf(
         LuaUiShape("column", emptyList(), takesChildren = true, widgetType = "column"),
@@ -91,6 +91,10 @@ object LuaApi {
         ),
         LuaUiShape("toggle", listOf("id", "label", "checked"), takesChildren = false, widgetType = "toggle", needsId = true),
         LuaUiShape("input", listOf("id", "label", "placeholder"), takesChildren = false, widgetType = "input", needsId = true),
+        LuaUiShape(
+            "date", listOf("id", "label", "value", "time", "step"), takesChildren = false, widgetType = "date",
+            needsId = true,
+        ),
         LuaUiShape("spacer", listOf("height"), takesChildren = false, widgetType = "spacer"),
         LuaUiShape("divider", emptyList(), takesChildren = false, widgetType = "divider"),
         LuaUiShape("progress", emptyList(), takesChildren = false, widgetType = "progress"),
@@ -166,7 +170,7 @@ object LuaApi {
 
         function("os.clock", "clock()")
         function("os.date", "date(format, time)")
-        function("os.time", "time()")
+        function("os.time", "time(table)")
 
         constant("wm.api_version")
         constant("wm.plugin_id")
@@ -182,6 +186,10 @@ object LuaApi {
         function("wm.storage.set", "set(key, value)", PluginPermission.Storage)
         function("wm.storage.remove", "remove(key)", PluginPermission.Storage)
         function("wm.storage.keys", "keys()", PluginPermission.Storage)
+        table("wm.reminders", PluginPermission.Reminders)
+        function("wm.reminders.set", "set(id, time, text)", PluginPermission.Reminders)
+        function("wm.reminders.cancel", "cancel(id)", PluginPermission.Reminders)
+        function("wm.reminders.list", "list()", PluginPermission.Reminders)
 
         for (shape in uiShapes.values) {
             val signature = when {

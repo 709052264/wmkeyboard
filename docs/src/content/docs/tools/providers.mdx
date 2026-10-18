@@ -11,16 +11,18 @@ Some tools can get the same thing from more than one service. GIFs can come from
 
 ## The list
 
-Each row is one provider: its name, what it is using (your key, the key in this build, a server address, or files on the phone), a switch, and a menu.
+Each row is one provider: its place in the order, its logo, its name, what it is using (your key, the key in this build, a server address, or files on the phone), and a switch. A long name or address wraps onto a second line rather than being cut off.
 
-- **Drag a row** to change the order. The tool asks the providers in this order.
+- **Drag the number** at the start of a row (the grip under it) to change the order. The tool asks the providers in this order. With TalkBack, the row's actions include **Move up** and **Move down**.
 - **Switch a row off** to skip it without losing its setup.
-- **Edit** in the row's menu opens the provider's setup: its key, its server address, a model, or a name for the server.
-- **Remove** takes the provider out of this tool's list. If no other tool uses its key or server, the key and address are deleted too, and the dialog says so first.
+- **Tap a row** to open the provider's setup: its key, its server address, a model, an engine, or a name for the server. A provider with nothing to set up shows what it is.
+- **Remove**, at the bottom of that sheet, takes the provider out of this tool's list. If no other tool uses its key or server, the key and address are deleted too, and the dialog says so first.
 - **Add a provider** opens a sheet of every kind this build can use. A kind that needs nothing typed in is added at once. The rest open the setup first.
 - **Reset to default** appears once you have changed the list, and puts it back to the list this build starts with.
 
-A row with a problem says what it needs in red: an API key, a server address, or an imported GIF pack. Such a row is skipped until it is fixed.
+A row with a problem says what it needs in red: an API key, a server address, a model name, or an imported GIF pack. Such a row is skipped until it is fixed.
+
+Rows show the service's own logo where the app carries one. The logos are small vector drawings from [Simple Icons](https://simpleicons.org/) or from each project's own repository, and are in the app itself, so drawing them never reaches the network.
 
 ## Shared keys and servers
 
@@ -31,6 +33,8 @@ Server kinds can be added more than once, each with its own address and name: tw
 ## How a tool uses its list
 
 Most tools ask **One at a time**: the first provider that is on, and the next one only if the first fails or has nothing. The GIF and sticker panels can also show their providers as **Tabs** (a chip for each) or **Mixed** (all of them at once, in one grid). The smart home list is always mixed: every home on it is connected, and the order is the order their rooms appear in. Packs on your phone always get a chip of their own, and GIPHY keeps its own chip in Mixed mode, because its terms do not allow mixing its results with another service's.
+
+Translate, the dictionary, web and image search, online text scanning and photo translation can instead **Choose in the panel**. The panel then shows a chip with the provider in use, and tapping it lists the providers that are on. Only the one you pick is asked, with no fallback to the next. Picking another one runs the same request again with it. The choice lasts until the keyboard restarts, and then the first provider in the list is the one in use again. With only one provider on, there is nothing to choose and the chip stays hidden. The AI's own tools always use the list in order, whatever the mode.
 
 A provider that can't be reached (no answer, a server error, too many requests) is skipped for a minute, so the next one answers at once instead of after a timeout. If every provider is in that state, they are all asked anyway. Editing a provider clears this, so a fixed key is tried straight away.
 
@@ -58,5 +62,7 @@ Updating the app does not change your lists. Until you edit a list, it is worked
 | [Web and image search](/tools/search/) | SearXNG, Tavily, Brave Search | <SettingsPath path="Tools / Web search / Providers" /> |
 | [Background photos](/themes/online-photos/) | Unsplash, Pexels, Wikimedia Commons or another MediaWiki | <SettingsPath path="Themes / Photo services" /> |
 | [Currency converter](/tools/utilities/) | ExchangeRate-API, Frankfurter, Coinbase, currency-api; for coins Coinbase, currency-api, CoinGecko | <SettingsPath path="Tools / Currency converter / Currency rates from" /> |
+| [Text scan, online](/tools/scanner/#reading-text-online) | Your vision model, Rens | <SettingsPath path="Tools / Text scan (OCR) / Online text reader" /> |
+| [Camera, Translate](/tools/camera/#translating-a-photo) | Rens | <SettingsPath path="Tools / Camera / Translate photos" /> |
 | [Vocabulary](/tools/vocabulary/) | Wiktionary, Wiktionary definitions, Free Dictionary API, for words no pack knows | <SettingsPath path="Tools / Vocabulary / Providers" /> |
 | [Smart home](/tools/home-assistant/) | Home Assistant, Google Home, SmartThings, a Philips Hue bridge, openHAB; every home on the list is connected at once, and its sign-in or pairing lives in the row's setup | <SettingsPath path="Tools / Smart home / Homes" /> |

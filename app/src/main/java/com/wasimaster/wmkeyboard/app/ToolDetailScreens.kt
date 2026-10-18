@@ -1225,6 +1225,15 @@ internal fun ToolDetailSettings(
                     ) { repository.setCameraSearchCustomField(it) }
                 }
             }
+            // Issue #727: a Translate button on the confirm step, shown once
+            // a provider here can take the photo.
+            ProvidersGroup(
+                repository,
+                settings,
+                ProviderTool.PHOTO_TRANSLATE,
+                titleRes = R.string.tooldetail_camera_translate_group,
+                info = stringResource(R.string.tooldetail_camera_translate_info),
+            )
             SettingsGroup(
                 stringResource(R.string.tooldetail_camera_feedback_group),
                 info = stringResource(R.string.tooldetail_camera_info),
@@ -2543,37 +2552,17 @@ internal fun ToolDetailSettings(
                 }
             }
             // Issue #469: a model that reads images, behind an
-            // OpenAI-compatible address of the user's choosing.
+            // OpenAI-compatible address of the user's choosing; #727 adds
+            // Rens servers. Readers are a provider list, asked in order or
+            // chosen in the panel.
             if (settings.watch { it.scanner.ocrEngine == OcrEngine.ONLINE }) {
-                SettingsGroup(
-                    stringResource(R.string.tooldetail_ocr_online_group),
+                ProvidersGroup(
+                    repository,
+                    settings,
+                    ProviderTool.OCR,
+                    titleRes = R.string.tooldetail_ocr_online_group,
                     info = stringResource(R.string.tooldetail_ocr_online_info),
-                ) {
-                    item {
-                        TextFieldSetting(
-                            label = stringResource(R.string.tooldetail_ocr_online_url_label),
-                            value = settings.watch { it.scanner.ocrOnlineUrl },
-                            hint = stringResource(R.string.tooldetail_ocr_online_url_hint),
-                            default = SettingsDefaults.scanner.ocrOnlineUrl,
-                        ) { repository.setOcrOnlineUrl(it) }
-                    }
-                    item {
-                        TextFieldSetting(
-                            label = stringResource(R.string.tooldetail_ocr_online_model_label),
-                            value = settings.watch { it.scanner.ocrOnlineModel },
-                            hint = stringResource(R.string.tooldetail_ocr_online_model_hint),
-                            default = SettingsDefaults.scanner.ocrOnlineModel,
-                        ) { repository.setOcrOnlineModel(it) }
-                    }
-                    item {
-                        ApiKeyField(
-                            label = stringResource(R.string.tooldetail_ocr_online_key_label),
-                            value = settings.watch { it.scanner.ocrOnlineKey },
-                            builtInAvailable = false,
-                            emptyHint = stringResource(R.string.tooldetail_ocr_online_key_hint),
-                        ) { repository.setOcrOnlineKey(it) }
-                    }
-                }
+                )
             }
             if (settings.watch { it.scanner.ocrEngine != OcrEngine.ML_KIT && it.scanner.ocrEngine != OcrEngine.ONLINE }) {
                 SectionHeader(
@@ -3172,6 +3161,7 @@ internal fun ToolDetailSettings(
         ToolbarTool.CLOCK -> ClockToolSettings(onNavigate)
         ToolbarTool.HOME_ASSISTANT -> com.wasimaster.wmkeyboard.app.homeassistant.SmartHomeToolSettings(repository, settings, onNavigate)
         ToolbarTool.GALLERY -> GalleryToolSettings(repository, settings)
+        ToolbarTool.SEND_FILES -> com.wasimaster.wmkeyboard.app.send.SendToolSettings(repository, settings, onNavigate)
         ToolbarTool.MODES -> SettingsGroup(stringResource(R.string.tooldetail_modes_group)) {
             item {
                 NavRow(

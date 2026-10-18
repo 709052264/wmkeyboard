@@ -51,6 +51,7 @@
     <string name="lua_diag_lua51_gone"><xliff:g id="name" example="setfenv">%1$s</xliff:g> is from Lua 5.1, and Lua 5.2 has nothing in its place.</string>
     <string name="lua_diag_string_dump">string.dump always fails in a plugin.</string>
     <string name="lua_diag_storage_not_declared">wm.storage is nil because the manifest does not declare the storage permission.</string>
+    <string name="lua_diag_reminders_not_declared">wm.reminders is nil because the manifest does not declare the reminders permission.</string>
     <string name="lua_diag_frontier_pattern">Frontier patterns stop the plugin with an error on this keyboard.</string>
 
     <!-- ================================================================== -->

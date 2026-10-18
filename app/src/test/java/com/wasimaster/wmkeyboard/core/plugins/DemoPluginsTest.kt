@@ -26,7 +26,12 @@ class DemoPluginsTest {
     @get:Rule
     val temp = TemporaryFolder()
 
-    private class Demo(val globals: Globals, val budget: PluginBudget, val writes: MutableList<Pair<String, String>>)
+    private class Demo(
+        val globals: Globals,
+        val budget: PluginBudget,
+        val writes: MutableList<Pair<String, String>>,
+        val reminders: PluginReminders? = null,
+    )
 
     private fun load(name: String, permissions: List<String> = emptyList()): Demo {
         val source = javaClass.classLoader!!.getResourceAsStream("plugins/$name.lua")!!
@@ -35,18 +40,20 @@ class DemoPluginsTest {
         val budget = PluginBudget()
         val globals = PluginSandbox.create(budget) { }
         val storageFile = File(temp.newFolder("storage-${counter++}"), "storage.json")
+        val reminders = if ("reminders" in permissions) PluginReminders(null) else null
         val api = PluginHostApi(
             plugin = InstalledPlugin(id = "com.example.demo", name = name, permissions = permissions),
             log = PluginLog(null),
             storage = if ("storage" in permissions) PluginStorage(storageFile) else null,
             setInput = { id, text -> writes += id to text },
             revoked = { false },
+            reminders = reminders,
         )
         globals.set("wm", api.table())
         budget.begin(PluginLimit.LOAD)
         PluginSandbox.compile(globals, PluginPrelude.SOURCE, PluginPrelude.CHUNK_NAME).call()
         PluginSandbox.compile(globals, source, "@$name.lua").call()
-        return Demo(globals, budget, writes)
+        return Demo(globals, budget, writes, reminders)
     }
 
     private fun Demo.render(): RenderedUi {
@@ -63,6 +70,7 @@ class DemoPluginsTest {
             is String -> table.set("value", value)
             is Boolean -> table.set("value", org.luaj.vm2.LuaValue.valueOf(value))
             is Int -> table.set("index", value)
+            is Long -> table.set("value", value.toDouble())
             else -> Unit
         }
         globals.get("on_event").call(table)
@@ -82,6 +90,7 @@ class DemoPluginsTest {
                     is PluginWidget.Row -> walk(widget.children)
                     is PluginWidget.Tabs -> widget.pages.forEach { walk(it.children) }
                     is PluginWidget.Input,
+                    is PluginWidget.DatePicker,
                     is PluginWidget.Spacer,
                     PluginWidget.Divider,
                     PluginWidget.Progress,
@@ -98,7 +107,11 @@ class DemoPluginsTest {
     @Test
     fun `every demo loads and renders without repairs`() {
         for (name in listOf("cipher-tool", "ui-kitchen-sink", "todo-list", "text-tools", "math-mode")) {
-            val permissions = if (name == "todo-list" || name == "math-mode") listOf("storage") else emptyList()
+            val permissions = when (name) {
+                "todo-list" -> TODO_PERMISSIONS
+                "math-mode" -> listOf("storage")
+                else -> emptyList()
+            }
             val ui = load(name, permissions).render()
             assertTrue("$name rendered nothing", ui.root.isNotEmpty())
             assertEquals("$name needed repairs: ${ui.repairs}", emptyList<PluginText>(), ui.repairs)
@@ -138,7 +151,7 @@ class DemoPluginsTest {
 
     @Test
     fun `todo adds ticks and clears`() {
-        val demo = load("todo-list", listOf("storage"))
+        val demo = load("todo-list", TODO_PERMISSIONS)
         demo.event("input_changed", "draft", "buy milk")
         demo.event("click", "add")
         assertTrue(demo.render().allText().contains("buy milk"))
@@ -183,6 +196,54 @@ class DemoPluginsTest {
 
         // A second session, as if the keyboard had been closed and reopened.
         assertTrue(session().render().allText().contains("water the plants"))
+    }
+
+    @Test
+    fun `todo sets a reminder for a due item and cancels it when done`() {
+        val demo = load("todo-list", TODO_PERMISSIONS)
+        val due = System.currentTimeMillis() / 1000 + 3600
+        demo.event("input_changed", "draft", "file taxes")
+        demo.event("date_changed", "draft_due", due)
+        demo.event("click", "add")
+
+        val reminder = demo.reminders!!.list().single()
+        assertEquals("file taxes", reminder.text)
+        assertEquals(due * 1000, reminder.at)
+        assertTrue(demo.render().allText().contains("reminder"))
+
+        demo.event("toggle", "done:1", true)
+        assertTrue(demo.reminders.list().isEmpty())
+    }
+
+    @Test
+    fun `todo moves a due date from the details page and flags what is overdue`() {
+        val demo = load("todo-list", TODO_PERMISSIONS)
+        demo.event("input_changed", "draft", "late thing")
+        demo.event("date_changed", "draft_due", System.currentTimeMillis() / 1000 - 7200)
+        demo.event("click", "add")
+        // A time already past gets no reminder, and the list says it is late.
+        assertTrue(demo.reminders!!.list().isEmpty())
+        assertTrue(demo.render().allText().contains("1 overdue"))
+
+        val later = System.currentTimeMillis() / 1000 + 86_400
+        demo.event("date_changed", "due", later)
+        assertEquals(later * 1000, demo.reminders.list().single().at)
+        assertTrue(!demo.render().allText().contains("overdue"))
+
+        demo.event("click", "delete")
+        assertTrue(demo.reminders.list().isEmpty())
+        assertTrue(demo.render().allText().contains("Nothing on the list"))
+    }
+
+    @Test
+    fun `todo works without the reminders permission`() {
+        val demo = load("todo-list", listOf("storage"))
+        demo.event("input_changed", "draft", "buy milk")
+        demo.event("date_changed", "draft_due", System.currentTimeMillis() / 1000 + 3600)
+        demo.event("click", "add")
+        val text = demo.render().allText()
+        assertTrue(text.contains("buy milk"))
+        assertTrue(!text.contains("Remind me"))
     }
 
     // ---- text tools --------------------------------------------------------
@@ -255,6 +316,7 @@ class DemoPluginsTest {
                     is PluginWidget.Button,
                     is PluginWidget.Toggle,
                     is PluginWidget.Input,
+                    is PluginWidget.DatePicker,
                     is PluginWidget.Spacer,
                     PluginWidget.Divider,
                     PluginWidget.Progress,
@@ -272,6 +334,7 @@ class DemoPluginsTest {
         assertTrue(flat.any { it is PluginWidget.Toggle })
         assertTrue(flat.any { it is PluginWidget.Input })
         assertTrue(flat.any { it is PluginWidget.Spacer })
+        assertTrue(flat.any { it is PluginWidget.DatePicker })
         assertTrue(flat.any { it == PluginWidget.Divider })
         assertTrue(flat.any { it is PluginWidget.Row })
         assertTrue(tabs.pages.size >= 5)
@@ -283,7 +346,10 @@ class DemoPluginsTest {
         demo.event("click", "primary")
         demo.event("toggle", "demo_toggle", true)
         demo.event("input_changed", "box", "typed text")
+        demo.event("date_changed", "when", 1_790_000_000L)
         val text = demo.render().allText()
+        assertTrue(text, text.contains("date when = "))
+        assertTrue(text, text.contains("Picked: "))
         assertTrue(text, text.contains("click primary"))
         assertTrue(text, text.contains("demo_toggle = true"))
         assertTrue(text, text.contains("box = typed text"))
@@ -303,6 +369,7 @@ class DemoPluginsTest {
                     is PluginWidget.Button,
                     is PluginWidget.Toggle,
                     is PluginWidget.Input,
+                    is PluginWidget.DatePicker,
                     is PluginWidget.Spacer,
                     PluginWidget.Divider,
                     PluginWidget.Progress,
@@ -316,5 +383,8 @@ class DemoPluginsTest {
 
     private companion object {
         var counter = 0
+
+        /** What the todo demo's manifest declares. */
+        val TODO_PERMISSIONS = listOf("storage", "reminders")
     }
 }

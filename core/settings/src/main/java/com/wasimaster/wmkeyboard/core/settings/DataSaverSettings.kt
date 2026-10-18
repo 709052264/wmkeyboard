@@ -172,6 +172,12 @@ data class DataSaverSettings(
      * stops working on mobile data reads as broken.
      */
     val cloudVoice: MeteredPolicy = MeteredPolicy.ALLOW,
+    /**
+     * A file the Send files tool uploads to a Send instance or fetches from a
+     * link (#729): whole files, so the one feature here that can move gigabytes
+     * on a metered connection. Asked, like [downloads].
+     */
+    val fileSend: MeteredPolicy = MeteredPolicy.ASK,
 
     /**
      * With no connection, or with the server not answering, dictation, the AI
@@ -201,7 +207,7 @@ data class DataSaverSettings(
         get() = listOf(
             linkPreviews, dictionaryLookup, photoBackgrounds, weatherChip,
             currencyRates, addonRefresh, mediaSearch, webSearch, animatedEmoji,
-            downloads, cloudAi, cloudVoice,
+            downloads, cloudAi, cloudVoice, fileSend,
             vocabAudio,
         ).any { it != MeteredPolicy.ALLOW }
 }
@@ -233,6 +239,9 @@ enum class MeteredFeature {
 
     /** A dictation clip uploaded to the user's transcription server. */
     CLOUD_VOICE,
+
+    /** A file going up to a Send instance or coming down from a link (#729). */
+    FILE_SEND,
 }
 
 /** What may happen to one [MeteredFeature] right now. */
@@ -272,6 +281,7 @@ data class DataSaverStatus(
         MeteredFeature.DICTIONARY_LOOKUP -> settings.dictionaryLookup
         MeteredFeature.VOCAB_AUDIO -> settings.vocabAudio
         MeteredFeature.CLOUD_VOICE -> settings.cloudVoice
+        MeteredFeature.FILE_SEND -> settings.fileSend
     }
 
     fun decide(feature: MeteredFeature): MeteredDecision = when {
