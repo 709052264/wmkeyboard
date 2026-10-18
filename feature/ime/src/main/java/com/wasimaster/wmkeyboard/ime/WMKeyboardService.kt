@@ -533,7 +533,6 @@ import com.wasimaster.wmkeyboard.core.providers.ChainMode
 import com.wasimaster.wmkeyboard.core.providers.ProviderRunner
 import com.wasimaster.wmkeyboard.core.tools.ToolPrefill
 import com.wasimaster.wmkeyboard.core.tools.TypingHeatmapMath
-import com.wasimaster.wmkeyboard.core.tools.TypingStatsMath
 import com.wasimaster.wmkeyboard.core.vocab.ReviewGrade
 import com.wasimaster.wmkeyboard.core.vocab.VocabAudioSource
 import com.wasimaster.wmkeyboard.core.vocab.VocabAutofill
