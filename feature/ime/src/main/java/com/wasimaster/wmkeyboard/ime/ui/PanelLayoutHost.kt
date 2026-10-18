@@ -345,19 +345,15 @@ internal fun ClipboardPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCa
         )
         return
     }
-    // The search and the history cross-fade as they trade places, the way the
-    // emoji panel's do; the page on its way out takes no taps while it fades.
-    // The editor above stays instant: it captures the keys, and a second one
-    // fading out would be a second editor composed.
-    val searching = state.clipboardSearchActive
-    MotionCrossfade(searching, LocalKbTheme.current.motion.any, label = "clipboardPanelPage") { search ->
-        Box(modifier = Modifier.blockTouches(search != searching)) {
-            if (search) {
-                ClipboardSearchPage(state, session, callbacks)
-            } else {
-                ClipboardHistoryPage(state, session, callbacks, onClose)
-            }
-        }
+    // The search and the history trade places at once (#612). They used to
+    // cross-fade like the emoji panel's, but the two pages are very different
+    // heights, so the keyboard grew and shrank under the fade, and both grids
+    // laid out at once: the worst jump of any panel. The editor above was
+    // instant already.
+    if (state.clipboardSearchActive) {
+        ClipboardSearchPage(state, session, callbacks)
+    } else {
+        ClipboardHistoryPage(state, session, callbacks, onClose)
     }
 }
 

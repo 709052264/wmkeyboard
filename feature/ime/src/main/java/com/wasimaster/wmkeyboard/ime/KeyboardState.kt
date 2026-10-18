@@ -2579,7 +2579,14 @@ data class ClipEdit(
 }
 
 /** Which of [ClipCombineDraft]'s three boxes the keys type into. */
-enum class ClipCombineField { JOINER, BASE, APPEND }
+/**
+ * Combine's boxes (#612), in the order they are drawn after the joiner:
+ * the prefix, the pattern, what each match becomes, and the result itself
+ * once it is edited by hand. [TEMPLATE] and [RESULT] type through
+ * [CaptureTarget.CLIP_BASE], the prefix's target, rather than targets of
+ * their own: every capture `when` would otherwise need two more branches.
+ */
+enum class ClipCombineField { JOINER, BASE, APPEND, TEMPLATE, RESULT }
 
 /**
  * Several clips being joined into one in the clipboard panel (#612): the clips
@@ -2595,6 +2602,12 @@ data class ClipCombineDraft(
     val base: String = "",
     /** A pattern: each clip gives only its first match, when not empty. */
     val append: String = "",
+    /** What each match becomes, `$1` for its groups; empty keeps the match whole. */
+    val template: String = "",
+    /** The result as edited by hand, or null while it follows the rule (#612). */
+    val result: String? = null,
+    /** Combine deletes the clips it joined (#612). */
+    val deleteOriginals: Boolean = false,
     val focused: ClipCombineField = ClipCombineField.JOINER,
 ) {
     /** The box [focused] names. */
@@ -2603,15 +2616,23 @@ data class ClipCombineDraft(
             ClipCombineField.JOINER -> joiner
             ClipCombineField.BASE -> base
             ClipCombineField.APPEND -> append
+            ClipCombineField.TEMPLATE -> template
+            ClipCombineField.RESULT -> result.orEmpty()
         }
 
-    /** This, with [text] in the box [focused] names, cut to [MAX_LENGTH]. */
+    /**
+     * This, with [text] in the box [focused] names, cut to [MAX_LENGTH]. A
+     * change to the rule lets go of a result edited by hand: it was an edit of
+     * what the rule made before.
+     */
     fun withFocusedText(text: String): ClipCombineDraft {
-        val cut = text.take(MAX_LENGTH)
+        val cut = text.take(if (focused == ClipCombineField.RESULT) ClipEdit.MAX_LENGTH else MAX_LENGTH)
         return when (focused) {
-            ClipCombineField.JOINER -> copy(joiner = cut)
-            ClipCombineField.BASE -> copy(base = cut)
-            ClipCombineField.APPEND -> copy(append = cut)
+            ClipCombineField.JOINER -> copy(joiner = cut, result = null)
+            ClipCombineField.BASE -> copy(base = cut, result = null)
+            ClipCombineField.APPEND -> copy(append = cut, result = null)
+            ClipCombineField.TEMPLATE -> copy(template = cut, result = null)
+            ClipCombineField.RESULT -> copy(result = cut)
         }
     }
 
@@ -4080,7 +4101,7 @@ data class KeyboardUiState(
         wordSpellActive -> CaptureTarget.WORD_SPELL
         clipEditActive -> CaptureTarget.CLIP_EDIT
         clipCombineActive -> when (clipCombine?.focused) {
-            ClipCombineField.BASE -> CaptureTarget.CLIP_BASE
+            ClipCombineField.BASE, ClipCombineField.TEMPLATE, ClipCombineField.RESULT -> CaptureTarget.CLIP_BASE
             ClipCombineField.APPEND -> CaptureTarget.CLIP_APPEND
             else -> CaptureTarget.CLIP_JOINER
         }
@@ -4102,6 +4123,8 @@ data class KeyboardUiState(
     fun captureKey(): String? = when (val target = captureTarget()) {
         null -> null
         CaptureTarget.PLUGIN -> "PLUGIN:${pluginFocusedInput}"
+        // Three of Combine's boxes share the target; each keeps its own caret.
+        CaptureTarget.CLIP_BASE -> "CLIP_BASE:${clipCombine?.focused}"
         else -> target.name
     }
 
@@ -4127,7 +4150,7 @@ data class KeyboardUiState(
         CaptureTarget.CLIPBOARD_SEARCH -> clipboardQuery
         CaptureTarget.CLIP_EDIT -> clipEdit?.draft.orEmpty()
         CaptureTarget.CLIP_JOINER -> clipCombine?.joiner.orEmpty()
-        CaptureTarget.CLIP_BASE -> clipCombine?.base.orEmpty()
+        CaptureTarget.CLIP_BASE -> clipCombine?.focusedText.orEmpty()
         CaptureTarget.CLIP_APPEND -> clipCombine?.append.orEmpty()
         CaptureTarget.SNIPPET_SEARCH -> snippetQuery
         CaptureTarget.NOTE_SEARCH -> notes.query

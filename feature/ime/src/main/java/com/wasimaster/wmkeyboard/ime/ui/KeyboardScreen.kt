@@ -4679,7 +4679,20 @@ private fun RowScope.StripAnswerChips(
     // Replies crowd the row the same way word candidates do, so the
     // paste chip gives way to its narrow form when both are present
     // rather than stretching across a strip it now shares.
-    val clipChipShares = suggestionsShowing || smartReplies.isNotEmpty()
+    val clipChipSharesNow = suggestionsShowing || smartReplies.isNotEmpty()
+    // Held in its narrow form for a moment after the words go (#612): they
+    // come and go between keystrokes and as the caret moves, and a chip that
+    // grew to fill the strip each time they went flickered while typing.
+    var clipChipShareHold by remember { mutableStateOf(false) }
+    LaunchedEffect(clipChipSharesNow) {
+        if (clipChipSharesNow) {
+            clipChipShareHold = true
+        } else {
+            delay(ClipChipShareHoldMs)
+            clipChipShareHold = false
+        }
+    }
+    val clipChipShares = clipChipSharesNow || clipChipShareHold
     // The last few copies as a row of chips (#414), newest first
     // whatever is pinned (#612). Asked for by hand, so it holds the
     // strip over any words until something is typed or its ✕.
@@ -6175,6 +6188,9 @@ private val CandidateChipMinWidth = 44.dp
 /** Han and kana need more size than Latin to stay legible at strip height. */
 private val CandidateFontSize = 20.sp
 
+/** How long the last-copy chip keeps its narrow form after the words leave the strip (#612). */
+private const val ClipChipShareHoldMs = 1_500L
+
 /**
  * How many copies the row of recent copies holds (#612): the setting's own
  * number once it is above one; at one, which is the chip alone and no button
@@ -6206,6 +6222,9 @@ private fun ClipboardSuggestionChip(
 ) {
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
+    // A press and hold deletes the copy (#612); not a part of one, whose
+    // clip is more than what the chip shows.
+    val onDelete = LocalClipChipDelete.current?.takeIf { otp == null }
     val tint = kb.accent
     // The fragment chip is an outline, not a solid — same language as the
     // clipboard panel's own fragment chips, and unmistakably not the ordinary
@@ -6252,7 +6271,10 @@ private fun ClipboardSuggestionChip(
             modifier = Modifier
                 .weight(1f, fill = false)
                 .fillMaxHeight()
-                .clickable {
+                .combinedClickable(
+                    onLongClickLabel = onDelete?.let { stringResource(R.string.ime_clip_chip_delete_desc) },
+                    onLongClick = onDelete?.let { delete -> { feedback(); delete(clip) } },
+                ) {
                     feedback()
                     onPaste()
                 }
@@ -29052,6 +29074,8 @@ internal fun ClipboardSearchField(
     /** The filter button inside the pill's end (#612), lit while a filter is open or set; none when null. */
     onFilter: (() -> Unit)? = null,
     filterOn: Boolean = false,
+    /** The ✕ that closes the search; off where a back button beside the pill does it (#612). */
+    showClose: Boolean = true,
 ) {
     val active = state.clipboardSearchActive
     val kb = LocalKbTheme.current
@@ -29100,7 +29124,7 @@ internal fun ClipboardSearchField(
         }
         // Only up while searching (typing is the only way to fill the query,
         // and closing clears it). Clears the filter and hands the keys back.
-        if (active) {
+        if (active && showClose) {
             val clear = stringResource(R.string.ime_clipboard_search_clear_desc)
             IconHint(clear, Modifier.padding(start = 8.dp)) {
                 Icon(
@@ -29394,6 +29418,8 @@ internal fun ClipInfoPopup(
     onPick: (() -> Unit)? = null,
     /** The Reorder view (#612). */
     onReorder: (() -> Unit)? = null,
+    /** Show in history: close the search and scroll to this clip (#612); null outside a search. */
+    onJump: (() -> Unit)? = null,
     /** Pastes the clip, as a tap on it does; at the end of the action row (#612). */
     onPaste: (() -> Unit)? = null,
     onDismiss: () -> Unit,
@@ -29493,6 +29519,9 @@ internal fun ClipInfoPopup(
                             }
                             onReorder?.let {
                                 ClipTextActionIcon(Icons.Outlined.Reorder, stringResource(R.string.ime_clip_reorder), tint, it)
+                            }
+                            onJump?.let {
+                                ClipTextActionIcon(Icons.Outlined.History, stringResource(R.string.ime_clip_show_in_history), tint, it)
                             }
                             onEdit?.let {
                                 ClipTextActionIcon(Icons.Outlined.Edit, stringResource(R.string.ime_clip_edit), tint, it)

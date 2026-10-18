@@ -114,6 +114,7 @@ import com.wasimaster.wmkeyboard.core.selection.SelectionMacro
 import com.wasimaster.wmkeyboard.core.selection.TextCodecs
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacros
 import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRules
+import com.wasimaster.wmkeyboard.core.clipboard.ClipPlainLetters
 import com.wasimaster.wmkeyboard.core.clipboard.ClipKind
 import com.wasimaster.wmkeyboard.core.clipboard.ClipLinks
 import com.wasimaster.wmkeyboard.core.clipboard.ClipSensitivity
@@ -3134,8 +3135,7 @@ open class WMKeyboardService : InputMethodService() {
         val copied = item.coerceToText(this)?.toString() ?: return@OnPrimaryClipChangedListener
         // The user's copy rules tidy it first (#612). Not a clip its app marked
         // secret: a password is kept exactly as it was copied.
-        val rules = state.settings.clipboard.copyRules
-        val text = if (rules.isEmpty() || flaggedSensitive) copied else ClipCopyRules.apply(copied, rules)
+        val text = if (flaggedSensitive) copied else tidyCopy(copied, state.settings.clipboard)
         val tidied = text != copied
         if (tidied && text.isNotBlank() && state.settings.clipboard.copyRulesToSystem) {
             // Back onto the system clipboard as changed, so the app's own paste
@@ -3182,6 +3182,15 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * [text] as the history keeps it (#612): decorated letters made plain when
+     * that is on, then every copy rule in order.
+     */
+    private fun tidyCopy(text: String, clipboard: com.wasimaster.wmkeyboard.core.settings.ClipboardSettings): String {
+        val plain = if (clipboard.plainLetters) ClipPlainLetters.plain(text) else text
+        return if (clipboard.copyRules.isEmpty()) plain else ClipCopyRules.apply(plain, clipboard.copyRules)
+    }
+
+    /**
      * A copy the keyboard kept to itself (#612): it never reaches the system
      * clipboard, so the listener above never sees it, and it goes into the
      * history from here instead, where the panel can paste it again. Not in
@@ -3193,8 +3202,7 @@ open class WMKeyboardService : InputMethodService() {
         if (state.incognitoOn || !isClipboardAccessible() || !state.settings.clipboard.history ||
             clipCapturePaused(state)
         ) return
-        val rules = state.settings.clipboard.copyRules
-        val tidied = if (rules.isEmpty()) text else ClipCopyRules.apply(text, rules)
+        val tidied = tidyCopy(text, state.settings.clipboard)
         val added = clipboardStore.add(tidied) ?: return
         saveClipboardSoon()
         _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
@@ -3902,6 +3910,7 @@ open class WMKeyboardService : InputMethodService() {
             var appNamesEnabled: Boolean? = null
             var linkPreviewsEnabled: Boolean? = null
             var pinnedLastEnabled: Boolean? = null
+            var pinnedInPlaceEnabled: Boolean? = null
             var selectionMacrosEnabled: Boolean? = null
             var userScreenshotsEnabled: Boolean? = null
             var otpCaptureEnabled: Boolean? = null
@@ -4020,9 +4029,13 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 // Flipping pinned-first/last re-sorts the store, so refresh the
                 // panel's snapshot when the choice actually changes.
-                if (pinnedLastEnabled != settings.clipboard.pinnedLast) {
+                if (pinnedLastEnabled != settings.clipboard.pinnedLast ||
+                    pinnedInPlaceEnabled != settings.clipboard.pinnedInPlace
+                ) {
                     clipboardStore.pinnedLast = settings.clipboard.pinnedLast
+                    clipboardStore.pinnedInPlace = settings.clipboard.pinnedInPlace
                     pinnedLastEnabled = settings.clipboard.pinnedLast
+                    pinnedInPlaceEnabled = settings.clipboard.pinnedInPlace
                     _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
                 }
                 // Turning the strip chip off hides any chip already showing.
@@ -5072,6 +5085,7 @@ open class WMKeyboardService : InputMethodService() {
                 LocalImeNavigationBars provides navigationBars,
                 LocalHandwritingFullScreen provides hwFullScreenControls,
                 LocalWindowFrost provides windowFrost,
+                com.wasimaster.wmkeyboard.ime.ui.LocalClipChipDelete provides ::onClipChipDelete,
             ) {
                 ServiceKeyboardContent()
             }
@@ -7437,6 +7451,8 @@ open class WMKeyboardService : InputMethodService() {
         clipboardStore.maxItems = settings.clipboard.maxItems
         clipboardStore.maxTextChars = settings.clipboard.maxTextChars
         clipboardStore.keepRichText = settings.clipboard.keepRichText
+        clipboardStore.pinnedLast = settings.clipboard.pinnedLast
+        clipboardStore.pinnedInPlace = settings.clipboard.pinnedInPlace
         clipboardStore.sensitiveExpiryMillis =
             if (settings.clipboard.sensitiveHandling == SensitiveClipHandling.SHORT_LIVED) {
                 settings.clipboard.sensitiveExpiryMinutes * 60L * 1000
@@ -9646,8 +9662,13 @@ open class WMKeyboardService : InputMethodService() {
             // A line break is a fair thing to join clips with; the other two
             // boxes move on, and the last one combines (#612).
             CaptureTarget.CLIP_JOINER -> captureTyped("\n")
-            CaptureTarget.CLIP_BASE -> onClipCombineFocus(ClipCombineField.APPEND)
-            CaptureTarget.CLIP_APPEND -> onClipCombineSave()
+            // The prefix, the combination and the result share a target (#612).
+            CaptureTarget.CLIP_BASE -> when (state.clipCombine?.focused) {
+                ClipCombineField.TEMPLATE -> onClipCombineSave()
+                ClipCombineField.RESULT -> captureTyped("\n")
+                else -> onClipCombineFocus(ClipCombineField.APPEND)
+            }
+            CaptureTarget.CLIP_APPEND -> onClipCombineFocus(ClipCombineField.TEMPLATE)
             // The search opens its first match (#687); a folder's name is kept (#709).
             CaptureTarget.TOOLBOX_SEARCH -> onToolboxSearchEnter()
             CaptureTarget.TOOLBOX_FOLDER_NAME -> onToolboxFolderRenameDone(keep = true)
@@ -11342,10 +11363,17 @@ open class WMKeyboardService : InputMethodService() {
             val target = _uiState.value.captureTarget()
             val caret = _uiState.value.captureCaretText()
             val spell = _uiState.value.wordSpell
-            if (target != null && caret != null && caret.hasSelection) {
-                caret.recased(::nextCaseForm)?.let { next ->
-                    captureWrite(target, caret, next)
-                    return
+            if (target != null && spell == null) {
+                // A keyboard-owned box has the keys: its selection or nothing
+                // (#612). Falling through to the app's field re-cased the
+                // browser bar's word behind the clip editor and swallowed the
+                // press, so shift never went up for the letter after it.
+                if (caret != null && caret.hasSelection) {
+                    caret.recased(::nextCaseForm)?.let { next ->
+                        captureWrite(target, caret, next)
+                        syncShiftToCase(next.selectedText)
+                        return
+                    }
                 }
             } else if (spell != null) {
                 // The spelling bar's own selection, never one standing in the
@@ -12437,12 +12465,46 @@ open class WMKeyboardService : InputMethodService() {
      * sits on along with the word past it, so holding ⌦ chews forward through
      * a sentence the way ctrl+delete does on a desktop.
      */
+    /**
+     * One word out of the focused keyboard-owned field (#612): the one before
+     * the caret, or after it for ⌦, measured by the same rule as the app's
+     * field, with a selection going first the way a press takes it. False
+     * where the field has no caret of its own to measure from (the word card,
+     * the typing test, the computer's line) or a transliterator is mid-word,
+     * so the caller deletes one character as before.
+     */
+    private fun captureDeleteWord(forward: Boolean): Boolean {
+        val state = _uiState.value
+        val target = state.captureTarget() ?: return false
+        if (target == CaptureTarget.WORD_SPELL || target == CaptureTarget.KDE_REMOTE || !target.movableCaret) return false
+        val before = state.captureCaretText() ?: return false
+        if (composesInCapture(state.composer) && liveCaptureComposition(state, before) != null) return false
+        if (before.hasSelection) {
+            captureWrite(target, before, before.withoutSelection())
+            return true
+        }
+        val at = before.at
+        val head = before.text.substring(0, at)
+        val tail = before.text.substring(at)
+        val length = if (forward) WordDelete.lengthAfter(tail, deleteWordBreaks())
+        else WordDelete.lengthBefore(head, deleteWordBreaks())
+        if (length <= 0) return true
+        val after = if (forward) {
+            CaretText(head + tail.substring(length.coerceAtMost(tail.length)), at)
+        } else {
+            val from = (at - length).coerceAtLeast(0)
+            CaretText(head.substring(0, from) + tail, from)
+        }
+        captureWrite(target, before, after)
+        return true
+    }
+
     private fun onForwardDeleteWord() {
         // Every box that eats keystrokes has no "after the cursor" of its own,
         // which is the whole reason [onForwardDelete] stands down in one; a
         // word step has no more business reaching past it than a character one.
         if (!forwardDeleteOwnsBuffer()) {
-            onForwardDelete()
+            if (!captureDeleteWord(forward = true)) onForwardDelete()
             return
         }
         val ic = currentInputConnection ?: return
@@ -12995,9 +13057,11 @@ open class WMKeyboardService : InputMethodService() {
         // the real field behind it would edit text the user cannot see. The
         // same goes for every other box that eats keystrokes — a plugin's text
         // box, the AI instruction, the typing test — which onDelete already
-        // handles and this had drifted out of step with.
+        // handles and this had drifted out of step with. A box with a caret
+        // takes the word too (#612): a held delete set to clear words cleared
+        // one letter at a time in the clip editor and Find and replace.
         if (backspaceEditsBuffer()) {
-            onDelete()
+            if (!captureDeleteWord(forward = false)) onDelete()
             return
         }
         val ic = currentInputConnection ?: return
@@ -24098,10 +24162,13 @@ open class WMKeyboardService : InputMethodService() {
      * a lite build and an unusable tool both come out as a key that does
      * nothing, exactly as they do on the toolbar.
      */
-    private fun runToolFromKey(tool: ToolbarTool) {
+    private fun runToolFromKey(tool: ToolbarTool, hardware: Boolean = false) {
         runTool(tool)
         ensureInputViewShown()
-        seedPanelFocus()
+        // The ring is a physical keyboard's: a key on the screen, or a flick
+        // bound to a tool, opened the clipboard and the snippets with their
+        // first item lit as if it were pinned (#612), and it stayed lit.
+        if (hardware) seedPanelFocus()
     }
 
     /**
@@ -28019,6 +28086,13 @@ open class WMKeyboardService : InputMethodService() {
      * the IME has no way to reach their private undo stacks.
      */
     fun onUndoRedo(redo: Boolean) {
+        // A keyboard-owned field has the keys (#612): its own history steps
+        // back, rather than Ctrl+Z reaching the app behind the panel. It has
+        // no redo, so a redo there does nothing.
+        if (_uiState.value.captureTarget() != null) {
+            if (!redo) onCaptureSelectionAction(CaptureSelectionAction.UNDO)
+            return
+        }
         val ic = currentInputConnection ?: return
         vibrate()
         commitComposing(ic, autocorrect = false)
@@ -37908,16 +37982,56 @@ open class WMKeyboardService : InputMethodService() {
             TextEditAction.DOWN, TextEditAction.END, TextEditAction.PAGE_DOWN,
             TextEditAction.DOC_END,
             -> onCaptureCaretToEdge(end = true, extend = extend)
-            // No word steps of its own yet; the ends are the honest answer for
-            // a buffer this short rather than silently moving the app's caret.
-            TextEditAction.WORD_LEFT -> onCaptureCaretToEdge(end = false, extend = extend)
-            TextEditAction.WORD_RIGHT -> onCaptureCaretToEdge(end = true, extend = extend)
+            // A word at a time (#612), by the rule a held delete measures words with.
+            TextEditAction.WORD_LEFT -> captureWordStep(back = true, extend = extend)
+            TextEditAction.WORD_RIGHT -> captureWordStep(back = false, extend = extend)
             TextEditAction.BACKSPACE -> captureBackspace()
             TextEditAction.PASTE -> capturePaste()
+            // The selection keys and their flicks and holds (#612): Select
+            // all, Copy and Cut did nothing in the clip editor or Combine's
+            // boxes, or reached the app behind the panel, where nothing showed.
+            TextEditAction.SELECT_ALL -> captureSelect { it.selectedAll() }
+            TextEditAction.SELECT_WORD -> captureSelect { it.selectedWordAt(it.at) }
+            TextEditAction.SELECT_LINE -> captureSelect { caret ->
+                val start = caret.text.lastIndexOf('\n', (caret.at - 1).coerceAtLeast(0)).let { if (it < 0 || caret.at == 0) 0 else it + 1 }
+                val end = caret.text.indexOf('\n', caret.at).let { if (it < 0) caret.text.length else it }
+                caret.selected(start, end)
+            }
+            TextEditAction.COPY, TextEditAction.CUT -> {
+                onCaptureSelectionAction(if (action == TextEditAction.CUT) CaptureSelectionAction.CUT else CaptureSelectionAction.COPY)
+                return true
+            }
             else -> false
         }
         if (handled && haptic) vibrate()
         return handled
+    }
+
+    /** The focused keyboard-owned field's selection set by [select]; false where it has none to set. */
+    private fun captureSelect(select: (CaretText) -> CaretText): Boolean {
+        val state = _uiState.value
+        val target = state.captureTarget() ?: return false
+        if (!target.movableCaret || target == CaptureTarget.WORD_SPELL) return false
+        val before = state.captureCaretText() ?: return false
+        captureCaretTo(select(before))
+        return true
+    }
+
+    /** The caret a word back or on in the focused keyboard-owned field (#612). */
+    private fun captureWordStep(back: Boolean, extend: Boolean): Boolean {
+        val state = _uiState.value
+        val target = state.captureTarget() ?: return false
+        if (!target.movableCaret) return true
+        if (target == CaptureTarget.WORD_SPELL) return onCaptureCaretToEdge(end = !back, extend = extend)
+        val before = state.captureCaretText() ?: return false
+        val at = before.at
+        val to = if (back) {
+            at - WordDelete.lengthBefore(before.text.substring(0, at), deleteWordBreaks())
+        } else {
+            at + WordDelete.lengthAfter(before.text.substring(at), deleteWordBreaks())
+        }
+        captureCaretTo(before.caretAt(to, extend))
+        return true
     }
 
     /**
@@ -37954,6 +38068,25 @@ open class WMKeyboardService : InputMethodService() {
         // A long-pressed V over one of the keyboard's own boxes pastes into
         // the box, as the Paste key does (#434).
         if (action == ClipboardKeyAction.PASTE && capturePaste()) return
+        // And the rest act on the box too (#612): long-pressed A, C and X
+        // selected and copied the app's text behind the panel instead.
+        val boxAction = when (action) {
+            ClipboardKeyAction.SELECT_ALL -> CaptureSelectionAction.SELECT_ALL
+            ClipboardKeyAction.COPY -> CaptureSelectionAction.COPY
+            ClipboardKeyAction.CUT -> CaptureSelectionAction.CUT
+            else -> null
+        }
+        if (boxAction != null && _uiState.value.captureTarget() != null) {
+            // Copy and cut with nothing selected take the whole box, as they
+            // take the whole field.
+            if (boxAction != CaptureSelectionAction.SELECT_ALL && selectAllIfEmpty &&
+                _uiState.value.captureCaretText()?.hasSelection == false
+            ) {
+                captureSelect { it.selectedAll() }
+            }
+            onCaptureSelectionAction(boxAction)
+            return
+        }
         val ic = currentInputConnection ?: return
         commitComposing(ic, autocorrect = false)
         lastGestureWord = null
@@ -39956,6 +40089,17 @@ open class WMKeyboardService : InputMethodService() {
      * at the end of the row of recent copies, which puts away only the row
      * and leaves the chip it was opened from (#612).
      */
+    /**
+     * A press and hold on a copy's chip on the strip (#612): the copy is
+     * deleted from the history, for the copies made by mistake or needed for
+     * a moment, and its chip goes with it.
+     */
+    fun onClipChipDelete(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
+        if (!isClipboardAccessible()) return
+        if (_uiState.value.clipboardSuggestion?.id == item.id) clearClipboardSuggestion()
+        onClipboardDelete(item)
+    }
+
     fun onClipboardSuggestionDismiss() {
         if (_uiState.value.recentClipsOpen) {
             _uiState.update { it.copy(recentClipsOpen = false) }
@@ -40510,8 +40654,11 @@ open class WMKeyboardService : InputMethodService() {
         onCombineCancel = ::onClipCombineCancel,
         onDeleteMany = ::onClipboardDeleteMany,
         onMove = ::onClipboardMove,
+        onPlace = ::onClipboardPlace,
         onRegexToggle = ::onClipboardRegexToggle,
         onEntityStripHidden = ::onClipboardEntityStripHidden,
+        onCombineDeleteToggle = ::onClipCombineDeleteToggle,
+        onTidy = ::onClipboardTidy,
     )
 
     /**
@@ -40677,6 +40824,12 @@ open class WMKeyboardService : InputMethodService() {
         val saved = clipboardStore.editText(edit.id, edit.draft)
             ?: clipboardStore.add(edit.draft)
         saveClipboardSoon()
+        // The clip being corrected is the one on the clipboard (#612): the
+        // Paste tool, hold V and the app's own paste read the clipboard, not
+        // the history, and went on pasting the text from before the edit.
+        if (saved != null && saved.text != edit.original && clipboardHolds(edit.original)) {
+            KeyboardClipboard.copy(this, saved.text)
+        }
         _uiState.update { state ->
             state.copy(
                 clipEdit = null,
@@ -40688,6 +40841,21 @@ open class WMKeyboardService : InputMethodService() {
                 },
             )
         }
+    }
+
+    /**
+     * Whether what a paste would paste now is [text]: the keyboard's private
+     * copy while there is one, else the system clipboard's text, trimmed the
+     * way the history trims it.
+     */
+    private fun clipboardHolds(text: String): Boolean {
+        KeyboardClipboard.held?.let { return it.trim() == text }
+        if (!isClipboardAccessible()) return false
+        val primary = runCatching {
+            (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+                .primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.text?.toString()
+        }.getOrNull() ?: return false
+        return primary.trim() == text
     }
 
     /** Leaves the editor with the clip as it was. */
@@ -40717,6 +40885,8 @@ open class WMKeyboardService : InputMethodService() {
                     joiner = clipboard.combineJoiner,
                     base = clipboard.combineBase,
                     append = clipboard.combineAppend,
+                    template = clipboard.combineTemplate,
+                    deleteOriginals = clipboard.combineDeleteOriginals,
                 ),
                 clipEdit = null,
                 clipboardSearchActive = false,
@@ -40730,8 +40900,31 @@ open class WMKeyboardService : InputMethodService() {
     fun onClipCombineFocus(field: ClipCombineField) {
         _uiState.update { state ->
             val combine = state.clipCombine ?: return@update state
-            state.copy(clipCombine = combine.copy(focused = field))
+            // Editing the result starts from what the rule makes (#612).
+            val result = if (field == ClipCombineField.RESULT && combine.result == null) {
+                combinedText(combine) ?: ""
+            } else {
+                combine.result
+            }
+            state.copy(clipCombine = combine.copy(focused = field, result = result))
         }
+    }
+
+    /** What [combine]'s rule makes of its clips, or null for nothing. */
+    private fun combinedText(combine: ClipCombineDraft): String? {
+        val byId = clipboardStore.items().associateBy { it.id }
+        val texts = combine.ids.mapNotNull { byId[it]?.takeIf { clip -> clip.kind.isTextual }?.text }
+        return com.wasimaster.wmkeyboard.core.clipboard.ClipCombine.combine(
+            texts, combine.joiner, combine.base, combine.append, combine.template,
+        )
+    }
+
+    /** Combine's "Delete the clips joined" switch (#612), remembered for next time. */
+    fun onClipCombineDeleteToggle() {
+        vibrate()
+        val next = !(_uiState.value.clipCombine?.deleteOriginals ?: return)
+        _uiState.update { state -> state.copy(clipCombine = state.clipCombine?.copy(deleteOriginals = next)) }
+        serviceScope.launch { settingsRepository.setClipboardCombineDeleteOriginals(next) }
     }
 
     /** One of Combine's ready-made joiners: a space, a new line, a comma. */
@@ -40750,17 +40943,28 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onClipCombineSave() {
         val combine = _uiState.value.clipCombine ?: return
-        val byId = clipboardStore.items().associateBy { it.id }
-        val texts = combine.ids.mapNotNull { byId[it]?.takeIf { clip -> clip.kind.isTextual }?.text }
-        val joined = com.wasimaster.wmkeyboard.core.clipboard.ClipCombine.combine(
-            texts, combine.joiner, combine.base, combine.append,
-        ) ?: return
+        val joined = combine.result?.takeIf { it.isNotBlank() } ?: combinedText(combine) ?: return
         vibrate()
-        clipboardStore.add(joined)
-        saveClipboardSoon()
-        _uiState.update { it.copy(clipCombine = null, clipboardItems = clipboardStore.items()) }
+        // The joined clips go first, so the new one is not taken for one of
+        // them (it can share a text with one), and with one Undo.
+        if (combine.deleteOriginals) {
+            val removed = if (_uiState.value.settings.clipboard.undoDelete) {
+                combine.ids.mapNotNull(clipboardStore::detach)
+            } else {
+                combine.ids.forEach(clipboardStore::remove)
+                emptyList()
+            }
+            clipboardStore.add(joined)
+            saveClipboardSoon()
+            _uiState.update { it.copy(clipCombine = null, clipboardItems = clipboardStore.items()) }
+            if (removed.isNotEmpty()) offerClipUndo(removed)
+        } else {
+            clipboardStore.add(joined)
+            saveClipboardSoon()
+            _uiState.update { it.copy(clipCombine = null, clipboardItems = clipboardStore.items()) }
+        }
         serviceScope.launch {
-            settingsRepository.setClipboardCombineRule(combine.joiner, combine.base, combine.append)
+            settingsRepository.setClipboardCombineRule(combine.joiner, combine.base, combine.append, combine.template)
         }
     }
 
@@ -40790,6 +40994,46 @@ open class WMKeyboardService : InputMethodService() {
         if (removed.isEmpty()) return
         clearSystemClipAfterDelete(removed, clearAll = true)
         offerClipUndo(removed)
+    }
+
+    /**
+     * A clip dropped between [newerId] and [olderId] in the panel's Reorder
+     * view (#612), the clips drawn either side of it, newest first.
+     */
+    fun onClipboardPlace(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem, newerId: Long?, olderId: Long?) {
+        if (!isClipboardAccessible()) return
+        if (!clipboardStore.place(item.id, newerId, olderId)) return
+        saveClipboardSoon()
+        _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+    }
+
+    /**
+     * The copy rules, and plain letters when that is on, run over clips
+     * already in the history (#612): the selection bar's Tidy. Each changed
+     * clip keeps its place, as an edit does.
+     */
+    fun onClipboardTidy(ids: List<Long>) {
+        if (!isClipboardAccessible()) return
+        val clipboard = _uiState.value.settings.clipboard
+        vibrate()
+        val byId = clipboardStore.items().associateBy { it.id }
+        var changed = 0
+        for (id in ids) {
+            val item = byId[id]?.takeIf { it.kind.isTextual && !it.sensitive } ?: continue
+            val next = tidyCopy(item.text, clipboard)
+            if (next != item.text && next.isNotBlank() && clipboardStore.editText(id, next) != null) changed++
+        }
+        if (changed == 0) {
+            Toast.makeText(this, getString(R.string.ime_clip_tidy_none_toast), Toast.LENGTH_SHORT).show()
+            return
+        }
+        saveClipboardSoon()
+        _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+        Toast.makeText(
+            this,
+            resources.getQuantityString(R.plurals.ime_clip_tidied_toast, changed, changed),
+            Toast.LENGTH_SHORT,
+        ).show()
     }
 
     /** A clip dragged to [toIndex] of its group in the panel's Reorder view (#612). */
@@ -41956,7 +42200,7 @@ open class WMKeyboardService : InputMethodService() {
         // shortcut is a binding to a button, and a button that is not there is
         // not one to press. See [runToolFromKey].
         if (tool !in _uiState.value.settings.enabledTools) return
-        runToolFromKey(tool)
+        runToolFromKey(tool, hardware = true)
     }
 
     private fun openToolPanelByKey(panel: PanelMode) {

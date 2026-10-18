@@ -173,8 +173,24 @@ val ClipItem.clipEditable: Boolean get() = kind.isTextual && !sensitive
 /** Recognises clips that are a bare URL, so they can be shown as links. */
 object ClipLinks {
 
+    /**
+     * The endings a web address written without `https://` or `www.` is
+     * recognised by (#612): `x.com`, `youtu.be`, `wmkeyboard.pages.dev`. A
+     * list rather than any two letters, so `notes.txt`, `main.py`, `e.g.` and
+     * `Node.js` stay words and file names.
+     */
+    internal const val BARE_TLDS =
+        "com|net|org|io|dev|app|co|me|tv|be|ly|gg|xyz|info|edu|gov|mil|int|biz|ai|cc|ws|" +
+            "uk|us|ca|de|fr|es|it|nl|se|no|fi|dk|pl|ru|ua|jp|cn|kr|tw|hk|sg|au|nz|br|mx|ar|cl|za|ng|ke|" +
+            "eg|tr|ir|pk|bd|lk|np|id|my|ph|th|vn|ch|at|ie|pt|gr|cz|hu|ro|il|sa|ae|eu|asia|in|" +
+            "news|blog|site|online|store|shop|tech|page|link|club|live|wiki|social|art|design|cloud|" +
+            "email|space|zone|top|fun|one|pro|fm"
+
+    /** A host made of labels ending in one of [BARE_TLDS], with an optional port. */
+    internal const val BARE_HOST = """(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:$BARE_TLDS)(?::\d{1,5})?"""
+
     private val URL_REGEX = Regex(
-        """^(?:https?://|www\.)[^\s<>"']+$""",
+        """^(?:(?:https?://|www\.)[^\s<>"']+|$BARE_HOST(?:[/?#][^\s<>"']*)?)$""",
         RegexOption.IGNORE_CASE,
     )
 
@@ -182,7 +198,8 @@ object ClipLinks {
     fun asUrl(text: String): String? {
         val trimmed = text.trim()
         if (trimmed.length > 2048 || !URL_REGEX.matches(trimmed)) return null
-        return if (trimmed.startsWith("www.", ignoreCase = true)) "https://$trimmed" else trimmed
+        val schemed = trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)
+        return if (schemed) trimmed else "https://$trimmed"
     }
 
     /** Host without a leading `www.`, for the site label on a link card. */
@@ -214,6 +231,11 @@ class ClipboardStore(
     private val imagesDir: File? = null,
     /** When true, [items] lists pinned entries last instead of first. */
     var pinnedLast: Boolean = false,
+    /**
+     * When true, [items] leaves pinned entries among the others in their own
+     * place (#612) and [pinnedLast] does not apply.
+     */
+    var pinnedInPlace: Boolean = false,
     /** Newest unpinned entries kept; older ones fall off the end. 0 is no cap. */
     var maxItems: Int = DEFAULT_MAX_ITEMS,
     /**
@@ -467,6 +489,7 @@ class ClipboardStore(
     @Synchronized
     fun items(now: Long = System.currentTimeMillis()): List<ClipItem> {
         prune(now)
+        if (pinnedInPlace) return items.sortedByDescending { it.orderKey }
         // Within each group (pinned / unpinned) newest-first; [pinnedLast] only
         // flips which group leads. compareBy puts pinned=false first (pinned
         // last); compareByDescending puts pinned=true first (pinned first).
@@ -492,7 +515,7 @@ class ClipboardStore(
     fun move(id: Long, toIndex: Int, now: Long = System.currentTimeMillis()): Boolean {
         val listed = items(now)
         val item = listed.firstOrNull { it.id == id } ?: return false
-        val group = listed.filter { it.pinned == item.pinned }
+        val group = if (pinnedInPlace) listed else listed.filter { it.pinned == item.pinned }
         val from = group.indexOf(item)
         val others = group - item
         val to = toIndex.coerceIn(0, others.size)
@@ -506,6 +529,30 @@ class ClipboardStore(
             else -> (above.orderKey + below.orderKey) / 2.0
         }
         val index = items.indexOfFirst { it.id == id }
+        items[index] = items[index].copy(position = key)
+        return true
+    }
+
+    /**
+     * Puts a clip between [newerId] and [olderId] (#612), the clips the panel
+     * drew above and below where it was dropped, newest first, so a Reorder
+     * view cut down by a filter or turned oldest first still moves a clip
+     * where it was put. Either may be null for the end it was dropped at; a
+     * clip put above everything stays above the copies made after it, as
+     * [move] does. Returns whether anything moved.
+     */
+    @Synchronized
+    fun place(id: Long, newerId: Long?, olderId: Long?, now: Long = System.currentTimeMillis()): Boolean {
+        val index = items.indexOfFirst { it.id == id }
+        if (index < 0) return false
+        val newer = newerId?.let { n -> items.firstOrNull { it.id == n && it.id != id } }
+        val older = olderId?.let { o -> items.firstOrNull { it.id == o && it.id != id } }
+        val key = when {
+            newer == null && older == null -> return false
+            newer == null -> maxOf(older!!.orderKey, now.toDouble()) + STICKY_TOP_MILLIS
+            older == null -> newer.orderKey - 1.0
+            else -> (newer.orderKey + older.orderKey) / 2.0
+        }
         items[index] = items[index].copy(position = key)
         return true
     }

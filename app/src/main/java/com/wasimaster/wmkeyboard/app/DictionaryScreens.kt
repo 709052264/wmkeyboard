@@ -1124,7 +1124,11 @@ internal fun CopyRuleSettings(repository: SettingsRepository, settings: LiveSett
     // The rule being edited by its index, or -1 for a new one; null while no dialog is up.
     var editing by remember { mutableStateOf<Int?>(null) }
     var sample by remember { mutableStateOf("") }
+    // Dragging the rules into another order (#612): they run in order, so the
+    // order is part of what they do.
+    var reordering by remember { mutableStateOf(false) }
     val save: (List<ClipCopyRule>) -> Unit = { next -> scope.launch { repository.setClipboardCopyRules(next) } }
+    val plainLetters = settings.watch { it.clipboard.plainLetters }
 
     RegisterAddFab(stringResource(R.string.copy_rules_add_action)) { editing = -1 }
     SettingsGroup {
@@ -1137,11 +1141,37 @@ internal fun CopyRuleSettings(repository: SettingsRepository, settings: LiveSett
                 default = SettingsDefaults.clipboard.copyRulesToSystem,
             ) { scope.launch { repository.setClipboardCopyRulesToSystem(it) } }
         }
+        item {
+            ToggleSetting(
+                R.string.clipboard_plain_letters_title,
+                stringResource(R.string.clipboard_plain_letters_subtitle),
+                plainLetters,
+                info = stringResource(R.string.clipboard_plain_letters_info),
+                default = SettingsDefaults.clipboard.plainLetters,
+            ) { scope.launch { repository.setClipboardPlainLetters(it) } }
+        }
     }
     if (rules.isEmpty()) {
         CaptionText(stringResource(R.string.copy_rules_empty))
     }
-    SettingsGroup {
+    if (rules.size > 1) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            TextButton(onClick = { reordering = !reordering }) {
+                Text(stringResource(if (reordering) R.string.copy_rules_reorder_done else R.string.copy_rules_reorder_action))
+            }
+        }
+    }
+    if (reordering && rules.size > 1) {
+        ReorderableColumn(
+            items = rules,
+            label = { it.pattern },
+            onReorder = save,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
+    } else SettingsGroup {
         for ((index, rule) in rules.withIndex()) {
             item(key = "rule-$index-${rule.pattern}") {
                 val broken = ClipCopyRules.compile(rule) == null

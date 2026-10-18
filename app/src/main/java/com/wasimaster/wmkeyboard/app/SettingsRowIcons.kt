@@ -1118,12 +1118,14 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_undo_delete_title) { Icons.AutoMirrored.Outlined.Undo }
         put(R.string.clipboard_confirm_pinned_delete_title) { Icons.Outlined.PushPin }
         put(R.string.clipboard_pinned_last_title) { Icons.Outlined.PushPin }
+        put(R.string.clipboard_pinned_in_place_title) { Icons.Outlined.PushPin }
         put(R.string.clipboard_search_title) { Icons.Outlined.Search }
         put(R.string.clipboard_search_regex_title) { Icons.Outlined.DataObject }
         put(R.string.clipboard_clear_button_title) { Icons.Outlined.DeleteSweep }
         put(R.string.clipboard_pinned_tabs_title) { Icons.Outlined.Tab }
         put(R.string.clipboard_outline_pinned_title) { Icons.Outlined.BorderStyle }
         put(R.string.clipboard_card_buttons_title) { Icons.Outlined.PushPin }
+        put(R.string.clipboard_card_shortcut_title) { Icons.Outlined.TouchApp }
         put(R.string.clipboard_type_out_title) { Icons.Outlined.Keyboard }
         put(R.string.clipboard_type_tags_title) { Icons.AutoMirrored.Outlined.Label }
         put(R.string.clipboard_keep_rich_text_title) { Icons.Outlined.FormatBold }
@@ -1132,6 +1134,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_private_copies_title) { Icons.Outlined.Lock }
         put(R.string.clipboard_copy_rules_title) { Icons.AutoMirrored.Outlined.Rule }
         put(R.string.clipboard_copy_rules_system_title) { Icons.Outlined.ContentPaste }
+        put(R.string.clipboard_plain_letters_title) { Icons.Outlined.TextFormat }
         put(R.string.clipboard_panel_height_title) { Icons.Outlined.Height }
         put(R.string.clipboard_over_keys_height_title) { Icons.Outlined.UnfoldMore }
         put(R.string.clipboard_key_row_title) { Icons.Outlined.SpaceBar }

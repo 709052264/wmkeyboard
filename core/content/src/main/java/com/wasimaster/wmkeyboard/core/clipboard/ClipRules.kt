@@ -19,6 +19,65 @@ data class ClipCopyRule(
     val enabled: Boolean = true,
 )
 
+/**
+ * Decorated Unicode letters back to the plain ones they stand for (#612): the
+ * bold, italic, script and double-struck alphabets chat apps and bio
+ * generators type with, full-width forms, circled and squared letters, small
+ * capitals, and the combining strokes that fake strikethrough and underline.
+ * Pasted as they are, they read as noise to a search box and to a screen
+ * reader, and sometimes as boxes.
+ */
+object ClipPlainLetters {
+
+    /** Small capitals have no compatibility mapping, so they are listed. */
+    private val SMALL_CAPS: Map<Char, Char> = mapOf(
+        'ᴀ' to 'a', 'ʙ' to 'b', 'ᴄ' to 'c', 'ᴅ' to 'd', 'ᴇ' to 'e', 'ꜰ' to 'f', 'ɢ' to 'g',
+        'ʜ' to 'h', 'ɪ' to 'i', 'ᴊ' to 'j', 'ᴋ' to 'k', 'ʟ' to 'l', 'ᴍ' to 'm', 'ɴ' to 'n',
+        'ᴏ' to 'o', 'ᴘ' to 'p', 'ʀ' to 'r', 'ꜱ' to 's', 'ᴛ' to 't', 'ᴜ' to 'u', 'ᴠ' to 'v',
+        'ᴡ' to 'w', 'ʏ' to 'y', 'ᴢ' to 'z',
+    )
+
+    /** Combining marks laid over each letter to fake a line through or under it. */
+    private fun isOverlayMark(cp: Int): Boolean = cp in 0x0332..0x0338 || cp == 0x0305 || cp == 0x035F
+
+    /** [text] with its decorated letters made plain; the same string when it has none. */
+    fun plain(text: String): String {
+        val out = StringBuilder(text.length)
+        var changed = false
+        var i = 0
+        while (i < text.length) {
+            val cp = text.codePointAt(i)
+            i += Character.charCount(cp)
+            val mapped = map(cp)
+            if (mapped == null) {
+                out.appendCodePoint(cp)
+            } else {
+                out.append(mapped)
+                changed = true
+            }
+        }
+        return if (changed) out.toString() else text
+    }
+
+    /** What [cp] becomes, or null to keep it as it is. */
+    private fun map(cp: Int): String? {
+        if (isOverlayMark(cp)) return ""
+        if (cp <= 0xFFFF) SMALL_CAPS[cp.toChar()]?.let { return it.toString() }
+        // Negative circled and squared capitals have no compatibility mapping.
+        if (cp in 0x1F150..0x1F169) return ('A' + (cp - 0x1F150)).toString()
+        if (cp in 0x1F170..0x1F189) return ('A' + (cp - 0x1F170)).toString()
+        val decorated = cp in 0x1D400..0x1D7FF || cp in 0xFF01..0xFF5E || cp in 0x2460..0x24FF ||
+            cp in 0x1F100..0x1F149 || cp in 0x2100..0x214F
+        if (!decorated) return null
+        val folded = java.text.Normalizer.normalize(String(Character.toChars(cp)), java.text.Normalizer.Form.NFKC)
+        // The letterlike block also holds ℃, № and ™, which are symbols of
+        // their own rather than dressed-up letters: only a single letter or
+        // digit counts there.
+        if (cp in 0x2100..0x214F && !(folded.length == 1 && folded[0].isLetterOrDigit())) return null
+        return folded.takeIf { it != String(Character.toChars(cp)) }
+    }
+}
+
 /** Applies [ClipCopyRule]s to copied text, and stores them as one string. */
 object ClipCopyRules {
 
@@ -59,14 +118,15 @@ object ClipCopyRules {
 /**
  * Several clips joined into one (#612).
  *
- * Plainly, the clips' texts with [joiner] between them. With [append], a
- * regular expression, each clip gives only the first part of it that matches,
- * and a clip with no match is left out; [base] then goes in front of the
- * lot. Joining `https://m.youtube.com/watch?v=Z7pkvfRl5S8` and
- * `https://m.youtube.com/watch?v=A1bcdeFg2H3` with base `youtube.com/watch?v`,
- * append `=[a-zA-Z0-9_]{11}` and joiner `; ` gives
- * `youtube.com/watch?v=Z7pkvfRl5S8; =A1bcdeFg2H3`: the joiner goes between
- * the parts, never before the first.
+ * Plainly, the clips' texts with [joiner] between them. With a pattern, a
+ * regular expression, each clip gives only the first part of it that
+ * matches, and a clip with no match is left out. A template then says what
+ * each match becomes, `$1` standing for the pattern's first group; without
+ * one the whole match is kept. The prefix goes in front of the lot, and may
+ * name the first clip's groups too, so a rule can say whose links these are
+ * once: prefix `$1: github.com`, pattern `github\.com/([^/]+)(/[^/]+)`,
+ * template `/$1$2` and joiner `; ` turn two of one owner's GitHub links into
+ * `wasi-master: github.com/wasi-master/wmkeyboard; /wasi-master/wmkeyboard-addon-repository`.
  */
 object ClipCombine {
 
@@ -74,19 +134,79 @@ object ClipCombine {
      * The joined text, or null when there is nothing to join: no clip had a
      * match, or [append] is not a pattern that compiles. See [ClipCombine].
      */
-    fun combine(texts: List<String>, joiner: String, base: String = "", append: String = ""): String? {
-        val parts = if (append.isEmpty()) {
-            texts
-        } else {
-            val pattern = appendPattern(append) ?: return null
-            texts.mapNotNull { text -> pattern.find(text)?.value }
+    fun combine(
+        texts: List<String>,
+        joiner: String,
+        base: String = "",
+        append: String = "",
+        template: String = "",
+    ): String? {
+        if (append.isEmpty()) {
+            val kept = texts.filter { it.isNotEmpty() }
+            if (kept.isEmpty()) return null
+            return base + kept.joinToString(joiner)
         }
-        val kept = parts.filter { it.isNotEmpty() }
-        if (kept.isEmpty()) return null
-        return base + kept.joinToString(joiner)
+        val pattern = appendPattern(append) ?: return null
+        val matches = texts.mapNotNull { pattern.find(it) }
+        val parts = matches.map { match -> if (template.isEmpty()) match.value else expand(template, match) }
+            .filter { it.isNotEmpty() }
+        if (parts.isEmpty()) return null
+        val prefix = if ('$' in base) expand(base, matches.first()) else base
+        return prefix + parts.joinToString(joiner)
+    }
+
+    /**
+     * What each clip gives, for the preview of the clips being joined: the
+     * range of its text the pattern matched, or null for a clip it misses.
+     * Every clip's whole text without a pattern.
+     */
+    fun matchedRanges(texts: List<String>, append: String): List<IntRange?> {
+        if (append.isEmpty()) return texts.map { it.indices }
+        val pattern = appendPattern(append) ?: return texts.map { null }
+        return texts.map { text -> pattern.find(text)?.range }
     }
 
     /** [append] compiled, or null when it does not compile. */
     fun appendPattern(append: String): Regex? =
         runCatching { Regex(append) }.getOrNull()
+
+    /**
+     * [template] with `$0` to `$9` (or `${12}`) replaced by [match]'s groups,
+     * a group that took no part as nothing. A backslash keeps the character
+     * after it as it is, so `\$` is a dollar sign.
+     */
+    fun expand(template: String, match: MatchResult): String {
+        val out = StringBuilder(template.length)
+        var i = 0
+        while (i < template.length) {
+            val c = template[i]
+            val next = template.getOrNull(i + 1)
+            when {
+                c == '\\' && next != null -> {
+                    out.append(next)
+                    i += 2
+                }
+                c == '$' && next == '{' -> {
+                    val close = template.indexOf('}', i + 2)
+                    val group = if (close > 0) template.substring(i + 2, close).toIntOrNull() else null
+                    if (group == null) {
+                        out.append(c)
+                        i++
+                    } else {
+                        out.append(match.groupValues.getOrNull(group).orEmpty())
+                        i = close + 1
+                    }
+                }
+                c == '$' && next != null && next.isDigit() -> {
+                    out.append(match.groupValues.getOrNull(next.digitToInt()).orEmpty())
+                    i += 2
+                }
+                else -> {
+                    out.append(c)
+                    i++
+                }
+            }
+        }
+        return out.toString()
+    }
 }
