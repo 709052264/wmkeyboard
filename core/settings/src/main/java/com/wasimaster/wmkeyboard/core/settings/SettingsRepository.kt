@@ -15734,7 +15734,30 @@ class SettingsRepository(private val context: Context) {
         appVersionName: String,
         /** Settings left out on top of the usual ones; see [AutoBackupRunner]. */
         excludeKeys: Set<String> = emptySet(),
-    ): String {
+    ): String =
+        ConfigBackup.encode(appVersion, appVersionName, exportSections(sections, includeSecrets, excludeKeys))
+
+    /** [exportConfig] written straight to [out], never held whole as a string (#693). */
+    suspend fun exportConfigTo(
+        out: java.io.OutputStream,
+        sections: Set<ConfigBackup.Section>,
+        includeSecrets: Boolean,
+        appVersion: Int,
+        appVersionName: String,
+    ) {
+        ConfigBackup.encodeTo(out, appVersion, appVersionName, exportSections(sections, includeSecrets))
+    }
+
+    /**
+     * What [exportConfig] puts under `sections`, before it is encoded. Sync
+     * reads it as it is: encoding it to a string only to parse it straight back
+     * held the bundle twice over (#693).
+     */
+    suspend fun exportSections(
+        sections: Set<ConfigBackup.Section>,
+        includeSecrets: Boolean,
+        excludeKeys: Set<String> = emptySet(),
+    ): Map<ConfigBackup.Section, JsonElement> {
         val prefs = context.dataStore.data.first()
         val out = LinkedHashMap<ConfigBackup.Section, JsonElement>()
         if (ConfigBackup.Section.SETTINGS in sections) {
@@ -15830,7 +15853,7 @@ class SettingsRepository(private val context: Context) {
                 out[ConfigBackup.Section.CLOCK] = com.wasimaster.wmkeyboard.core.clock.ClockBackup.portable(context)
             }
         }
-        return ConfigBackup.encode(appVersion, appVersionName, out)
+        return out
     }
 
     /** How many items each section of a decoded bundle holds, for the dialog. */

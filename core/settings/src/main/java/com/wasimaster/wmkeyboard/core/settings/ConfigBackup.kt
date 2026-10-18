@@ -1,11 +1,14 @@
 package com.wasimaster.wmkeyboard.core.settings
 
+import java.io.OutputStream
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.encodeToStream
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 
@@ -129,8 +132,30 @@ object ConfigBackup {
         appVersion: Int,
         appVersionName: String,
         sections: Map<Section, JsonElement>,
-    ): String {
-        val root = buildJsonObject {
+    ): String = json.encodeToString(JsonObject.serializer(), root(appVersion, appVersionName, sections))
+
+    /**
+     * [encode], written straight to [out]. A bundle carrying sticker packs
+     * runs to tens of megabytes; as a string it is held once in the builder,
+     * again as the finished string, and a third time as the bytes written out,
+     * which was enough to run a 256 MB heap out of memory (#693).
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    fun encodeTo(
+        out: OutputStream,
+        appVersion: Int,
+        appVersionName: String,
+        sections: Map<Section, JsonElement>,
+    ) {
+        json.encodeToStream(JsonObject.serializer(), root(appVersion, appVersionName, sections), out)
+    }
+
+    private fun root(
+        appVersion: Int,
+        appVersionName: String,
+        sections: Map<Section, JsonElement>,
+    ): JsonObject =
+        buildJsonObject {
             put("format", JsonPrimitive(FORMAT))
             put("version", JsonPrimitive(VERSION))
             put("appVersion", JsonPrimitive(appVersion))
@@ -145,8 +170,6 @@ object ConfigBackup {
                 },
             )
         }
-        return json.encodeToString(JsonObject.serializer(), root)
-    }
 
     /**
      * A list section's decoded contents, or null when the decode plainly failed.

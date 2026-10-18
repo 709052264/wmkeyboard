@@ -149,7 +149,10 @@ Sticker packs and icon packs default off because their images make the file larg
 |---|---|
 | Wrote successfully, Settings on with Include API keys on | "The app exported the backup with your API keys in it. Keep that file as safe as a password." |
 | Wrote successfully, otherwise | "The app exported the backup." |
+| Wrote, but sticker packs, icon packs, word lists or vocabulary were too large to include | "The app wrote `<file>`. It left out `<parts>`, because the backup was too large." |
 | Couldn't write the file | "The app could not write that file." |
+
+The size limit scales with how much memory Android gives the app, at twice the room the automatic backup gets. When the image and word-list parts together would go over it, the export leaves out the largest of them first, one at a time, until the rest fits, and names what it left out. The rest of the file is complete. A failed export writes its reason to the app log under About › Diagnostics, tagged `WMBackup`.
 
 ### Import
 

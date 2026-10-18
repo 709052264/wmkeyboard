@@ -83,9 +83,11 @@ import com.wasimaster.wmkeyboard.core.settings.needsNetwork
 import com.wasimaster.wmkeyboard.core.settings.signsIn
 import com.wasimaster.wmkeyboard.core.settings.sectionSet
 import com.wasimaster.wmkeyboard.core.settings.sink.BackupClients
+import com.wasimaster.wmkeyboard.core.settings.sink.BackupLog
 import com.wasimaster.wmkeyboard.core.settings.sink.S3Sink
 import com.wasimaster.wmkeyboard.core.settings.sink.SinkError
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import java.io.BufferedOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -772,25 +774,36 @@ internal fun BackupSettings(
         ActivityResultContracts.CreateDocument(ConfigBackup.MIME_TYPE),
     ) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
-        val exportSections = settings.value.autoBackup.exportSectionSet
+        val requested = settings.value.autoBackup.exportSectionSet
         val includeSecrets = settings.value.autoBackup.includeSecrets
         scope.launch {
-            val ok = runCancellable {
-                val text = repository.exportConfig(
-                    sections = exportSections,
-                    includeSecrets = includeSecrets,
-                    appVersion = BuildConfig.VERSION_CODE,
-                    appVersionName = BuildConfig.VERSION_NAME,
-                )
+            var skipped = emptySet<ConfigBackup.Section>()
+            val written = runCancellable {
                 withContext(Dispatchers.IO) {
-                    context.contentResolver.requireOutputStream(uri).use {
-                        it.write(text.toByteArray())
+                    skipped = AutoBackupRunner.exportSectionsToDrop(repository, requested)
+                    context.contentResolver.requireOutputStream(uri).use { raw ->
+                        BufferedOutputStream(raw).use { out ->
+                            repository.exportConfigTo(
+                                out = out,
+                                sections = requested - skipped,
+                                includeSecrets = includeSecrets,
+                                appVersion = BuildConfig.VERSION_CODE,
+                                appVersionName = BuildConfig.VERSION_NAME,
+                            )
+                        }
                     }
                 }
-            }.isSuccess
+            }
+            // The dialog has one sentence for every failure; the log says which.
+            written.exceptionOrNull()?.let { BackupLog.w("export to file failed", it) }
             message = when {
-                !ok -> context.getString(R.string.backup_export_write_error)
-                ConfigBackup.Section.SETTINGS in exportSections && includeSecrets ->
+                written.isFailure -> context.getString(R.string.backup_export_write_error)
+                skipped.isNotEmpty() -> context.getString(
+                    R.string.backup_auto_done_skipped,
+                    WMFileTypes.displayName(context, uri),
+                    skipped.joinToString { sectionLabelLowercase(context, it) },
+                )
+                ConfigBackup.Section.SETTINGS in requested && includeSecrets ->
                     context.getString(R.string.backup_export_done_with_keys)
                 else -> context.getString(R.string.backup_export_done)
             }
