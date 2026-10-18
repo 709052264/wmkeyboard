@@ -787,6 +787,20 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.SNIPPETS -> SettingsGroup(stringResource(R.string.tooldetail_snippets_group)) {
+            // The panel's gear lands here, so the panel's own layout setting
+            // sits here too rather than one screen deeper (#471). Same key as
+            // the row on the Text expansion screen.
+            item {
+                SliderSetting(
+                    R.string.expander_grid_columns_title,
+                    subtitle = stringResource(R.string.expander_grid_columns_subtitle),
+                    value = settings.watch { it.suggestionStrip.snippetGridColumns }.toFloat(),
+                    range = 1f..4f,
+                    display = { it.roundToInt().toString() },
+                    info = stringResource(R.string.expander_grid_columns_info),
+                    default = SettingsDefaults.suggestionStrip.snippetGridColumns.toFloat(),
+                ) { scope.launch { repository.setSnippetGridColumns(it.roundToInt()) } }
+            }
             item {
                 NavRow(
                     R.string.tooldetail_snippets_all_title,
