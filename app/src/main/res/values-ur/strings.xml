@@ -5844,7 +5844,7 @@
     <string name="search_kw_translate_engine">آف لائن نجی انٹرنیٹ ہوائی جہاز مقامی ڈیوائس ایم ایل کٹ گوگل ماڈل ڈاؤن لوڈ کلاؤڈ</string>
     <string name="search_kw_translate_models">آف لائن ترجمہ ماڈل ڈاؤن لوڈ ڈیلیٹ اسٹوریج ایم ایل کٹ گوگل</string>
     <string name="search_kw_translate_only_downloaded">آف لائن ماڈل پکر مینو زبان کی فہرست کو چھپائیں</string>
-    <string name="search_kw_translate_server">openai مطابقت پذیر سیلف ہوسٹڈ ہوسٹڈ لوکل llm ai ماڈل ollama llama studio vllm localai چیٹ تکمیل</string>
+    <string name="search_kw_translate_server">openai مطابقت پذیر سیلف ہوسٹڈ ہوسٹڈ لوکل llm ai ماڈل ollama llama studio vllm localai چیٹ تکمیل mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">اسپیل چیک، آٹو مکمل، پیش گوئی کرنے والا متن، گلائیڈ، سوائپ ٹائپنگ، اشارے، رابطے، انڈو</string>
     <string name="search_kw_typing_auto_capitalize">آٹو کیپس آٹو کیپیٹلائز آٹو کیپیٹلائزیشن</string>
     <string name="search_kw_typing_auto_close_brackets">خودکار بند ہونے والے قوسین، منحنی خطوط وحدانی، بریکٹ میچنگ، مکمل بندش</string>

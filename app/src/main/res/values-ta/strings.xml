@@ -5844,7 +5844,7 @@
     <string name="search_kw_translate_engine">ஆஃப்லைன் தனிப்பட்ட இணையம் விமானம் உள்ளூர் சாதனம் ml கிட் கூகுள் மாடல் பதிவிறக்கம் கிளவுட்</string>
     <string name="search_kw_translate_models">ஆஃப்லைன் மொழிபெயர்ப்பு மாதிரி பதிவிறக்கம் நீக்கு சேமிப்பு ml கிட் கூகுள்</string>
     <string name="search_kw_translate_only_downloaded">ஆஃப்லைன் மாடல் பிக்கர் மெனுவை மறைக்கும் வடிகட்டி</string>
-    <string name="search_kw_translate_server">openai இணக்கமான சுய-ஹோஸ்ட் செய்யப்பட்ட லோக்கல் llm ai மாடல் ollama llama studio vllm localai சாட் கம்ப்ளீஷன்ஸ்</string>
+    <string name="search_kw_translate_server">openai இணக்கமான சுய-ஹோஸ்ட் செய்யப்பட்ட லோக்கல் llm ai மாடல் ollama llama studio vllm localai சாட் கம்ப்ளீஷன்ஸ் mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">எழுத்துப்பிழை சரிபார்ப்பு, தானியங்கு நிரப்புதல், முன்கணிப்பு உரை, கிளைடு, ஸ்வைப் டைப்பிங், சைகைகள், தொடர்புகள், செயல்தவிர்த்தல்</string>
     <string name="search_kw_typing_auto_capitalize">தானியங்கி பெரிய எழுத்துக்கள்</string>
     <string name="search_kw_typing_auto_close_brackets">அடைப்புக்குறிகளைத் தானாக மூடுதல், அடைப்புக்குறி பொருத்தம் முழுமை</string>

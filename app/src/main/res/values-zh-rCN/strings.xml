@@ -5835,7 +5835,7 @@
     <string name="search_kw_translate_engine">离线 私有 互联网 飞行模式 本地设备 ml kit 谷歌 模型下载 云端</string>
     <string name="search_kw_translate_models">离线翻译模型下载删除存储 ml kit google</string>
     <string name="search_kw_translate_only_downloaded">隐藏过滤离线模型选择器菜单短名称</string>
-    <string name="search_kw_translate_server">openai 兼容 自托管 托管 本地 llm ai 模型 ollama llama studio vllm localai 聊天补全</string>
+    <string name="search_kw_translate_server">openai 兼容 自托管 托管 本地 llm ai 模型 ollama llama studio vllm localai 聊天补全 mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">拼写检查, 自动完成, 预测文本, 滑动输入, 手势, 联系人, 撤销</string>
     <string name="search_kw_typing_auto_capitalize">自动大写 自动首字母大写</string>
     <string name="search_kw_typing_auto_close_brackets">自动关闭括号 配对括号 圆括号 大括号 自动补全</string>

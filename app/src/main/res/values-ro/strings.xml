@@ -5850,7 +5850,7 @@
     <string name="search_kw_translate_engine">offline privat internet avion dispozitiv local ml kit google model descărcare cloud</string>
     <string name="search_kw_translate_models">descărcare model traducere offline ștergere stocare ml kit google</string>
     <string name="search_kw_translate_only_downloaded">ascunde meniul de selectare a modelului offline din filtru lista de limbi scurt</string>
-    <string name="search_kw_translate_server">openai compatibil găzduit local llm ai model ollama llama studio vllm localai chat completions</string>
+    <string name="search_kw_translate_server">openai compatibil găzduit local llm ai model ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">verificare ortografică, completare automată, text predictiv, scriere prin glisare, tastare prin glisare, gesturi, contacte, anulare</string>
     <string name="search_kw_typing_auto_capitalize">autocaps autocapitalizare autocapitalizare</string>
     <string name="search_kw_typing_auto_close_brackets">închidere automată pereche paranteze rotunde acolade potrivire paranteze completare</string>

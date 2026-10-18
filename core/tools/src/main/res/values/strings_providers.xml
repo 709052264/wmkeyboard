@@ -40,6 +40,14 @@
     <string name="core_tools_provider_deepl_desc">Needs your DeepL API key, or the address of a proxy that adds one.</string>
     <string name="core_tools_provider_libretranslate" translatable="false">LibreTranslate</string>
     <string name="core_tools_provider_libretranslate_desc">A LibreTranslate server: your own or a public one. Public servers usually need a key.</string>
+    <string name="core_tools_provider_mozhi" translatable="false">Mozhi</string>
+    <string name="core_tools_provider_mozhi_desc">A Mozhi server: a free front end to Google, DeepL, DuckDuckGo, Yandex and Reverso. Choose the engine. DeepL and Reverso need a source language.</string>
+    <string name="core_tools_provider_simplytranslate" translatable="false">SimplyTranslate</string>
+    <string name="core_tools_provider_simplytranslate_desc">A SimplyTranslate server: a free front end to Google and other engines.</string>
+    <string name="core_tools_provider_lingva" translatable="false">Lingva</string>
+    <string name="core_tools_provider_lingva_desc">A Lingva server: a free front end to Google Translate.</string>
+    <string name="core_tools_provider_translite" translatable="false">Translite</string>
+    <string name="core_tools_provider_translite_desc">A Translite server: a free front end to Google Translate.</string>
     <string name="core_tools_provider_google_translate">Google Translate</string>
     <string name="core_tools_provider_google_translate_desc">Google\'s free endpoint, or Cloud Translation when you add a key.</string>
     <string name="core_tools_provider_searxng" translatable="false">SearXNG</string>

@@ -5850,7 +5850,7 @@
     <string name="search_kw_translate_engine">sin conexión privado internet avión dispositivo local ml kit google descarga de modelo nube</string>
     <string name="search_kw_translate_models">descarga de modelo de traducción sin conexión eliminar almacenamiento ml kit google</string>
     <string name="search_kw_translate_only_downloaded">ocultar menú de selección de modelo sin conexión del filtro corto</string>
-    <string name="search_kw_translate_server">openai compatible autohospedado alojado local llm ai modelo ollama llama studio vllm localai chat completions</string>
+    <string name="search_kw_translate_server">openai compatible autohospedado alojado local llm ai modelo ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">corrector ortográfico, autocompletar, texto predictivo, deslizamiento, escritura por deslizamiento, gestos, contactos, deshacer</string>
     <string name="search_kw_typing_auto_capitalize">mayúsculas automáticas autocapitalización</string>
     <string name="search_kw_typing_auto_close_brackets">cierre automático de paréntesis llaves coincidencia de paréntesis completar</string>

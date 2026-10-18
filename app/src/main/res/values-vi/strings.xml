@@ -5839,7 +5839,7 @@
     <string name="search_kw_translate_engine">ngoại tuyến riêng tư internet máy bay thiết bị cục bộ ml kit google mô hình tải xuống đám mây</string>
     <string name="search_kw_translate_models">tải xuống mô hình dịch ngoại tuyến xóa bộ nhớ ml kit google</string>
     <string name="search_kw_translate_only_downloaded">ẩn bộ lọc menu chọn mô hình ngoại tuyến danh sách ngôn ngữ ngắn</string>
-    <string name="search_kw_translate_server">openai tương thích tự lưu trữ lưu trữ cục bộ llm ai mô hình ollama llama studio vllm localai chat completions</string>
+    <string name="search_kw_translate_server">openai tương thích tự lưu trữ lưu trữ cục bộ llm ai mô hình ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">kiểm tra chính tả, tự động hoàn thành, văn bản dự đoán, lướt, nhập bằng cách vuốt, cử chỉ, danh bạ, hoàn tác</string>
     <string name="search_kw_typing_auto_capitalize">tự động viết hoa</string>
     <string name="search_kw_typing_auto_close_brackets">tự động đóng dấu ngoặc đơn dấu ngoặc nhọn khớp dấu ngoặc hoàn tất việc đóng</string>

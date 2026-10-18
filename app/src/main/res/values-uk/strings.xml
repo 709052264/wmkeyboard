@@ -5843,7 +5843,7 @@
     <string name="search_kw_translate_engine">офлайн приватний інтернет літак локальний пристрій ml kit google завантаження моделі хмара</string>
     <string name="search_kw_translate_models">завантаження офлайн-моделі перекладу видалення сховище ml kit google</string>
     <string name="search_kw_translate_only_downloaded">приховати меню вибору офлайн-моделі у фільтрі</string>
-    <string name="search_kw_translate_server">openai сумісний selfhosted хостинг локальний llm ai модель ollama llama studio vllm localai чат завершення</string>
+    <string name="search_kw_translate_server">openai сумісний selfhosted хостинг локальний llm ai модель ollama llama studio vllm localai чат завершення mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">перевірка орфографії, автозаповнення, предиктивне введення, введення ковзанням, введення свайпом, жести, контакти, скасувати</string>
     <string name="search_kw_typing_auto_capitalize">автозаголовні автокапіталізація</string>
     <string name="search_kw_typing_auto_close_brackets">автозакриття дужок парні дужки збіг дужок завершення закриття</string>

@@ -5842,7 +5842,7 @@
     <string name="search_kw_translate_engine">オフライン プライベート インターネット 機内モード ローカルデバイス ML Kit Google モデル ダウンロード クラウド</string>
     <string name="search_kw_translate_models">オフライン翻訳モデル ダウンロード 削除 ストレージ ML Kit Google</string>
     <string name="search_kw_translate_only_downloaded">オフラインモデル選択メニューのフィルターを非表示にする</string>
-    <string name="search_kw_translate_server">openai 互換 セルフホスト ホスト型 ローカル llm ai モデル ollama llama studio vllm localai チャット補完</string>
+    <string name="search_kw_translate_server">openai 互換 セルフホスト ホスト型 ローカル llm ai モデル ollama llama studio vllm localai チャット補完 mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">スペルチェック, 自動補完, 予測入力, グライド入力, スワイプ入力, ジェスチャー, 連絡先, 取り消し</string>
     <string name="search_kw_typing_auto_capitalize">自動大文字 自動キャピタライズ</string>
     <string name="search_kw_typing_auto_close_brackets">自動閉じ括弧 ペア 括弧 補完</string>

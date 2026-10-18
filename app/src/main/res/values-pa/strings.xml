@@ -5856,7 +5856,7 @@
     <string name="search_kw_translate_engine">ਆਫਲਾਈਨ ਪ੍ਰਾਈਵੇਟ ਇੰਟਰਨੈੱਟ ਏਅਰਪਲੇਨ ਲੋਕਲ ਡਿਵਾਈਸ ਐਮਐਲ ਕਿੱਟ ਗੂਗਲ ਮਾਡਲ ਡਾਊਨਲੋਡ ਕਲਾਊਡ</string>
     <string name="search_kw_translate_models">ਔਫਲਾਈਨ ਅਨੁਵਾਦ ਮਾਡਲ ਡਾਊਨਲੋਡ ਮਿਟਾਓ ਸਟੋਰੇਜ ml ਕਿੱਟ google</string>
     <string name="search_kw_translate_only_downloaded">ਔਫਲਾਈਨ ਮਾਡਲ ਪਿਕਰ ਮੀਨੂ ਸ਼ਾਰਟ ਫਿਲਟਰ ਲੁਕਾਓ</string>
-    <string name="search_kw_translate_server">openai ਅਨੁਕੂਲ ਸੈਲਫ-ਹੋਸਟਡ ਹੋਸਟਡ ਲੋਕਲ llm ai ਮਾਡਲ ollama llama studio vllm localai ਚੈਟ ਸੰਪੂਰਨਤਾਵਾਂ</string>
+    <string name="search_kw_translate_server">openai ਅਨੁਕੂਲ ਸੈਲਫ-ਹੋਸਟਡ ਹੋਸਟਡ ਲੋਕਲ llm ai ਮਾਡਲ ollama llama studio vllm localai ਚੈਟ ਸੰਪੂਰਨਤਾਵਾਂ mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">ਸਪੈਲ ਚੈੱਕ, ਆਟੋਕੰਪਲੀਟ, ਅਨੁਮਾਨਿਤ ਟੈਕਸਟ, ਗਲਾਈਡ, ਸਵਾਈਪ ਟਾਈਪਿੰਗ, ਇਸ਼ਾਰੇ, ਸੰਪਰਕ, ਅਨਡੂ</string>
     <string name="search_kw_typing_auto_capitalize">ਆਟੋਕੈਪਸ ਆਟੋਕੈਪੀਟਲਾਈਜ਼ ਆਟੋਕੈਪੀਟਲਾਈਜ਼ੇਸ਼ਨ</string>
     <string name="search_kw_typing_auto_close_brackets">ਆਟੋਕਲੋਜ਼ ਜੋੜੀ ਬਰੈਕਟਾਂ ਕਰਲੀ ਬਰੈਕਟਾਂ ਬਰੈਕਟ ਮਿਲਾਨ ਮੁਕੰਮਲ</string>
