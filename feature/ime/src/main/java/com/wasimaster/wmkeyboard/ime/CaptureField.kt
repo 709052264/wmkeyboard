@@ -396,6 +396,14 @@ enum class CaptureTarget(
      */
     GALLERY_TEXT(takesWords = true),
 
+    /**
+     * The Send files panel's boxes (#729). None takes words: a password must
+     * not be guessed at, and a link or an address is not prose.
+     */
+    SEND_PASSWORD(takesWords = false),
+    SEND_LINK(takesWords = false),
+    SEND_INSTANCE(takesWords = false),
+
     /** The toolbox's search (#687): matches tool names as it is typed, Enter opens the first. */
     TOOLBOX_SEARCH(takesWords = true),
 

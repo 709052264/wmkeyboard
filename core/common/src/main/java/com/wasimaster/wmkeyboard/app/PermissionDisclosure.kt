@@ -186,6 +186,27 @@ object PermissionDisclosures {
     )
 
     /**
+     * The Send files tool's direct link (#729): a Wi-Fi this phone opens for
+     * another, or the other's joined. Android 13 has a permission for exactly
+     * that; before it, Wi-Fi Direct and the hotspot sit behind location, which
+     * is why the copy says so plainly. No position is read or kept.
+     */
+    val NEARBY_WIFI = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        PermissionDisclosure(
+            permission = Manifest.permission.NEARBY_WIFI_DEVICES,
+            titleRes = R.string.common_permission_nearby_title,
+            bodyRes = R.string.common_permission_nearby_body,
+        )
+    } else {
+        PermissionDisclosure(
+            permission = Manifest.permission.ACCESS_FINE_LOCATION,
+            titleRes = R.string.common_permission_nearby_title,
+            bodyRes = R.string.common_permission_nearby_body_location,
+            alsoRequests = listOf(Manifest.permission.ACCESS_COARSE_LOCATION),
+        )
+    }
+
+    /**
      * The shade. Not a data permission at all — nothing is read, only posted —
      * but it goes through the same disclosure as the rest so there stays
      * exactly one way this app asks Android for anything, and so the user

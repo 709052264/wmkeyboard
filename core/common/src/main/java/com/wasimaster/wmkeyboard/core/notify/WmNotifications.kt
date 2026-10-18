@@ -204,6 +204,19 @@ enum class NotificationKind(
         importance = NotificationManager.IMPORTANCE_LOW,
         category = NotificationCompat.CATEGORY_STOPWATCH,
     ),
+
+    /**
+     * The Send files tool (#729): an upload or a download that outlived the
+     * keyboard, with its progress and then the link to copy, and a file that
+     * arrived from a device nearby while the keyboard was hidden.
+     */
+    SEND(
+        channelId = "send",
+        channelNameRes = R.string.common_notify_channel_send_title,
+        channelBodyRes = R.string.common_notify_channel_send_body,
+        importance = NotificationManager.IMPORTANCE_LOW,
+        category = NotificationCompat.CATEGORY_PROGRESS,
+    ),
 }
 
 /** Stable notification ids, so two features cannot overwrite each other. */
@@ -232,6 +245,12 @@ object NotificationIds {
 
     /** The stopwatch, running or paused. */
     const val CLOCK_STOPWATCH = 101
+
+    /** The Send files tool's upload in flight, then its finished link. */
+    const val SEND_UPLOAD = 7
+
+    /** A file arriving through a Send link or from a device nearby. */
+    const val SEND_RECEIVE = 8
 
     /**
      * One per running timer, from its id. Timer ids only grow, so two running

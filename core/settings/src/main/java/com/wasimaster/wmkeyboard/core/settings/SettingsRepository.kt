@@ -3536,6 +3536,8 @@ data class KeyboardSettings(
     /** The Notes tool (#560): sort, trash retention, what Save as note does (see [NotesSettings]). */
     val notes: NotesSettings = NotesSettings(),
     /** The gallery tool (#708): grid, quality, privacy, sending (see [GallerySettings]). */
+    /** The Send files tool (#729), see [SendSettings]. */
+    val send: SendSettings = SendSettings(),
     val gallery: GallerySettings = GallerySettings(),
     /**
      * Which features are given up to save battery, and what switches that on
@@ -9602,6 +9604,7 @@ class SettingsRepository(private val context: Context) {
         private val DS_ANIMATED_EMOJI = stringPreferencesKey("data_saver_animated_emoji")
         private val DS_DOWNLOADS = stringPreferencesKey("data_saver_downloads")
         private val DS_CLOUD_AI = stringPreferencesKey("data_saver_cloud_ai")
+        private val DS_FILE_SEND = stringPreferencesKey("data_saver_file_send")
         private val DS_CLOUD_VOICE = stringPreferencesKey("data_saver_cloud_voice")
         private val OFFLINE_FALLBACK = booleanPreferencesKey("offline_fallback")
         private val BACKSPACE_SWIPE_DELETE = booleanPreferencesKey("backspace_swipe_delete")
@@ -10838,6 +10841,7 @@ class SettingsRepository(private val context: Context) {
             trackpad = readTrackpad(p, defaults),
             vocabulary = readVocabulary(p, defaults),
             notes = readNotes(p, defaults),
+            send = SendPrefs.read(p, defaults.send),
             gallery = GalleryPrefs.read(p, defaults.gallery),
             powerSaving = readPowerSaving(p, defaults),
             dataSaver = dataSaverFromPrefs(p, defaults),
@@ -13651,6 +13655,11 @@ class SettingsRepository(private val context: Context) {
         GalleryPrefs.write(p, old, change(old))
     }
 
+    suspend fun updateSend(change: (SendSettings) -> SendSettings) = editPrefs { p ->
+        val old = SendPrefs.read(p, storedDefaults.send)
+        SendPrefs.write(p, old, change(old))
+    }
+
     /**
      * Tells the running keyboard that notes.json was rewritten under it (a
      * restore, a sync), so it re-reads the file instead of saving its own
@@ -15284,6 +15293,7 @@ class SettingsRepository(private val context: Context) {
             animatedEmoji = p.policy(DS_ANIMATED_EMOJI, d.animatedEmoji),
             downloads = p.policy(DS_DOWNLOADS, legacyDownloads),
             cloudAi = p.policy(DS_CLOUD_AI, d.cloudAi),
+            fileSend = p.policy(DS_FILE_SEND, d.fileSend),
             cloudVoice = p.policy(DS_CLOUD_VOICE, d.cloudVoice),
             offlineFallback = p[OFFLINE_FALLBACK] ?: d.offlineFallback,
         )
@@ -17810,6 +17820,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDataSaverCloudVoice(value: MeteredPolicy) =
         editPrefs { it[DS_CLOUD_VOICE] = value.name }
+
+    suspend fun setDataSaverFileSend(value: MeteredPolicy) =
+        editPrefs { it[DS_FILE_SEND] = value.name }
 
     /** @see DataSaverSettings.offlineFallback */
     suspend fun setOfflineFallback(value: Boolean) =

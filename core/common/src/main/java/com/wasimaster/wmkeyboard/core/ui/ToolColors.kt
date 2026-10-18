@@ -109,6 +109,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     // An evening indigo: a clock face at night, and apart from the calendar's red.
     ToolbarTool.CLOCK -> Color(0xFF5C6BC0)
     // A sunset's coral: the colour a photo library opens on, apart from the camera's.
+    // A clear sky blue: a link that travels, apart from the clipboard's and KDE Connect's blues.
+    ToolbarTool.SEND_FILES -> Color(0xFF26A69A)
     ToolbarTool.GALLERY -> Color(0xFFFF7043)
     ToolbarTool.MOON_PHASE -> Color(0xFF7986CB)
 

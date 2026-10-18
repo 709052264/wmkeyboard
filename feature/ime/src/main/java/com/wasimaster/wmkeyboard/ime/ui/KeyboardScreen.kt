@@ -696,6 +696,13 @@ internal val LocalKeyRoleSound =
 internal val LocalClipboardKeyAction = staticCompositionLocalOf<(ClipboardKeyAction) -> Unit> { {} }
 
 /**
+ * The Send files tool's actions (#729), for the strip's "receive this link"
+ * chip: the strip cannot take another parameter (see ToolHoldCallbacks), so
+ * the chip reaches the tool through this local instead.
+ */
+internal val LocalSendAction = staticCompositionLocalOf<(com.wasimaster.wmkeyboard.ime.send.SendAction) -> Unit> { {} }
+
+/**
  * Whether an alternates popup has a finger steering it right now.
  *
  * One flag for the whole board, because it answers a question only the grid-wide
@@ -1647,6 +1654,7 @@ fun KeyboardScreen(
         // grow out of (see [PanelMotionSlot]).
         LocalPanelOrigins provides remember { PanelOrigins() },
         LocalSelectionHold provides toolHold.onSelectionHold,
+        LocalSendAction provides toolHold.send.onAction,
         LocalCanDelete provides canDelete,
         LocalCanDeleteField provides canDeleteField,
         LocalCanForwardDelete provides canForwardDelete,
@@ -4591,6 +4599,20 @@ private fun RowScope.StripAnswerChips(
     val onClipboardSuggestionDismiss = callbacks.onClipboardSuggestionDismiss
     val onClipboardEntity = callbacks.onClipboardEntity
     val onRecentClipsToggle = callbacks.onRecentClipsToggle
+    // A Send link just copied (#729): offered first, since it is why the
+    // user came back to this field, and it goes stale on its own.
+    val sendOffer = state.sendLinkOffer
+    if (sendOffer != null) {
+        val sendAct = LocalSendAction.current
+        com.wasimaster.wmkeyboard.ime.ui.send.SendLinkOfferChip(
+            offer = sendOffer,
+            reduceMotion = state.settings.reduceMotion,
+            onOpen = { sendAct(com.wasimaster.wmkeyboard.ime.send.SendAction.OpenOffer) },
+            onDismiss = { sendAct(com.wasimaster.wmkeyboard.ime.send.SendAction.DismissOffer) },
+            modifier = Modifier.panelOrigin().padding(horizontal = 4.dp),
+        )
+        if (!suggestionsShowing) return true
+    }
     if (shownSmart != null) {
         // Opening runs in two halves: the service clears the trigger
         // text and stages the prefill, then the tool is tapped the
@@ -8262,6 +8284,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.NOTES -> R.string.ime_tool_notes
     ToolbarTool.LOCATION -> R.string.ime_tool_location
     ToolbarTool.CLOCK -> R.string.ime_tool_clock
+    ToolbarTool.SEND_FILES -> R.string.ime_tool_send_files
     ToolbarTool.GALLERY -> R.string.ime_tool_gallery
     ToolbarTool.PLUGINS -> R.string.ime_tool_plugins
     ToolbarTool.APP_LAUNCHER -> R.string.ime_tool_app_launcher
@@ -8358,6 +8381,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.NOTES -> state.panel == PanelMode.NOTES
     ToolbarTool.LOCATION -> state.panel == PanelMode.LOCATION
     ToolbarTool.CLOCK -> state.panel == PanelMode.CLOCK
+    ToolbarTool.SEND_FILES -> state.panel == PanelMode.SEND_FILES
     ToolbarTool.GALLERY -> state.panel == PanelMode.GALLERY
     ToolbarTool.VOICE -> state.panel == PanelMode.VOICE || state.voice.strip || state.voice.bar
     ToolbarTool.GRAMMAR -> state.panel == PanelMode.GRAMMAR
@@ -12310,7 +12334,7 @@ private val FullBleedPanels = setOf(
     PanelMode.VOCABULARY, PanelMode.LEARN_FROM_TEXT, PanelMode.NOTES,
     PanelMode.APP_LAUNCHER, PanelMode.THEMES, PanelMode.SNIPPETS, PanelMode.WIKIPEDIA,
     PanelMode.AI_REPLY, PanelMode.LOCATION, PanelMode.CLOCK,
-    PanelMode.GALLERY,
+    PanelMode.GALLERY, PanelMode.SEND_FILES,
 )
 
 /**
@@ -13402,6 +13426,14 @@ private fun KeyboardBody(
                     state = state,
                     callbacks = toolHold.gallery,
                     onClose = { onPanelChange(PanelMode.GALLERY) },
+                )
+                // Files out as a link or to a device nearby, and links in (#729). Its
+                // boxes (a password, a link, an address) type on the key rows below.
+                PanelMode.SEND_FILES -> com.wasimaster.wmkeyboard.ime.ui.send.SendPanel(
+                    state = state,
+                    callbacks = toolHold.send,
+                    capture = capture,
+                    onClose = { onPanelChange(PanelMode.SEND_FILES) },
                 )
                 // At the keyboard's own height, like the calculator (#665): the
                 // month grid gives up row height before the day's summary does,
@@ -28615,6 +28647,8 @@ data class ToolHoldCallbacks(
     /** The Clock panel's callbacks and state; here for the same reason as [dictionaryBar]. */
     val clock: com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks = com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks(),
     /** The gallery tool (#708); its state is the controller's, like [clock]. */
+    /** The Send files tool (#729); its state is the controller's, like [gallery]. */
+    val send: com.wasimaster.wmkeyboard.ime.send.SendCallbacks = com.wasimaster.wmkeyboard.ime.send.SendCallbacks(),
     val gallery: com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks = com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks(),
     /** The clipboard panel's editor and view switch; here for the same reason as [dictionaryBar]. */
     val clipboard: ClipboardPanelActions = ClipboardPanelActions(),

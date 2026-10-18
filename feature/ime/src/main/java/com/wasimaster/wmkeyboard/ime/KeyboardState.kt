@@ -776,6 +776,14 @@ enum class PanelMode {
      * keys through [CaptureTarget.GALLERY_TEXT].
      */
     GALLERY,
+
+    /**
+     * The Send files tool (#729): files out as an encrypted link or to a device
+     * nearby, and links in. Its state is the controller's, see `ime.send.SendUi`;
+     * its password, link and address boxes take the keys through the `SEND_*`
+     * capture targets.
+     */
+    SEND_FILES,
 }
 
 /**
@@ -948,6 +956,7 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     // The tab row; each tab's own controls are touch, and typing reaches its box.
     PanelMode.CLOCK -> listOf(FocusRegion.CHIPS)
     // The album and filter chips, the grid, then the send bar.
+    PanelMode.SEND_FILES -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     PanelMode.GALLERY -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     PanelMode.PASSWORD_GEN ->
         listOf(FocusRegion.CHIPS, FocusRegion.ACTIONS, FocusRegion.RESULTS)
@@ -3387,6 +3396,11 @@ data class KeyboardUiState(
      */
     val otpSuggestion: NotificationOtp? = null,
     /**
+     * A Send share link that just reached the clipboard (#729), offered on the
+     * strip until it is opened, dismissed or stale. Null when there is none.
+     */
+    val sendLinkOffer: com.wasimaster.wmkeyboard.ime.send.SendLinkOffer? = null,
+    /**
      * Whether the focused field reads as a box a verification code goes into
      * — by its input class or by the words the app gave it. Gates both code
      * chips when the user has narrowed them to code boxes; see
@@ -3616,6 +3630,11 @@ data class KeyboardUiState(
      * text layer in the editor. The rest of the panel's state is the controller's.
      */
     val galleryText: com.wasimaster.wmkeyboard.ime.gallery.GalleryTextEntry? = null,
+    /**
+     * The Send files panel's text box while it has the keys: a password, a
+     * link to receive, an instance address. The rest is the controller's.
+     */
+    val sendText: com.wasimaster.wmkeyboard.ime.send.SendTextEntry? = null,
     val weather: WeatherUi = WeatherUi.NoLocation,
     val dictionary: DictionaryUi = DictionaryUi.Idle,
     /** Word in the dictionary panel's search field. */
@@ -4150,6 +4169,7 @@ data class KeyboardUiState(
                 CaptureTarget.CLOCK_LABEL
             }
         galleryTypingActive -> CaptureTarget.GALLERY_TEXT
+        sendTypingActive -> (sendText?.field ?: com.wasimaster.wmkeyboard.ime.send.SendTextField.LINK).captureTarget
         calcTypingActive -> CaptureTarget.CALC
         converterTypingActive -> CaptureTarget.CONVERTER
         wordSpellActive -> CaptureTarget.WORD_SPELL
@@ -4213,6 +4233,7 @@ data class KeyboardUiState(
         CaptureTarget.NOTE_TAG -> notes.editing?.tagDraft.orEmpty()
         CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> clockText?.text.orEmpty()
         CaptureTarget.GALLERY_TEXT -> galleryText?.text.orEmpty()
+        CaptureTarget.SEND_PASSWORD, CaptureTarget.SEND_LINK, CaptureTarget.SEND_INSTANCE -> sendText?.text.orEmpty()
         CaptureTarget.TOOLBOX_SEARCH -> toolboxView.query
         CaptureTarget.TOOLBOX_FOLDER_NAME -> toolboxView.nameDraft.orEmpty()
     }
@@ -4505,3 +4526,11 @@ data class ToolboxUi(
     /** The open folder's name while it is being typed; null when it is not being renamed. */
     val nameDraft: String? = null,
 )
+
+/** Which keyboard-owned buffer a Send files text box is (#729). */
+val com.wasimaster.wmkeyboard.ime.send.SendTextField.captureTarget: CaptureTarget
+    get() = when (this) {
+        com.wasimaster.wmkeyboard.ime.send.SendTextField.PASSWORD -> CaptureTarget.SEND_PASSWORD
+        com.wasimaster.wmkeyboard.ime.send.SendTextField.LINK -> CaptureTarget.SEND_LINK
+        com.wasimaster.wmkeyboard.ime.send.SendTextField.INSTANCE -> CaptureTarget.SEND_INSTANCE
+    }

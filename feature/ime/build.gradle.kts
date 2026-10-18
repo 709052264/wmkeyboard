@@ -94,6 +94,7 @@ dependencies {
     api(project(":core:content"))
     api(project(":core:tools"))
     api(project(":core:kdeconnect"))
+    api(project(":core:send"))
     api(project(":core:settings"))
     api(project(":core:addons"))
     api(project(":core:voice"))

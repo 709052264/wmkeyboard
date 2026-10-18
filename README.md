@@ -410,6 +410,7 @@ core/
 ├── content/          Clipboard, snippets, fonts, media, stickers
 ├── tools/            Offline tool engines: calc, units, currency, symbols, calendars
 ├── kdeconnect/       KDE Connect client
+├── send/             Send (Firefox Send fork) client: encrypted file links
 ├── icons/            Icon packs and the SVG parser
 ├── theme/            ThemeSpec, palettes, rendering
 ├── emoji/            Catalog loader, semantic search, usage tracking

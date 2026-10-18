@@ -299,6 +299,8 @@ private fun narrowChipLabel(hit: SmartSuggest.SmartHit): String = when (hit.kind
     )
     // The face is the call: the phone icon beside the name says so.
     SmartSuggest.Kind.CONTACT -> hit.query
+    // A share link in the text: the face opens the panel on receiving it (#729).
+    SmartSuggest.Kind.SEND_LINK -> stringResource(R.string.ime_smart_send_link)
     else -> stringResource(R.string.ime_smart_open_tool, toolLabel(hit.tool))
 }
 

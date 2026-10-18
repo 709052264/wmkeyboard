@@ -99,6 +99,8 @@ internal object SettingsRoutes {
         "musicapps",
         "launchercombos",
         "kdeconnect/devices",
+        "send/instances",
+        "send/history",
         "phoneformats",
         "cliprules",
         "hwshortcuts",

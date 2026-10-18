@@ -3,6 +3,9 @@ package com.wasimaster.wmkeyboard.app
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AllInclusive
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Badge
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.WifiTethering
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BatteryStd
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Devices
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Download
@@ -1198,6 +1201,20 @@ internal object SettingsRowIcons {
         put(R.string.gallery_fallback_title) { Icons.Outlined.Share }
         put(R.string.gallery_close_after_send_title) { Icons.Outlined.KeyboardHide }
         put(R.string.gallery_save_edited_title) { Icons.Outlined.Save }
+        // Send files (#729).
+        put(R.string.send_instance_title) { Icons.Outlined.Dns }
+        put(R.string.send_expire_title) { Icons.Outlined.Timer }
+        put(R.string.send_downloads_title) { Icons.Outlined.Download }
+        put(R.string.send_password_title) { Icons.Outlined.Lock }
+        put(R.string.send_after_title) { Icons.AutoMirrored.Outlined.Send }
+        put(R.string.send_detect_title) { Icons.Outlined.Link }
+        put(R.string.send_open_after_title) { Icons.Outlined.OpenInNew }
+        put(R.string.send_nearby_title) { Icons.Outlined.Devices }
+        put(R.string.send_keep_direct_title) { Icons.Outlined.WifiTethering }
+        put(R.string.send_nearby_name_title) { Icons.Outlined.Badge }
+        put(R.string.send_share_sheet_title) { Icons.Outlined.Share }
+        put(R.string.send_history_title) { Icons.Outlined.History }
+        put(R.string.send_history_open_title) { Icons.Outlined.History }
         put(R.string.gallery_strip_location_title) { Icons.Outlined.PrivacyTip }
         put(R.string.gallery_strip_all_title) { Icons.Outlined.Fingerprint }
         put(R.string.gallery_random_names_title) { Icons.Outlined.Shuffle }

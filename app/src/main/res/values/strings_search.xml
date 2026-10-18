@@ -346,6 +346,9 @@
     <string name="search_kw_musicapps">music apps, spotify, player apps, now playing, podcast apps</string>
     <string name="search_kw_launchercombos">split screen, multi window, two apps, side by side, app pairs</string>
     <string name="search_kw_kdeconnect_devices">pair computer, paired devices, pc, laptop, desktop, gsconnect, valent, unpair, add by ip address</string>
+    <string name="search_kw_send_instances">server, host, self hosted, mirror, upload limit</string>
+    <string name="search_kw_send_history">uploads, downloads used, expiry, received files</string>
+    <string name="search_kw_ime_tool_send_files">upload, link, expire, encrypted, transfer, wifi direct, hotspot, firefox send, shareit, wetransfer</string>
     <string name="search_kw_ime_tool_kde_connect">gsconnect valent pc laptop desktop linux remote touchpad sync share presentation slides</string>
     <string name="search_kw_customdictionaries">word lists, import words, wordlist</string>
     <string name="search_kw_emojikeywords">shortcodes, emoji names, emoji search</string>

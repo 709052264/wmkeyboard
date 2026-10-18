@@ -62,6 +62,7 @@
     <string name="ime_gallery_share_to_app">Share to this app</string>
     <string name="ime_gallery_share">Share to another app</string>
     <string name="ime_gallery_copy">Copy to the clipboard</string>
+    <string name="ime_gallery_send_as_link">Send as a link or to a phone nearby</string>
     <string name="ime_gallery_save">Save a copy to the gallery</string>
     <string name="ime_gallery_clear_selection">Clear the selection</string>
 

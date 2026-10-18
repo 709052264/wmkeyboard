@@ -11,6 +11,8 @@
     <!-- Downloaded GIFs/stickers/search images, committed via commitContent. -->
     <cache-path name="media_cache" path="media/" />
     <!-- A note shared as a .md or .txt file from the Notes screen. -->
+    <!-- The Send files tool: field text saved as a file to upload, and copies made for sending. -->
+    <cache-path name="send" path="send/" />
     <cache-path name="notes_share" path="notes/" />
     <!-- The diagnostics report, shared out of the debug log screen. -->
     <cache-path name="diagnostics" path="diagnostics/" />

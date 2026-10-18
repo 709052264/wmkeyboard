@@ -1608,6 +1608,23 @@ private fun SearchStrings.galleryRows(): List<SettingsSearchEntry> {
     )
 }
 
+/** The Send files tool's page (#729). */
+private fun SearchStrings.sendRows(): List<SettingsSearchEntry> = listOf(
+    toolEntry(ToolbarTool.SEND_FILES, R.string.send_instance_title, R.string.send_instance_subtitle),
+    toolEntry(ToolbarTool.SEND_FILES, R.string.send_expire_title, R.string.send_expire_subtitle),
+    toolEntry(ToolbarTool.SEND_FILES, R.string.send_downloads_title, R.string.send_downloads_subtitle),
+    toolEntry(ToolbarTool.SEND_FILES, R.string.send_password_title, R.string.send_password_subtitle),
+    toolEntry(ToolbarTool.SEND_FILES, R.string.send_after_title, R.string.send_after_subtitle),
+    toolEntry(ToolbarTool.SEND_FILES, R.string.send_detect_title, R.string.send_detect_subtitle),
+    toolEntry(ToolbarTool.SEND_FILES, R.string.send_open_after_title, R.string.send_open_after_subtitle),
+    toolEntry(ToolbarTool.SEND_FILES, R.string.send_nearby_title, R.string.send_nearby_subtitle),
+    toolEntry(ToolbarTool.SEND_FILES, R.string.send_keep_direct_title, R.string.send_keep_direct_subtitle),
+    toolEntry(ToolbarTool.SEND_FILES, R.string.send_nearby_name_title, R.string.send_nearby_name_subtitle),
+    toolEntry(ToolbarTool.SEND_FILES, R.string.send_share_sheet_title, R.string.send_share_sheet_subtitle),
+    toolEntry(ToolbarTool.SEND_FILES, R.string.send_history_title, R.string.send_history_subtitle),
+    toolEntry(ToolbarTool.SEND_FILES, R.string.send_history_open_title, R.string.send_history_open_subtitle),
+)
+
 private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_sticker_packs_title, R.string.tooldetail_sticker_packs_subtitle),
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_sticker_suggest_title, R.string.tooldetail_sticker_suggest_subtitle),
@@ -2430,6 +2447,22 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             screenParent = R.string.home_tools_title,
             keywords = R.string.search_kw_kdeconnect_devices,
         ),
+        entry(
+            title = R.string.send_instances_screen_title,
+            subtitle = R.string.send_instances_screen_subtitle,
+            screen = toolTitle(ToolbarTool.SEND_FILES),
+            route = "send/instances",
+            screenParent = R.string.home_tools_title,
+            keywords = R.string.search_kw_send_instances,
+        ),
+        entry(
+            title = R.string.send_history_screen_title,
+            subtitle = R.string.send_history_screen_subtitle,
+            screen = toolTitle(ToolbarTool.SEND_FILES),
+            route = "send/history",
+            screenParent = R.string.home_tools_title,
+            keywords = R.string.search_kw_send_history,
+        ),
         // The Clipboard screen has a row for this, but the row only opens this
         // screen, so it is indexed once and points straight at it.
         under(
@@ -2603,7 +2636,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         layoutSizeRows() +
         layoutOnehandedRows() + floatingButtonRows() + languageRows() + emojiRows() +
         emojiPanelRows() +
-        voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + vocabRows() + notesRows() + storageRows() + otherRows()
+        voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + sendRows() + vocabRows() + notesRows() + storageRows() + otherRows()
     all.filterNot { it.route in unsupported }.distinctBy { it.key }
 }
 

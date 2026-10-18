@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Send files tool (#729): the panel, its sheets and its notifications. -->
+<resources>
+    <!-- Header -->
+    <string name="ime_send_mode_link">Link</string>
+    <string name="ime_send_mode_nearby">Nearby</string>
+    <string name="ime_send_history">History</string>
+    <string name="ime_send_settings_desc">Send files settings</string>
+    <string name="ime_send_instance_pick">Choose a Send instance</string>
+    <string name="ime_send_devices_count_zero">No device</string>
+    <plurals name="ime_send_devices_count">
+        <item quantity="one">%1$d device</item>
+        <item quantity="other">%1$d devices</item>
+    </plurals>
+
+    <!-- Compose -->
+    <string name="ime_send_source_files">Files</string>
+    <string name="ime_send_source_gallery">Gallery</string>
+    <string name="ime_send_source_clipboard">Clipboard</string>
+    <string name="ime_send_source_text">Field text</string>
+    <string name="ime_send_compose_hint">Encrypted on this phone before it leaves. The server never sees the key; the link carries it.</string>
+    <string name="ime_send_paste_link">Receive a link instead</string>
+    <string name="ime_send_link_hint">Paste a Send link</string>
+    <string name="ime_send_receive_go">Receive</string>
+    <plurals name="ime_send_files_count">
+        <item quantity="one">%1$d file</item>
+        <item quantity="other">%1$d files</item>
+    </plurals>
+    <string name="ime_send_total_of">%1$s of %2$s</string>
+    <string name="ime_send_over_cap">Too big for %1$s</string>
+    <string name="ime_send_try_instance">Try %1$s</string>
+    <string name="ime_send_expiry">Expires</string>
+    <string name="ime_send_downloads">Downloads</string>
+    <string name="ime_send_password">Password</string>
+    <string name="ime_send_password_hint">Type a password</string>
+    <string name="ime_send_password_generate">Generate</string>
+    <string name="ime_send_password_show">Show</string>
+    <string name="ime_send_password_hide">Hide</string>
+    <string name="ime_send_upload">Upload</string>
+    <string name="ime_send_upload_hold">Hold for more ways to upload</string>
+    <string name="ime_send_remove">Remove</string>
+    <string name="ime_send_clear">Clear</string>
+    <string name="ime_send_done">Done</string>
+    <string name="ime_send_cancel">Cancel</string>
+    <string name="ime_send_back">Back</string>
+    <string name="ime_send_close">Close</string>
+    <plurals name="ime_send_downloads_count">
+        <item quantity="one">%1$d download</item>
+        <item quantity="other">%1$d downloads</item>
+    </plurals>
+
+    <!-- Uploading -->
+    <string name="ime_send_uploading">Encrypting and uploading</string>
+    <string name="ime_send_speed">%1$s/s</string>
+    <string name="ime_send_eta">%1$s left</string>
+    <string name="ime_send_starting">Starting</string>
+
+    <!-- Done -->
+    <string name="ime_send_done_title">Link ready</string>
+    <string name="ime_send_insert">Insert</string>
+    <string name="ime_send_copy">Copy</string>
+    <string name="ime_send_share">Share</string>
+    <string name="ime_send_qr">QR code</string>
+    <string name="ime_send_manage">Manage</string>
+    <string name="ime_send_new_upload">New upload</string>
+    <string name="ime_send_meta_expires">Expires in %1$s</string>
+    <string name="ime_send_meta_password">Password set</string>
+    <string name="ime_send_meta_password_value">Password: %1$s</string>
+    <string name="ime_send_copy_password">Copy password</string>
+    <string name="ime_send_delete">Delete from the server</string>
+    <plurals name="ime_send_downloads_used">
+        <item quantity="one">%1$d of %2$d download used</item>
+        <item quantity="other">%1$d of %2$d downloads used</item>
+    </plurals>
+    <string name="ime_send_inserted_line">The link is in the field</string>
+    <string name="ime_send_copied_line">The link is on the clipboard</string>
+    <string name="ime_send_qr_title">Scan to download</string>
+    <string name="ime_send_qr_body">Point another phone\'s camera at it.</string>
+
+    <!-- Receiving -->
+    <string name="ime_send_receive_title">A file for you</string>
+    <string name="ime_send_checking">Asking %1$s</string>
+    <string name="ime_send_receive_from">From %1$s</string>
+    <string name="ime_send_download">Download</string>
+    <string name="ime_send_final_download">Last download allowed: the server deletes the file after this one.</string>
+    <string name="ime_send_needs_password">This file has a password</string>
+    <string name="ime_send_wrong_password">That is not the password</string>
+    <string name="ime_send_password_enter">Enter the password</string>
+    <string name="ime_send_saved_title">Saved to Downloads</string>
+    <string name="ime_send_saved_where">In the WM Keyboard folder</string>
+    <string name="ime_send_open">Open</string>
+    <string name="ime_send_insert_file">Insert</string>
+    <string name="ime_send_share_file">Share</string>
+    <string name="ime_send_retry">Try again</string>
+    <string name="ime_send_failed_title">Did not upload</string>
+    <string name="ime_send_error_offline">The server could not be reached.</string>
+    <string name="ime_send_error_too_big">Too big for this instance.</string>
+    <string name="ime_send_error_bad_limits">The server does not allow that expiry or download count.</string>
+    <string name="ime_send_error_unauthorized">This instance wants an account to upload.</string>
+    <string name="ime_send_error_not_found">The file is gone: it expired, was deleted, or was downloaded its last time.</string>
+    <string name="ime_send_error_server">The server refused.</string>
+    <string name="ime_send_error_cancelled">Cancelled.</string>
+    <string name="ime_send_error_wrong_key">The link does not open this file. Check that it was copied whole.</string>
+    <string name="ime_send_error_wrong_password">Wrong password.</string>
+    <string name="ime_send_error_corrupt">The file arrived damaged.</string>
+    <string name="ime_send_error_bad_link">That is not a Send link.</string>
+
+    <!-- Data saving -->
+    <string name="ime_send_data_title">On mobile data</string>
+    <string name="ime_send_data_body">This moves the whole file over mobile data.</string>
+    <string name="ime_send_data_allow">Use data</string>
+    <string name="ime_send_data_refuse">Not now</string>
+
+    <!-- Upload menu -->
+    <string name="ime_send_menu_insert">Upload and insert the link</string>
+    <string name="ime_send_menu_copy">Upload and copy the link</string>
+    <string name="ime_send_menu_qr">Upload and show the QR code</string>
+    <string name="ime_send_menu_show">Upload and show the link</string>
+
+    <!-- Instances -->
+    <string name="ime_send_instances_title">Send instances</string>
+    <string name="ime_send_instances_own">Yours</string>
+    <string name="ime_send_instances_public">Public</string>
+    <string name="ime_send_instance_add">Add your own</string>
+    <string name="ime_send_instance_hint">send.example.org</string>
+    <string name="ime_send_instance_reference">Run by the maintainer of Send</string>
+    <string name="ime_send_instance_unreachable">Not answering</string>
+    <string name="ime_send_instance_checking">Checking</string>
+    <string name="ime_send_instance_remove">Remove</string>
+    <string name="ime_send_instances_note">Public instances are run by volunteers, with no promises. They see a file\'s size and when it arrived, never its contents or its name.</string>
+    <plurals name="ime_send_instance_days">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+
+    <!-- History -->
+    <string name="ime_send_history_sent">Sent</string>
+    <string name="ime_send_history_received">Received</string>
+    <string name="ime_send_history_empty_title">Nothing sent yet</string>
+    <string name="ime_send_history_empty_body">Links you make show up here, with how long they have left.</string>
+    <string name="ime_send_history_received_empty">Nothing received yet</string>
+    <string name="ime_send_forget">Forget</string>
+    <string name="ime_send_left_short">%1$s left</string>
+    <string name="ime_send_history_swipe_hint">Swipe a link away to delete it from the server</string>
+
+    <!-- Nearby -->
+    <string name="ime_send_nearby_searching">Looking on this Wi-Fi</string>
+    <string name="ime_send_nearby_refresh">Refresh</string>
+    <string name="ime_send_nearby_paired">Paired</string>
+    <string name="ime_send_nearby_found">Found</string>
+    <string name="ime_send_nearby_pair">Pair</string>
+    <string name="ime_send_nearby_accept">Accept</string>
+    <string name="ime_send_nearby_reject">Reject</string>
+    <string name="ime_send_nearby_pairing">Pairing: %1$s</string>
+    <string name="ime_send_nearby_send">Send</string>
+    <string name="ime_send_nearby_sent_to">Sent to %1$s</string>
+    <string name="ime_send_nearby_connected">Connected</string>
+    <string name="ime_send_nearby_unreachable">Not in reach</string>
+    <string name="ime_send_nearby_empty_title">No device yet</string>
+    <string name="ime_send_nearby_empty_body">Phones and computers with WM Keyboard or KDE Connect on this Wi-Fi show up here.</string>
+    <string name="ime_send_nearby_off_title">Nearby is off</string>
+    <string name="ime_send_nearby_off_body">Turn it on in the tool\'s settings to send to devices around you.</string>
+    <string name="ime_send_nearby_turn_on">Open settings</string>
+    <string name="ime_send_nearby_add_files">Add files to send</string>
+    <string name="ime_send_direct_title">No shared Wi-Fi?</string>
+    <string name="ime_send_direct_body">One phone opens a Wi-Fi, the other scans its code. Nothing goes through the internet.</string>
+    <string name="ime_send_direct_host">Receive here</string>
+    <string name="ime_send_direct_scan">Scan a code</string>
+    <string name="ime_send_direct_starting">Opening a Wi-Fi</string>
+    <string name="ime_send_direct_hosting_title">Waiting for the other phone</string>
+    <string name="ime_send_direct_hosting_body">On the other phone: Send files, Nearby, Scan a code.</string>
+    <string name="ime_send_direct_wifi">Wi-Fi: %1$s</string>
+    <string name="ime_send_direct_password">Password: %1$s</string>
+    <string name="ime_send_direct_joined">%1$s joined</string>
+    <string name="ime_send_direct_stop">Disconnect</string>
+    <string name="ime_send_direct_show_code">Show the code</string>
+    <string name="ime_send_direct_step_wifi">Joining the Wi-Fi</string>
+    <string name="ime_send_direct_step_finding">Looking for the phone</string>
+    <string name="ime_send_direct_step_pairing">Pairing</string>
+    <string name="ime_send_direct_step_linked">Linked to %1$s</string>
+    <string name="ime_send_direct_failed_permission">Nearby devices permission is needed for a direct link.</string>
+    <string name="ime_send_direct_failed_wifi_off">Turn Wi-Fi on first.</string>
+    <string name="ime_send_direct_failed_unsupported">This phone cannot open a Wi-Fi for another.</string>
+    <string name="ime_send_direct_failed_group">The Wi-Fi did not open.</string>
+    <string name="ime_send_direct_failed_join">Could not join the other phone\'s Wi-Fi.</string>
+    <string name="ime_send_direct_failed_not_found">Joined the Wi-Fi, but the phone did not answer.</string>
+    <string name="ime_send_direct_failed_timeout">The other phone did not pair in time.</string>
+    <string name="ime_send_direct_allow">Allow</string>
+    <string name="ime_send_transfers">Transfers</string>
+    <string name="ime_send_transfer_waiting">Waiting</string>
+    <string name="ime_send_transfer_sending">Sending</string>
+    <string name="ime_send_transfer_receiving">Receiving</string>
+    <string name="ime_send_transfer_done">Done</string>
+    <string name="ime_send_transfer_failed">Failed</string>
+    <string name="ime_send_transfer_cancelled">Cancelled</string>
+    <string name="ime_send_transfer_clear">Clear finished</string>
+
+    <!-- Notices -->
+    <string name="ime_send_notice_copied">Copied</string>
+    <string name="ime_send_notice_inserted">Inserted</string>
+    <string name="ime_send_notice_shared">Shared</string>
+    <string name="ime_send_notice_saved">Saved to Downloads</string>
+    <string name="ime_send_notice_deleted">Deleted from the server</string>
+    <string name="ime_send_notice_sent">Sent to %1$s</string>
+    <string name="ime_send_notice_failed">That did not work</string>
+    <string name="ime_send_notice_no_files">Pick a file first</string>
+    <string name="ime_send_notice_empty_field">The field is empty</string>
+    <string name="ime_send_notice_empty_clipboard">Nothing on the clipboard to send</string>
+    <string name="ime_send_notice_too_many">This instance takes %1$s files at most</string>
+    <string name="ime_send_notice_password_generated">Password generated</string>
+    <string name="ime_send_notice_instance_set">Uploads go to %1$s</string>
+    <string name="ime_send_notice_instance_bad">That is not an address</string>
+    <string name="ime_send_notice_instance_added">Added %1$s</string>
+    <string name="ime_send_notice_instance_removed">Removed</string>
+    <string name="ime_send_notice_not_accepted">This field does not take files</string>
+    <string name="ime_send_notice_opened">Opening</string>
+    <string name="ime_send_notice_link_bad">That is not a Send link</string>
+    <string name="ime_send_notice_data_saver">Blocked by data saving</string>
+
+    <!-- The strip -->
+    <string name="ime_send_offer_chip">Receive the file</string>
+    <string name="ime_send_offer_from">from %1$s</string>
+    <string name="ime_send_offer_dismiss">Dismiss</string>
+
+    <!-- The shade -->
+    <plurals name="ime_send_archive_name">
+        <item quantity="one">%1$d file</item>
+        <item quantity="other">%1$d files</item>
+    </plurals>
+    <string name="ime_send_notify_uploading">Uploading %1$s</string>
+    <string name="ime_send_notify_receiving">Receiving %1$s</string>
+    <string name="ime_send_notify_done_title">%1$s is ready to share</string>
+    <string name="ime_send_notify_done_body">The link is encrypted. Copy it and send it on.</string>
+    <string name="ime_send_notify_done_copied">The link is on your clipboard.</string>
+    <string name="ime_send_notify_copy_link">Copy link</string>
+    <string name="ime_send_notify_failed_title">%1$s did not upload</string>
+    <string name="ime_send_notify_failed_body">Open the keyboard to try again.</string>
+    <string name="ime_send_notify_received_title">%1$s saved</string>
+    <plurals name="ime_send_notify_received_many">
+        <item quantity="one">%1$d file saved</item>
+        <item quantity="other">%1$d files saved</item>
+    </plurals>
+    <string name="ime_send_notify_received_body">In Downloads, in the WM Keyboard folder. Tap to open.</string>
+</resources>

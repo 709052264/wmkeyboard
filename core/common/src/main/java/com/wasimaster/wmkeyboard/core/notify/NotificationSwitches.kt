@@ -63,6 +63,13 @@ object NotificationSwitches {
      */
     const val DEFAULT_CLOCK = true
 
+    /**
+     * An upload or download finishing with the keyboard hidden, and a file from
+     * a device nearby. On: each is a transfer the user started, and the link
+     * it ends with is the point of the exercise.
+     */
+    const val DEFAULT_SEND = true
+
     /** Whether [kind] may be posted at all. */
     fun isOn(context: Context, kind: NotificationKind): Boolean =
         runCatching { prefs(context).getBoolean(kind.key, kind.default) }
@@ -100,6 +107,7 @@ object NotificationSwitches {
             NotificationKind.BACKUP -> DEFAULT_BACKUP
             NotificationKind.KEYBOARD -> DEFAULT_KEYBOARD
             NotificationKind.CONNECT -> DEFAULT_CONNECT
+            NotificationKind.SEND -> DEFAULT_SEND
             NotificationKind.CLOCK -> DEFAULT_CLOCK
         }
 

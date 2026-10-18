@@ -386,7 +386,7 @@ data class ProviderChain(
         return if (added.isEmpty()) this else copy(entries = entries + added.map { ProviderEntry(it.id) })
     }
 
-    private companion object {
+    companion object {
         val APPENDING = setOf(ProviderTool.DICTIONARY, ProviderTool.SYNONYMS, ProviderTool.VOCAB_AUTOFILL)
     }
 }

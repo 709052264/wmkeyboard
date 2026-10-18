@@ -128,6 +128,10 @@ enum class ToolbarTool {
     // The clipboard opened straight into its search (#612), for a flick, a
     // key or a hold: the query is one gesture away instead of two taps.
     CLIPBOARD_SEARCH,
+    // Files to other people (#729): encrypted on the phone and uploaded to a Send
+    // instance as a link with an expiry, a download limit and a password, or
+    // straight to a device nearby over Wi-Fi. Receives both kinds too.
+    SEND_FILES,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -312,7 +316,7 @@ val PowerTools: Set<ToolbarTool> = RecommendedTools + setOf(
     ToolbarTool.NUMPAD,
     ToolbarTool.SYMBOLS, ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.CURRENCY,
     ToolbarTool.PASSWORD_GEN, ToolbarTool.CALENDAR, ToolbarTool.CLOCK, ToolbarTool.WEATHER, ToolbarTool.LOCATION,
-    ToolbarTool.MEDIA_CONTROL, ToolbarTool.KDE_CONNECT, ToolbarTool.APP_LAUNCHER, ToolbarTool.HIDE_KEYBOARD,
+    ToolbarTool.MEDIA_CONTROL, ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES, ToolbarTool.APP_LAUNCHER, ToolbarTool.HIDE_KEYBOARD,
 )
 
 /**
