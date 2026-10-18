@@ -1154,7 +1154,7 @@
     <string name="clipboard_key_row_info">Füge einen Link ein und drücke die Eingabetaste, um ihn aufzurufen, oder füge weitere Clips mit einem Leerzeichen oder einem Zeilenumbruch dazwischen ein, ohne zur Tastatur zurückzukehren. ABC kehrt zu den Buchstaben zurück. Wenn du das Layout des Bereichs geändert hast, hat diese Einstellung keine Wirkung: Füge die Tasten stattdessen im Layout-Editor hinzu. Die Zeile wird nicht angezeigt, während die Zwischenablage über den Tasten liegt. Diese Einstellung ist standardmäßig deaktiviert.</string>
     <string name="clipboard_key_row_subtitle">Eine Tastenreihe am unteren Rand des Zwischenablage-Bereichs</string>
     <string name="clipboard_key_row_title">ABC-, Leer- und Eingabetasten</string>
-    <string name="clipboard_line_spacing_info">Bei 100% liegen die Zeilen eines Clips so eng beieinander, wie es die Schriftart zulässt. Erhöhe den Wert, um sie weiter auseinanderzuziehen. Der Standardwert ist 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Bei 100% liegen die Zeilen eines Clips so eng beieinander, wie es die Schriftart zulässt. Erhöhe den Wert, um sie weiter auseinanderzuziehen. Der Standardwert ist 130%.</string>
     <string name="clipboard_line_spacing_subtitle">Der Abstand zwischen den Zeilen eines Clip-Textes</string>
     <string name="clipboard_line_spacing_title">Zeilenabstand</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>

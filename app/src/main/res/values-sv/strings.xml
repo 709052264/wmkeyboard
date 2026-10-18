@@ -1153,7 +1153,7 @@
     <string name="clipboard_key_row_info">Klistra in en länk och tryck på retur för att gå till den, eller klistra in fler klipp med ett mellanslag eller en ny rad mellan dem, utan att gå tillbaka till tangentbordet. ABC går tillbaka till bokstäverna. Om du ändrade panelens layout gör den här inställningen ingenting: lägg till tangenterna i layoutredigeraren istället. Raden visas inte medan urklipp ligger staplat över tangenterna. Den här inställningen är avstängd som standard.</string>
     <string name="clipboard_key_row_subtitle">En rad tangenter längs nederkanten av urklippspanelen</string>
     <string name="clipboard_key_row_title">ABC-, mellanslags- och returtangenter</string>
-    <string name="clipboard_line_spacing_info">Vid 100 % sitter raderna i ett klipp så tätt som teckensnittet tillåter. Höj värdet för att sprida ut dem. Standardvärdet är 130 %.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Vid 100 % sitter raderna i ett klipp så tätt som teckensnittet tillåter. Höj värdet för att sprida ut dem. Standardvärdet är 130 %.</string>
     <string name="clipboard_line_spacing_subtitle">Avståndet mellan raderna i en urklippstext</string>
     <string name="clipboard_line_spacing_title">Radavstånd</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>

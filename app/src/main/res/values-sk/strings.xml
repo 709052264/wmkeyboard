@@ -1152,7 +1152,7 @@
     <string name="clipboard_key_row_info">Vložte odkaz a stlačte enter pre prechod naň, alebo vložte viac klipov s medzerou alebo novým riadkom medzi nimi, bez návratu na klávesnicu. ABC sa vráti k písmenám. Ak ste zmenili rozloženie panela, toto nastavenie nič nerobí: pridajte klávesy v editore rozloženia. Riadok sa nezobrazuje, kým je schránka navrstvená nad klávesmi. Toto nastavenie je predvolene vypnuté.</string>
     <string name="clipboard_key_row_subtitle">Rad klávesov v spodnej časti panela schránky</string>
     <string name="clipboard_key_row_title">Klávesy ABC, medzerník a enter</string>
-    <string name="clipboard_line_spacing_info">Pri 100 % sú riadky klipu tak blízko, ako to písmo dovoľuje. Zvýšte hodnotu, ak ich chcete roztiahnuť. Predvolená hodnota je 130 %.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Pri 100 % sú riadky klipu tak blízko, ako to písmo dovoľuje. Zvýšte hodnotu, ak ich chcete roztiahnuť. Predvolená hodnota je 130 %.</string>
     <string name="clipboard_line_spacing_subtitle">Medzera medzi riadkami textu klipu</string>
     <string name="clipboard_line_spacing_title">Riadkovanie</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>

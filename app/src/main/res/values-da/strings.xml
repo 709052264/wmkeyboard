@@ -1152,7 +1152,7 @@
     <string name="clipboard_key_row_info">Indsæt et link og tryk enter for at gå til det, eller indsæt flere klip med et mellemrum eller en ny linje imellem dem uden at gå tilbage til tastaturet. ABC går tilbage til bogstaverne. Hvis du ændrede panellayoutet, gør denne indstilling intet: tilføj tasterne i layouteditoren i stedet. Rækken vises ikke, mens udklipsholderen er stablet over tasterne. Denne indstilling er slået fra som standard.</string>
     <string name="clipboard_key_row_subtitle">En række taster langs bunden af udklipsholderpanelet</string>
     <string name="clipboard_key_row_title">ABC, mellemrum og enter-taster</string>
-    <string name="clipboard_line_spacing_info">Ved 100% sidder linjerne i et klip så tæt, som skrifttypen tillader. Øg den for at sprede dem ud. Standard er 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Ved 100% sidder linjerne i et klip så tæt, som skrifttypen tillader. Øg den for at sprede dem ud. Standard er 130%.</string>
     <string name="clipboard_line_spacing_subtitle">Afstanden mellem linjerne i en klips tekst</string>
     <string name="clipboard_line_spacing_title">Linjeafstand</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>

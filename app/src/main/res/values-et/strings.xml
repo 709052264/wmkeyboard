@@ -1153,7 +1153,7 @@
     <string name="clipboard_key_row_info">Kleepige link ja vajutage sisestusklahvi, et sellele minna, või kleepige rohkem lõike tühiku või uue reaga nende vahel, ilma klaviatuurile tagasi minemata. ABC naaseb tähtede juurde. Kui muutsite paneeli paigutust, ei tee see seade midagi: lisage klahvid hoopis paigutuse redaktoris. Rida ei kuvata, kui lõikelaud on klahvide kohal. See seade on vaikimisi välja lülitatud.</string>
     <string name="clipboard_key_row_subtitle">Klahvirida lõikelaua paneeli allosas</string>
     <string name="clipboard_key_row_title">ABC, tühiku ja sisestusklahvid</string>
-    <string name="clipboard_line_spacing_info">100% juures on lõikude read nii lähedal, kui font lubab. Suurenda seda, et ridu hajutada. Vaikimisi on 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">100% juures on lõikude read nii lähedal, kui font lubab. Suurenda seda, et ridu hajutada. Vaikimisi on 130%.</string>
     <string name="clipboard_line_spacing_subtitle">Vahe lõikepuhvri teksti ridade vahel</string>
     <string name="clipboard_line_spacing_title">Reavahe</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>

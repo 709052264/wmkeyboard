@@ -178,7 +178,7 @@
     <string name="clipboard_line_spacing_subtitle">The space between the lines of a clip\'s text</string>
     <!-- Slider readout for the line spacing, in percent. -->
     <string name="clipboard_line_spacing_value">%1$d%%</string>
-    <string name="clipboard_line_spacing_info">At 100% the lines of a clip sit as close as the font allows. Raise it to spread them out. The default is 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">At 100% the lines of a clip sit as close as the font allows. Raise it to spread them out. The default is 130%.</string>
 
     <!-- The keyboard's own copies kept off the system clipboard (#612). -->
     <string name="clipboard_private_copies_title">Keep the keyboard\'s copies private</string>

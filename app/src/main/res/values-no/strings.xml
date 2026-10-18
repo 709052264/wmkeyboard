@@ -1153,7 +1153,7 @@
     <string name="clipboard_key_row_info">Lim inn en lenke og trykk enter for å gå til den, eller lim inn flere utklipp med et mellomrom eller en ny linje mellom dem, uten å gå tilbake til tastaturet. ABC går tilbake til bokstavene. Hvis du endret paneloppsettet, gjør ikke denne innstillingen noe: legg til tastene i oppsettredigeringsprogrammet i stedet. Raden vises ikke mens utklippstavlen er stablet over tastene. Denne innstillingen er av som standard.</string>
     <string name="clipboard_key_row_subtitle">En rad med taster nederst på utklippstavlepanelet</string>
     <string name="clipboard_key_row_title">ABC, mellomrom- og enter-taster</string>
-    <string name="clipboard_line_spacing_info">Ved 100 % sitter linjene i et utklipp så tett som skrifttypen tillater. Øk den for å spre dem ut. Standard er 130 %.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Ved 100 % sitter linjene i et utklipp så tett som skrifttypen tillater. Øk den for å spre dem ut. Standard er 130 %.</string>
     <string name="clipboard_line_spacing_subtitle">Avstanden mellom linjene i en tekstklipp</string>
     <string name="clipboard_line_spacing_title">Linjeavstand</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>

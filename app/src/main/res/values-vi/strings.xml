@@ -1150,7 +1150,7 @@
     <string name="clipboard_key_row_info">Dán liên kết và nhấn enter để truy cập, hoặc dán thêm các đoạn clip với dấu cách hoặc dòng mới giữa chúng mà không cần quay lại bàn phím. ABC quay lại các chữ cái. Nếu bạn đã thay đổi bố cục bảng, cài đặt này sẽ không có tác dụng: hãy thêm các phím trong trình chỉnh sửa bố cục. Hàng này không được hiển thị khi bảng tạm được xếp chồng lên các phím. Cài đặt này bị tắt theo mặc định.</string>
     <string name="clipboard_key_row_subtitle">Một hàng phím dọc theo phía dưới của bảng tạm</string>
     <string name="clipboard_key_row_title">Các phím ABC, dấu cách và enter</string>
-    <string name="clipboard_line_spacing_info">Ở mức 100%, các dòng của một đoạn clip nằm sát nhau nhất có thể theo phông chữ. Tăng mức này để giãn cách chúng. Mặc định là 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Ở mức 100%, các dòng của một đoạn clip nằm sát nhau nhất có thể theo phông chữ. Tăng mức này để giãn cách chúng. Mặc định là 130%.</string>
     <string name="clipboard_line_spacing_subtitle">Khoảng cách giữa các dòng văn bản của đoạn clip</string>
     <string name="clipboard_line_spacing_title">Khoảng cách dòng</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -8473,7 +8473,7 @@
     <string name="typing_letter_swipe_select_key_label">Trượt đến một phím</string>
     <string name="typing_letter_swipe_type_words_desc">Một lần vuốt qua các phím sẽ đánh vần một từ</string>
     <string name="typing_letter_swipe_type_words_label">Gõ từ</string>
-    <string name="typing_mistype_tolerance_info">Mỗi lần chạm được đọc dựa trên vị trí nó rơi xuống, không chỉ dựa trên phím nó chạm vào, vì vậy một lần chạm gần cạnh phím vẫn có thể được đọc là phím bên cạnh. Điều này thiết lập mức độ rộng rãi của việc đọc đó. Trên 100%, một lần chạm sâu vào phím lân cận vẫn được coi là một lỗi trượt, phù hợp với việc gõ nhanh hoặc bận rộn và ngón tay lớn. Dưới 100%, phím bạn chạm vào được tin tưởng hơn, phù hợp với việc gõ cẩn thận. Nó thay đổi các từ mà thanh gợi ý cung cấp và những gì tính năng tự động sửa lỗi chọn. Mặc định là 100%.</string>
+    <string name="typing_mistype_tolerance_info" formatted="false">Mỗi lần chạm được đọc dựa trên vị trí nó rơi xuống, không chỉ dựa trên phím nó chạm vào, vì vậy một lần chạm gần cạnh phím vẫn có thể được đọc là phím bên cạnh. Điều này thiết lập mức độ rộng rãi của việc đọc đó. Trên 100%, một lần chạm sâu vào phím lân cận vẫn được coi là một lỗi trượt, phù hợp với việc gõ nhanh hoặc bận rộn và ngón tay lớn. Dưới 100%, phím bạn chạm vào được tin tưởng hơn, phù hợp với việc gõ cẩn thận. Nó thay đổi các từ mà thanh gợi ý cung cấp và những gì tính năng tự động sửa lỗi chọn. Mặc định là 100%.</string>
     <string name="typing_mistype_tolerance_subtitle">Khoảng cách chạm vào phím lân cận vẫn được tính là một lần gõ nhầm</string>
     <string name="typing_mistype_tolerance_title">Độ dung sai khi gõ sai</string>
     <string name="typing_new_word_sightings_info">Chỉ những từ không có trong từ điển mới được đếm. Một từ đã có trong từ điển sẽ được học ngay khi bạn nhập nó. Một lần sử dụng chỉ được tính khi bạn đã tiếp tục và để từ đó lại, vì vậy lỗi chính tả mà bạn quay lại sửa sẽ không bao giờ được tính. Hãy giảm giá trị này nếu tên riêng và tiếng lóng của bạn mất quá nhiều thời gian để được ghi nhớ. Đặt thành 1 để lưu ngay mọi từ mới, giống như các phiên bản cũ đã làm. Cài đặt này mặc định là 3.</string>
