@@ -2,211 +2,211 @@
  {
   "text": "Every",
   "startMs": 0,
-  "endMs": 281,
-  "timestampMs": 140,
+  "endMs": 340,
+  "timestampMs": 170,
   "confidence": null
  },
  {
   "text": " colour",
-  "startMs": 281,
-  "endMs": 602,
-  "timestampMs": 441,
+  "startMs": 340,
+  "endMs": 580,
+  "timestampMs": 460,
   "confidence": null
  },
  {
   "text": " on",
-  "startMs": 602,
-  "endMs": 762,
-  "timestampMs": 682,
+  "startMs": 580,
+  "endMs": 800,
+  "timestampMs": 690,
   "confidence": null
  },
  {
   "text": " this",
-  "startMs": 762,
-  "endMs": 1003,
-  "timestampMs": 883,
+  "startMs": 800,
+  "endMs": 940,
+  "timestampMs": 870,
   "confidence": null
  },
  {
   "text": " keyboard",
-  "startMs": 1003,
-  "endMs": 1404,
-  "timestampMs": 1203,
+  "startMs": 940,
+  "endMs": 1260,
+  "timestampMs": 1100,
   "confidence": null
  },
  {
   "text": " is",
-  "startMs": 1404,
-  "endMs": 1564,
-  "timestampMs": 1484,
+  "startMs": 1260,
+  "endMs": 1460,
+  "timestampMs": 1360,
   "confidence": null
  },
  {
   "text": " yours.",
-  "startMs": 1564,
-  "endMs": 1885,
-  "timestampMs": 1725,
+  "startMs": 1460,
+  "endMs": 1700,
+  "timestampMs": 1580,
   "confidence": null
  },
  {
   "text": " Pick",
-  "startMs": 2005,
-  "endMs": 2255,
-  "timestampMs": 2130,
+  "startMs": 2360,
+  "endMs": 2480,
+  "timestampMs": 2420,
   "confidence": null
  },
  {
   "text": " one",
-  "startMs": 2255,
-  "endMs": 2464,
-  "timestampMs": 2360,
+  "startMs": 2480,
+  "endMs": 2740,
+  "timestampMs": 2610,
   "confidence": null
  },
  {
   "text": " seed",
-  "startMs": 2464,
-  "endMs": 2714,
-  "timestampMs": 2589,
+  "startMs": 2740,
+  "endMs": 2960,
+  "timestampMs": 2850,
   "confidence": null
  },
  {
   "text": " colour,",
-  "startMs": 2714,
-  "endMs": 3089,
-  "timestampMs": 2901,
+  "startMs": 2960,
+  "endMs": 3260,
+  "timestampMs": 3110,
   "confidence": null
  },
  {
   "text": " and",
-  "startMs": 3209,
-  "endMs": 3378,
-  "timestampMs": 3294,
+  "startMs": 3540,
+  "endMs": 3720,
+  "timestampMs": 3630,
   "confidence": null
  },
  {
   "text": " the",
-  "startMs": 3378,
-  "endMs": 3547,
-  "timestampMs": 3463,
+  "startMs": 3720,
+  "endMs": 3840,
+  "timestampMs": 3780,
   "confidence": null
  },
  {
   "text": " whole",
-  "startMs": 3547,
-  "endMs": 3784,
-  "timestampMs": 3666,
+  "startMs": 3840,
+  "endMs": 4120,
+  "timestampMs": 3980,
   "confidence": null
  },
  {
   "text": " palette",
-  "startMs": 3784,
-  "endMs": 4089,
-  "timestampMs": 3937,
+  "startMs": 4120,
+  "endMs": 4420,
+  "timestampMs": 4270,
   "confidence": null
  },
  {
   "text": " rebuilds",
-  "startMs": 4089,
-  "endMs": 4427,
-  "timestampMs": 4258,
+  "startMs": 4420,
+  "endMs": 5000,
+  "timestampMs": 4710,
   "confidence": null
  },
  {
   "text": " around",
-  "startMs": 4427,
-  "endMs": 4698,
-  "timestampMs": 4563,
+  "startMs": 5000,
+  "endMs": 5200,
+  "timestampMs": 5100,
   "confidence": null
  },
  {
   "text": " it.",
-  "startMs": 4698,
-  "endMs": 4867,
-  "timestampMs": 4783,
+  "startMs": 5200,
+  "endMs": 5520,
+  "timestampMs": 5360,
   "confidence": null
  },
  {
   "text": " Light",
-  "startMs": 4987,
-  "endMs": 5281,
-  "timestampMs": 5134,
+  "startMs": 5920,
+  "endMs": 6000,
+  "timestampMs": 5960,
   "confidence": null
  },
  {
   "text": " or",
-  "startMs": 5281,
-  "endMs": 5450,
-  "timestampMs": 5366,
+  "startMs": 6000,
+  "endMs": 6140,
+  "timestampMs": 6070,
   "confidence": null
  },
  {
   "text": " dark,",
-  "startMs": 5450,
-  "endMs": 5744,
-  "timestampMs": 5597,
+  "startMs": 6140,
+  "endMs": 6360,
+  "timestampMs": 6250,
   "confidence": null
  },
  {
   "text": " the",
-  "startMs": 5744,
-  "endMs": 5954,
-  "timestampMs": 5849,
+  "startMs": 6640,
+  "endMs": 6740,
+  "timestampMs": 6690,
   "confidence": null
  },
  {
   "text": " preview",
-  "startMs": 5954,
-  "endMs": 6332,
-  "timestampMs": 6143,
+  "startMs": 6740,
+  "endMs": 6980,
+  "timestampMs": 6860,
   "confidence": null
  },
  {
   "text": " shows",
-  "startMs": 6332,
-  "endMs": 6627,
-  "timestampMs": 6479,
+  "startMs": 6980,
+  "endMs": 7300,
+  "timestampMs": 7140,
   "confidence": null
  },
  {
   "text": " the",
-  "startMs": 6627,
-  "endMs": 6837,
-  "timestampMs": 6732,
+  "startMs": 7300,
+  "endMs": 7520,
+  "timestampMs": 7410,
   "confidence": null
  },
  {
   "text": " real",
-  "startMs": 6837,
-  "endMs": 7089,
-  "timestampMs": 6963,
+  "startMs": 7520,
+  "endMs": 7700,
+  "timestampMs": 7610,
   "confidence": null
  },
  {
   "text": " keyboard",
-  "startMs": 7089,
-  "endMs": 7509,
-  "timestampMs": 7299,
+  "startMs": 7700,
+  "endMs": 8040,
+  "timestampMs": 7870,
   "confidence": null
  },
  {
   "text": " as",
-  "startMs": 7509,
-  "endMs": 7677,
-  "timestampMs": 7593,
+  "startMs": 8040,
+  "endMs": 8320,
+  "timestampMs": 8180,
   "confidence": null
  },
  {
   "text": " you",
-  "startMs": 7677,
-  "endMs": 7888,
-  "timestampMs": 7783,
+  "startMs": 8320,
+  "endMs": 8480,
+  "timestampMs": 8400,
   "confidence": null
  },
  {
   "text": " go.",
-  "startMs": 7888,
-  "endMs": 8098,
-  "timestampMs": 7993,
+  "startMs": 8480,
+  "endMs": 8700,
+  "timestampMs": 8590,
   "confidence": null
  }
 ]

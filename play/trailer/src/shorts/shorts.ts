@@ -471,7 +471,7 @@ export const SHORTS: ShortSpec[] = [
       { clip: "shorts/clips/s16-otp.mp4", sec: 3, from: 0, focus: PAGE },
       { clip: "shorts/clips/s16-otp.mp4", sec: 4, from: 8, rate: 0.9, focus: "keyboard", zoom: { at: 0.8, to: STRIP, hold: 2 } },
       { clip: "shorts/clips/s16-otp.mp4", sec: 3, from: 18.5, rate: 0.8, focus: PAGE },
-      { clip: "shorts/clips/s16-otp.mp4", sec: 3, from: 21, focus: PAGE },
+      { clip: "shorts/clips/s16-otp.mp4", sec: 4, from: 20, focus: PAGE },
     ],
   },
   {

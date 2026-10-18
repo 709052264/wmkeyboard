@@ -27,18 +27,18 @@ Style: V voiceover · T text + music · H meme hook.
 | 13 | 11-01 | 45 | Custom sticker packs | Emoji | V | ok | ✓ | | | | | | | | | |
 | 14 | 11-02 | 26 | One-handed / split / floating | Languages | T | ok | ✓ | | | | | | | | | |
 | 15 | 11-03 | 9 | Autocorrect undo chip | Typing | T | ok | ✓ | | draft | | | | | | | |
-| 16 | 11-04 | 49 | OTP code chip | Tools | V | draft | ✓ | placeholder | draft | | | | | | | |
+| 16 | 11-04 | 49 | OTP code chip | Tools | V | draft | ✓ | ✓ | draft | | | | | | | |
 | 17 | 11-05 | 18 | Hindi phonetic | Languages | H | draft | ✓ | | draft | | | | | | | |
 | 18 | 11-06 | 50 | Snippets / text expansion | Tools | T | draft | ✓ | | draft | | | | | | | |
 | 19 | 11-07 | 19 | Japanese flick | Languages | T | draft | ✓ | | draft | | | | | | | |
 | 20 | 11-08 | 51 | Translator | Tools | T | draft | ✓ | | draft | | | | | | | |
-| 21 | 11-09 | 30 | Theme editor colours | Looks | V | draft | ✓ | placeholder | draft | | | | | | | |
+| 21 | 11-09 | 30 | Theme editor colours | Looks | V | draft | ✓ | ✓ | draft | | | | | | | |
 | 22 | 11-10 | 52 | Dictionary | Tools | T | draft | ✓ | | draft | | | | | | | |
 | 23 | 11-11 | 8 | Gliding very long words | Typing | H | draft | ✓ | | draft | | | | | | | |
 | 24 | 11-12 | 20 | Korean Cheonjiin/Naratgeul | Languages | T | draft | ✓ | | draft | | | | | | | |
 | 25 | 11-13 | 32 | Rotating backgrounds | Looks | T | draft | ✓ | | draft | | | | | | | |
 | 26 | 11-14 | 53 | Scanner / OCR | Tools | H | draft | ✓ | | draft | | | | | | | |
-| 27 | 11-15 | 10 | Personal learning + word card | Typing | V | draft | ✓ | placeholder | draft | | | | | | | |
+| 27 | 11-15 | 10 | Personal learning + word card | Typing | V | draft | ✓ | ✓ | draft | | | | | | | |
 | 28 | 11-16 | 21 | Chinese Pinyin | Languages | T | draft | ✓ | | draft | | | | | | | |
 | 29 | 11-17 | 33 | Key shapes | Looks | T | draft | ✓ | | draft | | | | | | | |
 | 30 | 11-18 | 40 | Emoji suggested while typing | Emoji | T | draft | ✓ | | draft | | | | | | | |
@@ -208,3 +208,6 @@ Style: V voiceover · T text + music · H meme hook.
 - 2026-10-19: batch 2 cut and rendered. Clips in ../trailer/public/shorts/clips (s16-s30), specs Day16-Day30 in
   src/shorts/shorts.ts, renders out/shorts/DayNN-full.mp4 (9.6-15 s), beat sheets DayNN-beats.png. VO for 16/21/27 is
   the `say` placeholder. Known: day 16 chip shows "Shell" as source (adb-posted), day 26 is short (9.6 s, 5 s of camera).
+- 2026-10-19: real VO for days 16, 21, 27 in the locked Chatterbox voice (am_puck clone, exaggeration 0.6,
+  cfg 0.4, seed 7), -16 LUFS, word timings from whisper (no interpolated words). Day 16 last beat 3 -> 4 s so the
+  13.3 s take ends before the end card. Rendered: Day16 16.0 s, Day21 13.1 s, Day27 13.5 s.
