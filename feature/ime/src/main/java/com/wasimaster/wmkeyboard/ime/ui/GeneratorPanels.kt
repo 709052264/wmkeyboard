@@ -48,6 +48,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryStore
@@ -388,18 +389,30 @@ internal fun PasswordPanel(
     }
 }
 
+/**
+ * A labelled − value + row. With [holdSteps] the two buttons also step while
+ * held, faster the longer the hold (see [repeatOnHold]), for a count that
+ * may be a long way from where it is.
+ */
 @Composable
-private fun StepperRow(
+internal fun StepperRow(
     label: String,
     value: Int,
     focusedMinus: Boolean = false,
     focusedPlus: Boolean = false,
+    holdSteps: Boolean = false,
+    labelWidth: Dp = 52.dp,
     onChange: (Int) -> Unit,
 ) {
     val kb = LocalKbTheme.current
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(label, color = kb.secondaryText, fontSize = 12.sp, modifier = Modifier.width(52.dp))
-        ToolPanelChip("−", modifier = Modifier.focusRing(focusedMinus)) { onChange(value - 1) }
+        Text(label, color = kb.secondaryText, fontSize = 12.sp, modifier = Modifier.width(labelWidth))
+        ToolPanelChip(
+            "−",
+            modifier = Modifier
+                .repeatOnHold(holdSteps) { onChange(value - 1) }
+                .focusRing(focusedMinus),
+        ) { onChange(value - 1) }
         Text(
             "$value",
             color = kb.modifierKeyText,
@@ -408,7 +421,12 @@ private fun StepperRow(
             textAlign = TextAlign.Center,
             modifier = Modifier.width(36.dp),
         )
-        ToolPanelChip("+", modifier = Modifier.focusRing(focusedPlus)) { onChange(value + 1) }
+        ToolPanelChip(
+            "+",
+            modifier = Modifier
+                .repeatOnHold(holdSteps) { onChange(value + 1) }
+                .focusRing(focusedPlus),
+        ) { onChange(value + 1) }
     }
 }
 

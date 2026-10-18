@@ -759,6 +759,57 @@
     <string name="tooldetail_passphrase_digit_subtitle">The keyboard adds it to a random word</string>
     <string name="tooldetail_password_info">The keyboard generates everything on your device with a cryptographic random source. It never stores it and never logs it. Passphrase words come from the bundled English word list of the keyboard.</string>
 
+    <!-- Text repeat tool. The panel edits these too, so they are also where it was last left. -->
+    <string name="tooldetail_repeat_group">Repeating</string>
+    <string name="tooldetail_repeat_group_info">The panel changes these as you use it, so they are also how it opens next time.</string>
+    <string name="tooldetail_repeat_count_title">Times</string>
+    <string name="tooldetail_repeat_count_subtitle">How many copies the panel opens on</string>
+    <string name="tooldetail_repeat_mode_title">Mode</string>
+    <string name="tooldetail_repeat_mode_subtitle">Copies in a row, the last letter stretched, or a staircase</string>
+    <string name="tooldetail_repeat_mode_repeat">Repeat</string>
+    <string name="tooldetail_repeat_mode_stretch">Stretch</string>
+    <string name="tooldetail_repeat_mode_stairs">Stairs</string>
+    <!-- Samples of each mode. Not translated. -->
+    <string name="tooldetail_repeat_mode_repeat_desc" translatable="false">ha ha ha ha</string>
+    <string name="tooldetail_repeat_mode_stretch_desc" translatable="false">no → nooooo</string>
+    <string name="tooldetail_repeat_mode_stairs_desc" translatable="false">ha / haha / hahaha</string>
+    <string name="tooldetail_repeat_separator_title">Between the copies</string>
+    <string name="tooldetail_repeat_separator_subtitle">Nothing, a space, a new line, a comma, or your own</string>
+    <string name="tooldetail_repeat_sep_none">None</string>
+    <string name="tooldetail_repeat_sep_space">Space</string>
+    <string name="tooldetail_repeat_sep_newline">New line</string>
+    <string name="tooldetail_repeat_sep_comma">Comma</string>
+    <string name="tooldetail_repeat_sep_custom">Custom</string>
+    <string name="tooldetail_repeat_custom_label">Custom separator</string>
+    <string name="tooldetail_repeat_custom_hint">Up to 8 characters, for example " | "</string>
+    <string name="tooldetail_repeat_numbered_title">Number each copy</string>
+    <!-- Sample of the numbering. Not translated. -->
+    <string name="tooldetail_repeat_numbered_subtitle" translatable="false">1. ha  2. ha  3. ha</string>
+    <string name="tooldetail_repeat_alternate_title">Alternate the case</string>
+    <!-- Sample of the alternation. Not translated. -->
+    <string name="tooldetail_repeat_alternate_subtitle" translatable="false">ha HA ha HA</string>
+    <string name="tooldetail_repeat_limits_group">Limits and the chip</string>
+    <string name="tooldetail_repeat_max_chars_title">Longest result</string>
+    <string name="tooldetail_repeat_max_chars_subtitle">The panel stops at the last whole copy that fits and says so</string>
+    <string name="tooldetail_repeat_chip_insert_title">When opened from the chip</string>
+    <string name="tooldetail_repeat_chip_insert_subtitle">What Insert does with the copies you had already typed</string>
+    <string name="tooldetail_repeat_chip_insert_replace">Replace them</string>
+    <string name="tooldetail_repeat_chip_insert_append">Add after them</string>
+    <string name="tooldetail_repeat_chip_insert_replace_desc">The copies you typed go, and the whole count takes their place, so the text ends with exactly that many.</string>
+    <string name="tooldetail_repeat_chip_insert_append_desc">The copies you typed stay, and the count is added after them.</string>
+    <string name="tooldetail_repeat_chip_after_title">Chip after this many repeats</string>
+    <string name="tooldetail_repeat_chip_after_subtitle">Type the same thing this many times in a row and the strip offers the tool</string>
+    <string name="tooldetail_repeat_recents_group">Recent texts</string>
+    <string name="tooldetail_repeat_recents_title">Remember recent texts</string>
+    <string name="tooldetail_repeat_recents_subtitle">The panel offers the last ten texts you repeated</string>
+    <string name="tooldetail_repeat_recents_info">Kept on this phone only, and never in a backup. Nothing is remembered in incognito mode, in password fields, or in fields that ask not to be learnt from.</string>
+    <string name="tooldetail_repeat_recents_clear_title">Clear recent texts</string>
+    <string name="tooldetail_repeat_recents_clear_action">Clear</string>
+    <plurals name="tooldetail_repeat_recents_count">
+        <item quantity="one">%d text remembered</item>
+        <item quantity="other">%d texts remembered</item>
+    </plurals>
+
     <!-- Keyboard modes tool. -->
     <string name="tooldetail_modes_group">Modes</string>
     <string name="tooldetail_modes_edit_title">Edit the keyboard modes</string>

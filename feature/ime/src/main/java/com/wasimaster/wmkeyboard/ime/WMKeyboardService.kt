@@ -524,6 +524,7 @@ import com.wasimaster.wmkeyboard.core.tools.AiThinking
 import com.wasimaster.wmkeyboard.core.tools.CryptoCatalog
 import com.wasimaster.wmkeyboard.core.tools.CurrencyClient
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
+import com.wasimaster.wmkeyboard.core.tools.TextRepeat
 import com.wasimaster.wmkeyboard.core.tools.QrCodeGen
 import com.wasimaster.wmkeyboard.core.tools.CalcEngine
 import com.wasimaster.wmkeyboard.core.tools.MediaProviders
@@ -5436,6 +5437,7 @@ open class WMKeyboardService : InputMethodService() {
                 capture = captureCallbacks,
                 reply = replyCallbacks,
                 onPwSetting = ::onPwSetting,
+                onTextRepeat = ::onTextRepeat,
                 onTypingTestAction = ::onTypingTestAction,
                 onQrSend = ::onQrSend,
                 onAiAction = ::onAiAction,
@@ -6603,6 +6605,7 @@ open class WMKeyboardService : InputMethodService() {
         if (!restarting) {
             intentChipsRetired.clear()
             contactChipsRetired.clear()
+            repeatChipsRetired.clear()
         }
         if (!restarting) {
             // Same for the vocabulary nudges — unless the cooldown is a day,
@@ -9887,6 +9890,10 @@ open class WMKeyboardService : InputMethodService() {
             // The search opens its first match (#687); a folder's name is kept (#709).
             CaptureTarget.TOOLBOX_SEARCH -> onToolboxSearchEnter()
             CaptureTarget.TOOLBOX_FOLDER_NAME -> onToolboxFolderRenameDone(keep = true)
+            // The text to repeat may run over lines; the separator box is one
+            // line, and Enter keeps it and hands the keys back.
+            CaptureTarget.REPEAT_TEXT -> captureTyped("\n")
+            CaptureTarget.REPEAT_SEPARATOR -> onTextRepeat(TextRepeatAction.Focus(null))
         }
         return true
     }
@@ -10220,6 +10227,9 @@ open class WMKeyboardService : InputMethodService() {
             }
             CaptureTarget.DICTIONARY_SEARCH -> updateQuery { it.copy(dictionaryQuery = text) }
             CaptureTarget.CLIPBOARD_SEARCH -> updateQuery { it.copy(clipboardQuery = text) }
+            CaptureTarget.REPEAT_TEXT, CaptureTarget.REPEAT_SEPARATOR -> _uiState.update {
+                it.copy(textRepeat = it.textRepeat.withFocusedText(text.take(TEXT_REPEAT_BOX_MAX)))
+            }
             else -> return false
         }
         return true
@@ -19457,9 +19467,22 @@ open class WMKeyboardService : InputMethodService() {
      */
     private val contactChipsRetired = mutableSetOf<String>()
 
+    /**
+     * Texts (lowercase) whose repeat chip this field has already shown and
+     * moved past. Same rule again: "no no no" gets one offer, and typing on
+     * past it is the answer.
+     */
+    private val repeatChipsRetired = mutableSetOf<String>()
+
     /** Records [next] replacing (or clearing) a shown intent or lookup chip. */
     private fun retireIntentChip(next: SmartSuggest.SmartHit?) {
         val prev = _uiState.value.smart ?: return
+        if (prev.kind == SmartSuggest.Kind.REPEAT) {
+            if (next == null || next.kind != prev.kind || !next.query.equals(prev.query, ignoreCase = true)) {
+                repeatChipsRetired += prev.query.lowercase(Locale.ROOT)
+            }
+            return
+        }
         if (prev.kind == SmartSuggest.Kind.VOCAB) {
             // Typed past, or another word took the chip: the same word does
             // not nudge again until the cooldown says so.
@@ -19644,6 +19667,10 @@ open class WMKeyboardService : InputMethodService() {
                 state.language,
             ),
             contacts = contactPhones.takeIf { state.settings.smartChips.contacts && !it.isEmpty },
+            repeatChips = state.settings.smartChips.repeats,
+            repeatAfter = state.settings.smartChips.repeatAfter,
+            // A copy, for the same reason as vocabRetired.
+            repeatRetired = repeatChipsRetired.toSet(),
         )
 
     private fun todayJdn(): Long = Calendar.getInstance().let {
@@ -19736,6 +19763,7 @@ open class WMKeyboardService : InputMethodService() {
             intentChipsRetired += hit.tool
         }
         if (hit.kind == SmartSuggest.Kind.VOCAB) retireVocabNudge(hit.query)
+        if (hit.kind == SmartSuggest.Kind.REPEAT) repeatChipsRetired += hit.query.lowercase(Locale.ROOT)
         chipOpenRestore = null
         val ic = currentInputConnection
         if (ic != null) {
@@ -24790,6 +24818,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.CURRENCY -> onPanelChange(PanelMode.CURRENCY)
             ToolbarTool.QR_GEN -> onPanelChange(PanelMode.QR_GEN)
             ToolbarTool.PASSWORD_GEN -> onPanelChange(PanelMode.PASSWORD_GEN)
+            ToolbarTool.TEXT_REPEAT -> onPanelChange(PanelMode.TEXT_REPEAT)
             ToolbarTool.TYPING_TEST -> onPanelChange(PanelMode.TYPING_TEST)
             // Not a panel: the levels, achievements and heatmap live on the
             // settings app's Statistics screen, and this is a shortcut to it (#390).
@@ -24904,6 +24933,9 @@ open class WMKeyboardService : InputMethodService() {
             galleryTool.onPanelClose()
             _uiState.update { it.copy(galleryText = null) }
         }
+        // Leaving Text repeat: its boxes give the keys back and the chip's run
+        // is forgotten; the text itself stays for the next visit.
+        if (_uiState.value.panel == PanelMode.TEXT_REPEAT) textRepeatLeavePanel()
         // Leaving the reply panel, by closing it or opening another: the
         // screenshot watcher goes back to what the clipboard setting says (#234).
         if (_uiState.value.panel == PanelMode.AI_REPLY) {
@@ -25129,6 +25161,7 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.FIND_REPLACE -> {
                 currentInputConnection?.let { commitComposing(it, autocorrect = false) }
             }
+            PanelMode.TEXT_REPEAT -> openTextRepeatPanel()
             PanelMode.NOTES -> openNotesPanel()
             PanelMode.LEARN_FROM_TEXT -> {
                 // The half-typed word is part of the text being read.
@@ -29495,6 +29528,247 @@ open class WMKeyboardService : InputMethodService() {
                 is PwSettingAction.IncludeDigit -> settingsRepository.setPpIncludeDigit(action.on)
             }
         }
+    }
+
+    // ---- Text repeat tool ----
+
+    /** The tool's recent texts, kept the way Find and replace keeps its searches. */
+    private val textRepeatRecents by lazy { FindHistoryPrefs(this, FindHistoryPrefs.TEXT_REPEAT_FILE) }
+
+    /** Text the selection bar's Repeat handed over, read once as the panel opens. */
+    private var textRepeatSeed: String? = null
+
+    /** The selection bar's Repeat: the panel, with the selection as the text. */
+    private fun openTextRepeatTool(seed: String) {
+        textRepeatSeed = seed
+        onPanelChange(PanelMode.TEXT_REPEAT, haptic = true)
+    }
+
+    /**
+     * The panel just opened. From its chip it takes the run the chip found:
+     * the text, the separator, a count that at least doubles the copies, and
+     * where they sit so Insert can act on them. From the selection bar it
+     * takes the selection; from the toolbar, the selection or else the word
+     * before the cursor, as a convenience the box's × undoes in one tap, and
+     * failing both whatever it held last time.
+     */
+    private fun openTextRepeatPanel() {
+        val ic = currentInputConnection
+        ic?.let { commitComposing(it, autocorrect = false) }
+        val state = _uiState.value
+        val prefill = state.toolPrefill as? ToolPrefill.TextRepeat
+        if (prefill != null) onToolPrefillConsumed()
+        val seed = textRepeatSeed.also { textRepeatSeed = null }
+        val options = state.settings.textRepeat
+        var run: TextRepeatRun? = null
+        var customSeparator = state.textRepeat.customSeparator.ifEmpty { options.customSeparator }
+        val text = when {
+            prefill != null -> {
+                val before = ic?.getTextBeforeCursor(prefill.runLength, 0)?.toString()
+                if (before != null && before.length == prefill.runLength) {
+                    run = TextRepeatRun(before, prefill.runLength, prefill.count)
+                }
+                val separator = TextRepeat.Separator.of(prefill.separator)
+                if (separator == TextRepeat.Separator.CUSTOM) customSeparator = prefill.separator
+                serviceScope.launch {
+                    settingsRepository.setTextRepeatCount(TextRepeat.countAfter(prefill.count, options.count))
+                    settingsRepository.setTextRepeatSeparator(separator)
+                    if (separator == TextRepeat.Separator.CUSTOM) {
+                        settingsRepository.setTextRepeatCustomSeparator(prefill.separator)
+                    }
+                    // The chip promised to repeat the text; a stretch or a
+                    // staircase left over from last time would do something else.
+                    if (options.mode != TextRepeat.Mode.REPEAT) settingsRepository.setTextRepeatMode(TextRepeat.Mode.REPEAT)
+                }
+                prefill.text
+            }
+            seed != null -> seed
+            else -> selectedFieldText() ?: wordBeforeCursor() ?: state.textRepeat.text
+        }
+        _uiState.update {
+            it.copy(
+                textRepeat = it.textRepeat.copy(
+                    text = text.take(TEXT_REPEAT_BOX_MAX),
+                    customSeparator = customSeparator,
+                    focused = null,
+                    run = run,
+                    lastInsert = null,
+                    recents = textRepeatRecentEntries(),
+                ),
+            )
+        }
+    }
+
+    /** Leaving the panel: the boxes give the keys back, the chip's run is forgotten, the separator is kept. */
+    private fun textRepeatLeavePanel() {
+        persistTextRepeatSeparator()
+        _uiState.update { it.copy(textRepeat = it.textRepeat.copy(focused = null, run = null)) }
+    }
+
+    /** The custom separator is typed into a box, so it lands in settings once the box is left. */
+    private fun persistTextRepeatSeparator() {
+        val value = _uiState.value.textRepeat.customSeparator
+        if (value == _uiState.value.settings.textRepeat.customSeparator) return
+        serviceScope.launch { settingsRepository.setTextRepeatCustomSeparator(value) }
+    }
+
+    /** The selection in the field, when there is one with something in it. */
+    private fun selectedFieldText(): String? {
+        if (expectedSelStart < 0 || expectedSelEnd < 0 || expectedSelStart == expectedSelEnd) return null
+        return runCatching { currentInputConnection?.getSelectedText(0)?.toString() }.getOrNull()
+            ?.takeIf { it.isNotBlank() }
+    }
+
+    /** The last word before the cursor, for a panel opened with nothing selected. */
+    private fun wordBeforeCursor(): String? {
+        val before = currentInputConnection?.getTextBeforeCursor(64, 0)?.toString() ?: return null
+        return before.trimEnd().substringAfterLast(' ').substringAfterLast('\n').takeIf { it.isNotBlank() }
+    }
+
+    private fun textRepeatRecentEntries(): List<String> =
+        if (findHistoryPaused()) emptyList() else textRepeatRecents.entries()
+
+    /** Panel controls: the options persist straight into settings, like the generator's. */
+    fun onTextRepeat(action: TextRepeatAction) {
+        when (action) {
+            is TextRepeatAction.Focus -> {
+                vibrate()
+                val leaving = _uiState.value.textRepeat.focused
+                if (leaving == TextRepeatField.SEPARATOR && action.field != leaving) persistTextRepeatSeparator()
+                _uiState.update { it.copy(textRepeat = it.textRepeat.copy(focused = action.field)) }
+            }
+            is TextRepeatAction.Clear -> {
+                vibrate()
+                _uiState.update {
+                    it.copy(
+                        textRepeat = when (action.field) {
+                            TextRepeatField.TEXT -> it.textRepeat.copy(text = "", run = null)
+                            TextRepeatField.SEPARATOR -> it.textRepeat.copy(customSeparator = "")
+                        },
+                    )
+                }
+            }
+            is TextRepeatAction.Count -> {
+                vibrate()
+                serviceScope.launch { settingsRepository.setTextRepeatCount(action.value) }
+            }
+            is TextRepeatAction.Mode -> {
+                vibrate()
+                val separator = _uiState.value.settings.textRepeat.separator
+                serviceScope.launch {
+                    settingsRepository.setTextRepeatMode(action.mode)
+                    // A staircase with nothing between its steps is one long
+                    // word; lines are what the picture needs.
+                    if (action.mode == TextRepeat.Mode.STAIRS && separator == TextRepeat.Separator.NONE) {
+                        settingsRepository.setTextRepeatSeparator(TextRepeat.Separator.NEWLINE)
+                    }
+                }
+            }
+            is TextRepeatAction.Separator -> {
+                vibrate()
+                serviceScope.launch { settingsRepository.setTextRepeatSeparator(action.separator) }
+                // Custom opens its box for typing; any preset closes it.
+                val focus = if (action.separator == TextRepeat.Separator.CUSTOM) TextRepeatField.SEPARATOR else null
+                if (focus == null) persistTextRepeatSeparator()
+                _uiState.update { it.copy(textRepeat = it.textRepeat.copy(focused = focus)) }
+            }
+            is TextRepeatAction.Numbered -> {
+                vibrate()
+                serviceScope.launch { settingsRepository.setTextRepeatNumbered(action.on) }
+            }
+            is TextRepeatAction.AlternateCase -> {
+                vibrate()
+                serviceScope.launch { settingsRepository.setTextRepeatAlternateCase(action.on) }
+            }
+            TextRepeatAction.Insert -> insertTextRepeat()
+            TextRepeatAction.Copy -> copyTextRepeat()
+            TextRepeatAction.Undo -> undoTextRepeat()
+            is TextRepeatAction.PickRecent -> {
+                vibrate()
+                _uiState.update { it.copy(textRepeat = it.textRepeat.copy(text = action.text, run = null, focused = null)) }
+            }
+            TextRepeatAction.ClearRecents -> {
+                vibrate()
+                textRepeatRecents.clear()
+                _uiState.update { it.copy(textRepeat = it.textRepeat.copy(recents = emptyList())) }
+            }
+        }
+    }
+
+    /**
+     * Writes the copies into the field. Opened from the chip, the copies the
+     * user had already typed are still there in front of the cursor: the
+     * setting says whether they go (and the whole count takes their place) or
+     * stay (and the count follows them). Either way the field is checked
+     * first — a cursor that has moved since the chip means the run is not
+     * where it was, and nothing is deleted on a guess.
+     */
+    private fun insertTextRepeat() {
+        val state = _uiState.value
+        val built = TextRepeat.build(state.textRepeatSpec())
+        if (built.text.isEmpty()) return
+        val ic = currentInputConnection ?: return
+        vibrate()
+        var output = built.text
+        ic.beginBatchEdit()
+        commitComposing(ic, autocorrect = false)
+        val run = state.textRepeat.run
+        if (run != null && ic.getTextBeforeCursor(run.length, 0)?.toString() == run.text) {
+            when (state.settings.textRepeat.chipInsert) {
+                TextRepeat.ChipInsert.REPLACE_RUN -> {
+                    // finishComposingText first: with a live composing region
+                    // BaseInputConnection deletes around it rather than through it.
+                    ic.finishComposingText()
+                    ic.deleteSurroundingText(run.length, 0)
+                }
+                TextRepeat.ChipInsert.APPEND -> {
+                    val separator = state.textRepeatSpec().separatorText
+                    if (separator.isNotEmpty() && !run.text.endsWith(separator)) output = separator + output
+                }
+            }
+        }
+        ic.commitText(output, 1)
+        ic.endBatchEdit()
+        // The copies are themselves a run, and the chip must not come straight
+        // back over them when the panel closes.
+        smartMutedAfter = ic.getTextBeforeCursor(SmartSuggest.LOOKBEHIND, 0)?.toString()
+        repeatChipsRetired += state.textRepeat.text.lowercase(Locale.ROOT)
+        val recents = if (findHistoryPaused()) emptyList() else textRepeatRecents.record(state.textRepeat.text)
+        _uiState.update {
+            it.copy(
+                textRepeat = it.textRepeat.copy(
+                    run = null,
+                    lastInsert = output,
+                    recents = recents,
+                    insertTick = it.textRepeat.insertTick + 1,
+                ),
+            )
+        }
+    }
+
+    /** Takes the last Insert back, as long as the field still ends with it. */
+    private fun undoTextRepeat() {
+        val last = _uiState.value.textRepeat.lastInsert ?: return
+        val ic = currentInputConnection ?: return
+        if (ic.getTextBeforeCursor(last.length, 0)?.toString() != last) {
+            // Edited since: there is nothing safe to take back.
+            _uiState.update { it.copy(textRepeat = it.textRepeat.copy(lastInsert = null)) }
+            return
+        }
+        vibrate()
+        ic.beginBatchEdit()
+        ic.finishComposingText()
+        ic.deleteSurroundingText(last.length, 0)
+        ic.endBatchEdit()
+        _uiState.update { it.copy(textRepeat = it.textRepeat.copy(lastInsert = null)) }
+    }
+
+    private fun copyTextRepeat() {
+        val built = TextRepeat.build(_uiState.value.textRepeatSpec())
+        if (built.text.isEmpty()) return
+        vibrate()
+        KeyboardClipboard.copy(this, built.text, "Text repeat")
+        toast(R.string.ime_repeat_copied_toast)
     }
 
     /**
@@ -37455,6 +37729,7 @@ open class WMKeyboardService : InputMethodService() {
         SelectionMacro.GRAMMAR_FIX -> ToolbarTool.GRAMMAR in settings.enabledTools
         SelectionMacro.AI -> ToolbarTool.AI in settings.enabledTools
         SelectionMacro.SAVE_NOTE -> ToolbarTool.NOTES in settings.enabledTools
+        SelectionMacro.REPEAT -> ToolbarTool.TEXT_REPEAT in settings.enabledTools
         else -> true
     }
 
@@ -37525,6 +37800,7 @@ open class WMKeyboardService : InputMethodService() {
                 chooser = true,
             )
             SelectionMacro.SAVE_NOTE -> saveSelectionAsNote(text)
+            SelectionMacro.REPEAT -> openTextRepeatTool(seed = text)
             SelectionMacro.FORMAT -> SelectionMacros.format(text, offer.kind, masks)?.let(::rewriteSelection)
             SelectionMacro.CASE_LOWER, SelectionMacro.CASE_TITLE, SelectionMacro.CASE_UPPER, SelectionMacro.CASE_SENTENCE,
             SelectionMacro.CASE_CAMEL, SelectionMacro.CASE_SNAKE, SelectionMacro.CASE_KEBAB, SelectionMacro.CASE_CONSTANT ->
@@ -44383,6 +44659,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** The KDE Connect panel's address box: an IPv6 literal with a zone, or a host name, and no more. */
         private const val KDE_HOST_MAX = 64
+
+        /** The Text repeat panel's boxes; the output limit is the one that matters. */
+        private const val TEXT_REPEAT_BOX_MAX = TextRepeat.MAX_TEXT_LENGTH
 
         /**
          * Packages that host input fields on behalf of other apps — in

@@ -16,14 +16,17 @@ import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
  *
  * The settings app reads and writes it too (the tool's page has the switch and
  * the Clear row), so every call opens the file afresh instead of caching it.
+ *
+ * The Text repeat tool keeps its recent texts the same way, in a file of its
+ * own ([TEXT_REPEAT_FILE]): same shape, same privacy rules, a different list.
  */
-class FindHistoryPrefs(context: Context) {
+class FindHistoryPrefs(context: Context, private val fileName: String = FILE_NAME) {
 
     private val context = context.applicationContext
 
     private fun prefs() = context
         .takeIf { DirectBoot.isUserUnlocked(it) }
-        ?.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE)
+        ?.getSharedPreferences(fileName, Context.MODE_PRIVATE)
 
     /** Whether searches are remembered at all. On unless the user turned it off. */
     var enabled: Boolean
@@ -56,6 +59,9 @@ class FindHistoryPrefs(context: Context) {
 
     companion object {
         private const val FILE_NAME = "find_history"
+
+        /** The Text repeat tool's recent texts. */
+        const val TEXT_REPEAT_FILE = "text_repeat_recents"
         private const val KEY_ENABLED = "enabled"
         private const val KEY_ENTRIES = "entries"
 

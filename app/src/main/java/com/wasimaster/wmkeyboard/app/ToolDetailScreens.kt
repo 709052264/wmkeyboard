@@ -42,6 +42,7 @@ import com.wasimaster.wmkeyboard.core.tools.ReplyEmoji
 import com.wasimaster.wmkeyboard.core.tools.ReplyImageMode
 import com.wasimaster.wmkeyboard.core.tools.ReplyLength
 import com.wasimaster.wmkeyboard.core.tools.CryptoCatalog
+import com.wasimaster.wmkeyboard.core.tools.TextRepeat
 import com.wasimaster.wmkeyboard.core.tools.CurrencyLabel
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
@@ -3158,6 +3159,7 @@ internal fun ToolDetailSettings(
                 }
             }
         }
+        ToolbarTool.TEXT_REPEAT -> TextRepeatToolSettings(repository, settings)
         ToolbarTool.TYPING_TEST -> TypingTestToolSettings(repository, settings)
         ToolbarTool.AI -> AiToolSettings(repository, settings, onNavigate)
         ToolbarTool.AI_REPLY -> AiReplyToolSettings(repository, settings, onNavigate)
@@ -3269,6 +3271,179 @@ private fun CryptoCoinPicker(repository: SettingsRepository, settings: LiveSetti
  * chip row edits — this screen is the slower way round to them, plus the
  * records the panel only shows one config of at a time.
  */
+/**
+ * The Text repeat tool's options. The panel edits most of them live, so they
+ * are also where it was last left. The recent texts live in their own file
+ * (see FindHistoryPrefs), read and written here directly like Find's history.
+ */
+@Composable
+private fun TextRepeatToolSettings(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    val numberFormat = stringResource(R.string.values_number)
+    // What decides which rows the groups hold; each row reads its own value.
+    val mode = settings.watch { it.textRepeat.mode }
+    val separator = settings.watch { it.textRepeat.separator }
+    val hasCopies = mode != TextRepeat.Mode.STRETCH
+    SettingsGroup(
+        stringResource(R.string.tooldetail_repeat_group),
+        info = stringResource(R.string.tooldetail_repeat_group_info),
+    ) {
+        item {
+            SliderSetting(
+                R.string.tooldetail_repeat_count_title,
+                subtitle = stringResource(R.string.tooldetail_repeat_count_subtitle),
+                value = settings.watch { it.textRepeat.count }.toFloat(),
+                range = TextRepeat.MIN_COUNT.toFloat()..TextRepeat.MAX_COUNT.toFloat(),
+                display = { numberFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.textRepeat.count.toFloat(),
+            ) { scope.launch { repository.setTextRepeatCount(it.roundToInt()) } }
+        }
+        item {
+            ChoiceSetting(
+                R.string.tooldetail_repeat_mode_title,
+                subtitle = stringResource(R.string.tooldetail_repeat_mode_subtitle),
+                options = listOf(
+                    TextRepeat.Mode.REPEAT to stringResource(R.string.tooldetail_repeat_mode_repeat),
+                    TextRepeat.Mode.STRETCH to stringResource(R.string.tooldetail_repeat_mode_stretch),
+                    TextRepeat.Mode.STAIRS to stringResource(R.string.tooldetail_repeat_mode_stairs),
+                ),
+                selected = mode,
+                default = SettingsDefaults.textRepeat.mode,
+                detail = { candidate ->
+                    ChoiceDetail(
+                        stringResource(
+                            when (candidate) {
+                                TextRepeat.Mode.REPEAT -> R.string.tooldetail_repeat_mode_repeat_desc
+                                TextRepeat.Mode.STRETCH -> R.string.tooldetail_repeat_mode_stretch_desc
+                                TextRepeat.Mode.STAIRS -> R.string.tooldetail_repeat_mode_stairs_desc
+                            },
+                        ),
+                    )
+                },
+            ) { scope.launch { repository.setTextRepeatMode(it) } }
+        }
+        item(visible = hasCopies) {
+            ChoiceSetting(
+                R.string.tooldetail_repeat_separator_title,
+                subtitle = stringResource(R.string.tooldetail_repeat_separator_subtitle),
+                options = listOf(
+                    TextRepeat.Separator.NONE to stringResource(R.string.tooldetail_repeat_sep_none),
+                    TextRepeat.Separator.SPACE to stringResource(R.string.tooldetail_repeat_sep_space),
+                    TextRepeat.Separator.NEWLINE to stringResource(R.string.tooldetail_repeat_sep_newline),
+                    TextRepeat.Separator.COMMA to stringResource(R.string.tooldetail_repeat_sep_comma),
+                    TextRepeat.Separator.CUSTOM to stringResource(R.string.tooldetail_repeat_sep_custom),
+                ),
+                selected = separator,
+                default = SettingsDefaults.textRepeat.separator,
+            ) { scope.launch { repository.setTextRepeatSeparator(it) } }
+        }
+        item(visible = hasCopies && separator == TextRepeat.Separator.CUSTOM) {
+            TextFieldSetting(
+                label = stringResource(R.string.tooldetail_repeat_custom_label),
+                value = settings.watch { it.textRepeat.customSeparator },
+                hint = stringResource(R.string.tooldetail_repeat_custom_hint),
+                default = SettingsDefaults.textRepeat.customSeparator,
+            ) { repository.setTextRepeatCustomSeparator(it) }
+        }
+        item(visible = hasCopies) {
+            ToggleSetting(
+                R.string.tooldetail_repeat_numbered_title,
+                stringResource(R.string.tooldetail_repeat_numbered_subtitle),
+                settings.watch { it.textRepeat.numbered },
+                default = SettingsDefaults.textRepeat.numbered,
+            ) { scope.launch { repository.setTextRepeatNumbered(it) } }
+        }
+        item(visible = hasCopies) {
+            ToggleSetting(
+                R.string.tooldetail_repeat_alternate_title,
+                stringResource(R.string.tooldetail_repeat_alternate_subtitle),
+                settings.watch { it.textRepeat.alternateCase },
+                default = SettingsDefaults.textRepeat.alternateCase,
+            ) { scope.launch { repository.setTextRepeatAlternateCase(it) } }
+        }
+    }
+    SettingsGroup(stringResource(R.string.tooldetail_repeat_limits_group)) {
+        item {
+            SliderSetting(
+                R.string.tooldetail_repeat_max_chars_title,
+                subtitle = stringResource(R.string.tooldetail_repeat_max_chars_subtitle),
+                value = settings.watch { it.toolLimits.textRepeatMaxChars }.toFloat(),
+                range = TextRepeat.MIN_MAX_CHARS.toFloat()..TextRepeat.MAX_MAX_CHARS.toFloat(),
+                display = { numberFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.toolLimits.textRepeatMaxChars.toFloat(),
+            ) { scope.launch { repository.setTextRepeatMaxChars(it.roundToInt()) } }
+        }
+        item {
+            ChoiceSetting(
+                R.string.tooldetail_repeat_chip_insert_title,
+                subtitle = stringResource(R.string.tooldetail_repeat_chip_insert_subtitle),
+                options = listOf(
+                    TextRepeat.ChipInsert.REPLACE_RUN to stringResource(R.string.tooldetail_repeat_chip_insert_replace),
+                    TextRepeat.ChipInsert.APPEND to stringResource(R.string.tooldetail_repeat_chip_insert_append),
+                ),
+                selected = settings.watch { it.textRepeat.chipInsert },
+                default = SettingsDefaults.textRepeat.chipInsert,
+                detail = { candidate ->
+                    ChoiceDetail(
+                        stringResource(
+                            when (candidate) {
+                                TextRepeat.ChipInsert.REPLACE_RUN -> R.string.tooldetail_repeat_chip_insert_replace_desc
+                                TextRepeat.ChipInsert.APPEND -> R.string.tooldetail_repeat_chip_insert_append_desc
+                            },
+                        ),
+                    )
+                },
+            ) { scope.launch { repository.setTextRepeatChipInsert(it) } }
+        }
+        // The same row as Typing → Smart chips; the chip is this tool's door.
+        item {
+            StepperSetting(
+                R.string.tooldetail_repeat_chip_after_title,
+                stringResource(R.string.tooldetail_repeat_chip_after_subtitle),
+                value = settings.watch { it.smartChips.repeatAfter },
+                range = (TextRepeat.MIN_REPEAT_AFTER..TextRepeat.MAX_REPEAT_AFTER).toList(),
+                display = { numberFormat.format(it) },
+                default = SettingsDefaults.smartChips.repeatAfter,
+            ) { scope.launch { repository.setSmartChipRepeatAfter(it) } }
+        }
+    }
+    val recentsContext = LocalContext.current
+    val recents = remember {
+        com.wasimaster.wmkeyboard.ime.FindHistoryPrefs(
+            recentsContext,
+            com.wasimaster.wmkeyboard.ime.FindHistoryPrefs.TEXT_REPEAT_FILE,
+        )
+    }
+    var remembering by remember { mutableStateOf(recents.enabled) }
+    var count by remember { mutableStateOf(recents.entries().size) }
+    SettingsGroup(stringResource(R.string.tooldetail_repeat_recents_group)) {
+        item {
+            ToggleSetting(
+                R.string.tooldetail_repeat_recents_title,
+                stringResource(R.string.tooldetail_repeat_recents_subtitle),
+                remembering,
+                info = stringResource(R.string.tooldetail_repeat_recents_info),
+                default = true,
+            ) {
+                recents.enabled = it
+                remembering = it
+                count = recents.entries().size
+            }
+        }
+        item(visible = remembering) {
+            ActionRow(
+                R.string.tooldetail_repeat_recents_clear_title,
+                subtitle = pluralStringResource(R.plurals.tooldetail_repeat_recents_count, count, count),
+                action = stringResource(R.string.tooldetail_repeat_recents_clear_action),
+                enabled = count > 0,
+            ) {
+                recents.clear()
+                count = 0
+            }
+        }
+    }
+}
+
 @Composable
 private fun TypingTestToolSettings(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()

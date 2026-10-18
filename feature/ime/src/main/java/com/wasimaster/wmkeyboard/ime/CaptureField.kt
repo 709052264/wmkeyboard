@@ -401,6 +401,12 @@ enum class CaptureTarget(
 
     /** A toolbox folder's name (#709): one line, Enter keeps it. */
     TOOLBOX_FOLDER_NAME(takesWords = true),
+
+    /** The Text repeat panel's text: free text, newlines and all, like [CLIP_EDIT]. */
+    REPEAT_TEXT(takesWords = true),
+
+    /** The Text repeat panel's custom separator: punctuation and spaces, not words. */
+    REPEAT_SEPARATOR(takesWords = false),
     ;
 
     /**

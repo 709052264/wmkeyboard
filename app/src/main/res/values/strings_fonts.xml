@@ -64,6 +64,7 @@
     <string name="fonts_tool_currency_title">Currency converter</string>
     <string name="fonts_tool_qr_gen_title">QR code generator</string>
     <string name="fonts_tool_password_gen_title">Password generator</string>
+    <string name="fonts_tool_text_repeat_title">Text repeat</string>
     <string name="fonts_tool_typing_test_title">Typing speed test</string>
     <string name="fonts_tool_media_control_title">Media controls</string>
     <string name="fonts_tool_app_launcher_title">App launcher</string>
@@ -136,6 +137,7 @@
     <string name="fonts_tool_currency_desc">Live exchange rates from free APIs. You do not need an API key</string>
     <string name="fonts_tool_qr_gen_desc">Turn the text in the field into a QR code and send it as an image</string>
     <string name="fonts_tool_password_gen_desc">The app makes strong passwords and passphrases on your device</string>
+    <string name="fonts_tool_text_repeat_desc">Write a piece of text many times over: in a row, as a numbered list, or with its last letter stretched</string>
     <string name="fonts_tool_typing_test_desc">Time your typing on this keyboard and keep a record of your best scores</string>
     <string name="fonts_tool_statistics_desc">Open your typing statistics: your level, achievements and where you tap</string>
     <string name="fonts_tool_kde_connect_desc">Use a paired computer from the keyboard: its mouse, keys, media, clipboard and files. The computer can type into the phone too</string>

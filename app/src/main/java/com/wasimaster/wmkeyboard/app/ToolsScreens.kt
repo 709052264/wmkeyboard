@@ -141,6 +141,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CURRENCY -> R.string.fonts_tool_currency_title
     ToolbarTool.QR_GEN -> R.string.fonts_tool_qr_gen_title
     ToolbarTool.PASSWORD_GEN -> R.string.fonts_tool_password_gen_title
+    ToolbarTool.TEXT_REPEAT -> R.string.fonts_tool_text_repeat_title
     ToolbarTool.TYPING_TEST -> R.string.fonts_tool_typing_test_title
     ToolbarTool.MEDIA_CONTROL -> R.string.fonts_tool_media_control_title
     ToolbarTool.KDE_CONNECT -> ImeR.string.ime_tool_kde_connect
@@ -230,6 +231,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CURRENCY -> R.string.fonts_tool_currency_desc
     ToolbarTool.QR_GEN -> R.string.fonts_tool_qr_gen_desc
     ToolbarTool.PASSWORD_GEN -> R.string.fonts_tool_password_gen_desc
+    ToolbarTool.TEXT_REPEAT -> R.string.fonts_tool_text_repeat_desc
     ToolbarTool.TYPING_TEST -> R.string.fonts_tool_typing_test_desc
     ToolbarTool.MEDIA_CONTROL -> R.string.fonts_tool_media_control_desc
     ToolbarTool.KDE_CONNECT -> R.string.fonts_tool_kde_connect_desc
@@ -576,7 +578,7 @@ internal val ToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildList {
     add(
         R.string.tools_group_create_title to listOf(
             ToolbarTool.SYMBOLS, ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT,
-            ToolbarTool.QR_GEN, ToolbarTool.PASSWORD_GEN, ToolbarTool.TYPING_TEST,
+            ToolbarTool.QR_GEN, ToolbarTool.PASSWORD_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.TYPING_TEST,
         ),
     )
     add(

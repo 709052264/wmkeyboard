@@ -100,6 +100,22 @@ A contact with several numbers is offered on the one you've marked as default in
 
 The switch is **off** by default because it reads your address book. Turning it on asks for the contacts permission, after a screen explaining what's read. Names and numbers are held in memory only while the keyboard runs, are never written to a file, and never leave the phone. The chip doesn't show in password fields, or anywhere the strip is switched off.
 
+## Repeated text
+
+<SettingsPath path="Typing / Smart chips / Repeated text" />
+
+Type the same thing a few times in a row, `no no no`, `ok` on three lines, `hahaha`, and a narrow chip reads **Repeat "no"** with a small **×3** beside it. Keep typing the same word and the number ticks up instead of the chip reappearing. Tap the chip and the [Text repeat](/tools/utilities/#repeating-text) tool opens on that text, with the same separator you used and a count ready that at least doubles what you typed (three becomes ten). The copies you typed stay in the field until you press **Insert** there. What Insert does with them is the tool's own setting: by default it takes them out and writes the whole count in their place, so the field ends with exactly that many; **Add after them** leaves them and writes the count after, with the separator between.
+
+What counts as a run:
+
+- **The same text, three times or more, ending at the cursor.** The number is a setting, 2 to 6. One trailing space or line break is fine, since a finished word usually has one; type anything else and the chip moves on.
+- **With a space, a comma or a new line between** any text counts, a single letter or emoji included: `a a a`, `5, 5, 5`, `😂 😂 😂`.
+- **With nothing between** the text has to be at least two characters and not itself a repetition: `hahaha` and `lollollol` fire, `!!!!!!`, `aaaaaa` and `😂😂😂` don't. A stretched letter or a doubled emoji is a message, not a request, and the tool's Stretch mode is a tap away.
+- **The shortest reading wins**, so `no no no no` is four of `no`, never two of `no no`.
+- **It has to start at the beginning of the text or after a space**: `xhahaha` is not a run.
+
+Like the other hints, each text gets one chip per field: type past it and `no` won't come up again until you're in another box. A keyword chip beats it (`wiki wiki wiki` still opens Wikipedia), and it beats a contact's name typed three times. The chip stays off in password fields and while the Text repeat tool is disabled.
+
 ## Pulling fragments out of your clipboard
 
 Open the [Clipboard](/tools/clipboard/) tool and a row of dashed-outline chips sits above the grid of copied items. It surfaces one-time codes, phone numbers, and links found buried inside your clipboard history, not only in your latest copy. The scan covers your recent clips, sorts codes before phone numbers before links, and shows up to a dozen chips at once. Long-press a chip to see the fragment highlighted inside the clip it came from. Tap it to paste only that fragment, leaving the full clip in history untouched.
@@ -130,6 +146,7 @@ Each detector has guards against the shapes of text that look like a trigger but
 - **`try`** in lowercase reads as the English verb, not Turkish lira. Type `TRY` in capitals to convert it.
 - Short unit abbreviations (`c`, `f`, `in`, `s`, `k`, and others) only count glued to the number, so "meet me in 5" or "about 30 c out" stay quiet.
 - **Long numbers** are only offered grouped when they read as a quantity. The run needs five digits at least and fifteen at most, and a leading zero rules it out, since that marks a phone number, an account or a PIN. It also has to stand on its own: anything joined to a letter, a `.`, `-`, `/`, `:`, `#` or `+` on its left is a version, a date, a ratio or an identifier, and a number that already carries separators is left as it is. Currency, unit and calculation chips all win over it, because a number that means something is worth more than a number that is merely long. And it stays out of fields that ask for a number at all, such as an amount box, a card form or a PIN, since those want the digits they asked for.
+- **Repeated text** needs three copies (or whatever the setting says) ending right at the cursor, and never reads a single stretched letter or a doubled emoji as a run. See [Repeated text](#repeated-text).
 - Unpunctuated digit runs longer than 11 digits aren't treated as phone numbers unless they start with `+`. That shape rule is what stands in for knowing where you live, so it steps aside once you've listed your own [phone formats](/reference/settings/phone-formats/) and the masks decide the length instead.
 
 ## Options
@@ -140,7 +157,7 @@ Each detector has guards against the shapes of text that look like a trigger but
   <Shot id="smart/options" alt="Smart chips settings under Typing: master switch and the four per-family toggles." />
 </PhoneFrame>
 
-- **Smart chips**: the master switch, default **on**. Turn it off and all eleven chip families below go at once.
+- **Smart chips**: the master switch, default **on**. Turn it off and all twelve chip families below go at once.
 - **Calculate as you type**: default **on**.
 - **Convert currencies**: default **on**.
 - **Convert units**: default **on**.
@@ -153,6 +170,8 @@ Each detector has guards against the shapes of text that look like a trigger but
 - **Group long numbers**: default **on**.
 - **Grouping style**: **Automatic**, **Thousands** or **Lakh and crore**, default **Automatic**, which follows the language you're typing in.
 - **Call or text a contact**: default **off**. Needs the contacts permission. See [Calling or texting a contact](#calling-or-texting-a-contact).
+- **Repeated text**: default **on**. See [Repeated text](#repeated-text).
+- **Chip after this many repeats**: 2 to 6, default **3**. Shown while Repeated text is on; the same row lives on the Text repeat tool's page.
 - **Keep the text when a chip opens its tool**: default **off**. Leaves the typed amount, sum or tool keyword in place when the gear opens the tool.
 
 Each tool's own page (Calculator, Unit converter, Currency converter) links back here with a **Suggestion chip** row that shows whether its chip is on. The switches themselves live only under Smart chips.
