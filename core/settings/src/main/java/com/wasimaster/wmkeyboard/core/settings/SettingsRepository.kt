@@ -14407,14 +14407,16 @@ class SettingsRepository(private val context: Context) {
             val current = prefs[CUSTOM_LAYOUTS]?.let { LayoutCodec.decodeList(it) }.orEmpty()
             prefs[CUSTOM_LAYOUTS] = LayoutCodec.encodeList(current.filter { it.id != id })
             if (isShippedLayoutId(id)) return@editPrefs
-            prefs[ENABLED_LAYOUT_IDS]?.let { stored ->
-                val kept = stored.split(',')
+            val kept = prefs[ENABLED_LAYOUT_IDS]?.let { stored ->
+                stored.split(',')
                     .filter { it.isNotEmpty() && it != id }
                     .ifEmpty { listOf(BuiltInLayouts.DEFAULT_ID) }
-                prefs[ENABLED_LAYOUT_IDS] = kept.joinToString(",")
+                    .also { prefs[ENABLED_LAYOUT_IDS] = it.joinToString(",") }
             }
+            // The first stop left in the cycle, like [setEnabledLayoutIds]:
+            // the built-in default may be a layout the user removed (#783).
             if (prefs[ACTIVE_LAYOUT_ID] == id) {
-                prefs[ACTIVE_LAYOUT_ID] = BuiltInLayouts.DEFAULT_ID
+                prefs[ACTIVE_LAYOUT_ID] = kept?.first() ?: BuiltInLayouts.DEFAULT_ID
             }
         }
 

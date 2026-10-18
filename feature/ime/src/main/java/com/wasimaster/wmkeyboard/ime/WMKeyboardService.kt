@@ -6746,13 +6746,17 @@ open class WMKeyboardService : InputMethodService() {
         // FORCE_ASCII is a hard constraint (the app cannot store what a Bengali
         // mode types) so it outranks a hintLocales preference, which is only ever
         // advisory. Both are compared against — and fall back to — that base.
+        // Neither ever reaches outside the enabled list: with no Latin layout
+        // enabled a FORCE_ASCII field used to open on the built-in English one,
+        // which a user who removed English then met in every field that set
+        // the flag (#783).
         val current = base ?: _uiState.value.settings
         val baseSpec = resolveLayout(current.customLayouts, baseLayoutId(current))
         fieldLayoutOverride = when {
             info.forcesAscii() && baseSpec.script().id != ScriptId.LATIN ->
                 current.enabledLayoutIds.firstOrNull {
                     resolveLayout(current.customLayouts, it).script().id == ScriptId.LATIN
-                } ?: BuiltInLayouts.DEFAULT_ID
+                }
             // hintLocales names a language, not a layout, so it picks the first
             // enabled layout that types that language.
             else -> info.hintedLanguage(current.enabledLanguages)
@@ -14371,10 +14375,17 @@ open class WMKeyboardService : InputMethodService() {
         return pending
     }
 
-    /** [baseLayoutId] as the settings alone see it, before any pending pick. */
+    /**
+     * [baseLayoutId] as the settings alone see it, before any pending pick.
+     *
+     * A remembered id has to still be one of the enabled layouts, not merely
+     * exist: built-ins never stop existing, so an app last typed in English
+     * kept reopening on English after English was removed from the list (#783).
+     */
     private fun storedLayoutId(settings: KeyboardSettings): String {
         if (!settings.perAppLanguage.enabled) return settings.activeLayoutId
         val remembered = settings.perAppLanguage.layoutByPackage[currentPackage]
+            ?.takeIf { id -> id in settings.enabledLayoutIds }
             ?.takeIf { id -> resolveLayout(settings.customLayouts, id).id == id }
         return remembered ?: settings.activeLayoutId
     }
@@ -14931,11 +14942,17 @@ open class WMKeyboardService : InputMethodService() {
      * Guarded against the echo from [mirrorSubtypeToOs] — when we are already on
      * that layout there is nothing to do, which also stops the in-app→OS→in-app
      * loop.
+     *
+     * Only a layout that is still enabled is followed. The framework remembers
+     * the last selected subtype across our re-registrations and hands it back
+     * when the keyboard starts, so a layout the user has since removed (English,
+     * typically, the one onboarding started on) came back on every field (#783).
      */
     override fun onCurrentInputMethodSubtypeChanged(newSubtype: InputMethodSubtype) {
         super.onCurrentInputMethodSubtypeChanged(newSubtype)
-        if (!_uiState.value.settings.osLanguageSwitcher) return
-        val layoutId = layoutIdOf(newSubtype) ?: return
+        val settings = _uiState.value.settings
+        if (!settings.osLanguageSwitcher) return
+        val layoutId = layoutIdOf(newSubtype)?.takeIf { it in settings.enabledLayoutIds } ?: return
         if (layoutId != _uiState.value.layoutId) onLayoutSelected(layoutId)
     }
 
