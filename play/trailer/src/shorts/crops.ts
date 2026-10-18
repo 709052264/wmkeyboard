@@ -17,6 +17,19 @@ export const CLIP_CROP_TOP: Record<string, number> = {
   "shorts/clips/s09-themes.mp4": CHROME_TOP, // Themes tool over the chat canvas
   "shorts/clips/s11-langs.mp4": CHROME_TOP,
   "shorts/clips/s15-undo.mp4": CHROME_TOP,
+  "shorts/clips/s16-otp.mp4": CHROME_TOP,
+  "shorts/clips/s17-hindi.mp4": CHROME_TOP,
+  "shorts/clips/s18-snippets.mp4": CHROME_TOP,
+  "shorts/clips/s19-flick.mp4": CHROME_TOP,
+  "shorts/clips/s20-translate.mp4": CHROME_TOP,
+  "shorts/clips/s22-dictionary.mp4": CHROME_TOP,
+  "shorts/clips/s23-glide.mp4": CHROME_TOP,
+  "shorts/clips/s24-korean.mp4": CHROME_TOP,
+  "shorts/clips/s25-rotate.mp4": CHROME_TOP,
+  "shorts/clips/s26-scan.mp4": CHROME_TOP,
+  "shorts/clips/s27-wordcard.mp4": CHROME_TOP,
+  "shorts/clips/s28-pinyin.mp4": CHROME_TOP,
+  "shorts/clips/s30-emoji.mp4": CHROME_TOP,
 };
 
 // First source row that may show: never above the status bar's end.

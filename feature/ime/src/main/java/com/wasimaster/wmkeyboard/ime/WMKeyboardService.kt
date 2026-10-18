@@ -7793,11 +7793,15 @@ open class WMKeyboardService : InputMethodService() {
         windowOnScreen = true
         syncSummonButton()
         // A tool the floating button asked for while the keyboard was down,
-        // now that there is a keyboard for its panel (#755).
+        // now that there is a keyboard for its panel (#755). Posted, not run
+        // here: serviceScope is Main.immediate, and run in place the panel it
+        // opened was closed again a few lines on by startInputView's "a panel
+        // dies with the field", so emoji, clipboard and voice brought up a
+        // bare keyboard.
         floatingPendingTool?.let { tool ->
             floatingPendingTool = null
             if (arriving && SystemClock.uptimeMillis() - floatingPendingAt < FLOATING_TOOL_WAIT_MS) {
-                serviceScope.launch { runToolFromKey(tool) }
+                serviceScope.launch(Dispatchers.Main) { runToolFromKey(tool) }
             }
         }
         // Held up over the settings app with no field there (pinned or

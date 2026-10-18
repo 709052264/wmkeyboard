@@ -189,3 +189,118 @@ or voice run last, so the bulk of the footage is done before you're pulled in.
 Before every session: DND on, demo-mode status bar (`play/capture.sh`), screen timeout raised,
 `DocsShotActivity mode=chat` as the canvas. Never force-stop the app: that kills wireless adb.
 Progress is tracked in `tracker.md`.
+
+---
+
+## Batch 2 (days 16–30)
+
+Drafted 2026-10-18 while the user was away from the laptop; claims checked against `FEATURES.md`.
+Not yet approved: the hands-free days are filmed first so footage exists to judge, and any script
+can still change.
+
+### Day 16 · #49 · OTP code chip · V · 18 s
+**Hook:** "Stop copying codes out of your notifications."
+**VO:** A sign-in code arrives. Normally you pull down the shade, copy it, come back, paste. Here
+the code is already waiting in the suggestion strip. One tap and you're in. The code is never
+saved anywhere, and it expires after three minutes.
+**Shots:** adb. Turn on "One-time codes from notifications" (off by default) and grant notification
+access if it isn't granted. Post a fake code with `cmd notification post` ("482913 is your
+verification code"); the canvas needs a number field (chip is number-fields-only by default).
+Zoom in on the chip. Restore the setting afterwards.
+
+### Day 17 · #18 · Hindi phonetic · H · 14 s
+**Hook:** "POV: you think in Hindi but type in English letters"
+**Beats:** Hindi phonetic layout · `kal milte hain` → कल मिलते हैं · `kya haal hai` → क्या हाल है ·
+zoom in on the strip · "Type Hinglish, send Hindi." · end card.
+**Shots:** adb `input text` (works for Hindi phonetic). Add the layout for the take, remove after.
+
+### Day 18 · #50 · Snippets / text expansion · T · 15 s
+**Hook:** "Typing your address again?"
+**Beats:** type `@addr` + space → a full fake address expands · `@date` → today's date ·
+backspace once → the trigger comes back ("Backspace undoes it") · "Type less." · end card.
+**Shots:** adb. Create two demo snippets in Settings › Snippets with fake data, delete after.
+
+### Day 19 · #19 · Japanese flick · T · 15 s
+**Hook:** "How Japan types."
+**Beats:** the 12-key kana pad, flicks drawing the 3×3 cross popup · `またあした` building up ·
+conversion strip offers 又明日 / また明日 · "Flick keys, with the arms drawn on the face." · end card.
+**Shots:** **you** for the flicks (adb swipes may work for single flicks: try first).
+
+### Day 20 · #51 · Translator · T · 15 s
+**Hook:** "Reply in a language you don't speak."
+**Beats:** friend writes in Spanish · open Translate tool · type "see you at eight, I'll bring
+snacks" → Spanish appears live · Insert → send · "63 languages. Without leaving the chat." · end card.
+**Shots:** adb.
+
+### Day 21 · #30 · Theme editor colours · V · 20 s
+**Hook:** "Make it yours. Every colour."
+**VO:** Every colour on this keyboard is yours to change: keys, text, the enter key, even the glide
+trail. Pick one seed colour and the whole palette rebuilds around it. The preview on top shows the
+real keyboard as you go.
+**Shots:** adb. Theme editor on a test theme: tap seed swatches (palette rebuilds), open a key
+colour, drag hue, hex field. Delete the test theme after.
+
+### Day 22 · #52 · Dictionary · T · 12 s
+**Hook:** "What does that word even mean?"
+**Beats:** friend uses "ephemeral" · double-tap/select it in the reply or type it · Dictionary tool
+shows definition, IPA, play button, synonym chips · tap a synonym → it looks that up · end card.
+**Shots:** adb.
+
+### Day 23 · #8 · Gliding very long words · H · 12 s
+**Hook:** "Can it glide 'internationalization'?"
+**Beats:** one stroke each: `internationalization`, `incomprehensible`, `responsibilities` ·
+"Yes." · end card.
+**Shots:** **you** (adb can't glide).
+
+### Day 24 · #20 · Korean Cheonjiin / Naratgeul · T · 15 s
+**Hook:** "Korean on 12 keys."
+**Beats:** 천지인 pad: ㅣ ㆍ ㅡ strokes folding into vowels, `안녕` building · switch to 나랏글:
+획추가 turning 로 into 롭 · "Both Samsung-style pads. Built in." · end card.
+**Shots:** adb taps (Korean needs key taps, not `input text`); add the layouts, remove after.
+
+### Day 25 · #32 · Rotating backgrounds · T · 14 s
+**Hook:** "A new keyboard every morning."
+**Beats:** rotation set to Daily · Shuffle tapped three times, a new photo each time, keys
+recolouring to match · "Your keyboard, never the same twice." · end card.
+**Shots:** adb. Let the pool fill first (batch 1 shuffle failed while fetching). Rotation off after.
+
+### Day 26 · #53 · Scanner / OCR · H · 14 s
+**Hook:** "Typing what's on paper? Don't."
+**Beats:** Text scan over a printed page or receipt · words appear as chips · deselect a line ·
+Insert → text lands in the chat · "On-device. 100+ languages." · end card.
+**Shots:** **you** to point the camera (adb can drive the taps).
+
+### Day 27 · #10 · Personal learning + word card · V · 20 s
+**Hook:** "It learns how you actually talk."
+**VO:** Type a word the dictionary doesn't know, and WM Keyboard learns it. Hold any suggestion to
+see where it came from: every list it's in and its rank. Change the spelling, pin the capitals, or
+tell it never to suggest that word again.
+**Shots:** adb. Type a made-up name twice so it is learned, then hold its chip → menu → word card.
+Delete the test word after.
+
+### Day 28 · #21 · Chinese Pinyin · T · 14 s
+**Hook:** "Chinese, from initials."
+**Beats:** Pinyin layout · `nihao` → 你好 · jianpin `wm` → 我们 · `zgrm` → 中国人民 ·
+"Six Chinese input schemes." · end card.
+**Shots:** adb `input text`; add the layout (and its dictionary), remove after.
+
+### Day 29 · #33 · Key shapes · T · 12 s
+**Hook:** "Rounded keys are so last year."
+**Beats:** carousel through shapes on the live keyboard: pill, squircle, hexagon, scallop, ticket,
+leaf, circle, none · "12 key shapes." · end card.
+**Shots:** adb in the theme editor's shape picker on a test theme.
+
+### Day 30 · #40 · Emoji suggested while typing · T · 12 s
+**Hook:** "Emoji, without opening the emoji panel."
+**Beats:** type `happy birthday` → 🎂 in the strip · `alarm clock` → ⏰ · `:tada:` → 🎉 ·
+"Type the word, tap the emoji." · end card.
+**Shots:** adb `input text`.
+
+## Capture sessions for batch 2
+
+| Order | Session | Days | Needs you for |
+|---|---|---|---|
+| 1 | F: text and tools | 30, 18, 20, 22, 16, 27 | nothing |
+| 2 | G: languages | 17, 28, 24 | nothing (Korean by taps) |
+| 3 | H: looks | 21, 29, 25 | nothing |
+| 4 | I: hands | 19, 23, 26 | flicks, glides, pointing the camera |

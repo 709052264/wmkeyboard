@@ -8,9 +8,10 @@
   theme=light for a light page. mode=field shows a single labelled field instead of a chat.
   The first tap anywhere goes full screen, which hides Chrome's toolbar and the status bar.
 -->
-<html lang="en">
+<html lang="en" translate="no">
 <head>
 <meta charset="utf-8">
+<meta name="google" content="notranslate">
 <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
 <title>Chat</title>
 <style>
@@ -64,7 +65,15 @@
     log.remove(); document.getElementById("bar").remove();
     const f = document.createElement("div"); f.className = "field";
     f.innerHTML = '<label for="t"></label>'; f.querySelector("label").textContent = q.get("hint") || "Type here";
-    f.append(t); t.rows = 4; t.placeholder = ""; document.body.append(f);
+    if (q.get("kind") === "number") {
+      // A one-line numeric field (sign-in code screens): the IME sees TYPE_CLASS_NUMBER.
+      const n = document.createElement("input");
+      n.id = "t"; n.type = "text"; n.inputMode = "numeric"; n.autocomplete = "one-time-code";
+      n.style.cssText = "font:28px/1.2 inherit;letter-spacing:.3em;padding:14px 16px;border-radius:14px;border:1px solid rgba(127,127,127,.3);background:var(--field);color:var(--text)";
+      f.append(n); document.body.append(f); t.remove();
+    } else {
+      f.append(t); t.rows = 4; t.placeholder = ""; document.body.append(f);
+    }
   }
   const send = () => { const v = t.value.trim(); if (!v) return; add(v, true); t.value = ""; t.focus(); };
   document.getElementById("send").onclick = send;
