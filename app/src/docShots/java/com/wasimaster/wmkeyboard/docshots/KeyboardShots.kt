@@ -528,6 +528,7 @@ val KB_SHOTS: List<KbShot> = listOf(
     KbShot("tools/symbols-panel", steps = { panel(PanelMode.SYMBOLS) }),
     KbShot("tools/qr-generator-panel", text = "https://wmkeyboard.app", steps = { panel(PanelMode.QR_GEN) }),
     KbShot("tools/password-generator-panel", steps = { panel(PanelMode.PASSWORD_GEN) }),
+    KbShot("tools/text-repeat-panel", text = "ha", steps = { panel(PanelMode.TEXT_REPEAT) }),
     KbShot("tools/typing-test-panel", steps = { panel(PanelMode.TYPING_TEST) }),
     KbShot("typing/modes-tool-panel", steps = { panel(PanelMode.MODES) }),
     KbShot("typing/modes-manual-picker", steps = { panel(PanelMode.MODES) }),

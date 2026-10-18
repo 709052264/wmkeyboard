@@ -59,4 +59,12 @@ object ChannelFeatures {
      * sends what is picked the same way.
      */
     val GALLERY_BROWSER: Boolean = !BuildConfig.ENABLE_PLAY_STORE
+
+    /**
+     * The SupportKori link on About › Supporters. Play's Payments policy lets
+     * an app lead users to no payment method but Play's own billing, so the
+     * Play build offers tips through Play billing instead (app/.../tips).
+     * Those tippers join the same Supporters list.
+     */
+    val SUPPORTKORI_LINK: Boolean = !BuildConfig.ENABLE_PLAY_STORE
 }

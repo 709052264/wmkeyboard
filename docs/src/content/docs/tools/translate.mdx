@@ -69,7 +69,7 @@ Hardware-keyboard focus-ring navigation reaches the whole panel: <KeyCap>Tab</Ke
 
 ## Providers
 
-<SettingsPath path="Tools / Translate / Providers" /> lists who translates, in order: **On device** (the Full edition only), then the online services. It works like every other [provider list](/tools/providers/): drag to reorder, switch a row off to skip it, and use **Add a provider** for Google Translate, DeepL, LibreTranslate (on any build) or your own translation server. A LibreTranslate or own server can be added more than once, each with its own address.
+<SettingsPath path="Tools / Translate / Providers" /> lists who translates, in order: **On device** (the Full edition only), then the online services. It works like every other [provider list](/tools/providers/): drag to reorder, switch a row off to skip it, and use **Add a provider** for Google Translate, DeepL, LibreTranslate, a [translation front end](#translation-front-ends) (Mozhi, SimplyTranslate, Lingva or Translite) or your own translation server. Every build offers all of them. A LibreTranslate server, a front end or your own server can be added more than once, each with its own address.
 
 The first provider that answers is used. If one fails (no connection, a wrong key, a language it does not have), the next one that is on is asked. A provider that is off is never asked, so the text goes only to the ones that are on. The engine decides which part of the list is used: **On device** asks only the phone, **Online** only the services, and **Automatic** the whole list in its order.
 
@@ -85,6 +85,23 @@ You can send translations to a server that you run, or to a service that you pay
 - **The address.** A bare `host:port`, the API root (`http://192.168.1.10:8080/v1`, `https://openrouter.ai/api/v1`) or the whole `…/chat/completions` address all work. With no path, the keyboard adds `/v1`. With no `http://` or `https://`, it uses `https://`, so type `http://` for a server on your home network.
 - **Which language it read.** The server does not say what language the text was in, so the source chip shows a language only when you picked one.
 - **Speed.** A language model is slower than a translation service. On a small model, expect a second or more for a sentence; a model that reasons first takes longer.
+
+## Translation front ends
+
+A front end is a free server that passes your text on to Google Translate, DeepL or another service and hands the answer back. The service behind it sees the server, not your phone. WM Keyboard knows four kinds:
+
+| Kind | Translates with | Public instances |
+|---|---|---|
+| [Mozhi](https://codeberg.org/aryak/mozhi) | Google, DeepL, DuckDuckGo, Yandex or Reverso: you choose the **Engine** | [list](https://codeberg.org/aryak/mozhi/src/branch/master/instances.json) |
+| [SimplyTranslate](https://codeberg.org/ManeraKai/simplytranslate) | Google, Reverso or iCIBA: you choose the **Engine** | [list](https://codeberg.org/ManeraKai/simplytranslate/src/branch/main/instances.json) |
+| [Lingva](https://github.com/thedaviddelta/lingva-translate) | Google | [list](https://github.com/thedaviddelta/lingva-translate#instances) |
+| [Translite](https://codeberg.org/gospodin/translite) | Google | [list](https://codeberg.org/gospodin/translite/src/branch/master/instances.json) |
+
+- **Adding one.** Under [Providers](#providers), tap **Add a provider**, pick the kind and paste the address of an instance: a public one you trust, or your own. A bare host such as `mozhi.example.org`, the address from the browser's address bar, or an `/api/...` address all work. **Test** sends one word to check it. There is no default instance, because public instances come and go.
+- **Engine.** Mozhi and SimplyTranslate can pass the text to more than one service. The engine shows beside the address in the list, so you can add the same instance twice with two engines. An instance that does not run the engine you chose fails, and the next provider is asked.
+- **Languages.** Each engine spells some language codes its own way (Hebrew is `iw` on one and `he` on another). The keyboard reads each instance's language list once and uses the code that the engine knows. A language the engine does not have goes to the next provider. Traditional Chinese is never sent as Simplified.
+- **Detecting the source.** DeepL and Reverso behind Mozhi cannot detect the language you typed. With **Detect language** as the source, they pass the text to the next provider. Pick the source language in the panel to use them.
+- **When an instance breaks.** Front ends read the services behind them in ways those services do not support, and an instance can stop working without notice. An empty answer, an error or a Cloudflare check counts as a failure, so the next provider in the list answers. Keep Google Translate or another provider on below the front end if you want a fallback.
 
 ## DeepL
 
@@ -111,6 +128,8 @@ DeepL is an optional online service that you bring yourself, with your own DeepL
   - **Google Translate**: an optional Cloud Translation API key. Without one, translation uses Google's free public endpoint, or the key built into the build if it has one. With one, it uses the official API.
   - **DeepL**: a DeepL API key, a DeepL server for a proxy, or both. See [DeepL](#deepl).
   - **LibreTranslate**: the address of a LibreTranslate server, your own or one you trust, and an optional key for instances that ask for one.
+  - **Mozhi** and **SimplyTranslate**: the address of an instance and the **Engine**. See [translation front ends](#translation-front-ends).
+  - **Lingva** and **Translite**: the address of an instance.
   - **Your translation server**: the address, an optional model name (for example `qwen3:4b` on Ollama, blank for a server with one model), and an optional key sent as a bearer token. See [your own translation server](#your-own-translation-server).
 - **DeepL Write**: shown once DeepL is set up, off by default. On adds DeepL Write to the Grammar check panel and to selection actions. Needs a DeepL API Pro key.
 - **Writing style**: shown while DeepL Write is on. **As it is** (default), **Simple**, **Business**, **Academic**, **Casual**, **Friendly**, **Confident**, **Diplomatic** or **Enthusiastic**. A language that DeepL has no styles for gets a plain rewrite.
@@ -125,7 +144,7 @@ If you back up your settings with **Include API keys** turned on, a Translate ke
 - **Google, or a LibreTranslate server.** With Google Translate in the list and no key, WM Keyboard calls Google's free public translation endpoint. It's the same unofficial one browser translate extensions use: fine for personal typing volumes, with no uptime guarantee and its own rate limits. With a key, it calls the official Cloud Translation v2 API instead, billed to your Google Cloud project and reliable. Add a LibreTranslate server above Google to send translations there first, on any build. Whichever answers, only the text in the panel's box is sent: what you typed, pasted, or had selected when you opened it. Nothing else in the field is.
 - **Your own server, when you set it up.** With only the server on, every online translation goes to that server and to nothing else, errors included (see [Your own translation server](#your-own-translation-server)). It receives the text as the user message of a chat request, in a POST body, with the instruction as the system message and your key, if any, in a request header.
 - **DeepL, when you set it up.** Translations go to DeepL in its place in the list (see [DeepL](#deepl)). A pair that DeepL turns down goes to the next provider, and DeepL is not asked about that pair again until the keyboard restarts. Other DeepL errors (a wrong key, a used-up month) also hand the text to the next provider that is on. If DeepL is the only one on, the panel shows the error.
-- **Sent, precisely:** the text currently in the panel's search box (truncated to 2,500 characters), the target language code, the source language code if you picked one, and your key where one applies. DeepL receives the text in a POST body and the key in a request header. The free Google endpoint receives the text as part of the request URL. The official Google API and a configured LibreTranslate server both send it in a POST body, LibreTranslate's carrying its optional key alongside.
+- **Sent, precisely:** the text currently in the panel's search box (truncated to 2,500 characters), the target language code, the source language code if you picked one, and your key where one applies. DeepL receives the text in a POST body and the key in a request header. The free Google endpoint receives the text as part of the request URL. The official Google API and a configured LibreTranslate server both send it in a POST body, LibreTranslate's carrying its optional key alongside. Mozhi, SimplyTranslate and Translite receive the text in a POST body. Lingva's API takes the text only as part of the request URL, so a Lingva instance can see it in its logs. The first translation through a front end each session also asks the instance for its language list, which sends no text.
 - **When it's sent:** automatically ~400ms after you stop typing, immediately on return or retry, and immediately again if you change the target language, all only while the panel is open. Closing the panel cancels any translation in flight.
 - **Power Saving mode's "Background network" toggle doesn't touch this.** That toggle only stops fetches that happen without you asking: link previews, QR auto-scan, dictionary look-ups. Tools you open yourself, translate included, keep working even with it on.
 - **Not available before your phone is unlocked once after a restart.** Translate isn't on the short list of tools that work on a locked device, and the on-device models live in storage that is locked until then. It won't appear if you're typing on the lock screen before that first unlock.

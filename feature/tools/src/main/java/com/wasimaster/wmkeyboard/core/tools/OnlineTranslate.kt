@@ -107,6 +107,24 @@ object OnlineTranslate {
                 apiKey = row.apiKey,
                 source = from,
             )
+            // Front ends (#726). An engine without the language, or one that
+            // cannot detect the source, throws and the next row is asked.
+            ProviderTypes.MOZHI.id -> MozhiClient.translate(
+                text = text,
+                target = target,
+                endpoint = row.url,
+                engine = row.model,
+                source = from,
+            )
+            ProviderTypes.SIMPLYTRANSLATE.id -> SimplyTranslateClient.translate(
+                text = text,
+                target = target,
+                endpoint = row.url,
+                engine = row.model,
+                source = from,
+            )
+            ProviderTypes.LINGVA.id -> LingvaClient.translate(text = text, target = target, endpoint = row.url, source = from)
+            ProviderTypes.TRANSLITE.id -> TransliteClient.translate(text = text, target = target, endpoint = row.url, source = from)
             // The keyless public endpoint, or Cloud Translation with a key.
             ProviderTypes.GOOGLE_TRANSLATE.id -> TranslateClient.translate(
                 text = text,

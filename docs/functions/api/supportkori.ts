@@ -10,14 +10,12 @@
  * SupportKori retries a failed delivery once, so a repeat is expected: the key
  * includes the delivery id, and writing it twice stores the same entry.
  */
-import { type Env, type SupporterKind, KEY_PREFIX, NAME_LIMIT } from './_supporters';
+import { type Env, type SupporterKind, KEY_PREFIX, asMetadata, cleanName, positive } from './_supporters';
 
 const KINDS: Record<string, SupporterKind> = {
 	'support.created': 'tip',
 	'membership.joined': 'member',
 };
-
-const ANONYMOUS = new Set(['', 'anonymous', 'anon', 'someone']);
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	if (!env.SUPPORTERS || !env.SUPPORTKORI_SECRET) {
@@ -35,7 +33,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 		event?: string;
 		createdAt?: string;
 		livemode?: boolean;
-		data?: { buyerName?: string };
+		/** The documented fields; SupportKori sends no coffee count and no message. */
+		data?: { itemTitle?: string; buyerName?: string; amount?: unknown; currency?: string; orderId?: string };
 	};
 	try {
 		payload = JSON.parse(raw);
@@ -48,11 +47,21 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 	// the delivery failed and retry an event this endpoint will never want.
 	if (!kind || payload.livemode !== true || !payload.id) return new Response('ignored');
 
-	const name = (payload.data?.buyerName ?? '').replace(/\s+/g, ' ').trim().slice(0, NAME_LIMIT);
-	if (ANONYMOUS.has(name.toLowerCase())) return new Response('anonymous');
+	const name = cleanName(payload.data?.buyerName);
+	if (name === null) return new Response('anonymous');
 
+	// Fields per https://www.supportkori.com/help/article/setup-webhooks.
+	// The amount is in the currency's major unit (500 for ৳500).
+	const data = payload.data ?? {};
 	const at = isoOr(payload.createdAt);
-	await env.SUPPORTERS.put(`${KEY_PREFIX}${at}:${payload.id}`, '', { metadata: { name, kind, at } });
+	const supporter = asMetadata({
+		name,
+		kind,
+		at,
+		amount: positive(data.amount),
+		currency: typeof data.currency === 'string' ? data.currency.toUpperCase() : 'BDT',
+	});
+	await env.SUPPORTERS.put(`${KEY_PREFIX}${at}:${payload.id}`, '', { metadata: supporter });
 	return new Response('ok');
 };
 

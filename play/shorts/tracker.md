@@ -27,21 +27,21 @@ Style: V voiceover · T text + music · H meme hook.
 | 13 | 11-01 | 45 | Custom sticker packs | Emoji | V | ok | ✓ | | | | | | | | | |
 | 14 | 11-02 | 26 | One-handed / split / floating | Languages | T | ok | ✓ | | | | | | | | | |
 | 15 | 11-03 | 9 | Autocorrect undo chip | Typing | T | ok | ✓ | | draft | | | | | | | |
-| 16 | 11-04 | 49 | OTP code chip | Tools | V |  | | | | | | | | | | |
-| 17 | 11-05 | 18 | Hindi phonetic | Languages | H |  | | | | | | | | | | |
-| 18 | 11-06 | 50 | Snippets / text expansion | Tools | T |  | | | | | | | | | | |
-| 19 | 11-07 | 19 | Japanese flick | Languages | T |  | | | | | | | | | | |
-| 20 | 11-08 | 51 | Translator | Tools | T |  | | | | | | | | | | |
-| 21 | 11-09 | 30 | Theme editor colours | Looks | V |  | | | | | | | | | | |
-| 22 | 11-10 | 52 | Dictionary | Tools | T |  | | | | | | | | | | |
-| 23 | 11-11 | 8 | Gliding very long words | Typing | H |  | | | | | | | | | | |
-| 24 | 11-12 | 20 | Korean Cheonjiin/Naratgeul | Languages | T |  | | | | | | | | | | |
-| 25 | 11-13 | 32 | Rotating backgrounds | Looks | T |  | | | | | | | | | | |
-| 26 | 11-14 | 53 | Scanner / OCR | Tools | H |  | | | | | | | | | | |
-| 27 | 11-15 | 10 | Personal learning + word card | Typing | V |  | | | | | | | | | | |
-| 28 | 11-16 | 21 | Chinese Pinyin | Languages | T |  | | | | | | | | | | |
-| 29 | 11-17 | 33 | Key shapes | Looks | T |  | | | | | | | | | | |
-| 30 | 11-18 | 40 | Emoji suggested while typing | Emoji | T |  | | | | | | | | | | |
+| 16 | 11-04 | 49 | OTP code chip | Tools | V | draft | ✓ | ✓ | draft | | | | | | | |
+| 17 | 11-05 | 18 | Hindi phonetic | Languages | H | draft | ✓ | | draft | | | | | | | |
+| 18 | 11-06 | 50 | Snippets / text expansion | Tools | T | draft | ✓ | | draft | | | | | | | |
+| 19 | 11-07 | 19 | Japanese flick | Languages | T | draft | ✓ | | draft | | | | | | | |
+| 20 | 11-08 | 51 | Translator | Tools | T | draft | ✓ | | draft | | | | | | | |
+| 21 | 11-09 | 30 | Theme editor colours | Looks | V | draft | ✓ | ✓ | draft | | | | | | | |
+| 22 | 11-10 | 52 | Dictionary | Tools | T | draft | ✓ | | draft | | | | | | | |
+| 23 | 11-11 | 8 | Gliding very long words | Typing | H | draft | ✓ | | draft | | | | | | | |
+| 24 | 11-12 | 20 | Korean Cheonjiin/Naratgeul | Languages | T | draft | ✓ | | draft | | | | | | | |
+| 25 | 11-13 | 32 | Rotating backgrounds | Looks | T | draft | ✓ | | draft | | | | | | | |
+| 26 | 11-14 | 53 | Scanner / OCR | Tools | H | draft | ✓ | | draft | | | | | | | |
+| 27 | 11-15 | 10 | Personal learning + word card | Typing | V | draft | ✓ | ✓ | draft | | | | | | | |
+| 28 | 11-16 | 21 | Chinese Pinyin | Languages | T | draft | ✓ | | draft | | | | | | | |
+| 29 | 11-17 | 33 | Key shapes | Looks | T | draft | ✓ | | draft | | | | | | | |
+| 30 | 11-18 | 40 | Emoji suggested while typing | Emoji | T | draft | ✓ | | draft | | | | | | | |
 | 31 | 11-19 | 54 | Camera in the keyboard | Tools | H |  | | | | | | | | | | |
 | 32 | 11-20 | 12 | Backspace swipe with preview | Typing | H |  | | | | | | | | | | |
 | 33 | 11-21 | 22 | Urdu/Arabic phonetic | Languages | H |  | | | | | | | | | | |
@@ -169,3 +169,45 @@ Style: V voiceover · T text + music · H meme hook.
   STILL TO DO on the phone: revert the app/build.gradle.kts harness edit and reinstall a normal
   build; delete /sdcard/Pictures/WMShorts; optionally delete the two test "My theme" themes and the
   "My 🐱" sticker pack; the user's own Record_*.mp4 files are theirs to keep or delete.
+- 2026-10-18: batch 2 scripts drafted (days 16-30, scripts.md) while the user was away; not yet approved.
+  Session F/G/H filmed over adb: s30-emoji, s20-translate, s22-dictionary, s18-snippets, s27-wordcard,
+  s17-hindi, s28-pinyin, s24-korean, s21-colours, s29-shapes, s25-rotate (.mkv in footage/, raw with
+  idle gaps to trim). As filmed: day 30 uses single words (cake -> pick, party -> disco ball, :tada:), since
+  the strip leads with emoji for the PREVIOUS word ("wow cake" offers wow faces; "the" pulls the user's
+  learned emoji); day 27 holds "tomorrow" (a made-up word did not get learned after 3 sends), card closed
+  with its X (Done committed the half word); day 18 has no backspace-undo beat; day 24 is 안녕/나도 on
+  천지인 then 롬 -> 롭 -> 롶 with 획추가 on 나랏글; day 25 uses "every time the keyboard opens" and five
+  reopen cycles (forest, cat, black cat...), set back to Every day + rotation off after; day 21/29 were
+  shot in a new test theme "My theme" (light palette, key shape None at the end).
+  Recorder fix: scrcpy started from a non-interactive shell ignores SIGINT, so every earlier .mp4 was left
+  without a moov atom (and the processes kept running). Now .mkv, nohup, stopped with SIGTERM.
+  Chat canvas: translate="no" (Chrome auto-translated the Spanish bubbles) and kind=number field mode.
+  Still to film: 16 (OTP chip: needs notification access granted by the user), 19 (flick), 23 (long glides),
+  26 (scanner) - all the user's.
+  Restored on the phone: Hindi/Chinese/Korean removed (their downloaded data may remain), translator target
+  English, rotation off, Default (system) active, demo mode and DND off. Left for the user: demo snippets
+  "Home address" (myaddr) and "Today" (tdy), a third test theme "My theme", "Zorvane" sightings in the
+  learning queue, screen timeout is 30 min (original value not recorded).
+- 2026-10-19: day 19 and 23 filmed by hand on a fast build of 2001a3222 (kanji + glide fixes), installed over 0.6.1.
+  s19-flick.mkv: またあした -> また明日 picked from the expanded list (1254d86e6 made the phrase reading appear at all;
+  take1/take2 kept, both unusable). s23-glide.mkv: all three words in one bubble, ~55 s idle at the start to trim
+  (2001a3222 fixed internationalization; take1 kept, failed). Day 16 (OTP) and 26 (scanner) still to film.
+  Also changed: Japanese language added (flick layout, kanji pack downloaded); glide typing turned ON for day 23 (it was off).
+- 2026-10-19: day 26 filmed by hand, s26-scan.mkv (68 s raw). Usable: 47.5-52 s page blurs into focus, chips at 52 s,
+  Insert + send after. First 47 s are a dark featureless frame, cut. Deselect beat skipped (user's call), so the
+  script's "deselect a line" beat goes. Scanner OCR model for English downloaded (4.1 MB). Only day 16 (OTP) left.
+- 2026-10-19: day 16 filmed over adb on a mock sign-in page, canvas/login.html (made-up brand "Lumio"), not a chat.
+  s16-otp.mkv, 112 s raw: use ~95 s to the end (box focused, chip "Code 482913", tap, digits fill, → submits,
+  "You're signed in"). The chip's source label reads "Shell" (adb posts as com.android.shell): mask it in the edit.
+  Notification access granted to WM Keyboard by the user for this; "Codes from notifications" was already on.
+  All 15 batch 2 days now have footage.- 2026-10-19: phone restored after batch 2 filming: glide typing off again, Japanese removed (3 languages left),
+  demo mode exited, DND off. Left for the user: notification access for WM Keyboard, snippets myaddr/tdy, test
+  theme "My theme", "Zorvane" in the learning queue, 30-min screen timeout, sysui_demo_allowed=1, downloaded data
+  for removed languages + English scanner model; phone runs a fast build of 2001a3222, not release 0.6.1.
+
+- 2026-10-19: batch 2 cut and rendered. Clips in ../trailer/public/shorts/clips (s16-s30), specs Day16-Day30 in
+  src/shorts/shorts.ts, renders out/shorts/DayNN-full.mp4 (9.6-15 s), beat sheets DayNN-beats.png. VO for 16/21/27 is
+  the `say` placeholder. Known: day 16 chip shows "Shell" as source (adb-posted), day 26 is short (9.6 s, 5 s of camera).
+- 2026-10-19: real VO for days 16, 21, 27 in the locked Chatterbox voice (am_puck clone, exaggeration 0.6,
+  cfg 0.4, seed 7), -16 LUFS, word timings from whisper (no interpolated words). Day 16 last beat 3 -> 4 s so the
+  13.3 s take ends before the end card. Rendered: Day16 16.0 s, Day21 13.1 s, Day27 13.5 s.

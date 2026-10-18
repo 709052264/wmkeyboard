@@ -42,6 +42,7 @@ import com.wasimaster.wmkeyboard.core.tools.ReplyEmoji
 import com.wasimaster.wmkeyboard.core.tools.ReplyImageMode
 import com.wasimaster.wmkeyboard.core.tools.ReplyLength
 import com.wasimaster.wmkeyboard.core.tools.CryptoCatalog
+import com.wasimaster.wmkeyboard.core.tools.TextRepeat
 import com.wasimaster.wmkeyboard.core.tools.CurrencyLabel
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
@@ -111,6 +112,8 @@ import com.wasimaster.wmkeyboard.core.settings.QrEccLevel
 import com.wasimaster.wmkeyboard.core.settings.StickerSuggestStyle
 import com.wasimaster.wmkeyboard.core.settings.StickerTriggerAction
 import com.wasimaster.wmkeyboard.core.tools.AltCalendar
+import com.wasimaster.wmkeyboard.core.tools.DeviceCalendar
+import com.wasimaster.wmkeyboard.core.settings.CalendarSaveMode
 import com.wasimaster.wmkeyboard.core.tools.Weekend
 import com.wasimaster.wmkeyboard.core.tools.isSouthernHemisphere
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
@@ -1030,6 +1033,7 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setHijriAdjustDays(it.roundToInt()) } }
                 }
             }
+            CalendarNewEventRows(repository, settings)
         }
         ToolbarTool.CAMERA -> {
             // What decides which rows the search group holds; each row reads
@@ -3158,6 +3162,7 @@ internal fun ToolDetailSettings(
                 }
             }
         }
+        ToolbarTool.TEXT_REPEAT -> TextRepeatToolSettings(repository, settings)
         ToolbarTool.TYPING_TEST -> TypingTestToolSettings(repository, settings)
         ToolbarTool.AI -> AiToolSettings(repository, settings, onNavigate)
         ToolbarTool.AI_REPLY -> AiReplyToolSettings(repository, settings, onNavigate)
@@ -3165,6 +3170,7 @@ internal fun ToolDetailSettings(
         ToolbarTool.NOTES -> NotesToolSettings(repository, settings, onNavigate)
         ToolbarTool.LOCATION -> LocationToolSettings(repository, settings)
         ToolbarTool.CLOCK -> ClockToolSettings(onNavigate)
+        ToolbarTool.HOME_ASSISTANT -> com.wasimaster.wmkeyboard.app.homeassistant.HomeAssistantToolSettings(repository, settings, onNavigate)
         ToolbarTool.GALLERY -> GalleryToolSettings(repository, settings)
         ToolbarTool.SEND_FILES -> com.wasimaster.wmkeyboard.app.send.SendToolSettings(repository, settings, onNavigate)
         ToolbarTool.MODES -> SettingsGroup(stringResource(R.string.tooldetail_modes_group)) {
@@ -3270,6 +3276,179 @@ private fun CryptoCoinPicker(repository: SettingsRepository, settings: LiveSetti
  * chip row edits — this screen is the slower way round to them, plus the
  * records the panel only shows one config of at a time.
  */
+/**
+ * The Text repeat tool's options. The panel edits most of them live, so they
+ * are also where it was last left. The recent texts live in their own file
+ * (see FindHistoryPrefs), read and written here directly like Find's history.
+ */
+@Composable
+private fun TextRepeatToolSettings(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    val numberFormat = stringResource(R.string.values_number)
+    // What decides which rows the groups hold; each row reads its own value.
+    val mode = settings.watch { it.textRepeat.mode }
+    val separator = settings.watch { it.textRepeat.separator }
+    val hasCopies = mode != TextRepeat.Mode.STRETCH
+    SettingsGroup(
+        stringResource(R.string.tooldetail_repeat_group),
+        info = stringResource(R.string.tooldetail_repeat_group_info),
+    ) {
+        item {
+            SliderSetting(
+                R.string.tooldetail_repeat_count_title,
+                subtitle = stringResource(R.string.tooldetail_repeat_count_subtitle),
+                value = settings.watch { it.textRepeat.count }.toFloat(),
+                range = TextRepeat.MIN_COUNT.toFloat()..TextRepeat.MAX_COUNT.toFloat(),
+                display = { numberFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.textRepeat.count.toFloat(),
+            ) { scope.launch { repository.setTextRepeatCount(it.roundToInt()) } }
+        }
+        item {
+            ChoiceSetting(
+                R.string.tooldetail_repeat_mode_title,
+                subtitle = stringResource(R.string.tooldetail_repeat_mode_subtitle),
+                options = listOf(
+                    TextRepeat.Mode.REPEAT to stringResource(R.string.tooldetail_repeat_mode_repeat),
+                    TextRepeat.Mode.STRETCH to stringResource(R.string.tooldetail_repeat_mode_stretch),
+                    TextRepeat.Mode.STAIRS to stringResource(R.string.tooldetail_repeat_mode_stairs),
+                ),
+                selected = mode,
+                default = SettingsDefaults.textRepeat.mode,
+                detail = { candidate ->
+                    ChoiceDetail(
+                        stringResource(
+                            when (candidate) {
+                                TextRepeat.Mode.REPEAT -> R.string.tooldetail_repeat_mode_repeat_desc
+                                TextRepeat.Mode.STRETCH -> R.string.tooldetail_repeat_mode_stretch_desc
+                                TextRepeat.Mode.STAIRS -> R.string.tooldetail_repeat_mode_stairs_desc
+                            },
+                        ),
+                    )
+                },
+            ) { scope.launch { repository.setTextRepeatMode(it) } }
+        }
+        item(visible = hasCopies) {
+            ChoiceSetting(
+                R.string.tooldetail_repeat_separator_title,
+                subtitle = stringResource(R.string.tooldetail_repeat_separator_subtitle),
+                options = listOf(
+                    TextRepeat.Separator.NONE to stringResource(R.string.tooldetail_repeat_sep_none),
+                    TextRepeat.Separator.SPACE to stringResource(R.string.tooldetail_repeat_sep_space),
+                    TextRepeat.Separator.NEWLINE to stringResource(R.string.tooldetail_repeat_sep_newline),
+                    TextRepeat.Separator.COMMA to stringResource(R.string.tooldetail_repeat_sep_comma),
+                    TextRepeat.Separator.CUSTOM to stringResource(R.string.tooldetail_repeat_sep_custom),
+                ),
+                selected = separator,
+                default = SettingsDefaults.textRepeat.separator,
+            ) { scope.launch { repository.setTextRepeatSeparator(it) } }
+        }
+        item(visible = hasCopies && separator == TextRepeat.Separator.CUSTOM) {
+            TextFieldSetting(
+                label = stringResource(R.string.tooldetail_repeat_custom_label),
+                value = settings.watch { it.textRepeat.customSeparator },
+                hint = stringResource(R.string.tooldetail_repeat_custom_hint),
+                default = SettingsDefaults.textRepeat.customSeparator,
+            ) { repository.setTextRepeatCustomSeparator(it) }
+        }
+        item(visible = hasCopies) {
+            ToggleSetting(
+                R.string.tooldetail_repeat_numbered_title,
+                stringResource(R.string.tooldetail_repeat_numbered_subtitle),
+                settings.watch { it.textRepeat.numbered },
+                default = SettingsDefaults.textRepeat.numbered,
+            ) { scope.launch { repository.setTextRepeatNumbered(it) } }
+        }
+        item(visible = hasCopies) {
+            ToggleSetting(
+                R.string.tooldetail_repeat_alternate_title,
+                stringResource(R.string.tooldetail_repeat_alternate_subtitle),
+                settings.watch { it.textRepeat.alternateCase },
+                default = SettingsDefaults.textRepeat.alternateCase,
+            ) { scope.launch { repository.setTextRepeatAlternateCase(it) } }
+        }
+    }
+    SettingsGroup(stringResource(R.string.tooldetail_repeat_limits_group)) {
+        item {
+            SliderSetting(
+                R.string.tooldetail_repeat_max_chars_title,
+                subtitle = stringResource(R.string.tooldetail_repeat_max_chars_subtitle),
+                value = settings.watch { it.toolLimits.textRepeatMaxChars }.toFloat(),
+                range = TextRepeat.MIN_MAX_CHARS.toFloat()..TextRepeat.MAX_MAX_CHARS.toFloat(),
+                display = { numberFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.toolLimits.textRepeatMaxChars.toFloat(),
+            ) { scope.launch { repository.setTextRepeatMaxChars(it.roundToInt()) } }
+        }
+        item {
+            ChoiceSetting(
+                R.string.tooldetail_repeat_chip_insert_title,
+                subtitle = stringResource(R.string.tooldetail_repeat_chip_insert_subtitle),
+                options = listOf(
+                    TextRepeat.ChipInsert.REPLACE_RUN to stringResource(R.string.tooldetail_repeat_chip_insert_replace),
+                    TextRepeat.ChipInsert.APPEND to stringResource(R.string.tooldetail_repeat_chip_insert_append),
+                ),
+                selected = settings.watch { it.textRepeat.chipInsert },
+                default = SettingsDefaults.textRepeat.chipInsert,
+                detail = { candidate ->
+                    ChoiceDetail(
+                        stringResource(
+                            when (candidate) {
+                                TextRepeat.ChipInsert.REPLACE_RUN -> R.string.tooldetail_repeat_chip_insert_replace_desc
+                                TextRepeat.ChipInsert.APPEND -> R.string.tooldetail_repeat_chip_insert_append_desc
+                            },
+                        ),
+                    )
+                },
+            ) { scope.launch { repository.setTextRepeatChipInsert(it) } }
+        }
+        // The same row as Typing → Smart chips; the chip is this tool's door.
+        item {
+            StepperSetting(
+                R.string.tooldetail_repeat_chip_after_title,
+                stringResource(R.string.tooldetail_repeat_chip_after_subtitle),
+                value = settings.watch { it.smartChips.repeatAfter },
+                range = (TextRepeat.MIN_REPEAT_AFTER..TextRepeat.MAX_REPEAT_AFTER).toList(),
+                display = { numberFormat.format(it) },
+                default = SettingsDefaults.smartChips.repeatAfter,
+            ) { scope.launch { repository.setSmartChipRepeatAfter(it) } }
+        }
+    }
+    val recentsContext = LocalContext.current
+    val recents = remember {
+        com.wasimaster.wmkeyboard.ime.FindHistoryPrefs(
+            recentsContext,
+            com.wasimaster.wmkeyboard.ime.FindHistoryPrefs.TEXT_REPEAT_FILE,
+        )
+    }
+    var remembering by remember { mutableStateOf(recents.enabled) }
+    var count by remember { mutableStateOf(recents.entries().size) }
+    SettingsGroup(stringResource(R.string.tooldetail_repeat_recents_group)) {
+        item {
+            ToggleSetting(
+                R.string.tooldetail_repeat_recents_title,
+                stringResource(R.string.tooldetail_repeat_recents_subtitle),
+                remembering,
+                info = stringResource(R.string.tooldetail_repeat_recents_info),
+                default = true,
+            ) {
+                recents.enabled = it
+                remembering = it
+                count = recents.entries().size
+            }
+        }
+        item(visible = remembering) {
+            ActionRow(
+                R.string.tooldetail_repeat_recents_clear_title,
+                subtitle = pluralStringResource(R.plurals.tooldetail_repeat_recents_count, count, count),
+                action = stringResource(R.string.tooldetail_repeat_recents_clear_action),
+                enabled = count > 0,
+            ) {
+                recents.clear()
+                count = 0
+            }
+        }
+    }
+}
+
 @Composable
 private fun TypingTestToolSettings(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
@@ -4486,4 +4665,96 @@ private fun AiReplyToolSettings(
             ) { onNavigate("tool/${ToolbarTool.AI.name}") }
         }
     }
+}
+
+/**
+ * The calendar tool's "New events" group: where Save puts an event, and what
+ * a new one starts with. The calendar list needs read access; without it the
+ * row says so and asks, through the same disclosure the first Save shows.
+ */
+@Composable
+private fun CalendarNewEventRows(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val canRead = rememberGrantState { DeviceCalendar.canRead(it) }
+    var granted by remember { mutableStateOf(false) }
+    val request = rememberDisclosedPermissionRequest(PermissionDisclosures.CALENDAR_WRITE) { granted = true }
+    val readable = canRead || granted
+    SettingsGroup(stringResource(R.string.tooldetail_calendar_new_group)) {
+        item {
+            ChoiceSetting(
+                R.string.tooldetail_calendar_save_mode_title,
+                subtitle = stringResource(R.string.tooldetail_calendar_save_mode_subtitle),
+                info = stringResource(R.string.tooldetail_calendar_save_mode_info),
+                options = listOf(
+                    CalendarSaveMode.KEYBOARD to stringResource(R.string.tooldetail_calendar_save_keyboard_label),
+                    CalendarSaveMode.CALENDAR_APP to stringResource(R.string.tooldetail_calendar_save_app_label),
+                ),
+                selected = settings.watch { it.calendarTool.saveMode },
+                default = SettingsDefaults.calendarTool.saveMode,
+            ) { scope.launch { repository.setCalendarSaveMode(it) } }
+        }
+        item {
+            val calendars = remember(readable) { if (readable) DeviceCalendar.writableCalendars(context) else emptyList() }
+            val chosen = settings.watch { it.calendarTool.defaultCalendarId }
+            val options = listOf(-1L to stringResource(R.string.tooldetail_calendar_default_calendar_primary)) +
+                calendars.map { c -> c.id to listOf(c.name, c.account).filter { it.isNotBlank() }.distinct().joinToString(" · ") }
+            if (readable) {
+                ChoiceSetting(
+                    R.string.tooldetail_calendar_default_calendar_title,
+                    subtitle = stringResource(R.string.tooldetail_calendar_default_calendar_subtitle),
+                    options = options,
+                    selected = if (options.any { it.first == chosen }) chosen else -1L,
+                    default = SettingsDefaults.calendarTool.defaultCalendarId,
+                ) { scope.launch { repository.setCalendarDefaultCalendar(it) } }
+            } else {
+                NavRow(
+                    title = R.string.tooldetail_calendar_default_calendar_title,
+                    subtitle = stringResource(R.string.tooldetail_calendar_default_calendar_no_access),
+                ) { request() }
+            }
+        }
+        item {
+            ChoiceSetting(
+                R.string.tooldetail_calendar_default_length_title,
+                subtitle = stringResource(R.string.tooldetail_calendar_default_length_subtitle),
+                options = CALENDAR_LENGTHS.map { it to calendarLengthLabel(it) },
+                selected = settings.watch { it.calendarTool.defaultDurationMinutes }.let { m ->
+                    if (m in CALENDAR_LENGTHS) m else SettingsDefaults.calendarTool.defaultDurationMinutes
+                },
+                default = SettingsDefaults.calendarTool.defaultDurationMinutes,
+            ) { scope.launch { repository.setCalendarDefaultDuration(it) } }
+        }
+        item {
+            ChoiceSetting(
+                R.string.tooldetail_calendar_default_reminder_title,
+                subtitle = stringResource(R.string.tooldetail_calendar_default_reminder_subtitle),
+                options = CALENDAR_REMINDERS.map { it to calendarReminderLabel(it) },
+                selected = settings.watch { it.calendarTool.defaultReminderMinutes }.let { m ->
+                    if (m in CALENDAR_REMINDERS) m else SettingsDefaults.calendarTool.defaultReminderMinutes
+                },
+                default = SettingsDefaults.calendarTool.defaultReminderMinutes,
+            ) { scope.launch { repository.setCalendarDefaultReminder(it) } }
+        }
+    }
+}
+
+private val CALENDAR_LENGTHS = listOf(15, 30, 45, 60, 90, 120, 180, 240)
+private val CALENDAR_REMINDERS = listOf(-1, 0, 5, 10, 15, 30, 60, 120, 1440)
+
+@Composable
+private fun calendarLengthLabel(minutes: Int): String =
+    if (minutes % 60 == 0) {
+        pluralStringResource(R.plurals.tooldetail_calendar_length_hours, minutes / 60, minutes / 60)
+    } else {
+        pluralStringResource(R.plurals.tooldetail_calendar_length_minutes, minutes, minutes)
+    }
+
+@Composable
+private fun calendarReminderLabel(minutes: Int): String = when {
+    minutes < 0 -> stringResource(R.string.tooldetail_calendar_reminder_none)
+    minutes == 0 -> stringResource(R.string.tooldetail_calendar_reminder_at_start)
+    minutes % 1440 == 0 -> pluralStringResource(R.plurals.tooldetail_calendar_days_before, minutes / 1440, minutes / 1440)
+    minutes % 60 == 0 -> pluralStringResource(R.plurals.tooldetail_calendar_hours_before, minutes / 60, minutes / 60)
+    else -> pluralStringResource(R.plurals.tooldetail_calendar_minutes_before, minutes, minutes)
 }

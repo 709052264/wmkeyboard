@@ -1,8 +1,16 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
@@ -92,6 +101,8 @@ internal fun SmartSuggestionChip(
     val keyword = hit.kind in SmartSuggest.narrowKinds
     // Narrow, but with a second door: the face calls, the button texts (#656).
     val contact = hit.kind == SmartSuggest.Kind.CONTACT
+    // Narrow, with a count that ticks up as the same text is typed again.
+    val repeat = hit.kind == SmartSuggest.Kind.REPEAT
 
     // The accent tint is this chip's identity (it is an *answer*, not a word),
     // so the colours stay accent-based; only the outline follows the theme's
@@ -145,6 +156,7 @@ internal fun SmartSuggestionChip(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.widthIn(max = 220.dp),
                 )
+                if (repeat) RepeatCountPill(hit.result.orEmpty(), tint, reduceMotion)
                 if (!contact) {
                     Icon(
                         Icons.AutoMirrored.Outlined.KeyboardArrowRight,
@@ -299,10 +311,55 @@ private fun narrowChipLabel(hit: SmartSuggest.SmartHit): String = when (hit.kind
     )
     // The face is the call: the phone icon beside the name says so.
     SmartSuggest.Kind.CONTACT -> hit.query
+    // "Repeat “no”", with the count in its own pill after it.
+    SmartSuggest.Kind.REPEAT -> stringResource(R.string.ime_smart_repeat_offer, hit.query.replace("\n", "↵"))
     // A share link in the text: the face opens the panel on receiving it (#729).
     SmartSuggest.Kind.SEND_LINK -> stringResource(R.string.ime_smart_send_link)
     else -> stringResource(R.string.ime_smart_open_tool, toolLabel(hit.tool))
 }
+
+/**
+ * The "×3" beside a repeat chip. The chip itself is keyed on its kind, so a
+ * fourth copy does not re-animate the chip; the number ticks over instead,
+ * sliding up like an odometer, which is what "again" looks like.
+ */
+@Composable
+private fun RepeatCountPill(count: String, tint: Color, reduceMotion: Boolean) {
+    val label: @Composable (String) -> Unit = { shown ->
+        Text(
+            text = stringResource(R.string.ime_smart_repeat_count, shown),
+            color = tint,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+        )
+    }
+    Box(
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(tint.copy(alpha = 0.18f))
+            .padding(horizontal = 6.dp, vertical = 1.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (reduceMotion) {
+            label(count)
+        } else {
+            AnimatedContent(
+                targetState = count,
+                transitionSpec = {
+                    val up = (targetState.toIntOrNull() ?: 0) >= (initialState.toIntOrNull() ?: 0)
+                    val sign = if (up) 1 else -1
+                    (slideInVertically(tween(COUNT_TICK_MS)) { sign * it } + fadeIn(tween(COUNT_TICK_MS))) togetherWith
+                        (slideOutVertically(tween(COUNT_TICK_MS)) { -sign * it } + fadeOut(tween(COUNT_TICK_MS))) using
+                        SizeTransform(clip = false)
+                },
+                label = "repeatCount",
+            ) { shown -> label(shown) }
+        }
+    }
+}
+
+private const val COUNT_TICK_MS = 160
 
 /**
  * The richest (tier, font) pairing that fits in [maxWidth], honouring the

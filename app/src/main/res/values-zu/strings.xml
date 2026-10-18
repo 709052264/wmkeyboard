@@ -1156,7 +1156,7 @@
     <string name="clipboard_key_row_info">Namathisela isixhumanisi bese ucindezela u-enter ukuze uye kuso, noma unamathisele ezinye iziqeshana ngesikhala noma umugqa omusha phakathi kwazo, ngaphandle kokubuyela kukhibhodi. I-ABC ibuyela ezinhlamvwini. Uma ushintshe isakhiwo sephaneli, lesi silungiselelo asenzi lutho: engeza okhiye kumhleli wesakhiwo esikhundleni salokho. Umugqa awuboniswa ngenkathi ibhodi lokunamathisela liphezu kokhiye. Lesi silungiselelo sivaliwe ngokuzenzakalelayo.</string>
     <string name="clipboard_key_row_subtitle">Ulayini wezikhiye ngezansi kwepaneli yebhodi lokunamathisela</string>
     <string name="clipboard_key_row_title">ABC, okhiye besikhala nokufaka</string>
-    <string name="clipboard_line_spacing_info">Ku-100% imigqa ye-clip ihlala iseduze ngangokunokwenzeka ifonti. Yiphakamise ukuze uyisabalalise. Okuzenzakalelayo ngu-130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Ku-100% imigqa ye-clip ihlala iseduze ngangokunokwenzeka ifonti. Yiphakamise ukuze uyisabalalise. Okuzenzakalelayo ngu-130%.</string>
     <string name="clipboard_line_spacing_subtitle">Isikhala phakathi kwemigqa yombhalo we-clip</string>
     <string name="clipboard_line_spacing_title">Isikhala phakathi kwemigqa</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5714,6 +5714,7 @@
     <string name="search_kw_codes">otp, iphasiwedi yesikhathi esisodwa, 2fa, izici ezimbili, ikhodi yokuqinisekisa, ikhodi ye-sms, ikhodi yokungena</string>
     <string name="search_kw_customdictionaries">izinhlu zamagama, ngenisa amagama, uhlu lwamagama</string>
     <string name="search_kw_datasaver">idatha yeselula, okweselula, okulinganiselwe, ukuzulazula, i-wifi kuphela, ukusetshenziswa kwedatha, umkhawulokudonsa, okungaxhunyiwe ku-inthanethi, gcina idatha</string>
+    <string name="search_kw_deepl">bhala phinda ubhale kabusha thuthukisa lungisa isitayela ithoni ukuhumusha</string>
     <string name="search_kw_diagnostics">amalogi, logcat, ukuxazulula izinkinga, ukuphahlazeka, umbiko</string>
     <string name="search_kw_dictionary">amagama afundiwe, isichazamazwi somsebenzisi, amagama ami, engeza igama</string>
     <string name="search_kw_emoji">izithonjana, izithombe ezimamathekayo, kaomoji, ithoni yesikhumba, izitika, ama-gif, okwakamuva</string>
@@ -5857,6 +5858,7 @@
     <string name="search_kw_translate_engine">okungaxhunyiwe ku-inthanethi okuyimfihlo i-inthanethi indiza idivayisi yendawo ml kit google ukulanda kwemodeli ifu</string>
     <string name="search_kw_translate_models">ukuhumusha okungaxhunyiwe ku-inthanethi ukulanda imodeli susa isitoreji ml kit google</string>
     <string name="search_kw_translate_only_downloaded">fihla imenyu yokukhetha imodeli engaxhunyiwe ku-inthanethi yesihlungi</string>
+    <string name="search_kw_translate_server">openai ehambisanayo ezibusingathayo ngokwakho ebusingathwe kwendawo llm ai imodeli ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">ukuhlola isipelingi, ukuqedela ngokuzenzakalelayo, umbhalo obikezelayo, ukuslayida, ukuthayipha ngokuslayida, ukuthinta, oxhumana nabo, hlehlisa</string>
     <string name="search_kw_typing_auto_capitalize">izinhlamvu ezinkulu ezizenzakalelayo</string>
     <string name="search_kw_typing_auto_close_brackets">ukuvala ngokuzenzakalelayo abakaki ababili abafanayo ukuvala okuphelele</string>
@@ -8500,7 +8502,7 @@
     <string name="typing_letter_swipe_select_key_label">Slayida uye ekhiye</string>
     <string name="typing_letter_swipe_type_words_desc">Ukuswayipha phezu kokhiye kupela igama elilodwa</string>
     <string name="typing_letter_swipe_type_words_label">Thayipha amagama</string>
-    <string name="typing_mistype_tolerance_info">Ukuthepha ngakunye kufundwa ngokumelene nalapho kuhlale khona, hhayi kuphela ngokumelene nokhiye okushaywe kuwo, ngakho ukuthepha eduze konqenqema lokhiye kungase kusafundwa njengokhiye olandelayo. Lokhu kubeka ukuthi lokho kufunda kunomusa kangakanani. Ngaphezu kuka-100%, ukuthepha ngaphakathi kokhiye onomakhelwane kusengukushelela okungenzeka, okufanele ukuthayipha okusheshayo noma okumatasa neminwe emikhulu. Ngaphansi kuka-100%, ukhiye owushayile uthenjwa kakhulu, okufanele ukuthayipha ngokucophelela. Kushintsha ukuthi yimaphi amagama umugqa owunikezayo nokuthi yini i-autocorrect ekhethayo. Okuzenzakalelayo ngu-100%.</string>
+    <string name="typing_mistype_tolerance_info" formatted="false">Ukuthepha ngakunye kufundwa ngokumelene nalapho kuhlale khona, hhayi kuphela ngokumelene nokhiye okushaywe kuwo, ngakho ukuthepha eduze konqenqema lokhiye kungase kusafundwa njengokhiye olandelayo. Lokhu kubeka ukuthi lokho kufunda kunomusa kangakanani. Ngaphezu kuka-100%, ukuthepha ngaphakathi kokhiye onomakhelwane kusengukushelela okungenzeka, okufanele ukuthayipha okusheshayo noma okumatasa neminwe emikhulu. Ngaphansi kuka-100%, ukhiye owushayile uthenjwa kakhulu, okufanele ukuthayipha ngokucophelela. Kushintsha ukuthi yimaphi amagama umugqa owunikezayo nokuthi yini i-autocorrect ekhethayo. Okuzenzakalelayo ngu-100%.</string>
     <string name="typing_mistype_tolerance_subtitle">Kude kangakanani ukhiye onomakhelwane lapho ukuthepha kungahlala khona futhi kusabalwa njengokushelela</string>
     <string name="typing_mistype_tolerance_title">Ukubekezelela ukuthayipha kabi</string>
     <string name="typing_new_word_sightings_info">Amagama kuphela angaziwa isichazamazwi abalwayo. Igama elivele likusichazamazwi lifundwa ngesikhathi ulibhala. Ukusetshenziswa kubalwa kuphela uma usudlule futhi walishiya igama, ngakho iphutha lokubhala obuyela emuva ulilungise alibalwa neze. Yehlisa lokhu uma amagama akho kanye nezinkulumo ezijwayelekile kuthatha isikhathi eside ukubambeka. Yibeke ku-1 ukuze ulondoloze igama elisha ngokushesha, okuyilokho okwakwenziwa izinguqulo ezindala. Lesi silungiselelo siba ku-3 ngokuzenzakalelayo.</string>

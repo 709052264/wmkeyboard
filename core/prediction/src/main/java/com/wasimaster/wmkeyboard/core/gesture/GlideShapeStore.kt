@@ -477,7 +477,7 @@ class GlideShapeStore(private val storageFile: File?) {
         const val REJECT_RADIUS = 0.60f
 
         /** Coordinates per shape: x then y for each of the decoder's samples. */
-        const val POINTS = 2 * GlideWorkspace.SAMPLE_POINTS
+        const val POINTS = 2 * GlideWorkspace.SHAPE_POINTS
 
         /** Quantisation: a key-width coordinate times this, rounded to a byte. */
         const val QUANT = 10f
@@ -491,7 +491,7 @@ class GlideShapeStore(private val storageFile: File?) {
          * [abortAbove], and answers something above it then.
          */
         fun distance(a: ByteArray, b: ByteArray, abortAbove: Float = Float.MAX_VALUE): Float {
-            val n = GlideWorkspace.SAMPLE_POINTS
+            val n = GlideWorkspace.SHAPE_POINTS
             val limit = abortAbove * n * QUANT
             var sum = 0f
             for (j in 0 until n) {

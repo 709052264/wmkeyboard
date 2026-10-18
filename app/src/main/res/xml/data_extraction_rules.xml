@@ -55,6 +55,8 @@
              the owner token that can delete it. One device's business. -->
         <exclude domain="file" path="send" />
         <exclude domain="file" path="kdeconnect" />
+        <!-- The Home Assistant tool's cached states: this house's, read back from the server anyway. -->
+        <exclude domain="file" path="homeassistant" />
         <!--
            The network activity log. A record of this device's requests, not a
            setting: restored onto another phone it would describe traffic that
@@ -79,6 +81,8 @@
              the owner token that can delete it. One device's business. -->
         <exclude domain="file" path="send" />
         <exclude domain="file" path="kdeconnect" />
+        <!-- The Home Assistant tool's cached states: this house's, read back from the server anyway. -->
+        <exclude domain="file" path="homeassistant" />
         <!--
            The network activity log. A record of this device's requests, not a
            setting: restored onto another phone it would describe traffic that

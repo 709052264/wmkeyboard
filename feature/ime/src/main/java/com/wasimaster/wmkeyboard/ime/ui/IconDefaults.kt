@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.ime.ui
 
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoStories
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HomeIotDevice
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowForward
@@ -184,6 +185,7 @@ object IconDefaults {
         ToolbarTool.CURRENCY -> Icons.Outlined.CurrencyExchange
         ToolbarTool.QR_GEN -> Icons.Outlined.QrCode2
         ToolbarTool.PASSWORD_GEN -> Icons.Outlined.Password
+        ToolbarTool.TEXT_REPEAT -> Icons.Outlined.Repeat
         ToolbarTool.TYPING_TEST -> Icons.Outlined.Speed
         // The settings app's own Statistics glyph, so the tool and the row it
         // opens look like the same thing.
@@ -192,6 +194,7 @@ object IconDefaults {
         ToolbarTool.NOTES -> Icons.Outlined.StickyNote2
         ToolbarTool.LOCATION -> Icons.Outlined.LocationOn
         ToolbarTool.CLOCK -> Icons.Outlined.Schedule
+        ToolbarTool.HOME_ASSISTANT -> Icons.Outlined.HomeIotDevice
         ToolbarTool.SEND_FILES -> Icons.AutoMirrored.Outlined.Send
         ToolbarTool.GALLERY -> Icons.Outlined.PhotoLibrary
         ToolbarTool.MEDIA_CONTROL -> Icons.Outlined.MusicNote

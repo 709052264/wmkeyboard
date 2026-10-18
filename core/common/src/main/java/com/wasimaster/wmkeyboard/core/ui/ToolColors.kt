@@ -71,6 +71,7 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.CURRENCY -> Color(0xFF66BB6A)
     ToolbarTool.QR_GEN -> Color(0xFF26A69A)
     ToolbarTool.PASSWORD_GEN -> Color(0xFFEF5350)
+    ToolbarTool.TEXT_REPEAT -> Color(0xFF7E57C2)
     ToolbarTool.TYPING_TEST -> Color(0xFFFF7043)
     // Trophy gold: the screen it opens is levels and achievements.
     ToolbarTool.STATISTICS -> Color(0xFFFFA000)
@@ -108,6 +109,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.LOCATION -> Color(0xFFE53935)
     // An evening indigo: a clock face at night, and apart from the calendar's red.
     ToolbarTool.CLOCK -> Color(0xFF5C6BC0)
+    // Home Assistant's own sky blue, so the tile reads as the house it controls.
+    ToolbarTool.HOME_ASSISTANT -> Color(0xFF18BCF2)
     // A sunset's coral: the colour a photo library opens on, apart from the camera's.
     // A clear sky blue: a link that travels, apart from the clipboard's and KDE Connect's blues.
     ToolbarTool.SEND_FILES -> Color(0xFF26A69A)

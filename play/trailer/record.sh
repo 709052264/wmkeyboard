@@ -55,7 +55,9 @@ case "${1:-}" in
       trim)
         NAME="${3:?name}"; SS="${4:-0}"; TO="${5:-}"
         TOARG=(); [ -n "$TO" ] && TOARG=(-to "$TO")
-        ffmpeg -y -ss "$SS" "${TOARG[@]}" -i "footage/$NAME.mp4" \
+        # scrcpy takes are .mkv since batch 2 (an interrupted .mp4 has no moov atom).
+        SRC="footage/$NAME.mp4"; [ -e "$SRC" ] || SRC="footage/$NAME.mkv"
+        ffmpeg -y -ss "$SS" "${TOARG[@]}" -i "$SRC" \
           -c:v libx264 -preset slow -crf 20 -pix_fmt yuv420p -r 30 -fps_mode cfr \
           -an -movflags +faststart "public/shorts/clips/$NAME.mp4"
         "$0" shorts manifest

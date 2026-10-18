@@ -1151,7 +1151,7 @@
     <string name="clipboard_key_row_info">Tempel tautan dan tekan enter untuk membukanya, atau tempel lebih banyak klip dengan spasi atau baris baru di antaranya, tanpa kembali ke papan tik. ABC kembali ke huruf. Jika Anda mengubah tata letak panel, setelan ini tidak berpengaruh: tambahkan tombol di editor tata letak sebagai gantinya. Baris ini tidak ditampilkan saat papan klip ditumpuk di atas tombol. Setelan ini nonaktif secara default.</string>
     <string name="clipboard_key_row_subtitle">Baris tombol di sepanjang bagian bawah panel papan klip</string>
     <string name="clipboard_key_row_title">Tombol ABC, spasi, dan enter</string>
-    <string name="clipboard_line_spacing_info">Pada 100%, baris klip berada sedekat yang diizinkan oleh font. Tingkatkan untuk merenggangkannya. Defaultnya adalah 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Pada 100%, baris klip berada sedekat yang diizinkan oleh font. Tingkatkan untuk merenggangkannya. Defaultnya adalah 130%.</string>
     <string name="clipboard_line_spacing_subtitle">Jarak antar baris teks klip</string>
     <string name="clipboard_line_spacing_title">Spasi baris</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5701,6 +5701,7 @@
     <string name="search_kw_codes">otp, kata sandi satu kali, 2fa, dua faktor, kode verifikasi, kode sms, kode login</string>
     <string name="search_kw_customdictionaries">daftar kata, impor kata, daftar kata</string>
     <string name="search_kw_datasaver">data seluler, seluler, terukur, roaming, hanya wifi, penggunaan data, bandwidth, offline, hemat data</string>
+    <string name="search_kw_deepl">tulis parafrasa tulis ulang tingkatkan poles gaya nada terjemahan</string>
     <string name="search_kw_diagnostics">log, logcat, pemecahan masalah, kerusakan, laporan</string>
     <string name="search_kw_dictionary">kata yang dipelajari, kamus pengguna, kata saya, tambahkan kata</string>
     <string name="search_kw_emoji">emotikon, smiley, kaomoji, warna kulit, stiker, gif, terbaru</string>
@@ -5844,6 +5845,7 @@
     <string name="search_kw_translate_engine">offline pribadi internet pesawat perangkat lokal ml kit google model unduh cloud</string>
     <string name="search_kw_translate_models">hapus download model terjemahan offline penyimpanan ml kit google</string>
     <string name="search_kw_translate_only_downloaded">sembunyikan filter menu pemilih model offline daftar bahasa singkat</string>
+    <string name="search_kw_translate_server">openai compatible selfhosted hosted local llm ai model ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">pemeriksaan ejaan, pelengkapan otomatis, teks prediktif, glide, pengetikan geser, gestur, kontak, urungkan</string>
     <string name="search_kw_typing_auto_capitalize">kapitalisasi otomatis</string>
     <string name="search_kw_typing_auto_close_brackets">tutup otomatis tanda kurung kurawal pasangan pencocokan tanda kurung penutup lengkap</string>
@@ -8479,7 +8481,7 @@
     <string name="typing_letter_swipe_select_key_label">Geser ke tombol</string>
     <string name="typing_letter_swipe_type_words_desc">Geseran melintasi tombol mengeja satu kata</string>
     <string name="typing_letter_swipe_type_words_label">Ketik kata</string>
-    <string name="typing_mistype_tolerance_info">Setiap ketukan dibaca berdasarkan tempat jatuhnya, bukan hanya berdasarkan tombol yang ditekan, sehingga ketukan di dekat tepi tombol masih dapat dibaca sebagai tombol di sebelahnya. Ini mengatur seberapa toleran pembacaan tersebut. Di atas 100%, ketukan yang berada jauh di dalam tombol tetangga masih dianggap sebagai kesalahan yang mungkin terjadi, yang cocok untuk pengetikan cepat atau sibuk dan jari besar. Di bawah 100%, tombol yang Anda tekan lebih dipercaya, yang cocok untuk pengetikan yang cermat. Ini mengubah kata-kata yang ditawarkan strip dan apa yang dipilih koreksi otomatis. Standarnya adalah 100%.</string>
+    <string name="typing_mistype_tolerance_info" formatted="false">Setiap ketukan dibaca berdasarkan tempat jatuhnya, bukan hanya berdasarkan tombol yang ditekan, sehingga ketukan di dekat tepi tombol masih dapat dibaca sebagai tombol di sebelahnya. Ini mengatur seberapa toleran pembacaan tersebut. Di atas 100%, ketukan yang berada jauh di dalam tombol tetangga masih dianggap sebagai kesalahan yang mungkin terjadi, yang cocok untuk pengetikan cepat atau sibuk dan jari besar. Di bawah 100%, tombol yang Anda tekan lebih dipercaya, yang cocok untuk pengetikan yang cermat. Ini mengubah kata-kata yang ditawarkan strip dan apa yang dipilih koreksi otomatis. Standarnya adalah 100%.</string>
     <string name="typing_mistype_tolerance_subtitle">Seberapa jauh ketukan bisa mendarat di tombol tetangga dan tetap dihitung sebagai kesalahan ketik</string>
     <string name="typing_mistype_tolerance_title">Toleransi salah ketik</string>
     <string name="typing_new_word_sightings_info">Hanya kata yang tidak diketahui kamus yang dihitung. Kata yang sudah ada di kamus dipelajari saat Anda mengetiknya. Penggunaan hanya dihitung setelah Anda selesai dan membiarkan kata tersebut, jadi kesalahan ketik yang Anda perbaiki tidak akan pernah dihitung. Turunkan ini jika nama dan bahasa gaul Anda terlalu lama untuk tersimpan. Atur ke 1 untuk menyimpan setiap kata baru secara langsung, seperti yang dilakukan versi lama. Pengaturan ini secara default adalah 3.</string>

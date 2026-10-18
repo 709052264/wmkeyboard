@@ -616,6 +616,14 @@ internal fun EmojiPanelSettings(
                 default = SettingsDefaults.emoji.kaomojiTabs,
             ) { scope.launch { repository.setEmojiKaomojiTabs(it) } }
         }
+        // The tab's tags, its edit rail, the library and the Emotic import.
+        item {
+            NavRow(
+                R.string.langemoji_kaomoji_title,
+                stringResource(R.string.langemoji_kaomoji_subtitle),
+                route = "kaomoji",
+            ) { onNavigate("kaomoji") }
+        }
         item {
             ToggleSetting(
                 R.string.langemoji_emoji_long_press_name_title,

@@ -15,15 +15,15 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Input behaviour: glide, gestures, cursor, editing, keys | 11 | 80 | 219 |
 | Languages, scripts, layouts, transliteration | 11 | 64 | 213 |
 | Themes and appearance | 14 | 73 | 183 |
-| Emoji, GIFs, stickers, kaomoji | 16 | 88 | 94 |
-| Toolbar and the tool set | 10 | 87 | 349 |
+| Emoji, GIFs, stickers, kaomoji | 16 | 96 | 94 |
+| Toolbar and the tool set | 10 | 88 | 364 |
 | Clipboard, snippets, text expansion | 7 | 37 | 191 |
 | AI, voice, handwriting, scanning | 11 | 71 | 167 |
 | Privacy, backup, storage, statistics | 14 | 69 | 173 |
 | Accessibility, form factors, platform integration | 13 | 61 | 111 |
 | Extensibility: addons, plugins, imports, formats | 5 | 35 | 164 |
 | Modes, rows, field adaptation, runtime | 12 | 97 | 203 |
-| **Total** | **133** | **810** | **2272** |
+| **Total** | **133** | **818** | **2272** |
 
 ## Typing core: prediction, autocorrect, learning, spell check
 
@@ -532,7 +532,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Banglish both ways — To Bangla through the spelling map, then the phonetic index under the strip's own confidence rule, then literal Avro, letter runs only; to Banglish through the inverted map and a rule romaniser with the inherent vowel dropped where speech drops it
     - Hinglish both ways — To Hindi and To Hinglish, the same converter over the Hindi scheme; back to Latin through a schwa-deleting romaniser (करना to karna, नमस्ते to namaste), offered only while the Hindi phonetic layout is enabled
     - Grammar, AI and speech — Harper over the selection alone with every fix committed at once; AI buttons that run a chosen action on the selection and land in the AI panel, whose Replace now swaps the selection rather than the field; reading aloud through the vocabulary speaker with a chip that reads Stop
-    - Intents with fallbacks — Contacts, Maps and Calendar each try two intents and toast when no app takes them
+    - Intents with fallbacks — Contacts, Maps and Calendar each try two intents and toast when no app takes them; Calendar first opens the Calendar tool's composer, prefilled, while that tool is on and saves in the keyboard
     - One-time list reset — The on-list and the order carry a list version; a list stored under an older one reads as the shipped list, so every existing user gets the new actions once
     - Select all leads every row — A long-pressed word widens to the whole field in one tap; the chip is dropped once the selection already spans the field, which costs a one-character read only when the selection starts at offset 0
     - Only offers what can work — WhatsApp hidden without WhatsApp installed, Search/Translate/QR hidden when their tools are off, which the power-saving and direct-boot settings views have already decided
@@ -1486,11 +1486,19 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Seeded before any history exists `uncommon` — 24 default emoji, more than fit across a phone, drawn with the user's default skin tone.
   - Row order configurable `RARE` — Emoji row, toolbar and symbol row can be arranged in any order via barOrder.
   - Hardware hotkey badges `RARE` — Row cells can carry hint badges from the hardware-keyboard hint plan.
-- **Kaomoji & ASCII emoticons** `uncommon` — Two optional panel tabs, off by default, compiled in as plain data.
-  - 201 kaomoji in 15 mood groups `uncommon` — Happy, Love, Sad, Angry, Table flip, Confused, Surprised, Cool, Cute, Animals, Actions, Sleepy, Greetings, Party, Apologies.
-  - 111 ASCII emoticons in 8 groups `uncommon` — Happy, Sad, Playful, Love, Surprised, Neutral, Cool, Figures.
+- **Kaomoji & ASCII emoticons** `uncommon` — An optional panel tab, off by default, over an editable library (`kaomoji/kaomoji.json`).
+  - 312 built-in faces under 18 tags `uncommon` — 201 kaomoji and 111 ASCII emoticons; moods both families share are one tag.
+  - Tag tabs `RARE` — A scrolling row of tags (Favourites, Recent, All, then the user's) filters the grid in place; opens on the last tag, Recent, Favourites or All.
+  - Separate Emoticons tab `uncommon` — Optional split by family; a face's family is guessed from its characters and can be changed.
+  - Edit rail `RARE` — Search, Add, Edit and Tags buttons beside the grid; left, right or off, each button switchable; buttons move to the tag row when the rail is off.
+  - In-keyboard editing `RARE` — Add and change faces with the keys under the panel, tag chips, drag to reorder in edit mode, hold for star, edit, copy and delete.
+  - Tag management `uncommon` — Reorder, hide, rename (merging on a clash) and delete tags in the keyboard and in settings.
+  - Search `uncommon` — Ranked by exact tag, tag prefix, tag substring, then face; also listed after emoji in the emoji panel's search.
+  - Kaomoji suggestions `RARE` — Typing a tag's name offers its faces in the strip, favourites and most used first; opt-in.
+  - Emotic import `RARE` — Reads Emotic's `.tar.gz` and older bare SQLite exports with tags and order; its reaction images become a sticker pack.
+  - JSON and plain-text import and export, plus a Kaomoji backup section `uncommon`.
   - Auto-shrinking cells `RARE` — Font size steps down 12% at a time until the face fits one line; hidden until it settles.
-    - Different column widths per tab — 132dp minimum for kaomoji, 64dp for emoticons
+    - Kaomoji take wider cells than emoticons — 132dp against 64dp
     - Never wraps or ellipsises — Half a kaomoji is unrecognisable, so it shrinks instead
   - Atomic plain-text insert `uncommon` — Composing flushed with autocorrect off, then committed in one step; skips history and prediction.
   - Restricted to fonts Android ships `RARE` — Glyphs limited to Noto Sans CJK / Symbols coverage so nothing renders as tofu.
@@ -1653,7 +1661,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Tool background radius and shape — toolCircleRadiusDp default 20, toolShape shares the key shapes; 0 removes it
     - Tool button width 38dp default — toolWidthDp stretches the circle into a pill
     - Tool icon size 22dp default (14–30) — toolbarBehavior.iconSizeDp, glyph only, button stays 38dp; toolbar + toolbox grid
-  - Per-tool settings screen `RARE` — Every one of the 84 tools has its own screen under Settings → Tools
+  - Per-tool settings screen `RARE` — Every one of the 86 tools has its own screen under Settings → Tools
     - Eight groups plus an Other catch-all — Panels, Scanners, Online, Create & convert, Modes, Cursor, Quick actions, Utilities
     - Tune icon marks tools with real options — toolHasOptions; toggle-only tools show just the switch
     - One switch controls bar, toolbox and leader key — setToolEnabled hides the tool everywhere at once
@@ -1662,7 +1670,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Per-tool colour override — toolColorOverrides map, reset-all button when any override exists
     - Two-colour gradient icons — toolIconGradients off by default, with its own end-colour override map
     - Icon-pack glyph substitution — IconSlots.forTool resolves an installed icon pack's glyph
-  - Direct-boot tool filter `RARE` — 49 of 84 tools work before the first unlock after reboot
+  - Direct-boot tool filter `RARE` — 50 of 86 tools work before the first unlock after reboot
     - Rule is what the tool reads — Arithmetic, sensors and keyboard-own state stay; disk, credentials, providers, activities go
     - All 14 cursor tools stay usable — They only touch the input connection
     - Not a user toggle — isDirectBootSafeTool is automatic and only applies pre-first-unlock
@@ -1671,7 +1679,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Toolbox and cheat-sheet letters — T opens the toolbox; ? expands a two-column legend of every binding
     - Badges drawn on the tools themselves — HintPlan badges replaced the old floating legend line
     - Disabled tools lose their letter too — usableTools filters the shortcut map
-  - Type-a-word tool access `RARE` — 36 tools have default suggestion-strip keywords
+  - Type-a-word tool access `RARE` — 37 tools have default suggestion-strip keywords
     - Editable per tool — Keyword shortcut field on each tool's settings screen; clearable
     - Chip replaces the typed word — replaceSpan drops the keyword when the tool opens
   - Mode-scoped toolbars `RARE` — A keyboard mode can carry its own pinned row and toolbox order
@@ -1865,7 +1873,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Optional run history — Off by default; blocked in password fields, incognito, and pre-unlock
     - Report button — Pre-filled mail draft; nothing uploaded, no reporting server
     - Panel model picker — Switch provider or local model in one tap; hidden below two choices
-- **Create & convert tools** `uncommon` — 6 tools in the Create & convert group
+- **Create & convert tools** `uncommon` — 7 tools in the Create & convert group
   - Special symbols `uncommon` — Tap-to-type picker for characters that are otherwise a hunt
     - 369 symbols in 9 categories — Fractions 19, Math 63, Greek 49, Arrows 40, Currency 26, Super/subscript 35, Punctuation 34, Shapes 46, Misc 57
     - Recents chip — Capped at 24, most recent first; a repeat tap re-fronts rather than duplicates
@@ -1901,6 +1909,15 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Passphrases from the bundled English dictionary — 4–8 letter lowercase distinct words; no separate wordlist download
     - Passphrase options — 2–10 words, free-text separator, capitalise, append a digit
     - Entropy estimate in bits — Shown for both modes
+  - Text repeat `RARE` — A piece of text written out many times: Repeat, Stretch ("no" → "nooooo") and Stairs ("ha", "haha", "hahaha") modes
+    - Count 1–1000 with a hold-to-step stepper and 2/3/5/10/25/50/100 chips — Default 10; the panel's options persist as the tool's settings
+    - Separator None/Space/New line/Comma/Custom (≤8 chars) — Stairs with None switches to New line
+    - Number each copy and alternate case toggles — "1. ha 2. HA"
+    - Live preview card with copies and character count — Insert pulses it; Undo takes the last insert back while the field still ends with it
+    - Longest result 500–20,000 chars (default 5,000) — Cut at the last whole copy, never mid-word
+    - Recent texts (10) in their own prefs file — Off in incognito, secure and no-learning fields; never backed up
+    - Repeated-text smart chip — "no no no" (configurable 2–6 copies) raises "Repeat “no” ×3"; opens the tool with separator and count set; Insert replaces or appends to the typed run per setting; once per text per field
+    - Selection action Repeat — Opens the panel on the selection; on by default (LIST_VERSION 4)
   - Learn from text `RARE` — Lists the words in the field or selection the keyboard does not know, to add to the personal dictionary in one go (#174)
     - Selection, else the whole field — Password fields refused; a partial read or a list past 2,000 words says so
     - Unknown means every source the engine asks — Active language mix, imported lists, personal and Android dictionaries, contacts, apps; blacklisted words, numbers, links and spaceless scripts skipped
@@ -2044,8 +2061,15 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - 8 non-Gregorian systems, two at a time — Bengali, Hijri, Chinese, Hebrew, Hindu (Saka), Persian, Buddhist, Japanese era
     - Alternate day number inside the cell — Bengali digits ০–৯; a Chinese lunar month's first day shows the month name
     - Region-guessed defaults — From SIM, then network, then locale; only until the user picks
-    - Device calendar events per selected day — Colour stripe, time or All day, location; recurrences expanded per occurrence
-    - Read-only — No insert, edit or delete path against the provider
+    - Device calendar events per selected day — Colour stripe, time or All day, location; recurrences expanded per occurrence; dot under each busy day
+    - Add, edit and delete events in the keyboard — WRITE_CALENDAR asked on first save; the draft waits through the dialog and survives closing the panel
+    - Full repeat editing — Daily/weekly/weekdays/monthly by date or nth weekday/yearly, interval, weekdays, end by date or count; This event / This and following / All events for edit and delete
+    - Foreign repeat rules kept — A rule the editor cannot model shows as Custom and is written back verbatim
+    - Reminders, Busy/Free, calendar picker, overlap warning, time zone kept from the selection
+    - Guests with contact suggestions — Attendee rows diffed so nobody is re-invited; the account may email invitations on sync
+    - Insert as text — One line in the user's date format, from the event sheet or the composer
+    - Undo — Add, single delete, cancelled occurrence, cut series
+    - Save events: in the keyboard or the calendar app; default calendar, length and reminder
     - Weekend presets — Seven options including Fri&Sat, Thu&Fri, and none
     - Hijri day adjustment −2..+2 — Tabular calendar can miss local sighting by a day or two
     - Chinese computed astronomically — Real new-moon and solar-longitude calculations
@@ -2057,6 +2081,20 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Conditional stat grid — Feels-like, humidity, wind always; rain chance, cloud, pressure, UV, sunrise, sunset when present
     - 8-point wind direction — Plus emoji and short description for current conditions
     - Shares its location with the compass — Qibla reads the same saved coordinates
+  - Home Assistant `RARE` — The user's own Home Assistant from the keyboard: rooms of live tiles, a card of controls per entity, a typed Assist bar
+    - Live over the WebSocket API — `subscribe_entities` compressed stream applied in a JVM-tested engine (`:core:homeassistant`); REST fallback; reconnect with backoff; a refused token stops and asks once
+    - Browser sign-in, IndieAuth style — The docs site's `/ha/` page is the client id and names `wmkeyboard://ha-auth`; tokens refresh themselves; a long-lived token is the fallback; mDNS `_home-assistant._tcp` finds the server
+    - Two addresses — Home first, remote fallback, remembered per session
+    - Tiles by room — Favourites, one tab per HA area in floor order, Elsewhere, All; search by name, id or room; a tab per room can be switched off
+    - Every kind — light (brightness, warmth, hue, colours, effects), switch, fan, cover, valve, climate dial, media transport and volume, lock, alarm with codes, vacuum, humidifier, water heater, siren, number, select, text, button, scene, script, automation, camera stills (sendable as a picture), sensors with three insert formats
+    - Optimistic taps — The tile shows the expected state, the server's event confirms it, a refusal shakes it back
+    - Hold to confirm — Locks, alarms, garage doors, gates, sirens and valves fill a ring for 800 ms before acting
+    - Motion — Staggered tile entrance, a pulse ring when the server changes an entity, run flash on scenes, card grows from the middle, rolling thermostat digits, breathing status dot while connecting; all under the motion flags
+    - Assist bar — A capture target under the tiles; the reply slides up, touched tiles ring, Insert reply types it; conversation id kept per panel session
+    - Smart chip — "turn off the lights" typed anywhere offers Ask home, which opens the panel and sends it
+    - AI chat tools — `home_assistant` (Assist, one sentence) and `home_assistant_states` (what is on, or a search), both Ask by default
+    - Snippet variables — `{ha:entity_id}` and `{ha:entity_id:attribute}`
+    - Cache — Last states on disk so the panel draws at once, dimmed until live; excluded from backups; tokens in SECRET_KEYS and never in the direct-boot mirror
   - Location (#350) `RARE` — The phone's position or a saved place into any field, in the format the user picks
     - One reading per tap — LocationManager only (no Play services): AOSP fused, GPS and network asked at once, each better answer shown as it lands, stops at 25 m or 20 s, nothing left registered
     - Tile-free position dial — Accuracy ring, the shared precision cell and the shared point drawn to scale, north up; no map server learns where the user is
@@ -2135,14 +2173,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Wikipedia and Dictionary | network; keyless public APIs |
 | GIF and Sticker | network for the KLIPY/GIPHY providers; local packs work offline |
 | Camera tool | needs CAMERA permission, granted through a trampoline activity; shared with OCR and QR scan |
-| Calendar events | needs calendar read permission, requested from the panel's Allow button |
+| Calendar events | read needs calendar permission from the panel's Allow button; saving, editing and deleting ask for write on the first save |
 | Media controls | needs the notification-listener grant, awarded in system Settings |
 | Clipboard user screenshots | needs the photos/storage permission |
 | Clipboard source-app attribution | needs Usage Access; best-effort foreground-app guess |
 | Voice typing | needs microphone permission; audio may reach the OS recognizer service unless the on-device language model is installed |
 | Clipboard link previews and QR link details and dictionary auto-lookup | network, and force-disabled by power saving's background-network toggle |
 | 35 tools of 83 are unavailable before the first unlock after reboot | direct-boot filter; the other 48 (arithmetic, sensors, keyboard-own state, all 14 cursor tools) stay usable |
-| Lite edition tool count | 79 of 84 tools; the 5 ML Kit / Harper tools are compiled out, not just hidden |
+| Lite edition tool count | 81 of 86 tools; the 5 ML Kit / Harper tools are compiled out, not just hidden |
 
 ## Clipboard, snippets, text expansion
 

@@ -296,6 +296,8 @@ object AiTools {
     const val OPEN_APP = "open_app"
     const val MEDIA_CONTROL = "media_control"
     const val SEND_TO_PC = "send_to_pc"
+    const val HOME_ASSISTANT = "home_assistant"
+    const val HOME_ASSISTANT_STATES = "home_assistant_states"
     const val READ_IMAGE_TEXT = "read_image_text"
     const val REVERSE_IMAGE_SEARCH = "reverse_image_search"
 
@@ -417,6 +419,12 @@ object AiTools {
             CURRENT_LOCATION,
             "Where the user's phone is now: its coordinates and, when it can be found, the address.",
         ),
+        data(
+            HOME_ASSISTANT_STATES,
+            "Read the state of the user's smart-home devices and sensors from Home Assistant: " +
+                "which lights are on, the temperature a sensor reads, whether a door is open.",
+            param("query", "A room, device or sensor name to look for. Leave it out for everything that is on or open.", required = false),
+        ),
         // The pictures the user sent in the chat. Reading one's text happens on
         // the phone; searching by one uploads it to a search site, which is
         // why that one starts off.
@@ -492,6 +500,12 @@ object AiTools {
             "Send text or a link to the user's computer through KDE Connect.",
             param("text", "The text or the link to send."),
         ),
+        action(
+            HOME_ASSISTANT,
+            "Control the user's smart home through Home Assistant: turn things on or off, set brightness, " +
+                "temperature or position, run a scene, lock a door. Say it in one plain sentence; the home resolves the names.",
+            param("request", "What to do, as one sentence, such as 'turn off the kitchen lights' or 'set the thermostat to 21'."),
+        ),
     )
 
     /** One of [builtIns] by its name, or null for search, fetch or a name nobody gave out. */
@@ -534,6 +548,8 @@ object AiTools {
         MEDIA_CONTROL -> call.argument("action")
         READ_IMAGE_TEXT, REVERSE_IMAGE_SEARCH -> call.argument("image")
         SEND_TO_PC -> call.argument("text")?.let { if (it.length > TARGET_CHARS) it.take(TARGET_CHARS - 1) + "…" else it }
+        HOME_ASSISTANT -> call.argument("request")?.let { if (it.length > TARGET_CHARS) it.take(TARGET_CHARS - 1) + "…" else it }
+        HOME_ASSISTANT_STATES -> call.argument("query")
         else -> null
     }.orEmpty()
 

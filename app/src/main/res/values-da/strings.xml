@@ -1152,7 +1152,7 @@
     <string name="clipboard_key_row_info">Indsæt et link og tryk enter for at gå til det, eller indsæt flere klip med et mellemrum eller en ny linje imellem dem uden at gå tilbage til tastaturet. ABC går tilbage til bogstaverne. Hvis du ændrede panellayoutet, gør denne indstilling intet: tilføj tasterne i layouteditoren i stedet. Rækken vises ikke, mens udklipsholderen er stablet over tasterne. Denne indstilling er slået fra som standard.</string>
     <string name="clipboard_key_row_subtitle">En række taster langs bunden af udklipsholderpanelet</string>
     <string name="clipboard_key_row_title">ABC, mellemrum og enter-taster</string>
-    <string name="clipboard_line_spacing_info">Ved 100% sidder linjerne i et klip så tæt, som skrifttypen tillader. Øg den for at sprede dem ud. Standard er 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Ved 100% sidder linjerne i et klip så tæt, som skrifttypen tillader. Øg den for at sprede dem ud. Standard er 130%.</string>
     <string name="clipboard_line_spacing_subtitle">Afstanden mellem linjerne i en klips tekst</string>
     <string name="clipboard_line_spacing_title">Linjeafstand</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5702,6 +5702,7 @@
     <string name="search_kw_codes">otp, engangskode, 2fa, to-faktor, bekræftelseskode, sms-kode, login-kode</string>
     <string name="search_kw_customdictionaries">ordlister, importer ord, ordliste</string>
     <string name="search_kw_datasaver">mobildata, cellulær, forbrugsafregnet, roaming, kun wifi, dataforbrug, båndbredde, offline, gem data</string>
+    <string name="search_kw_deepl">skriv omformuler omskriv forbedr polér stil tone oversættelse</string>
     <string name="search_kw_diagnostics">logs, logcat, fejlfinding, nedbrud, rapport</string>
     <string name="search_kw_dictionary">lærte ord, brugerordbog, mine ord, tilføj ord</string>
     <string name="search_kw_emoji">humørikoner, smileys, kaomoji, hudfarve, klistermærker, gifs, seneste</string>
@@ -5845,6 +5846,7 @@
     <string name="search_kw_translate_engine">offline privat internet fly lokal enhed ml kit google model download sky</string>
     <string name="search_kw_translate_models">offline oversættelsesmodel download slet lagring ml kit google</string>
     <string name="search_kw_translate_only_downloaded">skjul filter offline modelvælger menu kort</string>
+    <string name="search_kw_translate_server">openai kompatibel selvhostet hostet lokal llm ai model ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">stavningskontrol, autoudfyld, forudsigende tekst, glide, swipe-skrivning, bevægelser, kontakter, fortryd</string>
     <string name="search_kw_typing_auto_capitalize">autostort begyndelsesbogstav automatisk stort begyndelsesbogstav</string>
     <string name="search_kw_typing_auto_close_brackets">autoluk par parenteser klammeparenteser paring af parenteser komplettering af lukning</string>

@@ -73,7 +73,10 @@
     <string name="clipboard_pinned_in_place_info">A pinned clip keeps its pin, so it never expires, but it stays where it was copied in the history, the way SwiftKey shows pins. With this setting on, Pinned entries last and the Pinned and unpinned tabs have no effect. This setting is off by default.</string>
     <string name="clipboard_card_shortcut_title">Clip shortcut button</string>
     <string name="clipboard_card_shortcut_subtitle">What the small button at the end of a clip does</string>
-    <string name="clipboard_card_shortcut_info">Edited mark shows a pencil on a clip you edited, and does nothing when pressed. Nothing hides it. Edit puts an edit button on every clip you can edit, so you do not have to press and hold the clip first. Select starts selecting clips with that one, for Combine, Tidy or Delete. Edited mark is the default.</string>
+    <string name="clipboard_card_shortcut_info">Edited mark shows a pencil on a clip you edited, and does nothing when pressed. Nothing hides it. Edit puts an edit button on every clip you can edit, so you do not have to press and hold the clip first. Select starts selecting clips with that one, for Combine, Tidy or Delete. QR code puts a QR button on every text clip, which opens the QR code tool on the clip\'s text, ready to send as a picture. Edited mark is the default.</string>
+    <string name="clipboard_pinned_folders_title">Pinned folders</string>
+    <string name="clipboard_pinned_folders_subtitle">File tagged pinned clips in a folder for each tag</string>
+    <string name="clipboard_pinned_folders_info">A pinned clip with a tag leaves the pinned clips and goes into a folder named after the tag, so clips you only need together stay out of the way until you open their folder. Give a clip a tag from its press-and-hold popup. A clip with two tags is in both folders. Pinned clips without a tag stay where they are. With Keep pinned clips in place on, this setting has no effect. This setting is off by default.</string>
     <string name="clipboard_clear_button_title">Clear button</string>
     <string name="clipboard_clear_button_subtitle">Show a bin beside the search bar that deletes all unpinned clips</string>
     <string name="clipboard_clear_button_info">The bin asks before it deletes. Pinned clips always stay. It also empties the system clipboard, unless that holds a pinned clip. When Undo a deleted clip is on, the Undo bar gives all of the clips back. This setting is off by default.</string>
@@ -178,7 +181,7 @@
     <string name="clipboard_line_spacing_subtitle">The space between the lines of a clip\'s text</string>
     <!-- Slider readout for the line spacing, in percent. -->
     <string name="clipboard_line_spacing_value">%1$d%%</string>
-    <string name="clipboard_line_spacing_info">At 100% the lines of a clip sit as close as the font allows. Raise it to spread them out. The default is 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">At 100% the lines of a clip sit as close as the font allows. Raise it to spread them out. The default is 130%.</string>
 
     <!-- The keyboard's own copies kept off the system clipboard (#612). -->
     <string name="clipboard_private_copies_title">Keep the keyboard\'s copies private</string>

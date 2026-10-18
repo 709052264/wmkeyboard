@@ -1156,7 +1156,7 @@
     <string name="clipboard_key_row_info">Pega un enlace y presiona entrar para ir a él, o pega más clips con un espacio o una nueva línea entre ellos, sin volver al teclado. ABC vuelve a las letras. Si cambiaste el diseño del panel, esta configuración no hace nada: añade las teclas en el editor de diseño en su lugar. La fila no se muestra mientras el portapapeles está apilado sobre las teclas. Esta configuración está desactivada de forma predeterminada.</string>
     <string name="clipboard_key_row_subtitle">Una fila de teclas a lo largo de la parte inferior del panel del portapapeles</string>
     <string name="clipboard_key_row_title">Teclas ABC, espacio e intro</string>
-    <string name="clipboard_line_spacing_info">Al 100%, las líneas de un clip están tan juntas como permite la fuente. Auméntalo para separarlas. El valor predeterminado es 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Al 100%, las líneas de un clip están tan juntas como permite la fuente. Auméntalo para separarlas. El valor predeterminado es 130%.</string>
     <string name="clipboard_line_spacing_subtitle">El espacio entre las líneas del texto de un clip</string>
     <string name="clipboard_line_spacing_title">Interlineado</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5706,6 +5706,7 @@
     <string name="search_kw_codes">otp, contraseña de un solo uso, 2fa, doble factor, código de verificación, código sms, código de inicio de sesión</string>
     <string name="search_kw_customdictionaries">listas de palabras, importar palabras, lista de palabras</string>
     <string name="search_kw_datasaver">datos móviles, celular, medido, itinerancia, solo wifi, uso de datos, ancho de banda, sin conexión, guardar datos</string>
+    <string name="search_kw_deepl">escribir parafrasear reescribir mejorar pulir estilo tono traducción</string>
     <string name="search_kw_diagnostics">registros, logcat, solución de problemas, bloqueo, informe</string>
     <string name="search_kw_dictionary">palabras aprendidas, diccionario de usuario, mis palabras, añadir palabra</string>
     <string name="search_kw_emoji">emoticonos, smileys, kaomoji, tono de piel, pegatinas, gifs, recientes</string>
@@ -5849,6 +5850,7 @@
     <string name="search_kw_translate_engine">sin conexión privado internet avión dispositivo local ml kit google descarga de modelo nube</string>
     <string name="search_kw_translate_models">descarga de modelo de traducción sin conexión eliminar almacenamiento ml kit google</string>
     <string name="search_kw_translate_only_downloaded">ocultar menú de selección de modelo sin conexión del filtro corto</string>
+    <string name="search_kw_translate_server">openai compatible autohospedado alojado local llm ai modelo ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">corrector ortográfico, autocompletar, texto predictivo, deslizamiento, escritura por deslizamiento, gestos, contactos, deshacer</string>
     <string name="search_kw_typing_auto_capitalize">mayúsculas automáticas autocapitalización</string>
     <string name="search_kw_typing_auto_close_brackets">cierre automático de paréntesis llaves coincidencia de paréntesis completar</string>
@@ -8483,7 +8485,7 @@
     <string name="typing_letter_swipe_select_key_label">Deslizar hacia una tecla</string>
     <string name="typing_letter_swipe_type_words_desc">Un deslizamiento a través de las teclas escribe una palabra</string>
     <string name="typing_letter_swipe_type_words_label">Escribir palabras</string>
-    <string name="typing_mistype_tolerance_info">Cada toque se lee en función de dónde aterrizó, no solo de la tecla que golpeó, por lo que un toque cerca del borde de una tecla aún puede leerse como la tecla de al lado. Esto establece qué tan generosa es esa lectura. Por encima del 100%, un toque bien dentro de una tecla vecina sigue siendo un desliz probable, lo que se adapta a una escritura rápida o agitada y dedos grandes. Por debajo del 100%, se confía más en la tecla que golpeaste, lo que se adapta a una escritura cuidadosa. Cambia qué palabras ofrece la barra y qué elige el autocorrector. El valor predeterminado es 100%.</string>
+    <string name="typing_mistype_tolerance_info" formatted="false">Cada toque se lee en función de dónde aterrizó, no solo de la tecla que golpeó, por lo que un toque cerca del borde de una tecla aún puede leerse como la tecla de al lado. Esto establece qué tan generosa es esa lectura. Por encima del 100%, un toque bien dentro de una tecla vecina sigue siendo un desliz probable, lo que se adapta a una escritura rápida o agitada y dedos grandes. Por debajo del 100%, se confía más en la tecla que golpeaste, lo que se adapta a una escritura cuidadosa. Cambia qué palabras ofrece la barra y qué elige el autocorrector. El valor predeterminado es 100%.</string>
     <string name="typing_mistype_tolerance_subtitle">Qué tan lejos dentro de una tecla vecina puede caer un toque y aun así contar como un error</string>
     <string name="typing_mistype_tolerance_title">Tolerancia a errores de escritura</string>
     <string name="typing_new_word_sightings_info">Solo se cuentan las palabras que ningún diccionario conoce. Una palabra que ya está en un diccionario se aprende en el momento en que la escribe. Un uso solo cuenta una vez que ha seguido adelante y ha dejado la palabra sola, por lo que un error tipográfico que vuelve a corregir nunca se cuenta. Reduzca esto si sus propios nombres y jerga tardan demasiado en aprenderse. Ajústelo a 1 para guardar cada palabra nueva inmediatamente, que es lo que hacían las versiones anteriores. Esta configuración es 3 por defecto.</string>

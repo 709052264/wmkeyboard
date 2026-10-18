@@ -10,8 +10,16 @@
  */
 import snapshot from '@data/supporters.json';
 import { fetchSupporters } from '../lib/supporters.mjs';
+import { dateOf, metaOf } from '../lib/supporter-format.mjs';
 
-type Supporter = { name: string; kind: 'tip' | 'member'; at: string };
+type Supporter = {
+	name: string;
+	kind: 'tip' | 'member';
+	at: string;
+	amount?: number;
+	currency?: string;
+	message?: string;
+};
 
 let list: { updated: string; supporters: Supporter[] } = snapshot as typeof list;
 try {
@@ -19,9 +27,6 @@ try {
 } catch (error) {
 	console.warn(`[supporters] using the snapshot: ${(error as Error).message}`);
 }
-
-const dateOf = (iso: string) =>
-	new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 ---
 
 <div class="wm-supporters not-content" data-updated={list.updated}>
@@ -29,9 +34,8 @@ const dateOf = (iso: string) =>
 		{list.supporters.map((s) => (
 			<li data-key={`${s.at}|${s.name}`}>
 				<span class="name">{s.name}</span>
-				<span class="meta">
-					{s.kind === 'member' ? 'Member' : 'Tip'} · <time datetime={s.at}>{dateOf(s.at)}</time>
-				</span>
+				<span class="meta">{metaOf(s)}</span>
+				{s.message && <p class="message">{s.message}</p>}
 			</li>
 		))}
 	</ul>
@@ -43,10 +47,16 @@ const dateOf = (iso: string) =>
 </div>
 
 <script>
-	type Supporter = { name: string; kind: 'tip' | 'member'; at: string };
+	import { metaOf } from '../lib/supporter-format.mjs';
 
-	const fmt = (iso: string) =>
-		new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+	type Supporter = {
+		name: string;
+		kind: 'tip' | 'member';
+		at: string;
+		amount?: number;
+		currency?: string;
+		message?: string;
+	};
 
 	for (const root of document.querySelectorAll<HTMLElement>('.wm-supporters')) {
 		const list = root.querySelector<HTMLUListElement>('[data-list]')!;
@@ -73,8 +83,14 @@ const dateOf = (iso: string) =>
 					name.textContent = s.name;
 					const meta = document.createElement('span');
 					meta.className = 'meta';
-					meta.textContent = `${s.kind === 'member' ? 'Member' : 'Tip'} · ${fmt(s.at)}`;
+					meta.textContent = metaOf(s);
 					li.append(name, meta);
+					if (s.message) {
+						const message = document.createElement('p');
+						message.className = 'message';
+						message.textContent = s.message;
+						li.append(message);
+					}
 					list.prepend(li);
 				}
 				empty.hidden = list.children.length > 0;
@@ -119,6 +135,16 @@ const dateOf = (iso: string) =>
 	.wm-supporters .meta {
 		font-size: var(--sl-text-xs);
 		color: var(--sl-color-gray-3);
+	}
+	.wm-supporters .message {
+		margin: 0.45rem 0 0;
+		padding-left: 0.6rem;
+		border-left: 2px solid var(--sl-color-accent);
+		font-size: var(--sl-text-sm);
+		font-style: italic;
+		color: var(--sl-color-gray-2);
+		white-space: pre-line;
+		overflow-wrap: anywhere;
 	}
 	.wm-supporters .actions {
 		display: flex;

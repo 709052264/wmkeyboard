@@ -274,8 +274,8 @@
     <string name="privacy_permissions_location_subtitle">The location tool reads your position once when you tap, to share it or to set the weather location</string>
     <string name="privacy_permissions_calendar_title">Calendar</string>
     <string name="privacy_permissions_calendar_subtitle">The calendar tool lists the events of your day</string>
-    <string name="privacy_permissions_calendar_write_title">Add calendar events</string>
-    <string name="privacy_permissions_calendar_write_subtitle">The AI adds events to your calendar itself, when you set it to</string>
+    <string name="privacy_permissions_calendar_write_title">Change calendar events</string>
+    <string name="privacy_permissions_calendar_write_subtitle">The calendar tool saves, changes and deletes the events you edit, and the AI adds events when you set it to</string>
 
     <string name="privacy_permissions_images_title">Photos and images</string>
     <string name="privacy_permissions_images_subtitle">Show your new screenshots in the clipboard</string>

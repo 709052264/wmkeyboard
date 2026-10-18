@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Home Assistant tool's settings page and its Favourites and rooms screen. -->
+<resources>
+    <string name="ha_entities_title">Favourites and rooms</string>
+
+    <!-- Banners -->
+    <string name="ha_banner_off">The tool is off. Turn it on, then connect your Home Assistant.</string>
+    <string name="ha_banner_no_server">Enter your Home Assistant\'s address, or pick one found on this network.</string>
+    <string name="ha_banner_not_signed_in">Not signed in. Sign in with your browser, or paste an access token.</string>
+    <string name="ha_banner_connected">Connected to %1$s</string>
+    <string name="ha_banner_connected_version">Connected to %1$s · Home Assistant %2$s</string>
+    <string name="ha_banner_signed_in">Signed in to %1$s. The keyboard connects when you open the tool.</string>
+    <string name="ha_banner_token_rejected">Home Assistant stopped accepting the keyboard\'s key. Sign in again.</string>
+    <string name="ha_banner_unreachable">%1$s is not answering. Check the address, or try the remote one.</string>
+    <string name="ha_banner_working">Finishing the sign-in…</string>
+    <string name="ha_banner_failed">Sign-in failed: %1$s</string>
+    <string name="ha_banner_action_sign_in">Sign in</string>
+    <string name="ha_banner_action_dismiss">OK</string>
+    <string name="ha_banner_action_retry">Retry</string>
+
+    <!-- Connection group -->
+    <string name="ha_group_connection">Connection</string>
+    <string name="ha_group_connection_info">The keyboard talks only to the server you name here, with a key Home Assistant issues to it. Nothing passes through any other service.</string>
+    <string name="ha_enabled_title">Home Assistant tool</string>
+    <string name="ha_enabled_subtitle">Lights, switches, climate, media, scenes and sensors as tiles in the keyboard, live</string>
+    <string name="ha_internal_url_label">Address at home</string>
+    <string name="ha_internal_url_hint">homeassistant.local:8123 or 192.168.1.5</string>
+    <string name="ha_external_url_label">Remote address (optional)</string>
+    <string name="ha_external_url_hint">https://yourname.ui.nabu.casa</string>
+    <string name="ha_find_title">Found on this network</string>
+    <string name="ha_find_subtitle">Tap one to use its address</string>
+    <string name="ha_find_searching">Looking for Home Assistant on this network…</string>
+    <string name="ha_find_none">None announced itself yet. Type the address instead.</string>
+    <string name="ha_prefer_internal_title">Try the home address first</string>
+    <string name="ha_prefer_internal_subtitle">Falls back to the remote address when the home one does not answer</string>
+    <string name="ha_sign_in_title">Sign in with Home Assistant</string>
+    <string name="ha_sign_in_subtitle">Your browser opens Home Assistant\'s own login page. The keyboard gets a key, never your password.</string>
+    <string name="ha_sign_in_button">Sign in</string>
+    <string name="ha_sign_in_again_button">Sign in again</string>
+    <string name="ha_sign_out_button">Sign out</string>
+    <string name="ha_signed_in_browser">Signed in through the browser. The key renews itself.</string>
+    <string name="ha_signed_in_token">Signed in with a long-lived access token.</string>
+    <string name="ha_sign_in_state_mismatch">The sign-in did not match the one started here. Try again.</string>
+    <string name="ha_sign_in_no_server">No server address to sign in to.</string>
+    <string name="ha_sign_in_refused">Home Assistant refused the sign-in (HTTP %1$d).</string>
+    <string name="ha_sign_in_unreachable">Home Assistant did not answer.</string>
+    <string name="ha_token_fold_title">Use an access token instead</string>
+    <string name="ha_token_label">Long-lived access token</string>
+    <string name="ha_token_supporting">In Home Assistant: your profile, Security tab, Long-lived access tokens, Create token. Paste it here; it is kept only on this phone.</string>
+    <string name="ha_token_use_button">Use token</string>
+    <string name="ha_token_ok">Token accepted: %1$s</string>
+    <string name="ha_token_failed">The token was not accepted: %1$s</string>
+    <string name="ha_test_button">Test connection</string>
+    <string name="ha_test_ok">Connected to %1$s</string>
+    <string name="ha_test_failed">Could not connect: %1$s</string>
+
+    <!-- Panel group -->
+    <string name="ha_group_panel">Panel</string>
+    <string name="ha_favourites_title">Favourites and rooms</string>
+    <string name="ha_favourites_subtitle_none">Pick the tiles the Favourites tab shows, and hide what you never use</string>
+    <string name="ha_favourites_subtitle">%1$d favourites</string>
+    <string name="ha_open_on_title">Open on</string>
+    <string name="ha_open_on_favourites">Favourites</string>
+    <string name="ha_open_on_last">Last tab</string>
+    <string name="ha_areas_tabs_title">A tab per room</string>
+    <string name="ha_areas_tabs_subtitle">Your Home Assistant areas, in its order. Off, there is Favourites and All.</string>
+    <string name="ha_tile_size_title">Tile size</string>
+    <string name="ha_tile_comfortable">Comfortable</string>
+    <string name="ha_tile_compact">Compact</string>
+    <string name="ha_confirm_risky_title">Hold to confirm risky actions</string>
+    <string name="ha_confirm_risky_subtitle">Locks, alarms, garage doors, gates and sirens take a hold instead of a tap</string>
+    <string name="ha_insert_format_title">What a sensor tile types</string>
+    <string name="ha_insert_value">Value</string>
+    <string name="ha_insert_value_unit">Value and unit</string>
+    <string name="ha_insert_name_value">Name and value</string>
+
+    <!-- Assist group -->
+    <string name="ha_group_assist">Assist</string>
+    <string name="ha_group_assist_info">The command bar at the bottom of the panel sends what you type to Home Assistant\'s Assist, which understands sentences like \"turn off the kitchen lights\".</string>
+    <string name="ha_assist_enabled_title">Command bar</string>
+    <string name="ha_assist_enabled_subtitle">Type a sentence for your home at the bottom of the panel</string>
+    <string name="ha_assist_agent_title">Conversation agent</string>
+    <string name="ha_assist_agent_default">Home Assistant\'s default</string>
+    <string name="ha_assist_agent_subtitle">Which of your assistants answers. The list comes from the server once connected.</string>
+    <string name="ha_assist_language_title">Send the keyboard\'s language</string>
+    <string name="ha_assist_language_subtitle">Assist answers in the language you are typing in</string>
+
+    <!-- Link group -->
+    <string name="ha_group_link">Connection lifetime</string>
+    <string name="ha_lifetime_title">Stay connected</string>
+    <string name="ha_lifetime_info">The connection is a WebSocket the keyboard holds open so tiles change the moment the house does. It costs little, but it is a connection.</string>
+    <string name="ha_lifetime_panel">While the panel is open</string>
+    <string name="ha_lifetime_panel_detail">Connects when you open the tool and drops a minute after you leave it.</string>
+    <string name="ha_lifetime_keyboard">While the keyboard is shown</string>
+    <string name="ha_lifetime_keyboard_detail">Connects when the keyboard comes up, so the panel is live the instant it opens; drops a minute after the keyboard hides.</string>
+    <string name="ha_cache_title">Keep the last states on the phone</string>
+    <string name="ha_cache_subtitle">The panel draws your tiles at once from the last session, dimmed until the server confirms them</string>
+
+    <!-- Also group -->
+    <string name="ha_group_also">Also</string>
+    <string name="ha_ai_tools_title">Let the AI chat control your home</string>
+    <string name="ha_ai_tools_subtitle">The chat\'s tools include your home; each one asks before it acts</string>
+    <string name="ha_smart_chip_title">Suggest commands as you type</string>
+    <string name="ha_smart_chip_subtitle">\"turn off the lights\" in any field offers a chip that does it instead of sending the words</string>
+
+    <!-- Favourites and rooms screen -->
+    <string name="ha_entities_search_hint">Search</string>
+    <string name="ha_entities_favourites_group">Favourites</string>
+    <string name="ha_entities_favourites_info">The Favourites tab shows these, in this order. Drag to reorder; the bin takes one off the tab without hiding it.</string>
+    <string name="ha_entities_favourites_empty">No favourites yet. Star anything below.</string>
+    <string name="ha_entities_hidden_group">Hidden</string>
+    <string name="ha_entities_hidden_info">Hidden tiles stay out of every tab and out of search. Tap one to bring it back.</string>
+    <string name="ha_entities_domains_group">Kinds to leave out</string>
+    <string name="ha_entities_domains_info">Whole kinds of entity the panel never lists.</string>
+    <string name="ha_entities_empty">Nothing from your Home Assistant yet. Open the tool once while connected, or check the connection on the tool\'s page.</string>
+    <string name="ha_entities_area_other">Elsewhere</string>
+    <string name="ha_entities_star">Favourite</string>
+    <string name="ha_entities_hide">Hide</string>
+    <string name="ha_entities_unhide">Show %1$s again</string>
+
+    <!-- The AI chat's built-in tools (#698) -->
+    <string name="toolai_ai_builtin_home_assistant_title">Control your home</string>
+    <string name="toolai_ai_builtin_home_assistant_subtitle">Turns things on or off, sets brightness or temperature, runs scenes, through Home Assistant\'s Assist. Only listed while the Home Assistant tool is signed in.</string>
+    <string name="toolai_ai_builtin_home_assistant_states_title">Read your home</string>
+    <string name="toolai_ai_builtin_home_assistant_states_subtitle">The states of your devices and sensors, as Home Assistant has them now</string>
+</resources>

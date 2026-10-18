@@ -1153,7 +1153,7 @@
     <string name="clipboard_key_row_info">Klistra in en länk och tryck på retur för att gå till den, eller klistra in fler klipp med ett mellanslag eller en ny rad mellan dem, utan att gå tillbaka till tangentbordet. ABC går tillbaka till bokstäverna. Om du ändrade panelens layout gör den här inställningen ingenting: lägg till tangenterna i layoutredigeraren istället. Raden visas inte medan urklipp ligger staplat över tangenterna. Den här inställningen är avstängd som standard.</string>
     <string name="clipboard_key_row_subtitle">En rad tangenter längs nederkanten av urklippspanelen</string>
     <string name="clipboard_key_row_title">ABC-, mellanslags- och returtangenter</string>
-    <string name="clipboard_line_spacing_info">Vid 100 % sitter raderna i ett klipp så tätt som teckensnittet tillåter. Höj värdet för att sprida ut dem. Standardvärdet är 130 %.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Vid 100 % sitter raderna i ett klipp så tätt som teckensnittet tillåter. Höj värdet för att sprida ut dem. Standardvärdet är 130 %.</string>
     <string name="clipboard_line_spacing_subtitle">Avståndet mellan raderna i en urklippstext</string>
     <string name="clipboard_line_spacing_title">Radavstånd</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5706,6 +5706,7 @@
     <string name="search_kw_codes">otp, engångslösenord, 2fa, tvåfaktorsautentisering, verifieringskod, sms-kod, inloggningskod</string>
     <string name="search_kw_customdictionaries">ordlistor, importera ord, ordlista</string>
     <string name="search_kw_datasaver">mobildata, cellulär, mätt, roaming, endast wifi, dataanvändning, bandbredd, offline, spara data</string>
+    <string name="search_kw_deepl">skriv om omformulera förbättra polera stil ton översättning</string>
     <string name="search_kw_diagnostics">loggar, logcat, felsökning, krasch, rapport</string>
     <string name="search_kw_dictionary">inlärda ord, användarordbok, mina ord, lägg till ord</string>
     <string name="search_kw_emoji">emoticons, smileys, kaomoji, hudton, klistermärken, gifs, nyligen använda</string>
@@ -5849,6 +5850,7 @@
     <string name="search_kw_translate_engine">offline privat internet flygplansläge lokal enhet ml kit google model nedladdning moln</string>
     <string name="search_kw_translate_models">offline översättningsmodell ladda ner ta bort lagring ml kit google</string>
     <string name="search_kw_translate_only_downloaded">dölj filter för offline-modellväljare menyspråklista kort</string>
+    <string name="search_kw_translate_server">openai kompatibel självhostad hostad lokal llm ai modell ollama llama studio vllm localai chattkompletteringar mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">stavningskontroll, autokomplettering, förutseende text, glidskrift, svepskrift, gester, kontakter, ångra</string>
     <string name="search_kw_typing_auto_capitalize">autokapitalisering autostor bokstav</string>
     <string name="search_kw_typing_auto_close_brackets">autostäng par parenteser klammerparenteser parentesmatchning komplett stängning</string>

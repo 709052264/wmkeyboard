@@ -66,10 +66,10 @@ class ConfigBackupTest {
     }
 
     @Test
-    fun `clock is the last section and encodes after notes`() {
+    fun `clock encodes after notes and kaomoji comes last`() {
         // Sections encode in declaration order and older builds read bundles
         // positionally, so a new section may only ever be appended.
-        assertEquals(ConfigBackup.Section.CLOCK, ConfigBackup.Section.entries.last())
+        assertEquals(ConfigBackup.Section.KAOMOJI, ConfigBackup.Section.entries.last())
         val payload = buildJsonObject { put("a", JsonPrimitive(1)) }
         val text = ConfigBackup.encode(
             1,

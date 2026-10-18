@@ -12,7 +12,7 @@ An open source multilingual Android keyboard with prediction, glide typing, tran
 emoji search and a 75+ tool toolbox that all run on the phone and never phone home.
 
 <a href="https://github.com/wasi-master/wmkeyboard/releases/latest"><img src="https://img.shields.io/github/v/release/wasi-master/wmkeyboard?style=flat-square&label=Release&color=3DDC84&logo=android&logoColor=white" alt="Latest release"></a>
-<a href="https://play.google.com/store/apps/details?id=com.wasimaster.wmkeyboard"><img src="https://img.shields.io/badge/Google%20Play-Get%20it-01875F?style=flat-square&logo=googleplay&logoColor=white" alt="Google Play"></a>
+<a href="https://play.google.com/store/apps/details?id=com.wasimaster.wmkeyboard"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fwasi-master%2Fwmkeyboard%2Fbadges%2Fplay.json&style=flat-square&logo=googleplay&logoColor=white" alt="Google Play"></a>
 <a href="https://f-droid.org/packages/com.wasimaster.wmkeyboard/"><img src="https://img.shields.io/f-droid/v/com.wasimaster.wmkeyboard?style=flat-square&label=F-Droid&color=1976D2&logo=fdroid&logoColor=white" alt="F-Droid"></a>
 <a href="https://github.com/wasi-master/wmkeyboard/releases"><img src="https://img.shields.io/github/downloads/wasi-master/wmkeyboard/total?style=flat-square&label=Downloads&color=6C5CE7&logo=rolldown&logoColor=white" alt="Downloads"></a>
 <a href="https://github.com/wasi-master/wmkeyboard/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/wasi-master/wmkeyboard/ci.yml?style=flat-square&label=CI&logo=githubactions&logoColor=white" alt="CI"></a>
@@ -196,7 +196,7 @@ learning behave identically with the radio off.
 | Input behaviour: glide, gestures, cursor, editing, keys | 11 | 80 | 219 |
 | Languages, scripts, layouts, transliteration | 11 | 64 | 213 |
 | Themes and appearance | 14 | 73 | 183 |
-| Emoji, GIFs, stickers, kaomoji | 16 | 88 | 94 |
+| Emoji, GIFs, stickers, kaomoji | 16 | 96 | 94 |
 | Toolbar and the tool set | 10 | 85 | 311 |
 | Clipboard, snippets, text expansion | 7 | 37 | 191 |
 | AI, voice, handwriting, scanning | 11 | 70 | 162 |
@@ -204,7 +204,7 @@ learning behave identically with the radio off.
 | Accessibility, form factors, platform integration | 13 | 61 | 111 |
 | Extensibility: addons, plugins, imports, formats | 5 | 35 | 164 |
 | Modes, rows, field adaptation, runtime | 12 | 97 | 203 |
-| **Total** | **133** | **807** | **2,229** |
+| **Total** | **133** | **815** | **2,229** |
 
 Entries marked `RARE` there are things few or no mainstream keyboards ship. There are over 400.
 

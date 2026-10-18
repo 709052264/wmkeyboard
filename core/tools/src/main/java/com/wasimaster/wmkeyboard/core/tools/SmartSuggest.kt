@@ -25,11 +25,27 @@ sealed interface ToolPrefill {
     /** The calendar opens showing (and selecting) this Gregorian day. */
     data class Calendar(val year: Int, val month: Int, val day: Int) : ToolPrefill
 
+    /**
+     * A new event the calendar opens its editor on: from selected text read
+     * as a date ("Add to calendar"). An [allDay] one is the days [start] and
+     * [end] fall on in [zoneId], the zone the text named or else the device's.
+     */
+    data class CalendarEvent(
+        val title: String,
+        val start: Long,
+        val end: Long,
+        val allDay: Boolean,
+        val zoneId: String,
+    ) : ToolPrefill
+
     /** A term the dictionary or Wikipedia panel looks up as it opens. */
     data class Lookup(val term: String) : ToolPrefill
 
     /** A search the GIF/sticker panel opens on. */
     data class Gif(val query: String) : ToolPrefill
+
+    /** A sentence the Home Assistant panel sends to Assist as it opens. */
+    data class Assist(val sentence: String) : ToolPrefill
 
     /** A vocabulary word whose card the panel opens on. */
     data class Vocab(val word: String) : ToolPrefill
@@ -42,6 +58,14 @@ sealed interface ToolPrefill {
      * the service reads it to start the dialer or the messaging app.
      */
     data class Contact(val name: String, val number: String) : ToolPrefill
+
+    /**
+     * Text the repeat chip found written [count] times already, with
+     * [separator] between the copies. [runLength] is how many characters
+     * before the cursor that run takes, so the tool can write it out properly
+     * in its place.
+     */
+    data class TextRepeat(val text: String, val separator: String, val count: Int, val runLength: Int) : ToolPrefill
 }
 
 /**
@@ -63,12 +87,13 @@ object SmartSuggest {
      * strip; [TOOL] (a typed keyword), [LOOKUP] (a term to look up) and
      * [INTENT] (text that sounds like a job a tool does) stay narrow beside
      * the word candidates. [CONTACT] (a saved contact's name) is narrow too,
-     * with a call face and a message button.
+     * with a call face and a message button, and so is [REPEAT] (the same
+     * text typed several times over), which opens the Text repeat tool.
      */
-    enum class Kind { CALC, CURRENCY, UNIT, NUMBER, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB, CONTACT, SEND_LINK }
+    enum class Kind { CALC, CURRENCY, UNIT, NUMBER, DATE, WEATHER, TOOL, LOOKUP, INTENT, VOCAB, CONTACT, REPEAT, SEND_LINK }
 
     /** The kinds that only claim the space their label needs. */
-    val narrowKinds: Set<Kind> = setOf(Kind.TOOL, Kind.LOOKUP, Kind.INTENT, Kind.VOCAB, Kind.CONTACT, Kind.SEND_LINK)
+    val narrowKinds: Set<Kind> = setOf(Kind.TOOL, Kind.LOOKUP, Kind.INTENT, Kind.VOCAB, Kind.CONTACT, Kind.REPEAT, Kind.SEND_LINK)
 
     /**
      * A switch under Smart chips, as far as the tools behind it go. The
@@ -76,7 +101,7 @@ object SmartSuggest {
      * left to hand off to, says so (#176) instead of reading on while nothing
      * happens.
      */
-    enum class Family { CALC, CURRENCY, UNITS, NUMBERS, DATES, WEATHER, LOOKUPS, TRANSLATE, GIFS }
+    enum class Family { CALC, CURRENCY, UNITS, NUMBERS, DATES, WEATHER, LOOKUPS, TRANSLATE, GIFS, REPEATS }
 
     /**
      * Whether [family] still raises its chip with every tool it names switched
@@ -86,7 +111,7 @@ object SmartSuggest {
      */
     fun answersWithoutTool(family: Family): Boolean = when (family) {
         Family.CALC, Family.CURRENCY, Family.UNITS, Family.NUMBERS -> true
-        Family.DATES, Family.WEATHER, Family.LOOKUPS, Family.TRANSLATE, Family.GIFS -> false
+        Family.DATES, Family.WEATHER, Family.LOOKUPS, Family.TRANSLATE, Family.GIFS, Family.REPEATS -> false
     }
 
     /**
@@ -105,6 +130,7 @@ object SmartSuggest {
         Family.LOOKUPS -> listOf(listOf(ToolbarTool.DICTIONARY), listOf(ToolbarTool.WIKIPEDIA))
         Family.TRANSLATE -> listOf(listOf(ToolbarTool.TRANSLATE))
         Family.GIFS -> listOf(listOf(ToolbarTool.GIF, ToolbarTool.STICKER))
+        Family.REPEATS -> listOf(listOf(ToolbarTool.TEXT_REPEAT))
     }
 
     /**
@@ -223,6 +249,8 @@ object SmartSuggest {
         val lookupChips: Boolean = true,
         val intentChips: Boolean = true,
         val gifChips: Boolean = true,
+        /** Home Assistant is connected, so a command for the house can be run by a chip. */
+        val haReady: Boolean = false,
         // ---- vocabulary nudges ----
         /** "hate" → abhor, when a plainer word with a stronger alternative is typed. */
         val vocabChips: Boolean = true,
@@ -260,6 +288,13 @@ object SmartSuggest {
         /** Offer to receive a Send share link typed or pasted into the field (#729). */
         val sendLinkChips: Boolean = false,
         val contacts: ContactPhones? = null,
+        // ---- repeated text ----
+        /** "no no no" → the Text repeat tool, opened on that text. */
+        val repeatChips: Boolean = true,
+        /** How many copies in a row before the chip shows. */
+        val repeatAfter: Int = TextRepeat.DEFAULT_REPEAT_AFTER,
+        /** Units (lowercase) already offered in this field, so each gets one chip. */
+        val repeatRetired: Set<String> = emptySet(),
     )
 
     /** Characters of context the scanners look back over. */
@@ -298,10 +333,14 @@ object SmartSuggest {
         if (ctx.lookupChips) detectLookup(tail, ctx)?.let { return it }
         if (ctx.intentChips) detectIntent(tail, ctx)?.let { return it }
         if (ctx.keywordsEnabled) detectKeyword(tail, ctx)?.let { return it }
+        val truncated = text.length > LOOKBEHIND
+        // The same thing three times is a pattern, which beats a name that
+        // happens to be in it.
+        if (ctx.repeatChips) detectRepeat(tail, ctx, truncated)?.let { return it }
         // A name only says who: anything above that recognised what is wanted
         // has more to offer.
         ctx.contacts?.let { contacts ->
-            detectContact(tail, contacts, truncated = text.length > LOOKBEHIND)?.let { return it }
+            detectContact(tail, contacts, truncated)?.let { return it }
         }
         // Last: a nudge is advice, and every explicit trigger above outranks it.
         if (ctx.vocabChips) detectVocab(tail, ctx)?.let { return it }
@@ -1516,6 +1555,16 @@ object SmartSuggest {
      * opens the Location tool and keeps what was typed, so the place goes in
      * after the words.
      */
+    /**
+     * A sentence that reads like a command for the house, from its verb to the
+     * end of the typed text. Only the common verbs, and only with a target
+     * after them: "turn" alone is not a command.
+     */
+    private val HA_TAIL = Regex(
+        """(?i)\b(?:(?:turn|switch|put|set)\s+(?:on|off)\s+(?:the\s+)?\S.*|(?:turn|switch|set)\s+(?:the\s+)?\S.*\s+(?:on|off|to\s+\S.*)|dim\s+(?:the\s+)?\S.*|(?:lock|unlock)\s+(?:the\s+)?\S.*|(?:open|close)\s+(?:the\s+)?(?:garage|blinds?|curtains?|shutters?|gate|door)\b.*|start\s+(?:the\s+)?(?:vacuum|robot|cleaning)\b.*|(?:play|pause|resume|stop)\s+(?:the\s+)?(?:music|tv|radio|speaker|player)\b.*|(?:arm|disarm)\s+(?:the\s+)?(?:alarm|house|home)\b.*)$""",
+    )
+    private const val HA_MIN_LENGTH = 8
+
     private val LOCATION_TAIL = Regex(
         "(?:^|[^\\p{L}])(?:i'?m at|i am at|i'?m here|i am here|my (?:current )?location|where i am|" +
             "(?:send|share|here'?s|here is) (?:you )?my (?:current )?location)\\s?[:?!.]?$",
@@ -1572,6 +1621,14 @@ object SmartSuggest {
             // Straight quotes and curly ones both: phones type ’ in "I’m".
             LOCATION_TAIL.find(tail.replace('’', '\''))?.let {
                 return intentHit(ToolbarTool.LOCATION, it.value.trimStart { c -> !c.isLetter() }.trimEnd(' ', '?', '!', '.', ':'))
+            }
+        }
+        if (ctx.haReady && toolOn(ToolbarTool.HOME_ASSISTANT, ctx)) {
+            // "turn off the kitchen lights", "dim the bedroom to 30%", "lock the front door":
+            // the sentence goes to Assist as typed, which resolves the names itself.
+            HA_TAIL.find(tail)?.let {
+                val sentence = it.value.trim().trimEnd('.', '!', '?', ' ')
+                if (sentence.length >= HA_MIN_LENGTH) return intentHit(ToolbarTool.HOME_ASSISTANT, sentence, ToolPrefill.Assist(sentence))
             }
         }
         return null
@@ -1635,6 +1692,31 @@ object SmartSuggest {
             keywords.any { it.lowercase(Locale.ROOT) == lower }
         }
 
+    // ---- repeated text ----
+
+    /**
+     * The same text just typed several times over — "no no no", "ok" on three
+     * lines, "hahaha" — offered to the Text repeat tool, which opens on that
+     * text with the separator and count already set (see [TextRepeat.findRun]
+     * for what counts as a run). The text stays: the chip is a door, and the
+     * tool decides what happens to the copies already there. Each unit gets
+     * one chip per field, like the intent hints.
+     */
+    private fun detectRepeat(tail: String, ctx: Context, truncated: Boolean): SmartHit? {
+        if (!toolOn(ToolbarTool.TEXT_REPEAT, ctx)) return null
+        val run = TextRepeat.findRun(tail, ctx.repeatAfter, truncated) ?: return null
+        if (run.unit.lowercase(Locale.ROOT) in ctx.repeatRetired) return null
+        return SmartHit(
+            kind = Kind.REPEAT,
+            query = run.unit,
+            result = run.count.toString(),
+            insert = null,
+            replaceSpan = 0,
+            tool = ToolbarTool.TEXT_REPEAT,
+            prefill = ToolPrefill.TextRepeat(run.unit, run.separator, run.count, run.length),
+        )
+    }
+
     // ---- vocabulary nudges ----
 
     /**
@@ -1656,13 +1738,6 @@ object SmartSuggest {
             """[\p{L}\p{M}][\p{L}\p{M}'’-]*[\p{L}\p{M}])([\s\p{Punct}]{0,2})$""",
     )
 
-    /**
-     * "hate" → abhor: the typed word is a trigger in an installed pack. The
-     * chip's face carries the replacement (bent to the typed inflection and
-     * case) and [SmartHit.replaceSpan] covers the separator too, so a swap
-     * keeps the spacing. When the typed word *is* a vocabulary word the hit
-     * carries no [SmartHit.result] — an open-only chip that shows the card.
-     */
     /** A word a name can be made of: letters, with the marks names carry. */
     private val NAME_WORD = Regex("""[\p{L}\p{M}][\p{L}\p{M}'’.\-]*""")
 
@@ -1705,6 +1780,13 @@ object SmartSuggest {
         return null
     }
 
+    /**
+     * "hate" → abhor: the typed word is a trigger in an installed pack. The
+     * chip's face carries the replacement (bent to the typed inflection and
+     * case) and [SmartHit.replaceSpan] covers the separator too, so a swap
+     * keeps the spacing. When the typed word *is* a vocabulary word the hit
+     * carries no [SmartHit.result] — an open-only chip that shows the card.
+     */
     private fun detectVocab(tail: String, ctx: Context): SmartHit? {
         if (!toolOn(ToolbarTool.VOCABULARY, ctx)) return null
         val index = ctx.vocab ?: return null
@@ -1808,6 +1890,8 @@ object SmartSuggest {
         ToolbarTool.LOCATION to listOf("location", "gps"),
         // Not "time" or "watch": those are ordinary prose far too often to offer a chip for.
         ToolbarTool.CLOCK to listOf("clock", "alarm", "timer", "stopwatch", "countdown", "planner", "date"),
+        // Not "home" or "lights" alone: both are everyday prose.
+        ToolbarTool.HOME_ASSISTANT to listOf("hass", "homeassistant", "smarthome"),
         // Not "photo" or "picture" alone: said in passing far more often than meant as "send one".
         ToolbarTool.GALLERY to listOf("gallery", "photos", "pics"),
         ToolbarTool.LEVEL to listOf("level"),
@@ -1824,6 +1908,7 @@ object SmartSuggest {
         ToolbarTool.SEND_FILES to listOf("sendfile", "sendfiles", "fileshare", "wetransfer"),
         ToolbarTool.KDE_CONNECT to listOf("kdeconnect", "kde"),
         ToolbarTool.APP_LAUNCHER to listOf("apps", "launch"),
+        ToolbarTool.TEXT_REPEAT to listOf("repeat"),
     )
 
     fun keywordsFor(tool: ToolbarTool, overrides: String): List<String> =

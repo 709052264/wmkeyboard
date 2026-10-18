@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.ime.ui.gallery
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -27,20 +28,25 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
@@ -51,21 +57,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Deselect
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Description
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Deselect
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SaveAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Subtitles
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
+import com.wasimaster.wmkeyboard.core.media.gallery.GalleryItem
 import com.wasimaster.wmkeyboard.core.media.gallery.GalleryKind
 import com.wasimaster.wmkeyboard.core.media.gallery.GalleryQuality
 import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
+import com.wasimaster.wmkeyboard.core.media.gallery.edit.PhotoEdit
+import com.wasimaster.wmkeyboard.core.media.gallery.edit.PhotoEditRenderer
 import com.wasimaster.wmkeyboard.core.settings.GalleryCaption
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.gallery.GalleryAction
@@ -80,6 +90,8 @@ import com.wasimaster.wmkeyboard.ime.ui.chipBorder
 import com.wasimaster.wmkeyboard.ime.ui.chipShape
 import com.wasimaster.wmkeyboard.ime.ui.clock.clockChip
 import kotlin.math.roundToInt
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** The send bar's own height, which the grid keeps clear under its last row. */
 internal val SendBarHeight = 132.dp
@@ -205,13 +217,7 @@ private fun PickStrip(ui: GalleryUi, act: (GalleryAction) -> Unit) {
                         }
                     },
             ) {
-                AsyncImage(
-                    model = MediaThumb.of(item, THUMB_PX),
-                    contentDescription = null,
-                    imageLoader = loader,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                )
+                PickThumb(item, ui.editOf(item.id), loader)
                 Text(
                     (index + 1).toString(),
                     color = onAccent(kb.accent),
@@ -248,6 +254,42 @@ private fun PickStrip(ui: GalleryUi, act: (GalleryAction) -> Unit) {
                 ) { Icon(Icons.Outlined.Close, contentDescription = null, tint = OnPhoto, modifier = Modifier.size(12.dp)) }
             }
         }
+    }
+}
+
+/**
+ * A pick's picture in the strip. An edited photo is drawn with its edit, by
+ * the renderer that draws the sent copy, from a small decode; the system
+ * thumbnail stays under it until that is ready, and the last drawing stays
+ * up while the next one renders, so a change does not flash back to the
+ * original.
+ */
+@Composable
+private fun PickThumb(item: GalleryItem, edit: PhotoEdit, loader: ImageLoader) {
+    val context = LocalContext.current
+    var rendered by remember(item.id) { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(item.uri, edit) {
+        if (edit.isEmpty || item.kind != GalleryKind.IMAGE) {
+            rendered = null
+            return@LaunchedEffect
+        }
+        rendered = withContext(Dispatchers.Default) {
+            val src = MediaPrep.decode(context, item.uri, EDITED_THUMB_EDGE) ?: return@withContext null
+            val stickers = PreviewStickers()
+            runCatching { PhotoEditRenderer.render(src, edit, stickers).asImageBitmap() }.getOrNull()
+        } ?: rendered
+    }
+    val shown = rendered
+    if (shown == null) {
+        AsyncImage(
+            model = MediaThumb.of(item, THUMB_PX),
+            contentDescription = null,
+            imageLoader = loader,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+        )
+    } else {
+        Image(shown, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
     }
 }
 
@@ -451,3 +493,6 @@ internal fun CardButton(label: String, primary: Boolean = false, onClick: () -> 
 
 private val THUMB = 56.dp
 private const val THUMB_PX = 168
+
+/** An edited pick's decode: a crop of a quarter of the photo still fills the 56 dp cell. */
+private const val EDITED_THUMB_EDGE = 640

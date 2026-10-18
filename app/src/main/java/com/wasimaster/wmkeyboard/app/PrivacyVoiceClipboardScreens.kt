@@ -871,6 +871,17 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.pinnedInPlace,
             ) { scope.launch { repository.setClipboardPinnedInPlace(it) } }
         }
+        item {
+            ToggleSetting(
+                R.string.clipboard_pinned_folders_title,
+                stringResource(R.string.clipboard_pinned_folders_subtitle),
+                settings.watch { it.clipboard.pinnedFolders },
+                info = stringResource(R.string.clipboard_pinned_folders_info),
+                // Kept in place there is no pinned group to file anything out of.
+                enabled = !settings.watch { it.clipboard.pinnedInPlace },
+                default = SettingsDefaults.clipboard.pinnedFolders,
+            ) { scope.launch { repository.setClipboardPinnedFolders(it) } }
+        }
         // Screenshots, the source app and the paste chip are all read as a
         // clip is being stored, and nothing is stored with history off. The
         // Play build has no photos permission to ask for, so no screenshots.

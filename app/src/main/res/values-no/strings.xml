@@ -1153,7 +1153,7 @@
     <string name="clipboard_key_row_info">Lim inn en lenke og trykk enter for å gå til den, eller lim inn flere utklipp med et mellomrom eller en ny linje mellom dem, uten å gå tilbake til tastaturet. ABC går tilbake til bokstavene. Hvis du endret paneloppsettet, gjør ikke denne innstillingen noe: legg til tastene i oppsettredigeringsprogrammet i stedet. Raden vises ikke mens utklippstavlen er stablet over tastene. Denne innstillingen er av som standard.</string>
     <string name="clipboard_key_row_subtitle">En rad med taster nederst på utklippstavlepanelet</string>
     <string name="clipboard_key_row_title">ABC, mellomrom- og enter-taster</string>
-    <string name="clipboard_line_spacing_info">Ved 100 % sitter linjene i et utklipp så tett som skrifttypen tillater. Øk den for å spre dem ut. Standard er 130 %.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Ved 100 % sitter linjene i et utklipp så tett som skrifttypen tillater. Øk den for å spre dem ut. Standard er 130 %.</string>
     <string name="clipboard_line_spacing_subtitle">Avstanden mellom linjene i en tekstklipp</string>
     <string name="clipboard_line_spacing_title">Linjeavstand</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5705,6 +5705,7 @@
     <string name="search_kw_codes">otp, engangspassord, 2fa, tofaktor, bekreftelseskode, sms-kode, innloggingskode</string>
     <string name="search_kw_customdictionaries">ordlister, importer ord, ordliste</string>
     <string name="search_kw_datasaver">mobildata, mobilnett, datamålt, roaming, kun wifi, databruk, båndbredde, frakoblet, lagre data</string>
+    <string name="search_kw_deepl">skriv om omformuler omskriv forbedre poler stil tone oversettelse</string>
     <string name="search_kw_diagnostics">logger, logcat, feilsøking, krasj, rapport</string>
     <string name="search_kw_dictionary">lærte ord, ordbok, mine ord, legg til ord</string>
     <string name="search_kw_emoji">emojier, smilefjes, kaomoji, hudtone, klistremerker, gif-er, nylige</string>
@@ -5848,6 +5849,7 @@
     <string name="search_kw_translate_engine">frakoblet privat internett flymodus lokal enhet ml kit google modell nedlasting sky</string>
     <string name="search_kw_translate_models">frakoblet oversettelsesmodell nedlasting slett lagring ml kit google</string>
     <string name="search_kw_translate_only_downloaded">skjul filtermeny for frakoblet modellvalg kort</string>
+    <string name="search_kw_translate_server">openai kompatibel selvhostet hostet lokal llm ai modell ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">stavekontroll, autofullfør, prediktiv tekst, glide, sveipeskriving, bevegelser, kontakter, angre</string>
     <string name="search_kw_typing_auto_capitalize">autostor forbokstav autokapitalisering</string>
     <string name="search_kw_typing_auto_close_brackets">autolukk par parenteser klammeparenteser klammeparentes-matching fullføring</string>

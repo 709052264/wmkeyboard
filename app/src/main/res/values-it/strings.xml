@@ -1152,7 +1152,7 @@
     <string name="clipboard_key_row_info">Incolla un link e premi invio per aprirlo, oppure incolla altri clip separandoli con uno spazio o una nuova riga, senza tornare alla tastiera. ABC riporta alle lettere. Se hai modificato il layout del pannello, questa impostazione non ha effetto: aggiungi i tasti nell\'editor del layout. La riga non viene mostrata mentre gli appunti sono sovrapposti ai tasti. Questa impostazione è disattivata per impostazione predefinita.</string>
     <string name="clipboard_key_row_subtitle">Una riga di tasti lungo la parte inferiore del pannello degli appunti</string>
     <string name="clipboard_key_row_title">Tasti ABC, spazio e invio</string>
-    <string name="clipboard_line_spacing_info">Al 100% le righe di una clip sono vicine quanto il carattere consente. Aumentalo per distanziarle. Il valore predefinito è 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Al 100% le righe di una clip sono vicine quanto il carattere consente. Aumentalo per distanziarle. Il valore predefinito è 130%.</string>
     <string name="clipboard_line_spacing_subtitle">Lo spazio tra le righe del testo di una clip</string>
     <string name="clipboard_line_spacing_title">Interlinea</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5697,6 +5697,7 @@
     <string name="search_kw_codes">otp, password monouso, 2fa, due fattori, codice di verifica, codice sms, codice di accesso</string>
     <string name="search_kw_customdictionaries">elenchi di parole, importa parole, lista parole</string>
     <string name="search_kw_datasaver">dati mobili, cellulare, a consumo, roaming, solo wifi, utilizzo dati, larghezza di banda, offline, risparmio dati</string>
+    <string name="search_kw_deepl">scrivi riformula riscrivi migliora correggi stile tono traduzione</string>
     <string name="search_kw_diagnostics">log, logcat, risoluzione problemi, crash, report</string>
     <string name="search_kw_dictionary">parole apprese, dizionario utente, le mie parole, aggiungi parola</string>
     <string name="search_kw_emoji">emoticon, faccine, kaomoji, tonalità pelle, adesivi, gif, recenti</string>
@@ -5840,6 +5841,7 @@
     <string name="search_kw_translate_engine">offline privato internet aereo dispositivo locale ml kit google modello download cloud</string>
     <string name="search_kw_translate_models">modello traduzione offline download elimina archiviazione ml kit google</string>
     <string name="search_kw_translate_only_downloaded">nascondi filtro menu selezione modello offline elenco lingue breve</string>
+    <string name="search_kw_translate_server">openai compatibile selfhosted ospitato locale llm ai modello ollama llama studio vllm localai chat completamenti mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">controllo ortografico, completamento automatico, testo predittivo, glide, digitazione a scorrimento, gesti, contatti, annulla</string>
     <string name="search_kw_typing_auto_capitalize">maiuscole automatiche autocapitalizzazione</string>
     <string name="search_kw_typing_auto_close_brackets">chiusura automatica coppie parentesi graffe corrispondenza parentesi completamento</string>
@@ -8475,7 +8477,7 @@
     <string name="typing_letter_swipe_select_key_label">Scorri su un tasto</string>
     <string name="typing_letter_swipe_type_words_desc">Uno scorrimento sui tasti compone una parola</string>
     <string name="typing_letter_swipe_type_words_label">Digita parole</string>
-    <string name="typing_mistype_tolerance_info">Ogni tocco viene letto in base a dove è atterrato, non solo in base al tasto colpito, quindi un tocco vicino al bordo di un tasto può ancora essere letto come il tasto accanto. Questo imposta quanto è generosa tale lettura. Sopra il 100%, un tocco ben all\'interno di un tasto vicino è ancora un probabile errore, il che si adatta a una digitazione veloce o frenetica e a dita grandi. Sotto il 100%, il tasto colpito è più affidabile, il che si adatta a una digitazione attenta. Cambia le parole che la striscia offre e ciò che l\'autocorrezione sceglie. Il valore predefinito è 100%.</string>
+    <string name="typing_mistype_tolerance_info" formatted="false">Ogni tocco viene letto in base a dove è atterrato, non solo in base al tasto colpito, quindi un tocco vicino al bordo di un tasto può ancora essere letto come il tasto accanto. Questo imposta quanto è generosa tale lettura. Sopra il 100%, un tocco ben all\'interno di un tasto vicino è ancora un probabile errore, il che si adatta a una digitazione veloce o frenetica e a dita grandi. Sotto il 100%, il tasto colpito è più affidabile, il che si adatta a una digitazione attenta. Cambia le parole che la striscia offre e ciò che l\'autocorrezione sceglie. Il valore predefinito è 100%.</string>
     <string name="typing_mistype_tolerance_subtitle">Quanto lontano in un tasto adiacente può cadere un tocco ed essere comunque considerato un errore</string>
     <string name="typing_mistype_tolerance_title">Tolleranza agli errori di battitura</string>
     <string name="typing_new_word_sightings_info">Vengono contate solo le parole che nessun dizionario conosce. Una parola già presente in un dizionario viene appresa nel momento in cui la digiti. Un utilizzo conta solo una volta che hai proseguito e lasciato stare la parola, quindi un errore di battitura che torni a correggere non viene mai contato. Abbassa questo valore se i tuoi nomi e lo slang impiegano troppo tempo a essere memorizzati. Impostalo su 1 per salvare subito ogni nuova parola, come facevano le versioni precedenti. Questa impostazione è 3 per impostazione predefinita.</string>

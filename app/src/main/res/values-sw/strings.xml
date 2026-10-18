@@ -1156,7 +1156,7 @@
     <string name="clipboard_key_row_info">Bandika kiungo na ubonyeze ingiza (enter) ili kukitembelea, au bandika nakala zaidi ukitumia nafasi au mstari mpya katikati yao, bila kurudi kwenye kibodi. ABC hurudi kwenye herufi. Ikiwa ulibadilisha mpangilio wa paneli, mpangilio huu hautafanya kazi: ongeza funguo katika kihariri cha mpangilio badala yake. Mstari hautaonekana wakati ubao wa kunakili umewekwa juu ya funguo. Kipengele hiki kimezimwa kwa chaguo-msingi.</string>
     <string name="clipboard_key_row_subtitle">Safu ya funguo kando ya sehemu ya chini ya paneli ya ubao wa kunakili</string>
     <string name="clipboard_key_row_title">Funguo za ABC, nafasi na ingiza</string>
-    <string name="clipboard_line_spacing_info">Kwa 100% mistari ya klipu hukaa karibu kama fonti inavyoruhusu. Iongeze ili kuitenganisha. Chaguomsingi ni 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Kwa 100% mistari ya klipu hukaa karibu kama fonti inavyoruhusu. Iongeze ili kuitenganisha. Chaguomsingi ni 130%.</string>
     <string name="clipboard_line_spacing_subtitle">Nafasi kati ya mistari ya maandishi ya klipu</string>
     <string name="clipboard_line_spacing_title">Nafasi kati ya mistari</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5714,6 +5714,7 @@
     <string name="search_kw_codes">otp, nenosiri la mara moja, 2fa, uthibitishaji wa hatua mbili, msimbo wa uthibitishaji, msimbo wa sms, msimbo wa kuingia</string>
     <string name="search_kw_customdictionaries">orodha za maneno, leta maneno, orodha ya maneno</string>
     <string name="search_kw_datasaver">data ya simu, ya mkononi, yenye kipimo, roaming, wifi pekee, matumizi ya data, bandwidth, nje ya mtandao, hifadhi data</string>
+    <string name="search_kw_deepl">andika rephrase rewrite improve polish style tone translation</string>
     <string name="search_kw_diagnostics">kumbukumbu, logcat, utatuzi, hitilafu, ripoti</string>
     <string name="search_kw_dictionary">maneno yaliyojifunza, kamusi ya mtumiaji, maneno yangu, ongeza neno</string>
     <string name="search_kw_emoji">vielelezo, vicheko, kaomoji, rangi ya ngozi, vibandiko, gif, vya hivi karibuni</string>
@@ -5857,6 +5858,7 @@
     <string name="search_kw_translate_engine">nje ya mtandao binafsi intaneti ndege kifaa cha ndani ml kit google modeli pakua wingu</string>
     <string name="search_kw_translate_models">pakua modeli ya tafsiri ya nje ya mtandao futa hifadhi ml kit google</string>
     <string name="search_kw_translate_only_downloaded">ficha menyu ya kichujio cha kuteua modeli ya nje ya mtandao</string>
+    <string name="search_kw_translate_server">openai inayooana inayojiendesha mwenyewe inayopangishwa llm ya ndani ai modeli ollama llama studio vllm localai mazungumzo ya gumzo mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">kikagua tahajia, kukamilisha kiotomatiki, maandishi ya ubashiri, kutelezesha kidole, kuandika kwa kutelezesha, ishara, anwani, tengua</string>
     <string name="search_kw_typing_auto_capitalize">autocaps autocapitalize autocapitalisation</string>
     <string name="search_kw_typing_auto_close_brackets">funga kiotomatiki mabano jozi yanayoendana kikamilifu</string>
@@ -8496,7 +8498,7 @@
     <string name="typing_letter_swipe_select_key_label">Telezesha kwenye ufunguo</string>
     <string name="typing_letter_swipe_type_words_desc">Kutelezesha kidole kwenye funguo huandika neno moja</string>
     <string name="typing_letter_swipe_type_words_label">Andika maneno</string>
-    <string name="typing_mistype_tolerance_info">Kila mguso husomwa dhidi ya mahali ulipotua, sio tu dhidi ya ufunguo uliogonga, kwa hivyo mguso karibu na ukingo wa ufunguo bado unaweza kusomwa kama ufunguo ulio karibu nao. Hii huweka jinsi usomaji huo ulivyo mkarimu. Zaidi ya 100%, mguso ndani ya ufunguo wa jirani bado ni kuteleza kunakowezekana, ambayo inafaa kuandika haraka au kwa haraka na vidole vikubwa. Chini ya 100%, ufunguo uliogonga unaaminika zaidi, ambayo inafaa kuandika kwa uangalifu. Inabadilisha maneno ambayo utepe hutoa na kile kusahihisha kiotomatiki huchagua. Chaguo-msingi ni 100%.</string>
+    <string name="typing_mistype_tolerance_info" formatted="false">Kila mguso husomwa dhidi ya mahali ulipotua, sio tu dhidi ya ufunguo uliogonga, kwa hivyo mguso karibu na ukingo wa ufunguo bado unaweza kusomwa kama ufunguo ulio karibu nao. Hii huweka jinsi usomaji huo ulivyo mkarimu. Zaidi ya 100%, mguso ndani ya ufunguo wa jirani bado ni kuteleza kunakowezekana, ambayo inafaa kuandika haraka au kwa haraka na vidole vikubwa. Chini ya 100%, ufunguo uliogonga unaaminika zaidi, ambayo inafaa kuandika kwa uangalifu. Inabadilisha maneno ambayo utepe hutoa na kile kusahihisha kiotomatiki huchagua. Chaguo-msingi ni 100%.</string>
     <string name="typing_mistype_tolerance_subtitle">Umbali ambao mguso unaweza kutua kwenye ufunguo wa jirani na bado ukahesabiwa kama kuteleza</string>
     <string name="typing_mistype_tolerance_title">Uvumilivu wa makosa ya kuandika</string>
     <string name="typing_new_word_sightings_info">Maneno ambayo hayajulikani na kamusi yoyote ndiyo huhesabiwa. Neno ambalo tayari liko kwenye kamusi linahitaji matumizi moja, si kadhaa, kwa sababu hakuna shaka kuhusu tahajia yake. Kwa vyovyote vile, matumizi huhesabiwa tu pindi unapohama na kuliacha neno hilo, kwa hivyo neno unalorudi na kurekebisha, au kutelezesha kidole kulikotoa neno lisilo sahihi, hakuhesabiwi kamwe. Hakuna kinachohifadhiwa wakati bado unaandika: maneno uliyoyaacha huongezwa unapofunga kibodi, kutuma ujumbe, au kuhamia sehemu nyingine. Punguza thamani hii ikiwa majina yako na misimu inachukua muda mrefu sana kukubalika. Iweke iwe 1 ili kuhifadhi kila neno jipya baada ya matumizi moja. Mpangilio huu ni 3 kwa chaguomsingi.</string>

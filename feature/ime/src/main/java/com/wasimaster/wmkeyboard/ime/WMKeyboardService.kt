@@ -76,7 +76,6 @@ import androidx.core.view.inputmethod.InputContentInfoCompat
 import androidx.core.graphics.createBitmap
 import androidx.tracing.trace
 import com.wasimaster.wmkeyboard.config.BuildConfig
-import com.wasimaster.wmkeyboard.app.CalendarPermissionActivity
 import com.wasimaster.wmkeyboard.app.CameraPermissionActivity
 import com.wasimaster.wmkeyboard.app.DocScanActivity
 import com.wasimaster.wmkeyboard.app.MainActivityContract
@@ -525,6 +524,7 @@ import com.wasimaster.wmkeyboard.core.tools.AiThinking
 import com.wasimaster.wmkeyboard.core.tools.CryptoCatalog
 import com.wasimaster.wmkeyboard.core.tools.CurrencyClient
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
+import com.wasimaster.wmkeyboard.core.tools.TextRepeat
 import com.wasimaster.wmkeyboard.core.tools.QrCodeGen
 import com.wasimaster.wmkeyboard.core.tools.CalcEngine
 import com.wasimaster.wmkeyboard.core.tools.MediaProviders
@@ -666,6 +666,7 @@ import com.wasimaster.wmkeyboard.core.layout.ModifierKey
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.commitsNoText
+import com.wasimaster.wmkeyboard.core.layout.deletesBackward
 import com.wasimaster.wmkeyboard.core.layout.opensAlternatesPopup
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.input.composer.resolvedComposer
@@ -2219,6 +2220,22 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private var lastRevertible: RevertibleCommit? = null
+
+    /**
+     * An autocorrect a backspace just took back, waiting to find out whether
+     * the user keeps the word it put back.
+     *
+     * The undo backspace is also the first press of a held backspace or a run
+     * of them wiping the text, and that run says nothing about the correction:
+     * it used to retire `i` → `I` for good because someone cleared a test
+     * field. So the rejection is only recorded once the restored word survives
+     * the next key ([settlePendingUndo]), and dropped if the next backspaces
+     * eat into it. [tail] is what followed the word when it came back: the
+     * space, or a mark and its space.
+     */
+    private class PendingUndo(val revert: RevertibleCommit, val tail: String)
+
+    private var pendingUndo: PendingUndo? = null
 
     /**
      * The ANSI encoding a Bengali layout on screen writes, or null while it
@@ -3985,6 +4002,7 @@ open class WMKeyboardService : InputMethodService() {
             var swipeStyleVersion = -1
             var statsVersion = -1
             var notesVersion = -1
+            var kaomojiVersion = -1
             var customDictVersion = -1
             var emojiPackVersion = -1
             var emojiUsageVersion = -1
@@ -4309,6 +4327,14 @@ open class WMKeyboardService : InputMethodService() {
                     publishNotes()
                 }
                 notesVersion = settings.notes.version
+                // The kaomoji library: the settings app's library screen, an
+                // import or a restore rewrote it.
+                if (kaomojiVersion != -1 && settings.emoji.kaomoji.version != kaomojiVersion) {
+                    kaomojiTool.reload()
+                }
+                kaomojiVersion = settings.emoji.kaomoji.version
+                // The strip's faces need the library before the tab is ever opened.
+                if (settings.emoji.kaomojiTabs || settings.emoji.kaomoji.suggest) kaomojiTool.ensureLoaded()
                 noteStore.trashRetentionMillis = settings.notes.trashDays * DAY_MS
                 // Leaving Automatic starts its ladder over (#316). The settings
                 // app deletes the file for a keyboard that is not running; this
@@ -4398,6 +4424,7 @@ open class WMKeyboardService : InputMethodService() {
                 // enable state all live in the settings that just landed.
                 syncMediaTracking()
                 syncKdeConnect()
+                syncHomeAssistant()
                 com.wasimaster.wmkeyboard.ime.send.SendShareAlias.sync(
                     this@WMKeyboardService,
                     ToolbarTool.SEND_FILES in settings.enabledTools && settings.send.shareSheet,
@@ -4660,6 +4687,9 @@ open class WMKeyboardService : InputMethodService() {
     private fun attachPersonalStores() {
         fun store(path: String): File? = if (userUnlocked) File(filesDir, path) else null
         userLexicon = UserLexicon(store("learning/user_lexicon.json"))
+        // The kaomoji library reads its file through [userUnlocked] itself;
+        // one read before the unlock held the built-in set in its place.
+        if (kaomojiToolDelegate.isInitialized()) kaomojiTool.reattach()
         // Its own file for the same reason [CorrectionStats] has one: the
         // settings app rewrites the lexicon wholesale when the user edits their
         // personal dictionary, and half-earned sightings must survive that.
@@ -5378,7 +5408,6 @@ open class WMKeyboardService : InputMethodService() {
                 onWeatherRefresh = { refreshWeather(force = true) },
                 onCameraSend = ::onCameraSend,
                 onCameraPermissionRequest = ::onCameraPermissionRequest,
-                onCalendarPermissionRequest = ::onCalendarPermissionRequest,
                 onScannedInsert = ::onScannedTextInsert,
                 onScannedUrlOpen = ::onScannedUrlOpen,
                 onVoiceToggle = ::onVoiceToggle,
@@ -5441,6 +5470,7 @@ open class WMKeyboardService : InputMethodService() {
                 capture = captureCallbacks,
                 reply = replyCallbacks,
                 onPwSetting = ::onPwSetting,
+                onTextRepeat = ::onTextRepeat,
                 onTypingTestAction = ::onTypingTestAction,
                 onQrSend = ::onQrSend,
                 onAiAction = ::onAiAction,
@@ -6359,6 +6389,7 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
         syncKdeConnect()
+        syncHomeAssistant()
     }
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
@@ -6439,7 +6470,9 @@ open class WMKeyboardService : InputMethodService() {
             flushLearningBuffer(verifyCorrections = false)
             // A different field is a different run of typing, and the blocks an
             // undo puts on a correction are scoped to the run that earned them.
-            // What should outlive it is in the persisted pair counts by now.
+            // What should outlive it is in the persisted pair counts by now,
+            // an undo still waiting included: the user left with it standing.
+            settlePendingUndo(kept = true)
             correctionStats.endFieldSession()
             declinedSpots.clear()
             chipOpenRestore = null
@@ -6518,6 +6551,7 @@ open class WMKeyboardService : InputMethodService() {
         // catches music that began while the keyboard was away.
         syncMediaTracking()
         syncKdeConnect()
+        syncHomeAssistant()
         // Ready before the first press of the mic, not after it (#305).
         refreshVoiceBias()
         refreshHardwareKeyboardState()
@@ -6608,6 +6642,7 @@ open class WMKeyboardService : InputMethodService() {
         if (!restarting) {
             intentChipsRetired.clear()
             contactChipsRetired.clear()
+            repeatChipsRetired.clear()
         }
         if (!restarting) {
             // Same for the vocabulary nudges — unless the cooldown is a day,
@@ -6734,13 +6769,17 @@ open class WMKeyboardService : InputMethodService() {
         // FORCE_ASCII is a hard constraint (the app cannot store what a Bengali
         // mode types) so it outranks a hintLocales preference, which is only ever
         // advisory. Both are compared against — and fall back to — that base.
+        // Neither ever reaches outside the enabled list: with no Latin layout
+        // enabled a FORCE_ASCII field used to open on the built-in English one,
+        // which a user who removed English then met in every field that set
+        // the flag (#783).
         val current = base ?: _uiState.value.settings
         val baseSpec = resolveLayout(current.customLayouts, baseLayoutId(current))
         fieldLayoutOverride = when {
             info.forcesAscii() && baseSpec.script().id != ScriptId.LATIN ->
                 current.enabledLayoutIds.firstOrNull {
                     resolveLayout(current.customLayouts, it).script().id == ScriptId.LATIN
-                } ?: BuiltInLayouts.DEFAULT_ID
+                }
             // hintLocales names a language, not a layout, so it picks the first
             // enabled layout that types that language.
             else -> info.hintedLanguage(current.enabledLanguages)
@@ -6849,6 +6888,7 @@ open class WMKeyboardService : InputMethodService() {
                 fieldIncognito = fieldIncognito,
                 emojiSearchActive = restarting && it.emojiSearchActive,
                 emojiQuery = if (restarting) it.emojiQuery else "",
+                kaomojiText = if (restarting) it.kaomojiText else null,
                 dictionarySearchActive = restarting && it.dictionarySearchActive,
                 clipboardSearchActive = restarting && it.clipboardSearchActive,
                 clipboardQuery = if (restarting) it.clipboardQuery else "",
@@ -6974,6 +7014,10 @@ open class WMKeyboardService : InputMethodService() {
         locationTool.onKeyboardShown()
         // And a clock grant (exact alarms, full screen) given on a system screen.
         if (clockToolDelegate.isInitialized()) clockTool.onKeyboardShown()
+        // And a calendar grant, which may have a Save or a Delete waiting on it.
+        if (calendarToolDelegate.isInitialized()) calendarTool.onKeyboardShown()
+        // And a Home Assistant sign-in that came back from the browser.
+        if (haToolDelegate.isInitialized()) haTool.onKeyboardShown()
         // The gallery's grant, or what its system picker handed back (#708):
         // the picks join the open panel, or in a Play build go straight out.
         if (galleryToolDelegate.isInitialized() || com.wasimaster.wmkeyboard.app.GalleryPickActivity.hasPending()) {
@@ -7778,11 +7822,15 @@ open class WMKeyboardService : InputMethodService() {
         windowOnScreen = true
         syncSummonButton()
         // A tool the floating button asked for while the keyboard was down,
-        // now that there is a keyboard for its panel (#755).
+        // now that there is a keyboard for its panel (#755). Posted, not run
+        // here: serviceScope is Main.immediate, and run in place the panel it
+        // opened was closed again a few lines on by startInputView's "a panel
+        // dies with the field", so emoji, clipboard and voice brought up a
+        // bare keyboard.
         floatingPendingTool?.let { tool ->
             floatingPendingTool = null
             if (arriving && SystemClock.uptimeMillis() - floatingPendingAt < FLOATING_TOOL_WAIT_MS) {
-                serviceScope.launch { runToolFromKey(tool) }
+                serviceScope.launch(Dispatchers.Main) { runToolFromKey(tool) }
             }
         }
         // Held up over the settings app with no field there (pinned or
@@ -7869,6 +7917,7 @@ open class WMKeyboardService : InputMethodService() {
         // The window is gone, so the media-session listener goes with it.
         syncMediaTracking()
         syncKdeConnect()
+        syncHomeAssistant()
         // Refilling the pool waits until the keyboard is going away, so a
         // download can never race the first frame of a session.
         topUpBackgroundPool()
@@ -8054,6 +8103,8 @@ open class WMKeyboardService : InputMethodService() {
         KdeConnectHub.release(KdeConnectHub.Reason.PANEL)
         KdeConnectHub.release(KdeConnectHub.Reason.KEYBOARD)
         KdeConnectHub.release(KdeConnectHub.Reason.SERVICE)
+        com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.release(com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.Reason.PANEL)
+        com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.release(com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.Reason.KEYBOARD)
         finishRevisionOnLeave()
         flushLearningBuffer()
         // Blocking, and on the same queue as the hide's saves: the process is
@@ -8341,6 +8392,9 @@ open class WMKeyboardService : InputMethodService() {
     fun onKey(key: Key) = trace(ImeTrace.KEY) { handleKey(key) }
 
     private fun handleKey(key: Key) {
+        // Before the key runs: a space must find the rejection already
+        // recorded, or it corrects the restored word straight back.
+        if (!key.action.deletesBackward()) settlePendingUndoOnKey(key.action)
         // The strip's remembered numbers were about the caret before this key
         // (#431); its echo re-reads them. A space or an enter ends the run of
         // digits, which is the moment it is worth remembering.
@@ -9877,8 +9931,15 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.NOTE_TAG -> onNoteTagCommit()
             // Search adds its best match; a label is kept. Either way the keys go back.
             CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> state.clockText?.let(clockTool::onTextEnter)
+            // Search opens the first tile, Assist sends the sentence, a code or value is kept.
+            CaptureTarget.HA_SEARCH, CaptureTarget.HA_ASSIST, CaptureTarget.HA_TEXT -> state.haText?.let(haTool::onTextEnter)
             // A caption, or words on a photo, can run over lines; Done finishes them.
             CaptureTarget.GALLERY_TEXT -> captureTyped("\n")
+            // A title moves on to the place, a guest is added, a place is kept;
+            // notes are free text, so Enter is a line break in them.
+            CaptureTarget.CALENDAR_TITLE, CaptureTarget.CALENDAR_LOCATION, CaptureTarget.CALENDAR_GUEST ->
+                state.calendarText?.let(calendarTool::onTextEnter)
+            CaptureTarget.CALENDAR_NOTES -> captureTyped("\n")
             // A password, a link or an address is one line; Enter hands it in.
             CaptureTarget.SEND_PASSWORD, CaptureTarget.SEND_LINK, CaptureTarget.SEND_INSTANCE ->
                 state.sendText?.let(sendTool::onTextEnter)
@@ -9899,6 +9960,13 @@ open class WMKeyboardService : InputMethodService() {
             // The search opens its first match (#687); a folder's name is kept (#709).
             CaptureTarget.TOOLBOX_SEARCH -> onToolboxSearchEnter()
             CaptureTarget.TOOLBOX_FOLDER_NAME -> onToolboxFolderRenameDone(keep = true)
+            // The search puts its first match in, a face is saved, a tag is kept.
+            CaptureTarget.KAOMOJI_SEARCH, CaptureTarget.KAOMOJI_FACE, CaptureTarget.KAOMOJI_TAG ->
+                state.kaomojiText?.let(kaomojiTool::onTextEnter)
+            // The text to repeat may run over lines; the separator box is one
+            // line, and Enter keeps it and hands the keys back.
+            CaptureTarget.REPEAT_TEXT -> captureTyped("\n")
+            CaptureTarget.REPEAT_SEPARATOR -> onTextRepeat(TextRepeatAction.Focus(null))
         }
         return true
     }
@@ -10232,6 +10300,9 @@ open class WMKeyboardService : InputMethodService() {
             }
             CaptureTarget.DICTIONARY_SEARCH -> updateQuery { it.copy(dictionaryQuery = text) }
             CaptureTarget.CLIPBOARD_SEARCH -> updateQuery { it.copy(clipboardQuery = text) }
+            CaptureTarget.REPEAT_TEXT, CaptureTarget.REPEAT_SEPARATOR -> _uiState.update {
+                it.copy(textRepeat = it.textRepeat.withFocusedText(text.take(TEXT_REPEAT_BOX_MAX)))
+            }
             else -> return false
         }
         return true
@@ -10259,6 +10330,26 @@ open class WMKeyboardService : InputMethodService() {
                 _uiState.update { it.copy(clockText = entry) }
                 entry?.let(clockTool::onText)
             }
+            CaptureTarget.HA_SEARCH, CaptureTarget.HA_ASSIST, CaptureTarget.HA_TEXT -> {
+                val limit = com.wasimaster.wmkeyboard.ime.homeassistant.HaController.TEXT_MAX
+                val entry = _uiState.value.haText?.copy(text = text.replace("\n", " ").take(limit))
+                _uiState.update { it.copy(haText = entry) }
+                entry?.let(haTool::onText)
+            }
+            CaptureTarget.CALENDAR_TITLE, CaptureTarget.CALENDAR_LOCATION,
+            CaptureTarget.CALENDAR_NOTES, CaptureTarget.CALENDAR_GUEST,
+            -> {
+                val current = _uiState.value.calendarText
+                val entry = current?.copy(
+                    text = if (target == CaptureTarget.CALENDAR_NOTES) {
+                        text.take(com.wasimaster.wmkeyboard.ime.calendar.CalendarController.NOTES_MAX)
+                    } else {
+                        text.replace("\n", " ").take(com.wasimaster.wmkeyboard.ime.calendar.CalendarController.TITLE_MAX)
+                    },
+                )
+                _uiState.update { it.copy(calendarText = entry) }
+                entry?.let(calendarTool::onText)
+            }
             CaptureTarget.GALLERY_TEXT -> {
                 val limit = com.wasimaster.wmkeyboard.ime.gallery.GalleryController.CAPTION_MAX
                 val entry = _uiState.value.galleryText?.copy(text = text.take(limit))
@@ -10283,6 +10374,12 @@ open class WMKeyboardService : InputMethodService() {
                         nameDraft = text.replace("\n", " ").take(TOOLBOX_FOLDER_NAME_MAX),
                     ),
                 )
+            }
+            CaptureTarget.KAOMOJI_SEARCH, CaptureTarget.KAOMOJI_FACE, CaptureTarget.KAOMOJI_TAG -> {
+                val limit = com.wasimaster.wmkeyboard.core.emoji.KaomojiStore.MAX_TEXT_LENGTH
+                val entry = _uiState.value.kaomojiText?.copy(text = text.replace("\n", " ").take(limit))
+                _uiState.update { it.copy(kaomojiText = entry) }
+                entry?.let(kaomojiTool::onText)
             }
             else -> Unit
         }
@@ -12009,6 +12106,7 @@ open class WMKeyboardService : InputMethodService() {
         if (runKeymanFrameKey(VK_BACKSPACE)) return
         val state = _uiState.value
         val ic = currentInputConnection ?: return
+        settlePendingUndoOnDelete()
         recordStat { onBackspace(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
         // The mid-word strip describes the field as it was before this delete.
         clearCaretWord()
@@ -12137,7 +12235,7 @@ open class WMKeyboardService : InputMethodService() {
                     ic.deleteSurroundingText(probe.length, 0)
                     ic.commitText(revert.original + tail, 1)
                     ic.endBatchEdit()
-                    revertCommitted(ic, revert, state)
+                    revertCommitted(ic, revert, state, tail)
                     return
                 }
                 // Nothing followed the commit after all — a mark that hugged
@@ -12151,7 +12249,7 @@ open class WMKeyboardService : InputMethodService() {
                     ic.deleteSurroundingText(revert.committed.length, 0)
                     ic.commitText(revert.original, 1)
                     ic.endBatchEdit()
-                    revertCommitted(ic, revert, state)
+                    revertCommitted(ic, revert, state, tail = "")
                     return
                 }
             }
@@ -12312,18 +12410,21 @@ open class WMKeyboardService : InputMethodService() {
      * taking back a snippet expansion says nothing about anybody's vocabulary,
      * so it teaches nothing and only puts the context back where it was.
      */
-    private fun revertCommitted(ic: InputConnection, revert: RevertibleCommit, state: KeyboardUiState) {
+    private fun revertCommitted(
+        ic: InputConnection,
+        revert: RevertibleCommit,
+        state: KeyboardUiState,
+        tail: String,
+    ) {
         // A stale precompute for this word would hand the old answer to the
         // next commit before the strip catches up.
         commitResolution = null
         when (revert.kind) {
             RevertibleCommit.Kind.AUTOCORRECT -> {
-                // Undoing the correction retires that exact pair: without
-                // this the very next space corrected the word straight back.
-                // Unconditional, unlike the personal dictionary entry below —
-                // a rejection has to hold in incognito and with learning off
-                // too. Other corrections of the same typed word stay live.
-                suggestionEngine?.rejectCorrection(revert.original, revert.committed)
+                // The rejection itself waits for the next key: see
+                // [PendingUndo]. An older one still waiting was kept.
+                settlePendingUndo(kept = true)
+                pendingUndo = PendingUndo(revert, tail)
                 declinedSpots.undone(revert.original)
                 // Judged here and now, so the settle pass must not judge it
                 // again on the way out and count the rejection twice.
@@ -12331,21 +12432,6 @@ open class WMKeyboardService : InputMethodService() {
                 // The chip was about this correction, and this correction is
                 // no longer in the field.
                 clearUndoChip()
-                if (state.settings.learnFromTyping &&
-                    !(state.incognitoOn && state.settings.incognitoPausesLearning) &&
-                    !state.secureField
-                ) {
-                    // Counted, not learned outright. Reaching for backspace is
-                    // strong evidence — worth several ordinary sightings — but
-                    // it is not proof: undoing a correction is also what you do
-                    // when the correction was simply not the word you wanted,
-                    // and this used to be the shortest path from one stray
-                    // swipe to a misspelling nailed into the dictionary
-                    // forever. Nothing is lost by waiting either, because
-                    // [rejectCorrection] above has already stopped this exact
-                    // correction from firing again.
-                    noteRevertedWord(revert.original, state)
-                }
                 previousWord = revert.original.trim { !WordContext.isWordChar(it) }
                     .lowercase().ifEmpty { null }
                 invalidateRecentWords()
@@ -12384,6 +12470,73 @@ open class WMKeyboardService : InputMethodService() {
                 syncPreviousWordFromField(ic)
             }
         }
+    }
+
+    /**
+     * Records the rejection [pendingUndo] holds when [kept], drops it otherwise.
+     */
+    private fun settlePendingUndo(kept: Boolean) {
+        val revert = pendingUndo?.revert ?: return
+        pendingUndo = null
+        if (!kept) return
+        // Undoing the correction retires that exact pair: without this the
+        // next space corrected the word straight back. Unconditional, unlike
+        // the personal dictionary entry below — a rejection has to hold in
+        // incognito and with learning off too. Other corrections of the same
+        // typed word stay live.
+        suggestionEngine?.rejectCorrection(revert.original, revert.committed)
+        val state = _uiState.value
+        if (state.settings.learnFromTyping &&
+            !(state.incognitoOn && state.settings.incognitoPausesLearning) &&
+            !state.secureField
+        ) {
+            // Counted, not learned outright. Reaching for backspace is strong
+            // evidence — worth several ordinary sightings — but it is not
+            // proof: undoing a correction is also what you do when the
+            // correction was simply not the word you wanted, and this used to
+            // be the shortest path from one stray swipe to a misspelling nailed
+            // into the dictionary forever. Nothing is lost by waiting either,
+            // because [rejectCorrection] above has already stopped this exact
+            // correction from firing again.
+            noteRevertedWord(revert.original, state)
+        }
+    }
+
+    /**
+     * How much of [PendingUndo.tail] still follows the restored word right
+     * behind the caret, or -1 when the word itself is no longer there whole.
+     */
+    private fun pendingUndoTailLeft(pending: PendingUndo): Int {
+        val word = pending.revert.original
+        val before = currentInputConnection
+            ?.getTextBeforeCursor(word.length + pending.tail.length, 0)
+            ?.toString() ?: return -1
+        for (left in pending.tail.length downTo 0) {
+            if (before.endsWith(word + pending.tail.take(left))) return left
+        }
+        return -1
+    }
+
+    /**
+     * A key other than backspace after an undo. The word is kept when the user
+     * moves on from it; a letter typed straight onto its end is editing it into
+     * another word, which says nothing about the correction.
+     */
+    private fun settlePendingUndoOnKey(action: KeyAction) {
+        val pending = pendingUndo ?: return
+        val left = pendingUndoTailLeft(pending)
+        val endsWord = action == KeyAction.Space || action == KeyAction.Enter ||
+            action == KeyAction.Newline || action == KeyAction.EditorAction
+        settlePendingUndo(kept = left > 0 || (left == 0 && endsWord))
+    }
+
+    /**
+     * A backspace after an undo. Taking off the space behind the word leaves
+     * it standing; reaching the word means it is being deleted, not kept.
+     */
+    private fun settlePendingUndoOnDelete() {
+        val pending = pendingUndo ?: return
+        if (pendingUndoTailLeft(pending) <= 0) settlePendingUndo(kept = false)
     }
 
     /**
@@ -14346,10 +14499,17 @@ open class WMKeyboardService : InputMethodService() {
         return pending
     }
 
-    /** [baseLayoutId] as the settings alone see it, before any pending pick. */
+    /**
+     * [baseLayoutId] as the settings alone see it, before any pending pick.
+     *
+     * A remembered id has to still be one of the enabled layouts, not merely
+     * exist: built-ins never stop existing, so an app last typed in English
+     * kept reopening on English after English was removed from the list (#783).
+     */
     private fun storedLayoutId(settings: KeyboardSettings): String {
         if (!settings.perAppLanguage.enabled) return settings.activeLayoutId
         val remembered = settings.perAppLanguage.layoutByPackage[currentPackage]
+            ?.takeIf { id -> id in settings.enabledLayoutIds }
             ?.takeIf { id -> resolveLayout(settings.customLayouts, id).id == id }
         return remembered ?: settings.activeLayoutId
     }
@@ -14906,11 +15066,17 @@ open class WMKeyboardService : InputMethodService() {
      * Guarded against the echo from [mirrorSubtypeToOs] — when we are already on
      * that layout there is nothing to do, which also stops the in-app→OS→in-app
      * loop.
+     *
+     * Only a layout that is still enabled is followed. The framework remembers
+     * the last selected subtype across our re-registrations and hands it back
+     * when the keyboard starts, so a layout the user has since removed (English,
+     * typically, the one onboarding started on) came back on every field (#783).
      */
     override fun onCurrentInputMethodSubtypeChanged(newSubtype: InputMethodSubtype) {
         super.onCurrentInputMethodSubtypeChanged(newSubtype)
-        if (!_uiState.value.settings.osLanguageSwitcher) return
-        val layoutId = layoutIdOf(newSubtype) ?: return
+        val settings = _uiState.value.settings
+        if (!settings.osLanguageSwitcher) return
+        val layoutId = layoutIdOf(newSubtype)?.takeIf { it in settings.enabledLayoutIds } ?: return
         if (layoutId != _uiState.value.layoutId) onLayoutSelected(layoutId)
     }
 
@@ -19479,9 +19645,22 @@ open class WMKeyboardService : InputMethodService() {
      */
     private val contactChipsRetired = mutableSetOf<String>()
 
+    /**
+     * Texts (lowercase) whose repeat chip this field has already shown and
+     * moved past. Same rule again: "no no no" gets one offer, and typing on
+     * past it is the answer.
+     */
+    private val repeatChipsRetired = mutableSetOf<String>()
+
     /** Records [next] replacing (or clearing) a shown intent or lookup chip. */
     private fun retireIntentChip(next: SmartSuggest.SmartHit?) {
         val prev = _uiState.value.smart ?: return
+        if (prev.kind == SmartSuggest.Kind.REPEAT) {
+            if (next == null || next.kind != prev.kind || !next.query.equals(prev.query, ignoreCase = true)) {
+                repeatChipsRetired += prev.query.lowercase(Locale.ROOT)
+            }
+            return
+        }
         if (prev.kind == SmartSuggest.Kind.VOCAB) {
             // Typed past, or another word took the chip: the same word does
             // not nudge again until the cooldown says so.
@@ -19644,6 +19823,7 @@ open class WMKeyboardService : InputMethodService() {
             weatherFahrenheit = state.settings.weather.fahrenheit,
             lookupChips = state.settings.smartChips.lookups,
             intentChips = state.settings.smartChips.intents,
+            haReady = state.settings.homeAssistant.let { it.enabled && it.hasToken && it.hasServer && it.smartChip && it.assistEnabled },
             gifChips = state.settings.smartChips.gifs,
             vocabChips = state.settings.vocabulary.nudges,
             vocabSelfChips = state.settings.vocabulary.nudgeOnVocabWord,
@@ -19667,6 +19847,10 @@ open class WMKeyboardService : InputMethodService() {
                 state.language,
             ),
             contacts = contactPhones.takeIf { state.settings.smartChips.contacts && !it.isEmpty },
+            repeatChips = state.settings.smartChips.repeats,
+            repeatAfter = state.settings.smartChips.repeatAfter,
+            // A copy, for the same reason as vocabRetired.
+            repeatRetired = repeatChipsRetired.toSet(),
         )
 
     private fun todayJdn(): Long = Calendar.getInstance().let {
@@ -19765,6 +19949,7 @@ open class WMKeyboardService : InputMethodService() {
             intentChipsRetired += hit.tool
         }
         if (hit.kind == SmartSuggest.Kind.VOCAB) retireVocabNudge(hit.query)
+        if (hit.kind == SmartSuggest.Kind.REPEAT) repeatChipsRetired += hit.query.lowercase(Locale.ROOT)
         chipOpenRestore = null
         val ic = currentInputConnection
         if (ic != null) {
@@ -20973,7 +21158,11 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 ensureActive()
                 if (typed.isNotEmpty()) {
-                    val emojis = if (state.settings.emojiPrediction) {
+                    // Faces tagged with the word ("shrug", "tableflip") go in
+                    // front when the user asked for them; they ride the emoji
+                    // chips, and a tap on one is told apart by the library.
+                    val faces = if (kaomojiToolDelegate.isInitialized()) kaomojiTool.suggestionsFor(typed) else emptyList()
+                    val emojis = faces + if (state.settings.emojiPrediction) {
                         // The word before is passed for the two-word shortcodes
                         // ("alarm clock" → ⏰); one word can never reach them.
                         // Khipro's roman keys ("ami/") are not a word in any
@@ -24819,6 +25008,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.CURRENCY -> onPanelChange(PanelMode.CURRENCY)
             ToolbarTool.QR_GEN -> onPanelChange(PanelMode.QR_GEN)
             ToolbarTool.PASSWORD_GEN -> onPanelChange(PanelMode.PASSWORD_GEN)
+            ToolbarTool.TEXT_REPEAT -> onPanelChange(PanelMode.TEXT_REPEAT)
             ToolbarTool.TYPING_TEST -> onPanelChange(PanelMode.TYPING_TEST)
             // Not a panel: the levels, achievements and heatmap live on the
             // settings app's Statistics screen, and this is a shortcut to it (#390).
@@ -24828,6 +25018,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.NOTES -> onPanelChange(PanelMode.NOTES)
             ToolbarTool.LOCATION -> onPanelChange(PanelMode.LOCATION)
             ToolbarTool.CLOCK -> onPanelChange(PanelMode.CLOCK)
+            ToolbarTool.HOME_ASSISTANT -> onPanelChange(PanelMode.HOME_ASSISTANT)
             ToolbarTool.GALLERY -> openGalleryTool()
             ToolbarTool.SEND_FILES -> openSendTool()
             ToolbarTool.MEDIA_CONTROL -> onPanelChange(PanelMode.MEDIA_CONTROL)
@@ -24924,16 +25115,34 @@ open class WMKeyboardService : InputMethodService() {
         // is saved and the editor, the search and the Undo bar go (#560).
         if (_uiState.value.panel == PanelMode.NOTES) notesLeavePanel()
         if (_uiState.value.panel == PanelMode.LOCATION) locationTool.onPanelClose()
+        // Leaving the emoji panel: the kaomoji tab's box gives the keys back.
+        if (_uiState.value.panel == PanelMode.EMOJI) {
+            kaomojiTool.onPanelClose()
+            _uiState.update { it.copy(kaomojiText = null) }
+        }
         // Leaving the Clock panel: its text box gives the keys back.
         if (_uiState.value.panel == PanelMode.CLOCK) {
             clockTool.onPanelClose()
             _uiState.update { it.copy(clockText = null) }
+        }
+        // Leaving the Home Assistant panel: its text box gives the keys back, the socket lingers.
+        if (_uiState.value.panel == PanelMode.HOME_ASSISTANT) {
+            haTool.onPanelClose()
+            _uiState.update { it.copy(haText = null) }
+        }
+        // Leaving the Calendar panel: the composer's box gives the keys back; a draft is kept.
+        if (_uiState.value.panel == PanelMode.CALENDAR) {
+            calendarTool.onPanelClose()
+            _uiState.update { it.copy(calendarText = null) }
         }
         // Leaving the gallery: its caption box gives the keys back (#708).
         if (_uiState.value.panel == PanelMode.GALLERY) {
             galleryTool.onPanelClose()
             _uiState.update { it.copy(galleryText = null) }
         }
+        // Leaving Text repeat: its boxes give the keys back and the chip's run
+        // is forgotten; the text itself stays for the next visit.
+        if (_uiState.value.panel == PanelMode.TEXT_REPEAT) textRepeatLeavePanel()
         // Leaving the Send files panel: its boxes give the keys back (#729).
         if (_uiState.value.panel == PanelMode.SEND_FILES) {
             sendTool.onPanelClose()
@@ -25095,6 +25304,21 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.WEATHER -> refreshWeather()
             PanelMode.LOCATION -> locationTool.onPanelOpen()
             PanelMode.CLOCK -> clockTool.onPanelOpen()
+            // A "next friday" chip lands on its day; "Add to calendar" on a
+            // selection opens the composer filled in.
+            PanelMode.CALENDAR -> {
+                val prefill = _uiState.value.toolPrefill
+                calendarTool.onPanelOpen(prefill)
+                if (prefill is ToolPrefill.Calendar || prefill is ToolPrefill.CalendarEvent) onToolPrefillConsumed()
+            }
+            PanelMode.EMOJI -> if (_uiState.value.settings.emoji.kaomojiTabs) kaomojiTool.onPanelOpen()
+            PanelMode.HOME_ASSISTANT -> {
+                haTool.onPanelOpen()
+                (_uiState.value.toolPrefill as? ToolPrefill.Assist)?.let { prefill ->
+                    haTool.prefillAssist(prefill.sentence)
+                    onToolPrefillConsumed()
+                }
+            }
             PanelMode.GALLERY -> galleryTool.onPanelOpen()
             PanelMode.SEND_FILES -> {
                 // A link chip staged the link; the panel opens on receiving it (#729).
@@ -25172,6 +25396,7 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.FIND_REPLACE -> {
                 currentInputConnection?.let { commitComposing(it, autocorrect = false) }
             }
+            PanelMode.TEXT_REPEAT -> openTextRepeatPanel()
             PanelMode.NOTES -> openNotesPanel()
             PanelMode.LEARN_FROM_TEXT -> {
                 // The half-typed word is part of the text being read.
@@ -25222,6 +25447,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         syncMediaTracking()
         syncKdeConnect()
+        syncHomeAssistant()
     }
 
     // ---- KDE Connect (issue #285) ----
@@ -29540,6 +29766,247 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    // ---- Text repeat tool ----
+
+    /** The tool's recent texts, kept the way Find and replace keeps its searches. */
+    private val textRepeatRecents by lazy { FindHistoryPrefs(this, FindHistoryPrefs.TEXT_REPEAT_FILE) }
+
+    /** Text the selection bar's Repeat handed over, read once as the panel opens. */
+    private var textRepeatSeed: String? = null
+
+    /** The selection bar's Repeat: the panel, with the selection as the text. */
+    private fun openTextRepeatTool(seed: String) {
+        textRepeatSeed = seed
+        onPanelChange(PanelMode.TEXT_REPEAT, haptic = true)
+    }
+
+    /**
+     * The panel just opened. From its chip it takes the run the chip found:
+     * the text, the separator, a count that at least doubles the copies, and
+     * where they sit so Insert can act on them. From the selection bar it
+     * takes the selection; from the toolbar, the selection or else the word
+     * before the cursor, as a convenience the box's × undoes in one tap, and
+     * failing both whatever it held last time.
+     */
+    private fun openTextRepeatPanel() {
+        val ic = currentInputConnection
+        ic?.let { commitComposing(it, autocorrect = false) }
+        val state = _uiState.value
+        val prefill = state.toolPrefill as? ToolPrefill.TextRepeat
+        if (prefill != null) onToolPrefillConsumed()
+        val seed = textRepeatSeed.also { textRepeatSeed = null }
+        val options = state.settings.textRepeat
+        var run: TextRepeatRun? = null
+        var customSeparator = state.textRepeat.customSeparator.ifEmpty { options.customSeparator }
+        val text = when {
+            prefill != null -> {
+                val before = ic?.getTextBeforeCursor(prefill.runLength, 0)?.toString()
+                if (before != null && before.length == prefill.runLength) {
+                    run = TextRepeatRun(before, prefill.runLength, prefill.count)
+                }
+                val separator = TextRepeat.Separator.of(prefill.separator)
+                if (separator == TextRepeat.Separator.CUSTOM) customSeparator = prefill.separator
+                serviceScope.launch {
+                    settingsRepository.setTextRepeatCount(TextRepeat.countAfter(prefill.count, options.count))
+                    settingsRepository.setTextRepeatSeparator(separator)
+                    if (separator == TextRepeat.Separator.CUSTOM) {
+                        settingsRepository.setTextRepeatCustomSeparator(prefill.separator)
+                    }
+                    // The chip promised to repeat the text; a stretch or a
+                    // staircase left over from last time would do something else.
+                    if (options.mode != TextRepeat.Mode.REPEAT) settingsRepository.setTextRepeatMode(TextRepeat.Mode.REPEAT)
+                }
+                prefill.text
+            }
+            seed != null -> seed
+            else -> selectedFieldText() ?: wordBeforeCursor() ?: state.textRepeat.text
+        }
+        _uiState.update {
+            it.copy(
+                textRepeat = it.textRepeat.copy(
+                    text = text.take(TEXT_REPEAT_BOX_MAX),
+                    customSeparator = customSeparator,
+                    focused = null,
+                    run = run,
+                    lastInsert = null,
+                    recents = textRepeatRecentEntries(),
+                ),
+            )
+        }
+    }
+
+    /** Leaving the panel: the boxes give the keys back, the chip's run is forgotten, the separator is kept. */
+    private fun textRepeatLeavePanel() {
+        persistTextRepeatSeparator()
+        _uiState.update { it.copy(textRepeat = it.textRepeat.copy(focused = null, run = null)) }
+    }
+
+    /** The custom separator is typed into a box, so it lands in settings once the box is left. */
+    private fun persistTextRepeatSeparator() {
+        val value = _uiState.value.textRepeat.customSeparator
+        if (value == _uiState.value.settings.textRepeat.customSeparator) return
+        serviceScope.launch { settingsRepository.setTextRepeatCustomSeparator(value) }
+    }
+
+    /** The selection in the field, when there is one with something in it. */
+    private fun selectedFieldText(): String? {
+        if (expectedSelStart < 0 || expectedSelEnd < 0 || expectedSelStart == expectedSelEnd) return null
+        return runCatching { currentInputConnection?.getSelectedText(0)?.toString() }.getOrNull()
+            ?.takeIf { it.isNotBlank() }
+    }
+
+    /** The last word before the cursor, for a panel opened with nothing selected. */
+    private fun wordBeforeCursor(): String? {
+        val before = currentInputConnection?.getTextBeforeCursor(64, 0)?.toString() ?: return null
+        return before.trimEnd().substringAfterLast(' ').substringAfterLast('\n').takeIf { it.isNotBlank() }
+    }
+
+    private fun textRepeatRecentEntries(): List<String> =
+        if (findHistoryPaused()) emptyList() else textRepeatRecents.entries()
+
+    /** Panel controls: the options persist straight into settings, like the generator's. */
+    fun onTextRepeat(action: TextRepeatAction) {
+        when (action) {
+            is TextRepeatAction.Focus -> {
+                vibrate()
+                val leaving = _uiState.value.textRepeat.focused
+                if (leaving == TextRepeatField.SEPARATOR && action.field != leaving) persistTextRepeatSeparator()
+                _uiState.update { it.copy(textRepeat = it.textRepeat.copy(focused = action.field)) }
+            }
+            is TextRepeatAction.Clear -> {
+                vibrate()
+                _uiState.update {
+                    it.copy(
+                        textRepeat = when (action.field) {
+                            TextRepeatField.TEXT -> it.textRepeat.copy(text = "", run = null)
+                            TextRepeatField.SEPARATOR -> it.textRepeat.copy(customSeparator = "")
+                        },
+                    )
+                }
+            }
+            is TextRepeatAction.Count -> {
+                vibrate()
+                serviceScope.launch { settingsRepository.setTextRepeatCount(action.value) }
+            }
+            is TextRepeatAction.Mode -> {
+                vibrate()
+                val separator = _uiState.value.settings.textRepeat.separator
+                serviceScope.launch {
+                    settingsRepository.setTextRepeatMode(action.mode)
+                    // A staircase with nothing between its steps is one long
+                    // word; lines are what the picture needs.
+                    if (action.mode == TextRepeat.Mode.STAIRS && separator == TextRepeat.Separator.NONE) {
+                        settingsRepository.setTextRepeatSeparator(TextRepeat.Separator.NEWLINE)
+                    }
+                }
+            }
+            is TextRepeatAction.Separator -> {
+                vibrate()
+                serviceScope.launch { settingsRepository.setTextRepeatSeparator(action.separator) }
+                // Custom opens its box for typing; any preset closes it.
+                val focus = if (action.separator == TextRepeat.Separator.CUSTOM) TextRepeatField.SEPARATOR else null
+                if (focus == null) persistTextRepeatSeparator()
+                _uiState.update { it.copy(textRepeat = it.textRepeat.copy(focused = focus)) }
+            }
+            is TextRepeatAction.Numbered -> {
+                vibrate()
+                serviceScope.launch { settingsRepository.setTextRepeatNumbered(action.on) }
+            }
+            is TextRepeatAction.AlternateCase -> {
+                vibrate()
+                serviceScope.launch { settingsRepository.setTextRepeatAlternateCase(action.on) }
+            }
+            TextRepeatAction.Insert -> insertTextRepeat()
+            TextRepeatAction.Copy -> copyTextRepeat()
+            TextRepeatAction.Undo -> undoTextRepeat()
+            is TextRepeatAction.PickRecent -> {
+                vibrate()
+                _uiState.update { it.copy(textRepeat = it.textRepeat.copy(text = action.text, run = null, focused = null)) }
+            }
+            TextRepeatAction.ClearRecents -> {
+                vibrate()
+                textRepeatRecents.clear()
+                _uiState.update { it.copy(textRepeat = it.textRepeat.copy(recents = emptyList())) }
+            }
+        }
+    }
+
+    /**
+     * Writes the copies into the field. Opened from the chip, the copies the
+     * user had already typed are still there in front of the cursor: the
+     * setting says whether they go (and the whole count takes their place) or
+     * stay (and the count follows them). Either way the field is checked
+     * first — a cursor that has moved since the chip means the run is not
+     * where it was, and nothing is deleted on a guess.
+     */
+    private fun insertTextRepeat() {
+        val state = _uiState.value
+        val built = TextRepeat.build(state.textRepeatSpec())
+        if (built.text.isEmpty()) return
+        val ic = currentInputConnection ?: return
+        vibrate()
+        var output = built.text
+        ic.beginBatchEdit()
+        commitComposing(ic, autocorrect = false)
+        val run = state.textRepeat.run
+        if (run != null && ic.getTextBeforeCursor(run.length, 0)?.toString() == run.text) {
+            when (state.settings.textRepeat.chipInsert) {
+                TextRepeat.ChipInsert.REPLACE_RUN -> {
+                    // finishComposingText first: with a live composing region
+                    // BaseInputConnection deletes around it rather than through it.
+                    ic.finishComposingText()
+                    ic.deleteSurroundingText(run.length, 0)
+                }
+                TextRepeat.ChipInsert.APPEND -> {
+                    val separator = state.textRepeatSpec().separatorText
+                    if (separator.isNotEmpty() && !run.text.endsWith(separator)) output = separator + output
+                }
+            }
+        }
+        ic.commitText(output, 1)
+        ic.endBatchEdit()
+        // The copies are themselves a run, and the chip must not come straight
+        // back over them when the panel closes.
+        smartMutedAfter = ic.getTextBeforeCursor(SmartSuggest.LOOKBEHIND, 0)?.toString()
+        repeatChipsRetired += state.textRepeat.text.lowercase(Locale.ROOT)
+        val recents = if (findHistoryPaused()) emptyList() else textRepeatRecents.record(state.textRepeat.text)
+        _uiState.update {
+            it.copy(
+                textRepeat = it.textRepeat.copy(
+                    run = null,
+                    lastInsert = output,
+                    recents = recents,
+                    insertTick = it.textRepeat.insertTick + 1,
+                ),
+            )
+        }
+    }
+
+    /** Takes the last Insert back, as long as the field still ends with it. */
+    private fun undoTextRepeat() {
+        val last = _uiState.value.textRepeat.lastInsert ?: return
+        val ic = currentInputConnection ?: return
+        if (ic.getTextBeforeCursor(last.length, 0)?.toString() != last) {
+            // Edited since: there is nothing safe to take back.
+            _uiState.update { it.copy(textRepeat = it.textRepeat.copy(lastInsert = null)) }
+            return
+        }
+        vibrate()
+        ic.beginBatchEdit()
+        ic.finishComposingText()
+        ic.deleteSurroundingText(last.length, 0)
+        ic.endBatchEdit()
+        _uiState.update { it.copy(textRepeat = it.textRepeat.copy(lastInsert = null)) }
+    }
+
+    private fun copyTextRepeat() {
+        val built = TextRepeat.build(_uiState.value.textRepeatSpec())
+        if (built.text.isEmpty()) return
+        vibrate()
+        KeyboardClipboard.copy(this, built.text, "Text repeat")
+        toast(R.string.ime_repeat_copied_toast)
+    }
+
     /**
      * The backspace swipe's four calls, bundled for the reason
      * [converterCallbacks] is: [ServiceKeyboardContent] is at the JVM's 64K
@@ -32465,6 +32932,7 @@ open class WMKeyboardService : InputMethodService() {
         applicationContext,
         hints = listOf(_uiState.value.language.id) + settings.enabledLanguages.map { it.id },
         kdeConnect = settings.kdeConnect,
+        homeAssistant = settings.homeAssistant,
     )
 
     private fun aiActionLabel(spec: AiActionSpec): String =
@@ -33717,15 +34185,6 @@ open class WMKeyboardService : InputMethodService() {
     fun onCameraPermissionRequest() {
         startActivity(
             Intent(this, CameraPermissionActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-        )
-    }
-
-    /** Calendar tool's READ_CALENDAR request, via the same trampoline pattern. */
-    fun onCalendarPermissionRequest() {
-        startActivity(
-            Intent(this, CalendarPermissionActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
         )
@@ -35874,6 +36333,9 @@ open class WMKeyboardService : InputMethodService() {
             notes = notesCallbacks(),
             location = locationTool.callbacks,
             clock = clockTool.callbacks,
+            calendar = calendarTool.callbacks,
+            kaomoji = kaomojiTool.callbacks,
+            homeAssistant = haTool.callbacks,
             gallery = galleryTool.callbacks,
             send = sendTool.callbacks,
             toolbox = toolboxCallbacks(),
@@ -35964,6 +36426,143 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val clockTool by clockToolDelegate
+
+    /**
+     * The Calendar tool: month view, event sheet and composer. Built on first
+     * use, like [clockTool]; nothing reads the calendar until the panel opens.
+     */
+    private val calendarToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.calendar.CalendarController(
+            context = this,
+            scope = serviceScope,
+            settings = { _uiState.value.settings.calendarTool },
+            insertText = ::onToolTextInsert,
+            haptic = { vibrate() },
+            openToolSettings = { openToolSettings(ToolbarTool.CALENDAR) },
+            launch = { intent -> runCatching { startActivity(intent) } },
+            beginText = { entry ->
+                val target = when (entry.field) {
+                    com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.TITLE -> CaptureTarget.CALENDAR_TITLE
+                    com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.LOCATION -> CaptureTarget.CALENDAR_LOCATION
+                    com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.NOTES -> CaptureTarget.CALENDAR_NOTES
+                    com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.GUEST -> CaptureTarget.CALENDAR_GUEST
+                }
+                _uiState.update {
+                    it.copy(
+                        calendarText = entry,
+                        panelFocus = null,
+                        captureCaret = CaptureCaret(target.name, entry.text.length, entry.text),
+                    )
+                }
+            },
+            endText = { _uiState.update { it.copy(calendarText = null) } },
+            currentText = { _uiState.value.calendarText },
+        )
+    }
+    private val calendarTool by calendarToolDelegate
+
+    // ---- kaomoji tab ----
+
+    /**
+     * The emoji panel's kaomoji tab: its library, its tag strip and its
+     * editor. Built with the first composition (its callbacks ride on
+     * [toolHoldCallbacks]); the library file is read on first use.
+     */
+    private val kaomojiToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiController(
+            scope = serviceScope,
+            storeFile = {
+                if (userUnlocked) File(filesDir, com.wasimaster.wmkeyboard.core.emoji.KaomojiStore.FILE_PATH) else null
+            },
+            settings = { _uiState.value.settings.emoji.kaomoji },
+            insertText = ::onTextArtTapped,
+            copyText = { text ->
+                (getSystemService(CLIPBOARD_SERVICE) as? ClipboardManager)
+                    ?.setPrimaryClip(ClipData.newPlainText("kaomoji", text))
+            },
+            haptic = { vibrate() },
+            openSettings = { openRoute("kaomoji") },
+            beginText = { entry ->
+                val target = when (entry.field) {
+                    com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextField.SEARCH -> CaptureTarget.KAOMOJI_SEARCH
+                    com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextField.FACE -> CaptureTarget.KAOMOJI_FACE
+                    com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextField.TAG -> CaptureTarget.KAOMOJI_TAG
+                }
+                _uiState.update {
+                    it.copy(
+                        kaomojiText = entry,
+                        panelFocus = null,
+                        captureCaret = CaptureCaret(target.name, entry.text.length, entry.text),
+                    )
+                }
+            },
+            endText = { _uiState.update { it.copy(kaomojiText = null) } },
+            currentText = { _uiState.value.kaomojiText },
+        )
+    }
+    private val kaomojiTool by kaomojiToolDelegate
+
+    // ---- Home Assistant tool ----
+
+    /**
+     * The Home Assistant tool. Built on first use, like [clockTool]; the
+     * delegate is kept so the keyboard-shown hook can skip a controller
+     * nobody opened. The connection itself is [com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub]'s,
+     * held and released by [syncHomeAssistant].
+     */
+    private val haToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.homeassistant.HaController(
+            context = this,
+            scope = serviceScope,
+            repository = settingsRepository,
+            settings = { _uiState.value.settings.homeAssistant },
+            insertText = ::onToolTextInsert,
+            haptic = { vibrate() },
+            openToolSettings = { openToolSettings(ToolbarTool.HOME_ASSISTANT) },
+            openRoute = ::openRoute,
+            beginText = { entry ->
+                _uiState.update {
+                    it.copy(
+                        haText = entry,
+                        panelFocus = null,
+                        captureCaret = CaptureCaret(
+                            when (entry.field) {
+                                com.wasimaster.wmkeyboard.ime.homeassistant.HaTextField.SEARCH -> CaptureTarget.HA_SEARCH.name
+                                com.wasimaster.wmkeyboard.ime.homeassistant.HaTextField.ASSIST -> CaptureTarget.HA_ASSIST.name
+                                else -> CaptureTarget.HA_TEXT.name
+                            },
+                            entry.text.length,
+                            entry.text,
+                        ),
+                    )
+                }
+            },
+            endText = { _uiState.update { it.copy(haText = null) } },
+            currentText = { _uiState.value.haText },
+            commitImage = { file, mime -> commitImageFile(file, mime) },
+            languageTag = ::voiceLanguageTag,
+        )
+    }
+    private val haTool by haToolDelegate
+
+    /**
+     * Tells the Home Assistant hub what the keyboard is doing, the way
+     * [syncKdeConnect] does for KDE Connect, from the same places: the socket
+     * is wanted while the panel is open, or while the keyboard is on screen
+     * under the longer lifetime, and lingers a minute after.
+     */
+    private fun syncHomeAssistant() {
+        val state = _uiState.value
+        val ha = state.settings.homeAssistant
+        val hub = com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub
+        hub.attach(this)
+        val panelOpen = keyboardVisible && state.panel == PanelMode.HOME_ASSISTANT
+        hub.batch {
+            hub.applySettings(ha)
+            hub.setHeld(com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.Reason.KEYBOARD, ha.enabled && keyboardVisible)
+            hub.setHeld(com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.Reason.PANEL, ha.enabled && panelOpen)
+        }
+    }
 
     // ---- Gallery tool (#708) ----
 
@@ -37722,6 +38321,7 @@ open class WMKeyboardService : InputMethodService() {
         SelectionMacro.GRAMMAR_FIX -> ToolbarTool.GRAMMAR in settings.enabledTools
         SelectionMacro.AI -> ToolbarTool.AI in settings.enabledTools
         SelectionMacro.SAVE_NOTE -> ToolbarTool.NOTES in settings.enabledTools
+        SelectionMacro.REPEAT -> ToolbarTool.TEXT_REPEAT in settings.enabledTools
         else -> true
     }
 
@@ -37792,6 +38392,7 @@ open class WMKeyboardService : InputMethodService() {
                 chooser = true,
             )
             SelectionMacro.SAVE_NOTE -> saveSelectionAsNote(text)
+            SelectionMacro.REPEAT -> openTextRepeatTool(seed = text)
             SelectionMacro.FORMAT -> SelectionMacros.format(text, offer.kind, masks)?.let(::rewriteSelection)
             SelectionMacro.CASE_LOWER, SelectionMacro.CASE_TITLE, SelectionMacro.CASE_UPPER, SelectionMacro.CASE_SENTENCE,
             SelectionMacro.CASE_CAMEL, SelectionMacro.CASE_SNAKE, SelectionMacro.CASE_KEBAB, SelectionMacro.CASE_CONSTANT ->
@@ -38610,6 +39211,32 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun addCalendarEvent(offer: SelectionMacroOffer) {
         val hit = offer.content.dateTime ?: return
+        val settings = _uiState.value.settings
+        // In the keyboard's own composer, filled in, unless the user set Save to
+        // hand events to the calendar app (or the Calendar tool is off).
+        if (settings.calendarTool.saveMode == com.wasimaster.wmkeyboard.core.settings.CalendarSaveMode.KEYBOARD &&
+            ToolbarTool.CALENDAR in settings.enabledTools
+        ) {
+            _uiState.update {
+                it.copy(
+                    toolPrefill = ToolPrefill.CalendarEvent(
+                        title = offer.text.take(MAX_EVENT_TITLE),
+                        start = hit.startMillis,
+                        end = hit.endMillis,
+                        allDay = hit.allDay,
+                        zoneId = hit.zoneId,
+                    ),
+                )
+            }
+            if (_uiState.value.panel == PanelMode.CALENDAR) {
+                // Already open: onPanelChange would close it, so hand the prefill over here.
+                calendarTool.onPanelOpen(_uiState.value.toolPrefill)
+                onToolPrefillConsumed()
+            } else {
+                onPanelChange(PanelMode.CALENDAR)
+            }
+            return
+        }
         val intent = Intent(Intent.ACTION_INSERT)
             .setData(CalendarContract.Events.CONTENT_URI)
             .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, hit.startMillis)
@@ -39469,6 +40096,7 @@ open class WMKeyboardService : InputMethodService() {
             selection = if (withSelection) ic?.getSelectedText(0)?.toString() else null,
             location = locationTool::snippetLocation,
             place = locationTool::snippetPlace,
+            homeAssistant = { id, attribute -> haTool.snippetValue(id, attribute) },
         )
     }
 
@@ -40738,8 +41366,14 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             ic.commitText(emoji, 1)
         }
-        learnEmoji(emoji)
-        recordEmojiUse(emoji)
+        // A kaomoji chip is not an emoji: it counts for the kaomoji tab's
+        // Recent, and stays out of the emoji history and the bigrams.
+        if (kaomojiToolDelegate.isInitialized() && kaomojiTool.owns(emoji)) {
+            kaomojiTool.recordUse(emoji)
+        } else {
+            learnEmoji(emoji)
+            recordEmojiUse(emoji)
+        }
         composing = StringBuilder()
         _uiState.update {
             it.copy(
@@ -41630,6 +42264,7 @@ open class WMKeyboardService : InputMethodService() {
         onTidy = ::onClipboardTidy,
         onTags = ::onClipTagsStart,
         onTagAdd = ::onClipTagAdd,
+        onQr = ::onClipboardQr,
     )
 
     /**
@@ -41725,6 +42360,20 @@ open class WMKeyboardService : InputMethodService() {
         val path = item.imagePath?.takeIf { File(it).exists() } ?: return
         onPanelChange(PanelMode.OCR)
         _uiState.update { it.copy(ocrImage = path) }
+    }
+
+    /**
+     * A clip as a QR code (#766): the QR tool opens on the clip's text instead
+     * of the field's, where it can be sent as a picture or edited first. Not a
+     * secret's text, which the panel never shows.
+     */
+    fun onClipboardQr(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
+        if (!isClipboardAccessible() || !item.kind.isTextual || item.sensitive) return
+        val current = clipboardStore.items().firstOrNull { it.id == item.id } ?: return
+        val text = current.text.trim().takeIf { it.isNotEmpty() } ?: return
+        onPanelChange(PanelMode.QR_GEN)
+        if (_uiState.value.panel != PanelMode.QR_GEN) return
+        _uiState.update { it.copy(mediaQuery = text) }
     }
 
     /** The panel's grid / list switch: the same setting the settings screen writes. */
@@ -44651,6 +45300,8 @@ open class WMKeyboardService : InputMethodService() {
         /** The KDE Connect panel's address box: an IPv6 literal with a zone, or a host name, and no more. */
         private const val KDE_HOST_MAX = 64
 
+        /** The Text repeat panel's boxes; the output limit is the one that matters. */
+        private const val TEXT_REPEAT_BOX_MAX = TextRepeat.MAX_TEXT_LENGTH
         /** How long a copied Send link stays offered when the paste chip's own timer is off (#729). */
         private const val SEND_LINK_OFFER_DEFAULT_SECONDS = 300
 

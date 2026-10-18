@@ -426,6 +426,7 @@
     <string name="ime_tool_notes">Notes</string>
     <string name="ime_tool_location">Location</string>
     <string name="ime_tool_clock">Clock</string>
+    <string name="ime_tool_home_assistant">Home Assistant</string>
     <string name="ime_tool_send_files">Send files</string>
     <string name="ime_tool_gallery">Gallery</string>
     <!-- Learn from text (#174): the panel that lists words the keyboard does not know yet. -->
@@ -490,6 +491,7 @@
     <string name="ime_tool_currency">Currency</string>
     <string name="ime_tool_qr_gen">QR code</string>
     <string name="ime_tool_password_gen">Password</string>
+    <string name="ime_tool_text_repeat">Repeat</string>
     <string name="ime_tool_typing_test">Typing speed</string>
     <string name="ime_tool_statistics">Statistics</string>
     <string name="ime_tool_media_control">Media</string>
@@ -660,6 +662,40 @@
     <string name="ime_emoji_tab_search_desc">Search emoji</string>
     <string name="ime_emoji_tab_kaomoji">Kaomoji</string>
     <string name="ime_emoji_tab_emoticons">Emoticons</string>
+
+    <!-- The kaomoji tab: its tag strip, edit rail, editor and tag list. -->
+    <string name="ime_kaomoji_all">All</string>
+    <string name="ime_kaomoji_favourites">Favourites</string>
+    <string name="ime_kaomoji_recent">Recent</string>
+    <string name="ime_kaomoji_untagged">No tag</string>
+    <string name="ime_kaomoji_search">Search kaomoji</string>
+    <string name="ime_kaomoji_search_hint">Search by tag or face</string>
+    <string name="ime_kaomoji_add">Add a kaomoji</string>
+    <string name="ime_kaomoji_edit_mode">Edit kaomoji</string>
+    <string name="ime_kaomoji_done">Done</string>
+    <string name="ime_kaomoji_tags">Tags</string>
+    <string name="ime_kaomoji_favourite">Add to favourites</string>
+    <string name="ime_kaomoji_unfavourite">Remove from favourites</string>
+    <string name="ime_kaomoji_edit">Edit</string>
+    <string name="ime_kaomoji_copy">Copy</string>
+    <string name="ime_kaomoji_delete">Delete</string>
+    <string name="ime_kaomoji_delete_confirm">Tap again to delete</string>
+    <string name="ime_kaomoji_cancel">Cancel</string>
+    <string name="ime_kaomoji_save">Save</string>
+    <string name="ime_kaomoji_face_hint">Type or paste a face</string>
+    <string name="ime_kaomoji_new_tag">New tag</string>
+    <string name="ime_kaomoji_rename">Rename tag</string>
+    <string name="ime_kaomoji_rename_hint">Tag name</string>
+    <string name="ime_kaomoji_move_up">Move up</string>
+    <string name="ime_kaomoji_move_down">Move down</string>
+    <string name="ime_kaomoji_hide_tag">Hide from the tag strip</string>
+    <string name="ime_kaomoji_show_tag">Show in the tag strip</string>
+    <string name="ime_kaomoji_more_settings">Kaomoji settings</string>
+    <string name="ime_kaomoji_kind_kaomoji">Kaomoji</string>
+    <string name="ime_kaomoji_kind_emoticon">Emoticon</string>
+    <string name="ime_kaomoji_empty">No kaomoji here yet. Add one with +.</string>
+    <string name="ime_kaomoji_empty_favourites">Hold a face and tap the star to keep it here.</string>
+    <string name="ime_kaomoji_empty_recent">The faces you use show up here.</string>
     <string name="ime_emoji_tab_most_used">Most used</string>
     <string name="ime_emoji_tab_recent">Recent</string>
     <string name="ime_emoji_clear_recents">Clear recents</string>
@@ -704,6 +740,15 @@
     <string name="ime_clip_tags">Tags</string>
     <string name="ime_clip_tags_title">Tags</string>
     <string name="ime_clip_tags_placeholder">Tags, with a comma between them</string>
+    <!-- The hold popup's action and the clip shortcut button that open the QR code tool on a text clip (#766). -->
+    <string name="ime_clip_qr">QR code</string>
+    <!-- A folder of pinned clips (#768), named after a tag. %1$s is the tag, %2$d how many clips it holds. -->
+    <plurals name="ime_clip_folder_open_desc">
+        <item quantity="one">Open folder %1$s, %2$d clip</item>
+        <item quantity="other">Open folder %1$s, %2$d clips</item>
+    </plurals>
+    <!-- The back button over an open folder of pinned clips (#768). -->
+    <string name="ime_clip_folder_back_desc">Back to pinned clips</string>
     <string name="ime_clip_edit_rich_note">Saving a change drops the formatting</string>
     <!-- The bar at the bottom of the clipboard panel after a delete. %1$d is how many clips it would bring back. -->
     <plurals name="ime_clip_deleted">
@@ -908,6 +953,10 @@
     <string name="ime_smart_gif_offer">Find a GIF</string>
     <!-- The message button on a contact chip, for screen readers. %1$s is the contact's name. -->
     <string name="ime_smart_contact_message">Text <xliff:g id="name" example="Jane Doe">%1$s</xliff:g></string>
+    <!-- The repeat chip: the same text typed several times in a row. %1$s is that text. -->
+    <string name="ime_smart_repeat_offer">Repeat “<xliff:g id="text" example="no">%1$s</xliff:g>”</string>
+    <!-- The small count beside it. %1$s is how many copies are in the field so far. -->
+    <string name="ime_smart_repeat_count">×<xliff:g id="count" example="3">%1$s</xliff:g></string>
 
     <!-- Badge on the preview of a theme that moves while you type. -->
     <string name="ime_theme_animated_badge">Animated</string>

@@ -1151,7 +1151,7 @@
     <string name="clipboard_key_row_info">リンクを貼り付けてEnterキーを押すとそのページに移動します。また、キーボードに戻ることなく、スペースや改行で区切って複数のクリップを貼り付けることもできます。「ABC」で文字入力に戻ります。パネルレイアウトを変更した場合、この設定は機能しません。代わりにレイアウトエディタでキーを追加してください。クリップボードがキーの上に重なっている間、この行は表示されません。この設定はデフォルトでオフになっています。</string>
     <string name="clipboard_key_row_subtitle">クリップボードパネルの下部に沿ったキーの列</string>
     <string name="clipboard_key_row_title">ABC、スペース、Enterキー</string>
-    <string name="clipboard_line_spacing_info">100%に設定すると、クリップの行間はフォントが許容する最小の間隔になります。数値を上げると行間が広がります。デフォルトは130%です。</string>
+    <string name="clipboard_line_spacing_info" formatted="false">100%に設定すると、クリップの行間はフォントが許容する最小の間隔になります。数値を上げると行間が広がります。デフォルトは130%です。</string>
     <string name="clipboard_line_spacing_subtitle">クリップのテキストの行間</string>
     <string name="clipboard_line_spacing_title">行間</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5698,6 +5698,7 @@
     <string name="search_kw_codes">otp, ワンタイムパスワード, 2fa, 二要素認証, 確認コード, smsコード, ログインコード</string>
     <string name="search_kw_customdictionaries">単語リスト, 単語のインポート, 単語帳</string>
     <string name="search_kw_datasaver">モバイルデータ, セルラー, 従量制, ローミング, Wi-Fiのみ, データ使用量, 帯域幅, オフライン, データ節約</string>
+    <string name="search_kw_deepl">書く 言い換え 書き換え 改善 ブラッシュアップ スタイル トーン 翻訳</string>
     <string name="search_kw_diagnostics">ログ, logcat, トラブルシューティング, クラッシュ, レポート</string>
     <string name="search_kw_dictionary">学習した単語, ユーザー辞書, マイ単語, 単語を追加</string>
     <string name="search_kw_emoji">絵文字, スマイル, 顔文字, 肌の色, ステッカー, GIF, 最近</string>
@@ -5841,6 +5842,7 @@
     <string name="search_kw_translate_engine">オフライン プライベート インターネット 機内モード ローカルデバイス ML Kit Google モデル ダウンロード クラウド</string>
     <string name="search_kw_translate_models">オフライン翻訳モデル ダウンロード 削除 ストレージ ML Kit Google</string>
     <string name="search_kw_translate_only_downloaded">オフラインモデル選択メニューのフィルターを非表示にする</string>
+    <string name="search_kw_translate_server">openai 互換 セルフホスト ホスト型 ローカル llm ai モデル ollama llama studio vllm localai チャット補完 mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">スペルチェック, 自動補完, 予測入力, グライド入力, スワイプ入力, ジェスチャー, 連絡先, 取り消し</string>
     <string name="search_kw_typing_auto_capitalize">自動大文字 自動キャピタライズ</string>
     <string name="search_kw_typing_auto_close_brackets">自動閉じ括弧 ペア 括弧 補完</string>
@@ -8477,7 +8479,7 @@
     <string name="typing_letter_swipe_select_key_label">キーまでスライド</string>
     <string name="typing_letter_swipe_type_words_desc">キーをスワイプして1単語を入力</string>
     <string name="typing_letter_swipe_type_words_label">単語を入力</string>
-    <string name="typing_mistype_tolerance_info">タップ位置は、押したキーだけでなく、その周囲のキーとの関係でも判定されるため、キーの端をタップしても隣のキーとして認識されることがあります。この設定で、その判定の許容範囲を調整します。100%より大きくすると、隣接するキーの内側をタップしても誤入力とみなされやすくなり、素早い入力や大きな指での入力に適しています。100%より小さくすると、実際に押したキーがより重視され、慎重な入力に適しています。この設定は、候補バーに表示される単語や自動修正の選択に影響します。デフォルトは100%です。</string>
+    <string name="typing_mistype_tolerance_info" formatted="false">タップ位置は、押したキーだけでなく、その周囲のキーとの関係でも判定されるため、キーの端をタップしても隣のキーとして認識されることがあります。この設定で、その判定の許容範囲を調整します。100%より大きくすると、隣接するキーの内側をタップしても誤入力とみなされやすくなり、素早い入力や大きな指での入力に適しています。100%より小さくすると、実際に押したキーがより重視され、慎重な入力に適しています。この設定は、候補バーに表示される単語や自動修正の選択に影響します。デフォルトは100%です。</string>
     <string name="typing_mistype_tolerance_subtitle">隣接するキーをタップした際、どの程度までなら誤入力として許容するか</string>
     <string name="typing_mistype_tolerance_title">打ち間違いの許容範囲</string>
     <string name="typing_new_word_sightings_info">辞書に存在しない単語のみがカウントされます。辞書にある単語は、入力した瞬間に学習されます。単語の使用は、その単語から離れて入力を続けた場合にのみカウントされるため、戻って修正した誤字はカウントされません。独自の固有名詞やスラングがなかなか学習されない場合は、この値を下げてください。1に設定すると、古いバージョンと同様に、すべての新しい単語が即座に保存されます。この設定のデフォルト値は3です。</string>

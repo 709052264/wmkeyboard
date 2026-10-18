@@ -1154,7 +1154,7 @@
     <string name="clipboard_key_row_info">Zalijepite poveznicu i pritisnite enter za otvaranje, ili zalijepite više isječaka s razmakom ili novim retkom između njih, bez povratka na tipkovnicu. ABC vraća na slova. Ako ste promijenili raspored ploče, ova postavka ne radi ništa: umjesto toga dodajte tipke u uređivaču rasporeda. Redak se ne prikazuje dok je međuspremnik postavljen preko tipki. Ova je postavka prema zadanim postavkama isključena.</string>
     <string name="clipboard_key_row_subtitle">Red tipki duž dna ploče međuspremnika</string>
     <string name="clipboard_key_row_title">Tipke ABC, razmak i enter</string>
-    <string name="clipboard_line_spacing_info">Na 100% linije isječka su blizu koliko font dopušta. Povećajte ga da ih raširite. Zadana vrijednost je 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Na 100% linije isječka su blizu koliko font dopušta. Povećajte ga da ih raširite. Zadana vrijednost je 130%.</string>
     <string name="clipboard_line_spacing_subtitle">Razmak između redaka teksta isječka</string>
     <string name="clipboard_line_spacing_title">Razmak između redaka</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5709,6 +5709,7 @@
     <string name="search_kw_codes">otp, jednokratna lozinka, 2fa, dvofaktorska, kod za provjeru, sms kod, kod za prijavu</string>
     <string name="search_kw_customdictionaries">popisi riječi, uvoz riječi, popis riječi</string>
     <string name="search_kw_datasaver">mobilni podaci, mobilna mreža, ograničeni promet, roaming, samo wifi, potrošnja podataka, propusnost, izvanmrežno, spremanje podataka</string>
+    <string name="search_kw_deepl">pisanje parafraziranje prepravljanje poboljšanje dotjerivanje stil ton prijevod</string>
     <string name="search_kw_diagnostics">zapisnici, logcat, rješavanje problema, rušenje, izvješće</string>
     <string name="search_kw_dictionary">naučene riječi, korisnički rječnik, moje riječi, dodaj riječ</string>
     <string name="search_kw_emoji">emotikoni, smajlići, kaomoji, ton kože, naljepnice, gifovi, nedavno</string>
@@ -5852,6 +5853,7 @@
     <string name="search_kw_translate_engine">offline privatno internet zrakoplov lokalni uređaj ml kit google model preuzimanje oblak</string>
     <string name="search_kw_translate_models">preuzimanje izvanmrežnog modela za prijevod brisanje pohrane ml kit google</string>
     <string name="search_kw_translate_only_downloaded">sakrij izbornik odabira izvanmrežnog modela popisa jezika filtra kratko</string>
+    <string name="search_kw_translate_server">openai kompatibilan samostalno hostiran lokalni llm ai model ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">provjera pravopisa, automatsko dovršavanje, prediktivni tekst, klizanje, tipkanje povlačenjem, geste, kontakti, poništi</string>
     <string name="search_kw_typing_auto_capitalize">automatska velika slova automatsko pisanje velikih slova</string>
     <string name="search_kw_typing_auto_close_brackets">automatsko zatvaranje para zagrada vitičaste zagrade uparivanje zagrada dovrši zatvaranje</string>
@@ -8496,7 +8498,7 @@
     <string name="typing_letter_swipe_select_key_label">Kliznite do tipke</string>
     <string name="typing_letter_swipe_type_words_desc">Potez preko tipki ispisuje jednu riječ</string>
     <string name="typing_letter_swipe_type_words_label">Tipkaj riječi</string>
-    <string name="typing_mistype_tolerance_info">Svaki dodir se čita prema mjestu gdje je sletio, a ne samo prema tipki koju je pogodio, tako da se dodir blizu ruba tipke još uvijek može očitati kao susjedna tipka. Ovo postavlja koliko je to čitanje velikodušno. Iznad 100%, dodir duboko unutar susjedne tipke i dalje je vjerojatna pogreška, što odgovara brzom ili užurbanom tipkanju i velikim prstima. Ispod 100%, tipki koju ste pogodili više se vjeruje, što odgovara pažljivom tipkanju. Mijenja koje riječi traka nudi i što automatsko ispravljanje odabire. Zadana vrijednost je 100%.</string>
+    <string name="typing_mistype_tolerance_info" formatted="false">Svaki dodir se čita prema mjestu gdje je sletio, a ne samo prema tipki koju je pogodio, tako da se dodir blizu ruba tipke još uvijek može očitati kao susjedna tipka. Ovo postavlja koliko je to čitanje velikodušno. Iznad 100%, dodir duboko unutar susjedne tipke i dalje je vjerojatna pogreška, što odgovara brzom ili užurbanom tipkanju i velikim prstima. Ispod 100%, tipki koju ste pogodili više se vjeruje, što odgovara pažljivom tipkanju. Mijenja koje riječi traka nudi i što automatsko ispravljanje odabire. Zadana vrijednost je 100%.</string>
     <string name="typing_mistype_tolerance_subtitle">Koliko daleko u susjednu tipku dodir može sletjeti, a da se i dalje računa kao pogreška</string>
     <string name="typing_mistype_tolerance_title">Tolerancija na pogrešno tipkanje</string>
     <string name="typing_new_word_sightings_info">Broje se samo riječi koje rječnik ne poznaje. Riječ koja je već u rječniku treba jednu upotrebu, a ne nekoliko, jer nema dvojbe oko njezina pravopisa. U svakom slučaju, upotreba se računa tek kada ste nastavili dalje i ostavili riječ na miru, tako da se riječ koju se vratite i popravite, ili potez koji je ispao kao pogrešna riječ, nikada ne broji. Ništa se ne sprema dok još tipkate: riječi koje ste ostavili na miru dodaju se kada zatvorite tipkovnicu, pošaljete poruku ili prijeđete na drugo polje. Smanjite ovo ako vašim imenima i slengu treba predugo da se zapamte. Postavite na 1 da biste spremili svaku novu riječ nakon jedne upotrebe. Ova postavka je prema zadanim postavkama 3.</string>

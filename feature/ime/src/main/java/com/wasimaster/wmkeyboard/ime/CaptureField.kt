@@ -390,12 +390,32 @@ enum class CaptureTarget(
     /** A label in the Clock panel: an alarm's, a timer's, a countdown's, a city's own name. */
     CLOCK_LABEL(takesWords = true),
 
+    /** The Home Assistant panel's search: filters tiles as it is typed, Enter opens the first. */
+    HA_SEARCH(takesWords = true),
+
+    /** A sentence for Home Assistant's Assist: Enter sends it. */
+    HA_ASSIST(takesWords = true),
+
+    /** A lock or alarm code, or a text entity's value, in the Home Assistant panel. */
+    HA_TEXT(takesWords = true),
+
     /**
      * The gallery panel's text (#708): the caption that goes with what is
      * sent, or a text box being written on a photo in the editor.
      */
     GALLERY_TEXT(takesWords = true),
 
+    /** A calendar event's title in the Calendar composer: one line, Enter moves on to the place. */
+    CALENDAR_TITLE(takesWords = true),
+
+    /** An event's place: one line. */
+    CALENDAR_LOCATION(takesWords = true),
+
+    /** An event's notes: free text, newlines and all, like [CLIP_EDIT]. */
+    CALENDAR_NOTES(takesWords = true),
+
+    /** A guest being added: a name to look up in the contacts, or an address. Enter adds it. */
+    CALENDAR_GUEST(takesWords = false),
     /**
      * The Send files panel's boxes (#729). None takes words: a password must
      * not be guessed at, and a link or an address is not prose.
@@ -409,6 +429,21 @@ enum class CaptureTarget(
 
     /** A toolbox folder's name (#709): one line, Enter keeps it. */
     TOOLBOX_FOLDER_NAME(takesWords = true),
+
+    /** The kaomoji tab's search: filters by tag and face as it is typed, Enter puts the first in. */
+    KAOMOJI_SEARCH(takesWords = true),
+
+    /** A face being added or changed in the kaomoji tab. Punctuation, not words. */
+    KAOMOJI_FACE(takesWords = false),
+
+    /** A kaomoji tag's name: a new one in the editor, or a rename. Enter keeps it. */
+    KAOMOJI_TAG(takesWords = true),
+
+    /** The Text repeat panel's text: free text, newlines and all, like [CLIP_EDIT]. */
+    REPEAT_TEXT(takesWords = true),
+
+    /** The Text repeat panel's custom separator: punctuation and spaces, not words. */
+    REPEAT_SEPARATOR(takesWords = false),
     ;
 
     /**
@@ -433,7 +468,8 @@ enum class CaptureTarget(
     val isSearch: Boolean
         get() = this == EMOJI_SEARCH || this == MEDIA_SEARCH || this == DICTIONARY_SEARCH ||
             this == CLIPBOARD_SEARCH || this == FIND_QUERY || this == SNIPPET_SEARCH ||
-            this == NOTE_SEARCH || this == NOTE_TAG || this == CLOCK_SEARCH || this == TOOLBOX_SEARCH
+            this == NOTE_SEARCH || this == NOTE_TAG || this == CLOCK_SEARCH || this == TOOLBOX_SEARCH ||
+            this == HA_SEARCH || this == KAOMOJI_SEARCH || this == KAOMOJI_TAG
 }
 
 /**

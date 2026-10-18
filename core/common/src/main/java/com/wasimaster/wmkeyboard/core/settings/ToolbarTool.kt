@@ -117,6 +117,12 @@ enum class ToolbarTool {
     // before the first unlock, but the panel itself waits for the unlock like
     // the other tools that keep files.
     CLOCK,
+    // The user's Home Assistant from the keyboard: rooms of tiles for lights,
+    // switches, covers, climate, media, locks, scenes and sensors, live over
+    // its WebSocket, plus a typed Assist command bar. Talks only to the
+    // server the user signed in to. Needs the token, which is in
+    // credential-encrypted storage, so not before the first unlock.
+    HOME_ASSISTANT,
     // The phone's photos and videos inside the keyboard, Telegram's attach
     // sheet: albums, multi-select, a viewer, an editor, and a send that hands
     // the app only a copy of what was picked (#708). Play builds open
@@ -128,6 +134,10 @@ enum class ToolbarTool {
     // The clipboard opened straight into its search (#612), for a flick, a
     // key or a hold: the query is one gesture away instead of two taps.
     CLIPBOARD_SEARCH,
+    // A piece of text written out many times: "ha" fifty times, a numbered
+    // list of one line, "no" with its last letter stretched. Opened by its
+    // chip when the same thing has just been typed a few times in a row.
+    TEXT_REPEAT,
     // Files to other people (#729): encrypted on the phone and uploaded to a Send
     // instance as a link with an expiry, a download limit and a password, or
     // straight to a device nearby over Wi-Fi. Receives both kinds too.
@@ -207,6 +217,9 @@ fun isDirectBootSafeTool(tool: ToolbarTool): Boolean = when (tool) {
     // Reads and edits only the field. Its search history is credential-
     // protected and simply reads empty before the first unlock.
     ToolbarTool.FIND_REPLACE,
+    // Writes into the field only; its recent texts are credential-protected
+    // and read empty before the first unlock, like Find and replace's history.
+    ToolbarTool.TEXT_REPEAT,
     ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.PASSWORD_GEN, ToolbarTool.QR_GEN,
     ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
     // Copy and cut only touch the field the user is already typing in. Paste is
@@ -315,8 +328,10 @@ val PowerTools: Set<ToolbarTool> = RecommendedTools + setOf(
     ToolbarTool.MODES,
     ToolbarTool.NUMPAD,
     ToolbarTool.SYMBOLS, ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.CURRENCY,
-    ToolbarTool.PASSWORD_GEN, ToolbarTool.CALENDAR, ToolbarTool.CLOCK, ToolbarTool.WEATHER, ToolbarTool.LOCATION,
-    ToolbarTool.MEDIA_CONTROL, ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES, ToolbarTool.APP_LAUNCHER, ToolbarTool.HIDE_KEYBOARD,
+    ToolbarTool.PASSWORD_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.CALENDAR, ToolbarTool.CLOCK, ToolbarTool.WEATHER,
+    ToolbarTool.LOCATION,
+    ToolbarTool.MEDIA_CONTROL, ToolbarTool.KDE_CONNECT, ToolbarTool.HOME_ASSISTANT, ToolbarTool.SEND_FILES,
+    ToolbarTool.APP_LAUNCHER, ToolbarTool.HIDE_KEYBOARD,
 )
 
 /**
@@ -341,7 +356,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.LANGUAGE,
     ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,
-    ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
+    ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
     ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
     // The one-tap cursor moves last: useful, but they would otherwise push
     // every other tool a full row down in the toolbox.

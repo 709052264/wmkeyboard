@@ -1152,7 +1152,7 @@
     <string name="clipboard_key_row_info">Liitä linkki ja paina enter siirtyäksesi siihen, tai liitä lisää leikkeitä välilyönnillä tai rivinvaihdolla niiden välissä palaamatta näppäimistöön. ABC palaa kirjaimiin. Jos muutit paneelin asettelua, tämä asetus ei tee mitään: lisää näppäimet sen sijaan asettelueditorissa. Riviä ei näytetä, kun leikepöytä on pinottu näppäinten päälle. Tämä asetus on oletuksena pois päältä.</string>
     <string name="clipboard_key_row_subtitle">Näppäinrivi leikepöytäpaneelin alareunassa</string>
     <string name="clipboard_key_row_title">ABC-, välilyönti- ja enter-näppäimet</string>
-    <string name="clipboard_line_spacing_info">100 %:n kohdalla leikkeen rivit ovat niin lähellä kuin fontti sallii. Nosta arvoa levittääksesi niitä. Oletus on 130 %.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">100 %:n kohdalla leikkeen rivit ovat niin lähellä kuin fontti sallii. Nosta arvoa levittääksesi niitä. Oletus on 130 %.</string>
     <string name="clipboard_line_spacing_subtitle">Leikkeen tekstin riviväli</string>
     <string name="clipboard_line_spacing_title">Riviväli</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5698,6 +5698,7 @@
     <string name="search_kw_codes">otp, kertakäyttösalasana, 2fa, kaksivaiheinen, vahvistuskoodi, tekstiviestikoodi, kirjautumiskoodi</string>
     <string name="search_kw_customdictionaries">sanastot, tuo sanoja, sanalista</string>
     <string name="search_kw_datasaver">mobiilidata, matkapuhelinverkko, mitattu, verkkovierailu, vain wifi, tiedonsiirto, kaistanleveys, offline, säästä dataa</string>
+    <string name="search_kw_deepl">kirjoita uudelleenmuotoile kirjoita paranna viimeistele tyyli sävy käännös</string>
     <string name="search_kw_diagnostics">lokit, logcat, vianmääritys, kaatuminen, raportti</string>
     <string name="search_kw_dictionary">opitut sanat, käyttäjän sanakirja, omat sanat, lisää sana</string>
     <string name="search_kw_emoji">emotikonit, hymiöt, kaomoji, ihonväri, tarrat, gifit, viimeisimmät</string>
@@ -5841,6 +5842,7 @@
     <string name="search_kw_translate_engine">offline yksityinen internet lentokonetila paikallinen laite ml kit google mallin lataus pilvi</string>
     <string name="search_kw_translate_models">offline-käännösmallin lataus poista tallennustila ml kit google</string>
     <string name="search_kw_translate_only_downloaded">piilota suodattimen offline-mallin valintavalikko lyhyt</string>
+    <string name="search_kw_translate_server">openai yhteensopiva itsehostattu paikallinen llm tekoälymalli ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">oikoluku, automaattinen täydennys, ennustava tekstinsyöttö, liukukirjoitus, pyyhkäisykirjoitus, eleet, yhteystiedot, kumoa</string>
     <string name="search_kw_typing_auto_capitalize">automaattinen iso alkukirjain automaattinen suuraakkostus</string>
     <string name="search_kw_typing_auto_close_brackets">automaattinen sulkujen sulkeminen sulkeiden täsmäytys</string>
@@ -8476,7 +8478,7 @@
     <string name="typing_letter_swipe_select_key_label">Liu\'uta näppäimeen</string>
     <string name="typing_letter_swipe_type_words_desc">Pyyhkäisy näppäinten yli kirjoittaa yhden sanan</string>
     <string name="typing_letter_swipe_type_words_label">Kirjoita sanoja</string>
-    <string name="typing_mistype_tolerance_info">Jokainen napautus luetaan sen perusteella, mihin se osui, ei vain sen perusteella, mitä näppäintä se kosketti, joten näppäimen reunan lähelle tehty napautus voidaan silti lukea viereiseksi näppäimeksi. Tämä asettaa sen, kuinka salliva tämä lukutapa on. Yli 100 %:n asetuksella naapurinäppäimen sisäpuolelle tehty napautus on edelleen todennäköinen virhe, mikä sopii nopeaan tai kiireiseen kirjoittamiseen ja suurille sormille. Alle 100 %:n asetuksella osumaan luotetaan enemmän, mikä sopii huolelliseen kirjoittamiseen. Se muuttaa sitä, mitä sanoja ehdotuspalkki tarjoaa ja mitä automaattinen korjaus valitsee. Oletusarvo on 100 %.</string>
+    <string name="typing_mistype_tolerance_info" formatted="false">Jokainen napautus luetaan sen perusteella, mihin se osui, ei vain sen perusteella, mitä näppäintä se kosketti, joten näppäimen reunan lähelle tehty napautus voidaan silti lukea viereiseksi näppäimeksi. Tämä asettaa sen, kuinka salliva tämä lukutapa on. Yli 100 %:n asetuksella naapurinäppäimen sisäpuolelle tehty napautus on edelleen todennäköinen virhe, mikä sopii nopeaan tai kiireiseen kirjoittamiseen ja suurille sormille. Alle 100 %:n asetuksella osumaan luotetaan enemmän, mikä sopii huolelliseen kirjoittamiseen. Se muuttaa sitä, mitä sanoja ehdotuspalkki tarjoaa ja mitä automaattinen korjaus valitsee. Oletusarvo on 100 %.</string>
     <string name="typing_mistype_tolerance_subtitle">Kuinka kauas viereisestä näppäimestä painallus voi osua ja silti lasketaan virhepainallukseksi</string>
     <string name="typing_mistype_tolerance_title">Kirjoitusvirheiden sietokyky</string>
     <string name="typing_new_word_sightings_info">Vain sanat, joita sanakirja ei tunne, lasketaan. Sanakirjassa jo oleva sana tarvitsee yhden käyttökerran, ei useita, koska sen oikeinkirjoituksesta ei ole epäselvyyttä. Joka tapauksessa käyttökerta lasketaan vasta, kun olet siirtynyt eteenpäin ja jättänyt sanan rauhaan, joten sanaa, jonka korjaat jälkikäteen, tai pyyhkäisyä, joka muuttui vääräksi sanaksi, ei koskaan lasketa. Mitään ei tallenneta kirjoittaessasi: jättämäsi sanat lisätään, kun suljet näppäimistön, lähetät viestin tai siirryt toiseen kenttään. Pienennä tätä, jos omien nimiesi ja slangin vakiintuminen kestää liian kauan. Aseta arvoksi 1, jos haluat tallentaa jokaisen uuden sanan yhden käyttökerran jälkeen. Tämän asetuksen oletusarvo on 3.</string>

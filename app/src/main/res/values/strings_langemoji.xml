@@ -148,10 +148,10 @@
     <string name="langemoji_emoji_clear_recents_title">Clear recents button</string>
     <string name="langemoji_emoji_clear_recents_subtitle">A button on the Recent tab that deletes the recents list</string>
     <string name="langemoji_emoji_clear_recents_info">This adds a \"Clear recents\" button to the Recent tab of the emoji panel. It is off by default, to keep the tab clean.</string>
-    <string name="langemoji_emoji_kaomoji_title">Kaomoji and Emoticons</string>
+    <string name="langemoji_emoji_kaomoji_title">Kaomoji tab</string>
     <!-- The two faces are text art and stay as they are. -->
-    <string name="langemoji_emoji_kaomoji_subtitle">Two extra tabs: ¯\\_(ツ)_/¯ and :-)</string>
-    <string name="langemoji_emoji_kaomoji_info">This adds a Kaomoji tab and an Emoticons tab at the end of the tabs of the emoji panel. Kaomoji are Japanese style faces, such as (╯°□°）╯︵ ┻━┻. Emoticons are the Western ASCII ones, such as :-D and &lt;3. Both tabs group them by mood. If you press one, the keyboard types it as plain text. It does not go into your emoji history.</string>
+    <string name="langemoji_emoji_kaomoji_subtitle">A tab of text faces: ¯\\_(ツ)_/¯ and :-)</string>
+    <string name="langemoji_emoji_kaomoji_info">This adds a Kaomoji tab at the end of the tabs of the emoji panel. Kaomoji are Japanese style faces, such as (╯°□°）╯︵ ┻━┻. Emoticons are the Western ASCII ones, such as :-D and &lt;3. Both are in one library that you can change: add your own faces, put them under tags, and sort them. If you press a face, the keyboard types it as plain text. It does not go into your emoji history.</string>
     <string name="langemoji_emoji_long_press_name_title">Emoji descriptions</string>
     <string name="langemoji_emoji_long_press_name_subtitle">Show the name of the emoji at the top of its press and hold popup</string>
     <string name="langemoji_emoji_long_press_name_info">Press and hold an emoji to show its Unicode name, such as \"skull and crossbones\". The name appears above the favourite control and the variant controls. This helps you to see the difference between emoji that look almost the same.</string>
@@ -267,7 +267,7 @@
     <!-- Emoji category order and per-category emoji order (issue #183). -->
     <string name="langemoji_emoji_categories_title">Emoji categories</string>
     <string name="langemoji_emoji_categories_subtitle">Reorder the tabs, hide the ones you never open, and arrange the emoji inside each</string>
-    <string name="langemoji_emoji_categories_info">The emoji panel ships its categories in Unicode\'s own order, which is rarely the order you reach for them in. Drag a category to move its tab, and press the eye to hide a tab you never open. Press a category to arrange the emoji inside it: press and hold one, then drag it where you want it. The Recent tab, and the Kaomoji and Emoticons tabs, are not listed here — Recent orders itself by use, and the other two are switched on and off above.</string>
+    <string name="langemoji_emoji_categories_info">The emoji panel ships its categories in Unicode\'s own order, which is rarely the order you reach for them in. Drag a category to move its tab, and press the eye to hide a tab you never open. Press a category to arrange the emoji inside it: press and hold one, then drag it where you want it. The Recent tab and the Kaomoji tab are not listed here. Recent orders itself by use, and the Kaomoji tab has a page of its own, Kaomoji, on the Emoji panel page.</string>
     <string name="langemoji_emoji_categories_order_title">Tab order</string>
     <string name="langemoji_emoji_categories_hidden_label">Hidden</string>
     <!-- %1$s is a category name such as "Animals". -->
@@ -286,5 +286,106 @@
     <string name="langemoji_emoji_order_reset_desc">Put this category back in catalogue order</string>
     <string name="langemoji_emoji_order_custom_label">Custom order</string>
     <string name="langemoji_emoji_order_catalog_label">Catalogue order</string>
-</resources>
 
+    <!-- The kaomoji library: its page, its two lists and the import. -->
+    <!-- Faces in values (such as ¯\\_(ツ)_/¯) are text art and stay as they are. -->
+    <string name="langemoji_kaomoji_title">Kaomoji</string>
+    <string name="langemoji_kaomoji_subtitle">Tags, the edit buttons, your own faces and imports from Emotic</string>
+    <string name="langemoji_kaomoji_tab_group">The tab</string>
+    <string name="langemoji_kaomoji_split_title">Separate Emoticons tab</string>
+    <string name="langemoji_kaomoji_split_subtitle">Show :-) and the other ASCII faces in a tab of their own</string>
+    <string name="langemoji_kaomoji_tag_tabs_title">Tag tabs</string>
+    <string name="langemoji_kaomoji_tag_tabs_subtitle">A row of tags at the top of the tab. Off shows one long list with a heading for each tag.</string>
+    <string name="langemoji_kaomoji_start_title">Open on</string>
+    <string name="langemoji_kaomoji_start_subtitle">The tag the tab shows when you open the emoji panel</string>
+    <string name="langemoji_kaomoji_start_last">The last tag you used</string>
+    <string name="langemoji_kaomoji_start_recent">Recent</string>
+    <string name="langemoji_kaomoji_start_favourites">Favourites</string>
+    <string name="langemoji_kaomoji_start_all">All</string>
+    <string name="langemoji_kaomoji_rail_group">Edit buttons</string>
+    <string name="langemoji_kaomoji_rail_title">Edit buttons</string>
+    <string name="langemoji_kaomoji_rail_subtitle">A column of buttons beside the faces: search, add, edit and tags</string>
+    <string name="langemoji_kaomoji_rail_info">With the column off, the add, edit and tags buttons move to the end of the tag row, so you can still change your faces from the keyboard.</string>
+    <string name="langemoji_kaomoji_rail_left">Left</string>
+    <string name="langemoji_kaomoji_rail_right">Right</string>
+    <string name="langemoji_kaomoji_rail_search">Search button</string>
+    <string name="langemoji_kaomoji_rail_add">Add button</string>
+    <string name="langemoji_kaomoji_rail_edit">Edit button</string>
+    <string name="langemoji_kaomoji_rail_tags">Tags button</string>
+    <string name="langemoji_kaomoji_typing_group">While you type</string>
+    <string name="langemoji_kaomoji_suggest_title">Kaomoji suggestions</string>
+    <string name="langemoji_kaomoji_suggest_subtitle">Type a tag, such as shrug or tableflip, to see its faces in the suggestions</string>
+    <string name="langemoji_kaomoji_suggest_info">The keyboard shows the faces of a tag when the word you type is the name of that tag. Your favourites and the faces you use most come first. If you press one, it goes in after your word, or in place of it, the same as an emoji suggestion.</string>
+    <string name="langemoji_kaomoji_in_search_title">Kaomoji in emoji search</string>
+    <string name="langemoji_kaomoji_in_search_subtitle">Show the faces that match after the emoji in the search of the emoji panel</string>
+    <string name="langemoji_kaomoji_library_group">Your library</string>
+    <string name="langemoji_kaomoji_faces_title">Faces</string>
+    <string name="langemoji_kaomoji_faces_subtitle">Add, change, sort and delete the faces in your library</string>
+    <string name="langemoji_kaomoji_tags_title">Tags</string>
+    <string name="langemoji_kaomoji_tags_subtitle">Sort, hide, rename and delete the tags of the tag row</string>
+    <string name="langemoji_kaomoji_import_title">Import</string>
+    <string name="langemoji_kaomoji_import_subtitle">An Emotic export, a file from this keyboard, or a list with one face on each line</string>
+    <string name="langemoji_kaomoji_import_action">Import</string>
+    <string name="langemoji_kaomoji_import_unreadable">This file has no faces that the keyboard can read.</string>
+    <string name="langemoji_kaomoji_import_emotic_title">Import from Emotic</string>
+    <string name="langemoji_kaomoji_import_merge">Add</string>
+    <string name="langemoji_kaomoji_import_replace">Replace all</string>
+    <string name="langemoji_kaomoji_import_stickers_full">The keyboard has too many sticker packs, so the images were not imported.</string>
+    <string name="langemoji_kaomoji_export_title">Export</string>
+    <string name="langemoji_kaomoji_export_subtitle">Save your faces and tags to a file</string>
+    <string name="langemoji_kaomoji_export_action">Export</string>
+    <string name="langemoji_kaomoji_export_error">The keyboard could not write the file.</string>
+    <string name="langemoji_kaomoji_reset_title">Reset the library</string>
+    <string name="langemoji_kaomoji_reset_subtitle">Go back to the faces that come with the keyboard</string>
+    <string name="langemoji_kaomoji_reset_confirm">This deletes the faces you added, your changes, your favourites and your recent faces.</string>
+    <string name="langemoji_kaomoji_add_title">Add a face</string>
+    <string name="langemoji_kaomoji_add_subtitle">Type or paste a kaomoji, then give it tags</string>
+    <string name="langemoji_kaomoji_add_action">Add</string>
+    <string name="langemoji_kaomoji_edit_title">Change the face</string>
+    <string name="langemoji_kaomoji_face_label">Face</string>
+    <string name="langemoji_kaomoji_tags_label">Tags</string>
+    <string name="langemoji_kaomoji_tags_hint">Put a comma between tags</string>
+    <string name="langemoji_kaomoji_kind_kaomoji">Kaomoji</string>
+    <string name="langemoji_kaomoji_kind_emoticon">Emoticon</string>
+    <string name="langemoji_kaomoji_favourite">Favourite</string>
+    <string name="langemoji_kaomoji_filter_all">All</string>
+    <string name="langemoji_kaomoji_filter_favourites">Favourites</string>
+    <string name="langemoji_kaomoji_faces_empty">No faces here.</string>
+    <string name="langemoji_kaomoji_new_tag_title">New tag</string>
+    <string name="langemoji_kaomoji_tags_empty">No tags yet. Give a face a tag, or add one here.</string>
+    <string name="langemoji_kaomoji_tag_hide">Hide from the tag row</string>
+    <string name="langemoji_kaomoji_tag_show">Show in the tag row</string>
+    <string name="langemoji_kaomoji_tag_rename">Rename the tag</string>
+    <plurals name="langemoji_kaomoji_faces_count">
+        <item quantity="one">%1$d face</item>
+        <item quantity="other">%1$d faces</item>
+    </plurals>
+    <plurals name="langemoji_kaomoji_tags_count">
+        <item quantity="one">%1$d tag</item>
+        <item quantity="other">%1$d tags</item>
+    </plurals>
+    <plurals name="langemoji_kaomoji_exported">
+        <item quantity="one">The keyboard saved %1$d face.</item>
+        <item quantity="other">The keyboard saved %1$d faces.</item>
+    </plurals>
+    <plurals name="langemoji_kaomoji_import_faces">
+        <item quantity="one">This file has %1$d face.</item>
+        <item quantity="other">This file has %1$d faces.</item>
+    </plurals>
+    <plurals name="langemoji_kaomoji_import_tags">
+        <item quantity="one">It has %1$d tag.</item>
+        <item quantity="other">It has %1$d tags.</item>
+    </plurals>
+    <plurals name="langemoji_kaomoji_import_images">
+        <item quantity="one">It also has %1$d image. The keyboard puts it in a new sticker pack.</item>
+        <item quantity="other">It also has %1$d images. The keyboard puts them in a new sticker pack.</item>
+    </plurals>
+    <plurals name="langemoji_kaomoji_import_done">
+        <item quantity="one">The keyboard added %1$d new face.</item>
+        <item quantity="other">The keyboard added %1$d new faces.</item>
+    </plurals>
+    <plurals name="langemoji_kaomoji_import_stickers_done">
+        <item quantity="one">It put %2$d image in the sticker pack %1$s.</item>
+        <item quantity="other">It put %2$d images in the sticker pack %1$s.</item>
+    </plurals>
+</resources>

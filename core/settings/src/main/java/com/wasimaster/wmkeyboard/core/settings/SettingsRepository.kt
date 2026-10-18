@@ -42,6 +42,7 @@ import com.wasimaster.wmkeyboard.core.icons.IconOverrides
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog
 import com.wasimaster.wmkeyboard.core.tools.QrCodeGen
+import com.wasimaster.wmkeyboard.core.tools.TextRepeat
 import com.wasimaster.wmkeyboard.core.tools.rememberLayoutSwitch
 import com.wasimaster.wmkeyboard.core.input.composer.DoublePinyinScheme
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
@@ -2780,7 +2781,25 @@ data class CalendarToolSettings(
     val weekend: Weekend = Weekend.SAT_SUN,
     /** Day offset applied to the tabular Hijri date (moon-sighting drift). */
     val hijriAdjustDays: Int = 0,
+    /** The calendar a new event goes in; -1 is the first writable one, primary first. */
+    val defaultCalendarId: Long = -1L,
+    /** How long a new event runs, in minutes. */
+    val defaultDurationMinutes: Int = 60,
+    /** A new event's reminder, in minutes before it starts; -1 for none. */
+    val defaultReminderMinutes: Int = 10,
+    /** Where Save puts an event: straight into the calendar, or the calendar app's editor. */
+    val saveMode: CalendarSaveMode = CalendarSaveMode.KEYBOARD,
 )
+
+/** How long a new calendar event may default to, in minutes: five minutes to eight hours. */
+val CalendarDurationRange = 5..480
+
+/**
+ * How the calendar tool's Save adds an event. [KEYBOARD] writes it directly
+ * (WRITE_CALENDAR, asked on the first save); [CALENDAR_APP] opens the
+ * calendar app's editor filled in, for the user to save there.
+ */
+enum class CalendarSaveMode { KEYBOARD, CALENDAR_APP }
 
 /**
  * The tools that read a sensor rather than a network: torch, compass, spirit
@@ -3513,6 +3532,8 @@ data class KeyboardSettings(
     val mediaControl: MediaControlSettings = MediaControlSettings(),
     /** The KDE Connect tool: the link to a paired computer (see [KdeConnectSettings]). */
     val kdeConnect: KdeConnectSettings = KdeConnectSettings(),
+    /** The Home Assistant tool: the server, the sign-in and the panel's layout (see [HomeAssistantSettings]). */
+    val homeAssistant: HomeAssistantSettings = HomeAssistantSettings(),
     /** Free-software service endpoints for the F-Droid build (see [SelfHostedSettings]). */
     val selfHosted: SelfHostedSettings = SelfHostedSettings(),
     /** How sticker-tool picks are sent. WhatsApp shows real stickers for these. */
@@ -3722,6 +3743,8 @@ data class KeyboardSettings(
     val currencyTo: String = "BDT",
     /** Password/passphrase generator defaults (the panel tweaks these live). */
     val passwordGenerator: PasswordGeneratorSettings = PasswordGeneratorSettings(),
+    /** The Text repeat tool's options; the panel edits them live, like the generator's. */
+    val textRepeat: TextRepeatSettings = TextRepeatSettings(),
     /** Typing-speed test: its options and its records; see [TypingTestSettings]. */
     val typingTest: TypingTestSettings = TypingTestSettings(),
     /**
@@ -4145,6 +4168,7 @@ data class AutoBackupSettings(
             // Alarms set by hand. Not in sync's defaults: two phones that both
             // ring for one alarm is a bug.
             ConfigBackup.Section.CLOCK.id,
+            ConfigBackup.Section.KAOMOJI.id,
         )
     }
 }
@@ -4706,6 +4730,12 @@ data class ToolLimitSettings(
      * repeatedly instead of narrowing it once.
      */
     val passwordSymbols: String = "",
+    /**
+     * Longest text the Text repeat tool will write in one go. The panel cuts
+     * at the last whole copy that fits and says so; apps choke on a paste of
+     * tens of thousands of characters long before the keyboard does.
+     */
+    val textRepeatMaxChars: Int = TextRepeat.DEFAULT_MAX_CHARS,
 )
 
 /** How the app-launcher grid orders its apps. */
@@ -4891,6 +4921,26 @@ data class PasswordGeneratorSettings(
 )
 
 /**
+ * The Text repeat tool's options, grouped for the same ceiling reason as
+ * [PasswordGeneratorSettings]. The panel edits them live, so they are both
+ * the tool's settings and the memory of how it was last left. DataStore keys
+ * stay flat (`text_repeat_*`).
+ */
+data class TextRepeatSettings(
+    val count: Int = TextRepeat.DEFAULT_COUNT,
+    val mode: TextRepeat.Mode = TextRepeat.Mode.REPEAT,
+    val separator: TextRepeat.Separator = TextRepeat.Separator.SPACE,
+    /** What [TextRepeat.Separator.CUSTOM] writes between the copies. */
+    val customSeparator: String = "",
+    /** "1. x", "2. x" … in front of each copy. */
+    val numbered: Boolean = false,
+    /** Every second copy in capitals. */
+    val alternateCase: Boolean = false,
+    /** What Insert does with the copies the chip found already typed. */
+    val chipInsert: TextRepeat.ChipInsert = TextRepeat.ChipInsert.REPLACE_RUN,
+)
+
+/**
  * The typing-speed test's settings and records, grouped for the same
  * ceiling reason as [PasswordGeneratorSettings]. The panel edits the
  * options live, so they double as the tool's own settings and as the memory
@@ -4964,6 +5014,10 @@ data class SmartChipSettings(
      * panel closes puts back what the gear took out.
      */
     val keepTextOnOpen: Boolean = false,
+    /** "no no no" → the Text repeat tool, opened on that text. */
+    val repeats: Boolean = true,
+    /** How many copies in a row before that chip shows. */
+    val repeatAfter: Int = TextRepeat.DEFAULT_REPEAT_AFTER,
 )
 
 /**
@@ -6398,6 +6452,8 @@ enum class ClipCardShortcut {
     EDIT,
     /** A button that starts picking clips with this one, for Combine and Delete. */
     SELECT,
+    /** A button that opens the QR code tool on the clip's text (#766). */
+    QR,
     ;
 
     /** Caption for this choice; resolve it where it is drawn. */
@@ -6408,6 +6464,7 @@ enum class ClipCardShortcut {
             NONE -> R.string.core_settings_clip_shortcut_none_label
             EDIT -> R.string.core_settings_clip_shortcut_edit_label
             SELECT -> R.string.core_settings_clip_shortcut_select_label
+            QR -> R.string.core_settings_clip_shortcut_qr_label
         }
 }
 
@@ -6523,6 +6580,12 @@ data class ClipboardSettings(
      * it is on.
      */
     val pinnedInPlace: Boolean = false,
+    /**
+     * Pinned clips that carry a tag are filed in a folder per tag (#768):
+     * the pinned clips show a folder for each tag in place of its clips, and a
+     * press opens it. Off by default.
+     */
+    val pinnedFolders: Boolean = false,
     /** The button at the end of each clip's bottom row (#612); see [ClipCardShortcut]. */
     val cardShortcut: ClipCardShortcut = ClipCardShortcut.EDITED_MARK,
     /**
@@ -6989,7 +7052,50 @@ data class EmojiSettings(
      * [MediaPanelExtraHeightRange].
      */
     val panelExtraHeightDp: Int = 0,
+    /** The kaomoji tab's own settings: its tag strip, edit rail and suggestions. */
+    val kaomoji: KaomojiSettings = KaomojiSettings(),
 )
+
+/**
+ * The kaomoji tab (shown with [EmojiSettings.kaomojiTabs] on). The library it
+ * draws from is a file of its own, `kaomoji/kaomoji.json`, not a preference.
+ */
+data class KaomojiSettings(
+    /**
+     * Give Western emoticons (`:-)`, `<3`) their own tab again instead of
+     * mixing them into the kaomoji tab. Off by default: one tab, one library.
+     */
+    val splitEmoticons: Boolean = false,
+    /**
+     * A strip of tag tabs across the top of the kaomoji tab, each showing one
+     * tag. Off draws the old single scrolling list with every tag as a heading.
+     */
+    val tagTabs: Boolean = true,
+    /** Which side of the kaomoji grid the edit buttons sit on, or none. */
+    val rail: KaomojiRailSide = KaomojiRailSide.LEFT,
+    /** The buttons the rail carries. Search moves to the tag strip when it is not here. */
+    val railButtons: Set<KaomojiRailButton> = KaomojiRailButton.entries.toSet(),
+    /** The tag the kaomoji tab opens on. */
+    val startView: KaomojiStartView = KaomojiStartView.LAST_USED,
+    /**
+     * Offer faces in the suggestion strip when the word just typed is one of
+     * their tags ("shrug", "tableflip"). Off by default.
+     */
+    val suggest: Boolean = false,
+    /** List matching kaomoji after the emoji in the emoji panel's search results. */
+    val inSearch: Boolean = true,
+    /**
+     * Bumped when the settings app or a restore rewrites the library file, so
+     * the running keyboard reloads it instead of saving over it. Not a preference.
+     */
+    val version: Int = 0,
+)
+
+enum class KaomojiRailSide { LEFT, RIGHT, OFF }
+
+enum class KaomojiRailButton { ADD, EDIT, TAGS, SEARCH }
+
+enum class KaomojiStartView { LAST_USED, RECENT, FAVOURITES, ALL }
 
 /** How much taller than the keyboard the emoji, GIF and sticker panels may be set, in dp (#537). */
 val MediaPanelExtraHeightRange = 0..400
@@ -9779,6 +9885,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_COMBINE_TEMPLATE = stringPreferencesKey("clipboard_combine_template")
         private val CLIPBOARD_COMBINE_DELETE = booleanPreferencesKey("clipboard_combine_delete_originals")
         private val CLIPBOARD_PINNED_IN_PLACE = booleanPreferencesKey("clipboard_pinned_in_place")
+        private val CLIPBOARD_PINNED_FOLDERS = booleanPreferencesKey("clipboard_pinned_folders")
         private val CLIPBOARD_CARD_SHORTCUT = stringPreferencesKey("clipboard_card_shortcut")
         private val CLIPBOARD_PLAIN_LETTERS = booleanPreferencesKey("clipboard_plain_letters")
         private val CLIPBOARD_RECENT_CHIPS = intPreferencesKey("clipboard_recent_chips")
@@ -9932,6 +10039,17 @@ class SettingsRepository(private val context: Context) {
         private val EMOJI_GRID_CELL_SIZE = intPreferencesKey("emoji_grid_cell_size")
         private val EMOJI_GRID_EMOJI_SIZE = intPreferencesKey("emoji_grid_emoji_size")
         private val EMOJI_KAOMOJI_TABS = booleanPreferencesKey("emoji_kaomoji_tabs")
+        private val KAOMOJI_SPLIT_EMOTICONS = booleanPreferencesKey("kaomoji_split_emoticons")
+        private val KAOMOJI_TAG_TABS = booleanPreferencesKey("kaomoji_tag_tabs")
+        private val KAOMOJI_RAIL = stringPreferencesKey("kaomoji_rail")
+        // Stored as the buttons turned OFF, so a button added later shows for everyone.
+        private val KAOMOJI_RAIL_HIDDEN = stringSetPreferencesKey("kaomoji_rail_hidden")
+        private val KAOMOJI_START_VIEW = stringPreferencesKey("kaomoji_start_view")
+        private val KAOMOJI_SUGGEST = booleanPreferencesKey("kaomoji_suggest")
+        private val KAOMOJI_IN_SEARCH = booleanPreferencesKey("kaomoji_in_search")
+        private val KAOMOJI_VERSION = intPreferencesKey("kaomoji_version")
+        /** `KaomojiStore.FILE_PATH`; spelled out, as this module does for the other stores. */
+        private const val KAOMOJI_FILE = "kaomoji/kaomoji.json"
         private val EMOJI_KEYWORD_PACK_VERSION = intPreferencesKey("emoji_keyword_pack_version")
         private val EMOJI_DISABLED_KEYWORD_LANGS = stringSetPreferencesKey("emoji_disabled_keyword_langs")
         private val EMOJI_USAGE_VERSION = intPreferencesKey("emoji_usage_version")
@@ -9993,6 +10111,10 @@ class SettingsRepository(private val context: Context) {
         private val CALENDAR_ALT_TWO = stringPreferencesKey("calendar_alt_two")
         private val CALENDAR_WEEKEND = stringPreferencesKey("calendar_weekend")
         private val HIJRI_ADJUST_DAYS = intPreferencesKey("hijri_adjust_days")
+        private val CALENDAR_DEFAULT_CALENDAR = longPreferencesKey("calendar_default_calendar")
+        private val CALENDAR_DEFAULT_DURATION = intPreferencesKey("calendar_default_duration")
+        private val CALENDAR_DEFAULT_REMINDER = intPreferencesKey("calendar_default_reminder")
+        private val CALENDAR_SAVE_MODE = stringPreferencesKey("calendar_save_mode")
         private val HANDWRITING_STYLUS_ONLY = booleanPreferencesKey("handwriting_stylus_only")
         private val HANDWRITING_COMMIT_DELAY = intPreferencesKey("handwriting_commit_delay")
         private val HANDWRITING_AUTO_SPACE = booleanPreferencesKey("handwriting_auto_space")
@@ -10299,6 +10421,32 @@ class SettingsRepository(private val context: Context) {
         // Absent means "never chosen", which takes the seeded defaults; an
         // empty set is a real choice (nothing counts as music) and is kept.
         private val MEDIA_MUSIC_APPS = stringSetPreferencesKey("media_music_apps")
+        private val HA_ENABLED = booleanPreferencesKey("ha_enabled")
+        private val HA_INTERNAL_URL = stringPreferencesKey("ha_internal_url")
+        private val HA_EXTERNAL_URL = stringPreferencesKey("ha_external_url")
+        private val HA_PREFER_INTERNAL = booleanPreferencesKey("ha_prefer_internal")
+        private val HA_INSTANCE_NAME = stringPreferencesKey("ha_instance_name")
+        private val HA_INSTANCE_ID = stringPreferencesKey("ha_instance_id")
+        private val HA_ACCESS_TOKEN = stringPreferencesKey(SettingsBackup.HA_ACCESS_TOKEN)
+        private val HA_REFRESH_TOKEN = stringPreferencesKey(SettingsBackup.HA_REFRESH_TOKEN)
+        private val HA_TOKEN_EXPIRES_AT = longPreferencesKey(SettingsBackup.HA_TOKEN_EXPIRES_AT)
+        private val HA_LONG_LIVED_TOKEN = booleanPreferencesKey(SettingsBackup.HA_LONG_LIVED_TOKEN)
+        private val HA_AUTH_STATE = stringPreferencesKey("ha_auth_state")
+        private val HA_LIFETIME = stringPreferencesKey("ha_lifetime")
+        private val HA_FAVOURITES = stringPreferencesKey("ha_favourites")
+        private val HA_HIDDEN = stringSetPreferencesKey("ha_hidden")
+        private val HA_HIDDEN_DOMAINS = stringSetPreferencesKey("ha_hidden_domains")
+        private val HA_OPEN_ON = stringPreferencesKey("ha_open_on")
+        private val HA_AREAS_AS_TABS = booleanPreferencesKey("ha_areas_as_tabs")
+        private val HA_TILE_SIZE = stringPreferencesKey("ha_tile_size")
+        private val HA_CONFIRM_RISKY = booleanPreferencesKey("ha_confirm_risky")
+        private val HA_INSERT_FORMAT = stringPreferencesKey("ha_insert_format")
+        private val HA_ASSIST_ENABLED = booleanPreferencesKey("ha_assist_enabled")
+        private val HA_ASSIST_AGENT = stringPreferencesKey("ha_assist_agent")
+        private val HA_ASSIST_LANGUAGE = booleanPreferencesKey("ha_assist_language")
+        private val HA_CACHE_STATES = booleanPreferencesKey("ha_cache_states")
+        private val HA_SMART_CHIP = booleanPreferencesKey("ha_smart_chip")
+        private val HA_LAST_TAB = stringPreferencesKey("ha_last_tab")
         private val KDE_ENABLED = booleanPreferencesKey("kde_enabled")
         private val KDE_DEVICE_NAME = stringPreferencesKey("kde_device_name")
         private val KDE_LIFETIME = stringPreferencesKey("kde_lifetime")
@@ -10336,6 +10484,8 @@ class SettingsRepository(private val context: Context) {
         private val SMART_CHIP_NUMBER_GROUPING = stringPreferencesKey("smart_chip_number_grouping")
         private val SMART_CHIP_CONTACTS = booleanPreferencesKey("smart_chip_contacts")
         private val SMART_CHIP_KEEP_TEXT = booleanPreferencesKey("smart_chip_keep_text")
+        private val SMART_CHIP_REPEATS = booleanPreferencesKey("smart_chip_repeats")
+        private val SMART_CHIP_REPEAT_AFTER = intPreferencesKey("smart_chip_repeat_after")
 
         private val SELECTION_MACROS_ENABLED = booleanPreferencesKey("selection_macros_enabled")
         private val SELECTION_MACROS_PLACEMENT = stringPreferencesKey("selection_macros_placement")
@@ -10379,6 +10529,14 @@ class SettingsRepository(private val context: Context) {
         private val PP_SEPARATOR = stringPreferencesKey("pp_separator")
         private val PP_CAPITALIZE = booleanPreferencesKey("pp_capitalize")
         private val PP_INCLUDE_DIGIT = booleanPreferencesKey("pp_include_digit")
+        private val TEXT_REPEAT_COUNT = intPreferencesKey("text_repeat_count")
+        private val TEXT_REPEAT_MODE = stringPreferencesKey("text_repeat_mode")
+        private val TEXT_REPEAT_SEPARATOR = stringPreferencesKey("text_repeat_separator")
+        private val TEXT_REPEAT_CUSTOM_SEPARATOR = stringPreferencesKey("text_repeat_custom_separator")
+        private val TEXT_REPEAT_NUMBERED = booleanPreferencesKey("text_repeat_numbered")
+        private val TEXT_REPEAT_ALTERNATE_CASE = booleanPreferencesKey("text_repeat_alternate_case")
+        private val TEXT_REPEAT_CHIP_INSERT = stringPreferencesKey("text_repeat_chip_insert")
+        private val TEXT_REPEAT_MAX_CHARS = intPreferencesKey("text_repeat_max_chars")
         private val TT_MODE = stringPreferencesKey("tt_mode")
         private val TT_DURATION = intPreferencesKey("tt_duration")
         private val TT_WORD_COUNT = intPreferencesKey("tt_word_count")
@@ -10911,6 +11069,7 @@ class SettingsRepository(private val context: Context) {
             // The keys stay flat across the grouping, so a user's stored
             // generator settings survive the refactor untouched.
             passwordGenerator = readPasswordGenerator(p, defaults),
+            textRepeat = readTextRepeat(p, defaults),
             typingTest = readTypingTest(p, defaults),
             typingStatsEnabled = p[TYPING_STATS_ENABLED] ?: defaults.typingStatsEnabled,
             statsVersion = p[STATS_VERSION] ?: defaults.statsVersion,
@@ -10918,6 +11077,7 @@ class SettingsRepository(private val context: Context) {
             launcher = readLauncher(p, defaults),
             mediaControl = readMediaControl(p, defaults),
             kdeConnect = readKdeConnect(p, defaults),
+            homeAssistant = readHomeAssistant(p, defaults),
             selfHosted = readSelfHosted(p, defaults),
         )
     }
@@ -11329,6 +11489,7 @@ class SettingsRepository(private val context: Context) {
             wikiLinkLimit = p[WIKI_LINK_LIMIT] ?: defaults.toolLimits.wikiLinkLimit,
             qrMaxChars = p[QR_MAX_CHARS] ?: defaults.toolLimits.qrMaxChars,
             passwordSymbols = p[PASSWORD_SYMBOLS] ?: defaults.toolLimits.passwordSymbols,
+            textRepeatMaxChars = p[TEXT_REPEAT_MAX_CHARS] ?: defaults.toolLimits.textRepeatMaxChars,
         )
 
     private fun readRows(p: Preferences, defaults: KeyboardSettings) =
@@ -11465,6 +11626,7 @@ class SettingsRepository(private val context: Context) {
             combineTemplate = p[CLIPBOARD_COMBINE_TEMPLATE] ?: defaults.clipboard.combineTemplate,
             combineDeleteOriginals = p[CLIPBOARD_COMBINE_DELETE] ?: defaults.clipboard.combineDeleteOriginals,
             pinnedInPlace = p[CLIPBOARD_PINNED_IN_PLACE] ?: defaults.clipboard.pinnedInPlace,
+            pinnedFolders = p[CLIPBOARD_PINNED_FOLDERS] ?: defaults.clipboard.pinnedFolders,
             cardShortcut = p[CLIPBOARD_CARD_SHORTCUT]
                 ?.let { runCatching { ClipCardShortcut.valueOf(it) }.getOrNull() }
                 ?: defaults.clipboard.cardShortcut,
@@ -12000,6 +12162,23 @@ class SettingsRepository(private val context: Context) {
             continuousScroll = p[EMOJI_CONTINUOUS_SCROLL] ?: defaults.emoji.continuousScroll,
             panelExtraHeightDp = p[EMOJI_PANEL_EXTRA_HEIGHT_DP]?.coerceIn(MediaPanelExtraHeightRange)
                 ?: defaults.emoji.panelExtraHeightDp,
+            kaomoji = readKaomoji(p, defaults.emoji.kaomoji),
+        )
+
+    private fun readKaomoji(p: Preferences, defaults: KaomojiSettings) =
+        KaomojiSettings(
+            splitEmoticons = p[KAOMOJI_SPLIT_EMOTICONS] ?: defaults.splitEmoticons,
+            tagTabs = p[KAOMOJI_TAG_TABS] ?: defaults.tagTabs,
+            rail = p[KAOMOJI_RAIL]?.let { runCatching { KaomojiRailSide.valueOf(it) }.getOrNull() }
+                ?: defaults.rail,
+            railButtons = p[KAOMOJI_RAIL_HIDDEN]
+                ?.let { hidden -> KaomojiRailButton.entries.filter { it.name !in hidden }.toSet() }
+                ?: defaults.railButtons,
+            startView = p[KAOMOJI_START_VIEW]?.let { runCatching { KaomojiStartView.valueOf(it) }.getOrNull() }
+                ?: defaults.startView,
+            suggest = p[KAOMOJI_SUGGEST] ?: defaults.suggest,
+            inSearch = p[KAOMOJI_IN_SEARCH] ?: defaults.inSearch,
+            version = p[KAOMOJI_VERSION] ?: defaults.version,
         )
 
     private fun readToolbox(p: Preferences, defaults: KeyboardSettings) =
@@ -12062,6 +12241,12 @@ class SettingsRepository(private val context: Context) {
             weekend = p[CALENDAR_WEEKEND]?.let { Weekend.fromId(it) }
                 ?: Weekend.forRegion(deviceRegion),
             hijriAdjustDays = p[HIJRI_ADJUST_DAYS] ?: defaults.calendarTool.hijriAdjustDays,
+            defaultCalendarId = p[CALENDAR_DEFAULT_CALENDAR] ?: defaults.calendarTool.defaultCalendarId,
+            defaultDurationMinutes = p[CALENDAR_DEFAULT_DURATION]?.coerceIn(CalendarDurationRange)
+                ?: defaults.calendarTool.defaultDurationMinutes,
+            defaultReminderMinutes = p[CALENDAR_DEFAULT_REMINDER] ?: defaults.calendarTool.defaultReminderMinutes,
+            saveMode = p[CALENDAR_SAVE_MODE]?.let { v -> CalendarSaveMode.entries.firstOrNull { it.name == v } }
+                ?: defaults.calendarTool.saveMode,
         )
 
     private fun readVoiceBar(p: Preferences, defaults: KeyboardSettings) =
@@ -12446,6 +12631,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.smartChips.numberGrouping,
             contacts = p[SMART_CHIP_CONTACTS] ?: defaults.smartChips.contacts,
             keepTextOnOpen = p[SMART_CHIP_KEEP_TEXT] ?: defaults.smartChips.keepTextOnOpen,
+            repeats = p[SMART_CHIP_REPEATS] ?: defaults.smartChips.repeats,
+            repeatAfter = p[SMART_CHIP_REPEAT_AFTER] ?: defaults.smartChips.repeatAfter,
         )
 
     private fun readSelectionMacros(p: Preferences, defaults: KeyboardSettings) =
@@ -12482,6 +12669,22 @@ class SettingsRepository(private val context: Context) {
             ppSeparator = p[PP_SEPARATOR] ?: defaults.passwordGenerator.ppSeparator,
             ppCapitalize = p[PP_CAPITALIZE] ?: defaults.passwordGenerator.ppCapitalize,
             ppIncludeDigit = p[PP_INCLUDE_DIGIT] ?: defaults.passwordGenerator.ppIncludeDigit,
+        )
+
+    private fun readTextRepeat(p: Preferences, defaults: KeyboardSettings) =
+        TextRepeatSettings(
+            count = p[TEXT_REPEAT_COUNT] ?: defaults.textRepeat.count,
+            mode = p[TEXT_REPEAT_MODE]?.let { runCatching { TextRepeat.Mode.valueOf(it) }.getOrNull() }
+                ?: defaults.textRepeat.mode,
+            separator = p[TEXT_REPEAT_SEPARATOR]
+                ?.let { runCatching { TextRepeat.Separator.valueOf(it) }.getOrNull() }
+                ?: defaults.textRepeat.separator,
+            customSeparator = p[TEXT_REPEAT_CUSTOM_SEPARATOR] ?: defaults.textRepeat.customSeparator,
+            numbered = p[TEXT_REPEAT_NUMBERED] ?: defaults.textRepeat.numbered,
+            alternateCase = p[TEXT_REPEAT_ALTERNATE_CASE] ?: defaults.textRepeat.alternateCase,
+            chipInsert = p[TEXT_REPEAT_CHIP_INSERT]
+                ?.let { runCatching { TextRepeat.ChipInsert.valueOf(it) }.getOrNull() }
+                ?: defaults.textRepeat.chipInsert,
         )
 
     private fun readTypingTest(p: Preferences, defaults: KeyboardSettings) =
@@ -12626,6 +12829,38 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.mediaControl.pinWhilePlaying,
             musicApps = p[MEDIA_MUSIC_APPS] ?: defaults.mediaControl.musicApps,
         )
+
+    private fun readHomeAssistant(p: Preferences, defaults: KeyboardSettings): HomeAssistantSettings {
+        val d = defaults.homeAssistant
+        return HomeAssistantSettings(
+            enabled = p[HA_ENABLED] ?: d.enabled,
+            internalUrl = p[HA_INTERNAL_URL] ?: d.internalUrl,
+            externalUrl = p[HA_EXTERNAL_URL] ?: d.externalUrl,
+            preferInternal = p[HA_PREFER_INTERNAL] ?: d.preferInternal,
+            instanceName = p[HA_INSTANCE_NAME] ?: d.instanceName,
+            instanceId = p[HA_INSTANCE_ID] ?: d.instanceId,
+            accessToken = p[HA_ACCESS_TOKEN] ?: d.accessToken,
+            refreshToken = p[HA_REFRESH_TOKEN] ?: d.refreshToken,
+            tokenExpiresAtMs = p[HA_TOKEN_EXPIRES_AT] ?: d.tokenExpiresAtMs,
+            longLivedToken = p[HA_LONG_LIVED_TOKEN] ?: d.longLivedToken,
+            authState = p[HA_AUTH_STATE] ?: d.authState,
+            lifetime = p[HA_LIFETIME]?.let { v -> HaLinkLifetime.entries.firstOrNull { it.name == v } } ?: d.lifetime,
+            favourites = p[HA_FAVOURITES]?.split('\n')?.filter { it.isNotBlank() } ?: d.favourites,
+            hidden = p[HA_HIDDEN] ?: d.hidden,
+            hiddenDomains = p[HA_HIDDEN_DOMAINS] ?: d.hiddenDomains,
+            openOn = p[HA_OPEN_ON]?.let { v -> HaOpenOn.entries.firstOrNull { it.name == v } } ?: d.openOn,
+            areasAsTabs = p[HA_AREAS_AS_TABS] ?: d.areasAsTabs,
+            tileSize = p[HA_TILE_SIZE]?.let { v -> HaTileSize.entries.firstOrNull { it.name == v } } ?: d.tileSize,
+            confirmRisky = p[HA_CONFIRM_RISKY] ?: d.confirmRisky,
+            insertFormat = p[HA_INSERT_FORMAT] ?: d.insertFormat,
+            assistEnabled = p[HA_ASSIST_ENABLED] ?: d.assistEnabled,
+            assistAgentId = p[HA_ASSIST_AGENT] ?: d.assistAgentId,
+            assistFollowsKeyboardLanguage = p[HA_ASSIST_LANGUAGE] ?: d.assistFollowsKeyboardLanguage,
+            cacheStates = p[HA_CACHE_STATES] ?: d.cacheStates,
+            smartChip = p[HA_SMART_CHIP] ?: d.smartChip,
+            lastTab = p[HA_LAST_TAB] ?: d.lastTab,
+        )
+    }
 
     private fun readKdeConnect(p: Preferences, defaults: KeyboardSettings) =
         KdeConnectSettings(
@@ -12906,6 +13141,65 @@ class SettingsRepository(private val context: Context) {
 
     // ---- KDE Connect (issue #285) ----
 
+    // ---- Home Assistant tool ----
+
+    suspend fun setHaEnabled(value: Boolean) = editPrefs { it[HA_ENABLED] = value }
+    suspend fun setHaInternalUrl(value: String) = editPrefs { it[HA_INTERNAL_URL] = value.trim().take(HomeAssistantSettings.URL_MAX) }
+    suspend fun setHaExternalUrl(value: String) = editPrefs { it[HA_EXTERNAL_URL] = value.trim().take(HomeAssistantSettings.URL_MAX) }
+    suspend fun setHaPreferInternal(value: Boolean) = editPrefs { it[HA_PREFER_INTERNAL] = value }
+    suspend fun setHaInstance(name: String, id: String) = editPrefs {
+        it[HA_INSTANCE_NAME] = name.trim().take(HomeAssistantSettings.URL_MAX)
+        it[HA_INSTANCE_ID] = id.trim()
+    }
+
+    /** The tokens a sign-in or a paste produced, written in one edit so no reader sees half a pair. */
+    suspend fun setHaTokens(accessToken: String, refreshToken: String, expiresAtMs: Long, longLived: Boolean) = editPrefs {
+        it[HA_ACCESS_TOKEN] = accessToken.trim()
+        it[HA_REFRESH_TOKEN] = refreshToken.trim()
+        it[HA_TOKEN_EXPIRES_AT] = expiresAtMs
+        it[HA_LONG_LIVED_TOKEN] = longLived
+        it.remove(HA_AUTH_STATE)
+    }
+
+    /** Signing out: every token goes, and so does what was learnt about the server. */
+    suspend fun clearHaTokens() = editPrefs {
+        it.remove(HA_ACCESS_TOKEN)
+        it.remove(HA_REFRESH_TOKEN)
+        it.remove(HA_TOKEN_EXPIRES_AT)
+        it.remove(HA_LONG_LIVED_TOKEN)
+        it.remove(HA_AUTH_STATE)
+        it.remove(HA_INSTANCE_NAME)
+        it.remove(HA_INSTANCE_ID)
+    }
+
+    suspend fun setHaAuthState(value: String) = editPrefs { if (value.isEmpty()) it.remove(HA_AUTH_STATE) else it[HA_AUTH_STATE] = value }
+    suspend fun setHaLifetime(value: HaLinkLifetime) = editPrefs { it[HA_LIFETIME] = value.name }
+
+    /** Rewrites the favourites through [change], read and written in one edit so the keyboard and the app cannot drop each other's. */
+    suspend fun updateHaFavourites(change: (List<String>) -> List<String>) = editPrefs { prefs ->
+        val current = prefs[HA_FAVOURITES]?.split('\n')?.filter { it.isNotBlank() }.orEmpty()
+        val next = change(current).distinct().take(HomeAssistantSettings.MAX_FAVOURITES)
+        if (next.isEmpty()) prefs.remove(HA_FAVOURITES) else prefs[HA_FAVOURITES] = next.joinToString("\n")
+    }
+
+    suspend fun updateHaHidden(change: (Set<String>) -> Set<String>) = editPrefs { prefs ->
+        val next = change(prefs[HA_HIDDEN].orEmpty())
+        if (next.isEmpty()) prefs.remove(HA_HIDDEN) else prefs[HA_HIDDEN] = next
+    }
+
+    suspend fun setHaHiddenDomains(value: Set<String>) = editPrefs { if (value.isEmpty()) it.remove(HA_HIDDEN_DOMAINS) else it[HA_HIDDEN_DOMAINS] = value }
+    suspend fun setHaOpenOn(value: HaOpenOn) = editPrefs { it[HA_OPEN_ON] = value.name }
+    suspend fun setHaAreasAsTabs(value: Boolean) = editPrefs { it[HA_AREAS_AS_TABS] = value }
+    suspend fun setHaTileSize(value: HaTileSize) = editPrefs { it[HA_TILE_SIZE] = value.name }
+    suspend fun setHaConfirmRisky(value: Boolean) = editPrefs { it[HA_CONFIRM_RISKY] = value }
+    suspend fun setHaInsertFormat(value: String) = editPrefs { it[HA_INSERT_FORMAT] = value }
+    suspend fun setHaAssistEnabled(value: Boolean) = editPrefs { it[HA_ASSIST_ENABLED] = value }
+    suspend fun setHaAssistAgent(value: String) = editPrefs { if (value.isBlank()) it.remove(HA_ASSIST_AGENT) else it[HA_ASSIST_AGENT] = value.trim() }
+    suspend fun setHaAssistFollowsLanguage(value: Boolean) = editPrefs { it[HA_ASSIST_LANGUAGE] = value }
+    suspend fun setHaCacheStates(value: Boolean) = editPrefs { it[HA_CACHE_STATES] = value }
+    suspend fun setHaSmartChip(value: Boolean) = editPrefs { it[HA_SMART_CHIP] = value }
+    suspend fun setHaLastTab(value: String) = editPrefs { it[HA_LAST_TAB] = value }
+
     suspend fun setKdeEnabled(value: Boolean) = editPrefs { it[KDE_ENABLED] = value }
 
     // Stored as typed, minus the edges; the engine strips what no desktop
@@ -13181,6 +13475,19 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setCalendarWeekend(value: Weekend) =
         editPrefs { it[CALENDAR_WEEKEND] = value.id }
+
+    suspend fun setCalendarDefaultCalendar(value: Long) =
+        editPrefs { it[CALENDAR_DEFAULT_CALENDAR] = value }
+
+    suspend fun setCalendarDefaultDuration(minutes: Int) =
+        editPrefs { it[CALENDAR_DEFAULT_DURATION] = minutes.coerceIn(CalendarDurationRange) }
+
+    /** Minutes before the start, or -1 for no reminder. */
+    suspend fun setCalendarDefaultReminder(minutes: Int) =
+        editPrefs { it[CALENDAR_DEFAULT_REMINDER] = minutes.coerceAtLeast(-1) }
+
+    suspend fun setCalendarSaveMode(value: CalendarSaveMode) =
+        editPrefs { it[CALENDAR_SAVE_MODE] = value.name }
 
     /**
      * The device's region, for the settings whose sensible default depends on
@@ -14150,14 +14457,16 @@ class SettingsRepository(private val context: Context) {
             val current = prefs[CUSTOM_LAYOUTS]?.let { LayoutCodec.decodeList(it) }.orEmpty()
             prefs[CUSTOM_LAYOUTS] = LayoutCodec.encodeList(current.filter { it.id != id })
             if (isShippedLayoutId(id)) return@editPrefs
-            prefs[ENABLED_LAYOUT_IDS]?.let { stored ->
-                val kept = stored.split(',')
+            val kept = prefs[ENABLED_LAYOUT_IDS]?.let { stored ->
+                stored.split(',')
                     .filter { it.isNotEmpty() && it != id }
                     .ifEmpty { listOf(BuiltInLayouts.DEFAULT_ID) }
-                prefs[ENABLED_LAYOUT_IDS] = kept.joinToString(",")
+                    .also { prefs[ENABLED_LAYOUT_IDS] = it.joinToString(",") }
             }
+            // The first stop left in the cycle, like [setEnabledLayoutIds]:
+            // the built-in default may be a layout the user removed (#783).
             if (prefs[ACTIVE_LAYOUT_ID] == id) {
-                prefs[ACTIVE_LAYOUT_ID] = BuiltInLayouts.DEFAULT_ID
+                prefs[ACTIVE_LAYOUT_ID] = kept?.first() ?: BuiltInLayouts.DEFAULT_ID
             }
         }
 
@@ -16049,6 +16358,9 @@ class SettingsRepository(private val context: Context) {
                 out[ConfigBackup.Section.CLOCK] = com.wasimaster.wmkeyboard.core.clock.ClockBackup.portable(context)
             }
         }
+        if (ConfigBackup.Section.KAOMOJI in sections) {
+            readStore(KAOMOJI_FILE)?.let { out[ConfigBackup.Section.KAOMOJI] = it }
+        }
         return out
     }
 
@@ -16085,6 +16397,7 @@ class SettingsRepository(private val context: Context) {
                     ConfigBackup.Section.NOTES -> NotesBackup.count(element)
                     // Alarms; presets, countdowns and the settings ride along uncounted.
                     ConfigBackup.Section.CLOCK -> com.wasimaster.wmkeyboard.core.clock.ClockBackup.count(element)
+                    ConfigBackup.Section.KAOMOJI -> element.jsonObject["items"]?.jsonArray?.size ?: 0
                 }
             }.getOrDefault(0)
             counts[section] = count
@@ -16228,6 +16541,14 @@ class SettingsRepository(private val context: Context) {
                 // The keyboard holds the notes in memory; without this it
                 // saves its own list over the one just restored.
                 bumpNotesVersion()
+            }
+        }
+        (parsed.sections[ConfigBackup.Section.KAOMOJI] as? JsonObject)?.let { obj ->
+            if (writeStore(KAOMOJI_FILE, obj)) {
+                restored.add(ConfigBackup.Section.KAOMOJI)
+                // The keyboard holds the library in memory; without this it
+                // saves its own copy over the one just restored.
+                bumpKaomojiVersion()
             }
         }
         (parsed.sections[ConfigBackup.Section.CLOCK] as? JsonObject)?.let { obj ->
@@ -18035,6 +18356,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setQrMaxChars(value: Int) =
         editPrefs { it[QR_MAX_CHARS] = value.coerceIn(500, 4_000) }
 
+    suspend fun setTextRepeatMaxChars(value: Int) =
+        editPrefs { it[TEXT_REPEAT_MAX_CHARS] = value.coerceIn(TextRepeat.MIN_MAX_CHARS, TextRepeat.MAX_MAX_CHARS) }
+
     /** Blank restores the built-in pool; duplicates and whitespace are dropped. */
     suspend fun setPasswordSymbols(value: String) = editPrefs {
         it[PASSWORD_SYMBOLS] = value.filterNot { c -> c.isWhitespace() }
@@ -18431,6 +18755,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardPinnedInPlace(value: Boolean) =
         editPrefs { it[CLIPBOARD_PINNED_IN_PLACE] = value }
+
+    suspend fun setClipboardPinnedFolders(value: Boolean) =
+        editPrefs { it[CLIPBOARD_PINNED_FOLDERS] = value }
 
     suspend fun setClipboardCardShortcut(value: ClipCardShortcut) =
         editPrefs { it[CLIPBOARD_CARD_SHORTCUT] = value.name }
@@ -18935,6 +19262,43 @@ class SettingsRepository(private val context: Context) {
     suspend fun setEmojiKaomojiTabs(value: Boolean) =
         editPrefs { it[EMOJI_KAOMOJI_TABS] = value }
 
+    /** See [KaomojiSettings.splitEmoticons]. */
+    suspend fun setKaomojiSplitEmoticons(value: Boolean) =
+        editPrefs { it[KAOMOJI_SPLIT_EMOTICONS] = value }
+
+    /** See [KaomojiSettings.tagTabs]. */
+    suspend fun setKaomojiTagTabs(value: Boolean) =
+        editPrefs { it[KAOMOJI_TAG_TABS] = value }
+
+    /** See [KaomojiSettings.rail]. */
+    suspend fun setKaomojiRail(value: KaomojiRailSide) =
+        editPrefs { it[KAOMOJI_RAIL] = value.name }
+
+    /** See [KaomojiSettings.railButtons]. */
+    suspend fun setKaomojiRailButtons(value: Set<KaomojiRailButton>) =
+        editPrefs { prefs ->
+            prefs[KAOMOJI_RAIL_HIDDEN] = KaomojiRailButton.entries.filter { it !in value }.map { it.name }.toSet()
+        }
+
+    /** See [KaomojiSettings.startView]. */
+    suspend fun setKaomojiStartView(value: KaomojiStartView) =
+        editPrefs { it[KAOMOJI_START_VIEW] = value.name }
+
+    /** See [KaomojiSettings.suggest]. */
+    suspend fun setKaomojiSuggest(value: Boolean) =
+        editPrefs { it[KAOMOJI_SUGGEST] = value }
+
+    /** See [KaomojiSettings.inSearch]. */
+    suspend fun setKaomojiInSearch(value: Boolean) =
+        editPrefs { it[KAOMOJI_IN_SEARCH] = value }
+
+    /**
+     * Tells the running keyboard that `kaomoji/kaomoji.json` was rewritten
+     * under it (the settings app's library screen, an import, a restore).
+     */
+    suspend fun bumpKaomojiVersion() =
+        editPrefs { it[KAOMOJI_VERSION] = (it[KAOMOJI_VERSION] ?: 0) + 1 }
+
     suspend fun setIncognito(value: Boolean) =
         editPrefs { it[INCOGNITO] = value }
 
@@ -19381,6 +19745,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun setSmartChipKeepText(value: Boolean) =
         editPrefs { it[SMART_CHIP_KEEP_TEXT] = value }
 
+    suspend fun setSmartChipRepeats(value: Boolean) =
+        editPrefs { it[SMART_CHIP_REPEATS] = value }
+
+    suspend fun setSmartChipRepeatAfter(value: Int) =
+        editPrefs { it[SMART_CHIP_REPEAT_AFTER] = value.coerceIn(TextRepeat.MIN_REPEAT_AFTER, TextRepeat.MAX_REPEAT_AFTER) }
+
     /** Which grouping a number chip offers; [NumberGrouping.AUTO] follows the language. */
     suspend fun setSmartChipNumberGrouping(value: NumberGrouping) =
         editPrefs { it[SMART_CHIP_NUMBER_GROUPING] = value.name }
@@ -19504,6 +19874,27 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPpIncludeDigit(value: Boolean) =
         editPrefs { it[PP_INCLUDE_DIGIT] = value }
+
+    suspend fun setTextRepeatCount(value: Int) =
+        editPrefs { it[TEXT_REPEAT_COUNT] = value.coerceIn(TextRepeat.MIN_COUNT, TextRepeat.MAX_COUNT) }
+
+    suspend fun setTextRepeatMode(value: TextRepeat.Mode) =
+        editPrefs { it[TEXT_REPEAT_MODE] = value.name }
+
+    suspend fun setTextRepeatSeparator(value: TextRepeat.Separator) =
+        editPrefs { it[TEXT_REPEAT_SEPARATOR] = value.name }
+
+    suspend fun setTextRepeatCustomSeparator(value: String) =
+        editPrefs { it[TEXT_REPEAT_CUSTOM_SEPARATOR] = value.take(TextRepeat.MAX_SEPARATOR_LENGTH) }
+
+    suspend fun setTextRepeatNumbered(value: Boolean) =
+        editPrefs { it[TEXT_REPEAT_NUMBERED] = value }
+
+    suspend fun setTextRepeatAlternateCase(value: Boolean) =
+        editPrefs { it[TEXT_REPEAT_ALTERNATE_CASE] = value }
+
+    suspend fun setTextRepeatChipInsert(value: TextRepeat.ChipInsert) =
+        editPrefs { it[TEXT_REPEAT_CHIP_INSERT] = value.name }
 
     suspend fun setTypingTestMode(value: TypingTestMode) =
         editPrefs { it[TT_MODE] = value.name }

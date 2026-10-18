@@ -1151,7 +1151,7 @@
     <string name="clipboard_key_row_info">הדבק קישור ולחץ על Enter כדי לעבור אליו, או הדבק קטעים נוספים עם רווח או שורה חדשה ביניהם, מבלי לחזור למקלדת. ABC חוזר לאותיות. אם שינית את פריסת הפאנל, הגדרה זו לא עושה דבר: הוסף את המקשים בעורך הפריסה במקום זאת. השורה לא מוצגת בזמן שהלוח מוערם מעל המקשים. הגדרה זו כבויה כברירת מחדל.</string>
     <string name="clipboard_key_row_subtitle">שורה של מקשים לאורך החלק התחתון של לוח הלוח</string>
     <string name="clipboard_key_row_title">מקשי ABC, רווח ו-Enter</string>
-    <string name="clipboard_line_spacing_info">ב-100% השורות של קטע ממוקמות קרוב ככל שהגופן מאפשר. הגדל את הערך כדי לרווח אותן. ברירת המחדל היא 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">ב-100% השורות של קטע ממוקמות קרוב ככל שהגופן מאפשר. הגדל את הערך כדי לרווח אותן. ברירת המחדל היא 130%.</string>
     <string name="clipboard_line_spacing_subtitle">המרווח בין שורות הטקסט של קטע</string>
     <string name="clipboard_line_spacing_title">מרווח בין שורות</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5702,6 +5702,7 @@
     <string name="search_kw_codes">otp, סיסמה חד-פעמית, 2fa, אימות דו-שלבי, קוד אימות, קוד sms, קוד התחברות</string>
     <string name="search_kw_customdictionaries">רשימות מילים, ייבוא מילים, רשימת מילים</string>
     <string name="search_kw_datasaver">נתונים ניידים, סלולרי, מדוד, נדידה, Wi-Fi בלבד, שימוש בנתונים, רוחב פס, לא מקוון, שמירת נתונים</string>
+    <string name="search_kw_deepl">לכתוב לנסח מחדש לשכתב לשפר ללטש סגנון טון תרגום</string>
     <string name="search_kw_diagnostics">יומנים, logcat, פתרון בעיות, קריסה, דוח</string>
     <string name="search_kw_dictionary">מילים שנלמדו, מילון משתמש, המילים שלי, הוסף מילה</string>
     <string name="search_kw_emoji">אמוג\'י, סמיילים, קאומוג\'י, גוון עור, מדבקות, גיפים, אחרונים</string>
@@ -5845,6 +5846,7 @@
     <string name="search_kw_translate_engine">לא מקוון פרטי אינטרנט מצב טיסה מקומי מכשיר ערכת למידת מכונה גוגל הורדת מודל ענן</string>
     <string name="search_kw_translate_models">הורדת מודל תרגום לא מקוון מחיקת אחסון ml kit google</string>
     <string name="search_kw_translate_only_downloaded">הסתר מסנן בתפריט בחירת מודל לא מקוון קצר</string>
+    <string name="search_kw_translate_server">openai תואם אירוח עצמי מאוחסן מקומי llm מודל בינה מלאכותית ollama llama studio vllm localai השלמות צ\'אט mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">בדיקת איות, השלמה אוטומטית, טקסט חזוי, הקלדת החלקה, מחוות, אנשי קשר, ביטול</string>
     <string name="search_kw_typing_auto_capitalize">אותיות גדולות אוטומטיות</string>
     <string name="search_kw_typing_auto_close_brackets">סגירה אוטומטית של סוגריים, זוגות סוגריים, התאמת סוגריים, השלמת סגירה</string>
@@ -8480,7 +8482,7 @@
     <string name="typing_letter_swipe_select_key_label">החלק למקש</string>
     <string name="typing_letter_swipe_type_words_desc">החלקה על פני המקשים מאייתת מילה אחת</string>
     <string name="typing_letter_swipe_type_words_label">הקלד מילים</string>
-    <string name="typing_mistype_tolerance_info">כל הקשה נבדקת מול המקום שבו היא נחתה, לא רק מול המקש שבו פגעה, כך שהקשה ליד קצה של מקש עדיין יכולה להיקרא כמקש שלידו. הגדרה זו קובעת עד כמה הקריאה הזו נדיבה. מעל 100%, הקשה בתוך מקש שכן עדיין נחשבת כהחלקה סבירה, מה שמתאים להקלדה מהירה או קדחתנית ולאצבעות גדולות. מתחת ל-100%, המקש שבו פגעת מקבל יותר אמון, מה שמתאים להקלדה זהירה. זה משנה אילו מילים הסרגל מציע ומה התיקון האוטומטי בוחר. ברירת המחדל היא 100%.</string>
+    <string name="typing_mistype_tolerance_info" formatted="false">כל הקשה נבדקת מול המקום שבו היא נחתה, לא רק מול המקש שבו פגעה, כך שהקשה ליד קצה של מקש עדיין יכולה להיקרא כמקש שלידו. הגדרה זו קובעת עד כמה הקריאה הזו נדיבה. מעל 100%, הקשה בתוך מקש שכן עדיין נחשבת כהחלקה סבירה, מה שמתאים להקלדה מהירה או קדחתנית ולאצבעות גדולות. מתחת ל-100%, המקש שבו פגעת מקבל יותר אמון, מה שמתאים להקלדה זהירה. זה משנה אילו מילים הסרגל מציע ומה התיקון האוטומטי בוחר. ברירת המחדל היא 100%.</string>
     <string name="typing_mistype_tolerance_subtitle">עד כמה עמוק לתוך מקש שכן הקשה יכולה לנחות ועדיין להיחשב כהחלקה</string>
     <string name="typing_mistype_tolerance_title">סובלנות לשגיאות הקלדה</string>
     <string name="typing_new_word_sightings_info">רק מילים שאינן קיימות באף מילון נספרות. מילה שכבר קיימת במילון זקוקה לשימוש אחד בלבד, לא למספר שימושים, כיוון שאין ספק לגבי האיות שלה. בכל מקרה, שימוש נספר רק לאחר שעברת הלאה ועזבת את המילה, לכן מילה שחזרת לתקן, או החלקה שהפכה למילה הלא נכונה, לעולם לא נספרות. שום דבר לא נשמר בזמן שאתה עדיין מקליד: המילים שעזבת מתווספות כשאתה סוגר את המקלדת, שולח את ההודעה או עובר לשדה אחר. הנמך ערך זה אם לוקח לשמות פרטיים ולסלנג שלך זמן רב מדי להיקלט. הגדר ל-1 כדי לשמור כל מילה חדשה לאחר שימוש בודד. הגדרה זו היא 3 כברירת מחדל.</string>

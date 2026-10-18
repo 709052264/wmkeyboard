@@ -1,6 +1,6 @@
 ---
 title: "Utility tools"
-description: "Calculator, unit and currency converters, a symbol picker, QR and password generators, and a typing-speed test: seven related tools, six of them entirely offline."
+description: "Calculator, unit and currency converters, a symbol picker, QR and password generators, a text repeater, and a typing-speed test: eight related tools, seven of them entirely offline."
 sidebar:
   order: 12
 ---
@@ -10,7 +10,7 @@ import SettingsPath from '@components/SettingsPath.astro';
 import KeyCap from '@components/KeyCap.astro';
 import Shot from '@components/Shot.astro';
 
-This page covers seven tools that share a theme: arithmetic, conversion and generation. The toolbox draws every tool as one ranked grid with no sections, so the split shows up on the <SettingsPath path="Tools" /> screen instead. A scientific **Calculator**, a **Unit converter**, a **Special symbols** picker, a **QR code generator** and a **Password generator** sit under **Create and convert**, alongside **Typing speed test**, which measures rather than generates but lands in the same group. **Currency converter** is filed under **Online tools**, because it's the only one that has to touch the network for live exchange rates. The other six run their math or generation entirely on the device.
+This page covers eight tools that share a theme: arithmetic, conversion and generation. The toolbox draws every tool as one ranked grid with no sections, so the split shows up on the <SettingsPath path="Tools" /> screen instead. A scientific **Calculator**, a **Unit converter**, a **Special symbols** picker, a **QR code generator**, a **Password generator** and **Text repeat** sit under **Create and convert**, alongside **Typing speed test**, which measures rather than generates but lands in the same group. **Currency converter** is filed under **Online tools**, because it's the only one that has to touch the network for live exchange rates. The other seven run their math or generation entirely on the device.
 
 <PhoneFrame caption="The Calculator panel: live expression and result, the scientific function row, and the custom digit keypad.">
   <Shot id="tools/calculator-panel" alt="The Calculator panel: live expression and result, the scientific function row, and the custom digit keypad." />
@@ -110,7 +110,7 @@ This tool is separate from the **symbol row** (off by default), a strip of one-t
 
 ## Making a QR code
 
-**QR code generator** turns whatever you type into a scannable code and sends it as an image. Like the typing test below, it keeps the letter rows on screen instead of replacing them, because you type into it. Opening it seeds its own editable buffer with the focused field's text as a starting point. From there it's independent: your keystrokes route into the QR content rather than the field, and the field itself is never touched until you send.
+**QR code generator** turns whatever you type into a scannable code and sends it as an image. Like the typing test below, it keeps the letter rows on screen instead of replacing them, because you type into it. Opening it seeds its own editable buffer with the focused field's text as a starting point. Opened from a clip's **QR code** button in the [clipboard](/tools/clipboard/), it starts from that clip's text instead. From there it's independent: your keystrokes route into the QR content rather than the field, and the field itself is never touched until you send.
 
 <PhoneFrame side caption="The QR generator panel: editable content line, live QR preview, and Send as image.">
   <Shot id="tools/qr-generator-panel" alt="The QR generator panel: editable content line, live QR preview, and Send as image." />
@@ -156,6 +156,35 @@ The preview updates as you type, up to **Longest text** characters (500 to 4,000
 - **Capitalize words**: off by default (`correct-horse` → `Correct-Horse`).
 - **Include a digit**: off by default. Appends a random digit to one random word in the phrase.
 
+## Repeating text
+
+**Text repeat** writes a piece of text many times over in one go: "ha" fifty times, a numbered list of the same line, "no" with its last letter stretched out. Type the text into the panel's box (the keys go to the panel, not the app), pick a count and what goes between the copies, and the card under the controls shows what Insert will write, with the number of copies and characters. **Insert** types it into the field, **Copy** puts it on the clipboard, and **Undo** takes the last insert back as long as the field still ends with it.
+
+<PhoneFrame side caption="The Text repeat panel: the text box, the count, the separators, the toggles, and the live preview.">
+  <Shot id="tools/text-repeat-panel" alt="The Text repeat panel: the text box, the count, the separators, the toggles, and the live preview." />
+</PhoneFrame>
+
+Three modes sit in the header. **Repeat** writes the text the set number of times with the separator between. **Stretch** lengthens the last letter instead: "no" with a count of 4 becomes "nooooo", and an emoji or an accented letter stays whole. **Stairs** grows a copy at a time, "ha", "haha", "hahaha", one per line, which is the picture the name promises. The count has a stepper that keeps stepping while you hold − or +, faster the longer you hold, plus one-tap chips for 2, 3, 5, 10, 25, 50 and 100. The separator is **None**, **Space**, **New line**, **Comma**, or **Custom**, which opens a second box for your own, up to eight characters. Two toggles work in Repeat and Stairs: **1. 2. 3.** puts a number in front of each copy, and **a A a A** writes every second copy in capitals.
+
+The panel opens on the selection when there is one, else on the word before the cursor, as a convenience the box's × undoes in one tap. Select some text and the [selection bar](/smart/selection-actions/) offers **Repeat**, which opens the panel on the selection. Type the same thing three times in a row and the strip offers the tool by itself; see [Repeated text](/smart/chips/#repeated-text) for that chip and what it does with the copies you already typed.
+
+The texts you repeat are remembered, up to ten, as chips at the end of the panel's bottom row. They live in a file of their own on the phone, never in a backup, and nothing is remembered in incognito mode, in a password field, or in a field that asks not to be learnt from.
+
+### Options
+
+<SettingsPath path="Tools / Text repeat" />
+
+The panel edits the first group live, so these are also how it opens next time.
+
+- **Times**: 1 to 1000, defaulting to **10**.
+- **Mode**: **Repeat**, **Stretch** or **Stairs**, default **Repeat**.
+- **Between the copies**: **None**, **Space**, **New line**, **Comma** or **Custom**, default **Space**. Picking Stairs with None switches it to New line, since a staircase with nothing between its steps is one long word. **Custom separator** appears for Custom.
+- **Number each copy** and **Alternate the case**: both off by default.
+- **Longest result**: 500 to 20,000 characters, default **5,000**. The panel stops at the last whole copy that fits and says so, rather than cutting a copy in half.
+- **When opened from the chip**: **Replace them** (default) or **Add after them**. See [Repeated text](/smart/chips/#repeated-text).
+- **Chip after this many repeats**: 2 to 6, default **3**. The same row lives under Smart chips.
+- **Remember recent texts**: on by default, with a **Clear recent texts** row under it.
+
 ## Testing your typing speed
 
 **Typing speed test** leaves the key rows alone while a run is going, the same way the QR generator does. You type the prompt on the real keys while the panel scores it from above. The results screen needs no keys, so the panel takes their height back for the scores. Shift is forced off the moment a run starts, so a field's auto-capitalization can't turn your first keystroke into a false miss. The clock doesn't start until you type your first character either, so time spent reading the prompt costs you nothing.
@@ -199,8 +228,8 @@ Results show four numbers. Words per minute is correct characters ÷ 5 ÷ minute
 
 ## Details & edge cases
 
-- **What's offline, and what's direct-boot safe.** All seven tools work with no network connection except Currency, which needs one to fetch rates. Separately, Symbols, Calculator, Unit converter, Password generator and QR generator all still work during **direct boot**, the window right after a restart before you've unlocked the device for the first time. Currency doesn't, having no network yet, and neither does Typing test, for reasons the app doesn't surface anywhere. See [The toolbar](/tools/overview/#which-tools-work-before-you-unlock-your-phone) for the full direct-boot picture across every tool.
-- **Hardware shortcuts.** With a [physical keyboard](/typing/hardware-keyboard/) attached, double-tap <KeyCap>Ctrl</KeyCap> then a letter: <KeyCap>Y</KeyCap> for Symbols, <KeyCap>L</KeyCap> for Calculator, <KeyCap>U</KeyCap> for Unit converter, <KeyCap>Q</KeyCap> for QR generator, <KeyCap>P</KeyCap> for Password generator. Currency converter and Typing test have no default letter. Reach them through the toolbox (<KeyCap>T</KeyCap>) or [assign one yourself](/reference/shortcuts/).
-- **Discoverable by typing.** Typing one of a tool's keywords as a standalone word offers a [smart chip](/smart/chips/) straight into it: `symbol`/`symbols`, `calc`/`calculator`, `convert`/`unit`, `currency`/`forex`, `qr`, `password`/`passgen`, `wpm`. Each list is editable per tool under that tool's own **Keyword shortcut** field.
-- **None of these seven are edition-gated.** Unlike the scanners and handwriting, which lean on ML Kit, Full and Lite ship all seven identically (see [Full vs Lite](/start/editions/) if you're comparing builds).
+- **What's offline, and what's direct-boot safe.** All eight tools work with no network connection except Currency, which needs one to fetch rates. Separately, Symbols, Calculator, Unit converter, Password generator, QR generator and Text repeat all still work during **direct boot**, the window right after a restart before you've unlocked the device for the first time (Text repeat's recent texts read empty until then). Currency doesn't, having no network yet, and neither does Typing test, for reasons the app doesn't surface anywhere. See [The toolbar](/tools/overview/#which-tools-work-before-you-unlock-your-phone) for the full direct-boot picture across every tool.
+- **Hardware shortcuts.** With a [physical keyboard](/typing/hardware-keyboard/) attached, double-tap <KeyCap>Ctrl</KeyCap> then a letter: <KeyCap>Y</KeyCap> for Symbols, <KeyCap>L</KeyCap> for Calculator, <KeyCap>U</KeyCap> for Unit converter, <KeyCap>Q</KeyCap> for QR generator, <KeyCap>P</KeyCap> for Password generator. Currency converter, Text repeat and Typing test have no default letter. Reach them through the toolbox (<KeyCap>T</KeyCap>) or [assign one yourself](/reference/shortcuts/).
+- **Discoverable by typing.** Typing one of a tool's keywords as a standalone word offers a [smart chip](/smart/chips/) straight into it: `symbol`/`symbols`, `calc`/`calculator`, `convert`/`unit`, `currency`/`forex`, `qr`, `password`/`passgen`, `repeat`, `wpm`. Each list is editable per tool under that tool's own **Keyword shortcut** field.
+- **None of these eight are edition-gated.** Unlike the scanners and handwriting, which lean on ML Kit, Full and Lite ship all eight identically (see [Full vs Lite](/start/editions/) if you're comparing builds).
 - Every tool here has its own **Enabled** switch, and an **Icon colour** override if [colorful tool icons](/tools/overview/#browsing-every-tool) are on globally. Both live at the top of that tool's own settings screen, above everything documented in this page's Options sections.

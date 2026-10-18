@@ -63,6 +63,8 @@ enum class SelectionMacro {
     FIND,
     /** Open the Find and replace panel with the selection as the query. */
     REPLACE,
+    /** Open the Text repeat tool with the selection as the text to repeat. */
+    REPEAT,
     LINES_SORT,
     LINES_DEDUPE,
     LINES_NUMBER,
@@ -162,6 +164,7 @@ enum class SelectionMacro {
             FORMAT -> R.string.core_content_selection_macro_format
             FIND -> R.string.core_content_selection_macro_find
             REPLACE -> R.string.core_content_selection_macro_replace
+            REPEAT -> R.string.core_content_selection_macro_repeat
             LINES_SORT -> R.string.core_content_selection_macro_lines_sort
             LINES_DEDUPE -> R.string.core_content_selection_macro_lines_dedupe
             LINES_NUMBER -> R.string.core_content_selection_macro_lines_number
@@ -213,7 +216,7 @@ enum class SelectionMacro {
     /** The group the settings screen lists the macro under. */
     val category: MacroCategory
         get() = when (this) {
-            UNDO, SELECT_ALL, COPY, CUT, PASTE, DELETE, FIND, REPLACE, SAVE_NOTE -> MacroCategory.EDITING
+            UNDO, SELECT_ALL, COPY, CUT, PASTE, DELETE, FIND, REPLACE, REPEAT, SAVE_NOTE -> MacroCategory.EDITING
             LINES_SORT, LINES_DEDUPE, LINES_NUMBER, LINES_BULLET,
             LINES_CHECKBOX, LINES_UP, LINES_DOWN,
             -> MacroCategory.LINES
@@ -560,7 +563,7 @@ object SelectionMacros {
         SelectionMacro.OPEN, SelectionMacro.STRIP_TRACKERS, SelectionMacro.QR, SelectionMacro.ADD_CONTACT,
         SelectionMacro.COPY, SelectionMacro.CUT, SelectionMacro.PASTE, SelectionMacro.DELETE, SelectionMacro.SHARE,
         SelectionMacro.SAVE_NOTE,
-        SelectionMacro.FORMAT, SelectionMacro.FIND, SelectionMacro.REPLACE,
+        SelectionMacro.FORMAT, SelectionMacro.FIND, SelectionMacro.REPLACE, SelectionMacro.REPEAT,
         SelectionMacro.LINES_SORT, SelectionMacro.LINES_DEDUPE, SelectionMacro.LINES_NUMBER, SelectionMacro.LINES_BULLET,
         SelectionMacro.LINES_CHECKBOX, SelectionMacro.LINES_UP, SelectionMacro.LINES_DOWN,
         SelectionMacro.GRAMMAR_FIX, SelectionMacro.DEEPL_WRITE, SelectionMacro.TRANSLATE, SelectionMacro.AI,
@@ -587,7 +590,7 @@ object SelectionMacros {
     val defaultMacros: Set<SelectionMacro> = setOf(
         SelectionMacro.UNDO, SelectionMacro.SELECT_ALL, SelectionMacro.COPY, SelectionMacro.CUT,
         SelectionMacro.PASTE, SelectionMacro.DELETE, SelectionMacro.SHARE, SelectionMacro.SAVE_NOTE, SelectionMacro.FORMAT,
-        SelectionMacro.FIND, SelectionMacro.REPLACE,
+        SelectionMacro.FIND, SelectionMacro.REPLACE, SelectionMacro.REPEAT,
         SelectionMacro.LINES_SORT, SelectionMacro.LINES_DEDUPE, SelectionMacro.LINES_NUMBER, SelectionMacro.LINES_BULLET,
         SelectionMacro.GRAMMAR_FIX, SelectionMacro.DEEPL_WRITE, SelectionMacro.TRANSLATE, SelectionMacro.AI,
         SelectionMacro.TO_BANGLA, SelectionMacro.TO_BANGLISH,
@@ -603,7 +606,7 @@ object SelectionMacros {
      * existing user should receive. A stored list under an older version is
      * read as unset, which is the shipped list.
      */
-    const val LIST_VERSION = 3
+    const val LIST_VERSION = 4
 
     /** The case ladder [SelectionMacro.FORMAT] opens on a plain-text selection. */
     fun caseLadder(allowed: Set<SelectionMacro>): List<SelectionMacro> =

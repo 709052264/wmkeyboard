@@ -376,7 +376,7 @@ import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtp
 import com.wasimaster.wmkeyboard.core.emoji.EmojiNames
 import com.wasimaster.wmkeyboard.core.emoji.EmojiVariantIndex
-import com.wasimaster.wmkeyboard.core.emoji.TextArt
+import com.wasimaster.wmkeyboard.core.emoji.KaomojiLibrary
 import com.wasimaster.wmkeyboard.core.text.EmojiGraphemes
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.GlideCase
@@ -544,6 +544,7 @@ import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
 import com.wasimaster.wmkeyboard.core.tools.SymbolCatalog
 import com.wasimaster.wmkeyboard.ime.PwSettingAction
+import com.wasimaster.wmkeyboard.ime.TextRepeatAction
 import com.wasimaster.wmkeyboard.ime.TypingTestAction
 import com.wasimaster.wmkeyboard.ime.VoiceBarAction
 import com.wasimaster.wmkeyboard.ime.fieldVoiceSpeaks
@@ -1297,7 +1298,6 @@ fun KeyboardScreen(
     onWeatherRefresh: () -> Unit = {},
     onCameraSend: (java.io.File, Boolean) -> Unit = { _, _ -> },
     onCameraPermissionRequest: () -> Unit = {},
-    onCalendarPermissionRequest: () -> Unit = {},
     onScannedInsert: (String) -> Unit = {},
     onScannedUrlOpen: (String) -> Unit = {},
     onVoiceToggle: () -> Unit = {},
@@ -1366,6 +1366,7 @@ fun KeyboardScreen(
     /** The AI reply tool's own controls (#234), bundled for the same reason. */
     reply: ReplyCallbacks = ReplyCallbacks(),
     onPwSetting: (PwSettingAction) -> Unit = {},
+    onTextRepeat: (TextRepeatAction) -> Unit = {},
     onTypingTestAction: (TypingTestAction) -> Unit = {},
     onQrSend: () -> Unit = {},
     onAiAction: (com.wasimaster.wmkeyboard.core.tools.AiActionSpec) -> Unit = {},
@@ -1519,7 +1520,6 @@ fun KeyboardScreen(
                 onWeatherRefresh = onWeatherRefresh,
                 onCameraSend = onCameraSend,
                 onCameraPermissionRequest = onCameraPermissionRequest,
-                onCalendarPermissionRequest = onCalendarPermissionRequest,
                 onScannedInsert = onScannedInsert,
                 onScannedUrlOpen = onScannedUrlOpen,
                 onVoiceToggle = onVoiceToggle,
@@ -1581,6 +1581,7 @@ fun KeyboardScreen(
                 converter = converter,
                 capture = capture,
                 onPwSetting = onPwSetting,
+                onTextRepeat = onTextRepeat,
                 onTypingTestAction = onTypingTestAction,
                 onQrSend = onQrSend,
                 onAiAction = onAiAction,
@@ -3485,9 +3486,10 @@ private fun TopBar(
     val suggestionsFirst = state.settings.suggestionStrip.suggestionsFirst && state.settings.suggestions
     // An empty field predicts its first word (#119), so the strip always had
     // words at rest and turning "Suggestion strip always visible" off did
-    // nothing. With it off those openers wait behind the chevron instead: the
-    // toolbar rests, and the first key moves the caret off the start, at which
-    // point the candidates take the row as they always did.
+    // nothing. With it off those openers do not exist (#629): the toolbar
+    // rests, the chevron is not offered for them, and the first key moves the
+    // caret off the start, at which point the candidates take the row as they
+    // always did.
     // Not in an email field, where the strip only ever holds addresses: the
     // remembered ones are offered at the start of the field on purpose (#475).
     val openersAtRest = !suggestionsFirst && state.caretAtFieldStart &&
@@ -3533,10 +3535,6 @@ private fun TopBar(
         // only ever be seen by someone who had turned the suggestion bar on
         // permanently.
         state.autofillChips.isNotEmpty() || state.smartReplyChips.isNotEmpty()
-    // The chevron's way to those resting openers. Keyed on them, so it is shut
-    // again on the same frame they stop being the resting content rather than
-    // carrying a stale "open" into the next empty field.
-    var openersShown by remember(openersAtRest) { mutableStateOf(false) }
     // The emoji panel is already all emojis — showing the row too would be
     // redundant, so opening the panel folds the row away.
     //
@@ -3609,7 +3607,7 @@ private fun TopBar(
     val wantToolbar = !toolsOwnRow &&
         (
             state.panel != PanelMode.NONE || toolbarOverride ||
-                (!hasSuggestions && emptySettled && !suggestionsFirst && !openersShown)
+                (!hasSuggestions && emptySettled && !suggestionsFirst)
             )
 
     // The surface the bar is actually drawing, which lags [wantToolbar] by one
@@ -3999,7 +3997,7 @@ private fun TopBar(
                 ToolbarPlacement.STRIP -> !showToolbar ||
                     (
                         wantToolbar && state.panel == PanelMode.NONE &&
-                            (hasSuggestions || suggestionsFirst || openersAtRest)
+                            (hasSuggestions || suggestionsFirst)
                         )
             },
             enter = fadeIn(tween(motionMs)),
@@ -4020,18 +4018,6 @@ private fun TopBar(
                         feedback()
                         when {
                             toolsOwnRow -> onToolsRowToggle()
-                            // Resting openers have their own flag: the override
-                            // means "away from the candidates", and at rest the
-                            // toolbar is already where the bar is.
-                            //
-                            // Only while the openers are all that could hold the
-                            // strip. A paste chip, an offer or any other content
-                            // in [hasSuggestions] keeps the strip up on its own,
-                            // so flipping the openers flag there changed nothing
-                            // and the chevron looked dead; the override is what
-                            // takes the row from them.
-                            openersAtRest && !hasSuggestions && !toolbarOverride ->
-                                openersShown = !openersShown
                             else -> toolbarOverride = !toolbarOverride
                         }
                     },
@@ -5145,10 +5131,13 @@ private fun RowScope.StripWords(
                     .padding(horizontal = 5.dp),
                 contentAlignment = Alignment.Center,
             ) {
+                // A kaomoji chip ("shrug" → ¯\_(ツ)_/¯) is text, not a glyph:
+                // the text face at a text size, or it would run off the strip.
+                val face = KaomojiLibrary.isTextArt(emoji)
                 CachedTextLine(
-                    text = AnnotatedString(LocalEmojiShaper.current.shape(emoji)),
+                    text = AnnotatedString(if (face) emoji else LocalEmojiShaper.current.shape(emoji)),
                     style = LocalTextStyle.current.merge(
-                        TextStyle(fontSize = 22.sp, fontFamily = emojiFamilyFor(emoji)),
+                        if (face) TextStyle(fontSize = 14.sp) else TextStyle(fontSize = 22.sp, fontFamily = emojiFamilyFor(emoji)),
                     ),
                     color = LocalContentColor.current,
                     overflow = TextOverflow.Clip,
@@ -8276,6 +8265,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CURRENCY -> R.string.ime_tool_currency
     ToolbarTool.QR_GEN -> R.string.ime_tool_qr_gen
     ToolbarTool.PASSWORD_GEN -> R.string.ime_tool_password_gen
+    ToolbarTool.TEXT_REPEAT -> R.string.ime_tool_text_repeat
     ToolbarTool.TYPING_TEST -> R.string.ime_tool_typing_test
     ToolbarTool.MEDIA_CONTROL -> R.string.ime_tool_media_control
     ToolbarTool.KDE_CONNECT -> R.string.ime_tool_kde_connect
@@ -8284,6 +8274,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.NOTES -> R.string.ime_tool_notes
     ToolbarTool.LOCATION -> R.string.ime_tool_location
     ToolbarTool.CLOCK -> R.string.ime_tool_clock
+    ToolbarTool.HOME_ASSISTANT -> R.string.ime_tool_home_assistant
     ToolbarTool.SEND_FILES -> R.string.ime_tool_send_files
     ToolbarTool.GALLERY -> R.string.ime_tool_gallery
     ToolbarTool.PLUGINS -> R.string.ime_tool_plugins
@@ -8381,6 +8372,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.NOTES -> state.panel == PanelMode.NOTES
     ToolbarTool.LOCATION -> state.panel == PanelMode.LOCATION
     ToolbarTool.CLOCK -> state.panel == PanelMode.CLOCK
+    ToolbarTool.HOME_ASSISTANT -> state.panel == PanelMode.HOME_ASSISTANT
     ToolbarTool.SEND_FILES -> state.panel == PanelMode.SEND_FILES
     ToolbarTool.GALLERY -> state.panel == PanelMode.GALLERY
     ToolbarTool.VOICE -> state.panel == PanelMode.VOICE || state.voice.strip || state.voice.bar
@@ -8392,6 +8384,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.CURRENCY -> state.panel == PanelMode.CURRENCY
     ToolbarTool.QR_GEN -> state.panel == PanelMode.QR_GEN
     ToolbarTool.PASSWORD_GEN -> state.panel == PanelMode.PASSWORD_GEN
+    ToolbarTool.TEXT_REPEAT -> state.panel == PanelMode.TEXT_REPEAT
     ToolbarTool.TYPING_TEST -> state.panel == PanelMode.TYPING_TEST
     ToolbarTool.MEDIA_CONTROL -> state.panel == PanelMode.MEDIA_CONTROL
     ToolbarTool.KDE_CONNECT -> state.panel == PanelMode.KDE_CONNECT
@@ -12334,6 +12327,7 @@ private val FullBleedPanels = setOf(
     PanelMode.VOCABULARY, PanelMode.LEARN_FROM_TEXT, PanelMode.NOTES,
     PanelMode.APP_LAUNCHER, PanelMode.THEMES, PanelMode.SNIPPETS, PanelMode.WIKIPEDIA,
     PanelMode.AI_REPLY, PanelMode.LOCATION, PanelMode.CLOCK,
+    PanelMode.GALLERY, PanelMode.HOME_ASSISTANT,
     PanelMode.GALLERY, PanelMode.SEND_FILES,
 )
 
@@ -12564,7 +12558,7 @@ internal val FullBleedHeaderHeight = 46.dp
 @Composable
 internal fun toolPanelHeight(state: KeyboardUiState, wanted: Dp, floor: Dp): Dp {
     val rowsStandIn = barFullBleed(state) || barClipboardSearching(state) ||
-        (state.panel == PanelMode.EMOJI && state.emojiSearchActive)
+        emojiPanelTyping(state)
     val around = (if (rowsStandIn) 0.dp else fullBleedHiddenRows(state, macroRowAtPanelOpen(state))) +
         (if (keyRowsUnderPanel(state)) keyRowsHeight(state) + captureStripHeight(state) else 0.dp) +
         bottomPaddingDp(state.settings).dp
@@ -12828,7 +12822,6 @@ private fun KeyboardBody(
     onWeatherRefresh: () -> Unit,
     onCameraSend: (java.io.File, Boolean) -> Unit,
     onCameraPermissionRequest: () -> Unit,
-    onCalendarPermissionRequest: () -> Unit,
     onScannedInsert: (String) -> Unit,
     onScannedUrlOpen: (String) -> Unit,
     onVoiceToggle: () -> Unit,
@@ -12890,6 +12883,7 @@ private fun KeyboardBody(
     converter: ConverterCallbacks,
     capture: CaptureCallbacks,
     onPwSetting: (PwSettingAction) -> Unit,
+    onTextRepeat: (TextRepeatAction) -> Unit,
     onTypingTestAction: (TypingTestAction) -> Unit,
     onQrSend: () -> Unit,
     onAiAction: (com.wasimaster.wmkeyboard.core.tools.AiActionSpec) -> Unit,
@@ -12987,7 +12981,8 @@ private fun KeyboardBody(
             // The rows stack in the user's chosen order (Rows settings).
             // While an emoji search is typing, the toolbar is dead weight —
             // hide it and let the panel spend the height on result rows.
-            val emojiSearching = state.panel == PanelMode.EMOJI && state.emojiSearchActive
+            // The kaomoji tab's search and editor shrink the panel the same way.
+            val emojiSearching = emojiPanelTyping(state)
             // Tools on a row of their own (see [ToolbarPlacement]). The row is a
             // [BarRow.TOOLS] sibling of the strip rather than something TopBar
             // draws: each has its own height and slot, and the strip's
@@ -13301,6 +13296,7 @@ private fun KeyboardBody(
                     onStickerSend = onEmojiStickerSend,
                     onSearchFieldDelete = onEmojiSearchFieldDelete,
                     onTextArt = onTextArt,
+                    kaomoji = toolHold.kaomoji,
                 ),
                 clipboard = ClipboardFieldCallbacks(
                     onItem = onClipboardItem,
@@ -13422,6 +13418,11 @@ private fun KeyboardBody(
                     callbacks = toolHold.clock,
                     onClose = { onPanelChange(PanelMode.CLOCK) },
                 )
+                PanelMode.HOME_ASSISTANT -> com.wasimaster.wmkeyboard.ime.ui.homeassistant.HaPanel(
+                    state = state,
+                    callbacks = toolHold.homeAssistant,
+                    onClose = { onPanelChange(PanelMode.HOME_ASSISTANT) },
+                )
                 PanelMode.GALLERY -> com.wasimaster.wmkeyboard.ime.ui.gallery.GalleryPanel(
                     state = state,
                     callbacks = toolHold.gallery,
@@ -13435,20 +13436,11 @@ private fun KeyboardBody(
                     capture = capture,
                     onClose = { onPanelChange(PanelMode.SEND_FILES) },
                 )
-                // At the keyboard's own height, like the calculator (#665): the
-                // month grid gives up row height before the day's summary does,
-                // and the bar every full-bleed tool shares drags all of them
-                // taller together, so no tool opens at a size of its own.
-                PanelMode.CALENDAR -> FullBleedTool(
-                    state, stringResource(R.string.ime_tool_calendar),
+                PanelMode.CALENDAR -> com.wasimaster.wmkeyboard.ime.ui.calendar.CalendarPanel(
+                    state = state,
+                    callbacks = toolHold.calendar,
                     onClose = { onPanelChange(PanelMode.CALENDAR) },
-                ) {
-                    CalendarPanel(
-                        state,
-                        onRequestPermission = onCalendarPermissionRequest,
-                        onPrefillConsumed = onToolPrefillConsumed,
-                    )
-                }
+                )
                 PanelMode.THEMES -> ThemesPanel(
                     state,
                     onThemeSelect,
@@ -13786,6 +13778,16 @@ private fun KeyboardBody(
                     )
                 }
                 PanelMode.QR_GEN -> QrGeneratorPanel(state, onQrSend)
+                PanelMode.TEXT_REPEAT -> FullBleedTool(
+                    state, title = "",
+                    onClose = { onPanelChange(PanelMode.TEXT_REPEAT) },
+                    // Like the password generator: the key rows stay below for
+                    // the text box, so the panel takes the rows' height.
+                    compact = true,
+                    compactHeight = keyRowsHeight(state),
+                    showBack = false,
+                    headerActions = { TextRepeatHeaderTabs(state, onTextRepeat) },
+                ) { TextRepeatPanel(state, onTextRepeat) }
                 PanelMode.FIND_REPLACE -> FindReplacePanel(state, toolHold.findReplace)
                 PanelMode.NOTES -> NotesPanelHost(state, toolHold.notes, onPanelChange, onOpenRoute)
                 PanelMode.LEARN_FROM_TEXT -> LearnFromTextPanel(
@@ -17373,6 +17375,10 @@ private fun KeyRows(
     val keyTapOnKey = remember(stampedOnKey) {
         { k: Key -> shiftHold.route(k)?.let(stampedOnKey); Unit }
     }
+    // A glide stroke that turned out to be a tap types its key as the key's own
+    // lift would have, Autopilot remap included (#782). Read live by the glide
+    // loop, which outlives the composition that built it.
+    val strayTap = rememberUpdatedState { k: Key, id: PointerId -> keyTapOnKey(smartResolve(k, id)) }
     // The D-pad ring (a television remote, or a hardware keyboard whose owner
     // asked for it): the service moves it, so the grid hands up the cell table
     // it is already keeping and the lambda that types a key. Published in a
@@ -18036,6 +18042,12 @@ private fun KeyRows(
                     // The key whose word a flick off this stroke would take,
                     // and its centre. Null when nothing is floating there.
                     var flickAnchor: Pair<Int, Offset>? = null
+                    // The furthest the finger got from where it landed, and
+                    // whether the stroke last read as an octopus flick: what
+                    // the lift asks to tell a tap that rolled past the start
+                    // slop from a word (#782).
+                    var reachPx = 0f
+                    var looksLikeFlick = false
                     // Wall-clock stamp of the last preview. Sample counting was
                     // digitizer-rate dependent — every sixth report is ten
                     // decodes a second at 60 Hz and forty at 240 Hz, so the
@@ -18208,6 +18220,7 @@ private fun KeyRows(
                         }
                         if (isGesture) {
                             change.consume()
+                            reachPx = maxOf(reachPx, (change.position - down.position).getDistance())
                             if (picker.isOpen) {
                                 // Frozen: the stroke is finished and the finger
                                 // is only choosing. Hover and the cancel zone
@@ -18294,16 +18307,15 @@ private fun KeyRows(
                             // alone, so a stroke that has not travelled far
                             // enough yet still reads as the flick it may become.
                             flickAnchor?.let { (_, centre) ->
-                                trail.markFlick(
-                                    octopusFlickShape(
-                                        points = seg,
-                                        startX = centre.x,
-                                        startY = centre.y,
-                                        keyWidthPx = keyWidth.value,
-                                        startReachPx = keyWidth.value * OCTOPUS_START_REACH_WIDTHS,
-                                        sensitivity = octopusSettings.flickSensitivity,
-                                    )
+                                looksLikeFlick = octopusFlickShape(
+                                    points = seg,
+                                    startX = centre.x,
+                                    startY = centre.y,
+                                    keyWidthPx = keyWidth.value,
+                                    startReachPx = keyWidth.value * OCTOPUS_START_REACH_WIDTHS,
+                                    sensitivity = octopusSettings.flickSensitivity,
                                 )
+                                trail.markFlick(looksLikeFlick)
                             }
                             // Live preview of the word being drawn now, at a
                             // fixed wall-clock cadence.
@@ -18369,6 +18381,22 @@ private fun KeyRows(
                                 keyList?.let { onGesture(seg, it, keyWidth.value, GlideVerdict.Cancel) }
                             }
                             stampedOnText(capitalTarget.first)
+                            return@awaitEachGesture
+                        }
+                        // A tap that rolled past the start slop (#782). The
+                        // stroke took the pointer from the key, so the key's
+                        // own lift typed nothing, and a stroke this short
+                        // either has too few samples to send or decodes to
+                        // nothing: the letter vanished. It types the key it
+                        // landed on instead, through the same path a tap takes.
+                        if (downKey != null && segments.isEmpty() && !picker.isOpen && !looksLikeFlick &&
+                            glideStrokeIsTap(reachPx, seg.size, keyWidth.value)
+                        ) {
+                            trail.clear()
+                            if (previewedSeg) {
+                                keyList?.let { onGesture(seg, it, keyWidth.value, GlideVerdict.Cancel) }
+                            }
+                            strayTap.value(downKey, down.id)
                             return@awaitEachGesture
                         }
                         // Lifting on a target takes that word; lifting in the
@@ -20481,6 +20509,21 @@ private fun nearLetterKey(
 }
 
 /**
+ * Whether a stroke the glide loop claimed was really a tap (#782): the finger
+ * never got [GLIDE_TAP_REACH_WIDTHS] of a key from where it landed, or the
+ * stroke has fewer samples than a lift commits. Fast typing rolls the finger,
+ * and a roll past the start slop used to take the letter with it, since the
+ * key had already given its lift away and the stroke was too short to decode.
+ * The shortest real word, two letters on neighbouring keys, travels a whole
+ * key.
+ */
+internal fun glideStrokeIsTap(reachPx: Float, samples: Int, keyWidthPx: Float): Boolean =
+    samples < COMMIT_MIN_POINTS || (keyWidthPx > 0f && reachPx < keyWidthPx * GLIDE_TAP_REACH_WIDTHS)
+
+/** See [glideStrokeIsTap]. */
+internal const val GLIDE_TAP_REACH_WIDTHS = 0.65f
+
+/**
  * One finger under two-thumb typing: a tap until it travels, then a swipe.
  *
  * [downAt] is when the finger landed, kept with where (issue #640). A swipe's
@@ -21856,7 +21899,9 @@ internal fun keyRowsUnderPanel(state: KeyboardUiState): Boolean = when (state.ca
     CaptureTarget.CALC, CaptureTarget.CONVERTER, CaptureTarget.WORD_SPELL -> false
     // The emoji and clipboard panels reroute their search pills;
     // the rest are only ever up with their own panel open.
-    CaptureTarget.EMOJI_SEARCH -> state.panel == PanelMode.EMOJI
+    CaptureTarget.EMOJI_SEARCH, CaptureTarget.KAOMOJI_SEARCH,
+    CaptureTarget.KAOMOJI_FACE, CaptureTarget.KAOMOJI_TAG,
+    -> state.panel == PanelMode.EMOJI
     CaptureTarget.CLIPBOARD_SEARCH, CaptureTarget.CLIP_EDIT,
     CaptureTarget.CLIP_JOINER, CaptureTarget.CLIP_BASE, CaptureTarget.CLIP_APPEND,
     -> barClipboardSearching(state)
@@ -27767,42 +27812,6 @@ internal fun emojiDisplay(state: KeyboardUiState, base: String): String {
 }
 
 /**
- * A text-art tab's grid — kaomoji when [kaomoji], Western emoticons
- * otherwise. Grouped by mood behind full-width headers, because a flat 200-
- * entry wall of faces is unskimmable.
- *
- * Kaomoji get much wider cells than emoticons: ":-)" is three characters and
- * "(╯°□°）╯︵ ┻━┻" is thirteen, so one column width for both would either
- * waste most of the row or squeeze the long ones to nothing.
- */
-@Composable
-internal fun TextArtGrid(kaomoji: Boolean, onTap: (String) -> Unit) {
-    val groups = if (kaomoji) TextArt.kaomoji else TextArt.emoticons
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = if (kaomoji) 132.dp else 64.dp),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 4.dp),
-    ) {
-        groups.forEach { group ->
-            item(key = "§${group.name}", span = { GridItemSpan(maxLineSpan) }) {
-                Text(
-                    text = group.name,
-                    modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 2.dp),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                )
-            }
-            // Keyed by group + entry: a handful of faces appear in more than
-            // one mood, and a bare entry key would collide across groups.
-            items(group.items, key = { "${group.name}\u0000$it" }) { art ->
-                TextArtCell(art = art, onTap = onTap)
-            }
-        }
-    }
-}
-
-/**
  * One text-art cell: a key-coloured chip whose glyph shrinks until it fits on
  * a single line. Wrapping or ellipsizing are both wrong here — half a kaomoji
  * is unrecognisable, and the user is picking by shape, not by name.
@@ -28646,6 +28655,14 @@ data class ToolHoldCallbacks(
     val location: LocationCallbacks = LocationCallbacks(),
     /** The Clock panel's callbacks and state; here for the same reason as [dictionaryBar]. */
     val clock: com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks = com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks(),
+    /** The Calendar panel's callbacks and state; its state is the controller's, like [clock]. */
+    val calendar: com.wasimaster.wmkeyboard.ime.calendar.CalendarCallbacks =
+        com.wasimaster.wmkeyboard.ime.calendar.CalendarCallbacks(),
+    /** The emoji panel's kaomoji tab. */
+    val kaomoji: com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiCallbacks =
+        com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiCallbacks(),
+    /** The Home Assistant panel's callbacks and state; its state is the controller's, like [clock]. */
+    val homeAssistant: com.wasimaster.wmkeyboard.ime.homeassistant.HaCallbacks = com.wasimaster.wmkeyboard.ime.homeassistant.HaCallbacks(),
     /** The gallery tool (#708); its state is the controller's, like [clock]. */
     /** The Send files tool (#729); its state is the controller's, like [gallery]. */
     val send: com.wasimaster.wmkeyboard.ime.send.SendCallbacks = com.wasimaster.wmkeyboard.ime.send.SendCallbacks(),

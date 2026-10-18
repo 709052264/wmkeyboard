@@ -25,6 +25,11 @@ data class DeviceCalendarEvent(
     val location: String?,
     /** The calendar's display colour (ARGB int); 0 when the provider gives none. */
     val color: Int,
+    val calendarId: Long = 0L,
+    /** Part of a repeating series: the series itself or one changed occurrence of it. */
+    val recurring: Boolean = false,
+    /** Whether the user may change it: a calendar they can write in, and an event they organise or may edit as a guest. */
+    val canModify: Boolean = false,
 )
 
 /** One calendar an event can be added to (#698). */
@@ -33,6 +38,11 @@ data class DeviceCalendarInfo(
     val name: String,
     val account: String,
     val primary: Boolean,
+    /** The calendar's colour (ARGB int); 0 when it has none. */
+    val color: Int = 0,
+    /** The most reminders an event in it may carry; the provider's default when it does not say. */
+    val maxReminders: Int = 5,
+    val accountType: String = "",
 )
 
 /**
@@ -51,7 +61,22 @@ object DeviceCalendar {
         CalendarContract.Instances.ALL_DAY,       // 4
         CalendarContract.Instances.EVENT_LOCATION, // 5
         CalendarContract.Instances.DISPLAY_COLOR, // 6
+        CalendarContract.Instances.CALENDAR_ID,   // 7
+        CalendarContract.Instances.RRULE,         // 8
+        CalendarContract.Instances.ORIGINAL_ID,   // 9
+        CalendarContract.Instances.CALENDAR_ACCESS_LEVEL, // 10
+        CalendarContract.Instances.GUESTS_CAN_MODIFY, // 11
+        CalendarContract.Instances.ORGANIZER,     // 12
+        CalendarContract.Instances.OWNER_ACCOUNT, // 13
     )
+
+    /**
+     * Hidden calendars stay hidden, as in the calendar app, and an occurrence
+     * cancelled on its own (see [DeviceCalendarWrite]) is gone.
+     */
+    private val SHOWN = "${CalendarContract.Instances.VISIBLE} = 1 AND " +
+        "(${CalendarContract.Instances.STATUS} IS NULL OR " +
+        "${CalendarContract.Instances.STATUS} != ${CalendarContract.Events.STATUS_CANCELED})"
 
     /**
      * Events touching the local day [year]-[month]-[day] (month 1-12), all-day
@@ -86,7 +111,7 @@ object DeviceCalendar {
         val events = ArrayList<DeviceCalendarEvent>()
         runCatching {
             context.contentResolver.query(
-                uri, PROJECTION, null, null, "${CalendarContract.Instances.BEGIN} ASC",
+                uri, PROJECTION, SHOWN, null, "${CalendarContract.Instances.BEGIN} ASC",
             )?.use { c ->
                 while (c.moveToNext()) {
                     val begin = c.getLong(2)
@@ -106,6 +131,14 @@ object DeviceCalendar {
                             allDay = allDay,
                             location = c.getString(5)?.takeIf { it.isNotBlank() },
                             color = c.getInt(6),
+                            calendarId = c.getLong(7),
+                            recurring = !c.getString(8).isNullOrEmpty() || !c.isNull(9),
+                            canModify = canModify(
+                                access = c.getInt(10),
+                                guestsCanModify = c.getInt(11) != 0,
+                                organizer = c.getString(12),
+                                owner = c.getString(13),
+                            ),
                         ),
                     )
                 }
@@ -114,6 +147,49 @@ object DeviceCalendar {
         return events.sortedWith(
             compareByDescending<DeviceCalendarEvent> { it.allDay }.thenBy { it.begin },
         )
+    }
+
+    /**
+     * The days of [year]-[month] that have at least one event, for the dots
+     * under the month grid. An event spanning days marks each of them.
+     */
+    fun busyDays(context: Context, year: Int, month: Int): Set<Int> {
+        val first = Calendar.getInstance().apply {
+            clear()
+            set(year, month - 1, 1, 0, 0, 0)
+        }
+        val from = first.timeInMillis
+        val days = first.getActualMaximum(Calendar.DAY_OF_MONTH)
+        val until = (first.clone() as Calendar).apply { add(Calendar.MONTH, 1) }.timeInMillis
+        val out = HashSet<Int>()
+        for (e in eventsBetween(context, from, until)) {
+            val begin = if (e.allDay) localMidnightOf(e.begin) else e.begin
+            // An end is exclusive: an event to midnight does not mark the next day.
+            val end = (if (e.allDay) localMidnightOf(e.end) else e.end).coerceAtLeast(begin + 1) - 1
+            val day = Calendar.getInstance()
+            day.timeInMillis = begin.coerceAtLeast(from)
+            while (day.timeInMillis <= end && day.timeInMillis < until) {
+                out.add(day.get(Calendar.DAY_OF_MONTH))
+                if (out.size >= days) return out
+                day.add(Calendar.DAY_OF_MONTH, 1)
+                day.set(Calendar.HOUR_OF_DAY, 0)
+                day.set(Calendar.MINUTE, 0)
+                day.set(Calendar.SECOND, 0)
+                day.set(Calendar.MILLISECOND, 0)
+            }
+        }
+        return out
+    }
+
+    /**
+     * Whether an event can be changed: the calendar lets the user write, and
+     * the user organises the event (or nobody is named, as on a phone-only
+     * calendar) or its organiser lets guests edit.
+     */
+    internal fun canModify(access: Int, guestsCanModify: Boolean, organizer: String?, owner: String?): Boolean {
+        if (access < CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR) return false
+        val ownEvent = organizer.isNullOrBlank() || owner.isNullOrBlank() || organizer.equals(owner, ignoreCase = true)
+        return ownEvent || guestsCanModify
     }
 
     /** Whether the calendar may be read now. */
@@ -134,6 +210,9 @@ object DeviceCalendar {
             CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
             CalendarContract.Calendars.ACCOUNT_NAME,
             CalendarContract.Calendars.IS_PRIMARY,
+            CalendarContract.Calendars.CALENDAR_COLOR,
+            CalendarContract.Calendars.MAX_REMINDERS,
+            CalendarContract.Calendars.ACCOUNT_TYPE,
         )
         val selection = "${CalendarContract.Calendars.VISIBLE} = 1 AND " +
             "${CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL} >= ${CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR}"
@@ -148,6 +227,9 @@ object DeviceCalendar {
                                 name = c.getString(1).orEmpty(),
                                 account = c.getString(2).orEmpty(),
                                 primary = c.getInt(3) != 0,
+                                color = c.getInt(4),
+                                maxReminders = if (c.isNull(5)) 5 else c.getInt(5).coerceAtLeast(0),
+                                accountType = c.getString(6).orEmpty(),
                             ),
                         )
                     }
@@ -187,7 +269,7 @@ object DeviceCalendar {
     }.getOrNull()
 
     /** The local midnight of the date a UTC midnight names. */
-    private fun localMidnightOf(utcMidnight: Long): Long {
+    internal fun localMidnightOf(utcMidnight: Long): Long {
         val utc = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = utcMidnight }
         return Calendar.getInstance().apply {
             clear()

@@ -1150,7 +1150,7 @@
     <string name="clipboard_key_row_info">Vložte odkaz a stiskněte Enter pro přechod na něj, nebo vložte více klipů s mezerou nebo novým řádkem mezi nimi, aniž byste se vraceli ke klávesnici. ABC se vrací k písmenům. Pokud jste změnili rozvržení panelu, toto nastavení nic nedělá: místo toho přidejte klávesy v editoru rozvržení. Řádek se nezobrazuje, když je schránka umístěna nad klávesami. Toto nastavení je ve výchozím nastavení vypnuto.</string>
     <string name="clipboard_key_row_subtitle">Řada kláves podél spodní části panelu schránky</string>
     <string name="clipboard_key_row_title">Klávesy ABC, mezerník a enter</string>
-    <string name="clipboard_line_spacing_info">Při 100 % jsou řádky klipu u sebe tak blízko, jak to písmo dovoluje. Zvyšte hodnotu pro jejich rozestoupení. Výchozí hodnota je 130 %.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Při 100 % jsou řádky klipu u sebe tak blízko, jak to písmo dovoluje. Zvyšte hodnotu pro jejich rozestoupení. Výchozí hodnota je 130 %.</string>
     <string name="clipboard_line_spacing_subtitle">Mezera mezi řádky textu výstřižku</string>
     <string name="clipboard_line_spacing_title">Řádkování</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5698,6 +5698,7 @@
     <string name="search_kw_codes">otp, jednorázové heslo, 2fa, dvoufázové, ověřovací kód, sms kód, přihlašovací kód</string>
     <string name="search_kw_customdictionaries">seznamy slov, importovat slova, seznam slov</string>
     <string name="search_kw_datasaver">mobilní data, celulární, měřené připojení, roaming, pouze wifi, využití dat, šířka pásma, offline, úspora dat</string>
+    <string name="search_kw_deepl">psát přeformulovat přepsat zlepšit doladit styl tón překlad</string>
     <string name="search_kw_diagnostics">protokoly, logcat, řešení problémů, pád, hlášení</string>
     <string name="search_kw_dictionary">naučená slova, uživatelský slovník, moje slova, přidat slovo</string>
     <string name="search_kw_emoji">emotikony, smajlíci, kaomoji, odstín pleti, nálepky, gify, nedávné</string>
@@ -5841,6 +5842,7 @@
     <string name="search_kw_translate_engine">offline soukromý internet letadlo místní zařízení ml kit google model stažení cloud</string>
     <string name="search_kw_translate_models">offline překladový model stáhnout odstranit úložiště ml kit google</string>
     <string name="search_kw_translate_only_downloaded">skrýt krátkou nabídku výběru offline modelu pro filtr</string>
+    <string name="search_kw_translate_server">openai kompatibilní selfhosted hostovaný lokální llm ai model ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">kontrola pravopisu, automatické doplňování, prediktivní text, psaní tahem, psaní přejetím, gesta, kontakty, zpět</string>
     <string name="search_kw_typing_auto_capitalize">automatická velká písmena automatické psaní velkých písmen</string>
     <string name="search_kw_typing_auto_close_brackets">automatické zavírání párů závorky složené závorky shoda závorek doplnění</string>

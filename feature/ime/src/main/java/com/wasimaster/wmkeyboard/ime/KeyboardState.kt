@@ -770,6 +770,14 @@ enum class PanelMode {
     CLOCK,
 
     /**
+     * The Home Assistant tool: the house's entities as tiles, live from the
+     * server, and a typed Assist bar. Its state is the controller's, see
+     * `ime.homeassistant.HaUi`; its search, Assist and code boxes take the keys
+     * through the `HA_*` capture targets.
+     */
+    HOME_ASSISTANT,
+
+    /**
      * The gallery tool (#708): the phone's photos and videos, picked, viewed,
      * edited and sent. Its state is the controller's, see
      * `ime.gallery.GalleryUi`; its caption box and the editor's text take the
@@ -778,6 +786,11 @@ enum class PanelMode {
     GALLERY,
 
     /**
+     * The Text repeat tool: a piece of text written out many times. Its text
+     * and custom separator take the keys through [CaptureTarget.REPEAT_TEXT]
+     * and [CaptureTarget.REPEAT_SEPARATOR]; see [TextRepeatUi].
+     */
+    TEXT_REPEAT,
      * The Send files tool (#729): files out as an encrypted link or to a device
      * nearby, and links in. Its state is the controller's, see `ime.send.SendUi`;
      * its password, link and address boxes take the keys through the `SEND_*`
@@ -955,11 +968,16 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     PanelMode.LOCATION -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     // The tab row; each tab's own controls are touch, and typing reaches its box.
     PanelMode.CLOCK -> listOf(FocusRegion.CHIPS)
+    // The room tabs, the tiles, then the open tile's controls.
+    PanelMode.HOME_ASSISTANT -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     // The album and filter chips, the grid, then the send bar.
     PanelMode.SEND_FILES -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     PanelMode.GALLERY -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     PanelMode.PASSWORD_GEN ->
         listOf(FocusRegion.CHIPS, FocusRegion.ACTIONS, FocusRegion.RESULTS)
+    // The mode tabs, the text pills, Insert/Copy/Undo, then the option chips.
+    PanelMode.TEXT_REPEAT ->
+        listOf(FocusRegion.CHIPS, FocusRegion.SEARCH, FocusRegion.ACTIONS, FocusRegion.RESULTS)
     // The dialect and Fix-all chips, then the lint cards. Seed-only (see
     // [panelFocusSeedOnly]): the panel accompanies live field editing, so the
     // arrows keep moving the caret until the ring is asked for.
@@ -3316,6 +3334,8 @@ data class KeyboardUiState(
     val stickerOffer: StickerOffer? = null,
     /** Input a chip loaded into the tool it is about to open; consumed once. */
     val toolPrefill: ToolPrefill? = null,
+    /** The Text repeat panel's text, boxes and undo; see [TextRepeatUi]. */
+    val textRepeat: TextRepeatUi = TextRepeatUi(),
     /** The word-of-the-day chip, offered once on the first field of the day. */
     val vocabDaily: VocabDailyChip? = null,
     /**
@@ -3626,11 +3646,28 @@ data class KeyboardUiState(
      */
     val clockText: com.wasimaster.wmkeyboard.ime.clock.ClockTextEntry? = null,
     /**
+     * The Home Assistant panel's text box while it has the keys: a search, an
+     * Assist sentence, a lock code, a text entity's value. The rest of the
+     * panel's state is the controller's.
+     */
+    val haText: com.wasimaster.wmkeyboard.ime.homeassistant.HaTextEntry? = null,
+    /**
      * The gallery panel's text box while it has the keys: the caption, or a
      * text layer in the editor. The rest of the panel's state is the controller's.
      */
     val galleryText: com.wasimaster.wmkeyboard.ime.gallery.GalleryTextEntry? = null,
     /**
+     * The Calendar composer's text box while it has the keys: an event's
+     * title, place, notes, or a guest being added. The rest of the panel's
+     * state is the controller's.
+     */
+    val calendarText: com.wasimaster.wmkeyboard.ime.calendar.CalendarTextEntry? = null,
+    /**
+     * The emoji panel's kaomoji tab's text box while it has the keys: its
+     * search, a face being added or changed, a tag's name. The rest of the
+     * tab's state is the controller's.
+     */
+    val kaomojiText: com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextEntry? = null,
      * The Send files panel's text box while it has the keys: a password, a
      * link to receive, an instance address. The rest is the controller's.
      */
@@ -4086,10 +4123,25 @@ data class KeyboardUiState(
     val clockTypingActive: Boolean
         get() = panel == PanelMode.CLOCK && clockText != null
 
+    /** Whether the Home Assistant panel's text box has the keys; panel *and* box, as [clockTypingActive]. */
+    val haTypingActive: Boolean
+        get() = panel == PanelMode.HOME_ASSISTANT && haText != null
+
+    /** Whether the Calendar composer's text box has the keys; panel *and* box, as [clockTypingActive]. */
+    val calendarTypingActive: Boolean
+        get() = panel == PanelMode.CALENDAR && calendarText != null
+
     /** Whether the gallery panel's text box has the keys; panel *and* box, as [clockTypingActive]. */
     val galleryTypingActive: Boolean
         get() = panel == PanelMode.GALLERY && galleryText != null
 
+    /** Whether the kaomoji tab's text box has the keys; panel *and* box, as [clockTypingActive]. */
+    val kaomojiTypingActive: Boolean
+        get() = panel == PanelMode.EMOJI && kaomojiText != null
+
+    /** Whether keystrokes belong to one of the Text repeat panel's boxes. */
+    val textRepeatTypingActive: Boolean
+        get() = panel == PanelMode.TEXT_REPEAT && textRepeat.focused != null
     /** Whether the Send files panel's text box has the keys; panel *and* box, as [galleryTypingActive]. */
     val sendTypingActive: Boolean
         get() = panel == PanelMode.SEND_FILES && sendText != null
@@ -4173,6 +4225,23 @@ data class KeyboardUiState(
                 CaptureTarget.CLOCK_LABEL
             }
         galleryTypingActive -> CaptureTarget.GALLERY_TEXT
+        calendarTypingActive -> when (calendarText?.field) {
+            com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.LOCATION -> CaptureTarget.CALENDAR_LOCATION
+            com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.NOTES -> CaptureTarget.CALENDAR_NOTES
+            com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.GUEST -> CaptureTarget.CALENDAR_GUEST
+            else -> CaptureTarget.CALENDAR_TITLE
+        }
+        haTypingActive -> when (haText?.field) {
+            com.wasimaster.wmkeyboard.ime.homeassistant.HaTextField.SEARCH -> CaptureTarget.HA_SEARCH
+            com.wasimaster.wmkeyboard.ime.homeassistant.HaTextField.ASSIST -> CaptureTarget.HA_ASSIST
+            else -> CaptureTarget.HA_TEXT
+        }
+        textRepeatTypingActive ->
+            if (textRepeat.focused == TextRepeatField.SEPARATOR) {
+                CaptureTarget.REPEAT_SEPARATOR
+            } else {
+                CaptureTarget.REPEAT_TEXT
+            }
         sendTypingActive -> (sendText?.field ?: com.wasimaster.wmkeyboard.ime.send.SendTextField.LINK).captureTarget
         calcTypingActive -> CaptureTarget.CALC
         converterTypingActive -> CaptureTarget.CONVERTER
@@ -4182,6 +4251,11 @@ data class KeyboardUiState(
             ClipCombineField.BASE, ClipCombineField.TEMPLATE, ClipCombineField.RESULT -> CaptureTarget.CLIP_BASE
             ClipCombineField.APPEND -> CaptureTarget.CLIP_APPEND
             else -> CaptureTarget.CLIP_JOINER
+        }
+        kaomojiTypingActive -> when (kaomojiText?.field) {
+            com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextField.FACE -> CaptureTarget.KAOMOJI_FACE
+            com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextField.TAG -> CaptureTarget.KAOMOJI_TAG
+            else -> CaptureTarget.KAOMOJI_SEARCH
         }
         emojiSearchActive -> CaptureTarget.EMOJI_SEARCH
         mediaSearchActive && panel.hasMediaSearch -> CaptureTarget.MEDIA_SEARCH
@@ -4236,10 +4310,18 @@ data class KeyboardUiState(
         CaptureTarget.NOTE_BODY -> notes.editing?.bodyDraft.orEmpty()
         CaptureTarget.NOTE_TAG -> notes.editing?.tagDraft.orEmpty()
         CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> clockText?.text.orEmpty()
+        CaptureTarget.HA_SEARCH, CaptureTarget.HA_ASSIST, CaptureTarget.HA_TEXT -> haText?.text.orEmpty()
+        CaptureTarget.REPEAT_TEXT -> textRepeat.text
+        CaptureTarget.REPEAT_SEPARATOR -> textRepeat.customSeparator
         CaptureTarget.GALLERY_TEXT -> galleryText?.text.orEmpty()
+        CaptureTarget.CALENDAR_TITLE, CaptureTarget.CALENDAR_LOCATION,
+        CaptureTarget.CALENDAR_NOTES, CaptureTarget.CALENDAR_GUEST,
+        -> calendarText?.text.orEmpty()
         CaptureTarget.SEND_PASSWORD, CaptureTarget.SEND_LINK, CaptureTarget.SEND_INSTANCE -> sendText?.text.orEmpty()
         CaptureTarget.TOOLBOX_SEARCH -> toolboxView.query
         CaptureTarget.TOOLBOX_FOLDER_NAME -> toolboxView.nameDraft.orEmpty()
+        CaptureTarget.KAOMOJI_SEARCH, CaptureTarget.KAOMOJI_FACE, CaptureTarget.KAOMOJI_TAG ->
+            kaomojiText?.text.orEmpty()
     }
 
     /**

@@ -38,6 +38,7 @@ import com.wasimaster.wmkeyboard.core.tools.LeaderTrigger
 import com.wasimaster.wmkeyboard.core.tools.ReservedChords
 import com.wasimaster.wmkeyboard.core.tools.ReservedLetters
 import com.wasimaster.wmkeyboard.core.tools.TapModifier
+import com.wasimaster.wmkeyboard.core.tools.TextRepeat
 import com.wasimaster.wmkeyboard.core.tools.ToolboxLetter
 import com.wasimaster.wmkeyboard.core.tools.describeChord
 import com.wasimaster.wmkeyboard.core.tools.formatChord
@@ -1575,6 +1576,29 @@ internal fun TypingSmartChipsSettings(
                         else -> contactsPermission()
                     }
                 }
+            }
+            // The same text typed a few times in a row → the Text repeat tool,
+            // opened on it with the count already set.
+            val repeatsOn = settings.watch { it.smartChips.repeats }
+            item {
+                ToggleSetting(
+                    R.string.typing_smart_repeats_title,
+                    stringResource(R.string.typing_smart_repeats_subtitle),
+                    repeatsOn,
+                    info = stringResource(R.string.typing_smart_repeats_info),
+                    default = SettingsDefaults.smartChips.repeats,
+                ) { scope.launch { repository.setSmartChipRepeats(it) } }
+            }
+            chipToolsOffItem(SmartSuggest.Family.REPEATS, repeatsOn, usable, repository)
+            item(visible = repeatsOn) {
+                StepperSetting(
+                    R.string.typing_smart_repeat_after_title,
+                    stringResource(R.string.typing_smart_repeat_after_subtitle),
+                    value = settings.watch { it.smartChips.repeatAfter },
+                    range = (TextRepeat.MIN_REPEAT_AFTER..TextRepeat.MAX_REPEAT_AFTER).toList(),
+                    display = { it.toString() },
+                    default = SettingsDefaults.smartChips.repeatAfter,
+                ) { scope.launch { repository.setSmartChipRepeatAfter(it) } }
             }
             // #665: the gear on a chip takes the text it answered out of the
             // field; this keeps it there instead.

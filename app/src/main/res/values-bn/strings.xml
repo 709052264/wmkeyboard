@@ -1154,7 +1154,7 @@
     <string name="clipboard_key_row_info">একটি লিঙ্ক পেস্ট করুন এবং তাতে যেতে এন্টার চাপুন, অথবা কীবোর্ডে ফিরে না গিয়েই স্পেস বা নতুন লাইন দিয়ে আরও ক্লিপ পেস্ট করুন। ABC চাপলে আবার অক্ষরে ফিরে যাওয়া যায়। আপনি যদি প্যানেলের লেআউট পরিবর্তন করে থাকেন, তবে এই সেটিংটি কাজ করবে না: পরিবর্তে লেআউট এডিটরে কীগুলো যোগ করুন। ক্লিপবোর্ড কীগুলোর উপরে স্ট্যাক করা থাকলে এই সারিটি দেখানো হয় না। এই সেটিংটি ডিফল্টভাবে বন্ধ থাকে।</string>
     <string name="clipboard_key_row_subtitle">ক্লিপবোর্ড প্যানেলের নিচে কিগুলোর একটি সারি</string>
     <string name="clipboard_key_row_title">ABC, স্পেস এবং এন্টার কি</string>
-    <string name="clipboard_line_spacing_info">১০০%-এ একটি ক্লিপের লাইনগুলি ফন্ট অনুযায়ী যতটা সম্ভব কাছাকাছি থাকে। সেগুলিকে ছড়িয়ে দিতে এটি বাড়ান। ডিফল্ট হলো ১৩০%।</string>
+    <string name="clipboard_line_spacing_info" formatted="false">১০০%-এ একটি ক্লিপের লাইনগুলি ফন্ট অনুযায়ী যতটা সম্ভব কাছাকাছি থাকে। সেগুলিকে ছড়িয়ে দিতে এটি বাড়ান। ডিফল্ট হলো ১৩০%।</string>
     <string name="clipboard_line_spacing_subtitle">ক্লিপের টেক্সটের লাইনগুলোর মধ্যবর্তী স্থান</string>
     <string name="clipboard_line_spacing_title">লাইনের ব্যবধান</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5720,6 +5720,7 @@
     <string name="search_kw_codes">ওটিপি, ওয়ান টাইম পাসওয়ার্ড, ২এফএ, টু ফ্যাক্টর, ভেরিফিকেশন কোড, এসএমএস কোড, লগইন কোড</string>
     <string name="search_kw_customdictionaries">শব্দের তালিকা, শব্দ আমদানি, ওয়ার্ডলিস্ট</string>
     <string name="search_kw_datasaver">মোবাইল ডেটা, সেলুলার, মিটারড, রোমিং, শুধুমাত্র ওয়াইফাই, ডেটা ব্যবহার, ব্যান্ডউইথ, অফলাইন, ডেটা সেভ করুন</string>
+    <string name="search_kw_deepl">লিখুন, নতুন করে লিখুন, পুনর্লিখন করুন, উন্নত করুন, পালিশ করুন, শৈলী, স্বর, অনুবাদ</string>
     <string name="search_kw_diagnostics">লগ, লগক্যাট, ট্রাবলশুটিং, ক্র্যাশ, রিপোর্ট</string>
     <string name="search_kw_dictionary">শেখা শব্দ, ব্যবহারকারীর অভিধান, আমার শব্দ, শব্দ যোগ করুন</string>
     <string name="search_kw_emoji">ইমোটিকন, স্মাইলি, কাওমোজি, স্কিন টোন, স্টিকার, জিআইএফ, সাম্প্রতিক</string>
@@ -5863,6 +5864,7 @@
     <string name="search_kw_translate_engine">অফলাইন ব্যক্তিগত ইন্টারনেট এয়ারপ্লেন লোকাল ডিভাইস এমএল কিট গুগল মডেল ডাউনলোড ক্লাউড</string>
     <string name="search_kw_translate_models">অফলাইন অনুবাদ মডেল ডাউনলোড ডিলিট স্টোরেজ এমএল কিট গুগল</string>
     <string name="search_kw_translate_only_downloaded">অফলাইন মডেল পিকার মেনু ভাষার তালিকা ছোট ফিল্টার লুকান</string>
+    <string name="search_kw_translate_server">openai compatible selfhosted hosted local llm ai model ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">বানান পরীক্ষা, অটোসম্পূর্ণ, প্রেডিক্টিভ টেক্সট, গ্লাইড, সোয়াইপ টাইপিং, জেসচার, পরিচিতি, পূর্বাবস্থায় ফেরানো</string>
     <string name="search_kw_typing_auto_capitalize">autocaps autocapitalize autocapitalisation</string>
     <string name="search_kw_typing_auto_close_brackets">অটোক্লোজ পেয়ার প্যারেনথেসিস ব্রেসেস প্যারেনথেসিস ম্যাচিং কমপ্লিট ক্লোজিং</string>
@@ -8511,7 +8513,7 @@
     <string name="typing_letter_swipe_select_key_label">একটি কী-তে স্লাইড করুন</string>
     <string name="typing_letter_swipe_type_words_desc">কিগুলোর উপর দিয়ে সোয়াইপ করলে একটি শব্দ তৈরি হয়</string>
     <string name="typing_letter_swipe_type_words_label">শব্দ টাইপ করুন</string>
-    <string name="typing_mistype_tolerance_info">প্রতিটি ট্যাপ কোথায় পড়েছে তার ভিত্তিতে পড়া হয়, শুধু কোন কি-তে আঘাত করেছে তার ভিত্তিতে নয়, তাই একটি কি-এর প্রান্তের কাছাকাছি ট্যাপকেও পাশের কি হিসেবে পড়া হতে পারে। এটি নির্ধারণ করে যে সেই রিডিং কতটা উদার হবে। ১০০%-এর উপরে, একটি প্রতিবেশী কি-এর বেশ ভেতরে ট্যাপ করাও একটি সম্ভাব্য ভুল হিসেবে গণ্য হয়, যা দ্রুত বা ব্যস্ত টাইপিং এবং বড় আঙুলের জন্য উপযুক্ত। ১০০%-এর নিচে, আপনি যে কি-তে আঘাত করেছেন সেটিকে বেশি গুরুত্ব দেওয়া হয়, যা সতর্ক টাইপিংয়ের জন্য উপযুক্ত। এটি স্ট্রিপে কোন শব্দগুলো অফার করা হবে এবং অটোকারেক্ট কী বেছে নেবে তা পরিবর্তন করে। ডিফল্ট হলো ১০০%।</string>
+    <string name="typing_mistype_tolerance_info" formatted="false">প্রতিটি ট্যাপ কোথায় পড়েছে তার ভিত্তিতে পড়া হয়, শুধু কোন কি-তে আঘাত করেছে তার ভিত্তিতে নয়, তাই একটি কি-এর প্রান্তের কাছাকাছি ট্যাপকেও পাশের কি হিসেবে পড়া হতে পারে। এটি নির্ধারণ করে যে সেই রিডিং কতটা উদার হবে। ১০০%-এর উপরে, একটি প্রতিবেশী কি-এর বেশ ভেতরে ট্যাপ করাও একটি সম্ভাব্য ভুল হিসেবে গণ্য হয়, যা দ্রুত বা ব্যস্ত টাইপিং এবং বড় আঙুলের জন্য উপযুক্ত। ১০০%-এর নিচে, আপনি যে কি-তে আঘাত করেছেন সেটিকে বেশি গুরুত্ব দেওয়া হয়, যা সতর্ক টাইপিংয়ের জন্য উপযুক্ত। এটি স্ট্রিপে কোন শব্দগুলো অফার করা হবে এবং অটোকারেক্ট কী বেছে নেবে তা পরিবর্তন করে। ডিফল্ট হলো ১০০%।</string>
     <string name="typing_mistype_tolerance_subtitle">একটি ট্যাপ পাশের কী-তে কতটা দূরে পড়লে তা ভুল হিসেবে গণ্য হবে</string>
     <string name="typing_mistype_tolerance_title">ভুল টাইপিং সহনশীলতা</string>
     <string name="typing_new_word_sightings_info">শুধুমাত্র সেই শব্দগুলোই গণনা করা হয় যা কোনো অভিধানে নেই। অভিধানে থাকা কোনো শব্দ টাইপ করার সাথে সাথেই তা শিখে নেওয়া হয়। একটি ব্যবহার তখনই গণনা করা হয় যখন আপনি শব্দটি লিখে অন্য শব্দে চলে যান, তাই কোনো টাইপো যা আপনি পরে ঠিক করেন তা গণনা করা হয় না। আপনার নিজের নাম বা স্ল্যাং শিখতে যদি বেশি সময় লাগে তবে এটি কমিয়ে দিন। প্রতিটি নতুন শব্দ সাথে সাথে সেভ করতে এটিকে ১-এ সেট করুন, যা পুরনো ভার্সনগুলোতে করা হতো। এই সেটিংটি ডিফল্টভাবে ৩ থাকে।</string>

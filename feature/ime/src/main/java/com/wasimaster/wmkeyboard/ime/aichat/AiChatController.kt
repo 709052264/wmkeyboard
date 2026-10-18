@@ -597,6 +597,7 @@ object AiChatController {
         context,
         hints = settings.enabledLanguages.map { it.id },
         kdeConnect = settings.kdeConnect,
+        homeAssistant = settings.homeAssistant,
         images = store(context).get(conversationId)?.images.orEmpty(),
         seesImages = choice.provider != AiProvider.ON_DEVICE && AiClient.supportsImages(choice.provider),
         scanner = settings.scanner,

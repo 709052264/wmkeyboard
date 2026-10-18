@@ -79,7 +79,7 @@ sealed interface GlideCase {
         /** The chars of the letter [cut] capitalizes: start inclusive, end exclusive. */
         private fun letterRangeAt(word: String, alignment: GlideBeam.Alignment?, cut: Float): Pair<Int, Int> {
             if (alignment != null && alignment.size > 0 && alignment.chars.size == alignment.size) {
-                val last = (GlideWorkspace.SAMPLE_POINTS - 1).toFloat()
+                val last = (alignment.sampleCount - 1).toFloat()
                 var best = 0
                 var bestGap = Float.MAX_VALUE
                 for (m in 0 until alignment.size) {

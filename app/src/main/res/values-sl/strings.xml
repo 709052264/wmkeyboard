@@ -1153,7 +1153,7 @@
     <string name="clipboard_key_row_info">Prilepite povezavo in pritisnite enter, da jo odprete, ali prilepite več izrezkov s presledkom ali novo vrstico med njimi, ne da bi se vrnili na tipkovnico. ABC se vrne na črke. Če ste spremenili postavitev plošče, ta nastavitev ne naredi ničesar: namesto tega dodajte tipke v urejevalniku postavitve. Vrstica ni prikazana, medtem ko je odložišče zloženo nad tipkami. Ta nastavitev je privzeto izklopljena.</string>
     <string name="clipboard_key_row_subtitle">Vrstica tipk vzdolž dna plošče odložišča</string>
     <string name="clipboard_key_row_title">Tipke ABC, presledek in vnos</string>
-    <string name="clipboard_line_spacing_info">Pri 100 % so vrstice izrezka tako blizu, kot dovoljuje pisava. Povečajte vrednost, da jih razmaknete. Privzeta vrednost je 130 %.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Pri 100 % so vrstice izrezka tako blizu, kot dovoljuje pisava. Povečajte vrednost, da jih razmaknete. Privzeta vrednost je 130 %.</string>
     <string name="clipboard_line_spacing_subtitle">Razmik med vrsticami besedila izrezka</string>
     <string name="clipboard_line_spacing_title">Razmik med vrsticami</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5706,6 +5706,7 @@
     <string name="search_kw_codes">otp, enkratno geslo, 2fa, dvostopenjska, potrditvena koda, koda sms, koda za prijavo</string>
     <string name="search_kw_customdictionaries">seznami besed, uvozi besede, seznam besed</string>
     <string name="search_kw_datasaver">mobilni podatki, celični, merjeni, gostovanje, samo wifi, poraba podatkov, pasovna širina, brez povezave, shrani podatke</string>
+    <string name="search_kw_deepl">pisanje parafraziranje prepisovanje izboljšanje piljenje slog ton prevod</string>
     <string name="search_kw_diagnostics">dnevniki, logcat, odpravljanje težav, zrušitev, poročilo</string>
     <string name="search_kw_dictionary">naučene besede, uporabniški slovar, moje besede, dodaj besedo</string>
     <string name="search_kw_emoji">emotikoni, smeški, kaomoji, barva kože, nalepke, gifi, nedavno</string>
@@ -5849,6 +5850,7 @@
     <string name="search_kw_translate_engine">brez povezave zasebno internet letalo lokalna naprava ml kit google prenos modela oblak</string>
     <string name="search_kw_translate_models">prenos modela za prevajanje brez povezave izbris shramba ml kit google</string>
     <string name="search_kw_translate_only_downloaded">skrij filter meni za izbiro modela brez povezave seznam jezikov kratek</string>
+    <string name="search_kw_translate_server">openai združljiv samogostujoč lokalni llm ai model ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">preverjanje črkovanja, samodejno dokončanje, predvidevanje besedila, drsenje, drsno tipkanje, kretnje, stiki, razveljavi</string>
     <string name="search_kw_typing_auto_capitalize">samodejna velika začetnica samodejno pisanje z veliko začetnico</string>
     <string name="search_kw_typing_auto_close_brackets">samodejno zapiranje parov oklepajev ujemanje oklepajev dokončanje zapiranja</string>

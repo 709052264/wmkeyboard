@@ -1150,7 +1150,7 @@
     <string name="clipboard_key_row_info">วางลิงก์แล้วกด Enter เพื่อเปิด หรือวางคลิปบอร์ดเพิ่มโดยเว้นด้วยเว้นวรรคหรือขึ้นบรรทัดใหม่โดยไม่ต้องสลับกลับไปที่คีย์บอร์ด ปุ่ม ABC ใช้เพื่อกลับไปยังแป้นพิมพ์ตัวอักษร หากคุณเปลี่ยนรูปแบบแผงควบคุม การตั้งค่านี้จะไม่มีผล ให้เพิ่มปุ่มในเครื่องมือแก้ไขรูปแบบแผงควบคุมแทน แถวนี้จะไม่แสดงขณะที่คลิปบอร์ดซ้อนทับอยู่เหนือปุ่มต่างๆ โดยค่าเริ่มต้นการตั้งค่านี้จะถูกปิดไว้</string>
     <string name="clipboard_key_row_subtitle">แถวของปุ่มกดที่ด้านล่างของแผงคลิปบอร์ด</string>
     <string name="clipboard_key_row_title">ปุ่ม ABC, เว้นวรรค และ Enter</string>
-    <string name="clipboard_line_spacing_info">ที่ 100% บรรทัดของคลิปจะชิดกันมากที่สุดเท่าที่แบบอักษรจะอนุญาต เพิ่มค่านี้เพื่อขยายระยะห่าง ค่าเริ่มต้นคือ 130%</string>
+    <string name="clipboard_line_spacing_info" formatted="false">ที่ 100% บรรทัดของคลิปจะชิดกันมากที่สุดเท่าที่แบบอักษรจะอนุญาต เพิ่มค่านี้เพื่อขยายระยะห่าง ค่าเริ่มต้นคือ 130%</string>
     <string name="clipboard_line_spacing_subtitle">ระยะห่างระหว่างบรรทัดของข้อความในคลิป</string>
     <string name="clipboard_line_spacing_title">ระยะห่างระหว่างบรรทัด</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5694,6 +5694,7 @@
     <string name="search_kw_codes">otp, รหัสผ่านใช้ครั้งเดียว, 2fa, การยืนยันสองชั้น, รหัสยืนยัน, รหัส sms, รหัสเข้าสู่ระบบ</string>
     <string name="search_kw_customdictionaries">รายการคำ, นำเข้าคำ, รายการคำศัพท์</string>
     <string name="search_kw_datasaver">ข้อมูลมือถือ, เซลลูลาร์, แบบจำกัดปริมาณ, โรมมิ่ง, เฉพาะ Wi-Fi, การใช้ข้อมูล, แบนด์วิดท์, ออฟไลน์, ประหยัดข้อมูล</string>
+    <string name="search_kw_deepl">เขียน เรียบเรียงใหม่ เขียนใหม่ ปรับปรุง ขัดเกลา สไตล์ โทนเสียง แปล</string>
     <string name="search_kw_diagnostics">บันทึก, logcat, การแก้ไขปัญหา, ข้อผิดพลาด, รายงาน</string>
     <string name="search_kw_dictionary">คำที่เรียนรู้แล้ว, พจนานุกรมผู้ใช้, คำของฉัน, เพิ่มคำ</string>
     <string name="search_kw_emoji">อีโมติคอน, หน้าตลก, คาโอโมจิ, สีผิว, สติกเกอร์, gif, ล่าสุด</string>
@@ -5837,6 +5838,7 @@
     <string name="search_kw_translate_engine">ออฟไลน์ ส่วนตัว อินเทอร์เน็ต เครื่องบิน อุปกรณ์ท้องถิ่น ml kit google ดาวน์โหลดโมเดล คลาวด์</string>
     <string name="search_kw_translate_models">ดาวน์โหลดโมเดลแปลภาษาออฟไลน์ ลบพื้นที่จัดเก็บ ml kit google</string>
     <string name="search_kw_translate_only_downloaded">ซ่อนเมนูตัวเลือกโมเดลออฟไลน์ในตัวกรอง</string>
+    <string name="search_kw_translate_server">openai compatible selfhosted hosted local llm ai model ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">ตรวจสอบการสะกด, เติมคำอัตโนมัติ, ข้อความคาดเดา, การพิมพ์แบบลาก, การพิมพ์แบบปัด, ท่าทาง, รายชื่อติดต่อ, เลิกทำ</string>
     <string name="search_kw_typing_auto_capitalize">ตัวพิมพ์ใหญ่อัตโนมัติ</string>
     <string name="search_kw_typing_auto_close_brackets">ปิดวงเล็บอัตโนมัติ จับคู่วงเล็บ</string>
@@ -8470,7 +8472,7 @@
     <string name="typing_letter_swipe_select_key_label">เลื่อนไปยังปุ่ม</string>
     <string name="typing_letter_swipe_type_words_desc">การปัดนิ้วผ่านแป้นพิมพ์เพื่อสะกดหนึ่งคำ</string>
     <string name="typing_letter_swipe_type_words_label">พิมพ์คำ</string>
-    <string name="typing_mistype_tolerance_info">การแตะทุกครั้งจะถูกอ่านตามตำแหน่งที่แตะ ไม่ใช่แค่ปุ่มที่กด ดังนั้นการแตะใกล้ขอบปุ่มอาจถูกอ่านเป็นปุ่มข้างเคียงได้ การตั้งค่านี้กำหนดระดับความแม่นยำในการอ่าน หากสูงกว่า 100% การแตะที่อยู่ลึกเข้าไปในปุ่มข้างเคียงยังคงถือว่าเป็นการพิมพ์ผิด ซึ่งเหมาะสำหรับการพิมพ์ที่รวดเร็วหรือเร่งรีบและผู้ที่มีนิ้วใหญ่ หากต่ำกว่า 100% ระบบจะเชื่อถือปุ่มที่คุณกดมากขึ้น ซึ่งเหมาะสำหรับการพิมพ์อย่างระมัดระวัง การตั้งค่านี้จะเปลี่ยนคำที่แถบคำแนะนำเสนอและสิ่งที่ระบบแก้ไขอัตโนมัติเลือก โดยค่าเริ่มต้นคือ 100%</string>
+    <string name="typing_mistype_tolerance_info" formatted="false">การแตะทุกครั้งจะถูกอ่านตามตำแหน่งที่แตะ ไม่ใช่แค่ปุ่มที่กด ดังนั้นการแตะใกล้ขอบปุ่มอาจถูกอ่านเป็นปุ่มข้างเคียงได้ การตั้งค่านี้กำหนดระดับความแม่นยำในการอ่าน หากสูงกว่า 100% การแตะที่อยู่ลึกเข้าไปในปุ่มข้างเคียงยังคงถือว่าเป็นการพิมพ์ผิด ซึ่งเหมาะสำหรับการพิมพ์ที่รวดเร็วหรือเร่งรีบและผู้ที่มีนิ้วใหญ่ หากต่ำกว่า 100% ระบบจะเชื่อถือปุ่มที่คุณกดมากขึ้น ซึ่งเหมาะสำหรับการพิมพ์อย่างระมัดระวัง การตั้งค่านี้จะเปลี่ยนคำที่แถบคำแนะนำเสนอและสิ่งที่ระบบแก้ไขอัตโนมัติเลือก โดยค่าเริ่มต้นคือ 100%</string>
     <string name="typing_mistype_tolerance_subtitle">ระยะที่นิ้วแตะลงบนปุ่มข้างเคียงแล้วยังนับว่าเป็นการพิมพ์ผิด</string>
     <string name="typing_mistype_tolerance_title">ความทนทานต่อการพิมพ์ผิด</string>
     <string name="typing_new_word_sightings_info">ระบบจะนับเฉพาะคำที่ไม่มีในพจนานุกรมเท่านั้น คำที่มีอยู่ในพจนานุกรมแล้วจะถูกเรียนรู้ทันทีที่คุณพิมพ์ การใช้งานจะนับก็ต่อเมื่อคุณพิมพ์คำนั้นเสร็จและปล่อยผ่านไป ดังนั้นคำผิดที่คุณย้อนกลับไปแก้ไขจะไม่ถูกนับ ลดค่านี้หากชื่อเฉพาะหรือคำสแลงของคุณต้องใช้เวลานานกว่าจะจดจำ ตั้งค่าเป็น 1 เพื่อบันทึกคำใหม่ทุกคำทันที ซึ่งเป็นวิธีที่เวอร์ชันเก่าทำ ค่าเริ่มต้นของการตั้งค่านี้คือ 3</string>

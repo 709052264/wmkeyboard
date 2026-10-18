@@ -121,6 +121,14 @@ object ConfigBackup {
          * Appended after [NOTES] for the reason given on [VOCAB].
          */
         CLOCK("clock"),
+
+        /**
+         * The kaomoji library: every face, its tags, the tag order, the stars
+         * and how often each was used. Only once the library was changed or
+         * used; an untouched one is the built-in catalog and has no file.
+         * Appended after [CLOCK] for the reason given on [VOCAB].
+         */
+        KAOMOJI("kaomoji"),
     }
 
     private val json = Json { prettyPrint = true }

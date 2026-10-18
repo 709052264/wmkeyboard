@@ -1154,7 +1154,7 @@
     <string name="clipboard_key_row_info">Ielīmējiet saiti un nospiediet Enter, lai to atvērtu, vai ielīmējiet vairākus klipus ar atstarpi vai jaunu rindiņu starp tiem, neatgriežoties pie tastatūras. ABC atgriežas pie burtiem. Ja mainījāt paneļa izkārtojumu, šis iestatījums neko nedara: tā vietā pievienojiet taustiņus izkārtojuma redaktorā. Rinda netiek rādīta, kamēr starpliktuve ir novietota virs taustiņiem. Šis iestatījums pēc noklusējuma ir izslēgts.</string>
     <string name="clipboard_key_row_subtitle">Taustiņu rinda starpliktuves paneļa apakšā</string>
     <string name="clipboard_key_row_title">ABC, atstarpes un ievades taustiņi</string>
-    <string name="clipboard_line_spacing_info">Pie 100% klipa rindas atrodas tik tuvu, cik atļauj fonts. Palieliniet to, lai tās izkliedētu. Noklusējums ir 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Pie 100% klipa rindas atrodas tik tuvu, cik atļauj fonts. Palieliniet to, lai tās izkliedētu. Noklusējums ir 130%.</string>
     <string name="clipboard_line_spacing_subtitle">Atstarpe starp klipa teksta rindām</string>
     <string name="clipboard_line_spacing_title">Rindu atstarpes</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -5707,6 +5707,7 @@
     <string name="search_kw_codes">otp, vienreizēja parole, 2fa, divu faktoru, verifikācijas kods, sms kods, pieteikšanās kods</string>
     <string name="search_kw_customdictionaries">vārdu saraksti, importēt vārdus, vārdnīca</string>
     <string name="search_kw_datasaver">mobilie dati, mobilais tīkls, mērīts, viesabonēšana, tikai wifi, datu lietojums, joslas platums, bezsaistē, saglabāt datus</string>
+    <string name="search_kw_deepl">rakstīt pārfrāzēt pārrakstīt uzlabot pulēt stils tonis tulkojums</string>
     <string name="search_kw_diagnostics">žurnāli, logcat, problēmu novēršana, avārija, atskaite</string>
     <string name="search_kw_dictionary">iemācītie vārdi, lietotāja vārdnīca, mani vārdi, pievienot vārdu</string>
     <string name="search_kw_emoji">emocijzīmes, smaidiņi, kaomoji, ādas tonis, uzlīmes, gif, nesenie</string>
@@ -5850,6 +5851,7 @@
     <string name="search_kw_translate_engine">bezsaistes privāts internets lidmašīna lokāla ierīce ml kit google modeļa lejupielāde mākonis</string>
     <string name="search_kw_translate_models">bezsaistes tulkošanas modeļa lejupielāde dzēst krātuvi ml kit google</string>
     <string name="search_kw_translate_only_downloaded">paslēpt filtra bezsaistes modeļa atlasītāja izvēlni īsi</string>
+    <string name="search_kw_translate_server">openai saderīgs pašmitināts mitināts lokāls llm ai modelis ollama llama studio vllm localai tērzēšanas pabeigšana mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">pareizrakstības pārbaude, automātiskā pabeigšana, paredzamais teksts, slīdēšana, vilkšanas rakstīšana, žesti, kontakti, atsaukšana</string>
     <string name="search_kw_typing_auto_capitalize">automātiskie lielie burti automātiskā lielo burtu lietošana</string>
     <string name="search_kw_typing_auto_close_brackets">automātiska iekavu aizvēršana pāra iekavu saskaņošana</string>

@@ -26,6 +26,10 @@ import androidx.activity.result.contract.ActivityResultContracts
  * keyboard, in the same process and holding the same grants, prepares and
  * sends them once the app behind it has the field back (the [DocScanActivity]
  * pattern), so this screen goes away the moment the picker does.
+ *
+ * The QR scanner borrows it to read a code off a saved picture: one photo,
+ * parked in a queue of its own ([consumeQr]) so the gallery tool, which
+ * sends whatever lands in [consume], never sees it.
  */
 class GalleryPickActivity : ComponentActivity() {
 
@@ -40,8 +44,22 @@ class GalleryPickActivity : ComponentActivity() {
     companion object {
         private const val EXTRA_FILES = "files"
         private const val EXTRA_LIMIT = "limit"
+        private const val EXTRA_QR = "qr"
 
         private val pending = ArrayDeque<Picked>()
+
+        @Volatile
+        private var qrPending: Uri? = null
+
+        /** Hands over (and clears) the picture last picked for the QR scanner. */
+        fun consumeQr(): Uri? = synchronized(pending) { qrPending.also { qrPending = null } }
+
+        /** One photo for the QR scanner to read; see [consumeQr]. */
+        fun qrIntent(context: Context): Intent =
+            Intent(context, GalleryPickActivity::class.java)
+                .putExtra(EXTRA_QR, true)
+                .putExtra(EXTRA_LIMIT, 1)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
         /** Hands over (and clears) what the last pick produced, oldest first. */
         fun consume(): List<Picked> = synchronized(pending) {
@@ -88,6 +106,8 @@ class GalleryPickActivity : ComponentActivity() {
         if (savedInstanceState != null) return
         val launched = runCatching {
             when {
+                intent.getBooleanExtra(EXTRA_QR, false) ->
+                    single.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 intent.getBooleanExtra(EXTRA_FILES, false) -> documents.launch(arrayOf("*/*"))
                 multiple != null -> multiple?.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
                 else -> single.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
@@ -105,6 +125,11 @@ class GalleryPickActivity : ComponentActivity() {
         }
 
     private fun deliver(uris: List<Uri>) {
+        if (intent.getBooleanExtra(EXTRA_QR, false)) {
+            uris.firstOrNull()?.let { synchronized(pending) { qrPending = it } }
+            finish()
+            return
+        }
         val picks = uris.mapNotNull { uri -> runCatching { describe(uri) }.getOrNull() }
         if (picks.isNotEmpty()) offer(picks)
         finish()
