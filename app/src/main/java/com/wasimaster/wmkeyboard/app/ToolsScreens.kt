@@ -19,12 +19,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -294,7 +290,37 @@ private fun rememberToolSearchIndex(): Map<ToolbarTool, String> {
 }
 
 /**
- * The tool menu, grouped by what the tools do, over a field that searches it.
+ * The field that searches the tool menu, pinned under the bar so it stays in
+ * reach however far the list below it is scrolled (#679): with sixty rows,
+ * scrolling back up to search for the one not found was most of the work.
+ */
+@Composable
+internal fun ToolsSearchField(query: String, onQueryChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        placeholder = { Text(stringResource(R.string.tools_search_hint)) },
+        leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(
+                        Icons.Outlined.Close,
+                        contentDescription = stringResource(CommonR.string.common_clear),
+                    )
+                }
+            }
+        },
+        singleLine = true,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    )
+}
+
+/**
+ * The tool menu, grouped by what the tools do, under a field that searches it
+ * ([ToolsSearchField], pinned by the screen).
  * Everything else — the enable switch and the tool's own options — lives one
  * level down.
  *
@@ -308,10 +334,10 @@ private fun rememberToolSearchIndex(): Map<ToolbarTool, String> {
 internal fun ToolsSettings(
     repository: SettingsRepository,
     settings: LiveSettings,
+    query: String,
     onOpenTool: (ToolbarTool) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    var query by rememberSaveable { mutableStateOf("") }
     val searchIndex = rememberToolSearchIndex()
     // Every word of the query has to be somewhere in the tool's name or its
     // description. Substring rather than whole word, because a name is found
@@ -325,27 +351,6 @@ internal fun ToolsSettings(
         }
     }
     val searching = query.isNotBlank()
-
-    OutlinedTextField(
-        value = query,
-        onValueChange = { query = it },
-        placeholder = { Text(stringResource(R.string.tools_search_hint)) },
-        leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-        trailingIcon = {
-            if (query.isNotEmpty()) {
-                IconButton(onClick = { query = "" }) {
-                    Icon(
-                        Icons.Outlined.Close,
-                        contentDescription = stringResource(CommonR.string.common_clear),
-                    )
-                }
-            }
-        },
-        singleLine = true,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-    )
 
     // Resolved once per screen, not once per row: this list is ~60 rows long,
     // and every one of them recomposes whenever any tool is switched on or off.

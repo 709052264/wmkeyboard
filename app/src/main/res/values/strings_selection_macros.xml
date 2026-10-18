@@ -64,6 +64,9 @@
     <string name="selection_macros_desc_lines_dedupe">Drop repeated lines</string>
     <string name="selection_macros_desc_lines_number">Number the lines, or take the numbers off</string>
     <string name="selection_macros_desc_lines_bullet">Bullet the lines, or take the bullets off</string>
+    <string name="selection_macros_desc_lines_checkbox">Put a box to tick in front of each line, or take the boxes off</string>
+    <string name="selection_macros_desc_lines_up">Move the selected lines above the line before them</string>
+    <string name="selection_macros_desc_lines_down">Move the selected lines below the line after them</string>
     <string name="selection_macros_desc_search">Look the selection up with the web search tool</string>
     <string name="selection_macros_desc_translate">Send the selection to the translate tool</string>
     <string name="selection_macros_desc_grammar">Correct the selection with the grammar checker</string>
@@ -101,6 +104,11 @@
     <string name="selection_macros_ai_subtitle">AI actions with a chip of their own on the bar</string>
     <string name="selection_macros_ai_info">Each picked action gets a chip beside the AI chip that runs it on the selection at once. The result lands in the AI tool, ready to apply. The chips only appear while the AI tool is switched on and set up.</string>
     <string name="selection_macros_ai_manage_title">Manage AI actions</string>
+
+    <string name="selection_macros_icons_title">Icon only</string>
+    <string name="selection_macros_icons_subtitle">Actions shown as their icon, with no word</string>
+    <string name="selection_macros_icons_info">A picked action takes less room on the bar: it shows its icon and no name, and screen readers still say the name. Actions with no icon of their own, like the case options, always show their name.</string>
+    <string name="selection_macros_icons_empty">No action with an icon is on. Switch some on under Actions first.</string>
 
     <string name="selection_macros_zones_title">Time zones</string>
     <string name="selection_macros_zones_subtitle">The zones a selected time is shown in</string>

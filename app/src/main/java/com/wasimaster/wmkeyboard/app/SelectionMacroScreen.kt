@@ -114,6 +114,14 @@ internal fun SelectionMacroSettingsScreen(
         }
         item {
             NavRow(
+                R.string.selection_macros_icons_title,
+                subtitle = stringResource(R.string.selection_macros_icons_subtitle),
+                value = settings.watch { s -> s.selectionMacros.iconOnly.count { it in s.selectionMacros.macros } }.toString(),
+                route = SelectionMacroIconsRoute,
+            ) { onNavigate(SelectionMacroIconsRoute) }
+        }
+        item {
+            NavRow(
                 R.string.selection_macros_ai_title,
                 subtitle = stringResource(R.string.selection_macros_ai_subtitle),
                 value = settings.watch { it.selectionMacros.aiDirectActions.size }.toString(),

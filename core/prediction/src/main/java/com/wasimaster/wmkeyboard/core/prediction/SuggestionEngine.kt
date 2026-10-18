@@ -2090,6 +2090,12 @@ class SuggestionEngine(
         /** Shortest fused spelling [hyphenReading] tries to split. */
         private const val HYPHEN_READING_MIN_LENGTH = 4
 
+        /** The one-letter ending [joinCandidate] puts back on the word before it. */
+        private const val PLURAL_SUFFIX = "s"
+
+        /** What a compound completed a part at a time gives up against one the lists hold whole. */
+        private const val COMPOUND_TAIL_DAMP = 0.5
+
         /** Most parts [knownCompound] vouches for: `mother-in-law`, not a sentence of hyphens. */
         private const val MAX_COMPOUND_PARTS = 4
 
@@ -2419,6 +2425,13 @@ class SuggestionEngine(
                 knownCompound(lower)
             )
         val merged = HashMap<String, Double>()
+
+        // A compound typed a part at a time ("auto-sp", "seventy-ni"): the
+        // lists hold only the commonest compounds whole, so the part after the
+        // last hyphen is completed as a word of its own and offered behind the
+        // parts already typed (#679). Walked before the whole word, so the
+        // memoised walk [octopusWords] reads afterwards is the whole word's.
+        if (!ambiguous) compoundTailCandidates(lower, limit, touch, merged)
 
         // One fuzzy walk covers completions AND corrections over every trie
         // source. Corrections (edited paths) are admitted only when the typed
@@ -2812,7 +2825,7 @@ class SuggestionEngine(
         val prev = previousWord?.lowercase() ?: return null
         if (WordContext.isSentinel(prev)) return null
         val lower = composing.lowercase()
-        if (lower.length < 2 || prev.isEmpty()) return null
+        if (prev.isEmpty()) return null
         if (!prev.all { it.isLetter() } || !lower.all { it.isLetter() }) return null
         val joined = prev + lower
         if (joined.length > JOIN_MAX_LENGTH || suppressed(joined)) return null
@@ -2820,6 +2833,14 @@ class SuggestionEngine(
             dictionaryFrequencyOf(word),
             weighted(userLexicon.frequencyOf(word), USER_WORD_WEIGHT),
         )
+        // A lone "s" after a word is that word's plural left off before the
+        // space: "capital s" offers "capitals" (#679). No margin over the
+        // parts, since "s" is no word to weigh against; the plural only has to
+        // be one the lists or the user know, and so does the word it is of.
+        if (lower == PLURAL_SUFFIX) {
+            return joined.takeIf { prev.length >= 2 && freqOf(prev) > 0 && freqOf(joined) > 0 }
+        }
+        if (lower.length < 2) return null
         val joinedFreq = freqOf(joined)
         if (joinedFreq < JOIN_MIN_FREQ) return null
         val rarerPart = minOf(freqOf(prev), freqOf(lower))
@@ -4122,6 +4143,47 @@ class SuggestionEngine(
         val parts = lower.split('-')
         return parts.size in 2..MAX_COMPOUND_PARTS &&
             parts.all { it.isNotEmpty() && (inDictionaries(it) || userLexicon.contains(it)) }
+    }
+
+    /**
+     * Completions of the part after [lower]'s last hyphen, each put back
+     * behind the parts in front of it, into [merged]. Only when every part in
+     * front is a word, so a dash inside a code or an address completes nothing,
+     * and corrections of the last part only when it is not a word already.
+     * Damped by [COMPOUND_TAIL_DAMP] so a compound the lists know whole still
+     * leads its made-up neighbours.
+     */
+    private fun compoundTailCandidates(
+        lower: String,
+        limit: Int,
+        touch: List<TouchPoint?>?,
+        merged: HashMap<String, Double>,
+    ) {
+        val cut = lower.lastIndexOf('-')
+        if (cut <= 0 || cut == lower.length - 1) return
+        val head = lower.substring(0, cut + 1)
+        val tail = lower.substring(cut + 1)
+        val parts = head.dropLast(1).split('-')
+        if (parts.size >= MAX_COMPOUND_PARTS) return
+        if (!parts.all { it.isNotEmpty() && (inDictionaries(it) || userLexicon.contains(it)) }) return
+        val tailKnown = inDictionaries(tail) || userLexicon.contains(tail)
+        val tailTouch = touch?.takeIf { it.size == lower.length }?.subList(cut + 1, lower.length)
+        val k = maxOf(limit * 2, WALK_K)
+        val model = touchModelField
+        val scoring = if (model != null && tailTouch != null && tailTouch.any { it != null }) {
+            FuzzyBeamSearch.TouchScoring(model, tailTouch)
+        } else {
+            null
+        }
+        val walked = beam.search(
+            walkSources(), tail, proximity, k / 2, beamWorkspace.get(),
+            touch = scoring, habits = editHabitsField,
+        )
+        for (c in dampMismatchedLanguages(walked)) {
+            if (c.edits > 0 && tailKnown) continue
+            if ('-' in c.word || ' ' in c.word) continue
+            merged.merge(head + WordKey.of(c.word), c.score - COMPOUND_TAIL_DAMP, ::maxOf)
+        }
     }
 
     private fun apostropheReading(lower: String): ElisionReading? {

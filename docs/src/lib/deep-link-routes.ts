@@ -308,6 +308,7 @@ export const ROUTES: RouteSpec[] = [
 	{ pattern: 'notifications', label: 'Notifications', group: 'Advanced' },
 	{ pattern: 'selection_macros', label: 'Selection actions', group: 'Advanced' },
 	{ pattern: 'selection_macros/actions', label: 'Selection actions: the list and its order', group: 'Advanced' },
+	{ pattern: 'selection_macros/icons', label: 'Selection actions: the icon-only actions', group: 'Advanced' },
 	{ pattern: 'selection_macros/ai', label: 'Selection actions: the AI buttons', group: 'Advanced' },
 	{ pattern: 'selection_macros/zones', label: 'Selection actions: the time zones', group: 'Advanced' },
 
@@ -333,6 +334,7 @@ export const ROUTES: RouteSpec[] = [
 	{ pattern: 'statistics', label: 'Statistics', group: 'About' },
 	{ pattern: 'debug_log', label: 'Diagnostics', group: 'About' },
 	{ pattern: 'licenses', label: 'Open-source licences', group: 'About' },
+	{ pattern: 'supporters', label: 'Supporters', group: 'About' },
 	{
 		pattern: 'license_text/{asset}',
 		label: "One licence's full text",

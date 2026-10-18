@@ -110,6 +110,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Articl
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowLeft
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowRight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.RestartAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowForward
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Backspace
@@ -4574,6 +4575,9 @@ private fun RowScope.StripAnswerChips(
     keywordInSlot: Boolean,
     callbacks: StripAnswerCallbacks,
 ): Boolean {
+    // A copy the keyboard just made privately holds the row over a smart
+    // chip too, until the next key (#679).
+    val shownSmart = smart.takeUnless { state.clipChipHeld && recentClipChip }
     val onToolTap = callbacks.onToolTap
     val onSmartOpen = callbacks.onSmartOpen
     val onSmartAccept = callbacks.onSmartAccept
@@ -4583,30 +4587,30 @@ private fun RowScope.StripAnswerChips(
     val onClipboardSuggestionDismiss = callbacks.onClipboardSuggestionDismiss
     val onClipboardEntity = callbacks.onClipboardEntity
     val onRecentClipsToggle = callbacks.onRecentClipsToggle
-    if (smart != null) {
+    if (shownSmart != null) {
         // Opening runs in two halves: the service clears the trigger
         // text and stages the prefill, then the tool is tapped the
         // ordinary way so panel routing stays in one place.
-        val contactChip = smart.kind == SmartSuggest.Kind.CONTACT
+        val contactChip = shownSmart.kind == SmartSuggest.Kind.CONTACT
         val open = {
             onSmartOpen()
             // A contact chip's button texts the contact; the
             // service does that alone, with no panel to open.
-            if (!contactChip) onToolTap(smart.tool)
+            if (!contactChip) onToolTap(shownSmart.tool)
         }
         // A vocabulary nudge has two doors: the card and the swap. The
         // setting says which one the tap is; the hold is the other.
-        val vocabSwap = smart.kind == SmartSuggest.Kind.VOCAB && smart.insert != null
+        val vocabSwap = shownSmart.kind == SmartSuggest.Kind.VOCAB && shownSmart.insert != null
         val vocabTapSwaps = vocabSwap &&
             state.settings.vocabulary.chipTapAction == com.wasimaster.wmkeyboard.core.vocab.VocabChipTap.REPLACE
         SmartSuggestionChip(
-            hit = smart,
+            hit = shownSmart,
             reduceMotion = state.settings.reduceMotion,
-            icon = if (contactChip) Icons.Outlined.Call else toolIcon(smart.tool),
+            icon = if (contactChip) Icons.Outlined.Call else toolIcon(shownSmart.tool),
             // An answer chip still shows with its tool switched off,
             // and onToolTap would drop the gear's press without a word.
-            canOpen = contactChip || smart.tool in state.settings.enabledTools &&
-                isSupportedTool(smart.tool) && isUsableTool(smart.tool, state.settings),
+            canOpen = contactChip || shownSmart.tool in state.settings.enabledTools &&
+                isSupportedTool(shownSmart.tool) && isUsableTool(shownSmart.tool, state.settings),
             // The tool it opens grows out of the chip.
             modifier = Modifier.panelOrigin().then(
                 if (keywordInSlot) {
@@ -4627,8 +4631,8 @@ private fun RowScope.StripAnswerChips(
                     contactChip -> onSmartAccept()
                     vocabTapSwaps -> onSmartAccept()
                     // Rates it may fetch only on a tap: this is that tap.
-                    smart.awaitingTap -> onSmartAccept()
-                    keywordChip || smart.insert == null -> open()
+                    shownSmart.awaitingTap -> onSmartAccept()
+                    keywordChip || shownSmart.insert == null -> open()
                     else -> onSmartAccept()
                 }
             },
@@ -4640,10 +4644,10 @@ private fun RowScope.StripAnswerChips(
             },
         )
     }
-    if (smart != null && !keywordChip) return true
+    if (shownSmart != null && !keywordChip) return true
     // The once-a-day word chip sits where a smart chip would, when none is up.
     val daily = state.vocabDaily
-    if (smart == null && daily != null) {
+    if (shownSmart == null && daily != null) {
         VocabDailyChip(
             word = daily.word,
             hourly = state.settings.vocabulary.wordInterval != com.wasimaster.wmkeyboard.core.vocab.VocabWordInterval.DAILY,
@@ -4680,13 +4684,15 @@ private fun RowScope.StripAnswerChips(
     // Replies crowd the row the same way word candidates do, so the
     // paste chip gives way to its narrow form when both are present
     // rather than stretching across a strip it now shares.
-    val clipChipShares = suggestionsShowing || smartReplies.isNotEmpty()
+    // Not a copy the keyboard just made privately, which holds the row
+    // until the next key ([KeyboardUiState.clipChipHeld], #679).
+    val clipChipShares = !state.clipChipHeld && (suggestionsShowing || smartReplies.isNotEmpty())
     // The last few copies as a row of chips (#414), newest first
     // whatever is pinned (#612). Asked for by hand, so it holds the
     // strip over any words until something is typed or its ✕.
     // Text clips only, never a secret, the same gates as the
     // single chip's.
-    val clipBarChips = if (recentClipsBar && smart == null) {
+    val clipBarChips = if (recentClipsBar && shownSmart == null) {
         state.clipboardItems
             .filter { it.kind.isTextual && !it.sensitive && it.text.isNotBlank() }
             .sortedByDescending { it.timestamp }
@@ -4736,7 +4742,7 @@ private fun RowScope.StripAnswerChips(
     // the words, like the row of recent copies, until a key is
     // typed or the ✕; the plain chip below carries on after that.
     val fragmentClip = recentClip?.takeIf {
-        recentClipChip && smart == null &&
+        recentClipChip && shownSmart == null &&
             state.settings.clipboard.fragmentsOnStrip &&
             state.settings.clipboard.detectEntities &&
             state.clipFragmentsDoneId != it.id
@@ -4796,7 +4802,7 @@ private fun RowScope.StripAnswerChips(
     }
     // [recentClipChip] already says the clip is there; the null check is for
     // the compiler, which cannot see through a parameter.
-    if (recentClip != null && recentClipChip && smart == null) {
+    if (recentClip != null && recentClipChip && shownSmart == null) {
         val clipChip = @Composable { chipModifier: Modifier ->
             ClipboardSuggestionChip(
                 clip = recentClip,
@@ -5637,6 +5643,14 @@ private fun RowScope.LatinSuggestionChips(
                         label = stringResource(R.string.ime_word_menu_delete, held),
                         icon = Icons.Outlined.Delete,
                     ) { act(WordMenuAction.Delete(held)) }
+                }
+                // Beside Delete and under its switch: the same forgetting,
+                // keeping the word (#679).
+                if (heldFacts.resettable && WordMenuItem.DELETE in menuItems) {
+                    WordMenuRow(
+                        label = stringResource(R.string.ime_word_menu_forget, held),
+                        icon = Icons.Outlined.RestartAlt,
+                    ) { act(WordMenuAction.Forget(held)) }
                 }
                 // About the word the caret is in, not the chip being held —
                 // like "Add" above, which is about the word being typed. The
@@ -17615,13 +17629,18 @@ private fun KeyRows(
                         // Never travelled: an ordinary press the modifier key owns,
                         // still unconsumed, and it latches exactly as it always has.
                         // A shift held past the long press with nothing typed
-                        // under it was a slow tap, and fires the press it held
-                        // back.
+                        // under it is a long press, and locks the capitals the
+                        // way it does on most keyboards (#679). Not a shift
+                        // press: that one recases the word at the caret when
+                        // the setting is on, which left no way to lock caps
+                        // with the caret on a word.
                         if (!dragging) {
                             // A slide that never left its key is the key's own
                             // tap, and the held shift's deferred press is not
                             // this finger's to fire.
-                            if (!slideSource && !shiftHold.typed) shiftHold.deferred?.let(stampedOnKey)
+                            if (!slideSource && !shiftHold.typed) {
+                                shiftHold.deferred?.let { stampedOnKey(it.copy(action = KeyAction.CapsLock)) }
+                            }
                             return@awaitEachGesture
                         }
                         if (!slideSource) trail.release()

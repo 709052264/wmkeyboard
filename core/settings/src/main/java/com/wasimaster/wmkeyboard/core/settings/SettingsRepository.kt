@@ -5032,6 +5032,12 @@ data class SelectionMacroSettings(
      * are everywhere else on this bar.
      */
     val inEverySelection: Boolean = false,
+    /**
+     * The actions drawn as their icon alone, with no word beside it (#679),
+     * so the ones somebody knows by sight take less of the row. An action with
+     * no icon of its own (the case options) keeps its word whatever this says.
+     */
+    val iconOnly: Set<SelectionMacro> = emptySet(),
 )
 
 /** The zones the ladder shows: the picked ones, or UTC and the device's own. */
@@ -10260,6 +10266,9 @@ class SettingsRepository(private val context: Context) {
         private val SELECTION_MACROS_EVERY_SELECTION =
             booleanPreferencesKey("selection_macros_every_selection")
 
+        /** [SelectionMacroSettings.iconOnly], by [SelectionMacro] name. */
+        private val SELECTION_MACROS_ICON_ONLY = stringSetPreferencesKey("selection_macros_icon_only")
+
         /**
          * The macros that are on, by [SelectionMacro] name.
          *
@@ -12375,6 +12384,9 @@ class SettingsRepository(private val context: Context) {
             detectEntities = p[SELECTION_MACROS_DETECT] ?: defaults.selectionMacros.detectEntities,
             inEverySelection = p[SELECTION_MACROS_EVERY_SELECTION]
                 ?: defaults.selectionMacros.inEverySelection,
+            iconOnly = p[SELECTION_MACROS_ICON_ONLY]
+                ?.mapNotNullTo(mutableSetOf()) { name -> runCatching { SelectionMacro.valueOf(name) }.getOrNull() }
+                ?: defaults.selectionMacros.iconOnly,
         )
 
     private fun readPasswordGenerator(p: Preferences, defaults: KeyboardSettings) =
@@ -19146,6 +19158,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSelectionMacrosInEverySelection(value: Boolean) =
         editPrefs { it[SELECTION_MACROS_EVERY_SELECTION] = value }
+
+    /** Whether [macro] draws as its icon alone on the bar (#679). */
+    suspend fun setSelectionMacroIconOnly(macro: SelectionMacro, on: Boolean) =
+        editPrefs {
+            val current = it[SELECTION_MACROS_ICON_ONLY].orEmpty()
+            it[SELECTION_MACROS_ICON_ONLY] = if (on) current + macro.name else current - macro.name
+        }
 
     /**
      * Stamps the current list version, writing the shipped lists first when

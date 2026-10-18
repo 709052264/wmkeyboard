@@ -47,6 +47,29 @@ class LineEditsTest {
     }
 
     @Test
+    fun `check boxes toggle and convert like the other prefixes`() {
+        assertEquals("☐ a\n☐ b", LineEdits.checkbox("a\nb"))
+        assertEquals("a\nb", LineEdits.checkbox("☐ a\n☑ b"))
+        assertEquals("a\nb", LineEdits.checkbox("- [ ] a\n- [x] b"))
+        assertEquals("☐ a\n☐ b", LineEdits.checkbox("• a\n• b"))
+        assertEquals("1. a\n2. b", LineEdits.number("☐ a\n☐ b"))
+    }
+
+    @Test
+    fun `moved swaps the selected lines with their neighbour`() {
+        val up = LineEdits.moved("a\nb\nc", 2, 3, up = true)!!
+        assertEquals("b\na", up.text)
+        assertEquals(0 until 3, up.from until up.to)
+        assertEquals(0 until 1, up.selStart until up.selEnd)
+        val down = LineEdits.moved("a\nb\nc", 2, 3, up = false)!!
+        assertEquals("c\nb", down.text)
+        assertEquals(2 until 5, down.from until down.to)
+        assertEquals(4 until 5, down.selStart until down.selEnd)
+        assertNull(LineEdits.moved("a\nb", 0, 1, up = true))
+        assertNull(LineEdits.moved("a\nb", 2, 3, up = false))
+    }
+
+    @Test
     fun `blank lines, indentation and line endings survive`() {
         assertEquals("• a\n\n• b", LineEdits.bullet("a\n\nb"))
         assertEquals("  1. a\n2. b", LineEdits.number("  a\nb"))
