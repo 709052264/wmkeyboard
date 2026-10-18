@@ -7,6 +7,7 @@ import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryCatalog
 import com.wasimaster.wmkeyboard.core.vocab.KaikkiClient
 import com.wasimaster.wmkeyboard.core.vocab.VocabAccent
 import com.wasimaster.wmkeyboard.core.vocab.VocabIndex
+import com.wasimaster.wmkeyboard.core.vocab.VocabTranslation
 import com.wasimaster.wmkeyboard.core.vocab.VocabWord
 import com.wasimaster.wmkeyboard.core.vocab.WiktionaryRestClient
 import com.wasimaster.wmkeyboard.tools.R
@@ -177,14 +178,16 @@ object DictionaryLookup {
 
     /**
      * The real sources. [index] is the vocabulary packs' index, or null when
-     * none is loaded (the packs source then has nothing).
+     * none is loaded (the packs source then has nothing). [translationCodes]
+     * are the languages Wiktionary's entry should bring translations in
+     * (#764); the same page carries them, so they cost no extra request.
      */
-    fun fetcher(index: () -> VocabIndex?): Fetch = Fetch { source, word ->
+    fun fetcher(index: () -> VocabIndex?, translationCodes: List<String> = emptyList()): Fetch = Fetch { source, word ->
         when (source) {
             DictionarySource.VOCAB_PACKS ->
                 index()?.lookupAnyForm(word.lowercase(Locale.ROOT))?.let(::fromVocabWord).orEmpty()
             DictionarySource.WIKTIONARY ->
-                KaikkiClient.lookup(word, emptyList(), NetSource.DICTIONARY)?.let(::fromVocabWord).orEmpty()
+                KaikkiClient.lookup(word, translationCodes, NetSource.DICTIONARY)?.let(::fromVocabWord).orEmpty()
             DictionarySource.WIKTIONARY_REST ->
                 WiktionaryRestClient.lookup(word, NetSource.DICTIONARY)?.let(::fromVocabWord).orEmpty()
             DictionarySource.DICTIONARY_API -> try {
@@ -196,6 +199,27 @@ object DictionaryLookup {
                 OfflineDictionaries.lookup(source.packId!!, word)
         }
     }
+
+    /**
+     * [word]'s translations into [codes] from Wiktionary (#764), for an entry
+     * whose source brought none: one more request, to kaikki.org. Empty when
+     * the page lists none of [codes] or could not be fetched. Blocking; call
+     * it on an IO dispatcher.
+     */
+    fun translations(word: String, codes: List<String>): Map<String, VocabTranslation> {
+        if (codes.isEmpty() || word.isBlank()) return emptyMap()
+        return try {
+            KaikkiClient.lookup(word.trim(), codes, NetSource.DICTIONARY)?.translations.orEmpty()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            emptyMap()
+        }
+    }
+
+    /** The translations worth a row for [entry]: [codes] in their order, each with at least one gloss. */
+    fun translationsFor(entry: DictEntry, codes: List<String>): List<Pair<String, VocabTranslation>> =
+        codes.mapNotNull { code -> entry.translations[code]?.takeIf { it.glosses().isNotEmpty() }?.let { code to it } }
 
     /** A pack's or Wiktionary's record as one entry, its senses grouped by part of speech in the record's order. */
     fun fromVocabWord(record: VocabWord): List<DictEntry> {
@@ -227,6 +251,7 @@ object DictionaryLookup {
                 phonetic = record.ipaFor(VocabAccent.US).orEmpty(),
                 audioUrl = record.audioFor(VocabAccent.US)?.takeIf { it.startsWith("http") },
                 meanings = meanings,
+                translations = record.translations,
             ),
         )
     }

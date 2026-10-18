@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.tools.DictEntry
 import com.wasimaster.wmkeyboard.core.tools.DictMeaning
 import com.wasimaster.wmkeyboard.core.tools.DictionarySource
+import com.wasimaster.wmkeyboard.core.vocab.VocabLanguages
 import com.wasimaster.wmkeyboard.ime.DictionaryUi
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
@@ -284,14 +285,22 @@ private fun DictionaryEntries(
                     // The word in the user's language, from a vocabulary pack's
                     // translations (#651). Inside the headword's item, so the
                     // focus scroll's item count is unchanged.
+                    // The translations below (#764) say the same and more.
                     val meaning = ready.meaning
-                    if (entryIndex == 0 && meaning != null) VocabMeaningText(meaning)
+                    if (entryIndex == 0 && meaning != null && ready.translations.isEmpty()) VocabMeaningText(meaning)
                 }
             }
             entry.meanings.forEachIndexed { meaningIndex, meaning ->
                 item(key = "meaning$entryIndex-$meaningIndex") {
                     DictionaryMeaning(meaning, serif, onLookup, entry.word)
                 }
+            }
+        }
+        // The first entry's word in the user's languages (#764), after every
+        // entry so the focus scroll's item count is unchanged.
+        if (ready.translations.isNotEmpty() || ready.translationsLoading) {
+            item(key = "translations") {
+                DictionaryTranslations(ready, serif, onInsert)
             }
         }
         // Which source answered: the user's order decides, and Wiktionary's
@@ -370,6 +379,66 @@ private fun DictionaryMeaning(
                 meaning.antonyms,
                 onLookup,
             )
+        }
+    }
+}
+
+/**
+ * The word in other languages (#764): one row per language, its name and a
+ * scrolling row of chips. A chip types its translation at the cursor; the
+ * romanisation, when the script has one, rides in the chip after a dot.
+ */
+@Composable
+private fun DictionaryTranslations(
+    ready: DictionaryUi.Ready,
+    serif: FontFamily,
+    onInsert: (String) -> Unit,
+) {
+    val kb = LocalKbTheme.current
+    Column(modifier = Modifier.padding(top = 10.dp)) {
+        Text(
+            stringResource(R.string.ime_dict_translations_label),
+            color = kb.accent,
+            fontSize = 14.sp,
+            fontStyle = FontStyle.Italic,
+            fontFamily = serif,
+            fontWeight = FontWeight.SemiBold,
+        )
+        if (ready.translations.isEmpty()) {
+            Text(
+                stringResource(R.string.ime_dict_translations_loading),
+                color = kb.toolbarIcon,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 3.dp),
+            )
+        }
+        for ((code, translation) in ready.translations) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    VocabLanguages.displayName(code),
+                    color = kb.toolbarIcon,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.width(66.dp),
+                )
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    for (gloss in translation.glosses()) {
+                        val label = gloss.roman?.let { "${gloss.word} · $it" } ?: gloss.word
+                        DictionaryChip(label = label, filled = false) { onInsert(gloss.word) }
+                    }
+                }
+            }
         }
     }
 }

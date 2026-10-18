@@ -33795,6 +33795,7 @@ open class WMKeyboardService : InputMethodService() {
             settings.vocabulary.translationLangList,
             settings.enabledLanguages.map { it.id },
         )
+        val translationCodes = dictionaryTranslationCodes(settings)
         dictionaryJob = serviceScope.launch {
             // The packs' index is the vocabulary tool's when it has one
             // loaded; otherwise the same shared copy, read with the same codes
@@ -33804,18 +33805,71 @@ open class WMKeyboardService : InputMethodService() {
             } else {
                 null
             }
-            val ui = when (val result = DictionaryLookup.resolve(word, sources, DictionaryLookup.fetcher { index })) {
-                is DictionaryLookup.Result.Found -> DictionaryUi.Ready(
-                    result.entries,
-                    result.source,
-                    dictionaryMeaning(result.entries.firstOrNull()?.word ?: word, index, codes, settings),
-                )
+            val fetch = DictionaryLookup.fetcher({ index }, translationCodes)
+            val ui = when (val result = DictionaryLookup.resolve(word, sources, fetch)) {
+                is DictionaryLookup.Result.Found -> {
+                    val translations = result.entries.firstOrNull()
+                        ?.let { DictionaryLookup.translationsFor(it, translationCodes) }
+                        .orEmpty()
+                    DictionaryUi.Ready(
+                        result.entries,
+                        result.source,
+                        dictionaryMeaning(result.entries.firstOrNull()?.word ?: word, index, codes, settings),
+                        translations = translations,
+                        translationsLoading = translations.isEmpty() &&
+                            askWiktionaryForTranslations(result.source, translationCodes, settings),
+                    )
+                }
                 DictionaryLookup.Result.NotFound -> DictionaryUi.NotFound(word)
                 DictionaryLookup.Result.NotOnDevice -> DictionaryUi.NotOnDevice(word)
                 DictionaryLookup.Result.Failed -> DictionaryUi.Error(word)
             }
             _uiState.update { it.copy(dictionary = ui) }
+            // The source that answered had no translations (a pack, WordNet,
+            // the free dictionary API): Wiktionary's page has them, so the
+            // entry shows now and the translations follow it.
+            if (ui is DictionaryUi.Ready && ui.translationsLoading) {
+                val headword = ui.entries.first().word
+                val found = withContext(Dispatchers.IO) { DictionaryLookup.translations(headword, translationCodes) }
+                val rows = DictionaryLookup.translationsFor(ui.entries.first().copy(translations = found), translationCodes)
+                _uiState.update { state ->
+                    val current = state.dictionary as? DictionaryUi.Ready
+                    if (current == null || current.entries !== ui.entries) {
+                        state
+                    } else {
+                        state.copy(dictionary = current.copy(translations = rows, translationsLoading = false))
+                    }
+                }
+            }
         }
+    }
+
+    /**
+     * The languages the Dictionary tool translates a word into (#764): the
+     * user's picks, else the keyboard's languages other than English. Empty
+     * with translations off.
+     */
+    private fun dictionaryTranslationCodes(settings: KeyboardSettings): List<String> {
+        val choice = settings.dictionaryTranslations
+        if (!choice.enabled) return emptyList()
+        return VocabLanguages.wantedCodes(choice.langList, settings.enabledLanguages.map { it.id })
+    }
+
+    /**
+     * Whether an entry from [answered] should send its word on to Wiktionary
+     * for translations: there are languages to ask for, Wiktionary is not
+     * the source that already answered (its page carried them), and the user
+     * left Wiktionary on in the tool's sources, so the word goes nowhere
+     * they did not allow.
+     */
+    private fun askWiktionaryForTranslations(
+        answered: DictionarySource,
+        codes: List<String>,
+        settings: KeyboardSettings,
+    ): Boolean {
+        if (codes.isEmpty() || answered == DictionarySource.WIKTIONARY) return false
+        return settings.resolveProviders(ProviderTool.DICTIONARY)
+            .any { DictionarySource.of(it.typeId) == DictionarySource.WIKTIONARY }
     }
 
     /**

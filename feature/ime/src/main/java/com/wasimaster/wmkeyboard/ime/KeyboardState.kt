@@ -2080,6 +2080,14 @@ sealed interface DictionaryUi {
          * vocabulary pack's translations (#651); null for a word no pack has.
          */
         val meaning: com.wasimaster.wmkeyboard.core.vocab.VocabMeaning? = null,
+        /**
+         * The first entry's word in the languages the user picked (#764), in
+         * their order: language code to its glosses. Empty with translations
+         * off or none found.
+         */
+        val translations: List<Pair<String, com.wasimaster.wmkeyboard.core.vocab.VocabTranslation>> = emptyList(),
+        /** Wiktionary is still being asked for [translations], the entry's own source having none. */
+        val translationsLoading: Boolean = false,
     ) : DictionaryUi
 }
 

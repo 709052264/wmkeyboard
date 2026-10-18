@@ -120,12 +120,25 @@ The dictionary looks up English words in a chain of sources you put in order (se
 - If there's nothing to look up and no earlier result is still on screen, the tool drops straight into its own search field instead.
 - Headwords render in a serif display font (Lora), distinct from the rest of the keyboard's typography, falling back to the system serif if the font hasn't downloaded yet.
 - Each entry shows the word and, when the source has them, its IPA phonetic transcription and a pronunciation-audio play button. The **Wiktionary definitions** source carries neither. An **Insert** chip types the headword itself at the cursor, not a definition.
-- When an installed [vocabulary pack](/tools/vocabulary/) has the word and a translation for it, a line under the headword gives its meaning in your language: the one you picked under **Translation languages**, or else your keyboard's. It needs the Vocabulary tool on and translations shown in the keyboard under its **Card sections**; a word outside the packs has no such line.
+- When an installed [vocabulary pack](/tools/vocabulary/) has the word and a translation for it, a line under the headword gives its meaning in your language: the one you picked under **Translation languages**, or else your keyboard's. It needs the Vocabulary tool on and translations shown in the keyboard under its **Card sections**; a word outside the packs has no such line. When the entry has [translations](#translations), that line is left out, because the translations already say it.
 - Each meaning lists its part of speech, numbered definitions with optional italic example sentences, and up to 12 tappable synonym/antonym chips per row. Tapping a chip looks that word up in turn.
 - A line under the last entry names the source that answered, for example "From Wiktionary".
 - A **Copy** chip beside the search bar copies everything the look-up found as text. With the [AI tool](/tools/ai/) on, an **Ask AI** chip beside it opens a [chat](/tools/ai-chat/) about the same text, and a long press on a definition or an example selects it, with **Ask AI**, **Copy** and **Insert** on a bar over it. See [Asking the AI about an article](#asking-the-ai-about-an-article), which works the same way.
 - "The app cannot reach the dictionary" means no source could be reached: you're offline, or every online source you left on is down. A word that every reachable source answered for, without an entry, shows "No entry for" instead.
 - When only the sources on the device answered and no online source could be reached, the panel says the word is not in the dictionaries on this device, rather than "No entry for". The vocabulary packs hold only the words of their own study lists, a few thousand at most. To define ordinary words with no connection, download one of the [offline dictionaries](#offline-dictionaries).
+
+### Translations
+
+<SettingsPath path="Tools / Dictionary / Translations" />
+
+Under the definitions, a **Translations** section gives the word in other languages: one row per language, with the language's name and a chip for each translation. Tap a chip to type that translation at the cursor. A word in a script other than Latin shows its romanisation in the chip after a dot, as in "বাড়ি · baṛi".
+
+- The translations come from Wiktionary, the same kaikki.org page as the **Wiktionary** source. When that source answered, the page already had them, so nothing more is sent.
+- When another source answered (a vocabulary pack, an offline dictionary, the Free Dictionary API or **Wiktionary definitions**), the entry shows at once and the tool asks Wiktionary for the translations after it, with "Looking for translations…" in the meantime. It does this only if **Wiktionary** is on in your [dictionary sources](#dictionary-sources). With it off, the word goes nowhere else, and an entry from another source has no translations.
+- They're for the first entry, and they're English to other languages, like the rest of the tool.
+- A language Wiktionary has no translation for gets no row. With no translation in any of your languages, the section isn't shown.
+
+**Show translations** is on by default. **Translate into** picks the languages and their order. With nothing picked, it follows your keyboard languages other than English, so a keyboard with English and Bangla shows Bangla. The list offers the languages of the vocabulary packs' translations, your keyboard's languages, and the languages Wiktionary most often has. This list is separate from the Vocabulary tool's **Translation languages**.
 
 ### Dictionary sources
 
@@ -166,6 +179,8 @@ The **Import a dictionary** row under them takes a `.wmdict.gz` file fetched els
 - **Turn on**: already on.
 - **Icon colour**: only shown if colorful tool icons are on globally.
 - **Look up the word at the cursor**: on by default. Its description on the settings screen reads "The tool searches the selected word or the current word when it opens". Turn it off and Dictionary always opens on its own empty search field.
+- **Show translations**: on by default. Shows the word in other languages under its definitions. See [Translations](#translations) above.
+- **Translate into**: the languages of those translations, in order. With none picked, your keyboard languages other than English.
 - **Dictionary sources**: a [provider list](/tools/providers/): drag to reorder, switch a source off, remove one, or add it back with **Add a provider**. See [Dictionary sources](#dictionary-sources) above.
 - **Offline dictionaries**: download, delete or import the two offline dictionaries. See [Offline dictionaries](#offline-dictionaries) above.
 - **Servers** (F-Droid build only): the addresses of kaikki.org, Wiktionary and the Free Dictionary API, for a mirror or a copy you host yourself.

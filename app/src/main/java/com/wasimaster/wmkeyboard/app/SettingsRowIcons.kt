@@ -1264,6 +1264,8 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_launcher_non_exported_title) { Icons.Outlined.Lock }
         put(R.string.tooldetail_dictionary_auto_title) { Icons.Outlined.Search }
         put(R.string.tooldetail_dictionary_sources_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.tooldetail_dictionary_translations_title) { Icons.Outlined.Translate }
+        put(R.string.tooldetail_dictionary_translation_langs_title) { Icons.Outlined.Language }
         // ---- Vocabulary ----
         put(R.string.tooldetail_vocab_packs_title) { Icons.Outlined.Inventory2 }
         put(R.string.tooldetail_vocab_lists_title) { Icons.Outlined.PlaylistAdd }

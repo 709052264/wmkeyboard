@@ -659,29 +659,39 @@ internal fun VocabularyToolSettings(
     }
 }
 
+/**
+ * Checkboxes over Wiktionary's language codes: the packs' sidecars, the
+ * keyboard's languages and [extraCodes]. [chosenNow] is the stored pick
+ * list. The Dictionary tool's translations (#764) use it too, with more
+ * languages offered, since Wiktionary's pages carry far more than the packs.
+ */
 @Composable
-private fun TranslationLanguagesDialog(
+internal fun TranslationLanguagesDialog(
     settings: LiveSettings,
     onDismiss: () -> Unit,
     onChange: (List<String>) -> Unit,
+    chosenNow: (KeyboardSettings) -> List<String> = { it.vocabulary.translationLangList },
+    title: String = stringResource(R.string.tooldetail_vocab_translations_title),
+    body: String = stringResource(R.string.tooldetail_vocab_translations_dialog_body),
+    extraCodes: List<String> = emptyList(),
 ) {
     // Sidecar codes only: a keyboard language maps to its code (bn_rom reads
     // bn) so Bangla is one entry, not two, and a pick always matches a file.
     val keyboardCodes = settings.watch { s -> s.enabledLanguages.flatMap { VocabLanguages.codesFor(it.id) } }
     val offered = remember {
-        (VocabCatalog.entries.flatMap { it.translationCodes } + keyboardCodes)
+        (VocabCatalog.entries.flatMap { it.translationCodes } + keyboardCodes + extraCodes)
             .filter { it != "en" }
             .distinct()
             .sortedBy { languageNameFor(it) }
     }
-    val initialChosen = settings.watch { s -> s.vocabulary.translationLangList.flatMap { VocabLanguages.codesFor(it) }.distinct() }
+    val initialChosen = settings.watch { s -> chosenNow(s).flatMap { VocabLanguages.codesFor(it) }.distinct() }
     var chosen by remember { mutableStateOf(initialChosen) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.tooldetail_vocab_translations_title)) },
+        title = { Text(title) },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                CaptionText(stringResource(R.string.tooldetail_vocab_translations_dialog_body))
+                CaptionText(body)
                 for (code in offered) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(

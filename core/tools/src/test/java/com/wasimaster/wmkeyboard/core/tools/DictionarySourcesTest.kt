@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.tools
 
 import com.wasimaster.wmkeyboard.core.vocab.VocabSense
+import com.wasimaster.wmkeyboard.core.vocab.VocabTranslation
 import com.wasimaster.wmkeyboard.core.vocab.VocabWord
 import java.io.IOException
 import kotlinx.coroutines.runBlocking
@@ -140,5 +141,36 @@ class DictionarySourcesTest {
             DictionaryLookup.Result.NotFound,
             DictionaryLookup.resolve("word", listOf(DictionarySource.VOCAB_PACKS)) { _, _ -> emptyList() },
         )
+    }
+
+    @Test
+    fun `a record's translations ride on its entry`() {
+        val record = VocabWord(
+            word = "house",
+            senses = listOf(VocabSense(pos = "noun", definition = "A building to live in.")),
+            translations = mapOf("de" to VocabTranslation(w = listOf("Haus"))),
+        )
+        val entry = DictionaryLookup.fromVocabWord(record).single()
+        assertEquals(listOf("Haus"), entry.translations.getValue("de").w)
+    }
+
+    @Test
+    fun `translation rows follow the picked order and skip empty languages`() {
+        val entry = DictEntry(
+            word = "house",
+            phonetic = "",
+            audioUrl = null,
+            meanings = emptyList(),
+            translations = mapOf(
+                "de" to VocabTranslation(w = listOf("Haus")),
+                "bn" to VocabTranslation(w = listOf("বাড়ি"), r = listOf("baṛi")),
+                "fr" to VocabTranslation(w = listOf(" ")),
+            ),
+        )
+        assertEquals(
+            listOf("bn", "de"),
+            DictionaryLookup.translationsFor(entry, listOf("bn", "fr", "es", "de")).map { it.first },
+        )
+        assertTrue(DictionaryLookup.translationsFor(entry, emptyList()).isEmpty())
     }
 }

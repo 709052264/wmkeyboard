@@ -207,6 +207,13 @@
     <!-- Dictionary tool. -->
     <string name="tooldetail_dictionary_auto_title">Look up the word at the cursor</string>
     <string name="tooldetail_dictionary_auto_subtitle">The tool searches the selected word or the current word when it opens</string>
+    <string name="tooldetail_dictionary_translations_group">Translations</string>
+    <string name="tooldetail_dictionary_translations_info">Translations come from Wiktionary. When the word was found in Wiktionary, its translations come on the same page, so nothing more is sent. When another source found the word, the tool asks Wiktionary for the translations as well, but only if Wiktionary is on in the dictionary sources.</string>
+    <string name="tooldetail_dictionary_translations_title">Show translations</string>
+    <string name="tooldetail_dictionary_translations_subtitle">Show the word in other languages under its definitions. Tap a translation to type it</string>
+    <string name="tooldetail_dictionary_translation_langs_title">Translate into</string>
+    <string name="tooldetail_dictionary_translation_langs_none_subtitle">Your keyboard languages. Add a language other than English, or pick some here</string>
+    <string name="tooldetail_dictionary_translation_langs_dialog_body">The tool shows the translations that Wiktionary has for these languages, in this order. Pick none to follow your keyboard languages.</string>
     <string name="tooldetail_dictionary_info">Definitions come from the sources below, in their order. The keyboard sends the word that you look up to an online source only when you use the tool.</string>
     <string name="tooldetail_dictionary_sources_title">Dictionary sources</string>
     <string name="tooldetail_dictionary_sources_subtitle">Where the tool looks for definitions, in order</string>
