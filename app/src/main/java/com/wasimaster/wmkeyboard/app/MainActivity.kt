@@ -149,8 +149,8 @@ import androidx.compose.ui.layout.layout
 import kotlin.math.roundToInt
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
@@ -690,7 +690,14 @@ private fun SettingsNavHost(
     // pinned, or summoned by the floating button or the shade. Open the test
     // field as its button would, so the keys have somewhere to type and the
     // screen is padded clear of them rather than hiding its bottom rows.
+    // Once per visit, though: the field closes with the keyboard, and a
+    // pinned keyboard that an app hides comes straight back, so reopening on
+    // every return turned into a loop of the field and the keyboard going up
+    // and down that froze the phone's recent apps button (#665). Coming back
+    // to the app is a new visit.
     val upWithoutField by KeyboardControls.upOverOwnApp.collectAsStateWithLifecycle()
+    var previewAutoOpened by remember { mutableStateOf(false) }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { previewAutoOpened = false }
     LaunchedEffect(upWithoutField, previewWanted) {
         if (upWithoutField && previewWanted && !previewAutoOpened) {
             previewAutoOpened = true
@@ -710,14 +717,7 @@ private fun SettingsNavHost(
             LocalAdvancedFolds provides folds,
             LocalTwoPane provides twoPane,
             // Published here rather than threaded through, so that the small
-    // Once per visit, though: the field closes with the keyboard, and a
-    // pinned keyboard that an app hides comes straight back, so reopening on
-    // every return turned into a loop of the field and the keyboard going up
-    // and down that froze the phone's recent apps button (#665). Coming back
-    // to the app is a new visit.
             // motions deep in a row can be still without every row being
-    var previewAutoOpened by remember { mutableStateOf(false) }
-    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { previewAutoOpened = false }
             // handed the settings.
             LocalReduceMotion provides reduceMotion,
             LocalKeyboardPreview provides preview.takeIf { previewWanted },

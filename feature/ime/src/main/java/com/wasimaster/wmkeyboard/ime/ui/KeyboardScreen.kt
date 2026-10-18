@@ -8497,14 +8497,14 @@ private class ToolDragController {
     /** The show-keys button (#642). On the controller because the bar already takes it. */
     var onHardwareKeysToggle: () -> Unit = {}
 
+    /** The incognito badge tapped: says who switched incognito on (#665). */
+    var onIncognitoBadge: () -> Unit = {}
+
     // Toolbox geometry and data, registered by ToolboxPanel while it is
     // open (a drag can only happen with the toolbox open). The viewport is
     // the visible panel box; content coords are the scrolling grid column,
     // so slot math follows the scroll position for free.
     var toolboxViewport: Rect? = null
-    /** The incognito badge tapped: says who switched incognito on (#665). */
-    var onIncognitoBadge: () -> Unit = {}
-
     var toolboxContentCoords: LayoutCoordinates? = null
     var toolboxCellSize: Size = Size.Zero
     var toolboxColumns: Int = 1
@@ -10657,14 +10657,14 @@ private fun RowScope.ToolbarRow(
         }
     }
     if (state.incognitoOn) {
+        // Tappable: a field can switch incognito on by itself, and a badge
+        // that shows up with no reason given reads as a bug (#665).
         SlotIcon(
             IconSlots.CHROME_INCOGNITO,
             contentDescription = stringResource(R.string.ime_incognito_on_desc),
             modifier = Modifier
                 .clickable { drag.onIncognitoBadge() }
                 .padding(start = 4.dp, top = 4.dp, end = 6.dp, bottom = 4.dp)
-        // Tappable: a field can switch incognito on by itself, and a badge
-        // that shows up with no reason given reads as a bug (#665).
                 .size(16.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -12859,12 +12859,12 @@ private fun KeyboardBody(
     drag.onTrackpadHold = toolHold.onTrackpadHold
     drag.onVoiceModePick = toolHold.onVoiceModePick
     drag.onHardwareKeysToggle = toolHold.onHardwareKeysToggle
+    drag.onIncognitoBadge = toolHold.onIncognitoBadge
     drag.toolbox = toolHold.toolbox
     // A remapped hold runs the bound tool through the service's own dispatcher
     // rather than [onToolTap]: that one refuses any tool the toolbar does not
     // list, and the tool the user bound a hold to is very often one they never
     // put on the bar — that being the point of binding it (#31).
-    drag.onIncognitoBadge = toolHold.onIncognitoBadge
     drag.onHoldAction = toolHold.onHoldAction
     var bodyOrigin by remember { mutableStateOf(Offset.Zero) }
     // Kept alongside the origin so the drag-scope pill can park itself against
@@ -28488,16 +28488,16 @@ data class ToolHoldCallbacks(
      */
     val onHardwareKeysToggle: () -> Unit = {},
     /**
-     * The dictionary bar's two callbacks (issue #51). Not a hold at all; they
-     * ride this bundle because it is the nearest one already on the call and
-     * the caller cannot afford another parameter (see [DictionaryBarCallbacks]).
-     */
-    /**
      * The toolbar's incognito badge tapped (#665): a toast naming the app
      * whose field asked for it, or the switch that did. Not a hold; it rides
      * here for the reason [onHardwareKeysToggle] does.
      */
     val onIncognitoBadge: () -> Unit = {},
+    /**
+     * The dictionary bar's two callbacks (issue #51). Not a hold at all; they
+     * ride this bundle because it is the nearest one already on the call and
+     * the caller cannot afford another parameter (see [DictionaryBarCallbacks]).
+     */
     val dictionaryBar: DictionaryBarCallbacks = DictionaryBarCallbacks(),
     /** The vocabulary panel's and chips' callbacks; here for the same reason as [dictionaryBar]. */
     val vocab: VocabCallbacks = VocabCallbacks(),
