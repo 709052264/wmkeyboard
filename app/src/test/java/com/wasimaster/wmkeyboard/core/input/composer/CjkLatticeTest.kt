@@ -183,6 +183,20 @@ class CjkLatticeTest {
     }
 
     @Test
+    fun `a kana-only phrase row still offers the kanji reading`() {
+        CjkDictionaries.japanese = ConversionDictionary.parse(
+            sequenceOf(
+                "また\tまた\t29082",
+                "また\t又\t26791",
+                "あした\t明日\t26913",
+                "あした\tあした\t25661",
+                "またあした\tまたあした\t24610",
+            ),
+        )
+        assertTrue(JapaneseComposer.candidates("またあした").contains("また明日"))
+    }
+
+    @Test
     fun `every conversion composer widens without reordering`() {
         PinyinSyllables.valid = setOf("ni", "hao")
         T9Pinyin.index = T9Pinyin.buildIndex(PinyinSyllables.valid)

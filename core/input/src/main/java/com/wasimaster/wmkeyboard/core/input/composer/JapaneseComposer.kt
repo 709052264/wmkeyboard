@@ -36,6 +36,9 @@ object JapaneseComposer : Composer {
     /** Mora count past which the lattice gives way; nobody types this far uncommitted. */
     private const val MAX_LATTICE_UNITS = 24
 
+    /** Multi-word whole-buffer readings offered where no word converts the whole buffer. */
+    private const val STITCH = 2
+
     /**
      * Log-penalty for each kana read with a mark the user did not type.
      *
@@ -134,6 +137,9 @@ object JapaneseComposer : Composer {
                 Lattice.Opts(
                     limit = LOOKUP_LIMIT,
                     charPerUnit = false,
+                    // Phrases the pack spells only in kana (またあした) still
+                    // need their kanji reading (また明日) offered.
+                    stitch = STITCH,
                     maxAmbiguousSpan = if (loose) Int.MAX_VALUE else 2,
                 ),
                 adjust = CjkLearning.adjustFor(NAMESPACE),

@@ -542,7 +542,10 @@ object Lattice {
         context: String?,
     ) {
         val n = graph.end
-        val wholeBufferWord = edges[0].any { !it.fallback && it.to == n }
+        // A row whose word is its own reading converts nothing. ja_kana files
+        // またあした under またあした, and counting that as covering the buffer
+        // kept また明日 off the strip altogether.
+        val wholeBufferWord = edges[0].any { !it.fallback && it.to == n && it.text != it.reading }
         if (opts.stitch <= 0 || wholeBufferWord) return
         for (path in stitchedPaths(edges, sc, opts, n, context)) {
             if (out.size >= opts.limit) break
