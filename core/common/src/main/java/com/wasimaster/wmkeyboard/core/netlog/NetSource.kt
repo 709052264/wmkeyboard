@@ -109,6 +109,11 @@ enum class NetSource(
 
     /** The user's own Home Assistant server: its socket, its REST calls, a camera picture. */
     HOME_ASSISTANT("home_assistant", ToolbarTool.HOME_ASSISTANT),
+
+    /** The other homes of the smart home tool: Samsung's cloud, a Hue bridge on the LAN, an openHAB server. */
+    SMARTTHINGS("smartthings", ToolbarTool.HOME_ASSISTANT),
+    HUE("hue", ToolbarTool.HOME_ASSISTANT),
+    OPENHAB("openhab", ToolbarTool.HOME_ASSISTANT),
     OTHER("other"),
     ;
 
