@@ -559,8 +559,11 @@ class DuetBeam(
                     if (tok < 0 || !ws.near[tok * kc + key]) continue
                     val prevKey = ws.slotKey[s * SLOTS + slot]
                     // The same key twice running inside one swipe is a doubled
-                    // letter, which the repeat above already offers.
-                    if (prevKey == key) continue
+                    // letter, which the repeat above already offers. Not once
+                    // another gesture has given a letter since: a swipe resting
+                    // on a key while the other thumb taps carries on from that
+                    // key and spells it again ("se", tap "l", "ect").
+                    if (prevKey == key && ws.lastTok[s] == tok) continue
                     ws.loadScratch(s)
                     val min = advance(ws, s, slot, tok, prevKey, key, keys)
                     if (min >= UNREACHABLE) continue
