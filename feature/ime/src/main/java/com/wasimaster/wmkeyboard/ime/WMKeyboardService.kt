@@ -7974,6 +7974,8 @@ open class WMKeyboardService : InputMethodService() {
         rememberTypedNumber()
         super.onFinishInputView(finishingInput)
         keyboardVisible = false
+        // Keys held for a two-thumb read were meant for the field now closing.
+        keysBehindDuet.clear()
         // No finger outlives the window it was on (#743).
         keysTouched = false
         barsTouched = 0
@@ -8465,7 +8467,49 @@ open class WMKeyboardService : InputMethodService() {
 
     // No vibrate() here: press-time haptics fire from the UI's pointer-down
     // callback (onKeyPressed) so feedback lands on touch, not on release.
-    fun onKey(key: Key) = trace(ImeTrace.KEY) { handleKey(key) }
+    fun onKey(key: Key) = trace(ImeTrace.KEY) { if (!deferBehindDuet(key)) handleKey(key) }
+
+    /**
+     * Keys pressed while a two-thumb word's latest gesture is still being
+     * read, waiting for that reading in the order they came (#744).
+     */
+    private val keysBehindDuet = ArrayDeque<Key>()
+
+    /**
+     * Holds [key] back while the two-thumb word in progress is still being
+     * read, when it may end that word: Space, a mark, Enter, anything but one
+     * more letter. Ending it there used to read the whole word again on the
+     * main thread ([settleDuet]), a full gesture decode under the key press;
+     * now the key waits for the decode already running, as the all-thumbs-up
+     * pause does, and goes through once the word on screen is the whole word
+     * (#640). Every key after it queues behind it, so the field still reads
+     * word, then its space or mark, then whatever came next. A letter with
+     * nothing queued is not held: it joins the word and starts a newer read.
+     */
+    private fun deferBehindDuet(key: Key): Boolean {
+        if (keysBehindDuet.isNotEmpty()) {
+            keysBehindDuet.addLast(key)
+            return true
+        }
+        if (!duetDecodePending()) return false
+        val text = key.output ?: key.label
+        if (key.action == KeyAction.Text && text.length == 1 && text[0].isLetter()) return false
+        keysBehindDuet.addLast(key)
+        serviceScope.launch {
+            while (keysBehindDuet.isNotEmpty()) {
+                // A letter let through below starts a newer read of the word,
+                // which the key after it waits for in turn.
+                while (duetDecodePending()) duetJob?.join()
+                val next = keysBehindDuet.removeFirstOrNull() ?: break
+                trace(ImeTrace.KEY) { handleKey(next) }
+            }
+        }
+        return true
+    }
+
+    /** Whether the two-thumb word on screen is behind its gestures, with their read still running. */
+    private fun duetDecodePending(): Boolean =
+        duetWord.active && duetShownGeneration != duetGeneration && duetJob?.isActive == true
 
     private fun handleKey(key: Key) {
         // Before the key runs: a space must find the rejection already
@@ -24195,7 +24239,14 @@ open class WMKeyboardService : InputMethodService() {
      */
     private class DuetShown(val word: String, val alternates: List<String>, val complete: Boolean)
 
-    /** Reads the gestures; safe off the main thread. Null only when there is nothing to show at all. */
+    /**
+     * Reads the gestures. Null only when there is nothing to show at all.
+     *
+     * Safe off the main thread, and run off it everywhere except
+     * [settleDuet]: a key that ends the word waits for the read in flight
+     * instead ([deferBehindDuet], #744), so only a word ended some other way
+     * mid-read (a cursor move, a panel opening) is read on the main thread.
+     */
     private fun readDuet(
         tokens: List<GlideToken>,
         lone: List<GesturePoint>?,
@@ -24307,14 +24358,18 @@ open class WMKeyboardService : InputMethodService() {
      * whole word (#640). The decode in flight is cancelled; it was reading the
      * same gestures.
      */
-    private fun settleDuet(ic: InputConnection) {
+    private fun settleDuet(ic: InputConnection) = trace(ImeTrace.SETTLE_DUET) {
         duetJob?.cancel()
+        duetSettles++
         val generation = duetGeneration
         val shown = readDuet(
             duetWord.snapshot(), duetWord.loneSwipe(), duetWord.keys, duetWord.keyWidthPx, duetWord.literal(),
-        ) ?: return
+        ) ?: return@trace
         showDuet(ic, shown, generation)
     }
+
+    /** Test seam: how many times a two-thumb word was read on the main thread (#744). */
+    internal var duetSettles = 0
 
     /**
      * The word's gestures with [points] as one more swipe, for a preview of a

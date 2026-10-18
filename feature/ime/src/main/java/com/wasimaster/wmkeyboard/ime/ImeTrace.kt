@@ -26,6 +26,13 @@ internal object ImeTrace {
     /** One glide stroke decoded to candidate words (background thread). */
     const val GLIDE_DECODE = "WM:glideDecode"
 
+    /**
+     * A two-thumb word read on the spot because it is ending while its decode
+     * is still out (main thread). Key presses wait for the decode instead
+     * (#744), so this marks only the rarer ends: a cursor move, a panel.
+     */
+    const val SETTLE_DUET = "WM:settleDuet"
+
     /** The editor told the keyboard its caret or composing span moved. */
     const val UPDATE_SELECTION = "WM:updateSelection"
 
