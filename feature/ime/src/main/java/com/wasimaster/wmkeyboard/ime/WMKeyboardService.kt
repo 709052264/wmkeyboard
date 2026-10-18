@@ -109,6 +109,7 @@ import com.wasimaster.wmkeyboard.core.selection.DetectOptions
 import com.wasimaster.wmkeyboard.core.selection.DigitScripts
 import com.wasimaster.wmkeyboard.core.selection.FindOptions
 import com.wasimaster.wmkeyboard.core.selection.FindReplace
+import com.wasimaster.wmkeyboard.core.selection.ListContinuation
 import com.wasimaster.wmkeyboard.core.selection.FindResult
 import com.wasimaster.wmkeyboard.core.selection.JsonReformat
 import com.wasimaster.wmkeyboard.core.selection.LineEdits
@@ -14141,6 +14142,15 @@ open class WMKeyboardService : InputMethodService() {
         // actionLabel. Null means "no action": type a real newline.
         val fieldAction = currentInputEditorInfo.editorActionId()
         val action = if (forceNewline) null else fieldAction
+        // A line break on a list line carries the list on (#694); on an empty
+        // item it ends the list, and that is all this Enter does.
+        val listStep = if (action == null) listStepAtCaret(ic, state) else null
+        if (listStep is ListContinuation.Step.End) {
+            ic.deleteSurroundingText(listStep.length, 0)
+            maybeAutoCapitalize()
+            return
+        }
+        val listMarker = (listStep as? ListContinuation.Step.Continue)?.marker
         if (action != null) {
             ic.performEditorAction(action)
             // The action is the app's to answer, and a message box answers it by
@@ -14158,6 +14168,7 @@ open class WMKeyboardService : InputMethodService() {
             // raw event sent the WhatsApp message the override had just decided
             // not to send. commitText has nothing to intercept it.
             typeNewline(ic)
+            listMarker?.let { ic.commitText(it, 1) }
             // The shift deliberately survives, unlike the letter case that
             // spends it: it is being held down as a modifier for as long as the
             // user wants line breaks, so a second Enter must break the line too
@@ -14180,6 +14191,7 @@ open class WMKeyboardService : InputMethodService() {
             // every desktop chat client do — is entitled to keep telling them
             // apart.
             typeNewline(ic)
+            listMarker?.let { ic.commitText(it, 1) }
             maybeAutoCapitalize()
         } else {
             // No action declared at all: a genuinely multi-line field, a web
@@ -14198,8 +14210,26 @@ open class WMKeyboardService : InputMethodService() {
                 ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
                 ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
             }
+            listMarker?.let { ic.commitText(it, 1) }
             maybeAutoCapitalize()
         }
+    }
+
+    /**
+     * What Enter does to the list on the caret's line ([ListContinuation]),
+     * when "Continue lists" is on and the field is plain text. Null with a
+     * selection, which Enter replaces, and on a line longer than the
+     * look-back, whose start this cannot see.
+     */
+    private fun listStepAtCaret(ic: InputConnection, state: KeyboardUiState): ListContinuation.Step? {
+        if (!state.settings.autoText.continueLists) return null
+        if (state.secureField || state.nullField || state.fieldKind != FieldKind.TEXT) return null
+        if (!ic.getSelectedText(0).isNullOrEmpty()) return null
+        val before = ic.getTextBeforeCursor(LIST_LINE_LOOKBACK, 0)?.toString() ?: return null
+        val lineStart = before.lastIndexOf('\n')
+        if (lineStart < 0 && before.length >= LIST_LINE_LOOKBACK) return null
+        val after = ic.getTextAfterCursor(LIST_LINE_LOOKBACK, 0)?.toString().orEmpty()
+        return ListContinuation.onEnter(before.substring(lineStart + 1), after.substringBefore('\n'))
     }
 
     /**
@@ -45578,6 +45608,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** Enough to hold the longest number [TypedNumbers] keeps, and what stands in front of it. */
         private const val NUMBER_RUN_LOOKBEHIND = TypedNumbers.MAX_LENGTH + 1
+
+        /** How far back [listStepAtCaret] looks for the start of the caret's line. */
+        private const val LIST_LINE_LOOKBACK = 256
 
         /** Shortest token before the cursor that triggers an email completion. */
         private const val EMAIL_FIELD_MIN_PREFIX = 2
