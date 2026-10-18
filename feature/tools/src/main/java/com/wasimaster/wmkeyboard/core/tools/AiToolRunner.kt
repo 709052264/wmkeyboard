@@ -325,36 +325,24 @@ class AiToolRunner(
 
     private fun search(call: AiToolCall): AiToolResult {
         val query = call.argument("query") ?: return missing(call, "query")
-        val backend = ToolApiKeys.searchBackend(settings) ?: return refused(
-            call,
-            context.getString(R.string.ftools_ai_tool_no_search),
-            context.getString(R.string.ftools_ai_tool_reason_no_search),
-        )
-        val safe = settings.webSearch.safe
-        val page = when (backend) {
-            SearchBackend.SEARXNG -> SearxClient.webSearch(
-                query, settings.selfHosted.searxUrl, SEARCH_RESULTS, safe,
-                source = NetSource.AI_TOOLS,
-            )
-            SearchBackend.TAVILY -> TavilySearchClient.webSearch(
-                query,
-                ToolApiKeys.tavily(settings),
-                SEARCH_RESULTS,
-                safe,
-                advanced = settings.webSearch.tavilyAdvanced,
-                // Asked for whether or not the panel shows answer boxes: this
-                // one is read by a model, not drawn, and it is the cheapest
-                // summary of the page Tavily will ever give us.
-                answer = true,
-                source = NetSource.AI_TOOLS,
-            )
-            SearchBackend.BRAVE -> WebSearchPage(
-                BraveSearchClient.webSearch(
-                    query, ToolApiKeys.brave(settings), SEARCH_RESULTS, safe,
-                    source = NetSource.AI_TOOLS,
-                ),
+        if (ToolApiKeys.searchBackend(settings) == null) {
+            return refused(
+                call,
+                context.getString(R.string.ftools_ai_tool_no_search),
+                context.getString(R.string.ftools_ai_tool_reason_no_search),
             )
         }
+        val page = SearchProviders.web(
+            settings,
+            query,
+            SEARCH_RESULTS,
+            settings.webSearch.safe,
+            // Asked for whether or not the panel shows answer boxes: this one
+            // is read by a model, not drawn, and it is the cheapest summary of
+            // the page Tavily will ever give us.
+            answer = true,
+            source = NetSource.AI_TOOLS,
+        )
         return AiToolResult(
             call = call,
             content = formatSearch(page, context.getString(R.string.ftools_ai_tool_no_results)),
@@ -382,17 +370,14 @@ class AiToolRunner(
     /** The search tool's own backend, asked for pictures instead of pages. */
     private fun imageSearch(call: AiToolCall): AiToolResult {
         val query = call.argument("query") ?: return missing(call, "query")
-        val backend = ToolApiKeys.searchBackend(settings) ?: return refused(
-            call,
-            context.getString(R.string.ftools_ai_tool_no_search),
-            context.getString(R.string.ftools_ai_tool_reason_no_search),
-        )
-        val safe = settings.webSearch.safe
-        val images = when (backend) {
-            SearchBackend.SEARXNG -> SearxClient.imageSearch(query, settings.selfHosted.searxUrl, SEARCH_RESULTS, safe)
-            SearchBackend.TAVILY -> TavilySearchClient.imageSearch(query, ToolApiKeys.tavily(settings), SEARCH_RESULTS, safe)
-            SearchBackend.BRAVE -> BraveSearchClient.imageSearch(query, ToolApiKeys.brave(settings), SEARCH_RESULTS, safe)
+        if (ToolApiKeys.searchBackend(settings) == null) {
+            return refused(
+                call,
+                context.getString(R.string.ftools_ai_tool_no_search),
+                context.getString(R.string.ftools_ai_tool_reason_no_search),
+            )
         }
+        val images = SearchProviders.images(settings, query, SEARCH_RESULTS, settings.webSearch.safe)
         return AiToolResult(
             call = call,
             content = formatImages(images, context.getString(R.string.ftools_ai_tool_no_results)),

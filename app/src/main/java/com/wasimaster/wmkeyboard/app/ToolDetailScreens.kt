@@ -85,6 +85,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.settings.providerChain
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.deeplLive
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.ui.unit.dp
@@ -2428,48 +2430,29 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH -> {
-            SettingsGroup(
-                stringResource(R.string.tooldetail_search_group),
-                info = stringResource(R.string.tooldetail_search_info),
-            ) {
-                if (BuildConfig.ENABLE_FDROID) {
-                    // Offered first, because it is the one that needs no key —
-                    // but the Brave field stays below it for anyone who has one.
-                    item {
-                        TextFieldSetting(
-                            label = stringResource(R.string.tooldetail_search_instance_label),
-                            value = settings.watch { it.selfHosted.searxUrl },
-                            hint = stringResource(R.string.tooldetail_search_instance_hint),
-                            default = SettingsDefaults.selfHosted.searxUrl,
-                        ) { repository.setSearxUrl(it) }
-                    }
-                    serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.BRAVE_SEARCH))
-                }
-                item {
-                    ApiKeyField(
-                        label = stringResource(R.string.tooldetail_search_key_label),
-                        value = settings.watch { it.webSearch.braveApiKey },
-                        builtInAvailable = ToolApiKeys.builtInBrave,
-                        emptyHint = stringResource(R.string.tooldetail_search_key_hint),
-                    ) { repository.setBraveApiKey(it) }
+            // Who answers, in order: a SearXNG instance, Tavily, Brave. One
+            // list for both tools, as one service always answered both.
+            ProvidersGroup(
+                repository,
+                settings,
+                ProviderTool.SEARCH,
+                info = stringResource(R.string.tooldetail_search_providers_info),
+            )
+            if (BuildConfig.ENABLE_FDROID) {
+                SettingsGroup(
+                    stringResource(R.string.servers_group_title),
+                    info = stringResource(R.string.servers_group_info),
+                ) {
+                    serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.BRAVE_SEARCH, ServiceEndpoint.TAVILY))
                 }
             }
+            // Tavily's own option, once Tavily is in the list.
+            val tavilyListed = settings.watch { it.providerChain(ProviderTool.SEARCH).has(ProviderTypes.TAVILY.id) }
             SettingsGroup(
                 stringResource(R.string.tooldetail_tavily_group),
                 info = stringResource(R.string.tooldetail_tavily_info),
             ) {
-                if (BuildConfig.ENABLE_FDROID) {
-                    serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.TAVILY))
-                }
-                item {
-                    ApiKeyField(
-                        label = stringResource(R.string.tooldetail_tavily_key_label),
-                        value = settings.watch { it.webSearch.tavilyApiKey },
-                        builtInAvailable = false,
-                        emptyHint = stringResource(R.string.tooldetail_tavily_key_hint),
-                    ) { repository.setTavilyApiKey(it) }
-                }
-                item {
+                item(visible = tavilyListed) {
                     ToggleSetting(
                         R.string.tooldetail_tavily_advanced_title,
                         stringResource(R.string.tooldetail_tavily_advanced_subtitle),

@@ -389,7 +389,6 @@ import com.wasimaster.wmkeyboard.core.text.SelectWordGrowth
 import com.wasimaster.wmkeyboard.core.text.WordBreaks
 import com.wasimaster.wmkeyboard.core.text.WordDelete
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
-import com.wasimaster.wmkeyboard.core.tools.BraveSearchClient
 import com.wasimaster.wmkeyboard.core.tools.CheatSheetLetter
 import com.wasimaster.wmkeyboard.core.tools.DefaultLeader
 import com.wasimaster.wmkeyboard.core.tools.DoubleTapDetector
@@ -457,12 +456,10 @@ import com.wasimaster.wmkeyboard.core.tools.CommonsClient
 import com.wasimaster.wmkeyboard.core.tools.DeepLClient
 import com.wasimaster.wmkeyboard.core.tools.OnlineTranslate
 import com.wasimaster.wmkeyboard.core.tools.TranslateProviders
+import com.wasimaster.wmkeyboard.core.tools.SearchProviders
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.settings.deeplLive
 import com.wasimaster.wmkeyboard.core.tools.GiphyClient
-import com.wasimaster.wmkeyboard.core.tools.SearxClient
-import com.wasimaster.wmkeyboard.core.tools.SearchBackend
-import com.wasimaster.wmkeyboard.core.tools.TavilySearchClient
 import com.wasimaster.wmkeyboard.core.tools.ReverseImageClient
 import com.wasimaster.wmkeyboard.core.tools.ImageResult
 import com.wasimaster.wmkeyboard.core.tools.KlipyClient
@@ -34002,25 +33999,15 @@ open class WMKeyboardService : InputMethodService() {
         webSearchJob = serviceScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
-                    // Neither channel is forced into one provider; see
-                    // ToolApiKeys.searchBackend for the order.
-                    val count = settings.webSearch.resultCount
-                    val safe = settings.webSearch.safe
-                    when (ToolApiKeys.searchBackend(settings)) {
-                        SearchBackend.SEARXNG ->
-                            SearxClient.webSearch(query, settings.selfHosted.searxUrl, count, safe)
-                        SearchBackend.TAVILY -> TavilySearchClient.webSearch(
-                            query,
-                            ToolApiKeys.tavily(settings),
-                            count,
-                            safe,
-                            advanced = settings.webSearch.tavilyAdvanced,
-                            answer = settings.webSearch.showAnswer,
-                        )
-                        SearchBackend.BRAVE, null -> WebSearchPage(
-                            BraveSearchClient.webSearch(query, ToolApiKeys.brave(settings), count, safe),
-                        )
-                    }
+                    // The search provider list in its order, the next one
+                    // asked when one fails; see SearchProviders.
+                    SearchProviders.web(
+                        settings,
+                        query,
+                        settings.webSearch.resultCount,
+                        settings.webSearch.safe,
+                        answer = settings.webSearch.showAnswer,
+                    )
                 }
             }
             _uiState.update {
@@ -34071,18 +34058,7 @@ open class WMKeyboardService : InputMethodService() {
         imageSearchJob = serviceScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
-                    // Neither channel is forced into one provider; see
-                    // ToolApiKeys.searchBackend for the order.
-                    val count = settings.webSearch.resultCount
-                    val safe = settings.webSearch.safe
-                    when (ToolApiKeys.searchBackend(settings)) {
-                        SearchBackend.SEARXNG ->
-                            SearxClient.imageSearch(query, settings.selfHosted.searxUrl, count, safe)
-                        SearchBackend.TAVILY ->
-                            TavilySearchClient.imageSearch(query, ToolApiKeys.tavily(settings), count, safe)
-                        SearchBackend.BRAVE, null ->
-                            BraveSearchClient.imageSearch(query, ToolApiKeys.brave(settings), count, safe)
-                    }
+                    SearchProviders.images(settings, query, settings.webSearch.resultCount, settings.webSearch.safe)
                 }
             }
             _uiState.update {

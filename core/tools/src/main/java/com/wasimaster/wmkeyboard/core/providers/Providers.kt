@@ -29,7 +29,8 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
 
     /** The web and the image search tools: today one service answers both. */
     SEARCH("search", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_search),
-    PHOTOS("photos", listOf(ChainMode.MIX, ChainMode.FALLBACK), R.string.core_tools_provider_tool_photos),
+    /** Always mixed: the photo grid pages through every provider at once and keeps what answered. */
+    PHOTOS("photos", listOf(ChainMode.MIX), R.string.core_tools_provider_tool_photos),
     CURRENCY_FIAT("currency_fiat", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_currency_fiat),
     CURRENCY_CRYPTO("currency_crypto", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_currency_crypto),
     ;

@@ -707,8 +707,8 @@ private fun SearchStrings.photoRows(): List<SettingsSearchEntry> {
         screenRoot = R.string.home_appearance_title,
     )
     return listOf(
-        services(R.string.photo_unsplash_key_label),
-        services(R.string.photo_pexels_key_label),
+        // Unsplash, Pexels and Commons are rows of the provider list now.
+        services(R.string.photo_providers_section_title, R.string.providers_add_subtitle),
         rotation(R.string.photo_rotation_on_title, R.string.photo_rotation_on_subtitle),
         rotation(R.string.photo_rotation_interval_title),
         rotation(R.string.photo_rotation_shuffle_title, R.string.photo_rotation_shuffle_subtitle),
@@ -1606,10 +1606,9 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.GIF, R.string.tooldetail_media_gif_send_title, R.string.tooldetail_media_gif_send_subtitle),
     toolEntry(ToolbarTool.GIF, R.string.tooldetail_media_limit_title, R.string.tooldetail_media_limit_subtitle),
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_media_limit_title, R.string.tooldetail_media_limit_subtitle),
-    toolEntry(ToolbarTool.WEB_SEARCH, R.string.tooldetail_search_key_label, R.string.tooldetail_search_key_hint),
-    toolEntry(ToolbarTool.IMAGE_SEARCH, R.string.tooldetail_search_key_label, R.string.tooldetail_search_key_hint),
-    toolEntry(ToolbarTool.WEB_SEARCH, R.string.tooldetail_tavily_key_label, R.string.tooldetail_tavily_key_hint),
-    toolEntry(ToolbarTool.IMAGE_SEARCH, R.string.tooldetail_tavily_key_label, R.string.tooldetail_tavily_key_hint),
+    // SearXNG, Tavily and Brave are rows of the provider list now.
+    toolEntry(ToolbarTool.WEB_SEARCH, R.string.providers_group_title, R.string.providers_add_subtitle),
+    toolEntry(ToolbarTool.IMAGE_SEARCH, R.string.providers_group_title, R.string.providers_add_subtitle),
     toolEntry(ToolbarTool.WEB_SEARCH, R.string.tooldetail_search_safe_title, R.string.tooldetail_search_safe_subtitle),
     toolEntry(ToolbarTool.IMAGE_SEARCH, R.string.tooldetail_search_safe_title, R.string.tooldetail_search_safe_subtitle),
     toolEntry(ToolbarTool.WEB_SEARCH, R.string.tooldetail_search_count_title, R.string.tooldetail_search_count_subtitle),

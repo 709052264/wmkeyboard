@@ -1,6 +1,8 @@
 package com.wasimaster.wmkeyboard.app
 
 import com.wasimaster.wmkeyboard.BuildConfig
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
+import com.wasimaster.wmkeyboard.core.settings.providerCredentials
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.SystemClock
@@ -2588,8 +2590,8 @@ fun ThemeEditorScreen(
     // What decides which rows the groups hold, and what their "?" says; each
     // row reads its own value.
     val rotateOn = settings.watch { it.photoBackground.rotateEnabled }
-    val hasPhotoKeys = settings.watch {
-        it.photoBackground.unsplashApiKey.isNotBlank() || it.photoBackground.pexelsApiKey.isNotBlank()
+    val hasPhotoKeys = settings.watch { s ->
+        s.providerCredentials().any { it.typeId in PHOTO_KEY_TYPES && it.apiKey.isNotBlank() }
     }
     val showRotation = collection.isNotEmpty() || rotateOn
     val showServices = hasPhotoKeys || collection.any { it.credit != null }
@@ -6644,3 +6646,6 @@ private fun BackgroundSourceDialog(
         },
     )
 }
+
+/** The photo providers a key of the user's own makes a theme's Photo services worth showing. */
+private val PHOTO_KEY_TYPES = setOf(ProviderTypes.UNSPLASH.id, ProviderTypes.PEXELS.id)
