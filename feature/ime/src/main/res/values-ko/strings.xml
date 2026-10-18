@@ -1395,7 +1395,6 @@
     <string name="ime_suggestion_never_suggest">\"%1$s\" 제안 안 함</string>
     <string name="ime_suggestion_pages_close">키로 돌아가기</string>
     <string name="ime_suggestions_show_desc">제안 바 표시</string>
-    <string name="ime_summon_button_hidden_toast">다음에 키보드가 열릴 때까지 키보드 버튼이 숨겨집니다</string>
     <string name="ime_summon_button_label">키보드 표시</string>
     <string name="ime_symbol_row_delete_confirm_body">이 설정 및 모든 항목이 삭제됩니다. 이를 제공하던 키보드 모드는 대신 사용자의 다른 설정을 표시합니다.</string>
     <string name="ime_symbol_row_delete_confirm_title">\"%1$s\"을(를) 삭제하시겠습니까?</string>

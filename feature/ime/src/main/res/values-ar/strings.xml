@@ -1405,7 +1405,6 @@
     <string name="ime_suggestion_never_suggest">عدم اقتراح \"%1$s\" مطلقاً</string>
     <string name="ime_suggestion_pages_close">العودة إلى المفاتيح</string>
     <string name="ime_suggestions_show_desc">إظهار شريط الاقتراحات</string>
-    <string name="ime_summon_button_hidden_toast">تم إخفاء زر لوحة المفاتيح حتى يتم فتحها في المرة القادمة</string>
     <string name="ime_summon_button_label">إظهار لوحة المفاتيح</string>
     <string name="ime_symbol_row_delete_confirm_body">ستتم إزالة المجموعة وجميع إدخالاتها. سيعرض وضع لوحة المفاتيح الذي كان يوفرها مجموعاتك الأخرى بدلاً منها.</string>
     <string name="ime_symbol_row_delete_confirm_title">هل تريد حذف \"%1$s\"؟</string>

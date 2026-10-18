@@ -1405,7 +1405,6 @@
     <string name="ime_suggestion_never_suggest">\"%1$s\" ifadesini asla önerme</string>
     <string name="ime_suggestion_pages_close">Tuşlara geri dön</string>
     <string name="ime_suggestions_show_desc">Öneri şeridini göster</string>
-    <string name="ime_summon_button_hidden_toast">Klavye düğmesi, klavye bir sonraki açılışına kadar gizlendi</string>
     <string name="ime_summon_button_label">Klavyeyi göster</string>
     <string name="ime_symbol_row_delete_confirm_body">Set ve içindeki tüm girdiler silinir. Bunu sunan bir klavye modu, bunun yerine diğer setlerinizi gösterir.</string>
     <string name="ime_symbol_row_delete_confirm_title">\"%1$s\" silinsin mi?</string>

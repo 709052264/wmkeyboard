@@ -1397,7 +1397,6 @@
     <string name="ime_suggestion_never_suggest">ไม่ต้องแนะนำ \"%1$s\" อีก</string>
     <string name="ime_suggestion_pages_close">กลับไปที่ปุ่มกด</string>
     <string name="ime_suggestions_show_desc">แสดงแถบคำแนะนำ</string>
-    <string name="ime_summon_button_hidden_toast">ปุ่มแป้นพิมพ์ถูกซ่อนไว้จนกว่าแป้นพิมพ์จะเปิดขึ้นในครั้งถัดไป</string>
     <string name="ime_summon_button_label">แสดงแป้นพิมพ์</string>
     <string name="ime_symbol_row_delete_confirm_body">ชุดนี้และรายการทั้งหมดภายในจะถูกลบ โหมดแป้นพิมพ์ที่เคยแสดงชุดนี้จะเปลี่ยนไปแสดงชุดอื่นของคุณแทน</string>
     <string name="ime_symbol_row_delete_confirm_title">ลบ \"%1$s\" หรือไม่</string>

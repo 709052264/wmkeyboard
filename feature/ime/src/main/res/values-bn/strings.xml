@@ -1404,7 +1404,6 @@
     <string name="ime_suggestion_never_suggest">\"%1$s\" কখনোই সাজেস্ট করবেন না</string>
     <string name="ime_suggestion_pages_close">কি-গুলোতে ফিরে যান</string>
     <string name="ime_suggestions_show_desc">পরামর্শের স্ট্রিপ দেখান</string>
-    <string name="ime_summon_button_hidden_toast">পরবর্তীবার কিবোর্ড না খোলা পর্যন্ত কিবোর্ড বোতামটি লুকানো থাকবে</string>
     <string name="ime_summon_button_label">কীবোর্ড দেখান</string>
     <string name="ime_symbol_row_delete_confirm_body">সেটটি এবং এর সমস্ত এন্ট্রি মুছে যাবে। যে কিবোর্ড মোড এটি অফার করেছিল, সেটি আপনার অন্য সেটগুলো দেখাবে।</string>
     <string name="ime_symbol_row_delete_confirm_title">\"%1$s\" মুছে ফেলবেন?</string>

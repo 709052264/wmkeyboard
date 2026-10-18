@@ -708,10 +708,28 @@ internal object SettingsRowIcons {
         put(R.string.layout_floating_height_title) { Icons.Outlined.Height }
         put(R.string.layout_floating_reset_title) { Icons.Outlined.Restore }
         put(R.string.layout_persistent_title) { Icons.Outlined.PushPin }
-        put(R.string.layout_summon_button_title) { Icons.Outlined.Keyboard }
         put(R.string.layout_summon_button_permission_title) { Icons.Outlined.Layers }
-        put(R.string.layout_ai_button_title) { Icons.Outlined.AutoAwesome }
-        put(R.string.layout_ai_button_screen_title) { Icons.Outlined.Preview }
+        // Advanced › Floating button (#755).
+        put(R.string.floating_button_title) { Icons.Outlined.Adjust }
+        put(R.string.floating_button_enable_title) { Icons.Outlined.Adjust }
+        put(R.string.floating_button_screen_title) { Icons.Outlined.Preview }
+        put(R.string.floating_button_tap_title) { Icons.Outlined.TouchApp }
+        put(R.string.floating_button_double_tap_title) { Icons.Outlined.AdsClick }
+        put(R.string.floating_button_hold_title) { Icons.Outlined.Gesture }
+        put(R.string.floating_button_menu_unreached_title) { Icons.Outlined.Apps }
+        put(R.string.floating_button_menu_add_title) { Icons.Outlined.Add }
+        put(R.string.floating_button_menu_labels_title) { Icons.AutoMirrored.Outlined.Label }
+        put(R.string.floating_button_menu_reset_title) { Icons.Outlined.Restore }
+        put(R.string.floating_button_style_title) { Icons.Outlined.Palette }
+        put(R.string.floating_button_size_title) { Icons.Outlined.Straighten }
+        put(R.string.floating_button_opacity_title) { Icons.Outlined.Opacity }
+        put(R.string.floating_button_idle_title) { Icons.Outlined.Timer }
+        put(R.string.floating_button_idle_opacity_title) { Icons.Outlined.Contrast }
+        put(R.string.floating_button_tuck_title) { Icons.Outlined.VisibilityOff }
+        put(R.string.floating_button_while_typing_title) { Icons.Outlined.Keyboard }
+        put(R.string.floating_button_landscape_title) { Icons.Outlined.ScreenRotation }
+        put(R.string.floating_button_haptics_title) { Icons.Outlined.Vibration }
+        put(R.string.floating_button_reset_position_title) { Icons.Outlined.Restore }
         put(R.string.layout_reset_sizing_title) { Icons.Outlined.Restore }
         put(R.string.layout_comma_emoji_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.layout_symbols_numpad_key_title) { Icons.Outlined.Dialpad }

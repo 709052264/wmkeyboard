@@ -40,9 +40,9 @@ object KeyboardControls {
         fun repostControls()
 
         /**
-         * Put the floating keyboard button up or take it down to match the
-         * setting and the overlay grant, which the settings app may just have
-         * changed. See [SummonButton].
+         * Put the floating button up or take it down to match the settings
+         * and the overlay grant, which the settings app may just have
+         * changed. See [com.wasimaster.wmkeyboard.ime.floating.FloatingButton].
          */
         fun syncSummonButton()
     }

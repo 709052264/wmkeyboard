@@ -3987,11 +3987,8 @@
     <string name="layout_split_spacebar_title">Leerzeichentaste teilen</string>
     <string name="layout_split_subtitle">Teilen Sie die Tasten in eine linke und eine rechte Hälfte</string>
     <string name="layout_split_title">Geteilte Tastatur</string>
-    <string name="layout_summon_button_info">Wenn die Tastatur geschlossen ist, schwebt ein kleiner runder Button über jeder App. Tippe darauf, um die Tastatur zu öffnen – selbst in Bereichen ohne Textfeld. Sie bleibt so lange geöffnet, bis du sie wieder schließt. Die Tastenanschläge werden direkt an die App gesendet, genauso wie bei „Tastatur auf dem Bildschirm behalten“. Ziehe den Button, um ihn zu verschieben; er heftet sich am nächstgelegenen Rand fest. Halte ihn gedrückt, um ihn auszublenden, bis die Tastatur das nächste Mal geöffnet wird. Benötigt die Android-Berechtigung „Über anderen Apps einblenden“.</string>
     <string name="layout_summon_button_permission_subtitle">Die Schaltfläche kann erst erscheinen, wenn Android dies zulässt</string>
     <string name="layout_summon_button_permission_title">Einblenden über anderen Apps erlauben</string>
-    <string name="layout_summon_button_subtitle">Eine Schaltfläche über anderen Apps, die die Tastatur öffnet, mit oder ohne Textfeld</string>
-    <string name="layout_summon_button_title">Schwebende Tastaturtaste</string>
     <string name="layout_swap_comma_globe_info">Die beiden Tasten auf jeder Seite der Leertaste tauschen ihre Plätze. Wenn eine davon eine Emoji-Taste ist, bewegt sie sich an die äußere Position und das Komma bleibt neben der Leertaste. Deaktiviere dies, um die gewohnte Reihenfolge zu erhalten.</string>
     <string name="layout_swap_comma_globe_subtitle">Das Komma neben die Leertaste setzen</string>
     <string name="layout_swap_comma_globe_title">Komma- und 🌐-Taste tauschen</string>
@@ -5811,7 +5808,6 @@
     <string name="search_kw_layout_show_globe">ausblenden entfernen Weltkugel Sprache</string>
     <string name="search_kw_layout_size_position">Größe ändern verkleinern kompakt vergrößern</string>
     <string name="search_kw_layout_split">Daumen ergonomisches Tablet</string>
-    <string name="search_kw_layout_summon_button">Bubble-Overlay-Anzeige für feldlose Hacker</string>
     <string name="search_kw_layout_symbols_numpad_key">Ziffernblock Tastenfeld Wähltastatur 1234 Gboard</string>
     <string name="search_kw_learnedcorrections">gelernte Korrekturen, meine Korrekturen, Tippfehler-Paare, beigebrachte Korrekturen, Autokorrektur-Lernen, Ausrutscher, Gewohnheiten</string>
     <string name="search_kw_licenses">Open Source, Namensnennung, Credits</string>

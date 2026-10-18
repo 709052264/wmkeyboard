@@ -4003,11 +4003,8 @@
     <string name="layout_split_spacebar_title">ಸ್ಪೇಸ್‌ಬಾರ್ ಅನ್ನು ವಿಭಜಿಸಿ</string>
     <string name="layout_split_subtitle">ಕೀಲಿಗಳನ್ನು ಎಡ ಅರ್ಧ ಮತ್ತು ಬಲ ಅರ್ಧವಾಗಿ ವಿಭಜಿಸಿ</string>
     <string name="layout_split_title">ಸ್ಪ್ಲಿಟ್ ಕೀಬೋರ್ಡ್</string>
-    <string name="layout_summon_button_info">ಕೀಬೋರ್ಡ್ ಮುಚ್ಚಿದಾಗ, ಒಂದು ಸಣ್ಣ ದುಂಡಗಿನ ಬಟನ್ ಪ್ರತಿ ಆ್ಯಪ್‌ನ ಮೇಲೆ ತೇಲುತ್ತದೆ. ಅದನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ ಮತ್ತು ಕೀಬೋರ್ಡ್ ತೆರೆಯುತ್ತದೆ, ಟೆಕ್ಸ್ಟ್ ಫೀಲ್ಡ್ ಇಲ್ಲದ ಪರದೆಯ ಮೇಲೂ ಸಹ, ಮತ್ತು ನೀವು ಅದನ್ನು ಮುಚ್ಚುವವರೆಗೆ ಅಲ್ಲಿಯೇ ಇರುತ್ತದೆ. ಕೀಬೋರ್ಡ್ ಅನ್ನು ಪರದೆಯ ಮೇಲೆ ಇರಿಸಿದಂತೆಯೇ, ಕೀಗಳು ಕೀ ಪ್ರೆಸ್‌ಗಳಾಗಿ ಆ್ಯಪ್‌ಗೆ ತಲುಪುತ್ತವೆ. ಬಟನ್ ಅನ್ನು ಸರಿಸಲು ಅದನ್ನು ಡ್ರ್ಯಾಗ್ ಮಾಡಿ; ಅದು ಹತ್ತಿರದ ಬದಿಯಲ್ಲಿ ನೆಲೆಗೊಳ್ಳುತ್ತದೆ. ಕೀಬೋರ್ಡ್ ಮುಂದಿನ ಬಾರಿ ತೆರೆಯುವವರೆಗೆ ಅದನ್ನು ಮರೆಮಾಡಲು ಒತ್ತಿ ಹಿಡಿದುಕೊಳ್ಳಿ. ಆಂಡ್ರಾಯ್ಡ್‌ನ \'ಇತರ ಆ್ಯಪ್‌ಗಳ ಮೇಲೆ ಪ್ರದರ್ಶಿಸಿ\' ಅನುಮತಿಯ ಅಗತ್ಯವಿದೆ.</string>
     <string name="layout_summon_button_permission_subtitle">Android ಅನುಮತಿಸುವವರೆಗೆ ಬಟನ್ ಕಾಣಿಸುವುದಿಲ್ಲ</string>
     <string name="layout_summon_button_permission_title">ಇತರ ಆ್ಯಪ್‌ಗಳ ಮೇಲೆ ಪ್ರದರ್ಶಿಸಲು ಅನುಮತಿಸಿ</string>
-    <string name="layout_summon_button_subtitle">ಇತರ ಆ್ಯಪ್‌ಗಳ ಮೇಲೆ ಇರುವ ಬಟನ್, ಇದು ಕೀಬೋರ್ಡ್ ಅನ್ನು ತೆರೆಯುತ್ತದೆ, ಟೆಕ್ಸ್ಟ್ ಫೀಲ್ಡ್‌ನೊಂದಿಗೆ ಅಥವಾ ಇಲ್ಲದೆ</string>
-    <string name="layout_summon_button_title">ತೇಲುವ ಕೀಬೋರ್ಡ್ ಬಟನ್</string>
     <string name="layout_swap_comma_globe_info">ಸ್ಪೇಸ್‌ಬಾರ್‌ನ ಎರಡೂ ಬದಿಯಲ್ಲಿರುವ ಎರಡು ಕೀಲಿಗಳು ಸ್ಥಾನ ಬದಲಾಯಿಸುತ್ತವೆ. ಅವುಗಳಲ್ಲಿ ಒಂದು ಎಮೋಜಿ ಕೀ ಆಗಿದ್ದರೆ, ಅದು ಹೊರಗಿನ ಸ್ಥಾನಕ್ಕೆ ಹೋಗುತ್ತದೆ ಮತ್ತು ಅಲ್ಪವಿರಾಮವು ಸ್ಪೇಸ್‌ಬಾರ್‌ನ ಪಕ್ಕದಲ್ಲಿ ಉಳಿಯುತ್ತದೆ. ಸಾಮಾನ್ಯ ಕ್ರಮವನ್ನು ಪಡೆಯಲು ಇದನ್ನು ಆಫ್ ಮಾಡಿ.</string>
     <string name="layout_swap_comma_globe_subtitle">ಸ್ಪೇಸ್‌ಬಾರ್ ಪಕ್ಕದಲ್ಲಿ ಅಲ್ಪವಿರಾಮವನ್ನು (comma) ಇರಿಸಿ</string>
     <string name="layout_swap_comma_globe_title">ಅಲ್ಪವಿರಾಮ ಮತ್ತು 🌐 ಕೀಗಳನ್ನು ಅದಲುಬದಲು ಮಾಡಿ</string>
@@ -5828,7 +5825,6 @@
     <string name="search_kw_layout_show_globe">ಗ್ಲೋಬ್ ಭಾಷೆಯನ್ನು ಮರೆಮಾಡಿ ತೆಗೆದುಹಾಕಿ</string>
     <string name="search_kw_layout_size_position">ಮರುಗಾತ್ರಗೊಳಿಸು ಕುಗ್ಗಿಸು ಕಾಂಪ್ಯಾಕ್ಟ್ ಬೆಳೆಸು</string>
     <string name="search_kw_layout_split">ಥಂಬ್ ಎರ್ಗೊನಾಮಿಕ್ ಟ್ಯಾಬ್ಲೆಟ್</string>
-    <string name="search_kw_layout_summon_button">ಬಬಲ್ ಓವರ್‌ಲೇ ಫೀಲ್ಡ್‌ಲೆಸ್ ಹ್ಯಾಕರ್‌ಗಳನ್ನು ತೋರಿಸುತ್ತದೆ</string>
     <string name="search_kw_layout_symbols_numpad_key">ನಂಪ್ಯಾಡ್ ಕೀಪ್ಯಾಡ್ ಡಯಲ್‌ಪ್ಯಾಡ್ 1234 ಜಿಬೋರ್ಡ್</string>
     <string name="search_kw_learnedcorrections">learned corrections, my fixes, typo pairs, taught fixes, autocorrect learning, slips, habits</string>
     <string name="search_kw_licenses">ಓಪನ್ ಸೋರ್ಸ್, ಅಟ್ರಿಬ್ಯೂಷನ್, ಕ್ರೆಡಿಟ್‌ಗಳು</string>

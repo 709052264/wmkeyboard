@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Accessibility actions on the floating button (#755): its double tap,
+         and each quick menu slot, straight from the button. -->
+    <item name="floating_button_action_double_tap" type="id" />
+    <item name="floating_button_action_slot_0" type="id" />
+    <item name="floating_button_action_slot_1" type="id" />
+    <item name="floating_button_action_slot_2" type="id" />
+    <item name="floating_button_action_slot_3" type="id" />
+    <item name="floating_button_action_slot_4" type="id" />
+    <item name="floating_button_action_slot_5" type="id" />
+    <item name="floating_button_action_slot_6" type="id" />
+    <item name="floating_button_action_slot_7" type="id" />
+</resources>

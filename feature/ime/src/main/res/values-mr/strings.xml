@@ -1406,7 +1406,6 @@
     <string name="ime_suggestion_never_suggest">\"%1$s\" कधीही सुचवू नका</string>
     <string name="ime_suggestion_pages_close">कीजवर परत जा</string>
     <string name="ime_suggestions_show_desc">सूचना पट्टी दाखवा</string>
-    <string name="ime_summon_button_hidden_toast">पुढच्या वेळी कीबोर्ड उघडेपर्यंत कीबोर्ड बटण लपवले आहे</string>
     <string name="ime_summon_button_label">कीबोर्ड दाखवा</string>
     <string name="ime_symbol_row_delete_confirm_body">हे संच आणि त्यातील सर्व एन्ट्री काढून टाकल्या जातील. ज्या कीबोर्ड मोडमध्ये हे उपलब्ध होते, तो मोड त्याऐवजी तुमचे इतर संच दर्शवेल.</string>
     <string name="ime_symbol_row_delete_confirm_title">\"%1$s\" हटवायचे?</string>

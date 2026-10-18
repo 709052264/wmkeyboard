@@ -186,16 +186,8 @@
     <string name="layout_floating_width_info">This is the width of the floating panel. The key heights still follow the sliders above.</string>
     <string name="layout_persistent_title">Keep the keyboard on screen</string>
     <string name="layout_persistent_subtitle">Stay open when no text field has focus</string>
-    <string name="layout_summon_button_title">Floating keyboard button</string>
-    <string name="layout_summon_button_subtitle">A button over other apps that opens the keyboard, with or without a text field</string>
-    <string name="layout_summon_button_info">A small round button floats over every app. Tap it and the keyboard opens, even on a screen with no text field, and stays open there until you close it. Keys then reach the app as key presses, the same as with Keep the keyboard on screen. While the keyboard is open the button moves above it, and a tap closes the keyboard again. Drag the button to move it; it settles against the nearer side. Press and hold it to hide it until the keyboard next opens or closes. Needs Android\'s Display over other apps permission.</string>
     <string name="layout_summon_button_permission_title">Allow display over other apps</string>
     <string name="layout_summon_button_permission_subtitle">The button cannot appear until Android allows it</string>
-    <string name="layout_ai_button_title">Floating AI button</string>
-    <string name="layout_ai_button_subtitle">A button over other apps that opens an AI chat about what is on screen</string>
-    <string name="layout_ai_button_info">A second round button, with a sparkle on it, floats over every app whether the keyboard is open or not. Tap it and an AI chat opens over the app as a sheet. With screen reading on, the text on screen comes with it, and you can ask the AI to explain or summarise it, or anything else about it. You see that text before anything is sent and can remove it. The chat uses the model you picked in the AI tool\'s settings and is kept with your other AI chats. Drag the button to move it, press and hold to hide it until the keyboard next opens or closes. Selected text has its own way in: pick Ask AI in the menu that comes up when you select text in another app. Needs Android\'s Display over other apps permission.</string>
-    <string name="layout_ai_button_screen_title">Let the AI button read the screen</string>
-    <string name="layout_ai_button_screen_subtitle">Turn on the AI screen reading service in Android\'s accessibility settings</string>
     <string name="layout_persistent_info">After the keyboard opens, it stays on screen when the text field closes, and over apps that have no text field. This lets you send keys and keyboard shortcuts to an app, for example to set a hotkey in a notes app. To close the keyboard, press the hide key, swipe down on the toolbar, or press Back. It opens again the next time you tap a text field. The keyboard never stays on the lock screen. Works docked or floating.</string>
 
     <!-- Layout screen: the two keys of the bottom row that can change. -->

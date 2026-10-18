@@ -9087,6 +9087,20 @@ class SettingsRepository(private val context: Context) {
         private val AI_BUTTON = booleanPreferencesKey("ai_button")
         private val AI_BUTTON_X = floatPreferencesKey("ai_button_x")
         private val AI_BUTTON_Y = floatPreferencesKey("ai_button_y")
+        private val FLOATING_BUTTON_TAP = stringPreferencesKey("floating_button_tap")
+        private val FLOATING_BUTTON_DOUBLE_TAP = stringPreferencesKey("floating_button_double_tap")
+        private val FLOATING_BUTTON_HOLD = stringPreferencesKey("floating_button_hold")
+        private val FLOATING_BUTTON_MENU = stringPreferencesKey("floating_button_menu")
+        private val FLOATING_BUTTON_MENU_LABELS = booleanPreferencesKey("floating_button_menu_labels")
+        private val FLOATING_BUTTON_SIZE = intPreferencesKey("floating_button_size")
+        private val FLOATING_BUTTON_STYLE = stringPreferencesKey("floating_button_style")
+        private val FLOATING_BUTTON_OPACITY = floatPreferencesKey("floating_button_opacity")
+        private val FLOATING_BUTTON_IDLE_FADE = intPreferencesKey("floating_button_idle_fade")
+        private val FLOATING_BUTTON_IDLE_OPACITY = floatPreferencesKey("floating_button_idle_opacity")
+        private val FLOATING_BUTTON_TUCK = booleanPreferencesKey("floating_button_tuck")
+        private val FLOATING_BUTTON_WHILE_TYPING = booleanPreferencesKey("floating_button_while_typing")
+        private val FLOATING_BUTTON_HIDE_LANDSCAPE = booleanPreferencesKey("floating_button_hide_landscape")
+        private val FLOATING_BUTTON_HAPTICS = booleanPreferencesKey("floating_button_haptics")
         private val KEYBOARD_WIDTH_PERCENT = intPreferencesKey("keyboard_width_percent")
         private val KEYBOARD_ALIGNMENT = stringPreferencesKey("keyboard_alignment")
         private val KEY_CORNER_RADIUS = intPreferencesKey("key_corner_radius")
@@ -10596,14 +10610,7 @@ class SettingsRepository(private val context: Context) {
             floatingXFraction = p[FLOATING_X] ?: defaults.floatingXFraction,
             floatingYFraction = p[FLOATING_Y] ?: defaults.floatingYFraction,
             persistentKeyboard = p[PERSISTENT_KEYBOARD] ?: defaults.persistentKeyboard,
-            summonButton = SummonButtonSettings(
-                enabled = p[SUMMON_BUTTON] ?: defaults.summonButton.enabled,
-                xFraction = p[SUMMON_BUTTON_X] ?: defaults.summonButton.xFraction,
-                yFraction = p[SUMMON_BUTTON_Y] ?: defaults.summonButton.yFraction,
-                aiButton = p[AI_BUTTON] ?: defaults.summonButton.aiButton,
-                aiXFraction = p[AI_BUTTON_X] ?: defaults.summonButton.aiXFraction,
-                aiYFraction = p[AI_BUTTON_Y] ?: defaults.summonButton.aiYFraction,
-            ),
+            summonButton = summonButtonFrom(p, defaults.summonButton),
             keyboardWidthPercent = p[KEYBOARD_WIDTH_PERCENT] ?: defaults.keyboardWidthPercent,
             keyboardAlignment = p[KEYBOARD_ALIGNMENT]
                 ?.let { runCatching { KeyboardAlignment.valueOf(it) }.getOrNull() }
@@ -14731,26 +14738,134 @@ class SettingsRepository(private val context: Context) {
     suspend fun setPersistentKeyboard(value: Boolean) =
         editPrefs { it[PERSISTENT_KEYBOARD] = value }
 
-    suspend fun setSummonButton(value: Boolean) =
-        editPrefs { it[SUMMON_BUTTON] = value }
+    /**
+     * The floating button as stored. #697's AI button was a second button with
+     * keys of its own; folded into the one (#755), someone who had only that
+     * one on gets the button back with its tap asking the AI, where the AI
+     * button sat, until the first change on the page writes it down for good
+     * ([foldLegacyAiButton]).
+     */
+    private fun summonButtonFrom(p: Preferences, d: SummonButtonSettings): SummonButtonSettings {
+        val keyboardOn = p[SUMMON_BUTTON] ?: d.enabled
+        val aiOnly = p[AI_BUTTON] == true && !keyboardOn && p[FLOATING_BUTTON_TAP] == null
+        return SummonButtonSettings(
+            enabled = keyboardOn || aiOnly,
+            xFraction = (if (aiOnly) p[AI_BUTTON_X] else p[SUMMON_BUTTON_X]) ?: d.xFraction,
+            yFraction = (if (aiOnly) p[AI_BUTTON_Y] else p[SUMMON_BUTTON_Y]) ?: d.yFraction,
+            tap = p[FLOATING_BUTTON_TAP]?.let(FloatingAction::parse)
+                ?: if (aiOnly) FloatingAction.AskAi else d.tap,
+            doubleTap = p[FLOATING_BUTTON_DOUBLE_TAP]?.let(FloatingAction::parse) ?: d.doubleTap,
+            hold = p[FLOATING_BUTTON_HOLD]?.let(FloatingAction::parse) ?: d.hold,
+            menu = p[FLOATING_BUTTON_MENU]?.let(FloatingAction::parseMenu) ?: d.menu,
+            menuLabels = p[FLOATING_BUTTON_MENU_LABELS] ?: d.menuLabels,
+            sizeDp = (p[FLOATING_BUTTON_SIZE] ?: d.sizeDp)
+                .coerceIn(FloatingButtonSizeRange.first, FloatingButtonSizeRange.last),
+            style = p[FLOATING_BUTTON_STYLE]
+                ?.let { runCatching { FloatingButtonStyle.valueOf(it) }.getOrNull() }
+                ?: d.style,
+            opacity = (p[FLOATING_BUTTON_OPACITY] ?: d.opacity).coerceIn(0.3f, 1f),
+            idleFadeSeconds = (p[FLOATING_BUTTON_IDLE_FADE] ?: d.idleFadeSeconds)
+                .coerceIn(FloatingButtonIdleRange.first, FloatingButtonIdleRange.last),
+            idleOpacity = (p[FLOATING_BUTTON_IDLE_OPACITY] ?: d.idleOpacity).coerceIn(0.15f, 1f),
+            tuck = p[FLOATING_BUTTON_TUCK] ?: d.tuck,
+            whileTyping = p[FLOATING_BUTTON_WHILE_TYPING] ?: d.whileTyping,
+            hideInLandscape = p[FLOATING_BUTTON_HIDE_LANDSCAPE] ?: d.hideInLandscape,
+            haptics = p[FLOATING_BUTTON_HAPTICS] ?: d.haptics,
+        )
+    }
 
-    /** Where a drag of the floating keyboard button left it; see [SummonButtonSettings]. */
-    suspend fun setSummonButtonPosition(x: Float, y: Float) =
+    /**
+     * Writes down what [summonButtonFrom] reads off #697's AI button keys, and
+     * drops those keys, so the first change made to the floating button lands
+     * on the one button rather than on a reading of the old two.
+     */
+    private fun foldLegacyAiButton(prefs: MutablePreferences) {
+        if (prefs[AI_BUTTON] == null) return
+        val aiOnly = prefs[AI_BUTTON] == true && prefs[SUMMON_BUTTON] != true && prefs[FLOATING_BUTTON_TAP] == null
+        if (aiOnly) {
+            prefs[SUMMON_BUTTON] = true
+            prefs[FLOATING_BUTTON_TAP] = FloatingAction.AskAi.token
+            prefs[AI_BUTTON_X]?.let { prefs[SUMMON_BUTTON_X] = it }
+            prefs[AI_BUTTON_Y]?.let { prefs[SUMMON_BUTTON_Y] = it }
+        }
+        prefs.remove(AI_BUTTON)
+        prefs.remove(AI_BUTTON_X)
+        prefs.remove(AI_BUTTON_Y)
+    }
+
+    /** Every write to the floating button goes through here; see [foldLegacyAiButton]. */
+    private suspend fun editFloatingButton(transform: (MutablePreferences) -> Unit) =
         editPrefs {
+            foldLegacyAiButton(it)
+            transform(it)
+        }
+
+    suspend fun setSummonButton(value: Boolean) =
+        editFloatingButton { it[SUMMON_BUTTON] = value }
+
+    /** Where a drag of the floating button left it; see [SummonButtonSettings]. */
+    suspend fun setSummonButtonPosition(x: Float, y: Float) =
+        editFloatingButton {
             it[SUMMON_BUTTON_X] = x.coerceIn(0f, 1f)
             it[SUMMON_BUTTON_Y] = y.coerceIn(0f, 1f)
         }
 
-    /** The floating AI button (#697); see [SummonButtonSettings.aiButton]. */
-    suspend fun setAiButton(value: Boolean) =
-        editPrefs { it[AI_BUTTON] = value }
-
-    /** Where a drag of the floating AI button left it. */
-    suspend fun setAiButtonPosition(x: Float, y: Float) =
-        editPrefs {
-            it[AI_BUTTON_X] = x.coerceIn(0f, 1f)
-            it[AI_BUTTON_Y] = y.coerceIn(0f, 1f)
+    /** Back to the right edge, a little below the middle, where a fresh install puts it. */
+    suspend fun resetSummonButtonPosition() =
+        editFloatingButton {
+            it.remove(SUMMON_BUTTON_X)
+            it.remove(SUMMON_BUTTON_Y)
         }
+
+    suspend fun setFloatingButtonTap(value: FloatingAction) =
+        editFloatingButton { it[FLOATING_BUTTON_TAP] = value.token }
+
+    suspend fun setFloatingButtonDoubleTap(value: FloatingAction) =
+        editFloatingButton { it[FLOATING_BUTTON_DOUBLE_TAP] = value.token }
+
+    suspend fun setFloatingButtonHold(value: FloatingAction) =
+        editFloatingButton { it[FLOATING_BUTTON_HOLD] = value.token }
+
+    /** The quick menu's slots; an empty list is kept as an empty menu, not the default one. */
+    suspend fun setFloatingButtonMenu(value: List<FloatingAction>) =
+        editFloatingButton { it[FLOATING_BUTTON_MENU] = FloatingAction.menuToken(value) }
+
+    suspend fun resetFloatingButtonMenu() =
+        editFloatingButton { it.remove(FLOATING_BUTTON_MENU) }
+
+    suspend fun setFloatingButtonMenuLabels(value: Boolean) =
+        editFloatingButton { it[FLOATING_BUTTON_MENU_LABELS] = value }
+
+    suspend fun setFloatingButtonSize(value: Int) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_SIZE] = value.coerceIn(FloatingButtonSizeRange.first, FloatingButtonSizeRange.last)
+        }
+
+    suspend fun setFloatingButtonStyle(value: FloatingButtonStyle) =
+        editFloatingButton { it[FLOATING_BUTTON_STYLE] = value.name }
+
+    suspend fun setFloatingButtonOpacity(value: Float) =
+        editFloatingButton { it[FLOATING_BUTTON_OPACITY] = value.coerceIn(0.3f, 1f) }
+
+    suspend fun setFloatingButtonIdleFade(seconds: Int) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_IDLE_FADE] = seconds.coerceIn(FloatingButtonIdleRange.first, FloatingButtonIdleRange.last)
+        }
+
+    suspend fun setFloatingButtonIdleOpacity(value: Float) =
+        editFloatingButton { it[FLOATING_BUTTON_IDLE_OPACITY] = value.coerceIn(0.15f, 1f) }
+
+    suspend fun setFloatingButtonTuck(value: Boolean) =
+        editFloatingButton { it[FLOATING_BUTTON_TUCK] = value }
+
+    suspend fun setFloatingButtonWhileTyping(value: Boolean) =
+        editFloatingButton { it[FLOATING_BUTTON_WHILE_TYPING] = value }
+
+    suspend fun setFloatingButtonHideInLandscape(value: Boolean) =
+        editFloatingButton { it[FLOATING_BUTTON_HIDE_LANDSCAPE] = value }
+
+    suspend fun setFloatingButtonHaptics(value: Boolean) =
+        editFloatingButton { it[FLOATING_BUTTON_HAPTICS] = value }
 
     suspend fun setFloatingWidthDp(value: Int) =
         editPrefs { it[FLOATING_WIDTH] = value.coerceIn(240, 500) }

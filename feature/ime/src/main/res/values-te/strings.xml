@@ -1399,7 +1399,6 @@
     <string name="ime_suggestion_never_suggest">\"%1$s\"ని ఎప్పుడూ సూచించవద్దు</string>
     <string name="ime_suggestion_pages_close">కీలకు తిరిగి వెళ్ళు</string>
     <string name="ime_suggestions_show_desc">సలహాల స్ట్రిప్‌ను చూపించు</string>
-    <string name="ime_summon_button_hidden_toast">కీబోర్డ్ తదుపరిసారి తెరిచే వరకు కీబోర్డ్ బటన్ దాచబడింది</string>
     <string name="ime_summon_button_label">కీబోర్డ్‌ను చూపించు</string>
     <string name="ime_symbol_row_delete_confirm_body">ఈ సెట్ మరియు దానిలోని అన్ని ఎంట్రీలు తొలగించబడతాయి. దీన్ని అందించే కీబోర్డ్ మోడ్ బదులుగా మీ ఇతర సెట్‌లను చూపుతుంది.</string>
     <string name="ime_symbol_row_delete_confirm_title">\"%1$s\"ని తొలగించాలా?</string>

@@ -3992,11 +3992,8 @@
     <string name="layout_split_spacebar_title">Împărțiți bara de spațiu</string>
     <string name="layout_split_subtitle">Împarte tastele într-o jumătate stângă și una dreaptă</string>
     <string name="layout_split_title">Tastatură divizată</string>
-    <string name="layout_summon_button_info">Cât timp tastatura este închisă, un buton rotund mic plutește peste fiecare aplicație. Atinge-l și tastatura se va deschide, chiar și pe un ecran fără câmp de text, și va rămâne deschisă acolo până când o închizi. Tastele vor ajunge apoi în aplicație ca apăsări de taste, la fel ca la opțiunea „Păstrează tastatura pe ecran”. Trage butonul pentru a-l muta; se va fixa pe marginea cea mai apropiată. Apasă lung pe el pentru a-l ascunde până la următoarea deschidere a tastaturii. Necesită permisiunea Android „Afișare peste alte aplicații”.</string>
     <string name="layout_summon_button_permission_subtitle">Butonul nu poate apărea până când Android nu permite acest lucru</string>
     <string name="layout_summon_button_permission_title">Permite afișarea peste alte aplicații</string>
-    <string name="layout_summon_button_subtitle">Un buton peste alte aplicații care deschide tastatura, cu sau fără un câmp de text</string>
-    <string name="layout_summon_button_title">Buton tastatură plutitoare</string>
     <string name="layout_swap_comma_globe_info">Cele două taste de pe fiecare parte a barei de spațiu își schimbă locul. Dacă una dintre ele este o tastă emoji, aceasta se mută în poziția exterioară, iar virgula rămâne lângă bara de spațiu. Dezactivează acest lucru pentru a reveni la ordinea obișnuită.</string>
     <string name="layout_swap_comma_globe_subtitle">Pune virgula lângă bara de spațiu</string>
     <string name="layout_swap_comma_globe_title">Inversează tastele virgulă și 🌐</string>
@@ -5815,7 +5812,6 @@
     <string name="search_kw_layout_show_globe">ascunde eliminarea limbii glob</string>
     <string name="search_kw_layout_size_position">redimensionare micșorare compactare mărire</string>
     <string name="search_kw_layout_split">ergonomic pentru degetul mare tabletă</string>
-    <string name="search_kw_layout_summon_button">suprapunere balon afișare câmp invocare hackeri fără câmp</string>
     <string name="search_kw_layout_symbols_numpad_key">tastatură numerică numpad dialpad 1234 gboard</string>
     <string name="search_kw_learnedcorrections">corecții învățate, remedierile mele, perechi de greșeli de scriere, remedieri predate, învățare autocorecție, erori, obiceiuri</string>
     <string name="search_kw_licenses">open source, atribuire, credite</string>

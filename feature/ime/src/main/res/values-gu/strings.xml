@@ -1405,7 +1405,6 @@
     <string name="ime_suggestion_never_suggest">\"%1$s\" ક્યારેય સૂચવશો નહીં</string>
     <string name="ime_suggestion_pages_close">કી પર પાછા જાઓ</string>
     <string name="ime_suggestions_show_desc">સૂચન પટ્ટી બતાવો</string>
-    <string name="ime_summon_button_hidden_toast">કીબોર્ડ ફરીથી ખુલે ત્યાં સુધી કીબોર્ડ બટન છુપાયેલું રહેશે</string>
     <string name="ime_summon_button_label">કીબોર્ડ બતાવો</string>
     <string name="ime_symbol_row_delete_confirm_body">સેટ અને તેની બધી એન્ટ્રીઓ જતી રહેશે. જે કીબોર્ડ મોડ તેને ઓફર કરતું હતું તે તેના બદલે તમારા અન્ય સેટ બતાવશે.</string>
     <string name="ime_symbol_row_delete_confirm_title">\"%1$s\" કાઢી નાખવું છે?</string>

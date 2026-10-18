@@ -4005,11 +4005,8 @@
     <string name="layout_split_spacebar_title">স্পেসবার ভাগ করুন</string>
     <string name="layout_split_subtitle">কীগুলোকে বাম এবং ডান অর্ধাংশে ভাগ করুন</string>
     <string name="layout_split_title">স্প্লিট কীবোর্ড</string>
-    <string name="layout_summon_button_info">কিবোর্ড বন্ধ থাকা অবস্থায়, একটি ছোট গোল বাটন প্রতিটি অ্যাপের উপরে ভেসে থাকে। এটি ট্যাপ করলে কিবোর্ড খুলে যায়, এমনকি টেক্সট ফিল্ড নেই এমন স্ক্রিনেও, এবং আপনি বন্ধ না করা পর্যন্ত এটি খোলা থাকে। কিগুলো তখন কি প্রেস হিসেবে অ্যাপে পৌঁছায়, ঠিক যেমন \'কিবোর্ড স্ক্রিনে রাখুন\' অপশনে হয়। বাটনটি সরাতে ড্র্যাগ করুন; এটি কাছের দিকে গিয়ে স্থির হয়। কিবোর্ড পরবর্তীবার না খোলা পর্যন্ত এটি লুকাতে প্রেস করে ধরে রাখুন। অ্যান্ড্রয়েডের \'অন্য অ্যাপের উপরে প্রদর্শনের\' অনুমতি প্রয়োজন।</string>
     <string name="layout_summon_button_permission_subtitle">অ্যান্ড্রয়েড অনুমতি না দেওয়া পর্যন্ত বোতামটি প্রদর্শিত হবে না</string>
     <string name="layout_summon_button_permission_title">অন্যান্য অ্যাপের উপরে প্রদর্শনের অনুমতি দিন</string>
-    <string name="layout_summon_button_subtitle">অন্যান্য অ্যাপের উপরে একটি বোতাম যা টেক্সট ফিল্ড থাকুক বা না থাকুক, কিবোর্ড খোলে</string>
-    <string name="layout_summon_button_title">ফ্লোটিং কীবোর্ড বোতাম</string>
     <string name="layout_swap_comma_globe_info">স্পেসবারের দুই পাশের দুটি কি নিজেদের জায়গা পরিবর্তন করে। যদি তাদের একটি ইমোজি কি হয়, তবে সেটি বাইরের দিকে চলে যায় এবং কমাটি স্পেসবারের পাশেই থাকে। স্বাভাবিক ক্রম পেতে এটি বন্ধ করুন।</string>
     <string name="layout_swap_comma_globe_subtitle">স্পেসবারের পাশে কমা রাখুন</string>
     <string name="layout_swap_comma_globe_title">কমা এবং 🌐 কী অদলবদল করুন</string>
@@ -5829,7 +5826,6 @@
     <string name="search_kw_layout_show_globe">গ্লোব ভাষা অপসারণ লুকান</string>
     <string name="search_kw_layout_size_position">রিসাইজ শ্রিন্ক কমপ্যাক্ট গ্রো</string>
     <string name="search_kw_layout_split">থাম্ব এরগোনোমিক ট্যাবলেট</string>
-    <string name="search_kw_layout_summon_button">বাবল ওভারলে শো সামন ফিল্ডলেস হ্যাকারস</string>
     <string name="search_kw_layout_symbols_numpad_key">নামপ্যাড কিপ্যাড ডায়ালপ্যাড ১২৩৪ জি-বোর্ড</string>
     <string name="search_kw_learnedcorrections">শেখা সংশোধন, আমার সংশোধন, টাইপো জোড়া, শেখানো সংশোধন, অটোকারেক্ট লার্নিং, স্লিপস, অভ্যাস</string>
     <string name="search_kw_licenses">ওপেন সোর্স, অ্যাট্রিবিউশন, ক্রেডিট</string>

@@ -1395,7 +1395,6 @@
     <string name="ime_suggestion_never_suggest">\"%1$s\" を提案しない</string>
     <string name="ime_suggestion_pages_close">キーボードに戻る</string>
     <string name="ime_suggestions_show_desc">候補バーを表示</string>
-    <string name="ime_summon_button_hidden_toast">キーボードボタンは次にキーボードが開くまで非表示になります</string>
     <string name="ime_summon_button_label">キーボードを表示</string>
     <string name="ime_symbol_row_delete_confirm_body">セットとその全項目が削除されます。これを提供していたキーボードモードでは、代わりに他のセットが表示されます。</string>
     <string name="ime_symbol_row_delete_confirm_title">\"%1$s\"を削除しますか？</string>

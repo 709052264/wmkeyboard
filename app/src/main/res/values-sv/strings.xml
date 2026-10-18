@@ -3991,11 +3991,8 @@
     <string name="layout_split_spacebar_title">Dela mellanslagstangenten</string>
     <string name="layout_split_subtitle">Dela upp tangenterna i en vänsterhalva och en högerhalva</string>
     <string name="layout_split_title">Delat tangentbord</string>
-    <string name="layout_summon_button_info">När tangentbordet är stängt flyter en liten rund knapp över varje app. Tryck på den så öppnas tangentbordet, även på en skärm utan textfält, och förblir öppet där tills du stänger det. Tangenttryckningar når sedan appen som tangenttryckningar, precis som med \"Behåll tangentbordet på skärmen\". Dra i knappen för att flytta den; den lägger sig mot närmaste sida. Tryck och håll ned den för att dölja den tills tangentbordet öppnas nästa gång. Kräver Androids behörighet \"Visa över andra appar\".</string>
     <string name="layout_summon_button_permission_subtitle">Knappen kan inte visas förrän Android tillåter det</string>
     <string name="layout_summon_button_permission_title">Tillåt visning ovanpå andra appar</string>
-    <string name="layout_summon_button_subtitle">En knapp över andra appar som öppnar tangentbordet, med eller utan ett textfält</string>
-    <string name="layout_summon_button_title">Knapp för flytande tangentbord</string>
     <string name="layout_swap_comma_globe_info">De två tangenterna på vardera sida om mellanslagstangenten byter plats. Om en av dem är en emojitangent flyttas den till den yttre positionen och kommatecknet stannar kvar bredvid mellanslagstangenten. Stäng av detta för att få den vanliga ordningen.</string>
     <string name="layout_swap_comma_globe_subtitle">Placera kommatecknet bredvid mellanslagstangenten</string>
     <string name="layout_swap_comma_globe_title">Byt plats på komma- och 🌐-tangenterna</string>
@@ -5815,7 +5812,6 @@
     <string name="search_kw_layout_show_globe">dölj ta bort jordglob språk</string>
     <string name="search_kw_layout_size_position">ändra storlek krymp kompakt växa</string>
     <string name="search_kw_layout_split">ergonomisk tumlayout för surfplatta</string>
-    <string name="search_kw_layout_summon_button">bubbelöverlägg visa summon fältlösa hackers</string>
     <string name="search_kw_layout_symbols_numpad_key">numpad knappsats sifferplatta 1234 gboard</string>
     <string name="search_kw_learnedcorrections">inlärda rättelser, mina korrigeringar, stavfelspar, inlärda rättelser, autokorrigeringsinlärning, slarvfel, vanor</string>
     <string name="search_kw_licenses">öppen källkod, erkännande, krediter</string>

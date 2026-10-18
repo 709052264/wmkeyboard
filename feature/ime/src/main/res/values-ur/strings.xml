@@ -1403,7 +1403,6 @@
     <string name="ime_suggestion_never_suggest">کبھی تجویز نہ کریں \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">کلیدوں پر واپس جائیں</string>
     <string name="ime_suggestions_show_desc">تجویز کی پٹی دکھائیں</string>
-    <string name="ime_summon_button_hidden_toast">کی بورڈ بٹن تب تک پوشیدہ ہے جب تک کی بورڈ اگلی بار نہیں کھلتا</string>
     <string name="ime_summon_button_label">کی بورڈ دکھائیں</string>
     <string name="ime_symbol_row_delete_confirm_body">سیٹ اور اس کی تمام اندراجات ختم ہو جائیں گی۔ ایک کی بورڈ موڈ جو اسے پیش کرتا تھا، اس کے بجائے آپ کے دوسرے سیٹ دکھائے گا۔</string>
     <string name="ime_symbol_row_delete_confirm_title">\"%1$s\" کو حذف کریں؟</string>

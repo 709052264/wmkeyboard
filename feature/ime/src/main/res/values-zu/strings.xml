@@ -1407,7 +1407,6 @@
     <string name="ime_suggestion_never_suggest">Ungalokothi uphakamise \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Buyela okhiye</string>
     <string name="ime_suggestions_show_desc">Bonisa umugqa wesiphakamiso</string>
-    <string name="ime_summon_button_hidden_toast">Inkinobho yekhibhodi ifihliwe kuze kube yilapho ikhibhodi ivuleka ngokulandelayo</string>
     <string name="ime_summon_button_label">Bonisa ikhibhodi</string>
     <string name="ime_symbol_row_delete_confirm_body">Isethi nakho konke okufakiwe kuyo kuzosuswa. Imodi yekhibhodi ebeyinikeza izobonisa ezinye izethi zakho esikhundleni salokho.</string>
     <string name="ime_symbol_row_delete_confirm_title">Susa u-\"%1$s\"?</string>

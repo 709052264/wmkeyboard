@@ -3984,11 +3984,8 @@
     <string name="layout_split_spacebar_title">スペースバーを分割</string>
     <string name="layout_split_subtitle">キーを左右に分割します</string>
     <string name="layout_split_title">分割キーボード</string>
-    <string name="layout_summon_button_info">キーボードが閉じている間、小さな丸いボタンがすべてのアプリの上に浮かびます。それをタップすると、テキストフィールドがない画面でもキーボードが開き、閉じるまでそこに留まります。キーは「キーボードを画面に保持」と同じように、キー入力としてアプリに送信されます。ボタンをドラッグして移動すると、近い方の端に固定されます。長押しすると、次にキーボードが開くまで非表示になります。Androidの「他のアプリの上に表示」権限が必要です。</string>
     <string name="layout_summon_button_permission_subtitle">Androidの許可が得られるまでボタンは表示されません</string>
     <string name="layout_summon_button_permission_title">他のアプリの上に重ねて表示することを許可</string>
-    <string name="layout_summon_button_subtitle">他のアプリの上に表示され、テキストフィールドの有無にかかわらずキーボードを開くボタン</string>
-    <string name="layout_summon_button_title">フローティングキーボードボタン</string>
     <string name="layout_swap_comma_globe_info">スペースキーの両側にある 2 つのキーを入れ替えます。そのうちの 1 つが絵文字キーの場合、外側の位置に移動し、カンマはスペースキーの隣に残ります。通常の順序に戻すには、これをオフにしてください。</string>
     <string name="layout_swap_comma_globe_subtitle">カンマをスペースバーの隣に配置します</string>
     <string name="layout_swap_comma_globe_title">カンマキーと🌐キーを入れ替える</string>
@@ -5807,7 +5804,6 @@
     <string name="search_kw_layout_show_globe">地球儀言語アイコンを非表示にする</string>
     <string name="search_kw_layout_size_position">サイズ変更 縮小 コンパクト 拡大</string>
     <string name="search_kw_layout_split">親指 人間工学 タブレット</string>
-    <string name="search_kw_layout_summon_button">バブルオーバーレイでフィールドレスハッカーを呼び出す</string>
     <string name="search_kw_layout_symbols_numpad_key">テンキー キーパッド ダイヤルパッド 1234 gboard</string>
     <string name="search_kw_learnedcorrections">学習した修正, 自分の修正, タイプミス, 教えた修正, 自動修正の学習, 入力ミス, 癖</string>
     <string name="search_kw_licenses">オープンソース, 帰属表示, クレジット</string>

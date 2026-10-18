@@ -1400,7 +1400,6 @@
     <string name="ime_suggestion_never_suggest">Nikdy nenavrhovať „%1$s“</string>
     <string name="ime_suggestion_pages_close">Späť na klávesy</string>
     <string name="ime_suggestions_show_desc">Zobraziť panel návrhov</string>
-    <string name="ime_summon_button_hidden_toast">Tlačidlo klávesnice skryté až do ďalšieho otvorenia klávesnice</string>
     <string name="ime_summon_button_label">Zobraziť klávesnicu</string>
     <string name="ime_symbol_row_delete_confirm_body">Sada a všetky jej položky budú odstránené. Režim klávesnice, ktorý ju ponúkal, zobrazí namiesto nej vaše ostatné sady.</string>
     <string name="ime_symbol_row_delete_confirm_title">Odstrániť \"%1$s\"?</string>

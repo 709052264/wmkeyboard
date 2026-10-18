@@ -913,8 +913,34 @@ private fun SearchStrings.layoutOnehandedRows(): List<SettingsSearchEntry> {
         row(R.string.layout_floating_handle_title, R.string.layout_floating_handle_subtitle),
         row(R.string.layout_floating_width_title, R.string.layout_floating_width_subtitle),
         row(R.string.layout_persistent_title, R.string.layout_persistent_subtitle, weight = EntryWeight.PRIMARY),
-        row(R.string.layout_summon_button_title, R.string.layout_summon_button_subtitle, weight = EntryWeight.PRIMARY),
-        row(R.string.layout_ai_button_title, R.string.layout_ai_button_subtitle, weight = EntryWeight.PRIMARY),
+    )
+}
+
+/** Rows on Advanced › Floating button (#755), in screen order. */
+private fun SearchStrings.floatingButtonRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.floating_button_title, FloatingButtonRoute,
+        screenParent = R.string.home_advanced_title,
+    )
+    return listOf(
+        row(R.string.floating_button_enable_title, R.string.floating_button_enable_subtitle),
+        row(R.string.floating_button_screen_title, R.string.floating_button_screen_subtitle),
+        row(R.string.floating_button_tap_title),
+        row(R.string.floating_button_double_tap_title),
+        row(R.string.floating_button_hold_title),
+        row(R.string.floating_button_menu_add_title),
+        row(R.string.floating_button_menu_labels_title, R.string.floating_button_menu_labels_subtitle),
+        row(R.string.floating_button_menu_reset_title, R.string.floating_button_menu_reset_subtitle),
+        row(R.string.floating_button_style_title),
+        row(R.string.floating_button_size_title, R.string.floating_button_size_subtitle),
+        row(R.string.floating_button_opacity_title, R.string.floating_button_opacity_subtitle),
+        row(R.string.floating_button_idle_title, R.string.floating_button_idle_subtitle),
+        row(R.string.floating_button_idle_opacity_title, R.string.floating_button_idle_opacity_subtitle),
+        row(R.string.floating_button_tuck_title, R.string.floating_button_tuck_subtitle),
+        row(R.string.floating_button_while_typing_title, R.string.floating_button_while_typing_subtitle),
+        row(R.string.floating_button_landscape_title, R.string.floating_button_landscape_subtitle),
+        row(R.string.floating_button_haptics_title, R.string.floating_button_haptics_subtitle),
+        row(R.string.floating_button_reset_position_title, R.string.floating_button_reset_position_subtitle),
     )
 }
 
@@ -2283,6 +2309,10 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.selection_macros_title, R.string.selection_macros_subtitle,
             R.string.home_advanced_title, "selection_macros", R.string.search_kw_selection_macros,
         ),
+        under(
+            R.string.floating_button_title, R.string.floating_button_subtitle,
+            R.string.home_advanced_title, FloatingButtonRoute, R.string.search_kw_floating_button,
+        ),
         // The actions list is indexed as a screen and never row by row: a row
         // called "Delete" or "Translate" would outrank the tools of those
         // names, which the ranking test pins.
@@ -2568,7 +2598,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         appearanceToolbarRows() +
         appearanceToolboxRows() + photoRows() + layoutRows() +
         layoutSizeRows() +
-        layoutOnehandedRows() + languageRows() + emojiRows() +
+        layoutOnehandedRows() + floatingButtonRows() + languageRows() + emojiRows() +
         emojiPanelRows() +
         voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + vocabRows() + notesRows() + storageRows() + otherRows()
     all.filterNot { it.route in unsupported }.distinctBy { it.key }

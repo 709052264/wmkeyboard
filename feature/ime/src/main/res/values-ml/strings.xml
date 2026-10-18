@@ -1401,7 +1401,6 @@
     <string name="ime_suggestion_never_suggest">\"%1$s\" ഒരിക്കലും നിർദ്ദേശിക്കരുത്</string>
     <string name="ime_suggestion_pages_close">കീകളിലേക്ക് മടങ്ങുക</string>
     <string name="ime_suggestions_show_desc">നിർദ്ദേശ സ്ട്രിപ്പ് കാണിക്കുക</string>
-    <string name="ime_summon_button_hidden_toast">അടുത്ത തവണ കീബോർഡ് തുറക്കുന്നത് വരെ കീബോർഡ് ബട്ടൺ മറച്ചിരിക്കുന്നു</string>
     <string name="ime_summon_button_label">കീബോർഡ് കാണിക്കുക</string>
     <string name="ime_symbol_row_delete_confirm_body">ഈ സെറ്റും അതിലെ എല്ലാ എൻട്രികളും നീക്കം ചെയ്യപ്പെടും. ഇത് നൽകിയിരുന്ന കീബോർഡ് മോഡ് പകരം നിങ്ങളുടെ മറ്റ് സെറ്റുകൾ കാണിക്കും.</string>
     <string name="ime_symbol_row_delete_confirm_title">\"%1$s\" ഡിലീറ്റ് ചെയ്യണോ?</string>

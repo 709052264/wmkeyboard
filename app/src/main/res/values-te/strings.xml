@@ -3990,11 +3990,8 @@
     <string name="layout_split_spacebar_title">స్పేస్ బార్‌ను విభజించండి</string>
     <string name="layout_split_subtitle">కీలను ఎడమ సగం మరియు కుడి సగంగా విభజించండి</string>
     <string name="layout_split_title">స్ప్లిట్ కీబోర్డ్</string>
-    <string name="layout_summon_button_info">కీబోర్డ్ మూసి ఉన్నప్పుడు, ఒక చిన్న గుండ్రని బటన్ ప్రతి యాప్ పైన తేలుతూ ఉంటుంది. దాన్ని ట్యాప్ చేస్తే కీబోర్డ్ తెరుచుకుంటుంది, టెక్స్ట్ ఫీల్డ్ లేని స్క్రీన్‌పై కూడా, మరియు మీరు మూసివేసే వరకు అక్కడే ఉంటుంది. కీబోర్డ్‌ను స్క్రీన్‌పై ఉంచు అనే ఆప్షన్ లాగానే, కీలు యాప్‌కు కీ ప్రెస్‌లుగా అందుతాయి. బటన్‌ను తరలించడానికి దాన్ని లాగండి; అది దగ్గరి వైపుకు చేరుకుంటుంది. కీబోర్డ్ తదుపరిసారి తెరిచే వరకు దాన్ని దాచడానికి నొక్కి పట్టుకోండి. దీనికి ఆండ్రాయిడ్ యొక్క \'ఇతర యాప్‌ల పైన ప్రదర్శించు\' అనుమతి అవసరం.</string>
     <string name="layout_summon_button_permission_subtitle">ఆండ్రాయిడ్ అనుమతించే వరకు బటన్ కనిపించదు</string>
     <string name="layout_summon_button_permission_title">ఇతర యాప్‌ల పైన ప్రదర్శించడానికి అనుమతించు</string>
-    <string name="layout_summon_button_subtitle">టెక్స్ట్ ఫీల్డ్‌తో లేదా లేకుండా కీబోర్డ్‌ను తెరిచే ఇతర యాప్‌ల పైన ఉండే బటన్</string>
-    <string name="layout_summon_button_title">ఫ్లోటింగ్ కీబోర్డ్ బటన్</string>
     <string name="layout_swap_comma_globe_info">స్పేస్‌బార్‌కు ఇరువైపులా ఉన్న రెండు కీలు స్థానాలను మారుస్తాయి. వాటిలో ఒకటి ఎమోజీ కీ అయితే, అది బయటి స్థానానికి మారుతుంది మరియు కామా స్పేస్‌బార్ పక్కనే ఉంటుంది. సాధారణ క్రమాన్ని పొందడానికి దీన్ని ఆఫ్ చేయండి.</string>
     <string name="layout_swap_comma_globe_subtitle">కామాను స్పేస్‌బార్ పక్కన ఉంచండి</string>
     <string name="layout_swap_comma_globe_title">కామా మరియు 🌐 కీలను మార్చుకోండి</string>
@@ -5814,7 +5811,6 @@
     <string name="search_kw_layout_show_globe">గ్లోబ్ భాషను తీసివేయుటను దాచు</string>
     <string name="search_kw_layout_size_position">పరిమాణం మార్చడం కుదించడం కాంపాక్ట్ పెంచడం</string>
     <string name="search_kw_layout_split">థంబ్ ఎర్గోనామిక్ టాబ్లెట్</string>
-    <string name="search_kw_layout_summon_button">బబుల్ ఓవర్‌లే ఫీల్డ్‌లెస్ హ్యాకర్లను పిలవడానికి చూపుతుంది</string>
     <string name="search_kw_layout_symbols_numpad_key">నంప్యాడ్ కీప్యాడ్ డయల్ప్యాడ్ 1234 జిబోర్డ్</string>
     <string name="search_kw_learnedcorrections">నేర్చుకున్న సవరణలు, నా సవరణలు, టైపో జతలు, నేర్పిన సవరణలు, ఆటోకరెక్ట్ లెర్నింగ్, స్లిప్స్, అలవాట్లు</string>
     <string name="search_kw_licenses">ఓపెన్ సోర్స్, అట్రిబ్యూషన్, క్రెడిట్స్</string>

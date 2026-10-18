@@ -1397,7 +1397,6 @@
     <string name="ime_suggestion_never_suggest">هرگز \"%1$s\" را پیشنهاد نکن</string>
     <string name="ime_suggestion_pages_close">بازگشت به کلیدها</string>
     <string name="ime_suggestions_show_desc">نمایش نوار پیشنهادها</string>
-    <string name="ime_summon_button_hidden_toast">دکمه صفحه‌کلید تا باز شدن بعدی صفحه‌کلید مخفی شد</string>
     <string name="ime_summon_button_label">نمایش صفحه‌کلید</string>
     <string name="ime_symbol_row_delete_confirm_body">این مجموعه و تمام ورودی‌های آن حذف خواهند شد. حالت صفحه‌کلیدی که آن را ارائه می‌داد، مجموعه‌های دیگر شما را نمایش می‌دهد.</string>
     <string name="ime_symbol_row_delete_confirm_title">حذف \"%1$s\"؟</string>

@@ -3986,11 +3986,8 @@
     <string name="layout_split_spacebar_title">Bagi bilah spasi</string>
     <string name="layout_split_subtitle">Bagi tombol menjadi bagian kiri dan kanan</string>
     <string name="layout_split_title">Keyboard terpisah</string>
-    <string name="layout_summon_button_info">Saat papan ketik ditutup, tombol bulat kecil akan melayang di atas setiap aplikasi. Ketuk tombol tersebut dan papan ketik akan terbuka, bahkan di layar tanpa kolom teks, dan tetap terbuka di sana sampai Anda menutupnya. Tombol kemudian menjangkau aplikasi sebagai penekanan tombol, sama seperti dengan Tetap tampilkan papan ketik di layar. Seret tombol untuk memindahkannya; tombol akan menetap di sisi yang lebih dekat. Tekan dan tahan untuk menyembunyikannya sampai papan ketik dibuka kembali. Memerlukan izin Tampilkan di atas aplikasi lain Android.</string>
     <string name="layout_summon_button_permission_subtitle">Tombol tidak dapat muncul sampai Android mengizinkannya</string>
     <string name="layout_summon_button_permission_title">Izinkan tampilan di atas aplikasi lain</string>
-    <string name="layout_summon_button_subtitle">Tombol di atas aplikasi lain yang membuka papan ketik, dengan atau tanpa kolom teks</string>
-    <string name="layout_summon_button_title">Tombol papan ketik mengambang</string>
     <string name="layout_swap_comma_globe_info">Dua tombol di setiap sisi bilah spasi bertukar tempat. Jika salah satunya adalah tombol emoji, tombol tersebut akan pindah ke posisi luar dan koma tetap berada di sebelah bilah spasi. Matikan ini untuk mendapatkan urutan seperti biasa.</string>
     <string name="layout_swap_comma_globe_subtitle">Letakkan koma di sebelah bilah spasi</string>
     <string name="layout_swap_comma_globe_title">Tukar tombol koma dan 🌐</string>
@@ -5810,7 +5807,6 @@
     <string name="search_kw_layout_show_globe">sembunyikan hapus bahasa globe</string>
     <string name="search_kw_layout_size_position">ubah ukuran kecilkan ringkas perbesar</string>
     <string name="search_kw_layout_split">jempol ergonomis tablet</string>
-    <string name="search_kw_layout_summon_button">tampilkan hamparan gelembung untuk memanggil peretas tanpa kolom</string>
     <string name="search_kw_layout_symbols_numpad_key">numpad keypad dialpad 1234 gboard</string>
     <string name="search_kw_learnedcorrections">koreksi yang dipelajari, perbaikan saya, pasangan salah ketik, perbaikan yang diajarkan, pembelajaran koreksi otomatis, kesalahan ketik, kebiasaan</string>
     <string name="search_kw_licenses">sumber terbuka, atribusi, kredit</string>

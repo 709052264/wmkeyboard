@@ -2,7 +2,6 @@ package com.wasimaster.wmkeyboard.app
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import com.wasimaster.wmkeyboard.core.accessibility.ScreenContextService
 import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
 import com.wasimaster.wmkeyboard.core.settings.ArrowKey
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
@@ -13,9 +12,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import com.wasimaster.wmkeyboard.ime.KeyboardControls
-import androidx.compose.runtime.LaunchedEffect
-import android.provider.Settings
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -1627,20 +1623,6 @@ internal fun LayoutOneHandedSettings(
     val split = settings.watch { it.splitKeyboard }
     // Either orientation floating (#584) shows the panel's own rows.
     val floating = settings.watch { it.floatingFor(false) || it.floatingFor(true) }
-    // The floating keyboard button (#374) and the grant it cannot draw without.
-    val summonButton = settings.watch { it.summonButton.enabled }
-    // The floating AI button (#697), the same grant, and the screen reading
-    // that gives its chat something to be about.
-    val aiButton = settings.watch { it.summonButton.aiButton }
-    val overlayGranted = rememberGrantState { Settings.canDrawOverlays(it) }
-    val askOverlay = rememberDisclosedSpecialAccess(SpecialAccess.OVERLAY)
-    val screenReading = rememberGrantState { ScreenContextService.isEnabled(it) }
-    val askScreenReading = rememberDisclosedSpecialAccess(SpecialAccess.SCREEN_CONTENT)
-    // The keyboard only re-checks the grant when it next closes; coming back
-    // from the system screen with it is worth showing the button at once.
-    LaunchedEffect(summonButton, aiButton, overlayGranted) {
-        KeyboardControls.host?.syncSummonButton()
-    }
     SettingsGroup(
         stringResource(R.string.layout_one_handed_group_title),
         info = stringResource(R.string.layout_one_handed_caption),
@@ -1841,44 +1823,6 @@ internal fun LayoutOneHandedSettings(
                 info = stringResource(R.string.layout_persistent_info),
                 default = SettingsDefaults.persistentKeyboard,
             ) { scope.launch { repository.setPersistentKeyboard(it) } }
-        }
-        item {
-            ToggleSetting(
-                R.string.layout_summon_button_title,
-                stringResource(R.string.layout_summon_button_subtitle),
-                summonButton,
-                info = stringResource(R.string.layout_summon_button_info),
-                default = SettingsDefaults.summonButton.enabled,
-            ) { on ->
-                scope.launch { repository.setSummonButton(on) }
-                // The disclosure, then Android's own switch. The setting is
-                // kept either way, so granting later is all it takes.
-                if (on && !overlayGranted) askOverlay()
-            }
-        }
-        item {
-            ToggleSetting(
-                R.string.layout_ai_button_title,
-                stringResource(R.string.layout_ai_button_subtitle),
-                aiButton,
-                info = stringResource(R.string.layout_ai_button_info),
-                default = SettingsDefaults.summonButton.aiButton,
-            ) { on ->
-                scope.launch { repository.setAiButton(on) }
-                if (on && !overlayGranted) askOverlay()
-            }
-        }
-        item(visible = aiButton && overlayGranted && !screenReading && ChannelFeatures.SCREEN_CONTEXT) {
-            NavRow(
-                R.string.layout_ai_button_screen_title,
-                subtitle = stringResource(R.string.layout_ai_button_screen_subtitle),
-            ) { askScreenReading() }
-        }
-        item(visible = (summonButton || aiButton) && !overlayGranted) {
-            NavRow(
-                R.string.layout_summon_button_permission_title,
-                subtitle = stringResource(R.string.layout_summon_button_permission_subtitle),
-            ) { askOverlay() }
         }
     }
 }

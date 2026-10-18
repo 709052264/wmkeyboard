@@ -1395,7 +1395,6 @@
     <string name="ime_suggestion_never_suggest">从不建议“%1$s”</string>
     <string name="ime_suggestion_pages_close">回到按键</string>
     <string name="ime_suggestions_show_desc">显示建议栏</string>
-    <string name="ime_summon_button_hidden_toast">键盘按钮已隐藏，下次打开键盘时会再次显示</string>
     <string name="ime_summon_button_label">显示键盘</string>
     <string name="ime_symbol_row_delete_confirm_body">该集合及其所有条目都将被删除。届时，提供此功能的键盘模式将改为显示您的其他集合。</string>
     <string name="ime_symbol_row_delete_confirm_title">删除“%1$s”？</string>

@@ -3982,11 +3982,8 @@
     <string name="layout_split_spacebar_title">Szóköz felosztása</string>
     <string name="layout_split_subtitle">Ossza a billentyűket egy bal és egy jobb félre</string>
     <string name="layout_split_title">Osztott billentyűzet</string>
-    <string name="layout_summon_button_info">Amíg a billentyűzet zárva van, egy kis kerek gomb lebeg minden alkalmazás felett. Koppintson rá, és a billentyűzet megnyílik, még akkor is, ha nincs szövegmező a képernyőn, és nyitva marad, amíg be nem zárja. A billentyűleütések így eljutnak az alkalmazáshoz, ugyanúgy, mint a „Billentyűzet a képernyőn tartása” beállításnál. Húzza el a gombot az áthelyezéséhez; a közelebbi oldalhoz igazodik. Nyomja meg és tartsa lenyomva az elrejtéséhez, amíg a billentyűzet legközelebb meg nem nyílik. Szükséges hozzá az Android „Megjelenés más alkalmazások felett” engedélye.</string>
     <string name="layout_summon_button_permission_subtitle">A gomb nem jelenhet meg, amíg az Android nem engedélyezi</string>
     <string name="layout_summon_button_permission_title">Megjelenítés más alkalmazások felett</string>
-    <string name="layout_summon_button_subtitle">Egy gomb más alkalmazások felett, amely megnyitja a billentyűzetet, szövegmezővel vagy anélkül</string>
-    <string name="layout_summon_button_title">Lebegő billentyűzet gomb</string>
     <string name="layout_swap_comma_globe_info">A szóköz két oldalán lévő billentyűk helyet cserélnek. Ha az egyik egy hangulatjel-billentyű, az a külső pozícióba kerül, a vessző pedig a szóköz mellett marad. Kapcsolja ki ezt a szokásos sorrend visszaállításához.</string>
     <string name="layout_swap_comma_globe_subtitle">Tegye a vesszőt a szóköz mellé</string>
     <string name="layout_swap_comma_globe_title">A vessző és a 🌐 billentyűk felcserélése</string>
@@ -5805,7 +5802,6 @@
     <string name="search_kw_layout_show_globe">földgömb nyelv eltávolítása elrejtése</string>
     <string name="search_kw_layout_size_position">átméretezés zsugorítás tömörítés növelés</string>
     <string name="search_kw_layout_split">hüvelykujj ergonomikus táblagép</string>
-    <string name="search_kw_layout_summon_button">buborék átfedés megjelenítése hívás mező nélküli hackerek</string>
     <string name="search_kw_layout_symbols_numpad_key">numpad számbillentyűzet tárcsázó 1234 gboard</string>
     <string name="search_kw_learnedcorrections">tanult javítások, saját javítások, elírási párok, megtanított javítások, automatikus javítás tanulása, elütések, szokások</string>
     <string name="search_kw_licenses">nyílt forráskód, forrásmegjelölés, kreditek</string>

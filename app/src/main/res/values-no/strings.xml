@@ -3990,11 +3990,8 @@
     <string name="layout_split_spacebar_title">Del mellomromstasten</string>
     <string name="layout_split_subtitle">Del tastene inn i en venstre og en høyre halvdel</string>
     <string name="layout_split_title">Delt tastatur</string>
-    <string name="layout_summon_button_info">Mens tastaturet er lukket, flyter en liten rund knapp over hver app. Trykk på den, så åpnes tastaturet, selv på en skjerm uten tekstfelt, og det forblir åpent der til du lukker det. Tastetrykk sendes deretter til appen som tastetrykk, på samme måte som med «Hold tastaturet på skjermen». Dra knappen for å flytte den; den legger seg inntil nærmeste side. Trykk og hold den for å skjule den til neste gang tastaturet åpnes. Krever Android-tillatelsen «Vis over andre apper».</string>
     <string name="layout_summon_button_permission_subtitle">Knappen kan ikke vises før Android tillater det</string>
     <string name="layout_summon_button_permission_title">Tillat visning over andre apper</string>
-    <string name="layout_summon_button_subtitle">En knapp over andre apper som åpner tastaturet, med eller uten et tekstfelt</string>
-    <string name="layout_summon_button_title">Flytende tastaturknapp</string>
     <string name="layout_swap_comma_globe_info">De to tastene på hver side av mellomromstasten bytter plass. Hvis en av dem er en emojitast, flyttes den til den ytre posisjonen og kommaet forblir ved siden av mellomromstasten. Slå av dette for å få den vanlige rekkefølgen.</string>
     <string name="layout_swap_comma_globe_subtitle">Plasser kommaet ved siden av mellomromstasten</string>
     <string name="layout_swap_comma_globe_title">Bytt om på komma- og 🌐-tastene</string>
@@ -5814,7 +5811,6 @@
     <string name="search_kw_layout_show_globe">skjul fjern globus-språk</string>
     <string name="search_kw_layout_size_position">endre størrelse krympe kompakt vokse</string>
     <string name="search_kw_layout_split">tommel ergonomisk nettbrett</string>
-    <string name="search_kw_layout_summon_button">bobleoverlegg vis fremkall feltløse hackere</string>
     <string name="search_kw_layout_symbols_numpad_key">numpad talltastatur talltaster 1234 gboard</string>
     <string name="search_kw_learnedcorrections">lærte rettelser, mine rettelser, skrivefeilpar, lærte rettelser, autokorrektur-læring, glipp, vaner</string>
     <string name="search_kw_licenses">åpen kildekode, attribusjon, kreditter</string>

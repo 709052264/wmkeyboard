@@ -1405,7 +1405,6 @@
     <string name="ime_suggestion_never_suggest">Stel \"%1$s\" nooit voor</string>
     <string name="ime_suggestion_pages_close">Terug naar de toetsen</string>
     <string name="ime_suggestions_show_desc">Toon de suggestiebalk</string>
-    <string name="ime_summon_button_hidden_toast">Toetsenbordknop verborgen tot het toetsenbord de volgende keer opent</string>
     <string name="ime_summon_button_label">Toon toetsenbord</string>
     <string name="ime_symbol_row_delete_confirm_body">De set en al zijn items worden verwijderd. Een toetsenbordmodus die deze aanbood, toont in plaats daarvan je andere sets.</string>
     <string name="ime_symbol_row_delete_confirm_title">\"%1$s\" verwijderen?</string>

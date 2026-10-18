@@ -204,36 +204,19 @@ Pin the **Keep on screen** tool to your toolbar to toggle this directly. That to
 
 ## Opening the keyboard without a text field
 
-<SettingsPath path="Layout & size / One-handed, split and floating / Floating keyboard button" />
+<SettingsPath path="Advanced / Floating button / Show the floating button" />
 
-Keeping the keyboard on screen only helps once it's open. To open it on a screen that has no text field to tap (a game, a terminal, a remote-desktop app, your home screen), turn on **Floating keyboard button**. Off by default.
+Keeping the keyboard on screen only helps once it's open. To open it on a screen that has no text field to tap (a game, a terminal, a remote-desktop app, your home screen), turn on the [floating button](/reference/settings/floating-button/). Off by default.
 
-A small round button with a keyboard on it floats over every app. Tap it and the keyboard opens right there, field or not, and stays open on that app's screens until you close it. Keys reach the app as key presses, the same as with **Keep the keyboard on screen**. Switch to another app and the keyboard goes back to opening for text fields only.
+A small round button floats over every app. With its tap left at **Show keyboard**, a tap opens the keyboard right there, field or not, and it stays open on that app's screens until you close it. Keys reach the app as key presses, the same as with **Keep the keyboard on screen**. Switch to another app and the keyboard goes back to opening for text fields only.
 
 While the keyboard is open the button stays, moved up to sit just above the keys, and its glyph changes to a keyboard with a down arrow. Tap it then and the keyboard closes. Back, the **Hide keyboard** tool and a swipe down on the toolbar close it too, and it stays closed until you tap the button or a text field. When the keyboard closes, the button drops back to where you left it.
 
 Kept or summoned open over WM Keyboard's own settings, the keyboard brings up the settings' [test field](/reference/settings/#trying-a-change), so you can type straight away and every row stays reachable above the keys. It does this once each time you come to the app: close the field and it stays closed until you leave the app and come back. Opening the settings from the keyboard itself, such as holding a tool, doesn't do this unless the keyboard is kept on screen.
 
-- **Drag** the button to move it. It settles against the nearer side of the screen and stays where you left it. Dropped behind the open keyboard, it pops back up above it.
-- **Press and hold** it to hide it until the keyboard next opens or closes, for when it covers something you need.
+The same button can do more than open the keyboard. Its tap, double tap and press and hold can each start voice typing, ask the AI about the screen, open the clipboard or any other tool, and pressing and holding it opens a quick menu of more actions by default. Drag it to move it, and drag it onto the cross at the bottom of the screen to hide it for a while. All of that is on its own page, [Floating button](/reference/settings/floating-button/).
 
-The button needs Android's **Display over other apps** permission. Turning the switch on explains why and then opens Android's page for it; until you allow it there, a row under the switch says what's missing. The button is the only thing the keyboard draws with that permission (with the [AI button](#floating-ai-button), if that's on), and it reads nothing from the screen. See [Permissions](/privacy/permissions/).
-
-## Floating AI button
-
-<SettingsPath path="Layout & size / One-handed, split and floating / Floating AI button" />
-
-**Floating AI button** puts a second round button, with a sparkle on it, over every app, whether the keyboard is open or not. Tap it and an AI chat opens as a sheet over the bottom of the screen, with the app still showing above it. Off by default.
-
-With screen reading on, the chat comes with the text that was on screen when you tapped: the article, the conversation, the error message. A line above the message box says so. **View** shows exactly that text, and **Delete** drops it. Nothing is sent until you ask something, and the **Explain simply**, **Summarise** and **Hard words** chips put a ready question in the box for you to send or change. Without screen reading the button still opens a chat, just with nothing attached, and a line under the model chips offers to turn it on.
-
-Screen reading is an accessibility service, **WM Keyboard AI screen reading**, which you turn on in Android's accessibility settings. The row **Let the AI button read the screen** appears under the switch until you do, and explains what it reads first. It reads the text of the app in front once per tap of the button and at no other time, skips password fields, and keeps nothing. It's separate from the [gestures service](/reference/settings/accessibility/), which reads nothing. The Play Store build doesn't contain it, so there the button always opens a plain chat. Screen reading picks up text, not pictures, so a photo on screen reaches the AI only through its caption or description.
-
-To ask about one piece of text instead, select it in any app and pick **Ask AI** from the selection menu (on some phones it's behind the menu's three dots). The same sheet opens with just that text attached.
-
-The chat uses the model picked in the [AI tool](/tools/ai/), and the conversation is kept with your other chats, so it's under **Tools › AI › Chat** afterwards. With an app lock on the AI chat, the sheet asks for it too. Tap above the sheet, the close button or Back to close it.
-
-Drag the AI button to move it and press and hold to hide it, the same as the keyboard button. It needs the same **Display over other apps** permission.
+The button needs Android's **Display over other apps** permission, and it reads nothing from the screen. See [Permissions](/privacy/permissions/).
 
 The **Keyboard controls** notification (Settings › Notifications) does the same job from the notification shade, without the permission: tap it, or its **Show** button, and the keyboard opens over the app you were in once the shade closes. On Android 14 and later, where a swipe can clear even a permanent notification, the controls come straight back; turn them off in Settings › Notifications instead. The floating button is the more dependable of the two, because pulling the shade down briefly takes the screen's focus away from the app, and a few apps answer that by closing the keyboard again.
 

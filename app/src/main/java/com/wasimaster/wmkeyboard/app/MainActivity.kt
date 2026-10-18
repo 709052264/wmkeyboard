@@ -2198,6 +2198,15 @@ private fun SettingsNavGraph(
                 AdvancedSettings { route -> navController.navigate(route) }
             }
         }
+        composable(FloatingButtonRoute) {
+            SettingsScreen(
+                stringResource(R.string.floating_button_title),
+                { navController.popBackStack() },
+                route = FloatingButtonRoute,
+            ) {
+                FloatingButtonSettingsScreen(repository, settings)
+            }
+        }
         composable("rows") {
             SettingsScreen(
                 stringResource(R.string.home_rows_title),
@@ -2866,6 +2875,13 @@ internal fun AdvancedSettings(onNavigate: (String) -> Unit) {
                 stringResource(R.string.selection_macros_subtitle),
                 route = SelectionMacroRoute,
             ) { onNavigate(SelectionMacroRoute) }
+        }
+        item {
+            NavRow(
+                R.string.floating_button_title,
+                stringResource(R.string.floating_button_subtitle),
+                route = FloatingButtonRoute,
+            ) { onNavigate(FloatingButtonRoute) }
         }
     }
 }

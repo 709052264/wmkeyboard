@@ -1405,7 +1405,6 @@
     <string name="ime_suggestion_never_suggest">Älä koskaan ehdota \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Takaisin näppäimiin</string>
     <string name="ime_suggestions_show_desc">Näytä ehdotuspalkki</string>
-    <string name="ime_summon_button_hidden_toast">Näppäimistöpainike on piilotettu, kunnes näppäimistö avataan seuraavan kerran</string>
     <string name="ime_summon_button_label">Näytä näppäimistö</string>
     <string name="ime_symbol_row_delete_confirm_body">Asetus ja kaikki sen merkinnät poistetaan. Näppäimistötila, joka tarjosi sen, näyttää sen sijaan muut asetuksesi.</string>
     <string name="ime_symbol_row_delete_confirm_title">Poistetaanko \"%1$s\"?</string>

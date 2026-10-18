@@ -1401,7 +1401,6 @@
     <string name="ime_suggestion_never_suggest">Niekada nesiūlyti „%1$s“</string>
     <string name="ime_suggestion_pages_close">Atgal prie klavišų</string>
     <string name="ime_suggestions_show_desc">Rodyti pasiūlymų juostą</string>
-    <string name="ime_summon_button_hidden_toast">Klaviatūros mygtukas paslėptas iki kito klaviatūros atidarymo</string>
     <string name="ime_summon_button_label">Rodyti klaviatūrą</string>
     <string name="ime_symbol_row_delete_confirm_body">Rinkinys ir visi jo įrašai bus pašalinti. Klaviatūros režimas, kuriame jis buvo siūlomas, vietoj jo rodys kitus jūsų rinkinius.</string>
     <string name="ime_symbol_row_delete_confirm_title">Ištrinti „%1$s“?</string>

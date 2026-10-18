@@ -1401,7 +1401,6 @@
     <string name="ime_suggestion_never_suggest">Jangan pernah sarankan \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Kembali ke tombol</string>
     <string name="ime_suggestions_show_desc">Tampilkan baris saran</string>
-    <string name="ime_summon_button_hidden_toast">Tombol papan ketik disembunyikan hingga papan ketik dibuka kembali</string>
     <string name="ime_summon_button_label">Tampilkan papan ketik</string>
     <string name="ime_symbol_row_delete_confirm_body">Set tersebut dan semua entrinya akan dihapus. Mode papan tik yang menawarkannya akan menampilkan set Anda yang lain sebagai gantinya.</string>
     <string name="ime_symbol_row_delete_confirm_title">Hapus \"%1$s\"?</string>

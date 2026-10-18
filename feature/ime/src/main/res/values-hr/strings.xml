@@ -1404,7 +1404,6 @@
     <string name="ime_suggestion_never_suggest">Nikada ne predlaži \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Natrag na tipke</string>
     <string name="ime_suggestions_show_desc">Prikaži traku prijedloga</string>
-    <string name="ime_summon_button_hidden_toast">Gumb tipkovnice skriven do sljedećeg otvaranja tipkovnice</string>
     <string name="ime_summon_button_label">Prikaži tipkovnicu</string>
     <string name="ime_symbol_row_delete_confirm_body">Skup i svi njegovi unosi će biti uklonjeni. Način rada tipkovnice koji ga je nudio prikazat će vaše druge skupove.</string>
     <string name="ime_symbol_row_delete_confirm_title">Izbrisati \"%1$s\"?</string>

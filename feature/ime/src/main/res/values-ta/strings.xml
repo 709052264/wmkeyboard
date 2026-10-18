@@ -1403,7 +1403,6 @@
     <string name="ime_suggestion_never_suggest">\"%1$s\" என்பதை ஒருபோதும் பரிந்துரைக்க வேண்டாம்</string>
     <string name="ime_suggestion_pages_close">விசைகளுக்குத் திரும்பு</string>
     <string name="ime_suggestions_show_desc">பரிந்துரை பட்டையைக் காட்டு</string>
-    <string name="ime_summon_button_hidden_toast">விசைப்பலகை அடுத்த முறை திறக்கும் வரை விசைப்பலகை பொத்தான் மறைக்கப்பட்டுள்ளது</string>
     <string name="ime_summon_button_label">விசைப்பலகையைக் காட்டு</string>
     <string name="ime_symbol_row_delete_confirm_body">இந்தத் தொகுப்பும் அதிலுள்ள அனைத்து உள்ளீடுகளும் நீக்கப்படும். இதை வழங்கும் ஒரு விசைப்பலகை பயன்முறைக்குப் பதிலாக, உங்கள் மற்ற தொகுப்புகள் காட்டப்படும்.</string>
     <string name="ime_symbol_row_delete_confirm_title">\"%1$s\" என்பதை நீக்கவா?</string>

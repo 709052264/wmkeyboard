@@ -3977,11 +3977,8 @@
     <string name="layout_split_spacebar_title">分割空格键</string>
     <string name="layout_split_subtitle">将按键分为左右两半</string>
     <string name="layout_split_title">拆分键盘</string>
-    <string name="layout_summon_button_info">当键盘关闭时，一个圆形小按钮会悬浮在每个应用上方。点击它即可打开键盘，即使在没有文本框的屏幕上也是如此，并且会保持打开直到你关闭它。此时按键会作为按键输入发送到应用，与“保持键盘在屏幕上”功能相同。拖动按钮可移动位置；它会自动吸附到靠近的边缘。长按可将其隐藏，直到下次键盘打开。需要 Android 的“在其他应用上层显示”权限。</string>
     <string name="layout_summon_button_permission_subtitle">在 Android 允许之前，该按钮无法显示</string>
     <string name="layout_summon_button_permission_title">允许在其他应用上层显示</string>
-    <string name="layout_summon_button_subtitle">一个悬浮在其他应用之上的按钮，用于打开键盘，无论是否有文本框</string>
-    <string name="layout_summon_button_title">浮动键盘按钮</string>
     <string name="layout_swap_comma_globe_info">空格键两侧的两个键互换位置。如果其中一个是表情符号键，它会移动到外侧位置，而逗号会保留在空格键旁边。关闭此选项可恢复常规顺序。</string>
     <string name="layout_swap_comma_globe_subtitle">将逗号放在空格键旁边</string>
     <string name="layout_swap_comma_globe_title">交换逗号和 🌐 键</string>
@@ -5800,7 +5797,6 @@
     <string name="search_kw_layout_show_globe">隐藏移除地球图标语言</string>
     <string name="search_kw_layout_size_position">调整大小 收缩 紧凑 放大</string>
     <string name="search_kw_layout_split">拇指 人体工学 平板电脑</string>
-    <string name="search_kw_layout_summon_button">气泡悬浮窗显示召唤无字段黑客</string>
     <string name="search_kw_layout_symbols_numpad_key">数字小键盘 拨号盘 1234 gboard</string>
     <string name="search_kw_learnedcorrections">已学习的修正, 我的修正, 拼写错误对, 已教授的修正, 自动更正学习, 输入习惯, 习惯</string>
     <string name="search_kw_licenses">开源、署名、致谢</string>

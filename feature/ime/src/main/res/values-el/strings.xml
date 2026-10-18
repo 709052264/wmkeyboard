@@ -1403,7 +1403,6 @@
     <string name="ime_suggestion_never_suggest">Να μην προτείνεται ποτέ το \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Πίσω στα πλήκτρα</string>
     <string name="ime_suggestions_show_desc">Εμφάνιση της γραμμής προτάσεων</string>
-    <string name="ime_summon_button_hidden_toast">Το κουμπί του πληκτρολογίου είναι κρυμμένο μέχρι το επόμενο άνοιγμα του πληκτρολογίου</string>
     <string name="ime_summon_button_label">Εμφάνιση πληκτρολογίου</string>
     <string name="ime_symbol_row_delete_confirm_body">Το σύνολο και όλες οι καταχωρήσεις του θα διαγραφούν. Μια λειτουργία πληκτρολογίου που το προσέφερε εμφανίζει τώρα τα υπόλοιπα σύνολά σας.</string>
     <string name="ime_symbol_row_delete_confirm_title">Διαγραφή του \"%1$s\";</string>

@@ -3999,11 +3999,8 @@
     <string name="layout_split_spacebar_title">Gawanya kibonye cha nafasi</string>
     <string name="layout_split_subtitle">Gawanya funguo katika nusu ya kushoto na nusu ya kulia</string>
     <string name="layout_split_title">Kibodi iliyogawanyika</string>
-    <string name="layout_summon_button_info">Wakati kibodi imefungwa, kitufe kidogo cha duara huelea juu ya kila programu. Kiguse na kibodi itafunguka, hata kwenye skrini isiyo na sehemu ya maandishi, na itabaki wazi hapo hadi utakapofunga. Vifunguo kisha hufikia programu kama mibofyo ya vitufe, sawa na ile ya Weka kibodi kwenye skrini. Buruta kitufe ili kukisogeza; hukaa upande wa karibu zaidi. Bonyeza na ushikilie ili kukificha hadi kibodi ifunguke tena. Inahitaji ruhusa ya Android ya Kuonyesha juu ya programu zingine.</string>
     <string name="layout_summon_button_permission_subtitle">Kitufe hakiwezi kuonekana hadi Android ikiruhusu</string>
     <string name="layout_summon_button_permission_title">Ruhusu kuonyesha juu ya programu zingine</string>
-    <string name="layout_summon_button_subtitle">Kitufe juu ya programu nyingine kinachofungua kibodi, kikiwa na au bila sehemu ya maandishi</string>
-    <string name="layout_summon_button_title">Kitufe cha kibodi kinachoelea</string>
     <string name="layout_swap_comma_globe_info">Funguo mbili kila upande wa upau wa nafasi hubadilishana nafasi. Ikiwa mojawapo ni ufunguo wa emoji, huhamia kwenye nafasi ya nje na koma hubaki karibu na upau wa nafasi. Zima hii ili kupata mpangilio wa kawaida.</string>
     <string name="layout_swap_comma_globe_subtitle">Weka koma karibu na upau wa nafasi</string>
     <string name="layout_swap_comma_globe_title">Badilishana vitufe vya koma na 🌐</string>
@@ -5823,7 +5820,6 @@
     <string name="search_kw_layout_show_globe">ficha ondoa lugha ya dunia</string>
     <string name="search_kw_layout_size_position">badilisha ukubwa punguza finya kukuza</string>
     <string name="search_kw_layout_split">kibao cha ergonomic cha kidole gumba</string>
-    <string name="search_kw_layout_summon_button">onyesho la mapovu ya kuitisha wadukuzi wasio na uwanja</string>
     <string name="search_kw_layout_symbols_numpad_key">numpad keypad dialpad 1234 gboard</string>
     <string name="search_kw_learnedcorrections">masahihisho yaliyojifunzwa, marekebisho yangu, jozi za makosa ya chapa, marekebisho yaliyofundishwa, kujifunza kusahihisha kiotomatiki, makosa madogo, mazoea</string>
     <string name="search_kw_licenses">chanzo huria, utoaji sifa, mikopo</string>

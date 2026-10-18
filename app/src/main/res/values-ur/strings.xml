@@ -3986,11 +3986,8 @@
     <string name="layout_split_spacebar_title">اسپیس بار کو تقسیم کریں</string>
     <string name="layout_split_subtitle">کیز کو بائیں اور دائیں نصف میں تقسیم کریں</string>
     <string name="layout_split_title">اسپلٹ کی بورڈ</string>
-    <string name="layout_summon_button_info">کی بورڈ بند ہونے کے دوران، ایک چھوٹا گول بٹن ہر ایپ کے اوپر تیرتا رہتا ہے۔ اسے تھپتھپائیں تو کی بورڈ کھل جاتا ہے، یہاں تک کہ ٹیکسٹ فیلڈ کے بغیر اسکرین پر بھی، اور جب تک آپ اسے بند نہ کریں وہیں کھلا رہتا ہے۔ پھر کلیدیں کی پریس کے طور پر ایپ تک پہنچتی ہیں، بالکل \'کی بورڈ کو اسکرین پر رکھیں\' کی طرح۔ بٹن کو منتقل کرنے کے لیے اسے گھسیٹیں؛ یہ قریبی کنارے پر جا کر رک جاتا ہے۔ اسے اگلی بار کی بورڈ کھلنے تک چھپانے کے لیے دبائے رکھیں۔ اس کے لیے اینڈرائیڈ کی \'دوسری ایپس پر ڈسپلے\' کی اجازت درکار ہے۔</string>
     <string name="layout_summon_button_permission_subtitle">بٹن تب تک ظاہر نہیں ہو سکتا جب تک اینڈرائیڈ اس کی اجازت نہ دے</string>
     <string name="layout_summon_button_permission_title">دیگر ایپس کے اوپر ڈسپلے کی اجازت دیں</string>
-    <string name="layout_summon_button_subtitle">دیگر ایپس کے اوپر ایک بٹن جو کی بورڈ کھولتا ہے، ٹیکسٹ فیلڈ کے ساتھ یا اس کے بغیر</string>
-    <string name="layout_summon_button_title">تیرتا ہوا کی بورڈ بٹن</string>
     <string name="layout_swap_comma_globe_info">اسپیس بار کے دونوں اطراف کی دو کلیدیں اپنی جگہ بدل لیتی ہیں۔ اگر ان میں سے ایک ایموجی کلید ہے، تو یہ بیرونی پوزیشن پر چلی جاتی ہے اور کوما اسپیس بار کے ساتھ رہتا ہے۔ معمول کی ترتیب حاصل کرنے کے لیے اسے بند کریں۔</string>
     <string name="layout_swap_comma_globe_subtitle">کوما کو اسپیس بار کے ساتھ رکھیں</string>
     <string name="layout_swap_comma_globe_title">کاما اور 🌐 کیز کو تبدیل کریں</string>
@@ -5809,7 +5806,6 @@
     <string name="search_kw_layout_show_globe">گلوب زبان کو چھپائیں یا ہٹائیں</string>
     <string name="search_kw_layout_size_position">سائز تبدیل کریں، چھوٹا کریں، کمپیکٹ، بڑا کریں</string>
     <string name="search_kw_layout_split">انگوٹھا ایرگونومک ٹیبلٹ</string>
-    <string name="search_kw_layout_summon_button">بلبلہ اوورلے فیلڈ لیس ہیکرز کو طلب کرنے کے لیے دکھائیں</string>
     <string name="search_kw_layout_symbols_numpad_key">نم پیڈ کی پیڈ ڈائل پیڈ 1234 جی بورڈ</string>
     <string name="search_kw_learnedcorrections">سیکھی گئی اصلاحات، میری درستگیاں، ٹائپو جوڑے، سکھائی گئی درستگیاں، آٹو کریکٹ لرننگ، غلطیاں، عادات</string>
     <string name="search_kw_licenses">اوپن سورس، انتساب، کریڈٹ</string>

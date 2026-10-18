@@ -3992,11 +3992,8 @@
     <string name="layout_split_spacebar_title">Razdeli preslednico</string>
     <string name="layout_split_subtitle">Razdeli tipke na levo in desno polovico</string>
     <string name="layout_split_title">Razdeljena tipkovnica</string>
-    <string name="layout_summon_button_info">Ko je tipkovnica zaprta, majhen okrogel gumb lebdi nad vsako aplikacijo. Tapnite ga in tipkovnica se odpre, tudi na zaslonu brez besedilnega polja, in ostane odprta, dokler je ne zaprete. Tipke nato pošiljajo znake v aplikacijo kot pritiski tipk, enako kot pri možnosti »Obdrži tipkovnico na zaslonu«. Povlecite gumb, da ga premaknete; zasidra se ob bližnji rob. Pritisnite in pridržite ga, da ga skrijete do naslednjega odprtja tipkovnice. Zahteva dovoljenje Androida za prikaz nad drugimi aplikacijami.</string>
     <string name="layout_summon_button_permission_subtitle">Gumb se ne more prikazati, dokler ga Android ne dovoli</string>
     <string name="layout_summon_button_permission_title">Dovoli prikaz nad drugimi aplikacijami</string>
-    <string name="layout_summon_button_subtitle">Gumb nad drugimi aplikacijami, ki odpre tipkovnico, s poljem za besedilo ali brez njega</string>
-    <string name="layout_summon_button_title">Gumb za lebdečo tipkovnico</string>
     <string name="layout_swap_comma_globe_info">Tipki na obeh straneh preslednice zamenjata mesti. Če je ena od njiju tipka za emojije, se premakne na zunanji položaj, vejica pa ostane ob preslednici. Izklopite to, da dobite običajni vrstni red.</string>
     <string name="layout_swap_comma_globe_subtitle">Postavite vejico poleg preslednice</string>
     <string name="layout_swap_comma_globe_title">Zamenjaj tipki za vejico in 🌐</string>
@@ -5815,7 +5812,6 @@
     <string name="search_kw_layout_show_globe">skrij odstrani jezik globusa</string>
     <string name="search_kw_layout_size_position">spremeni velikost skrči kompaktno povečaj</string>
     <string name="search_kw_layout_split">ergonomska tablica za palce</string>
-    <string name="search_kw_layout_summon_button">mehurček prekrivanje prikaži priklic brez polja hekerji</string>
     <string name="search_kw_layout_symbols_numpad_key">številska tipkovnica tipkovnica številčnica 1234 gboard</string>
     <string name="search_kw_learnedcorrections">naučeni popravki, moji popravki, pari tipkarskih napak, naučeni popravki, učenje samodejnega popravljanja, spodrsljaji, navade</string>
     <string name="search_kw_licenses">odprta koda, navedba avtorstva, zasluge</string>

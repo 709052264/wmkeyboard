@@ -3991,11 +3991,8 @@
     <string name="layout_split_spacebar_title">Dividir la barra espaciadora</string>
     <string name="layout_split_subtitle">Dividir las teclas en una mitad izquierda y una derecha</string>
     <string name="layout_split_title">Teclado dividido</string>
-    <string name="layout_summon_button_info">Mientras el teclado está cerrado, un pequeño botón redondo flota sobre todas las aplicaciones. Tócalo y el teclado se abrirá, incluso en una pantalla sin campo de texto, y permanecerá abierto hasta que lo cierres. Las teclas se enviarán a la aplicación como pulsaciones, igual que con la opción Mantener teclado en pantalla. Arrastra el botón para moverlo; se ajustará al borde más cercano. Mantén pulsado para ocultarlo hasta la próxima vez que se abra el teclado. Requiere el permiso de Android \"Mostrar sobre otras aplicaciones\".</string>
     <string name="layout_summon_button_permission_subtitle">El botón no puede aparecer hasta que Android lo permita</string>
     <string name="layout_summon_button_permission_title">Permitir mostrar sobre otras aplicaciones</string>
-    <string name="layout_summon_button_subtitle">Un botón sobre otras aplicaciones que abre el teclado, con o sin campo de texto</string>
-    <string name="layout_summon_button_title">Botón de teclado flotante</string>
     <string name="layout_swap_comma_globe_info">Las dos teclas a cada lado de la barra espaciadora intercambian su posición. Si una de ellas es la tecla de emojis, se mueve a la posición exterior y la coma permanece junto a la barra espaciadora. Desactiva esto para volver al orden habitual.</string>
     <string name="layout_swap_comma_globe_subtitle">Poner la coma junto a la barra espaciadora</string>
     <string name="layout_swap_comma_globe_title">Intercambiar las teclas de coma y 🌐</string>
@@ -5815,7 +5812,6 @@
     <string name="search_kw_layout_show_globe">ocultar eliminar globo de idioma</string>
     <string name="search_kw_layout_size_position">cambiar tamaño encoger compacto agrandar</string>
     <string name="search_kw_layout_split">pulgar ergonómico tableta</string>
-    <string name="search_kw_layout_summon_button">superposición de burbuja mostrar campo de invocación hackers sin campo</string>
     <string name="search_kw_layout_symbols_numpad_key">teclado numérico teclado de marcación 1234 gboard</string>
     <string name="search_kw_learnedcorrections">correcciones aprendidas, mis correcciones, pares de errores tipográficos, correcciones enseñadas, aprendizaje de autocorrección, errores, hábitos</string>
     <string name="search_kw_licenses">código abierto, atribución, créditos</string>

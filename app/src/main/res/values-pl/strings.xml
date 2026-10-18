@@ -3988,11 +3988,8 @@
     <string name="layout_split_spacebar_title">Podziel spację</string>
     <string name="layout_split_subtitle">Podziel klawisze na lewą i prawą połowę</string>
     <string name="layout_split_title">Podzielona klawiatura</string>
-    <string name="layout_summon_button_info">Gdy klawiatura jest zamknięta, mały okrągły przycisk unosi się nad każdą aplikacją. Dotknij go, a klawiatura się otworzy, nawet na ekranie bez pola tekstowego, i pozostanie otwarta, dopóki jej nie zamkniesz. Klawisze wysyłają wtedy znaki do aplikacji jako naciśnięcia klawiszy, tak samo jak w przypadku opcji „Utrzymuj klawiaturę na ekranie”. Przeciągnij przycisk, aby go przesunąć; osadzi się przy bliższej krawędzi. Naciśnij i przytrzymaj go, aby ukryć go do momentu następnego otwarcia klawiatury. Wymaga uprawnienia Androida „Wyświetlanie nad innymi aplikacjami”.</string>
     <string name="layout_summon_button_permission_subtitle">Przycisk nie może się pojawić, dopóki Android na to nie pozwoli</string>
     <string name="layout_summon_button_permission_title">Zezwalaj na wyświetlanie nad innymi aplikacjami</string>
-    <string name="layout_summon_button_subtitle">Przycisk nad innymi aplikacjami, który otwiera klawiaturę, z polem tekstowym lub bez niego</string>
-    <string name="layout_summon_button_title">Przycisk pływającej klawiatury</string>
     <string name="layout_swap_comma_globe_info">Dwa klawisze po obu stronach spacji zamieniają się miejscami. Jeśli jednym z nich jest klawisz emoji, przesuwa się on na zewnętrzną pozycję, a przecinek pozostaje obok spacji. Wyłącz to, aby przywrócić zwykłą kolejność.</string>
     <string name="layout_swap_comma_globe_subtitle">Umieść przecinek obok spacji</string>
     <string name="layout_swap_comma_globe_title">Zamień klawisze przecinka i 🌐</string>
@@ -5812,7 +5809,6 @@
     <string name="search_kw_layout_show_globe">ukryj usuń język globu</string>
     <string name="search_kw_layout_size_position">zmień rozmiar zmniejsz kompaktowy powiększ</string>
     <string name="search_kw_layout_split">kciuk ergonomiczny tablet</string>
-    <string name="search_kw_layout_summon_button">dymek nakładka pokaż przywołaj pole bezpolowe hakerzy</string>
     <string name="search_kw_layout_symbols_numpad_key">klawiatura numeryczna klawiatura dialpad 1234 gboard</string>
     <string name="search_kw_learnedcorrections">wyuczone poprawki, moje poprawki, pary literówek, nauczone poprawki, uczenie autokorekty, pomyłki, nawyki</string>
     <string name="search_kw_licenses">open source, atrybucja, autorzy</string>

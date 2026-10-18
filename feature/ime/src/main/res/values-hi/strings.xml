@@ -1401,7 +1401,6 @@
     <string name="ime_suggestion_never_suggest">\"%1$s\" का सुझाव कभी न दें</string>
     <string name="ime_suggestion_pages_close">कुंजियों पर वापस जाएं</string>
     <string name="ime_suggestions_show_desc">सुझाव पट्टी दिखाएं</string>
-    <string name="ime_summon_button_hidden_toast">कीबोर्ड बटन अगली बार कीबोर्ड खुलने तक छिपा हुआ है</string>
     <string name="ime_summon_button_label">कीबोर्ड दिखाएं</string>
     <string name="ime_symbol_row_delete_confirm_body">सेट और उसकी सभी प्रविष्टियाँ हट जाएंगी। एक कीबोर्ड मोड जिसने इसे पेश किया था, वह इसके बजाय आपके अन्य सेट दिखाता है।</string>
     <string name="ime_symbol_row_delete_confirm_title">\"%1$s\" को हटाएं?</string>

@@ -1400,7 +1400,6 @@
     <string name="ime_suggestion_never_suggest">Nigdy nie sugeruj \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Powrót do klawiszy</string>
     <string name="ime_suggestions_show_desc">Pokaż pasek sugestii</string>
-    <string name="ime_summon_button_hidden_toast">Przycisk klawiatury ukryty do momentu następnego otwarcia klawiatury</string>
     <string name="ime_summon_button_label">Pokaż klawiaturę</string>
     <string name="ime_symbol_row_delete_confirm_body">Zestaw i wszystkie jego wpisy zostaną usunięte. Tryb klawiatury, który go oferował, pokaże zamiast tego Twoje inne zestawy.</string>
     <string name="ime_symbol_row_delete_confirm_title">Usunąć \"%1$s\"?</string>

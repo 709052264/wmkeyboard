@@ -1404,7 +1404,6 @@
     <string name="ime_suggestion_never_suggest">Aldri foreslå \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Tilbake til tastene</string>
     <string name="ime_suggestions_show_desc">Vis forslagslinjen</string>
-    <string name="ime_summon_button_hidden_toast">Tastaturknappen er skjult til neste gang tastaturet åpnes</string>
     <string name="ime_summon_button_label">Vis tastatur</string>
     <string name="ime_symbol_row_delete_confirm_body">Settet og alle oppføringene blir slettet. En tastaturmodus som tilbød det, viser dine andre sett i stedet.</string>
     <string name="ime_symbol_row_delete_confirm_title">Slette \"%1$s\"?</string>

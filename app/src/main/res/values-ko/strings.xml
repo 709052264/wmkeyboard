@@ -3981,11 +3981,8 @@
     <string name="layout_split_spacebar_title">스페이스바 분할</string>
     <string name="layout_split_subtitle">키를 왼쪽과 오른쪽 절반으로 나눕니다</string>
     <string name="layout_split_title">분할 키보드</string>
-    <string name="layout_summon_button_info">키보드가 닫혀 있을 때 작은 원형 버튼이 모든 앱 위에 떠 있습니다. 이 버튼을 누르면 텍스트 필드가 없는 화면에서도 키보드가 열리며, 닫을 때까지 유지됩니다. 키보드가 화면에 유지될 때와 마찬가지로 키 입력이 앱으로 전달됩니다. 버튼을 드래그하여 이동할 수 있으며, 가장 가까운 가장자리에 고정됩니다. 길게 누르면 다음번에 키보드가 열릴 때까지 숨겨집니다. Android의 \'다른 앱 위에 표시\' 권한이 필요합니다.</string>
     <string name="layout_summon_button_permission_subtitle">Android에서 허용할 때까지 버튼이 나타나지 않습니다</string>
     <string name="layout_summon_button_permission_title">다른 앱 위에 표시 허용</string>
-    <string name="layout_summon_button_subtitle">텍스트 필드 유무와 관계없이 키보드를 여는 다른 앱 위의 버튼</string>
-    <string name="layout_summon_button_title">플로팅 키보드 버튼</string>
     <string name="layout_swap_comma_globe_info">스페이스바 양옆의 두 키 위치가 바뀝니다. 그중 하나가 이모지 키인 경우 바깥쪽 위치로 이동하고 쉼표는 스페이스바 옆에 유지됩니다. 일반적인 순서로 되돌리려면 이 기능을 끄세요.</string>
     <string name="layout_swap_comma_globe_subtitle">쉼표를 스페이스바 옆에 배치</string>
     <string name="layout_swap_comma_globe_title">쉼표(,) 키와 🌐 키 바꾸기</string>
@@ -5804,7 +5801,6 @@
     <string name="search_kw_layout_show_globe">지구본 언어 제거 숨기기</string>
     <string name="search_kw_layout_size_position">크기 조절 축소 컴팩트 확대</string>
     <string name="search_kw_layout_split">엄지 인체공학 태블릿</string>
-    <string name="search_kw_layout_summon_button">버블 오버레이 표시 소환 필드리스 해커</string>
     <string name="search_kw_layout_symbols_numpad_key">숫자패드 키패드 다이얼패드 1234 gboard</string>
     <string name="search_kw_learnedcorrections">학습된 수정, 내 수정, 오타 쌍, 가르친 수정, 자동 수정 학습, 실수, 습관</string>
     <string name="search_kw_licenses">오픈 소스, 저작자 표시, 크레딧</string>

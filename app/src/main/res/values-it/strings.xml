@@ -3982,11 +3982,8 @@
     <string name="layout_split_spacebar_title">Dividi la barra spaziatrice</string>
     <string name="layout_split_subtitle">Dividi i tasti in una metà sinistra e una metà destra</string>
     <string name="layout_split_title">Tastiera divisa</string>
-    <string name="layout_summon_button_info">Mentre la tastiera è chiusa, un piccolo pulsante rotondo fluttua sopra ogni app. Toccalo e la tastiera si apre, anche su una schermata senza campo di testo, e rimane aperta finché non la chiudi. I tasti raggiungono quindi l\'app come pressioni di tasti, lo stesso che con Mantieni la tastiera sullo schermo. Trascina il pulsante per spostarlo; si posiziona contro il lato più vicino. Premi e tieni premuto per nasconderlo finché la tastiera non si apre la prossima volta. Richiede l\'autorizzazione di Android per apparire sopra altre app.</string>
     <string name="layout_summon_button_permission_subtitle">Il pulsante non può apparire finché Android non lo consente</string>
     <string name="layout_summon_button_permission_title">Consenti la visualizzazione sopra altre app</string>
-    <string name="layout_summon_button_subtitle">Un pulsante sopra le altre app che apre la tastiera, con o senza un campo di testo</string>
-    <string name="layout_summon_button_title">Pulsante tastiera mobile</string>
     <string name="layout_swap_comma_globe_info">I due tasti ai lati della barra spaziatrice si scambiano di posto. Se uno di essi è un tasto emoji, si sposta nella posizione esterna e la virgola rimane accanto alla barra spaziatrice. Disattiva questa opzione per ripristinare l\'ordine abituale.</string>
     <string name="layout_swap_comma_globe_subtitle">Metti la virgola accanto alla barra spaziatrice</string>
     <string name="layout_swap_comma_globe_title">Scambia i tasti virgola e 🌐</string>
@@ -5806,7 +5803,6 @@
     <string name="search_kw_layout_show_globe">nascondi rimuovi globo lingua</string>
     <string name="search_kw_layout_size_position">ridimensiona rimpicciolisci compatto ingrandisci</string>
     <string name="search_kw_layout_split">tablet ergonomico pollice</string>
-    <string name="search_kw_layout_summon_button">mostra sovrapposizione a bolla richiama campo senza hacker</string>
     <string name="search_kw_layout_symbols_numpad_key">tastierino numerico tastiera numerica tastierino 1234 gboard</string>
     <string name="search_kw_learnedcorrections">correzioni apprese, le mie correzioni, coppie di refusi, correzioni insegnate, apprendimento correzione automatica, errori, abitudini</string>
     <string name="search_kw_licenses">open source, attribuzione, crediti</string>

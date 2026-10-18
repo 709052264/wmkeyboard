@@ -1403,7 +1403,6 @@
     <string name="ime_suggestion_never_suggest">לעולם אל תציע את \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">חזרה למקשים</string>
     <string name="ime_suggestions_show_desc">הצג את סרגל ההצעות</string>
-    <string name="ime_summon_button_hidden_toast">כפתור המקלדת מוסתר עד לפתיחה הבאה של המקלדת</string>
     <string name="ime_summon_button_label">הצג מקלדת</string>
     <string name="ime_symbol_row_delete_confirm_body">הערכה וכל הערכים שבה יימחקו. מצב מקלדת שהציע אותה יציג במקום זאת את הערכות האחרות שלך.</string>
     <string name="ime_symbol_row_delete_confirm_title">למחוק את \"%1$s\"?</string>

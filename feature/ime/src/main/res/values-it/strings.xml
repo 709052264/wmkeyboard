@@ -1403,7 +1403,6 @@
     <string name="ime_suggestion_never_suggest">Non suggerire mai \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Torna ai tasti</string>
     <string name="ime_suggestions_show_desc">Mostra la barra dei suggerimenti</string>
-    <string name="ime_summon_button_hidden_toast">Pulsante tastiera nascosto fino alla prossima apertura della tastiera</string>
     <string name="ime_summon_button_label">Mostra tastiera</string>
     <string name="ime_symbol_row_delete_confirm_body">Il set e tutte le sue voci verranno eliminati. Una modalità tastiera che lo offriva mostrerà invece gli altri tuoi set.</string>
     <string name="ime_symbol_row_delete_confirm_title">Eliminare \"%1$s\"?</string>

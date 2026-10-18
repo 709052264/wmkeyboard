@@ -3985,11 +3985,8 @@
     <string name="layout_split_spacebar_title">Divideix la barra espaiadora</string>
     <string name="layout_split_subtitle">Divideix les tecles en una meitat esquerra i una meitat dreta</string>
     <string name="layout_split_title">Teclat dividit</string>
-    <string name="layout_summon_button_info">Mentre el teclat està tancat, un petit botó rodó flota sobre cada aplicació. Toca\'l i el teclat s\'obrirà, fins i tot en una pantalla sense quadre de text, i es quedarà obert allà fins que el tanquis. Les tecles arriben a l\'aplicació com a pulsacions, igual que amb \"Mantén el teclat a la pantalla\". Arrossega el botó per moure\'l; es col·locarà al costat més proper. Mantén-lo premut per amagar-lo fins que el teclat es torni a obrir. Requereix el permís d\'Android \"Mostra sobre altres aplicacions\".</string>
     <string name="layout_summon_button_permission_subtitle">El botó no pot aparèixer fins que Android ho permeti</string>
     <string name="layout_summon_button_permission_title">Permet la visualització sobre altres aplicacions</string>
-    <string name="layout_summon_button_subtitle">Un botó sobre altres aplicacions que obre el teclat, amb o sense un camp de text</string>
-    <string name="layout_summon_button_title">Botó de teclat flotant</string>
     <string name="layout_swap_comma_globe_info">Les dues tecles a cada costat de la barra espaiadora canvien de lloc. Si una d\'elles és una tecla d\'emoji, es mou a la posició exterior i la coma es queda al costat de la barra espaiadora. Desactiveu-ho per obtenir l\'ordre habitual.</string>
     <string name="layout_swap_comma_globe_subtitle">Col·loca la coma al costat de la barra espaiadora</string>
     <string name="layout_swap_comma_globe_title">Intercanvia les tecles de la coma i 🌐</string>
@@ -5808,7 +5805,6 @@
     <string name="search_kw_layout_show_globe">amaga elimina el globus de l\'idioma</string>
     <string name="search_kw_layout_size_position">redimensiona redueix compacta amplia</string>
     <string name="search_kw_layout_split">tauleta ergonòmica per a polzes</string>
-    <string name="search_kw_layout_summon_button">superposició de bombolla mostrar invocar hackers sense camp</string>
     <string name="search_kw_layout_symbols_numpad_key">teclat numèric teclat de marcatge 1234 gboard</string>
     <string name="search_kw_learnedcorrections">correccions apreses, les meves correccions, parells d\'errors tipogràfics, correccions ensenyades, aprenentatge de l\'autocorrecció, errades, hàbits</string>
     <string name="search_kw_licenses">codi obert, atribució, crèdits</string>

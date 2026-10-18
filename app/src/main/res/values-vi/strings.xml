@@ -3981,11 +3981,8 @@
     <string name="layout_split_spacebar_title">Chia thanh dấu cách</string>
     <string name="layout_split_subtitle">Chia các phím thành nửa trái và nửa phải</string>
     <string name="layout_split_title">Bàn phím tách rời</string>
-    <string name="layout_summon_button_info">Trong khi bàn phím đóng, một nút tròn nhỏ sẽ nổi trên mọi ứng dụng. Chạm vào nút đó và bàn phím sẽ mở ra, ngay cả trên màn hình không có trường văn bản, và vẫn mở ở đó cho đến khi bạn đóng nó. Các phím sau đó sẽ gửi đến ứng dụng dưới dạng nhấn phím, giống như với Giữ bàn phím trên màn hình. Kéo nút để di chuyển; nó sẽ tự động nằm sát cạnh gần hơn. Nhấn và giữ nút để ẩn nó cho đến khi bàn phím mở lần tiếp theo. Cần quyền Hiển thị trên các ứng dụng khác của Android.</string>
     <string name="layout_summon_button_permission_subtitle">Nút này không thể xuất hiện cho đến khi Android cho phép</string>
     <string name="layout_summon_button_permission_title">Cho phép hiển thị trên ứng dụng khác</string>
-    <string name="layout_summon_button_subtitle">Một nút nằm trên các ứng dụng khác để mở bàn phím, có hoặc không có trường văn bản</string>
-    <string name="layout_summon_button_title">Nút bàn phím nổi</string>
     <string name="layout_swap_comma_globe_info">Hai phím ở mỗi bên của phím cách sẽ đổi chỗ cho nhau. Nếu một trong số đó là phím emoji, nó sẽ di chuyển ra vị trí ngoài cùng và dấu phẩy sẽ nằm cạnh phím cách. Tắt tùy chọn này để trở về thứ tự thông thường.</string>
     <string name="layout_swap_comma_globe_subtitle">Đặt dấu phẩy cạnh phím cách</string>
     <string name="layout_swap_comma_globe_title">Hoán đổi phím dấu phẩy và phím 🌐</string>
@@ -5804,7 +5801,6 @@
     <string name="search_kw_layout_show_globe">ẩn xóa quả địa cầu ngôn ngữ</string>
     <string name="search_kw_layout_size_position">thay đổi kích thước thu nhỏ nhỏ gọn phóng to</string>
     <string name="search_kw_layout_split">công thái học ngón cái máy tính bảng</string>
-    <string name="search_kw_layout_summon_button">hiện lớp phủ bong bóng gọi trường không có hacker</string>
     <string name="search_kw_layout_symbols_numpad_key">bàn phím số phím số bàn phím quay số 1234 gboard</string>
     <string name="search_kw_learnedcorrections">sửa lỗi đã học, các bản sửa lỗi của tôi, cặp lỗi chính tả, bản sửa lỗi đã dạy, học tự động sửa, lỗi trượt, thói quen</string>
     <string name="search_kw_licenses">mã nguồn mở, ghi công, tín dụng</string>

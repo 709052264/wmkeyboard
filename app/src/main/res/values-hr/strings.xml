@@ -3994,11 +3994,8 @@
     <string name="layout_split_spacebar_title">Razdvoji razmaknicu</string>
     <string name="layout_split_subtitle">Podijelite tipke na lijevu i desnu polovicu</string>
     <string name="layout_split_title">Podijeljena tipkovnica</string>
-    <string name="layout_summon_button_info">Dok je tipkovnica zatvorena, mali okrugli gumb lebdi iznad svake aplikacije. Dodirnite ga i tipkovnica se otvara, čak i na zaslonu bez polja za tekst, i ostaje otvorena dok je ne zatvorite. Tipke tada dosežu aplikaciju kao pritisci tipki, isto kao kod Zadrži tipkovnicu na zaslonu. Povucite gumb da ga pomaknete; smjestit će se uz bližu stranu. Pritisnite i držite ga da ga sakrijete dok se tipkovnica sljedeći put ne otvori. Zahtijeva dopuštenje Androida za prikaz preko drugih aplikacija.</string>
     <string name="layout_summon_button_permission_subtitle">Gumb se ne može pojaviti dok ga Android ne dopusti</string>
     <string name="layout_summon_button_permission_title">Dopusti prikaz preko drugih aplikacija</string>
-    <string name="layout_summon_button_subtitle">Gumb iznad drugih aplikacija koji otvara tipkovnicu, s tekstualnim poljem ili bez njega</string>
-    <string name="layout_summon_button_title">Gumb plutajuće tipkovnice</string>
     <string name="layout_swap_comma_globe_info">Dvije tipke sa svake strane razmaknice mijenjaju mjesta. Ako je jedna od njih tipka za emojije, ona se pomiče na vanjsku poziciju, a zarez ostaje pored razmaknice. Isključite ovo da biste dobili uobičajeni redoslijed.</string>
     <string name="layout_swap_comma_globe_subtitle">Postavi zarez pored razmaknice</string>
     <string name="layout_swap_comma_globe_title">Zamijeni tipke zarez i 🌐</string>
@@ -5818,7 +5815,6 @@
     <string name="search_kw_layout_show_globe">sakrij ukloni jezik globusa</string>
     <string name="search_kw_layout_size_position">promijeni veličinu smanji kompaktno povećaj</string>
     <string name="search_kw_layout_split">ergonomski tablet za palčeve</string>
-    <string name="search_kw_layout_summon_button">prekrivni mjehurić prikazuje polje za pozivanje hakera bez polja</string>
     <string name="search_kw_layout_symbols_numpad_key">numerička tipkovnica brojčanik 1234 gboard</string>
     <string name="search_kw_learnedcorrections">naučene ispravke, moji popravci, parovi tipfelera, naučeni popravci, učenje automatskog ispravljanja, omaške, navike</string>
     <string name="search_kw_licenses">otvoreni kod, atribucija, zasluge</string>

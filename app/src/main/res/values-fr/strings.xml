@@ -3981,11 +3981,8 @@
     <string name="layout_split_spacebar_title">Diviser la barre d\'espace</string>
     <string name="layout_split_subtitle">Diviser les touches en une moitié gauche et une moitié droite</string>
     <string name="layout_split_title">Clavier divisé</string>
-    <string name="layout_summon_button_info">Lorsque le clavier est fermé, un petit bouton rond flotte au-dessus de chaque application. Appuyez dessus pour ouvrir le clavier, même sur un écran sans champ de texte, et il restera ouvert jusqu\'à ce que vous le fermiez. Les touches sont alors transmises à l\'application comme des pressions de touches, tout comme avec l\'option Garder le clavier à l\'écran. Faites glisser le bouton pour le déplacer ; il se place contre le bord le plus proche. Appuyez longuement dessus pour le masquer jusqu\'à la prochaine ouverture du clavier. Nécessite l\'autorisation Android d\'affichage par-dessus d\'autres applications.</string>
     <string name="layout_summon_button_permission_subtitle">Le bouton ne peut pas apparaître tant qu\'Android ne l\'autorise pas</string>
     <string name="layout_summon_button_permission_title">Autoriser l\'affichage par-dessus d\'autres applications</string>
-    <string name="layout_summon_button_subtitle">Un bouton au-dessus des autres applications qui ouvre le clavier, avec ou sans champ de texte</string>
-    <string name="layout_summon_button_title">Bouton de clavier flottant</string>
     <string name="layout_swap_comma_globe_info">Les deux touches de chaque côté de la barre d\'espace changent de place. Si l\'une d\'elles est une touche emoji, elle se déplace vers la position extérieure et la virgule reste à côté de la barre d\'espace. Désactivez cette option pour retrouver l\'ordre habituel.</string>
     <string name="layout_swap_comma_globe_subtitle">Placer la virgule à côté de la barre d\'espace</string>
     <string name="layout_swap_comma_globe_title">Inverser les touches virgule et 🌐</string>
@@ -5804,7 +5801,6 @@
     <string name="search_kw_layout_show_globe">masquer supprimer globe langue</string>
     <string name="search_kw_layout_size_position">redimensionner réduire compact agrandir</string>
     <string name="search_kw_layout_split">pouce ergonomique tablette</string>
-    <string name="search_kw_layout_summon_button">superposition de bulles afficher le champ d\'invocation sans champ hackers</string>
     <string name="search_kw_layout_symbols_numpad_key">pavé numérique clavier numérique clavier 1234 gboard</string>
     <string name="search_kw_learnedcorrections">corrections apprises, mes corrections, paires de fautes de frappe, corrections enseignées, apprentissage de la correction automatique, erreurs, habitudes</string>
     <string name="search_kw_licenses">open source, attribution, crédits</string>

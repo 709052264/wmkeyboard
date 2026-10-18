@@ -1404,7 +1404,6 @@
     <string name="ime_suggestion_never_suggest">Soha ne javasolja ezt: \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Vissza a billentyűkhöz</string>
     <string name="ime_suggestions_show_desc">Javaslatsáv megjelenítése</string>
-    <string name="ime_summon_button_hidden_toast">A billentyűzet gombja elrejtve a következő billentyűzetnyitásig</string>
     <string name="ime_summon_button_label">Billentyűzet megjelenítése</string>
     <string name="ime_symbol_row_delete_confirm_body">A készlet és az összes bejegyzése törlődik. Egy billentyűzetmód, amely felkínálta, helyette a többi készletét mutatja.</string>
     <string name="ime_symbol_row_delete_confirm_title">Törli a következőt: \"%1$s\"?</string>

@@ -1400,7 +1400,6 @@
     <string name="ime_suggestion_never_suggest">Nu sugera niciodată \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Înapoi la taste</string>
     <string name="ime_suggestions_show_desc">Afișează bara de sugestii</string>
-    <string name="ime_summon_button_hidden_toast">Butonul tastaturii este ascuns până la următoarea deschidere a tastaturii</string>
     <string name="ime_summon_button_label">Afișează tastatura</string>
     <string name="ime_symbol_row_delete_confirm_body">Setul și toate intrările sale vor fi șterse. Un mod de tastatură care îl oferea va afișa celelalte seturi ale tale în schimb.</string>
     <string name="ime_symbol_row_delete_confirm_title">Ștergeți \"%1$s\"?</string>

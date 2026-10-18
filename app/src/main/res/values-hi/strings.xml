@@ -3999,11 +3999,8 @@
     <string name="layout_split_spacebar_title">स्पेसबार को विभाजित करें</string>
     <string name="layout_split_subtitle">कुंजियों को बाएं और दाएं आधे हिस्से में विभाजित करें</string>
     <string name="layout_split_title">स्प्लिट कीबोर्ड</string>
-    <string name="layout_summon_button_info">जब कीबोर्ड बंद होता है, तो एक छोटा गोल बटन हर ऐप के ऊपर तैरता रहता है। इसे टैप करें और कीबोर्ड खुल जाएगा, यहां तक कि बिना टेक्स्ट फ़ील्ड वाली स्क्रीन पर भी, और जब तक आप इसे बंद नहीं करते तब तक यह खुला रहेगा। कुंजियाँ तब की-प्रेस के रूप में ऐप तक पहुँचती हैं, ठीक वैसे ही जैसे \'कीबोर्ड को स्क्रीन पर रखें\' के साथ होता है। बटन को ले जाने के लिए उसे खींचें; यह पास के किनारे पर सेट हो जाता है। इसे तब तक छिपाने के लिए दबाकर रखें जब तक कि कीबोर्ड अगली बार न खुले। इसके लिए Android की \'अन्य ऐप्स के ऊपर प्रदर्शित करें\' अनुमति की आवश्यकता है।</string>
     <string name="layout_summon_button_permission_subtitle">बटन तब तक दिखाई नहीं दे सकता जब तक एंड्रॉइड इसकी अनुमति न दे</string>
     <string name="layout_summon_button_permission_title">अन्य ऐप्स के ऊपर प्रदर्शित करने की अनुमति दें</string>
-    <string name="layout_summon_button_subtitle">अन्य ऐप्स के ऊपर एक बटन जो कीबोर्ड खोलता है, टेक्स्ट फ़ील्ड के साथ या उसके बिना</string>
-    <string name="layout_summon_button_title">फ्लोटिंग कीबोर्ड बटन</string>
     <string name="layout_swap_comma_globe_info">स्पेसबार के दोनों ओर की दो कुंजियाँ अपना स्थान बदल लेती हैं। यदि उनमें से एक इमोजी कुंजी है, तो वह बाहरी स्थिति में चली जाती है और अल्पविराम स्पेसबार के बगल में रहता है। सामान्य क्रम प्राप्त करने के लिए इसे बंद करें।</string>
     <string name="layout_swap_comma_globe_subtitle">अल्पविराम को स्पेसबार के बगल में रखें</string>
     <string name="layout_swap_comma_globe_title">अल्पविराम और 🌐 कुंजियों को बदलें</string>
@@ -5824,7 +5821,6 @@
     <string name="search_kw_layout_show_globe">ग्लोब भाषा हटाएं छिपाएं</string>
     <string name="search_kw_layout_size_position">आकार बदलें सिकोड़ें कॉम्पैक्ट बड़ा करें</string>
     <string name="search_kw_layout_split">अंगूठा एर्गोनोमिक टैबलेट</string>
-    <string name="search_kw_layout_summon_button">बबल ओवरले शो समन फील्डलेस हैकर्स</string>
     <string name="search_kw_layout_symbols_numpad_key">नंपैड कीपैड डायलपैड 1234 जीबोर्ड</string>
     <string name="search_kw_learnedcorrections">सीखे गए सुधार, मेरे सुधार, टाइपो जोड़े, सिखाए गए सुधार, ऑटोकरेक्ट लर्निंग, गलतियाँ, आदतें</string>
     <string name="search_kw_licenses">ओपन सोर्स, एट्रिब्यूशन, क्रेडिट</string>

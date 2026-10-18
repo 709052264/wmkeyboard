@@ -3993,11 +3993,8 @@
     <string name="layout_split_spacebar_title">Tükelda tühikuklahv</string>
     <string name="layout_split_subtitle">Jaga klahvid vasakuks ja paremaks pooleks</string>
     <string name="layout_split_title">Poolitatud klaviatuur</string>
-    <string name="layout_summon_button_info">Kui klaviatuur on suletud, hõljub iga rakenduse kohal väike ümmargune nupp. Puudutage seda ja klaviatuur avaneb, isegi kui ekraanil pole tekstivälja, ning jääb sinna avatuks, kuni te selle sulgete. Klahvivajutused jõuavad seejärel rakendusse, samamoodi nagu valiku „Hoia klaviatuur ekraanil“ puhul. Lohistage nuppu selle liigutamiseks; see kinnitub lähima serva külge. Vajutage ja hoidke seda all, et peita see kuni klaviatuuri järgmise avamiseni. Vajab Androidi luba „Kuva teiste rakenduste peal“.</string>
     <string name="layout_summon_button_permission_subtitle">Nupp ei saa ilmuda enne, kui Android seda lubab</string>
     <string name="layout_summon_button_permission_title">Luba kuvamine teiste rakenduste peal</string>
-    <string name="layout_summon_button_subtitle">Teiste rakenduste peal olev nupp, mis avab klaviatuuri koos tekstiväljaga või ilma selleta</string>
-    <string name="layout_summon_button_title">Ujuv klaviatuuri nupp</string>
     <string name="layout_swap_comma_globe_info">Kaks tühikuklahvi mõlemal küljel olevat klahvi vahetavad kohad. Kui üks neist on emotikonide klahv, liigub see välimisse asendisse ja koma jääb tühikuklahvi kõrvale. Lülita see välja, et taastada tavapärane järjekord.</string>
     <string name="layout_swap_comma_globe_subtitle">Pane koma tühikuklahvi kõrvale</string>
     <string name="layout_swap_comma_globe_title">Vaheta koma ja 🌐 klahvid</string>
@@ -5818,7 +5815,6 @@
     <string name="search_kw_layout_show_globe">peida eemalda maakera keel</string>
     <string name="search_kw_layout_size_position">muuda suurust kahanda kompaktne suurenda</string>
     <string name="search_kw_layout_split">pöidla ergonoomiline tahvelarvuti</string>
-    <string name="search_kw_layout_summon_button">mullide ülekate kuva väljakutsumise väli häkkerid</string>
     <string name="search_kw_layout_symbols_numpad_key">numbriklaviatuur numbriklahvistik valimisklahvistik 1234 gboard</string>
     <string name="search_kw_learnedcorrections">õpitud parandused, minu parandused, kirjavigade paarid, õpetatud parandused, automaatkorrektuuri õppimine, vääratused, harjumused</string>
     <string name="search_kw_licenses">avatud lähtekood, omistamine, krediidid</string>

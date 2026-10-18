@@ -3989,11 +3989,8 @@
     <string name="layout_split_spacebar_title">Rozdeliť medzerník</string>
     <string name="layout_split_subtitle">Rozdeliť klávesy na ľavú a pravú polovicu</string>
     <string name="layout_split_title">Rozdelená klávesnica</string>
-    <string name="layout_summon_button_info">Kým je klávesnica zatvorená, nad každou aplikáciou sa vznáša malé okrúhle tlačidlo. Klepnite naň a klávesnica sa otvorí, dokonca aj na obrazovke bez textového poľa, a zostane tam otvorená, kým ju nezatvoríte. Klávesy sa potom dostanú do aplikácie ako stlačenia klávesov, rovnako ako pri možnosti Ponechať klávesnicu na obrazovke. Potiahnutím tlačidla ho presuniete; usadí sa pri bližšej strane. Stlačením a podržaním ho skryjete, kým sa klávesnica nabudúce neotvorí. Vyžaduje povolenie systému Android na zobrazenie nad ostatnými aplikáciami.</string>
     <string name="layout_summon_button_permission_subtitle">Tlačidlo sa nemôže zobraziť, kým to Android nepovolí</string>
     <string name="layout_summon_button_permission_title">Povoliť zobrazenie nad ostatnými aplikáciami</string>
-    <string name="layout_summon_button_subtitle">Tlačidlo nad ostatnými aplikáciami, ktoré otvorí klávesnicu, s textovým poľom alebo bez neho</string>
-    <string name="layout_summon_button_title">Tlačidlo plávajúcej klávesnice</string>
     <string name="layout_swap_comma_globe_info">Dva klávesy na oboch stranách medzerníka si vymenia miesta. Ak je jedným z nich kláves emoji, presunie sa do vonkajšej pozície a čiarka zostane vedľa medzerníka. Vypnite túto možnosť, ak chcete zachovať obvyklé poradie.</string>
     <string name="layout_swap_comma_globe_subtitle">Umiestniť čiarku vedľa medzerníka</string>
     <string name="layout_swap_comma_globe_title">Vymeniť klávesy čiarky a 🌐</string>
@@ -5812,7 +5809,6 @@
     <string name="search_kw_layout_show_globe">skryť odstrániť jazyk zemegule</string>
     <string name="search_kw_layout_size_position">zmeniť veľkosť zmenšiť kompaktné zväčšiť</string>
     <string name="search_kw_layout_split">palcové ergonomické rozloženie tabletu</string>
-    <string name="search_kw_layout_summon_button">bublinové prekrytie zobraziť vyvolávacie pole bez hackerov</string>
     <string name="search_kw_layout_symbols_numpad_key">číselník klávesnica vytáčanie 1234 gboard</string>
     <string name="search_kw_learnedcorrections">naučené opravy, moje úpravy, páry preklepov, naučené opravy, učenie automatických opráv, preklepy, návyky</string>
     <string name="search_kw_licenses">open source, atribúcia, kredity</string>

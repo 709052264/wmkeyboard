@@ -3996,11 +3996,8 @@
     <string name="layout_split_spacebar_title">സ്പേസ് ബാർ വിഭജിക്കുക</string>
     <string name="layout_split_subtitle">കീകൾ ഇടത് പകുതിയായും വലത് പകുതിയായും വിഭജിക്കുക</string>
     <string name="layout_split_title">സ്പ്ലിറ്റ് കീബോർഡ്</string>
-    <string name="layout_summon_button_info">കീബോർഡ് അടച്ചിരിക്കുമ്പോൾ, എല്ലാ ആപ്പുകൾക്കും മുകളിൽ ഒരു ചെറിയ വട്ടത്തിലുള്ള ബട്ടൺ ഒഴുകി നടക്കും. അതിൽ ടാപ്പ് ചെയ്താൽ കീബോർഡ് തുറക്കും, ടെക്സ്റ്റ് ഫീൽഡ് ഇല്ലാത്ത സ്ക്രീനിൽ പോലും, നിങ്ങൾ അടയ്ക്കുന്നത് വരെ അത് അവിടെ തുറന്നിരിക്കും. കീബോർഡ് സ്ക്രീനിൽ നിലനിർത്തുന്നത് പോലെ തന്നെ കീ അമർത്തലുകളായി കീകൾ ആപ്പിലേക്ക് എത്തും. ബട്ടൺ നീക്കാൻ അത് വലിച്ചിടുക; അത് അടുത്തുള്ള വശത്തേക്ക് ഒതുങ്ങി നിൽക്കും. കീബോർഡ് അടുത്ത തവണ തുറക്കുന്നത് വരെ അത് മറയ്ക്കാൻ ബട്ടൺ അമർത്തിപ്പിടിക്കുക. ആൻഡ്രോയിഡിന്റെ \'മറ്റ് ആപ്പുകൾക്ക് മുകളിൽ പ്രദർശിപ്പിക്കുക\' എന്ന അനുമതി ആവശ്യമാണ്.</string>
     <string name="layout_summon_button_permission_subtitle">Android അനുവദിക്കുന്നത് വരെ ഈ ബട്ടൺ ദൃശ്യമാകില്ല</string>
     <string name="layout_summon_button_permission_title">മറ്റ് ആപ്പുകൾക്ക് മുകളിൽ പ്രദർശിപ്പിക്കാൻ അനുവദിക്കുക</string>
-    <string name="layout_summon_button_subtitle">ടെക്സ്റ്റ് ഫീൽഡ് ഉണ്ടെങ്കിലും ഇല്ലെങ്കിലും കീബോർഡ് തുറക്കുന്ന മറ്റ് ആപ്പുകൾക്ക് മുകളിലുള്ള ഒരു ബട്ടൺ</string>
-    <string name="layout_summon_button_title">ഫ്ലോട്ടിംഗ് കീബോർഡ് ബട്ടൺ</string>
     <string name="layout_swap_comma_globe_info">സ്പേസ് ബാറിന്റെ ഇരുവശത്തുമുള്ള രണ്ട് കീകൾ സ്ഥാനം മാറുന്നു. അവയിലൊന്ന് ഇമോജി കീ ആണെങ്കിൽ, അത് പുറത്തെ സ്ഥാനത്തേക്ക് നീങ്ങുകയും കോമ സ്പേസ് ബാറിന് അടുത്തായി തുടരുകയും ചെയ്യുന്നു. സാധാരണ ക്രമം ലഭിക്കാൻ ഇത് ഓഫാക്കുക.</string>
     <string name="layout_swap_comma_globe_subtitle">കോമ സ്പേസ് ബാറിന് അടുത്തായി വെക്കുക</string>
     <string name="layout_swap_comma_globe_title">കോമ, 🌐 കീകൾ പരസ്പരം മാറ്റുക</string>
@@ -5819,7 +5816,6 @@
     <string name="search_kw_layout_show_globe">ഗ്ലോബ് ഭാഷ നീക്കം ചെയ്യുന്നത് മറയ്ക്കുക</string>
     <string name="search_kw_layout_size_position">വലിപ്പം മാറ്റുക ചുരുക്കുക ഒതുക്കുക വലുതാക്കുക</string>
     <string name="search_kw_layout_split">തംബ് എർഗണോമിക് ടാബ്‌ലെറ്റ്</string>
-    <string name="search_kw_layout_summon_button">ബബിൾ ഓവർലേ ഫീൽഡ്‌ലെസ് ഹാക്കർമാരെ വിളിക്കാൻ കാണിക്കുക</string>
     <string name="search_kw_layout_symbols_numpad_key">നമ്പാപഡ് കീപാഡ് ഡയൽപാഡ് 1234 ജിബോർഡ്</string>
     <string name="search_kw_learnedcorrections">learned corrections, my fixes, typo pairs, taught fixes, autocorrect learning, slips, habits</string>
     <string name="search_kw_licenses">ഓപ്പൺ സോഴ്സ്, ആട്രിബ്യൂഷൻ, ക്രെഡിറ്റുകൾ</string>

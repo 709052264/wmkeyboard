@@ -3992,11 +3992,8 @@
     <string name="layout_split_spacebar_title">تقسيم شريط المسافة</string>
     <string name="layout_split_subtitle">قسّم المفاتيح إلى نصف أيسر ونصف أيمن</string>
     <string name="layout_split_title">لوحة مفاتيح مقسمة</string>
-    <string name="layout_summon_button_info">بينما لوحة المفاتيح مغلقة، يطفو زر دائري صغير فوق كل تطبيق. اضغط عليه لتفتح لوحة المفاتيح، حتى على شاشة لا تحتوي على حقل نص، وتبقى مفتوحة هناك حتى تغلقها. تصل المفاتيح بعد ذلك إلى التطبيق كضغطات مفاتيح، تماماً كما هو الحال مع إبقاء لوحة المفاتيح على الشاشة. اسحب الزر لتحريكه؛ يستقر مقابل الجانب الأقرب. اضغط مع الاستمرار عليه لإخفائه حتى تفتح لوحة المفاتيح في المرة القادمة. يتطلب إذن أندرويد \'العرض فوق التطبيقات الأخرى\'.</string>
     <string name="layout_summon_button_permission_subtitle">لا يمكن للزر الظهور حتى يسمح نظام أندرويد بذلك</string>
     <string name="layout_summon_button_permission_title">السماح بالعرض فوق التطبيقات الأخرى</string>
-    <string name="layout_summon_button_subtitle">زر فوق التطبيقات الأخرى يفتح لوحة المفاتيح، مع أو بدون حقل نصي</string>
-    <string name="layout_summon_button_title">زر لوحة المفاتيح العائمة</string>
     <string name="layout_swap_comma_globe_info">يتبادل المفتاحان الموجودان على جانبي شريط المسافة أماكنهما. إذا كان أحدهما مفتاح رموز تعبيرية، فسينتقل إلى الموضع الخارجي وتبقى الفاصلة بجوار شريط المسافة. أوقف هذا الخيار للحصول على الترتيب المعتاد.</string>
     <string name="layout_swap_comma_globe_subtitle">ضع الفاصلة بجوار مفتاح المسافة</string>
     <string name="layout_swap_comma_globe_title">تبديل مفتاحي الفاصلة و 🌐</string>
@@ -5816,7 +5813,6 @@
     <string name="search_kw_layout_show_globe">إخفاء إزالة لغة الكرة الأرضية</string>
     <string name="search_kw_layout_size_position">تغيير الحجم تقليص مدمج تكبير</string>
     <string name="search_kw_layout_split">إبهام مريح جهاز لوحي</string>
-    <string name="search_kw_layout_summon_button">فقاعة تراكب تظهر حقل الاستدعاء</string>
     <string name="search_kw_layout_symbols_numpad_key">لوحة أرقام لوحة مفاتيح لوحة اتصال 1234 gboard</string>
     <string name="search_kw_learnedcorrections">تصحيحات متعلمة، إصلاحاتي، أزواج الأخطاء المطبعية، إصلاحات تم تعليمها، تعلم التصحيح التلقائي، زلات، عادات</string>
     <string name="search_kw_licenses">مفتوح المصدر، الإسناد، الحقوق</string>

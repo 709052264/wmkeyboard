@@ -3986,11 +3986,8 @@
     <string name="layout_split_spacebar_title">Skipta bilslánni</string>
     <string name="layout_split_subtitle">Skiptu lyklunum í vinstri og hægri helming</string>
     <string name="layout_split_title">Skipt lyklaborð</string>
-    <string name="layout_summon_button_info">Á meðan lyklaborðið er lokað flýtur lítill hringlaga hnappur yfir öllum forritum. Bankaðu á hann og lyklaborðið opnast, jafnvel á skjá án textareits, og helst opið þar til þú lokar því. Lyklarnir senda þá innslátt í forritið, eins og með „Hafa lyklaborðið á skjánum“. Dragðu hnappinn til að færa hann; hann sest við næstu hlið. Ýttu á og haltu inni til að fela hann þar til lyklaborðið opnast næst. Krefst leyfis Android til að birta yfir önnur forrit.</string>
     <string name="layout_summon_button_permission_subtitle">Hnappurinn getur ekki birst fyrr en Android leyfir það</string>
     <string name="layout_summon_button_permission_title">Leyfa birtingu yfir önnur öpp</string>
-    <string name="layout_summon_button_subtitle">Hnappur yfir öðrum forritum sem opnar lyklaborðið, með eða án textareits</string>
-    <string name="layout_summon_button_title">Fljótandi lyklaborðshnappur</string>
     <string name="layout_swap_comma_globe_info">Lyklar tveir hvoru megin við bilslána skipta um stað. Ef annar þeirra er broskallalykill, færist hann í ytri stöðuna og komman helst við hliðina á bilslánni. Slökktu á þessu til að fá venjulega röð.</string>
     <string name="layout_swap_comma_globe_subtitle">Setja kommu við hliðina á bilslánni</string>
     <string name="layout_swap_comma_globe_title">Skipta um kommu- og 🌐-lykla</string>
@@ -5808,7 +5805,6 @@
     <string name="search_kw_layout_show_globe">fela fjarlægja hnöttur tungumál</string>
     <string name="search_kw_layout_size_position">breyta stærð minnka þjappa stækka</string>
     <string name="search_kw_layout_split">þumalfingur vinnuvistfræðileg spjaldtölva</string>
-    <string name="search_kw_layout_summon_button">bólu-yfirlag sýna kalla fram reitlausa tölvuþrjóta</string>
     <string name="search_kw_layout_symbols_numpad_key">töluborð talnaborð 1234 gboard</string>
     <string name="search_kw_learnedcorrections">lærðar leiðréttingar, mínar lagfæringar, innsláttarvillupör, kenndar lagfæringar, sjálfvirk leiðréttingarnám, yfirsjónir, venjur</string>
     <string name="search_kw_licenses">opinn hugbúnaður, tilvísanir, inneignir</string>

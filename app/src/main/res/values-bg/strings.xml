@@ -3989,11 +3989,8 @@
     <string name="layout_split_spacebar_title">Разделяне на интервала</string>
     <string name="layout_split_subtitle">Разделяне на клавишите на лява и дясна половина</string>
     <string name="layout_split_title">Разделена клавиатура</string>
-    <string name="layout_summon_button_info">Докато клавиатурата е затворена, малък кръгъл бутон плава над всяко приложение. Докоснете го и клавиатурата ще се отвори, дори на екран без текстово поле, и ще остане там, докато не я затворите. Клавишите след това достигат до приложението като натискания на клавиши, точно както при „Задържане на клавиатурата на екрана“. Плъзнете бутона, за да го преместите; той се установява към по-близката страна. Натиснете и задръжте, за да го скриете, докато клавиатурата не се отвори следващия път. Изисква разрешението на Android „Показване върху други приложения“.</string>
     <string name="layout_summon_button_permission_subtitle">Бутонът не може да се появи, докато Android не позволи това</string>
     <string name="layout_summon_button_permission_title">Разрешаване на показване върху други приложения</string>
-    <string name="layout_summon_button_subtitle">Бутон над други приложения, който отваря клавиатурата, със или без текстово поле</string>
-    <string name="layout_summon_button_title">Плаващ бутон на клавиатурата</string>
     <string name="layout_swap_comma_globe_info">Двата клавиша от всяка страна на интервала сменят местата си. Ако единият от тях е клавиш за емоджи, той се премества в най-външната позиция, а запетаята остава до интервала. Изключете това, за да възстановите обичайната подредба.</string>
     <string name="layout_swap_comma_globe_subtitle">Поставете запетаята до интервала</string>
     <string name="layout_swap_comma_globe_title">Размяна на клавишите за запетая и 🌐</string>
@@ -5812,7 +5809,6 @@
     <string name="search_kw_layout_show_globe">скриване премахване на езиков глобус</string>
     <string name="search_kw_layout_size_position">преоразмеряване свиване компактно разрастване</string>
     <string name="search_kw_layout_split">ергономичен таблет за палци</string>
-    <string name="search_kw_layout_summon_button">балонно наслагване показване извикване без поле хакери</string>
     <string name="search_kw_layout_symbols_numpad_key">цифрова клавиатура numpad dialpad 1234 gboard</string>
     <string name="search_kw_learnedcorrections">научени корекции, мои поправки, двойки с печатни грешки, научени поправки, автоматично коригиране на обучението, грешки, навици</string>
     <string name="search_kw_licenses">с отворен код, приписване, кредити</string>

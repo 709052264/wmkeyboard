@@ -3985,11 +3985,8 @@
     <string name="layout_split_spacebar_title">Розділити клавішу пробілу</string>
     <string name="layout_split_subtitle">Розділіть клавіші на ліву та праву половини</string>
     <string name="layout_split_title">Розділити клавіатуру</string>
-    <string name="layout_summon_button_info">Поки клавіатура закрита, невелика кругла кнопка плаває поверх кожного додатка. Торкніться її, і клавіатура відкриється, навіть на екрані без текстового поля, і залишатиметься там відкритою, доки ви її не закриєте. Клавіші тоді надсилатимуться в додаток як натискання клавіш, так само як і з опцією \"Тримати клавіатуру на екрані\". Перетягніть кнопку, щоб перемістити її; вона закріпиться біля ближчого краю. Натисніть і утримуйте її, щоб приховати до наступного відкриття клавіатури. Потребує дозволу Android \"Відображення поверх інших додатків\".</string>
     <string name="layout_summon_button_permission_subtitle">Кнопка не може з\'явитися, поки Android не дозволить це</string>
     <string name="layout_summon_button_permission_title">Дозволити відображення поверх інших програм</string>
-    <string name="layout_summon_button_subtitle">Кнопка поверх інших програм, що відкриває клавіатуру, з текстовим полем або без нього</string>
-    <string name="layout_summon_button_title">Плаваюча кнопка клавіатури</string>
     <string name="layout_swap_comma_globe_info">Дві клавіші з кожного боку пробілу міняються місцями. Якщо одна з них — клавіша емодзі, вона переміщується в зовнішню позицію, а кома залишається поруч із пробілом. Вимкніть це, щоб повернути звичайний порядок.</string>
     <string name="layout_swap_comma_globe_subtitle">Розмістити кому поруч із пробілом</string>
     <string name="layout_swap_comma_globe_title">Поміняти місцями клавіші коми та 🌐</string>
@@ -5808,7 +5805,6 @@
     <string name="search_kw_layout_show_globe">приховати видалити мову глобуса</string>
     <string name="search_kw_layout_size_position">зміна розміру стиснення компактний збільшення</string>
     <string name="search_kw_layout_split">ергономічний планшет для великих пальців</string>
-    <string name="search_kw_layout_summon_button">бульбашкове накладання показати поле виклику без полів хакери</string>
     <string name="search_kw_layout_symbols_numpad_key">цифрова клавіатура панель набору 1234 gboard</string>
     <string name="search_kw_learnedcorrections">вивчені виправлення, мої виправлення, пари помилок, навчені виправлення, навчання автокорекції, промахи, звички</string>
     <string name="search_kw_licenses">відкритий код, атрибуція, авторство</string>

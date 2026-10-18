@@ -3979,11 +3979,8 @@
     <string name="layout_split_spacebar_title">แยกปุ่มสเปซบาร์</string>
     <string name="layout_split_subtitle">แบ่งปุ่มออกเป็นครึ่งซ้ายและครึ่งขวา</string>
     <string name="layout_split_title">แยกแป้นพิมพ์</string>
-    <string name="layout_summon_button_info">ในขณะที่ปิดแป้นพิมพ์ ปุ่มกลมเล็กๆ จะลอยอยู่เหนือทุกแอป แตะปุ่มนั้นแล้วแป้นพิมพ์จะเปิดขึ้น แม้บนหน้าจอที่ไม่มีช่องข้อความ และจะเปิดค้างไว้ที่นั่นจนกว่าคุณจะปิด จากนั้นปุ่มจะส่งการกดแป้นไปยังแอปเหมือนกับการตั้งค่า \'คงแป้นพิมพ์ไว้บนหน้าจอ\' ลากปุ่มเพื่อย้ายตำแหน่ง มันจะไปเกาะอยู่ที่ด้านที่ใกล้ที่สุด กดค้างไว้เพื่อซ่อนจนกว่าแป้นพิมพ์จะเปิดขึ้นในครั้งถัดไป จำเป็นต้องได้รับสิทธิ์ \'แสดงทับแอปอื่น\' ของ Android</string>
     <string name="layout_summon_button_permission_subtitle">ปุ่มจะไม่ปรากฏจนกว่า Android จะอนุญาต</string>
     <string name="layout_summon_button_permission_title">อนุญาตให้แสดงทับแอปอื่น</string>
-    <string name="layout_summon_button_subtitle">ปุ่มเหนือแอปอื่นที่เปิดแป้นพิมพ์ โดยมีหรือไม่มีช่องข้อความ</string>
-    <string name="layout_summon_button_title">ปุ่มแป้นพิมพ์ลอย</string>
     <string name="layout_swap_comma_globe_info">ปุ่มสองปุ่มที่อยู่แต่ละด้านของสเปซบาร์จะสลับตำแหน่งกัน หากปุ่มใดปุ่มหนึ่งเป็นปุ่มอีโมจิ ปุ่มนั้นจะย้ายไปอยู่ตำแหน่งนอกสุดและปุ่มจุลภาคจะยังคงอยู่ติดกับสเปซบาร์ ปิดการตั้งค่านี้เพื่อกลับไปใช้ลำดับปกติ</string>
     <string name="layout_swap_comma_globe_subtitle">วางเครื่องหมายจุลภาคไว้ข้างปุ่มเว้นวรรค</string>
     <string name="layout_swap_comma_globe_title">สลับปุ่มจุลภาคและปุ่ม 🌐</string>
@@ -5803,7 +5800,6 @@
     <string name="search_kw_layout_show_globe">ซ่อนการลบภาษาลูกโลก</string>
     <string name="search_kw_layout_size_position">ปรับขนาด ย่อ กระชับ ขยาย</string>
     <string name="search_kw_layout_split">นิ้วโป้ง ตามหลักสรีรศาสตร์ แท็บเล็ต</string>
-    <string name="search_kw_layout_summon_button">แสดงหน้าต่างบับเบิลเรียกใช้งานแฮกเกอร์โดยไม่ต้องระบุช่องข้อมูล</string>
     <string name="search_kw_layout_symbols_numpad_key">แป้นตัวเลข แผงปุ่มกด แป้นกดหมายเลข 1234 gboard</string>
     <string name="search_kw_learnedcorrections">การแก้ไขที่เรียนรู้, การแก้ไขของฉัน, คู่คำผิด, การแก้ไขที่สอน, การเรียนรู้การแก้ไขอัตโนมัติ, ความผิดพลาด, นิสัย</string>
     <string name="search_kw_licenses">โอเพนซอร์ส, การอ้างอิง, เครดิต</string>

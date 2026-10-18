@@ -1405,7 +1405,6 @@
     <string name="ime_suggestion_never_suggest">Aldrei stinga upp á „%1$s“</string>
     <string name="ime_suggestion_pages_close">Aftur á lyklana</string>
     <string name="ime_suggestions_show_desc">Sýna tillögustikuna</string>
-    <string name="ime_summon_button_hidden_toast">Lyklaborðshnappur falinn þar til lyklaborðið opnast næst</string>
     <string name="ime_summon_button_label">Sýna lyklaborð</string>
     <string name="ime_symbol_row_delete_confirm_body">Safnið og allar færslur þess verða fjarlægðar. Lyklaborðsstilling sem bauð upp á það mun sýna önnur söfn í staðinn.</string>
     <string name="ime_symbol_row_delete_confirm_title">Eyða \"%1$s\"?</string>

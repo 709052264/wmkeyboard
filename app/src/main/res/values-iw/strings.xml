@@ -3987,11 +3987,8 @@
     <string name="layout_split_spacebar_title">פיצול מקש הרווח</string>
     <string name="layout_split_subtitle">חלק את המקשים לחצי שמאלי וחצי ימני</string>
     <string name="layout_split_title">מקלדת מפוצלת</string>
-    <string name="layout_summon_button_info">כשהמקלדת סגורה, כפתור עגול קטן צף מעל כל אפליקציה. הקש עליו והמקלדת תיפתח, גם על מסך ללא שדה טקסט, ותישאר פתוחה שם עד שתסגור אותה. המקשים מגיעים אז לאפליקציה כלחיצות מקשים, בדיוק כמו עם \'השאר את המקלדת על המסך\'. גרור את הכפתור כדי להזיז אותו; הוא ייצמד לצד הקרוב יותר. לחץ והחזק אותו כדי להסתיר אותו עד שהמקלדת תיפתח בפעם הבאה. דורש הרשאת \'הצגה מעל אפליקציות אחרות\' של אנדרואיד.</string>
     <string name="layout_summon_button_permission_subtitle">הכפתור לא יכול להופיע עד ש-Android תאפשר זאת</string>
     <string name="layout_summon_button_permission_title">אפשר תצוגה מעל אפליקציות אחרות</string>
-    <string name="layout_summon_button_subtitle">כפתור מעל אפליקציות אחרות שפותח את המקלדת, עם או בלי שדה טקסט</string>
-    <string name="layout_summon_button_title">כפתור מקלדת צף</string>
     <string name="layout_swap_comma_globe_info">שני המקשים משני צידי מקש הרווח מחליפים מקומות. אם אחד מהם הוא מקש אימוג\'י, הוא עובר למיקום החיצוני והפסיק נשאר ליד מקש הרווח. כבה זאת כדי לקבל את הסדר הרגיל.</string>
     <string name="layout_swap_comma_globe_subtitle">שים את הפסיק ליד מקש הרווח</string>
     <string name="layout_swap_comma_globe_title">החלף בין מקש הפסיק למקש ה-🌐</string>
@@ -5811,7 +5808,6 @@
     <string name="search_kw_layout_show_globe">הסתר הסר גלובוס שפה</string>
     <string name="search_kw_layout_size_position">שנה גודל כווץ קומפקטי הגדל</string>
     <string name="search_kw_layout_split">ארגונומי לאגודלים לטאבלט</string>
-    <string name="search_kw_layout_summon_button">הצגת שכבת בועה המזמנת האקרים ללא שדות</string>
     <string name="search_kw_layout_symbols_numpad_key">לוח מספרים מקלדת חיוג 1234 gboard</string>
     <string name="search_kw_learnedcorrections">תיקונים שנלמדו, התיקונים שלי, זוגות שגיאות הקלדה, תיקונים שנלמדו, למידת תיקון אוטומטי, החלקות, הרגלים</string>
     <string name="search_kw_licenses">קוד פתוח, ייחוס, קרדיטים</string>

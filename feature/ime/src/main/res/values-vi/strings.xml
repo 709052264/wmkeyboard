@@ -1399,7 +1399,6 @@
     <string name="ime_suggestion_never_suggest">Không bao giờ gợi ý \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Quay lại các phím</string>
     <string name="ime_suggestions_show_desc">Hiển thị thanh gợi ý</string>
-    <string name="ime_summon_button_hidden_toast">Nút bàn phím bị ẩn cho đến khi bàn phím mở lần tiếp theo</string>
     <string name="ime_summon_button_label">Hiện bàn phím</string>
     <string name="ime_symbol_row_delete_confirm_body">Tập hợp này và tất cả các mục của nó sẽ bị xóa. Một chế độ bàn phím hỗ trợ mục này sẽ hiển thị các tập hợp khác của bạn thay vào đó.</string>
     <string name="ime_symbol_row_delete_confirm_title">Xóa \"%1$s\"?</string>

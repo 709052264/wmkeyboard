@@ -3984,11 +3984,8 @@
     <string name="layout_split_spacebar_title">Jaa välilyönti</string>
     <string name="layout_split_subtitle">Jaa näppäimet vasempaan ja oikeaan puoliskoon</string>
     <string name="layout_split_title">Jaettu näppäimistö</string>
-    <string name="layout_summon_button_info">Kun näppäimistö on suljettu, pieni pyöreä painike kelluu jokaisen sovelluksen päällä. Napauta sitä, niin näppäimistö avautuu, jopa näytöllä, jossa ei ole tekstikenttää, ja pysyy auki, kunnes suljet sen. Näppäinpainallukset välittyvät sovellukseen samalla tavalla kuin \"Pidä näppäimistö näytöllä\" -asetuksella. Vedä painiketta siirtääksesi sitä; se asettuu lähemmän reunan viereen. Paina ja pidä painettuna piilottaaksesi sen, kunnes näppäimistö seuraavan kerran avautuu. Vaatii Androidin \"Näytä muiden sovellusten päällä\" -oikeuden.</string>
     <string name="layout_summon_button_permission_subtitle">Painike ei voi näkyä ennen kuin Android sallii sen</string>
     <string name="layout_summon_button_permission_title">Salli näkyminen muiden sovellusten päällä</string>
-    <string name="layout_summon_button_subtitle">Muiden sovellusten päällä oleva painike, joka avaa näppäimistön tekstikentän kanssa tai ilman</string>
-    <string name="layout_summon_button_title">Kelluva näppäimistöpainike</string>
     <string name="layout_swap_comma_globe_info">Välilyöntinäppäimen molemmin puolin olevat kaksi näppäintä vaihtavat paikkaa. Jos toinen niistä on emojinäppäin, se siirtyy ulompaan asentoon ja pilkku pysyy välilyöntinäppäimen vieressä. Kytke tämä pois päältä palauttaaksesi tavallisen järjestyksen.</string>
     <string name="layout_swap_comma_globe_subtitle">Aseta pilkku välilyöntinäppäimen viereen</string>
     <string name="layout_swap_comma_globe_title">Vaihda pilkku- ja 🌐-näppäinten paikkaa</string>
@@ -5807,7 +5804,6 @@
     <string name="search_kw_layout_show_globe">piilota poista maapallo-kieli</string>
     <string name="search_kw_layout_size_position">muuta kokoa kutista tiivistä laajenna</string>
     <string name="search_kw_layout_split">peukalo ergonominen tabletti</string>
-    <string name="search_kw_layout_summon_button">kuplapeitto näytä kutsu kentätön hakkerit</string>
     <string name="search_kw_layout_symbols_numpad_key">numeronäppäimistö näppäimistö valintanäppäimistö 1234 gboard</string>
     <string name="search_kw_learnedcorrections">opitut korjaukset, omat korjaukset, kirjoitusvirheparit, opetetut korjaukset, automaattisen korjauksen oppiminen, lipsahdukset, tavat</string>
     <string name="search_kw_licenses">avoin lähdekoodi, nimeäminen, tekijätiedot</string>

@@ -266,6 +266,7 @@ export const ROUTES: RouteSpec[] = [
 	},
 
 	{ pattern: 'advanced', label: 'Advanced', group: 'Advanced' },
+	{ pattern: 'floating_button', label: 'Floating button', group: 'Advanced' },
 	{ pattern: 'modes', label: 'Keyboard modes', group: 'Advanced' },
 	{
 		pattern: 'mode_edit/{modeId}',

@@ -3984,11 +3984,8 @@
     <string name="layout_split_spacebar_title">Rozdělit mezerník</string>
     <string name="layout_split_subtitle">Rozdělit klávesy na levou a pravou polovinu</string>
     <string name="layout_split_title">Rozdělená klávesnice</string>
-    <string name="layout_summon_button_info">Když je klávesnice zavřená, nad každou aplikací se vznáší malé kulaté tlačítko. Klepněte na něj a klávesnice se otevře, a to i na obrazovce bez textového pole, a zůstane tam otevřená, dokud ji nezavřete. Klávesy pak odesílají vstupy do aplikace jako stisky kláves, stejně jako u volby Ponechat klávesnici na obrazovce. Přetažením tlačítka jej přesunete; usadí se u bližší strany. Stisknutím a podržením jej skryjete, dokud se klávesnice příště neotevře. Vyžaduje oprávnění systému Android Zobrazovat přes ostatní aplikace.</string>
     <string name="layout_summon_button_permission_subtitle">Tlačítko se nemůže zobrazit, dokud to Android nepovolí</string>
     <string name="layout_summon_button_permission_title">Povolit zobrazení přes ostatní aplikace</string>
-    <string name="layout_summon_button_subtitle">Tlačítko nad ostatními aplikacemi, které otevře klávesnici, s textovým polem nebo bez něj</string>
-    <string name="layout_summon_button_title">Plovoucí tlačítko klávesnice</string>
     <string name="layout_swap_comma_globe_info">Dvě klávesy na každé straně mezerníku si vymění místa. Pokud je jednou z nich klávesa emoji, přesune se na vnější pozici a čárka zůstane vedle mezerníku. Vypněte tuto možnost pro návrat k obvyklému pořadí.</string>
     <string name="layout_swap_comma_globe_subtitle">Umístit čárku vedle mezerníku</string>
     <string name="layout_swap_comma_globe_title">Prohodit klávesy čárky a 🌐</string>
@@ -5807,7 +5804,6 @@
     <string name="search_kw_layout_show_globe">skrýt odstranit jazyk zeměkoule</string>
     <string name="search_kw_layout_size_position">změnit velikost zmenšit kompaktní zvětšit</string>
     <string name="search_kw_layout_split">palec ergonomický tablet</string>
-    <string name="search_kw_layout_summon_button">zobrazit vyskakovací okno pro vyvolání hackerů bez pole</string>
     <string name="search_kw_layout_symbols_numpad_key">numerická klávesnice číselník 1234 gboard</string>
     <string name="search_kw_learnedcorrections">naučené opravy, moje opravy, páry překlepů, naučené opravy, učení automatických oprav, překlepy, návyky</string>
     <string name="search_kw_licenses">open source, uvedení autora, kredity</string>

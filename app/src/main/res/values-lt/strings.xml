@@ -3988,11 +3988,8 @@
     <string name="layout_split_spacebar_title">Padalyti tarpo klavišą</string>
     <string name="layout_split_subtitle">Padalinkite klavišus į kairę ir dešinę puses</string>
     <string name="layout_split_title">Padalinta klaviatūra</string>
-    <string name="layout_summon_button_info">Kol klaviatūra uždaryta, mažas apvalus mygtukas plūduriuoja virš kiekvienos programos. Bakstelėkite jį ir klaviatūra atsidarys, net jei ekrane nėra teksto lauko, ir liks atidaryta, kol ją uždarysite. Tada klavišai pasiekia programą kaip klavišų paspaudimai, taip pat, kaip ir su „Palikti klaviatūrą ekrane“. Vilkite mygtuką, kad jį perkeltumėte; jis priglunda prie artimesnės pusės. Paspauskite ir palaikykite, kad paslėptumėte jį iki kito klaviatūros atidarymo. Reikalingas „Android“ leidimas „Rodyti virš kitų programų“.</string>
     <string name="layout_summon_button_permission_subtitle">Mygtukas negali pasirodyti, kol „Android“ to neleidžia</string>
     <string name="layout_summon_button_permission_title">Leisti rodyti virš kitų programų</string>
-    <string name="layout_summon_button_subtitle">Mygtukas virš kitų programų, kuris atidaro klaviatūrą su teksto lauku arba be jo</string>
-    <string name="layout_summon_button_title">Plaukiojančios klaviatūros mygtukas</string>
     <string name="layout_swap_comma_globe_info">Du klavišai abiejose tarpo klavišo pusėse sukeičiami vietomis. Jei vienas iš jų yra jaustukų klavišas, jis perkeliamas į išorinę poziciją, o kablelis lieka šalia tarpo klavišo. Išjunkite tai, kad grąžintumėte įprastą tvarką.</string>
     <string name="layout_swap_comma_globe_subtitle">Padėkite kablelį šalia tarpo klavišo</string>
     <string name="layout_swap_comma_globe_title">Sukeisti kablelio ir 🌐 klavišus</string>
@@ -5811,7 +5808,6 @@
     <string name="search_kw_layout_show_globe">slėpti pašalinti gaublio kalbą</string>
     <string name="search_kw_layout_size_position">keisti dydį sutraukti kompaktiškas padidinti</string>
     <string name="search_kw_layout_split">nykščiams ergonomiškas planšetinis kompiuteris</string>
-    <string name="search_kw_layout_summon_button">burbulo perdanga rodyti iškviesti be laukų įsilaužėliai</string>
     <string name="search_kw_layout_symbols_numpad_key">skaičių klaviatūra skaičių blokas rinkiklis 1234 gboard</string>
     <string name="search_kw_learnedcorrections">išmoktos korekcijos, mano pataisymai, rašybos klaidos, išmokyti pataisymai, automatinio taisymo mokymasis, klaidos, įpročiai</string>
     <string name="search_kw_licenses">atvirasis kodas, priskyrimas, kreditai</string>

@@ -280,6 +280,8 @@ import com.wasimaster.wmkeyboard.core.settings.AutomationPermission
 import com.wasimaster.wmkeyboard.core.settings.KeyboardAlignment
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings
+import com.wasimaster.wmkeyboard.core.settings.FloatingAction
+import com.wasimaster.wmkeyboard.ime.floating.FloatingButton
 import com.wasimaster.wmkeyboard.core.theme.BackgroundBitmapCache
 import com.wasimaster.wmkeyboard.core.settings.ModeField
 import com.wasimaster.wmkeyboard.core.settings.OctopusDuringGlide
@@ -5963,7 +5965,7 @@ open class WMKeyboardService : InputMethodService() {
      * land while the shade still has the focus, so it is repeated a few times
      * over [SUMMON_PENDING_MS] until the keyboard is up, and the pin machinery
      * ([pinnedNow], [reshowPinned]) puts it back if an app takes it down. The
-     * floating button ([SummonButton]) never moves the focus, so its first
+     * floating button ([FloatingButton]) never moves the focus, so its first
      * request is normally the one that lands.
      *
      * Never over the lock screen, the same rule pinning keeps.
@@ -6035,115 +6037,112 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * The floating keyboard button, created the first time it is wanted. The
+     * The floating button (#755), created the first time it is wanted. The
      * delegate is kept so [onDestroy] can tell whether there is one to take
      * down without making one.
      */
-    private val summonButtonDelegate = lazy {
-        SummonButton(
+    private val floatingButtonDelegate = lazy {
+        FloatingButton(
             context = this,
-            glyph = R.drawable.ic_summon_keyboard,
-            label = R.string.ime_summon_button_label,
-            windowTitle = "WM Keyboard button",
-            onTap = ::onSummonButtonTap,
-            onMoved = { x, y ->
-                serviceScope.launch { settingsRepository.setSummonButtonPosition(x, y) }
-            },
-            onDismiss = {
-                summonButtonDismissed = true
-                syncSummonButton()
-                val toast = if (windowOnScreen) {
-                    R.string.ime_summon_button_hidden_open_toast
-                } else {
-                    R.string.ime_summon_button_hidden_toast
+            host = object : FloatingButton.Host {
+                override fun runFloatingAction(action: FloatingAction) = onFloatingAction(action)
+
+                override fun floatingButtonMoved(xFraction: Float, yFraction: Float) {
+                    serviceScope.launch { settingsRepository.setSummonButtonPosition(xFraction, yFraction) }
                 }
-                Toast.makeText(this, toast, Toast.LENGTH_SHORT).show()
+
+                override fun floatingButtonDismissed() {
+                    floatingButtonDismissed = true
+                    syncSummonButton()
+                    val toast = if (windowOnScreen) {
+                        R.string.ime_floating_button_hidden_open_toast
+                    } else {
+                        R.string.ime_floating_button_hidden_toast
+                    }
+                    Toast.makeText(this@WMKeyboardService, toast, Toast.LENGTH_SHORT).show()
+                }
             },
         )
     }
-    private val summonButton by summonButtonDelegate
+    private val floatingButton by floatingButtonDelegate
 
     /**
-     * The floating AI button (#697): a second overlay button, on screen
-     * whether the keyboard is up or not, that opens an AI chat about the
-     * screen. Same lazy shape as [summonButtonDelegate].
+     * A drop on the target, or the Hide action, put the button away until the
+     * keyboard next opens or closes, whichever comes first: reset on every
+     * change of the window's visibility.
      */
-    private val aiButtonDelegate = lazy {
-        SummonButton(
-            context = this,
-            glyph = R.drawable.ic_summon_ai,
-            label = R.string.ime_ai_button_label,
-            windowTitle = "WM Keyboard AI button",
-            onTap = ::askAiAboutScreen,
-            onMoved = { x, y ->
-                serviceScope.launch { settingsRepository.setAiButtonPosition(x, y) }
-            },
-            onDismiss = {
-                aiButtonDismissed = true
-                syncSummonButton()
-                val toast = if (windowOnScreen) {
-                    R.string.ime_ai_button_hidden_open_toast
-                } else {
-                    R.string.ime_ai_button_hidden_toast
-                }
-                Toast.makeText(this, toast, Toast.LENGTH_SHORT).show()
-            },
-        )
-    }
-    private val aiButton by aiButtonDelegate
+    private var floatingButtonDismissed = false
 
     /**
-     * A long press put a floating button away until the keyboard next opens
-     * or closes, whichever comes first: both reset on every change of the
-     * window's visibility.
-     */
-    private var summonButtonDismissed = false
-    private var aiButtonDismissed = false
-
-    /**
-     * Puts the floating keyboard button (issue #374) and the floating AI
-     * button (#697) on screen or takes them off: each on while its switch is
-     * on and the overlay grant is held. The lock screen needs no check of its
-     * own — Android draws it over every app overlay.
+     * Puts the floating button (#374, #697, #755) on screen or takes it off:
+     * on while its switch is on and the overlay grant is held, and, as the
+     * page sets it, not while the keyboard is up or the screen is landscape.
+     * The lock screen needs no check of its own: Android draws it over every
+     * app overlay.
      *
-     * Both stay up while the keyboard is (#697). Overlay windows sit below the
-     * keyboard's, so a docked keyboard lifts them clear of itself
-     * ([SummonButton.keepAbove]), and the keyboard button turns into the way
-     * to put the keyboard away: a field-less screen, where it was summoned,
-     * often has no other.
+     * Overlay windows sit below the keyboard's, so a docked keyboard lifts the
+     * button clear of itself ([FloatingButton.keepAbove]), and the keyboard
+     * action turns into the way to put the keyboard away: a field-less screen,
+     * where it was summoned, often has no other.
      */
     private fun syncSummonButton(setting: SummonButtonSettings = _uiState.value.settings.summonButton) {
         val canDraw = Settings.canDrawOverlays(this)
-        val ceiling = if (windowOnScreen) boardTopOnScreen() else null
-        if (setting.enabled && !summonButtonDismissed && canDraw) {
-            if (windowOnScreen) {
-                summonButton.setGlyph(R.drawable.ic_summon_keyboard_hide, R.string.ime_summon_button_hide_label)
-            } else {
-                summonButton.setGlyph(R.drawable.ic_summon_keyboard, R.string.ime_summon_button_label)
-            }
-            summonButton.keepAbove(ceiling)
-            summonButton.show(setting.xFraction, setting.yFraction)
-        } else if (summonButtonDelegate.isInitialized()) {
-            summonButton.hide()
-        }
-        if (setting.aiButton && !aiButtonDismissed && canDraw) {
-            aiButton.keepAbove(ceiling)
-            aiButton.show(setting.aiXFraction, setting.aiYFraction)
-        } else if (aiButtonDelegate.isInitialized()) {
-            aiButton.hide()
+        val landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val wanted = setting.enabled && !floatingButtonDismissed && canDraw &&
+            (setting.whileTyping || !windowOnScreen) &&
+            !(setting.hideInLandscape && landscape)
+        if (wanted) {
+            floatingButton.update(setting, keyboardUp = windowOnScreen)
+            floatingButton.keepAbove(if (windowOnScreen) boardTopOnScreen() else null)
+            floatingButton.show(setting.xFraction, setting.yFraction)
+        } else if (floatingButtonDelegate.isInitialized()) {
+            floatingButton.hide()
         }
     }
 
-    /** The docked keyboard's top moved: lift the floating buttons clear of it. */
+    /** The docked keyboard's top moved: lift the floating button clear of it. */
     private fun liftFloatingButtons(topPx: Int?) {
-        if (summonButtonDelegate.isInitialized()) summonButton.keepAbove(topPx)
-        if (aiButtonDelegate.isInitialized()) aiButton.keepAbove(topPx)
+        if (floatingButtonDelegate.isInitialized()) floatingButton.keepAbove(topPx)
     }
 
-    /** The keyboard button's tap: up when it is down, down when it is up (#697). */
+    /** One of the floating button's gestures, or a quick menu slot (#755). */
+    private fun onFloatingAction(action: FloatingAction) {
+        when (action) {
+            FloatingAction.Keyboard -> onSummonButtonTap()
+            FloatingAction.AskAi -> askAiAboutScreen()
+            is FloatingAction.Tool -> runToolFromFloatingButton(action.tool)
+            // The button answers these itself.
+            FloatingAction.Menu, FloatingAction.Hide, FloatingAction.None -> Unit
+        }
+    }
+
+    /** The keyboard action: up when it is down, down when it is up (#697). */
     private fun onSummonButtonTap() {
         if (windowOnScreen) requestHideSelf(0) else summonKeyboard()
     }
+
+    /**
+     * A tool fired from the floating button (#755): what a key bound to it
+     * does, once the keyboard is up. Most tools are a panel of the keyboard,
+     * so a press while it is down summons it first and the tool runs as it
+     * arrives ([onScreenAgain]); the voice tool from the button is the one
+     * that was asked for, and it is a panel like the rest.
+     */
+    private fun runToolFromFloatingButton(tool: ToolbarTool) {
+        if (!isSupportedTool(tool)) return
+        if (windowOnScreen || tool in FloatingToolsWithoutKeyboard) {
+            floatingPendingTool = null
+            runToolFromKey(tool)
+            return
+        }
+        floatingPendingTool = tool
+        floatingPendingAt = SystemClock.uptimeMillis()
+        summonKeyboard()
+    }
+
+    /** A tool waiting for the keyboard a floating button press summoned; see [runToolFromFloatingButton]. */
+    private var floatingPendingTool: ToolbarTool? = null
+    private var floatingPendingAt = 0L
 
     /**
      * The floating AI button's tap (#697): reads the app on screen, when the
@@ -6265,9 +6264,10 @@ open class WMKeyboardService : InputMethodService() {
             floatingPanelBounds = null
             window?.window?.decorView?.requestLayout()
         }
-        // A rotation or a fold changes the room the floating button has.
-        if (summonButtonDelegate.isInitialized()) summonButton.relayout()
-        if (aiButtonDelegate.isInitialized()) aiButton.relayout()
+        // A rotation or a fold changes the room the floating button has, and
+        // may be the landscape it stays out of.
+        if (floatingButtonDelegate.isInitialized()) floatingButton.relayout()
+        syncSummonButton()
     }
 
     /** Push the current hardware-keyboard presence into the UI state. */
@@ -7729,16 +7729,22 @@ open class WMKeyboardService : InputMethodService() {
      * the first one on a given device.
      */
     private fun onScreenAgain() {
-        // The floating buttons lift above the keyboard and the keyboard
-        // button turns into a hide button (#697); a long press that put
-        // either away lasted until exactly now. Only on a real arrival: this
-        // also runs for every new field while the keyboard stays up.
-        if (!windowOnScreen) {
-            summonButtonDismissed = false
-            aiButtonDismissed = false
-        }
+        // The floating button lifts above the keyboard and its keyboard
+        // action turns into a hide (#697); a drop that put it away lasted
+        // until exactly now. Only on a real arrival: this also runs for every
+        // new field while the keyboard stays up.
+        val arriving = !windowOnScreen
+        if (arriving) floatingButtonDismissed = false
         windowOnScreen = true
         syncSummonButton()
+        // A tool the floating button asked for while the keyboard was down,
+        // now that there is a keyboard for its panel (#755).
+        floatingPendingTool?.let { tool ->
+            floatingPendingTool = null
+            if (arriving && SystemClock.uptimeMillis() - floatingPendingAt < FLOATING_TOOL_WAIT_MS) {
+                serviceScope.launch { runToolFromKey(tool) }
+            }
+        }
         // Held up over the settings app with no field there (pinned or
         // summoned): it opens its test field, the way its keyboard button
         // would. Only then: a keyboard that is merely still on screen while
@@ -7794,9 +7800,8 @@ open class WMKeyboardService : InputMethodService() {
         forcedShowUp = false
         lifecycleOwner.onStop()
         jankMonitor.stop()
-        // A long press made while the keyboard was up lasted until now.
-        summonButtonDismissed = false
-        aiButtonDismissed = false
+        // A drop made while the keyboard was up lasted until now.
+        floatingButtonDismissed = false
         syncSummonButton()
         KeyboardControls.setUpOverOwnApp(false)
     }
@@ -7969,8 +7974,7 @@ open class WMKeyboardService : InputMethodService() {
         KeyboardAutomation.host = null
         // So is the floating button: it is the keyboard's, and another one is
         // in charge now.
-        if (summonButtonDelegate.isInitialized()) summonButton.hide()
-        if (aiButtonDelegate.isInitialized()) aiButton.hide()
+        if (floatingButtonDelegate.isInitialized()) floatingButton.hide()
         summonJob?.cancel()
         pluginRuntime?.shutdown()
         pluginRuntime = null
@@ -44153,6 +44157,17 @@ open class WMKeyboardService : InputMethodService() {
          */
         private const val SUMMON_PENDING_MS = 2_000L
         private val SUMMON_RETRY_DELAYS_MS = longArrayOf(0L, 350L, 450L, 700L)
+
+        /**
+         * How long a tool the floating button asked for waits for the keyboard
+         * it summoned (#755): past the summon's own retries, with room for a
+         * slow first show, and short enough that a keyboard opened much later
+         * for another reason does not open a stale tool.
+         */
+        private const val FLOATING_TOOL_WAIT_MS = 3_000L
+
+        /** Tools the floating button runs without bringing the keyboard up: they have no panel. */
+        private val FloatingToolsWithoutKeyboard = setOf(ToolbarTool.SETTINGS)
 
         /**
          * How many silent recognizer sessions in a row wind an open microphone

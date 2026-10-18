@@ -3990,11 +3990,8 @@
     <string name="layout_split_spacebar_title">Разделить пробел</string>
     <string name="layout_split_subtitle">Разделить клавиши на левую и правую половины</string>
     <string name="layout_split_title">Разделенная клавиатура</string>
-    <string name="layout_summon_button_info">Пока клавиатура закрыта, маленькая круглая кнопка плавает поверх каждого приложения. Нажмите на нее, и клавиатура откроется, даже на экране без текстового поля, и останется открытой до тех пор, пока вы ее не закроете. Клавиши затем передаются в приложение как нажатия клавиш, так же, как при включенной опции «Оставлять клавиатуру на экране». Перетащите кнопку, чтобы переместить ее; она закрепится у ближайшего края. Нажмите и удерживайте ее, чтобы скрыть до следующего открытия клавиатуры. Требуется разрешение Android «Отображение поверх других приложений».</string>
     <string name="layout_summon_button_permission_subtitle">Кнопка не появится, пока Android не предоставит разрешение</string>
     <string name="layout_summon_button_permission_title">Разрешить отображение поверх других приложений</string>
-    <string name="layout_summon_button_subtitle">Кнопка поверх других приложений, которая открывает клавиатуру, с текстовым полем или без него</string>
-    <string name="layout_summon_button_title">Кнопка плавающей клавиатуры</string>
     <string name="layout_swap_comma_globe_info">Две клавиши по бокам от пробела меняются местами. Если одна из них — клавиша эмодзи, она перемещается во внешнюю позицию, а запятая остается рядом с пробелом. Отключите это, чтобы вернуть обычный порядок.</string>
     <string name="layout_swap_comma_globe_subtitle">Поместить запятую рядом с пробелом</string>
     <string name="layout_swap_comma_globe_title">Поменять местами клавиши запятой и 🌐</string>
@@ -5813,7 +5810,6 @@
     <string name="search_kw_layout_show_globe">скрыть удалить глобус языка</string>
     <string name="search_kw_layout_size_position">изменить размер сжать компактный увеличить</string>
     <string name="search_kw_layout_split">эргономичный планшет для больших пальцев</string>
-    <string name="search_kw_layout_summon_button">пузырьковое наложение показывает поле вызова без хакеров</string>
     <string name="search_kw_layout_symbols_numpad_key">цифровая клавиатура numpad 1234 gboard</string>
     <string name="search_kw_learnedcorrections">изученные исправления, мои исправления, пары опечаток, обученные исправления, обучение автокоррекции, ошибки, привычки</string>
     <string name="search_kw_licenses">открытый исходный код, авторство, благодарности</string>

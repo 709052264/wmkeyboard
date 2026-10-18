@@ -1401,7 +1401,6 @@
     <string name="ime_suggestion_never_suggest">Ne jamais suggérer \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Retour aux touches</string>
     <string name="ime_suggestions_show_desc">Afficher la barre de suggestions</string>
-    <string name="ime_summon_button_hidden_toast">Bouton du clavier masqué jusqu\'à la prochaine ouverture du clavier</string>
     <string name="ime_summon_button_label">Afficher le clavier</string>
     <string name="ime_symbol_row_delete_confirm_body">L\'ensemble et toutes ses entrées seront supprimés. Un mode de clavier qui le proposait affichera vos autres ensembles à la place.</string>
     <string name="ime_symbol_row_delete_confirm_title">Supprimer \"%1$s\" ?</string>

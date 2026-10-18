@@ -1401,7 +1401,6 @@
     <string name="ime_suggestion_never_suggest">Никога не предлагай \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Назад към клавишите</string>
     <string name="ime_suggestions_show_desc">Показване на лентата с предложения</string>
-    <string name="ime_summon_button_hidden_toast">Бутонът на клавиатурата е скрит до следващото отваряне на клавиатурата</string>
     <string name="ime_summon_button_label">Показване на клавиатурата</string>
     <string name="ime_symbol_row_delete_confirm_body">Наборът и всички негови записи ще бъдат изтрити. Режимът на клавиатурата, който го предлагаше, ще показва другите ви набори.</string>
     <string name="ime_symbol_row_delete_confirm_title">Изтриване на „%1$s“?</string>

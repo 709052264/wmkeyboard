@@ -245,18 +245,20 @@
     <string name="ime_controls_unpin">Unpin</string>
     <string name="ime_controls_switch">Switch keyboard</string>
 
-    <!-- The floating keyboard button over other apps (issue #374). The label
-         is what a screen reader says for the button. -->
+    <!-- The floating button over other apps (#374, #697, #755). The labels
+         name its actions: what a screen reader says for the button, and the
+         names in its quick menu and on its settings page. -->
     <string name="ime_summon_button_label">Show keyboard</string>
-    <string name="ime_summon_button_hidden_toast">Keyboard button hidden until the keyboard next opens</string>
     <string name="ime_summon_button_hide_label">Hide keyboard</string>
-    <string name="ime_summon_button_hidden_open_toast">Keyboard button hidden until the keyboard closes</string>
-
-    <!-- The floating AI button over other apps (#697). The label is what a
-         screen reader says for the button; the toasts follow a long press. -->
     <string name="ime_ai_button_label">Ask AI about this screen</string>
-    <string name="ime_ai_button_hidden_toast">AI button hidden until the keyboard next opens</string>
-    <string name="ime_ai_button_hidden_open_toast">AI button hidden until the keyboard closes</string>
+    <string name="ime_floating_menu_label">Quick menu</string>
+    <string name="ime_floating_hide_label">Hide the button</string>
+    <string name="ime_floating_none_label">Nothing</string>
+    <string name="ime_floating_close_menu">Close menu</string>
+    <string name="ime_floating_dismiss_target">Drop here to hide the button</string>
+    <string name="ime_floating_menu_empty">The quick menu is empty. Add actions to it in the floating button settings.</string>
+    <string name="ime_floating_button_hidden_toast">Floating button hidden until the keyboard next opens</string>
+    <string name="ime_floating_button_hidden_open_toast">Floating button hidden until the keyboard closes</string>
 
     <!-- Toasts when the user presses their pick-mode key on a physical keyboard. In pick mode the number keys select suggestions. -->
     <string name="ime_hw_pick_mode_on_toast">Pick mode on: number keys select suggestions, Shift types the number</string>

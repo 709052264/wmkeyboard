@@ -3993,11 +3993,8 @@
     <string name="layout_split_spacebar_title">تقسیم کلید فاصله</string>
     <string name="layout_split_subtitle">کلیدها را به دو نیمه چپ و راست تقسیم کنید</string>
     <string name="layout_split_title">صفحه‌کلید دو نیم شده</string>
-    <string name="layout_summon_button_info">هنگامی که صفحه‌کلید بسته است، یک دکمه گرد کوچک روی هر برنامه شناور می‌شود. روی آن ضربه بزنید تا صفحه‌کلید باز شود، حتی در صفحه‌ای که فیلد متنی ندارد، و تا زمانی که آن را نبندید، باز می‌ماند. کلیدها سپس به عنوان فشار کلید به برنامه می‌رسند، همانند حالت «نگه داشتن صفحه‌کلید روی صفحه». دکمه را بکشید تا جابجا شود؛ در سمت نزدیک‌تر قرار می‌گیرد. آن را فشار دهید و نگه دارید تا زمانی که صفحه‌کلید دوباره باز شود، پنهان بماند. نیاز به مجوز «نمایش روی سایر برنامه‌ها» در اندروید دارد.</string>
     <string name="layout_summon_button_permission_subtitle">دکمه نمی‌تواند ظاهر شود تا زمانی که اندروید اجازه دهد</string>
     <string name="layout_summon_button_permission_title">اجازه نمایش روی سایر برنامه‌ها</string>
-    <string name="layout_summon_button_subtitle">دکمه‌ای روی سایر برنامه‌ها که صفحه‌کلید را با یا بدون فیلد متنی باز می‌کند</string>
-    <string name="layout_summon_button_title">دکمه شناور صفحه‌کلید</string>
     <string name="layout_swap_comma_globe_info">دو کلید در هر طرف کلید فاصله جای خود را عوض می‌کنند. اگر یکی از آن‌ها کلید ایموجی باشد، به موقعیت بیرونی منتقل می‌شود و کاما در کنار کلید فاصله باقی می‌ماند. برای بازگشت به ترتیب معمول، این گزینه را خاموش کنید.</string>
     <string name="layout_swap_comma_globe_subtitle">ویرگول را کنار کلید فاصله قرار دهید</string>
     <string name="layout_swap_comma_globe_title">جابجایی کلیدهای ویرگول و 🌐</string>
@@ -5817,7 +5814,6 @@
     <string name="search_kw_layout_show_globe">پنهان کردن حذف زبان کره</string>
     <string name="search_kw_layout_size_position">تغییر اندازه کوچک‌سازی فشرده بزرگ‌سازی</string>
     <string name="search_kw_layout_split">شست ارگونومیک تبلت</string>
-    <string name="search_kw_layout_summon_button">نمایش حباب روی صفحه برای فراخوانی فیلد هکرها</string>
     <string name="search_kw_layout_symbols_numpad_key">صفحه‌کلید عددی شماره‌گیر ۱۲۳۴ جی‌بورد</string>
     <string name="search_kw_learnedcorrections">اصلاحات یادگرفته‌شده، اصلاحات من، جفت‌های غلط تایپی، اصلاحات آموزش‌داده‌شده، یادگیری تصحیح خودکار، لغزش‌ها، عادت‌ها</string>
     <string name="search_kw_licenses">متن‌باز، انتساب، اعتبارها</string>

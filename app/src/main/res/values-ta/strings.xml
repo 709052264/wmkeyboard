@@ -3985,11 +3985,8 @@
     <string name="layout_split_spacebar_title">ஸ்பேஸ்பாரைப் பிரிக்கவும்</string>
     <string name="layout_split_subtitle">விசைகளை இடது மற்றும் வலது பாதியாகப் பிரிக்கவும்</string>
     <string name="layout_split_title">பிளவு விசைப்பலகை</string>
-    <string name="layout_summon_button_info">விசைப்பலகை மூடப்பட்டிருக்கும் போது, ஒரு சிறிய வட்டமான பொத்தான் ஒவ்வொரு ஆப்ஸின் மீதும் மிதக்கும். அதைத் தட்டினால் விசைப்பலகை திறக்கும், உரை புலம் இல்லாத திரையிலும் இது செயல்படும், மேலும் நீங்கள் அதை மூடும் வரை அங்கேயே திறந்திருக்கும். \'விசைப்பலகையைத் திரையில் வைத்திரு\' என்பதைப் போலவே, விசைகள் விசை அழுத்தங்களாக ஆப்ஸை அடையும். பொத்தானை நகர்த்த அதை இழுக்கவும்; அது அருகிலுள்ள பக்கத்தில் அமரும். விசைப்பலகை அடுத்த முறை திறக்கும் வரை அதை மறைக்க அழுத்திப் பிடிக்கவும். இதற்கு ஆண்ட்ராய்டின் \'பிற ஆப்ஸ்கள் மீது காண்பிக்கும்\' அனுமதி தேவை.</string>
     <string name="layout_summon_button_permission_subtitle">Android அனுமதிக்கும் வரை பொத்தான் தோன்றாது</string>
     <string name="layout_summon_button_permission_title">பிற செயலிகளின் மேல் காட்ட அனுமதி</string>
-    <string name="layout_summon_button_subtitle">பிற பயன்பாடுகளுக்கு மேல் உள்ள ஒரு பொத்தான், இது உரை புலம் இருந்தாலும் இல்லாவிட்டாலும் விசைப்பலகையைத் திறக்கும்</string>
-    <string name="layout_summon_button_title">மிதக்கும் கீபோர்டு பொத்தான்</string>
     <string name="layout_swap_comma_globe_info">ஸ்பேஸ்பாரின் இருபுறமும் உள்ள இரண்டு விசைகளும் இடமாற்றம் செய்யும். அவற்றில் ஒன்று எமோஜி விசையாக இருந்தால், அது வெளிப்புற நிலைக்கு நகரும் மற்றும் கமா ஸ்பேஸ்பாருக்கு அருகிலேயே இருக்கும். வழக்கமான வரிசையைப் பெற இதை அணைக்கவும்.</string>
     <string name="layout_swap_comma_globe_subtitle">கற்பனைக்கு அருகில் கமாவைக் கொண்டு வாருங்கள்</string>
     <string name="layout_swap_comma_globe_title">கமா மற்றும் 🌐 விசைகளை மாற்றவும்</string>
@@ -5809,7 +5806,6 @@
     <string name="search_kw_layout_show_globe">உலக மொழி ஐகானை மறைக்கவும் நீக்கவும்</string>
     <string name="search_kw_layout_size_position">மறுஅளவிடு சுருக்கு சிறியதாக்கு வளரு</string>
     <string name="search_kw_layout_split">பெருவிரல் பணிச்சூழலியல் டேப்லெட்</string>
-    <string name="search_kw_layout_summon_button">குமிழி மேலடுக்கு புலமில்லாத ஹேக்கர்களை வரவழைப்பதைக் காட்டுகிறது</string>
     <string name="search_kw_layout_symbols_numpad_key">numpad keypad dialpad 1234 gboard</string>
     <string name="search_kw_learnedcorrections">கற்ற திருத்தங்கள், எனது திருத்தங்கள், எழுத்துப்பிழை இணைகள், கற்பிக்கப்பட்ட திருத்தங்கள், தானியங்கி திருத்த கற்றல், தவறுகள், பழக்கவழக்கங்கள்</string>
     <string name="search_kw_licenses">திறந்த மூலக் குறியீடு, பண்புக்கூறு, வரவுகள்</string>

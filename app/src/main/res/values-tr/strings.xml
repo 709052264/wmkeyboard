@@ -3981,11 +3981,8 @@
     <string name="layout_split_spacebar_title">Boşluk tuşunu böl</string>
     <string name="layout_split_subtitle">Tuşları sol ve sağ yarıya bölün</string>
     <string name="layout_split_title">Bölünmüş klavye</string>
-    <string name="layout_summon_button_info">Klavye kapalıyken, her uygulamanın üzerinde küçük yuvarlak bir düğme yüzer. Bu düğmeye dokunduğunuzda, metin alanı olmayan bir ekranda bile klavye açılır ve siz kapatana kadar orada açık kalır. Tuşlar, \'Klavyeyi ekranda tut\' seçeneğinde olduğu gibi tuş vuruşu olarak uygulamaya iletilir. Düğmeyi taşımak için sürükleyin; en yakın kenara yerleşir. Klavye bir sonraki açılışına kadar gizlemek için basılı tutun. Android\'in \'Diğer uygulamaların üzerinde görüntüle\' izni gerekir.</string>
     <string name="layout_summon_button_permission_subtitle">Android izin verene kadar düğme görünemez</string>
     <string name="layout_summon_button_permission_title">Diğer uygulamaların üzerinde görüntülemeye izin ver</string>
-    <string name="layout_summon_button_subtitle">Diğer uygulamaların üzerinde, metin alanı olsun veya olmasın klavyeyi açan bir düğme</string>
-    <string name="layout_summon_button_title">Yüzen klavye düğmesi</string>
     <string name="layout_swap_comma_globe_info">Boşluk çubuğunun her iki yanındaki iki tuş yer değiştirir. Bunlardan biri emoji tuşuysa, dış konuma geçer ve virgül boşluk çubuğunun yanında kalır. Normal düzene dönmek için bunu kapatın.</string>
     <string name="layout_swap_comma_globe_subtitle">Virgülü boşluk çubuğunun yanına koy</string>
     <string name="layout_swap_comma_globe_title">Virgül ve 🌐 tuşlarını değiştir</string>
@@ -5804,7 +5801,6 @@
     <string name="search_kw_layout_show_globe">küre dilini kaldır seçeneğini gizle</string>
     <string name="search_kw_layout_size_position">yeniden boyutlandır küçült kompakt büyüt</string>
     <string name="search_kw_layout_split">başparmak ergonomik tablet</string>
-    <string name="search_kw_layout_summon_button">balon katmanı çağırma alanını göster</string>
     <string name="search_kw_layout_symbols_numpad_key">numpad tuş takımı çevirici 1234 gboard</string>
     <string name="search_kw_learnedcorrections">öğrenilmiş düzeltmeler, düzeltmelerim, yazım hatası çiftleri, öğretilen düzeltmeler, otomatik düzeltme öğrenimi, hatalar, alışkanlıklar</string>
     <string name="search_kw_licenses">açık kaynak, atıf, krediler</string>

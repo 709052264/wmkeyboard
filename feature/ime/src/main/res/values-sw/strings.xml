@@ -1406,7 +1406,6 @@
     <string name="ime_suggestion_never_suggest">Usipendekeze kamwe \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Rudi kwenye funguo</string>
     <string name="ime_suggestions_show_desc">Onyesha utepe wa mapendekezo</string>
-    <string name="ime_summon_button_hidden_toast">Kitufe cha kibodi kimefichwa hadi kibodi itakapofunguka tena</string>
     <string name="ime_summon_button_label">Onyesha kibodi</string>
     <string name="ime_symbol_row_delete_confirm_body">Seti hiyo na viingilio vyake vyote vitafutwa. Hali ya kibodi iliyoitoa itaonyesha seti zako nyingine badala yake.</string>
     <string name="ime_symbol_row_delete_confirm_title">Kufuta \"%1$s\"?</string>

@@ -3989,11 +3989,8 @@
     <string name="layout_split_spacebar_title">स्पेसबार विभाजित करा</string>
     <string name="layout_split_subtitle">कीज डाव्या आणि उजव्या भागात विभाजित करा</string>
     <string name="layout_split_title">स्प्लिट कीबोर्ड</string>
-    <string name="layout_summon_button_info">कीबोर्ड बंद असताना, एक लहान गोल बटण प्रत्येक ॲपवर तरंगते. त्यावर टॅप करा आणि कीबोर्ड उघडतो, अगदी मजकूर फील्ड नसलेल्या स्क्रीनवरही, आणि तुम्ही बंद करेपर्यंत तो तिथेच उघडा राहतो. कीबोर्ड स्क्रीनवर ठेवा प्रमाणेच, कीज ॲपवर की-प्रेस म्हणून पोहोचतात. बटण हलवण्यासाठी ते ड्रॅग करा; ते जवळच्या बाजूला स्थिरावते. कीबोर्ड पुन्हा उघडण्यापर्यंत ते लपवण्यासाठी ते दाबून धरा. यासाठी अँड्रॉइडची \'इतर ॲप्सवर डिस्प्ले\' परवानगी आवश्यक आहे.</string>
     <string name="layout_summon_button_permission_subtitle">Android परवानगी देईपर्यंत बटण दिसू शकत नाही</string>
     <string name="layout_summon_button_permission_title">इतर ॲप्सवर डिस्प्लेची परवानगी द्या</string>
-    <string name="layout_summon_button_subtitle">इतर ॲप्सच्या वर एक बटण जे कीबोर्ड उघडते, मजकूर फील्डसह किंवा त्याशिवाय</string>
-    <string name="layout_summon_button_title">फ्लोटिंग कीबोर्ड बटण</string>
     <string name="layout_swap_comma_globe_info">स्पेसबारच्या दोन्ही बाजूंच्या दोन की आपली जागा बदलतात. जर त्यापैकी एक इमोजी की असेल, तर ती बाहेरील बाजूला जाते आणि स्वल्पविराम स्पेसबारच्या शेजारी राहतो. नेहमीचा क्रम मिळवण्यासाठी हे बंद करा.</string>
     <string name="layout_swap_comma_globe_subtitle">स्वल्पविराम स्पेसबारच्या शेजारी ठेवा</string>
     <string name="layout_swap_comma_globe_title">स्वल्पविराम आणि 🌐 की अदलाबदल करा</string>
@@ -5813,7 +5810,6 @@
     <string name="search_kw_layout_show_globe">ग्लोब भाषा लपवा किंवा काढा</string>
     <string name="search_kw_layout_size_position">आकार बदला लहान कॉम्पॅक्ट मोठे करा</string>
     <string name="search_kw_layout_split">थंब एर्गोनॉमिक टॅब्लेट</string>
-    <string name="search_kw_layout_summon_button">बबल ओव्हरले शो समन फील्डलेस हॅकर्स</string>
     <string name="search_kw_layout_symbols_numpad_key">नंपॅड कीपॅड डायलपॅड 1234 जीबोर्ड</string>
     <string name="search_kw_learnedcorrections">शिकलेली दुरुस्ती, माझे फिक्स, टायपो जोड्या, शिकवलेले फिक्स, ऑटोकरेक्ट लर्निंग, स्लिप्स, सवयी</string>
     <string name="search_kw_licenses">ओपन सोर्स, ॲट्रिब्युशन, क्रेडिट्स</string>

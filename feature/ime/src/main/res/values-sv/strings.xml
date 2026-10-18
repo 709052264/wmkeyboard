@@ -1404,7 +1404,6 @@
     <string name="ime_suggestion_never_suggest">Föreslå aldrig \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Tillbaka till tangenterna</string>
     <string name="ime_suggestions_show_desc">Visa förslagsfältet</string>
-    <string name="ime_summon_button_hidden_toast">Tangentbordsknappen dold tills tangentbordet öppnas nästa gång</string>
     <string name="ime_summon_button_label">Visa tangentbord</string>
     <string name="ime_symbol_row_delete_confirm_body">Inställningen och alla dess poster kommer att raderas. Ett tangentbordsläge som erbjöd den kommer att visa dina andra inställningar istället.</string>
     <string name="ime_symbol_row_delete_confirm_title">Ta bort \"%1$s\"?</string>

@@ -3988,11 +3988,8 @@
     <string name="layout_split_spacebar_title">De spatiebalk splitsen</string>
     <string name="layout_split_subtitle">Verdeel de toetsen in een linkerhelft en een rechterhelft</string>
     <string name="layout_split_title">Gesplitst toetsenbord</string>
-    <string name="layout_summon_button_info">Terwijl het toetsenbord gesloten is, zweeft er een kleine ronde knop over elke app. Tik erop en het toetsenbord opent, zelfs op een scherm zonder tekstveld, en blijft daar open totdat je het sluit. Toetsen bereiken dan de app als toetsaanslagen, hetzelfde als bij \'Toetsenbord op scherm houden\'. Sleep de knop om deze te verplaatsen; hij nestelt zich tegen de dichtstbijzijnde kant. Houd ingedrukt om te verbergen totdat het toetsenbord de volgende keer opent. Vereist de toestemming \'Weergeven over andere apps\' van Android.</string>
     <string name="layout_summon_button_permission_subtitle">De knop kan niet verschijnen totdat Android dit toestaat</string>
     <string name="layout_summon_button_permission_title">Weergave over andere apps toestaan</string>
-    <string name="layout_summon_button_subtitle">Een knop over andere apps die het toetsenbord opent, met of zonder tekstveld</string>
-    <string name="layout_summon_button_title">Zwevende toetsenbordknop</string>
     <string name="layout_swap_comma_globe_info">De twee toetsen aan weerszijden van de spatiebalk wisselen van plaats. Als een van deze een emoji-toets is, verplaatst deze naar de buitenste positie en blijft de komma naast de spatiebalk. Schakel dit uit voor de gebruikelijke volgorde.</string>
     <string name="layout_swap_comma_globe_subtitle">Plaats de komma naast de spatiebalk</string>
     <string name="layout_swap_comma_globe_title">Wissel de komma- en 🌐-toetsen om</string>
@@ -5812,7 +5809,6 @@
     <string name="search_kw_layout_show_globe">verberg verwijder wereldboltaal</string>
     <string name="search_kw_layout_size_position">formaat wijzigen verkleinen compact vergroten</string>
     <string name="search_kw_layout_split">duim ergonomische tablet</string>
-    <string name="search_kw_layout_summon_button">bubble overlay show summon fieldless hackers</string>
     <string name="search_kw_layout_symbols_numpad_key">numpad numeriek toetsenbord kiestoetsen 1234 gboard</string>
     <string name="search_kw_learnedcorrections">aangeleerde correcties, mijn correcties, typefoutparen, aangeleerde verbeteringen, autocorrectie-leren, slippertjes, gewoontes</string>
     <string name="search_kw_licenses">open source, naamsvermelding, credits</string>

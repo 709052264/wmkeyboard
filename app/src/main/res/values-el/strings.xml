@@ -3985,11 +3985,8 @@
     <string name="layout_split_spacebar_title">Διαχωρισμός του πλήκτρου διαστήματος</string>
     <string name="layout_split_subtitle">Διαχωρισμός των πλήκτρων σε αριστερό και δεξιό μισό</string>
     <string name="layout_split_title">Διαχωρισμένο πληκτρολόγιο</string>
-    <string name="layout_summon_button_info">Όσο το πληκτρολόγιο είναι κλειστό, ένα μικρό στρογγυλό κουμπί επιπλέει πάνω από κάθε εφαρμογή. Πατήστε το και το πληκτρολόγιο ανοίγει, ακόμα και σε οθόνη χωρίς πεδίο κειμένου, και παραμένει ανοιχτό εκεί μέχρι να το κλείσετε. Τα πλήκτρα τότε φτάνουν στην εφαρμογή ως πατήματα πλήκτρων, το ίδιο όπως με τη ρύθμιση Διατήρηση πληκτρολογίου στην οθόνη. Σύρετε το κουμπί για να το μετακινήσετε· σταθεροποιείται στην πλησιέστερη πλευρά. Πατήστε παρατεταμένα για να το αποκρύψετε μέχρι το επόμενο άνοιγμα του πληκτρολογίου. Απαιτεί την άδεια του Android για εμφάνιση πάνω από άλλες εφαρμογές.</string>
     <string name="layout_summon_button_permission_subtitle">Το κουμπί δεν μπορεί να εμφανιστεί μέχρι να το επιτρέψει το Android</string>
     <string name="layout_summon_button_permission_title">Να επιτρέπεται η εμφάνιση πάνω από άλλες εφαρμογές</string>
-    <string name="layout_summon_button_subtitle">Ένα κουμπί πάνω από άλλες εφαρμογές που ανοίγει το πληκτρολόγιο, με ή χωρίς πεδίο κειμένου</string>
-    <string name="layout_summon_button_title">Κουμπί αιωρούμενου πληκτρολογίου</string>
     <string name="layout_swap_comma_globe_info">Τα δύο πλήκτρα σε κάθε πλευρά του διαστήματος αλλάζουν θέση. Αν ένα από αυτά είναι το πλήκτρο emoji, μετακινείται στην εξωτερική θέση και το κόμμα παραμένει δίπλα στο διάστημα. Απενεργοποιήστε το για να επαναφέρετε τη συνήθη σειρά.</string>
     <string name="layout_swap_comma_globe_subtitle">Τοποθετήστε το κόμμα δίπλα στο πλήκτρο διαστήματος</string>
     <string name="layout_swap_comma_globe_title">Εναλλαγή των πλήκτρων κόμματος και 🌐</string>
@@ -5809,7 +5806,6 @@
     <string name="search_kw_layout_show_globe">απόκρυψη αφαίρεσης γλώσσας υδρογείου</string>
     <string name="search_kw_layout_size_position">αλλαγή μεγέθους σμίκρυνση συμπαγές μεγέθυνση</string>
     <string name="search_kw_layout_split">εργονομικό tablet για αντίχειρες</string>
-    <string name="search_kw_layout_summon_button">επικάλυψη φυσαλίδας εμφάνιση κλήσης χωρίς πεδίο hackers</string>
     <string name="search_kw_layout_symbols_numpad_key">numpad πληκτρολόγιο dialpad 1234 gboard</string>
     <string name="search_kw_learnedcorrections">μαθημένες διορθώσεις, οι διορθώσεις μου, ζεύγη τυπογραφικών λαθών, διδαγμένες διορθώσεις, εκμάθηση αυτόματης διόρθωσης, ολισθήματα, συνήθειες</string>
     <string name="search_kw_licenses">ανοιχτού κώδικα, απόδοση, πιστώσεις</string>

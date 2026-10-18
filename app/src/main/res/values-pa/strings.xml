@@ -3997,11 +3997,8 @@
     <string name="layout_split_spacebar_title">ਸਪੇਸਬਾਰ ਨੂੰ ਵੰਡੋ</string>
     <string name="layout_split_subtitle">ਕੁੰਜੀਆਂ ਨੂੰ ਖੱਬੇ ਅੱਧੇ ਅਤੇ ਸੱਜੇ ਅੱਧੇ ਹਿੱਸੇ ਵਿੱਚ ਵੰਡੋ</string>
     <string name="layout_split_title">ਸਪਲਿਟ ਕੀਬੋਰਡ</string>
-    <string name="layout_summon_button_info">ਜਦੋਂ ਕੀਬੋਰਡ ਬੰਦ ਹੁੰਦਾ ਹੈ, ਤਾਂ ਇੱਕ ਛੋਟਾ ਗੋਲ ਬਟਨ ਹਰ ਐਪ ਦੇ ਉੱਪਰ ਤੈਰਦਾ ਹੈ। ਇਸ \'ਤੇ ਟੈਪ ਕਰੋ ਅਤੇ ਕੀਬੋਰਡ ਖੁੱਲ੍ਹ ਜਾਵੇਗਾ, ਭਾਵੇਂ ਸਕ੍ਰੀਨ \'ਤੇ ਕੋਈ ਟੈਕਸਟ ਫੀਲਡ ਨਾ ਹੋਵੇ, ਅਤੇ ਇਹ ਉਦੋਂ ਤੱਕ ਖੁੱਲ੍ਹਾ ਰਹੇਗਾ ਜਦੋਂ ਤੱਕ ਤੁਸੀਂ ਇਸਨੂੰ ਬੰਦ ਨਹੀਂ ਕਰਦੇ। ਫਿਰ ਕੁੰਜੀਆਂ ਕੀ-ਪ੍ਰੈਸ ਵਜੋਂ ਐਪ ਤੱਕ ਪਹੁੰਚਦੀਆਂ ਹਨ, ਜਿਵੇਂ ਕਿ \'ਕੀਬੋਰਡ ਨੂੰ ਸਕ੍ਰੀਨ \'ਤੇ ਰੱਖੋ\' ਦੇ ਨਾਲ ਹੁੰਦਾ ਹੈ। ਬਟਨ ਨੂੰ ਹਿਲਾਉਣ ਲਈ ਇਸਨੂੰ ਖਿੱਚੋ; ਇਹ ਨੇੜਲੇ ਪਾਸੇ ਵੱਲ ਸੈੱਟ ਹੋ ਜਾਂਦਾ ਹੈ। ਇਸਨੂੰ ਅਗਲੀ ਵਾਰ ਕੀਬੋਰਡ ਖੁੱਲ੍ਹਣ ਤੱਕ ਲੁਕਾਉਣ ਲਈ ਦਬਾ ਕੇ ਰੱਖੋ। ਇਸ ਲਈ ਐਂਡਰਾਇਡ ਦੀ \'ਹੋਰ ਐਪਾਂ ਦੇ ਉੱਪਰ ਡਿਸਪਲੇ\' ਅਨੁਮਤੀ ਦੀ ਲੋੜ ਹੈ।</string>
     <string name="layout_summon_button_permission_subtitle">ਬਟਨ ਉਦੋਂ ਤੱਕ ਦਿਖਾਈ ਨਹੀਂ ਦੇ ਸਕਦਾ ਜਦੋਂ ਤੱਕ ਐਂਡਰਾਇਡ ਇਸਦੀ ਇਜਾਜ਼ਤ ਨਹੀਂ ਦਿੰਦਾ</string>
     <string name="layout_summon_button_permission_title">ਹੋਰ ਐਪਾਂ ਦੇ ਉੱਪਰ ਡਿਸਪਲੇ ਕਰਨ ਦੀ ਇਜਾਜ਼ਤ ਦਿਓ</string>
-    <string name="layout_summon_button_subtitle">ਦੂਜੀਆਂ ਐਪਾਂ ਦੇ ਉੱਪਰ ਇੱਕ ਬਟਨ ਜੋ ਕੀਬੋਰਡ ਖੋਲ੍ਹਦਾ ਹੈ, ਟੈਕਸਟ ਫੀਲਡ ਦੇ ਨਾਲ ਜਾਂ ਬਿਨਾਂ</string>
-    <string name="layout_summon_button_title">ਫਲੋਟਿੰਗ ਕੀਬੋਰਡ ਬਟਨ</string>
     <string name="layout_swap_comma_globe_info">ਸਪੇਸਬਾਰ ਦੇ ਦੋਵੇਂ ਪਾਸੇ ਦੀਆਂ ਦੋ ਕੁੰਜੀਆਂ ਆਪਣੀ ਜਗ੍ਹਾ ਬਦਲਦੀਆਂ ਹਨ। ਜੇਕਰ ਉਹਨਾਂ ਵਿੱਚੋਂ ਇੱਕ ਇਮੋਜੀ ਕੁੰਜੀ ਹੈ, ਤਾਂ ਇਹ ਬਾਹਰੀ ਸਥਿਤੀ \'ਤੇ ਚਲੀ ਜਾਂਦੀ ਹੈ ਅਤੇ ਕੋਮਾ ਸਪੇਸਬਾਰ ਦੇ ਕੋਲ ਰਹਿੰਦਾ ਹੈ। ਆਮ ਕ੍ਰਮ ਪ੍ਰਾਪਤ ਕਰਨ ਲਈ ਇਸਨੂੰ ਬੰਦ ਕਰੋ।</string>
     <string name="layout_swap_comma_globe_subtitle">ਕਾਮੇ ਨੂੰ ਸਪੇਸਬਾਰ ਦੇ ਨਾਲ ਰੱਖੋ</string>
     <string name="layout_swap_comma_globe_title">ਕੌਮਾ ਅਤੇ 🌐 ਕੁੰਜੀਆਂ ਨੂੰ ਬਦਲੋ</string>
@@ -5821,7 +5818,6 @@
     <string name="search_kw_layout_show_globe">ਗਲੋਬ ਭਾਸ਼ਾ ਨੂੰ ਹਟਾਉਣਾ ਲੁਕਾਓ</string>
     <string name="search_kw_layout_size_position">ਰੀਸਾਈਜ਼ ਸੁੰਗੜਨਾ ਸੰਖੇਪ ਵਧਣਾ</string>
     <string name="search_kw_layout_split">ਅੰਗੂਠਾ ਐਰਗੋਨੋਮਿਕ ਟੈਬਲੇਟ</string>
-    <string name="search_kw_layout_summon_button">ਬੁਲਬੁਲਾ ਓਵਰਲੇਅ ਸ਼ੋਅ ਸਮਨ ਫੀਲਡਲੈੱਸ ਹੈਕਰਸ</string>
     <string name="search_kw_layout_symbols_numpad_key">ਨੰਪੈਡ ਕੀਪੈਡ ਡਾਇਲਪੈਡ 1234 ਜੀਬੋਰਡ</string>
     <string name="search_kw_learnedcorrections">ਸਿੱਖੀਆਂ ਗਈਆਂ ਸੁਧਾਈਆਂ, ਮੇਰੀਆਂ ਸੁਧਾਈਆਂ, ਟਾਈਪੋ ਜੋੜੇ, ਸਿਖਾਈਆਂ ਗਈਆਂ ਸੁਧਾਈਆਂ, ਆਟੋਕਰੈਕਟ ਸਿਖਲਾਈ, ਗਲਤੀਆਂ, ਆਦਤਾਂ</string>
     <string name="search_kw_licenses">ਓਪਨ ਸੋਰਸ, ਐਟ੍ਰੀਬਿਊਸ਼ਨ, ਕ੍ਰੈਡਿਟ</string>

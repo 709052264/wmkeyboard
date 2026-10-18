@@ -177,6 +177,7 @@ internal object SettingsRoutes {
         "selection_macros/ai",
         "selection_macros/zones",
         "advanced",
+        "floating_button",
         "rows",
         "rows/symbol",
         "ai_actions",

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Advanced › Floating button (#755): one button over other apps whose
+         gestures and quick menu run whatever the user picks. It replaced the
+         floating keyboard button (#374) and the floating AI button (#697). -->
+    <string name="floating_button_title">Floating button</string>
+    <string name="floating_button_subtitle">A button over other apps for the keyboard, voice typing, AI and any tool</string>
+    <string name="floating_button_enable_title">Show the floating button</string>
+    <string name="floating_button_enable_subtitle">A small round button floats over every app</string>
+    <string name="floating_button_enable_info">A small round button floats over every app, with the keyboard open or closed. Tap it, double tap it or press and hold it, and it does what you set below: open the keyboard, even on a screen with no text field, start voice typing, ask the AI about the screen, or open any tool. Press and hold opens a quick menu of more actions round the button; slide onto one and let go to run it. Drag the button to move it, and it settles against the nearer side. Drag it onto the cross at the bottom of the screen to hide it until the keyboard next opens or closes. Needs Android\'s Display over other apps permission.</string>
+    <string name="floating_button_screen_title">Let the AI read the screen</string>
+    <string name="floating_button_screen_subtitle">Ask AI can bring the text on screen with it once the AI screen reading service is on</string>
+
+    <string name="floating_button_preview_caption">Tap: %1$s · Hold: %2$s</string>
+    <string name="floating_button_preview_off">Off. Turn the button on to see it over your apps.</string>
+
+    <string name="floating_button_gestures_group">Gestures</string>
+    <string name="floating_button_gestures_info">Each gesture runs one action. A tool that lives on the keyboard, such as voice typing or the clipboard, brings the keyboard up first when it is closed. With a double tap set, a single tap waits a moment to make sure no second tap is coming.</string>
+    <string name="floating_button_tap_title">Tap</string>
+    <string name="floating_button_double_tap_title">Double tap</string>
+    <string name="floating_button_hold_title">Press and hold</string>
+    <string name="floating_button_pick_title">%1$s does</string>
+
+    <string name="floating_button_menu_group">Quick menu</string>
+    <string name="floating_button_menu_info">The quick menu fans out round the button, facing the middle of the screen. Opened by pressing and holding, slide your finger onto an action and let go to run it, or let go first and tap one. Tap anywhere else to close it. Drag the handles to reorder; the first action sits at one end of the fan.</string>
+    <string name="floating_button_menu_unreached_title">No gesture opens the menu</string>
+    <string name="floating_button_menu_unreached_subtitle">Tap to open it with press and hold</string>
+    <string name="floating_button_menu_add_title">Add an action</string>
+    <string name="floating_button_menu_add_subtitle">Up to %1$d actions</string>
+    <string name="floating_button_menu_full_subtitle">The menu is full. Remove an action to add another.</string>
+    <string name="floating_button_menu_empty">Nothing in the menu yet</string>
+    <string name="floating_button_menu_add_pick_title">Add to the quick menu</string>
+    <string name="floating_button_menu_labels_title">Show names</string>
+    <string name="floating_button_menu_labels_subtitle">Each action\'s name under its icon. Off, only the one under your finger is named</string>
+    <string name="floating_button_menu_reset_title">Reset the menu</string>
+    <string name="floating_button_menu_reset_subtitle">Voice typing, Ask AI, clipboard, emoji and the keyboard</string>
+
+    <string name="floating_button_look_group">Look</string>
+    <string name="floating_button_style_title">Colours</string>
+    <string name="floating_button_style_auto">Auto</string>
+    <string name="floating_button_style_dark">Dark</string>
+    <string name="floating_button_style_light">Light</string>
+    <string name="floating_button_style_accent">Accent</string>
+    <string name="floating_button_size_title">Size</string>
+    <string name="floating_button_size_subtitle">How large the button is</string>
+    <string name="floating_button_opacity_title">Opacity</string>
+    <string name="floating_button_opacity_subtitle">How solid the button is while you use it</string>
+    <string name="floating_button_idle_title">Fade when idle</string>
+    <string name="floating_button_idle_subtitle">How long the button waits before it fades</string>
+    <string name="floating_button_idle_never">Never</string>
+    <string name="floating_button_idle_seconds">%1$d s</string>
+    <string name="floating_button_idle_opacity_title">Faded opacity</string>
+    <string name="floating_button_idle_opacity_subtitle">How solid the button is once it fades</string>
+    <string name="floating_button_tuck_title">Tuck into the edge</string>
+    <string name="floating_button_tuck_subtitle">A faded button slides half off the side, out of the way of the app</string>
+
+    <string name="floating_button_behaviour_group">Behaviour</string>
+    <string name="floating_button_while_typing_title">Show while typing</string>
+    <string name="floating_button_while_typing_subtitle">Stay on screen above the open keyboard, where a tap on the keyboard action closes it</string>
+    <string name="floating_button_landscape_title">Hide in landscape</string>
+    <string name="floating_button_landscape_subtitle">Keep games and videos clear of the button</string>
+    <string name="floating_button_haptics_title">Vibrate on touch</string>
+    <string name="floating_button_haptics_subtitle">A tick on a tap, a firmer one when the menu opens or an action is picked</string>
+    <string name="floating_button_reset_position_title">Reset position</string>
+    <string name="floating_button_reset_position_subtitle">Back to the right edge, a little below the middle</string>
+
+    <string name="floating_button_pick_group_button">The button</string>
+    <string name="floating_button_pick_keyboard_subtitle">Opens the keyboard, even with no text field; closes it while it is open</string>
+    <string name="floating_button_pick_ai_subtitle">Opens an AI chat about what is on screen</string>
+    <string name="floating_button_pick_menu_subtitle">Fans more actions out round the button</string>
+    <string name="floating_button_pick_hide_subtitle">Puts the button away until the keyboard next opens or closes</string>
+    <string name="floating_button_pick_none_subtitle">This gesture does nothing</string>
+</resources>

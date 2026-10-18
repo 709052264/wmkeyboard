@@ -1404,7 +1404,6 @@
     <string name="ime_suggestion_never_suggest">Ära kunagi soovita \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Tagasi klahvide juurde</string>
     <string name="ime_suggestions_show_desc">Kuva soovituste riba</string>
-    <string name="ime_summon_button_hidden_toast">Klaviatuuri nupp on peidetud kuni klaviatuuri järgmise avamiseni</string>
     <string name="ime_summon_button_label">Kuva klaviatuur</string>
     <string name="ime_symbol_row_delete_confirm_body">Komplekt ja kõik selle kirjed kustutatakse. Klaviatuurirežiim, mis seda pakkus, näitab selle asemel teie teisi komplekte.</string>
     <string name="ime_symbol_row_delete_confirm_title">Kustutada \"%1$s\"?</string>

@@ -1400,7 +1400,6 @@
     <string name="ime_suggestion_never_suggest">No suggerir mai \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Tornar a les tecles</string>
     <string name="ime_suggestions_show_desc">Mostra la barra de suggeriments</string>
-    <string name="ime_summon_button_hidden_toast">Botó del teclat ocult fins que el teclat s\'obri la propera vegada</string>
     <string name="ime_summon_button_label">Mostra el teclat</string>
     <string name="ime_symbol_row_delete_confirm_body">El conjunt i totes les seves entrades s\'eliminaran. Un mode de teclat que l\'oferia mostrarà els vostres altres conjunts en el seu lloc.</string>
     <string name="ime_symbol_row_delete_confirm_title">Voleu eliminar \"%1$s\"?</string>

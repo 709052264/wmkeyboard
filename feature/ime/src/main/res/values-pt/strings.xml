@@ -1401,7 +1401,6 @@
     <string name="ime_suggestion_never_suggest">Nunca sugerir \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Voltar para as teclas</string>
     <string name="ime_suggestions_show_desc">Mostrar a barra de sugestões</string>
-    <string name="ime_summon_button_hidden_toast">Botão do teclado oculto até que o teclado seja aberto novamente</string>
     <string name="ime_summon_button_label">Mostrar teclado</string>
     <string name="ime_symbol_row_delete_confirm_body">O conjunto e todas as suas entradas serão apagados. Um modo de teclado que oferecia isso mostrará os seus outros conjuntos.</string>
     <string name="ime_symbol_row_delete_confirm_title">Excluir \"%1$s\"?</string>

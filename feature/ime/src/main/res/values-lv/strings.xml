@@ -1406,7 +1406,6 @@
     <string name="ime_suggestion_never_suggest">Nekad neieteikt \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Atpakaļ pie taustiņiem</string>
     <string name="ime_suggestions_show_desc">Rādīt ieteikumu joslu</string>
-    <string name="ime_summon_button_hidden_toast">Tastatūras poga paslēpta līdz nākamajai tastatūras atvēršanas reizei</string>
     <string name="ime_summon_button_label">Rādīt tastatūru</string>
     <string name="ime_symbol_row_delete_confirm_body">Kopa un visi tās ieraksti tiks dzēsti. Tastatūras režīms, kas to piedāvāja, tā vietā rādīs jūsu citas kopas.</string>
     <string name="ime_symbol_row_delete_confirm_title">Dzēst \"%1$s\"?</string>

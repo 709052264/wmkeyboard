@@ -1400,7 +1400,6 @@
     <string name="ime_suggestion_never_suggest">\"%1$s\" nie vorschlagen</string>
     <string name="ime_suggestion_pages_close">Zurück zu den Tasten</string>
     <string name="ime_suggestions_show_desc">Vorschlagsleiste anzeigen</string>
-    <string name="ime_summon_button_hidden_toast">Tastatur-Schaltfläche ausgeblendet, bis die Tastatur das nächste Mal geöffnet wird</string>
     <string name="ime_summon_button_label">Tastatur anzeigen</string>
     <string name="ime_symbol_row_delete_confirm_body">Das Set und alle seine Einträge werden gelöscht. Ein Tastaturmodus, der es angeboten hat, zeigt stattdessen deine anderen Sets an.</string>
     <string name="ime_symbol_row_delete_confirm_title">\"%1$s\" löschen?</string>

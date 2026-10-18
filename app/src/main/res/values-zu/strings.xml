@@ -3998,11 +3998,8 @@
     <string name="layout_split_spacebar_title">Hlukanisa ibha yesikhala</string>
     <string name="layout_split_subtitle">Hlukanisa okhiye babe yingxenye yesobunxele nengxenye yesokudla</string>
     <string name="layout_split_title">Ikhibhodi ehlukanisiwe</string>
-    <string name="layout_summon_button_info">Ngenkathi ikhibhodi ivaliwe, inkinobho encane eyindilinga intanta phezu kwayo yonke inhlelo zokusebenza. Ithepha bese ikhibhodi ivuleka, ngisho nasesikrinini esingenayo inkambu yombhalo, futhi ihlala ivulekile lapho uze uyivale. Okhiye bese befika kuhlelo lokusebenza njengokucindezela okhiye, okufana nokuthi Gcina ikhibhodi esikrinini. Hudula inkinobho ukuze uyihambise; ihlala ohlangothini oluseduze. Cindezela bese ubamba ukuze uyifihle kuze kube yilapho ikhibhodi ivuleka ngokulandelayo. Idinga imvume ye-Android yokubonisa phezu kwezinye izinhlelo zokusebenza.</string>
     <string name="layout_summon_button_permission_subtitle">Inkinobho ayikwazi ukuvela kuze kube yilapho i-Android ikuvumela</string>
     <string name="layout_summon_button_permission_title">Vumela ukuboniswa phezu kwezinye izinhlelo zokusebenza</string>
-    <string name="layout_summon_button_subtitle">Inkinobho phezu kwezinye izinhlelo zokusebenza evula ikhibhodi, enenkambu yombhalo noma ngaphandle kwayo</string>
-    <string name="layout_summon_button_title">Inkinobho yekhibhodi entantayo</string>
     <string name="layout_swap_comma_globe_info">Okhiye ababili ohlangothini ngalunye lwebha yesikhala bayashintsha izindawo. Uma omunye wabo engukhiye we-emoji, uthuthela endaweni engaphandle kanti ukhefana uhlala eduze kwebha yesikhala. Vala lokhu ukuze uthole ukuhleleka okuvamile.</string>
     <string name="layout_swap_comma_globe_subtitle">Beka ukhefana eduze kwesikhala</string>
     <string name="layout_swap_comma_globe_title">Shintsha ukhiye wesikawu kanye noka-🌐</string>
@@ -5823,7 +5820,6 @@
     <string name="search_kw_layout_show_globe">fihla susa ulimi lomhlaba</string>
     <string name="search_kw_layout_size_position">shintsha usayizi nciphisa compact khulisa</string>
     <string name="search_kw_layout_split">isithupha ergonomic ithebhulethi</string>
-    <string name="search_kw_layout_summon_button">bubble overlay show summon fieldless hackers</string>
     <string name="search_kw_layout_symbols_numpad_key">numpad keypad dialpad 1234 gboard</string>
     <string name="search_kw_learnedcorrections">ukulungiswa okufundiwe, ukulungisa kwami, amabhangqa amaphutha, ukulungisa okufundisiwe, ukufunda okuzenzakalelayo, ukushelela, imikhuba</string>
     <string name="search_kw_licenses">umthombo ovulekile, ukunikezwa kwesikweletu, amakhredithi</string>

@@ -3987,11 +3987,8 @@
     <string name="layout_split_spacebar_title">Opdel mellemrumstasten</string>
     <string name="layout_split_subtitle">Opdel tasterne i en venstre og en højre halvdel</string>
     <string name="layout_split_title">Opdelt tastatur</string>
-    <string name="layout_summon_button_info">Mens tastaturet er lukket, flyder en lille rund knap over hver app. Tryk på den, så åbner tastaturet, selv på en skærm uden et tekstfelt, og forbliver åbent der, indtil du lukker det. Tasterne sendes derefter til appen som tastetryk, ligesom med Behold tastaturet på skærmen. Træk i knappen for at flytte den; den lægger sig op ad den nærmeste side. Tryk og hold den nede for at skjule den, indtil tastaturet åbnes næste gang. Kræver Android-tilladelsen Vis over andre apps.</string>
     <string name="layout_summon_button_permission_subtitle">Knappen kan ikke vises, før Android tillader det</string>
     <string name="layout_summon_button_permission_title">Tillad visning over andre apps</string>
-    <string name="layout_summon_button_subtitle">En knap over andre apps, der åbner tastaturet, med eller uden et tekstfelt</string>
-    <string name="layout_summon_button_title">Flydende tastaturknap</string>
     <string name="layout_swap_comma_globe_info">De to taster på hver side af mellemrumstasten bytter plads. Hvis en af dem er en emojitast, flyttes den til den yderste position, og kommaet bliver ved siden af mellemrumstasten. Slå dette fra for at få den sædvanlige rækkefølge.</string>
     <string name="layout_swap_comma_globe_subtitle">Placer kommaet ved siden af mellemrumstasten</string>
     <string name="layout_swap_comma_globe_title">Byt om på komma- og 🌐-tasterne</string>
@@ -5811,7 +5808,6 @@
     <string name="search_kw_layout_show_globe">skjul fjern globus-sprog</string>
     <string name="search_kw_layout_size_position">ændr størrelse formindsk kompakt forstør</string>
     <string name="search_kw_layout_split">tommelfinger ergonomisk tablet</string>
-    <string name="search_kw_layout_summon_button">boble overlay vis fremkald feltløse hackere</string>
     <string name="search_kw_layout_symbols_numpad_key">numpad tastatur taltastatur 1234 gboard</string>
     <string name="search_kw_learnedcorrections">lærte rettelser, mine rettelser, tastefejlspar, lærte rettelser, autokorrektur-læring, smuttere, vaner</string>
     <string name="search_kw_licenses">open source, navngivelse, kreditter</string>

@@ -1405,7 +1405,6 @@
     <string name="ime_suggestion_never_suggest">\"%1$s\" ಅನ್ನು ಎಂದಿಗೂ ಸೂಚಿಸಬೇಡಿ</string>
     <string name="ime_suggestion_pages_close">ಕೀಗಳಿಗೆ ಹಿಂತಿರುಗಿ</string>
     <string name="ime_suggestions_show_desc">ಸಲಹೆ ಪಟ್ಟಿಯನ್ನು ತೋರಿಸಿ</string>
-    <string name="ime_summon_button_hidden_toast">ಕೀಬೋರ್ಡ್ ಮುಂದಿನ ಬಾರಿ ತೆರೆಯುವವರೆಗೆ ಕೀಬೋರ್ಡ್ ಬಟನ್ ಮರೆಮಾಡಲಾಗಿದೆ</string>
     <string name="ime_summon_button_label">ಕೀಬೋರ್ಡ್ ತೋರಿಸಿ</string>
     <string name="ime_symbol_row_delete_confirm_body">ಈ ಸೆಟ್ ಮತ್ತು ಅದರ ಎಲ್ಲಾ ನಮೂದುಗಳು ಹೋಗುತ್ತವೆ. ಅದನ್ನು ನೀಡಿದ್ದ ಕೀಬೋರ್ಡ್ ಮೋಡ್, ಬದಲಿಗೆ ನಿಮ್ಮ ಇತರ ಸೆಟ್‌ಗಳನ್ನು ತೋರಿಸುತ್ತದೆ.</string>
     <string name="ime_symbol_row_delete_confirm_title">\"%1$s\" ಅನ್ನು ಅಳಿಸಬೇಕೆ?</string>

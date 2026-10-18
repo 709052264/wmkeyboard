@@ -1403,7 +1403,6 @@
     <string name="ime_suggestion_never_suggest">ਕਦੇ ਵੀ \"%1$s\" ਦਾ ਸੁਝਾਅ ਨਾ ਦਿਓ</string>
     <string name="ime_suggestion_pages_close">ਕੁੰਜੀਆਂ \'ਤੇ ਵਾਪਸ ਜਾਓ</string>
     <string name="ime_suggestions_show_desc">ਸੁਝਾਅ ਪੱਟੀ ਦਿਖਾਓ</string>
-    <string name="ime_summon_button_hidden_toast">ਕੀਬੋਰਡ ਬਟਨ ਉਦੋਂ ਤੱਕ ਲੁਕਿਆ ਰਹੇਗਾ ਜਦੋਂ ਤੱਕ ਕੀਬੋਰਡ ਅਗਲੀ ਵਾਰ ਨਹੀਂ ਖੁੱਲ੍ਹਦਾ</string>
     <string name="ime_summon_button_label">ਕੀਬੋਰਡ ਦਿਖਾਓ</string>
     <string name="ime_symbol_row_delete_confirm_body">ਇਹ ਸੈੱਟ ਅਤੇ ਇਸ ਦੀਆਂ ਸਾਰੀਆਂ ਐਂਟਰੀਆਂ ਹਟਾ ਦਿੱਤੀਆਂ ਜਾਣਗੀਆਂ। ਇੱਕ ਕੀਬੋਰਡ ਮੋਡ ਜੋ ਇਸ ਨੂੰ ਪੇਸ਼ ਕਰਦਾ ਸੀ, ਹੁਣ ਇਸ ਦੀ ਬਜਾਏ ਤੁਹਾਡੇ ਦੂਜੇ ਸੈੱਟ ਦਿਖਾਏਗਾ।</string>
     <string name="ime_symbol_row_delete_confirm_title">\"%1$s\" ਨੂੰ ਮਿਟਾਉਣਾ ਹੈ?</string>

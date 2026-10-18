@@ -427,6 +427,8 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "selection_macros/ai" to Color(0xFF5E6BC0),
     "selection_macros/zones" to Color(0xFF5E6BC0),
     "advanced" to Color(0xFF8D6E63),
+    // A child of Advanced, so it keeps the parent's brown.
+    FloatingButtonRoute to Color(0xFF8D6E63),
     "backup" to Color(0xFF78909C),
     "backup/auto" to Color(0xFF78909C),
     "backup/sync" to Color(0xFF78909C),

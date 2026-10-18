@@ -3992,11 +3992,8 @@
     <string name="layout_split_spacebar_title">Sadalīt atstarpes taustiņu</string>
     <string name="layout_split_subtitle">Sadaliet taustiņus kreisajā un labajā pusē</string>
     <string name="layout_split_title">Sadalītā tastatūra</string>
-    <string name="layout_summon_button_info">Kamēr tastatūra ir aizvērta, maza apaļa poga peld virs katras lietotnes. Pieskarieties tai, un tastatūra atvērsies pat ekrānā bez teksta ievades lauka un paliks tur atvērta, līdz to aizvērsiet. Taustiņi tad sasniedz lietotni kā taustiņu nospiedumi, tāpat kā ar \"Paturēt tastatūru ekrānā\". Velciet pogu, lai to pārvietotu; tā novietojas pie tuvākās malas. Nospiediet un turiet to, lai paslēptu līdz nākamajai tastatūras atvēršanas reizei. Nepieciešama Android atļauja \"Rādīt virs citām lietotnēm\".</string>
     <string name="layout_summon_button_permission_subtitle">Poga nevar parādīties, kamēr Android to neatļauj</string>
     <string name="layout_summon_button_permission_title">Atļaut rādīt virs citām lietotnēm</string>
-    <string name="layout_summon_button_subtitle">Poga virs citām lietotnēm, kas atver tastatūru ar vai bez teksta lauka</string>
-    <string name="layout_summon_button_title">Peldošā tastatūras poga</string>
     <string name="layout_swap_comma_globe_info">Divi taustiņi katrā atstarpes taustiņa pusē mainās vietām. Ja viens no tiem ir emocijzīmju taustiņš, tas pārvietojas uz ārējo pozīciju, bet komats paliek blakus atstarpes taustiņam. Izslēdziet šo, lai iegūtu parasto secību.</string>
     <string name="layout_swap_comma_globe_subtitle">Novietojiet komatu blakus atstarpes taustiņam</string>
     <string name="layout_swap_comma_globe_title">Mainīt komata un 🌐 taustiņus vietām</string>
@@ -5816,7 +5813,6 @@
     <string name="search_kw_layout_show_globe">paslēpt noņemt globusa valodu</string>
     <string name="search_kw_layout_size_position">mainīt izmēru samazināt kompaktēt palielināt</string>
     <string name="search_kw_layout_split">īkšķis ergonomisks planšetdators</string>
-    <string name="search_kw_layout_summon_button">burbuļa pārklājums rādīt izsaukt lauku nesaturoši hakeri</string>
     <string name="search_kw_layout_symbols_numpad_key">ciparu tastatūra tastatūra ciparnīca 1234 gboard</string>
     <string name="search_kw_learnedcorrections">iemācītie labojumi, mani labojumi, drukas kļūdu pāri, iemācītie labojumi, automātiskās labošanas mācīšanās, kļūdas, ieradumi</string>
     <string name="search_kw_licenses">atvērtā pirmkoda programmatūra, autorība, kredīti</string>

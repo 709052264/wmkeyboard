@@ -1404,7 +1404,6 @@
     <string name="ime_suggestion_never_suggest">Ніколи не пропонувати \"%1$s\"</string>
     <string name="ime_suggestion_pages_close">Назад до клавіш</string>
     <string name="ime_suggestions_show_desc">Показувати рядок підказок</string>
-    <string name="ime_summon_button_hidden_toast">Кнопку клавіатури приховано до наступного відкриття клавіатури</string>
     <string name="ime_summon_button_label">Показати клавіатуру</string>
     <string name="ime_symbol_row_delete_confirm_body">Набір і всі його записи будуть видалені. Режим клавіатури, який його пропонував, показуватиме ваші інші набори.</string>
     <string name="ime_symbol_row_delete_confirm_title">Видалити \"%1$s\"?</string>
