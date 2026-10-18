@@ -289,6 +289,10 @@
     <string name="core_tools_dictionary_source_wiktionary_rest_desc">Online, from wiktionary.org. Definitions and examples only.</string>
     <string name="core_tools_dictionary_source_dictionary_api">Free Dictionary API</string>
     <string name="core_tools_dictionary_source_dictionary_api_desc">Online, from dictionaryapi.dev. This service is often down.</string>
+    <string name="core_tools_dictionary_source_offline_wiktionary">Wiktionary, offline</string>
+    <string name="core_tools_dictionary_source_offline_wiktionary_desc">On this device, once downloaded. Common English words from Wiktionary, with pronunciation.</string>
+    <string name="core_tools_dictionary_source_offline_wordnet">Open English WordNet</string>
+    <string name="core_tools_dictionary_source_offline_wordnet_desc">On this device, once downloaded. Every English word in WordNet, with short definitions.</string>
 
     <!-- The Location tool (#350): precision and format names, shared by the panel and the settings page. -->
     <string name="core_tools_location_precision_exact">Exact</string>

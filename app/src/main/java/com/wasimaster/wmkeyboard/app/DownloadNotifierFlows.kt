@@ -2,6 +2,8 @@ package com.wasimaster.wmkeyboard.app
 
 import android.content.Context
 import androidx.annotation.StringRes
+import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.addons.AddonDownloadManager
 import com.wasimaster.wmkeyboard.core.addons.resolve
 import com.wasimaster.wmkeyboard.core.dictionaries.WordlistDownloadManager
@@ -10,6 +12,7 @@ import com.wasimaster.wmkeyboard.core.fonts.EmojiFontDownload
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmDownloadManager
 import com.wasimaster.wmkeyboard.core.notify.DownloadProgress
+import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.vocab.VocabDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
 import kotlinx.coroutines.flow.Flow
@@ -126,6 +129,23 @@ internal object DownloadProgressFlows {
                 is VocabDownloadManager.DownloadStatus.Failed ->
                     DownloadProgress.Failed(context.reason(status.messageRes, status.messageArg))
                 VocabDownloadManager.DownloadStatus.NotDownloaded, null -> DownloadProgress.Gone
+            }
+        }
+
+    fun offlineDictionary(context: Context, id: String): Flow<DownloadProgress> =
+        OfflineDictionaryDownloads.states.map { states ->
+            when (val status = states[id]) {
+                OfflineDictionaryDownloads.Status.Queued -> DownloadProgress.Running(0, 0)
+                is OfflineDictionaryDownloads.Status.Downloading -> DownloadProgress.Running(status.bytes, status.totalBytes)
+                is OfflineDictionaryDownloads.Status.Downloaded -> DownloadProgress.Done
+                is OfflineDictionaryDownloads.Status.Failed -> DownloadProgress.Failed(
+                    if (status.notAPack) {
+                        context.getString(R.string.tooldetail_dictionary_offline_failed_not_a_pack)
+                    } else {
+                        context.getString(CommonR.string.common_error_network)
+                    },
+                )
+                OfflineDictionaryDownloads.Status.NotDownloaded, null -> DownloadProgress.Gone
             }
         }
 

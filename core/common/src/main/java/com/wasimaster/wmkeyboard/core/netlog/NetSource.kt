@@ -81,6 +81,9 @@ enum class NetSource(
     DOWNLOAD_WHISPER("download_whisper", ToolbarTool.VOICE),
     DOWNLOAD_LLM("download_llm", ToolbarTool.AI),
     DOWNLOAD_VOCAB("download_vocab", ToolbarTool.VOCABULARY),
+
+    /** An offline dictionary for the Dictionary tool (#665). */
+    DOWNLOAD_DICTIONARY("download_dictionary", ToolbarTool.DICTIONARY),
     DOWNLOAD_FONT("download_font"),
     DOWNLOAD_CUTOUT("download_cutout", ToolbarTool.STICKER),
 

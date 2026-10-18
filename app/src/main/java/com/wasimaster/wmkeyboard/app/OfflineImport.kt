@@ -28,6 +28,8 @@ import com.wasimaster.wmkeyboard.core.ocr.OcrLanguages
 import com.wasimaster.wmkeyboard.core.ocr.OcrPacks
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.stickers.CutoutModel
+import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaries
+import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
@@ -268,6 +270,13 @@ internal object OfflineImport {
                 Outcome(name, true, R.string.offline_import_phonetic_index_done, listOf(languageName(langId)))
             }
         }
+        if (OfflineDictionaries.recognises(name)) {
+            return attempt(name) {
+                val installed = OfflineDictionaries.install(filesDir, file)
+                OfflineDictionaryDownloads.refresh(filesDir)
+                Outcome(name, true, R.string.offline_import_dictionary_done, listOf(installed.pack.name))
+            }
+        }
         if (name == CutoutModel.FILE_NAME) {
             return attempt(name) {
                 if (CutoutModel.install(filesDir, file)) {
@@ -346,6 +355,7 @@ internal object OfflineImport {
 
     private fun failure(name: String, error: Throwable): Outcome = when (error) {
         is NoSpaceException -> Outcome(name, false, R.string.offline_import_no_space)
+        is OfflineDictionaries.NotAPackException -> Outcome(name, false, R.string.offline_import_mismatch)
         else -> Outcome(name, false, R.string.offline_import_failed)
     }
 

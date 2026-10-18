@@ -27,6 +27,7 @@ Each screen that downloads something has an import row with two buttons:
 | Handwriting models <Flavor edition="full" /> | <SettingsPath path="Tools / Handwriting / Recognition models" />, below the models | The model's two or three `.zip` files from `dl.google.com` |
 | Text recognition data <Flavor edition="full" /> | <SettingsPath path="Tools / Text scan (OCR) / Tesseract languages" />, below the languages | `<language>.traineddata` |
 | GIF packs | <SettingsPath path="Tools / GIFs / Offline GIF packs" /> | A CleverKeys GIF pack zip |
+| Offline dictionaries for the Dictionary tool | <SettingsPath path="Tools / Dictionary / Offline dictionaries" /> | `wiktionary.wmdict.gz` or `oewn.wmdict.gz` |
 | Anything above, plus AI models and the background remover | <SettingsPath path="About / Storage / Import downloaded files" /> | Any of these |
 
 The Storage row takes every kind of file, so it is the one to use for a folder of mixed downloads. It is also the only way in for an on-device AI model other than the AI model screen's own import, and for the sticker editor's background remover (`u2netp.tflite`).
@@ -61,7 +62,7 @@ One thing on the full edition has no file to import:
 
 - **On-device translation.** Google's ML Kit downloads and keeps its language models itself, and offers no way to install one from a file.
 
-Everything reaching an online service (web and image search, GIFs from KLIPY or GIPHY, the dictionary and synonyms lookups, cloud AI providers, the currency rates, backups to a cloud account) needs the connection by definition. On a build with no internet permission those say that the build cannot connect, rather than waiting for a network that will never come.
+Everything reaching an online service (web and image search, GIFs from KLIPY or GIPHY, the dictionary and synonyms lookups, cloud AI providers, the currency rates, backups to a cloud account) needs the connection by definition. On a build with no internet permission those say that the build cannot connect, rather than waiting for a network that will never come. The Dictionary tool is the exception once an [offline dictionary](/tools/search/#offline-dictionaries) is imported: it then defines English words from the phone.
 
 ## Details & edge cases
 

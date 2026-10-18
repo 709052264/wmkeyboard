@@ -2,6 +2,8 @@ package com.wasimaster.wmkeyboard.core.tools
 
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaries
+import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryCatalog
 import com.wasimaster.wmkeyboard.core.vocab.KaikkiClient
 import com.wasimaster.wmkeyboard.core.vocab.VocabAccent
 import com.wasimaster.wmkeyboard.core.vocab.VocabIndex
@@ -21,7 +23,12 @@ import kotlinx.coroutines.withContext
  *
  * [id] is what the settings store: never store [name].
  */
-enum class DictionarySource(val id: String, val online: Boolean) {
+enum class DictionarySource(
+    val id: String,
+    val online: Boolean,
+    /** The [OfflineDictionaryCatalog] pack this source reads, for one that is an offline dictionary. */
+    val packId: String? = null,
+) {
     /** The vocabulary packs on the device. Only knows the packs' words, but costs nothing to ask and works offline. */
     VOCAB_PACKS("vocab_packs", online = false),
 
@@ -33,6 +40,17 @@ enum class DictionarySource(val id: String, val online: Boolean) {
 
     /** The free dictionary API (dictionaryapi.dev). Last by default: it is often down. */
     DICTIONARY_API("dictionary_api", online = true),
+
+    /**
+     * Wiktionary's common words as a download (#665): what the no-internet
+     * build and a phone with no signal define ordinary words with. After the
+     * online sources by default, so it answers when they cannot; an update
+     * adds it there too ([DictionarySources.decode]).
+     */
+    OFFLINE_WIKTIONARY("offline_wiktionary", online = false, packId = OfflineDictionaryCatalog.WIKTIONARY.id),
+
+    /** Open English WordNet as a download: every single word, plainer definitions than Wiktionary's. */
+    OFFLINE_WORDNET("offline_wordnet", online = false, packId = OfflineDictionaryCatalog.OEWN.id),
     ;
 
     /** The source's name, for the settings list and the panel's "From …" line. */
@@ -43,6 +61,8 @@ enum class DictionarySource(val id: String, val online: Boolean) {
             WIKTIONARY -> R.string.core_tools_dictionary_source_wiktionary
             WIKTIONARY_REST -> R.string.core_tools_dictionary_source_wiktionary_rest
             DICTIONARY_API -> R.string.core_tools_dictionary_source_dictionary_api
+            OFFLINE_WIKTIONARY -> R.string.core_tools_dictionary_source_offline_wiktionary
+            OFFLINE_WORDNET -> R.string.core_tools_dictionary_source_offline_wordnet
         }
 
     /** One line on what the source knows, under its name in settings. */
@@ -53,6 +73,8 @@ enum class DictionarySource(val id: String, val online: Boolean) {
             WIKTIONARY -> R.string.core_tools_dictionary_source_wiktionary_desc
             WIKTIONARY_REST -> R.string.core_tools_dictionary_source_wiktionary_rest_desc
             DICTIONARY_API -> R.string.core_tools_dictionary_source_dictionary_api_desc
+            OFFLINE_WIKTIONARY -> R.string.core_tools_dictionary_source_offline_wiktionary_desc
+            OFFLINE_WORDNET -> R.string.core_tools_dictionary_source_offline_wordnet_desc
         }
 
     companion object {
@@ -66,7 +88,11 @@ data class DictionarySourceChoice(val source: DictionarySource, val enabled: Boo
 /** The source list as settings store it: ids in order, a `-` in front of one that is off. */
 object DictionarySources {
 
-    /** Every source, on: offline first, then the richest, then the least reliable. */
+    /**
+     * Every source, on: the packs first, then the richest online ones, then
+     * the least reliable, then the offline dictionaries, which only answer
+     * once downloaded and are asked when the network is not there.
+     */
     val DEFAULT: List<DictionarySourceChoice> = DictionarySource.entries.map { DictionarySourceChoice(it) }
 
     fun encode(choices: List<DictionarySourceChoice>): String =
@@ -166,6 +192,8 @@ object DictionaryLookup {
             } catch (_: DictionaryClient.NotFoundException) {
                 emptyList()
             }
+            DictionarySource.OFFLINE_WIKTIONARY, DictionarySource.OFFLINE_WORDNET ->
+                OfflineDictionaries.lookup(source.packId!!, word)
         }
     }
 

@@ -169,6 +169,7 @@
     <string name="netlog_source_download_whisper">Voice model downloads</string>
     <string name="netlog_source_download_llm">AI model downloads</string>
     <string name="netlog_source_download_vocab">Vocabulary downloads</string>
+    <string name="netlog_source_download_dictionary">Offline dictionary downloads</string>
     <string name="netlog_source_download_font">Font downloads</string>
     <string name="netlog_source_download_cutout">Background remover download</string>
     <string name="netlog_source_download_ocr">Text scanner language downloads</string>

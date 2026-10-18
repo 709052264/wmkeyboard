@@ -715,6 +715,12 @@ private val serviceAttributions: List<Attribution> = listOf(
         "CC BY-SA 4.0 and GFDL", null,
         "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
     ),
+    // Downloaded, not called: the Dictionary tool's offline dictionary (#665).
+    Attribution(
+        "Open English WordNet", R.string.about_service_oewn_used, "",
+        "CC BY 4.0", null,
+        "https://en-word.net/",
+    ),
     Attribution(
         "Datamuse", R.string.about_service_synonyms_used, "",
         "Provider terms", null,

@@ -29,17 +29,31 @@ class DictionarySourcesTest {
                 DictionarySourceChoice(DictionarySource.WIKTIONARY, enabled = false),
                 DictionarySourceChoice(DictionarySource.VOCAB_PACKS),
                 DictionarySourceChoice(DictionarySource.WIKTIONARY_REST),
+                DictionarySourceChoice(DictionarySource.OFFLINE_WIKTIONARY),
+                DictionarySourceChoice(DictionarySource.OFFLINE_WORDNET),
             ),
             DictionarySources.decode("dictionary_api,-bogus,-wiktionary,dictionary_api"),
         )
     }
 
     @Test
-    fun `default asks offline first and the free dictionary API last`() {
+    fun `default asks the packs first, the free dictionary API last online, then the offline dictionaries`() {
         val order = DictionarySources.DEFAULT.map { it.source }
         assertEquals(DictionarySource.VOCAB_PACKS, order.first())
-        assertEquals(DictionarySource.DICTIONARY_API, order.last())
+        assertEquals(DictionarySource.DICTIONARY_API, order.last { it.online })
+        assertEquals(
+            listOf(DictionarySource.OFFLINE_WIKTIONARY, DictionarySource.OFFLINE_WORDNET),
+            order.dropWhile { it != DictionarySource.DICTIONARY_API }.drop(1),
+        )
         assertTrue(DictionarySources.DEFAULT.all { it.enabled })
+    }
+
+    @Test
+    fun `every offline dictionary source names a catalogue pack and is not online`() {
+        for (source in DictionarySource.entries.filter { it.packId != null }) {
+            assertTrue(source.name, !source.online)
+            assertTrue(source.name, com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryCatalog.byId(source.packId!!) != null)
+        }
     }
 
     @Test

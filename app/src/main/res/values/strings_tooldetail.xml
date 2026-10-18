@@ -176,6 +176,18 @@
     <string name="tooldetail_dictionary_sources_subtitle">Where the tool looks for definitions, in order</string>
     <string name="tooldetail_dictionary_sources_info">The tool asks the first source that is on. When that source does not know the word, or cannot be reached, the tool asks the next one. Drag a source to change the order, and turn off a source to never ask it. Online sources receive only the word you look up.</string>
     <string name="tooldetail_dictionary_packs_title">Vocabulary packs</string>
+    <string name="tooldetail_dictionary_offline_group">Offline dictionaries</string>
+    <string name="tooldetail_dictionary_offline_info">Whole English dictionaries kept on the phone, so the Dictionary tool can define ordinary words with no connection, and in the build without internet access. The vocabulary packs know only their own lists\' words. Once one is here, the source list above asks it wherever you put it; by default after the online sources, so it answers when they cannot be reached. Wiktionary, offline, is Wiktionary\'s common words with pronunciation (CC BY-SA 4.0). Open English WordNet has every single English word in WordNet, with shorter definitions (CC BY 4.0).</string>
+    <string name="tooldetail_dictionary_offline_available">%1$s download, %2$s</string>
+    <string name="tooldetail_dictionary_offline_installed">On this device, %1$s, %2$s</string>
+    <string name="tooldetail_dictionary_offline_downloading">Downloading, %1$s of %2$s</string>
+    <string name="tooldetail_dictionary_offline_queued">Waiting for the other download</string>
+    <string name="tooldetail_dictionary_offline_failed_not_a_pack">The file downloaded is not this dictionary. Try again later.</string>
+    <string name="tooldetail_dictionary_offline_failed_http">The server refused the download (HTTP %1$s). Try again later.</string>
+    <string name="tooldetail_dictionary_offline_download_desc">Download %1$s</string>
+    <string name="tooldetail_dictionary_offline_delete_desc">Delete %1$s</string>
+    <string name="tooldetail_dictionary_offline_import_title">Import a dictionary</string>
+    <string name="tooldetail_dictionary_offline_import_subtitle">A .wmdict.gz file fetched on another device or in a browser</string>
     <string name="tooldetail_dictionary_packs_subtitle">The packs the Vocabulary packs source reads, offline. They know only the words of their own lists, so most words need an online source</string>
 
     <!-- Text editing tool. -->

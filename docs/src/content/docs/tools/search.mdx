@@ -125,7 +125,7 @@ The dictionary looks up English words in a chain of sources you put in order (se
 - A line under the last entry names the source that answered, for example "From Wiktionary".
 - A **Copy** chip beside the search bar copies everything the look-up found as text. With the [AI tool](/tools/ai/) on, an **Ask AI** chip beside it opens a [chat](/tools/ai-chat/) about the same text, and a long press on a definition or an example selects it, with **Ask AI**, **Copy** and **Insert** on a bar over it. See [Asking the AI about an article](#asking-the-ai-about-an-article), which works the same way.
 - "The app cannot reach the dictionary" means no source could be reached: you're offline, or every online source you left on is down. A word that every reachable source answered for, without an entry, shows "No entry for" instead.
-- When only the **Vocabulary packs** source answered and no online source could be reached, the panel says the word is not in your vocabulary packs, rather than "No entry for". The packs hold only the words of their own study lists, a few thousand at most, so offline the tool knows those words and no others.
+- When only the sources on the device answered and no online source could be reached, the panel says the word is not in the dictionaries on this device, rather than "No entry for". The vocabulary packs hold only the words of their own study lists, a few thousand at most. To define ordinary words with no connection, download one of the [offline dictionaries](#offline-dictionaries).
 
 ### Dictionary sources
 
@@ -134,9 +134,30 @@ The tool asks the first source that is on. When that source doesn't know the wor
 1. **Vocabulary packs**: the [vocabulary](/tools/vocabulary/) packs you downloaded, read on the device. Only knows the packs' words, but sends nothing and works offline. The **Vocabulary packs** row under the list opens the screen where you get them.
 2. **Wiktionary**: Wiktionary's full entry through kaikki.org, with definitions, examples, IPA and recordings.
 3. **Wiktionary definitions**: Wiktionary's own definition endpoint on wiktionary.org. Definitions and examples only, but small and fast.
-4. **Free Dictionary API**: dictionaryapi.dev. Last because it's often down for days at a time; while it's down, every look-up waits about 8 seconds on it before giving up.
+4. **Free Dictionary API**: dictionaryapi.dev. Last of the online sources because it's often down for days at a time; while it's down, every look-up waits about 8 seconds on it before giving up.
+5. **Wiktionary, offline**: the [offline dictionary](#offline-dictionaries) made from Wiktionary, once downloaded.
+6. **Open English WordNet**: the [offline dictionary](#offline-dictionaries) made from WordNet, once downloaded.
+
+The two offline dictionaries come after the online sources, so with a connection you get Wiktionary's fuller entries and recordings, and without one the tool still answers from the phone. Drag either one higher to have it answer first and send nothing. An update that adds a source puts it at the end of your list, switched on.
 
 Drag a source to change the order, and switch one off to never ask it. With every source off, the panel says so rather than looking anything up. Before version 0.5.12 the Free Dictionary API was the only source, so an outage there broke the tool on every device.
+
+### Offline dictionaries
+
+<SettingsPath path="Tools / Dictionary / Offline dictionaries" />
+
+Two whole English dictionaries you can keep on the phone, so the tool defines ordinary words like "house" with no connection at all, and in the [build with no internet permission](/development/building/#a-build-with-no-internet-permission). Each row has a download button; once the dictionary is in, the row shows its size on the phone and a delete button.
+
+| Dictionary | What it holds | Download | License |
+|---|---|---|---|
+| **Wiktionary (offline)** | about 65,000 common English words from Wiktionary, slang like "selfie" and "lol" included: three senses per part of speech and six in all, a short example, synonyms, antonyms and IPA; no proper nouns | 5.1 MB | CC BY-SA 4.0 and GFDL |
+| **Open English WordNet** | every single English word in Open English WordNet 2024 (about 79,000), every sense, one example, synonyms, antonyms and, where it has one, IPA | 5.0 MB | CC BY 4.0 |
+
+Both hold single words only. Phrases such as "ice cream" or "look after" are not in them, and neither are hyphenated compounds. A word form finds its headword: "mice" opens *mouse*, "houses" *house*, "running" *run*. Neither has recordings, so their entries have no play button.
+
+Each takes about 14 MB on the phone once installed. A look-up reads a few kilobytes of that file; it does not load the dictionary into memory. Neither file is read before the phone is unlocked for the first time after a restart.
+
+The **Import a dictionary** row under them takes a `.wmdict.gz` file fetched elsewhere: **Get the files** lists both download links, to open in a browser on any device, and **Import** installs the file. See [Using it without internet](/privacy/offline/).
 
 ### Options
 
@@ -146,6 +167,7 @@ Drag a source to change the order, and switch one off to never ask it. With ever
 - **Icon colour**: only shown if colorful tool icons are on globally.
 - **Look up the word at the cursor**: on by default. Its description on the settings screen reads "The tool searches the selected word or the current word when it opens". Turn it off and Dictionary always opens on its own empty search field.
 - **Dictionary sources**: a [provider list](/tools/providers/): drag to reorder, switch a source off, remove one, or add it back with **Add a provider**. See [Dictionary sources](#dictionary-sources) above.
+- **Offline dictionaries**: download, delete or import the two offline dictionaries. See [Offline dictionaries](#offline-dictionaries) above.
 - **Servers** (F-Droid build only): the addresses of kaikki.org, Wiktionary and the Free Dictionary API, for a mirror or a copy you host yourself.
 
 The settings page's caption: "Definitions come from the sources below, in their order. The keyboard sends the word that you look up to an online source only when you use the tool." [Power saving](/typing/power-saving/)'s "Background network" toggle overrides this row. While that toggle is on, auto-lookup is forced off whatever you've set here. A look-up nobody explicitly asked for is exactly what it exists to stop.
@@ -156,7 +178,7 @@ The settings page's caption: "Definitions come from the sources below, in their 
 - **Default hardware letters:** <KeyCap>W</KeyCap> for web search, <KeyCap>I</KeyCap> for image search, <KeyCap>D</KeyCap> for dictionary. Wikipedia has no letter of its own out of the box, so reach it through the toolbox (<KeyCap>T</KeyCap>), or [rebind a letter to it yourself](/reference/shortcuts/).
 - **Discoverable by typing.** Typing "search", "images", "wiki"/"wikipedia", or "define"/"dict" as the last word before your cursor offers a [smart chip](/smart/chips/) that opens the matching tool. The keyword list is editable per tool, and only shows while that tool is enabled.
 - **None of these four are edition-gated.** Full and lite behave identically across all four tools here.
-- **Attribution.** Brave Search and Tavily results, Wikipedia's article text, Wiktionary's entries, and the Free Dictionary API's definitions are all credited under "Online services" on the app's About → Open-source licences screen, alongside the terms each service is used under. Wikipedia's and Wiktionary's text is CC BY-SA, which keeps its own license independent of the app's.
+- **Attribution.** Brave Search and Tavily results, Wikipedia's article text, Wiktionary's entries, and the Free Dictionary API's definitions are all credited under "Online services" on the app's About → Open-source licences screen, alongside the terms each service is used under. Wikipedia's and Wiktionary's text is CC BY-SA, which keeps its own license independent of the app's. The offline dictionaries carry their sources' licenses with them: Wiktionary's CC BY-SA 4.0 and GFDL, and Open English WordNet's CC BY 4.0.
 
 The [AI tool](/tools/ai/#letting-the-model-look-things-up) can run searches of its own through this same backend, when you let it: it writes the query, reads the results and answers from them, and each one counts against your quota like a search you ran yourself.
 

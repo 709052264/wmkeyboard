@@ -90,6 +90,10 @@ open class WMApplication : Application() {
         // Whether the translate list can offer the on-device engine: ML Kit
         // sits above the module that keeps the provider lists.
         ProviderEnvironment.install(onDeviceTranslate = OnDeviceTranslator.AVAILABLE)
+        // Where the Dictionary tool's offline dictionaries live, for a
+        // look-up from the keyboard or the AI tool alike. Only a path: before
+        // the unlock nothing is read, and a look-up then finds nothing.
+        com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaries.attach(filesDir)
         // Sync between devices: keeps its jobs in step with the settings and
         // pushes shortly after a synced setting changes. Here because the
         // keyboard and the settings app share this process, and either may be

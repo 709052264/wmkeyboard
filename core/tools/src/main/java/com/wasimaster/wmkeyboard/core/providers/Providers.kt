@@ -213,6 +213,18 @@ object ProviderTypes {
         freeSoftware = true,
         toolDescRes = mapOf(ProviderTool.SYNONYMS to R.string.core_tools_synonym_source_dictionary_api_desc),
     )
+
+    /** The offline dictionaries (#665): the ids are their `DictionarySource` ids. */
+    val OFFLINE_WIKTIONARY = ProviderType(
+        "offline_wiktionary", setOf(ProviderTool.DICTIONARY),
+        R.string.core_tools_dictionary_source_offline_wiktionary, R.string.core_tools_dictionary_source_offline_wiktionary_desc,
+        onDevice = true, freeSoftware = true,
+    )
+    val OFFLINE_WORDNET = ProviderType(
+        "offline_wordnet", setOf(ProviderTool.DICTIONARY),
+        R.string.core_tools_dictionary_source_offline_wordnet, R.string.core_tools_dictionary_source_offline_wordnet_desc,
+        onDevice = true, freeSoftware = true,
+    )
     val DATAMUSE = ProviderType(
         "datamuse", setOf(ProviderTool.SYNONYMS),
         R.string.core_tools_synonym_source_datamuse, R.string.core_tools_synonym_source_datamuse_desc,
@@ -273,7 +285,8 @@ object ProviderTypes {
     val all: List<ProviderType> = listOf(
         KLIPY, GIPHY, COMMONS, GIFCITIES, OFFLINE_GIFS, STICKER_PACKS,
         ML_KIT, TRANSLATE_SERVER, DEEPL, LIBRETRANSLATE, GOOGLE_TRANSLATE,
-        VOCAB_PACKS, WIKTIONARY, WIKTIONARY_REST, DICTIONARY_API, DATAMUSE, SIMILAR_WORDS,
+        VOCAB_PACKS, WIKTIONARY, WIKTIONARY_REST, DICTIONARY_API, OFFLINE_WIKTIONARY, OFFLINE_WORDNET,
+        DATAMUSE, SIMILAR_WORDS,
         SEARXNG, TAVILY, BRAVE,
         UNSPLASH, PEXELS,
         ER_API, FRANKFURTER, COINBASE, CURRENCY_API, COINGECKO,
