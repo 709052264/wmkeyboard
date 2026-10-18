@@ -24310,12 +24310,29 @@ private fun KeyFlickPopup(
     /** [KeyVisual.flickShiftCases]. */
     shiftCases: Boolean,
 ) {
-    if (enabled && key.hasFlicks() && !alternatesOpen && pressed.value) {
+    if (!enabled || !key.hasFlicks()) return
+    // Not on the touch itself (#769): a tap on a key that also carries a few
+    // flicks flashed every arm up like a long-press popup. The cross waits for
+    // the finger to move into an arm, or for a hold long enough to be someone
+    // looking for what the arms are.
+    val down = pressed.value
+    var held by remember { mutableStateOf(false) }
+    LaunchedEffect(down) {
+        held = false
+        if (down) {
+            delay(FlickPopupRevealMs)
+            held = true
+        }
+    }
+    if (!alternatesOpen && down && (held || flickDirection.value != null)) {
         Popup(popupPositionProvider = FlickPopupPositionProvider) {
             FlickCrossPopup(key, flickDirection.value, flickReturned.value, fontScale, shiftOn, shiftCases)
         }
     }
 }
+
+/** How long a still finger holds a flick key before its cross comes up; a tap is over well before. */
+private const val FlickPopupRevealMs = 250L
 
 /**
  * The flick preview shown while a flick key is held: the centre with its
@@ -25389,14 +25406,21 @@ private class LaidArm(val at: Offset, val text: TextLayoutResult?, val painter: 
 /**
  * The icon an action arm wears on the face, resolved the way [AlternateAction]
  * resolves an unlabelled popup entry: the icon the author named, a text-editing
- * operation's own icon, else the action's. Null for the actions that draw from
- * an icon slot (delete, enter, shift): a slot can be a bitmap from an icon pack,
- * which has no painter to cache, so those fall back to a glyph.
+ * operation's own icon, a tool's toolbar icon, else the action's. Null for the
+ * actions that draw from an icon slot (delete, enter, shift): a slot can be a
+ * bitmap from an icon pack, which has no painter to cache, so those fall back to
+ * a glyph.
+ *
+ * A tool arm takes the tool's default vector rather than its slot for the same
+ * reason. It had no branch at all, so clipboard, undo, redo, line end, find and
+ * replace, snippets and notes arms all drew the "•" fallback on the board while
+ * the editor's preview showed their icons (#769).
  */
 private fun flickArmIcon(alternate: KeyAlternate): ImageVector? {
     val action = alternate.action
     return KeyIcons.byName(alternate.icon)
         ?: (action as? KeyAction.Edit)?.takeIf { alternate.label.isBlank() }?.let { textEditIcon(it.op) }
+        ?: (action as? KeyAction.Tool)?.takeIf { alternate.label.isBlank() }?.let { IconDefaults.forTool(it.tool) }
         ?: action.takeIf { alternate.label.isBlank() }?.let(KeyIcons::forAction)
 }
 
