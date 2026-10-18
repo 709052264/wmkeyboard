@@ -150,7 +150,7 @@
     <!-- voice typing (issue #761) -->
 
     <string name="statistics_voice_section">Voice typing</string>
-    <string name="statistics_voice_info">The keyboard counts the words that voice typing puts in, the phrases, and the time the microphone listens. Spoken words earn XP. They are not part of the characters or the typing speed. Voice typing in the keyboard's own search boxes is not counted.</string>
+    <string name="statistics_voice_info">The keyboard counts the words that voice typing puts in, the phrases, and the time the microphone listens. Spoken words earn XP. They are not part of the characters or the typing speed. Voice typing in the keyboard\'s own search boxes is not counted.</string>
     <string name="statistics_voice_words_label">Words spoken</string>
     <string name="statistics_voice_phrases_label">Phrases</string>
     <string name="statistics_voice_time_label">Time speaking</string>
