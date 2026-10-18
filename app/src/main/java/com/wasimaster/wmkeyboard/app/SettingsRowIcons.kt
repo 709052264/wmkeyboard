@@ -1152,6 +1152,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_confirm_pinned_delete_title) { Icons.Outlined.PushPin }
         put(R.string.clipboard_pinned_last_title) { Icons.Outlined.PushPin }
         put(R.string.clipboard_pinned_in_place_title) { Icons.Outlined.PushPin }
+        put(R.string.clipboard_pinned_folders_title) { Icons.Outlined.Folder }
         put(R.string.clipboard_search_title) { Icons.Outlined.Search }
         put(R.string.clipboard_search_regex_title) { Icons.Outlined.DataObject }
         put(R.string.clipboard_clear_button_title) { Icons.Outlined.DeleteSweep }

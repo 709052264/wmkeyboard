@@ -110,7 +110,7 @@ This tool is separate from the **symbol row** (off by default), a strip of one-t
 
 ## Making a QR code
 
-**QR code generator** turns whatever you type into a scannable code and sends it as an image. Like the typing test below, it keeps the letter rows on screen instead of replacing them, because you type into it. Opening it seeds its own editable buffer with the focused field's text as a starting point. From there it's independent: your keystrokes route into the QR content rather than the field, and the field itself is never touched until you send.
+**QR code generator** turns whatever you type into a scannable code and sends it as an image. Like the typing test below, it keeps the letter rows on screen instead of replacing them, because you type into it. Opening it seeds its own editable buffer with the focused field's text as a starting point. Opened from a clip's **QR code** button in the [clipboard](/tools/clipboard/), it starts from that clip's text instead. From there it's independent: your keystrokes route into the QR content rather than the field, and the field itself is never touched until you send.
 
 <PhoneFrame side caption="The QR generator panel: editable content line, live QR preview, and Send as image.">
   <Shot id="tools/qr-generator-panel" alt="The QR generator panel: editable content line, live QR preview, and Send as image." />

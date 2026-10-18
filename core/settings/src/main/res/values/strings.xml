@@ -169,6 +169,7 @@
     <string name="core_settings_clip_shortcut_none_label">Nothing</string>
     <string name="core_settings_clip_shortcut_edit_label">Edit</string>
     <string name="core_settings_clip_shortcut_select_label">Select</string>
+    <string name="core_settings_clip_shortcut_qr_label">QR code</string>
     <string name="core_settings_copied_code_chip_code_fields_label">Code boxes only</string>
     <string name="core_settings_copied_code_chip_any_field_label">Any field</string>
 

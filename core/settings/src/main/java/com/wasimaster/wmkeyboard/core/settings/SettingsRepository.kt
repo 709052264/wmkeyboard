@@ -6432,6 +6432,8 @@ enum class ClipCardShortcut {
     EDIT,
     /** A button that starts picking clips with this one, for Combine and Delete. */
     SELECT,
+    /** A button that opens the QR code tool on the clip's text (#766). */
+    QR,
     ;
 
     /** Caption for this choice; resolve it where it is drawn. */
@@ -6442,6 +6444,7 @@ enum class ClipCardShortcut {
             NONE -> R.string.core_settings_clip_shortcut_none_label
             EDIT -> R.string.core_settings_clip_shortcut_edit_label
             SELECT -> R.string.core_settings_clip_shortcut_select_label
+            QR -> R.string.core_settings_clip_shortcut_qr_label
         }
 }
 
@@ -6557,6 +6560,12 @@ data class ClipboardSettings(
      * it is on.
      */
     val pinnedInPlace: Boolean = false,
+    /**
+     * Pinned clips that carry a tag are filed in a folder per tag (#768):
+     * the pinned clips show a folder for each tag in place of its clips, and a
+     * press opens it. Off by default.
+     */
+    val pinnedFolders: Boolean = false,
     /** The button at the end of each clip's bottom row (#612); see [ClipCardShortcut]. */
     val cardShortcut: ClipCardShortcut = ClipCardShortcut.EDITED_MARK,
     /**
@@ -9855,6 +9864,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_COMBINE_TEMPLATE = stringPreferencesKey("clipboard_combine_template")
         private val CLIPBOARD_COMBINE_DELETE = booleanPreferencesKey("clipboard_combine_delete_originals")
         private val CLIPBOARD_PINNED_IN_PLACE = booleanPreferencesKey("clipboard_pinned_in_place")
+        private val CLIPBOARD_PINNED_FOLDERS = booleanPreferencesKey("clipboard_pinned_folders")
         private val CLIPBOARD_CARD_SHORTCUT = stringPreferencesKey("clipboard_card_shortcut")
         private val CLIPBOARD_PLAIN_LETTERS = booleanPreferencesKey("clipboard_plain_letters")
         private val CLIPBOARD_RECENT_CHIPS = intPreferencesKey("clipboard_recent_chips")
@@ -11590,6 +11600,7 @@ class SettingsRepository(private val context: Context) {
             combineTemplate = p[CLIPBOARD_COMBINE_TEMPLATE] ?: defaults.clipboard.combineTemplate,
             combineDeleteOriginals = p[CLIPBOARD_COMBINE_DELETE] ?: defaults.clipboard.combineDeleteOriginals,
             pinnedInPlace = p[CLIPBOARD_PINNED_IN_PLACE] ?: defaults.clipboard.pinnedInPlace,
+            pinnedFolders = p[CLIPBOARD_PINNED_FOLDERS] ?: defaults.clipboard.pinnedFolders,
             cardShortcut = p[CLIPBOARD_CARD_SHORTCUT]
                 ?.let { runCatching { ClipCardShortcut.valueOf(it) }.getOrNull() }
                 ?: defaults.clipboard.cardShortcut,
@@ -18688,6 +18699,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardPinnedInPlace(value: Boolean) =
         editPrefs { it[CLIPBOARD_PINNED_IN_PLACE] = value }
+
+    suspend fun setClipboardPinnedFolders(value: Boolean) =
+        editPrefs { it[CLIPBOARD_PINNED_FOLDERS] = value }
 
     suspend fun setClipboardCardShortcut(value: ClipCardShortcut) =
         editPrefs { it[CLIPBOARD_CARD_SHORTCUT] = value.name }
