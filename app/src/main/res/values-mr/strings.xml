@@ -7645,12 +7645,6 @@
     <string name="tooldetail_ocr_info">ओळख तुमच्या डिव्हाइसवर ML Kit सह चालते. कोणताही फोटो किंवा मजकूर तुमच्या डिव्हाइसबाहेर जात नाही आणि ते ऑफलाइन काम करते. हे लॅटिन लिपीतील मजकूर वाचते, उदाहरणार्थ इंग्रजी. ML Kit चा मजकूर ओळखणारा प्रोग्राम अजून बंगालीला सपोर्ट करत नाही. कॅप्चर केल्यानंतर, कीबोर्डने काय टाईप करावे किंवा कॉपी करावे हे निवडण्यासाठी शब्दांवर दाबा.</string>
     <string name="tooldetail_ocr_online_group">ऑनलाइन मजकूर वाचक</string>
     <string name="tooldetail_ocr_online_info">फोटो एका अशा मॉडेलकडे पाठवला जातो जे प्रतिमा वाचू शकते, तुमच्या निवडलेल्या पत्त्यावर, आणि मॉडेल त्यातील मजकूर लिहून काढते. ते कोणतीही लिपी वाचू शकते आणि त्यासाठी कोणत्याही भाषा डेटाची गरज नाही. OpenAI-सुसंगत API असलेले कोणतेही सेवा कार्य करते: OpenAI, OpenRouter, Gemini, Mistral, किंवा Ollama किंवा LM Studio सह तुमच्या स्वतःच्या संगणकावरील मॉडेल. प्रत्येक स्कॅन फोटो त्या सेवेला पाठवते आणि सेवा त्यासाठी शुल्क आकारू शकते.</string>
-    <string name="tooldetail_ocr_online_key_hint">ज्या सर्व्हरला की ची गरज नाही, त्यासाठी रिकामे सोडा</string>
-    <string name="tooldetail_ocr_online_key_label">API की</string>
-    <string name="tooldetail_ocr_online_model_hint">प्रतिमा वाचणारे मॉडेल, उदाहरणार्थ gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">मॉडेल</string>
-    <string name="tooldetail_ocr_online_url_hint">उदाहरणार्थ https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">पत्ता</string>
     <string name="tooldetail_ocr_packs_header">टेसेरॅक्ट भाषा</string>
     <string name="tooldetail_ocr_packs_info">टेसेरॅक्ट (Tesseract) फक्त तुमच्या डिव्हाइसवर त्या भाषेचा डेटा आल्यानंतरच भाषा वाचते. तुम्ही टाईप करत असलेल्या प्रत्येक भाषेसाठी 0.4 MB ते 12 MB चे एक डाउनलोड आहे. हा डेटा GitHub वरील टेसेरॅक्ट प्रोजेक्टच्या tessdata_fast सेटवरून येतो. तुम्ही स्कॅनरवरूनही भाषा डाउनलोड करू शकता.</string>
     <string name="tooldetail_ocr_packs_none_info">तुम्ही चालू केलेल्या कोणत्याही भाषेत टेसेरॅक्ट डेटा नाही. भाषा स्क्रीनवर एक भाषा जोडा. त्यानंतर त्याचा डेटा येथे दिसेल.</string>

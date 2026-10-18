@@ -7640,12 +7640,6 @@
     <string name="tooldetail_ocr_info">شناخت آپ کے آلے پر ML Kit کے ساتھ چلتی ہے۔ کوئی تصویر اور کوئی ٹیکسٹ آپ کے آلے سے باہر نہیں جاتا، اور یہ آف لائن کام کرتا ہے۔ یہ لاطینی اسکرپٹ ٹیکسٹ پڑھتا ہے، مثال کے طور پر انگریزی۔ ML Kit کا ٹیکسٹ ریکگنائزر ابھی تک بنگالی کو سپورٹ نہیں کرتا ہے۔ کیپچر کے بعد، کی بورڈ جو ٹائپ یا کاپی کرتا ہے اسے منتخب کرنے کے لیے الفاظ کو دبائیں۔</string>
     <string name="tooldetail_ocr_online_group">آن لائن ٹیکسٹ ریڈر</string>
     <string name="tooldetail_ocr_online_info">تصویر ایک ایسے ماڈل کو بھیجی جاتی ہے جو تصاویر پڑھ سکتا ہے، آپ کے منتخب کردہ پتے پر، اور ماڈل اس میں موجود متن کو لکھ دیتا ہے۔ یہ کسی بھی اسکرپٹ کو پڑھتا ہے اور اسے کسی زبان کے ڈیٹا کی ضرورت نہیں ہوتی۔ OpenAI کے ساتھ مطابقت رکھنے والی API والی کوئی بھی سروس کام کرتی ہے: OpenAI، OpenRouter، Gemini، Mistral، یا Ollama یا LM Studio کے ساتھ آپ کے اپنے کمپیوٹر پر موجود کوئی ماڈل۔ ہر اسکین تصویر کو اس سروس کو بھیجتا ہے، اور سروس اس کے لیے چارج لے سکتی ہے۔</string>
-    <string name="tooldetail_ocr_online_key_hint">ایسے سرور کے لیے خالی چھوڑ دیں جسے کسی کلید کی ضرورت نہیں</string>
-    <string name="tooldetail_ocr_online_key_label">API کلید</string>
-    <string name="tooldetail_ocr_online_model_hint">ایک ماڈل جو تصاویر کو پڑھتا ہے، مثال کے طور پر gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">ماڈل</string>
-    <string name="tooldetail_ocr_online_url_hint">مثال کے طور پر https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">پتہ</string>
     <string name="tooldetail_ocr_packs_header">Tesseract کی زبانیں</string>
     <string name="tooldetail_ocr_packs_info">Tesseract کسی زبان کو صرف تب پڑھتا ہے جب اس زبان کا ڈیٹا آپ کے آلے پر موجود ہو۔ آپ جس زبان میں ٹائپ کرتے ہیں اس کے لیے ایک ڈاؤن لوڈ درکار ہے، جس کا سائز 0.4 MB سے 12 MB تک ہے۔ یہ ڈیٹا GitHub پر Tesseract پروجیکٹ کے tessdata_fast سیٹ سے آتا ہے۔ آپ اسکینر سے بھی زبان ڈاؤن لوڈ کر سکتے ہیں۔</string>
     <string name="tooldetail_ocr_packs_none_info">آپ کی فعال کردہ زبانوں میں سے کسی میں بھی Tesseract ڈیٹا موجود نہیں ہے۔ زبانوں کی اسکرین پر ایک زبان شامل کریں۔ اس کے بعد اس کا ڈیٹا یہاں ظاہر ہوگا۔</string>

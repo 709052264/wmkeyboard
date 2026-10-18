@@ -7635,12 +7635,6 @@
     <string name="tooldetail_ocr_info">Nhận dạng chạy trên thiết bị của bạn bằng ML Kit. Không có ảnh và văn bản nào rời khỏi thiết bị của bạn và nó hoạt động ngoại tuyến. Nó đọc văn bản bằng chữ Latinh, ví dụ như tiếng Anh. Trình nhận dạng văn bản của ML Kit chưa hỗ trợ tiếng Bengal. Sau khi chụp, hãy nhấn vào các từ để chọn chính xác những gì bàn phím nhập hoặc sao chép.</string>
     <string name="tooldetail_ocr_online_group">Trình đọc văn bản trực tuyến</string>
     <string name="tooldetail_ocr_online_info">Ảnh được gửi đến một mô hình có khả năng đọc hình ảnh tại địa chỉ bạn chọn, và mô hình đó sẽ viết ra văn bản mà nó nhìn thấy. Nó đọc bất kỳ tập lệnh nào và không cần dữ liệu ngôn ngữ. Bất kỳ dịch vụ nào có API tương thích với OpenAI đều hoạt động: OpenAI, OpenRouter, Gemini, Mistral hoặc một mô hình trên máy tính của riêng bạn với Ollama hoặc LM Studio. Mỗi lần quét sẽ gửi ảnh đến dịch vụ đó và dịch vụ có thể tính phí cho việc này.</string>
-    <string name="tooldetail_ocr_online_key_hint">Để trống nếu máy chủ không yêu cầu khóa</string>
-    <string name="tooldetail_ocr_online_key_label">Khóa API</string>
-    <string name="tooldetail_ocr_online_model_hint">Một mô hình đọc hình ảnh, ví dụ gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Mô hình</string>
-    <string name="tooldetail_ocr_online_url_hint">Ví dụ: https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Địa chỉ</string>
     <string name="tooldetail_ocr_packs_header">Ngôn ngữ Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract chỉ đọc một ngôn ngữ sau khi dữ liệu của ngôn ngữ đó có trên thiết bị của bạn. Mỗi ngôn ngữ bạn nhập liệu sẽ cần một lần tải xuống, dung lượng từ 0,4 MB đến 12 MB. Dữ liệu được lấy từ bộ tessdata_fast của dự án Tesseract trên GitHub. Bạn cũng có thể tải xuống ngôn ngữ ngay từ trình quét.</string>
     <string name="tooldetail_ocr_packs_none_info">Không có ngôn ngữ nào bạn đã bật có dữ liệu Tesseract. Hãy thêm ngôn ngữ trên màn hình Ngôn ngữ. Dữ liệu của nó sau đó sẽ hiển thị ở đây.</string>

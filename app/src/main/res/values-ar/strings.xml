@@ -7648,12 +7648,6 @@
     <string name="tooldetail_ocr_info">يعمل التعرف على جهازك باستخدام ML Kit. لا تغادر أي صورة أو نص جهازك، ويعمل دون اتصال بالإنترنت. يقرأ النص المكتوب بالخط اللاتيني، مثل الإنجليزية. لا يدعم متعرف النصوص في ML Kit اللغة البنغالية بعد. بعد الالتقاط، اضغط على الكلمات لتحديد ما تكتبه لوحة المفاتيح أو تنسخه بالضبط.</string>
     <string name="tooldetail_ocr_online_group">قارئ النصوص عبر الإنترنت</string>
     <string name="tooldetail_ocr_online_info">تنتقل الصورة إلى نموذج قادر على قراءة الصور، في عنوان تختاره، ويكتب النموذج النص الذي يراه. يقرأ أي نص ولا يحتاج إلى بيانات لغة. تعمل أي خدمة ذات واجهة برمجة تطبيقات متوافقة مع OpenAI: OpenAI أو OpenRouter أو Gemini أو Mistral أو نموذج على جهاز الكمبيوتر الخاص بك باستخدام Ollama أو LM Studio. يرسل كل مسح ضوئي الصورة إلى تلك الخدمة، وقد تفرض الخدمة رسوماً مقابل ذلك.</string>
-    <string name="tooldetail_ocr_online_key_hint">اتركه فارغاً لخادم لا يطلب مفتاحاً</string>
-    <string name="tooldetail_ocr_online_key_label">مفتاح API</string>
-    <string name="tooldetail_ocr_online_model_hint">نموذج يقرأ الصور، على سبيل المثال gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">النموذج</string>
-    <string name="tooldetail_ocr_online_url_hint">على سبيل المثال https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">العنوان</string>
     <string name="tooldetail_ocr_packs_header">لغات Tesseract</string>
     <string name="tooldetail_ocr_packs_info">يقرأ Tesseract اللغة فقط بعد أن تصبح بيانات تلك اللغة على جهازك. يوجد تنزيل واحد لكل لغة تكتب بها، يتراوح حجمه من 0.4 ميجابايت إلى 12 ميجابايت. تأتي البيانات من مجموعة tessdata_fast الخاصة بمشروع Tesseract على GitHub. يمكنك أيضاً تنزيل لغة من الماسح الضوئي نفسه.</string>
     <string name="tooldetail_ocr_packs_none_info">لا توجد بيانات Tesseract لأي من اللغات التي فعلتها. أضف لغة من شاشة اللغات، وستظهر بياناتها هنا.</string>

@@ -1,5 +1,14 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import android.graphics.BitmapFactory
+import androidx.compose.material3.CircularProgressIndicator
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
+import com.wasimaster.wmkeyboard.core.settings.MeteredFeature
+import com.wasimaster.wmkeyboard.core.tools.PhotoTranslate
+import com.wasimaster.wmkeyboard.core.tools.ToolHttp
+import com.wasimaster.wmkeyboard.ime.ProviderPicks
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -278,6 +287,12 @@ private fun CameraContent(
     var countdown by remember { mutableIntStateOf(0) }
     var capturing by remember { mutableStateOf(false) }
     var pending by remember { mutableStateOf<PendingCapture?>(null) }
+    // #727: the photo's text translated by the photo-translate list (Rens),
+    // which puts a Translate button beside Send once a provider is on.
+    val canTranslate = remember(state.settings) { PhotoTranslate.rows(state.settings).isNotEmpty() }
+    var translating by remember { mutableStateOf(false) }
+    var translateNote by remember { mutableStateOf<String?>(null) }
+    var translateAsked by remember { mutableStateOf(false) }
     var camera by remember { mutableStateOf<Camera?>(null) }
     // Current optical/digital zoom, shown as a pill and driven by pinch. Reset
     // when the camera rebinds (retake / lens switch both drop back to 1x).
@@ -536,10 +551,58 @@ private fun CameraContent(
             // Opened from image search, the photo is for searching and Send
             // would be a surprise; otherwise Search is there when the setting
             // adds it. Retake is always first.
+            val translated = captured.file.name.startsWith(TRANSLATED_PREFIX)
             val actions = buildList {
                 add(CaptureAction.RETAKE)
                 if (!state.cameraSearchOnly) add(CaptureAction.SEND)
                 if (state.cameraSearchOnly || state.settings.camera.searchButton) add(CaptureAction.SEARCH)
+                if (canTranslate && !state.cameraSearchOnly && !translated) add(CaptureAction.TRANSLATE)
+            }
+            // The photo goes to the provider and comes back with its text in
+            // the Translate tool's language, in place of the one taken; Send
+            // then sends that. Data saver is asked the way photo search asks:
+            // the second press on a metered connection is the yes.
+            fun translatePhoto() {
+                if (translating) return
+                feedback()
+                when (state.dataSaver.decide(MeteredFeature.WEB_SEARCH)) {
+                    MeteredDecision.BLOCKED -> {
+                        translateNote = context.getString(R.string.ime_camera_translate_blocked)
+                        return
+                    }
+                    MeteredDecision.ASK -> if (!translateAsked) {
+                        translateAsked = true
+                        translateNote = context.getString(R.string.ime_camera_translate_metered_ask)
+                        return
+                    }
+                    MeteredDecision.ALLOWED -> Unit
+                }
+                translating = true
+                translateNote = null
+                val rows = PhotoTranslate.rows(state.settings, ProviderPicks.of(ProviderTool.PHOTO_TRANSLATE))
+                val target = state.settings.translateTargetLang
+                scope.launch {
+                    val result = withContext(Dispatchers.IO) {
+                        runCatching {
+                            val out = File(captureDir(context), "$TRANSLATED_PREFIX${System.currentTimeMillis()}.jpg")
+                            PhotoTranslate.translate(rows, captured.file.readBytes(), target, out)
+                            out to (BitmapFactory.decodeFile(out.path) ?: error("not a picture"))
+                        }
+                    }
+                    translating = false
+                    result.fold(
+                        onSuccess = { (file, bitmap) ->
+                            if (pending === captured) {
+                                launch(Dispatchers.IO) { captured.file.delete() }
+                                // A new picture, not a slice of the viewfinder: shown whole.
+                                pending = PendingCapture(file, bitmap, visibleOffsetY = null, visibleHeight = null)
+                            } else {
+                                launch(Dispatchers.IO) { file.delete() }
+                            }
+                        },
+                        onFailure = { translateNote = ToolHttp.friendlyMessage(context, it) },
+                    )
+                }
             }
             val act = { action: CaptureAction ->
                 when (action) {
@@ -560,6 +623,7 @@ private fun CameraContent(
                     // the search is on its way, and a search that could not
                     // start (data saver, a failed upload) leaves it to retry.
                     CaptureAction.SEARCH -> onSend(captured.file, true)
+                    CaptureAction.TRANSLATE -> translatePhoto()
                 }
             }
             // The ring exists only on this frozen still — the live viewfinder
@@ -599,12 +663,14 @@ private fun CameraContent(
                             CaptureAction.RETAKE -> Icons.Outlined.Refresh
                             CaptureAction.SEND -> Icons.AutoMirrored.Outlined.Send
                             CaptureAction.SEARCH -> Icons.Outlined.ImageSearch
+                            CaptureAction.TRANSLATE -> Icons.Outlined.Translate
                         },
                         label = stringResource(
                             when (action) {
                                 CaptureAction.RETAKE -> R.string.ime_camera_retake_action
                                 CaptureAction.SEND -> R.string.ime_camera_send_action
                                 CaptureAction.SEARCH -> R.string.ime_camera_search_action
+                                CaptureAction.TRANSLATE -> R.string.ime_camera_translate_action
                             },
                         ),
                         // Send stays the main action while it is there.
@@ -613,6 +679,34 @@ private fun CameraContent(
                         focused = focusedAction == index,
                     ) { act(action) }
                 }
+            }
+            if (CaptureAction.TRANSLATE in actions) {
+                ProviderChooser(
+                    ProviderTool.PHOTO_TRANSLATE,
+                    state.settings,
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .offset { IntOffset(0, if (sliceHeight == null) 0 else viewfinderTop) }
+                        .padding(8.dp),
+                    overPhoto = true,
+                )
+            }
+            if (translating) {
+                CircularProgressIndicator(color = Color.White, modifier = Modifier.align(Alignment.Center))
+            }
+            translateNote?.let { note ->
+                Text(
+                    note,
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = 24.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color.Black.copy(alpha = 0.55f))
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                )
             }
             return@Box
         }
@@ -844,7 +938,11 @@ private fun LocationCaptionToggle(on: Boolean, modifier: Modifier = Modifier, on
 }
 
 /** What the confirm step can do with a photo. */
-private enum class CaptureAction { RETAKE, SEND, SEARCH }
+private enum class CaptureAction { RETAKE, SEND, SEARCH, TRANSLATE }
+
+/** A capture that came back translated (#727) starts with this, so it is not offered for translating again. */
+private const val TRANSLATED_PREFIX = "translated-"
+
 
 /** Back-to-keys chip pinned to the top-left of the visible viewfinder. */
 @Composable

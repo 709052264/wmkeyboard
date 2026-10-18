@@ -7641,12 +7641,6 @@
     <string name="tooldetail_ocr_info">Atpažinimas vykdomas jūsų įrenginyje naudojant „ML Kit“. Jokia nuotrauka ir joks tekstas nepalieka jūsų įrenginio, be to, tai veikia neprisijungus. Jis nuskaito lotyniškų rašmenų tekstą, pavyzdžiui, anglų kalbą. „ML Kit“ teksto atpažinimo priemonė dar nepalaiko bengalų kalbos. Po fiksavimo paspauskite žodžius, kad pasirinktumėte būtent tai, ką klaviatūra įveda arba kopijuoja.</string>
     <string name="tooldetail_ocr_online_group">Internetinis teksto skaitytuvas</string>
     <string name="tooldetail_ocr_online_info">Nuotrauka siunčiama modeliui, kuris gali skaityti vaizdus, jūsų pasirinktu adresu, ir modelis užrašo matomą tekstą. Jis skaito bet kokį raštą ir jam nereikia kalbos duomenų. Veikia bet kuri paslauga su „OpenAI“ suderinama API: „OpenAI“, „OpenRouter“, „Gemini“, „Mistral“ arba modelis jūsų kompiuteryje su „Ollama“ ar „LM Studio“. Kiekvienas nuskaitymas siunčia nuotrauką į tą paslaugą, ir paslauga gali už tai imti mokestį.</string>
-    <string name="tooldetail_ocr_online_key_hint">Palikite tuščią serveriui, kuriam nereikia rakto</string>
-    <string name="tooldetail_ocr_online_key_label">API raktas</string>
-    <string name="tooldetail_ocr_online_model_hint">Modelis, kuris skaito vaizdus, pavyzdžiui, gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Modelis</string>
-    <string name="tooldetail_ocr_online_url_hint">Pavyzdžiui, https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Adresas</string>
     <string name="tooldetail_ocr_packs_header">„Tesseract“ kalbos</string>
     <string name="tooldetail_ocr_packs_info">„Tesseract“ nuskaito kalbą tik tada, kai tos kalbos duomenys yra jūsų įrenginyje. Kiekvienai kalbai, kuria rašote, reikia atsisiųsti duomenų (nuo 0,4 MB iki 12 MB). Duomenys gaunami iš „Tesseract“ projekto „tessdata_fast“ rinkinio „GitHub“ svetainėje. Kalbą taip pat galite atsisiųsti iš paties skaitytuvo.</string>
     <string name="tooldetail_ocr_packs_none_info">Nė viena iš įjungtų kalbų neturi „Tesseract“ duomenų. Pridėkite kalbą kalbų ekrane. Tada jos duomenys bus rodomi čia.</string>

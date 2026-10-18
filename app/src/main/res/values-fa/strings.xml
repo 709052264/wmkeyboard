@@ -7650,12 +7650,6 @@
     <string name="tooldetail_ocr_info">تشخیص با استفاده از ML Kit روی دستگاه شما اجرا می‌شود. هیچ عکس و متنی از دستگاه شما خارج نمی‌شود و به صورت آفلاین کار می‌کند. این ابزار متن‌های لاتین، برای مثال انگلیسی، را می‌خواند. تشخیص‌دهنده متن ML Kit هنوز از زبان بنگالی پشتیبانی نمی‌کند. پس از گرفتن عکس، روی کلمات ضربه بزنید تا دقیقاً آنچه را که صفحه‌کلید تایپ یا کپی می‌کند، انتخاب کنید.</string>
     <string name="tooldetail_ocr_online_group">متن‌خوان آنلاین</string>
     <string name="tooldetail_ocr_online_info">عکس به مدلی ارسال می‌شود که می‌تواند تصاویر را بخواند، در آدرسی که شما انتخاب می‌کنید، و مدل متن دیده شده را می‌نویسد. این مدل هر خطی را می‌خواند و نیازی به داده‌های زبانی ندارد. هر سرویسی با API سازگار با OpenAI کار می‌کند: OpenAI، OpenRouter، Gemini، Mistral یا مدلی روی رایانه خودتان با Ollama یا LM Studio. هر اسکن عکس را به آن سرویس می‌فرستد و ممکن است سرویس برای آن هزینه دریافت کند.</string>
-    <string name="tooldetail_ocr_online_key_hint">برای سروری که نیازی به کلید ندارد، خالی بگذارید</string>
-    <string name="tooldetail_ocr_online_key_label">کلید API</string>
-    <string name="tooldetail_ocr_online_model_hint">مدلی که تصاویر را می‌خواند، برای مثال gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">مدل</string>
-    <string name="tooldetail_ocr_online_url_hint">برای مثال https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">آدرس</string>
     <string name="tooldetail_ocr_packs_header">زبان‌های Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract تنها زمانی یک زبان را می‌خواند که داده‌های آن زبان روی دستگاه شما موجود باشد. برای هر زبانی که تایپ می‌کنید، یک دانلود بین ۰.۴ تا ۱۲ مگابایت وجود دارد. این داده‌ها از مجموعه tessdata_fast پروژه Tesseract در گیت‌هاب می‌آیند. همچنین می‌توانید یک زبان را مستقیماً از خود اسکنر دانلود کنید.</string>
     <string name="tooldetail_ocr_packs_none_info">هیچ‌یک از زبان‌هایی که فعال کرده‌اید دارای داده‌های Tesseract نیستند. یک زبان را در صفحه زبان‌ها اضافه کنید. سپس داده‌های آن در اینجا نمایش داده می‌شود.</string>

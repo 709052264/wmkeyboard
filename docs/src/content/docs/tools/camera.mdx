@@ -48,8 +48,19 @@ After the shutter fires, the frozen photo is drawn at the exact spot and size th
 - **Retake** discards the file and goes straight back to a live viewfinder.
 - **Send** hands the photo off (see [Where the photo goes](#where-the-photo-goes) below) and closes the panel back to your keys.
 - **Search** is a third button, off by default. Turn on **Search button** under [Search by photo](#search-by-photo-options) and it sits after Send. It looks up what is in the photo instead of sending it. See [Searching with a photo](#searching-with-a-photo) below.
+- **Translate** appears once a provider is set up under [Translate photos](#translating-a-photo). It replaces the photo with a copy whose text is translated.
 
 If you took the photo with the front camera and [Mirror selfies](#options) is on, the saved file is flipped horizontally to match what you saw while framing. Camera sensors record selfies un-mirrored by default: text reads the right way round, but the shot looks flipped against the live preview. Shutter sound and haptic feedback on the controls, timer ticks, and shutter are each their own setting. See [Options](#options).
+
+## Translating a photo
+
+Pointed the camera at a menu or a sign in another language? Add a [Rens](https://git.maid.zone/stuff/rens) server under <SettingsPath path="Tools / Camera / Translate photos" />, and the confirm step gets a **Translate** button. Rens is a free front end to Google Lens: your own server, or [a public one](https://git.maid.zone/stuff/rens#instances).
+
+- **What it does.** The photo goes to the server, which has Google Lens translate the text in it, and comes back as a new picture with the translated text drawn over the original. It replaces the photo on screen, so **Send** sends the translated one. **Retake** starts again.
+- **Which language.** The language the [Translate](/tools/translate/) tool translates into. Lens detects the language of the photo.
+- **More than one server.** **Translate photos** is a [provider list](/tools/providers/): the next server is asked when one fails. With **How to use them** on **Choose in the panel**, a chip at the top right of the photo picks the server.
+- **Privacy.** Rens strips the photo's metadata and renames it before it passes the photo on, so Google sees the server and not your phone. The server still sees the photo.
+- **Data saver.** It counts as a web search. On a connection where data saver asks first, the first press of Translate says so and the second sends the photo. Each translation shows in the [network activity log](/privacy/network-activity/) as **Search by photo**.
 
 ## Putting the place on a photo
 
@@ -95,7 +106,7 @@ The server answers with a redirect to its results page, with the results address
 
 Only **Web** uses the keyboard's own network connection, so it's the only route that answers to [Data saver](/privacy/data-saver/): it counts as a web search. On a connection where data saver asks first, the first press of Search shows "This connection is metered. To send the photo, press Search again." and the second press sends it. Each upload appears in the [network activity log](/privacy/network-activity/) as **Search by photo**. Lens and the share sheet give the photo to another app, and the keyboard itself sends nothing.
 
-By default that's the *only* copy that persists anywhere. The private file used to hand the image off is scratch storage, not a saved photo. On each panel open, anything beyond the four most recent capture files is deleted, which only matters if the app was killed mid-confirm. Want a permanent copy? Turn on **Save to the gallery**, off by default, and every photo you send or search with is also written to `Pictures/WM Keyboard` in your device's shared gallery, once, even if you search with it and then send it. See [your data on device](/privacy/data/) for how WM Keyboard's on-device storage is organized more generally. Capture, crop, save, and send are all local. The only time the camera tool uses the network is a search with **Search with** set to **Web** (see [Searching with a photo](#searching-with-a-photo)). [Network policy](/privacy/network/) has the wider picture.
+By default that's the *only* copy that persists anywhere. The private file used to hand the image off is scratch storage, not a saved photo. On each panel open, anything beyond the four most recent capture files is deleted, which only matters if the app was killed mid-confirm. Want a permanent copy? Turn on **Save to the gallery**, off by default, and every photo you send or search with is also written to `Pictures/WM Keyboard` in your device's shared gallery, once, even if you search with it and then send it. See [your data on device](/privacy/data/) for how WM Keyboard's on-device storage is organized more generally. Capture, crop, save, and send are all local. The camera tool uses the network only for a search with **Search with** set to **Web** (see [Searching with a photo](#searching-with-a-photo)) and for **Translate** (see [Translating a photo](#translating-a-photo)). [Network policy](/privacy/network/) has the wider picture.
 
 ## Granting camera access
 
@@ -152,6 +163,9 @@ The tool's own settings, split into three groups:
 - **Search with**: **Google Lens** by default, then **Web** and **Share sheet**. See [Searching with a photo](#searching-with-a-photo) for what each does.
 - **Search site**: shown only while Search with is **Web**. **Google Lens** by default, then **Bing**, **Yandex**, **TinEye** and **Custom**.
 - **Upload address** and **Photo field name**: shown only for **Custom**. Where your server takes the photo, and the form field it reads.
+
+**Translate photos**
+- The servers that translate a photo for the **Translate** button. Empty by default, which hides the button. See [Translating a photo](#translating-a-photo).
 
 **Feedback**
 - **Shutter sound**: on by default. Plays the camera click when a photo is taken.

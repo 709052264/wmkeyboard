@@ -7656,12 +7656,6 @@
     <string name="tooldetail_ocr_info">Utambuzi unafanyika kwenye kifaa chako kwa kutumia ML Kit. Hakuna picha wala maandishi yanayotoka kwenye kifaa chako, na inafanya kazi bila intaneti. Inasoma maandishi ya herufi za Kilatini, kwa mfano Kiingereza. Kitambuzi cha maandishi cha ML Kit hakijasaidia Kibengali bado. Baada ya kunasa, bonyeza maneno ili kuchagua hasa kile ambacho kibodi inaandika au kunakili.</string>
     <string name="tooldetail_ocr_online_group">Msomaji wa maandishi mtandaoni</string>
     <string name="tooldetail_ocr_online_info">Picha huenda kwa modeli inayoweza kusoma picha, kwenye anwani unayochagua, na modeli huandika maandishi inayoona. Inasoma hati yoyote na haihitaji data ya lugha. Huduma yoyote iliyo na API inayooana na OpenAI inafanya kazi: OpenAI, OpenRouter, Gemini, Mistral, au modeli kwenye kompyuta yako mwenyewe na Ollama au LM Studio. Kila skani hutuma picha kwenye huduma hiyo, na huduma inaweza kutoza kwa ajili hiyo.</string>
-    <string name="tooldetail_ocr_online_key_hint">Acha wazi kwa seva isiyohitaji ufunguo</string>
-    <string name="tooldetail_ocr_online_key_label">Ufunguo wa API</string>
-    <string name="tooldetail_ocr_online_model_hint">Muundo unaosoma picha, kwa mfano gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Mfano</string>
-    <string name="tooldetail_ocr_online_url_hint">Kwa mfano https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Anwani</string>
     <string name="tooldetail_ocr_packs_header">Lugha za Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract husoma lugha tu baada ya data ya lugha hiyo kuwa kwenye kifaa chako. Kuna upakuaji mmoja kwa kila lugha unayochapa, kuanzia MB 0.4 hadi MB 12. Data hiyo inatoka kwenye seti ya tessdata_fast ya mradi wa Tesseract kwenye GitHub. Unaweza pia kupakua lugha kutoka kwa kichanganuzi chenyewe.</string>
     <string name="tooldetail_ocr_packs_none_info">Hakuna lugha yoyote uliyowasha iliyo na data ya Tesseract. Ongeza lugha kwenye skrini ya Lugha. Data yake itaonekana hapa.</string>

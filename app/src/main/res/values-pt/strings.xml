@@ -7639,12 +7639,6 @@
     <string name="tooldetail_ocr_info">O reconhecimento é executado no seu dispositivo com o ML Kit. Nenhuma foto e nenhum texto sai do seu dispositivo, e funciona offline. Ele lê texto em escrita latina, por exemplo, inglês. O reconhecedor de texto do ML Kit ainda não suporta bengali. Após uma captura, pressione as palavras para selecionar exatamente o que o teclado digita ou copia.</string>
     <string name="tooldetail_ocr_online_group">Leitor de texto online</string>
     <string name="tooldetail_ocr_online_info">A fotografia é enviada para um modelo que consegue ler imagens, num endereço à sua escolha, e o modelo escreve o texto que vê. Lê qualquer escrita e não precisa de dados de idioma. Qualquer serviço com uma API compatível com OpenAI funciona: OpenAI, OpenRouter, Gemini, Mistral ou um modelo no seu próprio computador com Ollama ou LM Studio. Cada leitura envia a fotografia para esse serviço, e o serviço pode cobrar por isso.</string>
-    <string name="tooldetail_ocr_online_key_hint">Deixe em branco para um servidor que não solicita chave</string>
-    <string name="tooldetail_ocr_online_key_label">Chave da API</string>
-    <string name="tooldetail_ocr_online_model_hint">Um modelo que lê imagens, por exemplo gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Modelo</string>
-    <string name="tooldetail_ocr_online_url_hint">Por exemplo https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Endereço</string>
     <string name="tooldetail_ocr_packs_header">Idiomas do Tesseract</string>
     <string name="tooldetail_ocr_packs_info">O Tesseract lê um idioma apenas após os dados desse idioma estarem no seu dispositivo. Há um download para cada idioma que você digita, de 0,4 MB a 12 MB. Os dados vêm do conjunto tessdata_fast do projeto Tesseract no GitHub. Você também pode baixar um idioma pelo próprio scanner.</string>
     <string name="tooldetail_ocr_packs_none_info">Nenhum dos idiomas que você ativou possui dados do Tesseract. Adicione um idioma na tela Idiomas. Os dados dele aparecerão aqui.</string>

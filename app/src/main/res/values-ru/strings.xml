@@ -7643,12 +7643,6 @@
     <string name="tooldetail_ocr_info">Распознавание выполняется на вашем устройстве с помощью ML Kit. Никакие фотографии или текст не покидают ваше устройство, и функция работает офлайн. Она считывает текст на латинице, например, на английском. Распознаватель текста ML Kit пока не поддерживает бенгальский язык. После захвата нажмите на слова, чтобы выбрать именно то, что клавиатура должна напечатать или скопировать.</string>
     <string name="tooldetail_ocr_online_group">Онлайн-считыватель текста</string>
     <string name="tooldetail_ocr_online_info">Фотография отправляется модели, которая умеет читать изображения, по выбранному вами адресу, и модель записывает текст, который она видит. Она читает любой шрифт и не требует языковых данных. Работает любой сервис с API, совместимым с OpenAI: OpenAI, OpenRouter, Gemini, Mistral или модель на вашем компьютере с помощью Ollama или LM Studio. Каждое сканирование отправляет фотографию в этот сервис, и сервис может взимать за это плату.</string>
-    <string name="tooldetail_ocr_online_key_hint">Оставьте пустым, если сервер не требует ключ</string>
-    <string name="tooldetail_ocr_online_key_label">API-ключ</string>
-    <string name="tooldetail_ocr_online_model_hint">Модель для распознавания изображений, например gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Модель</string>
-    <string name="tooldetail_ocr_online_url_hint">Например, https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Адрес</string>
     <string name="tooldetail_ocr_packs_header">Языки Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract считывает язык только после того, как данные для этого языка появятся на вашем устройстве. Для каждого языка, на котором вы печатаете, требуется одна загрузка размером от 0,4 МБ до 12 МБ. Данные поступают из набора tessdata_fast проекта Tesseract на GitHub. Вы также можете загрузить язык из самого сканера.</string>
     <string name="tooldetail_ocr_packs_none_info">Ни в одном из включенных вами языков нет данных Tesseract. Добавьте язык на экране «Языки». После этого данные появятся здесь.</string>

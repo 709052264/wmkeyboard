@@ -7639,12 +7639,6 @@
     <string name="tooldetail_ocr_info">Textaþekking keyrir á tækinu þínu með ML Kit. Engar myndir og enginn texti yfirgefur tækið þitt og þetta virkar án nettengingar. Það les texta með latnesku letri, til dæmis ensku. Textaþekkingu ML Kit er enn ekki stutt fyrir bengölsku. Eftir töku geturðu ýtt á orð til að velja nákvæmlega það sem lyklaborðið slær inn eða afritar.</string>
     <string name="tooldetail_ocr_online_group">Textalesari á netinu</string>
     <string name="tooldetail_ocr_online_info">Myndin er send til líkans sem getur lesið myndir, á heimilisfang sem þú velur, og líkanið skrifar út textann sem það sér. Það les hvaða ritkerfi sem er og þarf engin tungumálagögn. Öll þjónusta með OpenAI-samhæft API virkar: OpenAI, OpenRouter, Gemini, Mistral, eða líkan á eigin tölvu með Ollama eða LM Studio. Hver skönnun sendir myndina til þeirrar þjónustu og þjónustan gæti rukkað fyrir það.</string>
-    <string name="tooldetail_ocr_online_key_hint">Skildu eftir autt fyrir netþjón sem krefst ekki lykils</string>
-    <string name="tooldetail_ocr_online_key_label">API-lykill</string>
-    <string name="tooldetail_ocr_online_model_hint">Líkan sem les myndir, til dæmis gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Gerð</string>
-    <string name="tooldetail_ocr_online_url_hint">Til dæmis https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Veffang</string>
     <string name="tooldetail_ocr_packs_header">Tesseract tungumál</string>
     <string name="tooldetail_ocr_packs_info">Tesseract les tungumál aðeins eftir að gögnin fyrir það tungumál eru í tækinu þínu. Það er ein niðurhalsskrá fyrir hvert tungumál sem þú skrifar á, frá 0,4 MB til 12 MB. Gögnin koma frá tessdata_fast safninu í Tesseract verkefninu á GitHub. Þú getur líka sótt tungumál beint úr skannanum sjálfum.</string>
     <string name="tooldetail_ocr_packs_none_info">Ekkert af þeim tungumálum sem þú kveiktir á er með Tesseract-gögn. Bættu við tungumáli á Tungumálaskjánum. Gögnin birtast þá hér.</string>

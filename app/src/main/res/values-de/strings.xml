@@ -7641,12 +7641,6 @@
     <string name="tooldetail_ocr_info">Die Erkennung erfolgt auf Ihrem Gerät mit ML Kit. Weder Fotos noch Text verlassen Ihr Gerät, und es funktioniert offline. Es liest Texte in lateinischer Schrift, zum Beispiel Englisch. Die Texterkennung von ML Kit unterstützt Bengali noch nicht. Drücken Sie nach einer Aufnahme auf Wörter, um genau das auszuwählen, was die Tastatur eingibt oder kopiert.</string>
     <string name="tooldetail_ocr_online_group">Online-Textleser</string>
     <string name="tooldetail_ocr_online_info">Das Foto wird an ein Modell gesendet, das Bilder lesen kann, an eine Adresse Ihrer Wahl, und das Modell schreibt den Text auf, den es sieht. Es liest jedes Skript und benötigt keine Sprachdaten. Jeder Dienst mit einer OpenAI-kompatiblen API funktioniert: OpenAI, OpenRouter, Gemini, Mistral oder ein Modell auf Ihrem eigenen Computer mit Ollama oder LM Studio. Jeder Scan sendet das Foto an diesen Dienst, und der Dienst kann dafür Gebühren erheben.</string>
-    <string name="tooldetail_ocr_online_key_hint">Lassen Sie es leer für einen Server, der keinen Schlüssel erfordert</string>
-    <string name="tooldetail_ocr_online_key_label">API-Schlüssel</string>
-    <string name="tooldetail_ocr_online_model_hint">Ein Modell, das Bilder liest, zum Beispiel gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Modell</string>
-    <string name="tooldetail_ocr_online_url_hint">Zum Beispiel https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Adresse</string>
     <string name="tooldetail_ocr_packs_header">Tesseract-Sprachen</string>
     <string name="tooldetail_ocr_packs_info">Tesseract liest eine Sprache erst, nachdem die Daten für diese Sprache auf Ihrem Gerät vorhanden sind. Für jede Sprache, die Sie eingeben, ist ein Download von 0,4 MB bis 12 MB erforderlich. Die Daten stammen aus dem tessdata_fast-Satz des Tesseract-Projekts auf GitHub. Sie können eine Sprache auch direkt vom Scanner aus herunterladen.</string>
     <string name="tooldetail_ocr_packs_none_info">Keine der von dir aktivierten Sprachen verfügt über Tesseract-Daten. Füge eine Sprache im Sprachen-Bildschirm hinzu. Die entsprechenden Daten werden dann hier angezeigt.</string>

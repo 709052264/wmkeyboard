@@ -7635,12 +7635,6 @@
     <string name="tooldetail_ocr_info">La reconnaissance s\'exécute sur votre appareil avec ML Kit. Aucune photo ni aucun texte ne quitte votre appareil, et cela fonctionne hors ligne. Il lit le texte en écriture latine, par exemple l\'anglais. Le reconnaisseur de texte de ML Kit ne prend pas encore en charge le bengali. Après une capture, appuyez sur les mots pour sélectionner exactement ce que le clavier doit taper ou copier.</string>
     <string name="tooldetail_ocr_online_group">Lecteur de texte en ligne</string>
     <string name="tooldetail_ocr_online_info">La photo est envoyée à un modèle capable de lire les images, à une adresse que vous choisissez, et le modèle écrit le texte qu\'il voit. Il lit n\'importe quel script et n\'a besoin d\'aucune donnée linguistique. Tout service avec une API compatible OpenAI fonctionne : OpenAI, OpenRouter, Gemini, Mistral, ou un modèle sur votre propre ordinateur avec Ollama ou LM Studio. Chaque scan envoie la photo à ce service, et le service peut facturer pour cela.</string>
-    <string name="tooldetail_ocr_online_key_hint">Laisser vide pour un serveur qui ne demande aucune clé</string>
-    <string name="tooldetail_ocr_online_key_label">Clé API</string>
-    <string name="tooldetail_ocr_online_model_hint">Un modèle qui lit les images, par exemple gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Modèle</string>
-    <string name="tooldetail_ocr_online_url_hint">Par exemple https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Adresse</string>
     <string name="tooldetail_ocr_packs_header">Langues Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract ne lit une langue qu\'une fois que les données de cette langue sont sur votre appareil. Il y a un téléchargement pour chaque langue que vous saisissez, de 0,4 Mo à 12 Mo. Les données proviennent de l\'ensemble tessdata_fast du projet Tesseract sur GitHub. Vous pouvez également télécharger une langue depuis le scanner lui-même.</string>
     <string name="tooldetail_ocr_packs_none_info">Aucune des langues que vous avez activées ne possède de données Tesseract. Ajoutez une langue sur l\'écran Langues. Ses données s\'afficheront alors ici.</string>

@@ -7654,12 +7654,6 @@
     <string name="tooldetail_ocr_info">ਪਛਾਣ ML Kit ਨਾਲ ਤੁਹਾਡੀ ਡਿਵਾਈਸ \'ਤੇ ਚੱਲਦੀ ਹੈ। ਕੋਈ ਵੀ ਫੋਟੋ ਅਤੇ ਕੋਈ ਵੀ ਟੈਕਸਟ ਤੁਹਾਡੀ ਡਿਵਾਈਸ ਤੋਂ ਬਾਹਰ ਨਹੀਂ ਜਾਂਦਾ, ਅਤੇ ਇਹ ਔਫਲਾਈਨ ਕੰਮ ਕਰਦਾ ਹੈ। ਇਹ ਲਾਤੀਨੀ ਲਿਪੀ ਦੇ ਟੈਕਸਟ ਨੂੰ ਪੜ੍ਹਦਾ ਹੈ, ਉਦਾਹਰਨ ਲਈ ਅੰਗਰੇਜ਼ੀ। ML Kit ਦਾ ਟੈਕਸਟ ਰਿਕੋਗਨਾਈਜ਼ਰ ਅਜੇ ਬੰਗਾਲੀ ਦਾ ਸਮਰਥਨ ਨਹੀਂ ਕਰਦਾ ਹੈ। ਕੈਪਚਰ ਕਰਨ ਤੋਂ ਬਾਅਦ, ਕੀਬੋਰਡ ਜੋ ਟਾਈਪ ਜਾਂ ਕਾਪੀ ਕਰਦਾ ਹੈ, ਉਸ ਨੂੰ ਚੁਣਨ ਲਈ ਸ਼ਬਦਾਂ \'ਤੇ ਦਬਾਓ।</string>
     <string name="tooldetail_ocr_online_group">ਔਨਲਾਈਨ ਟੈਕਸਟ ਰੀਡਰ</string>
     <string name="tooldetail_ocr_online_info">ਫੋਟੋ ਇੱਕ ਅਜਿਹੇ ਮਾਡਲ ਕੋਲ ਜਾਂਦੀ ਹੈ ਜੋ ਚਿੱਤਰਾਂ ਨੂੰ ਪੜ੍ਹ ਸਕਦਾ ਹੈ, ਤੁਹਾਡੇ ਦੁਆਰਾ ਚੁਣੇ ਗਏ ਪਤੇ \'ਤੇ, ਅਤੇ ਮਾਡਲ ਉਸ ਟੈਕਸਟ ਨੂੰ ਲਿਖ ਦਿੰਦਾ ਹੈ ਜੋ ਉਹ ਦੇਖਦਾ ਹੈ। ਇਹ ਕਿਸੇ ਵੀ ਲਿਪੀ ਨੂੰ ਪੜ੍ਹਦਾ ਹੈ ਅਤੇ ਇਸਨੂੰ ਕਿਸੇ ਭਾਸ਼ਾ ਡੇਟਾ ਦੀ ਲੋੜ ਨਹੀਂ ਹੁੰਦੀ। OpenAI-ਅਨੁਕੂਲ API ਵਾਲੀ ਕੋਈ ਵੀ ਸੇਵਾ ਕੰਮ ਕਰਦੀ ਹੈ: OpenAI, OpenRouter, Gemini, Mistral, ਜਾਂ Ollama ਜਾਂ LM Studio ਨਾਲ ਤੁਹਾਡੇ ਆਪਣੇ ਕੰਪਿਊਟਰ \'ਤੇ ਮੌਜੂਦ ਮਾਡਲ। ਹਰ ਸਕੈਨ ਫੋਟੋ ਨੂੰ ਉਸ ਸੇਵਾ \'ਤੇ ਭੇਜਦਾ ਹੈ, ਅਤੇ ਸੇਵਾ ਇਸ ਲਈ ਚਾਰਜ ਲੈ ਸਕਦੀ ਹੈ।</string>
-    <string name="tooldetail_ocr_online_key_hint">ਅਜਿਹੇ ਸਰਵਰ ਲਈ ਖਾਲੀ ਛੱਡੋ ਜੋ ਕਿਸੇ ਕੁੰਜੀ ਦੀ ਮੰਗ ਨਹੀਂ ਕਰਦਾ</string>
-    <string name="tooldetail_ocr_online_key_label">API ਕੁੰਜੀ</string>
-    <string name="tooldetail_ocr_online_model_hint">ਇੱਕ ਮਾਡਲ ਜੋ ਚਿੱਤਰਾਂ ਨੂੰ ਪੜ੍ਹਦਾ ਹੈ, ਉਦਾਹਰਨ ਲਈ gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">ਮਾਡਲ</string>
-    <string name="tooldetail_ocr_online_url_hint">ਉਦਾਹਰਨ ਲਈ https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">ਪਤਾ</string>
     <string name="tooldetail_ocr_packs_header">Tesseract ਭਾਸ਼ਾਵਾਂ</string>
     <string name="tooldetail_ocr_packs_info">Tesseract ਕਿਸੇ ਭਾਸ਼ਾ ਨੂੰ ਉਦੋਂ ਹੀ ਪੜ੍ਹਦਾ ਹੈ ਜਦੋਂ ਉਸ ਭਾਸ਼ਾ ਦਾ ਡੇਟਾ ਤੁਹਾਡੀ ਡਿਵਾਈਸ \'ਤੇ ਹੁੰਦਾ ਹੈ। ਤੁਹਾਡੇ ਦੁਆਰਾ ਟਾਈਪ ਕੀਤੀ ਜਾਣ ਵਾਲੀ ਹਰੇਕ ਭਾਸ਼ਾ ਲਈ ਇੱਕ ਡਾਊਨਲੋਡ ਹੁੰਦਾ ਹੈ, ਜੋ 0.4 MB ਤੋਂ 12 MB ਤੱਕ ਹੋ ਸਕਦਾ ਹੈ। ਇਹ ਡੇਟਾ GitHub \'ਤੇ Tesseract ਪ੍ਰੋਜੈਕਟ ਦੇ tessdata_fast ਸੈੱਟ ਤੋਂ ਆਉਂਦਾ ਹੈ। ਤੁਸੀਂ ਸਕੈਨਰ ਤੋਂ ਵੀ ਭਾਸ਼ਾ ਡਾਊਨਲੋਡ ਕਰ ਸਕਦੇ ਹੋ।</string>
     <string name="tooldetail_ocr_packs_none_info">ਤੁਹਾਡੇ ਦੁਆਰਾ ਚਾਲੂ ਕੀਤੀਆਂ ਗਈਆਂ ਕਿਸੇ ਵੀ ਭਾਸ਼ਾ ਵਿੱਚ Tesseract ਡੇਟਾ ਨਹੀਂ ਹੈ। ਭਾਸ਼ਾਵਾਂ ਸਕ੍ਰੀਨ \'ਤੇ ਇੱਕ ਭਾਸ਼ਾ ਸ਼ਾਮਲ ਕਰੋ। ਇਸਦਾ ਡੇਟਾ ਫਿਰ ਇੱਥੇ ਦਿਖਾਈ ਦੇਵੇਗਾ।</string>

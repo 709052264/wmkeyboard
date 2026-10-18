@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import androidx.compose.foundation.background
@@ -116,6 +117,10 @@ internal fun RowScope.DictionaryHeaderSearchBar(
                 }
             }
         }
+    }
+    // Pick mode (#727): which dictionary answers.
+    if (!state.dictionarySearchActive) {
+        ProviderChooser(ProviderTool.DICTIONARY, state.settings, Modifier.padding(end = 6.dp))
     }
     // Ask AI about everything the lookup found (#352), or copy it (#348); a
     // long press on a definition does either for just that.

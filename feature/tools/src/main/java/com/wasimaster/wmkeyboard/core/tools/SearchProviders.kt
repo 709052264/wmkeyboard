@@ -18,8 +18,9 @@ import com.wasimaster.wmkeyboard.core.settings.resolveProviders
  */
 object SearchProviders {
 
-    fun rows(settings: KeyboardSettings): List<ResolvedProvider> =
-        settings.resolveProviders(ProviderTool.SEARCH).filter { backend(it) != null }
+    /** [pick] is the panel's choice in pick mode; null, the AI's tools, walks the whole list. */
+    fun rows(settings: KeyboardSettings, pick: String? = null): List<ResolvedProvider> =
+        settings.resolveProviders(ProviderTool.SEARCH, pick = pick).filter { backend(it) != null }
 
     fun backend(row: ResolvedProvider): SearchBackend? = when (row.typeId) {
         ProviderTypes.SEARXNG.id -> SearchBackend.SEARXNG
@@ -35,7 +36,8 @@ object SearchProviders {
         safe: Boolean,
         answer: Boolean,
         source: NetSource = NetSource.WEB_SEARCH,
-    ): WebSearchPage = ask(settings) { row, backend ->
+        pick: String? = null,
+    ): WebSearchPage = ask(settings, pick) { row, backend ->
         when (backend) {
             SearchBackend.SEARXNG -> SearxClient.webSearch(query, row.url, count, safe, source = source)
             SearchBackend.TAVILY -> TavilySearchClient.webSearch(
@@ -51,8 +53,14 @@ object SearchProviders {
         }
     }
 
-    fun images(settings: KeyboardSettings, query: String, count: Int, safe: Boolean): List<ImageResult> =
-        ask(settings) { row, backend ->
+    fun images(
+        settings: KeyboardSettings,
+        query: String,
+        count: Int,
+        safe: Boolean,
+        pick: String? = null,
+    ): List<ImageResult> =
+        ask(settings, pick) { row, backend ->
             when (backend) {
                 SearchBackend.SEARXNG -> SearxClient.imageSearch(query, row.url, count, safe)
                 SearchBackend.TAVILY -> TavilySearchClient.imageSearch(query, row.apiKey, count, safe)
@@ -60,8 +68,8 @@ object SearchProviders {
             }
         }
 
-    private inline fun <T> ask(settings: KeyboardSettings, call: (ResolvedProvider, SearchBackend) -> T): T {
-        val rows = rows(settings)
+    private inline fun <T> ask(settings: KeyboardSettings, pick: String?, call: (ResolvedProvider, SearchBackend) -> T): T {
+        val rows = rows(settings, pick)
         if (rows.isEmpty()) throw NoSearchProviderException()
         val outcome = ProviderRunner.fallback(rows, key = { it.key }) { row -> call(row, requireNotNull(backend(row))) }
         return when (outcome) {
