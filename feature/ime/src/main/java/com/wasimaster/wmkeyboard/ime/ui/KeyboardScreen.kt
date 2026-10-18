@@ -12936,6 +12936,15 @@ private fun KeyboardBody(
             // close it.
             val placement = state.settings.toolbarBehavior.placement
             var toolsRowOpen by remember(placement) { mutableStateOf(false) }
+            // A keyboard-owned field under an open panel brings its own
+            // suggestion strip over the keys (#161). With the tools on a row of
+            // their own, the strip up here never flips to the toolbar when a
+            // panel opens, so it stayed as a second, empty strip for the app
+            // behind the panel (#688). It gives its row up instead, and the
+            // tools row stands open in its place: that row is now the way back
+            // out of the panel, and on demand it already holds its height.
+            val stripGivenToCapture = placement.isOwnRow && state.panel != PanelMode.NONE &&
+                keyRowsUnderPanel(state) && captureStripShown(state)
             // Whether the row has a place on screen at all, as distinct from
             // whether the chevron has it open. The first is a hard cut, like
             // every other row under a full-bleed panel; only the second animates.
@@ -13012,6 +13021,7 @@ private fun KeyboardBody(
                             // Compact dictation still takes it: that bar is the
                             // session's only status and its only way out.
                             state.settings.toolbarBehavior.stripHidden && !state.voice.strip -> {}
+                            stripGivenToCapture && !state.voice.strip -> {}
                             else -> {
                                 // Avro's candidate list, when the phonetic layout's
                                 // language asks for it in a row of its own, sits
@@ -13124,7 +13134,8 @@ private fun KeyboardBody(
                         BarRow.TOOLS -> if (toolsRowHost) {
                             val motion = !state.settings.reduceMotion
                             RevealingBarRow(
-                                visible = placement == ToolbarPlacement.ALWAYS_ROW || toolsRowOpen,
+                                visible = placement == ToolbarPlacement.ALWAYS_ROW || toolsRowOpen ||
+                                    stripGivenToCapture,
                                 // On demand, the frame holds the row's height
                                 // even while it is closed, so the chevron
                                 // resizes the IME window neither way (#217):
