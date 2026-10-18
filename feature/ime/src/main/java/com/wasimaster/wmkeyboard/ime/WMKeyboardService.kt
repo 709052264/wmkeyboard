@@ -1176,6 +1176,15 @@ open class WMKeyboardService : InputMethodService() {
     private var inputStarts = 0
 
     /**
+     * [inputStarts] as the keys last came up. Still equal at the next
+     * onStartInputView means the keyboard is being shown again over the same
+     * input, with no onStartInput in between: the platform hands back the
+     * EditorInfo from when the field was first started, whose initial
+     * selection is wherever the caret was *then* (#718).
+     */
+    private var inputStartsAtLastView = -1
+
+    /**
      * The clip whose code has already been typed, so
      * [maybeShowCopiedCodeSuggestion] stops offering it. A spent code is done —
      * and unlike the notification chip, which clears its bus, this offer is
@@ -6611,8 +6620,20 @@ open class WMKeyboardService : InputMethodService() {
         // Covers the OEMs where `zen_mode` is unreadable and the observer never
         // fires — see refreshDndState.
         refreshDndState()
-        expectedSelStart = info?.initialSelStart ?: -1
-        expectedSelEnd = info?.initialSelEnd ?: -1
+        // Shown again over the same input (hidden with Back, then the field
+        // tapped): the EditorInfo is the one the field started with, and its
+        // initial selection is the caret from before anything was typed — 0
+        // in a chat box that started empty. The editor kept reporting the
+        // caret while the keys were down, so the cached one is the live one.
+        // Taken from the stale EditorInfo, the resume below read the word
+        // behind the real caret and placed it at the old one (#718). A cache
+        // some edit invalidated stays unknown (-1) rather than going stale.
+        val reshown = inputStarts == inputStartsAtLastView
+        inputStartsAtLastView = inputStarts
+        if (!reshown) {
+            expectedSelStart = info?.initialSelStart ?: -1
+            expectedSelEnd = info?.initialSelEnd ?: -1
+        }
         trackCaretAtFieldStart(expectedSelStart, expectedSelEnd)
         // A job debounced against the previous field must not land its strip
         // (or commit resolution) on this one — the secure-field gates in
@@ -6635,6 +6656,14 @@ open class WMKeyboardService : InputMethodService() {
         if (restarting) {
             reattachComposing(info?.initialSelStart ?: -1, info?.initialSelEnd ?: -1)
         } else {
+            // A buffer still here is a word the caret re-armed while the keys
+            // were down: the hide's own finishComposingText echoes back after
+            // onFinishInputView, and that echo resumes the word behind the
+            // caret like any other. Dropped without its region, the next letter
+            // replaced the whole word and a backspace took the character in
+            // front of it instead (#718). Finishing never changes the text, and
+            // the entry read below re-arms the word properly.
+            if (composing.isNotEmpty()) currentInputConnection?.finishComposingText()
             composing = StringBuilder()
             previousWord = null
             invalidateRecentWords()
@@ -7025,11 +7054,10 @@ open class WMKeyboardService : InputMethodService() {
         // state built for an empty field.
         currentInputConnection?.let { ic ->
             // Same collapsed-caret gate as the onUpdateSelection call site: a
-            // range selection has no word to resume.
-            if (info != null && info.initialSelStart >= 0 &&
-                info.initialSelStart == info.initialSelEnd
-            ) {
-                restartSuggestionsAtCursor(ic, info.initialSelStart)
+            // range selection has no word to resume. The caret settled above:
+            // the field's initial one, or the live one on a re-show (#718).
+            if (info != null && expectedSelStart >= 0 && expectedSelStart == expectedSelEnd) {
+                restartSuggestionsAtCursor(ic, expectedSelStart)
             } else {
                 syncPreviousWordFromField(ic)
                 refreshSuggestions()
