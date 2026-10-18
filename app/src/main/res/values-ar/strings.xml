@@ -3521,7 +3521,6 @@
     <string name="layout_editor_alternate_columns_info">هذا هو عدد الأعمدة لهذا المفتاح وحده. تختلف المفاتيح: المفتاح الذي يحتوي على عشرات البدائل يبدو أفضل كشبكة، والمفتاح الذي يحتوي على ثلاثة أو أربعة يبدو أفضل كصف واحد. من الإعدادات يترك المفتاح لإعداد \"أعمدة المفاتيح البديلة\" تحت ضغط المفتاح، والذي يكون تلقائيًا ما لم تقم بتغييره. رقم من 3 إلى 11 يعطي هذا المفتاح ذلك العدد من الأعمدة مهما كان الإعداد.</string>
     <string name="layout_editor_alternate_columns_subtitle">عدد البدائل التي يضعها هذا المفتاح في صف واحد</string>
     <string name="layout_editor_alternate_columns_title">الأعمدة في النافذة المنبثقة</string>
-    <string name="layout_editor_alternate_hint_badge">تلميح</string>
     <string name="layout_editor_alternates_field_hint">افصل الإدخالات بمسافات، بحيث لا يمكن أن يكون البديل مسافة. الإدخالات المكونة من أكثر من حرف، مثل .com، صحيحة. يرسم التطبيق أيضاً الإدخال الأول في زاوية المفتاح.</string>
     <string name="layout_editor_alternates_field_label">بدائل للضغط المطول</string>
     <string name="layout_editor_apply_action">تطبيق</string>
@@ -3617,7 +3616,6 @@
     <string name="layout_editor_field_row_title">مكون</string>
     <string name="layout_editor_fill_row_action">ملء الصف (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">يعرض صف الأرقام الأرقام بالفعل، لذا تعرض لوحة المفاتيح هذا الصف بدلاً من الصف الأول من هذه الطبقة.</string>
-    <string name="layout_editor_fill_row_off_caption">عند تفعيل صف الأرقام، تعرض لوحة المفاتيح هذا الصف بدلاً من الصف الأول من هذه الطبقة، لأن صف الأرقام يعرض الأرقام بالفعل. صف الأرقام متوقف الآن.</string>
     <string name="layout_editor_fill_row_title">صف بديل للأرقام</string>
     <string name="layout_editor_fit_row_action">ملاءمة الصف مع الشبكة (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">لا يوجد تمرير في هذا الاتجاه. اضغط لاختيار إجراء.</string>
@@ -3792,8 +3790,6 @@
     <string name="layout_editor_new_secondary_title">بدء تخطيط ثانوي</string>
     <string name="layout_editor_not_live_caption">تغييراتك هنا لا تؤثر على الكتابة حتى تقوم بتفعيل التخطيط ضمن اللغات.</string>
     <string name="layout_editor_number_row_caption">تعرض لوحة المفاتيح هذا الصف فوق هذه الطبقة. اضغط على مفتاح لتغييره. اضغط مع الاستمرار على مفتاح واسحبه لتحريكه.</string>
-    <string name="layout_editor_number_row_hidden_caption">تعرض لوحة المفاتيح هذا الصف فوق هذه الطبقة عند تفعيل \"صف الأرقام في الرموز\" في \"التخطيط والحجم\". هو متوقف الآن.</string>
-    <string name="layout_editor_number_row_off_caption">تعرض لوحة المفاتيح هذا الصف فوق هذه الطبقة عند تفعيل صف الأرقام في \"التخطيط والحجم\". صف الأرقام متوقف الآن.</string>
     <string name="layout_editor_number_row_title">صف الأرقام</string>
     <string name="layout_editor_panel_inherited_caption">يستخدم هذا التخطيط لوحة %1$s المشتركة. سيؤدي تغيير أي شيء هنا إلى إنشاء نسخة لهذا التخطيط فقط. توجد اللوحة المشتركة تحت تخطيطات المفاتيح، تخطيطات اللوحة.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">ورث سمة التخطيط</string>

@@ -3522,7 +3522,6 @@
     <string name="layout_editor_alternate_columns_default">Seadetest</string>
     <string name="layout_editor_alternate_columns_subtitle">Mitu alternatiivi see klahv reale paneb</string>
     <string name="layout_editor_alternate_columns_title">Veerud hüpikaknas</string>
-    <string name="layout_editor_alternate_hint_badge">vihje</string>
     <string name="layout_editor_alternates_field_hint">Eraldage kirjed tühikutega, nii et alternatiiv ei saa olla tühik. Ühest märgist pikemad kirjed, nagu .com, on õiged. Rakendus joonistab esimese neist ka klahvi nurka.</string>
     <string name="layout_editor_alternates_field_label">Alternatiivid vajutades ja hoides</string>
     <string name="layout_editor_apply_action">Rakenda</string>
@@ -3618,7 +3617,6 @@
     <string name="layout_editor_field_row_title">Komponent</string>
     <string name="layout_editor_fill_row_action">Täida rida (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Numbririda kuvab juba numbreid, seega kuvab klaviatuur seda rida selle kihi esimese rea asemel.</string>
-    <string name="layout_editor_fill_row_off_caption">Kui numbririda on sisse lülitatud, kuvab klaviatuur seda rida selle kihi esimese rea asemel, kuna numbririda juba kuvab numbreid. Numbririda on praegu väljas.</string>
     <string name="layout_editor_fill_row_title">Rida numbrite asemel</string>
     <string name="layout_editor_fit_row_action">Sobita rida ruudustikuga (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Selles suunas nipsatust pole. Puudutage toimingu valimiseks.</string>
@@ -3793,8 +3791,6 @@
     <string name="layout_editor_new_secondary_title">Alusta sekundaarset paigutust</string>
     <string name="layout_editor_not_live_caption">Sinu muudatused siin ei mõjuta tippimist enne, kui lülitad paigutuse sisse jaotises Keeled.</string>
     <string name="layout_editor_number_row_caption">Klaviatuur kuvab seda rida selle kihi kohal. Puudutage klahvi selle muutmiseks. Hoidke klahvi all ja lohistage seda liigutamiseks.</string>
-    <string name="layout_editor_number_row_hidden_caption">Klaviatuur kuvab seda rida selle kihi kohal, kui sätetes „Paigutus ja suurus“ on sisse lülitatud „Numbririda sümbolites“. See on praegu väljas.</string>
-    <string name="layout_editor_number_row_off_caption">Klaviatuur kuvab seda rida selle kihi kohal, kui sätetes „Paigutus ja suurus“ on sisse lülitatud „Numbririda“. Numbririda on praegu väljas.</string>
     <string name="layout_editor_number_row_title">Numbririda</string>
     <string name="layout_editor_panel_inherited_caption">See paigutus kasutab jagatud %1$s paneeli. Siin millegi muutmine loob koopia ainult selle paigutuse jaoks. Jagatud paneel asub jaotises Klaviatuuripaigutused, Paneelipaigutused.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Päri paigutuse teema</string>

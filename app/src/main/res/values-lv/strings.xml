@@ -3521,7 +3521,6 @@
     <string name="layout_editor_alternate_columns_default">No iestatījumiem</string>
     <string name="layout_editor_alternate_columns_subtitle">Cik daudz alternatīvu šis taustiņš ievieto rindā</string>
     <string name="layout_editor_alternate_columns_title">Kolonnas uznirstošajā logā</string>
-    <string name="layout_editor_alternate_hint_badge">mājiens</string>
     <string name="layout_editor_alternates_field_hint">Atdaliet ierakstus ar atstarpēm, lai alternatīva nevarētu būt atstarpe. Vairāku rakstzīmju ieraksti, piemēram, .com, ir pareizi. Lietotne arī uzzīmē pirmo stūrī uz taustiņa.</string>
     <string name="layout_editor_alternates_field_label">Alternatīvas nospiešanai un turēšanai</string>
     <string name="layout_editor_apply_action">Lietot</string>
@@ -3617,7 +3616,6 @@
     <string name="layout_editor_field_row_title">Komponents</string>
     <string name="layout_editor_fill_row_action">Aizpildīt rindu (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Ciparu rindā jau tiek rādīti cipari, tāpēc tastatūra rāda šo rindu šī slāņa pirmās rindas vietā.</string>
-    <string name="layout_editor_fill_row_off_caption">Kad ir ieslēgta Ciparu rinda, tastatūra rāda šo rindu šī slāņa pirmās rindas vietā, jo ciparu rindā jau tiek rādīti cipari. Ciparu rinda pašlaik ir izslēgta.</string>
     <string name="layout_editor_fill_row_title">Rinda ciparu vietā</string>
     <string name="layout_editor_fit_row_action">Pielāgot rindu režģim (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Nav pārvilkšanas šajā virzienā. Pieskarieties, lai izvēlētos darbību.</string>
@@ -3792,8 +3790,6 @@
     <string name="layout_editor_new_secondary_title">Sākt sekundāro izkārtojumu</string>
     <string name="layout_editor_not_live_caption">Jūsu veiktās izmaiņas neietekmēs rakstīšanu, kamēr neieslēgsiet izkārtojumu sadaļā Valodas.</string>
     <string name="layout_editor_number_row_caption">Tastatūra rāda šo rindu virs šī slāņa. Pieskarieties taustiņam, lai to mainītu. Turiet taustiņu un velciet to, lai pārvietotu.</string>
-    <string name="layout_editor_number_row_hidden_caption">Tastatūra rāda šo rindu virs šī slāņa, kad sadaļā Izkārtojums un izmērs ir ieslēgta opcija Ciparu rinda simbolos. Pašlaik tā ir izslēgta.</string>
-    <string name="layout_editor_number_row_off_caption">Tastatūra rāda šo rindu virs šī slāņa, kad sadaļā Izkārtojums un izmērs ir ieslēgta Ciparu rinda. Ciparu rinda pašlaik ir izslēgta.</string>
     <string name="layout_editor_number_row_title">Ciparu rinda</string>
     <string name="layout_editor_panel_inherited_caption">Šis izkārtojums izmanto koplietojamo %1$s paneli. Jebkādas izmaiņas šeit izveido kopiju tikai šim izkārtojumam. Koplietojamais panelis atrodas sadaļā Taustiņu izkārtojumi, Paneļu izkārtojumi.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Pārmantot izkārtojuma tēmu</string>

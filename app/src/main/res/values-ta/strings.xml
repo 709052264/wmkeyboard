@@ -3514,7 +3514,6 @@
     <string name="layout_editor_alternate_columns_default">அமைப்புகளிலிருந்து</string>
     <string name="layout_editor_alternate_columns_subtitle">இந்த விசை ஒரு வரிசையில் எத்தனை மாற்றுகளைக் கொண்டுள்ளது</string>
     <string name="layout_editor_alternate_columns_title">பாப்-அப்பில் உள்ள நெடுவரிசைகள்</string>
-    <string name="layout_editor_alternate_hint_badge">குறிப்பு</string>
     <string name="layout_editor_alternates_field_hint">உள்ளீடுகளை இடைவெளிகளுடன் பிரிக்கவும், எனவே ஒரு மாற்று இடைவெளியாக இருக்க முடியாது. .com போன்ற ஒன்றுக்கு மேற்பட்ட எழுத்துக்களைக் கொண்ட உள்ளீடுகள் சரியானவை. பயன்பாடு முதல் ஒன்றை விசையின் மூலையிலும் வரைகிறது.</string>
     <string name="layout_editor_alternates_field_label">அழுத்திப் பிடிப்பதற்கான மாற்றுகள்</string>
     <string name="layout_editor_apply_action">பயன்படுத்து</string>
@@ -3610,7 +3609,6 @@
     <string name="layout_editor_field_row_title">கூறு</string>
     <string name="layout_editor_fill_row_action">வரிசையை நிரப்பவும் (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">எண் வரிசை ஏற்கனவே இலக்கங்களைக் காட்டுவதால், விசைப்பலகை இந்த அடுக்கின் முதல் வரிசைக்கு பதிலாக இந்த வரிசையைக் காட்டுகிறது.</string>
-    <string name="layout_editor_fill_row_off_caption">எண் வரிசை ஆன் செய்யப்பட்டிருக்கும்போது, எண் வரிசை ஏற்கனவே இலக்கங்களைக் காட்டுவதால், விசைப்பலகை இந்த அடுக்கின் முதல் வரிசைக்கு பதிலாக இந்த வரிசையைக் காட்டுகிறது. எண் வரிசை இப்போது ஆஃப் செய்யப்பட்டுள்ளது.</string>
     <string name="layout_editor_fill_row_title">இலக்கங்களுக்குப் பதிலாக வரிசை</string>
     <string name="layout_editor_fit_row_action">வரிசையை கிரிட்டிற்கு ஏற்ப மாற்றவும் (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">இந்த திசையில் பிளிக் இல்லை. ஒரு செயலைத் தேர்ந்தெடுக்க தட்டவும்.</string>
@@ -3785,8 +3783,6 @@
     <string name="layout_editor_new_secondary_title">இரண்டாம் நிலை அமைப்பைத் தொடங்கவும்</string>
     <string name="layout_editor_not_live_caption">மொழிகளின் கீழ் அமைப்பை இயக்கும் வரை, இங்கே நீங்கள் செய்யும் மாற்றங்கள் தட்டச்சு செய்வதைப் பாதிக்காது.</string>
     <string name="layout_editor_number_row_caption">விசைப்பலகை இந்த அடுக்கிற்கு மேலே இந்த வரிசையைக் காட்டுகிறது. ஒரு விசையை மாற்ற அதைத் தட்டவும். ஒரு விசையை நகர்த்த அதை அழுத்திப் பிடித்து இழுக்கவும்.</string>
-    <string name="layout_editor_number_row_hidden_caption">லேஅவுட் மற்றும் அளவில் குறியீடுகளில் எண் வரிசை ஆன் செய்யப்பட்டிருக்கும்போது, விசைப்பலகை இந்த அடுக்கிற்கு மேலே இந்த வரிசையைக் காட்டுகிறது. இது இப்போது ஆஃப் செய்யப்பட்டுள்ளது.</string>
-    <string name="layout_editor_number_row_off_caption">லேஅவுட் மற்றும் அளவில் எண் வரிசை ஆன் செய்யப்பட்டிருக்கும்போது, விசைப்பலகை இந்த அடுக்கிற்கு மேலே இந்த வரிசையைக் காட்டுகிறது. எண் வரிசை இப்போது ஆஃப் செய்யப்பட்டுள்ளது.</string>
     <string name="layout_editor_number_row_title">எண் வரிசை</string>
     <string name="layout_editor_panel_inherited_caption">இந்த தளவமைப்பு பகிரப்பட்ட %1$s பேனலைப் பயன்படுத்துகிறது. இங்கே எதை மாற்றினாலும் அது இந்த தளவமைப்பிற்கு மட்டுமே ஒரு நகலை உருவாக்கும். பகிரப்பட்ட பேனல் \'விசை தளவமைப்புகள்\', \'பேனல் தளவமைப்புகள்\' என்பவற்றின் கீழ் உள்ளது.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">லேஅவுட்டின் தீமைப் பெறவும்</string>

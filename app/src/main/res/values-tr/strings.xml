@@ -3510,7 +3510,6 @@
     <string name="layout_editor_alternate_columns_default">Ayarlardan</string>
     <string name="layout_editor_alternate_columns_subtitle">Bu tuşun bir satıra kaç alternatif koyacağı</string>
     <string name="layout_editor_alternate_columns_title">Açılır penceredeki sütunlar</string>
-    <string name="layout_editor_alternate_hint_badge">ipucu</string>
     <string name="layout_editor_alternates_field_hint">Girdileri boşluklarla ayırın, böylece bir alternatif boşluk olamaz. .com gibi birden fazla karakterden oluşan girdiler doğrudur. Uygulama ayrıca ilkini tuşun köşesine çizer.</string>
     <string name="layout_editor_alternates_field_label">Basılı tutma için alternatifler</string>
     <string name="layout_editor_apply_action">Uygula</string>
@@ -3606,7 +3605,6 @@
     <string name="layout_editor_field_row_title">Bileşen</string>
     <string name="layout_editor_fill_row_action">Satırı doldur (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Sayı satırı zaten rakamları gösterdiğinden, klavye bu katmanın ilk satırı yerine bu satırı gösterir.</string>
-    <string name="layout_editor_fill_row_off_caption">Sayı satırı açık olduğunda, sayı satırı zaten rakamları gösterdiği için klavye bu katmanın ilk satırı yerine bu satırı gösterir. Sayı satırı şu anda kapalı.</string>
     <string name="layout_editor_fill_row_title">Rakamların yerindeki satır</string>
     <string name="layout_editor_fit_row_action">Satırı ızgaraya sığdır (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Bu yönde kaydırma yok. Bir eylem seçmek için dokunun.</string>
@@ -3781,8 +3779,6 @@
     <string name="layout_editor_new_secondary_title">İkincil bir düzen başlat</string>
     <string name="layout_editor_not_live_caption">Buradaki değişiklikleriniz, Diller altından düzeni açana kadar yazmayı etkilemez.</string>
     <string name="layout_editor_number_row_caption">Klavye, bu katmanın üzerinde bu satırı gösterir. Değiştirmek için bir tuşa dokunun. Taşımak için bir tuşu basılı tutup sürükleyin.</string>
-    <string name="layout_editor_number_row_hidden_caption">Düzen ve boyut ayarlarında sembollerde sayı satırı açık olduğunda klavye bu katmanın üzerinde bu satırı gösterir. Şu anda kapalı.</string>
-    <string name="layout_editor_number_row_off_caption">Düzen ve boyut ayarlarında sayı satırı açık olduğunda klavye bu katmanın üzerinde bu satırı gösterir. Sayı satırı şu anda kapalı.</string>
     <string name="layout_editor_number_row_title">Sayı satırı</string>
     <string name="layout_editor_panel_inherited_caption">Bu düzen, paylaşılan %1$s panelini kullanır. Burada yapılan herhangi bir değişiklik, yalnızca bu düzen için bir kopya oluşturur. Paylaşılan panel, Tuş düzenleri, Panel düzenleri altındadır.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Düzenin temasını devral</string>

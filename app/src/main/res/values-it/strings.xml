@@ -3511,7 +3511,6 @@
     <string name="layout_editor_alternate_columns_default">Dalle impostazioni</string>
     <string name="layout_editor_alternate_columns_subtitle">Quante alternative questo tasto inserisce su una riga</string>
     <string name="layout_editor_alternate_columns_title">Colonne nel popup</string>
-    <string name="layout_editor_alternate_hint_badge">suggerimento</string>
     <string name="layout_editor_alternates_field_hint">Separa le voci con spazi, in modo che un\'alternativa non possa essere uno spazio. Le voci di più di un carattere, come .com, sono corrette. L\'app disegna anche la prima nell\'angolo del tasto.</string>
     <string name="layout_editor_alternates_field_label">Alternative per la pressione prolungata</string>
     <string name="layout_editor_apply_action">Applica</string>
@@ -3607,7 +3606,6 @@
     <string name="layout_editor_field_row_title">Componente</string>
     <string name="layout_editor_fill_row_action">Riempi la riga (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">La riga numerica mostra già le cifre, quindi la tastiera mostra questa riga al posto della prima riga di questo livello.</string>
-    <string name="layout_editor_fill_row_off_caption">Quando la riga numerica è attiva, la tastiera mostra questa riga al posto della prima riga di questo livello, poiché la riga numerica mostra già le cifre. La riga numerica è attualmente disattivata.</string>
     <string name="layout_editor_fill_row_title">Riga al posto delle cifre</string>
     <string name="layout_editor_fit_row_action">Adatta la riga alla griglia (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Nessun flick in questa direzione. Tocca per scegliere un\'azione.</string>
@@ -3782,8 +3780,6 @@
     <string name="layout_editor_new_secondary_title">Avvia un layout secondario</string>
     <string name="layout_editor_not_live_caption">Le modifiche apportate qui non influiranno sulla digitazione finché non attiverai il layout in Lingue.</string>
     <string name="layout_editor_number_row_caption">La tastiera mostra questa riga sopra questo livello. Tocca un tasto per modificarlo. Tieni premuto un tasto e trascinalo per spostarlo.</string>
-    <string name="layout_editor_number_row_hidden_caption">La tastiera mostra questa riga sopra questo livello quando la riga numerica nei simboli è attiva in Layout e dimensioni. È attualmente disattivata.</string>
-    <string name="layout_editor_number_row_off_caption">La tastiera mostra questa riga sopra questo livello quando la riga numerica è attiva in Layout e dimensioni. La riga numerica è attualmente disattivata.</string>
     <string name="layout_editor_number_row_title">Riga numerica</string>
     <string name="layout_editor_panel_inherited_caption">Questo layout utilizza il pannello condiviso %1$s. Modificare qualsiasi cosa qui crea una copia solo per questo layout. Il pannello condiviso si trova in Layout tasti, Layout pannelli.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Eredita il tema del layout</string>

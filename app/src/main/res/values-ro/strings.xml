@@ -3521,7 +3521,6 @@
     <string name="layout_editor_alternate_columns_default">Din setări</string>
     <string name="layout_editor_alternate_columns_subtitle">Câte alternative pune această tastă pe un rând</string>
     <string name="layout_editor_alternate_columns_title">Coloane în fereastra pop-up</string>
-    <string name="layout_editor_alternate_hint_badge">indiciu</string>
     <string name="layout_editor_alternates_field_hint">Separați intrările cu spații, astfel încât o alternativă să nu poată fi un spațiu. Intrările de mai mult de un caracter, cum ar fi .com, sunt corecte. Aplicația desenează, de asemenea, prima dintre ele în colțul tastei.</string>
     <string name="layout_editor_alternates_field_label">Alternative pentru apăsare lungă</string>
     <string name="layout_editor_apply_action">Aplică</string>
@@ -3617,7 +3616,6 @@
     <string name="layout_editor_field_row_title">Componentă</string>
     <string name="layout_editor_fill_row_action">Umpleți rândul (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Rândul numeric afișează deja cifrele, așa că tastatura afișează acest rând în locul primului rând al acestui strat.</string>
-    <string name="layout_editor_fill_row_off_caption">Când rândul numeric este activat, tastatura afișează acest rând în locul primului rând al acestui strat, deoarece rândul numeric afișează deja cifrele. Rândul numeric este oprit acum.</string>
     <string name="layout_editor_fill_row_title">Rând în locul cifrelor</string>
     <string name="layout_editor_fit_row_action">Potriviți rândul la grilă (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Fără glisare în această direcție. Atinge pentru a alege o acțiune.</string>
@@ -3792,8 +3790,6 @@
     <string name="layout_editor_new_secondary_title">Începe un layout secundar</string>
     <string name="layout_editor_not_live_caption">Modificările tale de aici nu afectează tastarea până când nu activezi dispunerea în Limbi.</string>
     <string name="layout_editor_number_row_caption">Tastatura afișează acest rând deasupra acestui strat. Atinge o tastă pentru a o modifica. Ține apăsată o tastă și trage-o pentru a o muta.</string>
-    <string name="layout_editor_number_row_hidden_caption">Tastatura afișează acest rând deasupra acestui strat când rândul numeric în simboluri este activat în Aspect și dimensiune. Este oprit acum.</string>
-    <string name="layout_editor_number_row_off_caption">Tastatura afișează acest rând deasupra acestui strat când rândul numeric este activat în Aspect și dimensiune. Rândul numeric este oprit acum.</string>
     <string name="layout_editor_number_row_title">Rând numeric</string>
     <string name="layout_editor_panel_inherited_caption">Acest aspect folosește panoul partajat %1$s. Modificarea oricărui element aici creează o copie doar pentru acest aspect. Panoul partajat se află sub Aspecte taste, Aspecte panou.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Moștenește tema aspectului</string>

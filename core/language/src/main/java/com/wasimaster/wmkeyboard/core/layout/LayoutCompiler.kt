@@ -174,6 +174,9 @@ fun LayoutSpec.numberRowFor(layer: LayoutLayer): List<Key>? = layer(layer)?.numb
 /** The row this layout draws in place of [layer]'s digit row, or null for the default. */
 fun LayoutSpec.fillRowFor(layer: LayoutLayer): List<Key>? = layer(layer)?.fillRow
 
+/** The arrow keys row this layout draws under [layer], or null for the setting's arrows. */
+fun LayoutSpec.arrowRowFor(layer: LayoutLayer): List<Key>? = layer(layer)?.arrowRow
+
 /**
  * Whether [rows] opens with a row of plain digit keys: the row the symbols
  * layer gives up to its fill row while the number row shows the same digits.

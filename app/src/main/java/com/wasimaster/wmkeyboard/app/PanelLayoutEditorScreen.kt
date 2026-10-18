@@ -228,7 +228,6 @@ internal fun PanelLayoutEditorScreen(
     val isCustom = stored.any { it.panel == kind }
 
     var selection by remember(kind) { mutableStateOf<KeyRef?>(null) }
-    var sheetOpen by remember(kind) { mutableStateOf(false) }
     var actualSize by rememberSaveable(kind) { mutableStateOf(false) }
     var confirmReset by remember(kind) { mutableStateOf(false) }
 
@@ -323,7 +322,6 @@ internal fun PanelLayoutEditorScreen(
         onSelect = { ref ->
             selection = ref
             stepPushed = false
-            sheetOpen = true
         },
         rowHeightsDp = previewHeightsDp,
         // A drop is one edit and one undo step, through the same guarded move
@@ -335,15 +333,13 @@ internal fun PanelLayoutEditorScreen(
         },
     )
 
-    CaptionText(stringResource(R.string.layout_editor_drag_caption))
+    if (selection == null) CaptionText(stringResource(R.string.layout_editor_drag_caption))
 
     PanelEditorBody(
         kind = kind,
         grid = spec.grid,
         selection = selection,
         onSelectionChange = { selection = it },
-        sheetOpen = sheetOpen,
-        onSheetOpenChange = { sheetOpen = it },
         actualSize = actualSize,
         onActualSizeChange = { actualSize = it },
         editGrid = ::editGrid,
@@ -460,8 +456,8 @@ internal class ResetRow(
 )
 
 /**
- * Everything under a panel's preview grid: the row tools for the selected
- * row, the group of layout-wide rows, and the key sheet. Owned by neither
+ * Everything under a panel's preview grid: the selected key's section, the row
+ * tools for its row, and the group of layout-wide rows. Owned by neither
  * screen that shows it — the panel's own screen edits the shared panel layout
  * through the repository, the layout editor edits a layout's own copy through
  * its undo stack — so every edit goes out through [editGrid] and
@@ -473,8 +469,6 @@ internal fun PanelEditorBody(
     grid: LayerSpec,
     selection: KeyRef?,
     onSelectionChange: (KeyRef?) -> Unit,
-    sheetOpen: Boolean,
-    onSheetOpenChange: (Boolean) -> Unit,
     actualSize: Boolean,
     onActualSizeChange: (Boolean) -> Unit,
     editGrid: ((LayerSpec) -> LayerSpec) -> Unit,
@@ -503,6 +497,67 @@ internal fun PanelEditorBody(
             if (rowIndex in list.indices) list[rowIndex] = value
             ls.copy(rowHeights = if (list.all { it == 1f }) null else list.toList())
         }
+    }
+
+    // The selected key first, then its row (issue #769): on the page under
+    // the grid rather than in a sheet over it.
+    val ref = selection
+    if (ref != null && selectedKey != null) {
+        KeyEditSheet(
+            key = selectedKey,
+            ref = ref,
+            rowSize = rows[ref.row].size,
+            rowCount = rows.size,
+            gridWeight = gridWeightOf(rows),
+            otherWidthsInRow = spanRowWidths(rows)[ref.row] - selectedKey.width,
+            onChange = { change ->
+                editGridCoalesced { ls ->
+                    ls.copy(
+                        rows = ls.rows.mapIndexed { r, row ->
+                            if (r != ref.row) row else row.mapIndexed { c, k -> if (c == ref.col) change(k) else k }
+                        },
+                    )
+                }
+            },
+            onMove = { delta ->
+                val target = ref.col + delta
+                if (target in rows[ref.row].indices) {
+                    editRows { r ->
+                        r.mapIndexed { i, row ->
+                            if (i != ref.row) row else row.toMutableList().apply { add(target, removeAt(ref.col)) }
+                        }
+                    }
+                    onSelectionChange(ref.copy(col = target))
+                }
+            },
+            onMoveRow = { delta ->
+                // The key layers' rule, on a panel: the same guarded helper the
+                // preview's drag lands through.
+                rowMoveTarget(rows, ref, delta)?.let { to ->
+                    editRows { moveKeyIn(it, ref, to) }
+                    onSelectionChange(to)
+                }
+            },
+            onDuplicate = {
+                editRows { r ->
+                    r.mapIndexed { i, row ->
+                        if (i != ref.row) row else row.subList(0, ref.col + 1) + row[ref.col] + row.drop(ref.col + 1)
+                    }
+                }
+            },
+            onDelete = {
+                editRows { r ->
+                    r.mapIndexed { i, row -> if (i != ref.row) row else row.filterIndexed { c, _ -> c != ref.col } }
+                }
+                onSelectionChange(null)
+            },
+            onDismiss = { onSelectionChange(null) },
+            catalog = panelKeyActionCatalog(kind),
+            fieldKinds = fieldKindsFor(kind).takeIf { it.isNotEmpty() },
+            // An "open a layout" key on a panel names a secondary layout the
+            // same way one on a typing grid does.
+            secondaryLayouts = secondaryLayouts(settings.watch { it.customLayouts }),
+        )
     }
 
     selection?.let { ref ->
@@ -672,66 +727,6 @@ internal fun PanelEditorBody(
                 editGrid { it.copy(themeId = id) }
             },
             onDismiss = { themePickerOpen = false },
-        )
-    }
-
-    val ref = selection
-    if (sheetOpen && ref != null && selectedKey != null) {
-        KeyEditSheet(
-            key = selectedKey,
-            ref = ref,
-            rowSize = rows[ref.row].size,
-            rowCount = rows.size,
-            gridWeight = gridWeightOf(rows),
-            otherWidthsInRow = spanRowWidths(rows)[ref.row] - selectedKey.width,
-            onChange = { change ->
-                editGridCoalesced { ls ->
-                    ls.copy(
-                        rows = ls.rows.mapIndexed { r, row ->
-                            if (r != ref.row) row else row.mapIndexed { c, k -> if (c == ref.col) change(k) else k }
-                        },
-                    )
-                }
-            },
-            onMove = { delta ->
-                val target = ref.col + delta
-                if (target in rows[ref.row].indices) {
-                    editRows { r ->
-                        r.mapIndexed { i, row ->
-                            if (i != ref.row) row else row.toMutableList().apply { add(target, removeAt(ref.col)) }
-                        }
-                    }
-                    onSelectionChange(ref.copy(col = target))
-                }
-            },
-            onMoveRow = { delta ->
-                // The key layers' rule, on a panel: the same guarded helper the
-                // preview's drag lands through.
-                rowMoveTarget(rows, ref, delta)?.let { to ->
-                    editRows { moveKeyIn(it, ref, to) }
-                    onSelectionChange(to)
-                }
-            },
-            onDuplicate = {
-                editRows { r ->
-                    r.mapIndexed { i, row ->
-                        if (i != ref.row) row else row.subList(0, ref.col + 1) + row[ref.col] + row.drop(ref.col + 1)
-                    }
-                }
-            },
-            onDelete = {
-                editRows { r ->
-                    r.mapIndexed { i, row -> if (i != ref.row) row else row.filterIndexed { c, _ -> c != ref.col } }
-                }
-                onSelectionChange(null)
-                onSheetOpenChange(false)
-            },
-            onDismiss = { onSheetOpenChange(false) },
-            catalog = panelKeyActionCatalog(kind),
-            fieldKinds = fieldKindsFor(kind).takeIf { it.isNotEmpty() },
-            // An "open a layout" key on a panel names a secondary layout the
-            // same way one on a typing grid does.
-            secondaryLayouts = secondaryLayouts(settings.watch { it.customLayouts }),
         )
     }
 }

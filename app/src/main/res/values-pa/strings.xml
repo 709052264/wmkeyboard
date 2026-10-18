@@ -3526,7 +3526,6 @@
     <string name="layout_editor_alternate_columns_default">ਸੈਟਿੰਗਾਂ ਤੋਂ</string>
     <string name="layout_editor_alternate_columns_subtitle">ਇਹ ਕੁੰਜੀ ਇੱਕ ਕਤਾਰ \'ਤੇ ਕਿੰਨੇ ਬਦਲਵੇਂ ਵਿਕਲਪ ਰੱਖਦੀ ਹੈ</string>
     <string name="layout_editor_alternate_columns_title">ਪੌਪਅੱਪ ਵਿੱਚ ਕਾਲਮ</string>
-    <string name="layout_editor_alternate_hint_badge">ਸੰਕੇਤ</string>
     <string name="layout_editor_alternates_field_hint">ਐਂਟਰੀਆਂ ਨੂੰ ਸਪੇਸ ਨਾਲ ਵੱਖ ਕਰੋ, ਤਾਂ ਜੋ ਕੋਈ ਬਦਲਵਾਂ ਅੱਖਰ ਸਪੇਸ ਨਾ ਹੋਵੇ। ਇੱਕ ਤੋਂ ਵੱਧ ਅੱਖਰਾਂ ਵਾਲੀਆਂ ਐਂਟਰੀਆਂ, ਜਿਵੇਂ ਕਿ .com, ਸਹੀ ਹਨ। ਐਪ ਪਹਿਲੇ ਅੱਖਰ ਨੂੰ ਕੁੰਜੀ ਦੇ ਕੋਨੇ ਵਿੱਚ ਵੀ ਦਿਖਾਉਂਦੀ ਹੈ।</string>
     <string name="layout_editor_alternates_field_label">ਦਬਾਉਣ ਅਤੇ ਹੋਲਡ ਕਰਨ ਲਈ ਵਿਕਲਪ</string>
     <string name="layout_editor_apply_action">ਲਾਗੂ ਕਰੋ</string>
@@ -3622,7 +3621,6 @@
     <string name="layout_editor_field_row_title">ਭਾਗ</string>
     <string name="layout_editor_fill_row_action">ਕਤਾਰ ਭਰੋ (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">ਨੰਬਰ ਰੋਅ ਪਹਿਲਾਂ ਹੀ ਅੰਕ ਦਿਖਾਉਂਦੀ ਹੈ, ਇਸ ਲਈ ਕੀਬੋਰਡ ਇਸ ਪਰਤ ਦੀ ਪਹਿਲੀ ਕਤਾਰ ਦੀ ਥਾਂ \'ਤੇ ਇਹ ਕਤਾਰ ਦਿਖਾਉਂਦਾ ਹੈ।</string>
-    <string name="layout_editor_fill_row_off_caption">ਜਦੋਂ ਨੰਬਰ ਰੋਅ ਚਾਲੂ ਹੁੰਦੀ ਹੈ, ਤਾਂ ਕੀਬੋਰਡ ਇਸ ਪਰਤ ਦੀ ਪਹਿਲੀ ਕਤਾਰ ਦੀ ਥਾਂ \'ਤੇ ਇਹ ਕਤਾਰ ਦਿਖਾਉਂਦਾ ਹੈ, ਕਿਉਂਕਿ ਨੰਬਰ ਰੋਅ ਪਹਿਲਾਂ ਹੀ ਅੰਕ ਦਿਖਾਉਂਦੀ ਹੈ। ਨੰਬਰ ਰੋਅ ਹੁਣ ਬੰਦ ਹੈ।</string>
     <string name="layout_editor_fill_row_title">ਅੰਕਾਂ ਦੀ ਥਾਂ \'ਤੇ ਕਤਾਰ</string>
     <string name="layout_editor_fit_row_action">ਕਤਾਰ ਨੂੰ ਗਰਿੱਡ (%1$.2f) ਵਿੱਚ ਫਿੱਟ ਕਰੋ</string>
     <string name="layout_editor_flick_action_none">ਇਸ ਪਾਸੇ ਕੋਈ ਫਲਿੱਕ ਨਹੀਂ। ਕੋਈ ਕਾਰਵਾਈ ਚੁਣਨ ਲਈ ਟੈਪ ਕਰੋ।</string>
@@ -3797,8 +3795,6 @@
     <string name="layout_editor_new_secondary_title">ਇੱਕ ਸੈਕੰਡਰੀ ਲੇਆਉਟ ਸ਼ੁਰੂ ਕਰੋ</string>
     <string name="layout_editor_not_live_caption">ਇੱਥੇ ਤੁਹਾਡੀਆਂ ਤਬਦੀਲੀਆਂ ਉਦੋਂ ਤੱਕ ਟਾਈਪਿੰਗ ਨੂੰ ਪ੍ਰਭਾਵਿਤ ਨਹੀਂ ਕਰਦੀਆਂ ਜਦੋਂ ਤੱਕ ਤੁਸੀਂ ਭਾਸ਼ਾਵਾਂ ਦੇ ਅਧੀਨ ਲੇਆਉਟ ਨੂੰ ਚਾਲੂ ਨਹੀਂ ਕਰਦੇ।</string>
     <string name="layout_editor_number_row_caption">ਕੀਬੋਰਡ ਇਸ ਪਰਤ ਦੇ ਉੱਪਰ ਇਹ ਕਤਾਰ ਦਿਖਾਉਂਦਾ ਹੈ। ਇਸਨੂੰ ਬਦਲਣ ਲਈ ਇੱਕ ਕੁੰਜੀ \'ਤੇ ਟੈਪ ਕਰੋ। ਕਿਸੇ ਕੁੰਜੀ ਨੂੰ ਹਿਲਾਉਣ ਲਈ ਉਸਨੂੰ ਦਬਾ ਕੇ ਰੱਖੋ ਅਤੇ ਖਿੱਚੋ।</string>
-    <string name="layout_editor_number_row_hidden_caption">ਜਦੋਂ ਲੇਆਉਟ ਅਤੇ ਆਕਾਰ ਵਿੱਚ ਚਿੰਨ੍ਹਾਂ ਵਿੱਚ ਨੰਬਰ ਰੋਅ ਚਾਲੂ ਹੁੰਦੀ ਹੈ, ਤਾਂ ਕੀਬੋਰਡ ਇਸ ਪਰਤ ਦੇ ਉੱਪਰ ਇਹ ਕਤਾਰ ਦਿਖਾਉਂਦਾ ਹੈ। ਇਹ ਹੁਣ ਬੰਦ ਹੈ।</string>
-    <string name="layout_editor_number_row_off_caption">ਜਦੋਂ ਲੇਆਉਟ ਅਤੇ ਆਕਾਰ ਵਿੱਚ ਨੰਬਰ ਰੋਅ (ਕਤਾਰ) ਚਾਲੂ ਹੁੰਦੀ ਹੈ, ਤਾਂ ਕੀਬੋਰਡ ਇਸ ਪਰਤ ਦੇ ਉੱਪਰ ਇਹ ਕਤਾਰ ਦਿਖਾਉਂਦਾ ਹੈ। ਨੰਬਰ ਰੋਅ ਹੁਣ ਬੰਦ ਹੈ।</string>
     <string name="layout_editor_number_row_title">ਨੰਬਰ ਰੋਅ</string>
     <string name="layout_editor_panel_inherited_caption">ਇਹ ਲੇਆਉਟ ਸਾਂਝੇ %1$s ਪੈਨਲ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ। ਇੱਥੇ ਕੁਝ ਵੀ ਬਦਲਣ ਨਾਲ ਸਿਰਫ਼ ਇਸ ਲੇਆਉਟ ਲਈ ਇੱਕ ਕਾਪੀ ਬਣ ਜਾਂਦੀ ਹੈ। ਸਾਂਝਾ ਪੈਨਲ \'ਕੀ ਲੇਆਉਟਸ\' (Key layouts), \'ਪੈਨਲ ਲੇਆਉਟਸ\' (Panel layouts) ਦੇ ਅਧੀਨ ਹੈ।</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">ਲੇਆਉਟ ਦੇ ਥੀਮ ਨੂੰ ਅਪਣਾਓ</string>

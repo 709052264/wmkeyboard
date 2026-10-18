@@ -3514,7 +3514,6 @@
     <string name="layout_editor_alternate_columns_default">З налаштувань</string>
     <string name="layout_editor_alternate_columns_subtitle">Скільки альтернативних символів ця клавіша розміщує в рядку</string>
     <string name="layout_editor_alternate_columns_title">Стовпці у спливаючому вікні</string>
-    <string name="layout_editor_alternate_hint_badge">підказка</string>
     <string name="layout_editor_alternates_field_hint">Розділяйте записи пробілами, тому альтернатива не може бути пробілом. Записи з кількох символів, наприклад .com, є правильними. Програма також малює перший з них у кутку клавіші.</string>
     <string name="layout_editor_alternates_field_label">Альтернативи для натискання й утримання</string>
     <string name="layout_editor_apply_action">Застосувати</string>
@@ -3610,7 +3609,6 @@
     <string name="layout_editor_field_row_title">Компонент</string>
     <string name="layout_editor_fill_row_action">Заповнити рядок (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Рядок цифр уже відображає цифри, тому клавіатура показує цей рядок замість першого рядка цього шару.</string>
-    <string name="layout_editor_fill_row_off_caption">Коли ввімкнено «Рядок цифр», клавіатура показує цей рядок замість першого рядка цього шару, оскільки рядок цифр уже відображає цифри. Зараз рядок цифр вимкнено.</string>
     <string name="layout_editor_fill_row_title">Рядок замість цифр</string>
     <string name="layout_editor_fit_row_action">Підігнати рядок до сітки (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Немає жесту в цьому напрямку. Торкніться, щоб вибрати дію.</string>
@@ -3785,8 +3783,6 @@
     <string name="layout_editor_new_secondary_title">Створити додатковий макет</string>
     <string name="layout_editor_not_live_caption">Зміни, внесені тут, не впливатимуть на введення тексту, поки ви не ввімкнете розкладку в розділі \"Мови\".</string>
     <string name="layout_editor_number_row_caption">Клавіатура показує цей рядок над цим шаром. Торкніться клавіші, щоб змінити її. Утримуйте клавішу та перетягніть її, щоб перемістити.</string>
-    <string name="layout_editor_number_row_hidden_caption">Клавіатура показує цей рядок над цим шаром, коли в налаштуваннях «Розкладка та розмір» увімкнено «Рядок цифр у символах». Зараз він вимкнений.</string>
-    <string name="layout_editor_number_row_off_caption">Клавіатура показує цей рядок над цим шаром, коли в налаштуваннях «Розкладка та розмір» увімкнено «Рядок цифр». Зараз рядок цифр вимкнено.</string>
     <string name="layout_editor_number_row_title">Рядок цифр</string>
     <string name="layout_editor_panel_inherited_caption">Цей макет використовує спільну панель %1$s. Зміна чого-небудь тут створює копію лише для цього макета. Спільна панель знаходиться в розділі Маккети клавіш, Маккети панелей.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Успадкувати тему розкладки</string>

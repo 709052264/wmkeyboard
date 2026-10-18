@@ -3513,7 +3513,6 @@
     <string name="layout_editor_alternate_columns_default">設定に従う</string>
     <string name="layout_editor_alternate_columns_subtitle">このキーが1行に配置する代替キーの数</string>
     <string name="layout_editor_alternate_columns_title">ポップアップ内の列数</string>
-    <string name="layout_editor_alternate_hint_badge">ヒント</string>
     <string name="layout_editor_alternates_field_hint">各項目をスペースで区切ってください（スペース自体は代替文字にできません）。.comのように2文字以上の項目も可能です。最初の項目はキーの隅に表示されます。</string>
     <string name="layout_editor_alternates_field_label">長押し時の代替キー</string>
     <string name="layout_editor_apply_action">適用</string>
@@ -3609,7 +3608,6 @@
     <string name="layout_editor_field_row_title">コンポーネント</string>
     <string name="layout_editor_fill_row_action">行を埋める (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">数字行にはすでに数字が表示されているため、キーボードはこのレイヤーの最初の行の代わりにこの行を表示します。</string>
-    <string name="layout_editor_fill_row_off_caption">数字行がオンの場合、数字行にはすでに数字が表示されているため、キーボードはこのレイヤーの最初の行の代わりにこの行を表示します。現在、数字行はオフになっています。</string>
     <string name="layout_editor_fill_row_title">数字の代わりの行</string>
     <string name="layout_editor_fit_row_action">行をグリッドに合わせる (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">この方向へのフリックはありません。タップしてアクションを選択してください。</string>
@@ -3784,8 +3782,6 @@
     <string name="layout_editor_new_secondary_title">セカンダリレイアウトを開始</string>
     <string name="layout_editor_not_live_caption">ここでの変更は、「言語」設定でレイアウトを有効にするまで入力には反映されません。</string>
     <string name="layout_editor_number_row_caption">キーボードはこのレイヤーの上にこの行を表示します。キーをタップして変更し、キーを長押ししてドラッグすると移動できます。</string>
-    <string name="layout_editor_number_row_hidden_caption">「レイアウトとサイズ」で「記号の数字行」がオンになっている場合、キーボードはこのレイヤーの上にこの行を表示します。現在はオフになっています。</string>
-    <string name="layout_editor_number_row_off_caption">「レイアウトとサイズ」で「数字行」がオンになっている場合、キーボードはこのレイヤーの上にこの行を表示します。現在、数字行はオフになっています。</string>
     <string name="layout_editor_number_row_title">数字行</string>
     <string name="layout_editor_panel_inherited_caption">このレイアウトは共有パネル %1$s を使用しています。ここで変更を行うと、このレイアウト専用のコピーが作成されます。共有パネルは「キーレイアウト」&gt;「パネルレイアウト」にあります。</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">レイアウトのテーマを継承</string>

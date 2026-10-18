@@ -34,4 +34,17 @@ class NumberRowTest {
         val plain = layoutJson.decodeFromString(LayerSpec.serializer(), """{"rows":[]}""")
         assertNull(plain.fillRow)
     }
+
+    @Test
+    fun `a stored arrow row and a key's own hint survive the codec`() {
+        val row = listOf(Key("", action = KeyAction.Shift), Key("←"))
+        val hinted = Key(".", hint = ",?!")
+        val spec = LayerSpec(rows = listOf(listOf(hinted)), arrowRow = row)
+        val back = layoutJson.decodeFromString(LayerSpec.serializer(), layoutJson.encodeToString(LayerSpec.serializer(), spec))
+        assertEquals(row, back.arrowRow)
+        assertEquals(",?!", back.rows.single().single().hint)
+        val plain = layoutJson.decodeFromString(LayerSpec.serializer(), """{"rows":[]}""")
+        assertNull(plain.arrowRow)
+        assertNull(LayoutSpec(id = "x", name = "x").arrowRowFor(LayoutLayer.LETTERS))
+    }
 }

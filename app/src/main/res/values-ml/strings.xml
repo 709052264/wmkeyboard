@@ -3525,7 +3525,6 @@
     <string name="layout_editor_alternate_columns_default">ക്രമീകരണങ്ങളിൽ നിന്ന്</string>
     <string name="layout_editor_alternate_columns_subtitle">ഈ കീ ഒരു വരിയിൽ എത്ര ബദലുകൾ നൽകുന്നു</string>
     <string name="layout_editor_alternate_columns_title">പോപ്പപ്പിലെ കോളങ്ങൾ</string>
-    <string name="layout_editor_alternate_hint_badge">സൂചന</string>
     <string name="layout_editor_alternates_field_hint">എൻട്രികളെ സ്പേസ് ഉപയോഗിച്ച് വേർതിരിക്കുക, അതിനാൽ ഒരു ബദൽ (alternate) സ്പേസ് ആകാൻ കഴിയില്ല. .com പോലുള്ള ഒന്നിലധികം അക്ഷരങ്ങളുള്ള എൻട്രികൾ ശരിയാണ്. ആപ്പ് കീയുടെ മൂലയിൽ ആദ്യത്തേത് വരയ്ക്കുകയും ചെയ്യുന്നു.</string>
     <string name="layout_editor_alternates_field_label">അമർത്തിപ്പിടിക്കുമ്പോൾ ലഭിക്കുന്ന ബദലുകൾ</string>
     <string name="layout_editor_apply_action">പ്രയോഗിക്കുക</string>
@@ -3621,7 +3620,6 @@
     <string name="layout_editor_field_row_title">ഘടകം</string>
     <string name="layout_editor_fill_row_action">വരി പൂരിപ്പിക്കുക (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">നമ്പർ റോയിൽ ഇതിനകം അക്കങ്ങൾ കാണിക്കുന്നതിനാൽ, ഈ ലെയറിന്റെ ആദ്യ വരിക്ക് പകരം കീബോർഡ് ഈ വരി കാണിക്കുന്നു.</string>
-    <string name="layout_editor_fill_row_off_caption">നമ്പർ റോ ഓൺ ആയിരിക്കുമ്പോൾ, നമ്പർ റോയിൽ ഇതിനകം അക്കങ്ങൾ കാണിക്കുന്നതിനാൽ, ഈ ലെയറിന്റെ ആദ്യ വരിക്ക് പകരം കീബോർഡ് ഈ വരി കാണിക്കുന്നു. നമ്പർ റോ ഇപ്പോൾ ഓഫ് ആണ്.</string>
     <string name="layout_editor_fill_row_title">അക്കങ്ങൾക്ക് പകരമുള്ള വരി</string>
     <string name="layout_editor_fit_row_action">ഗ്രിഡിലേക്ക് വരി ക്രമീകരിക്കുക (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">ഈ ദിശയിൽ ഫ്ലിക്ക് ഇല്ല. ഒരു പ്രവർത്തനം തിരഞ്ഞെടുക്കാൻ ടാപ്പ് ചെയ്യുക.</string>
@@ -3796,8 +3794,6 @@
     <string name="layout_editor_new_secondary_title">ഒരു സെക്കൻഡറി ലേഔട്ട് ആരംഭിക്കുക</string>
     <string name="layout_editor_not_live_caption">ഭാഷകൾ എന്നതിന് കീഴിൽ ലേഔട്ട് ഓൺ ചെയ്യുന്നത് വരെ ഇവിടെ വരുത്തുന്ന മാറ്റങ്ങൾ ടൈപ്പിംഗിനെ ബാധിക്കില്ല.</string>
     <string name="layout_editor_number_row_caption">കീബോർഡ് ഈ ലെയറിന് മുകളിൽ ഈ വരി കാണിക്കുന്നു. അത് മാറ്റാൻ ഒരു കീയിൽ ടാപ്പ് ചെയ്യുക. നീക്കാൻ ഒരു കീയിൽ അമർത്തിപ്പിടിച്ച് വലിച്ചിടുക.</string>
-    <string name="layout_editor_number_row_hidden_caption">ലേഔട്ട് ആൻഡ് സൈസിൽ സിംബലുകളിലെ നമ്പർ റോ ഓൺ ആയിരിക്കുമ്പോൾ കീബോർഡ് ഈ ലെയറിന് മുകളിൽ ഈ വരി കാണിക്കുന്നു. ഇത് ഇപ്പോൾ ഓഫ് ആണ്.</string>
-    <string name="layout_editor_number_row_off_caption">ലേഔട്ട് ആൻഡ് സൈസിൽ നമ്പർ റോ ഓൺ ആയിരിക്കുമ്പോൾ കീബോർഡ് ഈ ലെയറിന് മുകളിൽ ഈ വരി കാണിക്കുന്നു. നമ്പർ റോ ഇപ്പോൾ ഓഫ് ആണ്.</string>
     <string name="layout_editor_number_row_title">നമ്പർ റോ</string>
     <string name="layout_editor_panel_inherited_caption">ഈ ലേഔട്ട് പങ്കിട്ട %1$s പാനൽ ഉപയോഗിക്കുന്നു. ഇവിടെ എന്തെങ്കിലും മാറ്റുന്നത് ഈ ലേഔട്ടിനായി മാത്രം ഒരു പകർപ്പ് ഉണ്ടാക്കുന്നു. പങ്കിട്ട പാനൽ കീ ലേഔട്ടുകൾ, പാനൽ ലേഔട്ടുകൾ എന്നിവയ്ക്ക് കീഴിലാണ്.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">ലേഔട്ടിന്റെ തീം സ്വീകരിക്കുക</string>

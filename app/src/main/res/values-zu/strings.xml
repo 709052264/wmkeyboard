@@ -3527,7 +3527,6 @@
     <string name="layout_editor_alternate_columns_info">Lokhu ukubalwa kwekholomu kwalesi sikhiye sodwa. Izikhiye ziyahluka: isikhiye esinezikhiye ezishintshanayo eziyishumi nambili sifundeka kangcono njengegridi, kanti esinezintathu noma ezine sifundeka kangcono njengomugqa owodwa. Kusuka kuzilungiselelo kushiya isikhiye kusilungiselelo esithi \"Izikholomu zesikhiye esishintshanayo\" ngaphansi kokuthi Ukucindezela isikhiye, okuyinto ezenzakalelayo ngaphandle uma uyishintshile. Inombolo esuka ku-3 iye ku-11 inika lesi sikhiye lezo zikholomu eziningi noma ngabe izilungiselelo zithini.</string>
     <string name="layout_editor_alternate_columns_subtitle">Mangaki amanye amagama lesi sikhi esiwabeka emgqeni</string>
     <string name="layout_editor_alternate_columns_title">Izikholamu ku-popup</string>
-    <string name="layout_editor_alternate_hint_badge">isikhumbuzi</string>
     <string name="layout_editor_alternates_field_hint">Hlukanisa okufakiwe ngezikhala, ukuze okunye kungabi yisikhala. Okufakiwe okunezinhlamvu ezingaphezu kweyodwa, njenge-.com, kulungile. Uhlelo lokusebenza luphinde ludwebe eyokuqala ekhoneni lokhiye.</string>
     <string name="layout_editor_alternates_field_label">Okunye okungakhethwa ngokucindezela nokubamba</string>
     <string name="layout_editor_apply_action">Sebenzisa</string>
@@ -3623,7 +3622,6 @@
     <string name="layout_editor_field_row_title">Ingxenye</string>
     <string name="layout_editor_fill_row_action">Gcwalisa umugqa (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Umugqa wezinombolo usuvele ukhombisa amadijithi, ngakho ikhibhodi ikhombisa lo mugqa esikhundleni somugqa wokuqala wale ngqimba.</string>
-    <string name="layout_editor_fill_row_off_caption">Uma umugqa wezinombolo uvuliwe, ikhibhodi ikhombisa lo mugqa esikhundleni somugqa wokuqala wale ngqimba, ngoba umugqa wezinombolo usuvele ukhombisa amadijithi. Umugqa wezinombolo uvaliwe manje.</string>
     <string name="layout_editor_fill_row_title">Umugqa esikhundleni samadijithi</string>
     <string name="layout_editor_fit_row_action">Linganisa umugqa kugridi (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Ayikho i-flick ngale ndlela. Thepha ukuze ukhethe isenzo.</string>
@@ -3798,8 +3796,6 @@
     <string name="layout_editor_new_secondary_title">Qala isakhiwo sesibili</string>
     <string name="layout_editor_not_live_caption">Izinguquko zakho lapha azithinti ukuthayipha kuze kube yilapho uvula isakhiwo ngaphansi kwezilimi.</string>
     <string name="layout_editor_number_row_caption">Ikhibhodi ikhombisa lo mugqa ngaphezu kwale ngqimba. Thepha ukhiye ukuze uwushintshe. Bamba ukhiye bese uwuhudula ukuze uwuhambise.</string>
-    <string name="layout_editor_number_row_hidden_caption">Ikhibhodi ikhombisa lo mugqa ngaphezu kwale ngqimba uma umugqa wezinombolo ezimpawini uvuliwe kokuthi Isakhiwo nosayizi. Manje uvaliwe.</string>
-    <string name="layout_editor_number_row_off_caption">Ikhibhodi ikhombisa lo mugqa ngaphezu kwale ngqimba uma umugqa wezinombolo uvuliwe kokuthi Isakhiwo nosayizi. Umugqa wezinombolo uvaliwe manje.</string>
     <string name="layout_editor_number_row_title">Umugqa wezinombolo</string>
     <string name="layout_editor_panel_inherited_caption">Lesi sakhiwo sisebenzisa iphaneli eyabiwe engu-%1$s. Ukushintsha noma yini lapha kwenza ikhophi yalesi sakhiwo kuphela. Iphaneli eyabiwe ingaphansi kwezikhala zokhiye, Izakhiwo zepaneli.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Thatha itimu yesakhiwo</string>

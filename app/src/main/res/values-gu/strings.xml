@@ -3514,7 +3514,6 @@
     <string name="layout_editor_alternate_columns_default">સેટિંગ્સમાંથી</string>
     <string name="layout_editor_alternate_columns_subtitle">આ કી એક હરોળમાં કેટલા વિકલ્પો મૂકે છે</string>
     <string name="layout_editor_alternate_columns_title">પોપઅપમાં કૉલમ</string>
-    <string name="layout_editor_alternate_hint_badge">હિન્ટ</string>
     <string name="layout_editor_alternates_field_hint">એન્ટ્રીઓને સ્પેસ સાથે અલગ કરો, જેથી વૈકલ્પિક સ્પેસ ન હોઈ શકે. એક કરતા વધુ અક્ષરોની એન્ટ્રીઓ, જેમ કે .com, સાચી છે. એપ કીના ખૂણામાં પ્રથમ એન્ટ્રી પણ દોરે છે.</string>
     <string name="layout_editor_alternates_field_label">દબાવી રાખવા માટેના વિકલ્પો</string>
     <string name="layout_editor_apply_action">લાગુ કરો</string>
@@ -3610,7 +3609,6 @@
     <string name="layout_editor_field_row_title">ઘટક</string>
     <string name="layout_editor_fill_row_action">રો ભરો (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">નંબર રો પહેલેથી જ અંકો દર્શાવે છે, તેથી કીબોર્ડ આ લેયરની પ્રથમ રોના સ્થાને આ રો દર્શાવે છે.</string>
-    <string name="layout_editor_fill_row_off_caption">જ્યારે નંબર રો ચાલુ હોય, ત્યારે કીબોર્ડ આ લેયરની પ્રથમ રોના સ્થાને આ રો દર્શાવે છે, કારણ કે નંબર રો પહેલેથી જ અંકો દર્શાવે છે. નંબર રો અત્યારે બંધ છે.</string>
     <string name="layout_editor_fill_row_title">અંકોના સ્થાને રો</string>
     <string name="layout_editor_fit_row_action">રો ને ગ્રીડમાં ફિટ કરો (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">આ રીતે કોઈ ફ્લિક નથી. ક્રિયા પસંદ કરવા માટે ટેપ કરો.</string>
@@ -3785,8 +3783,6 @@
     <string name="layout_editor_new_secondary_title">ગૌણ લેઆઉટ શરૂ કરો</string>
     <string name="layout_editor_not_live_caption">જ્યાં સુધી તમે ભાષાઓ હેઠળ લેઆઉટ ચાલુ ન કરો ત્યાં સુધી અહીંના ફેરફારો ટાઇપિંગને અસર કરતા નથી.</string>
     <string name="layout_editor_number_row_caption">કીબોર્ડ આ લેયરની ઉપર આ રો દર્શાવે છે. તેને બદલવા માટે કી પર ટેપ કરો. કીને ખસેડવા માટે તેને પકડી રાખો અને ડ્રેગ કરો.</string>
-    <string name="layout_editor_number_row_hidden_caption">જ્યારે લેઆઉટ અને કદમાં સિમ્બોલ્સમાં નંબર રો ચાલુ હોય ત્યારે કીબોર્ડ આ લેયરની ઉપર આ રો દર્શાવે છે. તે અત્યારે બંધ છે.</string>
-    <string name="layout_editor_number_row_off_caption">જ્યારે લેઆઉટ અને કદમાં નંબર રો ચાલુ હોય ત્યારે કીબોર્ડ આ લેયરની ઉપર આ રો દર્શાવે છે. નંબર રો અત્યારે બંધ છે.</string>
     <string name="layout_editor_number_row_title">નંબર રો</string>
     <string name="layout_editor_panel_inherited_caption">આ લેઆઉટ શેર કરેલ %1$s પેનલનો ઉપયોગ કરે છે. અહીં કંઈપણ બદલવાથી ફક્ત આ લેઆઉટ માટે એક નકલ બને છે. શેર કરેલ પેનલ કી લેઆઉટ, પેનલ લેઆઉટ હેઠળ છે.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">લેઆઉટની થીમ વારસામાં મેળવો</string>

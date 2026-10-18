@@ -3534,7 +3534,6 @@
     <string name="layout_editor_alternate_columns_default">সেটিংস থেকে</string>
     <string name="layout_editor_alternate_columns_subtitle">এই কী-টি একটি সারিতে কতগুলো বিকল্প রাখে</string>
     <string name="layout_editor_alternate_columns_title">পপআপে কলাম</string>
-    <string name="layout_editor_alternate_hint_badge">ইঙ্গিত</string>
     <string name="layout_editor_alternates_field_hint">এন্ট্রিগুলোকে স্পেস দিয়ে আলাদা করুন, যাতে একটি অল্টারনেট স্পেস হতে না পারে। .com-এর মতো একাধিক অক্ষরের এন্ট্রি সঠিক। অ্যাপটি কী-এর কোণায় প্রথমটি প্রদর্শন করে।</string>
     <string name="layout_editor_alternates_field_label">প্রেস এবং হোল্ড করার জন্য বিকল্প</string>
     <string name="layout_editor_apply_action">প্রয়োগ করুন</string>
@@ -3630,7 +3629,6 @@
     <string name="layout_editor_field_row_title">কম্পোনেন্ট</string>
     <string name="layout_editor_fill_row_action">সারিটি পূরণ করুন (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">সংখ্যার সারিতে ইতিমধ্যেই অঙ্কগুলি দেখানো হয়, তাই কীবোর্ড এই লেয়ারের প্রথম সারির পরিবর্তে এই সারিটি দেখায়।</string>
-    <string name="layout_editor_fill_row_off_caption">সংখ্যার সারি চালু থাকলে, কীবোর্ড এই লেয়ারের প্রথম সারির পরিবর্তে এই সারিটি দেখায়, কারণ সংখ্যার সারিতে ইতিমধ্যেই অঙ্কগুলি দেখানো হয়। সংখ্যার সারি এখন বন্ধ আছে।</string>
     <string name="layout_editor_fill_row_title">অঙ্কগুলির পরিবর্তে সারি</string>
     <string name="layout_editor_fit_row_action">রো-টিকে গ্রিডের সাথে ফিট করুন (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">এই দিকে কোনো ফ্লিক নেই। একটি অ্যাকশন বেছে নিতে ট্যাপ করুন।</string>
@@ -3805,8 +3803,6 @@
     <string name="layout_editor_new_secondary_title">একটি সেকেন্ডারি লেআউট শুরু করুন</string>
     <string name="layout_editor_not_live_caption">আপনি ল্যাঙ্গুয়েজ (Languages) সেকশনে লেআউটটি চালু না করা পর্যন্ত এখানে করা পরিবর্তনগুলো টাইপিংয়ে কোনো প্রভাব ফেলবে না।</string>
     <string name="layout_editor_number_row_caption">কীবোর্ড এই লেয়ারের উপরে এই সারিটি দেখায়। এটি পরিবর্তন করতে একটি কী-তে ট্যাপ করুন। সরাতে একটি কী চেপে ধরে ড্র্যাগ করুন।</string>
-    <string name="layout_editor_number_row_hidden_caption">লেআউট এবং আকারে \'সিম্বলগুলিতে সংখ্যার সারি\' চালু থাকলে কীবোর্ড এই লেয়ারের উপরে এই সারিটি দেখায়। এটি এখন বন্ধ আছে।</string>
-    <string name="layout_editor_number_row_off_caption">লেআউট এবং আকারে \'সংখ্যার সারি\' চালু থাকলে কীবোর্ড এই লেয়ারের উপরে এই সারিটি দেখায়। সংখ্যার সারি এখন বন্ধ আছে।</string>
     <string name="layout_editor_number_row_title">সংখ্যার সারি</string>
     <string name="layout_editor_panel_inherited_caption">এই লেআউটটি শেয়ার করা %1$s প্যানেল ব্যবহার করে। এখানে কিছু পরিবর্তন করলে তা শুধুমাত্র এই লেআউটের জন্য একটি কপি তৈরি করবে। শেয়ার করা প্যানেলটি কী লেআউট, প্যানেল লেআউটের অধীনে থাকে।</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">লেআউটের থিম উত্তরাধিকারসূত্রে গ্রহণ করুন</string>

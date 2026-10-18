@@ -3510,7 +3510,6 @@
     <string name="layout_editor_alternate_columns_info">이 키에 대한 열 개수입니다. 키마다 다릅니다. 대체 키가 많은 키는 그리드로 표시하는 것이 좋고, 3~4개인 키는 단일 행으로 표시하는 것이 좋습니다. 설정에서 \'대체 키 열\' 설정은 키 누르기 아래에 있으며, 변경하지 않으면 자동으로 설정됩니다. 3에서 11 사이의 숫자를 입력하면 설정과 관계없이 해당 키에 지정된 열 개수가 적용됩니다.</string>
     <string name="layout_editor_alternate_columns_subtitle">이 키가 한 행에 배치하는 대체 키의 개수</string>
     <string name="layout_editor_alternate_columns_title">팝업 내 열</string>
-    <string name="layout_editor_alternate_hint_badge">힌트</string>
     <string name="layout_editor_alternates_field_hint">항목을 공백으로 구분하세요(대체 문자는 공백일 수 없음). .com과 같이 한 글자 이상의 항목도 가능합니다. 앱은 첫 번째 항목을 키 모서리에 표시합니다.</string>
     <string name="layout_editor_alternates_field_label">길게 누르기 대체 키</string>
     <string name="layout_editor_apply_action">적용</string>
@@ -3606,7 +3605,6 @@
     <string name="layout_editor_field_row_title">구성 요소</string>
     <string name="layout_editor_fill_row_action">행 채우기 (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">숫자 행에 이미 숫자가 표시되므로 키보드가 이 레이어의 첫 번째 행 대신 이 행을 표시합니다.</string>
-    <string name="layout_editor_fill_row_off_caption">숫자 행이 켜져 있으면 숫자 행에 이미 숫자가 표시되므로 키보드가 이 레이어의 첫 번째 행 대신 이 행을 표시합니다. 현재 숫자 행이 꺼져 있습니다.</string>
     <string name="layout_editor_fill_row_title">숫자 대신 표시되는 행</string>
     <string name="layout_editor_fit_row_action">행을 그리드에 맞춤(%1$.2f)</string>
     <string name="layout_editor_flick_action_none">이 방향으로 플릭 없음. 탭하여 동작을 선택하세요.</string>
@@ -3781,8 +3779,6 @@
     <string name="layout_editor_new_secondary_title">보조 레이아웃 시작</string>
     <string name="layout_editor_not_live_caption">언어 설정에서 레이아웃을 켜기 전까지는 여기서 변경한 내용이 입력에 반영되지 않습니다.</string>
     <string name="layout_editor_number_row_caption">키보드가 이 레이어 위에 이 행을 표시합니다. 키를 탭하여 변경하세요. 키를 길게 누르고 드래그하여 이동할 수 있습니다.</string>
-    <string name="layout_editor_number_row_hidden_caption">레이아웃 및 크기 설정에서 기호의 숫자 행이 켜져 있으면 키보드가 이 레이어 위에 이 행을 표시합니다. 현재 꺼져 있습니다.</string>
-    <string name="layout_editor_number_row_off_caption">레이아웃 및 크기 설정에서 숫자 행이 켜져 있으면 키보드가 이 레이어 위에 이 행을 표시합니다. 현재 숫자 행이 꺼져 있습니다.</string>
     <string name="layout_editor_number_row_title">숫자 행</string>
     <string name="layout_editor_panel_inherited_caption">이 레이아웃은 공유 %1$s 패널을 사용합니다. 여기서 변경하면 이 레이아웃 전용 사본이 생성됩니다. 공유 패널은 키 레이아웃, 패널 레이아웃에서 찾을 수 있습니다.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">레이아웃 테마 상속</string>

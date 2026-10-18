@@ -3514,7 +3514,6 @@
     <string name="layout_editor_alternate_columns_default">Από τις ρυθμίσεις</string>
     <string name="layout_editor_alternate_columns_subtitle">Πόσες εναλλακτικές επιλογές τοποθετεί αυτό το πλήκτρο σε μια σειρά</string>
     <string name="layout_editor_alternate_columns_title">Στήλες στο αναδυόμενο παράθυρο</string>
-    <string name="layout_editor_alternate_hint_badge">υπόδειξη</string>
     <string name="layout_editor_alternates_field_hint">Διαχωρίστε τις καταχωρίσεις με κενά, ώστε μια εναλλακτική να μην μπορεί να είναι κενό. Καταχωρίσεις με περισσότερους από έναν χαρακτήρες, όπως το .com, είναι έγκυρες. Η εφαρμογή σχεδιάζει επίσης την πρώτη στη γωνία του πλήκτρου.</string>
     <string name="layout_editor_alternates_field_label">Εναλλακτικές για παρατεταμένο πάτημα</string>
     <string name="layout_editor_apply_action">Εφαρμογή</string>
@@ -3610,7 +3609,6 @@
     <string name="layout_editor_field_row_title">Στοιχείο</string>
     <string name="layout_editor_fill_row_action">Συμπλήρωση της σειράς (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Η σειρά αριθμών εμφανίζει ήδη τα ψηφία, επομένως το πληκτρολόγιο εμφανίζει αυτήν τη σειρά στη θέση της πρώτης σειράς αυτού του επιπέδου.</string>
-    <string name="layout_editor_fill_row_off_caption">Όταν η σειρά αριθμών είναι ενεργοποιημένη, το πληκτρολόγιο εμφανίζει αυτήν τη σειρά στη θέση της πρώτης σειράς αυτού του επιπέδου, επειδή η σειρά αριθμών εμφανίζει ήδη τα ψηφία. Η σειρά αριθμών είναι απενεργοποιημένη αυτή τη στιγμή.</string>
     <string name="layout_editor_fill_row_title">Σειρά στη θέση των ψηφίων</string>
     <string name="layout_editor_fit_row_action">Προσαρμογή της σειράς στο πλέγμα (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Καμία κίνηση προς αυτή την κατεύθυνση. Πατήστε για να επιλέξετε μια ενέργεια.</string>
@@ -3785,8 +3783,6 @@
     <string name="layout_editor_new_secondary_title">Έναρξη δευτερεύουσας διάταξης</string>
     <string name="layout_editor_not_live_caption">Οι αλλαγές σας εδώ δεν επηρεάζουν την πληκτρολόγηση μέχρι να ενεργοποιήσετε τη διάταξη στις Γλώσσες.</string>
     <string name="layout_editor_number_row_caption">Το πληκτρολόγιο εμφανίζει αυτήν τη σειρά πάνω από αυτό το επίπεδο. Πατήστε ένα πλήκτρο για να το αλλάξετε. Κρατήστε πατημένο ένα πλήκτρο και σύρετέ το για να το μετακινήσετε.</string>
-    <string name="layout_editor_number_row_hidden_caption">Το πληκτρολόγιο εμφανίζει αυτήν τη σειρά πάνω από αυτό το επίπεδο όταν η σειρά αριθμών στα σύμβολα είναι ενεργοποιημένη στη Διάταξη και μέγεθος. Αυτή τη στιγμή είναι απενεργοποιημένη.</string>
-    <string name="layout_editor_number_row_off_caption">Το πληκτρολόγιο εμφανίζει αυτήν τη σειρά πάνω από αυτό το επίπεδο όταν η σειρά αριθμών είναι ενεργοποιημένη στη Διάταξη και μέγεθος. Η σειρά αριθμών είναι απενεργοποιημένη αυτή τη στιγμή.</string>
     <string name="layout_editor_number_row_title">Σειρά αριθμών</string>
     <string name="layout_editor_panel_inherited_caption">Αυτή η διάταξη χρησιμοποιεί το κοινόχρηστο πλαίσιο %1$s. Η αλλαγή οτιδήποτε εδώ δημιουργεί ένα αντίγραφο μόνο για αυτή τη διάταξη. Το κοινόχρηστο πλαίσιο βρίσκεται στις Διατάξεις πλήκτρων, Διατάξεις πλαισίου.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Κληρονομιά του θέματος της διάταξης</string>

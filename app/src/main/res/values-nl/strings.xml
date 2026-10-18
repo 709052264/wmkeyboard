@@ -3517,7 +3517,6 @@
     <string name="layout_editor_alternate_columns_default">Vanuit instellingen</string>
     <string name="layout_editor_alternate_columns_subtitle">Hoeveel alternatieven deze toets op een rij plaatst</string>
     <string name="layout_editor_alternate_columns_title">Kolommen in de pop-up</string>
-    <string name="layout_editor_alternate_hint_badge">hint</string>
     <string name="layout_editor_alternates_field_hint">Scheid de items met spaties, zodat een alternatief geen spatie kan zijn. Items van meer dan één teken, zoals .com, zijn correct. De app tekent de eerste ook in de hoek van de toets.</string>
     <string name="layout_editor_alternates_field_label">Alternatieven voor indrukken en vasthouden</string>
     <string name="layout_editor_apply_action">Toepassen</string>
@@ -3613,7 +3612,6 @@
     <string name="layout_editor_field_row_title">Onderdeel</string>
     <string name="layout_editor_fill_row_action">Vul de rij (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">De cijferrij toont de cijfers al, dus het toetsenbord toont deze rij in plaats van de eerste rij van deze laag.</string>
-    <string name="layout_editor_fill_row_off_caption">Wanneer de cijferrij is ingeschakeld, toont het toetsenbord deze rij in plaats van de eerste rij van deze laag, omdat de cijferrij de cijfers al toont. De cijferrij is nu uitgeschakeld.</string>
     <string name="layout_editor_fill_row_title">Rij in plaats van de cijfers</string>
     <string name="layout_editor_fit_row_action">Rij passend maken voor het raster (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Geen flick deze kant op. Tik om een actie te kiezen.</string>
@@ -3788,8 +3786,6 @@
     <string name="layout_editor_new_secondary_title">Start een secundaire lay-out</string>
     <string name="layout_editor_not_live_caption">Je wijzigingen hier hebben pas invloed op het typen nadat je de lay-out hebt ingeschakeld onder Talen.</string>
     <string name="layout_editor_number_row_caption">Het toetsenbord toont deze rij boven deze laag. Tik op een toets om deze te wijzigen. Houd een toets ingedrukt en sleep deze om hem te verplaatsen.</string>
-    <string name="layout_editor_number_row_hidden_caption">Het toetsenbord toont deze rij boven deze laag wanneer de cijferrij in symbolen is ingeschakeld in Indeling en grootte. Deze is nu uitgeschakeld.</string>
-    <string name="layout_editor_number_row_off_caption">Het toetsenbord toont deze rij boven deze laag wanneer de cijferrij is ingeschakeld in Indeling en grootte. De cijferrij is nu uitgeschakeld.</string>
     <string name="layout_editor_number_row_title">Cijferrij</string>
     <string name="layout_editor_panel_inherited_caption">Deze lay-out gebruikt het gedeelde %1$s-paneel. Als je hier iets wijzigt, wordt er een kopie gemaakt voor alleen deze lay-out. Het gedeelde paneel staat onder Toetsenbordlay-outs, Paneellay-outs.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Neem het thema van de indeling over</string>

@@ -3506,7 +3506,6 @@
     <string name="layout_editor_alternate_columns_default">从设置中获取</string>
     <string name="layout_editor_alternate_columns_subtitle">此按键在单行中显示的备选字符数量</string>
     <string name="layout_editor_alternate_columns_title">弹出窗口中的列数</string>
-    <string name="layout_editor_alternate_hint_badge">提示</string>
     <string name="layout_editor_alternates_field_hint">用空格分隔条目，因此替代项不能包含空格。超过一个字符的条目（例如 .com）是正确的。应用也会在按键角落绘制第一个条目。</string>
     <string name="layout_editor_alternates_field_label">长按备选字符</string>
     <string name="layout_editor_apply_action">应用</string>
@@ -3602,7 +3601,6 @@
     <string name="layout_editor_field_row_title">组件</string>
     <string name="layout_editor_fill_row_action">填充行 (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">由于数字行已经显示了数字，因此键盘会显示此行来替代该层的第一行。</string>
-    <string name="layout_editor_fill_row_off_caption">当数字行开启时，键盘会显示此行来替代该层的第一行，因为数字行已经显示了数字。目前数字行已关闭。</string>
     <string name="layout_editor_fill_row_title">替代数字的行</string>
     <string name="layout_editor_fit_row_action">使行适应网格 (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">此方向无轻拂操作。点击以选择操作。</string>
@@ -3777,8 +3775,6 @@
     <string name="layout_editor_new_secondary_title">开始创建辅助布局</string>
     <string name="layout_editor_not_live_caption">除非您在“语言”设置中启用该布局，否则此处的更改不会影响输入。</string>
     <string name="layout_editor_number_row_caption">键盘会在该层上方显示此行。点击按键即可更改，按住并拖动即可移动。</string>
-    <string name="layout_editor_number_row_hidden_caption">当“布局和大小”中的“符号数字行”开启时，键盘会在该层上方显示此行。目前该功能已关闭。</string>
-    <string name="layout_editor_number_row_off_caption">当“布局和大小”中的“数字行”开启时，键盘会在该层上方显示此行。目前数字行已关闭。</string>
     <string name="layout_editor_number_row_title">数字行</string>
     <string name="layout_editor_panel_inherited_caption">此布局使用共享的 %1$s 面板。在此处进行任何更改都将仅为此布局创建一个副本。共享面板位于“按键布局”下的“面板布局”中。</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">继承布局的主题</string>

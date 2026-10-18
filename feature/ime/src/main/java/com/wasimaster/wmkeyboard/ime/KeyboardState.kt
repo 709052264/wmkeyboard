@@ -314,6 +314,11 @@ data class LayoutSet(
      */
     val symbolsFillRow: List<Key>? = null,
     /**
+     * Arrow keys rows this layout authored, by the layer they sit under
+     * (issue #769). Absent entries draw the four arrows in the setting's order.
+     */
+    val arrowRows: Map<LayoutMode, List<Key>> = emptyMap(),
+    /**
      * The column count these grids were laid out against, when the tablet
      * expansion widened them; null on a phone and on any layout that declined it.
      *

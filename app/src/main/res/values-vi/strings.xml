@@ -3510,7 +3510,6 @@
     <string name="layout_editor_alternate_columns_default">Từ cài đặt</string>
     <string name="layout_editor_alternate_columns_subtitle">Số lượng từ thay thế mà phím này đặt trên một hàng</string>
     <string name="layout_editor_alternate_columns_title">Các cột trong cửa sổ bật lên</string>
-    <string name="layout_editor_alternate_hint_badge">gợi ý</string>
     <string name="layout_editor_alternates_field_hint">Phân tách các mục bằng dấu cách, vì vậy một mục thay thế không thể là dấu cách. Các mục có nhiều hơn một ký tự, chẳng hạn như .com, là hợp lệ. Ứng dụng cũng sẽ hiển thị mục đầu tiên ở góc của phím.</string>
     <string name="layout_editor_alternates_field_label">Các lựa chọn thay thế cho nhấn và giữ</string>
     <string name="layout_editor_apply_action">Áp dụng</string>
@@ -3606,7 +3605,6 @@
     <string name="layout_editor_field_row_title">Thành phần</string>
     <string name="layout_editor_fill_row_action">Lấp đầy hàng (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Hàng số đã hiển thị các chữ số, vì vậy bàn phím hiển thị hàng này thay cho hàng đầu tiên của lớp này.</string>
-    <string name="layout_editor_fill_row_off_caption">Khi Hàng số được bật, bàn phím hiển thị hàng này thay cho hàng đầu tiên của lớp này, vì hàng số đã hiển thị các chữ số. Hàng số hiện đang tắt.</string>
     <string name="layout_editor_fill_row_title">Hàng thay thế cho các chữ số</string>
     <string name="layout_editor_fit_row_action">Khớp hàng với lưới (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Không có thao tác vuốt theo hướng này. Chạm để chọn một hành động.</string>
@@ -3781,8 +3779,6 @@
     <string name="layout_editor_new_secondary_title">Bắt đầu một bố cục phụ</string>
     <string name="layout_editor_not_live_caption">Các thay đổi của bạn tại đây sẽ không ảnh hưởng đến việc nhập liệu cho đến khi bạn bật bố cục trong phần Ngôn ngữ.</string>
     <string name="layout_editor_number_row_caption">Bàn phím hiển thị hàng này phía trên lớp này. Chạm vào một phím để thay đổi phím đó. Giữ một phím và kéo để di chuyển phím đó.</string>
-    <string name="layout_editor_number_row_hidden_caption">Bàn phím hiển thị hàng này phía trên lớp này khi Hàng số trong ký hiệu được bật trong Bố cục và kích thước. Hiện tại nó đang tắt.</string>
-    <string name="layout_editor_number_row_off_caption">Bàn phím hiển thị hàng này phía trên lớp này khi Hàng số được bật trong Bố cục và kích thước. Hàng số hiện đang tắt.</string>
     <string name="layout_editor_number_row_title">Hàng số</string>
     <string name="layout_editor_panel_inherited_caption">Bố cục này sử dụng bảng %1$s được chia sẻ. Việc thay đổi bất kỳ thứ gì ở đây sẽ tạo một bản sao chỉ dành cho bố cục này. Bảng được chia sẻ nằm trong phần Bố cục phím, Bố cục bảng.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Kế thừa chủ đề của bố cục</string>

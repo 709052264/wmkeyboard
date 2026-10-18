@@ -153,6 +153,14 @@ data class Key(
      */
     val iconHint: String? = null,
     /**
+     * Text drawn as the corner hint in place of the first long-press alternate
+     * (issue #769): what the corner says, kept apart from what a hold types, so
+     * a full stop can show `,?!` in its corner while its popup keeps whatever
+     * order the hold wants. Shown under the same toggles as the character hint,
+     * on any key, the way [iconHint] is; [iconHint] wins when both are set.
+     */
+    val hint: String? = null,
+    /**
      * Draws no corner hint on this key, whatever it would otherwise have shown —
      * the first long-press alternate, or an [iconHint].
      *
@@ -382,6 +390,7 @@ fun Key.asKanaVariantKey(): Key = copy(
     holdAction = null,
     icon = null,
     iconHint = null,
+    hint = null,
     flick = emptyMap(),
     flickShift = emptyMap(),
     flickActions = emptyMap(),

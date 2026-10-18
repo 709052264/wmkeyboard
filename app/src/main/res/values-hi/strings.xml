@@ -3528,7 +3528,6 @@
     <string name="layout_editor_alternate_columns_default">सेटिंग्स से</string>
     <string name="layout_editor_alternate_columns_subtitle">यह कुंजी एक पंक्ति में कितने विकल्प रखती है</string>
     <string name="layout_editor_alternate_columns_title">पॉपअप में कॉलम</string>
-    <string name="layout_editor_alternate_hint_badge">संकेत</string>
     <string name="layout_editor_alternates_field_hint">एंट्री को स्पेस के साथ अलग करें, ताकि कोई विकल्प स्पेस न हो। एक से अधिक अक्षर वाली एंट्री, जैसे .com, सही हैं। ऐप कुंजी के कोने में पहली एंट्री भी दिखाता है।</string>
     <string name="layout_editor_alternates_field_label">दबाकर रखने के लिए विकल्प</string>
     <string name="layout_editor_apply_action">लागू करें</string>
@@ -3624,7 +3623,6 @@
     <string name="layout_editor_field_row_title">घटक</string>
     <string name="layout_editor_fill_row_action">पंक्ति भरें (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">नंबर वाली पंक्ति में पहले से ही अंक दिखाई देते हैं, इसलिए कीबोर्ड इस परत की पहली पंक्ति के स्थान पर यह पंक्ति दिखाता है।</string>
-    <string name="layout_editor_fill_row_off_caption">जब नंबर पंक्ति चालू होती है, तो कीबोर्ड इस परत की पहली पंक्ति के स्थान पर यह पंक्ति दिखाता है, क्योंकि नंबर पंक्ति में पहले से ही अंक दिखाई देते हैं। नंबर पंक्ति अभी बंद है।</string>
     <string name="layout_editor_fill_row_title">अंकों के स्थान पर पंक्ति</string>
     <string name="layout_editor_fit_row_action">पंक्ति को ग्रिड में फिट करें (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">इस तरह कोई फ़्लिक नहीं। कोई क्रिया चुनने के लिए टैप करें।</string>
@@ -3799,8 +3797,6 @@
     <string name="layout_editor_new_secondary_title">एक द्वितीयक लेआउट शुरू करें</string>
     <string name="layout_editor_not_live_caption">यहाँ आपके परिवर्तन तब तक टाइपिंग को प्रभावित नहीं करते जब तक आप भाषाओं के अंतर्गत लेआउट चालू नहीं करते।</string>
     <string name="layout_editor_number_row_caption">कीबोर्ड इस परत के ऊपर यह पंक्ति दिखाता है। इसे बदलने के लिए किसी कुंजी पर टैप करें। किसी कुंजी को स्थानांतरित करने के लिए उसे दबाकर रखें और खींचें।</string>
-    <string name="layout_editor_number_row_hidden_caption">जब लेआउट और आकार में प्रतीकों में नंबर पंक्ति चालू होती है, तो कीबोर्ड इस परत के ऊपर यह पंक्ति दिखाता है। यह अभी बंद है।</string>
-    <string name="layout_editor_number_row_off_caption">जब लेआउट और आकार में नंबर पंक्ति चालू होती है, तो कीबोर्ड इस परत के ऊपर यह पंक्ति दिखाता है। नंबर पंक्ति अभी बंद है।</string>
     <string name="layout_editor_number_row_title">नंबर पंक्ति</string>
     <string name="layout_editor_panel_inherited_caption">यह लेआउट साझा %1$s पैनल का उपयोग करता है। यहां कुछ भी बदलने पर केवल इस लेआउट के लिए एक कॉपी बन जाती है। साझा पैनल \'की लेआउट\', \'पैनल लेआउट\' के अंतर्गत है।</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">लेआउट की थीम को इनहेरिट करें</string>

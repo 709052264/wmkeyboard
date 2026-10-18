@@ -3521,7 +3521,6 @@
     <string name="layout_editor_alternate_columns_default">Iz nastavitev</string>
     <string name="layout_editor_alternate_columns_subtitle">Koliko alternativ ta tipka postavi v vrstico</string>
     <string name="layout_editor_alternate_columns_title">Stolpci v pojavnem oknu</string>
-    <string name="layout_editor_alternate_hint_badge">namig</string>
     <string name="layout_editor_alternates_field_hint">Vnose ločite s presledki, tako da nadomestni znak ne more biti presledek. Vnosi z več kot enim znakom, kot je .com, so pravilni. Aplikacija prvega tudi nariše v kotu tipke.</string>
     <string name="layout_editor_alternates_field_label">Alternative za dolg pritisk</string>
     <string name="layout_editor_apply_action">Uporabi</string>
@@ -3617,7 +3616,6 @@
     <string name="layout_editor_field_row_title">Komponenta</string>
     <string name="layout_editor_fill_row_action">Zapolni vrstico (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Številčna vrstica že prikazuje števke, zato tipkovnica prikaže to vrstico namesto prve vrstice te plasti.</string>
-    <string name="layout_editor_fill_row_off_caption">Ko je vklopljena Številčna vrstica, tipkovnica prikaže to vrstico namesto prve vrstice te plasti, ker številčna vrstica že prikazuje števke. Številčna vrstica je trenutno izklopljena.</string>
     <string name="layout_editor_fill_row_title">Vrstica namesto števk</string>
     <string name="layout_editor_fit_row_action">Prilagodi vrstico mreži (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Brez potega v to smer. Tapnite za izbiro dejanja.</string>
@@ -3792,8 +3790,6 @@
     <string name="layout_editor_new_secondary_title">Začni sekundarno postavitev</string>
     <string name="layout_editor_not_live_caption">Vaše spremembe tukaj ne vplivajo na tipkanje, dokler ne vklopite postavitve v razdelku Jeziki.</string>
     <string name="layout_editor_number_row_caption">Tipkovnica prikaže to vrstico nad to plastjo. Tapnite tipko, da jo spremenite. Pridržite tipko in jo povlecite, da jo premaknete.</string>
-    <string name="layout_editor_number_row_hidden_caption">Tipkovnica prikaže to vrstico nad to plastjo, ko je v razdelku Postavitev in velikost vklopljena možnost Številčna vrstica v simbolih. Trenutno je izklopljena.</string>
-    <string name="layout_editor_number_row_off_caption">Tipkovnica prikaže to vrstico nad to plastjo, ko je v razdelku Postavitev in velikost vklopljena možnost Številčna vrstica. Številčna vrstica je trenutno izklopljena.</string>
     <string name="layout_editor_number_row_title">Številčna vrstica</string>
     <string name="layout_editor_panel_inherited_caption">Ta postavitev uporablja skupno ploščo %1$s. Sprememba česar koli tukaj ustvari kopijo samo za to postavitev. Skupna plošča je pod Postavitve tipk, Postavitve plošč.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Podeduj temo postavitve</string>

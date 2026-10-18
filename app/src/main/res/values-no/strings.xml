@@ -3519,7 +3519,6 @@
     <string name="layout_editor_alternate_columns_info">Dette er antall kolonner for denne tasten alene. Taster varierer: en tast med et dusin alternativer leses bedre som et rutenett, og en tast med tre eller fire leses bedre som en enkelt rad. Fra innstillinger forlater tasten til innstillingen \"Alternative tastkolonner\" under Tastetrykk, som er Automatisk med mindre du endret den. Et tall fra 3 til 11 gir denne tasten så mange kolonner uansett hva innstillingen sier.</string>
     <string name="layout_editor_alternate_columns_subtitle">Hvor mange alternativer denne tasten legger på en rad</string>
     <string name="layout_editor_alternate_columns_title">Kolonner i popup-vinduet</string>
-    <string name="layout_editor_alternate_hint_badge">hint</string>
     <string name="layout_editor_alternates_field_hint">Skill oppføringene med mellomrom, slik at et alternativ ikke kan være et mellomrom. Oppføringer med mer enn ett tegn, som .com, er korrekte. Appen tegner også den første i hjørnet av tasten.</string>
     <string name="layout_editor_alternates_field_label">Alternativer for trykk og hold</string>
     <string name="layout_editor_apply_action">Bruk</string>
@@ -3615,7 +3614,6 @@
     <string name="layout_editor_field_row_title">Komponent</string>
     <string name="layout_editor_fill_row_action">Fyll raden (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Tallraden viser allerede sifrene, så tastaturet viser denne raden i stedet for den første raden i dette laget.</string>
-    <string name="layout_editor_fill_row_off_caption">Når Tallrad er på, viser tastaturet denne raden i stedet for den første raden i dette laget, fordi tallraden allerede viser sifrene. Tallrad er av nå.</string>
     <string name="layout_editor_fill_row_title">Rad i stedet for sifrene</string>
     <string name="layout_editor_fit_row_action">Tilpass raden til rutenettet (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Ingen flick i denne retningen. Trykk for å velge en handling.</string>
@@ -3790,8 +3788,6 @@
     <string name="layout_editor_new_secondary_title">Start et sekundært oppsett</string>
     <string name="layout_editor_not_live_caption">Endringene dine her påvirker ikke skrivingen før du slår på oppsettet under Språk.</string>
     <string name="layout_editor_number_row_caption">Tastaturet viser denne raden over dette laget. Trykk på en tast for å endre den. Hold inne en tast og dra den for å flytte den.</string>
-    <string name="layout_editor_number_row_hidden_caption">Tastaturet viser denne raden over dette laget når Tallrad i symboler er på i Oppsett og størrelse. Den er av nå.</string>
-    <string name="layout_editor_number_row_off_caption">Tastaturet viser denne raden over dette laget når Tallrad er på i Oppsett og størrelse. Tallrad er av nå.</string>
     <string name="layout_editor_number_row_title">Tallrad</string>
     <string name="layout_editor_panel_inherited_caption">Dette oppsettet bruker det delte %1$s-panelet. Å endre noe her lager en kopi kun for dette oppsettet. Det delte panelet finnes under Tastaturoppsett, Panoppsett.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Arv temaet fra oppsettet</string>

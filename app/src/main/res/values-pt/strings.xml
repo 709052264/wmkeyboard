@@ -3513,7 +3513,6 @@
     <string name="layout_editor_alternate_columns_default">Das configurações</string>
     <string name="layout_editor_alternate_columns_subtitle">Quantas alternativas esta tecla coloca em uma linha</string>
     <string name="layout_editor_alternate_columns_title">Colunas no pop-up</string>
-    <string name="layout_editor_alternate_hint_badge">dica</string>
     <string name="layout_editor_alternates_field_hint">Separe as entradas com espaços, para que um alternativo não possa ser um espaço. Entradas com mais de um caractere, como .com, estão corretas. O aplicativo também desenha a primeira no canto da tecla.</string>
     <string name="layout_editor_alternates_field_label">Alternativas para pressionar e segurar</string>
     <string name="layout_editor_apply_action">Aplicar</string>
@@ -3609,7 +3608,6 @@
     <string name="layout_editor_field_row_title">Componente</string>
     <string name="layout_editor_fill_row_action">Preencher a linha (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">A linha numérica já mostra os dígitos, portanto o teclado mostra esta linha no lugar da primeira linha desta camada.</string>
-    <string name="layout_editor_fill_row_off_caption">Quando a linha numérica está ativada, o teclado mostra esta linha no lugar da primeira linha desta camada, porque a linha numérica já mostra os dígitos. A linha numérica está desativada agora.</string>
     <string name="layout_editor_fill_row_title">Linha no lugar dos dígitos</string>
     <string name="layout_editor_fit_row_action">Ajustar a linha à grade (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Sem gesto nesta direção. Toque para escolher uma ação.</string>
@@ -3784,8 +3782,6 @@
     <string name="layout_editor_new_secondary_title">Iniciar um layout secundário</string>
     <string name="layout_editor_not_live_caption">Suas alterações aqui não afetam a digitação até que você ative o layout em Idiomas.</string>
     <string name="layout_editor_number_row_caption">O teclado mostra esta linha acima desta camada. Toque em uma tecla para alterá-la. Mantenha uma tecla pressionada e arraste-a para movê-la.</string>
-    <string name="layout_editor_number_row_hidden_caption">O teclado mostra esta linha acima desta camada quando a linha numérica em símbolos está ativada em Layout e tamanho. Ela está desativada agora.</string>
-    <string name="layout_editor_number_row_off_caption">O teclado mostra esta linha acima desta camada quando a linha numérica está ativada em Layout e tamanho. A linha numérica está desativada agora.</string>
     <string name="layout_editor_number_row_title">Linha numérica</string>
     <string name="layout_editor_panel_inherited_caption">Este layout usa o painel compartilhado %1$s. Alterar qualquer coisa aqui cria uma cópia apenas para este layout. O painel compartilhado está em Layouts de teclas, Layouts de painel.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Herdar o tema do layout</string>

@@ -3517,7 +3517,6 @@
     <string name="layout_editor_alternate_columns_default">Z ustawień</string>
     <string name="layout_editor_alternate_columns_subtitle">Ile alternatyw ten klawisz umieszcza w wierszu</string>
     <string name="layout_editor_alternate_columns_title">Kolumny w wyskakującym okienku</string>
-    <string name="layout_editor_alternate_hint_badge">podpowiedź</string>
     <string name="layout_editor_alternates_field_hint">Oddziel wpisy spacjami, aby żaden z nich nie był spacją. Wpisy składające się z więcej niż jednego znaku, np. .com, są dozwolone. Aplikacja wyświetla pierwszy z nich w rogu klawisza.</string>
     <string name="layout_editor_alternates_field_label">Alternatywy dla naciśnięcia i przytrzymania</string>
     <string name="layout_editor_apply_action">Zastosuj</string>
@@ -3613,7 +3612,6 @@
     <string name="layout_editor_field_row_title">Komponent</string>
     <string name="layout_editor_fill_row_action">Wypełnij wiersz (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Wiersz z liczbami już wyświetla cyfry, więc klawiatura pokazuje ten wiersz zamiast pierwszego wiersza tej warstwy.</string>
-    <string name="layout_editor_fill_row_off_caption">Gdy wiersz z liczbami jest włączony, klawiatura pokazuje ten wiersz zamiast pierwszego wiersza tej warstwy, ponieważ wiersz z liczbami już wyświetla cyfry. Wiersz z liczbami jest obecnie wyłączony.</string>
     <string name="layout_editor_fill_row_title">Wiersz zamiast cyfr</string>
     <string name="layout_editor_fit_row_action">Dopasuj wiersz do siatki (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Brak przesunięcia w tę stronę. Dotknij, aby wybrać akcję.</string>
@@ -3788,8 +3786,6 @@
     <string name="layout_editor_new_secondary_title">Rozpocznij układ dodatkowy</string>
     <string name="layout_editor_not_live_caption">Twoje zmiany nie wpłyną na pisanie, dopóki nie włączysz układu w sekcji Języki.</string>
     <string name="layout_editor_number_row_caption">Klawiatura wyświetla ten wiersz nad tą warstwą. Stuknij klawisz, aby go zmienić. Przytrzymaj klawisz i przeciągnij go, aby go przenieść.</string>
-    <string name="layout_editor_number_row_hidden_caption">Klawiatura wyświetla ten wiersz nad tą warstwą, gdy opcja „Wiersz z liczbami w symbolach” jest włączona w sekcji „Układ i rozmiar”. Obecnie jest wyłączona.</string>
-    <string name="layout_editor_number_row_off_caption">Klawiatura wyświetla ten wiersz nad tą warstwą, gdy opcja „Wiersz z liczbami” jest włączona w sekcji „Układ i rozmiar”. Wiersz z liczbami jest obecnie wyłączony.</string>
     <string name="layout_editor_number_row_title">Wiersz z liczbami</string>
     <string name="layout_editor_panel_inherited_caption">Ten układ korzysta ze współdzielonego panelu %1$s. Zmiana czegokolwiek tutaj tworzy kopię tylko dla tego układu. Współdzielony panel znajduje się w sekcji Układy klawiszy, Układy paneli.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Dziedzicz motyw układu</string>

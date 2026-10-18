@@ -19343,11 +19343,14 @@ private fun ArrowKeyRow(
     val settings = state.settings
     val split = settings.splitKeyboard
     val order = settings.layoutBehavior.arrowRowOrder
-    val row = remember(order, layout, palette, settings, state.shiftState, state.modifiers) {
-        val keys = order.map(::arrowRowKey)
+    // The layout's own row for this layer when it wrote one (#769), so a Word
+    // left key or a second Shift can sit down here; else the four arrows.
+    val authored = state.layouts.arrowRows[state.layoutMode]
+    val row = remember(order, authored, layout, palette, settings, state.shiftState, state.modifiers) {
+        val keys = authored ?: order.map(::arrowRowKey)
         keyRowVisual(
             keys, split, settings.splitGapPercent, settings.layoutBehavior.splitSpacebar,
-            keys.size.toFloat(), settings.numberRowHeightDp, state, palette,
+            keys.sumOf { it.width.toDouble() }.toFloat(), settings.numberRowHeightDp, state, palette,
             layout.appearance.drawnFontScale(),
         )
     }
@@ -19398,7 +19401,7 @@ internal fun arrowKeySlot(keyCode: Int): String? = when (keyCode) {
  * label, draws the slot's icon; one its author worded ("Prev") keeps the word,
  * like any other key.
  */
-private val ArrowGlyphs = setOf("←", "↑", "↓", "→", "⇥")
+internal val ArrowGlyphs = setOf("←", "↑", "↓", "→", "⇥")
 
 /**
  * Autopilot's drawn letters and the octopus words over the grid, with the
@@ -21106,6 +21109,7 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                     actionAlternates = emptyList(),
                     icon = null,
                     iconHint = null,
+                    hint = null,
                     flick = emptyMap(),
                     flickShift = emptyMap(),
                     flickActions = emptyMap(),
@@ -25274,6 +25278,10 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     rtlMirrored(shiftCased(it, visual.alternatesShifted), mirrorBrackets)
                 }
             }
+            // Issue #769: a hint the author wrote, in place of the first
+            // alternate. Not cased or mirrored, and drawn on any key the way an
+            // icon hint is: it is an annotation, not a preview of the hold.
+            val authoredHint = if (key.hideHint) null else key.hint?.takeIf { it.isNotBlank() }
             val showHints = settings.longPressHints || key.forceHint
             // A theme may name the hint colour outright (issue #72); otherwise
             // it is the label colour faded, so it follows a per-key override
@@ -25306,7 +25314,8 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             KeyCornerHint(
                 transliterationRoman = if (key.hideHint) null else visual.transliterationRoman,
                 hintIcon = hintIcon.takeIf { showHints && !cornerTaken },
-                hint = hint.takeIf { showHints && !cornerTaken && key.opensAlternatesPopup() },
+                hint = authoredHint?.takeIf { showHints && !cornerTaken }
+                    ?: hint.takeIf { showHints && !cornerTaken && key.opensAlternatesPopup() },
                 hintMask = hintMask,
                 hintColor = hintColor,
                 fontScale = fontScale,
@@ -25638,7 +25647,7 @@ private val NoFontPadding = TextStyle(
  * Shared by the main keyboard's spacebar and the emoji panel's spacebar so
  * both read the same.
  */
-private fun spacebarText(state: KeyboardUiState): String {
+internal fun spacebarText(state: KeyboardUiState): String {
     val name = layoutSwitchLabel(
         state.layoutId,
         state.settings.enabledLayoutIds,
