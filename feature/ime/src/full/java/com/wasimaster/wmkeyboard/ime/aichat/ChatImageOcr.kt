@@ -3,9 +3,9 @@ package com.wasimaster.wmkeyboard.ime.aichat
 import android.graphics.Bitmap
 import com.google.android.gms.tasks.Task
 import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import com.wasimaster.wmkeyboard.core.ocr.MlKitScript
+import com.wasimaster.wmkeyboard.ime.ocr.MlKitRecognizers
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.CancellationException
@@ -13,18 +13,19 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 
 /**
  * Reads the text in a picture sent in the AI chat (#698), for a model that
- * cannot see it. ML Kit's Latin recognizer on the phone, the same one the
- * scan text tool and the reply tool use.
+ * cannot see it. ML Kit's recognizer on the phone, the same ones the scan
+ * text tool and the reply tool use, for the script of the language the user
+ * types in (#757).
  */
 object ChatImageOcr {
 
-    /** The full build has ML Kit's Latin recognizer bundled. */
+    /** The full build carries ML Kit's text recognizers. */
     val available: Boolean get() = BuildConfig.ENABLE_ML_KIT_SCANNERS
 
     /** The text in [bitmap], line by line; empty when there is none. Throws when the read fails. */
-    suspend fun read(bitmap: Bitmap): String {
+    suspend fun read(bitmap: Bitmap, script: MlKitScript = MlKitScript.LATIN): String {
         if (!available) return ""
-        val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+        val recognizer = MlKitRecognizers.client(script)
         return try {
             recognizer.process(InputImage.fromBitmap(bitmap, 0)).await().text.trim()
         } finally {

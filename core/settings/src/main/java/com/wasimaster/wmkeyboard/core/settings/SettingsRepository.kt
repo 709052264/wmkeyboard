@@ -709,7 +709,7 @@ enum class QrEccLevel { L, M, Q, H }
  * downloaded first.
  */
 enum class OcrEngine {
-    /** ML Kit for Latin-script languages, Tesseract for every other script. */
+    /** ML Kit for the scripts it has a recognizer for, Tesseract for every other. */
     AUTO,
     ML_KIT,
     TESSERACT,

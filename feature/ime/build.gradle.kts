@@ -130,9 +130,17 @@ dependencies {
     implementation(libs.coil.network.okhttp)
     if (playStoreChannel) {
         "fullImplementation"(libs.mlkit.text.recognition.unbundled)
+        "fullImplementation"(libs.mlkit.text.recognition.chinese.unbundled)
+        "fullImplementation"(libs.mlkit.text.recognition.japanese.unbundled)
+        "fullImplementation"(libs.mlkit.text.recognition.korean.unbundled)
+        "fullImplementation"(libs.mlkit.text.recognition.devanagari.unbundled)
         "fullImplementation"(libs.mlkit.barcode.scanning.unbundled)
     } else {
         "fullImplementation"(libs.mlkit.text.recognition)
+        "fullImplementation"(libs.mlkit.text.recognition.chinese)
+        "fullImplementation"(libs.mlkit.text.recognition.japanese)
+        "fullImplementation"(libs.mlkit.text.recognition.korean)
+        "fullImplementation"(libs.mlkit.text.recognition.devanagari)
         "fullImplementation"(libs.mlkit.barcode.scanning)
     }
     "fullImplementation"(libs.mlkit.document.scanner)

@@ -5,6 +5,9 @@ import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import com.wasimaster.wmkeyboard.core.reply.ReplyShots
+import com.wasimaster.wmkeyboard.core.ocr.MlKitScript
+import com.wasimaster.wmkeyboard.core.ocr.OcrLanguages
+import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.homeassistant.HaDomains
 import com.wasimaster.wmkeyboard.core.homeassistant.HaStateFormat
 import com.wasimaster.wmkeyboard.core.settings.HomeAssistantSettings
@@ -205,7 +208,9 @@ class KeyboardAiToolHost(
         }
         val file = AiChatImages.file(context, name) ?: error("the picture is gone")
         val bitmap = ReplyShots.bitmap(file) ?: error("the picture could not be read")
-        runBlocking { ChatImageOcr.read(bitmap) }
+        // The language the user types in, active first, picks the recognizer.
+        val script = hints.firstOrNull()?.let { OcrLanguages.mlKitRecognizer(LanguageRegistry.byId(it)) }
+        runBlocking { ChatImageOcr.read(bitmap, script ?: MlKitScript.LATIN) }
     }
 
     private companion object {

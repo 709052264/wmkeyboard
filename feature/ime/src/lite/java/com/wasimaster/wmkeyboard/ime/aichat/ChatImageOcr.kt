@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.aichat
 
 import android.graphics.Bitmap
+import com.wasimaster.wmkeyboard.core.ocr.MlKitScript
 
 /**
  * The lite build's stand-in for the chat's picture reader (#698). The lite
@@ -14,5 +15,5 @@ object ChatImageOcr {
 
     /** Nothing to read with. */
     @Suppress("UNUSED_PARAMETER")
-    suspend fun read(bitmap: Bitmap): String = ""
+    suspend fun read(bitmap: Bitmap, script: MlKitScript = MlKitScript.LATIN): String = ""
 }

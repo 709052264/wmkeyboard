@@ -113,8 +113,9 @@ import com.wasimaster.wmkeyboard.core.tools.LinkPreviewClient
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.google.mlkit.vision.text.TextRecognizer
+import com.wasimaster.wmkeyboard.core.ocr.MlKitScript
+import com.wasimaster.wmkeyboard.ime.ocr.MlKitRecognizers
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardClipboard
@@ -162,10 +163,11 @@ private sealed interface OcrStage {
 /**
  * OCR tool: point the camera at printed text, capture, and get the words
  * back as tappable chips — deselect the parts you don't want, then insert
- * or copy just the rest. Reads with ML Kit's on-device Latin recognizer or
- * with Tesseract, which covers most other scripts once a language's data is
+ * or copy just the rest. Reads with ML Kit's on-device recognizer for the
+ * text's script (Latin, Chinese, Japanese, Korean or Devanagari) or with
+ * Tesseract, which covers most other scripts once a language's data is
  * downloaded; the setting and the text's language pick which
- * ([OcrLanguages.tesseractPack]). Either way the photo never leaves the
+ * ([OcrLanguages.tesseractPack], [OcrLanguages.mlKitRecognizer]). Either way the photo never leaves the
  * phone. Unlike the other tool panels this one covers
  * the toolbar too ([keyRowsHeight] + [TopBarHeight]): reading text off a
  * photo needs all the room the keyboard has.
@@ -251,10 +253,12 @@ private fun OcrContent(
             value = withContext(Dispatchers.IO) { ProcessCameraProvider.getInstance(context).get() }
         }
     }
-    val recognizer = remember { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
+    // One ML Kit recognizer per script read so far, made on first use.
+    val recognizers = remember { mutableMapOf<MlKitScript, TextRecognizer>() }
     DisposableEffect(Unit) {
         onDispose {
-            recognizer.close()
+            recognizers.values.forEach { runCatching { it.close() } }
+            recognizers.clear()
             TesseractOcr.release()
         }
     }
@@ -354,6 +358,13 @@ private fun OcrContent(
         if (!auto) feedback()
         val readPack = pack
         val online = engine == OcrEngine.ONLINE
+        val mlKit = if (!online && readPack == null) {
+            OcrLanguages.mlKitRecognizer(ocrLanguage).let { script ->
+                recognizers.getOrPut(script) { MlKitRecognizers.client(script) }
+            }
+        } else {
+            null
+        }
         // The online readers (#469, #727), or in pick mode the one the chooser is on.
         val readers = if (online) OnlineOcr.rows(state.settings, ProviderPicks.of(ProviderTool.OCR)) else emptyList()
         scope.launch {
@@ -375,7 +386,7 @@ private fun OcrContent(
                         readWithTesseract(filesDir, readPack, bitmap)
                     } else {
                         var id = 0
-                        recognizer.process(InputImage.fromBitmap(bitmap, 0)).await()
+                        checkNotNull(mlKit).process(InputImage.fromBitmap(bitmap, 0)).await()
                             .textBlocks
                             .flatMap { block ->
                                 block.lines.map { line ->
@@ -415,6 +426,10 @@ private fun OcrContent(
                         ),
                     )
                 }
+                // Play: the script's model is still on its way from Play services.
+                MlKitRecognizers.isDownloading(failure) -> OcrStage.Done(
+                    OcrResult(bitmap, emptyList(), R.string.ime_scanner_ocr_model_downloading),
+                )
                 else -> {
                     Log.w(OCR_LOG_TAG, "text recognition failed", failure)
                     OcrStage.Done(OcrResult(bitmap, emptyList(), R.string.ime_scanner_ocr_read_error))
@@ -499,7 +514,7 @@ private fun OcrContent(
         val nextLanguage: (() -> Unit)? = if (chipLanguages.size > 1) {
             {
                 feedback()
-                fun route(l: LanguageDef) = OcrLanguages.tesseractPack(engine, l, TesseractOcr.available)
+                fun route(l: LanguageDef) = OcrLanguages.route(engine, l, TesseractOcr.available)
                 val at = chipLanguages.indexOfFirst { route(it) == route(ocrLanguage) }
                 ocrLanguage = chipLanguages[(at + 1).mod(chipLanguages.size)]
             }
@@ -585,9 +600,10 @@ private fun OcrContent(
                 .padding(5.dp)
                 .clip(CircleShape)
                 .background(Color.White)
-                // Keyed on the pack: capture() reads it, and a Unit key would
-                // keep the first language's capture after the chip moved on.
-                .pointerInput(pack, packReady) { detectTapGestures { capture() } },
+                // Keyed on the language and pack: capture() reads both, and a
+                // Unit key would keep the first language's capture after the
+                // chip moved on.
+                .pointerInput(ocrLanguage, pack, packReady) { detectTapGestures { capture() } },
         )
         nextLanguage?.let {
             OcrLanguageChip(ocrLanguage, it, Modifier.align(Alignment.BottomStart).padding(12.dp))

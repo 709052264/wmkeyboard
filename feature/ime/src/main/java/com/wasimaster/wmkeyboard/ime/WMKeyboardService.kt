@@ -453,6 +453,7 @@ import com.wasimaster.wmkeyboard.core.tools.DictionaryLookup
 import com.wasimaster.wmkeyboard.core.tools.DictionarySource
 import com.wasimaster.wmkeyboard.core.tools.GifItem
 import com.wasimaster.wmkeyboard.core.grammar.GrammarChecker
+import com.wasimaster.wmkeyboard.core.ocr.OcrLanguages
 import com.wasimaster.wmkeyboard.core.ocr.TesseractOcr
 import com.wasimaster.wmkeyboard.core.grammar.GrammarEdit
 import com.wasimaster.wmkeyboard.core.grammar.GrammarFix
@@ -32350,7 +32351,7 @@ open class WMKeyboardService : InputMethodService() {
             val turns = withContext(Dispatchers.IO) {
                 val bitmap = ReplyShots.bitmap(this@WMKeyboardService, android.net.Uri.parse(uriString))
                     ?: return@withContext emptyList()
-                ReplyOcr.read(bitmap, frame)
+                ReplyOcr.read(bitmap, frame, OcrLanguages.mlKitRecognizer(_uiState.value.language))
             }
             _uiState.update { it.copy(aiReply = it.aiReply.copy(reading = false)) }
             if (turns.isEmpty()) {
@@ -32634,7 +32635,7 @@ open class WMKeyboardService : InputMethodService() {
                     val uri = entry.shotUri ?: return@associateWith emptyList()
                     val bitmap = ReplyShots.bitmap(this@WMKeyboardService, android.net.Uri.parse(uri))
                         ?: return@associateWith emptyList()
-                    ReplyOcr.read(bitmap, frames.getValue(entry))
+                    ReplyOcr.read(bitmap, frames.getValue(entry), OcrLanguages.mlKitRecognizer(_uiState.value.language))
                 }
             }
             var anyText = false

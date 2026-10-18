@@ -26,11 +26,11 @@ Open **Text scan (OCR)** from the toolbar or toolbox to replace the keyboard wit
 
 Two engines read the text on your device, and a third, which you set up yourself, reads it online:
 
-- **ML Kit** reads Latin-script text only: English, French, Spanish and the like. It needs no download.
-- **Tesseract** reads more than 100 languages in most scripts, for example Bangla, Hindi, Arabic, Russian, Greek, Thai, Chinese, Japanese and Korean. Each language needs a one-time download of its data, from 0.4 MB to 12 MB.
+- **ML Kit** reads five scripts: Latin (English, French, Spanish and the like), Chinese (simplified and traditional), Japanese, Korean and Devanagari (Hindi, Marathi, Nepali and the like). Each script has its own recognizer, and the Chinese, Japanese, Korean and Devanagari ones read Latin words mixed into the text as well. In the Play Store build, Google Play services downloads a script's recognizer the first time you scan in it; until it arrives, the panel asks you to try again in a minute. Other builds carry all five, so nothing is downloaded.
+- **Tesseract** reads more than 100 languages in most scripts, for example Bangla, Arabic, Russian, Greek, Thai, Tamil and Tibetan. Each language needs a one-time download of its data, from 0.4 MB to 12 MB.
 - **Online model** sends the photo to an online reader and shows the text it sends back. It reads any script, mixed scripts and handwriting, with no language data to download. The reader is one you add: a model that can read images, through any service with an OpenAI-compatible API (OpenAI, OpenRouter, Gemini, Mistral, or Ollama or LM Studio on your own computer), or a [Rens](https://git.maid.zone/stuff/rens) server, a free front end to Google Lens. See [Reading text online](#reading-text-online).
 
-With **Text recognition** on **Automatic** (the default), Latin-script languages read with ML Kit and every other script reads with Tesseract. The scanner reads in the language you're typing in when you open it. If you've turned on more than one language, a chip at the bottom left of the viewfinder names the text's language, and tapping it steps to the next one without switching your keyboard. On Automatic, all your Latin-script languages share one stop on the chip, since ML Kit reads them the same way.
+With **Text recognition** on **Automatic** (the default), languages in ML Kit's five scripts read with ML Kit and every other script reads with Tesseract. Chinese, Japanese, Korean and Hindi used to go to Tesseract, whose small models read them poorly. The scanner reads in the language you're typing in when you open it. If you've turned on more than one language, a chip at the bottom left of the viewfinder names the text's language, and tapping it steps to the next one without switching your keyboard. All your languages that read the same way share one stop on the chip: on Automatic, every Latin-script language is one stop, and so is every Devanagari one.
 
 A language without Tesseract data of its own reads with the main one for its script: Maithili and other Devanagari languages read with Hindi's, and a Latin-script language with no data of its own reads with English's.
 
@@ -85,7 +85,7 @@ Recognition for both OCR and the QR/barcode scanner runs entirely on-device, so 
 <SettingsPath path="Tools / Text scan (OCR) / Options" />
 
 - **Start with everything selected**: on by default, described above.
-- **Text recognition**: **Automatic** (the default), **ML Kit**, **Tesseract** or **Online model**. See [which languages it reads](#which-languages-it-reads). ML Kit and the online model ignore the text's language, so the viewfinder shows no language chip with them. Tesseract reads Latin script too, usually slower than ML Kit.
+- **Text recognition**: **Automatic** (the default), **ML Kit**, **Tesseract** or **Online model**. See [which languages it reads](#which-languages-it-reads). The online model ignores the text's language, so the viewfinder shows no language chip with it. With ML Kit the chip picks its recognizer, and a language in a script ML Kit has no recognizer for reads with the Latin one. Tesseract reads Latin script too, usually slower than ML Kit.
 
 ### Reading text online
 
@@ -128,4 +128,4 @@ Once you're back in your app, each captured page is inserted exactly like a Came
 
 ## Why full only
 
-OCR depends on ML Kit's text-recognition library and on a Tesseract library built into the app, about 1.7 MB on a 64-bit phone. QR/barcode scanning depends on ML Kit's barcode-scanning library. Document scanning depends on Google Play services' document scanner module. All three are compiled into the full build and left out of lite entirely, rather than hidden behind a toggle, so the Scanners group doesn't appear in the lite toolbox or toolbar at all. See [Full vs Lite](/start/editions/) if you're deciding between builds.
+OCR depends on ML Kit's text-recognition libraries, one for each of its five scripts, and on a Tesseract library built into the app, about 1.7 MB on a 64-bit phone. QR/barcode scanning depends on ML Kit's barcode-scanning library. Document scanning depends on Google Play services' document scanner module. All three are compiled into the full build and left out of lite entirely, rather than hidden behind a toggle, so the Scanners group doesn't appear in the lite toolbox or toolbar at all. See [Full vs Lite](/start/editions/) if you're deciding between builds.

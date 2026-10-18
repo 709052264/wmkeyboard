@@ -51,6 +51,10 @@ mlkitTranslate = "17.0.3"
 mlkitLanguageId = "17.0.6"
 mlkitDynamicFeatureSupport = "16.0.0-beta2"
 mlkitTextRecognition = "16.0.1"
+# The Chinese, Japanese, Korean and Devanagari recognizers (#757). Bundled they
+# cost about 4 MB per script per ABI; the unbundled twins below share this
+# version.
+mlkitTextRecognitionScripts = "16.0.1"
 mlkitBarcode = "17.3.0"
 # Unbundled twins of the two bundled ML Kit artifacts above, used by
 # Play-channel builds only (see :feature:ime): Play services downloads the
@@ -59,6 +63,7 @@ mlkitBarcode = "17.3.0"
 # work without GMS. The version lines differ because Google numbers the
 # unbundled artifacts independently of the bundled ones.
 mlkitTextRecognitionUnbundled = "19.0.1"
+mlkitTextRecognitionScriptsUnbundled = "16.0.1"
 mlkitBarcodeUnbundled = "18.3.1"
 mlkitDocScanner = "16.0.0"
 # Unbundled: the model is downloaded from Play services on first use, so
@@ -226,6 +231,14 @@ mlkit-language-id = { group = "com.google.mlkit", name = "language-id", version.
 mlkit-dynamic-feature-support = { group = "com.google.mlkit", name = "playstore-dynamic-feature-support", version.ref = "mlkitDynamicFeatureSupport" }
 mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
 mlkit-barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkitBarcode" }
+mlkit-text-recognition-chinese = { group = "com.google.mlkit", name = "text-recognition-chinese", version.ref = "mlkitTextRecognitionScripts" }
+mlkit-text-recognition-japanese = { group = "com.google.mlkit", name = "text-recognition-japanese", version.ref = "mlkitTextRecognitionScripts" }
+mlkit-text-recognition-korean = { group = "com.google.mlkit", name = "text-recognition-korean", version.ref = "mlkitTextRecognitionScripts" }
+mlkit-text-recognition-devanagari = { group = "com.google.mlkit", name = "text-recognition-devanagari", version.ref = "mlkitTextRecognitionScripts" }
+mlkit-text-recognition-chinese-unbundled = { group = "com.google.android.gms", name = "play-services-mlkit-text-recognition-chinese", version.ref = "mlkitTextRecognitionScriptsUnbundled" }
+mlkit-text-recognition-japanese-unbundled = { group = "com.google.android.gms", name = "play-services-mlkit-text-recognition-japanese", version.ref = "mlkitTextRecognitionScriptsUnbundled" }
+mlkit-text-recognition-korean-unbundled = { group = "com.google.android.gms", name = "play-services-mlkit-text-recognition-korean", version.ref = "mlkitTextRecognitionScriptsUnbundled" }
+mlkit-text-recognition-devanagari-unbundled = { group = "com.google.android.gms", name = "play-services-mlkit-text-recognition-devanagari", version.ref = "mlkitTextRecognitionScriptsUnbundled" }
 mlkit-text-recognition-unbundled = { group = "com.google.android.gms", name = "play-services-mlkit-text-recognition", version.ref = "mlkitTextRecognitionUnbundled" }
 mlkit-barcode-scanning-unbundled = { group = "com.google.android.gms", name = "play-services-mlkit-barcode-scanning", version.ref = "mlkitBarcodeUnbundled" }
 mlkit-document-scanner = { group = "com.google.android.gms", name = "play-services-mlkit-document-scanner", version.ref = "mlkitDocScanner" }

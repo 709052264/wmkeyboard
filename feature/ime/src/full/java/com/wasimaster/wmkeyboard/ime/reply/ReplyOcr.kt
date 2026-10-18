@@ -2,10 +2,10 @@ package com.wasimaster.wmkeyboard.ime.reply
 
 import android.graphics.Bitmap
 import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.google.android.gms.tasks.Task
+import com.wasimaster.wmkeyboard.core.ocr.MlKitScript
+import com.wasimaster.wmkeyboard.ime.ocr.MlKitRecognizers
 import com.wasimaster.wmkeyboard.core.tools.ReplyOcrLines
 import com.wasimaster.wmkeyboard.core.tools.ReplyTurn
 import kotlin.coroutines.resume
@@ -34,12 +34,13 @@ import kotlinx.coroutines.suspendCancellableCoroutine
  */
 object ReplyOcr {
 
-    /** The full build has ML Kit's Latin recognizer bundled. */
+    /** The full build carries ML Kit's text recognizers. */
     val available: Boolean get() = BuildConfig.ENABLE_ML_KIT_SCANNERS
 
     /**
      * [bitmap] read as a conversation, oldest first, from the part of it
-     * [frame] says is the chat.
+     * [frame] says is the chat, with the recognizer for [script]: the
+     * keyboard's language, as the best guess at the chat's (#757).
      *
      * Returns an empty list when nothing legible was found, which the caller
      * reports as "no text found" rather than as a failure — a photo of a sunset
@@ -49,9 +50,10 @@ object ReplyOcr {
     suspend fun read(
         bitmap: Bitmap,
         frame: ReplyOcrLines.ReplyOcrFrame = ReplyOcrLines.ReplyOcrFrame(),
+        script: MlKitScript = MlKitScript.LATIN,
     ): List<ReplyTurn> {
         if (!available) return emptyList()
-        val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+        val recognizer = MlKitRecognizers.client(script)
         return try {
             val result = recognizer.process(InputImage.fromBitmap(bitmap, 0)).await()
             val lines = result.textBlocks

@@ -44,9 +44,26 @@ class OcrLanguagesTest {
     }
 
     @Test
-    fun autoLeavesLatinToMlKit() {
+    fun autoLeavesMlKitsScriptsToMlKit() {
         assertNull(OcrLanguages.tesseractPack(OcrEngine.AUTO, lang("en"), true))
         assertEquals("ben", OcrLanguages.tesseractPack(OcrEngine.AUTO, lang("bn"), true))
+        // #757: ML Kit has its own recognizers for these, and reads them better.
+        for (id in listOf("zh", "yue", "ja", "ko", "hi", "mr", "mai")) {
+            assertNull(id, OcrLanguages.tesseractPack(OcrEngine.AUTO, lang(id), true))
+        }
+    }
+
+    @Test
+    fun eachScriptGetsItsMlKitRecognizer() {
+        assertEquals(MlKitScript.LATIN, OcrLanguages.mlKitScript(lang("en")))
+        assertEquals(MlKitScript.CHINESE, OcrLanguages.mlKitScript(lang("zh")))
+        assertEquals(MlKitScript.CHINESE, OcrLanguages.mlKitScript(lang("yue")))
+        assertEquals(MlKitScript.JAPANESE, OcrLanguages.mlKitScript(lang("ja")))
+        assertEquals(MlKitScript.KOREAN, OcrLanguages.mlKitScript(lang("ko")))
+        assertEquals(MlKitScript.DEVANAGARI, OcrLanguages.mlKitScript(lang("hi")))
+        assertNull(OcrLanguages.mlKitScript(lang("bn")))
+        // Forced onto ML Kit, a script it cannot read falls back to Latin as before.
+        assertEquals(MlKitScript.LATIN, OcrLanguages.mlKitRecognizer(lang("bn")))
     }
 
     @Test
@@ -58,14 +75,21 @@ class OcrLanguagesTest {
 
     @Test
     fun chipOffersOneLanguagePerWayOfReading() {
-        val enabled = listOf(lang("en"), lang("fr"), lang("bn"), lang("ipa"))
-        // English and French both go to ML Kit under Auto; IPA reads with nothing.
-        assertEquals(listOf("en", "bn"), OcrLanguages.chipLanguages(OcrEngine.AUTO, enabled, true).map { it.id })
+        val enabled = listOf(lang("en"), lang("fr"), lang("bn"), lang("ja"), lang("ipa"))
+        // English and French share ML Kit's Latin recognizer under Auto; IPA reads with nothing.
         assertEquals(
-            listOf("en", "fr", "bn"),
+            listOf("en", "bn", "ja"),
+            OcrLanguages.chipLanguages(OcrEngine.AUTO, enabled, true).map { it.id },
+        )
+        assertEquals(
+            listOf("en", "fr", "bn", "ja"),
             OcrLanguages.chipLanguages(OcrEngine.TESSERACT, enabled, true).map { it.id },
         )
-        assertTrue(OcrLanguages.chipLanguages(OcrEngine.ML_KIT, enabled, true).isEmpty())
+        // ML Kit alone: Bangla falls back to the Latin recognizer, Japanese has its own.
+        assertEquals(listOf("en", "ja"), OcrLanguages.chipLanguages(OcrEngine.ML_KIT, enabled, true).map { it.id })
+        // Without Tesseract the chip still picks between ML Kit's recognizers.
+        assertEquals(listOf("en", "ja"), OcrLanguages.chipLanguages(OcrEngine.AUTO, enabled, false).map { it.id })
+        assertTrue(OcrLanguages.chipLanguages(OcrEngine.ONLINE, enabled, true).isEmpty())
     }
 
     @Test

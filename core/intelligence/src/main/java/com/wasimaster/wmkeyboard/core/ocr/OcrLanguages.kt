@@ -75,15 +75,41 @@ object OcrLanguages {
         return when (engine) {
             OcrEngine.ML_KIT, OcrEngine.ONLINE -> null
             OcrEngine.TESSERACT -> pack
-            // ML Kit's recognizer here is the Latin one.
-            OcrEngine.AUTO -> pack.takeIf { language.script != ScriptId.LATIN }
+            // ML Kit reads its five scripts better than tessdata_fast does,
+            // CJK above all (#757), and needs no download.
+            OcrEngine.AUTO -> pack.takeIf { mlKitScript(language) == null }
         }
     }
 
     /**
+     * The ML Kit recognizer that reads [language], or null when ML Kit has
+     * none for its script. Each non-Latin recognizer reads Latin as well, so
+     * English words in a Japanese sign still come through.
+     */
+    fun mlKitScript(language: LanguageDef): MlKitScript? {
+        if (language.id in notText) return null
+        return when (language.script) {
+            ScriptId.LATIN -> MlKitScript.LATIN
+            ScriptId.HAN -> MlKitScript.CHINESE
+            ScriptId.JAPANESE -> MlKitScript.JAPANESE
+            ScriptId.HANGUL -> MlKitScript.KOREAN
+            ScriptId.DEVANAGARI -> MlKitScript.DEVANAGARI
+            else -> null
+        }
+    }
+
+    /**
+     * The recognizer ML Kit reads [language] with when it reads it at all:
+     * a script ML Kit has no recognizer for falls back to the Latin one, as
+     * it always did under [OcrEngine.ML_KIT].
+     */
+    fun mlKitRecognizer(language: LanguageDef): MlKitScript = mlKitScript(language) ?: MlKitScript.LATIN
+
+    /**
      * The languages the viewfinder's language chip steps through: one per
      * distinct way of reading, so two languages that read with the same pack,
-     * or both with ML Kit, do not both appear. Empty under [OcrEngine.ML_KIT],
+     * or both with the same ML Kit recognizer, do not both appear. The panel
+     * shows the chip only with two or more. Empty under [OcrEngine.ONLINE],
      * where the language makes no difference.
      */
     fun chipLanguages(
@@ -91,13 +117,18 @@ object OcrLanguages {
         enabled: List<LanguageDef>,
         tesseractAvailable: Boolean,
     ): List<LanguageDef> {
-        // The online model reads any script, so the language changes nothing there either.
-        if (engine == OcrEngine.ML_KIT || engine == OcrEngine.ONLINE || !tesseractAvailable) return emptyList()
+        // The online model reads any script, so the language changes nothing there.
+        if (engine == OcrEngine.ONLINE) return emptyList()
         return enabled.filter { packFor(it) != null }
-            .distinctBy { tesseractPack(engine, it, true) ?: ML_KIT_ROUTE }
+            .distinctBy { route(engine, it, tesseractAvailable) }
     }
 
-    private const val ML_KIT_ROUTE = ""
+    /**
+     * What reads [language] under [engine], as a key: two languages with the
+     * same key read the same way.
+     */
+    fun route(engine: OcrEngine, language: LanguageDef, tesseractAvailable: Boolean): String =
+        tesseractPack(engine, language, tesseractAvailable) ?: "mlkit:${mlKitRecognizer(language)}"
 
     // Keyboard language id -> pack, for every language with a pack of its own.
     // Sizes are the 4.1.0 files, for progress and the storage check.
@@ -182,3 +213,6 @@ object OcrLanguages {
         "yid" to 545606L, "yor" to 963400L,
     )
 }
+
+/** ML Kit's text recognizers, one per script it reads. */
+enum class MlKitScript { LATIN, CHINESE, JAPANESE, KOREAN, DEVANAGARI }
