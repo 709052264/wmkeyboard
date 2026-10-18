@@ -66,9 +66,43 @@ class RemoteInputMathTest {
         val one = PointerAcceleration(1f, accelerate = true)
         val two = PointerAcceleration(2f, accelerate = true)
         assertEquals(one.gain(8.0, 16) * 2, two.gain(8.0, 16), 1e-9)
-        val (dx, dy) = one.apply(-3.0, 4.0, 16)
+        val (dx, dy) = PointerAcceleration(1f, accelerate = false).apply(-30.0, 40.0, 16)
         assertTrue(dx < 0 && dy > 0)
         assertEquals(-3.0 / 4.0, dx / dy, 1e-9)
+    }
+
+    @Test
+    fun `only whole pixels go out and the fraction is carried, not lost`() {
+        val flat = PointerAcceleration(1f, accelerate = false)
+        // 0.3 dp a frame is 0.54 px: nothing the first frame, a pixel the second.
+        var sent = 0.0
+        repeat(100) {
+            val (dx, _) = flat.apply(0.3, 0.0, 8)
+            assertEquals(dx, kotlin.math.truncate(dx), 0.0)
+            sent += dx
+        }
+        assertEquals(100 * 0.3 * PointerAcceleration.BASE_GAIN, sent, 1.0)
+        // A new touch starts with nothing owed.
+        flat.reset()
+        assertEquals(0.0, flat.apply(0.3, 0.0, 8).first, 0.0)
+    }
+
+    @Test
+    fun `an uneven frame cadence does not make a steady drag lurch`() {
+        // The same steady 0.5 dp/ms, delivered 4 ms then 12 ms apart, with the
+        // short frame reading slow because touch timestamps are coarse.
+        val curve = PointerAcceleration(1f, accelerate = true)
+        val raw = PointerAcceleration(1f, accelerate = true)
+        repeat(20) {
+            curve.apply(1.0, 0.0, 4)
+            curve.apply(7.0, 0.0, 12)
+        }
+        val (smoothFast, _) = curve.apply(7.0, 0.0, 12)
+        val swing = raw.gain(7.0, 12) / raw.gain(1.0, 4)
+        // Per-frame gain would differ by [swing]; smoothed, a long frame's gain
+        // sits far closer to its neighbours'.
+        assertTrue(swing > 1.4)
+        assertTrue(smoothFast / 7.0 < raw.gain(7.0, 12))
     }
 
     @Test

@@ -224,6 +224,9 @@ internal class LanTransport(
         val socket = Socket()
         try {
             socket.keepAlive = true
+            // Nagle would hold each small pointer packet back until the last
+            // one is acknowledged, so a drag reached the desktop in bursts.
+            socket.tcpNoDelay = true
             socket.connect(InetSocketAddress(address, port), CONNECT_TIMEOUT_MS)
             socket.soTimeout = HANDSHAKE_TIMEOUT_MS
             val me = self()
@@ -262,6 +265,7 @@ internal class LanTransport(
                 return
             }
             socket.keepAlive = true
+            socket.tcpNoDelay = true
             socket.soTimeout = HANDSHAKE_TIMEOUT_MS
             // Byte by byte on purpose: a buffered reader would swallow the
             // start of the TLS stream that follows this one line.

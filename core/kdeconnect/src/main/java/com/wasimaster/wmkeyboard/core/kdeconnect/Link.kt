@@ -22,7 +22,8 @@ import javax.net.ssl.SSLSocket
  * both ways until somebody closes it.
  *
  * One coroutine reads and one writes. All writes funnel through one outbox so two
- * callers can never interleave half a packet each, and  * what is queued: a finger dragging across the touchpad makes a packet per
+ * callers can never interleave half a packet each, and the writer looks at
+ * what is queued: a finger dragging across the touchpad makes a packet per
  * frame, and when the socket falls behind, consecutive pure-movement packets
  * are **added together** rather than sent one by one. The pointer lands in the
  * same place, and the backlog that would otherwise play out as a slow-motion

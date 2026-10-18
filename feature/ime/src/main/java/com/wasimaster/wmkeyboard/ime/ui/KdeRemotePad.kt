@@ -109,6 +109,7 @@ internal fun KdeRemotePad(
                     val down = awaitFirstDown(requireUnconsumed = false)
                     down.consume()
                     scroll.reset()
+                    acceleration.reset()
                     val downPos = down.position
                     var last = downPos
                     var lastTime = down.uptimeMillis
@@ -181,7 +182,7 @@ internal fun KdeRemotePad(
                                     ?.let { (sx, sy) -> current.value.onScroll(sx, sy) }
                             } else {
                                 val (mx, my) = acceleration.apply(dx / density.toDouble(), dy / density.toDouble(), elapsed)
-                                current.value.onMove(mx, my)
+                                if (mx != 0.0 || my != 0.0) current.value.onMove(mx, my)
                             }
                         }
                     } finally {

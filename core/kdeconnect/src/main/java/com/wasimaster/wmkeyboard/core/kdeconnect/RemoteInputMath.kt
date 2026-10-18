@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.core.kdeconnect
 
 import kotlin.math.abs
 import kotlin.math.hypot
+import kotlin.math.truncate
 
 /**
  * How to turn what the PC has been sent into what the keyboard's line now says:
@@ -51,24 +52,55 @@ object RemoteTextDiff {
  *
  * Input is in dp, not pixels, so the same swipe means the same thing on every
  * phone.
+ *
+ * One instance lives for one pad and is [reset] at every touch-down, because
+ * [apply] keeps two kinds of state across frames:
+ * - **the speed is smoothed.** Touch frames arrive 4 ms apart, then 12, then 8;
+ *   a speed read off one frame swings with that cadence, and so would the gain,
+ *   so a steady drag came out as a pointer lurching faster and slower.
+ * - **the fraction left over is carried.** An X11 desktop truncates a delta to
+ *   whole pixels, so a slow drag sending 0.6 a frame moved nothing at all and
+ *   then jumped once the finger sped up. Only whole pixels go out; the rest
+ *   waits for the next frame.
  */
 class PointerAcceleration(
     /** The user's multiplier, 1 = default. */
     private val sensitivity: Float,
     private val accelerate: Boolean,
 ) {
-    /** The gain for a movement of [distanceDp] over [elapsedMs]. */
-    fun gain(distanceDp: Double, elapsedMs: Long): Double {
+    private var speed = Double.NaN
+    private var carryX = 0.0
+    private var carryY = 0.0
+
+    /** A new touch: no speed yet, nothing owed from the last one. */
+    fun reset() {
+        speed = Double.NaN
+        carryX = 0.0
+        carryY = 0.0
+    }
+
+    /** The gain for a movement of [distanceDp] over [elapsedMs], with no history. */
+    fun gain(distanceDp: Double, elapsedMs: Long): Double = gainAt(distanceDp / elapsedMs.coerceIn(1, MAX_FRAME_MS))
+
+    private fun gainAt(speedDpPerMs: Double): Double {
         val base = BASE_GAIN * sensitivity
         if (!accelerate) return base
-        val speed = distanceDp / elapsedMs.coerceIn(1, MAX_FRAME_MS)
-        val curve = (SLOW_GAIN + (speed / KNEE_DP_PER_MS) * (1.0 - SLOW_GAIN) * 2.0).coerceIn(SLOW_GAIN, MAX_BOOST)
+        val curve = (SLOW_GAIN + (speedDpPerMs / KNEE_DP_PER_MS) * (1.0 - SLOW_GAIN) * 2.0).coerceIn(SLOW_GAIN, MAX_BOOST)
         return base * curve
     }
 
+    /** Whole desktop pixels to send for this frame's finger travel; often (0, 0). */
     fun apply(dxDp: Double, dyDp: Double, elapsedMs: Long): Pair<Double, Double> {
-        val g = gain(hypot(dxDp, dyDp), elapsedMs)
-        return dxDp * g to dyDp * g
+        val sample = hypot(dxDp, dyDp) / elapsedMs.coerceIn(1, MAX_FRAME_MS)
+        speed = if (speed.isNaN()) sample else speed + (sample - speed) * SPEED_SMOOTHING
+        val g = gainAt(speed)
+        carryX += dxDp * g
+        carryY += dyDp * g
+        val outX = truncate(carryX)
+        val outY = truncate(carryY)
+        carryX -= outX
+        carryY -= outY
+        return outX to outY
     }
 
     companion object {
@@ -80,6 +112,9 @@ class PointerAcceleration(
         /** The speed at which the curve crosses 1×: about a relaxed drag. */
         const val KNEE_DP_PER_MS = 0.55
         const val MAX_FRAME_MS = 64L
+
+        /** How far each frame pulls the smoothed speed towards its own: a few frames to settle. */
+        const val SPEED_SMOOTHING = 0.35
     }
 }
 
