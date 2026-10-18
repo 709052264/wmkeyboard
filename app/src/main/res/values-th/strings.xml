@@ -7634,12 +7634,6 @@
     <string name="tooldetail_ocr_info">การจดจำทำงานบนอุปกรณ์ของคุณด้วย ML Kit ไม่มีรูปภาพหรือข้อความใดออกจากอุปกรณ์ของคุณ และทำงานแบบออฟไลน์ได้ โดยจะอ่านข้อความอักษรละติน เช่น ภาษาอังกฤษ ตัวจดจำข้อความของ ML Kit ยังไม่รองรับภาษาเบงกาลี หลังจากจับภาพแล้ว ให้กดที่คำเพื่อเลือกสิ่งที่คุณต้องการให้แป้นพิมพ์พิมพ์หรือคัดลอกอย่างแม่นยำ</string>
     <string name="tooldetail_ocr_online_group">โปรแกรมอ่านข้อความออนไลน์</string>
     <string name="tooldetail_ocr_online_info">รูปภาพจะถูกส่งไปยังโมเดลที่สามารถอ่านรูปภาพได้ตามที่อยู่ที่คุณเลือก และโมเดลจะเขียนข้อความที่เห็นออกมา โดยสามารถอ่านได้ทุกภาษาและไม่จำเป็นต้องใช้ข้อมูลภาษา บริการใดก็ตามที่มี API ที่เข้ากันได้กับ OpenAI สามารถใช้งานได้ เช่น OpenAI, OpenRouter, Gemini, Mistral หรือโมเดลบนคอมพิวเตอร์ของคุณเองด้วย Ollama หรือ LM Studio การสแกนแต่ละครั้งจะส่งรูปภาพไปยังบริการนั้น และบริการอาจมีค่าใช้จ่าย</string>
-    <string name="tooldetail_ocr_online_key_hint">เว้นว่างไว้สำหรับเซิร์ฟเวอร์ที่ไม่ต้องการคีย์</string>
-    <string name="tooldetail_ocr_online_key_label">คีย์ API</string>
-    <string name="tooldetail_ocr_online_model_hint">โมเดลที่อ่านรูปภาพ เช่น gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">โมเดล</string>
-    <string name="tooldetail_ocr_online_url_hint">ตัวอย่างเช่น https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">ที่อยู่</string>
     <string name="tooldetail_ocr_packs_header">ภาษาของ Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract จะอ่านภาษาได้ก็ต่อเมื่อมีข้อมูลสำหรับภาษานั้นบนอุปกรณ์ของคุณแล้ว โดยต้องดาวน์โหลดหนึ่งครั้งสำหรับแต่ละภาษาที่คุณพิมพ์ ขนาดตั้งแต่ 0.4 MB ถึง 12 MB ข้อมูลมาจากชุด tessdata_fast ของโปรเจกต์ Tesseract บน GitHub คุณยังสามารถดาวน์โหลดภาษาจากตัวเครื่องสแกนได้โดยตรง</string>
     <string name="tooldetail_ocr_packs_none_info">ไม่มีภาษาที่คุณเปิดใช้งานที่มีข้อมูล Tesseract ให้เพิ่มภาษาในหน้าจอภาษา แล้วข้อมูลจะปรากฏที่นี่</string>

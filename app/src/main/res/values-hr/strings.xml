@@ -7650,12 +7650,6 @@
     <string name="tooldetail_ocr_info">Prepoznavanje se izvodi na vašem uređaju pomoću ML Kit-a. Nijedna fotografija i nijedan tekst ne napuštaju vaš uređaj, a radi izvanmrežno. Čita tekst latiničnim pismom, na primjer engleski. ML Kit prepoznavanje teksta još ne podržava bengalski jezik. Nakon snimanja, pritisnite riječi kako biste točno odabrali što tipkovnica upisuje ili kopira.</string>
     <string name="tooldetail_ocr_online_group">Online čitač teksta</string>
     <string name="tooldetail_ocr_online_info">Fotografija odlazi modelu koji može čitati slike, na adresu koju odaberete, a model ispisuje tekst koji vidi. Čita bilo koje pismo i ne treba podatke o jeziku. Radi bilo koja usluga s OpenAI-kompatibilnim API-jem: OpenAI, OpenRouter, Gemini, Mistral ili model na vašem računalu s Ollama ili LM Studio. Svako skeniranje šalje fotografiju toj usluzi, a usluga može naplatiti tu radnju.</string>
-    <string name="tooldetail_ocr_online_key_hint">Ostavite prazno za poslužitelj koji ne traži ključ</string>
-    <string name="tooldetail_ocr_online_key_label">API ključ</string>
-    <string name="tooldetail_ocr_online_model_hint">Model koji čita slike, na primjer gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Model</string>
-    <string name="tooldetail_ocr_online_url_hint">Na primjer https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Adresa</string>
     <string name="tooldetail_ocr_packs_header">Tesseract jezici</string>
     <string name="tooldetail_ocr_packs_info">Tesseract čita jezik tek nakon što su podaci za taj jezik na vašem uređaju. Za svaki jezik na kojem tipkate postoji jedno preuzimanje, od 0,4 MB do 12 MB. Podaci dolaze iz skupa tessdata_fast projekta Tesseract na GitHubu. Jezik možete preuzeti i iz samog skenera.</string>
     <string name="tooldetail_ocr_packs_none_info">Nijedan od jezika koje ste uključili nema Tesseract podatke. Dodajte jezik na zaslonu Jezici. Njegovi podaci će se tada prikazati ovdje.</string>

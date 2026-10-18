@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
@@ -83,6 +84,7 @@ import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
+import com.wasimaster.wmkeyboard.ime.ProviderPicks
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.TranslateUi
 
@@ -430,6 +432,10 @@ private fun TranslateLanguageRow(
     val translate = state.translate
     val target = state.settings.translateTargetLang
     val engine = if (OnDeviceTranslator.AVAILABLE) state.settings.translate.engine else TranslateEngine.ONLINE
+    // Pick mode (#727): a chooser of the providers that are on takes the
+    // engine chip's place, since choosing the phone is choosing the engine.
+    val providers = rememberProviderChoices(ProviderTool.TRANSLATE, state.settings)
+    val engineChip = OnDeviceTranslator.AVAILABLE && providers == null
     val menu = menus.open
     val rows = menu?.let { translateMenuRows(it, translate, target, engine, state.settings, menus.showAll) }.orEmpty()
     val pick: (TranslateMenu, String) -> Unit = { which, key ->
@@ -456,7 +462,7 @@ private fun TranslateLanguageRow(
         add(TranslateMenu.SOURCE)
         add(null) // swap
         add(TranslateMenu.TARGET)
-        if (OnDeviceTranslator.AVAILABLE) add(TranslateMenu.ENGINE)
+        if (engineChip) add(TranslateMenu.ENGINE)
     }
     PanelFocusTarget(
         panel = PanelMode.TRANSLATE,
@@ -544,7 +550,7 @@ private fun TranslateLanguageRow(
         // The on-device engine standing in while offline (#452) says so too:
         // the chip still reads "Online".
         val via = when {
-            translate.translated.isEmpty() -> null
+            translate.translated.isEmpty() || providers != null -> null
             translate.offlineStandIn -> R.string.ime_translate_offline_standin_label
             translate.viaServer -> R.string.ime_translate_server_label
             translate.viaDeepL -> R.string.ime_translate_deepl_label
@@ -568,7 +574,9 @@ private fun TranslateLanguageRow(
                 color = kb.accent,
             )
         }
-        if (OnDeviceTranslator.AVAILABLE) {
+        if (providers != null) {
+            ProviderChooser(providers, onPick = { ProviderPicks.choose(ProviderTool.TRANSLATE, it) })
+        } else if (engineChip) {
             Box {
                 TranslateChip(
                     label = stringResource(engine.labelRes),

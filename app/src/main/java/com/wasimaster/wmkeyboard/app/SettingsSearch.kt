@@ -1306,6 +1306,8 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.CAMERA, R.string.location_camera_caption_title, R.string.location_camera_caption_subtitle),
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_search_with_title),
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_search_engine_title),
+    // #727: the photo-translate provider list.
+    toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_translate_group, keywords = R.string.search_kw_photo_translate),
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_shutter_title, R.string.tooldetail_camera_shutter_subtitle),
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_haptics_title, R.string.tooldetail_camera_haptics_subtitle),
     toolEntry(ToolbarTool.DICTIONARY, R.string.tooldetail_dictionary_auto_title, R.string.tooldetail_dictionary_auto_subtitle),

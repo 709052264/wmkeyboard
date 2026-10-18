@@ -7642,12 +7642,6 @@
     <string name="tooldetail_ocr_info">Разпознаването се извършва на вашето устройство чрез ML Kit. Никакви снимки или текст не напускат устройството ви и функцията работи офлайн. Тя разчита текст на латиница, например на английски. Инструментът за разпознаване на текст на ML Kit все още не поддържа бенгалски език. След заснемане натиснете върху думите, за да изберете точно това, което клавиатурата да въведе или копира.</string>
     <string name="tooldetail_ocr_online_group">Онлайн четец на текст</string>
     <string name="tooldetail_ocr_online_info">Снимката отива към модел, който може да чете изображения, на адрес, който изберете, и моделът изписва текста, който вижда. Той чете всяка писменост и не се нуждае от езикови данни. Всяка услуга с OpenAI-съвместим API работи: OpenAI, OpenRouter, Gemini, Mistral или модел на вашия собствен компютър с Ollama или LM Studio. Всяко сканиране изпраща снимката към тази услуга и услугата може да таксува за това.</string>
-    <string name="tooldetail_ocr_online_key_hint">Оставете празно за сървър, който не изисква ключ</string>
-    <string name="tooldetail_ocr_online_key_label">API ключ</string>
-    <string name="tooldetail_ocr_online_model_hint">Модел, който чете изображения, например gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Модел</string>
-    <string name="tooldetail_ocr_online_url_hint">Например https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Адрес</string>
     <string name="tooldetail_ocr_packs_header">Езици за Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract чете даден език само след като данните за него са на устройството ви. За всеки език, на който пишете, се изтегля по един пакет с размер от 0,4 MB до 12 MB. Данните идват от набора tessdata_fast на проекта Tesseract в GitHub. Можете също да изтеглите език директно от самия скенер.</string>
     <string name="tooldetail_ocr_packs_none_info">Никой от активираните от вас езици няма данни за Tesseract. Добавете език на екрана „Езици“. След това данните му ще се покажат тук.</string>

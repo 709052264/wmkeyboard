@@ -7639,12 +7639,6 @@
     <string name="tooldetail_ocr_info">Η αναγνώριση εκτελείται στη συσκευή σας με το ML Kit. Καμία φωτογραφία και κανένα κείμενο δεν φεύγει από τη συσκευή σας και λειτουργεί εκτός σύνδεσης. Διαβάζει κείμενο με λατινικούς χαρακτήρες, για παράδειγμα αγγλικά. Ο αναγνωριστής κειμένου του ML Kit δεν υποστηρίζει ακόμη Βεγγαλικά. Μετά από μια λήψη, πατήστε λέξεις για να επιλέξετε ακριβώς τι πληκτρολογεί ή αντιγράφει το πληκτρολόγιο.</string>
     <string name="tooldetail_ocr_online_group">Διαδικτυακός αναγνώστης κειμένου</string>
     <string name="tooldetail_ocr_online_info">Η φωτογραφία αποστέλλεται σε ένα μοντέλο ικανό να διαβάζει εικόνες, σε μια διεύθυνση της επιλογής σας, και το μοντέλο γράφει το κείμενο που βλέπει. Διαβάζει οποιαδήποτε γραφή και δεν χρειάζεται δεδομένα γλώσσας. Οποιαδήποτε υπηρεσία με API συμβατό με OpenAI λειτουργεί: OpenAI, OpenRouter, Gemini, Mistral ή ένα μοντέλο στον υπολογιστή σας με Ollama ή LM Studio. Κάθε σάρωση στέλνει τη φωτογραφία στην εν λόγω υπηρεσία, η οποία ενδέχεται να χρεώνει για αυτή την ενέργεια.</string>
-    <string name="tooldetail_ocr_online_key_hint">Αφήστε κενό για έναν διακομιστή που δεν απαιτεί κλειδί</string>
-    <string name="tooldetail_ocr_online_key_label">Κλειδί API</string>
-    <string name="tooldetail_ocr_online_model_hint">Ένα μοντέλο που διαβάζει εικόνες, για παράδειγμα το gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Μοντέλο</string>
-    <string name="tooldetail_ocr_online_url_hint">Για παράδειγμα https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Διεύθυνση</string>
     <string name="tooldetail_ocr_packs_header">Γλώσσες Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Το Tesseract διαβάζει μια γλώσσα μόνο αφού τα δεδομένα για αυτήν τη γλώσσα βρίσκονται στη συσκευή σας. Υπάρχει μία λήψη για κάθε γλώσσα στην οποία πληκτρολογείτε, από 0,4 MB έως 12 MB. Τα δεδομένα προέρχονται από το σύνολο tessdata_fast του έργου Tesseract στο GitHub. Μπορείτε επίσης να κατεβάσετε μια γλώσσα από τον ίδιο τον σαρωτή.</string>
     <string name="tooldetail_ocr_packs_none_info">Καμία από τις γλώσσες που ενεργοποιήσατε δεν διαθέτει δεδομένα Tesseract. Προσθέστε μια γλώσσα στην οθόνη Γλώσσες. Τα δεδομένα της θα εμφανιστούν τότε εδώ.</string>

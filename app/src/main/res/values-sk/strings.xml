@@ -7644,12 +7644,6 @@
     <string name="tooldetail_ocr_info">Rozpoznávanie prebieha vo vašom zariadení pomocou ML Kit. Žiadna fotografia ani text neopustia vaše zariadenie a funguje to offline. Číta text v latinke, napríklad v angličtine. Rozpoznávač textu ML Kit zatiaľ nepodporuje bengálčinu. Po zachytení stlačte slová, aby ste vybrali presne to, čo má klávesnica napísať alebo skopírovať.</string>
     <string name="tooldetail_ocr_online_group">Online čítačka textu</string>
     <string name="tooldetail_ocr_online_info">Fotografia sa odošle modelu, ktorý dokáže čítať obrázky, na vami zvolenú adresu a model vypíše text, ktorý vidí. Číta akékoľvek písmo a nepotrebuje žiadne jazykové dáta. Funguje akákoľvek služba s API kompatibilným s OpenAI: OpenAI, OpenRouter, Gemini, Mistral alebo model vo vašom vlastnom počítači s Ollama či LM Studio. Každé skenovanie odošle fotografiu do danej služby a služba si za to môže účtovať poplatok.</string>
-    <string name="tooldetail_ocr_online_key_hint">Nechajte prázdne pre server, ktorý nevyžaduje žiadny kľúč</string>
-    <string name="tooldetail_ocr_online_key_label">Kľúč API</string>
-    <string name="tooldetail_ocr_online_model_hint">Model, ktorý číta obrázky, napríklad gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Model</string>
-    <string name="tooldetail_ocr_online_url_hint">Napríklad https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Adresa</string>
     <string name="tooldetail_ocr_packs_header">Jazyky Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract číta jazyk až po stiahnutí údajov pre daný jazyk do vášho zariadenia. Pre každý jazyk, v ktorom píšete, je potrebné jedno stiahnutie s veľkosťou od 0,4 MB do 12 MB. Údaje pochádzajú zo sady tessdata_fast projektu Tesseract na GitHube. Jazyk si môžete stiahnuť aj priamo zo skenera.</string>
     <string name="tooldetail_ocr_packs_none_info">Žiaden z jazykov, ktoré ste zapli, nemá dáta pre Tesseract. Pridajte jazyk na obrazovke Jazyky. Jeho dáta sa potom zobrazia tu.</string>

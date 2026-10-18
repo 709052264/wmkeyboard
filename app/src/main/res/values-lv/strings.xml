@@ -7649,12 +7649,6 @@
     <string name="tooldetail_ocr_info">Atpazīšana darbojas jūsu ierīcē, izmantojot ML Kit. Neviens fotoattēls un teksts neatstāj jūsu ierīci, un tas darbojas bezsaistē. Tas nolasa latīņu alfabēta tekstu, piemēram, angļu valodu. ML Kit teksta atpazīšanas rīks vēl neatbalsta bengāļu valodu. Pēc uzņemšanas nospiediet uz vārdiem, lai precīzi atlasītu to, ko tastatūra raksta vai kopē.</string>
     <string name="tooldetail_ocr_online_group">Tiešsaistes teksta lasītājs</string>
     <string name="tooldetail_ocr_online_info">Fotoattēls tiek nosūtīts uz modeli, kas prot lasīt attēlus, uz jūsu izvēlētu adresi, un modelis pieraksta tajā redzamo tekstu. Tas nolasa jebkuru rakstību un tam nav nepieciešami valodas dati. Darbojas jebkurš pakalpojums ar OpenAI saderīgu API: OpenAI, OpenRouter, Gemini, Mistral vai modelis jūsu datorā ar Ollama vai LM Studio. Katra skenēšana nosūta fotoattēlu uz šo pakalpojumu, un pakalpojums var iekasēt maksu par to.</string>
-    <string name="tooldetail_ocr_online_key_hint">Atstājiet tukšu serverim, kuram nav nepieciešama atslēga</string>
-    <string name="tooldetail_ocr_online_key_label">API atslēga</string>
-    <string name="tooldetail_ocr_online_model_hint">Modelis, kas nolasa attēlus, piemēram, gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Modelis</string>
-    <string name="tooldetail_ocr_online_url_hint">Piemēram, https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Adrese</string>
     <string name="tooldetail_ocr_packs_header">Tesseract valodas</string>
     <string name="tooldetail_ocr_packs_info">Tesseract nolasa valodu tikai pēc tam, kad attiecīgās valodas dati atrodas jūsu ierīcē. Katrai valodai, kurā rakstāt, ir nepieciešama viena lejupielāde (no 0,4 MB līdz 12 MB). Dati nāk no Tesseract projekta tessdata_fast kopas vietnē GitHub. Valodu varat lejupielādēt arī no paša skenera.</string>
     <string name="tooldetail_ocr_packs_none_info">Nevienai no ieslēgtajām valodām nav Tesseract datu. Pievienojiet valodu valodu ekrānā. Pēc tam tās dati parādīsies šeit.</string>

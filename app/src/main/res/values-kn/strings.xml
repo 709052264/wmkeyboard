@@ -7662,12 +7662,6 @@
     <string name="tooldetail_ocr_info">ಗುರುತಿಸುವಿಕೆಯು ನಿಮ್ಮ ಸಾಧನದಲ್ಲಿ ML Kit ನೊಂದಿಗೆ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ. ಯಾವುದೇ ಫೋಟೋ ಮತ್ತು ಯಾವುದೇ ಪಠ್ಯವು ನಿಮ್ಮ ಸಾಧನವನ್ನು ಬಿಟ್ಟು ಹೋಗುವುದಿಲ್ಲ, ಮತ್ತು ಇದು ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ. ಇದು ಲ್ಯಾಟಿನ್ ಲಿಪಿಯ ಪಠ್ಯವನ್ನು ಓದುತ್ತದೆ, ಉದಾಹರಣೆಗೆ ಇಂಗ್ಲಿಷ್. ML Kit ನ ಪಠ್ಯ ಗುರುತಿಸುವಿಕೆಯು ಇನ್ನೂ ಬಂಗಾಳಿ ಭಾಷೆಯನ್ನು ಬೆಂಬಲಿಸುವುದಿಲ್ಲ. ಕ್ಯಾಪ್ಚರ್ ಮಾಡಿದ ನಂತರ, ಕೀಬೋರ್ಡ್ ಏನು ಟೈಪ್ ಮಾಡುತ್ತದೆ ಅಥವಾ ನಕಲಿಸುತ್ತದೆ ಎಂಬುದನ್ನು ನಿಖರವಾಗಿ ಆಯ್ಕೆ ಮಾಡಲು ಪದಗಳನ್ನು ಒತ್ತಿರಿ.</string>
     <string name="tooldetail_ocr_online_group">ಆನ್‌ಲೈನ್ ಪಠ್ಯ ಓದುಗ</string>
     <string name="tooldetail_ocr_online_info">ಫೋಟೋವನ್ನು ಚಿತ್ರಗಳನ್ನು ಓದಬಲ್ಲ ಮಾದರಿಗೆ ಕಳುಹಿಸಲಾಗುತ್ತದೆ, ನೀವು ಆಯ್ಕೆ ಮಾಡಿದ ವಿಳಾಸದಲ್ಲಿ, ಮತ್ತು ಮಾದರಿಯು ಅದು ನೋಡುವ ಪಠ್ಯವನ್ನು ಬರೆಯುತ್ತದೆ. ಇದು ಯಾವುದೇ ಲಿಪಿಯನ್ನು ಓದುತ್ತದೆ ಮತ್ತು ಯಾವುದೇ ಭಾಷಾ ಡೇಟಾದ ಅಗತ್ಯವಿಲ್ಲ. OpenAI-ಹೊಂದಾಣಿಕೆಯ API ಹೊಂದಿರುವ ಯಾವುದೇ ಸೇವೆಯು ಕೆಲಸ ಮಾಡುತ್ತದೆ: OpenAI, OpenRouter, Gemini, Mistral, ಅಥವಾ Ollama ಅಥವಾ LM Studio ನೊಂದಿಗೆ ನಿಮ್ಮ ಸ್ವಂತ ಕಂಪ್ಯೂಟರ್‌ನಲ್ಲಿರುವ ಮಾದರಿ. ಪ್ರತಿ ಸ್ಕ್ಯಾನ್ ಫೋಟೋವನ್ನು ಆ ಸೇವೆಗೆ ಕಳುಹಿಸುತ್ತದೆ ಮತ್ತು ಸೇವೆ ಅದಕ್ಕಾಗಿ ಶುಲ್ಕ ವಿಧಿಸಬಹುದು.</string>
-    <string name="tooldetail_ocr_online_key_hint">ಯಾವುದೇ ಕೀ ಕೇಳದ ಸರ್ವರ್‌ಗಾಗಿ ಖಾಲಿ ಬಿಡಿ</string>
-    <string name="tooldetail_ocr_online_key_label">API ಕೀ</string>
-    <string name="tooldetail_ocr_online_model_hint">ಚಿತ್ರಗಳನ್ನು ಓದುವ ಮಾದರಿ, ಉದಾಹರಣೆಗೆ gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">ಮಾದರಿ</string>
-    <string name="tooldetail_ocr_online_url_hint">ಉದಾಹರಣೆಗೆ https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">ವಿಳಾಸ</string>
     <string name="tooldetail_ocr_packs_header">ಟೆಸೆರಾಕ್ಟ್ ಭಾಷೆಗಳು</string>
     <string name="tooldetail_ocr_packs_info">ನಿಮ್ಮ ಸಾಧನದಲ್ಲಿ ಭಾಷೆಯ ಡೇಟಾ ಇದ್ದರೆ ಮಾತ್ರ Tesseract ಆ ಭಾಷೆಯನ್ನು ಓದುತ್ತದೆ. ನೀವು ಟೈಪ್ ಮಾಡುವ ಪ್ರತಿಯೊಂದು ಭಾಷೆಗೆ 0.4 MB ಯಿಂದ 12 MB ವರೆಗಿನ ಒಂದು ಡೌನ್‌ಲೋಡ್ ಇರುತ್ತದೆ. ಈ ಡೇಟಾ GitHub ನಲ್ಲಿರುವ Tesseract ಪ್ರಾಜೆಕ್ಟ್‌ನ tessdata_fast ಸೆಟ್‌ನಿಂದ ಬರುತ್ತದೆ. ನೀವು ಸ್ಕ್ಯಾನರ್‌ನಿಂದಲೇ ಭಾಷೆಯನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಬಹುದು.</string>
     <string name="tooldetail_ocr_packs_none_info">ನೀವು ಆನ್ ಮಾಡಿರುವ ಯಾವುದೇ ಭಾಷೆಗಳಲ್ಲಿ ಟೆಸೆರಾಕ್ಟ್ ಡೇಟಾ ಇಲ್ಲ. ಭಾಷೆಗಳ ಪರದೆಯಲ್ಲಿ ಭಾಷೆಯನ್ನು ಸೇರಿಸಿ. ಅದರ ಡೇಟಾ ನಂತರ ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತದೆ.</string>

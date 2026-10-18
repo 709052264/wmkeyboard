@@ -7645,12 +7645,6 @@
     <string name="tooldetail_ocr_info">Recunoașterea rulează pe dispozitivul tău cu ML Kit. Nicio fotografie și niciun text nu părăsesc dispozitivul, iar funcția lucrează offline. Citește text în alfabet latin, de exemplu engleză. Recunoașterea textului din ML Kit nu suportă încă limba bengaleză. După captură, apasă pe cuvinte pentru a selecta exact ce tastează sau copiază tastatura.</string>
     <string name="tooldetail_ocr_online_group">Cititor de text online</string>
     <string name="tooldetail_ocr_online_info">Fotografia este trimisă către un model care poate citi imagini, la o adresă aleasă de dvs., iar modelul scrie textul pe care îl vede. Citește orice script și nu are nevoie de date lingvistice. Orice serviciu cu un API compatibil OpenAI funcționează: OpenAI, OpenRouter, Gemini, Mistral sau un model pe propriul computer cu Ollama sau LM Studio. Fiecare scanare trimite fotografia către acel serviciu, iar serviciul poate percepe o taxă pentru aceasta.</string>
-    <string name="tooldetail_ocr_online_key_hint">Lăsați necompletat pentru un server care nu solicită o cheie</string>
-    <string name="tooldetail_ocr_online_key_label">Cheie API</string>
-    <string name="tooldetail_ocr_online_model_hint">Un model care citește imagini, de exemplu gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Model</string>
-    <string name="tooldetail_ocr_online_url_hint">De exemplu, https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Adresă</string>
     <string name="tooldetail_ocr_packs_header">Limbi Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract citește o limbă doar după ce datele pentru acea limbă sunt pe dispozitivul tău. Există o descărcare pentru fiecare limbă în care scrii, de la 0,4 MB la 12 MB. Datele provin din setul tessdata_fast al proiectului Tesseract de pe GitHub. De asemenea, poți descărca o limbă direct din scaner.</string>
     <string name="tooldetail_ocr_packs_none_info">Niciuna dintre limbile activate de dvs. nu are date Tesseract. Adăugați o limbă în ecranul Limbi. Datele sale vor apărea apoi aici.</string>

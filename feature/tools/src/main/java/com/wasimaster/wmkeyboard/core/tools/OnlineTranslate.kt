@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.tools
 
+import com.wasimaster.wmkeyboard.core.providers.ChainMode
 import com.wasimaster.wmkeyboard.core.providers.ProviderEnv
 import com.wasimaster.wmkeyboard.core.providers.ProviderEnvironment
 import com.wasimaster.wmkeyboard.core.providers.ProviderRunner
@@ -8,6 +9,7 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
+import com.wasimaster.wmkeyboard.core.settings.providerMode
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import java.util.Collections
 
@@ -15,6 +17,10 @@ import java.util.Collections
  * The translate list as the engine switch cuts it. On device takes only the
  * rows that run on the phone, Online only the rest, and Automatic the whole
  * list in its order.
+ *
+ * In pick mode, with the panel's [pick], the chosen row is the answer
+ * whatever the engine says: the panel's chooser lists the device beside the
+ * services, and choosing it is choosing the engine.
  */
 object TranslateProviders {
 
@@ -22,12 +28,17 @@ object TranslateProviders {
         settings: KeyboardSettings,
         engine: TranslateEngine,
         env: ProviderEnv = ProviderEnvironment.current(),
-    ): List<ResolvedProvider> = settings.resolveProviders(ProviderTool.TRANSLATE, env).filter { row ->
-        val device = row.type?.onDevice == true
-        when (engine) {
-            TranslateEngine.ON_DEVICE -> device
-            TranslateEngine.ONLINE -> !device
-            TranslateEngine.AUTO -> true
+        pick: String? = null,
+    ): List<ResolvedProvider> {
+        val rows = settings.resolveProviders(ProviderTool.TRANSLATE, env, pick = pick)
+        if (pick != null && settings.providerMode(ProviderTool.TRANSLATE, env) == ChainMode.PICK) return rows
+        return rows.filter { row ->
+            val device = row.type?.onDevice == true
+            when (engine) {
+                TranslateEngine.ON_DEVICE -> device
+                TranslateEngine.ONLINE -> !device
+                TranslateEngine.AUTO -> true
+            }
         }
     }
 }

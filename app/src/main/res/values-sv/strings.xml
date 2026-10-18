@@ -7649,12 +7649,6 @@
     <string name="tooldetail_ocr_info">Igenkänning körs på din enhet med ML Kit. Inget foto och ingen text lämnar din enhet, och det fungerar offline. Den läser text med latinska tecken, till exempel engelska. Textigenkännaren i ML Kit stöder ännu inte bengali. Efter en tagning, tryck på ord för att välja exakt vad tangentbordet skriver eller kopierar.</string>
     <string name="tooldetail_ocr_online_group">Textläsare online</string>
     <string name="tooldetail_ocr_online_info">Fotot skickas till en modell som kan läsa bilder, på en adress du väljer, och modellen skriver ut texten den ser. Den läser alla skript och behöver ingen språkdata. Alla tjänster med ett OpenAI-kompatibelt API fungerar: OpenAI, OpenRouter, Gemini, Mistral eller en modell på din egen dator med Ollama eller LM Studio. Varje skanning skickar fotot till den tjänsten, och tjänsten kan ta betalt för det.</string>
-    <string name="tooldetail_ocr_online_key_hint">Lämna tomt för en server som inte kräver någon nyckel</string>
-    <string name="tooldetail_ocr_online_key_label">API-nyckel</string>
-    <string name="tooldetail_ocr_online_model_hint">En modell som läser bilder, till exempel gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Modell</string>
-    <string name="tooldetail_ocr_online_url_hint">Till exempel https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Adress</string>
     <string name="tooldetail_ocr_packs_header">Tesseract-språk</string>
     <string name="tooldetail_ocr_packs_info">Tesseract läser ett språk först efter att data för språket finns på din enhet. Det finns en nedladdning för varje språk du skriver på, från 0,4 MB till 12 MB. Datan kommer från tessdata_fast-uppsättningen i Tesseract-projektet på GitHub. Du kan också ladda ner ett språk direkt från skannern.</string>
     <string name="tooldetail_ocr_packs_none_info">Inget av språken du aktiverat har Tesseract-data. Lägg till ett språk på skärmen Språk. Dess data visas sedan här.</string>

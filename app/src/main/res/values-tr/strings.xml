@@ -7633,12 +7633,6 @@
     <string name="tooldetail_ocr_info">Tanıma, cihazınızda ML Kit ile çalışır. Hiçbir fotoğraf ve metin cihazınızdan çıkmaz ve çevrimdışı çalışır. Örneğin İngilizce gibi Latin alfabesiyle yazılmış metinleri okur. ML Kit\'in metin tanıyıcısı henüz Bengalceyi desteklemiyor. Yakalamadan sonra, klavyenin tam olarak ne yazacağını veya kopyalayacağını seçmek için kelimelere basın.</string>
     <string name="tooldetail_ocr_online_group">Çevrimiçi metin okuyucu</string>
     <string name="tooldetail_ocr_online_info">Fotoğraf, seçtiğiniz bir adreste görüntüleri okuyabilen bir modele gönderilir ve model gördüğü metni yazar. Herhangi bir alfabeyi okur ve dil verisine ihtiyaç duymaz. OpenAI uyumlu API\'ye sahip herhangi bir hizmet çalışır: OpenAI, OpenRouter, Gemini, Mistral veya Ollama ya da LM Studio ile kendi bilgisayarınızdaki bir model. Her tarama, fotoğrafı o hizmete gönderir ve hizmet bunun için ücret talep edebilir.</string>
-    <string name="tooldetail_ocr_online_key_hint">Anahtar istemeyen bir sunucu için boş bırakın</string>
-    <string name="tooldetail_ocr_online_key_label">API anahtarı</string>
-    <string name="tooldetail_ocr_online_model_hint">Görüntüleri okuyan bir model, örneğin gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Model</string>
-    <string name="tooldetail_ocr_online_url_hint">Örneğin https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Adres</string>
     <string name="tooldetail_ocr_packs_header">Tesseract dilleri</string>
     <string name="tooldetail_ocr_packs_info">Tesseract, bir dili ancak o dilin verileri cihazınızda bulunduğunda okuyabilir. Yazdığınız her dil için 0,4 MB ile 12 MB arasında değişen bir indirme işlemi gerekir. Veriler, GitHub\'daki Tesseract projesinin tessdata_fast setinden gelir. Ayrıca tarayıcının kendisinden de bir dil indirebilirsiniz.</string>
     <string name="tooldetail_ocr_packs_none_info">Etkinleştirdiğiniz dillerin hiçbirinde Tesseract verisi yok. Diller ekranından bir dil ekleyin. Verileri daha sonra burada görünecektir.</string>

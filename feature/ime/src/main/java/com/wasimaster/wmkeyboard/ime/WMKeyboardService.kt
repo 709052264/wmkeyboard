@@ -5,6 +5,7 @@ import com.wasimaster.wmkeyboard.core.settings.fiatRateProviders
 import com.wasimaster.wmkeyboard.core.settings.cryptoRateProviders
 import com.wasimaster.wmkeyboard.core.tools.NoRateProviderException
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.settings.providerMode
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import android.app.AppOpsManager
 import android.app.KeyguardManager
@@ -3740,6 +3741,8 @@ open class WMKeyboardService : InputMethodService() {
                 jankMonitor.screen(it.panel.name)
             }
         }
+        // A provider chosen in a panel's chooser: that panel's work again, asked of it.
+        serviceScope.launch { ProviderPicks.changes.collect { onProviderPicked(it) } }
         // Dictation holds the audio focus while it listens, which is what
         // pauses a player (#485). Given back a moment after the microphone
         // closes rather than at once: a continuous session reopens it between
@@ -33677,8 +33680,10 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
         val settings = _uiState.value.settings
-        // The Dictionary tool's provider list, rows that are off or cannot be asked left out.
-        val sources = settings.resolveProviders(ProviderTool.DICTIONARY).mapNotNull { DictionarySource.of(it.typeId) }
+        // The Dictionary tool's provider list, rows that are off or cannot be asked left out;
+        // in pick mode, only the row the panel's chooser is on.
+        val sources = settings.resolveProviders(ProviderTool.DICTIONARY, pick = ProviderPicks.of(ProviderTool.DICTIONARY))
+            .mapNotNull { DictionarySource.of(it.typeId) }
         if (sources.isEmpty()) {
             _uiState.update { it.copy(dictionary = DictionaryUi.NoSources) }
             return
@@ -34642,6 +34647,19 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /** A panel's chooser moved to another provider: ask it what the panel last asked. */
+    private fun onProviderPicked(tool: ProviderTool) {
+        val state = _uiState.value
+        when {
+            tool == ProviderTool.TRANSLATE && state.panel == PanelMode.TRANSLATE ->
+                scheduleTranslate(immediate = true, force = true)
+            tool == ProviderTool.SEARCH && state.panel == PanelMode.WEB_SEARCH -> runWebSearch(state.mediaQuery.trim())
+            tool == ProviderTool.SEARCH && state.panel == PanelMode.IMAGE_SEARCH -> runImageSearch(state.mediaQuery.trim())
+            tool == ProviderTool.DICTIONARY && state.panel == PanelMode.DICTIONARY &&
+                state.dictionaryQuery.isNotBlank() -> onDictionaryLookup(state.dictionaryQuery)
+        }
+    }
+
     private fun runWebSearch(query: String) {
         if (query.isBlank()) return
         val settings = _uiState.value.settings
@@ -34674,6 +34692,7 @@ open class WMKeyboardService : InputMethodService() {
                         settings.webSearch.resultCount,
                         settings.webSearch.safe,
                         answer = settings.webSearch.showAnswer,
+                        pick = ProviderPicks.of(ProviderTool.SEARCH),
                     )
                 }
             }
@@ -34725,7 +34744,13 @@ open class WMKeyboardService : InputMethodService() {
         imageSearchJob = serviceScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
-                    SearchProviders.images(settings, query, settings.webSearch.resultCount, settings.webSearch.safe)
+                    SearchProviders.images(
+                        settings,
+                        query,
+                        settings.webSearch.resultCount,
+                        settings.webSearch.safe,
+                        pick = ProviderPicks.of(ProviderTool.SEARCH),
+                    )
                 }
             }
             _uiState.update {
@@ -35324,8 +35349,13 @@ open class WMKeyboardService : InputMethodService() {
             val target = targetOverride ?: state.settings.translateTargetLang
             val sourceLang = state.translate.sourceOverride
             val engine = engineOverride ?: translateEngine(state.settings)
+            // Pick mode: the provider the panel's chooser is on, alone, whatever the engine.
+            val picking = state.settings.providerMode(ProviderTool.TRANSLATE) == ChainMode.PICK
             val outcome: (TranslateUi) -> TranslateUi =
-                if (engine == TranslateEngine.ONLINE) {
+                if (picking) {
+                    val pick = ProviderPicks.of(ProviderTool.TRANSLATE)
+                    translateChainUi(state, TranslateProviders.rows(state.settings, engine, pick = pick), source, target, sourceLang)
+                } else if (engine == TranslateEngine.ONLINE) {
                     onlineOrStandInTranslateUi(state, source, target, sourceLang)
                 } else {
                     translateChainUi(state, TranslateProviders.rows(state.settings, engine), source, target, sourceLang)

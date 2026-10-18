@@ -7644,12 +7644,6 @@
     <string name="tooldetail_ocr_info">Herkenning draait op je apparaat met ML Kit. Geen foto en geen tekst verlaat je apparaat, en het werkt offline. Het leest tekst in Latijns schrift, bijvoorbeeld Engels. De tekstherkenner van ML Kit ondersteunt Bengaals nog niet. Druk na een opname op woorden om precies te selecteren wat het toetsenbord typt of kopieert.</string>
     <string name="tooldetail_ocr_online_group">Online tekstlezer</string>
     <string name="tooldetail_ocr_online_info">De foto gaat naar een model dat afbeeldingen kan lezen, op een adres dat je kiest, en het model schrijft de tekst op die het ziet. Het leest elk schrift en heeft geen taalgegevens nodig. Elke service met een OpenAI-compatibele API werkt: OpenAI, OpenRouter, Gemini, Mistral of een model op je eigen computer met Ollama of LM Studio. Elke scan stuurt de foto naar die service, en de service kan hiervoor kosten in rekening brengen.</string>
-    <string name="tooldetail_ocr_online_key_hint">Laat leeg voor een server die geen sleutel vereist</string>
-    <string name="tooldetail_ocr_online_key_label">API-sleutel</string>
-    <string name="tooldetail_ocr_online_model_hint">Een model dat afbeeldingen leest, bijvoorbeeld gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Model</string>
-    <string name="tooldetail_ocr_online_url_hint">Bijvoorbeeld https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Adres</string>
     <string name="tooldetail_ocr_packs_header">Tesseract-talen</string>
     <string name="tooldetail_ocr_packs_info">Tesseract leest pas een taal nadat de gegevens voor die taal op je apparaat staan. Er is een download voor elke taal waarin je typt, variërend van 0,4 MB tot 12 MB. De gegevens zijn afkomstig uit de tessdata_fast-set van het Tesseract-project op GitHub. Je kunt ook een taal downloaden vanuit de scanner zelf.</string>
     <string name="tooldetail_ocr_packs_none_info">Geen van de talen die je hebt ingeschakeld, bevat Tesseract-gegevens. Voeg een taal toe op het scherm Talen. De gegevens worden dan hier weergegeven.</string>

@@ -7630,12 +7630,6 @@
     <string name="tooldetail_ocr_info">识别功能通过 ML Kit 在您的设备上运行。没有任何照片或文本会离开您的设备，且支持离线使用。它可读取拉丁字母文本（例如英语）。ML Kit 的文本识别器尚不支持孟加拉语。捕获后，点击单词即可精确选择键盘输入或复制的内容。</string>
     <string name="tooldetail_ocr_online_group">在线文本阅读器</string>
     <string name="tooldetail_ocr_online_info">照片会被发送至您选择的地址处能够读取图像的模型，模型会写出其识别到的文本。它支持读取任何脚本，无需语言数据。任何兼容 OpenAI API 的服务均可使用：OpenAI、OpenRouter、Gemini、Mistral，或使用 Ollama 或 LM Studio 在您自己的计算机上运行的模型。每次扫描都会将照片发送至该服务，服务商可能会对此收费。</string>
-    <string name="tooldetail_ocr_online_key_hint">若服务器无需密钥，请留空</string>
-    <string name="tooldetail_ocr_online_key_label">API 密钥</string>
-    <string name="tooldetail_ocr_online_model_hint">一种读取图像的模型，例如 gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">模型</string>
-    <string name="tooldetail_ocr_online_url_hint">例如 https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">地址</string>
     <string name="tooldetail_ocr_packs_header">Tesseract 语言</string>
     <string name="tooldetail_ocr_packs_info">Tesseract 仅在设备上拥有相应语言数据后才能识别该语言。每种您输入的语言都需要下载一次数据，大小在 0.4 MB 到 12 MB 之间。数据源自 GitHub 上 Tesseract 项目的 tessdata_fast 集。您也可以直接从扫描仪中下载语言包。</string>
     <string name="tooldetail_ocr_packs_none_info">您启用的语言均无 Tesseract 数据。请在“语言”屏幕中添加一种语言，其数据随后会显示在此处。</string>

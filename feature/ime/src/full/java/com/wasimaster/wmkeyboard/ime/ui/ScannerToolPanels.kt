@@ -1,5 +1,9 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
+import com.wasimaster.wmkeyboard.core.tools.OnlineOcr
+import com.wasimaster.wmkeyboard.ime.ProviderPicks
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -106,7 +110,6 @@ import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.MeteredFeature
 import com.wasimaster.wmkeyboard.core.tools.EggLinks
 import com.wasimaster.wmkeyboard.core.tools.LinkPreviewClient
-import com.wasimaster.wmkeyboard.core.tools.VisionOcrClient
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
@@ -350,8 +353,9 @@ private fun OcrContent(
         if (stage !is OcrStage.Viewfinder || viewSize == IntSize.Zero || !packReady) return
         if (!auto) feedback()
         val readPack = pack
-        val scanner = state.settings.scanner
         val online = engine == OcrEngine.ONLINE
+        // The online readers (#469, #727), or in pick mode the one the chooser is on.
+        val readers = if (online) OnlineOcr.rows(state.settings, ProviderPicks.of(ProviderTool.OCR)) else emptyList()
         scope.launch {
             val bitmap = if (clipImage != null) {
                 clipBitmap?.getOrNull()
@@ -366,7 +370,7 @@ private fun OcrContent(
             val read = withContext(Dispatchers.Default) {
                 runCancellable {
                     if (online) {
-                        readOnline(scanner.ocrOnlineUrl, scanner.ocrOnlineModel, scanner.ocrOnlineKey, bitmap)
+                        readOnline(readers, bitmap)
                     } else if (readPack != null) {
                         readWithTesseract(filesDir, readPack, bitmap)
                     } else {
@@ -403,7 +407,7 @@ private fun OcrContent(
                         OcrResult(
                             bitmap,
                             emptyList(),
-                            if (scanner.ocrOnlineUrl.isBlank() || scanner.ocrOnlineModel.isBlank()) {
+                            if (readers.isEmpty()) {
                                 R.string.ime_scanner_ocr_online_unset
                             } else {
                                 R.string.ime_scanner_ocr_online_error
@@ -588,6 +592,14 @@ private fun OcrContent(
         nextLanguage?.let {
             OcrLanguageChip(ocrLanguage, it, Modifier.align(Alignment.BottomStart).padding(12.dp))
         }
+        if (engine == OcrEngine.ONLINE) {
+            ProviderChooser(
+                ProviderTool.OCR,
+                state.settings,
+                Modifier.align(Alignment.BottomEnd).padding(12.dp),
+                overPhoto = true,
+            )
+        }
     }
 }
 
@@ -765,12 +777,13 @@ private fun decodeClipImage(file: File): Bitmap {
 private const val OCR_LOG_TAG = "WMKB-OCR"
 
 /**
- * The online reader's text as the panel's lines of words (#469). The photo is
- * scaled to [ONLINE_OCR_MAX_SIDE] first: enough for small print, and a
- * full-sensor picture would only cost upload time and the model's tokens.
+ * The online readers' text as the panel's lines of words (#469, #727): the
+ * first of [readers] that reads it. The photo is scaled to
+ * [ONLINE_OCR_MAX_SIDE] first: enough for small print, and a full-sensor
+ * picture would only cost upload time and the model's tokens.
  */
-private fun readOnline(url: String, model: String, key: String, bitmap: Bitmap): List<List<OcrWord>> {
-    require(url.isNotBlank() && model.isNotBlank()) { "the online text reader is not set up" }
+private fun readOnline(readers: List<ResolvedProvider>, bitmap: Bitmap): List<List<OcrWord>> {
+    if (readers.isEmpty()) throw OnlineOcr.NoReaderException()
     val scale = ONLINE_OCR_MAX_SIDE.toFloat() / maxOf(bitmap.width, bitmap.height)
     val sized = if (scale < 1f) {
         Bitmap.createScaledBitmap(bitmap, (bitmap.width * scale).toInt(), (bitmap.height * scale).toInt(), true)
@@ -782,7 +795,7 @@ private fun readOnline(url: String, model: String, key: String, bitmap: Bitmap):
         out.toByteArray()
     }
     if (sized !== bitmap) sized.recycle()
-    val text = VisionOcrClient.read(url, model, key, jpeg)
+    val text = OnlineOcr.read(readers, jpeg)
     var id = 0
     return text.lines()
         .map { line -> line.split(WHITESPACE).filter { it.isNotEmpty() } }

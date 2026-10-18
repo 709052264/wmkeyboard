@@ -7644,12 +7644,6 @@
     <string name="tooldetail_ocr_info">Genkendelse kører på din enhed med ML Kit. Intet billede og ingen tekst forlader din enhed, og det fungerer offline. Den læser tekst med latinske bogstaver, f.eks. engelsk. ML Kits tekstgenkendelse understøtter endnu ikke bengali. Efter en optagelse skal du trykke på ord for at vælge præcis det, tastaturet skal skrive eller kopiere.</string>
     <string name="tooldetail_ocr_online_group">Online tekstlæser</string>
     <string name="tooldetail_ocr_online_info">Billedet sendes til en model, der kan læse billeder, på en adresse du vælger, og modellen skriver den tekst, den ser. Den læser ethvert script og behøver ingen sprogdata. Enhver tjeneste med et OpenAI-kompatibelt API virker: OpenAI, OpenRouter, Gemini, Mistral eller en model på din egen computer med Ollama eller LM Studio. Hver scanning sender billedet til den tjeneste, og tjenesten kan opkræve betaling for det.</string>
-    <string name="tooldetail_ocr_online_key_hint">Lad stå tom for en server, der ikke kræver en nøgle</string>
-    <string name="tooldetail_ocr_online_key_label">API-nøgle</string>
-    <string name="tooldetail_ocr_online_model_hint">En model der læser billeder, for eksempel gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Model</string>
-    <string name="tooldetail_ocr_online_url_hint">For eksempel https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Adresse</string>
     <string name="tooldetail_ocr_packs_header">Tesseract-sprog</string>
     <string name="tooldetail_ocr_packs_info">Tesseract læser kun et sprog, efter at dataene for det sprog er på din enhed. Der er én download for hvert sprog, du skriver på, fra 0,4 MB til 12 MB. Dataene kommer fra tessdata_fast-sættet af Tesseract-projektet på GitHub. Du kan også downloade et sprog fra selve scanneren.</string>
     <string name="tooldetail_ocr_packs_none_info">Ingen af de sprog, du har aktiveret, har Tesseract-data. Tilføj et sprog på skærmen Sprog. Dets data vises derefter her.</string>

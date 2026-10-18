@@ -7642,12 +7642,6 @@
     <string name="tooldetail_ocr_info">Rozpoznawanie odbywa się na Twoim urządzeniu za pomocą ML Kit. Żadne zdjęcie ani tekst nie opuszczają urządzenia i działa to w trybie offline. Odczytuje tekst w alfabecie łacińskim, na przykład angielski. Rozpoznawanie tekstu w ML Kit nie obsługuje jeszcze języka bengalskiego. Po przechwyceniu naciśnij słowa, aby dokładnie wybrać to, co klawiatura ma wpisać lub skopiować.</string>
     <string name="tooldetail_ocr_online_group">Czytnik tekstu online</string>
     <string name="tooldetail_ocr_online_info">Zdjęcie trafia do modelu, który potrafi odczytywać obrazy, pod wybrany przez Ciebie adres, a model zapisuje tekst, który widzi. Odczytuje dowolny skrypt i nie wymaga danych językowych. Działa każda usługa z API kompatybilnym z OpenAI: OpenAI, OpenRouter, Gemini, Mistral lub model na własnym komputerze z Ollama lub LM Studio. Każde skanowanie wysyła zdjęcie do tej usługi, a usługa może pobierać za to opłaty.</string>
-    <string name="tooldetail_ocr_online_key_hint">Pozostaw puste dla serwera, który nie wymaga klucza</string>
-    <string name="tooldetail_ocr_online_key_label">Klucz API</string>
-    <string name="tooldetail_ocr_online_model_hint">Model, który odczytuje obrazy, na przykład gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Model</string>
-    <string name="tooldetail_ocr_online_url_hint">Na przykład https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Adres</string>
     <string name="tooldetail_ocr_packs_header">Języki Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract odczytuje język tylko wtedy, gdy dane dla tego języka znajdują się na Twoim urządzeniu. Dla każdego języka, w którym piszesz, dostępny jest jeden plik do pobrania o rozmiarze od 0,4 MB do 12 MB. Dane pochodzą z zestawu tessdata_fast projektu Tesseract w serwisie GitHub. Język możesz również pobrać bezpośrednio ze skanera.</string>
     <string name="tooldetail_ocr_packs_none_info">Żaden z włączonych języków nie ma danych Tesseract. Dodaj język na ekranie Języki. Jego dane pojawią się tutaj.</string>

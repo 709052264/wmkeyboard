@@ -7637,12 +7637,6 @@
     <string name="tooldetail_ocr_info">Tunnistus suoritetaan laitteellasi ML Kitin avulla. Yksikään valokuva tai teksti ei poistu laitteeltasi, ja se toimii offline-tilassa. Se lukee latinalaisin aakkosin kirjoitettua tekstiä, kuten englantia. ML Kitin tekstintunnistin ei vielä tue bengalia. Kun olet ottanut kuvan, paina sanoja valitaksesi tarkalleen, mitä näppäimistö kirjoittaa tai kopioi.</string>
     <string name="tooldetail_ocr_online_group">Verkkopohjainen tekstinlukija</string>
     <string name="tooldetail_ocr_online_info">Valokuva lähetetään kuvia lukevalle mallille valitsemaasi osoitteeseen, ja malli kirjoittaa näkemänsä tekstin. Se lukee mitä tahansa kirjoitusjärjestelmää eikä tarvitse kielidataa. Mikä tahansa palvelu, jossa on OpenAI-yhteensopiva rajapinta, toimii: OpenAI, OpenRouter, Gemini, Mistral tai oma mallisi tietokoneellasi Ollaman tai LM Studion kautta. Jokainen skannaus lähettää valokuvan kyseiseen palveluun, ja palvelu saattaa veloittaa siitä.</string>
-    <string name="tooldetail_ocr_online_key_hint">Jätä tyhjäksi palvelimelle, joka ei vaadi avainta</string>
-    <string name="tooldetail_ocr_online_key_label">API-avain</string>
-    <string name="tooldetail_ocr_online_model_hint">Malli, joka lukee kuvia, esimerkiksi gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Malli</string>
-    <string name="tooldetail_ocr_online_url_hint">Esimerkiksi https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Osoite</string>
     <string name="tooldetail_ocr_packs_header">Tesseract-kielet</string>
     <string name="tooldetail_ocr_packs_info">Tesseract lukee kieltä vasta, kun kyseisen kielen tiedot ovat laitteellasi. Jokaiselle kielelle, jolla kirjoitat, on yksi lataus, kooltaan 0,4–12 Mt. Tiedot tulevat Tesseract-projektin tessdata_fast-joukosta GitHubissa. Voit myös ladata kielen itse skannerista.</string>
     <string name="tooldetail_ocr_packs_none_info">Yhdelläkään käyttöön ottamallasi kielellä ei ole Tesseract-tietoja. Lisää kieli Kieliasetukset-näytöltä. Sen jälkeen tiedot näkyvät täällä.</string>

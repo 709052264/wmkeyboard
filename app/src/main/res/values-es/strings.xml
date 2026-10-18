@@ -7646,12 +7646,6 @@
     <string name="tooldetail_ocr_info">El reconocimiento se ejecuta en su dispositivo con ML Kit. Ninguna foto ni texto sale de su dispositivo, y funciona sin conexión. Lee texto en escritura latina, por ejemplo, inglés. El reconocedor de texto de ML Kit aún no admite bengalí. Después de una captura, presione las palabras para seleccionar exactamente lo que el teclado escribe o copia.</string>
     <string name="tooldetail_ocr_online_group">Lector de texto en línea</string>
     <string name="tooldetail_ocr_online_info">La foto se envía a un modelo que puede leer imágenes, en una dirección que elijas, y el modelo escribe el texto que ve. Lee cualquier script y no necesita datos de idioma. Cualquier servicio con una API compatible con OpenAI funciona: OpenAI, OpenRouter, Gemini, Mistral o un modelo en tu propia computadora con Ollama o LM Studio. Cada escaneo envía la foto a ese servicio, y el servicio puede cobrar por ello.</string>
-    <string name="tooldetail_ocr_online_key_hint">Dejar en blanco para un servidor que no solicite clave</string>
-    <string name="tooldetail_ocr_online_key_label">Clave de API</string>
-    <string name="tooldetail_ocr_online_model_hint">Un modelo que lee imágenes, por ejemplo gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Modelo</string>
-    <string name="tooldetail_ocr_online_url_hint">Por ejemplo https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Dirección</string>
     <string name="tooldetail_ocr_packs_header">Idiomas de Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract lee un idioma solo después de que los datos de ese idioma estén en tu dispositivo. Hay una descarga para cada idioma en el que escribes, de 0.4 MB a 12 MB. Los datos provienen del conjunto tessdata_fast del proyecto Tesseract en GitHub. También puedes descargar un idioma desde el propio escáner.</string>
     <string name="tooldetail_ocr_packs_none_info">Ninguno de los idiomas que activaste tiene datos de Tesseract. Añade un idioma en la pantalla de Idiomas. Sus datos aparecerán aquí.</string>

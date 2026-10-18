@@ -7664,12 +7664,6 @@
     <string name="tooldetail_ocr_info">স্বীকৃতি প্রক্রিয়া আপনার ডিভাইসে ML Kit-এর মাধ্যমে চলে। কোনো ছবি বা টেক্সট আপনার ডিভাইস থেকে বাইরে যায় না এবং এটি অফলাইনে কাজ করে। এটি ল্যাটিন স্ক্রিপ্টের টেক্সট পড়তে পারে, যেমন ইংরেজি। ML Kit-এর টেক্সট রিকগনাইজার এখনও বাংলা সমর্থন করে না। ক্যাপচারের পর, কিবোর্ড ঠিক কী টাইপ বা কপি করবে তা নির্বাচন করতে শব্দগুলোতে চাপ দিন।</string>
     <string name="tooldetail_ocr_online_group">অনলাইন টেক্সট রিডার</string>
     <string name="tooldetail_ocr_online_info">ছবিটি এমন একটি মডেলে যায় যা ছবি পড়তে পারে, আপনার বেছে নেওয়া ঠিকানায়, এবং মডেলটি তার দেখা টেক্সট লিখে দেয়। এটি যেকোনো স্ক্রিপ্ট পড়তে পারে এবং কোনো ভাষা ডেটার প্রয়োজন হয় না। OpenAI-সামঞ্জস্যপূর্ণ API সহ যেকোনো পরিষেবা কাজ করে: OpenAI, OpenRouter, Gemini, Mistral, অথবা Ollama বা LM Studio সহ আপনার নিজের কম্পিউটারের কোনো মডেল। প্রতিটি স্ক্যান সেই পরিষেবাতে ছবি পাঠায়, এবং পরিষেবাটি এর জন্য চার্জ করতে পারে।</string>
-    <string name="tooldetail_ocr_online_key_hint">এমন সার্ভারের জন্য খালি রাখুন যার কোনো কী (key) প্রয়োজন নেই</string>
-    <string name="tooldetail_ocr_online_key_label">এপিআই (API) কী</string>
-    <string name="tooldetail_ocr_online_model_hint">একটি মডেল যা ছবি পড়ে, উদাহরণস্বরূপ gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">মডেল</string>
-    <string name="tooldetail_ocr_online_url_hint">উদাহরণস্বরূপ https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">ঠিকানা</string>
     <string name="tooldetail_ocr_packs_header">টেসের‍্যাক্ট ভাষা</string>
     <string name="tooldetail_ocr_packs_info">টেরাস্যাক্ট (Tesseract) কোনো ভাষা পড়ার আগে সেই ভাষার ডেটা আপনার ডিভাইসে থাকতে হবে। আপনি যেসব ভাষায় টাইপ করেন তার প্রতিটির জন্য ০.৪ মেগাবাইট থেকে ১২ মেগাবাইট পর্যন্ত একটি করে ডাউনলোড প্রয়োজন। এই ডেটা গিটহাবে টেরাস্যাক্ট প্রকল্পের টেসডাটা_ফাস্ট (tessdata_fast) সেট থেকে নেওয়া হয়েছে। আপনি সরাসরি স্ক্যানার থেকেও ভাষা ডাউনলোড করতে পারবেন।</string>
     <string name="tooldetail_ocr_packs_none_info">আপনার চালু করা কোনো ভাষাতেই টেসের‍্যাক্ট (Tesseract) ডেটা নেই। ল্যাঙ্গুয়েজ বা ভাষা স্ক্রিন থেকে একটি ভাষা যোগ করুন। তারপর সেই ডেটা এখানে প্রদর্শিত হবে।</string>

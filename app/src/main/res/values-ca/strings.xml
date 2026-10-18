@@ -7638,12 +7638,6 @@
     <string name="tooldetail_ocr_info">El reconeixement s\'executa al dispositiu amb ML Kit. Cap foto ni text surt del dispositiu, i funciona sense connexió. Llegeix text en escriptura llatina, per exemple l\'anglès. El reconeixedor de text de ML Kit encara no admet el bengalí. Després d\'una captura, prem les paraules per seleccionar exactament el que el teclat escriu o copia.</string>
     <string name="tooldetail_ocr_online_group">Lector de text en línia</string>
     <string name="tooldetail_ocr_online_info">La foto va a un model que pot llegir imatges, a una adreça que trieu, i el model escriu el text que veu. Llegeix qualsevol script i no necessita dades d\'idioma. Qualsevol servei amb una API compatible amb OpenAI funciona: OpenAI, OpenRouter, Gemini, Mistral o un model al vostre propi ordinador amb Ollama o LM Studio. Cada escaneig envia la foto a aquest servei, i el servei pot cobrar per això.</string>
-    <string name="tooldetail_ocr_online_key_hint">Deixeu-ho en blanc per a un servidor que no demana cap clau</string>
-    <string name="tooldetail_ocr_online_key_label">Clau de l\'API</string>
-    <string name="tooldetail_ocr_online_model_hint">Un model que llegeix imatges, per exemple gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Model</string>
-    <string name="tooldetail_ocr_online_url_hint">Per exemple https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Adreça</string>
     <string name="tooldetail_ocr_packs_header">Idiomes del Tesseract</string>
     <string name="tooldetail_ocr_packs_info">Tesseract només llegeix un idioma quan les dades d\'aquest idioma són al dispositiu. Hi ha una descàrrega per a cada idioma en què escriviu, d\'entre 0,4 MB i 12 MB. Les dades provenen del conjunt tessdata_fast del projecte Tesseract a GitHub. També podeu descarregar un idioma des del mateix escàner.</string>
     <string name="tooldetail_ocr_packs_none_info">Cap dels idiomes que heu activat té dades de Tesseract. Afegiu un idioma a la pantalla d\'Idiomes. Les seves dades apareixeran aquí.</string>

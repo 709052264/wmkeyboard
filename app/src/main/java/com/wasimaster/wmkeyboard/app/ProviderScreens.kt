@@ -11,17 +11,21 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -30,19 +34,33 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
@@ -50,11 +68,12 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CurrencyBitcoin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CurrencyExchange
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Dns
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DragIndicator
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ErrorOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhoneAndroid
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
@@ -69,6 +88,7 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderCredential
 import com.wasimaster.wmkeyboard.core.providers.ProviderEntry
 import com.wasimaster.wmkeyboard.core.providers.ProviderEnv
 import com.wasimaster.wmkeyboard.core.providers.ProviderEnvironment
+import com.wasimaster.wmkeyboard.core.providers.ProviderLogos
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
@@ -159,31 +179,27 @@ internal fun ProvidersGroup(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 )
             } else {
-                ReorderableColumn(
-                    items = rows,
-                    label = { providerTitle(context, it) },
+                ProviderList(
+                    rows = rows,
                     onReorder = { ordered ->
                         save(ProviderEdits.setChain(tool, chain().copy(entries = ordered.map { it.entry })))
                     },
-                    modifier = Modifier.padding(vertical = 4.dp),
-                    rowHeight = ProviderRowHeight,
-                ) { row ->
-                    ProviderRowBody(
-                        row = row,
-                        modifier = Modifier.weight(1f),
-                        onToggle = { on -> save(ProviderEdits.setChain(tool, chain().toggled(row.key, on))) },
-                        onEdit = row.type?.takeIf { !it.credential.none }?.let { type ->
-                            {
-                                editing = ProviderEditTarget(
-                                    type = type,
-                                    credential = row.credential ?: ProviderCredential(row.entry.credentialKey, type.id),
-                                    isNew = false,
-                                )
-                            }
-                        },
-                        onRemove = { removing = row },
-                    )
-                }
+                    onToggle = { row, on -> save(ProviderEdits.setChain(tool, chain().toggled(row.key, on))) },
+                    onOpen = { row ->
+                        val type = row.type
+                        if (type == null) {
+                            // A kind a newer build added: nothing to edit, only to remove.
+                            removing = row
+                        } else {
+                            editing = ProviderEditTarget(
+                                type = type,
+                                credential = row.credential ?: ProviderCredential(row.entry.credentialKey, type.id),
+                                isNew = false,
+                                row = row,
+                            )
+                        }
+                    },
+                )
             }
         }
         item {
@@ -236,6 +252,12 @@ internal fun ProvidersGroup(
                 editing = null
                 save(ProviderEdits.saveCredential(settings.value, credential, if (target.isNew) tool else null, env))
             },
+            onRemove = target.row?.let { row ->
+                {
+                    editing = null
+                    removing = row
+                }
+            },
             onDismiss = { editing = null },
         )
     }
@@ -266,11 +288,12 @@ internal fun ProvidersGroup(
     }
 }
 
-/** What the editor sheet is editing: one credential of one type, new or saved. */
+/** What the editor sheet is editing: one credential of one type, new or saved, and the list row it was opened from. */
 internal data class ProviderEditTarget(
     val type: ProviderType,
     val credential: ProviderCredential,
     val isNew: Boolean,
+    val row: ResolvedProvider? = null,
 )
 
 /** What tapping a kind in the add sheet does: add a row straight away, or set one up first. */
@@ -296,7 +319,6 @@ internal fun pickProvider(type: ProviderType, existing: ProviderCredential?, cha
     return ProviderPick.Edit(ProviderEditTarget(type, ProviderCredential(id, type.id), isNew = true))
 }
 
-private val ProviderRowHeight = 64.dp
 
 /** The name a row goes by: the one the user gave a server, else its kind's. */
 internal fun providerTitle(context: Context, row: ResolvedProvider): String =
@@ -313,6 +335,7 @@ private fun providerStatus(row: ResolvedProvider): Pair<String, Boolean> {
     return when (row.problem) {
         ProviderProblem.NEEDS_KEY -> stringResource(R.string.providers_status_needs_key) to true
         ProviderProblem.NEEDS_SERVER -> stringResource(R.string.providers_status_needs_server) to true
+        ProviderProblem.NEEDS_MODEL -> stringResource(R.string.providers_status_needs_model) to true
         ProviderProblem.NEEDS_PACKS -> stringResource(R.string.providers_status_needs_packs) to true
         ProviderProblem.UNAVAILABLE -> stringResource(R.string.providers_status_unavailable) to true
         ProviderProblem.UNKNOWN -> stringResource(R.string.providers_status_unknown) to true
@@ -330,69 +353,225 @@ private fun providerStatus(row: ResolvedProvider): Pair<String, Boolean> {
     }
 }
 
-/** One row of the list: tile, name, state, the switch, and a menu. Drawn inside [ReorderableColumn]'s row. */
+/**
+ * The list itself. Each row is the order, the provider, and its switch;
+ * tapping a row opens its setup, where it can also be removed. The order
+ * column (the position over a grip) is the drag handle, and TalkBack gets
+ * Move up and Move down instead.
+ *
+ * Not [ReorderableColumn]: that one needs every row the same height, and a
+ * provider's name and state wrap onto as many lines as they need here. Each
+ * row's height is measured, and a dragged row swaps with a neighbour once it
+ * is past half of that neighbour's height.
+ */
 @Composable
-private fun ProviderRowBody(
+private fun ProviderList(
+    rows: List<ResolvedProvider>,
+    onReorder: (List<ResolvedProvider>) -> Unit,
+    onToggle: (ResolvedProvider, Boolean) -> Unit,
+    onOpen: (ResolvedProvider) -> Unit,
+) {
+    var working by remember { mutableStateOf(rows) }
+    var dragKey by remember { mutableStateOf<String?>(null) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
+    val heights = remember { mutableStateMapOf<String, Int>() }
+    // Mid-drag the finger's order wins, and reaches the caller on the drop.
+    LaunchedEffect(rows) { if (dragKey == null) working = rows }
+    val currentRows by rememberUpdatedState(rows)
+    val currentOnReorder by rememberUpdatedState(onReorder)
+    fun finish() {
+        if (working.map { it.key } != currentRows.map { it.key }) currentOnReorder(working)
+        dragKey = null
+        dragOffset = 0f
+    }
+    fun moved(from: Int, to: Int): List<ResolvedProvider> =
+        working.toMutableList().apply { add(to, removeAt(from)) }
+
+    val shape = MaterialTheme.shapes.medium
+    val lift = MaterialTheme.colorScheme.surfaceContainerHigh
+    Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        working.forEachIndexed { index, row ->
+            key(row.key) {
+                val dragging = dragKey == row.key
+                ProviderRow(
+                    row = row,
+                    position = index + 1,
+                    modifier = Modifier
+                        .onSizeChanged { heights[row.key] = it.height }
+                        .zIndex(if (dragging) 1f else 0f)
+                        .graphicsLayer {
+                            translationY = if (dragging) dragOffset else 0f
+                            shadowElevation = if (dragging) 6.dp.toPx() else 0f
+                            this.shape = shape
+                        }
+                        .background(if (dragging) lift else Color.Transparent, shape),
+                    handle = Modifier.pointerInput(row.key) {
+                        detectDragGestures(
+                            onDragStart = {
+                                dragKey = row.key
+                                dragOffset = 0f
+                            },
+                            onDragEnd = { finish() },
+                            onDragCancel = { finish() },
+                        ) { change, drag ->
+                            change.consume()
+                            val from = working.indexOfFirst { it.key == dragKey }
+                            if (from < 0) return@detectDragGestures
+                            // Held at the ends: past the first or last row it stops.
+                            dragOffset = (dragOffset + drag.y).let {
+                                when {
+                                    from == 0 && it < 0f -> 0f
+                                    from == working.lastIndex && it > 0f -> 0f
+                                    else -> it
+                                }
+                            }
+                            if (dragOffset > 0f && from < working.lastIndex) {
+                                val next = heights[working[from + 1].key] ?: return@detectDragGestures
+                                if (dragOffset > next / 2f) {
+                                    working = moved(from, from + 1)
+                                    dragOffset -= next
+                                }
+                            } else if (dragOffset < 0f && from > 0) {
+                                val previous = heights[working[from - 1].key] ?: return@detectDragGestures
+                                if (-dragOffset > previous / 2f) {
+                                    working = moved(from, from - 1)
+                                    dragOffset += previous
+                                }
+                            }
+                        }
+                    },
+                    onMove = if (dragKey == null) {
+                        { by ->
+                            val to = (index + by).coerceIn(working.indices)
+                            if (to != index) {
+                                working = moved(index, to)
+                                currentOnReorder(working)
+                            }
+                        }
+                    } else {
+                        null
+                    },
+                    canMoveUp = index > 0,
+                    canMoveDown = index < working.lastIndex,
+                    onToggle = { on -> onToggle(row, on) },
+                    onOpen = { onOpen(row) },
+                )
+            }
+        }
+    }
+}
+
+/** One provider: the order and its grip, the tile, the name and state (as many lines as they take), the switch. */
+@Composable
+private fun ProviderRow(
     row: ResolvedProvider,
+    position: Int,
     modifier: Modifier,
+    handle: Modifier,
+    onMove: ((Int) -> Unit)?,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
     onToggle: (Boolean) -> Unit,
-    onEdit: (() -> Unit)?,
-    onRemove: () -> Unit,
+    onOpen: () -> Unit,
 ) {
     val context = LocalContext.current
     val title = providerTitle(context, row)
     val (status, problem) = providerStatus(row)
-    var menu by remember { mutableStateOf(false) }
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        WmIconTile(
-            icon = providerIcon(row.type),
-            accent = if (row.entry.enabled && row.usable) providerAccent(row.type) else MaterialTheme.colorScheme.outline,
-        )
+    val upLabel = stringResource(R.string.providers_move_up)
+    val downLabel = stringResource(R.string.providers_move_down)
+    val shape = MaterialTheme.shapes.medium
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 60.dp)
+            .clip(shape)
+            .clickable(onClickLabel = stringResource(R.string.providers_edit)) { onOpen() }
+            .semantics {
+                customActions = buildList {
+                    if (onMove != null && canMoveUp) add(CustomAccessibilityAction(upLabel) { onMove(-1); true })
+                    if (onMove != null && canMoveDown) add(CustomAccessibilityAction(downLabel) { onMove(1); true })
+                }
+            }
+            .padding(start = 8.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
+    ) {
+        // The order, over the grip that changes it. One narrow column where
+        // the number and the drag handle used to sit at the two ends of the row.
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .width(28.dp)
+                .heightIn(min = 48.dp)
+                .then(handle),
+        ) {
+            Text(
+                position.toString(),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Icon(
+                Icons.Outlined.DragIndicator,
+                contentDescription = stringResource(R.string.rows_reorder_handle_desc, title),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.size(18.dp),
+            )
+        }
+        Spacer(Modifier.size(8.dp))
+        ProviderTile(row.type, active = row.entry.enabled && row.usable)
         Spacer(Modifier.size(12.dp))
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f).padding(vertical = 4.dp)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            Row(verticalAlignment = Alignment.Top) {
                 if (problem && row.entry.enabled) {
                     Icon(
                         Icons.Outlined.ErrorOutline,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(14.dp).padding(end = 2.dp),
+                        modifier = Modifier.padding(top = 2.dp, end = 4.dp).size(14.dp),
                     )
                 }
                 Text(
                     status,
                     style = MaterialTheme.typography.bodySmall,
                     color = if (problem && row.entry.enabled) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
-    }
-    Switch(checked = row.entry.enabled, onCheckedChange = onToggle)
-    Box {
-        IconButton(onClick = { menu = true }) {
-            Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.providers_more, title))
-        }
-        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-            if (onEdit != null) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.providers_edit)) },
-                    onClick = {
-                        menu = false
-                        onEdit()
-                    },
-                )
-            }
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.providers_remove)) },
-                onClick = {
-                    menu = false
-                    onRemove()
-                },
+        // A switch at four fifths of its size: the row's one control, without
+        // the width a full switch and a menu button took between them.
+        Box(Modifier.size(width = 48.dp, height = 40.dp), contentAlignment = Alignment.Center) {
+            Switch(
+                checked = row.entry.enabled,
+                onCheckedChange = onToggle,
+                modifier = Modifier.requiredSize(width = 52.dp, height = 32.dp).scale(0.8f),
             )
         }
+    }
+}
+
+/** A kind's tile: its logo where the app carries one, else the glyph for what it is. */
+@Composable
+internal fun ProviderTile(type: ProviderType?, active: Boolean = true) {
+    val logo = type?.let { ProviderLogos.of(it.id) }
+    val accent = when {
+        !active -> MaterialTheme.colorScheme.outline
+        logo != null && logo.monochrome -> Color(logo.color)
+        logo != null -> Color(0xFF9E9E9E)
+        else -> providerAccent(type)
+    }
+    if (logo == null) {
+        WmIconTile(icon = providerIcon(type), accent = accent)
+        return
+    }
+    WmIconTile(accent) {
+        Icon(
+            painterResource(logo.res),
+            contentDescription = null,
+            // A brand's own colours stay as they are; a one-colour mark takes the tile's.
+            tint = if (logo.monochrome || !active) LocalContentColor.current else Color.Unspecified,
+            modifier = Modifier.size(20.dp).graphicsLayer { alpha = if (active) 1f else 0.6f },
+        )
     }
 }
 
@@ -500,7 +679,7 @@ private fun ProviderTypeSheet(
                     WmRow(
                         title = stringResource(type.labelRes),
                         subtitle = if (tags.isEmpty()) desc else desc + "\n" + tags,
-                        leading = { WmIconTile(icon = providerIcon(type), accent = providerAccent(type)) },
+                        leading = { ProviderTile(type) },
                         onClick = { onPick(type, credentials.firstOrNull { it.id == type.id && !type.multiInstance }) },
                     )
                     if (type.multiInstance) {
@@ -534,6 +713,8 @@ private fun ProviderEditorSheet(
     target: ProviderEditTarget,
     usedBy: List<ProviderTool>,
     onSave: (ProviderCredential) -> Unit,
+    /** Takes the row out of the list (after asking); null while the provider is being added. */
+    onRemove: (() -> Unit)?,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -545,6 +726,7 @@ private fun ProviderEditorSheet(
     var testResult by remember { mutableStateOf<Pair<Boolean, String>?>(null) }
     val ready = (spec.url != Need.REQUIRED || draft.url.isNotBlank()) &&
         (spec.key != Need.REQUIRED || type.hasBuiltInKey || draft.apiKey.isNotBlank()) &&
+        (!spec.modelRequired || draft.model.isNotBlank()) &&
         (type !== ProviderTypes.DEEPL || draft.apiKey.isNotBlank() || draft.url.isNotBlank())
     fun edit(next: ProviderCredential) {
         draft = next
@@ -560,7 +742,7 @@ private fun ProviderEditorSheet(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
             ) {
-                WmIconTile(icon = providerIcon(type), accent = providerAccent(type))
+                ProviderTile(type)
                 Spacer(Modifier.size(16.dp))
                 Column {
                     Text(stringResource(type.labelRes), style = MaterialTheme.typography.titleLarge)
@@ -622,7 +804,9 @@ private fun ProviderEditorSheet(
                 StoredTextField(
                     label = stringResource(R.string.providers_field_model),
                     value = draft.model,
-                    supporting = stringResource(R.string.providers_field_model_hint),
+                    supporting = stringResource(
+                        if (spec.modelRequired) R.string.providers_field_model_required_hint else R.string.providers_field_model_hint,
+                    ),
                 ) { edit(draft.copy(model = it)) }
             }
             if (usedBy.isNotEmpty()) {
@@ -688,12 +872,31 @@ private fun ProviderEditorSheet(
             }
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
             ) {
-                TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
-                Button(enabled = ready, onClick = { onSave(draft.trimmed()) }) {
-                    Text(stringResource(if (target.isNew) CommonR.string.common_add else CommonR.string.common_save))
+                if (onRemove != null) {
+                    TextButton(onClick = onRemove) {
+                        Icon(
+                            Icons.Outlined.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(Modifier.size(6.dp))
+                        Text(stringResource(R.string.providers_remove), color = MaterialTheme.colorScheme.error)
+                    }
+                }
+                Spacer(Modifier.weight(1f))
+                // A kind with nothing to set up only has its description and Remove here.
+                if (spec.none) {
+                    TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_close)) }
+                } else {
+                    TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
+                    Button(enabled = ready, onClick = { onSave(draft.trimmed()) }) {
+                        Text(stringResource(if (target.isNew) CommonR.string.common_add else CommonR.string.common_save))
+                    }
                 }
             }
             Spacer(Modifier.height(16.dp))

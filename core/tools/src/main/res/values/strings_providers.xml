@@ -11,6 +11,8 @@
     <string name="core_tools_provider_tool_photos">Background photos</string>
     <string name="core_tools_provider_tool_currency_fiat">Currency rates</string>
     <string name="core_tools_provider_tool_currency_crypto">Coin prices</string>
+    <string name="core_tools_provider_tool_ocr">Read text online</string>
+    <string name="core_tools_provider_tool_photo_translate">Translate photos</string>
 
     <!-- How a tool uses its list -->
     <string name="core_tools_provider_mode_fallback">One at a time</string>
@@ -19,6 +21,8 @@
     <string name="core_tools_provider_mode_mix_desc">Ask all providers at the same time and mix their results in one grid.</string>
     <string name="core_tools_provider_mode_tabs">Tabs</string>
     <string name="core_tools_provider_mode_tabs_desc">Each provider gets its own chip. Tap a chip to see its results.</string>
+    <string name="core_tools_provider_mode_pick">Choose in the panel</string>
+    <string name="core_tools_provider_mode_pick_desc">The panel shows the providers that are on. Choose one there, and only that one is asked.</string>
 
     <!-- A tool whose list has nothing switched on -->
     <string name="core_tools_provider_none_on">No provider is on. Turn one on in this tool\'s settings.</string>
@@ -48,6 +52,11 @@
     <string name="core_tools_provider_lingva_desc">A Lingva server: a free front end to Google Translate.</string>
     <string name="core_tools_provider_translite" translatable="false">Translite</string>
     <string name="core_tools_provider_translite_desc">A Translite server: a free front end to Google Translate.</string>
+    <string name="core_tools_provider_rens" translatable="false">Rens</string>
+    <string name="core_tools_provider_rens_desc">A Rens server: a free front end to Google Lens. It reads the text in a photo for you, in most scripts.</string>
+    <string name="core_tools_provider_rens_translate_desc">A Rens server: a free front end to Google Lens. It gives the photo back with its text translated.</string>
+    <string name="core_tools_provider_vision_ocr">Your vision model</string>
+    <string name="core_tools_provider_vision_ocr_desc">A model that reads images, through a server that answers OpenAI chat requests. Needs the address and the model name.</string>
     <string name="core_tools_provider_google_translate">Google Translate</string>
     <string name="core_tools_provider_google_translate_desc">Google\'s free endpoint, or Cloud Translation when you add a key.</string>
     <string name="core_tools_provider_searxng" translatable="false">SearXNG</string>

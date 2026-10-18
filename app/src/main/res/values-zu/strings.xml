@@ -7655,12 +7655,6 @@
     <string name="tooldetail_ocr_info">Ukubona kwenzeka kudivayisi yakho nge-ML Kit. Ayikho isithombe noma umbhalo oshiya idivayisi yakho, futhi kusebenza ungaxhunyiwe ku-inthanethi. Kufunda umbhalo wombhalo wesiLatini, isibonelo isiNgisi. Isibonisi sombhalo se-ML Kit asikayisekeli isiBengali. Ngemuva kokuthwebula, cindezela amagama ukuze ukhethe ngqo lokho ikhibhodi ekuthayiphayo noma ekukopishayo.</string>
     <string name="tooldetail_ocr_online_group">Isifundi sombhalo esiku-inthanethi</string>
     <string name="tooldetail_ocr_online_info">Isithombe siya kumodeli engakwazi ukufunda izithombe, ekhelini olikhethayo, futhi imodeli ibhala umbhalo ewubonayo. Ifunda noma yimuphi umbhalo futhi ayidingi idatha yolimi. Noma iyiphi isevisi ene-API ehambisana ne-OpenAI iyasebenza: OpenAI, OpenRouter, Gemini, Mistral, noma imodeli kukhompyutha yakho nge-Ollama noma i-LM Studio. Ukuskena ngakunye kuthumela isithombe kuleyo sevisi, futhi isevisi ingase ikukhokhise ngakho.</string>
-    <string name="tooldetail_ocr_online_key_hint">Shiya kungenalutho kuseva engaceli ukhiye</string>
-    <string name="tooldetail_ocr_online_key_label">Ukhiye we-API</string>
-    <string name="tooldetail_ocr_online_model_hint">Imodeli efunda izithombe, isibonelo i-gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Imodeli</string>
-    <string name="tooldetail_ocr_online_url_hint">Isibonelo https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Ikheli</string>
     <string name="tooldetail_ocr_packs_header">Izilimi ze-Tesseract</string>
     <string name="tooldetail_ocr_packs_info">I-Tesseract ifunda ulimi kuphela emva kokuba idatha yalolo limi ikudivayisi yakho. Kunokulandwayo okukodwa kwalo lonke ulimi olubhala ngalo, kusukela ku-0.4 MB kuya ku-12 MB. Idatha ivela kusethi ye-tessdata_fast yephrojekthi ye-Tesseract ku-GitHub. Ungakwazi futhi ukulanda ulimi kusukela kushesheni ngokwalo.</string>
     <string name="tooldetail_ocr_packs_none_info">Azikho izilimi ovule ukuvuma ukuthola idatha ye-Tesseract. Faka ulimi esikrinini sezilimi. Idatha yalo izovele ibonakale lapha.</string>

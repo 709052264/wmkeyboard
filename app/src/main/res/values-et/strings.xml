@@ -7649,12 +7649,6 @@
     <string name="tooldetail_ocr_info">Tuvastamine toimub teie seadmes ML Kitiga. Ükski foto ega tekst ei lahku teie seadmest ja see töötab võrguühenduseta. See loeb ladina kirjas teksti, näiteks inglise keelt. ML Kiti tekstituvastaja ei toeta veel bengali keelt. Pärast jäädvustamist vajutage sõnadele, et valida täpselt see, mida klaviatuur sisestab või kopeerib.</string>
     <string name="tooldetail_ocr_online_group">Veebipõhine tekstilugeja</string>
     <string name="tooldetail_ocr_online_info">Foto saadetakse mudelile, mis oskab pilte lugeda, teie valitud aadressil, ja mudel kirjutab nähtud teksti välja. See loeb mis tahes kirjasüsteemi ega vaja keeleandmeid. Töötab iga OpenAI-ühilduva API-ga teenus: OpenAI, OpenRouter, Gemini, Mistral või mudel teie enda arvutis, kasutades Ollamat või LM Studiot. Iga skannimine saadab foto sellesse teenusesse ja teenus võib selle eest tasu küsida.</string>
-    <string name="tooldetail_ocr_online_key_hint">Jätke tühjaks serveri puhul, mis ei nõua võtit</string>
-    <string name="tooldetail_ocr_online_key_label">API-võti</string>
-    <string name="tooldetail_ocr_online_model_hint">Mudel, mis loeb pilte, näiteks gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">Mudel</string>
-    <string name="tooldetail_ocr_online_url_hint">Näiteks https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">Aadress</string>
     <string name="tooldetail_ocr_packs_header">Tesserakti keeled</string>
     <string name="tooldetail_ocr_packs_info">Tesseract loeb keelt alles pärast seda, kui selle keele andmed on teie seadmes. Iga sisestatava keele jaoks on üks allalaadimine, suurusega 0,4 MB kuni 12 MB. Andmed pärinevad GitHubi Tesseract-projekti tessdata_fast komplektist. Keele saate alla laadida ka skannerist endast.</string>
     <string name="tooldetail_ocr_packs_none_info">Ühelgi sisselülitatud keelel pole Tesseracti andmeid. Lisage keel keelte kuval. Seejärel kuvatakse selle andmed siin.</string>

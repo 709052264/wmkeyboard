@@ -7641,12 +7641,6 @@
     <string name="tooldetail_ocr_info">ML Kit மூலம் உங்கள் சாதனத்திலேயே அங்கீகாரம் நடைபெறுகிறது. எந்தப் புகைப்படமும் உரையும் உங்கள் சாதனத்தை விட்டு வெளியேறாது, மேலும் இது ஆஃப்லைனில் செயல்படும். இது லத்தீன் எழுத்துக்களை, உதாரணமாக ஆங்கிலத்தை வாசிக்கும். ML Kit-ன் உரை அங்கீகரிப்பான் பெங்காலி மொழியை இன்னும் ஆதரிக்கவில்லை. படமெடுத்த பிறகு, விசைப்பலகை எதை டைப் செய்ய வேண்டும் அல்லது நகலெடுக்க வேண்டும் என்பதைத் துல்லியமாகத் தேர்ந்தெடுக்க சொற்களை அழுத்தவும்.</string>
     <string name="tooldetail_ocr_online_group">ஆன்லைன் உரை ரீடர்</string>
     <string name="tooldetail_ocr_online_info">புகைப்படம் படங்களைப் படிக்கக்கூடிய ஒரு மாதிரிக்கு, நீங்கள் தேர்ந்தெடுக்கும் முகவரிக்கு அனுப்பப்படும், மேலும் அந்த மாதிரி அது பார்க்கும் உரையை எழுதும். இது எந்த ஸ்கிரிப்ட்டையும் படிக்கும் மற்றும் மொழித் தரவு தேவையில்லை. OpenAI-இணக்கமான API கொண்ட எந்தச் சேவையும் செயல்படும்: OpenAI, OpenRouter, Gemini, Mistral அல்லது Ollama அல்லது LM Studio மூலம் உங்கள் சொந்த கணினியில் உள்ள மாதிரி. ஒவ்வொரு ஸ்கேனும் புகைப்படத்தை அந்தச் சேவைக்கு அனுப்புகிறது, மேலும் அந்தச் சேவை அதற்கான கட்டணத்தை வசூலிக்கலாம்.</string>
-    <string name="tooldetail_ocr_online_key_hint">சாவி தேவையில்லாத சேவையகத்திற்கு காலியாக விடவும்</string>
-    <string name="tooldetail_ocr_online_key_label">API கீ</string>
-    <string name="tooldetail_ocr_online_model_hint">படங்களைப் படிக்கும் ஒரு மாடல், உதாரணமாக gpt-4o-mini</string>
-    <string name="tooldetail_ocr_online_model_label">மாதிரி</string>
-    <string name="tooldetail_ocr_online_url_hint">உதாரணத்திற்கு https://api.openai.com/v1</string>
-    <string name="tooldetail_ocr_online_url_label">முகவரி</string>
     <string name="tooldetail_ocr_packs_header">Tesseract மொழிகள்</string>
     <string name="tooldetail_ocr_packs_info">அந்த மொழிக்கான தரவு உங்கள் சாதனத்தில் இருந்த பிறகு மட்டுமே Tesseract ஒரு மொழியைப் படிக்கும். நீங்கள் தட்டச்சு செய்யும் ஒவ்வொரு மொழிக்கும் 0.4 MB முதல் 12 MB வரை ஒரு பதிவிறக்கம் தேவைப்படும். தரவு GitHub-இல் உள்ள Tesseract திட்டத்தின் tessdata_fast தொகுப்பிலிருந்து வருகிறது. ஸ்கேனரிலிருந்தே நீங்கள் ஒரு மொழியைப் பதிவிறக்கம் செய்யலாம்.</string>
     <string name="tooldetail_ocr_packs_none_info">நீங்கள் ஆன் செய்த எந்த மொழிகளிலும் Tesseract தரவு இல்லை. மொழிகள் திரையில் ஒரு மொழியைச் சேர்க்கவும். அதன் பிறகு அதன் தரவு இங்கே தோன்றும்.</string>
