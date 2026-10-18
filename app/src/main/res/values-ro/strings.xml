@@ -8774,11 +8774,9 @@
     <string name="typing_trail_opacity_title">Opacitatea urmei</string>
     <string name="typing_trail_width_subtitle">Grosimea urmei de glisare</string>
     <string name="typing_trail_width_title">Lățimea urmei</string>
-    <string name="typing_two_thumb_info">Folosiți ambele degete mari împreună. Fiecare deget mare poate atinge sau glisa, în același timp cu celălalt, și fiecare atingere și glisare se adaugă la același cuvânt. De exemplu, atingeți S cu degetul mare stâng, glisați O la M cu cel drept, atingeți E cu cel stâng, apoi glisați T H I N G cu cel drept și obțineți ceva. O atingere care are loc în timp ce celălalt deget mare încă glisează intră în cuvânt în acel punct, deci o glisare peste H E L O și o atingere pe L dau hello. Backspace elimină ultima atingere sau glisare din cuvânt.</string>
     <string name="typing_two_thumb_subtitle">Atinge și glisează cu ambele degete mari simultan pentru a forma un cuvânt</string>
     <string name="typing_two_thumb_title">Tastare cu două degete mari</string>
     <string name="typing_two_thumb_word_end_all_up_label">Toate degetele sus</string>
-    <string name="typing_two_thumb_word_end_info">Cu spațiu, cuvântul rămâne deschis în timp ce atingeți și glisați, iar tastatura îl citește din nou după fiecare. Atingeți spațiu sau punctuație pentru a-l tasta. Cu ambele degete mari ridicate, cuvântul este tastat cu un spațiu imediat ce niciun deget mare nu atinge tastatura, ca la glisarea obișnuită, deci degetele mari trebuie să se suprapună pentru a partaja un cuvânt.</string>
     <string name="typing_two_thumb_word_end_space_label">Spațiu</string>
     <string name="typing_two_thumb_word_end_subtitle">Ce scrie cuvântul pe care îl construiești</string>
     <string name="typing_two_thumb_word_end_title">Termină un cuvânt cu două degete</string>

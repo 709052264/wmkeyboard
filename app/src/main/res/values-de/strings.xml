@@ -8770,11 +8770,9 @@
     <string name="typing_trail_opacity_title">Spur-Deckkraft</string>
     <string name="typing_trail_width_subtitle">Dicke der Wischspur</string>
     <string name="typing_trail_width_title">Spurbreite</string>
-    <string name="typing_two_thumb_info">Verwenden Sie beide Daumen zusammen. Jeder Daumen kann tippen oder wischen, gleichzeitig mit dem anderen, und jedes Tippen und Wischen trägt zum selben Wort bei. Tippen Sie zum Beispiel S mit dem linken Daumen, wischen Sie O zu M mit dem rechten, tippen Sie E mit dem linken, dann wischen Sie T H I N G mit dem rechten, und Sie erhalten etwas. Ein Tippen, das landet, während der andere Daumen noch wischt, wird an dieser Stelle in das Wort eingefügt, sodass ein Wischen über H E L O und ein Tippen auf L hello ergibt. Die Rücktaste entfernt das letzte Tippen oder Wischen aus dem Wort.</string>
     <string name="typing_two_thumb_subtitle">Tippe und wische mit beiden Daumen gleichzeitig, um ein Wort zu bilden</string>
     <string name="typing_two_thumb_title">Zwei-Daumen-Tippen</string>
     <string name="typing_two_thumb_word_end_all_up_label">Beide Daumen hoch</string>
-    <string name="typing_two_thumb_word_end_info">Mit einem Leerzeichen bleibt das Wort offen, während Sie tippen und wischen, und die Tastatur liest es nach jedem Vorgang erneut. Tippen Sie auf das Leerzeichen oder ein Satzzeichen, um es einzugeben. Wenn Sie beide Daumen anheben, wird das Wort mit einem Leerzeichen eingegeben, sobald kein Daumen mehr die Tastatur berührt, ähnlich wie beim normalen Wischen, sodass sich Ihre Daumen überschneiden müssen, um ein Wort gemeinsam zu schreiben.</string>
     <string name="typing_two_thumb_word_end_space_label">Leerzeichen</string>
     <string name="typing_two_thumb_word_end_subtitle">Was das Wort tippt, das du gerade erstellst</string>
     <string name="typing_two_thumb_word_end_title">Wort mit zwei Daumen beenden</string>

@@ -8771,11 +8771,9 @@
     <string name="typing_trail_opacity_title">ٹریل کی شفافیت</string>
     <string name="typing_trail_width_subtitle">گلائیڈ ٹریل کی موٹائی</string>
     <string name="typing_trail_width_title">ٹریل کی چوڑائی</string>
-    <string name="typing_two_thumb_info">دونوں انگوٹھوں کا ایک ساتھ استعمال کریں۔ ہر انگوٹھا دوسرے کے ساتھ ساتھ ٹیپ یا سوائپ کر سکتا ہے، اور ہر ٹیپ اور سوائپ ایک ہی لفظ میں شامل ہوتا ہے۔ مثال کے طور پر، بائیں انگوٹھے سے S کو ٹیپ کریں، دائیں سے O سے M تک سوائپ کریں، بائیں سے E کو ٹیپ کریں، پھر دائیں سے T H I N G سوائپ کریں، اور آپ کو کچھ مل جائے گا۔ ایک ٹیپ جو اس وقت ہوتا ہے جب دوسرا انگوٹھا سوائپ کر رہا ہو، وہ اس مقام پر لفظ میں شامل ہو جاتا ہے، لہذا H E L O پر سوائپ اور L پر ٹیپ کرنے سے ہیلو بنتا ہے۔ بیک اسپیس لفظ سے آخری ٹیپ یا سوائپ کو ہٹا دیتا ہے۔</string>
     <string name="typing_two_thumb_subtitle">ایک لفظ بنانے کے لیے ایک ہی وقت میں دونوں انگوٹھوں سے تھپتھپائیں اور سوائپ کریں</string>
     <string name="typing_two_thumb_title">دونوں انگوٹھوں سے ٹائپنگ</string>
     <string name="typing_two_thumb_word_end_all_up_label">سب ٹھیک ہے</string>
-    <string name="typing_two_thumb_word_end_info">اسپیس کے ساتھ، لفظ کھلا رہتا ہے جبکہ آپ ٹیپ اور سوائپ کرتے ہیں، اور کی بورڈ ہر ایک کے بعد اسے دوبارہ پڑھتا ہے۔ اسے ٹائپ کرنے کے لیے اسپیس یا اوقاف کو ٹیپ کریں۔ دونوں انگوٹھے اوپر ہونے کے ساتھ، لفظ اسپیس کے ساتھ تب ٹائپ ہو جاتا ہے جب کوئی انگوٹھا کی بورڈ کو نہیں چھوتا، جیسے عام گلائیڈ، لہذا آپ کے انگوٹھوں کو ایک لفظ شیئر کرنے کے لیے اوورلیپ ہونا پڑتا ہے۔</string>
     <string name="typing_two_thumb_word_end_space_label">اسپیس</string>
     <string name="typing_two_thumb_word_end_subtitle">جو آپ کے بنائے ہوئے لفظ کو ٹائپ کرتا ہے</string>
     <string name="typing_two_thumb_word_end_title">دو انگوٹھوں والے لفظ کو مکمل کریں</string>

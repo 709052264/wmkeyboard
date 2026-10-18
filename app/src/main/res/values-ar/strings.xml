@@ -8782,11 +8782,9 @@
     <string name="typing_trail_opacity_title">شفافية أثر الكتابة</string>
     <string name="typing_trail_width_subtitle">سمك مسار التمرير</string>
     <string name="typing_trail_width_title">عرض أثر الكتابة</string>
-    <string name="typing_two_thumb_info">استخدم كلا الإبهامين معاً. يمكن لكل إبهام النقر أو التمرير في نفس وقت الإبهام الآخر، وكل نقرة وتمريرة تضاف إلى نفس الكلمة. على سبيل المثال، انقر على حرف S بالإبهام الأيسر، ومرر من O إلى M بالإبهام الأيمن، ثم انقر على E بالإبهام الأيسر، ثم مرر على T H I N G بالإبهام الأيمن، وستحصل على كلمة something. النقرة التي تحدث بينما لا يزال الإبهام الآخر يمرر يتم إضافتها إلى الكلمة في تلك النقطة، لذا فإن التمرير فوق H E L O والنقر على L يعطي كلمة hello. مفتاح المسافة الخلفية (Backspace) يزيل آخر نقرة أو تمريرة من الكلمة.</string>
     <string name="typing_two_thumb_subtitle">انقر واسحب بكلتا الإبهامين في وقت واحد لتكوين كلمة واحدة</string>
     <string name="typing_two_thumb_title">الكتابة بإبهامين</string>
     <string name="typing_two_thumb_word_end_all_up_label">كل الإبهام مرفوعة</string>
-    <string name="typing_two_thumb_word_end_info">مع المسافة، تظل الكلمة مفتوحة أثناء النقر والسحب، وتقرأها لوحة المفاتيح مرة أخرى بعد كل نقرة. انقر على المسافة أو علامات الترقيم لكتابتها. عند رفع كل الإبهام، يتم كتابة الكلمة مع مسافة بمجرد عدم لمس أي إبهام للوحة المفاتيح، مثل الانزلاق العادي، لذا يجب أن تتداخل إبهامك لمشاركة كلمة.</string>
     <string name="typing_two_thumb_word_end_space_label">مسافة</string>
     <string name="typing_two_thumb_word_end_subtitle">ما يكتب الكلمة التي تقوم بإنشائها</string>
     <string name="typing_two_thumb_word_end_title">أنهِ كلمة باستخدام إبهامين</string>

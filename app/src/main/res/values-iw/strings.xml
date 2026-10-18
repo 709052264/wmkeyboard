@@ -8769,11 +8769,9 @@
     <string name="typing_trail_opacity_title">אטימות עקבות</string>
     <string name="typing_trail_width_subtitle">עובי שביל ההחלקה</string>
     <string name="typing_trail_width_title">רוחב עקבות</string>
-    <string name="typing_two_thumb_info">השתמש בשני האגודלים יחד. כל אגודל יכול להקיש או להחליק, בו זמנית עם השני, וכל הקשה והחלקה מצטרפת לאותה מילה. לדוגמה, הקש על S עם האגודל השמאלי, החלק מ-O ל-M עם הימני, הקש על E עם השמאלי, לאחר מכן החלק על T H I N G עם הימני, ותקבל something. הקשה שמתבצעת בזמן שהאגודל השני עדיין מחליק נכנסת למילה בנקודה ההיא, כך שהחלקה מעל H E L O והקשה על L נותנות hello. מחיקה (Backspace) מסירה את ההקשה או ההחלקה האחרונה מהמילה.</string>
     <string name="typing_two_thumb_subtitle">הקש והחלק עם שני האגודלים בבת אחת כדי לבנות מילה אחת</string>
     <string name="typing_two_thumb_title">הקלדה בשתי אגודלים</string>
     <string name="typing_two_thumb_word_end_all_up_label">הכל מוכן</string>
-    <string name="typing_two_thumb_word_end_info">עם מקש הרווח, המילה נשארת פתוחה בזמן שאתה מקיש ומחליק, והמקלדת קוראת אותה שוב לאחר כל פעולה. הקש על רווח או סימני פיסוק כדי להקליד. כאשר שני האגודלים למעלה, המילה מוקלדת עם רווח ברגע שאף אגודל לא נוגע במקלדת, כמו החלקה רגילה, כך שהאגודלים שלך צריכים לחפוף כדי לשתף מילה.</string>
     <string name="typing_two_thumb_word_end_space_label">רווח</string>
     <string name="typing_two_thumb_word_end_subtitle">מה מקליד את המילה שאתה בונה</string>
     <string name="typing_two_thumb_word_end_title">סיים מילה בשתי אגודלים</string>

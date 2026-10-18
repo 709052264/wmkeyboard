@@ -8791,11 +8791,9 @@
     <string name="typing_trail_opacity_title">Ukukhanya komkhondo</string>
     <string name="typing_trail_width_subtitle">Ubugqinsi bomkhondo wokushibilika</string>
     <string name="typing_trail_width_title">Ububanzi bomkhondo</string>
-    <string name="typing_two_thumb_info">Sebenzisa izithupha zombili ndawonye. Isithupha ngasinye singathepha noma siswayiphe, ngesikhathi esisodwa nesinye, futhi konke ukuthepha nokuswayipha kwengeza egameni elifanayo. Isibonelo, thepha u-S ngesithupha sobunxele, swayiphela u-O ku-M ngesokudla, thepha u-E ngesobunxele, bese uswayiphela u-T H I N G ngesokudla, futhi uthola okuthile. Ukuthepha okufika ngenkathi esinye isithupha sisaswayipha kungena egameni ngaleso sikhathi, ngakho ukuswayipha phezu kuka-H E L O nokuthepha ku-L kunikeza u-hello. I-Backspace isusa ukuthepha noma ukuswayipha kokugcina egameni.</string>
     <string name="typing_two_thumb_subtitle">Thepha futhi uswayiphe ngeminwe emibili ngesikhathi esisodwa ukuze wakhe igama elilodwa</string>
     <string name="typing_two_thumb_title">Ukuthayipha ngeminwe emibili</string>
     <string name="typing_two_thumb_word_end_all_up_label">Zonke izithupha phezulu</string>
-    <string name="typing_two_thumb_word_end_info">Ngesikhala, igama lihlala livulekile ngenkathi uthepha futhi uswayipha, futhi ikhibhodi ilifunda futhi ngemva kokunye ngakunye. Thepha isikhala noma izimpawu zokuloba ukuze uzithayiphe. Ngazo zonke izithupha phezulu, igama lithayiphelwa isikhala ngokushesha nje lapho kungekho sithupha esithinta ikhibhodi, njengokuswayipha okuvamile, ngakho izithupha zakho kufanele zihlangane ukuze zabelane ngegama.</string>
     <string name="typing_two_thumb_word_end_space_label">Isikhala</string>
     <string name="typing_two_thumb_word_end_subtitle">Yini ethayipha igama olakhayo</string>
     <string name="typing_two_thumb_word_end_title">Qeda igama lezithupha ezimbili</string>

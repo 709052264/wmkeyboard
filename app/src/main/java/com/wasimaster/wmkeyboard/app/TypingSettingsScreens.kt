@@ -1817,6 +1817,10 @@ internal fun TypingGesturesSettings(
     val shiftCapitals = settings.watch { it.gesture.shiftGlideCapitals }
     val twoThumb = settings.watch { it.gesture.twoThumbGlide }
     val twoThumbWordEnd = settings.watch { it.gesture.twoThumbWordEnd }
+    // Two-thumb typing turns off the features that read one swipe as a
+    // whole word (#745). Their rows stay editable, since the values come
+    // back when it is turned off, but say so instead of their usual line.
+    val offWithTwoThumb = stringResource(R.string.typing_off_with_two_thumb)
     val pickerOn = settings.watch { it.gesture.ambiguityPicker }
     val pickerAsksAtEveryPause =
         settings.watch { it.gesture.pickerSensitivity == GlidePickerSensitivity.EVERY_PAUSE }
@@ -1883,7 +1887,7 @@ internal fun TypingGesturesSettings(
                 item {
                     ToggleSetting(
                         R.string.typing_space_glide_multiword_title,
-                        stringResource(R.string.typing_space_glide_multiword_subtitle),
+                        if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_space_glide_multiword_subtitle),
                         settings.watch { it.gesture.spaceGlideMultiWord },
                         info = stringResource(R.string.typing_space_glide_multiword_info),
                         default = SettingsDefaults.gesture.spaceGlideMultiWord,
@@ -1943,7 +1947,7 @@ internal fun TypingGesturesSettings(
                 item {
                     ToggleSetting(
                         R.string.typing_shift_glide_capitals_title,
-                        stringResource(R.string.typing_shift_glide_capitals_subtitle),
+                        if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_shift_glide_capitals_subtitle),
                         shiftCapitals,
                         info = stringResource(R.string.typing_shift_glide_capitals_info),
                         default = SettingsDefaults.gesture.shiftGlideCapitals,
@@ -1953,7 +1957,7 @@ internal fun TypingGesturesSettings(
                 item(visible = shiftCapitals) {
                     ChoiceSetting(
                         title = R.string.typing_shift_glide_mode_title,
-                        subtitle = stringResource(R.string.typing_shift_glide_mode_subtitle),
+                        subtitle = if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_shift_glide_mode_subtitle),
                         info = stringResource(R.string.typing_shift_glide_mode_info),
                         options = listOf(
                             ShiftGlideMode.WORD to
@@ -1969,7 +1973,7 @@ internal fun TypingGesturesSettings(
                 item {
                     ToggleSetting(
                         R.string.typing_glide_picker_title,
-                        stringResource(R.string.typing_glide_picker_subtitle),
+                        if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_glide_picker_subtitle),
                         pickerOn,
                         info = stringResource(R.string.typing_glide_picker_info),
                         default = SettingsDefaults.gesture.ambiguityPicker,
@@ -1982,7 +1986,7 @@ internal fun TypingGesturesSettings(
                     item {
                         ChoiceSetting(
                             title = R.string.typing_glide_picker_sensitivity_title,
-                            subtitle = stringResource(R.string.typing_glide_picker_sensitivity_subtitle),
+                            subtitle = if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_glide_picker_sensitivity_subtitle),
                             info = stringResource(R.string.typing_glide_picker_sensitivity_info),
                             options = GlidePickerSensitivity.entries.map { it to stringResource(it.labelRes) },
                             selected = settings.watch { it.gesture.pickerSensitivity },
@@ -1995,7 +1999,7 @@ internal fun TypingGesturesSettings(
                         val msFormat = stringResource(R.string.typing_value_milliseconds)
                         SliderSetting(
                             R.string.typing_glide_picker_dwell_title,
-                            subtitle = stringResource(R.string.typing_glide_picker_dwell_subtitle),
+                            subtitle = if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_glide_picker_dwell_subtitle),
                             value = settings.watch { it.gesture.pickerDwellMs }.toFloat(),
                             range = GlidePickerDwellMsRange.first.toFloat()..GlidePickerDwellMsRange.last.toFloat(),
                             display = { msFormat.format(it.roundToInt()) },
@@ -2008,7 +2012,7 @@ internal fun TypingGesturesSettings(
                     item(visible = !pickerAsksAtEveryPause) {
                         ToggleSetting(
                             R.string.typing_glide_picker_hold_title,
-                            stringResource(R.string.typing_glide_picker_hold_subtitle),
+                            if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_glide_picker_hold_subtitle),
                             settings.watch { it.gesture.pickerHoldToAsk },
                             info = stringResource(R.string.typing_glide_picker_hold_info),
                             default = SettingsDefaults.gesture.pickerHoldToAsk,
@@ -2018,7 +2022,7 @@ internal fun TypingGesturesSettings(
                         val numberFormat = stringResource(R.string.values_number)
                         SliderSetting(
                             R.string.typing_glide_picker_choices_title,
-                            subtitle = stringResource(R.string.typing_glide_picker_choices_subtitle),
+                            subtitle = if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_glide_picker_choices_subtitle),
                             value = settings.watch { it.gesture.pickerChoices }.toFloat(),
                             range = GlidePickerChoicesRange.first.toFloat()..GlidePickerChoicesRange.last.toFloat(),
                             display = { numberFormat.format(it.roundToInt()) },

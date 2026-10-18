@@ -8772,11 +8772,9 @@
     <string name="typing_trail_opacity_title">ટ્રેઇલ ઓપેસિટી</string>
     <string name="typing_trail_width_subtitle">ગ્લાઈડ ટ્રેઈલની જાડાઈ</string>
     <string name="typing_trail_width_title">ટ્રેલની પહોળાઈ</string>
-    <string name="typing_two_thumb_info">બંને અંગૂઠાનો એકસાથે ઉપયોગ કરો. દરેક અંગૂઠો બીજાની સાથે જ ટેપ અથવા સ્વાઇપ કરી શકે છે, અને દરેક ટેપ અને સ્વાઇપ એક જ શબ્દમાં ઉમેરાય છે. ઉદાહરણ તરીકે, ડાબા અંગૂઠાથી S ટેપ કરો, જમણા અંગૂઠાથી O થી M સ્વાઇપ કરો, ડાબાથી E ટેપ કરો, પછી જમણાથી T H I N G સ્વાઇપ કરો, અને તમને કંઈક મળશે. એક ટેપ જે ત્યારે થાય છે જ્યારે બીજો અંગૂઠો હજુ સ્વાઇપ કરી રહ્યો હોય, તે તે બિંદુએ શબ્દમાં જાય છે, તેથી H E L O પર સ્વાઇપ અને L પર ટેપ કરવાથી hello મળે છે. બેકસ્પેસ શબ્દમાંથી છેલ્લી ટેપ અથવા સ્વાઇપ દૂર કરે છે.</string>
     <string name="typing_two_thumb_subtitle">એક શબ્દ બનાવવા માટે બંને અંગૂઠા વડે એકસાથે ટેપ અને સ્વાઇપ કરો</string>
     <string name="typing_two_thumb_title">બે અંગૂઠાથી ટાઇપિંગ</string>
     <string name="typing_two_thumb_word_end_all_up_label">બધા અંગૂઠા ઉપર</string>
-    <string name="typing_two_thumb_word_end_info">સ્પેસ સાથે, જ્યારે તમે ટેપ અને સ્વાઇપ કરો છો ત્યારે શબ્દ ખુલ્લો રહે છે, અને કીબોર્ડ દરેક પછી તેને ફરીથી વાંચે છે. તેને ટાઇપ કરવા માટે સ્પેસ અથવા વિરામચિહ્ન ટેપ કરો. બધા અંગૂઠા ઉપર હોય ત્યારે, જેવું કોઈ અંગૂઠો કીબોર્ડને સ્પર્શતું નથી, શબ્દ સ્પેસ સાથે ટાઇપ થઈ જાય છે, સામાન્ય ગ્લાઇડની જેમ, તેથી શબ્દ શેર કરવા માટે તમારા અંગૂઠાને ઓવરલેપ થવું પડે છે.</string>
     <string name="typing_two_thumb_word_end_space_label">સ્પેસ</string>
     <string name="typing_two_thumb_word_end_subtitle">તમે જે શબ્દ બનાવી રહ્યા છો તે શું ટાઈપ કરે છે</string>
     <string name="typing_two_thumb_word_end_title">બે-અંગૂઠાવાળો શબ્દ પૂર્ણ કરો</string>

@@ -8767,11 +8767,9 @@
     <string name="typing_trail_opacity_title">軌跡の不透明度</string>
     <string name="typing_trail_width_subtitle">スライド軌跡の太さ</string>
     <string name="typing_trail_width_title">トレイルの幅</string>
-    <string name="typing_two_thumb_info">両方の親指を同時に使用します。各親指でタップやスワイプができ、同時に操作してもすべてのタップとスワイプが同じ単語に追加されます。例えば、左の親指でSをタップし、右でOからMへスワイプし、左でEをタップし、右でT H I N Gとスワイプすると、単語が完成します。もう一方の親指がスワイプしている最中にタップすると、その時点の単語に反映されます。例えば、H E L OとスワイプしながらLをタップすると「hello」になります。バックスペースは、単語から最後のタップまたはスワイプを削除します。</string>
     <string name="typing_two_thumb_subtitle">両手の親指で同時にタップ＆スワイプして単語を入力</string>
     <string name="typing_two_thumb_title">両手親指入力</string>
     <string name="typing_two_thumb_word_end_all_up_label">両手の親指を上げる</string>
-    <string name="typing_two_thumb_word_end_info">スペースキーを使うと、タップやスワイプをしている間も単語入力が継続され、キーボードは入力のたびに読み直します。スペースまたは句読点をタップして入力してください。両方の親指を離すと、通常のグライド入力と同様に、キーボードに親指が触れていない瞬間にスペース付きで単語が確定されます。そのため、単語を共有するには親指を重ねる必要があります。</string>
     <string name="typing_two_thumb_word_end_space_label">スペース</string>
     <string name="typing_two_thumb_word_end_subtitle">入力中の単語を確定させる操作</string>
     <string name="typing_two_thumb_word_end_title">両親指入力の単語を完了する</string>

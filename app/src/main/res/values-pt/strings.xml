@@ -8768,11 +8768,9 @@
     <string name="typing_trail_opacity_title">Opacidade do rastro</string>
     <string name="typing_trail_width_subtitle">Espessura do rastro do gesto</string>
     <string name="typing_trail_width_title">Largura do rasto</string>
-    <string name="typing_two_thumb_info">Use os dois polegares juntos. Cada polegar pode tocar ou deslizar, ao mesmo tempo que o outro, e cada toque e deslize é adicionado à mesma palavra. Por exemplo, toque em S com o polegar esquerdo, deslize de O para M com o direito, toque em E com o esquerdo, depois deslize T H I N G com o direito, e você obtém something. Um toque feito enquanto o outro polegar ainda está deslizando entra na palavra naquele ponto; portanto, um deslize sobre H E L O e um toque em L produzem hello. O backspace remove o último toque ou deslize da palavra.</string>
     <string name="typing_two_thumb_subtitle">Toque e deslize com ambos os polegares ao mesmo tempo para formar uma palavra</string>
     <string name="typing_two_thumb_title">Digitação com dois polegares</string>
     <string name="typing_two_thumb_word_end_all_up_label">Todos os polegares para cima</string>
-    <string name="typing_two_thumb_word_end_info">Com espaço, a palavra permanece aberta enquanto você toca e desliza, e o teclado a lê novamente após cada um. Toque no espaço ou na pontuação para digitá-la. Com todos os polegares levantados, a palavra é digitada com um espaço assim que nenhum polegar toca o teclado, como o deslize comum, então seus polegares precisam se sobrepor para compartilhar uma palavra.</string>
     <string name="typing_two_thumb_word_end_space_label">Espaço</string>
     <string name="typing_two_thumb_word_end_subtitle">O que digita a palavra que você está construindo</string>
     <string name="typing_two_thumb_word_end_title">Terminar uma palavra com dois polegares</string>

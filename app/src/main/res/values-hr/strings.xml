@@ -8786,11 +8786,9 @@
     <string name="typing_trail_opacity_title">Neprozirnost traga</string>
     <string name="typing_trail_width_subtitle">Debljina traga klizanja</string>
     <string name="typing_trail_width_title">Širina traga</string>
-    <string name="typing_two_thumb_info">Koristite oba palca zajedno. Svaki palac može dodirnuti ili povući, istovremeno s drugim, a svaki dodir i potez dodaje se istoj riječi. Na primjer, dodirnite S lijevim palcem, povucite O do M desnim, dodirnite E lijevim, zatim povucite T H I N G desnim i dobit ćete nešto. Dodir koji se dogodi dok drugi palac još uvijek povlači ulazi u riječ na toj točki, pa potez preko H E L O i dodir na L daju hello. Backspace uklanja zadnji dodir ili potez iz riječi.</string>
     <string name="typing_two_thumb_subtitle">Dodirnite i povucite s oba palca odjednom kako biste sastavili riječ</string>
     <string name="typing_two_thumb_title">Tipkanje s dva palca</string>
     <string name="typing_two_thumb_word_end_all_up_label">Svi palčevi gore</string>
-    <string name="typing_two_thumb_word_end_info">S razmakom, riječ ostaje otvorena dok dodirujete i povlačite, a tipkovnica je ponovno čita nakon svakog. Dodirnite razmak ili interpunkciju da biste je upisali. Kada su oba palca podignuta, riječ se upisuje s razmakom čim nijedan palac ne dodiruje tipkovnicu, kao kod običnog klizanja, pa se vaši palčevi moraju preklapati da bi podijelili riječ.</string>
     <string name="typing_two_thumb_word_end_space_label">Razmak</string>
     <string name="typing_two_thumb_word_end_subtitle">Što upisuje riječ koju sastavljate</string>
     <string name="typing_two_thumb_word_end_title">Završi riječ s dva palca</string>
