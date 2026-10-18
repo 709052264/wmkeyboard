@@ -147,6 +147,9 @@ export const ROUTES: RouteSpec[] = [
 
 	{ pattern: 'emoji', label: 'Emoji', group: 'Emoji, clipboard and stickers' },
 	{ pattern: 'emoji/panel', label: 'Emoji panel', group: 'Emoji, clipboard and stickers' },
+	{ pattern: 'kaomoji', label: 'Kaomoji', group: 'Emoji, clipboard and stickers' },
+	{ pattern: 'kaomoji/faces', label: 'Your kaomoji, to add, change, sort and delete', group: 'Emoji, clipboard and stickers' },
+	{ pattern: 'kaomoji/tags', label: 'Kaomoji tags, in the order the tag strip shows them', group: 'Emoji, clipboard and stickers' },
 	{ pattern: 'emojikeywords', label: 'Emoji keywords', group: 'Emoji, clipboard and stickers' },
 	{ pattern: 'emojicategories', label: 'Emoji categories', group: 'Emoji, clipboard and stickers' },
 	{

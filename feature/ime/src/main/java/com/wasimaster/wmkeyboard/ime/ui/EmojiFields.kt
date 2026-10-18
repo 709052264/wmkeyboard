@@ -19,6 +19,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
+import com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiUi
+import com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiCallbacks
+import androidx.compose.runtime.collectAsState
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -87,6 +91,8 @@ internal class EmojiFieldCallbacks(
     val onStickerSend: (String) -> Unit,
     val onSearchFieldDelete: () -> Unit,
     val onTextArt: (String) -> Unit,
+    /** The kaomoji tab's controller. */
+    val kaomoji: KaomojiCallbacks = KaomojiCallbacks(),
 )
 
 /**
@@ -137,7 +143,7 @@ internal class EmojiPanelSession(
 }
 
 @Composable
-internal fun rememberEmojiPanelSession(state: KeyboardUiState): EmojiPanelSession {
+internal fun rememberEmojiPanelSession(state: KeyboardUiState, kaomoji: KaomojiUi): EmojiPanelSession {
     val variantChildren = remember(state.emojiCatalog) {
         state.emojiCatalog
             .mapNotNull { entry -> entry.parent?.let { parent -> parent to entry.emoji } }
@@ -155,14 +161,17 @@ internal fun rememberEmojiPanelSession(state: KeyboardUiState): EmojiPanelSessio
     val hasHistory = historyMode != EmojiTabMode.OFF && history.isNotEmpty()
     // Kaomoji and emoticons sit after the Unicode categories: opt-in extras,
     // and appending them leaves every existing tab where muscle memory expects it.
+    // One tab for the kaomoji library, or two with the emoticons split off.
     val textArtTabs = state.settings.emoji.kaomojiTabs
-    val tabs = remember(categories, hasHistory, textArtTabs) {
+    val kaomojiSettings = state.settings.emoji.kaomoji
+    val splitEmoticons = kaomojiSettings.splitEmoticons
+    val tabs = remember(categories, hasHistory, textArtTabs, splitEmoticons) {
         buildList {
             if (hasHistory) add(RECENT_TAB)
             addAll(categories)
             if (textArtTabs) {
                 add(KAOMOJI_TAB)
-                add(EMOTICON_TAB)
+                if (splitEmoticons) add(EMOTICON_TAB)
             }
         }
     }
@@ -176,8 +185,10 @@ internal fun rememberEmojiPanelSession(state: KeyboardUiState): EmojiPanelSessio
     val continuous = state.settings.emoji.continuousScroll
     val emojiOrder = state.settings.emoji.categoryEmojiOrder
     val sections = if (continuous) {
-        remember(tabs, history, state.emojiCatalog, emojiOrder, state.hiddenEmoji) {
-            EmojiSections.build(tabs, history, state.emojiCatalog, emojiOrder, state.hiddenEmoji)
+        remember(tabs, history, state.emojiCatalog, emojiOrder, state.hiddenEmoji, kaomoji.library, kaomoji.views, kaomojiSettings) {
+            EmojiSections.build(tabs, history, state.emojiCatalog, emojiOrder, state.hiddenEmoji) { tab ->
+                kaomojiListItems(tab, kaomoji, kaomojiSettings)
+            }
         }
     } else {
         null
@@ -392,6 +403,7 @@ internal fun EmojiGridField(
         if (state.emojiFavourites.size >= 2) ({ session.reorderOpen = true }) else null
     val gridCell = session.gridCell
     val variantChildren = session.variantChildren
+    val kaomoji by callbacks.kaomoji.state.collectAsState()
     if (state.emojiQuery.isNotEmpty()) {
         // Memoized, and distinct so it is safe to key by: every emoji tap emits
         // fresh state, and an inline map rebuilt the result grid per keystroke.
@@ -432,6 +444,28 @@ internal fun EmojiGridField(
                     focused = index == focusedResult,
                 )
             }
+            // Faces whose tag or text matches, after the emoji, when the
+            // kaomoji tab is on and the user left them in search.
+            val faces = if (state.settings.emoji.kaomojiTabs && state.settings.emoji.kaomoji.inSearch) {
+                kaomoji.library.search(state.emojiQuery, null).take(KaomojiSearchLimit)
+            } else {
+                emptyList()
+            }
+            if (faces.isNotEmpty()) {
+                item(key = "§kaomoji", span = { GridItemSpan(maxLineSpan) }) {
+                    Text(
+                        text = stringResource(R.string.ime_emoji_tab_kaomoji),
+                        modifier = Modifier.padding(start = 4.dp, top = 6.dp, bottom = 2.dp),
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    )
+                }
+                items(
+                    count = faces.size,
+                    key = { "k\u0000${faces[it].id}" },
+                    span = { GridItemSpan(kaomojiSpan(faces[it].kind, maxLineSpan, gridCell)) },
+                ) { index -> KaomojiCell(faces[index], KaomojiUi(), callbacks.kaomoji.onAction, dragging = false) }
+            }
         }
         return
     }
@@ -439,7 +473,12 @@ internal fun EmojiGridField(
     val tabs = session.tabs
     if (tabs.isEmpty()) return
     session.sections?.let { sections ->
-        ContinuousEmojiGrid(state, session, sections, callbacks)
+        Box(modifier = Modifier.fillMaxSize()) {
+            ContinuousEmojiGrid(state, session, sections, callbacks, kaomoji)
+            // The long list has no page to swap for these; they lie over it.
+            if (kaomoji.tagsOpen) KaomojiTagManager(kaomoji, callbacks.kaomoji.onAction)
+            KaomojiHeldBar(kaomoji, callbacks.kaomoji.onAction, Modifier.align(Alignment.BottomCenter))
+        }
         return
     }
     val pagerState = session.pagerState
@@ -460,7 +499,7 @@ internal fun EmojiGridField(
     ) { page ->
         val tab = tabs[page]
         if (tab == KAOMOJI_TAB || tab == EMOTICON_TAB) {
-            TextArtGrid(kaomoji = tab == KAOMOJI_TAB, onTap = callbacks.onTextArt)
+            KaomojiPage(state, tab, kaomoji, callbacks.kaomoji)
         } else if (tab == RECENT_TAB) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // Inside the page so the pager height stays fixed across a swipe.
@@ -654,6 +693,9 @@ internal fun EmojiSearchPanel(
         }
     }
 }
+
+/** Most faces the emoji search lists after its emoji. */
+private const val KaomojiSearchLimit = 24
 
 /** Panel height while the emoji search is capturing the keys. */
 private val EmojiSearchPanelHeight = 120.dp

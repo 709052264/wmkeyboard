@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
@@ -213,13 +215,15 @@ private val ClipboardHeaderFields = setOf(PanelFieldKind.CLIPBOARD_SEARCH, Panel
  */
 @Composable
 internal fun EmojiPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCallbacks) {
-    val session = rememberEmojiPanelSession(state)
+    val kaomoji by callbacks.emoji.kaomoji.state.collectAsState()
+    val session = rememberEmojiPanelSession(state, kaomoji)
     // Toggling the open panel closes it — back to the keys.
     val onClose = { callbacks.onPanelChange(PanelMode.EMOJI) }
     // The search and the layout cross-fade as they trade places; the layout's
     // cells stagger back in on their own clock (see [PanelLayoutGrid]). The
-    // page on its way out takes no taps while it fades.
-    val searching = state.emojiSearchActive
+    // page on its way out takes no taps while it fades. The kaomoji tab's own
+    // boxes (its search, its editor) shrink the panel the same way.
+    val searching = emojiPanelTyping(state)
     MotionCrossfade(searching, LocalKbTheme.current.motion.any, label = "emojiPanelPage") { search ->
         Box(modifier = Modifier.blockTouches(search != searching)) {
             EmojiPanelPage(state, session, callbacks, onClose, search)
@@ -247,7 +251,10 @@ private fun EmojiPanelPage(
     onClose: () -> Unit,
     search: Boolean,
 ) {
-    if (search) {
+    if (search && state.kaomojiText != null) {
+        val kaomoji by callbacks.emoji.kaomoji.state.collectAsState()
+        KaomojiTypingPanel(state, kaomoji, callbacks.emoji.kaomoji, onClose)
+    } else if (search) {
         EmojiSearchPanel(state, session, callbacks.emoji, onClose)
     } else {
         val spec = state.panelLayout(PanelKind.EMOJI)

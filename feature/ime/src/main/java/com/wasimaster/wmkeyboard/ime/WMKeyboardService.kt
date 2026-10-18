@@ -3983,6 +3983,7 @@ open class WMKeyboardService : InputMethodService() {
             var swipeStyleVersion = -1
             var statsVersion = -1
             var notesVersion = -1
+            var kaomojiVersion = -1
             var customDictVersion = -1
             var emojiPackVersion = -1
             var emojiUsageVersion = -1
@@ -4307,6 +4308,14 @@ open class WMKeyboardService : InputMethodService() {
                     publishNotes()
                 }
                 notesVersion = settings.notes.version
+                // The kaomoji library: the settings app's library screen, an
+                // import or a restore rewrote it.
+                if (kaomojiVersion != -1 && settings.emoji.kaomoji.version != kaomojiVersion) {
+                    kaomojiTool.reload()
+                }
+                kaomojiVersion = settings.emoji.kaomoji.version
+                // The strip's faces need the library before the tab is ever opened.
+                if (settings.emoji.kaomojiTabs || settings.emoji.kaomoji.suggest) kaomojiTool.ensureLoaded()
                 noteStore.trashRetentionMillis = settings.notes.trashDays * DAY_MS
                 // Leaving Automatic starts its ladder over (#316). The settings
                 // app deletes the file for a keyboard that is not running; this
@@ -4655,6 +4664,9 @@ open class WMKeyboardService : InputMethodService() {
     private fun attachPersonalStores() {
         fun store(path: String): File? = if (userUnlocked) File(filesDir, path) else null
         userLexicon = UserLexicon(store("learning/user_lexicon.json"))
+        // The kaomoji library reads its file through [userUnlocked] itself;
+        // one read before the unlock held the built-in set in its place.
+        if (kaomojiToolDelegate.isInitialized()) kaomojiTool.reattach()
         // Its own file for the same reason [CorrectionStats] has one: the
         // settings app rewrites the lexicon wholesale when the user edits their
         // personal dictionary, and half-earned sightings must survive that.
@@ -6846,6 +6858,7 @@ open class WMKeyboardService : InputMethodService() {
                 fieldIncognito = fieldIncognito,
                 emojiSearchActive = restarting && it.emojiSearchActive,
                 emojiQuery = if (restarting) it.emojiQuery else "",
+                kaomojiText = if (restarting) it.kaomojiText else null,
                 dictionarySearchActive = restarting && it.dictionarySearchActive,
                 clipboardSearchActive = restarting && it.clipboardSearchActive,
                 clipboardQuery = if (restarting) it.clipboardQuery else "",
@@ -9896,6 +9909,9 @@ open class WMKeyboardService : InputMethodService() {
             // The search opens its first match (#687); a folder's name is kept (#709).
             CaptureTarget.TOOLBOX_SEARCH -> onToolboxSearchEnter()
             CaptureTarget.TOOLBOX_FOLDER_NAME -> onToolboxFolderRenameDone(keep = true)
+            // The search puts its first match in, a face is saved, a tag is kept.
+            CaptureTarget.KAOMOJI_SEARCH, CaptureTarget.KAOMOJI_FACE, CaptureTarget.KAOMOJI_TAG ->
+                state.kaomojiText?.let(kaomojiTool::onTextEnter)
         }
         return true
     }
@@ -10276,6 +10292,12 @@ open class WMKeyboardService : InputMethodService() {
                         nameDraft = text.replace("\n", " ").take(TOOLBOX_FOLDER_NAME_MAX),
                     ),
                 )
+            }
+            CaptureTarget.KAOMOJI_SEARCH, CaptureTarget.KAOMOJI_FACE, CaptureTarget.KAOMOJI_TAG -> {
+                val limit = com.wasimaster.wmkeyboard.core.emoji.KaomojiStore.MAX_TEXT_LENGTH
+                val entry = _uiState.value.kaomojiText?.copy(text = text.replace("\n", " ").take(limit))
+                _uiState.update { it.copy(kaomojiText = entry) }
+                entry?.let(kaomojiTool::onText)
             }
             else -> Unit
         }
@@ -20960,7 +20982,11 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 ensureActive()
                 if (typed.isNotEmpty()) {
-                    val emojis = if (state.settings.emojiPrediction) {
+                    // Faces tagged with the word ("shrug", "tableflip") go in
+                    // front when the user asked for them; they ride the emoji
+                    // chips, and a tap on one is told apart by the library.
+                    val faces = if (kaomojiToolDelegate.isInitialized()) kaomojiTool.suggestionsFor(typed) else emptyList()
+                    val emojis = faces + if (state.settings.emojiPrediction) {
                         // The word before is passed for the two-word shortcodes
                         // ("alarm clock" → ⏰); one word can never reach them.
                         // Khipro's roman keys ("ami/") are not a word in any
@@ -24911,6 +24937,11 @@ open class WMKeyboardService : InputMethodService() {
         // is saved and the editor, the search and the Undo bar go (#560).
         if (_uiState.value.panel == PanelMode.NOTES) notesLeavePanel()
         if (_uiState.value.panel == PanelMode.LOCATION) locationTool.onPanelClose()
+        // Leaving the emoji panel: the kaomoji tab's box gives the keys back.
+        if (_uiState.value.panel == PanelMode.EMOJI) {
+            kaomojiTool.onPanelClose()
+            _uiState.update { it.copy(kaomojiText = null) }
+        }
         // Leaving the Clock panel: its text box gives the keys back.
         if (_uiState.value.panel == PanelMode.CLOCK) {
             clockTool.onPanelClose()
@@ -25082,6 +25113,7 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.WEATHER -> refreshWeather()
             PanelMode.LOCATION -> locationTool.onPanelOpen()
             PanelMode.CLOCK -> clockTool.onPanelOpen()
+            PanelMode.EMOJI -> if (_uiState.value.settings.emoji.kaomojiTabs) kaomojiTool.onPanelOpen()
             PanelMode.HOME_ASSISTANT -> {
                 haTool.onPanelOpen()
                 (_uiState.value.toolPrefill as? ToolPrefill.Assist)?.let { prefill ->
@@ -35862,6 +35894,7 @@ open class WMKeyboardService : InputMethodService() {
             notes = notesCallbacks(),
             location = locationTool.callbacks,
             clock = clockTool.callbacks,
+            kaomoji = kaomojiTool.callbacks,
             homeAssistant = haTool.callbacks,
             gallery = galleryTool.callbacks,
             toolbox = toolboxCallbacks(),
@@ -35952,6 +35985,47 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val clockTool by clockToolDelegate
+
+    // ---- kaomoji tab ----
+
+    /**
+     * The emoji panel's kaomoji tab: its library, its tag strip and its
+     * editor. Built with the first composition (its callbacks ride on
+     * [toolHoldCallbacks]); the library file is read on first use.
+     */
+    private val kaomojiToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiController(
+            scope = serviceScope,
+            storeFile = {
+                if (userUnlocked) File(filesDir, com.wasimaster.wmkeyboard.core.emoji.KaomojiStore.FILE_PATH) else null
+            },
+            settings = { _uiState.value.settings.emoji.kaomoji },
+            insertText = ::onTextArtTapped,
+            copyText = { text ->
+                (getSystemService(CLIPBOARD_SERVICE) as? ClipboardManager)
+                    ?.setPrimaryClip(ClipData.newPlainText("kaomoji", text))
+            },
+            haptic = { vibrate() },
+            openSettings = { openRoute("kaomoji") },
+            beginText = { entry ->
+                val target = when (entry.field) {
+                    com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextField.SEARCH -> CaptureTarget.KAOMOJI_SEARCH
+                    com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextField.FACE -> CaptureTarget.KAOMOJI_FACE
+                    com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextField.TAG -> CaptureTarget.KAOMOJI_TAG
+                }
+                _uiState.update {
+                    it.copy(
+                        kaomojiText = entry,
+                        panelFocus = null,
+                        captureCaret = CaptureCaret(target.name, entry.text.length, entry.text),
+                    )
+                }
+            },
+            endText = { _uiState.update { it.copy(kaomojiText = null) } },
+            currentText = { _uiState.value.kaomojiText },
+        )
+    }
+    private val kaomojiTool by kaomojiToolDelegate
 
     // ---- Home Assistant tool ----
 
@@ -40566,8 +40640,14 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             ic.commitText(emoji, 1)
         }
-        learnEmoji(emoji)
-        recordEmojiUse(emoji)
+        // A kaomoji chip is not an emoji: it counts for the kaomoji tab's
+        // Recent, and stays out of the emoji history and the bigrams.
+        if (kaomojiToolDelegate.isInitialized() && kaomojiTool.owns(emoji)) {
+            kaomojiTool.recordUse(emoji)
+        } else {
+            learnEmoji(emoji)
+            recordEmojiUse(emoji)
+        }
         composing = StringBuilder()
         _uiState.update {
             it.copy(

@@ -1946,6 +1946,39 @@ private fun SettingsNavGraph(
                 )
             }
         }
+        composable("kaomoji") {
+            SettingsScreen(
+                stringResource(R.string.langemoji_kaomoji_title),
+                { navController.popBackStack() },
+                route = "kaomoji",
+                subtitle = stringResource(R.string.langemoji_kaomoji_subtitle),
+                subtitleMaxLines = 2,
+            ) {
+                KaomojiSettings(repository, settings) { navController.navigate(it) }
+            }
+        }
+        composable("kaomoji/faces") {
+            SettingsScreen(
+                stringResource(R.string.langemoji_kaomoji_faces_title),
+                { navController.popBackStack() },
+                route = "kaomoji/faces",
+                subtitle = stringResource(R.string.langemoji_kaomoji_faces_subtitle),
+                subtitleMaxLines = 2,
+            ) {
+                KaomojiFacesScreen(repository)
+            }
+        }
+        composable("kaomoji/tags") {
+            SettingsScreen(
+                stringResource(R.string.langemoji_kaomoji_tags_title),
+                { navController.popBackStack() },
+                route = "kaomoji/tags",
+                subtitle = stringResource(R.string.langemoji_kaomoji_tags_subtitle),
+                subtitleMaxLines = 2,
+            ) {
+                KaomojiTagsScreen(repository)
+            }
+        }
         composable("voice") {
             SettingsScreen(
                 stringResource(R.string.home_voice_title),

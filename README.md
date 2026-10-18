@@ -196,7 +196,7 @@ learning behave identically with the radio off.
 | Input behaviour: glide, gestures, cursor, editing, keys | 11 | 80 | 219 |
 | Languages, scripts, layouts, transliteration | 11 | 64 | 213 |
 | Themes and appearance | 14 | 73 | 183 |
-| Emoji, GIFs, stickers, kaomoji | 16 | 88 | 94 |
+| Emoji, GIFs, stickers, kaomoji | 16 | 96 | 94 |
 | Toolbar and the tool set | 10 | 85 | 311 |
 | Clipboard, snippets, text expansion | 7 | 37 | 191 |
 | AI, voice, handwriting, scanning | 11 | 70 | 162 |
@@ -204,7 +204,7 @@ learning behave identically with the radio off.
 | Accessibility, form factors, platform integration | 13 | 61 | 111 |
 | Extensibility: addons, plugins, imports, formats | 5 | 35 | 164 |
 | Modes, rows, field adaptation, runtime | 12 | 97 | 203 |
-| **Total** | **133** | **807** | **2,229** |
+| **Total** | **133** | **815** | **2,229** |
 
 Entries marked `RARE` there are things few or no mainstream keyboards ship. There are over 400.
 

@@ -4145,6 +4145,7 @@ data class AutoBackupSettings(
             // Alarms set by hand. Not in sync's defaults: two phones that both
             // ring for one alarm is a bug.
             ConfigBackup.Section.CLOCK.id,
+            ConfigBackup.Section.KAOMOJI.id,
         )
     }
 }
@@ -6989,7 +6990,50 @@ data class EmojiSettings(
      * [MediaPanelExtraHeightRange].
      */
     val panelExtraHeightDp: Int = 0,
+    /** The kaomoji tab's own settings: its tag strip, edit rail and suggestions. */
+    val kaomoji: KaomojiSettings = KaomojiSettings(),
 )
+
+/**
+ * The kaomoji tab (shown with [EmojiSettings.kaomojiTabs] on). The library it
+ * draws from is a file of its own, `kaomoji/kaomoji.json`, not a preference.
+ */
+data class KaomojiSettings(
+    /**
+     * Give Western emoticons (`:-)`, `<3`) their own tab again instead of
+     * mixing them into the kaomoji tab. Off by default: one tab, one library.
+     */
+    val splitEmoticons: Boolean = false,
+    /**
+     * A strip of tag tabs across the top of the kaomoji tab, each showing one
+     * tag. Off draws the old single scrolling list with every tag as a heading.
+     */
+    val tagTabs: Boolean = true,
+    /** Which side of the kaomoji grid the edit buttons sit on, or none. */
+    val rail: KaomojiRailSide = KaomojiRailSide.LEFT,
+    /** The buttons the rail carries. Search moves to the tag strip when it is not here. */
+    val railButtons: Set<KaomojiRailButton> = KaomojiRailButton.entries.toSet(),
+    /** The tag the kaomoji tab opens on. */
+    val startView: KaomojiStartView = KaomojiStartView.LAST_USED,
+    /**
+     * Offer faces in the suggestion strip when the word just typed is one of
+     * their tags ("shrug", "tableflip"). Off by default.
+     */
+    val suggest: Boolean = false,
+    /** List matching kaomoji after the emoji in the emoji panel's search results. */
+    val inSearch: Boolean = true,
+    /**
+     * Bumped when the settings app or a restore rewrites the library file, so
+     * the running keyboard reloads it instead of saving over it. Not a preference.
+     */
+    val version: Int = 0,
+)
+
+enum class KaomojiRailSide { LEFT, RIGHT, OFF }
+
+enum class KaomojiRailButton { ADD, EDIT, TAGS, SEARCH }
+
+enum class KaomojiStartView { LAST_USED, RECENT, FAVOURITES, ALL }
 
 /** How much taller than the keyboard the emoji, GIF and sticker panels may be set, in dp (#537). */
 val MediaPanelExtraHeightRange = 0..400
@@ -9931,6 +9975,17 @@ class SettingsRepository(private val context: Context) {
         private val EMOJI_GRID_CELL_SIZE = intPreferencesKey("emoji_grid_cell_size")
         private val EMOJI_GRID_EMOJI_SIZE = intPreferencesKey("emoji_grid_emoji_size")
         private val EMOJI_KAOMOJI_TABS = booleanPreferencesKey("emoji_kaomoji_tabs")
+        private val KAOMOJI_SPLIT_EMOTICONS = booleanPreferencesKey("kaomoji_split_emoticons")
+        private val KAOMOJI_TAG_TABS = booleanPreferencesKey("kaomoji_tag_tabs")
+        private val KAOMOJI_RAIL = stringPreferencesKey("kaomoji_rail")
+        // Stored as the buttons turned OFF, so a button added later shows for everyone.
+        private val KAOMOJI_RAIL_HIDDEN = stringSetPreferencesKey("kaomoji_rail_hidden")
+        private val KAOMOJI_START_VIEW = stringPreferencesKey("kaomoji_start_view")
+        private val KAOMOJI_SUGGEST = booleanPreferencesKey("kaomoji_suggest")
+        private val KAOMOJI_IN_SEARCH = booleanPreferencesKey("kaomoji_in_search")
+        private val KAOMOJI_VERSION = intPreferencesKey("kaomoji_version")
+        /** `KaomojiStore.FILE_PATH`; spelled out, as this module does for the other stores. */
+        private const val KAOMOJI_FILE = "kaomoji/kaomoji.json"
         private val EMOJI_KEYWORD_PACK_VERSION = intPreferencesKey("emoji_keyword_pack_version")
         private val EMOJI_DISABLED_KEYWORD_LANGS = stringSetPreferencesKey("emoji_disabled_keyword_langs")
         private val EMOJI_USAGE_VERSION = intPreferencesKey("emoji_usage_version")
@@ -12025,6 +12080,23 @@ class SettingsRepository(private val context: Context) {
             continuousScroll = p[EMOJI_CONTINUOUS_SCROLL] ?: defaults.emoji.continuousScroll,
             panelExtraHeightDp = p[EMOJI_PANEL_EXTRA_HEIGHT_DP]?.coerceIn(MediaPanelExtraHeightRange)
                 ?: defaults.emoji.panelExtraHeightDp,
+            kaomoji = readKaomoji(p, defaults.emoji.kaomoji),
+        )
+
+    private fun readKaomoji(p: Preferences, defaults: KaomojiSettings) =
+        KaomojiSettings(
+            splitEmoticons = p[KAOMOJI_SPLIT_EMOTICONS] ?: defaults.splitEmoticons,
+            tagTabs = p[KAOMOJI_TAG_TABS] ?: defaults.tagTabs,
+            rail = p[KAOMOJI_RAIL]?.let { runCatching { KaomojiRailSide.valueOf(it) }.getOrNull() }
+                ?: defaults.rail,
+            railButtons = p[KAOMOJI_RAIL_HIDDEN]
+                ?.let { hidden -> KaomojiRailButton.entries.filter { it.name !in hidden }.toSet() }
+                ?: defaults.railButtons,
+            startView = p[KAOMOJI_START_VIEW]?.let { runCatching { KaomojiStartView.valueOf(it) }.getOrNull() }
+                ?: defaults.startView,
+            suggest = p[KAOMOJI_SUGGEST] ?: defaults.suggest,
+            inSearch = p[KAOMOJI_IN_SEARCH] ?: defaults.inSearch,
+            version = p[KAOMOJI_VERSION] ?: defaults.version,
         )
 
     private fun readToolbox(p: Preferences, defaults: KeyboardSettings) =
@@ -16159,6 +16231,9 @@ class SettingsRepository(private val context: Context) {
                 out[ConfigBackup.Section.CLOCK] = com.wasimaster.wmkeyboard.core.clock.ClockBackup.portable(context)
             }
         }
+        if (ConfigBackup.Section.KAOMOJI in sections) {
+            readStore(KAOMOJI_FILE)?.let { out[ConfigBackup.Section.KAOMOJI] = it }
+        }
         return out
     }
 
@@ -16195,6 +16270,7 @@ class SettingsRepository(private val context: Context) {
                     ConfigBackup.Section.NOTES -> NotesBackup.count(element)
                     // Alarms; presets, countdowns and the settings ride along uncounted.
                     ConfigBackup.Section.CLOCK -> com.wasimaster.wmkeyboard.core.clock.ClockBackup.count(element)
+                    ConfigBackup.Section.KAOMOJI -> element.jsonObject["items"]?.jsonArray?.size ?: 0
                 }
             }.getOrDefault(0)
             counts[section] = count
@@ -16338,6 +16414,14 @@ class SettingsRepository(private val context: Context) {
                 // The keyboard holds the notes in memory; without this it
                 // saves its own list over the one just restored.
                 bumpNotesVersion()
+            }
+        }
+        (parsed.sections[ConfigBackup.Section.KAOMOJI] as? JsonObject)?.let { obj ->
+            if (writeStore(KAOMOJI_FILE, obj)) {
+                restored.add(ConfigBackup.Section.KAOMOJI)
+                // The keyboard holds the library in memory; without this it
+                // saves its own copy over the one just restored.
+                bumpKaomojiVersion()
             }
         }
         (parsed.sections[ConfigBackup.Section.CLOCK] as? JsonObject)?.let { obj ->
@@ -19041,6 +19125,43 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setEmojiKaomojiTabs(value: Boolean) =
         editPrefs { it[EMOJI_KAOMOJI_TABS] = value }
+
+    /** See [KaomojiSettings.splitEmoticons]. */
+    suspend fun setKaomojiSplitEmoticons(value: Boolean) =
+        editPrefs { it[KAOMOJI_SPLIT_EMOTICONS] = value }
+
+    /** See [KaomojiSettings.tagTabs]. */
+    suspend fun setKaomojiTagTabs(value: Boolean) =
+        editPrefs { it[KAOMOJI_TAG_TABS] = value }
+
+    /** See [KaomojiSettings.rail]. */
+    suspend fun setKaomojiRail(value: KaomojiRailSide) =
+        editPrefs { it[KAOMOJI_RAIL] = value.name }
+
+    /** See [KaomojiSettings.railButtons]. */
+    suspend fun setKaomojiRailButtons(value: Set<KaomojiRailButton>) =
+        editPrefs { prefs ->
+            prefs[KAOMOJI_RAIL_HIDDEN] = KaomojiRailButton.entries.filter { it !in value }.map { it.name }.toSet()
+        }
+
+    /** See [KaomojiSettings.startView]. */
+    suspend fun setKaomojiStartView(value: KaomojiStartView) =
+        editPrefs { it[KAOMOJI_START_VIEW] = value.name }
+
+    /** See [KaomojiSettings.suggest]. */
+    suspend fun setKaomojiSuggest(value: Boolean) =
+        editPrefs { it[KAOMOJI_SUGGEST] = value }
+
+    /** See [KaomojiSettings.inSearch]. */
+    suspend fun setKaomojiInSearch(value: Boolean) =
+        editPrefs { it[KAOMOJI_IN_SEARCH] = value }
+
+    /**
+     * Tells the running keyboard that `kaomoji/kaomoji.json` was rewritten
+     * under it (the settings app's library screen, an import, a restore).
+     */
+    suspend fun bumpKaomojiVersion() =
+        editPrefs { it[KAOMOJI_VERSION] = (it[KAOMOJI_VERSION] ?: 0) + 1 }
 
     suspend fun setIncognito(value: Boolean) =
         editPrefs { it[INCOGNITO] = value }

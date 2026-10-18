@@ -29,6 +29,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Notifications
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoStories
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteSweep
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Label
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SentimentSatisfied
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StickyNote2
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Article
@@ -528,6 +529,9 @@ internal object SettingsRouteIcons {
         "modes" to { Icons.Outlined.Tune },
         "emoji" to { Icons.Outlined.EmojiEmotions },
         "emoji/panel" to { Icons.Outlined.GridView },
+        "kaomoji" to { Icons.Outlined.SentimentSatisfied },
+        "kaomoji/faces" to { Icons.Outlined.SentimentSatisfied },
+        "kaomoji/tags" to { Icons.Outlined.Label },
         "emojicategories" to { Icons.Outlined.Sort },
         "emojikeywords" to { Icons.Outlined.EmojiEmotions },
         "clipboard" to { Icons.Outlined.ContentPaste },

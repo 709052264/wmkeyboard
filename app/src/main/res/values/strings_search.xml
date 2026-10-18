@@ -122,6 +122,8 @@
     <string name="search_kw_langemoji_emoji_font">noto twemoji blob style</string>
     <string name="search_kw_langemoji_emoji_hide_unrenderable">tofu missing broken glyph</string>
     <string name="search_kw_langemoji_emoji_kaomoji">ascii shrug japanese faces</string>
+    <string name="search_kw_kaomoji">kaomoji, emoticons, text faces, tags, emotic, import kaomoji, custom kaomoji, edit buttons</string>
+    <string name="search_kw_kaomoji_faces">add kaomoji, my kaomoji, reorder kaomoji, delete kaomoji, favourite kaomoji</string>
     <string name="search_kw_langemoji_media_switcher">tabs jump unified media</string>
     <string name="search_kw_langemoji_media_remember">tab remember reopen unified</string>
     <string name="search_kw_langemoji_emoji_continuous">continuous vertical sections pages headers</string>

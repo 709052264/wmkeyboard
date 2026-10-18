@@ -33,7 +33,7 @@ Two more toggles replace a bottom-row key outright with an emoji key, so opening
 
 ### Tabs, pages and the long list
 
-Each category has a tab in the strip across the top. With few enough tabs they share the strip's width. When there are too many to fit at a comfortable size (the history tab, the categories, and Kaomoji and Emoticons if you turned them on), every tab keeps that size and the strip scrolls sideways under your finger instead of squeezing them. The tab you're in is kept in view as you move through the panel.
+Each category has a tab in the strip across the top. With few enough tabs they share the strip's width. When there are too many to fit at a comfortable size (the history tab, the categories, and the Kaomoji tab if you turned it on), every tab keeps that size and the strip scrolls sideways under your finger instead of squeezing them. The tab you're in is kept in view as you move through the panel.
 
 By default each category is a page, and you swipe left or right to go to the next. <SettingsPath path="Emoji / Emoji panel / One long list" /> makes the panel one list instead, with each category's name as a heading, so one long swipe up runs through every emoji. The tabs jump to a heading and follow the list as you scroll.
 
@@ -134,7 +134,7 @@ The panel ships its category tabs in Unicode's own order. **Emoji categories** i
 
 Hiding a category hides only its tab. Those emoji are still found by search and still offered in the suggestion strip.
 
-The history tab is not in that list: it orders itself, with your favourites pinned first as above. The Kaomoji and Emoticons tabs are not either. They are switched on and off by their own toggle, and always sit at the end.
+The history tab is not in that list: it orders itself, with your favourites pinned first as above. The Kaomoji tab is not either. It is switched on and off by its own toggle, always sits at the end, and sorts its tags on its own page.
 
 Full reference: [Emoji categories](/reference/settings/emoji/#emoji-categories).
 
@@ -189,7 +189,7 @@ The animations are **Noto Animated Emoji** by Google, licensed [CC BY 4.0](https
 - **Inserting doesn't close the panel by default.** <SettingsPath path="Emoji / Emoji panel / Return to the keyboard after you insert" /> is off, so you can tap several emoji in a row (including several results from the same search) without the panel folding away after each one. Turn it on to jump straight back to the keys after a single insert. The same setting also governs the clipboard panel.
 - **Full-screen panel is the default, not an opt-in.** <SettingsPath path="Emoji / Access / Full-screen emoji panel" /> is on out of the box: the toolbar, emoji row, and symbol row all step aside, a slim back header takes their row, and the panel's layout fills the rest. Turn it off to keep the toolbar within reach while picking emoji.
 - **Search and the panel grid both respect "Hide emoji that your device cannot show."** An emoji neither your chosen font nor the phone's system font can draw is filtered out everywhere: panel, search, and suggestions alike. See [Fixing emoji that won't display](/emoji/customization/#fixing-emoji-that-wont-display).
-- **Kaomoji and emoticons are a separate, unsearched system.** If you've turned on their two extra tabs, they sit after the last Unicode category, but the panel's search field never indexes them, since it only searches the Unicode emoji catalog. See [Kaomoji & text art](/emoji/kaomoji/).
+- **Kaomoji are a separate system.** With the Kaomoji tab on, the panel's search lists matching faces under a Kaomoji heading after the emoji, matched by tag or by the face's characters. They never join the emoji history. See [Kaomoji & text art](/emoji/kaomoji/).
 - **The panel is a layout.** Its category tabs, search box and grid are cells of a [panel layout](/languages/custom-layouts/#panel-layouts), with an abc, [GIF and sticker switch](#switching-to-gifs-and-stickers), space and hold-to-repeat backspace row along the bottom so you can type a word, drop in an emoji, and keep typing without leaving the panel. Open <SettingsPath path="Emoji / Access / Panel layout" /> to move the tabs, drop the search box, give the grid the whole height, or add keys of your own.
 - **Both editions.** Search, skin tones, and favourites aren't gated to one edition: the same emoji panel ships in both.
 

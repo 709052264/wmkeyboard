@@ -255,6 +255,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInBrowser
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TravelExplore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TripOrigin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Upload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalAlignBottom
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalAlignTop
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalSplit
@@ -612,6 +613,18 @@ internal object SettingsRowIcons {
         put(R.string.langemoji_emoji_clear_recents_title) { Icons.Outlined.DeleteSweep }
         put(R.string.langemoji_emoji_clear_history_title) { Icons.Outlined.DeleteSweep }
         put(R.string.langemoji_emoji_kaomoji_title) { Icons.Outlined.SentimentSatisfied }
+        put(R.string.langemoji_kaomoji_title) { Icons.Outlined.SentimentSatisfied }
+        put(R.string.langemoji_kaomoji_split_title) { Icons.Outlined.ViewColumn }
+        put(R.string.langemoji_kaomoji_tag_tabs_title) { Icons.Outlined.Tab }
+        put(R.string.langemoji_kaomoji_start_title) { Icons.Outlined.History }
+        put(R.string.langemoji_kaomoji_rail_title) { Icons.Outlined.ViewWeek }
+        put(R.string.langemoji_kaomoji_suggest_title) { Icons.Outlined.Lightbulb }
+        put(R.string.langemoji_kaomoji_in_search_title) { Icons.Outlined.Search }
+        put(R.string.langemoji_kaomoji_faces_title) { Icons.Outlined.SentimentSatisfied }
+        put(R.string.langemoji_kaomoji_tags_title) { Icons.AutoMirrored.Outlined.Label }
+        put(R.string.langemoji_kaomoji_import_title) { Icons.Outlined.Download }
+        put(R.string.langemoji_kaomoji_export_title) { Icons.Outlined.Upload }
+        put(R.string.langemoji_kaomoji_reset_title) { Icons.Outlined.RestartAlt }
         put(R.string.langemoji_emoji_long_press_name_title) { Icons.Outlined.Abc }
         put(R.string.langemoji_emoji_animated_title) { Icons.Outlined.Animation }
         put(R.string.langemoji_emoji_sticker_title) { Icons.Outlined.PhotoSizeSelectActual }

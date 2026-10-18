@@ -1,6 +1,6 @@
 ---
 title: "Kaomoji & text art"
-description: "Kaomoji and ASCII emoticon tabs in the emoji panel (ノ◕ヮ◕)ノ*:･ﾟ✧"
+description: "A kaomoji tab with tag tabs, your own faces, favourites, search, suggestions and Emotic import (ノ◕ヮ◕)ノ*:･ﾟ✧"
 sidebar:
   order: 5
 ---
@@ -9,50 +9,123 @@ import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
 import Shot from '@components/Shot.astro';
 
-Kaomoji are Japanese-style faces built from CJK and box-drawing characters, like `(╯°□°）╯︵ ┻━┻`. Western ASCII emoticons like `:-D` and `<3` are the simpler cousin. Both live behind two optional tabs at the end of the emoji panel, off by default until you turn them on.
+Kaomoji are Japanese-style faces built from CJK and box-drawing characters, like `(╯°□°）╯︵ ┻━┻`. Western ASCII emoticons like `:-D` and `<3` are the simpler cousin. Both live in one library behind the Kaomoji tab at the end of the emoji panel. The library is yours to change: add faces, give them tags, sort them, star the ones you use, and bring in a library you built in [Emotic](https://f-droid.org/packages/futuristicgoo.emotic/).
 
-<PhoneFrame caption="The emoji panel's Kaomoji tab, grouped by mood.">
-  <Shot id="emoji/kaomoji-tab" alt="The emoji panel's Kaomoji tab, grouped by mood." />
+<PhoneFrame caption="The emoji panel's Kaomoji tab, with its tag tabs across the top.">
+  <Shot id="emoji/kaomoji-tab" alt="The emoji panel's Kaomoji tab, with its tag tabs across the top." />
 </PhoneFrame>
 
-## Turning the tabs on
+## Turning the tab on
 
-<SettingsPath path="Emoji / Emoji panel / Kaomoji and Emoticons" />
+<SettingsPath path="Emoji / Emoji panel / Kaomoji tab" />
 
-This toggle is off by default. Turn it on and two more tabs appear at the end of the emoji panel's tab strip, after Recent (or Most used) and every Unicode emoji category. Every tab you already know how to find keeps its place. The two new tabs get no category icons, because no icon pack has a glyph for "kaomoji." The tab strip draws a literal label instead: `^_^` for the Kaomoji tab and `:)` for the Emoticons tab.
+The tab is off by default. Turn it on and a tab labelled `^_^` appears at the end of the emoji panel's tab strip, after Recent (or Most used) and every Unicode emoji category, so every tab you already know keeps its place.
 
-Each is a normal swipeable page like any other emoji-panel tab, and your scroll position in one is preserved when you swipe away and back.
+Kaomoji and emoticons share that one tab. If you would rather keep them apart, turn on <SettingsPath path="Emoji / Emoji panel / Kaomoji / Separate Emoticons tab" /> and a second tab, labelled `:)`, holds the ASCII faces. Each face knows which family it belongs to. A face you add is filed by its characters: printable ASCII alone makes an emoticon, anything else a kaomoji. You can change that in its editor.
 
-## Browsing kaomoji
+All the tab's own settings are on one page:
 
-Open the Kaomoji tab and you get a single scrolling grid split into labelled mood groups: Happy, Love, Sad, Angry, Table flip, Confused, Surprised, Cool, Cute, Animals, Actions, Sleepy, Greetings, Party, and Apologies. That's 201 kaomoji in all, spread unevenly across those 15 groups. Happy alone has 18, while Table flip and Apologies are the smallest, with 8 and 10.
+<SettingsPath path="Emoji / Emoji panel / Kaomoji" />
 
-Kaomoji get no favouriting, no recents, and no frequency tracking. Tapping one is a fire-and-forget insert. It doesn't reach your emoji history either: a kaomoji tap deliberately skips both the emoji-history and the next-word-prediction updates a real emoji tap makes. A face can run well past a dozen characters, and the recents grid and emoji row are built to size a cell for a single glyph. The only way to find a specific kaomoji again is to open the tab and scroll to its mood group. There's no search across kaomoji.
+## Tag tabs
 
-<PhoneFrame caption="Scrolling past the Table flip and Confused groups.">
-  {/* shot: emoji/kaomoji-mood-groups */}
-</PhoneFrame>
+A row of tags runs across the top of the tab. Tap one and the grid shows only the faces under that tag. The row scrolls sideways when it holds more than fits, and keeps the tag you picked in view. It never pages by swiping: a sideways swipe on the panel still moves between emoji categories, as it always did.
 
-## Browsing emoticons
+The row starts with three tags of its own. Favourites holds the faces you starred and Recent the faces you used, latest first; each appears once it has something in it. All holds every face in your order. Your own tags follow, in the order you gave them. The keyboard ships 312 faces under 18 tags: Happy, Love, Sad, Angry, Table flip, Confused, Surprised, Cool, Cute, Animals, Actions, Sleepy, Greetings, Party, Apologies, Playful, Neutral and Figures. Moods the two families share, such as Happy and Love, are one tag holding both. A face can carry more than one tag and shows under each.
 
-The Emoticons tab works the same way, with its own 8 mood groups (Happy, Sad, Playful, Love, Surprised, Neutral, Cool, and Figures) covering 111 entries. Its grid cells are noticeably narrower than the kaomoji tab's. A three-character face like `:-)` and a much longer kaomoji need very different amounts of room, so each tab sizes its own grid columns to fit what it holds.
+<SettingsPath path="Emoji / Emoji panel / Kaomoji / Open on" /> picks the tag the tab opens on: the last one you used (the default), Recent, Favourites or All.
 
-Everything said above about kaomoji applies here too: no favourites, no history, no search. Browse by mood group and tap.
+If you prefer the tab as it used to be, turn off <SettingsPath path="Emoji / Emoji panel / Kaomoji / Tag tabs" />. The tab then shows one long list with a heading for each tag.
+
+## Edit buttons
+
+A narrow column of four buttons sits beside the grid. Search opens the search box. Add opens the editor for a new face, which starts under the tag you have selected. Edit puts the grid in edit mode: tap a face to change it, or hold a face and drag it to a new place, then tap the tick to finish. Tags opens the tag list in place of the grid.
+
+<SettingsPath path="Emoji / Emoji panel / Kaomoji / Edit buttons" /> puts the column on the left (the default) or the right, or turns it off. Under it, one switch for each button keeps only the ones you want. With the column off, the search button sits at the start of the tag row and the other three at its end, so you can still change your faces from the keyboard.
+
+Dragging in edit mode moves a face only among the faces that tag shows. Every face outside that tag keeps its place in All. The Recent tag is in time order, so nothing there can be dragged.
+
+## Holding a face
+
+Hold a face and a bar of actions opens over the bottom of the grid. The star adds the face to Favourites or takes it off. The pencil opens its editor, and the copy button puts it on the clipboard without typing it. The bin asks once more, then removes the face, and the cross closes the bar.
+
+## Adding and changing a face in the keyboard
+
+The editor opens in place of the grid, and the keys come back underneath it so you can type. Type or paste the face into the box at the top. Under it, a row of chips holds every tag: tap a chip to put the face under that tag, or tap it again to take it off. The box at the end of the row types a new tag; press Enter and it joins the face. The first chip switches the face between kaomoji and emoticon.
+
+The tick saves, the cross cancels, and the bin deletes a face that already exists (it asks once more). Enter in the face box also saves.
+
+## The tag list
+
+The Tags button replaces the grid with a list of your tags, each with the number of faces under it. For each tag you can move it up or down the row, hide it from the row with the eye (its faces stay in All), rename it, or delete it. Deleting a tag takes it off its faces and does not delete the faces. Renaming a tag to a name that already exists merges the two. The + at the top adds an empty tag, and the gear opens the library page in the settings app.
+
+## Search
+
+The search button opens a box with the matches above it, and the keys come back underneath. It searches tags and the faces themselves. A tag that matches exactly comes first, then tags that start with what you typed, then tags that contain it, then faces whose characters contain it. Press a match to type it, or press Enter to type the first one.
+
+The emoji panel's own search lists matching faces too, under a Kaomoji heading after the emoji. Turn that off with <SettingsPath path="Emoji / Emoji panel / Kaomoji / Kaomoji in emoji search" />.
+
+## Kaomoji suggestions
+
+<SettingsPath path="Emoji / Emoji panel / Kaomoji / Kaomoji suggestions" />
+
+This is off by default. Turn it on, and when the word you are typing is the name of a tag, the suggestion strip offers up to two faces from that tag in front of the emoji suggestions. Your starred faces come first, then the ones you use most. Add a tag such as `shrug` or `tableflip` to the faces you reach for, and typing that word puts them one tap away. A tag shorter than three letters never triggers this.
+
+A face from the strip goes in the same way an emoji suggestion does: after your word, or in place of it, as <SettingsPath path="Emoji / Suggestions / Press an emoji suggestion" /> decides. Holding it does the other.
+
+## The library in the settings app
+
+<SettingsPath path="Emoji / Emoji panel / Kaomoji / Faces" />
+
+The Faces screen lists every face, filtered by a row of tag chips. Drag a face by its handle to move it, press it to change its text, tags, family and star, and press the bin to delete it. Add a face from the row at the top.
+
+<SettingsPath path="Emoji / Emoji panel / Kaomoji / Tags" />
+
+The Tags screen does the same for tags: drag to reorder the tag row, the eye to hide a tag, the pencil to rename it, the bin to delete it.
+
+Both screens and the keyboard write the same file, so a change in one shows in the other the next time it opens.
+
+## Importing from Emotic and other files
+
+<SettingsPath path="Emoji / Emoji panel / Kaomoji / Import" />
+
+The import reads an Emotic export, a file this keyboard exported, or a plain list.
+
+Emotic 0.1.11 and later export a `.tar.gz` file; older versions export the bare `emoticdb.sqlite` database. The keyboard reads both. It brings in every face with its tags, keeps Emotic's order for the faces and the tags, and drops the repeats Emotic's database can hold.
+
+A plain list has one face on each line. A tab after the face, followed by tags with commas between them, files it under those tags.
+
+Before anything changes, a dialog says how many faces and tags the file holds. **Add** puts the new faces after yours and gives a face you already have any tags it was missing. **Replace all** empties the library first.
+
+Emotic also keeps reaction images, which it calls emotipics. When the export carries some, the keyboard puts them in a new sticker pack named Emotic, with their Emotic tags as the stickers' search words. Images Emotic marked as excluded stay out. See [Stickers](/emoji/stickers/) for using the pack.
+
+Treat an archive from someone else with care. The keyboard reads only the database and the image folder out of it, never writes a file outside its own cache, and refuses an archive past 512 MB or an image past 20 MB.
+
+## Exporting, backing up and resetting
+
+<SettingsPath path="Emoji / Emoji panel / Kaomoji / Export" /> saves your faces, tags, hidden tags and stars to a JSON file. How often you used each face stays behind.
+
+The library also has its own Kaomoji section in [backups](/privacy/backup/), on by default for an export and for automatic backups. Sync leaves it out unless you add it, because every tap on a face changes it.
+
+<SettingsPath path="Emoji / Emoji panel / Kaomoji / Reset the library" /> goes back to the faces the keyboard ships, after one confirmation. It deletes the faces you added, your changes, your stars and your recent faces.
+
+Until you change something or use a face, the library is the built-in set and no file exists. A later version that adds faces to the built-in set shows them to you only while that is still true.
 
 ## Inserting long faces safely
 
 A cell shrinks its font size step by step until the whole face fits on one line. It never wraps and never trails off with an ellipsis, since half a kaomoji reads as garbage rather than a smaller version of the same face. The glyph stays invisible for that first layout pass, so you never see it flash past its own edges before settling.
 
-Tapping a cell commits the face as one atomic insert. Any word you were mid-typing is flushed first with autocorrect turned off, and then the kaomoji or emoticon goes in as plain text in a single step. It never passes through autocorrect or auto-capitalization, so `(¬‿¬)` reaches the field exactly as shown, rather than reshaped into something an English dictionary would prefer.
+Tapping a cell commits the face as one atomic insert. Any word you were mid-typing is flushed first with autocorrect turned off, and then the face goes in as plain text in a single step. It never passes through autocorrect or auto-capitalization, so `(¬‿¬)` reaches the field exactly as shown.
 
-If <SettingsPath path="Emoji / Emoji panel / Return to the keyboard after you insert" /> is on, tapping a kaomoji or emoticon closes the panel and drops you back on the keys immediately, exactly like a real emoji tap does.
+If <SettingsPath path="Emoji / Emoji panel / Return to the keyboard after you insert" /> is on, tapping a face closes the panel and drops you back on the keys, exactly like a real emoji tap does.
 
 ## Details & edge cases
 
-- **No search.** Neither tab has its own search field, and the emoji panel's search box only indexes the Unicode emoji catalog, so kaomoji and emoticons never appear in search results. Browsing the tab is the only way to find one.
-- **No favourites or history.** Tapping a kaomoji or emoticon does not add it to Recent, Most used, or any per-emoji usage tracking. It's a plain-text insert with no memory of what you've used before.
-- **The Emoji font setting doesn't apply here.** Kaomoji and emoticons render as plain text with no font override. Changing your emoji font under <SettingsPath path="Emoji / Emoji style / Emoji font" /> has no effect on how they look, since that setting only touches genuine Unicode emoji glyphs.
-- **Limited to glyphs Android already ships.** The catalog deliberately sticks to characters covered by Android's bundled fonts (Noto Sans CJK and Noto Sans Symbols), so every face renders correctly out of the box instead of risking a tofu box on an exotic character.
-- **Both editions.** Kaomoji and emoticons aren't gated to one edition. The catalog compiles into both.
+- Faces stay out of emoji history. A face counts for the Kaomoji tab's Recent tag and for the suggestion order, and never for the emoji panel's Recent, Most used or the emoji row.
+- The emoji font setting does not apply here. Faces render as plain text with no font override. <SettingsPath path="Emoji / Emoji style / Emoji font" /> only touches genuine Unicode emoji glyphs.
+- The built-in faces stick to glyphs Android ships. They use characters covered by Android's bundled fonts (Noto Sans CJK and Noto Sans Symbols), so every one renders out of the box. A face you add can use anything, and may show as boxes on a phone without a font for it.
+- In the continuous list, with <SettingsPath path="Emoji / Emoji panel / One long list" /> on, the Kaomoji section starts with its tag row, and that row carries the search, add and tags buttons at its ends. Faces cannot be dragged in that list; use edit mode with the list off, or the Faces screen.
+- After a restart, until you unlock the phone once, the tab shows the built-in set, since your library file cannot be read yet.
+- The library, the import and the suggestions work the same in the full and lite builds.
 
 For the rest of the emoji panel (search, skin tones, favourites, and recents for actual Unicode emoji), see [Emoji picker & search](/emoji/picker/). For the emoji row and emoji fonts, see [Emoji customization](/emoji/customization/).

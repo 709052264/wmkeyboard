@@ -1057,6 +1057,24 @@ private fun SearchStrings.emojiPanelRows(): List<SettingsSearchEntry> {
     )
 }
 
+/** Rows on the kaomoji page, in screen order. */
+private fun SearchStrings.kaomojiRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.langemoji_kaomoji_title, "kaomoji", screenParent = R.string.langemoji_emoji_panel_title,
+    )
+    return listOf(
+        row(R.string.langemoji_kaomoji_split_title, R.string.langemoji_kaomoji_split_subtitle),
+        row(R.string.langemoji_kaomoji_tag_tabs_title, R.string.langemoji_kaomoji_tag_tabs_subtitle),
+        row(R.string.langemoji_kaomoji_start_title, R.string.langemoji_kaomoji_start_subtitle),
+        row(R.string.langemoji_kaomoji_rail_title, R.string.langemoji_kaomoji_rail_subtitle),
+        row(R.string.langemoji_kaomoji_suggest_title, R.string.langemoji_kaomoji_suggest_subtitle),
+        row(R.string.langemoji_kaomoji_in_search_title, R.string.langemoji_kaomoji_in_search_subtitle),
+        row(R.string.langemoji_kaomoji_import_title, R.string.langemoji_kaomoji_import_subtitle),
+        row(R.string.langemoji_kaomoji_export_title, R.string.langemoji_kaomoji_export_subtitle),
+        row(R.string.langemoji_kaomoji_reset_title, R.string.langemoji_kaomoji_reset_subtitle),
+    )
+}
+
 /** Rows on the Voice typing screen. */
 private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) =
@@ -2311,6 +2329,23 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.langemoji_emoji_panel_title, R.string.langemoji_emoji_panel_subtitle,
             R.string.home_emoji_title, "emoji/panel",
         ),
+        // The kaomoji library hangs off the emoji panel's page, beside the
+        // switch that shows its tab.
+        under(
+            R.string.langemoji_kaomoji_title, R.string.langemoji_kaomoji_subtitle,
+            R.string.langemoji_emoji_panel_title, "kaomoji", R.string.search_kw_kaomoji,
+            parent = R.string.home_emoji_title,
+        ),
+        under(
+            R.string.langemoji_kaomoji_faces_title, R.string.langemoji_kaomoji_faces_subtitle,
+            R.string.langemoji_kaomoji_title, "kaomoji/faces", R.string.search_kw_kaomoji_faces,
+            parent = R.string.langemoji_emoji_panel_title,
+        ),
+        under(
+            R.string.langemoji_kaomoji_tags_title, R.string.langemoji_kaomoji_tags_subtitle,
+            R.string.langemoji_kaomoji_title, "kaomoji/tags",
+            parent = R.string.langemoji_emoji_panel_title,
+        ),
         // What sits behind Advanced.
         under(R.string.home_modes_title, R.string.home_modes_subtitle, R.string.home_advanced_title, "modes", R.string.search_kw_modes),
         under(R.string.home_addons_title, R.string.home_addons_subtitle, R.string.home_advanced_title, "addons", R.string.search_kw_addons),
@@ -2622,7 +2657,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         appearanceToolboxRows() + photoRows() + layoutRows() +
         layoutSizeRows() +
         layoutOnehandedRows() + floatingButtonRows() + languageRows() + emojiRows() +
-        emojiPanelRows() +
+        emojiPanelRows() + kaomojiRows() +
         voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + vocabRows() + notesRows() + storageRows() + otherRows()
     all.filterNot { it.route in unsupported }.distinctBy { it.key }
 }

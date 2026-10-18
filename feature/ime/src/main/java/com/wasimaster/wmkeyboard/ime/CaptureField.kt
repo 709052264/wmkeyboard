@@ -410,6 +410,15 @@ enum class CaptureTarget(
 
     /** A toolbox folder's name (#709): one line, Enter keeps it. */
     TOOLBOX_FOLDER_NAME(takesWords = true),
+
+    /** The kaomoji tab's search: filters by tag and face as it is typed, Enter puts the first in. */
+    KAOMOJI_SEARCH(takesWords = true),
+
+    /** A face being added or changed in the kaomoji tab. Punctuation, not words. */
+    KAOMOJI_FACE(takesWords = false),
+
+    /** A kaomoji tag's name: a new one in the editor, or a rename. Enter keeps it. */
+    KAOMOJI_TAG(takesWords = true),
     ;
 
     /**
@@ -435,7 +444,7 @@ enum class CaptureTarget(
         get() = this == EMOJI_SEARCH || this == MEDIA_SEARCH || this == DICTIONARY_SEARCH ||
             this == CLIPBOARD_SEARCH || this == FIND_QUERY || this == SNIPPET_SEARCH ||
             this == NOTE_SEARCH || this == NOTE_TAG || this == CLOCK_SEARCH || this == TOOLBOX_SEARCH ||
-            this == HA_SEARCH
+            this == HA_SEARCH || this == KAOMOJI_SEARCH || this == KAOMOJI_TAG
 }
 
 /**

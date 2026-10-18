@@ -376,7 +376,7 @@ import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
 import com.wasimaster.wmkeyboard.core.otp.NotificationOtp
 import com.wasimaster.wmkeyboard.core.emoji.EmojiNames
 import com.wasimaster.wmkeyboard.core.emoji.EmojiVariantIndex
-import com.wasimaster.wmkeyboard.core.emoji.TextArt
+import com.wasimaster.wmkeyboard.core.emoji.KaomojiLibrary
 import com.wasimaster.wmkeyboard.core.text.EmojiGraphemes
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.GlideCase
@@ -5123,10 +5123,13 @@ private fun RowScope.StripWords(
                     .padding(horizontal = 5.dp),
                 contentAlignment = Alignment.Center,
             ) {
+                // A kaomoji chip ("shrug" → ¯\_(ツ)_/¯) is text, not a glyph:
+                // the text face at a text size, or it would run off the strip.
+                val face = KaomojiLibrary.isTextArt(emoji)
                 CachedTextLine(
-                    text = AnnotatedString(LocalEmojiShaper.current.shape(emoji)),
+                    text = AnnotatedString(if (face) emoji else LocalEmojiShaper.current.shape(emoji)),
                     style = LocalTextStyle.current.merge(
-                        TextStyle(fontSize = 22.sp, fontFamily = emojiFamilyFor(emoji)),
+                        if (face) TextStyle(fontSize = 14.sp) else TextStyle(fontSize = 22.sp, fontFamily = emojiFamilyFor(emoji)),
                     ),
                     color = LocalContentColor.current,
                     overflow = TextOverflow.Clip,
@@ -12542,7 +12545,7 @@ internal val FullBleedHeaderHeight = 46.dp
 @Composable
 internal fun toolPanelHeight(state: KeyboardUiState, wanted: Dp, floor: Dp): Dp {
     val rowsStandIn = barFullBleed(state) || barClipboardSearching(state) ||
-        (state.panel == PanelMode.EMOJI && state.emojiSearchActive)
+        emojiPanelTyping(state)
     val around = (if (rowsStandIn) 0.dp else fullBleedHiddenRows(state, macroRowAtPanelOpen(state))) +
         (if (keyRowsUnderPanel(state)) keyRowsHeight(state) + captureStripHeight(state) else 0.dp) +
         bottomPaddingDp(state.settings).dp
@@ -12965,7 +12968,8 @@ private fun KeyboardBody(
             // The rows stack in the user's chosen order (Rows settings).
             // While an emoji search is typing, the toolbar is dead weight —
             // hide it and let the panel spend the height on result rows.
-            val emojiSearching = state.panel == PanelMode.EMOJI && state.emojiSearchActive
+            // The kaomoji tab's search and editor shrink the panel the same way.
+            val emojiSearching = emojiPanelTyping(state)
             // Tools on a row of their own (see [ToolbarPlacement]). The row is a
             // [BarRow.TOOLS] sibling of the strip rather than something TopBar
             // draws: each has its own height and slot, and the strip's
@@ -13279,6 +13283,7 @@ private fun KeyboardBody(
                     onStickerSend = onEmojiStickerSend,
                     onSearchFieldDelete = onEmojiSearchFieldDelete,
                     onTextArt = onTextArt,
+                    kaomoji = toolHold.kaomoji,
                 ),
                 clipboard = ClipboardFieldCallbacks(
                     onItem = onClipboardItem,
@@ -21831,7 +21836,9 @@ internal fun keyRowsUnderPanel(state: KeyboardUiState): Boolean = when (state.ca
     CaptureTarget.CALC, CaptureTarget.CONVERTER, CaptureTarget.WORD_SPELL -> false
     // The emoji and clipboard panels reroute their search pills;
     // the rest are only ever up with their own panel open.
-    CaptureTarget.EMOJI_SEARCH -> state.panel == PanelMode.EMOJI
+    CaptureTarget.EMOJI_SEARCH, CaptureTarget.KAOMOJI_SEARCH,
+    CaptureTarget.KAOMOJI_FACE, CaptureTarget.KAOMOJI_TAG,
+    -> state.panel == PanelMode.EMOJI
     CaptureTarget.CLIPBOARD_SEARCH, CaptureTarget.CLIP_EDIT,
     CaptureTarget.CLIP_JOINER, CaptureTarget.CLIP_BASE, CaptureTarget.CLIP_APPEND,
     -> barClipboardSearching(state)
@@ -27742,42 +27749,6 @@ internal fun emojiDisplay(state: KeyboardUiState, base: String): String {
 }
 
 /**
- * A text-art tab's grid — kaomoji when [kaomoji], Western emoticons
- * otherwise. Grouped by mood behind full-width headers, because a flat 200-
- * entry wall of faces is unskimmable.
- *
- * Kaomoji get much wider cells than emoticons: ":-)" is three characters and
- * "(╯°□°）╯︵ ┻━┻" is thirteen, so one column width for both would either
- * waste most of the row or squeeze the long ones to nothing.
- */
-@Composable
-internal fun TextArtGrid(kaomoji: Boolean, onTap: (String) -> Unit) {
-    val groups = if (kaomoji) TextArt.kaomoji else TextArt.emoticons
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = if (kaomoji) 132.dp else 64.dp),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 4.dp),
-    ) {
-        groups.forEach { group ->
-            item(key = "§${group.name}", span = { GridItemSpan(maxLineSpan) }) {
-                Text(
-                    text = group.name,
-                    modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 2.dp),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                )
-            }
-            // Keyed by group + entry: a handful of faces appear in more than
-            // one mood, and a bare entry key would collide across groups.
-            items(group.items, key = { "${group.name}\u0000$it" }) { art ->
-                TextArtCell(art = art, onTap = onTap)
-            }
-        }
-    }
-}
-
-/**
  * One text-art cell: a key-coloured chip whose glyph shrinks until it fits on
  * a single line. Wrapping or ellipsizing are both wrong here — half a kaomoji
  * is unrecognisable, and the user is picking by shape, not by name.
@@ -28621,6 +28592,9 @@ data class ToolHoldCallbacks(
     val location: LocationCallbacks = LocationCallbacks(),
     /** The Clock panel's callbacks and state; here for the same reason as [dictionaryBar]. */
     val clock: com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks = com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks(),
+    /** The emoji panel's kaomoji tab. */
+    val kaomoji: com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiCallbacks =
+        com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiCallbacks(),
     /** The Home Assistant panel's callbacks and state; its state is the controller's, like [clock]. */
     val homeAssistant: com.wasimaster.wmkeyboard.ime.homeassistant.HaCallbacks = com.wasimaster.wmkeyboard.ime.homeassistant.HaCallbacks(),
     /** The gallery tool (#708); its state is the controller's, like [clock]. */

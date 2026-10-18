@@ -3632,6 +3632,12 @@ data class KeyboardUiState(
      * text layer in the editor. The rest of the panel's state is the controller's.
      */
     val galleryText: com.wasimaster.wmkeyboard.ime.gallery.GalleryTextEntry? = null,
+    /**
+     * The emoji panel's kaomoji tab's text box while it has the keys: its
+     * search, a face being added or changed, a tag's name. The rest of the
+     * tab's state is the controller's.
+     */
+    val kaomojiText: com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextEntry? = null,
     val weather: WeatherUi = WeatherUi.NoLocation,
     val dictionary: DictionaryUi = DictionaryUi.Idle,
     /** Word in the dictionary panel's search field. */
@@ -4091,6 +4097,10 @@ data class KeyboardUiState(
     val galleryTypingActive: Boolean
         get() = panel == PanelMode.GALLERY && galleryText != null
 
+    /** Whether the kaomoji tab's text box has the keys; panel *and* box, as [clockTypingActive]. */
+    val kaomojiTypingActive: Boolean
+        get() = panel == PanelMode.EMOJI && kaomojiText != null
+
     /**
      * Whether keystrokes belong to the clipboard panel's clip editor. Panel
      * *and* an open edit, like [learnEditActive], so an edit left behind by a
@@ -4184,6 +4194,11 @@ data class KeyboardUiState(
             ClipCombineField.APPEND -> CaptureTarget.CLIP_APPEND
             else -> CaptureTarget.CLIP_JOINER
         }
+        kaomojiTypingActive -> when (kaomojiText?.field) {
+            com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextField.FACE -> CaptureTarget.KAOMOJI_FACE
+            com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextField.TAG -> CaptureTarget.KAOMOJI_TAG
+            else -> CaptureTarget.KAOMOJI_SEARCH
+        }
         emojiSearchActive -> CaptureTarget.EMOJI_SEARCH
         mediaSearchActive && panel.hasMediaSearch -> CaptureTarget.MEDIA_SEARCH
         dictionarySearchActive -> CaptureTarget.DICTIONARY_SEARCH
@@ -4241,6 +4256,8 @@ data class KeyboardUiState(
         CaptureTarget.GALLERY_TEXT -> galleryText?.text.orEmpty()
         CaptureTarget.TOOLBOX_SEARCH -> toolboxView.query
         CaptureTarget.TOOLBOX_FOLDER_NAME -> toolboxView.nameDraft.orEmpty()
+        CaptureTarget.KAOMOJI_SEARCH, CaptureTarget.KAOMOJI_FACE, CaptureTarget.KAOMOJI_TAG ->
+            kaomojiText?.text.orEmpty()
     }
 
     /**

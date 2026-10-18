@@ -15,7 +15,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Input behaviour: glide, gestures, cursor, editing, keys | 11 | 80 | 219 |
 | Languages, scripts, layouts, transliteration | 11 | 64 | 213 |
 | Themes and appearance | 14 | 73 | 183 |
-| Emoji, GIFs, stickers, kaomoji | 16 | 88 | 94 |
+| Emoji, GIFs, stickers, kaomoji | 16 | 96 | 94 |
 | Toolbar and the tool set | 10 | 87 | 352 |
 | Clipboard, snippets, text expansion | 7 | 37 | 191 |
 | AI, voice, handwriting, scanning | 11 | 71 | 167 |
@@ -23,7 +23,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Accessibility, form factors, platform integration | 13 | 61 | 111 |
 | Extensibility: addons, plugins, imports, formats | 5 | 35 | 164 |
 | Modes, rows, field adaptation, runtime | 12 | 97 | 203 |
-| **Total** | **133** | **809** | **2260** |
+| **Total** | **133** | **817** | **2260** |
 
 ## Typing core: prediction, autocorrect, learning, spell check
 
@@ -1486,11 +1486,19 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Seeded before any history exists `uncommon` — 24 default emoji, more than fit across a phone, drawn with the user's default skin tone.
   - Row order configurable `RARE` — Emoji row, toolbar and symbol row can be arranged in any order via barOrder.
   - Hardware hotkey badges `RARE` — Row cells can carry hint badges from the hardware-keyboard hint plan.
-- **Kaomoji & ASCII emoticons** `uncommon` — Two optional panel tabs, off by default, compiled in as plain data.
-  - 201 kaomoji in 15 mood groups `uncommon` — Happy, Love, Sad, Angry, Table flip, Confused, Surprised, Cool, Cute, Animals, Actions, Sleepy, Greetings, Party, Apologies.
-  - 111 ASCII emoticons in 8 groups `uncommon` — Happy, Sad, Playful, Love, Surprised, Neutral, Cool, Figures.
+- **Kaomoji & ASCII emoticons** `uncommon` — An optional panel tab, off by default, over an editable library (`kaomoji/kaomoji.json`).
+  - 312 built-in faces under 18 tags `uncommon` — 201 kaomoji and 111 ASCII emoticons; moods both families share are one tag.
+  - Tag tabs `RARE` — A scrolling row of tags (Favourites, Recent, All, then the user's) filters the grid in place; opens on the last tag, Recent, Favourites or All.
+  - Separate Emoticons tab `uncommon` — Optional split by family; a face's family is guessed from its characters and can be changed.
+  - Edit rail `RARE` — Search, Add, Edit and Tags buttons beside the grid; left, right or off, each button switchable; buttons move to the tag row when the rail is off.
+  - In-keyboard editing `RARE` — Add and change faces with the keys under the panel, tag chips, drag to reorder in edit mode, hold for star, edit, copy and delete.
+  - Tag management `uncommon` — Reorder, hide, rename (merging on a clash) and delete tags in the keyboard and in settings.
+  - Search `uncommon` — Ranked by exact tag, tag prefix, tag substring, then face; also listed after emoji in the emoji panel's search.
+  - Kaomoji suggestions `RARE` — Typing a tag's name offers its faces in the strip, favourites and most used first; opt-in.
+  - Emotic import `RARE` — Reads Emotic's `.tar.gz` and older bare SQLite exports with tags and order; its reaction images become a sticker pack.
+  - JSON and plain-text import and export, plus a Kaomoji backup section `uncommon`.
   - Auto-shrinking cells `RARE` — Font size steps down 12% at a time until the face fits one line; hidden until it settles.
-    - Different column widths per tab — 132dp minimum for kaomoji, 64dp for emoticons
+    - Kaomoji take wider cells than emoticons — 132dp against 64dp
     - Never wraps or ellipsises — Half a kaomoji is unrecognisable, so it shrinks instead
   - Atomic plain-text insert `uncommon` — Composing flushed with autocorrect off, then committed in one step; skips history and prediction.
   - Restricted to fonts Android ships `RARE` — Glyphs limited to Noto Sans CJK / Symbols coverage so nothing renders as tofu.

@@ -26,17 +26,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.emoji.EmojiEntry
 import com.wasimaster.wmkeyboard.core.emoji.EmojiOrder
-import com.wasimaster.wmkeyboard.core.emoji.TextArt
+import com.wasimaster.wmkeyboard.core.emoji.Kaomoji
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Label
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
+import com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiAction
+import com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiUi
 import com.wasimaster.wmkeyboard.core.settings.EmojiTabMode
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
-import kotlin.math.ceil
 
 /**
  * The emoji panel as one long list (#540): every tab's contents in a single
@@ -62,9 +65,12 @@ internal sealed class EmojiListItem(val key: String) {
     /** An emoji cell. [history] cells are exact sequences, as on the history page. */
     class Emoji(tabId: String, val emoji: String, val history: Boolean) : EmojiListItem("e\u0000$tabId\u0000$emoji")
 
-    /** A kaomoji or emoticon chip. */
-    class Art(tabId: String, group: String, val art: String, val kaomoji: Boolean) :
-        EmojiListItem("a\u0000$tabId\u0000$group\u0000$art")
+    /** A face from the kaomoji library, under [group]: the tag shown, or the heading it sits under. */
+    class Art(tabId: String, group: String, val face: Kaomoji) :
+        EmojiListItem("a\u0000$tabId\u0000$group\u0000${face.id}")
+
+    /** A text-art section's tag strip, a row of its own at the head of the section. */
+    class ArtStrip(val tabId: String) : EmojiListItem("§k\u0000$tabId")
 }
 
 /** The flat list and where each tab's heading sits in it. */
@@ -103,6 +109,8 @@ internal class EmojiSections(val items: List<EmojiListItem>, val starts: IntArra
             catalog: List<EmojiEntry>,
             emojiOrder: Map<String, List<String>>,
             hidden: Set<String>,
+            /** A text-art tab's rows; see [kaomojiListItems]. */
+            textArt: (String) -> List<EmojiListItem> = { emptyList() },
         ): EmojiSections {
             val items = ArrayList<EmojiListItem>(catalog.size + tabs.size * 2)
             val starts = IntArray(tabs.size)
@@ -111,14 +119,7 @@ internal class EmojiSections(val items: List<EmojiListItem>, val starts: IntArra
                 items += EmojiListItem.Header(tab, index)
                 when (tab) {
                     RECENT_TAB -> history.distinct().forEach { items += EmojiListItem.Emoji(tab, it, history = true) }
-                    KAOMOJI_TAB, EMOTICON_TAB -> {
-                        val kaomoji = tab == KAOMOJI_TAB
-                        for (group in if (kaomoji) TextArt.kaomoji else TextArt.emoticons) {
-                            items += EmojiListItem.SubHeader(tab, group.name)
-                            // A face filed under two moods is two chips, one per mood.
-                            group.items.distinct().forEach { items += EmojiListItem.Art(tab, group.name, it, kaomoji) }
-                        }
-                    }
+                    KAOMOJI_TAB, EMOTICON_TAB -> items += textArt(tab)
                     else -> EmojiOrder.emoji(catalog, tab, emojiOrder[tab].orEmpty(), hidden)
                         .distinct()
                         .forEach { items += EmojiListItem.Emoji(tab, it, history = false) }
@@ -139,8 +140,10 @@ internal fun ContinuousEmojiGrid(
     session: EmojiPanelSession,
     sections: EmojiSections,
     callbacks: EmojiFieldCallbacks,
+    kaomoji: KaomojiUi,
 ) {
     val list = sections.items
+    val kaomojiAct = callbacks.kaomoji.onAction
     val gridCell = session.gridCell
     val variantChildren = session.variantChildren
     val grid: LazyGridState = session.listState
@@ -155,7 +158,7 @@ internal fun ContinuousEmojiGrid(
             when (val item = list.getOrNull(index)) {
                 is EmojiListItem.Emoji ->
                     callbacks.onEmoji(if (item.history) item.emoji else emojiDisplay(state, item.emoji))
-                is EmojiListItem.Art -> callbacks.onTextArt(item.art)
+                is EmojiListItem.Art -> kaomojiAct(KaomojiAction.Insert(item.face.text))
                 else -> Unit
             }
         },
@@ -173,9 +176,10 @@ internal fun ContinuousEmojiGrid(
             key = { list[it].key },
             span = { index ->
                 when (val item = list[index]) {
-                    is EmojiListItem.Header, is EmojiListItem.SubHeader -> GridItemSpan(maxLineSpan)
+                    is EmojiListItem.Header, is EmojiListItem.SubHeader, is EmojiListItem.ArtStrip ->
+                        GridItemSpan(maxLineSpan)
                     // The text-art chips keep the widths they have on their pages.
-                    is EmojiListItem.Art -> GridItemSpan(artSpan(item.kaomoji, gridCell, maxLineSpan))
+                    is EmojiListItem.Art -> GridItemSpan(kaomojiSpan(item.face.kind, maxLineSpan, gridCell))
                     is EmojiListItem.Emoji -> GridItemSpan(1)
                 }
             },
@@ -192,7 +196,36 @@ internal fun ContinuousEmojiGrid(
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 )
-                is EmojiListItem.Art -> TextArtCell(art = item.art, onTap = callbacks.onTextArt)
+                is EmojiListItem.Art -> KaomojiCell(item.face, kaomoji.copy(editMode = false), kaomojiAct, dragging = false)
+                // No rail in the long list: its buttons ride at the strip's ends.
+                is EmojiListItem.ArtStrip -> KaomojiTagStrip(
+                    tab = item.tabId,
+                    ui = kaomoji,
+                    kind = kaomojiKindFor(item.tabId, state.settings.emoji.kaomoji),
+                    act = kaomojiAct,
+                    leading = listOf(
+                        KaomojiRailItem(
+                            com.wasimaster.wmkeyboard.core.settings.KaomojiRailButton.SEARCH,
+                            Icons.Outlined.Search,
+                            stringResource(R.string.ime_kaomoji_search),
+                            kaomoji.searching,
+                        ) { kaomojiAct(KaomojiAction.ToggleSearch) },
+                    ),
+                    trailing = listOf(
+                        KaomojiRailItem(
+                            com.wasimaster.wmkeyboard.core.settings.KaomojiRailButton.ADD,
+                            Icons.Outlined.Add,
+                            stringResource(R.string.ime_kaomoji_add),
+                            false,
+                        ) { kaomojiAct(KaomojiAction.Add(item.tabId)) },
+                        KaomojiRailItem(
+                            com.wasimaster.wmkeyboard.core.settings.KaomojiRailButton.TAGS,
+                            Icons.Outlined.Label,
+                            stringResource(R.string.ime_kaomoji_tags),
+                            kaomoji.tagsOpen,
+                        ) { kaomojiAct(KaomojiAction.ToggleTags) },
+                    ),
+                )
                 is EmojiListItem.Emoji -> if (item.history) {
                     EmojiCell(
                         base = item.emoji,
@@ -231,12 +264,6 @@ internal fun ContinuousEmojiGrid(
             }
         }
     }
-}
-
-/** How many grid columns a text-art chip takes: the width its own page gives it. */
-private fun artSpan(kaomoji: Boolean, gridCell: Dp, maxLineSpan: Int): Int {
-    val wanted = if (kaomoji) 132f else 64f
-    return ceil(wanted / gridCell.value).toInt().coerceIn(1, maxLineSpan.coerceAtLeast(1))
 }
 
 /** A section's heading: its name, and the clear button on the history's. */
