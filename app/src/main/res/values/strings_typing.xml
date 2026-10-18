@@ -193,7 +193,7 @@
 
     <string name="typing_suggestions_first_title">Suggestion strip always visible</string>
     <string name="typing_suggestions_first_subtitle">Keep the suggestion strip visible before you type</string>
-    <string name="typing_suggestions_first_info">Usually the top bar shows the toolbar, and it changes to suggestions only while candidates exist. With this setting on, the top bar shows the suggestion strip at rest, so next word predictions are always visible. The arrow on its left opens the toolbar when you need a tool.</string>
+    <string name="typing_suggestions_first_info">Usually the top bar shows the toolbar, and it changes to suggestions only while candidates exist. With this setting on, the top bar shows the suggestion strip at rest, so next word predictions are always visible. The arrow on its left opens the toolbar when you need a tool. With it off, an empty field shows only the toolbar, and its first word predictions are skipped.</string>
 
     <string name="typing_primary_center_title">Best suggestion in the middle</string>
     <string name="typing_primary_center_subtitle">Show the best candidate in the middle slot</string>

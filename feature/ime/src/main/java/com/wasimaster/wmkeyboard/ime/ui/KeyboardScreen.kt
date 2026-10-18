@@ -3480,9 +3480,10 @@ private fun TopBar(
     val suggestionsFirst = state.settings.suggestionStrip.suggestionsFirst && state.settings.suggestions
     // An empty field predicts its first word (#119), so the strip always had
     // words at rest and turning "Suggestion strip always visible" off did
-    // nothing. With it off those openers wait behind the chevron instead: the
-    // toolbar rests, and the first key moves the caret off the start, at which
-    // point the candidates take the row as they always did.
+    // nothing. With it off those openers do not exist (#629): the toolbar
+    // rests, the chevron is not offered for them, and the first key moves the
+    // caret off the start, at which point the candidates take the row as they
+    // always did.
     // Not in an email field, where the strip only ever holds addresses: the
     // remembered ones are offered at the start of the field on purpose (#475).
     val openersAtRest = !suggestionsFirst && state.caretAtFieldStart &&
@@ -3528,10 +3529,6 @@ private fun TopBar(
         // only ever be seen by someone who had turned the suggestion bar on
         // permanently.
         state.autofillChips.isNotEmpty() || state.smartReplyChips.isNotEmpty()
-    // The chevron's way to those resting openers. Keyed on them, so it is shut
-    // again on the same frame they stop being the resting content rather than
-    // carrying a stale "open" into the next empty field.
-    var openersShown by remember(openersAtRest) { mutableStateOf(false) }
     // The emoji panel is already all emojis — showing the row too would be
     // redundant, so opening the panel folds the row away.
     //
@@ -3604,7 +3601,7 @@ private fun TopBar(
     val wantToolbar = !toolsOwnRow &&
         (
             state.panel != PanelMode.NONE || toolbarOverride ||
-                (!hasSuggestions && emptySettled && !suggestionsFirst && !openersShown)
+                (!hasSuggestions && emptySettled && !suggestionsFirst)
             )
 
     // The surface the bar is actually drawing, which lags [wantToolbar] by one
@@ -3994,7 +3991,7 @@ private fun TopBar(
                 ToolbarPlacement.STRIP -> !showToolbar ||
                     (
                         wantToolbar && state.panel == PanelMode.NONE &&
-                            (hasSuggestions || suggestionsFirst || openersAtRest)
+                            (hasSuggestions || suggestionsFirst)
                         )
             },
             enter = fadeIn(tween(motionMs)),
@@ -4015,18 +4012,6 @@ private fun TopBar(
                         feedback()
                         when {
                             toolsOwnRow -> onToolsRowToggle()
-                            // Resting openers have their own flag: the override
-                            // means "away from the candidates", and at rest the
-                            // toolbar is already where the bar is.
-                            //
-                            // Only while the openers are all that could hold the
-                            // strip. A paste chip, an offer or any other content
-                            // in [hasSuggestions] keeps the strip up on its own,
-                            // so flipping the openers flag there changed nothing
-                            // and the chevron looked dead; the override is what
-                            // takes the row from them.
-                            openersAtRest && !hasSuggestions && !toolbarOverride ->
-                                openersShown = !openersShown
                             else -> toolbarOverride = !toolbarOverride
                         }
                     },
