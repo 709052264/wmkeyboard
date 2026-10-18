@@ -130,19 +130,18 @@ dependencies {
     implementation(libs.coil.network.okhttp)
     if (playStoreChannel) {
         "fullImplementation"(libs.mlkit.text.recognition.unbundled)
-        "fullImplementation"(libs.mlkit.text.recognition.chinese.unbundled)
-        "fullImplementation"(libs.mlkit.text.recognition.japanese.unbundled)
-        "fullImplementation"(libs.mlkit.text.recognition.korean.unbundled)
-        "fullImplementation"(libs.mlkit.text.recognition.devanagari.unbundled)
         "fullImplementation"(libs.mlkit.barcode.scanning.unbundled)
     } else {
         "fullImplementation"(libs.mlkit.text.recognition)
-        "fullImplementation"(libs.mlkit.text.recognition.chinese)
-        "fullImplementation"(libs.mlkit.text.recognition.japanese)
-        "fullImplementation"(libs.mlkit.text.recognition.korean)
-        "fullImplementation"(libs.mlkit.text.recognition.devanagari)
         "fullImplementation"(libs.mlkit.barcode.scanning)
     }
+    // The other four OCR scripts (#757) come from Play services on every
+    // channel: bundled, they would add about 16 MB per ABI. Without Play
+    // services those scripts read with Tesseract instead (OcrLanguages).
+    "fullImplementation"(libs.mlkit.text.recognition.chinese.unbundled)
+    "fullImplementation"(libs.mlkit.text.recognition.japanese.unbundled)
+    "fullImplementation"(libs.mlkit.text.recognition.korean.unbundled)
+    "fullImplementation"(libs.mlkit.text.recognition.devanagari.unbundled)
     "fullImplementation"(libs.mlkit.document.scanner)
 
     testImplementation(libs.junit)

@@ -67,6 +67,14 @@ class OcrLanguagesTest {
     }
 
     @Test
+    fun withoutPlayServicesOnlyLatinIsMlKits() {
+        // The other four models download through Play services.
+        assertEquals(MlKitScript.LATIN, OcrLanguages.mlKitScript(lang("en"), playServices = false))
+        assertNull(OcrLanguages.mlKitScript(lang("ja"), playServices = false))
+        assertNull(OcrLanguages.mlKitScript(lang("hi"), playServices = false))
+    }
+
+    @Test
     fun forcedEnginesAndAMissingLibrary() {
         assertEquals("eng", OcrLanguages.tesseractPack(OcrEngine.TESSERACT, lang("en"), true))
         assertNull(OcrLanguages.tesseractPack(OcrEngine.ML_KIT, lang("bn"), true))

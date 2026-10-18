@@ -4,6 +4,7 @@ import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.settings.OcrEngine
+import com.wasimaster.wmkeyboard.core.util.PlayServices
 
 /**
  * Which Tesseract language data ("pack") reads text in each keyboard language,
@@ -85,9 +86,15 @@ object OcrLanguages {
      * The ML Kit recognizer that reads [language], or null when ML Kit has
      * none for its script. Each non-Latin recognizer reads Latin as well, so
      * English words in a Japanese sign still come through.
+     *
+     * Only the Latin model is in the APK. The other four come from Play
+     * services on first use (about 4 MB each per ABI, kept out of every
+     * build), so without [playServices] they count as missing and those
+     * scripts go to Tesseract.
      */
-    fun mlKitScript(language: LanguageDef): MlKitScript? {
+    fun mlKitScript(language: LanguageDef, playServices: Boolean = PlayServices.available): MlKitScript? {
         if (language.id in notText) return null
+        if (language.script != ScriptId.LATIN && !playServices) return null
         return when (language.script) {
             ScriptId.LATIN -> MlKitScript.LATIN
             ScriptId.HAN -> MlKitScript.CHINESE

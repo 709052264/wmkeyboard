@@ -15,9 +15,12 @@ import com.wasimaster.wmkeyboard.core.ocr.MlKitScript
  * only one the keyboard carried, so Chinese, Japanese, Korean and Devanagari
  * text came back as Latin guesses. Each of the others reads Latin too.
  *
- * Sideload builds bundle every model. Play builds get the unbundled twins, and
- * Play services fetches a script's model the first time it is used: until it
- * is there, a read fails with [isDownloading].
+ * Only the Latin model ships in sideload builds. The other four are the
+ * unbundled artifacts on every channel, about 260 KB each instead of 4 MB per
+ * ABI, and Play services fetches a script's model the first time it is used:
+ * until it is there, a read fails with [isDownloading]. Without Play services
+ * [com.wasimaster.wmkeyboard.core.ocr.OcrLanguages.mlKitScript] never hands
+ * them out.
  */
 internal object MlKitRecognizers {
 
