@@ -221,6 +221,7 @@
     <string name="search_kw_typing_suggestions">candidates wordbar</string>
     <string name="search_kw_typing_swipe_start_distance">accidental unwanted stray</string>
     <string name="search_kw_typing_undo_autocorrect">revert original</string>
+    <string name="search_kw_typing_continue_lists">markdown bullet numbered list auto continue next number dash enter newline</string>
     <string name="search_kw_typing_auto_close_brackets">autoclose pair parentheses braces parenthesis matching complete</string>
     <string name="search_kw_typing_wrap_selection">surround parentheses quotes auto braces</string>
     <string name="search_kw_update_row_check">upgrade latest release</string>

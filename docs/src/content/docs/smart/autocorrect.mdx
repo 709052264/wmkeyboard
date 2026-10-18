@@ -225,6 +225,20 @@ A web address or a file name typed into a message closes back up. The space afte
 
 In a browser's address bar the punctuation rule stays out, because a full stop or a colon there is part of an address. Once what you type there has a space in it, it is a search and not an address, and the closing `)` and closing quotes get their space as in a message.
 
+## Lists carry on
+
+**Continue lists** is off by default. Turn it on and Enter on a list line starts the next line with the next marker, in any app, not only the [Notes](/tools/notes/) editor. Type `1. milk`, press Enter, and the new line already reads `2. `. The markers it knows:
+
+- `-`, `*`, `+` and `•` carry on unchanged.
+- `1.` and `1)` count up, keeping whichever delimiter you used.
+- A task box, `- [ ]` or `- [x]`, carries on as an empty `- [ ]`; `☐` and `☑` carry on as `☐`.
+
+Indentation in front of the marker is kept, so a nested list stays nested. Enter on an item with nothing after its marker ends the list: the marker comes off and no new line is typed, the way a word processor lets you out of one.
+
+A number has to be three digits or fewer, so a line that opens with `2024.` is not read as a list item. The rule only runs where Enter makes a new line. In a chat box whose Enter key sends, Enter still sends; Shift+Enter there makes the line break, and that line break carries the list on. Passwords, email fields, web addresses and number pads are left alone.
+
+Bold, italic and the other inline styles are not converted. A plain text field has nowhere to draw them, and the chat apps that read `*bold*` or `**bold**` already do that themselves; select the text and the [chat formatting](/smart/selection-actions/#chat-formatting) chips wrap it in the markers that app reads.
+
 ## Reducing typos before they happen
 
 Autopilot nudges which key a borderline tap resolves to, biasing toward whichever neighboring letter is more likely to continue the word you're typing. Fewer boundary mis-taps happen in the first place, before autocorrect would ever need to fix them. It has its own screen under the Suggestions settings group rather than sitting alongside autocorrect, since it needs suggestions on to have anything to bias toward. Its Strength slider sets how far a favoured letter reaches, and two optional views draw the touch areas it has claimed. See [Suggestions & prediction](/smart/suggestions/) for the rest of how the suggestion engine ranks candidates.
@@ -275,6 +289,7 @@ Android has a spell checker of its own, separate from the keyboard: it draws the
 | Marks that pull the space out | `.,?!;:।،؛؟۔` | Remove a space before punctuation on |
 | Space before French punctuation | On | always |
 | Close brackets for me | Off | always |
+| Continue lists | Off | always |
 
 The table covers the rows this page is about. The same group also carries **Adapt to app tone** and **Space after a suggestion** (both described on [Suggestions & prediction](/smart/suggestions/)), **Automatic capital letters**, and the two selection rules, wrap-with-a-pair and shift-re-cases-the-selection.
 

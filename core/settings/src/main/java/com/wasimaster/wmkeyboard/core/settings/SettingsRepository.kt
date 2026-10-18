@@ -2592,6 +2592,13 @@ data class AutoTextSettings(
      * hug, this is the one switch that turns it off.
      */
     val languagePunctuationSpacing: Boolean = true,
+    /**
+     * Enter on a list line types the next line's marker: `- ` again, `2. `
+     * after `1. `, an empty box after a task (#694). Enter on an empty item
+     * takes its marker off instead. Off by default: it changes what Enter
+     * types in every app, and a chat box that sends on Enter never sees it.
+     */
+    val continueLists: Boolean = false,
 ) {
     companion object {
         /**
@@ -9413,6 +9420,7 @@ class SettingsRepository(private val context: Context) {
         private val HUG_PUNCTUATION_MARKS = stringPreferencesKey("hug_punctuation_marks")
         private val LANGUAGE_PUNCTUATION_SPACING =
             booleanPreferencesKey("language_punctuation_spacing")
+        private val CONTINUE_LISTS = booleanPreferencesKey("continue_lists")
         private val WRAP_SELECTION_WITH_PAIR = booleanPreferencesKey("wrap_selection_with_pair")
         private val AUTO_CLOSE_BRACKETS = booleanPreferencesKey("auto_close_brackets")
         /**
@@ -11283,6 +11291,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.autoText.hugPunctuationMarks,
             languagePunctuationSpacing = p[LANGUAGE_PUNCTUATION_SPACING]
                 ?: defaults.autoText.languagePunctuationSpacing,
+            continueLists = p[CONTINUE_LISTS] ?: defaults.autoText.continueLists,
         )
 
     private fun readSuggestionSources(p: Preferences, defaults: KeyboardSettings) =
@@ -17004,6 +17013,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setLanguagePunctuationSpacing(value: Boolean) =
         editPrefs { it[LANGUAGE_PUNCTUATION_SPACING] = value }
+
+    suspend fun setContinueLists(value: Boolean) =
+        editPrefs { it[CONTINUE_LISTS] = value }
 
     /** Whitespace can never be a mark, and a very long list is a typo. */
     suspend fun setHugPunctuationMarks(value: String) = editPrefs {
