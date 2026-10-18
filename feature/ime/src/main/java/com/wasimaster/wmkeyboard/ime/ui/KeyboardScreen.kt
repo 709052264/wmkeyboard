@@ -17941,6 +17941,10 @@ private fun KeyRows(
                         onGesturePreview = onGesturePreview,
                         swipeClaimed = { fingerGate.claimed },
                         alternatesOpen = { alternatesGate.open },
+                        cooldownMs = cooldownMs,
+                        onStrayTap = { at, id ->
+                            liveRects.value.keyAt(at + boxOrigin)?.let { strayTap.value(it, id) }
+                        },
                     )
                     return@pointerInput
                 }
@@ -20541,7 +20545,34 @@ internal class ThumbStroke(val down: Offset, val downAt: Long, var owned: Boolea
     var lastPreviewMs = 0L
     var previewed = false
     val points = ArrayList<GesturePoint>()
+
+    /** Which half of the board it landed on: 0 left, 1 right. The thumb it belongs to (#738). */
+    var side = 0
+
+    /** How far it has to travel to be a swipe, this thumb's cooldown included (#738). */
+    var startSlopPx = 0f
+
+    /** The furthest it got from where it landed, for [glideStrokeIsTap] at the lift. */
+    var reachPx = 0f
 }
+
+/**
+ * How much further than the start distance a two-thumb stroke has to travel
+ * before it is a swipe (#738), [sinceSideTapMs] after the last tap on its own
+ * half of the board: the one-finger loop's post-typing cooldown, per thumb.
+ *
+ * Per thumb because the thumbs alternate. Measured from the last tap of any
+ * finger, the other thumb's tap would hold back this thumb's real swipe, and
+ * in two-thumb typing that tap is almost always there. A thumb keeps to its own
+ * half, so the half a finger lands on is the thumb it is: pointer ids are new
+ * on every touch and cannot say that.
+ */
+internal fun thumbSlopBoost(sinceSideTapMs: Long, cooldownMs: Int): Float =
+    if (cooldownMs > 0 && sinceSideTapMs in 0 until cooldownMs.toLong()) {
+        1f + POST_TYPE_SLOP_BOOST * (1f - sinceSideTapMs.toFloat() / cooldownMs)
+    } else {
+        1f
+    }
 
 /**
  * The glide loop for two-thumb typing (issue #638).
@@ -20581,8 +20612,14 @@ private suspend fun PointerInputScope.twoThumbGlide(
     swipeClaimed: () -> Boolean,
     /** A key's alternates popup is open: the finger that opened it is choosing in it. */
     alternatesOpen: () -> Boolean,
+    /** The post-typing cooldown's window ([thumbSlopBoost]); 0 is off. */
+    cooldownMs: Int,
+    /** Types the key under this point as its own tap would: a stroke that was a tap (#738). */
+    onStrayTap: (Offset, PointerId) -> Unit,
 ) {
     val strokes = HashMap<PointerId, ThumbStroke>()
+    // When each half of the board last tapped, for that thumb's cooldown.
+    val lastTapAt = longArrayOf(0L, 0L)
     awaitPointerEventScope {
         while (true) {
             val event = awaitPointerEvent(PointerEventPass.Initial)
@@ -20595,28 +20632,53 @@ private suspend fun PointerInputScope.twoThumbGlide(
                     if (strokes.isEmpty()) {
                         onGesturePreview(emptyList(), emptyList(), DUET_PING_DOWN, GlideCase.None)
                     }
-                    strokes[change.id] = ThumbStroke(change.position, change.uptimeMillis, ownsStroke(change.position))
+                    val stroke = ThumbStroke(change.position, change.uptimeMillis, ownsStroke(change.position))
+                    stroke.side = if (change.position.x < size.width / 2f) 0 else 1
+                    stroke.startSlopPx =
+                        slopPx * thumbSlopBoost(change.uptimeMillis - lastTapAt[stroke.side], cooldownMs)
+                    strokes[change.id] = stroke
                     continue
                 }
                 val stroke = strokes[change.id] ?: continue
                 if (!change.pressed) {
                     strokes.remove(change.id)
                     lifted = true
-                    if (!stroke.swiping) continue
+                    if (!stroke.swiping) {
+                        // Its key typed it: the tap this thumb's cooldown runs from.
+                        lastTapAt[stroke.side] = change.uptimeMillis
+                        continue
+                    }
                     change.consume()
                     stroke.points.add(GesturePoint(change.position.x, change.position.y, change.uptimeMillis))
-                    if (stroke.slot >= 0) trails[stroke.slot].release()
-                    val keys = stroke.keys ?: continue
+                    stroke.reachPx = maxOf(stroke.reachPx, (change.position - stroke.down).getDistance())
+                    val keys = stroke.keys
+                    val claimed = swipeClaimed()
+                    // A tap that rolled past the start distance (#738, the
+                    // one-finger loop's #782). The stroke took the pointer from
+                    // the key, so the key's own lift typed nothing, and a stroke
+                    // this short is too few samples to send or decodes to
+                    // nothing: the letter was lost. It types the key it landed
+                    // on through the path a tap takes, which the two-thumb word
+                    // already takes taps from.
+                    val tap = !claimed && glideStrokeIsTap(stroke.reachPx, stroke.points.size, keyWidth.value)
+                    if (stroke.slot >= 0) {
+                        if (tap) trails[stroke.slot].clear() else trails[stroke.slot].release()
+                    }
+                    if (keys == null) continue
                     when {
                         // A multi-finger swipe took the touch (#647).
-                        swipeClaimed() -> if (stroke.previewed) {
+                        claimed -> if (stroke.previewed) {
                             onGesture(stroke.points, keys, keyWidth.value, GlideVerdict.Cancel)
                         }
-                        stroke.points.size >= COMMIT_MIN_POINTS ->
-                            onGesture(stroke.points, keys, keyWidth.value, GlideVerdict.Leader())
-                        // Too short to read, but it showed a preview: retire it.
-                        stroke.previewed ->
-                            onGesture(stroke.points, keys, keyWidth.value, GlideVerdict.Cancel)
+                        tap -> {
+                            // A preview it managed to send is retired first.
+                            if (stroke.previewed) {
+                                onGesture(stroke.points, keys, keyWidth.value, GlideVerdict.Cancel)
+                            }
+                            onStrayTap(stroke.down, change.id)
+                            lastTapAt[stroke.side] = change.uptimeMillis
+                        }
+                        else -> onGesture(stroke.points, keys, keyWidth.value, GlideVerdict.Leader())
                     }
                     continue
                 }
@@ -20631,7 +20693,7 @@ private suspend fun PointerInputScope.twoThumbGlide(
                         continue
                     }
                     val kw = keyWidth.value
-                    if (kw <= 0f || (change.position - stroke.down).getDistance() <= slopPx) continue
+                    if (kw <= 0f || (change.position - stroke.down).getDistance() <= stroke.startSlopPx) continue
                     if (!nearLetter(stroke.down)) continue
                     stroke.swiping = true
                     stroke.keys = grid()
@@ -20644,6 +20706,7 @@ private suspend fun PointerInputScope.twoThumbGlide(
                 change.consume()
                 val point = GesturePoint(change.position.x, change.position.y, change.uptimeMillis)
                 stroke.points.add(point)
+                stroke.reachPx = maxOf(stroke.reachPx, (change.position - stroke.down).getDistance())
                 if (stroke.slot >= 0) {
                     trails[stroke.slot].add(change.position.x, change.position.y, change.uptimeMillis, trailMs)
                 }
