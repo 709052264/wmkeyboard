@@ -8788,6 +8788,14 @@ data class SuggestionStripSettings(
      */
     val phoneticContextOffLangs: Set<String> = emptySet(),
     /**
+     * Languages whose Khipro layouts leave out the strip's chip of the keys
+     * exactly as pressed (#772), modifiers and all (`prshn/` beside প্রশ্ন).
+     * Khipro's `f` and `/` change what came before them, so the chip is how
+     * to see which modifier went in; a tap on it writes the keys as typed.
+     * Stored as the switched-off set, so a language nobody has touched shows it.
+     */
+    val rawKeysChipOffLangs: Set<String> = emptySet(),
+    /**
      * Languages whose suggestions come from the user's own imported word lists
      * alone: the bundled list and any downloaded one are dropped for them
      * (issue #28).
@@ -8941,6 +8949,9 @@ data class SuggestionStripSettings(
 
     /** Whether [langId]'s phonetic layout ranks its readings by the words before them. */
     fun phoneticContextEnabledFor(langId: String): Boolean = langId !in phoneticContextOffLangs
+
+    /** Whether [langId]'s Khipro strip shows the keys as pressed beside the word they spell. */
+    fun rawKeysChipFor(langId: String): Boolean = langId !in rawKeysChipOffLangs
 
     /** Whether [langId]'s phonetic layout commits English words as English; null is no phonetic layout. */
     fun phoneticEnglishFor(langId: String?): Boolean = langId != null && langId in phoneticEnglishLangs
@@ -9525,6 +9536,7 @@ class SettingsRepository(private val context: Context) {
         private val SPELLING_MAP_OFF_LANGS = stringSetPreferencesKey("spelling_map_off_langs")
         private val PHONETIC_SIBLINGS_OFF_LANGS = stringSetPreferencesKey("phonetic_siblings_off_langs")
         private val PHONETIC_CONTEXT_OFF_LANGS = stringSetPreferencesKey("phonetic_context_off_langs")
+        private val RAW_KEYS_CHIP_OFF_LANGS = stringSetPreferencesKey("raw_keys_chip_off_langs")
         private val IMPORTED_ONLY_LANGS = stringSetPreferencesKey("imported_only_langs")
         private val WORD_PAIRS_OFF_LANGS = stringSetPreferencesKey("word_pairs_off_langs")
         private val WORD_MENU_ITEMS = stringSetPreferencesKey("word_menu_items")
@@ -11841,6 +11853,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.phoneticSiblingsOffLangs,
             phoneticContextOffLangs = p[PHONETIC_CONTEXT_OFF_LANGS]
                 ?: defaults.suggestionStrip.phoneticContextOffLangs,
+            rawKeysChipOffLangs = p[RAW_KEYS_CHIP_OFF_LANGS]
+                ?: defaults.suggestionStrip.rawKeysChipOffLangs,
             importedOnlyLangs = p[IMPORTED_ONLY_LANGS]
                 ?: defaults.suggestionStrip.importedOnlyLangs,
             wordPairsOffLangs = p[WORD_PAIRS_OFF_LANGS]
@@ -17529,6 +17543,13 @@ class SettingsRepository(private val context: Context) {
         editPrefs {
             val off = it[PHONETIC_CONTEXT_OFF_LANGS].orEmpty()
             it[PHONETIC_CONTEXT_OFF_LANGS] = if (enabled) off - langId else off + langId
+        }
+
+    /** Shows or hides the chip of the keys as pressed on [langId]'s Khipro strip (#772). */
+    suspend fun setRawKeysChip(langId: String, enabled: Boolean) =
+        editPrefs {
+            val off = it[RAW_KEYS_CHIP_OFF_LANGS].orEmpty()
+            it[RAW_KEYS_CHIP_OFF_LANGS] = if (enabled) off - langId else off + langId
         }
 
     /**

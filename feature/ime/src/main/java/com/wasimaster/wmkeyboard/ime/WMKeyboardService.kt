@@ -21099,12 +21099,17 @@ open class WMKeyboardService : InputMethodService() {
                 // it, one tap away (#487).
                 val latin = if (completing != null) completionLatin(state, typed) else null
                 // Otherwise the keys as typed still get a chip, right behind
-                // the Bangla reading, for the English words no list knows
-                // (#594); with English mixing off there is none.
-                val literal = if (completing != null && latin == null && state.allowsTypingIntelligence) {
-                    engine.completionLiteral(typed)?.let { sentenceCasedLatin(it, typed, state) }
-                } else {
-                    null
+                // the Bangla reading: all of them, `/` and `f` included, so
+                // the user can see which modifier went in (#772), unless the
+                // language turned that off. Then only a word of letters gets
+                // one, for the English words no list knows (#594), and with
+                // English mixing off there is none.
+                val literal = when {
+                    completing == null || latin != null || typed.isEmpty() -> null
+                    state.settings.suggestionStrip.rawKeysChipFor(completing) -> typed
+                    state.allowsTypingIntelligence ->
+                        engine.completionLiteral(typed)?.let { sentenceCasedLatin(it, typed, state) }
+                    else -> null
                 }
                 val ranked = if (latin != null) listOf(latin) + deep.filterNot { it == latin } else deep
                 val suggested = (

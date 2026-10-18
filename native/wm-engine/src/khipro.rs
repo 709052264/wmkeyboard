@@ -20,7 +20,9 @@
 //! compiled in verbatim and [`Spec`] interprets them. The interpreter
 //! follows KhiproTeam's own `khipro-library`, which re-runs the whole roman
 //! tape through the spec on every key, and is conformance-tested against the
-//! same `khipro-testcases` tables.
+//! same `khipro-testcases` tables. One place follows m17n-lib instead: a key
+//! the current state has no rule for is read again from `init` rather than
+//! written as itself, which Dark's `fusion_possible` state depends on.
 //!
 //! Only the subset of m17n the Khipro specs use: `map` blocks of
 //! `(keys actions… "output")` entries, `state` blocks whose rules name a map
@@ -372,14 +374,17 @@ impl Spec {
                 }
             }
             match best {
+                None if run.state != INITIAL => {
+                    // Nothing in this state reads the character: the method
+                    // starts afresh and reads it again from `init`, as m17n-lib
+                    // does. Dark's `fusion_possible` relies on it: a consonant
+                    // after a vowel there begins the next run.
+                    run.enter(INITIAL);
+                }
                 None => {
-                    // Nothing in this state reads the character: it is written
-                    // as itself and the method starts afresh after it.
+                    // Not even `init` reads it: it is written as itself.
                     run.insert(&input[i..i + 1]);
                     i += 1;
-                    if run.state != INITIAL {
-                        run.enter(INITIAL);
-                    }
                 }
                 Some((entry, rule)) => {
                     run.execute(&entry.actions);
@@ -642,11 +647,22 @@ mod tests {
             .collect()
     }
 
+    /// Cases upstream's table still has from before a spec change that
+    /// overturned them, as (input, the stale expectation). Matched on the
+    /// expectation too, so a case runs again once upstream corrects it.
+    ///
+    /// `kso/`: Dark's 2026-10-18 spec moved a vowel after two or more
+    /// consonants to `fusion_possible`, where `/` fuses them (`cnd/r/bindu/`
+    /// in the same table relies on it), so it is now ক্স, not কসঁ; the table
+    /// was last touched 2026-10-14.
+    const STALE_UPSTREAM: &[(&str, &str)] = &[("kso/", "কসঁ")];
+
     fn assert_conforms(name: &str, text: &str, variant: Variant) {
         let cases = cases(text);
         assert!(cases.len() > 50, "no cases read from {FIXTURES}{name}");
         let failures: Vec<String> = cases
             .iter()
+            .filter(|(input, expected)| !STALE_UPSTREAM.contains(&(input.as_str(), expected.as_str())))
             .filter_map(|(input, expected)| {
                 let actual = convert(input, variant);
                 (&actual != expected).then(|| format!("{input}: expected {expected}, got {actual}"))

@@ -984,6 +984,7 @@ private fun SearchStrings.languageRows(): List<SettingsSearchEntry> {
         // nothing to fill it in here; the title carries the search.
         row(R.string.languages_translit_hints_row_title),
         row(R.string.languages_phonetic_strip_fixed_title),
+        row(R.string.languages_raw_keys_chip_title, R.string.languages_raw_keys_chip_subtitle),
         row(R.string.languages_phonetic_strip_source_title, R.string.languages_phonetic_strip_source_subtitle),
         row(R.string.languages_phonetic_candidates_title, R.string.languages_phonetic_candidates_subtitle),
         row(R.string.languages_phonetic_guide_title),
