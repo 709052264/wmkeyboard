@@ -28917,9 +28917,21 @@ open class WMKeyboardService : InputMethodService() {
             base.keyboardModes, currentPackage, currentModeFields, manualModeId,
             currentFieldHint,
         )
+        val settings = base.applyMode(mode)
+        // A mode that turns the swipes or two-thumb typing off ends an open
+        // two-thumb word as it stands, under the settings it was begun with:
+        // left open, nothing under the new mode would ever end it (#753).
+        if (duetWord.active && (!settings.gestureTyping || !settings.gesture.twoThumbGlide)) {
+            currentInputConnection?.let { ic ->
+                allUpJob?.cancel()
+                allUpJob = null
+                settleDuet(ic)
+                commitDuet(ic)
+            }
+        }
         _uiState.update {
             it.copy(
-                settings = base.applyMode(mode),
+                settings = settings,
                 activeModeId = mode?.id,
                 // The mode brings its own default set; drop the session pick.
                 activeSymbolSetId = null,

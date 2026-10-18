@@ -1739,6 +1739,33 @@ internal fun ModeEditor(
                 detail = inheritDetail(),
             ) { save(current().copy(autoSpace = it)) }
         }
+        // The swipes, which every switch above left alone: with them on, a
+        // drifting tap could still start one, so no mode typed exactly the
+        // keys pecked (#753).
+        item {
+            val inherit = stringResource(R.string.modes_inherit_label)
+            val on = stringResource(CommonR.string.common_on)
+            val off = stringResource(CommonR.string.common_off)
+            ChoiceSetting(
+                title = R.string.modes_glide_title,
+                info = stringResource(R.string.modes_glide_info),
+                options = listOf(null to inherit, true to on, false to off),
+                selected = settings.watch { modeIn(it).glide },
+                detail = inheritDetail(),
+            ) { save(current().copy(glide = it)) }
+        }
+        item {
+            val inherit = stringResource(R.string.modes_inherit_label)
+            val on = stringResource(CommonR.string.common_on)
+            val off = stringResource(CommonR.string.common_off)
+            ChoiceSetting(
+                title = R.string.modes_two_thumb_title,
+                info = stringResource(R.string.modes_two_thumb_info),
+                options = listOf(null to inherit, true to on, false to off),
+                selected = settings.watch { modeIn(it).twoThumb },
+                detail = inheritDetail(),
+            ) { save(current().copy(twoThumb = it)) }
+        }
         // Only the layouts the user actually has switched on: a mode naming one
         // they have since removed would pin the keyboard to something that
         // cannot be drawn, which applyMode also guards against at read time.

@@ -236,6 +236,19 @@ data class KeyboardMode(
      */
     val autoSpace: Boolean? = null,
     /**
+     * Glide typing while active; null inherits.
+     *
+     * With every other typing switch off, a mode still could not stop a tap
+     * that drifts from starting a swipe (#738), so a field meant for codes,
+     * handles or slang never typed exactly the keys pecked (#753).
+     */
+    val glide: Boolean? = null,
+    /**
+     * Two-thumb typing while active; null inherits. Off stops All thumbs up
+     * from ending a tapped word with a space nobody pressed (#734, #753).
+     */
+    val twoThumb: Boolean? = null,
+    /**
      * Layout worn while this mode is active; null inherits whichever layout the
      * user last switched to.
      *
@@ -774,8 +787,11 @@ fun KeyboardSettings.applyMode(mode: KeyboardMode?): KeyboardSettings {
         // spaced (#184).
         suggestionStrip = mode.autoSpace
             ?.let { suggestionStrip.copy(autoSpaceAfterSuggestion = it) } ?: suggestionStrip,
-        gesture = mode.autoSpace
-            ?.let { gesture.copy(autoSpaceAfterGlide = it, autoSpaceBeforeGlide = it) } ?: gesture,
+        // Applied in turn with the two-thumb switch, as autoText's pair is.
+        gesture = gesture
+            .let { g -> mode.autoSpace?.let { g.copy(autoSpaceAfterGlide = it, autoSpaceBeforeGlide = it) } ?: g }
+            .let { g -> mode.twoThumb?.let { g.copy(twoThumbGlide = it) } ?: g },
+        gestureTyping = mode.glide ?: gestureTyping,
         // Only honoured while the layout is actually available. A mode naming a
         // layout the user has since switched off would otherwise pin the
         // keyboard to something that cannot be drawn.
