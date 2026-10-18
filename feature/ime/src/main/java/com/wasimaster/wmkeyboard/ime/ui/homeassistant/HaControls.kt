@@ -74,6 +74,8 @@ import com.wasimaster.wmkeyboard.ime.homeassistant.HaSnapshotUi
 import com.wasimaster.wmkeyboard.ime.homeassistant.HaTile
 import com.wasimaster.wmkeyboard.ime.ui.LocalHapticFeedback
 import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
+import com.wasimaster.wmkeyboard.ime.ui.cardShape
+import com.wasimaster.wmkeyboard.ime.ui.chipShape
 import com.wasimaster.wmkeyboard.ime.ui.clock.ClockSwitch
 import com.wasimaster.wmkeyboard.ime.ui.clock.PillButton
 import com.wasimaster.wmkeyboard.ime.ui.clock.RoundButton
