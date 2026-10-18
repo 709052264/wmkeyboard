@@ -452,6 +452,13 @@ class MainActivity : FragmentActivity() {
             }
             return PendingNav(route = com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub.DEVICES_ROUTE)
         }
+        // Home Assistant's browser sign-in coming back with its code: checked
+        // against the state saved when Sign in was pressed, exchanged for
+        // tokens, and the tool page shows the result.
+        com.wasimaster.wmkeyboard.core.homeassistant.HaAuth.parseCallback(link)?.let { callback ->
+            com.wasimaster.wmkeyboard.app.homeassistant.HaSignIn.finish(applicationContext, lifecycleScope, callback)
+            return PendingNav(route = "tool/${ToolbarTool.HOME_ASSISTANT.name}")
+        }
         AddonDeepLink.routeFor(link)?.let { return PendingNav(route = it) }
         SettingsDeepLink.parse(link)?.let { target -> return pendingFor(target) }
         // One of ours, naming a screen this build does not have: most likely
@@ -1561,6 +1568,11 @@ private fun SettingsNavGraph(
             val word = android.net.Uri.decode(backStackEntry.arguments?.getString("word").orEmpty())
             SettingsScreen(word, { navController.popBackStack() }, route = vocabWordRoute(packId, word)) {
                 VocabWordScreen(packId, word, settings) { route -> navController.navigate(route) }
+            }
+        }
+        composable("homeassistant/entities") {
+            SettingsScreen(stringResource(R.string.ha_entities_title), { navController.popBackStack() }, route = "homeassistant/entities") {
+                com.wasimaster.wmkeyboard.app.homeassistant.HaEntitiesScreen(repository, settings)
             }
         }
         composable("clock") {

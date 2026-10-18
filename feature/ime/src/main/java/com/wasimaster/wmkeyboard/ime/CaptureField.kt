@@ -390,6 +390,15 @@ enum class CaptureTarget(
     /** A label in the Clock panel: an alarm's, a timer's, a countdown's, a city's own name. */
     CLOCK_LABEL(takesWords = true),
 
+    /** The Home Assistant panel's search: filters tiles as it is typed, Enter opens the first. */
+    HA_SEARCH(takesWords = true),
+
+    /** A sentence for Home Assistant's Assist: Enter sends it. */
+    HA_ASSIST(takesWords = true),
+
+    /** A lock or alarm code, or a text entity's value, in the Home Assistant panel. */
+    HA_TEXT(takesWords = true),
+
     /**
      * The gallery panel's text (#708): the caption that goes with what is
      * sent, or a text box being written on a photo in the editor.
@@ -425,7 +434,8 @@ enum class CaptureTarget(
     val isSearch: Boolean
         get() = this == EMOJI_SEARCH || this == MEDIA_SEARCH || this == DICTIONARY_SEARCH ||
             this == CLIPBOARD_SEARCH || this == FIND_QUERY || this == SNIPPET_SEARCH ||
-            this == NOTE_SEARCH || this == NOTE_TAG || this == CLOCK_SEARCH || this == TOOLBOX_SEARCH
+            this == NOTE_SEARCH || this == NOTE_TAG || this == CLOCK_SEARCH || this == TOOLBOX_SEARCH ||
+            this == HA_SEARCH
 }
 
 /**

@@ -202,6 +202,7 @@ export const ROUTES: RouteSpec[] = [
 		],
 	},
 	{ pattern: 'clock', label: 'Clock', group: 'Tools' },
+	{ pattern: 'homeassistant/entities', label: 'Favourites and rooms', group: 'Tools' },
 	{ pattern: 'notes', label: 'Notes', group: 'Tools' },
 	{
 		pattern: 'notes/edit/{noteId}',
@@ -356,7 +357,7 @@ export const TOOL_NAMES = [
 	'CURSOR_RIGHT', 'CURSOR_UP', 'CURSOR_DOWN', 'CURSOR_HOME', 'CURSOR_END', 'PAGE_UP', 'PAGE_DOWN',
 	'CURSOR_WORD_LEFT', 'CURSOR_WORD_RIGHT', 'SELECT_WORD', 'SELECT_LINE', 'SELECT_ALL', 'SELECT_MODE', 'COPY',
 	'CUT', 'PASTE', 'HIDE_KEYBOARD', 'PERSISTENT', 'SELECTION_ACTIONS', 'LEARN_FROM_TEXT',
-	'PHONETIC_ENGLISH', 'KDE_CONNECT', 'STATISTICS', 'FIND_REPLACE', 'NOTES', 'AI_REPLY', 'LOCATION', 'CLOCK', 'GALLERY', 'LANGUAGE', 'CLIPBOARD_SEARCH',
+	'PHONETIC_ENGLISH', 'KDE_CONNECT', 'STATISTICS', 'FIND_REPLACE', 'NOTES', 'AI_REPLY', 'LOCATION', 'CLOCK', 'HOME_ASSISTANT', 'GALLERY', 'LANGUAGE', 'CLIPBOARD_SEARCH',
 ];
 
 /**

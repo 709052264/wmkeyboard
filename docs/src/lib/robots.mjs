@@ -31,6 +31,8 @@ export const NOINDEX_PATHS = [
 	'/open/',
 	// A shared place (#350): the position is in the fragment, so a crawler sees an empty card.
 	'/place/',
+	// The Home Assistant sign-in client page: a redirect declaration, nothing to index.
+	'/ha/',
 ];
 
 /** Trailing slash either way, and query strings ignored. */

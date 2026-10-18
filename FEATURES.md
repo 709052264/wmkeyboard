@@ -16,7 +16,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Languages, scripts, layouts, transliteration | 11 | 64 | 213 |
 | Themes and appearance | 14 | 73 | 183 |
 | Emoji, GIFs, stickers, kaomoji | 16 | 88 | 94 |
-| Toolbar and the tool set | 10 | 86 | 337 |
+| Toolbar and the tool set | 10 | 87 | 352 |
 | Clipboard, snippets, text expansion | 7 | 37 | 191 |
 | AI, voice, handwriting, scanning | 11 | 71 | 167 |
 | Privacy, backup, storage, statistics | 14 | 69 | 173 |
@@ -2047,6 +2047,20 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Conditional stat grid — Feels-like, humidity, wind always; rain chance, cloud, pressure, UV, sunrise, sunset when present
     - 8-point wind direction — Plus emoji and short description for current conditions
     - Shares its location with the compass — Qibla reads the same saved coordinates
+  - Home Assistant `RARE` — The user's own Home Assistant from the keyboard: rooms of live tiles, a card of controls per entity, a typed Assist bar
+    - Live over the WebSocket API — `subscribe_entities` compressed stream applied in a JVM-tested engine (`:core:homeassistant`); REST fallback; reconnect with backoff; a refused token stops and asks once
+    - Browser sign-in, IndieAuth style — The docs site's `/ha/` page is the client id and names `wmkeyboard://ha-auth`; tokens refresh themselves; a long-lived token is the fallback; mDNS `_home-assistant._tcp` finds the server
+    - Two addresses — Home first, remote fallback, remembered per session
+    - Tiles by room — Favourites, one tab per HA area in floor order, Elsewhere, All; search by name, id or room; a tab per room can be switched off
+    - Every kind — light (brightness, warmth, hue, colours, effects), switch, fan, cover, valve, climate dial, media transport and volume, lock, alarm with codes, vacuum, humidifier, water heater, siren, number, select, text, button, scene, script, automation, camera stills (sendable as a picture), sensors with three insert formats
+    - Optimistic taps — The tile shows the expected state, the server's event confirms it, a refusal shakes it back
+    - Hold to confirm — Locks, alarms, garage doors, gates, sirens and valves fill a ring for 800 ms before acting
+    - Motion — Staggered tile entrance, a pulse ring when the server changes an entity, run flash on scenes, card grows from the middle, rolling thermostat digits, breathing status dot while connecting; all under the motion flags
+    - Assist bar — A capture target under the tiles; the reply slides up, touched tiles ring, Insert reply types it; conversation id kept per panel session
+    - Smart chip — "turn off the lights" typed anywhere offers Ask home, which opens the panel and sends it
+    - AI chat tools — `home_assistant` (Assist, one sentence) and `home_assistant_states` (what is on, or a search), both Ask by default
+    - Snippet variables — `{ha:entity_id}` and `{ha:entity_id:attribute}`
+    - Cache — Last states on disk so the panel draws at once, dimmed until live; excluded from backups; tokens in SECRET_KEYS and never in the direct-boot mirror
   - Location (#350) `RARE` — The phone's position or a saved place into any field, in the format the user picks
     - One reading per tap — LocationManager only (no Play services): AOSP fused, GPS and network asked at once, each better answer shown as it lands, stops at 25 m or 20 s, nothing left registered
     - Tile-free position dial — Accuracy ring, the shared precision cell and the shared point drawn to scale, north up; no map server learns where the user is

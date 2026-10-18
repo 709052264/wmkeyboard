@@ -1,0 +1,116 @@
+---
+title: "Home Assistant"
+description: "Your Home Assistant from the keyboard: rooms of tiles for lights, switches, blinds, thermostats, media, locks and sensors, live as the house changes, with a typed command bar for Assist."
+sidebar:
+  order: 16.5
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+The **Home Assistant** tool puts your house inside the keyboard. It connects to your own Home Assistant server, shows every room as a tab of tiles, and keeps them live: when somebody flips a wall switch, the tile rings and changes while you watch. A tap switches a light, runs a scene or types a sensor's reading into your message. A hold opens the thing's own card, with a brightness slider, a thermostat dial, blinds buttons, the media transport, or a lock that takes a hold to open. Under the tiles is a bar for Assist, so `turn off the kitchen lights` typed with the keyboard does exactly that.
+
+Open **Home Assistant** from the toolbox, or type `hass` or `homeassistant` on its own and tap the chip. The panel talks only to the server you connected; nothing about your home passes through any other service.
+
+## Connecting
+
+The tool's page is at <SettingsPath path="Tools / Home Assistant" />. It needs two things: where your server is, and permission to talk to it.
+
+**The address.** Type it the way you reach it at home: `homeassistant.local:8123`, `192.168.1.5`, or whatever your browser shows. While nothing is signed in, the page also lists any Home Assistant that announces itself on your Wi-Fi; tap one to fill the address in. A remote address is optional: a Nabu Casa or reverse-proxy `https://` address that works from anywhere. With both set, the keyboard tries the home address first and falls back to the remote one when the home one does not answer.
+
+**Signing in**, two ways:
+
+- **Sign in with Home Assistant** opens your browser on your own server's login page. You sign in there, with your password and whatever second factor you use, and Home Assistant hands the keyboard a key. The keyboard never sees your password, and the key renews itself. Home Assistant checks `wmkeyboard.pages.dev/ha/` once during this, because that page is the keyboard's name as a sign-in client; your server, account and key never go there.
+- **Use an access token instead.** In Home Assistant, open your profile, the **Security** tab, and create a **long-lived access token**. Paste it into the fold on the tool's page. This is the way in when the browser cannot reach your server, or when you prefer a key you can revoke from Home Assistant yourself.
+
+The key is kept on the phone only. A [backup](/reference/settings/backup/) leaves it out unless you turn on **Include API keys**, and it is never copied into the part of the phone that is readable before the first unlock. **Sign out** revokes the browser key on the server and forgets everything the tool learnt.
+
+**Test connection** asks the server its name and version with the key you have, so a wrong address or a pasted token with a character missing shows up here rather than in the panel.
+
+## The panel
+
+Along the top: the house's name with a dot beside it, then the tabs, then search and settings. The dot breathes while the keyboard connects, turns green when the live stream is up, amber when only the plain web API answers, and red when the server cannot be reached or the key was refused.
+
+**Tabs.** **Favourites** first, then one tab per area you have set up in Home Assistant, in its order (floors first), then **Elsewhere** for things with no area, then **All**. Swipe across the tiles to change tab. The panel opens on Favourites, or on the tab you used last if you prefer.
+
+**Tiles.** Each tile is the thing's icon in a soft circle, its name, its state, and the one control its kind has. The circle fills with the theme's accent as the thing comes on, and for a light, as bright as the light is. Tiles arrive with a short stagger when a tab opens. The icon is the one you gave the entity in Home Assistant where the keyboard has a drawing for it, else one for its kind.
+
+| Kind | On the tile | A tap |
+|---|---|---|
+| Light, switch, fan, input boolean, automation | A switch | Toggles |
+| Scene, script, button | A play arrow | Runs or presses it; the tile flashes |
+| Cover, valve, climate, media player, lock, alarm, vacuum, humidifier, water heater, number, select, text, camera | A chevron | Opens the card |
+| Sensor, binary sensor, weather, person | The reading, large | Types it into your text |
+
+A tap acts straight away: the tile shows the new state and the server's next event confirms it. If the server disagrees, or refuses, the tile shakes and shows the truth. Hold any tile to open its card.
+
+**The card** grows out of the middle of the panel over the dimmed tiles. At the top are the name, the room and the live state; at the bottom, **Insert**, **Hide** and **Open in Home Assistant**, plus a star to make it a favourite. In between, the controls for its kind:
+
+- **Light**: the switch, a brightness slider, a warmth slider from candle to daylight, a hue strip and a row of colours, and the light's effects. Dragging a slider ticks every five per cent and sends as you go.
+- **Fan**: speed, oscillation, direction, presets.
+- **Cover, valve**: open, stop and close, a position slider, a tilt slider. A garage door, a gate or a door takes a hold instead of a tap.
+- **Climate**: a dial that fills to the target in orange while heating and blue while cooling, the current temperature as a dot on it, minus and plus by the step your thermostat uses, then the modes, presets and fan modes.
+- **Media player**: what is playing, previous, play or pause, next, the volume with mute, and the sources.
+- **Lock**: Unlock and Lock, each a hold; Open where the lock has a latch.
+- **Alarm panel**: Disarm, and the arm modes your panel offers, each a hold. A panel that wants a code asks for one; the keys type it.
+- **Vacuum**: start or pause, stop, dock, find, and suction levels, with the battery in the state line.
+- **Humidifier, water heater**: the target slider and the modes.
+- **Number, select, text**: a slider, a row of options, or the text with an Edit that hands the keys over.
+- **Camera**: a still from the camera, **Refresh**, and **Send picture**, which puts the picture into the chat the way the Gallery does.
+- **Sensors**: the reading large with its unit and when it last changed, and three chips for how to type it: the value, the value with its unit, or the name and the value. Hold a chip to make it the default for every sensor tile's tap.
+
+**Search** filters every tab by name, entity id or room as you type; Enter opens the first match. **Hide** takes a tile out of every tab; the Favourites and rooms screen brings it back.
+
+### Risky things
+
+Locks, alarm panels, garage doors, gates, sirens and valves are never one tap. Their buttons fill a ring while your finger stays down and act when it is full, about a second; lifting early does nothing. **Hold to confirm risky actions** on the tool's page turns this off.
+
+### Assist
+
+The bar at the bottom reads **Ask your home…**. Tap it and the keys type into it, glide and voice included. Enter sends the sentence to Home Assistant's Assist, the same one that answers in its own app: `turn on the hall light`, `set the bedroom to 20 degrees`, `is the garage closed`. The reply slides up over the bar. Things it changed ring their tiles; things it could not find shake. **Insert reply** types what it said into your message. A follow-up question stays in the same conversation until you close the panel.
+
+Assist speaks the language you are typing in, when **Send the keyboard's language** is on, and you can pick which of your conversation agents answers.
+
+### Favourites and rooms
+
+<SettingsPath path="Tools / Home Assistant / Favourites and rooms" /> lists everything the server has, by room. Star what the Favourites tab should show, drag the favourites into order, hide single things, and switch off whole kinds (every `automation`, say) you never want to see from the keyboard. Entities Home Assistant marks as diagnostic or configuration, and ones it hides itself, never show.
+
+## Elsewhere in the keyboard
+
+- **A chip while you type.** With the tool connected, a sentence that reads like a command for the house (`turn off the lights`, `dim the bedroom to 30%`, `lock the front door`, `open the blinds`) gets a strip chip, **Ask home**. Tapping it opens the panel and sends the sentence to Assist instead of leaving it in your message. **Suggest commands as you type** on the tool's page switches it off; it is part of the [smart chips](/smart/chips/).
+- **The AI chat's tools.** The [AI chat](/tools/ai/) gets two tools: **Control your home**, which sends one plain sentence to Assist, and **Read your home**, which lists what is on, or whatever matches a name. Both ask before they run, like every tool that touches your things. They are listed only while the tool is signed in.
+- **Snippet variables.** `{ha:sensor.outside_temperature}` expands to the entity's state with its unit, and `{ha:light.kitchen:brightness}` to one attribute; see [snippets](/tools/snippets/). They read what the keyboard last saw and ask the server for a fresh state when it is connected.
+
+## Options
+
+<SettingsPath path="Tools / Home Assistant" />
+
+| Setting | What it does | Default |
+|---|---|---|
+| **Home Assistant tool** | The switch | Off |
+| **Address at home**, **Remote address** | Where the server is, inside the house and from outside | |
+| **Try the home address first** | With both addresses set, which to try first | On |
+| **Sign in with Home Assistant**, **Use an access token instead** | The two ways in; **Sign out** forgets the key | |
+| **Favourites and rooms** | The Favourites tab's tiles, hidden things, kinds to leave out | |
+| **Open on** | **Favourites** or **Last tab** | Favourites |
+| **A tab per room** | Your areas as tabs; off, just Favourites and All | On |
+| **Tile size** | **Comfortable** (two across) or **Compact** (four) | Comfortable |
+| **Hold to confirm risky actions** | Locks, alarms, garage doors, gates, sirens and valves take a hold | On |
+| **What a sensor tile types** | **Value**, **Value and unit** or **Name and value** | Value and unit |
+| **Command bar** | The Assist bar under the tiles | On |
+| **Conversation agent** | Which of your assistants answers | Home Assistant's default |
+| **Send the keyboard's language** | Assist answers in the language you type in | On |
+| **Stay connected** | **While the panel is open**, or **While the keyboard is shown** so the panel is live the instant it opens; either way the connection drops a minute after | While the keyboard is shown |
+| **Keep the last states on the phone** | Draw the tiles from the last session at once, dimmed until the server confirms them | On |
+| **Suggest commands as you type** | The **Ask home** chip | On |
+
+## Details & edge cases
+
+- **What is sent, and where.** Only to your server: the key in a header, the commands you give, the states it sends back, and a camera still when you ask for one. The connection is a WebSocket to `/api/websocket` while the panel is open or the keyboard is shown; it drops a minute after. Nothing goes out when the tool is off or not signed in. The [network activity log](/privacy/network-activity/) shows every request under the tool's name.
+- **Plain HTTP to your own server.** A home address without `https://` is plain HTTP on your own network, which is how most Home Assistant installs answer. The remote address should be `https://`; a bare public domain is taken as such.
+- **When the socket cannot connect**, the panel falls back to the plain web API: taps still work, states refresh when you act, and the dot turns amber. When nothing answers, the tiles stay as last seen, dimmed, under a banner with **Retry**.
+- **A key that stops working** (you revoked it, or the server was reset) shows as **Signed out** in the panel and on the tool's page. Sign in again; nothing else is lost.
+- **Several servers.** One at a time. Signing in to another forgets the first one's tiles and favourites.
+- **Before the first unlock** after a restart, the tool is not available: the key lives in the part of the phone that opens with your unlock.
+- **Two addresses, one house.** If the remote address reaches a different server from the home one, the panel shows whichever answered first; keep them pointing at the same Home Assistant.
+- **Camera stills** are fetched over the plain web API with the key, never through any image service, and are not kept on the phone.
+- **Hidden in Home Assistant** stays hidden here: entities hidden or disabled in the entity registry, and those marked diagnostic or configuration, are left out of every tab and of search.

@@ -3513,6 +3513,8 @@ data class KeyboardSettings(
     val mediaControl: MediaControlSettings = MediaControlSettings(),
     /** The KDE Connect tool: the link to a paired computer (see [KdeConnectSettings]). */
     val kdeConnect: KdeConnectSettings = KdeConnectSettings(),
+    /** The Home Assistant tool: the server, the sign-in and the panel's layout (see [HomeAssistantSettings]). */
+    val homeAssistant: HomeAssistantSettings = HomeAssistantSettings(),
     /** Free-software service endpoints for the F-Droid build (see [SelfHostedSettings]). */
     val selfHosted: SelfHostedSettings = SelfHostedSettings(),
     /** How sticker-tool picks are sent. WhatsApp shows real stickers for these. */
@@ -10296,6 +10298,32 @@ class SettingsRepository(private val context: Context) {
         // Absent means "never chosen", which takes the seeded defaults; an
         // empty set is a real choice (nothing counts as music) and is kept.
         private val MEDIA_MUSIC_APPS = stringSetPreferencesKey("media_music_apps")
+        private val HA_ENABLED = booleanPreferencesKey("ha_enabled")
+        private val HA_INTERNAL_URL = stringPreferencesKey("ha_internal_url")
+        private val HA_EXTERNAL_URL = stringPreferencesKey("ha_external_url")
+        private val HA_PREFER_INTERNAL = booleanPreferencesKey("ha_prefer_internal")
+        private val HA_INSTANCE_NAME = stringPreferencesKey("ha_instance_name")
+        private val HA_INSTANCE_ID = stringPreferencesKey("ha_instance_id")
+        private val HA_ACCESS_TOKEN = stringPreferencesKey(SettingsBackup.HA_ACCESS_TOKEN)
+        private val HA_REFRESH_TOKEN = stringPreferencesKey(SettingsBackup.HA_REFRESH_TOKEN)
+        private val HA_TOKEN_EXPIRES_AT = longPreferencesKey(SettingsBackup.HA_TOKEN_EXPIRES_AT)
+        private val HA_LONG_LIVED_TOKEN = booleanPreferencesKey(SettingsBackup.HA_LONG_LIVED_TOKEN)
+        private val HA_AUTH_STATE = stringPreferencesKey("ha_auth_state")
+        private val HA_LIFETIME = stringPreferencesKey("ha_lifetime")
+        private val HA_FAVOURITES = stringPreferencesKey("ha_favourites")
+        private val HA_HIDDEN = stringSetPreferencesKey("ha_hidden")
+        private val HA_HIDDEN_DOMAINS = stringSetPreferencesKey("ha_hidden_domains")
+        private val HA_OPEN_ON = stringPreferencesKey("ha_open_on")
+        private val HA_AREAS_AS_TABS = booleanPreferencesKey("ha_areas_as_tabs")
+        private val HA_TILE_SIZE = stringPreferencesKey("ha_tile_size")
+        private val HA_CONFIRM_RISKY = booleanPreferencesKey("ha_confirm_risky")
+        private val HA_INSERT_FORMAT = stringPreferencesKey("ha_insert_format")
+        private val HA_ASSIST_ENABLED = booleanPreferencesKey("ha_assist_enabled")
+        private val HA_ASSIST_AGENT = stringPreferencesKey("ha_assist_agent")
+        private val HA_ASSIST_LANGUAGE = booleanPreferencesKey("ha_assist_language")
+        private val HA_CACHE_STATES = booleanPreferencesKey("ha_cache_states")
+        private val HA_SMART_CHIP = booleanPreferencesKey("ha_smart_chip")
+        private val HA_LAST_TAB = stringPreferencesKey("ha_last_tab")
         private val KDE_ENABLED = booleanPreferencesKey("kde_enabled")
         private val KDE_DEVICE_NAME = stringPreferencesKey("kde_device_name")
         private val KDE_LIFETIME = stringPreferencesKey("kde_lifetime")
@@ -10914,6 +10942,7 @@ class SettingsRepository(private val context: Context) {
             launcher = readLauncher(p, defaults),
             mediaControl = readMediaControl(p, defaults),
             kdeConnect = readKdeConnect(p, defaults),
+            homeAssistant = readHomeAssistant(p, defaults),
             selfHosted = readSelfHosted(p, defaults),
         )
     }
@@ -12623,6 +12652,38 @@ class SettingsRepository(private val context: Context) {
             musicApps = p[MEDIA_MUSIC_APPS] ?: defaults.mediaControl.musicApps,
         )
 
+    private fun readHomeAssistant(p: Preferences, defaults: KeyboardSettings): HomeAssistantSettings {
+        val d = defaults.homeAssistant
+        return HomeAssistantSettings(
+            enabled = p[HA_ENABLED] ?: d.enabled,
+            internalUrl = p[HA_INTERNAL_URL] ?: d.internalUrl,
+            externalUrl = p[HA_EXTERNAL_URL] ?: d.externalUrl,
+            preferInternal = p[HA_PREFER_INTERNAL] ?: d.preferInternal,
+            instanceName = p[HA_INSTANCE_NAME] ?: d.instanceName,
+            instanceId = p[HA_INSTANCE_ID] ?: d.instanceId,
+            accessToken = p[HA_ACCESS_TOKEN] ?: d.accessToken,
+            refreshToken = p[HA_REFRESH_TOKEN] ?: d.refreshToken,
+            tokenExpiresAtMs = p[HA_TOKEN_EXPIRES_AT] ?: d.tokenExpiresAtMs,
+            longLivedToken = p[HA_LONG_LIVED_TOKEN] ?: d.longLivedToken,
+            authState = p[HA_AUTH_STATE] ?: d.authState,
+            lifetime = p[HA_LIFETIME]?.let { v -> HaLinkLifetime.entries.firstOrNull { it.name == v } } ?: d.lifetime,
+            favourites = p[HA_FAVOURITES]?.split('\n')?.filter { it.isNotBlank() } ?: d.favourites,
+            hidden = p[HA_HIDDEN] ?: d.hidden,
+            hiddenDomains = p[HA_HIDDEN_DOMAINS] ?: d.hiddenDomains,
+            openOn = p[HA_OPEN_ON]?.let { v -> HaOpenOn.entries.firstOrNull { it.name == v } } ?: d.openOn,
+            areasAsTabs = p[HA_AREAS_AS_TABS] ?: d.areasAsTabs,
+            tileSize = p[HA_TILE_SIZE]?.let { v -> HaTileSize.entries.firstOrNull { it.name == v } } ?: d.tileSize,
+            confirmRisky = p[HA_CONFIRM_RISKY] ?: d.confirmRisky,
+            insertFormat = p[HA_INSERT_FORMAT] ?: d.insertFormat,
+            assistEnabled = p[HA_ASSIST_ENABLED] ?: d.assistEnabled,
+            assistAgentId = p[HA_ASSIST_AGENT] ?: d.assistAgentId,
+            assistFollowsKeyboardLanguage = p[HA_ASSIST_LANGUAGE] ?: d.assistFollowsKeyboardLanguage,
+            cacheStates = p[HA_CACHE_STATES] ?: d.cacheStates,
+            smartChip = p[HA_SMART_CHIP] ?: d.smartChip,
+            lastTab = p[HA_LAST_TAB] ?: d.lastTab,
+        )
+    }
+
     private fun readKdeConnect(p: Preferences, defaults: KeyboardSettings) =
         KdeConnectSettings(
             enabled = p[KDE_ENABLED] ?: defaults.kdeConnect.enabled,
@@ -12901,6 +12962,65 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[MEDIA_PIN_WHILE_PLAYING] = value }
 
     // ---- KDE Connect (issue #285) ----
+
+    // ---- Home Assistant tool ----
+
+    suspend fun setHaEnabled(value: Boolean) = editPrefs { it[HA_ENABLED] = value }
+    suspend fun setHaInternalUrl(value: String) = editPrefs { it[HA_INTERNAL_URL] = value.trim().take(HomeAssistantSettings.URL_MAX) }
+    suspend fun setHaExternalUrl(value: String) = editPrefs { it[HA_EXTERNAL_URL] = value.trim().take(HomeAssistantSettings.URL_MAX) }
+    suspend fun setHaPreferInternal(value: Boolean) = editPrefs { it[HA_PREFER_INTERNAL] = value }
+    suspend fun setHaInstance(name: String, id: String) = editPrefs {
+        it[HA_INSTANCE_NAME] = name.trim().take(HomeAssistantSettings.URL_MAX)
+        it[HA_INSTANCE_ID] = id.trim()
+    }
+
+    /** The tokens a sign-in or a paste produced, written in one edit so no reader sees half a pair. */
+    suspend fun setHaTokens(accessToken: String, refreshToken: String, expiresAtMs: Long, longLived: Boolean) = editPrefs {
+        it[HA_ACCESS_TOKEN] = accessToken.trim()
+        it[HA_REFRESH_TOKEN] = refreshToken.trim()
+        it[HA_TOKEN_EXPIRES_AT] = expiresAtMs
+        it[HA_LONG_LIVED_TOKEN] = longLived
+        it.remove(HA_AUTH_STATE)
+    }
+
+    /** Signing out: every token goes, and so does what was learnt about the server. */
+    suspend fun clearHaTokens() = editPrefs {
+        it.remove(HA_ACCESS_TOKEN)
+        it.remove(HA_REFRESH_TOKEN)
+        it.remove(HA_TOKEN_EXPIRES_AT)
+        it.remove(HA_LONG_LIVED_TOKEN)
+        it.remove(HA_AUTH_STATE)
+        it.remove(HA_INSTANCE_NAME)
+        it.remove(HA_INSTANCE_ID)
+    }
+
+    suspend fun setHaAuthState(value: String) = editPrefs { if (value.isEmpty()) it.remove(HA_AUTH_STATE) else it[HA_AUTH_STATE] = value }
+    suspend fun setHaLifetime(value: HaLinkLifetime) = editPrefs { it[HA_LIFETIME] = value.name }
+
+    /** Rewrites the favourites through [change], read and written in one edit so the keyboard and the app cannot drop each other's. */
+    suspend fun updateHaFavourites(change: (List<String>) -> List<String>) = editPrefs { prefs ->
+        val current = prefs[HA_FAVOURITES]?.split('\n')?.filter { it.isNotBlank() }.orEmpty()
+        val next = change(current).distinct().take(HomeAssistantSettings.MAX_FAVOURITES)
+        if (next.isEmpty()) prefs.remove(HA_FAVOURITES) else prefs[HA_FAVOURITES] = next.joinToString("\n")
+    }
+
+    suspend fun updateHaHidden(change: (Set<String>) -> Set<String>) = editPrefs { prefs ->
+        val next = change(prefs[HA_HIDDEN].orEmpty())
+        if (next.isEmpty()) prefs.remove(HA_HIDDEN) else prefs[HA_HIDDEN] = next
+    }
+
+    suspend fun setHaHiddenDomains(value: Set<String>) = editPrefs { if (value.isEmpty()) it.remove(HA_HIDDEN_DOMAINS) else it[HA_HIDDEN_DOMAINS] = value }
+    suspend fun setHaOpenOn(value: HaOpenOn) = editPrefs { it[HA_OPEN_ON] = value.name }
+    suspend fun setHaAreasAsTabs(value: Boolean) = editPrefs { it[HA_AREAS_AS_TABS] = value }
+    suspend fun setHaTileSize(value: HaTileSize) = editPrefs { it[HA_TILE_SIZE] = value.name }
+    suspend fun setHaConfirmRisky(value: Boolean) = editPrefs { it[HA_CONFIRM_RISKY] = value }
+    suspend fun setHaInsertFormat(value: String) = editPrefs { it[HA_INSERT_FORMAT] = value }
+    suspend fun setHaAssistEnabled(value: Boolean) = editPrefs { it[HA_ASSIST_ENABLED] = value }
+    suspend fun setHaAssistAgent(value: String) = editPrefs { if (value.isBlank()) it.remove(HA_ASSIST_AGENT) else it[HA_ASSIST_AGENT] = value.trim() }
+    suspend fun setHaAssistFollowsLanguage(value: Boolean) = editPrefs { it[HA_ASSIST_LANGUAGE] = value }
+    suspend fun setHaCacheStates(value: Boolean) = editPrefs { it[HA_CACHE_STATES] = value }
+    suspend fun setHaSmartChip(value: Boolean) = editPrefs { it[HA_SMART_CHIP] = value }
+    suspend fun setHaLastTab(value: String) = editPrefs { it[HA_LAST_TAB] = value }
 
     suspend fun setKdeEnabled(value: Boolean) = editPrefs { it[KDE_ENABLED] = value }
 

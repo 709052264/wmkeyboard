@@ -338,6 +338,8 @@
                 <data android:scheme="wmkeyboard" android:host="addon" />
                 <!-- A computer's pairing code (WMK Desktop): KdeConnectHub.pairByCode. -->
                 <data android:scheme="wmkeyboard" android:host="pair" />
+                <!-- Home Assistant's browser sign-in coming back with its code: HaAuth.REDIRECT_URI. -->
+                <data android:scheme="wmkeyboard" android:host="ha-auth" />
             </intent-filter>
 
             <!--

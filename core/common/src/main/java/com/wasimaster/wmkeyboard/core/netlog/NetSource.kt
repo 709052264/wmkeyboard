@@ -106,6 +106,9 @@ enum class NetSource(
     /** About › Supporters, when its refresh button is pressed. */
     SUPPORTERS("supporters"),
     KDE_CONNECT("kde_connect", ToolbarTool.KDE_CONNECT),
+
+    /** The user's own Home Assistant server: its socket, its REST calls, a camera picture. */
+    HOME_ASSISTANT("home_assistant", ToolbarTool.HOME_ASSISTANT),
     OTHER("other"),
     ;
 

@@ -117,6 +117,12 @@ enum class ToolbarTool {
     // before the first unlock, but the panel itself waits for the unlock like
     // the other tools that keep files.
     CLOCK,
+    // The user's Home Assistant from the keyboard: rooms of tiles for lights,
+    // switches, covers, climate, media, locks, scenes and sensors, live over
+    // its WebSocket, plus a typed Assist command bar. Talks only to the
+    // server the user signed in to. Needs the token, which is in
+    // credential-encrypted storage, so not before the first unlock.
+    HOME_ASSISTANT,
     // The phone's photos and videos inside the keyboard, Telegram's attach
     // sheet: albums, multi-select, a viewer, an editor, and a send that hands
     // the app only a copy of what was picked (#708). Play builds open
@@ -312,7 +318,8 @@ val PowerTools: Set<ToolbarTool> = RecommendedTools + setOf(
     ToolbarTool.NUMPAD,
     ToolbarTool.SYMBOLS, ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.CURRENCY,
     ToolbarTool.PASSWORD_GEN, ToolbarTool.CALENDAR, ToolbarTool.CLOCK, ToolbarTool.WEATHER, ToolbarTool.LOCATION,
-    ToolbarTool.MEDIA_CONTROL, ToolbarTool.KDE_CONNECT, ToolbarTool.APP_LAUNCHER, ToolbarTool.HIDE_KEYBOARD,
+    ToolbarTool.MEDIA_CONTROL, ToolbarTool.KDE_CONNECT, ToolbarTool.HOME_ASSISTANT, ToolbarTool.APP_LAUNCHER,
+    ToolbarTool.HIDE_KEYBOARD,
 )
 
 /**

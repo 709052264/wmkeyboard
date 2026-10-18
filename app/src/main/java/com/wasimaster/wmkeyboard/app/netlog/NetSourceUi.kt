@@ -147,6 +147,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.UPDATES -> R.string.netlog_source_updates to R.string.netlog_sent_updates
     NetSource.SUPPORTERS -> R.string.netlog_source_supporters to R.string.netlog_sent_supporters
     NetSource.KDE_CONNECT -> R.string.netlog_source_kde_connect to R.string.netlog_sent_kde_connect
+    NetSource.HOME_ASSISTANT -> R.string.netlog_source_home_assistant to R.string.netlog_sent_home_assistant
     NetSource.OTHER -> R.string.netlog_source_other to R.string.netlog_sent_other
 }
 
@@ -193,6 +194,8 @@ private fun fallbackIcon(source: NetSource): ImageVector = when (source) {
  */
 private val DataSaverSources = NetSource.entries.toSet() - setOf(
     NetSource.TRANSLATE, NetSource.DEEPL_WRITE, NetSource.BACKUP, NetSource.UPDATES, NetSource.KDE_CONNECT,
+    // The user's own server on their own network; a data saver has nothing to save there.
+    NetSource.HOME_ASSISTANT,
     // One small list, fetched only when its button is pressed.
     NetSource.SUPPORTERS,
     // One small request per share the user pressed; its own switch is on the Location page.

@@ -4396,6 +4396,7 @@ open class WMKeyboardService : InputMethodService() {
                 // enable state all live in the settings that just landed.
                 syncMediaTracking()
                 syncKdeConnect()
+                syncHomeAssistant()
                 // Switching the swipe action to handwriting (or turning the
                 // gesture on) while the keyboard is up checks the model now, so
                 // the first swipe writes rather than nagging.
@@ -6353,6 +6354,7 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
         syncKdeConnect()
+        syncHomeAssistant()
     }
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
@@ -6512,6 +6514,7 @@ open class WMKeyboardService : InputMethodService() {
         // catches music that began while the keyboard was away.
         syncMediaTracking()
         syncKdeConnect()
+        syncHomeAssistant()
         // Ready before the first press of the mic, not after it (#305).
         refreshVoiceBias()
         refreshHardwareKeyboardState()
@@ -6968,6 +6971,8 @@ open class WMKeyboardService : InputMethodService() {
         locationTool.onKeyboardShown()
         // And a clock grant (exact alarms, full screen) given on a system screen.
         if (clockToolDelegate.isInitialized()) clockTool.onKeyboardShown()
+        // And a Home Assistant sign-in that came back from the browser.
+        if (haToolDelegate.isInitialized()) haTool.onKeyboardShown()
         // The gallery's grant, or what its system picker handed back (#708):
         // the picks join the open panel, or in a Play build go straight out.
         if (galleryToolDelegate.isInitialized() || com.wasimaster.wmkeyboard.app.GalleryPickActivity.hasPending()) {
@@ -7859,6 +7864,7 @@ open class WMKeyboardService : InputMethodService() {
         // The window is gone, so the media-session listener goes with it.
         syncMediaTracking()
         syncKdeConnect()
+        syncHomeAssistant()
         // Refilling the pool waits until the keyboard is going away, so a
         // download can never race the first frame of a session.
         topUpBackgroundPool()
@@ -8044,6 +8050,8 @@ open class WMKeyboardService : InputMethodService() {
         KdeConnectHub.release(KdeConnectHub.Reason.PANEL)
         KdeConnectHub.release(KdeConnectHub.Reason.KEYBOARD)
         KdeConnectHub.release(KdeConnectHub.Reason.SERVICE)
+        com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.release(com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.Reason.PANEL)
+        com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.release(com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.Reason.KEYBOARD)
         finishRevisionOnLeave()
         flushLearningBuffer()
         // Blocking, and on the same queue as the hide's saves: the process is
@@ -9867,6 +9875,8 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.NOTE_TAG -> onNoteTagCommit()
             // Search adds its best match; a label is kept. Either way the keys go back.
             CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> state.clockText?.let(clockTool::onTextEnter)
+            // Search opens the first tile, Assist sends the sentence, a code or value is kept.
+            CaptureTarget.HA_SEARCH, CaptureTarget.HA_ASSIST, CaptureTarget.HA_TEXT -> state.haText?.let(haTool::onTextEnter)
             // A caption, or words on a photo, can run over lines; Done finishes them.
             CaptureTarget.GALLERY_TEXT -> captureTyped("\n")
             // A clip is free text, so Enter is a line break in it; saving is
@@ -10245,6 +10255,12 @@ open class WMKeyboardService : InputMethodService() {
                 val entry = _uiState.value.clockText?.copy(text = text.replace("\n", " ").take(limit))
                 _uiState.update { it.copy(clockText = entry) }
                 entry?.let(clockTool::onText)
+            }
+            CaptureTarget.HA_SEARCH, CaptureTarget.HA_ASSIST, CaptureTarget.HA_TEXT -> {
+                val limit = com.wasimaster.wmkeyboard.ime.homeassistant.HaController.TEXT_MAX
+                val entry = _uiState.value.haText?.copy(text = text.replace("\n", " ").take(limit))
+                _uiState.update { it.copy(haText = entry) }
+                entry?.let(haTool::onText)
             }
             CaptureTarget.GALLERY_TEXT -> {
                 val limit = com.wasimaster.wmkeyboard.ime.gallery.GalleryController.CAPTION_MAX
@@ -19620,6 +19636,7 @@ open class WMKeyboardService : InputMethodService() {
             weatherFahrenheit = state.settings.weather.fahrenheit,
             lookupChips = state.settings.smartChips.lookups,
             intentChips = state.settings.smartChips.intents,
+            haReady = state.settings.homeAssistant.let { it.enabled && it.hasToken && it.hasServer && it.smartChip && it.assistEnabled },
             gifChips = state.settings.smartChips.gifs,
             vocabChips = state.settings.vocabulary.nudges,
             vocabSelfChips = state.settings.vocabulary.nudgeOnVocabWord,
@@ -24798,6 +24815,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.NOTES -> onPanelChange(PanelMode.NOTES)
             ToolbarTool.LOCATION -> onPanelChange(PanelMode.LOCATION)
             ToolbarTool.CLOCK -> onPanelChange(PanelMode.CLOCK)
+            ToolbarTool.HOME_ASSISTANT -> onPanelChange(PanelMode.HOME_ASSISTANT)
             ToolbarTool.GALLERY -> openGalleryTool()
             ToolbarTool.MEDIA_CONTROL -> onPanelChange(PanelMode.MEDIA_CONTROL)
             ToolbarTool.KDE_CONNECT -> onPanelChange(PanelMode.KDE_CONNECT)
@@ -24897,6 +24915,11 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.panel == PanelMode.CLOCK) {
             clockTool.onPanelClose()
             _uiState.update { it.copy(clockText = null) }
+        }
+        // Leaving the Home Assistant panel: its text box gives the keys back, the socket lingers.
+        if (_uiState.value.panel == PanelMode.HOME_ASSISTANT) {
+            haTool.onPanelClose()
+            _uiState.update { it.copy(haText = null) }
         }
         // Leaving the gallery: its caption box gives the keys back (#708).
         if (_uiState.value.panel == PanelMode.GALLERY) {
@@ -25059,6 +25082,13 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.WEATHER -> refreshWeather()
             PanelMode.LOCATION -> locationTool.onPanelOpen()
             PanelMode.CLOCK -> clockTool.onPanelOpen()
+            PanelMode.HOME_ASSISTANT -> {
+                haTool.onPanelOpen()
+                (_uiState.value.toolPrefill as? ToolPrefill.Assist)?.let { prefill ->
+                    haTool.prefillAssist(prefill.sentence)
+                    onToolPrefillConsumed()
+                }
+            }
             PanelMode.GALLERY -> galleryTool.onPanelOpen()
             PanelMode.VOCABULARY -> {
                 val prefill = _uiState.value.toolPrefill as? ToolPrefill.Vocab
@@ -25178,6 +25208,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         syncMediaTracking()
         syncKdeConnect()
+        syncHomeAssistant()
     }
 
     // ---- KDE Connect (issue #285) ----
@@ -32421,6 +32452,7 @@ open class WMKeyboardService : InputMethodService() {
         applicationContext,
         hints = listOf(_uiState.value.language.id) + settings.enabledLanguages.map { it.id },
         kdeConnect = settings.kdeConnect,
+        homeAssistant = settings.homeAssistant,
     )
 
     private fun aiActionLabel(spec: AiActionSpec): String =
@@ -35830,6 +35862,7 @@ open class WMKeyboardService : InputMethodService() {
             notes = notesCallbacks(),
             location = locationTool.callbacks,
             clock = clockTool.callbacks,
+            homeAssistant = haTool.callbacks,
             gallery = galleryTool.callbacks,
             toolbox = toolboxCallbacks(),
             stickerOffer = com.wasimaster.wmkeyboard.ime.ui.StickerOfferCallbacks(
@@ -35919,6 +35952,68 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val clockTool by clockToolDelegate
+
+    // ---- Home Assistant tool ----
+
+    /**
+     * The Home Assistant tool. Built on first use, like [clockTool]; the
+     * delegate is kept so the keyboard-shown hook can skip a controller
+     * nobody opened. The connection itself is [com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub]'s,
+     * held and released by [syncHomeAssistant].
+     */
+    private val haToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.homeassistant.HaController(
+            context = this,
+            scope = serviceScope,
+            repository = settingsRepository,
+            settings = { _uiState.value.settings.homeAssistant },
+            insertText = ::onToolTextInsert,
+            haptic = { vibrate() },
+            openToolSettings = { openToolSettings(ToolbarTool.HOME_ASSISTANT) },
+            openRoute = ::openRoute,
+            beginText = { entry ->
+                _uiState.update {
+                    it.copy(
+                        haText = entry,
+                        panelFocus = null,
+                        captureCaret = CaptureCaret(
+                            when (entry.field) {
+                                com.wasimaster.wmkeyboard.ime.homeassistant.HaTextField.SEARCH -> CaptureTarget.HA_SEARCH.name
+                                com.wasimaster.wmkeyboard.ime.homeassistant.HaTextField.ASSIST -> CaptureTarget.HA_ASSIST.name
+                                else -> CaptureTarget.HA_TEXT.name
+                            },
+                            entry.text.length,
+                            entry.text,
+                        ),
+                    )
+                }
+            },
+            endText = { _uiState.update { it.copy(haText = null) } },
+            currentText = { _uiState.value.haText },
+            commitImage = { file, mime -> commitImageFile(file, mime) },
+            languageTag = ::voiceLanguageTag,
+        )
+    }
+    private val haTool by haToolDelegate
+
+    /**
+     * Tells the Home Assistant hub what the keyboard is doing, the way
+     * [syncKdeConnect] does for KDE Connect, from the same places: the socket
+     * is wanted while the panel is open, or while the keyboard is on screen
+     * under the longer lifetime, and lingers a minute after.
+     */
+    private fun syncHomeAssistant() {
+        val state = _uiState.value
+        val ha = state.settings.homeAssistant
+        val hub = com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub
+        hub.attach(this)
+        val panelOpen = keyboardVisible && state.panel == PanelMode.HOME_ASSISTANT
+        hub.batch {
+            hub.applySettings(ha)
+            hub.setHeld(com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.Reason.KEYBOARD, ha.enabled && keyboardVisible)
+            hub.setHeld(com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.Reason.PANEL, ha.enabled && panelOpen)
+        }
+    }
 
     // ---- Gallery tool (#708) ----
 
@@ -39201,6 +39296,7 @@ open class WMKeyboardService : InputMethodService() {
             selection = if (withSelection) ic?.getSelectedText(0)?.toString() else null,
             location = locationTool::snippetLocation,
             place = locationTool::snippetPlace,
+            homeAssistant = { id, attribute -> haTool.snippetValue(id, attribute) },
         )
     }
 

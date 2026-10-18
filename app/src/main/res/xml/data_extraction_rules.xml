@@ -52,6 +52,8 @@
            and hand the second one every pairing the first ever made.
         -->
         <exclude domain="file" path="kdeconnect" />
+        <!-- The Home Assistant tool's cached states: this house's, read back from the server anyway. -->
+        <exclude domain="file" path="homeassistant" />
         <!--
            The network activity log. A record of this device's requests, not a
            setting: restored onto another phone it would describe traffic that
@@ -73,6 +75,8 @@
         <exclude domain="file" path="clipboard/images" />
         <exclude domain="file" path="stickers/.originals" />
         <exclude domain="file" path="kdeconnect" />
+        <!-- The Home Assistant tool's cached states: this house's, read back from the server anyway. -->
+        <exclude domain="file" path="homeassistant" />
         <!--
            The network activity log. A record of this device's requests, not a
            setting: restored onto another phone it would describe traffic that

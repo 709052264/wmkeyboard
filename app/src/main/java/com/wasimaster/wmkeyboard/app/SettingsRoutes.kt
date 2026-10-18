@@ -130,6 +130,7 @@ internal object SettingsRoutes {
         "vocab/browse",
         "vocab/word/{packId}/{word}",
         "clock",
+        "homeassistant/entities",
         "notes",
         "notes/edit/{noteId}",
         "notes/tags",

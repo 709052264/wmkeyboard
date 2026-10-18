@@ -109,6 +109,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.WEATHER -> ImeR.string.ime_tool_weather
     ToolbarTool.LOCATION -> ImeR.string.ime_tool_location
     ToolbarTool.CLOCK -> ImeR.string.ime_tool_clock
+    ToolbarTool.HOME_ASSISTANT -> ImeR.string.ime_tool_home_assistant
     ToolbarTool.GALLERY -> ImeR.string.ime_tool_gallery
     ToolbarTool.CALENDAR -> ImeR.string.ime_tool_calendar
     ToolbarTool.INCOGNITO -> ImeR.string.ime_tool_incognito
@@ -198,6 +199,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.WEATHER -> R.string.fonts_tool_weather_desc
     ToolbarTool.LOCATION -> R.string.fonts_tool_location_desc
     ToolbarTool.CLOCK -> R.string.fonts_tool_clock_desc
+    ToolbarTool.HOME_ASSISTANT -> R.string.fonts_tool_home_assistant_desc
     ToolbarTool.GALLERY -> R.string.fonts_tool_gallery_desc
     ToolbarTool.CALENDAR -> R.string.fonts_tool_calendar_desc
     ToolbarTool.INCOGNITO -> R.string.fonts_tool_incognito_desc
@@ -598,7 +600,8 @@ internal val ToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildList {
     add(
         R.string.tools_group_utilities_title to listOf(
             ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL,
-            ToolbarTool.CALENDAR, ToolbarTool.CLOCK, ToolbarTool.WEATHER, ToolbarTool.LOCATION, ToolbarTool.MOON_PHASE, ToolbarTool.PLUGINS,
+            ToolbarTool.CALENDAR, ToolbarTool.CLOCK, ToolbarTool.WEATHER, ToolbarTool.LOCATION, ToolbarTool.HOME_ASSISTANT,
+            ToolbarTool.MOON_PHASE, ToolbarTool.PLUGINS,
         ),
     )
     val grouped = flatMapTo(HashSet()) { it.second }

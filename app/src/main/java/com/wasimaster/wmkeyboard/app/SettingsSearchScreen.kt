@@ -40,6 +40,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Autorenew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HighlightAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Home
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Handyman
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Hub
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Collections
@@ -539,6 +540,7 @@ internal object SettingsRouteIcons {
         "vocab/review" to { Icons.Outlined.AutoStories },
         "vocab/browse" to { Icons.Outlined.AutoStories },
         "clock" to { Icons.Outlined.Schedule },
+        "homeassistant/entities" to { Icons.Outlined.Home },
         "notes" to { Icons.Outlined.StickyNote2 },
         "notes/tags" to { Icons.Outlined.Label },
         "notes/trash" to { Icons.Outlined.DeleteSweep },

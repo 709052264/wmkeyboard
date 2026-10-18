@@ -182,6 +182,7 @@
     <string name="netlog_source_backup">Backup</string>
     <string name="netlog_source_updates">Update check</string>
     <string name="netlog_source_kde_connect">KDE Connect</string>
+    <string name="netlog_source_home_assistant">Home Assistant</string>
     <string name="netlog_source_other">Other</string>
 
     <!-- What one feature sends with a request. Shown in the request sheet. -->
@@ -217,6 +218,7 @@
     <string name="netlog_sent_link_import">A request for the link you shared, and your access token when the link needs one.</string>
     <string name="netlog_sent_backup">Your settings file, encrypted when you set a password, to the destination you selected.</string>
     <string name="netlog_sent_updates">The app\'s version. Nothing about you.</string>
+    <string name="netlog_sent_home_assistant">The commands you give and the states it shows, to your own Home Assistant server and nowhere else.</string>
     <string name="netlog_sent_kde_connect">What you use the tool for, to a computer you paired on your own network.</string>
     <string name="netlog_sent_other">A request the log could not put under a feature.</string>
     <string name="netlog_source_supporters">Supporters list</string>
