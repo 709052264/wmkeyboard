@@ -51,7 +51,7 @@ internal fun resolveFlickDirection(
 }
 
 /** The smaller angle between two bearings, 0–180. */
-private fun angularGap(a: Float, b: Float): Float {
+internal fun angularGap(a: Float, b: Float): Float {
     val raw = abs(a - b) % 360f
     return if (raw > 180f) 360f - raw else raw
 }

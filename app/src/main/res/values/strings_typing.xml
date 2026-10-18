@@ -727,6 +727,12 @@
 
     <string name="typing_flick_distance_title">Flick distance</string>
     <string name="typing_flick_distance_subtitle">How far your finger moves before a press on a flick key becomes a flick</string>
+    <string name="typing_flick_reach_title">Flick reach</string>
+    <string name="typing_flick_reach_subtitle">How far a swipe from a flick key can go and still be a flick, before glide typing takes it</string>
+    <string name="typing_flick_reach_info" formatted="false">With glide typing on, a swipe that starts on a letter with flick characters stays a flick until it travels this far from where your finger landed, measured against the key\'s diagonal. Past that, the swipe is a glided word. A swipe that turns, or that reaches another letter in a direction no flick character points, becomes a word sooner. Lower the reach if long glides from those keys start late; raise it if a long flick turns into a word. The default is 141%.</string>
+    <string name="typing_flick_onto_letter_title">A flick onto a letter glides a word</string>
+    <string name="typing_flick_onto_letter_subtitle">A short swipe that ends on the next letter types a word, even where a flick character points that way</string>
+    <string name="typing_flick_onto_letter_info">With glide typing on, a short straight swipe from one letter onto its neighbour can mean two things when the first key has a flick character pointing that way: the flick character, or a two-letter word. Off, the default, the flick character wins, so a flick that overshoots still types what it points at. On, lifting inside another letter types the word instead, and a flick has to stop short of the next key. A swipe in a direction with no flick character is a word either way.</string>
     <string name="typing_flick_distance_info">A press on a flick key is a tap until your finger has moved this far. Lower the distance for a quick, short flick on a small key. Raise it if a tap that drifts a little flicks when you did not mean it to. The default is 22 dp, which the Japanese flick pad has always used. A swipe out to a flick character and more than halfway back again types that character\'s capital.</string>
 
     <string name="typing_space_hold_keys_label">Spacebar long press keys</string>

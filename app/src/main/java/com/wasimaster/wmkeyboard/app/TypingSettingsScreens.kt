@@ -26,6 +26,7 @@ import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
 import com.wasimaster.wmkeyboard.core.prediction.OctopusKind
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.core.settings.FlickDistanceRange
+import com.wasimaster.wmkeyboard.core.settings.FlickReachRange
 import com.wasimaster.wmkeyboard.core.settings.MAX_STOP_AFTER_DECLINES
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
@@ -2509,6 +2510,29 @@ internal fun TypingGesturesSettings(
                 info = stringResource(R.string.typing_flick_distance_info),
                 default = SettingsDefaults.layoutBehavior.flickDistanceDp.toFloat(),
             ) { scope.launch { repository.setFlickDistanceDp(it.roundToInt()) } }
+        }
+        item {
+            // Issue #720: where a stroke off a flick key stops being a flick
+            // and glide typing takes it.
+            val percentFormat = stringResource(R.string.typing_value_percent)
+            SliderSetting(
+                R.string.typing_flick_reach_title,
+                subtitle = stringResource(R.string.typing_flick_reach_subtitle),
+                value = settings.watch { it.layoutBehavior.flickReachPct }.toFloat(),
+                range = FlickReachRange.first.toFloat()..FlickReachRange.last.toFloat(),
+                display = { percentFormat.format(it.roundToInt()) },
+                info = stringResource(R.string.typing_flick_reach_info),
+                default = SettingsDefaults.layoutBehavior.flickReachPct.toFloat(),
+            ) { scope.launch { repository.setFlickReachPct(it.roundToInt()) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.typing_flick_onto_letter_title,
+                stringResource(R.string.typing_flick_onto_letter_subtitle),
+                settings.watch { it.layoutBehavior.flickOntoLetterGlides },
+                info = stringResource(R.string.typing_flick_onto_letter_info),
+                default = SettingsDefaults.layoutBehavior.flickOntoLetterGlides,
+            ) { scope.launch { repository.setFlickOntoLetterGlides(it) } }
         }
         item {
             // Issue #169: a short straight swipe from a punctuation key to s

@@ -1093,6 +1093,8 @@ internal object SettingsRowIcons {
         put(R.string.typing_flick_hints_title) { Icons.Outlined.OpenWith }
         put(R.string.typing_flick_popup_title) { Icons.Outlined.Preview }
         put(R.string.typing_flick_distance_title) { Icons.Outlined.Straighten }
+        put(R.string.typing_flick_reach_title) { Icons.Outlined.Gesture }
+        put(R.string.typing_flick_onto_letter_title) { Icons.Outlined.Swipe }
         put(R.string.typing_space_hold_keys_label) { Icons.Outlined.TouchApp }
         put(R.string.typing_backspace_swipe_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.typing_backspace_unit_title) { Icons.AutoMirrored.Outlined.Backspace }

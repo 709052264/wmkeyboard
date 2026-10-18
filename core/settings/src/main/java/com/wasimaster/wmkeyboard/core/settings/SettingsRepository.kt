@@ -6106,6 +6106,9 @@ val BoardCornerRadiusRange = 0..40
 /** Bounds for [LayoutBehaviorSettings.flickDistanceDp], in dp. The slider shares them. */
 val FlickDistanceRange = 8..48
 
+/** Bounds for [LayoutBehaviorSettings.flickReachPct], in percent of a key's diagonal. The slider shares them. */
+val FlickReachRange = 80..200
+
 /** Bounds for [LayoutBehaviorSettings.globeTypingGuardMs]; 0 is off. The slider shares them. */
 val GlobeTypingGuardMsRange = 0..1000
 
@@ -7818,6 +7821,22 @@ data class LayoutBehaviorSettings(
      * count on a small key; higher stops a tap that drifts from flicking.
      */
     val flickDistanceDp: Int = 22,
+    /**
+     * With glide typing on, how far a stroke off a letter key with flick arms
+     * may travel from the down and still be a flick, in percent of that key's
+     * diagonal; see [FlickReachRange] (#720). Past it the stroke is a glide.
+     * 141 is CleverKeys' short/long boundary. A stroke that turns, or that
+     * reaches another letter heading where no arm points, is a glide sooner.
+     */
+    val flickReachPct: Int = 141,
+    /**
+     * With glide typing on, whether a short straight stroke that lifts on a
+     * neighbouring letter glides a word even when an arm points that way
+     * (#720). Off by default: the arm wins, so an overshooting flick still
+     * types what it points at, and a two-letter word along an armed corner
+     * is tapped instead.
+     */
+    val flickOntoLetterGlides: Boolean = false,
     /**
      * For this long after a typed key, a tap on the 🌐 key is ignored, in ms
      * (0 = off). The globe sits between `?123`/comma and the spacebar, and a
@@ -9613,6 +9632,8 @@ class SettingsRepository(private val context: Context) {
         private val FLICK_HINTS = booleanPreferencesKey("flick_hints")
         private val FLICK_POPUP = booleanPreferencesKey("flick_popup")
         private val FLICK_DISTANCE = intPreferencesKey("flick_distance_dp")
+        private val FLICK_REACH = intPreferencesKey("flick_reach_pct")
+        private val FLICK_ONTO_LETTER_GLIDES = booleanPreferencesKey("flick_onto_letter_glides")
         private val TRANSLITERATION_HINTS = stringPreferencesKey("transliteration_hints")
         private val FANCY_STYLE = stringPreferencesKey("fancy_style")
         private val FANCY_TOOL_STYLE = stringPreferencesKey("fancy_tool_style")
@@ -11960,6 +11981,9 @@ class SettingsRepository(private val context: Context) {
             flickPopup = p[FLICK_POPUP] ?: defaults.layoutBehavior.flickPopup,
             flickDistanceDp = p[FLICK_DISTANCE]?.coerceIn(FlickDistanceRange)
                 ?: defaults.layoutBehavior.flickDistanceDp,
+            flickReachPct = p[FLICK_REACH]?.coerceIn(FlickReachRange)
+                ?: defaults.layoutBehavior.flickReachPct,
+            flickOntoLetterGlides = p[FLICK_ONTO_LETTER_GLIDES] ?: defaults.layoutBehavior.flickOntoLetterGlides,
             transliterationHints = p[TRANSLITERATION_HINTS]
                 ?.let { runCatching { TransliterationHintMode.valueOf(it) }.getOrNull() }
                 ?: defaults.layoutBehavior.transliterationHints,
@@ -17969,6 +17993,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setFlickDistanceDp(value: Int) =
         editPrefs { it[FLICK_DISTANCE] = value.coerceIn(FlickDistanceRange) }
+
+    suspend fun setFlickReachPct(value: Int) =
+        editPrefs { it[FLICK_REACH] = value.coerceIn(FlickReachRange) }
+
+    suspend fun setFlickOntoLetterGlides(value: Boolean) =
+        editPrefs { it[FLICK_ONTO_LETTER_GLIDES] = value }
 
     suspend fun setTransliterationHints(value: TransliterationHintMode) =
         editPrefs { it[TRANSLITERATION_HINTS] = value.name }

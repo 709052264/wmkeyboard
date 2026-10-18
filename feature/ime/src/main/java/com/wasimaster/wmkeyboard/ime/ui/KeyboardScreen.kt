@@ -516,6 +516,8 @@ import com.wasimaster.wmkeyboard.ime.DictionaryKind
 import com.wasimaster.wmkeyboard.ime.GlideExpansion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.shiftCased
+import com.wasimaster.wmkeyboard.ime.FlickGlideArbiter
+import com.wasimaster.wmkeyboard.ime.FlickGlideVerdict
 import com.wasimaster.wmkeyboard.ime.flickReturned
 import com.wasimaster.wmkeyboard.ime.resolveFlickDirection
 import androidx.compose.ui.graphics.ColorFilter
@@ -14889,6 +14891,21 @@ internal class KeyRects {
     }
 
     /**
+     * The cell holding [point] when its key types a letter, else null: what a
+     * stroke off a flick key counts as reaching another letter (#720).
+     */
+    fun letterCellAt(point: Offset): Rect? {
+        for ((rect, key) in cells) {
+            if (!rect.contains(point)) continue
+            val text = key.output ?: key.label
+            return rect.takeIf {
+                key.action == KeyAction.Text && text.isNotEmpty() && Character.isLetter(text.codePointAt(0))
+            }
+        }
+        return null
+    }
+
+    /**
      * The cell of the first key that does [action], or null when this grid has
      * none — a layout with no shift key, most of all.
      *
@@ -15159,21 +15176,48 @@ internal fun Key?.ownsDrag(): Boolean =
 
 /**
  * Whether glide typing may still take a stroke that starts on this flick key
- * (#655), once the finger has left the key's cell. A letter key given corner
- * swipes — every letter of an Unexpected Keyboard layout, or one given arms in
- * the editor — refused glide outright under [ownsDrag], so a board made of them
- * could not be glided at all.
+ * (#655). A letter key given corner swipes — every letter of an Unexpected
+ * Keyboard layout, or one given arms in the editor — refused glide outright
+ * under [ownsDrag], so a board made of them could not be glided at all.
  *
- * The arms stay the key's own while the finger is on it, which is all a flick
- * ever travels; leaving the cell is a glide, and the glide consuming the
- * pointer is what tells the key's handler to drop its arm. Left out: keys that
- * are not text, whose drags chord or peek, and keys with an arm that repeats,
- * because a held arrow arm has already moved the caret by the time the finger
- * wanders off and nothing would take that back.
+ * Which of the two a stroke is, [FlickGlideArbiter] decides (#720): the arms
+ * keep it while it could still be one, and the glide consuming the pointer is
+ * what tells the key's handler to drop its arm. Left out: keys that are not
+ * text, whose drags chord or peek, and keys with an arm that repeats, because
+ * a held arrow arm has already moved the caret by the time the finger wanders
+ * off and nothing would take that back.
  */
 internal fun Key?.glidesPastFlicks(): Boolean =
     this != null && action == KeyAction.Text && hasFlicks() &&
         FlickDirection.entries.none { flickKey(it)?.flickArmRepeats() == true }
+
+/**
+ * The judge for one stroke landing at [at] on [key], a key that
+ * [glidesPastFlicks], or null when the point is off the grid. Root space,
+ * like every cell here. [slopPx] is the flick distance, the same travel the
+ * key's own handler waits for before an arm means anything.
+ */
+internal fun KeyRects.flickGlideArbiter(
+    key: Key,
+    at: Offset,
+    behavior: LayoutBehaviorSettings,
+    slopPx: Float,
+    keyWidthPx: Float,
+): FlickGlideArbiter? {
+    val cell = cellAt(at) ?: return null
+    return FlickGlideArbiter(
+        downX = at.x,
+        downY = at.y,
+        cell = cell,
+        hasArm = { key.flickArm(it) != null },
+        reachPx = hypot(cell.width, cell.height) * behavior.flickReachPct / 100f,
+        slopPx = slopPx,
+        keyWidthPx = keyWidthPx,
+        minWordReachPx = keyWidthPx * GLIDE_TAP_REACH_WIDTHS,
+        ontoLetterGlides = behavior.flickOntoLetterGlides,
+        letterCellAt = { x, y -> letterCellAt(Offset(x, y)) },
+    )
+}
 
 /**
  * What a swipe out to [direction] and more than halfway back again types
@@ -17252,6 +17296,11 @@ private fun KeyRows(
     // at the same two places, and it gives way to an octopus word on the key,
     // whose flick is also upward.
     val capitalFlickOn = state.settings.layoutBehavior.capitalFlick
+    // How a stroke off a letter key with flick arms is shared with glide typing
+    // (#720): the flick reach, whether a flick onto a letter glides, and the
+    // flick distance the key's own handler also reads. Live, because the glide
+    // loops build a judge per stroke and moving a slider should restart none.
+    val flickGlideLive = rememberUpdatedState(state.settings.layoutBehavior)
     // A drag off 🌐 onto one of the six shortcut letters runs its action. Read
     // live by the loops that must leave such a drag alone, so switching it
     // does not restart every gesture detector on the grid.
@@ -17941,6 +17990,19 @@ private fun KeyRows(
                         onGesturePreview = onGesturePreview,
                         swipeClaimed = { fingerGate.claimed },
                         alternatesOpen = { alternatesGate.open },
+                        flickJudge = { at ->
+                            val root = at + boxOrigin
+                            val key = liveRects.value.keyAt(root)
+                            if (key != null && key.glidesPastFlicks()) {
+                                liveRects.value.flickGlideArbiter(
+                                    key, root, flickGlideLive.value,
+                                    flickGlideLive.value.flickDistanceDp.dp.toPx(), keyWidth.value,
+                                )
+                            } else {
+                                null
+                            }
+                        },
+                        origin = { boxOrigin },
                     )
                     return@pointerInput
                 }
@@ -17966,16 +18028,20 @@ private fun KeyRows(
                     // otherwise start a glide from either. The spacebar's
                     // swipes too (#333), which sideways lie wholly inside it.
                     val downKey = liveRects.value.keyAt(down.position + boxOrigin)
-                    // A letter key with flick arms keeps its arms for as long as
-                    // the finger stays on it, and only then lets a glide begin
-                    // (#655): its cell, read once here, and null on every other
-                    // key, where the usual start slop decides alone.
-                    val flickCell = if (downKey.glidesPastFlicks()) {
-                        liveRects.value.cellAt(down.position + boxOrigin)
+                    // A letter key with flick arms shares its strokes with glide
+                    // typing (#655, #720): nothing is taken from it while the
+                    // stroke could still be an arm, and the judge says when it
+                    // no longer can. Null on every other key, where the usual
+                    // start slop decides alone.
+                    val flickJudge = if (downKey != null && downKey.glidesPastFlicks()) {
+                        liveRects.value.flickGlideArbiter(
+                            downKey, down.position + boxOrigin, flickGlideLive.value,
+                            flickGlideLive.value.flickDistanceDp.dp.toPx(), keyWidth.value,
+                        )
                     } else {
                         null
                     }
-                    if ((downKey.ownsDrag() && flickCell == null) ||
+                    if ((downKey.ownsDrag() && flickJudge == null) ||
                         downKey.startsPossessiveSwipe(possessiveChar) ||
                         downKey.startsGlobeDrag(globeDragLive.value) ||
                         downKey.ownsDeleteStroke() || downKey.ownsSpaceStroke()
@@ -18103,6 +18169,60 @@ private fun KeyRows(
                         // the method-size limit.
                         if (hapticOn.value) pickerHaptic()
                     }
+                    // The stroke is a glide from here on: the trail starts,
+                    // and the grid and the targets a glide reads are fixed.
+                    // A stroke off a flick key was watched before it was
+                    // claimed (#720), so the trail is drawn back to where the
+                    // finger landed rather than starting in mid-air.
+                    fun claim(x: Float, y: Float, t: Long) {
+                        isGesture = true
+                        dwell.reset(x, y, t)
+                        trail.begin()
+                        if (flickJudge != null) {
+                            for (point in seg) trail.add(point.x, point.y, point.t, trailMs)
+                            reachPx = maxOf(reachPx, flickJudge.reach)
+                        }
+                        // Which key's word this stroke could still be
+                        // reaching for, fixed at the down: the flick claims
+                        // the key the finger landed on, and a stroke that
+                        // wanders over another key has not changed its mind
+                        // about that, it has stopped being a flick.
+                        flickAnchor = if (octopusFlickWanted) {
+                            nearestOctopusCentre(
+                                liveCenters.value, octopusLive.value.keys, down.position,
+                            )
+                        } else {
+                            null
+                        }
+                        // Read with the grid, and only when the stroke could
+                        // use it: one table walk per glide rather than one
+                        // per pointer sample.
+                        shiftRect = if (capitalGlide.value) {
+                            liveRects.value.cellOf(KeyAction.Shift)
+                        } else {
+                            null
+                        }
+                        shiftCenter = shiftRect?.let {
+                            GesturePoint(it.center.x - boxOrigin.x, it.center.y - boxOrigin.y)
+                        }
+                        // Built once per stroke, from the layout rather than
+                        // the measured map alone: a key's shifted and
+                        // long-pressed characters have no centre of their
+                        // own and take the one their base label reported.
+                        keyList = liveLayouts.value.glideKeys(
+                            apostropheCenter = apostropheCenter(
+                                apostropheKey.value,
+                                liveCenters.value,
+                                liveSpace.value.value,
+                                boxOrigin,
+                            ),
+                            extraCenters = liveGlideKeys.value.mapNotNull { codePoint ->
+                                liveCenters.value[codePoint]?.let { codePoint to (it.x to it.y) }
+                            },
+                        ) { codePoint ->
+                            liveCenters.value[codePoint]?.let { it.x to it.y }
+                        }
+                    }
                     while (true) {
                         val dwellMs = glideSettings.value.pickerDwellMs.toLong()
                         val closeCall = previewedSeg && glideCloseCall.value
@@ -18151,6 +18271,15 @@ private fun KeyRows(
                             return@awaitEachGesture
                         }
                         if (!change.pressed) {
+                            // Lifted off a flick key while still undecided: the
+                            // judge says whether that was a word after all, and
+                            // only then is the lift taken from the key (#720).
+                            if (!isGesture && flickJudge != null && !alternatesGate.open) {
+                                val at = change.position + boxOrigin
+                                if (flickJudge.lift(at.x, at.y) == FlickGlideVerdict.WORD) {
+                                    claim(change.position.x, change.position.y, change.uptimeMillis)
+                                }
+                            }
                             if (isGesture) change.consume()
                             break
                         }
@@ -18163,9 +18292,21 @@ private fun KeyRows(
                         // A glide that had already started cancelled the key's
                         // long press on the way, so this can only be the popup.
                         if (!isGesture && alternatesGate.open) break
-                        // Still inside the flick key it began on: an arm, not a
-                        // word, so the stroke is not looked at yet.
-                        if (!isGesture && flickCell?.contains(change.position + boxOrigin) == true) continue
+                        // Off a flick key the stroke is watched until it can no
+                        // longer be an arm (#720). Every sample is kept, so a
+                        // word it turns into starts where the finger landed,
+                        // but nothing is consumed or drawn meanwhile: the key's
+                        // own handler is tracking its arm all the while, and a
+                        // lift before the judge gives up types that arm.
+                        if (!isGesture && flickJudge != null) {
+                            seg.add(GesturePoint(change.position.x, change.position.y, change.uptimeMillis))
+                            val at = change.position + boxOrigin
+                            if (flickJudge.step(at.x, at.y)) {
+                                claim(change.position.x, change.position.y, change.uptimeMillis)
+                                change.consume()
+                            }
+                            continue
+                        }
                         if (!isGesture && keyWidth.value > 0f &&
                             (change.position - down.position).getDistance() > slop * effectiveSlop &&
                             nearLetterKey(
@@ -18174,49 +18315,7 @@ private fun KeyRows(
                                 keyWidth.value,
                             )
                         ) {
-                            isGesture = true
-                            dwell.reset(change.position.x, change.position.y, change.uptimeMillis)
-                            trail.begin()
-                            // Which key's word this stroke could still be
-                            // reaching for, fixed at the down: the flick claims
-                            // the key the finger landed on, and a stroke that
-                            // wanders over another key has not changed its mind
-                            // about that, it has stopped being a flick.
-                            flickAnchor = if (octopusFlickWanted) {
-                                nearestOctopusCentre(
-                                    liveCenters.value, octopusLive.value.keys, down.position,
-                                )
-                            } else {
-                                null
-                            }
-                            // Read with the grid, and only when the stroke could
-                            // use it: one table walk per glide rather than one
-                            // per pointer sample.
-                            shiftRect = if (capitalGlide.value) {
-                                liveRects.value.cellOf(KeyAction.Shift)
-                            } else {
-                                null
-                            }
-                            shiftCenter = shiftRect?.let {
-                                GesturePoint(it.center.x - boxOrigin.x, it.center.y - boxOrigin.y)
-                            }
-                            // Built once per stroke, from the layout rather than
-                            // the measured map alone: a key's shifted and
-                            // long-pressed characters have no centre of their
-                            // own and take the one their base label reported.
-                            keyList = liveLayouts.value.glideKeys(
-                                apostropheCenter = apostropheCenter(
-                                    apostropheKey.value,
-                                    liveCenters.value,
-                                    liveSpace.value.value,
-                                    boxOrigin,
-                                ),
-                                extraCenters = liveGlideKeys.value.mapNotNull { codePoint ->
-                                    liveCenters.value[codePoint]?.let { codePoint to (it.x to it.y) }
-                                },
-                            ) { codePoint ->
-                                liveCenters.value[codePoint]?.let { it.x to it.y }
-                            }
+                            claim(change.position.x, change.position.y, change.uptimeMillis)
                         }
                         if (isGesture) {
                             change.consume()
@@ -20531,9 +20630,18 @@ internal const val GLIDE_TAP_REACH_WIDTHS = 0.65f
  * moves, the other thumb can tap meanwhile, and a swipe that seemed to start
  * when it moved would come *after* that tap and lose the letter it began on.
  */
-internal class ThumbStroke(val down: Offset, val downAt: Long, var owned: Boolean) {
+internal class ThumbStroke(
+    val down: Offset,
+    val downAt: Long,
+    var owned: Boolean,
+    /** The judge for a finger that landed on a flick key (#720), else null. */
+    val judge: FlickGlideArbiter? = null,
+) {
     /** Where and when the swipe began: the landing, not the first move past the slop. */
     fun firstPoint(): GesturePoint = GesturePoint(down.x, down.y, downAt)
+
+    /** The moves [judge] watched before the stroke became a swipe, oldest first. */
+    val watched = ArrayList<GesturePoint>()
 
     var swiping = false
     var slot = -1
@@ -20565,6 +20673,11 @@ internal class ThumbStroke(val down: Offset, val downAt: Long, var owned: Boolea
  * Left out, against the one-finger loop: the ambiguity picker, spacebar word
  * chains, shift-crossing capitals and the flicks off a key. Each of them reads
  * one stroke as the whole of a word, which a two-thumb stroke never is.
+ *
+ * A key's own flick arms are not among them (#720). A finger landing on one
+ * gets a [FlickGlideArbiter] from [flickJudge], fed in root space through
+ * [origin], and is only watched until the judge says it can no longer be an
+ * arm, exactly as the one-finger loop does it.
  */
 @Suppress("LongParameterList", "CyclomaticComplexMethod", "NestedBlockDepth", "LongMethod")
 private suspend fun PointerInputScope.twoThumbGlide(
@@ -20581,8 +20694,29 @@ private suspend fun PointerInputScope.twoThumbGlide(
     swipeClaimed: () -> Boolean,
     /** A key's alternates popup is open: the finger that opened it is choosing in it. */
     alternatesOpen: () -> Boolean,
+    /** The judge for a finger landing at this box-space point, when it is on a flick key. */
+    flickJudge: (Offset) -> FlickGlideArbiter?,
+    /** The box's origin in root space, where the judges keep their cells. */
+    origin: () -> Offset,
 ) {
     val strokes = HashMap<PointerId, ThumbStroke>()
+    // A finger becomes a swipe: its grid, its first point, a free trail, and
+    // whatever its judge watched before letting it go.
+    fun startSwipe(stroke: ThumbStroke) {
+        stroke.swiping = true
+        stroke.keys = grid()
+        stroke.points.add(stroke.firstPoint())
+        stroke.points.addAll(stroke.watched)
+        // A trail per thumb; a third finger swipes undrawn.
+        val busy = strokes.values.mapTo(HashSet()) { it.slot }
+        stroke.slot = trails.indices.firstOrNull { it !in busy } ?: -1
+        if (stroke.slot >= 0) {
+            trails[stroke.slot].begin()
+            if (stroke.watched.isNotEmpty()) {
+                for (point in stroke.points) trails[stroke.slot].add(point.x, point.y, point.t, trailMs)
+            }
+        }
+    }
     awaitPointerEventScope {
         while (true) {
             val event = awaitPointerEvent(PointerEventPass.Initial)
@@ -20595,11 +20729,24 @@ private suspend fun PointerInputScope.twoThumbGlide(
                     if (strokes.isEmpty()) {
                         onGesturePreview(emptyList(), emptyList(), DUET_PING_DOWN, GlideCase.None)
                     }
-                    strokes[change.id] = ThumbStroke(change.position, change.uptimeMillis, ownsStroke(change.position))
+                    val judge = flickJudge(change.position)
+                    strokes[change.id] = ThumbStroke(
+                        change.position,
+                        change.uptimeMillis,
+                        owned = judge == null && ownsStroke(change.position),
+                        judge = judge,
+                    )
                     continue
                 }
                 val stroke = strokes[change.id] ?: continue
                 if (!change.pressed) {
+                    // Lifted off a flick key still undecided: a word only if the
+                    // judge says so, and otherwise the key types its arm (#720).
+                    val judge = stroke.judge
+                    if (!stroke.swiping && !stroke.owned && judge != null && !alternatesOpen()) {
+                        val at = change.position + origin()
+                        if (judge.lift(at.x, at.y) == FlickGlideVerdict.WORD) startSwipe(stroke)
+                    }
                     strokes.remove(change.id)
                     lifted = true
                     if (!stroke.swiping) continue
@@ -20630,16 +20777,21 @@ private suspend fun PointerInputScope.twoThumbGlide(
                         stroke.owned = true
                         continue
                     }
-                    val kw = keyWidth.value
-                    if (kw <= 0f || (change.position - stroke.down).getDistance() <= slopPx) continue
-                    if (!nearLetter(stroke.down)) continue
-                    stroke.swiping = true
-                    stroke.keys = grid()
-                    stroke.points.add(stroke.firstPoint())
-                    // A trail per thumb; a third finger swipes undrawn.
-                    val busy = strokes.values.mapTo(HashSet()) { it.slot }
-                    stroke.slot = trails.indices.firstOrNull { it !in busy } ?: -1
-                    if (stroke.slot >= 0) trails[stroke.slot].begin()
+                    val judge = stroke.judge
+                    if (judge != null) {
+                        // Off a flick key: watched, not taken, until it can no
+                        // longer be an arm (#720).
+                        val at = change.position + origin()
+                        if (!judge.step(at.x, at.y)) {
+                            stroke.watched.add(GesturePoint(change.position.x, change.position.y, change.uptimeMillis))
+                            continue
+                        }
+                    } else {
+                        val kw = keyWidth.value
+                        if (kw <= 0f || (change.position - stroke.down).getDistance() <= slopPx) continue
+                        if (!nearLetter(stroke.down)) continue
+                    }
+                    startSwipe(stroke)
                 }
                 change.consume()
                 val point = GesturePoint(change.position.x, change.position.y, change.uptimeMillis)

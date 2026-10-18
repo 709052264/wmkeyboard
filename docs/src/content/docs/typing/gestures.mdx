@@ -107,6 +107,10 @@ Each key draws its arms small, in the hint colour, at the edge or corner you swi
 
 Two more things a flick key does, both borrowed from FlickBoard and Thumb-Key. Swipe out to a letter and back again to where you started, and the swipe types that letter's capital: `q` from a swipe up-left on `o`, `Q` from the same swipe brought more than halfway back. That only applies to an arm that has a capital of its own (or a **with Shift** form set in the editor); on a kana arm, an action arm or an arm whose shift changes nothing, coming back to the centre cancels to a plain tap, exactly as before. And a held flick key still opens its press-and-hold alternates, since the hold only starts once the finger has stayed inside the flick distance.
 
+With glide typing on, a letter with flick arms shares each swipe with the glide. That matters most on a layout with characters on every corner, such as one brought over from Unexpected Keyboard. Nothing is taken from the key while the swipe could still be a flick. It becomes a glided word once it can't be one: it turns, it reaches the middle of another letter in a direction no arm points, or it travels past **Flick reach**, 141% of the key's diagonal by default. A swipe that lifts before any of that types its arm, even when it overshot into the next key, which a corner flick on a phone-sized key nearly always does. So "er" from an `e` whose arms are all on its corners glides as soon as your finger reaches `r`, "the" glides once it turns at `h`, and a flick up-right off `d` types its é even if it ends inside `r`.
+
+**A flick onto a letter glides a word** settles the one case that is left: a short straight swipe from a letter onto its neighbour, along the way an arm points. Off, the default, it types the arm, so you tap those two-letter words. On, lifting inside the neighbour types the word, and a flick has to stop short of the next key. Until the keyboard has decided, a glide that starts on one of these keys can show the flick popup and buzz for the arm for a moment.
+
 ## Swiping to add 's
 
 <SettingsPath path="Typing / Gestures / Swipe to add 's" />
@@ -312,6 +316,8 @@ A printable table of every gesture on one page lives at [Gesture cheat sheet](/r
 | Show flick arms on keys | On |
 | Flick popup | On |
 | Flick distance | 22&nbsp;dp (8–48&nbsp;dp) |
+| Flick reach | 141% (80–200%) |
+| A flick onto a letter glides a word | Off |
 | Swipe to add 's | Off |
 | Arrows on the spacebar | On |
 | The spacebar shows | Language |
@@ -336,7 +342,7 @@ Open the **Typing** tile in settings, or search "Gestures", "Delete keys" or "Vo
 ## Details & edge cases
 
 - **Numpad is a discrete action, not a distance-based one.** Cursor keeps stepping for as long as you keep dragging. A swipe assigned to Numpad only needs to clear the initial slop once: the panel opens immediately and the rest of the drag does nothing.
-- **A flick key owns its stroke for as long as your finger stays on it.** Handwriting, the floating-word flick and the hint and capital flicks leave a key with flick arms alone, whichever way the finger goes. Glide typing waits too, and only takes the stroke once your finger leaves the key's own cell, so a letter key with corner swipes still starts a glided word: a short swipe inside the key types the arm, a swipe on to the next letter is a glide. A key whose arm moves the cursor or deletes keeps the whole stroke, since a held arm has already done its work by the time the finger wanders off. On the English 3×3 board glide typing never starts at all, which is by design: the letters are on the arms, not under a glide path.
+- **A flick key keeps its stroke until the stroke can't be a flick.** Handwriting, the floating-word flick and the hint and capital flicks leave a key with flick arms alone, whichever way the finger goes. Glide typing watches instead of taking over at the edge of the key: a swipe that turns, reaches another letter where no arm points, or passes the flick reach is a glided word, and anything shorter and straighter is the arm, overshoot included. This holds with two-thumb typing too. A key whose arm moves the cursor or deletes keeps the whole stroke, since a held arm has already done its work by the time the finger wanders off. On the English 3×3 board glide typing never starts at all, which is by design: the letters are on the arms, not under a glide path.
 - **A hint flick is judged when the finger lifts, never while it's moving.** Nothing is claimed early, so a downward stroke that turns out to be longer, slower or bendier than a flick is decoded as the glide or read as the tap it always was. The one stroke it does take from glide typing is a fast, straight, short one, and the duration cap is what stops most short glided words from qualifying.
 - **The 's swipe is judged at the lift too, and never claims a stroke a glide could want.** Glide typing doesn't start strokes on punctuation keys, so a stroke off the comma or full stop is never a word in the first place, whether glide typing is on or off. Only a swipe that actually changed the field keeps the lift; one with nothing behind the cursor to extend lands as the key's own tap.
 - **Two settings hide the keyboard on a downward swipe, two words apart.** "Swipe down to hide the keyboard" lives here under Typing → Gestures and applies to the spacebar. "Swipe down to hide" under Appearance → Toolbar applies to the toolbar strip. They don't affect each other, and both are off out of the box.
