@@ -475,7 +475,7 @@ class GlideBeamTest {
         assertTrue("window $from..$to", to - from >= 2)
         val tuning = GlideBeam.Tuning()
         val n = grid.keyCount
-        for (j in 0 until GlideWorkspace.SAMPLE_POINTS) {
+        for (j in 0 until workspace.samples) {
             for (k in 0 until n) {
                 val at = j * n + k
                 val expected = if (j in from + 1 until to && k != own) {
