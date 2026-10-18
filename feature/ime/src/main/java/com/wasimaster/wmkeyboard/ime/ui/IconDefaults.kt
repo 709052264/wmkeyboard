@@ -21,6 +21,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.VolumeUp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Apps
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Repeat
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BarChart
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.BatterySaver

@@ -791,6 +791,8 @@ enum class PanelMode {
      * and [CaptureTarget.REPEAT_SEPARATOR]; see [TextRepeatUi].
      */
     TEXT_REPEAT,
+
+    /**
      * The Send files tool (#729): files out as an encrypted link or to a device
      * nearby, and links in. Its state is the controller's, see `ime.send.SendUi`;
      * its password, link and address boxes take the keys through the `SEND_*`
@@ -3679,6 +3681,8 @@ data class KeyboardUiState(
      * tab's state is the controller's.
      */
     val kaomojiText: com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiTextEntry? = null,
+
+    /**
      * The Send files panel's text box while it has the keys: a password, a
      * link to receive, an instance address. The rest is the controller's.
      */
