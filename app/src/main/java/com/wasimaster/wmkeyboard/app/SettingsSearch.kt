@@ -1268,13 +1268,9 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.LOCATION, R.string.location_tiles_label, R.string.location_tiles_group),
     toolEntry(ToolbarTool.LOCATION, R.string.location_places_group, R.string.location_places_info),
     toolEntry(ToolbarTool.LOCATION, R.string.location_permission_title, R.string.location_permission_subtitle),
-    // The Home Assistant tool.
+    // The smart home tool.
     toolEntry(ToolbarTool.HOME_ASSISTANT, R.string.ha_enabled_title, R.string.ha_enabled_subtitle),
-    toolEntry(ToolbarTool.HOME_ASSISTANT, R.string.ha_internal_url_label, R.string.ha_internal_url_hint),
-    toolEntry(ToolbarTool.HOME_ASSISTANT, R.string.ha_external_url_label, R.string.ha_external_url_hint),
-    toolEntry(ToolbarTool.HOME_ASSISTANT, R.string.ha_prefer_internal_title, R.string.ha_prefer_internal_subtitle),
-    toolEntry(ToolbarTool.HOME_ASSISTANT, R.string.ha_sign_in_title, R.string.ha_sign_in_subtitle),
-    toolEntry(ToolbarTool.HOME_ASSISTANT, R.string.ha_token_fold_title, R.string.ha_token_supporting),
+    toolEntry(ToolbarTool.HOME_ASSISTANT, R.string.smarthome_homes_title, R.string.smarthome_homes_info),
     toolEntry(ToolbarTool.HOME_ASSISTANT, R.string.ha_favourites_title, R.string.ha_favourites_subtitle_none),
     toolEntry(ToolbarTool.HOME_ASSISTANT, R.string.ha_open_on_title),
     toolEntry(ToolbarTool.HOME_ASSISTANT, R.string.ha_areas_tabs_title, R.string.ha_areas_tabs_subtitle),

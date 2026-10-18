@@ -16,6 +16,7 @@ import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.AiSettings
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.homes
 import com.wasimaster.wmkeyboard.core.tools.AiClient
 import com.wasimaster.wmkeyboard.core.tools.AiPhase
 import com.wasimaster.wmkeyboard.core.tools.AiPrompts
@@ -597,7 +598,8 @@ object AiChatController {
         context,
         hints = settings.enabledLanguages.map { it.id },
         kdeConnect = settings.kdeConnect,
-        homeAssistant = settings.homeAssistant,
+        homePrefs = settings.homeAssistant,
+        homes = settings.homes(),
         images = store(context).get(conversationId)?.images.orEmpty(),
         seesImages = choice.provider != AiProvider.ON_DEVICE && AiClient.supportsImages(choice.provider),
         scanner = settings.scanner,

@@ -28,6 +28,10 @@ fun apiKey(propertyName: String, envName: String): String =
         ?: System.getenv(envName)?.trim()
         ?: ""
 
+/** The Google Home APIs SDK is checked in under feature/ime/libs/googlehome; without it the flag cannot be on. */
+val googleHomeSdk: Boolean = rootProject.file("feature/ime/libs/googlehome").listFiles()?.any { it.name.endsWith(".aar") } == true ||
+    rootProject.file("feature/ime/libs/googlehome/m2/com/google/android/gms/play-services-home").isDirectory
+
 fun flag(propertyName: String, envName: String): Boolean =
     (providers.gradleProperty(propertyName).orNull
         ?: localProperties.getProperty(propertyName)
@@ -83,7 +87,7 @@ android {
             // The Google Home APIs: their SDK is a full-only dependency, and
             // the grant only works for a signing certificate that has an
             // OAuth client, so each channel says whether it carries one.
-            buildConfigField("Boolean", "ENABLE_GOOGLE_HOME", "${flag("wmkb.enableGoogleHome", "WMKB_ENABLE_GOOGLE_HOME")}")
+            buildConfigField("Boolean", "ENABLE_GOOGLE_HOME", "${flag("wmkb.enableGoogleHome", "WMKB_ENABLE_GOOGLE_HOME") && googleHomeSdk}")
         }
         create("lite") {
             dimension = "capabilities"

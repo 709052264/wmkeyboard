@@ -1418,6 +1418,7 @@ internal fun TypingSmartChipsSettings(
     val intentsOn = settings.watch { it.smartChips.intents }
     val gifsOn = settings.watch { it.smartChips.gifs }
     val numbersOn = settings.watch { it.smartChips.numbers }
+    val repeatsOn = settings.watch { it.smartChips.repeats }
     // The keyboard gates on the usable set, so the banners ask the same one.
     val usable = settings.watch { usableTools(it) }
     SettingsGroup(stringResource(R.string.typing_group_smart_chips_title)) {
@@ -1579,7 +1580,6 @@ internal fun TypingSmartChipsSettings(
             }
             // The same text typed a few times in a row → the Text repeat tool,
             // opened on it with the count already set.
-            val repeatsOn = settings.watch { it.smartChips.repeats }
             item {
                 ToggleSetting(
                     R.string.typing_smart_repeats_title,

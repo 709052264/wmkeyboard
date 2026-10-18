@@ -2064,20 +2064,25 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Conditional stat grid — Feels-like, humidity, wind always; rain chance, cloud, pressure, UV, sunrise, sunset when present
     - 8-point wind direction — Plus emoji and short description for current conditions
     - Shares its location with the compass — Qibla reads the same saved coordinates
-  - Home Assistant `RARE` — The user's own Home Assistant from the keyboard: rooms of live tiles, a card of controls per entity, a typed Assist bar
-    - Live over the WebSocket API — `subscribe_entities` compressed stream applied in a JVM-tested engine (`:core:homeassistant`); REST fallback; reconnect with backoff; a refused token stops and asks once
-    - Browser sign-in, IndieAuth style — The docs site's `/ha/` page is the client id and names `wmkeyboard://ha-auth`; tokens refresh themselves; a long-lived token is the fallback; mDNS `_home-assistant._tcp` finds the server
-    - Two addresses — Home first, remote fallback, remembered per session
-    - Tiles by room — Favourites, one tab per HA area in floor order, Elsewhere, All; search by name, id or room; a tab per room can be switched off
+  - Smart home `RARE` — The user's homes from the keyboard: Home Assistant, Google Home, SmartThings, a Hue bridge, openHAB as rooms of live tiles, a card of controls per entity, a typed Assist bar for Home Assistant
+    - A provider list of homes — `ProviderTool.SMART_HOME`, always mixed: every row is connected, in list order; each home is a `ProviderCredential` with an `extra` map for its tokens, remote address, bridge id or granted structure; several homes at once, rooms prefixed with the home's name
+    - One model for every platform — `HomeBackend` in `:core:homeassistant`; every other platform is an adapter onto Home Assistant's entity shape (`HaEntity`, HA domains and attribute names, `HaFeatures` bits) and back from `HaServiceCall`, so the panel, formatter, icons, AI tools and snippets never know which platform drew a tile
+    - Home Assistant — Live over the WebSocket API (`subscribe_entities` compressed stream, JVM-tested); REST fallback; reconnect with backoff; a refused token stops and asks once; browser sign-in IndieAuth style through the docs site's `/ha/` page naming `wmkeyboard://ha-auth`, tokens refresh themselves, a long-lived token is the fallback; mDNS `_home-assistant._tcp` finds the server; home and remote addresses; every HA kind incl. camera stills, Assist, agents
+    - Google Home — The Home APIs SDK through Play services, full flavour only and only when the SDK is checked in under `feature/ime/libs/googlehome` (Google hands it out as a bundle, not a Maven artifact); Google's own consent picks the account, the structure and the device kinds; Matter traits (OnOff, LevelControl, ColorControl, Thermostat, DoorLock, WindowCovering, FanControl, MediaPlayback, sensors) mapped to HA domains; `ENABLE_GOOGLE_HOME` per channel, a `<queries>` entry for the Google Home app
+    - SmartThings (`:core:smarthome`) — Samsung's REST API: locations as the home, rooms, devices with status, scenes; OAuth through the docs site's `/st/` return page and the build's client id, or a pasted personal access token (24 h); polled every 10 s while running since events need a hosted SmartApp; lights, switches, fans, shades, locks, valves, thermostats, media players, sensors
+    - Philips Hue bridge (`:core:smarthome`) — CLIP v2 on the LAN over the bridge's own TLS, pinned at pairing (press the button, `POST /api`); mDNS `_hue._tcp`; lights, room group lights, scenes, motion, contact, temperature, light level, battery; live over the SSE event stream; xy ↔ hue/saturation conversion
+    - openHAB (`:core:smarthome`) — `/rest/items` with an API token, items by type and semantic tag, rooms and floors from the semantic model, live over `/rest/events`
+    - Tiles by room — Favourites, one tab per room of each home, Elsewhere, All; search by name, id or room; a tab per room can be switched off; favourites and hidden sets keyed by `HomeRef` (`home|entity_id`)
     - Every kind — light (brightness, warmth, hue, colours, effects), switch, fan, cover, valve, climate dial, media transport and volume, lock, alarm with codes, vacuum, humidifier, water heater, siren, number, select, text, button, scene, script, automation, camera stills (sendable as a picture), sensors with three insert formats
-    - Optimistic taps — The tile shows the expected state, the server's event confirms it, a refusal shakes it back
+    - Optimistic taps — The tile shows the expected state, the home's event confirms it, a refusal shakes it back
     - Hold to confirm — Locks, alarms, garage doors, gates, sirens and valves fill a ring for 800 ms before acting
-    - Motion — Staggered tile entrance, a pulse ring when the server changes an entity, run flash on scenes, card grows from the middle, rolling thermostat digits, breathing status dot while connecting; all under the motion flags
-    - Assist bar — A capture target under the tiles; the reply slides up, touched tiles ring, Insert reply types it; conversation id kept per panel session
-    - Smart chip — "turn off the lights" typed anywhere offers Ask home, which opens the panel and sends it
-    - AI chat tools — `home_assistant` (Assist, one sentence) and `home_assistant_states` (what is on, or a search), both Ask by default
-    - Snippet variables — `{ha:entity_id}` and `{ha:entity_id:attribute}`
-    - Cache — Last states on disk so the panel draws at once, dimmed until live; excluded from backups; tokens in SECRET_KEYS and never in the direct-boot mirror
+    - Motion — Staggered tile entrance, a pulse ring when a home changes an entity, run flash on scenes, card grows from the middle, rolling thermostat digits, breathing status dot while connecting; all under the motion flags
+    - Assist bar — With a Home Assistant listed: a capture target under the tiles; the reply slides up, touched tiles ring, Insert reply types it; conversation id kept per panel session
+    - Smart chip — "turn off the lights" typed anywhere offers Ask home, which opens the panel and sends it to Assist
+    - AI chat tools — `home_assistant` (Assist, one sentence) and `home_assistant_states` (what is on across every home, or a search), both Ask by default
+    - Snippet variables — `{ha:entity_id}` searched across homes, `{ha:home_key|entity_id}`, `{ha:entity_id:attribute}`
+    - Cache — Last states per home on disk so the panel draws at once, dimmed until live; excluded from backups; every home's key in `provider_credentials`, a SECRET_KEY, never in the direct-boot mirror
+    - Network log — `HOME_ASSISTANT`, `SMARTTHINGS`, `HUE`, `OPENHAB` sources; the local ones and SmartThings stay out of the data saver
   - Location (#350) `RARE` — The phone's position or a saved place into any field, in the format the user picks
     - One reading per tap — LocationManager only (no Play services): AOSP fused, GPS and network asked at once, each better answer shown as it lands, stops at 25 m or 20 s, nothing left registered
     - Tile-free position dial — Accuracy ring, the shared precision cell and the shared point drawn to scale, north up; no map server learns where the user is

@@ -30,7 +30,7 @@ Server kinds can be added more than once, each with its own address and name: tw
 
 ## How a tool uses its list
 
-Most tools ask **One at a time**: the first provider that is on, and the next one only if the first fails or has nothing. The GIF and sticker panels can also show their providers as **Tabs** (a chip for each) or **Mixed** (all of them at once, in one grid). Packs on your phone always get a chip of their own, and GIPHY keeps its own chip in Mixed mode, because its terms do not allow mixing its results with another service's.
+Most tools ask **One at a time**: the first provider that is on, and the next one only if the first fails or has nothing. The GIF and sticker panels can also show their providers as **Tabs** (a chip for each) or **Mixed** (all of them at once, in one grid). The smart home list is always mixed: every home on it is connected, and the order is the order their rooms appear in. Packs on your phone always get a chip of their own, and GIPHY keeps its own chip in Mixed mode, because its terms do not allow mixing its results with another service's.
 
 A provider that can't be reached (no answer, a server error, too many requests) is skipped for a minute, so the next one answers at once instead of after a timeout. If every provider is in that state, they are all asked anyway. Editing a provider clears this, so a fixed key is tried straight away.
 
@@ -59,3 +59,4 @@ Updating the app does not change your lists. Until you edit a list, it is worked
 | [Background photos](/themes/online-photos/) | Unsplash, Pexels, Wikimedia Commons or another MediaWiki | <SettingsPath path="Themes / Photo services" /> |
 | [Currency converter](/tools/utilities/) | ExchangeRate-API, Frankfurter, Coinbase, currency-api; for coins Coinbase, currency-api, CoinGecko | <SettingsPath path="Tools / Currency converter / Currency rates from" /> |
 | [Vocabulary](/tools/vocabulary/) | Wiktionary, Wiktionary definitions, Free Dictionary API, for words no pack knows | <SettingsPath path="Tools / Vocabulary / Providers" /> |
+| [Smart home](/tools/home-assistant/) | Home Assistant, Google Home, SmartThings, a Philips Hue bridge, openHAB; every home on the list is connected at once, and its sign-in or pairing lives in the row's setup | <SettingsPath path="Tools / Smart home / Homes" /> |

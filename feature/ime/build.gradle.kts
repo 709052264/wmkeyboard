@@ -27,6 +27,16 @@ kover {
 // bundled artifacts (or none, for lite) so scanners never depend on GMS there.
 // Both variants expose the identical com.google.mlkit.vision.* API, so no
 // source changes ride on this flag.
+// The Google Home APIs SDK, which Google hands out as a bundle rather than
+// a public Maven artifact: unpacked to libs/googlehome/m2 it is a Maven
+// repository (settings.gradle.kts registers it when the directory exists),
+// and the newest play-services-home under it is the version to depend on.
+// Loose AARs dropped straight into libs/googlehome work too.
+val googleHomeVersion: String? = file("libs/googlehome/m2/com/google/android/gms/play-services-home").listFiles()
+    ?.filter { it.isDirectory }?.map { it.name }?.maxOrNull()
+val googleHomeAars: Boolean = file("libs/googlehome").listFiles()?.any { it.name.endsWith(".aar") } == true
+val googleHomeSdk: Boolean = googleHomeVersion != null || googleHomeAars
+
 val playStoreChannel = run {
     val localProperties = Properties().apply {
         val file = rootProject.file("local.properties")
@@ -53,6 +63,18 @@ android {
     productFlavors {
         create("full") { dimension = "capabilities" }
         create("lite") { dimension = "capabilities" }
+    }
+    // The Google Home APIs are a hand-downloaded SDK (Google hosts no Maven
+    // artifact for them): the AARs go under libs/googlehome, and only a full
+    // build that has them compiles the real GoogleHomeSupport. Without them
+    // the full flavour uses the same stub lite does, so a checkout without
+    // the SDK still builds. ENABLE_GOOGLE_HOME in :core:config follows suit.
+    sourceSets {
+        getByName("full") {
+            val dir = if (googleHomeSdk) "src/googlehome/java" else "src/googlehomestub/java"
+            java.srcDir(dir)
+            kotlin.srcDir(dir)
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -95,6 +117,7 @@ dependencies {
     api(project(":core:tools"))
     api(project(":core:kdeconnect"))
     api(project(":core:homeassistant"))
+    api(project(":core:smarthome"))
     api(project(":core:settings"))
     api(project(":core:addons"))
     api(project(":core:voice"))
@@ -135,6 +158,12 @@ dependencies {
         "fullImplementation"(libs.mlkit.barcode.scanning)
     }
     "fullImplementation"(libs.mlkit.document.scanner)
+    if (googleHomeVersion != null) {
+        "fullImplementation"("com.google.android.gms:play-services-home:$googleHomeVersion")
+        "fullImplementation"("com.google.android.gms:play-services-home-types:$googleHomeVersion")
+    } else if (googleHomeAars) {
+        "fullImplementation"(fileTree("libs/googlehome") { include("*.aar", "*.jar") })
+    }
 
     testImplementation(libs.junit)
     // A virtual clock for the coroutine plumbing around the input connection.

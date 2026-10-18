@@ -127,3 +127,72 @@ class HaAndroidMdns(context: Context) : HaDiscovery {
         resolving.clear()
     }
 }
+
+/**
+ * `_hue._tcp` over `NsdManager`: every Hue bridge on the LAN, by address.
+ * The bridge's name and id are asked of its open config endpoint by the
+ * caller, so this only hands over the host.
+ */
+class HueAndroidMdns(context: Context) {
+
+    private val app = context.applicationContext
+    private val nsd = app.getSystemService(Context.NSD_SERVICE) as? NsdManager
+    private var discovery: NsdManager.DiscoveryListener? = null
+    private var multicast: WifiManager.MulticastLock? = null
+    private val resolving = ConcurrentHashMap.newKeySet<String>()
+
+    @Synchronized
+    fun start(onFound: (host: String) -> Unit) {
+        val manager = nsd ?: return
+        stop()
+        runCatching {
+            val wifi = app.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+            multicast = wifi?.createMulticastLock("wmkb-hue")?.apply {
+                setReferenceCounted(false)
+                acquire()
+            }
+        }
+        val listener = object : NsdManager.DiscoveryListener {
+            override fun onDiscoveryStarted(serviceType: String) = Unit
+            override fun onDiscoveryStopped(serviceType: String) = Unit
+            override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) = Unit
+            override fun onStopDiscoveryFailed(serviceType: String, errorCode: Int) = Unit
+            override fun onServiceLost(service: NsdServiceInfo) = Unit
+            override fun onServiceFound(service: NsdServiceInfo) {
+                val name = service.serviceName ?: return
+                if (!resolving.add(name)) return
+                @Suppress("DEPRECATION") // resolveService: its replacement is API 34, and this floor is 24.
+                runCatching {
+                    manager.resolveService(
+                        service,
+                        object : NsdManager.ResolveListener {
+                            override fun onResolveFailed(info: NsdServiceInfo, errorCode: Int) {
+                                resolving.remove(info.serviceName.orEmpty())
+                            }
+
+                            override fun onServiceResolved(info: NsdServiceInfo) {
+                                resolving.remove(info.serviceName.orEmpty())
+                                info.host?.hostAddress?.let(onFound)
+                            }
+                        },
+                    )
+                }.onFailure { resolving.remove(name) }
+            }
+        }
+        runCatching { manager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, listener) }
+            .onSuccess { discovery = listener }
+    }
+
+    @Synchronized
+    fun stop() {
+        discovery?.let { runCatching { nsd?.stopServiceDiscovery(it) } }
+        discovery = null
+        runCatching { multicast?.release() }
+        multicast = null
+        resolving.clear()
+    }
+
+    private companion object {
+        const val SERVICE_TYPE = "_hue._tcp"
+    }
+}

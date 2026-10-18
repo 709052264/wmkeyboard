@@ -84,3 +84,5 @@ vendor/bundle/
 
 # Local wiki conversion output
 wiki-dist/
+feature/ime/libs/googlehome/*
+!feature/ime/libs/googlehome/README.md

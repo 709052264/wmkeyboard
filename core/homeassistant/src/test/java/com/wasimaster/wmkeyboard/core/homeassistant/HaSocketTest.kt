@@ -78,7 +78,7 @@ class HaSocketTest {
         val base = HaUrl.parse(server.url("/").toString())!!
         val socket = HaSocket(
             OkHttpTransport(OkHttpClient()), scope, { base }, { "GOOD" },
-            object : HaSocket.Events {
+            events = object : HaSocket.Events {
                 override fun onTokenRejected() {
                     rejected = true
                 }

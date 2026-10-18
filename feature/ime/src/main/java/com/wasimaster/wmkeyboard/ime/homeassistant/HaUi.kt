@@ -9,6 +9,7 @@ import com.wasimaster.wmkeyboard.core.homeassistant.HaInsertFormat
 import com.wasimaster.wmkeyboard.core.homeassistant.HaKind
 import com.wasimaster.wmkeyboard.core.homeassistant.HaPhase
 import com.wasimaster.wmkeyboard.core.homeassistant.HaPrimary
+import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeRef
 import com.wasimaster.wmkeyboard.core.settings.HaTileSize
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,7 +46,8 @@ data class HaTile(
     /** The last time the server changed it while the panel watched, for the pulse. */
     val changedAtMs: Long = 0L,
 ) {
-    val id: String get() = entity.entityId
+    /** The [HomeRef]: the home's key and the entity id, which is what every action names. */
+    val id: String get() = HomeRef.of(entity)
 
     /** On, as the tile shows it: the pending state wins while it lasts. */
     val shownOn: Boolean get() = (pendingState ?: entity.state) == "on"
@@ -87,8 +89,12 @@ data class HaTextEntry(val field: HaTextField, val text: String = "", val ref: S
 /** Everything the Home Assistant panel draws; owned by [HaController]. */
 data class HaUi(
     val enabled: Boolean = false,
+    /** At least one home is listed. */
     val hasServer: Boolean = false,
+    /** At least one home is signed in or paired, so there is something to connect. */
     val hasToken: Boolean = false,
+    /** The homes, in list order, for the header's dots. */
+    val homes: List<HomeStatus> = emptyList(),
     val phase: HaPhase = HaPhase.OFFLINE,
     /** The tiles come from the last session's cache and the socket is not up yet. */
     val fromCache: Boolean = false,
@@ -99,6 +105,8 @@ data class HaUi(
     /** How many entities the server has at all; zero while nothing has loaded. */
     val entityCount: Int = 0,
     val expanded: String? = null,
+    /** Whether any listed home has an assistant; the bar needs one. */
+    val hasAssist: Boolean = false,
     /** The search box is open; its text is in `KeyboardUiState.haText`. */
     val searchOpen: Boolean = false,
     val search: String = "",

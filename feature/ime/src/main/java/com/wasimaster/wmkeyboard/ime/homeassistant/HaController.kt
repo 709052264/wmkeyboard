@@ -18,8 +18,15 @@ import com.wasimaster.wmkeyboard.core.homeassistant.HaPrimary
 import com.wasimaster.wmkeyboard.core.homeassistant.HaServiceCall
 import com.wasimaster.wmkeyboard.core.homeassistant.HaStateFormat
 import com.wasimaster.wmkeyboard.core.homeassistant.HaUrl
+import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeAccount
+import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeKeys
+import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeRef
+import com.wasimaster.wmkeyboard.core.providers.ProviderCredential
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.HaOpenOn
 import com.wasimaster.wmkeyboard.core.settings.HomeAssistantSettings
+import com.wasimaster.wmkeyboard.core.settings.ProviderEdits
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.ime.R
 import kotlinx.coroutines.CoroutineScope
@@ -27,6 +34,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
@@ -34,11 +42,14 @@ import java.io.IOException
 import java.util.Locale
 
 /**
- * The keyboard half of the Home Assistant tool.
+ * The keyboard half of the smart home tool.
  *
  * Holds the panel's [HaUi], turns the panel's [HaAction]s into service calls
- * through [HomeAssistantHub], and types into the field. Owned by the service
+ * through [SmartHomeHub], and types into the field. Owned by the service
  * and built on first use; nothing here runs until the panel is opened.
+ *
+ * Every id the panel hands back is a [HomeRef]: the home's key and the
+ * entity id. The hub routes by the first; [HaActions] gets the second.
  *
  * Taps are optimistic: the tile shows the state the call should produce, and
  * the server's next event confirms it. A tile the server contradicts, or a
@@ -50,6 +61,8 @@ internal class HaController(
     private val scope: CoroutineScope,
     private val repository: SettingsRepository,
     private val settings: () -> HomeAssistantSettings,
+    /** The homes as the settings resolve them now. */
+    private val homes: () -> List<HomeAccount>,
     private val insertText: (String) -> Unit,
     private val haptic: () -> Unit,
     private val openToolSettings: () -> Unit,
@@ -84,21 +97,24 @@ internal class HaController(
 
     private data class Pending(val state: String, val job: Job)
 
+    /** The entity id of a [HomeRef], for a service call. */
+    private fun n(ref: String): String = HomeRef.native(ref)
+
     // ---- Lifecycle -----------------------------------------------------------
 
     fun onPanelOpen() {
         val s = settings()
         if (watch.isEmpty()) {
             watch = listOf(
-                scope.launch { HomeAssistantHub.state.collect { rebuild() } },
+                scope.launch { SmartHomeHub.state.collect { rebuild() } },
                 scope.launch {
-                    HomeAssistantHub.changes.collect { ids ->
+                    SmartHomeHub.changes.collect { ids ->
                         val now = System.currentTimeMillis()
                         ids.forEach { id ->
                             changedAt[id] = now
                             // The server agreed with the tap: the claim can go.
                             pending[id]?.let { p ->
-                                if (HomeAssistantHub.state.value.entities[id]?.state == p.state) clearPending(id)
+                                if (SmartHomeHub.state.value.entities[id]?.state == p.state) clearPending(id)
                             }
                         }
                         rebuild()
@@ -113,7 +129,7 @@ internal class HaController(
         _state.update { it.copy(tab = tab, expanded = null, searchOpen = false, search = "", undo = null, snapshot = null) }
         rebuild()
         // Nothing set up yet: look around the LAN so the first tile the user sees is their own server.
-        if (!s.hasServer && discovery == null) {
+        if (homes().isEmpty() && discovery == null) {
             val d = HaAndroidMdns(app)
             discovery = d
             d.start { found -> scope.launch { _state.update { it.copy(found = found) } } }
@@ -137,24 +153,33 @@ internal class HaController(
     @Suppress("detekt.LongMethod", "detekt.CyclomaticComplexMethod")
     private fun rebuild() {
         val s = settings()
-        val hub = HomeAssistantHub.state.value
-        val registry = hub.registry
-        val all = hub.entities.values.asSequence()
+        val hub = SmartHomeHub.state.value
+        val entities = SmartHomeHub.entitiesWithCache()
+        fun regOf(e: HaEntity): com.wasimaster.wmkeyboard.core.homeassistant.HaRegistry = SmartHomeHub.cachedRegistry(e.home) ?: hub.registryOf(e.home)
+        // An area is its home's: two homes may each have a Kitchen.
+        fun areaKeyOf(e: HaEntity): String? = regOf(e).areaIdOf(e.entityId)?.let { HomeRef.of(e.home, it) }
+        val all = entities.values.asSequence()
             .filter { HaDomains.isListed(it.domain) }
-            .filter { it.entityId !in s.hidden && it.domain !in s.hiddenDomains }
-            .filter { !registry.isHidden(it.entityId) }
+            .filter { HomeRef.of(it) !in s.hidden && it.domain !in s.hiddenDomains }
+            .filter { !regOf(it).isHidden(it.entityId) }
             .toList()
         val favourites = s.favourites.toSet()
+        val several = hub.homes.size > 1
 
         val areaTabs = if (s.areasAsTabs) {
             val counts = HashMap<String, Int>()
-            all.forEach { e -> registry.areaIdOf(e.entityId)?.let { counts[it] = (counts[it] ?: 0) + 1 } }
-            registry.orderedAreas().filter { (counts[it.areaId] ?: 0) > 0 }
-                .map { HaTab(HaTab.area(it.areaId), it.name, it.areaId, counts[it.areaId] ?: 0) }
+            all.forEach { e -> areaKeyOf(e)?.let { counts[it] = (counts[it] ?: 0) + 1 } }
+            hub.homes.flatMap { home ->
+                val registry = SmartHomeHub.cachedRegistry(home.key) ?: hub.registryOf(home.key)
+                registry.orderedAreas()
+                    .map { it to HomeRef.of(home.key, it.areaId) }
+                    .filter { (_, key) -> (counts[key] ?: 0) > 0 }
+                    .map { (area, key) -> HaTab(HaTab.area(key), if (several && home.name.isNotBlank()) "${home.name} · ${area.name}" else area.name, key, counts[key] ?: 0) }
+            }
         } else {
             emptyList()
         }
-        val unassigned = if (s.areasAsTabs && areaTabs.isNotEmpty()) all.count { registry.areaIdOf(it.entityId) == null } else 0
+        val unassigned = if (s.areasAsTabs && areaTabs.isNotEmpty()) all.count { areaKeyOf(it) == null } else 0
         val tabs = buildList {
             add(HaTab(HaTab.FAVOURITES, app.getString(R.string.ime_ha_tab_favourites), count = favourites.size))
             addAll(areaTabs)
@@ -165,24 +190,27 @@ internal class HaController(
         val tabId = if (tabs.any { it.id == current.tab }) current.tab else HaTab.FAVOURITES
 
         val query = current.search.trim().lowercase(Locale.ROOT)
+        fun nameOf(e: HaEntity): String = regOf(e).nameOf(e)
         val shown: List<HaEntity> = when {
             current.searchOpen && query.isNotEmpty() -> all.filter { e ->
-                val name = registry.nameOf(e).lowercase(Locale.ROOT)
-                val area = registry.areaOf(e.entityId)?.name?.lowercase(Locale.ROOT).orEmpty()
+                val name = nameOf(e).lowercase(Locale.ROOT)
+                val area = regOf(e).areaOf(e.entityId)?.name?.lowercase(Locale.ROOT).orEmpty()
                 name.contains(query) || e.entityId.contains(query) || area.contains(query)
-            }.sortedWith(compareBy({ !registry.nameOf(it).lowercase(Locale.ROOT).startsWith(query) }, { registry.nameOf(it) }))
-            tabId == HaTab.FAVOURITES -> s.favourites.mapNotNull { id -> hub.entities[id] }
-            tabId == HaTab.ALL -> all.sortedWith(compareBy({ kindRank(it) }, { registry.nameOf(it) }))
-            tabId == HaTab.UNASSIGNED -> all.filter { registry.areaIdOf(it.entityId) == null }.sortedWith(compareBy({ kindRank(it) }, { registry.nameOf(it) }))
+            }.sortedWith(compareBy({ !nameOf(it).lowercase(Locale.ROOT).startsWith(query) }, { nameOf(it) }))
+            tabId == HaTab.FAVOURITES -> s.favourites.mapNotNull { id -> entities[id] }
+            tabId == HaTab.ALL -> all.sortedWith(compareBy({ kindRank(it) }, { nameOf(it) }))
+            tabId == HaTab.UNASSIGNED -> all.filter { areaKeyOf(it) == null }.sortedWith(compareBy({ kindRank(it) }, { nameOf(it) }))
             else -> {
-                val areaId = tabId.removePrefix("area:")
-                all.filter { registry.areaIdOf(it.entityId) == areaId }.sortedWith(compareBy({ kindRank(it) }, { registry.nameOf(it) }))
+                val areaKey = tabId.removePrefix("area:")
+                all.filter { areaKeyOf(it) == areaKey }.sortedWith(compareBy({ kindRank(it) }, { nameOf(it) }))
             }
         }
         val tiles = shown.map { e ->
+            val registry = regOf(e)
             val glyph = HaIcons.styled(HaIcons.glyph(e, registry.iconOf(e)), e)
             val kind = HaDomains.kindOf(e)
-            val claimed = pending[e.entityId]?.state
+            val ref = HomeRef.of(e)
+            val claimed = pending[ref]?.state
             val shownEntity = if (claimed != null) e.copy(state = claimed) else e
             HaTile(
                 entity = e,
@@ -195,25 +223,28 @@ internal class HaController(
                 primary = HaDomains.primary(e),
                 hasSwitch = HaDomains.hasSwitch(e),
                 risky = HaDomains.isRisky(e),
-                favourite = e.entityId in favourites,
+                favourite = ref in favourites,
                 pendingState = claimed,
-                changedAtMs = changedAt[e.entityId] ?: 0L,
+                changedAtMs = changedAt[ref] ?: 0L,
             )
         }
+        val listed = homes()
         _state.update {
             it.copy(
                 enabled = s.enabled,
-                hasServer = s.hasServer,
-                hasToken = s.hasToken,
+                hasServer = listed.isNotEmpty() || hub.homes.isNotEmpty(),
+                hasToken = hub.homes.isNotEmpty(),
+                homes = hub.homes,
                 phase = hub.phase,
                 fromCache = hub.fromCache,
-                instanceName = hub.instance?.name?.takeIf { n -> n.isNotBlank() } ?: s.instanceName.ifBlank { app.getString(R.string.ime_ha_default_name) },
+                instanceName = hub.instanceName.ifBlank { app.getString(R.string.ime_ha_default_name) },
                 tabs = tabs,
                 tab = tabId,
                 tiles = tiles,
-                entityCount = hub.entities.size,
-                expanded = it.expanded?.takeIf { id -> hub.entities.containsKey(id) },
-                assistEnabled = s.assistEnabled,
+                entityCount = entities.size,
+                expanded = it.expanded?.takeIf { id -> entities.containsKey(id) },
+                hasAssist = hub.assistHome != null,
+                assistEnabled = s.assistEnabled && hub.assistHome != null,
                 confirmRisky = s.confirmRisky,
                 tileSize = s.tileSize,
                 insertFormat = HaInsertFormat.of(s.insertFormat),
@@ -234,7 +265,7 @@ internal class HaController(
         HaKind.SENSOR, HaKind.BINARY_SENSOR, HaKind.WEATHER, HaKind.PERSON, HaKind.OTHER -> 7
     }
 
-    private fun entity(id: String): HaEntity? = HomeAssistantHub.state.value.entities[id]
+    private fun entity(id: String): HaEntity? = SmartHomeHub.entity(id)
 
     // ---- The panel's text box ----------------------------------------------
 
@@ -281,7 +312,7 @@ internal class HaController(
             }
             HaTextField.VALUE -> {
                 endTextIfAny()
-                call(entry.ref, HaActions.setText(entry.ref, entry.text), expected = entry.text)
+                call(entry.ref, HaActions.setText(n(entry.ref), entry.text), expected = entry.text)
             }
         }
     }
@@ -316,27 +347,27 @@ internal class HaController(
             is HaAction.Tap -> tap(action.id)
             is HaAction.Toggle -> {
                 haptic()
-                call(action.id, if (action.on) HaActions.turnOn(action.id) else HaActions.turnOff(action.id), expected = if (action.on) "on" else "off")
+                call(action.id, if (action.on) HaActions.turnOn(n(action.id)) else HaActions.turnOff(n(action.id)), expected = if (action.on) "on" else "off")
             }
             is HaAction.Run -> run(action.id)
 
-            is HaAction.Brightness -> call(action.id, HaActions.setBrightnessPct(action.id, action.pct), expected = if (action.pct > 0) "on" else "off")
-            is HaAction.ColorTemp -> call(action.id, HaActions.setColorTempKelvin(action.id, action.kelvin))
-            is HaAction.HsColor -> call(action.id, HaActions.setHsColor(action.id, action.hue, action.saturation))
-            is HaAction.Effect -> call(action.id, HaActions.setEffect(action.id, action.effect))
+            is HaAction.Brightness -> call(action.id, HaActions.setBrightnessPct(n(action.id), action.pct), expected = if (action.pct > 0) "on" else "off")
+            is HaAction.ColorTemp -> call(action.id, HaActions.setColorTempKelvin(n(action.id), action.kelvin))
+            is HaAction.HsColor -> call(action.id, HaActions.setHsColor(n(action.id), action.hue, action.saturation))
+            is HaAction.Effect -> call(action.id, HaActions.setEffect(n(action.id), action.effect))
 
             is HaAction.Cover -> {
                 haptic()
                 val (c, expected) = when (action.command) {
-                    HaAction.CoverCommand.OPEN -> HaActions.openCover(action.id) to "opening"
-                    HaAction.CoverCommand.CLOSE -> HaActions.closeCover(action.id) to "closing"
-                    HaAction.CoverCommand.STOP -> HaActions.stopCover(action.id) to null
+                    HaAction.CoverCommand.OPEN -> HaActions.openCover(n(action.id)) to "opening"
+                    HaAction.CoverCommand.CLOSE -> HaActions.closeCover(n(action.id)) to "closing"
+                    HaAction.CoverCommand.STOP -> HaActions.stopCover(n(action.id)) to null
                 }
                 if (entity(action.id)?.domain == "valve") {
                     call(action.id, when (action.command) {
-                        HaAction.CoverCommand.OPEN -> HaActions.openValve(action.id)
-                        HaAction.CoverCommand.CLOSE -> HaActions.closeValve(action.id)
-                        HaAction.CoverCommand.STOP -> HaActions.stopValve(action.id)
+                        HaAction.CoverCommand.OPEN -> HaActions.openValve(n(action.id))
+                        HaAction.CoverCommand.CLOSE -> HaActions.closeValve(n(action.id))
+                        HaAction.CoverCommand.STOP -> HaActions.stopValve(n(action.id))
                     }, expected)
                 } else {
                     call(action.id, c, expected)
@@ -344,36 +375,36 @@ internal class HaController(
             }
             is HaAction.Position -> call(
                 action.id,
-                if (entity(action.id)?.domain == "valve") HaActions.setValvePosition(action.id, action.pct) else HaActions.setCoverPosition(action.id, action.pct),
+                if (entity(action.id)?.domain == "valve") HaActions.setValvePosition(n(action.id), action.pct) else HaActions.setCoverPosition(n(action.id), action.pct),
             )
-            is HaAction.Tilt -> call(action.id, HaActions.setCoverTilt(action.id, action.pct))
+            is HaAction.Tilt -> call(action.id, HaActions.setCoverTilt(n(action.id), action.pct))
 
-            is HaAction.Percentage -> call(action.id, HaActions.setFanPercentage(action.id, action.pct), expected = if (action.pct > 0) "on" else "off")
-            is HaAction.Oscillate -> call(action.id, HaActions.oscillate(action.id, action.on))
-            is HaAction.FanDirection -> call(action.id, HaActions.setFanDirection(action.id, action.direction))
-            is HaAction.FanPreset -> call(action.id, HaActions.setFanPreset(action.id, action.preset))
+            is HaAction.Percentage -> call(action.id, HaActions.setFanPercentage(n(action.id), action.pct), expected = if (action.pct > 0) "on" else "off")
+            is HaAction.Oscillate -> call(action.id, HaActions.oscillate(n(action.id), action.on))
+            is HaAction.FanDirection -> call(action.id, HaActions.setFanDirection(n(action.id), action.direction))
+            is HaAction.FanPreset -> call(action.id, HaActions.setFanPreset(n(action.id), action.preset))
 
             is HaAction.Temperature -> call(
                 action.id,
-                if (entity(action.id)?.domain == "water_heater") HaActions.setWaterTemperature(action.id, action.value) else HaActions.setTemperature(action.id, action.value),
+                if (entity(action.id)?.domain == "water_heater") HaActions.setWaterTemperature(n(action.id), action.value) else HaActions.setTemperature(n(action.id), action.value),
             )
-            is HaAction.TemperatureRange -> call(action.id, HaActions.setTemperatureRange(action.id, action.low, action.high))
+            is HaAction.TemperatureRange -> call(action.id, HaActions.setTemperatureRange(n(action.id), action.low, action.high))
             is HaAction.HvacMode -> {
                 haptic()
-                call(action.id, HaActions.setHvacMode(action.id, action.mode), expected = action.mode)
+                call(action.id, HaActions.setHvacMode(n(action.id), action.mode), expected = action.mode)
             }
-            is HaAction.Preset -> call(action.id, HaActions.setPresetMode(action.id, action.preset))
-            is HaAction.FanMode -> call(action.id, HaActions.setFanMode(action.id, action.mode))
-            is HaAction.Humidity -> call(action.id, HaActions.setHumidity(action.id, action.pct))
+            is HaAction.Preset -> call(action.id, HaActions.setPresetMode(n(action.id), action.preset))
+            is HaAction.FanMode -> call(action.id, HaActions.setFanMode(n(action.id), action.mode))
+            is HaAction.Humidity -> call(action.id, HaActions.setHumidity(n(action.id), action.pct))
             is HaAction.Mode -> {
                 haptic()
                 val e = entity(action.id)
                 call(
                     action.id,
                     when (e?.domain) {
-                        "humidifier" -> HaActions.setHumidifierMode(action.id, action.mode)
-                        "water_heater" -> HaActions.setWaterMode(action.id, action.mode)
-                        else -> HaActions.setPresetMode(action.id, action.mode)
+                        "humidifier" -> HaActions.setHumidifierMode(n(action.id), action.mode)
+                        "water_heater" -> HaActions.setWaterMode(n(action.id), action.mode)
+                        else -> HaActions.setPresetMode(n(action.id), action.mode)
                     },
                     expected = if (e?.domain == "water_heater") action.mode else null,
                 )
@@ -382,16 +413,16 @@ internal class HaController(
             is HaAction.Media -> {
                 haptic()
                 val c = when (action.command) {
-                    HaAction.MediaCommand.PLAY_PAUSE -> HaActions.mediaPlayPause(action.id)
-                    HaAction.MediaCommand.NEXT -> HaActions.mediaNext(action.id)
-                    HaAction.MediaCommand.PREVIOUS -> HaActions.mediaPrevious(action.id)
-                    HaAction.MediaCommand.STOP -> HaActions.mediaStop(action.id)
+                    HaAction.MediaCommand.PLAY_PAUSE -> HaActions.mediaPlayPause(n(action.id))
+                    HaAction.MediaCommand.NEXT -> HaActions.mediaNext(n(action.id))
+                    HaAction.MediaCommand.PREVIOUS -> HaActions.mediaPrevious(n(action.id))
+                    HaAction.MediaCommand.STOP -> HaActions.mediaStop(n(action.id))
                 }
                 call(action.id, c, expected = entity(action.id)?.let { HaActions.expectedState(it, c) })
             }
-            is HaAction.Volume -> call(action.id, HaActions.setVolume(action.id, action.level))
-            is HaAction.Mute -> call(action.id, HaActions.mute(action.id, action.muted))
-            is HaAction.Source -> call(action.id, HaActions.selectSource(action.id, action.source))
+            is HaAction.Volume -> call(action.id, HaActions.setVolume(n(action.id), action.level))
+            is HaAction.Mute -> call(action.id, HaActions.mute(n(action.id), action.muted))
+            is HaAction.Source -> call(action.id, HaActions.selectSource(n(action.id), action.source))
 
             is HaAction.Lock -> coded(action.id, "lock", action.code)
             is HaAction.Unlock -> coded(action.id, "unlock", action.code)
@@ -403,7 +434,7 @@ internal class HaController(
             is HaAction.Vacuum -> {
                 haptic()
                 call(
-                    action.id, HaActions.vacuum(action.id, action.command),
+                    action.id, HaActions.vacuum(n(action.id), action.command),
                     expected = when (action.command) {
                         HaActions.VacuumCommand.START -> "cleaning"
                         HaActions.VacuumCommand.PAUSE -> "paused"
@@ -413,12 +444,12 @@ internal class HaController(
                     },
                 )
             }
-            is HaAction.VacuumSpeed -> call(action.id, HaActions.setVacuumFanSpeed(action.id, action.speed))
+            is HaAction.VacuumSpeed -> call(action.id, HaActions.setVacuumFanSpeed(n(action.id), action.speed))
 
-            is HaAction.Value -> call(action.id, HaActions.setValue(action.id, action.value), expected = format.number(action.value, entity(action.id)?.step))
+            is HaAction.Value -> call(action.id, HaActions.setValue(n(action.id), action.value), expected = format.number(action.value, entity(action.id)?.step))
             is HaAction.Option -> {
                 haptic()
-                call(action.id, HaActions.selectOption(action.id, action.option), expected = action.option)
+                call(action.id, HaActions.selectOption(n(action.id), action.option), expected = action.option)
             }
             is HaAction.EditText -> startText(HaTextEntry(HaTextField.VALUE, entity(action.id)?.state.orEmpty(), action.id))
 
@@ -479,7 +510,7 @@ internal class HaController(
             HaAction.SignInFound -> signInToFound()
             HaAction.Retry -> {
                 haptic()
-                HomeAssistantHub.refresh()
+                SmartHomeHub.refresh()
             }
             HaAction.OpenSettings -> openToolSettings()
             is HaAction.OpenInHomeAssistant -> openInHomeAssistant(action.id)
@@ -500,13 +531,13 @@ internal class HaController(
         when (HaDomains.primary(e)) {
             HaPrimary.TOGGLE -> {
                 haptic()
-                val c = HaActions.toggle(id)
+                val c = HaActions.toggle(n(id))
                 call(id, c, expected = HaActions.expectedState(e, c))
             }
             HaPrimary.RUN -> run(id)
             HaPrimary.PRESS -> {
                 haptic()
-                call(id, HaActions.press(id))
+                call(id, HaActions.press(n(id)))
                 _state.update { it.copy(ranAt = it.ranAt + (id to System.currentTimeMillis())) }
             }
             HaPrimary.EXPAND -> dispatch(HaAction.Expand(id))
@@ -518,7 +549,7 @@ internal class HaController(
     private fun run(id: String) {
         val e = entity(id) ?: return
         haptic()
-        call(id, if (e.domain == "script") HaActions.runScript(id) else HaActions.runScene(id))
+        call(id, if (e.domain == "script") HaActions.runScript(n(id)) else HaActions.runScene(n(id)))
         _state.update { it.copy(ranAt = it.ranAt + (id to System.currentTimeMillis())) }
     }
 
@@ -537,11 +568,11 @@ internal class HaController(
     private fun runCoded(id: String, purpose: String, code: String?) {
         haptic()
         val c: HaServiceCall = when {
-            purpose == "lock" -> HaActions.lock(id, code)
-            purpose == "unlock" -> HaActions.unlock(id, code)
-            purpose == "open" -> HaActions.openLock(id, code)
-            purpose == "disarm" -> HaActions.disarm(id, code)
-            purpose.startsWith("arm:") -> HaActions.arm(id, HaActions.ArmMode.valueOf(purpose.removePrefix("arm:")), code)
+            purpose == "lock" -> HaActions.lock(n(id), code)
+            purpose == "unlock" -> HaActions.unlock(n(id), code)
+            purpose == "open" -> HaActions.openLock(n(id), code)
+            purpose == "disarm" -> HaActions.disarm(n(id), code)
+            purpose.startsWith("arm:") -> HaActions.arm(n(id), HaActions.ArmMode.valueOf(purpose.removePrefix("arm:")), code)
             else -> return
         }
         call(id, c, expected = entity(id)?.let { HaActions.expectedState(it, c) })
@@ -551,7 +582,7 @@ internal class HaController(
         val e = entity(id) ?: return
         haptic()
         val chosen = format ?: HaInsertFormat.of(settings().insertFormat)
-        insertText(this.format.insert(e, chosen, HomeAssistantHub.state.value.registry.nameOf(e)))
+        insertText(this.format.insert(e, chosen, SmartHomeHub.state.value.registryOf(e).nameOf(e)))
     }
 
     /**
@@ -578,7 +609,7 @@ internal class HaController(
         }
         scope.launch {
             try {
-                HomeAssistantHub.callService(call)
+                SmartHomeHub.callService(HomeRef.home(id), call)
                 _state.update { it.copy(lastError = null) }
             } catch (e: IOException) {
                 clearPending(id)
@@ -617,7 +648,7 @@ internal class HaController(
         assistJob?.cancel()
         assistJob = scope.launch {
             try {
-                val reply = HomeAssistantHub.assist(sentence, language, _state.value.assist.conversationId)
+                val reply = SmartHomeHub.assist(sentence, language, _state.value.assist.conversationId)
                 _state.update {
                     it.copy(
                         assist = it.assist.copy(
@@ -627,9 +658,11 @@ internal class HaController(
                         ),
                     )
                 }
-                if (reply.failedEntityIds.isNotEmpty()) reply.failedEntityIds.forEach(::shake)
+                // Assist names the home's own entity ids; the tiles go by refs.
+                val home = SmartHomeHub.state.value.assistHome?.key.orEmpty()
+                if (reply.failedEntityIds.isNotEmpty()) reply.failedEntityIds.forEach { shake(HomeRef.of(home, it)) }
                 val now = System.currentTimeMillis()
-                reply.successEntityIds.forEach { changedAt[it] = now }
+                reply.successEntityIds.forEach { changedAt[HomeRef.of(home, it)] = now }
                 if (reply.successEntityIds.isNotEmpty()) rebuild()
             } catch (e: IOException) {
                 _state.update { it.copy(assist = it.assist.copy(pending = false, error = friendly(e))) }
@@ -640,7 +673,7 @@ internal class HaController(
     /** What the AI's tool or a snippet asks: the same path, no panel state. */
     suspend fun assistForTool(sentence: String): HaAssistReply {
         val language = languageTag().substringBefore('-').takeIf { it.isNotBlank() }
-        return HomeAssistantHub.assist(sentence, language, null)
+        return SmartHomeHub.assist(sentence, language, null)
     }
 
     // ---- Camera ------------------------------------------------------------------
@@ -652,7 +685,7 @@ internal class HaController(
         _state.update { it.copy(snapshot = HaSnapshotUi(id, loading = true)) }
         snapshotJob = scope.launch {
             try {
-                val bytes = HomeAssistantHub.snapshot(id)
+                val bytes = SmartHomeHub.snapshot(id)
                 _state.update { s -> if (s.snapshot?.entityId == id) s.copy(snapshot = HaSnapshotUi(id, bytes)) else s }
             } catch (e: IOException) {
                 _state.update { s -> if (s.snapshot?.entityId == id) s.copy(snapshot = HaSnapshotUi(id, error = friendly(e))) else s }
@@ -676,16 +709,31 @@ internal class HaController(
 
     // ---- Links out ---------------------------------------------------------------
 
+    /**
+     * The server the LAN announced becomes a Home Assistant row of the
+     * smart home list, and the browser opens on its sign-in. The row shows
+     * as "sign in" until the code comes back.
+     */
     private fun signInToFound() {
         val found = _state.value.found ?: return
-        val base = found.internal ?: return
+        val base: HaUrl = found.internal ?: return
         haptic()
         scope.launch {
-            repository.setHaInternalUrl(base.base)
-            found.external?.let { repository.setHaExternalUrl(it.base) }
+            val id = ProviderCredential.newId(ProviderTypes.HOME_ASSISTANT.id)
+            val state = HaAuth.newState(base, id)
+            val credential = ProviderCredential(
+                id = id,
+                typeId = ProviderTypes.HOME_ASSISTANT.id,
+                name = found.name,
+                url = base.base,
+                extra = buildMap {
+                    found.external?.let { put(HomeKeys.EXTERNAL_URL, it.base) }
+                    put(HomeKeys.AUTH_STATE, state)
+                    found.uuid?.let { put(HomeKeys.INSTANCE_ID, it) }
+                },
+            )
+            repository.saveProviders(ProviderEdits.saveCredential(repository.settings.first(), credential, ProviderTool.SMART_HOME))
             repository.setHaEnabled(true)
-            val state = HaAuth.newState(base)
-            repository.setHaAuthState(state)
             runCatching {
                 context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(HaAuth.authorizeUrl(base, state))).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             }
@@ -693,8 +741,7 @@ internal class HaController(
     }
 
     private fun openInHomeAssistant(id: String?) {
-        val base: HaUrl = HomeAssistantHub.webUrl() ?: return
-        val url = if (id != null) "${base.base}/history?entity_id=$id" else base.base
+        val url = SmartHomeHub.webUrl(id) ?: return
         runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
     }
 
@@ -715,25 +762,30 @@ internal class HaController(
 
     /**
      * `{ha:entity_id}` or `{ha:entity_id:attribute}`: the last known state, or
-     * null when the tool is off or has never seen the entity. Asks the server
-     * for fresh states when it is connected or can connect in a moment.
+     * null when the tool is off or no home has seen the entity. The entity id
+     * is searched across every home; `{ha:home_key|entity_id}` pins one.
+     * Asks the homes for fresh states when they are connected or can connect
+     * in a moment.
      */
     fun snippetValue(entityId: String, attribute: String?): String? {
         val s = settings()
-        if (!s.enabled || !s.hasToken) return null
-        val hub = HomeAssistantHub
+        val listed = homes()
+        if (!s.enabled || listed.isEmpty()) return null
+        val hub = SmartHomeHub
         hub.attach(app)
         hub.batch {
-            hub.applySettings(s)
-            hub.hold(HomeAssistantHub.Reason.SNIPPET)
+            hub.apply(s, listed)
+            hub.hold(SmartHomeHub.Reason.SNIPPET)
         }
         scope.launch {
             delay(SNIPPET_HOLD_MS)
-            hub.release(HomeAssistantHub.Reason.SNIPPET)
+            hub.release(SmartHomeHub.Reason.SNIPPET)
         }
-        val e = hub.state.value.entities[entityId] ?: return null
+        val all = hub.entitiesWithCache()
+        val ref = if (HomeRef.isRef(entityId)) entityId else all.keys.firstOrNull { HomeRef.native(it) == entityId } ?: return null
+        val e = all[ref] ?: return null
         return if (attribute == null) {
-            format.insert(e, HaInsertFormat.VALUE_UNIT, hub.state.value.registry.nameOf(e))
+            format.insert(e, HaInsertFormat.VALUE_UNIT, (hub.cachedRegistry(e.home) ?: hub.state.value.registryOf(e)).nameOf(e))
         } else {
             e.attributes[attribute]?.let { v -> (v as? kotlinx.serialization.json.JsonPrimitive)?.content ?: v.toString() }
         }

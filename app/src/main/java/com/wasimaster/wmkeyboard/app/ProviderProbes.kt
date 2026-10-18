@@ -19,6 +19,14 @@ import com.wasimaster.wmkeyboard.core.tools.TranslateClient
 import com.wasimaster.wmkeyboard.core.tools.TranslateServerClient
 import com.wasimaster.wmkeyboard.core.tools.GiphyClient
 import com.wasimaster.wmkeyboard.core.tools.KlipyClient
+import com.wasimaster.wmkeyboard.app.homeassistant.HaSignIn
+import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeKeys
+import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.smarthome.HomeHttp
+import com.wasimaster.wmkeyboard.core.smarthome.hue.HueApi
+import com.wasimaster.wmkeyboard.core.smarthome.hue.HueUrl
+import com.wasimaster.wmkeyboard.core.smarthome.smartthings.SmartThingsBackend
+import com.wasimaster.wmkeyboard.ime.homeassistant.HomeBackends
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -92,6 +100,7 @@ internal object ProviderProbes {
             else -> null
         }
         if (call != null) return { withContext(Dispatchers.IO) { call() } }
+        homeProbe(context, type, credential)?.let { return it }
         // The photo services page through their own client, which suspends.
         val photo = when (type.id) {
             ProviderTypes.UNSPLASH.id -> PhotoSource.UNSPLASH
@@ -99,6 +108,40 @@ internal object ProviderProbes {
             else -> return null
         }
         return { PhotoSearchClient.page(photo, PhotoQuery(text = PROBE_WORD, perPage = 1), key) }
+    }
+
+    private fun probe(block: suspend () -> Unit): suspend () -> Unit = block
+
+    /** The cheapest request each home answers with the key it holds; null for a home with nothing to ask yet. */
+    private fun homeProbe(context: Context, type: ProviderType, credential: ProviderCredential): (suspend () -> Unit)? = when (type.id) {
+        ProviderTypes.HOME_ASSISTANT.id -> {
+            if (credential.apiKey.isBlank() && credential.extra[HomeKeys.ACCESS_TOKEN].isNullOrBlank()) {
+                null
+            } else {
+                probe { HaSignIn.test(context, credential).getOrThrow() }
+            }
+        }
+        ProviderTypes.OPENHAB.id -> {
+            val base = credential.url.trim().trimEnd('/').let { if (it.contains("://")) it else "http://$it" }
+            probe { HomeBackends.http(NetSource.OPENHAB).get("$base/rest/", HomeHttp.bearer(credential.apiKey)).require() }
+        }
+        ProviderTypes.HUE.id -> {
+            val base = HueUrl.base(credential.url)
+            if (base == null || credential.apiKey.isBlank()) {
+                null
+            } else {
+                probe { HueApi(HomeBackends.hueHttp(credential.extra[HomeKeys.CERT_SHA256]), { base }, { credential.apiKey }).bridge() ?: error("no bridge") }
+            }
+        }
+        ProviderTypes.SMARTTHINGS.id -> {
+            val token = credential.apiKey.ifBlank { credential.extra[HomeKeys.ACCESS_TOKEN].orEmpty() }
+            if (token.isBlank()) {
+                null
+            } else {
+                probe { HomeBackends.http(NetSource.SMARTTHINGS).get("${SmartThingsBackend.API}/locations", HomeHttp.bearer(token)).require() }
+            }
+        }
+        else -> null
     }
 
     /** A word every provider has something for. */

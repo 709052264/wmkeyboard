@@ -426,7 +426,7 @@
     <string name="ime_tool_notes">Notes</string>
     <string name="ime_tool_location">Location</string>
     <string name="ime_tool_clock">Clock</string>
-    <string name="ime_tool_home_assistant">Home Assistant</string>
+    <string name="ime_tool_home_assistant">Smart home</string>
     <string name="ime_tool_gallery">Gallery</string>
     <!-- Learn from text (#174): the panel that lists words the keyboard does not know yet. -->
     <string name="ime_learn_select_all_action">Select all</string>

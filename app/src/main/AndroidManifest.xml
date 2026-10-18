@@ -200,6 +200,10 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
+        <!-- The Google Home app, which the Home APIs run through; without this
+             entry API 30+ hides it from PackageManager and the smart home tool
+             would offer a Google Home row on a phone that cannot use one. -->
+        <package android:name="com.google.android.apps.chromecast.app" />
         <!-- Speech synthesisers, for the vocabulary card's speaker button when
              Wiktionary has no recording (or the network is not to be used). -->
         <intent>
@@ -340,6 +344,8 @@
                 <data android:scheme="wmkeyboard" android:host="pair" />
                 <!-- Home Assistant's browser sign-in coming back with its code: HaAuth.REDIRECT_URI. -->
                 <data android:scheme="wmkeyboard" android:host="ha-auth" />
+                <!-- SmartThings' sign-in, through the hosted /st/ page: SmartThingsAuth.REDIRECT_URI. -->
+                <data android:scheme="wmkeyboard" android:host="st-auth" />
             </intent-filter>
 
             <!--
