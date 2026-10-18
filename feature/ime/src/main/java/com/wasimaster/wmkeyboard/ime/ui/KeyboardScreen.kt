@@ -13157,7 +13157,10 @@ private fun KeyboardBody(
             // through ColumnScope's own AnimatedVisibility.
             @Composable
             fun BarRowSlot(row: BarRow) {
-                Column(modifier = Modifier.barRowFill(if (row == BarRow.TOOLS) toolsFill else barFill)) {
+                Column(
+                    modifier = Modifier.barRowFill(if (row == BarRow.TOOLS) toolsFill else barFill)
+                        .duetBarTouch(state, onGesturePreview),
+                ) {
                     when (row) {
                         BarRow.TOPBAR -> when {
                             // Before every other case, the toolbar's own
