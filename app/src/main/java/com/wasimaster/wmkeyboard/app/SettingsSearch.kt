@@ -217,6 +217,10 @@ private fun SearchStrings.toolEntry(
     @StringRes title: Int,
     @StringRes subtitle: Int = 0,
     weight: EntryWeight = EntryWeight.DETAIL,
+    // For a title several tool pages share (the provider list's heading): the
+    // keyword table is keyed by title, so words that belong to one tool's copy
+    // of the row are named here instead.
+    @StringRes keywords: Int = 0,
 ): SettingsSearchEntry = SettingsSearchEntry(
     title = getString(title),
     subtitle = if (subtitle == 0) "" else getString(subtitle),
@@ -225,7 +229,8 @@ private fun SearchStrings.toolEntry(
     weight = weight,
     tool = tool,
     titleRes = title,
-    keywords = searchKeywordsFor(title).let { if (it == 0) "" else getString(it) },
+    keywords = (if (keywords != 0) keywords else searchKeywordsFor(title))
+        .let { if (it == 0) "" else getString(it) },
     key = "tool/${tool.name}#${resourceName(title)}",
 )
 
@@ -356,7 +361,7 @@ private fun SearchStrings.typingSuggestionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_number_prediction_title, R.string.typing_number_prediction_subtitle),
         row(R.string.typing_group_octopus_title, R.string.typing_group_octopus_subtitle),
         row(R.string.typing_word_menu_title, R.string.typing_word_menu_subtitle),
-        row(R.string.typing_synonym_sources_title, R.string.typing_synonym_sources_subtitle),
+        row(R.string.typing_synonym_sources_title),
         row(R.string.typing_rank_control_title, R.string.typing_rank_control_subtitle),
         row(R.string.typing_delete_edits_lists_title, R.string.typing_delete_edits_lists_subtitle),
     )
@@ -1278,7 +1283,7 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_shutter_title, R.string.tooldetail_camera_shutter_subtitle),
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_haptics_title, R.string.tooldetail_camera_haptics_subtitle),
     toolEntry(ToolbarTool.DICTIONARY, R.string.tooldetail_dictionary_auto_title, R.string.tooldetail_dictionary_auto_subtitle),
-    toolEntry(ToolbarTool.DICTIONARY, R.string.tooldetail_dictionary_sources_title, R.string.tooldetail_dictionary_sources_subtitle),
+    toolEntry(ToolbarTool.DICTIONARY, R.string.tooldetail_dictionary_sources_title),
     toolEntry(
         ToolbarTool.VOCABULARY,
         R.string.tooldetail_vocab_packs_title,
@@ -1594,8 +1599,15 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
         R.string.tooldetail_layout_nav_one_handed_subtitle,
         weight = EntryWeight.MIRROR,
     ),
-    // Google, DeepL, LibreTranslate and the user's own server are rows of the provider list now.
-    toolEntry(ToolbarTool.TRANSLATE, R.string.providers_group_title, R.string.providers_add_subtitle),
+    // Google, DeepL, LibreTranslate and the user's own server are rows of the provider list now,
+    // so the words that used to find the server's address row find the list.
+    toolEntry(
+        ToolbarTool.TRANSLATE,
+        R.string.providers_group_title,
+        R.string.providers_add_subtitle,
+        keywords = R.string.search_kw_translate_server,
+    ),
+    toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_deepl_write_title, R.string.tooldetail_deepl_write_subtitle),
 )
 
 /** Rows on the tool pages, from Translate through the AI tool. */
