@@ -6826,7 +6826,6 @@
     <string name="theme_parts_strip_subtitle">Eliminar relleno, colores de palabra y tamaño</string>
     <string name="theme_parts_toolbar_subtitle">Rellenos de herramientas, iconos, forma, borde</string>
     <string name="theme_pick_hint">Pulsa una tecla, una herramienta o la barra</string>
-    <string name="theme_pick_start_desc">Elige una parte del teclado para darle estilo</string>
     <string name="theme_pick_start_subtitle">Pulsa una tecla, una herramienta o la barra de sugerencias en la vista previa para darle estilo</string>
     <string name="theme_pick_start_title">Elegir en el teclado</string>
     <string name="theme_pick_strip_sample_words">Hola,Gracias,De acuerdo</string>

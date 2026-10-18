@@ -6815,7 +6815,6 @@
     <string name="theme_parts_strip_subtitle">Kitöltés, szószín és méret eltávolítása</string>
     <string name="theme_parts_toolbar_subtitle">Eszközkitöltések, ikonok, alakzat, szegély</string>
     <string name="theme_pick_hint">Nyomjon meg egy billentyűt, egy eszközt vagy a sávot</string>
-    <string name="theme_pick_start_desc">Válassza ki a billentyűzet egy részét a stílushoz</string>
     <string name="theme_pick_start_subtitle">Nyomj meg egy billentyűt, egy eszközt vagy a javaslatsávot az előnézeten a stílus beállításához</string>
     <string name="theme_pick_start_title">Válasszon a billentyűzeten</string>
     <string name="theme_pick_strip_sample_words">Helló,Köszönöm,Rendben</string>

@@ -6813,7 +6813,6 @@
     <string name="theme_parts_strip_subtitle">เติมแถบ สีคำ และขนาด</string>
     <string name="theme_parts_toolbar_subtitle">สีเติมแถบเครื่องมือ, ไอคอน, รูปร่าง, ขอบ</string>
     <string name="theme_pick_hint">กดปุ่ม เครื่องมือ หรือแถบ</string>
-    <string name="theme_pick_start_desc">เลือกส่วนของแป้นพิมพ์เพื่อปรับแต่งสไตล์</string>
     <string name="theme_pick_start_subtitle">กดปุ่ม เครื่องมือ หรือแถบคำแนะนำบนตัวอย่างเพื่อปรับแต่งสไตล์</string>
     <string name="theme_pick_start_title">เลือกบนแป้นพิมพ์</string>
     <string name="theme_pick_strip_sample_words">สวัสดี,ขอบคุณ,ตกลง</string>

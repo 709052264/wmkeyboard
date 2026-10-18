@@ -6818,7 +6818,6 @@
     <string name="theme_parts_strip_subtitle">Fjarlægja fyllingu, orðaliti og stærð</string>
     <string name="theme_parts_toolbar_subtitle">Fyllingar verkfæra, táknmyndir, lögun, jaðar</string>
     <string name="theme_pick_hint">Ýttu á takka, verkfæri eða ræmuna</string>
-    <string name="theme_pick_start_desc">Veldu hluta af lyklaborðinu til að stílfæra</string>
     <string name="theme_pick_start_subtitle">Ýttu á takka, verkfæri eða tillögustikuna í forskoðuninni til að stílfæra hana</string>
     <string name="theme_pick_start_title">Veldu á lyklaborðinu</string>
     <string name="theme_pick_strip_sample_words">Halló,Takk,Allt í lagi</string>

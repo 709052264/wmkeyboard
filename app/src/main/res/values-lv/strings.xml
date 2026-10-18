@@ -6827,7 +6827,6 @@
     <string name="theme_parts_strip_subtitle">Joslas aizpildījums, vārdu krāsas un izmērs</string>
     <string name="theme_parts_toolbar_subtitle">Rīku aizpildījums, ikonas, forma, apmale</string>
     <string name="theme_pick_hint">Nospiediet taustiņu, rīku vai joslu</string>
-    <string name="theme_pick_start_desc">Izvēlieties tastatūras daļu, kurai piešķirt stilu</string>
     <string name="theme_pick_start_subtitle">Nospiediet taustiņu, rīku vai ieteikumu joslu priekšskatījumā, lai to stilizētu</string>
     <string name="theme_pick_start_title">Izvēlieties uz tastatūras</string>
     <string name="theme_pick_strip_sample_words">Sveiki,Paldies,Labi</string>

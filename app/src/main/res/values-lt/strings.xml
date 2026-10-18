@@ -6821,7 +6821,6 @@
     <string name="theme_parts_strip_subtitle">Pašalinti užpildą, žodžių spalvas ir dydį</string>
     <string name="theme_parts_toolbar_subtitle">Įrankių užpildai, piktogramos, forma, kraštinė</string>
     <string name="theme_pick_hint">Paspauskite klavišą, įrankį arba juostą</string>
-    <string name="theme_pick_start_desc">Pasirinkite klaviatūros dalį, kuriai norite pritaikyti stilių</string>
     <string name="theme_pick_start_subtitle">Norėdami pritaikyti stilių, peržiūroje paspauskite klavišą, įrankį arba pasiūlymų juostą</string>
     <string name="theme_pick_start_title">Pasirinkti klaviatūroje</string>
     <string name="theme_pick_strip_sample_words">Labas,Ačiū,Gerai</string>

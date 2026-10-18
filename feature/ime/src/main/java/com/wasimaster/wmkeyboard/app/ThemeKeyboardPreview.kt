@@ -371,8 +371,11 @@ fun ThemeKeyboardPreview(
  * Share of the screen's height the miniature may take. The mock-up it replaces
  * was about a quarter of a phone's height; a working keyboard earns a little
  * more, and stops well short of pushing the first section off the screen.
+ * Raised from 0.30 so that on a phone the cap does not bind and the miniature
+ * fills the width it is given (#769): held to 30%, it drew narrower than the
+ * screen with a margin either side, every key a size the keyboard never is.
  */
-private const val MINIATURE_HEIGHT_SHARE = 0.30f
+private const val MINIATURE_HEIGHT_SHARE = 0.40f
 
 /**
  * The callbacks the keyboard is given, held for the life of one preview so

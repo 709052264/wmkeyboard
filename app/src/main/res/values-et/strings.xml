@@ -6829,7 +6829,6 @@
     <string name="theme_parts_strip_subtitle">Riba täide, sõnade värvid ja suurus</string>
     <string name="theme_parts_toolbar_subtitle">Tööriistade täited, ikoonid, kuju, ääris</string>
     <string name="theme_pick_hint">Vajutage klahvi, tööriista või riba</string>
-    <string name="theme_pick_start_desc">Vali klaviatuuri osa, mida kujundada</string>
     <string name="theme_pick_start_subtitle">Stiili muutmiseks vajutage eelvaates klahvi, tööriista või soovituste riba</string>
     <string name="theme_pick_start_title">Vali klaviatuuril</string>
     <string name="theme_pick_strip_sample_words">Tere,Aitäh,Okei</string>

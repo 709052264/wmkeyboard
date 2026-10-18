@@ -6829,7 +6829,6 @@
     <string name="theme_parts_strip_subtitle">ഫിൽ, വാക്ക് നിറങ്ങൾ, വലിപ്പം എന്നിവ നീക്കം ചെയ്യുക</string>
     <string name="theme_parts_toolbar_subtitle">ടൂൾ ഫില്ലുകൾ, ഐക്കണുകൾ, ആകൃതി, ബോർഡർ</string>
     <string name="theme_pick_hint">ഒരു കീ, ഒരു ടൂൾ അല്ലെങ്കിൽ സ്ട്രിപ്പ് അമർത്തുക</string>
-    <string name="theme_pick_start_desc">കീബോർഡിന്റെ ഒരു ഭാഗം തിരഞ്ഞെടുത്ത് സ്റ്റൈൽ ചെയ്യുക</string>
     <string name="theme_pick_start_subtitle">ഒരു കീ, ടൂൾ അല്ലെങ്കിൽ പ്രിവ്യൂവിലെ നിർദ്ദേശ സ്ട്രിപ്പ് എന്നിവയിൽ അമർത്തി അത് സ്റ്റൈൽ ചെയ്യുക</string>
     <string name="theme_pick_start_title">കീബോർഡിൽ നിന്ന് തിരഞ്ഞെടുക്കുക</string>
     <string name="theme_pick_strip_sample_words">ഹലോ,നന്ദി,ശരി</string>

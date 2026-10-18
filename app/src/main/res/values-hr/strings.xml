@@ -6828,7 +6828,6 @@
     <string name="theme_parts_strip_subtitle">Ukloni ispunu, boje riječi i veličinu</string>
     <string name="theme_parts_toolbar_subtitle">Ispune alata, ikone, oblik, obrub</string>
     <string name="theme_pick_hint">Pritisnite tipku, alat ili traku</string>
-    <string name="theme_pick_start_desc">Odaberite dio tipkovnice za stiliziranje</string>
     <string name="theme_pick_start_subtitle">Pritisnite tipku, alat ili traku prijedloga na pregledu kako biste ga stilizirali</string>
     <string name="theme_pick_start_title">Odaberite na tipkovnici</string>
     <string name="theme_pick_strip_sample_words">Pozdrav,Hvala,U redu</string>

@@ -6824,7 +6824,6 @@
     <string name="theme_parts_strip_subtitle">Fjern fyll, ordfarger og størrelse</string>
     <string name="theme_parts_toolbar_subtitle">Verktøyfyll, ikoner, form, kant</string>
     <string name="theme_pick_hint">Trykk på en tast, et verktøy eller stripen</string>
-    <string name="theme_pick_start_desc">Velg en del av tastaturet som skal styles</string>
     <string name="theme_pick_start_subtitle">Trykk på en tast, et verktøy eller forslagslinjen i forhåndsvisningen for å style den</string>
     <string name="theme_pick_start_title">Velg på tastaturet</string>
     <string name="theme_pick_strip_sample_words">Hei,Takk,Ok</string>

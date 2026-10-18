@@ -6827,7 +6827,6 @@
     <string name="theme_parts_strip_subtitle">Fältfyllning, ordfärger och storlek</string>
     <string name="theme_parts_toolbar_subtitle">Verktygsfyllningar, ikoner, form, kant</string>
     <string name="theme_pick_hint">Tryck på en tangent, ett verktyg eller listen</string>
-    <string name="theme_pick_start_desc">Välj en del av tangentbordet att styla</string>
     <string name="theme_pick_start_subtitle">Tryck på en tangent, ett verktyg eller förslagsfältet i förhandsgranskningen för att styla det</string>
     <string name="theme_pick_start_title">Välj på tangentbordet</string>
     <string name="theme_pick_strip_sample_words">Hej,Tack,Okej</string>

@@ -6835,7 +6835,6 @@
     <string name="theme_parts_strip_subtitle">स्ट्रिप फिल, शब्द के रंग और आकार</string>
     <string name="theme_parts_toolbar_subtitle">टूल फिल, आइकन, आकार, बॉर्डर</string>
     <string name="theme_pick_hint">कोई कुंजी, टूल या स्ट्रिप दबाएं</string>
-    <string name="theme_pick_start_desc">स्टाइल करने के लिए कीबोर्ड का एक हिस्सा चुनें</string>
     <string name="theme_pick_start_subtitle">इसे स्टाइल करने के लिए प्रीव्यू पर किसी कुंजी, टूल या सुझाव पट्टी को दबाएं</string>
     <string name="theme_pick_start_title">कीबोर्ड पर चुनें</string>
     <string name="theme_pick_strip_sample_words">नमस्ते,धन्यवाद,ठीक है</string>

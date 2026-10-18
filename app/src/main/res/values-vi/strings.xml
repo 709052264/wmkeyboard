@@ -6814,7 +6814,6 @@
     <string name="theme_parts_strip_subtitle">Loại bỏ màu nền, màu từ và kích thước</string>
     <string name="theme_parts_toolbar_subtitle">Màu nền công cụ, biểu tượng, hình dạng, đường viền</string>
     <string name="theme_pick_hint">Nhấn một phím, một công cụ hoặc thanh công cụ</string>
-    <string name="theme_pick_start_desc">Chọn một phần của bàn phím để tạo kiểu</string>
     <string name="theme_pick_start_subtitle">Nhấn vào một phím, một công cụ hoặc dải gợi ý trên bản xem trước để tạo kiểu cho nó</string>
     <string name="theme_pick_start_title">Chọn trên bàn phím</string>
     <string name="theme_pick_strip_sample_words">Xin chào,Cảm ơn,Được</string>

@@ -6828,7 +6828,6 @@
     <string name="theme_parts_strip_subtitle">حذف رنگ پس‌زمینه، رنگ کلمات و اندازه</string>
     <string name="theme_parts_toolbar_subtitle">پرکننده‌های ابزار، آیکون‌ها، شکل، حاشیه</string>
     <string name="theme_pick_hint">یک کلید، یک ابزار یا نوار را فشار دهید</string>
-    <string name="theme_pick_start_desc">بخشی از صفحه‌کلید را برای استایل‌دهی انتخاب کنید</string>
     <string name="theme_pick_start_subtitle">برای استایل‌دهی، یک کلید، ابزار یا نوار پیشنهاد را در پیش‌نمایش فشار دهید</string>
     <string name="theme_pick_start_title">انتخاب روی صفحه‌کلید</string>
     <string name="theme_pick_strip_sample_words">سلام,ممنون,باشه</string>

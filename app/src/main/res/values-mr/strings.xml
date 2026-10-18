@@ -6823,7 +6823,6 @@
     <string name="theme_parts_strip_subtitle">स्ट्रिप फिल, शब्दांचे रंग आणि आकार</string>
     <string name="theme_parts_toolbar_subtitle">टूल फिल, आयकॉन्स, आकार, बॉर्डर</string>
     <string name="theme_pick_hint">एक की, एक टूल किंवा स्ट्रिप दाबा</string>
-    <string name="theme_pick_start_desc">स्टाईल करण्यासाठी कीबोर्डचा एक भाग निवडा</string>
     <string name="theme_pick_start_subtitle">प्रीव्ह्यूवर एखादी की, टूल किंवा सूचना पट्टी निवडून तिला स्टाईल करा</string>
     <string name="theme_pick_start_title">कीबोर्डवर निवडा</string>
     <string name="theme_pick_strip_sample_words">नमस्कार,धन्यवाद,ठीक आहे</string>

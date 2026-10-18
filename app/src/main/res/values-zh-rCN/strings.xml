@@ -6810,7 +6810,6 @@
     <string name="theme_parts_strip_subtitle">工具栏填充、文字颜色和大小</string>
     <string name="theme_parts_toolbar_subtitle">工具填充、图标、形状、边框</string>
     <string name="theme_pick_hint">按下一个键、工具或工具条</string>
-    <string name="theme_pick_start_desc">选择键盘的一部分进行样式设置</string>
     <string name="theme_pick_start_subtitle">在预览中按下按键、工具或建议栏以进行样式设置</string>
     <string name="theme_pick_start_title">在键盘上选择</string>
     <string name="theme_pick_strip_sample_words">你好,谢谢,好的</string>

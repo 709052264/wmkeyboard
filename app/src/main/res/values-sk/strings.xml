@@ -6822,7 +6822,6 @@
     <string name="theme_parts_strip_subtitle">Odstrániť výplň, farby slov a veľkosť</string>
     <string name="theme_parts_toolbar_subtitle">Výplne nástrojov, ikony, tvar, okraj</string>
     <string name="theme_pick_hint">Stlačte kláves, nástroj alebo pásik</string>
-    <string name="theme_pick_start_desc">Vyberte časť klávesnice, ktorú chcete upraviť</string>
     <string name="theme_pick_start_subtitle">Stlačte kláves, nástroj alebo panel návrhov v ukážke, aby ste ho upravili</string>
     <string name="theme_pick_start_title">Vyberte na klávesnici</string>
     <string name="theme_pick_strip_sample_words">Ahoj,Ďakujem,Dobre</string>

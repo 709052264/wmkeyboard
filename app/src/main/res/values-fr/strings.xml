@@ -6814,7 +6814,6 @@
     <string name="theme_parts_strip_subtitle">Supprimer le remplissage, les couleurs des mots et la taille</string>
     <string name="theme_parts_toolbar_subtitle">Remplissages des outils, icônes, forme, bordure</string>
     <string name="theme_pick_hint">Appuyez sur une touche, un outil ou la barre</string>
-    <string name="theme_pick_start_desc">Sélectionnez une partie du clavier à personnaliser</string>
     <string name="theme_pick_start_subtitle">Appuyez sur une touche, un outil ou la barre de suggestions sur l\'aperçu pour le personnaliser</string>
     <string name="theme_pick_start_title">Choisir sur le clavier</string>
     <string name="theme_pick_strip_sample_words">Bonjour,Merci,D\'accord</string>

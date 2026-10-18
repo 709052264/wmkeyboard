@@ -6818,7 +6818,6 @@
     <string name="theme_parts_strip_subtitle">Remover preenchimento, cores das palavras e tamanho</string>
     <string name="theme_parts_toolbar_subtitle">Preenchimentos de ferramentas, ícones, forma, borda</string>
     <string name="theme_pick_hint">Pressione uma tecla, uma ferramenta ou a barra</string>
-    <string name="theme_pick_start_desc">Escolha uma parte do teclado para estilizar</string>
     <string name="theme_pick_start_subtitle">Pressione uma tecla, uma ferramenta ou a barra de sugestões na pré-visualização para estilizá-la</string>
     <string name="theme_pick_start_title">Escolha no teclado</string>
     <string name="theme_pick_strip_sample_words">Olá,Obrigado,Ok</string>

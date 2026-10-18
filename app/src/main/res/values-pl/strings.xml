@@ -6822,7 +6822,6 @@
     <string name="theme_parts_strip_subtitle">Wypełnienie paska, kolory słów i rozmiar</string>
     <string name="theme_parts_toolbar_subtitle">Wypełnienia narzędzi, ikony, kształt, obramowanie</string>
     <string name="theme_pick_hint">Naciśnij klawisz, narzędzie lub pasek</string>
-    <string name="theme_pick_start_desc">Wybierz część klawiatury do stylizacji</string>
     <string name="theme_pick_start_subtitle">Naciśnij klawisz, narzędzie lub pasek sugestii na podglądzie, aby go wystylizować</string>
     <string name="theme_pick_start_title">Wybierz na klawiaturze</string>
     <string name="theme_pick_strip_sample_words">Witaj,Dzięki,Okej</string>

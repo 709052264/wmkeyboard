@@ -6820,7 +6820,6 @@
     <string name="theme_parts_strip_subtitle">Isian strip, warna kata, dan ukuran</string>
     <string name="theme_parts_toolbar_subtitle">Isian alat, ikon, bentuk, batas</string>
     <string name="theme_pick_hint">Tekan tombol, alat, atau strip</string>
-    <string name="theme_pick_start_desc">Pilih bagian keyboard untuk diberi gaya</string>
     <string name="theme_pick_start_subtitle">Tekan tombol, alat, atau strip saran pada pratinjau untuk menatanya</string>
     <string name="theme_pick_start_title">Pilih di papan ketik</string>
     <string name="theme_pick_strip_sample_words">Halo,Terima kasih,Oke</string>

@@ -6825,7 +6825,6 @@
     <string name="theme_parts_strip_subtitle">Polnilo traku, barve besed in velikost</string>
     <string name="theme_parts_toolbar_subtitle">Polnila orodij, ikone, oblika, obroba</string>
     <string name="theme_pick_hint">Pritisnite tipko, orodje ali trak</string>
-    <string name="theme_pick_start_desc">Izberite del tipkovnice za oblikovanje</string>
     <string name="theme_pick_start_subtitle">Pritisnite tipko, orodje ali vrstico s predlogi na predogledu, da ga oblikujete</string>
     <string name="theme_pick_start_title">Izberite na tipkovnici</string>
     <string name="theme_pick_strip_sample_words">Pozdravljeni,Hvala,V redu</string>

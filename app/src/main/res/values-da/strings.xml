@@ -6822,7 +6822,6 @@
     <string name="theme_parts_strip_subtitle">Strimmelfyld, ordfarver og størrelse</string>
     <string name="theme_parts_toolbar_subtitle">Værktøjsfyld, ikoner, form, kant</string>
     <string name="theme_pick_hint">Tryk på en tast, et værktøj eller båndet</string>
-    <string name="theme_pick_start_desc">Vælg en del af tastaturet, der skal styles</string>
     <string name="theme_pick_start_subtitle">Tryk på en tast, et værktøj eller forslagsstriben på forhåndsvisningen for at style den</string>
     <string name="theme_pick_start_title">Vælg på tastaturet</string>
     <string name="theme_pick_strip_sample_words">Hej,Tak,Okay</string>

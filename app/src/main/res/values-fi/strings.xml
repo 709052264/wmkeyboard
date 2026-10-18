@@ -6817,7 +6817,6 @@
     <string name="theme_parts_strip_subtitle">Poista täyttö, sanavärit ja koko</string>
     <string name="theme_parts_toolbar_subtitle">Työkalujen täytöt, kuvakkeet, muoto, reunus</string>
     <string name="theme_pick_hint">Paina näppäintä, työkalua tai palkkia</string>
-    <string name="theme_pick_start_desc">Valitse näppäimistön osa, jota haluat muokata</string>
     <string name="theme_pick_start_subtitle">Paina näppäintä, työkalua tai ehdotuspalkkia esikatselussa muotoillaksesi sen</string>
     <string name="theme_pick_start_title">Valitse näppäimistöltä</string>
     <string name="theme_pick_strip_sample_words">Hei,Kiitos,Okei</string>

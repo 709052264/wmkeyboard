@@ -6816,7 +6816,6 @@
     <string name="theme_parts_strip_subtitle">Rimuovi riempimento, colori delle parole e dimensioni</string>
     <string name="theme_parts_toolbar_subtitle">Riempimenti strumenti, icone, forma, bordo</string>
     <string name="theme_pick_hint">Premi un tasto, uno strumento o la barra</string>
-    <string name="theme_pick_start_desc">Scegli una parte della tastiera da personalizzare</string>
     <string name="theme_pick_start_subtitle">Premi un tasto, uno strumento o la barra dei suggerimenti sull\'anteprima per personalizzarlo</string>
     <string name="theme_pick_start_title">Scegli sulla tastiera</string>
     <string name="theme_pick_strip_sample_words">Ciao,Grazie,Ok</string>

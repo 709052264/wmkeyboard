@@ -6817,7 +6817,6 @@
     <string name="theme_parts_strip_subtitle">塗りつぶし、単語の色、サイズを削除</string>
     <string name="theme_parts_toolbar_subtitle">ツールの塗りつぶし、アイコン、形状、境界線</string>
     <string name="theme_pick_hint">キー、ツール、またはストリップを押してください</string>
-    <string name="theme_pick_start_desc">スタイルを設定するキーボードのパーツを選択してください</string>
     <string name="theme_pick_start_subtitle">プレビュー上のキー、ツール、または候補ストリップを押してスタイルを設定します</string>
     <string name="theme_pick_start_title">キーボード上で選択</string>
     <string name="theme_pick_strip_sample_words">こんにちは,ありがとう,OK</string>

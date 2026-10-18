@@ -263,7 +263,7 @@
     <string name="theme_border_width_title">Border width</string>
 
     <!-- Theme editor: accent colour and popups. -->
-    <string name="theme_accent_section_title">Accent and popups</string>
+    <string name="theme_accent_section_title">Accent</string>
     <string name="theme_accent_title">Accent</string>
     <string name="theme_accent_body">This colors the shift key when it is on, the active tools, and the buttons in the panels.</string>
     <string name="theme_gesture_trail_title">Gesture trail</string>
@@ -500,14 +500,17 @@
     <!-- Theme editor: picking a part of the keyboard on the preview (#265). -->
     <string name="theme_pick_start_title">Pick on the keyboard</string>
     <string name="theme_pick_start_subtitle">Press a key, a tool or the suggestion strip on the preview to style it</string>
-    <string name="theme_pick_start_desc">Pick a part of the keyboard to style</string>
     <string name="theme_editor_undo_desc">Undo the last change to this theme</string>
     <string name="theme_editor_redo_desc">Redo the change you undid</string>
     <string name="theme_pick_hint">Press a key, a tool or the strip</string>
     <!-- Words the preview's suggestion strip shows while the strip is being styled, separated by commas. -->
     <string name="theme_pick_strip_sample_words">Hello,Thanks,Okay</string>
-    <string name="theme_parts_section_title">Toolbar and strip</string>
-    <string name="theme_parts_section_body">The bar above the keys has a sheet of its own for each of its two faces. Pressing a tool or a suggestion on the preview opens the same sheets.</string>
+    <string name="theme_parts_section_title">Toolbar, strip and popups</string>
+    <string name="theme_parts_section_body">The bar above the keys has a section of its own for each of its two faces, and so do the popups. Pressing a tool or a suggestion on the preview opens the same sections, under the preview.</string>
+    <!-- Issue #769: the popups as a part of their own in the theme editor, and the worded button that starts picking. -->
+    <string name="theme_popup_part_title">Popups</string>
+    <string name="theme_parts_popup_subtitle">The bubble over a pressed key and the press and hold alternates</string>
+    <string name="theme_pick_start_label">Tap a part to style it</string>
     <string name="theme_parts_toolbar_subtitle">Tool fills, icons, shape, border</string>
     <string name="theme_parts_strip_subtitle">Strip fill, word colors and size</string>
     <string name="theme_strip_sheet_title">Suggestion strip</string>

@@ -6840,7 +6840,6 @@
     <string name="theme_parts_strip_subtitle">স্ট্রিপ ফিল, শব্দের রঙ এবং আকার</string>
     <string name="theme_parts_toolbar_subtitle">টুল ফিল, আইকন, শেপ, বর্ডার</string>
     <string name="theme_pick_hint">একটি কি, একটি টুল বা স্ট্রিপে চাপ দিন</string>
-    <string name="theme_pick_start_desc">স্টাইল করার জন্য কীবোর্ডের একটি অংশ বেছে নিন</string>
     <string name="theme_pick_start_subtitle">প্রিভিউতে কোনো কী, টুল বা সাজেশন স্ট্রিপ টিপে সেটিকে স্টাইল করুন</string>
     <string name="theme_pick_start_title">কীবোর্ডে বেছে নিন</string>
     <string name="theme_pick_strip_sample_words">হ্যালো,ধন্যবাদ,ঠিক আছে</string>

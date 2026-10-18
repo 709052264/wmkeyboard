@@ -235,12 +235,12 @@ Six slots when Key popup (under Key press) is on, five without it, one image eac
 
 | Control | What it does |
 |---|---|
-| Pick on keyboard | Turns the pinned preview into a picker: pressing a key opens its sheet. Chips above the preview switch it to Letters, Symbols, Symbols 2, Fn (when the layout has one) or any panel that is a grid of keys |
+| Pick on keyboard | Turns the pinned preview into a picker: pressing a key opens its style under the preview. Chips above the preview switch it to Letters, Symbols, Symbols 2, Fn (when the layout has one) or any panel that is a grid of keys |
 | Add a key | Dialog: type a letter, or pick one of Enter, Space, Shift, Delete, Symbols, Emoji, Languageswitch (the globe key) |
-| A key's row | Opens that key's own style sheet, below |
+| A key's row | Opens that key's own style, below |
 | Bin icon | Drops the whole override for that key |
 
-A key's sheet:
+A key's style:
 
 | Control | What it does |
 |---|---|
@@ -266,12 +266,19 @@ A letter's style follows that letter onto every layout that has it. A key that d
 
 Purely decorative images laid over the keys. The layer takes no touches, so typing goes straight through. You adjust each sticker's five sliders over a live miniature of the board. Positions are fractions of the key grid rather than pixels, so a sticker keeps its place across widths and orientations.
 
-### Accent & popups
+### Accent
 
 | Setting | Control | Default |
 |---|---|---|
 | Accent | Color | `#8AB4F8` |
 | Gesture trail | Color, alpha, Auto → Accent | Auto |
+
+### Popups
+
+A section of its own, opened from the **Popups** row under [Toolbar, strip and popups](#toolbar-strip-and-popups) or the **Popups** chip while picking. It opens with a drawing of the key bubble and the press-and-hold alternates in the draft theme.
+
+| Setting | Control | Default |
+|---|---|---|
 | Popup background | Color, alpha, Auto → computed scrim | Auto |
 | Popup text | Color, Auto → Key text | Auto |
 | Popup shape | Row → the same picker dialog Key shape uses | follows <SettingsPath path="Key press / Key popup / Popup shape" /> |
@@ -282,15 +289,18 @@ Purely decorative images laid over the keys. The layer takes no touches, so typi
 
 Accent drives the shift-on tint, the active-tool highlight, and buttons across the panels. Popup shape covers every popup surface, from the character bubble to the long-press alternates, the language list, and the panel menus. Menu shape is the exception. On **Automatic**, the list menus take Popup shape only when it's one of the four plain outlines (Rounded, Square, Cut, Squircle), and fall back to Rounded otherwise, since a slanted or scalloped menu clips its own rows. Picking a shape here overrules that.
 
-### Toolbar and strip
+### Toolbar, strip and popups
+
+Each part opens as a section on the page under the pinned preview, one at a time, closed by Back or the × beside its title.
 
 | Control | What it does |
 |---|---|
-| Toolbar | Opens the toolbar's sheet, below |
-| Suggestion strip | Opens the strip's sheet, below. The preview shows a few sample words on the strip while it's open |
-| Pick on the keyboard | The same picker as under Single-key styles: a tool on the preview opens the toolbar's sheet, a suggestion the strip's, a key its own style. Also the pencil in the preview's corner |
+| Toolbar | Opens the toolbar's section, below |
+| Suggestion strip | Opens the strip's section, below. The preview shows a few sample words on the strip while it's open |
+| Popups | Opens the [popups](#popups) section |
+| Pick on the keyboard | The same picker as under Single-key styles: a tool on the preview opens the toolbar's section, a suggestion the strip's, a key its own style. Also the **Tap a part to style it** button under the preview |
 
-The toolbar's sheet:
+The toolbar's section:
 
 | Setting | Control | Default |
 |---|---|---|
@@ -302,9 +312,9 @@ The toolbar's sheet:
 | Tool outline | Color, alpha, Auto → no outline | Auto |
 | Tool outline width *(outline color set)* | Slider, 0–3dp | 0dp |
 
-**Toolbar background** paints the tools' own row and the suggestion strip while it shows the tools. The strip's own fill (**Suggestion strip**, on the strip's sheet) comes back the moment words arrive.
+**Toolbar background** paints the tools' own row and the suggestion strip while it shows the tools. The strip's own fill (**Suggestion strip**, on the strip's section) comes back the moment words arrive.
 
-The strip's sheet:
+The strip's section:
 
 | Setting | Control | Default |
 |---|---|---|
@@ -323,7 +333,7 @@ The strip's sheet:
 | Secondary text | Color, alpha, Auto → Suggestion text at 65% opacity | Auto |
 | Dividers | Color, alpha, Auto → Suggestion text at 25% opacity | Auto |
 
-"Cards & search bar" covers suggestion chips and the search bar surface across the tool panels. The strip's own colours moved to the strip's sheet under [Toolbar and strip](#toolbar-and-strip).
+"Cards & search bar" covers suggestion chips and the search bar surface across the tool panels. The strip's own colours moved to the strip's section under [Toolbar, strip and popups](#toolbar-strip-and-popups).
 
 Any row still on Auto shows an "Auto" label instead of a swatch; once you override it, its [color picker](/themes/editor/#the-color-picker) gains an **Auto** button next to Apply that clears the override again. See [Theme editor](/themes/editor/#options) for the exact fallback formula behind every Auto field.
 

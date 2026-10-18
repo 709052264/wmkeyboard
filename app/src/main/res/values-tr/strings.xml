@@ -6813,7 +6813,6 @@
     <string name="theme_parts_strip_subtitle">Dolguyu, kelime renklerini ve boyutu kaldır</string>
     <string name="theme_parts_toolbar_subtitle">Araç dolguları, simgeler, şekil, kenarlık</string>
     <string name="theme_pick_hint">Bir tuşa, bir araca veya şeride basın</string>
-    <string name="theme_pick_start_desc">Klavye üzerinde stil verilecek bir bölüm seçin</string>
     <string name="theme_pick_start_subtitle">Stilini belirlemek için önizlemedeki bir tuşa, bir araca veya öneri şeridine basın</string>
     <string name="theme_pick_start_title">Klavyeden seç</string>
     <string name="theme_pick_strip_sample_words">Merhaba,Teşekkürler,Tamam</string>

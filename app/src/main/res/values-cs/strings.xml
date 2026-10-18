@@ -6818,7 +6818,6 @@
     <string name="theme_parts_strip_subtitle">Výplň pruhu, barvy slov a velikost</string>
     <string name="theme_parts_toolbar_subtitle">Výplně nástrojů, ikony, tvar, ohraničení</string>
     <string name="theme_pick_hint">Stiskněte klávesu, nástroj nebo lištu</string>
-    <string name="theme_pick_start_desc">Vyberte část klávesnice, kterou chcete stylovat</string>
     <string name="theme_pick_start_subtitle">Stiskněte klávesu, nástroj nebo panel návrhů v náhledu pro úpravu stylu</string>
     <string name="theme_pick_start_title">Vybrat na klávesnici</string>
     <string name="theme_pick_strip_sample_words">Ahoj,Díky,Dobře</string>

@@ -6824,7 +6824,6 @@
     <string name="theme_parts_strip_subtitle">స్ట్రిప్ ఫిల్, వర్డ్ కలర్స్ మరియు సైజ్</string>
     <string name="theme_parts_toolbar_subtitle">టూల్ ఫిల్స్, ఐకాన్‌లు, ఆకారం, బోర్డర్</string>
     <string name="theme_pick_hint">కీ, టూల్ లేదా స్ట్రిప్‌ను నొక్కండి</string>
-    <string name="theme_pick_start_desc">స్టైల్ చేయడానికి కీబోర్డ్‌లో ఒక భాగాన్ని ఎంచుకోండి</string>
     <string name="theme_pick_start_subtitle">ప్రివ్యూలో కీని, టూల్‌ను లేదా సలహా స్ట్రిప్‌ను స్టైల్ చేయడానికి దానిపై నొక్కండి</string>
     <string name="theme_pick_start_title">కీబోర్డ్‌లో ఎంచుకోండి</string>
     <string name="theme_pick_strip_sample_words">హలో,ధన్యవాదాలు,సరే</string>

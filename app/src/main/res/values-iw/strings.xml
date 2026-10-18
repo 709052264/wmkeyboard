@@ -6821,7 +6821,6 @@
     <string name="theme_parts_strip_subtitle">הסר מילוי, צבעי מילים וגודל</string>
     <string name="theme_parts_toolbar_subtitle">מילוי כלי, סמלים, צורה, גבול</string>
     <string name="theme_pick_hint">לחץ על מקש, כלי או על הסרגל</string>
-    <string name="theme_pick_start_desc">בחר חלק במקלדת לעיצוב</string>
     <string name="theme_pick_start_subtitle">לחץ על מקש, כלי או סרגל ההצעות בתצוגה המקדימה כדי לעצב אותו</string>
     <string name="theme_pick_start_title">בחר במקלדת</string>
     <string name="theme_pick_strip_sample_words">שלום,תודה,בסדר</string>

@@ -6818,7 +6818,6 @@
     <string name="theme_parts_strip_subtitle">Заповнення панелі, кольори слів і розмір</string>
     <string name="theme_parts_toolbar_subtitle">Заливка інструментів, значки, форма, межі</string>
     <string name="theme_pick_hint">Натисніть клавішу, інструмент або смужку</string>
-    <string name="theme_pick_start_desc">Виберіть частину клавіатури для оформлення</string>
     <string name="theme_pick_start_subtitle">Натисніть клавішу, інструмент або смужку пропозицій у попередньому перегляді, щоб змінити стиль</string>
     <string name="theme_pick_start_title">Вибрати на клавіатурі</string>
     <string name="theme_pick_strip_sample_words">Привіт,Дякую,Добре</string>

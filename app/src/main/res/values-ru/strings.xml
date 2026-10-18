@@ -6823,7 +6823,6 @@
     <string name="theme_parts_strip_subtitle">Заливка полосы, цвета слов и размер</string>
     <string name="theme_parts_toolbar_subtitle">Заливка инструментов, значки, форма, граница</string>
     <string name="theme_pick_hint">Нажмите клавишу, инструмент или полосу</string>
-    <string name="theme_pick_start_desc">Выберите часть клавиатуры для оформления</string>
     <string name="theme_pick_start_subtitle">Нажмите на клавишу, инструмент или панель предложений в окне предварительного просмотра, чтобы настроить их оформление</string>
     <string name="theme_pick_start_title">Выберите на клавиатуре</string>
     <string name="theme_pick_strip_sample_words">Привет,Спасибо,Окей</string>

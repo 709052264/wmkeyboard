@@ -6826,7 +6826,6 @@
     <string name="theme_parts_strip_subtitle">تعبئة الشريط، ألوان الكلمات والحجم</string>
     <string name="theme_parts_toolbar_subtitle">تعبئة الأدوات، الأيقونات، الشكل، الحدود</string>
     <string name="theme_pick_hint">اضغط على مفتاح أو أداة أو الشريط</string>
-    <string name="theme_pick_start_desc">اختر جزءاً من لوحة المفاتيح لتنسيقه</string>
     <string name="theme_pick_start_subtitle">اضغط على مفتاح أو أداة أو شريط الاقتراحات في المعاينة لتنسيقه</string>
     <string name="theme_pick_start_title">اختر على لوحة المفاتيح</string>
     <string name="theme_pick_strip_sample_words">مرحباً،شكراً،حسناً</string>

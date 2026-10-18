@@ -6834,7 +6834,6 @@
     <string name="theme_parts_strip_subtitle">Ondoa ujazo, rangi za maneno na saizi</string>
     <string name="theme_parts_toolbar_subtitle">Jaza zana, ikoni, umbo, mpaka</string>
     <string name="theme_pick_hint">Bonyeza ufunguo, zana au utepe</string>
-    <string name="theme_pick_start_desc">Chagua sehemu ya kibodi ili kuipamba</string>
     <string name="theme_pick_start_subtitle">Bonyeza kitufe, zana au utepe wa mapendekezo kwenye hakikisho ili kulipamba</string>
     <string name="theme_pick_start_title">Chagua kwenye kibodi</string>
     <string name="theme_pick_strip_sample_words">Habari,Asante,Sawa</string>

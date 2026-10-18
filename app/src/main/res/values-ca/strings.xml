@@ -6818,7 +6818,6 @@
     <string name="theme_parts_strip_subtitle">Fons de la barra, colors de les paraules i mida</string>
     <string name="theme_parts_toolbar_subtitle">Fons d\'eines, icones, forma, vora</string>
     <string name="theme_pick_hint">Premeu una tecla, una eina o la franja</string>
-    <string name="theme_pick_start_desc">Tria una part del teclat per donar-li estil</string>
     <string name="theme_pick_start_subtitle">Prem una tecla, una eina o la barra de suggeriments a la vista prèvia per donar-li estil</string>
     <string name="theme_pick_start_title">Tria al teclat</string>
     <string name="theme_pick_strip_sample_words">Hola,Gràcies,D\'acord</string>

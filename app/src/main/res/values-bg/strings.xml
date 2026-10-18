@@ -6822,7 +6822,6 @@
     <string name="theme_parts_strip_subtitle">Премахване на запълването, цветовете на думите и размера</string>
     <string name="theme_parts_toolbar_subtitle">Запълване на инструменти, икони, форма, рамка</string>
     <string name="theme_pick_hint">Натиснете клавиш, инструмент или лентата</string>
-    <string name="theme_pick_start_desc">Изберете част от клавиатурата за стилизиране</string>
     <string name="theme_pick_start_subtitle">Натиснете клавиш, инструмент или лентата с предложения върху визуализацията, за да го стилизирате</string>
     <string name="theme_pick_start_title">Избор на клавиатурата</string>
     <string name="theme_pick_strip_sample_words">Здравей,Благодаря,Добре</string>

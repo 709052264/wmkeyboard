@@ -6822,7 +6822,6 @@
     <string name="theme_parts_strip_subtitle">Stripvulling, woordkleuren en grootte</string>
     <string name="theme_parts_toolbar_subtitle">Tool-vullingen, iconen, vorm, rand</string>
     <string name="theme_pick_hint">Druk op een toets, een tool of de balk</string>
-    <string name="theme_pick_start_desc">Kies een deel van het toetsenbord om te stylen</string>
     <string name="theme_pick_start_subtitle">Druk op een toets, een tool of de suggestiebalk in het voorbeeld om deze te stylen</string>
     <string name="theme_pick_start_title">Kies op het toetsenbord</string>
     <string name="theme_pick_strip_sample_words">Hallo,Bedankt,Oké</string>

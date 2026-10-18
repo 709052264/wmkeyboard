@@ -6819,7 +6819,6 @@
     <string name="theme_parts_strip_subtitle">સ્ટ્રીપ ફિલ, શબ્દના રંગો અને કદ</string>
     <string name="theme_parts_toolbar_subtitle">ટૂલ ફિલ, આઇકન, આકાર, બોર્ડર</string>
     <string name="theme_pick_hint">કોઈ કી, ટૂલ અથવા સ્ટ્રીપ દબાવો</string>
-    <string name="theme_pick_start_desc">સ્ટાઇલ કરવા માટે કીબોર્ડનો કોઈ ભાગ પસંદ કરો</string>
     <string name="theme_pick_start_subtitle">તેને સ્ટાઇલ કરવા માટે પ્રિવ્યૂ પર કોઈ કી, ટૂલ અથવા સૂચન પટ્ટી દબાવો</string>
     <string name="theme_pick_start_title">કીબોર્ડ પર પસંદ કરો</string>
     <string name="theme_pick_strip_sample_words">હેલો, આભાર, ઠીક છે</string>

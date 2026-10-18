@@ -6825,7 +6825,6 @@
     <string name="theme_parts_strip_subtitle">Elimină umplerea, culorile cuvintelor și dimensiunea</string>
     <string name="theme_parts_toolbar_subtitle">Umpleri instrumente, pictograme, formă, chenar</string>
     <string name="theme_pick_hint">Apasă pe o tastă, un instrument sau pe bandă</string>
-    <string name="theme_pick_start_desc">Alege o parte a tastaturii pentru a o stiliza</string>
     <string name="theme_pick_start_subtitle">Apasă o tastă, un instrument sau bara de sugestii din previzualizare pentru a o stiliza</string>
     <string name="theme_pick_start_title">Alege pe tastatură</string>
     <string name="theme_pick_strip_sample_words">Bună,Mulțumesc,În regulă</string>

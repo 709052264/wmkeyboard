@@ -6819,7 +6819,6 @@
     <string name="theme_parts_strip_subtitle">Συμπλήρωση λωρίδας, χρώματα λέξεων και μέγεθος</string>
     <string name="theme_parts_toolbar_subtitle">Γεμίσματα εργαλείων, εικονίδια, σχήμα, περίγραμμα</string>
     <string name="theme_pick_hint">Πατήστε ένα πλήκτρο, ένα εργαλείο ή τη λωρίδα</string>
-    <string name="theme_pick_start_desc">Επιλέξτε ένα μέρος του πληκτρολογίου για στυλ</string>
     <string name="theme_pick_start_subtitle">Πατήστε ένα πλήκτρο, ένα εργαλείο ή τη γραμμή προτάσεων στην προεπισκόπηση για να το διαμορφώσετε</string>
     <string name="theme_pick_start_title">Επιλογή στο πληκτρολόγιο</string>
     <string name="theme_pick_strip_sample_words">Γεια,Ευχαριστώ,Εντάξει</string>
