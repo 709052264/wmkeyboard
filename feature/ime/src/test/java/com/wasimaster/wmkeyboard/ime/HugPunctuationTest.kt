@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.ime
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -77,5 +78,31 @@ class HugPunctuationTest {
         assertEquals(1, straySpacesBefore("(hi) ", '.', marks))
         assertEquals(1, straySpacesBefore("\"hi\" ", ',', marks))
         assertEquals(1, straySpacesBefore("42 ", '.', marks))
+    }
+
+    @Test
+    fun `a domain ending or a file extension closes up onto the full stop`() {
+        assertEquals("com", dotSuffixJoin("google. ", "com"))
+        assertEquals("txt", dotSuffixJoin("see notes. ", "txt"))
+        assertEquals("uk", dotSuffixJoin("bbc.co. ", "uk"))
+        assertEquals("mp4", dotSuffixJoin("clip2. ", "mp4"))
+    }
+
+    @Test
+    fun `the auto capital is dropped but typed capitals stay`() {
+        assertEquals("com", dotSuffixJoin("google. ", "Com"))
+        assertEquals("PDF", dotSuffixJoin("scan. ", "PDF"))
+    }
+
+    @Test
+    fun `sentence words and loose dots stay apart`() {
+        assertNull(dotSuffixJoin("I love it. ", "It"))
+        assertNull(dotSuffixJoin("Done. ", "Go"))
+        assertNull(dotSuffixJoin("Done. ", "hello"))
+        assertNull(dotSuffixJoin("Wait... ", "com"))
+        assertNull(dotSuffixJoin("(see). ", "com"))
+        assertNull(dotSuffixJoin("google.", "com"))
+        assertNull(dotSuffixJoin("google, ", "com"))
+        assertNull(dotSuffixJoin(". ", "com"))
     }
 }

@@ -10824,6 +10824,40 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Commits [typed] closed up onto the full stop in front of it, taking back
+     * the space the auto-space after punctuation put between them, when the
+     * word is a domain ending or a file extension ([dotSuffixJoin]). Says
+     * whether it did.
+     *
+     * Only on a board whose buffer is the text in the field: a transliterating
+     * or ambiguous one holds keystrokes, not the word they spell. A backspace
+     * straight afterwards puts the space back.
+     */
+    private fun joinDotSuffix(ic: InputConnection, typed: String, state: KeyboardUiState): Boolean {
+        if (!state.settings.autoText.spaceAfterPunctuation || !state.allowsTypingIntelligence ||
+            state.composer.isTransliterating || state.layouts.ambiguousKeys
+        ) {
+            return false
+        }
+        val before = ic.getTextBeforeCursor(typed.length + DOT_SUFFIX_LOOKBACK, 0) ?: return false
+        if (before.length <= typed.length || !before.endsWith(typed)) return false
+        val word = dotSuffixJoin(before.subSequence(0, before.length - typed.length), typed) ?: return false
+        ic.beginBatchEdit()
+        ic.commitText("", 1)
+        ic.deleteSurroundingText(1, 0)
+        ic.commitText(word, 1)
+        ic.endBatchEdit()
+        invalidateExpectedSelection()
+        composing = StringBuilder()
+        _uiState.update {
+            it.copy(composingPreview = "", suggestions = emptyList(), emojiSuggestions = emptyList(), octopus = emptyMap())
+        }
+        lastRevertible = RevertibleCommit(RevertibleCommit.Kind.JOIN, original = " $typed", committed = word)
+        armRevertGuard()
+        return true
+    }
+
+    /**
      * Whether [c] is a mark the auto-space after punctuation follows, so the
      * space in front of the caret after it is one the keyboard typed: the
      * ordinary marks, the closing bracket and the closing quotes. The space
@@ -14966,6 +15000,10 @@ open class WMKeyboardService : InputMethodService() {
             }
             return true
         }
+        // "google. com": the auto-space after the full stop went in before the
+        // word showed it was a domain ending. Ahead of autocorrect, which
+        // would otherwise turn "com" into "come".
+        if (joinDotSuffix(ic, typed, state)) return true
         // A buffer glued to word characters already in the field is the tail
         // of a bigger word, not a word of its own: the caret was parked at a
         // word's end and the composition started before the resume could arm

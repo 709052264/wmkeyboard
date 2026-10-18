@@ -64,3 +64,54 @@ private const val HUG_CLOSERS = ")]}\"'”’"
 
 /** Characters the hug rule reads behind the caret; longer than any honest run of spaces. */
 const val HUG_LOOKBACK = 16
+
+/**
+ * What [word] should commit as when it closes up onto the full stop behind it,
+ * or null when it stays a word of its own. [ahead] is the field text in front
+ * of the word, which ends in the space the automatic space after punctuation
+ * typed after that full stop.
+ *
+ * The space can't be held back when the "." lands, since nothing yet says
+ * whether a sentence ended or an address is being typed, so it is taken back
+ * once the next word turns out to be a domain ending or a file extension:
+ * "google. com" commits as "google.com", "notes. txt" as "notes.txt". The dot
+ * has to sit straight on a letter or a digit, so "Wait... com" and a dot that
+ * closes a bracket stay apart.
+ *
+ * Only endings no sentence starts with are in [DOT_SUFFIXES]: "it", "in", "me",
+ * "us", "go" and "log" are real domain endings or file types, and also the first
+ * word of the next sentence far more often. The auto-capital the full stop arms
+ * is dropped ("Com" back to "com"); a word typed all in capitals keeps them, so
+ * "scan. PDF" gives "scan.PDF".
+ */
+fun dotSuffixJoin(ahead: CharSequence, word: String): String? {
+    if (ahead.length < 3 || ahead[ahead.length - 1] != ' ' || ahead[ahead.length - 2] != '.') return null
+    if (!ahead[ahead.length - 3].isLetterOrDigit()) return null
+    if (word.lowercase() !in DOT_SUFFIXES) return null
+    val capitalised = word.length > 1 && word[0].isUpperCase() && word.substring(1).none { it.isUpperCase() }
+    return if (capitalised) word.lowercase() else word
+}
+
+/** Characters [dotSuffixJoin] needs in front of the word: the letter, the dot and the space. */
+const val DOT_SUFFIX_LOOKBACK = 3
+
+/**
+ * Domain endings and file extensions [dotSuffixJoin] closes up onto a full stop.
+ * Kept to what can't plausibly start a sentence; see there for what is left out.
+ */
+private val DOT_SUFFIXES = setOf(
+    // Domain endings.
+    "com", "org", "net", "edu", "gov", "mil", "int", "io", "co", "dev", "app", "ai", "info", "biz",
+    "xyz", "tv", "gg", "ly", "fm", "cc", "ws", "eu",
+    "uk", "de", "fr", "es", "nl", "ru", "jp", "cn", "kr", "br", "au", "ca", "ch", "se", "pl",
+    "pt", "tr", "ir", "pk", "bd", "np", "lk", "sg", "nz", "za", "mx", "ar", "cz", "gr", "ro",
+    // File extensions.
+    "txt", "pdf", "png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "ico", "heic", "avif",
+    "mp3", "mp4", "m4a", "wav", "flac", "ogg", "opus", "mkv", "mov", "avi", "webm",
+    "zip", "rar", "7z", "tar", "gz", "tgz", "xz", "apk", "aab", "exe", "msi", "dmg", "iso", "deb", "rpm",
+    "doc", "docx", "xls", "xlsx", "ppt", "pptx", "odt", "ods", "rtf", "epub", "csv", "tsv",
+    "json", "xml", "html", "htm", "css", "scss", "js", "mjs", "ts", "tsx", "jsx", "kt", "kts",
+    "java", "py", "rb", "rs", "cpp", "hpp", "cs", "dart", "php", "lua", "sh", "bash",
+    "zsh", "ps1", "bat", "md", "mdx", "yml", "yaml", "toml", "ini", "cfg", "conf", "sql", "db",
+    "gradle", "srt", "ttf", "otf", "woff", "woff2", "psd", "vue", "svelte", "ipynb",
+)
