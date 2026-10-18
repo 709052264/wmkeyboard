@@ -374,6 +374,7 @@
          the toolbox, the settings screens and the hardware shortcut legend. -->
     <string name="ime_tool_emoji">Emoji</string>
     <string name="ime_tool_clipboard">Clipboard</string>
+    <string name="ime_tool_clipboard_search">Clipboard search</string>
     <string name="ime_tool_snippets">Snippets</string>
     <string name="ime_tool_text_edit">Text editing</string>
     <string name="ime_tool_trackpad">Trackpad</string>
@@ -694,6 +695,10 @@
     <string name="ime_clip_edit_title">Edit clip</string>
     <string name="ime_clip_edit_save">Save</string>
     <string name="ime_clip_edit_placeholder">Type the clip’s text</string>
+    <!-- A clip's own labels (#612): the hold popup's action, and the editor opened on them. -->
+    <string name="ime_clip_tags">Tags</string>
+    <string name="ime_clip_tags_title">Tags</string>
+    <string name="ime_clip_tags_placeholder">Tags, with a comma between them</string>
     <string name="ime_clip_edit_rich_note">Saving a change drops the formatting</string>
     <!-- The bar at the bottom of the clipboard panel after a delete. %1$d is how many clips it would bring back. -->
     <plurals name="ime_clip_deleted">

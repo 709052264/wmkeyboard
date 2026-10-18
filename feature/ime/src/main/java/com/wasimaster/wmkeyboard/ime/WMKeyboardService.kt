@@ -9736,7 +9736,8 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.GALLERY_TEXT -> captureTyped("\n")
             // A clip is free text, so Enter is a line break in it; saving is
             // the editor's own button.
-            CaptureTarget.CLIP_EDIT -> captureTyped("\n")
+            // The tags editor is one list: Enter keeps it (#612).
+            CaptureTarget.CLIP_EDIT -> if (state.clipEdit?.tags == true) onClipEditSave() else captureTyped("\n")
             // A line break is a fair thing to join clips with; the other two
             // boxes move on, and the last one combines (#612).
             CaptureTarget.CLIP_JOINER -> captureTyped("\n")
@@ -24353,6 +24354,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.CLIPBOARD -> {
                 if (isClipboardAccessible()) onPanelChange(PanelMode.CLIPBOARD)
             }
+            ToolbarTool.CLIPBOARD_SEARCH -> onClipboardOpenSearching()
 
             ToolbarTool.SNIPPETS -> onPanelChange(PanelMode.SNIPPETS)
             ToolbarTool.TEXT_EDIT -> onPanelChange(PanelMode.TEXT_EDIT)
@@ -33029,6 +33031,32 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** Clipboard panel search bar tapped: route keys into [clipboardQuery]. */
+    /**
+     * The Clipboard search tool (#612): the clipboard opens with its search
+     * already taking the keys, or, already open there, closes the way a
+     * second tap on a tool does. Turns the search bar on for good if it was
+     * off: the tool is that bar, a gesture away.
+     */
+    private fun onClipboardOpenSearching() {
+        if (!isClipboardAccessible()) return
+        val state = _uiState.value
+        if (state.panel == PanelMode.CLIPBOARD && state.clipboardSearchActive) {
+            onPanelChange(PanelMode.CLIPBOARD)
+            return
+        }
+        if (!state.settings.clipboard.search) serviceScope.launch { settingsRepository.setClipboardSearch(true) }
+        if (state.panel != PanelMode.CLIPBOARD) onPanelChange(PanelMode.CLIPBOARD)
+        if (_uiState.value.panel != PanelMode.CLIPBOARD) return
+        _uiState.update {
+            it.copy(
+                clipboardSearchActive = true,
+                clipEdit = null,
+                clipCombine = null,
+                panelFocus = null,
+            )
+        }
+    }
+
     fun onClipboardSearchToggle() {
         vibrate()
         _uiState.update {
@@ -40832,6 +40860,8 @@ open class WMKeyboardService : InputMethodService() {
         onEntityStripHidden = ::onClipboardEntityStripHidden,
         onCombineDeleteToggle = ::onClipCombineDeleteToggle,
         onTidy = ::onClipboardTidy,
+        onTags = ::onClipTagsStart,
+        onTagAdd = ::onClipTagAdd,
     )
 
     /**
@@ -40969,6 +40999,44 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * Opens the editor on [item]'s tags (#612), a list separated by commas
+     * with the caret after a fresh comma, so the next tag is typed straight
+     * away. Any clip can carry tags, a picture or a secret included.
+     */
+    fun onClipTagsStart(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
+        if (!isClipboardAccessible()) return
+        val current = clipboardStore.items().firstOrNull { it.id == item.id } ?: return
+        vibrate()
+        val listed = current.tags.joinToString(", ")
+        _uiState.update {
+            it.copy(
+                clipEdit = ClipEdit(
+                    id = current.id,
+                    original = listed,
+                    draft = if (listed.isEmpty()) "" else "$listed, ",
+                    tags = true,
+                ),
+                clipboardSearchActive = false,
+                clipboardQuery = "",
+                panelFocus = null,
+            )
+        }
+    }
+
+    /**
+     * One of the tags already in the history, pressed under the tags editor
+     * (#612): added to the end of the list unless it is there already.
+     */
+    fun onClipTagAdd(tag: String) {
+        val edit = _uiState.value.clipEdit?.takeIf { it.tags } ?: return
+        val have = com.wasimaster.wmkeyboard.core.clipboard.parseClipTags(edit.draft)
+        if (have.any { it.equals(tag, ignoreCase = true) }) return
+        vibrate()
+        val next = (have + tag).joinToString(", ") + ", "
+        clipEditDraft { next }
+    }
+
     /** The editor's buffer; the keys type here while [KeyboardUiState.clipEditActive]. */
     private fun clipEditDraft(transform: (String) -> String) {
         _uiState.update { state ->
@@ -40988,6 +41056,14 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onClipEditSave() {
         val edit = _uiState.value.clipEdit ?: return
+        if (edit.tags) {
+            vibrate()
+            if (clipboardStore.setTags(edit.id, com.wasimaster.wmkeyboard.core.clipboard.parseClipTags(edit.draft))) {
+                saveClipboardSoon()
+            }
+            _uiState.update { it.copy(clipEdit = null, clipboardItems = clipboardStore.items()) }
+            return
+        }
         if (edit.draft.isBlank()) return
         vibrate()
         if (!edit.canSave) {

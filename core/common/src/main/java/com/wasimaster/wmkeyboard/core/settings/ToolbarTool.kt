@@ -125,6 +125,9 @@ enum class ToolbarTool {
     // The next language, as the 🌐 key switches it (issue #667): for a bottom
     // row with no globe key, or one whose globe sits where a comma is meant.
     LANGUAGE,
+    // The clipboard opened straight into its search (#612), for a flick, a
+    // key or a hold: the query is one gesture away instead of two taps.
+    CLIPBOARD_SEARCH,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -260,7 +263,7 @@ fun isSupportedTool(tool: ToolbarTool): Boolean = when {
  * Learn from text reads a whole pasted document into the dictionary, which is
  * a thing to go looking for, not a tile to trip over.
  */
-val OptInOnlyTools: Set<ToolbarTool> = setOf(ToolbarTool.LEARN_FROM_TEXT)
+val OptInOnlyTools: Set<ToolbarTool> = setOf(ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.CLIPBOARD_SEARCH)
 
 /**
  * The "Everything" preset, and the enabled-tools default before setup swaps
@@ -344,7 +347,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.CURSOR_HOME, ToolbarTool.CURSOR_END, ToolbarTool.PAGE_UP, ToolbarTool.PAGE_DOWN,
     ToolbarTool.SELECT_WORD, ToolbarTool.SELECT_LINE, ToolbarTool.SELECT_ALL,
     ToolbarTool.SELECT_MODE,
-    ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
+    ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE, ToolbarTool.CLIPBOARD_SEARCH,
 )
 
 /**

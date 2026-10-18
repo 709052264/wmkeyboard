@@ -2570,9 +2570,15 @@ data class ClipEdit(
     val draft: String = original,
     /** The clip was rich text, whose formatting a changed draft gives up. */
     val rich: Boolean = false,
+    /**
+     * The editor is editing the clip's tags (#612), as a list separated by
+     * commas, rather than its text. Enter saves, and an empty list is a fair
+     * thing to save: it takes every tag off.
+     */
+    val tags: Boolean = false,
 ) {
-    /** Whether saving would change anything. Blank never saves. */
-    val canSave: Boolean get() = draft.isNotBlank() && draft.trim() != original
+    /** Whether saving would change anything. Blank never saves a text. */
+    val canSave: Boolean get() = if (tags) draft.trim().trimEnd(',').trim() != original else draft.isNotBlank() && draft.trim() != original
 
     companion object {
         /**

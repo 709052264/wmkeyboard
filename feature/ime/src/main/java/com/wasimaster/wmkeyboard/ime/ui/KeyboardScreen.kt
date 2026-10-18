@@ -465,6 +465,7 @@ import com.wasimaster.wmkeyboard.core.settings.holdActionOf
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.ClipRecentChipsMax
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sell
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Reorder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Checklist
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FilterList
@@ -8188,6 +8189,7 @@ internal fun toolIcon(tool: ToolbarTool): ImageVector = IconDefaults.forTool(too
 internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.EMOJI -> R.string.ime_tool_emoji
     ToolbarTool.CLIPBOARD -> R.string.ime_tool_clipboard
+    ToolbarTool.CLIPBOARD_SEARCH -> R.string.ime_tool_clipboard_search
     ToolbarTool.SNIPPETS -> R.string.ime_tool_snippets
     ToolbarTool.TEXT_EDIT -> R.string.ime_tool_text_edit
     ToolbarTool.TRACKPAD -> R.string.ime_tool_trackpad
@@ -8286,6 +8288,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
         state.panel == PanelMode.EMOJI
     }
     ToolbarTool.CLIPBOARD -> state.panel == PanelMode.CLIPBOARD
+    ToolbarTool.CLIPBOARD_SEARCH -> state.panel == PanelMode.CLIPBOARD && state.clipboardSearchActive
     ToolbarTool.SNIPPETS -> state.panel == PanelMode.SNIPPETS
     ToolbarTool.TEXT_EDIT -> state.panel == PanelMode.TEXT_EDIT
     ToolbarTool.TRACKPAD -> state.panel == PanelMode.TRACKPAD
@@ -8381,7 +8384,6 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.HIDE_KEYBOARD -> false
     // Switches and is done, like the 🌐 key it stands in for.
     ToolbarTool.LANGUAGE -> false
-    // Lit while its row is on the strip (#612).
 }
 
 /**
@@ -29446,6 +29448,8 @@ internal fun ClipInfoPopup(
     onReorder: (() -> Unit)? = null,
     /** Show in history: close the search and scroll to this clip (#612); null outside a search. */
     onJump: (() -> Unit)? = null,
+    /** The clip's tags, in the editor (#612). */
+    onTags: (() -> Unit)? = null,
     /** Pastes the clip, as a tap on it does; at the end of the action row (#612). */
     onPaste: (() -> Unit)? = null,
     onDismiss: () -> Unit,
@@ -29548,6 +29552,9 @@ internal fun ClipInfoPopup(
                             }
                             onJump?.let {
                                 ClipTextActionIcon(Icons.Outlined.History, stringResource(R.string.ime_clip_show_in_history), tint, it)
+                            }
+                            onTags?.let {
+                                ClipTextActionIcon(Icons.Outlined.Sell, stringResource(R.string.ime_clip_tags), tint, it)
                             }
                             onEdit?.let {
                                 ClipTextActionIcon(Icons.Outlined.Edit, stringResource(R.string.ime_clip_edit), tint, it)

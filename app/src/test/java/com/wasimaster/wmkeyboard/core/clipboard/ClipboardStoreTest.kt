@@ -115,6 +115,20 @@ class ClipboardStoreTest {
         assertEquals(listOf("pinned", "new", "old"), store.items(now = 4000).map { it.text })
     }
 
+    @Test fun tagsAreSetAndFoundBySearch() {
+        val store = ClipboardStore(null)
+        val clip = store.add("an address", now = 1000)!!
+        assertTrue(store.setTags(clip.id, listOf("work", "maps")))
+        assertFalse(store.setTags(clip.id, listOf("work", "maps")))
+        assertEquals(listOf("work", "maps"), store.items(now = 2000).single().tags)
+        // Found by the tag's name, with or without the # it is shown with (#612).
+        assertEquals(1, store.search("#maps").size)
+        assertEquals(1, store.search("work").size)
+        // An edit keeps them.
+        store.editText(clip.id, "a new address")
+        assertEquals(listOf("work", "maps"), store.items(now = 3000).single().tags)
+    }
+
     @Test fun editKeepsIdPlaceAndTimestamp() {
         val store = ClipboardStore(null)
         val a = store.add("teh answer", now = 1000)!!

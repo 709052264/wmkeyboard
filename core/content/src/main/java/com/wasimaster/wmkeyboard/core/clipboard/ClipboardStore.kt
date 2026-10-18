@@ -90,7 +90,29 @@ data class ClipItem(
      * never moved, which sorts by when it was copied. See [orderKey].
      */
     val position: Double? = null,
+    /**
+     * The user's own labels for this clip (#612), for grouping clips and
+     * finding them again: searched with its text and offered as filters.
+     * Kept as typed, without a leading `#`, each one at most once.
+     */
+    val tags: List<String> = emptyList(),
 )
+
+/**
+ * [raw], a list of tags as typed (#612), made into the list a clip keeps:
+ * split at commas and line breaks, a leading `#` and spaces taken off, empty
+ * ones dropped, each kept once whatever its case, and each cut to
+ * [CLIP_TAG_MAX_LENGTH].
+ */
+fun parseClipTags(raw: String): List<String> {
+    val seen = HashSet<String>()
+    return raw.split(',', '\n')
+        .map { it.trim().trimStart('#').trim().take(CLIP_TAG_MAX_LENGTH) }
+        .filter { it.isNotEmpty() && seen.add(it.lowercase()) }
+}
+
+/** The longest one tag may be: a label, not a note. */
+const val CLIP_TAG_MAX_LENGTH = 40
 
 /**
  * What [ClipboardStore.items] sorts a clip by inside its pinned or unpinned
@@ -122,6 +144,11 @@ private fun ClipItem.searchParts(): List<String> = buildList {
         }
     }
     sourceApp?.let(::add)
+    // A tag is found by name, and with the `#` it is shown with (#612).
+    for (tag in tags) {
+        add(tag)
+        add("#$tag")
+    }
     add(
         when (kind) {
             ClipKind.TEXT -> "text"
@@ -599,6 +626,19 @@ class ClipboardStore(
         }
     }
 
+    /**
+     * Replaces a clip's [ClipItem.tags] (#612). Unlike an edit of its text,
+     * nothing else about the clip changes. Returns whether there was such a
+     * clip and its tags changed.
+     */
+    @Synchronized
+    fun setTags(id: Long, tags: List<String>): Boolean {
+        val index = items.indexOfFirst { it.id == id }
+        if (index < 0 || items[index].tags == tags) return false
+        items[index] = items[index].copy(tags = tags)
+        return true
+    }
+
     @Synchronized
     fun setPinned(id: Long, pinned: Boolean) {
         val index = items.indexOfFirst { it.id == id }
@@ -646,6 +686,8 @@ class ClipboardStore(
             linkPreview = null,
             pinned = item.pinned || duplicate?.pinned == true,
             sensitive = item.sensitive || duplicate?.sensitive == true,
+            // The other clip's tags come along, as its pin does (#612).
+            tags = parseClipTags((item.tags + duplicate?.tags.orEmpty()).joinToString(",")),
             editedAt = now,
         )
         items[index] = edited
