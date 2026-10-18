@@ -1411,6 +1411,12 @@ open class WMKeyboardService : InputMethodService() {
     /** How the word [duetWord] builds is cased: the shift it started under. */
     private var duetShift = ShiftState.OFF
 
+    /**
+     * The other readings of the word [duetShownGeneration] put on screen, kept
+     * for the strip once that word is typed (#733).
+     */
+    private var duetShownAlternates: List<String> = emptyList()
+
     private var composing = StringBuilder()
         set(value) {
             // A word the user came back to and edited in the buffer ends here,
@@ -23155,12 +23161,40 @@ open class WMKeyboardService : InputMethodService() {
         allUpJob = null
     }
 
-    /** Types the two-thumb word on screen and its space, the way a glided word is. */
+    /**
+     * Types the two-thumb word on screen and its space, the way a glided word
+     * is — and under two-thumb typing leaves it the way a glided word is left
+     * (#733): Backspace straight afterwards takes it back with its space, and a
+     * pick from its alternates on the strip replaces it. No stroke rides with
+     * it, as with handwriting ink: undo has nothing to re-read, and the hand
+     * model learned nothing an undo should take back.
+     */
     private fun commitDuet(ic: InputConnection) {
         val state = _uiState.value
+        // Settled here rather than inside the commit, so the word and the
+        // alternates kept below are the ones about to be typed.
+        if (duetWord.active && duetShownGeneration != duetGeneration) settleDuet(ic)
+        val word = composing.toString()
+        val alternates = duetShownAlternates
         commitComposing(ic, autocorrect = false, fixApostrophes = state.settings.autoText.apostrophe)
+        val undoable = state.settings.gesture.twoThumbGlide && word.isNotEmpty()
+        if (undoable) {
+            // Armed before the space, as the glide commit arms it (#113).
+            lastGestureWord = word
+            lastGestureStroke = null
+            lastHandAdjustment = null
+            // Only while the strip shows this word's alternates may a pick
+            // there replace it; otherwise it offers the next word (#175).
+            stripReplacesGestureWord = alternates.isNotEmpty()
+        }
         commitGestureSpace(ic, state)
-        refreshSuggestions()
+        if (undoable) armRevertGuard()
+        if (undoable && alternates.isNotEmpty()) {
+            glideReadings.remember(word, alternates)
+            _uiState.update { it.copy(suggestions = alternates) }
+        } else {
+            refreshSuggestions()
+        }
     }
 
     /**
@@ -23272,6 +23306,7 @@ open class WMKeyboardService : InputMethodService() {
             keepDuet = false
         }
         duetShownGeneration = generation
+        duetShownAlternates = shown.alternates
         composingCaseTrusted = duetShift == ShiftState.OFF
         updateComposingText(ic)
     }
