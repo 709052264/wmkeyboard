@@ -117,7 +117,8 @@ object PermissionDisclosures {
     )
 
     /**
-     * The AI's "add it directly" for calendar events (#698). Read is asked for
+     * Writing to the calendar: the calendar tool's Save, Edit and Delete, and
+     * the AI's "add it directly" for events (#698). Read is asked for
      * alongside, since choosing which calendar to add to means listing them.
      */
     val CALENDAR_WRITE = PermissionDisclosure(
@@ -125,6 +126,13 @@ object PermissionDisclosures {
         titleRes = R.string.common_permission_calendar_write_title,
         bodyRes = R.string.common_permission_calendar_write_body,
         alsoRequests = listOf(Manifest.permission.READ_CALENDAR),
+    )
+
+    /** The calendar tool's guest row: typing a name offers that contact's address. */
+    val CONTACT_GUESTS = PermissionDisclosure(
+        permission = Manifest.permission.READ_CONTACTS,
+        titleRes = R.string.common_permission_contact_guests_title,
+        bodyRes = R.string.common_permission_contact_guests_body,
     )
 
     val CONTACT_NAMES = PermissionDisclosure(

@@ -405,6 +405,18 @@ enum class CaptureTarget(
      */
     GALLERY_TEXT(takesWords = true),
 
+    /** A calendar event's title in the Calendar composer: one line, Enter moves on to the place. */
+    CALENDAR_TITLE(takesWords = true),
+
+    /** An event's place: one line. */
+    CALENDAR_LOCATION(takesWords = true),
+
+    /** An event's notes: free text, newlines and all, like [CLIP_EDIT]. */
+    CALENDAR_NOTES(takesWords = true),
+
+    /** A guest being added: a name to look up in the contacts, or an address. Enter adds it. */
+    CALENDAR_GUEST(takesWords = false),
+
     /** The toolbox's search (#687): matches tool names as it is typed, Enter opens the first. */
     TOOLBOX_SEARCH(takesWords = true),
 

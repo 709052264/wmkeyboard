@@ -122,7 +122,43 @@
     <string name="tooldetail_calendar_hijri_subtitle">Move the computed Hijri date to match the local moon sighting</string>
     <string name="tooldetail_calendar_hijri_info">The tool uses the arithmetic (tabular) Hijri calendar. Real Islamic months start at the sighting of the crescent moon. That can differ from the tables by one or two days. Set the offset that matches your local authority.</string>
     <string name="tooldetail_calendar_info">Select any two calendars to show next to the Gregorian one. The keyboard computes Chinese dates from astronomy. The Hebrew, Persian, Hindu (Saka), Buddhist and Japanese calendars are exact arithmetic. Hijri is the tabular calendar, so it has the day offset above.\n\nAll three start from the region of your device: the Bengali calendar in Bangladesh, era years in Japan, a Friday and Saturday weekend across much of the Middle East. That is only a guess at what you want. You can change all of it here.</string>
-    <string name="tooldetail_calendar_events_info">Press a day to see its events from the calendar of your device. The keyboard asks for calendar access the first time that you open the tool. It only reads events and never changes them.</string>
+    <string name="tooldetail_calendar_events_info">Press a day to see its events from the calendar of your device, and press an event to change it, delete it or type it into your text. The keyboard asks to read your calendar the first time that you open the tool, and to write to it the first time that you save an event.</string>
+    <string name="tooldetail_calendar_new_group">New events</string>
+    <string name="tooldetail_calendar_save_mode_title">Save events</string>
+    <string name="tooldetail_calendar_save_mode_subtitle">Where Save puts a new event</string>
+    <string name="tooldetail_calendar_save_mode_info">In the keyboard writes the event straight into your calendar, and asks for calendar access the first time. In the calendar app opens your calendar app\'s own editor with the event filled in, and you save it there. Changing and deleting events always happens in the keyboard.</string>
+    <string name="tooldetail_calendar_save_keyboard_label">In the keyboard</string>
+    <string name="tooldetail_calendar_save_app_label">In the calendar app</string>
+    <string name="tooldetail_calendar_default_calendar_title">Default calendar</string>
+    <string name="tooldetail_calendar_default_calendar_subtitle">The calendar a new event starts in</string>
+    <string name="tooldetail_calendar_default_calendar_primary">Primary calendar</string>
+    <string name="tooldetail_calendar_default_calendar_no_access">Allow calendar access to choose one</string>
+    <string name="tooldetail_calendar_default_length_title">Event length</string>
+    <string name="tooldetail_calendar_default_length_subtitle">How long a new event runs</string>
+    <string name="tooldetail_calendar_default_reminder_title">Reminder</string>
+    <string name="tooldetail_calendar_default_reminder_subtitle">The reminder a new event starts with</string>
+    <string name="tooldetail_calendar_reminder_none">None</string>
+    <string name="tooldetail_calendar_reminder_at_start">At the start</string>
+    <plurals name="tooldetail_calendar_minutes_before">
+        <item quantity="one">%d minute before</item>
+        <item quantity="other">%d minutes before</item>
+    </plurals>
+    <plurals name="tooldetail_calendar_hours_before">
+        <item quantity="one">%d hour before</item>
+        <item quantity="other">%d hours before</item>
+    </plurals>
+    <plurals name="tooldetail_calendar_days_before">
+        <item quantity="one">%d day before</item>
+        <item quantity="other">%d days before</item>
+    </plurals>
+    <plurals name="tooldetail_calendar_length_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <plurals name="tooldetail_calendar_length_hours">
+        <item quantity="one">%d hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
 
     <!-- Camera tool. -->
     <string name="tooldetail_camera_front_title">Start with the selfie camera</string>

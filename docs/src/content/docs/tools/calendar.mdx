@@ -1,6 +1,6 @@
 ---
 title: "Calendar"
-description: "A month view of your device calendar, with up to two of eight non-Gregorian calendars riding alongside Gregorian."
+description: "A month view of your device calendar where you add, change and delete events without leaving the keyboard, with up to two of eight non-Gregorian calendars alongside Gregorian."
 sidebar:
   order: 16
 ---
@@ -9,7 +9,7 @@ import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
 import Shot from '@components/Shot.astro';
 
-The Calendar tool opens a full month grid inside the keyboard rather than a today list. Browse any month, and up to two non-Gregorian calendars ride alongside the Gregorian dates in the header and inside each day cell. Tap a day to see its date across every calendar you've picked, plus whatever's on your device calendar for that day.
+The Calendar tool opens a full month grid inside the keyboard rather than a today list. Browse any month, and up to two non-Gregorian calendars ride alongside the Gregorian dates in the header and inside each day cell. Tap a day to see its date across every calendar you've picked, plus whatever's on your device calendar for that day. You can also add an event, change or delete one (repeating ones included), invite guests, and type an event into the app you're writing in, all without leaving the keyboard.
 
 <PhoneFrame caption="The Calendar panel: month grid with Bengali day numbers, today's events listed below.">
   <Shot id="tools/calendar-month-grid" alt="The Calendar panel: month grid with Bengali day numbers, today's events listed below." />
@@ -19,7 +19,7 @@ The Calendar tool opens a full month grid inside the keyboard rather than a toda
 
 Open **Calendar** from the toolbar, or from the toolbox if you haven't pinned it. The `<` and `>` arrows step a month at a time. Navigate away from the current month and a **Today** chip appears next to the month label. Tap it to jump straight back and reselect today. The weekday row along the top tints your weekend in the accent color, and which days those are is a setting that starts off from your phone's region (see [Options](#options)).
 
-Tapping a day cell doesn't leave the panel. It updates the summary and event list below the grid. Today's cell gets an accent-colored outline, and the day you've selected gets a filled pill.
+Tapping a day cell doesn't leave the panel. It updates the summary and event list below the grid. Today's cell gets an accent-colored outline, the day you've selected gets a filled pill, and a small dot sits under every day that has something on. Press and hold a day to start a new event on it.
 
 If either of your two chosen calendars has day numbers that don't line up one-to-one with the Gregorian grid, its day number rides inside the cell as a small second number next to the Gregorian one. Bengali dates render in Bengali numerals (০–৯). The first day of a Chinese lunar month shows the month name instead of a bare "1", since that's the only cue in the grid that a lunar month just turned over.
 
@@ -29,17 +29,73 @@ Below the grid, the selected day shows its full Gregorian date, weekday, a relat
 
 The bottom of the panel reads events straight from your device calendar for whichever day is selected. Until you grant calendar access, it shows a one-line prompt with an **Allow** button instead of any event data. Once granted, it queries in the background every time you change the selected day: a blank area while loading, "No events" if the day is clear, or a scrolling list of event cards otherwise.
 
-Each event card shows a colored stripe down the left edge (the calendar's own display color, or the accent color if the calendar doesn't provide one), followed by the title, then the time. All-day events show "All day" instead of a clock time, and an event with a location appends it after the time. Recurring events are expanded per occurrence, so a weekly meeting shows up on every day it actually lands on rather than only its first occurrence.
+Each event card shows a colored stripe down the left edge (the calendar's own display color, or the accent color if the calendar doesn't provide one), followed by the title, then the time. All-day events show "All day" instead of a clock time, and an event with a location appends it after the time. Recurring events are expanded per occurrence, so a weekly meeting shows up on every day it actually lands on rather than only its first occurrence, and its card carries a small repeat icon. Events in calendars you've hidden in your calendar app stay hidden here too.
+
+Tap a card to open the event. Its sheet shows the time, how it repeats, the place, notes, guests (with who said yes, no or maybe), reminders and which calendar it's in. Along the bottom are **Delete**, **Open in calendar app**, **Insert as text** and **Edit**.
 
 <PhoneFrame caption="A day with events: colored stripe per calendar, time, and location.">
   <Shot id="tools/calendar-day-events" alt="A day with events: colored stripe per calendar, time, and location." />
 </PhoneFrame>
 
+## Adding an event
+
+Tap **New event** at the top of the panel, or press and hold a day in the grid. The composer opens on the selected day with the title box already taking your typing, and the panel folds down so the keys show underneath. **Done** (or Enter) moves you from the title to the place. Everything else is a tap:
+
+- **All day** turns the times off. The start and end then name whole days.
+- **Starts** and **Ends** each have a date chip, which opens a small month to pick from, and a time chip, which opens the same spinning drums the Clock tool uses. Moving the start moves the end with it, so the length stays the same. If the end lands before the start, the **Ends** label turns the accent color and Save refuses until it's fixed.
+- The length chips under the times (15 min up to 3 h) set the end for you.
+- If the new event overlaps something already in your calendar, a line says so ("Overlaps Standup"), so you see the clash before you save.
+- **Repeat**, **Reminders**, the calendar, **Add a place**, **Add notes**, guests, and **Busy** or **Free** follow below.
+
+A new event starts with the length and reminder you set in [Options](#options), in your default calendar. Tap **Save** in the header. The event goes straight into your calendar, the panel goes back to the month with that day selected, and an **Undo** bar takes it back out again if you change your mind. **Cancel** throws the draft away.
+
+If you close the panel halfway through, the draft is kept. Open the tool again and a **Resume** line at the top brings it back.
+
+### Reminders
+
+Each reminder chip has a cross to remove it. **Add reminder** (or **No reminder**, while there are none) opens the choices: at the start, 5, 10, 15 or 30 minutes, 1 or 2 hours, 1, 2 or 7 days before. Some calendar accounts limit how many reminders an event can carry, and the add chip disappears once you reach that limit.
+
+### Repeating events
+
+The repeat row opens a set of chips worded for the event's own day: daily, weekly on that weekday, every weekday (Monday to Friday), monthly on that date, monthly on its weekday ("the third Monday"), monthly on the last such weekday when it falls in the last week, and yearly. **More options** opens the rest: repeat every 2 weeks or every 3 months, pick several weekdays, and end it never, on a date, or after a number of times.
+
+Move a weekly event to another day and its repeat day moves too, so a Monday meeting dragged to Tuesday keeps landing on Tuesdays. A repeat rule written by another app that this editor can't show (several dates a month, say) appears as **Custom repeat** and is saved back exactly as it was unless you pick a different rule.
+
+### Guests
+
+**Add guest** opens a box for a name or an email address. With contacts allowed, typing a name lists the matching people with their addresses, and a tap adds one. Without contacts, type the whole address and press Enter. Each guest is a chip with a cross to take them off again.
+
+Guests are written to the event the same way your calendar app writes them, which means your calendar account (Google Calendar, for one) may email them an invitation when it next syncs. The composer says so under the guest list. A calendar that only lives on your phone sends nothing.
+
+### Insert as text
+
+The **Insert as text** button types the event into the app you're writing in, as one line: the title, the date and time in your own format, and the place, like "Standup, Mon 19 Oct, 9:00 – 10:00 AM · Room 4". It's on the event sheet and at the bottom of the composer, so you can share a plan before or after saving it.
+
+## Changing and deleting events
+
+Open an event and tap **Edit**. The composer opens with everything filled in, including its guests, reminders and repeat rule. Save writes the changes back to the same event. **Delete** on the sheet removes it, with **Undo** on the bar afterwards.
+
+Events you can't change show a note instead of Edit and Delete: one you were invited to by someone else (unless they let guests edit), or one in a read-only calendar such as holidays or a shared calendar you can only view.
+
+### Repeating events
+
+Changing or deleting one occurrence of a repeating event first asks which ones you mean:
+
+- **This event** changes or removes just that day. The rest of the series is left alone.
+- **This and following** ends the series the day before and, for a change, starts a new series from that day with your edits. A series that was set to run a number of times keeps the right total between the two halves.
+- **All events** changes the whole series. A new time or a new day moves the series' first occurrence by the same amount, so a series that began in March still begins in March.
+
+If you changed the repeat rule itself, **This event** isn't offered, since a single day can't repeat. **Undo** can put back a single changed or removed day, a series that was cut short, and a deleted event.
+
 ## Calendar permission
 
-The keyboard only asks for calendar access the first time you tap **Allow** in the panel, never at install or first launch. An on-screen keyboard service can't request runtime permissions directly. So tapping Allow opens an invisible trampoline activity. It shows a short explanation of what the calendar access is for, then the system permission dialog, then closes itself the instant you answer. The [camera tool](/tools/camera/) uses the same pattern for its own permission. If you revoke calendar access in system Settings and come back to the keyboard, the panel notices as soon as it regains focus and drops back to the Allow prompt.
+The keyboard asks for calendar access in two steps, and never at install or first launch. Reading comes first: tap **Allow** in the panel and you can see your events. Writing comes the first time you save or delete an event, and is asked for together with reading. Your event waits while the dialog is up, and is saved as soon as you come back with the grant. Refuse it and the composer says so and offers **Open in calendar app** instead, which hands the event to your calendar app's own editor to save there.
 
-Access is read-only in both directions. The tool only ever issues a read query against the calendar provider, and it has no code path that inserts, edits or deletes anything on your calendar.
+An on-screen keyboard service can't request runtime permissions directly. So each of these opens an invisible trampoline activity that shows a short explanation of what the access is for, then the system permission dialog, then closes itself the instant you answer. The [camera tool](/tools/camera/) uses the same pattern for its own permission. If you revoke calendar access in system Settings and come back to the keyboard, the panel notices as soon as it regains focus and drops back to the Allow prompt.
+
+Guest suggestions ask for contacts access the same way, from the **Suggest from contacts** link under the guest box. The tool reads names and addresses only while that box is open and keeps nothing afterwards.
+
+The tool writes only what you save, change or delete yourself. Nothing is changed in the background.
 
 :::note[Not available before you unlock]
 Calendar is left out of the keyboard's direct-boot-safe tool set. It has to query a content provider that isn't available before your first unlock after a restart. Open the toolbox on a still-locked device and Calendar isn't listed there at all, so there's no broken panel to walk into. The arithmetic and sensor tools (the calculator, the unit converter, the compass, the level, the moon phase) are still there, but anything that reads the calendar provider is not.
@@ -60,14 +116,23 @@ Like every tool, Calendar opens with a **Turn on** switch and, while [colorful t
 - **Weekend**: which weekday initials the month grid tints. Seven presets: Saturday & Sunday, Friday & Saturday, Thursday & Friday, Friday, Saturday, Sunday, or no weekend at all. The default comes from your phone's region: Friday and Saturday across much of the Middle East, Friday in Bangladesh, Thursday and Friday in Iran and Afghanistan, Saturday in Nepal, Sunday alone in India, Mexico and the Philippines, and Saturday and Sunday everywhere else.
 - **Hijri day adjustment**: a slider from −2 to +2 days, default 0. It only appears when First or Second calendar is set to Hijri. The tool computes Hijri dates with the tabular (arithmetic) calendar rather than real moon sighting, so real Islamic months can start a day or two off from the tables. Use this to match your local authority's sighting-based calendar.
 
+Under **New events**:
+
+- **Save events**: **In the keyboard** (the default) writes new events straight into your calendar. **In the calendar app** makes Save open your calendar app's editor with the event filled in, for you to save there; it also makes the "Add to calendar" [selection action](/smart/selection-actions/) go to the calendar app. Changing and deleting events always happens in the keyboard.
+- **Default calendar**: which calendar a new event starts in. **Primary calendar** picks the first one you can write to, primary calendars first. Until calendar access is allowed, the row offers to ask for it.
+- **Event length**: 15 minutes up to 4 hours, default 1 hour.
+- **Reminder**: none, at the start, or 5 minutes up to 1 day before, default 10 minutes.
+
 Accuracy varies by calendar: Chinese dates are computed astronomically (real new-moon and solar-longitude calculations), so they're exact for the modern era. Hebrew, Persian, Hindu (Saka), Buddhist, and Japanese are all exact arithmetic conversions. Hijri is the only one that's an approximation, which is why it's the only one with an adjustment slider.
 
 The same First calendar / Second calendar / Weekend pickers also appear on the first-run setup page during onboarding, if you've kept Calendar enabled: anything you set there is the same setting, just asked up front. All three already open on the region's guess, so that page is where you see it and correct it.
 
 ## Details & edge cases
 
-- Calendar has no text-insertion path of its own. Tapping a day only changes what the panel displays. There's no way to insert a date from any of the eight calendar systems into your text field, because the tool is a viewer rather than a picker.
+- Insert as text types an event in Gregorian dates only. The alternate calendars are shown in the panel but not inserted.
+- Selecting a date or time in your text and using **Add to calendar** from the [selection actions](/smart/selection-actions/) opens this composer with the selection as the title and the date and time already set. A time zone named in the selection ("5pm EST") is kept, and the composer shows which zone the times are in.
+- Opened from a date [smart chip](/smart/chips/) ("next friday"), the panel lands on that day, and **New event** starts there.
 - Calendar isn't pinned to the toolbar out of the box, and it's only in the "show me everything" starter set that setup lands, not the minimal or the recommended one. Pick either of those two simpler answers and Calendar starts switched off, so you'll want to turn it on yourself under Settings → Tools.
 - Reopening Calendar from the toolbar while the panel is already open closes it, same as most other panel tools.
 - **The region defaults are a guess, and only ever a starting one.** They come from the same permission-free signals as [suggested languages](/languages/overview/#suggested-languages): the SIM's country, then the network's, then your locale's region. Those are consulted only until you pick something. Once you have, your pick is what sticks, wherever the phone travels.
-- Nothing about the Calendar tool touches the network. See [network policy](/privacy/network/) for what does.
+- Nothing about the Calendar tool touches the network. Your calendar account syncs the events you add or change the way it always does. See [network policy](/privacy/network/) for what the keyboard itself sends.

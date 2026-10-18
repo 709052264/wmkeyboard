@@ -21,14 +21,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -36,8 +34,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
@@ -47,8 +43,6 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowLeft
-import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowRight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Air
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Cloud
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.VolumeOff
@@ -98,10 +92,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -143,14 +134,8 @@ import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.PaletteStyle
 import com.wasimaster.wmkeyboard.ime.AppColors
 import com.wasimaster.wmkeyboard.core.theme.DEFAULT_THEME_ID
-import com.wasimaster.wmkeyboard.core.tools.AltCalendar
-import com.wasimaster.wmkeyboard.core.tools.AltCalendars
-import com.wasimaster.wmkeyboard.core.tools.CalendarSystems
-import com.wasimaster.wmkeyboard.core.tools.DeviceCalendar
-import com.wasimaster.wmkeyboard.core.tools.DeviceCalendarEvent
 import com.wasimaster.wmkeyboard.core.tools.MoonPhase
 import com.wasimaster.wmkeyboard.core.tools.Qibla
-import com.wasimaster.wmkeyboard.core.tools.ToolPrefill
 import com.wasimaster.wmkeyboard.core.tools.WeatherClient
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.ime.FocusRegion
@@ -163,7 +148,6 @@ import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.math.atan2
@@ -174,9 +158,6 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -1122,540 +1103,6 @@ internal fun WeatherPanel(
         }
     }
 }
-
-// ---- calendar ----
-
-/**
- * Month calendar: a Gregorian grid carrying the first chosen alternate
- * calendar's date inside each cell, both chosen calendars' month spans in the
- * header, and a Today shortcut. Tapping a day shows that day's summary across
- * the chosen calendars and its events read from the device calendar
- * (read-only; [onRequestPermission] asks for READ_CALENDAR).
- */
-@Composable
-internal fun CalendarPanel(
-    state: KeyboardUiState,
-    onRequestPermission: () -> Unit,
-    onPrefillConsumed: () -> Unit = {},
-) {
-    val kb = LocalKbTheme.current
-    val today = remember {
-        Calendar.getInstance().let {
-            CalendarSystems.SimpleDate(
-                it.get(Calendar.YEAR), it.get(Calendar.MONTH) + 1, it.get(Calendar.DAY_OF_MONTH),
-            )
-        }
-    }
-    // Opened from a "next friday" chip: land on that day, selected, so the
-    // panel answers "am I free then" without a tap. Snapshotted at first
-    // composition because the service clears the prefill immediately after.
-    val prefill = remember { state.toolPrefill as? ToolPrefill.Calendar }
-    LaunchedEffect(Unit) { if (prefill != null) onPrefillConsumed() }
-    val opened = remember {
-        prefill?.let { CalendarSystems.SimpleDate(it.year, it.month, it.day) } ?: today
-    }
-    var shownYear by remember { mutableIntStateOf(opened.year) }
-    var shownMonth by remember { mutableIntStateOf(opened.month) }
-    var selected by remember { mutableStateOf(opened) }
-
-    val monthFormat = remember { SimpleDateFormat("MMMM yyyy", Locale.getDefault()) }
-    val monthLabel = remember(shownYear, shownMonth) {
-        monthFormat.format(
-            Calendar.getInstance().apply { set(shownYear, shownMonth - 1, 1) }.time
-        )
-    }
-    // The two calendars riding along with the Gregorian one, in draw order and
-    // with empty slots dropped, so everything below just iterates.
-    val altCalendars = listOf(state.settings.calendarTool.altOne, state.settings.calendarTool.altTwo)
-        .filter { it != AltCalendar.NONE }
-        .distinct()
-    // The day cells only have room for one extra number, so the first pick
-    // that has one to give wins.
-    val cellCalendar = altCalendars.firstOrNull { it.hasDayLabel }
-    val hijriAdjust = state.settings.calendarTool.hijriAdjustDays
-    val daysInMonth = CalendarSystems.gregorianMonthLength(shownYear, shownMonth)
-
-    // Which months of the chosen calendars this Gregorian month spans.
-    val spanLabel = remember(shownYear, shownMonth, altCalendars, hijriAdjust) {
-        altCalendars
-            .map { AltCalendars.monthSpan(it, shownYear, shownMonth, hijriAdjust) }
-            .filter { it.isNotEmpty() }
-            .joinToString("  ·  ")
-    }
-
-    // Ring regions — the month/selection state is all composable-local, which
-    // is exactly what the publish-up controller exists for. Three fixed
-    // ACTIONS slots (Today no-ops while already on the current month, rather
-    // than renumbering next); the day grid is seven columns, so Up/Down walk
-    // weeks the way the eye does.
-    PanelFocusTarget(
-        panel = PanelMode.CALENDAR,
-        region = FocusRegion.ACTIONS,
-        count = 3,
-        columns = 3,
-    ) { index ->
-        when (index) {
-            0 -> if (shownMonth == 1) { shownMonth = 12; shownYear-- } else shownMonth--
-            1 -> {
-                shownYear = today.year
-                shownMonth = today.month
-                selected = today
-            }
-            2 -> if (shownMonth == 12) { shownMonth = 1; shownYear++ } else shownMonth++
-        }
-    }
-    PanelFocusTarget(
-        panel = PanelMode.CALENDAR,
-        region = FocusRegion.RESULTS,
-        count = daysInMonth,
-        columns = 7,
-    ) { index ->
-        val day = index + 1
-        if (day in 1..daysInMonth) {
-            selected = CalendarSystems.SimpleDate(shownYear, shownMonth, day)
-        }
-    }
-    val focusedAction = state.focusedIndex(FocusRegion.ACTIONS)
-    val focusedDay = state.focusedIndex(FocusRegion.RESULTS)?.plus(1)
-
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val panelHeight = maxHeight
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 10.dp, vertical = 2.dp),
-        ) {
-            // Header: month navigation + Today shortcut.
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconHint(
-                    stringResource(
-                        R.string.ime_calendar_previous_month_desc,
-                    ),
-                ) {
-                    IconButton(
-                        onClick = {
-                            if (shownMonth == 1) { shownMonth = 12; shownYear-- } else shownMonth--
-                        },
-                        modifier = Modifier
-                            .size(30.dp)
-                            .focusRing(focusedAction == 0, CircleShape),
-                    ) {
-                        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
-                            contentDescription = stringResource(
-                                R.string.ime_calendar_previous_month_desc,
-                            ),
-                            tint = kb.toolbarIcon)
-                    }
-                }
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(
-                        monthLabel,
-                        color = kb.modifierKeyText,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                    )
-                    if (spanLabel.isNotEmpty()) {
-                        Text(
-                            spanLabel,
-                            color = kb.toolbarIcon,
-                            fontSize = 10.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-                if (shownYear != today.year || shownMonth != today.month) {
-                    Box(
-                        modifier = Modifier
-                            .clip(kb.chipShape())
-                            .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
-                            .background(kb.chip)
-                            .chipBorder(kb, kb.chipShape())
-                            .focusRing(focusedAction == 1, kb.chipShape())
-                            .clickable {
-                                shownYear = today.year
-                                shownMonth = today.month
-                                selected = today
-                            }
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                    ) {
-                        Text(
-                            stringResource(R.string.ime_calendar_today_label),
-                            color = kb.modifierKeyText,
-                            fontSize = 11.sp,
-                        )
-                    }
-                }
-                IconHint(stringResource(R.string.ime_calendar_next_month_desc)) {
-                    IconButton(
-                        onClick = {
-                            if (shownMonth == 12) { shownMonth = 1; shownYear++ } else shownMonth++
-                        },
-                        modifier = Modifier
-                            .size(30.dp)
-                            .focusRing(focusedAction == 2, CircleShape),
-                    ) {
-                        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-                            contentDescription = stringResource(R.string.ime_calendar_next_month_desc),
-                            tint = kb.toolbarIcon)
-                    }
-                }
-            }
-            // Weekday initials, with the user's weekend tinted. Which days those
-            // are is a setting, defaulted from the device's region — Friday and
-            // Saturday in much of the Middle East, Friday alone in Bangladesh,
-            // Saturday and Sunday most other places.
-            val weekend = state.settings.calendarTool.weekend.days
-            val weekdayInitials = stringArrayResource(R.array.ime_calendar_weekday_initials)
-            Row(modifier = Modifier.fillMaxWidth()) {
-                weekdayInitials.forEachIndexed { index, initial ->
-                    Text(
-                        initial,
-                        color = if (index in weekend) kb.accent else kb.toolbarIcon,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-            // Day grid.
-            val firstJdn = CalendarSystems.gregorianToJdn(shownYear, shownMonth, 1)
-            val firstDow = CalendarSystems.dayOfWeek(firstJdn)
-            val weeks = (firstDow + daysInMonth + 6) / 7
-            // The grid is the flexible child, so it would otherwise surrender
-            // whatever the event list asked for and collapse into unreadable
-            // slivers on a busy day. Reserve legible week rows first and hand
-            // the events everything left over — that is what keeps a long list
-            // scrolling in a real amount of room instead of cramping the month.
-            // 22 dp a week since the panel opens at the keyboard's own height
-            // (#665): a day's number still reads at that, and it leaves the
-            // day's events a line or two.
-            val eventsMaxHeight = (panelHeight - CALENDAR_CHROME_HEIGHT - (weeks * 22).dp)
-                .coerceIn(0.dp, 200.dp)
-            Column(modifier = Modifier.weight(1f)) {
-                for (week in 0 until weeks) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                    ) {
-                        for (dow in 0 until 7) {
-                            val day = week * 7 + dow - firstDow + 1
-                            if (day < 1 || day > daysInMonth) {
-                                Spacer(Modifier.weight(1f))
-                            } else {
-                                val isToday = today.year == shownYear &&
-                                    today.month == shownMonth && today.day == day
-                                val isSelected = selected.year == shownYear &&
-                                    selected.month == shownMonth && selected.day == day
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxHeight()
-                                        .padding(horizontal = 2.dp)
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(if (isSelected) kb.chipActive else Color.Transparent)
-                                        .then(
-                                            if (isToday && !isSelected) {
-                                                Modifier.border(1.dp, kb.accent, RoundedCornerShape(6.dp))
-                                            } else Modifier
-                                        )
-                                        .focusRing(day == focusedDay, RoundedCornerShape(6.dp))
-                                        .clickable {
-                                            selected = CalendarSystems.SimpleDate(shownYear, shownMonth, day)
-                                        },
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    val primary = when {
-                                        isSelected -> kb.chipActiveText
-                                        isToday -> kb.accent
-                                        else -> kb.modifierKeyText
-                                    }
-                                    if (cellCalendar != null) {
-                                        val altDay = AltCalendars.dayLabel(
-                                            cellCalendar, shownYear, shownMonth, day, hijriAdjust,
-                                        )
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text(
-                                                day.toString(),
-                                                color = primary,
-                                                fontSize = 12.sp,
-                                                fontWeight = if (isToday || isSelected) FontWeight.Bold
-                                                    else FontWeight.Normal,
-                                            )
-                                            Text(
-                                                altDay,
-                                                color = if (isSelected) kb.chipActiveText.copy(alpha = 0.7f)
-                                                    else kb.toolbarIcon,
-                                                fontSize = 8.sp,
-                                                maxLines = 1,
-                                                modifier = Modifier.padding(start = 2.dp),
-                                            )
-                                        }
-                                    } else {
-                                        Text(
-                                            day.toString(),
-                                            color = primary,
-                                            fontSize = 12.sp,
-                                            fontWeight = if (isToday || isSelected) FontWeight.Bold
-                                                else FontWeight.Normal,
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            // Selected date across the enabled calendars, then its events.
-            val gregorianText = remember(selected) {
-                SimpleDateFormat("d MMMM yyyy", Locale.getDefault()).format(
-                    Calendar.getInstance().apply {
-                        set(selected.year, selected.month - 1, selected.day)
-                    }.time
-                )
-            }
-            val weekdayText = remember(selected) {
-                SimpleDateFormat("EEEE", Locale.getDefault()).format(
-                    Calendar.getInstance().apply {
-                        set(selected.year, selected.month - 1, selected.day)
-                    }.time
-                )
-            }
-            val relativeDays =
-                (CalendarSystems.gregorianToJdn(selected.year, selected.month, selected.day) -
-                    CalendarSystems.gregorianToJdn(today.year, today.month, today.day)).toInt()
-            val relativeText = when {
-                relativeDays == 0 -> stringResource(R.string.ime_calendar_today_label)
-                relativeDays == 1 -> stringResource(R.string.ime_calendar_tomorrow_label)
-                relativeDays == -1 -> stringResource(R.string.ime_calendar_yesterday_label)
-                relativeDays > 0 -> pluralStringResource(
-                    R.plurals.ime_calendar_in_days_info, relativeDays, relativeDays,
-                )
-                else -> pluralStringResource(
-                    R.plurals.ime_calendar_days_ago_info, -relativeDays, -relativeDays,
-                )
-            }
-            // The alternate calendars ride along as context on the second line.
-            val altText = remember(selected, altCalendars, hijriAdjust) {
-                altCalendars
-                    .map {
-                        AltCalendars.fullDate(
-                            it, selected.year, selected.month, selected.day, hijriAdjust,
-                        )
-                    }
-                    .filter { it.isNotEmpty() }
-                    .joinToString(" · ")
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp),
-            ) {
-                Text(
-                    gregorianText,
-                    color = kb.modifierKeyText,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                )
-                Text(
-                    if (altText.isEmpty()) "$weekdayText · $relativeText"
-                    else "$weekdayText · $relativeText · $altText",
-                    color = kb.secondaryText,
-                    fontSize = 11.sp,
-                    maxLines = 1,
-                )
-            }
-            CalendarDayEvents(
-                selected = selected,
-                onRequestPermission = onRequestPermission,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = eventsMaxHeight),
-            )
-        }
-    }
-}
-
-/**
- * Everything in the calendar panel that is not the day grid or the event
- * list: the month header, the weekday initials, the selected-day summary and
- * the paddings between them.
- */
-private val CALENDAR_CHROME_HEIGHT = 96.dp
-
-/**
- * The selected day's events read from the device calendar. Shows a compact
- * permission prompt until READ_CALENDAR is granted; after that it queries
- * on a background thread whenever the selected day changes, and re-checks
- * the grant when the keyboard returns to the foreground (the system dialog
- * lives in a trampoline activity, like the camera tool).
- */
-@Composable
-private fun CalendarDayEvents(
-    selected: CalendarSystems.SimpleDate,
-    onRequestPermission: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val kb = LocalKbTheme.current
-    val feedback = LocalKeyPressFeedback.current
-    val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-
-    var hasPermission by remember { mutableStateOf(hasCalendarPermission(context)) }
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) hasPermission = hasCalendarPermission(context)
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
-
-    if (!hasPermission) {
-        Row(
-            modifier = modifier.padding(top = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                stringResource(R.string.ime_calendar_permission_info),
-                color = kb.secondaryText,
-                fontSize = 12.sp,
-                modifier = Modifier.weight(1f),
-            )
-            Box(
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .clip(kb.chipShape())
-                    .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
-                    .background(kb.chipActive)
-                    .chipBorder(kb, kb.chipShape())
-                    .clickable {
-                        feedback()
-                        onRequestPermission()
-                    }
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
-            ) {
-                Text(
-                    stringResource(R.string.ime_calendar_allow_action),
-                    color = kb.chipActiveText,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                )
-            }
-        }
-        return
-    }
-
-    // null = still loading; empty = queried, nothing scheduled.
-    var events by remember { mutableStateOf<List<DeviceCalendarEvent>?>(null) }
-    LaunchedEffect(selected, hasPermission) {
-        events = null
-        events = withContext(Dispatchers.IO) {
-            DeviceCalendar.eventsForDay(context, selected.year, selected.month, selected.day)
-        }
-    }
-
-    val list = events
-    when {
-        list == null -> Unit
-        list.isEmpty() -> Text(
-            stringResource(R.string.ime_calendar_no_events_empty),
-            color = kb.secondaryText,
-            fontSize = 12.sp,
-            modifier = modifier.padding(top = 6.dp),
-        )
-        else -> {
-            val timeFormat = remember { SimpleDateFormat("h:mm a", Locale.getDefault()) }
-            // A lazy list rather than a scrolling Column: a busy day's events
-            // are then always reachable by dragging inside the list, however
-            // little height the panel could spare for it. The cards keep their
-            // own breathing room, so a full day reads as a stack rather than a
-            // wall of text.
-            LazyColumn(
-                modifier = modifier.padding(top = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                contentPadding = PaddingValues(bottom = 4.dp),
-            ) {
-                // No key: EVENT_ID repeats across the instances of a recurring
-                // event, and duplicate keys are a crash rather than a glitch.
-                items(list) { event -> EventRow(event, timeFormat) }
-            }
-        }
-    }
-}
-
-/**
- * One event card: the calendar's own colour as a stripe down the left, the
- * title, and the time (with the location after it, when there is one). The
- * stripe rather than a dot means the colour still reads at a glance in a
- * stack of events, and the card gives each event an edge of its own.
- */
-@Composable
-private fun EventRow(event: DeviceCalendarEvent, timeFormat: SimpleDateFormat) {
-    val kb = LocalKbTheme.current
-    val color = if (event.color != 0) Color(event.color) else kb.accent
-    val shape = kb.cardShape()
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            // Intrinsic height so the stripe can fill the card: inside a lazy
-            // list the row's own height is otherwise unbounded and fillMaxHeight
-            // would have nothing to fill.
-            .height(IntrinsicSize.Min)
-            .clip(shape)
-            .frostGlass(kb, shape, FrostSurface.CHIPS)
-            .background(kb.chip, shape)
-            .chipBorder(kb, shape),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            modifier = Modifier
-                .width(3.dp)
-                .fillMaxHeight()
-                .background(color),
-        )
-        Column(
-            modifier = Modifier
-                .padding(start = 8.dp, end = 8.dp, top = 5.dp, bottom = 5.dp)
-                .weight(1f),
-        ) {
-            Text(
-                event.title,
-                color = kb.modifierKeyText,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            val time = if (event.allDay) {
-                stringResource(R.string.ime_calendar_all_day_label)
-            } else {
-                timeFormat.format(Date(event.begin))
-            }
-            Text(
-                event.location?.let { "$time · $it" } ?: time,
-                color = kb.secondaryText,
-                fontSize = 11.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-}
-
-/** Whether the calendar tool may read the device calendar. */
-internal fun hasCalendarPermission(context: Context): Boolean =
-    ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_CALENDAR) ==
-        android.content.pm.PackageManager.PERMISSION_GRANTED
 
 // ---- themes ----
 

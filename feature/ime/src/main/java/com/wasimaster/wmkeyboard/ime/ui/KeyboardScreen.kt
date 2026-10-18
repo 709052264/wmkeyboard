@@ -1291,7 +1291,6 @@ fun KeyboardScreen(
     onWeatherRefresh: () -> Unit = {},
     onCameraSend: (java.io.File, Boolean) -> Unit = { _, _ -> },
     onCameraPermissionRequest: () -> Unit = {},
-    onCalendarPermissionRequest: () -> Unit = {},
     onScannedInsert: (String) -> Unit = {},
     onScannedUrlOpen: (String) -> Unit = {},
     onVoiceToggle: () -> Unit = {},
@@ -1514,7 +1513,6 @@ fun KeyboardScreen(
                 onWeatherRefresh = onWeatherRefresh,
                 onCameraSend = onCameraSend,
                 onCameraPermissionRequest = onCameraPermissionRequest,
-                onCalendarPermissionRequest = onCalendarPermissionRequest,
                 onScannedInsert = onScannedInsert,
                 onScannedUrlOpen = onScannedUrlOpen,
                 onVoiceToggle = onVoiceToggle,
@@ -12799,7 +12797,6 @@ private fun KeyboardBody(
     onWeatherRefresh: () -> Unit,
     onCameraSend: (java.io.File, Boolean) -> Unit,
     onCameraPermissionRequest: () -> Unit,
-    onCalendarPermissionRequest: () -> Unit,
     onScannedInsert: (String) -> Unit,
     onScannedUrlOpen: (String) -> Unit,
     onVoiceToggle: () -> Unit,
@@ -13406,20 +13403,11 @@ private fun KeyboardBody(
                     callbacks = toolHold.gallery,
                     onClose = { onPanelChange(PanelMode.GALLERY) },
                 )
-                // At the keyboard's own height, like the calculator (#665): the
-                // month grid gives up row height before the day's summary does,
-                // and the bar every full-bleed tool shares drags all of them
-                // taller together, so no tool opens at a size of its own.
-                PanelMode.CALENDAR -> FullBleedTool(
-                    state, stringResource(R.string.ime_tool_calendar),
+                PanelMode.CALENDAR -> com.wasimaster.wmkeyboard.ime.ui.calendar.CalendarPanel(
+                    state = state,
+                    callbacks = toolHold.calendar,
                     onClose = { onPanelChange(PanelMode.CALENDAR) },
-                ) {
-                    CalendarPanel(
-                        state,
-                        onRequestPermission = onCalendarPermissionRequest,
-                        onPrefillConsumed = onToolPrefillConsumed,
-                    )
-                }
+                )
                 PanelMode.THEMES -> ThemesPanel(
                     state,
                     onThemeSelect,
@@ -28634,6 +28622,9 @@ data class ToolHoldCallbacks(
     val location: LocationCallbacks = LocationCallbacks(),
     /** The Clock panel's callbacks and state; here for the same reason as [dictionaryBar]. */
     val clock: com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks = com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks(),
+    /** The Calendar panel's callbacks and state; its state is the controller's, like [clock]. */
+    val calendar: com.wasimaster.wmkeyboard.ime.calendar.CalendarCallbacks =
+        com.wasimaster.wmkeyboard.ime.calendar.CalendarCallbacks(),
     /** The emoji panel's kaomoji tab. */
     val kaomoji: com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiCallbacks =
         com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiCallbacks(),

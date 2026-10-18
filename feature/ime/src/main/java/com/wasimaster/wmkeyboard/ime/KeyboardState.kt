@@ -3645,6 +3645,12 @@ data class KeyboardUiState(
      */
     val galleryText: com.wasimaster.wmkeyboard.ime.gallery.GalleryTextEntry? = null,
     /**
+     * The Calendar composer's text box while it has the keys: an event's
+     * title, place, notes, or a guest being added. The rest of the panel's
+     * state is the controller's.
+     */
+    val calendarText: com.wasimaster.wmkeyboard.ime.calendar.CalendarTextEntry? = null,
+    /**
      * The emoji panel's kaomoji tab's text box while it has the keys: its
      * search, a face being added or changed, a tag's name. The rest of the
      * tab's state is the controller's.
@@ -4105,6 +4111,10 @@ data class KeyboardUiState(
     val haTypingActive: Boolean
         get() = panel == PanelMode.HOME_ASSISTANT && haText != null
 
+    /** Whether the Calendar composer's text box has the keys; panel *and* box, as [clockTypingActive]. */
+    val calendarTypingActive: Boolean
+        get() = panel == PanelMode.CALENDAR && calendarText != null
+
     /** Whether the gallery panel's text box has the keys; panel *and* box, as [clockTypingActive]. */
     val galleryTypingActive: Boolean
         get() = panel == PanelMode.GALLERY && galleryText != null
@@ -4196,6 +4206,12 @@ data class KeyboardUiState(
                 CaptureTarget.CLOCK_LABEL
             }
         galleryTypingActive -> CaptureTarget.GALLERY_TEXT
+        calendarTypingActive -> when (calendarText?.field) {
+            com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.LOCATION -> CaptureTarget.CALENDAR_LOCATION
+            com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.NOTES -> CaptureTarget.CALENDAR_NOTES
+            com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.GUEST -> CaptureTarget.CALENDAR_GUEST
+            else -> CaptureTarget.CALENDAR_TITLE
+        }
         haTypingActive -> when (haText?.field) {
             com.wasimaster.wmkeyboard.ime.homeassistant.HaTextField.SEARCH -> CaptureTarget.HA_SEARCH
             com.wasimaster.wmkeyboard.ime.homeassistant.HaTextField.ASSIST -> CaptureTarget.HA_ASSIST
@@ -4278,6 +4294,9 @@ data class KeyboardUiState(
         CaptureTarget.REPEAT_TEXT -> textRepeat.text
         CaptureTarget.REPEAT_SEPARATOR -> textRepeat.customSeparator
         CaptureTarget.GALLERY_TEXT -> galleryText?.text.orEmpty()
+        CaptureTarget.CALENDAR_TITLE, CaptureTarget.CALENDAR_LOCATION,
+        CaptureTarget.CALENDAR_NOTES, CaptureTarget.CALENDAR_GUEST,
+        -> calendarText?.text.orEmpty()
         CaptureTarget.TOOLBOX_SEARCH -> toolboxView.query
         CaptureTarget.TOOLBOX_FOLDER_NAME -> toolboxView.nameDraft.orEmpty()
         CaptureTarget.KAOMOJI_SEARCH, CaptureTarget.KAOMOJI_FACE, CaptureTarget.KAOMOJI_TAG ->

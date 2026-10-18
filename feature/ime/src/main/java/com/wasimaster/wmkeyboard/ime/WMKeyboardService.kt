@@ -76,7 +76,6 @@ import androidx.core.view.inputmethod.InputContentInfoCompat
 import androidx.core.graphics.createBitmap
 import androidx.tracing.trace
 import com.wasimaster.wmkeyboard.config.BuildConfig
-import com.wasimaster.wmkeyboard.app.CalendarPermissionActivity
 import com.wasimaster.wmkeyboard.app.CameraPermissionActivity
 import com.wasimaster.wmkeyboard.app.DocScanActivity
 import com.wasimaster.wmkeyboard.app.MainActivityContract
@@ -5386,7 +5385,6 @@ open class WMKeyboardService : InputMethodService() {
                 onWeatherRefresh = { refreshWeather(force = true) },
                 onCameraSend = ::onCameraSend,
                 onCameraPermissionRequest = ::onCameraPermissionRequest,
-                onCalendarPermissionRequest = ::onCalendarPermissionRequest,
                 onScannedInsert = ::onScannedTextInsert,
                 onScannedUrlOpen = ::onScannedUrlOpen,
                 onVoiceToggle = ::onVoiceToggle,
@@ -6991,6 +6989,8 @@ open class WMKeyboardService : InputMethodService() {
         locationTool.onKeyboardShown()
         // And a clock grant (exact alarms, full screen) given on a system screen.
         if (clockToolDelegate.isInitialized()) clockTool.onKeyboardShown()
+        // And a calendar grant, which may have a Save or a Delete waiting on it.
+        if (calendarToolDelegate.isInitialized()) calendarTool.onKeyboardShown()
         // And a Home Assistant sign-in that came back from the browser.
         if (haToolDelegate.isInitialized()) haTool.onKeyboardShown()
         // The gallery's grant, or what its system picker handed back (#708):
@@ -9899,6 +9899,11 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.HA_SEARCH, CaptureTarget.HA_ASSIST, CaptureTarget.HA_TEXT -> state.haText?.let(haTool::onTextEnter)
             // A caption, or words on a photo, can run over lines; Done finishes them.
             CaptureTarget.GALLERY_TEXT -> captureTyped("\n")
+            // A title moves on to the place, a guest is added, a place is kept;
+            // notes are free text, so Enter is a line break in them.
+            CaptureTarget.CALENDAR_TITLE, CaptureTarget.CALENDAR_LOCATION, CaptureTarget.CALENDAR_GUEST ->
+                state.calendarText?.let(calendarTool::onTextEnter)
+            CaptureTarget.CALENDAR_NOTES -> captureTyped("\n")
             // A clip is free text, so Enter is a line break in it; saving is
             // the editor's own button.
             // The tags editor is one list: Enter keeps it (#612).
@@ -10291,6 +10296,20 @@ open class WMKeyboardService : InputMethodService() {
                 val entry = _uiState.value.haText?.copy(text = text.replace("\n", " ").take(limit))
                 _uiState.update { it.copy(haText = entry) }
                 entry?.let(haTool::onText)
+            }
+            CaptureTarget.CALENDAR_TITLE, CaptureTarget.CALENDAR_LOCATION,
+            CaptureTarget.CALENDAR_NOTES, CaptureTarget.CALENDAR_GUEST,
+            -> {
+                val current = _uiState.value.calendarText
+                val entry = current?.copy(
+                    text = if (target == CaptureTarget.CALENDAR_NOTES) {
+                        text.take(com.wasimaster.wmkeyboard.ime.calendar.CalendarController.NOTES_MAX)
+                    } else {
+                        text.replace("\n", " ").take(com.wasimaster.wmkeyboard.ime.calendar.CalendarController.TITLE_MAX)
+                    },
+                )
+                _uiState.update { it.copy(calendarText = entry) }
+                entry?.let(calendarTool::onText)
             }
             CaptureTarget.GALLERY_TEXT -> {
                 val limit = com.wasimaster.wmkeyboard.ime.gallery.GalleryController.CAPTION_MAX
@@ -24998,6 +25017,11 @@ open class WMKeyboardService : InputMethodService() {
             haTool.onPanelClose()
             _uiState.update { it.copy(haText = null) }
         }
+        // Leaving the Calendar panel: the composer's box gives the keys back; a draft is kept.
+        if (_uiState.value.panel == PanelMode.CALENDAR) {
+            calendarTool.onPanelClose()
+            _uiState.update { it.copy(calendarText = null) }
+        }
         // Leaving the gallery: its caption box gives the keys back (#708).
         if (_uiState.value.panel == PanelMode.GALLERY) {
             galleryTool.onPanelClose()
@@ -25162,6 +25186,13 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.WEATHER -> refreshWeather()
             PanelMode.LOCATION -> locationTool.onPanelOpen()
             PanelMode.CLOCK -> clockTool.onPanelOpen()
+            // A "next friday" chip lands on its day; "Add to calendar" on a
+            // selection opens the composer filled in.
+            PanelMode.CALENDAR -> {
+                val prefill = _uiState.value.toolPrefill
+                calendarTool.onPanelOpen(prefill)
+                if (prefill is ToolPrefill.Calendar || prefill is ToolPrefill.CalendarEvent) onToolPrefillConsumed()
+            }
             PanelMode.EMOJI -> if (_uiState.value.settings.emoji.kaomojiTabs) kaomojiTool.onPanelOpen()
             PanelMode.HOME_ASSISTANT -> {
                 haTool.onPanelOpen()
@@ -34033,15 +34064,6 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
 
-    /** Calendar tool's READ_CALENDAR request, via the same trampoline pattern. */
-    fun onCalendarPermissionRequest() {
-        startActivity(
-            Intent(this, CalendarPermissionActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-        )
-    }
-
     /**
      * Doc-scan tool: hand off to ML Kit's full-screen scanner activity
      * (edge detection, crop, filters — all Google's UI). The scanned pages
@@ -36185,6 +36207,7 @@ open class WMKeyboardService : InputMethodService() {
             notes = notesCallbacks(),
             location = locationTool.callbacks,
             clock = clockTool.callbacks,
+            calendar = calendarTool.callbacks,
             kaomoji = kaomojiTool.callbacks,
             homeAssistant = haTool.callbacks,
             gallery = galleryTool.callbacks,
@@ -36276,6 +36299,40 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val clockTool by clockToolDelegate
+
+    /**
+     * The Calendar tool: month view, event sheet and composer. Built on first
+     * use, like [clockTool]; nothing reads the calendar until the panel opens.
+     */
+    private val calendarToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.calendar.CalendarController(
+            context = this,
+            scope = serviceScope,
+            settings = { _uiState.value.settings.calendarTool },
+            insertText = ::onToolTextInsert,
+            haptic = { vibrate() },
+            openToolSettings = { openToolSettings(ToolbarTool.CALENDAR) },
+            launch = { intent -> runCatching { startActivity(intent) } },
+            beginText = { entry ->
+                val target = when (entry.field) {
+                    com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.TITLE -> CaptureTarget.CALENDAR_TITLE
+                    com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.LOCATION -> CaptureTarget.CALENDAR_LOCATION
+                    com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.NOTES -> CaptureTarget.CALENDAR_NOTES
+                    com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.GUEST -> CaptureTarget.CALENDAR_GUEST
+                }
+                _uiState.update {
+                    it.copy(
+                        calendarText = entry,
+                        panelFocus = null,
+                        captureCaret = CaptureCaret(target.name, entry.text.length, entry.text),
+                    )
+                }
+            },
+            endText = { _uiState.update { it.copy(calendarText = null) } },
+            currentText = { _uiState.value.calendarText },
+        )
+    }
+    private val calendarTool by calendarToolDelegate
 
     // ---- kaomoji tab ----
 
@@ -38804,6 +38861,32 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun addCalendarEvent(offer: SelectionMacroOffer) {
         val hit = offer.content.dateTime ?: return
+        val settings = _uiState.value.settings
+        // In the keyboard's own composer, filled in, unless the user set Save to
+        // hand events to the calendar app (or the Calendar tool is off).
+        if (settings.calendarTool.saveMode == com.wasimaster.wmkeyboard.core.settings.CalendarSaveMode.KEYBOARD &&
+            ToolbarTool.CALENDAR in settings.enabledTools
+        ) {
+            _uiState.update {
+                it.copy(
+                    toolPrefill = ToolPrefill.CalendarEvent(
+                        title = offer.text.take(MAX_EVENT_TITLE),
+                        start = hit.startMillis,
+                        end = hit.endMillis,
+                        allDay = hit.allDay,
+                        zoneId = hit.zoneId,
+                    ),
+                )
+            }
+            if (_uiState.value.panel == PanelMode.CALENDAR) {
+                // Already open: onPanelChange would close it, so hand the prefill over here.
+                calendarTool.onPanelOpen(_uiState.value.toolPrefill)
+                onToolPrefillConsumed()
+            } else {
+                onPanelChange(PanelMode.CALENDAR)
+            }
+            return
+        }
         val intent = Intent(Intent.ACTION_INSERT)
             .setData(CalendarContract.Events.CONTENT_URI)
             .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, hit.startMillis)
