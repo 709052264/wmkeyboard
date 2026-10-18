@@ -10,9 +10,10 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 
 /**
- * One entity as Home Assistant reports it. [attributes] stays raw JSON because
- * every domain has its own, and the typed accessors below read the ones the
- * keyboard draws. Timestamps are epoch seconds, whichever API delivered them.
+ * One entity as Home Assistant reports it, and the shape every other platform
+ * is mapped onto. [attributes] stays raw JSON because every domain has its
+ * own, and the typed accessors below read the ones the keyboard draws.
+ * Timestamps are epoch seconds, whichever API delivered them.
  */
 @Serializable
 data class HaEntity(
@@ -21,6 +22,8 @@ data class HaEntity(
     val attributes: JsonObject = JsonObject(emptyMap()),
     @SerialName("last_changed") val lastChanged: Double = 0.0,
     @SerialName("last_updated") val lastUpdated: Double = 0.0,
+    /** The key of the home this entity belongs to (`HomeRef`); blank until a backend stamps it. */
+    val home: String = "",
 ) {
     val domain: String get() = entityId.substringBefore('.')
     val objectId: String get() = entityId.substringAfter('.', entityId)

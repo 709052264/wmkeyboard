@@ -97,6 +97,8 @@ class HaSocket(
     private val scope: CoroutineScope,
     private val url: () -> HaUrl?,
     private val token: suspend () -> String?,
+    /** Stamped on every entity the stream delivers: the home's key, see `HomeRef`. */
+    private val home: String = "",
     private val events: Events = object : Events {},
 ) {
     /** What the owner wants to hear about beyond the flows. */
@@ -314,12 +316,13 @@ class HaSocket(
         val current = LinkedHashMap(_entities.value)
         val changed = LinkedHashSet<String>()
         ev.obj("a")?.forEach { (id, v) ->
-            current[id] = HaEntity.fromCompressed(id, v.jsonObject)
+            current[id] = HaEntity.fromCompressed(id, v.jsonObject).copy(home = home)
             changed += id
         }
         ev.obj("c")?.forEach { (id, v) ->
             val old = current[id]
-            current[id] = old?.applyCompressedChange(v.jsonObject) ?: HaEntity.fromCompressed(id, v.jsonObject.obj("+") ?: JsonObject(emptyMap()))
+            current[id] = old?.applyCompressedChange(v.jsonObject)
+                ?: HaEntity.fromCompressed(id, v.jsonObject.obj("+") ?: JsonObject(emptyMap())).copy(home = home)
             changed += id
         }
         ev.arr("r")?.forEach { id ->
@@ -412,7 +415,7 @@ class HaSocket(
 
     /** Every state once, for a REST-less refresh after a reconnect. */
     suspend fun states(): List<HaEntity> =
-        send("get_states").jsonArray.mapNotNull { HaEntity.fromRest(it.jsonObject) }
+        send("get_states").jsonArray.mapNotNull { HaEntity.fromRest(it.jsonObject)?.copy(home = home) }
 
     companion object {
         private val BACKOFF_MS = longArrayOf(1_000, 2_000, 5_000, 15_000, 30_000)

@@ -13,20 +13,23 @@ class HaAuthTest {
     @Test
     fun `authorize url names client redirect and state`() {
         val base = HaUrl.parse("homeassistant.local")!!
-        val state = HaAuth.newState(base)
+        val state = HaAuth.newState(base, "home_assistant:ab12")
         val url = HaAuth.authorizeUrl(base, state)
         assertTrue(url.startsWith("http://homeassistant.local:8123/auth/authorize?client_id=https%3A%2F%2Fwmkeyboard.pages.dev%2Fha%2F"))
         assertTrue(url.contains("&redirect_uri=wmkeyboard%3A%2F%2Fha-auth"))
         assertTrue(url.contains("&state="))
         assertEquals(base, HaAuth.baseOf(state))
+        assertEquals("home_assistant:ab12", HaAuth.credentialOf(state))
         assertEquals(32, HaAuth.nonceOf(state).length)
     }
 
     @Test
     fun `callback parses and rejects other links`() {
-        val cb = HaAuth.parseCallback("wmkeyboard://ha-auth?code=abc123&state=deadbeef%7Chttp%3A%2F%2Fha.local%3A8123")!!
+        val cb = HaAuth.parseCallback("wmkeyboard://ha-auth?code=abc123&state=deadbeef%7Chome_assistant%7Chttp%3A%2F%2Fha.local%3A8123")!!
         assertEquals("abc123", cb.code)
-        assertEquals("deadbeef|http://ha.local:8123", cb.state)
+        assertEquals("deadbeef|home_assistant|http://ha.local:8123", cb.state)
+        assertEquals("home_assistant", HaAuth.credentialOf(cb.state))
+        assertEquals("http://ha.local:8123", HaAuth.baseOf(cb.state)!!.base)
         assertNull(HaAuth.parseCallback("wmkeyboard://settings?route=x"))
         assertNull(HaAuth.parseCallback("wmkeyboard://ha-auth?state=only"))
         assertNull(HaAuth.parseCallback(null))
