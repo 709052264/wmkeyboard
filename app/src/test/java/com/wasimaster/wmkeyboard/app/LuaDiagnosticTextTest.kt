@@ -76,6 +76,7 @@ class LuaDiagnosticTextTest {
         val NO_ARGUMENTS = setOf(
             LuaDiagnosticCode.UNCLOSED_STRING, LuaDiagnosticCode.UNCLOSED_LONG_STRING, LuaDiagnosticCode.UNCLOSED_COMMENT,
             LuaDiagnosticCode.SYNTAX_AT_END, LuaDiagnosticCode.STRING_DUMP, LuaDiagnosticCode.STORAGE_NOT_DECLARED,
+            LuaDiagnosticCode.REMINDERS_NOT_DECLARED,
             LuaDiagnosticCode.FRONTIER_PATTERN, LuaDiagnosticCode.MISSING_RENDER, LuaDiagnosticCode.RENDER_RETURNS_NOTHING,
             LuaDiagnosticCode.RENDER_PARAMETERS, LuaDiagnosticCode.ON_EVENT_PARAMETERS, LuaDiagnosticCode.TOO_MANY_TABS,
             LuaDiagnosticCode.LOOP_NEVER_ENDS,
