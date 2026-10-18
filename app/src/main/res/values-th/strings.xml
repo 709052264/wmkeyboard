@@ -5694,7 +5694,6 @@
     <string name="search_kw_codes">otp, รหัสผ่านใช้ครั้งเดียว, 2fa, การยืนยันสองชั้น, รหัสยืนยัน, รหัส sms, รหัสเข้าสู่ระบบ</string>
     <string name="search_kw_customdictionaries">รายการคำ, นำเข้าคำ, รายการคำศัพท์</string>
     <string name="search_kw_datasaver">ข้อมูลมือถือ, เซลลูลาร์, แบบจำกัดปริมาณ, โรมมิ่ง, เฉพาะ Wi-Fi, การใช้ข้อมูล, แบนด์วิดท์, ออฟไลน์, ประหยัดข้อมูล</string>
-    <string name="search_kw_deepl">เขียน เรียบเรียงใหม่ เขียนใหม่ ปรับปรุง ขัดเกลา สไตล์ โทนเสียง แปล</string>
     <string name="search_kw_diagnostics">บันทึก, logcat, การแก้ไขปัญหา, ข้อผิดพลาด, รายงาน</string>
     <string name="search_kw_dictionary">คำที่เรียนรู้แล้ว, พจนานุกรมผู้ใช้, คำของฉัน, เพิ่มคำ</string>
     <string name="search_kw_emoji">อีโมติคอน, หน้าตลก, คาโอโมจิ, สีผิว, สติกเกอร์, gif, ล่าสุด</string>
@@ -5838,7 +5837,6 @@
     <string name="search_kw_translate_engine">ออฟไลน์ ส่วนตัว อินเทอร์เน็ต เครื่องบิน อุปกรณ์ท้องถิ่น ml kit google ดาวน์โหลดโมเดล คลาวด์</string>
     <string name="search_kw_translate_models">ดาวน์โหลดโมเดลแปลภาษาออฟไลน์ ลบพื้นที่จัดเก็บ ml kit google</string>
     <string name="search_kw_translate_only_downloaded">ซ่อนเมนูตัวเลือกโมเดลออฟไลน์ในตัวกรอง</string>
-    <string name="search_kw_translate_server">openai compatible selfhosted hosted local llm ai model ollama llama studio vllm localai chat completions</string>
     <string name="search_kw_typing">ตรวจสอบการสะกด, เติมคำอัตโนมัติ, ข้อความคาดเดา, การพิมพ์แบบลาก, การพิมพ์แบบปัด, ท่าทาง, รายชื่อติดต่อ, เลิกทำ</string>
     <string name="search_kw_typing_auto_capitalize">ตัวพิมพ์ใหญ่อัตโนมัติ</string>
     <string name="search_kw_typing_auto_close_brackets">ปิดวงเล็บอัตโนมัติ จับคู่วงเล็บ</string>

@@ -5699,7 +5699,6 @@
     <string name="search_kw_codes">otp, einnota lykilorð, 2fa, tveggja þátta auðkenning, staðfestingarkóði, sms-kóði, innskráningarkóði</string>
     <string name="search_kw_customdictionaries">orðalistar, flytja inn orð, orðalisti</string>
     <string name="search_kw_datasaver">farsímagögn, farsími, mæld tenging, reiki, aðeins wifi, gagnanotkun, bandbreidd, án nettengingar, vista gögn</string>
-    <string name="search_kw_deepl">skrifa endurorða endurskrifa bæta pússa stíll tónn þýðing</string>
     <string name="search_kw_diagnostics">annálar, logcat, bilanaleit, hrun, skýrsla</string>
     <string name="search_kw_dictionary">lærð orð, notendaorðabók, mín orð, bæta við orði</string>
     <string name="search_kw_emoji">broskarlar, broskarlar, kaomoji, húðlitur, límmiðar, gifs, nýlegt</string>
@@ -5843,7 +5842,6 @@
     <string name="search_kw_translate_engine">ótengt einkamál internet flugvél staðbundið tæki ml kit google líkan niðurhal ský</string>
     <string name="search_kw_translate_models">niðurhal á þýðingarlíkani án nettengingar eyða geymslu ml kit google</string>
     <string name="search_kw_translate_only_downloaded">fela síu fyrir valmynd af ótengdum gerðum</string>
-    <string name="search_kw_translate_server">openai samhæft sjálfýst hýst staðbundið llm gervigreindargerð ollama llama studio vllm localai spjall</string>
     <string name="search_kw_typing">villuleit, sjálfvirk útfylling, spátexti, renniritun, strjúkritun, bendingar, tengiliðir, afturkalla</string>
     <string name="search_kw_typing_auto_capitalize">sjálfvirkir hástafir sjálfvirk hástafasetning</string>
     <string name="search_kw_typing_auto_close_brackets">sjálfvirk lokun sviga svigar passa við lokið</string>

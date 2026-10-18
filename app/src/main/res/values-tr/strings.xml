@@ -5695,7 +5695,6 @@
     <string name="search_kw_codes">otp, tek kullanımlık şifre, 2fa, iki faktörlü, doğrulama kodu, sms kodu, giriş kodu</string>
     <string name="search_kw_customdictionaries">kelime listeleri, kelimeleri içe aktar, kelime listesi</string>
     <string name="search_kw_datasaver">mobil veri, hücresel, ölçülü, dolaşım, sadece wifi, veri kullanımı, bant genişliği, çevrimdışı, veri tasarrufu</string>
-    <string name="search_kw_deepl">yazma yeniden ifade etme yeniden yazma iyileştirme düzenleme stil ton çeviri</string>
     <string name="search_kw_diagnostics">günlükler, logcat, sorun giderme, çökme, rapor</string>
     <string name="search_kw_dictionary">öğrenilen kelimeler, kullanıcı sözlüğü, kelimelerim, kelime ekle</string>
     <string name="search_kw_emoji">ifadeler, suratlar, kaomoji, cilt tonu, çıkartmalar, gifler, son kullanılanlar</string>
@@ -5839,7 +5838,6 @@
     <string name="search_kw_translate_engine">çevrimdışı özel internet uçak yerel cihaz ml kit google model indirme bulut</string>
     <string name="search_kw_translate_models">çevrimdışı çeviri modeli indirme silme depolama ml kit google</string>
     <string name="search_kw_translate_only_downloaded">çevrimdışı model seçici menüsünü gizle</string>
-    <string name="search_kw_translate_server">openai uyumlu kendi kendine barındırılan yerel llm yapay zeka modeli ollama llama studio vllm localai sohbet tamamlamaları</string>
     <string name="search_kw_typing">yazım denetimi, otomatik tamamlama, tahmini metin, kaydırma, kaydırarak yazma, hareketler, kişiler, geri al</string>
     <string name="search_kw_typing_auto_capitalize">otomatik büyük harf otomatik büyük harfe çevirme</string>
     <string name="search_kw_typing_auto_close_brackets">otomatik kapatma parantez eşleştirme tamamlama</string>

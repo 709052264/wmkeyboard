@@ -5703,7 +5703,6 @@
     <string name="search_kw_codes">otp, еднократна парола, 2fa, двуфакторна, код за потвърждение, sms код, код за вход</string>
     <string name="search_kw_customdictionaries">списъци с думи, импортиране на думи, списък с думи</string>
     <string name="search_kw_datasaver">мобилни данни, клетъчни, с ограничение, роуминг, само Wi-Fi, използване на данни, честотна лента, офлайн, запазване на данни</string>
-    <string name="search_kw_deepl">пиша преформулирам пренаписвам подобрявам полирам стил тон превод</string>
     <string name="search_kw_diagnostics">дневници, logcat, отстраняване на неизправности, срив, отчет</string>
     <string name="search_kw_dictionary">научени думи, потребителски речник, моите думи, добавяне на дума</string>
     <string name="search_kw_emoji">емотикони, усмивки, каомоджи, цвят на кожата, стикери, гифчета, скорошни</string>
@@ -5847,7 +5846,6 @@
     <string name="search_kw_translate_engine">офлайн частен интернет самолет локално устройство ml kit google изтегляне на модел облак</string>
     <string name="search_kw_translate_models">изтегляне на офлайн модел за превод изтриване съхранение ml kit google</string>
     <string name="search_kw_translate_only_downloaded">скриване на филтър меню за избор на офлайн модел кратко</string>
-    <string name="search_kw_translate_server">openai съвместим хостван локален llm ai модел ollama llama studio vllm localai чат завършвания</string>
     <string name="search_kw_typing">проверка на правописа, автоматично довършване, предвиждане на текст, плъзгане, писане с плъзгане, жестове, контакти, отмяна</string>
     <string name="search_kw_typing_auto_capitalize">автоматично главни букви автоматично капитализиране</string>
     <string name="search_kw_typing_auto_close_brackets">автоматично затваряне на двойки скоби съответствие на скоби завършване</string>

@@ -5695,7 +5695,6 @@
     <string name="search_kw_codes">otp, 일회용 비밀번호, 2fa, 2단계 인증, 인증 코드, sms 코드, 로그인 코드</string>
     <string name="search_kw_customdictionaries">단어 목록, 단어 가져오기, 단어장</string>
     <string name="search_kw_datasaver">모바일 데이터, 셀룰러, 종량제, 로밍, Wi-Fi 전용, 데이터 사용량, 대역폭, 오프라인, 데이터 절약</string>
-    <string name="search_kw_deepl">작성 문구 수정 다시 쓰기 개선 다듬기 스타일 어조 번역</string>
     <string name="search_kw_diagnostics">로그, logcat, 문제 해결, 충돌, 보고서</string>
     <string name="search_kw_dictionary">학습된 단어, 사용자 사전, 내 단어, 단어 추가</string>
     <string name="search_kw_emoji">이모티콘, 스마일리, 카오모지, 피부 톤, 스티커, GIF, 최근 항목</string>
@@ -5839,7 +5838,6 @@
     <string name="search_kw_translate_engine">오프라인 개인 인터넷 비행기 로컬 기기 ml kit 구글 모델 다운로드 클라우드</string>
     <string name="search_kw_translate_models">오프라인 번역 모델 다운로드 삭제 저장소 ml kit 구글</string>
     <string name="search_kw_translate_only_downloaded">오프라인 모델 선택 메뉴 필터 숨기기</string>
-    <string name="search_kw_translate_server">openai 호환 자체 호스팅 로컬 llm ai 모델 ollama llama studio vllm localai 채팅 완성</string>
     <string name="search_kw_typing">맞춤법 검사, 자동 완성, 예측 텍스트, 글라이드, 스와이프 타이핑, 제스처, 연락처, 실행 취소</string>
     <string name="search_kw_typing_auto_capitalize">자동 대문자 자동 대문자 변환</string>
     <string name="search_kw_typing_auto_close_brackets">괄호 자동 닫기 쌍 괄호 일치 완료</string>

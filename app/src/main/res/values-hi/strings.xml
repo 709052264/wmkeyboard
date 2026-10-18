@@ -5715,7 +5715,6 @@
     <string name="search_kw_codes">ओटीपी, वन टाइम पासवर्ड, 2एफए, टू फैक्टर, वेरिफिकेशन कोड, एसएमएस कोड, लॉगिन कोड</string>
     <string name="search_kw_customdictionaries">शब्द सूचियाँ, शब्द आयात करें, शब्दसूची</string>
     <string name="search_kw_datasaver">मोबाइल डेटा, सेलुलर, मीटरड, रोमिंग, केवल वाईफाई, डेटा उपयोग, बैंडविड्थ, ऑफ़लाइन, डेटा बचाएं</string>
-    <string name="search_kw_deepl">लिखें, फिर से वाक्यांश बनाएं, फिर से लिखें, सुधारें, पॉलिश करें, शैली, लहजा, अनुवाद</string>
     <string name="search_kw_diagnostics">लॉग, लॉगकैट, समस्या निवारण, क्रैश, रिपोर्ट</string>
     <string name="search_kw_dictionary">सीखे गए शब्द, उपयोगकर्ता शब्दकोश, मेरे शब्द, शब्द जोड़ें</string>
     <string name="search_kw_emoji">इमोटिकॉन्स, स्माइली, काओमोजी, त्वचा का रंग, स्टिकर, जिफ़, हालिया</string>
@@ -5859,7 +5858,6 @@
     <string name="search_kw_translate_engine">ऑफ़लाइन निजी इंटरनेट हवाई जहाज़ स्थानीय डिवाइस एमएल किट गूगल मॉडल डाउनलोड क्लाउड</string>
     <string name="search_kw_translate_models">ऑफ़लाइन अनुवाद मॉडल डाउनलोड हटाएं स्टोरेज ml kit google</string>
     <string name="search_kw_translate_only_downloaded">ऑफ़लाइन मॉडल पिकर मेनू शॉर्ट फ़िल्टर छिपाएं</string>
-    <string name="search_kw_translate_server">openai संगत selfhosted hosted local llm ai model ollama llama studio vllm localai chat completions</string>
     <string name="search_kw_typing">स्पेल चेक, ऑटो-कंप्लीट, प्रेडिक्टिव टेक्स्ट, ग्लाइड, स्वाइप टाइपिंग, जेस्चर, संपर्क, पूर्ववत करें</string>
     <string name="search_kw_typing_auto_capitalize">ऑटो-कैप्स ऑटो-कैपिटलाइज़ ऑटो-कैपिटलाइज़ेशन</string>
     <string name="search_kw_typing_auto_close_brackets">ऑटोक्लोज़ पेयर कोष्ठक ब्रेसिज़ कोष्ठक मिलान पूर्ण समापन</string>

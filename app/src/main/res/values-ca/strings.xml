@@ -5699,7 +5699,6 @@
     <string name="search_kw_codes">otp, contrasenya d\'un sol ús, 2fa, doble factor, codi de verificació, codi sms, codi d\'inici de sessió</string>
     <string name="search_kw_customdictionaries">llistes de paraules, importar paraules, llista de paraules</string>
     <string name="search_kw_datasaver">dades mòbils, cel·lular, mesurat, itinerància, només wifi, ús de dades, amplada de banda, fora de línia, estalvi de dades</string>
-    <string name="search_kw_deepl">escriure reformular reescriure millorar polir estil to traducció</string>
     <string name="search_kw_diagnostics">registres, logcat, resolució de problemes, bloqueig, informe</string>
     <string name="search_kw_dictionary">paraules apreses, diccionari d\'usuari, les meves paraules, afegir paraula</string>
     <string name="search_kw_emoji">emoticones, cares somrients, kaomoji, to de pell, adhesius, gifs, recents</string>
@@ -5843,7 +5842,6 @@
     <string name="search_kw_translate_engine">fora de línia privat internet avió dispositiu local ml kit google model descàrrega núvol</string>
     <string name="search_kw_translate_models">descàrrega eliminació emmagatzematge model traducció fora de línia ml kit google</string>
     <string name="search_kw_translate_only_downloaded">amaga el menú del selector de models fora de línia de la llista d\'idiomes curt</string>
-    <string name="search_kw_translate_server">openai compatible selfhosted hosted local llm ai model ollama llama studio vllm localai chat completions</string>
     <string name="search_kw_typing">corrector ortogràfic, autocompleció, text predictiu, lliscament, escriptura per lliscament, gestos, contactes, desfer</string>
     <string name="search_kw_typing_auto_capitalize">majúscules automàtiques capitalització automàtica</string>
     <string name="search_kw_typing_auto_close_brackets">tancament automàtic parèntesis claus concordança completa de parèntesis</string>

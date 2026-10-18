@@ -5705,7 +5705,6 @@
     <string name="search_kw_codes">otp, వన్ టైమ్ పాస్‌వర్డ్, 2fa, టూ ఫ్యాక్టర్, వెరిఫికేషన్ కోడ్, sms కోడ్, లాగిన్ కోడ్</string>
     <string name="search_kw_customdictionaries">పదాల జాబితాలు, పదాలను దిగుమతి చేయండి, వర్డ్‌లిస్ట్</string>
     <string name="search_kw_datasaver">మొబైల్ డేటా, సెల్యులార్, మీటర్డ్, రోమింగ్, వైఫై మాత్రమే, డేటా వినియోగం, బ్యాండ్‌విడ్త్, ఆఫ్‌లైన్, డేటాను సేవ్ చేయండి</string>
-    <string name="search_kw_deepl">రాయడం మళ్లీ పదాలను మార్చడం తిరిగి రాయడం మెరుగుపరచడం మెరుగుపరచడం శైలి స్వరం అనువాదం</string>
     <string name="search_kw_diagnostics">లాగ్‌లు, లాగ్‌క్యాట్, ట్రబుల్షూటింగ్, క్రాష్, రిపోర్ట్</string>
     <string name="search_kw_dictionary">నేర్చుకున్న పదాలు, వినియోగదారు నిఘంటువు, నా పదాలు, పదాన్ని జోడించు</string>
     <string name="search_kw_emoji">ఎమోటికాన్‌లు, స్మైలీలు, కామోజీ, చర్మపు రంగు, స్టిక్కర్లు, జిఫ్‌లు, ఇటీవలివి</string>
@@ -5849,7 +5848,6 @@
     <string name="search_kw_translate_engine">ఆఫ్‌లైన్ ప్రైవేట్ ఇంటర్నెట్ ఎయిర్‌ప్లేన్ లోకల్ డివైజ్ ml కిట్ గూగుల్ మోడల్ డౌన్‌లోడ్ క్లౌడ్</string>
     <string name="search_kw_translate_models">ఆఫ్‌లైన్ అనువాద మోడల్ డౌన్‌లోడ్ తొలగింపు స్టోరేజ్ ml కిట్ గూగుల్</string>
     <string name="search_kw_translate_only_downloaded">ఆఫ్‌లైన్ మోడల్ పికర్ మెనూ భాషా జాబితా షార్ట్‌ను ఫిల్టర్ చేయి దాచు</string>
-    <string name="search_kw_translate_server">openai అనుకూల స్వీయ-హోస్ట్ చేసిన లోకల్ llm ai మోడల్ ollama llama studio vllm localai చాట్ కంప్లీషన్స్</string>
     <string name="search_kw_typing">స్పెల్ చెక్, ఆటోకంప్లీట్, ప్రిడిక్టివ్ టెక్స్ట్, గ్లైడ్, స్వైప్ టైపింగ్, సంజ్ఞలు, పరిచయాలు, అన్‌డూ</string>
     <string name="search_kw_typing_auto_capitalize">ఆటోక్యాప్స్ ఆటోక్యాపిటలైజ్ ఆటోక్యాపిటలైజేషన్</string>
     <string name="search_kw_typing_auto_close_brackets">బ్రాకెట్లను స్వయంచాలకంగా మూసివేయి</string>

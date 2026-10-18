@@ -5719,7 +5719,6 @@
     <string name="search_kw_codes">ಒಟಿಪಿ, ಒನ್ ಟೈಮ್ ಪಾಸ್‌ವರ್ಡ್, 2ಎಫ್‌ಎ, ಟೂ ಫ್ಯಾಕ್ಟರ್, ವೆರಿಫಿಕೇಶನ್ ಕೋಡ್, ಎಸ್‌ಎಂಎಸ್ ಕೋಡ್, ಲಾಗಿನ್ ಕೋಡ್</string>
     <string name="search_kw_customdictionaries">ಪದಗಳ ಪಟ್ಟಿಗಳು, ಪದಗಳನ್ನು ಆಮದು ಮಾಡಿ, ವರ್ಡ್‌ಲಿಸ್ಟ್</string>
     <string name="search_kw_datasaver">ಮೊಬೈಲ್ ಡೇಟಾ, ಸೆಲ್ಯುಲಾರ್, ಮೀಟರ್ಡ್, ರೋಮಿಂಗ್, ವೈಫೈ ಮಾತ್ರ, ಡೇಟಾ ಬಳಕೆ, ಬ್ಯಾಂಡ್‌ವಿಡ್ತ್, ಆಫ್‌ಲೈನ್, ಡೇಟಾ ಉಳಿಸಿ</string>
-    <string name="search_kw_deepl">ಬರೆಯಿರಿ ಮರುರೂಪಿಸಿ ಪುನಃ ಬರೆಯಿರಿ ಸುಧಾರಿಸಿ ಪಾಲಿಶ್ ಶೈಲಿ ಟೋನ್ ಅನುವಾದ</string>
     <string name="search_kw_diagnostics">ಲಾಗ್‌ಗಳು, ಲಾಗ್‌ಕ್ಯಾಟ್, ದೋಷನಿವಾರಣೆ, ಕ್ರ್ಯಾಶ್, ವರದಿ</string>
     <string name="search_kw_dictionary">ಕಲಿತ ಪದಗಳು, ಬಳಕೆದಾರರ ನಿಘಂಟು, ನನ್ನ ಪದಗಳು, ಪದವನ್ನು ಸೇರಿಸಿ</string>
     <string name="search_kw_emoji">ಎಮೋಟಿಕಾನ್‌ಗಳು, ಸ್ಮೈಲಿಗಳು, ಕಾವೊಮೊಜಿ, ಚರ್ಮದ ಬಣ್ಣ, ಸ್ಟಿಕ್ಕರ್‌ಗಳು, ಜಿಫ್‌ಗಳು, ಇತ್ತೀಚಿನವು</string>
@@ -5863,7 +5862,6 @@
     <string name="search_kw_translate_engine">ಆಫ್‌ಲೈನ್ ಖಾಸಗಿ ಇಂಟರ್ನೆಟ್ ವಿಮಾನ ಸ್ಥಳೀಯ ಸಾಧನ ml ಕಿಟ್ ಗೂಗಲ್ ಮಾದರಿ ಡೌನ್‌ಲೋಡ್ ಕ್ಲೌಡ್</string>
     <string name="search_kw_translate_models">ಆಫ್‌ಲೈನ್ ಅನುವಾದ ಮಾದರಿ ಡೌನ್‌ಲೋಡ್ ಅಳಿಸಿ ಸಂಗ್ರಹಣೆ ml ಕಿಟ್ ಗೂಗಲ್</string>
     <string name="search_kw_translate_only_downloaded">ಆಫ್‌ಲೈನ್ ಮಾದರಿ ಪಿಕರ್ ಮೆನು ಭಾಷೆಯ ಪಟ್ಟಿಯ ಸಂಕ್ಷಿಪ್ತ ರೂಪವನ್ನು ಫಿಲ್ಟರ್ ಮಾಡುವುದನ್ನು ಮರೆಮಾಡಿ</string>
-    <string name="search_kw_translate_server">openai ಹೊಂದಾಣಿಕೆಯ ಸ್ವಯಂ-ಹೋಸ್ಟ್ ಮಾಡಿದ ಸ್ಥಳೀಯ llm ai ಮಾದರಿ ollama llama studio vllm localai ಚಾಟ್ ಪೂರ್ಣಗೊಳಿಸುವಿಕೆಗಳು</string>
     <string name="search_kw_typing">ಸ್ಪೆಲ್ ಚೆಕ್, ಸ್ವಯಂ ಪೂರ್ಣಗೊಳಿಸುವಿಕೆ, ಮುನ್ಸೂಚಕ ಪಠ್ಯ, ಗ್ಲೈಡ್, ಸ್ವೈಪ್ ಟೈಪಿಂಗ್, ಗೆಸ್ಚರ್‌ಗಳು, ಸಂಪರ್ಕಗಳು, ರದ್ದುಗೊಳಿಸಿ</string>
     <string name="search_kw_typing_auto_capitalize">ಆಟೋಕ್ಯಾಪ್ಸ್ ಆಟೋಕ್ಯಾಪಿಟಲೈಸ್ ಆಟೋಕ್ಯಾಪಿಟಲೈಸೇಶನ್</string>
     <string name="search_kw_typing_auto_close_brackets">ಆವರಣಗಳು, ಬ್ರೇಸ್‌ಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಮುಚ್ಚುವುದು, ಆವರಣದ ಹೊಂದಾಣಿಕೆ ಪೂರ್ಣಗೊಂಡಿದೆ</string>

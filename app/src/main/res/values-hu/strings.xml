@@ -5696,7 +5696,6 @@
     <string name="search_kw_codes">otp, egyszeri jelszó, 2fa, kétlépcsős, ellenőrző kód, sms kód, bejelentkezési kód</string>
     <string name="search_kw_customdictionaries">szólisták, szavak importálása, szólista</string>
     <string name="search_kw_datasaver">mobiladat, cellás, forgalmi díjas, roaming, csak wifi, adatforgalom, sávszélesség, offline, adatmentés</string>
-    <string name="search_kw_deepl">átfogalmazás átírás javítás stílus hangnem fordítás</string>
     <string name="search_kw_diagnostics">naplók, logcat, hibaelhárítás, összeomlás, jelentés</string>
     <string name="search_kw_dictionary">tanult szavak, felhasználói szótár, saját szavaim, szó hozzáadása</string>
     <string name="search_kw_emoji">emotikonok, szmájlik, kaomojik, bőrszín, matricák, gifek, legutóbbiak</string>
@@ -5840,7 +5839,6 @@
     <string name="search_kw_translate_engine">offline privát internet repülőgép helyi eszköz ml kit google modell letöltés felhő</string>
     <string name="search_kw_translate_models">offline fordítómodell letöltés törlés tárhely ml kit google</string>
     <string name="search_kw_translate_only_downloaded">szűrő elrejtése offline modellválasztó menü nyelvi lista rövid</string>
-    <string name="search_kw_translate_server">openai kompatibilis saját üzemeltetésű helyi llm ai modell ollama llama studio vllm localai chat completions</string>
     <string name="search_kw_typing">helyesírás-ellenőrzés, automatikus kiegészítés, prediktív szövegbevitel, csúsztatás, gesztusok, névjegyek, visszavonás</string>
     <string name="search_kw_typing_auto_capitalize">automatikus nagybetűs írás automatikus nagybetűsítés</string>
     <string name="search_kw_typing_auto_close_brackets">zárójelek automatikus bezárása párosítás kiegészítése</string>

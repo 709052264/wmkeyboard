@@ -5700,7 +5700,6 @@
     <string name="search_kw_codes">otp, વન ટાઇમ પાસવર્ડ, 2fa, ટુ ફેક્ટર, વેરિફિકેશન કોડ, sms કોડ, લોગિન કોડ</string>
     <string name="search_kw_customdictionaries">શબ્દ યાદીઓ, શબ્દો આયાત કરો, શબ્દ યાદી</string>
     <string name="search_kw_datasaver">મોબાઈલ ડેટા, સેલ્યુલર, મીટર કરેલ, રોમિંગ, ફક્ત વાઇફાઇ, ડેટા વપરાશ, બેન્ડવિડ્થ, ઓફલાઇન, ડેટા સેવ કરો</string>
-    <string name="search_kw_deepl">લખો, ફરીથી લખો, સુધારો, પોલિશ કરો, શૈલી, ટોન, અનુવાદ</string>
     <string name="search_kw_diagnostics">લોગ્સ, લોગકેટ, ટ્રબલશૂટિંગ, ક્રેશ, રિપોર્ટ</string>
     <string name="search_kw_dictionary">શીખેલા શબ્દો, વપરાશકર્તા શબ્દકોશ, મારા શબ્દો, શબ્દ ઉમેરો</string>
     <string name="search_kw_emoji">ઇમોટિકોન્સ, સ્માઈલીઝ, કાઓમોજી, સ્કિન ટોન, સ્ટીકરો, gifs, તાજેતરના</string>
@@ -5844,7 +5843,6 @@
     <string name="search_kw_translate_engine">ઓફલાઇન ખાનગી ઇન્ટરનેટ એરપ્લેન સ્થાનિક ઉપકરણ ml કિટ ગૂગલ મોડેલ ડાઉનલોડ ક્લાઉડ</string>
     <string name="search_kw_translate_models">ઓફલાઇન અનુવાદ મોડેલ ડાઉનલોડ ડિલીટ સ્ટોરેજ ml કિટ ગૂગલ</string>
     <string name="search_kw_translate_only_downloaded">ઓફલાઇન મોડેલ પીકર મેનૂ ફિલ્ટર છુપાવો</string>
-    <string name="search_kw_translate_server">openai સુસંગત સેલ્ફહોસ્ટેડ હોસ્ટેડ લોકલ llm ai મોડેલ ollama llama studio vllm localai ચેટ પૂર્ણતા</string>
     <string name="search_kw_typing">સ્પેલ ચેક, ઓટોકમ્પલીટ, અનુમાનિત ટેક્સ્ટ, ગ્લાઈડ, સ્વાઈપ ટાઈપિંગ, હાવભાવ, સંપર્કો, પૂર્વવત્ કરો</string>
     <string name="search_kw_typing_auto_capitalize">ઓટોકેપ્સ ઓટોકેપિટલાઇઝ ઓટોકેપિટલાઇઝેશન</string>
     <string name="search_kw_typing_auto_close_brackets">ઓટોક્લોઝ પેર પેરેન્થેસિસ બ્રેસિસ પેરેન્થેસિસ મેચિંગ કમ્પ્લીટ</string>

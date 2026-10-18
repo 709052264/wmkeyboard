@@ -311,8 +311,9 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_wrap_selection_title, R.string.typing_wrap_selection_subtitle),
         row(R.string.typing_auto_close_brackets_title, R.string.typing_auto_close_brackets_subtitle),
         row(R.string.typing_shift_recase_title, R.string.typing_shift_recase_subtitle),
-        row(R.string.typing_shift_recase_caret_title, R.string.typing_shift_recase_caret_subtitle),
-        row(R.string.typing_shift_recase_inside_title, R.string.typing_shift_recase_inside_subtitle),
+        // The two placements refine the row above; DETAIL keeps them under it and under Shift and Enter.
+        row(R.string.typing_shift_recase_caret_title, R.string.typing_shift_recase_caret_subtitle, EntryWeight.DETAIL),
+        row(R.string.typing_shift_recase_inside_title, R.string.typing_shift_recase_inside_subtitle, EntryWeight.DETAIL),
     )
 }
 
@@ -356,7 +357,7 @@ private fun SearchStrings.typingSuggestionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_number_prediction_title, R.string.typing_number_prediction_subtitle),
         row(R.string.typing_group_octopus_title, R.string.typing_group_octopus_subtitle),
         row(R.string.typing_word_menu_title, R.string.typing_word_menu_subtitle),
-        row(R.string.typing_synonym_sources_title, R.string.typing_synonym_sources_subtitle),
+        row(R.string.typing_synonym_sources_title),
         row(R.string.typing_rank_control_title, R.string.typing_rank_control_subtitle),
         row(R.string.typing_delete_edits_lists_title, R.string.typing_delete_edits_lists_subtitle),
     )
@@ -1258,7 +1259,7 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_shutter_title, R.string.tooldetail_camera_shutter_subtitle),
     toolEntry(ToolbarTool.CAMERA, R.string.tooldetail_camera_haptics_title, R.string.tooldetail_camera_haptics_subtitle),
     toolEntry(ToolbarTool.DICTIONARY, R.string.tooldetail_dictionary_auto_title, R.string.tooldetail_dictionary_auto_subtitle),
-    toolEntry(ToolbarTool.DICTIONARY, R.string.tooldetail_dictionary_sources_title, R.string.tooldetail_dictionary_sources_subtitle),
+    toolEntry(ToolbarTool.DICTIONARY, R.string.tooldetail_dictionary_sources_title),
     toolEntry(
         ToolbarTool.VOCABULARY,
         R.string.tooldetail_vocab_packs_title,
@@ -1778,7 +1779,9 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_tool_search_title, R.string.toolai_ai_tool_search_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_tool_fetch_title, R.string.toolai_ai_tool_fetch_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_builtin_title, R.string.toolai_ai_builtin_subtitle),
-    // The keyboard's own tools (#698), on their own screen, one row each.
+    // The keyboard's own tools (#698), on their own screen, one row each. DETAIL:
+    // a row named "Translate" or "Calculator" is about the AI reaching that
+    // tool, and must sit below the tool's own page.
     *builtInToolText.values.map { text ->
         entry(
             text.title,
@@ -1786,6 +1789,7 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
             R.string.toolai_ai_builtin_screen_title,
             AI_BUILT_IN_TOOLS_ROUTE,
             screenParent = R.string.home_tools_title,
+            weight = EntryWeight.DETAIL,
         )
     }.toTypedArray(),
     entry(

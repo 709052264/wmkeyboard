@@ -317,7 +317,7 @@ internal fun SendInstancesScreen(repository: SettingsRepository, settings: LiveS
 
     SettingsGroup(stringResource(R.string.send_instances_public_group), info = stringResource(R.string.send_instances_public_info)) {
         item {
-            ActionRow(R.string.send_instance_check_all, action = stringResource(R.string.send_instance_check)) {
+            ActionRow(R.string.send_instance_check_all, subtitle = null, action = stringResource(R.string.send_instance_check)) {
                 SendInstances.catalogue.forEach { probe(it.url) }
             }
         }
@@ -479,7 +479,12 @@ internal fun SendHistoryScreen(repository: SettingsRepository, settings: LiveSet
             item { Text(stringResource(R.string.send_history_empty), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(16.dp)) }
         } else {
             item {
-                ActionRow(R.string.send_history_clear_received, action = stringResource(R.string.send_history_forget), confirm = true) {
+                ActionRow(
+                    R.string.send_history_clear_received,
+                    subtitle = null,
+                    action = stringResource(R.string.send_history_forget),
+                    confirm = stringResource(R.string.send_history_clear_confirm),
+                ) {
                     scope.launch {
                         withContext(Dispatchers.IO) { store.clearReceived() }
                         reload()

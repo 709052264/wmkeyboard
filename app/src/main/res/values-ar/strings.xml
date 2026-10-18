@@ -5707,7 +5707,6 @@
     <string name="search_kw_codes">otp, كلمة مرور لمرة واحدة, 2fa, عامل مصادقة ثنائي, رمز التحقق, رمز الرسائل القصيرة, رمز تسجيل الدخول</string>
     <string name="search_kw_customdictionaries">قوائم الكلمات، استيراد الكلمات، قائمة الكلمات</string>
     <string name="search_kw_datasaver">بيانات الجوال، خلوي، محدود، تجوال، واي فاي فقط، استخدام البيانات، النطاق الترددي، غير متصل، حفظ البيانات</string>
-    <string name="search_kw_deepl">كتابة إعادة صياغة إعادة كتابة تحسين تلميع أسلوب نبرة ترجمة</string>
     <string name="search_kw_diagnostics">سجلات، logcat، استكشاف الأخطاء وإصلاحها، تعطل، تقرير</string>
     <string name="search_kw_dictionary">الكلمات المتعلمة، قاموس المستخدم، كلماتي، إضافة كلمة</string>
     <string name="search_kw_emoji">رموز تعبيرية، وجوه مبتسمة، كاوموجي، لون البشرة، ملصقات، صور متحركة، حديثة</string>
@@ -5851,7 +5850,6 @@
     <string name="search_kw_translate_engine">غير متصل خاص إنترنت وضع الطيران جهاز محلي مجموعة أدوات تعلم الآلة نموذج جوجل تنزيل سحابة</string>
     <string name="search_kw_translate_models">تنزيل نموذج الترجمة دون اتصال حذف التخزين مجموعة أدوات تعلم الآلة جوجل</string>
     <string name="search_kw_translate_only_downloaded">إخفاء قائمة اختيار النموذج غير المتصل بالإنترنت</string>
-    <string name="search_kw_translate_server">openai compatible selfhosted hosted local llm ai model ollama llama studio vllm localai chat completions</string>
     <string name="search_kw_typing">تدقيق إملائي، إكمال تلقائي، نص تنبؤي، كتابة بالإيماءات، تمرير، جهات اتصال، تراجع</string>
     <string name="search_kw_typing_auto_capitalize">تكبير تلقائي تكبير الحروف تلقائياً</string>
     <string name="search_kw_typing_auto_close_brackets">إغلاق تلقائي للأقواس المتطابقة</string>

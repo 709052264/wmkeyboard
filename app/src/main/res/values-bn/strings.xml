@@ -5720,7 +5720,6 @@
     <string name="search_kw_codes">ওটিপি, ওয়ান টাইম পাসওয়ার্ড, ২এফএ, টু ফ্যাক্টর, ভেরিফিকেশন কোড, এসএমএস কোড, লগইন কোড</string>
     <string name="search_kw_customdictionaries">শব্দের তালিকা, শব্দ আমদানি, ওয়ার্ডলিস্ট</string>
     <string name="search_kw_datasaver">মোবাইল ডেটা, সেলুলার, মিটারড, রোমিং, শুধুমাত্র ওয়াইফাই, ডেটা ব্যবহার, ব্যান্ডউইথ, অফলাইন, ডেটা সেভ করুন</string>
-    <string name="search_kw_deepl">লিখুন, নতুন করে লিখুন, পুনর্লিখন করুন, উন্নত করুন, পালিশ করুন, শৈলী, স্বর, অনুবাদ</string>
     <string name="search_kw_diagnostics">লগ, লগক্যাট, ট্রাবলশুটিং, ক্র্যাশ, রিপোর্ট</string>
     <string name="search_kw_dictionary">শেখা শব্দ, ব্যবহারকারীর অভিধান, আমার শব্দ, শব্দ যোগ করুন</string>
     <string name="search_kw_emoji">ইমোটিকন, স্মাইলি, কাওমোজি, স্কিন টোন, স্টিকার, জিআইএফ, সাম্প্রতিক</string>
@@ -5864,7 +5863,6 @@
     <string name="search_kw_translate_engine">অফলাইন ব্যক্তিগত ইন্টারনেট এয়ারপ্লেন লোকাল ডিভাইস এমএল কিট গুগল মডেল ডাউনলোড ক্লাউড</string>
     <string name="search_kw_translate_models">অফলাইন অনুবাদ মডেল ডাউনলোড ডিলিট স্টোরেজ এমএল কিট গুগল</string>
     <string name="search_kw_translate_only_downloaded">অফলাইন মডেল পিকার মেনু ভাষার তালিকা ছোট ফিল্টার লুকান</string>
-    <string name="search_kw_translate_server">openai compatible selfhosted hosted local llm ai model ollama llama studio vllm localai chat completions</string>
     <string name="search_kw_typing">বানান পরীক্ষা, অটোসম্পূর্ণ, প্রেডিক্টিভ টেক্সট, গ্লাইড, সোয়াইপ টাইপিং, জেসচার, পরিচিতি, পূর্বাবস্থায় ফেরানো</string>
     <string name="search_kw_typing_auto_capitalize">autocaps autocapitalize autocapitalisation</string>
     <string name="search_kw_typing_auto_close_brackets">অটোক্লোজ পেয়ার প্যারেনথেসিস ব্রেসেস প্যারেনথেসিস ম্যাচিং কমপ্লিট ক্লোজিং</string>

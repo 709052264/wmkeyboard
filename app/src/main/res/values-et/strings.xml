@@ -5709,7 +5709,6 @@
     <string name="search_kw_codes">otp, ühekordne parool, 2fa, kaheastmeline, kinnituskood, sms-kood, sisselogimiskood</string>
     <string name="search_kw_customdictionaries">sõnaloendid, impordi sõnu, sõnaloend</string>
     <string name="search_kw_datasaver">mobiilne andmeside, mobiilne, mõõdetud, rändlus, ainult wifi, andmekasutus, ribalaius, võrguühenduseta, salvesta andmed</string>
-    <string name="search_kw_deepl">kirjuta sõnastada ümber kirjutada parandada lihvida stiil toon tõlge</string>
     <string name="search_kw_diagnostics">logid, logcat, tõrkeotsing, krahh, aruanne</string>
     <string name="search_kw_dictionary">õpitud sõnad, kasutaja sõnastik, minu sõnad, lisa sõna</string>
     <string name="search_kw_emoji">emotikonid, naerunäod, kaomoji, nahatoon, kleebised, gifid, hiljutised</string>
@@ -5853,7 +5852,6 @@
     <string name="search_kw_translate_engine">võrguühenduseta privaatne internet lennuk kohalik seade ml kit google mudeli allalaadimine pilv</string>
     <string name="search_kw_translate_models">võrguühenduseta tõlkemudeli allalaadimine kustutamine salvestusruum ml kit google</string>
     <string name="search_kw_translate_only_downloaded">peida filtrite võrguühenduseta mudelite valiku menüü lühivorm</string>
-    <string name="search_kw_translate_server">openai ühilduv isehostitav hostitud kohalik llm ai mudel ollama llama studio vllm localai vestluse lõpetamised</string>
     <string name="search_kw_typing">õigekirja kontroll, automaatne täitmine, ennustav tekst, libistamine, viipamine, žestid, kontaktid, võta tagasi</string>
     <string name="search_kw_typing_auto_capitalize">automaatne suurtähtede kasutamine</string>
     <string name="search_kw_typing_auto_close_brackets">automaatne sulgude sulgemine vastavus vastav sulg</string>

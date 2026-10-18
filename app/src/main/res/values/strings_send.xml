@@ -87,6 +87,7 @@
     <string name="send_history_copied">Link copied</string>
     <string name="send_history_open">Open</string>
     <string name="send_history_forget">Forget</string>
+    <string name="send_history_clear_confirm">Forget every received file in this list? The files themselves stay in Downloads.</string>
     <string name="send_history_clear_received">Clear the list</string>
     <string name="send_history_password">Password set</string>
     <plurals name="send_downloads_used">

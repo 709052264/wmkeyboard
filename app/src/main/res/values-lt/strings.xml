@@ -5702,7 +5702,6 @@
     <string name="search_kw_codes">otp, vienkartinis slaptažodis, 2fa, dviejų veiksnių, patvirtinimo kodas, sms kodas, prisijungimo kodas</string>
     <string name="search_kw_customdictionaries">žodžių sąrašai, importuoti žodžius, žodynas</string>
     <string name="search_kw_datasaver">mobilieji duomenys, korinis ryšys, ribotas duomenų kiekis, tarptinklinis ryšys, tik „Wi-Fi“, duomenų naudojimas, pralaidumas, neprisijungus, taupyti duomenis</string>
-    <string name="search_kw_deepl">rašyti perfrazuoti perrašyti tobulinti taisyti stilius tonas vertimas</string>
     <string name="search_kw_diagnostics">žurnalai, logcat, trikčių šalinimas, strigtis, ataskaita</string>
     <string name="search_kw_dictionary">išmokti žodžiai, vartotojo žodynas, mano žodžiai, pridėti žodį</string>
     <string name="search_kw_emoji">jaustukai, šypsenėlės, kaomoji, odos atspalvis, lipdukai, gifai, naujausi</string>
@@ -5846,7 +5845,6 @@
     <string name="search_kw_translate_engine">neprisijungęs privatus internetas lėktuvas vietinis įrenginys ml rinkinys google modelio atsisiuntimas debesis</string>
     <string name="search_kw_translate_models">vertimo neprisijungus modelio atsisiuntimas ištrynimas saugykla ml kit google</string>
     <string name="search_kw_translate_only_downloaded">slėpti neprisijungus veikiančių modelių parinkiklio meniu trumpąjį filtrą</string>
-    <string name="search_kw_translate_server">openai suderinamas savarankiškai priglobtas vietinis llm ai modelis ollama llama studio vllm localai pokalbių užbaigimai</string>
     <string name="search_kw_typing">rašybos tikrinimas, automatinis užbaigimas, nuspėjamasis tekstas, braukimas, gestai, kontaktai, anuliuoti</string>
     <string name="search_kw_typing_auto_capitalize">automatinės didžiosios raidės automatinis didžiųjų raidžių rašymas</string>
     <string name="search_kw_typing_auto_close_brackets">automatinis porinių skliaustų uždarymas atitikimo užbaigimas</string>

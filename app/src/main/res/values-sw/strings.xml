@@ -5714,7 +5714,6 @@
     <string name="search_kw_codes">otp, nenosiri la mara moja, 2fa, uthibitishaji wa hatua mbili, msimbo wa uthibitishaji, msimbo wa sms, msimbo wa kuingia</string>
     <string name="search_kw_customdictionaries">orodha za maneno, leta maneno, orodha ya maneno</string>
     <string name="search_kw_datasaver">data ya simu, ya mkononi, yenye kipimo, roaming, wifi pekee, matumizi ya data, bandwidth, nje ya mtandao, hifadhi data</string>
-    <string name="search_kw_deepl">andika rephrase rewrite improve polish style tone translation</string>
     <string name="search_kw_diagnostics">kumbukumbu, logcat, utatuzi, hitilafu, ripoti</string>
     <string name="search_kw_dictionary">maneno yaliyojifunza, kamusi ya mtumiaji, maneno yangu, ongeza neno</string>
     <string name="search_kw_emoji">vielelezo, vicheko, kaomoji, rangi ya ngozi, vibandiko, gif, vya hivi karibuni</string>
@@ -5858,7 +5857,6 @@
     <string name="search_kw_translate_engine">nje ya mtandao binafsi intaneti ndege kifaa cha ndani ml kit google modeli pakua wingu</string>
     <string name="search_kw_translate_models">pakua modeli ya tafsiri ya nje ya mtandao futa hifadhi ml kit google</string>
     <string name="search_kw_translate_only_downloaded">ficha menyu ya kichujio cha kuteua modeli ya nje ya mtandao</string>
-    <string name="search_kw_translate_server">openai inayooana inayojiendesha mwenyewe inayopangishwa llm ya ndani ai modeli ollama llama studio vllm localai mazungumzo ya gumzo</string>
     <string name="search_kw_typing">kikagua tahajia, kukamilisha kiotomatiki, maandishi ya ubashiri, kutelezesha kidole, kuandika kwa kutelezesha, ishara, anwani, tengua</string>
     <string name="search_kw_typing_auto_capitalize">autocaps autocapitalize autocapitalisation</string>
     <string name="search_kw_typing_auto_close_brackets">funga kiotomatiki mabano jozi yanayoendana kikamilifu</string>

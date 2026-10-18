@@ -5700,7 +5700,6 @@
     <string name="search_kw_codes">او ٹی پی، ون ٹائم پاس ورڈ، 2 ایف اے، ٹو فیکٹر، تصدیقی کوڈ، ایس ایم ایس کوڈ، لاگ ان کوڈ</string>
     <string name="search_kw_customdictionaries">الفاظ کی فہرستیں، الفاظ درآمد کریں، ورڈ لسٹ</string>
     <string name="search_kw_datasaver">موبائل ڈیٹا، سیلولر، میٹرڈ، رومنگ، صرف وائی فائی، ڈیٹا کا استعمال، بینڈوڈتھ، آف لائن، ڈیٹا محفوظ کریں</string>
-    <string name="search_kw_deepl">لکھیں دوبارہ جملہ بندی کریں دوبارہ لکھیں بہتر بنائیں نکھاریں انداز لہجہ ترجمہ</string>
     <string name="search_kw_diagnostics">لاگز، لاگ کیٹ، ٹربل شوٹنگ، کریش، رپورٹ</string>
     <string name="search_kw_dictionary">سیکھے گئے الفاظ، صارف کی لغت، میرے الفاظ، لفظ شامل کریں</string>
     <string name="search_kw_emoji">ایموٹیکنز، سمائلیز، کاوموجی، جلد کا رنگ، اسٹیکرز، جی آئی ایف، حالیہ</string>
@@ -5844,7 +5843,6 @@
     <string name="search_kw_translate_engine">آف لائن نجی انٹرنیٹ ہوائی جہاز مقامی ڈیوائس ایم ایل کٹ گوگل ماڈل ڈاؤن لوڈ کلاؤڈ</string>
     <string name="search_kw_translate_models">آف لائن ترجمہ ماڈل ڈاؤن لوڈ ڈیلیٹ اسٹوریج ایم ایل کٹ گوگل</string>
     <string name="search_kw_translate_only_downloaded">آف لائن ماڈل پکر مینو زبان کی فہرست کو چھپائیں</string>
-    <string name="search_kw_translate_server">openai مطابقت پذیر سیلف ہوسٹڈ ہوسٹڈ لوکل llm ai ماڈل ollama llama studio vllm localai چیٹ تکمیل</string>
     <string name="search_kw_typing">اسپیل چیک، آٹو مکمل، پیش گوئی کرنے والا متن، گلائیڈ، سوائپ ٹائپنگ، اشارے، رابطے، انڈو</string>
     <string name="search_kw_typing_auto_capitalize">آٹو کیپس آٹو کیپیٹلائز آٹو کیپیٹلائزیشن</string>
     <string name="search_kw_typing_auto_close_brackets">خودکار بند ہونے والے قوسین، منحنی خطوط وحدانی، بریکٹ میچنگ، مکمل بندش</string>

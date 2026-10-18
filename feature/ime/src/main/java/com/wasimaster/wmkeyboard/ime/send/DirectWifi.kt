@@ -40,7 +40,7 @@ import java.net.NetworkInterface
  * `ACCESS_FINE_LOCATION` before that, for the group and the hotspot. Joining
  * by specifier needs neither. All callbacks arrive on the main thread.
  */
-internal class DirectWifi(context: Context) : DirectLink {
+class DirectWifi(context: Context) : DirectLink {
 
     private val app = context.applicationContext
     private val main = Handler(Looper.getMainLooper())

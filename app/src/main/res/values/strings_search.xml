@@ -49,11 +49,11 @@
     <string name="search_kw_about_diagnostics">log logcat debug troubleshoot</string>
     <string name="search_kw_about_app_language">interface translation translated locale display ui</string>
     <string name="search_kw_about_launcher_name">launcher label rename drawer</string>
-    <string name="search_kw_about_launcher_shown">hide icon launcher drawer home screen</string>
+    <string name="search_kw_about_launcher_shown">hide launcher</string>
     <string name="search_kw_about_licences">credits attribution third party</string>
     <string name="search_kw_about_replay_onboarding">onboarding wizard welcome tour</string>
     <string name="search_kw_about_report_bug">crash freeze feedback problem</string>
-    <string name="search_kw_about_telegram">community chat group help support discord forum</string>
+    <string name="search_kw_about_telegram">community chat help support discord forum</string>
     <string name="search_kw_about_follow">social media x twitter reddit instagram tiktok news</string>
     <string name="search_kw_about_source">github repository contribute</string>
     <string name="search_kw_about_storage">cache disk space free up</string>
@@ -101,12 +101,12 @@
     <string name="search_kw_ime_tool_vocabulary">spaced repetition anki srs</string>
     <string name="search_kw_ime_tool_notes">notebook memo jot scratchpad diary</string>
     <string name="search_kw_ime_tool_weather">forecast temperature rain</string>
-    <string name="search_kw_ime_tool_clock">alarm timer stopwatch time zone world clock pomodoro countdown</string>
+    <string name="search_kw_ime_tool_clock">alarm timer zone pomodoro countdown</string>
     <string name="search_kw_ime_tool_location">gps pin share whereabouts navigation</string>
     <string name="search_kw_ime_tool_wikipedia">encyclopedia wiki article</string>
     <string name="search_kw_keypress_all_accents">diacritics umlaut tilde cedilla circumflex</string>
     <string name="search_kw_keypress_native_letters">umlaut accent diacritics order long press german</string>
-    <string name="search_kw_keypress_top_row_holds">digits numbers symbols long press qwerty number row shortcuts hint</string>
+    <string name="search_kw_keypress_top_row_holds">digits numbers symbols long qwerty number shortcuts hint</string>
     <string name="search_kw_keypress_ctrl_raw">termux ssh vim emacs</string>
     <string name="search_kw_keypress_currency_keys">dollar euro pound rupee yen</string>
     <string name="search_kw_keypress_dnd_mute">dnd silent focus</string>
@@ -221,8 +221,6 @@
     <string name="search_kw_typing_wrap_selection">surround parentheses quotes auto braces</string>
     <string name="search_kw_update_row_check">upgrade latest release</string>
     <string name="search_kw_voice_engine">offline whisper device model server transcription selfhosted hosted speaches remote</string>
-    <string name="search_kw_translate_server">openai compatible selfhosted hosted local llm ai model ollama llama studio vllm localai chat completions</string>
-    <string name="search_kw_deepl">write rephrase rewrite improve polish style tone translation</string>
     <string name="search_kw_sticker_suggest">suggestions suggest tray prediction autocomplete</string>
     <string name="search_kw_sticker_suggest_magnify">magnify zoom enlarge preview peek long press</string>
     <string name="search_kw_translate_engine">offline private internet airplane local device ml kit google model download cloud</string>
@@ -348,7 +346,7 @@
     <string name="search_kw_kdeconnect_devices">pair computer, paired devices, pc, laptop, desktop, gsconnect, valent, unpair, add by ip address</string>
     <string name="search_kw_send_instances">server, host, self hosted, mirror, upload limit</string>
     <string name="search_kw_send_history">uploads, downloads used, expiry, received files</string>
-    <string name="search_kw_ime_tool_send_files">upload, link, expire, encrypted, transfer, wifi direct, hotspot, firefox send, shareit, wetransfer</string>
+    <string name="search_kw_ime_tool_send_files">upload expire transfer wifi direct hotspot shareit wetransfer firefox</string>
     <string name="search_kw_ime_tool_kde_connect">gsconnect valent pc laptop desktop linux remote touchpad sync share presentation slides</string>
     <string name="search_kw_customdictionaries">word lists, import words, wordlist</string>
     <string name="search_kw_emojikeywords">shortcodes, emoji names, emoji search</string>
