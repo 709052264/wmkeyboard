@@ -32,6 +32,8 @@
     <string name="ime_gallery_access_pick">Pick instead</string>
     <string name="ime_gallery_partial_body">You allowed only some photos.</string>
     <string name="ime_gallery_partial_action">Choose more</string>
+    <string name="ime_gallery_videos_body">Videos are not allowed yet, so only photos show here.</string>
+    <string name="ime_gallery_videos_action">Allow videos</string>
 
     <!-- Grid cells, for screen readers -->
     <string name="ime_gallery_cell_photo">Photo</string>
@@ -99,6 +101,9 @@
         <item quantity="one">Sent %d item</item>
         <item quantity="other">Sent %d items</item>
     </plurals>
+    <string name="ime_gallery_notice_replaced">Replaced the original with the edited photo</string>
+    <string name="ime_gallery_notice_not_replaced">The original was left as it was</string>
+    <string name="ime_gallery_notice_save_failed">Could not save the photo</string>
     <string name="ime_gallery_notice_no_videos">This text box takes pictures only. Videos go through the share screen.</string>
 
     <!-- Viewer -->
@@ -123,6 +128,13 @@
     <string name="ime_gallery_editor_compare">Hold to see the original</string>
     <string name="ime_gallery_editor_reset">Remove every edit</string>
     <string name="ime_gallery_editor_done">Done</string>
+    <string name="ime_gallery_editor_fit">Fit the photo to the screen</string>
+    <string name="ime_gallery_editor_save">Save to the gallery</string>
+    <string name="ime_gallery_editor_save_copy">Save as a copy</string>
+    <string name="ime_gallery_editor_save_copy_body">A new photo next to the original</string>
+    <string name="ime_gallery_editor_replace">Replace the original</string>
+    <string name="ime_gallery_editor_replace_body">Android asks you first. This cannot be undone.</string>
+    <string name="ime_gallery_editor_replace_unavailable">Only a copy can be saved of this one</string>
     <string name="ime_gallery_tool_crop">Crop</string>
     <string name="ime_gallery_tool_draw">Draw</string>
     <string name="ime_gallery_tool_text">Text</string>

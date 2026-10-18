@@ -105,6 +105,71 @@ object MediaPrep {
     }.getOrNull()
 
     /**
+     * An edited picture to keep in the gallery rather than send: in the
+     * photo's own format where Android can write it (JPEG otherwise), at the
+     * editor's largest size, with the photo's own tags carried over so it
+     * keeps its date and camera. [draw] is the editor's renderer.
+     */
+    fun renderToKeep(context: Context, item: GalleryItem, draw: (Bitmap) -> Bitmap): Prepared? = runCatching {
+        val decoded = decode(context, item.uri, MAX_DECODE_EDGE) ?: return@runCatching null
+        val drawn = draw(decoded)
+        val mime = if (canRewriteExif(item.mime)) item.mime else "image/jpeg"
+        val file = File(outputDir(context), "KEEP_${randomToken()}.${extensionFor(mime)}")
+        file.outputStream().use { out -> drawn.compress(compressFormat(mime), KEEP_QUALITY, out) }
+        copyTags(context, item.uri, file)
+        Prepared(file, mime, drawn.width, drawn.height).also {
+            if (drawn !== decoded) drawn.recycle()
+            decoded.recycle()
+        }
+    }.getOrNull()
+
+    private const val KEEP_QUALITY = 95
+
+    @Suppress("DEPRECATION")
+    private fun compressFormat(mime: String): Bitmap.CompressFormat = when (mime) {
+        "image/png" -> Bitmap.CompressFormat.PNG
+        "image/webp" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Bitmap.CompressFormat.WEBP_LOSSY
+        } else {
+            Bitmap.CompressFormat.WEBP
+        }
+        else -> Bitmap.CompressFormat.JPEG
+    }
+
+    /**
+     * The tags a kept copy takes from its photo: when, where and with what.
+     * Not the XMP or the maker note, which point into bytes the new file no
+     * longer has (a motion photo's video, a depth map).
+     */
+    private val KEEP_TAGS: List<String> = LOCATION_TAGS + listOf(
+        ExifInterface.TAG_MAKE, ExifInterface.TAG_MODEL, ExifInterface.TAG_ARTIST, ExifInterface.TAG_COPYRIGHT,
+        ExifInterface.TAG_IMAGE_DESCRIPTION, ExifInterface.TAG_USER_COMMENT,
+        ExifInterface.TAG_LENS_MAKE, ExifInterface.TAG_LENS_MODEL,
+        ExifInterface.TAG_DATETIME, ExifInterface.TAG_DATETIME_ORIGINAL, ExifInterface.TAG_DATETIME_DIGITIZED,
+        ExifInterface.TAG_OFFSET_TIME, ExifInterface.TAG_OFFSET_TIME_ORIGINAL, ExifInterface.TAG_OFFSET_TIME_DIGITIZED,
+        ExifInterface.TAG_SUBSEC_TIME, ExifInterface.TAG_SUBSEC_TIME_ORIGINAL, ExifInterface.TAG_SUBSEC_TIME_DIGITIZED,
+        ExifInterface.TAG_F_NUMBER, ExifInterface.TAG_EXPOSURE_TIME, ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY,
+        ExifInterface.TAG_EXPOSURE_BIAS_VALUE, ExifInterface.TAG_FOCAL_LENGTH, ExifInterface.TAG_FOCAL_LENGTH_IN_35MM_FILM,
+        ExifInterface.TAG_FLASH, ExifInterface.TAG_WHITE_BALANCE,
+    )
+
+    /**
+     * Copies [KEEP_TAGS] from the photo at [from] onto [to], marked upright,
+     * since the pixels were turned when decoded. Without the media-location
+     * permission Android hands apps the photo with its location left out, so
+     * the place stays behind with the original.
+     */
+    private fun copyTags(context: Context, from: Uri, to: File) {
+        runCatching {
+            val src = context.contentResolver.openInputStream(from)?.use { ExifInterface(it) } ?: return
+            val dst = ExifInterface(to)
+            KEEP_TAGS.forEach { tag -> src.getAttribute(tag)?.let { dst.setAttribute(tag, it) } }
+            dst.setAttribute(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL.toString())
+            dst.saveAttributes()
+        }
+    }
+
+    /**
      * Decodes [uri] upright, no larger than [maxEdge] along its longest side
      * (a power-of-two sample first, so the full-size picture is never in
      * memory, then an exact scale).

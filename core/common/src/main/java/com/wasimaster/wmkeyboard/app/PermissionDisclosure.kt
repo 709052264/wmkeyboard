@@ -422,6 +422,14 @@ abstract class PermissionRequestActivity : ComponentActivity() {
     /** The permission to ask for, or null when this build/API needs none. */
     protected abstract val disclosure: PermissionDisclosure?
 
+    /**
+     * Whether there is nothing left to ask for, which closes the trampoline
+     * at once. By default the main permission alone; a feature whose grant is
+     * several permissions says when it has all it needs.
+     */
+    protected open fun alreadyGranted(disclosure: PermissionDisclosure): Boolean =
+        checkSelfPermission(disclosure.permission) == PackageManager.PERMISSION_GRANTED
+
     private val probe = PermissionProbe()
 
     // Only ever set by the answer to a request: see [PermissionProbe].
@@ -444,9 +452,7 @@ abstract class PermissionRequestActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val disclosure = disclosure
-        if (disclosure == null ||
-            checkSelfPermission(disclosure.permission) == PackageManager.PERMISSION_GRANTED
-        ) {
+        if (disclosure == null || alreadyGranted(disclosure)) {
             finish()
             return
         }

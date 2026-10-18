@@ -2,7 +2,9 @@ package com.wasimaster.wmkeyboard.ime.ui.gallery
 
 import android.text.format.DateUtils
 import android.text.format.Formatter
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -34,18 +36,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -97,15 +100,24 @@ internal fun takenText(dateMs: Long): String = DateUtils.formatDateTime(
 
 /**
  * The round check in a cell's corner: a ring when unpicked, the accent with
- * the pick's number when picked, popping in on a spring.
+ * the pick's number when picked. It pops in on a spring and shrinks away
+ * without one: a bouncing exit dipped below nothing and came back for a frame.
  */
 @Composable
 internal fun SelectRing(order: Int, modifier: Modifier = Modifier, size: Dp = 24.dp) {
     val kb = LocalKbTheme.current
     val picked = order > 0
-    val pop by animateFloatAsState(
+    // The number it last showed, kept while it shrinks away: a dropped pick
+    // has no place, and drawing that as "0" flashed on the way out.
+    var shown by remember { mutableIntStateOf(order) }
+    if (picked) shown = order
+    val pop = animateFloatAsState(
         targetValue = if (picked) 1f else 0f,
-        animationSpec = if (kb.reduceMotion) tween(0) else spring(dampingRatio = 0.45f, stiffness = 700f),
+        animationSpec = when {
+            kb.reduceMotion -> snap()
+            picked -> spring(dampingRatio = 0.5f, stiffness = 700f)
+            else -> tween(150, easing = FastOutLinearInEasing)
+        },
         label = "ring",
     )
     Box(modifier.size(size), contentAlignment = Alignment.Center) {
@@ -117,20 +129,26 @@ internal fun SelectRing(order: Int, modifier: Modifier = Modifier, size: Dp = 24
                 .background(Color.Black.copy(alpha = 0.18f))
                 .border(1.6.dp, OnPhoto, CircleShape),
         )
-        if (pop > 0.01f) {
+        if (picked || pop.value > 0f) {
             Box(
                 Modifier
                     .size(size)
-                    .scale(0.4f + 0.6f * pop)
+                    // Read in the layer, not here: a frame of the pop is a redraw, not a recomposition.
+                    .graphicsLayer {
+                        val p = pop.value.coerceAtLeast(0f)
+                        scaleX = p
+                        scaleY = p
+                        alpha = p.coerceAtMost(1f)
+                    }
                     .clip(CircleShape)
                     .background(kb.accent)
                     .border(1.6.dp, OnPhoto, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    order.toString(),
+                    shown.toString(),
                     color = onAccent(kb.accent),
-                    fontSize = if (order > 99) 9.sp else 12.sp,
+                    fontSize = if (shown > 99) 9.sp else 12.sp,
                     fontWeight = FontWeight.Bold,
                 )
             }

@@ -21,6 +21,8 @@ Open **Gallery** from the toolbar or the [toolbox](/tools/overview/). Typing *ga
 
 The first time, the panel asks for access to your photos and videos. The keyboard shows its own explanation before Android's dialog, and you can refuse. Without access, **Pick instead** opens Android's photo picker, which needs no permission. On Android 14 and later you can also allow only some photos; the panel then says so, and **Choose more** asks again.
 
+Photos and videos are two permissions from Android 13 on. If photos were already allowed for something else, such as screenshots in the [clipboard](/tools/clipboard/), the grid shows photos only and a banner says videos are not allowed yet. **Allow videos** asks for them. Turning off **Show videos** hides the banner too.
+
 The sheet opens at the keyboard's own height. Drag the bar on top of it, or press the expand button in its header, to make it nearly as tall as the screen. **Open at full height** under <SettingsPath path="Tools / Gallery" /> makes that the starting size. The viewer and the editor always use the full height.
 
 ### In the Google Play build
@@ -96,7 +98,7 @@ The viewer pages through the album you opened it from, or through your picks whe
   {/* shot: tools/gallery-editor */}
 </PhoneFrame>
 
-Tap a picked photo in the send bar, or **Edit** in the viewer, to edit it. Editing never changes the photo in your library. Every step can be undone and redone, **Remove every edit** starts over, and holding the compare button, or holding the picture in Filters and Adjust, shows the original. Every photo in the bar carries a pencil mark to show it opens the editor; on an edited photo the mark turns the accent colour, and the photo goes out with its edits at the chosen size.
+Tap a picked photo in the send bar, or **Edit** in the viewer, to edit it. Editing leaves the photo in your library alone unless you save over it (see below). Every step can be undone and redone, **Remove every edit** starts over, and holding the compare button, or holding the picture in Filters and Adjust, shows the original. Every photo in the bar carries a pencil mark to show it opens the editor; on an edited photo the mark turns the accent colour, and the photo goes out with its edits at the chosen size.
 
 - **Crop.** Drag the corners or the sides, or drag inside the frame to move it. Shapes: **Free**, **Original**, **Square**, **4:3**, **3:4**, **16:9**, **9:16**, **3:2** and **2:3**. **Turn a quarter** rotates it, **Mirror** flips it, and the **Straighten** slider tilts it up to 45 degrees either way while it zooms just enough to keep the corners filled.
 - **Draw.** **Pen**, **Marker**, **Neon** and **Arrow** draw in any of twelve colours at the size you set. While you move the size slider, a dot of that size and colour sits in the middle of the photo, so you see how thick the line will be before you draw. **Eraser** takes back drawing, never the photo. **Blur** and **Pixelate** paint over a face, a number plate or an address so it cannot be read.
@@ -105,7 +107,18 @@ Tap a picked photo in the send bar, or **Edit** in the viewer, to edit it. Editi
 - **Filters.** Fourteen looks, each previewed on your photo: Original, Vivid, Warm, Cool, Mono, Noir, Fade, Sepia, Chrome, Dramatic, Matte, Retro, Lush and Dusk. Tap one, then set how strongly it applies.
 - **Adjust.** Brightness, contrast, saturation, warmth, tint, exposure, highlights, shadows, fade, vignette, grain and sharpen, each on its own slider. A dot marks the ones you changed. Double-tap a slider to put it back.
 
-**Keep edited photos** also saves each edited photo to your gallery, under Pictures/WM Keyboard.
+**Pinch** with two fingers in any tool to zoom in on the photo, and drag with two fingers to move around it, for drawing or blurring something small. Zooming only changes the view; the photo keeps its edits as they are. A chip at the top shows how far in you are, and a tap on it fits the whole photo again. A pinch that starts on a text or a sticker resizes that instead.
+
+### Saving to the gallery
+
+The save button in the editor's top bar, next to Done, keeps the edited photo on the phone. It works once the photo has an edit.
+
+- **Save as a copy** adds a new photo next to the original, in the same folder, named after it with *_edited* on the end. A photo from a folder Android does not let apps add pictures to goes under Pictures/WM Keyboard instead. The original stays as it was.
+- **Replace the original** writes the edited photo over the one in your library. Android asks first whether the keyboard may change a photo another app made. This cannot be undone, and the editor closes afterwards, since the edits are now part of the photo.
+
+Either way the photo is saved at up to 4096 pixels on its long side, in its own format (JPEG, PNG or WebP; other formats are saved as JPEG), and keeps its date and camera details. It does not keep its location: Android hides that from the keyboard. **Replace the original** is only offered for JPEG, PNG and WebP photos from the library, not for HEIC photos or ones picked through Android's picker. The quality chip in the send bar does not apply to these saves.
+
+**Keep edited photos** in settings also saves each edited photo you send, under Pictures/WM Keyboard.
 
 ## Privacy
 

@@ -59,6 +59,17 @@ object GalleryStore {
                     PackageManager.PERMISSION_GRANTED
                 )
 
+    /**
+     * Android 13 and up with photos allowed but videos not: the library lists
+     * pictures only. Granting photos for another feature (screenshots in the
+     * clipboard) leaves a phone here.
+     */
+    fun videosWithheld(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return false
+        fun has(p: String) = context.checkSelfPermission(p) == PackageManager.PERMISSION_GRANTED
+        return has(Manifest.permission.READ_MEDIA_IMAGES) && !has(Manifest.permission.READ_MEDIA_VIDEO)
+    }
+
     private val filesUri: Uri = MediaStore.Files.getContentUri("external")
 
     private val dateColumn: String
@@ -74,6 +85,7 @@ object GalleryStore {
             add(MediaStore.MediaColumns.HEIGHT)
             add(MediaStore.MediaColumns.SIZE)
             add(MediaStore.MediaColumns.DATE_ADDED)
+            add(MediaStore.MediaColumns.DATE_MODIFIED)
             add(dateColumn)
             add(ORIENTATION)
             add(DURATION)
@@ -242,6 +254,22 @@ object GalleryStore {
         return tally.albums(withVideos)
     }
 
+    /**
+     * The folder a library photo lives in, as MediaStore spells it
+     * ("DCIM/Camera/"), when a new picture may be written there too: Android
+     * takes new pictures only under DCIM and Pictures. Null otherwise, and
+     * below Android 10, where folders are not the store's to say.
+     */
+    fun pictureFolderOf(context: Context, item: GalleryItem): String? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || item.isPicked) return null
+        val path = runCatching {
+            context.contentResolver.query(item.uri, arrayOf(RELATIVE_PATH), null, null, null)?.use { c ->
+                if (c.moveToFirst()) c.getStringOrEmpty(0) else ""
+            }
+        }.getOrNull().orEmpty()
+        return path.takeIf { it.startsWith("DCIM/") || it.startsWith("Pictures/") }
+    }
+
     /** The content URI of one row, under its own type's table so other apps can read it. */
     fun uriOf(id: Long, kind: GalleryKind): Uri = ContentUris.withAppendedId(
         if (kind == GalleryKind.VIDEO) {
@@ -323,6 +351,7 @@ object GalleryStore {
             bucketId = c.getStringOrEmpty(c.getColumnIndex(BUCKET_ID)),
             bucketName = c.getStringOrEmpty(c.getColumnIndex(BUCKET_NAME)),
             favorite = fav >= 0 && c.getIntOr(fav, 0) == 1,
+            modifiedSec = c.getLongOr(c.getColumnIndex(MediaStore.MediaColumns.DATE_MODIFIED), 0L),
         )
     }
 

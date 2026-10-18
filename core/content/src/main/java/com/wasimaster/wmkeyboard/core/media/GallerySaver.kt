@@ -1,8 +1,10 @@
 package com.wasimaster.wmkeyboard.core.media
 
 import android.Manifest
+import android.app.RecoverableSecurityException
 import android.content.ContentValues
 import android.content.Context
+import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.media.MediaScannerConnection
 import android.net.Uri
@@ -15,7 +17,9 @@ import java.io.File
 
 /**
  * Copies an image the keyboard produced (camera capture, document scan,
- * generated QR code) into the shared gallery under Pictures/WM Keyboard.
+ * generated QR code, an edited photo) into the shared gallery under
+ * Pictures/WM Keyboard, or beside the photo it came from, and writes an
+ * edited photo back over its original.
  *
  * The two storage eras need different handling:
  *
@@ -46,15 +50,61 @@ object GallerySaver {
      * the save failed (no permission, no space, store rejected the insert).
      * Safe to call off the main thread; callers should.
      */
-    fun save(context: Context, file: File, mimeType: String, displayName: String): Uri? {
+    fun save(context: Context, file: File, mimeType: String, displayName: String, folder: String? = null): Uri? {
         if (!canSave(context)) return null
         if (!file.exists() || file.length() == 0L) return null
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            saveScoped(context, file, mimeType, displayName)
+            // [folder] is a wish ("DCIM/Camera/", beside the photo it came
+            // from); the store may refuse it, and then the album takes it.
+            folder?.let { saveScoped(context, file, mimeType, displayName, it) }
+                ?: saveScoped(context, file, mimeType, displayName, "${Environment.DIRECTORY_PICTURES}/$ALBUM")
         } else {
             saveLegacy(context, file, mimeType, displayName)
         }
+    }
+
+    /** How a write over a library photo went. */
+    sealed interface Overwrite {
+        data object Done : Overwrite
+
+        /** Android wants the user's yes first: launch [sender], then [write] again. */
+        data class NeedsConsent(val sender: IntentSender) : Overwrite
+
+        /** Below Android 10, writing another app's photo is the storage permission's. */
+        data object NeedsPermission : Overwrite
+        data object Failed : Overwrite
+    }
+
+    /**
+     * Writes [file] over the library photo at [uri]. A photo this app did not
+     * make takes the user's consent first, which only an activity can ask for:
+     * the answer says so, with what to launch.
+     */
+    fun overwrite(context: Context, uri: Uri, file: File): Overwrite {
+        if (!file.exists() || file.length() == 0L) return Overwrite.Failed
+        val first = runCatching { write(context, uri, file) }
+        if (first.isSuccess) return Overwrite.Done
+        val error = first.exceptionOrNull()
+        return when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> runCatching {
+                Overwrite.NeedsConsent(MediaStore.createWriteRequest(context.contentResolver, listOf(uri)).intentSender)
+            }.getOrDefault(Overwrite.Failed)
+            Build.VERSION.SDK_INT == Build.VERSION_CODES.Q && error is RecoverableSecurityException ->
+                Overwrite.NeedsConsent(error.userAction.actionIntent.intentSender)
+            !canSave(context) -> Overwrite.NeedsPermission
+            else -> Overwrite.Failed
+        }
+    }
+
+    /**
+     * The bytes of [file] written over [uri]. The stream is opened before
+     * anything is cut, so a refused write leaves the photo as it was; the
+     * store rescans the file once it is closed.
+     */
+    fun write(context: Context, uri: Uri, file: File) {
+        val out = context.contentResolver.openOutputStream(uri, "wt") ?: error("openOutputStream returned null")
+        out.use { stream -> file.inputStream().use { it.copyTo(stream) } }
     }
 
     // Guarded by the SDK_INT check in save(); the annotation states that
@@ -66,15 +116,13 @@ object GallerySaver {
         file: File,
         mimeType: String,
         displayName: String,
+        folder: String,
     ): Uri? {
         val resolver = context.contentResolver
         val values = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, displayName)
             put(MediaStore.Images.Media.MIME_TYPE, mimeType)
-            put(
-                MediaStore.Images.Media.RELATIVE_PATH,
-                "${Environment.DIRECTORY_PICTURES}/$ALBUM",
-            )
+            put(MediaStore.Images.Media.RELATIVE_PATH, folder)
             put(MediaStore.Images.Media.IS_PENDING, 1)
         }
 

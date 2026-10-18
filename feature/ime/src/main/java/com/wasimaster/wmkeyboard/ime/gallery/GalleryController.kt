@@ -11,6 +11,9 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import com.wasimaster.wmkeyboard.app.GalleryPickActivity
 import com.wasimaster.wmkeyboard.app.GalleryPermissionActivity
+import com.wasimaster.wmkeyboard.app.GalleryWriteActivity
+import com.wasimaster.wmkeyboard.app.StoragePermissionActivity
+import com.wasimaster.wmkeyboard.core.media.GallerySaver
 import com.wasimaster.wmkeyboard.core.media.gallery.AlbumKind
 import com.wasimaster.wmkeyboard.core.media.gallery.GalleryAlbum
 import com.wasimaster.wmkeyboard.core.media.gallery.GalleryItem
@@ -27,6 +30,7 @@ import com.wasimaster.wmkeyboard.core.media.gallery.edit.TextLayer
 import com.wasimaster.wmkeyboard.core.settings.GalleryCaption
 import com.wasimaster.wmkeyboard.core.settings.GalleryFallback
 import com.wasimaster.wmkeyboard.core.settings.GallerySettings
+import com.wasimaster.wmkeyboard.ime.ui.gallery.trimGalleryImageMemory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -214,8 +218,10 @@ internal class GalleryController(
 
     private fun refreshAccess(reload: Boolean) {
         val access = GalleryStore.access(app)
-        val changed = access != _state.value.access
-        _state.update { it.copy(access = access) }
+        val withheld = host.settings.showVideos && GalleryStore.videosWithheld(app)
+        // Videos granted on their own leave the access as it was, and still reload.
+        val changed = access != _state.value.access || withheld != _state.value.videosWithheld
+        _state.update { it.copy(access = access, videosWithheld = withheld) }
         if (access != GalleryStore.Access.NONE && (reload || changed)) {
             loadAlbums(restore = true)
             load(reset = true)
@@ -273,10 +279,14 @@ internal class GalleryController(
             }
             _state.update {
                 if (it.album.key != album.key || it.filter != filter) return@update it
+                // A pick that is in the page takes its fresh row, so a photo
+                // changed on disk (replaced from the editor) shows as it is now.
+                val fresh = page.associateBy { row -> row.id }
                 it.copy(
                     items = if (reset) page else it.items + page,
                     loading = false,
                     endReached = page.size < limit,
+                    selection = it.selection.map { sel -> fresh[sel.id] ?: sel },
                 )
             }
         }
@@ -287,9 +297,9 @@ internal class GalleryController(
     @Suppress("detekt.CyclomaticComplexMethod", "detekt.LongMethod")
     private fun dispatch(action: GalleryAction) {
         when (action) {
-            GalleryAction.AskPermission -> launch(Intent(app, GalleryPermissionActivity::class.java))
-            GalleryAction.PickWithSystem -> launch(GalleryPickActivity.intent(app, files = false, limit = room()))
-            GalleryAction.PickFiles -> launch(GalleryPickActivity.intent(app, files = true, limit = room()))
+            GalleryAction.AskPermission -> startScreen(Intent(app, GalleryPermissionActivity::class.java))
+            GalleryAction.PickWithSystem -> startScreen(GalleryPickActivity.intent(app, files = false, limit = room()))
+            GalleryAction.PickFiles -> startScreen(GalleryPickActivity.intent(app, files = true, limit = room()))
             GalleryAction.OpenCamera -> {
                 keepPicksOnClose = true
                 host.openCamera()
@@ -397,10 +407,12 @@ internal class GalleryController(
             }
             is GalleryAction.AddSticker -> addSticker(action.path, action.emoji)
             is GalleryAction.Compare -> editor { it.copy(comparing = action.on) }
+            is GalleryAction.SaveMenu -> editor { it.copy(saveMenuOpen = action.open) }
+            is GalleryAction.SaveEdit -> saveEdit(action.replace)
         }
     }
 
-    private fun launch(intent: Intent) {
+    private fun startScreen(intent: Intent) {
         runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
     }
 
@@ -590,6 +602,125 @@ internal class GalleryController(
         host.haptic()
         history { it.push(edit.copy(stickers = edit.stickers + layer)) }
         editor { it.copy(selectedLayer = layer.id) }
+    }
+
+    // ---- Saving to the gallery ---------------------------------------------------
+
+    /**
+     * Keeps the edited photo in the phone's gallery: a new picture beside the
+     * original, or written over it. Drawn at the editor's largest size in the
+     * photo's own format, whatever the send bar's quality says.
+     */
+    private fun saveEdit(replace: Boolean) {
+        val e = _state.value.editor ?: return
+        if (e.saving) return
+        val item = _state.value.selection.firstOrNull { it.id == e.itemId } ?: return
+        val edit = _state.value.editOf(item.id)
+        if (edit.isEmpty || (replace && !item.replaceable)) return
+        endTextIfAny()
+        host.haptic()
+        if (!GallerySaver.canSave(app)) {
+            // Below Android 10 the gallery is the storage permission's.
+            editor { it.copy(saveMenuOpen = false) }
+            startScreen(Intent(app, StoragePermissionActivity::class.java))
+            return
+        }
+        editor { it.copy(saving = true, saveMenuOpen = false) }
+        scope.launch {
+            var asking = false
+            try {
+                val kept = withContext(Dispatchers.IO) {
+                    MediaPrep.renderToKeep(app, item) { bmp -> PhotoEditRenderer.render(bmp, edit, StickerCache()) }
+                }
+                if (kept == null) {
+                    notice(GalleryNotice.Kind.SAVE_FAILED)
+                } else if (replace) {
+                    asking = replaceOriginal(item, kept)
+                } else {
+                    saveCopy(item, kept)
+                }
+            } finally {
+                if (!asking) savingDone(item.id)
+            }
+        }
+    }
+
+    private fun savingDone(id: Long) = _state.update { s ->
+        s.copy(editor = s.editor?.let { if (it.itemId == id) it.copy(saving = false) else it })
+    }
+
+    private suspend fun saveCopy(item: GalleryItem, kept: MediaPrep.Prepared) {
+        val saved = withContext(Dispatchers.IO) {
+            GallerySaver.save(app, kept.file, kept.mime, copyName(item, kept.mime), GalleryStore.pictureFolderOf(app, item))
+                .also { kept.file.delete() }
+        }
+        notice(if (saved != null) GalleryNotice.Kind.SAVED else GalleryNotice.Kind.SAVE_FAILED, 1)
+    }
+
+    /** "PXL_20261018_101500_edited.jpg": the photo's own name, marked, for the copy beside it. */
+    private fun copyName(item: GalleryItem, mime: String): String {
+        val base = item.name.substringBeforeLast('.').ifBlank {
+            "IMG_" + java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US).format(java.util.Date())
+        }
+        return "${base}_edited.${MediaPrep.extensionFor(mime)}"
+    }
+
+    /**
+     * Writes [kept] over [item]'s file. True while Android's consent dialog
+     * is up: the save is still under way until the user answers it.
+     */
+    private suspend fun replaceOriginal(item: GalleryItem, kept: MediaPrep.Prepared): Boolean {
+        when (val r = withContext(Dispatchers.IO) { GallerySaver.overwrite(app, item.uri, kept.file) }) {
+            GallerySaver.Overwrite.Done -> replaced(item, kept)
+            is GallerySaver.Overwrite.NeedsConsent -> {
+                startScreen(
+                    GalleryWriteActivity.intent(app, r.sender) { yes ->
+                        if (!yes) {
+                            kept.file.delete()
+                            notice(GalleryNotice.Kind.NOT_REPLACED)
+                            savingDone(item.id)
+                        } else {
+                            scope.launch {
+                                val ok = withContext(Dispatchers.IO) {
+                                    runCatching { GallerySaver.write(app, item.uri, kept.file) }.isSuccess
+                                }
+                                if (ok) {
+                                    replaced(item, kept)
+                                } else {
+                                    kept.file.delete()
+                                    notice(GalleryNotice.Kind.SAVE_FAILED)
+                                }
+                                savingDone(item.id)
+                            }
+                        }
+                    },
+                )
+                return true
+            }
+            GallerySaver.Overwrite.NeedsPermission -> {
+                kept.file.delete()
+                startScreen(Intent(app, StoragePermissionActivity::class.java))
+            }
+            GallerySaver.Overwrite.Failed -> {
+                kept.file.delete()
+                notice(GalleryNotice.Kind.SAVE_FAILED)
+            }
+        }
+        return false
+    }
+
+    /**
+     * The photo now holds the edit, so the edit goes: kept on top of the
+     * new file it would be drawn twice. The editor closes on the result.
+     */
+    private fun replaced(item: GalleryItem, kept: MediaPrep.Prepared) {
+        kept.file.delete()
+        trimGalleryImageMemory()
+        _state.update { s -> s.copy(edits = s.edits - item.id, editor = s.editor?.takeIf { it.itemId != item.id }) }
+        notice(GalleryNotice.Kind.REPLACED)
+        // The store rescans the file once it is written; the watcher reloads
+        // the grid then, and this catches a store that does not say so.
+        scheduleRefresh()
     }
 
     // ---- Sending --------------------------------------------------------------

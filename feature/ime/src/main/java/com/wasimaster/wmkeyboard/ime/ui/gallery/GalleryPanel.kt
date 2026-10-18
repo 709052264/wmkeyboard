@@ -150,6 +150,13 @@ internal fun GalleryPanel(
                                 action = stringResource(R.string.ime_gallery_partial_action),
                             ) { act(GalleryAction.AskPermission) }
                         }
+                    } else if (ui.videosWithheld) {
+                        Box(Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
+                            Banner(
+                                text = stringResource(R.string.ime_gallery_videos_body),
+                                action = stringResource(R.string.ime_gallery_videos_action),
+                            ) { act(GalleryAction.AskPermission) }
+                        }
                     }
                     GalleryGrid(
                         ui = ui,
@@ -192,14 +199,19 @@ internal fun GalleryPanel(
 
             ui.peek?.let { Peek(it) }
 
-            NoticeLine(ui.notice, Modifier.align(Alignment.TopCenter).padding(top = 8.dp)) { act(GalleryAction.NoticeDismiss) }
-
             Scrimmed(ui.askFallback > 0, onDismiss = { act(GalleryAction.FallbackChoice(null)) }) {
                 FallbackCard(ui.askFallback, act, Modifier.align(Alignment.Center))
             }
 
             ui.viewer?.let { GalleryViewer(ui, it, act) }
             ui.editor?.let { GalleryEditor(state, ui, it, callbacks) }
+
+            // Over the viewer and the editor too, which say "saved" as well;
+            // clear of their top bars there.
+            val fullSheet = ui.viewer != null || ui.editor != null
+            NoticeLine(ui.notice, Modifier.align(Alignment.TopCenter).padding(top = if (fullSheet) 56.dp else 8.dp)) {
+                act(GalleryAction.NoticeDismiss)
+            }
         }
     }
 }
@@ -492,6 +504,9 @@ private fun noticeText(n: GalleryNotice): String = when (n.kind) {
     GalleryNotice.Kind.FAILED -> pluralStringResource(R.plurals.ime_gallery_notice_failed, n.count, n.count)
     GalleryNotice.Kind.SENT -> pluralStringResource(R.plurals.ime_gallery_notice_sent, n.count, n.count)
     GalleryNotice.Kind.NO_VIDEOS -> stringResource(R.string.ime_gallery_notice_no_videos)
+    GalleryNotice.Kind.REPLACED -> stringResource(R.string.ime_gallery_notice_replaced)
+    GalleryNotice.Kind.NOT_REPLACED -> stringResource(R.string.ime_gallery_notice_not_replaced)
+    GalleryNotice.Kind.SAVE_FAILED -> stringResource(R.string.ime_gallery_notice_save_failed)
 }
 
 private const val COVER_PX = 96

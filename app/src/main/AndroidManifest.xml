@@ -984,6 +984,16 @@
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
+        <!-- The gallery editor's "Replace the original" (#708): Android's consent
+             dialog for changing a photo another app made, which only an
+             activity can ask for. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.GalleryWriteActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
         <!-- Notification access, usage access and the accessibility service are
              granted on a system Settings screen rather than through a permission
              dialog, so there is nothing to trampoline *through* — but the

@@ -3,20 +3,29 @@ package com.wasimaster.wmkeyboard.ime.ui.gallery
 import android.graphics.Bitmap
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateCentroid
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateRotation
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,10 +34,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.isUnspecified
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
@@ -41,6 +52,7 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
@@ -48,10 +60,16 @@ import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ZoomOutMap
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.BrushKind
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.CropHandle
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.CropMath
@@ -59,10 +77,12 @@ import com.wasimaster.wmkeyboard.core.media.gallery.edit.CropRect
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.NPoint
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.PhotoEdit
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.PhotoEditRenderer
+import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.gallery.EditorTool
 import com.wasimaster.wmkeyboard.ime.gallery.EditorUi
 import com.wasimaster.wmkeyboard.ime.gallery.GalleryAction
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.Stroke as EditStroke
+import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.abs
 import kotlin.math.max
@@ -106,9 +126,21 @@ internal fun EditorCanvas(
     } else {
         min((box.width - 2 * pad) / srcW, (box.height - 2 * pad) / srcH)
     }
-    val dw = srcW * fit
-    val dh = srcH * fit
-    val dst = Rect(Offset((box.width - dw) / 2f, (box.height - dh) / 2f), Size(dw, dh))
+
+    // Two fingers zoom and pan the view, in every tool: a view change only,
+    // never part of the edit. A new window onto the picture (the crop tool
+    // opened or left, a crop applied) starts back at the fit; a hold for the
+    // original does not.
+    var zoom by remember { mutableFloatStateOf(1f) }
+    var pan by remember { mutableStateOf(Offset.Zero) }
+    val cropTool = editor.tool == EditorTool.CROP
+    LaunchedEffect(cropTool, if (cropTool) CropRect.FULL else edit.crop) {
+        zoom = 1f
+        pan = Offset.Zero
+    }
+    val dw = srcW * fit * zoom
+    val dh = srcH * fit * zoom
+    val dst = Rect(Offset((box.width - dw) / 2f + pan.x, (box.height - dh) / 2f + pan.y), Size(dw, dh))
     val latestDst by rememberUpdatedState(dst)
     val latestRegion by rememberUpdatedState(region)
     val tw = turned.width.coerceAtLeast(1)
@@ -130,6 +162,48 @@ internal fun EditorCanvas(
         val d = latestDst
         val r = latestRegion
         return Offset(d.left + (n.x - r.left) / r.width * d.width, d.top + (n.y - r.top) / r.height * d.height)
+    }
+
+    /** A finger is on a text or sticker: a second finger then scales that, not the view. */
+    var layerHeld by remember { mutableStateOf(false) }
+
+    // Read from the gesture's coroutine, which outlives the composition it began in.
+    val fitW by rememberUpdatedState(srcW * fit)
+    val fitH by rememberUpdatedState(srcH * fit)
+
+    /** Keeps the picture from being panned off: at most to its own edge, and centred while it fits. */
+    fun clampPan(p: Offset, z: Float): Offset {
+        val w = fitW * z
+        val h = fitH * z
+        val maxX = max(0f, (w - (box.width - 2 * pad)) / 2f)
+        val maxY = max(0f, (h - (box.height - 2 * pad)) / 2f)
+        return Offset(p.x.coerceIn(-maxX, maxX), p.y.coerceIn(-maxY, maxY))
+    }
+
+    val zoomGesture = Modifier.pointerInput(Unit) {
+        awaitEachGesture {
+            awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+            do {
+                // The first pass, ahead of the tool's own handler: once two
+                // fingers are down they are the view's, and the tool sees its
+                // stroke or drag cancelled.
+                val e = awaitPointerEvent(PointerEventPass.Initial)
+                if (e.changes.count { it.pressed } < 2) continue
+                if (layerHeld && latestEditor.tool.let { it == EditorTool.TEXT || it == EditorTool.STICKER }) continue
+                val change = e.calculateZoom()
+                val move = e.calculatePan()
+                val centroid = e.calculateCentroid(useCurrent = false)
+                val next = (zoom * change).coerceIn(1f, MAX_EDITOR_ZOOM)
+                val k = next / zoom
+                // Zoomed about the fingers rather than the middle.
+                val mid = Offset(box.width / 2f, box.height / 2f)
+                val about = if (centroid.isUnspecified) mid else centroid
+                val offset = (pan + mid - about) * k - (mid - about) + move
+                zoom = next
+                pan = clampPan(offset, next)
+                e.changes.forEach { it.consume() }
+            } while (e.changes.any { it.pressed })
+        }
     }
 
     val trashRadius = with(density) { 30.dp.toPx() }
@@ -211,6 +285,8 @@ internal fun EditorCanvas(
                     val e = awaitPointerEvent()
                     val ch = e.changes.firstOrNull { it.id == down.id } ?: break
                     if (!ch.pressed) break
+                    // A second finger is a zoom: the frame stays where it got to.
+                    if (e.changes.count { it.pressed } > 1) continue
                     total += ch.positionChange()
                     ch.consume()
                     val d = latestDst
@@ -227,6 +303,7 @@ internal fun EditorCanvas(
             awaitEachGesture {
                 val down = awaitFirstDown()
                 val hitId = layerAt(down.position)
+                layerHeld = hitId != null
                 val start = latestEdit
                 if (hitId == null) {
                     // An empty spot: a tap there writes a new text, or lets go of the pick.
@@ -279,6 +356,7 @@ internal fun EditorCanvas(
                     act(GalleryAction.EditPreview(current))
                 }
                 onDragging(null)
+                layerHeld = false
                 when {
                     !moved -> if (wasSelected && current.texts.any { it.id == hitId }) act(GalleryAction.TypeLayer(hitId))
                     overTrash -> {
@@ -295,10 +373,16 @@ internal fun EditorCanvas(
             awaitEachGesture {
                 awaitFirstDown()
                 act(GalleryAction.Compare(true))
+                var comparing = true
                 do {
                     val e = awaitPointerEvent()
+                    // A second finger is a zoom, not a hold.
+                    if (comparing && e.changes.count { it.pressed } > 1) {
+                        comparing = false
+                        act(GalleryAction.Compare(false))
+                    }
                 } while (e.changes.any { it.pressed })
-                act(GalleryAction.Compare(false))
+                if (comparing) act(GalleryAction.Compare(false))
             }
         }
     }
@@ -307,7 +391,9 @@ internal fun EditorCanvas(
         Canvas(
             Modifier
                 .fillMaxSize()
+                .clipToBounds()
                 .onSizeChanged { box = it }
+                .then(zoomGesture)
                 .then(gestures),
         ) {
             if (box.width == 0) return@Canvas
@@ -348,6 +434,12 @@ internal fun EditorCanvas(
                 else -> Unit
             }
         }
+        if (zoom > 1f + ZOOM_EPSILON && dragging == null) {
+            ZoomChip(zoom, Modifier.align(Alignment.TopCenter).padding(top = 8.dp)) {
+                zoom = 1f
+                pan = Offset.Zero
+            }
+        }
         if (dragging != null) {
             Box(
                 Modifier
@@ -362,6 +454,33 @@ internal fun EditorCanvas(
         }
     }
 }
+
+/** How far the zoom shows and a tap on it fits the picture again. */
+@Composable
+private fun ZoomChip(zoom: Float, modifier: Modifier, onReset: () -> Unit) {
+    val label = stringResource(R.string.ime_gallery_editor_fit)
+    Row(
+        modifier
+            .clip(RoundedCornerShape(50))
+            .background(Color.Black.copy(alpha = 0.55f))
+            .clickable(onClick = onReset)
+            .semantics { contentDescription = label }
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.ZoomOutMap, contentDescription = null, tint = OnPhoto, modifier = Modifier.size(14.dp))
+        Spacer(Modifier.width(5.dp))
+        Text(
+            String.format(Locale.getDefault(), "%.1f×", zoom),
+            color = OnPhoto,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
+    }
+}
+
+/** How far two fingers can bring the picture in, past the fit. */
+private const val MAX_EDITOR_ZOOM = 8f
 
 /** Which part of the crop [frame] a finger at [p] takes hold of, or null for outside it. */
 private fun handleAt(p: Offset, frame: Rect, grab: Float): CropHandle? {

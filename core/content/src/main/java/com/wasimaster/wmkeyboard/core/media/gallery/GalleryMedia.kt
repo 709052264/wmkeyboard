@@ -40,6 +40,8 @@ data class GalleryItem(
      * Such an item has a negative [id].
      */
     val sourceUri: Uri? = null,
+    /** When the file last changed, in epoch seconds; 0 when unknown. A new value means new pixels. */
+    val modifiedSec: Long = 0,
 ) {
     /** The content URI to read: [sourceUri], or the library row's own under its type's table. */
     val uri: Uri by lazy(LazyThreadSafetyMode.NONE) { sourceUri ?: GalleryStore.uriOf(id, kind) }

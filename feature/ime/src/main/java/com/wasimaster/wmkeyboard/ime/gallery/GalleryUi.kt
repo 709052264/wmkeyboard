@@ -3,8 +3,10 @@ package com.wasimaster.wmkeyboard.ime.gallery
 import com.wasimaster.wmkeyboard.core.media.gallery.GalleryAlbum
 import com.wasimaster.wmkeyboard.core.media.gallery.GalleryFilter
 import com.wasimaster.wmkeyboard.core.media.gallery.GalleryItem
+import com.wasimaster.wmkeyboard.core.media.gallery.GalleryKind
 import com.wasimaster.wmkeyboard.core.media.gallery.GalleryQuality
 import com.wasimaster.wmkeyboard.core.media.gallery.GalleryStore
+import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.AdjustKnob
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.BrushKind
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.CropAspect
@@ -26,6 +28,8 @@ import kotlinx.coroutines.flow.StateFlow
  */
 data class GalleryUi(
     val access: GalleryStore.Access = GalleryStore.Access.NONE,
+    /** Photos are allowed and videos are not, while videos are meant to show: a banner asks for them. */
+    val videosWithheld: Boolean = false,
     val albums: List<GalleryAlbum> = emptyList(),
     val album: GalleryAlbum = GalleryAlbum.Recents,
     val filter: GalleryFilter = GalleryFilter.ALL,
@@ -102,6 +106,10 @@ data class EditorUi(
     val textAlign: TextAlign = TextAlign.CENTER,
     /** The original under a held finger, for before-and-after. */
     val comparing: Boolean = false,
+    /** The save card under the top bar: a copy, or over the original. */
+    val saveMenuOpen: Boolean = false,
+    /** A save to the gallery under way, the consent dialog included. */
+    val saving: Boolean = false,
 ) {
     companion object {
         const val DEFAULT_COLOR = 0xFFFFFFFF.toInt()
@@ -133,6 +141,13 @@ data class GalleryNotice(val kind: Kind, val count: Int = 0) {
 
         /** A video was picked for a field that only takes pictures. */
         NO_VIDEOS,
+
+        /** The editor wrote the edited photo over its original. */
+        REPLACED,
+
+        /** The user said no to Android's "modify this photo?". */
+        NOT_REPLACED,
+        SAVE_FAILED,
     }
 }
 
@@ -240,7 +255,18 @@ sealed interface GalleryAction {
     data class LayerAlign(val align: TextAlign) : GalleryAction
     data class AddSticker(val path: String?, val emoji: String?) : GalleryAction
     data class Compare(val on: Boolean) : GalleryAction
+    data class SaveMenu(val open: Boolean) : GalleryAction
+
+    /** The edited photo into the gallery: a new picture beside it, or ([replace]) over it. */
+    data class SaveEdit(val replace: Boolean) : GalleryAction
 }
+
+/**
+ * Whether the editor may write this photo back over itself: a library row
+ * (a picker's grant reads, it does not write) in a format Android encodes.
+ */
+val GalleryItem.replaceable: Boolean
+    get() = !isPicked && kind == GalleryKind.IMAGE && MediaPrep.canRewriteExif(mime)
 
 /** A sticker the editor can place: one of the user's own. */
 data class StickerChoice(val id: String, val path: String)

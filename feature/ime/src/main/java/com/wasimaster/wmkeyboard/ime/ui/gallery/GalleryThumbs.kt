@@ -33,9 +33,15 @@ import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
  * all. [px] is the side the cell is drawn at, so a five-column grid asks for
  * less than a three-column one.
  */
-data class MediaThumb(val uri: Uri, val video: Boolean, val px: Int) {
+data class MediaThumb(
+    val uri: Uri,
+    val video: Boolean,
+    val px: Int,
+    /** The file's change time, so a photo written over (from the editor) is fetched afresh. */
+    val version: Long = 0,
+) {
     companion object {
-        fun of(item: GalleryItem, px: Int) = MediaThumb(item.uri, item.kind == GalleryKind.VIDEO, px)
+        fun of(item: GalleryItem, px: Int) = MediaThumb(item.uri, item.kind == GalleryKind.VIDEO, px, item.modifiedSec)
     }
 }
 
@@ -85,7 +91,7 @@ private class MediaThumbFetcher(
 
 /** Keys a thumbnail by row and size, so the memory cache can hold it. */
 private class MediaThumbKeyer : Keyer<MediaThumb> {
-    override fun key(data: MediaThumb, options: Options): String = "gthumb:${data.uri}:${data.px}"
+    override fun key(data: MediaThumb, options: Options): String = "gthumb:${data.uri}:${data.px}:${data.version}"
 }
 
 @Volatile

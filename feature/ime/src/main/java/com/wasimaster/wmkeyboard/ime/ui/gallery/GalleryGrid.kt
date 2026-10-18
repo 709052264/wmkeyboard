@@ -1,14 +1,13 @@
 package com.wasimaster.wmkeyboard.ime.ui.gallery
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
@@ -51,9 +50,13 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -310,15 +313,24 @@ private fun GridCell(item: GalleryItem, order: Int, sent: Boolean, edited: Boole
     val kb = LocalKbTheme.current
     val loader = rememberGalleryImageLoader()
     val picked = order > 0
-    // The spring overshoots past 0 on the way back out, and a negative
-    // padding throws out of layout: unpicking a photo killed the keyboard.
-    val springInset by animateDpAsState(
-        targetValue = if (picked) 6.dp else 0.dp,
-        animationSpec = if (kb.reduceMotion) tween(0) else spring(dampingRatio = 0.6f, stiffness = 600f),
-        label = "inset",
+    // One progress for the inset, the corners, the outline and the dim, so
+    // they move together. Springy going in; going out it settles without
+    // overshoot, since past 0 the inset turns negative.
+    val sel = animateFloatAsState(
+        targetValue = if (picked) 1f else 0f,
+        animationSpec = when {
+            kb.reduceMotion -> snap()
+            picked -> spring(dampingRatio = 0.6f, stiffness = 600f)
+            else -> spring(dampingRatio = 1f, stiffness = 900f)
+        },
+        label = "picked",
     )
-    val inset = springInset.coerceAtLeast(0.dp)
-    val px = with(LocalDensity.current) { (360.dp / columns.coerceAtLeast(1)).roundToPx() * 2 }
+    val density = LocalDensity.current
+    val px = with(density) { (360.dp / columns.coerceAtLeast(1)).roundToPx() * 2 }
+    val insetPx = with(density) { PICKED_INSET.toPx() }
+    val cornerPx = with(density) { PICKED_CORNER.toPx() }
+    val outlinePx = with(density) { 2.dp.toPx() }
+    val accent = kb.accent
     val description = when (item.kind) {
         GalleryKind.VIDEO -> stringResource(R.string.ime_gallery_cell_video, durationText(item.durationMs))
         GalleryKind.GIF -> stringResource(R.string.ime_gallery_cell_gif)
@@ -337,11 +349,32 @@ private fun GridCell(item: GalleryItem, order: Int, sent: Boolean, edited: Boole
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(inset)
-                .clip(RoundedCornerShape(if (picked) 10.dp else 0.dp))
-                .then(if (picked) Modifier.border(2.dp, kb.accent, RoundedCornerShape(10.dp)) else Modifier),
+                // Shrunk in the draw layer rather than padded: no layout pass a frame.
+                .graphicsLayer {
+                    val s = sel.value.coerceAtLeast(0f)
+                    val k = 1f - 2f * insetPx * s / size.width.coerceAtLeast(1f)
+                    scaleX = k
+                    scaleY = k
+                    shape = RoundedCornerShape(cornerPx * s / k.coerceAtLeast(0.5f))
+                    clip = s > 0f
+                }
+                .drawWithContent {
+                    drawContent()
+                    val s = sel.value.coerceIn(0f, 1f)
+                    if (s <= 0f) return@drawWithContent
+                    val k = 1f - 2f * insetPx * s / size.width.coerceAtLeast(1f)
+                    drawRect(Color.Black.copy(alpha = 0.12f * s))
+                    // Divided by the layer's scale, so it lands 2 dp wide on screen.
+                    val w = outlinePx / k.coerceAtLeast(0.5f)
+                    drawRoundRect(
+                        color = accent.copy(alpha = s),
+                        topLeft = Offset(w / 2f, w / 2f),
+                        size = Size(size.width - w, size.height - w),
+                        cornerRadius = CornerRadius(cornerPx * s / k.coerceAtLeast(0.5f)),
+                        style = Stroke(w),
+                    )
+                },
         )
-        if (picked) Box(Modifier.fillMaxSize().padding(inset).clip(RoundedCornerShape(10.dp)).background(Color.Black.copy(alpha = 0.12f)))
         SelectRing(order, Modifier.align(Alignment.TopEnd).padding(5.dp), size = if (columns >= 5) 20.dp else 24.dp)
         if (item.kind == GalleryKind.VIDEO) {
             PhotoPill(durationText(item.durationMs), Modifier.align(Alignment.BottomStart).padding(5.dp), Icons.Outlined.PlayArrow)
@@ -448,6 +481,10 @@ private fun FastScroller(state: LazyGridState, ui: GalleryUi, lead: Int, modifie
 
 /** How close to a cell's top-right corner a tap has to land to pick rather than open. */
 private val CORNER_HIT = 40.dp
+
+/** How far a picked cell's picture draws in from its edges, and how round it gets. */
+private val PICKED_INSET = 6.dp
+private val PICKED_CORNER = 10.dp
 
 /** How near the end the next page starts loading, in cells. */
 private const val LOAD_AHEAD = 30
