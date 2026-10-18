@@ -291,6 +291,7 @@ import com.wasimaster.wmkeyboard.core.settings.AutoBackupScheduler
 import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
+import com.wasimaster.wmkeyboard.core.settings.TextEditingSettings
 import com.wasimaster.wmkeyboard.core.settings.ThemeSelectionTarget
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.TOOLBOX_FOLDER_MIN_TOOLS
@@ -7079,6 +7080,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         expectedSelStart = newSelStart
         expectedSelEnd = newSelEnd
+        noteTypedCaret(oldSelEnd, newSelStart, newSelEnd)
         // The space commit's echo is the first one with no composing region:
         // the letter echoes still queued ahead of it all carry the word's.
         var ownSpaceEcho = false
@@ -11462,9 +11464,7 @@ open class WMKeyboardService : InputMethodService() {
                 if (ic != null) {
                     if (hasSelection(ic)) {
                         if (recapitalizeSelection(ic)) return
-                    } else if (_uiState.value.settings.textEditing.shiftRecasesWordAtCaret &&
-                        recapitalizeWordAtCaret(ic)
-                    ) {
+                    } else if (recapitalizeWordAtCaret(ic, _uiState.value.settings.textEditing)) {
                         return
                     }
                 }
@@ -11586,29 +11586,45 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * Re-cases the word the collapsed caret is touching, the way SwiftKey's
-     * shift does (#662): `cursor⌶ touching` or `cur⌶sor touching`, one step of
+     * shift does (#662): `cursor⌶ touching` with
+     * [TextEditingSettings.shiftRecasesWordAtCaret], `cur⌶sor touching` with
+     * [TextEditingSettings.shiftRecasesWordAroundCaret]. One step of
      * lower → Title → UPPER, with the caret left where it was so the next press
-     * takes the next step. False, and the shift arms as usual, when the caret
-     * touches no word, the word has no case to change, or a word is being
-     * typed: the shift pressed in the middle of typing one is for the next
-     * letter, which is the whole of what a shift has always meant. A word the
-     * caret only came back to is not being typed.
+     * takes the next step, and the keyboard's shift moved to the same case
+     * ([syncShiftToCase]), so UPPER is caps lock and typing goes on in it.
+     *
+     * False, and the shift arms as usual, when the caret touches no word or
+     * only stands in front of one, the word has no case to change, or a word
+     * is being typed: the shift pressed in the middle of typing one is for the
+     * next letter, which is the whole of what a shift has always meant. That
+     * holds with no composing word too (a field that takes no suggestions, an
+     * address bar) and for a word backspace has just resumed, where
+     * [typedCaretAt] is what knows the caret got there by typing. A word the
+     * caret was only put back next to is not being typed.
      *
      * The case forms must keep the word's length, because the caret goes back
      * to the same offset; [nextCaseForm] promises it, and the guard below stays
      * as the backstop.
      */
-    private fun recapitalizeWordAtCaret(ic: InputConnection): Boolean {
+    private fun recapitalizeWordAtCaret(ic: InputConnection, editing: TextEditingSettings): Boolean {
+        if (!editing.shiftRecasesWordAtCaret && !editing.shiftRecasesWordAroundCaret) return false
         if (composing.isNotEmpty() && composing.toString() != resumedWord) return false
+        if (typedCaretAt >= 0 && typedCaretAt == expectedSelEnd && expectedSelStart == expectedSelEnd) {
+            return false
+        }
         val before = ic.getTextBeforeCursor(CARET_WORD_AHEAD, 0)?.toString() ?: return false
         val after = ic.getTextAfterCursor(CARET_WORD_AHEAD, 0)?.toString() ?: return false
         val head = before.takeLastWhile { isComposingWordChar(it) }
         val tail = after.takeWhile { isComposingWordChar(it) }
+        if (head.isEmpty()) return false
+        if (if (tail.isEmpty()) !editing.shiftRecasesWordAtCaret else !editing.shiftRecasesWordAroundCaret) return false
         val word = head + tail
-        if (word.isEmpty()) return false
         val next = nextCaseForm(word)
         if (next == word || next.length != word.length) return false
         val caret = caretOffset(ic)
+        // The re-case's own echoes move the caret too, and are not typing.
+        typedCaretAt = -1
+        typedCaretResetAt = SystemClock.uptimeMillis()
         dropComposingForSelectionEdit(ic)
         ic.beginBatchEdit()
         ic.deleteSurroundingText(head.length, tail.length)
@@ -11623,7 +11639,31 @@ open class WMKeyboardService : InputMethodService() {
         }
         ic.endBatchEdit()
         invalidateExpectedSelection()
+        syncShiftToCase(next)
         return true
+    }
+
+    /**
+     * The collapsed caret a run of typing has left, or -1: set on the echo of
+     * a keystroke that moved the caret a few characters on or back, kept while the
+     * caret stays there, and dropped by any other move. Only
+     * [recapitalizeWordAtCaret] reads it, to tell a word just typed with no
+     * composing region from one the caret was put next to.
+     */
+    private var typedCaretAt = -1
+
+    /** When [recapitalizeWordAtCaret] last edited; a keystroke before it no longer counts. */
+    private var typedCaretResetAt = 0L
+
+    private fun noteTypedCaret(oldSelEnd: Int, newSelStart: Int, newSelEnd: Int) {
+        typedCaretAt = when {
+            newSelStart != newSelEnd -> -1
+            newSelEnd != oldSelEnd && abs(newSelEnd - oldSelEnd) <= TYPED_CARET_STEP_MAX &&
+                lastTypedKeyAt > typedCaretResetAt &&
+                SystemClock.uptimeMillis() - lastTypedKeyAt < TYPED_CARET_ECHO_MS -> newSelEnd
+            newSelEnd == typedCaretAt -> typedCaretAt
+            else -> -1
+        }
     }
 
     /**
@@ -38251,7 +38291,11 @@ open class WMKeyboardService : InputMethodService() {
 
     /** What ends a word for the delete keys' word steps (#662). */
     private fun deleteWordBreaks(): WordBreaks = _uiState.value.settings.textEditing.let {
-        WordBreaks(punctuation = it.deleteWordStopsAtPunctuation, capitals = it.deleteWordStopsAtCapitals)
+        WordBreaks(
+            punctuation = it.deleteWordStopsAtPunctuation,
+            capitals = it.deleteWordStopsAtCapitals,
+            digits = it.deleteWordStopsAtDigits,
+        )
     }
 
     /**
@@ -38261,8 +38305,10 @@ open class WMKeyboardService : InputMethodService() {
     private fun cursorWordBreaks(): WordBreaks? = _uiState.value.settings.textEditing.let {
         when (it.cursorWordSteps) {
             CursorWordSteps.APP -> null
-            CursorWordSteps.SPACES -> WordBreaks(punctuation = false, capitals = it.cursorWordStopsAtCapitals)
-            CursorWordSteps.PUNCTUATION -> WordBreaks(punctuation = true, capitals = it.cursorWordStopsAtCapitals)
+            CursorWordSteps.SPACES ->
+                WordBreaks(punctuation = false, capitals = it.cursorWordStopsAtCapitals, digits = it.cursorWordStopsAtDigits)
+            CursorWordSteps.PUNCTUATION ->
+                WordBreaks(punctuation = true, capitals = it.cursorWordStopsAtCapitals, digits = it.cursorWordStopsAtDigits)
         }
     }
 
@@ -43563,6 +43609,10 @@ open class WMKeyboardService : InputMethodService() {
          * this is a long-word budget rather than a context window.
          */
         private const val CARET_WORD_AHEAD = 48
+
+        /** See [typedCaretAt]: how far one keystroke's echo can move the caret on, and how late it can come. */
+        private const val TYPED_CARET_STEP_MAX = 4
+        private const val TYPED_CARET_ECHO_MS = 1_500L
 
         /**
          * How much text behind the caret is read to tell an opening quote from

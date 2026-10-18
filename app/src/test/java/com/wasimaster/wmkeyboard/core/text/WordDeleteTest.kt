@@ -121,4 +121,26 @@ class WordDeleteTest {
         assertEquals(0 until 8, WordDelete.wordAround(camel, 3, capitals))
         assertEquals(null, WordDelete.wordAround("a  b", 2, spacesOnly))
     }
+
+    @Test
+    fun `an underscore splits a word like any other mark`() {
+        val url = "https://www.word1.com/wordtwo_wordthree"
+        assertEquals("wordthree".length, len(url))
+        assertEquals("_".length, len(url.removeSuffix("wordthree")))
+        assertEquals("wordtwo".length, len(url.removeSuffix("_wordthree")))
+    }
+
+    @Test
+    fun `digits split a word only when asked`() {
+        val digits = WordBreaks(punctuation = true, capitals = false, digits = true)
+        assertEquals("word1".length, len("word1"))
+        assertEquals("1".length, WordDelete.lengthBefore("word1", digits))
+        assertEquals("word".length, WordDelete.lengthBefore("word", digits))
+        assertEquals("mp".length, WordDelete.lengthAfter("mp3player", digits))
+        assertEquals(2 until 3, WordDelete.wordAround("mp3player", 2, digits))
+        assertEquals(0 until 2, WordDelete.wordAround("mp3player", 1, digits))
+        // Spaces only still honours it.
+        val spaced = WordBreaks(punctuation = false, capitals = false, digits = true)
+        assertEquals("1.0".length, WordDelete.lengthBefore("v1.0", spaced))
+    }
 }

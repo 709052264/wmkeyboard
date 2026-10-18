@@ -681,6 +681,15 @@ internal fun TypingCorrectionsSettings(
                 default = SettingsDefaults.textEditing.shiftRecasesWordAtCaret,
             ) { scope.launch { repository.setShiftRecasesWordAtCaret(it) } }
         }
+        item(visible = recaseOn) {
+            ToggleSetting(
+                R.string.typing_shift_recase_inside_title,
+                stringResource(R.string.typing_shift_recase_inside_subtitle),
+                settings.watch { it.textEditing.shiftRecasesWordAroundCaret },
+                info = stringResource(R.string.typing_shift_recase_inside_info),
+                default = SettingsDefaults.textEditing.shiftRecasesWordAroundCaret,
+            ) { scope.launch { repository.setShiftRecasesWordAroundCaret(it) } }
+        }
     }
 }
 

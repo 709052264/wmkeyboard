@@ -171,9 +171,12 @@
     <string name="typing_shift_recase_title">Shift changes the case of the selection</string>
     <string name="typing_shift_recase_subtitle">Shift with text selected steps through lowercase, Title Case and UPPERCASE</string>
     <string name="typing_shift_recase_info">When you select text and press shift, the keyboard changes the case of the selection. It does not arm shift for the next letter. Each press steps through lowercase, Title Case and UPPERCASE. Nothing changes for the scripts without case, such as Bengali. Turn this off to keep shift for the next character only, even while text is selected.</string>
-    <string name="typing_shift_recase_caret_title">Shift changes the case of the word at the cursor</string>
-    <string name="typing_shift_recase_caret_subtitle">With nothing selected, shift changes the word the cursor touches</string>
-    <string name="typing_shift_recase_caret_info">Put the cursor on a word or right after it and press shift. The word steps through lowercase, Title Case and UPPERCASE, and the cursor stays where it is. This works as on SwiftKey.\n\nWhile you type a word, shift is still for the next letter. When the cursor touches no word, shift works as usual.</string>
+    <string name="typing_shift_recase_caret_title">Shift changes the case of the word before the cursor</string>
+    <string name="typing_shift_recase_caret_subtitle">With nothing selected, shift changes the word that ends at the cursor</string>
+    <string name="typing_shift_recase_caret_info">Put the cursor right after a word and press shift. The word steps through lowercase, Title Case and UPPERCASE, and the cursor stays where it is. The shift key follows the word: Title Case puts shift on, and UPPERCASE is caps lock. This works as on SwiftKey.\n\nA word that only starts at the cursor does not change. While you type a word, shift is still for the next letter. When the cursor touches no word, shift works as usual.</string>
+    <string name="typing_shift_recase_inside_title">Shift changes the case of the word around the cursor</string>
+    <string name="typing_shift_recase_inside_subtitle">With nothing selected, shift changes the word the cursor is inside</string>
+    <string name="typing_shift_recase_inside_info">Put the cursor inside a word, as in \"cur|sor\", and press shift. The whole word steps through lowercase, Title Case and UPPERCASE, the same as for the word before the cursor.\n\nTurn this off to keep shift for a capital letter in the middle of a word.</string>
 
     <!-- ==== Typing settings: suggestions ==== -->
     <string name="typing_suggestions_title">Suggestions</string>

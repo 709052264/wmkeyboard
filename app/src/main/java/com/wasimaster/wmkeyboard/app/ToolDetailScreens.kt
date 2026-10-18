@@ -404,6 +404,14 @@ private fun WordStepsGroup(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.textEditing.cursorWordStopsAtCapitals,
             ) { scope.launch { repository.setCursorWordStopsAtCapitals(it) } }
         }
+        item(visible = steps != CursorWordSteps.APP) {
+            ToggleSetting(
+                R.string.tooldetail_word_steps_digits_title,
+                stringResource(R.string.tooldetail_word_steps_digits_subtitle),
+                settings.watch { it.textEditing.cursorWordStopsAtDigits },
+                default = SettingsDefaults.textEditing.cursorWordStopsAtDigits,
+            ) { scope.launch { repository.setCursorWordStopsAtDigits(it) } }
+        }
     }
 }
 
