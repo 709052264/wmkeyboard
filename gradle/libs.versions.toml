@@ -59,9 +59,9 @@ mlkitBarcode = "17.3.0"
 # work without GMS. The version lines differ because Google numbers the
 # unbundled artifacts independently of the bundled ones.
 mlkitTextRecognitionUnbundled = "19.0.1"
-# The Chinese, Japanese, Korean and Devanagari recognizers (#757), unbundled
-# on every channel: bundled they cost about 4 MB per script per ABI, unbundled
-# about 260 KB, with Play services fetching each model on first use.
+# The Chinese, Japanese, Korean and Devanagari recognizers (#757), Play builds
+# only: Play services fetches each model on first use. Sideload builds stay
+# Latin only (bundled, they would cost about 4 MB per script per ABI).
 mlkitTextRecognitionScriptsUnbundled = "16.0.1"
 mlkitBarcodeUnbundled = "18.3.1"
 mlkitDocScanner = "16.0.0"

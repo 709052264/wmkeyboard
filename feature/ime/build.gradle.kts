@@ -72,6 +72,19 @@ android {
     testOptions.unitTests.isIncludeAndroidResources = true
 }
 
+androidComponents {
+    onVariants { variant ->
+        // Which ML Kit OCR scripts the full build can name (#757): all five on
+        // Play, Latin only elsewhere. A static source dir rather than a flavour
+        // folder because it follows the channel, which no flavour does.
+        if (variant.flavorName == "full") {
+            variant.sources.kotlin?.addStaticSourceDirectory(
+                if (playStoreChannel) "src/ocrplay/java" else "src/ocrsideload/java"
+            )
+        }
+    }
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
@@ -131,17 +144,16 @@ dependencies {
     if (playStoreChannel) {
         "fullImplementation"(libs.mlkit.text.recognition.unbundled)
         "fullImplementation"(libs.mlkit.barcode.scanning.unbundled)
+        // The other four OCR scripts (#757), Play only: their models come from
+        // Play services on first use. See src/ocrplay.
+        "fullImplementation"(libs.mlkit.text.recognition.chinese.unbundled)
+        "fullImplementation"(libs.mlkit.text.recognition.japanese.unbundled)
+        "fullImplementation"(libs.mlkit.text.recognition.korean.unbundled)
+        "fullImplementation"(libs.mlkit.text.recognition.devanagari.unbundled)
     } else {
         "fullImplementation"(libs.mlkit.text.recognition)
         "fullImplementation"(libs.mlkit.barcode.scanning)
     }
-    // The other four OCR scripts (#757) come from Play services on every
-    // channel: bundled, they would add about 16 MB per ABI. Without Play
-    // services those scripts read with Tesseract instead (OcrLanguages).
-    "fullImplementation"(libs.mlkit.text.recognition.chinese.unbundled)
-    "fullImplementation"(libs.mlkit.text.recognition.japanese.unbundled)
-    "fullImplementation"(libs.mlkit.text.recognition.korean.unbundled)
-    "fullImplementation"(libs.mlkit.text.recognition.devanagari.unbundled)
     "fullImplementation"(libs.mlkit.document.scanner)
 
     testImplementation(libs.junit)

@@ -3,10 +3,6 @@ package com.wasimaster.wmkeyboard.ime.ocr
 import com.google.mlkit.common.MlKitException
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
-import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
-import com.google.mlkit.vision.text.devanagari.DevanagariTextRecognizerOptions
-import com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions
-import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.wasimaster.wmkeyboard.core.ocr.MlKitScript
 
@@ -15,25 +11,16 @@ import com.wasimaster.wmkeyboard.core.ocr.MlKitScript
  * only one the keyboard carried, so Chinese, Japanese, Korean and Devanagari
  * text came back as Latin guesses. Each of the others reads Latin too.
  *
- * Only the Latin model ships in sideload builds. The other four are the
- * unbundled artifacts on every channel, about 260 KB each instead of 4 MB per
- * ABI, and Play services fetches a script's model the first time it is used:
- * until it is there, a read fails with [isDownloading]. Without Play services
- * [com.wasimaster.wmkeyboard.core.ocr.OcrLanguages.mlKitScript] never hands
- * them out.
+ * The other four are in Play builds only ([MlKitScriptOptions]), as the
+ * unbundled artifacts: Play services fetches a script's model the first time
+ * it is used, and until it is there a read fails with [isDownloading].
+ * Sideload builds stay Latin only and read those scripts with Tesseract.
  */
 internal object MlKitRecognizers {
 
     /** A new recognizer for [script]; the caller closes it. */
-    fun client(script: MlKitScript): TextRecognizer = TextRecognition.getClient(
-        when (script) {
-            MlKitScript.LATIN -> TextRecognizerOptions.DEFAULT_OPTIONS
-            MlKitScript.CHINESE -> ChineseTextRecognizerOptions.Builder().build()
-            MlKitScript.JAPANESE -> JapaneseTextRecognizerOptions.Builder().build()
-            MlKitScript.KOREAN -> KoreanTextRecognizerOptions.Builder().build()
-            MlKitScript.DEVANAGARI -> DevanagariTextRecognizerOptions.Builder().build()
-        }
-    )
+    fun client(script: MlKitScript): TextRecognizer =
+        TextRecognition.getClient(MlKitScriptOptions.of(script) ?: TextRecognizerOptions.DEFAULT_OPTIONS)
 
     /** True when [failure] means Play services is still downloading the model. */
     fun isDownloading(failure: Throwable?): Boolean =

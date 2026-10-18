@@ -5,6 +5,7 @@ import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.settings.OcrEngine
 import com.wasimaster.wmkeyboard.core.util.PlayServices
+import com.wasimaster.wmkeyboard.config.BuildConfig
 
 /**
  * Which Tesseract language data ("pack") reads text in each keyboard language,
@@ -21,6 +22,15 @@ import com.wasimaster.wmkeyboard.core.util.PlayServices
  * enabled languages through [packsFor].
  */
 object OcrLanguages {
+
+    /**
+     * Whether ML Kit's four non-Latin recognizers can run: a Play build on a
+     * phone with Play services. Null asks the build and the phone; tests set it.
+     */
+    internal var extraScriptsOverride: Boolean? = null
+
+    private val extraScripts: Boolean
+        get() = extraScriptsOverride ?: (BuildConfig.ENABLE_PLAY_STORE && PlayServices.available)
 
     /** The tessdata_fast release the downloads are pinned to. */
     const val SOURCE_TAG = "4.1.0"
@@ -87,14 +97,13 @@ object OcrLanguages {
      * none for its script. Each non-Latin recognizer reads Latin as well, so
      * English words in a Japanese sign still come through.
      *
-     * Only the Latin model is in the APK. The other four come from Play
-     * services on first use (about 4 MB each per ABI, kept out of every
-     * build), so without [playServices] they count as missing and those
-     * scripts go to Tesseract.
+     * Only Play builds carry the other four, and their models come from Play
+     * services on first use, so off Play or without Play services they count
+     * as missing and those scripts go to Tesseract.
      */
-    fun mlKitScript(language: LanguageDef, playServices: Boolean = PlayServices.available): MlKitScript? {
+    fun mlKitScript(language: LanguageDef): MlKitScript? {
         if (language.id in notText) return null
-        if (language.script != ScriptId.LATIN && !playServices) return null
+        if (language.script != ScriptId.LATIN && !extraScripts) return null
         return when (language.script) {
             ScriptId.LATIN -> MlKitScript.LATIN
             ScriptId.HAN -> MlKitScript.CHINESE

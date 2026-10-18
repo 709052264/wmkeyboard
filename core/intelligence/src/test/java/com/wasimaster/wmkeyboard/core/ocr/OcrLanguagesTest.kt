@@ -4,13 +4,26 @@ import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.settings.OcrEngine
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.After
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 /** Which Tesseract pack reads each keyboard language, and which engine runs. */
 class OcrLanguagesTest {
 
     private fun lang(id: String) = LanguageRegistry.byId(id)
+
+    // A Play build with Play services, unless a test says otherwise.
+    @Before
+    fun playBuild() {
+        OcrLanguages.extraScriptsOverride = true
+    }
+
+    @After
+    fun reset() {
+        OcrLanguages.extraScriptsOverride = null
+    }
 
     @Test
     fun everyPackHandedOutHasASize() {
@@ -67,11 +80,13 @@ class OcrLanguagesTest {
     }
 
     @Test
-    fun withoutPlayServicesOnlyLatinIsMlKits() {
-        // The other four models download through Play services.
-        assertEquals(MlKitScript.LATIN, OcrLanguages.mlKitScript(lang("en"), playServices = false))
-        assertNull(OcrLanguages.mlKitScript(lang("ja"), playServices = false))
-        assertNull(OcrLanguages.mlKitScript(lang("hi"), playServices = false))
+    fun offPlayOnlyLatinIsMlKits() {
+        // Sideload builds, or no Play services: the other four go to Tesseract.
+        OcrLanguages.extraScriptsOverride = false
+        assertEquals(MlKitScript.LATIN, OcrLanguages.mlKitScript(lang("en")))
+        assertNull(OcrLanguages.mlKitScript(lang("ja")))
+        assertEquals("jpn", OcrLanguages.tesseractPack(OcrEngine.AUTO, lang("ja"), true))
+        assertEquals("hin", OcrLanguages.tesseractPack(OcrEngine.AUTO, lang("hi"), true))
     }
 
     @Test
