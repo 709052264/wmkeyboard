@@ -14,6 +14,13 @@ internal const val DUET_PING_ALL_UP = 0f
 internal const val DUET_PING_DOWN = -1f
 
 /**
+ * The same for the bars around the keys, the strip and the tools' row: a
+ * finger landed on one, or lifted off it (#743). Sent per bar, not per finger.
+ */
+internal const val DUET_PING_BAR_DOWN = -2f
+internal const val DUET_PING_BAR_UP = -3f
+
+/**
  * The gestures behind a word built from more than one of them: taps and
  * swipes from both thumbs (issue #638), or typed letters a swipe finished
  * (#595). The composing buffer holds the word they were last read as; this

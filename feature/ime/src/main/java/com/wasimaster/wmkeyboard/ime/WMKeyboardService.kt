@@ -1456,6 +1456,15 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var allUpArmed = false
 
+    /**
+     * Whether a finger is on the key grid, and how many of the bars above and
+     * below it (the strip, the tools' row) have one: the all-thumbs-up pause
+     * runs only once all of them are clear (#743). A thumb that has gone to
+     * the strip for another reading is still typing the word.
+     */
+    private var keysTouched = false
+    private var barsTouched = 0
+
     /** How the word [duetWord] builds is cased: the shift it started under. */
     private var duetShift = ShiftState.OFF
 
@@ -7958,6 +7967,9 @@ open class WMKeyboardService : InputMethodService() {
         rememberTypedNumber()
         super.onFinishInputView(finishingInput)
         keyboardVisible = false
+        // No finger outlives the window it was on (#743).
+        keysTouched = false
+        barsTouched = 0
         // The next show is a first show, which the app answers itself.
         boardTopForReveal = -1
         // The next keyboard says which microphone its first dictation uses.
@@ -23570,14 +23582,21 @@ open class WMKeyboardService : InputMethodService() {
         keyWidthPx: Float,
         case: GlideCase = GlideCase.None,
     ) {
-        val state = _uiState.value
-        if (!glideAllowed(state)) return
         // The two-thumb loop's signals that the last finger lifted (#638) or
-        // the first one landed (#674): no stroke, so nothing to preview.
+        // the first one landed (#674), and the bars' own (#743): no stroke, so
+        // nothing to preview. Counted whether or not a glide may run now, so a
+        // lift is never lost to a field that changed under the finger.
         if (points.isEmpty()) {
-            if (keyWidthPx == DUET_PING_DOWN) onThumbDown() else onAllThumbsUp()
+            when (keyWidthPx) {
+                DUET_PING_DOWN -> onKeyboardTouch(down = true, onKeys = true)
+                DUET_PING_BAR_DOWN -> onKeyboardTouch(down = true)
+                DUET_PING_BAR_UP -> onKeyboardTouch(down = false)
+                else -> onKeyboardTouch(down = false, onKeys = true)
+            }
             return
         }
+        val state = _uiState.value
+        if (!glideAllowed(state)) return
         if (keys.isEmpty()) return
         // A Pinyin swipe previews nothing: what it decodes is a reading, which
         // the strip shows converted once the finger lifts (#580).
@@ -23948,8 +23967,8 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * The two-thumb loop saw the last finger lift: under
-     * [TwoThumbWordEnd.ALL_UP], the word is typed once no thumb has landed for
+     * The last finger on the keyboard lifted, off the keys or a bar (#743):
+     * under [TwoThumbWordEnd.ALL_UP], the word is typed once no thumb has landed for
      * [GestureSettings.twoThumbPauseMs].
      *
      * Not at once: thumbs that take turns lift one before the other lands, so
@@ -23960,7 +23979,10 @@ open class WMKeyboardService : InputMethodService() {
      * `o` lands inside the pause.
      */
     private fun onAllThumbsUp() {
-        val gesture = _uiState.value.settings.gesture
+        if (keysTouched || barsTouched > 0) return
+        val state = _uiState.value
+        if (!glideAllowed(state)) return
+        val gesture = state.settings.gesture
         if (!gesture.twoThumbGlide || gesture.twoThumbWordEnd != TwoThumbWordEnd.ALL_UP) return
         allUpJob?.cancel()
         if (!allUpArmed) return
@@ -24016,7 +24038,26 @@ open class WMKeyboardService : InputMethodService() {
         refreshSuggestions()
     }
 
-    /** The first thumb landed: a word waiting out its all-up pause carries on instead (#674). */
+    /**
+     * A finger landed on, or the last one lifted off, the key grid
+     * ([onKeys]) or one of the bars around it. Any finger down anywhere holds
+     * the all-thumbs-up pause off (#674), and it starts from the last one up
+     * (#743): a thumb reaching for the strip's second reading must not see the
+     * first typed under it, with its tap landing on next-word predictions. A
+     * strip touch that picks replaces the word, which disarms the pause; one
+     * dragged off or cancelled starts it again from its lift, so the word
+     * still ends.
+     */
+    internal fun onKeyboardTouch(down: Boolean, onKeys: Boolean = false) {
+        when {
+            onKeys -> keysTouched = down
+            down -> barsTouched++
+            else -> barsTouched = (barsTouched - 1).coerceAtLeast(0)
+        }
+        if (down) onThumbDown() else onAllThumbsUp()
+    }
+
+    /** A thumb landed: a word waiting out its all-up pause carries on instead (#674). */
     private fun onThumbDown() {
         allUpJob?.cancel()
         allUpJob = null
