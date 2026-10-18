@@ -215,15 +215,19 @@
     *;
 }
 
-# --- LiteRT bridges (offline Whisper, sticker background remover) -------------
-# Same again: both are reached ONLY by reflection (WhisperEngine's and
-# LocalSubjectCutout's facades), from the base APK in sideload builds and from
-# the on-demand :feature:litert split in Play builds.
+# --- LiteRT bridges (offline Whisper, sticker background remover, PaddleOCR) --
+# Same again: all three are reached ONLY by reflection (WhisperEngine's,
+# LocalSubjectCutout's and PaddleOcr's facades), from the base APK in sideload
+# builds and from the on-demand :feature:litert split in Play builds.
 -keep class com.wasimaster.wmkeyboard.core.voice.whisper.bridge.LitertWhisperRuntime {
     <init>();
     *;
 }
 -keep class com.wasimaster.wmkeyboard.core.stickers.bridge.LitertCutoutRuntime {
+    <init>();
+    *;
+}
+-keep class com.wasimaster.wmkeyboard.core.ocr.bridge.LitertPaddleRuntime {
     <init>();
     *;
 }

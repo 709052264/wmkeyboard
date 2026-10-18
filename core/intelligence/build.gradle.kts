@@ -26,7 +26,9 @@ kover {
 // instead, so the ~20 MB per ABI runtime only reaches devices that use
 // On-device AI. See LlmRuntime.kt for the seam. ML Kit's translator
 // (src/translatebridge, :feature:translate) and its ink recogniser
-// (src/inkbridge, :feature:handwriting) follow the same arrangement.
+// (src/inkbridge, :feature:handwriting) follow the same arrangement, and so
+// does the scanner's PaddleOCR reader (src/paddlebridge), which runs on the
+// LiteRT interpreter Whisper brings and so shares :feature:litert.
 val playStoreChannel = run {
     val localProperties = Properties().apply {
         val file = rootProject.file("local.properties")
@@ -90,6 +92,8 @@ androidComponents {
             variant.sources.kotlin?.addStaticSourceDirectory("src/translatebridge/java")
             // And for its ink recogniser: see InkRuntime.kt.
             variant.sources.kotlin?.addStaticSourceDirectory("src/inkbridge/java")
+            // And for PaddleOCR's graphs on LiteRT: see PaddleRuntime.kt.
+            variant.sources.kotlin?.addStaticSourceDirectory("src/paddlebridge/java")
         }
     }
 }
@@ -139,6 +143,9 @@ dependencies {
         // ~16 MB per ABI of native code only reaches devices that use it.
         "fullImplementation"(libs.mlkit.translate)
         "fullImplementation"(libs.mlkit.language.id)
+        // The scanner's PaddleOCR reader. The same interpreter :core:voice
+        // links for Whisper, so this adds nothing to the APK.
+        "fullImplementation"(libs.litert)
     }
     // Always, whatever the channel: OnDeviceTranslatorCatalogueTest pins the
     // hand-written language table to the library's own, and the table is

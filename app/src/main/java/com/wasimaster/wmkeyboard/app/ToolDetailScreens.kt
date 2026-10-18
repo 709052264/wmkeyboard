@@ -131,6 +131,7 @@ import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.OcrEngine
 import com.wasimaster.wmkeyboard.core.ocr.OcrLanguages
 import com.wasimaster.wmkeyboard.core.ocr.OcrPacks
+import com.wasimaster.wmkeyboard.core.ocr.PaddleOcrModel
 import androidx.compose.runtime.collectAsState
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
 import com.wasimaster.wmkeyboard.core.settings.DeepLWriteStyle
@@ -4268,9 +4269,11 @@ private fun HandwritingModelManager(settings: LiveSettings) {
 }
 
 /**
- * Download/delete for the Tesseract data of every language the user types in.
- * Several languages can share one pack (both Norwegians, or a language that
- * borrows its script's main pack), so a row is a pack and names them all.
+ * Download/delete for the Tesseract data of every language the user types in,
+ * and under Automatic PaddleOCR's models for Chinese and Japanese instead.
+ * Several languages can share one pack (both Norwegians, a language that
+ * borrows its script's main pack, or Chinese and Japanese with Paddle), so a
+ * row is a pack and names them all.
  * Progress comes from [OcrPacks], which the keyboard's own download button
  * feeds too.
  */
@@ -4279,7 +4282,8 @@ private fun OcrPackManager(settings: LiveSettings) {
     val context = LocalContext.current
     val filesDir = context.filesDir
     val enabledLanguages = settings.watch { it.enabledLanguages }
-    val packs = remember(enabledLanguages) { OcrLanguages.packsFor(enabledLanguages) }
+    val engine = settings.watch { it.scanner.ocrEngine }
+    val packs = remember(enabledLanguages, engine) { OcrLanguages.packsFor(enabledLanguages, engine) }
     val states by OcrPacks.states.collectAsState()
     LaunchedEffect(packs) { OcrPacks.refresh(filesDir, packs.map { it.first }) }
     val decide = rememberDownloadDecision(settings)
@@ -4297,7 +4301,11 @@ private fun OcrPackManager(settings: LiveSettings) {
                 val status = states[pack] ?: OcrPacks.Status.NotDownloaded
                 val names = languages.joinToString(", ") { it.displayName }
                 WmRow(
-                    title = names,
+                    title = if (pack == PaddleOcrModel.PACK) {
+                        stringResource(R.string.tooldetail_ocr_pack_paddle_title, names)
+                    } else {
+                        names
+                    },
                     subtitle = when (status) {
                         OcrPacks.Status.Downloaded ->
                             stringResource(R.string.privacy_handwriting_status_downloaded)
@@ -4369,8 +4377,14 @@ private fun OcrPackManager(settings: LiveSettings) {
             }
         }
         item {
-            val links = packs.map { (pack, languages) ->
-                OfflineLink(languages.joinToString(", ") { it.displayName }, OcrLanguages.downloadUrl(pack))
+            val links = packs.flatMap { (pack, languages) ->
+                val names = languages.joinToString(", ") { it.displayName }
+                if (pack == PaddleOcrModel.PACK) {
+                    // Three files, imported one by one under their own names.
+                    PaddleOcrModel.Part.entries.map { OfflineLink("$names (${it.fileName})", PaddleOcrModel.url(it)) }
+                } else {
+                    listOf(OfflineLink(names, OcrLanguages.downloadUrl(pack)))
+                }
             }
             OfflineImportRow(
                 subtitle = stringResource(R.string.offline_import_ocr_subtitle),

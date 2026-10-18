@@ -102,6 +102,8 @@ import com.wasimaster.wmkeyboard.core.clipboard.LinkPreview
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.ocr.OcrLanguages
 import com.wasimaster.wmkeyboard.core.ocr.OcrPacks
+import com.wasimaster.wmkeyboard.core.ocr.PaddleOcr
+import com.wasimaster.wmkeyboard.core.ocr.PaddleOcrModel
 import com.wasimaster.wmkeyboard.core.settings.OcrEngine
 import com.wasimaster.wmkeyboard.core.ocr.TesseractException
 import com.wasimaster.wmkeyboard.core.ocr.TesseractOcr
@@ -164,11 +166,12 @@ private sealed interface OcrStage {
  * OCR tool: point the camera at printed text, capture, and get the words
  * back as tappable chips — deselect the parts you don't want, then insert
  * or copy just the rest. Reads with ML Kit's on-device recognizer for the
- * text's script (Latin, Chinese, Japanese, Korean or Devanagari) or with
- * Tesseract, which covers most other scripts once a language's data is
- * downloaded; the setting and the text's language pick which
- * ([OcrLanguages.tesseractPack], [OcrLanguages.mlKitRecognizer]). Either way the photo never leaves the
- * phone. Unlike the other tool panels this one covers
+ * text's script (Latin, Chinese, Japanese, Korean or Devanagari), with
+ * PaddleOCR for Chinese and Japanese where ML Kit has no recognizer for them
+ * (#757), or with Tesseract, which covers most other scripts; both of those
+ * once their data is downloaded. The setting and the text's language pick
+ * which ([OcrLanguages.offlinePack], [OcrLanguages.mlKitRecognizer]). Either
+ * way the photo never leaves the phone. Unlike the other tool panels this one covers
  * the toolbar too ([keyRowsHeight] + [TopBarHeight]): reading text off a
  * photo needs all the room the keyboard has.
  *
@@ -260,16 +263,22 @@ private fun OcrContent(
             recognizers.values.forEach { runCatching { it.close() } }
             recognizers.clear()
             TesseractOcr.release()
+            PaddleOcr.release()
         }
     }
 
-    // The text's language, which picks the engine and, for Tesseract, the
-    // pack. Starts as the keyboard's language; the chip steps through the
-    // other enabled languages without switching the keyboard.
+    // The text's language, which picks the engine and, for Tesseract and
+    // Paddle, the pack. Starts as the keyboard's language; the chip steps
+    // through the other enabled languages without switching the keyboard.
     val filesDir = context.filesDir
     val engine = state.settings.scanner.ocrEngine
-    val chipLanguages = remember(state.settings.enabledLanguages, engine) {
-        OcrLanguages.chipLanguages(engine, state.settings.enabledLanguages, TesseractOcr.available)
+    val packStates by OcrPacks.states.collectAsState()
+    // Which packs are on disk decides between Paddle and an older Tesseract
+    // pack for Chinese and Japanese; packStates keys it so a finished
+    // download is seen.
+    val onDisk: (String) -> Boolean = remember(packStates) { { OcrPacks.isDownloaded(filesDir, it) } }
+    val chipLanguages = remember(state.settings.enabledLanguages, engine, onDisk) {
+        OcrLanguages.chipLanguages(engine, state.settings.enabledLanguages, TesseractOcr.available, onDisk)
     }
     var ocrLanguage by remember(chipLanguages) {
         mutableStateOf(
@@ -277,13 +286,16 @@ private fun OcrContent(
             else chipLanguages.firstOrNull() ?: state.language
         )
     }
-    val pack = OcrLanguages.tesseractPack(engine, ocrLanguage, TesseractOcr.available)
-    val packStates by OcrPacks.states.collectAsState()
+    val pack = remember(engine, ocrLanguage, onDisk) {
+        OcrLanguages.offlinePack(engine, ocrLanguage, TesseractOcr.available, onDisk)
+    }
+    val paddle = pack == PaddleOcrModel.PACK
     LaunchedEffect(pack) { if (pack != null) OcrPacks.refresh(filesDir, listOf(pack)) }
     val packStatus = pack?.let { packStates[it] }
-    // Play: a pack on disk reads only once Tesseract's own split is here too;
-    // until then the prompt's download fetches the split.
-    val ocrModule by TesseractOcr.moduleState.collectAsState()
+    // Play: a pack on disk reads only once the split with its reader is here
+    // too (Tesseract's own, or the LiteRT interpreter for Paddle); until then
+    // the prompt's download fetches the split.
+    val ocrModule by (if (paddle) PaddleOcr.moduleState else TesseractOcr.moduleState).collectAsState()
     val packReady = remember(pack, packStatus, ocrModule) {
         pack == null || (
             ocrModule == ModuleState.Installed && (
@@ -382,6 +394,8 @@ private fun OcrContent(
                 runCancellable {
                     if (online) {
                         readOnline(readers, bitmap)
+                    } else if (readPack == PaddleOcrModel.PACK) {
+                        wordsOf(PaddleOcr.recognize(context, bitmap))
                     } else if (readPack != null) {
                         readWithTesseract(filesDir, readPack, bitmap)
                     } else {
@@ -514,7 +528,7 @@ private fun OcrContent(
         val nextLanguage: (() -> Unit)? = if (chipLanguages.size > 1) {
             {
                 feedback()
-                fun route(l: LanguageDef) = OcrLanguages.route(engine, l, TesseractOcr.available)
+                fun route(l: LanguageDef) = OcrLanguages.route(engine, l, TesseractOcr.available, onDisk)
                 val at = chipLanguages.indexOfFirst { route(it) == route(ocrLanguage) }
                 ocrLanguage = chipLanguages[(at + 1).mod(chipLanguages.size)]
             }
@@ -644,8 +658,8 @@ private fun OcrLanguageChip(language: LanguageDef, onClick: () -> Unit, modifier
 }
 
 /**
- * Stands in for the viewfinder while the language's Tesseract data is not on
- * the phone: what it costs, the button that fetches it, then its progress.
+ * Stands in for the viewfinder while the language's Tesseract or Paddle data
+ * is not on the phone: what it costs, the button that fetches it, then its progress.
  * Data saver is asked here, on the button, the way the translate panel does:
  * the first press explains, the second is the yes.
  */
@@ -826,8 +840,11 @@ private const val ONLINE_OCR_JPEG_QUALITY = 85
  * Tesseract's text as the panel's lines of words. Throws
  * [TesseractException] when the read failed rather than found nothing.
  */
-private suspend fun readWithTesseract(filesDir: File, pack: String, bitmap: Bitmap): List<List<OcrWord>> {
-    val text = TesseractOcr.recognize(filesDir, pack, bitmap)
+private suspend fun readWithTesseract(filesDir: File, pack: String, bitmap: Bitmap): List<List<OcrWord>> =
+    wordsOf(TesseractOcr.recognize(filesDir, pack, bitmap))
+
+/** Lines of space-separated words, as Tesseract and Paddle read them, as the panel's lines of words. */
+private fun wordsOf(text: String): List<List<OcrWord>> {
     var id = 0
     return text.lines()
         .map { line -> line.split(WHITESPACE).filter { it.isNotEmpty() } }

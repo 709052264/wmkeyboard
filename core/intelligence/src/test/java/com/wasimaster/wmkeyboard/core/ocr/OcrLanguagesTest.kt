@@ -18,11 +18,13 @@ class OcrLanguagesTest {
     @Before
     fun playBuild() {
         OcrLanguages.extraScriptsOverride = true
+        OcrLanguages.paddleOverride = true
     }
 
     @After
     fun reset() {
         OcrLanguages.extraScriptsOverride = null
+        OcrLanguages.paddleOverride = null
     }
 
     @Test
@@ -58,11 +60,11 @@ class OcrLanguagesTest {
 
     @Test
     fun autoLeavesMlKitsScriptsToMlKit() {
-        assertNull(OcrLanguages.tesseractPack(OcrEngine.AUTO, lang("en"), true))
-        assertEquals("ben", OcrLanguages.tesseractPack(OcrEngine.AUTO, lang("bn"), true))
+        assertNull(OcrLanguages.offlinePack(OcrEngine.AUTO, lang("en"), true))
+        assertEquals("ben", OcrLanguages.offlinePack(OcrEngine.AUTO, lang("bn"), true))
         // #757: ML Kit has its own recognizers for these, and reads them better.
         for (id in listOf("zh", "yue", "ja", "ko", "hi", "mr", "mai")) {
-            assertNull(id, OcrLanguages.tesseractPack(OcrEngine.AUTO, lang(id), true))
+            assertNull(id, OcrLanguages.offlinePack(OcrEngine.AUTO, lang(id), true))
         }
     }
 
@@ -81,19 +83,72 @@ class OcrLanguagesTest {
 
     @Test
     fun offPlayOnlyLatinIsMlKits() {
-        // Sideload builds, or no Play services: the other four go to Tesseract.
+        // Sideload builds, or no Play services: Chinese and Japanese go to
+        // Paddle (#757), Korean and Devanagari to Tesseract.
         OcrLanguages.extraScriptsOverride = false
         assertEquals(MlKitScript.LATIN, OcrLanguages.mlKitScript(lang("en")))
         assertNull(OcrLanguages.mlKitScript(lang("ja")))
-        assertEquals("jpn", OcrLanguages.tesseractPack(OcrEngine.AUTO, lang("ja"), true))
-        assertEquals("hin", OcrLanguages.tesseractPack(OcrEngine.AUTO, lang("hi"), true))
+        val paddle = PaddleOcrModel.PACK
+        assertEquals(paddle, OcrLanguages.offlinePack(OcrEngine.AUTO, lang("ja"), true))
+        assertEquals(paddle, OcrLanguages.offlinePack(OcrEngine.AUTO, lang("zh"), true))
+        assertEquals(paddle, OcrLanguages.offlinePack(OcrEngine.AUTO, lang("yue"), true))
+        // Paddle needs no Tesseract library.
+        assertEquals(paddle, OcrLanguages.offlinePack(OcrEngine.AUTO, lang("ja"), false))
+        assertEquals("kor", OcrLanguages.offlinePack(OcrEngine.AUTO, lang("ko"), true))
+        assertEquals("hin", OcrLanguages.offlinePack(OcrEngine.AUTO, lang("hi"), true))
+        // Tesseract when asked for by name.
+        assertEquals("jpn", OcrLanguages.offlinePack(OcrEngine.TESSERACT, lang("ja"), true))
+    }
+
+    @Test
+    fun anOlderTesseractPackKeepsReadingUntilPaddleIsThere() {
+        OcrLanguages.extraScriptsOverride = false
+        val paddle = PaddleOcrModel.PACK
+        val onlyJpn: (String) -> Boolean = { it == "jpn" }
+        assertEquals("jpn", OcrLanguages.offlinePack(OcrEngine.AUTO, lang("ja"), true, onlyJpn))
+        // Not without the library to read it with.
+        assertEquals(paddle, OcrLanguages.offlinePack(OcrEngine.AUTO, lang("ja"), false, onlyJpn))
+        val both: (String) -> Boolean = { it == "jpn" || it == paddle }
+        assertEquals(paddle, OcrLanguages.offlinePack(OcrEngine.AUTO, lang("ja"), true, both))
+    }
+
+    @Test
+    fun withoutPaddleChineseAndJapaneseStayWithTesseract() {
+        // Lite builds have no LiteRT.
+        OcrLanguages.extraScriptsOverride = false
+        OcrLanguages.paddleOverride = false
+        assertEquals("jpn", OcrLanguages.offlinePack(OcrEngine.AUTO, lang("ja"), true))
+        assertEquals("chi_sim", OcrLanguages.offlinePack(OcrEngine.AUTO, lang("zh"), true))
+        assertEquals(listOf("jpn"), OcrLanguages.packsFor(listOf(lang("ja"))).map { it.first })
+    }
+
+    @Test
+    fun paddleIsOnePackForChineseAndJapanese() {
+        OcrLanguages.extraScriptsOverride = false
+        val packs = OcrLanguages.packsFor(listOf(lang("zh"), lang("ja"), lang("bn")))
+        assertEquals(listOf(PaddleOcrModel.PACK, "ben"), packs.map { it.first })
+        assertEquals(listOf("zh", "ja"), packs.first().second.map { it.id })
+        assertEquals(PaddleOcrModel.totalBytes, OcrLanguages.sizeOf(PaddleOcrModel.PACK))
+        // Tesseract lists its own packs, and ML Kit's languages list Tesseract's as before.
+        assertEquals(
+            listOf("chi_sim", "jpn", "ben"),
+            OcrLanguages.packsFor(listOf(lang("zh"), lang("ja"), lang("bn")), OcrEngine.TESSERACT).map { it.first },
+        )
+        OcrLanguages.extraScriptsOverride = true
+        assertEquals(listOf("chi_sim", "jpn"), OcrLanguages.packsFor(listOf(lang("zh"), lang("ja"))).map { it.first })
+        // The chip offers Chinese and Japanese once between them: both read with Paddle.
+        OcrLanguages.extraScriptsOverride = false
+        assertEquals(
+            listOf("en", "zh"),
+            OcrLanguages.chipLanguages(OcrEngine.AUTO, listOf(lang("en"), lang("zh"), lang("ja")), true).map { it.id },
+        )
     }
 
     @Test
     fun forcedEnginesAndAMissingLibrary() {
-        assertEquals("eng", OcrLanguages.tesseractPack(OcrEngine.TESSERACT, lang("en"), true))
-        assertNull(OcrLanguages.tesseractPack(OcrEngine.ML_KIT, lang("bn"), true))
-        assertNull(OcrLanguages.tesseractPack(OcrEngine.TESSERACT, lang("bn"), false))
+        assertEquals("eng", OcrLanguages.offlinePack(OcrEngine.TESSERACT, lang("en"), true))
+        assertNull(OcrLanguages.offlinePack(OcrEngine.ML_KIT, lang("bn"), true))
+        assertNull(OcrLanguages.offlinePack(OcrEngine.TESSERACT, lang("bn"), false))
     }
 
     @Test

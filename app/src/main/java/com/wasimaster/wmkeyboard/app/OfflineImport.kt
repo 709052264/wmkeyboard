@@ -26,6 +26,7 @@ import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.localllm.ModelFormat
 import com.wasimaster.wmkeyboard.core.ocr.OcrLanguages
 import com.wasimaster.wmkeyboard.core.ocr.OcrPacks
+import com.wasimaster.wmkeyboard.core.ocr.PaddleOcrModel
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.stickers.CutoutModel
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaries
@@ -241,6 +242,15 @@ internal object OfflineImport {
                 if (WhistleModelStore.install(filesDir, file)) {
                     WhistleModelDownloadManager.refresh(filesDir)
                     Outcome(name, true, R.string.offline_import_whistle_ready)
+                } else {
+                    Outcome(name, false, R.string.offline_import_mismatch)
+                }
+            }
+        }
+        PaddleOcrModel.partOf(name)?.let { part ->
+            return attempt(name) {
+                if (OcrPacks.installPaddle(filesDir, part, file)) {
+                    Outcome(name, true, R.string.offline_import_ocr_done, listOf(OcrLanguages.nameOf(PaddleOcrModel.PACK)))
                 } else {
                     Outcome(name, false, R.string.offline_import_mismatch)
                 }
