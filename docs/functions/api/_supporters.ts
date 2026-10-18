@@ -9,8 +9,8 @@
  * per entry. A key's metadata is capped at 1 KiB, which is why names are cut
  * to [NAME_LIMIT].
  *
- * The amount, the coffee count and the supporter's message are stored too,
- * for the website's list. The app's list shows names only and ignores them,
+ * The amount is stored too, and a Play tipper's message, for the website's
+ * list. SupportKori's webhook carries no message, so its entries have none. The app's list shows names only and ignores them,
  * and scripts/sync-supporters.mjs strips them from the copy the APK ships.
  * To take someone off the list, or a message that should not be public,
  * delete their key in the Cloudflare dashboard (Workers & Pages › KV › the
@@ -46,9 +46,7 @@ export interface Supporter {
 	amount?: number;
 	/** ISO 4217, "BDT" or "USD". */
 	currency?: string;
-	/** SupportKori's coffee count for a tip; absent for a membership or a Play tip. */
-	quantity?: number;
-	/** The supporter's own note, shown on the website only. */
+	/** A Play tipper's own note, shown on the website only. */
 	message?: string;
 }
 

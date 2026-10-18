@@ -242,7 +242,7 @@
     <!-- About › Supporters -->
     <string name="about_supporters_title">Supporters</string>
     <string name="about_supporters_subtitle">The people who chipped in to support the app</string>
-    <string name="supporters_intro">WM Keyboard is free, with no ads and no paid tier. These people supported it anyway. Only the name each one gave is shown here. The list on the website also shows what each one gave and their message.</string>
+    <string name="supporters_intro">WM Keyboard is free, with no ads and no paid tier. These people supported it anyway. Only the name each one gave is shown here. The list on the website also shows what each one gave.</string>
     <string name="supporters_support_title">Support WM Keyboard</string>
     <string name="supporters_support_subtitle">Chip in once or every month on SupportKori. Your name joins the list below.</string>
     <string name="supporters_coffee_button">Buy a coffee</string>

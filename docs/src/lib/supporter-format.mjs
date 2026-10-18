@@ -26,10 +26,9 @@ export function amountOf(amount, currency) {
 	}
 }
 
-/** "Tip · 3 coffees · ৳300 · 12 Oct 2026", leaving out whatever is not known. */
+/** "Tip · ৳300 · 12 Oct 2026", leaving out whatever is not known. */
 export function metaOf(s) {
 	const parts = [s.kind === 'member' ? 'Member' : 'Tip'];
-	if (s.quantity) parts.push(`${s.quantity} ${s.quantity === 1 ? 'coffee' : 'coffees'}`);
 	const amount = amountOf(s.amount, s.currency);
 	if (amount) parts.push(s.kind === 'member' ? `${amount} a month` : amount);
 	parts.push(dateOf(s.at));
