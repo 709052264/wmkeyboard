@@ -85,7 +85,10 @@ class HaSocketTest {
         } finally {
             socket.stop()
             scope.cancel()
-            server.shutdown()
+            // The server's side of the socket is still open; closing it first
+            // keeps MockWebServer's shutdown from waiting out its five seconds.
+            runCatching { fake.socket?.close(1000, "") }
+            runCatching { server.shutdown() }
         }
     }
 
@@ -146,7 +149,7 @@ class HaSocketTest {
         } finally {
             socket.stop()
             scope.cancel()
-            server.shutdown()
+            runCatching { server.shutdown() }
         }
     }
 
