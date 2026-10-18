@@ -15176,6 +15176,22 @@ internal fun Key?.glidesPastFlicks(): Boolean =
         FlickDirection.entries.none { flickKey(it)?.flickArmRepeats() == true }
 
 /**
+ * The cell a glide has to wait for the finger to leave before it may start on
+ * this key (#655, and under two-thumb typing #736): [cell], the key's own, when
+ * it [glidesPastFlicks], and null on every other key, where the start distance
+ * decides alone.
+ */
+internal fun Key?.glideFlickCell(cell: Rect?): Rect? = cell?.takeIf { glidesPastFlicks() }
+
+/**
+ * Whether a glide loop leaves a stroke that starts on this key alone for its
+ * whole life, given the key's [glideFlickCell]: it [ownsDrag], and it is not a
+ * flick letter whose arms only last as long as the finger stays on it. The
+ * one-finger loop's test since #655, and the two-thumb loop's since #736.
+ */
+internal fun Key?.ownsDragFromGlide(flickCell: Rect?): Boolean = ownsDrag() && flickCell == null
+
+/**
  * What a swipe out to [direction] and more than halfway back again types
  * (issue #410): the arm's own shift form, else its capital — or null when the
  * arm has no form of its own, so the return keeps meaning what it always did
@@ -17917,9 +17933,15 @@ private fun KeyRows(
                         scope = duetScope,
                         ownsStroke = { at ->
                             val key = liveRects.value.keyAt(at + boxOrigin)
-                            key.ownsDrag() || key.startsPossessiveSwipe(possessiveChar) ||
+                            val cell = key.glideFlickCell(liveRects.value.cellAt(at + boxOrigin))
+                            key.ownsDragFromGlide(cell) || key.startsPossessiveSwipe(possessiveChar) ||
                                 key.startsGlobeDrag(globeDragLive.value) ||
                                 key.ownsDeleteStroke() || key.ownsSpaceStroke()
+                        },
+                        flickCell = { at ->
+                            liveRects.value.keyAt(at + boxOrigin)
+                                .glideFlickCell(liveRects.value.cellAt(at + boxOrigin))
+                                ?.translate(-boxOrigin)
                         },
                         nearLetter = { at -> nearLetterKey(at, liveCenters.value, keyWidth.value) },
                         grid = {
@@ -20554,6 +20576,9 @@ internal class ThumbStroke(val down: Offset, val downAt: Long, var owned: Boolea
 
     /** The furthest it got from where it landed, for [glideStrokeIsTap] at the lift. */
     var reachPx = 0f
+
+    /** The flick letter's cell it began in, box space, or null (#736). */
+    var flickCell: Rect? = null
 }
 
 /**
@@ -20605,6 +20630,12 @@ private suspend fun PointerInputScope.twoThumbGlide(
     trailMs: Long,
     scope: CoroutineScope,
     ownsStroke: (Offset) -> Boolean,
+    /**
+     * The cell of the flick letter under this point, in this box's space, or
+     * null: the stroke stays the key's own (an arm or a tap) while the finger
+     * is inside it (#736).
+     */
+    flickCell: (Offset) -> Rect?,
     nearLetter: (Offset) -> Boolean,
     grid: () -> List<KeyCenter>,
     onGesture: (List<GesturePoint>, List<KeyCenter>, Float, GlideVerdict) -> Unit,
@@ -20634,6 +20665,7 @@ private suspend fun PointerInputScope.twoThumbGlide(
                     }
                     val stroke = ThumbStroke(change.position, change.uptimeMillis, ownsStroke(change.position))
                     stroke.side = if (change.position.x < size.width / 2f) 0 else 1
+                    if (!stroke.owned) stroke.flickCell = flickCell(change.position)
                     stroke.startSlopPx =
                         slopPx * thumbSlopBoost(change.uptimeMillis - lastTapAt[stroke.side], cooldownMs)
                     strokes[change.id] = stroke
@@ -20692,6 +20724,11 @@ private suspend fun PointerInputScope.twoThumbGlide(
                         stroke.owned = true
                         continue
                     }
+                    // Still inside the flick letter it began on: an arm, not a
+                    // swipe, so the key keeps the stroke (#736). Leaving the
+                    // cell lets the tests below decide, and a swipe consuming
+                    // the pointer is what makes the key drop its arm.
+                    if (stroke.flickCell?.contains(change.position) == true) continue
                     val kw = keyWidth.value
                     if (kw <= 0f || (change.position - stroke.down).getDistance() <= stroke.startSlopPx) continue
                     if (!nearLetter(stroke.down)) continue
