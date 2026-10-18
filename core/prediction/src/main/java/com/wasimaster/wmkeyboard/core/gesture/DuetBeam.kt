@@ -49,10 +49,19 @@ import kotlin.math.sqrt
  * `settled + Σ open floors` never exceeds what any word under it finishes at —
  * the [GlideBeam] argument, summed over the open swipes.
  *
- * **Not here yet**, unlike a single stroke: pause, loop and wiggle marks, the
- * shape channel, learned shapes and look-ahead. A word with a single swipe and
- * nothing else should go to [GlideBeam], which has all of them; the caller
- * routes.
+ * **Loops.** A swipe's loops are found by the search [GlideBeam] runs on a
+ * stroke ([LoopScan]), one swipe at a time, and mean what they mean there: a
+ * loop on a key waives [GlideBeam.Tuning.unloopedRepeat] for a letter doubled
+ * there, and a finished word that leaves a loop undoubled pays
+ * [GlideBeam.Tuning.unclaimedLoop] (issue #740). Tap M and swipe E→T with a
+ * loop on the e, and `meet` is asked for.
+ *
+ * **Not here yet**, unlike a single stroke: pause and wiggle marks, a loop's
+ * inside kept to its own key and its arc collapsed out of the travel term, the
+ * shape channel, learned shapes and look-ahead. A pause would only ever say a
+ * letter is in the word, never that it is in it twice. A word with a single
+ * swipe and nothing else should go to [GlideBeam], which has all of them; the
+ * caller routes.
  */
 class DuetBeam(
     private val tuning: GlideBeam.Tuning = GlideBeam.Tuning(),
@@ -270,7 +279,34 @@ class DuetBeam(
             ws.sampleX[i * MS + n - 1], ws.sampleY[i * MS + n - 1], keys, ws.endKey, i * kc,
             tuning.endRadiusSq,
         )
+        findLoops(i, path, keys, keyWidth, ws)
         return true
+    }
+
+    /**
+     * Files swipe [i]'s doubled-letter loops: [GlideBeam]'s search over this
+     * swipe alone, each loop credited to the one key nearest its centre
+     * within [GlideBeam.Tuning.loopRadius]. Wiggles are searched for too, so
+     * a swipe splits into the same windows a stroke would, and then dropped:
+     * a wiggle marks a pause, which says a letter is in the word and never
+     * that it is in it twice.
+     */
+    @Suppress("LongParameterList")
+    private fun findLoops(
+        i: Int,
+        path: List<GesturePoint>,
+        keys: GlideKeyMap,
+        keyWidth: Float,
+        ws: DuetWorkspace,
+    ) {
+        val scan = ws.loopScan
+        val found = scan.find(path, keyWidth, tuning)
+        for (w in 0 until found) {
+            if (!scan.windowIsLoop[w]) continue
+            scan.measure(scan.windowFrom[w], scan.windowTo[w])
+            val own = scan.nearestKey(scan.centreX, scan.centreY, keys, tuning.loopRadiusSq)
+            if (own >= 0) ws.addLoop(i, own)
+        }
     }
 
     /** [GlideBeam]'s arc-length resample, to [n] samples written from [offset]. */
@@ -402,13 +438,17 @@ class DuetBeam(
             }
             if (emits) {
                 val frequency = if (partial) walker.maxSubtree(node) else walker.frequency(node)
-                val score = src.logWeight + ln1p(frequency) - weight * settled
+                // Charged here and not on the way down: only a whole word
+                // knows which loops none of its doubled letters claim. It can
+                // only lower a score, so the bound stays admissible.
+                val cost = settled + unclaimedLoop(s, ws)
+                val score = src.logWeight + ln1p(frequency) - weight * cost
                 if (score > floor - EPS || results.size < k) {
                     val word = ws.materialize(s)
                     if (partial ||
                         !(src.tier == FuzzyBeamSearch.Tier.DICTIONARY && GlideJoiners.isNonWord(word))
                     ) {
-                        emit(word, score, settled.toDouble(), src.tier, results)
+                        emit(word, score, cost.toDouble(), src.tier, results)
                         if (results.size >= k) floor = kthBest(results, k, ws)
                     }
                 }
@@ -488,10 +528,11 @@ class DuetBeam(
                 if (repeat && lastTok >= 0) {
                     // A doubled letter off one gesture: a swipe crosses the key
                     // once whether the word has it once or twice, and one tap
-                    // may stand for both.
+                    // may stand for both. A loop the swipe drew on the key is
+                    // the mark of the second one and waives the charge.
                     val charge = if (ws.isSwipe[lastTok]) {
                         if (openMask and (1 shl lastTok) == 0) Float.NaN
-                        else tuning.repeatCost + tuning.unloopedRepeat
+                        else (tuning.repeatCost + tuning.unloopedRepeat) * (1f - ws.keyLoop[lastTok * kc + key])
                     } else {
                         duet.tapRepeatCost * (1.0 / weight).toFloat()
                     }
@@ -685,6 +726,37 @@ class DuetBeam(
             lastTok = ws.lastTok[s], lastKey = ws.lastKey[s], length = ws.length[s].toInt(),
             done = ws.done[s], settled = settled, bound = bound,
         ) >= 0
+    }
+
+    /**
+     * The loops none of state [s]'s doubled letters claim, times
+     * [GlideBeam.Tuning.unclaimedLoop]: [GlideBeam]'s charge, with each loop
+     * claimed only by a doubling on its own key that the swipe it was drawn
+     * in gave a copy of. A doubled letter is a state spelling the same letter
+     * as its parent one character further on; closing a swipe and the silent
+     * steps keep the length, which keeps them out.
+     */
+    private fun unclaimedLoop(s: Int, ws: DuetWorkspace): Float {
+        val weight = tuning.unclaimedLoop
+        if (weight <= 0f || ws.loopCount == 0) return 0f
+        var charge = 0f
+        for (e in 0 until ws.loopCount) {
+            val tok = ws.loopTok[e]
+            val own = ws.loopKey[e]
+            var claimed = false
+            var cur = s
+            while (cur >= 0 && !claimed) {
+                val parent = ws.parent[cur]
+                if (parent >= 0 && ws.letterCp[cur] == ws.letterCp[parent] &&
+                    ws.length[cur].toInt() == ws.length[parent] + 1
+                ) {
+                    claimed = ws.lastKey[cur] == own && (ws.lastTok[cur] == tok || ws.lastTok[parent] == tok)
+                }
+                cur = parent
+            }
+            if (!claimed) charge += 1f
+        }
+        return weight * charge
     }
 
     private fun openFloors(ws: DuetWorkspace): Float {
