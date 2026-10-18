@@ -5850,7 +5850,7 @@
     <string name="search_kw_translate_engine">offline privat internet flygplansläge lokal enhet ml kit google model nedladdning moln</string>
     <string name="search_kw_translate_models">offline översättningsmodell ladda ner ta bort lagring ml kit google</string>
     <string name="search_kw_translate_only_downloaded">dölj filter för offline-modellväljare menyspråklista kort</string>
-    <string name="search_kw_translate_server">openai kompatibel självhostad hostad lokal llm ai modell ollama llama studio vllm localai chattkompletteringar</string>
+    <string name="search_kw_translate_server">openai kompatibel självhostad hostad lokal llm ai modell ollama llama studio vllm localai chattkompletteringar mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">stavningskontroll, autokomplettering, förutseende text, glidskrift, svepskrift, gester, kontakter, ångra</string>
     <string name="search_kw_typing_auto_capitalize">autokapitalisering autostor bokstav</string>
     <string name="search_kw_typing_auto_close_brackets">autostäng par parenteser klammerparenteser parentesmatchning komplett stängning</string>

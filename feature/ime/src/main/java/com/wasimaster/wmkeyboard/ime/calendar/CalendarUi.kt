@@ -1,0 +1,134 @@
+package com.wasimaster.wmkeyboard.ime.calendar
+
+import com.wasimaster.wmkeyboard.core.tools.DeviceCalendarEvent
+import com.wasimaster.wmkeyboard.core.tools.DeviceCalendarInfo
+import com.wasimaster.wmkeyboard.core.tools.StoredEvent
+import com.wasimaster.wmkeyboard.core.tools.calendar.CalendarOp
+import com.wasimaster.wmkeyboard.core.tools.calendar.EditScope
+import com.wasimaster.wmkeyboard.core.tools.calendar.EventDate
+import com.wasimaster.wmkeyboard.core.tools.calendar.EventDraft
+import com.wasimaster.wmkeyboard.core.tools.calendar.Guest
+import com.wasimaster.wmkeyboard.core.tools.calendar.SeriesInfo
+
+/**
+ * Everything the Calendar panel draws, owned by [CalendarController] rather
+ * than `KeyboardUiState`, as the Clock's is. Only the text being typed into
+ * the composer ([CalendarTextEntry]) lives in the keyboard's state, because
+ * the shared capture path works on that.
+ */
+data class CalendarUi(
+    val today: EventDate,
+    val shownYear: Int = today.year,
+    val shownMonth: Int = today.month,
+    val selected: EventDate = today,
+    /** Days of the shown month with something on, for the dots under the grid. */
+    val busyDays: Set<Int> = emptySet(),
+    /** The selected day's events; null while they load. */
+    val dayEvents: List<DeviceCalendarEvent>? = null,
+    val canRead: Boolean = false,
+    val canWrite: Boolean = false,
+    val contactsAllowed: Boolean = false,
+    val view: CalendarView = CalendarView.MONTH,
+    /** The event the detail sheet shows, read whole. */
+    val detail: StoredEvent? = null,
+    /** Where [detail] (or the event being edited) sits in its series; null for a one-off. */
+    val series: SeriesInfo? = null,
+    val draft: EventDraft? = null,
+    /** The draft as it was opened, to tell what the user changed. */
+    val draftBase: EventDraft? = null,
+    /** The composer's open picker, if any. */
+    val sheet: ComposeSheet? = null,
+    val scopePrompt: ScopePrompt? = null,
+    val calendars: List<DeviceCalendarInfo> = emptyList(),
+    /** Other events the draft's time overlaps. */
+    val conflicts: List<DeviceCalendarEvent> = emptyList(),
+    val guestSuggestions: List<Guest> = emptyList(),
+    val busy: Boolean = false,
+    val error: CalendarError? = null,
+    val undo: CalendarUndo? = null,
+    val hour24: Boolean = false,
+    /** A draft left when the panel closed, which the month view offers to pick up again. */
+    val resumable: Boolean = false,
+) {
+    val editing: Boolean get() = draft?.eventId != null
+}
+
+enum class CalendarView { MONTH, DETAIL, COMPOSE }
+
+/** The composer's pickers, one open at a time. */
+enum class ComposeSheet { START_DATE, END_DATE, START_TIME, END_TIME, REPEAT, CALENDAR, REMINDERS, MORE }
+
+/** Which occurrences of a repeating event a Save or a Delete is for, asked before it runs. */
+data class ScopePrompt(val delete: Boolean, val scopes: List<EditScope>)
+
+enum class CalendarError {
+    /** Save with the end before the start. */
+    END_BEFORE_START,
+
+    /** No calendar the user may write in. */
+    NO_CALENDAR,
+
+    /** The write grant was refused. */
+    NO_ACCESS,
+
+    /** The provider said no. */
+    WRITE_FAILED,
+
+    /** No calendar app to hand the event to. */
+    NO_APP,
+}
+
+/** What the composer's text boxes are for. */
+enum class CalendarTextField { TITLE, LOCATION, NOTES, GUEST }
+
+/** The composer box the keys type into; lives in `KeyboardUiState` for the shared capture path. */
+data class CalendarTextEntry(val field: CalendarTextField, val text: String = "")
+
+/** Something just done, and the writes that take it back. */
+data class CalendarUndo(val kind: Kind, val ops: List<CalendarOp>) {
+    enum class Kind { ADDED, CHANGED, DELETED }
+}
+
+/** Everything the panel can ask for, as one type, so the callback bundle stays one field. */
+sealed interface CalendarAction {
+    // Month
+    data class Month(val by: Int) : CalendarAction
+    data object Today : CalendarAction
+    data class SelectDay(val date: EventDate) : CalendarAction
+    data class NewEvent(val date: EventDate? = null) : CalendarAction
+    data object ResumeDraft : CalendarAction
+    data object DiscardDraft : CalendarAction
+    data class OpenEvent(val event: DeviceCalendarEvent) : CalendarAction
+    data object AskRead : CalendarAction
+    data object OpenSettings : CalendarAction
+
+    // Detail
+    data object CloseDetail : CalendarAction
+    data object EditEvent : CalendarAction
+    data object DeleteEvent : CalendarAction
+    data object InsertEvent : CalendarAction
+    data object OpenInApp : CalendarAction
+
+    // Composer
+    data class Draft(val draft: EventDraft) : CalendarAction
+    data class Sheet(val sheet: ComposeSheet?) : CalendarAction
+    data class Type(val field: CalendarTextField) : CalendarAction
+    data class AddGuest(val guest: Guest) : CalendarAction
+    data class RemoveGuest(val guest: Guest) : CalendarAction
+    data object AskContacts : CalendarAction
+    data object Save : CalendarAction
+    data object CancelCompose : CalendarAction
+    data object InsertDraft : CalendarAction
+    data object DraftInApp : CalendarAction
+
+    // Scope
+    data class Scope(val scope: EditScope) : CalendarAction
+    data object CancelScope : CalendarAction
+
+    /** The Done beside the composer's text box: what Enter would do. */
+    data object TextDone : CalendarAction
+
+    data object Undo : CalendarAction
+    data object UndoDismiss : CalendarAction
+    data object ErrorDismiss : CalendarAction
+}

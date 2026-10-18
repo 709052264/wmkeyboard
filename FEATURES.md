@@ -532,7 +532,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Banglish both ways — To Bangla through the spelling map, then the phonetic index under the strip's own confidence rule, then literal Avro, letter runs only; to Banglish through the inverted map and a rule romaniser with the inherent vowel dropped where speech drops it
     - Hinglish both ways — To Hindi and To Hinglish, the same converter over the Hindi scheme; back to Latin through a schwa-deleting romaniser (करना to karna, नमस्ते to namaste), offered only while the Hindi phonetic layout is enabled
     - Grammar, AI and speech — Harper over the selection alone with every fix committed at once; AI buttons that run a chosen action on the selection and land in the AI panel, whose Replace now swaps the selection rather than the field; reading aloud through the vocabulary speaker with a chip that reads Stop
-    - Intents with fallbacks — Contacts, Maps and Calendar each try two intents and toast when no app takes them
+    - Intents with fallbacks — Contacts, Maps and Calendar each try two intents and toast when no app takes them; Calendar first opens the Calendar tool's composer, prefilled, while that tool is on and saves in the keyboard
     - One-time list reset — The on-list and the order carry a list version; a list stored under an older one reads as the shipped list, so every existing user gets the new actions once
     - Select all leads every row — A long-pressed word widens to the whole field in one tap; the chip is dropped once the selection already spans the field, which costs a one-character read only when the selection starts at offset 0
     - Only offers what can work — WhatsApp hidden without WhatsApp installed, Search/Translate/QR hidden when their tools are off, which the power-saving and direct-boot settings views have already decided
@@ -2051,8 +2051,15 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - 8 non-Gregorian systems, two at a time — Bengali, Hijri, Chinese, Hebrew, Hindu (Saka), Persian, Buddhist, Japanese era
     - Alternate day number inside the cell — Bengali digits ০–৯; a Chinese lunar month's first day shows the month name
     - Region-guessed defaults — From SIM, then network, then locale; only until the user picks
-    - Device calendar events per selected day — Colour stripe, time or All day, location; recurrences expanded per occurrence
-    - Read-only — No insert, edit or delete path against the provider
+    - Device calendar events per selected day — Colour stripe, time or All day, location; recurrences expanded per occurrence; dot under each busy day
+    - Add, edit and delete events in the keyboard — WRITE_CALENDAR asked on first save; the draft waits through the dialog and survives closing the panel
+    - Full repeat editing — Daily/weekly/weekdays/monthly by date or nth weekday/yearly, interval, weekdays, end by date or count; This event / This and following / All events for edit and delete
+    - Foreign repeat rules kept — A rule the editor cannot model shows as Custom and is written back verbatim
+    - Reminders, Busy/Free, calendar picker, overlap warning, time zone kept from the selection
+    - Guests with contact suggestions — Attendee rows diffed so nobody is re-invited; the account may email invitations on sync
+    - Insert as text — One line in the user's date format, from the event sheet or the composer
+    - Undo — Add, single delete, cancelled occurrence, cut series
+    - Save events: in the keyboard or the calendar app; default calendar, length and reminder
     - Weekend presets — Seven options including Fri&Sat, Thu&Fri, and none
     - Hijri day adjustment −2..+2 — Tabular calendar can miss local sighting by a day or two
     - Chinese computed astronomically — Real new-moon and solar-longitude calculations
@@ -2161,7 +2168,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Wikipedia and Dictionary | network; keyless public APIs |
 | GIF and Sticker | network for the KLIPY/GIPHY providers; local packs work offline |
 | Camera tool | needs CAMERA permission, granted through a trampoline activity; shared with OCR and QR scan |
-| Calendar events | needs calendar read permission, requested from the panel's Allow button |
+| Calendar events | read needs calendar permission from the panel's Allow button; saving, editing and deleting ask for write on the first save |
 | Media controls | needs the notification-listener grant, awarded in system Settings |
 | Clipboard user screenshots | needs the photos/storage permission |
 | Clipboard source-app attribution | needs Usage Access; best-effort foreground-app guess |

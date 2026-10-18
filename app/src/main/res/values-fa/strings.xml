@@ -5852,7 +5852,7 @@
     <string name="search_kw_translate_engine">آفلاین خصوصی اینترنت هواپیما محلی دستگاه کیت یادگیری ماشین مدل گوگل دانلود ابری</string>
     <string name="search_kw_translate_models">مدل ترجمه آفلاین دانلود حذف حافظه ml kit گوگل</string>
     <string name="search_kw_translate_only_downloaded">پنهان کردن منوی انتخابگر مدل آفلاین فیلتر کوتاه</string>
-    <string name="search_kw_translate_server">openai سازگار خودمیزبان میزبانی‌شده محلی llm هوش مصنوعی مدل ollama llama studio vllm localai تکمیل چت</string>
+    <string name="search_kw_translate_server">openai سازگار خودمیزبان میزبانی‌شده محلی llm هوش مصنوعی مدل ollama llama studio vllm localai تکمیل چت mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">غلط‌یاب، تکمیل خودکار، متن پیش‌بینی‌کننده، تایپ کشیدنی، تایپ با حرکت انگشت، حرکات، مخاطبین، واگرد</string>
     <string name="search_kw_typing_auto_capitalize">حروف بزرگ خودکار، سرمایه گذاری خودکار، سرمایه گذاری خودکار</string>
     <string name="search_kw_typing_auto_close_brackets">بستن خودکار جفت پرانتزها، آکولادها، تطبیق پرانتز و تکمیل بستن</string>

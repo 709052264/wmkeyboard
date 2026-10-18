@@ -241,10 +241,12 @@
 
     <!-- About › Supporters -->
     <string name="about_supporters_title">Supporters</string>
-    <string name="about_supporters_subtitle">The people who chipped in on SupportKori</string>
-    <string name="supporters_intro">WM Keyboard is free, with no ads and no paid tier. These people supported it anyway. Only the name each one gave is shown, never an amount.</string>
+    <string name="about_supporters_subtitle">The people who chipped in to support the app</string>
+    <string name="supporters_intro">WM Keyboard is free, with no ads and no paid tier. These people supported it anyway. Only the name each one gave is shown here. The list on the website also shows what each one gave.</string>
     <string name="supporters_support_title">Support WM Keyboard</string>
-    <string name="supporters_support_subtitle">Send a tip or join the membership on SupportKori</string>
+    <string name="supporters_support_subtitle">Chip in once or every month on SupportKori. Your name joins the list below.</string>
+    <string name="supporters_coffee_button">Buy a coffee</string>
+    <string name="supporters_member_button">Become a monthly member</string>
     <string name="supporters_list_title">Thank you</string>
     <string name="supporters_empty">No one yet. You could be the first.</string>
     <string name="supporters_kind_tip">Tip</string>
@@ -260,5 +262,40 @@
         <item quantity="one">%d new supporter added.</item>
         <item quantity="other">%d new supporters added.</item>
     </plurals>
+    <string name="supporters_just_now">Just now</string>
+    <string name="supporters_hero_tagline">Free, with no ads and no paid tier, because of people like these.</string>
+    <string name="supporters_hero_none">Be the first to chip in</string>
+    <plurals name="supporters_hero_count">
+        <item quantity="one">%d person chipped in</item>
+        <item quantity="other">%d people chipped in</item>
+    </plurals>
+
+    <!-- About › Supporters, Google Play build: tips through Play billing -->
+    <string name="tips_title">Leave a tip</string>
+    <string name="tips_body">Your tip goes to the developer through Google Play. It unlocks nothing, because every feature is already yours.</string>
+    <string name="tips_tier_thanks">Thanks</string>
+    <string name="tips_tier_boost">Boost</string>
+    <string name="tips_tier_lunch">Lunch</string>
+    <string name="tips_tier_treat">Treat</string>
+    <string name="tips_tier_star">Star</string>
+    <string name="tips_tier_champion">Champion</string>
+    <string name="tips_tier_legend">Legend</string>
+    <string name="tips_name_label">Name on the Supporters list</string>
+    <string name="tips_name_hint">Shown on the Supporters list here and on the website. The website also shows the tier\'s price.</string>
+    <string name="tips_message_label">Message (optional)</string>
+    <string name="tips_message_hint">Shown under your name on the website only.</string>
+    <string name="tips_anonymous_title">Stay anonymous</string>
+    <string name="tips_anonymous_subtitle">Tip without being listed. Nothing is sent anywhere but Google Play.</string>
+    <!-- %1$s: the price, formatted by Google Play, for example "$4.99" -->
+    <string name="tips_button">Tip %1$s</string>
+    <string name="tips_paying">Opening Google Play…</string>
+    <string name="tips_pending">Your payment is pending. It finishes by itself, and then your name joins the list.</string>
+    <string name="tips_failed">The tip did not go through. Try again.</string>
+    <string name="tips_unavailable">Tips go through the Google Play Store, which is not available on this device.</string>
+    <string name="tips_thanks_title">Thank you!</string>
+    <!-- %1$s: the name the person typed -->
+    <string name="tips_thanks_named">Your support means a lot. %1$s is on the list below.</string>
+    <string name="tips_thanks_anonymous">Your support means a lot. You stay off the list, as you asked.</string>
+    <string name="tips_again">Tip again</string>
 
 </resources>

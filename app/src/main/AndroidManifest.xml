@@ -50,8 +50,9 @@
     <uses-permission
         android:name="android.permission.MODIFY_AUDIO_SETTINGS"
         android:maxSdkVersion="30" />
-    <!-- Only used by the optional contact-name suggestions setting; names
-         are read into memory for the suggestion strip, never stored. -->
+    <!-- Used by the optional contact-name and contact-email suggestions, and
+         by the calendar tool's guest suggestions; read into memory, never
+         stored. -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <!-- Only used by the optional location tool (#350), and by "Use my
@@ -68,9 +69,9 @@
          is open, and by the AI's calendar tool (#698) when the user allows it. -->
     <uses-permission android:name="android.permission.READ_CALENDAR" />
 
-    <!-- Only used by the AI's "add it directly" for calendar events (#698),
-         which is off until the user picks it and grants this. Adds events
-         only; nothing in the app edits or deletes one. -->
+    <!-- Used by the calendar tool's Save, Edit and Delete, asked for on the
+         first save, and by the AI's "add it directly" for calendar events
+         (#698). Every write is one the user made or approved. -->
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
 
     <!-- Only used by the optional "Add words to the system dictionary" setting.
@@ -933,6 +934,24 @@
              android.permission.READ_CALENDAR. -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.CalendarPermissionActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- The calendar tool's WRITE_CALENDAR, asked on the first Save. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.CalendarWritePermissionActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- The calendar tool's guest suggestions: READ_CONTACTS. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.ContactGuestsPermissionActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:noHistory="true"

@@ -1291,7 +1291,6 @@ fun KeyboardScreen(
     onWeatherRefresh: () -> Unit = {},
     onCameraSend: (java.io.File, Boolean) -> Unit = { _, _ -> },
     onCameraPermissionRequest: () -> Unit = {},
-    onCalendarPermissionRequest: () -> Unit = {},
     onScannedInsert: (String) -> Unit = {},
     onScannedUrlOpen: (String) -> Unit = {},
     onVoiceToggle: () -> Unit = {},
@@ -1514,7 +1513,6 @@ fun KeyboardScreen(
                 onWeatherRefresh = onWeatherRefresh,
                 onCameraSend = onCameraSend,
                 onCameraPermissionRequest = onCameraPermissionRequest,
-                onCalendarPermissionRequest = onCalendarPermissionRequest,
                 onScannedInsert = onScannedInsert,
                 onScannedUrlOpen = onScannedUrlOpen,
                 onVoiceToggle = onVoiceToggle,
@@ -12799,7 +12797,6 @@ private fun KeyboardBody(
     onWeatherRefresh: () -> Unit,
     onCameraSend: (java.io.File, Boolean) -> Unit,
     onCameraPermissionRequest: () -> Unit,
-    onCalendarPermissionRequest: () -> Unit,
     onScannedInsert: (String) -> Unit,
     onScannedUrlOpen: (String) -> Unit,
     onVoiceToggle: () -> Unit,
@@ -13406,20 +13403,11 @@ private fun KeyboardBody(
                     callbacks = toolHold.gallery,
                     onClose = { onPanelChange(PanelMode.GALLERY) },
                 )
-                // At the keyboard's own height, like the calculator (#665): the
-                // month grid gives up row height before the day's summary does,
-                // and the bar every full-bleed tool shares drags all of them
-                // taller together, so no tool opens at a size of its own.
-                PanelMode.CALENDAR -> FullBleedTool(
-                    state, stringResource(R.string.ime_tool_calendar),
+                PanelMode.CALENDAR -> com.wasimaster.wmkeyboard.ime.ui.calendar.CalendarPanel(
+                    state = state,
+                    callbacks = toolHold.calendar,
                     onClose = { onPanelChange(PanelMode.CALENDAR) },
-                ) {
-                    CalendarPanel(
-                        state,
-                        onRequestPermission = onCalendarPermissionRequest,
-                        onPrefillConsumed = onToolPrefillConsumed,
-                    )
-                }
+                )
                 PanelMode.THEMES -> ThemesPanel(
                     state,
                     onThemeSelect,
@@ -17354,6 +17342,10 @@ private fun KeyRows(
     val keyTapOnKey = remember(stampedOnKey) {
         { k: Key -> shiftHold.route(k)?.let(stampedOnKey); Unit }
     }
+    // A glide stroke that turned out to be a tap types its key as the key's own
+    // lift would have, Autopilot remap included (#782). Read live by the glide
+    // loop, which outlives the composition that built it.
+    val strayTap = rememberUpdatedState { k: Key, id: PointerId -> keyTapOnKey(smartResolve(k, id)) }
     // The D-pad ring (a television remote, or a hardware keyboard whose owner
     // asked for it): the service moves it, so the grid hands up the cell table
     // it is already keeping and the lambda that types a key. Published in a
@@ -18017,6 +18009,12 @@ private fun KeyRows(
                     // The key whose word a flick off this stroke would take,
                     // and its centre. Null when nothing is floating there.
                     var flickAnchor: Pair<Int, Offset>? = null
+                    // The furthest the finger got from where it landed, and
+                    // whether the stroke last read as an octopus flick: what
+                    // the lift asks to tell a tap that rolled past the start
+                    // slop from a word (#782).
+                    var reachPx = 0f
+                    var looksLikeFlick = false
                     // Wall-clock stamp of the last preview. Sample counting was
                     // digitizer-rate dependent — every sixth report is ten
                     // decodes a second at 60 Hz and forty at 240 Hz, so the
@@ -18189,6 +18187,7 @@ private fun KeyRows(
                         }
                         if (isGesture) {
                             change.consume()
+                            reachPx = maxOf(reachPx, (change.position - down.position).getDistance())
                             if (picker.isOpen) {
                                 // Frozen: the stroke is finished and the finger
                                 // is only choosing. Hover and the cancel zone
@@ -18275,16 +18274,15 @@ private fun KeyRows(
                             // alone, so a stroke that has not travelled far
                             // enough yet still reads as the flick it may become.
                             flickAnchor?.let { (_, centre) ->
-                                trail.markFlick(
-                                    octopusFlickShape(
-                                        points = seg,
-                                        startX = centre.x,
-                                        startY = centre.y,
-                                        keyWidthPx = keyWidth.value,
-                                        startReachPx = keyWidth.value * OCTOPUS_START_REACH_WIDTHS,
-                                        sensitivity = octopusSettings.flickSensitivity,
-                                    )
+                                looksLikeFlick = octopusFlickShape(
+                                    points = seg,
+                                    startX = centre.x,
+                                    startY = centre.y,
+                                    keyWidthPx = keyWidth.value,
+                                    startReachPx = keyWidth.value * OCTOPUS_START_REACH_WIDTHS,
+                                    sensitivity = octopusSettings.flickSensitivity,
                                 )
+                                trail.markFlick(looksLikeFlick)
                             }
                             // Live preview of the word being drawn now, at a
                             // fixed wall-clock cadence.
@@ -18350,6 +18348,22 @@ private fun KeyRows(
                                 keyList?.let { onGesture(seg, it, keyWidth.value, GlideVerdict.Cancel) }
                             }
                             stampedOnText(capitalTarget.first)
+                            return@awaitEachGesture
+                        }
+                        // A tap that rolled past the start slop (#782). The
+                        // stroke took the pointer from the key, so the key's
+                        // own lift typed nothing, and a stroke this short
+                        // either has too few samples to send or decodes to
+                        // nothing: the letter vanished. It types the key it
+                        // landed on instead, through the same path a tap takes.
+                        if (downKey != null && segments.isEmpty() && !picker.isOpen && !looksLikeFlick &&
+                            glideStrokeIsTap(reachPx, seg.size, keyWidth.value)
+                        ) {
+                            trail.clear()
+                            if (previewedSeg) {
+                                keyList?.let { onGesture(seg, it, keyWidth.value, GlideVerdict.Cancel) }
+                            }
+                            strayTap.value(downKey, down.id)
                             return@awaitEachGesture
                         }
                         // Lifting on a target takes that word; lifting in the
@@ -20460,6 +20474,21 @@ private fun nearLetterKey(
     codePoint !in GlidePunctuationCodePoints &&
         (center - position).getDistance() < keyWidth
 }
+
+/**
+ * Whether a stroke the glide loop claimed was really a tap (#782): the finger
+ * never got [GLIDE_TAP_REACH_WIDTHS] of a key from where it landed, or the
+ * stroke has fewer samples than a lift commits. Fast typing rolls the finger,
+ * and a roll past the start slop used to take the letter with it, since the
+ * key had already given its lift away and the stroke was too short to decode.
+ * The shortest real word, two letters on neighbouring keys, travels a whole
+ * key.
+ */
+internal fun glideStrokeIsTap(reachPx: Float, samples: Int, keyWidthPx: Float): Boolean =
+    samples < COMMIT_MIN_POINTS || (keyWidthPx > 0f && reachPx < keyWidthPx * GLIDE_TAP_REACH_WIDTHS)
+
+/** See [glideStrokeIsTap]. */
+internal const val GLIDE_TAP_REACH_WIDTHS = 0.65f
 
 /**
  * One finger under two-thumb typing: a tap until it travels, then a swipe.
@@ -28593,6 +28622,9 @@ data class ToolHoldCallbacks(
     val location: LocationCallbacks = LocationCallbacks(),
     /** The Clock panel's callbacks and state; here for the same reason as [dictionaryBar]. */
     val clock: com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks = com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks(),
+    /** The Calendar panel's callbacks and state; its state is the controller's, like [clock]. */
+    val calendar: com.wasimaster.wmkeyboard.ime.calendar.CalendarCallbacks =
+        com.wasimaster.wmkeyboard.ime.calendar.CalendarCallbacks(),
     /** The emoji panel's kaomoji tab. */
     val kaomoji: com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiCallbacks =
         com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiCallbacks(),

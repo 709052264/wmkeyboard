@@ -5864,7 +5864,7 @@
     <string name="search_kw_translate_engine">অফলাইন ব্যক্তিগত ইন্টারনেট এয়ারপ্লেন লোকাল ডিভাইস এমএল কিট গুগল মডেল ডাউনলোড ক্লাউড</string>
     <string name="search_kw_translate_models">অফলাইন অনুবাদ মডেল ডাউনলোড ডিলিট স্টোরেজ এমএল কিট গুগল</string>
     <string name="search_kw_translate_only_downloaded">অফলাইন মডেল পিকার মেনু ভাষার তালিকা ছোট ফিল্টার লুকান</string>
-    <string name="search_kw_translate_server">openai compatible selfhosted hosted local llm ai model ollama llama studio vllm localai chat completions</string>
+    <string name="search_kw_translate_server">openai compatible selfhosted hosted local llm ai model ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">বানান পরীক্ষা, অটোসম্পূর্ণ, প্রেডিক্টিভ টেক্সট, গ্লাইড, সোয়াইপ টাইপিং, জেসচার, পরিচিতি, পূর্বাবস্থায় ফেরানো</string>
     <string name="search_kw_typing_auto_capitalize">autocaps autocapitalize autocapitalisation</string>
     <string name="search_kw_typing_auto_close_brackets">অটোক্লোজ পেয়ার প্যারেনথেসিস ব্রেসেস প্যারেনথেসিস ম্যাচিং কমপ্লিট ক্লোজিং</string>

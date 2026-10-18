@@ -5863,7 +5863,7 @@
     <string name="search_kw_translate_engine">ಆಫ್‌ಲೈನ್ ಖಾಸಗಿ ಇಂಟರ್ನೆಟ್ ವಿಮಾನ ಸ್ಥಳೀಯ ಸಾಧನ ml ಕಿಟ್ ಗೂಗಲ್ ಮಾದರಿ ಡೌನ್‌ಲೋಡ್ ಕ್ಲೌಡ್</string>
     <string name="search_kw_translate_models">ಆಫ್‌ಲೈನ್ ಅನುವಾದ ಮಾದರಿ ಡೌನ್‌ಲೋಡ್ ಅಳಿಸಿ ಸಂಗ್ರಹಣೆ ml ಕಿಟ್ ಗೂಗಲ್</string>
     <string name="search_kw_translate_only_downloaded">ಆಫ್‌ಲೈನ್ ಮಾದರಿ ಪಿಕರ್ ಮೆನು ಭಾಷೆಯ ಪಟ್ಟಿಯ ಸಂಕ್ಷಿಪ್ತ ರೂಪವನ್ನು ಫಿಲ್ಟರ್ ಮಾಡುವುದನ್ನು ಮರೆಮಾಡಿ</string>
-    <string name="search_kw_translate_server">openai ಹೊಂದಾಣಿಕೆಯ ಸ್ವಯಂ-ಹೋಸ್ಟ್ ಮಾಡಿದ ಸ್ಥಳೀಯ llm ai ಮಾದರಿ ollama llama studio vllm localai ಚಾಟ್ ಪೂರ್ಣಗೊಳಿಸುವಿಕೆಗಳು</string>
+    <string name="search_kw_translate_server">openai ಹೊಂದಾಣಿಕೆಯ ಸ್ವಯಂ-ಹೋಸ್ಟ್ ಮಾಡಿದ ಸ್ಥಳೀಯ llm ai ಮಾದರಿ ollama llama studio vllm localai ಚಾಟ್ ಪೂರ್ಣಗೊಳಿಸುವಿಕೆಗಳು mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">ಸ್ಪೆಲ್ ಚೆಕ್, ಸ್ವಯಂ ಪೂರ್ಣಗೊಳಿಸುವಿಕೆ, ಮುನ್ಸೂಚಕ ಪಠ್ಯ, ಗ್ಲೈಡ್, ಸ್ವೈಪ್ ಟೈಪಿಂಗ್, ಗೆಸ್ಚರ್‌ಗಳು, ಸಂಪರ್ಕಗಳು, ರದ್ದುಗೊಳಿಸಿ</string>
     <string name="search_kw_typing_auto_capitalize">ಆಟೋಕ್ಯಾಪ್ಸ್ ಆಟೋಕ್ಯಾಪಿಟಲೈಸ್ ಆಟೋಕ್ಯಾಪಿಟಲೈಸೇಶನ್</string>
     <string name="search_kw_typing_auto_close_brackets">ಆವರಣಗಳು, ಬ್ರೇಸ್‌ಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಮುಚ್ಚುವುದು, ಆವರಣದ ಹೊಂದಾಣಿಕೆ ಪೂರ್ಣಗೊಂಡಿದೆ</string>

@@ -1,4 +1,12 @@
 {
-  "updated": "2026-10-17T00:00:00.000Z",
-  "supporters": []
+  "updated": "2026-10-18T20:20:57.858Z",
+  "supporters": [
+    {
+      "name": "Mooch",
+      "kind": "tip",
+      "at": "2026-10-18T07:49:40.114Z",
+      "amount": 50,
+      "currency": "USD"
+    }
+  ]
 }

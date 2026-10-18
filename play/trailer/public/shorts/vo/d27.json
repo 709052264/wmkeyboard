@@ -1,0 +1,240 @@
+[
+ {
+  "text": "Ever",
+  "startMs": 0,
+  "endMs": 180,
+  "timestampMs": 90,
+  "confidence": null
+ },
+ {
+  "text": " wonder",
+  "startMs": 180,
+  "endMs": 460,
+  "timestampMs": 320,
+  "confidence": null
+ },
+ {
+  "text": " where",
+  "startMs": 460,
+  "endMs": 760,
+  "timestampMs": 610,
+  "confidence": null
+ },
+ {
+  "text": " a",
+  "startMs": 760,
+  "endMs": 900,
+  "timestampMs": 830,
+  "confidence": null
+ },
+ {
+  "text": " suggestion",
+  "startMs": 900,
+  "endMs": 1180,
+  "timestampMs": 1040,
+  "confidence": null
+ },
+ {
+  "text": " comes",
+  "startMs": 1180,
+  "endMs": 1540,
+  "timestampMs": 1360,
+  "confidence": null
+ },
+ {
+  "text": " from?",
+  "startMs": 1540,
+  "endMs": 1860,
+  "timestampMs": 1700,
+  "confidence": null
+ },
+ {
+  "text": " Hold",
+  "startMs": 2300,
+  "endMs": 2440,
+  "timestampMs": 2370,
+  "confidence": null
+ },
+ {
+  "text": " it.",
+  "startMs": 2440,
+  "endMs": 2620,
+  "timestampMs": 2530,
+  "confidence": null
+ },
+ {
+  "text": " You'll",
+  "startMs": 3020,
+  "endMs": 3180,
+  "timestampMs": 3100,
+  "confidence": null
+ },
+ {
+  "text": " see",
+  "startMs": 3180,
+  "endMs": 3400,
+  "timestampMs": 3290,
+  "confidence": null
+ },
+ {
+  "text": " every",
+  "startMs": 3400,
+  "endMs": 3820,
+  "timestampMs": 3610,
+  "confidence": null
+ },
+ {
+  "text": " word",
+  "startMs": 3820,
+  "endMs": 4080,
+  "timestampMs": 3950,
+  "confidence": null
+ },
+ {
+  "text": " list",
+  "startMs": 4080,
+  "endMs": 4340,
+  "timestampMs": 4210,
+  "confidence": null
+ },
+ {
+  "text": " it's",
+  "startMs": 4340,
+  "endMs": 4560,
+  "timestampMs": 4450,
+  "confidence": null
+ },
+ {
+  "text": " in,",
+  "startMs": 4560,
+  "endMs": 4820,
+  "timestampMs": 4690,
+  "confidence": null
+ },
+ {
+  "text": " and",
+  "startMs": 5020,
+  "endMs": 5140,
+  "timestampMs": 5080,
+  "confidence": null
+ },
+ {
+  "text": " its",
+  "startMs": 5140,
+  "endMs": 5320,
+  "timestampMs": 5230,
+  "confidence": null
+ },
+ {
+  "text": " rank.",
+  "startMs": 5320,
+  "endMs": 5640,
+  "timestampMs": 5480,
+  "confidence": null
+ },
+ {
+  "text": " Fix",
+  "startMs": 6100,
+  "endMs": 6260,
+  "timestampMs": 6180,
+  "confidence": null
+ },
+ {
+  "text": " the",
+  "startMs": 6260,
+  "endMs": 6440,
+  "timestampMs": 6350,
+  "confidence": null
+ },
+ {
+  "text": " spelling,",
+  "startMs": 6440,
+  "endMs": 6820,
+  "timestampMs": 6630,
+  "confidence": null
+ },
+ {
+  "text": " keep",
+  "startMs": 7020,
+  "endMs": 7140,
+  "timestampMs": 7080,
+  "confidence": null
+ },
+ {
+  "text": " its",
+  "startMs": 7140,
+  "endMs": 7320,
+  "timestampMs": 7230,
+  "confidence": null
+ },
+ {
+  "text": " capitals,",
+  "startMs": 7320,
+  "endMs": 7700,
+  "timestampMs": 7510,
+  "confidence": null
+ },
+ {
+  "text": " or",
+  "startMs": 8040,
+  "endMs": 8240,
+  "timestampMs": 8140,
+  "confidence": null
+ },
+ {
+  "text": " tell",
+  "startMs": 8240,
+  "endMs": 8500,
+  "timestampMs": 8370,
+  "confidence": null
+ },
+ {
+  "text": " it",
+  "startMs": 8500,
+  "endMs": 8660,
+  "timestampMs": 8580,
+  "confidence": null
+ },
+ {
+  "text": " never",
+  "startMs": 8660,
+  "endMs": 8860,
+  "timestampMs": 8760,
+  "confidence": null
+ },
+ {
+  "text": " to",
+  "startMs": 8860,
+  "endMs": 9060,
+  "timestampMs": 8960,
+  "confidence": null
+ },
+ {
+  "text": " suggest",
+  "startMs": 9060,
+  "endMs": 9340,
+  "timestampMs": 9200,
+  "confidence": null
+ },
+ {
+  "text": " that",
+  "startMs": 9340,
+  "endMs": 9580,
+  "timestampMs": 9460,
+  "confidence": null
+ },
+ {
+  "text": " word",
+  "startMs": 9580,
+  "endMs": 9720,
+  "timestampMs": 9650,
+  "confidence": null
+ },
+ {
+  "text": " again.",
+  "startMs": 9720,
+  "endMs": 9980,
+  "timestampMs": 9850,
+  "confidence": null
+ }
+]

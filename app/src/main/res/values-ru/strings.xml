@@ -5848,7 +5848,7 @@
     <string name="search_kw_translate_engine">офлайн приватный интернет самолет локальное устройство ml kit google модель загрузка облако</string>
     <string name="search_kw_translate_models">офлайн перевод модель загрузка удалить хранилище ml kit google</string>
     <string name="search_kw_translate_only_downloaded">скрыть фильтр офлайн модель выбор меню язык список короткий</string>
-    <string name="search_kw_translate_server">openai совместимый selfhosted хостинг локальный llm ai модель ollama llama studio vllm localai чат завершения</string>
+    <string name="search_kw_translate_server">openai совместимый selfhosted хостинг локальный llm ai модель ollama llama studio vllm localai чат завершения mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">проверка орфографии, автозаполнение, предиктивный ввод, скольжение, ввод смахиванием, жесты, контакты, отмена</string>
     <string name="search_kw_typing_auto_capitalize">автозаглавные автокапитализация</string>
     <string name="search_kw_typing_auto_close_brackets">автозакрытие пара скобки фигурные скобки соответствие завершение закрытие</string>

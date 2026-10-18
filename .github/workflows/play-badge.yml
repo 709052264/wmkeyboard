@@ -1,0 +1,71 @@
+name: Play badge
+
+# Keeps the README's Google Play badge on the version Play is actually serving.
+# shields.io has no Google Play service, and the Publishing API cannot tell a
+# release still in review from a live one (both read `completed`), so this
+# reads the public store page, which only changes once a release is live. The
+# result is a shields endpoint JSON on the orphan `badges` branch.
+#
+# A failed scrape writes nothing, so the badge keeps its last good value
+# instead of turning into "unknown".
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: play-badge
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  badge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Read the store page
+        id: scrape
+        run: |
+          npm install --no-save --silent google-play-scraper@10.1.4
+          node --input-type=module -e '
+            import gplay from "google-play-scraper";
+            import { appendFileSync } from "node:fs";
+            const app = await gplay.app({ appId: "com.wasimaster.wmkeyboard" });
+            // "Varies with device" or an empty field is not a version.
+            if (!/^\d+(\.\d+)+/.test(app.version ?? "")) {
+              console.error(`No usable version on the store page: ${app.version}`);
+              process.exit(1);
+            }
+            console.log(`Play serves ${app.version}`);
+            appendFileSync(process.env.GITHUB_OUTPUT, `version=${app.version}\n`);
+          '
+
+      - name: Publish to the badges branch
+        env:
+          VERSION: ${{ steps.scrape.outputs.version }}
+          REPO: ${{ github.repository }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git init -q badges && cd badges
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          url="https://x-access-token:${TOKEN}@github.com/${REPO}.git"
+          if git fetch -q --depth 1 "$url" badges; then
+            git checkout -q -B badges FETCH_HEAD
+          else
+            git checkout -q --orphan badges
+          fi
+          printf '{"schemaVersion":1,"label":"Google Play","message":"%s","color":"01875F"}\n' "v${VERSION}" > play.json
+          git add play.json
+          if git diff --cached --quiet; then
+            echo "Badge already says v${VERSION}"
+            exit 0
+          fi
+          git commit -q -m "Play badge: v${VERSION}"
+          git push -q "$url" badges

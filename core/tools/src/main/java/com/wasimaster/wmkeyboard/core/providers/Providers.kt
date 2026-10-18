@@ -69,9 +69,22 @@ data class CredentialSpec(
     val key: Need = Need.NONE,
     val url: Need = Need.NONE,
     val model: Boolean = false,
+    /**
+     * The services a front end can pass the text on to, the default first.
+     * The pick is stored in [ProviderCredential.model]: like a model, it says
+     * what the server should use, and a blank one means the default.
+     */
+    val engines: List<FrontEndEngine> = emptyList(),
 ) {
-    val none: Boolean get() = key == Need.NONE && url == Need.NONE && !model
+    val none: Boolean get() = key == Need.NONE && url == Need.NONE && !model && engines.isEmpty()
+
+    /** The engine [stored] names, else the default; null for a kind with no engines. */
+    fun engine(stored: String): FrontEndEngine? =
+        engines.firstOrNull { it.id == stored.trim() } ?: engines.firstOrNull()
 }
+
+/** One service behind a translation front end. [id] is what the front end's API takes; [label] is a brand name. */
+data class FrontEndEngine(val id: String, val label: String)
 
 /**
  * One kind of provider: KLIPY, a LibreTranslate server, the vocabulary packs.
@@ -180,6 +193,51 @@ object ProviderTypes {
         R.string.core_tools_provider_libretranslate, R.string.core_tools_provider_libretranslate_desc,
         CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED),
         multiInstance = true, freeSoftware = true, selfHosted = true,
+    )
+
+    /*
+     * Front ends (#726): free servers that pass the text on to Google, DeepL
+     * and others, so those see the instance rather than the phone. Each is
+     * added by the address of an instance, as often as the user likes; none
+     * has a default one. Not [selfHosted]: most people use a public instance.
+     */
+    val MOZHI = ProviderType(
+        "mozhi", setOf(ProviderTool.TRANSLATE),
+        R.string.core_tools_provider_mozhi, R.string.core_tools_provider_mozhi_desc,
+        CredentialSpec(
+            url = Need.REQUIRED,
+            engines = listOf(
+                FrontEndEngine("google", "Google"),
+                FrontEndEngine("deepl", "DeepL"),
+                FrontEndEngine("duckduckgo", "DuckDuckGo"),
+                FrontEndEngine("yandex", "Yandex"),
+                FrontEndEngine("reverso", "Reverso"),
+            ),
+        ),
+        multiInstance = true, freeSoftware = true,
+    )
+    val SIMPLYTRANSLATE = ProviderType(
+        "simplytranslate", setOf(ProviderTool.TRANSLATE),
+        R.string.core_tools_provider_simplytranslate, R.string.core_tools_provider_simplytranslate_desc,
+        CredentialSpec(
+            url = Need.REQUIRED,
+            engines = listOf(
+                FrontEndEngine("google", "Google"),
+                FrontEndEngine("reverso", "Reverso"),
+                FrontEndEngine("iciba", "iCIBA"),
+            ),
+        ),
+        multiInstance = true, freeSoftware = true,
+    )
+    val LINGVA = ProviderType(
+        "lingva", setOf(ProviderTool.TRANSLATE),
+        R.string.core_tools_provider_lingva, R.string.core_tools_provider_lingva_desc,
+        CredentialSpec(url = Need.REQUIRED), multiInstance = true, freeSoftware = true,
+    )
+    val TRANSLITE = ProviderType(
+        "translite", setOf(ProviderTool.TRANSLATE),
+        R.string.core_tools_provider_translite, R.string.core_tools_provider_translite_desc,
+        CredentialSpec(url = Need.REQUIRED), multiInstance = true, freeSoftware = true,
     )
 
     /** Google's keyless endpoint, or Cloud Translation v2 once a key is set. */
@@ -323,7 +381,7 @@ object ProviderTypes {
 
     val all: List<ProviderType> = listOf(
         KLIPY, GIPHY, COMMONS, GIFCITIES, OFFLINE_GIFS, STICKER_PACKS,
-        ML_KIT, TRANSLATE_SERVER, DEEPL, LIBRETRANSLATE, GOOGLE_TRANSLATE,
+        ML_KIT, TRANSLATE_SERVER, DEEPL, LIBRETRANSLATE, MOZHI, SIMPLYTRANSLATE, LINGVA, TRANSLITE, GOOGLE_TRANSLATE,
         VOCAB_PACKS, WIKTIONARY, WIKTIONARY_REST, DICTIONARY_API, OFFLINE_WIKTIONARY, OFFLINE_WORDNET,
         DATAMUSE, SIMILAR_WORDS,
         SEARXNG, TAVILY, BRAVE,

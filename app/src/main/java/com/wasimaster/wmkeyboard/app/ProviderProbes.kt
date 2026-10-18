@@ -15,6 +15,10 @@ import com.wasimaster.wmkeyboard.core.tools.SearxClient
 import com.wasimaster.wmkeyboard.core.tools.TavilySearchClient
 import com.wasimaster.wmkeyboard.core.tools.DeepLClient
 import com.wasimaster.wmkeyboard.core.tools.LibreTranslateClient
+import com.wasimaster.wmkeyboard.core.tools.LingvaClient
+import com.wasimaster.wmkeyboard.core.tools.MozhiClient
+import com.wasimaster.wmkeyboard.core.tools.SimplyTranslateClient
+import com.wasimaster.wmkeyboard.core.tools.TransliteClient
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
 import com.wasimaster.wmkeyboard.core.tools.TranslateServerClient
 import com.wasimaster.wmkeyboard.core.tools.GiphyClient
@@ -74,6 +78,26 @@ internal object ProviderProbes {
                         text = PROBE_WORD, target = PROBE_TARGET, endpoint = credential.url, apiKey = key, source = PROBE_SOURCE,
                     )
                 }
+            }
+            ProviderTypes.MOZHI.id -> {
+                {
+                    MozhiClient.translate(
+                        text = PROBE_WORD, target = PROBE_TARGET, endpoint = credential.url, engine = credential.model, source = PROBE_SOURCE,
+                    )
+                }
+            }
+            ProviderTypes.SIMPLYTRANSLATE.id -> {
+                {
+                    SimplyTranslateClient.translate(
+                        text = PROBE_WORD, target = PROBE_TARGET, endpoint = credential.url, engine = credential.model, source = PROBE_SOURCE,
+                    )
+                }
+            }
+            ProviderTypes.LINGVA.id -> {
+                { LingvaClient.translate(text = PROBE_WORD, target = PROBE_TARGET, endpoint = credential.url, source = PROBE_SOURCE) }
+            }
+            ProviderTypes.TRANSLITE.id -> {
+                { TransliteClient.translate(text = PROBE_WORD, target = PROBE_TARGET, endpoint = credential.url, source = PROBE_SOURCE) }
             }
             ProviderTypes.TRANSLATE_SERVER.id -> {
                 {

@@ -5853,7 +5853,7 @@
     <string name="search_kw_translate_engine">offline privatno internet zrakoplov lokalni uređaj ml kit google model preuzimanje oblak</string>
     <string name="search_kw_translate_models">preuzimanje izvanmrežnog modela za prijevod brisanje pohrane ml kit google</string>
     <string name="search_kw_translate_only_downloaded">sakrij izbornik odabira izvanmrežnog modela popisa jezika filtra kratko</string>
-    <string name="search_kw_translate_server">openai kompatibilan samostalno hostiran lokalni llm ai model ollama llama studio vllm localai chat completions</string>
+    <string name="search_kw_translate_server">openai kompatibilan samostalno hostiran lokalni llm ai model ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">provjera pravopisa, automatsko dovršavanje, prediktivni tekst, klizanje, tipkanje povlačenjem, geste, kontakti, poništi</string>
     <string name="search_kw_typing_auto_capitalize">automatska velika slova automatsko pisanje velikih slova</string>
     <string name="search_kw_typing_auto_close_brackets">automatsko zatvaranje para zagrada vitičaste zagrade uparivanje zagrada dovrši zatvaranje</string>

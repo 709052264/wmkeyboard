@@ -57,6 +57,8 @@
     <string name="providers_field_key_required_hint">Required.</string>
     <string name="providers_field_model">Model</string>
     <string name="providers_field_model_hint">Optional. Leave it empty if the server runs one model.</string>
+    <string name="providers_field_engine">Engine</string>
+    <string name="providers_field_engine_hint">The service that this server sends your text to. If the server does not have it, the next provider is asked.</string>
     <string name="providers_used_by">Also used by %1$s. A change here changes it there too.</string>
     <string name="providers_test">Test</string>
     <string name="providers_testing">Testing</string>

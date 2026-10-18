@@ -5854,7 +5854,7 @@
     <string name="search_kw_translate_engine">ഓഫ്‌ലൈൻ സ്വകാര്യ ഇന്റർനെറ്റ് എയർപ്ലെയിൻ ലോക്കൽ ഡിവൈസ് ml കിറ്റ് ഗൂഗിൾ മോഡൽ ഡൗൺലോഡ് ക്ലൗഡ്</string>
     <string name="search_kw_translate_models">ഓഫ്‌ലൈൻ വിവർത്തന മോഡൽ ഡൗൺലോഡ് ഡിലീറ്റ് സ്റ്റോറേജ് എംഎൽ കിറ്റ് ഗൂഗിൾ</string>
     <string name="search_kw_translate_only_downloaded">ഓഫ്‌ലൈൻ മോഡൽ പിക്കർ മെനു ഷോർട്ട് ഫിൽട്ടർ മറയ്ക്കുക</string>
-    <string name="search_kw_translate_server">openai compatible selfhosted hosted local llm ai model ollama llama studio vllm localai chat completions</string>
+    <string name="search_kw_translate_server">openai compatible selfhosted hosted local llm ai model ollama llama studio vllm localai chat completions mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">സ്പെൽ ചെക്ക്, ഓട്ടോകംപ്ലീറ്റ്, പ്രെഡിക്റ്റീവ് ടെക്സ്റ്റ്, ഗ്ലൈഡ്, സ്വൈപ്പ് ടൈപ്പിംഗ്, ജെസ്റ്ററുകൾ, കോൺടാക്റ്റുകൾ, അൺഡൂ</string>
     <string name="search_kw_typing_auto_capitalize">ഓട്ടോകയാപ്സ് ഓട്ടോകയാപ്പിറ്റലൈസ് ഓട്ടോകയാപ്പിറ്റലൈസേഷൻ</string>
     <string name="search_kw_typing_auto_close_brackets">ഓട്ടോക്ലോസ് പെയർ പാരന്തസിസ് ബ്രേസസ് പാരന്തസിസ് മാച്ചിംഗ് കംപ്ലീറ്റ് ക്ലോസിംഗ്</string>

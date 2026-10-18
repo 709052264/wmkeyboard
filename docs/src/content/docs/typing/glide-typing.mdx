@@ -261,7 +261,7 @@ This is also the one way a swipe can teach a capital. A capital the *keyboard* c
 | Forget my swipe style | | Deletes what the switch above learned, after a confirm. Learned words are not affected. |
 | Space after a glided word | On | Only shown while glide typing is the active swipe mode. A glided word is followed by a space; punctuation typed next takes it back. Turn off to commit the word bare. |
 | Backspace removes a glided word | On | Only shown while glide typing is the active swipe mode. One backspace right after a glide deletes the whole word and its space. Turn off to delete one character at a time instead. |
-| Swipe start distance | 2.0× | How far a touch has to travel, as a multiple of the system's touch slop, before it's read as the start of a glide rather than a tap. Range 0.5×–4×; lower is more sensitive but can mistake a stationary tap for a glide. |
+| Swipe start distance | 2.0× | How far a touch has to travel, as a multiple of the system's touch slop, before it's read as the start of a glide rather than a tap. Range 0.5×–4×; lower is more sensitive but can mistake a stationary tap for a glide. A stroke that starts a glide but never gets more than about two-thirds of a key from where it landed still types the key you pressed, so a tap that rolls a little during fast typing isn't lost. |
 | Delay after typing | 160 ms | A brief window right after a tap where a glide needs to travel further before it takes over, so fast tapping doesn't misfire into an accidental swipe. Range 0–500 ms; 0 turns it off. |
 | Trail width | 10 dp | Thickness of the trail at the head (the tail tapers to about 30% of this). Range 2–24 dp. |
 | Trail length | 350 ms | How long a point on the trail lingers before fading out. Range 100–1200 ms. |

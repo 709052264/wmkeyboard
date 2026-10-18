@@ -5846,7 +5846,7 @@
     <string name="search_kw_translate_engine">לא מקוון פרטי אינטרנט מצב טיסה מקומי מכשיר ערכת למידת מכונה גוגל הורדת מודל ענן</string>
     <string name="search_kw_translate_models">הורדת מודל תרגום לא מקוון מחיקת אחסון ml kit google</string>
     <string name="search_kw_translate_only_downloaded">הסתר מסנן בתפריט בחירת מודל לא מקוון קצר</string>
-    <string name="search_kw_translate_server">openai תואם אירוח עצמי מאוחסן מקומי llm מודל בינה מלאכותית ollama llama studio vllm localai השלמות צ\'אט</string>
+    <string name="search_kw_translate_server">openai תואם אירוח עצמי מאוחסן מקומי llm מודל בינה מלאכותית ollama llama studio vllm localai השלמות צ\'אט mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">בדיקת איות, השלמה אוטומטית, טקסט חזוי, הקלדת החלקה, מחוות, אנשי קשר, ביטול</string>
     <string name="search_kw_typing_auto_capitalize">אותיות גדולות אוטומטיות</string>
     <string name="search_kw_typing_auto_close_brackets">סגירה אוטומטית של סוגריים, זוגות סוגריים, התאמת סוגריים, השלמת סגירה</string>

@@ -339,7 +339,10 @@ private fun providerStatus(row: ResolvedProvider): Pair<String, Boolean> {
                 ?: row.url.takeIf { it.isNotBlank() }?.let(::hostOf)
                 ?: stringResource(R.string.providers_status_signed_in)
             type?.onDevice == true -> stringResource(R.string.providers_status_on_device)
-            row.url.isNotBlank() -> hostOf(row.url)
+            // A front end's engine beside its host: two Mozhi rows may differ in nothing else.
+            row.url.isNotBlank() -> type?.credential?.engine(row.model)
+                ?.let { hostOf(row.url) + stringResource(R.string.providers_tag_separator) + it.label }
+                ?: hostOf(row.url)
             row.usesBuiltInKey -> stringResource(R.string.providers_status_builtin_key)
             row.apiKey.isNotBlank() -> stringResource(R.string.providers_status_your_key)
             else -> stringResource(R.string.providers_status_no_key)
@@ -438,6 +441,10 @@ internal fun providerAccent(type: ProviderType?): Color = when (type?.id) {
     ProviderTypes.DEEPL.id -> Color(0xFF0F2B46)
     ProviderTypes.GOOGLE_TRANSLATE.id -> Color(0xFF1A73E8)
     ProviderTypes.LIBRETRANSLATE.id -> Color(0xFF1565C0)
+    ProviderTypes.MOZHI.id -> Color(0xFF7B5CBF)
+    ProviderTypes.SIMPLYTRANSLATE.id -> Color(0xFF2B6CB0)
+    ProviderTypes.LINGVA.id -> Color(0xFF38A169)
+    ProviderTypes.TRANSLITE.id -> Color(0xFFC05621)
     ProviderTypes.BRAVE.id -> Color(0xFFFB542B)
     ProviderTypes.TAVILY.id -> Color(0xFF3B5BDB)
     ProviderTypes.SEARXNG.id -> Color(0xFF3050FF)
@@ -613,6 +620,22 @@ private fun ProviderEditorSheet(
                     ),
                     keyboardType = KeyboardType.Uri,
                 ) { edit(draft.copy(url = it)) }
+            }
+            if (spec.engines.isNotEmpty()) {
+                Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                    ChoiceControl(
+                        options = spec.engines.map { it.id to it.label },
+                        selected = spec.engine(draft.model)?.id ?: spec.engines.first().id,
+                        label = stringResource(R.string.providers_field_engine),
+                        onChange = { picked: String -> edit(draft.copy(model = picked)) },
+                    )
+                    Text(
+                        stringResource(R.string.providers_field_engine_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+                }
             }
             // A home's key is a token pasted or a pairing made in its own section below, not a plain field.
             if (spec.key != Need.NONE && !home) {

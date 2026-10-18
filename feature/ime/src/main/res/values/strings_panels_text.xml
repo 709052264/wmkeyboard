@@ -305,6 +305,145 @@
     <!-- Gives the keyboard permission to read the calendar of the device. -->
     <string name="ime_calendar_allow_action">Allow</string>
     <string name="ime_calendar_no_events_empty">No events</string>
+    <string name="ime_calendar_new_event">New event</string>
+    <string name="ime_calendar_edit_event">Edit event</string>
+    <!-- %1$s is the title of an event that was being written and not saved. -->
+    <string name="ime_calendar_resume_draft">Unsaved event: %1$s</string>
+    <string name="ime_calendar_resume_action">Resume</string>
+    <string name="ime_calendar_discard_action">Discard</string>
+    <string name="ime_calendar_untitled">(No title)</string>
+    <string name="ime_calendar_title_hint">Title</string>
+    <string name="ime_calendar_location_hint">Add a place</string>
+    <string name="ime_calendar_notes_hint">Add notes</string>
+    <string name="ime_calendar_guest_hint">Name or email address</string>
+    <string name="ime_calendar_add_guest">Add guest</string>
+    <string name="ime_calendar_guests_invite_note">Your calendar account may email guests an invitation when it syncs.</string>
+    <string name="ime_calendar_contacts_action">Suggest from contacts</string>
+    <string name="ime_calendar_starts">Starts</string>
+    <string name="ime_calendar_ends">Ends</string>
+    <string name="ime_calendar_repeat_none">Doesn\'t repeat</string>
+    <string name="ime_calendar_repeat_custom">Custom repeat</string>
+    <plurals name="ime_calendar_repeat_daily">
+        <item quantity="one">Every day</item>
+        <item quantity="other">Every %d days</item>
+    </plurals>
+    <!-- %1$d is how many weeks apart; %2$s lists weekdays, like "Mon, Wed". -->
+    <plurals name="ime_calendar_repeat_weekly">
+        <item quantity="one">Weekly on %2$s</item>
+        <item quantity="other">Every %1$d weeks on %2$s</item>
+    </plurals>
+    <string name="ime_calendar_repeat_workdays">Every weekday (Monday to Friday)</string>
+    <plurals name="ime_calendar_repeat_monthly_day">
+        <item quantity="one">Monthly on day %2$d</item>
+        <item quantity="other">Every %1$d months on day %2$d</item>
+    </plurals>
+    <!-- %2$s is like "second Tuesday" or "last Friday". -->
+    <plurals name="ime_calendar_repeat_monthly_nth">
+        <item quantity="one">Monthly on the %2$s</item>
+        <item quantity="other">Every %1$d months on the %2$s</item>
+    </plurals>
+    <!-- %2$s is a day and month, like "19 Oct". -->
+    <plurals name="ime_calendar_repeat_yearly">
+        <item quantity="one">Yearly on %2$s</item>
+        <item quantity="other">Every %1$d years on %2$s</item>
+    </plurals>
+    <!-- Follows a repeat rule: ", until 3 Dec". -->
+    <string name="ime_calendar_repeat_until">, until %1$s</string>
+    <plurals name="ime_calendar_repeat_count">
+        <item quantity="one">, once</item>
+        <item quantity="other">, %d times</item>
+    </plurals>
+    <string-array name="ime_calendar_ordinals">
+        <item>first</item>
+        <item>second</item>
+        <item>third</item>
+        <item>fourth</item>
+        <item>fifth</item>
+    </string-array>
+    <string name="ime_calendar_ordinal_last">last</string>
+    <!-- %1$s is an ordinal like "second", %2$s a weekday like "Tuesday". -->
+    <string name="ime_calendar_nth_weekday">%1$s %2$s</string>
+    <string name="ime_calendar_repeat_every">Every</string>
+    <plurals name="ime_calendar_unit_days">
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
+    </plurals>
+    <plurals name="ime_calendar_unit_weeks">
+        <item quantity="one">week</item>
+        <item quantity="other">weeks</item>
+    </plurals>
+    <plurals name="ime_calendar_unit_months">
+        <item quantity="one">month</item>
+        <item quantity="other">months</item>
+    </plurals>
+    <plurals name="ime_calendar_unit_years">
+        <item quantity="one">year</item>
+        <item quantity="other">years</item>
+    </plurals>
+    <string name="ime_calendar_repeat_ends">Ends</string>
+    <string name="ime_calendar_repeat_never">Never</string>
+    <!-- %1$s is a date. -->
+    <string name="ime_calendar_repeat_on_date">On %1$s</string>
+    <plurals name="ime_calendar_repeat_after">
+        <item quantity="one">After %d time</item>
+        <item quantity="other">After %d times</item>
+    </plurals>
+    <string name="ime_calendar_more_repeats">More options</string>
+    <string name="ime_calendar_reminder_none">No reminder</string>
+    <string name="ime_calendar_reminder_at_start">At the start</string>
+    <plurals name="ime_calendar_reminder_minutes">
+        <item quantity="one">%d minute before</item>
+        <item quantity="other">%d minutes before</item>
+    </plurals>
+    <plurals name="ime_calendar_reminder_hours">
+        <item quantity="one">%d hour before</item>
+        <item quantity="other">%d hours before</item>
+    </plurals>
+    <plurals name="ime_calendar_reminder_days">
+        <item quantity="one">%d day before</item>
+        <item quantity="other">%d days before</item>
+    </plurals>
+    <string name="ime_calendar_add_reminder">Add reminder</string>
+    <string name="ime_calendar_busy">Busy</string>
+    <string name="ime_calendar_free">Free</string>
+    <!-- %1$s is the title of another event at the same time. -->
+    <string name="ime_calendar_overlaps">Overlaps %1$s</string>
+    <plurals name="ime_calendar_overlaps_more">
+        <item quantity="one">Overlaps %1$s and %2$d more</item>
+        <item quantity="other">Overlaps %1$s and %2$d more</item>
+    </plurals>
+    <!-- %1$s is a time zone, like "GMT-4". -->
+    <string name="ime_calendar_zone_note">Times in %1$s</string>
+    <string name="ime_calendar_minutes_short">%1$d min</string>
+    <string name="ime_calendar_hours_short">%1$d h</string>
+    <string name="ime_calendar_hours_minutes_short">%1$d h %2$d min</string>
+    <string name="ime_calendar_save">Save</string>
+    <string name="ime_calendar_cancel">Cancel</string>
+    <string name="ime_calendar_done">Done</string>
+    <string name="ime_calendar_edit">Edit</string>
+    <string name="ime_calendar_delete">Delete</string>
+    <string name="ime_calendar_insert">Insert as text</string>
+    <string name="ime_calendar_open_app">Open in calendar app</string>
+    <string name="ime_calendar_back_desc">Back to the month</string>
+    <string name="ime_calendar_settings_desc">Calendar settings</string>
+    <string name="ime_calendar_read_only">You can\'t change this event here: you\'re a guest, or the calendar is read-only.</string>
+    <string name="ime_calendar_scope_edit_title">Change a repeating event</string>
+    <string name="ime_calendar_scope_delete_title">Delete a repeating event</string>
+    <string name="ime_calendar_scope_this">This event</string>
+    <string name="ime_calendar_scope_following">This and following</string>
+    <string name="ime_calendar_scope_all">All events</string>
+    <string name="ime_calendar_error_end">The end is before the start.</string>
+    <string name="ime_calendar_error_no_calendar">There\'s no calendar you can add events to.</string>
+    <string name="ime_calendar_error_no_access">Calendar access wasn\'t allowed.</string>
+    <string name="ime_calendar_error_failed">Your calendar didn\'t accept the change.</string>
+    <string name="ime_calendar_error_no_app">No calendar app is installed.</string>
+    <string name="ime_calendar_undo_added">Event added</string>
+    <string name="ime_calendar_undo_changed">Event changed</string>
+    <string name="ime_calendar_undo_deleted">Event deleted</string>
+    <string name="ime_calendar_guest_yes">Going</string>
+    <string name="ime_calendar_guest_no">Not going</string>
+    <string name="ime_calendar_guest_maybe">Maybe</string>
+    <string name="ime_calendar_remove_desc">Remove</string>
 
     <!-- Themes tool panel. -->
     <!-- %1$s is the name of the keyboard mode that is active. -->

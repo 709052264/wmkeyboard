@@ -2782,7 +2782,25 @@ data class CalendarToolSettings(
     val weekend: Weekend = Weekend.SAT_SUN,
     /** Day offset applied to the tabular Hijri date (moon-sighting drift). */
     val hijriAdjustDays: Int = 0,
+    /** The calendar a new event goes in; -1 is the first writable one, primary first. */
+    val defaultCalendarId: Long = -1L,
+    /** How long a new event runs, in minutes. */
+    val defaultDurationMinutes: Int = 60,
+    /** A new event's reminder, in minutes before it starts; -1 for none. */
+    val defaultReminderMinutes: Int = 10,
+    /** Where Save puts an event: straight into the calendar, or the calendar app's editor. */
+    val saveMode: CalendarSaveMode = CalendarSaveMode.KEYBOARD,
 )
+
+/** How long a new calendar event may default to, in minutes: five minutes to eight hours. */
+val CalendarDurationRange = 5..480
+
+/**
+ * How the calendar tool's Save adds an event. [KEYBOARD] writes it directly
+ * (WRITE_CALENDAR, asked on the first save); [CALENDAR_APP] opens the
+ * calendar app's editor filled in, for the user to save there.
+ */
+enum class CalendarSaveMode { KEYBOARD, CALENDAR_APP }
 
 /**
  * The tools that read a sensor rather than a network: torch, compass, spirit
@@ -10091,6 +10109,10 @@ class SettingsRepository(private val context: Context) {
         private val CALENDAR_ALT_TWO = stringPreferencesKey("calendar_alt_two")
         private val CALENDAR_WEEKEND = stringPreferencesKey("calendar_weekend")
         private val HIJRI_ADJUST_DAYS = intPreferencesKey("hijri_adjust_days")
+        private val CALENDAR_DEFAULT_CALENDAR = longPreferencesKey("calendar_default_calendar")
+        private val CALENDAR_DEFAULT_DURATION = intPreferencesKey("calendar_default_duration")
+        private val CALENDAR_DEFAULT_REMINDER = intPreferencesKey("calendar_default_reminder")
+        private val CALENDAR_SAVE_MODE = stringPreferencesKey("calendar_save_mode")
         private val HANDWRITING_STYLUS_ONLY = booleanPreferencesKey("handwriting_stylus_only")
         private val HANDWRITING_COMMIT_DELAY = intPreferencesKey("handwriting_commit_delay")
         private val HANDWRITING_AUTO_SPACE = booleanPreferencesKey("handwriting_auto_space")
@@ -12206,6 +12228,12 @@ class SettingsRepository(private val context: Context) {
             weekend = p[CALENDAR_WEEKEND]?.let { Weekend.fromId(it) }
                 ?: Weekend.forRegion(deviceRegion),
             hijriAdjustDays = p[HIJRI_ADJUST_DAYS] ?: defaults.calendarTool.hijriAdjustDays,
+            defaultCalendarId = p[CALENDAR_DEFAULT_CALENDAR] ?: defaults.calendarTool.defaultCalendarId,
+            defaultDurationMinutes = p[CALENDAR_DEFAULT_DURATION]?.coerceIn(CalendarDurationRange)
+                ?: defaults.calendarTool.defaultDurationMinutes,
+            defaultReminderMinutes = p[CALENDAR_DEFAULT_REMINDER] ?: defaults.calendarTool.defaultReminderMinutes,
+            saveMode = p[CALENDAR_SAVE_MODE]?.let { v -> CalendarSaveMode.entries.firstOrNull { it.name == v } }
+                ?: defaults.calendarTool.saveMode,
         )
 
     private fun readVoiceBar(p: Preferences, defaults: KeyboardSettings) =
@@ -13409,6 +13437,19 @@ class SettingsRepository(private val context: Context) {
     suspend fun setCalendarWeekend(value: Weekend) =
         editPrefs { it[CALENDAR_WEEKEND] = value.id }
 
+    suspend fun setCalendarDefaultCalendar(value: Long) =
+        editPrefs { it[CALENDAR_DEFAULT_CALENDAR] = value }
+
+    suspend fun setCalendarDefaultDuration(minutes: Int) =
+        editPrefs { it[CALENDAR_DEFAULT_DURATION] = minutes.coerceIn(CalendarDurationRange) }
+
+    /** Minutes before the start, or -1 for no reminder. */
+    suspend fun setCalendarDefaultReminder(minutes: Int) =
+        editPrefs { it[CALENDAR_DEFAULT_REMINDER] = minutes.coerceAtLeast(-1) }
+
+    suspend fun setCalendarSaveMode(value: CalendarSaveMode) =
+        editPrefs { it[CALENDAR_SAVE_MODE] = value.name }
+
     /**
      * The device's region, for the settings whose sensible default depends on
      * where the phone is rather than on a value anyone could pick globally.
@@ -14372,14 +14413,16 @@ class SettingsRepository(private val context: Context) {
             val current = prefs[CUSTOM_LAYOUTS]?.let { LayoutCodec.decodeList(it) }.orEmpty()
             prefs[CUSTOM_LAYOUTS] = LayoutCodec.encodeList(current.filter { it.id != id })
             if (isShippedLayoutId(id)) return@editPrefs
-            prefs[ENABLED_LAYOUT_IDS]?.let { stored ->
-                val kept = stored.split(',')
+            val kept = prefs[ENABLED_LAYOUT_IDS]?.let { stored ->
+                stored.split(',')
                     .filter { it.isNotEmpty() && it != id }
                     .ifEmpty { listOf(BuiltInLayouts.DEFAULT_ID) }
-                prefs[ENABLED_LAYOUT_IDS] = kept.joinToString(",")
+                    .also { prefs[ENABLED_LAYOUT_IDS] = it.joinToString(",") }
             }
+            // The first stop left in the cycle, like [setEnabledLayoutIds]:
+            // the built-in default may be a layout the user removed (#783).
             if (prefs[ACTIVE_LAYOUT_ID] == id) {
-                prefs[ACTIVE_LAYOUT_ID] = BuiltInLayouts.DEFAULT_ID
+                prefs[ACTIVE_LAYOUT_ID] = kept?.first() ?: BuiltInLayouts.DEFAULT_ID
             }
         }
 

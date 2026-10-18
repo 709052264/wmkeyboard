@@ -25,6 +25,19 @@ sealed interface ToolPrefill {
     /** The calendar opens showing (and selecting) this Gregorian day. */
     data class Calendar(val year: Int, val month: Int, val day: Int) : ToolPrefill
 
+    /**
+     * A new event the calendar opens its editor on: from selected text read
+     * as a date ("Add to calendar"). An [allDay] one is the days [start] and
+     * [end] fall on in [zoneId], the zone the text named or else the device's.
+     */
+    data class CalendarEvent(
+        val title: String,
+        val start: Long,
+        val end: Long,
+        val allDay: Boolean,
+        val zoneId: String,
+    ) : ToolPrefill
+
     /** A term the dictionary or Wikipedia panel looks up as it opens. */
     data class Lookup(val term: String) : ToolPrefill
 

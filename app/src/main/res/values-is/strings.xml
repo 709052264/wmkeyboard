@@ -5843,7 +5843,7 @@
     <string name="search_kw_translate_engine">ótengt einkamál internet flugvél staðbundið tæki ml kit google líkan niðurhal ský</string>
     <string name="search_kw_translate_models">niðurhal á þýðingarlíkani án nettengingar eyða geymslu ml kit google</string>
     <string name="search_kw_translate_only_downloaded">fela síu fyrir valmynd af ótengdum gerðum</string>
-    <string name="search_kw_translate_server">openai samhæft sjálfýst hýst staðbundið llm gervigreindargerð ollama llama studio vllm localai spjall</string>
+    <string name="search_kw_translate_server">openai samhæft sjálfýst hýst staðbundið llm gervigreindargerð ollama llama studio vllm localai spjall mozhi simplytranslate lingva translite libretranslate</string>
     <string name="search_kw_typing">villuleit, sjálfvirk útfylling, spátexti, renniritun, strjúkritun, bendingar, tengiliðir, afturkalla</string>
     <string name="search_kw_typing_auto_capitalize">sjálfvirkir hástafir sjálfvirk hástafasetning</string>
     <string name="search_kw_typing_auto_close_brackets">sjálfvirk lokun sviga svigar passa við lokið</string>
