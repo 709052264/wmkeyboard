@@ -78,14 +78,14 @@ Both converters are also reachable inline. Typing `1 ft` or `150 usd` on the str
 - **Decimal places**: a slider from 0 to 6, defaulting to **2**.
 - **Write the result as**: how a currency chip names the currency it converted into. **Name** (the default) writes `96.04 Rupee`, **Symbol** writes `₹96.04` and **Code** writes `96.04 INR`. A currency with no symbol of its own falls back to its code, and coins keep their ticker whichever you pick.
 - **Refresh rates every**: a slider from 1 to 48 hours, defaulting to **6**. Upstream rates only update about once a day, so anything under 24 hours mostly changes how soon a *failed* fetch gets retried.
-- **Currency rates from**: which source to fetch fiat rates from, either ExchangeRate-API (the default, or currency-api in the F-Droid edition), Frankfurter, Coinbase, or the jsDelivr currency-api. **Try the other sources** underneath decides whether the rest stand behind it as fallbacks.
+- **Currency rates from**: a [provider list](/tools/providers/) of where fiat rates come from, best first: ExchangeRate-API, Frankfurter, Coinbase and the jsDelivr currency-api. The tool asks the first one that is on and the next only when it fails. Drag to reorder, switch a source off, or add one back. It starts with ExchangeRate-API then Frankfurter, or currency-api then Frankfurter in the F-Droid edition. Switch every source off and nothing is fetched.
 
 <SettingsPath path="Tools / Currency converter / Cryptocurrency" />
 
 - **Convert coins**: on by default. Reads amounts like `1 btc` and shows the Crypto section on the panel.
 - **Coin decimal places**: a slider from Auto to 12, defaulting to **Auto**. On Auto the panel keeps up to twelve decimal places and trims the trailing zeros, and the inline chip keeps five significant digits. Pick a number instead and both work to that count.
 - **Refresh coin prices every**: a slider from 1 to 60 minutes, defaulting to **5**.
-- **Coin prices from**: Coinbase (the default, or currency-api in the F-Droid edition), the jsDelivr currency-api, or CoinGecko, with the same **Try the other sources** switch.
+- **Coin prices from**: the same kind of list for coins: Coinbase, the jsDelivr currency-api and CoinGecko. It starts with Coinbase then currency-api, or currency-api alone in the F-Droid edition.
 - **Coins**: a chip for each of the 39 coins the keyboard knows, 20 of them on to begin with, plus **Add a ticker** for anything else your source quotes. At least one coin always stays on.
 
 [Power saving mode](/typing/power-saving/) doesn't touch either converter's own network fetch. Its background-network toggle only forces off clipboard link previews, QR-scan link previews and dictionary auto-lookup, never the currency panel opening or refreshing. See [network policy](/privacy/network/) for what leaves the device and when.

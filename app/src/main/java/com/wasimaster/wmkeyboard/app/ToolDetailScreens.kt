@@ -42,7 +42,6 @@ import com.wasimaster.wmkeyboard.core.tools.ReplyEmoji
 import com.wasimaster.wmkeyboard.core.tools.ReplyImageMode
 import com.wasimaster.wmkeyboard.core.tools.ReplyLength
 import com.wasimaster.wmkeyboard.core.tools.CryptoCatalog
-import com.wasimaster.wmkeyboard.core.tools.CurrencyClient
 import com.wasimaster.wmkeyboard.core.tools.CurrencyLabel
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
@@ -2924,17 +2923,16 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.currencyCacheHours.toFloat(),
                     ) { scope.launch { repository.setCurrencyCacheHours(it.toInt()) } }
                 }
-                item {
-                    RateSourceSetting(
-                        title = R.string.tooldetail_currency_source_title,
-                        subtitle = stringResource(R.string.tooldetail_currency_source_subtitle),
-                        providers = settings.watch { it.rateSources.fiatProviders },
-                        defaultProviders = SettingsDefaults.rateSources.fiatProviders,
-                        candidates = CurrencyClient.Provider.entries.filter { it.fiat },
-                    ) { scope.launch { repository.setFiatProviders(it) } }
-                }
                 serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.CURRENCY_API, ServiceEndpoint.CURRENCY_API_MIRROR, ServiceEndpoint.FRANKFURTER, ServiceEndpoint.ER_API))
             }
+            // Where rates come from, best first; the next is asked when one fails.
+            ProvidersGroup(
+                repository,
+                settings,
+                ProviderTool.CURRENCY_FIAT,
+                titleRes = R.string.tooldetail_currency_source_title,
+                info = stringResource(R.string.tooldetail_currency_source_subtitle),
+            )
             SettingsGroup(
                 stringResource(R.string.tooldetail_crypto_group_title),
                 info = stringResource(R.string.tooldetail_crypto_info),
@@ -2972,18 +2970,18 @@ internal fun ToolDetailSettings(
                             default = SettingsDefaults.rateSources.cryptoCacheMinutes.toFloat(),
                         ) { scope.launch { repository.setCryptoCacheMinutes(it.toInt()) } }
                     }
-                    item {
-                        RateSourceSetting(
-                            title = R.string.tooldetail_crypto_source_title,
-                            subtitle = stringResource(R.string.tooldetail_crypto_source_subtitle),
-                            providers = settings.watch { it.rateSources.cryptoProviders },
-                            defaultProviders = SettingsDefaults.rateSources.cryptoProviders,
-                            candidates = CurrencyClient.Provider.entries.filter { it.crypto },
-                        ) { scope.launch { repository.setCryptoProviders(it) } }
-                    }
                     serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.COINBASE, ServiceEndpoint.COINGECKO))
                     item { CryptoCoinPicker(repository, settings) }
                 }
+            }
+            if (cryptoOn) {
+                ProvidersGroup(
+                    repository,
+                    settings,
+                    ProviderTool.CURRENCY_CRYPTO,
+                    titleRes = R.string.tooldetail_crypto_source_title,
+                    info = stringResource(R.string.tooldetail_crypto_source_subtitle),
+                )
             }
         }
         ToolbarTool.QR_GEN -> {
@@ -3179,57 +3177,6 @@ internal fun ToolDetailSettings(
         }
         else -> {}
     }
-}
-/** The display name of a rate provider. Ids are stored, names are shown. */
-@Composable
-private fun providerLabel(provider: CurrencyClient.Provider): String = stringResource(
-    when (provider) {
-        CurrencyClient.Provider.ER_API -> R.string.tooldetail_rate_source_er_api
-        CurrencyClient.Provider.FRANKFURTER -> R.string.tooldetail_rate_source_frankfurter
-        CurrencyClient.Provider.COINBASE -> R.string.tooldetail_rate_source_coinbase
-        CurrencyClient.Provider.CURRENCY_API -> R.string.tooldetail_rate_source_currency_api
-        CurrencyClient.Provider.COINGECKO -> R.string.tooldetail_rate_source_coingecko
-    },
-)
-/**
- * Which source to fetch from, and whether the rest stand behind it. Both
- * answers are one stored list: the head is the source that is tried and the
- * tail is the fallback chain, so switching fallbacks off simply drops the
- * tail.
- */
-@Composable
-private fun RateSourceSetting(
-    @StringRes title: Int,
-    subtitle: String,
-    providers: List<String>,
-    defaultProviders: List<String>,
-    candidates: List<CurrencyClient.Provider>,
-    onChange: (List<String>) -> Unit,
-) {
-    val primary = providers.firstNotNullOfOrNull { CurrencyClient.Provider.of(it) }
-        ?: candidates.first()
-    val fallback = providers.size > 1
-    // Both rows are views onto the one stored list, so both read their default
-    // off the list the app shipped with rather than off a constant of their own.
-    val defaultPrimary = defaultProviders.firstNotNullOfOrNull { CurrencyClient.Provider.of(it) }
-        ?: candidates.first()
-    fun write(head: CurrencyClient.Provider, withFallback: Boolean) {
-        val rest = if (withFallback) candidates.filter { it != head }.map { it.name } else emptyList()
-        onChange(listOf(head.name) + rest)
-    }
-    ChoiceSetting(
-        title = title,
-        subtitle = subtitle,
-        options = candidates.map { it to providerLabel(it) },
-        selected = primary,
-        default = defaultPrimary,
-    ) { write(it, fallback) }
-    ToggleSetting(
-        R.string.tooldetail_rate_fallback_title,
-        stringResource(R.string.tooldetail_rate_fallback_subtitle),
-        fallback,
-        default = defaultProviders.size > 1,
-    ) { write(primary, it) }
 }
 /**
  * The coins the keyboard reads and offers. An empty stored set means the

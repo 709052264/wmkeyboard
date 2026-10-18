@@ -1,6 +1,9 @@
 package com.wasimaster.wmkeyboard.ime
 
 import androidx.annotation.StringRes
+import com.wasimaster.wmkeyboard.core.settings.fiatRateProviders
+import com.wasimaster.wmkeyboard.core.settings.cryptoRateProviders
+import com.wasimaster.wmkeyboard.core.tools.NoRateProviderException
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import android.app.AppOpsManager
@@ -29036,7 +29039,7 @@ open class WMKeyboardService : InputMethodService() {
         currencyJob = serviceScope.launch {
             val fiat = if (needFiat) {
                 withContext(Dispatchers.IO) {
-                    runCatching { CurrencyClient.fetchRates(sources.fiatProviders) }
+                    runCatching { CurrencyClient.fetchRates(settings.fiatRateProviders().ifEmpty { throw NoRateProviderException() }) }
                 }
             } else {
                 null
@@ -29045,7 +29048,7 @@ open class WMKeyboardService : InputMethodService() {
                 withContext(Dispatchers.IO) {
                     runCatching {
                         CurrencyClient.fetchCryptoRates(
-                            sources.cryptoProviders,
+                            settings.cryptoRateProviders().ifEmpty { throw NoRateProviderException() },
                             CryptoCatalog.enabled(sources.cryptoTickers),
                         )
                     }

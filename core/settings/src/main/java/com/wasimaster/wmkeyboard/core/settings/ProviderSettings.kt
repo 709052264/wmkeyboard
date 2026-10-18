@@ -114,6 +114,18 @@ val KeyboardSettings.deeplLive: DeepLSettings
         return translate.deepl.copy(apiKey = credential?.apiKey.orEmpty(), endpoint = credential?.url.orEmpty())
     }
 
+/**
+ * The currency lists as `CurrencyClient.Provider` names, best first, the rows
+ * that are off left out. Empty when the user switched every one off, which
+ * the callers take as "fetch nothing" rather than the client's defaults.
+ */
+fun KeyboardSettings.fiatRateProviders(): List<String> =
+    resolveProviders(ProviderTool.CURRENCY_FIAT).map { it.typeId.uppercase(java.util.Locale.ROOT) }
+
+/** The same for coin prices. */
+fun KeyboardSettings.cryptoRateProviders(): List<String> =
+    resolveProviders(ProviderTool.CURRENCY_CRYPTO).map { it.typeId.uppercase(java.util.Locale.ROOT) }
+
 /** How [tool] uses its list. */
 fun KeyboardSettings.providerMode(tool: ProviderTool, env: ProviderEnv = ProviderEnvironment.current()): ChainMode =
     providerChain(tool, env).mode

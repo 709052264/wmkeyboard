@@ -1,6 +1,8 @@
 package com.wasimaster.wmkeyboard.core.tools
 
 import android.content.Context
+import com.wasimaster.wmkeyboard.core.settings.fiatRateProviders
+import com.wasimaster.wmkeyboard.core.settings.cryptoRateProviders
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import android.content.Intent
@@ -526,7 +528,7 @@ class AiToolRunner(
         val from = currencyCode(call.argument("from") ?: return missing(call, "from"))
         val to = currencyCode(call.argument("to") ?: return missing(call, "to"))
         val sources = settings.rateSources
-        val fiat = fiatRates(sources.fiatProviders, settings.currencyCacheHours)
+        val fiat = fiatRates(settings.fiatRateProviders().ifEmpty { throw NoRateProviderException() }, settings.currencyCacheHours)
         val coins = setOf(from, to).filter { code ->
             code !in fiat.rates && CryptoCatalog.coins.any { it.code == code }
         }.toSet()
@@ -534,7 +536,7 @@ class AiToolRunner(
             fiat
         } else {
             // Units per US dollar, like the fiat table, so the two fold together.
-            val raw = CurrencyClient.fetchCryptoRates(sources.cryptoProviders, coins)
+            val raw = CurrencyClient.fetchCryptoRates(settings.cryptoRateProviders().ifEmpty { throw NoRateProviderException() }, coins)
             fiat.copy(rates = fiat.rates + raw.filterKeys { it !in fiat.rates }, crypto = raw.keys)
         }
         for (code in listOf(from, to)) {
