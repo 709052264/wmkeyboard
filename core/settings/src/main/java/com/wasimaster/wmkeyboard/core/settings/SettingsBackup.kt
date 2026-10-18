@@ -119,12 +119,6 @@ object SettingsBackup {
     const val AUTO_BACKUP_LAST_RUN_AT = "auto_backup_last_run_at"
     const val AUTO_BACKUP_LAST_ERROR = "auto_backup_last_error"
 
-    /** The Home Assistant sign-in: the tokens and what describes them. The expiry alone says when a token was minted. */
-    const val HA_ACCESS_TOKEN = "ha_access_token"
-    const val HA_REFRESH_TOKEN = "ha_refresh_token"
-    const val HA_TOKEN_EXPIRES_AT = "ha_token_expires_at"
-    const val HA_LONG_LIVED_TOKEN = "ha_long_lived_token"
-
     /**
      * Credentials, kept out of an export unless explicitly asked for. A
      * settings file is the kind of thing people mail to themselves or drop
@@ -136,10 +130,6 @@ object SettingsBackup {
      */
     val SECRET_KEYS = setOf(
         AUTO_BACKUP_PASSPHRASE,
-        HA_ACCESS_TOKEN,
-        HA_REFRESH_TOKEN,
-        HA_TOKEN_EXPIRES_AT,
-        HA_LONG_LIVED_TOKEN,
         AUTO_BACKUP_WEBDAV_PASSWORD,
         AUTO_BACKUP_S3_SECRET,
         AUTO_BACKUP_FTP_PASSWORD,

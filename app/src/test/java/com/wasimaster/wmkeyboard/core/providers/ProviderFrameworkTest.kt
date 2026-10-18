@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.providers
 
+import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeKeys
+import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeKind
 import com.wasimaster.wmkeyboard.core.settings.DeepLSettings
 import com.wasimaster.wmkeyboard.core.settings.GifSettings
 import com.wasimaster.wmkeyboard.core.settings.GifSourceMode
@@ -13,6 +15,8 @@ import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
 import com.wasimaster.wmkeyboard.core.settings.TranslateServerSettings
 import com.wasimaster.wmkeyboard.core.settings.TranslateSettings
 import com.wasimaster.wmkeyboard.core.settings.WebSearchSettings
+import com.wasimaster.wmkeyboard.core.settings.assistHome
+import com.wasimaster.wmkeyboard.core.settings.homes
 import com.wasimaster.wmkeyboard.core.settings.providerChain
 import com.wasimaster.wmkeyboard.core.settings.providerCredentials
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
@@ -240,6 +244,68 @@ class ProviderFrameworkTest {
         val empty = KeyboardSettings(rateSources = RateSourceSettings(fiatProviders = emptyList()))
         assertEquals(listOf("currency_api", "frankfurter"), ids(empty.providerChain(ProviderTool.CURRENCY_FIAT, fdroid)))
         assertEquals(listOf("er_api", "frankfurter"), ids(empty.providerChain(ProviderTool.CURRENCY_FIAT, play)))
+    }
+
+    @Test
+    fun `extra survives the codec, and a credential without it reads as empty`() {
+        val home = ProviderCredential(
+            "home_assistant:01", "home_assistant", name = "Flat", url = "ha.local",
+            extra = mapOf(HomeKeys.ACCESS_TOKEN to "t", HomeKeys.EXTERNAL_URL to "https://x.ui.nabu.casa"),
+        )
+        val back = ProviderCodec.decodeCredentials(ProviderCodec.encodeCredentials(listOf(home)))!!.single()
+        assertEquals(home, back)
+        val old = ProviderCodec.decodeCredentials("""[{"id":"klipy","typeId":"klipy","apiKey":"k"}]""")!!.single()
+        assertTrue(old.extra.isEmpty())
+        // Nothing to say: an empty map is left out of the JSON.
+        assertFalse(ProviderCodec.encodeCredentials(listOf(old)).contains("extra"))
+    }
+
+    @Test
+    fun `the smart home list starts empty, and a home says what it still needs`() {
+        assertTrue(KeyboardSettings().providerChain(ProviderTool.SMART_HOME, play).entries.isEmpty())
+        assertEquals(ChainMode.MIX, KeyboardSettings().providerChain(ProviderTool.SMART_HOME, play).mode)
+
+        val withHomes = KeyboardSettings(
+            providers = ProviderSettings(
+                credentials = listOf(
+                    ProviderCredential("home_assistant:01", "home_assistant", url = "ha.local"),
+                    ProviderCredential("home_assistant:02", "home_assistant", url = "ha2.local", apiKey = "LONG"),
+                    ProviderCredential("smartthings", "smartthings"),
+                    ProviderCredential("hue:01", "hue", url = "192.168.1.9"),
+                    ProviderCredential("openhab:01", "openhab", url = "http://oh:8080", apiKey = "tok"),
+                    ProviderCredential("google_home", "google_home", extra = mapOf(HomeKeys.GRANTED to "1", HomeKeys.STRUCTURE_ID to "s")),
+                ),
+                chains = mapOf(
+                    ProviderTool.SMART_HOME to ProviderChain(
+                        listOf(
+                            ProviderEntry("home_assistant", "home_assistant:01"),
+                            ProviderEntry("home_assistant", "home_assistant:02"),
+                            ProviderEntry("smartthings"),
+                            ProviderEntry("hue", "hue:01"),
+                            ProviderEntry("openhab", "openhab:01"),
+                            ProviderEntry("google_home"),
+                        ),
+                        ChainMode.MIX,
+                    ),
+                ),
+            ),
+        )
+        val rows = withHomes.resolveProviders(ProviderTool.SMART_HOME, play, all = true).associate { it.key to it.problem }
+        assertEquals(ProviderProblem.NEEDS_SIGN_IN, rows["home_assistant:01"])
+        assertNull(rows["home_assistant:02"])
+        assertEquals(ProviderProblem.NEEDS_SIGN_IN, rows["smartthings"])
+        assertEquals(ProviderProblem.NEEDS_SIGN_IN, rows["hue:01"])
+        assertNull(rows["openhab:01"])
+        // No Home APIs in this build: unavailable, not "sign in".
+        assertEquals(ProviderProblem.UNAVAILABLE, rows["google_home"])
+        assertNull(withHomes.resolveProviders(ProviderTool.SMART_HOME, play.copy(googleHome = true), all = true).first { it.key == "google_home" }.problem)
+
+        val homes = withHomes.homes(play.copy(googleHome = true))
+        assertEquals(listOf("home_assistant:02", "openhab:01", "google_home"), homes.map { it.key })
+        assertEquals(HomeKind.OPENHAB, homes[1].kind)
+        assertEquals("tok", homes[1].apiKey)
+        assertEquals("home_assistant:02", withHomes.assistHome(play)!!.key)
+        assertTrue(withHomes.homes(play).none { it.kind == HomeKind.GOOGLE_HOME })
     }
 
     @Test

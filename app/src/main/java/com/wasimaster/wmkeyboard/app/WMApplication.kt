@@ -89,7 +89,10 @@ open class WMApplication : Application() {
         )
         // Whether the translate list can offer the on-device engine: ML Kit
         // sits above the module that keeps the provider lists.
-        ProviderEnvironment.install(onDeviceTranslate = OnDeviceTranslator.AVAILABLE)
+        ProviderEnvironment.install(
+            onDeviceTranslate = OnDeviceTranslator.AVAILABLE,
+            googleHome = com.wasimaster.wmkeyboard.config.BuildConfig.ENABLE_GOOGLE_HOME,
+        )
         // Where the Dictionary tool's offline dictionaries live, for a
         // look-up from the keyboard or the AI tool alike. Only a path: before
         // the unlock nothing is read, and a look-up then finds nothing.

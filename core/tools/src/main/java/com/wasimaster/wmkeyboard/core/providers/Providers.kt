@@ -33,6 +33,9 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
     PHOTOS("photos", listOf(ChainMode.MIX), R.string.core_tools_provider_tool_photos),
     CURRENCY_FIAT("currency_fiat", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_currency_fiat),
     CURRENCY_CRYPTO("currency_crypto", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_currency_crypto),
+
+    /** The smart home panel: every home on the list is connected at once, in list order. */
+    SMART_HOME("smart_home", listOf(ChainMode.MIX), R.string.core_tools_provider_tool_smart_home),
     ;
 
     companion object {
@@ -282,6 +285,42 @@ object ProviderTypes {
         "coingecko", COINS, R.string.core_tools_provider_coingecko, R.string.core_tools_provider_coingecko_desc,
     )
 
+    // ---- Smart home. The ids are `HomeKind.typeId` in :core:homeassistant; keep them in step.
+
+    private val HOMES = setOf(ProviderTool.SMART_HOME)
+
+    /**
+     * The address is the home one; the remote address, the sign-in tokens and
+     * what the server said about itself live in the credential's `extra`. A
+     * pasted long-lived token is the key.
+     */
+    val HOME_ASSISTANT = ProviderType(
+        "home_assistant", HOMES, R.string.core_tools_provider_home_assistant, R.string.core_tools_provider_home_assistant_desc,
+        CredentialSpec(url = Need.REQUIRED, key = Need.OPTIONAL), multiInstance = true, freeSoftware = true, selfHosted = true,
+    )
+
+    /** Google's Home APIs through Play services; the grant lives in `extra`. Only where the build carries the OAuth client. */
+    val GOOGLE_HOME = ProviderType(
+        "google_home", HOMES, R.string.core_tools_provider_google_home, R.string.core_tools_provider_google_home_desc,
+    )
+
+    /** A browser sign-in fills `extra`; a pasted personal access token (24 hours) is the key. */
+    val SMARTTHINGS = ProviderType(
+        "smartthings", HOMES, R.string.core_tools_provider_smartthings, R.string.core_tools_provider_smartthings_desc,
+        CredentialSpec(key = Need.OPTIONAL),
+    )
+
+    /** A Hue bridge on the LAN: the address, and the application key pairing gives. */
+    val HUE = ProviderType(
+        "hue", HOMES, R.string.core_tools_provider_hue, R.string.core_tools_provider_hue_desc,
+        CredentialSpec(url = Need.REQUIRED, key = Need.REQUIRED), multiInstance = true, selfHosted = true,
+    )
+
+    val OPENHAB = ProviderType(
+        "openhab", HOMES, R.string.core_tools_provider_openhab, R.string.core_tools_provider_openhab_desc,
+        CredentialSpec(url = Need.REQUIRED, key = Need.OPTIONAL), multiInstance = true, freeSoftware = true, selfHosted = true,
+    )
+
     val all: List<ProviderType> = listOf(
         KLIPY, GIPHY, COMMONS, GIFCITIES, OFFLINE_GIFS, STICKER_PACKS,
         ML_KIT, TRANSLATE_SERVER, DEEPL, LIBRETRANSLATE, GOOGLE_TRANSLATE,
@@ -290,6 +329,7 @@ object ProviderTypes {
         SEARXNG, TAVILY, BRAVE,
         UNSPLASH, PEXELS,
         ER_API, FRANKFURTER, COINBASE, CURRENCY_API, COINGECKO,
+        HOME_ASSISTANT, GOOGLE_HOME, SMARTTHINGS, HUE, OPENHAB,
     )
 
     private val byId: Map<String, ProviderType> = all.associateBy { it.id }
@@ -306,6 +346,11 @@ object ProviderTypes {
  * one gets a fresh id per server.
  *
  * A blank [apiKey] on a type with a built-in key means "use the build's key".
+ *
+ * [extra] holds what the four fields cannot: a sign-in's refresh token and
+ * expiry, a second address, a bridge id. Its keys are the type's business
+ * (`HomeKeys` for the smart home kinds); a reader never sees a key it does
+ * not know, and an older build reads a credential without the field as empty.
  */
 @Serializable
 data class ProviderCredential(
@@ -315,6 +360,7 @@ data class ProviderCredential(
     val apiKey: String = "",
     val url: String = "",
     val model: String = "",
+    val extra: Map<String, String> = emptyMap(),
 ) {
     val type: ProviderType? get() = ProviderTypes.of(typeId)
 
