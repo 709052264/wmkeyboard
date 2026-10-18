@@ -21,7 +21,10 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.security.MessageDigest
+import java.security.SecureRandom
 import java.security.cert.X509Certificate
+import java.util.Base64
 import javax.net.ssl.SSLSocket
 
 /**
@@ -89,6 +92,15 @@ class KdeConnectEngine(
     @Volatile private var config = KdeEngineConfig()
     @Volatile private var discovering = false
     @Volatile private var running = false
+
+    /**
+     * Pins every socket this engine dials or announces from to one network;
+     * null (the default) leaves them on the system's default route. Read as
+     * each socket is created, so it may be installed before [start] or
+     * changed while running: the announce socket is made at [start], a dial
+     * socket per connection. See [KdeSocketBinder].
+     */
+    @Volatile var socketBinder: KdeSocketBinder? = null
 
     private val trust = KdeTrustStore(dir)
     private var identity: KdeLocalIdentity? = null
@@ -167,7 +179,7 @@ class KdeConnectEngine(
         val secure = KdeTls(me, tlsProtocols)
         identity = me
         tls = secure
-        payloads = PayloadTransfer(secure, ports, traffic)
+        payloads = PayloadTransfer(secure, ports, traffic, binder = { socketBinder })
         val lan = LanTransport(
             scope = scope,
             self = ::selfInfo,
@@ -177,6 +189,7 @@ class KdeConnectEngine(
             allowLoopback = allowLoopback,
             now = now,
             log = log,
+            binder = { socketBinder },
             wantsDial = ::wantsDial,
             onLink = ::onLink,
         )
@@ -318,6 +331,44 @@ class KdeConnectEngine(
             }
         }
         runEffects(deviceId, record, effects)
+    }
+
+    /** The token a pairing code of ours carries, and when it stops being good. */
+    private class PairToken(val value: String, val expiresAtMs: Long)
+
+    @Volatile private var pairToken: PairToken? = null
+
+    /**
+     * Mints the one-time token for a pairing code this device shows (a QR
+     * code the other phone scans). A pair request that brings it back within
+     * [ttlMs] is accepted without a prompt: whoever scanned the code was
+     * standing at this screen, which is the question the prompt asks. One
+     * token is live at a time; issuing another retires the last. A request
+     * with a wrong or stale token is treated as any other and prompts.
+     */
+    fun issuePairToken(ttlMs: Long = DEFAULT_PAIR_TOKEN_TTL_MS): String {
+        val bytes = ByteArray(PAIR_TOKEN_BYTES)
+        SecureRandom().nextBytes(bytes)
+        val token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+        pairToken = PairToken(token, now() + ttlMs)
+        return token
+    }
+
+    /** True exactly once per issued token: the token is spent whether or not pairing then completes. */
+    private fun consumePairToken(presented: String): Boolean = synchronized(lock) {
+        val live = pairToken
+        when {
+            live == null -> false
+            now() > live.expiresAtMs -> {
+                pairToken = null
+                false
+            }
+            MessageDigest.isEqual(live.value.toByteArray(Charsets.UTF_8), presented.toByteArray(Charsets.UTF_8)) -> {
+                pairToken = null
+                true
+            }
+            else -> false
+        }
     }
 
     fun requestPair(deviceId: String) {
@@ -493,7 +544,19 @@ class KdeConnectEngine(
         val id = link.info.id
         val record = synchronized(lock) { records[id] } ?: return
         if (packet.type == KdeTypes.PAIR) {
-            apply(id, record) { it.onPacket(packet, now()) }
+            val token = packet.string("wmkToken")
+            val effects = synchronized(record.pairing) {
+                val stepped = record.pairing.onPacket(packet, now())
+                // A request carrying the live token was sent by whoever
+                // scanned our code: answer it the way the user's Accept
+                // would, instead of asking. Anything else runs as usual.
+                if (token != null && stepped.any { it is KdePairing.Effect.AskUser } && consumePairToken(token)) {
+                    stepped.filter { it !is KdePairing.Effect.AskUser } + record.pairing.accept()
+                } else {
+                    stepped
+                }
+            }
+            runEffects(id, record, effects)
             return
         }
         if (packet.type == KdeTypes.IDENTITY) return
@@ -729,6 +792,8 @@ class KdeConnectEngine(
 
     private companion object {
         const val MAX_UNPAIRED_LINKS = 42
+        const val DEFAULT_PAIR_TOKEN_TTL_MS = 10 * 60_000L
+        const val PAIR_TOKEN_BYTES = 24
         const val DUPLICATE_WINDOW_MS = 3_000L
         const val STALE_LINK_MS = 45_000L
         val ANNOUNCE_RAMP_MS = longArrayOf(1_500L, 3_500L, 5_000L)

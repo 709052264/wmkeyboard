@@ -164,6 +164,7 @@ internal class PayloadTransfer(
     private val tls: KdeTls,
     private val ports: KdePorts,
     private val traffic: KdeTrafficMeter? = null,
+    private val binder: () -> KdeSocketBinder? = { null },
 ) {
     /** A listening socket for one upload. Closed by [serve] or by the caller on failure. */
     fun listen(): ServerSocket? {
@@ -231,6 +232,7 @@ internal class PayloadTransfer(
         val tap = traffic?.open(KdeTrafficKind.PAYLOAD_RECEIVE, address, port)
         try {
             val raw = Socket()
+            binder()?.bindOutgoing(raw)
             raw.connect(InetSocketAddress(address, port), LanTransport.CONNECT_TIMEOUT_MS)
             val ssl = tls.wrap(raw, clientMode = true, pinned = peer)
             ssl.use { secure ->

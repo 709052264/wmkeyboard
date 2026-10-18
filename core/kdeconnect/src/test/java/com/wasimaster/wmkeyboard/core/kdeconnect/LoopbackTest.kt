@@ -10,6 +10,7 @@ import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -17,8 +18,11 @@ import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStream
+import java.net.DatagramSocket
+import java.net.Socket
 import java.nio.file.Files
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Two whole engines, one machine, real sockets and real TLS.
@@ -42,15 +46,23 @@ class LoopbackTest {
         val id: String get() = engine.state.value.selfId
     }
 
-    private fun peer(name: String, sink: KdeFileSink? = null, dir: File? = null): Peer {
+    private fun peer(
+        name: String,
+        sink: KdeFileSink? = null,
+        dir: File? = null,
+        binder: KdeSocketBinder? = null,
+        now: () -> Long = System::currentTimeMillis,
+    ): Peer {
         val folder = dir ?: Files.createTempDirectory("kde-$name").toFile().also { dirs += it }
         val engine = KdeConnectEngine(
             dir = folder,
             ports = KdePorts.Ephemeral,
             fileSink = sink,
             allowLoopback = true,
+            now = now,
             log = { println("[$name] $it") },
         )
+        engine.socketBinder = binder
         engine.configure(KdeEngineConfig(deviceName = name))
         engines += engine
         val events = CopyOnWriteArrayList<KdeEvent>()
@@ -359,6 +371,143 @@ class LoopbackTest {
         assertEquals(90_000L, commands[1].seekToMs)
         // Seek travels in microseconds and must come back as the milliseconds it was.
         assertEquals(-5_000L, commands[2].seekByMs)
+    }
+
+    /** The code [shown] would put in its QR: its address and identity, plus [token]. */
+    private fun codeFor(shown: Peer, token: String) = KdePairCode(
+        host = "127.0.0.1",
+        port = shown.engine.tcpPort,
+        deviceId = shown.id,
+        fingerprint = shown.engine.state.value.selfFingerprint,
+        token = token,
+        name = shown.engine.state.value.selfName,
+    )
+
+    @Test
+    fun `scanning a code pairs both phones without a prompt on either`() {
+        val shower = peer("Shower")
+        val scanner = peer("Scanner")
+        shower.engine.setDiscovering(true)
+        val token = shower.engine.issuePairToken()
+        assertTrue(token.length >= 24)
+
+        assertTrue(scanner.engine.pairByCode(codeFor(shower, token)))
+        await("paired both ways, nobody pressed Accept") {
+            shower.engine.state.value.device(scanner.id)?.pairState == KdePairState.PAIRED &&
+                scanner.engine.state.value.device(shower.id)?.pairState == KdePairState.PAIRED
+        }
+        await("paired events") { shower.events.any { it is KdeEvent.Paired } && scanner.events.any { it is KdeEvent.Paired } }
+        assertTrue(shower.events.none { it is KdeEvent.PairRequested })
+        assertTrue(scanner.events.none { it is KdeEvent.PairRequested })
+        assertTrue(shower.engine.hasPairedDevices())
+        assertTrue(scanner.engine.hasPairedDevices())
+        // Paired for real: a plugin packet crosses.
+        assertTrue(scanner.engine.ping.ping(shower.id, "scanned you"))
+        await("ping lands") { shower.events.any { it is KdeEvent.Ping } }
+    }
+
+    @Test
+    fun `a wrong token is an ordinary request and prompts as before`() {
+        val shower = peer("Shower")
+        val scanner = peer("Scanner")
+        shower.engine.setDiscovering(true)
+        val token = shower.engine.issuePairToken()
+
+        assertTrue(scanner.engine.pairByCode(codeFor(shower, "not-$token-at-all")))
+        await("shower is asked") { shower.events.any { it is KdeEvent.PairRequested } }
+        assertEquals(KdePairState.REQUESTED_BY_PEER, shower.engine.state.value.device(scanner.id)!!.pairState)
+        assertEquals(KdePairState.REQUESTED, scanner.engine.state.value.device(shower.id)!!.pairState)
+        assertFalse(shower.engine.hasPairedDevices())
+
+        // The prompt still works the usual way.
+        shower.engine.acceptPair(scanner.id)
+        await("paired after Accept") { scanner.engine.state.value.device(shower.id)?.paired == true }
+    }
+
+    @Test
+    fun `a token is spent by its first use`() {
+        val shower = peer("Shower")
+        val first = peer("First")
+        val second = peer("Second")
+        shower.engine.setDiscovering(true)
+        val token = shower.engine.issuePairToken()
+
+        assertTrue(first.engine.pairByCode(codeFor(shower, token)))
+        await("first pairs silently") { shower.engine.state.value.device(first.id)?.pairState == KdePairState.PAIRED }
+        assertTrue(shower.events.none { it is KdeEvent.PairRequested })
+
+        // Same token again, from another device that saw the code: prompt.
+        assertTrue(second.engine.pairByCode(codeFor(shower, token)))
+        await("shower is asked about the second") {
+            shower.events.any { it is KdeEvent.PairRequested && it.deviceId == second.id }
+        }
+        assertEquals(KdePairState.REQUESTED_BY_PEER, shower.engine.state.value.device(second.id)!!.pairState)
+    }
+
+    @Test
+    fun `an expired token prompts and a fresh one retires the old`() {
+        val skewMs = AtomicLong(0)
+        val shower = peer("Shower", now = { System.currentTimeMillis() + skewMs.get() })
+        val scanner = peer("Scanner")
+        shower.engine.setDiscovering(true)
+        val stale = shower.engine.issuePairToken(ttlMs = 60_000)
+        // Only the shower's clock moves, and by less than the pairing skew
+        // allowance, so the request itself is still in date.
+        skewMs.set(61_000)
+
+        assertTrue(scanner.engine.pairByCode(codeFor(shower, stale)))
+        await("shower is asked") { shower.events.any { it is KdeEvent.PairRequested } }
+        shower.engine.cancelPair(scanner.id)
+        await("refused") { scanner.events.any { it is KdeEvent.PairFailed } }
+
+        // A new token replaces the old one, and the old one is no good.
+        val retired = shower.engine.issuePairToken()
+        val fresh = shower.engine.issuePairToken()
+        assertNotEquals(retired, fresh)
+        val other = peer("Other")
+        assertTrue(other.engine.pairByCode(codeFor(shower, retired)))
+        await("shower is asked by other") { shower.events.any { it is KdeEvent.PairRequested && it.deviceId == other.id } }
+        shower.engine.cancelPair(other.id)
+        val last = peer("Last")
+        assertTrue(last.engine.pairByCode(codeFor(shower, fresh)))
+        await("last pairs silently") { shower.engine.state.value.device(last.id)?.pairState == KdePairState.PAIRED }
+        assertTrue(shower.events.none { it is KdeEvent.PairRequested && it.deviceId == last.id })
+    }
+
+    @Test
+    fun `the socket binder sees every dial and the announce socket`() {
+        class Recorder : KdeSocketBinder {
+            val outgoing = CopyOnWriteArrayList<Socket>()
+            val outgoingWasConnected = CopyOnWriteArrayList<Boolean>()
+            val datagrams = CopyOnWriteArrayList<DatagramSocket>()
+            override fun bindOutgoing(socket: Socket) {
+                outgoingWasConnected += socket.isConnected
+                outgoing += socket
+            }
+            override fun bindDatagram(socket: DatagramSocket) {
+                datagrams += socket
+            }
+        }
+        val recorder = Recorder()
+        val phone = peer("Phone")
+        val pc = peer("PC", binder = recorder)
+        // Made at start, before anything is sent from it.
+        assertEquals(1, recorder.datagrams.size)
+        assertEquals(pc.engine.udpPort, recorder.datagrams.single().localPort)
+        assertTrue(recorder.outgoing.isEmpty())
+
+        phone.engine.setDiscovering(true)
+        pc.engine.setDiscovering(true)
+        // The phone announces; the pc dials it back, through the binder.
+        introduce(phone, pc)
+        await("linked") { pc.engine.state.value.device(phone.id)?.reachable == true }
+        assertEquals(1, recorder.outgoing.size)
+        assertEquals(listOf(false), recorder.outgoingWasConnected)
+        assertEquals(phone.engine.tcpPort, recorder.outgoing.single().port)
+        // The pc's own announcements leave from the bound datagram socket; no second one appears.
+        pc.engine.announceTo("127.0.0.1", phone.engine.udpPort)
+        Thread.sleep(200)
+        assertEquals(1, recorder.datagrams.size)
     }
 
     @Test
