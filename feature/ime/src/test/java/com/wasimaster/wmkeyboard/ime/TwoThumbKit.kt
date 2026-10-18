@@ -43,6 +43,8 @@ internal object TwoThumbKit {
         allUp: Boolean = false,
         undo: Boolean = true,
         noAutoSpaceMode: Boolean = false,
+        retractMs: Int = 0,
+        band: Boolean = true,
     ): KeyboardSettings {
         val base = KeyboardSettings(
             learnFromTyping = false,
@@ -51,6 +53,13 @@ internal object TwoThumbKit {
                 backspaceUndoesGlide = undo,
                 twoThumbWordEnd = if (allUp) TwoThumbWordEnd.ALL_UP else TwoThumbWordEnd.SPACE,
                 twoThumbPauseMs = PAUSE_MS.toInt(),
+                // One pause for every word, as before #747 split it.
+                twoThumbTapPauseMs = PAUSE_MS.toInt(),
+                twoThumbOneLetterPauseMs = PAUSE_MS.toInt(),
+                // Off unless a test is about it, so a letter typed after a
+                // pause starts a new word whatever the planted dictionary holds.
+                twoThumbRetractWindowMs = retractMs,
+                twoThumbPauseBand = band,
             ),
         )
         if (!noAutoSpaceMode) return base

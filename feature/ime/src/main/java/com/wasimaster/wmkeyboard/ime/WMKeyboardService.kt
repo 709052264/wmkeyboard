@@ -373,7 +373,6 @@ import com.wasimaster.wmkeyboard.core.settings.GLIDE_OUTCOMES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SHAPES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SANDBOX_FILE
 import com.wasimaster.wmkeyboard.core.settings.GestureSettings
-import com.wasimaster.wmkeyboard.core.settings.TWO_THUMB_PAUSE_RANGE
 import com.wasimaster.wmkeyboard.core.settings.TwoThumbWordEnd
 import com.wasimaster.wmkeyboard.core.settings.glideTuning
 import com.wasimaster.wmkeyboard.core.settings.floatingFor
@@ -1465,6 +1464,31 @@ open class WMKeyboardService : InputMethodService() {
     private var keysTouched = false
     private var barsTouched = 0
 
+    /**
+     * The space the all-thumbs-up pause just typed after [AllUpSpace.word]
+     * (#747), while a letter may still take it back: one whose thumb landed
+     * inside the retraction window, and which carries the word on towards one
+     * in the dictionary. Spent by the next letter or swipe whatever it does,
+     * and good only while [pendingWordSpace] says the space is still ours.
+     */
+    private class AllUpSpace(val word: String, val at: Long, val windowMs: Long) {
+        /** When the first thumb landed on the keys after it, or -1 while none has. */
+        var landedAt = -1L
+    }
+    private var allUpSpace: AllUpSpace? = null
+
+    /**
+     * A word whose all-thumbs-up space was taken back (#747), and the letters
+     * that may carry it on ([starts]: the one tapped, or those a swipe may
+     * have begun on). Checked as the word grows, and split back into two words
+     * the moment it stops leading anywhere. Gone with the word.
+     */
+    private class ReopenedWord(val word: String, val starts: Set<String>)
+    private var reopenedWord: ReopenedWord? = null
+
+    /** Numbers each [AllUpCountdown], so a pause that ends late cannot clear a newer one's band. */
+    private var allUpCountdownId = 0
+
     /** How the word [duetWord] builds is cased: the shift it started under. */
     private var duetShift = ShiftState.OFF
 
@@ -1513,6 +1537,7 @@ open class WMKeyboardService : InputMethodService() {
                 duetJob?.cancel()
                 duetWord.clear()
                 allUpArmed = false
+                reopenedWord = null
             }
             // Any wholesale replacement (commit, field change, re-arm from the
             // field) invalidates the per-character tap positions: a re-armed
@@ -7979,6 +8004,9 @@ open class WMKeyboardService : InputMethodService() {
         // No finger outlives the window it was on (#743).
         keysTouched = false
         barsTouched = 0
+        // Nor does a space a letter could take back, or the band over its pause (#747).
+        allUpSpace = null
+        if (_uiState.value.allUpCountdown != null) _uiState.update { it.copy(allUpCountdown = null) }
         // The next show is a first show, which the app answers itself.
         boardTopForReveal = -1
         // The next keyboard says which microphone its first dictation uses.
@@ -10844,6 +10872,10 @@ open class WMKeyboardService : InputMethodService() {
         // what makes the closing quote of `"hi."` hug the full stop instead of
         // landing a space past it (issue #34).
         val followsWordSpace = pendingWordSpace || pendingPunctuationSpace
+        // The all-thumbs-up space a letter here may take back (#747): one-shot
+        // like the flag, and only while the space behind the caret is ours.
+        val allUpSpaceBehind = allUpSpace.takeIf { pendingWordSpace }
+        allUpSpace = null
         pendingWordSpace = false
         pendingPunctuationSpace = false
         val spaceOwed = deferredWordSpace
@@ -11121,6 +11153,12 @@ open class WMKeyboardService : InputMethodService() {
             ic.commitText(" ", 1)
             invalidateExpectedSelection()
         }
+        // A letter straight after an all-thumbs-up space may carry the word
+        // before it on instead (#747): the space goes, and the word is open
+        // again for this letter to join.
+        if (allUpSpaceBehind != null && isWordChar && composingMode && !elisionBreak && composing.isEmpty()) {
+            reopenAfterAllUpSpace(ic, state, allUpSpaceBehind, setOf(text.lowercase()))
+        }
         if (isWordChar && composingMode && !elisionBreak && duetTap(text)) {
             consumeShift()
         } else if (isWordChar && composingMode && !elisionBreak) {
@@ -11128,7 +11166,9 @@ open class WMKeyboardService : InputMethodService() {
             // A tapped word ends at the all-thumbs-up pause too (#676).
             allUpArmed = true
             updateComposingText(ic)
-            refreshSuggestions()
+            // A reopened word that this letter leads nowhere is two words
+            // after all, and splits back where its space was.
+            if (reopenedHolds(complete = false)) refreshSuggestions() else splitReopenedWord(ic)
             consumeShift()
         } else {
             // A pattern may fire here too, but only for the marks that really
@@ -24005,6 +24045,16 @@ open class WMKeyboardService : InputMethodService() {
         shift: ShiftState,
     ): Boolean {
         if (!swipeJoinsWord(state)) return false
+        // A swipe begun straight after an all-thumbs-up space may carry the
+        // word before it on (#747), the way a tapped letter may: the word is
+        // open again, as typed letters, for the swipe to finish below.
+        val allUpSpaceBehind = allUpSpace.takeIf { pendingWordSpace }
+        allUpSpace = null
+        if (allUpSpaceBehind != null && !duetWord.active && composing.isEmpty()) {
+            currentInputConnection?.let {
+                reopenAfterAllUpSpace(it, state, allUpSpaceBehind, swipeStartLetters(points.first(), keys, keyWidthPx))
+            }
+        }
         if (!duetWord.active) {
             if (composingIsTyped()) {
                 if (!duetWord.seed(composing, composingTouchFrame(), keys, keyWidthPx)) return false
@@ -24145,22 +24195,178 @@ open class WMKeyboardService : InputMethodService() {
         if (!gesture.twoThumbGlide || gesture.twoThumbWordEnd != TwoThumbWordEnd.ALL_UP) return
         allUpJob?.cancel()
         if (!allUpArmed) return
-        val pause = gesture.twoThumbPauseMs.coerceIn(TWO_THUMB_PAUSE_RANGE).toLong()
+        // Swiped and tapped words wait their own pauses, and a word of one
+        // letter at least the floor (#747).
+        val pause = allUpPauseMs(
+            gesture,
+            swiped = duetWord.active,
+            letters = composing.codePointCount(0, composing.length),
+        )
+        val countdown = if (gesture.twoThumbPauseBand) AllUpCountdown(pause, ++allUpCountdownId) else null
+        if (countdown != null) _uiState.update { it.copy(allUpCountdown = countdown) }
         allUpJob = serviceScope.launch {
-            delay(pause)
-            // The lift that sent this may still be decoding, and a newer
-            // decode may have replaced it meanwhile: wait for whichever is last.
-            // Waiting is only the cheap way; the commit settles anything still
-            // pending itself.
-            while (true) {
-                val job = duetJob ?: break
-                if (!job.isActive) break
-                job.join()
+            try {
+                delay(pause)
+                // The lift that sent this may still be decoding, and a newer
+                // decode may have replaced it meanwhile: wait for whichever is
+                // last. Waiting is only the cheap way; the commit settles
+                // anything still pending itself.
+                while (true) {
+                    val job = duetJob ?: break
+                    if (!job.isActive) break
+                    job.join()
+                }
+                if (!allUpArmed || composing.isEmpty()) return@launch
+                val ic = currentInputConnection ?: return@launch
+                // Letters that reopened a word and finish none with it go back
+                // to being a word of their own, which is what ends here (#747).
+                if (reopenedWord != null && !duetWord.active && !isKnownWord(composing.toString())) {
+                    splitReopenedWord(ic)
+                }
+                if (duetWord.active) commitDuet(ic) else endTappedWordAtPause(ic)
+                armAllUpSpace(ic, gesture)
+            } finally {
+                if (countdown != null) clearAllUpCountdown(countdown.id)
             }
-            if (!allUpArmed || composing.isEmpty()) return@launch
-            val ic = currentInputConnection ?: return@launch
-            if (duetWord.active) commitDuet(ic) else endTappedWordAtPause(ic)
         }
+    }
+
+    /**
+     * Notes the space the all-thumbs-up pause has just typed after a word, so
+     * a letter landing inside the retraction window may take it back (#747).
+     * Only a space that is really there and really ours: none under a mode
+     * with automatic spaces off, and none after a snippet that left the caret
+     * inside its text.
+     */
+    private fun armAllUpSpace(ic: InputConnection, gesture: GestureSettings) {
+        allUpSpace = null
+        val window = allUpRetractWindowMs(gesture)
+        if (window <= 0 || !pendingWordSpace) return
+        val before = ic.getTextBeforeCursor(ALL_UP_RETRACT_LOOKBACK, 0)?.toString() ?: return
+        if (!before.endsWith(' ')) return
+        val word = before.dropLast(1).takeLastWhile { it.isLetter() }
+        // A word that fills the whole look-back may go on past it.
+        if (word.isEmpty() || word.length == ALL_UP_RETRACT_LOOKBACK - 1) return
+        allUpSpace = AllUpSpace(word, SystemClock.uptimeMillis(), window)
+    }
+
+    /**
+     * Takes back the all-thumbs-up [space] the caret sits behind, and opens
+     * the word before it again as typed letters, for the letter or swipe
+     * about to come to join (#747). Only inside the window, measured to when
+     * the thumb landed, and only when the word and one of [starts] still lead
+     * to a dictionary word: `car` then `p` reopens "car", `car` then `x`
+     * leaves "car " alone. A capital waiting on the shift key is a new word.
+     * True when the word is open again.
+     */
+    private fun reopenAfterAllUpSpace(
+        ic: InputConnection,
+        state: KeyboardUiState,
+        space: AllUpSpace,
+        starts: Set<String>,
+    ): Boolean {
+        val gesture = state.settings.gesture
+        if (!gesture.twoThumbGlide || gesture.twoThumbWordEnd != TwoThumbWordEnd.ALL_UP) return false
+        if (state.shiftState != ShiftState.OFF) return false
+        val landed = space.landedAt.takeIf { it >= 0 } ?: SystemClock.uptimeMillis()
+        if (!insideRetractWindow(space.at, landed, space.windowMs)) return false
+        // A transliterator's buffer is not the word on screen.
+        if (state.composer.resumeBuffer(space.word) != space.word) return false
+        val engine = suggestionEngine ?: return false
+        if (!continuesWord(space.word, starts, engine::isLivePrefix)) return false
+        val typed = space.word + " "
+        if (ic.getTextBeforeCursor(typed.length, 0)?.toString() != typed) return false
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(typed.length, 0)
+        pendingWordSpace = false
+        // What Backspace or the strip would have taken back was that word,
+        // which is not finished after all; nor is it evidence of anything yet.
+        lastGestureWord = null
+        lastGestureStroke = null
+        stripReplacesGestureWord = false
+        lastRevertible = null
+        learningBuffer.drop(space.word)
+        syncPreviousWordFromField(ic)
+        composing = StringBuilder(space.word)
+        resumedWord = null
+        updateComposingText(ic)
+        ic.endBatchEdit()
+        reopenedWord = ReopenedWord(space.word, starts)
+        return true
+    }
+
+    /**
+     * Whether the word an all-thumbs-up space was taken back from still holds
+     * together with what now follows it (see the top-level
+     * [reopenedWordHolds]); true when no word was reopened.
+     */
+    private fun reopenedHolds(complete: Boolean): Boolean {
+        val reopened = reopenedWord ?: return true
+        val engine = suggestionEngine ?: return true
+        return reopenedWordHolds(reopened.word, composing.toString(), reopened.starts, complete, engine::isLivePrefix)
+    }
+
+    /**
+     * The reopened word and what followed it make no word: the word goes back
+     * in with its space, as the pause typed it, and the rest carries on as a
+     * word of its own (#747). Its gestures stay gestures, read again without
+     * the letters in front; typed letters stay typed.
+     */
+    private fun splitReopenedWord(ic: InputConnection) {
+        val reopened = reopenedWord ?: return
+        reopenedWord = null
+        val state = _uiState.value
+        val head = reopened.word
+        val rest = if (duetWord.active) {
+            duetWord.copy().takeIf { it.dropFirst(head.codePointCount(0, head.length)) }
+        } else {
+            null
+        }
+        val tail = composing.toString().let { if (it.startsWith(head, ignoreCase = true)) it.substring(head.length) else "" }
+        ic.beginBatchEdit()
+        // The setter ends the gestures, so the word goes in as the typed text
+        // it was before the space came out.
+        composing = StringBuilder(head)
+        updateComposingText(ic)
+        commitComposing(ic, autocorrect = false)
+        commitGestureSpace(ic, state)
+        // A letter is already typed past that space.
+        pendingWordSpace = false
+        if (rest != null && rest.active) {
+            duetWord.restore(rest)
+            keepDuet = true
+            try {
+                composing = StringBuilder(rest.literal())
+            } finally {
+                keepDuet = false
+            }
+            allUpArmed = true
+            updateComposingText(ic)
+            ic.endBatchEdit()
+            redecodeDuet(commit = false)
+            return
+        }
+        composing = StringBuilder(rest?.typedText() ?: tail)
+        allUpArmed = composing.isNotEmpty()
+        updateComposingText(ic)
+        ic.endBatchEdit()
+        refreshSuggestions()
+    }
+
+    /** The letters a swipe that starts at [start] may have meant to begin on: its key and those within a key width. */
+    private fun swipeStartLetters(start: GesturePoint, keys: List<KeyCenter>, keyWidthPx: Float): Set<String> {
+        val reach = keyWidthPx * keyWidthPx
+        val nearest = keys.minByOrNull { (it.x - start.x) * (it.x - start.x) + (it.y - start.y) * (it.y - start.y) }
+        return keys.filter {
+            it === nearest || (it.x - start.x) * (it.x - start.x) + (it.y - start.y) * (it.y - start.y) <= reach
+        }
+            .filter { Character.isLetter(it.codePoint) }
+            .mapTo(HashSet()) { String(Character.toChars(Character.toLowerCase(it.codePoint))) }
+    }
+
+    /** Takes the all-thumbs-up band off the strip, if it is still pause [id]'s. */
+    private fun clearAllUpCountdown(id: Int) {
+        _uiState.update { if (it.allUpCountdown?.id == id) it.copy(allUpCountdown = null) else it }
     }
 
     /**
@@ -24213,6 +24419,9 @@ open class WMKeyboardService : InputMethodService() {
             down -> barsTouched++
             else -> barsTouched = (barsTouched - 1).coerceAtLeast(0)
         }
+        // The retraction window is measured to the landing, not to the letter
+        // it types (#747). A finger on the strip types no letter.
+        if (down && onKeys) allUpSpace?.let { if (it.landedAt < 0) it.landedAt = SystemClock.uptimeMillis() }
         if (down) onThumbDown() else onAllThumbsUp()
     }
 
@@ -24220,6 +24429,8 @@ open class WMKeyboardService : InputMethodService() {
     private fun onThumbDown() {
         allUpJob?.cancel()
         allUpJob = null
+        // The band goes with the pause it showed (#747).
+        if (_uiState.value.allUpCountdown != null) _uiState.update { it.copy(allUpCountdown = null) }
     }
 
     /**
@@ -24349,6 +24560,11 @@ open class WMKeyboardService : InputMethodService() {
             // shows what it has, and only its end decides what is typed.
             shown ?: return@launch
             showDuet(ic, shown, generation)
+            // A reopened word the swipe did not carry on is two words (#747).
+            if (!strokeLive && !commit && !reopenedHolds(shown.complete)) {
+                splitReopenedWord(ic)
+                return@launch
+            }
             when {
                 commit -> commitDuet(ic)
                 strokeLive && _uiState.value.glideWord != null -> Unit
