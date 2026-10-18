@@ -245,6 +245,101 @@ class TypingStatsTest {
         assertEquals("a broken file adds nothing", totals, view.lifetime())
     }
 
+    @Test
+    fun `a two-thumb word counts once as a glided word and saves the taps it skipped`() {
+        val stats = store(null)
+        // A tapped "h" arms the word, then a swipe finishes "hello" (#751).
+        stats.onTyped("h", noon, 10_000L)
+        stats.onGlideWord(letters = 5, distanceMm = 12.0, nowMillis = noon, gestures = 2)
+        // The space that ends it finds no armed word left to count again.
+        stats.onSeparator(noon, 10_400L)
+        val totals = stats.lifetime()
+        assertEquals(1, totals.words)
+        assertEquals(1, totals.glideWords)
+        assertEquals(1, totals.twoThumbWords)
+        assertEquals("five letters, two gestures", 3, totals.keystrokesSaved)
+        assertEquals("the tapped h is not counted twice", 5, totals.wordLetters)
+    }
+
+    @Test
+    fun `a lone swipe is a glide but not a two-thumb word`() {
+        val stats = store(null)
+        stats.onGlideWord(letters = 5, distanceMm = 12.0, nowMillis = noon, gestures = 1)
+        val totals = stats.lifetime()
+        assertEquals(1, totals.glideWords)
+        assertEquals(0, totals.twoThumbWords)
+        assertEquals(4, totals.keystrokesSaved)
+    }
+
+    @Test
+    fun `voice phrases count apart from the typing`() {
+        val stats = store(null)
+        stats.type("hi ")
+        stats.onVoicePhrase(words = 6, listenedMs = 4_000L, nowMillis = noon)
+        // A microphone left open for an hour is not talking time.
+        stats.onVoicePhrase(words = 2, listenedMs = 3_600_000L, nowMillis = noon)
+        val totals = stats.lifetime()
+        assertEquals("only the typed word", 1, totals.words)
+        assertEquals(3, totals.chars)
+        assertEquals(8, totals.voiceWords)
+        assertEquals(2, totals.voicePhrases)
+        assertEquals(4_000L, totals.voiceMs)
+        assertEquals(8, stats.dayEntries().single().voiceWords)
+    }
+
+    @Test
+    fun `the fastest burst needs a long enough stretch and survives a pause`() {
+        val stats = store(null)
+        // 60 characters at 200 ms each: 12 s, too short to be a record.
+        var uptime = stats.type("a".repeat(60))
+        assertEquals(0.0, stats.lifetime().peakBurstWpm, 0.0)
+        // 40 more makes 100 characters over about 20 s: 60 wpm.
+        uptime = stats.type("a".repeat(40), uptime)
+        val peak = stats.lifetime().peakBurstWpm
+        assertEquals(60.0, peak, 1.0)
+        // After a pause, slow typing cannot lower the record.
+        stats.type("a".repeat(5), uptime + 60_000L)
+        assertEquals(peak, stats.lifetime().peakBurstWpm, 0.0)
+    }
+
+    @Test
+    fun `the punch card files keystrokes by weekday and hour`() {
+        val stats = store(null)
+        stats.type("ab")
+        val weekday = TypingStatsMath.weekdayOf(TypingStatsMath.localEpochDay(noon, utc))
+        val card = stats.lifetime().weekHourHistogram
+        assertEquals(168, card.size)
+        assertEquals(2L, card[weekday * 24 + 12])
+        assertEquals(2L, card.sum())
+        // Epoch day 0 was a Thursday; Monday is 0.
+        assertEquals(3, TypingStatsMath.weekdayOf(0))
+        assertEquals(0, TypingStatsMath.weekdayOf(4))
+    }
+
+    @Test
+    fun `the new counts survive a save and the best burst is a best across devices`() {
+        val first = store()
+        first.onVoicePhrase(3, 2_000L, noon)
+        first.onGlideWord(letters = 4, distanceMm = 5.0, nowMillis = noon, gestures = 3)
+        first.type("a".repeat(100))
+        first.save()
+        val second = store()
+        assertEquals(first.lifetime(), second.lifetime())
+        val devices = """{"other":{"voiceWords":10,"peakBurstWpm":1.0,"twoThumbWords":2}}"""
+        val view = store().also { it.absorbDevices(devices) }
+        assertEquals(13, view.lifetime().voiceWords)
+        assertEquals(3, view.lifetime().twoThumbWords)
+        assertEquals(second.lifetime().peakBurstWpm, view.lifetime().peakBurstWpm, 0.0)
+    }
+
+    @Test
+    fun `spoken words count spaced pieces and unspaced letters`() {
+        assertEquals(4, TypingStatsMath.spokenWords("Hello there, how's it"))
+        assertEquals(0, TypingStatsMath.spokenWords("  ... "))
+        assertEquals(4, TypingStatsMath.spokenWords("你好世界"))
+        assertEquals(3, TypingStatsMath.spokenWords("OK 你好"))
+    }
+
     private companion object {
         const val DAY = 86_400_000L
         const val HOUR = 3_600_000L

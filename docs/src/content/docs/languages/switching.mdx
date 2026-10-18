@@ -40,6 +40,16 @@ While a language swipe is in progress, a preview pops up above the spacebar show
 
 The resting spacebar label follows **The spacebar shows** (also under Typing → Gestures), which offers Language (the default), Layout, or Both. In Language mode, a transliterating layout such as Avro always shows its own name instead of the shared language name. Avro, Probhat and Jatiya all display as বাংলা, so the language name alone wouldn't say which method is under your fingers. In Both mode, a transliterating layout shows the combined form instead, such as বাংলা (Avro phonetic). That's the same as any other layout whose name differs from its language. Otherwise, whenever two enabled layouts share a language, the label adds the layout name alongside it so you can tell them apart. The ◀▶ hint arrows need three things at once: **Arrows on the spacebar** on (the default), one of the two swipe slots set to Language, and more than one layout enabled.
 
+### Typing speed on the spacebar
+
+Turn on **Typing speed on the spacebar** under <SettingsPath path="Typing / Gestures" /> and the spacebar shows how fast you're typing, as "42 wpm" next to its label. It's off by default.
+
+- The number is your speed over the last few words, up to the last 30 seconds, not your lifetime average. It needs two words and two seconds of typing before it shows anything.
+- It changes each time a word goes in: a word you type and end with a space or a mark, a suggestion you pick, a glided word, or a two-thumb word. Each new reading moves the number half way, so one fast or slow word doesn't make it jump.
+- A pause of more than 5 seconds clears it, and the spacebar goes back to its plain label until you've typed two more words.
+- It counts each word's letters and one space after it, the usual five characters to a word. Over 250 wpm is held at 250.
+- Nothing is kept: no number, no text. So it works with [Statistics](/reference/settings/statistics/) turned off and in incognito mode, and it starts again from nothing when the keyboard restarts.
+
 ## Holding to drag through the list
 
 <GestureDemo type="space-hold" caption="Hold the spacebar, then drag to pick a language without lifting." />
@@ -213,6 +223,7 @@ Automation apps such as Tasker, and `adb` on a computer, can switch too. They se
 | The spacebar shows | Typing → Gestures | Language |
 | Language picker shape | Typing → Gestures | List |
 | Spacebar text | Typing → Gestures | Blank (live name) |
+| Typing speed on the spacebar | Typing → Gestures | Off |
 | Spacebar long press keys | Typing → Gestures | Blank (the hold opens the picker) |
 | Show the 🌐 key | Layout & size → Bottom row keys | On |
 | 🌐 goes back to the last language | Layout & size → Bottom row keys | Off |

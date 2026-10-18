@@ -25143,6 +25143,9 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    // Issue #752: the speed of the last few words, on its own
+                    // scope, so a new reading redraws this text and nothing else.
+                    if (showText) SpacebarLiveWpm(contentColor, fontScale)
                     if (showArrows) Icon(
                         Icons.AutoMirrored.Outlined.ArrowRight,
                         contentDescription = null,

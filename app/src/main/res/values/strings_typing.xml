@@ -747,6 +747,9 @@
     <string name="typing_space_hold_picker_long_ring_info">With four layouts or fewer, holding the spacebar shows the sideways preview above it, and a drag steps through your layouts. Past four, the hold opens the picker instead, as a list or a carousel. Turn this off to keep the sideways preview however many layouts are on. It shows five at a time and slides along as you drag, so every layout is still in reach. The 🌐 key\'s long press still opens the picker. If the quick swipe is not set to Language, the hold opens the picker at any length.</string>
 
     <string name="typing_spacebar_text_label">Spacebar text</string>
+    <string name="typing_spacebar_live_wpm_title">Typing speed on the spacebar</string>
+    <string name="typing_spacebar_live_wpm_subtitle">Show your words per minute while you type</string>
+    <string name="typing_spacebar_live_wpm_info">The spacebar shows how fast you typed your last few words, next to its label. The number changes each time a word goes in, and typed, picked, glided and two-thumb words all count. After a pause of 5 seconds the spacebar shows only its label again. The keyboard keeps no record of this number. It works when Statistics is off and in incognito mode.</string>
     <!-- %1$s is the literal token %s, which the user types into the field. Keep it as it is. -->
     <string name="typing_spacebar_text_hint">Leave this blank to keep the normal spacebar label. Type <xliff:g id="token" example="%s">%1$s</xliff:g> to put that label in your text. Example: ~ <xliff:g id="token" example="%s">%1$s</xliff:g> ~</string>
 

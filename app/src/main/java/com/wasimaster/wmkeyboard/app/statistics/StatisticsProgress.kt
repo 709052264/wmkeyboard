@@ -15,6 +15,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Gesture
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MilitaryTech
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Straighten
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Swipe
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -427,6 +429,8 @@ private fun achievementTitle(a: TypingProgress.Achievement): Int = when (a) {
     TypingProgress.Achievement.WORDS_COMPLETED -> R.string.statistics_achievement_completed_title
     TypingProgress.Achievement.GLIDE_WORDS -> R.string.statistics_achievement_glide_title
     TypingProgress.Achievement.GLIDE_DISTANCE -> R.string.statistics_achievement_distance_title
+    TypingProgress.Achievement.TWO_THUMB_WORDS -> R.string.statistics_achievement_two_thumb_title
+    TypingProgress.Achievement.VOICE_WORDS -> R.string.statistics_achievement_voice_title
 }
 
 private fun achievementSubtitle(a: TypingProgress.Achievement): Int = when (a) {
@@ -436,6 +440,8 @@ private fun achievementSubtitle(a: TypingProgress.Achievement): Int = when (a) {
     TypingProgress.Achievement.WORDS_COMPLETED -> R.string.statistics_achievement_completed_subtitle
     TypingProgress.Achievement.GLIDE_WORDS -> R.string.statistics_achievement_glide_subtitle
     TypingProgress.Achievement.GLIDE_DISTANCE -> R.string.statistics_achievement_distance_subtitle
+    TypingProgress.Achievement.TWO_THUMB_WORDS -> R.string.statistics_achievement_two_thumb_subtitle
+    TypingProgress.Achievement.VOICE_WORDS -> R.string.statistics_achievement_voice_subtitle
 }
 
 private fun achievementIcon(a: TypingProgress.Achievement): ImageVector = when (a) {
@@ -445,6 +451,8 @@ private fun achievementIcon(a: TypingProgress.Achievement): ImageVector = when (
     TypingProgress.Achievement.WORDS_COMPLETED -> Icons.AutoMirrored.Outlined.ShortText
     TypingProgress.Achievement.GLIDE_WORDS -> Icons.Outlined.Gesture
     TypingProgress.Achievement.GLIDE_DISTANCE -> Icons.Outlined.Straighten
+    TypingProgress.Achievement.TWO_THUMB_WORDS -> Icons.Outlined.Swipe
+    TypingProgress.Achievement.VOICE_WORDS -> Icons.Outlined.Mic
 }
 
 private val RingSize = 32.dp

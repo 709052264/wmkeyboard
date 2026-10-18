@@ -3241,6 +3241,12 @@ data class KeyboardSettings(
      */
     val spacebarLabel: String = "",
     /**
+     * Show the typing speed of the last few words on the spacebar, beside its
+     * label, while typing (#752). Nothing is stored for it; it goes back to
+     * the plain label after a pause.
+     */
+    val spacebarLiveWpm: Boolean = false,
+    /**
      * Dragging sideways on backspace deletes whole words instead of
      * repeating single-character deletes.
      */
@@ -9467,6 +9473,7 @@ class SettingsRepository(private val context: Context) {
         private val SPACE_LONG_SWIPE = stringPreferencesKey("space_long_swipe")
         private val SPACEBAR_LANGUAGE_ARROWS = booleanPreferencesKey("spacebar_language_arrows")
         private val SPACEBAR_LABEL = stringPreferencesKey("spacebar_label")
+        private val SPACEBAR_LIVE_WPM = booleanPreferencesKey("spacebar_live_wpm")
         private val SYMBOLS_LONGPRESS_NUMPAD = booleanPreferencesKey("symbols_longpress_numpad")
         private val SYMBOLS_NUMPAD_KEY = booleanPreferencesKey("symbols_numpad_key")
         private val ENTER_LONGPRESS_EMOJI = booleanPreferencesKey("enter_longpress_emoji")
@@ -10716,6 +10723,7 @@ class SettingsRepository(private val context: Context) {
             spacebarLanguageArrows = p[SPACEBAR_LANGUAGE_ARROWS]
                 ?: defaults.spacebarLanguageArrows,
             spacebarLabel = p[SPACEBAR_LABEL] ?: defaults.spacebarLabel,
+            spacebarLiveWpm = p[SPACEBAR_LIVE_WPM] ?: defaults.spacebarLiveWpm,
             backspaceSwipeDelete = p[BACKSPACE_SWIPE_DELETE] ?: defaults.backspaceSwipeDelete,
             hardwareKeyboardInput = p[HARDWARE_KEYBOARD_INPUT] ?: defaults.hardwareKeyboardInput,
             hardwareKeyboard = readHardwareKeyboard(p, defaults),
@@ -17544,6 +17552,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSpacebarLabel(value: String) =
         editPrefs { it[SPACEBAR_LABEL] = value.trim() }
+
+    suspend fun setSpacebarLiveWpm(value: Boolean) =
+        editPrefs { it[SPACEBAR_LIVE_WPM] = value }
 
     suspend fun setSymbolsLongPressNumpad(value: Boolean) =
         editPrefs { it[SYMBOLS_LONGPRESS_NUMPAD] = value }

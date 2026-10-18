@@ -1,6 +1,6 @@
 ---
 title: "Statistics"
-description: "The typing counts screen: your level and achievements, the tap heatmap, what gets counted, the charts, when counting pauses, and how to delete the lot."
+description: "The typing counts screen: your level and achievements, streaks, the tap heatmap, where your words come from, voice typing, personal bests, the charts, when counting pauses, and how to delete the lot."
 sidebar:
   order: 21
 ---
@@ -11,7 +11,7 @@ import Shot from '@components/Shot.astro';
 
 <SettingsPath path="About / Statistics" />
 
-**Statistics** is the running tally of how much you type: characters, words, backspaces, time spent typing, and a speed figure worked out from those. On top of the counts sit a level that climbs as you type, a set of achievements in the style of SwiftKey's, and a heatmap of where your thumbs land. It's counted on the device and stored on the device. Nothing you typed is kept, only the totals.
+**Statistics** is the running tally of how much you type: characters, words, backspaces, time spent typing, and a speed figure worked out from those. On top of the counts sit a level that climbs as you type, a set of achievements in the style of SwiftKey's, a streak calendar, a heatmap of where your thumbs land, and a count of the words you say with voice typing. It's counted on the device and stored on the device. Nothing you typed is kept, only the totals.
 
 <PhoneFrame caption="Statistics: the all-time tiles, the history chart with its period and metric chips, and the hour-of-day chart.">
   <Shot id="reference/settings/statistics-screen" alt="Statistics: the all-time tiles, the history chart with its period and metric chips, and the hour-of-day chart." />
@@ -21,19 +21,19 @@ There are two other ways in. The **Statistics** tool opens this screen straight 
 
 ## What counts as typing
 
-A keystroke counts when its text reaches your text field. Soft keys, a physical keyboard, braille and morse all take the same path, so they all count. A word you pick off the suggestion strip or draw with a glide counts as a word, but it adds no characters and no time. Counting characters you didn't type would make the speed figure a fiction.
+A keystroke counts when its text reaches your text field. Soft keys, a physical keyboard, braille and morse all take the same path, so they all count. A word you pick off the suggestion strip or draw with a glide counts as a word, but it adds no characters and no time. Counting characters you didn't type would make the speed figure a fiction. A two-thumb word, made from taps and swipes together, counts once as a glided word when it ends, whether Space, a mark or the all-thumbs-up pause ends it. The letters you tapped in it still count as characters, the way any tap does.
 
-Insertions aren't typing, and they're left out on purpose: voice input, handwriting, and anything a panel puts in the field, whether that's emoji, a clipboard entry or a translation. Backspaces are counted separately and never subtract, because the statistic is work done rather than text that survived. A word-delete swipe counts as one backspace.
+Voice typing has a count of its own, kept beside the typing and never inside it: the words it put in, the phrases, and the time the microphone listened. See [Voice typing](#voice-typing). Other insertions aren't counted at all, on purpose: handwriting, and anything a panel puts in the field, whether that's emoji, a clipboard entry or a translation. Backspaces are counted separately and never subtract, because the statistic is work done rather than text that survived. A word-delete swipe counts as one backspace.
 
 Time is measured in bursts. The gap between two keystrokes joins your typing time only when it's 5 seconds or shorter. Anything longer is you thinking, switching apps, or putting the phone down, and it adds nothing. Speed is then the usual arithmetic: characters ÷ 5, over the minutes of typing time.
 
-What lands on disk is only ever aggregate: one bucket per calendar day, the lifetime sums, the achievement counts, a lifetime hour-of-day histogram, and for each layout a count of taps per quarter-key cell. No text, no per-app split, no timestamp finer than the day, and nothing that says which key followed which. Day buckets are kept for 370 days, counted back from the newest day recorded. Pruning them costs you nothing at the top of the screen, because the all-time totals are stored separately.
+What lands on disk is only ever aggregate: one bucket per calendar day, the lifetime sums, the achievement counts, a lifetime hour-of-day histogram, the same count split by day of the week, your fastest typing speed, and for each layout a count of taps per quarter-key cell. No text, no per-app split, no timestamp finer than the day, and nothing that says which key followed which. Day buckets are kept for 370 days, counted back from the newest day recorded. Pruning them costs you nothing at the top of the screen, because the all-time totals are stored separately.
 
 ## Your level
 
 The screen opens on your level: its number, its name, and a bar to the next one, with your XP and the XP still needed written under it. The info button beside the heading repeats how XP is earned.
 
-- **1 XP** for every word you type, however it got into the field.
+- **1 XP** for every word you type, however it got into the field, and for every word you say with voice typing.
 - **1 more XP** for every word the keyboard predicted, finished from a few letters, or read from a glide.
 - **100 XP** for every achievement step you reach (see below).
 
@@ -56,7 +56,7 @@ Nothing about the level is stored. It's worked out from the counts every time th
 
 ## Achievements
 
-Under the level are six achievements, one row each. A row says what it counts, which step you're on ("Step 2 of 9"), your count against the next target ("43/200"), and a ring that fills towards it. Once every step is done the row says so and the ring stays full, and the count keeps climbing.
+Under the level are eight achievements, one row each. A row says what it counts, which step you're on ("Step 2 of 9"), your count against the next target ("43/200"), and a ring that fills towards it. Once every step is done the row says so and the ring stays full, and the count keeps climbing.
 
 | Achievement | What it counts | Steps |
 |---|---|---|
@@ -66,16 +66,24 @@ Under the level are six achievements, one row each. A row says what it counts, w
 | Words completed | Words finished from the suggestions after a few letters | 100, 500, 2,000, 10,000, 50,000, 100,000 |
 | Glide typing | Words drawn with one stroke | 200, 1,000, 5,000, 20,000, 50,000, 100,000 |
 | Glide distance | How far your finger has travelled gliding, in metres | 20, 100, 500, 1,000, 5,000, 10,000, 42,195 (a marathon) |
+| Two-thumb typing | Words made from taps and swipes together | 100, 500, 2,000, 10,000, 50,000 |
+| Voice typing | Words you said instead of typed | 200, 1,000, 5,000, 20,000, 50,000, 100,000 |
 
 How the keyboard decides what each pick was:
 
 - **Predicted** means you picked a suggestion with nothing of the word typed yet. **Completed** means you had typed some of it and the pick was longer. A pick no longer than what you typed, like a correction of "teh", counts as a word and nothing more.
 - A pick that replaces a word you just glided, or the word under the caret, is fixing a word rather than predicting one. It counts as a word only.
 - A flick up off a key that shows a word counts the same way as a pick from the suggestions.
-- **Keystrokes saved** for a pick are the word's letters plus the space the keyboard adds after it, less the letters you had already typed and less one for the tap on the suggestion itself. A glided word saves all its letters but one, for the stroke.
+- **Keystrokes saved** for a pick are the word's letters plus the space the keyboard adds after it, less the letters you had already typed and less one for the tap on the suggestion itself. A glided word saves all its letters but one, for the stroke. A two-thumb word saves its letters less one for each tap and each swipe in it, so "hello" made from a tapped h and one swipe saves 3.
 - **Glide distance** is the length of the stroke on the glass, measured with your screen's own pixel density, so a bigger phone doesn't make the distance grow faster.
 
 The rings are hidden from screen readers. The count beside each one already says the same thing in words.
+
+## Streaks
+
+**Streaks** shows three numbers over a calendar. **Current streak** is the days in a row, up to today, that you typed or said something. A day you haven't typed on yet doesn't break it: the streak counts back from yesterday until a whole day passes with nothing. **Longest streak** is the best run in the history the keyboard keeps (370 days), and **Days typed** is how many days in that history have anything on them.
+
+The calendar is the last 26 weeks, one square per day, a column per week with Monday at the top and today in the last column. A darker square is a busier day, counting typed and spoken words together. The calendar is hidden from screen readers. The three numbers and the line under it ("Days with typing in the last 26 weeks") say what it shows.
 
 ## Where you tap
 
@@ -90,13 +98,36 @@ The map itself is hidden from screen readers, and the "Most tapped" line is its 
 
 ## Reading the screen
 
-After the level, the achievements and the heatmap, the screen shows its counts. **All time** is five tiles, three to a row: Characters, Words, Average speed, Time typing, and Backspaces. Average speed shows a dash until there's at least 30 seconds of recorded typing time behind it. Below that, a words-per-minute number is noise rather than a measurement.
+After the level, the achievements, the streaks and the heatmap, the screen shows its counts. **All time** is five tiles, three to a row: Characters, Words, Average speed, Time typing, and Backspaces. Average speed shows a dash until there's at least 30 seconds of recorded typing time behind it. Below that, a words-per-minute number is noise rather than a measurement.
 
-**History** is a chart with two rows of chips. The first picks the window: **Days** for the last 14, **Weeks** for the last 12, **Months** for the last 12. The second picks what's plotted: **Words**, **Characters** or **Speed**. Words and Characters draw bars. Speed draws a line over a light grid. Quiet buckets still get a tick, so the axis reads as a run of days rather than a chart full of holes. Under the chart is one row per bucket that has something in it, newest first: the date, "N words · N characters", and the bucket's speed on the right whenever the bucket recorded any typing time at all. The 30-second floor applies to the all-time tile only, so a row can show a speed the tile still refuses to.
+**Where your words come from** splits every word by how it went in, one row each with its count, its share and a bar: **Typed letter by letter**, **Predicted**, **Completed**, **Glided**, **Two-thumb** and **Spoken**. Each word is in one row only. A way you have never used doesn't get a row.
+
+### Voice typing
+
+**Voice typing** appears once you have dictated something. Its four tiles are **Words spoken**, **Phrases**, **Time speaking** and **Speaking speed**. A phrase is one stretch of speech the keyboard put in the field, and its time runs from when the microphone started listening to when the words went in, so it includes the moment Whisper or a server took to transcribe. A phrase that took more than 10 minutes is left out of the time, because that's a microphone left open rather than talking. Speaking speed is spoken words per minute of that time, and shows a dash until there's a full minute.
+
+Words in a language written without spaces (Chinese, Japanese, Thai, Lao, Khmer and Burmese) count one per letter. Voice typing into the keyboard's own boxes, such as a panel's search field, isn't counted. Spoken words earn XP and count towards the streak and the best day, but they are never characters, never part of **Words** in the All time tiles, and never part of the typing speed.
+
+### Personal bests
+
+- **Fastest stretch** is your best speed over any run of typing at least 15 seconds and 50 characters long, with no pause longer than 5 seconds inside it. Shorter runs would let two quick words post a silly number.
+- **Best day** is the day with the most typed and spoken words, with its date.
+- **Average word length** is the letters in each word you typed, picked or glided.
+- **Corrections** is backspaces for each 100 characters you typed.
+
+A row only appears once it has a number.
+
+### In other words
+
+The same counts turned into things you can picture. **Novels** is your typed and spoken words divided by 80,000, a round figure for an adult novel. **Time saved** is how long the keystrokes saved would take you to type at your own average speed, or at 40 wpm before you have one. **Running track laps** is your glide distance on a 400 m track. **Key presses** is every letter, space, mark and backspace. Time saved and the laps wait until there's at least a minute or a tenth of a lap to show.
+
+**History** is a chart with two rows of chips. The first picks the window: **Days** for the last 14, **Weeks** for the last 12, **Months** for the last 12. The second picks what's plotted: **Words**, **Characters**, **Speed** or **Spoken** (words from voice typing). Words and Characters draw bars. Speed draws a line over a light grid. Quiet buckets still get a tick, so the axis reads as a run of days rather than a chart full of holes. Under the chart is one row per bucket that has something in it, newest first: the date, "N words · N characters" (with "· N spoken" added on a day you dictated), and the bucket's speed on the right whenever the bucket recorded any typing time at all. The 30-second floor applies to the all-time tile only, so a row can show a speed the tile still refuses to.
 
 **When you type** is the 24-hour histogram, with your busiest hour named underneath in your own time format. It only appears once at least one hour has something in it.
 
-Both charts are hidden from screen readers on purpose. Every number the history chart draws is restated in the bucket rows below it, so nothing there is available only as a picture. The hour histogram is the exception. Only its busiest hour is named in words, and the other 23 bars are shape alone.
+**Your week** is a punch card: seven rows, Monday first, with a dot for each hour of the day. A bigger dot means more keystrokes in that hour, and your busiest day is named underneath. It counts from the version that added it, so it can look emptier than the hour histogram above it at first.
+
+Both charts are hidden from screen readers on purpose. Every number the history chart draws is restated in the bucket rows below it, so nothing there is available only as a picture. The hour histogram and the punch card are the exceptions. Only the busiest hour and the busiest day are named in words, and the rest is shape alone.
 
 ## When counting pauses
 
@@ -137,6 +168,7 @@ The row carries an info button repeating the privacy terms. The counts stay on y
 - **The keyboard's own boxes don't count, heatmap included.** Typing into the typing test or a panel's search box adds no characters, no words and no taps, because none of it reaches your text field.
 - **The settings screen only ever reads the file.** It never saves, so opening Statistics can't race the keyboard into losing counts. Deleting works the other way round. The file is emptied, then a counter is bumped that tells the keyboard to drop its in-memory copy instead of writing the old numbers back over your deletion.
 - **A fresh install starts from zero.** The counts live in the app's own storage, so uninstalling takes them with it. A backup that includes the statistics section is the only thing that carries them to a new phone.
+- **The typing speed on the spacebar is separate.** <SettingsPath path="Typing / Gestures / Typing speed on the spacebar" /> shows your speed over the last few words while you type. It keeps nothing, so it works with these statistics off and in incognito. See [Switching languages](/languages/switching/#typing-speed-on-the-spacebar).
 - **Nothing here is edition-gated.** Counting, the level, the achievements, the heatmap, the charts and the delete action work identically on full and lite builds.
 
 See [Privacy at a glance](/privacy/overview/) for what does and doesn't leave the device. [Incognito & secure fields](/privacy/incognito/) covers exactly when the pause kicks in, and [About & diagnostics](/reference/settings/about/) covers the rest of the About tree.

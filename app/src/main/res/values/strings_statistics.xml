@@ -40,6 +40,8 @@
     <string name="statistics_chart_words_label">Words</string>
     <string name="statistics_chart_chars_label">Characters</string>
     <string name="statistics_chart_speed_label">Speed</string>
+    <!-- The chart counts words put in by voice typing. -->
+    <string name="statistics_chart_spoken_label">Spoken</string>
     <!-- Heading of the hour-of-day chart: at which hours the user types most. -->
     <string name="statistics_hours_section">When you type</string>
     <!-- %1$s is an hour shown as a time, for example "21:00". -->
@@ -47,11 +49,14 @@
     <!-- One row of the per-day/week/month breakdown under the chart.
          %1$s is a number of words, %2$s a number of characters. -->
     <string name="statistics_bucket_detail">%1$s words · %2$s characters</string>
+    <!-- The same row on a day with voice typing. %3$s is a number of words
+         put in by voice typing. -->
+    <string name="statistics_bucket_detail_voice">%1$s words · %2$s characters · %3$s spoken</string>
 
     <!-- levels and achievements (issue #390) -->
 
     <string name="statistics_level_section">Your level</string>
-    <string name="statistics_level_info">You earn 1 XP for every word you type, 1 more for every word the keyboard predicted, finished or read from a glide, and 100 for every achievement step. Each level takes 500 XP more than the one before.</string>
+    <string name="statistics_level_info">You earn 1 XP for every word you type or say, 1 more for every word the keyboard predicted, finished or read from a glide, and 100 for every achievement step. Each level takes 500 XP more than the one before.</string>
     <!-- %1$d is the level number. -->
     <string name="statistics_level_number">Level %1$d</string>
     <!-- Progress through the current level. %1$s is the user's XP, %2$s the XP
@@ -84,6 +89,10 @@
     <string name="statistics_achievement_glide_subtitle">Words drawn with one stroke</string>
     <string name="statistics_achievement_distance_title">Glide distance</string>
     <string name="statistics_achievement_distance_subtitle">How far your finger has travelled gliding</string>
+    <string name="statistics_achievement_two_thumb_title">Two-thumb typing</string>
+    <string name="statistics_achievement_two_thumb_subtitle">Words made from taps and swipes together</string>
+    <string name="statistics_achievement_voice_title">Voice typing</string>
+    <string name="statistics_achievement_voice_subtitle">Words you said instead of typed</string>
     <!-- Which step of an achievement the user is working on. %1$d is the step,
          %2$d how many there are. -->
     <string name="statistics_achievement_step">Step %1$d of %2$d</string>
@@ -109,6 +118,86 @@
         <item quantity="one">%1$s tap on this layout</item>
         <item quantity="other">%1$s taps on this layout</item>
     </plurals>
+
+    <!-- streaks and the calendar -->
+
+    <string name="statistics_streak_section">Streaks</string>
+    <string name="statistics_streak_info">A day counts when you type or say something on it. A streak stays on until one full day passes with nothing typed or said. The calendar shows the last 26 weeks, one square for each day, Monday at the top. Darker squares are busier days.</string>
+    <string name="statistics_streak_current_label">Current streak</string>
+    <string name="statistics_streak_longest_label">Longest streak</string>
+    <string name="statistics_streak_active_label">Days typed</string>
+    <plurals name="statistics_streak_days">
+        <item quantity="one">%1$s day</item>
+        <item quantity="other">%1$s days</item>
+    </plurals>
+    <!-- Under the calendar. %1$s is a number of days. -->
+    <string name="statistics_calendar_summary" tools:ignore="PluralsCandidate">Days with typing in the last 26 weeks: %1$s</string>
+
+    <!-- where the words come from -->
+
+    <string name="statistics_sources_section">Where your words come from</string>
+    <string name="statistics_sources_info">Each word counts once, by how it went in. A glided word is one stroke. A two-thumb word is taps and swipes together. Spoken words come from voice typing, and they are not part of your typing speed.</string>
+    <string name="statistics_source_typed">Typed letter by letter</string>
+    <string name="statistics_source_predicted">Predicted</string>
+    <string name="statistics_source_completed">Completed</string>
+    <string name="statistics_source_glided">Glided</string>
+    <string name="statistics_source_two_thumb">Two-thumb</string>
+    <string name="statistics_source_spoken">Spoken</string>
+    <!-- A count and its share of all words. %1$s is a number of words,
+         %2$d a percentage. -->
+    <string name="statistics_source_share" tools:ignore="PluralsCandidate">%1$s · %2$d%%</string>
+
+    <!-- voice typing (issue #761) -->
+
+    <string name="statistics_voice_section">Voice typing</string>
+    <string name="statistics_voice_info">The keyboard counts the words that voice typing puts in, the phrases, and the time the microphone listens. Spoken words earn XP. They are not part of the characters or the typing speed. Voice typing in the keyboard's own search boxes is not counted.</string>
+    <string name="statistics_voice_words_label">Words spoken</string>
+    <string name="statistics_voice_phrases_label">Phrases</string>
+    <string name="statistics_voice_time_label">Time speaking</string>
+    <string name="statistics_voice_speed_label">Speaking speed</string>
+
+    <!-- personal bests -->
+
+    <string name="statistics_bests_section">Personal bests</string>
+    <string name="statistics_best_burst_title">Fastest stretch</string>
+    <string name="statistics_best_burst_subtitle">Your best speed over 15 seconds or more of typing with no pause</string>
+    <string name="statistics_best_day_title">Best day</string>
+    <plurals name="statistics_word_count">
+        <item quantity="one">%1$s word</item>
+        <item quantity="other">%1$s words</item>
+    </plurals>
+    <string name="statistics_word_length_title">Average word length</string>
+    <string name="statistics_word_length_subtitle">Letters in each word you type, pick or glide</string>
+    <plurals name="statistics_letter_count">
+        <item quantity="one">%1$s letter</item>
+        <item quantity="other">%1$s letters</item>
+    </plurals>
+    <string name="statistics_correction_title">Corrections</string>
+    <string name="statistics_correction_subtitle">Backspaces for each 100 characters you type</string>
+
+    <!-- the counts as things to picture -->
+
+    <string name="statistics_equivalents_section">In other words</string>
+    <string name="statistics_novels_title">Novels</string>
+    <!-- %1$s is the number of words in one novel, for example 80,000. -->
+    <plurals name="statistics_novels_subtitle">
+        <item quantity="one">Your typed and spoken words as novels of %1$s word</item>
+        <item quantity="other">Your typed and spoken words as novels of %1$s words</item>
+    </plurals>
+    <string name="statistics_time_saved_title">Time saved</string>
+    <string name="statistics_time_saved_subtitle">How long the keystrokes that suggestions and glides saved would take to type at your speed</string>
+    <string name="statistics_laps_title">Running track laps</string>
+    <!-- %1$d is the length of one lap in metres. m is the unit symbol. -->
+    <string name="statistics_laps_subtitle" tools:ignore="PluralsCandidate">Your glide distance on a %1$d m track</string>
+    <string name="statistics_presses_title">Key presses</string>
+    <string name="statistics_presses_subtitle">Every letter, space, mark and backspace</string>
+
+    <!-- the weekly punch card -->
+
+    <string name="statistics_punch_section">Your week</string>
+    <string name="statistics_punch_info">Each dot is one hour of one day of the week. A bigger dot means more keystrokes in that hour. This chart counts from the version that added it, so it can start emptier than the others.</string>
+    <!-- %1$s is a day of the week, for example "Tuesday". -->
+    <string name="statistics_busiest_day_label">Busiest day: %1$s</string>
 
     <string name="statistics_empty_body">Nothing counted yet. Type somewhere, then come back.</string>
     <string name="statistics_off_body">Statistics are off. Turn them on to start counting.</string>

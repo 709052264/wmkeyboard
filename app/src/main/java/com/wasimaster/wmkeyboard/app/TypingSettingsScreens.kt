@@ -2595,6 +2595,16 @@ internal fun TypingGesturesSettings(
                 default = SettingsDefaults.spacebarLabel,
             ) { repository.setSpacebarLabel(it) }
         }
+        item {
+            // Issue #752: the speed of the last few words, beside the label.
+            ToggleSetting(
+                R.string.typing_spacebar_live_wpm_title,
+                stringResource(R.string.typing_spacebar_live_wpm_subtitle),
+                settings.watch { it.spacebarLiveWpm },
+                info = stringResource(R.string.typing_spacebar_live_wpm_info),
+                default = SettingsDefaults.spacebarLiveWpm,
+            ) { scope.launch { repository.setSpacebarLiveWpm(it) } }
+        }
     }
     // Issue #647: two, three and four finger swipes over the keys.
     FingerSwipeSettings(repository, settings)

@@ -546,6 +546,7 @@ private fun SearchStrings.typingGesturesRows(): List<SettingsSearchEntry> {
         row(R.string.typing_language_picker_style_title, R.string.typing_language_picker_style_subtitle),
         row(R.string.typing_space_hold_picker_long_ring_title, R.string.typing_space_hold_picker_long_ring_subtitle),
         row(R.string.typing_spacebar_text_label),
+        row(R.string.typing_spacebar_live_wpm_title, R.string.typing_spacebar_live_wpm_subtitle),
         row(R.string.typing_finger_swipes_title, R.string.typing_finger_swipes_subtitle),
         row(R.string.typing_finger_swipes_reset_title, R.string.typing_finger_swipes_reset_subtitle),
     )

@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.tools
 
 import kotlin.math.floor
+import kotlin.math.roundToLong
 import kotlin.math.sqrt
 
 /**
@@ -30,6 +31,12 @@ object TypingProgress {
 
         /** In whole metres; the last step is a marathon. */
         GLIDE_DISTANCE(longArrayOf(20, 100, 500, 1_000, 5_000, 10_000, 42_195)),
+
+        /** Words built from taps and swipes together (#751). */
+        TWO_THUMB_WORDS(longArrayOf(100, 500, 2_000, 10_000, 50_000)),
+
+        /** Words dictated (#761). */
+        VOICE_WORDS(longArrayOf(200, 1_000, 5_000, 20_000, 50_000, 100_000)),
     }
 
     /**
@@ -89,6 +96,8 @@ object TypingProgress {
         Achievement.WORDS_COMPLETED -> totals.wordsCompleted
         Achievement.GLIDE_WORDS -> totals.glideWords
         Achievement.GLIDE_DISTANCE -> (totals.glideDistanceMm / MM_PER_METRE).toLong()
+        Achievement.TWO_THUMB_WORDS -> totals.twoThumbWords
+        Achievement.VOICE_WORDS -> totals.voiceWords
     }
 
     fun state(achievement: Achievement, totals: TypingStats.Totals): AchievementState {
@@ -102,15 +111,16 @@ object TypingProgress {
         Achievement.entries.map { state(it, totals) }
 
     /**
-     * Experience: a point for every word, a second for every word the keyboard
-     * predicted, finished or read off a glide, and [STEP_XP] for each
-     * achievement step. Typing earns; typing with the keyboard's help earns
-     * faster, which is the point of counting any of it.
+     * Experience: a point for every word, typed or spoken, a second for every
+     * word the keyboard predicted, finished or read off a glide, and [STEP_XP]
+     * for each achievement step. Typing earns; typing with the keyboard's help
+     * earns faster, which is the point of counting any of it.
      */
     fun xp(totals: TypingStats.Totals): Long {
         val assisted = totals.wordsPredicted + totals.wordsCompleted + totals.glideWords
         val steps = achievements(totals).sumOf { it.steps }
-        return totals.words.coerceAtLeast(0) + assisted.coerceAtLeast(0) + steps * STEP_XP
+        return totals.words.coerceAtLeast(0) + totals.voiceWords.coerceAtLeast(0) +
+            assisted.coerceAtLeast(0) + steps * STEP_XP
     }
 
     /** The XP at which [level] (1-based) begins: 0, 500, 1 500, 3 000, 5 000… */
@@ -140,9 +150,132 @@ object TypingProgress {
 
     /** Whether there is anything at all to show a level or an achievement for. */
     fun hasProgress(totals: TypingStats.Totals): Boolean =
-        totals.words > 0L || totals.glideDistanceMm > 0.0
+        totals.words > 0L || totals.voiceWords > 0L || totals.glideDistanceMm > 0.0
 
     private const val MM_PER_METRE = 1_000.0
+}
+
+/**
+ * The rest of the Statistics screen's arithmetic: streaks and personal bests,
+ * where the words come from, and the counts turned into things a person can
+ * picture. Pure, like [TypingProgress], and read off the same stored counts.
+ */
+object TypingInsights {
+
+    /** A day counts towards a streak when anything at all was typed or said on it. */
+    fun active(entry: TypingStats.DayEntry): Boolean =
+        entry.chars > 0L || entry.words > 0L || entry.voiceWords > 0L
+
+    /** The days with typing on them, as a set of local epoch days. */
+    fun activeDays(entries: List<TypingStats.DayEntry>): Set<Int> =
+        entries.filter(::active).mapTo(HashSet()) { it.epochDay }
+
+    /**
+     * Days in a row up to [today]. A streak is still alive on a day with no
+     * typing yet: then it counts back from yesterday.
+     */
+    fun currentStreak(entries: List<TypingStats.DayEntry>, today: Int): Int {
+        val days = activeDays(entries)
+        var day = if (today in days) today else today - 1
+        var run = 0
+        while (day in days) {
+            run++
+            day--
+        }
+        return run
+    }
+
+    /** The longest run of days in a row in the history kept ([TypingStats.MAX_DAYS]). */
+    fun longestStreak(entries: List<TypingStats.DayEntry>): Int {
+        var best = 0
+        var run = 0
+        var previous = Int.MIN_VALUE
+        for (day in activeDays(entries).sorted()) {
+            run = if (day == previous + 1) run + 1 else 1
+            if (run > best) best = run
+            previous = day
+        }
+        return best
+    }
+
+    /** The day with the most words typed and spoken, or null when there is none. */
+    fun bestDay(entries: List<TypingStats.DayEntry>): TypingStats.DayEntry? =
+        entries.filter { it.words + it.voiceWords > 0L }
+            .maxWithOrNull(compareBy<TypingStats.DayEntry> { it.words + it.voiceWords }.thenBy { it.epochDay })
+
+    /** Letters per word, or 0 before there are words to tell. */
+    fun averageWordLength(totals: TypingStats.Totals): Double =
+        if (totals.words <= 0L || totals.wordLetters <= 0L) 0.0 else totals.wordLetters.toDouble() / totals.words
+
+    /** Backspaces per hundred characters typed: how much of the typing was taken back. */
+    fun correctionRate(totals: TypingStats.Totals): Double =
+        if (totals.chars <= 0L) 0.0 else totals.backspaces * PERCENT / totals.chars
+
+    /** Spoken words per minute the microphone listened, or 0 before there is a minute of it. */
+    fun speakingWpm(totals: TypingStats.Totals): Double =
+        if (totals.voiceMs < MINUTE_MS) 0.0 else totals.voiceWords / (totals.voiceMs / MINUTE_MS.toDouble())
+
+    /** Where the words came from, in [Source] order. Sums to every word typed, glided and spoken. */
+    enum class Source { TYPED, PREDICTED, COMPLETED, GLIDED, TWO_THUMB, SPOKEN }
+
+    fun sources(totals: TypingStats.Totals): List<Pair<Source, Long>> {
+        val glided = (totals.glideWords - totals.twoThumbWords).coerceAtLeast(0)
+        val typed = (totals.words - totals.wordsPredicted - totals.wordsCompleted - totals.glideWords)
+            .coerceAtLeast(0)
+        return listOf(
+            Source.TYPED to typed,
+            Source.PREDICTED to totals.wordsPredicted.coerceAtLeast(0),
+            Source.COMPLETED to totals.wordsCompleted.coerceAtLeast(0),
+            Source.GLIDED to glided,
+            Source.TWO_THUMB to totals.twoThumbWords.coerceAtLeast(0),
+            Source.SPOKEN to totals.voiceWords.coerceAtLeast(0),
+        )
+    }
+
+    /** Words typed and spoken, as novels of [NOVEL_WORDS] words. */
+    fun novels(totals: TypingStats.Totals): Double = (totals.words + totals.voiceWords) / NOVEL_WORDS.toDouble()
+
+    /**
+     * How long the saved keystrokes would have taken to type, at the user's own
+     * speed when there is one and at [FALLBACK_WPM] when not.
+     */
+    fun timeSavedMs(totals: TypingStats.Totals): Long {
+        val wpm = TypingStatsMath.wpm(totals.chars, totals.activeMs)
+            .takeIf { totals.activeMs >= TypingStats.MIN_ACTIVE_MS && it > 0.0 } ?: FALLBACK_WPM
+        val charsPerMs = wpm * CHARS_PER_WORD / MINUTE_MS
+        return (totals.keystrokesSaved / charsPerMs).roundToLong()
+    }
+
+    /** Glide distance as laps of a [TRACK_METRES] running track. */
+    fun trackLaps(totals: TypingStats.Totals): Double = totals.glideDistanceMm / MM_PER_METRE / TRACK_METRES
+
+    /** Every key press counted: characters and backspaces. */
+    fun keyPresses(totals: TypingStats.Totals): Long = totals.chars + totals.backspaces
+
+    /**
+     * The punch card's busiest weekday (Monday 0), or -1 when it is empty.
+     */
+    fun busiestWeekday(weekHours: List<Long>): Int {
+        if (weekHours.size < WEEK_HOURS || weekHours.all { it <= 0L }) return -1
+        return (0 until DAYS).maxBy { day -> (0 until HOURS).sumOf { weekHours[day * HOURS + it] } }
+    }
+
+    /** A round figure for the length of an adult novel. */
+    const val NOVEL_WORDS = 80_000L
+
+    /** One lap of a standard outdoor track. */
+    const val TRACK_METRES = 400.0
+
+    /** The speed the time saved is reckoned at before there is one of the user's own. */
+    const val FALLBACK_WPM = 40.0
+
+    private const val PERCENT = 100.0
+    private const val MINUTE_MS = 60_000L
+    private const val CHARS_PER_WORD = 5.0
+    private const val MM_PER_METRE = 1_000.0
+    private const val DAYS = 7
+    private const val HOURS = 24
+    private const val WEEK_HOURS = DAYS * HOURS
 }
 
 /**

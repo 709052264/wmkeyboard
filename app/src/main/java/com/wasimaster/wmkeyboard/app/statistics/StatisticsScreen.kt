@@ -54,6 +54,7 @@ import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.tools.StatsPeriod
+import com.wasimaster.wmkeyboard.core.tools.TypingInsights
 import com.wasimaster.wmkeyboard.core.tools.TypingProgress
 import com.wasimaster.wmkeyboard.core.tools.TypingStats
 import com.wasimaster.wmkeyboard.core.tools.TypingStatsMath
@@ -70,6 +71,7 @@ import java.util.Locale
 import java.util.TimeZone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Abc
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Speed
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
 import com.wasimaster.wmkeyboard.app.ChoiceDetail
 
@@ -150,6 +152,14 @@ private fun StatisticsBody(repository: SettingsRepository, settings: LiveSetting
     SectionHeader(stringResource(R.string.statistics_achievements_section))
     AchievementRows(TypingProgress.achievements(lifetime))
 
+    if (entries.any(TypingInsights::active)) {
+        SectionHeader(
+            stringResource(R.string.statistics_streak_section),
+            info = stringResource(R.string.statistics_streak_info),
+        )
+        StreakCard(entries, todayEpochDay())
+    }
+
     if (heatmaps.isNotEmpty()) {
         SectionHeader(
             stringResource(R.string.statistics_heatmap_section),
@@ -161,12 +171,43 @@ private fun StatisticsBody(repository: SettingsRepository, settings: LiveSetting
     SectionHeader(stringResource(R.string.statistics_totals_section))
     TotalsTiles(lifetime)
 
+    if (TypingInsights.sources(lifetime).any { it.second > 0L }) {
+        SectionHeader(
+            stringResource(R.string.statistics_sources_section),
+            info = stringResource(R.string.statistics_sources_info),
+        )
+        SourcesCard(lifetime)
+    }
+
+    // Issue #761: dictation, beside the typing and never inside it.
+    if (lifetime.voiceWords > 0L) {
+        SectionHeader(
+            stringResource(R.string.statistics_voice_section),
+            info = stringResource(R.string.statistics_voice_info),
+        )
+        VoiceTiles(lifetime)
+    }
+
+    SectionHeader(stringResource(R.string.statistics_bests_section))
+    BestsRows(lifetime, entries)
+
+    SectionHeader(stringResource(R.string.statistics_equivalents_section))
+    EquivalentsRows(lifetime)
+
     SectionHeader(stringResource(R.string.statistics_history_section))
     HistoryCard(entries)
 
     if (lifetime.hourHistogram.any { it > 0L }) {
         SectionHeader(stringResource(R.string.statistics_hours_section))
         HoursCard(lifetime.hourHistogram)
+    }
+
+    if (lifetime.weekHourHistogram.any { it > 0L }) {
+        SectionHeader(
+            stringResource(R.string.statistics_punch_section),
+            info = stringResource(R.string.statistics_punch_info),
+        )
+        PunchCard(lifetime.weekHourHistogram)
     }
 
     DeleteStatistics(enabled = true) { confirmDelete = true }
@@ -238,7 +279,7 @@ private fun TotalsTiles(totals: TypingStats.Totals) {
 }
 
 @Composable
-private fun StatTile(
+internal fun StatTile(
     value: Long,
     label: String,
     seen: Boolean,
@@ -280,6 +321,7 @@ private fun HistoryCard(entries: List<TypingStats.DayEntry>) {
             Metric.WORDS -> bucket.words.toDouble()
             Metric.CHARS -> bucket.chars.toDouble()
             Metric.SPEED -> TypingStatsMath.wpm(bucket.chars, bucket.activeMs)
+            Metric.SPOKEN -> bucket.voiceWords.toDouble()
         }
     }
     SettingsGroup {
@@ -299,6 +341,7 @@ private fun HistoryCard(entries: List<TypingStats.DayEntry>) {
                         Metric.WORDS to stringResource(R.string.statistics_chart_words_label),
                         Metric.CHARS to stringResource(R.string.statistics_chart_chars_label),
                         Metric.SPEED to stringResource(R.string.statistics_chart_speed_label),
+                        Metric.SPOKEN to stringResource(R.string.statistics_chart_spoken_label),
                     ),
                     selected = metric,
                     modifier = Modifier.padding(top = 8.dp),
@@ -309,6 +352,7 @@ private fun HistoryCard(entries: List<TypingStats.DayEntry>) {
                                 Metric.WORDS -> Icons.Outlined.TextFields
                                 Metric.CHARS -> Icons.Outlined.Abc
                                 Metric.SPEED -> Icons.Outlined.Speed
+                                Metric.SPOKEN -> Icons.Outlined.Mic
                             },
                         )
                     },
@@ -341,18 +385,27 @@ private fun HistoryCard(entries: List<TypingStats.DayEntry>) {
 @Composable
 private fun BucketRows(buckets: List<TypingStatsMath.Bucket>, period: StatsPeriod) {
     val numbers = remember { NumberFormat.getIntegerInstance() }
-    val nonEmpty = buckets.filter { it.chars > 0L || it.words > 0L }.asReversed()
+    val nonEmpty = buckets.filter { it.chars > 0L || it.words > 0L || it.voiceWords > 0L }.asReversed()
     if (nonEmpty.isEmpty()) return
     SettingsGroup {
         for (bucket in nonEmpty) {
             item {
                 WmRow(
                     title = bucketLabel(bucket.startEpochDay, period),
-                    subtitle = stringResource(
-                        R.string.statistics_bucket_detail,
-                        numbers.format(bucket.words),
-                        numbers.format(bucket.chars),
-                    ),
+                    subtitle = if (bucket.voiceWords > 0L) {
+                        stringResource(
+                            R.string.statistics_bucket_detail_voice,
+                            numbers.format(bucket.words),
+                            numbers.format(bucket.chars),
+                            numbers.format(bucket.voiceWords),
+                        )
+                    } else {
+                        stringResource(
+                            R.string.statistics_bucket_detail,
+                            numbers.format(bucket.words),
+                            numbers.format(bucket.chars),
+                        )
+                    },
                     trailing = {
                         if (bucket.activeMs > 0L) {
                             Text(
@@ -524,7 +577,7 @@ private fun SpeedLine(values: List<Double>, modifier: Modifier = Modifier) {
     }
 }
 
-private enum class Metric { WORDS, CHARS, SPEED }
+private enum class Metric { WORDS, CHARS, SPEED, SPOKEN }
 
 /**
  * Names a bucket for its row and the chart's edges. The epoch day is local,
@@ -532,7 +585,7 @@ private enum class Metric { WORDS, CHARS, SPEED }
  * date by a day for half the world.
  */
 @Composable
-private fun bucketLabel(epochDay: Int, period: StatsPeriod): String = remember(epochDay, period) {
+internal fun bucketLabel(epochDay: Int, period: StatsPeriod): String = remember(epochDay, period) {
     val date = Date(epochDay * DAY_MS)
     val utc = TimeZone.getTimeZone("UTC")
     when (period) {
@@ -544,7 +597,7 @@ private fun bucketLabel(epochDay: Int, period: StatsPeriod): String = remember(e
 }
 
 @Composable
-private fun formatDuration(activeMs: Long): String {
+internal fun formatDuration(activeMs: Long): String {
     val hours = (activeMs / HOUR_MS).toInt()
     val minutes = ((activeMs % HOUR_MS) / MINUTE_MS).toInt()
     return if (hours > 0) {

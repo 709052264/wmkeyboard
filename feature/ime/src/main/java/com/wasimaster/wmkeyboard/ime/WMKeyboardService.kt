@@ -137,6 +137,9 @@ import com.wasimaster.wmkeyboard.core.settings.activeThemeSpec
 import com.wasimaster.wmkeyboard.core.settings.keySound
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.tools.SolarCalculator
+import com.wasimaster.wmkeyboard.core.tools.LiveTypingSpeed
+import com.wasimaster.wmkeyboard.core.tools.TypingStatsMath
+import com.wasimaster.wmkeyboard.ime.ui.LiveWpmReadout
 import com.wasimaster.wmkeyboard.core.tools.ContactPhones
 import com.wasimaster.wmkeyboard.core.emoji.AnimatedEmoji
 import com.wasimaster.wmkeyboard.core.emoji.EmojiCatalog
@@ -1349,10 +1352,22 @@ open class WMKeyboardService : InputMethodService() {
      * handed to the engine (a memory-only default lives there until then). */
     private var correctionStats = CorrectionStats(null)
 
+    /**
+     * The spacebar's live speed (#752), outliving every [typingStats] swap:
+     * it holds no counts, only the last few words' lengths and times.
+     */
+    private val liveSpeed = LiveTypingSpeed { SystemClock.uptimeMillis() }
+
+    /** The check that takes the live speed off the spacebar after a pause. */
+    private var liveWpmJob: Job? = null
+
+    /** When the microphone began listening for the phrase in progress, for its voice time (#761); 0 when it is not. */
+    private var voiceListenStartedAt = 0L
+
     /** The typing counters behind About › Statistics; swapped by
      * attachPersonalStores, [TypingStats.enabled] folds the settings toggle,
      * incognito and power saving into the one gate the hooks check. */
-    private var typingStats = TypingStats(null)
+    private var typingStats = TypingStats(null, speed = liveSpeed)
 
     /**
      * The context reranker, built once the seed bigrams are loaded. Pure
@@ -4683,7 +4698,7 @@ open class WMKeyboardService : InputMethodService() {
         // Under stats/, not learning/: "Delete learned words" must not take
         // the typing statistics with it. The enabled gate re-arms on the next
         // settings emission.
-        typingStats = TypingStats(store(TypingStats.FILE_PATH)).also {
+        typingStats = TypingStats(store(TypingStats.FILE_PATH), speed = liveSpeed).also {
             it.enabled = typingStats.enabled
         }
         store(VocabProgress.FILE_PATH)?.let { vocabProgress.attach(it) }
@@ -15259,6 +15274,7 @@ open class WMKeyboardService : InputMethodService() {
             ic.endBatchEdit()
             return true
         }
+        if (duetWord.active) recordDuetWord()
         // A strip refresh still debounced for this word must not land after
         // the commit and repaint candidates for text that is no longer being
         // composed (the tail of this function publishes the next-word strip).
@@ -17820,6 +17836,45 @@ open class WMKeyboardService : InputMethodService() {
         typingStats.enabled = state.settings.typingStatsEnabled &&
             !(state.incognitoOn && state.settings.incognitoPausesLearning)
         typingStats.block()
+        publishLiveWpm(state.settings.spacebarLiveWpm)
+    }
+
+    /**
+     * Puts the live speed on the spacebar (#752) after an event fed it, and
+     * keeps a slow check running while a number is up, so it goes once the
+     * pause is long enough. Off, the readout holds 0 and nothing runs.
+     */
+    private fun publishLiveWpm(on: Boolean) {
+        val reading = if (on) liveSpeed.reading(SystemClock.uptimeMillis()) else 0
+        if (LiveWpmReadout.wpm.intValue != reading) LiveWpmReadout.wpm.intValue = reading
+        if (reading <= 0 || liveWpmJob?.isActive == true) return
+        liveWpmJob = serviceScope.launch {
+            while (true) {
+                delay(LIVE_WPM_CHECK_MS)
+                val now = if (_uiState.value.settings.spacebarLiveWpm) liveSpeed.reading(SystemClock.uptimeMillis()) else 0
+                if (LiveWpmReadout.wpm.intValue != now) LiveWpmReadout.wpm.intValue = now
+                if (now <= 0) break
+            }
+        }
+    }
+
+    /**
+     * A two-thumb word with a swipe in it is about to leave the composing
+     * region (#751): one word and one glided word, its swipes' length, and
+     * the letters its taps and swipes did not each type. Recorded once, here,
+     * whatever ends the word, and before its separator, so a tapped letter
+     * that armed the word cannot count it a second time.
+     */
+    private fun recordDuetWord() {
+        val tokens = duetWord.snapshot()
+        val swipes = tokens.filterIsInstance<GlideToken.Swipe>()
+        if (swipes.isEmpty()) return
+        val letters = composing.codePointCount(0, composing.length)
+        val distance = swipes.sumOf { glideDistanceMm(it.points) }
+        val start = tokens.minOf { it.tStart }
+        recordStat {
+            onGlideWord(letters, distance, System.currentTimeMillis(), gestures = tokens.size, startUptimeMs = start)
+        }
     }
 
     /**
@@ -24019,7 +24074,14 @@ open class WMKeyboardService : InputMethodService() {
             stripReplacesGestureWord = true
             commitGestureSpace(ic, state)
             armRevertGuard()
-            recordStat { onGlideWord(word.length, glideDistanceMm(points), System.currentTimeMillis()) }
+            recordStat {
+                onGlideWord(
+                    word.length,
+                    glideDistanceMm(points),
+                    System.currentTimeMillis(),
+                    startUptimeMs = points.firstOrNull()?.t ?: 0L,
+                )
+            }
             learn(
                 word,
                 caseTrusted = glideCaseTrusted(shiftAtGesture, state, verdict.caseAt(0)),
@@ -24508,7 +24570,14 @@ open class WMKeyboardService : InputMethodService() {
                 lastGestureWord = word
                 stripReplacesGestureWord = true
                 armRevertGuard()
-                recordStat { onGlideWord(word.length, glideDistanceMm(segment), System.currentTimeMillis()) }
+                recordStat {
+                    onGlideWord(
+                        word.length,
+                        glideDistanceMm(segment),
+                        System.currentTimeMillis(),
+                        startUptimeMs = segment.firstOrNull()?.t ?: 0L,
+                    )
+                }
                 learn(
                     word,
                     // Only the first word of the stroke could have been shifted
@@ -25996,6 +26065,7 @@ open class WMKeyboardService : InputMethodService() {
             refreshVoiceContext()
         }
         val generation = ++voiceGeneration
+        voiceListenStartedAt = SystemClock.uptimeMillis()
         // Offline-model chip: check once per language, not per utterance
         // (continuous mode restarts sessions constantly).
         val modelKnown = _uiState.value.voice.modelState != VoiceModelState.UNKNOWN &&
@@ -26963,6 +27033,10 @@ open class WMKeyboardService : InputMethodService() {
         ic.commitText(spaced, 1)
         learn(cased)
         lastVoiceCommit = spaced
+        // Counted beside the typing, never in it (#761).
+        val listened = voiceListenStartedAt.takeIf { it > 0L }?.let { SystemClock.uptimeMillis() - it } ?: 0L
+        voiceListenStartedAt = 0L
+        recordStat { onVoicePhrase(TypingStatsMath.spokenWords(cased), listened, System.currentTimeMillis()) }
         // A chained session's next utterance lands after this one, so what it
         // needs in front of it — a space, a capital — is read now that the
         // field holds it, not from wherever the session began (#182).
@@ -44554,6 +44628,9 @@ open class WMKeyboardService : InputMethodService() {
         private const val STATISTICS_ROUTE = "statistics"
 
         private const val MM_PER_INCH = 25.4
+
+        /** How often the live speed on the spacebar checks whether its pause has come. */
+        private const val LIVE_WPM_CHECK_MS = 1_000L
 
         /** Marks an [extraPhoneticWanted] token whose spelling map is switched on. */
         private const val WITH_SPELLING_MAP = "+map"
