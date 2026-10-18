@@ -10,8 +10,9 @@
  * to [NAME_LIMIT].
  *
  * The amount is stored too, and a Play tipper's message, for the website's
- * list. SupportKori's webhook carries no message, so its entries have none. The app's list shows names only and ignores them,
- * and scripts/sync-supporters.mjs strips them from the copy the APK ships.
+ * list. SupportKori's webhook carries no message, so its entries have none.
+ * The app's list shows names only and ignores both, and
+ * scripts/sync-supporters.mjs strips them from the copy the APK ships.
  * To take someone off the list, or a message that should not be public,
  * delete their key in the Cloudflare dashboard (Workers & Pages › KV › the
  * namespace bound as SUPPORTERS).
